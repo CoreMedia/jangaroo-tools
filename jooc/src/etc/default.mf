@@ -1,0 +1,10 @@
+Manifest-version: 1.0
+Main-Class: com.coremedia.jscc.Jscc
+
+Name: com/coremedia/jscc/
+Specification-Title: @module.name@
+Specification-Version: @module.version@
+Specification-Vendor: CoreMedia AG, Hamburg, Germany
+Implementation-Title: @module.Name@
+Implementation-Version: @module.version@-@build.id@
+Implementation-Vendor: CoreMedia AG, Hamburg, Germany

@@ -1,0 +1,102 @@
+/*
+ *   Copyright (c) 2003 CoreMedia AG, Hamburg. All rights reserved.
+ */
+
+package com.coremedia.jscc;
+
+import java.io.IOException;
+
+public class ClassDeclaration extends IdeDeclaration {
+
+  protected JscSymbol symClass;
+  protected Extends optExtends;
+
+  public Extends getOptExtends() {
+    return optExtends;
+  }
+
+  protected Implements optImplements;
+
+  public ClassBody getBody() {
+    return body;
+  }
+
+  public MethodDeclaration getConstructor() {
+    return constructor;
+  }
+
+  protected ClassBody body;
+
+  protected MethodDeclaration constructor = null;
+
+  public MethodDeclaration getConstructorDeclaration() {
+    return constructor;
+  }
+
+  public ClassDeclaration(JscSymbol[] modifiers, JscSymbol cls, Ide ide, Extends ext, Implements impl, ClassBody body) {
+    super(modifiers,
+            MODIFIER_ABSTRACT|MODIFIER_FINAL|MODIFIERS_SCOPE|MODIFIER_STATIC,
+            ide);
+    this.symClass = cls;
+    this.optExtends = ext;
+    this.optImplements = impl;
+    this.body = body;
+    body.classDeclaration = this;
+  }
+
+  // valid after analyze phase
+  public PackageDeclaration getPackageDeclaration() {
+    return (PackageDeclaration) getParentDeclaration();
+  }
+
+  public String getName() {
+    return ide.getName();
+  }
+
+  public void setConstructor(MethodDeclaration methodDeclaration) {
+     if (constructor != null)
+       Jscc.error(methodDeclaration, "Only one constructor allowed per class");
+     if (methodDeclaration != body.declararations.get(0))
+       Jscc.error(methodDeclaration, "Constructor declaration must be the first declaration in a class");
+     constructor = methodDeclaration;
+  }
+
+  public void generateCode(JsWriter out) throws IOException {
+    out.beginComment();
+    writeModifiers(out);
+    out.writeSymbol(symClass);
+    ide.generateCode(out);
+    if (optExtends != null) optExtends.generateCode(out);
+    if (optImplements != null) optImplements.generateCode(out);
+    out.endComment();
+    out.write("(function(){");
+    // constructor will emit itself - or emit default constructor?
+    if (constructor == null)
+      Jscc.error("no constructor for class - default constructors not (yet) implemented");
+    body.generateCode(out);
+    out.write("\n})();");
+  }
+
+  public void analyze(AnalyzeContext context) {
+    parentDeclaration = context.getScope().getPackageDeclaration();
+    context.enterScope(this);
+    if (optExtends != null) optExtends.analyze(context);
+    if (optImplements != null) optImplements.analyze(context);
+    body.analyze(context);
+    context.leaveScope(this);
+    computeModifiers();
+  }
+
+  public Type getSuperClassType() {
+    return optExtends != null
+      ? optExtends.superClass
+      : new IdeType(new Ide(new JscSymbol(sym.IDE,  "", -1, -1, "", "Object")));
+  }
+
+  public String getSuperClassPath() {
+    Type type = getSuperClassType();
+    //TODO: scope class declarations, implement getSuperClassDeclaration()
+    IdeType ideType = (IdeType) type;
+    return toPath(ideType.getIde().getQualifiedName());
+  }
+}

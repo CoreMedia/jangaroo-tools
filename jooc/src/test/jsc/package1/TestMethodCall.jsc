@@ -1,0 +1,23 @@
+/*
+* etwas Kommentar
+*/
+  package
+    package1 /*blubber*/ ;
+
+/**
+* und nochne klasse Klasse
+*/
+public class TestMethodCall /* blub ber */extends Object {
+
+  public function TestMethodCall() {
+  }
+
+  static public function s(x :int) {
+    return x;
+  }
+
+  public function m(x :int) {
+    return x;
+  }
+
+}

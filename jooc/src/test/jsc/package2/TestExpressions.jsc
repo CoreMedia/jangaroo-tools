@@ -1,0 +1,66 @@
+package package2;
+
+public class TestExpressions {
+
+  public function TestExpressions() {
+  }
+
+  public function testParenExpr(n:int):int {
+    return (n+1)*2;
+  }
+
+  public function testStringLiterals():String {
+    return "'¤\\\b\t\n\f\r\'/'\xc6\u01Bfe\"'";
+  }
+
+  public function testCharLiterals():String {
+    return '\'' + '¤' + '\\' + '\b' + '\t' + '\n' + '\f' + '\r' + '\'' + '/' + '\'' + '\u00C6' + '\u01bF' + 'e' + '"' + '\'';
+  }
+
+  public function testRegexpLiterals() {
+    return [
+      "abc".match(/(abc)*/).length,
+      " abc abcabcab cabcabc abca bcabcabcabcabcab cabcab cabcabc".match(/(abc)+/g).length,
+      "abc".match(/(abc)*/).length,
+      "abc\n  abc \nabc abc abc \nabc\n abc ".match(/^abc$/mg).length,
+      "abc\n\tAbc".match(/c(\s+)a/i).length
+      ].join(',');
+  }
+
+  public function testObjectLiterals() {
+    var o = { x: 123, y: 456 };
+    return o.x + o.y;
+  }
+
+  public function testArrayLiterals() {
+    return [ 1+2-2,2+3-3,3+4-4,4,5,6,7,8,9,0 ].join(',');
+  }
+
+  public function testBinOpExpr(n:int):int {
+    return 1+n/2;
+  }
+
+  public function testAssignOpExpr(n:int):int {
+    var x = n;
+    x/=2;
+    return n;
+  }
+
+  public function testFunExpr(n:int) {
+    return function(m:int) { return n*m; };
+  }
+
+  public function testPrefixOpExpr(n:int) {
+    return 1+-n+11;
+  }
+
+  public function testPostfixOpExpr(n:int) {
+    var x = 1+n--;
+    return n+x;
+  }
+
+  public function testCond(cond:boolean, ifTrue :int, ifFalse :int):int {
+    return cond ? ifTrue : ifFalse;
+  }
+
+}

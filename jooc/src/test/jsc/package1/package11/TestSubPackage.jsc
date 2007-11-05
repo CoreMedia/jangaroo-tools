@@ -1,0 +1,12 @@
+package package1.package11;
+
+public class TestSubPackage {
+
+  public function TestSubPackage() {
+  }
+
+  public static function test() :int {
+    return 42;
+  }
+
+}

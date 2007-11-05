@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE project [
+  <!ENTITY buildmagic       SYSTEM "resource://org/jboss/tools/buildmagic/common.xml">
+  <!ENTITY common           SYSTEM "resource://etc/buildmagic/common.xml">
+  <!ENTITY compileClasses   SYSTEM "resource://etc/buildmagic/compile-classes.xml">
+  <!ENTITY compileEtc       SYSTEM "resource://etc/buildmagic/compile-etc.xml">
+  <!ENTITY compileConfig    SYSTEM "resource://etc/buildmagic/compile-config.xml">
+  <!ENTITY compileBin       SYSTEM "resource://etc/buildmagic/compile-bin.xml">
+  <!ENTITY compileResources SYSTEM "resource://etc/buildmagic/compile-resources.xml">
+  <!ENTITY clean            SYSTEM "resource://etc/buildmagic/clean.xml">
+  <!ENTITY clobber          SYSTEM "resource://etc/buildmagic/clobber.xml">
+  <!ENTITY doc              SYSTEM "resource://etc/buildmagic/doc.xml">
+  <!ENTITY jars             SYSTEM "resource://etc/buildmagic/jars.xml">
+  <!ENTITY commonProperties SYSTEM "resource://etc/buildmagic/common-properties.xml">
+  <!ENTITY misc            SYSTEM "resource://etc/buildmagic/misc.xml">
+]>
+
+<project default="main" name="jscc (JavaScript Class Compiler)">
+
+  <!-- ================================================================== -->
+  <!-- Setup                                                              -->
+  <!-- ================================================================== -->
+
+  <!--
+     | Include the common Buildmagic elements.
+     |
+     | This defines several different targets, properties and paths.
+     | It also sets up the basic extention tasks amoung other things.
+   -->
+
+  &buildmagic;
+  &common;
+  &compileEtc;
+  &compileConfig;
+  &compileBin;
+  &clean;
+  &clobber;
+  &doc;
+  &misc;
+
+  <!-- ================================================================== -->
+  <!-- Initialization                                                     -->
+  <!-- ================================================================== -->
+
+  <!--
+     | Initialize the build system.  Must depend on '_buildmagic:init'.
+     | Other targets should depend on 'init' or things will mysteriously fail.
+   -->
+
+  <target name="init" unless="init.disable" depends="_buildmagic:init">
+  </target>
+
+
+  <!-- ================================================================== -->
+  <!-- Configuration                                                      -->
+  <!-- ================================================================== -->
+
+  <!--
+     | Configure the build system.
+     |
+     | This target is invoked by the Buildmagic initialization logic and
+     | should contain module specific configuration elements.
+   -->
+
+  <target name="configure" unless="configure.disable">
+
+    <property name="install.root" value="${project.root}/tools"/>
+
+    <property name="module.name" value="jscc"/>
+    <property name="module.Name" value="JavaScript Class Compiler"/>
+    <property name="module.version" value="0.1"/>
+
+    <property name="javadoc.packages" value=""/>
+    <property name="javac.include.ant.runtime" value="false"/>
+
+    <libraryset pathid="library.classpath" root="${project.thirdparty}">
+      <library vendor="junit"     name="junit"       includes="junit.jar"/>
+      <library vendor="princeton" name="CUP"         includes="cup-runtime.jar"/>
+      <library vendor="apache"    name="commons-cli" includes="commons-cli.jar"/>
+      <library vendor="apache"    name="jakarta-ant" includes="ant.jar"/>
+      <library vendor="mozilla"   name="rhino"       includes="js.jar"/>
+    </libraryset>
+    <libraryset pathid="dependentmodule.classpath" root="${project.root}">
+    </libraryset>
+
+    &commonProperties;
+
+    <property name="source.js" value="${module.source}/js"/>
+    <property name="build.js" value="${module.output}/js"/>
+
+    <property name="build.module.jar" value="${build.lib}/${module.name}.jar"/>
+    <property name="install.module.jar" value="${project.root}/tools/lib/${module.name}.jar"/>
+
+    <property name="cup.input.filename" value="jsc.cup"/>
+    <property name="cup.files.reldir" value="com/coremedia/jscc"/>
+    <property name="cup.output.dir" value="${build.gen-src}/${cup.files.reldir}"/>
+    <property name="cup.output.filename" value="${cup.output.dir}/${cup.parser.classname}.java"/>
+    <property name="cup.symbol.classname" value="sym"/>
+    <property name="cup.parser.classname" value="parser"/>
+
+    <property name="test.source.java" value="${module.source}/test/java"/>
+    <property name="test.source.jsc" value="${module.source}/test/jsc"/>
+    <property name="test.build.classes" value="${module.temp}/test/classes"/>
+    <property name="test.build.js" value="${module.temp}/test/js"/>
+    <property name="test.reports" value="${module.temp}/test/reports"/>
+
+    <path id="test.javac.classpath">
+      <pathelement path="${build.module.jar}"/>
+      <pathelement path="${test.build.classes}"/>
+      <path refid="thirdparty.classpath" />
+    </path>
+
+    <path id="test.java.classpath">
+      <path refid="test.javac.classpath" />
+    </path>
+
+  </target>
+
+
+  <target name="compile"
+	  description="Compile all source files."
+	  depends="compile-classes, compile-etc"/>
+
+  <target name="compile-classes" depends="compile-jflex, compile-cup, init">
+    <mkdir dir="${build.classes}"/>
+    <javac destdir="${build.classes}"
+      optimize="${javac.optimize}"
+      target="${javac.target}"
+      debug="${javac.debug}"
+      depend="${javac.depend}"
+      verbose="${javac.verbose}"
+      nowarn="${javac.nowarn}"
+      deprecation="${javac.deprecation}"
+      includeAntRuntime="${javac.include.ant.runtime}"
+      includeJavaRuntime="${javac.include.java.runtime}"
+      failonerror="${javac.fail.onerror}">
+        <include name="${javac.includes}"/>
+        <exclude name="${javac.excludes}"/>
+        <src path="${source.java}"/>
+        <src path="${build.gen-src}"/>
+        <classpath refid="javac.classpath"/>
+    </javac>
+  </target>
+
+  <target name="guard-cup" depends="init">
+    <uptodate property="cup.is.uptodate"
+              targetfile="${cup.output.filename}">
+      <srcfiles dir="${source.java}" includes="${cup.files.reldir}/${cup.input.filename}"/>
+    </uptodate>
+  </target>
+
+  <target name="generate-cup" depends="init" unless="cup.is.uptodate">
+    <mkdir dir="${cup.output.dir}"/>
+
+    <!-- forked java process may hang otherwise?! -->
+    <delete file="${cup.output.filename}" />
+
+    <java classname="java_cup.Main"
+          fork="true" dir="${cup.output.dir}"
+          failonerror="true">
+      <!-- arg value="-dump_states"/> -->
+      <arg value="-interface"/>
+      <arg value="-expect"/>
+      <arg value="3"/>
+      <arg value="${source.java}/${cup.files.reldir}/${cup.input.filename}"/>
+      <classpath>
+        <pathelement location="${project.root}/thirdparty/princeton/CUP/lib/cup.jar"/>
+      </classpath>
+    </java>
+  </target>
+
+  <target name="compile-cup" depends="guard-cup,generate-cup"/>
+
+  <target name="compile-jflex" depends="init">
+    <taskdef classname="JFlex.anttask.JFlexTask" name="jflex" />
+    <jflex
+      file="${source.java}/${cup.files.reldir}/jsc.flex"
+      destdir="${build.gen-src}"
+    />
+  </target>
+
+  <target name="compile-js" depends="init">
+    <mkdir dir="${build.js}"/>
+    <copy todir="${build.js}" filtering="yes">
+      <fileset dir="${source.js}">
+        <include name="**/*"/>
+      </fileset>
+    </copy>
+  </target>
+
+  <target name="compile-test-js" depends="compile-js,check-for-new-jscc">
+    <copy todir="${test.build.js}" filtering="no">
+      <fileset dir="${build.js}">
+        <include name="**/*"/>
+      </fileset>
+    </copy>
+  </target>
+
+  <target name="compile-test-classes" depends="jars,compile-test-js">
+    <mkdir dir="${test.build.classes}"/>
+    <javac destdir="${test.build.classes}"
+      optimize="${javac.optimize}"
+      target="${javac.target}"
+      debug="${javac.debug}"
+      depend="${javac.depend}"
+      verbose="${javac.verbose}"
+      nowarn="${javac.nowarn}"
+      deprecation="${javac.deprecation}"
+      includeAntRuntime="false"
+      includeJavaRuntime="${javac.include.java.runtime}"
+      failonerror="${javac.fail.onerror}">
+        <include name="${javac.includes}"/>
+        <exclude name="${javac.excludes}"/>
+        <src path="${test.source.java}"/>
+        <classpath refid="test.javac.classpath"/>
+    </javac>
+  </target>
+
+  <target name="check-for-new-jscc" depends="jars">
+    <mkdir dir="${test.build.js}"/>
+    <dependset>
+       <srcfilelist dir="${build.lib}" files="${module.name}.jar"/>
+       <targetfileset dir="${test.build.js}" includes="**/*.js"/>
+    </dependset>
+    <dependset>
+       <srcfilelist dir="${build.lib}" files="${module.name}.jar"/>
+       <targetfilelist dir="${project.root}/tools/lib" files="${module.name}.jar"/>
+    </dependset>
+  </target>
+
+  <target name="compile-test-jsc" depends="jars,check-for-new-jscc,compile-test-js,compile-test-classes">
+    <taskdef name="jscc" classname="com.coremedia.jscc.ant.JsccTask" classpath="${build.classes}"/>
+    <jscc destdir="${test.build.js}"
+        failonerror="true"
+        debug="${jscc.debug}"
+        verbose="true"
+        enableassertions="${jscc.assert}">
+       <include name="**/*.jsc"/>
+       <src path="${test.source.jsc}"/>
+    </jscc>
+  </target>
+
+  <target name="compile-test" depends="jars,compile-test-classes,compile-test-js,compile-test-jsc">
+  </target>
+
+  <target name="test-run" depends="compile-test">
+    <junit printsummary="yes" fork="yes" haltonfailure="yes">
+
+      <sysproperty key="com.coremedia.jscc.test.source" value="${test.source.jsc}"/>
+      <sysproperty key="com.coremedia.jscc.test.destination" value="${test.build.js}"/>
+      <classpath refid="test.java.classpath"/>
+      <formatter type="plain" usefile="no"/>
+
+      <test name="com.coremedia.jscc.JsccTest" todir=""/>
+
+    </junit>
+
+  </target>
+
+  <target name="test" depends="init">
+    <delete dir="${test.build.js}"/>
+    <antcall target="test-run">
+      <param name="jscc.assert" value="true"/>
+      <param name="jscc.debug" value="true"/>
+    </antcall>
+    <delete dir="${test.build.js}"/>
+    <antcall target="test-run">
+       <param name="jscc.assert" value="false"/>
+       <param name="jscc.debug" value="false"/>
+    </antcall>
+
+  </target>
+
+
+  <!-- ================================================================== -->
+  <!-- ================================================================== -->
+  <!-- Install & Release                                                  -->
+  <!-- ================================================================== -->
+
+  <target name="install"
+	  description="Install the structure for a release."
+	  depends="all, _buildmagic:install:default"/>
+
+  <target name="release" depends="install"/>
+
+  <target name="release-zip"
+	  description="Builds a ZIP distribution."
+	  depends="release, _buildmagic:release:zip"/>
+
+  <target name="release-tar"
+	  description="Builds a TAR distribution."
+	  depends="release, _buildmagic:release:tar"/>
+
+  <target name="release-tgz"
+	  description="Builds a TAR-GZ distribution."
+	  depends="release, _buildmagic:release:tgz"/>
+
+  <target name="release-all"
+	  description="Builds a distribution for each archive type."
+	  depends="release-zip, release-tgz"/>
+
+
+  <!-- Build all jar (or jar-like) files. -->
+  <target name="jars"
+    description="Builds all jar files."
+    depends="compile">
+
+    <mkdir dir="${build.lib}"/>
+
+    <jar jarfile="${build.module.jar}" manifest="${build.etc}/default.mf">
+      <zipfileset src="${project.thirdparty}/princeton/CUP/lib/cup-runtime.jar"/>
+      <zipfileset src="${project.thirdparty}/apache/commons-cli/lib/commons-cli.jar" />
+      <fileset dir="${build.classes}">
+      </fileset>
+    </jar>
+
+  </target>
+
+
+</project>

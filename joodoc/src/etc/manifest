@@ -1,0 +1,6 @@
+Manifest-Version: 1.0
+Major:  @version.major@ 
+Minor:  @version.minor@
+Build:  @version.build@
+Date:  	@version.date@
+Time:  	@version.time@

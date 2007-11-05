@@ -1,0 +1,20 @@
+package package1;
+
+public class TestInheritanceSubSubClass extends package1.TestInheritanceSubClass {
+
+  public function TestInheritanceSubSubClass(slot1 :int, slot2 :int, slot3 :int) {
+    super(slot1, slot2);
+    this.slot3 = slot3;
+  }
+
+  protected var slot3;
+
+  public function getSlot3() :int {
+    return this.slot3;
+  }
+
+  override public function m() :int {
+    return super.m()+1;
+  }
+
+}
