@@ -73,62 +73,19 @@ public class MethodDeclaration extends MemberDeclaration {
   }
 
   public void generateCode(JsWriter out) throws IOException {
-    ClassDeclaration classDeclaration = getClassDeclaration();
-    String constructorName = out.getConstructorHelperVariableName(classDeclaration);
-    String prototypeName = out.getPrototypeHelperVariableName(classDeclaration);
-    String classPath = classDeclaration.getPath();
-    String qualifiedClassNameAsIde = out.getQualifiedNameAsIde(classDeclaration);
     String methodName = ide.getName();
-    String methodNameAsIde = out.getMethodNameAsIde(this);
-    if (overrides()) {
-      String savedMethodName = out.getSuperMethodName(this);
-      out.writeToken(prototypeName);
-      out.write('.');
-      out.write(savedMethodName);
-      out.write("=");
-      out.writeToken(prototypeName);
-      out.write('.');
-      out.write(methodName);
-      out.write(';');
-    }
     boolean isAbstract = isAbstract();
-    out.beginComment();
-    writeModifiers(out);
     if (isAbstract) {
+      out.beginComment();
+      writeModifiers(out);
       out.writeSymbol(symFunction);
       ide.generateCode(out);
     } else {
-      out.endComment();
-      if (isConstructor) {
-        // we emit the actual class declaration code in this method:
-        /*
-        _=package.class=package_class=function package_class(...) {
-          ...
-        }
-        */
-        out.write("var ");
-        out.writeToken(constructorName);
-        out.write('=');
-        out.write(classPath);
-        out.write('=');
-        out.write(out.getCompatibilityName(qualifiedClassNameAsIde));
-      } else {
-        /* static:  classPath.method = function package_class_method(...) {...
-           !static: _.method = function package_class_method(...) {...
-        */
-        if (isStatic()) {
-          out.write(classPath);
-        } else {
-          out.writeToken(prototypeName);
-        }
-        out.write('.');
-        out.write(methodName);
-      }
-      out.write('=');
+      writeRuntimeModifiers(out);
       out.writeSymbol(symFunction);
+      out.write(" ");
+      out.write(methodName);
       out.writeSymbolWhitespace(ide.ide);
-      if (out.getKeepSource())
-        out.writeToken(methodNameAsIde);
     }
     out.writeSymbol(lParen);
     if (params != null) params.generateCode(out);
@@ -136,42 +93,7 @@ public class MethodDeclaration extends MemberDeclaration {
     if (optTypeRelation != null) optTypeRelation.generateCode(out);
     optBody.generateCode(out);
     if (!isAbstract())
-      out.write(';');
-    if (isConstructor) {
-      /*
-      _.constructorname = "package_class";
-      _.superconstructor = package_superclass;
-      _=_.prototype=new package_superclass();
-      _._super_package_superclass = package_superclass;
-      _.constructor = package_class;
-      */
-      String qualifiedSuperClassPath = classDeclaration.getSuperClassPath();
-      String superConstructorNameAsIde = out.getSuperConstructorNameAsIde(classDeclaration);
-      out.write(prototypeName);
-      out.write(".constructorname='");
-      out.write(classPath);
-      out.write("';");
-      out.write(prototypeName);
-      out.write(".superconstructor=");
-      out.write(qualifiedSuperClassPath);
-      out.write(';');
-      out.write(prototypeName);
-      out.write('=');
-      out.write(constructorName);
-      out.write(".prototype=new ");
-      out.write(qualifiedSuperClassPath);
-      out.write("();");
-      out.write(prototypeName);
-      out.write('.');
-      out.write(superConstructorNameAsIde);
-      out.write('=');
-      out.write(qualifiedSuperClassPath);
-      out.write(';');
-      out.write(prototypeName);
-      out.write(".constructor=");
-      out.write(classPath);
-      out.write(';');
-    }
+      out.write(',');
     if (isAbstract())
       out.endComment();
   }

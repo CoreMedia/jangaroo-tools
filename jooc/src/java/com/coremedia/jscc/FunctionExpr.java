@@ -60,4 +60,7 @@ class FunctionExpr extends Expr {
      return symFun;
   }
 
+  boolean isCompileTimeConstant() {
+    return true;
+  }
 }

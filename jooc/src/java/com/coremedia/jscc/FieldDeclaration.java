@@ -15,26 +15,41 @@ public class FieldDeclaration extends AbstractVariableDeclaration {
             symConstOrVar, ide, optTypeRelation, optInitializer, symSemicolon);
   }
 
-  public void analyze(AnalyzeContext context) {
-    super.analyze(context);
-    if (!isStatic() && optInitializer != null)
-      Jscc.error(optInitializer, "instance field initializers not yet implemented");
-  }
+//  public void analyze(AnalyzeContext context) {
+//    super.analyze(context);
+//    if (!isStatic() && optInitializer != null)
+//      Jscc.error(optInitializer, "instance field initializers not yet implemented");
+//  }
 
   public void generateCode(JsWriter out) throws IOException {
-    if (!isStatic())
-      out.beginComment();
-    super.generateCode(out);
-    if (!isStatic())
-      out.endComment();
+    writeRuntimeModifiers(out);
+    out.write('{');
+    generateIdeCode(out);
+    if (optTypeRelation != null)
+      optTypeRelation.generateCode(out);
+    if (optInitializer != null) {
+      out.writeSymbolWhitespace(optInitializer.symEq);
+      out.write(':');
+      boolean isCompileTimeConstant = optInitializer.value.isCompileTimeConstant();
+      if (!isCompileTimeConstant) {
+        out.write("function(){return ");
+      }
+      optInitializer.value.generateCode(out);
+      if (!isCompileTimeConstant) {
+        out.write(";}");
+      }
+    } else {
+      out.write(": undefined");
+    }
+    out.write('}');
+    Debug.assertTrue(optSymSemicolon != null, "optSymSemicolon != null");
+    out.write(",");
   }
 
   public void generateIdeCode(JsWriter out) throws IOException {
     out.beginCommentWriteSymbol(optSymConstOrVar);
     out.endComment();
     out.writeSymbolWhitespace(ide.ide);
-    out.writeToken(getClassDeclaration().getPath());
-    out.write('.');
     out.writeSymbolToken(ide.ide);
   }
 

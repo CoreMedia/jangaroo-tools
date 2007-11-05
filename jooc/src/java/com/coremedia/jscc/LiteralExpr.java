@@ -22,4 +22,7 @@ class LiteralExpr extends Expr {
     return value;
   }
 
+  boolean isCompileTimeConstant() {
+    return true;
+  }
 }

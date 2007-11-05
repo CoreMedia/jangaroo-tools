@@ -5,11 +5,14 @@
 package com.coremedia.jscc;
 
 import java.io.IOException;
+import java.util.Set;
+import java.util.HashSet;
 
 public class ClassDeclaration extends IdeDeclaration {
 
   protected JscSymbol symClass;
   protected Extends optExtends;
+  private Set privateMembers = new HashSet();
 
   public Extends getOptExtends() {
     return optExtends;
@@ -56,25 +59,26 @@ public class ClassDeclaration extends IdeDeclaration {
   public void setConstructor(MethodDeclaration methodDeclaration) {
      if (constructor != null)
        Jscc.error(methodDeclaration, "Only one constructor allowed per class");
-     if (methodDeclaration != body.declararations.get(0))
-       Jscc.error(methodDeclaration, "Constructor declaration must be the first declaration in a class");
+//     if (methodDeclaration != body.declararations.get(0))
+//       Jscc.error(methodDeclaration, "Constructor declaration must be the first declaration in a class");
      constructor = methodDeclaration;
   }
 
   public void generateCode(JsWriter out) throws IOException {
-    out.beginComment();
-    writeModifiers(out);
-    out.writeSymbol(symClass);
+    out.writeSymbolWhitespace(symClass);
+    if (!writeRuntimeModifiersUnclosed(out)) {
+      out.write("\"");
+    }
+    out.writeSymbolToken(symClass);
     ide.generateCode(out);
     if (optExtends != null) optExtends.generateCode(out);
-    if (optImplements != null) optImplements.generateCode(out);
-    out.endComment();
-    out.write("(function(){");
-    // constructor will emit itself - or emit default constructor?
-    if (constructor == null)
-      Jscc.error("no constructor for class - default constructors not (yet) implemented");
+    //if (optImplements != null) optImplements.generateCode(out);
+    out.write("\",");
+    out.write("function($jscContext){with(");
+    getPackageDeclaration().ide.generateCode(out);
+    out.write(")with($jscContext)return[");
     body.generateCode(out);
-    out.write("\n})();");
+    out.write("]}");
   }
 
   public void analyze(AnalyzeContext context) {
@@ -85,6 +89,14 @@ public class ClassDeclaration extends IdeDeclaration {
     body.analyze(context);
     context.leaveScope(this);
     computeModifiers();
+  }
+
+  public void registerPrivateMember(Ide ide) {
+    privateMembers.add(ide.getName());
+  }
+
+  public boolean isPrivateMember(String memberName) {
+    return privateMembers.contains(memberName);
   }
 
   public Type getSuperClassType() {

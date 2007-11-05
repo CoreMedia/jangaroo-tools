@@ -104,6 +104,28 @@ abstract class Declaration extends NodeImplBase {
     }
   }
 
+  protected void writeRuntimeModifiers(JsWriter out) throws IOException {
+    if (writeRuntimeModifiersUnclosed(out)) {
+      out.write("\",");
+    }
+  }
+
+  protected boolean writeRuntimeModifiersUnclosed(JsWriter out) throws IOException {
+    if (symModifiers.length>0) {
+      out.writeSymbolWhitespace(symModifiers[0]);
+      out.write('"');
+      for (int i = 0; i < symModifiers.length; i++) {
+        JscSymbol modifier = symModifiers[i];
+        if (i==0)
+          out.writeSymbolToken(modifier);
+        else
+          out.writeSymbol(modifier);
+      }
+      return true;
+    }
+    return false;
+  }
+
   public void analyze(AnalyzeContext context) {
     super.analyze(context);
     parentDeclaration = context.getScope().getDeclaration();

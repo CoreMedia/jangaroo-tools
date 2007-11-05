@@ -18,4 +18,11 @@ public abstract class MemberDeclaration extends IdeDeclaration {
   public ClassDeclaration getClassDeclaration() {
     return (ClassDeclaration) getParentDeclaration();
   }
+
+  public void analyze(AnalyzeContext context) {
+    super.analyze(context);
+    if (isPrivate() && !isStatic()) {
+      getClassDeclaration().registerPrivateMember(ide);
+    }
+  }
 }

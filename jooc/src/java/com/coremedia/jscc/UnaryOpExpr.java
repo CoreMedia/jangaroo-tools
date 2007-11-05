@@ -18,5 +18,8 @@ abstract class UnaryOpExpr extends OpExpr {
   public void analyze(AnalyzeContext context) {
     arg.analyze(context);
   }
-  
+
+  boolean isCompileTimeConstant() {
+    return arg.isCompileTimeConstant();
+  }
 }

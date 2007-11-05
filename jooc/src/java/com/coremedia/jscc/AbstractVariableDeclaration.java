@@ -29,10 +29,6 @@ abstract class AbstractVariableDeclaration extends MemberDeclaration {
       optTypeRelation.generateCode(out);
     if (optInitializer != null)
       optInitializer.generateCode(out);
-    else if (isStatic()) {
-      out.write("=undefined");
-      Debug.assertTrue(optSymSemicolon != null, "optSymSemicolon != null");
-    }
     if (optSymSemicolon != null)
       out.writeSymbol(optSymSemicolon);
   }

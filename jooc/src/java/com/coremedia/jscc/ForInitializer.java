@@ -19,6 +19,14 @@ class ForInitializer extends NodeImplBase {
     this.expr = expr;
   }
 
+  public void analyze(AnalyzeContext context) {
+    super.analyze(context);
+    if (decl!=null)
+      decl.analyze(context);
+    if (expr!=null)
+      expr.analyze(context);
+  }
+
   public void generateCode(JsWriter out) throws IOException {
     if (decl != null)
       decl.generateCode(out);

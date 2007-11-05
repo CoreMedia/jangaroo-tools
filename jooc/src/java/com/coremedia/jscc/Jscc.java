@@ -12,6 +12,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Arrays;
 
 public class Jscc {
 
@@ -154,6 +155,7 @@ public class Jscc {
     System.out.println(specVendor);
   }
 
+  /** @noinspection AccessStaticViaInstance*/
   public int run(String[] argv) {
     try {
       Option help = new Option("help", "print this message");
@@ -164,6 +166,7 @@ public class Jscc {
               .withDescription("be extra verbose")
               .create("v");
       Option debugOption = OptionBuilder.withDescription( "generate debugging information" )
+              .hasOptionalArgs()
               .create("g");
       Option destinationDir = OptionBuilder.withArgName("dir")
               .hasArg()
@@ -208,27 +211,29 @@ public class Jscc {
       if (line.hasOption(enableAssertionsOption.getOpt()))
         enableAssertions = true;
       if (line.hasOption(debugOption.getOpt())) {
-        String v = debugOption.getValue();
-        System.out.println("-g option value: " + v);
-        List values = new ArrayList();
-        if (values == null || values.size() == 0)
+        String[] values = line.getOptionValues(debugOption.getOpt());
+        if (values == null || values.length == 0) {
+          System.out.println("-g option present.");
           debugLines = debugSource = debugMembers = debugVars = true;
-        for (int i = 0; i < values.size(); i++) {
-          String value = (String)values.get(i);
-          if (value.equals("source"))
-            debugSource = true;
-          else if (value.equals("source"))
-            debugSource = true;
-          else if (value.equals("lines"))
-            debugLines = true;
-          else if (value.equals("vars"))
-            debugVars = true;
-          else if (value.equals("members"))
-            debugMembers = true;
-          else if (value.equals("none"))
-            debugLines = debugSource = debugMembers = debugVars = false;
-          else
-            error("unknown -g argument: " + value);
+        } else {
+          System.out.println("-g option value: " + Arrays.asList(values));
+          for (int i = 0; i < values.length; i++) {
+            String value = (String)values[i];
+            if (value.equals("source"))
+              debugSource = true;
+            else if (value.equals("source"))
+              debugSource = true;
+            else if (value.equals("lines"))
+              debugLines = true;
+            else if (value.equals("vars"))
+              debugVars = true;
+            else if (value.equals("members"))
+              debugMembers = true;
+            else if (value.equals("none"))
+              debugLines = debugSource = debugMembers = debugVars = false;
+            else
+              error("unknown -g argument: " + value);
+          }
         }
       } else {
         debugLines = debugSource = false;

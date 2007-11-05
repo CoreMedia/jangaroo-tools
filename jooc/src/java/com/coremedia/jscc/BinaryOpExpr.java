@@ -31,5 +31,8 @@ class BinaryOpExpr extends OpExpr {
   public JscSymbol getSymbol() {
     return arg1.getSymbol();
   }
-  
+
+  boolean isCompileTimeConstant() {
+    return arg1.isCompileTimeConstant() && arg2.isCompileTimeConstant();
+  }
 }

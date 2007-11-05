@@ -40,4 +40,7 @@ class ConditionalExpr extends Expr {
      return cond.getSymbol();
   }
 
+  boolean isCompileTimeConstant() {
+    return cond.isCompileTimeConstant() && ifTrue.isCompileTimeConstant() && ifFalse.isCompileTimeConstant();
+  }
 }

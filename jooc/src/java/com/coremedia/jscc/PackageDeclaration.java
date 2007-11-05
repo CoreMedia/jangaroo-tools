@@ -18,13 +18,11 @@ public class PackageDeclaration extends IdeDeclaration  {
   }
 
   public void generateCode(JsWriter out) throws IOException {
-    out.beginCommentWriteSymbol(symPackage);
+    out.writeSymbolWhitespace(symPackage);
+    out.writeSymbolWhitespace(symSemicolon);
+    out.write("\"package ");
     ide.generateCode(out);
-    out.writeSymbol(symSemicolon);
-    out.endComment();
-    out.write("_jsc_package(");
-    out.writeArray(ide.getQualifiedName());
-    out.write(");");
+    out.write("\",");
   }
 
   public void analyze(AnalyzeContext context) {

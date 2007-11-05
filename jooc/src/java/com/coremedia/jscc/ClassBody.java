@@ -26,13 +26,9 @@ public class ClassBody extends NodeImplBase {
   }
 
   public void generateCode(JsWriter out) throws IOException {
-    out.beginComment();
-    out.writeSymbol(lBrace);
-    out.endComment();
+    out.writeSymbolWhitespace(lBrace);
     generateCode(declararations, out);
-    out.beginComment();
-    out.writeSymbol(rBrace);
-    out.endComment();
+    out.writeSymbolWhitespace(rBrace);
   }
 
   public void analyze(AnalyzeContext context) {

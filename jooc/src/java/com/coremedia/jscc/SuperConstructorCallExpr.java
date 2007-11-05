@@ -27,8 +27,7 @@ class SuperConstructorCallExpr extends ApplyExpr {
 
   protected void generateFunCode(JsWriter out) throws IOException {
     out.writeSymbolWhitespace(symSuper);
-    out.writeToken("this.");
-    out.write(out.getSuperConstructorNameAsIde(classDeclaration));
+    out.writeToken("this[_super]");
   }
 
 }

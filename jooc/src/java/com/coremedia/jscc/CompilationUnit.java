@@ -88,8 +88,10 @@ public class CompilationUnit extends NodeImplBase {
   }
 
   public void generateCode(JsWriter out) throws IOException {
+     out.write("jsc.Class.prepare(");
      packageDeclaration.generateCode(out);
      classDeclaration.generateCode(out);
+     out.write(");");
   }
 
   public void analyze(AnalyzeContext context) {
