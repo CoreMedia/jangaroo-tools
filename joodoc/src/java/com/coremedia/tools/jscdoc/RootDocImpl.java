@@ -6,7 +6,7 @@
 package com.coremedia.tools.jscdoc;
 
 import com.sun.javadoc.*;
-import com.sun.tools.javac.v8.util.List;
+import com.sun.tools.javac.util.List;
 import com.coremedia.jscc.CompilationUnit;
 
 import java.util.ArrayList;
@@ -180,4 +180,19 @@ public class RootDocImpl implements RootDoc {
 
   }
 
+  public boolean isEnum() {
+    return false;  //To change body of implemented methods use File | Settings | File Templates.
+  }
+
+  public boolean isEnumConstant() {
+    return false;  //To change body of implemented methods use File | Settings | File Templates.
+  }
+
+  public boolean isAnnotationTypeElement() {
+    return false;  //To change body of implemented methods use File | Settings | File Templates.
+  }
+
+  public boolean isAnnotationType() {
+    return false;  //To change body of implemented methods use File | Settings | File Templates.
+  }
 }

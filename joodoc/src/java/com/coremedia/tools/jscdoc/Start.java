@@ -5,12 +5,12 @@
 
 package com.coremedia.tools.jscdoc;
 
-import com.sun.tools.javac.v8.CommandLine;
-import com.sun.tools.javac.v8.util.Context;
-import com.sun.tools.javac.v8.util.List;
-import com.sun.tools.javac.v8.util.ListBuffer;
-import com.sun.tools.javac.v8.util.Options;
+import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.List;
+import com.sun.tools.javac.util.ListBuffer;
+import com.sun.tools.javac.util.Options;
 import com.sun.tools.javadoc.*;
+import com.sun.tools.javac.main.CommandLine;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -23,7 +23,7 @@ import java.util.StringTokenizer;
 
 class Start {
 
-  com.sun.tools.javac.v8.util.Context context;
+  com.sun.tools.javac.util.Context context;
   private final String defaultDocletClassName; // "com.sun.tools.doclets.standard.Standard";
   private ListBuffer options;
   private ModifierFilter showAccess;

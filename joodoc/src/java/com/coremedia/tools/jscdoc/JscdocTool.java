@@ -1,9 +1,9 @@
 package com.coremedia.tools.jscdoc;
 
 
-import com.sun.tools.javac.v8.util.List;
+import com.sun.tools.javac.util.List;
 
-import com.sun.tools.javac.v8.util.ListBuffer;
+import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javadoc.*;
 
 import com.coremedia.jscc.Jscc;

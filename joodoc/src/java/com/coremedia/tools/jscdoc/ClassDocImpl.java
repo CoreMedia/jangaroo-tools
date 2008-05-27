@@ -1,6 +1,10 @@
 package com.coremedia.tools.jscdoc;
 
 import com.sun.javadoc.*;
+import com.sun.tools.javadoc.ProgramElementDocImpl;
+import com.sun.tools.javadoc.DocEnv;
+import com.sun.tools.javac.code.Symbol;
+import com.sun.tools.javac.tree.Tree;
 import com.coremedia.jscc.*;
 import com.coremedia.jscc.Type;
 
@@ -266,4 +270,56 @@ public class ClassDocImpl extends DocImpl implements ClassDoc {
   public String typeName() {
     return null;
   }
+
+  public TypeVariable asTypeVariable() {
+    return null;  //To change body of implemented methods use File | Settings | File Templates.
+  }
+
+  public ParamTag[] typeParamTags() {
+    return new ParamTag[0];  //To change body of implemented methods use File | Settings | File Templates.
+  }
+
+  public FieldDoc[] enumConstants() {
+    return new FieldDoc[0];  //To change body of implemented methods use File | Settings | File Templates.
+  }
+
+  public WildcardType asWildcardType() {
+    return null;  //To change body of implemented methods use File | Settings | File Templates.
+  }
+
+  public com.sun.javadoc.Type superclassType() {
+    return null;  //To change body of implemented methods use File | Settings | File Templates.
+  }
+
+  public AnnotationTypeDoc asAnnotationTypeDoc() {
+    return null;  //To change body of implemented methods use File | Settings | File Templates.
+  }
+
+  public ParameterizedType asParameterizedType() {
+    return null;  //To change body of implemented methods use File | Settings | File Templates.
+  }
+
+  public boolean isPrimitive() {
+    return false;  //To change body of implemented methods use File | Settings | File Templates.
+  }
+
+  public String simpleTypeName() {
+    return sym.class.getSimpleName();    
+  }
+
+  public com.sun.javadoc.Type[] interfaceTypes() {
+    return new com.sun.javadoc.Type[0];  //To change body of implemented methods use File | Settings | File Templates.
+  }
+
+  public TypeVariable[] typeParameters() {
+    return new TypeVariable[0];  //To change body of implemented methods use File | Settings | File Templates.
+  }
+
+  public AnnotationDesc[] annotations() {
+    return new AnnotationDesc[0];  //To change body of implemented methods use File | Settings | File Templates.
+  }
+
+  
+
+  
 }

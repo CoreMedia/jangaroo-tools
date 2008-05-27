@@ -1,8 +1,7 @@
 package com.coremedia.tools.jscdoc;
 
-import com.sun.tools.javac.v8.code.ClassReader;
-import com.sun.tools.javac.v8.util.*;
-import com.sun.tools.javac.v8.util.Context;
+import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javadoc.*;
 
 
@@ -19,10 +18,10 @@ import java.io.File;
 
 class JscdocClassReader extends ClassReader {
 
-   private static final com.sun.tools.javac.v8.util.Context.Key jscdocClassReaderKey = new com.sun.tools.javac.v8.util.Context.Key();
+   private static final com.sun.tools.javac.util.Context.Key jscdocClassReaderKey = new com.sun.tools.javac.util.Context.Key();
    private DocEnv docenv;
 
-   private JscdocClassReader(com.sun.tools.javac.v8.util.Context context) {
+   private JscdocClassReader(com.sun.tools.javac.util.Context context) {
        super(context, true);
        context.put(jscdocClassReaderKey, this);
        docenv = DocEnv.instance(context);
@@ -35,12 +34,12 @@ class JscdocClassReader extends ClassReader {
        return jscdocclassreader;
    }
 
-   protected void extraFileActions(com.sun.tools.javac.v8.code.Symbol.PackageSymbol packagesymbol, String s, File file) {
+   protected void extraFileActions(com.sun.tools.javac.code.Symbol.PackageSymbol packagesymbol, String s, File file) {
        if(docenv != null && s.equals("package.html"))
            docenv.getPackageDoc(packagesymbol).setDocPath(file.getAbsolutePath());
    }
 
-   protected void extraZipFileActions(com.sun.tools.javac.v8.code.Symbol.PackageSymbol packagesymbol, String s, String s1, String s2) {
+   protected void extraZipFileActions(com.sun.tools.javac.code.Symbol.PackageSymbol packagesymbol, String s, String s1, String s2) {
        if(docenv != null && s.endsWith("package.html"))
            docenv.getPackageDoc(packagesymbol).setDocPath(s2, s1);
          }

@@ -11,6 +11,7 @@ import com.sun.javadoc.PackageDoc;
 import com.sun.javadoc.Type;
 import com.sun.javadoc.Tag;
 import com.sun.javadoc.MemberDoc;
+import com.sun.javadoc.AnnotationDesc;
 
 import java.lang.reflect.Modifier;
 
@@ -105,5 +106,9 @@ public class MemberDocImpl extends DocImpl implements MemberDoc {
 
   public boolean isSynthetic() {
     return false;
+  }
+
+  public AnnotationDesc[] annotations() {
+    return new AnnotationDesc[0];  //To change body of implemented methods use File | Settings | File Templates.
   }
 }

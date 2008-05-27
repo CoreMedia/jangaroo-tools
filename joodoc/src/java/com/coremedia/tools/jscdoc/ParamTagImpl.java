@@ -31,4 +31,8 @@ public class ParamTagImpl extends TagImpl implements ParamTag {
   public String toString() {
     return "@param '"+parameterName()+"': '"+parameterComment()+"'";
   }
+
+  public boolean isTypeParameter() {
+    return false;  //To change body of implemented methods use File | Settings | File Templates.
+  }
 }

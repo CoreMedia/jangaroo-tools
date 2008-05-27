@@ -8,6 +8,7 @@ import com.sun.javadoc.ParamTag;
 import com.sun.javadoc.ThrowsTag;
 import com.sun.javadoc.Parameter;
 import com.sun.javadoc.Doc;
+import com.sun.javadoc.TypeVariable;
 import com.coremedia.jscc.Parameters;
 import com.coremedia.jscc.MethodDeclaration;
 
@@ -44,6 +45,15 @@ public class MethodDocImpl extends MemberDocImpl implements MethodDoc, Construct
 
   public boolean isAbstract() {
     return getMethodDeclaration().isAbstract();
+  }
+
+  public Type overriddenType() {
+    ClassDoc oc = overriddenClass();
+    return oc==null ? null : new TypeImpl(null, oc);
+  }
+
+  public boolean overrides(MethodDoc doc) {
+    return doc.equals(overriddenMethod());
   }
 
   public ClassDoc overriddenClass() {
@@ -111,5 +121,20 @@ public class MethodDocImpl extends MemberDocImpl implements MethodDoc, Construct
     return !isConstructor();
   }
 
+  public Type[] thrownExceptionTypes() {
+    return new Type[0];  //To change body of implemented methods use File | Settings | File Templates.
+  }
+
+  public boolean isVarArgs() {
+    return false;  //To change body of implemented methods use File | Settings | File Templates.
+  }
+
+  public ParamTag[] typeParamTags() {
+    return new ParamTag[0];  //To change body of implemented methods use File | Settings | File Templates.
+  }
+
+  public TypeVariable[] typeParameters() {
+    return new TypeVariable[0];  //To change body of implemented methods use File | Settings | File Templates.
+  }
 
 }

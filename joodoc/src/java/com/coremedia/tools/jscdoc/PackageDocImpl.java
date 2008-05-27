@@ -102,4 +102,16 @@ public class PackageDocImpl extends DocImpl implements PackageDoc{
   public int hashCode() {
     return name().hashCode();
   }
+
+  public ClassDoc[] enums() {
+    return new ClassDoc[0];  //To change body of implemented methods use File | Settings | File Templates.
+  }
+
+  public AnnotationTypeDoc[] annotationTypes() {
+    return new AnnotationTypeDoc[0];  //To change body of implemented methods use File | Settings | File Templates.
+  }
+
+  public AnnotationDesc[] annotations() {
+    return new AnnotationDesc[0];  //To change body of implemented methods use File | Settings | File Templates.
+  }
 }

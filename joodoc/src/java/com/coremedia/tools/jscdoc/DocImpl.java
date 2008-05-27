@@ -164,4 +164,20 @@ public class DocImpl implements Doc {
     Tag[] tags = (Tag[])tagsByName().get("@"+s);
     return tags==null ? NO_TAGS : tags;
   }
+
+  public boolean isEnumConstant() {
+    return false;  //To change body of implemented methods use File | Settings | File Templates.
+  }
+
+  public boolean isAnnotationTypeElement() {
+    return false;  //To change body of implemented methods use File | Settings | File Templates.
+  }
+
+  public boolean isEnum() {
+    return false;  //To change body of implemented methods use File | Settings | File Templates.
+  }
+
+  public boolean isAnnotationType() {
+    return false;  //To change body of implemented methods use File | Settings | File Templates.
+  }
 }

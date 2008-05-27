@@ -1,6 +1,6 @@
 package com.coremedia.tools.jscdoc;
 
-import com.sun.tools.javac.v8.util.Context;
+import com.sun.tools.javac.util.Context;
 
 import java.io.PrintWriter;
 
