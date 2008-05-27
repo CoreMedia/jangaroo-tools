@@ -1,0 +1,78 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.coremedia.jangaroo</groupId>
+  <artifactId>jangaroo-doc</artifactId>
+  <packaging>jar</packaging>
+  <version>0.1-SNAPSHOT</version>
+  <name>Jangaroo documentation generator</name>
+  <organization>
+    <name>CoreMedia AG, Hamburg, Germany</name>
+    <url>http://www.coremedia.com</url>
+  </organization>
+
+  <repositories>
+    <repository>
+      <id>cap</id>
+      <name>Primary virtual repository</name>
+      <url>http://woschod.coremedia.com/cap</url>
+    </repository>
+
+    <repository>
+      <id>share-3rdp</id>
+      <name>Thirdparty libs</name>
+      <url>http://woschod.coremedia.com/share-3rdp</url>
+    </repository>
+  </repositories>
+
+  <build>
+    <sourceDirectory>src/java</sourceDirectory>
+
+    <plugins>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <executions>
+          <execution>
+            <configuration>
+              <archive>
+                <manifest>
+                  <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                  <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                </manifest>
+              </archive>
+            </configuration>
+          </execution>
+
+        </executions>
+      </plugin>
+
+    </plugins>
+
+  </build>
+
+  <dependencies>
+
+    <dependency>
+      <groupId>com.coremedia.jangaroo</groupId>
+      <artifactId>jangaroo-compiler</artifactId>
+      <version>0.1-SNAPSHOT</version>
+    </dependency>
+
+    <dependency>
+      <groupId>ant</groupId>
+      <artifactId>ant</artifactId>
+      <version>1.6.5</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.sun.j2se</groupId>
+      <artifactId>tools</artifactId>
+      <version>1.4.2_12</version>
+      <scope>compile</scope>
+    </dependency>
+
+  </dependencies>
+
+</project>
