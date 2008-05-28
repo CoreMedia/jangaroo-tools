@@ -37,6 +37,7 @@
           <execution>
             <configuration>
               <archive>
+                <manifestFile>src/etc/manifest</manifestFile>
                 <manifest>
                   <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
                   <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>

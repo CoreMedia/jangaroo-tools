@@ -186,6 +186,9 @@
               <goal>install</goal>
               <goal>test</goal>
             </goals>
+            <configuration>
+              <ignoreFailures>true</ignoreFailures>
+            </configuration>
           </execution>
         </executions>
       </plugin>

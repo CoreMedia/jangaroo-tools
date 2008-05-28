@@ -1,6 +1,4 @@
-Manifest-Version: 1.0
-Major:  @version.major@ 
-Minor:  @version.minor@
-Build:  @version.build@
-Date:  	@version.date@
-Time:  	@version.time@
+Manifest-version: 1.0
+Main-Class: com.coremedia.tools.jscdoc.Main
+
+Name: com/coremedia/jscdoc
