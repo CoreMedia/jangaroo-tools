@@ -9,20 +9,18 @@ import java.io.IOException;
 public class PackageDeclaration extends IdeDeclaration  {
 
   JscSymbol symPackage;
-  JscSymbol symSemicolon;
 
-  public PackageDeclaration(JscSymbol symPackage, Ide ide, JscSymbol symSemicolon) {
+  public PackageDeclaration(JscSymbol symPackage, Ide ide) {
     super(new JscSymbol[0], 0, ide);
     this.symPackage = symPackage;
-    this.symSemicolon = symSemicolon;
   }
 
   public void generateCode(JsWriter out) throws IOException {
     out.writeSymbolWhitespace(symPackage);
-    out.writeSymbolWhitespace(symSemicolon);
     out.write("\"package ");
     ide.generateCode(out);
-    out.write("\",");
+    out.write("\"");
+    out.write(",");
   }
 
   public void analyze(AnalyzeContext context) {

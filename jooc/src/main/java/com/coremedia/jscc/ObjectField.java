@@ -8,29 +8,29 @@ import java.io.IOException;
 
 class ObjectField extends NodeImplBase {
 
-  Ide name;
+  Expr nameExpr;
   JscSymbol symColon;
   Expr value;
 
-  public ObjectField(Ide name, JscSymbol symColon, Expr value) {
-    this.name = name;
+  public ObjectField(Expr nameExpr, JscSymbol symColon, Expr value) {
+    this.nameExpr = nameExpr;
     this.symColon = symColon;
     this.value = value;
   }
 
   public void analyze(AnalyzeContext context) {
-    name.analyze(context);
+    nameExpr.analyze(context);
     value.analyze(context);
   }
 
   public void generateCode(JsWriter out) throws IOException {
-    name.generateCode(out);
+    nameExpr.generateCode(out);
     out.writeSymbol(symColon);
     value.generateCode(out);
   }
 
   public JscSymbol getSymbol() {
-    return name.getSymbol();
+    return nameExpr.getSymbol();
   }
 
 

@@ -1,4 +1,6 @@
-package package2;
+package package2 {
+
+import package1.TestInheritanceSubClass
 
 public class TestExpressions {
 
@@ -28,7 +30,7 @@ public class TestExpressions {
   }
 
   public function testObjectLiterals() {
-    var o = { x: 123, y: 456 };
+    var o : * = { x: 123, "y": 456 };
     return o.x + o.y;
   }
 
@@ -63,4 +65,9 @@ public class TestExpressions {
     return cond ? ifTrue : ifFalse;
   }
 
+  public function testIn(obj:Object, prop:String):int {
+    return prop in obj;
+  }
+
+}
 }

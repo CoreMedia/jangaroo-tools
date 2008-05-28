@@ -1,5 +1,5 @@
 
-package package1;
+package package1 {
 
 public class TestLocalVariables extends Object {
 
@@ -18,4 +18,5 @@ public class TestLocalVariables extends Object {
     return + ++x+ ++n- -22;
   }
 
+}
 }

@@ -1,0 +1,26 @@
+
+package example {
+
+public class ExtendedPerson extends example.Person {
+
+  public function ExtendedPerson(name: String, birthday: Date) {
+    super(name);
+    this.setBirthday(birthday);
+  }
+
+  public function getBirthday(): Date {
+    return this.birthday;
+  }
+
+  public function setBirthday(birthday: Date): void {
+    this.birthday = birthday;
+  }
+
+  override protected function renderInner(): void {
+    var test = "foo";
+    return super.renderInner()+"<p>birthday: "+this.getBirthday().toLocaleString()+"</p>";
+  }
+
+  private var birthday: Date = new Date();
+}
+}

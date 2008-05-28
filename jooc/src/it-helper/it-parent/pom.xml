@@ -57,7 +57,7 @@
         <artifactId>maven-dependency-plugin</artifactId>
         <executions>
 
-          <!-- unpack runtime .js and uncompiled test .jsc files to target/temp/js and target/jsc -->
+          <!-- unpack runtime .js and uncompiled test .js2 files to target/temp/js and target/js2 -->
           <execution>
             <phase>process-test-resources</phase>
             <goals>
@@ -79,9 +79,9 @@
                   <artifactId>jangaroo-compiler</artifactId>
                   <classifier>tests</classifier>
                   <version>testing</version>
-                  <outputDirectory>${project.build.directory}/jsc</outputDirectory>
+                  <outputDirectory>${project.build.directory}/js2</outputDirectory>
                   <includes>
-                    **/*.jsc
+                    **/*.js2
                   </includes>
                 </artifactItem>
               </artifactItems>
@@ -94,9 +94,9 @@
         <artifactId>maven-antrun-plugin</artifactId>
         <executions>
 
-          <!-- compile the test .jsc files in target/jsc -->
+          <!-- compile the test .js2 files in target/js2 -->
           <execution>
-            <id>compile-test-jsc</id>
+            <id>compile-test-js2</id>
             <phase>process-test-resources</phase>
             <configuration>
               <tasks>
@@ -109,8 +109,8 @@
                       debug="${jscc.debug}"
                       verbose="true"
                       enableassertions="${jscc.assert}">
-                  <include name="**/*.jsc"/>
-                  <src path="target/jsc"/>
+                  <include name="**/*.js2"/>
+                  <src path="target/js2"/>
                 </jscc>
 
               </tasks>

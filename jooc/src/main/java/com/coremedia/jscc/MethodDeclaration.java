@@ -75,6 +75,7 @@ public class MethodDeclaration extends MemberDeclaration {
   public void generateCode(JsWriter out) throws IOException {
     String methodName = ide.getName();
     boolean isAbstract = isAbstract();
+    boolean khtmlCompatMode = false; // TODO: use compiler flag for KHTML-compatibility mode!
     if (isAbstract) {
       out.beginComment();
       writeModifiers(out);
@@ -82,6 +83,12 @@ public class MethodDeclaration extends MemberDeclaration {
       ide.generateCode(out);
     } else {
       writeRuntimeModifiers(out);
+      if (khtmlCompatMode) {
+        out.write("{");
+        out.write(methodName);
+        out.writeSymbolWhitespace(ide.ide);
+        out.write(":(");
+      }
       out.writeSymbol(symFunction);
       out.write(" ");
       out.write(methodName);
@@ -92,10 +99,14 @@ public class MethodDeclaration extends MemberDeclaration {
     out.writeSymbol(rParen);
     if (optTypeRelation != null) optTypeRelation.generateCode(out);
     optBody.generateCode(out);
-    if (!isAbstract())
-      out.write(',');
-    if (isAbstract())
+    if (isAbstract()) {
       out.endComment();
+    } else {
+      if (khtmlCompatMode) {
+        out.write(")}");
+      }
+      out.write(',');
+    }
   }
 
 }

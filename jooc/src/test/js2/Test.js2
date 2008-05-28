@@ -2,7 +2,7 @@
 * etwas Kommentar
 */
   package
-    test /*blubber*/ ;
+    test /*blubber*/ {
 
 /**
 * und nochne klasse Klasse
@@ -40,11 +40,11 @@ public class Test /* blub ber */extends Object {
     this.p = p;
   }*/
 
-  static function global() {
+  public static function global() {
   }
 
-  static {
+  public static function init() {
     foo(function() { return "bar";});
   }
 
-}
+}}

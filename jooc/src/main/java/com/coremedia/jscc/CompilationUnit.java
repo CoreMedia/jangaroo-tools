@@ -19,7 +19,10 @@ public class CompilationUnit extends NodeImplBase {
   }
 
   PackageDeclaration packageDeclaration;
+  JscSymbol lBrace;
+  Directives directives;
   ClassDeclaration classDeclaration;
+  JscSymbol rBrace;
 
 
   protected File sourceFile;
@@ -28,9 +31,12 @@ public class CompilationUnit extends NodeImplBase {
   protected File outputFile = null;
   protected JsWriter out;
 
-  public CompilationUnit(PackageDeclaration packageDeclaration, ClassDeclaration classDeclaration) {
+  public CompilationUnit(PackageDeclaration packageDeclaration, JscSymbol lBrace, Directives directives, ClassDeclaration classDeclaration, JscSymbol rBrace) {
     this.packageDeclaration = packageDeclaration;
+    this.lBrace = lBrace;
+    this.directives = directives;
     this.classDeclaration = classDeclaration;
+    this.rBrace = rBrace;
   }
 
   public void setDestionationDir(File destionationDir) {
@@ -88,9 +94,14 @@ public class CompilationUnit extends NodeImplBase {
   }
 
   public void generateCode(JsWriter out) throws IOException {
-     out.write("jsc.Class.prepare(");
+     out.write("joo.Class.prepare(");
      packageDeclaration.generateCode(out);
+     out.writeSymbolWhitespace(lBrace);
+     if (directives!=null) {
+       directives.generateCode(out);
+     }
      classDeclaration.generateCode(out);
+     out.writeSymbolWhitespace(rBrace);
      out.write(");");
   }
 

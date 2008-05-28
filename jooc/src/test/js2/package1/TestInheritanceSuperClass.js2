@@ -1,4 +1,4 @@
-package package1;
+package package1 {
 
 public class TestInheritanceSuperClass {
 
@@ -20,4 +20,5 @@ public class TestInheritanceSuperClass {
     return this.getSlot1();
   }
 
+}
 }

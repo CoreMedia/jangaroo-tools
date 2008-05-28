@@ -1,4 +1,4 @@
-package package2;
+package package2 {
 
 public class TestStatements {
 
@@ -15,14 +15,14 @@ public class TestStatements {
 
   public function testFor(n:int):int {
     var result = 0;
-    for (var i = 0; i < n; i++)
+    for (var i : Number = 0; i < n; i++)
       result += i;
     return result;
   }
 
   public function testForIn(o :Object):String {
     var result = [];
-    for (var slot in o)
+    for (var slot : String in o)
       result.push(slot);
     result.sort();
     return result.join(", ");
@@ -71,4 +71,5 @@ public class TestStatements {
     delete o[slot];
   }
 
+}
 }

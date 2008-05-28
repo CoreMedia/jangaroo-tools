@@ -1,4 +1,4 @@
-package package1.package11;
+package package1.package11 {
 
 public class TestSubPackage {
 
@@ -9,4 +9,5 @@ public class TestSubPackage {
     return 42;
   }
 
+}
 }

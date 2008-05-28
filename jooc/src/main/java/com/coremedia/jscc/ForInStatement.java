@@ -9,17 +9,15 @@ import java.io.IOException;
 class ForInStatement extends LoopStatement {
 
   JscSymbol lParen;
-  JscSymbol symVar;
-  Ide ide;
+  Declaration decl;
   JscSymbol symIn;
   Expr expr;
   JscSymbol rParen;
 
-  public ForInStatement(JscSymbol symFor, JscSymbol lParen, JscSymbol symVar, Ide ide, JscSymbol symIn, Expr expr, JscSymbol rParen, Statement body) {
+  public ForInStatement(JscSymbol symFor, JscSymbol lParen, Declaration decl, JscSymbol symIn, Expr expr, JscSymbol rParen, Statement body) {
     super(symFor, body);
     this.lParen = lParen;
-    this.symVar = symVar;
-    this.ide = ide;
+    this.decl = decl;
     this.symIn = symIn;
     this.expr = expr;
     this.rParen = rParen;
@@ -27,15 +25,14 @@ class ForInStatement extends LoopStatement {
 
   protected void generateLoopHeaderCode(JsWriter out) throws IOException {
     out.writeSymbol(lParen);
-    out.writeSymbol(symVar);
-    ide.generateCode(out);
+    decl.generateCode(out);
     out.writeSymbol(symIn);
     expr.generateCode(out);
     out.writeSymbol(rParen);
   }
 
   protected void analyzeLoopHeader(AnalyzeContext context) {
-    ide.analyze(context);
+    decl.analyze(context);
     expr.analyze(context);
   }
 

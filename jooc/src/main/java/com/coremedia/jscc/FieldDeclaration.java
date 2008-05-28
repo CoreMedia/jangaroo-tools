@@ -22,7 +22,12 @@ public class FieldDeclaration extends AbstractVariableDeclaration {
 //  }
 
   public void generateCode(JsWriter out) throws IOException {
-    writeRuntimeModifiers(out);
+    out.writeSymbolWhitespace(optSymConstOrVar);
+    if (!writeRuntimeModifiersUnclosed(out)) {
+      out.write("\"");
+    }
+    out.writeSymbolToken(optSymConstOrVar);
+    out.write("\",");
     out.write('{');
     generateIdeCode(out);
     if (optTypeRelation != null)
@@ -47,8 +52,6 @@ public class FieldDeclaration extends AbstractVariableDeclaration {
   }
 
   public void generateIdeCode(JsWriter out) throws IOException {
-    out.beginCommentWriteSymbol(optSymConstOrVar);
-    out.endComment();
     out.writeSymbolWhitespace(ide.ide);
     out.writeSymbolToken(ide.ide);
   }

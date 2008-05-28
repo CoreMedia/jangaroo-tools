@@ -1,0 +1,57 @@
+
+package example {
+
+/**
+ * This class models a person.
+ */
+public class Person {
+
+  /**
+   * Create a new person with a given name.
+   * @param name the name of the new person.
+   */
+  public function Person(name: String) {
+    this.setName(name ? name : example.Person.DEFAULT_NAME);
+  }
+
+  /**
+   * Get the name of this person.
+   * @return the name of this person.
+   * @see #setName
+   */
+  public function getName(): String {
+    return this.name;
+  }
+
+  /**
+   * Set the name of this person.
+   * @param name the new name of this person.
+   */
+  public function setName(name: String): void {
+    this.name = name;
+  }
+
+  /**
+   * Render this person as HTML into the current document.
+   */
+  public function render(): void {
+    document.write("<div>"+this.renderInner()+"</div>");
+  }
+
+  /**
+   * Get the inner HTML presenting this person.
+   * Subclasses should add a presentation of their additional properties.
+   */
+  protected function renderInner(): void {
+    this.privateTest("foo");
+    return "<p>name: "+this.getName()+"</p>";
+  }
+
+  private function privateTest(param :String) :Person {
+    return this;
+  }
+
+  private var name: String;
+  private static const DEFAULT_NAME: String = "Hugo";
+}
+}

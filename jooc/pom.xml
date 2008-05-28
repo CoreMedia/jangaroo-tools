@@ -44,7 +44,7 @@
     <testSourceDirectory>src/test/java</testSourceDirectory>
     <testResources>
       <testResource>
-        <directory>src/test/jsc</directory>
+        <directory>src/test/js2</directory>
       </testResource>
     </testResources>
 

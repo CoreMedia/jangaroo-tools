@@ -1,8 +1,7 @@
 /*
 * etwas Kommentar
 */
-  package
-    package1 /*blubber*/ ;
+  package package1 /*blubber*/ {
 
 /**
 * und nochne klasse Klasse
@@ -20,4 +19,5 @@ public class TestMethodCall /* blub ber */extends Object {
     return x;
   }
 
+}
 }

@@ -19,9 +19,9 @@ class StaticInitializer extends Declaration {
     out.beginComment();
     writeModifiers(out);
     out.endComment();
-    out.write("(function()");
+    out.write("\"static\", function()");
     block.generateCode(out);
-    out.write(")();");
+    out.write(",");
   }
 
   public void analyze(AnalyzeContext context) {

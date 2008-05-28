@@ -1,4 +1,4 @@
-package package1;
+package package1 {
 
 public class TestInheritanceSubSubClass extends package1.TestInheritanceSubClass {
 
@@ -17,4 +17,5 @@ public class TestInheritanceSubSubClass extends package1.TestInheritanceSubClass
     return super.m()+1;
   }
 
+}
 }

@@ -1,4 +1,4 @@
-package package1;
+package package1 {
 
 public class TestInheritanceSubClass extends package1.TestInheritanceSuperClass {
 
@@ -8,6 +8,7 @@ public class TestInheritanceSubClass extends package1.TestInheritanceSuperClass 
   }
 
   protected var slot2;
+  var slot3;
 
   public function setSlot2(value :int) :void {
     this.slot2 = value;
@@ -21,4 +22,5 @@ public class TestInheritanceSubClass extends package1.TestInheritanceSuperClass 
     return super.m()+1;
   }
 
+}
 }
