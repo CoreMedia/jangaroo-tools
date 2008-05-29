@@ -26,8 +26,6 @@
   </repositories>
 
   <build>
-    <sourceDirectory>src/java</sourceDirectory>
-
     <plugins>
 
       <plugin>
@@ -35,18 +33,24 @@
         <artifactId>maven-jar-plugin</artifactId>
         <executions>
           <execution>
-            <configuration>
-              <archive>
-                <manifestFile>src/etc/manifest</manifestFile>
-                <manifest>
-                  <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-                  <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
-                </manifest>
-              </archive>
-            </configuration>
+            <phase>package</phase>
+            <goals>
+              <goal>test-jar</goal>
+            </goals>
           </execution>
-
         </executions>
+        <configuration>
+          <archive>
+            <manifestFile>src/main/resources/META-INF/MANIFEST.MF</manifestFile>
+            <manifest>
+              <addClasspath>true</addClasspath>
+              <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+              <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+            </manifest>
+            <manifestEntries>
+            </manifestEntries>
+          </archive>
+        </configuration>
       </plugin>
 
     </plugins>

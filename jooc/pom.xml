@@ -40,8 +40,6 @@
   </repositories>
 
   <build>
-    <sourceDirectory>src/main/java</sourceDirectory>
-    <testSourceDirectory>src/test/java</testSourceDirectory>
     <testResources>
       <testResource>
         <directory>src/test/js2</directory>
@@ -131,28 +129,24 @@
         <artifactId>maven-jar-plugin</artifactId>
         <executions>
           <execution>
-            <configuration>
-              <archive>
-                <manifestFile>src/etc/default.mf</manifestFile>
-                <manifest>
-                  <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-                  <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
-                </manifest>
-                <manifestEntries>
-                </manifestEntries>
-              </archive>
-            </configuration>
-          </execution>
-
-          <execution>
-            <id>test-jar</id>
             <phase>package</phase>
             <goals>
               <goal>test-jar</goal>
             </goals>
           </execution>
-
         </executions>
+        <configuration>
+          <archive>
+            <manifestFile>src/main/resources/META-INF/MANIFEST.MF</manifestFile>
+            <manifest>
+              <addClasspath>true</addClasspath>
+              <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+              <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+            </manifest>
+            <manifestEntries>
+            </manifestEntries>
+          </archive>
+        </configuration>
       </plugin>
 
       <plugin>
@@ -208,6 +202,12 @@
     <dependency>
       <groupId>edu.princeton.cup</groupId>
       <artifactId>java-cup</artifactId>
+      <version>10k</version>
+    </dependency>
+
+    <dependency>
+      <groupId>edu.princeton.cup</groupId>
+      <artifactId>java-cup-runtime</artifactId>
       <version>10k</version>
     </dependency>
 
