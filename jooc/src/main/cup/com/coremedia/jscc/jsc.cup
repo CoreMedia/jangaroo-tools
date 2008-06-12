@@ -172,6 +172,8 @@ nonterminal FieldDeclaration fieldDeclaration;
 nonterminal FunctionExpr functionExpr;
 nonterminal Ide ide;
 nonterminal Implements implements;
+nonterminal ImportDirective directive;
+nonterminal Directives directives;
 nonterminal Expr lvalue;
 nonterminal MethodDeclaration methodDeclaration;
 nonterminal Declaration memberDeclaration;
@@ -281,8 +283,8 @@ commaExpr ::=
   ;
 
 compilationUnit ::=
-    packageDeclaration:p classDeclaration:c
-    {: RESULT = new CompilationUnit(p,c); :}
+    packageDeclaration:p LBRACE:lb directives:ds classDeclaration:c RBRACE:rb
+    {: RESULT = new CompilationUnit(p,lb,ds,c,rb); :}
   ;
 
 constOrVar ::=
@@ -290,6 +292,19 @@ constOrVar ::=
     {: RESULT = c; :}
   | VAR:v
     {: RESULT = v; :}
+  ;
+
+directive ::=
+    IMPORT:i type:t
+    {: RESULT = new ImportDirective(i,t); :}
+  ;
+
+directives ::=
+    {: RESULT = null; :}
+  | SEMICOLON:s directives:ds
+    {: RESULT = ds; :}
+  | directive:d directives:ds
+    {: RESULT = new Directives(d,ds); :}
   ;
 
 expr ::=
@@ -384,6 +399,8 @@ expr ::=
   | expr:e1 ANDAND:op expr:e2
     {: RESULT = new BinaryOpExpr(e1,op,e2); :}
   | expr:e1 OROR:op expr:e2
+    {: RESULT = new BinaryOpExpr(e1,op,e2); :}
+  | expr:e1 IN:op expr:e2
     {: RESULT = new BinaryOpExpr(e1,op,e2); :}
   | lvalue:lv EQ:op exprOrObjectLiteral:e
     {: RESULT = new AssignmentOpExpr(lv,op,e); :}
@@ -518,7 +535,9 @@ nonEmptyObjectFields ::=
 
 objectField ::=
     ide:name COLON:c exprOrObjectLiteral:value
-    {: RESULT = new ObjectField(name,c,value); :}
+    {: RESULT = new ObjectField(new IdeExpr(name),c,value); :}
+  | STRING_LITERAL:l COLON:c exprOrObjectLiteral:value
+    {: RESULT = new ObjectField(new LiteralExpr(l),c,value); :}
   ;
 
 objectFields ::=
@@ -580,8 +599,8 @@ optTypeRelation ::=
   ;
 
 packageDeclaration ::=
-    PACKAGE:p qualifiedIde:qide SEMICOLON:s
-    {: RESULT = new PackageDeclaration(p,qide, s); :}
+    PACKAGE:p qualifiedIde:qide
+    {: RESULT = new PackageDeclaration(p,qide); :}
   ;
 
 parameter ::=
@@ -632,8 +651,8 @@ statement ::=
     {: RESULT = new ForStatement(f,lp,new ForInitializer(e),s1,e1,s2,e2,rp,s); :}
   | FOR:f LPAREN:lp VAR:var ide:ide optTypeRelation:t optInitializer:init SEMICOLON:s1 optCommaExpr:e1 SEMICOLON:s2 optCommaExpr:e2 RPAREN:rp statement:s
     {: RESULT = new ForStatement(f,lp,new ForInitializer(new VariableDeclaration(var,ide,t,init)),s1,e1,s2,e2,rp,s); :}
-  | FOR:f LPAREN:lp VAR:v ide:ide IN:in expr:e RPAREN:rp statement:s
-    {: RESULT = new ForInStatement(f,lp,v,ide,in,e,rp,s); :}
+  | FOR:f LPAREN:lp VAR:var ide:ide optTypeRelation:t IN:in expr:e RPAREN:rp statement:s
+    {: RESULT = new ForInStatement(f,lp,new VariableDeclaration(var,ide,t,null),in,e,rp,s); :}
   | BREAK:b optIde:ide SEMICOLON:s
     {: RESULT = new BreakStatement(b,ide,s); :}
   | CONTINUE:c optIde:ide SEMICOLON:s
@@ -683,6 +702,8 @@ staticInitializer ::=
 type ::=
     qualifiedIde:ide
     {: RESULT = new IdeType(ide); :}
+  | MUL:any
+    {: RESULT = new VoidType(any); :}
   | VOID:v
     {: RESULT = new VoidType(v); :}
   ;
