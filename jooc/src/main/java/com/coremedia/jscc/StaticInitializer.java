@@ -10,8 +10,8 @@ class StaticInitializer extends Declaration {
 
   BlockStatement block;
 
-  public StaticInitializer(JscSymbol symStatic, BlockStatement block) {
-    super(new JscSymbol[]{ symStatic }, MODIFIER_STATIC);
+  public StaticInitializer(BlockStatement block) {
+    super(new JscSymbol[]{ }, MODIFIER_STATIC);
     this.block = block;
   }
 

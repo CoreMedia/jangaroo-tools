@@ -11,6 +11,7 @@
     <url>http://www.coremedia.com</url>
   </organization>
 
+
   <pluginRepositories>
     <pluginRepository>
       <id>cap</id>
@@ -50,7 +51,7 @@
       <plugin>
         <groupId>de.jflex.maven.plugin</groupId>
         <artifactId>maven-jflex-plugin</artifactId>
-        <version>0.2</version>
+        <version>1.0</version>
         <executions>
           <execution>
             <goals>
@@ -191,7 +192,13 @@
 
   </build>
 
+  <properties>
+    <generated.cup.sources.dir>${project.build.directory}/generated-sources/cup</generated.cup.sources.dir>
+    <cup.sources.dir>${basedir}/src/main/cup</cup.sources.dir>
+  </properties>
+
   <dependencies>
+
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
@@ -226,14 +233,9 @@
     <dependency>
       <groupId>rhino</groupId>
       <artifactId>js</artifactId>
-      <version>1.5R4.1</version>
-      <scope>test</scope>
+      <version>1.7R1</version>
     </dependency>
 
   </dependencies>
 
-  <properties>
-    <generated.cup.sources.dir>${project.build.directory}/generated-sources/cup</generated.cup.sources.dir>
-    <cup.sources.dir>${basedir}/src/main/cup</cup.sources.dir>
-  </properties>
 </project>

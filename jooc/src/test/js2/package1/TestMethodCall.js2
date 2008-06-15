@@ -6,7 +6,7 @@
 /**
 * und nochne klasse Klasse
 */
-public class TestMethodCall /* blub ber */extends Object {
+public class TestMethodCall /* blub ber *//*extends Object*/ {
 
   public function TestMethodCall() {
   }

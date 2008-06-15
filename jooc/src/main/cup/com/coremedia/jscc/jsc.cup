@@ -695,8 +695,8 @@ statementsInSwitch ::=
   ;
 
 staticInitializer ::=
-    STATIC:s block:b
-    {: RESULT = new StaticInitializer(s,b); :}
+    block:b
+    {: RESULT = new StaticInitializer(b); :}
   ;
 
 type ::=

@@ -200,11 +200,10 @@ LineTerminator = \r|\n|\r\n
 InputCharacter = [^\r\n]
 WhiteSpace = {LineTerminator} | [ \t\f]
 
-Comment = {TraditionalComment} | {EndOfLineComment} | {DocumentationComment}
+Comment = {TraditionalComment} | {EndOfLineComment} 
 
-TraditionalComment = "/*" [^*] ~"*/"
+TraditionalComment = "/*" ~"*/"
 EndOfLineComment = "//" {InputCharacter}* {LineTerminator}?
-DocumentationComment = "/**" ~"*/"
 
 IdentifierStart = [:letter:]|_
 Identifier = {IdentifierStart}({IdentifierStart}|[:digit:])*

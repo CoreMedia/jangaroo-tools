@@ -8,21 +8,20 @@ public class TestStaticInitializer {
   static public var s1 = "s" + "1";
   static public var s2;
 
-  public static function init1() {
+  {
     package2.TestStaticInitializer.s2 = "s2/" + package2.TestStaticInitializer.s1;
   }
 
-
   static public var s3;
 
-  public static function init2() {
+  {
     package2.TestStaticInitializer.s3 = "s3/" + package2.TestStaticInitializer.s2;
   }
 
   static private var f;
   static public var fv :int;
 
-  public static function init() {
+  {
     package2.TestStaticInitializer.f = function(x :int, y) {
       return x+y;
     };

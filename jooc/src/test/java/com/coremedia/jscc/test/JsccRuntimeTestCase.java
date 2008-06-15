@@ -4,17 +4,14 @@
 
 package com.coremedia.jscc.test;
 
-import org.mozilla.javascript.Context;
-import org.mozilla.javascript.Function;
-import org.mozilla.javascript.Scriptable;
-import org.mozilla.javascript.ScriptableObject;
+import org.mozilla.javascript.*;
 
 import java.io.File;
 import java.io.FileReader;
 import java.io.Reader;
 import java.io.StringReader;
 
-public class JsccRuntimeTestCase extends JsccTestCase {
+public abstract class JsccRuntimeTestCase extends JsccTestCase {
 
   protected Context cx;
   protected Scriptable scope;
@@ -45,11 +42,14 @@ public class JsccRuntimeTestCase extends JsccTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     global = new Global();
-    cx = Context.enter();
+    cx = ContextFactory.getGlobal().enterContext();
+    cx.setLanguageVersion(Context.VERSION_1_5);
     scope = cx.initStandardObjects(global);
     global.defineFunctionProperties(new String[]{ "print" },
             Global.class, ScriptableObject.DONTENUM);
-    load("jsc-runtime.js");
+    load("joo" + File.separatorChar + "joo.js");
+    loadClass("joo.lang.JsonBuilder");
+    loadClass("joo.lang.JOObject");
   }
 
   protected void tearDown() throws Exception {
@@ -134,13 +134,13 @@ public class JsccRuntimeTestCase extends JsccTestCase {
     double actual = 0;
     if (result instanceof Double)
       actual = ((Double)result).doubleValue();
-    else fail("expected integer result, found: " + result.getClass().getName());
+    else fail("expected double result, found: " + result.getClass().getName());
     assertEquals(expected, actual, 0.00000000001);
   }
 
   public void testRhino() throws Exception {
     expectInt(23, "23");
-    expectDouble(23.0, "22+1");
+    expectDouble(23.1, "22.1+1");
   }
 
 }

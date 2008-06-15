@@ -14,7 +14,7 @@ Function.prototype.getName = typeof Function.prototype.name=="string"
   });
 }());
 
-(function() {
+(function(theGlobalObject) {
   function initFields(privateBean, publicBean, fieldNames) {
     for (var i=0; i<fieldNames.length; ++i) {
       var fieldName = fieldNames[i];
@@ -24,7 +24,7 @@ Function.prototype.getName = typeof Function.prototype.name=="string"
     }
   }
   function createPackage(packageName) {
-    var $package = window;
+    var $package = theGlobalObject;
     if (packageName) {
       var packageParts = packageName.split(".");
       for (var i=0; i<packageParts.length; ++i) {
@@ -317,10 +317,10 @@ Function.prototype.getName = typeof Function.prototype.name=="string"
     return ClassDescription;
   })();
   function Package() { }
-  window.joo = new Package();
-  window.joo.Class = {};
+  theGlobalObject.joo = new Package();
+  theGlobalObject.joo.Class = {};
   var loadedClasses = {};
-  window.joo.Class.load = function(fullClassName) {
+  theGlobalObject.joo.Class.load = function(fullClassName) {
     if (!loadedClasses[fullClassName]) {
       loadedClasses[fullClassName] = true;
       var uri = document.location.href;
@@ -331,13 +331,13 @@ Function.prototype.getName = typeof Function.prototype.name=="string"
       document.body.appendChild(script);
     }
   };
-  window.joo.Class.run = function(fullClassName, args) {
-    window.joo.Class.load(fullClassName);
-    window.onload = function() {
+  theGlobalObject.joo.Class.run = function(fullClassName, args) {
+    theGlobalObject.joo.Class.load(fullClassName);
+    theGlobalObject.onload = function() {
       eval(fullClassName+"_()").main(args);
     }
   }
-  window.joo.Class.prepare = function(packageDef /* import*, classDef, members */) {
+  theGlobalObject.joo.Class.prepare = function(packageDef /* import*, classDef, members */) {
     var classDef = arguments[arguments.length-2];
     var members = arguments[arguments.length-1];
     var classDesc = { $members: members };
@@ -379,7 +379,7 @@ Function.prototype.getName = typeof Function.prototype.name=="string"
       throw new Error("unexpected token '"+classParts[i]+" after class declaration.");
     new ClassDescription(classDesc);
   };
-})();
+})(this);
 //  alert("runtime loaded!");
 joo.typeOf = function typeOf(obj){
   if (obj==undefined) return false;

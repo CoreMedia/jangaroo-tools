@@ -13,7 +13,7 @@ public class JsccTest extends com.coremedia.jscc.test.JsccRuntimeTestCase {
 
   public void testIdentityMethod() throws Exception {
     loadClass("package1.TestMethodCall");
-    expectInt(43, "package1.TestMethodCall.s(43)");
+    expectInt(43, "package1.TestMethodCall_().s(43)");
     eval("obj = new package1.TestMethodCall();");
     expectInt(43, "obj.m(43)");
   }
@@ -38,10 +38,10 @@ public class JsccTest extends com.coremedia.jscc.test.JsccRuntimeTestCase {
 
   public void testStaticInitializer() throws Exception {
     loadClass("package2.TestStaticInitializer");
-    expectString("s1", "package2.TestStaticInitializer.s1");
-    expectString("s2/s1", "package2.TestStaticInitializer.s2");
-    expectString("s3/s2/s1", "package2.TestStaticInitializer.s3");
-    expectDouble(10, "package2.TestStaticInitializer.fv");
+    expectString("s1", "package2.TestStaticInitializer_().s1");
+    expectString("s2/s1", "package2.TestStaticInitializer_().s2");
+    expectString("s3/s2/s1", "package2.TestStaticInitializer_().s3");
+    expectDouble(10, "package2.TestStaticInitializer_().fv");
   }
 
   public void testLocalVariables() throws Exception {
