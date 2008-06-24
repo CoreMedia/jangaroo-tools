@@ -5,7 +5,9 @@
 package com.coremedia.jscc;
 
 
-
+/**
+ * @author Andreas Gawecki
+ */
 public abstract class IdeDeclaration extends Declaration {
 
   Ide ide;

@@ -9,6 +9,9 @@ package com.coremedia.jscc;
 import java.io.Writer;
 
 
+/**
+ * @author Andreas Gawecki
+ */
 class JsStringLiteralWriter extends SubstitutingWriter {
 
   protected boolean insideScriptTag;

@@ -4,5 +4,8 @@
 
 package com.coremedia.jscc;
 
+/**
+ * @author Andreas Gawecki
+ */
 public abstract class Type extends NodeImplBase {
 }

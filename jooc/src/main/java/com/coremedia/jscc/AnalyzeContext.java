@@ -6,6 +6,9 @@ package com.coremedia.jscc;
 
 import java.util.Stack;
 
+/**
+ * @author Andreas Gawecki
+ */
 public class AnalyzeContext {
 
   protected PackageDeclaration packageDeclaration = null;

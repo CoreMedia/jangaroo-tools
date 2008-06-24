@@ -4,10 +4,10 @@
 
 package com.coremedia.jscc;
 
-
-
 /**
  * A LabelRefStatement is either a break or continue statement
+ *
+ * @author Andreas Gawecki
  */
 class LabelRefStatement extends KeywordExprStatement {
 

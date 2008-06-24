@@ -1,5 +1,9 @@
 /*
  *   Copyright (c) 2003 CoreMedia AG, Hamburg. All rights reserved.
+ *
+ * JangarooScript lexical scanner definition for the JFlex scanner generator
+ *
+ * Author: Andreas Gawecki
  */
 
 package com.coremedia.jscc;

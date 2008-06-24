@@ -4,6 +4,9 @@
 
 package com.coremedia.jscc;
 
+/**
+ * @author Andreas Gawecki
+ */
 public class JscSymbol extends java_cup.runtime.Symbol {
   protected int line;
   protected int column;

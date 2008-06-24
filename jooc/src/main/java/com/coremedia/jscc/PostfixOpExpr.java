@@ -6,6 +6,9 @@ package com.coremedia.jscc;
 
 import java.io.IOException;
 
+/**
+ * @author Andreas Gawecki
+ */
 class PostfixOpExpr extends UnaryOpExpr {
 
   PostfixOpExpr(JscSymbol op, Expr arg) {

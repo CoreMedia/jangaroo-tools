@@ -3,6 +3,9 @@
  */
 package com.coremedia.jscc;
 
+/**
+ * @author Andreas Gawecki
+ */
 public abstract class MemberDeclaration extends IdeDeclaration {
   TypeRelation optTypeRelation;
 

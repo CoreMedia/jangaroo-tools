@@ -1,3 +1,5 @@
+// JangarooScript runtime support. Author: Frank Wienberg
+
 Function.prototype.getName = typeof Function.prototype.name=="string"
 ? (function getName() { return this.name; })
 : (function() {

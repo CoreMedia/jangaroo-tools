@@ -6,6 +6,9 @@ package com.coremedia.jscc;
 
 import java.io.IOException;
 
+/**
+ * @author Andreas Gawecki
+ */
 public class Ide extends NodeImplBase {
 
   JscSymbol ide;

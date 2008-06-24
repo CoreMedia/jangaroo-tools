@@ -6,6 +6,9 @@ package com.coremedia.jscc;
 
 import java.io.IOException;
 
+/**
+ * @author Andreas Gawecki
+ */
 class Directives extends NodeImplBase {
 
   ImportDirective directive; // other directive types may follow later

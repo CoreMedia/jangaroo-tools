@@ -9,6 +9,12 @@ import junit.framework.TestCase;
 
 import java.io.File;
 
+/**
+ * An abstract base class for Jangaroo Compiler tests. Contains methods to compile JangarooScript
+ * source files.
+ * 
+ * @author Andreas Gawecki
+ */
 public abstract class JsccTestCase extends TestCase {
 
   public JsccTestCase(String name) {

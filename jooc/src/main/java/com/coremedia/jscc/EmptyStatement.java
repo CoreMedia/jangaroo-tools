@@ -4,6 +4,9 @@
 
 package com.coremedia.jscc;
 
+/**
+ * @author Andreas Gawecki
+ */
 public class EmptyStatement extends ExprStatement {
   public EmptyStatement(JscSymbol symSemicolon) {
     super(null, symSemicolon);

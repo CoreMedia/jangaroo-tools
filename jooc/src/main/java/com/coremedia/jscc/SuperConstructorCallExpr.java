@@ -7,6 +7,9 @@ package com.coremedia.jscc;
 import java.io.IOException;
 
 
+/**
+ * @author Andreas Gawecki
+ */
 class SuperConstructorCallExpr extends ApplyExpr {
 
   protected JscSymbol symSuper;

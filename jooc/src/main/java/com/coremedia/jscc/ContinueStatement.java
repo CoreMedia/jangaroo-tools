@@ -4,6 +4,9 @@
 
 package com.coremedia.jscc;
 
+/**
+ * @author Andreas Gawecki
+ */
 class ContinueStatement extends LabelRefStatement {
 
   public ContinueStatement(JscSymbol symContinue, Ide optLabel, JscSymbol symSemicolon) {

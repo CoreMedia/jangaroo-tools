@@ -5,7 +5,9 @@
 package com.coremedia.jscc;
 
 
-
+/**
+ * @author Andreas Gawecki
+ */
 abstract class UnaryOpExpr extends OpExpr {
 
   Expr arg;

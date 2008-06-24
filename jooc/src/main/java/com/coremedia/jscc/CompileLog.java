@@ -4,6 +4,9 @@
 
 package com.coremedia.jscc;
 
+/**
+ * @author Andreas Gawecki
+ */
 public class CompileLog {
 
   protected boolean errors = false;

@@ -4,6 +4,9 @@
 
 package com.coremedia.jscc;
 
+/**
+ * @author Andreas Gawecki
+ */
 class VoidType extends IdeType {
   
   public VoidType(JscSymbol symVoid) {

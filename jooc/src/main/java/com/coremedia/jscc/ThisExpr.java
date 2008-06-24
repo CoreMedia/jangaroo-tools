@@ -4,6 +4,9 @@
 
 package com.coremedia.jscc;
 
+/**
+ * @author Andreas Gawecki
+ */
 class ThisExpr extends IdeExpr {
 
   public ThisExpr(JscSymbol symThis) {

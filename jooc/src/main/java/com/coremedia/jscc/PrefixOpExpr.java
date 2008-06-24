@@ -6,6 +6,9 @@ package com.coremedia.jscc;
 
 import java.io.IOException;
 
+/**
+ * @author Andreas Gawecki
+ */
 class PrefixOpExpr extends UnaryOpExpr {
 
   public PrefixOpExpr(JscSymbol op, Expr arg) {

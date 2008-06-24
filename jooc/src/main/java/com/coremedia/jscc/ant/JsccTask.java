@@ -16,6 +16,9 @@ import org.apache.tools.ant.util.SourceFileScanner;
 import java.io.File;
 import java.util.Vector;
 
+/**
+ * @author Andreas Gawecki
+ */
 public class JsccTask extends MatchingTask {
 
   private static final String FAIL_MSG

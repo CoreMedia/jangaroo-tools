@@ -6,7 +6,9 @@ package com.coremedia.jscc;
 
 import java.io.IOException;
 
-
+/**
+ * @author Andreas Gawecki
+ */
 class VariableDeclaration extends AbstractVariableDeclaration {
 
   public VariableDeclaration(JscSymbol symConstOrVar, Ide ide,

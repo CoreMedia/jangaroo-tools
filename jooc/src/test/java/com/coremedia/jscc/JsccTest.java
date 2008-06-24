@@ -4,6 +4,12 @@
 
 package com.coremedia.jscc;
 
+/**
+ * Some basic test cases for JangarooScript compiler and runtime correctness.
+ *
+ * @author Andreas Gawecki
+ */
+
 public class JsccTest extends com.coremedia.jscc.test.JsccRuntimeTestCase {
 
   public JsccTest(String name) {

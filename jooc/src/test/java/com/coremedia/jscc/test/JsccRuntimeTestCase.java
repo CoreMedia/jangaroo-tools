@@ -11,6 +11,13 @@ import java.io.FileReader;
 import java.io.Reader;
 import java.io.StringReader;
 
+/**
+ * A JscTestCase to be executed at runtime
+ *
+ * This class adds a global evaluation context and methods to load and execute script code.
+ *
+ * @author Andreas Gawecki
+ */
 public abstract class JsccRuntimeTestCase extends JsccTestCase {
 
   protected Context cx;

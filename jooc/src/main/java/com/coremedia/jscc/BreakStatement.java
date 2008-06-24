@@ -5,7 +5,9 @@
 package com.coremedia.jscc;
 
 
-
+/**
+ * @author Andreas Gawecki
+ */
 class BreakStatement extends LabelRefStatement {
 
   public BreakStatement(JscSymbol symBreak, Ide optIde, JscSymbol symSemicolon) {

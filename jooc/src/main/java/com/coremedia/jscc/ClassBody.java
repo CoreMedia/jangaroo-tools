@@ -7,6 +7,9 @@ package com.coremedia.jscc;
 import java.io.IOException;
 import java.util.ArrayList;
 
+/**
+ * @author Andreas Gawecki
+ */
 public class ClassBody extends NodeImplBase {
   JscSymbol lBrace;
 

@@ -11,9 +11,11 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Arrays;
 
+/**
+ * @author Andreas Gawecki
+ */
 public class Jscc {
 
   public static final int RESULT_CODE_OK = 0;

@@ -5,11 +5,7 @@ import java.util.Collection;
 import java.util.Iterator;
 
 /**
- * Created by IntelliJ IDEA.
- * User: agawecki
- * Date: 17.09.2003
- * Time: 17:19:19
- * To change this template use Options | File Templates.
+ * @author Andreas Gawecki
  */
 public abstract class NodeImplBase implements Node {
 

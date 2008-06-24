@@ -4,6 +4,9 @@
 
 package com.coremedia.jscc;
 
+/**
+ * @author Andreas Gawecki
+ */
 abstract class Expr extends NodeImplBase {
 
   boolean isCompileTimeConstant() {

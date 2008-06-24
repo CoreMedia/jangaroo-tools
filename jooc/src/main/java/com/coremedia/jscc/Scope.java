@@ -8,6 +8,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * @author Andreas Gawecki
+ */
 class Scope {
 
   protected IdeDeclaration ideDeclaration;

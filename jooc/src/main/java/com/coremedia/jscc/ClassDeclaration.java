@@ -8,6 +8,9 @@ import java.io.IOException;
 import java.util.Set;
 import java.util.HashSet;
 
+/**
+ * @author Andreas Gawecki
+ */
 public class ClassDeclaration extends IdeDeclaration {
 
   protected JscSymbol symClass;

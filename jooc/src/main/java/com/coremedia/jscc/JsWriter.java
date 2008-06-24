@@ -10,6 +10,9 @@ import java.io.Writer;
 import java.util.Calendar;
 import java.util.Date;
 
+/**
+ * @author Andreas Gawecki
+ */
 public class JsWriter extends FilterWriter {
 
   JsStringLiteralWriter stringLiteralWriter;

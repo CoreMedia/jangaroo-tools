@@ -8,6 +8,9 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
+/**
+ * @author Andreas Gawecki
+ */
 public class CompilationUnit extends NodeImplBase {
 
   public PackageDeclaration getPackageDeclaration() {

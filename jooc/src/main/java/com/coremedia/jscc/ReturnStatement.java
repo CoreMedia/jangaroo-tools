@@ -4,6 +4,9 @@
 
 package com.coremedia.jscc;
 
+/**
+ * @author Andreas Gawecki
+ */
 class ReturnStatement extends KeywordExprStatement {
 
   public ReturnStatement(JscSymbol symReturn, Expr optExpr, JscSymbol symSemicolon) {

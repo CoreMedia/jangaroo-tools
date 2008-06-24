@@ -4,12 +4,6 @@
 
 package com.coremedia.jscc;
 
-public class Debug {
-
-/*
-  Copyright (c) 1997-2003 CoreMedia AG, Hamburg. All rights reserved.
-*/
-
 /**
  * A class to provide debug facilities in java.
  *
@@ -27,7 +21,9 @@ public class Debug {
  * <CODE>Debug.print</CODE> also won't print its argument if <CODE>Debug.enabled</CODE> is false. If
  * the generation of the argument is already costly, you have to wrap it in an if-statement.
  *
+ * @author Andreas Gawecki
  */
+public class Debug {
 
   public static boolean enabled = true;
 

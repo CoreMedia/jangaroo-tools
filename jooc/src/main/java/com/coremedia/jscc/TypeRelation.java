@@ -6,6 +6,9 @@ package com.coremedia.jscc;
 
 import java.io.IOException;
 
+/**
+ * @author Andreas Gawecki
+ */
 public class TypeRelation extends NodeImplBase {
 
   JscSymbol symRelation;

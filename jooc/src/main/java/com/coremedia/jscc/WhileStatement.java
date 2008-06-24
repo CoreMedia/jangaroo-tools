@@ -4,8 +4,9 @@
 
 package com.coremedia.jscc;
 
-import java.io.IOException;
-
+/**
+ * @author Andreas Gawecki
+ */
 class WhileStatement extends ConditionalLoopStatement {
 
   public WhileStatement(JscSymbol symWhile, ParenthesizedExpr cond, Statement body) {

@@ -6,6 +6,9 @@ package com.coremedia.jscc;
 
 import java.io.IOException;
 
+/**
+ * @author Andreas Gawecki
+ */
 public class Parameter extends AbstractVariableDeclaration {
 
   public Parameter(JscSymbol optSymConst, Ide ide, TypeRelation typeRelation) {
