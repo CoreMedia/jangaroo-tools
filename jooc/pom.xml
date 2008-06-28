@@ -87,7 +87,8 @@
                   <!-- arg value="-dump_states"/> -->
                   <arg value="-interface"/>
                   <arg value="-expect"/>
-                  <arg value="7"/>
+                  <arg value="1"/>
+                  <!--arg value="-dump"/-->
                   <arg value="${cup.sources.dir}/${cup.files.reldir}/${cup.input.filename}"/>
                   <classpath>
                     <path refid="maven.plugin.classpath"/>

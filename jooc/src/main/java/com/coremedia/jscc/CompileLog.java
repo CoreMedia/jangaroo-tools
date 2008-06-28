@@ -27,7 +27,7 @@ public class CompileLog {
 
   String formatError(String fileName, int line, int column, String message) {
     StringBuffer m = new StringBuffer();
-    m.append(fileName + "(" + line + "," + column + "): ");
+    m.append(fileName + "(" + line + "): ");
     m.append("Error: ");
     m.append(message);
     return m.toString();

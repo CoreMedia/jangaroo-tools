@@ -46,62 +46,7 @@ parser code  {:
   }
 
   public void syntax_error(Symbol cur_token) {
-    StringBuffer buf = new StringBuffer();
-    short[] expectedSymbols = getExpectedSymbols();
-    buf.append("Syntax error: ");
-    if (expectedSymbols.length < 15) {
-      buf.append("expected ");
-      int n = expectedSymbols.length;
-      for (int i = 0; i < n; i++) {
-        if (i > 1 && i == n-1)
-          buf.append(", or ");
-        else if (i == 1 && i == n-1)
-          buf.append(" or ");
-        else if (i > 0)
-          buf.append(", ");
-        buf.append(scanner.getSymbolAbbreviation(expectedSymbols[i]));
-      }
-      buf.append(", found ");
-    }
-    buf.append(scanner.getSymbolAbbreviation(cur_token.sym));
-    report_error(buf.toString(), cur_token);
-  }
-
-  protected short[] getActionRow() {
-    int state = ((Symbol)stack.peek()).parse_state;
-    short[] row = action_tab[state];
-    return row;
-  }
-
-  protected short[] getExpectedSymbols() {
-    short[] row = getActionRow();
-    short[] accu = new short[row.length/2];
-    int n = 0;
-    for (int probe = 0; probe < row.length; probe+=2) {
-      /* is this entry labeled with our Symbol or the default? */
-      short tag = row[probe];
-      if (tag != -1)
-        accu[n++] = tag;
-    }
-    short[] result = new short[n];
-    System.arraycopy(accu, 0, result, 0, n);
-    return result;
-  }
-
-  public boolean isSymbolExpected(int sym) {
-    return isSymbolExpected((short)sym);
-  }
-
-  public boolean isSymbolExpected(short sym) {
-    short[] row = getActionRow();
-    short[] accu = new short[row.length/2];
-    int n = 0;
-    for (int probe = 0; probe < row.length; probe+=2) {
-      short tag = row[probe];
-      if (tag == sym)
-        return true;
-    }
-    return false;
+    report_error("Syntax error: " + scanner.getSymbolAbbreviation(cur_token.sym), cur_token);
   }
 
   protected Scanner scanner;
@@ -109,7 +54,6 @@ parser code  {:
   public void setScanner(java_cup.runtime.Scanner s) {
     super.setScanner(s);
     scanner = (Scanner) s;
-    scanner.setParser(this);
   }
 
 :}
@@ -214,17 +158,20 @@ nonterminal VariableDeclaration variableDeclaration;
 
 precedence right EQ, MULTEQ, DIVEQ, MODEQ, PLUSEQ, MINUSEQ, LSHIFTEQ, RSHIFTEQ, URSHIFTEQ, ANDEQ, XOREQ, OREQ;
 precedence right QUESTION, COLON;
-precedence left  EQEQ, NOTEQ, EQEQEQ, NOTEQEQ, AND, XOR, OR, ANDAND, OROR;
-precedence left LT, GT, LTEQ, GTEQ;
+precedence left  OROR;
+precedence left  ANDAND;
+precedence left  OR;
+precedence left  XOR;
+precedence left  AND;
+precedence left  EQEQ, NOTEQ, EQEQEQ, NOTEQEQ;
+precedence left LT, GT, LTEQ, GTEQ, INSTANCEOF, TYPEOF, NOT, IN;
 precedence left LSHIFT, RSHIFT, URSHIFT;
 precedence left PLUS, MINUS;
 precedence left MUL, DIV, MOD;
-precedence left INSTANCEOF, TYPEOF, NOT;
-precedence left PREFIX_PLUSPLUS, PREFIX_MINUSMINUS;
-precedence left PREFIX_PLUS, PREFIX_MINUS; /* pseudo-terminals for precedence assignment */
+precedence left PREFIX_PLUSPLUS, PREFIX_MINUSMINUS, PREFIX_PLUS, PREFIX_MINUS;
 precedence nonassoc PLUSPLUS, MINUSMINUS; /* postfix */
 
-precedence left DOT;
+precedence left DOT, LPAREN, LBRACK;
 
 start with compilationUnit;
 

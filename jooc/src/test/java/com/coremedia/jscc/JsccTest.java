@@ -83,6 +83,7 @@ public class JsccTest extends com.coremedia.jscc.test.JsccRuntimeTestCase {
     eval("obj = new package2.TestExpressions;");
     expectInt(200, "obj.testCond(true, 200, 300)");
     expectInt(300, "obj.testCond(false, 200, 300)");
+    expectDouble(1, "obj.antitestRegexpLiterals()");
     expectDouble(24, "obj.testParenExpr(11)");
     expectDouble(7, "obj.testBinOpExpr(12)");
     expectDouble(130, "(obj.testFunExpr(13))(10)");
