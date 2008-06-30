@@ -76,6 +76,7 @@ parser code  {:
   public void setScanner(java_cup.runtime.Scanner s) {
     super.setScanner(s);
     scanner = (Scanner) s;
+    scanner.setParser(this);
   }
 
 :}
