@@ -13,15 +13,9 @@
 
   <repositories>
     <repository>
-      <id>cap</id>
+      <id>repo</id>
       <name>Primary virtual repository</name>
-      <url>http://woschod.coremedia.com/cap</url>
-    </repository>
-
-    <repository>
-      <id>share-3rdp</id>
-      <name>Thirdparty libs</name>
-      <url>http://woschod.coremedia.com/share-3rdp</url>
+      <url>http://woschod.coremedia.com/repo</url>
     </repository>
   </repositories>
 
