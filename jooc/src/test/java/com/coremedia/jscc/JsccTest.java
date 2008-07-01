@@ -19,7 +19,8 @@ public class JsccTest extends com.coremedia.jscc.test.JsccRuntimeTestCase {
 
   public void testIdentityMethod() throws Exception {
     loadClass("package1.TestMethodCall");
-    expectNumber(43, "package1.TestMethodCall_().s(43)");
+    initClass("package1.TestMethodCall");
+    expectNumber(43, "package1.TestMethodCall.s(43)");
     eval("obj = new package1.TestMethodCall();");
     expectNumber(43, "obj.m(43)");
   }
@@ -44,12 +45,13 @@ public class JsccTest extends com.coremedia.jscc.test.JsccRuntimeTestCase {
 
   public void testStaticInitializer() throws Exception {
     loadClass("package2.TestStaticInitializer");
-    expectString("s1", "package2.TestStaticInitializer_().s1");
-    expectString("s2/s1", "package2.TestStaticInitializer_().s2");
-    expectString("s3/s2/s1", "package2.TestStaticInitializer_().s3");
-    expectNumber(10, "package2.TestStaticInitializer_().fv");
+    initClass("package2.TestStaticInitializer");
+    expectString("s1", "package2.TestStaticInitializer.s1");
+    expectString("s2/s1", "package2.TestStaticInitializer.s2");
+    expectString("s3/s2/s1", "package2.TestStaticInitializer.s3");
+    expectNumber(10, "package2.TestStaticInitializer.fv");
     // must not access private fields
-    expectString("undefined", "typeof package2.TestStaticInitializer_().f");
+    expectString("undefined", "typeof package2.TestStaticInitializer.f");
   }
 
   public void testLocalVariables() throws Exception {

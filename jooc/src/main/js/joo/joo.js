@@ -169,7 +169,6 @@ Function.prototype.getName = typeof Function.prototype.name=="string"
           // TODO: only if public:
           this.$package = createPackage(this.$package);
           this.$package[this.$class] = this.$constructor;
-          this.$package[this.$class+"_"] = this.getStatic;
 
           this.state = PREPARED;
           prepareSubclasses(this);
@@ -179,11 +178,10 @@ Function.prototype.getName = typeof Function.prototype.name=="string"
          */
         initialize: function() {
           if (this.state!==PREPARED)
-            return;
+            return this.$constructor;
           this.state = INITIALIZING;
           // finish object structure setup of this class:
           // public part: avoid recursion!
-          this.$package[this.$class+"_"] = this.getStatic = undefined;
           this.$package[this.$class] = this.$constructor = undefined;
 
           // private part of the object structure:
@@ -199,10 +197,6 @@ Function.prototype.getName = typeof Function.prototype.name=="string"
             };
           }
           // static part:
-          this.$package[this.$class+"_"] = this.getStatic = function() {
-            // overwrite, this time without initializing:
-            return classDescription.publicStatic;
-          };
           var publicStatic = this.publicStatic = {};
           var privateStatic = {_super: superName};
 
@@ -318,6 +312,10 @@ Function.prototype.getName = typeof Function.prototype.name=="string"
           this.$package[this.$class] = this.$constructor;
           // init static fields with initializer:
           initFields(privateStatic, publicStatic, targetMap.$static.fieldsWithInitializer);
+          for (var pm in publicStatic) {
+            this.$constructor[pm] = publicStatic[pm];
+          }
+          return this.$constructor;
         }
       };
     }
@@ -386,6 +384,9 @@ Function.prototype.getName = typeof Function.prototype.name=="string"
       if (i<classParts.length)
         throw new Error("unexpected token '"+classParts[i]+" after class declaration.");
       new ClassDescription(classDesc);
+    },
+    init: function(clazz) {
+      return ClassDescription.$static.getClassDescription(clazz.getName()).initialize();
     }
   };
 })(this);

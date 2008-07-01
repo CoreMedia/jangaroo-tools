@@ -3,10 +3,10 @@ public class JOObject {
 
   private static var idCnt : Number = 0;
 
-  private static const INIT : void = function() : void {
+  {
     // patching Array to have a unique hashCode:
     Array.prototype["hashCode"] = joo.lang.JOObject.prototype.hashCode;
-  };
+  }
 
   public static function getHashCode(obj : *) : String {
     return obj && typeof obj.hashCode=="function" ? obj.hashCode() : "_"+obj;
@@ -127,10 +127,6 @@ public class JOObject {
         this[property] = jsonBuilder.fromJsonObject(json[property]);
       }
     }
-  }
-
-  public function initFrom(props : *) {
-    joo.util.PropertyAware_().setProperties(this, props);
   }
 
   override public function toString() : String {

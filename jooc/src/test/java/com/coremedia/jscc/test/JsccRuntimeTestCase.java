@@ -93,6 +93,10 @@ public abstract class JsccRuntimeTestCase extends JsccTestCase {
     load(jsFileName);
   }
 
+  protected void initClass(String qualifiedJscClassName) throws Exception {
+    eval("joo.Class.init("+qualifiedJscClassName+")");
+  }
+
   protected Object eval(String script) throws Exception {
     System.out.print("evaluating script '" + script + "': ");
     Reader reader = new StringReader(script);
