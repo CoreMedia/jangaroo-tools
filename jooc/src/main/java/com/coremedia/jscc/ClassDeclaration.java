@@ -77,9 +77,9 @@ public class ClassDeclaration extends IdeDeclaration {
     if (optExtends != null) optExtends.generateCode(out);
     //if (optImplements != null) optImplements.generateCode(out);
     out.write("\",");
-    out.write("function($jscContext){with(");
+    out.write("function($jooPublic,$jooPrivate){with(");
     getPackageDeclaration().ide.generateCode(out);
-    out.write(")with($jscContext)return[");
+    out.write(")with($jooPublic)with($jooPrivate)return[");
     body.generateCode(out);
     out.write("]}");
   }

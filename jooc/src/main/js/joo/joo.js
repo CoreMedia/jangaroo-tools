@@ -17,12 +17,16 @@ Function.prototype.getName = typeof Function.prototype.name=="string"
 }());
 
 (function(theGlobalObject) {
-  function initFields(privateBean, publicBean, fieldNames) {
-    for (var i=0; i<fieldNames.length; ++i) {
-      var fieldName = fieldNames[i];
-      //alert("init field: "+fieldName);
-      var bean = publicBean[fieldName] ? publicBean : privateBean;
-      bean[fieldName] = bean[fieldName]();
+  function initFields(privateBean, publicBean, fieldNamesAndInitializers) {
+    for (var i=0; i<fieldNamesAndInitializers.length; ++i) {
+      var fieldNameOrInitializer = fieldNamesAndInitializers[i];
+      if (typeof fieldNameOrInitializer == "function") {
+        fieldNameOrInitializer();
+      } else {
+        //alert("init field: "+fieldNameOrInitializer);
+        var bean = publicBean[fieldNameOrInitializer] ? publicBean : privateBean;
+        bean[fieldNameOrInitializer] = bean[fieldNameOrInitializer]();
+      }
     }
   }
   function createPackage(packageName) {
@@ -119,7 +123,7 @@ Function.prototype.getName = typeof Function.prototype.name=="string"
         superClassDescription: undefined,
         $constructor: undefined,
         Public: undefined,
-        Static: undefined,
+        publicStatic: undefined,
         getStatic: undefined,
         /**
          * Prepares this class to be used by constructor, by accessing a static member, or as a super class.
@@ -158,9 +162,6 @@ Function.prototype.getName = typeof Function.prototype.name=="string"
           // TODO: only if not final:
           this.Public = createEmptyConstructor(this.$constructor.prototype);
           // static part:
-          this.Static = this.superClassDescription
-            ? createEmptyConstructor(new (this.superClassDescription.Static)())
-            : new Function();
           this.getStatic = function() {
             classDescription.initialize();
             return classDescription.getStatic();
@@ -200,10 +201,10 @@ Function.prototype.getName = typeof Function.prototype.name=="string"
           // static part:
           this.$package[this.$class+"_"] = this.getStatic = function() {
             // overwrite, this time without initializing:
-            return classDescription.Static.prototype;
+            return classDescription.publicStatic;
           };
-          var privateStatic = new (this.Static)();
-          privateStatic._super = superName;
+          var publicStatic = this.publicStatic = {};
+          var privateStatic = {_super: superName};
 
           if (this.superClassDescription) {
             // init super class:
@@ -224,13 +225,13 @@ Function.prototype.getName = typeof Function.prototype.name=="string"
             },
             $static: {
               fieldsWithInitializer: [],
-              $public: this.Static.prototype,
-              $protected: this.Static.prototype,
+              $public: publicStatic,
+              $protected: publicStatic,
               $private: privateStatic
             }
           };
           if (isFunction(this.$members)) {
-            var memberDeclarations = this.$members(privateStatic);
+            var memberDeclarations = this.$members(publicStatic, privateStatic);
             var i=0;
             while (i<memberDeclarations.length) {
               var memberKey = "$this"; // default: not static
@@ -252,7 +253,7 @@ Function.prototype.getName = typeof Function.prototype.name=="string"
                   } else if (modifier=="var" || modifier=="const") {
                     memberType = modifier;
                   } else if (modifier=="override") {
-                    // so far: igrnoe. TODO: enable super-call!
+                    // so far: ignore. TODO: enable super-call!
                   } else {
                     throw new Error("Unknown modifier '"+modifier+"'.");
                   }
@@ -272,18 +273,23 @@ Function.prototype.getName = typeof Function.prototype.name=="string"
                   members = createMethod(members);
                 }
                 memberName = members.getName();
-                if (memberName==this.$class) {
-                  this.$constructor = members;
-                } else if (memberKey=="$this") {
-                  if (visibility=="$private") {
-                    memberName = registerPrivateMember(privateStatic, classPrefix, memberName);
-                    setFunctionName(members, memberName);
-                  } else if (isFunction(target[memberName])) {
-                    // Found overriding! Store super method as private method delegate for super access:
-                    this.Public.prototype[registerPrivateMember(privateStatic, classPrefix, memberName)] = target[memberName];
+                if (memberName=="") {
+                  // found static code block; execute on initialization
+                  targetMap.$static.fieldsWithInitializer.push(members);
+                } else {
+                  if (memberName==this.$class) {
+                    this.$constructor = members;
+                  } else if (memberKey=="$this") {
+                    if (visibility=="$private") {
+                      memberName = registerPrivateMember(privateStatic, classPrefix, memberName);
+                      setFunctionName(members, memberName);
+                    } else if (isFunction(target[memberName])) {
+                      // Found overriding! Store super method as private method delegate for super access:
+                      this.Public.prototype[registerPrivateMember(privateStatic, classPrefix, memberName)] = target[memberName];
+                    }
                   }
+                  target[memberName] = members;
                 }
-                target[memberName] = members;
               } else {
                 var targetFieldsWithInitializer = targetMap[memberKey].fieldsWithInitializer;
                 for (memberName in members) {
@@ -311,7 +317,7 @@ Function.prototype.getName = typeof Function.prototype.name=="string"
           // TODO: constructor visibility!
           this.$package[this.$class] = this.$constructor;
           // init static fields with initializer:
-          initFields(privateStatic, this.Static.prototype, targetMap.$static.fieldsWithInitializer);
+          initFields(privateStatic, publicStatic, targetMap.$static.fieldsWithInitializer);
         }
       };
     }

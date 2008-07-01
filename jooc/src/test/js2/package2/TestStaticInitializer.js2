@@ -5,27 +5,30 @@ public class TestStaticInitializer {
   public function TestStaticInitializer() {
   }
 
-  static public var s1 = "s" + "1";
-  static public var s2;
+  static public var s1 :String= "s" + "1";
+  static public var s2 :String;
 
   {
-    package2.TestStaticInitializer.s2 = "s2/" + package2.TestStaticInitializer.s1;
+    s2 = "s2/" + s1;
   }
 
-  static public var s3;
+  static public var s3 :String;
 
   {
-    package2.TestStaticInitializer.s3 = "s3/" + package2.TestStaticInitializer.s2;
+    s3 = "s3/" + s2;
   }
 
-  static private var f;
+  static private var f :Function;
   static public var fv :int;
 
   {
-    package2.TestStaticInitializer.f = function(x :int, y) {
+    f = function(x :int, y :int) {
       return x+y;
     };
-    package2.TestStaticInitializer.fv = package2.TestStaticInitializer.f(1,9);
+  }
+  // new code block so that f is not accidentially local to the code block 
+  {
+    fv = f(1,9);
   }
 
 }

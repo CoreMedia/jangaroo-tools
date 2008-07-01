@@ -48,6 +48,8 @@ public class JsccTest extends com.coremedia.jscc.test.JsccRuntimeTestCase {
     expectString("s2/s1", "package2.TestStaticInitializer_().s2");
     expectString("s3/s2/s1", "package2.TestStaticInitializer_().s3");
     expectDouble(10, "package2.TestStaticInitializer_().fv");
+    // must not access private fields
+    expectString("undefined", "typeof package2.TestStaticInitializer_().f");
   }
 
   public void testLocalVariables() throws Exception {

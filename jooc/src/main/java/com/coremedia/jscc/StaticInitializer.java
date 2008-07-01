@@ -22,7 +22,7 @@ class StaticInitializer extends Declaration {
     out.beginComment();
     writeModifiers(out);
     out.endComment();
-    out.write("\"static\", function()");
+    out.write("function()");
     block.generateCode(out);
     out.write(",");
   }
