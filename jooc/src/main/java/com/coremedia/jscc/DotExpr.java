@@ -34,8 +34,10 @@ class DotExpr extends BinaryOpExpr {
         && arg1 instanceof ThisExpr && arg2 instanceof IdeExpr
         && classDeclaration.isPrivateMember(((IdeExpr)arg2).ide.getName())) {
       arg1.generateCode(out);
-      out.write("[_");
-      arg2.generateCode(out);
+      out.write("[");
+      // awkward, but we have to be careful if we add characters to tokens:
+      final JscSymbol symbol = ((IdeExpr) arg2).getSymbol();
+      out.writeSymbol(symbol,  "_", "");
       out.write("]");
     } else {
       super.generateCode(out);

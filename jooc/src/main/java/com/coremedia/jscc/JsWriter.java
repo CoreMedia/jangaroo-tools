@@ -189,7 +189,7 @@ public class JsWriter extends FilterWriter {
     if (shouldWrite()) {
       String text = token;
       char firstSymbolChar = text.charAt(0);
-      if ((Character.isLetterOrDigit(lastChar) && Character.isLetterOrDigit(firstSymbolChar)) ||
+      if ((isIdeChar(lastChar) && isIdeChar(firstSymbolChar)) ||
             (lastChar == firstSymbolChar && "=><!&|+-*/&|^%".indexOf(lastChar) >= 0) ||
             (firstSymbolChar == '=' && "=><!&|+-*/&|^%".indexOf(lastChar) >= 0))
         write(' ');
@@ -197,9 +197,26 @@ public class JsWriter extends FilterWriter {
     }
   }
 
+  private boolean isIdeChar(final char ch) {
+    if (ch == '$' || ch == '_')
+      return true;
+    return Character.isLetterOrDigit(ch); // this logic must be in line with the Scanner Ide pattern
+  }
+
   public void writeSymbol(JscSymbol symbol) throws IOException {
     writeSymbolWhitespace(symbol);
     writeSymbolToken(symbol);
+  }
+
+  /**
+   * Variant of writeSymbol() to use if you want to transform the symbol text with a prefix and/or postfix string
+   * @param symbol the symbol to write
+   * @param prefix a (possibly empty) string to write before the symbol token string
+   * @param postfix a (possibly empty) string to write after the symbol token string
+   */
+  public void writeSymbol(JscSymbol symbol, String prefix, String postfix) throws IOException {
+    writeSymbolWhitespace(symbol);
+    writeToken(prefix + symbol.getText() + postfix);
   }
 
   public void writeSymbolToken(JscSymbol symbol) throws IOException {

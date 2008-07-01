@@ -84,11 +84,10 @@ public abstract class JsccRuntimeTestCase extends JsccTestCase {
   }
 
   protected void loadClass(String qualifiedJscClassName) throws Exception {
-    /*
+/*
     String js2FileName = qualifiedJscClassName.replace('.', File.separatorChar) + ".js2";
     compile(js2FileName);
-   */
-
+*/
     String jsFileName = qualifiedJscClassName.replace('.',File.separatorChar) + ".js";
     load(jsFileName);
   }
