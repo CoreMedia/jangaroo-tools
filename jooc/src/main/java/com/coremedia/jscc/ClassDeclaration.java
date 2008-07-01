@@ -5,8 +5,7 @@
 package com.coremedia.jscc;
 
 import java.io.IOException;
-import java.util.Set;
-import java.util.HashSet;
+import java.util.*;
 
 /**
  * @author Andreas Gawecki
@@ -16,6 +15,7 @@ public class ClassDeclaration extends IdeDeclaration {
   protected JscSymbol symClass;
   protected Extends optExtends;
   private Set privateMembers = new HashSet();
+  private List publicStaticMethods = new ArrayList();
 
   public Extends getOptExtends() {
     return optExtends;
@@ -76,7 +76,15 @@ public class ClassDeclaration extends IdeDeclaration {
     ide.generateCode(out);
     if (optExtends != null) optExtends.generateCode(out);
     //if (optImplements != null) optImplements.generateCode(out);
-    out.write("\",");
+    out.write("\",[");
+    for (Iterator i = publicStaticMethods.iterator(); i.hasNext();) {
+      String methodName = (String) i.next();
+      out.write('"');
+      out.write(methodName);
+      out.write('"');
+      if (i.hasNext()) out.write(",");
+    }
+    out.write("],");
     out.write("function($jooPublic,$jooPrivate){with(");
     getPackageDeclaration().ide.generateCode(out);
     out.write(")with($jooPublic)with($jooPrivate)return[");
@@ -100,6 +108,10 @@ public class ClassDeclaration extends IdeDeclaration {
 
   public boolean isPrivateMember(String memberName) {
     return privateMembers.contains(memberName);
+  }
+
+  public void registerPublicStaticMethod(Ide ide) {
+    publicStaticMethods.add(ide.getName());
   }
 
   public Type getSuperClassType() {

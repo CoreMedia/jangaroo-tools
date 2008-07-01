@@ -31,5 +31,8 @@ public class TestStaticInitializer {
     fv = f(1,9);
   }
 
+  static public function return1() : Number {
+    return 1;
+  }
 }
 }

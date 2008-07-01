@@ -65,6 +65,9 @@ public class MethodDeclaration extends MemberDeclaration {
     }
     if (!isAbstract() && !(optBody instanceof BlockStatement))
       Jscc.error(this, "method must either be implemented or declared abstract");
+    if (isPublic() && isStatic()) {
+      classDeclaration.registerPublicStaticMethod(ide);
+    }
 
     //TODO:check whether abstract method does not actually override
 

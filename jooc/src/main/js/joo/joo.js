@@ -156,6 +156,14 @@ Function.prototype.getName = typeof Function.prototype.name=="string"
             classDescription.$constructor.apply(this,arguments);
           };
           setFunctionName(this.$constructor, this.fullClassName);
+          // initialize when calling the first static method
+          for (var i=0; i<this.$publicStaticMethods.length; ++i) {
+            var methodName = this.$publicStaticMethods[i];
+            this.$constructor[methodName] = function() {
+              classDescription.initialize();
+              return classDescription.$constructor[methodName].apply(null, arguments);
+            }
+          }
           if (this.superClassDescription) {
             this.$constructor.prototype = new (this.superClassDescription.Public)();
           }
@@ -343,10 +351,11 @@ Function.prototype.getName = typeof Function.prototype.name=="string"
         eval(fullClassName+"_()").main(args);
       }
     },
-    prepare: function(packageDef /* import*, classDef, members */) {
-      var classDef = arguments[arguments.length-2];
+    prepare: function(packageDef /* import*, classDef, publicStaticMethods, members */) {
+      var classDef = arguments[arguments.length-3];
+      var publicStaticMethods = arguments[arguments.length-2];
       var members = arguments[arguments.length-1];
-      var classDesc = { $members: members };
+      var classDesc = { $publicStaticMethods: publicStaticMethods, $members: members };
       if (typeof packageDef!="string")
         throw new Error("package declaration must be a string.");
       var packageParts = packageDef.split(/\s+/);

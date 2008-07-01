@@ -54,6 +54,11 @@ public class JsccTest extends com.coremedia.jscc.test.JsccRuntimeTestCase {
     expectString("undefined", "typeof package2.TestStaticInitializer.f");
   }
 
+  public void testInitializeBeforeStaticMethod() throws Exception {
+    loadClass("package2.TestStaticInitializer");
+    expectNumber(1, "package2.TestStaticInitializer.return1()");
+  }
+
   public void testLocalVariables() throws Exception {
     loadClass("package1.TestLocalVariables");
     eval("obj = new package1.TestLocalVariables();");
