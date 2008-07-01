@@ -24,18 +24,38 @@ import java_cup.runtime.*;
 %cup
 
 %{
+
+static int[] terminalsAllowedBeforeRegexpLiteral = {
+  ASSERT, CASE, DO, ELSE, IN, INSTANCEOF,
+  RETURN, TYPEOF, WITH,
+  PLUS, MINUS, NOT, DIV, MOD, MUL,
+  LSHIFT, RSHIFT, URSHIFT,
+  LT, GT, LTEQ, GTEQ,
+  EQ, EQEQ, EQEQEQ, NOTEQ, NOTEQEQ,
+  AND, XOR, OR, ANDAND, OROR,
+  QUESTION, COLON, SEMICOLON, COMMA,
+  MULTEQ, DIVEQ, MODEQ, PLUSEQ, MINUSEQ,
+  LSHIFTEQ, RSHIFTEQ, URSHIFTEQ,
+  ANDEQ, XOREQ, OREQ,
+  LPAREN, LBRACE, LBRACK
+  };
+
   String whitespace = "";
   String multiStateText = "";
   StringBuffer string = new StringBuffer();
   String fileName = "";
-  parser theParser;
+  int lastToken = -1;
+
+  private boolean maybeRegexpLiteral() {
+    for (int i = 0; i < terminalsAllowedBeforeRegexpLiteral.length; i++) {
+      if (lastToken == terminalsAllowedBeforeRegexpLiteral[i])
+        return true;
+    }
+    return false;
+  }
 
   public void setFileName(String fileName) {
     this.fileName = fileName;
-  }
-
-  public void setParser(parser p) {
-    theParser = p;
   }
 
   public String getFileName() {
@@ -43,18 +63,21 @@ import java_cup.runtime.*;
   }
 
   private JscSymbol symbol(int type) {
+    lastToken = type;
     JscSymbol result = new JscSymbol(type, fileName, yyline+1, yycolumn+1, whitespace, yytext());
     whitespace = "";
     return result;
   }
 
   private JscSymbol symbol(int type, Object value) {
+    lastToken = type;
     JscSymbol result = new JscSymbol(type, fileName, yyline+1, yycolumn+1, whitespace, yytext(), value);
     whitespace = "";
     return result;
   }
 
   private JscSymbol multiStateSymbol(int type, Object value) {
+    lastToken = type;
     JscSymbol result = new JscSymbol(type, fileName, yyline+1, yycolumn+1, whitespace, multiStateText, value);
     whitespace = "";
     return result;
@@ -343,12 +366,12 @@ HexDigit          = [0-9abcdefABCDEF]
   "==="                           { return symbol(EQEQEQ); }
   "!=="                           { return symbol(NOTEQEQ); }
 
-  "/"                             { if (!theParser.isSymbolExpected(REGEXP_LITERAL))
+  "/"                             { if (!maybeRegexpLiteral())
                                       return symbol(DIV);
                                     multiStateText = yytext();
                                     yybegin(REGEXPFIRST);
                                     string.setLength(0); }
-  "/="                            { if (!theParser.isSymbolExpected(REGEXP_LITERAL))
+  "/="                            { if (!maybeRegexpLiteral())
                                       return symbol(DIVEQ);
                                     multiStateText = yytext();
                                     yybegin(REGEXP);
