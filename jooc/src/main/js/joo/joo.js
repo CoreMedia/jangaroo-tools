@@ -193,7 +193,7 @@ Function.prototype.getName = typeof Function.prototype.name=="string"
           if (this.superClassDescription) {
             var superName = classPrefix+"super";
             this.Public.prototype[superName] = function $super() {
-              delete this[superName]; // only allow to call $super once!
+              this[superName] = function() {throw new Error("may only call super() once in "+classDescription.fullClassName)};
               classDescription.superClassDescription.$constructor.apply(this,arguments);
               initFields(null, this, fieldsWithInitializer);
             };
