@@ -109,7 +109,6 @@ static int[] terminalsAllowedBeforeRegexpLiteral = {
     if (value != null)
       return "'" + value + "'";
     switch(sym) {
-      case CHAR_LITERAL: return "character literal";
       case INT_LITERAL: return "integer literal";
       case FLOAT_LITERAL: return "float literal";
       case STRING_LITERAL: return "string literal";
@@ -232,7 +231,7 @@ Comment = {TraditionalComment} | {EndOfLineComment}
 TraditionalComment = "/*" ~"*/"
 EndOfLineComment = "//" {InputCharacter}* {LineTerminator}?
 
-IdentifierStart = [:letter:]|_
+IdentifierStart = [:letter:]|[_$]
 Identifier = {IdentifierStart}({IdentifierStart}|[:digit:])*
 
 DecIntegerLiteral = 0 | [1-9][0-9]*
@@ -244,9 +243,6 @@ FLit2    = \. [0-9]+
 FLit3    = [0-9]+
 Exponent = [eE] [+-]? [0-9]+
 
-StringCharacter = [^\r\n\"\\]
-SingleCharacter = [^\r\n\'\\]
-
 RegexpFirst = [^\n\\*/]
 Regexp = [^\n\\/]
 RegexpFlag = [gim]
@@ -255,7 +251,7 @@ NonTerminator = [^\n]
 
 HexDigit          = [0-9abcdefABCDEF]
 
-%state STRING, REGEXPFIRST, REGEXP, CHARLITERAL
+%state STRING_SQ, STRING_DQ, REGEXPFIRST, REGEXP
 
 %%
 
@@ -378,23 +374,23 @@ HexDigit          = [0-9abcdefABCDEF]
                                     string.setLength(0);
                                     string.append('='); }
 
-  \"                              { multiStateText = yytext(); yybegin(STRING); string.setLength(0); }
-  \'                              { multiStateText = yytext(); yybegin(CHARLITERAL); }
+  \"                              { multiStateText = yytext(); yybegin(STRING_DQ); string.setLength(0); }
+  \'                              { multiStateText = yytext(); yybegin(STRING_SQ); string.setLength(0); }
 
   {DecIntegerLiteral}             { return symbol(INT_LITERAL, new Integer(yytext())); }
   {DoubleLiteral}                 { return symbol(FLOAT_LITERAL, new Double(yytext())); }
 }
 
-<STRING> {
+<STRING_DQ> {
   \"                              { multiStateText += yytext(); yybegin(YYINITIAL); return multiStateSymbol(STRING_LITERAL, string.toString()); }
-  {StringCharacter}+              { multiStateText += yytext(); string.append( yytext() ); }
+  [^\r\n\"\\]+                     { multiStateText += yytext(); string.append( yytext() ); }
   "\\b"                           { multiStateText += yytext(); string.append( '\b' ); }
   "\\t"                           { multiStateText += yytext(); string.append( '\t' ); }
   "\\n"                           { multiStateText += yytext(); string.append( '\n' ); }
   "\\f"                           { multiStateText += yytext(); string.append( '\f' ); }
   "\\r"                           { multiStateText += yytext(); string.append( '\r' ); }
   "\\\""                          { multiStateText += yytext(); string.append( '\"' ); }
-  "\\'"                           { multiStateText += yytext(); string.append( '\'' ); }
+  "\\\'"                          { multiStateText += yytext(); string.append( '\'' ); }
   "\\\\"                          { multiStateText += yytext(); string.append( '\\' ); }
 \\(u{HexDigit}{4}|x{HexDigit}{2}) { multiStateText += yytext();
                                    char val = (char) Integer.parseInt(yytext().substring(2),16);
@@ -403,27 +399,24 @@ HexDigit          = [0-9abcdefABCDEF]
   {LineTerminator}                { error("Unterminated string at end of line"); }
 }
 
-<CHARLITERAL> {
-  {SingleCharacter}\'             { multiStateText += yytext(); yybegin(YYINITIAL); return multiStateSymbol(CHAR_LITERAL, new Character(yytext().charAt(0))); }
-  "\\b"\'                         { multiStateText += yytext(); yybegin(YYINITIAL); return multiStateSymbol(CHAR_LITERAL, new Character('\b'));}
-  "\\t"\'                         { multiStateText += yytext(); yybegin(YYINITIAL); return multiStateSymbol(CHAR_LITERAL, new Character('\t'));}
-  "\\n"\'                         { multiStateText += yytext(); yybegin(YYINITIAL); return multiStateSymbol(CHAR_LITERAL, new Character('\n'));}
-  "\\f"\'                         { multiStateText += yytext(); yybegin(YYINITIAL); return multiStateSymbol(CHAR_LITERAL, new Character('\f'));}
-  "\\r"\'                         { multiStateText += yytext(); yybegin(YYINITIAL); return multiStateSymbol(CHAR_LITERAL, new Character('\r'));}
-  "\\\""\'                        { multiStateText += yytext(); yybegin(YYINITIAL); return multiStateSymbol(CHAR_LITERAL, new Character('\"'));}
-  "\\'"\'                         { multiStateText += yytext(); yybegin(YYINITIAL); return multiStateSymbol(CHAR_LITERAL, new Character('\''));}
-  "\\\\"\'                        { multiStateText += yytext(); yybegin(YYINITIAL); return multiStateSymbol(CHAR_LITERAL, new Character('\\')); }
-
-  \\(u{HexDigit}{4}|x{HexDigit}{2})\'
-                                  { multiStateText += yytext();
-                                    yybegin(YYINITIAL);
-                                    int val = Integer.parseInt(yytext().substring(2,yylength()-1),16);
-	                            return multiStateSymbol(CHAR_LITERAL, new Character((char)val));
-	                          }
-  \\.                             { error("illegal escape sequence"); }
-  {LineTerminator}                { error("unterminated character literal at end of line"); }
-  .                               { error("expected \"'\" to terminate character literal"); }
+<STRING_SQ> {
+  \'                              { multiStateText += yytext(); yybegin(YYINITIAL); return multiStateSymbol(STRING_LITERAL, string.toString()); }
+  [^\r\n'\\]+                     { multiStateText += yytext(); string.append( yytext() ); }
+  "\\b"                           { multiStateText += yytext(); string.append( '\b' ); }
+  "\\t"                           { multiStateText += yytext(); string.append( '\t' ); }
+  "\\n"                           { multiStateText += yytext(); string.append( '\n' ); }
+  "\\f"                           { multiStateText += yytext(); string.append( '\f' ); }
+  "\\r"                           { multiStateText += yytext(); string.append( '\r' ); }
+  "\\\""                          { multiStateText += yytext(); string.append( '\"' ); }
+  "\\\'"                          { multiStateText += yytext(); string.append( '\'' ); }
+  "\\\\"                          { multiStateText += yytext(); string.append( '\\' ); }
+\\(u{HexDigit}{4}|x{HexDigit}{2}) { multiStateText += yytext();
+                                   char val = (char) Integer.parseInt(yytext().substring(2),16);
+                        	   string.append(val); }
+  \\.                             { error("Illegal escape sequence"); }
+  {LineTerminator}                { error("Unterminated string at end of line"); }
 }
+
 
 <REGEXPFIRST> {
   {RegexpFirst}                   { multiStateText += yytext(); string.append(yytext()); yybegin(REGEXP); }
@@ -450,7 +443,7 @@ HexDigit          = [0-9abcdefABCDEF]
 }
 
 /* error catchall */
-<YYINITIAL,STRING,REGEXP,REGEXPFIRST> .|\n
+<YYINITIAL,STRING_DQ,STRING_SQ,REGEXP,REGEXPFIRST> .|\n
                                   { char ch = yytext().charAt(0);
                                     String hex = Integer.toHexString((int)ch);
                                     while (hex.length() < 4)

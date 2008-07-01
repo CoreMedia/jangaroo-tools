@@ -89,9 +89,13 @@ public class JsccTest extends com.coremedia.jscc.test.JsccRuntimeTestCase {
     expectDouble(130, "(obj.testFunExpr(13))(10)");
     expectDouble(-2, "obj.testPrefixOpExpr(14)");
     expectDouble(30, "obj.testPostfixOpExpr(15)");
-    String s = "'¤\\\b\t\n\f\r\'/'\u00C6\u01bfe\"'";
-    expectString(s, "obj.testStringLiterals()");
-    expectString(s, "obj.testCharLiterals()");
+    String dq = "'¤\\\b\t\n\f\r\'/'\u00C6\u01Bfe\"'"; // "'¤\\\b\t\n\f\r\'/'\xc6\u01Bfe\"'"
+    String sq = "\"¤\\\b\t\n\f\r\'/\"\u00C6\u01Bfe'\""; // '"¤\\\b\t\n\f\r\'/"\xc6\u01Bfe\'"'
+    expectString(dq, "obj.testStringLiteralsDQ()");
+    expectString(sq, "obj.testStringLiteralsSQ()");
+    expectString("ActionScript <span class='heavy'>3.0</span>", "obj.testStringLiterals3()");
+    expectString("<item id=\"155\">banana</item>", "obj.testStringLiterals4()");
+    expectString(dq, "obj.testCharLiterals()");
     expectString("2,7,2,2,2", "obj.testRegexpLiterals()");
     expectDouble(123+456, "obj.testObjectLiterals()");
     expectString("1,2,3,4,5,6,7,8,9,0", "obj.testArrayLiterals()");

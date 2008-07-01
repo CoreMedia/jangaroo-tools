@@ -29,6 +29,7 @@ public class CompileLog {
     StringBuffer m = new StringBuffer();
     m.append(fileName + "(" + line + "): ");
     m.append("Error: ");
+    m.append("in column " + column + ": ");
     m.append(message);
     return m.toString();
   }

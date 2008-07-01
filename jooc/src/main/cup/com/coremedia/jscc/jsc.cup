@@ -89,7 +89,6 @@ terminal JscSymbol LPAREN, RPAREN, LBRACE, RBRACE, LBRACK, RBRACK;
 terminal JscSymbol INT_LITERAL;
 terminal JscSymbol FLOAT_LITERAL;
 terminal JscSymbol BOOL_LITERAL;
-terminal JscSymbol CHAR_LITERAL;
 terminal JscSymbol STRING_LITERAL;
 terminal JscSymbol IDE;
 terminal JscSymbol NULL_LITERAL;
@@ -264,8 +263,6 @@ expr ::=
   | FLOAT_LITERAL:l
     {: RESULT = new LiteralExpr(l); :}
   | BOOL_LITERAL:l
-    {: RESULT = new LiteralExpr(l); :}
-  | CHAR_LITERAL:l
     {: RESULT = new LiteralExpr(l); :}
   | STRING_LITERAL:l
     {: RESULT = new LiteralExpr(l); :}

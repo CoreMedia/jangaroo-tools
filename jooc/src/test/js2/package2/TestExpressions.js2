@@ -16,8 +16,20 @@ public class TestExpressions {
     return (n+1)*2;
   }
 
-  public function testStringLiterals():String {
-    return "'¤\\\b\t\n\f\r\'/'\xc6\u01Bfe\"'";
+  public function testStringLiteralsDQ():String {
+    return "'¤\\\b\t\n\f\r\'/'\xc6\u01Bfe\"'"; // IDEA marks the \xdd constant red, but this is correct (at least in AS 3)
+  }
+
+  public function testStringLiteralsSQ():String {
+    return '"¤\\\b\t\n\f\r\'/"\xc6\u01Bfe\'"'; // IDEA marks the \x and \u red, but this is correct (at least in AS 3)
+  }
+
+  public function testStringLiterals3():String {
+    return "ActionScript <span class='heavy'>3.0</span>";
+  }
+
+  public function testStringLiterals4():String {
+    return '<item id="155">banana</item>';
   }
 
   public function testCharLiterals():String {

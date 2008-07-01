@@ -8,14 +8,14 @@ public class TestLocalVariables /*extends Object*/ {
 
   public function m(x :int) {
     var y = (x*x)+1;
-    const z = 99;
-    return y+z;
+    const $z = 99;
+    return y+$z;
   }
 
-  public function m2(x :int) {
-    var n = x*x;
+  public function m2($x :int) {
+    var n = $x*$x;
 
-    return + ++x+ ++n- -22;
+    return + ++$x+ ++n- -22;
   }
 
 }
