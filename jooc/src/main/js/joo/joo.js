@@ -326,66 +326,67 @@ Function.prototype.getName = typeof Function.prototype.name=="string"
   })();
   function Package() { }
   theGlobalObject.joo = new Package();
-  theGlobalObject.joo.Class = {};
   var loadedClasses = {};
-  theGlobalObject.joo.Class.load = function(fullClassName) {
-    if (!loadedClasses[fullClassName]) {
-      loadedClasses[fullClassName] = true;
-      var uri = document.location.href;
-      uri = uri.substring(0, uri.lastIndexOf("/")+1);
-      uri += fullClassName.replace(/\./g,"/")+".js";
-      var script = document.createElement("script");
-      script.src = uri;
-      document.body.appendChild(script);
-    }
-  };
-  theGlobalObject.joo.Class.run = function(fullClassName, args) {
-    theGlobalObject.joo.Class.load(fullClassName);
-    theGlobalObject.onload = function() {
-      eval(fullClassName+"_()").main(args);
-    }
-  }
-  theGlobalObject.joo.Class.prepare = function(packageDef /* import*, classDef, members */) {
-    var classDef = arguments[arguments.length-2];
-    var members = arguments[arguments.length-1];
-    var classDesc = { $members: members };
-    if (typeof packageDef!="string")
-      throw new Error("package declaration must be a string.");
-    var packageParts = packageDef.split(/\s+/);
-    if (packageParts[0]!="package")
-      throw new Error("package declaration must start with 'package'.");
-    if (packageParts.length!=2) {
-      throw new Error("package declaration must be followed by a package name.");
-    }
-    classDesc.$package = packageParts[1];
+  theGlobalObject.joo.Class = {
+    load: function(fullClassName) {
+      if (!loadedClasses[fullClassName]) {
+        loadedClasses[fullClassName] = true;
+        var uri = document.location.href;
+        uri = uri.substring(0, uri.lastIndexOf("/")+1);
+        uri += fullClassName.replace(/\./g,"/")+".js";
+        var script = document.createElement("script");
+        script.src = uri;
+        document.body.appendChild(script);
+      }
+    },
+    run: function(fullClassName, args) {
+      theGlobalObject.joo.Class.load(fullClassName);
+      theGlobalObject.onload = function() {
+        eval(fullClassName+"_()").main(args);
+      }
+    },
+    prepare: function(packageDef /* import*, classDef, members */) {
+      var classDef = arguments[arguments.length-2];
+      var members = arguments[arguments.length-1];
+      var classDesc = { $members: members };
+      if (typeof packageDef!="string")
+        throw new Error("package declaration must be a string.");
+      var packageParts = packageDef.split(/\s+/);
+      if (packageParts[0]!="package")
+        throw new Error("package declaration must start with 'package'.");
+      if (packageParts.length!=2) {
+        throw new Error("package declaration must be followed by a package name.");
+      }
+      classDesc.$package = packageParts[1];
 
-    if (typeof classDef!="string")
-      throw new Error("class declaration must be a string.");
-    var classParts = classDef.split(/\s+/);
-    var i=0;
-    if (classParts[i]=="public") {
-      classDesc.visibility = classParts[i++];
+      if (typeof classDef!="string")
+        throw new Error("class declaration must be a string.");
+      var classParts = classDef.split(/\s+/);
+      var i=0;
+      if (classParts[i]=="public") {
+        classDesc.visibility = classParts[i++];
+      }
+      if (classParts[i]=="abstract") {
+        classDesc.$abstract = true;
+        ++i;
+      }
+      if (classParts[i++]!="class")
+        throw new Error("expected 'class' after class modifiers.");
+      if (i==classParts.length) {
+        throw new Error("expected class name after keyword 'class'.");
+      }
+      classDesc.$class = classParts[i++];
+      if (i<classParts.length) {
+        if (classParts[i++]!="extends")
+          throw new Error("expected EOL or 'extends' after class name.");
+        if (i==classParts.length)
+          throw new Error("expected class name after 'extends'.");
+        classDesc.$extends = classParts[i++];
+      }
+      if (i<classParts.length)
+        throw new Error("unexpected token '"+classParts[i]+" after class declaration.");
+      new ClassDescription(classDesc);
     }
-    if (classParts[i]=="abstract") {
-      classDesc.$abstract = true;
-      ++i;
-    }
-    if (classParts[i++]!="class")
-      throw new Error("expected 'class' after class modifiers.");
-    if (i==classParts.length) {
-      throw new Error("expected class name after keyword 'class'.");
-    }
-    classDesc.$class = classParts[i++];
-    if (i<classParts.length) {
-      if (classParts[i++]!="extends")
-        throw new Error("expected EOL or 'extends' after class name.");
-      if (i==classParts.length)
-        throw new Error("expected class name after 'extends'.");
-      classDesc.$extends = classParts[i++];
-    }
-    if (i<classParts.length)
-      throw new Error("unexpected token '"+classParts[i]+" after class declaration.");
-    new ClassDescription(classDesc);
   };
 })(this);
 //  alert("runtime loaded!");
