@@ -19,9 +19,9 @@ public class JsccTest extends com.coremedia.jscc.test.JsccRuntimeTestCase {
 
   public void testIdentityMethod() throws Exception {
     loadClass("package1.TestMethodCall");
-    expectInt(43, "package1.TestMethodCall_().s(43)");
+    expectNumber(43, "package1.TestMethodCall_().s(43)");
     eval("obj = new package1.TestMethodCall();");
-    expectInt(43, "obj.m(43)");
+    expectNumber(43, "obj.m(43)");
   }
 
   public void testInheritance() throws Exception {
@@ -31,15 +31,15 @@ public class JsccTest extends com.coremedia.jscc.test.JsccRuntimeTestCase {
     eval("obj1 = new package1.TestInheritanceSuperClass(1);");
     eval("obj2 = new package1.TestInheritanceSubClass(11, 2);");
     eval("obj3 = new package1.TestInheritanceSubSubClass(111, 22, 3);");
-    expectInt(1, "obj1.getSlot1()");
-    expectInt(11, "obj2.getSlot1()");
-    expectInt(111, "obj3.getSlot1()");
-    expectInt(2, "obj2.getSlot2()");
-    expectInt(22, "obj3.getSlot2()");
-    expectInt(3, "obj3.getSlot3()");
-    expectInt(1, "obj1.m()");
-    expectDouble(12, "obj2.m()");
-    expectDouble(113, "obj3.m()");
+    expectNumber(1, "obj1.getSlot1()");
+    expectNumber(11, "obj2.getSlot1()");
+    expectNumber(111, "obj3.getSlot1()");
+    expectNumber(2, "obj2.getSlot2()");
+    expectNumber(22, "obj3.getSlot2()");
+    expectNumber(3, "obj3.getSlot3()");
+    expectNumber(1, "obj1.m()");
+    expectNumber(12, "obj2.m()");
+    expectNumber(113, "obj3.m()");
   }
 
   public void testStaticInitializer() throws Exception {
@@ -47,7 +47,7 @@ public class JsccTest extends com.coremedia.jscc.test.JsccRuntimeTestCase {
     expectString("s1", "package2.TestStaticInitializer_().s1");
     expectString("s2/s1", "package2.TestStaticInitializer_().s2");
     expectString("s3/s2/s1", "package2.TestStaticInitializer_().s3");
-    expectDouble(10, "package2.TestStaticInitializer_().fv");
+    expectNumber(10, "package2.TestStaticInitializer_().fv");
     // must not access private fields
     expectString("undefined", "typeof package2.TestStaticInitializer_().f");
   }
@@ -55,27 +55,27 @@ public class JsccTest extends com.coremedia.jscc.test.JsccRuntimeTestCase {
   public void testLocalVariables() throws Exception {
     loadClass("package1.TestLocalVariables");
     eval("obj = new package1.TestLocalVariables();");
-    expectDouble(200, "obj.m(10)");
-    expectDouble(134, "obj.m2(10)");
+    expectNumber(200, "obj.m(10)");
+    expectNumber(134, "obj.m2(10)");
   }
 
   public void testStatements() throws Exception {
     loadClass("package2.TestStatements");
     eval("obj = new package2.TestStatements;");
-    expectInt(200, "obj.testIf(true, 200, 300)");
-    expectInt(300, "obj.testIf(false, 200, 300)");
-    expectInt(200, "obj.testIfThenElse(true, 200, 300)");
-    expectInt(300, "obj.testIfThenElse(false, 200, 300)");
-    expectDouble(15, "obj.testWhile(5)");
-    expectDouble(10, "obj.testFor(5)");
-    expectDouble(15, "obj.testDoWhile(5)");
+    expectNumber(200, "obj.testIf(true, 200, 300)");
+    expectNumber(300, "obj.testIf(false, 200, 300)");
+    expectNumber(200, "obj.testIfThenElse(true, 200, 300)");
+    expectNumber(300, "obj.testIfThenElse(false, 200, 300)");
+    expectNumber(15, "obj.testWhile(5)");
+    expectNumber(10, "obj.testFor(5)");
+    expectNumber(15, "obj.testDoWhile(5)");
     expectString("x, y, z", "obj.testForIn({ y: 2, x :1, z: 3})");
-    expectInt(11, "obj.testSwitch(1,1,11,2,22,33)");
-    expectInt(22, "obj.testSwitch(2,1,11,2,22,33)");
-    expectInt(33, "obj.testSwitch(3,1,11,2,22,33)");
+    expectNumber(11, "obj.testSwitch(1,1,11,2,22,33)");
+    expectNumber(22, "obj.testSwitch(2,1,11,2,22,33)");
+    expectNumber(33, "obj.testSwitch(3,1,11,2,22,33)");
     expectString("undefined", "typeof(obj.testReturnVoid())");
-    expectInt(42, "var o = { tobedeleted: 42 }; o.tobedeleted");
-    expectInt(42, "var o2 = { tobedeleted: 42 }; o2.tobedeleted");
+    expectNumber(42, "var o = { tobedeleted: 42 }; o.tobedeleted");
+    expectNumber(42, "var o2 = { tobedeleted: 42 }; o2.tobedeleted");
     expectString("undefined", "obj.testDelete1(o); typeof(o.tobedeleted)");
     expectString("undefined", "obj.testDelete2(o2, 'tobedeleted'); typeof(o.tobedeleted)");
   }
@@ -83,14 +83,14 @@ public class JsccTest extends com.coremedia.jscc.test.JsccRuntimeTestCase {
   public void testExpressions() throws Exception {
     loadClass("package2.TestExpressions");
     eval("obj = new package2.TestExpressions;");
-    expectInt(200, "obj.testCond(true, 200, 300)");
-    expectInt(300, "obj.testCond(false, 200, 300)");
-    expectDouble(1, "obj.antitestRegexpLiterals()");
-    expectDouble(24, "obj.testParenExpr(11)");
-    expectDouble(7, "obj.testBinOpExpr(12)");
-    expectDouble(130, "(obj.testFunExpr(13))(10)");
-    expectDouble(-2, "obj.testPrefixOpExpr(14)");
-    expectDouble(30, "obj.testPostfixOpExpr(15)");
+    expectNumber(200, "obj.testCond(true, 200, 300)");
+    expectNumber(300, "obj.testCond(false, 200, 300)");
+    expectNumber(1, "obj.antitestRegexpLiterals()");
+    expectNumber(24, "obj.testParenExpr(11)");
+    expectNumber(7, "obj.testBinOpExpr(12)");
+    expectNumber(130, "(obj.testFunExpr(13))(10)");
+    expectNumber(-2, "obj.testPrefixOpExpr(14)");
+    expectNumber(30, "obj.testPostfixOpExpr(15)");
     String dq = "'¤\\\b\t\n\f\r\'/'\u00C6\u01Bfe\"'"; // "'¤\\\b\t\n\f\r\'/'\xc6\u01Bfe\"'"
     String sq = "\"¤\\\b\t\n\f\r\'/\"\u00C6\u01Bfe'\""; // '"¤\\\b\t\n\f\r\'/"\xc6\u01Bfe\'"'
     expectString(dq, "obj.testStringLiteralsDQ()");
@@ -99,7 +99,7 @@ public class JsccTest extends com.coremedia.jscc.test.JsccRuntimeTestCase {
     expectString("<item id=\"155\">banana</item>", "obj.testStringLiterals4()");
     expectString(dq, "obj.testCharLiterals()");
     expectString("2,7,2,2,2", "obj.testRegexpLiterals()");
-    expectDouble(123+456, "obj.testObjectLiterals()");
+    expectNumber(123+456, "obj.testObjectLiterals()");
     expectString("1,2,3,4,5,6,7,8,9,0", "obj.testArrayLiterals()");
   }
 

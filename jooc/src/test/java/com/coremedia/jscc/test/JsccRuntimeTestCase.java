@@ -110,19 +110,6 @@ public abstract class JsccRuntimeTestCase extends JsccTestCase {
     }
   }
 
-  protected void expectInt(int expected, String script) throws Exception {
-    Object result = eval(script);
-    int actual = 0;
-    if (result instanceof Byte)
-      actual = ((Byte)result).intValue();
-    else if (result instanceof Short)
-      actual = ((Short)result).intValue();
-    else if (result instanceof Integer)
-      actual = ((Integer)result).intValue();
-    else fail("expected integer result, found: " + result.getClass().getName());
-    assertEquals(expected, actual);
-  }
-
   protected void expectString(String expected, String script) throws Exception {
     Object result = eval(script);
     String actual = null;
@@ -141,18 +128,18 @@ public abstract class JsccRuntimeTestCase extends JsccTestCase {
     }
   }
 
-  protected void expectDouble(double expected, String script) throws Exception {
+  protected void expectNumber(double expected, String script) throws Exception {
     Object result = eval(script);
     double actual = 0;
-    if (result instanceof Double)
-      actual = ((Double)result).doubleValue();
-    else fail("expected double result, found: " + result.getClass().getName());
+    if (result instanceof Number)
+      actual = ((Number)result).doubleValue();
+    else fail("expected numeric result, found: " + result.getClass().getName());
     assertEquals(expected, actual, 0.00000000001);
   }
 
   public void testRhino() throws Exception {
-    expectInt(23, "23");
-    expectDouble(23.1, "22.1+1");
+    expectNumber(23, "23");
+    expectNumber(23.1, "22.1+1");
   }
 
 }
