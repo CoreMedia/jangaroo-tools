@@ -57,6 +57,7 @@ public class JsccTest extends com.coremedia.jscc.test.JsccRuntimeTestCase {
   public void testInitializeBeforeStaticMethod() throws Exception {
     loadClass("package2.TestStaticInitializer");
     expectNumber(1, "package2.TestStaticInitializer.return1()");
+    expectNumber(2, "package2.TestStaticInitializer.return2()");
   }
 
   public void testLocalVariables() throws Exception {

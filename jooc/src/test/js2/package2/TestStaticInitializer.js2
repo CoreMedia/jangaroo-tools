@@ -34,5 +34,9 @@ public class TestStaticInitializer {
   static public function return1() : Number {
     return 1;
   }
+
+  static public function return2() : Number {
+    return 2;
+  }
 }
 }
