@@ -90,9 +90,9 @@ Function.prototype.getName = typeof Function.prototype.name=="string"
       waitForSuper: function(classDef) {
         var pendingCDs = this.pendingClassDescriptions[classDef.$extends];
         if (!pendingCDs) {
-          pendingCDS = this.pendingClassDescriptions[classDef.$extends] = [];
+          pendingCDs = this.pendingClassDescriptions[classDef.$extends] = [];
         }
-        pendingCDS.push(classDef);
+        pendingCDs.push(classDef);
       },
       prepareSubclasses: function(classDef) {
         var pendingCDS = this.pendingClassDescriptions[classDef.fullClassName];
@@ -125,6 +125,13 @@ Function.prototype.getName = typeof Function.prototype.name=="string"
         Public: undefined,
         publicStatic: undefined,
         getStatic: undefined,
+        createInitializingPublicStaticMethod: function(methodName) {
+          var classDescription = this;
+          this.$constructor[methodName] = function() {
+            classDescription.initialize();
+            return classDescription.$constructor[methodName].apply(null, arguments);
+          };
+        },
         /**
          * Prepares this class to be used by constructor, by accessing a static member, or as a super class.
          * The actual class loading is done when any of this three methods is called.
@@ -156,13 +163,9 @@ Function.prototype.getName = typeof Function.prototype.name=="string"
             classDescription.$constructor.apply(this,arguments);
           };
           setFunctionName(this.$constructor, this.fullClassName);
-          // initialize when calling the first static method
+          // to initialize when calling the first public static method, wrap those methods:
           for (var i=0; i<this.$publicStaticMethods.length; ++i) {
-            var methodName = this.$publicStaticMethods[i];
-            this.$constructor[methodName] = function() {
-              classDescription.initialize();
-              return classDescription.$constructor[methodName].apply(null, arguments);
-            }
+            this.createInitializingPublicStaticMethod(this.$publicStaticMethods[i]);
           }
           if (this.superClassDescription) {
             this.$constructor.prototype = new (this.superClassDescription.Public)();
@@ -348,7 +351,7 @@ Function.prototype.getName = typeof Function.prototype.name=="string"
     run: function(fullClassName, args) {
       theGlobalObject.joo.Class.load(fullClassName);
       theGlobalObject.onload = function() {
-        eval(fullClassName+"_()").main(args);
+        eval(fullClassName).main(args);
       }
     },
     prepare: function(packageDef /* import*, classDef, publicStaticMethods, members */) {
