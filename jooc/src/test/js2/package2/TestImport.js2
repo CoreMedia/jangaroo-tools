@@ -1,0 +1,19 @@
+package package2 {
+
+import package1.TestMethodCall;
+import package1.package11.TestSubPackage;
+import package2.TestStaticInitializer;
+
+public class TestImport extends TestMethodCall {
+
+  public function TestImport() {
+    super();
+  }
+
+  public static function main() : int {
+    var testImport : TestImport  = new TestImport();
+    return TestStaticInitializer.s2 + "/" + (testImport.m(-19) + TestSubPackage.test());
+  }
+
+}
+}

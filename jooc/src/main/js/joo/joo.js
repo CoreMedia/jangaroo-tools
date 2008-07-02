@@ -322,6 +322,13 @@ Function.prototype.getName = typeof Function.prototype.name=="string"
           // TODO: constructor visibility!
           this.$package[this.$class] = this.$constructor;
           // init static fields with initializer:
+          for (var im in this.$imports) {
+            var importDecl = this.$imports[im];
+            var importedClassDesc = getClassDescription(importDecl);
+            if (importedClassDesc) { // ignore unknown imports!
+              privateStatic[im] = importedClassDesc.initialize();
+            }
+          }
           initFields(privateStatic, publicStatic, targetMap.$static.fieldsWithInitializer);
           for (var pm in publicStatic) {
             this.$constructor[pm] = publicStatic[pm];
@@ -358,7 +365,14 @@ Function.prototype.getName = typeof Function.prototype.name=="string"
       var classDef = arguments[arguments.length-3];
       var publicStaticMethods = arguments[arguments.length-2];
       var members = arguments[arguments.length-1];
-      var classDesc = { $publicStaticMethods: publicStaticMethods, $members: members };
+      var imports = {};
+      for (var im=1; im<arguments.length-3; ++im) {
+        var importDecl = arguments[im].split(" ")[1];
+        var lastDotPos = importDecl.lastIndexOf(".");
+        var abbr = importDecl.substring(lastDotPos+1);
+        imports[abbr] = importDecl;
+      }
+      var classDesc = { $imports: imports, $publicStaticMethods: publicStaticMethods, $members: members};
       if (typeof packageDef!="string")
         throw new Error("package declaration must be a string.");
       var packageParts = packageDef.split(/\s+/);
@@ -392,6 +406,9 @@ Function.prototype.getName = typeof Function.prototype.name=="string"
         if (i==classParts.length)
           throw new Error("expected class name after 'extends'.");
         classDesc.$extends = classParts[i++];
+        if (imports[classDesc.$extends]) {
+          classDesc.$extends = imports[classDesc.$extends];
+        }
       }
       if (i<classParts.length)
         throw new Error("unexpected token '"+classParts[i]+" after class declaration.");

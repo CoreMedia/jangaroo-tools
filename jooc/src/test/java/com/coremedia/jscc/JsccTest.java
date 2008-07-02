@@ -111,6 +111,14 @@ public class JsccTest extends com.coremedia.jscc.test.JsccRuntimeTestCase {
     expectString("1,2,3,4,5,6,7,8,9,0", "obj.testArrayLiterals()");
   }
 
+  public void testImport() throws Exception {
+    loadClass("package2.TestImport");
+    loadClass("package1.TestMethodCall");
+    loadClass("package1.package11.TestSubPackage");
+    loadClass("package2.TestStaticInitializer");
+    expectString("s2/s1"+"/"+(-19+42), "package2.TestImport.main()");
+  }
+
   public static void main(String args[]) {
     junit.textui.TestRunner.run(JsccTest.class);
   }

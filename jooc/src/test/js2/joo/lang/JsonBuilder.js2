@@ -29,7 +29,7 @@ class JsonBuilder {
     }
     // recurse into object properties:
     json = {};
-    joo.lang.JOObject.prototype.addPropertiesToJson.call(obj, json, this);
+    JOObject.prototype.addPropertiesToJson.call(obj, json, this);
     return json;
   }
 
@@ -51,7 +51,7 @@ class JsonBuilder {
     var fullClassName : String = json["$class"];
     if (!fullClassName) {
       var obj : Object = {};
-      joo.lang.JOObject.prototype.addPropertiesFromJson.call(obj,json,this);
+      JOObject.prototype.addPropertiesFromJson.call(obj,json,this);
       return obj;
     }
     var clazz : Function = eval(fullClassName); // TODO: publish and use no-op constructor!

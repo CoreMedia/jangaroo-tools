@@ -1,11 +1,14 @@
 package joo.lang {
+
+import joo.lang.JsonBuilder;
+
 public class JOObject {
 
   private static var idCnt : Number = 0;
 
   {
     // patching Array to have a unique hashCode:
-    Array.prototype["hashCode"] = joo.lang.JOObject.prototype.hashCode;
+    Array.prototype["hashCode"] = JOObject.prototype["hashCode"];
   }
 
   public static function getHashCode(obj : *) : String {
@@ -76,11 +79,11 @@ public class JOObject {
   }
 
   public static function toJsonObject(obj : *) : * {
-    return new joo.lang.JsonBuilder().toJsonObject(obj);
+    return new JsonBuilder().toJsonObject(obj);
   }
 
   public static function fromJsonObject(json : *) : * {
-    return new joo.lang.JsonBuilder().fromJsonObject(json);
+    return new JsonBuilder().fromJsonObject(json);
   }
 
   public function JOObject() {
@@ -99,7 +102,7 @@ public class JOObject {
   }
 
   public function toJson() : Object {
-    return new joo.lang.JsonBuilder().toJsonObject(this);
+    return new JsonBuilder().toJsonObject(this);
   }
 
   protected function addPropertiesToJson(result : Object, jsonBuilder : JsonBuilder) : void {
@@ -117,7 +120,7 @@ public class JOObject {
   }
 
   public function fromJson(json : Object) : void {
-    this.addPropertiesFromJson(json, new joo.lang.JsonBuilder());
+    this.addPropertiesFromJson(json, new JsonBuilder());
   }
 
   protected function addPropertiesFromJson(json : Object, jsonBuilder : JsonBuilder) : void {

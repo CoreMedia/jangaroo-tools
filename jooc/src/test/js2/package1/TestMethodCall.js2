@@ -11,11 +11,11 @@ public class TestMethodCall /* blub ber *//*extends Object*/ {
   public function TestMethodCall() {
   }
 
-  static public function s(x :int) {
+  static public function s(x :int) :int {
     return x;
   }
 
-  public function m(x :int) {
+  public function m(x :int) :int {
     return x;
   }
 
