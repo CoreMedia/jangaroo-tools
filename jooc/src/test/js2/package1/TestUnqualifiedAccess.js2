@@ -1,0 +1,22 @@
+package package1 {
+
+public class TestUnqualifiedAccess {
+
+  public function TestUnqualifiedAccess(value :String) {
+    // TODO: Do not require empty super call.
+    super();
+    slot1 = value;
+  }
+
+  protected var slot1 :String;
+
+  public function setSlot1(value :String) :void {
+    slot1 = value;
+  }
+
+  public function getSlot1() :String {
+    return slot1;
+  }
+
+}
+}

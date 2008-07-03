@@ -119,6 +119,14 @@ public class JsccTest extends com.coremedia.jscc.test.JsccRuntimeTestCase {
     expectString("s2/s1"+"/"+(-19+42), "package2.TestImport.main()");
   }
 
+  public void testUnqualifiedAccess() throws Exception {
+    loadClass("package1.TestUnqualifiedAccess");
+    eval("obj = new package1.TestUnqualifiedAccess(\"a\")");
+    expectString("a", "obj.getSlot1()");
+    eval("obj.setSlot1(\"b\")");
+    expectString("b", "obj.getSlot1()");
+  }
+
   public static void main(String args[]) {
     junit.textui.TestRunner.run(JsccTest.class);
   }
