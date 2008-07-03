@@ -1,0 +1,19 @@
+<assembly>
+  <id>doc</id>
+
+  <formats>
+    <format>zip</format>
+  </formats>
+
+  <includeBaseDirectory>false</includeBaseDirectory>
+
+  <fileSets>
+
+    <fileSet>
+      <directory>src/doc</directory>
+      <outputDirectory>doc</outputDirectory>
+    </fileSet>
+
+  </fileSets>
+
+</assembly>

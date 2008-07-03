@@ -1,0 +1,38 @@
+LICENSE
+
+TERMS AND CONDITIONS
+
+This program is free software. Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the copyright notice of CoreMedia, this list of conditions and the
+   following disclaimer.
+
+2. Redistributions in binary form must reproduce the CoreMedia copyright notice, this list of conditions and the
+   following disclaimer in the documentation and/or other materials provided with the distribution.
+
+3. The end-user documentation included with the redistribution, if any, must include the following acknowledgment:
+   "This product includes software developed by CoreMedia AG (http://www.coremedia.com/)." Alternately, this
+   acknowledgment may appear in the software itself, if and wherever such third-party acknowledgments normally appear.
+
+4. The name "CoreMedia" must not be used to endorse or promote products derived from this software without prior written
+   permission. For written permission, please contact CoreMedia.
+
+5. Products derived from this software may not be called "CoreMedia", nor may "CoreMedia" appear in their name, without
+   prior written permission of CoreMedia.
+
+Subject to the terms and conditions above, Licensor hereby grants to YOU a non-exclusive, worldwide, royalty-free,
+irrevocable copyright license to reproduce, prepare derivative works of, publicly display, publicly perform, distribute
+and sublicense, internally and externally, the Software and such derivative works, in source code and object code form.
+
+The Software contains code that is not at the level of performance and compatibility of a final, generally available,
+product offering and may not be used in a live operating environment where it may be relied upon to perform in the same
+manner as a commercially released product or with data that has not been sufficiently backed up. Due to the nature of
+the development work, CoreMedia provides no assurance that any specific errors or discrepancies in the Software will
+be corrected.
+
+COREMEDIA HEREBY EXPRESSLY DISCLAIMS ANY AND ALL REPRESENTATIONS OR WARRANTIES RELATING TO THE SOFTWARE OR OTHER
+COREMEDIA MATERIALS, WHETHER EXPRESS, IMPLIED, STATUTORY OR OTHERWISE, INCLUDING, WITHOUT LIMITATION, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE AND THE WARRANTY OF NON-INFRINGEMENT
+OF THIRD PARTY RIGHTS. COMPANY ACCEPTS THE LICENSE GRANT HEREUNDER ON AN "AS IS" BASIS, AND AGREES THAT COREMEDIA
+SHALL HAVE NO LIABILITY FOR COMPANY'S USE OF THE SOFTWARE OR OTHER COREMEDIA MATERIALS.

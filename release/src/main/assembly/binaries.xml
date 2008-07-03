@@ -5,24 +5,51 @@
     <format>zip</format>
   </formats>
 
-  <includeBaseDirectory>false</includeBaseDirectory>
-
+  <includeBaseDirectory>true</includeBaseDirectory>
+  <baseDirectory>jangaroo-${project.version}</baseDirectory>
+  
   <dependencySets>
+
     <dependencySet>
       <useProjectArtifact>false</useProjectArtifact>
       <outputDirectory>lib</outputDirectory>
       <scope>runtime</scope>
-    </dependencySet>    
+      <excludes>
+        <exclude>net.jangaroo:jangaroo-compiler:zip:doc</exclude>
+        <exclude>net.jangaroo:jangaroo-compiler:zip:runtime</exclude>
+      </excludes>
+    </dependencySet>
+
+    <dependencySet>
+      <useProjectArtifact>false</useProjectArtifact>
+      <outputDirectory></outputDirectory>
+      <unpack>true</unpack>
+      <includes>
+        <include>net.jangaroo:jangaroo-compiler:zip:doc</include>
+      </includes>
+    </dependencySet>
+
+    <dependencySet>
+      <useProjectArtifact>false</useProjectArtifact>
+      <outputDirectory>runtime</outputDirectory>
+      <unpack>true</unpack>
+      <includes>
+        <include>net.jangaroo:jangaroo-compiler:zip:runtime</include>
+      </includes>
+    </dependencySet>
+
   </dependencySets>
 
   <fileSets>
 
     <fileSet>
-      <includes>
-        <include>README*</include>
-        <include>LICENSE*</include>
-        <include>NOTICE*</include>
-      </includes>
+      <directory>src/etc</directory>
+      <outputDirectory></outputDirectory>
+    </fileSet>
+
+    <fileSet>
+      <directory>src/doc</directory>
+      <outputDirectory>doc</outputDirectory>
     </fileSet>
 
   </fileSets>
