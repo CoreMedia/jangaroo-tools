@@ -5,17 +5,35 @@ public class TestUnqualifiedAccess {
   public function TestUnqualifiedAccess(value :String) {
     // TODO: Do not require empty super call.
     super();
-    slot1 = value;
+    protectedSlot = value;
   }
 
-  protected var slot1 :String;
+  private var privateSlot :String;
+  protected var protectedSlot :String;
+  public var publicSlot :String;
 
-  public function setSlot1(value :String) :void {
-    slot1 = value;
+  public function setPrivateSlot(value :String) :void {
+    privateSlot = value;
   }
 
-  public function getSlot1() :String {
-    return slot1;
+  public function getPrivateSlot() :String {
+    return privateSlot;
+  }
+
+  public function setProtectedSlot(value :String) :void {
+    protectedSlot = value;
+  }
+
+  public function getProtectedSlot() :String {
+    return protectedSlot;
+  }
+
+  public function setPublicSlot(value :String) :void {
+    publicSlot = value;
+  }
+
+  public function getPublicSlot() :String {
+    return publicSlot;
   }
 
 }
