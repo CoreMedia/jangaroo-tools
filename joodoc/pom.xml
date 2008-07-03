@@ -7,8 +7,8 @@
   <version>0.1-SNAPSHOT</version>
   <name>Jangaroo documentation generator</name>
   <organization>
-    <name>CoreMedia AG, Hamburg, Germany</name>
-    <url>http://www.coremedia.com</url>
+    <name>Jangaroo.net</name>
+    <url>http://www.jangaroo.net</url>
   </organization>
 
   <repositories>

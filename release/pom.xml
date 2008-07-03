@@ -8,8 +8,8 @@
   <name>Jangaroo release</name>
 
   <organization>
-    <name>CoreMedia AG, Hamburg, Germany</name>
-    <url>http://www.coremedia.com</url>
+    <name>Jangaroo.net</name>
+    <url>http://www.jangaroo.net</url>
   </organization>
 
   <repositories>
@@ -28,19 +28,21 @@
         <artifactId>maven-assembly-plugin</artifactId>
         <executions>
           <execution>
+            <id>create-tools-and-lib-release</id>
             <phase>package</phase>
             <goals>
               <goal>single</goal>
             </goals>
+            <configuration>
+              <attach>false</attach>
+              <finalName>jangaroo-${project.version}</finalName>
+              <appendAssemblyId>false</appendAssemblyId>
+              <descriptors>
+                <descriptor>src/main/assembly/binaries.xml</descriptor>
+              </descriptors>
+            </configuration>
           </execution>
         </executions>
-        <configuration>
-          <attach>false</attach>
-          <finalName>jangaroo-${project.version}</finalName>
-          <descriptors>
-            <descriptor>src/main/assembly/binaries.xml</descriptor>
-          </descriptors>
-        </configuration>
       </plugin>
 
     </plugins>
@@ -52,7 +54,7 @@
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-compiler</artifactId>
-      <version>0.1-SNAPSHOT</version>
+      <version>${joo.tools.version}</version>
     </dependency>
 
     <dependency>
@@ -60,7 +62,7 @@
       <artifactId>jangaroo-compiler</artifactId>
       <classifier>doc</classifier>
       <type>zip</type>
-      <version>0.1-SNAPSHOT</version>
+      <version>${joo.tools.version}</version>
     </dependency>
 
     <dependency>
@@ -68,15 +70,18 @@
       <artifactId>jangaroo-compiler</artifactId>
       <classifier>runtime</classifier>
       <type>zip</type>
-      <version>0.1-SNAPSHOT</version>
+      <version>${joo.tools.version}</version>
     </dependency>
 
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-doc</artifactId>
-      <version>0.1-SNAPSHOT</version>
+      <version>${joo.tools.version}</version>
     </dependency>
 
   </dependencies>
 
+  <properties>
+    <joo.tools.version>${project.version}</joo.tools.version>
+  </properties>
 </project>

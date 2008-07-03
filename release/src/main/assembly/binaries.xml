@@ -45,11 +45,39 @@
     <fileSet>
       <directory>src/etc</directory>
       <outputDirectory></outputDirectory>
+      <filtered>true</filtered>
     </fileSet>
 
     <fileSet>
-      <directory>src/doc</directory>
-      <outputDirectory>doc</outputDirectory>
+      <directory>src</directory>
+      <outputDirectory></outputDirectory>
+      <filtered>true</filtered>
+      <includes>
+        <include>bin/*.bat</include>
+      </includes>
+    </fileSet>
+
+    <fileSet>
+      <directory>src</directory>
+      <outputDirectory></outputDirectory>
+      <filtered>true</filtered>
+      <lineEnding>unix</lineEnding>
+      <includes>
+        <include>bin/*</include>
+      </includes>
+      <excludes>
+        <exclude>bin/*.bat</exclude>
+      </excludes>
+      <fileMode>0755</fileMode>
+    </fileSet>
+
+    <fileSet>
+      <directory>src</directory>
+      <outputDirectory></outputDirectory>
+      <filtered>true</filtered>
+      <includes>
+        <include>doc/**</include>
+      </includes>
     </fileSet>
 
   </fileSets>

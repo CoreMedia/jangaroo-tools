@@ -5,10 +5,10 @@
   <artifactId>jangaroo-compiler</artifactId>
   <packaging>jar</packaging>
   <version>0.1-SNAPSHOT</version>
-  <name>Jangaroo JavaScript compiler</name>
+  <name>Jangaroo compiler</name>
   <organization>
-    <name>CoreMedia AG, Hamburg, Germany</name>
-    <url>http://www.coremedia.com</url>
+    <name>Jangaroo.net</name>
+    <url>http://www.jangaroo.net</url>
   </organization>
 
 
