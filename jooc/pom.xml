@@ -113,9 +113,8 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
-          <failIfNoTests>false</failIfNoTests>
           <excludes>
-            <exclude>**/*</exclude>
+            <exclude>net/jangaroo/test/integration/**/*</exclude>
           </excludes>
         </configuration>
       </plugin>

@@ -136,6 +136,9 @@
             <configuration>
               <testClassesDirectory>../../../target/test-classes</testClassesDirectory>
               <redirectTestOutputToFile>true</redirectTestOutputToFile>
+              <includes>
+                <include>net/jangaroo/test/integration/**/*</include>
+              </includes>
               <systemProperties>
                 <property>
                   <name>com.coremedia.jscc.test.source</name>

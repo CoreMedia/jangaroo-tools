@@ -2,7 +2,7 @@
  *   Copyright (c) 2003 CoreMedia AG, Hamburg. All rights reserved.
  */
 
-package com.coremedia.jscc;
+package net.jangaroo.test.integration;
 
 /**
  * Some basic test cases for JangarooScript compiler and runtime correctness.
@@ -10,7 +10,7 @@ package com.coremedia.jscc;
  * @author Andreas Gawecki
  */
 
-public class JsccTest extends com.coremedia.jscc.test.JsccRuntimeTestCase {
+public class JsccTest extends JsccRuntimeTestCase {
 
   public JsccTest(String name) {
     super(name);
