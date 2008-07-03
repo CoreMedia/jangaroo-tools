@@ -179,7 +179,7 @@ public class JsccTask extends MatchingTask {
    */
   protected void scanDir(File srcDir, File destDir, String[] files) {
     GlobPatternMapper m = new GlobPatternMapper();
-    m.setFrom("*"+Jscc.JSC_SOURCE_SUFFIX);
+    m.setFrom("*"+Jscc.JS2_SUFFIX);
     m.setTo("*.js");
     SourceFileScanner sfs = new SourceFileScanner(this);
     File[] newFiles = sfs.restrictAsFiles(files, srcDir, destDir, m);
@@ -255,7 +255,7 @@ public class JsccTask extends MatchingTask {
           log(FAIL_MSG, Project.MSG_ERR);
         }
       }
-    } else log("no *"+Jscc.JSC_SOURCE_SUFFIX+" files to compile");
+    } else log("no *"+Jscc.JS2_SUFFIX +" files to compile");
   }
 
   protected String[] getJsccArgs() {

@@ -1,0 +1,30 @@
+<assembly>
+  <id>binaries</id>
+
+  <formats>
+    <format>zip</format>
+  </formats>
+
+  <includeBaseDirectory>false</includeBaseDirectory>
+
+  <dependencySets>
+    <dependencySet>
+      <useProjectArtifact>false</useProjectArtifact>
+      <outputDirectory>lib</outputDirectory>
+      <scope>runtime</scope>
+    </dependencySet>    
+  </dependencySets>
+
+  <fileSets>
+
+    <fileSet>
+      <includes>
+        <include>README*</include>
+        <include>LICENSE*</include>
+        <include>NOTICE*</include>
+      </includes>
+    </fileSet>
+
+  </fileSets>
+  
+</assembly>

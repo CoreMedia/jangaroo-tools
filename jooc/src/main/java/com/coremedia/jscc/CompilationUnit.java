@@ -97,7 +97,7 @@ public class CompilationUnit extends NodeImplBase {
   }
 
   public void generateCode(JsWriter out) throws IOException {
-     out.write("joo.Class.prepare(");
+     out.write(Jscc.CLASS_FULLY_QUALIFIED_NAME + ".prepare(");
      packageDeclaration.generateCode(out);
      out.writeSymbolWhitespace(lBrace);
      if (directives!=null) {
@@ -134,7 +134,7 @@ public class CompilationUnit extends NodeImplBase {
     int dotpos = result.lastIndexOf('.');
     if (dotpos >= 0)
       result = result.substring(0, dotpos);
-    result += ".js";
+    result += Jscc.JS_SUFFIX;
     return result;
   }
 

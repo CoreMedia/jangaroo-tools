@@ -24,7 +24,11 @@ public class Jscc {
   public static final int RESULT_CODE_UNRECOGNIZED_OPTION = 3;
   public static final int RESULT_CODE_MISSING_OPTION_ARGUMENT = 4;
 
-  public static final String JSC_SOURCE_SUFFIX = ".js2";
+  public static final String JS2_SUFFIX = ".js2";
+  public static final String JS_SUFFIX = ".js";
+  public static final String CLASS_CLASS_NAME = "Class";
+  public static final String CLASS_PACKAGE_NAME = "joo";
+  public static final String CLASS_FULLY_QUALIFIED_NAME = CLASS_PACKAGE_NAME + "." + CLASS_CLASS_NAME;
 
   private String destionationDirName;
   private File destinationDir;
@@ -104,8 +108,8 @@ public class Jscc {
     File in = new File(fileName);
     if (in.isDirectory())
       error("Input file is a directory: " + in.getAbsolutePath());
-    if (!in.getName().endsWith(JSC_SOURCE_SUFFIX))
-      error("Input file must end with '" + JSC_SOURCE_SUFFIX + "': " + in.getAbsolutePath());
+    if (!in.getName().endsWith(JS2_SUFFIX))
+      error("Input file must end with '" + JS2_SUFFIX + "': " + in.getAbsolutePath());
     Scanner s;
     if (verbose)
       System.out.println("Parsing " + fileName);

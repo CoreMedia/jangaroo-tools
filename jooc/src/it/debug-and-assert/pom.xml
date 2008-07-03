@@ -3,13 +3,13 @@
 
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.coremedia.jangaroo.it</groupId>
+  <groupId>net.jangaroo.it</groupId>
   <artifactId>debug-and-assert</artifactId>
   <version>testing</version>
   <packaging>pom</packaging>
 
   <parent>
-    <groupId>com.coremedia.jangaroo.it</groupId>
+    <groupId>net.jangaroo.it</groupId>
     <artifactId>it-parent</artifactId>
     <version>testing</version>
     <relativePath>../../it-helper/it-parent/pom.xml</relativePath>

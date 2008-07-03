@@ -3,7 +3,7 @@
 
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.coremedia.jangaroo.it</groupId>
+  <groupId>net.jangaroo.it</groupId>
   <artifactId>it-parent</artifactId>
   <version>testing</version>
   <packaging>pom</packaging>
@@ -18,14 +18,14 @@
     </dependency>
 
     <dependency>
-      <groupId>com.coremedia.jangaroo</groupId>
+      <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-compiler</artifactId>
       <version>testing</version>
       <scope>test</scope>
     </dependency>
 
     <dependency>
-      <groupId>com.coremedia.jangaroo</groupId>
+      <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-compiler</artifactId>
       <classifier>tests</classifier>
       <version>testing</version>
@@ -33,12 +33,19 @@
     </dependency>
 
     <dependency>
-      <groupId>com.coremedia.jangaroo</groupId>
+      <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-compiler</artifactId>
       <classifier>runtime</classifier>
       <version>testing</version>
-      <scope>runtime</scope>
+      <scope>test</scope>
       <type>zip</type>
+    </dependency>
+
+    <dependency>
+      <groupId>rhino</groupId>
+      <artifactId>js</artifactId>
+      <version>1.7R1</version>
+      <scope>test</scope>
     </dependency>
 
   </dependencies>
@@ -59,7 +66,7 @@
             <configuration>
               <artifactItems>
                 <artifactItem>
-                  <groupId>com.coremedia.jangaroo</groupId>
+                  <groupId>net.jangaroo</groupId>
                   <artifactId>jangaroo-compiler</artifactId>
                   <classifier>runtime</classifier>
                   <version>testing</version>
@@ -68,7 +75,7 @@
                 </artifactItem>
 
                 <artifactItem>
-                  <groupId>com.coremedia.jangaroo</groupId>
+                  <groupId>net.jangaroo</groupId>
                   <artifactId>jangaroo-compiler</artifactId>
                   <classifier>tests</classifier>
                   <version>testing</version>

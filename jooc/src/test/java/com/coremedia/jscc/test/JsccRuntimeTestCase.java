@@ -11,6 +11,8 @@ import java.io.FileReader;
 import java.io.Reader;
 import java.io.StringReader;
 
+import com.coremedia.jscc.Jscc;
+
 /**
  * A JscTestCase to be executed at runtime
  *
@@ -23,6 +25,8 @@ public abstract class JsccRuntimeTestCase extends JsccTestCase {
   protected Context cx;
   protected Scriptable scope;
   protected ScriptableObject global;
+  private static final String CLASS_JS_FILE_PATH =
+    Jscc.CLASS_PACKAGE_NAME + File.separatorChar + Jscc.CLASS_CLASS_NAME + Jscc.JS_SUFFIX;
 
   public JsccRuntimeTestCase(String name) {
     super(name);
@@ -54,7 +58,7 @@ public abstract class JsccRuntimeTestCase extends JsccTestCase {
     scope = cx.initStandardObjects(global);
     global.defineFunctionProperties(new String[]{ "print" },
             Global.class, ScriptableObject.DONTENUM);
-    load("joo" + File.separatorChar + "joo.js");
+    load(CLASS_JS_FILE_PATH);
     loadClass("joo.lang.JsonBuilder");
     loadClass("joo.lang.JOObject");
   }
@@ -84,16 +88,12 @@ public abstract class JsccRuntimeTestCase extends JsccTestCase {
   }
 
   protected void loadClass(String qualifiedJscClassName) throws Exception {
-/*
-    String js2FileName = qualifiedJscClassName.replace('.', File.separatorChar) + ".js2";
-    compile(js2FileName);
-*/
-    String jsFileName = qualifiedJscClassName.replace('.',File.separatorChar) + ".js";
+    String jsFileName = qualifiedJscClassName.replace('.',File.separatorChar) + Jscc.JS_SUFFIX;
     load(jsFileName);
   }
 
   protected void initClass(String qualifiedJscClassName) throws Exception {
-    eval("joo.Class.init("+qualifiedJscClassName+")");
+    eval(Jscc.CLASS_FULLY_QUALIFIED_NAME + ".init("+qualifiedJscClassName+")");
   }
 
   protected Object eval(String script) throws Exception {
