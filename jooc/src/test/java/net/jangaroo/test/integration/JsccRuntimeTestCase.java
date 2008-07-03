@@ -59,8 +59,6 @@ public abstract class JsccRuntimeTestCase extends JsccTestCase {
     global.defineFunctionProperties(new String[]{ "print" },
             Global.class, ScriptableObject.DONTENUM);
     load(CLASS_JS_FILE_PATH);
-    loadClass("joo.lang.JsonBuilder");
-    loadClass("joo.lang.JOObject");
   }
 
   protected void tearDown() throws Exception {

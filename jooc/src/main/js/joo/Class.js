@@ -117,7 +117,7 @@ Function.prototype.getName = typeof Function.prototype.name=="string"
       // instance members:
       ClassDescription.prototype = {
         fullClassName: undefined,
-        $extends: "joo.lang.JOObject",
+        $extends: "Object",
         level: undefined,
         state: PENDING,
         superClassDescription: undefined,
@@ -141,8 +141,7 @@ Function.prototype.getName = typeof Function.prototype.name=="string"
             throw new Error("cyclic usages between classes "+this.fullClassName+" and "+this.superClassDescription.fullClassName+".");
           if (this.state!==PENDING)
             return;
-          if (this.fullClassName=="joo.lang.JOObject") {
-            this.$extends = null;
+          if (this.$extends=="Object") {
             this.superClassDescription = null;
           } else {
             this.superClassDescription = getClassDescription(this.$extends);
@@ -199,14 +198,14 @@ Function.prototype.getName = typeof Function.prototype.name=="string"
           var classPrefix = this.level; // + "$";
           var fieldsWithInitializer = [];
           var classDescription = this;
-          if (this.superClassDescription) {
-            var superName = classPrefix+"super";
-            this.Public.prototype[superName] = function $super() {
-              this[superName] = function() {throw new Error("may only call super() once in "+classDescription.fullClassName)};
+          var superName = classPrefix+"super";
+          this.Public.prototype[superName] = function $super() {
+            this[superName] = function() {throw new Error("may only call super() once in "+classDescription.fullClassName)};
+            if (classDescription.superClassDescription) {
               classDescription.superClassDescription.$constructor.apply(this,arguments);
-              initFields(null, this, fieldsWithInitializer);
-            };
-          }
+            }
+            initFields(null, this, fieldsWithInitializer);
+          };
           // static part:
           var publicStatic = this.publicStatic = {};
           var privateStatic = {_super: superName};
