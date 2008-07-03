@@ -108,7 +108,24 @@
         </dependencies>
       </plugin>
 
-      <!-- Tests are all integration test, so exclude them here -->
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>create-temp-js</id>
+            <phase>generate-sources</phase>
+            <configuration>
+              <tasks>
+                <mkdir dir="${basedir}/target/temp/js"/>
+              </tasks>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
@@ -116,6 +133,16 @@
           <excludes>
             <exclude>net/jangaroo/test/integration/**/*</exclude>
           </excludes>
+          <systemProperties>
+            <property>
+              <name>com.coremedia.jscc.test.source</name>
+              <value>${basedir}/target/test-classes</value>
+            </property>
+            <property>
+              <name>com.coremedia.jscc.test.destination</name>
+              <value>${basedir}/target/temp/js</value>
+            </property>
+          </systemProperties>
         </configuration>
       </plugin>
 

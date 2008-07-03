@@ -1,0 +1,7 @@
+package error {
+  public class ConfusingLabel {
+    public function fun() {
+      x :String = "x";
+    }
+  }
+}

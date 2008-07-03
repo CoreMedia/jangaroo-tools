@@ -110,6 +110,7 @@
                       verbose="true"
                       enableassertions="${jscc.assert}">
                   <include name="**/*.js2"/>
+                  <exclude name="error/**/*.js2"/>
                   <src path="target/js2"/>
                 </jscc>
 
@@ -142,7 +143,7 @@
               <systemProperties>
                 <property>
                   <name>com.coremedia.jscc.test.source</name>
-                  <value>${basedir}/target/js</value>
+                  <value>${basedir}/target/js2</value>
                 </property>
                 <property>
                   <name>com.coremedia.jscc.test.destination</name>

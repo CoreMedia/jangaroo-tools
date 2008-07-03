@@ -12,6 +12,7 @@ import java.io.Reader;
 import java.io.StringReader;
 
 import com.coremedia.jscc.Jscc;
+import net.jangaroo.test.JsccTestCase;
 
 /**
  * A JscTestCase to be executed at runtime

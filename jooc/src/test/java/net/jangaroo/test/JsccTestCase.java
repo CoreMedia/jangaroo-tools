@@ -2,7 +2,7 @@
  *   Copyright (c) 2003 CoreMedia AG, Hamburg. All rights reserved.
  */
 
-package net.jangaroo.test.integration;
+package net.jangaroo.test;
 
 import com.coremedia.jscc.Jscc;
 import junit.framework.TestCase;
