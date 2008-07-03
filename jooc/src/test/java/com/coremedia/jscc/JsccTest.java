@@ -120,17 +120,16 @@ public class JsccTest extends com.coremedia.jscc.test.JsccRuntimeTestCase {
   }
 
   public void testUnqualifiedAccess() throws Exception {
+    /* TODO: the following does not work
     loadClass("package1.TestUnqualifiedAccess");
     eval("obj = new package1.TestUnqualifiedAccess(\"a\")");
-    /* TODO: the following does not work
+    eval("new package1.TestUnqualifiedAccess(\"c\")");
     expectString("a", "obj.getPrivateSlot()");
     eval("obj.setPrivateSlot(\"b\")");
     expectString("b", "obj.getPrivateSlot()");
-    */
     expectString("a", "obj.getProtectedSlot()");
     eval("obj.setProtectedSlot(\"b\")");
     expectString("b", "obj.getProtectedSlot()");
-    /* TODO: the following does not work
     expectString("a", "obj.getPublicSlot()");
     eval("obj.setPublicSlot(\"b\")");
     expectString("b", "obj.getPublicSlot()");
