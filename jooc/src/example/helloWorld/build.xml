@@ -19,19 +19,19 @@
   <property name="jscc.debug" value="false"/>
   <property name="jscc.assert" value="${jscc.debug}"/>
 
-  <path id="jangaroo.tools.classpath">
-    <fileset dir="${jangaroo.tools.lib}">
-      <include name="*.jar"/>
-    </fileset>
-  </path>
-
   <target name="init">
     <mkdir dir="${output.htdocs}"/>
     <mkdir dir="${output.joodoc}"/>
   </target>
 
   <target name="compile-js2" depends="init">
-    <taskdef name="jscc" classname="com.coremedia.jscc.ant.JsccTask" classpathref="jangaroo.tools.classpath"/>
+    <taskdef name="jscc" classname="com.coremedia.jscc.ant.JsccTask">
+      <classpath>
+        <fileset dir="${jangaroo.tools.lib}">
+          <include name="jangaroo-compiler-*.jar"/>
+        </fileset>
+      </classpath>
+    </taskdef>
 
     <jscc destdir="${output.htdocs}"
         failonerror="true"
@@ -60,14 +60,17 @@
   </target>
 
   <target name="generate-jangaroo-api-doc" depends="init">
-    <taskdef name="joodoc" classname="com.coremedia.tools.jscdoc.ant.JscdocTask" classpathref="jangaroo.tools.classpath"/>
+    <taskdef name="joodoc" classname="com.coremedia.tools.jscdoc.ant.JscdocTask">
+      <classpath>
+        <fileset dir="${jangaroo.tools.lib}">
+          <include name="jangaroo-doc-*.jar"/>
+        </fileset>
+      </classpath>
+    </taskdef>
 
-    <joodoc destdir="${output.joodoc}"
-             author="true"
-             version="true"
-             windowtitle="${example.title}">
-      <fileset dir="${source.js2}/net/jangaroo/example/">
-        <include name="HelloWorld.js2"/>
+    <joodoc destdir="${output.joodoc}">
+      <fileset dir="${source.js2}">
+        <include name="net/jangaroo/example/HelloWorld.js2"/>
       </fileset>
     </joodoc>
 
