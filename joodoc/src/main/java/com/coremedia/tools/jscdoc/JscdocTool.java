@@ -40,7 +40,7 @@ public class JscdocTool extends Jscc {
 
     for (List list4 = list; list4.nonEmpty(); list4 = list4.tail) {
       String s2 = (String) list4.head;
-      if (s2.endsWith(".jsc") && (new File(s2)).exists()) {
+      if (s2.endsWith(JS2_SUFFIX) && (new File(s2)).exists()) {
         messager.notice("main.Loading_source_file", s2);
         processSource(s2);
 
@@ -50,7 +50,7 @@ public class JscdocTool extends Jscc {
         listbuffer = listbuffer.append(s2);
         continue;
       }
-      if (s2.endsWith(".jsc"))
+      if (s2.endsWith(JS2_SUFFIX))
         messager.error(null, "main.file_not_found", s2);
       else
         messager.error(null, "main.illegal_package_name", s2);
@@ -127,10 +127,10 @@ public class JscdocTool extends Jscc {
             }*/
 
   private static boolean isValidJscSourceFile(String s) {
-        if(!s.endsWith(".jsc")) {
+        if(!s.endsWith(JS2_SUFFIX)) {
             return false;
       } else {
-            String s1 = s.substring(0, s.length() - ".jsc".length());
+            String s1 = s.substring(0, s.length() - JS2_SUFFIX.length());
             return isValidClassName(s1);
       }
   }

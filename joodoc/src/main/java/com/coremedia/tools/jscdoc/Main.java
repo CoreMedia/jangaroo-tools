@@ -1,11 +1,7 @@
 package com.coremedia.tools.jscdoc;
 
 /**
- * Starting point for creation of jsc javadoc.
- * User: htewis
- * Date: 19.07.2004
- * Time: 14:27:12
- * To change this template use File | Settings | File Templates.
+ * Starting point for creation of Jangaroo API documentation.
  */
 public class Main {
 
