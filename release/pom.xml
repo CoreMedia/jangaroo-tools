@@ -7,18 +7,12 @@
   <version>0.1-SNAPSHOT</version>
   <name>Jangaroo release</name>
 
-  <organization>
-    <name>CoreMedia AG, Hamburg, Germany</name>
-    <url>http://www.jangaroo.net</url>
-  </organization>
-
-  <repositories>
-    <repository>
-      <id>repo</id>
-      <name>Primary virtual repository</name>
-      <url>http://woschod.coremedia.com/repo</url>
-    </repository>
-  </repositories>
+  <parent>
+    <groupId>net.jangaroo</groupId>
+    <artifactId>jangaroo-parent</artifactId>
+    <relativePath>../pom.xml</relativePath>
+    <version>0.1-SNAPSHOT</version>
+  </parent>
 
   <build>
     <plugins>
@@ -81,7 +75,4 @@
 
   </dependencies>
 
-  <properties>
-    <joo.tools.version>${project.version}</joo.tools.version>
-  </properties>
 </project>
