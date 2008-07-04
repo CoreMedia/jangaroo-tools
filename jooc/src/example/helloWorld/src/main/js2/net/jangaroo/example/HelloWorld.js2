@@ -2,7 +2,6 @@ package net.jangaroo.example {
 
   /**
    * A simple example demonstrating how to receive and return typed arguments.
-   * @version ${project.version}
    */
   public class HelloWorld {
 
