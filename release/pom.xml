@@ -77,22 +77,6 @@
 
     <dependency>
       <groupId>net.jangaroo</groupId>
-      <artifactId>jangaroo-compiler</artifactId>
-      <classifier>src-all</classifier>
-      <type>zip</type>
-      <version>${joo.tools.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>net.jangaroo</groupId>
-      <artifactId>jangaroo-doc</artifactId>
-      <classifier>src-all</classifier>
-      <type>zip</type>
-      <version>${joo.tools.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-doc</artifactId>
       <version>${joo.tools.version}</version>
     </dependency>
