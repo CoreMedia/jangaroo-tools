@@ -7,7 +7,7 @@
   <version>0.1-SNAPSHOT</version>
   <name>Jangaroo compiler</name>
   <organization>
-    <name>Jangaroo.net</name>
+    <name>CoreMedia AG, Hamburg, Germany</name>
     <url>http://www.jangaroo.net</url>
   </organization>
 
@@ -98,22 +98,10 @@
               <goal>run</goal>
             </goals>
           </execution>
-        </executions>
-        <dependencies>
-          <dependency>
-            <groupId>edu.princeton.cup</groupId>
-            <artifactId>java-cup</artifactId>
-            <version>10k</version>
-          </dependency>
-        </dependencies>
-      </plugin>
 
-      <plugin>
-        <artifactId>maven-antrun-plugin</artifactId>
-        <executions>
           <execution>
             <id>create-temp-js</id>
-            <phase>generate-sources</phase>
+            <phase>generate-test-resources</phase>
             <configuration>
               <tasks>
                 <mkdir dir="${basedir}/target/temp/js"/>
@@ -123,7 +111,15 @@
               <goal>run</goal>
             </goals>
           </execution>
+          
         </executions>
+        <dependencies>
+          <dependency>
+            <groupId>edu.princeton.cup</groupId>
+            <artifactId>java-cup</artifactId>
+            <version>10k</version>
+          </dependency>
+        </dependencies>
       </plugin>
 
       <plugin>
