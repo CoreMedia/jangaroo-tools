@@ -1,0 +1,28 @@
+package net.jangaroo.example {
+
+  /**
+   * A simple example demonstrating how to receive and return typed arguments.
+   * @version ${project.version}
+   */
+  public class HelloWorld {
+
+    /**
+     * Returns a personalized greeting.
+     * @param name name of the person to greet
+     * @return String a personalized greeting
+     */
+    public function greet(name : String) : String {
+      return "Hello, " + name + "!";
+    }
+
+    /**
+     * Returns a personalized and HTML-escaped greeting.
+     * @param name name of the person to greet
+     * @return String a personalized and HTML-escaped greeting
+     */
+    public function greetHtml(name : String) : String {
+      return this.greet(name).replace(/&/g, "&amp;").replace(/</g, "&lt;");
+    }
+
+  }
+}

@@ -22,7 +22,7 @@
         <artifactId>maven-assembly-plugin</artifactId>
         <executions>
           <execution>
-            <id>create-tools-and-lib-release</id>
+            <id>create-tools-zip</id>
             <phase>package</phase>
             <goals>
               <goal>single</goal>
@@ -32,7 +32,7 @@
               <finalName>jangaroo-${project.version}</finalName>
               <appendAssemblyId>false</appendAssemblyId>
               <descriptors>
-                <descriptor>src/main/assembly/binaries.xml</descriptor>
+                <descriptor>src/main/assembly/tools.xml</descriptor>
               </descriptors>
             </configuration>
           </execution>
@@ -63,6 +63,30 @@
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-compiler</artifactId>
       <classifier>runtime</classifier>
+      <type>zip</type>
+      <version>${joo.tools.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>net.jangaroo</groupId>
+      <artifactId>jangaroo-compiler</artifactId>
+      <classifier>examples</classifier>
+      <type>zip</type>
+      <version>${joo.tools.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>net.jangaroo</groupId>
+      <artifactId>jangaroo-compiler</artifactId>
+      <classifier>src-all</classifier>
+      <type>zip</type>
+      <version>${joo.tools.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>net.jangaroo</groupId>
+      <artifactId>jangaroo-doc</artifactId>
+      <classifier>src-all</classifier>
       <type>zip</type>
       <version>${joo.tools.version}</version>
     </dependency>

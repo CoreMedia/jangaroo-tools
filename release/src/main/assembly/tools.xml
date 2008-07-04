@@ -15,8 +15,8 @@
       <outputDirectory>lib</outputDirectory>
       <scope>runtime</scope>
       <excludes>
-        <exclude>net.jangaroo:jangaroo-compiler:zip:doc</exclude>
-        <exclude>net.jangaroo:jangaroo-compiler:zip:runtime</exclude>
+        <exclude>net.jangaroo:jangaroo-compiler:zip:*</exclude>
+        <exclude>net.jangaroo:jangaroo-doc:zip:*</exclude>
       </excludes>
     </dependencySet>
 
@@ -35,6 +35,15 @@
       <unpack>true</unpack>
       <includes>
         <include>net.jangaroo:jangaroo-compiler:zip:runtime</include>
+      </includes>
+    </dependencySet>
+
+    <dependencySet>
+      <useProjectArtifact>false</useProjectArtifact>
+      <outputDirectory>examples</outputDirectory>
+      <unpack>true</unpack>
+      <includes>
+        <include>net.jangaroo:jangaroo-compiler:zip:examples</include>
       </includes>
     </dependencySet>
 

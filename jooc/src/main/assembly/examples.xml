@@ -1,0 +1,19 @@
+<assembly>
+  <id>examples</id>
+  <formats>
+    <format>zip</format>
+  </formats>  
+  <includeBaseDirectory>false</includeBaseDirectory>
+
+  <fileSets>
+    <fileSet>
+      <directory>src/example</directory>
+      <outputDirectory>/</outputDirectory>
+      <excludes>
+        <exclude>*/output/**</exclude>
+      </excludes>
+      <filtered>true</filtered>
+    </fileSet>
+  </fileSets>
+
+</assembly>

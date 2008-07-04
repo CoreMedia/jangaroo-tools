@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<project name="joo-example-helloworld" default="main">
+
+  <property name="example.title" value="Hello World Example"/>
+
+  <!-- Jangaroo tools root directory -->
+
+  <property name="example.dir" location="${basedir}"/>
+  <property name="jangaroo.tools.basedir" location="${example.dir}/../.."/>
+  <property name="jangaroo.tools.lib" location="${jangaroo.tools.basedir}/lib"/>
+
+  <property name="source.js2" value="${example.dir}/src/main/js2"/>
+  <property name="source.htdocs" value="${example.dir}/src/main/webapp"/>
+  <property name="output" value="${example.dir}/output"/>
+  <property name="output.joodoc" value="${output}/doc/api"/>
+  <property name="output.htdocs" value="${output}/htdocs"/>
+
+  <!-- Jangaroo compiler options -->
+  <property name="jscc.debug" value="false"/>
+  <property name="jscc.assert" value="${jscc.debug}"/>
+
+  <path id="jangaroo.tools.classpath">
+    <fileset dir="${jangaroo.tools.lib}">
+      <include name="*.jar"/>
+    </fileset>
+  </path>
+
+  <target name="init">
+    <mkdir dir="${output.htdocs}"/>
+    <mkdir dir="${output.joodoc}"/>
+  </target>
+
+  <target name="compile-js2" depends="init">
+    <taskdef name="jscc" classname="com.coremedia.jscc.ant.JsccTask" classpathref="jangaroo.tools.classpath"/>
+
+    <jscc destdir="${output.htdocs}"
+        failonerror="true"
+        debug="${jscc.debug}"
+        verbose="true"
+        enableassertions="${jscc.assert}">
+       <include name="**/*.js2"/>
+       <src path="${source.js2}"/>
+    </jscc>
+  </target>
+
+  <target name="copy-jangaroo-runtime" depends="init">
+    <copy todir="${output.htdocs}">
+      <fileset dir="${jangaroo.tools.basedir}/runtime">
+        <include name="**/*.js"/>
+      </fileset>
+    </copy>
+  </target>
+
+  <target name="copy-htdocs" depends="init">
+    <copy todir="${output.htdocs}">
+      <fileset dir="${source.htdocs}">
+        <include name="**/*"/>
+      </fileset>
+    </copy>
+  </target>
+
+  <target name="generate-jangaroo-api-doc" depends="init">
+    <taskdef name="joodoc" classname="com.coremedia.tools.jscdoc.ant.JscdocTask" classpathref="jangaroo.tools.classpath"/>
+
+    <joodoc destdir="${output.joodoc}"
+             author="true"
+             version="true"
+             windowtitle="${example.title}">
+      <fileset dir="${source.js2}/net/jangaroo/example/">
+        <include name="HelloWorld.js2"/>
+      </fileset>
+    </joodoc>
+
+  </target>
+
+  <target name="main" description="builds the example"
+          depends="compile-js2, copy-jangaroo-runtime, copy-htdocs, generate-jangaroo-api-doc">
+  </target>
+  
+  <target name="clean" description="cleanup all">
+    <delete dir="${output}" failonerror="false"/>
+  </target>
+
+</project>
