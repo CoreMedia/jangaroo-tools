@@ -42,7 +42,7 @@ public class TestSyntaxErrors extends JsccTestCase {
         result += checkAllErrorClasses(file, baseDirName + "/" + file.getName());
       } else if (file.getName().endsWith(".js2")) {
         int resultCode = runJscc(baseDirName + "/" + file.getName());
-        assertTrue("result code must not be " + Jscc.RESULT_CODE_OK, resultCode != Jscc.RESULT_CODE_OK);
+        assertEquals(Jscc.RESULT_CODE_COMPILATION_FAILED, resultCode);
         result++;
       }
     }
