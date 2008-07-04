@@ -85,9 +85,7 @@ public class ClassDeclaration extends IdeDeclaration {
       if (i.hasNext()) out.write(",");
     }
     out.write("],");
-    out.write("function($jooPublic,$jooPrivate){with(");
-    getPackageDeclaration().ide.generateCode(out);
-    out.write(")with($jooPublic)with($jooPrivate)return[");
+    out.write("function($jooPublic,$jooPrivate){with($jooPublic)with($jooPrivate)return[");
     body.generateCode(out);
     out.write("]}");
   }

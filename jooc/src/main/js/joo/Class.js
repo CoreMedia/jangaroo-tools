@@ -283,6 +283,7 @@ Function.prototype.getName = typeof Function.prototype.name=="string"
                 } else {
                   if (memberName==this.$class) {
                     this.$constructor = members;
+                    privateStatic[memberName] = members;
                   } else if (memberKey=="$this") {
                     if (visibility=="$private") {
                       memberName = registerPrivateMember(privateStatic, classPrefix, memberName);

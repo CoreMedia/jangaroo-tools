@@ -119,8 +119,12 @@ public class JsccTest extends JsccRuntimeTestCase {
     expectString("s2/s1"+"/"+(-19+42), "package2.TestImport.main()");
   }
 
+  public void testSelfAwareness() throws Exception {
+    runClass("package1.TestSelfAwareness");
+  }
+
+  /* TODO: the following does not work
   public void testUnqualifiedAccess() throws Exception {
-    /* TODO: the following does not work
     loadClass("package1.TestUnqualifiedAccess");
     eval("obj = new package1.TestUnqualifiedAccess(\"a\")");
     eval("new package1.TestUnqualifiedAccess(\"c\")");
@@ -133,8 +137,8 @@ public class JsccTest extends JsccRuntimeTestCase {
     expectString("a", "obj.getPublicSlot()");
     eval("obj.setPublicSlot(\"b\")");
     expectString("b", "obj.getPublicSlot()");
-    */
   }
+  */
 
   public static void main(String args[]) {
     junit.textui.TestRunner.run(JsccTest.class);

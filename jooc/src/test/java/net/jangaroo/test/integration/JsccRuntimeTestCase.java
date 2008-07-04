@@ -95,6 +95,12 @@ public abstract class JsccRuntimeTestCase extends JsccTestCase {
     eval(Jscc.CLASS_FULLY_QUALIFIED_NAME + ".init("+qualifiedJscClassName+")");
   }
 
+  protected void runClass(String qualifiedJscClassName) throws Exception {
+    loadClass(qualifiedJscClassName);
+    initClass(qualifiedJscClassName);
+    eval(qualifiedJscClassName+".main()");
+  }
+
   protected Object eval(String script) throws Exception {
     System.out.print("evaluating script '" + script + "': ");
     Reader reader = new StringReader(script);

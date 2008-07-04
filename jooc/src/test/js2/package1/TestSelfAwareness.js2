@@ -1,0 +1,23 @@
+package package1 {
+  public class TestSelfAwareness {
+    public static var s : String;
+    public var m : String;
+
+    public function TestSelfAwareness() {
+      super();
+    }
+
+    public static function main() : void {
+      // Test that the class knows itself when accessing statics.
+      package1.TestSelfAwareness.s = "a";
+      if (TestSelfAwareness.s != "a") throw "failed to read unqualified";
+      TestSelfAwareness.s = "b";
+      if (package1.TestSelfAwareness.s != "b") throw "failed to read qualified";
+
+      // Check that the constructor is accessible.
+      var tsa : TestSelfAwareness = new TestSelfAwareness();
+      tsa.m = "c";
+      if (tsa.m != "c") throw "failed to read field";
+    }
+  }
+}
