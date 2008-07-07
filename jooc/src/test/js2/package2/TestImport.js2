@@ -7,7 +7,6 @@ import package2.TestStaticInitializer;
 public class TestImport extends TestMethodCall {
 
   public function TestImport() {
-    super();
   }
 
   public static function main() : int {

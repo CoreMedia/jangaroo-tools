@@ -12,16 +12,7 @@ import java.util.Stack;
 public class AnalyzeContext {
 
   protected PackageDeclaration packageDeclaration = null;
-  protected Stack classDeclarations = new Stack();
   protected Scope scope = null;
-
-  public void enterClass(ClassDeclaration classDeclaration) {
-    classDeclarations.push(classDeclaration);
-  }
-
-  public void leaveClass() {
-    classDeclarations.pop();
-  }
 
   public void enterScope(IdeDeclaration declaration) {
     scope = new Scope(declaration, scope);
@@ -46,6 +37,10 @@ public class AnalyzeContext {
 
   public ClassDeclaration getCurrentClass() {
     return scope.getClassDeclaration();
+  }
+
+  public MethodDeclaration getCurrentMethod() {
+    return scope.getMethodDeclaration();
   }
 
 }

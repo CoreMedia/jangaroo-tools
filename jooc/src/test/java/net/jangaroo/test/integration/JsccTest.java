@@ -123,6 +123,27 @@ public class JsccTest extends JsccRuntimeTestCase {
     runClass("package1.TestSelfAwareness");
   }
 
+  public void testInitializers() throws Exception {
+    doTestTwoSlots("package1.TestInitializers");
+  }
+
+  public void testImplicitSuper() throws Exception {
+    loadClass("package1.TestInitializers");
+    doTestTwoSlots("package1.TestImplicitSuper");
+  }
+
+  public void testExplicitSuper() throws Exception {
+    loadClass("package1.TestInitializers");
+    doTestTwoSlots("package1.TestExplicitSuper");
+  }
+
+  private void doTestTwoSlots(String className) throws Exception {
+    loadClass(className);
+    eval("obj = new "+className+"();");
+    expectNumber(1, "obj.getSlot1()");
+    expectNumber(2, "obj.getSlot2()");
+  }
+
   /* TODO: the following does not work
   public void testUnqualifiedAccess() throws Exception {
     loadClass("package1.TestUnqualifiedAccess");

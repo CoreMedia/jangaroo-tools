@@ -1,0 +1,8 @@
+package error {
+  public class DuplicateSuperCall {
+    public function DuplicateSuperCall() {
+      super();
+      super();
+    }
+  }
+}

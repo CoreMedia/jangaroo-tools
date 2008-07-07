@@ -39,7 +39,7 @@ abstract class Declaration extends NodeImplBase {
     this.allowedModifiers = allowedModifiers;
   }
 
-    public IdeDeclaration getParentDeclaration() {
+  public IdeDeclaration getParentDeclaration() {
     return parentDeclaration;
   }
 

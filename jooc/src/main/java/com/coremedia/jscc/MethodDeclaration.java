@@ -24,6 +24,7 @@ public class MethodDeclaration extends MemberDeclaration {
   Statement optBody;
 
   boolean isConstructor = false;
+  boolean containsSuperConstructorCall = false;
 
   private static final int defaultAllowedMethodModifers =
      MODIFIER_OVERRIDE|MODIFIER_ABSTRACT|MODIFIER_FINAL|MODIFIERS_SCOPE|MODIFIER_STATIC;
@@ -44,6 +45,14 @@ public class MethodDeclaration extends MemberDeclaration {
 
   public boolean isConstructor() {
     return isConstructor;
+  }
+
+  public boolean containsSuperConstructorCall() {
+    return containsSuperConstructorCall;
+  }
+
+  public void setContainsSuperConstructorCall(boolean containsSuperConstructorCallStatement) {
+    this.containsSuperConstructorCall = containsSuperConstructorCallStatement;
   }
 
   public void analyze(AnalyzeContext context) {
@@ -71,11 +80,19 @@ public class MethodDeclaration extends MemberDeclaration {
 
     //TODO:check whether abstract method does not actually override
 
+    context.enterScope(this);
     if (params != null)
-     params.analyze(context);
+      params.analyze(context);
     if (optTypeRelation != null)
-       optTypeRelation.analyze(context);
+      optTypeRelation.analyze(context);
     optBody.analyze(context);
+    context.leaveScope(this);
+
+    if (containsSuperConstructorCall()) {
+      // must be contained at top level
+      BlockStatement block = (BlockStatement) optBody;
+      block.checkSuperConstructorCall();
+    }
   }
 
   public void generateCode(JsWriter out) throws IOException {
@@ -104,7 +121,11 @@ public class MethodDeclaration extends MemberDeclaration {
     if (params != null) params.generateCode(out);
     out.writeSymbol(rParen);
     if (optTypeRelation != null) optTypeRelation.generateCode(out);
-    optBody.generateCode(out);
+    if (isConstructor() && !containsSuperConstructorCall()) {
+      ((BlockStatement)optBody).generateCodeWithSuperCall(out);
+    } else {
+      optBody.generateCode(out);
+    }
     if (isAbstract()) {
       out.endComment();
     } else {

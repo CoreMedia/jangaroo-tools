@@ -16,7 +16,7 @@ public class TestSyntaxErrors extends JsccTestCase {
    * The number of erroneous .js2 files. Increase whenever you add a new error file.
    * Specifying this number makes sure that no files are accidentially forgotten.
    */
-  private static int ERROR_FILE_COUNT = 2;
+  private static int ERROR_FILE_COUNT = 4;
 
   public TestSyntaxErrors(String name) {
     super(name);

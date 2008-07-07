@@ -3,8 +3,6 @@ package package1 {
 public class TestUnqualifiedAccess {
 
   public function TestUnqualifiedAccess(value :String) {
-    // TODO: Do not require empty super call.
-    super();
     protectedSlot = value;
   }
 

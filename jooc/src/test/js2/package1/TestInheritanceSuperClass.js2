@@ -3,8 +3,6 @@ package package1 {
 public class TestInheritanceSuperClass {
 
   public function TestInheritanceSuperClass(slot1 :int) {
-    // TODO: Do not require empty super call.
-    super();
     this.slot1 = slot1;
   }
 

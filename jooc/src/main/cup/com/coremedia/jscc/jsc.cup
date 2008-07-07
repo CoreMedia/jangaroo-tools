@@ -279,8 +279,6 @@ expr ::=
     {: RESULT = e; :}
   | THIS:t
     {: RESULT = new ThisExpr(t); :}
-  | SUPER:s LPAREN:lp arguments:args RPAREN:rp
-    {: RESULT = new SuperConstructorCallExpr(s,lp,args,rp); :}
   | SUPER:s DOT:d ide:ide  LPAREN:lp arguments:args RPAREN:rp
     {: RESULT = new SuperMethodCallExpr(s,d,ide,lp,args,rp); :}
   | parenthesizedExpr:e
@@ -623,6 +621,8 @@ statement ::=
     {: RESULT = new AssertStatement(a,e,s); :}
   | THROW:t commaExpr:e SEMICOLON:s
     {: RESULT = new ThrowStatement(t,e,s); :}
+  | SUPER:s LPAREN:lp arguments:args RPAREN:rp
+    {: RESULT = new SuperConstructorCallStatement(s,lp,args,rp); :}
   | labelableStatement:s
     {: RESULT = s; :}
   ;

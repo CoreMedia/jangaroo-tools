@@ -119,5 +119,12 @@ class Scope {
     return parent.getClassDeclaration();
   }
 
+  public MethodDeclaration getMethodDeclaration() {
+    if (ideDeclaration instanceof MethodDeclaration)
+      return (MethodDeclaration) ideDeclaration;
+    if (parent == null)
+      return null;
+    return parent.getMethodDeclaration();
+  }
 
 }
