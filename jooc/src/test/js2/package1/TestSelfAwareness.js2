@@ -3,10 +3,6 @@ package package1 {
     public static var s : String;
     public var m : String;
 
-    public function TestSelfAwareness() {
-      super();
-    }
-
     public static function main() : void {
       // Test that the class knows itself when accessing statics.
       package1.TestSelfAwareness.s = "a";

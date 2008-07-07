@@ -283,7 +283,6 @@ Function.prototype.getName = typeof Function.prototype.name=="string"
                 } else {
                   if (memberName==this.$class) {
                     this.$constructor = members;
-                    privateStatic[memberName] = members;
                   } else if (memberKey=="$this") {
                     if (visibility=="$private") {
                       memberName = registerPrivateMember(privateStatic, classPrefix, memberName);
@@ -320,7 +319,7 @@ Function.prototype.getName = typeof Function.prototype.name=="string"
           this.$constructor.prototype = this.Public.prototype;
           this.Public.prototype.getClass = createGetClass(this.$constructor);
           // TODO: constructor visibility!
-          this.$package[this.$class] = this.$constructor;
+          this.$package[this.$class] = privateStatic[this.$class] = this.$constructor;
           // init static fields with initializer:
           for (var im in this.$imports) {
             var importDecl = this.$imports[im];
