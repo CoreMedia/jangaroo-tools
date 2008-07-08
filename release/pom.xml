@@ -10,7 +10,7 @@
   <parent>
     <groupId>net.jangaroo</groupId>
     <artifactId>jangaroo-parent</artifactId>
-    <relativePath>../pom.xml</relativePath>
+    <relativePath>../parent/pom.xml</relativePath>
     <version>0.1-SNAPSHOT</version>
   </parent>
 

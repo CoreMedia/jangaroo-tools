@@ -64,9 +64,6 @@
       <includes>
         <include>bin/*.bat</include>
       </includes>
-      <excludes>
-        <exclude>bin/joodoc.bat</exclude>
-      </excludes>
     </fileSet>
 
     <fileSet>
@@ -79,7 +76,6 @@
       </includes>
       <excludes>
         <exclude>bin/*.bat</exclude>
-        <exclude>bin/joodoc</exclude>
       </excludes>
       <fileMode>0755</fileMode>
     </fileSet>
