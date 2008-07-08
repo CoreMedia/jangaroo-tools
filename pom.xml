@@ -16,15 +16,15 @@
     <pluginRepository>
       <id>jflex</id>
       <name>JFlex repository</name>
-      <url>http://jflex.sourceforge.net/repo/</url>
+      <url>http://jflex.sourceforge.net/repo</url>
     </pluginRepository>
   </pluginRepositories>
 
   <repositories>
     <repository>
-      <id>repo</id>
-      <name>Primary virtual repository</name>
-      <url>http://woschod.coremedia.com/repo</url>
+      <id>jangaroo</id>
+      <name>Jangaroo repository</name>
+      <url>http://repo.jangaroo.net/maven2</url>
     </repository>
   </repositories>
 

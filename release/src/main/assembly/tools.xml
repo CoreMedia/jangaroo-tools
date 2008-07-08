@@ -16,7 +16,7 @@
       <scope>runtime</scope>
       <excludes>
         <exclude>net.jangaroo:jangaroo-compiler:zip:*</exclude>
-        <exclude>net.jangaroo:jangaroo-doc:zip:*</exclude>
+        <exclude>net.jangaroo:jangaroo-doc</exclude>
       </excludes>
     </dependencySet>
 
@@ -64,6 +64,9 @@
       <includes>
         <include>bin/*.bat</include>
       </includes>
+      <excludes>
+        <exclude>bin/joodoc.bat</exclude>
+      </excludes>
     </fileSet>
 
     <fileSet>
@@ -76,6 +79,7 @@
       </includes>
       <excludes>
         <exclude>bin/*.bat</exclude>
+        <exclude>bin/joodoc</exclude>
       </excludes>
       <fileMode>0755</fileMode>
     </fileSet>
