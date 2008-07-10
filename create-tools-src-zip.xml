@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<project name="joo-example-helloworld" default="compress-sources">
+
+  <description>
+    Creates the tools sources zip archive from the Jangaroo source tree.
+
+    Call this script setting the following properties:
+
+      version: The version number to include in the archive name.
+
+  </description>
+
+  <property name="output.dir" location="target"/>
+  <property name="tools.src.archive.name" value="jangaroo-${version}-tools-src.zip"/>
+
+  <target name="init">
+    <mkdir dir="${output.dir}"/>
+  </target>
+
+  <target name="compress-sources" depends="init"
+          description="Creates the tools sources archive">
+
+    <zip destfile="${output.dir}/${tools.src.archive.name}">
+      <zipfileset dir="${basedir}" prefix="jangaroo-${version}">
+        <include name="parent/pom.xml"/>
+
+        <include name="jooc/pom.xml"/>
+        <include name="jooc/src/**"/>
+
+        <include name="release/pom.xml"/>
+        <include name="release/src/**"/>
+      </zipfileset>
+    </zip>
+  </target>
+
+</project>
