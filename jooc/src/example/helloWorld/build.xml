@@ -59,25 +59,8 @@
     </copy>
   </target>
 
-  <target name="generate-jangaroo-api-doc" depends="init">
-    <taskdef name="joodoc" classname="com.coremedia.tools.jscdoc.ant.JscdocTask">
-      <classpath>
-        <fileset dir="${jangaroo.tools.lib}">
-          <include name="jangaroo-doc-*.jar"/>
-        </fileset>
-      </classpath>
-    </taskdef>
-
-    <joodoc destdir="${output.joodoc}">
-      <fileset dir="${source.js2}">
-        <include name="net/jangaroo/example/HelloWorld.js2"/>
-      </fileset>
-    </joodoc>
-
-  </target>
-
   <target name="main" description="builds the example"
-          depends="compile-js2, copy-jangaroo-runtime, copy-htdocs, generate-jangaroo-api-doc">
+          depends="compile-js2, copy-jangaroo-runtime, copy-htdocs">
   </target>
   
   <target name="clean" description="cleanup all">

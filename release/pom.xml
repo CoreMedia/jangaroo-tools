@@ -29,13 +29,47 @@
             </goals>
             <configuration>
               <attach>false</attach>
-              <finalName>jangaroo-${project.version}</finalName>
+              <finalName>${release.tools.bin.name}</finalName>
               <appendAssemblyId>false</appendAssemblyId>
               <descriptors>
                 <descriptor>src/main/assembly/tools.xml</descriptor>
               </descriptors>
             </configuration>
           </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>extract-release-zip</id>
+            <phase>pre-integration-test</phase>
+            <configuration>
+              <tasks>
+                <delete dir="${extract.release.dir}" failonerror="false"/>
+                <mkdir dir="${extract.release.dir}"/>
+                <unzip src="${basedir}/target/${release.tools.bin.filename}" dest="${extract.release.dir}"/>
+              </tasks>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+
+          <execution>
+            <id>build-examples</id>
+            <phase>integration-test</phase>
+            <configuration>
+              <tasks>
+                <ant dir="${extract.release.dir}/${release.tools.bin.name}/examples/helloWorld"/>
+              </tasks>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+
         </executions>
       </plugin>
 
@@ -83,4 +117,9 @@
 
   </dependencies>
 
+  <properties>
+    <extract.release.dir>${basedir}/target/temp/extracted</extract.release.dir>
+    <release.tools.bin.name>jangaroo-${project.version}</release.tools.bin.name>
+    <release.tools.bin.filename>${release.tools.bin.name}.zip</release.tools.bin.filename>
+  </properties>
 </project>
