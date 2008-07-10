@@ -6,7 +6,15 @@
   <packaging>pom</packaging>
   <version>0.1-SNAPSHOT</version>
   <name>Jangaroo parent pom</name>
-  
+
+  <licenses>
+    <license>
+      <name>Apache 2</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
   <organization>
     <name>CoreMedia AG, Hamburg, Germany</name>
     <url>http://www.jangaroo.net</url>
@@ -117,5 +125,15 @@
     </dependencies>
     
   </dependencyManagement>
+
+  <distributionManagement>
+    <downloadUrl>http://repo.jangaroo.net/maven2</downloadUrl>
+    <repository>
+      <uniqueVersion>false</uniqueVersion>
+      <id>jangaroo</id>
+      <name>Jangaroo repository</name>
+      <url>scp://repo.jangaroo.net/maven2</url>
+    </repository>
+  </distributionManagement>
 
 </project>
