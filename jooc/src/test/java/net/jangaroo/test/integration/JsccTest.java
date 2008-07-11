@@ -161,6 +161,30 @@ public class JsccTest extends JsccRuntimeTestCase {
   }
   */
 
+  public void testNoSuper() throws Exception {
+    loadClass("package1.TestNoSuper");
+    try {
+      eval("joo.Class.complete();");
+    } catch (Exception e) {
+      return;
+    }
+    fail("exception expected");
+  }
+
+  public void testYesSuper1() throws Exception {
+    loadClass("package1.TestInheritanceSuperClass");
+    loadClass("package1.TestInheritanceSubClass");
+    loadClass("package1.TestInheritanceSubSubClass");
+    eval("joo.Class.complete();");
+  }
+
+  public void testYesSuper2() throws Exception {
+    loadClass("package1.TestInheritanceSubSubClass");
+    loadClass("package1.TestInheritanceSubClass");
+    loadClass("package1.TestInheritanceSuperClass");
+    eval("joo.Class.complete();");
+  }
+
   public static void main(String args[]) {
     junit.textui.TestRunner.run(JsccTest.class);
   }

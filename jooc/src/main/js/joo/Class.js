@@ -190,6 +190,9 @@ Function.prototype.getName = typeof Function.prototype.name=="string"
           this.$constructor = undefined;
 
           // private part of the object structure:
+          if (false && this.$extends!="Object" && this.superClassDescription == null) {
+            throw new Error("Super class "+this.$extends+" of class "+this.fullClassName+" is not prepared.");
+          }
           var classPrefix = this.level; // + "$";
           var fieldsWithInitializer = [];
           var classDescription = this;
@@ -346,8 +349,10 @@ Function.prototype.getName = typeof Function.prototype.name=="string"
       }
     },
     run: function(fullClassName, args) {
-      theGlobalObject.joo.Class.load(fullClassName);
+      this.load(fullClassName);
+      var self = this;
       theGlobalObject.onload = function() {
+        self.complete();
         eval(fullClassName).main(args);
       }
     },
@@ -406,6 +411,25 @@ Function.prototype.getName = typeof Function.prototype.name=="string"
     },
     init: function(clazz) {
       return ClassDescription.$static.getClassDescription(clazz.getName()).initialize();
+    },
+    complete: function() {
+      var sb = [];
+      var pendingCDsMap = ClassDescription.$static.pendingClassDescriptions;
+      for (var missingClassName in pendingCDsMap) {
+        if (sb.length > 0) sb.push(" ");
+        sb.push("The following classes are waiting for their super class ",
+          missingClassName,
+          ": ");
+        var pendingCDs = pendingCDsMap[missingClassName];
+        for (var i = 0; i < pendingCDs.length; ++i) {
+          if (i > 0) sb.push(", ");
+          sb.push(pendingCDs[i]);
+        }
+        sb.push(".");
+      }
+      if (sb.length > 0) {
+        throw new Error(sb.join(""));
+      }
     }
   };
 })(this);

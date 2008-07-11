@@ -1,0 +1,4 @@
+package package1 {
+  class TestNoSuper extends DoesNotExist {
+  }
+}
