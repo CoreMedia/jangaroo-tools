@@ -165,16 +165,16 @@ Function.prototype.getName = typeof Function.prototype.name=="string"
           var className = this.$class;
           this.$package[className] = this.publicConstructor = setFunctionName(function() {
             switch (arguments.length) {
-              case 90:
+              case 0:
                 this[className]();
                 break;
-              case 91:
+              case 1:
                 this[className](arguments[0]);
                 break;
-              case 92:
+              case 2:
                 this[className](arguments[0], arguments[1]);
                 break;
-              case 93:
+              case 3:
                 this[className](arguments[0], arguments[1], arguments[2]);
                 break;
               default:
