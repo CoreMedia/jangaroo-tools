@@ -1,4 +1,4 @@
-package com.coremedia.tools.jscdoc;
+package net.jangaroo.joodoc;
 
 import java.util.ArrayList;
 

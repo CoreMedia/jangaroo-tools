@@ -1,7 +1,7 @@
 /*
  *   Copyright (c) 2004 CoreMedia AG, Hamburg. All rights reserved.
  */
-package com.coremedia.tools.jscdoc;
+package net.jangaroo.joodoc;
 
 import com.sun.javadoc.Doc;
 import com.sun.javadoc.ParamTag;

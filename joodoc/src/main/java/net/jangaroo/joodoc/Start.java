@@ -3,7 +3,7 @@
 // Decompiler options: packfields(3) packimports(7) deadcode fieldsfirst splitstr(64) nonlb lnc radix(10) lradix(10)
 // Source File Name:   Start.java
 
-package com.coremedia.tools.jscdoc;
+package net.jangaroo.joodoc;
 
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
@@ -28,7 +28,7 @@ class Start {
   private ListBuffer options;
   private ModifierFilter showAccess;
   private long defaultFilter;
-  private Messager messager;
+  private net.jangaroo.joodoc.Messager messager;
   String docLocale, encoding;
   boolean breakiterator;
   private DocletInvoker docletInvoker;
@@ -296,12 +296,12 @@ class Start {
       usageError("main.No_packages_or_classes_specified");
     if (!docletInvoker.validOptions(options.toList()))
       exit();
-    JscdocTool jscdoctool = new JscdocTool(messager);
-    if (jscdoctool == null)
+    JoodocTool joodocTool = new JoodocTool(messager);
+    if (joodocTool == null)
       return false;
     if (showAccess == null)
       setFilter(defaultFilter);
-    RootDocImpl rootdocimpl = jscdoctool.getRootDocImpl(docLocale, encoding, showAccess, listbuffer.toList(), options.toList(), breakiterator, listbuffer1.toList(), listbuffer2.toList(), flag);
+    net.jangaroo.joodoc.RootDocImpl rootdocimpl = joodocTool.getRootDocImpl(docLocale, encoding, showAccess, listbuffer.toList(), options.toList(), breakiterator, listbuffer1.toList(), listbuffer2.toList(), flag);
     boolean flag1 = rootdocimpl != null;
     if (flag1)
       flag1 = docletInvoker.start(rootdocimpl);
@@ -345,7 +345,7 @@ class Start {
     encoding = null;
     rejectWarnings = false;
     context = new Context();
-    messager = new Messager(context, s);
+    messager = new net.jangaroo.joodoc.Messager(context, s);
     defaultDocletClassName = s1;
   }
 
@@ -377,7 +377,7 @@ class Start {
     encoding = null;
     rejectWarnings = false;
     context = new Context();
-    messager = new Messager(context, s, printwriter, printwriter1, printwriter2);
+    messager = new net.jangaroo.joodoc.Messager(context, s, printwriter, printwriter1, printwriter2);
     defaultDocletClassName = s1;
   }
 }

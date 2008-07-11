@@ -1,4 +1,4 @@
-package com.coremedia.tools.jscdoc;
+package net.jangaroo.joodoc;
 
 /**
  * Starting point for creation of Jangaroo API documentation.

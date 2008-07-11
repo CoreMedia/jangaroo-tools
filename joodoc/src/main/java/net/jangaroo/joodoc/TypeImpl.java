@@ -1,4 +1,4 @@
-package com.coremedia.tools.jscdoc;
+package net.jangaroo.joodoc;
 
 import net.jangaroo.jooc.IdeType;
 import com.sun.javadoc.*;

@@ -1,4 +1,4 @@
-package com.coremedia.tools.jscdoc;
+package net.jangaroo.joodoc;
 
 
 import com.sun.tools.javac.util.List;
@@ -21,15 +21,15 @@ import java.util.ArrayList;
  * Time: 15:49:16
  * To change this template use File | Settings | File Templates.
  */
-public class JscdocTool extends Jooc {
+public class JoodocTool extends Jooc {
   private com.sun.tools.javadoc.Messager messager;
-  //private final JscdocClassReader reader;
+  //private final JoodocClassReader reader;
 
 
-  public JscdocTool(Messager messager) {
+  public JoodocTool(Messager messager) {
     this.messager = messager;
 
-    //this.reader=JscdocClassReader.instance0(new com.sun.tools.javac.v8.util.Context());
+    //this.reader=JoodocClassReader.instance0(new com.sun.tools.javac.v8.util.Context());
 
   }
 
@@ -113,7 +113,7 @@ public class JscdocTool extends Jooc {
             if(as == null)
                 continue;
             for(int l = 0; l < as.length; l++) {
-                if(!flag && (isValidJscSourceFile(as[l])) && !listbuffer.contains(s)) {
+                if(!flag && (isValidJooSourceFile(as[l])) && !listbuffer.contains(s)) {
                     listbuffer.append(s);
                     flag = true;
                     continue;
@@ -126,7 +126,7 @@ public class JscdocTool extends Jooc {
 
             }*/
 
-  private static boolean isValidJscSourceFile(String s) {
+  private static boolean isValidJooSourceFile(String s) {
         if(!s.endsWith(JS2_SUFFIX)) {
             return false;
       } else {
@@ -158,7 +158,7 @@ public class JscdocTool extends Jooc {
             if(!s3.endsWith(File.separator))
                 s3 = s3 + File.separator;
             for(int l = 0; l < as.length; l++)
-                if(isValidJscSourceFile(as[l])) {
+                if(isValidJooSourceFile(as[l])) {
                     String s4 = s3 + as[l];
                     listbuffer.append(parse(s4));
                     flag = true;

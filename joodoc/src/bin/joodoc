@@ -1,3 +1,3 @@
 #! /bin/sh
 bindir=`dirname "$0"`
-$bindir/runtool com.coremedia.tools.jscdoc.Main
+$bindir/runtool net.jangaroo.joodoc.Main

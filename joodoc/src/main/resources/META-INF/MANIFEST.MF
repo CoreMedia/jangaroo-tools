@@ -1,4 +1,4 @@
 Manifest-version: 1.0
-Main-Class: com.coremedia.tools.jscdoc.Main
+Main-Class: net.jangaroo.joodoc.Main
 
-Name: com/coremedia/jscdoc
+Name: net/jangaroo/joodoc

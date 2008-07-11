@@ -51,7 +51,7 @@
  * information on the Apache Software Foundation, please see
  * <http://www.apache.org/>.
  */
-package com.coremedia.tools.jscdoc.ant;
+package net.jangaroo.joodoc.ant;
 
 import java.io.File;
 import java.io.PrintWriter;
@@ -81,7 +81,7 @@ import org.apache.tools.ant.types.PatternSet;
 import org.apache.tools.ant.types.Reference;
 import org.apache.tools.ant.util.FileUtils;
 import org.apache.tools.ant.util.JavaEnvUtils;
-import com.coremedia.tools.jscdoc.Main;
+import net.jangaroo.joodoc.Main;
 
 
 /**
@@ -119,7 +119,7 @@ import com.coremedia.tools.jscdoc.Main;
 -------------------
  * @ant.task category="java"
  */
-public class JscdocTask extends Task {
+public class JoodocTask extends Task {
     /**
      * Inner class used to manage doclet parameters.
      */
@@ -1990,7 +1990,7 @@ public class JscdocTask extends Task {
 
     private class JavadocOutputStream extends LogOutputStream {
         JavadocOutputStream(int level) {
-            super(JscdocTask.this, level);
+            super(JoodocTask.this, level);
         }
 
         //

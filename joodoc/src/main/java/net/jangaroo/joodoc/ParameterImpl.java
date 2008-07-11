@@ -1,6 +1,5 @@
-package com.coremedia.tools.jscdoc;
+package net.jangaroo.joodoc;
 
-import net.jangaroo.jooc.NodeImplBase;
 import net.jangaroo.jooc.TypeRelation;
 import net.jangaroo.jooc.sym;
 import com.sun.javadoc.Type;

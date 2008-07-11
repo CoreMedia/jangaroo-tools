@@ -1,7 +1,7 @@
 /*
  *   Copyright (c) 2004 CoreMedia AG, Hamburg. All rights reserved.
  */
-package com.coremedia.tools.jscdoc;
+package net.jangaroo.joodoc;
 
 import net.jangaroo.jooc.NodeImplBase;
 import net.jangaroo.jooc.TypeRelation;
@@ -9,7 +9,6 @@ import net.jangaroo.jooc.MemberDeclaration;
 import com.sun.javadoc.ClassDoc;
 import com.sun.javadoc.PackageDoc;
 import com.sun.javadoc.Type;
-import com.sun.javadoc.Tag;
 import com.sun.javadoc.MemberDoc;
 import com.sun.javadoc.AnnotationDesc;
 

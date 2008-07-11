@@ -1,4 +1,4 @@
-package com.coremedia.tools.jscdoc;
+package net.jangaroo.joodoc;
 
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.jvm.ClassReader;
@@ -16,22 +16,22 @@ import java.io.File;
 // Referenced classes of package com.sun.tools.javadoc:
 //            DocEnv, PackageDocImpl
 
-class JscdocClassReader extends ClassReader {
+class JoodocClassReader extends ClassReader {
 
-   private static final com.sun.tools.javac.util.Context.Key jscdocClassReaderKey = new com.sun.tools.javac.util.Context.Key();
+   private static final com.sun.tools.javac.util.Context.Key joodocClassReaderKey = new com.sun.tools.javac.util.Context.Key();
    private DocEnv docenv;
 
-   private JscdocClassReader(com.sun.tools.javac.util.Context context) {
+   private JoodocClassReader(com.sun.tools.javac.util.Context context) {
        super(context, true);
-       context.put(jscdocClassReaderKey, this);
+       context.put(joodocClassReaderKey, this);
        docenv = DocEnv.instance(context);
    }
 
-   public static JscdocClassReader instance0(Context context) {
-       JscdocClassReader jscdocclassreader = (JscdocClassReader)context.get(jscdocClassReaderKey);
-       if(jscdocclassreader == null)
-           jscdocclassreader = new JscdocClassReader(context);
-       return jscdocclassreader;
+   public static JoodocClassReader instance0(Context context) {
+       JoodocClassReader joodocclassreader = (JoodocClassReader)context.get(joodocClassReaderKey);
+       if(joodocclassreader == null)
+           joodocclassreader = new JoodocClassReader(context);
+       return joodocclassreader;
    }
 
    protected void extraFileActions(com.sun.tools.javac.code.Symbol.PackageSymbol packagesymbol, String s, File file) {

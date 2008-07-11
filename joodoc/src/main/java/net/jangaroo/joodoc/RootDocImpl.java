@@ -3,7 +3,7 @@
 // Decompiler options: packfields(3) packimports(7) deadcode fieldsfirst splitstr(64) nonlb lnc radix(10) lradix(10) 
 // Source File Name:   RootDocImpl.java
 
-package com.coremedia.tools.jscdoc;
+package net.jangaroo.joodoc;
 
 import com.sun.javadoc.*;
 import com.sun.tools.javac.util.List;
