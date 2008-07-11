@@ -43,8 +43,8 @@
             <configuration>
               <tasks>
 
-                <property name="cup.input.filename" value="jsc.cup"/>
-                <property name="cup.files.reldir" value="com/coremedia/jscc"/>
+                <property name="cup.input.filename" value="joo.cup"/>
+                <property name="cup.files.reldir" value="net/jangaroo/jooc"/>
                 <property name="cup.output.dir" value="${generated.cup.sources.dir}/${cup.files.reldir}"/>
                 <property name="cup.parser.classname" value="parser"/>
                 <property name="cup.output.filename" value="${cup.output.dir}/${cup.parser.classname}.java"/>
@@ -110,11 +110,11 @@
           </excludes>
           <systemProperties>
             <property>
-              <name>com.coremedia.jscc.test.source</name>
+              <name>net.jangaroo.jooc.test.source</name>
               <value>${basedir}/target/test-classes</value>
             </property>
             <property>
-              <name>com.coremedia.jscc.test.destination</name>
+              <name>net.jangaroo.jooc.test.destination</name>
               <value>${basedir}/target/temp/js</value>
             </property>
           </systemProperties>

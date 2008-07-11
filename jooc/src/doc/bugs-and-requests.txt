@@ -1,4 +1,4 @@
-jscc Bugs and Feature Requests
+jooc Bugs and Feature Requests
 ==============================
 
 Fixed Bugs:
@@ -105,7 +105,7 @@ Dropped Feature Requests:
     public function foo(x /*:String*/) /*:void*/ ...
   The parser should be adapted to recognize /*: as
   a special comment and treat the contents as the type.
-  Thus, jscdoc would not have to be adjusted and could
+  Thus, joodoc would not have to be adjusted and could
   still show the intended types in the HTML documentation.
   The compiler does not use the types, anyway.
   Alternatively, we could write a preprocessor that

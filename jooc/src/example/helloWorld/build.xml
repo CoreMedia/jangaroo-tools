@@ -16,8 +16,8 @@
   <property name="output.htdocs" value="${output}/htdocs"/>
 
   <!-- Jangaroo compiler options -->
-  <property name="jscc.debug" value="false"/>
-  <property name="jscc.assert" value="${jscc.debug}"/>
+  <property name="jooc.debug" value="false"/>
+  <property name="jooc.assert" value="${jooc.debug}"/>
 
   <target name="init">
     <mkdir dir="${output.htdocs}"/>
@@ -25,7 +25,7 @@
   </target>
 
   <target name="compile-js2" depends="init">
-    <taskdef name="jscc" classname="com.coremedia.jscc.ant.JsccTask">
+    <taskdef name="jooc" classname="net.jangaroo.jooc.ant.JoocTask">
       <classpath>
         <fileset dir="${jangaroo.tools.lib}">
           <include name="jangaroo-compiler-*.jar"/>
@@ -33,14 +33,14 @@
       </classpath>
     </taskdef>
 
-    <jscc destdir="${output.htdocs}"
+    <jooc destdir="${output.htdocs}"
         failonerror="true"
-        debug="${jscc.debug}"
+        debug="${jooc.debug}"
         verbose="true"
-        enableassertions="${jscc.assert}">
+        enableassertions="${jooc.assert}">
        <include name="**/*.js2"/>
        <src path="${source.js2}"/>
-    </jscc>
+    </jooc>
   </target>
 
   <target name="copy-jangaroo-runtime" depends="init">

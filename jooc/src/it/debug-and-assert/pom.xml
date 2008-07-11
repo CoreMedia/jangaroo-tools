@@ -16,8 +16,8 @@
   </parent>
 
   <properties>
-    <jscc.debug>true</jscc.debug>
-    <jscc.assert>true</jscc.assert>
+    <jooc.debug>true</jooc.debug>
+    <jooc.assert>true</jooc.assert>
   </properties>
   
 </project>

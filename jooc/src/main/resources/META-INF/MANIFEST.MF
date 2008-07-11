@@ -1,4 +1,4 @@
 Manifest-version: 1.0
-Main-Class: com.coremedia.jscc.Jscc
+Main-Class: net.jangaroo.jooc.Jooc
 
-Name: com/coremedia/jscc/
+Name: net/jangaroo/jooc/

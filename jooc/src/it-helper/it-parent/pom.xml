@@ -101,18 +101,18 @@
             <configuration>
               <tasks>
                 <property name="test.classpath" refid="maven.test.classpath"/>
-                <taskdef name="jscc" classname="com.coremedia.jscc.ant.JsccTask" classpath="${test.classpath}"/>
+                <taskdef name="jooc" classname="net.jangaroo.jooc.ant.JoocTask" classpath="${test.classpath}"/>
 
                 <mkdir dir="target/temp/js"/>
-                <jscc destdir="target/temp/js"
+                <jooc destdir="target/temp/js"
                       failonerror="true"
-                      debug="${jscc.debug}"
+                      debug="${jooc.debug}"
                       verbose="true"
-                      enableassertions="${jscc.assert}">
+                      enableassertions="${jooc.assert}">
                   <include name="**/*.js2"/>
                   <exclude name="error/**/*.js2"/>
                   <src path="target/js2"/>
-                </jscc>
+                </jooc>
 
               </tasks>
             </configuration>
@@ -142,11 +142,11 @@
               </includes>
               <systemProperties>
                 <property>
-                  <name>com.coremedia.jscc.test.source</name>
+                  <name>net.jangaroo.jooc.test.source</name>
                   <value>${basedir}/target/js2</value>
                 </property>
                 <property>
-                  <name>com.coremedia.jscc.test.destination</name>
+                  <name>net.jangaroo.jooc.test.destination</name>
                   <value>${basedir}/target/temp/js</value>
                 </property>
               </systemProperties>
@@ -158,8 +158,8 @@
   </build>
 
   <properties>
-    <jscc.debug>true</jscc.debug>
-    <jscc.assert>true</jscc.assert>
+    <jooc.debug>true</jooc.debug>
+    <jooc.assert>true</jooc.assert>
   </properties>
 </project>
 

@@ -1,15 +1,14 @@
 package net.jangaroo.test.unit;
 
-import net.jangaroo.test.JsccTestCase;
+import net.jangaroo.test.JooTestCase;
+import net.jangaroo.jooc.Jooc;
 
 import java.io.File;
-
-import com.coremedia.jscc.Jscc;
 
 /**
  * Test that all .js2 files in the error directory produce compiler errors.
  */
-public class TestSyntaxErrors extends JsccTestCase {
+public class TestSyntaxErrors extends JooTestCase {
   private static final String ERROR_PACKAGE_PATH = "error";
 
   /**
@@ -23,7 +22,7 @@ public class TestSyntaxErrors extends JsccTestCase {
   }
 
   public void testSucceedingCompilation() {
-    assertEquals(Jscc.RESULT_CODE_OK, runJscc(new String[]{"package1/TestMethodCall.js2"}));
+    assertEquals(Jooc.RESULT_CODE_OK, runJooc(new String[]{"package1/TestMethodCall.js2"}));
   }
 
   public void testAllErrorClasses() {
@@ -41,8 +40,8 @@ public class TestSyntaxErrors extends JsccTestCase {
       if (file.isDirectory()) {
         result += checkAllErrorClasses(file, baseDirName + "/" + file.getName());
       } else if (file.getName().endsWith(".js2")) {
-        int resultCode = runJscc(baseDirName + "/" + file.getName());
-        assertEquals(Jscc.RESULT_CODE_COMPILATION_FAILED, resultCode);
+        int resultCode = runJooc(baseDirName + "/" + file.getName());
+        assertEquals(Jooc.RESULT_CODE_COMPILATION_FAILED, resultCode);
         result++;
       }
     }
