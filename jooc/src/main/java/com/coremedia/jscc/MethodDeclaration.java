@@ -96,8 +96,12 @@ public class MethodDeclaration extends MemberDeclaration {
   }
 
   public void generateCode(JsWriter out) throws IOException {
-    String methodName = ide.getName();
     boolean isAbstract = isAbstract();
+    boolean isConstructor = isConstructor();
+    String methodName = ide.getName();
+    if (isConstructor) {
+      methodName = "_" + methodName;
+    }
     boolean khtmlCompatMode = false; // TODO: use compiler flag for KHTML-compatibility mode!
     if (isAbstract) {
       out.beginComment();

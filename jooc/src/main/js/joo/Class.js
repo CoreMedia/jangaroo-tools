@@ -53,9 +53,9 @@ Function.prototype.getName = typeof Function.prototype.name=="string"
     }
   }
   function createEmptyConstructor($prototype) {
-    var $constructor = new Function();
-    $constructor.prototype =  $prototype;
-    return $constructor;
+    var emptyConstructor = new Function();
+    emptyConstructor.prototype =  $prototype;
+    return emptyConstructor;
   };
   function createDefaultConstructor(superName) {
     return (function $DefaultConstructor() {
@@ -123,13 +123,12 @@ Function.prototype.getName = typeof Function.prototype.name=="string"
         superClassDescription: undefined,
         $constructor: undefined,
         Public: undefined,
-        publicStatic: undefined,
-        getStatic: undefined,
+        publicConstructor: undefined,
         createInitializingPublicStaticMethod: function(methodName) {
           var classDescription = this;
-          this.$constructor[methodName] = function() {
+          this.publicConstructor[methodName] = function() {
             classDescription.initialize();
-            return classDescription.$constructor[methodName].apply(null, arguments);
+            return classDescription.publicConstructor[methodName].apply(null, arguments);
           };
         },
         /**
@@ -161,25 +160,37 @@ Function.prototype.getName = typeof Function.prototype.name=="string"
             classDescription.initialize();
             classDescription.$constructor.apply(this,arguments);
           };
-          setFunctionName(this.$constructor, this.fullClassName);
+          // TODO: only if public:
+          this.$package = createPackage(this.$package);
+          var className = this.$class;
+          this.$package[className] = this.publicConstructor = setFunctionName(function() {
+            switch (arguments.length) {
+              case 90:
+                this[className]();
+                break;
+              case 91:
+                this[className](arguments[0]);
+                break;
+              case 92:
+                this[className](arguments[0], arguments[1]);
+                break;
+              case 93:
+                this[className](arguments[0], arguments[1], arguments[2]);
+                break;
+              default:
+                classDescription.$constructor.apply(this,arguments);
+                break;
+            }
+          }, this.fullClassName);
           // to initialize when calling the first public static method, wrap those methods:
           for (var i=0; i<this.$publicStaticMethods.length; ++i) {
             this.createInitializingPublicStaticMethod(this.$publicStaticMethods[i]);
           }
           if (this.superClassDescription) {
-            this.$constructor.prototype = new (this.superClassDescription.Public)();
+            this.publicConstructor.prototype = new (this.superClassDescription.Public)();
           }
           // TODO: only if not final:
-          this.Public = createEmptyConstructor(this.$constructor.prototype);
-          // static part:
-          this.getStatic = function() {
-            classDescription.initialize();
-            return classDescription.getStatic();
-          }
-          // TODO: only if public:
-          this.$package = createPackage(this.$package);
-          this.$package[this.$class] = this.$constructor;
-
+          this.Public = createEmptyConstructor(this.publicConstructor.prototype);
           this.state = PREPARED;
           prepareSubclasses(this);
         },
@@ -188,11 +199,11 @@ Function.prototype.getName = typeof Function.prototype.name=="string"
          */
         initialize: function() {
           if (this.state!==PREPARED)
-            return this.$constructor;
+            return this.publicConstructor;
           this.state = INITIALIZING;
           // finish object structure setup of this class:
           // public part: avoid recursion!
-          this.$package[this.$class] = this.$constructor = undefined;
+          this.$constructor = undefined;
 
           // private part of the object structure:
           var classPrefix = this.level; // + "$";
@@ -207,7 +218,7 @@ Function.prototype.getName = typeof Function.prototype.name=="string"
             initFields(null, this, fieldsWithInitializer);
           };
           // static part:
-          var publicStatic = this.publicStatic = {};
+          var publicConstructor = this.publicConstructor;
           var privateStatic = {_super: superName};
 
           if (this.superClassDescription) {
@@ -229,13 +240,13 @@ Function.prototype.getName = typeof Function.prototype.name=="string"
             },
             $static: {
               fieldsWithInitializer: [],
-              $public: publicStatic,
-              $protected: publicStatic,
+              $public: publicConstructor,
+              $protected: publicConstructor,
               $private: privateStatic
             }
           };
           if (isFunction(this.$members)) {
-            var memberDeclarations = this.$members(publicStatic, privateStatic);
+            var memberDeclarations = this.$members(publicConstructor, privateStatic);
             var i=0;
             while (i<memberDeclarations.length) {
               var memberKey = "$this"; // default: not static
@@ -281,8 +292,9 @@ Function.prototype.getName = typeof Function.prototype.name=="string"
                   // found static code block; execute on initialization
                   targetMap.$static.fieldsWithInitializer.push(members);
                 } else {
-                  if (memberName==this.$class) {
+                  if (memberName=="_"+this.$class) {
                     this.$constructor = members;
+                    memberName = this.$class;
                   } else if (memberKey=="$this") {
                     if (visibility=="$private") {
                       memberName = registerPrivateMember(privateStatic, classPrefix, memberName);
@@ -315,11 +327,9 @@ Function.prototype.getName = typeof Function.prototype.name=="string"
           if (!this.$constructor) {
             this.$constructor = createDefaultConstructor(superName);
           }
-          setFunctionName(this.$constructor, this.fullClassName);
-          this.$constructor.prototype = this.Public.prototype;
-          this.Public.prototype.getClass = createGetClass(this.$constructor);
+          this.Public.prototype.getClass = createGetClass(publicConstructor);
           // TODO: constructor visibility!
-          this.$package[this.$class] = privateStatic[this.$class] = this.$constructor;
+          privateStatic[this.$class] = publicConstructor;
           // init static fields with initializer:
           for (var im in this.$imports) {
             var importDecl = this.$imports[im];
@@ -328,11 +338,8 @@ Function.prototype.getName = typeof Function.prototype.name=="string"
               privateStatic[im] = importedClassDesc.initialize();
             }
           }
-          initFields(privateStatic, publicStatic, targetMap.$static.fieldsWithInitializer);
-          for (var pm in publicStatic) {
-            this.$constructor[pm] = publicStatic[pm];
-          }
-          return this.$constructor;
+          initFields(privateStatic, publicConstructor, targetMap.$static.fieldsWithInitializer);
+          return publicConstructor;
         }
       };
     }

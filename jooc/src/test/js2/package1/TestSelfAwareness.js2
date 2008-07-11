@@ -7,8 +7,10 @@ package package1 {
       // Test that the class knows itself when accessing statics.
       package1.TestSelfAwareness.s = "a";
       if (TestSelfAwareness.s != "a") throw "failed to read unqualified";
+      if (s != "a") throw "failed to read in scope";
       TestSelfAwareness.s = "b";
       if (package1.TestSelfAwareness.s != "b") throw "failed to read qualified";
+      if (s != "b") throw "failed to read in scope";
 
       // Check that the constructor is accessible.
       var tsa : TestSelfAwareness = new TestSelfAwareness();
