@@ -231,8 +231,8 @@ Comment = {TraditionalComment} | {EndOfLineComment}
 TraditionalComment = "/*" ~"*/"
 EndOfLineComment = "//" {InputCharacter}* {LineTerminator}?
 
-IdentifierStart = [:letter:]|[_$]
-Identifier = {IdentifierStart}({IdentifierStart}|[:digit:])*
+IdentifierStart = [:letter:]|[$]
+Identifier = {IdentifierStart}({IdentifierStart}|[:digit:]|[_])*
 
 DecIntegerLiteral = 0 | [1-9][0-9]*
 
