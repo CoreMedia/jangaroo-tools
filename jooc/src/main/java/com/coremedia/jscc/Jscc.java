@@ -141,7 +141,7 @@ public class Jscc {
 
   protected void printHelp(Options options) {
     HelpFormatter formatter = new HelpFormatter();
-    formatter.printHelp("jscc", options);
+    formatter.printHelp("jooc [options] <file> ...", options);
   }
 
   protected void printVersion() {
