@@ -12,7 +12,6 @@
   <property name="source.js2" value="${example.dir}/src/main/js2"/>
   <property name="source.htdocs" value="${example.dir}/src/main/webapp"/>
   <property name="output" value="${example.dir}/output"/>
-  <property name="output.joodoc" value="${output}/doc/api"/>
   <property name="output.htdocs" value="${output}/htdocs"/>
 
   <!-- Jangaroo compiler options -->
@@ -21,7 +20,6 @@
 
   <target name="init">
     <mkdir dir="${output.htdocs}"/>
-    <mkdir dir="${output.joodoc}"/>
   </target>
 
   <target name="compile-js2" depends="init">
