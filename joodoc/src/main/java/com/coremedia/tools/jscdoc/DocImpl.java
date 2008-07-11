@@ -4,8 +4,8 @@ import com.sun.javadoc.Doc;
 import com.sun.javadoc.SeeTag;
 import com.sun.javadoc.SourcePosition;
 import com.sun.javadoc.Tag;
-import com.coremedia.jscc.NodeImplBase;
-import com.coremedia.jscc.IdeDeclaration;
+import net.jangaroo.jooc.NodeImplBase;
+import net.jangaroo.jooc.IdeDeclaration;
 
 import java.util.Map;
 import java.util.HashMap;

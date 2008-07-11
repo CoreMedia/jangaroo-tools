@@ -7,7 +7,7 @@ package com.coremedia.tools.jscdoc;
 
 import com.sun.javadoc.*;
 import com.sun.tools.javac.util.List;
-import com.coremedia.jscc.CompilationUnit;
+import net.jangaroo.jooc.CompilationUnit;
 
 import java.util.ArrayList;
 import java.util.Set;

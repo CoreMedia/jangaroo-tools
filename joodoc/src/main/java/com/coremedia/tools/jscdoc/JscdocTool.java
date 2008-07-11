@@ -6,9 +6,9 @@ import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javadoc.*;
 
-import com.coremedia.jscc.Jscc;
-import com.coremedia.jscc.CompilationUnit;
-import com.coremedia.jscc.AnalyzeContext;
+import net.jangaroo.jooc.Jooc;
+import net.jangaroo.jooc.CompilationUnit;
+import net.jangaroo.jooc.AnalyzeContext;
 
 
 import java.io.File;
@@ -21,7 +21,7 @@ import java.util.ArrayList;
  * Time: 15:49:16
  * To change this template use File | Settings | File Templates.
  */
-public class JscdocTool extends Jscc {
+public class JscdocTool extends Jooc {
   private com.sun.tools.javadoc.Messager messager;
   //private final JscdocClassReader reader;
 

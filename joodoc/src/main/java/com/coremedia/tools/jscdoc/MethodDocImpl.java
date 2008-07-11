@@ -9,8 +9,8 @@ import com.sun.javadoc.ThrowsTag;
 import com.sun.javadoc.Parameter;
 import com.sun.javadoc.Doc;
 import com.sun.javadoc.TypeVariable;
-import com.coremedia.jscc.Parameters;
-import com.coremedia.jscc.MethodDeclaration;
+import net.jangaroo.jooc.Parameters;
+import net.jangaroo.jooc.MethodDeclaration;
 
 import java.util.ArrayList;
 

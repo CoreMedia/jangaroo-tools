@@ -1,6 +1,6 @@
 package com.coremedia.tools.jscdoc;
 
-import com.coremedia.jscc.IdeType;
+import net.jangaroo.jooc.IdeType;
 import com.sun.javadoc.*;
 
 /**
@@ -14,7 +14,7 @@ public class TypeImpl implements Type {
 
   public static final Type ANY = new TypeImpl(null);
 
-  com.coremedia.jscc.IdeType type;
+  net.jangaroo.jooc.IdeType type;
   boolean primitive = true;
   ClassDoc classDoc;
 

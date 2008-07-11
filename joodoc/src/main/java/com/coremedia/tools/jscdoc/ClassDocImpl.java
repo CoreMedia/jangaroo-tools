@@ -5,8 +5,8 @@ import com.sun.tools.javadoc.ProgramElementDocImpl;
 import com.sun.tools.javadoc.DocEnv;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.tree.Tree;
-import com.coremedia.jscc.*;
-import com.coremedia.jscc.Type;
+import net.jangaroo.jooc.*;
+import net.jangaroo.jooc.Type;
 
 
 import java.util.ArrayList;

@@ -2,7 +2,7 @@ package com.coremedia.tools.jscdoc;
 
 import com.sun.javadoc.ClassDoc;
 import com.sun.javadoc.Doc;
-import com.coremedia.jscc.*;
+import net.jangaroo.jooc.*;
 
 import java.util.HashMap;
 

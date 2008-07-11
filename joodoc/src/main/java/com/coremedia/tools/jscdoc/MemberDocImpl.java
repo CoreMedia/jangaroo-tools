@@ -3,9 +3,9 @@
  */
 package com.coremedia.tools.jscdoc;
 
-import com.coremedia.jscc.NodeImplBase;
-import com.coremedia.jscc.TypeRelation;
-import com.coremedia.jscc.MemberDeclaration;
+import net.jangaroo.jooc.NodeImplBase;
+import net.jangaroo.jooc.TypeRelation;
+import net.jangaroo.jooc.MemberDeclaration;
 import com.sun.javadoc.ClassDoc;
 import com.sun.javadoc.PackageDoc;
 import com.sun.javadoc.Type;

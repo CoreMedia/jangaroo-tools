@@ -2,7 +2,7 @@ package com.coremedia.tools.jscdoc;
 
 import com.sun.javadoc.*;
 import com.sun.javadoc.Type;
-import com.coremedia.jscc.*;
+import net.jangaroo.jooc.*;
 
 /**
  * Created by IntelliJ IDEA.

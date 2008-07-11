@@ -1,7 +1,7 @@
 package com.coremedia.tools.jscdoc;
 
 import com.sun.javadoc.*;
-import com.coremedia.jscc.PackageDeclaration;
+import net.jangaroo.jooc.PackageDeclaration;
 
 import java.util.List;
 import java.util.ArrayList;

@@ -1,8 +1,8 @@
 package com.coremedia.tools.jscdoc;
 
-import com.coremedia.jscc.NodeImplBase;
-import com.coremedia.jscc.TypeRelation;
-import com.coremedia.jscc.sym;
+import net.jangaroo.jooc.NodeImplBase;
+import net.jangaroo.jooc.TypeRelation;
+import net.jangaroo.jooc.sym;
 import com.sun.javadoc.Type;
 import com.sun.javadoc.Parameter;
 import com.sun.javadoc.AnnotationDesc;
@@ -15,8 +15,8 @@ import com.sun.javadoc.AnnotationDesc;
  * To change this template use File | Settings | File Templates.
  */
 public class ParameterImpl implements Parameter{
-  com.coremedia.jscc.Parameter param;
-  public ParameterImpl(com.coremedia.jscc.Parameter param) {
+  net.jangaroo.jooc.Parameter param;
+  public ParameterImpl(net.jangaroo.jooc.Parameter param) {
     this.param=param;
   }
 
