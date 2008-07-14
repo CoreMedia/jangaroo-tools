@@ -1,3 +1,13 @@
 #! /bin/sh
+
 bindir=`dirname "$0"`
-$bindir/runtool net.jangaroo.jooc.Jooc "$@"
+JAVA_ARGS="$bindir/../lib/jangaroo-compiler-${joo.tools.version}.jar"
+
+if [ -n "$JAVA_HOME"  ] ; then
+  "$JAVA_HOME/bin/java" -jar $JAVA_ARGS $@
+else
+  echo "ERROR: JAVA_HOME environment variable is not set."
+  echo "Please set the JAVA_HOME variable in your environment to match the"
+  echo "location of your Java installation."
+  exit 1
+fi
