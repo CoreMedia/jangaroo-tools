@@ -34,9 +34,7 @@ public class Jooc {
   private File destinationDir;
   private boolean debugLines;
   private boolean debugSource;
-  private boolean debugVars;
-  private boolean debugMembers;
-  private boolean enableAssertions;
+  private boolean enableAssertions; // TODO reenable assertions
   private boolean verbose;
 
   private CompileLog log = new CompileLog();
@@ -171,23 +169,29 @@ public class Jooc {
       Option verboseOption = OptionBuilder.withLongOpt("verbose")
               .withDescription("be extra verbose")
               .create("v");
-      Option debugOption = OptionBuilder.withDescription( "generate debugging information" )
+      Option debugOption = OptionBuilder.withDescription( "generate debugging information " +
+        "(possible modes: source, lines, none)" )
               .hasOptionalArgs()
+              .withArgName("mode")
               .create("g");
       Option destinationDir = OptionBuilder.withArgName("dir")
               .hasArg()
               .withDescription("destination directory for generated JavaScript files")
               .create("d");
+      /*
       Option enableAssertionsOption = OptionBuilder.withLongOpt("enableassertions")
               .withDescription("enable assertions")
               .create("ea");
+      */
       Options options = new Options();
       options.addOption(help);
       options.addOption(version);
       options.addOption(verboseOption);
       options.addOption(debugOption);
       options.addOption(destinationDir);
+      /*
       options.addOption(enableAssertionsOption);
+      */
       CommandLineParser parser = new GnuParser();
       CommandLine line;
       try {
@@ -214,45 +218,46 @@ public class Jooc {
         if (!this.destinationDir.exists())
           error("destination directory does not exist: " + this.destinationDir.getAbsolutePath());
       }
+      enableAssertions = false; // TODO: use option
+      /*
       if (line.hasOption(enableAssertionsOption.getOpt()))
         enableAssertions = true;
+      */
       if (line.hasOption(debugOption.getOpt())) {
         String[] values = line.getOptionValues(debugOption.getOpt());
         if (values == null || values.length == 0) {
-          System.out.println("-g option present.");
-          debugLines = debugSource = debugMembers = debugVars = true;
+          if (verbose) {
+            System.out.println("-g option present.");
+          }
+          debugLines = debugSource = true;
         } else {
-          System.out.println("-g option value: " + Arrays.asList(values));
+          if (verbose) {
+            System.out.println("-g option value: " + Arrays.asList(values));
+          }
+          debugLines = debugSource = false;
           for (int i = 0; i < values.length; i++) {
-            String value = (String)values[i];
+            String value = values[i];
             if (value.equals("source"))
-              debugSource = true;
-            else if (value.equals("source"))
               debugSource = true;
             else if (value.equals("lines"))
               debugLines = true;
-            else if (value.equals("vars"))
-              debugVars = true;
-            else if (value.equals("members"))
-              debugMembers = true;
             else if (value.equals("none"))
-              debugLines = debugSource = debugMembers = debugVars = false;
+              debugLines = debugSource = false;
             else
               error("unknown -g argument: " + value);
           }
         }
       } else {
-        debugLines = debugSource = false;
-        debugMembers = debugVars = false;
-        debugLines = true;//TODO:option g:none etc
+        debugSource = false;
+        debugLines = true;
       }
       if (verbose) {
+        /*
         System.out.println("enableassertions=" +  enableAssertions);
+        */
         System.out.println("-g option values:");
         System.out.println("source=" + debugSource);
         System.out.println("lines=" + debugLines);
-        System.out.println("vars=" + debugVars);
-        System.out.println("members=" + debugMembers);
       }
       String[] fileNames = line.getArgs();
       if (fileNames.length == 0) {

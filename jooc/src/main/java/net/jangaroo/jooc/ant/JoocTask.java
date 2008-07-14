@@ -260,13 +260,17 @@ public class JoocTask extends MatchingTask {
 
   protected String[] getJoocArgs() {
     Vector args = new Vector(compileList.length + 10);
-    if (debug)
-      if (debugLevel != null)
-        args.add("-g:" + debugLevel);
-      else
-        args.add("-g");
-    if (verbose) args.add("-v");
-    if (enableAssertions) args.add("-ea");
+    if (debug) {
+      args.add("-g");
+      if (debugLevel != null) {
+        args.add(debugLevel);
+      }
+    }
+    if (verbose) {
+      args.add("-v");
+    }
+    // TODO: reenable assertions
+    //if (enableAssertions) args.add("-ea");
     if (destDir != null) {
       args.add("-d");
       args.add(destDir.getAbsolutePath());

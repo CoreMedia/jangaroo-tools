@@ -22,7 +22,6 @@ public abstract class JooTestCase extends TestCase {
   }
 
   protected boolean debug = false;
-  protected boolean enableAssertions = false;
   protected String sourceDir = null;
   protected String destinationDir = null;
 
@@ -75,7 +74,6 @@ public abstract class JooTestCase extends TestCase {
   protected int runJooc(String[] fileNames) {
     String[] args = prependSourceDir(fileNames);
     if (debug) args = concat("-g", args);
-    if (enableAssertions) args = concat("-ea", args);
     if (destinationDir != null) args = concat(new String[]{"-d", destinationDir}, args);
     Jooc compiler = new Jooc();
     System.out.println("jooc " + toString(args));

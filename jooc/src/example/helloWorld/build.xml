@@ -16,7 +16,6 @@
 
   <!-- Jangaroo compiler options -->
   <property name="jooc.debug" value="false"/>
-  <property name="jooc.assert" value="${jooc.debug}"/>
 
   <target name="init">
     <mkdir dir="${output.htdocs}"/>
@@ -34,8 +33,7 @@
     <jooc destdir="${output.htdocs}"
         failonerror="true"
         debug="${jooc.debug}"
-        verbose="true"
-        enableassertions="${jooc.assert}">
+        verbose="true">
        <include name="**/*.js2"/>
        <src path="${source.js2}"/>
     </jooc>
