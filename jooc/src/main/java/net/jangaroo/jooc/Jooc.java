@@ -234,7 +234,8 @@ public class Jooc {
           if (verbose) {
             System.out.println("-g option value: " + Arrays.asList(values));
           }
-          debugLines = debugSource = false;
+          debugLines = true; 
+          debugSource = false;
           for (int i = 0; i < values.length; i++) {
             String value = values[i];
             if (value.equals("source"))
@@ -248,8 +249,8 @@ public class Jooc {
           }
         }
       } else {
-        debugSource = false;
         debugLines = true;
+        debugSource = false;
       }
       if (verbose) {
         /*
