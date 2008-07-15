@@ -16,6 +16,13 @@ Function.prototype.getName = typeof Function.prototype.name=="string"
   });
 }());
 
+Function.prototype.bind = function(object) {
+  var fn = this;
+  return function() {
+    return fn.apply(object,arguments);
+  };
+};
+
 (function(theGlobalObject) {
   function initFields(privateBean, publicBean, fieldNamesAndInitializers) {
     for (var i=0; i<fieldNamesAndInitializers.length; ++i) {
@@ -348,12 +355,19 @@ Function.prototype.getName = typeof Function.prototype.name=="string"
         document.body.appendChild(script);
       }
     },
-    run: function(fullClassName, args) {
-      this.load(fullClassName);
+    run: function(mainClass) {
+      if (typeof mainClass=="string") {
+        this.load(mainClass);
+        mainClass = eval(mainClass);
+      }
+      var args = [];
+      for (var i=1; i<arguments.length; ++i) {
+        args.push(arguments[i]);
+      }
       var self = this;
       theGlobalObject.onload = function() {
         self.complete();
-        eval(fullClassName).main(args);
+        mainClass.main.apply(null,args);
       }
     },
     prepare: function(packageDef /* import*, classDef, publicStaticMethods, members */) {
@@ -423,7 +437,7 @@ Function.prototype.getName = typeof Function.prototype.name=="string"
         var pendingCDs = pendingCDsMap[missingClassName];
         for (var i = 0; i < pendingCDs.length; ++i) {
           if (i > 0) sb.push(", ");
-          sb.push(pendingCDs[i]);
+          sb.push(pendingCDs[i].fullClassName);
         }
         sb.push(".");
       }
