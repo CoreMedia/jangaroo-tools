@@ -147,12 +147,6 @@
       <version>${joo.tools.version}</version>
     </dependency>
 
-    <dependency>
-      <groupId>net.jangaroo</groupId>
-      <artifactId>jangaroo-doc</artifactId>
-      <version>${joo.tools.version}</version>
-    </dependency>
-
   </dependencies>
 
   <properties>
