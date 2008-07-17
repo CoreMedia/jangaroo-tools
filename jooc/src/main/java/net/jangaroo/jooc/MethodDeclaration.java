@@ -113,7 +113,7 @@ public class MethodDeclaration extends MemberDeclaration {
     if (isConstructor) {
       methodName = "_" + methodName;
     }
-    boolean khtmlCompatMode = !out.getKeepSource(); // TODO: use separate compiler flag for KHTML-compatibility mode!
+    boolean khtmlCompatMode = false; // !out.getKeepSource(); // TODO: always use khtmlCompatMode, but only after it works in IE, too!
     if (isAbstract) {
       out.beginComment();
       writeModifiers(out);
