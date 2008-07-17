@@ -2,15 +2,14 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>net.jangaroo</groupId>
-  <artifactId>jangaroo-all</artifactId>
+  <artifactId>jangaroo-tools</artifactId>
   <packaging>pom</packaging>
   <version>0.1-SNAPSHOT</version>
-  <name>Jangaroo</name>
+  <name>Jangaroo Tools</name>
   
   <modules>
     <module>parent</module>
     <module>jooc</module>
-    <module>joodoc</module>
     <module>release</module>
   </modules>
 
