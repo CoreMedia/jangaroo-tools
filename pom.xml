@@ -13,4 +13,21 @@
     <module>release</module>
   </modules>
 
+  <scm>
+    <developerConnection>scm:perforce://coremedia/jangaroo</developerConnection>
+  </scm>
+
+  <distributionManagement>
+    <downloadUrl>http://repo.jangaroo.net/maven2</downloadUrl>
+    <repository>
+      <id>jangaroo</id>
+      <name>Jangaroo repository</name>
+      <url>scp://repo.jangaroo.net/maven2</url>
+    </repository>
+    <snapshotRepository>
+      <id>jangaroo-snapshots</id>
+      <url>scp://repo.jangaroo.net/maven2-snapshots</url>
+    </snapshotRepository>
+  </distributionManagement>
+
 </project>
