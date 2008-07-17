@@ -163,10 +163,6 @@
     
   </dependencyManagement>
 
-  <scm>
-    <developerConnection>scm:perforce://coremedia/jangaroo</developerConnection>
-  </scm>
-
   <distributionManagement>
     <downloadUrl>http://repo.jangaroo.net/maven2</downloadUrl>
     <repository>
