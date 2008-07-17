@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<project name="joo-example-helloworld" default="compress-sources">
+<project name="jangaroo-create-sources-zip" default="compress-sources">
 
   <description>
     Creates the tools sources zip archive from the Jangaroo source tree.
@@ -22,7 +22,7 @@
 
     <zip destfile="${output.dir}/${tools.src.archive.name}">
       <zipfileset dir="${basedir}" prefix="jangaroo-${version}">
-        <include name="parent/pom.xml"/>
+        <include name="pom.xml"/>
 
         <include name="jooc/pom.xml"/>
         <include name="jooc/src/**"/>
