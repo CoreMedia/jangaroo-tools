@@ -49,11 +49,11 @@
     <repository>
       <id>jangaroo</id>
       <name>Jangaroo repository</name>
-      <url>scp://repo.jangaroo.net/home/jangaroo/maven2</url>
+      <url>scp://repo.jangaroo.net/home/jangaroo/maven2/repo</url>
     </repository>
     <snapshotRepository>
       <id>jangaroo-snapshots</id>
-      <url>scp://repo.jangaroo.net/home/jangaroo/maven2-snapshots</url>
+      <url>scp://repo.jangaroo.net/home/jangaroo/maven2/snapshots</url>
     </snapshotRepository>
   </distributionManagement>
 
