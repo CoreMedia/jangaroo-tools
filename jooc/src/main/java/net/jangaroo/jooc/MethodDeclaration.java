@@ -113,7 +113,7 @@ public class MethodDeclaration extends MemberDeclaration {
     if (isConstructor) {
       methodName = "_" + methodName;
     }
-    boolean khtmlCompatMode = false; // TODO: use compiler flag for KHTML-compatibility mode!
+    boolean khtmlCompatMode = !out.getKeepSource(); // TODO: use separate compiler flag for KHTML-compatibility mode!
     if (isAbstract) {
       out.beginComment();
       writeModifiers(out);

@@ -73,7 +73,7 @@ Function.prototype.bind = function(object) {
     }
   }
   function createEmptyConstructor($prototype) {
-    var emptyConstructor = new Function();
+    var emptyConstructor = function(){};
     emptyConstructor.prototype =  $prototype;
     return emptyConstructor;
   };
