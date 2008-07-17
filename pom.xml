@@ -114,6 +114,11 @@
         </executions>
       </plugin>
 
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>shitty-maven-plugin</artifactId>
+      </plugin>
+
      </plugins>
 
   </build>
