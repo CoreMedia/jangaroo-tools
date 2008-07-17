@@ -14,19 +14,20 @@
  governing permissions and limitations under the License.
 -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>net.jangaroo</groupId>
   <artifactId>jangaroo-release</artifactId>
   <packaging>pom</packaging>
-  <version>0.2-SNAPSHOT</version>
+  <version>0.1-SNAPSHOT</version>
   <name>Jangaroo release</name>
 
   <parent>
     <groupId>net.jangaroo</groupId>
     <artifactId>jangaroo-tools</artifactId>
     <relativePath>../pom.xml</relativePath>
-    <version>0.2-SNAPSHOT</version>
+    <version>0.1-SNAPSHOT</version>
   </parent>
 
   <build>
@@ -84,9 +85,9 @@
             <phase>pre-integration-test</phase>
             <configuration>
               <tasks>
-                <delete dir="${extract.release.dir}" failonerror="false" />
-                <mkdir dir="${extract.release.dir}" />
-                <unzip src="${basedir}/target/${release.tools.bin.filename}" dest="${extract.release.dir}" />
+                <delete dir="${extract.release.dir}" failonerror="false"/>
+                <mkdir dir="${extract.release.dir}"/>
+                <unzip src="${basedir}/target/${release.tools.bin.filename}" dest="${extract.release.dir}"/>
               </tasks>
             </configuration>
             <goals>
@@ -99,7 +100,7 @@
             <phase>integration-test</phase>
             <configuration>
               <tasks>
-                <ant dir="${extract.release.dir}/${release.tools.bin.name}/examples/helloWorld" />
+                <ant dir="${extract.release.dir}/${release.tools.bin.name}/examples/helloWorld"/>
               </tasks>
             </configuration>
             <goals>
@@ -119,7 +120,7 @@
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-compiler</artifactId>
-      <version>0.2-SNAPSHOT</version>
+      <version>0.1-SNAPSHOT</version>
     </dependency>
 
     <dependency>
@@ -127,7 +128,7 @@
       <artifactId>jangaroo-compiler</artifactId>
       <classifier>doc</classifier>
       <type>zip</type>
-      <version>0.2-SNAPSHOT</version>
+      <version>0.1-SNAPSHOT</version>
     </dependency>
 
     <dependency>
@@ -135,7 +136,7 @@
       <artifactId>jangaroo-compiler</artifactId>
       <classifier>runtime</classifier>
       <type>zip</type>
-      <version>0.2-SNAPSHOT</version>
+      <version>0.1-SNAPSHOT</version>
     </dependency>
 
     <dependency>
@@ -143,7 +144,7 @@
       <artifactId>jangaroo-compiler</artifactId>
       <classifier>examples</classifier>
       <type>zip</type>
-      <version>0.2-SNAPSHOT</version>
+      <version>0.1-SNAPSHOT</version>
     </dependency>
 
   </dependencies>
