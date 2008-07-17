@@ -70,24 +70,6 @@
         </plugin>
 
         <plugin>
-          <groupId>org.codehaus.mojo</groupId>
-          <artifactId>shitty-maven-plugin</artifactId>
-          <version>1.0-alpha-3-rev7058-coremedia</version>
-          <executions>
-            <execution>
-              <goals>
-                <goal>clean</goal>
-                <goal>install</goal>
-                <goal>test</goal>
-              </goals>
-              <configuration>
-                <ignoreFailures>false</ignoreFailures>
-              </configuration>
-            </execution>
-          </executions>
-        </plugin>
-
-        <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-assembly-plugin</artifactId>
           <version>2.2-beta-2</version>
@@ -114,11 +96,6 @@
         </executions>
       </plugin>
 
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>shitty-maven-plugin</artifactId>
-      </plugin>
-
      </plugins>
 
   </build>
@@ -136,12 +113,21 @@
         </activation>
 
         <build>
-            <plugins>
-                <plugin>
-                    <groupId>org.codehaus.mojo</groupId>
-                    <artifactId>shitty-maven-plugin</artifactId>
-                </plugin>
-            </plugins>
+          <plugins>
+            <plugin>
+              <groupId>org.codehaus.mojo</groupId>
+              <artifactId>shitty-maven-plugin</artifactId>
+              <executions>
+                <execution>
+                  <goals>
+                    <goal>clean</goal>
+                    <goal>install</goal>
+                    <goal>test</goal>
+                  </goals>
+                </execution>
+              </executions>
+            </plugin>
+          </plugins>
         </build>
     </profile>
 
