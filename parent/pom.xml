@@ -52,10 +52,6 @@
     </repository>
   </repositories>
 
-  <properties>
-    <joo.tools.version>${project.version}</joo.tools.version>
-  </properties>
-
   <build>
 
     <pluginManagement>

@@ -120,7 +120,7 @@
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-compiler</artifactId>
-      <version>${joo.tools.version}</version>
+      <version>0.1-SNAPSHOT</version>
     </dependency>
 
     <dependency>
@@ -128,7 +128,7 @@
       <artifactId>jangaroo-compiler</artifactId>
       <classifier>doc</classifier>
       <type>zip</type>
-      <version>${joo.tools.version}</version>
+      <version>0.1-SNAPSHOT</version>
     </dependency>
 
     <dependency>
@@ -136,7 +136,7 @@
       <artifactId>jangaroo-compiler</artifactId>
       <classifier>runtime</classifier>
       <type>zip</type>
-      <version>${joo.tools.version}</version>
+      <version>0.1-SNAPSHOT</version>
     </dependency>
 
     <dependency>
@@ -144,7 +144,7 @@
       <artifactId>jangaroo-compiler</artifactId>
       <classifier>examples</classifier>
       <type>zip</type>
-      <version>${joo.tools.version}</version>
+      <version>0.1-SNAPSHOT</version>
     </dependency>
 
   </dependencies>
