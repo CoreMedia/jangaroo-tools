@@ -32,7 +32,6 @@
       <scope>runtime</scope>
       <excludes>
         <exclude>net.jangaroo:jangaroo-compiler:zip:*</exclude>
-        <exclude>net.jangaroo:jangaroo-doc</exclude>
       </excludes>
     </dependencySet>
 

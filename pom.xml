@@ -123,6 +123,30 @@
 
   </build>
 
+  <profiles>
+
+    <profile>
+        <id>super-helpful-integration-tests</id>
+
+        <activation>
+            <property>
+                <name>itest</name>
+                <value>true</value>
+            </property>
+        </activation>
+
+        <build>
+            <plugins>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>shitty-maven-plugin</artifactId>
+                </plugin>
+            </plugins>
+        </build>
+    </profile>
+
+  </profiles>
+
   <dependencyManagement>
     <dependencies>
 
