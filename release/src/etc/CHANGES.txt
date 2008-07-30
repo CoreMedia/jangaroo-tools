@@ -1,6 +1,31 @@
 Changes since previous releases
 ===============================
 
+Version 0.1.1
+-------------
+
+- Adapted runtime syntax so that older KHTML (Konqueror 3.x) and WebKit
+  (Safari/iPhone) engines understand it. Unfortunately, they refuse to
+  return the declaration name of a function, neither with Function#name
+  nor as part of the result of Function#toString().
+  There is a slight decline in similarity between JS2 and compiled code,
+  but compatibility seemed more important.
+  For example, the compilation output of a JS2 method
+    public   function foo(x) { }
+  was
+   "public", function foo(x) { }
+  and now looks like this:
+   "public foo", function(x) { }
+
+- In the runtime (Class.js), optimized the super constructor call for
+  classes that do not have a super class (only fields are initialized)
+  and for classes that do not have field initializers (the super
+  constructor, if any, is called directly).
+  Since this is a common case (fly-weight pattern: simple classes with
+  many instances), there is a measurable speed-up and almost no penalty
+  left compared to "manual" JavaScript class construction.
+
+
 Version 0.1
 -----------
 
