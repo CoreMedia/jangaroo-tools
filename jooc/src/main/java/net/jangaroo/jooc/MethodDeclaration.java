@@ -113,23 +113,23 @@ public class MethodDeclaration extends MemberDeclaration {
     if (isConstructor) {
       methodName = "_" + methodName;
     }
-    boolean khtmlCompatMode = false; // !out.getKeepSource(); // TODO: always use khtmlCompatMode, but only after it works in IE, too!
     if (isAbstract) {
       out.beginComment();
       writeModifiers(out);
       out.writeSymbol(symFunction);
       ide.generateCode(out);
     } else {
-      writeRuntimeModifiers(out);
-      if (khtmlCompatMode) {
-        out.write("{");
-        out.write(methodName);
-        out.writeSymbolWhitespace(ide.ide);
-        out.write(":(");
-      }
-      out.writeSymbol(symFunction);
-      out.write(" ");
+      if (!writeRuntimeModifiersUnclosed(out))
+        out.write("\"");
+      else
+        out.write(" ");
       out.write(methodName);
+      out.write("\",");
+      out.writeSymbol(symFunction);
+      if (out.getKeepSource()) {
+        out.write(" ");
+        out.write(methodName);
+      }
       out.writeSymbolWhitespace(ide.ide);
     }
     out.writeSymbol(lParen);
@@ -144,9 +144,6 @@ public class MethodDeclaration extends MemberDeclaration {
     if (isAbstract()) {
       out.endComment();
     } else {
-      if (khtmlCompatMode) {
-        out.write(")}");
-      }
       out.write(',');
     }
   }

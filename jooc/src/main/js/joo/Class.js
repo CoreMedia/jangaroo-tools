@@ -67,11 +67,6 @@ Function.prototype.bind = function(object) {
   function isFunction(object) {
     return typeof object=="function" && object.constructor!==RegExp;
   }
-  function createMethod(object) {
-    for (var name in object) {
-      return setFunctionName(object[name], name);
-    }
-  }
   function createEmptyConstructor($prototype) {
     var emptyConstructor = function(){};
     emptyConstructor.prototype =  $prototype;
@@ -263,6 +258,7 @@ Function.prototype.bind = function(object) {
                 continue;
               }
               var memberType = "function";
+              var memberName = undefined;
               var modifiers;
               if (typeof members=="string") {
                 modifiers = members.split(" ");
@@ -276,6 +272,9 @@ Function.prototype.bind = function(object) {
                     memberType = modifier;
                   } else if (modifier=="override") {
                     // so far: ignore. TODO: enable super-call!
+                  } else if (j==modifiers.length-1) {
+                    // last "modifier" may be the member name:
+                    memberName = modifier;
                   } else {
                     throw new Error("Unknown modifier '"+modifier+"'.");
                   }
@@ -289,13 +288,8 @@ Function.prototype.bind = function(object) {
               }
               var target = targetMap[memberKey][visibility];
               //document.writeln("defining "+modifiers.join(" ")+" member(s):");
-	      var memberName;
 	      if (memberType=="function") {
-                if (typeof members=="object") {
-                  members = createMethod(members);
-                }
-                memberName = members.getName();
-                if (memberName=="") {
+                if (!memberName) {
                   // found static code block; execute on initialization
                   targetMap.$static.fieldsWithInitializer.push(members);
                 } else {
@@ -311,6 +305,7 @@ Function.prototype.bind = function(object) {
                       this.Public.prototype[registerPrivateMember(privateStatic, classPrefix, memberName)] = target[memberName];
                     }
                   }
+                  setFunctionName(members, memberName);
                   target[memberName] = members;
                 }
               } else {
@@ -322,10 +317,7 @@ Function.prototype.bind = function(object) {
                   }
                   target[memberName] = member;
                   if (isFunction(member)) {
-                    var initFunctionName =  member.getName();
-                    if (initFunctionName=="" || initFunctionName.indexOf('$')!=-1) {
-                      targetFieldsWithInitializer.push(memberName);
-                    }
+                    targetFieldsWithInitializer.push(memberName);
                   }
                 }
               }
