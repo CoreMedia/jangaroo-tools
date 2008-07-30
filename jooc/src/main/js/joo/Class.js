@@ -89,6 +89,7 @@ Function.prototype.bind = function(object) {
   function createGetClass($constructor) {
     return (function Object$getClass() { return $constructor; });
   }
+  function emptySuper() {}
   var ClassDescription = (function() {
     var ClassDescription$static = {
       // static members:
@@ -212,13 +213,6 @@ Function.prototype.bind = function(object) {
           var fieldsWithInitializer = [];
           var classDescription = this;
           var superName = classPrefix+"super";
-          this.Public.prototype[superName] = function $super() {
-            this[superName] = function() {throw new Error("may only call super() once in "+classDescription.fullClassName)};
-            if (classDescription.superClassDescription) {
-              classDescription.superClassDescription.$constructor.apply(this,arguments);
-            }
-            initFields(null, this, fieldsWithInitializer);
-          };
           // static part:
           var publicConstructor = this.publicConstructor;
           var privateStatic = {_super: superName};
@@ -323,6 +317,19 @@ Function.prototype.bind = function(object) {
               }
             }
           }
+          this.Public.prototype[superName] =
+            classDescription.superClassDescription
+            ? fieldsWithInitializer.length > 0
+              ? (function $super() {
+                   classDescription.superClassDescription.$constructor.apply(this,arguments);
+                   initFields(null, this, fieldsWithInitializer);
+                 })
+              : classDescription.superClassDescription.$constructor
+            : fieldsWithInitializer.length > 0
+              ? (function $super() {
+                   initFields(null, this, fieldsWithInitializer);
+                 })
+              : emptySuper;
           if (!this.$constructor) {
             this.$constructor = createDefaultConstructor(superName);
           }
