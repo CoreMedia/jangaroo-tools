@@ -37,15 +37,6 @@
 
     <dependencySet>
       <useProjectArtifact>false</useProjectArtifact>
-      <outputDirectory></outputDirectory>
-      <unpack>true</unpack>
-      <includes>
-        <include>net.jangaroo:jangaroo-compiler:zip:doc</include>
-      </includes>
-    </dependencySet>
-
-    <dependencySet>
-      <useProjectArtifact>false</useProjectArtifact>
       <outputDirectory>runtime</outputDirectory>
       <unpack>true</unpack>
       <includes>

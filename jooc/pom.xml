@@ -157,7 +157,6 @@
               <attach>true</attach>
               <descriptors>
                 <descriptor>src/main/assembly/runtime.xml</descriptor>
-                <descriptor>src/main/assembly/doc.xml</descriptor>
                 <descriptor>src/main/assembly/examples.xml</descriptor>
               </descriptors>
             </configuration>

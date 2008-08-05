@@ -25,6 +25,11 @@
       <name>JFlex repository</name>
       <url>http://jflex.sourceforge.net/repo</url>
     </pluginRepository>
+    <pluginRepository>
+      <id>jangaroo</id>
+      <name>Jangaroo repository</name>
+      <url>http://repo.jangaroo.net/maven2</url>
+    </pluginRepository>
   </pluginRepositories>
 
   <repositories>
