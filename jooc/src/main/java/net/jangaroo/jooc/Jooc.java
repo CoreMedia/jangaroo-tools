@@ -58,6 +58,10 @@ public class Jooc {
 
   private ArrayList compilationUnits = new ArrayList();
 
+  public int run(JoocConfiguration compilerConfiguration) {
+    return run(compilerConfiguration.getCommandLine());
+  }
+
 
   static class CompilerError extends RuntimeException {
     JooSymbol symbol = null;
