@@ -21,7 +21,6 @@ import java.util.*;
 /**
  * Mojo to compile Jangaroo sources from .js2 to .js, based on the maven-compiler-plugin.
  *
- * @execute phase="compile"
  * @goal compile
  * @phase compile
  */
@@ -36,7 +35,7 @@ public class JoocMojo extends AbstractMojo {
   private boolean failOnError = true;
 
   /**
-   * @parameter expression="${maven.compile.debug} default-value="true"
+   * @parameter expression="${maven.compile.debug}" default-value="true"
    */
   private boolean debug;
 

@@ -35,6 +35,7 @@ under the License.
           <execution>
             <goals>
               <goal>compile</goal>
+              <goal>copy-runtime</goal>
             </goals>
           </execution>
         </executions>

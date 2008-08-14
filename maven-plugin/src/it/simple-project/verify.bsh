@@ -46,6 +46,21 @@ try
         System.err.println( "js directory is missing or not a directory." );
         return false;
     }
+
+    File helloWorldJs = new File ( jsDir, "net"+File.separator+"jangaroo"+File.separator+"example"+File.separator+"HelloWorld.js" );
+    if ( !helloWorldJs.exists() || !helloWorldJs.isFile() )
+    {
+        System.err.println( "HelloWorld.js output file is missing or not a file." );
+        return false;
+    }
+
+    File classRuntimeJs = new File ( jsDir, "joo"+File.separator+"Class.js" );
+    if ( !classRuntimeJs.exists() || !classRuntimeJs.isFile() )
+    {
+        System.err.println( "joo/Class.js runtime file is missing or not a file." );
+        return false;
+    }
+
 }
 catch( IOException e )
 {
