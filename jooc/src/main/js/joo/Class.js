@@ -90,6 +90,10 @@ Function.prototype.bind = function(object) {
     return (function Object$getClass() { return $constructor; });
   }
   function emptySuper() {}
+  function getClassName(fullClassName) {
+    var lastDotPos = fullClassName.lastIndexOf(".");
+    return lastDotPos >=0 ? fullClassName.substring(lastDotPos+1) : fullClassName;
+  }
   var ClassDescription = (function() {
     var ClassDescription$static = {
       // static members:
@@ -99,9 +103,107 @@ Function.prototype.bind = function(object) {
       INITIALIZING: 3,
       INITIALIZED: 4,
       classDescriptions: {},
+      missingClassDescriptions: {},
       pendingClassDescriptions: {},
+      loadingClasses: {},
+      loadingClassesCount: 0,
+      loadCheckTimer: undefined,
+      registerClassDescription: function(classDescription) {
+        if (classDescription.fullClassName in this.loadingClasses) {
+          delete this.loadingClasses[classDescription.fullClassName];
+          --this.loadingClassesCount;
+        }
+        this.classDescriptions[classDescription.fullClassName] = classDescription;
+        for (var im in classDescription.$imports) {
+          var importDecl = classDescription.$imports[im];
+          // trigger loading imported classes:
+          this.getClassDescription(importDecl);
+        }
+        delete this.missingClassDescriptions[this.fullClassName];
+      },
       getClassDescription: function(fullClassName) {
-          return this.classDescriptions[fullClassName];
+        if (!fullClassName || fullClassName=="undefined") {
+          fullClassName.debug();
+        }
+        var cd = this.classDescriptions[fullClassName];
+        if (!cd) {
+          this.missingClassDescriptions[fullClassName] = true;
+        }
+        return cd;
+      },
+      load: function(fullClassName) {
+        if (joo.Class.debug && console) {
+          console.debug("trying to load class "+fullClassName+"...");
+        }
+        if (!this.getClassDescription(fullClassName)) {
+          if (this.loadingClasses[fullClassName]) {
+            // class description is not there, but we already queued to load it:
+            return false;
+          }
+          this.loadingClasses[fullClassName] = true;
+          ++this.loadingClassesCount;
+          var uri = theGlobalObject.document.location.href;
+          uri = uri.substring(0, uri.lastIndexOf("/")+1);
+          uri += fullClassName.replace(/\./g,"/")+".js";
+          joo.Class.loadScript(uri);
+          if (joo.Class.debug && console) {
+            console.debug("scheduling load "+fullClassName);
+          }
+        }
+        // class description is or will be loaded:
+        return true;
+      },
+      doComplete: function() {
+        var type = typeof this.oncomplete;
+        if (type!="undefined") {
+          if (joo.Class.debug && console) {
+            console.debug("doComplete active. Still loading:");
+            for (var loading in this.loadingClasses) {
+              console.debug("  "+loading);
+            }
+            console.debug("End 'Still loading'.");
+          }
+          var missingCDsMap = this.missingClassDescriptions;
+          for (var missingClassName in missingCDsMap) {
+            this.load(missingClassName);
+          }
+          if (this.loadCheckTimer) {
+            window.clearTimeout(this.loadCheckTimer);
+            this.loadCheckTimer = undefined;
+          }
+          if (this.loadingClassesCount==0) {
+            if (type=="function") {
+              this.oncomplete(this.addImports(importedClasses, importedClasses));
+            }
+          } else if (this.classLoadTimeoutMS) {
+            this.loadCheckTimer = theGlobalObject.setTimeout((function() {
+              if (this.loadingClassesCount!=0) {
+                var sb = [];
+                for (var loading in this.loadingClasses) {
+                  sb.push(loading);
+                }
+                throw new Error("The following classes were not loaded after "+joo.Class.classLoadTimeoutMS+" milliseconds: "+sb.join(", "));
+              }
+            }).bind(this), joo.Class.classLoadTimeoutMS);
+          }
+        }
+      },
+      dumpClasses: function() {
+        var sb = [];
+        for (var cd in this.classDescriptions) {
+          sb.push(this.classDescriptions[cd].fullClassName,"\n");
+        }
+        return sb.join("");
+      },
+      addImports: function(importObject, imports) {
+        for (var importName in imports) {
+          var importedClassDesc = this.getClassDescription(imports[importName]);
+          if (!importedClassDesc) {
+            throw new Error("Class should have been loaded: "+imports[importName]);
+          }
+          importObject[importName] = importedClassDesc.initialize();
+        }
+        return importObject;
       },
       waitForSuper: function(classDef) {
         var pendingCDs = this.pendingClassDescriptions[classDef.$extends];
@@ -125,18 +227,25 @@ Function.prototype.bind = function(object) {
       for (var m in classDef) {
         this[m] = classDef[m];
       }
-      this.fullClassName = this.$package + "." + this.$class;
-      ClassDescription$static.classDescriptions[this.fullClassName] = this;
+      if (this.$imports[this.$extends]) {
+        this.$extends = this.$imports[this.$extends];
+      }
+      this.fullClassName = this.$package ? (this.$package + "." + this.$class) : this.$class;
+      if (joo.Class.debug && console) {
+        console.debug("loaded class "+this.fullClassName);
+      }
+      ClassDescription$static.registerClassDescription(this);
       this.prepare();
+      ClassDescription.$static.doComplete();
     }
     with(ClassDescription$static) {
       // instance members:
       ClassDescription.prototype = {
         fullClassName: undefined,
-        $extends: "Object",
-        level: undefined,
+        $extends: undefined,
+        level: 0,
         state: PENDING,
-        superClassDescription: undefined,
+        superClassDescription: null,
         $constructor: undefined,
         Public: undefined,
         publicConstructor: undefined,
@@ -149,34 +258,31 @@ Function.prototype.bind = function(object) {
         },
         /**
          * Prepares this class to be used by constructor, by accessing a static member, or as a super class.
-         * The actual class loading is done when any of this three methods is called.
+         * The actual class loading is done when any of these three methods is called.
          */
         prepare: function() {
           if (this.state===PREPARING)
             throw new Error("cyclic usages between classes "+this.fullClassName+" and "+this.superClassDescription.fullClassName+".");
           if (this.state!==PENDING)
             return;
-          if (this.$extends=="Object") {
-            this.superClassDescription = null;
-          } else {
+          if (this.$extends!="Object") {
             this.superClassDescription = getClassDescription(this.$extends);
             if (!this.superClassDescription || this.superClassDescription.state==PENDING) {
               // super class not yet loaded, stay pending and wait for super class:
               waitForSuper(this);
               return;
             }
+            this.level = this.superClassDescription.level + 1;
           }
           this.state = PREPARING;
           // Only do the minimal setup to allow a preliminary, initializing public constructor and static getter,
           // and to allow subclasses to plug their constructor into this class.
           // create preliminary constructor and static getter that initialize before delegating to the real ones:
-          this.level = this.superClassDescription ? this.superClassDescription.level + 1 : 0;
           var classDescription = this;
           this.$constructor = function() {
             classDescription.initialize();
             classDescription.$constructor.apply(this,arguments);
           };
-          // TODO: only if public:
           this.$package = createPackage(this.$package);
           var className = this.$class;
           this.$package[className] = this.publicConstructor = setFunctionName(function() {
@@ -206,10 +312,8 @@ Function.prototype.bind = function(object) {
           this.$constructor = undefined;
 
           // private part of the object structure:
-          if (false && this.$extends!="Object" && this.superClassDescription == null) {
-            throw new Error("Super class "+this.$extends+" of class "+this.fullClassName+" is not prepared.");
-          }
-          var classPrefix = this.level; // + "$";
+          // assert this.$extends=="Object" || this.superClassDescription!=null;
+          var classPrefix = this.level;
           var fieldsWithInitializer = [];
           var classDescription = this;
           var superName = classPrefix+"super";
@@ -241,78 +345,76 @@ Function.prototype.bind = function(object) {
               $private: privateStatic
             }
           };
-          if (isFunction(this.$members)) {
-            var memberDeclarations = this.$members(publicConstructor, privateStatic);
-            var i=0;
-            while (i<memberDeclarations.length) {
-              var memberKey = "$this"; // default: not static
-              var visibility = "$public"; // default: public visibility
-              var members = memberDeclarations[i++];
-              if (members===undefined) {
-                continue;
-              }
-              var memberType = "function";
-              var memberName = undefined;
-              var modifiers;
-              if (typeof members=="string") {
-                modifiers = members.split(" ");
-                for (var j=0; j<modifiers.length; ++j) {
-                  var modifier = modifiers[j];
-                  if (modifier=="static") {
-                    memberKey = "$static";
-                  } else if (modifier=="private" || modifier=="public" || modifier=="protected") {
-                    visibility = "$"+modifier;
-                  } else if (modifier=="var" || modifier=="const") {
-                    memberType = modifier;
-                  } else if (modifier=="override") {
-                    // so far: ignore. TODO: enable super-call!
-                  } else if (j==modifiers.length-1) {
-                    // last "modifier" may be the member name:
-                    memberName = modifier;
-                  } else {
-                    throw new Error("Unknown modifier '"+modifier+"'.");
-                  }
-                }
-                if (i>=memberDeclarations.length) {
-                  throw new Error("Member expected after modifiers "+modifiers.join(" "));
-                }
-                members = memberDeclarations[i++];
-              } else {
-                modifiers = [];
-              }
-              var target = targetMap[memberKey][visibility];
-              //document.writeln("defining "+modifiers.join(" ")+" member(s):");
-	      if (memberType=="function") {
-                if (!memberName) {
-                  // found static code block; execute on initialization
-                  targetMap.$static.fieldsWithInitializer.push(members);
+          var memberDeclarations = this.$members(publicConstructor, privateStatic);
+          var i=0;
+          while (i<memberDeclarations.length) {
+            var memberKey = "$this"; // default: not static
+            var visibility = "$public"; // default: public visibility
+            var members = memberDeclarations[i++];
+            if (members===undefined) {
+              continue;
+            }
+            var memberType = "function";
+            var memberName = undefined;
+            var modifiers;
+            if (typeof members=="string") {
+              modifiers = members.split(" ");
+              for (var j=0; j<modifiers.length; ++j) {
+                var modifier = modifiers[j];
+                if (modifier=="static") {
+                  memberKey = "$static";
+                } else if (modifier=="private" || modifier=="public" || modifier=="protected") {
+                  visibility = "$"+modifier;
+                } else if (modifier=="var" || modifier=="const") {
+                  memberType = modifier;
+                } else if (modifier=="override") {
+                  // so far: ignore. TODO: enable super-call!
+                } else if (j==modifiers.length-1) {
+                  // last "modifier" is the member name:
+                  memberName = modifier;
                 } else {
-                  if (memberName=="_"+this.$class) {
-                    this.$constructor = members;
-                    memberName = this.$class;
-                  } else if (memberKey=="$this") {
-                    if (visibility=="$private") {
-                      memberName = registerPrivateMember(privateStatic, classPrefix, memberName);
-                      setFunctionName(members, memberName);
-                    } else if (isFunction(target[memberName])) {
-                      // Found overriding! Store super method as private method delegate for super access:
-                      this.Public.prototype[registerPrivateMember(privateStatic, classPrefix, memberName)] = target[memberName];
-                    }
-                  }
-                  setFunctionName(members, memberName);
-                  target[memberName] = members;
+                  throw new Error("Unknown modifier '"+modifier+"'.");
                 }
+              }
+              if (i>=memberDeclarations.length) {
+                throw new Error("Member expected after modifiers "+modifiers.join(" "));
+              }
+              members = memberDeclarations[i++];
+            } else {
+              modifiers = [];
+            }
+            var target = targetMap[memberKey][visibility];
+            //document.writeln("defining "+modifiers.join(" ")+" member(s):");
+            if (memberType=="function") {
+              if (!memberName) {
+                // found static code block; execute on initialization
+                targetMap.$static.fieldsWithInitializer.push(members);
               } else {
-                var targetFieldsWithInitializer = targetMap[memberKey].fieldsWithInitializer;
-                for (memberName in members) {
-                  var member = members[memberName];
-                  if (memberKey=="$this" && visibility=="$private") {
+                if (memberName=="_"+this.$class) {
+                  this.$constructor = members;
+                  memberName = this.$class;
+                } else if (memberKey=="$this") {
+                  if (visibility=="$private") {
                     memberName = registerPrivateMember(privateStatic, classPrefix, memberName);
+                    setFunctionName(members, memberName);
+                  } else if (isFunction(target[memberName])) {
+                    // Found overriding! Store super method as private method delegate for super access:
+                    this.Public.prototype[registerPrivateMember(privateStatic, classPrefix, memberName)] = target[memberName];
                   }
-                  target[memberName] = member;
-                  if (isFunction(member)) {
-                    targetFieldsWithInitializer.push(memberName);
-                  }
+                }
+                setFunctionName(members, memberName);
+                target[memberName] = members;
+              }
+            } else {
+              var targetFieldsWithInitializer = targetMap[memberKey].fieldsWithInitializer;
+              for (memberName in members) {
+                var member = members[memberName];
+                if (memberKey=="$this" && visibility=="$private") {
+                  memberName = registerPrivateMember(privateStatic, classPrefix, memberName);
+                }
+                target[memberName] = member;
+                if (isFunction(member)) {
+                  targetFieldsWithInitializer.push(memberName);
                 }
               }
             }
@@ -336,14 +438,9 @@ Function.prototype.bind = function(object) {
           this.Public.prototype.getClass = createGetClass(publicConstructor);
           // TODO: constructor visibility!
           privateStatic[this.$class] = publicConstructor;
+          // init imports:
+          addImports(privateStatic, this.$imports);
           // init static fields with initializer:
-          for (var im in this.$imports) {
-            var importDecl = this.$imports[im];
-            var importedClassDesc = getClassDescription(importDecl);
-            if (importedClassDesc) { // ignore unknown imports!
-              privateStatic[im] = importedClassDesc.initialize();
-            }
-          }
           initFields(privateStatic, publicConstructor, targetMap.$static.fieldsWithInitializer);
           return publicConstructor;
         }
@@ -354,33 +451,38 @@ Function.prototype.bind = function(object) {
   })();
   function Package() { }
   theGlobalObject.joo = new Package();
-  var loadedClasses = {};
+  var importedClasses = {};
   theGlobalObject.joo.Class = {
+    debug: false,
+    classLoadTimeoutMS: false,
+    loadScript: function(uri) {
+      var script = document.createElement("script");
+      script.type = "text/javascript";
+      theGlobalObject.document.body.appendChild(script);
+      script.src = uri;
+      return script;
+    },
     load: function(fullClassName) {
-      if (!loadedClasses[fullClassName]) {
-        loadedClasses[fullClassName] = true;
-        var uri = document.location.href;
-        uri = uri.substring(0, uri.lastIndexOf("/")+1);
-        uri += fullClassName.replace(/\./g,"/")+".js";
-        var script = document.createElement("script");
-        script.src = uri;
-        document.body.appendChild(script);
-      }
+      return ClassDescription.$static.load(fullClassName);
+    },
+    $import: function(importedFullClassName) {
+      importedClasses[getClassName(importedFullClassName)] = importedFullClassName;
+      this.load(importedFullClassName);
     },
     run: function(mainClass) {
       if (typeof mainClass=="string") {
         this.load(mainClass);
-        mainClass = eval(mainClass);
       }
       var args = [];
       for (var i=1; i<arguments.length; ++i) {
         args.push(arguments[i]);
       }
-      var self = this;
-      theGlobalObject.onload = function() {
-        self.complete();
+      this.complete(function() {
+        if (typeof mainClass=="string") {
+          mainClass = ClassDescription.$static.getClassDescription(mainClass).publicConstructor;
+        }
         mainClass.main.apply(null,args);
-      }
+      });
     },
     prepare: function(packageDef /* import*, classDef, publicStaticMethods, members */) {
       var classDef = arguments[arguments.length-3];
@@ -388,74 +490,33 @@ Function.prototype.bind = function(object) {
       var members = arguments[arguments.length-1];
       var imports = {};
       for (var im=1; im<arguments.length-3; ++im) {
-        var importDecl = arguments[im].split(" ")[1];
-        var lastDotPos = importDecl.lastIndexOf(".");
-        var abbr = importDecl.substring(lastDotPos+1);
-        imports[abbr] = importDecl;
+        var importFullClassName = arguments[im].match(/^\s*import\s+([a-zA-Z$_0-9.]+)\s*$/)[1];
+        imports[getClassName(importFullClassName)] = importFullClassName;
       }
-      var classDesc = { $imports: imports, $publicStaticMethods: publicStaticMethods, $members: members};
-      if (typeof packageDef!="string")
-        throw new Error("package declaration must be a string.");
-      var packageParts = packageDef.split(/\s+/);
-      if (packageParts[0]!="package")
-        throw new Error("package declaration must start with 'package'.");
-      if (packageParts.length!=2) {
-        throw new Error("package declaration must be followed by a package name.");
+      var classMatch = classDef.match(/^\s*((public|internal)\s+)?(abstract\s+)?class\s+([A-Za-z][a-zA-Z$_0-9]*)(\s+extends\s+([a-zA-Z$_0-9.]+))?\s*$/);
+      if (!classMatch) {
+        throw new Error("SyntaxError: \""+classDef+"\" does not match.");
       }
-      classDesc.$package = packageParts[1];
-
-      if (typeof classDef!="string")
-        throw new Error("class declaration must be a string.");
-      var classParts = classDef.split(/\s+/);
-      var i=0;
-      if (classParts[i]=="public") {
-        classDesc.visibility = classParts[i++];
-      }
-      if (classParts[i]=="abstract") {
-        classDesc.$abstract = true;
-        ++i;
-      }
-      if (classParts[i++]!="class")
-        throw new Error("expected 'class' after class modifiers.");
-      if (i==classParts.length) {
-        throw new Error("expected class name after keyword 'class'.");
-      }
-      classDesc.$class = classParts[i++];
-      if (i<classParts.length) {
-        if (classParts[i++]!="extends")
-          throw new Error("expected EOL or 'extends' after class name.");
-        if (i==classParts.length)
-          throw new Error("expected class name after 'extends'.");
-        classDesc.$extends = classParts[i++];
-        if (imports[classDesc.$extends]) {
-          classDesc.$extends = imports[classDesc.$extends];
-        }
-      }
-      if (i<classParts.length)
-        throw new Error("unexpected token '"+classParts[i]+" after class declaration.");
-      new ClassDescription(classDesc);
+      new ClassDescription({
+        $imports: imports,
+        $publicStaticMethods: publicStaticMethods,
+        $members: members,
+        $package: typeof packageDef=="string" ? packageDef.split(/\s+/)[1] : "",
+        visibility: classMatch[2],
+        $abstract : !!classMatch[3],
+        $class    : classMatch[4],
+        $extends  : classMatch[6] || "Object"
+      });
     },
     init: function(clazz) {
       return ClassDescription.$static.getClassDescription(clazz.getName()).initialize();
     },
-    complete: function() {
-      var sb = [];
-      var pendingCDsMap = ClassDescription.$static.pendingClassDescriptions;
-      for (var missingClassName in pendingCDsMap) {
-        if (sb.length > 0) sb.push(" ");
-        sb.push("The following classes are waiting for their super class ",
-          missingClassName,
-          ": ");
-        var pendingCDs = pendingCDsMap[missingClassName];
-        for (var i = 0; i < pendingCDs.length; ++i) {
-          if (i > 0) sb.push(", ");
-          sb.push(pendingCDs[i].fullClassName);
-        }
-        sb.push(".");
-      }
-      if (sb.length > 0) {
-        throw new Error(sb.join(""));
-      }
+    complete: function(oncomplete) {
+      ClassDescription.$static.oncomplete = oncomplete || true;
+      ClassDescription.$static.doComplete();
+    },
+    dumpClasses: function() {
+      return ClassDescription.$static.dumpClasses();
     }
   };
 })(this);
