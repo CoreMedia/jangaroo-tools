@@ -179,10 +179,10 @@ public class CopyRuntimeMojo extends AbstractMojo {
     if (result == null) {
       for (Artifact pluginArtifact : pluginArtifacts) {
         getLog().debug("Inspecting pluginArtifact: " + pluginArtifact);
-        if (pluginArtifact.getGroupId().equals(Runtime.GROUP_ID_JANGAROO) &&
-          pluginArtifact.getArtifactId().equals(Runtime.ARTIFACT_ID_JOOC) &&
-          pluginArtifact.getClassifier().equals(Runtime.CLASSIFIER_RUNTIME) &&
-          pluginArtifact.getType().equals(Runtime.TYPE_RUNTIME)) {
+        if (Runtime.GROUP_ID_JANGAROO.equals(pluginArtifact.getGroupId()) &&
+          Runtime.ARTIFACT_ID_JOOC.equals(pluginArtifact.getArtifactId()) &&
+          Runtime.CLASSIFIER_RUNTIME.equals(pluginArtifact.getClassifier()) &&
+          Runtime.TYPE_RUNTIME.equals(pluginArtifact.getType())) {
 
           getLog().debug("Selected Jangaroo runtime pluginArtifact: " + pluginArtifact);
           result = pluginArtifact;
