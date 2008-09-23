@@ -56,7 +56,7 @@ Function.prototype.bind = function(object) {
       for (var i=0; i<packageParts.length; ++i) {
         var subpackage = $package[packageParts[i]];
         if (!subpackage) {
-          subpackage = new Package();
+          subpackage = new (Package)();
           $package[packageParts[i]] = subpackage;
         }
         $package = subpackage;
@@ -90,11 +90,29 @@ Function.prototype.bind = function(object) {
     return (function Object$getClass() { return $constructor; });
   }
   function emptySuper() {}
-  function getClassName(fullClassName) {
+  function addImport(imports, fullClassName) {
+    imports.push(fullClassName);
     var lastDotPos = fullClassName.lastIndexOf(".");
-    return lastDotPos >=0 ? fullClassName.substring(lastDotPos+1) : fullClassName;
+    var importName = lastDotPos >=0 ? fullClassName.substring(lastDotPos+1) : fullClassName;
+    var importsByName = imports.byName;
+    if (importName in importsByName && importsByName[importName]!=fullClassName) {
+      delete importsByName[importName]; // remove ambigious import
+    } else {
+      importsByName[importName] = fullClassName;
+    }
   }
   var ClassDescription = (function() {
+    function getNativeClass(fullClassName) {
+      var parts = fullClassName.split(".");
+      var nativeClass = theGlobalObject;
+      for (var i=0; i<parts.length; ++i) {
+        nativeClass = nativeClass[parts[i]];
+        if (!nativeClass) {
+          return undefined;
+        }
+      }
+      return nativeClass;
+    }
     var ClassDescription$static = {
       // static members:
       PENDING: 0,
@@ -114,12 +132,13 @@ Function.prototype.bind = function(object) {
           --this.loadingClassesCount;
         }
         this.classDescriptions[classDescription.fullClassName] = classDescription;
-        for (var im in classDescription.$imports) {
-          var importDecl = classDescription.$imports[im];
+        for (var i=0; i<classDescription.$imports.length; ++i) {
+          var importDecl = classDescription.$imports[i];
           // trigger loading imported classes:
           this.getClassDescription(importDecl);
         }
         delete this.missingClassDescriptions[this.fullClassName];
+        return classDescription;
       },
       getClassDescription: function(fullClassName) {
         if (!fullClassName || fullClassName=="undefined") {
@@ -127,14 +146,27 @@ Function.prototype.bind = function(object) {
         }
         var cd = this.classDescriptions[fullClassName];
         if (!cd) {
+          var constr = getNativeClass(fullClassName);
+          if (typeof constr=="function") {
+            if (joo.Class.debug && theGlobalObject.console) {
+              console.debug("found non-Jangaroo class "+fullClassName+"!");
+            }
+            return this.registerClassDescription({
+              fullClassName: fullClassName,
+              $imports: [],
+              state: this.INITIALIZED,
+              level: -1,
+              Public: createEmptyConstructor(constr.prototype),
+              initialize: emptySuper,
+              $constructor: function() { constr.apply(this,arguments); },
+              publicContructor: constr
+            });
+          }
           this.missingClassDescriptions[fullClassName] = true;
         }
         return cd;
       },
       load: function(fullClassName) {
-        if (joo.Class.debug && console) {
-          console.debug("trying to load class "+fullClassName+"...");
-        }
         if (!this.getClassDescription(fullClassName)) {
           if (this.loadingClasses[fullClassName]) {
             // class description is not there, but we already queued to load it:
@@ -146,7 +178,7 @@ Function.prototype.bind = function(object) {
           uri = uri.substring(0, uri.lastIndexOf("/")+1);
           uri += fullClassName.replace(/\./g,"/")+".js";
           joo.Class.loadScript(uri);
-          if (joo.Class.debug && console) {
+          if (joo.Class.debug && theGlobalObject.console) {
             console.debug("scheduling load "+fullClassName);
           }
         }
@@ -154,15 +186,16 @@ Function.prototype.bind = function(object) {
         return true;
       },
       doComplete: function() {
-        var type = typeof this.oncomplete;
-        if (type!="undefined") {
-          if (joo.Class.debug && console) {
+        if ("oncomplete" in this) {
+          /*
+          if (joo.Class.debug && theGlobalObject.console) {
             console.debug("doComplete active. Still loading:");
             for (var loading in this.loadingClasses) {
               console.debug("  "+loading);
             }
             console.debug("End 'Still loading'.");
           }
+          */
           var missingCDsMap = this.missingClassDescriptions;
           for (var missingClassName in missingCDsMap) {
             this.load(missingClassName);
@@ -172,10 +205,13 @@ Function.prototype.bind = function(object) {
             this.loadCheckTimer = undefined;
           }
           if (this.loadingClassesCount==0) {
-            if (type=="function") {
-              this.oncomplete(this.addImports(importedClasses, importedClasses));
+            var oncomplete = this.oncomplete;
+            if (typeof oncomplete=="function") {
+              delete this.oncomplete; // only execute once! (problem in Opera only)
+              this.initImports(importedClasses);
+              oncomplete(importedClasses.byName);
             }
-          } else if (this.classLoadTimeoutMS) {
+          } else if (joo.Class.classLoadTimeoutMS) {
             this.loadCheckTimer = theGlobalObject.setTimeout((function() {
               if (this.loadingClassesCount!=0) {
                 var sb = [];
@@ -195,15 +231,21 @@ Function.prototype.bind = function(object) {
         }
         return sb.join("");
       },
-      addImports: function(importObject, imports) {
-        for (var importName in imports) {
-          var importedClassDesc = this.getClassDescription(imports[importName]);
+      initImports: function(imports) {
+        for (var i=0; i<imports.length; ++i) {
+          var importedClassDesc = this.getClassDescription(imports[i]);
           if (!importedClassDesc) {
-            throw new Error("Class should have been loaded: "+imports[importName]);
+            throw new Error("Class should have been loaded: "+imports[i]);
           }
-          importObject[importName] = importedClassDesc.initialize();
+          importedClassDesc.initialize();
         }
-        return importObject;
+        var importsByName = imports.byName;
+        for (var im in importsByName) {
+          if (typeof importsByName[im]=="string") {
+            importsByName[im] = this.getClassDescription(importsByName[im]).publicConstructor;
+          }
+          //else throw new Error("Wrong type for "+im+"->"+importsByName[im]+" ("+typeof importsByName[im]+")!");
+        }
       },
       waitForSuper: function(classDef) {
         var pendingCDs = this.pendingClassDescriptions[classDef.$extends];
@@ -227,11 +269,11 @@ Function.prototype.bind = function(object) {
       for (var m in classDef) {
         this[m] = classDef[m];
       }
-      if (this.$imports[this.$extends]) {
-        this.$extends = this.$imports[this.$extends];
+      if (this.$imports.byName[this.$extends]) {
+        this.$extends = this.$imports.byName[this.$extends];
       }
       this.fullClassName = this.$package ? (this.$package + "." + this.$class) : this.$class;
-      if (joo.Class.debug && console) {
+      if (joo.Class.debug && theGlobalObject.console) {
         console.debug("loaded class "+this.fullClassName);
       }
       ClassDescription$static.registerClassDescription(this);
@@ -389,11 +431,11 @@ Function.prototype.bind = function(object) {
               if (!memberName) {
                 // found static code block; execute on initialization
                 targetMap.$static.fieldsWithInitializer.push(members);
+              } else if (memberName=="_"+this.$class) {
+                this.$constructor = members;
+                setFunctionName(members, this.$class);
               } else {
-                if (memberName=="_"+this.$class) {
-                  this.$constructor = members;
-                  memberName = this.$class;
-                } else if (memberKey=="$this") {
+                if (memberKey=="$this") {
                   if (visibility=="$private") {
                     memberName = registerPrivateMember(privateStatic, classPrefix, memberName);
                     setFunctionName(members, memberName);
@@ -439,10 +481,12 @@ Function.prototype.bind = function(object) {
           // TODO: constructor visibility!
           privateStatic[this.$class] = publicConstructor;
           // init imports:
-          addImports(privateStatic, this.$imports);
+          initImports(this.$imports);
+          for (var im in this.$imports.byName) {
+            privateStatic[im] = this.$imports.byName[im];
+          }
           // init static fields with initializer:
           initFields(privateStatic, publicConstructor, targetMap.$static.fieldsWithInitializer);
-          return publicConstructor;
         }
       };
     }
@@ -450,8 +494,9 @@ Function.prototype.bind = function(object) {
     return ClassDescription;
   })();
   function Package() { }
-  theGlobalObject.joo = new Package();
-  var importedClasses = {};
+  theGlobalObject.joo = new (Package)();
+  var importedClasses = [];
+  importedClasses.byName = {};
   theGlobalObject.joo.Class = {
     debug: false,
     classLoadTimeoutMS: false,
@@ -466,7 +511,7 @@ Function.prototype.bind = function(object) {
       return ClassDescription.$static.load(fullClassName);
     },
     $import: function(importedFullClassName) {
-      importedClasses[getClassName(importedFullClassName)] = importedFullClassName;
+      addImport(importedClasses, importedFullClassName);
       this.load(importedFullClassName);
     },
     run: function(mainClass) {
@@ -488,10 +533,11 @@ Function.prototype.bind = function(object) {
       var classDef = arguments[arguments.length-3];
       var publicStaticMethods = arguments[arguments.length-2];
       var members = arguments[arguments.length-1];
-      var imports = {};
+      var imports = [];
+      imports.byName = {};
       for (var im=1; im<arguments.length-3; ++im) {
         var importFullClassName = arguments[im].match(/^\s*import\s+([a-zA-Z$_0-9.]+)\s*$/)[1];
-        imports[getClassName(importFullClassName)] = importFullClassName;
+        addImport(imports, importFullClassName);
       }
       var classMatch = classDef.match(/^\s*((public|internal)\s+)?(abstract\s+)?class\s+([A-Za-z][a-zA-Z$_0-9]*)(\s+extends\s+([a-zA-Z$_0-9.]+))?\s*$/);
       if (!classMatch) {
