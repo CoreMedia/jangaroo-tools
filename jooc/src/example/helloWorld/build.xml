@@ -24,7 +24,7 @@
   <property name="jangaroo.tools.basedir" location="${example.dir}/../.."/>
   <property name="jangaroo.tools.lib" location="${jangaroo.tools.basedir}/lib"/>
 
-  <property name="source.js2" value="${example.dir}/src/main/js2"/>
+  <property name="source.joo" value="${example.dir}/src/main/joo"/>
   <property name="source.htdocs" value="${example.dir}/src/main/webapp"/>
   <property name="output" value="${example.dir}/output"/>
   <property name="output.htdocs" value="${output}/htdocs"/>
@@ -36,7 +36,7 @@
     <mkdir dir="${output.htdocs}"/>
   </target>
 
-  <target name="compile-js2" depends="init">
+  <target name="compile-joo" depends="init">
     <taskdef name="jooc" classname="net.jangaroo.jooc.ant.JoocTask">
       <classpath>
         <fileset dir="${jangaroo.tools.lib}">
@@ -49,8 +49,8 @@
         failonerror="true"
         debug="${jooc.debug}"
         verbose="true">
-       <include name="**/*.js2"/>
-       <src path="${source.js2}"/>
+       <include name="**/*.as"/>
+       <src path="${source.joo}"/>
     </jooc>
   </target>
 
@@ -71,7 +71,7 @@
   </target>
 
   <target name="main" description="builds the example"
-          depends="compile-js2, copy-jangaroo-runtime, copy-htdocs">
+          depends="compile-joo, copy-jangaroo-runtime, copy-htdocs">
   </target>
   
   <target name="clean" description="cleanup all">

@@ -16,7 +16,7 @@
   <build>
     <testResources>
       <testResource>
-        <directory>src/test/js2</directory>
+        <directory>src/test/joo</directory>
       </testResource>
     </testResources>
 

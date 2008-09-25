@@ -72,7 +72,7 @@
         <artifactId>maven-dependency-plugin</artifactId>
         <executions>
 
-          <!-- unpack runtime .js and uncompiled test .js2 files to target/temp/js and target/js2 -->
+          <!-- unpack runtime .js and uncompiled test .as files to target/temp/js and target/joo -->
           <execution>
             <phase>process-test-resources</phase>
             <goals>
@@ -94,9 +94,9 @@
                   <artifactId>jangaroo-compiler</artifactId>
                   <classifier>tests</classifier>
                   <version>testing</version>
-                  <outputDirectory>${project.build.directory}/js2</outputDirectory>
+                  <outputDirectory>${project.build.directory}/joo</outputDirectory>
                   <includes>
-                    **/*.js2
+                    **/*.as
                   </includes>
                 </artifactItem>
               </artifactItems>
@@ -109,9 +109,9 @@
         <artifactId>maven-antrun-plugin</artifactId>
         <executions>
 
-          <!-- compile the test .js2 files in target/js2 -->
+          <!-- compile the test .js2 files in target/joo -->
           <execution>
-            <id>compile-test-js2</id>
+            <id>compile-test-joo</id>
             <phase>process-test-resources</phase>
             <configuration>
               <tasks>
@@ -124,9 +124,9 @@
                       debug="${jooc.debug}"
                       verbose="true"
                       enableassertions="${jooc.assert}">
-                  <include name="**/*.js2"/>
-                  <exclude name="error/**/*.js2"/>
-                  <src path="target/js2"/>
+                  <include name="**/*.as"/>
+                  <exclude name="error/**/*.as"/>
+                  <src path="target/joo"/>
                 </jooc>
 
               </tasks>
@@ -158,7 +158,7 @@
               <systemProperties>
                 <property>
                   <name>net.jangaroo.jooc.test.source</name>
-                  <value>${basedir}/target/js2</value>
+                  <value>${basedir}/target/joo</value>
                 </property>
                 <property>
                   <name>net.jangaroo.jooc.test.destination</name>

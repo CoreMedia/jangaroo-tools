@@ -190,7 +190,7 @@ public class JoocTask extends MatchingTask {
    */
   protected void scanDir(File srcDir, File destDir, String[] files) {
     GlobPatternMapper m = new GlobPatternMapper();
-    m.setFrom("*"+ Jooc.JS2_SUFFIX);
+    m.setFrom("*"+ Jooc.INPUT_FILE_SUFFIX);
     m.setTo("*.js");
     SourceFileScanner sfs = new SourceFileScanner(this);
     File[] newFiles = sfs.restrictAsFiles(files, srcDir, destDir, m);
@@ -266,7 +266,7 @@ public class JoocTask extends MatchingTask {
           log(FAIL_MSG, Project.MSG_ERR);
         }
       }
-    } else log("no *"+ Jooc.JS2_SUFFIX +" files to compile");
+    } else log("no *"+ Jooc.INPUT_FILE_SUFFIX +" files to compile");
   }
 
   protected String[] getJoocArgs() {

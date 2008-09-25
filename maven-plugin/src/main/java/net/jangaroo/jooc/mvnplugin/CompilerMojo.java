@@ -20,7 +20,7 @@ import java.io.File;
 import java.util.*;
 
 /**
- * Mojo to compile Jangaroo sources from .js2 to .js.
+ * Mojo to compile Jangaroo sources from .as to .js.
  *
  * @goal compile
  * @phase compile
@@ -86,7 +86,7 @@ public class CompilerMojo extends AbstractMojo {
 
   /**
    * Source directory to scan for files to compile.
-   * @parameter expression="${basedir}/src/main/js2"
+   * @parameter expression="${basedir}/src/main/joo"
    */
   private File sourceDirectory;
 
@@ -186,7 +186,7 @@ public class CompilerMojo extends AbstractMojo {
       getLog().info( "RESCANNING!" );
 
       sources.clear();
-      sources.addAll( computeStaleSources(configuration, getSourceInclusionScanner(Jooc.JS2_SUFFIX_NO_DOT)) );
+      sources.addAll( computeStaleSources(configuration, getSourceInclusionScanner(Jooc.INPUT_FILE_SUFFIX_NO_DOT)) );
     }
 
     configuration.setSourceFiles(new ArrayList<File>(sources));
@@ -251,11 +251,11 @@ public class CompilerMojo extends AbstractMojo {
 
     if (outputStyle == CompilerOutputStyle.ONE_OUTPUT_FILE_PER_INPUT_FILE) {
 
-      scanner.addSourceMapping(new SuffixMapping(Jooc.JS2_SUFFIX, Jooc.JS_FILE_SUFFIX));
+      scanner.addSourceMapping(new SuffixMapping(Jooc.INPUT_FILE_SUFFIX, Jooc.OUTPUT_FILE_SUFFIX));
 
     } else if (outputStyle == CompilerOutputStyle.ONE_OUTPUT_FILE_FOR_ALL_INPUT_FILES) {
 
-      scanner.addSourceMapping(new SingleTargetSourceMapping(Jooc.JS2_SUFFIX, configuration.getOutputFileName()));
+      scanner.addSourceMapping(new SingleTargetSourceMapping(Jooc.INPUT_FILE_SUFFIX, configuration.getOutputFileName()));
 
     } else {
       throw new MojoExecutionException( "Unknown compiler output style: '" + outputStyle + "'." );
@@ -289,7 +289,7 @@ public class CompilerMojo extends AbstractMojo {
       scanner = new StaleSourceScanner(staleMillis);
     } else {
       if (includes.isEmpty()) {
-        includes.add("**/*.js2");
+        includes.add("**/*" + Jooc.INPUT_FILE_SUFFIX);
       }
       scanner = new StaleSourceScanner(staleMillis, includes, excludes);
     }

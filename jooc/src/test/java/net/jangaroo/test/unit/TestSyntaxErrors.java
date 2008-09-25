@@ -21,13 +21,13 @@ import net.jangaroo.jooc.Jooc;
 import java.io.File;
 
 /**
- * Test that all .js2 files in the error directory produce compiler errors.
+ * Test that all .as files in the error directory produce compiler errors.
  */
 public class TestSyntaxErrors extends JooTestCase {
   private static final String ERROR_PACKAGE_PATH = "error";
 
   /**
-   * The number of erroneous .js2 files. Increase whenever you add a new error file.
+   * The number of erroneous .as files. Increase whenever you add a new error file.
    * Specifying this number makes sure that no files are accidentially forgotten.
    */
   private static int ERROR_FILE_COUNT = 4;
@@ -37,7 +37,7 @@ public class TestSyntaxErrors extends JooTestCase {
   }
 
   public void testSucceedingCompilation() {
-    assertEquals(Jooc.RESULT_CODE_OK, runJooc(new String[]{"package1/TestMethodCall.js2"}));
+    assertEquals(Jooc.RESULT_CODE_OK, runJooc(new String[]{"package1/TestMethodCall.as"}));
   }
 
   public void testAllErrorClasses() {
@@ -54,7 +54,7 @@ public class TestSyntaxErrors extends JooTestCase {
       File file = files[i];
       if (file.isDirectory()) {
         result += checkAllErrorClasses(file, baseDirName + "/" + file.getName());
-      } else if (file.getName().endsWith(".js2")) {
+      } else if (file.getName().endsWith(".as")) {
         int resultCode = runJooc(baseDirName + "/" + file.getName());
         assertEquals(Jooc.RESULT_CODE_COMPILATION_FAILED, resultCode);
         result++;

@@ -42,7 +42,9 @@ public class Jooc {
   public static final String JS2_SUFFIX = "." + JS2_SUFFIX_NO_DOT;
   public static final String AS_SUFFIX_NO_DOT = "as";
   public static final String AS_SUFFIX = "." + AS_SUFFIX_NO_DOT;
-  public static final String JS_FILE_SUFFIX = ".js";
+  public static final String INPUT_FILE_SUFFIX_NO_DOT = AS_SUFFIX_NO_DOT;
+  public static final String INPUT_FILE_SUFFIX = AS_SUFFIX;
+  public static final String OUTPUT_FILE_SUFFIX = ".js";
   
   public static final String CLASS_CLASS_NAME = "Class";
   public static final String CLASS_PACKAGE_NAME = "joo";
@@ -77,7 +79,7 @@ public class Jooc {
         config.isDebugSource(), config.isDebugLines(), config.isEnableAssertions());
     } else {
       codeSinkFactory = new SingleFileCompilationUnitSinkFactory(
-        config.getOutputDirectory(), JS_FILE_SUFFIX,
+        config.getOutputDirectory(), OUTPUT_FILE_SUFFIX,
         config.isDebugSource(), config.isDebugLines(), config.isEnableAssertions());
     }
     return codeSinkFactory;
