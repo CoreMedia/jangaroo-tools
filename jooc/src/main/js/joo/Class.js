@@ -539,7 +539,7 @@ Function.prototype.bind = function(object) {
         var importFullClassName = arguments[im].match(/^\s*import\s+([a-zA-Z$_0-9.]+)\s*$/)[1];
         addImport(imports, importFullClassName);
       }
-      var classMatch = classDef.match(/^\s*((public|internal)\s+)?(abstract\s+)?class\s+([A-Za-z][a-zA-Z$_0-9]*)(\s+extends\s+([a-zA-Z$_0-9.]+))?\s*$/);
+      var classMatch = classDef.match(/^\s*((public|internal)\s+)?(abstract\s+)?(class|interface)\s+([A-Za-z][a-zA-Z$_0-9]*)(\s+extends\s+([a-zA-Z$_0-9.]+))?\s*$/);
       if (!classMatch) {
         throw new Error("SyntaxError: \""+classDef+"\" does not match.");
       }
@@ -549,9 +549,9 @@ Function.prototype.bind = function(object) {
         $members: members,
         $package: typeof packageDef=="string" ? packageDef.split(/\s+/)[1] : "",
         visibility: classMatch[2],
-        $abstract : !!classMatch[3],
-        $class    : classMatch[4],
-        $extends  : classMatch[6] || "Object"
+        $abstract : !!classMatch[3] || classMatch[4]=="interface",
+        $class    : classMatch[5],
+        $extends  : classMatch[7] || "Object"
       });
     },
     init: function(clazz) {

@@ -132,6 +132,7 @@ nonterminal FieldDeclaration fieldDeclaration;
 nonterminal FunctionExpr functionExpr;
 nonterminal Ide ide;
 nonterminal Implements implements;
+nonterminal Implements interfaceExtends;
 nonterminal ImportDirective directive;
 nonterminal Directives directives;
 nonterminal Expr lvalue;
@@ -237,6 +238,8 @@ classBodyDeclaration ::=
 classDeclaration ::=
     modifiers:m CLASS:c ide:ide extends:e implements:i classBody:b
     {: RESULT = new ClassDeclaration((JooSymbol[])m.toArray(new JooSymbol[0]),c,ide,e,i,b); :}
+  | modifiers:m INTERFACE:i ide:ide interfaceExtends:ie classBody:b
+    {: RESULT = new ClassDeclaration((JooSymbol[])m.toArray(new JooSymbol[0]),i,ide,null,ie,b); :}
   ;
 
 commaExpr ::=
@@ -403,6 +406,12 @@ extends ::=
   |
     EXTENDS:e type:t
     {: RESULT = new Extends(e,t); :}
+  ;
+
+interfaceExtends ::=
+    {: RESULT = null; :}
+  | EXTENDS:i typeList:l
+    {: RESULT = new Implements(i,l); :}
   ;
 
 fieldDeclaration ::=

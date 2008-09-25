@@ -61,6 +61,14 @@ public class ClassDeclaration extends IdeDeclaration {
     body.classDeclaration = this;
   }
 
+  public boolean isInterface() {
+    return "interface".equals(symClass.getText());
+  }
+
+  public boolean isAbstract() {
+    return isInterface() || super.isAbstract();
+  }
+
   // valid after analyze phase
   public PackageDeclaration getPackageDeclaration() {
     return (PackageDeclaration) getParentDeclaration();

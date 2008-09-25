@@ -66,6 +66,10 @@ public class MethodDeclaration extends MemberDeclaration {
     this.containsSuperConstructorCall = containsSuperConstructorCallStatement;
   }
 
+  public boolean isAbstract() {
+    return getClassDeclaration().isInterface() || super.isAbstract();
+  }
+
   public void analyze(AnalyzeContext context) {
     parentDeclaration = context.getCurrentClass();
     ClassDeclaration classDeclaration = getClassDeclaration();
