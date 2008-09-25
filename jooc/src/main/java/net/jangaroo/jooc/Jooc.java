@@ -35,6 +35,7 @@ public class Jooc {
   public static final int RESULT_CODE_UNRECOGNIZED_OPTION = 3;
   public static final int RESULT_CODE_MISSING_OPTION_ARGUMENT = 4;
 
+  public static final String AS_SUFFIX = ".as";
   public static final String JS2_SUFFIX = ".js2";
   public static final String JS_SUFFIX = ".js";
   public static final String CLASS_CLASS_NAME = "Class";
@@ -121,8 +122,8 @@ public class Jooc {
     File in = new File(fileName);
     if (in.isDirectory())
       error("Input file is a directory: " + in.getAbsolutePath());
-    if (!in.getName().endsWith(JS2_SUFFIX))
-      error("Input file must end with '" + JS2_SUFFIX + "': " + in.getAbsolutePath());
+    if (!in.getName().endsWith(JS2_SUFFIX) && !in.getName().endsWith(AS_SUFFIX))
+      error("Input file must end with '" + JS2_SUFFIX + " or " + AS_SUFFIX + "': " + in.getAbsolutePath());
     Scanner s;
     if (verbose)
       System.out.println("Parsing " + fileName);
