@@ -16,13 +16,16 @@
 package net.jangaroo.jooc;
 
 import java_cup.runtime.Symbol;
-import org.apache.commons.cli.*;
+import net.jangaroo.jooc.backend.CompilationUnitSinkFactory;
+import net.jangaroo.jooc.backend.MergedOutputCompilationUnitSinkFactory;
+import net.jangaroo.jooc.backend.SingleFileCompilationUnitSinkFactory;
+import net.jangaroo.jooc.config.JoocCommandLineParser;
+import net.jangaroo.jooc.config.JoocConfiguration;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 /**
  * @author Andreas Gawecki
@@ -35,34 +38,50 @@ public class Jooc {
   public static final int RESULT_CODE_UNRECOGNIZED_OPTION = 3;
   public static final int RESULT_CODE_MISSING_OPTION_ARGUMENT = 4;
 
-  public static final String AS_SUFFIX = ".as";
-  public static final String JS2_SUFFIX = ".js2";
-  public static final String JS_SUFFIX = ".js";
+  public static final String JS2_SUFFIX_NO_DOT = "js2";
+  public static final String JS2_SUFFIX = "." + JS2_SUFFIX_NO_DOT;
+  public static final String AS_SUFFIX_NO_DOT = "as";
+  public static final String AS_SUFFIX = "." + AS_SUFFIX_NO_DOT;
+  public static final String JS_FILE_SUFFIX = ".js";
+  
   public static final String CLASS_CLASS_NAME = "Class";
   public static final String CLASS_PACKAGE_NAME = "joo";
   public static final String CLASS_FULLY_QUALIFIED_NAME = CLASS_PACKAGE_NAME + "." + CLASS_CLASS_NAME;
 
-  private String destionationDirName;
-  private File destinationDir;
-  private boolean debugLines;
-  private boolean debugSource;
-  private boolean enableAssertions; // TODO reenable assertions
-  private boolean verbose;
-
+  private JoocConfiguration config;
   private CompileLog log = new CompileLog();
 
-  private ArrayList sourceFileNames = new ArrayList();
+  private ArrayList<CompilationUnit> compilationUnits = new ArrayList<CompilationUnit>();
 
-  public ArrayList/*CompilationUnit*/ getCompilationUnits() {
-    return compilationUnits;
+  public int run(JoocConfiguration config) {
+    this.config = config;
+    for (File sourceFile : config.getSourceFiles()) {
+      processSource(sourceFile);
+    }
+
+    CompilationUnitSinkFactory codeSinkFactory = createSinkFactory(config);
+
+    for (CompilationUnit unit : compilationUnits) {
+      unit.analyze(new AnalyzeContext());
+      unit.writeOutput(codeSinkFactory, config.isVerbose());
+    }
+    return log.hasErrors() ? 1 : 0;
   }
 
-  private ArrayList compilationUnits = new ArrayList();
+  private CompilationUnitSinkFactory createSinkFactory(JoocConfiguration config) {
+    CompilationUnitSinkFactory codeSinkFactory;
 
-  public int run(JoocConfiguration compilerConfiguration) {
-    return run(compilerConfiguration.getCommandLine());
+    if (config.isMergeOutput()) {
+      codeSinkFactory = new MergedOutputCompilationUnitSinkFactory(
+        config.getOutputFile(),
+        config.isDebugSource(), config.isDebugLines(), config.isEnableAssertions());
+    } else {
+      codeSinkFactory = new SingleFileCompilationUnitSinkFactory(
+        config.getOutputDirectory(), JS_FILE_SUFFIX,
+        config.isDebugSource(), config.isDebugLines(), config.isEnableAssertions());
+    }
+    return codeSinkFactory;
   }
-
 
   static class CompilerError extends RuntimeException {
     JooSymbol symbol = null;
@@ -92,11 +111,7 @@ public class Jooc {
     }
   }
 
-  public void addSourceFile(String fileName) {
-    sourceFileNames.add(fileName);
-  }
-
-  static void error(String msg) {
+  public static void error(String msg) {
     throw new CompilerError(msg);
   }
 
@@ -104,29 +119,32 @@ public class Jooc {
     throw new CompilerError(symbol, msg);
   }
 
-  static void error(Node node, String msg) {
+  public static void error(Node node, String msg) {
     error(node.getSymbol(), msg);
   }
 
-  static void error(String msg, Throwable t) {
+  public static void error(String msg, Throwable t) {
     throw new CompilerError(msg, t);
   }
 
   protected void processSource(String fileName) {
-    CompilationUnit unit = parse(fileName);
+    processSource(new File(fileName));
+  }
+
+  protected void processSource(File file) {
+    CompilationUnit unit = parse(file);
     if (unit != null)
       compilationUnits.add(unit);
   }
 
-  protected CompilationUnit parse(String fileName) {
-    File in = new File(fileName);
+  protected CompilationUnit parse(File in) {
     if (in.isDirectory())
       error("Input file is a directory: " + in.getAbsolutePath());
     if (!in.getName().endsWith(JS2_SUFFIX) && !in.getName().endsWith(AS_SUFFIX))
       error("Input file must end with '" + JS2_SUFFIX + " or " + AS_SUFFIX + "': " + in.getAbsolutePath());
     Scanner s;
-    if (verbose)
-      System.out.println("Parsing " + fileName);
+    if (config.isVerbose())
+      System.out.println("Parsing " + in.getAbsolutePath());
     try {
       s = new Scanner(new FileReader(in));
     } catch (FileNotFoundException e) {
@@ -139,8 +157,6 @@ public class Jooc {
       Symbol tree = p.parse();
       CompilationUnit unit = (CompilationUnit) tree.value;
       unit.setSourceFile(in);
-      if (destinationDir != null)
-        unit.setDestionationDir(destinationDir);
       return unit;
     } catch (Scanner.ScanError se) {
       log.error(se.sym, se.getMessage());
@@ -151,11 +167,6 @@ public class Jooc {
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
-  }
-
-  protected void printHelp(Options options) {
-    HelpFormatter formatter = new HelpFormatter();
-    formatter.printHelp("jooc [options] <file> ...", options);
   }
 
   protected void printVersion() {
@@ -178,119 +189,18 @@ public class Jooc {
   /** @noinspection AccessStaticViaInstance*/
   public int run(String[] argv) {
     try {
-      Option help = new Option("help", "print this message");
-      Option version = OptionBuilder
-              .withDescription("print version information and exit")
-              .create("version");
-      Option verboseOption = OptionBuilder.withLongOpt("verbose")
-              .withDescription("be extra verbose")
-              .create("v");
-      Option debugOption = OptionBuilder.withDescription( "generate debugging information " +
-        "(possible modes: source, lines, none)" )
-              .hasOptionalArgs()
-              .withArgName("mode")
-              .create("g");
-      Option destinationDir = OptionBuilder.withArgName("dir")
-              .hasArg()
-              .withDescription("destination directory for generated JavaScript files")
-              .create("d");
-      /*
-      Option enableAssertionsOption = OptionBuilder.withLongOpt("enableassertions")
-              .withDescription("enable assertions")
-              .create("ea");
-      */
-      Options options = new Options();
-      options.addOption(help);
-      options.addOption(version);
-      options.addOption(verboseOption);
-      options.addOption(debugOption);
-      options.addOption(destinationDir);
-      /*
-      options.addOption(enableAssertionsOption);
-      */
-      CommandLineParser parser = new GnuParser();
-      CommandLine line;
-      try {
-        line = parser.parse(options, argv);
-      } catch (UnrecognizedOptionException e) {
-        System.out.println(e.getMessage());
-        return RESULT_CODE_UNRECOGNIZED_OPTION;
-      } catch (MissingArgumentException e) {
-        System.out.println(e.getMessage());
-        return RESULT_CODE_MISSING_OPTION_ARGUMENT;
-      }
-      if (line.hasOption("help")) {
-        printHelp(options);
-        return RESULT_CODE_OK;
-      }
-      if (line.hasOption("version")) {
-        printVersion();
-        return RESULT_CODE_OK;
-      }
-      verbose = line.hasOption(verboseOption.getOpt());
-      if (line.hasOption(destinationDir.getOpt())) {
-        destionationDirName = line.getOptionValue(destinationDir.getOpt());
-        this.destinationDir = new File(destionationDirName);
-        if (!this.destinationDir.exists())
-          error("destination directory does not exist: " + this.destinationDir.getAbsolutePath());
-      }
-      enableAssertions = false; // TODO: use option
-      /*
-      if (line.hasOption(enableAssertionsOption.getOpt()))
-        enableAssertions = true;
-      */
-      if (line.hasOption(debugOption.getOpt())) {
-        String[] values = line.getOptionValues(debugOption.getOpt());
-        if (values == null || values.length == 0) {
-          if (verbose) {
-            System.out.println("-g option present.");
-          }
-          debugLines = debugSource = true;
+      JoocCommandLineParser parser = new JoocCommandLineParser();
+      config = parser.parse(argv);
+      if (config != null) {
+        if (config.isVersion()) {
+          printVersion();
         } else {
-          if (verbose) {
-            System.out.println("-g option value: " + Arrays.asList(values));
-          }
-          debugLines = true; 
-          debugSource = false;
-          for (int i = 0; i < values.length; i++) {
-            String value = values[i];
-            if (value.equals("source"))
-              debugSource = true;
-            else if (value.equals("lines"))
-              debugLines = true;
-            else if (value.equals("none"))
-              debugLines = debugSource = false;
-            else
-              error("unknown -g argument: " + value);
-          }
+          return run(config);
         }
-      } else {
-        debugLines = true;
-        debugSource = false;
       }
-      if (verbose) {
-        /*
-        System.out.println("enableassertions=" +  enableAssertions);
-        */
-        System.out.println("-g option values:");
-        System.out.println("source=" + debugSource);
-        System.out.println("lines=" + debugLines);
-      }
-      String[] fileNames = line.getArgs();
-      if (fileNames.length == 0) {
-        printHelp(options);
-        return RESULT_CODE_OK;
-      }
-      for (int i = 0; i < fileNames.length; i++)
-        addSourceFile(fileNames[i]);
-      for (int i = 0; i < sourceFileNames.size(); i++)
-        processSource((String) sourceFileNames.get(i));
-      for (int i = 0; i < compilationUnits.size(); i++) {
-        CompilationUnit unit = (CompilationUnit) compilationUnits.get(i);
-        unit.analyze(new AnalyzeContext());
-        unit.writeOutput(verbose, debugSource, debugLines, enableAssertions);
-      }
-      return log.hasErrors() ? 1 : 0;
+    } catch (JoocCommandLineParser.CommandLineParseException e) {
+      System.out.println(e.getMessage());
+      return e.getExitCode();
     } catch (CompilerError e) {
       if (e.symbol != null)
         log.error(e.symbol, e.getMessage());
@@ -301,6 +211,7 @@ public class Jooc {
       e.printStackTrace();
       return RESULT_CODE_INTERNAL_COMPILER_ERROR;
     }
+    return RESULT_CODE_OK;
   }
 
   public static void main(String[] argv) {

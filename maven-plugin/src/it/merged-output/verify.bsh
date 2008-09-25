@@ -33,7 +33,7 @@ try
         return false;
     }
 
-    File webappDirectory = new File( target, "simple-project-1.0-SNAPSHOT" );
+    File webappDirectory = new File( target, "merged-output-1.0-SNAPSHOT" );
     if ( !webappDirectory.exists() || !webappDirectory.isDirectory() )
     {
         System.err.println( "webappDirectory is missing or not a directory." );
@@ -47,17 +47,10 @@ try
         return false;
     }
 
-    File helloWorldJs = new File ( jsDir, "net"+File.separator+"jangaroo"+File.separator+"example"+File.separator+"HelloWorld.js" );
-    if ( !helloWorldJs.exists() || !helloWorldJs.isFile() )
+    File outputJs = new File ( jsDir, "merged-output-test.js" );
+    if ( !outputJs.exists() || !outputJs.isFile() )
     {
-        System.err.println( "HelloWorld.js output file is missing or not a file." );
-        return false;
-    }
-
-    File testClassJs = new File ( jsDir, "net"+File.separator+"jangaroo"+File.separator+"example"+File.separator+"TestClass.js" );
-    if ( !testClassJs.exists() || !testClassJs.isFile() )
-    {
-        System.err.println( "TestClass.js output file is missing or not a file." );
+        System.err.println( "merged-output-test.js output file is missing or not a file." );
         return false;
     }
 

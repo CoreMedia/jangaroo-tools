@@ -1,17 +1,18 @@
 package net.jangaroo.jooc.mvnplugin;
 
 import net.jangaroo.jooc.Jooc;
-import net.jangaroo.jooc.JoocConfiguration;
+import net.jangaroo.jooc.config.JoocConfiguration;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
 import org.codehaus.plexus.compiler.CompilerError;
+import org.codehaus.plexus.compiler.CompilerOutputStyle;
 import org.codehaus.plexus.compiler.util.scan.InclusionScanException;
 import org.codehaus.plexus.compiler.util.scan.SimpleSourceInclusionScanner;
 import org.codehaus.plexus.compiler.util.scan.SourceInclusionScanner;
 import org.codehaus.plexus.compiler.util.scan.StaleSourceScanner;
-import org.codehaus.plexus.compiler.util.scan.mapping.SourceMapping;
+import org.codehaus.plexus.compiler.util.scan.mapping.SingleTargetSourceMapping;
 import org.codehaus.plexus.compiler.util.scan.mapping.SuffixMapping;
 import org.codehaus.plexus.util.StringUtils;
 
@@ -19,12 +20,12 @@ import java.io.File;
 import java.util.*;
 
 /**
- * Mojo to compile Jangaroo sources from .js2 to .js, based on the maven-compiler-plugin.
+ * Mojo to compile Jangaroo sources from .js2 to .js.
  *
  * @goal compile
  * @phase compile
  */
-public class JoocMojo extends AbstractMojo {
+public class CompilerMojo extends AbstractMojo {
   private Log log = getLog();
 
   /**
@@ -35,11 +36,14 @@ public class JoocMojo extends AbstractMojo {
   private boolean failOnError = true;
 
   /**
+   * Set "debug" to "true" in order to create debuggable output. See "debuglevel" parameter.
+   *
    * @parameter expression="${maven.compile.debug}" default-value="true"
    */
   private boolean debug;
 
   /**
+   * If set to "true", the compiler will generate more detailed progress information.
    * @parameter expression="${maven.compiler.verbose}" default-value="false"
    */
   private boolean verbose;
@@ -56,16 +60,32 @@ public class JoocMojo extends AbstractMojo {
    * Keyword list to be appended to the -g  command-line switch. Legal values are one of the following keywords: none, lines, or source.
    * If debuglevel is not specified, by default, nothing will be appended to -g. If debug is not turned on, this attribute will be ignored.
    *
-   * @parameter expression="source"
+   * @parameter default-value="source"
    */
   private String debuglevel;
 
   /**
+   * Output directory for compiled classes.
    * @parameter expression="${project.build.directory}/${project.build.finalName}/js"
    */
   private File outputDirectory;
 
   /**
+   * Set to "true" to produce one single output file for all generated compiled classes.
+   * When "mergeOutput" is set to "true", "outputFileName" must be set as well.
+   * @parameter default-value="false"
+   */
+  private boolean mergeOutput;
+
+  /**
+   * When "mergeOutput" is "true", this parameter specifies the name of the output file containing all
+   * compiled classes. Otherwise, this parameter will be ignored.
+   * @parameter default-value="${project.build.finalName}.js"
+   */
+  private String outputFileName;
+
+  /**
+   * Source directory to scan for files to compile.
    * @parameter expression="${basedir}/src/main/js2"
    */
   private File sourceDirectory;
@@ -107,35 +127,71 @@ public class JoocMojo extends AbstractMojo {
       return;
     }
 
-    if (getLog().isDebugEnabled()) {
-      log.debug("Source directories: " + compileSourceRoots.toString().replace(',', '\n'));
-      log.debug("Output directory: " + getOutputDirectory());
-    }
-
     // ----------------------------------------------------------------------
     // Create the compiler configuration
     // ----------------------------------------------------------------------
 
-    JoocConfiguration compilerConfiguration = new JoocConfiguration();
+    JoocConfiguration configuration = new JoocConfiguration();
 
-    compilerConfiguration.setOutputDirectory(getOutputDirectory());
-    compilerConfiguration.setDebug(debug);
-    compilerConfiguration.setVerbose(verbose);
+    configuration.setDebug(debug);
+    configuration.setVerbose(verbose);
+
+    configuration.setOutputDirectory(getOutputDirectory());
+    configuration.setMergeOutput(mergeOutput);
+    configuration.setOutputFileName(outputFileName);
 
     if (debug && StringUtils.isNotEmpty(debuglevel)) {
-      if (!(debuglevel.equalsIgnoreCase("none") || debuglevel.equalsIgnoreCase("lines")
-        || debuglevel.equalsIgnoreCase("source"))) {
+      if (debuglevel.equalsIgnoreCase("lines")) {
+        configuration.setDebugLines(true);
+      } else if (debuglevel.equalsIgnoreCase("source")) {
+        configuration.setDebugLines(true);
+        configuration.setDebugSource(true);
+      } else if (!debuglevel.equalsIgnoreCase("none")) {
         throw new IllegalArgumentException("The specified debug level: '" + debuglevel
           + "' is unsupported. " + "Legal values are 'none', 'lines', and 'source'.");
       }
-      compilerConfiguration.setDebugLevel(debuglevel);
     }
 
+    if (getLog().isDebugEnabled()) {
+      log.debug("Source directories: " + compileSourceRoots.toString().replace(',', '\n'));
 
-    Set staleSources =  computeStaleSources(getSourceInclusionScanner(staleMillis));
-    compilerConfiguration.setSourceFiles(staleSources);
+      if (configuration.isMergeOutput()) {
+        log.debug("Output file: " + configuration.getOutputFile());
+      } else {
+        log.debug("Output directory: " + configuration.getOutputDirectory());
+      }
+    }
 
-    if (staleSources.isEmpty()) {
+    if (configuration.isMergeOutput()) {
+      if (configuration.getOutputFileName() == null) {
+        getLog().error("<outputFileName> must not be empty when merging output into one file.");
+        return;
+      }
+
+      if (configuration.isDebugLines()) {
+        getLog().info("When output is merged into one file, debug mode 'lines' is not effective.");
+      }
+
+    } else {
+      if (configuration.getOutputFileName() != null) {
+        getLog().info("Generating one file per compilation unit. <outputFileName> will be ingored.");
+      }
+    }
+
+    HashSet<File> sources = new HashSet<File>();
+
+    sources.addAll( computeStaleSources(configuration, getSourceInclusionScanner(staleMillis)) );
+
+    if (!sources.isEmpty() && configuration.isMergeOutput()) {
+      getLog().info( "RESCANNING!" );
+
+      sources.clear();
+      sources.addAll( computeStaleSources(configuration, getSourceInclusionScanner(Jooc.JS2_SUFFIX_NO_DOT)) );
+    }
+
+    configuration.setSourceFiles(new ArrayList<File>(sources));
+
+    if (sources.isEmpty()) {
       getLog().info("Nothing to compile - all classes are up to date");
       return;
     }
@@ -145,7 +201,7 @@ public class JoocMojo extends AbstractMojo {
       if (!getOutputDirectory().mkdirs())
         throw new MojoExecutionException("Failed to create output directory " + getOutputDirectory().getAbsolutePath());
 
-    int result = compile(compilerConfiguration);
+    int result = compile(configuration);
     boolean compilationError = (result != Jooc.RESULT_CODE_OK);
     List messages = Collections.emptyList();
 
@@ -173,37 +229,37 @@ public class JoocMojo extends AbstractMojo {
     }
   }
 
-  private int compile(JoocConfiguration compilerConfiguration) {
-    final Set<File> sources = compilerConfiguration.getSourceFiles();
+  private int compile(JoocConfiguration config) {
+    final List<File> sources = config.getSourceFiles();
+    File output = config.isMergeOutput() ? config.getOutputFile() : getOutputDirectory();
+
     log.info("Compiling " + sources.size() +
             " joo source file"
             + (sources.size() == 1 ? "" : "s")
-            + (getOutputDirectory() != null ? " to " + getOutputDirectory() : ""));
+            + " to " + output);
 
     Jooc jooc = new Jooc();
-    final String[] commandLine = compilerConfiguration.getCommandLine();
-    if (verbose) {
-      StringBuffer cmdLine = new StringBuffer(100);
-      cmdLine.append("jooc ");
-      for (String joocArg : commandLine) {
-        cmdLine.append(" ");
-        cmdLine.append(joocArg);
-      }
-      log.debug(cmdLine.toString());
-    }
-    return jooc.run(commandLine);
+    return jooc.run(config);
   }
 
-  private Set computeStaleSources(SourceInclusionScanner scanner)  throws MojoExecutionException {
-    SourceMapping mapping;
+  private Set computeStaleSources(JoocConfiguration configuration, SourceInclusionScanner scanner)  throws MojoExecutionException {
+    CompilerOutputStyle outputStyle = configuration.isMergeOutput()
+      ? CompilerOutputStyle.ONE_OUTPUT_FILE_FOR_ALL_INPUT_FILES
+      : CompilerOutputStyle.ONE_OUTPUT_FILE_PER_INPUT_FILE;
 
-    File outputDirectory;
+    File outputDirectory = getOutputDirectory();
 
-    mapping = new SuffixMapping(Jooc.JS2_SUFFIX, Jooc.JS_SUFFIX);
+    if (outputStyle == CompilerOutputStyle.ONE_OUTPUT_FILE_PER_INPUT_FILE) {
 
-    outputDirectory = getOutputDirectory();
+      scanner.addSourceMapping(new SuffixMapping(Jooc.JS2_SUFFIX, Jooc.JS_FILE_SUFFIX));
 
-    scanner.addSourceMapping(mapping);
+    } else if (outputStyle == CompilerOutputStyle.ONE_OUTPUT_FILE_FOR_ALL_INPUT_FILES) {
+
+      scanner.addSourceMapping(new SingleTargetSourceMapping(Jooc.JS2_SUFFIX, configuration.getOutputFileName()));
+
+    } else {
+      throw new MojoExecutionException( "Unknown compiler output style: '" + outputStyle + "'." );
+    }
 
     Set staleSources = new HashSet();
 

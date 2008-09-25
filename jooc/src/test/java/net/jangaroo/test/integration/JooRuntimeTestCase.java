@@ -38,7 +38,7 @@ public abstract class JooRuntimeTestCase extends JooTestCase {
   protected Scriptable scope;
   protected ScriptableObject global;
   private static final String CLASS_JS_FILE_PATH =
-    Jooc.CLASS_PACKAGE_NAME + File.separatorChar + Jooc.CLASS_CLASS_NAME + Jooc.JS_SUFFIX;
+    Jooc.CLASS_PACKAGE_NAME + File.separatorChar + Jooc.CLASS_CLASS_NAME + Jooc.JS_FILE_SUFFIX;
 
   public JooRuntimeTestCase(String name) {
     super(name);
@@ -98,7 +98,7 @@ public abstract class JooRuntimeTestCase extends JooTestCase {
   }
 
   protected void loadClass(String qualifiedJooClassName) throws Exception {
-    String jsFileName = qualifiedJooClassName.replace('.',File.separatorChar) + Jooc.JS_SUFFIX;
+    String jsFileName = qualifiedJooClassName.replace('.',File.separatorChar) + Jooc.JS_FILE_SUFFIX;
     load(jsFileName);
   }
 
