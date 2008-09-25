@@ -15,8 +15,6 @@
 
 package package2 {
 
-import package1.TestInheritanceSubClass
-
 public class TestExpressions {
 
   public function TestExpressions() {
