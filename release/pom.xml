@@ -19,14 +19,14 @@
   <groupId>net.jangaroo</groupId>
   <artifactId>jangaroo-release</artifactId>
   <packaging>pom</packaging>
-  <version>0.1.2-SNAPSHOT</version>
+  <version>0.2</version>
   <name>Jangaroo release</name>
 
   <parent>
     <groupId>net.jangaroo</groupId>
     <artifactId>jangaroo-tools</artifactId>
     <relativePath>../pom.xml</relativePath>
-    <version>0.1.2-SNAPSHOT</version>
+    <version>0.2</version>
   </parent>
 
   <build>
@@ -119,7 +119,7 @@
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-compiler</artifactId>
-      <version>0.1.2-SNAPSHOT</version>
+      <version>0.2</version>
     </dependency>
 
     <dependency>
@@ -127,7 +127,7 @@
       <artifactId>jangaroo-compiler</artifactId>
       <classifier>runtime</classifier>
       <type>zip</type>
-      <version>0.1.2-SNAPSHOT</version>
+      <version>0.2</version>
     </dependency>
 
     <dependency>
@@ -135,7 +135,7 @@
       <artifactId>jangaroo-compiler</artifactId>
       <classifier>examples</classifier>
       <type>zip</type>
-      <version>0.1.2-SNAPSHOT</version>
+      <version>0.2</version>
     </dependency>
 
   </dependencies>
