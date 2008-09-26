@@ -56,12 +56,15 @@ public class CopyRuntimeMojo extends AbstractMojo {
   private List<Artifact> pluginArtifacts;
 
   /**
+   * By default, the plugin will take the Jangaroo runtime from its own jangaroo-compiler dependency.
+   * If necessary, this parameter may be set to override which artifact will be used as the source for the
+   * Jangaroo runtime.
    * @parameter alias="runtime"
-   * 
    */
   private Runtime runtime;
 
   /**
+   * Target directory for the extracted runtime.
    * @parameter expression="${project.build.directory}/js-classes"
    */
   private File outputDirectory;

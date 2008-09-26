@@ -1,11 +1,18 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
+
   <groupId>net.jangaroo</groupId>
   <artifactId>jangaroo-tools</artifactId>
   <packaging>pom</packaging>
   <version>0.1.2-SNAPSHOT</version>
+
   <name>Jangaroo Tools</name>
-  
+  <url>http://www.jangaroo.net/</url>
+
+  <prerequisites>
+    <maven>2.0.8</maven>
+  </prerequisites>
+
   <licenses>
     <license>
       <name>Apache 2</name>
@@ -15,9 +22,74 @@
   </licenses>
 
   <organization>
-    <name>CoreMedia AG, Hamburg, Germany</name>
-    <url>http://www.jangaroo.net</url>
+    <name>CoreMedia AG</name>
+    <url>http://www.coremedia.com/</url>
   </organization>
+
+  <developers>
+    <developer>
+      <id>agawecki</id>
+      <name>Andreas Gawecki</name>
+      <organization>CoreMedia AG</organization>
+      <organizationUrl>http://www.coremedia.com/</organizationUrl>
+      <email>andreas@jangaroo.net</email>
+      <roles>
+        <role>architect</role>
+        <role>developer</role>
+      </roles>
+      <timezone>+1</timezone>
+    </developer>
+    <developer>
+      <id>fwienber</id>
+      <name>Frank Wienberg</name>
+      <organization>CoreMedia AG</organization>
+      <organizationUrl>http://www.coremedia.com/</organizationUrl>
+      <email>frank@jangaroo.net</email>
+      <roles>
+        <role>architect</role>
+        <role>developer</role>
+      </roles>
+      <timezone>+1</timezone>
+    </developer>
+    <developer>
+      <id>okummer</id>
+      <name>Olaf Kummer</name>
+      <organization>CoreMedia AG</organization>
+      <organizationUrl>http://www.coremedia.com/</organizationUrl>
+      <email>olaf@jangaroo.net</email>
+      <roles>
+        <role>architect</role>
+        <role>developer</role>
+      </roles>
+      <timezone>+1</timezone>
+    </developer>
+    <developer>
+      <id>dhomann</id>
+      <name>Dennis Homann</name>
+      <organization>CoreMedia AG</organization>
+      <organizationUrl>http://www.coremedia.com/</organizationUrl>
+      <email>dennis@jangaroo.net</email>
+      <roles>
+        <role>developer</role>
+      </roles>
+      <timezone>+1</timezone>
+    </developer>
+    <developer>
+      <id>mbostani</id>
+      <name>Masiar Bostanipoor</name>
+      <organization>CoreMedia AG</organization>
+      <organizationUrl>http://www.coremedia.com/</organizationUrl>
+      <email>masiar@jangaroo.net</email>
+      <roles>
+        <role>web design</role>
+      </roles>
+      <timezone>+1</timezone>
+    </developer>
+  </developers>
+
+  <contributors>
+
+  </contributors>
 
   <pluginRepositories>
     <pluginRepository>
@@ -88,7 +160,20 @@
           <artifactId>maven-assembly-plugin</artifactId>
           <version>2.2-beta-2</version>
         </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-plugin-plugin</artifactId>
+          <version>2.4.3</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-site-plugin</artifactId>
+          <version>2.0-beta-7</version>
+        </plugin>
       </plugins>
+
     </pluginManagement>
 
     <plugins>

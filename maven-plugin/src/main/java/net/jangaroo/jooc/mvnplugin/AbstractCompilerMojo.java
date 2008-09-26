@@ -25,7 +25,7 @@ import java.util.*;
 public abstract class AbstractCompilerMojo extends AbstractMojo {
   private Log log = getLog();
   /**
-   * Indicates whether the build will fail if there are compilation errors; defaults to true.
+   * Indicates whether the build will fail if there are compilation errors.
    *
    * @parameter expression="${maven.compiler.failOnError}" default-value="true"
    */
@@ -57,28 +57,11 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
   private String debuglevel;
   /**
    * Set to "true" to produce one single output file for all generated compiled classes.
-   * When "mergeOutput" is set to "true", "outputFileName" must be set as well.
    * @parameter default-value="false"
    */
   private boolean mergeOutput;
-  /**
-   * When "mergeOutput" is "true", this parameter specifies the name of the output file containing all
-   * compiled classes. Otherwise, this parameter will be ignored.
-   * @parameter default-value="${project.build.finalName}.js"
-   */
-  private String outputFileName;
-  /**
-   * A list of inclusion filters for the compiler.
-   *
-   * @parameter
-   */
-  private Set includes = new HashSet();
-  /**
-   * A list of exclusion filters for the compiler.
-   *
-   * @parameter
-   */
-  private Set excludes = new HashSet();
+
+  public abstract String getOutputFileName();
 
   protected abstract List getCompileSourceRoots();
 
@@ -109,7 +92,7 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
 
     configuration.setOutputDirectory(getOutputDirectory());
     configuration.setMergeOutput(mergeOutput);
-    configuration.setOutputFileName(outputFileName);
+    configuration.setOutputFileName(getOutputFileName());
 
     if (debug && StringUtils.isNotEmpty(debuglevel)) {
       if (debuglevel.equalsIgnoreCase("lines")) {
@@ -253,7 +236,11 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
     return staleSources;
   }
 
-  protected SourceInclusionScanner getSourceInclusionScanner(int staleMillis) {
+  protected abstract SourceInclusionScanner getSourceInclusionScanner(int staleMillis);
+
+  protected abstract SourceInclusionScanner getSourceInclusionScanner(String inputFileEnding);
+
+  protected SourceInclusionScanner getSourceInclusionScanner(Set includes, Set excludes, int staleMillis) {
     SourceInclusionScanner scanner = null;
 
     if (includes.isEmpty() && excludes.isEmpty()) {
@@ -268,7 +255,7 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
     return scanner;
   }
 
-  protected SourceInclusionScanner getSourceInclusionScanner(String inputFileEnding) {
+  protected SourceInclusionScanner getSourceInclusionScanner(Set includes, Set excludes, String inputFileEnding) {
     SourceInclusionScanner scanner = null;
 
     if (includes.isEmpty() && excludes.isEmpty()) {
