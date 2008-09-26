@@ -5,22 +5,22 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Mojo to compile Jangaroo sources from during the compile phase.
+ * Mojo to compile Jangaroo sources from during the test-compile phase.
  *
- * @goal compile
- * @phase compile
+ * @goal testCompile
+ * @phase test-compile
  */
-public class CompilerMojo extends AbstractCompilerMojo {
+public class TestCompilerMojo extends AbstractCompilerMojo {
 
   /**
    * Output directory for compiled classes.
-   * @parameter expression="${project.build.directory}/js-classes"
+   * @parameter expression="${project.build.directory}/test-js-classes"
    */
   private File outputDirectory;
 
   /**
    * Source directory to scan for files to compile.
-   * @parameter expression="${basedir}/src/main/joo"
+   * @parameter expression="${basedir}/src/test/joo"
    */
   private File sourceDirectory;
 

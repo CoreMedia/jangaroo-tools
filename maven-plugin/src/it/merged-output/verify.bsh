@@ -33,17 +33,10 @@ try
         return false;
     }
 
-    File webappDirectory = new File( target, "merged-output-1.0-SNAPSHOT" );
-    if ( !webappDirectory.exists() || !webappDirectory.isDirectory() )
-    {
-        System.err.println( "webappDirectory is missing or not a directory." );
-        return false;
-    }
-
-    File jsDir = new File ( webappDirectory, "js" );
+    File jsDir = new File ( target, "js-classes" );
     if ( !jsDir.exists() || !jsDir.isDirectory() )
     {
-        System.err.println( "js directory is missing or not a directory." );
+        System.err.println( "js-classes directory is missing or not a directory." );
         return false;
     }
 

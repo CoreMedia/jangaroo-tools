@@ -13,7 +13,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 /**
- * Mojo to extract the Jangaroo runtime from net.jangaroo:jangaroo-compiler:runtime:zip.
+ * Mojo to extract the Jangaroo runtime from net.jangaroo:jangaroo-compiler:runtime:zip during compilation phase.
  *
  * @goal copy-runtime
  * @phase compile
@@ -62,7 +62,7 @@ public class CopyRuntimeMojo extends AbstractMojo {
   private Runtime runtime;
 
   /**
-   * @parameter expression="${project.build.directory}/${project.build.finalName}/js"
+   * @parameter expression="${project.build.directory}/js-classes"
    */
   private File outputDirectory;
 

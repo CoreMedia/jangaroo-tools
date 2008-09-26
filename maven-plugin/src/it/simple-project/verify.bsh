@@ -33,17 +33,10 @@ try
         return false;
     }
 
-    File webappDirectory = new File( target, "simple-project-1.0-SNAPSHOT" );
-    if ( !webappDirectory.exists() || !webappDirectory.isDirectory() )
-    {
-        System.err.println( "webappDirectory is missing or not a directory." );
-        return false;
-    }
-
-    File jsDir = new File ( webappDirectory, "js" );
+    File jsDir = new File ( target, "js-classes" );
     if ( !jsDir.exists() || !jsDir.isDirectory() )
     {
-        System.err.println( "js directory is missing or not a directory." );
+        System.err.println( "js-classes directory is missing or not a directory." );
         return false;
     }
 
@@ -65,6 +58,21 @@ try
     if ( !classRuntimeJs.exists() || !classRuntimeJs.isFile() )
     {
         System.err.println( "joo/Class.js runtime file is missing or not a file." );
+        return false;
+    }
+
+
+    File testJsDir = new File ( target, "test-js-classes" );
+    if ( !testJsDir.exists() || !testJsDir.isDirectory() )
+    {
+        System.err.println( "test-js-classes directory is missing or not a directory." );
+        return false;
+    }
+
+    testClassJs = new File ( testJsDir, "net"+File.separator+"jangaroo"+File.separator+"example"+File.separator+"TestClass.js" );
+    if ( !testClassJs.exists() || !testClassJs.isFile() )
+    {
+        System.err.println( testClassJs + " output file is missing or not a file." );
         return false;
     }
 
