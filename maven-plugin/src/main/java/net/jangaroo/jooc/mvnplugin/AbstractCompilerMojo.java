@@ -125,11 +125,6 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
       if (configuration.isDebugLines()) {
         getLog().info("When output is merged into one file, debug mode 'lines' is not effective.");
       }
-
-    } else {
-      if (configuration.getOutputFileName() != null) {
-        getLog().info("Generating one file per compilation unit. <outputFileName> will be ingored.");
-      }
     }
 
     HashSet<File> sources = new HashSet<File>();
