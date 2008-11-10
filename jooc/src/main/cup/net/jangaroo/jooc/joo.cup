@@ -573,7 +573,7 @@ packageDeclaration ::=
   ;
 
 parameter ::=
-    optConst:oc ide:ide optTypeRelation:t
+    optConst:oc ide:ide optTypeRelation:t optInitializer:init
     {: RESULT = new Parameter(oc,ide,t); :}
   ;
 
