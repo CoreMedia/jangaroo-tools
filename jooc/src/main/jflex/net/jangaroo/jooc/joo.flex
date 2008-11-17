@@ -162,6 +162,7 @@ static int[] terminalsAllowedBeforeRegexpLiteral = {
     defsym("instanceof", INSTANCEOF);
     defsym("interface", INTERFACE);
     defsym("internal", INTERNAL);
+    defsym("is", IS);
     defsym("new", NEW);
     defsym("null", NULL_LITERAL);
     defsym("override", OVERRIDE);
@@ -300,6 +301,7 @@ HexDigit          = [0-9abcdefABCDEF]
   "instanceof"                    { return symbol(INSTANCEOF); }
   "interface"                     { return symbol(INTERFACE); }
   "internal"                      { return symbol(INTERNAL); }
+  "is"                            { return symbol(IS); }
   "new"                           { return symbol(NEW); }
   "null"                          { return symbol(NULL_LITERAL, null); }
   "override"                      { return symbol(OVERRIDE); }

@@ -37,15 +37,16 @@ abstract class Declaration extends NodeImplBase {
   protected static final int MODIFIER_PUBLIC = 1;
   protected static final int MODIFIER_PROTECTED = 2*MODIFIER_PUBLIC;
   protected static final int MODIFIER_PRIVATE = 2*MODIFIER_PROTECTED;
-  protected static final int MODIFIER_STATIC = 2*MODIFIER_PRIVATE;
+  protected static final int MODIFIER_INTERNAL = 2*MODIFIER_PRIVATE;
+  protected static final int MODIFIER_STATIC = 2*MODIFIER_INTERNAL;
   protected static final int MODIFIER_ABSTRACT = 2*MODIFIER_STATIC;
   protected static final int MODIFIER_FINAL = 2*MODIFIER_ABSTRACT;
   protected static final int MODIFIER_OVERRIDE = 2*MODIFIER_FINAL;
 
-  protected static final int MODIFIERS_SCOPE = MODIFIER_PRIVATE|MODIFIER_PROTECTED|MODIFIER_PUBLIC;
+  protected static final int MODIFIERS_SCOPE =
+    MODIFIER_PRIVATE|MODIFIER_PROTECTED|MODIFIER_PUBLIC|MODIFIER_INTERNAL;
 
   protected Declaration(JooSymbol[] modifiers, int allowedModifiers) {
-    int test = 0 | MODIFIER_ABSTRACT | MODIFIER_STATIC;
     this.symModifiers = modifiers;
     this.allowedModifiers = allowedModifiers;
   }
@@ -63,6 +64,7 @@ abstract class Declaration extends NodeImplBase {
         case sym.PUBLIC: flag = MODIFIER_PUBLIC; break;
         case sym.PROTECTED: flag = MODIFIER_PROTECTED; break;
         case sym.PRIVATE: flag = MODIFIER_PRIVATE; break;
+        case sym.INTERNAL: flag = MODIFIER_INTERNAL; break;
         case sym.STATIC: flag = MODIFIER_STATIC; break;
         case sym.ABSTRACT: flag = MODIFIER_ABSTRACT; break;
         case sym.FINAL: flag = MODIFIER_FINAL; break;

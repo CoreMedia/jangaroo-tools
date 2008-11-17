@@ -65,6 +65,12 @@ public class JooTest extends JooRuntimeTestCase {
     expectString("undefined", "typeof package2.TestStaticInitializer.f");
   }
 
+  public void testInternal() throws Exception {
+    loadClass("package2.TestInternal");
+    initClass("package2.TestInternal");
+    expectString("internal", "new package2.TestInternal().returnInternal()");
+  }
+
   public void testInitializeBeforeStaticMethod() throws Exception {
     loadClass("package2.TestStaticInitializer");
     expectNumber(1, "package2.TestStaticInitializer.return1()");

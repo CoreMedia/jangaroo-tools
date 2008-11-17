@@ -378,12 +378,14 @@ Function.prototype.bind = function(object) {
               fieldsWithInitializer: fieldsWithInitializer,
               $public: this.Public.prototype,
               $protected: this.Public.prototype,
+              $internal: this.Public.prototype,
               $private: this.Public.prototype
             },
             $static: {
               fieldsWithInitializer: [],
               $public: publicConstructor,
               $protected: publicConstructor,
+              $internal: publicConstructor,
               $private: privateStatic
             }
           };
@@ -391,7 +393,7 @@ Function.prototype.bind = function(object) {
           var i=0;
           while (i<memberDeclarations.length) {
             var memberKey = "$this"; // default: not static
-            var visibility = "$public"; // default: public visibility
+            var visibility = "$internal"; // default: internal visibility
             var members = memberDeclarations[i++];
             if (members===undefined) {
               continue;
@@ -405,7 +407,7 @@ Function.prototype.bind = function(object) {
                 var modifier = modifiers[j];
                 if (modifier=="static") {
                   memberKey = "$static";
-                } else if (modifier=="private" || modifier=="public" || modifier=="protected") {
+                } else if (modifier=="private" || modifier=="public" || modifier=="protected" || modifier=="internal") {
                   visibility = "$"+modifier;
                 } else if (modifier=="var" || modifier=="const") {
                   memberType = modifier;

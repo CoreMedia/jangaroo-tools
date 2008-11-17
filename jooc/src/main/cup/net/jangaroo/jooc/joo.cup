@@ -78,7 +78,7 @@ terminal JooSymbol DEBUGGER, DEFAULT, DELETE, DO;
 terminal JooSymbol ELSE, ENUM, EXTENDS;
 terminal JooSymbol FINAL, FINALLY, FOR, FUNCTION;
 terminal JooSymbol GOTO;
-terminal JooSymbol IF, IMPLEMENTS, IMPORT, IN, INSTANCEOF, INTERFACE, INTERNAL;
+terminal JooSymbol IF, IMPLEMENTS, IMPORT, IN, INSTANCEOF, INTERFACE, INTERNAL, IS;
 terminal JooSymbol NEW;
 terminal JooSymbol OVERRIDE;
 terminal JooSymbol PACKAGE, PRIVATE, PROTECTED, PUBLIC;
@@ -464,6 +464,8 @@ modifier ::=
   | PROTECTED:s
     {: RESULT = s; :}
   | PRIVATE:s
+    {: RESULT = s; :}
+  | INTERNAL:s
     {: RESULT = s; :}
   | STATIC:s
     {: RESULT = s; :}
