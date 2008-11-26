@@ -15,15 +15,14 @@
 
 package net.jangaroo.test.integration;
 
+import net.jangaroo.jooc.Jooc;
+import net.jangaroo.test.JooTestCase;
 import org.mozilla.javascript.*;
 
 import java.io.File;
 import java.io.FileReader;
 import java.io.Reader;
 import java.io.StringReader;
-
-import net.jangaroo.jooc.Jooc;
-import net.jangaroo.test.JooTestCase;
 
 /**
  * A JooTestCase to be executed at runtime
@@ -98,8 +97,16 @@ public abstract class JooRuntimeTestCase extends JooTestCase {
   }
 
   protected void loadClass(String qualifiedJooClassName) throws Exception {
-    String jsFileName = qualifiedJooClassName.replace('.',File.separatorChar) + Jooc.OUTPUT_FILE_SUFFIX;
+    String jsFileName = jsFileName(qualifiedJooClassName);
     load(jsFileName);
+  }
+
+  protected String jsFileName(final String qualifiedJooClassName) {
+    return qualifiedJooClassName.replace('.', File.separatorChar) + Jooc.OUTPUT_FILE_SUFFIX;
+  }
+
+  protected String asFileName(final String qualifiedJooClassName) {
+    return qualifiedJooClassName.replace('.', File.separatorChar) + Jooc.AS_SUFFIX;
   }
 
   protected void initClass(String qualifiedJooClassName) throws Exception {
@@ -144,6 +151,17 @@ public abstract class JooRuntimeTestCase extends JooTestCase {
       } else
         fail("expected length " + expected.length() + ": \"" + expected +
             "\", found length " + actual.length() + ": \"" + actual + "\"");
+    }
+  }
+
+  protected void expectSubstring(String expected, String script) throws Exception {
+    Object result = eval(script);
+    String actual = null;
+    if (result instanceof String)
+      actual = (String)result;
+    else fail("expected string result, found: " + result.getClass().getName());
+    if (!actual.contains(expected)) {
+      fail("expected substring '" + expected + "' not found within: '" + result + "'");
     }
   }
 

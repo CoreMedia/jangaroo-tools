@@ -37,6 +37,12 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
    */
   private boolean debug;
   /**
+   * Set "enableAssertions" to "true" in order to generate runtime checks for assert statements.
+   *
+   * @parameter expression="${maven.compile.ea}" default-value="false"
+   */
+  private boolean enableAssertions;
+  /**
    * If set to "true", the compiler will generate more detailed progress information.
    * @parameter expression="${maven.compiler.verbose}" default-value="false"
    */
@@ -88,6 +94,7 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
     JoocConfiguration configuration = new JoocConfiguration();
 
     configuration.setDebug(debug);
+    configuration.setEnableAssertions(enableAssertions);
     configuration.setVerbose(verbose);
 
     configuration.setOutputDirectory(getOutputDirectory());

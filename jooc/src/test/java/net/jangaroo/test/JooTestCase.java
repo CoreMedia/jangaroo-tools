@@ -33,6 +33,8 @@ public abstract class JooTestCase extends TestCase {
   }
 
   protected boolean debug = false;
+  protected boolean ea = false;
+
   protected String sourceDir = null;
   protected String destinationDir = null;
 
@@ -85,6 +87,7 @@ public abstract class JooTestCase extends TestCase {
   protected int runJooc(String[] fileNames) {
     String[] args = prependSourceDir(fileNames);
     if (debug) args = concat("-g", args);
+    if (ea) args = concat("-ea", args);
     if (destinationDir != null) args = concat(new String[]{"-d", destinationDir}, args);
     Jooc compiler = new Jooc();
     System.out.println("jooc " + toString(args));

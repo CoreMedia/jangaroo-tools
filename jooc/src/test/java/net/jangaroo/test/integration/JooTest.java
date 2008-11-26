@@ -15,6 +15,8 @@
 
 package net.jangaroo.test.integration;
 
+import java.io.File;
+
 /**
  * Some basic test cases for JangarooScript compiler and runtime correctness.
  *
@@ -34,6 +36,29 @@ public class JooTest extends JooRuntimeTestCase {
     expectNumber(43, "package1.TestMethodCall.s(43)");
     eval("obj = new package1.TestMethodCall();");
     expectNumber(43, "obj.m(43)");
+  }
+
+  public void testAssert() throws Exception {
+    String qualifiedName = "package1.TestAssert";
+    String asFileName = asFileName(qualifiedName);
+    String jsFileName = jsFileName(qualifiedName);
+    loadClass(qualifiedName);
+
+    String canonicalJsFileName = new File(jsFileName).getCanonicalPath();
+    boolean assertionsEnabled = canonicalJsFileName.contains(File.separatorChar + "debug-and-assert" + File.separatorChar);
+
+    final String script = qualifiedName + ".testAssert()";
+    System.out.println("\ncanonicalJsFileName: " + canonicalJsFileName);
+    System.out.println("\nassertions enabled: " + assertionsEnabled);
+
+    if (!assertionsEnabled) {
+      expectString("no exception thrown", script);
+    } else {
+      int line = 30;
+      int column = 9;
+      String expectedErrorMsgTail = asFileName + "(" + line + ":" + column + "): assertion failed";
+      expectSubstring(expectedErrorMsgTail, qualifiedName + ".testAssert()");
+    }
   }
 
   public void testInheritance() throws Exception {

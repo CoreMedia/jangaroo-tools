@@ -109,7 +109,7 @@
         <artifactId>maven-antrun-plugin</artifactId>
         <executions>
 
-          <!-- compile the test .js2 files in target/joo -->
+          <!-- compile the test .as files in target/joo -->
           <execution>
             <id>compile-test-joo</id>
             <phase>process-test-resources</phase>

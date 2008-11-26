@@ -280,8 +280,8 @@ public class JoocTask extends MatchingTask {
     if (verbose) {
       args.add("-v");
     }
-    // TODO: reenable assertions
-    //if (enableAssertions) args.add("-ea");
+    if (enableAssertions)
+      args.add("-ea");
     if (destDir != null) {
       args.add("-d");
       args.add(destDir.getAbsolutePath());

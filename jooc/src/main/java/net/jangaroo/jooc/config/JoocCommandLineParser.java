@@ -43,20 +43,16 @@ public class JoocCommandLineParser {
       .hasArg()
       .withDescription("destination directory for generated JavaScript files")
       .create("d");
-    /*
     Option enableAssertionsOption = OptionBuilder.withLongOpt("enableassertions")
             .withDescription("enable assertions")
             .create("ea");
-    */
     Options options = new Options();
     options.addOption(help);
     options.addOption(version);
     options.addOption(verboseOption);
     options.addOption(debugOption);
     options.addOption(destinationDir);
-    /*
     options.addOption(enableAssertionsOption);
-    */
     CommandLineParser parser = new GnuParser();
     CommandLine line = null;
 
@@ -84,11 +80,8 @@ public class JoocCommandLineParser {
       config.setOutputDirectory(destDir);
     }
 
-    config.setEnableAssertions(false); // TODO: use option
-    /*
     if (line.hasOption(enableAssertionsOption.getOpt()))
-      enableAssertions = true;
-    */
+      config.setEnableAssertions(true);
 
     if (line.hasOption(debugOption.getOpt())) {
       String[] values = line.getOptionValues(debugOption.getOpt());

@@ -22,19 +22,31 @@ import java.io.IOException;
  */
 class AssertStatement extends KeywordExprStatement {
 
+  JooSymbol lParen;
+  JooSymbol rParen;
 
-  public AssertStatement(JooSymbol symAssert, Expr expr, JooSymbol symSemicolon) {
+  public AssertStatement(JooSymbol symAssert, JooSymbol lParen, Expr expr, JooSymbol rParen, JooSymbol symSemicolon) {
     super(symAssert, expr, symSemicolon);
+    this.lParen = lParen;
+    this.rParen = rParen;
   }
 
   public void generateCode(JsWriter out) throws IOException {
     if (out.getEnableAssertions()) {
       out.writeSymbolWhitespace(symKeyword);
-      out.writeToken("_joo_assert(");
+      out.writeToken("assert");
+      out.writeSymbol(lParen);
+      out.write("(");
       optExpr.generateCode(out);
+      out.write(")");
       out.write(", ");
-      out.writeString(symKeyword.getFileName()+"("+symKeyword.getLine()+","+symKeyword.getColumn()+")");
-      out.write(");");
+      out.writeString(symKeyword.getFileName());
+      out.write(", ");
+      out.writeInt(symKeyword.getLine());
+      out.write(", ");
+      out.writeInt(symKeyword.getColumn());
+      out.writeSymbol(rParen);
+      out.writeSymbol(symSemicolon);
     } else {
       out.beginComment();
       super.generateCode(out);

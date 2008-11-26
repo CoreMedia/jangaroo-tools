@@ -361,7 +361,11 @@ Function.prototype.bind = function(object) {
           var superName = classPrefix+"super";
           // static part:
           var publicConstructor = this.publicConstructor;
-          var privateStatic = {_super: superName};
+          var assert = function(cond, file, line, column) {
+            if (!cond)
+              throw new Error(file+"("+line+":"+column+"): assertion failed");
+          }
+          var privateStatic = {_super: superName, assert: assert};
 
           if (this.superClassDescription) {
             // init super class:
@@ -567,6 +571,9 @@ Function.prototype.bind = function(object) {
       return ClassDescription.$static.dumpClasses();
     }
   };
+  theGlobalObject.joo.assert = function(condition, filename, line, column, msg) {
+
+  }
 })(this);
 //  alert("runtime loaded!");
 joo.typeOf = function typeOf(obj){

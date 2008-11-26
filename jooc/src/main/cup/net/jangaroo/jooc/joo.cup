@@ -641,10 +641,8 @@ statement ::=
     {: RESULT = new ReturnStatement(r,e,s); :}
   | DELETE:d lvalue:e SEMICOLON:s
     {: RESULT = new DeleteStatement(d,e,s); :}
-/*
-  | ASSERT:a exprOrObjectLiteral:e SEMICOLON:s
-    {: RESULT = new AssertStatement(a,e,s); :}
-*/
+  | ASSERT:a LPAREN:lp exprOrObjectLiteral:e RPAREN:rp SEMICOLON:s
+    {: RESULT = new AssertStatement(a,lp,e,rp,s); :}
   | THROW:t commaExpr:e SEMICOLON:s
     {: RESULT = new ThrowStatement(t,e,s); :}
   | SUPER:s LPAREN:lp arguments:args RPAREN:rp
