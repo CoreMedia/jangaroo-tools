@@ -158,6 +158,7 @@ nonterminal PackageDeclaration packageDeclaration;
 nonterminal Parameter parameter;
 nonterminal Parameters parameters;
 nonterminal ParenthesizedExpr parenthesizedExpr;
+nonterminal Expr asExpression;
 nonterminal Ide qualifiedIde;
 nonterminal Statement statement;
 nonterminal Statement labelableStatement;
@@ -298,6 +299,8 @@ expr ::=
   | SUPER:s DOT:d ide:ide  LPAREN:lp arguments:args RPAREN:rp
     {: RESULT = new SuperMethodCallExpr(s,d,ide,lp,args,rp); :}
   | parenthesizedExpr:e
+    {: RESULT = e; :}
+  | asExpression:e
     {: RESULT = e; :}
   | NEW:n type:t LPAREN:lp arguments:args RPAREN:rp
     {: RESULT = new NewExpr(n,t,lp,args,rp); :}
@@ -588,6 +591,11 @@ parameters ::=
 parenthesizedExpr ::=
     LPAREN:lp commaExpr:e RPAREN:rp
     {: RESULT = new ParenthesizedExpr(lp,e,rp); :}
+  ;
+
+asExpression ::=
+    expr:e AS:as type:t
+    {: RESULT = e; :}
   ;
 
 qualifiedIde ::=
