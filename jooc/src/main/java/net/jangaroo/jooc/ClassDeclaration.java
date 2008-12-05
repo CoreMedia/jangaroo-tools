@@ -106,7 +106,7 @@ public class ClassDeclaration extends IdeDeclaration {
     out.write("],");
     out.write("function($jooPublic,$jooPrivate){with($jooPublic)with($jooPrivate)return[");
     body.generateCode(out);
-    out.write("]}");
+    out.write("];}");
   }
 
   public void analyze(AnalyzeContext context) {
