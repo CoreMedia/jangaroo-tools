@@ -4,7 +4,7 @@ if "%OS%"=="Windows_NT" @setlocal
 if "%OS%"=="WINNT" @setlocal
 
 set JOO_HOME=%~dp0..
-set JAVA_ARGS=-jar "%JOO_HOME%\lib\jangaroo-compiler-${joo.tools.version}.jar"
+set JAVA_ARGS=-jar "%JOO_HOME%\lib\jangaroo-compiler-${pom.version}.jar"
 
 if "%JAVA_HOME%" == "" (
   echo ERROR: JAVA_HOME environment variable is not set.
