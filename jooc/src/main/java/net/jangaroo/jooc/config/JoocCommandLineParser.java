@@ -85,11 +85,11 @@ public class JoocCommandLineParser {
 
     if (line.hasOption(debugOption.getOpt())) {
       String[] values = line.getOptionValues(debugOption.getOpt());
+      config.setDebug(true);
       if (values == null || values.length == 0) {
         if (config.isVerbose()) {
           System.out.println("-g option present.");
         }
-        config.setDebug(true);
         config.setDebugLines(true);
         config.setDebugSource(true);
       } else {
@@ -98,10 +98,11 @@ public class JoocCommandLineParser {
         }
         for (String value : values) {
           if (value.equals("source"))
-            config.setDebugLines(true);
+            config.setDebugSource(true);
           else if (value.equals("lines"))
             config.setDebugLines(true);
           else if (value.equals("none")) {
+            config.setDebug(false);
             config.setDebugSource(false);
             config.setDebugLines(false);
           } else
