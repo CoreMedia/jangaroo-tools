@@ -13,24 +13,20 @@
  * governing permissions and limitations under the License.
  */
 
-package package1 {
+package package1 /*blubber*/ {
 
-public class TestLocalVariables /*extends Object*/ {
+/**
+* a comment
+*/
+public class TestMemberNames {
 
-  public function TestLocalVariables() {
+  public function TestMemberNames() {
   }
 
-  public function m(x :int) {
-    var y = (x*x)+1;
-    const _z = 99;
-    return y+_z;
-  }
-
-  public function m2(_x :int) {
-    var n = _x*_x;
-
-    return + ++_x+ ++n- -22;
-  }
+  public var $;
+  public var _;
+  public var _hallo;
+  public var _$hallo;
 
 }
 }

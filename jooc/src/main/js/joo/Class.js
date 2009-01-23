@@ -83,7 +83,7 @@ Function.prototype.bind = function(object) {
   }
   function registerPrivateMember(privateStatic, classPrefix, memberName) {
     var privateMemberName = classPrefix+memberName;
-    privateStatic["_"+memberName] = privateMemberName;
+    privateStatic["$"+memberName] = privateMemberName;
     return privateMemberName;
   }
   function createGetClass($constructor) {
@@ -437,21 +437,21 @@ Function.prototype.bind = function(object) {
               if (!memberName) {
                 // found static code block; execute on initialization
                 targetMap.$static.fieldsWithInitializer.push(members);
-              } else if (memberName=="_"+this.$class) {
-                this.$constructor = members;
-                setFunctionName(members, this.$class);
               } else {
-                if (memberKey=="$this") {
-                  if (visibility=="$private") {
-                    memberName = registerPrivateMember(privateStatic, classPrefix, memberName);
-                    setFunctionName(members, memberName);
-                  } else if (isFunction(target[memberName])) {
-                    // Found overriding! Store super method as private method delegate for super access:
-                    this.Public.prototype[registerPrivateMember(privateStatic, classPrefix, memberName)] = target[memberName];
-                  }
-                }
                 setFunctionName(members, memberName);
-                target[memberName] = members;
+                if (memberName==this.$class) {
+                  this.$constructor = members;
+                } else {
+                  if (memberKey=="$this") {
+                    if (visibility=="$private") {
+                      memberName = registerPrivateMember(privateStatic, classPrefix, memberName);
+                    } else if (isFunction(target[memberName])) {
+                      // Found overriding! Store super method as private method delegate for super access:
+                      this.Public.prototype[registerPrivateMember(privateStatic, classPrefix, memberName)] = target[memberName];
+                    }
+                  }
+                  target[memberName] = members;
+                }
               }
             } else {
               var targetFieldsWithInitializer = targetMap[memberKey].fieldsWithInitializer;

@@ -37,7 +37,7 @@ class SuperMethodCallExpr extends ApplyExpr {
   protected void generateFunCode(JsWriter out) throws IOException {
     out.writeSymbolWhitespace(symSuper);
     //TODO:report error on super calls within closures
-    out.writeToken("this[_");
+    out.writeToken("this[$");
     out.write(methodIde.getName());
     out.writeToken("]");
   }

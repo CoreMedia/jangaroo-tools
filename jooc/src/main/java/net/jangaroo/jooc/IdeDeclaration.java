@@ -15,17 +15,23 @@
 
 package net.jangaroo.jooc;
 
+import java.util.regex.Pattern;
+
 
 /**
  * @author Andreas Gawecki
  */
 public abstract class IdeDeclaration extends Declaration {
 
+  private static Pattern PRIVATE_MEMBER_NAME = Pattern.compile("^[$](\\p{Alpha}|[_$])(\\p{Alnum}|[_$])*$");
   Ide ide;
 
   protected IdeDeclaration(JooSymbol[] modifiers, int allowedModifiers, Ide ide) {
     super(modifiers, allowedModifiers);
     this.ide = ide;
+    if (PRIVATE_MEMBER_NAME.matcher(ide.getName()).matches()) {
+      Jooc.error(ide, "Jangaroo identifier must not be an ActionScript identifier prefixed with a dollar sign ('$'): "+ide.getName());
+    }
   }
 
   public Ide getIde() {

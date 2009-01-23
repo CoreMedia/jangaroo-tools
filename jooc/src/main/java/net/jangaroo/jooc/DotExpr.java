@@ -48,7 +48,7 @@ class DotExpr extends BinaryOpExpr {
       out.write("[");
       // awkward, but we have to be careful if we add characters to tokens:
       final JooSymbol symbol = ((IdeExpr) arg2).getSymbol();
-      out.writeSymbol(symbol,  "_", "");
+      out.writeSymbol(symbol,  "$", "");
       out.write("]");
     } else {
       super.generateCode(out);
