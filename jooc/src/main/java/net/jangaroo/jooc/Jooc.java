@@ -188,7 +188,6 @@ public class Jooc {
     System.out.println(specVendor);
   }
 
-  /** @noinspection AccessStaticViaInstance*/
   public int run(String[] argv) {
     try {
       JoocCommandLineParser parser = new JoocCommandLineParser();

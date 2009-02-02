@@ -32,7 +32,9 @@ public class PackageDeclaration extends IdeDeclaration  {
   public void generateCode(JsWriter out) throws IOException {
     out.writeSymbolWhitespace(symPackage);
     out.write("\"package ");
-    ide.generateCode(out);
+    if (ide!=null) {
+      ide.generateCode(out);
+    }
     out.write("\"");
     out.write(",");
   }

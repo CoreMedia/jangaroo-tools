@@ -90,6 +90,42 @@ public class JooTest extends JooRuntimeTestCase {
     expectString("undefined", "typeof package2.TestStaticInitializer.f");
   }
 
+  public void testStaticAccess() throws Exception {
+    loadClass("package2.TestStaticAccess");
+    initClass("package2.TestStaticAccess");
+    expectGetAndGetQualified("s1", true, "s1");
+    expectGetAndGetQualified("s2", false, "s2");
+
+    eval("package2.TestStaticAccess.s1='s1_mod1';");
+    expectGetAndGetQualified("s1", true, "s1_mod1");
+    eval("package2.TestStaticAccess.set_s1('s1_mod2');");
+    expectGetAndGetQualified("s1", true, "s1_mod2");
+    eval("package2.TestStaticAccess.set_s1_qualified('s1_mod3');");
+    expectGetAndGetQualified("s1", true, "s1_mod3");
+    eval("package2.TestStaticAccess.set_s1_fully_qualified('s1_mod4');");
+    expectGetAndGetQualified("s1", true, "s1_mod4");
+
+    eval("package2.TestStaticAccess.set_s2('s2_mod2');");
+    expectGetAndGetQualified("s2", false, "s2_mod2");
+    eval("package2.TestStaticAccess.set_s2_qualified('s2_mod3');");
+    expectGetAndGetQualified("s2", false, "s2_mod3");
+    eval("package2.TestStaticAccess.set_s2_fully_qualified('s2_mod4');");
+    expectGetAndGetQualified("s2", false, "s2_mod4");
+
+    // TODO: test that static members are *not* inherited.
+  }
+
+  private void expectGetAndGetQualified(String memberName, boolean publicMember, String expected) throws Exception {
+    if (publicMember) {
+      expectString(expected, "package2.TestStaticAccess."+memberName+"");
+    } else {
+      expectString("undefined", "typeof(package2.TestStaticAccess."+memberName+")");
+    }
+    expectString(expected, "package2.TestStaticAccess.get_"+memberName+"()");
+    expectString(expected, "package2.TestStaticAccess.get_"+memberName+"_qualified()");
+    expectString(expected, "package2.TestStaticAccess.get_"+memberName+"_fully_qualified()");
+  }
+
   public void testInternal() throws Exception {
     loadClass("package2.TestInternal");
     initClass("package2.TestInternal");
@@ -186,7 +222,6 @@ public class JooTest extends JooRuntimeTestCase {
     expectNumber(2, "obj.getSlot2()");
   }
 
-  /* TODO: the following does not work
   public void testUnqualifiedAccess() throws Exception {
     loadClass("package1.TestUnqualifiedAccess");
     eval("obj = new package1.TestUnqualifiedAccess(\"a\")");
@@ -200,8 +235,14 @@ public class JooTest extends JooRuntimeTestCase {
     expectString("a", "obj.getPublicSlot()");
     eval("obj.setPublicSlot(\"b\")");
     expectString("b", "obj.getPublicSlot()");
+
+    expectBoolean(true, "obj.testConstructorAccess()");
+    expectBoolean(true, "package1.TestUnqualifiedAccess.UNQUALIFIED_CLASS_EQUALS_QUALIFIED_CLASS");
+
+    expectString("foo", "package1.TestUnqualifiedAccess.SET_BY_STATIC_INITIALIZER");
+
+    // TODO: test known bug "unqualified access to super members"!
   }
-  */
 
   public void testNoSuper() throws Exception {
     loadClass("package1.TestNoSuper");
@@ -225,6 +266,69 @@ public class JooTest extends JooRuntimeTestCase {
     loadClass("package1.TestInheritanceSubClass");
     loadClass("package1.TestInheritanceSuperClass");
     eval("joo.Class.complete();");
+  }
+
+  public void testParamInitializers() throws Exception {
+    loadClass("package1.TestParamInitializers");
+    eval("obj = new package1.TestParamInitializers();");
+    expectString("foo/bar", "obj.initParams1('foo','bar')");
+    expectString("foo/1", "obj.initParams1('foo')");
+
+    expectString("foo/bar/baz", "obj.initParams2('foo','bar','baz')");
+    expectString("foo/bar/3", "obj.initParams2('foo','bar')");
+    expectString("foo/foo/3", "obj.initParams2('foo')");
+    expectString("bar/bar/3", "obj.initParams2()");
+
+    expectString("foo/bar/3", "obj.initParams3('foo','bar','a',2,true)");
+    expectString("foo/bar/0", "obj.initParams3('foo','bar')");
+    expectString("foo/foo/0", "obj.initParams3('foo')");
+  }
+
+  public void testRestParams() throws Exception {
+    loadClass("package1.TestRestParams");
+    eval("obj = new package1.TestRestParams();");
+    expectNumber(3, "obj.anyParams(1,2,3);");
+    expectNumber(3, "obj.anyParamsOptimized(1,2,3);");
+    expectNumber(42, "obj.xAndAnyParams(40,2,3);");
+  }
+
+  public void testGetterSetter() throws Exception {
+    loadClass("package1.TestGetterSetter");
+    eval("obj = new package1.TestGetterSetter();");
+    eval("obj.set$foo('1234');");
+    expectString("1234", "obj.get$foo()");
+    eval("obj.set$foo('foo');");
+    expectString("NaN", "obj.get$foo()");
+  }
+
+  public void testIs() throws Exception {
+    loadClass("package1.TestIs");
+    expectBoolean(true, "package1.TestIs.testIs(new package1.TestIs(), package1.TestIs)");
+    expectBoolean(false, "package1.TestIs.testIs(new package1.TestIs(), String)");
+    expectBoolean(true, "package1.TestIs.testIs('foo', String)");
+    expectBoolean(true, "package1.TestIs.testIs(new String('foo'), String)");
+  }
+
+  public void testInterface() throws Exception {
+    loadClass("package1.TestInterface");
+    loadClass("package1.TestImplements");
+    loadClass("package1.TestInterface2");
+    loadClass("package1.TestInheritImplements");
+    eval("obj = new package1.TestImplements();");
+    expectNumber(5, "obj.implementMe('house')");
+    expectBoolean(true, "joo.is(obj, package1.TestImplements)");
+    expectBoolean(true, "joo.is(obj, package1.TestInterface)");
+    expectBoolean(true, "joo.is(obj, Object)");
+    expectBoolean(false, "joo.is(obj, Number)");
+    eval("obj = new package1.TestInheritImplements();");
+    expectBoolean(true, "joo.is(obj, package1.TestInheritImplements)");
+    expectBoolean(true, "joo.is(obj, package1.TestInterface2)");
+    expectBoolean(true, "joo.is(obj, package1.TestImplements)");
+    expectBoolean(true, "joo.is(obj, package1.TestInterface)");
+    expectBoolean(true, "joo.is(obj, Object)");
+    expectBoolean(false, "joo.is(obj, Number)");
+
+    // TODO: test inheritance between interfaces and implementing multiple interfaces at once.
   }
 
   public static void main(String args[]) {

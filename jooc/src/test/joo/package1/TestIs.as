@@ -18,23 +18,10 @@ package package1 /*blubber*/ {
 /**
 * a comment
 */
-public class TestAssert {
+public class TestIs /* blub ber *//*extends Object*/ {
 
-  public function TestAssert() {
-  }
-
-  static public function testAssert() :String {
-    try {
-      assert(1 < 2);
-      try {
-        assert(2 < 1);
-        return "no exception thrown";
-      } catch(ex1) {
-        return ex1.message;
-      }
-    } catch(ex2) {
-      return ex2.message;
-    }
+  public static function testIs(object : Object, type : Class) : Boolean {
+    return object is type;
   }
 
 }

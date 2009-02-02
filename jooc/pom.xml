@@ -57,7 +57,7 @@
                   <!-- arg value="-dump_states" /> -->
                   <arg value="-interface" />
                   <arg value="-expect" />
-                  <arg value="2" />
+                  <arg value="1" />
                   <!--arg value="-dump"/-->
                   <arg value="${cup.sources.dir}/${cup.files.reldir}/${cup.input.filename}" />
                   <classpath>

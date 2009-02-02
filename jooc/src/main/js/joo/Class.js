@@ -67,11 +67,16 @@ Function.prototype.bind = function(object) {
   function isFunction(object) {
     return typeof object=="function" && object.constructor!==RegExp;
   }
-  function createEmptyConstructor($prototype) {
-    var emptyConstructor = function(){};
-    emptyConstructor.prototype =  $prototype;
+  function createEmptyConstructor($constructor) {
+    var emptyConstructor = function(){ this.constructor = $constructor; };
+    emptyConstructor.prototype =  $constructor.prototype;
     return emptyConstructor;
   };
+  function createCast() {
+    return function cast(object) {
+      return object;
+    };
+  }
   function createDefaultConstructor(superName) {
     return (function $DefaultConstructor() {
       this[superName].apply(this,arguments);
@@ -100,6 +105,43 @@ Function.prototype.bind = function(object) {
     } else {
       importsByName[importName] = fullClassName;
     }
+  }
+  function bind(object, methodName) {
+    var member = object[methodName];
+    if (typeof member!="function" || member.$boundTo===object) {
+      return member;
+    }
+    var boundMethod = function $boundMethod() {
+      return member.apply(object,arguments);
+    };
+    // remember the object I am bound to:
+    boundMethod.$boundTo = object;
+    object[methodName]=boundMethod;
+    return boundMethod;
+  }
+  function assert(cond, file, line, column) {
+    if (!cond)
+      throw new Error(file+"("+line+":"+column+"): assertion failed");
+  }
+  function isInstance(object) {
+    return object instanceof this.publicConstructor || object && object.constructor===this.publicConstructor;
+  }
+  function is(object, type) {
+    if (!type || object===undefined || object===null)
+      return false;
+    if (type.$class) {
+      return type.$class.isInstance(object);
+    }
+    // fallback:
+    return object instanceof type || object.constructor===type;
+  }
+  function getDefinitionByName(fullClassName) {
+    var classDef = ClassDescription.$static.getClassDescription(fullClassName);
+    if (classDef) {
+      classDef.initialize();
+      return classDef.publicConstructor;
+    }
+    return null;
   }
   var ClassDescription = (function() {
     function getNativeClass(fullClassName) {
@@ -141,9 +183,6 @@ Function.prototype.bind = function(object) {
         return classDescription;
       },
       getClassDescription: function(fullClassName) {
-        if (!fullClassName || fullClassName=="undefined") {
-          fullClassName.debug();
-        }
         var cd = this.classDescriptions[fullClassName];
         if (!cd) {
           var constr = getNativeClass(fullClassName);
@@ -154,12 +193,15 @@ Function.prototype.bind = function(object) {
             return this.registerClassDescription({
               fullClassName: fullClassName,
               $imports: [],
+              $implements: [],
               state: this.INITIALIZED,
               level: -1,
-              Public: createEmptyConstructor(constr.prototype),
+              Public: createEmptyConstructor(constr),
               initialize: emptySuper,
               $constructor: function() { constr.apply(this,arguments); },
-              publicContructor: constr
+              // TODO: can this be simplified to $constructor: constr ?
+              publicConstructor: constr,
+              isInstance: isInstance
             });
           }
           this.missingClassDescriptions[fullClassName] = true;
@@ -269,8 +311,9 @@ Function.prototype.bind = function(object) {
       for (var m in classDef) {
         this[m] = classDef[m];
       }
-      if (this.$imports.byName[this.$extends]) {
-        this.$extends = this.$imports.byName[this.$extends];
+      this._qualifyByImports(this, "$extends");
+      for (var i=0; i<this.$implements.length; ++i) {
+        this._qualifyByImports(this.$implements, i);
       }
       this.fullClassName = this.$package ? (this.$package + "." + this.$class) : this.$class;
       if (joo.Class.debug && theGlobalObject.console) {
@@ -284,6 +327,7 @@ Function.prototype.bind = function(object) {
       // instance members:
       ClassDescription.prototype = {
         fullClassName: undefined,
+        $interface: undefined,
         $extends: undefined,
         level: 0,
         state: PENDING,
@@ -297,6 +341,12 @@ Function.prototype.bind = function(object) {
             classDescription.initialize();
             return classDescription.publicConstructor[methodName].apply(null, arguments);
           };
+        },
+        _qualifyByImports: function(bean, property) {
+          var fqn = this.$imports.byName[bean[property]];
+          if (fqn) {
+            bean[property] = fqn;
+          }
         },
         /**
          * Prepares this class to be used by constructor, by accessing a static member, or as a super class.
@@ -327,9 +377,15 @@ Function.prototype.bind = function(object) {
           };
           this.$package = createPackage(this.$package);
           var className = this.$class;
-          this.$package[className] = this.publicConstructor = setFunctionName(function() {
-            classDescription.$constructor.apply(this,arguments);
-          }, this.fullClassName);
+          this.$package[className] = this.publicConstructor = setFunctionName(
+            this.$interface
+              ? createCast()
+              : function() {
+                  this.constructor =  classDescription.publicConstructor;
+                  classDescription.$constructor.apply(this,arguments);
+                },
+            this.fullClassName);
+          this.publicConstructor.$class = this; // back-link for debugging only
           // to initialize when calling the first public static method, wrap those methods:
           for (var i=0; i<this.$publicStaticMethods.length; ++i) {
             this.createInitializingPublicStaticMethod(this.$publicStaticMethods[i]);
@@ -338,7 +394,7 @@ Function.prototype.bind = function(object) {
             this.publicConstructor.prototype = new (this.superClassDescription.Public)();
           }
           // TODO: only if not final:
-          this.Public = createEmptyConstructor(this.publicConstructor.prototype);
+          this.Public = createEmptyConstructor(this.publicConstructor);
           this.state = PREPARED;
           prepareSubclasses(this);
         },
@@ -361,11 +417,7 @@ Function.prototype.bind = function(object) {
           var superName = classPrefix+"super";
           // static part:
           var publicConstructor = this.publicConstructor;
-          var assert = function(cond, file, line, column) {
-            if (!cond)
-              throw new Error(file+"("+line+":"+column+"): assertion failed");
-          }
-          var privateStatic = {_super: superName, assert: assert};
+          var privateStatic = {$super: superName, assert: assert, is: is};
 
           if (this.superClassDescription) {
             // init super class:
@@ -493,6 +545,50 @@ Function.prototype.bind = function(object) {
           }
           // init static fields with initializer:
           initFields(privateStatic, publicConstructor, targetMap.$static.fieldsWithInitializer);
+          this.state = INITIALIZED;
+        },
+        /**
+         * Determines if the specified <code>Object</code> is assignment-compatible
+         * with the object represented by this <code>ClassDefinition</code>.
+         * The method returns <code>true</code> if the specified
+         * <code>Object</code> argument is non-null and can be cast to the
+         * reference type represented by this <code>Class</code> object without
+         * raising a <code>ClassCastException.</code> It returns <code>false</code>
+         * otherwise.
+         */
+        isInstance: function(object) {
+          if (object && typeof object.getClass=="function") {
+            return this.isAssignableFrom(getClassDescription(object.getClass().getName()));
+          }
+          return false;
+        },
+        /**
+         * Determines if the class or interface represented by this
+         * <code>ClassDefinition</code> object is either the same as, or is a superclass or
+         * superinterface of, the class or interface represented by the specified
+         * <code>ClassDefinition</code> parameter. It returns <code>true</code> if so;
+         * otherwise it returns <code>false</code>.
+         */
+        isAssignableFrom: function(classDef) {
+          var cd = classDef;
+          do {
+            if (this===cd) {
+              return true;
+            }
+            // TODO: optimize: pre-calculate set of all implemented interfaces of a class!
+            if (this.$interface) {
+              // I am an interface: search all implemented interfaces recursively:
+              var interfaces = cd.$implements;
+              for (var i=0; i<interfaces.length; ++i) {
+                var interfaceDef = getClassDescription(interfaces[i]);
+                if (this.isAssignableFrom(interfaceDef)) {
+                  return true;
+                }
+              }
+            }
+            cd = cd.superClassDescription;
+          } while(cd);
+          return false;
         }
       };
     }
@@ -545,19 +641,34 @@ Function.prototype.bind = function(object) {
         var importFullClassName = arguments[im].match(/^\s*import\s+([a-zA-Z$_0-9.]+)\s*$/)[1];
         addImport(imports, importFullClassName);
       }
-      var classMatch = classDef.match(/^\s*((public|internal)\s+)?(abstract\s+)?(class|interface)\s+([A-Za-z][a-zA-Z$_0-9]*)(\s+extends\s+([a-zA-Z$_0-9.]+))?\s*$/);
+      var $interface = false;
+      var classMatch = classDef.match(/^\s*((public|internal)\s+)?class\s+([A-Za-z][a-zA-Z$_0-9]*)(\s+extends\s+([a-zA-Z$_0-9.]+))?(\s+implements\s+([a-zA-Z$_0-9.,\s]+))?\s*$/);
+      var $extends = "Object";
+      var interfaces;
+      if (classMatch) {
+        if (classMatch[5]) {
+          $extends = classMatch[5];
+        }
+        interfaces = classMatch[7];
+      } else {
+        $interface = true;
+        classMatch = classDef.match(/^\s*((public|internal)\s+)?interface\s+([A-Za-z][a-zA-Z$_0-9]*)(\s+extends\s+([a-zA-Z$_0-9.,\s]+))?\s*$/);
+        interfaces = classMatch[5];
+      }
       if (!classMatch) {
         throw new Error("SyntaxError: \""+classDef+"\" does not match.");
       }
+      interfaces = interfaces ? interfaces.split(/\s*,\s*/) : [];
       new ClassDescription({
         $imports: imports,
         $publicStaticMethods: publicStaticMethods,
         $members: members,
         $package: typeof packageDef=="string" ? packageDef.split(/\s+/)[1] : "",
         visibility: classMatch[2],
-        $abstract : !!classMatch[3] || classMatch[4]=="interface",
-        $class    : classMatch[5],
-        $extends  : classMatch[7] || "Object"
+        $interface : $interface,
+        $class    : classMatch[3],
+        $extends  : $extends,
+        $implements : interfaces
       });
     },
     init: function(clazz) {
@@ -571,9 +682,10 @@ Function.prototype.bind = function(object) {
       return ClassDescription.$static.dumpClasses();
     }
   };
-  theGlobalObject.joo.assert = function(condition, filename, line, column, msg) {
-
-  }
+  theGlobalObject.joo.assert = assert;
+  theGlobalObject.joo.is = is;
+  theGlobalObject.joo.bind = bind;
+  theGlobalObject.joo.getDefinitionByName = getDefinitionByName;
 })(this);
 //  alert("runtime loaded!");
 joo.typeOf = function typeOf(obj){

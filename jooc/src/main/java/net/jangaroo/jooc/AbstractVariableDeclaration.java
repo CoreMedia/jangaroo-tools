@@ -41,10 +41,14 @@ abstract class AbstractVariableDeclaration extends MemberDeclaration {
     generateIdeCode(out);
     if (optTypeRelation != null)
       optTypeRelation.generateCode(out);
-    if (optInitializer != null)
-      optInitializer.generateCode(out);
+    generateInitializerCode(out);
     if (optSymSemicolon != null)
       out.writeSymbol(optSymSemicolon);
+  }
+
+  protected void generateInitializerCode(JsWriter out) throws IOException {
+    if (optInitializer != null)
+      optInitializer.generateCode(out);
   }
 
   public abstract void generateIdeCode(JsWriter out) throws IOException;

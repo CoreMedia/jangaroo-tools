@@ -18,24 +18,19 @@ package package1 /*blubber*/ {
 /**
 * a comment
 */
-public class TestAssert {
+public class TestGetterSetter /* blub ber *//*extends Object*/ {
 
-  public function TestAssert() {
+  public function TestGetterSetter() {
   }
 
-  static public function testAssert() :String {
-    try {
-      assert(1 < 2);
-      try {
-        assert(2 < 1);
-        return "no exception thrown";
-      } catch(ex1) {
-        return ex1.message;
-      }
-    } catch(ex2) {
-      return ex2.message;
-    }
+  public function get foo() : String {
+    return String(this._foo);
   }
 
+  public function set foo(value : String) : void {
+    this._foo = parseInt(value);
+  }
+
+  private var _foo : int;
 }
 }

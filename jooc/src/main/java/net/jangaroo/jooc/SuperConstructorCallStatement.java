@@ -34,7 +34,7 @@ class SuperConstructorCallStatement extends Statement {
     this.lParen = lParen;
     this.args = args;
     this.rParen = rParen;
-    this.fun = new IdeExpr(new Ide(symSuper));
+    this.fun = new SuperExpr(symSuper);
   }
 
   public void analyze(AnalyzeContext context) {
@@ -58,7 +58,7 @@ class SuperConstructorCallStatement extends Statement {
 
   protected void generateFunCode(JsWriter out) throws IOException {
     out.writeSymbolWhitespace(symSuper);
-    out.writeToken("this[_super]");
+    out.writeToken("this[$super]");
   }
 
   protected void generateArgsCode(JsWriter out) throws IOException {

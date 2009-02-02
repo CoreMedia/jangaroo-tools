@@ -50,11 +50,13 @@ class FunctionExpr extends Expr {
     classDeclaration = context.getCurrentClass();
     Debug.assertTrue(classDeclaration != null, "classDeclaration != null");
     super.analyze(context);
+    context.enterScope(this);
     if (params != null)
       params.analyze(context);
     if (optTypeRelation != null)
       optTypeRelation.analyze(context);
     body.analyze(context);
+    context.leaveScope(this);
   }
 
   public void generateCode(JsWriter out) throws IOException {

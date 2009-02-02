@@ -18,7 +18,7 @@ package package1 {
 public class TestUnqualifiedAccess {
 
   public function TestUnqualifiedAccess(value :String) {
-    protectedSlot = value;
+    privateSlot = protectedSlot = publicSlot = value;
   }
 
   private var privateSlot :String;
@@ -49,5 +49,16 @@ public class TestUnqualifiedAccess {
     return publicSlot;
   }
 
+  public function testConstructorAccess() : Boolean {
+    return this.getClass() === TestUnqualifiedAccess;
+  }
+
+  public static const UNQUALIFIED_CLASS_EQUALS_QUALIFIED_CLASS : Boolean = TestUnqualifiedAccess === package1.TestUnqualifiedAccess;
+  public static var SET_BY_STATIC_INITIALIZER : String;
+
+{
+  var test : String = "o";
+  SET_BY_STATIC_INITIALIZER = "f" + test + test;
+}
 }
 }

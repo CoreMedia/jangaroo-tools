@@ -29,11 +29,10 @@ public class FieldDeclaration extends AbstractVariableDeclaration {
             symConstOrVar, ide, optTypeRelation, optInitializer, symSemicolon);
   }
 
-//  public void analyze(AnalyzeContext context) {
-//    super.analyze(context);
-//    if (!isStatic() && optInitializer != null)
-//      Jooc.error(optInitializer, "instance field initializers not yet implemented");
-//  }
+  @Override
+  public boolean isField() {
+    return true;
+  }
 
   public void generateCode(JsWriter out) throws IOException {
     out.writeSymbolWhitespace(optSymConstOrVar);

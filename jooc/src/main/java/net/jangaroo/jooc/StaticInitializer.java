@@ -40,7 +40,9 @@ class StaticInitializer extends Declaration {
 
   public void analyze(AnalyzeContext context) {
     super.analyze(context);
+    context.enterScope(this);
     block.analyze(context);
+    context.leaveScope(this);
   }
 
   public JooSymbol getSymbol() {

@@ -28,7 +28,7 @@ abstract class Declaration extends NodeImplBase {
 
   JooSymbol[] symModifiers;
 
-  protected IdeDeclaration parentDeclaration = null;
+  protected Node parentDeclaration = null;
   protected ClassDeclaration classDeclaration = null;
 
   private int modifiers = -1;
@@ -51,7 +51,7 @@ abstract class Declaration extends NodeImplBase {
     this.allowedModifiers = allowedModifiers;
   }
 
-  public IdeDeclaration getParentDeclaration() {
+  public Node getParentDeclaration() {
     return parentDeclaration;
   }
 

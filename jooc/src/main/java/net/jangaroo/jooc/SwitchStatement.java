@@ -17,6 +17,7 @@ package net.jangaroo.jooc;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Andreas Gawecki
@@ -26,7 +27,7 @@ class SwitchStatement extends KeywordStatement {
   ParenthesizedExpr cond;
   BlockStatement block;
 
-  public SwitchStatement(JooSymbol symSwitch, ParenthesizedExpr cond, JooSymbol lBrace, ArrayList statements, JooSymbol rBrace) {
+  public SwitchStatement(JooSymbol symSwitch, ParenthesizedExpr cond, JooSymbol lBrace, List<Node> statements, JooSymbol rBrace) {
     super(symSwitch);
     this.cond = cond;
     this.block = new BlockStatement(lBrace, statements, rBrace);

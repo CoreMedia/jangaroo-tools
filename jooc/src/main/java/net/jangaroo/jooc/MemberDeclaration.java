@@ -34,10 +34,22 @@ public abstract class MemberDeclaration extends IdeDeclaration {
     return (ClassDeclaration) getParentDeclaration();
   }
 
+  public boolean isField() {
+    return false;
+  }
+
+  public boolean isMethod() {
+    return false;
+  }
+
+  public boolean isConstructor() {
+    return false;
+  }
+
   public void analyze(AnalyzeContext context) {
     super.analyze(context);
-    if (isPrivate() && !isStatic()) {
-      getClassDeclaration().registerPrivateMember(ide);
+    if (isField() || isMethod()) {
+      getClassDeclaration().registerMember(this);
     }
   }
 }

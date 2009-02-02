@@ -174,6 +174,15 @@ public abstract class JooRuntimeTestCase extends JooTestCase {
     assertEquals(expected, actual, 0.00000000001);
   }
 
+  protected void expectBoolean(boolean expected, String script) throws Exception {
+    Object result = eval(script);
+    boolean actual = false;
+    if (result instanceof Boolean)
+      actual = (Boolean)result;
+    else fail("expected boolean result, found: " + result.getClass().getName());
+    assertEquals(expected, actual);
+  }
+
   public void testRhino() throws Exception {
     expectNumber(23, "23");
     expectNumber(23.1, "22.1+1");

@@ -29,8 +29,8 @@ public abstract class IdeDeclaration extends Declaration {
   protected IdeDeclaration(JooSymbol[] modifiers, int allowedModifiers, Ide ide) {
     super(modifiers, allowedModifiers);
     this.ide = ide;
-    if (PRIVATE_MEMBER_NAME.matcher(ide.getName()).matches()) {
-      Jooc.error(ide, "Jangaroo identifier must not be an ActionScript identifier prefixed with a dollar sign ('$'): "+ide.getName());
+    if (ide!=null && PRIVATE_MEMBER_NAME.matcher(ide.getName()).matches()) {
+      System.err.println("WARNING: Jangaroo identifier must not be an ActionScript identifier prefixed with a dollar sign ('$'): "+ide.getName());
     }
   }
 
@@ -47,11 +47,11 @@ public abstract class IdeDeclaration extends Declaration {
   }
 
   public String[] getQualifiedName() {
-    IdeDeclaration parentDeclaration = getParentDeclaration();
-    if (parentDeclaration == null)
-      return getIde().getQualifiedName();
-    else {
-      String[] prefixName = parentDeclaration.getQualifiedName();
+    Node parentDeclaration = getParentDeclaration();
+    if (!(parentDeclaration instanceof IdeDeclaration)) {
+      return getIde() == null ? new String[0] : getIde().getQualifiedName();
+    } else {
+      String[] prefixName = ((IdeDeclaration)parentDeclaration).getQualifiedName();
       String[] result = new String[prefixName.length+1];
       System.arraycopy(prefixName, 0, result, 0, prefixName.length);
       result[prefixName.length] = ide.getName();
@@ -75,6 +75,7 @@ public abstract class IdeDeclaration extends Declaration {
 
   public void analyze(AnalyzeContext context) {
     super.analyze(context);
+    context.getScope().declareIde(this);
   }
 
 }

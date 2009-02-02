@@ -31,20 +31,24 @@ class Directives extends NodeImplBase {
   }
 
   public void analyze(AnalyzeContext context) {
-    directive.analyze(context);
+    if (directive!=null) {
+      directive.analyze(context);
+    }
     if (tail != null)
       tail.analyze(context);
   }
 
   public void generateCode(JsWriter out) throws IOException {
-    directive.generateCode(out);
+    if (directive!=null) {
+      directive.generateCode(out);
+    }
     if (tail != null) {
       tail.generateCode(out);
     }
   }
 
   public JooSymbol getSymbol() {
-    return directive.getSymbol();
+    return directive==null ? null : directive.getSymbol();
   }
 
 }

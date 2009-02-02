@@ -18,21 +18,22 @@ package net.jangaroo.jooc;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
 
 /**
  * @author Andreas Gawecki
  */
 class Scope {
 
-  protected IdeDeclaration ideDeclaration;
+  protected Node ideDeclaration;
   protected Scope parent;
 
-  public Scope(IdeDeclaration ideDeclaration, Scope parent) {
+  public Scope(Node ideDeclaration, Scope parent) {
     this.ideDeclaration = ideDeclaration;
     this.parent = parent;
   }
 
-  public IdeDeclaration getDeclaration() {
+  public Node getDeclaration() {
     return ideDeclaration;
   }
 
@@ -40,14 +41,14 @@ class Scope {
     return parent;
   }
 
-  protected Map/*String->IdeDeclaration*/ ides = new HashMap();
-  protected ArrayList/*LabeledStatement*/ labels = new ArrayList();
-  protected ArrayList/*LabeledStatement*/ loopStatementStack = new ArrayList();
-  protected ArrayList/*LabeledStatement*/ loopOrSwitchStatementStack = new ArrayList();
+  protected Map<String,IdeDeclaration> ides = new HashMap<String,IdeDeclaration>();
+  protected List<LabeledStatement> labels = new ArrayList<LabeledStatement>();
+  protected List<LoopStatement> loopStatementStack = new ArrayList<LoopStatement>();
+  protected List<KeywordStatement> loopOrSwitchStatementStack = new ArrayList<KeywordStatement>();
 
   public void declareIde(IdeDeclaration decl) {
     String name = decl.ide.getName();
-    IdeDeclaration alreadyDeclared = (IdeDeclaration) ides.get(name);
+    IdeDeclaration alreadyDeclared = ides.get(name);
     if (alreadyDeclared != null)
       Jooc.error(decl.ide.ide, "duplicate declaration of identifier '" + name + "'");
     ides.put(name, decl);
@@ -66,23 +67,29 @@ class Scope {
 
   public LabeledStatement lookupLabel(Ide ide) {
     String name = ide.getName();
-    for (int i = 0; i < labels.size(); i++) {
-      LabeledStatement labeledStatement = (LabeledStatement) labels.get(i);
-      if (labeledStatement.ide.getName().equals(name))
-        return labeledStatement;
+    for (LabeledStatement label : labels) {
+      if (label.ide.getName().equals(name))
+        return label;
     }
     Jooc.error(ide.ide, "undeclared label '" + name + "'");
     return null; // not reached
   }
 
+  public IdeDeclaration getIdeDeclaration(Ide ide) {
+    return ides.get(ide.getName());
+  }
+
+  public Scope findScopeThatDeclares(Ide ide) {
+    return getIdeDeclaration(ide)!=null ? this
+      : getParentScope()==null ? null
+      : getParentScope().findScopeThatDeclares(ide);
+  }
+
   public IdeDeclaration lookupIde(Ide ide) {
-    IdeDeclaration decl = (IdeDeclaration) ides.get(ide.getName());
-    if (decl != null)
-      return decl;
-    Scope parent = getParentScope();
-    if (parent == null)
+    Scope scope = findScopeThatDeclares(ide);
+    if (scope == null)
       Jooc.error(ide.ide, "undeclared identifier: '" + ide.getName() + "'");
-    return parent.lookupIde(ide);
+    return scope.getIdeDeclaration(ide);
   }
 
   public void enterLoop(LoopStatement loopStatement) {
@@ -109,13 +116,13 @@ class Scope {
   public LoopStatement getCurrentLoop() {
     if (loopStatementStack.isEmpty())
       return null;
-    return (LoopStatement) loopStatementStack.get(loopStatementStack.size()-1);
+    return loopStatementStack.get(loopStatementStack.size()-1);
   }
 
   public Statement getCurrentLoopOrSwitch() {
     if (loopOrSwitchStatementStack.isEmpty())
       return null;
-    return (Statement) loopOrSwitchStatementStack.get(loopOrSwitchStatementStack.size()-1);
+    return loopOrSwitchStatementStack.get(loopOrSwitchStatementStack.size()-1);
   }
 
   public PackageDeclaration getPackageDeclaration() {

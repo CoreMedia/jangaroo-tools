@@ -19,6 +19,7 @@ import java.io.IOException;
 
 /**
  * @author Andreas Gawecki
+ * @author Frank Wienberg
  */
 public class MethodDeclaration extends MemberDeclaration {
 
@@ -52,6 +53,11 @@ public class MethodDeclaration extends MemberDeclaration {
 
   public boolean overrides() {
     return (getModifiers() & MODIFIER_OVERRIDE) != 0;
+  }
+
+  @Override
+  public boolean isMethod() {
+    return true;
   }
 
   public boolean isConstructor() {
@@ -89,9 +95,6 @@ public class MethodDeclaration extends MemberDeclaration {
     }
     if (!isAbstract() && !(optBody instanceof BlockStatement))
       Jooc.error(this, "method must either be implemented or declared abstract");
-    if (isPublic() && isStatic()) {
-      classDeclaration.registerPublicStaticMethod(ide);
-    }
 
     //TODO:check whether abstract method does not actually override
 
@@ -140,14 +143,19 @@ public class MethodDeclaration extends MemberDeclaration {
       out.writeSymbolWhitespace(ide.ide);
     }
     out.writeSymbol(lParen);
-    if (params != null) params.generateCode(out);
+    if (params != null) {
+      params.generateCode(out);
+      if (optBody instanceof BlockStatement) {
+        // inject into body for generating initilizers later:
+        ((BlockStatement)optBody).setParameters(params);
+      }
+    }
     out.writeSymbol(rParen);
     if (optTypeRelation != null) optTypeRelation.generateCode(out);
-    if (isConstructor() && !containsSuperConstructorCall()) {
-      ((BlockStatement)optBody).generateCodeWithSuperCall(out);
-    } else {
-      optBody.generateCode(out);
+    if (isConstructor() && !containsSuperConstructorCall() && optBody instanceof BlockStatement) {
+      ((BlockStatement)optBody).generateCodeWithSuperCall();
     }
+    optBody.generateCode(out);
     if (isAbstract()) {
       out.endComment();
     } else {

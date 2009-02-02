@@ -15,31 +15,21 @@
 
 package net.jangaroo.jooc;
 
-import java.io.IOException;
-import java.util.Collection;
-import java.util.Iterator;
-
 /**
- * @author Andreas Gawecki
+ * @author Frank Wienberg
  */
-public abstract class NodeImplBase implements Node {
+public class AccessorIde extends Ide {
 
-  void generateCode(Collection<Node> nodes, JsWriter out) throws IOException {
-    for (Node node : nodes) {
-      node.generateCode(out);
-    }
+  private JooSymbol symGetOrSet;
+
+  public AccessorIde(JooSymbol symGetOrSet, Ide ide) {
+    super(ide.ide);
+    this.symGetOrSet = symGetOrSet;
   }
 
-  public void analyze(AnalyzeContext context) {
-    // default is to do nothing
-  }
-
-  public void analyze(Collection/*<Node>*/ nodes, AnalyzeContext context) {
-    Iterator iter = nodes.iterator();
-    while (iter.hasNext()) {
-      NodeImplBase node = (NodeImplBase) iter.next();
-      node.analyze(context);
-    }
+  @Override
+  public String getName() {
+    return symGetOrSet.getText()+"$"+super.getName();
   }
 
 }

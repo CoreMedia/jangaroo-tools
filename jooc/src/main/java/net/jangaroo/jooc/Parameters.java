@@ -55,8 +55,43 @@ public class Parameters extends NodeImplBase {
   public void generateCode(JsWriter out) throws IOException {
     param.generateCode(out);
     if (symComma != null) {
-      out.writeSymbol(symComma);
+      if (!tail.param.isRest()) {
+        out.writeSymbol(symComma);
+      } // TODO: else move symComma into comment!
       tail.generateCode(out);
+    }
+  }
+
+  public void generateParameterInitializerCode(JsWriter out) throws IOException {
+    int cnt = 0, startIndex = Integer.MAX_VALUE;
+    Parameters paramsWithInitializer = null;
+    Parameter restParam = null;
+    for (Parameters parameters = this; parameters!=null; parameters = parameters.tail) {
+      Parameter param = parameters.param;
+      if (param.isRest()) {
+        restParam = param;
+        break;
+      }
+      if (paramsWithInitializer==null && param.optInitializer!=null) {
+        // remember first parameter with initializer (index plus list entry point):
+        startIndex = cnt;
+        paramsWithInitializer = parameters;
+      }
+      ++cnt;
+    }
+    for (int i = cnt; i > startIndex; --i) {
+      out.write("if(arguments.length<"+i+"){");
+    }
+    for (Parameters parameters = paramsWithInitializer; parameters!=null; parameters = parameters.tail) {
+      Parameter param = parameters.param;
+      if (param.isRest()) {
+        break;
+      }
+      param.generateBodyInitializerCode(out);
+      out.write("}");
+    }
+    if (restParam!=null) {
+      restParam.generateRestParamCode(out, cnt);
     }
   }
 
@@ -64,5 +99,18 @@ public class Parameters extends NodeImplBase {
     return param.getSymbol();
   }
 
+  public String getRestParamName() {
+    if (param.isRest()) {
+      return param.getName();
+    }
+    return tail==null ? null : tail.getRestParamName();
+  }
 
+  public int getOtherParamCount() {
+    if (param.isRest()) {
+      return 0;
+    }
+    int tailOtherParamCount = tail==null ? -1 : tail.getOtherParamCount();
+    return tailOtherParamCount==-1 ? tailOtherParamCount : 1+tailOtherParamCount;
+  }
 }

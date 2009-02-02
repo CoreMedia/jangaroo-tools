@@ -25,8 +25,7 @@ public class ClassDeclaration extends IdeDeclaration {
 
   protected JooSymbol symClass;
   protected Extends optExtends;
-  private Set privateMembers = new HashSet();
-  private List publicStaticMethods = new ArrayList();
+  private Map<String,MemberDeclaration> members = new LinkedHashMap<String,MemberDeclaration>();
 
   public Extends getOptExtends() {
     return optExtends;
@@ -94,14 +93,20 @@ public class ClassDeclaration extends IdeDeclaration {
     out.writeSymbolToken(symClass);
     ide.generateCode(out);
     if (optExtends != null) optExtends.generateCode(out);
-    //if (optImplements != null) optImplements.generateCode(out);
+    if (optImplements != null) optImplements.generateCode(out);
     out.write("\",[");
-    for (Iterator i = publicStaticMethods.iterator(); i.hasNext();) {
-      String methodName = (String) i.next();
-      out.write('"');
-      out.write(methodName);
-      out.write('"');
-      if (i.hasNext()) out.write(",");
+    boolean isFirst = true;
+    for (MemberDeclaration memberDeclaration : members.values()) {
+      if (memberDeclaration.isMethod() && memberDeclaration.isPublic() && memberDeclaration.isStatic()) {
+        if (isFirst) {
+          isFirst = false;
+        } else {
+          out.write(",");
+        }
+        out.write('"');
+        out.write(memberDeclaration.getName());
+        out.write('"');
+      }
     }
     out.write("],");
     out.write("function($jooPublic,$jooPrivate){with($jooPublic)with($jooPrivate)return[");
@@ -119,16 +124,22 @@ public class ClassDeclaration extends IdeDeclaration {
     computeModifiers();
   }
 
-  public void registerPrivateMember(Ide ide) {
-    privateMembers.add(ide.getName());
+  public void registerMember(MemberDeclaration memberDeclaration) {
+    members.put(memberDeclaration.getName(), memberDeclaration);
+  }
+
+  public MemberDeclaration getMemberDeclaration(String memberName) {
+    return members.get(memberName);
   }
 
   public boolean isPrivateMember(String memberName) {
-    return privateMembers.contains(memberName);
+    MemberDeclaration memberDeclaration = getMemberDeclaration(memberName);
+    return memberDeclaration!=null && memberDeclaration.isPrivate();
   }
 
-  public void registerPublicStaticMethod(Ide ide) {
-    publicStaticMethods.add(ide.getName());
+  public boolean isPrivateStaticMember(String memberName) {
+    MemberDeclaration memberDeclaration = getMemberDeclaration(memberName);
+    return memberDeclaration!=null && memberDeclaration.isPrivate() && memberDeclaration.isStatic();
   }
 
   public Type getSuperClassType() {

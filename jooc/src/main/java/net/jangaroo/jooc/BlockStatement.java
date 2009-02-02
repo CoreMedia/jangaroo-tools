@@ -16,8 +16,7 @@
 package net.jangaroo.jooc;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.List;
 
 /**
  * @author Andreas Gawecki
@@ -25,10 +24,12 @@ import java.util.Iterator;
 class BlockStatement extends Statement {
 
   JooSymbol lBrace;
-  ArrayList statements;
+  List<Node> statements;
   JooSymbol rBrace;
+  boolean addSuperCall;
+  Parameters params;
 
-  public BlockStatement(JooSymbol lBrace, ArrayList statements, JooSymbol rBrace) {
+  public BlockStatement(JooSymbol lBrace, List<Node> statements, JooSymbol rBrace) {
     this.lBrace = lBrace;
     this.statements = statements;
     this.rBrace = rBrace;
@@ -36,15 +37,22 @@ class BlockStatement extends Statement {
 
   public void generateCode(JsWriter out) throws IOException {
     out.writeSymbol(lBrace);
+    if (params!=null) {
+      params.generateParameterInitializerCode(out);
+    }
+    if (addSuperCall) {
+      out.write("this[$super]();");
+    }
     generateCode(statements, out);
     out.writeSymbol(rBrace);
   }
 
-  public void generateCodeWithSuperCall(JsWriter out) throws IOException {
-    out.writeSymbol(lBrace);
-    out.write("this[_super]();");
-    generateCode(statements, out);
-    out.writeSymbol(rBrace);
+  public void generateCodeWithSuperCall() {
+    addSuperCall = true;
+  }
+
+  public void setParameters(Parameters params) {
+    this.params = params;
   }
 
   public void analyze(AnalyzeContext context) {
@@ -53,8 +61,7 @@ class BlockStatement extends Statement {
 
   // TODO: Check when analyzing the super call
   public void checkSuperConstructorCall() {
-    for (Iterator i = statements.iterator(); i.hasNext();) {
-      Object o =  i.next();
+    for (Node o : statements) {
       if (o instanceof SuperConstructorCallStatement) return;
     }
     Jooc.error(lBrace, "super constructor must be called directly in method block");

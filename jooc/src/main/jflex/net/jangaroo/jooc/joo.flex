@@ -154,6 +154,7 @@ static int[] terminalsAllowedBeforeRegexpLiteral = {
     defsym("finally", FINALLY);
     defsym("for", FOR);
     defsym("function", FUNCTION);
+    defsym("get", GET);
     defsym("goto", GOTO);
     defsym("if", IF);
     defsym("implements", IMPLEMENTS);
@@ -171,6 +172,7 @@ static int[] terminalsAllowedBeforeRegexpLiteral = {
     defsym("protected", PROTECTED);
     defsym("public", PUBLIC);
     defsym("return", RETURN);
+    defsym("set", SET);
     defsym("static", STATIC);
     defsym("super", SUPER);
     defsym("switch", SWITCH);
@@ -233,6 +235,7 @@ static int[] terminalsAllowedBeforeRegexpLiteral = {
     defsym(">>>=", URSHIFTEQ);
     defsym("===", EQEQEQ);
     defsym("!==", NOTEQEQ);
+    defsym("...", REST);
   }
 %}
 
@@ -249,6 +252,7 @@ IdentifierStart = [:letter:]|[$_]
 Identifier = {IdentifierStart}({IdentifierStart}|[:digit:])*
 
 DecIntegerLiteral = 0 | [1-9][0-9]*
+HexIntegerLiteral = 0x{HexDigit}+
 
 DoubleLiteral = ({FLit1}|{FLit2}|{FLit3}) {Exponent}?
 
@@ -293,6 +297,7 @@ HexDigit          = [0-9abcdefABCDEF]
   "finally"                       { return symbol(FINALLY); }
   "for"                           { return symbol(FOR); }
   "function"                      { return symbol(FUNCTION); }
+  "get"                           { return symbol(GET); }
   "goto"                          { return symbol(GOTO); }
   "if"                            { return symbol(IF); }
   "implements"                    { return symbol(IMPLEMENTS); }
@@ -310,6 +315,7 @@ HexDigit          = [0-9abcdefABCDEF]
   "protected"                     { return symbol(PROTECTED); }
   "public"                        { return symbol(PUBLIC); }
   "return"                        { return symbol(RETURN); }
+  "set"                           { return symbol(SET); }
   "static"                        { return symbol(STATIC); }
   "super"                         { return symbol(SUPER); }
   "switch"                        { return symbol(SWITCH); }
@@ -376,6 +382,7 @@ HexDigit          = [0-9abcdefABCDEF]
   ">>>="                          { return symbol(URSHIFTEQ); }
   "==="                           { return symbol(EQEQEQ); }
   "!=="                           { return symbol(NOTEQEQ); }
+  "..."                           { return symbol(REST); }
 
   "/"                             { if (!maybeRegexpLiteral())
                                       return symbol(DIV);
@@ -393,6 +400,7 @@ HexDigit          = [0-9abcdefABCDEF]
   \'                              { multiStateText = yytext(); yybegin(STRING_SQ); string.setLength(0); }
 
   {DecIntegerLiteral}             { return symbol(INT_LITERAL, new Integer(yytext())); }
+  {HexIntegerLiteral}             { return symbol(INT_LITERAL, Integer.parseInt(yytext().substring(2),16)); }
   {DoubleLiteral}                 { return symbol(FLOAT_LITERAL, new Double(yytext())); }
 }
 

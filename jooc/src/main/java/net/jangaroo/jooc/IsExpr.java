@@ -16,30 +16,22 @@
 package net.jangaroo.jooc;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Iterator;
 
 /**
- * @author Andreas Gawecki
+ * @author Frank Wienberg
  */
-public abstract class NodeImplBase implements Node {
+class IsExpr extends BinaryOpExpr {
 
-  void generateCode(Collection<Node> nodes, JsWriter out) throws IOException {
-    for (Node node : nodes) {
-      node.generateCode(out);
-    }
+  public IsExpr(Expr e1, JooSymbol symIs, Expr e2) {
+    super(e1, symIs, e2);
   }
 
-  public void analyze(AnalyzeContext context) {
-    // default is to do nothing
+  public void generateCode(JsWriter out) throws IOException {
+    out.writeSymbol(op);
+    out.write('(');
+    arg1.generateCode(out);
+    out.write(',');
+    arg2.generateCode(out);
+    out.write(')');
   }
-
-  public void analyze(Collection/*<Node>*/ nodes, AnalyzeContext context) {
-    Iterator iter = nodes.iterator();
-    while (iter.hasNext()) {
-      NodeImplBase node = (NodeImplBase) iter.next();
-      node.analyze(context);
-    }
-  }
-
 }

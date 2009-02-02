@@ -77,13 +77,13 @@ terminal JooSymbol CASE, CATCH, CLASS, CONST, CONTINUE;
 terminal JooSymbol DEBUGGER, DEFAULT, DELETE, DO;
 terminal JooSymbol ELSE, ENUM, EXTENDS;
 terminal JooSymbol FINAL, FINALLY, FOR, FUNCTION;
-terminal JooSymbol GOTO;
+terminal JooSymbol GET, GOTO;
 terminal JooSymbol IF, IMPLEMENTS, IMPORT, IN, INSTANCEOF, INTERFACE, INTERNAL, IS;
 terminal JooSymbol NEW;
 terminal JooSymbol OVERRIDE;
 terminal JooSymbol PACKAGE, PRIVATE, PROTECTED, PUBLIC;
-terminal JooSymbol RETURN;
-terminal JooSymbol STATIC, SUPER, SWITCH, SYNCHRONIZED;
+terminal JooSymbol REST, RETURN;
+terminal JooSymbol SET, STATIC, SUPER, SWITCH, SYNCHRONIZED;
 terminal JooSymbol THIS, THROW, THROWS, TRANSIENT, TRY, TYPEOF;
 terminal JooSymbol VAR, VOID, VOLATILE;
 terminal JooSymbol WHILE, WITH;
@@ -145,6 +145,9 @@ nonterminal Parameters nonEmptyParameters;
 nonterminal ObjectFields nonEmptyObjectFields;
 nonterminal ObjectField objectField;
 nonterminal ObjectFields objectFields;
+nonterminal ObjectFields nonEmptyAnnotationFields;
+nonterminal ObjectField annotationField;
+nonterminal ObjectFields annotationFields;
 nonterminal ObjectLiteral objectLiteral;
 nonterminal Statement optBody;
 nonterminal ArrayList optCatches;
@@ -154,11 +157,11 @@ nonterminal Expr optExprOrObjectLiteral;
 nonterminal Ide optIde;
 nonterminal Initializer optInitializer;
 nonterminal TypeRelation optTypeRelation;
+nonterminal TypeRelation optVoidTypeRelation;
 nonterminal PackageDeclaration packageDeclaration;
 nonterminal Parameter parameter;
 nonterminal Parameters parameters;
 nonterminal ParenthesizedExpr parenthesizedExpr;
-nonterminal Expr asExpression;
 nonterminal Ide qualifiedIde;
 nonterminal Statement statement;
 nonterminal Statement labelableStatement;
@@ -173,13 +176,14 @@ nonterminal VariableDeclaration variableDeclaration;
 
 precedence right EQ, MULTEQ, DIVEQ, MODEQ, PLUSEQ, MINUSEQ, LSHIFTEQ, RSHIFTEQ, URSHIFTEQ, ANDEQ, XOREQ, OREQ;
 precedence right QUESTION, COLON;
+precedence left  AS; // TODO: where do they belong?
 precedence left  OROR;
 precedence left  ANDAND;
 precedence left  OR;
 precedence left  XOR;
 precedence left  AND;
 precedence left  EQEQ, NOTEQ, EQEQEQ, NOTEQEQ;
-precedence left LT, GT, LTEQ, GTEQ, INSTANCEOF, TYPEOF, NOT, IN;
+precedence left LT, GT, LTEQ, GTEQ, INSTANCEOF, IS, TYPEOF, NOT, IN;
 precedence left LSHIFT, RSHIFT, URSHIFT;
 precedence left PLUS, MINUS;
 precedence left MUL, DIV, MOD;
@@ -265,6 +269,28 @@ constOrVar ::=
 directive ::=
     IMPORT:i type:t
     {: RESULT = new ImportDirective(i,t); :}
+  | LBRACK:lb ide:ide RBRACK:rb
+    {: RESULT = null; :}
+  | LBRACK:lb ide:ide LPAREN:lb2 annotationFields:of RPAREN:rb2 RBRACK:rb
+    {: RESULT = null; :}
+  ;
+
+nonEmptyAnnotationFields ::=
+    annotationField:f
+    {: RESULT = new ObjectFields(f); :}
+  | annotationField:f COMMA:c nonEmptyAnnotationFields:tail
+    {: RESULT = new ObjectFields(f, c, tail); :}
+  ;
+
+annotationField ::=
+    ide:name EQ:eq STRING_LITERAL:value
+    {: RESULT = new ObjectField(new IdeExpr(name),eq,new LiteralExpr(value)); :}
+  ;
+
+annotationFields ::=
+    {: RESULT = null; :}
+  | nonEmptyAnnotationFields:f
+    {: RESULT = f; :}
   ;
 
 directives ::=
@@ -296,11 +322,7 @@ expr ::=
     {: RESULT = e; :}
   | THIS:t
     {: RESULT = new ThisExpr(t); :}
-  | SUPER:s DOT:d ide:ide  LPAREN:lp arguments:args RPAREN:rp
-    {: RESULT = new SuperMethodCallExpr(s,d,ide,lp,args,rp); :}
   | parenthesizedExpr:e
-    {: RESULT = e; :}
-  | asExpression:e
     {: RESULT = e; :}
   | NEW:n type:t LPAREN:lp arguments:args RPAREN:rp
     {: RESULT = new NewExpr(n,t,lp,args,rp); :}
@@ -318,6 +340,10 @@ expr ::=
     {: RESULT = new PrefixOpExpr(op,e); :}
   | expr:expr LPAREN:lp arguments:args RPAREN:rp
     {: RESULT = new ApplyExpr(expr,lp,args,rp); :}
+  | expr:e AS:as type:t
+    {: RESULT = e; :}
+  | expr:e1 IS:is expr:e2
+    {: RESULT = new IsExpr(e1,is,e2); :}
   | expr:e PLUSPLUS:op
     {: RESULT = new PostfixOpExpr(op,e); :}
   | expr:e MINUSMINUS:op
@@ -442,9 +468,11 @@ implements ::=
 
 lvalue ::=
     ide:ide
-    {: RESULT = new IdeExpr(ide); :}
+    {: RESULT = new TopLevelIdeExpr(ide); :}
   | expr:e DOT:d ide:ide
     {: RESULT = new DotExpr(e,d,ide); :}
+  | SUPER:s DOT:d ide:ide
+    {: RESULT = new DotExpr(new SuperExpr(s),d,ide); :}
   | expr:expr LBRACK:lb arguments:args RBRACK:rb
     {: RESULT = new ArrayIndexExpr(expr,lb,args,rb); :}
   ;
@@ -457,7 +485,11 @@ memberDeclaration ::=
   ;
 
 methodDeclaration ::=
-    modifiers:m FUNCTION:f ide:ide LPAREN:lp parameters:params RPAREN:rp optTypeRelation:t optBody:b
+    modifiers:m FUNCTION:f GET:get ide:ide LPAREN:lp RPAREN:rp optTypeRelation:t optBody:b
+    {: RESULT = new MethodDeclaration((JooSymbol[])m.toArray(new JooSymbol[0]),f,new AccessorIde(get,ide),lp,null,rp,t,b); :}
+  | modifiers:m FUNCTION:f SET:set ide:ide LPAREN:lp parameter:param RPAREN:rp optVoidTypeRelation:t optBody:b
+    {: RESULT = new MethodDeclaration((JooSymbol[])m.toArray(new JooSymbol[0]),f,new AccessorIde(set,ide),lp,new Parameters(param),rp,t,b); :}
+  | modifiers:m FUNCTION:f ide:ide LPAREN:lp parameters:params RPAREN:rp optTypeRelation:t optBody:b
     {: RESULT = new MethodDeclaration((JooSymbol[])m.toArray(new JooSymbol[0]),f,ide,lp,params,rp,t,b); :}
   ;
 
@@ -496,6 +528,8 @@ nonEmptyArguments ::=
 nonEmptyParameters ::=
     parameter:param
     {: RESULT = new Parameters(param); :}
+  | REST:rest ide:ide
+    {: RESULT = new Parameters(new Parameter(rest,ide,null,null)); :}
   | parameter:param COMMA:c nonEmptyParameters:params
     {: RESULT = new Parameters(param, c, params); :}
   ;
@@ -572,14 +606,22 @@ optTypeRelation ::=
     {: RESULT = t; :}
   ;
 
+optVoidTypeRelation ::=
+    {: RESULT = null; :}
+  | COLON:s VOID:v
+    {: RESULT = new TypeRelation(s,new VoidType(v)); :}
+  ;
+
 packageDeclaration ::=
-    PACKAGE:p qualifiedIde:qide
+    PACKAGE:p
+    {: RESULT = new PackageDeclaration(p,null); :}
+  | PACKAGE:p qualifiedIde:qide
     {: RESULT = new PackageDeclaration(p,qide); :}
   ;
 
 parameter ::=
     optConst:oc ide:ide optTypeRelation:t optInitializer:init
-    {: RESULT = new Parameter(oc,ide,t); :}
+    {: RESULT = new Parameter(oc,ide,t,init); :}
   ;
 
 parameters ::=
@@ -591,11 +633,6 @@ parameters ::=
 parenthesizedExpr ::=
     LPAREN:lp commaExpr:e RPAREN:rp
     {: RESULT = new ParenthesizedExpr(lp,e,rp); :}
-  ;
-
-asExpression ::=
-    expr:e AS:as type:t
-    {: RESULT = e; :}
   ;
 
 qualifiedIde ::=

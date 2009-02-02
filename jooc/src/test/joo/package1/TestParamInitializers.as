@@ -18,23 +18,23 @@ package package1 /*blubber*/ {
 /**
 * a comment
 */
-public class TestAssert {
+public class TestParamInitializers /* blub ber *//*extends Object*/ {
 
-  public function TestAssert() {
+  public function TestParamInitializers() {
   }
 
-  static public function testAssert() :String {
-    try {
-      assert(1 < 2);
-      try {
-        assert(2 < 1);
-        return "no exception thrown";
-      } catch(ex1) {
-        return ex1.message;
-      }
-    } catch(ex2) {
-      return ex2.message;
-    }
+  public function initParams1( a : String, b : Number = 1) : String {
+    return a + "/" + b;
+  }
+
+  public static const DEFAULT_FOR_C : Number = 3;
+
+  public function initParams2( a : String = "bar", b : String = a, c = DEFAULT_FOR_C) : String {
+    return a + "/" + b + "/" + c;
+  }
+
+  public function initParams3( a : String, b : String = "foo", ...rest) : String {
+    return a + "/" + b + "/" + rest.length;
   }
 
 }
