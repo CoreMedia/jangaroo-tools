@@ -267,8 +267,8 @@ constOrVar ::=
   ;
 
 directive ::=
-    IMPORT:i type:t
-    {: RESULT = new ImportDirective(i,t); :}
+    IMPORT:i qualifiedIde:ide
+    {: RESULT = new ImportDirective(i,new IdeType(ide)); :}
   | LBRACK:lb ide:ide RBRACK:rb
     {: RESULT = null; :}
   | LBRACK:lb ide:ide LPAREN:lb2 annotationFields:of RPAREN:rb2 RBRACK:rb
