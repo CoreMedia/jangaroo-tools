@@ -30,7 +30,7 @@ public abstract class IdeDeclaration extends Declaration {
     super(modifiers, allowedModifiers);
     this.ide = ide;
     if (ide!=null && PRIVATE_MEMBER_NAME.matcher(ide.getName()).matches()) {
-      System.err.println("WARNING: Jangaroo identifier must not be an ActionScript identifier prefixed with a dollar sign ('$'): "+ide.getName());
+      Jooc.warning(ide.getSymbol(), "Jangaroo identifier must not be an ActionScript identifier prefixed with a dollar sign ('$').");
     }
   }
 
@@ -73,9 +73,10 @@ public abstract class IdeDeclaration extends Declaration {
     return toPath(getQualifiedName());
   }
 
-  public void analyze(AnalyzeContext context) {
-    super.analyze(context);
-    context.getScope().declareIde(this);
+  public void analyze(Node parentNode, AnalyzeContext context) {
+    super.analyze(parentNode, context);
+    if (context.getScope().declareIde(getName(), this)!=null)
+      Jooc.error(getSymbol(), "duplicate declaration of identifier '" + getName() + "'");
   }
 
 }

@@ -23,14 +23,14 @@ import java.util.Arrays;
  */
 class DotExpr extends BinaryOpExpr {
 
-  private ClassDeclaration classDeclaration;
+  ClassDeclaration classDeclaration;
 
   public DotExpr(Expr expr, JooSymbol symDot, Ide ide) {
     super(expr, symDot, new IdeExpr(ide));
   }
 
-  public void analyze(AnalyzeContext context) {
-    super.analyze(context);
+  public void analyze(Node parentNode, AnalyzeContext context) {
+    super.analyze(parentNode, context);
     classDeclaration = context.getCurrentClass();
   }
 
@@ -63,6 +63,28 @@ class DotExpr extends BinaryOpExpr {
     if (classDeclaration!=null
       && arg2 instanceof IdeExpr) {
       String property = ((IdeExpr)arg2).ide.getName();
+      // check and handle instance methods declared in same file, accessed as function:
+      if (arg1 instanceof ThisExpr
+        && !(parentNode instanceof DotExpr)
+        && !(parentNode instanceof ApplyExpr)
+        && !(parentNode instanceof DeleteStatement)
+        && !((parentNode instanceof AssignmentOpExpr) && ((AssignmentOpExpr)parentNode).arg1==this)) {
+        MemberDeclaration memberDeclaration = classDeclaration.getMemberDeclaration(property);
+        if (memberDeclaration!=null && memberDeclaration.isMethod()) {
+          //Jooc.warning(arg2.getSymbol(), "Found method used as function, have to bind!");
+          out.writeToken("joo.bind(");
+          arg1.generateCode(out);
+          out.write(",");
+          out.writeSymbolWhitespace(arg2.getSymbol());
+          if (memberDeclaration.isPrivate()) {
+            out.write("$"+property);
+          } else {
+            out.write("\""+property+"\"");
+          }
+          out.write(")");
+          return;
+        }
+      }
       // check and handle private instance members and super method access:
       if ( arg1 instanceof ThisExpr && classDeclaration.isPrivateMember(property)
         || arg1 instanceof SuperExpr) {

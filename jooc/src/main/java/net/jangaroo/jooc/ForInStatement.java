@@ -46,8 +46,8 @@ class ForInStatement extends LoopStatement {
   }
 
   protected void analyzeLoopHeader(AnalyzeContext context) {
-    decl.analyze(context);
-    expr.analyze(context);
+    decl.analyze(this, context);
+    expr.analyze(this, context);
   }
 
 }

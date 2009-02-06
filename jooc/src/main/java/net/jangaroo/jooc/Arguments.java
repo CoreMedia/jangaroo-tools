@@ -44,10 +44,11 @@ class Arguments extends NodeImplBase {
   }
 
 
-  public void analyze(AnalyzeContext context) {
-    arg.analyze(context);
+  public void analyze(Node parentNode, AnalyzeContext context) {
+    super.analyze(parentNode, context);
+    arg.analyze(this, context);
     if (tail != null)
-      tail.analyze(context);
+      tail.analyze(this, context);
   }
 
   public JooSymbol getSymbol() {

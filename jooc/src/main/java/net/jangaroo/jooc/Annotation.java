@@ -12,40 +12,43 @@
  * express or implied. See the License for the specific language 
  * governing permissions and limitations under the License.
  */
-
 package net.jangaroo.jooc;
 
 import java.io.IOException;
 
 /**
- * @author Andreas Gawecki
+ * An annotation (sqare bracket meta data).
  */
-class LabeledStatement extends Statement {
+public class Annotation extends NodeImplBase {
 
+  JooSymbol leftBracket;
   Ide ide;
-  JooSymbol symColon;
-  Statement statement;
+  ObjectFields annotationFields;
+  JooSymbol rightBracket;
 
-  public LabeledStatement(Ide ide, JooSymbol symColon, Statement statement) {
+  public Annotation(JooSymbol leftBracket, Ide ide, JooSymbol rightBracket) {
+    this(leftBracket, ide, null, rightBracket);
+  }
+
+  public Annotation(JooSymbol leftBracket, Ide ide, ObjectFields annotationFields, JooSymbol rightBracket) {
+    this.leftBracket = leftBracket;
     this.ide = ide;
-    this.symColon = symColon;
-    this.statement = statement;
-  }
-
-  public void analyze(Node parentNode, AnalyzeContext context) {
-    super.analyze(parentNode, context);
-    statement.analyze(this, context);
-  }
-
-  public void generateCode(JsWriter out) throws IOException {
-    ide.generateCode(out);
-    out.writeSymbol(symColon);
-    statement.generateCode(out);
+    this.annotationFields = annotationFields;
+    this.rightBracket = rightBracket;
   }
 
   public JooSymbol getSymbol() {
     return ide.getSymbol();
   }
 
-
+  public void generateCode(JsWriter out) throws IOException {
+    out.beginComment();
+    out.writeSymbol(leftBracket);
+    ide.generateCode(out);
+    if (annotationFields!=null) {
+      annotationFields.generateCode(out);
+    }
+    out.writeSymbol(rightBracket);
+    out.endComment();
+  }
 }

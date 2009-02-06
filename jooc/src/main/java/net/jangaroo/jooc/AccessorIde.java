@@ -20,7 +20,7 @@ package net.jangaroo.jooc;
  */
 public class AccessorIde extends Ide {
 
-  private JooSymbol symGetOrSet;
+  JooSymbol symGetOrSet;
 
   public AccessorIde(JooSymbol symGetOrSet, Ide ide) {
     super(ide.ide);
@@ -29,7 +29,10 @@ public class AccessorIde extends Ide {
 
   @Override
   public String getName() {
-    return symGetOrSet.getText()+"$"+super.getName();
+    return symGetOrSet.getText()+" "+super.getName();
   }
 
+  public String getFunctionName() {
+    return symGetOrSet.getText()+"$"+super.getName();
+  }
 }

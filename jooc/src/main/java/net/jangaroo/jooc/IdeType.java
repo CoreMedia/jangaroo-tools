@@ -28,6 +28,10 @@ public class IdeType extends Type {
 
   Ide ide;
 
+  public IdeType(String name) {
+    this(new Ide(new JooSymbol(name)));
+  }
+
   public IdeType(Ide ide) {
     this.ide = ide;
   }

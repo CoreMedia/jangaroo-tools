@@ -54,7 +54,7 @@ class ForStatement extends ConditionalLoopStatement {
 
   protected void analyzeLoopHeader(AnalyzeContext context) {
     if (forInit!=null)
-      forInit.analyze(context);
+      forInit.analyze(this, context);
     super.analyzeLoopHeader(context);
   }
 

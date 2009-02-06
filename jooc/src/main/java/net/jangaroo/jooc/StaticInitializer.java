@@ -38,10 +38,10 @@ class StaticInitializer extends Declaration {
     out.write(",");
   }
 
-  public void analyze(AnalyzeContext context) {
-    super.analyze(context);
+  public void analyze(Node parentNode, AnalyzeContext context) {
+    super.analyze(parentNode, context);
     context.enterScope(this);
-    block.analyze(context);
+    block.analyze(this, context);
     context.leaveScope(this);
   }
 

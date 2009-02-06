@@ -39,9 +39,10 @@ class ObjectLiteral extends Expr {
     out.writeSymbol(rParen);
   }
 
-  public void analyze(AnalyzeContext context) {
+  public void analyze(Node parentNode, AnalyzeContext context) {
+    super.analyze(parentNode, context);
     if (fields != null)
-      fields.analyze(context);
+      fields.analyze(this, context);
   }
 
   public JooSymbol getSymbol() {

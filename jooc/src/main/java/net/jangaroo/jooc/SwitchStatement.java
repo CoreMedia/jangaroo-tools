@@ -16,7 +16,6 @@
 package net.jangaroo.jooc;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -34,10 +33,11 @@ class SwitchStatement extends KeywordStatement {
   }
 
 
-  public void analyze(AnalyzeContext context) {
-    cond.analyze(context);
+  public void analyze(Node parentNode, AnalyzeContext context) {
+    super.analyze(parentNode, context);
+    cond.analyze(this, context);
     context.getScope().enterSwitch(this);
-    block.analyze(context);
+    block.analyze(this, context);
     context.getScope().exitSwitch(this);
   }
 

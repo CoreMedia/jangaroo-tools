@@ -51,7 +51,7 @@ public class Jooc {
   public static final String CLASS_FULLY_QUALIFIED_NAME = CLASS_PACKAGE_NAME + "." + CLASS_CLASS_NAME;
 
   private JoocConfiguration config;
-  private CompileLog log = new CompileLog();
+  private static CompileLog log = new CompileLog();
 
   private ArrayList<CompilationUnit> compilationUnits = new ArrayList<CompilationUnit>();
 
@@ -64,7 +64,7 @@ public class Jooc {
     CompilationUnitSinkFactory codeSinkFactory = createSinkFactory(config);
 
     for (CompilationUnit unit : compilationUnits) {
-      unit.analyze(new AnalyzeContext());
+      unit.analyze(null, new AnalyzeContext());
       unit.writeOutput(codeSinkFactory, config.isVerbose());
     }
     return log.hasErrors() ? 1 : 0;
@@ -127,6 +127,10 @@ public class Jooc {
 
   public static void error(String msg, Throwable t) {
     throw new CompilerError(msg, t);
+  }
+
+  static void warning(JooSymbol symbol, String msg) {
+    log.warning(symbol, msg);
   }
 
   protected void processSource(String fileName) {

@@ -36,9 +36,10 @@ class NewExpr extends Expr {
     this.rParen = rParen;
   }
 
-  public void analyze(AnalyzeContext context) {
-     if (args != null)
-       args.analyze(context);
+  public void analyze(Node parentNode, AnalyzeContext context) {
+    super.analyze(parentNode, context);
+    if (args != null)
+      args.analyze(this, context);
   }
 
   public void generateCode(JsWriter out) throws IOException {

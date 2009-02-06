@@ -35,10 +35,6 @@ class DefaultStatement extends Statement {
     out.writeSymbol(symColon);
   }
 
-  public void analyze(AnalyzeContext context) {
-    super.analyze(context);
-  }
-
   public JooSymbol getSymbol() {
      return symDefault;
   }

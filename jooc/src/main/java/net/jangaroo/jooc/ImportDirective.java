@@ -24,10 +24,23 @@ public class ImportDirective extends NodeImplBase {
 
   JooSymbol importKeyword;
   Type type;
+  JooSymbol semicolon;
 
-  public ImportDirective(JooSymbol importKeyword, Type type) {
+  public ImportDirective(JooSymbol importKeyword, Type type, JooSymbol semicolon) {
     this.importKeyword = importKeyword;
     this.type = type;
+    this.semicolon = semicolon;
+  }
+
+  @Override
+  public void analyze(Node parentNode, AnalyzeContext context) {
+    super.analyze(parentNode, context);
+    if (type instanceof IdeType) {
+      Ide ide = ((IdeType)type).ide;
+      context.getScope().declareIde(ide.getName(), this);
+      // also add first package path arc (might be the same string for top level imports):
+      context.getScope().declareIde(ide.getQualifiedName()[0], this);
+    }
   }
 
   public void generateCode(JsWriter out) throws IOException {
@@ -36,7 +49,9 @@ public class ImportDirective extends NodeImplBase {
     out.write("\"");
     out.writeSymbolToken(importKeyword);
     type.generateCode(out);
-    out.write("\",");
+    out.write("\"");
+    out.writeSymbolWhitespace(semicolon);
+    out.write(",");
   }
 
   public JooSymbol getSymbol() {

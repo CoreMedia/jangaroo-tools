@@ -22,20 +22,21 @@ import java.io.IOException;
  */
 class Directives extends NodeImplBase {
 
-  ImportDirective directive; // other directive types may follow later
+  Node directive; // other directive types may follow later
   Directives tail;
 
-  public Directives(ImportDirective directive, Directives tail) {
+  public Directives(Node directive, Directives tail) {
     this.directive = directive;
     this.tail = tail;
   }
 
-  public void analyze(AnalyzeContext context) {
+  public void analyze(Node parentNode, AnalyzeContext context) {
+    super.analyze(parentNode, context);
     if (directive!=null) {
-      directive.analyze(context);
+      directive.analyze(this, context);
     }
     if (tail != null)
-      tail.analyze(context);
+      tail.analyze(this, context);
   }
 
   public void generateCode(JsWriter out) throws IOException {

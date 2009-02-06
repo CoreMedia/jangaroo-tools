@@ -46,8 +46,8 @@ public abstract class MemberDeclaration extends IdeDeclaration {
     return false;
   }
 
-  public void analyze(AnalyzeContext context) {
-    super.analyze(context);
+  public void analyze(Node parentNode, AnalyzeContext context) {
+    super.analyze(parentNode, context);
     if (isField() || isMethod()) {
       getClassDeclaration().registerMember(this);
     }

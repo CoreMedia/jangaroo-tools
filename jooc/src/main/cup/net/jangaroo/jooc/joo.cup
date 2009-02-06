@@ -133,7 +133,7 @@ nonterminal FunctionExpr functionExpr;
 nonterminal Ide ide;
 nonterminal Implements implements;
 nonterminal Implements interfaceExtends;
-nonterminal ImportDirective directive;
+nonterminal Node directive;
 nonterminal Directives directives;
 nonterminal Expr lvalue;
 nonterminal MethodDeclaration methodDeclaration;
@@ -267,12 +267,12 @@ constOrVar ::=
   ;
 
 directive ::=
-    IMPORT:i qualifiedIde:ide
-    {: RESULT = new ImportDirective(i,new IdeType(ide)); :}
+    IMPORT:i qualifiedIde:ide SEMICOLON:s
+    {: RESULT = new ImportDirective(i,new IdeType(ide), s); :}
   | LBRACK:lb ide:ide RBRACK:rb
-    {: RESULT = null; :}
-  | LBRACK:lb ide:ide LPAREN:lb2 annotationFields:of RPAREN:rb2 RBRACK:rb
-    {: RESULT = null; :}
+    {: RESULT = new Annotation(lb, ide, rb); :}
+  | LBRACK:lb ide:ide LPAREN:lb2 annotationFields:af RPAREN:rb2 RBRACK:rb
+    {: RESULT = new Annotation(lb, ide, af, rb); :}
   ;
 
 nonEmptyAnnotationFields ::=
@@ -283,8 +283,10 @@ nonEmptyAnnotationFields ::=
   ;
 
 annotationField ::=
-    ide:name EQ:eq STRING_LITERAL:value
-    {: RESULT = new ObjectField(new IdeExpr(name),eq,new LiteralExpr(value)); :}
+    ide:name EQ:eq expr:value
+    {: RESULT = new ObjectField(new IdeExpr(name),eq,value); :}
+  | expr:value
+    {: RESULT = new ObjectField(new IdeExpr(new Ide(new JooSymbol(""))),null,value); :}
   ;
 
 annotationFields ::=
@@ -295,8 +297,6 @@ annotationFields ::=
 
 directives ::=
     {: RESULT = null; :}
-  | SEMICOLON:s directives:ds
-    {: RESULT = ds; :}
   | directive:d directives:ds
     {: RESULT = new Directives(d,ds); :}
   ;

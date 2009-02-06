@@ -35,8 +35,9 @@ public class TypeRelation extends NodeImplBase {
     this.type = type;
   }
 
-  public void analyze(AnalyzeContext context) {
-    type.analyze(context);
+  public void analyze(Node parentNode, AnalyzeContext context) {
+    super.analyze(parentNode, context);
+    type.analyze(this, context);
   }
 
   public void generateCode(JsWriter out) throws IOException {

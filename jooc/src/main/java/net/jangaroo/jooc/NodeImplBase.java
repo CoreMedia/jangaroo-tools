@@ -24,21 +24,23 @@ import java.util.Iterator;
  */
 public abstract class NodeImplBase implements Node {
 
+  Node parentNode;
+
   void generateCode(Collection<Node> nodes, JsWriter out) throws IOException {
     for (Node node : nodes) {
       node.generateCode(out);
     }
   }
 
-  public void analyze(AnalyzeContext context) {
-    // default is to do nothing
+  public void analyze(Node parentNode, AnalyzeContext context) {
+    this.parentNode = parentNode;
   }
 
-  public void analyze(Collection/*<Node>*/ nodes, AnalyzeContext context) {
+  public void analyze(Node parent, Collection/*<Node>*/ nodes, AnalyzeContext context) {
     Iterator iter = nodes.iterator();
     while (iter.hasNext()) {
       NodeImplBase node = (NodeImplBase) iter.next();
-      node.analyze(context);
+      node.analyze(parent, context);
     }
   }
 

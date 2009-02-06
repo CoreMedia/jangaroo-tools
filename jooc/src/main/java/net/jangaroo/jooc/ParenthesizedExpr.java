@@ -32,8 +32,9 @@ class ParenthesizedExpr extends Expr {
     this.rParen = rParen;
   }
 
-  public void analyze(AnalyzeContext context) {
-    expr.analyze(context);
+  public void analyze(Node parentNode, AnalyzeContext context) {
+    super.analyze(parentNode, context);
+    expr.analyze(this, context);
   }
 
   public void generateCode(JsWriter out) throws IOException {

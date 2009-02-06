@@ -39,11 +39,12 @@ class IfStatement extends KeywordStatement {
     this.ifFalse = ifFalse;
   }
 
-  public void analyze(AnalyzeContext context) {
-    cond.analyze(context);
-    ifTrue.analyze(context);
+  public void analyze(Node parentNode, AnalyzeContext context) {
+    super.analyze(parentNode, context);
+    cond.analyze(this, context);
+    ifTrue.analyze(this, context);
     if (ifFalse != null)
-      ifFalse.analyze(context);
+      ifFalse.analyze(this, context);
   }
 
   public void generateCode(JsWriter out) throws IOException {

@@ -13,6 +13,21 @@
 
 // JangarooScript runtime support. Author: Frank Wienberg
 
+Class = function Class(casted) {
+  return casted;
+};
+Class.$class = {
+  isInstance: function(object) {
+    return typeof object=="function";
+  }
+};
+trace = function(msg) {
+  if (window.console) {
+    console.log("AS3: "+msg);
+  } else {
+    document.writeln("AS3: "+msg);
+  }
+};
 Function.prototype.getName = typeof Function.prototype.name=="string"
 ? (function getName() { return this.name; })
 : (function() {
@@ -30,10 +45,15 @@ Function.prototype.getName = typeof Function.prototype.name=="string"
 }());
 
 Function.prototype.bind = function(object) {
+  if (this.$boundTo===object) {
+    return this;
+  }
   var fn = this;
-  return function() {
+  var f = function $boundMethod() {
     return fn.apply(object,arguments);
   };
+  f.$boundTo = object;
+  return f;
 };
 
 (function(theGlobalObject) {
@@ -66,6 +86,19 @@ Function.prototype.bind = function(object) {
   }
   function isFunction(object) {
     return typeof object=="function" && object.constructor!==RegExp;
+  }
+  function getMethod(object, methodType, methodName) {
+    return methodType=="get" ? object.__lookupGetter__(methodName)
+      : methodType=="set" ? object.__lookupSetter__(methodName)
+      : isFunction(object[methodName]) ? object[methodName]
+      : null;
+  }
+  function setMethod(object, methodType, methodName, method) {
+    switch(methodType) {
+      case "get": object.__defineGetter__(methodName, method); break;
+      case "set": object.__defineSetter__(methodName, method); break;
+      default: object[methodName] = method;
+    }
   }
   function createEmptyConstructor($constructor) {
     var emptyConstructor = function(){ this.constructor = $constructor; };
@@ -111,13 +144,7 @@ Function.prototype.bind = function(object) {
     if (typeof member!="function" || member.$boundTo===object) {
       return member;
     }
-    var boundMethod = function $boundMethod() {
-      return member.apply(object,arguments);
-    };
-    // remember the object I am bound to:
-    boundMethod.$boundTo = object;
-    object[methodName]=boundMethod;
-    return boundMethod;
+    return object[methodName]=member.bind(object);
   }
   function assert(cond, file, line, column) {
     if (!cond)
@@ -186,7 +213,8 @@ Function.prototype.bind = function(object) {
         var cd = this.classDescriptions[fullClassName];
         if (!cd) {
           var constr = getNativeClass(fullClassName);
-          if (typeof constr=="function") {
+          var constrType = typeof constr;
+          if (constrType=="function" || constrType=="object") {
             if (joo.Class.debug && theGlobalObject.console) {
               console.debug("found non-Jangaroo class "+fullClassName+"!");
             }
@@ -455,6 +483,7 @@ Function.prototype.bind = function(object) {
               continue;
             }
             var memberType = "function";
+            var methodType = "method";
             var memberName = undefined;
             var modifiers;
             if (typeof members=="string") {
@@ -467,6 +496,8 @@ Function.prototype.bind = function(object) {
                   visibility = "$"+modifier;
                 } else if (modifier=="var" || modifier=="const") {
                   memberType = modifier;
+                } else if (modifier=="get" || modifier=="set") {
+                  methodType = modifier;
                 } else if (modifier=="override") {
                   // so far: ignore. TODO: enable super-call!
                 } else if (j==modifiers.length-1) {
@@ -490,19 +521,26 @@ Function.prototype.bind = function(object) {
                 // found static code block; execute on initialization
                 targetMap.$static.fieldsWithInitializer.push(members);
               } else {
-                setFunctionName(members, memberName);
+                if (methodType!="method") {
+                  setFunctionName(members, methodType+"$"+memberName);
+                } else {
+                  setFunctionName(members, memberName);
+                }
                 if (memberName==this.$class) {
                   this.$constructor = members;
                 } else {
                   if (memberKey=="$this") {
                     if (visibility=="$private") {
                       memberName = registerPrivateMember(privateStatic, classPrefix, memberName);
-                    } else if (isFunction(target[memberName])) {
-                      // Found overriding! Store super method as private method delegate for super access:
-                      this.Public.prototype[registerPrivateMember(privateStatic, classPrefix, memberName)] = target[memberName];
+                    } else {
+                      var overriddenMethod = getMethod(target, methodType, memberName);
+                      if (overriddenMethod) {
+                        // Found overriding! Store super method as private method delegate for super access:
+                        setMethod(this.Public.prototype, methodType, registerPrivateMember(privateStatic, classPrefix, memberName), overriddenMethod);
+                      }
                     }
                   }
-                  target[memberName] = members;
+                  setMethod(target, methodType, memberName, members);
                 }
               }
             } else {

@@ -22,6 +22,8 @@ import java.io.IOException;
  */
 class TopLevelIdeExpr extends IdeExpr {
 
+  // TODO: add a compiler option for this:
+  public static final boolean ASSUME_UNDECLARED_IDENTIFIERS_ARE_MEMBERS = true;
   private Scope scope;
 
   public TopLevelIdeExpr(Ide ide) {
@@ -29,8 +31,8 @@ class TopLevelIdeExpr extends IdeExpr {
   }
 
   @Override
-  public void analyze(AnalyzeContext context) {
-    super.analyze(context);
+  public void analyze(Node parentNode, AnalyzeContext context) {
+    super.analyze(parentNode, context);
     scope = context.getScope();
   }
 
@@ -38,25 +40,26 @@ class TopLevelIdeExpr extends IdeExpr {
   public void generateCode(JsWriter out) throws IOException {
     if (scope!=null) {
       Scope declaringScope = scope.findScopeThatDeclares(ide);
-      if (declaringScope!=null) {
+      boolean addMissingThis = false;
+      if (declaringScope == null) {
+        addMissingThis = ASSUME_UNDECLARED_IDENTIFIERS_ARE_MEMBERS && Character.isLowerCase(ide.getName().charAt(0));
+        Jooc.warning(ide.getSymbol(), "Undeclared identifier: "+ide.getName()
+          +(addMissingThis ? ", assuming it is an inherited member." : ""));
+      } else {
         Node declaration = declaringScope.getDeclaration();
         if (declaration instanceof ClassDeclaration) {
           MemberDeclaration memberDeclaration = (MemberDeclaration)declaringScope.getIdeDeclaration(ide);
           if (!memberDeclaration.isStatic() && !memberDeclaration.isConstructor()) {
-            //System.out.println("WARNING: Adding probably missing 'this' to "+getSymbol());
-            out.writeToken("this");
-            if (memberDeclaration.isPrivate()) {
-              out.write("[");
-              // awkward, but we have to be careful if we add characters to tokens:
-              out.writeSymbol(getSymbol(),  "$", "");
-              out.write("]");
-            } else {
-              out.write(".");
-              out.writeSymbol(getSymbol());
-            }
-            return;
+            addMissingThis = true;
           }
         }
+      }
+      if (addMissingThis) {
+        DotExpr synthesizedDotExpr = new DotExpr(new ThisExpr(new JooSymbol("this")), new JooSymbol("."), this.ide);
+        synthesizedDotExpr.parentNode = parentNode;
+        synthesizedDotExpr.classDeclaration = scope.getClassDeclaration();
+        synthesizedDotExpr.generateCode(out);
+        return;
       }
     }
     super.generateCode(out);

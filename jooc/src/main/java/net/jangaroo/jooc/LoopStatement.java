@@ -41,10 +41,11 @@ abstract class LoopStatement extends KeywordStatement {
   protected void generateLoopFooterCode(JsWriter out) throws IOException {
   }
 
-  public void analyze(AnalyzeContext context) {
+  public void analyze(Node parentNode, AnalyzeContext context) {
+    super.analyze(parentNode, context);
     context.getScope().enterLoop(this);
     analyzeLoopHeader(context);
-    body.analyze(context);
+    body.analyze(this, context);
     analyzeLoopFooter(context);
     context.getScope().exitLoop(this);
   }

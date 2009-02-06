@@ -24,8 +24,4 @@ class ContinueStatement extends LabelRefStatement {
     super(symContinue, optLabel, symSemicolon);
   }
 
-  public void analyze(AnalyzeContext context) {
-    super.analyze(context);
-  }
-
 }

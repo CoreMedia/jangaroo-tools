@@ -83,9 +83,49 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
      out.write(");");
   }
 
-  public void analyze(AnalyzeContext context) {
-    packageDeclaration.analyze(context);
-    classDeclaration.analyze(context);
+  public void analyze(Node parentNode, AnalyzeContext context) {
+    // establish global scope for built-in identifiers:
+    IdeType globalObject = new IdeType("globalObject");
+    context.enterScope(globalObject);
+    declareIdes(context.getScope(), new String[]{
+      "undefined",
+      "window",  // TODO: or rather have to import?
+      "int",
+      "uint",
+      "Object",
+      "Function",
+      "Class",
+      "Array",
+      "Boolean",
+      "String",
+      "Number",
+      "RegExp",
+      "Date",
+      "Math",
+      "parseInt",
+      "parseFloat",
+      "isNaN",
+      "NaN",
+      "isFinite",
+      "encodeURIComponent",
+      "decodeURIComponent",
+      "trace",
+      "joo"});
+      super.analyze(parentNode, context);
+    context.enterScope(packageDeclaration);
+    packageDeclaration.analyze(this, context);
+    if (directives!=null) {
+      directives.analyze(this, context);
+    }
+    classDeclaration.analyze(this, context);
+    context.leaveScope(packageDeclaration);
+    context.leaveScope(globalObject);
+  }
+
+  private void declareIdes(Scope scope, String[] identifiers) {
+    for (String identifier: identifiers) {
+      scope.declareIde(identifier, new IdeType(identifier));
+    }
   }
 
   public JooSymbol getSymbol() {

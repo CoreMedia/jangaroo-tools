@@ -23,6 +23,7 @@ import java.io.IOException;
 class ApplyExpr extends Expr {
 
   Expr fun;
+  boolean isType;
   JooSymbol lParen;
   Arguments args;
   JooSymbol rParen;
@@ -34,12 +35,14 @@ class ApplyExpr extends Expr {
     this.rParen = rParen;
   }
 
-  protected void generateFunCode(JsWriter out) throws IOException {
-    fun.generateCode(out);
-  }
-
   public void generateCode(JsWriter out) throws IOException {
-    generateFunCode(out);
+    if (isType) {
+      out.beginComment();
+      fun.generateCode(out);
+      out.endComment();
+    } else {
+      fun.generateCode(out);
+    }
     generateArgsCode(out);
   }
 
@@ -50,10 +53,23 @@ class ApplyExpr extends Expr {
     out.writeSymbol(rParen);
   }
 
-  public void analyze(AnalyzeContext context) {
-    fun.analyze(context);
+  public void analyze(Node parentNode, AnalyzeContext context) {
+    super.analyze(parentNode, context);
+    // leave out constructor function if called as type cast function!
+    if (fun instanceof IdeExpr) {
+      Ide funIde = ((IdeExpr)fun).ide;
+      // heuristic for types: start with upper case letter.
+      // otherwise, it is most likely an imported package-namespaced function.
+      if (Character.isUpperCase(funIde.getName().charAt(0))) {
+        Scope scope = context.getScope().findScopeThatDeclares(funIde);
+        if (scope!=null) {
+          isType = scope.getDeclaration()==context.getScope().getPackageDeclaration();
+        }
+      }
+    }
+    fun.analyze(this, context);
     if (args != null)
-      args.analyze(context);
+      args.analyze(this, context);
   }
 
   public JooSymbol getSymbol() {

@@ -33,7 +33,7 @@ public class Ide extends NodeImplBase {
   }
 
   public String[] getQualifiedName() {
-    return new String[] { ide.getText() };
+    return new String[] { getName() };
   }
 
   public String getName() {

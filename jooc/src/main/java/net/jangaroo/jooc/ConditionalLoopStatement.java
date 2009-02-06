@@ -31,7 +31,7 @@ abstract class ConditionalLoopStatement extends LoopStatement {
 
   protected void analyzeLoopHeader(AnalyzeContext context) {
     if (optCond != null)
-      optCond.analyze(context);
+      optCond.analyze(this, context);
   }
 
   protected void generateLoopHeaderCode(JsWriter out) throws IOException {

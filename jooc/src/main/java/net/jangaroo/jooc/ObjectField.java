@@ -32,9 +32,10 @@ class ObjectField extends NodeImplBase {
     this.value = value;
   }
 
-  public void analyze(AnalyzeContext context) {
-    nameExpr.analyze(context);
-    value.analyze(context);
+  public void analyze(Node parentNode, AnalyzeContext context) {
+    super.analyze(parentNode, context);
+    nameExpr.analyze(this, context);
+    value.analyze(this, context);
   }
 
   public void generateCode(JsWriter out) throws IOException {

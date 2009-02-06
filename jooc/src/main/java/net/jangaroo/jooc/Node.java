@@ -24,6 +24,6 @@ interface Node {
 
   JooSymbol getSymbol();
   void generateCode(JsWriter out) throws IOException;
-  void analyze(AnalyzeContext context);
+  void analyze(Node parentNode, AnalyzeContext context);
 
 }

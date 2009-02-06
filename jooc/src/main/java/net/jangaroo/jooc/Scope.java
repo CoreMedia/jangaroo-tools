@@ -41,17 +41,13 @@ class Scope {
     return parent;
   }
 
-  protected Map<String,IdeDeclaration> ides = new HashMap<String,IdeDeclaration>();
+  protected Map<String,Node> ides = new HashMap<String,Node>();
   protected List<LabeledStatement> labels = new ArrayList<LabeledStatement>();
   protected List<LoopStatement> loopStatementStack = new ArrayList<LoopStatement>();
   protected List<KeywordStatement> loopOrSwitchStatementStack = new ArrayList<KeywordStatement>();
 
-  public void declareIde(IdeDeclaration decl) {
-    String name = decl.ide.getName();
-    IdeDeclaration alreadyDeclared = ides.get(name);
-    if (alreadyDeclared != null)
-      Jooc.error(decl.ide.ide, "duplicate declaration of identifier '" + name + "'");
-    ides.put(name, decl);
+  public Node declareIde(String name, Node decl) {
+    return ides.put(name, decl);
   }
 
   public void defineLabel(LabeledStatement labeledStatement) {
@@ -75,8 +71,12 @@ class Scope {
     return null; // not reached
   }
 
-  public IdeDeclaration getIdeDeclaration(Ide ide) {
-    return ides.get(ide.getName());
+  public Node getIdeDeclaration(Ide ide) {
+    return getIdeDeclaration(ide.getName());
+  }
+
+  public Node getIdeDeclaration(String name) {
+    return ides.get(name);
   }
 
   public Scope findScopeThatDeclares(Ide ide) {
@@ -85,7 +85,7 @@ class Scope {
       : getParentScope().findScopeThatDeclares(ide);
   }
 
-  public IdeDeclaration lookupIde(Ide ide) {
+  public Node lookupIde(Ide ide) {
     Scope scope = findScopeThatDeclares(ide);
     if (scope == null)
       Jooc.error(ide.ide, "undeclared identifier: '" + ide.getName() + "'");

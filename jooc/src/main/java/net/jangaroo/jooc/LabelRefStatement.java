@@ -31,8 +31,8 @@ class LabelRefStatement extends KeywordExprStatement {
 
   protected LabeledStatement labelDeclaration = null;
 
-  public void analyze(AnalyzeContext context) {
-    super.analyze(context);
+  public void analyze(Node parentNode, AnalyzeContext context) {
+    super.analyze(parentNode, context);
     Scope scope = context.getScope();
     if (optLabel == null) {
       Statement loopOrSwitchStatement = scope.getCurrentLoopOrSwitch();

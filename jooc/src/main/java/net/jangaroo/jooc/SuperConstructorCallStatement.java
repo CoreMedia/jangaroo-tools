@@ -37,7 +37,8 @@ class SuperConstructorCallStatement extends Statement {
     this.fun = new SuperExpr(symSuper);
   }
 
-  public void analyze(AnalyzeContext context) {
+  public void analyze(Node parentNode, AnalyzeContext context) {
+    super.analyze(parentNode, context);
     MethodDeclaration method = context.getCurrentMethod();
     if (method == null || !method.isConstructor()) {
       Jooc.error(symSuper, "must only call super constructor from constructor method");
@@ -48,7 +49,7 @@ class SuperConstructorCallStatement extends Statement {
     method.setContainsSuperConstructorCall(true);
 
     if (args != null)
-      args.analyze(context);
+      args.analyze(this, context);
   }
 
   public void generateCode(JsWriter out) throws IOException {

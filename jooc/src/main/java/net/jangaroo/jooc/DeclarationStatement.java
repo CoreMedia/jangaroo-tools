@@ -29,9 +29,9 @@ class DeclarationStatement extends SemicolonTerminatedStatement {
     this.decl = decl;
   }
 
-  public void analyze(AnalyzeContext context) {
-    super.analyze(context);
-    decl.analyze(context);
+  public void analyze(Node parentNode, AnalyzeContext context) {
+    super.analyze(parentNode, context);
+    decl.analyze(this, context);
   }
 
   protected void generateStatementCode(JsWriter out) throws IOException {

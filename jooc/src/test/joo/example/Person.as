@@ -49,14 +49,14 @@ public class Person {
    * Render this person as HTML into the current document.
    */
   public function render(): void {
-    document.write("<div>"+this.renderInner()+"</div>");
+    window.document.write("<div>"+this.renderInner()+"</div>");
   }
 
   /**
    * Get the inner HTML presenting this person.
    * Subclasses should add a presentation of their additional properties.
    */
-  protected function renderInner(): void {
+  protected function renderInner(): String {
     this.privateTest("foo");
     return "<p>name: "+this.getName()+"</p>";
   }

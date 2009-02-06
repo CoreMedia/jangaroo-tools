@@ -45,11 +45,11 @@ public class Parameters extends NodeImplBase {
     this(param, null, null);
   }
 
-  public void analyze(AnalyzeContext context) {
-    super.analyze(context);
-    param.analyze(context);
+  public void analyze(Node parentNode, AnalyzeContext context) {
+    super.analyze(parentNode, context);
+    param.analyze(this, context);
     if (tail != null)
-      tail.analyze(context);
+      tail.analyze(this, context);
   }
 
   public void generateCode(JsWriter out) throws IOException {

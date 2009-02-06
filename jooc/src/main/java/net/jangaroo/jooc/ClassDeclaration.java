@@ -114,12 +114,15 @@ public class ClassDeclaration extends IdeDeclaration {
     out.write("];}");
   }
 
-  public void analyze(AnalyzeContext context) {
+  public void analyze(Node parentNode, AnalyzeContext context) {
+    // do *not* call super!
+    this.parentNode = parentNode;
+    context.getScope().declareIde(getName(), this);
     parentDeclaration = context.getScope().getPackageDeclaration();
     context.enterScope(this);
-    if (optExtends != null) optExtends.analyze(context);
-    if (optImplements != null) optImplements.analyze(context);
-    body.analyze(context);
+    if (optExtends != null) optExtends.analyze(this, context);
+    if (optImplements != null) optImplements.analyze(this, context);
+    body.analyze(this, context);
     context.leaveScope(this);
     computeModifiers();
   }
@@ -145,7 +148,7 @@ public class ClassDeclaration extends IdeDeclaration {
   public Type getSuperClassType() {
     return optExtends != null
       ? optExtends.superClass
-      : new IdeType(new Ide(new JooSymbol(sym.IDE,  "", -1, -1, "", "Object")));
+      : new IdeType(new Ide(new JooSymbol("Object")));
   }
 
   public String getSuperClassPath() {

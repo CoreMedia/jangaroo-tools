@@ -46,16 +46,19 @@ class FunctionExpr extends Expr {
     return classDeclaration;
   }
 
-  public void analyze(AnalyzeContext context) {
+  public void analyze(Node parentNode, AnalyzeContext context) {
     classDeclaration = context.getCurrentClass();
     Debug.assertTrue(classDeclaration != null, "classDeclaration != null");
-    super.analyze(context);
+    super.analyze(parentNode, context);
     context.enterScope(this);
     if (params != null)
-      params.analyze(context);
+      params.analyze(this, context);
+    if (context.getScope().getIdeDeclaration("arguments")==null) {
+      context.getScope().declareIde("arguments", this); // is always defined inside a function!
+    }
     if (optTypeRelation != null)
-      optTypeRelation.analyze(context);
-    body.analyze(context);
+      optTypeRelation.analyze(this, context);
+    body.analyze(this, context);
     context.leaveScope(this);
   }
 
