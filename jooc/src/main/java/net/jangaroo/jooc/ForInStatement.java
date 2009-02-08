@@ -19,19 +19,30 @@ import java.io.IOException;
 
 /**
  * @author Andreas Gawecki
+ * @author Frank Wienberg
  */
 class ForInStatement extends LoopStatement {
 
   JooSymbol lParen;
   Declaration decl;
+  Ide ide; // only as alternative to decl
   JooSymbol symIn;
   Expr expr;
   JooSymbol rParen;
 
   public ForInStatement(JooSymbol symFor, JooSymbol lParen, Declaration decl, JooSymbol symIn, Expr expr, JooSymbol rParen, Statement body) {
+    this(symFor, lParen, decl, null, symIn, expr, rParen, body);
+  }
+
+  public ForInStatement(JooSymbol symFor, JooSymbol lParen, Ide ide, JooSymbol symIn, Expr expr, JooSymbol rParen, Statement body) {
+    this(symFor, lParen, null, ide, symIn, expr, rParen, body);
+  }
+
+  private ForInStatement(JooSymbol symFor, JooSymbol lParen, Declaration decl, Ide ide, JooSymbol symIn, Expr expr, JooSymbol rParen, Statement body) {
     super(symFor, body);
     this.lParen = lParen;
     this.decl = decl;
+    this.ide = ide;
     this.symIn = symIn;
     this.expr = expr;
     this.rParen = rParen;
@@ -39,14 +50,22 @@ class ForInStatement extends LoopStatement {
 
   protected void generateLoopHeaderCode(JsWriter out) throws IOException {
     out.writeSymbol(lParen);
-    decl.generateCode(out);
+    if (decl!=null) {
+      decl.generateCode(out);
+    } else {
+      ide.generateCode(out);
+    }
     out.writeSymbol(symIn);
     expr.generateCode(out);
     out.writeSymbol(rParen);
   }
 
   protected void analyzeLoopHeader(AnalyzeContext context) {
-    decl.analyze(this, context);
+    if (decl!=null) {
+      decl.analyze(this, context);
+    } else {
+      ide.analyze(this, context);
+    }
     expr.analyze(this, context);
   }
 

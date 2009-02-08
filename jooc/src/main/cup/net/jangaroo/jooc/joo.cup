@@ -659,6 +659,8 @@ labelableStatement ::=
     {: RESULT = new ForStatement(f,lp,new ForInitializer(e),s1,e1,s2,e2,rp,s); :}
   | FOR:f LPAREN:lp VAR:var ide:ide optTypeRelation:t optInitializer:init SEMICOLON:s1 optCommaExpr:e1 SEMICOLON:s2 optCommaExpr:e2 RPAREN:rp statement:s
     {: RESULT = new ForStatement(f,lp,new ForInitializer(new VariableDeclaration(var,ide,t,init)),s1,e1,s2,e2,rp,s); :}
+  | FOR:f LPAREN:lp ide:ide IN:in expr:e RPAREN:rp statement:s
+    {: RESULT = new ForInStatement(f,lp,ide,in,e,rp,s); :}
   | FOR:f LPAREN:lp VAR:var ide:ide optTypeRelation:t IN:in expr:e RPAREN:rp statement:s
     {: RESULT = new ForInStatement(f,lp,new VariableDeclaration(var,ide,t,null),in,e,rp,s); :}
   | TRY:t block:b catches:c

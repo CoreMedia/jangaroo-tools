@@ -43,6 +43,15 @@ public class TestStatements {
     return result.join(", ");
   }
 
+  public function testForIn2(o :Object):String {
+    var result = [];
+    var slot : String;
+    for (slot in o)
+      result.push(slot);
+    result.sort();
+    return result.join(", ");
+  }
+
   public function testDoWhile(n:int):int {
     var result = 0;
     var i = n;
