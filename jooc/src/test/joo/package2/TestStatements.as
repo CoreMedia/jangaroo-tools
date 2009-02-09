@@ -52,6 +52,37 @@ public class TestStatements {
     return result.join(", ");
   }
 
+  public function testForEach(o :Object):String {
+    var result = [];
+    for each (var slot : String in o)
+      result.push(slot);
+    result.sort();
+    return result.join(", ");
+  }
+
+  public function testForEach2(o :Object):String {
+    var result = [];
+    var slot : String;
+    for each (slot in o)
+      result.push(slot);
+    result.sort();
+    return result.join(", ");
+  }
+
+  public function testForEach3(o :Object):String {
+    var result = [];
+    var slot : String;
+    var $1 : String = "occupied";
+    for each (slot in o) {
+      result.push(slot);
+      for each (var foo : String in o) {
+        result.push(foo);
+      }
+    }
+    result.sort();
+    return result.join(", ");
+  }
+
   public function testDoWhile(n:int):int {
     var result = 0;
     var i = n;
@@ -61,12 +92,12 @@ public class TestStatements {
     return result;
   }
 
-  public function testIf(cond:boolean, ifTrue :int, ifFalse :int):int {
+  public function testIf(cond:Boolean, ifTrue :int, ifFalse :int):int {
     if (cond) return ifTrue;
     return ifFalse;
   }
 
-  public function testIfThenElse(cond:boolean, ifTrue :int, ifFalse :int):int {
+  public function testIfThenElse(cond:Boolean, ifTrue :int, ifFalse :int):int {
     if (cond) return ifTrue;
     else return ifFalse;
   }

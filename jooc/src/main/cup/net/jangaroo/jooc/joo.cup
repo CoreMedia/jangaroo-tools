@@ -75,7 +75,7 @@ terminal JooSymbol ABSTRACT, AS, ASSERT;
 terminal JooSymbol BREAK;
 terminal JooSymbol CASE, CATCH, CLASS, CONST, CONTINUE;
 terminal JooSymbol DEBUGGER, DEFAULT, DELETE, DO;
-terminal JooSymbol ELSE, ENUM, EXTENDS;
+terminal JooSymbol EACH, ELSE, ENUM, EXTENDS;
 terminal JooSymbol FINAL, FINALLY, FOR, FUNCTION;
 terminal JooSymbol GET, GOTO;
 terminal JooSymbol IF, IMPLEMENTS, IMPORT, IN, INSTANCEOF, INTERFACE, INTERNAL, IS;
@@ -660,9 +660,13 @@ labelableStatement ::=
   | FOR:f LPAREN:lp VAR:var ide:ide optTypeRelation:t optInitializer:init SEMICOLON:s1 optCommaExpr:e1 SEMICOLON:s2 optCommaExpr:e2 RPAREN:rp statement:s
     {: RESULT = new ForStatement(f,lp,new ForInitializer(new VariableDeclaration(var,ide,t,init)),s1,e1,s2,e2,rp,s); :}
   | FOR:f LPAREN:lp ide:ide IN:in expr:e RPAREN:rp statement:s
-    {: RESULT = new ForInStatement(f,lp,ide,in,e,rp,s); :}
+    {: RESULT = new ForInStatement(f,null,lp,ide,in,e,rp,s); :}
   | FOR:f LPAREN:lp VAR:var ide:ide optTypeRelation:t IN:in expr:e RPAREN:rp statement:s
-    {: RESULT = new ForInStatement(f,lp,new VariableDeclaration(var,ide,t,null),in,e,rp,s); :}
+    {: RESULT = new ForInStatement(f,null,lp,new VariableDeclaration(var,ide,t,null),in,e,rp,s); :}
+  | FOR:f EACH:ea LPAREN:lp ide:ide IN:in expr:e RPAREN:rp statement:s
+    {: RESULT = new ForInStatement(f,ea,lp,ide,in,e,rp,s); :}
+  | FOR:f EACH:ea LPAREN:lp VAR:var ide:ide optTypeRelation:t IN:in expr:e RPAREN:rp statement:s
+    {: RESULT = new ForInStatement(f,ea,lp,new VariableDeclaration(var,ide,t,null),in,e,rp,s); :}
   | TRY:t block:b catches:c
     {: RESULT = new TryStatement(t,b,c); :}
   | TRY:t block:b optCatches:c FINALLY:f block:fb

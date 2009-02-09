@@ -147,6 +147,7 @@ static int[] terminalsAllowedBeforeRegexpLiteral = {
     defsym("default", DEFAULT);
     defsym("delete", DELETE);
     defsym("do", DO);
+    defsym("each", EACH);
     defsym("else", ELSE);
     defsym("enum", ENUM);
     defsym("extends", EXTENDS);
@@ -291,6 +292,7 @@ HexDigit          = [0-9abcdefABCDEF]
   "default"                       { return symbol(DEFAULT); }
   "delete"                        { return symbol(DELETE); }
   "do"                            { return symbol(DO); }
+  "each"                          { return symbol(EACH); }
   "else"                          { return symbol(ELSE); }
   "enum"                          { return symbol(ENUM); }
   "extends"                       { return symbol(EXTENDS); }

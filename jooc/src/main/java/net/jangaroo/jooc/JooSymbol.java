@@ -27,7 +27,11 @@ public class JooSymbol extends java_cup.runtime.Symbol {
   protected String fileName;
 
   public JooSymbol(String text) {
-    this(net.jangaroo.jooc.sym.IDE,  "", -1, -1, "", text);
+    this(net.jangaroo.jooc.sym.IDE,  text);
+  }
+
+  public JooSymbol(int type, String text) {
+    this(type,  "", -1, -1, "", text);
   }
 
   public JooSymbol(int type, String fileName, int line, int column, String whitespace, String text) {

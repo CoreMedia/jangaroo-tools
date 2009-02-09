@@ -92,6 +92,19 @@ class Scope {
     return scope.getIdeDeclaration(ide);
   }
 
+  public Ide createAuxVar() {
+    int i=1;
+    while (true) {
+      String auxVarName = "$" + i;
+      Ide auxVar = new Ide(new JooSymbol(auxVarName));
+      if (findScopeThatDeclares(auxVar)==null) {
+        declareIde(auxVarName, auxVar);
+        return auxVar;
+      }
+      ++i;
+    }
+  }
+
   public void enterLoop(LoopStatement loopStatement) {
     loopStatementStack.add(loopStatement);
     loopOrSwitchStatementStack.add(loopStatement);

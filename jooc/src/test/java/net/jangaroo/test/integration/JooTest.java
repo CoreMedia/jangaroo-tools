@@ -157,6 +157,9 @@ public class JooTest extends JooRuntimeTestCase {
     expectNumber(15, "obj.testDoWhile(5)");
     expectString("x, y, z", "obj.testForIn({ y: 2, x :1, z: 3})");
     expectString("x, y, z", "obj.testForIn2({ y: 2, x :1, z: 3})");
+    expectString("1, 2, 3", "obj.testForEach({ y: 2, x :1, z: 3})");
+    expectString("1, 2, 3", "obj.testForEach2({ y: 2, x :1, z: 3})");
+    expectString("1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3", "obj.testForEach3({ y: 2, x :1, z: 3})");
     expectNumber(11, "obj.testSwitch(1,1,11,2,22,33)");
     expectNumber(22, "obj.testSwitch(2,1,11,2,22,33)");
     expectNumber(33, "obj.testSwitch(3,1,11,2,22,33)");
