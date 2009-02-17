@@ -54,12 +54,17 @@ public class Parameter extends AbstractVariableDeclaration {
     out.endComment();
   }
 
+  public boolean hasInitializer() {
+    return optInitializer!=null &&
+      // ignore initializers that assign undefined. Parameters are already undefined if not present.
+      (!(optInitializer.value instanceof IdeExpr) ||
+        !((IdeExpr)optInitializer.value).ide.getName().equals("undefined"));
+  }
+
   void generateBodyInitializerCode(JsWriter out) throws IOException {
-    if (optInitializer!=null) {
-      out.writeToken(getName());
-      optInitializer.generateCode(out);
-      out.write(";");
-    }
+    out.writeToken(getName());
+    optInitializer.generateCode(out);
+    out.write(";");
   }
 
   void generateRestParamCode(JsWriter out, int paramIndex) throws IOException {

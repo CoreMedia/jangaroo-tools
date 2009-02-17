@@ -286,6 +286,11 @@ public class JooTest extends JooRuntimeTestCase {
     expectString("foo/bar/3", "obj.initParams3('foo','bar','a',2,true)");
     expectString("foo/bar/0", "obj.initParams3('foo','bar')");
     expectString("foo/foo/0", "obj.initParams3('foo')");
+
+    expectString("foo/bar/baz/3", "obj.initParams4('foo','bar','baz', 'a',2,true)");
+    expectString("foo/bar/undefined/0", "obj.initParams4('foo','bar')");
+    expectString("foo/foo/undefined/0", "obj.initParams4('foo')");
+    expectString("undefined/foo/undefined/0", "obj.initParams4()");
   }
 
   public void testRestParams() throws Exception {

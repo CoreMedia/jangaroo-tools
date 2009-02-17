@@ -37,5 +37,9 @@ public class TestParamInitializers /* blub ber *//*extends Object*/ {
     return a + "/" + b + "/" + rest.length;
   }
 
+  public function initParams4( a : String = undefined, b : String = "foo", c : String = undefined, ...rest) : String {
+    return a + "/" + b + "/" + c + "/" + rest.length;
+  }
+  
 }
 }

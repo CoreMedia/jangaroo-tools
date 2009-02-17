@@ -67,35 +67,31 @@ public class Parameters extends NodeImplBase {
   }
 
   public void generateParameterInitializerCode(JsWriter out) throws IOException {
-    int cnt = 0, startIndex = Integer.MAX_VALUE;
-    Parameters paramsWithInitializer = null;
-    Parameter restParam = null;
+    // first pass: generate conditionals and count parameters.
+    int cnt = 0;
+    StringBuilder code = new StringBuilder();
     for (Parameters parameters = this; parameters!=null; parameters = parameters.tail) {
       Parameter param = parameters.param;
       if (param.isRest()) {
-        restParam = param;
         break;
       }
-      if (paramsWithInitializer==null && param.optInitializer!=null) {
-        // remember first parameter with initializer (index plus list entry point):
-        startIndex = cnt;
-        paramsWithInitializer = parameters;
+      if (param.hasInitializer()) {
+        code.insert(0,"if(arguments.length<"+(cnt+1)+"){");
       }
       ++cnt;
     }
-    for (int i = cnt; i > startIndex; --i) {
-      out.write("if(arguments.length<"+i+"){");
-    }
-    for (Parameters parameters = paramsWithInitializer; parameters!=null; parameters = parameters.tail) {
+    out.write(code.toString());
+    // second pass: generate initializers and rest param code.
+    for (Parameters parameters = this; parameters!=null; parameters = parameters.tail) {
       Parameter param = parameters.param;
       if (param.isRest()) {
+        param.generateRestParamCode(out, cnt);
         break;
       }
-      param.generateBodyInitializerCode(out);
-      out.write("}");
-    }
-    if (restParam!=null) {
-      restParam.generateRestParamCode(out, cnt);
+      if (param.hasInitializer()) {
+        param.generateBodyInitializerCode(out);
+        out.write("}");
+      }
     }
   }
 
