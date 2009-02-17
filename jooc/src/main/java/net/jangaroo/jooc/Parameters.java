@@ -57,8 +57,12 @@ public class Parameters extends NodeImplBase {
     if (symComma != null) {
       if (!tail.param.isRest()) {
         out.writeSymbol(symComma);
-      } // TODO: else move symComma into comment!
-      tail.generateCode(out);
+        tail.generateCode(out);
+      } else {
+        out.beginCommentWriteSymbol(symComma);
+        tail.generateCode(out);
+        out.endComment();
+      }
     }
   }
 
