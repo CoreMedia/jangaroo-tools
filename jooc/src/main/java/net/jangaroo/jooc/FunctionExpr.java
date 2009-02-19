@@ -31,6 +31,7 @@ class FunctionExpr extends Expr {
   BlockStatement body;
 
   ClassDeclaration classDeclaration;
+  private boolean thisUsed;
 
   public FunctionExpr(JooSymbol symFun, Ide ide, JooSymbol lParen, Parameters params, JooSymbol rParen, TypeRelation optTypeRelation, BlockStatement body) {
     this.symFun = symFun;
@@ -50,6 +51,9 @@ class FunctionExpr extends Expr {
     classDeclaration = context.getCurrentClass();
     Debug.assertTrue(classDeclaration != null, "classDeclaration != null");
     super.analyze(parentNode, context);
+    if (ide!=null) {
+      context.getScope().declareIde(ide.getName(), this);
+    }
     context.enterScope(this);
     if (params != null)
       params.analyze(this, context);
@@ -60,6 +64,14 @@ class FunctionExpr extends Expr {
       optTypeRelation.analyze(this, context);
     body.analyze(this, context);
     context.leaveScope(this);
+  }
+
+  public void notifyThisUsed(AnalyzeContext context) {
+    MethodDeclaration methodDeclaration = context.getScope().getMethodDeclaration();
+    // if "this" is used inside non-static method, remember that:
+    if (methodDeclaration!=null && !methodDeclaration.isStatic()) {
+      thisUsed = true;
+    }
   }
 
   public void generateCode(JsWriter out) throws IOException {
@@ -73,6 +85,9 @@ class FunctionExpr extends Expr {
     out.writeSymbol(rParen);
     if (optTypeRelation != null) optTypeRelation.generateCode(out);
     body.generateCode(out);
+    if (thisUsed) {
+      out.write(".bind(this)");
+    }
   }
 
   public JooSymbol getSymbol() {
@@ -82,4 +97,5 @@ class FunctionExpr extends Expr {
   boolean isCompileTimeConstant() {
     return true;
   }
+
 }

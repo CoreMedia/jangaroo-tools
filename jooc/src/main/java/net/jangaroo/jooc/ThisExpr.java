@@ -23,5 +23,17 @@ class ThisExpr extends IdeExpr {
   public ThisExpr(JooSymbol symThis) {
     super(new Ide(symThis));
   }
-  
+
+  @Override
+  public void analyze(Node parentNode, AnalyzeContext context) {
+    super.analyze(parentNode, context);
+    Scope scope = context.getScope();
+    while (scope!=null) {
+      Node scopeDecl = scope.getDeclaration();
+      if (scopeDecl instanceof FunctionExpr) {
+        ((FunctionExpr)scopeDecl).notifyThisUsed(context);
+      }
+      scope = scope.parent;
+    }
+  }
 }

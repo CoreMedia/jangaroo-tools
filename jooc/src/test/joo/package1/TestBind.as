@@ -15,49 +15,89 @@
 
 package package1 {
 
-[Event]
 public class TestBind {
 
   public function TestBind(state : String) {
     this.state = state;
-    //joo.bind(this,"getState");
   }
 
-  //[Bound]
   public function getState() : String {
     return this.state;
   }
 
-  //[Bound]
+  public function getState1() : String {
+    return this.state;
+  }
+
+  public function getState2() : String {
+    return this.state;
+  }
+
+  public function getState3() : String {
+    return this.state;
+  }
+
+  public function getState4() : String {
+    return this.state;
+  }
+
+  // will be auto-bound!
   private function getStatePrivate() : String {
     return this.state;
   }
 
   public function testInvokeLocalVar() : * {
-    var f : Function = this.getState;
+    var f : Function = this.getState1;
     return f();
   }
 
   public function testInvokeLocalVarUnqualified() : * {
-    var f : Function = getState;
+    var f : Function = getState2;
     return f();
   }
 
   public function testInvokeParameter() : String {
-    return this.invoke(this.getState);
+    return this.invoke(this.getState3);
   }
 
   public function testInvokeParameterUnqualified() : String {
-    return invoke(getState);
+    return invoke(getState4);
   }
 
   public function testInvokeParameterUnqualifiedPrivate() : String {
     return invoke(getStatePrivate);
   }
 
-  public function testDelete() : Boolean {
-    delete this.testDelete;
-    return "testDelete" in this;
+  public function testLocalFunction() : String {
+    return invoke(function() {
+      return this.getState();
+    });
+  }
+
+  public function testLocalFunctionUnqualified() : String {
+    return invoke(function() {
+      return getState();
+    });
+  }
+
+  // negative tests>
+  // This method is never actually called, but only analzyed by the compiler.
+  // These expressions must *not* lead to testNotBound being bound!
+  public function testDelete() : String {
+    delete this.testNotBound;
+    return typeof this.testNotBound;
+  }
+
+  // negative test: testNotBound must not be bound!
+  public function testNotBound() : String {
+    return this.getState();
+  }
+
+  // negative test: functions using "this" inside static code must not be bound:
+  public static function testStaticNotBound() : String {
+    return function() : Object {
+      return this;
+    };
   }
 
   private function invoke(f : Function) : * {

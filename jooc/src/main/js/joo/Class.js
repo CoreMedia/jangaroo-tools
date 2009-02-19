@@ -115,6 +115,14 @@ Function.prototype.bind = function(object) {
       this[superName].apply(this,arguments);
     });
   }
+  function createBoundMethodFactory(method) {
+    return (function() {
+      var self = this;
+      return setFunctionName(function $boundMethod() {
+        return method.apply(self, arguments);
+      }, method.getName());
+    });
+  }
   function setFunctionName(theFunction, name) {
     theFunction.getName = function() { return name; };
     return theFunction;
@@ -478,6 +486,7 @@ Function.prototype.bind = function(object) {
           while (i<memberDeclarations.length) {
             var memberKey = "$this"; // default: not static
             var visibility = "$internal"; // default: internal visibility
+            var bound = false;
             var members = memberDeclarations[i++];
             if (members===undefined) {
               continue;
@@ -494,6 +503,8 @@ Function.prototype.bind = function(object) {
                   memberKey = "$static";
                 } else if (modifier=="private" || modifier=="public" || modifier=="protected" || modifier=="internal") {
                   visibility = "$"+modifier;
+                } else if (modifier=="bound") {
+                  bound = true;
                 } else if (modifier=="var" || modifier=="const") {
                   memberType = modifier;
                 } else if (modifier=="get" || modifier=="set") {
@@ -521,11 +532,7 @@ Function.prototype.bind = function(object) {
                 // found static code block; execute on initialization
                 targetMap.$static.fieldsWithInitializer.push(members);
               } else {
-                if (methodType!="method") {
-                  setFunctionName(members, methodType+"$"+memberName);
-                } else {
-                  setFunctionName(members, memberName);
-                }
+                setFunctionName(members, methodType == "method" ? memberName : (methodType+"$"+memberName));
                 if (memberName==this.$class) {
                   this.$constructor = members;
                 } else {
@@ -539,6 +546,12 @@ Function.prototype.bind = function(object) {
                         setMethod(this.Public.prototype, methodType, registerPrivateMember(privateStatic, classPrefix, memberName), overriddenMethod);
                       }
                     }
+                  }
+                  if (bound) {
+                    // replace method by a bound method factory...
+                    members = createBoundMethodFactory(members);
+                    // ...and add it to the "field" initializers, so that the factory is invoked in super call:
+                    targetMap.$this.fieldsWithInitializer.push(memberName);
                   }
                   setMethod(target, methodType, memberName, members);
                 }

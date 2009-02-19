@@ -245,7 +245,8 @@ public class JooTest extends JooRuntimeTestCase {
 
     expectString("foo", "package1.TestUnqualifiedAccess.SET_BY_STATIC_INITIALIZER");
 
-    // TODO: test known bug "unqualified access to super members"!
+    expectBoolean(true, "obj.testLocalFunction()");
+    // TODO: test "unqualified access to super members"!
   }
 
   public void testNoSuper() throws Exception {
@@ -338,6 +339,21 @@ public class JooTest extends JooRuntimeTestCase {
     expectBoolean(false, "joo.is(obj, Number)");
 
     // TODO: test inheritance between interfaces and implementing multiple interfaces at once.
+  }
+
+  public void testBind() throws Exception {
+    loadClass("package1.TestBind");
+    eval("obj = new package1.TestBind('foo');");
+    expectString("foo", "obj.getState()");
+    expectString("foo", "obj.testInvokeLocalVar()");
+    expectString("foo", "obj.testInvokeLocalVarUnqualified()");
+    expectString("foo", "obj.testInvokeParameter()");
+    expectString("foo", "obj.testInvokeParameterUnqualified()");
+    expectString("foo", "obj.testInvokeParameterUnqualifiedPrivate()");
+    expectString("foo", "obj.testLocalFunction()");
+    expectString("foo", "obj.testLocalFunctionUnqualified()");
+    expectString("bar", "obj.testNotBound.call({getState: function(){return 'bar';}})");
+    expectBoolean(true, "package1.TestBind.testStaticNotBound().call('bar')=='bar'");
   }
 
   public static void main(String args[]) {

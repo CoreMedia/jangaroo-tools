@@ -53,6 +53,14 @@ public class TestUnqualifiedAccess {
     return this.getClass() === TestUnqualifiedAccess;
   }
 
+  // a local function must be found, or it will be assumed to be a member:
+  public function testLocalFunction() : Boolean {
+    function localFunction() : Boolean {
+      return true;
+    };
+    return localFunction();
+  }
+
   public static const UNQUALIFIED_CLASS_EQUALS_QUALIFIED_CLASS : Boolean = TestUnqualifiedAccess === package1.TestUnqualifiedAccess;
   public static var SET_BY_STATIC_INITIALIZER : String;
 

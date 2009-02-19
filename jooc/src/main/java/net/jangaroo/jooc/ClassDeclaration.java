@@ -26,6 +26,7 @@ public class ClassDeclaration extends IdeDeclaration {
   protected JooSymbol symClass;
   protected Extends optExtends;
   private Map<String,MemberDeclaration> members = new LinkedHashMap<String,MemberDeclaration>();
+  private Set<String> boundMethodCandidates = new HashSet<String>();
 
   public Extends getOptExtends() {
     return optExtends;
@@ -156,5 +157,13 @@ public class ClassDeclaration extends IdeDeclaration {
     //TODO: scope class declarations, implement getSuperClassDeclaration()
     IdeType ideType = (IdeType) type;
     return toPath(ideType.getIde().getQualifiedName());
+  }
+
+  public void addBoundMethodCandidate(String memberName) {
+    boundMethodCandidates.add(memberName);
+  }
+
+  public boolean isBoundMethod(String methodName) {
+    return boundMethodCandidates.contains(methodName);
   }
 }
