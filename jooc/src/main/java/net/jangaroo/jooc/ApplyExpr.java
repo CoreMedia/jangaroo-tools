@@ -57,6 +57,7 @@ class ApplyExpr extends Expr {
     super.analyze(parentNode, context);
     // leave out constructor function if called as type cast function!
     if (fun instanceof IdeExpr) {
+      // TODO: make it work for fully qualified identifiers!
       Ide funIde = ((IdeExpr)fun).ide;
       // heuristic for types: start with upper case letter.
       // otherwise, it is most likely an imported package-namespaced function.

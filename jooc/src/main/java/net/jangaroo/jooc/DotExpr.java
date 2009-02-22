@@ -43,6 +43,17 @@ class DotExpr extends BinaryOpExpr {
         && !(parentNode instanceof AssignmentOpExpr && ((AssignmentOpExpr)parentNode).arg1== this)
         && !(parentNode instanceof PrefixOpExpr && ((PrefixOpExpr)parentNode).op.sym==sym.TYPEOF)) {
         this.classDeclaration.addBoundMethodCandidate(property);
+      } else
+      // check access to constant from another class; other class then must be initialized:
+      if (!(parentNode instanceof ApplyExpr)) {
+        String[] qualifiedName = getQualifiedName(arg1);
+        if (qualifiedName!=null) {
+          String qulifiedNameStr = QualifiedIde.constructQualifiedNameStr(qualifiedName);
+          Scope declaringScope = context.getScope().findScopeThatDeclares(qulifiedNameStr);
+          if (declaringScope!=null && declaringScope.getDeclaration().equals(context.getCurrentPackage())) {
+            this.classDeclaration.addClassInit(qulifiedNameStr);
+          }
+        }
       }
     }
   }

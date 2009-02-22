@@ -23,7 +23,7 @@ import java.io.IOException;
 class TopLevelIdeExpr extends IdeExpr {
 
   // TODO: add a compiler option for this:
-  public static final boolean ASSUME_UNDECLARED_IDENTIFIERS_ARE_MEMBERS = true;
+  public static final boolean ASSUME_UNDECLARED_IDENTIFIERS_ARE_MEMBERS = Boolean.valueOf("true");
   private Scope scope;
   private DotExpr synthesizedDotExpr;
 
@@ -37,8 +37,7 @@ class TopLevelIdeExpr extends IdeExpr {
     scope = context.getScope();
     if (scope!=null) {
       Scope declaringScope = scope.findScopeThatDeclares(ide);
-      if (declaringScope==null && ASSUME_UNDECLARED_IDENTIFIERS_ARE_MEMBERS && !Character.isUpperCase(ide.getName().charAt(0))
-       || declaringScope!=null && declaringScope.getDeclaration() instanceof ClassDeclaration) {
+      if (declaringScope==null || declaringScope.getDeclaration() instanceof ClassDeclaration) {
         synthesizedDotExpr = new DotExpr(new ThisExpr(new JooSymbol("this")), new JooSymbol("."), ide);
         synthesizedDotExpr.analyze(parentNode, context);
       }
@@ -59,9 +58,26 @@ class TopLevelIdeExpr extends IdeExpr {
       // verify that ide is actually undefined or a non-static, non-constructor member:
       Scope declaringScope = scope.findScopeThatDeclares(ide);
       if (declaringScope==null) {
-        Jooc.warning(ide.getSymbol(), "Undeclared identifier: "+ide.getName()
-          +(ASSUME_UNDECLARED_IDENTIFIERS_ARE_MEMBERS ? ", assuming it is an inherited member." : ""));
-        return ASSUME_UNDECLARED_IDENTIFIERS_ARE_MEMBERS;
+        // check for fully qualified ide:
+        IdeExpr currentExpr = this;
+        String ideName = ide.getName();
+        while (declaringScope==null && currentExpr.parentNode instanceof DotExpr && ((DotExpr)currentExpr.parentNode).arg2 instanceof IdeExpr) {
+          currentExpr = (IdeExpr)((DotExpr)currentExpr.parentNode).arg2;
+          ideName += "." +currentExpr.ide.getName();
+          declaringScope = scope.findScopeThatDeclares(ideName);
+        }
+        if (declaringScope!=null) {
+          return false;
+        }
+        boolean probablyAType = Character.isUpperCase(ide.getName().charAt(0));
+        String warningMsg = "Undeclared identifier: " + ide.getName();
+        if (probablyAType) {
+          warningMsg += ", assuming it is a top level type.";
+        } else if (ASSUME_UNDECLARED_IDENTIFIERS_ARE_MEMBERS) {
+          warningMsg += ", assuming it is an inherited member.";
+        }
+        Jooc.warning(ide.getSymbol(), warningMsg);
+        return !probablyAType && ASSUME_UNDECLARED_IDENTIFIERS_ARE_MEMBERS;
       } else if (declaringScope.getDeclaration() instanceof ClassDeclaration) {
         MemberDeclaration memberDeclaration = (MemberDeclaration)declaringScope.getIdeDeclaration(ide);
         return !memberDeclaration.isStatic() && !memberDeclaration.isConstructor();

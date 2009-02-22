@@ -38,8 +38,8 @@ public class ImportDirective extends NodeImplBase {
     if (type instanceof IdeType) {
       Ide ide = ((IdeType)type).ide;
       context.getScope().declareIde(ide.getName(), this);
-      // also add first package path arc (might be the same string for top level imports):
-      context.getScope().declareIde(ide.getQualifiedName()[0], this);
+      // also add the fully qualified name (might be the same string for top level imports):
+      context.getScope().declareIde(QualifiedIde.constructQualifiedNameStr(ide.getQualifiedName()), this);
     }
   }
 

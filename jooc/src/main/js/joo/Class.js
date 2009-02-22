@@ -317,6 +317,9 @@ Function.prototype.bind = function(object) {
           }
           importedClassDesc.initialize();
         }
+        this.transformImports(imports);
+      },
+      transformImports: function(imports) {
         var importsByName = imports.byName;
         for (var im in importsByName) {
           if (typeof importsByName[im]=="string") {
@@ -589,14 +592,15 @@ Function.prototype.bind = function(object) {
           this.Public.prototype.getClass = createGetClass(publicConstructor);
           // TODO: constructor visibility!
           privateStatic[this.$class] = publicConstructor;
-          // init imports:
-          initImports(this.$imports);
+          // transform imports from String to Class:
+          transformImports(this.$imports);
           for (var im in this.$imports.byName) {
             privateStatic[im] = this.$imports.byName[im];
           }
           // init static fields with initializer:
           initFields(privateStatic, publicConstructor, targetMap.$static.fieldsWithInitializer);
           this.state = INITIALIZED;
+          return this.publicConstructor;
         },
         /**
          * Determines if the specified <code>Object</code> is assignment-compatible
@@ -722,8 +726,14 @@ Function.prototype.bind = function(object) {
         $implements : interfaces
       });
     },
-    init: function(clazz) {
-      return ClassDescription.$static.getClassDescription(clazz.getName()).initialize();
+    init: function(/*...classes*/) {
+      var clazz;
+      for (var i=0; i<arguments.length; ++i) {
+        if (typeof arguments[i].getName=="function") {
+          clazz = ClassDescription.$static.getClassDescription(arguments[i].getName()).initialize();
+        }
+      }
+      return clazz;
     },
     complete: function(oncomplete) {
       ClassDescription.$static.oncomplete = oncomplete || true;

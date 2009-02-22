@@ -27,6 +27,7 @@ public class ClassDeclaration extends IdeDeclaration {
   protected Extends optExtends;
   private Map<String,MemberDeclaration> members = new LinkedHashMap<String,MemberDeclaration>();
   private Set<String> boundMethodCandidates = new HashSet<String>();
+  private Set<String> classInit = new HashSet<String>();
 
   public Extends getOptExtends() {
     return optExtends;
@@ -111,6 +112,16 @@ public class ClassDeclaration extends IdeDeclaration {
     }
     out.write("],");
     out.write("function($jooPublic,$jooPrivate){with($jooPublic)with($jooPrivate)return[");
+    if (!classInit.isEmpty()) {
+      out.write("function(){joo.Class.init(");
+      for (Iterator<String> iterator = classInit.iterator(); iterator.hasNext();) {
+        out.write(iterator.next());
+        if (iterator.hasNext()) {
+          out.write(",");
+        }
+      }
+      out.write(");},");
+    }
     body.generateCode(out);
     out.write("];}");
   }
@@ -165,5 +176,10 @@ public class ClassDeclaration extends IdeDeclaration {
 
   public boolean isBoundMethod(String methodName) {
     return boundMethodCandidates.contains(methodName);
+  }
+
+  public void addClassInit(String qualifiedName) {
+    classInit.add(qualifiedName);
+    //System.out.println("*** found constant access, will auto-initalize class "+qualifiedName);
   }
 }

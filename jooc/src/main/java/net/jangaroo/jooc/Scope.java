@@ -80,9 +80,13 @@ class Scope {
   }
 
   public Scope findScopeThatDeclares(Ide ide) {
-    return getIdeDeclaration(ide)!=null ? this
+    return findScopeThatDeclares(ide.getName());
+  }
+
+  public Scope findScopeThatDeclares(String name) {
+    return getIdeDeclaration(name)!=null ? this
       : getParentScope()==null ? null
-      : getParentScope().findScopeThatDeclares(ide);
+      : getParentScope().findScopeThatDeclares(name);
   }
 
   public Node lookupIde(Ide ide) {
