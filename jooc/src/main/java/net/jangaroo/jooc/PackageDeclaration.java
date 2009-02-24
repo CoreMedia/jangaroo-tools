@@ -16,6 +16,9 @@
 package net.jangaroo.jooc;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Collections;
 
 /**
  * @author Andreas Gawecki
@@ -23,6 +26,15 @@ import java.io.IOException;
 public class PackageDeclaration extends IdeDeclaration  {
 
   JooSymbol symPackage;
+  private List<String> packageImports = new ArrayList<String>();
+
+  public void addPackageImport(String packageName) {
+    packageImports.add(packageName);
+  }
+
+  public List<String> getPackageImports() {
+    return Collections.unmodifiableList(packageImports);
+  }
 
   public PackageDeclaration(JooSymbol symPackage, Ide ide) {
     super(new JooSymbol[0], 0, ide);
@@ -30,12 +42,12 @@ public class PackageDeclaration extends IdeDeclaration  {
   }
 
   public void generateCode(JsWriter out) throws IOException {
-    out.writeSymbolWhitespace(symPackage);
-    out.write("\"package ");
+    out.beginString();
+    out.writeSymbol(symPackage);
     if (ide!=null) {
       ide.generateCode(out);
     }
-    out.write("\"");
+    out.endString();
     out.write(",");
   }
 

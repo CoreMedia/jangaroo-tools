@@ -33,6 +33,8 @@ public class JsWriter extends FilterWriter {
   boolean inComment = false;
   int nOpenBeginComments = 0;
   char lastChar = ' ';
+  boolean inString = false;
+  int nOpenStrings = 0;
 
   public JsWriter(Writer target) {
     super(target);
@@ -152,7 +154,7 @@ public class JsWriter extends FilterWriter {
     nOpenBeginComments++;
   }
 
-  private final boolean shouldWrite() throws IOException {
+  private boolean shouldWrite() throws IOException {
     boolean result = keepSource || nOpenBeginComments == 0;
     if (result) {
       if (nOpenBeginComments > 0 && !inComment) {
@@ -178,10 +180,65 @@ public class JsWriter extends FilterWriter {
     writeSymbol(symbol);
   }
 
+  public void beginString() throws IOException {
+    nOpenStrings++;
+  }
+
+  private void checkOpenString() throws IOException {
+    if (nOpenStrings > 0 && !inString) {
+      out.write('"');
+      lastChar = '"';
+      inString = true;
+    }
+  }
+
+  private boolean checkCloseString() throws IOException {
+    if (inString) {
+      out.write('"');
+      inString = false;
+      return true;
+    }
+    return false;
+  }
+
+  public void endString() throws IOException {
+    Debug.assertTrue(nOpenStrings > 0, "missing beginString() for endString()");
+    nOpenStrings--;
+    if (nOpenStrings == 0) {
+      checkCloseString();
+    }
+  }
+
+  private void writeLinesInsideString(String ws) throws IOException {
+    String[] lines = ws.split("\n",-1);
+    for (int i = 0; i < lines.length-1; i++) {
+      String line = lines[i];
+      if (line.length()>1) {
+        checkOpenString();
+        write(line.substring(0,line.length()-1));
+        write("\\n");
+      }
+      if(checkCloseString()) {
+        write("+");
+      }
+      write("\n");
+    }
+    String line = lines[lines.length - 1];
+    if (line.length()>0) {
+      checkOpenString();
+      write(line);
+    }
+  }
+
   public void writeSymbolWhitespace(JooSymbol symbol) throws IOException {
     String ws = symbol.getWhitespace();
-    if (keepSource)
-      write(ws);
+    if (keepSource) {
+      if (inString) {
+        writeLinesInsideString(ws);
+      } else {
+        write(ws);
+      }
+    }
     else if (keepLines)
       writeLines(ws);
   }
@@ -192,8 +249,14 @@ public class JsWriter extends FilterWriter {
 
   protected void writeLines(String s, int off, int len) throws IOException {
      int pos = off;
-     while ((pos = s.indexOf('\n', pos)+1) > 0 && pos < off+len+1)
+     while ((pos = s.indexOf('\n', pos)+1) > 0 && pos < off+len+1) {
+       if (inString) {
+         write("\\n");
+         checkCloseString();
+         write('+');
+       }
        write('\n');
+     }
   }
 
   public void writeToken(String token) throws IOException {
@@ -204,6 +267,7 @@ public class JsWriter extends FilterWriter {
             (lastChar == firstSymbolChar && "=><!&|+-*/&|^%".indexOf(lastChar) >= 0) ||
             (firstSymbolChar == '=' && "=><!&|+-*/&|^%".indexOf(lastChar) >= 0))
         write(' ');
+      checkOpenString();
       write(text);
     }
   }

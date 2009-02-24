@@ -34,13 +34,17 @@ class ObjectField extends NodeImplBase {
 
   public void analyze(Node parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
-    nameExpr.analyze(this, context);
+    if (nameExpr!=null) {
+      nameExpr.analyze(this, context);
+    }
     value.analyze(this, context);
   }
 
   public void generateCode(JsWriter out) throws IOException {
-    nameExpr.generateCode(out);
-    out.writeSymbol(symColon);
+    if (nameExpr!=null) {
+      nameExpr.generateCode(out);
+      out.writeSymbol(symColon);
+    }
     value.generateCode(out);
   }
 

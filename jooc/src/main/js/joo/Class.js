@@ -499,7 +499,7 @@ Function.prototype.bind = function(object) {
             var memberName = undefined;
             var modifiers;
             if (typeof members=="string") {
-              modifiers = members.split(" ");
+              modifiers = members.split(/\s+/);
               for (var j=0; j<modifiers.length; ++j) {
                 var modifier = modifiers[j];
                 if (modifier=="static") {
@@ -692,10 +692,23 @@ Function.prototype.bind = function(object) {
       var members = arguments[arguments.length-1];
       var imports = [];
       imports.byName = {};
+      imports.packages = [];
       for (var im=1; im<arguments.length-3; ++im) {
-        var importFullClassName = arguments[im].match(/^\s*import\s+([a-zA-Z$_0-9.]+)\s*$/)[1];
-        addImport(imports, importFullClassName);
+        var importMatch = arguments[im].match(/^\s*import\s+(([a-zA-Z$_0-9]+\.)*)(\*|[a-zA-Z$_0-9]+)\s*$/);
+        var importPackageName = importMatch[1]; // including last dot
+        var importClassName = importMatch[3];
+        if (importClassName == "*") {
+          imports.packages.push(importPackageName);
+        } else {
+          addImport(imports, importPackageName+importClassName);
+        }
       }
+      var packageName =  "";
+      if (typeof packageDef=="string") {
+        packageName = packageDef.split(/\s+/)[1];
+        imports.packages.push(packageName+".");
+      }
+      // TODO: find a way to use imports.packages for resolving extends and implements!
       var $interface = false;
       var classMatch = classDef.match(/^\s*((public|internal)\s+)?class\s+([A-Za-z][a-zA-Z$_0-9]*)(\s+extends\s+([a-zA-Z$_0-9.]+))?(\s+implements\s+([a-zA-Z$_0-9.,\s]+))?\s*$/);
       var $extends = "Object";
@@ -718,7 +731,7 @@ Function.prototype.bind = function(object) {
         $imports: imports,
         $publicStaticMethods: publicStaticMethods,
         $members: members,
-        $package: typeof packageDef=="string" ? packageDef.split(/\s+/)[1] : "",
+        $package: packageName,
         visibility: classMatch[2],
         $interface : $interface,
         $class    : classMatch[3],

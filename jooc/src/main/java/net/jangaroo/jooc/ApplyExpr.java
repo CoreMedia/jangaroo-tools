@@ -22,6 +22,9 @@ import java.io.IOException;
  */
 class ApplyExpr extends Expr {
 
+  // TODO: add a compiler option for this:
+  public static final boolean ASSUME_UNDECLARED_UPPER_CASE_FUNCTIONS_CALLS_ARE_TYPE_CASTS = Boolean.valueOf("true");
+
   Expr fun;
   boolean isType;
   JooSymbol lParen;
@@ -63,9 +66,9 @@ class ApplyExpr extends Expr {
       // otherwise, it is most likely an imported package-namespaced function.
       if (Character.isUpperCase(funIde.getName().charAt(0))) {
         Scope scope = context.getScope().findScopeThatDeclares(funIde);
-        if (scope!=null) {
-          isType = scope.getDeclaration()==context.getScope().getPackageDeclaration();
-        }
+        isType = scope == null
+          ? ASSUME_UNDECLARED_UPPER_CASE_FUNCTIONS_CALLS_ARE_TYPE_CASTS
+          : scope.getDeclaration() == context.getScope().getPackageDeclaration();
       }
     }
     fun.analyze(this, context);

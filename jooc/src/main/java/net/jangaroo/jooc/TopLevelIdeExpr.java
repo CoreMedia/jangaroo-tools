@@ -38,7 +38,7 @@ class TopLevelIdeExpr extends IdeExpr {
     if (scope!=null) {
       Scope declaringScope = scope.findScopeThatDeclares(ide);
       if (declaringScope==null || declaringScope.getDeclaration() instanceof ClassDeclaration) {
-        synthesizedDotExpr = new DotExpr(new ThisExpr(new JooSymbol("this")), new JooSymbol("."), ide);
+        synthesizedDotExpr = new DotExpr(new ThisExpr(new JooSymbol("this")), new JooSymbol("."), new Ide(ide.ide));
         synthesizedDotExpr.analyze(parentNode, context);
       }
     }
@@ -59,25 +59,28 @@ class TopLevelIdeExpr extends IdeExpr {
       Scope declaringScope = scope.findScopeThatDeclares(ide);
       if (declaringScope==null) {
         // check for fully qualified ide:
-        IdeExpr currentExpr = this;
+        DotExpr currentDotExpr = synthesizedDotExpr;
         String ideName = ide.getName();
-        while (declaringScope==null && currentExpr.parentNode instanceof DotExpr && ((DotExpr)currentExpr.parentNode).arg2 instanceof IdeExpr) {
-          currentExpr = (IdeExpr)((DotExpr)currentExpr.parentNode).arg2;
-          ideName += "." +currentExpr.ide.getName();
+        while (currentDotExpr.parentNode instanceof DotExpr) {
+          currentDotExpr = (DotExpr)currentDotExpr.parentNode;
+          if (!(currentDotExpr.arg2 instanceof IdeExpr)) 
+            break;
+          ideName += "." +((IdeExpr)currentDotExpr.arg2).ide.getName();
           declaringScope = scope.findScopeThatDeclares(ideName);
+          if (declaringScope!=null) {
+            // it has been defined in the meantime or is an imported qualified identifier:
+            return false;
+          }
         }
-        if (declaringScope!=null) {
-          return false;
-        }
-        boolean probablyAType = Character.isUpperCase(ide.getName().charAt(0));
+        boolean maybeInScope = Character.isUpperCase(ide.getName().charAt(0));
         String warningMsg = "Undeclared identifier: " + ide.getName();
-        if (probablyAType) {
-          warningMsg += ", assuming it is a top level type.";
+        if (maybeInScope) {
+          warningMsg += ", assuming it is already in scope.";
         } else if (ASSUME_UNDECLARED_IDENTIFIERS_ARE_MEMBERS) {
           warningMsg += ", assuming it is an inherited member.";
         }
         Jooc.warning(ide.getSymbol(), warningMsg);
-        return !probablyAType && ASSUME_UNDECLARED_IDENTIFIERS_ARE_MEMBERS;
+        return !maybeInScope && ASSUME_UNDECLARED_IDENTIFIERS_ARE_MEMBERS;
       } else if (declaringScope.getDeclaration() instanceof ClassDeclaration) {
         MemberDeclaration memberDeclaration = (MemberDeclaration)declaringScope.getIdeDeclaration(ide);
         return !memberDeclaration.isStatic() && !memberDeclaration.isConstructor();
@@ -85,4 +88,5 @@ class TopLevelIdeExpr extends IdeExpr {
     }
     return false;
   }
+
 }

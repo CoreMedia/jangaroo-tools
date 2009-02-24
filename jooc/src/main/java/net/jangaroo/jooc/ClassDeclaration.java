@@ -28,6 +28,7 @@ public class ClassDeclaration extends IdeDeclaration {
   private Map<String,MemberDeclaration> members = new LinkedHashMap<String,MemberDeclaration>();
   private Set<String> boundMethodCandidates = new HashSet<String>();
   private Set<String> classInit = new HashSet<String>();
+  private List<String> packageImports;
 
   public Extends getOptExtends() {
     return optExtends;
@@ -88,15 +89,14 @@ public class ClassDeclaration extends IdeDeclaration {
   }
 
   public void generateCode(JsWriter out) throws IOException {
-    out.writeSymbolWhitespace(symClass);
-    if (!writeRuntimeModifiersUnclosed(out)) {
-      out.write("\"");
-    }
-    out.writeSymbolToken(symClass);
+    out.beginString();
+    writeModifiers(out);
+    out.writeSymbol(symClass);
     ide.generateCode(out);
     if (optExtends != null) optExtends.generateCode(out);
     if (optImplements != null) optImplements.generateCode(out);
-    out.write("\",[");
+    out.endString();
+    out.write(",[");
     boolean isFirst = true;
     for (MemberDeclaration memberDeclaration : members.values()) {
       if (memberDeclaration.isMethod() && memberDeclaration.isPublic() && memberDeclaration.isStatic()) {
@@ -111,7 +111,12 @@ public class ClassDeclaration extends IdeDeclaration {
       }
     }
     out.write("],");
-    out.write("function($jooPublic,$jooPrivate){with($jooPublic)with($jooPrivate)return[");
+    String packageName = QualifiedIde.constructQualifiedNameStr(getPackageDeclaration().getQualifiedName());
+    out.write("function($jooPublic,$jooPrivate){");
+    for (String importedPackage : packageImports) {
+      out.write("with("+importedPackage+")");
+    }
+    out.write("with("+ packageName +")with($jooPublic)with($jooPrivate)return[");
     if (!classInit.isEmpty()) {
       out.write("function(){joo.Class.init(");
       for (Iterator<String> iterator = classInit.iterator(); iterator.hasNext();) {
@@ -129,6 +134,7 @@ public class ClassDeclaration extends IdeDeclaration {
   public void analyze(Node parentNode, AnalyzeContext context) {
     // do *not* call super!
     this.parentNode = parentNode;
+    packageImports = context.getCurrentPackage().getPackageImports();
     context.getScope().declareIde(getName(), this);
     parentDeclaration = context.getScope().getPackageDeclaration();
     context.enterScope(this);

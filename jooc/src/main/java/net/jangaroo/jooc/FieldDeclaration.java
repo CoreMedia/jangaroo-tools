@@ -35,13 +35,11 @@ public class FieldDeclaration extends AbstractVariableDeclaration {
   }
 
   public void generateCode(JsWriter out) throws IOException {
-    out.writeSymbolWhitespace(optSymConstOrVar);
-    if (!writeRuntimeModifiersUnclosed(out)) {
-      out.write("\"");
-    }
-    out.writeSymbolToken(optSymConstOrVar);
-    out.write("\",");
-    out.write('{');
+    out.beginString();
+    writeModifiers(out);
+    out.writeSymbol(optSymConstOrVar);
+    out.endString();
+    out.write(",{");
     generateIdeCode(out);
     if (optTypeRelation != null)
       optTypeRelation.generateCode(out);

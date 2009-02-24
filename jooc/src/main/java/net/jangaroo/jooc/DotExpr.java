@@ -48,10 +48,11 @@ class DotExpr extends BinaryOpExpr {
       if (!(parentNode instanceof ApplyExpr)) {
         String[] qualifiedName = getQualifiedName(arg1);
         if (qualifiedName!=null) {
-          String qulifiedNameStr = QualifiedIde.constructQualifiedNameStr(qualifiedName);
-          Scope declaringScope = context.getScope().findScopeThatDeclares(qulifiedNameStr);
-          if (declaringScope!=null && declaringScope.getDeclaration().equals(context.getCurrentPackage())) {
-            this.classDeclaration.addClassInit(qulifiedNameStr);
+          String qualifiedNameStr = QualifiedIde.constructQualifiedNameStr(qualifiedName);
+          Scope declaringScope = context.getScope().findScopeThatDeclares(qualifiedNameStr);
+          if (declaringScope==null && qualifiedNameStr.indexOf('.')==-1 && Character.isUpperCase(qualifiedNameStr.charAt(0))
+            || declaringScope!=null && declaringScope.getDeclaration().equals(context.getCurrentPackage())) {
+            this.classDeclaration.addClassInit(qualifiedNameStr);
           }
         }
       }

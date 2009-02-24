@@ -37,9 +37,16 @@ public class ImportDirective extends NodeImplBase {
     super.analyze(parentNode, context);
     if (type instanceof IdeType) {
       Ide ide = ((IdeType)type).ide;
-      context.getScope().declareIde(ide.getName(), this);
-      // also add the fully qualified name (might be the same string for top level imports):
-      context.getScope().declareIde(QualifiedIde.constructQualifiedNameStr(ide.getQualifiedName()), this);
+      String typeName = ide.getName();
+      if ("*".equals(typeName)) {
+        // found *-import, do not register, but add to package import list:
+        String packageName = QualifiedIde.constructQualifiedNameStr(((QualifiedIde)ide).prefix.getQualifiedName());
+        context.getCurrentPackage().addPackageImport(packageName);
+      } else {
+        context.getScope().declareIde(typeName, this);
+        // also add the fully qualified name (might be the same string for top level imports):
+        context.getScope().declareIde(QualifiedIde.constructQualifiedNameStr(ide.getQualifiedName()), this);
+      }
     }
   }
 

@@ -229,6 +229,8 @@ classBody ::=
 
 classBodyDeclarations ::=
     {: RESULT = new ArrayList(); :}
+  | classBodyDeclarations:list directive:d
+    {: RESULT = list; :}
   | classBodyDeclarations:list	classBodyDeclaration:decl
     {: RESULT = list; list.add(decl); :}
   ;
@@ -269,6 +271,8 @@ constOrVar ::=
 directive ::=
     IMPORT:i qualifiedIde:ide SEMICOLON:s
     {: RESULT = new ImportDirective(i,new IdeType(ide), s); :}
+  | IMPORT:i qualifiedIde:ide DOT:dot MUL:all SEMICOLON:s
+    {: RESULT = new ImportDirective(i,new IdeType(new QualifiedIde(ide,dot,all)), s); :}
   | LBRACK:lb ide:ide RBRACK:rb
     {: RESULT = new Annotation(lb, ide, rb); :}
   | LBRACK:lb ide:ide LPAREN:lb2 annotationFields:af RPAREN:rb2 RBRACK:rb
@@ -286,7 +290,7 @@ annotationField ::=
     ide:name EQ:eq expr:value
     {: RESULT = new ObjectField(new IdeExpr(name),eq,value); :}
   | expr:value
-    {: RESULT = new ObjectField(new IdeExpr(new Ide(new JooSymbol(""))),null,value); :}
+    {: RESULT = new ObjectField(null,null,value); :}
   ;
 
 annotationFields ::=
