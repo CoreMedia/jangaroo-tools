@@ -328,19 +328,21 @@ Function.prototype.bind = function(object) {
           //else throw new Error("Wrong type for "+im+"->"+importsByName[im]+" ("+typeof importsByName[im]+")!");
         }
       },
-      waitForSuper: function(classDef) {
-        var pendingCDs = this.pendingClassDescriptions[classDef.$extends];
-        if (!pendingCDs) {
-          pendingCDs = this.pendingClassDescriptions[classDef.$extends] = [];
+      waitForSuper: function(classDef, candidates) {
+        for (var i=0; i<candidates.length; ++i) {
+          var pendingCDs = this.pendingClassDescriptions[candidates[i]];
+          if (!pendingCDs) {
+            pendingCDs = this.pendingClassDescriptions[candidates[i]] = [];
+          }
+          pendingCDs.push(classDef);
         }
-        pendingCDs.push(classDef);
       },
       prepareSubclasses: function(classDef) {
         var pendingCDS = this.pendingClassDescriptions[classDef.fullClassName];
         if (pendingCDS) {
           delete this.pendingClassDescriptions[classDef.fullClassName];
           for (var c=0; c<pendingCDS.length; ++c) {
-            pendingCDS[c].prepare();
+            pendingCDS[c].prepare(classDef);
           }
         }
       }
@@ -350,17 +352,7 @@ Function.prototype.bind = function(object) {
       for (var m in classDef) {
         this[m] = classDef[m];
       }
-      this._qualifyByImports(this, "$extends");
-      for (var i=0; i<this.$implements.length; ++i) {
-        this._qualifyByImports(this.$implements, i);
-      }
-      this.fullClassName = this.$package ? (this.$package + "." + this.$class) : this.$class;
-      if (joo.Class.debug && theGlobalObject.console) {
-        console.debug("loaded class "+this.fullClassName);
-      }
-      ClassDescription$static.registerClassDescription(this);
-      this.prepare();
-      ClassDescription.$static.doComplete();
+      this.init();
     }
     with(ClassDescription$static) {
       // instance members:
@@ -374,6 +366,28 @@ Function.prototype.bind = function(object) {
         $constructor: undefined,
         Public: undefined,
         publicConstructor: undefined,
+        init: function() {
+          this.fullClassName = this.$package ? (this.$package + "." + this.$class) : this.$class;
+          if (joo.Class.debug && theGlobalObject.console) {
+            console.debug("loaded class "+this.fullClassName);
+          }
+          registerClassDescription(this);
+          var superClassDescription;
+          if (this.$extends!="Object") {
+            var candidates = this.getQualifiedCandidates(this.$extends);
+            if (candidates.length==1) {
+              superClassDescription = getClassDescription(candidates[0]);
+            }
+            if (!superClassDescription || superClassDescription.state==PENDING) {
+              // super class not yet loaded, stay pending and wait for super class:
+              waitForSuper(this,candidates);
+              doComplete();
+              return;
+            }
+          }
+          this.prepare(superClassDescription);
+          doComplete();
+        },
         createInitializingPublicStaticMethod: function(methodName) {
           var classDescription = this;
           this.publicConstructor[methodName] = function() {
@@ -381,31 +395,44 @@ Function.prototype.bind = function(object) {
             return classDescription.publicConstructor[methodName].apply(null, arguments);
           };
         },
-        _qualifyByImports: function(bean, property) {
-          var fqn = this.$imports.byName[bean[property]];
-          if (fqn) {
-            bean[property] = fqn;
+        getQualifiedCandidates: function(className) {
+          if (className.indexOf(".") >= 0) {
+            // already qualified:
+            return [className];
           }
+          var fqn = this.$imports.byName[className];
+          if (fqn) {
+            return [fqn];
+          }
+          // check candidates resulting of *-imports:
+          var candidates = [];
+          var packages = this.$imports.packages;
+          for (var i = packages.length-1; i >= 0; --i) {
+            fqn = packages[i] + className;
+            if (getNativeClass(fqn)) { // class already loaded?
+              return [fqn];
+            }
+            candidates.push(fqn);
+          }
+          return candidates;
         },
         /**
          * Prepares this class to be used by constructor, by accessing a static member, or as a super class.
          * The actual class loading is done when any of these three methods is called.
          */
-        prepare: function() {
+        prepare: function(superClassDescription) {
           if (this.state===PREPARING)
             throw new Error("cyclic usages between classes "+this.fullClassName+" and "+this.superClassDescription.fullClassName+".");
           if (this.state!==PENDING)
             return;
-          if (this.$extends!="Object") {
-            this.superClassDescription = getClassDescription(this.$extends);
-            if (!this.superClassDescription || this.superClassDescription.state==PENDING) {
-              // super class not yet loaded, stay pending and wait for super class:
-              waitForSuper(this);
-              return;
-            }
+          this.state = PREPARING;
+          if (superClassDescription) {
+            this.superClassDescription = superClassDescription;
             this.level = this.superClassDescription.level + 1;
           }
-          this.state = PREPARING;
+          for (var j=0; j<this.$implements.length; ++j) {
+            this.$implements[j] = this.getQualifiedCandidates(this.$implements[j])[0];
+          }
           // Only do the minimal setup to allow a preliminary, initializing public constructor and static getter,
           // and to allow subclasses to plug their constructor into this class.
           // create preliminary constructor and static getter that initialize before delegating to the real ones:
@@ -692,7 +719,7 @@ Function.prototype.bind = function(object) {
       var members = arguments[arguments.length-1];
       var imports = [];
       imports.byName = {};
-      imports.packages = [];
+      imports.packages = [""]; // always "import" top level package!
       for (var im=1; im<arguments.length-3; ++im) {
         var importMatch = arguments[im].match(/^\s*import\s+(([a-zA-Z$_0-9]+\.)*)(\*|[a-zA-Z$_0-9]+)\s*$/);
         var importPackageName = importMatch[1]; // including last dot

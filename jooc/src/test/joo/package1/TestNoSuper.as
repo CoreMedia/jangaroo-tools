@@ -14,6 +14,6 @@
  */
 
 package package1 {
-  class TestNoSuper extends DoesNotExist {
+  class TestNoSuper extends does.not.Exist {
   }
 }
