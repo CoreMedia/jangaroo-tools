@@ -34,7 +34,7 @@ class DoStatement extends ConditionalLoopStatement {
   }
 
   protected void analyzeLoopFooter(AnalyzeContext context) {
-    optCond.analyze(this, context);
+    optCond = optCond.analyze(this, context);
   }
 
   protected void generateLoopHeaderCode(JsWriter out) throws IOException {

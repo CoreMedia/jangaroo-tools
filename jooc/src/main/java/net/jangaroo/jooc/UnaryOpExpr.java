@@ -28,9 +28,10 @@ abstract class UnaryOpExpr extends OpExpr {
     this.arg = arg;
   }
 
-  public void analyze(Node parentNode, AnalyzeContext context) {
+  public Expr analyze(Node parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
-    arg.analyze(this, context);
+    arg = arg.analyze(this, context);
+    return this;
   }
 
   boolean isCompileTimeConstant() {

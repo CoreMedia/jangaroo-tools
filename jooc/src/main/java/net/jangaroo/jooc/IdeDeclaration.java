@@ -59,6 +59,10 @@ public abstract class IdeDeclaration extends Declaration {
     }
   }
 
+  public String getQualifiedNameStr() {
+    return QualifiedIde.constructQualifiedNameStr(getQualifiedName());
+  }
+
   protected static String toPath(String[] qn) {
     StringBuffer result = new StringBuffer(20);
     for (int i = 0; i < qn.length; i++) {
@@ -73,10 +77,11 @@ public abstract class IdeDeclaration extends Declaration {
     return toPath(getQualifiedName());
   }
 
-  public void analyze(Node parentNode, AnalyzeContext context) {
+  public Node analyze(Node parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     if (context.getScope().declareIde(getName(), this)!=null)
       Jooc.error(getSymbol(), "duplicate declaration of identifier '" + getName() + "'");
+    return this;
   }
 
 }

@@ -111,7 +111,7 @@ public class ClassDeclaration extends IdeDeclaration {
       }
     }
     out.write("],");
-    String packageName = QualifiedIde.constructQualifiedNameStr(getPackageDeclaration().getQualifiedName());
+    String packageName = getPackageDeclaration().getQualifiedNameStr();
     out.write("function($jooPublic,$jooPrivate){");
     for (String importedPackage : packageImports) {
       out.write("with("+importedPackage+")");
@@ -131,7 +131,7 @@ public class ClassDeclaration extends IdeDeclaration {
     out.write("];}");
   }
 
-  public void analyze(Node parentNode, AnalyzeContext context) {
+  public Node analyze(Node parentNode, AnalyzeContext context) {
     // do *not* call super!
     this.parentNode = parentNode;
     packageImports = context.getCurrentPackage().getPackageImports();
@@ -143,6 +143,7 @@ public class ClassDeclaration extends IdeDeclaration {
     body.analyze(this, context);
     context.leaveScope(this);
     computeModifiers();
+    return this;
   }
 
   public void registerMember(MemberDeclaration memberDeclaration) {

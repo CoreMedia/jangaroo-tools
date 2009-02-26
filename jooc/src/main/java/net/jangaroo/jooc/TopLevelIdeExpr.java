@@ -32,7 +32,7 @@ class TopLevelIdeExpr extends IdeExpr {
   }
 
   @Override
-  public void analyze(Node parentNode, AnalyzeContext context) {
+  public Expr analyze(Node parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     scope = context.getScope();
     if (scope!=null) {
@@ -42,6 +42,7 @@ class TopLevelIdeExpr extends IdeExpr {
         synthesizedDotExpr.analyze(parentNode, context);
       }
     }
+    return this;
   }
 
   @Override

@@ -57,12 +57,13 @@ abstract class AbstractVariableDeclaration extends MemberDeclaration {
     return optSymConstOrVar != null && optSymConstOrVar.sym == sym.CONST;
   }
 
-  public void analyze(Node parentNode, AnalyzeContext context) {
+  public Node analyze(Node parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     if (optInitializer == null && isConst())
       Jooc.error(optSymConstOrVar, "constant must be initialized");
     if (optInitializer != null)
       optInitializer.analyze(this, context);
+    return this;
   }
 
 }

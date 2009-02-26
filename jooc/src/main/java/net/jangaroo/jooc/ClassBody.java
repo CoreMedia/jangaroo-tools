@@ -45,9 +45,10 @@ public class ClassBody extends NodeImplBase {
     out.writeSymbolWhitespace(rBrace);
   }
 
-  public void analyze(Node parentNode, AnalyzeContext context) {
+  public Node analyze(Node parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     analyze(this, declararations, context);
+    return this;
   }
 
   public JooSymbol getSymbol() {

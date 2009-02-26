@@ -55,9 +55,10 @@ class BlockStatement extends Statement {
     this.params = params;
   }
 
-  public void analyze(Node parentNode, AnalyzeContext context) {
+  public Node analyze(Node parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     analyze(this, statements, context);
+    return this;
   }
 
   // TODO: Check when analyzing the super call

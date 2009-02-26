@@ -33,12 +33,13 @@ class ForInitializer extends NodeImplBase {
     this.expr = expr;
   }
 
-  public void analyze(Node parentNode, AnalyzeContext context) {
+  public Node analyze(Node parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     if (decl!=null)
       decl.analyze(this, context);
     if (expr!=null)
-      expr.analyze(this, context);
+      expr = expr.analyze(this, context);
+    return this;
   }
 
   public void generateCode(JsWriter out) throws IOException {

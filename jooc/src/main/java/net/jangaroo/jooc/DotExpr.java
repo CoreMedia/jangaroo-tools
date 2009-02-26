@@ -16,7 +16,6 @@
 package net.jangaroo.jooc;
 
 import java.io.IOException;
-import java.util.Arrays;
 
 /**
  * @author Andreas Gawecki
@@ -29,8 +28,7 @@ class DotExpr extends BinaryOpExpr {
     super(expr, symDot, new IdeExpr(ide));
   }
 
-  public void analyze(Node parentNode, AnalyzeContext context) {
-    super.analyze(parentNode, context);
+  public Expr analyze(Node parentNode, AnalyzeContext context) {
     this.classDeclaration = context.getCurrentClass();
     // check candidates for instance methods declared in same file, accessed as function:
     if (this.classDeclaration !=null && arg2 instanceof IdeExpr) {
@@ -43,45 +41,41 @@ class DotExpr extends BinaryOpExpr {
         && !(parentNode instanceof AssignmentOpExpr && ((AssignmentOpExpr)parentNode).arg1== this)
         && !(parentNode instanceof PrefixOpExpr && ((PrefixOpExpr)parentNode).op.sym==sym.TYPEOF)) {
         this.classDeclaration.addBoundMethodCandidate(property);
-      } else
-      // check access to constant from another class; other class then must be initialized:
-      if (!(parentNode instanceof ApplyExpr)) {
-        String[] qualifiedName = getQualifiedName(arg1);
-        if (qualifiedName!=null) {
-          String qualifiedNameStr = QualifiedIde.constructQualifiedNameStr(qualifiedName);
+      } else {
+        QualifiedIde fqie = getFullyQualifiedIde();
+        if (fqie!=null) {
+          String qualifiedName = fqie.getQualifiedNameStr();
+          if (context.getCurrentPackage().isFullyQualifiedIde(context, qualifiedName)) {
+            // Replace my AST subtree by qualified identifier subtree:
+            return new TopLevelIdeExpr(fqie);
+          }
+        }
+        // check access to constant from another class; other class then must be initialized:
+        if (arg1 instanceof IdeExpr && !(parentNode instanceof ApplyExpr)) {
+          Ide ide = ((IdeExpr)arg1).ide;
+          String qualifiedNameStr = ide.getQualifiedNameStr();
           Scope declaringScope = context.getScope().findScopeThatDeclares(qualifiedNameStr);
-          if (declaringScope==null && qualifiedNameStr.indexOf('.')==-1 && Character.isUpperCase(qualifiedNameStr.charAt(0))
+          if (declaringScope==null && !(ide instanceof QualifiedIde) && Character.isUpperCase(qualifiedNameStr.charAt(0))
             || declaringScope!=null && declaringScope.getDeclaration().equals(context.getCurrentPackage())) {
             this.classDeclaration.addClassInit(qualifiedNameStr);
           }
         }
       }
     }
+    return super.analyze(parentNode, context);
   }
 
-  private String[] getQualifiedName() {
-    String[] arg2QualifiedName = getQualifiedName(arg2);
-    if (arg2QualifiedName!=null) {
-      String[] arg1QualifiedName = getQualifiedName(arg1);
-      if (arg1QualifiedName!=null) {
-        return concat(arg1QualifiedName, arg2QualifiedName);
+  private QualifiedIde getFullyQualifiedIde() {
+    if (arg2 instanceof IdeExpr) {
+      Ide prefixIde = 
+        arg1 instanceof IdeExpr && !(arg1 instanceof ThisExpr || arg1 instanceof SuperExpr) ? ((IdeExpr)arg1).ide
+      : arg1 instanceof DotExpr ? ((DotExpr)arg1).getFullyQualifiedIde()
+      : null;
+      if (prefixIde!=null) {
+        return new QualifiedIde(prefixIde, op, ((IdeExpr)arg2).ide.getSymbol());
       }
     }
     return null;
-  }
-
-  private static String[] getQualifiedName(Expr expr) {
-      return
-          expr instanceof IdeExpr ? new String[]{((IdeExpr)expr).ide.getName()}
-        : expr instanceof DotExpr ? ((DotExpr)expr).getQualifiedName()
-        : null;
-  }
-
-  private static String[] concat(String[] strarr1, String[] strarr2) {
-    String[] result = new String[strarr1.length + strarr2.length];
-    System.arraycopy(strarr1, 0, result, 0, strarr1.length);
-    System.arraycopy(strarr2, 0, result, strarr1.length, strarr2.length);
-    return result;
   }
 
   public void generateCode(JsWriter out) throws IOException {
@@ -100,18 +94,14 @@ class DotExpr extends BinaryOpExpr {
         return;
       }
       // check and handle private static member access:
-      if (classDeclaration.isPrivateStaticMember(property)) {
-        String[] qualifiedName = getQualifiedName(arg1);
-        if (qualifiedName!=null) {
-          //System.out.println("private static access: found class identifier "+ Arrays.asList(qualifiedName)+", comparing with "+Arrays.asList(classDeclaration.getQualifiedName())+".");
-          if (qualifiedName.length==1 && qualifiedName[0].equals(classDeclaration.getName())
-            || Arrays.equals(qualifiedName, classDeclaration.getQualifiedName())) {
-            out.writeSymbolWhitespace(arg1.getSymbol());
-            out.writeToken("$jooPrivate");
-            out.writeSymbol(op);
-            arg2.generateCode(out);
-            return;
-          }
+      if (arg1 instanceof IdeExpr && classDeclaration.isPrivateStaticMember(property)) {
+        String qualifiedName = ((IdeExpr)arg1).ide.getQualifiedNameStr();
+        if (qualifiedName.equals(classDeclaration.getName())
+          || qualifiedName.equals(classDeclaration.getQualifiedNameStr())) {
+          JooSymbol arg1Symbol = arg1.getSymbol();
+          // replace current class by "$jooPrivate":
+          arg1 = new IdeExpr(new Ide(new JooSymbol(net.jangaroo.jooc.sym.IDE, arg1Symbol.fileName, arg1Symbol.line,
+            arg1Symbol.column, arg1Symbol.whitespace, "$jooPrivate")));
         }
       }
     }

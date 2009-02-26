@@ -43,10 +43,11 @@ class Catch extends KeywordStatement {
      block.generateCode(out);
    }
 
-  public void analyze(Node parentNode, AnalyzeContext context) {
+  public Node analyze(Node parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     param.analyze(this, context);
     block.analyze(this, context);
+    return this;
   }
 
 }

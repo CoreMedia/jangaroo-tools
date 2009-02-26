@@ -37,10 +37,11 @@ class BinaryOpExpr extends OpExpr {
     arg2.generateCode(out);
   }
 
-  public void analyze(Node parentNode, AnalyzeContext context) {
+  public Expr analyze(Node parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
-    arg1.analyze(this, context);
-    arg2.analyze(this, context);
+    arg1 = arg1.analyze(this, context);
+    arg2 = arg2.analyze(this, context);
+    return this;
   }
 
   public JooSymbol getSymbol() {

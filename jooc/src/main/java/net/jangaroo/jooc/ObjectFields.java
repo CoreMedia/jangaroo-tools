@@ -36,11 +36,12 @@ class ObjectFields extends NodeImplBase {
     this.tail = tail;
   }
 
-  public void analyze(Node parentNode, AnalyzeContext context) {
+  public Node analyze(Node parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     field.analyze(this, context);
     if (tail != null)
       tail.analyze(this, context);
+    return this;
   }
 
   public void generateCode(JsWriter out) throws IOException {

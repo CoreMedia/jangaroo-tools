@@ -20,6 +20,11 @@ package net.jangaroo.jooc;
  */
 abstract class Expr extends NodeImplBase {
 
+  @Override
+  public Expr analyze(Node parentNode, AnalyzeContext context) {
+    return (Expr)super.analyze(parentNode, context);
+  }
+
   boolean isCompileTimeConstant() {
     return false;
   }

@@ -76,7 +76,7 @@ public class MethodDeclaration extends MemberDeclaration {
     return getClassDeclaration().isInterface() || super.isAbstract();
   }
 
-  public void analyze(Node parentNode, AnalyzeContext context) {
+  public Node analyze(Node parentNode, AnalyzeContext context) {
     parentDeclaration = context.getCurrentClass();
     ClassDeclaration classDeclaration = getClassDeclaration();
     if (ide.getName().equals(classDeclaration.getName())) {
@@ -114,6 +114,7 @@ public class MethodDeclaration extends MemberDeclaration {
       BlockStatement block = (BlockStatement) optBody;
       block.checkSuperConstructorCall();
     }
+    return this;
   }
 
   public void generateCode(JsWriter out) throws IOException {

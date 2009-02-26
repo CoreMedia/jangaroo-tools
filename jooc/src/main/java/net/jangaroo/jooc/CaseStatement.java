@@ -31,9 +31,10 @@ class CaseStatement extends KeywordStatement {
     this.symColon = symColon;
   }
 
-  public void analyze(Node parentNode, AnalyzeContext context) {
+  public Node analyze(Node parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
-    expr.analyze(this, context);
+    expr = expr.analyze(this, context);
+    return this;
   }
 
   public void generateCode(JsWriter out) throws IOException {

@@ -46,10 +46,11 @@ public abstract class MemberDeclaration extends IdeDeclaration {
     return false;
   }
 
-  public void analyze(Node parentNode, AnalyzeContext context) {
+  public Node analyze(Node parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     if (isField() || isMethod()) {
       getClassDeclaration().registerMember(this);
     }
+    return this;
   }
 }

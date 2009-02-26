@@ -32,8 +32,9 @@ public abstract class NodeImplBase implements Node {
     }
   }
 
-  public void analyze(Node parentNode, AnalyzeContext context) {
+  public Node analyze(Node parentNode, AnalyzeContext context) {
     this.parentNode = parentNode;
+    return this;
   }
 
   public void analyze(Node parent, Collection/*<Node>*/ nodes, AnalyzeContext context) {

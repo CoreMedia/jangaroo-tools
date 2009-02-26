@@ -33,21 +33,22 @@ public class ImportDirective extends NodeImplBase {
   }
 
   @Override
-  public void analyze(Node parentNode, AnalyzeContext context) {
+  public Node analyze(Node parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     if (type instanceof IdeType) {
       Ide ide = ((IdeType)type).ide;
       String typeName = ide.getName();
       if ("*".equals(typeName)) {
         // found *-import, do not register, but add to package import list:
-        String packageName = QualifiedIde.constructQualifiedNameStr(((QualifiedIde)ide).prefix.getQualifiedName());
+        String packageName = ((QualifiedIde)ide).prefix.getQualifiedNameStr();
         context.getCurrentPackage().addPackageImport(packageName);
       } else {
         context.getScope().declareIde(typeName, this);
         // also add the fully qualified name (might be the same string for top level imports):
-        context.getScope().declareIde(QualifiedIde.constructQualifiedNameStr(ide.getQualifiedName()), this);
+        context.getScope().declareIde(ide.getQualifiedNameStr(), this);
       }
     }
+    return this;
   }
 
   public void generateCode(JsWriter out) throws IOException {

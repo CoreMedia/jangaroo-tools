@@ -37,7 +37,7 @@ class SuperConstructorCallStatement extends Statement {
     this.fun = new SuperExpr(symSuper);
   }
 
-  public void analyze(Node parentNode, AnalyzeContext context) {
+  public Node analyze(Node parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     MethodDeclaration method = context.getCurrentMethod();
     if (method == null || !method.isConstructor()) {
@@ -50,6 +50,7 @@ class SuperConstructorCallStatement extends Statement {
 
     if (args != null)
       args.analyze(this, context);
+    return this;
   }
 
   public void generateCode(JsWriter out) throws IOException {

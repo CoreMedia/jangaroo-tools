@@ -40,10 +40,11 @@ class ArrayLiteral extends Expr {
     out.writeSymbol(rBracket);
   }
 
-  public void analyze(Node parentNode, AnalyzeContext context) {
+  public Expr analyze(Node parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     if (args != null)
       args.analyze(this, context);
+    return this;
   }
 
   public JooSymbol getSymbol() {

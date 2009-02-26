@@ -83,7 +83,7 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
      out.write(");");
   }
 
-  public void analyze(Node parentNode, AnalyzeContext context) {
+  public Node analyze(Node parentNode, AnalyzeContext context) {
     // establish global scope for built-in identifiers:
     IdeType globalObject = new IdeType("globalObject");
     context.enterScope(globalObject);
@@ -120,6 +120,7 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
     classDeclaration.analyze(this, context);
     context.leaveScope(packageDeclaration);
     context.leaveScope(globalObject);
+    return this;
   }
 
   private void declareIdes(Scope scope, String[] identifiers) {

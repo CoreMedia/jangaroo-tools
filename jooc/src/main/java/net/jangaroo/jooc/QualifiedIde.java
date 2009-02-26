@@ -46,11 +46,16 @@ public class QualifiedIde extends Ide {
     return result;
   }
 
+  @Override
+  public String getQualifiedNameStr() {
+    return constructQualifiedNameStr(getQualifiedName());
+  }
+
   public JooSymbol getSymbol() {
     return prefix.getSymbol();
   }
 
-  public static String constructQualifiedNameStr(String[] qualifiedName) {
+  static String constructQualifiedNameStr(String[] qualifiedName) {
     StringBuilder sb = new StringBuilder(qualifiedName[0]);
     for (int i = 1; i < qualifiedName.length; i++) {
       sb.append(".").append(qualifiedName[i]);

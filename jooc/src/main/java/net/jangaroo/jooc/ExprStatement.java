@@ -36,10 +36,11 @@ class ExprStatement extends Statement {
     out.writeSymbol(symSemicolon);
   }
 
-  public void analyze(Node parentNode, AnalyzeContext context) {
+  public Node analyze(Node parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     if (optExpr != null)
-      optExpr.analyze(this, context);
+      optExpr = optExpr.analyze(this, context);
+    return this;
   }
 
   public JooSymbol getSymbol() {

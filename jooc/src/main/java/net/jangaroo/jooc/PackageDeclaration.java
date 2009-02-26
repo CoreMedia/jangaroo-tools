@@ -51,15 +51,19 @@ public class PackageDeclaration extends IdeDeclaration  {
     out.write(",");
   }
 
-  public void analyze(Node parentNode, AnalyzeContext context) {
+  public Node analyze(Node parentNode, AnalyzeContext context) {
     // do *not* call super!
     this.parentNode = parentNode;
-    // add first package path arc (might be the same string for top level imports):
-    context.getScope().declareIde(ide.getQualifiedName()[0], this);
+    addPackageImport(ide.getQualifiedNameStr());
+    return this;
   }
 
   public JooSymbol getSymbol() {
     return symPackage;
   }
 
+  public boolean isFullyQualifiedIde(AnalyzeContext context, String dotExpr) {
+    return packageImports.contains(dotExpr.substring(0, dotExpr.lastIndexOf('.')))
+      || context.getScope().findScopeThatDeclares(dotExpr) != null;
+  }
 }

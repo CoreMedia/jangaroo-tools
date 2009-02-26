@@ -33,12 +33,13 @@ class SwitchStatement extends KeywordStatement {
   }
 
 
-  public void analyze(Node parentNode, AnalyzeContext context) {
+  public Node analyze(Node parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     cond.analyze(this, context);
     context.getScope().enterSwitch(this);
     block.analyze(this, context);
     context.getScope().exitSwitch(this);
+    return this;
   }
 
   public void generateCode(JsWriter out) throws IOException {

@@ -25,7 +25,7 @@ class ThisExpr extends IdeExpr {
   }
 
   @Override
-  public void analyze(Node parentNode, AnalyzeContext context) {
+  public Expr analyze(Node parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     Scope scope = context.getScope();
     while (scope!=null) {
@@ -35,5 +35,6 @@ class ThisExpr extends IdeExpr {
       }
       scope = scope.parent;
     }
+    return this;
   }
 }

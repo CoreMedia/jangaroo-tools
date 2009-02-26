@@ -40,12 +40,13 @@ class TryStatement extends KeywordStatement {
     this.finallyBlock = finallyBlock;
   }
 
-  public void analyze(Node parentNode, AnalyzeContext context) {
+  public Node analyze(Node parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     block.analyze(this, context);
     analyze(this, catches, context);
     if (finallyBlock != null)
       finallyBlock.analyze(this, context);
+    return this;
   }
 
   public void generateCode(JsWriter out) throws IOException {

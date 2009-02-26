@@ -36,6 +36,10 @@ public class Ide extends NodeImplBase {
     return new String[] { getName() };
   }
 
+  public String getQualifiedNameStr() {
+    return getName();
+  }
+
   public String getName() {
     return ide.getText();
   }

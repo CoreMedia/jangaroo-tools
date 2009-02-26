@@ -31,7 +31,7 @@ class LabelRefStatement extends KeywordExprStatement {
 
   protected LabeledStatement labelDeclaration = null;
 
-  public void analyze(Node parentNode, AnalyzeContext context) {
+  public Node analyze(Node parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     Scope scope = context.getScope();
     if (optLabel == null) {
@@ -43,6 +43,7 @@ class LabelRefStatement extends KeywordExprStatement {
       if (!(labelDeclaration.statement instanceof LoopStatement))
         Jooc.error(this, "label does not reference loop statement");
     }
+    return this;
   }
 
 }

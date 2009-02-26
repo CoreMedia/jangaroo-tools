@@ -56,7 +56,7 @@ class ApplyExpr extends Expr {
     out.writeSymbol(rParen);
   }
 
-  public void analyze(Node parentNode, AnalyzeContext context) {
+  public Expr analyze(Node parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     // leave out constructor function if called as type cast function!
     if (fun instanceof IdeExpr) {
@@ -71,9 +71,10 @@ class ApplyExpr extends Expr {
           : scope.getDeclaration() == context.getScope().getPackageDeclaration();
       }
     }
-    fun.analyze(this, context);
+    fun = fun.analyze(this, context);
     if (args != null)
       args.analyze(this, context);
+    return this;
   }
 
   public JooSymbol getSymbol() {

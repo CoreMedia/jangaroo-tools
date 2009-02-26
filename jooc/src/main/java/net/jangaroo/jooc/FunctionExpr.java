@@ -47,7 +47,7 @@ class FunctionExpr extends Expr {
     return classDeclaration;
   }
 
-  public void analyze(Node parentNode, AnalyzeContext context) {
+  public Expr analyze(Node parentNode, AnalyzeContext context) {
     classDeclaration = context.getCurrentClass();
     Debug.assertTrue(classDeclaration != null, "classDeclaration != null");
     super.analyze(parentNode, context);
@@ -64,6 +64,7 @@ class FunctionExpr extends Expr {
       optTypeRelation.analyze(this, context);
     body.analyze(this, context);
     context.leaveScope(this);
+    return this;
   }
 
   public void notifyThisUsed(AnalyzeContext context) {
