@@ -230,7 +230,7 @@ classBody ::=
 classBodyDeclarations ::=
     {: RESULT = new ArrayList(); :}
   | classBodyDeclarations:list directive:d
-    {: RESULT = list; :}
+    {: RESULT = list; list.add(d); :}
   | classBodyDeclarations:list	classBodyDeclaration:decl
     {: RESULT = list; list.add(decl); :}
   ;
