@@ -52,14 +52,12 @@ public class ImportDirective extends NodeImplBase {
   }
 
   public void generateCode(JsWriter out) throws IOException {
-    // just as comment yet:
-    out.writeSymbolWhitespace(importKeyword);
-    out.write("\"");
-    out.writeSymbolToken(importKeyword);
+    out.beginString();
+    out.writeSymbol(importKeyword);
     type.generateCode(out);
-    out.write("\"");
+    out.endString();
     out.writeSymbolWhitespace(semicolon);
-    out.write(",");
+    out.writeToken(",");
   }
 
   public JooSymbol getSymbol() {
