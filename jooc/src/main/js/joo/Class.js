@@ -737,7 +737,7 @@ Function.prototype.bind = function(object) {
       }
       // TODO: find a way to use imports.packages for resolving extends and implements!
       var $interface = false;
-      var classMatch = classDef.match(/^\s*((public|internal)\s+)?class\s+([A-Za-z][a-zA-Z$_0-9]*)(\s+extends\s+([a-zA-Z$_0-9.]+))?(\s+implements\s+([a-zA-Z$_0-9.,\s]+))?\s*$/);
+      var classMatch = classDef.match(/^\s*((public|internal|final|dynamic)\s+)*class\s+([A-Za-z][a-zA-Z$_0-9]*)(\s+extends\s+([a-zA-Z$_0-9.]+))?(\s+implements\s+([a-zA-Z$_0-9.,\s]+))?\s*$/);
       var $extends = "Object";
       var interfaces;
       if (classMatch) {

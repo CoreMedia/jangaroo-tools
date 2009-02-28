@@ -306,6 +306,7 @@ Include           = "include \"" ~"\";"
   "else"                          { return symbol(ELSE); }
   "enum"                          { return symbol(ENUM); }
   "extends"                       { return symbol(EXTENDS); }
+  "final"                         { return symbol(FINAL); }
   "finally"                       { return symbol(FINALLY); }
   "for"                           { return symbol(FOR); }
   "function"                      { return symbol(FUNCTION); }

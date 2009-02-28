@@ -42,6 +42,7 @@ abstract class Declaration extends NodeImplBase {
   protected static final int MODIFIER_ABSTRACT = 2*MODIFIER_STATIC;
   protected static final int MODIFIER_FINAL = 2*MODIFIER_ABSTRACT;
   protected static final int MODIFIER_OVERRIDE = 2*MODIFIER_FINAL;
+  protected static final int MODIFIER_DYNAMIC = 2*MODIFIER_OVERRIDE;
 
   protected static final int MODIFIERS_SCOPE =
     MODIFIER_PRIVATE|MODIFIER_PROTECTED|MODIFIER_PUBLIC|MODIFIER_INTERNAL;
