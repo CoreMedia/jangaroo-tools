@@ -133,6 +133,13 @@ static int[] terminalsAllowedBeforeRegexpLiteral = {
     return "?"+sym+"?";
   }
 
+  private String getFileName(String includeString) {
+    String fileName = getFileName();
+    int lastSlashPos = Math.max(fileName.lastIndexOf('\\'), fileName.lastIndexOf('/'));
+    String dir = lastSlashPos>=0 ? fileName.substring(0,lastSlashPos+1) : "";
+    return dir+includeString.substring("include \"".length(), includeString.length()-2);
+  }
+
   static {
     defsym("abstract", ABSTRACT);
     defsym("assert", ASSERT);
@@ -270,6 +277,8 @@ NonTerminator = [^\n]
 
 HexDigit          = [0-9abcdefABCDEF]
 
+Include           = "include \"" ~"\";"
+
 %state STRING_SQ, STRING_DQ, REGEXPFIRST, REGEXP
 
 %%
@@ -278,6 +287,7 @@ HexDigit          = [0-9abcdefABCDEF]
 
   {Comment}                       { whitespace += yytext(); }
   {WhiteSpace}                    { whitespace += yytext(); }
+  {Include}                       { yypushStream(new java.io.FileReader(getFileName(yytext()))); }
 
   "abstract"                      { return symbol(ABSTRACT); }
   "assert"                        { return symbol(ASSERT); }
@@ -475,4 +485,4 @@ HexDigit          = [0-9abcdefABCDEF]
                                       hex = "0"+hex;
                                     error("illegal character: \\u" + hex);
                                   }
-<<EOF>>                           { return symbol(EOF); }
+<<EOF>>                           { if (yymoreStreams()) yypopStream(); else return symbol(EOF); }

@@ -22,13 +22,17 @@
 
     <plugins>
       <plugin>
-        <groupId>de.jflex.maven.plugin</groupId>
+        <groupId>de.jflex</groupId>
         <artifactId>maven-jflex-plugin</artifactId>
+        <version>1.4.3</version>
         <executions>
           <execution>
             <goals>
               <goal>generate</goal>
             </goals>
+            <configuration>
+              <skeleton>src/main/jflex/skeleton.nested</skeleton>
+            </configuration>
           </execution>
         </executions>
       </plugin>
