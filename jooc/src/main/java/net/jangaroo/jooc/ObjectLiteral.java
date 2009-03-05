@@ -23,10 +23,10 @@ import java.io.IOException;
 class ObjectLiteral extends Expr {
 
   JooSymbol lBrace;
-  ObjectFields fields;
+  CommaSeparatedList<ObjectField> fields;
   JooSymbol rParen;
 
-  public ObjectLiteral(JooSymbol lBrace, ObjectFields fields, JooSymbol rParen) {
+  public ObjectLiteral(JooSymbol lBrace, CommaSeparatedList<ObjectField> fields, JooSymbol rParen) {
     this.lBrace = lBrace;
     this.fields = fields;
     this.rParen = rParen;

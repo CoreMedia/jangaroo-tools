@@ -26,6 +26,11 @@ public class TestExpressions {
     return (1 + 1) / 2;
   }
 
+  public function testCommaExprAsArrayIndex(foo:String):String {
+    var a : Array = [];
+    a[1,0] = foo; // commaExpr as array index makes no sense, but is allowed anyway.
+    return a[0];
+  }
   public function testParenExpr(n:int):int {
     return (n+1)*2;
   }

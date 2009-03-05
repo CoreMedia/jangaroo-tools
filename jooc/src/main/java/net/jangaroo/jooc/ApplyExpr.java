@@ -19,6 +19,7 @@ import java.io.IOException;
 
 /**
  * @author Andreas Gawecki
+ * @author Frank Wienberg
  */
 class ApplyExpr extends Expr {
 
@@ -26,16 +27,12 @@ class ApplyExpr extends Expr {
   public static final boolean ASSUME_UNDECLARED_UPPER_CASE_FUNCTIONS_CALLS_ARE_TYPE_CASTS = Boolean.valueOf("true");
 
   Expr fun;
+  ParenthesizedExpr<CommaSeparatedList<Expr>> args;
   Scope scope;
-  JooSymbol lParen;
-  Arguments args;
-  JooSymbol rParen;
 
-  public ApplyExpr(Expr fun, JooSymbol lParen, Arguments args, JooSymbol rParen) {
+  public ApplyExpr(Expr fun, JooSymbol lParen, CommaSeparatedList<Expr> args, JooSymbol rParen) {
     this.fun = fun;
-    this.lParen = lParen;
-    this.args = args;
-    this.rParen = rParen;
+    this.args = new ParenthesizedExpr<CommaSeparatedList<Expr>>(lParen, args, rParen);
   }
 
   public void generateCode(JsWriter out) throws IOException {
@@ -47,7 +44,8 @@ class ApplyExpr extends Expr {
     } else {
       fun.generateCode(out);
     }
-    generateArgsCode(out);
+    if (args != null)
+      args.generateCode(out);
   }
 
   private boolean isTypeCast() {
@@ -68,13 +66,6 @@ class ApplyExpr extends Expr {
       }
     }
     return false;
-  }
-
-  protected void generateArgsCode(JsWriter out) throws IOException {
-    out.writeSymbol(lParen);
-    if (args != null)
-      args.generateCode(out);
-    out.writeSymbol(rParen);
   }
 
   public Expr analyze(Node parentNode, AnalyzeContext context) {

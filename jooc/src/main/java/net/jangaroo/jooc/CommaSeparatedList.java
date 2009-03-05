@@ -20,40 +20,44 @@ import java.io.IOException;
 /**
  * @author Andreas Gawecki
  */
-class Arguments extends NodeImplBase {
-  Expr arg;
+class CommaSeparatedList<NodeType extends Node> extends Expr {
+  NodeType head;
   JooSymbol symComma;
-  Arguments tail;
+  CommaSeparatedList<NodeType> tail;
 
-  public Arguments(Expr arg) {
-    this(arg, null, null);
+  public CommaSeparatedList(NodeType head) {
+    this(head, null, null);
   }
 
-  public Arguments(Expr arg, JooSymbol comma, Arguments tail) {
-    this.arg = arg;
+  public CommaSeparatedList(NodeType head, JooSymbol comma, CommaSeparatedList<NodeType> tail) {
+    this.head = head;
     this.symComma = comma;
     this.tail = tail;
   }
 
   public void generateCode(JsWriter out) throws IOException {
-    arg.generateCode(out);
+    head.generateCode(out);
     if (symComma != null) {
-      out.writeSymbol(symComma);
-      tail.generateCode(out);
+      generateTailCode(out);
     }
   }
 
+  protected void generateTailCode(JsWriter out) throws IOException {
+    out.writeSymbol(symComma);
+    tail.generateCode(out);
+  }
 
-  public Node analyze(Node parentNode, AnalyzeContext context) {
+
+  public Expr analyze(Node parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
-    arg.analyze(this, context);
+    head.analyze(this, context);
     if (tail != null)
       tail.analyze(this, context);
     return this;
   }
 
   public JooSymbol getSymbol() {
-    return arg.getSymbol();
+    return head.getSymbol();
   }
 
 }

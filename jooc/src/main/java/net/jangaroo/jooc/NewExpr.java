@@ -24,20 +24,16 @@ class NewExpr extends Expr {
 
   JooSymbol symNew;
   Type type;
-  JooSymbol lParen;
-  Arguments args;
-  JooSymbol rParen;
+  ParenthesizedExpr<CommaSeparatedList<Expr>> args;
 
   public NewExpr(JooSymbol symNew, Type type) {
     this(symNew, type, null, null, null);
   }
 
-  public NewExpr(JooSymbol symNew, Type type, JooSymbol lParen, Arguments args, JooSymbol rParen) {
+  public NewExpr(JooSymbol symNew, Type type, JooSymbol lParen, CommaSeparatedList<Expr> args, JooSymbol rParen) {
     this.symNew = symNew;
     this.type = type;
-    this.lParen = lParen;
-    this.args = args;
-    this.rParen = rParen;
+    this.args = new ParenthesizedExpr<CommaSeparatedList<Expr>>(lParen, args, rParen);
   }
 
   public Expr analyze(Node parentNode, AnalyzeContext context) {
@@ -50,12 +46,8 @@ class NewExpr extends Expr {
   public void generateCode(JsWriter out) throws IOException {
     out.writeSymbol(symNew);
     type.generateCode(out);
-    if (lParen!=null)
-      out.writeSymbol(lParen);
     if (args != null)
       args.generateCode(out);
-    if (rParen!=null)
-      out.writeSymbol(rParen);
   }
 
   public JooSymbol getSymbol() {

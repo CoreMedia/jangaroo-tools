@@ -22,9 +22,9 @@ import java.io.IOException;
  */
 class Implements extends NodeImplBase {
   JooSymbol symImplements;
-  TypeList superTypes;
+  CommaSeparatedList<Type> superTypes;
 
-  public Implements(JooSymbol symImplements, TypeList superTypes) {
+  public Implements(JooSymbol symImplements, CommaSeparatedList<Type> superTypes) {
     this.symImplements = symImplements;
     this.superTypes = superTypes;
   }

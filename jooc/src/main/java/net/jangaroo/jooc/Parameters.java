@@ -20,50 +20,27 @@ import java.io.IOException;
 /**
  * @author Andreas Gawecki
  */
-public class Parameters extends NodeImplBase {
-
-  Parameter param;
-  JooSymbol symComma;
-
-  public Parameter getHead() {
-    return param;
-  }
+public class Parameters extends CommaSeparatedList<Parameter> {
 
   public Parameters getTail() {
-    return tail;
+    return (Parameters)tail;
   }
 
-  Parameters tail;
-
   public Parameters(Parameter param, JooSymbol symComma, Parameters tail) {
-    this.param = param;
-    this.symComma = symComma;
-    this.tail = tail;
+    super(param, symComma, tail);
   }
 
   public Parameters(Parameter param) {
     this(param, null, null);
   }
 
-  public Node analyze(Node parentNode, AnalyzeContext context) {
-    super.analyze(parentNode, context);
-    param.analyze(this, context);
-    if (tail != null)
-      tail.analyze(this, context);
-    return this;
-  }
-
-  public void generateCode(JsWriter out) throws IOException {
-    param.generateCode(out);
-    if (symComma != null) {
-      if (!tail.param.isRest()) {
-        out.writeSymbol(symComma);
-        tail.generateCode(out);
-      } else {
-        out.beginCommentWriteSymbol(symComma);
-        tail.generateCode(out);
-        out.endComment();
-      }
+  protected void generateTailCode(JsWriter out) throws IOException {
+    if (!tail.head.isRest()) {
+      super.generateTailCode(out);
+    } else {
+      out.beginCommentWriteSymbol(symComma);
+      tail.generateCode(out);
+      out.endComment();
     }
   }
 
@@ -73,8 +50,8 @@ public class Parameters extends NodeImplBase {
         // first pass: generate conditionals and count parameters.
         int cnt = 0;
         StringBuilder code = new StringBuilder();
-        for (Parameters parameters = Parameters.this; parameters!=null; parameters = parameters.tail) {
-          Parameter param = parameters.param;
+        for (Parameters parameters = Parameters.this; parameters!=null; parameters = parameters.getTail()) {
+          Parameter param = parameters.head;
           if (param.isRest()) {
             break;
           }
@@ -85,8 +62,8 @@ public class Parameters extends NodeImplBase {
         }
         out.write(code.toString());
         // second pass: generate initializers and rest param code.
-        for (Parameters parameters = Parameters.this; parameters!=null; parameters = parameters.tail) {
-          Parameter param = parameters.param;
+        for (Parameters parameters = Parameters.this; parameters!=null; parameters = parameters.getTail()) {
+          Parameter param = parameters.head;
           if (param.isRest()) {
             param.generateRestParamCode(out, cnt);
             break;
@@ -100,22 +77,18 @@ public class Parameters extends NodeImplBase {
     };
   }
 
-  public JooSymbol getSymbol() {
-    return param.getSymbol();
-  }
-
   public String getRestParamName() {
-    if (param.isRest()) {
-      return param.getName();
+    if (head.isRest()) {
+      return head.getName();
     }
-    return tail==null ? null : tail.getRestParamName();
+    return tail==null ? null : getTail().getRestParamName();
   }
 
   public int getOtherParamCount() {
-    if (param.isRest()) {
+    if (head.isRest()) {
       return 0;
     }
-    int tailOtherParamCount = tail==null ? -1 : tail.getOtherParamCount();
+    int tailOtherParamCount = tail==null ? -1 : getTail().getOtherParamCount();
     return tailOtherParamCount==-1 ? tailOtherParamCount : 1+tailOtherParamCount;
   }
 }

@@ -115,8 +115,8 @@ terminal JooSymbol PREFIX_PLUSPLUS, PREFIX_MINUSMINUS, PREFIX_PLUS, PREFIX_MINUS
 // pseudo-terminal carried in Sanner.ScanError, never returned by scanner:
 terminal JooSymbol SCAN_ERROR;
 
-nonterminal Arguments arguments;
-nonterminal ArrayLiteral arrayLiteral;
+nonterminal CommaSeparatedList arguments;
+nonterminal ParenthesizedExpr arrayLiteral;
 nonterminal BlockStatement block;
 nonterminal ArrayList catches;
 nonterminal Catch catchClause;
@@ -137,20 +137,20 @@ nonterminal Ide ide;
 nonterminal Implements implements;
 nonterminal Implements interfaceExtends;
 nonterminal Node directive;
-nonterminal Directives directives;
+nonterminal ArrayList optDirectives;
 nonterminal Expr lvalue;
 nonterminal MethodDeclaration methodDeclaration;
 nonterminal IdeDeclaration memberDeclaration;
 nonterminal JooSymbol modifier;
 nonterminal ArrayList modifiers;
-nonterminal Arguments nonEmptyArguments;
+nonterminal CommaSeparatedList nonEmptyArguments;
 nonterminal Parameters nonEmptyParameters;
-nonterminal ObjectFields nonEmptyObjectFields;
+nonterminal CommaSeparatedList nonEmptyObjectFields;
 nonterminal ObjectField objectField;
-nonterminal ObjectFields objectFields;
-nonterminal ObjectFields nonEmptyAnnotationFields;
+nonterminal CommaSeparatedList objectFields;
+nonterminal CommaSeparatedList nonEmptyAnnotationFields;
 nonterminal ObjectField annotationField;
-nonterminal ObjectFields annotationFields;
+nonterminal CommaSeparatedList annotationFields;
 nonterminal ObjectLiteral objectLiteral;
 nonterminal Statement optBody;
 nonterminal ArrayList optCatches;
@@ -175,7 +175,7 @@ nonterminal StaticInitializer staticInitializer;
 nonterminal ArrayList statementsInSwitch;
 nonterminal TypeRelation typeRelation;
 nonterminal Type type;
-nonterminal TypeList typeList;
+nonterminal CommaSeparatedList typeList;
 nonterminal VariableDeclaration variableDeclaration;
 
 // TODO: check precedences with spec; they are from reference http://hell.org.ua/Docs/oreilly/web2/action/ch05_01.htm
@@ -226,7 +226,7 @@ arguments ::=
 
 arrayLiteral ::=
     LBRACK:lb arguments:args RBRACK:rb
-    {: RESULT = new ArrayLiteral(lb,args,rb); :}
+    {: RESULT = new ParenthesizedExpr(lb,args,rb); :}
   ;
 
 block ::=
@@ -281,7 +281,7 @@ commaExpr ::=
   ;
 
 compilationUnit ::=
-    packageDeclaration:p LBRACE:lb directives:ds compilationUnitDeclaration:c RBRACE:rb
+    packageDeclaration:p LBRACE:lb optDirectives:ds compilationUnitDeclaration:c RBRACE:rb
     {: RESULT = new CompilationUnit(p,lb,ds,c,rb); :}
   ;
 
@@ -318,9 +318,9 @@ directive ::=
 
 nonEmptyAnnotationFields ::=
     annotationField:f
-    {: RESULT = new ObjectFields(f); :}
+    {: RESULT = new CommaSeparatedList(f); :}
   | annotationField:f COMMA:c nonEmptyAnnotationFields:tail
-    {: RESULT = new ObjectFields(f, c, tail); :}
+    {: RESULT = new CommaSeparatedList(f, c, tail); :}
   ;
 
 annotationField ::=
@@ -336,10 +336,10 @@ annotationFields ::=
     {: RESULT = f; :}
   ;
 
-directives ::=
-    {: RESULT = null; :}
-  | directive:d directives:ds
-    {: RESULT = new Directives(d,ds); :}
+optDirectives ::=
+    {: RESULT = new ArrayList(); :}
+  | directive:d optDirectives:ds
+    {: RESULT = ds; RESULT.add(0,d); :}
   ;
 
 expr ::=
@@ -520,8 +520,8 @@ lvalue ::=
     {: RESULT = new DotExpr(e,d,ide); :}
   | SUPER:s DOT:d namespacedIde:ide
     {: RESULT = new DotExpr(new SuperExpr(s),d,ide); :}
-  | expr:expr LBRACK:lb arguments:args RBRACK:rb
-    {: RESULT = new ArrayIndexExpr(expr,lb,args,rb); :}
+  | expr:expr LBRACK:lb commaExpr:index RBRACK:rb
+    {: RESULT = new ArrayIndexExpr(expr,lb,index,rb); :}
   ;
 
 memberDeclaration ::=
@@ -570,9 +570,9 @@ modifiers ::=
 
 nonEmptyArguments ::=
     exprOrObjectLiteral:arg
-    {: RESULT = new Arguments(arg); :}
+    {: RESULT = new CommaSeparatedList(arg); :}
   | exprOrObjectLiteral:arg COMMA:c nonEmptyArguments:args
-    {: RESULT = new Arguments(arg,c,args); :}
+    {: RESULT = new CommaSeparatedList(arg,c,args); :}
   ;
 
 nonEmptyParameters ::=
@@ -586,9 +586,9 @@ nonEmptyParameters ::=
 
 nonEmptyObjectFields ::=
     objectField:f
-    {: RESULT = new ObjectFields(f); :}
+    {: RESULT = new CommaSeparatedList(f); :}
   | objectField:f COMMA:c nonEmptyObjectFields:tail
-    {: RESULT = new ObjectFields(f, c, tail); :}
+    {: RESULT = new CommaSeparatedList(f, c, tail); :}
   ;
 
 objectField ::=
@@ -796,9 +796,9 @@ type ::=
 
 typeList ::=
     type:t
-    {: RESULT = new TypeList(t); :}
+    {: RESULT = new CommaSeparatedList(t); :}
   | type:t COMMA:c typeList:l
-    {: RESULT = new TypeList(t,c,l); :}
+    {: RESULT = new CommaSeparatedList(t,c,l); :}
   ;
 
 typeRelation ::=

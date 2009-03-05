@@ -179,6 +179,7 @@ public class JooTest extends JooRuntimeTestCase {
     expectNumber(200, "obj.testCond(true, 200, 300)");
     expectNumber(300, "obj.testCond(false, 200, 300)");
     expectNumber(1, "obj.antitestRegexpLiterals()");
+    expectString("foo", "obj.testCommaExprAsArrayIndex('foo')");
     expectNumber(24, "obj.testParenExpr(11)");
     expectNumber(7, "obj.testBinOpExpr(12)");
     expectNumber(130, "(obj.testFunExpr(13))(10)");

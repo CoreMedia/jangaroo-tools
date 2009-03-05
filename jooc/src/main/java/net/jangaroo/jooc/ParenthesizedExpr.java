@@ -20,13 +20,13 @@ import java.io.IOException;
 /**
  * @author Andreas Gawecki
  */
-class ParenthesizedExpr extends Expr {
+class ParenthesizedExpr<ExprType extends Expr> extends Expr {
 
   JooSymbol lParen;
-  Expr expr;
+  ExprType expr;
   JooSymbol rParen;
 
-  public ParenthesizedExpr(JooSymbol lParen, Expr expr, JooSymbol rParen) {
+  public ParenthesizedExpr(JooSymbol lParen, ExprType expr, JooSymbol rParen) {
     this.lParen = lParen;
     this.expr = expr;
     this.rParen = rParen;
@@ -34,13 +34,15 @@ class ParenthesizedExpr extends Expr {
 
   public Expr analyze(Node parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
-    expr = expr.analyze(this, context);
+    if (expr!=null)
+      expr = (ExprType)expr.analyze(this, context);
     return this;
   }
 
   public void generateCode(JsWriter out) throws IOException {
     out.writeSymbol(lParen);
-    expr.generateCode(out);
+    if (expr!=null)
+      expr.generateCode(out);
     out.writeSymbol(rParen);
   }
 

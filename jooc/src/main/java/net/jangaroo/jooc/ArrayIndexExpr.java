@@ -15,14 +15,36 @@
 
 package net.jangaroo.jooc;
 
+import java.io.IOException;
+
 
 /**
  * @author Andreas Gawecki
  */
-class ArrayIndexExpr extends ApplyExpr {
+class ArrayIndexExpr extends Expr {
 
-  public ArrayIndexExpr(Expr fun, JooSymbol lParen, Arguments args, JooSymbol rParen) {
-    super(fun,lParen,args,rParen);
+  private Expr array;
+  private ParenthesizedExpr indexExpr;
+
+  public ArrayIndexExpr(Expr array, JooSymbol lBrac, Expr index, JooSymbol rBrac) {
+    this.array = array;
+    this.indexExpr = new ParenthesizedExpr(lBrac, index, rBrac);
   }
 
+  public JooSymbol getSymbol() {
+    return array.getSymbol();
+  }
+
+  @Override
+  public Expr analyze(Node parentNode, AnalyzeContext context) {
+    super.analyze(parentNode, context);
+    array.analyze(this, context);
+    indexExpr.analyze(this, context);
+    return this;
+  }
+
+  public void generateCode(JsWriter out) throws IOException {
+    array.generateCode(out);
+    indexExpr.generateCode(out);
+  }
 }

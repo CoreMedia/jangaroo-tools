@@ -23,28 +23,22 @@ import java.io.IOException;
  */
 class SuperConstructorCallStatement extends Statement {
 
-  JooSymbol symSuper;
-  JooSymbol lParen;
-  Arguments args;
-  JooSymbol rParen;
   Expr fun;
+  ParenthesizedExpr<CommaSeparatedList<Expr>> args;
 
-  public SuperConstructorCallStatement(JooSymbol symSuper, JooSymbol lParen, Arguments args, JooSymbol rParen) {
-    this.symSuper = symSuper;
-    this.lParen = lParen;
-    this.args = args;
-    this.rParen = rParen;
+  public SuperConstructorCallStatement(JooSymbol symSuper, JooSymbol lParen, CommaSeparatedList<Expr> args, JooSymbol rParen) {
     this.fun = new SuperExpr(symSuper);
+    this.args = new ParenthesizedExpr<CommaSeparatedList<Expr>>(lParen, args, rParen);
   }
 
   public Node analyze(Node parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     MethodDeclaration method = context.getCurrentMethod();
     if (method == null || !method.isConstructor()) {
-      Jooc.error(symSuper, "must only call super constructor from constructor method");
+      Jooc.error(getSymbol(), "must only call super constructor from constructor method");
     }
     if (method.containsSuperConstructorCall()) {
-      Jooc.error(symSuper, "must not call super constructor twice");
+      Jooc.error(getSymbol(), "must not call super constructor twice");
     }
     method.setContainsSuperConstructorCall(true);
 
@@ -59,15 +53,13 @@ class SuperConstructorCallStatement extends Statement {
   }
 
   protected void generateFunCode(JsWriter out) throws IOException {
-    out.writeSymbolWhitespace(symSuper);
+    out.writeSymbolWhitespace(getSymbol());
     out.writeToken("this[$super]");
   }
 
   protected void generateArgsCode(JsWriter out) throws IOException {
-    out.writeSymbol(lParen);
     if (args != null)
       args.generateCode(out);
-    out.writeSymbol(rParen);
   }
 
   public JooSymbol getSymbol() {

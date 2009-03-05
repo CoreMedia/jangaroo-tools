@@ -77,7 +77,7 @@ class ForInStatement extends LoopStatement {
     if (symEach!=null) {
       // synthesize assigning the correct index to the variable given in the original for each statement:
       ArrayIndexExpr indexExpr = new ArrayIndexExpr(expr, new JooSymbol(sym.LBRACK, "["),
-        new Arguments(new IdeExpr(auxIde)),
+        new CommaSeparatedList(new IdeExpr(auxIde)),
         new JooSymbol(sym.RBRACK, "]"));
       Node assignment = decl!=null
         ? new DeclarationStatement(new VariableDeclaration(SYM_VAR, decl.ide, decl.optTypeRelation, new Initializer(SYM_EQ, indexExpr)), SYM_SEMICOLON)
