@@ -39,26 +39,29 @@ public class QualifiedIde extends Ide {
   }
 
   public String[] getQualifiedName() {
-    String[] prefixName = prefix.getQualifiedName();
+    return append(prefix.getQualifiedName(), ide.getText());
+  }
+
+  static String[] append(String[] prefixName, String ideText) {
     String[] result = new String[prefixName.length+1];
     System.arraycopy(prefixName, 0, result, 0, prefixName.length);
-    result[prefixName.length] = ide.getText();
+    result[prefixName.length] = ideText;
     return result;
   }
 
   @Override
   public String getQualifiedNameStr() {
-    return constructQualifiedNameStr(getQualifiedName());
+    return constructQualifiedNameStr(getQualifiedName(), ".");
   }
 
   public JooSymbol getSymbol() {
     return prefix.getSymbol();
   }
 
-  static String constructQualifiedNameStr(String[] qualifiedName) {
+  static String constructQualifiedNameStr(String[] qualifiedName, String separator) {
     StringBuilder sb = new StringBuilder(qualifiedName[0]);
     for (int i = 1; i < qualifiedName.length; i++) {
-      sb.append(".").append(qualifiedName[i]);
+      sb.append(separator).append(qualifiedName[i]);
     }
     return sb.toString();
   }

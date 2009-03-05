@@ -126,5 +126,33 @@ public class TestStatements {
     delete o[slot];
   }
 
+  public function testTryCatchFinally(e :Object):String {
+    try {
+      throw e;
+    } catch(any) {
+      // ignore
+    }
+    try {
+      throw e;
+    } catch(any:Object) {
+      // ignore
+    }
+    try {
+      throw e;
+    } catch(any:*) {
+      // ignore
+    }
+    try {
+      throw e;
+    } catch(e1:Error) {
+      return "is an Error: "+e1.message;
+    } catch(e2) {
+      return "is not an Error: "+e2;
+    } finally {
+      this.cleanedUp = true;
+    }
+  }
+
+  public var cleanedUp : Boolean = false;
 }
 }

@@ -25,6 +25,7 @@ public abstract class IdeDeclaration extends Declaration {
 
   private static Pattern PRIVATE_MEMBER_NAME = Pattern.compile("^[$](\\p{Alpha}|[_$])(\\p{Alnum}|[_$])*$");
   Ide ide;
+  boolean allowDuplicates = false;
 
   protected IdeDeclaration(JooSymbol[] modifiers, int allowedModifiers, Ide ide) {
     super(modifiers, allowedModifiers);
@@ -60,27 +61,19 @@ public abstract class IdeDeclaration extends Declaration {
   }
 
   public String getQualifiedNameStr() {
-    return QualifiedIde.constructQualifiedNameStr(getQualifiedName());
-  }
-
-  protected static String toPath(String[] qn) {
-    StringBuffer result = new StringBuffer(20);
-    for (int i = 0; i < qn.length; i++) {
-      if (i > 0)
-        result.append('.');
-      result.append(qn[i]);
-    }
-    return result.toString();
-  }
-
-  public String getPath() {
-    return toPath(getQualifiedName());
+    return QualifiedIde.constructQualifiedNameStr(getQualifiedName(), ".");
   }
 
   public Node analyze(Node parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
-    if (context.getScope().declareIde(getName(), this)!=null)
-      Jooc.error(getSymbol(), "duplicate declaration of identifier '" + getName() + "'");
+    if (context.getScope().declareIde(getName(), this)!=null) {
+      String msg = "Duplicate declaration of identifier '" + getName() + "'";
+      if (allowDuplicates) {
+        Jooc.warning(getSymbol(), msg);
+      } else {
+        Jooc.error(getSymbol(), msg);
+      }
+    }
     return this;
   }
 

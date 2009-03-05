@@ -64,9 +64,7 @@ class TopLevelIdeExpr extends IdeExpr {
         String ideName = ide.getName();
         while (currentDotExpr.parentNode instanceof DotExpr) {
           currentDotExpr = (DotExpr)currentDotExpr.parentNode;
-          if (!(currentDotExpr.arg2 instanceof IdeExpr)) 
-            break;
-          ideName += "." +((IdeExpr)currentDotExpr.arg2).ide.getName();
+          ideName += "." + currentDotExpr.getArg2().ide.getName();
           declaringScope = scope.findScopeThatDeclares(ideName);
           if (declaringScope!=null) {
             // it has been defined in the meantime or is an imported qualified identifier:
@@ -83,8 +81,13 @@ class TopLevelIdeExpr extends IdeExpr {
         Jooc.warning(ide.getSymbol(), warningMsg);
         return !maybeInScope && ASSUME_UNDECLARED_IDENTIFIERS_ARE_MEMBERS;
       } else if (declaringScope.getDeclaration() instanceof ClassDeclaration) {
-        MemberDeclaration memberDeclaration = (MemberDeclaration)declaringScope.getIdeDeclaration(ide);
-        return !memberDeclaration.isStatic() && !memberDeclaration.isConstructor();
+        Node ideDeclaration = declaringScope.getIdeDeclaration(ide);
+        if (ideDeclaration instanceof MemberDeclaration) {
+          MemberDeclaration memberDeclaration = (MemberDeclaration)ideDeclaration;
+          return !memberDeclaration.isStatic() && !memberDeclaration.isConstructor();
+        } else {
+          // must be an imported namespace.
+        }
       }
     }
     return false;

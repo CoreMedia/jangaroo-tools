@@ -26,7 +26,7 @@ class ApplyExpr extends Expr {
   public static final boolean ASSUME_UNDECLARED_UPPER_CASE_FUNCTIONS_CALLS_ARE_TYPE_CASTS = Boolean.valueOf("true");
 
   Expr fun;
-  boolean isType;
+  Scope scope;
   JooSymbol lParen;
   Arguments args;
   JooSymbol rParen;
@@ -39,7 +39,8 @@ class ApplyExpr extends Expr {
   }
 
   public void generateCode(JsWriter out) throws IOException {
-    if (isType) {
+    // leave out constructor function if called as type cast function!
+    if (isTypeCast()) {
       out.beginComment();
       fun.generateCode(out);
       out.endComment();
@@ -47,6 +48,26 @@ class ApplyExpr extends Expr {
       fun.generateCode(out);
     }
     generateArgsCode(out);
+  }
+
+  private boolean isTypeCast() {
+    if (scope!=null && fun instanceof IdeExpr) {
+      // TODO: make it work correctly for fully qualified identifiers!
+      String name = ((IdeExpr)fun).ide.getName();
+      // special case: it is a type cast to the current class:
+      if (scope.getClassDeclaration()!=null && scope.getClassDeclaration().getName().equals(name)) {
+        return true;
+      }
+      // heuristic for types: start with upper case letter.
+      // otherwise, it is most likely an imported package-namespaced function.
+      if (Character.isUpperCase(name.charAt(0))) {
+        Scope declScope = scope.findScopeThatDeclares(name);
+        return declScope == null
+          ? ASSUME_UNDECLARED_UPPER_CASE_FUNCTIONS_CALLS_ARE_TYPE_CASTS
+          : declScope.getDeclaration() == scope.getPackageDeclaration();
+      }
+    }
+    return false;
   }
 
   protected void generateArgsCode(JsWriter out) throws IOException {
@@ -58,20 +79,8 @@ class ApplyExpr extends Expr {
 
   public Expr analyze(Node parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
-    // leave out constructor function if called as type cast function!
-    if (fun instanceof IdeExpr) {
-      // TODO: make it work for fully qualified identifiers!
-      Ide funIde = ((IdeExpr)fun).ide;
-      // heuristic for types: start with upper case letter.
-      // otherwise, it is most likely an imported package-namespaced function.
-      if (Character.isUpperCase(funIde.getName().charAt(0))) {
-        Scope scope = context.getScope().findScopeThatDeclares(funIde);
-        isType = scope == null
-          ? ASSUME_UNDECLARED_UPPER_CASE_FUNCTIONS_CALLS_ARE_TYPE_CASTS
-          : scope.getDeclaration() == context.getScope().getPackageDeclaration();
-      }
-    }
     fun = fun.analyze(this, context);
+    scope = context.getScope();
     if (args != null)
       args.analyze(this, context);
     return this;

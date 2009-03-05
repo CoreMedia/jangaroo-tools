@@ -23,17 +23,21 @@ public class Annotation extends NodeImplBase {
 
   JooSymbol leftBracket;
   Ide ide;
+  JooSymbol leftBrace;
   ObjectFields annotationFields;
+  JooSymbol rightBrace;
   JooSymbol rightBracket;
 
   public Annotation(JooSymbol leftBracket, Ide ide, JooSymbol rightBracket) {
-    this(leftBracket, ide, null, rightBracket);
+    this(leftBracket, ide, null, null, null, rightBracket);
   }
 
-  public Annotation(JooSymbol leftBracket, Ide ide, ObjectFields annotationFields, JooSymbol rightBracket) {
+  public Annotation(JooSymbol leftBracket, Ide ide, JooSymbol leftBrace, ObjectFields annotationFields, JooSymbol rightBrace, JooSymbol rightBracket) {
     this.leftBracket = leftBracket;
     this.ide = ide;
+    this.leftBrace = leftBrace;
     this.annotationFields = annotationFields;
+    this.rightBrace = rightBrace;
     this.rightBracket = rightBracket;
   }
 
@@ -46,7 +50,9 @@ public class Annotation extends NodeImplBase {
     out.writeSymbol(leftBracket);
     ide.generateCode(out);
     if (annotationFields!=null) {
+      out.writeSymbol(leftBrace);
       annotationFields.generateCode(out);
+      out.writeSymbol(rightBrace);
     }
     out.writeSymbol(rightBracket);
     out.endComment();

@@ -48,11 +48,11 @@ public class FieldDeclaration extends AbstractVariableDeclaration {
       out.write(':');
       boolean isCompileTimeConstant = optInitializer.value.isCompileTimeConstant();
       if (!isCompileTimeConstant) {
-        out.write("function(){return ");
+        out.writeToken("function(){return(");
       }
       optInitializer.value.generateCode(out);
       if (!isCompileTimeConstant) {
-        out.write(";}");
+        out.writeToken(");}");
       }
     } else {
       out.write(": undefined");

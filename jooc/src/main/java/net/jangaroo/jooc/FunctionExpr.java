@@ -30,7 +30,7 @@ class FunctionExpr extends Expr {
   TypeRelation optTypeRelation;
   BlockStatement body;
 
-  ClassDeclaration classDeclaration;
+  IdeDeclaration parentDeclaration;
   private boolean thisUsed;
 
   public FunctionExpr(JooSymbol symFun, Ide ide, JooSymbol lParen, Parameters params, JooSymbol rParen, TypeRelation optTypeRelation, BlockStatement body) {
@@ -43,13 +43,18 @@ class FunctionExpr extends Expr {
     this.body = body;
   }
 
-  public ClassDeclaration getClassDeclaration() {
-    return classDeclaration;
+  public IdeDeclaration getParentDeclaration() {
+    return parentDeclaration;
   }
 
   public Expr analyze(Node parentNode, AnalyzeContext context) {
-    classDeclaration = context.getCurrentClass();
-    Debug.assertTrue(classDeclaration != null, "classDeclaration != null");
+    parentDeclaration = context.getCurrentClass();
+    if (parentDeclaration==null) {
+      Node declaration = context.getScope().getDeclaration();
+      if (declaration instanceof IdeDeclaration) {
+        parentDeclaration = (IdeDeclaration)declaration;
+      }
+    }
     super.analyze(parentNode, context);
     if (ide!=null) {
       context.getScope().declareIde(ide.getName(), this);

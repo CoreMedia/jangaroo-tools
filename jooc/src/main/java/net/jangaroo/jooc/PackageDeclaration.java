@@ -27,6 +27,12 @@ public class PackageDeclaration extends IdeDeclaration  {
 
   JooSymbol symPackage;
   private List<String> packageImports = new ArrayList<String>();
+  private List<String> namespaces = new ArrayList<String>();
+
+  public PackageDeclaration(JooSymbol symPackage, Ide ide) {
+    super(new JooSymbol[0], 0, ide);
+    this.symPackage = symPackage;
+  }
 
   public void addPackageImport(String packageName) {
     packageImports.add(packageName);
@@ -36,9 +42,8 @@ public class PackageDeclaration extends IdeDeclaration  {
     return Collections.unmodifiableList(packageImports);
   }
 
-  public PackageDeclaration(JooSymbol symPackage, Ide ide) {
-    super(new JooSymbol[0], 0, ide);
-    this.symPackage = symPackage;
+  public void addNamespace(String namespace) {
+    namespaces.add(namespace);
   }
 
   public void generateCode(JsWriter out) throws IOException {
@@ -65,5 +70,9 @@ public class PackageDeclaration extends IdeDeclaration  {
   public boolean isFullyQualifiedIde(AnalyzeContext context, String dotExpr) {
     return packageImports.contains(dotExpr.substring(0, dotExpr.lastIndexOf('.')))
       || context.getScope().findScopeThatDeclares(dotExpr) != null;
+  }
+
+  public boolean isNamespace(String namespace) {
+    return namespaces.contains(namespace);
   }
 }

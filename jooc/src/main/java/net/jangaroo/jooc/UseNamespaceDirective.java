@@ -20,37 +20,38 @@ import java.io.IOException;
 /**
  * @author Frank Wienberg
  */
-class Directives extends NodeImplBase {
+public class UseNamespaceDirective extends NodeImplBase {
 
-  Node directive; // other directive types may follow later
-  Directives tail;
+  JooSymbol useKeyword;
+  JooSymbol namespaceKeyword;
+  Ide namespace;
 
-  public Directives(Node directive, Directives tail) {
-    this.directive = directive;
-    this.tail = tail;
+  public UseNamespaceDirective(JooSymbol useKeyword, JooSymbol namespaceKeyword, Ide namespace) {
+    this.useKeyword = useKeyword;
+    this.namespaceKeyword = namespaceKeyword;
+    this.namespace = namespace;
   }
 
+  @Override
   public Node analyze(Node parentNode, AnalyzeContext context) {
-    super.analyze(parentNode, context);
-    if (directive!=null) {
-      directive.analyze(this, context);
+    PackageDeclaration packageDeclaration = context.getCurrentPackage();
+    if (packageDeclaration!=null) {
+      packageDeclaration.addNamespace(namespace.getQualifiedNameStr());
     }
-    if (tail != null)
-      tail.analyze(this, context);
-    return this;
+    return super.analyze(parentNode, context);
   }
 
   public void generateCode(JsWriter out) throws IOException {
-    if (directive!=null) {
-      directive.generateCode(out);
-    }
-    if (tail != null) {
-      tail.generateCode(out);
-    }
+    out.beginString();
+    out.writeSymbol(useKeyword);
+    out.writeSymbol(namespaceKeyword);
+    namespace.generateCode(out);
+    out.endString();
+    out.writeToken(",");
   }
 
   public JooSymbol getSymbol() {
-    return directive==null ? null : directive.getSymbol();
+      return useKeyword;
   }
 
 }

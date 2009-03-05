@@ -28,6 +28,10 @@ class NewExpr extends Expr {
   Arguments args;
   JooSymbol rParen;
 
+  public NewExpr(JooSymbol symNew, Type type) {
+    this(symNew, type, null, null, null);
+  }
+
   public NewExpr(JooSymbol symNew, Type type, JooSymbol lParen, Arguments args, JooSymbol rParen) {
     this.symNew = symNew;
     this.type = type;
@@ -46,9 +50,12 @@ class NewExpr extends Expr {
   public void generateCode(JsWriter out) throws IOException {
     out.writeSymbol(symNew);
     type.generateCode(out);
-    out.writeSymbol(lParen);
-    if (args != null) args.generateCode(out);
-    out.writeSymbol(rParen);
+    if (lParen!=null)
+      out.writeSymbol(lParen);
+    if (args != null)
+      args.generateCode(out);
+    if (rParen!=null)
+      out.writeSymbol(rParen);
   }
 
   public JooSymbol getSymbol() {

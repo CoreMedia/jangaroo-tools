@@ -21,6 +21,7 @@ import java.io.IOException;
  * @author Andreas Gawecki
  */
 abstract class Declaration extends NodeImplBase {
+  public static final String DYNAMIC = "dynamic";
 
   public JooSymbol[] getSymModifiers() {
     return symModifiers;
@@ -43,9 +44,10 @@ abstract class Declaration extends NodeImplBase {
   protected static final int MODIFIER_FINAL = 2*MODIFIER_ABSTRACT;
   protected static final int MODIFIER_OVERRIDE = 2*MODIFIER_FINAL;
   protected static final int MODIFIER_DYNAMIC = 2*MODIFIER_OVERRIDE;
+  protected static final int MODIFIER_NAMESPACE = 2*MODIFIER_DYNAMIC;
 
   protected static final int MODIFIERS_SCOPE =
-    MODIFIER_PRIVATE|MODIFIER_PROTECTED|MODIFIER_PUBLIC|MODIFIER_INTERNAL;
+    MODIFIER_PRIVATE|MODIFIER_PROTECTED|MODIFIER_PUBLIC|MODIFIER_INTERNAL|MODIFIER_NAMESPACE;
 
   protected Declaration(JooSymbol[] modifiers, int allowedModifiers) {
     this.symModifiers = modifiers;
@@ -70,6 +72,7 @@ abstract class Declaration extends NodeImplBase {
         case sym.ABSTRACT: flag = MODIFIER_ABSTRACT; break;
         case sym.FINAL: flag = MODIFIER_FINAL; break;
         case sym.OVERRIDE: flag = MODIFIER_OVERRIDE; break;
+        case sym.IDE: flag = DYNAMIC.equals(modifier.getText()) ? MODIFIER_DYNAMIC : MODIFIER_NAMESPACE; break;
         default: Jooc.error(modifier, "internal compiler error: invalid modifier '" +  modifier.getText() + "'");
       }
       if ((allowedModifiers & flag) == 0)

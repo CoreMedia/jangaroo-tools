@@ -151,15 +151,13 @@ class Scope {
   public ClassDeclaration getClassDeclaration() {
     if (ideDeclaration instanceof ClassDeclaration)
       return (ClassDeclaration) ideDeclaration;
-    return parent.getClassDeclaration();
+    return parent==null ? null : parent.getClassDeclaration();
   }
 
   public MethodDeclaration getMethodDeclaration() {
     if (ideDeclaration instanceof MethodDeclaration)
       return (MethodDeclaration) ideDeclaration;
-    if (parent == null)
-      return null;
-    return parent.getMethodDeclaration();
+    return parent == null ? null : parent.getMethodDeclaration();
   }
 
 }

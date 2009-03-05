@@ -544,6 +544,10 @@ Function.prototype.bind = function(object) {
                 } else if (j==modifiers.length-1) {
                   // last "modifier" is the member name:
                   memberName = modifier;
+                } else if (modifier=="import") {
+                  // TODO, for now, just ignore inner imports:
+                  ++i;
+                  continue;
                 } else {
                   throw new Error("Unknown modifier '"+modifier+"'.");
                 }
@@ -722,13 +726,16 @@ Function.prototype.bind = function(object) {
       imports.packages = [""]; // always "import" top level package!
       for (var im=1; im<arguments.length-3; ++im) {
         var importMatch = arguments[im].match(/^\s*import\s+(([a-zA-Z$_0-9]+\.)*)(\*|[a-zA-Z$_0-9]+)\s*$/);
-        var importPackageName = importMatch[1]; // including last dot
-        var importClassName = importMatch[3];
-        if (importClassName == "*") {
-          imports.packages.push(importPackageName);
-        } else {
-          addImport(imports, importPackageName+importClassName);
+        if (importMatch) {
+          var importPackageName = importMatch[1]; // including last dot
+          var importClassName = importMatch[3];
+          if (importClassName == "*") {
+            imports.packages.push(importPackageName);
+          } else {
+            addImport(imports, importPackageName+importClassName);
+          }
         }
+        // else: TODO! use namespace, annotations, package-scope functions, namespace declarations...
       }
       var packageName =  "";
       if (typeof packageDef=="string") {

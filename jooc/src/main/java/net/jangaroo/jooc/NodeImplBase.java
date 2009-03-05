@@ -17,7 +17,6 @@ package net.jangaroo.jooc;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Iterator;
 
 /**
  * @author Andreas Gawecki
@@ -26,7 +25,7 @@ public abstract class NodeImplBase implements Node {
 
   Node parentNode;
 
-  void generateCode(Collection<Node> nodes, JsWriter out) throws IOException {
+  void generateCode(Collection<? extends Node> nodes, JsWriter out) throws IOException {
     for (Node node : nodes) {
       node.generateCode(out);
     }
@@ -37,10 +36,8 @@ public abstract class NodeImplBase implements Node {
     return this;
   }
 
-  public void analyze(Node parent, Collection/*<Node>*/ nodes, AnalyzeContext context) {
-    Iterator iter = nodes.iterator();
-    while (iter.hasNext()) {
-      NodeImplBase node = (NodeImplBase) iter.next();
+  public void analyze(Node parent, Collection<? extends Node> nodes, AnalyzeContext context) {
+    for (Node node : nodes) {
       node.analyze(parent, context);
     }
   }

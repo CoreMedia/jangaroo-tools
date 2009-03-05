@@ -126,6 +126,7 @@
                       enableassertions="${jooc.assert}">
                   <include name="**/*.as"/>
                   <exclude name="error/**/*.as"/>
+                  <exclude name="**/*_fragment.as"/>
                   <src path="target/joo"/>
                 </jooc>
 

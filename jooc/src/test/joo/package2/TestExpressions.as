@@ -21,7 +21,8 @@ public class TestExpressions {
   }
 
   public function antitestRegexpLiterals():int {
-    var i = 1 / 2 / 3;
+    var i:Number = 1 / 2 / 3;
+    ++i; // just to avoid "unused variable" warning
     return (1 + 1) / 2;
   }
 
@@ -49,7 +50,7 @@ public class TestExpressions {
     return '\'' + '¤' + '\\' + '\b' + '\t' + '\n' + '\f' + '\r' + '\'' + '/' + '\'' + '\u00C6' + '\u01bF' + 'e' + '"' + '\'';
   }
 
-  public function testRegexpLiterals() {
+  public function testRegexpLiterals():String {
     return [
       "abc".match(/(abc)*/).length,
       " abc abcabcab cabcabc abca bcabcabcabcabcab cabcab cabcabc".match(/(abc)+/g).length,
@@ -59,12 +60,12 @@ public class TestExpressions {
       ].join(',');
   }
 
-  public function testObjectLiterals() {
+  public function testObjectLiterals():int {
     var o : * = { x: 123, "y": 456 };
     return o.x + o.y;
   }
 
-  public function testArrayLiterals() {
+  public function testArrayLiterals():String {
     return [ 1+2-2,2+3-3,3+4-4,4,5,6,7,8,9,0 ].join(',');
   }
 
@@ -73,29 +74,29 @@ public class TestExpressions {
   }
 
   public function testAssignOpExpr(n:int):int {
-    var x = n;
+    var x:Number= n;
     x/=2;
     return n;
   }
 
-  public function testFunExpr(n:int) {
+  public function testFunExpr(n:int):void {
     return function(m:int) { return n*m; };
   }
 
-  public function testPrefixOpExpr(n:int) {
+  public function testPrefixOpExpr(n:int):void {
     return 1+-n+11;
   }
 
-  public function testPostfixOpExpr(n:int) {
-    var x = 1+n--;
+  public function testPostfixOpExpr(n:int):void {
+    var x:int = 1+n--;
     return n+x;
   }
 
-  public function testCond(cond:boolean, ifTrue :int, ifFalse :int):int {
+  public function testCond(cond:Boolean, ifTrue :int, ifFalse :int):int {
     return cond ? ifTrue : ifFalse;
   }
 
-  public function testIn(obj:Object, prop:String):int {
+  public function testIn(obj:Object, prop:String):Boolean {
     return prop in obj;
   }
 

@@ -53,10 +53,10 @@ public class MergedOutputCompilationUnitSinkFactory extends AbstractCompilationU
   }
 
   public CompilationUnitSink createSink(PackageDeclaration packageDeclaration,
-                                        ClassDeclaration classDeclaration, File sourceFile,
+                                        IdeDeclaration primaryDeclaration, File sourceFile,
                                         final boolean verbose) {
     if (verbose)
-      System.out.println("writing " + classDeclaration.getName() + " to file: '" + outputFile.getAbsolutePath() + "'");
+      System.out.println("writing " + primaryDeclaration.getName() + " to file: '" + outputFile.getAbsolutePath() + "'");
 
     return sink;
   }

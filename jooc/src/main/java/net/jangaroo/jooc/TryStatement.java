@@ -16,7 +16,7 @@
 package net.jangaroo.jooc;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Andreas Gawecki
@@ -24,15 +24,15 @@ import java.util.ArrayList;
 class TryStatement extends KeywordStatement {
 
   BlockStatement block;
-  ArrayList catches;
+  List<Catch> catches;
   JooSymbol symFinally;
   BlockStatement finallyBlock;
 
-  public TryStatement(JooSymbol symTry, BlockStatement block, ArrayList catches) {
+  public TryStatement(JooSymbol symTry, BlockStatement block, List<Catch> catches) {
     this(symTry, block, catches, null, null);
   }
 
-  public TryStatement(JooSymbol symTry, BlockStatement block, ArrayList catches, JooSymbol symFinally, BlockStatement finallyBlock) {
+  public TryStatement(JooSymbol symTry, BlockStatement block, List<Catch> catches, JooSymbol symFinally, BlockStatement finallyBlock) {
     super(symTry);
     this.block = block;
     this.catches = catches;

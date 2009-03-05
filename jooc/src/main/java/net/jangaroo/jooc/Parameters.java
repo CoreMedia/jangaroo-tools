@@ -67,33 +67,37 @@ public class Parameters extends NodeImplBase {
     }
   }
 
-  public void generateParameterInitializerCode(JsWriter out) throws IOException {
-    // first pass: generate conditionals and count parameters.
-    int cnt = 0;
-    StringBuilder code = new StringBuilder();
-    for (Parameters parameters = this; parameters!=null; parameters = parameters.tail) {
-      Parameter param = parameters.param;
-      if (param.isRest()) {
-        break;
+  public CodeGenerator getParameterInitializerCodeGenerator() {
+    return new CodeGenerator() {
+      public void generateCode(JsWriter out) throws IOException {
+        // first pass: generate conditionals and count parameters.
+        int cnt = 0;
+        StringBuilder code = new StringBuilder();
+        for (Parameters parameters = Parameters.this; parameters!=null; parameters = parameters.tail) {
+          Parameter param = parameters.param;
+          if (param.isRest()) {
+            break;
+          }
+          if (param.hasInitializer()) {
+            code.insert(0,"if(arguments.length<"+(cnt+1)+"){");
+          }
+          ++cnt;
+        }
+        out.write(code.toString());
+        // second pass: generate initializers and rest param code.
+        for (Parameters parameters = Parameters.this; parameters!=null; parameters = parameters.tail) {
+          Parameter param = parameters.param;
+          if (param.isRest()) {
+            param.generateRestParamCode(out, cnt);
+            break;
+          }
+          if (param.hasInitializer()) {
+            param.generateBodyInitializerCode(out);
+            out.write("}");
+          }
+        }
       }
-      if (param.hasInitializer()) {
-        code.insert(0,"if(arguments.length<"+(cnt+1)+"){");
-      }
-      ++cnt;
-    }
-    out.write(code.toString());
-    // second pass: generate initializers and rest param code.
-    for (Parameters parameters = this; parameters!=null; parameters = parameters.tail) {
-      Parameter param = parameters.param;
-      if (param.isRest()) {
-        param.generateRestParamCode(out, cnt);
-        break;
-      }
-      if (param.hasInitializer()) {
-        param.generateBodyInitializerCode(out);
-        out.write("}");
-      }
-    }
+    };
   }
 
   public JooSymbol getSymbol() {

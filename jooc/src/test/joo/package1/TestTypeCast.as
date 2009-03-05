@@ -15,25 +15,21 @@
 
 package package1 {
 
-public class TestInitializers {
+import package2.TestImport;
 
-  public function TestInitializers() {
-    this.slot1 = 1;
+public class TestTypeCast {
+
+  public function TestTypeCast() {
   }
 
-  protected var slot1;
-  protected var slot2 = 2;
-  protected var slot3 = {
-    nolabel: 1,
-    alsonolabel: 2
-  };
-
-  public function getSlot1() :int {
-    return this.slot1;
+  public static function testAsCast(p : Object) : TestTypeCast {
+    return p as TestTypeCast;
   }
 
-  public function getSlot2() :int {
-    return this.slot2;
+  public static function testFunctionCast(p : Object) : TestTypeCast {
+    p = TestImport(p);
+    p = package2.TestImport(p);
+    return TestTypeCast(p);
   }
 
 }

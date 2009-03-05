@@ -17,6 +17,7 @@ package net.jangaroo.jooc;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.ArrayList;
 
 /**
  * @author Andreas Gawecki
@@ -26,8 +27,7 @@ class BlockStatement extends Statement {
   JooSymbol lBrace;
   List<Node> statements;
   JooSymbol rBrace;
-  boolean addSuperCall;
-  Parameters params;
+  List<CodeGenerator> blockStartCodeGenerators = new ArrayList<CodeGenerator>(3);
 
   public BlockStatement(JooSymbol lBrace, List<Node> statements, JooSymbol rBrace) {
     this.lBrace = lBrace;
@@ -35,24 +35,17 @@ class BlockStatement extends Statement {
     this.rBrace = rBrace;
   }
 
+  public void addBlockStartCodeGenerator(CodeGenerator blockStartCodeGenerator) {
+    blockStartCodeGenerators.add(blockStartCodeGenerator);
+  }
+
   public void generateCode(JsWriter out) throws IOException {
     out.writeSymbol(lBrace);
-    if (params!=null) {
-      params.generateParameterInitializerCode(out);
-    }
-    if (addSuperCall) {
-      out.write("this[$super]();");
+    for (CodeGenerator codeGenerator : blockStartCodeGenerators) {
+      codeGenerator.generateCode(out);
     }
     generateCode(statements, out);
     out.writeSymbol(rBrace);
-  }
-
-  public void generateCodeWithSuperCall() {
-    addSuperCall = true;
-  }
-
-  public void setParameters(Parameters params) {
-    this.params = params;
   }
 
   public Node analyze(Node parentNode, AnalyzeContext context) {

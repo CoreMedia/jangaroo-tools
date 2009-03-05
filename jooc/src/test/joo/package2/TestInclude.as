@@ -13,14 +13,24 @@
  * governing permissions and limitations under the License.
  */
 
-package net.jangaroo.jooc;
+package package2 {
 
-/**
- * @author Andreas Gawecki
- */
-class DeleteStatement extends KeywordExprStatement {
+public class TestInclude {
 
-  public DeleteStatement(JooSymbol symDelete, Expr expr, JooSymbol symSemicolon) {
-    super(symDelete, expr, symSemicolon);
+  public function TestInclude() {
   }
+
+  include "TestInclude_fragment.as"
+
+  public static function testIncludeSameDir() : String {
+    return INCLUDED_SAME_DIR;
+  }
+
+  include "../package1/TestInclude_fragment.as"
+
+  public static function testIncludeOtherDir() : String {
+    return INCLUDED_OTHER_DIR;
+  }
+
+}
 }

@@ -61,6 +61,14 @@ public class TestUnqualifiedAccess {
     return localFunction();
   }
 
+  public function testForwardPrivateUnqualified(p : *) : void {
+    return forwardPrivate(p);
+  }
+
+  private function forwardPrivate(p : *) : void {
+    return p;
+  }
+
   public static const UNQUALIFIED_CLASS_EQUALS_QUALIFIED_CLASS : Boolean = TestUnqualifiedAccess === package1.TestUnqualifiedAccess;
   public static var SET_BY_STATIC_INITIALIZER : String;
 

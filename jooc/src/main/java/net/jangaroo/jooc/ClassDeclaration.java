@@ -54,7 +54,7 @@ public class ClassDeclaration extends IdeDeclaration {
 
   public ClassDeclaration(JooSymbol[] modifiers, JooSymbol cls, Ide ide, Extends ext, Implements impl, ClassBody body) {
     super(modifiers,
-            MODIFIER_ABSTRACT|MODIFIER_FINAL|MODIFIERS_SCOPE|MODIFIER_STATIC,
+            MODIFIER_ABSTRACT|MODIFIER_FINAL|MODIFIERS_SCOPE|MODIFIER_STATIC|MODIFIER_DYNAMIC,
             ide);
     this.symClass = cls;
     this.optExtends = ext;
@@ -174,7 +174,7 @@ public class ClassDeclaration extends IdeDeclaration {
     Type type = getSuperClassType();
     //TODO: scope class declarations, implement getSuperClassDeclaration()
     IdeType ideType = (IdeType) type;
-    return toPath(ideType.getIde().getQualifiedName());
+    return ideType.getIde().getQualifiedNameStr();
   }
 
   public void addBoundMethodCandidate(String memberName) {

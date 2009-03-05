@@ -15,15 +15,33 @@
 
 package net.jangaroo.jooc;
 
+import java.math.BigInteger;
+
 /**
  * @author Andreas Gawecki
  */
 public abstract class MemberDeclaration extends IdeDeclaration {
+  private JooSymbol namespace;
   TypeRelation optTypeRelation;
 
   public MemberDeclaration(JooSymbol[] modifiers, int allowedModifiers, Ide ide, TypeRelation optTypeRelation) {
     super(modifiers, allowedModifiers, ide);
+    this.namespace = findNamespace(modifiers);
     this.optTypeRelation = optTypeRelation;
+  }
+
+  private JooSymbol findNamespace(JooSymbol[] modifiers) {
+    for (JooSymbol modifier : modifiers) {
+      if (modifier.sym==sym.IDE && !DYNAMIC.equals(modifier.getText())) {
+        return modifier;
+      }
+    }
+    return null;
+  }
+
+  @Override
+  public String getName() {
+    return NamespacedIde.getNamespacePrefix(namespace)+super.getName();
   }
 
   public TypeRelation getOptTypeRelation() {
@@ -31,7 +49,7 @@ public abstract class MemberDeclaration extends IdeDeclaration {
   }
 
   public ClassDeclaration getClassDeclaration() {
-    return (ClassDeclaration) getParentDeclaration();
+    return classDeclaration;
   }
 
   public boolean isField() {
@@ -49,7 +67,13 @@ public abstract class MemberDeclaration extends IdeDeclaration {
   public Node analyze(Node parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     if (isField() || isMethod()) {
-      getClassDeclaration().registerMember(this);
+      ClassDeclaration classDeclaration = getClassDeclaration();
+      if (classDeclaration!=null) {
+        classDeclaration.registerMember(this);
+      }
+    }
+    if (namespace!=null) {
+      NamespacedIde.warnUndefinedNamespace(context, namespace);
     }
     return this;
   }

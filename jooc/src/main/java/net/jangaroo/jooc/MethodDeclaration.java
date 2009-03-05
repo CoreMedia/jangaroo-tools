@@ -73,13 +73,12 @@ public class MethodDeclaration extends MemberDeclaration {
   }
 
   public boolean isAbstract() {
-    return getClassDeclaration().isInterface() || super.isAbstract();
+    return classDeclaration!=null && classDeclaration.isInterface() || super.isAbstract();
   }
 
   public Node analyze(Node parentNode, AnalyzeContext context) {
-    parentDeclaration = context.getCurrentClass();
-    ClassDeclaration classDeclaration = getClassDeclaration();
-    if (ide.getName().equals(classDeclaration.getName())) {
+    parentDeclaration = classDeclaration = context.getCurrentClass();
+    if (classDeclaration!=null && ide.getName().equals(classDeclaration.getName())) {
       isConstructor = true;
       classDeclaration.setConstructor(this);
       allowedModifiers = MODIFIERS_SCOPE;
@@ -88,6 +87,9 @@ public class MethodDeclaration extends MemberDeclaration {
     if (overrides() && isAbstract())
       Jooc.error(this, "overriding methods are not allowed to be declared abstract");
     if (isAbstract()) {
+      if (classDeclaration==null) {
+        Jooc.error(this, "package-scoped function "+getName()+" must not be abstract.");
+      }
       if (!classDeclaration.isAbstract())
         Jooc.error(this, classDeclaration.getName() + "is not declared abstract");
       if (optBody instanceof BlockStatement)
@@ -129,7 +131,7 @@ public class MethodDeclaration extends MemberDeclaration {
       out.beginString();
       writeModifiers(out);
       String methodName = ide.getName();
-      if (!isConstructor && !isStatic() && classDeclaration.isBoundMethod(methodName)) {
+      if (classDeclaration!=null && !isConstructor && !isStatic() && classDeclaration.isBoundMethod(methodName)) {
         out.writeToken("bound");
       }
       out.writeToken(methodName);
@@ -155,13 +157,17 @@ public class MethodDeclaration extends MemberDeclaration {
       params.generateCode(out);
       if (optBody instanceof BlockStatement) {
         // inject into body for generating initilizers later:
-        ((BlockStatement)optBody).setParameters(params);
+        ((BlockStatement)optBody).addBlockStartCodeGenerator(params.getParameterInitializerCodeGenerator());
       }
     }
     out.writeSymbol(rParen);
     if (optTypeRelation != null) optTypeRelation.generateCode(out);
     if (isConstructor() && !containsSuperConstructorCall() && optBody instanceof BlockStatement) {
-      ((BlockStatement)optBody).generateCodeWithSuperCall();
+      ((BlockStatement)optBody).addBlockStartCodeGenerator(new CodeGenerator() {
+        public void generateCode(JsWriter out) throws IOException {
+          out.writeToken("this[$super]();");
+        }
+      });
     }
     optBody.generateCode(out);
     if (isAbstract()) {

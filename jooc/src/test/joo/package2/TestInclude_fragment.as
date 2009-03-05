@@ -13,28 +13,4 @@
  * governing permissions and limitations under the License.
  */
 
-package package1 {
-
-public class TestInitializers {
-
-  public function TestInitializers() {
-    this.slot1 = 1;
-  }
-
-  protected var slot1;
-  protected var slot2 = 2;
-  protected var slot3 = {
-    nolabel: 1,
-    alsonolabel: 2
-  };
-
-  public function getSlot1() :int {
-    return this.slot1;
-  }
-
-  public function getSlot2() :int {
-    return this.slot2;
-  }
-
-}
-}
+public static const INCLUDED_SAME_DIR : String = "included!";

@@ -47,15 +47,15 @@ public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUni
   }
 
   public CompilationUnitSink createSink(PackageDeclaration packageDeclaration,
-                               ClassDeclaration classDeclaration, File sourceFile,
+                               IdeDeclaration primaryDeclaration, File sourceFile,
                                final boolean verbose) {
     final File outFile = getOutputFile(sourceFile, packageDeclaration.getQualifiedName());
     String fileName = outFile.getName();
     String classPart = fileName.substring(0, fileName.lastIndexOf('.'));
 
-    String className = classDeclaration.getName();
+    String className = primaryDeclaration.getName();
     if (!classPart.equals(className))
-      Jooc.error(classDeclaration,
+      Jooc.error(primaryDeclaration,
        "class name must be equal to file name: expected " + classPart + ", found " + className);
 
     createOutputDirs(outFile);

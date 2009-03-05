@@ -137,7 +137,7 @@ static int[] terminalsAllowedBeforeRegexpLiteral = {
     String fileName = getFileName();
     int lastSlashPos = Math.max(fileName.lastIndexOf('\\'), fileName.lastIndexOf('/'));
     String dir = lastSlashPos>=0 ? fileName.substring(0,lastSlashPos+1) : "";
-    return dir+includeString.substring("include \"".length(), includeString.length()-2);
+    return dir+includeString.substring("include \"".length(), includeString.length()-1);
   }
 
   static {
@@ -172,6 +172,7 @@ static int[] terminalsAllowedBeforeRegexpLiteral = {
     defsym("interface", INTERFACE);
     defsym("internal", INTERNAL);
     defsym("is", IS);
+    defsym("namespace", NAMESPACE);
     defsym("new", NEW);
     defsym("null", NULL_LITERAL);
     defsym("override", OVERRIDE);
@@ -191,6 +192,7 @@ static int[] terminalsAllowedBeforeRegexpLiteral = {
     defsym("transient", TRANSIENT);
     defsym("try", TRY);
     defsym("typeof", TYPEOF);
+    defsym("use", USE);
     defsym("var", VAR);
     defsym("void", VOID);
     defsym("volatile", VOLATILE);
@@ -227,6 +229,7 @@ static int[] terminalsAllowedBeforeRegexpLiteral = {
     defsym("|", OR);
     defsym("^", XOR);
     defsym("%", MOD);
+    defsym("~", BITNOT);
     defsym("<<", LSHIFT);
     defsym(">>", RSHIFT);
     defsym(">>>", URSHIFT);
@@ -244,6 +247,7 @@ static int[] terminalsAllowedBeforeRegexpLiteral = {
     defsym("===", EQEQEQ);
     defsym("!==", NOTEQEQ);
     defsym("...", REST);
+    defsym("::", NAMESPACESEP);
   }
 %}
 
@@ -277,7 +281,7 @@ NonTerminator = [^\n]
 
 HexDigit          = [0-9abcdefABCDEF]
 
-Include           = "include \"" ~"\";"
+Include           = "include \"" ~"\""
 
 %state STRING_SQ, STRING_DQ, REGEXPFIRST, REGEXP
 
@@ -320,6 +324,7 @@ Include           = "include \"" ~"\";"
   "interface"                     { return symbol(INTERFACE); }
   "internal"                      { return symbol(INTERNAL); }
   "is"                            { return symbol(IS); }
+  "namespace"                     { return symbol(NAMESPACE); }
   "new"                           { return symbol(NEW); }
   "null"                          { return symbol(NULL_LITERAL, null); }
   "override"                      { return symbol(OVERRIDE); }
@@ -339,6 +344,7 @@ Include           = "include \"" ~"\";"
   "transient"                     { return symbol(TRANSIENT); }
   "try"                           { return symbol(TRY); }
   "typeof"                        { return symbol(TYPEOF); }
+  "use"                           { return symbol(USE); }
   "var"                           { return symbol(VAR); }
   "void"                          { return symbol(VOID); }
   "volatile"                      { return symbol(VOLATILE); }
@@ -380,6 +386,7 @@ Include           = "include \"" ~"\";"
   "|"                             { return symbol(OR); }
   "^"                             { return symbol(XOR); }
   "%"                             { return symbol(MOD); }
+  "~"                             { return symbol(BITNOT); }
   "<<"                            { return symbol(LSHIFT); }
   ">>"                            { return symbol(RSHIFT); }
   ">>>"                           { return symbol(URSHIFT); }
@@ -396,6 +403,7 @@ Include           = "include \"" ~"\";"
   "==="                           { return symbol(EQEQEQ); }
   "!=="                           { return symbol(NOTEQEQ); }
   "..."                           { return symbol(REST); }
+  "::"                            { return symbol(NAMESPACESEP); }
 
   "/"                             { if (!maybeRegexpLiteral())
                                       return symbol(DIV);
@@ -413,7 +421,7 @@ Include           = "include \"" ~"\";"
   \'                              { multiStateText = yytext(); yybegin(STRING_SQ); string.setLength(0); }
 
   {DecIntegerLiteral}             { return symbol(INT_LITERAL, new Integer(yytext())); }
-  {HexIntegerLiteral}             { return symbol(INT_LITERAL, Integer.parseInt(yytext().substring(2),16)); }
+  {HexIntegerLiteral}             { return symbol(INT_LITERAL, Long.parseLong(yytext().substring(2),16)); }
   {DoubleLiteral}                 { return symbol(FLOAT_LITERAL, new Double(yytext())); }
 }
 

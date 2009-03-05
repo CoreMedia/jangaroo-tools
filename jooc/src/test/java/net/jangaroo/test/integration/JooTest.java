@@ -168,6 +168,9 @@ public class JooTest extends JooRuntimeTestCase {
     expectNumber(42, "var o2 = { tobedeleted: 42 }; o2.tobedeleted");
     expectString("undefined", "obj.testDelete1(o); typeof(o.tobedeleted)");
     expectString("undefined", "obj.testDelete2(o2, 'tobedeleted'); typeof(o.tobedeleted)");
+    expectString("is an Error: foo", "obj.testTryCatchFinally(new Error('foo'))");
+    expectString("is not an Error: bar", "obj.testTryCatchFinally('bar')");
+    expectBoolean(true, "obj.cleanedUp");
   }
 
   public void testExpressions() throws Exception {
@@ -199,6 +202,12 @@ public class JooTest extends JooRuntimeTestCase {
     loadClass("package1.package11.TestSubPackage");
     loadClass("package2.TestStaticInitializer");
     expectString("s2/s1"+"/"+(-19+42), "package2.TestImport.main()");
+  }
+
+  public void testInclude() throws Exception {
+    loadClass("package2.TestInclude");
+    expectString("included!", "package2.TestInclude.testIncludeSameDir()");
+    expectString("included!", "package2.TestInclude.testIncludeOtherDir()");
   }
 
   public void testSelfAwareness() throws Exception {
@@ -246,7 +255,18 @@ public class JooTest extends JooRuntimeTestCase {
     expectString("foo", "package1.TestUnqualifiedAccess.SET_BY_STATIC_INITIALIZER");
 
     expectBoolean(true, "obj.testLocalFunction()");
+
+    expectString("foo", "obj.testForwardPrivateUnqualified('foo')");
+
     // TODO: test "unqualified access to super members"!
+  }
+
+  public void testTypeCast() throws Exception {
+    loadClass("package2.TestImport");
+    loadClass("package1.TestTypeCast");
+    eval("obj = new package1.TestTypeCast()");
+    expectBoolean(true, "package1.TestTypeCast.testAsCast(obj)===obj");
+    expectBoolean(true, "package1.TestTypeCast.testFunctionCast(obj)===obj");
   }
 
   public void testNoSuper() throws Exception {

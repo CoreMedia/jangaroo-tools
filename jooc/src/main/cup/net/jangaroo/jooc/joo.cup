@@ -16,7 +16,7 @@
 /*
  * JangarooScript LALR(1) Grammar for the CUP parser generator
  *
- * Author: Andreas Gawecki
+ * Authors: Andreas Gawecki, Frank Wienberg
  */
 
 package net.jangaroo.jooc;
@@ -79,12 +79,13 @@ terminal JooSymbol EACH, ELSE, ENUM, EXTENDS;
 terminal JooSymbol FINAL, FINALLY, FOR, FUNCTION;
 terminal JooSymbol GET, GOTO;
 terminal JooSymbol IF, IMPLEMENTS, IMPORT, IN, INSTANCEOF, INTERFACE, INTERNAL, IS;
-terminal JooSymbol NEW;
+terminal JooSymbol NAMESPACE, NEW;
 terminal JooSymbol OVERRIDE;
 terminal JooSymbol PACKAGE, PRIVATE, PROTECTED, PUBLIC;
 terminal JooSymbol REST, RETURN;
 terminal JooSymbol SET, STATIC, SUPER, SWITCH, SYNCHRONIZED;
 terminal JooSymbol THIS, THROW, THROWS, TRANSIENT, TRY, TYPEOF;
+terminal JooSymbol USE;
 terminal JooSymbol VAR, VOID, VOLATILE;
 terminal JooSymbol WHILE, WITH;
 
@@ -92,9 +93,10 @@ terminal JooSymbol PLUSPLUS, MINUSMINUS, PLUS, MINUS, NOT, DIV, MOD, MUL;
 terminal JooSymbol LSHIFT, RSHIFT, URSHIFT;
 terminal JooSymbol LT, GT, LTEQ, GTEQ;
 terminal JooSymbol EQ, EQEQ, EQEQEQ, NOTEQ, NOTEQEQ;
-terminal JooSymbol AND, XOR, OR, ANDAND, OROR;
+terminal JooSymbol AND, BITNOT, XOR, OR, ANDAND, OROR;
 terminal JooSymbol QUESTION, COLON, SEMICOLON, COMMA, DOT;
 terminal JooSymbol MULTEQ, DIVEQ, MODEQ, PLUSEQ, MINUSEQ;
+terminal JooSymbol NAMESPACESEP;
 terminal JooSymbol LSHIFTEQ, RSHIFTEQ, URSHIFTEQ;
 terminal JooSymbol ANDEQ, XOREQ, OREQ;
 terminal JooSymbol LPAREN, RPAREN, LBRACE, RBRACE, LBRACK, RBRACK;
@@ -124,6 +126,7 @@ nonterminal ArrayList classBodyDeclarations;
 nonterminal Declaration classBodyDeclaration;
 nonterminal ClassDeclaration classDeclaration;
 nonterminal CompilationUnit compilationUnit;
+nonterminal IdeDeclaration compilationUnitDeclaration;
 nonterminal JooSymbol constOrVar;
 nonterminal Expr expr;
 nonterminal Expr exprOrObjectLiteral;
@@ -137,7 +140,7 @@ nonterminal Node directive;
 nonterminal Directives directives;
 nonterminal Expr lvalue;
 nonterminal MethodDeclaration methodDeclaration;
-nonterminal Declaration memberDeclaration;
+nonterminal IdeDeclaration memberDeclaration;
 nonterminal JooSymbol modifier;
 nonterminal ArrayList modifiers;
 nonterminal Arguments nonEmptyArguments;
@@ -163,6 +166,7 @@ nonterminal Parameter parameter;
 nonterminal Parameters parameters;
 nonterminal ParenthesizedExpr parenthesizedExpr;
 nonterminal Ide qualifiedIde;
+nonterminal Ide namespacedIde;
 nonterminal Statement statement;
 nonterminal Statement labelableStatement;
 nonterminal ArrayList statements;
@@ -174,23 +178,43 @@ nonterminal Type type;
 nonterminal TypeList typeList;
 nonterminal VariableDeclaration variableDeclaration;
 
+// TODO: check precedences with spec; they are from reference http://hell.org.ua/Docs/oreilly/web2/action/ch05_01.htm
+/* 1 */
+precedence left COMMA;
+/* 2 */
 precedence right EQ, MULTEQ, DIVEQ, MODEQ, PLUSEQ, MINUSEQ, LSHIFTEQ, RSHIFTEQ, URSHIFTEQ, ANDEQ, XOREQ, OREQ;
+/* 3 */
 precedence right QUESTION, COLON;
-precedence left  AS; // TODO: where do they belong?
+/* 4 */
 precedence left  OROR;
+/* 5 */
 precedence left  ANDAND;
+/* 6 */
 precedence left  OR;
+/* 7 */
 precedence left  XOR;
+/* 8 */
 precedence left  AND;
+/* 9 */
 precedence left  EQEQ, NOTEQ, EQEQEQ, NOTEQEQ;
-precedence left LT, GT, LTEQ, GTEQ, INSTANCEOF, IS, TYPEOF, NOT, IN;
+/* 10 */
+precedence left LT, LTEQ, GT, GTEQ;
+precedence left INSTANCEOF, IS, IN;
+precedence left AS;
+/* 11 */
 precedence left LSHIFT, RSHIFT, URSHIFT;
+/* 12 */
 precedence left PLUS, MINUS;
+/* 13 */
 precedence left MUL, DIV, MOD;
-precedence left PREFIX_PLUSPLUS, PREFIX_MINUSMINUS, PREFIX_PLUS, PREFIX_MINUS;
-precedence nonassoc PLUSPLUS, MINUSMINUS; /* postfix */
-
-precedence left DOT, LPAREN, LBRACK;
+/* 14 */
+precedence right PREFIX_PLUSPLUS, PREFIX_MINUSMINUS, PREFIX_PLUS, PREFIX_MINUS,
+                 BITNOT, NOT, NEW, DELETE, TYPEOF, VOID;
+/* 15 */
+precedence left DOT, LPAREN, LBRACK, LBRACE;
+/* 16 */
+precedence left PLUSPLUS, MINUSMINUS; /* postfix */
+precedence right NAMESPACESEP;
 
 start with compilationUnit;
 
@@ -257,8 +281,17 @@ commaExpr ::=
   ;
 
 compilationUnit ::=
-    packageDeclaration:p LBRACE:lb directives:ds classDeclaration:c RBRACE:rb
+    packageDeclaration:p LBRACE:lb directives:ds compilationUnitDeclaration:c RBRACE:rb
     {: RESULT = new CompilationUnit(p,lb,ds,c,rb); :}
+  ;
+
+compilationUnitDeclaration ::=
+    classDeclaration:cd
+    {: RESULT = cd; :}
+  | modifiers:m NAMESPACE:n ide:ide EQ:eq STRING_LITERAL:l SEMICOLON:s
+    {: RESULT = new FieldDeclaration((JooSymbol[])m.toArray(new JooSymbol[0]), n, ide, null, new Initializer(eq, new LiteralExpr(l)), s); :}
+  | memberDeclaration:md
+    {: RESULT = md; :}
   ;
 
 constOrVar ::=
@@ -269,14 +302,18 @@ constOrVar ::=
   ;
 
 directive ::=
-    IMPORT:i qualifiedIde:ide SEMICOLON:s
-    {: RESULT = new ImportDirective(i,new IdeType(ide), s); :}
-  | IMPORT:i qualifiedIde:ide DOT:dot MUL:all SEMICOLON:s
-    {: RESULT = new ImportDirective(i,new IdeType(new QualifiedIde(ide,dot,all)), s); :}
+    IMPORT:i qualifiedIde:ide
+    {: RESULT = new ImportDirective(i,new IdeType(ide)); :}
+  | IMPORT:i qualifiedIde:ide DOT:dot MUL:all
+    {: RESULT = new ImportDirective(i,new IdeType(new QualifiedIde(ide,dot,all))); :}
   | LBRACK:lb ide:ide RBRACK:rb
     {: RESULT = new Annotation(lb, ide, rb); :}
   | LBRACK:lb ide:ide LPAREN:lb2 annotationFields:af RPAREN:rb2 RBRACK:rb
-    {: RESULT = new Annotation(lb, ide, af, rb); :}
+    {: RESULT = new Annotation(lb, ide, lb2, af, rb2, rb); :}
+  | USE:u NAMESPACE:n qualifiedIde:namespace
+    {: RESULT = new UseNamespaceDirective(u, n, namespace); :}
+  | SEMICOLON:s
+    {: RESULT = new EmptyDeclaration(s); :}
   ;
 
 nonEmptyAnnotationFields ::=
@@ -330,6 +367,8 @@ expr ::=
     {: RESULT = e; :}
   | NEW:n type:t LPAREN:lp arguments:args RPAREN:rp
     {: RESULT = new NewExpr(n,t,lp,args,rp); :}
+  | NEW:n type:t
+    {: RESULT = new NewExpr(n,t); :}
   | PLUSPLUS:op expr:e
     {: RESULT = new PrefixOpExpr(op,e); :} %prec PREFIX_PLUSPLUS
   | MINUSMINUS:op expr:e
@@ -340,7 +379,11 @@ expr ::=
     {: RESULT = new PrefixOpExpr(op,e); :} %prec PREFIX_MINUS
   | NOT:op expr:e
     {: RESULT = new PrefixOpExpr(op,e); :}
+  | BITNOT:op expr:e
+    {: RESULT = new PrefixOpExpr(op,e); :}
   | TYPEOF:op expr:e
+    {: RESULT = new PrefixOpExpr(op,e); :}
+  | DELETE:op expr:e
     {: RESULT = new PrefixOpExpr(op,e); :}
   | expr:expr LPAREN:lp arguments:args RPAREN:rp
     {: RESULT = new ApplyExpr(expr,lp,args,rp); :}
@@ -422,7 +465,7 @@ expr ::=
     {: RESULT = new AssignmentOpExpr(lv,op,e); :}
   | lvalue:lv OREQ:op expr:e
     {: RESULT = new AssignmentOpExpr(lv,op,e); :}
-  | expr:cond QUESTION:q expr:e1 COLON:c expr:e2
+  | expr:cond QUESTION:q exprOrObjectLiteral:e1 COLON:c exprOrObjectLiteral:e2
     {: RESULT = new ConditionalExpr(cond,q,e1,c,e2); :}
   ;
 
@@ -471,11 +514,11 @@ implements ::=
   ;
 
 lvalue ::=
-    ide:ide
+    namespacedIde:ide
     {: RESULT = new TopLevelIdeExpr(ide); :}
-  | expr:e DOT:d ide:ide
+  | expr:e DOT:d namespacedIde:ide
     {: RESULT = new DotExpr(e,d,ide); :}
-  | SUPER:s DOT:d ide:ide
+  | SUPER:s DOT:d namespacedIde:ide
     {: RESULT = new DotExpr(new SuperExpr(s),d,ide); :}
   | expr:expr LBRACK:lb arguments:args RBRACK:rb
     {: RESULT = new ArrayIndexExpr(expr,lb,args,rb); :}
@@ -514,6 +557,9 @@ modifier ::=
     {: RESULT = s; :}
   | OVERRIDE:s
     {: RESULT = s; :}
+  /* maybe a namespace: */
+  | ide:ide
+    {: RESULT = ide.ide; :}
   ;
 
 modifiers ::=
@@ -549,6 +595,8 @@ objectField ::=
     ide:name COLON:c exprOrObjectLiteral:value
     {: RESULT = new ObjectField(new IdeExpr(name),c,value); :}
   | STRING_LITERAL:l COLON:c exprOrObjectLiteral:value
+    {: RESULT = new ObjectField(new LiteralExpr(l),c,value); :}
+  | INT_LITERAL:l COLON:c exprOrObjectLiteral:value
     {: RESULT = new ObjectField(new LiteralExpr(l),c,value); :}
   ;
 
@@ -646,6 +694,13 @@ qualifiedIde ::=
     {: RESULT = new QualifiedIde(prefix, d, ide); :}
   ;
 
+namespacedIde ::=
+    ide:ide
+    {: RESULT = ide; :}
+  | modifier:namespace NAMESPACESEP:sep IDE:ide
+    {: RESULT = new NamespacedIde(namespace, sep, ide); :}
+  ;
+
 labelableStatement ::=
     IF:i parenthesizedExpr:cond statement:ts ELSE:e statement:es
     {: RESULT = new IfStatement(i,cond,ts,e,es); :}
@@ -694,8 +749,6 @@ statement ::=
     {: RESULT = new ContinueStatement(c,ide,s); :}
   | RETURN:r optExprOrObjectLiteral:e SEMICOLON:s
     {: RESULT = new ReturnStatement(r,e,s); :}
-  | DELETE:d lvalue:e SEMICOLON:s
-    {: RESULT = new DeleteStatement(d,e,s); :}
   | ASSERT:a LPAREN:lp exprOrObjectLiteral:e RPAREN:rp SEMICOLON:s
     {: RESULT = new AssertStatement(a,lp,e,rp,s); :}
   | THROW:t commaExpr:e SEMICOLON:s

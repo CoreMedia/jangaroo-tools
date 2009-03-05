@@ -20,10 +20,10 @@ import java.io.IOException;
 /**
  * @author Andreas Gawecki
  */
-interface Node {
+interface Node extends CodeGenerator {
 
   JooSymbol getSymbol();
-  void generateCode(JsWriter out) throws IOException;
+
   Node analyze(Node parentNode, AnalyzeContext context);
 
 }

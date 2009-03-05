@@ -24,6 +24,7 @@ import java.io.IOException;
 
 /**
  * @author Andreas Gawecki
+ * @author Frank Wienberg
  */
 public class CompilationUnit extends NodeImplBase implements CodeGenerator {
 
@@ -31,14 +32,10 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
     return packageDeclaration;
   }
 
-  public ClassDeclaration getClassDeclaration() {
-    return classDeclaration;
-  }
-
   PackageDeclaration packageDeclaration;
   JooSymbol lBrace;
   Directives directives;
-  ClassDeclaration classDeclaration;
+  IdeDeclaration primaryDeclaration;
   JooSymbol rBrace;
 
 
@@ -46,11 +43,11 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
 
   protected JsWriter out;
 
-  public CompilationUnit(PackageDeclaration packageDeclaration, JooSymbol lBrace, Directives directives, ClassDeclaration classDeclaration, JooSymbol rBrace) {
+  public CompilationUnit(PackageDeclaration packageDeclaration, JooSymbol lBrace, Directives directives, IdeDeclaration primaryDeclaration, JooSymbol rBrace) {
     this.packageDeclaration = packageDeclaration;
     this.lBrace = lBrace;
     this.directives = directives;
-    this.classDeclaration = classDeclaration;
+    this.primaryDeclaration = primaryDeclaration;
     this.rBrace = rBrace;
   }
 
@@ -65,7 +62,7 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
   public void writeOutput(CompilationUnitSinkFactory writerFactory,
                           boolean verbose) throws Jooc.CompilerError {
     CompilationUnitSink sink = writerFactory.createSink(
-      packageDeclaration, classDeclaration,
+      packageDeclaration, primaryDeclaration,
       sourceFile, verbose);
 
     sink.writeOutput(this);
@@ -78,7 +75,7 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
      if (directives!=null) {
        directives.generateCode(out);
      }
-     classDeclaration.generateCode(out);
+     primaryDeclaration.generateCode(out);
      out.writeSymbolWhitespace(rBrace);
      out.write(");");
   }
@@ -117,7 +114,7 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
     if (directives!=null) {
       directives.analyze(this, context);
     }
-    classDeclaration.analyze(this, context);
+    primaryDeclaration.analyze(this, context);
     context.leaveScope(packageDeclaration);
     context.leaveScope(globalObject);
     return this;

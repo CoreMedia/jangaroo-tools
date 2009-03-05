@@ -2,7 +2,7 @@ package net.jangaroo.jooc.backend;
 
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.PackageDeclaration;
-import net.jangaroo.jooc.ClassDeclaration;
+import net.jangaroo.jooc.IdeDeclaration;
 
 import java.io.File;
 
@@ -50,6 +50,6 @@ public abstract class AbstractCompilationUnitSinkFactory implements CompilationU
   }
 
   public abstract CompilationUnitSink createSink(PackageDeclaration packageDeclaration,
-                               ClassDeclaration classDeclaration, File sourceFile,
+                               IdeDeclaration primaryDeclaration, File sourceFile,
                                boolean verbose);
 }

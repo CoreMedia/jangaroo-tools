@@ -16,6 +16,7 @@
 package net.jangaroo.jooc;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * @author Andreas Gawecki
@@ -26,22 +27,78 @@ class Catch extends KeywordStatement {
   Parameter param;
   JooSymbol rParen;
   BlockStatement block;
+  private boolean first;
 
   public Catch(JooSymbol symCatch, JooSymbol lParen, Parameter param, JooSymbol rParen, BlockStatement block) {
     super(symCatch);
     this.lParen = lParen;
     this.param = param;
+    // It is "worst practice" to redeclare catch variables in AS3:
+    param.allowDuplicates = true;
     this.rParen = rParen;
     this.block = block;
   }
 
   public void generateCode(JsWriter out) throws IOException {
-     super.generateCode(out);
-     out.writeSymbol(lParen);
-     param.generateCode(out);
-     out.writeSymbol(rParen);
-     block.generateCode(out);
-   }
+    List<Catch> catches = ((TryStatement)parentNode).catches;
+    Catch firstCatch = catches.get(0);
+    boolean isFirst = equals(firstCatch);
+    boolean isLast = equals(catches.get(catches.size()-1));
+    TypeRelation typeRelation = param.getOptTypeRelation();
+    boolean hasCondition = typeRelation != null && typeRelation.getType().getSymbol().sym!=sym.MUL;
+    if (!hasCondition && !isLast) {
+      Jooc.error(rParen, "Only last catch clause may be untyped.");
+    }
+    final JooSymbol errorVar = firstCatch.param.getIde().ide;
+    final JooSymbol localErrorVar = param.getIde().ide;
+    // in the following, always take care to write whitespace only once!
+    out.writeSymbolWhitespace(symKeyword);
+    if (isFirst) {
+      out.writeSymbolToken(symKeyword); // "catch"
+      // "(localErrorVar)":
+      out.writeSymbol(lParen, !hasCondition);
+      out.writeSymbol(errorVar, !hasCondition);
+      if (!hasCondition && typeRelation!=null) {
+        // can only be ": *", add as comment:
+        typeRelation.generateCode(out);
+      }
+      out.writeSymbol(rParen, !hasCondition);
+      if (hasCondition || !isLast) {
+        // a catch block always needs a brace, so generate one for conditions:
+        out.writeToken("{");
+      }
+    } else {
+      // transform catch(ide:Type){...} into else if is(e,Type)){var ide=e;...}
+      out.writeToken("else");
+    }
+    if (hasCondition) {
+      out.writeToken("if(is");
+      out.writeSymbol(lParen);
+      out.writeSymbolWhitespace(localErrorVar);
+      out.writeSymbolToken(errorVar);
+      out.writeSymbolWhitespace(typeRelation.symRelation);
+      out.writeToken(",");
+      typeRelation.getType().generateCode(out);
+      out.writeSymbol(rParen);
+      out.writeToken(")");
+    }
+    if (!localErrorVar.getText().equals(errorVar.getText())) {
+      block.addBlockStartCodeGenerator(new CodeGenerator() {
+        public void generateCode(JsWriter out) throws IOException {
+          out.writeToken("var");
+          out.writeSymbolToken(localErrorVar);
+          out.writeToken("=");
+          out.writeSymbolToken(errorVar);
+          out.writeToken(";");
+        }
+      });
+    }
+    block.generateCode(out);
+    if (isLast && !(isFirst && !hasCondition)) {
+      // last catch clause causes the JS catch block:
+      out.writeToken("}");
+    }
+  }
 
   public Node analyze(Node parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
@@ -50,4 +107,7 @@ class Catch extends KeywordStatement {
     return this;
   }
 
+  public void setFirst(boolean first) {
+    this.first = first;
+  }
 }

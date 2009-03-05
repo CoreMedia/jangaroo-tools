@@ -24,12 +24,10 @@ public class ImportDirective extends NodeImplBase {
 
   JooSymbol importKeyword;
   Type type;
-  JooSymbol semicolon;
 
-  public ImportDirective(JooSymbol importKeyword, Type type, JooSymbol semicolon) {
+  public ImportDirective(JooSymbol importKeyword, Type type) {
     this.importKeyword = importKeyword;
     this.type = type;
-    this.semicolon = semicolon;
   }
 
   @Override
@@ -56,7 +54,6 @@ public class ImportDirective extends NodeImplBase {
     out.writeSymbol(importKeyword);
     type.generateCode(out);
     out.endString();
-    out.writeSymbolWhitespace(semicolon);
     out.writeToken(",");
   }
 

@@ -28,7 +28,14 @@ class IdeExpr extends Expr {
     this.ide = ide;
   }
 
-   public void generateCode(JsWriter out) throws IOException {
+  @Override
+  public Expr analyze(Node parentNode, AnalyzeContext context) {
+    super.analyze(parentNode, context);
+    ide.analyze(this, context);
+    return this;
+  }
+
+  public void generateCode(JsWriter out) throws IOException {
     ide.generateCode(out);
   }
 

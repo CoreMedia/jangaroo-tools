@@ -279,7 +279,12 @@ public class JsWriter extends FilterWriter {
   }
 
   public void writeSymbol(JooSymbol symbol) throws IOException {
-    writeSymbolWhitespace(symbol);
+    writeSymbol(symbol, true);
+  }
+
+  public void writeSymbol(JooSymbol symbol, boolean withWhitespace) throws IOException {
+    if (withWhitespace)
+      writeSymbolWhitespace(symbol);
     writeSymbolToken(symbol);
   }
 
@@ -372,7 +377,7 @@ public class JsWriter extends FilterWriter {
   }
 
   public String getFunctionNameAsIde(FunctionExpr functionExpr) {
-    ClassDeclaration classDeclaration = functionExpr.getClassDeclaration();
+    IdeDeclaration classDeclaration = functionExpr.getParentDeclaration();
     String classNameAsIde = getQualifiedNameAsIde(classDeclaration);
     JooSymbol sym = functionExpr.getSymbol();
     return classNameAsIde + "$" + sym.getLine() + "_" + sym.getColumn();
