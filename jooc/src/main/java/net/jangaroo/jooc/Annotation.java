@@ -33,7 +33,9 @@ public class Annotation extends NodeImplBase {
   public Annotation(JooSymbol leftBracket, Ide ide, JooSymbol leftBrace, CommaSeparatedList<ObjectField> annotationFields, JooSymbol rightBrace, JooSymbol rightBracket) {
     this.leftBracket = leftBracket;
     this.ide = ide;
-    this.annotationFields = new ParenthesizedExpr<CommaSeparatedList<ObjectField>>(leftBrace, annotationFields, rightBrace);
+    if (leftBrace!=null && annotationFields!=null && rightBrace!=null) {
+      this.annotationFields = new ParenthesizedExpr<CommaSeparatedList<ObjectField>>(leftBrace, annotationFields, rightBrace);
+    }
     this.rightBracket = rightBracket;
   }
 
