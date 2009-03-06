@@ -19,14 +19,21 @@ import java.io.IOException;
 
 /**
  * @author Andreas Gawecki
+ * @author Frank Wienberg
  */
 public class FieldDeclaration extends AbstractVariableDeclaration {
 
   public FieldDeclaration(JooSymbol[] modifiers, JooSymbol symConstOrVar, Ide ide,
-      TypeRelation optTypeRelation, Initializer optInitializer, JooSymbol symSemicolon) {
+      TypeRelation optTypeRelation, Initializer optInitializer, JooSymbol optSymSemicolon) {
+    this(modifiers, symConstOrVar, ide, optTypeRelation, optInitializer, null, optSymSemicolon);
+  }
+
+  public FieldDeclaration(JooSymbol[] modifiers, JooSymbol symConstOrVar, Ide ide,
+                          TypeRelation optTypeRelation, Initializer optInitializer, FieldDeclaration optNextFieldDeclaration, JooSymbol optSymSemicolon
+  ) {
     super(modifiers,
             MODIFIERS_SCOPE|MODIFIER_STATIC,
-            symConstOrVar, ide, optTypeRelation, optInitializer, symSemicolon);
+            symConstOrVar, ide, optTypeRelation, optInitializer, optNextFieldDeclaration, optSymSemicolon);
   }
 
   @Override
@@ -34,15 +41,18 @@ public class FieldDeclaration extends AbstractVariableDeclaration {
     return true;
   }
 
-  public void generateCode(JsWriter out) throws IOException {
+  @Override
+  protected void generateStartCode(JsWriter out) throws IOException {
     out.beginString();
     writeModifiers(out);
-    out.writeSymbol(optSymConstOrVar);
+    if (optSymConstOrVar!=null)
+      out.writeSymbol(optSymConstOrVar);
     out.endString();
     out.write(",{");
-    generateIdeCode(out);
-    if (optTypeRelation != null)
-      optTypeRelation.generateCode(out);
+  }
+
+  @Override
+  protected void generateInitializerCode(JsWriter out) throws IOException {
     if (optInitializer != null) {
       out.writeSymbolWhitespace(optInitializer.symEq);
       out.write(':');
@@ -57,16 +67,15 @@ public class FieldDeclaration extends AbstractVariableDeclaration {
     } else {
       out.write(": undefined");
     }
-    out.write('}');
-    Debug.assertTrue(optSymSemicolon != null, "optSymSemicolon != null");
-    out.write(",");
   }
 
-  public void generateIdeCode(JsWriter out) throws IOException {
-    out.writeSymbolWhitespace(ide.ide);
-    out.writeSymbolToken(ide.ide);
+  @Override
+  protected void generateEndCode(JsWriter out) throws IOException {
+    if (!hasPreviousVariableDeclaration()) {
+      out.write('}');
+      Debug.assertTrue(optSymSemicolon != null, "optSymSemicolon != null");
+      out.writeSymbolWhitespace(optSymSemicolon);
+      out.writeToken(",");
+    }
   }
-
-
-
 }

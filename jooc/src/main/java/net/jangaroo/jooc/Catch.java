@@ -27,7 +27,6 @@ class Catch extends KeywordStatement {
   Parameter param;
   JooSymbol rParen;
   BlockStatement block;
-  private boolean first;
 
   public Catch(JooSymbol symCatch, JooSymbol lParen, Parameter param, JooSymbol rParen, BlockStatement block) {
     super(symCatch);
@@ -44,7 +43,7 @@ class Catch extends KeywordStatement {
     Catch firstCatch = catches.get(0);
     boolean isFirst = equals(firstCatch);
     boolean isLast = equals(catches.get(catches.size()-1));
-    TypeRelation typeRelation = param.getOptTypeRelation();
+    TypeRelation typeRelation = param.optTypeRelation;
     boolean hasCondition = typeRelation != null && typeRelation.getType().getSymbol().sym!=sym.MUL;
     if (!hasCondition && !isLast) {
       Jooc.error(rParen, "Only last catch clause may be untyped.");
@@ -107,7 +106,4 @@ class Catch extends KeywordStatement {
     return this;
   }
 
-  public void setFirst(boolean first) {
-    this.first = first;
-  }
 }

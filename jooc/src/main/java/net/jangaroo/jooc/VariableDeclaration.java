@@ -19,24 +19,35 @@ import java.io.IOException;
 
 /**
  * @author Andreas Gawecki
+ * @author Frank Wienberg
  */
 class VariableDeclaration extends AbstractVariableDeclaration {
 
   public VariableDeclaration(JooSymbol symConstOrVar, Ide ide,
       TypeRelation optTypeRelation, Initializer optInitializer) {
-    super(new JooSymbol[]{}, 0, symConstOrVar, ide, optTypeRelation, optInitializer, null);
+    this(symConstOrVar, ide, optTypeRelation, optInitializer, null);
   }
 
-  public void generateIdeCode(JsWriter out) throws IOException {
+  public VariableDeclaration(JooSymbol symConstOrVar, Ide ide,
+      TypeRelation optTypeRelation, Initializer optInitializer, VariableDeclaration optNextVariableDeclaration) {
+    super(new JooSymbol[]{}, 0, symConstOrVar, ide, optTypeRelation, optInitializer, optNextVariableDeclaration, null);
+    // It is "worst practice" to redeclare local variables in AS3:
+    allowDuplicates = true;
+  }
+
+  protected void generateStartCode(JsWriter out) throws IOException {
+    out.beginComment();
+    writeModifiers(out);
+    out.endComment();
     if (optSymConstOrVar != null) {
       if (isConst()) {
         out.beginCommentWriteSymbol(optSymConstOrVar);
         out.endComment();
-        out.write("var");
-      } else
+        out.writeToken("var");
+      } else {
         out.writeSymbol(optSymConstOrVar);
+      }
     }
-    ide.generateCode(out);
   }
 
 }

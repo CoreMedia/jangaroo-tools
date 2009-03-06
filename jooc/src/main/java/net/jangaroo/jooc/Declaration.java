@@ -90,27 +90,27 @@ abstract class Declaration extends NodeImplBase {
   }
 
   public boolean isPublic() {
-    return (modifiers & MODIFIER_PUBLIC) != 0;
+    return (getModifiers() & MODIFIER_PUBLIC) != 0;
   }
 
   public boolean isProtected() {
-    return (modifiers & MODIFIER_PROTECTED) != 0;
+    return (getModifiers() & MODIFIER_PROTECTED) != 0;
   }
 
   public boolean isPrivate() {
-    return (modifiers & MODIFIER_PRIVATE) != 0;
+    return (getModifiers() & MODIFIER_PRIVATE) != 0;
   }
 
   public boolean isStatic() {
-    return (modifiers & MODIFIER_STATIC) != 0;
+    return (getModifiers() & MODIFIER_STATIC) != 0;
   }
 
   public boolean isAbstract() {
-    return (modifiers & MODIFIER_ABSTRACT) != 0;
+    return (getModifiers() & MODIFIER_ABSTRACT) != 0;
   }
 
   public boolean isFinal() {
-    return (modifiers & MODIFIER_FINAL) != 0;
+    return (getModifiers() & MODIFIER_FINAL) != 0;
   }
 
   public ClassDeclaration getClassDeclaration() {
@@ -118,8 +118,7 @@ abstract class Declaration extends NodeImplBase {
   }
 
   protected void writeModifiers(JsWriter out) throws IOException {
-    for (int i = 0; i < symModifiers.length; i++) {
-      JooSymbol modifier = symModifiers[i];
+    for (JooSymbol modifier : symModifiers) {
       out.writeSymbol(modifier);
     }
   }

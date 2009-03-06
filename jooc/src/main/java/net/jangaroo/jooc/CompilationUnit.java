@@ -21,6 +21,7 @@ import net.jangaroo.jooc.backend.CompilationUnitSinkFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 /**
  * @author Andreas Gawecki
@@ -34,7 +35,7 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
 
   PackageDeclaration packageDeclaration;
   JooSymbol lBrace;
-  Directives directives;
+  List<Node> directives;
   IdeDeclaration primaryDeclaration;
   JooSymbol rBrace;
 
@@ -43,7 +44,7 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
 
   protected JsWriter out;
 
-  public CompilationUnit(PackageDeclaration packageDeclaration, JooSymbol lBrace, Directives directives, IdeDeclaration primaryDeclaration, JooSymbol rBrace) {
+  public CompilationUnit(PackageDeclaration packageDeclaration, JooSymbol lBrace, List<Node> directives, IdeDeclaration primaryDeclaration, JooSymbol rBrace) {
     this.packageDeclaration = packageDeclaration;
     this.lBrace = lBrace;
     this.directives = directives;
@@ -73,7 +74,7 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
      packageDeclaration.generateCode(out);
      out.writeSymbolWhitespace(lBrace);
      if (directives!=null) {
-       directives.generateCode(out);
+       generateCode(directives, out);
      }
      primaryDeclaration.generateCode(out);
      out.writeSymbolWhitespace(rBrace);
@@ -112,7 +113,7 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
     context.enterScope(packageDeclaration);
     packageDeclaration.analyze(this, context);
     if (directives!=null) {
-      directives.analyze(this, context);
+      analyze(this, directives, context);
     }
     primaryDeclaration.analyze(this, context);
     context.leaveScope(packageDeclaration);

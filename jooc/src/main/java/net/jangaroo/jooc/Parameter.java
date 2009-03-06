@@ -21,21 +21,40 @@ import java.io.IOException;
  * @author Andreas Gawecki
  * @author Frank Wienberg
  */
-public class Parameter extends AbstractVariableDeclaration {
+public class Parameter extends IdeDeclaration {
 
-  public Parameter(JooSymbol optSymConst, Ide ide, TypeRelation typeRelation, Initializer optInitializer) {
-    super(new JooSymbol[0], 0, optSymConst, ide, typeRelation, optInitializer, null);
+  JooSymbol optSymConstOrRest;
+  TypeRelation optTypeRelation;
+  Initializer optInitializer;
+
+  public Parameter(JooSymbol optSymConst, Ide ide, TypeRelation optTypeRelation, Initializer optInitializer) {
+    super(new JooSymbol[0], 0, ide);
+    this.optSymConstOrRest = optSymConst;
+    this.optTypeRelation = optTypeRelation;
+    this.optInitializer = optInitializer;
+  }
+
+  @Override
+  public Node analyze(Node parentNode, AnalyzeContext context) {
+    super.analyze(parentNode, context);
+    if (optTypeRelation!=null) {
+      optTypeRelation.analyze(this, context);
+    }
+    if (optInitializer!=null) {
+      optInitializer.analyze(this, context);
+    }
+    return this;
   }
 
   public boolean isRest() {
-    return optSymConstOrVar!=null && optSymConstOrVar.sym==sym.REST;
+    return optSymConstOrRest !=null && optSymConstOrRest.sym==sym.REST;
   }
 
-  public void generateIdeCode(JsWriter out) throws IOException {
+  public void generateCode(JsWriter out) throws IOException {
     Debug.assertTrue(getModifiers() == 0, "Parameters must not have any modifiers");
     boolean isRest = isRest();
-    if (optSymConstOrVar != null) {
-      out.beginCommentWriteSymbol(optSymConstOrVar);
+    if (optSymConstOrRest != null) {
+      out.beginCommentWriteSymbol(optSymConstOrRest);
       if (isRest) {
         ide.generateCode(out);
       }
@@ -44,13 +63,10 @@ public class Parameter extends AbstractVariableDeclaration {
     if (!isRest) {
       ide.generateCode(out);
     }
-  }
-
-  @Override
-  protected void generateInitializerCode(JsWriter out) throws IOException {
-    // in the method signature, as comment only:
+    // in the method signature, comment out initializer code.
     out.beginComment();
-    super.generateInitializerCode(out);
+    if (optTypeRelation!=null)
+      optTypeRelation.generateCode(out);
     out.endComment();
   }
 

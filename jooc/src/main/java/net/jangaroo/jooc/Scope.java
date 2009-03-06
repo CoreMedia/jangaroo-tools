@@ -50,6 +50,19 @@ class Scope {
     return ides.put(name, decl);
   }
 
+  public Node declareIde(String name, Node node, boolean allowDuplicates, JooSymbol ideSymbol) {
+    Node oldNode = declareIde(name, node);
+    if (oldNode!=null) {
+      String msg = "Duplicate declaration of identifier '" + name + "'";
+      if (allowDuplicates) {
+        Jooc.warning(ideSymbol, msg);
+      } else {
+        Jooc.error(ideSymbol, msg);
+      }
+    }
+    return oldNode;
+  }
+
   public void defineLabel(LabeledStatement labeledStatement) {
     LabeledStatement s = lookupLabel(labeledStatement.ide);
     if (s != null)

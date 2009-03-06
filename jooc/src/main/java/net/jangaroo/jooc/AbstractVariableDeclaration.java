@@ -19,42 +19,84 @@ import java.io.IOException;
 
 /**
  * @author Andreas Gawecki
+ * @author Frank Wienberg
  */
 abstract class AbstractVariableDeclaration extends MemberDeclaration {
 
   JooSymbol optSymConstOrVar;
   Initializer optInitializer;
+  AbstractVariableDeclaration optNextVariableDeclaration;
   JooSymbol optSymSemicolon;
 
   protected AbstractVariableDeclaration(JooSymbol[] modifiers, int allowedModifiers, JooSymbol optSymConstOrVar, Ide ide,
       TypeRelation optTypeRelation, Initializer optInitializer, JooSymbol optSymSemicolon) {
+    this(modifiers, allowedModifiers, optSymConstOrVar, ide, optTypeRelation, optInitializer, null, optSymSemicolon);
+  }
+
+  protected AbstractVariableDeclaration(JooSymbol[] modifiers, int allowedModifiers, JooSymbol optSymConstOrVar, Ide ide,
+                                        TypeRelation optTypeRelation, Initializer optInitializer, AbstractVariableDeclaration optNextVariableDeclaration, JooSymbol optSymSemicolon
+  ) {
     super(modifiers, allowedModifiers, ide, optTypeRelation);
     this.optSymConstOrVar = optSymConstOrVar;
     this.optInitializer = optInitializer;
+    this.optNextVariableDeclaration = optNextVariableDeclaration;
     this.optSymSemicolon = optSymSemicolon;
   }
 
   public void generateCode(JsWriter out) throws IOException {
-    out.beginComment();
-    writeModifiers(out);
-    out.endComment();
-    generateIdeCode(out);
+    if (hasPreviousVariableDeclaration()) {
+      Debug.assertTrue(optSymConstOrVar!=null && optSymConstOrVar.sym==sym.COMMA, "Additional variable declarations must start with a COMMA.");
+      out.writeSymbol(optSymConstOrVar);
+    } else {
+      generateStartCode(out);
+    }
+    ide.generateCode(out);
     if (optTypeRelation != null)
       optTypeRelation.generateCode(out);
     generateInitializerCode(out);
-    if (optSymSemicolon != null)
-      out.writeSymbol(optSymSemicolon);
+    if (optNextVariableDeclaration != null)
+      optNextVariableDeclaration.generateCode(out);
+    generateEndCode(out);
   }
+
+  protected abstract void generateStartCode(JsWriter out) throws IOException;
 
   protected void generateInitializerCode(JsWriter out) throws IOException {
     if (optInitializer != null)
       optInitializer.generateCode(out);
   }
 
-  public abstract void generateIdeCode(JsWriter out) throws IOException;
+  protected void generateEndCode(JsWriter out) throws IOException {
+    if (optSymSemicolon != null)
+      out.writeSymbol(optSymSemicolon);
+  }
+
+  protected boolean hasPreviousVariableDeclaration() {
+    return parentNode instanceof AbstractVariableDeclaration;
+  }
+
+  protected AbstractVariableDeclaration getPreviousVariableDeclaration() {
+    return (AbstractVariableDeclaration)parentNode;
+  }
+
+  protected AbstractVariableDeclaration getFirstVariableDeclaration() {
+    AbstractVariableDeclaration firstVariableDeclaration = this;
+    while (firstVariableDeclaration.hasPreviousVariableDeclaration()) {
+      firstVariableDeclaration = firstVariableDeclaration.getPreviousVariableDeclaration();
+    }
+    return firstVariableDeclaration;
+  }
+
+  @Override
+  protected int getModifiers() {
+    return hasPreviousVariableDeclaration()
+      ? getFirstVariableDeclaration().getModifiers()
+      : super.getModifiers();
+  }
 
   public boolean isConst() {
-    return optSymConstOrVar != null && optSymConstOrVar.sym == sym.CONST;
+    AbstractVariableDeclaration firstVariableDeclaration = getFirstVariableDeclaration();
+    return firstVariableDeclaration.optSymConstOrVar != null && firstVariableDeclaration.optSymConstOrVar.sym == sym.CONST;
   }
 
   public Node analyze(Node parentNode, AnalyzeContext context) {
@@ -63,6 +105,8 @@ abstract class AbstractVariableDeclaration extends MemberDeclaration {
       Jooc.error(optSymConstOrVar, "constant must be initialized");
     if (optInitializer != null)
       optInitializer.analyze(this, context);
+    if (optNextVariableDeclaration != null)
+      optNextVariableDeclaration.analyze(this, context);
     return this;
   }
 

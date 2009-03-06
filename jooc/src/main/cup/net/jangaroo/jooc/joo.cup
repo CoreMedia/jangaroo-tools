@@ -132,7 +132,9 @@ nonterminal Expr expr;
 nonterminal Expr exprOrObjectLiteral;
 nonterminal Extends extends;
 nonterminal FieldDeclaration fieldDeclaration;
-nonterminal FunctionExpr functionExpr;
+nonterminal FieldDeclaration optNextFieldDeclaration;
+nonterminal FunctionExpr anonFunctionExpr;
+nonterminal FunctionExpr namedFunctionExpr;
 nonterminal Ide ide;
 nonterminal Implements implements;
 nonterminal Implements interfaceExtends;
@@ -177,6 +179,7 @@ nonterminal TypeRelation typeRelation;
 nonterminal Type type;
 nonterminal CommaSeparatedList typeList;
 nonterminal VariableDeclaration variableDeclaration;
+nonterminal VariableDeclaration optNextVariableDeclaration;
 
 // TODO: check precedences with spec; they are from reference http://hell.org.ua/Docs/oreilly/web2/action/ch05_01.htm
 /* 1 */
@@ -359,7 +362,7 @@ expr ::=
     {: RESULT = v; :}
   | lvalue:v
     {: RESULT = v; :}
-  | functionExpr:e
+  | anonFunctionExpr:e
     {: RESULT = e; :}
   | THIS:t
     {: RESULT = new ThisExpr(t); :}
@@ -474,6 +477,8 @@ exprOrObjectLiteral ::=
     {: RESULT = e; :}
   | objectLiteral:e
     {: RESULT = e; :}
+  | namedFunctionExpr:e
+    {: RESULT = e; :}
   ;
 
 
@@ -491,14 +496,23 @@ interfaceExtends ::=
   ;
 
 fieldDeclaration ::=
-    modifiers:m constOrVar:cov ide:ide optTypeRelation:t optInitializer:init SEMICOLON:s
-    {: RESULT = new FieldDeclaration((JooSymbol[])m.toArray(new JooSymbol[0]), cov, ide, t, init, s); :}
+    modifiers:m constOrVar:cov ide:ide optTypeRelation:t optInitializer:init optNextFieldDeclaration:nf SEMICOLON:s
+    {: RESULT = new FieldDeclaration((JooSymbol[])m.toArray(new JooSymbol[0]), cov, ide, t, init, nf, s); :}
   ;
 
-functionExpr ::=
+optNextFieldDeclaration ::=
+    {: RESULT = null; :}
+  | COMMA:c ide:ide optTypeRelation:t optInitializer:init optNextFieldDeclaration:nf
+    {: RESULT = new FieldDeclaration(new JooSymbol[0], c, ide, t, init, nf, null); :}
+  ;
+
+anonFunctionExpr ::=
     FUNCTION:f LPAREN:lp parameters:params RPAREN:rp optTypeRelation:t block:b
     {: RESULT = new FunctionExpr(f,null,lp,params,rp,t,b); :}
-  | FUNCTION:f ide:ide LPAREN:lp parameters:params RPAREN:rp optTypeRelation:t block:b
+  ;
+
+namedFunctionExpr ::=
+    FUNCTION:f ide:ide LPAREN:lp parameters:params RPAREN:rp optTypeRelation:t block:b
     {: RESULT = new FunctionExpr(f,ide,lp,params,rp,t,b); :}
   ;
 
@@ -615,7 +629,7 @@ optBody ::=
     block:b
     {: RESULT = b; :}
   | SEMICOLON:s
-    {: RESULT = new EmptyStatement(s); :}
+    {: RESULT = new SemicolonTerminatedStatement(s); :}
   ;
 
 optCatches ::=
@@ -714,10 +728,10 @@ labelableStatement ::=
     {: RESULT = new DoStatement(d,s,w,e,sc); :}
   | FOR:f LPAREN:lp SEMICOLON:s1 optCommaExpr:e1 SEMICOLON:s2 optCommaExpr:e2 RPAREN:rp statement:s
     {: RESULT = new ForStatement(f,lp,null,s1,e1,s2,e2,rp,s); :}
-  | FOR:f LPAREN:lp expr:e SEMICOLON:s1 optCommaExpr:e1 SEMICOLON:s2 optCommaExpr:e2 RPAREN:rp statement:s
+  | FOR:f LPAREN:lp commaExpr:e SEMICOLON:s1 optCommaExpr:e1 SEMICOLON:s2 optCommaExpr:e2 RPAREN:rp statement:s
     {: RESULT = new ForStatement(f,lp,new ForInitializer(e),s1,e1,s2,e2,rp,s); :}
-  | FOR:f LPAREN:lp VAR:var ide:ide optTypeRelation:t optInitializer:init SEMICOLON:s1 optCommaExpr:e1 SEMICOLON:s2 optCommaExpr:e2 RPAREN:rp statement:s
-    {: RESULT = new ForStatement(f,lp,new ForInitializer(new VariableDeclaration(var,ide,t,init)),s1,e1,s2,e2,rp,s); :}
+  | FOR:f LPAREN:lp VAR:var ide:ide optTypeRelation:t optInitializer:init optNextVariableDeclaration:nv SEMICOLON:s1 optCommaExpr:e1 SEMICOLON:s2 optCommaExpr:e2 RPAREN:rp statement:s
+    {: RESULT = new ForStatement(f,lp,new ForInitializer(new VariableDeclaration(var,ide,t,init, nv)),s1,e1,s2,e2,rp,s); :}
   | FOR:f LPAREN:lp ide:ide IN:in expr:e RPAREN:rp statement:s
     {: RESULT = new ForInStatement(f,null,lp,ide,in,e,rp,s); :}
   | FOR:f LPAREN:lp VAR:var ide:ide optTypeRelation:t IN:in expr:e RPAREN:rp statement:s
@@ -732,17 +746,19 @@ labelableStatement ::=
     {: RESULT = new TryStatement(t,b,c,f,fb); :}
   | block:b
     {: RESULT = b; :}
+  | namedFunctionExpr:f
+    {: RESULT = new FunctionStatement(f); :}
   ;
 
 statement ::=
     SEMICOLON:s
-    {: RESULT = new EmptyStatement(s); :}
+    {: RESULT = new SemicolonTerminatedStatement(s); :}
   | commaExpr:e SEMICOLON:s
-    {: RESULT = new ExprStatement(e,s); :}
+    {: RESULT = new SemicolonTerminatedStatement(e,s); :}
   | ide:ide COLON:c labelableStatement:s
     {: RESULT = new LabeledStatement(ide,c,s); :}
   | variableDeclaration:decl SEMICOLON:s
-    {: RESULT = new DeclarationStatement(decl, s); :}
+    {: RESULT = new SemicolonTerminatedStatement(decl, s); :}
   | BREAK:b optIde:ide SEMICOLON:s
     {: RESULT = new BreakStatement(b,ide,s); :}
   | CONTINUE:c optIde:ide SEMICOLON:s
@@ -807,7 +823,12 @@ typeRelation ::=
   ;
 
 variableDeclaration ::=
-    constOrVar:cov ide:ide optTypeRelation:t optInitializer:init
-    {: RESULT = new VariableDeclaration(cov,ide,t,init); :}
+    constOrVar:cov ide:ide optTypeRelation:t optInitializer:init optNextVariableDeclaration:nv
+    {: RESULT = new VariableDeclaration(cov,ide,t,init, nv); :}
   ;
 
+optNextVariableDeclaration ::=
+    {: RESULT = null; :}
+  | COMMA:c ide:ide optTypeRelation:t optInitializer:init optNextVariableDeclaration:nv
+    {: RESULT = new VariableDeclaration(c, ide, t, init, nv); :}
+  ;

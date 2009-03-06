@@ -77,11 +77,12 @@ class ForInStatement extends LoopStatement {
     if (symEach!=null) {
       // synthesize assigning the correct index to the variable given in the original for each statement:
       ArrayIndexExpr indexExpr = new ArrayIndexExpr(expr, new JooSymbol(sym.LBRACK, "["),
-        new CommaSeparatedList(new IdeExpr(auxIde)),
+        new CommaSeparatedList<IdeExpr>(new IdeExpr(auxIde)),
         new JooSymbol(sym.RBRACK, "]"));
-      Node assignment = decl!=null
-        ? new DeclarationStatement(new VariableDeclaration(SYM_VAR, decl.ide, decl.optTypeRelation, new Initializer(SYM_EQ, indexExpr)), SYM_SEMICOLON)
-        : new ExprStatement(new AssignmentOpExpr(new IdeExpr(ide), SYM_EQ, indexExpr), SYM_SEMICOLON);
+      Node assignment = new SemicolonTerminatedStatement(decl!=null
+        ? new VariableDeclaration(SYM_VAR, decl.ide, decl.optTypeRelation, new Initializer(SYM_EQ, indexExpr))
+        : new AssignmentOpExpr(new IdeExpr(ide), SYM_EQ, indexExpr),
+        SYM_SEMICOLON);
       // inject synthesized statement into loop body:
       if (body instanceof BlockStatement) {
         ((BlockStatement)body).statements.add(0, assignment);

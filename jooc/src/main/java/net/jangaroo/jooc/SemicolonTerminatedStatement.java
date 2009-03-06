@@ -20,19 +20,46 @@ import java.io.IOException;
 /**
  * @author Andreas Gawecki
  */
-abstract class SemicolonTerminatedStatement extends Statement {
+class SemicolonTerminatedStatement extends Statement {
 
-  JooSymbol symSemicolon;
+  Node optStatement;
+  JooSymbol optSymSemicolon;
 
-  SemicolonTerminatedStatement(JooSymbol symSemicolon) {
-    this.symSemicolon = symSemicolon;
+  /**
+   * Empty statement.
+   */
+  SemicolonTerminatedStatement(JooSymbol optSymSemicolon) {
+    this(null, optSymSemicolon);
   }
 
-  protected abstract void generateStatementCode(JsWriter out) throws IOException;
+  /**
+   * Optional statement with optional semicolon, but at least one must be specified (non-null).
+   */
+  SemicolonTerminatedStatement(Node optStatement, JooSymbol optSymSemicolon) {
+    Debug.assertTrue(optStatement!=null || optSymSemicolon!=null, "Both statement and semicolon not specified in SemicolonTerminatedStatement.");
+    this.optStatement = optStatement;
+    this.optSymSemicolon = optSymSemicolon;
+  }
+
+  protected void generateStatementCode(JsWriter out) throws IOException {
+    if (optStatement!=null)
+      optStatement.generateCode(out);
+  }
   
   public void generateCode(JsWriter out) throws IOException {
     generateStatementCode(out);
-    out.writeSymbol(symSemicolon);
+    if (optSymSemicolon !=null)
+      out.writeSymbol(optSymSemicolon);
   }
 
+  public Node analyze(Node parentNode, AnalyzeContext context) {
+    super.analyze(parentNode, context);
+    if (optStatement!=null)
+      optStatement = optStatement.analyze(this, context);
+    return this;
+  }
+
+  public JooSymbol getSymbol() {
+     return optSymSemicolon==null ? optStatement.getSymbol() : optSymSemicolon;
+  }
 }

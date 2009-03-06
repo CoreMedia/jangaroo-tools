@@ -377,6 +377,15 @@ public class JooTest extends JooRuntimeTestCase {
     expectBoolean(true, "package1.TestBind.testStaticNotBound().call('bar')=='bar'");
   }
 
+  public void testMultiDeclarations() throws Exception {
+    loadClass("package1.TestMultiDeclarations");
+    eval("obj = new package1.TestMultiDeclarations();");
+    String expected = (String)eval("package1.TestMultiDeclarations.EXPECTED_RESULT");
+    expectString(expected, "obj.testFields()");
+    expectString(expected, "obj.testVariables()");
+    expectString("[This is a test]", "obj.testForLoops(['This','is','a','test'])");
+  }
+
   public static void main(String args[]) {
     junit.textui.TestRunner.run(JooTest.class);
   }

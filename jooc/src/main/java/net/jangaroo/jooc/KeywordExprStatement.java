@@ -20,7 +20,7 @@ import java.io.IOException;
 /**
  * @author Andreas Gawecki
  */
-abstract class KeywordExprStatement extends ExprStatement {
+abstract class KeywordExprStatement extends SemicolonTerminatedStatement {
 
   JooSymbol symKeyword;
 

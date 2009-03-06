@@ -66,14 +66,7 @@ public abstract class IdeDeclaration extends Declaration {
 
   public Node analyze(Node parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
-    if (context.getScope().declareIde(getName(), this)!=null) {
-      String msg = "Duplicate declaration of identifier '" + getName() + "'";
-      if (allowDuplicates) {
-        Jooc.warning(getSymbol(), msg);
-      } else {
-        Jooc.error(getSymbol(), msg);
-      }
-    }
+    context.getScope().declareIde(getName(), this, allowDuplicates, getSymbol());
     return this;
   }
 

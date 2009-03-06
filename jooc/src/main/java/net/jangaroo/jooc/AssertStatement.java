@@ -37,7 +37,7 @@ class AssertStatement extends KeywordExprStatement {
       out.writeToken("assert");
       out.writeSymbol(lParen);
       out.write("(");
-      optExpr.generateCode(out);
+      optStatement.generateCode(out);
       out.write(")");
       out.write(", ");
       out.writeString(symKeyword.getFileName());
@@ -46,7 +46,7 @@ class AssertStatement extends KeywordExprStatement {
       out.write(", ");
       out.writeInt(symKeyword.getColumn());
       out.writeSymbol(rParen);
-      out.writeSymbol(symSemicolon);
+      out.writeSymbol(optSymSemicolon);
     } else {
       out.beginComment();
       super.generateCode(out);

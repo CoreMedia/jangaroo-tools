@@ -16,35 +16,32 @@
 package net.jangaroo.jooc;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
- * @author Andreas Gawecki
+ * @author Frank Wienberg
  */
-class ExprStatement extends Statement {
+class FunctionStatement extends Statement {
 
-  Expr optExpr;
-  JooSymbol symSemicolon;
+  private FunctionExpr fun;
 
-  public ExprStatement(Expr optExpr, JooSymbol symSemicolon) {
-    this.optExpr = optExpr;
-    this.symSemicolon = symSemicolon;
+  FunctionStatement(FunctionExpr fun) {
+    this.fun = fun;
   }
 
-  public void generateCode(JsWriter out) throws IOException {
-    if (optExpr != null)
-      optExpr.generateCode(out);
-    out.writeSymbol(symSemicolon);
-  }
-
+  @Override
   public Node analyze(Node parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
-    if (optExpr != null)
-      optExpr = optExpr.analyze(this, context);
+    fun.analyze(this, context);
     return this;
   }
 
-  public JooSymbol getSymbol() {
-    return optExpr == null ? symSemicolon : optExpr.getSymbol(); 
+  public void generateCode(JsWriter out) throws IOException {
+    fun.generateCode(out);
   }
 
+  public JooSymbol getSymbol() {
+     return fun.getSymbol();
+  }
 }
