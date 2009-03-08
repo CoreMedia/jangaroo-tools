@@ -59,9 +59,11 @@ public class QualifiedIde extends Ide {
   }
 
   static String constructQualifiedNameStr(String[] qualifiedName, String separator) {
-    StringBuilder sb = new StringBuilder(qualifiedName[0]);
-    for (int i = 1; i < qualifiedName.length; i++) {
-      sb.append(separator).append(qualifiedName[i]);
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < qualifiedName.length; i++) {
+      if (i>0)
+        sb.append(separator);
+      sb.append(qualifiedName[i]);
     }
     return sb.toString();
   }

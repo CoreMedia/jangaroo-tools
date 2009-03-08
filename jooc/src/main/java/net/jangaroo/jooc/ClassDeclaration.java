@@ -116,7 +116,10 @@ public class ClassDeclaration extends IdeDeclaration {
     for (String importedPackage : packageImports) {
       out.write("with("+importedPackage+")");
     }
-    out.write("with("+ packageName +")with($jooPublic)with($jooPrivate)return[");
+    if (packageName.length()>0) {
+      out.write("with("+ packageName +")");
+    }
+    out.write("with($jooPublic)with($jooPrivate)return[");
     if (!classInit.isEmpty()) {
       out.write("function(){joo.Class.init(");
       for (Iterator<String> iterator = classInit.iterator(); iterator.hasNext();) {
