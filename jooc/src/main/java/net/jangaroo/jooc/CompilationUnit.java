@@ -16,7 +16,6 @@
 package net.jangaroo.jooc;
 
 import net.jangaroo.jooc.backend.CompilationUnitSink;
-import net.jangaroo.jooc.backend.CodeGenerator;
 import net.jangaroo.jooc.backend.CompilationUnitSinkFactory;
 
 import java.io.File;
