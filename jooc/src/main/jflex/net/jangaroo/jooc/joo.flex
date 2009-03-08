@@ -150,7 +150,7 @@ static int[] terminalsAllowedBeforeRegexpLiteral = {
     defsym("class", CLASS);
     defsym("const", CONST);
     defsym("continue", CONTINUE);
-    defsym("debugger", DEBUGGER);
+//    defsym("debugger", DEBUGGER);
     defsym("default", DEFAULT);
     defsym("delete", DELETE);
     defsym("do", DO);
@@ -302,7 +302,7 @@ Include           = "include \"" ~"\""
   "class"                         { return symbol(CLASS); }
   "const"                         { return symbol(CONST); }
   "continue"                      { return symbol(CONTINUE); }
-  "debugger"                      { return symbol(DEBUGGER); }
+//  "debugger"                      { return symbol(DEBUGGER); }
   "default"                       { return symbol(DEFAULT); }
   "delete"                        { return symbol(DELETE); }
   "do"                            { return symbol(DO); }
