@@ -23,6 +23,7 @@ package net.jangaroo.jooc;
 
 import java.util.HashMap;
 import java_cup.runtime.*;
+import net.jangaroo.jooc.util.IncludeEvaluator;
 
 %%
 
@@ -131,13 +132,6 @@ static int[] terminalsAllowedBeforeRegexpLiteral = {
       case EOF: return "End of File";
     }
     return "?"+sym+"?";
-  }
-
-  private String getFileName(String includeString) {
-    String fileName = getFileName();
-    int lastSlashPos = Math.max(fileName.lastIndexOf('\\'), fileName.lastIndexOf('/'));
-    String dir = lastSlashPos>=0 ? fileName.substring(0,lastSlashPos+1) : "";
-    return dir+includeString.substring("include \"".length(), includeString.length()-1);
   }
 
   static {
@@ -291,7 +285,7 @@ Include           = "include \"" ~"\""
 
   {Comment}                       { whitespace += yytext(); }
   {WhiteSpace}                    { whitespace += yytext(); }
-  {Include}                       { yypushStream(new java.io.FileReader(getFileName(yytext()))); }
+  {Include}                       { yypushStream(IncludeEvaluator.createReader(yytext(),getFileName())); }
 
   "abstract"                      { return symbol(ABSTRACT); }
   "assert"                        { return symbol(ASSERT); }
