@@ -46,9 +46,9 @@ public class Jooc {
   public static final String INPUT_FILE_SUFFIX = AS_SUFFIX;
   public static final String OUTPUT_FILE_SUFFIX = ".js";
   
-  public static final String CLASS_CLASS_NAME = "Class";
-  public static final String CLASS_PACKAGE_NAME = "joo";
-  public static final String CLASS_FULLY_QUALIFIED_NAME = CLASS_PACKAGE_NAME + "." + CLASS_CLASS_NAME;
+  public static final String CLASS_LOADER_NAME = "classLoader";
+  public static final String CLASS_LOADER_PACKAGE_NAME = "joo";
+  public static final String CLASS_LOADER_FULLY_QUALIFIED_NAME = CLASS_LOADER_PACKAGE_NAME + "." + CLASS_LOADER_NAME;
 
   private JoocConfiguration config;
   private static CompileLog log = new CompileLog();
@@ -129,7 +129,7 @@ public class Jooc {
     throw new CompilerError(msg, t);
   }
 
-  static void warning(JooSymbol symbol, String msg) {
+  public static void warning(JooSymbol symbol, String msg) {
     log.warning(symbol, msg);
   }
 

@@ -147,13 +147,6 @@ Function.prototype.bind = function(object) {
       importsByName[importName] = fullClassName;
     }
   }
-  function bind(object, methodName) {
-    var member = object[methodName];
-    if (typeof member!="function" || member.$boundTo===object) {
-      return member;
-    }
-    return object[methodName]=member.bind(object);
-  }
   function assert(cond, file, line, column) {
     if (!cond)
       throw new Error(file+"("+line+":"+column+"): assertion failed");
@@ -223,7 +216,7 @@ Function.prototype.bind = function(object) {
           var constr = getNativeClass(fullClassName);
           var constrType = typeof constr;
           if (constrType=="function" || constrType=="object") {
-            if (joo.Class.debug && theGlobalObject.console) {
+            if (joo.classLoader.debug && theGlobalObject.console) {
               console.debug("found non-Jangaroo class "+fullClassName+"!");
             }
             return this.registerClassDescription({
@@ -255,8 +248,8 @@ Function.prototype.bind = function(object) {
           var uri = theGlobalObject.document.location.href;
           uri = uri.substring(0, uri.lastIndexOf("/")+1);
           uri += fullClassName.replace(/\./g,"/")+".js";
-          joo.Class.loadScript(uri);
-          if (joo.Class.debug && theGlobalObject.console) {
+          joo.classLoader.loadScript(uri);
+          if (joo.classLoader.debug && theGlobalObject.console) {
             console.debug("scheduling load "+fullClassName);
           }
         }
@@ -266,7 +259,7 @@ Function.prototype.bind = function(object) {
       doComplete: function() {
         if ("oncomplete" in this) {
           /*
-          if (joo.Class.debug && theGlobalObject.console) {
+          if (joo.classLoader.debug && theGlobalObject.console) {
             console.debug("doComplete active. Still loading:");
             for (var loading in this.loadingClasses) {
               console.debug("  "+loading);
@@ -289,16 +282,16 @@ Function.prototype.bind = function(object) {
               this.initImports(importedClasses);
               oncomplete(importedClasses.byName);
             }
-          } else if (joo.Class.classLoadTimeoutMS) {
+          } else if (joo.classLoader.classLoadTimeoutMS) {
             this.loadCheckTimer = theGlobalObject.setTimeout((function() {
               if (this.loadingClassesCount!=0) {
                 var sb = [];
                 for (var loading in this.loadingClasses) {
                   sb.push(loading);
                 }
-                throw new Error("The following classes were not loaded after "+joo.Class.classLoadTimeoutMS+" milliseconds: "+sb.join(", "));
+                throw new Error("The following classes were not loaded after "+joo.classLoader.classLoadTimeoutMS+" milliseconds: "+sb.join(", "));
               }
-            }).bind(this), joo.Class.classLoadTimeoutMS);
+            }).bind(this), joo.classLoader.classLoadTimeoutMS);
           }
         }
       },
@@ -368,7 +361,7 @@ Function.prototype.bind = function(object) {
         publicConstructor: undefined,
         init: function() {
           this.fullClassName = this.$package ? (this.$package + "." + this.$class) : this.$class;
-          if (joo.Class.debug && theGlobalObject.console) {
+          if (joo.classLoader.debug && theGlobalObject.console) {
             console.debug("loaded class "+this.fullClassName);
           }
           registerClassDescription(this);
@@ -535,7 +528,7 @@ Function.prototype.bind = function(object) {
                   visibility = "$"+modifier;
                 } else if (modifier=="bound") {
                   bound = true;
-                } else if (modifier=="var" || modifier=="const") {
+                } else if (modifier=="function" || modifier=="var" || modifier=="const") {
                   memberType = modifier;
                 } else if (modifier=="get" || modifier=="set") {
                   methodType = modifier;
@@ -685,7 +678,7 @@ Function.prototype.bind = function(object) {
   theGlobalObject.joo = new (Package)();
   var importedClasses = [];
   importedClasses.byName = {};
-  theGlobalObject.joo.Class = {
+  theGlobalObject.joo.classLoader = {
     debug: false,
     classLoadTimeoutMS: false,
     loadScript: function(uri) {
@@ -717,15 +710,12 @@ Function.prototype.bind = function(object) {
         mainClass.main.apply(null,args);
       });
     },
-    prepare: function(packageDef /* import*, classDef, publicStaticMethods, members */) {
-      var classDef = arguments[arguments.length-3];
-      var publicStaticMethods = arguments[arguments.length-2];
-      var members = arguments[arguments.length-1];
+    prepare: function(packageDef, directives, classDef, members, publicStaticMethods) {
       var imports = [];
       imports.byName = {};
       imports.packages = [""]; // always "import" top level package!
-      for (var im=1; im<arguments.length-3; ++im) {
-        var importMatch = arguments[im].match(/^\s*import\s+(([a-zA-Z$_0-9]+\.)*)(\*|[a-zA-Z$_0-9]+)\s*$/);
+      for (var im=0; im<directives.length; ++im) {
+        var importMatch = directives[im].match(/^\s*import\s+(([a-zA-Z$_0-9]+\.)*)(\*|[a-zA-Z$_0-9]+)\s*$/);
         if (importMatch) {
           var importPackageName = importMatch[1]; // including last dot
           var importClassName = importMatch[3];
@@ -742,7 +732,6 @@ Function.prototype.bind = function(object) {
         packageName = packageDef.split(/\s+/)[1];
         imports.packages.push(packageName+".");
       }
-      // TODO: find a way to use imports.packages for resolving extends and implements!
       var $interface = false;
       var classMatch = classDef.match(/^\s*((public|internal|final|dynamic)\s+)*class\s+([A-Za-z][a-zA-Z$_0-9]*)(\s+extends\s+([a-zA-Z$_0-9.]+))?(\s+implements\s+([a-zA-Z$_0-9.,\s]+))?\s*$/);
       var $extends = "Object";
@@ -776,8 +765,8 @@ Function.prototype.bind = function(object) {
     init: function(/*...classes*/) {
       var clazz;
       for (var i=0; i<arguments.length; ++i) {
-        if (typeof arguments[i].getName=="function") {
-          clazz = ClassDescription.$static.getClassDescription(arguments[i].getName()).initialize();
+        if (typeof arguments[i].$class=="object") {
+          clazz = arguments[i].$class.initialize();
         }
       }
       return clazz;
@@ -792,7 +781,6 @@ Function.prototype.bind = function(object) {
   };
   theGlobalObject.joo.assert = assert;
   theGlobalObject.joo.is = is;
-  theGlobalObject.joo.bind = bind;
   theGlobalObject.joo.getDefinitionByName = getDefinitionByName;
 })(this);
 //  alert("runtime loaded!");

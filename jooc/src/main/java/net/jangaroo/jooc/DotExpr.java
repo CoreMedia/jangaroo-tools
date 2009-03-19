@@ -56,13 +56,7 @@ class DotExpr extends BinaryOpExpr {
         }
         // check access to constant from another class; other class then must be initialized:
         if (arg1 instanceof IdeExpr && !(parentNode instanceof ApplyExpr)) {
-          Ide ide = ((IdeExpr)arg1).ide;
-          String qualifiedNameStr = ide.getQualifiedNameStr();
-          Scope declaringScope = context.getScope().findScopeThatDeclares(qualifiedNameStr);
-          if (declaringScope==null && !(ide instanceof QualifiedIde) && Character.isUpperCase(qualifiedNameStr.charAt(0))
-            || declaringScope!=null && declaringScope.getDeclaration().equals(context.getCurrentPackage())) {
-            this.classDeclaration.addClassInit(qualifiedNameStr);
-          }
+          classDeclaration.addInitIfClass(((IdeExpr)arg1).ide.getQualifiedNameStr(), context);
         }
       }
     }

@@ -15,6 +15,8 @@
 
 package net.jangaroo.test.integration;
 
+import net.jangaroo.jooc.Jooc;
+
 import java.io.File;
 
 /**
@@ -273,7 +275,7 @@ public class JooTest extends JooRuntimeTestCase {
   public void testNoSuper() throws Exception {
     loadClass("package1.TestNoSuper");
     try {
-      eval("joo.Class.complete();");
+      eval(Jooc.CLASS_LOADER_FULLY_QUALIFIED_NAME+".complete();");
     } catch (Exception e) {
       return;
     }
@@ -284,14 +286,14 @@ public class JooTest extends JooRuntimeTestCase {
     loadClass("package1.TestInheritanceSuperClass");
     loadClass("package1.TestInheritanceSubClass");
     loadClass("package1.TestInheritanceSubSubClass");
-    eval("joo.Class.complete();");
+    eval(Jooc.CLASS_LOADER_FULLY_QUALIFIED_NAME+".complete();");
   }
 
   public void testYesSuper2() throws Exception {
     loadClass("package1.TestInheritanceSubSubClass");
     loadClass("package1.TestInheritanceSubClass");
     loadClass("package1.TestInheritanceSuperClass");
-    eval("joo.Class.complete();");
+    eval(Jooc.CLASS_LOADER_FULLY_QUALIFIED_NAME+".complete();");
   }
 
   public void testParamInitializers() throws Exception {

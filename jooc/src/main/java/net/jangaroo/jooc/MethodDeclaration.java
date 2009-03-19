@@ -134,6 +134,7 @@ public class MethodDeclaration extends MemberDeclaration {
       if (classDeclaration!=null && !isConstructor && !isStatic() && classDeclaration.isBoundMethod(methodName)) {
         out.writeToken("bound");
       }
+      out.writeToken("function");
       out.writeToken(methodName);
       out.endString();
       out.write(",");

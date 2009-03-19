@@ -96,7 +96,33 @@ public class ClassDeclaration extends IdeDeclaration {
     if (optExtends != null) optExtends.generateCode(out);
     if (optImplements != null) optImplements.generateCode(out);
     out.endString();
-    out.write(",[");
+    out.write(",");
+    out.write("function($jooPublic,$jooPrivate){");
+    for (String importedPackage : packageImports) {
+      out.write("with("+importedPackage+")");
+    }
+    out.write("with($jooPublic)with($jooPrivate)return[");
+    generateClassInits(out);
+    body.generateCode(out);
+    out.write("];},");
+    generateStaticMethodList(out);
+  }
+
+  private void generateClassInits(JsWriter out) throws IOException {
+    if (!classInit.isEmpty()) {
+      out.write("function(){"+Jooc.CLASS_LOADER_FULLY_QUALIFIED_NAME+".init(");
+      for (Iterator<String> iterator = classInit.iterator(); iterator.hasNext();) {
+        out.write(iterator.next());
+        if (iterator.hasNext()) {
+          out.write(",");
+        }
+      }
+      out.write(");},");
+    }
+  }
+
+  private void generateStaticMethodList(JsWriter out) throws IOException {
+    out.write("[");
     boolean isFirst = true;
     for (MemberDeclaration memberDeclaration : members.values()) {
       if (memberDeclaration.isMethod() && memberDeclaration.isPublic() && memberDeclaration.isStatic()) {
@@ -110,28 +136,7 @@ public class ClassDeclaration extends IdeDeclaration {
         out.write('"');
       }
     }
-    out.write("],");
-    String packageName = getPackageDeclaration().getQualifiedNameStr();
-    out.write("function($jooPublic,$jooPrivate){");
-    for (String importedPackage : packageImports) {
-      out.write("with("+importedPackage+")");
-    }
-    if (packageName.length()>0) {
-      out.write("with("+ packageName +")");
-    }
-    out.write("with($jooPublic)with($jooPrivate)return[");
-    if (!classInit.isEmpty()) {
-      out.write("function(){joo.Class.init(");
-      for (Iterator<String> iterator = classInit.iterator(); iterator.hasNext();) {
-        out.write(iterator.next());
-        if (iterator.hasNext()) {
-          out.write(",");
-        }
-      }
-      out.write(");},");
-    }
-    body.generateCode(out);
-    out.write("];}");
+    out.write("]");
   }
 
   public Node analyze(Node parentNode, AnalyzeContext context) {
@@ -188,8 +193,14 @@ public class ClassDeclaration extends IdeDeclaration {
     return boundMethodCandidates.contains(methodName);
   }
 
-  public void addClassInit(String qualifiedName) {
-    classInit.add(qualifiedName);
-    //System.out.println("*** found constant access, will auto-initalize class "+qualifiedName);
+  public void addInitIfClass(String qualifiedNameStr, AnalyzeContext context) {
+    // really another class?
+    if (!(qualifiedNameStr.equals(getName()) || qualifiedNameStr.equals(getQualifiedNameStr()))) {
+      Scope declaringScope = context.getScope().findScopeThatDeclares(qualifiedNameStr);
+      if (declaringScope==null && !(ide instanceof QualifiedIde) && Character.isUpperCase(qualifiedNameStr.charAt(0))
+        || declaringScope!=null && declaringScope.getDeclaration().equals(context.getCurrentPackage())) {
+        classInit.add(qualifiedNameStr);
+      }
+    }
   }
 }

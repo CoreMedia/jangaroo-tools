@@ -4,15 +4,16 @@
 <head>
   <title>Hello World - Jangaroo Tools Examples</title>
   <script type="text/javascript" src="joo/Class.js"></script>
-  <script type="text/javascript" src="net/jangaroo/example/HelloWorld.js"></script>
   <script type="text/javascript">
     //<![CDATA[
-
-    // asserts that all required classes have been loaded
-    joo.Class.complete();
-
-    // instantiate the example class
-    var helloWorld = new net.jangaroo.example.HelloWorld();
+    with(joo.classLoader) {
+      $import("net.jangaroo.example.HelloWorld");
+      // callback when all required classes have been loaded:
+      complete(function(imports){with(imports){
+        // instantiate the example class
+        window.helloWorld = new HelloWorld();
+      }});
+    }
 
     // button onclick event handler
     function sayHello() {

@@ -21,6 +21,7 @@ import net.jangaroo.jooc.backend.CompilationUnitSinkFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Iterator;
 
 /**
  * @author Andreas Gawecki
@@ -69,12 +70,14 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
   }
 
   public void generateCode(JsWriter out) throws IOException {
-     out.write(Jooc.CLASS_FULLY_QUALIFIED_NAME + ".prepare(");
+     out.write(Jooc.CLASS_LOADER_FULLY_QUALIFIED_NAME + ".prepare(");
      packageDeclaration.generateCode(out);
      out.writeSymbolWhitespace(lBrace);
+     out.write("[");
      if (directives!=null) {
        generateCode(directives, out);
      }
+     out.write("\"\"],");
      primaryDeclaration.generateCode(out);
      out.writeSymbolWhitespace(rBrace);
      out.write(");");

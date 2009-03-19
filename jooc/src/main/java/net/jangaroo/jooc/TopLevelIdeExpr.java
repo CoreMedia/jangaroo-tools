@@ -41,6 +41,10 @@ class TopLevelIdeExpr extends IdeExpr {
         synthesizedDotExpr = new DotExpr(new ThisExpr(new JooSymbol("this")), new JooSymbol("."), new Ide(ide.ide));
         synthesizedDotExpr.analyze(parentNode, context);
       }
+      if (!(parentNode instanceof DotExpr)
+        && !(parentNode instanceof ApplyExpr)) {
+        context.getCurrentClass().addInitIfClass(ide.getQualifiedNameStr(), context);
+      }
     }
     return this;
   }
