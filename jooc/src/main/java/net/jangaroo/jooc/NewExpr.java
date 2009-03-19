@@ -33,7 +33,7 @@ class NewExpr extends Expr {
   public NewExpr(JooSymbol symNew, Type type, JooSymbol lParen, CommaSeparatedList<Expr> args, JooSymbol rParen) {
     this.symNew = symNew;
     this.type = type;
-    if (lParen!=null && args!=null && rParen!=null) {
+    if (lParen!=null && rParen!=null) {
       this.args = new ParenthesizedExpr<CommaSeparatedList<Expr>>(lParen, args, rParen);
     }
   }
