@@ -697,7 +697,7 @@ parameters ::=
   ;
 
 parenthesizedExpr ::=
-    LPAREN:lp commaExpr:e RPAREN:rp
+    LPAREN:lp exprOrObjectLiteral:e RPAREN:rp
     {: RESULT = new ParenthesizedExpr(lp,e,rp); :}
   ;
 
