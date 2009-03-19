@@ -37,7 +37,7 @@ public class TestStaticInitializer {
   static public var fv :int;
 
   {
-    f = function(x :int, y :int) {
+    f = function(x :int, y :int) : int {
       return x+y;
     };
   }

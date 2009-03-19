@@ -30,7 +30,7 @@ public class ExtendedPerson extends example.Person {
     this.birthday = birthday;
   }
 
-  override protected function renderInner(): void {
+  override protected function renderInner(): String {
     var test = "foo";
     return super.renderInner()+"<p>birthday: "+this.getBirthday().toLocaleString()+"</p>";
   }
