@@ -55,8 +55,8 @@ public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUni
 
     String className = primaryDeclaration.getName();
     if (!classPart.equals(className))
-      Jooc.error(primaryDeclaration,
-       "class name must be equal to file name: expected " + classPart + ", found " + className);
+      Jooc.warning(primaryDeclaration.getSymbol(),
+       "class name should be equal to file name: expected " + classPart + ", found " + className);
 
     createOutputDirs(outFile);
 
