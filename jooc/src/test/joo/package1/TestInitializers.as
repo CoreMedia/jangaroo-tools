@@ -18,12 +18,12 @@ package package1 {
 public class TestInitializers {
 
   public function TestInitializers() {
-    this.slot1 = 1;
+    this.slot2 = this.slot1 + 1;
   }
 
-  protected var slot1;
-  protected var slot2 = 2;
-  protected var slot3 = {
+  protected var slot1 : int = 1;
+  protected var slot2 : int;
+  protected var slot3 : Object = {
     nolabel: 1,
     alsonolabel: 2
   };
@@ -34,6 +34,10 @@ public class TestInitializers {
 
   public function getSlot2() :int {
     return this.slot2;
+  }
+
+  public function getSlot3() :Object {
+    return this.slot3;
   }
 
 }

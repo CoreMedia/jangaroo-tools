@@ -167,6 +167,7 @@ static int[] terminalsAllowedBeforeRegexpLiteral = {
     defsym("internal", INTERNAL);
     defsym("is", IS);
     defsym("namespace", NAMESPACE);
+    defsym("native", NATIVE);
     defsym("new", NEW);
     defsym("null", NULL_LITERAL);
     defsym("override", OVERRIDE);
@@ -319,6 +320,7 @@ Include           = "include \"" ~"\""
   "internal"                      { return symbol(INTERNAL); }
   "is"                            { return symbol(IS); }
   "namespace"                     { return symbol(NAMESPACE); }
+  "native"                        { return symbol(NATIVE); }
   "new"                           { return symbol(NEW); }
   "null"                          { return symbol(NULL_LITERAL, null); }
   "override"                      { return symbol(OVERRIDE); }

@@ -21,12 +21,14 @@ import package2.TestStaticInitializer;
 
 public class TestImport extends TestMethodCall {
 
+  private static const TEST_CLASS_INIT : String = TestStaticInitializer.s2;
+
   public function TestImport() {
   }
 
   public static function main() : int {
     var testImport : TestImport  = new TestImport();
-    return TestStaticInitializer.s2 + "/" + (testImport.m(-19) + TestSubPackage.test());
+    return TEST_CLASS_INIT + "/" + (testImport.m(-19) + TestSubPackage.test());
   }
 
 }

@@ -50,7 +50,7 @@ public class TestUnqualifiedAccess {
   }
 
   public function testConstructorAccess() : Boolean {
-    return this.getClass() === TestUnqualifiedAccess;
+    return this.constructor === TestUnqualifiedAccess;
   }
 
   // a local function must be found, or it will be assumed to be a member:

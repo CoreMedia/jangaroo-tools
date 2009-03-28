@@ -113,9 +113,14 @@ public abstract class JooRuntimeTestCase extends JooTestCase {
     eval(Jooc.CLASS_LOADER_FULLY_QUALIFIED_NAME + ".init("+qualifiedJooClassName+")");
   }
 
+  protected void complete() throws Exception {
+    eval(Jooc.CLASS_LOADER_FULLY_QUALIFIED_NAME+".complete();");
+  }
+
   protected void runClass(String qualifiedJooClassName) throws Exception {
     loadClass(qualifiedJooClassName);
-    initClass(qualifiedJooClassName);
+    complete();
+    //initClass(qualifiedJooClassName);
     eval(qualifiedJooClassName+".main()");
   }
 

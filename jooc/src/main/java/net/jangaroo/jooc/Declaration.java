@@ -45,6 +45,7 @@ abstract class Declaration extends NodeImplBase {
   protected static final int MODIFIER_OVERRIDE = 2*MODIFIER_FINAL;
   protected static final int MODIFIER_DYNAMIC = 2*MODIFIER_OVERRIDE;
   protected static final int MODIFIER_NAMESPACE = 2*MODIFIER_DYNAMIC;
+  protected static final int MODIFIER_NATIVE = 2*MODIFIER_NAMESPACE;
 
   protected static final int MODIFIERS_SCOPE =
     MODIFIER_PRIVATE|MODIFIER_PROTECTED|MODIFIER_PUBLIC|MODIFIER_INTERNAL|MODIFIER_NAMESPACE;
@@ -71,6 +72,7 @@ abstract class Declaration extends NodeImplBase {
         case sym.STATIC: flag = MODIFIER_STATIC; break;
         case sym.ABSTRACT: flag = MODIFIER_ABSTRACT; break;
         case sym.FINAL: flag = MODIFIER_FINAL; break;
+        case sym.NATIVE: flag = MODIFIER_NATIVE; break;
         case sym.OVERRIDE: flag = MODIFIER_OVERRIDE; break;
         case sym.IDE: flag = DYNAMIC.equals(modifier.getText()) ? MODIFIER_DYNAMIC : MODIFIER_NAMESPACE; break;
         default: Jooc.error(modifier, "internal compiler error: invalid modifier '" +  modifier.getText() + "'");
@@ -111,6 +113,10 @@ abstract class Declaration extends NodeImplBase {
 
   public boolean isFinal() {
     return (getModifiers() & MODIFIER_FINAL) != 0;
+  }
+
+  public boolean isNative() {
+    return (getModifiers() & MODIFIER_NATIVE) != 0;
   }
 
   public ClassDeclaration getClassDeclaration() {

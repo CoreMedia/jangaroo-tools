@@ -79,7 +79,7 @@ terminal JooSymbol EACH, ELSE, ENUM, EXTENDS;
 terminal JooSymbol FINAL, FINALLY, FOR, FUNCTION;
 terminal JooSymbol GET, GOTO;
 terminal JooSymbol IF, IMPLEMENTS, IMPORT, IN, INSTANCEOF, INTERFACE, INTERNAL, IS;
-terminal JooSymbol NAMESPACE, NEW;
+terminal JooSymbol NAMESPACE, NATIVE, NEW;
 terminal JooSymbol OVERRIDE;
 terminal JooSymbol PACKAGE, PRIVATE, PROTECTED, PUBLIC;
 terminal JooSymbol REST, RETURN;
@@ -568,6 +568,8 @@ modifier ::=
   | ABSTRACT:s
     {: RESULT = s; :}
   | FINAL:s
+    {: RESULT = s; :}
+  | NATIVE:s
     {: RESULT = s; :}
   | OVERRIDE:s
     {: RESULT = s; :}

@@ -15,6 +15,8 @@
 
 package net.jangaroo.jooc;
 
+import java.io.IOException;
+
 /**
  * @author Frank Wienberg
  */
@@ -34,5 +36,11 @@ public class AccessorIde extends Ide {
 
   public String getFunctionName() {
     return symGetOrSet.getText()+"$"+super.getName();
+  }
+
+  @Override
+  public void generateCode(JsWriter out) throws IOException {
+    out.writeSymbol(symGetOrSet);
+    super.generateCode(out);
   }
 }

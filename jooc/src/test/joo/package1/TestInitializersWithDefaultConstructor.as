@@ -15,21 +15,25 @@
 
 package package1 {
 
-import package2.TestInclude;
+public class TestInitializersWithDefaultConstructor {
 
-public class TestTypeCast {
+  protected var slot1 : int = 1;
+  protected var slot2 : int = slot1 + 1;
+  protected var slot3 : Object = {
+    nolabel: 1,
+    alsonolabel: 2
+  };
 
-  public function TestTypeCast() {
+  public function getSlot1() :int {
+    return this.slot1;
   }
 
-  public static function testAsCast(p : Object) : TestTypeCast {
-    return p as TestTypeCast;
+  public function getSlot2() :int {
+    return this.slot2;
   }
 
-  public static function testFunctionCast(p : Object) : TestTypeCast {
-    p = TestInclude(p);
-    p = package2.TestInclude(p);
-    return TestTypeCast(p);
+  public function getSlot3() :Object {
+    return this.slot3;
   }
 
 }

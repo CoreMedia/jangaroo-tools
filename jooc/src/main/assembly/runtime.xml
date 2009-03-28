@@ -21,11 +21,15 @@
   </formats>
   <includeBaseDirectory>false</includeBaseDirectory>
 
-  <fileSets>
-    <fileSet>
-      <directory>src/main/js</directory>
-      <outputDirectory>/</outputDirectory>
-    </fileSet>
-  </fileSets>
+  <files>
+    <file>
+      <source>target/joo-debug.js</source>
+      <destName>joo/Class.js</destName>
+    </file>
+    <file>
+      <source>target/joo.js</source>
+      <destName>joo/Class-nodebug.js</destName>
+    </file>
+  </files>
 
 </assembly>

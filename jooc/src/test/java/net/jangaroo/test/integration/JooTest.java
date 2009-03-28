@@ -15,8 +15,6 @@
 
 package net.jangaroo.test.integration;
 
-import net.jangaroo.jooc.Jooc;
-
 import java.io.File;
 
 /**
@@ -34,6 +32,7 @@ public class JooTest extends JooRuntimeTestCase {
 
   public void testIdentityMethod() throws Exception {
     loadClass("package1.TestMethodCall");
+    complete();
     initClass("package1.TestMethodCall");
     expectNumber(43, "package1.TestMethodCall.s(43)");
     eval("obj = new package1.TestMethodCall();");
@@ -45,6 +44,7 @@ public class JooTest extends JooRuntimeTestCase {
     String asFileName = asFileName(qualifiedName);
     String jsFileName = jsFileName(qualifiedName);
     loadClass(qualifiedName);
+    complete();
 
     String canonicalJsFileName = new File(jsFileName).getCanonicalPath();
     boolean assertionsEnabled = canonicalJsFileName.contains(File.separatorChar + "debug-and-assert" + File.separatorChar);
@@ -67,6 +67,7 @@ public class JooTest extends JooRuntimeTestCase {
     loadClass("package1.TestInheritanceSuperClass");
     loadClass("package1.TestInheritanceSubClass");
     loadClass("package1.TestInheritanceSubSubClass");
+    complete();
     eval("obj1 = new package1.TestInheritanceSuperClass(1);");
     eval("obj2 = new package1.TestInheritanceSubClass(11, 2);");
     eval("obj3 = new package1.TestInheritanceSubSubClass(111, 22, 3);");
@@ -83,6 +84,7 @@ public class JooTest extends JooRuntimeTestCase {
 
   public void testStaticInitializer() throws Exception {
     loadClass("package2.TestStaticInitializer");
+    complete();
     initClass("package2.TestStaticInitializer");
     expectString("s1", "package2.TestStaticInitializer.s1");
     expectString("s2/s1", "package2.TestStaticInitializer.s2");
@@ -94,6 +96,7 @@ public class JooTest extends JooRuntimeTestCase {
 
   public void testStaticAccess() throws Exception {
     loadClass("package2.TestStaticAccess");
+    complete();
     initClass("package2.TestStaticAccess");
     expectGetAndGetQualified("s1", true, "s1");
     expectGetAndGetQualified("s2", false, "s2");
@@ -130,18 +133,21 @@ public class JooTest extends JooRuntimeTestCase {
 
   public void testInternal() throws Exception {
     loadClass("package2.TestInternal");
+    complete();
     initClass("package2.TestInternal");
     expectString("internal", "new package2.TestInternal().returnInternal()");
   }
 
   public void testInitializeBeforeStaticMethod() throws Exception {
     loadClass("package2.TestStaticInitializer");
+    complete();
     expectNumber(1, "package2.TestStaticInitializer.return1()");
     expectNumber(2, "package2.TestStaticInitializer.return2()");
   }
 
   public void testLocalVariables() throws Exception {
     loadClass("package1.TestLocalVariables");
+    complete();
     eval("obj = new package1.TestLocalVariables();");
     expectNumber(200, "obj.m(10)");
     expectNumber(134, "obj.m2(10)");
@@ -149,6 +155,7 @@ public class JooTest extends JooRuntimeTestCase {
 
   public void testStatements() throws Exception {
     loadClass("package2.TestStatements");
+    complete();
     eval("obj = new package2.TestStatements;");
     expectNumber(200, "obj.testIf(true, 200, 300)");
     expectNumber(300, "obj.testIf(false, 200, 300)");
@@ -177,6 +184,7 @@ public class JooTest extends JooRuntimeTestCase {
 
   public void testExpressions() throws Exception {
     loadClass("package2.TestExpressions");
+    complete();
     eval("obj = new package2.TestExpressions;");
     expectNumber(200, "obj.testCond(true, 200, 300)");
     expectNumber(300, "obj.testCond(false, 200, 300)");
@@ -204,11 +212,13 @@ public class JooTest extends JooRuntimeTestCase {
     loadClass("package1.TestMethodCall");
     loadClass("package1.package11.TestSubPackage");
     loadClass("package2.TestStaticInitializer");
+    complete();
     expectString("s2/s1"+"/"+(-19+42), "package2.TestImport.main()");
   }
 
   public void testInclude() throws Exception {
     loadClass("package2.TestInclude");
+    complete();
     expectString("included!", "package2.TestInclude.testIncludeSameDir()");
     expectString("included!", "package2.TestInclude.testIncludeOtherDir()");
   }
@@ -218,28 +228,39 @@ public class JooTest extends JooRuntimeTestCase {
   }
 
   public void testInitializers() throws Exception {
-    doTestTwoSlots("package1.TestInitializers");
+    doTestThreeSlots("package1.TestInitializers");
+  }
+
+  public void testInitializersWithDefaultConstructor() throws Exception {
+    doTestThreeSlots("package1.TestInitializersWithDefaultConstructor");
   }
 
   public void testImplicitSuper() throws Exception {
     loadClass("package1.TestInitializers");
-    doTestTwoSlots("package1.TestImplicitSuper");
+    doTestThreeSlots("package1.TestImplicitSuper");
   }
 
   public void testExplicitSuper() throws Exception {
     loadClass("package1.TestInitializers");
-    doTestTwoSlots("package1.TestExplicitSuper");
+    doTestThreeSlots("package1.TestExplicitSuper");
   }
 
-  private void doTestTwoSlots(String className) throws Exception {
+  private void doTestThreeSlots(String className) throws Exception {
     loadClass(className);
+    complete();
     eval("obj = new "+className+"();");
     expectNumber(1, "obj.getSlot1()");
     expectNumber(2, "obj.getSlot2()");
+    expectNumber(1, "obj.getSlot3().nolabel");
+    expectNumber(2, "obj.getSlot3().alsonolabel");
+    expectBoolean(true, "obj.getSlot3()===obj.getSlot3()");
+    eval("obj2 = new "+className+"();");
+    expectBoolean(false, "obj.getSlot3()===obj2.getSlot3()");
   }
 
   public void testUnqualifiedAccess() throws Exception {
     loadClass("package1.TestUnqualifiedAccess");
+    complete();
     eval("obj = new package1.TestUnqualifiedAccess(\"a\")");
     eval("new package1.TestUnqualifiedAccess(\"c\")");
     expectString("a", "obj.getPrivateSlot()");
@@ -265,8 +286,9 @@ public class JooTest extends JooRuntimeTestCase {
   }
 
   public void testTypeCast() throws Exception {
-    loadClass("package2.TestImport");
+    loadClass("package2.TestInclude");
     loadClass("package1.TestTypeCast");
+    complete();
     eval("obj = new package1.TestTypeCast()");
     expectBoolean(true, "package1.TestTypeCast.testAsCast(obj)===obj");
     expectBoolean(true, "package1.TestTypeCast.testFunctionCast(obj)===obj");
@@ -275,7 +297,7 @@ public class JooTest extends JooRuntimeTestCase {
   public void testNoSuper() throws Exception {
     loadClass("package1.TestNoSuper");
     try {
-      eval(Jooc.CLASS_LOADER_FULLY_QUALIFIED_NAME+".complete();");
+      complete();
     } catch (Exception e) {
       return;
     }
@@ -286,18 +308,19 @@ public class JooTest extends JooRuntimeTestCase {
     loadClass("package1.TestInheritanceSuperClass");
     loadClass("package1.TestInheritanceSubClass");
     loadClass("package1.TestInheritanceSubSubClass");
-    eval(Jooc.CLASS_LOADER_FULLY_QUALIFIED_NAME+".complete();");
+    complete();
   }
 
   public void testYesSuper2() throws Exception {
     loadClass("package1.TestInheritanceSubSubClass");
     loadClass("package1.TestInheritanceSubClass");
     loadClass("package1.TestInheritanceSuperClass");
-    eval(Jooc.CLASS_LOADER_FULLY_QUALIFIED_NAME+".complete();");
+    complete();
   }
 
   public void testParamInitializers() throws Exception {
     loadClass("package1.TestParamInitializers");
+    complete();
     eval("obj = new package1.TestParamInitializers();");
     expectString("foo/bar", "obj.initParams1('foo','bar')");
     expectString("foo/1", "obj.initParams1('foo')");
@@ -319,6 +342,7 @@ public class JooTest extends JooRuntimeTestCase {
 
   public void testRestParams() throws Exception {
     loadClass("package1.TestRestParams");
+    complete();
     eval("obj = new package1.TestRestParams();");
     expectNumber(3, "obj.anyParams(1,2,3);");
     expectNumber(3, "obj.anyParamsOptimized(1,2,3);");
@@ -327,6 +351,7 @@ public class JooTest extends JooRuntimeTestCase {
 
   public void testGetterSetter() throws Exception {
     loadClass("package1.TestGetterSetter");
+    complete();
     eval("obj = new package1.TestGetterSetter();");
     eval("obj.foo = '1234';");
     expectString("1234", "obj.foo");
@@ -336,6 +361,7 @@ public class JooTest extends JooRuntimeTestCase {
 
   public void testIs() throws Exception {
     loadClass("package1.TestIs");
+    complete();
     expectBoolean(true, "package1.TestIs.testIs(new package1.TestIs(), package1.TestIs)");
     expectBoolean(false, "package1.TestIs.testIs(new package1.TestIs(), String)");
     expectBoolean(true, "package1.TestIs.testIs('foo', String)");
@@ -347,6 +373,7 @@ public class JooTest extends JooRuntimeTestCase {
     loadClass("package1.TestImplements");
     loadClass("package1.TestInterface2");
     loadClass("package1.TestInheritImplements");
+    complete();
     eval("obj = new package1.TestImplements();");
     expectNumber(5, "obj.implementMe('house')");
     expectBoolean(true, "joo.is(obj, package1.TestImplements)");
@@ -366,6 +393,7 @@ public class JooTest extends JooRuntimeTestCase {
 
   public void testBind() throws Exception {
     loadClass("package1.TestBind");
+    complete();
     eval("obj = new package1.TestBind('foo');");
     expectString("foo", "obj.getState()");
     expectString("foo", "obj.testInvokeLocalVar()");
@@ -381,6 +409,7 @@ public class JooTest extends JooRuntimeTestCase {
 
   public void testMultiDeclarations() throws Exception {
     loadClass("package1.TestMultiDeclarations");
+    complete();
     eval("obj = new package1.TestMultiDeclarations();");
     String expected = (String)eval("package1.TestMultiDeclarations.EXPECTED_RESULT");
     expectString(expected, "obj.testFields()");
