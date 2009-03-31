@@ -65,9 +65,16 @@ public abstract class MemberDeclaration extends IdeDeclaration {
   }
 
   public Node analyze(Node parentNode, AnalyzeContext context) {
+    ClassDeclaration classDeclaration = context.getCurrentClass();
+    Scope scope = context.getScope();
+    if (classDeclaration==scope.getDeclaration() && isStatic()) {
+      // back out one scope in order to store static members in a different scope:
+      context.leaveScope(classDeclaration);
+    }
     super.analyze(parentNode, context);
+    // restore old scope (may have been changed above):
+    context.setScope(scope);
     if (isField() || isMethod()) {
-      ClassDeclaration classDeclaration = getClassDeclaration();
       if (classDeclaration!=null) {
         classDeclaration.registerMember(this);
       }

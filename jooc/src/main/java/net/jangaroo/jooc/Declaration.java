@@ -53,6 +53,7 @@ abstract class Declaration extends NodeImplBase {
   protected Declaration(JooSymbol[] modifiers, int allowedModifiers) {
     this.symModifiers = modifiers;
     this.allowedModifiers = allowedModifiers;
+    computeModifiers();
   }
 
   public Node getParentDeclaration() {
@@ -133,7 +134,6 @@ abstract class Declaration extends NodeImplBase {
     super.analyze(parentNode, context);
     parentDeclaration = context.getScope().getDeclaration();
     classDeclaration = context.getCurrentClass();
-    computeModifiers();
     return this;
   }
 

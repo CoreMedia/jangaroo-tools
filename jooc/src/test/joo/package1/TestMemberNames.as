@@ -28,5 +28,21 @@ public class TestMemberNames {
   public var _hallo;
   public var _$hallo;
 
+  public function foo() : String {
+    return "foo";
+  }
+
+  public static function foo() : String {
+    return new TestMemberNames().foo()+"-static";
+  }
+
+  public function bar() : String {
+    return "bar-"+foo();
+  }
+
+  public static function bar() : String {
+    return "bar-"+foo();
+  }
+
 }
 }

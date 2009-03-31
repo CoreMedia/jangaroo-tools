@@ -120,6 +120,16 @@ public class JooTest extends JooRuntimeTestCase {
     // TODO: test that static members are *not* inherited.
   }
 
+  public void testMemberNames() throws Exception {
+    loadClass("package1.TestMemberNames");
+    complete();
+    eval("obj1 = new package1.TestMemberNames()");
+    expectString("foo", "obj1.foo()");
+    expectString("foo-static", "package1.TestMemberNames.foo()");
+    expectString("bar-foo", "obj1.bar()");
+    expectString("bar-foo-static", "package1.TestMemberNames.bar()");
+  }
+
   private void expectGetAndGetQualified(String memberName, boolean publicMember, String expected) throws Exception {
     if (publicMember) {
       expectString(expected, "package2.TestStaticAccess."+memberName+"");

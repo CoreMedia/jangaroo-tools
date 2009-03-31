@@ -145,10 +145,14 @@ public class ClassDeclaration extends IdeDeclaration {
     packageImports = context.getCurrentPackage().getPackageImports();
     context.getScope().declareIde(getName(), this);
     parentDeclaration = context.getScope().getPackageDeclaration();
+    // one scope for static members...
+    context.enterScope(this);
+    // ...and one scope for instance members!
     context.enterScope(this);
     if (optExtends != null) optExtends.analyze(this, context);
     if (optImplements != null) optImplements.analyze(this, context);
     body.analyze(this, context);
+    context.leaveScope(this);
     context.leaveScope(this);
     computeModifiers();
     return this;

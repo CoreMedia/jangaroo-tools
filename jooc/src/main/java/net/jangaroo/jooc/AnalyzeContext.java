@@ -37,6 +37,10 @@ public class AnalyzeContext {
     return scope;
   }
 
+  void setScope(Scope scope) {
+    this.scope = scope;
+  }
+
   public PackageDeclaration getCurrentPackage() {
     if (packageDeclaration == null) {
       packageDeclaration = scope.getPackageDeclaration();
