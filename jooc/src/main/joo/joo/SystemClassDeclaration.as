@@ -92,7 +92,9 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
     this.level = this.superClassDeclaration.level + 1;
     this.privateStatics.$super = this.level+"super";
     var Super : Class = this.superClassDeclaration.Public;
-    this.publicConstructor.prototype = new Super();
+    if (!this.native_) {
+      this.publicConstructor.prototype = new Super();
+    }
     this.Public = NativeClassDeclaration.createEmptyConstructor(this.publicConstructor);
   }
 
