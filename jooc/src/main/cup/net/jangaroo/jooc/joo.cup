@@ -75,15 +75,15 @@ terminal JooSymbol ABSTRACT, AS, ASSERT;
 terminal JooSymbol BREAK;
 terminal JooSymbol CASE, CATCH, CLASS, CONST, CONTINUE;
 terminal JooSymbol DEBUGGER, DEFAULT, DELETE, DO;
-terminal JooSymbol EACH, ELSE, ENUM, EXTENDS;
+terminal JooSymbol ELSE, ENUM, EXTENDS;
 terminal JooSymbol FINAL, FINALLY, FOR, FUNCTION;
-terminal JooSymbol GET, GOTO;
+terminal JooSymbol GOTO;
 terminal JooSymbol IF, IMPLEMENTS, IMPORT, IN, INSTANCEOF, INTERFACE, INTERNAL, IS;
 terminal JooSymbol NAMESPACE, NATIVE, NEW;
 terminal JooSymbol OVERRIDE;
 terminal JooSymbol PACKAGE, PRIVATE, PROTECTED, PUBLIC;
 terminal JooSymbol REST, RETURN;
-terminal JooSymbol SET, STATIC, SUPER, SWITCH, SYNCHRONIZED;
+terminal JooSymbol STATIC, SUPER, SWITCH, SYNCHRONIZED;
 terminal JooSymbol THIS, THROW, THROWS, TRANSIENT, TRY, TYPEOF;
 terminal JooSymbol USE;
 terminal JooSymbol VAR, VOID, VOLATILE;
@@ -546,10 +546,8 @@ memberDeclaration ::=
   ;
 
 methodDeclaration ::=
-    modifiers:m FUNCTION:f GET:get ide:ide LPAREN:lp RPAREN:rp optTypeRelation:t optBody:b
-    {: RESULT = new MethodDeclaration((JooSymbol[])m.toArray(new JooSymbol[0]),f,new AccessorIde(get,ide),lp,null,rp,t,b); :}
-  | modifiers:m FUNCTION:f SET:set ide:ide LPAREN:lp parameter:param RPAREN:rp optVoidTypeRelation:t optBody:b
-    {: RESULT = new MethodDeclaration((JooSymbol[])m.toArray(new JooSymbol[0]),f,new AccessorIde(set,ide),lp,new Parameters(param),rp,t,b); :}
+    modifiers:m FUNCTION:f IDE:getOrSet ide:ide LPAREN:lp parameters:params RPAREN:rp optTypeRelation:t optBody:b
+    {: RESULT = new MethodDeclaration((JooSymbol[])m.toArray(new JooSymbol[0]),f,new AccessorIde(getOrSet,ide),lp,params,rp,t,b); :}
   | modifiers:m FUNCTION:f ide:ide LPAREN:lp parameters:params RPAREN:rp optTypeRelation:t optBody:b
     {: RESULT = new MethodDeclaration((JooSymbol[])m.toArray(new JooSymbol[0]),f,ide,lp,params,rp,t,b); :}
   ;
@@ -738,9 +736,9 @@ labelableStatement ::=
     {: RESULT = new ForInStatement(f,null,lp,ide,in,e,rp,s); :}
   | FOR:f LPAREN:lp VAR:var ide:ide optTypeRelation:t IN:in expr:e RPAREN:rp statement:s
     {: RESULT = new ForInStatement(f,null,lp,new VariableDeclaration(var,ide,t,null),in,e,rp,s); :}
-  | FOR:f EACH:ea LPAREN:lp ide:ide IN:in expr:e RPAREN:rp statement:s
-    {: RESULT = new ForInStatement(f,ea,lp,ide,in,e,rp,s); :}
-  | FOR:f EACH:ea LPAREN:lp VAR:var ide:ide optTypeRelation:t IN:in expr:e RPAREN:rp statement:s
+  | FOR:f IDE:each LPAREN:lp ide:ide IN:in expr:e RPAREN:rp statement:s
+    {: RESULT = new ForInStatement(f,each,lp,ide,in,e,rp,s); :}
+  | FOR:f IDE:ea LPAREN:lp VAR:var ide:ide optTypeRelation:t IN:in expr:e RPAREN:rp statement:s
     {: RESULT = new ForInStatement(f,ea,lp,new VariableDeclaration(var,ide,t,null),in,e,rp,s); :}
   | TRY:t block:b catches:c
     {: RESULT = new TryStatement(t,b,c); :}

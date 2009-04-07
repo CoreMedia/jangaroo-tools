@@ -148,7 +148,6 @@ static int[] terminalsAllowedBeforeRegexpLiteral = {
     defsym("default", DEFAULT);
     defsym("delete", DELETE);
     defsym("do", DO);
-    defsym("each", EACH);
     defsym("else", ELSE);
     defsym("enum", ENUM);
     defsym("extends", EXTENDS);
@@ -156,7 +155,6 @@ static int[] terminalsAllowedBeforeRegexpLiteral = {
     defsym("finally", FINALLY);
     defsym("for", FOR);
     defsym("function", FUNCTION);
-    defsym("get", GET);
     defsym("goto", GOTO);
     defsym("if", IF);
     defsym("implements", IMPLEMENTS);
@@ -176,7 +174,6 @@ static int[] terminalsAllowedBeforeRegexpLiteral = {
     defsym("protected", PROTECTED);
     defsym("public", PUBLIC);
     defsym("return", RETURN);
-    defsym("set", SET);
     defsym("static", STATIC);
     defsym("super", SUPER);
     defsym("switch", SWITCH);
@@ -301,7 +298,6 @@ Include           = "include \"" ~"\""
   "default"                       { return symbol(DEFAULT); }
   "delete"                        { return symbol(DELETE); }
   "do"                            { return symbol(DO); }
-  "each"                          { return symbol(EACH); }
   "else"                          { return symbol(ELSE); }
   "enum"                          { return symbol(ENUM); }
   "extends"                       { return symbol(EXTENDS); }
@@ -309,7 +305,6 @@ Include           = "include \"" ~"\""
   "finally"                       { return symbol(FINALLY); }
   "for"                           { return symbol(FOR); }
   "function"                      { return symbol(FUNCTION); }
-  "get"                           { return symbol(GET); }
   "goto"                          { return symbol(GOTO); }
   "if"                            { return symbol(IF); }
   "implements"                    { return symbol(IMPLEMENTS); }
@@ -329,7 +324,6 @@ Include           = "include \"" ~"\""
   "protected"                     { return symbol(PROTECTED); }
   "public"                        { return symbol(PUBLIC); }
   "return"                        { return symbol(RETURN); }
-  "set"                           { return symbol(SET); }
   "static"                        { return symbol(STATIC); }
   "super"                         { return symbol(SUPER); }
   "switch"                        { return symbol(SWITCH); }

@@ -57,9 +57,10 @@ public class MemberDeclaration {
             // "private", "public", "protected", "internal" or a custom namespace:
             this._namespace = token;
         }
-      } else if (this.isMethod() && !this.getterOrSetter && (token==METHOD_TYPE_GET || token==METHOD_TYPE_SET)) {
-        this.getterOrSetter = token; // detected getter or setter
       } else {
+        if (this.isMethod() && (this.memberName==METHOD_TYPE_GET || this.memberName==METHOD_TYPE_SET)) {
+          this.getterOrSetter = this.memberName; // detected getter or setter
+        }
         this.memberName = token; // token following the member type is the member name
       }
     }
