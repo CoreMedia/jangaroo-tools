@@ -24,6 +24,7 @@ public class JoocCommandLineParser {
     }
   }
 
+  @SuppressWarnings({ "AccessStaticViaInstance" })
   public JoocConfiguration parse(String[] argv) throws Exception {
     JoocConfiguration config = new JoocConfiguration();
 
@@ -46,6 +47,12 @@ public class JoocCommandLineParser {
     Option enableAssertionsOption = OptionBuilder.withLongOpt("enableassertions")
             .withDescription("enable assertions")
             .create("ea");
+    Option enableGuessingOption = OptionBuilder.withDescription(
+      "Enable heuristic for guessing member access ('members'), classes in scope ('classes'), and type casts ('typecasts').")
+      .withLongOpt("enableguessing")
+      .hasOptionalArgs()
+      .withArgName("mode")
+      .create("eg");
     Options options = new Options();
     options.addOption(help);
     options.addOption(version);
@@ -53,6 +60,7 @@ public class JoocCommandLineParser {
     options.addOption(debugOption);
     options.addOption(destinationDir);
     options.addOption(enableAssertionsOption);
+    options.addOption(enableGuessingOption);
     CommandLineParser parser = new GnuParser();
     CommandLine line = null;
 
@@ -112,6 +120,35 @@ public class JoocCommandLineParser {
     } else {
       config.setDebugSource(false);
       config.setDebugLines(true);
+    }
+    if (line.hasOption(enableGuessingOption.getOpt())) {
+      String[] values = line.getOptionValues(enableGuessingOption.getOpt());
+      if (values == null || values.length == 0) {
+        if (config.isVerbose()) {
+          System.out.println("-eg option present.");
+        }
+        config.setEnableGuessingMembers(true);
+        config.setEnableGuessingClasses(true);
+        config.setEnableGuessingTypeCasts(true);
+      } else {
+        if (config.isVerbose()) {
+          System.out.println("-g option value: " + Arrays.asList(values));
+        }
+        for (String value : values) {
+          if (value.equals("members"))
+            config.setEnableGuessingMembers(true);
+          else if (value.equals("classes"))
+            config.setEnableGuessingClasses(true);
+          else if (value.equals("typecasts")) {
+            config.setEnableGuessingTypeCasts(true);
+          } else
+            throw new IllegalArgumentException("unknown -eg argument: " + value);
+        }
+      }
+    } else {
+      config.setEnableGuessingMembers(false);
+      config.setEnableGuessingClasses(false);
+      config.setEnableGuessingTypeCasts(false);
     }
     if (config.isVerbose()) {
       /*

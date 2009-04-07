@@ -28,7 +28,9 @@ import java.io.FileReader;
 import java.util.ArrayList;
 
 /**
+ * The Jangaroo AS3-to-JS Compiler's main class.
  * @author Andreas Gawecki
+ * @author Frank Wienberg
  */
 public class Jooc {
 
@@ -75,12 +77,12 @@ public class Jooc {
 
     if (config.isMergeOutput()) {
       codeSinkFactory = new MergedOutputCompilationUnitSinkFactory(
-        config.getOutputFile(),
-        config.isDebugSource(), config.isDebugLines(), config.isEnableAssertions());
+        config, config.getOutputFile()
+      );
     } else {
       codeSinkFactory = new SingleFileCompilationUnitSinkFactory(
-        config.getOutputDirectory(), OUTPUT_FILE_SUFFIX,
-        config.isDebugSource(), config.isDebugLines(), config.isEnableAssertions());
+        config, config.getOutputDirectory(), OUTPUT_FILE_SUFFIX
+      );
     }
     return codeSinkFactory;
   }

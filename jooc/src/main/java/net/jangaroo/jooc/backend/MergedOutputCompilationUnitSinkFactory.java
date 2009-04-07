@@ -1,6 +1,7 @@
 package net.jangaroo.jooc.backend;
 
 import net.jangaroo.jooc.*;
+import net.jangaroo.jooc.config.JoocOptions;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,11 +15,8 @@ public class MergedOutputCompilationUnitSinkFactory extends AbstractCompilationU
   private File outputFile;
   private CompilationUnitSink sink;
 
-  public MergedOutputCompilationUnitSinkFactory(final File outputFile,
-                                                boolean debugKeepSource,
-                                                boolean debugKeepLines,
-                                                boolean enableAssertions) {
-    super(debugKeepLines, outputFile.getParentFile(), enableAssertions, debugKeepSource);
+  public MergedOutputCompilationUnitSinkFactory(JoocOptions options, final File outputFile) {
+    super(options, outputFile.getParentFile());
     this.outputFile = outputFile;
 
     createOutputDirs(outputFile);
@@ -34,9 +32,7 @@ public class MergedOutputCompilationUnitSinkFactory extends AbstractCompilationU
 
           JsWriter out = new JsWriter(new FileWriter(outputFile, true));
 
-          out.setEnableAssertions(isEnableAssertions());
-          out.setKeepLines(isDebugKeepLines());
-          out.setKeepSource(isDebugKeepSource());
+          out.setOptions(getOptions());
           try {
             codeGenerator.generateCode(out);
             out.close();

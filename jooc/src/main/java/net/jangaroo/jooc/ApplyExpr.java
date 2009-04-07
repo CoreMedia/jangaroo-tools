@@ -15,6 +15,8 @@
 
 package net.jangaroo.jooc;
 
+import net.jangaroo.jooc.config.JoocOptions;
+
 import java.io.IOException;
 
 /**
@@ -22,9 +24,6 @@ import java.io.IOException;
  * @author Frank Wienberg
  */
 class ApplyExpr extends Expr {
-
-  // TODO: add a compiler option for this:
-  public static final boolean ASSUME_UNDECLARED_UPPER_CASE_FUNCTIONS_CALLS_ARE_TYPE_CASTS = Boolean.valueOf("true");
 
   Expr fun;
   ParenthesizedExpr<CommaSeparatedList<Expr>> args;
@@ -37,7 +36,7 @@ class ApplyExpr extends Expr {
 
   public void generateCode(JsWriter out) throws IOException {
     // leave out constructor function if called as type cast function!
-    if (isTypeCast()) {
+    if (isTypeCast(out.options)) {
       out.beginComment();
       fun.generateCode(out);
       out.endComment();
@@ -48,7 +47,7 @@ class ApplyExpr extends Expr {
       args.generateCode(out);
   }
 
-  private boolean isTypeCast() {
+  private boolean isTypeCast(JoocOptions options) {
     if (scope!=null && fun instanceof IdeExpr) {
       // TODO: make it work correctly for fully qualified identifiers!
       String name = ((IdeExpr)fun).ide.getName();
@@ -61,7 +60,7 @@ class ApplyExpr extends Expr {
       if (Character.isUpperCase(name.charAt(0))) {
         Scope declScope = scope.findScopeThatDeclares(name);
         return declScope == null
-          ? ASSUME_UNDECLARED_UPPER_CASE_FUNCTIONS_CALLS_ARE_TYPE_CASTS
+          ? options.isEnableGuessingTypeCasts()
           : declScope.getDeclaration() == scope.getPackageDeclaration();
       }
     }

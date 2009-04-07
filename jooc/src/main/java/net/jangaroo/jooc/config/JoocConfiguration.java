@@ -7,12 +7,14 @@ import java.util.List;
 /**
  * Jangaroo compiler configuration
  */
-public class JoocConfiguration {
+public class JoocConfiguration implements JoocOptions {
 
   private boolean debug;
   private boolean debugLines, debugSource;
 
   private boolean help, version, verbose, enableAssertions;
+
+  private boolean enableGuessingMembers, enableGuessingClasses, enableGuessingTypeCasts;
 
   private File outputDirectory;
 
@@ -99,6 +101,30 @@ public class JoocConfiguration {
 
   public void setEnableAssertions(boolean enableAssertions) {
     this.enableAssertions = enableAssertions;
+  }
+
+  public boolean isEnableGuessingMembers() {
+    return enableGuessingMembers;
+  }
+
+  public void setEnableGuessingMembers(boolean enableGuessingMembers) {
+    this.enableGuessingMembers = enableGuessingMembers;
+  }
+
+  public boolean isEnableGuessingClasses() {
+    return enableGuessingClasses;
+  }
+
+  public void setEnableGuessingClasses(boolean enableGuessingClasses) {
+    this.enableGuessingClasses = enableGuessingClasses;
+  }
+
+  public boolean isEnableGuessingTypeCasts() {
+    return enableGuessingTypeCasts;
+  }
+
+  public void setEnableGuessingTypeCasts(boolean enableGuessingTypeCasts) {
+    this.enableGuessingTypeCasts = enableGuessingTypeCasts;
   }
 
   public File getOutputDirectory() {

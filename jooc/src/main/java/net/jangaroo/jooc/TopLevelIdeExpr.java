@@ -15,6 +15,8 @@
 
 package net.jangaroo.jooc;
 
+import net.jangaroo.jooc.config.JoocOptions;
+
 import java.io.IOException;
 
 /**
@@ -22,8 +24,6 @@ import java.io.IOException;
  */
 class TopLevelIdeExpr extends IdeExpr {
 
-  // TODO: add a compiler option for this:
-  public static final boolean ASSUME_UNDECLARED_IDENTIFIERS_ARE_MEMBERS = Boolean.valueOf("true");
   private Scope scope;
   private DotExpr synthesizedDotExpr;
 
@@ -51,14 +51,14 @@ class TopLevelIdeExpr extends IdeExpr {
 
   @Override
   public void generateCode(JsWriter out) throws IOException {
-    if (addThis()) {
+    if (addThis(out.options)) {
       synthesizedDotExpr.generateCode(out);
     } else {
       super.generateCode(out);
     }
   }
 
-  private boolean addThis() {
+  private boolean addThis(JoocOptions options) {
     if (synthesizedDotExpr!=null) {
       // verify that ide is actually undefined or a non-static, non-constructor member:
       Scope declaringScope = scope.findScopeThatDeclares(ide);
@@ -75,15 +75,15 @@ class TopLevelIdeExpr extends IdeExpr {
             return false;
           }
         }
-        boolean maybeInScope = Character.isUpperCase(ide.getName().charAt(0));
+        boolean maybeInScope = options.isEnableGuessingClasses() && Character.isUpperCase(ide.getName().charAt(0));
         String warningMsg = "Undeclared identifier: " + ide.getName();
         if (maybeInScope) {
           warningMsg += ", assuming it is already in scope.";
-        } else if (ASSUME_UNDECLARED_IDENTIFIERS_ARE_MEMBERS) {
+        } else if (options.isEnableGuessingMembers()) {
           warningMsg += ", assuming it is an inherited member.";
         }
         Jooc.warning(ide.getSymbol(), warningMsg);
-        return !maybeInScope && ASSUME_UNDECLARED_IDENTIFIERS_ARE_MEMBERS;
+        return !maybeInScope && options.isEnableGuessingMembers();
       } else if (declaringScope.getDeclaration() instanceof ClassDeclaration) {
         Node ideDeclaration = declaringScope.getIdeDeclaration(ide);
         if (ideDeclaration instanceof MemberDeclaration) {

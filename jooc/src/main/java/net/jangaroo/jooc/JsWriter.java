@@ -15,6 +15,8 @@
 
 package net.jangaroo.jooc;
 
+import net.jangaroo.jooc.config.JoocOptions;
+
 import java.io.FilterWriter;
 import java.io.IOException;
 import java.io.Writer;
@@ -27,9 +29,7 @@ import java.util.Date;
 public class JsWriter extends FilterWriter {
 
   JsStringLiteralWriter stringLiteralWriter;
-  boolean enableAssertions = false;
-  boolean keepLines = false;
-  boolean keepSource = false;
+  JoocOptions options;
   boolean inComment = false;
   int nOpenBeginComments = 0;
   char lastChar = ' ';
@@ -41,28 +41,20 @@ public class JsWriter extends FilterWriter {
     stringLiteralWriter = new JsStringLiteralWriter(target, false);
   }
 
-  public boolean getKeepSource() {
-    return keepSource;
+  public void setOptions(JoocOptions options) {
+    this.options = options;
   }
 
-  public void setKeepSource(boolean keepSource) {
-    this.keepSource = keepSource;
+  public boolean getKeepSource() {
+    return options.isDebug() && options.isDebugSource();
   }
 
   public boolean getKeepLines() {
-    return keepLines;
-  }
-
-  public void setKeepLines(boolean keepLines) {
-    this.keepLines = keepLines;
+    return options.isDebug() && options.isDebugLines();
   }
 
   public boolean getEnableAssertions() {
-    return enableAssertions;
-  }
-
-  public void setEnableAssertions(boolean enableAssertions) {
-    this.enableAssertions = enableAssertions;
+    return options.isEnableAssertions();
   }
 
   public Writer getTarget() {
@@ -155,7 +147,7 @@ public class JsWriter extends FilterWriter {
   }
 
   private boolean shouldWrite() throws IOException {
-    boolean result = keepSource || nOpenBeginComments == 0;
+    boolean result = getKeepSource() || nOpenBeginComments == 0;
     if (result) {
       if (nOpenBeginComments > 0 && !inComment) {
         out.write("/*");
@@ -232,14 +224,14 @@ public class JsWriter extends FilterWriter {
 
   public void writeSymbolWhitespace(JooSymbol symbol) throws IOException {
     String ws = symbol.getWhitespace();
-    if (keepSource) {
+    if (getKeepSource()) {
       if (inString) {
         writeLinesInsideString(ws);
       } else {
         write(ws);
       }
     }
-    else if (keepLines)
+    else if (getKeepLines())
       writeLines(ws);
   }
 
@@ -304,7 +296,7 @@ public class JsWriter extends FilterWriter {
   }
 
   public void write(int c) throws IOException {
-    if ((keepLines && c == '\n') || shouldWrite()) {
+    if ((getKeepLines() && c == '\n') || shouldWrite()) {
       if (lastChar == '*' && c == '/')
         super.write(' ');
       super.write(c);
@@ -324,7 +316,7 @@ public class JsWriter extends FilterWriter {
           super.write(cbuf, off, len);
         lastChar = cbuf[off+len-1];
       }
-      else if (keepLines) {
+      else if (getKeepLines()) {
         for (int i = 0; i < len; i++) {
           char c = cbuf[off+i];
           if (c == '\n') {
@@ -347,7 +339,7 @@ public class JsWriter extends FilterWriter {
         } else
           super.write(str, off, len);
         lastChar = str.charAt(off+len-1);
-      } else if (keepLines)
+      } else if (getKeepLines())
         writeLines(str, off, len);
     }
   }

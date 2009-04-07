@@ -43,6 +43,29 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
    */
   private boolean enableAssertions;
   /**
+   * Set "enableGuessingMembers" to "true" in order to generate "this." before all top-level identifiers
+   * that cannot be resolved in the current compilation unit.
+   * If "guessClasses" is also "true", "this." is only added for top-level identifiers not starting
+   * with an upper case letter; these are considered classes or types that are already in scope.
+   * @parameter default-value="false"
+   */
+  private boolean enableGuessingMembers;
+  /**
+   * For undeclared top-level identifiers starting with an upper case letter, only issue a warning
+   * that they are assumed to be already in scope, i.e. classes or interfaces in the same
+   * package, in the top-level package, or imported through a * import.
+   * In combination with "enableGuessingMembers", undeclared identifiers starting with an upper case letter
+   * are not assumed to be inherited members if this flag is "true".
+   * @parameter default-value="false"
+   */
+  private boolean enableGuessingClasses;
+  /**
+   * If "enableGuessingTypeCasts" is "true", function calls with undeclared identifiers starting with an upper case
+   * letter are assumed to be type casts. In the generated code, such type casts only appear as comments.
+   * @parameter default-value="false"
+   */
+  private boolean enableGuessingTypeCasts;
+  /**
    * If set to "true", the compiler will generate more detailed progress information.
    * @parameter expression="${maven.compiler.verbose}" default-value="false"
    */
@@ -95,6 +118,9 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
 
     configuration.setDebug(debug);
     configuration.setEnableAssertions(enableAssertions);
+    configuration.setEnableGuessingMembers(enableGuessingMembers);
+    configuration.setEnableGuessingClasses(enableGuessingClasses);
+    configuration.setEnableGuessingTypeCasts(enableGuessingTypeCasts);
     configuration.setVerbose(verbose);
 
     configuration.setOutputDirectory(getOutputDirectory());

@@ -1,6 +1,7 @@
 package net.jangaroo.jooc.backend;
 
 import net.jangaroo.jooc.*;
+import net.jangaroo.jooc.config.JoocOptions;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,12 +14,8 @@ public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUni
 
   private String suffix;
 
-  public SingleFileCompilationUnitSinkFactory(File destinationDir,
-                                              String suffix,
-                                              boolean debugKeepSource,
-                                              boolean debugKeepLines,
-                                              boolean enableAssertions) {
-    super(debugKeepLines, destinationDir, enableAssertions, debugKeepSource);
+  public SingleFileCompilationUnitSinkFactory(JoocOptions options, File destinationDir, String suffix) {
+    super(options, destinationDir);
     this.suffix = suffix;
   }
 
@@ -68,9 +65,7 @@ public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUni
         try {
           JsWriter out = new JsWriter(new FileWriter(outFile));
 
-          out.setEnableAssertions(isEnableAssertions());
-          out.setKeepLines(isDebugKeepLines());
-          out.setKeepSource(isDebugKeepSource());
+          out.setOptions(getOptions());
           try {
             codeGenerator.generateCode(out);
             out.close();
