@@ -116,6 +116,7 @@
                   <filelist dir="src/main/js">
                     <file name="joo/BootstrapClassLoader.js"/>
                     <file name="joo/assert.js"/>
+                    <file name="joo/Class.js"/>
                     <file name="joo/trace.js"/>
                   </filelist>
                   <filelist dir="target/temp/runtime/debug">
@@ -148,6 +149,7 @@
                   <filelist dir="src/main/js">
                     <file name="joo/BootstrapClassLoader.js"/>
                     <file name="joo/assert.js"/>
+                    <file name="joo/Class.js"/>
                     <file name="joo/trace.js"/>
                   </filelist>
                   <filelist dir="target/temp/runtime/deploy">
