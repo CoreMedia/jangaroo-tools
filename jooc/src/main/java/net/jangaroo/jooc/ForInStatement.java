@@ -35,6 +35,10 @@ class ForInStatement extends LoopStatement {
   private static final JooSymbol SYM_VAR = new JooSymbol(sym.VAR, "var");
   private static final JooSymbol SYM_EQ = new JooSymbol(sym.EQ, "=");
   private static final JooSymbol SYM_SEMICOLON = new JooSymbol(sym.SEMICOLON, ";");
+  private static final JooSymbol SYM_LBRACE = new JooSymbol(sym.LBRACE, "{");
+  private static final JooSymbol SYM_RBRACE = new JooSymbol(sym.RBRACE, "}");
+  private static final JooSymbol SYM_LBRACK = new JooSymbol(sym.LBRACK, "[");
+  private static final JooSymbol SYM_RBRACK = new JooSymbol(sym.RBRACK, "]");
 
   public ForInStatement(JooSymbol symFor, JooSymbol symEach, JooSymbol lParen, VariableDeclaration decl, JooSymbol symIn, Expr expr, JooSymbol rParen, Statement body) {
     this(symFor, symEach, lParen, decl, null, symIn, expr, rParen, body);
@@ -79,9 +83,9 @@ class ForInStatement extends LoopStatement {
     out.writeSymbol(rParen);
     if (symEach!=null) {
       // synthesize assigning the correct index to the variable given in the original for each statement:
-      ArrayIndexExpr indexExpr = new ArrayIndexExpr(expr, new JooSymbol(sym.LBRACK, "["),
+      ArrayIndexExpr indexExpr = new ArrayIndexExpr(expr, SYM_LBRACK,
         new CommaSeparatedList<IdeExpr>(new IdeExpr(auxIde)),
-        new JooSymbol(sym.RBRACK, "]"));
+        SYM_RBRACK);
       Node assignment = new SemicolonTerminatedStatement(decl!=null
         ? new VariableDeclaration(SYM_VAR, decl.ide, decl.optTypeRelation, new Initializer(SYM_EQ, indexExpr))
         : new AssignmentOpExpr(new IdeExpr(ide), SYM_EQ, indexExpr),
@@ -90,7 +94,7 @@ class ForInStatement extends LoopStatement {
       if (body instanceof BlockStatement) {
         ((BlockStatement)body).statements.add(0, assignment);
       } else {
-        body = new BlockStatement(new JooSymbol(sym.LBRACE, "{"), Arrays.asList(assignment, body), new JooSymbol(sym.RBRACE, "}"));
+        body = new BlockStatement(SYM_LBRACE, Arrays.asList(assignment, body), SYM_RBRACE);
       }
     }
   }
