@@ -30,9 +30,10 @@ public class ClassDeclaration extends joo.SystemClassDeclaration {
     return dependencies;
   }
 
-  override internal function parseDirectives(directives : Array):void {
-    super.parseDirectives(directives);
+  override internal function parseDirectives(packageName : String, directives : Array):void {
+    // super.parseDirectives(packageName, directives); // we know it's empty!
     this.importMap = new ImportMap();
+    this.importMap.addImport(packageName+".*");
     directives.forEach(this.parseDirective);
   }
 

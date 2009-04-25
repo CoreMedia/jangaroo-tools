@@ -23,6 +23,13 @@ public class MemberDeclaration {
   SUPPORTS_GETTERS_SETTERS = "__defineGetter__" in Object.prototype;
 }
 
+  public static function create(memberDeclarationStr : String) : MemberDeclaration {
+    var tokens : Array = memberDeclarationStr.split(/\s+/ as String) as Array;
+    // ignore imports:
+    return tokens[0]=="import" ? null
+           : new MemberDeclaration(tokens);
+  }
+
   internal var
           _namespace : String = "internal",
           _static : Boolean = false,
@@ -37,8 +44,7 @@ public class MemberDeclaration {
           value : *,
           _cloneFactory : Class;
 
-  public function MemberDeclaration(memberDeclarationStr : String) {
-    var tokens : Array = memberDeclarationStr.split(/\s+/ as String) as Array;
+  public function MemberDeclaration(tokens : Array) {
     for (var j:int=0; j<tokens.length; ++j) {
       var token : String = tokens[j];
       if (!this.memberType) {
@@ -193,12 +199,15 @@ public class MemberDeclaration {
 
   public function toString() : String {
     var sb : Array = [this._namespace];
-    if (this._static)
+    if (this._static) {
       sb.push(STATIC);
-    if (this._override)
+    }
+    if (this._override) {
       sb.push(OVERRIDE);
-    if (this._bound)
+    }
+    if (this._bound) {
       sb.push(BOUND);
+    }
     sb.push(this.memberType);
     sb.push(this.memberName);
     return sb.join(" ");

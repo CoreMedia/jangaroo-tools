@@ -16,8 +16,9 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
   }
 
   private static function is_(object : Object, type : Function) : Boolean {
-    if (!type || object===undefined || object===null)
+    if (!type || object===undefined || object===null) {
       return false;
+    }
     if (type["$class"]) {
       return (type["$class"] as NativeClassDeclaration).isInstance(object);
     }
@@ -48,7 +49,7 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
           publicStaticMethodNames : Array) {
     var packageName : String = packageDef.split(/\s+/ as String)[1] || "";
     this.package_ = joo.getOrCreatePackage(packageName);
-    this.parseDirectives(directives);
+    this.parseDirectives(packageName, directives);
     var classMatch : Array = classDef.match(/^\s*((public|internal|final|dynamic)\s+)*class\s+([A-Za-z][a-zA-Z$_0-9]*)(\s+extends\s+([a-zA-Z$_0-9.]+))?(\s+implements\s+([a-zA-Z$_0-9.,\s]+))?\s*$/) as Array;
     var interfaces : String;
     if (classMatch) {
@@ -81,10 +82,11 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
       this.package_[this.className] = publicConstructor;
     }
     super(fullClassName, publicConstructor);
-    this.privateStatics = { "assert": joo["assert"], "is": is_ };
+    this.privateStatics = { "Class": Class, "assert": joo["assert"], "is": is_, "trace": trace };
   }
 
-  internal function parseDirectives(directives : Array) : void { }
+  //noinspection JSUnusedLocalSymbols
+  internal function parseDirectives(packageName : String, directives : Array) : void { }
 
   internal override function doComplete() : void {
     this.superClassDeclaration = joo.classLoader.getRequiredClassDeclaration(this.extends_);
@@ -115,27 +117,30 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
           this.staticInitializers.push(item);
           break;
         case "string":
-          var memberDeclaration : MemberDeclaration = new MemberDeclaration(item);
-          if (!memberDeclaration.isNative()) {
-            if (++i >= memberDeclarations.length) {
-              throw new Error(this + ": Member expected after modifiers '" + item + "'.");
+          var memberDeclaration : MemberDeclaration = MemberDeclaration.create(item);
+          if (memberDeclaration) {
+            if (!memberDeclaration.isNative()) {
+              if (++i >= memberDeclarations.length) {
+                throw new Error(this + ": Member expected after modifiers '" + item + "'.");
+              }
+              var member : Object = memberDeclarations[i];
             }
-            var member : Object = memberDeclarations[i];
-          }
-          if (memberDeclaration.memberType == "function") {
-            this.initMethod(memberDeclaration, member as Function);
-          } else {
-            for (var memberName:String in member) {
-              this._storeMember(memberDeclaration.clone({memberName: memberName}), member[memberName]);
+            if (memberDeclaration.memberType == "function") {
+              this.initMethod(memberDeclaration, member as Function);
+            } else {
+              for (var memberName:String in member) {
+                this._storeMember(memberDeclaration.clone({memberName: memberName}), member[memberName]);
+              }
             }
           }
       }
     }
-    var superCall : Function = this.publicConstructor.prototype[this.level+"super"] =
+    var defaultConstructor : Function = this.native_ ? this.publicConstructor :
+      this.publicConstructor.prototype[this.level+"super"] =
       this.initializers.length==0 && this.boundMethods.length==0 ? this.superClassDeclaration.constructor_ : createSuperCall(this);
     if (!this.constructor_) {
       // create empty default constructor:
-      this.constructor_ = superCall;
+      this.constructor_ = defaultConstructor;
     }
     this.privateStatics[this.className] = this.publicConstructor;
   }

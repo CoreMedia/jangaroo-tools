@@ -15,6 +15,10 @@ public class DynamicClassLoader extends joo.ClassLoader {
               onCompleteCallback : Function;
 
   /**
+   * Keep record of all classes whose dependencies still have to be loaded.
+   */
+  private var pendingDependencies : Array/*<ClassDeclaration>*/ = [];
+  /**
    * false => pending
    * true => loading
    */
@@ -23,15 +27,13 @@ public class DynamicClassLoader extends joo.ClassLoader {
   override internal function createClassDeclaration(packageDef : String, directives : Array, classDef : String, memberFactory : Function,
                                                     publicStaticMethodNames : Array):SystemClassDeclaration {
     var cd : ClassDeclaration = super.createClassDeclaration(packageDef, directives, classDef, memberFactory, publicStaticMethodNames) as ClassDeclaration;
-    var dependencies : Array = cd.getDependencies();
-    for (var i:int=0; i<dependencies.length; ++i) {
-      this.load(dependencies[i]);
-    }
+    this.pendingDependencies.push(cd);
     if (delete this.pendingClassState[cd.fullClassName]) {
       if (this.debug) {
         trace("prepared class " + cd.fullClassName + ", removed from pending classes.");
       }
       if (this.onCompleteCallback) {
+        this.loadPendingDependencies();
         if (this.loadCheckTimer) {
           window.clearTimeout(this.loadCheckTimer);
           this.loadCheckTimer = undefined;
@@ -77,8 +79,7 @@ public class DynamicClassLoader extends joo.ClassLoader {
 
   override public function run(mainClassName : String, ...args):void {
     this.load(mainClassName);
-    args.splice(0,0,mainClassName);
-    super.run.apply(this,args);
+    super.run.apply(this,arguments);
   }
 
   private function load(fullClassName : String) : void {
@@ -120,8 +121,8 @@ public class DynamicClassLoader extends joo.ClassLoader {
    * The function receives an import hash, which can be used in pure JavaScript in a 'with' statement
    * (Jangaroo does not support 'with', there, you would use import declarations!) like this:
    * <pre>
-   * joo.Class.$import("com.custom.Foo");
-   * joo.Class.complete(function(imports){with(imports){
+   * joo.classLoader.import_("com.custom.Foo");
+   * joo.classLoader.complete(function(imports){with(imports){
    *   Foo.doSomething("bar");
    * }});
    * </pre>
@@ -129,11 +130,12 @@ public class DynamicClassLoader extends joo.ClassLoader {
    * @return void
    */
   public override function complete(onCompleteCallback : Function = undefined) : void {
+    this.onCompleteCallback = onCompleteCallback || defaultOnCompleteCallback;
+    this.loadPendingDependencies();
     if (isEmpty(this.pendingClassState)) {
       // no deferred classes: do not behave any different than my superclass
       super.complete(onCompleteCallback);
     } else {
-      this.onCompleteCallback = onCompleteCallback || defaultOnCompleteCallback;
       for (var c:String in this.pendingClassState) {
         this.load(c);
       }
@@ -142,6 +144,16 @@ public class DynamicClassLoader extends joo.ClassLoader {
 
   private static function defaultOnCompleteCallback() : void {
     trace("All classes loaded!");
+  }
+
+  private function loadPendingDependencies():void {
+    for (var j:int=0; j<this.pendingDependencies.length; ++j) {
+      var dependencies : Array = (this.pendingDependencies[j] as ClassDeclaration).getDependencies();
+      for (var i:int=0; i<dependencies.length; ++i) {
+        this.load(dependencies[i]);
+      }
+    }
+    this.pendingDependencies = [];
   }
 }
 }
