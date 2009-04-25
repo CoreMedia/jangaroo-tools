@@ -43,6 +43,13 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
    */
   private boolean enableAssertions;
   /**
+   * Set "allowDuplicateLocalVariables" to "true" in order to allow multiple declarations of local variables
+   * within the same scope.
+   *
+   * @parameter default-value="false"
+   */
+  private boolean allowDuplicateLocalVariables;
+  /**
    * Set "enableGuessingMembers" to "true" in order to generate "this." before all top-level identifiers
    * that cannot be resolved in the current compilation unit.
    * If "guessClasses" is also "true", "this." is only added for top-level identifiers not starting
@@ -118,6 +125,7 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
 
     configuration.setDebug(debug);
     configuration.setEnableAssertions(enableAssertions);
+    configuration.setAllowDuplicateLocalVariables(allowDuplicateLocalVariables);
     configuration.setEnableGuessingMembers(enableGuessingMembers);
     configuration.setEnableGuessingClasses(enableGuessingClasses);
     configuration.setEnableGuessingTypeCasts(enableGuessingTypeCasts);

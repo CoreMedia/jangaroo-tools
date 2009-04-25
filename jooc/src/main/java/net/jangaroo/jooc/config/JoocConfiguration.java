@@ -14,6 +14,8 @@ public class JoocConfiguration implements JoocOptions {
 
   private boolean help, version, verbose, enableAssertions;
 
+  private boolean allowDuplicateLocalVariables;
+
   private boolean enableGuessingMembers, enableGuessingClasses, enableGuessingTypeCasts;
 
   private File outputDirectory;
@@ -101,6 +103,14 @@ public class JoocConfiguration implements JoocOptions {
 
   public void setEnableAssertions(boolean enableAssertions) {
     this.enableAssertions = enableAssertions;
+  }
+
+  public boolean isAllowDuplicateLocalVariables() {
+    return allowDuplicateLocalVariables;
+  }
+
+  public void setAllowDuplicateLocalVariables(boolean allowDuplicateLocalVariables) {
+    this.allowDuplicateLocalVariables = allowDuplicateLocalVariables;
   }
 
   public boolean isEnableGuessingMembers() {

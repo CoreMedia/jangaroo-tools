@@ -47,6 +47,9 @@ public class JoocCommandLineParser {
     Option enableAssertionsOption = OptionBuilder.withLongOpt("enableassertions")
             .withDescription("enable assertions")
             .create("ea");
+    Option allowDuplicateLocalVariablesOption = OptionBuilder.withLongOpt("allowduplicatelocalvariables")
+            .withDescription("allow multiple declarations of local variables")
+            .create("ad");
     Option enableGuessingOption = OptionBuilder.withDescription(
       "Enable heuristic for guessing member access ('members'), classes in scope ('classes'), and type casts ('typecasts').")
       .withLongOpt("enableguessing")
@@ -60,6 +63,7 @@ public class JoocCommandLineParser {
     options.addOption(debugOption);
     options.addOption(destinationDir);
     options.addOption(enableAssertionsOption);
+    options.addOption(allowDuplicateLocalVariablesOption);
     options.addOption(enableGuessingOption);
     CommandLineParser parser = new GnuParser();
     CommandLine line = null;
@@ -90,6 +94,9 @@ public class JoocCommandLineParser {
 
     if (line.hasOption(enableAssertionsOption.getOpt()))
       config.setEnableAssertions(true);
+
+    if (line.hasOption(allowDuplicateLocalVariablesOption.getOpt()))
+      config.setAllowDuplicateLocalVariables(true);
 
     if (line.hasOption(debugOption.getOpt())) {
       String[] values = line.getOptionValues(debugOption.getOpt());

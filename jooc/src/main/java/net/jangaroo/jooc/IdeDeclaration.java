@@ -25,7 +25,6 @@ public abstract class IdeDeclaration extends Declaration {
 
   private static Pattern PRIVATE_MEMBER_NAME = Pattern.compile("^[$](\\p{Alpha}|[_$])(\\p{Alnum}|[_$])*$");
   Ide ide;
-  boolean allowDuplicates = false;
 
   protected IdeDeclaration(JooSymbol[] modifiers, int allowedModifiers, Ide ide) {
     super(modifiers, allowedModifiers);
@@ -66,8 +65,12 @@ public abstract class IdeDeclaration extends Declaration {
 
   public Node analyze(Node parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
-    context.getScope().declareIde(getName(), this, allowDuplicates, getSymbol());
+    context.getScope().declareIde(getName(), this, allowDuplicates(context), getSymbol());
     return this;
+  }
+
+  boolean allowDuplicates(AnalyzeContext context) {
+    return false;
   }
 
 }

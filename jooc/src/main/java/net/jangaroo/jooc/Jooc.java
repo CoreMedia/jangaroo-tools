@@ -66,7 +66,7 @@ public class Jooc {
     CompilationUnitSinkFactory codeSinkFactory = createSinkFactory(config);
 
     for (CompilationUnit unit : compilationUnits) {
-      unit.analyze(null, new AnalyzeContext());
+      unit.analyze(null, new AnalyzeContext(config));
       unit.writeOutput(codeSinkFactory, config.isVerbose());
     }
     return log.hasErrors() ? 1 : 0;

@@ -32,8 +32,6 @@ class Catch extends KeywordStatement {
     super(symCatch);
     this.lParen = lParen;
     this.param = param;
-    // It is "worst practice" to redeclare catch variables in AS3:
-    param.allowDuplicates = true;
     this.rParen = rParen;
     this.block = block;
   }
@@ -101,8 +99,10 @@ class Catch extends KeywordStatement {
 
   public Node analyze(Node parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
+    context.enterScope(this);
     param.analyze(this, context);
     block.analyze(this, context);
+    context.leaveScope(this);
     return this;
   }
 

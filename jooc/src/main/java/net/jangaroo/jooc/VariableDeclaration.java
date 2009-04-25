@@ -31,8 +31,12 @@ class VariableDeclaration extends AbstractVariableDeclaration {
   public VariableDeclaration(JooSymbol symConstOrVar, Ide ide,
       TypeRelation optTypeRelation, Initializer optInitializer, VariableDeclaration optNextVariableDeclaration) {
     super(new JooSymbol[]{}, 0, symConstOrVar, ide, optTypeRelation, optInitializer, optNextVariableDeclaration, null);
-    // It is "worst practice" to redeclare local variables in AS3:
-    allowDuplicates = true;
+  }
+
+  @Override
+  boolean allowDuplicates(AnalyzeContext context) {
+    // It is "worst practice" to redeclare local variables in AS3, so we made this configurable:
+    return context.getConfig().isAllowDuplicateLocalVariables();
   }
 
   protected void generateStartCode(JsWriter out) throws IOException {

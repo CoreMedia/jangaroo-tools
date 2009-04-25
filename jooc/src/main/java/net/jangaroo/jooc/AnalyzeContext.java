@@ -15,6 +15,9 @@
 
 package net.jangaroo.jooc;
 
+import net.jangaroo.jooc.config.JoocConfiguration;
+import net.jangaroo.jooc.config.JoocOptions;
+
 /**
  * @author Andreas Gawecki
  */
@@ -22,6 +25,11 @@ public class AnalyzeContext {
 
   protected PackageDeclaration packageDeclaration = null;
   protected Scope scope = null;
+  private JoocOptions config;
+
+  public AnalyzeContext(JoocOptions config) {
+    this.config = config;
+  }
 
   public void enterScope(Node declaration) {
     scope = new Scope(declaration, scope);
@@ -56,4 +64,7 @@ public class AnalyzeContext {
     return scope.getMethodDeclaration();
   }
 
+  public JoocOptions getConfig() {
+    return config;
+  }
 }
