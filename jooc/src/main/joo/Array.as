@@ -1280,11 +1280,13 @@ public class Array extends Object {
    *   <li>Otherwise, nothing is returned and the array is modified to reflect the sort order.
    * </ul>
    * @see Array#sort()
-   */
   public function sortOn(fieldName : Object, options : Object = null) : Array {
-    // TODO
+    // TODO: implement!
+    // Mind that this method is not even supported in Firefox, so it changes Array.prototype and may break
+    // for [each] in loops!
     return null;
   }
+   */
 
   /**
    * Adds elements to and removes elements from an array. This method modifies the array without making a copy.
