@@ -62,7 +62,6 @@ public class ClassLoader extends joo.SystemClassLoader {
   public function run(mainClassName : String, ...args) : void {
     this.complete(function() : void {
       var mainClass : SystemClassDeclaration = this.getRequiredClassDeclaration(mainClassName);
-      mainClass.init();
       mainClass.publicConstructor["main"].apply(null,args);
     });
   }
