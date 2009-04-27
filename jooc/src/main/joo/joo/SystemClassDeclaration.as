@@ -40,9 +40,9 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
           privateStatics : Object,
           memberDeclarations : * /* Function, then Array */,
           memberDeclarationsByQualifiedName : Object,
-          initializers : Array,
-          staticInitializers : Array,
-          boundMethods : Array,
+          initializerNames : Array/*<String>*/, // names of slots that contain initializer functions
+          staticInitializers : Array/*<MemberDeclaration>*/,
+          boundMethodNames : Array/*<String>*/,  // names of slots that contain methods that need to be bound to "this"
           publicStaticMethodNames : Array;
 
   public function SystemClassDeclaration(packageDef : String, directives : Array, classDef : String, memberDeclarations : Function,
@@ -101,9 +101,9 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
   }
 
   internal function initMembers() : void {
-    this.initializers = [];
+    this.initializerNames = [];
     this.staticInitializers = [];
-    this.boundMethods = [];
+    this.boundMethodNames = [];
     var memberDeclarations : Array = this.memberDeclarations(this.publicConstructor, this.privateStatics);
     this.memberDeclarations = [];
     this.memberDeclarationsByQualifiedName = {};
@@ -129,7 +129,7 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
               this.initMethod(memberDeclaration, member as Function);
             } else {
               for (var memberName:String in member) {
-                this._storeMember(memberDeclaration.clone({memberName: memberName}), member[memberName]);
+                this._storeMember(this._createMemberDeclaration(memberDeclaration, {memberName: memberName}), member[memberName]);
               }
             }
           }
@@ -137,10 +137,13 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
     }
     var defaultConstructor : Function = this.native_ ? this.publicConstructor :
       this.publicConstructor.prototype[this.level+"super"] =
-      this.initializers.length==0 && this.boundMethods.length==0 ? this.superClassDeclaration.constructor_ : createSuperCall(this);
+      this.initializerNames.length==0 ? this.superClassDeclaration.constructor_ : createSuperCall(this);
     if (!this.constructor_) {
       // create empty default constructor:
       this.constructor_ = defaultConstructor;
+    }
+    if (this.boundMethodNames.length>0) {
+      this.constructor_ = createMethodBindingConstructor(this.constructor_, this.boundMethodNames);
     }
     this.privateStatics[this.className] = this.publicConstructor;
   }
@@ -149,15 +152,36 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
   private static function createSuperCall(cd : SystemClassDeclaration) : Function {
     if (cd.extends_=="Object") {
       return function $super() : void {
-        initObject(this, cd.boundMethods);
-        initObject(this, cd.initializers);
+        for (var i:int=0; i<cd.initializerNames.length; ++i) {
+          var slot : String = cd.initializerNames[i] as String;
+          this[slot] = this[slot]();
+        }
       };
     }
     return function $super() : void {
-      initObject(this, cd.boundMethods);
       cd.superClassDeclaration.constructor_.apply(this,arguments);
-      initObject(this, cd.initializers);
+      for (var i:int=0; i<cd.initializerNames.length; ++i) {
+        var slot : String = cd.initializerNames[i] as String;
+        this[slot] = this[slot]();
+      }
     };
+  }
+
+  // must be defined static because otherwise, jooc will add .bind(this) to all function expressions!
+  private static function createMethodBindingConstructor(constructor_ : Class, boundMethodNames : Array) : Function {
+    return function $bindMethods() : void {
+      for (var i:int=0; i<boundMethodNames.length; ++i) {
+        var slot : String = boundMethodNames[i] as String;
+        this[slot] = this[slot].bind(this);
+      }
+      constructor_.apply(this, arguments);
+    };
+  }
+
+  internal function _initSlot(memberDeclaration : MemberDeclaration) : void {
+    memberDeclaration.slot = memberDeclaration.isPrivate() && !memberDeclaration.isStatic()
+            ? this.privateStatics["$"+memberDeclaration.memberName] = this.level + memberDeclaration.memberName
+            : memberDeclaration.memberName;
   }
 
   internal function initMethod(memberDeclaration : MemberDeclaration, member : Function) : void {
@@ -167,11 +191,9 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
       }
       this.constructor_ = memberDeclaration.isNative() ? this.publicConstructor : member;
     } else {
+      this._initSlot(memberDeclaration);
       if (memberDeclaration.isNative()) {
         member = memberDeclaration.getNativeMember(this.publicConstructor);
-      }
-      if (memberDeclaration.isBound()) {
-        this.boundMethods.push(memberDeclaration);
       }
       if (this.extends_!="Object") {
         var superMethod : Function = memberDeclaration.retrieveMember(this.superClassDeclaration.Public.prototype,true);
@@ -185,10 +207,19 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
       }
       if (overrides) {
         // found overriding: store super class' method as private member:
-        this._storeMember(memberDeclaration.clone({_namespace: MemberDeclaration.NAMESPACE_PRIVATE}), superMethod);
+        this._storeMember(this._createMemberDeclaration(memberDeclaration, {_namespace: MemberDeclaration.NAMESPACE_PRIVATE}), superMethod);
       }
       this._storeMember(memberDeclaration, member);
+      if (memberDeclaration.isBound()) {
+        this.boundMethodNames.push(memberDeclaration.slot);
+      }
     }
+  }
+
+  internal function _createMemberDeclaration(memberDeclaration : MemberDeclaration, changedProperties : Object) : MemberDeclaration {
+    var newMemberDeclaration : MemberDeclaration = memberDeclaration.clone(changedProperties);
+    this._initSlot(newMemberDeclaration);
+    return newMemberDeclaration;
   }
 
   internal function _storeMember(memberDeclaration : MemberDeclaration, value : Object) : void {
@@ -197,17 +228,15 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
     memberDeclaration.value = value;
     var _static : Boolean = memberDeclaration.isStatic();
     var _private : Boolean = memberDeclaration.isPrivate();
-    if (!_static && _private) {
-      var slot : String = this.level + memberDeclaration.memberName;
-      this.privateStatics["$"+memberDeclaration.memberName] = slot;
-      memberDeclaration.setSlot(slot);
-    }
     var target : Object = _static ? _private ? this.privateStatics : this.publicConstructor : this.publicConstructor.prototype;
     if (!memberDeclaration.retrieveMember(target,false)) {
       memberDeclaration.storeMember(target);
       if (memberDeclaration.hasInitializer()) {
-        var initTarget : Object = _static ? this.staticInitializers : this.initializers;
-        initTarget.push(memberDeclaration);
+        if (_static) {
+          this.staticInitializers.push(memberDeclaration);
+        } else {
+          this.initializerNames.push(memberDeclaration.slot);
+        }
       }
     }
   }
@@ -220,14 +249,9 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
       if (typeof staticInitializer=="function") {
         staticInitializer();
       } else {
-        staticInitializer.initMember(staticInitializer.isPrivate() ? this.privateStatics : this.publicConstructor);
+        var target : Object = staticInitializer.isPrivate() ? this.privateStatics : this.publicConstructor;
+        target[staticInitializer.slot] = target[staticInitializer.slot]();
       }
-    }
-  }
-
-  private static function initObject(object : Object, memberDeclarations : Array) : void {
-    for (var i:int=0; i<memberDeclarations.length; ++i) {
-      (memberDeclarations[i] as MemberDeclaration).initMember(object);
     }
   }
 

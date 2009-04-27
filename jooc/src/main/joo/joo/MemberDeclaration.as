@@ -115,14 +115,6 @@ public class MemberDeclaration {
    : source[this.memberName];
    },*/
 
-  internal function setSlot(slot : String) : void {
-    this.slot = slot;
-  }
-
-  internal function getSlot() : String {
-    return this.slot || this.memberName;
-  }
-
   internal function getNativeMember(publicConstructor : Class) : * {
     var target : * = this.isStatic() ? publicConstructor : publicConstructor.prototype;
     if (this.memberType==MEMBER_TYPE_FUNCTION && this.getterOrSetter) {
@@ -140,7 +132,7 @@ public class MemberDeclaration {
   }
 
   internal function retrieveMember(target : Object, fromSuper : Boolean) : * {
-    var slot : String = this.getSlot();
+    var slot : String = this.slot;
     if (this.getterOrSetter) {
       if (SUPPORTS_GETTERS_SETTERS) {
         return target[this.getterOrSetter==METHOD_TYPE_GET ? "__lookupGetter__" : "__lookupSetter__"](slot);
@@ -154,7 +146,7 @@ public class MemberDeclaration {
   internal function storeMember(target : Object) : void {
     // store only if not native:
     if (!this.isNative()) {
-      var slot : String = this.getSlot();
+      var slot : String = this.slot;
       if (this.getterOrSetter) {
         if (SUPPORTS_GETTERS_SETTERS) {
           target[this.getterOrSetter==METHOD_TYPE_GET ? "__defineGetter__" : "__defineSetter__"](slot, this.value);
@@ -169,15 +161,6 @@ public class MemberDeclaration {
 
   public function hasInitializer() : Boolean {
     return this.memberType!=MEMBER_TYPE_FUNCTION && typeof this.value=="function" && this.value.constructor!==RegExp;
-  }
-
-  public function initMember(target : Object) : void {
-    var slot : String = this.getSlot();
-    if (this.isBound()) {
-      target[slot] = target[slot].bind(target);
-    } else {
-      target[slot] = target[slot]();
-    }
   }
 
   public function _getCloneFactory() : Class {
