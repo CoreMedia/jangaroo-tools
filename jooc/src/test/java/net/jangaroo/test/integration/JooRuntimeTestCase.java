@@ -49,7 +49,7 @@ public abstract class JooRuntimeTestCase extends JooTestCase {
        return "global";
     }
 
-    static public void print(Context cx, Scriptable thisObj, Object[] args, Function funObj) {
+    static public void trace(Context cx, Scriptable thisObj, Object[] args, Function funObj) {
        for (int i=0; i < args.length; i++) {
          if (i > 0)
              System.out.print(" ");
@@ -67,7 +67,7 @@ public abstract class JooRuntimeTestCase extends JooTestCase {
     cx = ContextFactory.getGlobal().enterContext();
     cx.setLanguageVersion(Context.VERSION_1_5);
     scope = cx.initStandardObjects(global);
-    global.defineFunctionProperties(new String[]{ "print" },
+    global.defineFunctionProperties(new String[]{ "trace" },
             Global.class, ScriptableObject.DONTENUM);
     load(CLASS_JS_FILE_PATH);
   }
