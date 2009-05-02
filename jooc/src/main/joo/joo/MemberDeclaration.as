@@ -71,7 +71,7 @@ public class MemberDeclaration {
       }
     }
     if (!this.memberType) {
-      throw new Error("Missing member type in declaration '" + memberDeclarationStr + "'.");
+      throw new Error("Missing member type in declaration '" + tokens.join(" ") + "'.");
     }
   }
 
