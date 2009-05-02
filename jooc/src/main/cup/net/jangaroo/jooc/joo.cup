@@ -82,7 +82,7 @@ terminal JooSymbol NEW;
 terminal JooSymbol PACKAGE, PRIVATE, PROTECTED, PUBLIC;
 terminal JooSymbol RETURN;
 terminal JooSymbol SUPER, SWITCH;
-terminal JooSymbol THIS, THROW, TO, TRY, TYPEOF;
+terminal JooSymbol THIS, THROW, TRY, TYPEOF;
 terminal JooSymbol USE;
 terminal JooSymbol VAR, VOID;
 terminal JooSymbol WHILE, WITH;

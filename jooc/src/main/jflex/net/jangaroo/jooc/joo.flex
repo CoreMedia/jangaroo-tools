@@ -31,12 +31,12 @@ but are given special meaning in certain contexts by the parser.
 The following list contains all keywords:
 
 as break case catch class const continue default delete do else extends false finally for function if implements import
-in instanceof interface internal is new null package private protected public return super switch this throw to
+in instanceof interface internal is new null package private protected public return super switch this throw
 true try typeof use var void while with
 
 The following list contains all identifiers that are syntactic keywords:
 
-each get set namespace include dynamic final native override static
+each get set to namespace include dynamic final native override static
 
 Former Jangaroo keywords:
 
@@ -214,7 +214,6 @@ static int[] terminalsAllowedBeforeRegexpLiteral = {
     defsym("switch", SWITCH);
     defsym("this", THIS);
     defsym("throw", THROW);
-    defsym("to", TO);
     defsym("try", TRY);
     defsym("typeof", TYPEOF);
     defsym("use", USE);
@@ -351,7 +350,6 @@ Include           = "include \"" ~"\""
   "switch"                        { return symbol(SWITCH); }
   "this"                          { return symbol(THIS); }
   "throw"                         { return symbol(THROW); }
-  "to"                            { return symbol(TO); }
   "try"                           { return symbol(TRY); }
   "typeof"                        { return symbol(TYPEOF); }
   "use"                           { return symbol(USE); }
