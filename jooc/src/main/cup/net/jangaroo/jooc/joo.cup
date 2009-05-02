@@ -547,7 +547,7 @@ memberDeclaration ::=
 
 methodDeclaration ::=
     modifiers:m FUNCTION:f IDE:getOrSet ide:ide LPAREN:lp parameters:params RPAREN:rp optTypeRelation:t optBody:b
-    {: RESULT = new MethodDeclaration((JooSymbol[])m.toArray(new JooSymbol[0]),f,new AccessorIde(getOrSet,ide),lp,params,rp,t,b); :}
+    {: RESULT = new MethodDeclaration((JooSymbol[])m.toArray(new JooSymbol[0]),f,getOrSet,ide,lp,params,rp,t,b); :}
   | modifiers:m FUNCTION:f ide:ide LPAREN:lp parameters:params RPAREN:rp optTypeRelation:t optBody:b
     {: RESULT = new MethodDeclaration((JooSymbol[])m.toArray(new JooSymbol[0]),f,ide,lp,params,rp,t,b); :}
   ;
