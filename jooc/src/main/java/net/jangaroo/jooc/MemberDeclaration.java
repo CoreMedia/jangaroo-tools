@@ -15,8 +15,6 @@
 
 package net.jangaroo.jooc;
 
-import java.math.BigInteger;
-
 /**
  * @author Andreas Gawecki
  */
