@@ -71,24 +71,23 @@ parser code  {:
 
 :}
 
-terminal JooSymbol ABSTRACT, AS, ASSERT;
+terminal JooSymbol AS;
 terminal JooSymbol BREAK;
 terminal JooSymbol CASE, CATCH, CLASS, CONST, CONTINUE;
-terminal JooSymbol DEBUGGER, DEFAULT, DELETE, DO;
-terminal JooSymbol ELSE, ENUM, EXTENDS;
-terminal JooSymbol FINAL, FINALLY, FOR, FUNCTION;
-terminal JooSymbol GOTO;
+terminal JooSymbol DEFAULT, DELETE, DO;
+terminal JooSymbol ELSE, EXTENDS;
+terminal JooSymbol FINALLY, FOR, FUNCTION;
 terminal JooSymbol IF, IMPLEMENTS, IMPORT, IN, INSTANCEOF, INTERFACE, INTERNAL, IS;
-terminal JooSymbol NAMESPACE, NATIVE, NEW;
-terminal JooSymbol OVERRIDE;
+terminal JooSymbol NEW;
 terminal JooSymbol PACKAGE, PRIVATE, PROTECTED, PUBLIC;
-terminal JooSymbol REST, RETURN;
-terminal JooSymbol STATIC, SUPER, SWITCH, SYNCHRONIZED;
-terminal JooSymbol THIS, THROW, THROWS, TRANSIENT, TRY, TYPEOF;
+terminal JooSymbol RETURN;
+terminal JooSymbol SUPER, SWITCH;
+terminal JooSymbol THIS, THROW, TO, TRY, TYPEOF;
 terminal JooSymbol USE;
-terminal JooSymbol VAR, VOID, VOLATILE;
+terminal JooSymbol VAR, VOID;
 terminal JooSymbol WHILE, WITH;
 
+terminal JooSymbol REST;
 terminal JooSymbol PLUSPLUS, MINUSMINUS, PLUS, MINUS, NOT, DIV, MOD, MUL;
 terminal JooSymbol LSHIFT, RSHIFT, URSHIFT;
 terminal JooSymbol LT, GT, LTEQ, GTEQ;
@@ -112,7 +111,7 @@ terminal JooSymbol REGEXP_LITERAL;
 // pseudo-terminals for precedence setting, never returned from scanner:
 terminal JooSymbol PREFIX_PLUSPLUS, PREFIX_MINUSMINUS, PREFIX_PLUS, PREFIX_MINUS;
 
-// pseudo-terminal carried in Sanner.ScanError, never returned by scanner:
+// pseudo-terminal carried in Scanner.ScanError, never returned by scanner:
 terminal JooSymbol SCAN_ERROR;
 
 nonterminal CommaSeparatedList arguments;
@@ -162,7 +161,6 @@ nonterminal Expr optExprOrObjectLiteral;
 nonterminal Ide optIde;
 nonterminal Initializer optInitializer;
 nonterminal TypeRelation optTypeRelation;
-nonterminal TypeRelation optVoidTypeRelation;
 nonterminal PackageDeclaration packageDeclaration;
 nonterminal Parameter parameter;
 nonterminal Parameters parameters;
@@ -291,8 +289,10 @@ compilationUnit ::=
 compilationUnitDeclaration ::=
     classDeclaration:cd
     {: RESULT = cd; :}
-  | modifiers:m NAMESPACE:n ide:ide EQ:eq STRING_LITERAL:l SEMICOLON:s
-    {: RESULT = new FieldDeclaration((JooSymbol[])m.toArray(new JooSymbol[0]), n, ide, null, new Initializer(eq, new LiteralExpr(l)), s); :}
+/*
+  | modifiers:m ide:namespace ide:ide EQ:eq STRING_LITERAL:l SEMICOLON:s
+    {: RESULT = new FieldDeclaration((JooSymbol[])m.toArray(new JooSymbol[0]), namespace, ide, null, new Initializer(eq, new LiteralExpr(l)), s); :}
+*/
   | memberDeclaration:md
     {: RESULT = md; :}
   ;
@@ -313,8 +313,8 @@ directive ::=
     {: RESULT = new Annotation(lb, ide, rb); :}
   | LBRACK:lb ide:ide LPAREN:lb2 annotationFields:af RPAREN:rb2 RBRACK:rb
     {: RESULT = new Annotation(lb, ide, lb2, af, rb2, rb); :}
-  | USE:u NAMESPACE:n qualifiedIde:namespace
-    {: RESULT = new UseNamespaceDirective(u, n, namespace); :}
+  | USE:u ide:n qualifiedIde:namespace
+    {: RESULT = new UseNamespaceDirective(u, n.ide, namespace); :}
   | SEMICOLON:s
     {: RESULT = new EmptyDeclaration(s); :}
   ;
@@ -561,17 +561,7 @@ modifier ::=
     {: RESULT = s; :}
   | INTERNAL:s
     {: RESULT = s; :}
-  | STATIC:s
-    {: RESULT = s; :}
-  | ABSTRACT:s
-    {: RESULT = s; :}
-  | FINAL:s
-    {: RESULT = s; :}
-  | NATIVE:s
-    {: RESULT = s; :}
-  | OVERRIDE:s
-    {: RESULT = s; :}
-  /* maybe a namespace: */
+  /* syntactic keyword modifier or a namespace: */
   | ide:ide
     {: RESULT = ide.ide; :}
   ;
@@ -672,12 +662,6 @@ optTypeRelation ::=
     {: RESULT = t; :}
   ;
 
-optVoidTypeRelation ::=
-    {: RESULT = null; :}
-  | COLON:s VOID:v
-    {: RESULT = new TypeRelation(s,new VoidType(v)); :}
-  ;
-
 packageDeclaration ::=
     PACKAGE:p
     {: RESULT = new PackageDeclaration(p,null); :}
@@ -765,8 +749,11 @@ statement ::=
     {: RESULT = new ContinueStatement(c,ide,s); :}
   | RETURN:r optExprOrObjectLiteral:e SEMICOLON:s
     {: RESULT = new ReturnStatement(r,e,s); :}
-  | ASSERT:a LPAREN:lp exprOrObjectLiteral:e RPAREN:rp SEMICOLON:s
-    {: RESULT = new AssertStatement(a,lp,e,rp,s); :}
+  | ide:ide LPAREN:lp arguments:args RPAREN:rp SEMICOLON:s
+    {: RESULT = SyntacticKeywords.ASSERT.equals(ide.getName()) && args!=null && args.tail==null
+                 ? new AssertStatement(ide.ide,lp,(Expr)args.head,rp,s)
+                 : new SemicolonTerminatedStatement(new ApplyExpr(new TopLevelIdeExpr(ide), lp, args, rp), s);
+    :}
   | THROW:t commaExpr:e SEMICOLON:s
     {: RESULT = new ThrowStatement(t,e,s); :}
   | SUPER:s LPAREN:lp arguments:args RPAREN:rp

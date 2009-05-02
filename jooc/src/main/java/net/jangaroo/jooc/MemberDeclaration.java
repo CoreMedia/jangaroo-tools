@@ -32,7 +32,7 @@ public abstract class MemberDeclaration extends IdeDeclaration {
 
   private JooSymbol findNamespace(JooSymbol[] modifiers) {
     for (JooSymbol modifier : modifiers) {
-      if (modifier.sym==sym.IDE && !DYNAMIC.equals(modifier.getText())) {
+      if (getModifierFlag(modifier)==MODIFIER_NAMESPACE) {
         return modifier;
       }
     }

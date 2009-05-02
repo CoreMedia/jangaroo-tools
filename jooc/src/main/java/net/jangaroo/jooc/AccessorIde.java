@@ -26,7 +26,7 @@ public class AccessorIde extends Ide {
 
   public AccessorIde(JooSymbol symGetOrSet, Ide ide) {
     super(ide.ide);
-    if (!(symGetOrSet.getText().equals("get") || symGetOrSet.getText().equals("set"))) {
+    if (!(symGetOrSet.getText().equals(SyntacticKeywords.GET) || symGetOrSet.getText().equals(SyntacticKeywords.SET))) {
       Jooc.error(symGetOrSet, "Accessor identifiers must be 'get' or 'set'.");
     }
     this.symGetOrSet = symGetOrSet;

@@ -19,6 +19,51 @@
  * Author: Andreas Gawecki
  */
 
+/*
+From http://livedocs.adobe.com/specs/actionscript/3/as3_specification118.html:
+
+13.1 Lexical
+
+Lexical keywords are removed from the available program namespace during scanning. It is a syntax error to use any of
+these names except as indicated by the grammar. Syntactic keywords appear to the lexical scanner as identifier tokens,
+but are given special meaning in certain contexts by the parser.
+
+The following list contains all keywords:
+
+as break case catch class const continue default delete do else extends false finally for function if implements import
+in instanceof interface internal is new null package private protected public return super switch this throw to
+true try typeof use var void while with
+
+The following list contains all identifiers that are syntactic keywords:
+
+each get set namespace include dynamic final native override static
+
+Former Jangaroo keywords:
+
+abstract assert enum final goto namespace override static synchronized throws transient volatile
+
+
+13.2 Syntactic
+
+Identifiers with special meaning become keywords in certain syntactic contexts:
+
+    * In a for-each-in statement between the 'for' token and the '(' token:
+      each
+    * In a function definition between the 'function' token and an identifier token:
+      get set
+    * As the first word of a directive:
+      namespace include
+    * In an attribute list or wherever an attribute list can be used:
+      dynamic final native override static
+
+It is a syntax error to use a syntactic keyword in a context where it is treated as a keyword:
+
+namespace = "hello"
+namespace()
+
+In these cases, the grammar requires an identifier after the namespace keyword.
+*/
+
 package net.jangaroo.jooc;
 
 import java.util.HashMap;
@@ -40,7 +85,7 @@ import net.jangaroo.jooc.util.IncludeEvaluator;
 %{
 
 static int[] terminalsAllowedBeforeRegexpLiteral = {
-  ASSERT, CASE, DO, ELSE, IN, INSTANCEOF,
+  CASE, DO, ELSE, IN, INSTANCEOF,
   RETURN, TYPEOF, WITH,
   PLUS, MINUS, NOT, DIV, MOD, MUL,
   LSHIFT, RSHIFT, URSHIFT,
@@ -135,8 +180,6 @@ static int[] terminalsAllowedBeforeRegexpLiteral = {
   }
 
   static {
-    defsym("abstract", ABSTRACT);
-    defsym("assert", ASSERT);
     defsym("as", AS);
     defsym("break", BREAK);
     defsym("case", CASE);
@@ -144,18 +187,14 @@ static int[] terminalsAllowedBeforeRegexpLiteral = {
     defsym("class", CLASS);
     defsym("const", CONST);
     defsym("continue", CONTINUE);
-//    defsym("debugger", DEBUGGER);
     defsym("default", DEFAULT);
     defsym("delete", DELETE);
     defsym("do", DO);
     defsym("else", ELSE);
-    defsym("enum", ENUM);
     defsym("extends", EXTENDS);
-    defsym("final", FINAL);
     defsym("finally", FINALLY);
     defsym("for", FOR);
     defsym("function", FUNCTION);
-    defsym("goto", GOTO);
     defsym("if", IF);
     defsym("implements", IMPLEMENTS);
     defsym("import", IMPORT);
@@ -164,30 +203,23 @@ static int[] terminalsAllowedBeforeRegexpLiteral = {
     defsym("interface", INTERFACE);
     defsym("internal", INTERNAL);
     defsym("is", IS);
-    defsym("namespace", NAMESPACE);
-    defsym("native", NATIVE);
     defsym("new", NEW);
     defsym("null", NULL_LITERAL);
-    defsym("override", OVERRIDE);
     defsym("package", PACKAGE);
     defsym("private", PRIVATE);
     defsym("protected", PROTECTED);
     defsym("public", PUBLIC);
     defsym("return", RETURN);
-    defsym("static", STATIC);
     defsym("super", SUPER);
     defsym("switch", SWITCH);
-    defsym("synchronized", SYNCHRONIZED);
     defsym("this", THIS);
     defsym("throw", THROW);
-    defsym("throws", THROWS);
-    defsym("transient", TRANSIENT);
+    defsym("to", TO);
     defsym("try", TRY);
     defsym("typeof", TYPEOF);
     defsym("use", USE);
     defsym("var", VAR);
     defsym("void", VOID);
-    defsym("volatile", VOLATILE);
     defsym("while", WHILE);
     defsym("with", WITH);
     defsym("(", LPAREN);
@@ -285,8 +317,6 @@ Include           = "include \"" ~"\""
   {WhiteSpace}                    { whitespace += yytext(); }
   {Include}                       { yypushStream(IncludeEvaluator.createReader(yytext(),getFileName())); }
 
-  "abstract"                      { return symbol(ABSTRACT); }
-  "assert"                        { return symbol(ASSERT); }
   "as"                            { return symbol(AS); }
   "break"                         { return symbol(BREAK); }
   "case"                          { return symbol(CASE); }
@@ -294,18 +324,14 @@ Include           = "include \"" ~"\""
   "class"                         { return symbol(CLASS); }
   "const"                         { return symbol(CONST); }
   "continue"                      { return symbol(CONTINUE); }
-//  "debugger"                      { return symbol(DEBUGGER); }
   "default"                       { return symbol(DEFAULT); }
   "delete"                        { return symbol(DELETE); }
   "do"                            { return symbol(DO); }
   "else"                          { return symbol(ELSE); }
-  "enum"                          { return symbol(ENUM); }
   "extends"                       { return symbol(EXTENDS); }
-  "final"                         { return symbol(FINAL); }
   "finally"                       { return symbol(FINALLY); }
   "for"                           { return symbol(FOR); }
   "function"                      { return symbol(FUNCTION); }
-  "goto"                          { return symbol(GOTO); }
   "if"                            { return symbol(IF); }
   "implements"                    { return symbol(IMPLEMENTS); }
   "import"                        { return symbol(IMPORT); }
@@ -314,30 +340,23 @@ Include           = "include \"" ~"\""
   "interface"                     { return symbol(INTERFACE); }
   "internal"                      { return symbol(INTERNAL); }
   "is"                            { return symbol(IS); }
-  "namespace"                     { return symbol(NAMESPACE); }
-  "native"                        { return symbol(NATIVE); }
   "new"                           { return symbol(NEW); }
   "null"                          { return symbol(NULL_LITERAL, null); }
-  "override"                      { return symbol(OVERRIDE); }
   "package"                       { return symbol(PACKAGE); }
   "private"                       { return symbol(PRIVATE); }
   "protected"                     { return symbol(PROTECTED); }
   "public"                        { return symbol(PUBLIC); }
   "return"                        { return symbol(RETURN); }
-  "static"                        { return symbol(STATIC); }
   "super"                         { return symbol(SUPER); }
   "switch"                        { return symbol(SWITCH); }
-  "synchronized"                  { return symbol(SYNCHRONIZED); }
   "this"                          { return symbol(THIS); }
   "throw"                         { return symbol(THROW); }
-  "throws"                        { return symbol(THROWS); }
-  "transient"                     { return symbol(TRANSIENT); }
+  "to"                            { return symbol(TO); }
   "try"                           { return symbol(TRY); }
   "typeof"                        { return symbol(TYPEOF); }
   "use"                           { return symbol(USE); }
   "var"                           { return symbol(VAR); }
   "void"                          { return symbol(VOID); }
-  "volatile"                      { return symbol(VOLATILE); }
   "while"                         { return symbol(WHILE); }
   "with"                          { return symbol(WITH); }
 

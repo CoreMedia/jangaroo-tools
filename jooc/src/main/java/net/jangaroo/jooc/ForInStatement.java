@@ -50,7 +50,7 @@ class ForInStatement extends LoopStatement {
 
   private ForInStatement(JooSymbol symFor, JooSymbol symEach, JooSymbol lParen, VariableDeclaration decl, Ide ide, JooSymbol symIn, Expr expr, JooSymbol rParen, Statement body) {
     super(symFor, body);
-    if (!(symEach==null || "each".equals(symEach.getText()))) {
+    if (!(symEach==null || SyntacticKeywords.EACH.equals(symEach.getText()))) {
       Jooc.error(symEach, "'for' must be followed by '(' or 'each'.");
     }
     this.symEach = symEach;

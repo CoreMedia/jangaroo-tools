@@ -21,7 +21,6 @@ import java.io.IOException;
  * @author Andreas Gawecki
  */
 abstract class Declaration extends NodeImplBase {
-  public static final String DYNAMIC = "dynamic";
 
   public JooSymbol[] getSymModifiers() {
     return symModifiers;
@@ -64,20 +63,7 @@ abstract class Declaration extends NodeImplBase {
     modifiers = 0;
     for (int i = 0; i < symModifiers.length; i++) {
       JooSymbol modifier = symModifiers[i];
-      int flag = 0;
-      switch (modifier.sym) {
-        case sym.PUBLIC: flag = MODIFIER_PUBLIC; break;
-        case sym.PROTECTED: flag = MODIFIER_PROTECTED; break;
-        case sym.PRIVATE: flag = MODIFIER_PRIVATE; break;
-        case sym.INTERNAL: flag = MODIFIER_INTERNAL; break;
-        case sym.STATIC: flag = MODIFIER_STATIC; break;
-        case sym.ABSTRACT: flag = MODIFIER_ABSTRACT; break;
-        case sym.FINAL: flag = MODIFIER_FINAL; break;
-        case sym.NATIVE: flag = MODIFIER_NATIVE; break;
-        case sym.OVERRIDE: flag = MODIFIER_OVERRIDE; break;
-        case sym.IDE: flag = DYNAMIC.equals(modifier.getText()) ? MODIFIER_DYNAMIC : MODIFIER_NAMESPACE; break;
-        default: Jooc.error(modifier, "internal compiler error: invalid modifier '" +  modifier.getText() + "'");
-      }
+      int flag = getModifierFlag(modifier);
       if ((allowedModifiers & flag) == 0)
         Jooc.error(modifier, "modifier '" +  modifier.getText() + "' not allowed here");
       if ((flag & modifiers) != 0)
@@ -86,6 +72,26 @@ abstract class Declaration extends NodeImplBase {
         Jooc.error(modifier, "duplicate scope modifier '" +  modifier.getText() + "'");
       modifiers |= flag;
     }
+  }
+
+  int getModifierFlag(JooSymbol modifier) {
+    switch (modifier.sym) {
+      case sym.PUBLIC: return MODIFIER_PUBLIC;
+      case sym.PROTECTED: return MODIFIER_PROTECTED;
+      case sym.PRIVATE: return MODIFIER_PRIVATE;
+      case sym.INTERNAL: return MODIFIER_INTERNAL;
+      case sym.IDE:
+        return
+            modifier.getText().equals(SyntacticKeywords.DYNAMIC)  ? MODIFIER_DYNAMIC
+          : modifier.getText().equals(SyntacticKeywords.STATIC)   ? MODIFIER_STATIC
+          : modifier.getText().equals(SyntacticKeywords.FINAL)    ? MODIFIER_FINAL
+          : modifier.getText().equals(SyntacticKeywords.NATIVE)   ? MODIFIER_NATIVE
+          : modifier.getText().equals(SyntacticKeywords.OVERRIDE) ? MODIFIER_OVERRIDE
+          : MODIFIER_NAMESPACE;
+       
+    }
+    Jooc.error(modifier, "internal compiler error: invalid modifier '" + modifier.getText() + "'");
+    return -1;
   }
 
   protected int getModifiers() {
