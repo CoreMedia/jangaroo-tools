@@ -53,6 +53,23 @@ class SemicolonTerminatedStatement extends Statement {
   }
 
   public Node analyze(Node parentNode, AnalyzeContext context) {
+    // check for special case "assert statement":
+    if (optStatement instanceof ApplyExpr && optSymSemicolon!=null) {
+      ApplyExpr applyExpr = (ApplyExpr)optStatement;
+      JooSymbol funSymbol = applyExpr.fun.getSymbol();
+      if (SyntacticKeywords.ASSERT.equals(funSymbol.getText())) {
+        ParenthesizedExpr<CommaSeparatedList<Expr>> args = applyExpr.args;
+        CommaSeparatedList<Expr> params = args.expr;
+        if (params != null && params.tail == null) {
+          AssertStatement assertStatement = new AssertStatement(funSymbol, args.lParen, params.head, args.rParen, optSymSemicolon);
+          assertStatement.analyze(parentNode, context);
+          return assertStatement; 
+        }
+      }
+    }
+    //: new SemicolonTerminatedStatement(new ApplyExpr(new TopLevelIdeExpr(ide), lp, args, rp), s);
+    //? new AssertStatement(ide.ide,lp,(Expr)args.head,rp,s)
+    
     super.analyze(parentNode, context);
     if (optStatement!=null)
       optStatement = optStatement.analyze(this, context);

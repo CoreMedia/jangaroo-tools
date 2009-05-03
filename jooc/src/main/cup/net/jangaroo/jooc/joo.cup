@@ -749,11 +749,6 @@ statement ::=
     {: RESULT = new ContinueStatement(c,ide,s); :}
   | RETURN:r optExprOrObjectLiteral:e SEMICOLON:s
     {: RESULT = new ReturnStatement(r,e,s); :}
-  | ide:ide LPAREN:lp arguments:args RPAREN:rp SEMICOLON:s
-    {: RESULT = SyntacticKeywords.ASSERT.equals(ide.getName()) && args!=null && args.tail==null
-                 ? new AssertStatement(ide.ide,lp,(Expr)args.head,rp,s)
-                 : new SemicolonTerminatedStatement(new ApplyExpr(new TopLevelIdeExpr(ide), lp, args, rp), s);
-    :}
   | THROW:t commaExpr:e SEMICOLON:s
     {: RESULT = new ThrowStatement(t,e,s); :}
   | SUPER:s LPAREN:lp arguments:args RPAREN:rp

@@ -50,7 +50,7 @@ class BlockStatement extends Statement {
 
   public Node analyze(Node parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
-    analyze(this, statements, context);
+    statements = analyze(this, statements, context);
     return this;
   }
 

@@ -21,7 +21,6 @@ import net.jangaroo.jooc.backend.CompilationUnitSinkFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.Iterator;
 
 /**
  * @author Andreas Gawecki
@@ -115,7 +114,7 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
     context.enterScope(packageDeclaration);
     packageDeclaration.analyze(this, context);
     if (directives!=null) {
-      analyze(this, directives, context);
+      directives = analyze(this, directives, context);
     }
     primaryDeclaration.analyze(this, context);
     context.leaveScope(packageDeclaration);

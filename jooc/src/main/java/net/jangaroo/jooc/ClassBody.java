@@ -16,7 +16,7 @@
 package net.jangaroo.jooc;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Andreas Gawecki
@@ -24,16 +24,16 @@ import java.util.ArrayList;
 public class ClassBody extends NodeImplBase {
   JooSymbol lBrace;
 
-  public ArrayList getDeclararations() {
+  public List<Node> getDeclararations() {
     return declararations;
   }
 
-  ArrayList declararations;
+  List<Node> declararations;
   JooSymbol rBrace;
 
   ClassDeclaration classDeclaration;
 
-  public ClassBody(JooSymbol lBrace, ArrayList declararations, JooSymbol rBrace) {
+  public ClassBody(JooSymbol lBrace, List<Node> declararations, JooSymbol rBrace) {
     this.lBrace = lBrace;
     this.declararations = declararations;
     this.rBrace = rBrace;
@@ -47,7 +47,7 @@ public class ClassBody extends NodeImplBase {
 
   public Node analyze(Node parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
-    analyze(this, declararations, context);
+    declararations = analyze(this, declararations, context);
     return this;
   }
 

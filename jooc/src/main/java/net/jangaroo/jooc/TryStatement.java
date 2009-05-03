@@ -43,7 +43,7 @@ class TryStatement extends KeywordStatement {
   public Node analyze(Node parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     block.analyze(this, context);
-    analyze(this, catches, context);
+    catches = analyze(this, catches, context);
     if (finallyBlock != null)
       finallyBlock.analyze(this, context);
     return this;

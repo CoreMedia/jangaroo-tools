@@ -17,6 +17,8 @@ package net.jangaroo.jooc;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Andreas Gawecki
@@ -36,10 +38,12 @@ public abstract class NodeImplBase implements Node {
     return this;
   }
 
-  public void analyze(Node parent, Collection<? extends Node> nodes, AnalyzeContext context) {
+  public <N extends Node> List<N> analyze(Node parent, List<N> nodes, AnalyzeContext context) {
+    List<N> result = new ArrayList<N>(nodes.size());
     for (Node node : nodes) {
-      node.analyze(parent, context);
+      result.add((N)node.analyze(parent, context));
     }
+    return result;
   }
 
 }
