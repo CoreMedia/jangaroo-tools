@@ -173,7 +173,7 @@ public class MethodDeclaration extends MemberDeclaration {
       out.beginString();
       writeModifiers(out);
       String methodName = ide.getName();
-      if (classDeclaration!=null && !isConstructor && !isStatic() && classDeclaration.isBoundMethod(methodName)) {
+      if (classDeclaration!=null && !isConstructor && !isStatic() && !isGetterOrSetter() && classDeclaration.isBoundMethod(methodName)) {
         // TODO: move this into an annotation!
         out.writeToken("bound");
       }
