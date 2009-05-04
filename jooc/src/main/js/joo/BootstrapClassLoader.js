@@ -1,7 +1,7 @@
 Function.prototype.bind = function(object) {
   var fn = this;
   return (function $boundMethod() {
-    return fn.apply(object,arguments);
+    return arguments.length ? fn.apply(object,arguments) : fn.call(object); // call is faster at least in Firefox.
   });
 };
 
