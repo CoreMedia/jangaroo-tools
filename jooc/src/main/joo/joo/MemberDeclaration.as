@@ -18,9 +18,20 @@ public class MemberDeclaration {
           OVERRIDE : String = "override";
 
   private static var SUPPORTS_GETTERS_SETTERS : Boolean;
+  private static var DEFINE_METHOD : Object;
+  private static var LOOKUP_METHOD : Object;
+
 {
   // no static initializers in system classes, use static block:
   SUPPORTS_GETTERS_SETTERS = "__defineGetter__" in Object.prototype;
+  DEFINE_METHOD = {
+    "get":  "__defineGetter__",
+    "set": "__defineSetter__"
+  };
+  LOOKUP_METHOD = {
+    "get": "__lookupGetter__",
+    "set": "__lookupSetter__"
+  };
 }
 
   public static function create(memberDeclarationStr : String) : MemberDeclaration {
@@ -64,7 +75,7 @@ public class MemberDeclaration {
             this._namespace = token;
         }
       } else {
-        if (this.isMethod() && (this.memberName==METHOD_TYPE_GET || this.memberName==METHOD_TYPE_SET)) {
+        if (this.isMethod() && LOOKUP_METHOD[this.memberName]) {
           this.getterOrSetter = this.memberName; // detected getter or setter
         }
         this.memberName = token; // token following the member type is the member name
@@ -131,16 +142,36 @@ public class MemberDeclaration {
     return member;
   }
 
-  internal function retrieveMember(target : Object, fromSuper : Boolean) : * {
+  internal function hasOwnMember(target : Object) : Boolean {
+    // fast path:
+    if (!this.getterOrSetter && target.hasOwnProperty) {
+      return target.hasOwnProperty(this.slot);
+    }
+    var value : * = this.retrieveMember(target);
+    if (value!==undefined) {
+      // is it really target's own member? Retrieve super's value:
+      var superTarget : Object = target.constructor.prototype;
+      var superValue : * = this.retrieveMember(superTarget);
+      if (value!==superValue) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  internal function retrieveMember(target : Object) : * {
+    if (!target) {
+      return undefined;
+    }
     var slot : String = this.slot;
     if (this.getterOrSetter) {
       if (SUPPORTS_GETTERS_SETTERS) {
-        return target[this.getterOrSetter==METHOD_TYPE_GET ? "__lookupGetter__" : "__lookupSetter__"](slot);
+        return target[LOOKUP_METHOD[this.getterOrSetter]](slot);
       } else {
         slot = this.getterOrSetter+"$"+slot;
       }
     }
-    return fromSuper || !target.hasOwnProperty || target.hasOwnProperty(slot) ? target[slot] : undefined;
+    return target[slot];
   }
 
   internal function storeMember(target : Object) : void {
@@ -149,7 +180,7 @@ public class MemberDeclaration {
       var slot : String = this.slot;
       if (this.getterOrSetter) {
         if (SUPPORTS_GETTERS_SETTERS) {
-          target[this.getterOrSetter==METHOD_TYPE_GET ? "__defineGetter__" : "__defineSetter__"](slot, this.value);
+          target[DEFINE_METHOD[this.getterOrSetter]](slot, this.value);
           return;
         } else {
           slot = this.getterOrSetter+"$"+slot;
@@ -192,6 +223,9 @@ public class MemberDeclaration {
       sb.push(BOUND);
     }
     sb.push(this.memberType);
+    if (this.getterOrSetter) {
+      sb.push(this.getterOrSetter);
+    }
     sb.push(this.memberName);
     return sb.join(" ");
   }

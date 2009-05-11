@@ -199,7 +199,7 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
         member = memberDeclaration.getNativeMember(this.publicConstructor);
       }
       if (this.extends_!="Object") {
-        var superMethod : Function = memberDeclaration.retrieveMember(this.superClassDeclaration.Public.prototype,true);
+        var superMethod : Function = memberDeclaration.retrieveMember(this.superClassDeclaration.Public.prototype);
       }
       var overrides : Boolean = !!superMethod && superMethod!==Object.prototype[memberDeclaration.memberName];
       if (overrides !== memberDeclaration.isOverride()) {
@@ -232,7 +232,7 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
     var _static : Boolean = memberDeclaration.isStatic();
     var _private : Boolean = memberDeclaration.isPrivate();
     var target : Object = _static ? _private ? this.privateStatics : this.publicConstructor : this.publicConstructor.prototype;
-    if (!memberDeclaration.retrieveMember(target,false)) {
+    if (!memberDeclaration.hasOwnMember(target)) {
       memberDeclaration.storeMember(target);
       if (memberDeclaration.hasInitializer()) {
         if (_static) {
