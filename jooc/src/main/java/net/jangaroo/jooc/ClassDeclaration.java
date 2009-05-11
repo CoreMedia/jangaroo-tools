@@ -125,7 +125,7 @@ public class ClassDeclaration extends IdeDeclaration {
     out.write("[");
     boolean isFirst = true;
     for (MemberDeclaration memberDeclaration : members.values()) {
-      if (memberDeclaration.isMethod() && memberDeclaration.isPublic() && memberDeclaration.isStatic() && !memberDeclaration.isNative()) {
+      if (memberDeclaration.isMethod() && !memberDeclaration.isPrivate() && !memberDeclaration.isProtected()  && memberDeclaration.isStatic() && !memberDeclaration.isNative()) {
         if (isFirst) {
           isFirst = false;
         } else {
