@@ -361,12 +361,16 @@ public class JooTest extends JooRuntimeTestCase {
 
   public void testGetterSetter() throws Exception {
     loadClass("package1.TestGetterSetter");
+    loadClass("package1.TestSetterOverride");
     complete();
     eval("obj = new package1.TestGetterSetter();");
     eval("obj.foo = '1234';");
     expectString("1234", "obj.foo");
     eval("obj.foo = 'foo';");
     expectString("NaN", "obj.foo");
+    eval("sub = new package1.TestSetterOverride();");
+    eval("sub.foo = '5678';");
+    expectString("15678", "sub.foo");
   }
 
   public void testIs() throws Exception {
