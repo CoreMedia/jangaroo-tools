@@ -180,6 +180,15 @@ public class MemberDeclaration {
       var slot : String = this.slot;
       if (this.getterOrSetter) {
         if (SUPPORTS_GETTERS_SETTERS) {
+          // defining a getter or setter disables the counterpart setter/getter from the prototype,
+          // so copy that setter/getter before, if "target" does not already define it:
+          var oppositeMethodType:* = this.getterOrSetter==METHOD_TYPE_GET ? METHOD_TYPE_SET : METHOD_TYPE_GET;
+          var counterpart : Function = target[LOOKUP_METHOD[oppositeMethodType]](slot);
+          // if counterpart is defined, check that it is not overridden (differs from prototype's counterpart):
+          if (counterpart && counterpart===target.constructor.prototype[LOOKUP_METHOD[oppositeMethodType]](slot)) {
+              // set the counterpart directly on target. This may be redundant, but we cannot find out.
+            target[DEFINE_METHOD[oppositeMethodType]](slot, counterpart);
+          }
           target[DEFINE_METHOD[this.getterOrSetter]](slot, this.value);
           return;
         } else {
