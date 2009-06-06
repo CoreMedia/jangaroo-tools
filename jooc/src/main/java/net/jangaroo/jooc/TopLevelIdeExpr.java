@@ -38,12 +38,18 @@ class TopLevelIdeExpr extends IdeExpr {
     if (scope!=null) {
       Scope declaringScope = scope.findScopeThatDeclares(ide);
       if (declaringScope==null || declaringScope.getDeclaration() instanceof ClassDeclaration) {
-        synthesizedDotExpr = new DotExpr(new ThisExpr(new JooSymbol("this")), new JooSymbol("."), new Ide(ide.ide));
+        // move ide's white-space in front of the newly introduced "this.":
+        JooSymbol thisSymbol = new JooSymbol(sym.THIS, ide.ide.fileName, ide.ide.line, ide.ide.column, ide.ide.whitespace, "this");
+        JooSymbol ideWithoutWhitespace = new JooSymbol(ide.ide.sym, ide.ide.fileName, ide.ide.line, ide.ide.column, "", ide.ide.text);
+        synthesizedDotExpr = new DotExpr(new ThisExpr(thisSymbol), new JooSymbol("."), new Ide(ideWithoutWhitespace));
         synthesizedDotExpr.analyze(parentNode, context);
       }
       if (!(parentNode instanceof DotExpr)
         && !(parentNode instanceof ApplyExpr)) {
-        context.getCurrentClass().addInitIfClass(ide.getQualifiedNameStr(), context);
+        ClassDeclaration classDeclaration = scope.getClassDeclaration();
+        if (classDeclaration!=null) {
+          classDeclaration.addInitIfClass(ide.getQualifiedNameStr(), context);
+        }
       }
     }
     return this;
