@@ -256,6 +256,29 @@
         <artifactId>shitty-maven-plugin</artifactId>
       </plugin>
 
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>retrotranslator-maven-plugin</artifactId>
+        <version>1.0-alpha-4</version>
+        <executions>
+          <execution>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>translate</goal>
+            </goals>
+            <configuration>
+              <jarfilesets>
+                <jarfileset>
+                  <directory>${basedir}/target/</directory>
+                  <includes>
+                    <include>*.jar</include>
+                  </includes>
+                </jarfileset>
+              </jarfilesets>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
 
   </build>

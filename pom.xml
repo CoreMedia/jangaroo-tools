@@ -98,6 +98,10 @@
       <url>http://jflex.sourceforge.net/repo</url>
     </pluginRepository>
     <pluginRepository>
+      <id>codehaus</id>
+      <url>http://repository.codehaus.org</url>
+    </pluginRepository>
+    <pluginRepository>
       <id>jangaroo</id>
       <name>Jangaroo repository</name>
       <url>http://repo.jangaroo.net/maven2</url>
