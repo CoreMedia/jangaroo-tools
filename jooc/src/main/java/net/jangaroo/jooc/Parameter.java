@@ -39,6 +39,9 @@ public class Parameter extends IdeDeclaration {
     super.analyze(parentNode, context);
     if (optTypeRelation!=null) {
       optTypeRelation.analyze(this, context);
+      if (isRest() && !"Array".equals(optTypeRelation.getType().getSymbol().getText())) {
+        Jooc.error(optTypeRelation.getSymbol(), "Rest parameter must have Array type.");
+      }
     }
     if (optInitializer!=null) {
       optInitializer.analyze(this, context);
