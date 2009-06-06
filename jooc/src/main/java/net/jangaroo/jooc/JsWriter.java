@@ -370,7 +370,10 @@ public class JsWriter extends FilterWriter {
 
   public String getFunctionNameAsIde(FunctionExpr functionExpr) {
     IdeDeclaration classDeclaration = functionExpr.getParentDeclaration();
-    String classNameAsIde = getQualifiedNameAsIde(classDeclaration);
+    String classNameAsIde = "";
+    if (classDeclaration!=null) {
+      classNameAsIde = getQualifiedNameAsIde(classDeclaration);
+    }
     JooSymbol sym = functionExpr.getSymbol();
     return classNameAsIde + "$" + sym.getLine() + "_" + sym.getColumn();
   }
