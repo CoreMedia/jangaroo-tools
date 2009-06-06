@@ -53,11 +53,22 @@ public class Jooc {
   public static final String CLASS_LOADER_FULLY_QUALIFIED_NAME = CLASS_LOADER_PACKAGE_NAME + "." + CLASS_LOADER_NAME;
 
   private JoocConfiguration config;
-  private static CompileLog log = new CompileLog();
+  // a hack to always be able to access the current log:
+  private static ThreadLocal<CompileLog> logHolder = new ThreadLocal<CompileLog>();
+  private CompileLog log;
 
   private ArrayList<CompilationUnit> compilationUnits = new ArrayList<CompilationUnit>();
 
+  public Jooc() {
+    this(new StdOutCompileLog());
+  }
+
+  public Jooc(CompileLog log) {
+    this.log = log;
+  }
+
   public int run(JoocConfiguration config) {
+    logHolder.set(log);
     this.config = config;
     for (File sourceFile : config.getSourceFiles()) {
       processSource(sourceFile);
@@ -69,7 +80,9 @@ public class Jooc {
       unit.analyze(null, new AnalyzeContext(config));
       unit.writeOutput(codeSinkFactory, config.isVerbose());
     }
-    return log.hasErrors() ? 1 : 0;
+    int result = log.hasErrors() ? 1 : 0;
+    logHolder.remove();
+    return result;
   }
 
   private CompilationUnitSinkFactory createSinkFactory(JoocConfiguration config) {
@@ -132,7 +145,7 @@ public class Jooc {
   }
 
   public static void warning(JooSymbol symbol, String msg) {
-    log.warning(symbol, msg);
+    logHolder.get().warning(symbol, msg);
   }
 
   protected void processSource(String fileName) {
