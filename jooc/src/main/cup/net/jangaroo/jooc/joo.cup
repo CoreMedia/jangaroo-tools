@@ -582,8 +582,8 @@ nonEmptyArguments ::=
 nonEmptyParameters ::=
     parameter:param
     {: RESULT = new Parameters(param); :}
-  | REST:rest ide:ide
-    {: RESULT = new Parameters(new Parameter(rest,ide,null,null)); :}
+  | REST:rest ide:ide optTypeRelation:t
+    {: RESULT = new Parameters(new Parameter(rest,ide,t,null)); :}
   | parameter:param COMMA:c nonEmptyParameters:params
     {: RESULT = new Parameters(param, c, params); :}
   ;
