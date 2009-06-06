@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module relativePaths="true" type="PLUGIN_MODULE" version="4">
+  <component name="DevKit.ModuleBuildProperties" url="file://$MODULE_DIR$/META-INF/plugin.xml" />
+  <component name="NewModuleRootManager" inherit-compiler-output="false">
+    <output url="file://$MODULE_DIR$/../out/production/jangaroo-idea-plugin" />
+    <output-test url="file://$MODULE_DIR$/../out/test/jangaroo-idea-plugin" />
+    <exclude-output />
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/src/main/decompiled" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/src/main/java" isTestSource="false" />
+      <excludeFolder url="file://$MODULE_DIR$/out" />
+    </content>
+    <orderEntry type="jdk" jdkName="IDEA" jdkType="IDEA JDK" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module" module-name="jangaroo-compiler" exported="" />
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptDebugger/lib/JavaScriptDebugger.jar!/" />
+          <root url="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavascriptLanguage.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/src/src_JavaScriptLanguage.zip!/" />
+          <root url="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptDebugger/src/JavaScriptDebugger-src.zip!/" />
+        </SOURCES>
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="flex">
+        <CLASSES>
+          <root url="jar://$APPLICATION_HOME_DIR$/plugins/flex/lib/FlexSupport.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="jar://$APPLICATION_HOME_DIR$/plugins/flex/src/FlexSupport-src.zip!/" />
+        </SOURCES>
+      </library>
+    </orderEntry>
+  </component>
+</module>
+
