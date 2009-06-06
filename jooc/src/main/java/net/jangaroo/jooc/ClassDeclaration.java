@@ -27,7 +27,7 @@ public class ClassDeclaration extends IdeDeclaration {
   protected Extends optExtends;
   private Map<String,MemberDeclaration> members = new LinkedHashMap<String,MemberDeclaration>();
   private Set<String> boundMethodCandidates = new HashSet<String>();
-  private Set<String> classInit = new HashSet<String>();
+  private Map<String,Set<Scope>> classInit = new HashMap<String,Set<Scope>>();
   private List<String> packageImports;
 
   public Extends getOptExtends() {
@@ -109,16 +109,36 @@ public class ClassDeclaration extends IdeDeclaration {
   }
 
   private void generateClassInits(JsWriter out) throws IOException {
-    if (!classInit.isEmpty()) {
-      out.write("function(){"+Jooc.CLASS_LOADER_FULLY_QUALIFIED_NAME+".init(");
-      for (Iterator<String> iterator = classInit.iterator(); iterator.hasNext();) {
-        out.write(iterator.next());
-        if (iterator.hasNext()) {
+    boolean first = true;
+    for (Map.Entry<String, Set<Scope>> entry : classInit.entrySet()) {
+      String qualifiedNameStr = entry.getKey();
+      if (recheckScopes(qualifiedNameStr, entry.getValue())) {
+        if (first) {
+          first = false;
+          out.write("function(){" + Jooc.CLASS_LOADER_FULLY_QUALIFIED_NAME + ".init(");
+        } else {
           out.write(",");
         }
+        out.write(qualifiedNameStr);
       }
+    }
+    if (!first) {
       out.write(");},");
     }
+  }
+
+  private static boolean recheckScopes(String qualifiedNameStr, Set<Scope> recheckScopes) {
+    if (recheckScopes==null) {
+      return true; // marker for "already verified it is a class"
+    }
+    // if class guessing is enabled, we still have to check that the identifier was not a forward-access which
+    // has been declared in the meantime:
+    for (Scope occurredInScope : recheckScopes) {
+      if (occurredInScope.findScopeThatDeclares(qualifiedNameStr) == null) {
+        return true; // one occurrence per identifier suffices!
+      }
+    }
+    return false;
   }
 
   private void generateStaticMethodList(JsWriter out) throws IOException {
@@ -201,9 +221,20 @@ public class ClassDeclaration extends IdeDeclaration {
     // really another class?
     if (!(qualifiedNameStr.equals(getName()) || qualifiedNameStr.equals(getQualifiedNameStr()))) {
       Scope declaringScope = context.getScope().findScopeThatDeclares(qualifiedNameStr);
-      if (declaringScope==null && !(ide instanceof QualifiedIde) && Character.isUpperCase(qualifiedNameStr.charAt(0))
-        || declaringScope!=null && declaringScope.getDeclaration().equals(context.getCurrentPackage())) {
-        classInit.add(qualifiedNameStr);
+      if (declaringScope!=null && declaringScope.getDeclaration().equals(getParentDeclaration())) {
+        classInit.put(qualifiedNameStr, null); // null: marker for "already verified it is a class" 
+      } else if (declaringScope==null && context.getConfig().isEnableGuessingClasses() &&
+        !(ide instanceof QualifiedIde) && Character.isUpperCase(qualifiedNameStr.charAt(0))) {
+        // store current context to repeat look-up in rendering phase, when all declarations are known:
+        Set<Scope> scopes = classInit.get(qualifiedNameStr);
+        if (scopes==null) {
+          if (classInit.containsKey(qualifiedNameStr)) {
+            return; // "already verified it is a class"
+          }
+          scopes = new HashSet<Scope>();
+          classInit.put(qualifiedNameStr, scopes);
+        }
+        scopes.add(context.getScope());
       }
     }
   }

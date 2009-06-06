@@ -51,16 +51,17 @@ class DotExpr extends BinaryOpExpr {
           String qualifiedName = fqie.getQualifiedNameStr();
           if (context.getCurrentPackage().isFullyQualifiedIde(context, qualifiedName)) {
             // Replace my AST subtree by qualified identifier subtree:
-            return new TopLevelIdeExpr(fqie);
+            return new TopLevelIdeExpr(fqie).analyze(parentNode, context);
           }
-        }
-        // check access to constant from another class; other class then must be initialized:
-        if (arg1 instanceof IdeExpr && !(parentNode instanceof ApplyExpr)) {
-          classDeclaration.addInitIfClass(((IdeExpr)arg1).ide.getQualifiedNameStr(), context);
         }
       }
     }
-    return super.analyze(parentNode, context);
+    super.analyze(parentNode, context);
+    // check access to constant from another class; other class then must be initialized:
+    if (this.classDeclaration!=null && arg1 instanceof IdeExpr && !(parentNode instanceof ApplyExpr)) {
+      classDeclaration.addInitIfClass(((IdeExpr)arg1).ide.getQualifiedNameStr(), context);
+    }
+    return this;
   }
 
   private QualifiedIde getFullyQualifiedIde() {
