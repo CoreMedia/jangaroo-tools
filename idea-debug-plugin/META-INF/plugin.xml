@@ -1,0 +1,30 @@
+<idea-plugin version="2">
+  <name>Jangaroo JavaScript Debugger</name>
+  <id>JooJavaScriptDebugger</id>
+  <version>1.0</version>
+  <vendor logo="/general/ijLogo.png">JetBrains</vendor>
+  <idea-version since-build="8000"/>
+  <resource-bundle>messages.JSDebuggerBundle</resource-bundle>
+  <depends optional="false">JSHtmlBridge</depends>
+  <depends optional="false">org.intellij.htmlbrowser</depends>
+  <depends optional="true" config-file="openJavaeeBrowser.xml">com.intellij.javaee</depends>
+  <depends>com.intellij.modules.xml</depends>
+  <category>HTML/JavaScript Development</category>
+  <description>Allows debugging Jangaroo-JavaScript code in an embedded Mozilla browser</description>
+
+  <actions>
+    <group id="HtmlBrowser.DebugGroup">
+      <action id="HtmlBrowser.JumpToSource" class="com.intellij.javascript.debugger.ui.browser.JumpFromBrowserToSourceAction" text="Jump to Source"/>
+      <action id="HtmlBrowser.DebugJavaScript" class="com.intellij.javascript.debugger.ui.browser.DebugJavaScriptAction" text="Debug"/>
+
+      <add-to-group group-id="HtmlBrowser" anchor="last"/>
+    </group>
+  </actions>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <xdebugger.settings implementation="com.intellij.javascript.debugger.settings.JSDebuggerSettings"/>
+    <xdebugger.breakpointType implementation="com.intellij.javascript.debugger.breakpoints.JavaScriptBreakpointType"/>
+    <programRunner implementation="com.intellij.javascript.debugger.execution.JavascriptDebugRunner"/>
+    <configurationType implementation="com.intellij.javascript.debugger.execution.JavascriptDebugConfigurationType"/>
+  </extensions>
+</idea-plugin>
