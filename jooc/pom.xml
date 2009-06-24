@@ -267,14 +267,14 @@
               <goal>translate</goal>
             </goals>
             <configuration>
-              <jarfilesets>
-                <jarfileset>
-                  <directory>${basedir}/target/</directory>
+              <filesets>
+                <fileset>
+                  <directory>${project.build.outputDirectory}</directory>
                   <includes>
-                    <include>*.jar</include>
+                    <include>**/*.class</include>
                   </includes>
-                </jarfileset>
-              </jarfilesets>
+                </fileset>
+              </filesets>
             </configuration>
           </execution>
         </executions>
