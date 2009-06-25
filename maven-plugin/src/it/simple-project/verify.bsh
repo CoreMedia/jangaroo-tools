@@ -54,10 +54,10 @@ try
         return false;
     }
 
-    File classRuntimeJs = new File ( jsDir, "joo"+File.separator+"Class.js" );
+    File classRuntimeJs = new File ( jsDir, "joo"+File.separator+"joo.js" );
     if ( !classRuntimeJs.exists() || !classRuntimeJs.isFile() )
     {
-        System.err.println( "joo/Class.js runtime file is missing or not a file." );
+        System.err.println( "joo/joo.js runtime file is missing or not a file." );
         return false;
     }
 

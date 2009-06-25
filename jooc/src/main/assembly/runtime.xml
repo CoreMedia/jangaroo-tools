@@ -24,11 +24,11 @@
   <files>
     <file>
       <source>target/joo-debug.js</source>
-      <destName>joo/Class.js</destName>
+      <destName>joo/joo-debug.js</destName>
     </file>
     <file>
       <source>target/joo.js</source>
-      <destName>joo/Class-nodebug.js</destName>
+      <destName>joo/joo.js</destName>
     </file>
   </files>
 

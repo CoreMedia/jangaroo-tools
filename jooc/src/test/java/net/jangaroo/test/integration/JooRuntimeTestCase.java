@@ -37,7 +37,7 @@ public abstract class JooRuntimeTestCase extends JooTestCase {
   protected Scriptable scope;
   protected ScriptableObject global;
   private static final String CLASS_JS_FILE_PATH =
-    Jooc.CLASS_LOADER_PACKAGE_NAME + File.separatorChar + "Class" + Jooc.OUTPUT_FILE_SUFFIX;
+    Jooc.CLASS_LOADER_PACKAGE_NAME + File.separatorChar + Jooc.CLASS_LOADER_PACKAGE_NAME + Jooc.OUTPUT_FILE_SUFFIX;
 
   public JooRuntimeTestCase(String name) {
     super(name);
