@@ -3,14 +3,14 @@
   <groupId>net.jangaroo</groupId>
   <artifactId>jangaroo-compiler</artifactId>
   <packaging>jar</packaging>
-  <version>0.2.2-SNAPSHOT</version>
+  <version>0.3</version>
   <name>Jangaroo compiler</name>
 
   <parent>
     <groupId>net.jangaroo</groupId>
     <artifactId>jangaroo-tools</artifactId>
     <relativePath>../pom.xml</relativePath>
-    <version>0.2.2-SNAPSHOT</version>
+    <version>0.3</version>
   </parent>
     
   <build>
@@ -98,70 +98,61 @@
             <phase>compile</phase>
             <configuration>
               <tasks>
-                <property name="runtime.classpath" refid="maven.runtime.classpath"/>
-                <taskdef name="jooc" classname="net.jangaroo.jooc.ant.JoocTask" classpath="target/classes;${runtime.classpath}"/>
+                <property name="runtime.classpath" refid="maven.runtime.classpath" />
+                <taskdef name="jooc" classname="net.jangaroo.jooc.ant.JoocTask" classpath="target/classes;${runtime.classpath}" />
 
-                <mkdir dir="target/temp/runtime/debug"/>
-                <jooc destdir="target/temp/runtime/debug"
-                      failonerror="true"
-                      debug="true"
-                      debuglevel="source"
-                      verbose="true"
-                      enableassertions="true">
-                  <include name="**/*.as"/>
-                  <src path="src/main/joo"/>
+                <mkdir dir="target/temp/runtime/debug" />
+                <jooc destdir="target/temp/runtime/debug" failonerror="true" debug="true" debuglevel="source" verbose="true" enableassertions="true">
+                  <include name="**/*.as" />
+                  <src path="src/main/joo" />
                 </jooc>
 
                 <concat destfile="target/joo-debug.js">
                   <filelist dir="src/main/js">
-                    <file name="joo/BootstrapClassLoader.js"/>
-                    <file name="joo/assert.js"/>
-                    <file name="joo/Class.js"/>
-                    <file name="joo/trace.js"/>
+                    <file name="joo/BootstrapClassLoader.js" />
+                    <file name="joo/assert.js" />
+                    <file name="joo/Class.js" />
+                    <file name="joo/trace.js" />
                   </filelist>
                   <filelist dir="target/temp/runtime/debug">
-                    <file name="joo/MemberDeclaration.js"/>
-                    <file name="joo/NativeClassDeclaration.js"/>
-                    <file name="joo/SystemClassDeclaration.js"/>
-                    <file name="joo/SystemClassLoader.js"/>
-                    <file name="Array.js"/>
-                    <file name="joo/ImportMap.js"/>
-                    <file name="joo/ClassDeclaration.js"/>
-                    <file name="joo/ClassLoader.js"/>
-                    <file name="joo/DynamicClassLoader.js"/>
+                    <file name="joo/MemberDeclaration.js" />
+                    <file name="joo/NativeClassDeclaration.js" />
+                    <file name="joo/SystemClassDeclaration.js" />
+                    <file name="joo/SystemClassLoader.js" />
+                    <file name="Array.js" />
+                    <file name="joo/ImportMap.js" />
+                    <file name="joo/ClassDeclaration.js" />
+                    <file name="joo/ClassLoader.js" />
+                    <file name="joo/DynamicClassLoader.js" />
                   </filelist>
                   <footer trimleading="yes">
                     joo.classLoader = new joo.DynamicClassLoader();
                   </footer>
                 </concat>
 
-                <mkdir dir="target/temp/runtime/deploy"/>
-                <jooc destdir="target/temp/runtime/deploy"
-                      failonerror="true"
-                      debug="false"
-                      verbose="true"
-                      enableassertions="false">
-                  <include name="**/*.as"/>
-                  <src path="src/main/joo"/>
+                <mkdir dir="target/temp/runtime/deploy" />
+                <jooc destdir="target/temp/runtime/deploy" failonerror="true" debug="false" verbose="true" enableassertions="false">
+                  <include name="**/*.as" />
+                  <src path="src/main/joo" />
                 </jooc>
 
                 <concat destfile="target/joo.js">
                   <filelist dir="src/main/js">
-                    <file name="joo/BootstrapClassLoader.js"/>
-                    <file name="joo/assert.js"/>
-                    <file name="joo/Class.js"/>
-                    <file name="joo/trace.js"/>
+                    <file name="joo/BootstrapClassLoader.js" />
+                    <file name="joo/assert.js" />
+                    <file name="joo/Class.js" />
+                    <file name="joo/trace.js" />
                   </filelist>
                   <filelist dir="target/temp/runtime/deploy">
-                    <file name="joo/MemberDeclaration.js"/>
-                    <file name="joo/NativeClassDeclaration.js"/>
-                    <file name="joo/SystemClassDeclaration.js"/>
-                    <file name="joo/SystemClassLoader.js"/>
-                    <file name="Array.js"/>
-                    <file name="joo/ImportMap.js"/>
-                    <file name="joo/ClassDeclaration.js"/>
-                    <file name="joo/ClassLoader.js"/>
-                    <file name="joo/DynamicClassLoader.js"/>
+                    <file name="joo/MemberDeclaration.js" />
+                    <file name="joo/NativeClassDeclaration.js" />
+                    <file name="joo/SystemClassDeclaration.js" />
+                    <file name="joo/SystemClassLoader.js" />
+                    <file name="Array.js" />
+                    <file name="joo/ImportMap.js" />
+                    <file name="joo/ClassDeclaration.js" />
+                    <file name="joo/ClassLoader.js" />
+                    <file name="joo/DynamicClassLoader.js" />
                   </filelist>
                   <footer trimleading="yes">
                     joo.classLoader = new joo.DynamicClassLoader();
