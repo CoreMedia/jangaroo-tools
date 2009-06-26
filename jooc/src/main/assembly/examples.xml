@@ -28,7 +28,7 @@
       <excludes>
         <exclude>*/output/**</exclude>
       </excludes>
-      <filtered>true</filtered>
+      <filtered>false</filtered>
     </fileSet>
   </fileSets>
 
