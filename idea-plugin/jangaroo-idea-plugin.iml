@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module relativePaths="true" type="PLUGIN_MODULE" version="4">
-  <component name="DevKit.ModuleBuildProperties" url="file://$MODULE_DIR$/META-INF/plugin.xml" />
+  <component name="DevKit.ModuleBuildProperties" url="file://$MODULE_DIR$/META-INF/plugin.xml" manifest="file://$MODULE_DIR$/../jooc/src/main/resources/META-INF/MANIFEST.MF" />
   <component name="NewModuleRootManager" inherit-compiler-output="false">
     <output url="file://$MODULE_DIR$/../out/production/jangaroo-idea-plugin" />
     <output-test url="file://$MODULE_DIR$/../out/test/jangaroo-idea-plugin" />
@@ -11,16 +11,14 @@
     </content>
     <orderEntry type="jdk" jdkName="IDEA" jdkType="IDEA JDK" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="jangaroo-compiler" exported="" />
     <orderEntry type="module-library">
-      <library name="flex">
+      <library name="Jangaroo">
         <CLASSES>
-          <root url="jar://$APPLICATION_HOME_DIR$/plugins/flex/lib/FlexSupport.jar!/" />
+          <root url="file://$MODULE_DIR$/lib" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$APPLICATION_HOME_DIR$/plugins/flex/src/FlexSupport-src.zip!/" />
-        </SOURCES>
+        <SOURCES />
+        <jarDirectory url="file://$MODULE_DIR$/lib" recursive="false" />
       </library>
     </orderEntry>
   </component>
