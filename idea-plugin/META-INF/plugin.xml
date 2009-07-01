@@ -1,0 +1,34 @@
+<idea-plugin version="2">
+  <name>Jangaroo IDEA Plugin</name>
+  <description>
+    A plugin for compiling ActionScript 3 code to JavaScript using the Jangaroo Open Source
+    Compiler jooc.
+  </description>
+  <version>0.3</version>
+  <vendor>jangaroo.net</vendor>
+  <idea-version since-build="9852"/>
+
+  <!--depends>com.intellij.javaee</depends-->
+  <depends>JavaScript</depends>
+
+  <application-components>
+    <!-- Add your application components here -->
+  </application-components>
+
+  <project-components>
+    <!-- Add your project components here -->
+    <component>
+      <implementation-class>net.jangaroo.ide.idea.JoocProjectComponent</implementation-class>
+    </component>
+  </project-components>
+
+  <actions>
+    <!-- Add your actions here -->
+  </actions>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <facetType implementation="net.jangaroo.ide.idea.JangarooFacetType"/>
+    <frameworkSupport implementation="net.jangaroo.ide.idea.JangarooFacetTypeFrameworkSupportProvider"/>
+  </extensions>
+
+</idea-plugin>
