@@ -7,7 +7,7 @@
   <script type="text/javascript">
     //<![CDATA[
     with(joo.classLoader) {
-      $import("net.jangaroo.example.HelloWorld");
+      import_("net.jangaroo.example.HelloWorld");
       // callback when all required classes have been loaded:
       complete(function(imports){with(imports){
         // instantiate the example class
@@ -34,7 +34,7 @@
     Enter a name and click on the "Say hello" button.
   </p>
 
-  <form action="#" onsubmit="sayHello(); return false">
+  <form action="#" onsubmit="sayHello(); return false;">
     <input type="text" id="nameField">
     <button id="greetButton" type="submit">Say hello</button>
   </form>
