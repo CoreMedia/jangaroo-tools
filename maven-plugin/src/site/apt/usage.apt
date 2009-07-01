@@ -35,7 +35,7 @@ Usage
         <plugin>
           <groupId>net.jangaroo</groupId>
           <artifactId>jangaroo-maven-plugin</artifactId>
-          <version>0.2</version>
+          <version>0.3</version>
           <executions>
             <execution>
               <goals>
@@ -54,13 +54,15 @@ Usage
 
  By default, <<<jangaroo:compile>>> will generate the JavaScript output to <<<target/js-classes>>>, and
  <<<jangaroo:testCompile>>> to <<<target/test-js-classes>>>. The <<<jangaroo:copy-runtime>>> goal will run during
- the compile phase and extract the required Jangaroo runtime <<<joo/Class.js>>> to the compilation output directory.
+ the compile phase and extract the required Jangaroo runtime <<<joo/joo.js>>> to the compilation output directory.
 
 *Including compiled Jangaroo classes in a <<<war>>> project
 
  In most cases, Jangaroo sources will be part of a project of type <<<war>>>, packaged by the <<<maven-war-plugin>>>.
  To include the compiled Jangaroo classes in the generated WAR, e.g. in a scripts directory called <<</js>>>,
  add the Jangaroo compilation output directory as a <<<webResource>>> to the war-plugin configuration.
+ If you do not actually build a J2EE Web application, and you do not want to add a fake web.xml, you must tell the
+ maven-war-plugin to ignore the missing file.
 
 +-------+
   <project>
@@ -77,6 +79,7 @@ Usage
                 <targetPath>js</targetPath>
               </resource>
             </webResources>
+            <failOnMissingWebXml>false</failOnMissingWebXml>
           </configuration>
         </plugin>
       </plugins>
@@ -85,8 +88,8 @@ Usage
   </project>
 +-------+
 
- The Jangaroo runtime <<<joo/Class.js>>> will be required to run the compiled Jangaroo code. The example
- above therefore assumes that the <<<jangaroo:copy-runtime>>> goal has been executed to extract <<<joo/Class.js>>>
+ The Jangaroo runtime <<<joo/joo.js>>> will be required to run the compiled Jangaroo code. The example
+ above therefore assumes that the <<<jangaroo:copy-runtime>>> goal has been executed to extract <<<joo/joo.js>>>
  to <<<$\{project.build.directory\}/js-classes>>>.
 
 *Compiling all Jangaroo classes to one output file
@@ -104,7 +107,7 @@ Usage
         <plugin>
           <groupId>net.jangaroo</groupId>
           <artifactId>jangaroo-maven-plugin</artifactId>
-          <version>0.2</version>
+          <version>0.3</version>
           <executions>
             <execution>
               <configuration>
