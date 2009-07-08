@@ -6,7 +6,7 @@
   <version>0.3.1-SNAPSHOT</version>
   <name>Jangaroo Maven Plugin</name>
   <description>This plugin compiles Jangaroo sources to JavaScript.</description>
-  <url>http://www.jangaroo.net/docs/jangaroo-maven-plugin/</url>
+  <url>http://www.jangaroo.net</url>
 
   <parent>
     <groupId>net.jangaroo</groupId>
@@ -53,6 +53,12 @@
       <classifier>runtime</classifier>
       <type>zip</type>
       <version>0.3.1-SNAPSHOT</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-project</artifactId>
+      <version>2.0.9</version>
     </dependency>
 
     <dependency>

@@ -6,6 +6,7 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
+import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.compiler.CompilerError;
 import org.codehaus.plexus.compiler.CompilerOutputStyle;
 import org.codehaus.plexus.compiler.util.scan.InclusionScanException;
@@ -24,6 +25,12 @@ import java.util.*;
  */
 public abstract class AbstractCompilerMojo extends AbstractMojo {
   private Log log = getLog();
+    /**
+    * The Maven project object
+    *
+    * @parameter expression="${project}"
+    */
+   private MavenProject project;
   /**
    * Indicates whether the build will fail if there are compilation errors.
    *
@@ -115,6 +122,10 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
       getLog().info("No sources to compile");
 
       return;
+    }
+
+    for (Object compileSourceRoot : compileSourceRoots) {
+      project.addCompileSourceRoot(compileSourceRoot.toString());
     }
 
     // ----------------------------------------------------------------------
