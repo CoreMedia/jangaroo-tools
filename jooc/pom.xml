@@ -127,6 +127,7 @@
                   </filelist>
                   <footer trimleading="yes">
                     joo.classLoader = new joo.DynamicClassLoader();
+                    joo.classLoader.debug = true;
                   </footer>
                 </concat>
 
