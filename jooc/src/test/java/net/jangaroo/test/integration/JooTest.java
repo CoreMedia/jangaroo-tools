@@ -431,6 +431,12 @@ public class JooTest extends JooRuntimeTestCase {
     expectString("[This is a test]", "obj.testForLoops(['This','is','a','test'])");
   }
 
+  public void testJavaPackage() throws Exception {
+    loadClass("net.jangaroo.test.JavaPackageTest");
+    complete();
+    eval("new net.jangaroo.test.JavaPackageTest();");
+  }
+
   public static void main(String args[]) {
     junit.textui.TestRunner.run(JooTest.class);
   }
