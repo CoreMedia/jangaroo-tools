@@ -51,7 +51,6 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
   public function SystemClassDeclaration(packageDef : String, directives : Array, classDef : String, memberDeclarations : Function,
           publicStaticMethodNames : Array) {
     var packageName : String = packageDef.split(/\s+/ as String)[1] || "";
-    this.package_ = joo.getOrCreatePackage(packageName);
     this.parseDirectives(packageName, directives);
     var classMatch : Array = classDef.match(/^\s*((public|internal|final|dynamic)\s+)*class\s+([A-Za-z][a-zA-Z$_0-9]*)(\s+extends\s+([a-zA-Z$_0-9.]+))?(\s+implements\s+([a-zA-Z$_0-9.,\s]+))?\s*$/) as Array;
     var interfaces : String;
@@ -78,9 +77,11 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
     this.memberDeclarations = memberDeclarations;
     this.publicStaticMethodNames = publicStaticMethodNames;
     var publicConstructor : Class = joo.getQualifiedObject(fullClassName);
-    if (publicConstructor) {
+    if (publicConstructor && String(publicConstructor).indexOf("[JavaPackage")!=0) {
+      this.package_ = joo.getQualifiedObject(packageName);
       this.native_ = true;
     } else {
+      this.package_ = joo.getOrCreatePackage(packageName);
       publicConstructor = createPublicConstructor(this);
       this.package_[this.className] = publicConstructor;
     }
