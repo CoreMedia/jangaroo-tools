@@ -18,50 +18,7 @@ import java.util.zip.ZipFile;
  * @goal copy-runtime
  * @phase compile
  */
-public class CopyRuntimeMojo extends AbstractMojo {
-
-  /**
-   * @component
-   * @required
-   * @readonly
-   */
-  private org.apache.maven.artifact.factory.ArtifactFactory artifactFactory;
-
-  /**
-   * @component
-   * @required
-   * @readonly
-   */
-  private org.apache.maven.artifact.resolver.ArtifactResolver resolver;
-
-  /**
-   * @parameter expression="${project.remoteArtifactRepositories}"
-   * @required
-   * @readonly
-   */
-  private java.util.List remoteRepositories;
-
-  /**
-   * @parameter expression="${localRepository}"
-   * @required
-   * @readonly
-   */
-  private ArtifactRepository localRepository;
-
-  /**
-   * @parameter expression="${plugin.artifacts}"
-   * @required
-   * @readonly
-   */
-  private List<Artifact> pluginArtifacts;
-
-  /**
-   * By default, the plugin will take the Jangaroo runtime from its own jangaroo-compiler dependency.
-   * If necessary, this parameter may be set to override which artifact will be used as the source for the
-   * Jangaroo runtime.
-   * @parameter alias="runtime"
-   */
-  private Runtime runtime;
+public class CopyRuntimeMojo extends AbstractRuntimeMojo {
 
   /**
    * Target directory for the extracted runtime.
@@ -164,50 +121,5 @@ public class CopyRuntimeMojo extends AbstractMojo {
     } catch (IOException e) {
       throw new MojoExecutionException("Error while extracting runtime file to " + targetPath, e);
     }
-  }
-
-  private Artifact resolveRuntimeArtifact() throws MojoFailureException, MojoExecutionException {
-    Artifact result = null;
-
-    // Use runtime, if configured.
-    if (runtime != null) {
-      if (runtime.getVersion() == null)
-        throw new MojoExecutionException("<runtime>/<version> is not configured");
-
-      result = artifactFactory.createArtifactWithClassifier(
-        runtime.getGroupId(), runtime.getArtifactId(), runtime.getVersion(),
-        Runtime.TYPE_RUNTIME, runtime.getClassifier());
-    }
-
-    if (result == null) {
-      for (Artifact pluginArtifact : pluginArtifacts) {
-        getLog().debug("Inspecting pluginArtifact: " + pluginArtifact);
-        if (Runtime.GROUP_ID_JANGAROO.equals(pluginArtifact.getGroupId()) &&
-          Runtime.ARTIFACT_ID_JOOC.equals(pluginArtifact.getArtifactId()) &&
-          Runtime.CLASSIFIER_RUNTIME.equals(pluginArtifact.getClassifier()) &&
-          Runtime.TYPE_RUNTIME.equals(pluginArtifact.getType())) {
-
-          getLog().debug("Selected Jangaroo runtime pluginArtifact: " + pluginArtifact);
-          result = pluginArtifact;
-          break;
-        }
-      }
-    }
-
-    if (result == null) {
-      throw new MojoExecutionException(String.format(
-        "Cannot find any version of the required runtime artifact among the plugin artifacts: %s:%s:%s:%s",
-        Runtime.GROUP_ID_JANGAROO, Runtime.ARTIFACT_ID_JOOC, Runtime.CLASSIFIER_RUNTIME, Runtime.TYPE_RUNTIME));
-    }
-
-    getLog().debug("Using Jangaroo runtime artifact: " + result);
-
-    try {
-      resolver.resolve( result, remoteRepositories, localRepository );
-    } catch (Exception e) {
-      throw new MojoExecutionException("Cannot resolve runtime artifact", e);
-    }
-
-    return result;
-  }
+  }       
 }

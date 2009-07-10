@@ -31,12 +31,16 @@ under the License.
         <groupId>net.jangaroo</groupId>
         <artifactId>jangaroo-maven-plugin</artifactId>
         <version>@project.version@</version>
+        <configuration>
+          <testSuite>net.jangaroo.example.TestClass</testSuite>
+        </configuration>
         <executions>
           <execution>
             <goals>
               <goal>compile</goal>
               <goal>copy-runtime</goal>
               <goal>testCompile</goal>
+              <goal>test</goal>
             </goals>
           </execution>
         </executions>

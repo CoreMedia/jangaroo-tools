@@ -15,13 +15,31 @@
 
 package net.jangaroo.example {
 
+import flexunit.framework.Assert;
+import flexunit.framework.TestCase;
+import flexunit.framework.TestSuite;
+
   /**
    * Trivial class.
    */
-  public class TestClass {
+  public class TestClass extends TestCase{
 
-    public function returnsTrue() : Boolean {
-      return true;
+    public function TestClass() {
+      super();
+    }
+
+    public function testSomething():void {
+      Assert.assertFalse(false);
+    }
+
+    public function testSomethingElse():void {
+      Assert.assertTrue(true);
+    }
+
+    public static function suite():TestSuite {
+      var suite:TestSuite = new TestSuite();
+      suite.addTestSuite(TestClass);
+      return suite;
     }
   }
 }
