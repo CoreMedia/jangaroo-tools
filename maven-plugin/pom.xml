@@ -59,8 +59,16 @@
       <groupId>net.jangaroo</groupId>
       <artifactId>joounit</artifactId>
       <version>0.1-SNAPSHOT</version>
-      <classifier>joo-resources</classifier>
+      <classifier>lib</classifier>
       <type>zip</type>
+    </dependency>
+
+    <dependency>
+      <groupId>net.jangaroo</groupId>
+      <artifactId>joounit</artifactId>
+      <version>0.1-SNAPSHOT</version>
+      <classifier>sources</classifier>
+      <type>jar</type>
     </dependency>
 
     <dependency>

@@ -176,14 +176,14 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
 
     //retrieve and load the env dependency
     Artifact env_rhino_js = resolveArtifact("thatcher", "env-rhino-js", null, "zip");
-    loadArtifactIntoJavaScriptContext(jooRunner, env_rhino_js);
+    loadArtifactIntoJavaScriptContext(jooRunner, env_rhino_js, false);
 
     //load the joo runtime
     Artifact runtimeArtifact = resolveRuntimeArtifact();
-    loadArtifactIntoJavaScriptContext(jooRunner, runtimeArtifact);
+    loadArtifactIntoJavaScriptContext(jooRunner, runtimeArtifact, false);
 
     //retrieve joo unit
-    Artifact jooUnit = resolveArtifact("net.jangaroo", "joounit", "joo-resources", "zip");
+    Artifact jooUnit = resolveArtifact("net.jangaroo", "joounit", "lib", "zip");
 
     if (jooUnit == null) {
       throw new MojoExecutionException(String.format("no jooUnit found"));
@@ -199,11 +199,11 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
 
     //... and load them
     for (Artifact a : jooUnitDependencies) {
-      loadArtifactIntoJavaScriptContext(jooRunner, a);
+      loadArtifactIntoJavaScriptContext(jooRunner, a, true);
     }
 
     // and load joo unit
-    loadArtifactIntoJavaScriptContext(jooRunner, jooUnit);
+    loadArtifactIntoJavaScriptContext(jooRunner, jooUnit, true);
 
     //load the test suite file
     File test = new File(testOutputDirectory, testSuite.replaceAll("\\.", "//") + ".js");
@@ -283,7 +283,7 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
     }
   }
 
-  private void loadArtifactIntoJavaScriptContext(JooRunner jooRunner, Artifact artifact) throws MojoExecutionException, MojoFailureException {
+  private void loadArtifactIntoJavaScriptContext(JooRunner jooRunner, Artifact artifact, boolean joolib) throws MojoExecutionException, MojoFailureException {
     ZipFile zipArtifact = null;
     try {
       zipArtifact = new ZipFile(artifact.getFile(), ZipFile.OPEN_READ);
@@ -291,6 +291,8 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
       while (entries.hasMoreElements()) {
         ZipEntry zipEntry = entries.nextElement();
         if (!zipEntry.isDirectory() && zipEntry.getName().endsWith(".js")) {
+          if(joolib && !zipEntry.getName().startsWith("joo/lib/"))
+            continue;
           getLog().debug(String.format("Loading %s into JavaScript context", zipEntry.getName()));
           BufferedReader reader = new BufferedReader(new InputStreamReader(zipArtifact.getInputStream(zipEntry)));
           jooRunner.load(reader, zipEntry.getName());
