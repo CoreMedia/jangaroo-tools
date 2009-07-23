@@ -96,6 +96,7 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
 
   /**
    * @parameter expression="${joo.testSuite}"
+   * @required
    */
   private String testSuite;
 
@@ -158,12 +159,12 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
     jooRunner = new JooRunner(new JooRunner.TraceOutputHandler() {
       @Override
       public void print(String input) {
-        getLog().debug(input);
+        getLog().info(input);
       }
 
       @Override
       public void println(String input) {
-        getLog().debug(input);
+        getLog().info(input);
       }
     });
 
