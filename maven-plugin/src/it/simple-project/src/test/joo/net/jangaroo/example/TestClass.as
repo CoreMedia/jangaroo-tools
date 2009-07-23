@@ -34,12 +34,6 @@ import flexunit.framework.TestSuite;
 
     public function testSomethingElse():void {
       Assert.assertTrue(true);
-    }
-
-    public static function suite():TestSuite {
-      var suite:TestSuite = new TestSuite();
-      suite.addTestSuite(TestClass);
-      return suite;
-    }
+    }   
   }
 }

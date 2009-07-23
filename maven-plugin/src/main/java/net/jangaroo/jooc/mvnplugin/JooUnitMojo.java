@@ -5,6 +5,7 @@ package net.jangaroo.jooc.mvnplugin;
 
 import org.apache.commons.io.output.TeeOutputStream;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.metadata.ArtifactMetadataSource;
 import org.apache.maven.artifact.metadata.ResolutionGroup;
@@ -207,8 +208,10 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
     //load all test classes into javascript context
     Collection<File> files = FileUtils.listFiles(testOutputDirectory,new String[]{"js"}, true);
     FileReader testReader = null;
+    StringBuffer imports = new StringBuffer();
     for ( File testFile : files) {
-      try {
+      try {        
+        imports.append(String.format("      import_(\"%s\");\n", getQualifiedClassname(testOutputDirectory, testFile)));
         testReader = new FileReader(testFile);
         getLog().info(String.format("Loading test %s into JavaScript Context", testFile.getName()));
         jooRunner.load(testReader, testFile.getName());
@@ -225,13 +228,13 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
         "debug = true; \n" +
         "      import_(\"flexunit.textui.TestRunner\");\n" +
         "      import_(\"flexunit.textui.XmlResultPrinter\");\n" +
-        "      import_(\"%s\");\n" +
+        imports.toString() +
         "      complete(function(imports) {with(imports){\n" +
-        "        var xmlWriter = new XmlResultPrinter();" +
+        "        var xmlWriter = new XmlResultPrinter();\n" +
         "        TestRunner.run(%s.suite(), function(env){collector.collectXml(xmlWriter.getXml())}, xmlWriter);\n" +
         "        " +
         "      }});\n" +
-        "    }", testSuite, testSuiteName));
+        "    }",  testSuiteName));
 
 
     //wait for the xml report, created by the javaScript writer
@@ -279,6 +282,13 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
         throw new MojoFailureException(msg);
       }
     }
+  }
+
+  private String getQualifiedClassname(File baseDirectory, File file) {
+    String name = file.getAbsolutePath().substring(0,file.getAbsolutePath().lastIndexOf(".js"));
+    name = name.replaceAll("\\\\","\\.");
+    name = name.substring(name.indexOf(baseDirectory.getName())+baseDirectory.getName().length()+1, name.length());
+    return name;
   }
 
   private void loadArtifactIntoJavaScriptContext(JooRunner jooRunner, Artifact artifact, boolean joolib) throws MojoExecutionException, MojoFailureException {
