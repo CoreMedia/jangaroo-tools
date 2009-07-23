@@ -4,6 +4,7 @@
 package net.jangaroo.jooc.mvnplugin;
 
 import org.apache.commons.io.output.TeeOutputStream;
+import org.apache.commons.io.FileUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.metadata.ArtifactMetadataSource;
 import org.apache.maven.artifact.metadata.ResolutionGroup;
@@ -23,10 +24,7 @@ import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.Function;
 
 import java.io.*;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -206,22 +204,21 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
     // and load joo unit
     loadArtifactIntoJavaScriptContext(jooRunner, jooUnit, true);
 
-    //load the test suite file
-    File test = new File(testOutputDirectory, testSuite.replaceAll("\\.", "//") + ".js");
+    //load all test classes into javascript context
+    Collection<File> files = FileUtils.listFiles(testOutputDirectory,new String[]{"js"}, true);
     FileReader testReader = null;
-    try {
-      testReader = new FileReader(test);
-    } catch (FileNotFoundException e) {
-      throw new MojoExecutionException("could not read test suite", e);
+    for ( File testFile : files) {
+      try {
+        testReader = new FileReader(testFile);
+        getLog().info(String.format("Loading test %s into JavaScript Context", testFile.getName()));
+        jooRunner.load(testReader, testFile.getName());
+      } catch (FileNotFoundException e) {
+        throw new MojoExecutionException("could not read test suite", e);
+      } catch (IOException e) {
+        throw new MojoExecutionException("could not read runtime artifact", e);
+      }    
     }
-
-    // and load it
-    try {
-      getLog().debug(String.format("Loading test suite %s into JavaScript Context", testSuite));
-      jooRunner.load(testReader, testSuite);
-    } catch (IOException e) {
-      throw new MojoExecutionException("could not read runtime artifact", e);
-    }
+    
 
     // run the test suite with the xml printer
     jooRunner.run(String.format(" with (joo.classLoader) {\n" +
