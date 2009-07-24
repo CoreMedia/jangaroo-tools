@@ -176,7 +176,7 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
 
     //load the joo runtime
     Artifact runtimeArtifact = resolveRuntimeArtifact();
-    loadArtifactIntoJavaScriptContext(jooRunner, runtimeArtifact, false);
+    loadRuntimeArtifact(jooRunner, runtimeArtifact);
 
     //retrieve joo unit
     Artifact jooUnit = resolveArtifact("net.jangaroo", "joounit", "lib", "zip");
@@ -312,6 +312,27 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
     return file.getPath().substring(file.getPath().indexOf(baseDirectory.getName()) + baseDirectory.getName().length() + 1, file.getPath().length());
   }
 
+  private void loadRuntimeArtifact(JooRunner jooRunner, Artifact runtimeArtifact) throws MojoExecutionException {
+     ZipFile zipArtifact = null;
+    try {
+      zipArtifact = new ZipFile(runtimeArtifact.getFile(), ZipFile.OPEN_READ);
+      ZipEntry zipEntry = zipArtifact.getEntry("joo/joo-debug.js");
+      if(zipEntry != null) {
+        getLog().debug(String.format("Loading %s into JavaScript context", zipEntry.getName()));
+        BufferedReader reader = new BufferedReader(new InputStreamReader(zipArtifact.getInputStream(zipEntry)));
+        jooRunner.load(reader, zipEntry.getName());
+      }
+    }  catch (IOException e) {
+      throw new MojoExecutionException("could not read runtime artifact", e);
+    } finally {
+      try {
+        zipArtifact.close();
+      } catch (IOException e) {
+        //
+      }
+    }
+  }
+
   private void loadArtifactIntoJavaScriptContext(JooRunner jooRunner, Artifact artifact, boolean joolib) throws MojoExecutionException, MojoFailureException {
     ZipFile zipArtifact = null;
     try {
@@ -329,7 +350,7 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
       }
 
     } catch (IOException e) {
-      throw new MojoExecutionException("could not read runtime artifact", e);
+      throw new MojoExecutionException("could not read artifact", e);
     } finally {
       try {
         zipArtifact.close();
