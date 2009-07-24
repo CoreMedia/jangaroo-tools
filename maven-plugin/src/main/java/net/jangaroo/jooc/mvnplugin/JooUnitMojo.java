@@ -4,6 +4,7 @@
 package net.jangaroo.jooc.mvnplugin;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.metadata.ArtifactMetadataSource;
 import org.apache.maven.artifact.metadata.ResolutionGroup;
@@ -303,7 +304,7 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
 
   private String getQualifiedClassname(File baseDirectory, File file) {
     String name = file.getAbsolutePath().substring(0, file.getAbsolutePath().lastIndexOf(".js"));
-    name = name.replaceAll("\\\\", "\\.");
+    name = FilenameUtils.separatorsToUnix(name).replaceAll("/", "\\.");
     name = name.substring(name.indexOf(baseDirectory.getName()) + baseDirectory.getName().length() + 1, name.length());
     return name;
   }
@@ -313,16 +314,16 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
   }
 
   private void loadRuntimeArtifact(JooRunner jooRunner, Artifact runtimeArtifact) throws MojoExecutionException {
-     ZipFile zipArtifact = null;
+    ZipFile zipArtifact = null;
     try {
       zipArtifact = new ZipFile(runtimeArtifact.getFile(), ZipFile.OPEN_READ);
       ZipEntry zipEntry = zipArtifact.getEntry("joo/joo-debug.js");
-      if(zipEntry != null) {
+      if (zipEntry != null) {
         getLog().debug(String.format("Loading %s into JavaScript context", zipEntry.getName()));
         BufferedReader reader = new BufferedReader(new InputStreamReader(zipArtifact.getInputStream(zipEntry)));
         jooRunner.load(reader, zipEntry.getName());
       }
-    }  catch (IOException e) {
+    } catch (IOException e) {
       throw new MojoExecutionException("could not read runtime artifact", e);
     } finally {
       try {
