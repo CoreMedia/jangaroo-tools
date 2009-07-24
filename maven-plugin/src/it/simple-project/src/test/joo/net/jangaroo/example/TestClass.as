@@ -17,23 +17,22 @@ package net.jangaroo.example {
 
 import flexunit.framework.Assert;
 import flexunit.framework.TestCase;
-import flexunit.framework.TestSuite;
 
-  /**
-   * Trivial class.
-   */
-  public class TestClass extends TestCase{
+/**
+ * Trivial class.
+ */
+public class TestClass extends TestCase{
 
-    public function TestClass() {
-      super();
-    }
-
-    public function testSomething():void {
-      Assert.assertFalse(false);
-    }
-
-    public function testSomethingElse():void {
-      Assert.assertTrue(true);
-    }   
+  public function TestClass() {
+    super();
   }
+
+  public function testSomething():void {
+    Assert.assertFalse(false);
+  }
+
+  public function testSomethingElse():void {
+    Assert.assertTrue(true);
+  }
+}
 }

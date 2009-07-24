@@ -138,7 +138,6 @@ public class JooRunner {
     ContextFactory.getGlobal().call(new ContextAction() {
       @Override
       public Object run(Context cx) {
-        outputHandler.println(script);
         cx.evaluateString(scope, script, "main", 1, null);
         return null;
       }
@@ -167,19 +166,7 @@ public class JooRunner {
 
   public static void main(String[] args) throws Exception {
     JooRunner run = new JooRunner();
-    run.load(new FileReader("D:\\p4\\moh-ui-powell\\cap-ui-editor\\target\\test-js-classes\\joo-debug.js"), "joo");
-    run.load(new FileReader("D:\\p4\\moh-ui-powell\\cap-ui-editor\\target\\test-js-classes\\flash\\utils\\flashutils.js"), "flashutils");
-    run.load(new FileReader("D:\\p4\\moh-ui-powell\\cap-ui-editor\\target\\test-js-classes\\jooflash-0.1-SNAPSHOT.js"), "jooflash");
-    run.load(new FileReader("D:\\p4\\moh-ui-powell\\cap-ui-editor\\target\\test-js-classes\\jooflexframework-0.1-SNAPSHOT.js"), "jooflex");
-    run.load(new FileReader("D:\\p4\\moh-ui-powell\\cap-ui-editor\\target\\test-js-classes\\joounit-0.1-SNAPSHOT.js"), "joounit");
-    run.load(new FileReader("D:\\p4\\moh-ui-powell\\cap-ui-editor\\target\\test-js-classes\\MyFirstTest.js"), "test");
-    run.run("with (joo.classLoader) {\n" +
-        "debug = true; \n" +
-        "      import_(\"flexunit.textui.TestRunner\");\n" +
-        "      complete(function(imports) {with(imports){\n" +
-        "        TestRunner.run(new MyFirstTest());\n" +
-        "      }});\n" +
-        "    }");
+    run.run(" trace('test');\n");
 
   }
 

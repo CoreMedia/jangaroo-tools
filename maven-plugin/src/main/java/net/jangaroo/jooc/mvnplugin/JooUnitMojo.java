@@ -3,9 +3,7 @@
  */
 package net.jangaroo.jooc.mvnplugin;
 
-import org.apache.commons.io.output.TeeOutputStream;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.metadata.ArtifactMetadataSource;
 import org.apache.maven.artifact.metadata.ResolutionGroup;
@@ -19,10 +17,6 @@ import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.codehaus.plexus.util.xml.Xpp3DomBuilder;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.codehaus.plexus.util.IOUtil;
-import org.mozilla.javascript.ScriptableObject;
-import org.mozilla.javascript.Context;
-import org.mozilla.javascript.Scriptable;
-import org.mozilla.javascript.Function;
 
 import java.io.*;
 import java.util.*;
@@ -118,7 +112,7 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
     return testOutputDirectory;
   }
 
-  static public class XmlCollector extends ScriptableObject {
+  static public class XmlCollector {
 
     public String xmlReport;
     public CountDownLatch completeSignal;
@@ -169,7 +163,6 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
 
     //the collector that recieves the xml report of the JooRunnder
     XmlCollector collector = new XmlCollector(completeSignal);
-    collector.defineFunctionProperties(new String[]{"collectXml"}, XmlCollector.class, ScriptableObject.DONTENUM);
 
     // add the collector to the scope
     jooRunner.addInstanceToScope(collector, "collector");
