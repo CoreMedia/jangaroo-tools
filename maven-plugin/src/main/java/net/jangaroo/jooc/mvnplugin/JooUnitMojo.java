@@ -13,10 +13,10 @@ import org.apache.maven.artifact.resolver.ArtifactResolutionResult;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProjectBuilder;
+import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.codehaus.plexus.util.xml.Xpp3DomBuilder;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
-import org.codehaus.plexus.util.IOUtil;
 
 import java.io.*;
 import java.util.*;
@@ -59,7 +59,7 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
 
   /**
    * Set the timeout in minutes
-   * 
+   *
    * @parameter expression=10
    */
   private long jooUnitTimeout;
@@ -202,20 +202,20 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
     loadArtifactIntoJavaScriptContext(jooRunner, jooUnit, true);
 
     //load all test classes into javascript context
-    Collection<File> files = FileUtils.listFiles(testOutputDirectory,new String[]{"js"}, true);
+    Collection<File> files = FileUtils.listFiles(testOutputDirectory, new String[]{"js"}, true);
     FileReader testReader = null;
     StringBuffer imports = new StringBuffer();
-    for ( File testFile : files) {
-      try {        
+    for (File testFile : files) {
+      try {
         imports.append(String.format("      import_(\"%s\");\n", getQualifiedClassname(testOutputDirectory, testFile)));
         testReader = new FileReader(testFile);
-        getLog().info(String.format("Loading test %s into JavaScript Context", testFile.getName()));
+        getLog().info(String.format("Loading test %s into JavaScript Context", getRelativePath(testOutputDirectory, testFile)));
         jooRunner.load(testReader, testFile.getName());
       } catch (FileNotFoundException e) {
         throw new MojoExecutionException("could not read test suite", e);
       } catch (IOException e) {
         throw new MojoExecutionException("could not read runtime artifact", e);
-      }    
+      }
     }
 
     //Latch that stops the mojo until all tests are complete
@@ -227,7 +227,7 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
 
     // add the collector to the scope
     jooRunner.addInstanceToScope(collector, "collector");
-    
+
 
     // run the test suite with the xml printer
     jooRunner.run(String.format(" with (joo.classLoader) {\n" +
@@ -240,12 +240,12 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
         "        TestRunner.run(%s.suite(), function(env){collector.collectXml(xmlWriter.getXml())}, xmlWriter);\n" +
         "        " +
         "      }});\n" +
-        "    }",  testSuiteName));
+        "    }", testSuiteName));
 
 
     //wait for the xml report, created by the javaScript writer
     try {
-      if(!completeSignal.await(jooUnitTimeout, TimeUnit.MINUTES)) {
+      if (!completeSignal.await(jooUnitTimeout, TimeUnit.MINUTES)) {
         throw new MojoExecutionException("Testrun timeout");
       }
     } catch (InterruptedException e) {
@@ -266,13 +266,17 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
     }
 
     //evaluate the result
-    
+
     int errors = 0;
     int failures = 0;
+    int tests = 0;
+    long time = 0;
     try {
       final Xpp3Dom dom = Xpp3DomBuilder.build(new StringReader(collector.xmlReport));
       errors += Integer.parseInt(dom.getAttribute("errors"));
       failures += Integer.parseInt(dom.getAttribute("failures"));
+      tests += Integer.parseInt(dom.getAttribute("tests"));
+      time += Long.parseLong(dom.getAttribute("time"));
     } catch (XmlPullParserException e) {
       throw new MojoExecutionException("Cannot parse report of test suite " + testSuite, e);
     } catch (IOException e) {
@@ -289,14 +293,23 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
       } else {
         throw new MojoFailureException(msg);
       }
+    } else if (printSummary) {
+      getLog().info(" ");
+      getLog().info("Jangaroo Test results:");
+      getLog().info(String.format("%s tests have been executed. That took %s ms.", tests, time));
+      getLog().info(" ");
     }
   }
 
   private String getQualifiedClassname(File baseDirectory, File file) {
-    String name = file.getAbsolutePath().substring(0,file.getAbsolutePath().lastIndexOf(".js"));
-    name = name.replaceAll("\\\\","\\.");
-    name = name.substring(name.indexOf(baseDirectory.getName())+baseDirectory.getName().length()+1, name.length());
+    String name = file.getAbsolutePath().substring(0, file.getAbsolutePath().lastIndexOf(".js"));
+    name = name.replaceAll("\\\\", "\\.");
+    name = name.substring(name.indexOf(baseDirectory.getName()) + baseDirectory.getName().length() + 1, name.length());
     return name;
+  }
+
+  private String getRelativePath(File baseDirectory, File file) {
+    return file.getPath().substring(file.getPath().indexOf(baseDirectory.getName()) + baseDirectory.getName().length() + 1, file.getPath().length());
   }
 
   private void loadArtifactIntoJavaScriptContext(JooRunner jooRunner, Artifact artifact, boolean joolib) throws MojoExecutionException, MojoFailureException {
@@ -307,7 +320,7 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
       while (entries.hasMoreElements()) {
         ZipEntry zipEntry = entries.nextElement();
         if (!zipEntry.isDirectory() && zipEntry.getName().endsWith(".js")) {
-          if(joolib && !zipEntry.getName().startsWith("joo/lib/"))
+          if (joolib && !zipEntry.getName().startsWith("joo/lib/"))
             continue;
           getLog().debug(String.format("Loading %s into JavaScript context", zipEntry.getName()));
           BufferedReader reader = new BufferedReader(new InputStreamReader(zipArtifact.getInputStream(zipEntry)));
