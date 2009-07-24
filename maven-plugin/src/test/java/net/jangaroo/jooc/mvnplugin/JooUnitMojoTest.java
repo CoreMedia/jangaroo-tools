@@ -17,6 +17,13 @@ public class JooUnitMojoTest extends AbstractMojoTestCase {
     super.setUp();
   }
 
+  protected void tearDown()
+      throws Exception {
+    // required
+    super.tearDown();
+  }
+
+
   /**
    * tests the proper discovery and configuration of the mojo
    *

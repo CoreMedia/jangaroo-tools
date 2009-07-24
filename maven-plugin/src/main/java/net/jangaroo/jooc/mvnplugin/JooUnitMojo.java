@@ -21,6 +21,7 @@ import org.codehaus.plexus.util.IOUtil;
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -55,6 +56,13 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
    * @parameter expression="${maven.test.failure.ignore}"
    */
   private boolean testFailureIgnore;
+
+  /**
+   * Set the timeout in minutes
+   * 
+   * @parameter expression=10
+   */
+  private long jooUnitTimeout;
 
   /**
    * @component
@@ -97,6 +105,7 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
    * Base directory where all reports are written to.
    *
    * @parameter expression="${project.build.directory}/surefire-reports"
+   * @required
    */
   private File reportsDirectory;
 
@@ -115,7 +124,7 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
   /**
    * Collects the XMl from the FlexUnit run and releases the complete latch.
    */
-  static private class XmlCollector {
+  static public class XmlCollector {
 
     public String xmlReport;
     public CountDownLatch completeSignal;
@@ -138,16 +147,13 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
 
-    //Latch that stops the mojo until all tests are complete
-    //and the xml report has been written.
-    final CountDownLatch completeSignal = new CountDownLatch(1);
-
-    if (!skipExec && !reportsDirectory.isDirectory()) {
+    if (!skipExec && !reportsDirectory.exists() && !reportsDirectory.isDirectory()) {
       if (!reportsDirectory.mkdirs()) {
         throw new MojoExecutionException("Cannot create report directry "
             + reportsDirectory.toString());
       }
     }
+
     //create testsuite Name
     final String testSuiteName = testSuite.substring(testSuite.lastIndexOf('.') + 1);
 
@@ -163,12 +169,6 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
         getLog().info(input);
       }
     });
-
-    //the collector that recieves the xml report of the JooRunnder
-    XmlCollector collector = new XmlCollector(completeSignal);
-
-    // add the collector to the scope
-    jooRunner.addInstanceToScope(collector, "collector");
 
     //retrieve and load the env dependency
     Artifact env_rhino_js = resolveArtifact("thatcher", "env-rhino-js", null, "zip");
@@ -217,6 +217,16 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
         throw new MojoExecutionException("could not read runtime artifact", e);
       }    
     }
+
+    //Latch that stops the mojo until all tests are complete
+    //and the xml report has been written.
+    final CountDownLatch completeSignal = new CountDownLatch(1);
+
+    //the collector that recieves the xml report of the JooRunnder
+    XmlCollector collector = new XmlCollector(completeSignal);
+
+    // add the collector to the scope
+    jooRunner.addInstanceToScope(collector, "collector");
     
 
     // run the test suite with the xml printer
@@ -235,7 +245,9 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
 
     //wait for the xml report, created by the javaScript writer
     try {
-      completeSignal.await();
+      if(!completeSignal.await(jooUnitTimeout, TimeUnit.MINUTES)) {
+        throw new MojoExecutionException("Testrun timeout");
+      }
     } catch (InterruptedException e) {
       throw new MojoExecutionException("unknown error", e);
     }
