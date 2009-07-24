@@ -1,0 +1,15 @@
+<project>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>net.jangaroo</groupId>
+        <artifactId>jangaroo-maven-plugin</artifactId>
+        <configuration/>
+        <configuration>
+                <testSuite>flexunit.framework.AllFrameworkTests</testSuite>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>
+

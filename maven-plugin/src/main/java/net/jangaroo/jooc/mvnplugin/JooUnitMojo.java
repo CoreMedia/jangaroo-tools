@@ -112,7 +112,10 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
     return testOutputDirectory;
   }
 
-  static public class XmlCollector {
+  /**
+   * Collects the XMl from the FlexUnit run and releases the complete latch.
+   */
+  static private class XmlCollector {
 
     public String xmlReport;
     public CountDownLatch completeSignal;
