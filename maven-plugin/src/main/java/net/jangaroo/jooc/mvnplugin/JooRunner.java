@@ -122,6 +122,7 @@ public class JooRunner {
           try {
             reader.close();
           } catch (IOException e) {
+            throw new RuntimeException("Cannot close reader while parsing: " + name, e);
           }
         }
         return null;
