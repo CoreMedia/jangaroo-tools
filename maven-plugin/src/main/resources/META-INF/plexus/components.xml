@@ -32,8 +32,6 @@
             <phases>
               <process-resources>org.apache.maven.plugins:maven-resources-plugin:resources</process-resources>
               <compile>net.jangaroo:jangaroo-maven-plugin:compile</compile>
-              <compile>net.jangaroo:jangaroo-maven-plugin:copy-runtime</compile>
-              <!--<compile>net.jangaroo:jangaroo-maven-plugin:compile-joo-debug</compile>-->
               <process-test-resources>org.apache.maven.plugins:maven-resources-plugin:testResources</process-test-resources>
               <test-compile>net.jangaroo:jangaroo-maven-plugin:testCompile</test-compile>
               <test>net.jangaroo:jangaroo-maven-plugin:test</test>
