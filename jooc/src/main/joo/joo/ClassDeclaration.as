@@ -15,6 +15,8 @@
 
 package joo {
 
+import joo.*;
+
 public class ClassDeclaration extends joo.SystemClassDeclaration {
 
   private var importMap : ImportMap;

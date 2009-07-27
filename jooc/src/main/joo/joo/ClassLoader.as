@@ -14,6 +14,8 @@
 // JangarooScript runtime support. Author: Frank Wienberg
 package joo {
 
+import joo.*;
+
 public class ClassLoader extends joo.SystemClassLoader {
 
   private static var classDeclarations : Array = [];

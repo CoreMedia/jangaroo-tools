@@ -28,6 +28,19 @@ public class Ide extends NodeImplBase {
     this.ide = ide;
   }
 
+  @Override
+  public Node analyze(Node parentNode, AnalyzeContext context) {
+    super.analyze(parentNode, context);
+    Scope declaringScope = context.getScope().findScopeThatDeclares(this);
+    if (declaringScope != null) {
+      Node ideDeclaration = declaringScope.getIdeDeclaration(this);
+      if (ideDeclaration instanceof ImportDirective) {
+        ((ImportDirective)ideDeclaration).wasUsed(context);
+      }
+    }
+    return this;
+  }
+
   public void generateCode(JsWriter out) throws IOException {
      out.writeSymbol(ide);
   }

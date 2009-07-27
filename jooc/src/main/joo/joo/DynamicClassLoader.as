@@ -1,4 +1,7 @@
 package joo {
+
+import joo.*;
+
 public class DynamicClassLoader extends joo.ClassLoader {
 
   private static function isEmpty(object : Object) : Boolean {

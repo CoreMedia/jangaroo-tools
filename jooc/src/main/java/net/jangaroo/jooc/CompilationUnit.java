@@ -20,7 +20,11 @@ import net.jangaroo.jooc.backend.CompilationUnitSinkFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.FilenameFilter;
+import java.util.Set;
 import java.util.List;
+import java.util.HashSet;
+import java.util.ArrayList;
 
 /**
  * @author Andreas Gawecki
@@ -32,6 +36,7 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
     return packageDeclaration;
   }
 
+  private Set<String> samePackageSymbols;
   PackageDeclaration packageDeclaration;
   JooSymbol lBrace;
   List<Node> directives;
@@ -53,6 +58,20 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
 
   public void setSourceFile(File sourceFile) {
     this.sourceFile = sourceFile;
+    File folder = sourceFile.getParentFile();
+    String[] symbols = folder.list(new FilenameFilter() {
+      public boolean accept(File dir, String name) {
+        return name.endsWith(Jooc.INPUT_FILE_SUFFIX);
+      }
+    });
+    samePackageSymbols = new HashSet<String>(symbols.length);
+    for (String symbol : symbols) {
+      samePackageSymbols.add(withoutAS(symbol));
+    }
+  }
+
+  private static String withoutAS(String name) {
+    return name.substring(0,name.length()- Jooc.INPUT_FILE_SUFFIX.length());
   }
 
   public File getSourceFile() {
@@ -110,16 +129,31 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
       "decodeURIComponent",
       "trace",
       "joo"});
-      super.analyze(parentNode, context);
+    super.analyze(parentNode, context);
     context.enterScope(packageDeclaration);
     packageDeclaration.analyze(this, context);
-    if (directives!=null) {
-      directives = analyze(this, directives, context);
-    }
+    analyzeDirectives(context);
     primaryDeclaration.analyze(this, context);
     context.leaveScope(packageDeclaration);
     context.leaveScope(globalObject);
     return this;
+  }
+
+  private void analyzeDirectives(AnalyzeContext context) {
+    Ide packageIde = context.getCurrentPackage().getIde();
+    Scope packageScope = context.getScope();
+    List<Node> directives = new ArrayList<Node>();
+    for (String samePackageSymbol : samePackageSymbols) {
+      ImportDirective importDirective = new ImportDirective(packageIde, samePackageSymbol);
+      packageScope.declareIde(samePackageSymbol, importDirective);
+      directives.add(0,importDirective);
+    }
+    if (this.directives==null) {
+      this.directives = directives;
+    } else {
+      this.directives.addAll(0, directives);
+    }
+    this.directives = analyze(this, this.directives, context);
   }
 
   private void declareIdes(Scope scope, String[] identifiers) {

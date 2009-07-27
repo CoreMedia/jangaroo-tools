@@ -1,4 +1,7 @@
 package joo {
+
+import joo.*;
+
 public class MemberDeclaration {
 
   public static const

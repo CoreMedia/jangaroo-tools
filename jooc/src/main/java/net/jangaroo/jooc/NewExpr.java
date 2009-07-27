@@ -40,6 +40,7 @@ class NewExpr extends Expr {
 
   public Expr analyze(Node parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
+    type.analyze(this, context);
     if (args != null)
       args.analyze(this, context);
     return this;

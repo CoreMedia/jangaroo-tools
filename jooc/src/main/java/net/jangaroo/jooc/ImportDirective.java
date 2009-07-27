@@ -22,12 +22,32 @@ import java.io.IOException;
  */
 public class ImportDirective extends NodeImplBase {
 
+  private static final JooSymbol IMPORT_SYMBOL = new JooSymbol(sym.IMPORT, "import");
+  private static final JooSymbol DOT_SYMBOL = new JooSymbol(sym.DOT, ".");
+
   JooSymbol importKeyword;
   Type type;
+  private boolean used;
+
+  private static Ide createIde(Ide prefix, JooSymbol symIde) {
+    return prefix==null ? new Ide(symIde) : new QualifiedIde(prefix, DOT_SYMBOL, symIde);
+  }
+
+  public ImportDirective(Ide packageIde, String typeName) {
+    this(IMPORT_SYMBOL, new IdeType(createIde(packageIde, new JooSymbol(typeName))));
+    used = false;
+  }
 
   public ImportDirective(JooSymbol importKeyword, Type type) {
     this.importKeyword = importKeyword;
     this.type = type;
+    used = true; // TODO: maybe later, we can filter out unused explicit imports.
+  }
+
+  public void wasUsed(AnalyzeContext context) {
+    if (!used && !context.getCurrentClass().getIde().getQualifiedNameStr().equals(((IdeType)type).getIde().getQualifiedNameStr())) {
+      used = true;
+    }
   }
 
   @Override
@@ -40,6 +60,7 @@ public class ImportDirective extends NodeImplBase {
         // found *-import, do not register, but add to package import list:
         String packageName = ((QualifiedIde)ide).prefix.getQualifiedNameStr();
         context.getCurrentPackage().addPackageImport(packageName);
+        wasUsed(context);
       } else {
         context.getScope().declareIde(typeName, this);
         // also add the fully qualified name (might be the same string for top level imports):
@@ -50,11 +71,13 @@ public class ImportDirective extends NodeImplBase {
   }
 
   public void generateCode(JsWriter out) throws IOException {
-    out.beginString();
-    out.writeSymbol(importKeyword);
-    type.generateCode(out);
-    out.endString();
-    out.writeToken(",");
+    if (used) {
+      out.beginString();
+      out.writeSymbol(importKeyword);
+      type.generateCode(out);
+      out.endString();
+      out.writeToken(",");
+    }
   }
 
   public JooSymbol getSymbol() {

@@ -1,4 +1,7 @@
 package joo {
+
+import joo.*;
+
 public class NativeClassDeclaration {
 
   internal static function createEmptyConstructor(constructor_ : Class) : Class {

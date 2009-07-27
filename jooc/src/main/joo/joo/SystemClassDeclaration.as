@@ -1,7 +1,6 @@
 package joo {
 
-import joo.NativeClassDeclaration;
-import joo.MemberDeclaration;
+import joo.*;
 
 public class SystemClassDeclaration extends NativeClassDeclaration {
 

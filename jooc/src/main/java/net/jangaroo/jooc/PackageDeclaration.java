@@ -59,9 +59,6 @@ public class PackageDeclaration extends IdeDeclaration  {
   public Node analyze(Node parentNode, AnalyzeContext context) {
     // do *not* call super!
     this.parentNode = parentNode;
-    if (ide!=null) {
-      addPackageImport(ide.getQualifiedNameStr());
-    }
     return this;
   }
 

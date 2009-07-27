@@ -17,7 +17,6 @@ package package2 {
 
 import package1.TestMethodCall;
 import package1.package11.TestSubPackage;
-import package2.TestStaticInitializer;
 
 public class TestImport extends TestMethodCall {
 

@@ -1,4 +1,7 @@
 package joo {
+
+import joo.*;
+
 public class SystemClassLoader {
 
 {
@@ -7,7 +10,7 @@ public class SystemClassLoader {
 
   public static const classDeclarationsByName : Object/*<String,SystemClassDeclaration>*/ = {};
 
-  public var debug : Boolean = false;
+  public var debug : Boolean = true;
 
   public function SystemClassLoader() {    
   }
