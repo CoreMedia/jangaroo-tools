@@ -58,7 +58,7 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
 
   public void setSourceFile(File sourceFile) {
     this.sourceFile = sourceFile;
-    File folder = sourceFile.getParentFile();
+    File folder = sourceFile.getAbsoluteFile().getParentFile();
     String[] symbols = folder.list(new FilenameFilter() {
       public boolean accept(File dir, String name) {
         return name.endsWith(Jooc.INPUT_FILE_SUFFIX);
