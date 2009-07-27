@@ -98,7 +98,7 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
 
   /**
    * @parameter expression="${joo.testSuite}"
-   * @required
+   * @optional
    */
   private String testSuite;
 
@@ -154,7 +154,7 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
             + reportsDirectory.toString());
       }
     }
-
+    if (testSuite != null) {
     //create testsuite Name
     final String testSuiteName = testSuite.substring(testSuite.lastIndexOf('.') + 1);
 
@@ -299,6 +299,9 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
       getLog().info("Jangaroo Test results:");
       getLog().info(String.format("%s tests have been executed. That took %s ms.", tests, time));
       getLog().info(" ");
+    }
+    } else {
+      getLog().error("No TestSuite defined skipping tests");
     }
   }
 
