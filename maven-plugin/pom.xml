@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>net.jangaroo</groupId>
   <artifactId>jangaroo-maven-plugin</artifactId>
@@ -118,6 +119,13 @@
       <scope>compile</scope>
     </dependency>
 
+    <dependency>
+      <groupId>org.codehaus.mojo.javascript</groupId>
+      <artifactId>javascript-maven-archive</artifactId>
+      <version>1.0-alpha-1-SNAPSHOT</version>
+    </dependency>
+    
+
     <!-- Plexus -->
 
     <dependency>
@@ -141,15 +149,15 @@
         <artifactId>maven-project-info-reports-plugin</artifactId>
         <version>2.1</version>
         <reportSets>
-           <reportSet>
-             <reports>
-               <report>summary</report>
-               <report>dependencies</report>
-               <report>license</report>
-               <report>project-team</report>
-             </reports>
-           </reportSet>
-         </reportSets>
+          <reportSet>
+            <reports>
+              <report>summary</report>
+              <report>dependencies</report>
+              <report>license</report>
+              <report>project-team</report>
+            </reports>
+          </reportSet>
+        </reportSets>
       </plugin>
 
       <plugin>
@@ -158,7 +166,7 @@
           <goalPrefix>jangaroo</goalPrefix>
         </configuration>
       </plugin>
-      
+
     </plugins>
   </reporting>
 
