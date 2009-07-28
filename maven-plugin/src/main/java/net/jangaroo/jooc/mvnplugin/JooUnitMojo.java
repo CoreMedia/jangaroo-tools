@@ -5,6 +5,8 @@ package net.jangaroo.jooc.mvnplugin;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.filefilter.IOFileFilter;
+import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.metadata.ArtifactMetadataSource;
 import org.apache.maven.artifact.metadata.ResolutionGroup;
@@ -88,6 +90,12 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
    */
   protected java.util.List remoteRepos;
 
+
+  /**
+   * Output directory for compiled classes.
+   * @parameter expression="${project.build.directory}/js-classes"
+   */
+  private File outputDirectory;
 
   /**
    * Output directory for compiled classes.
@@ -202,10 +210,25 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
     // and load joo unit
     loadArtifactIntoJavaScriptContext(jooRunner, jooUnit, true);
 
-    //load all test classes into javascript context
-    Collection<File> files = FileUtils.listFiles(testOutputDirectory, new String[]{"js"}, true);
+    //load all classes into javascript context
+    Collection<File> files = FileUtils.listFiles(outputDirectory, FileFilterUtils.suffixFileFilter("js"), FileFilterUtils.notFileFilter(FileFilterUtils.nameFileFilter("joo")));
     FileReader testReader = null;
     StringBuffer imports = new StringBuffer();
+    for (File testFile : files) {
+      try {
+        imports.append(String.format("      import_(\"%s\");\n", getQualifiedClassname(outputDirectory, testFile)));
+        testReader = new FileReader(testFile);
+        getLog().info(String.format("Loading class %s into JavaScript Context", getRelativePath(outputDirectory, testFile)));
+        jooRunner.load(testReader, testFile.getName());
+      } catch (FileNotFoundException e) {
+        throw new MojoExecutionException("could not read test suite", e);
+      } catch (IOException e) {
+        throw new MojoExecutionException("could not read runtime artifact", e);
+      }
+    }
+
+    //load all test classes into javascript context
+    files = FileUtils.listFiles(testOutputDirectory, new String[]{"js"}, true);
     for (File testFile : files) {
       try {
         imports.append(String.format("      import_(\"%s\");\n", getQualifiedClassname(testOutputDirectory, testFile)));

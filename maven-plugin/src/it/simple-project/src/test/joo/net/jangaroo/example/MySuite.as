@@ -8,9 +8,9 @@ public class MySuite {
   }
 
   public static function suite():TestSuite {
-    var fix:TestClass = new TestClass();
+    var fix:HelloWorldTest = new HelloWorldTest();
     var suite:TestSuite = new TestSuite();
-    suite.addTestSuite(TestClass);
+    suite.addTestSuite(HelloWorldTest);
     return suite;
   }
 }
