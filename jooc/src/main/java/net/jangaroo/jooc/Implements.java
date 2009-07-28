@@ -29,6 +29,13 @@ class Implements extends NodeImplBase {
     this.superTypes = superTypes;
   }
 
+  @Override
+  public Node analyze(Node parentNode, AnalyzeContext context) {
+    super.analyze(parentNode, context);
+    superTypes.analyze(this, context);
+    return this;
+  }
+
   public void generateCode(JsWriter out) throws IOException {
      out.writeSymbol(symImplements);
      superTypes.generateCode(out);
