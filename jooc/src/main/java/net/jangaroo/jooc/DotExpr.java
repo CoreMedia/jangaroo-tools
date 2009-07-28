@@ -99,7 +99,7 @@ class DotExpr extends BinaryOpExpr {
           JooSymbol arg1Symbol = arg1.getSymbol();
           // replace current class by "$jooPrivate":
           arg1 = new IdeExpr(new Ide(new JooSymbol(net.jangaroo.jooc.sym.IDE, arg1Symbol.fileName, arg1Symbol.line,
-            arg1Symbol.column, arg1Symbol.whitespace, "$jooPrivate")));
+            arg1Symbol.column, arg1Symbol.whitespace, "$$private")));
         }
       }
     }

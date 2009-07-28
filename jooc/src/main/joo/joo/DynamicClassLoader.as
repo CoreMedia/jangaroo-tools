@@ -2,9 +2,10 @@ package joo {
 
 import joo.*;
 
-public class DynamicClassLoader extends joo.ClassLoader {
+public class DynamicClassLoader extends joo.StandardClassLoader {
 
   private static function isEmpty(object : Object) : Boolean {
+    //noinspection LoopStatementThatDoesntLoopJS
     for (var m:String in object) {
       return false;
     }
@@ -13,7 +14,7 @@ public class DynamicClassLoader extends joo.ClassLoader {
 
 
   public var classLoadTimeoutMS : int = 0,
-             urlPrefix : String = "";
+             urlPrefix : String = "joo/classes/";
   private var loadCheckTimer : *,
               onCompleteCallback : Function;
 
@@ -82,7 +83,8 @@ public class DynamicClassLoader extends joo.ClassLoader {
 
   override public function run(mainClassName : String, ...args):void {
     this.load(mainClassName);
-    super.run.apply(this,arguments);
+    args.splice(0,0,mainClassName);
+    super.run.apply(this,args);
   }
 
   private function load(fullClassName : String) : void {
@@ -100,10 +102,10 @@ public class DynamicClassLoader extends joo.ClassLoader {
           // trigger loading:
           this.pendingClassState[fullClassName] = true;
           var url : String = this.getUri(fullClassName);
-          joo.classLoader.loadScript(url);
           if (this.debug) {
-            trace("triggered loading class "+fullClassName+" from URL "+url+".");
+            trace("triggering to load class "+fullClassName+" from URL "+url+".");
           }
+          this.loadScript(url);
         }
       }
     }

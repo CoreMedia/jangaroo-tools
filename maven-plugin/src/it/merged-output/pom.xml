@@ -34,13 +34,20 @@ under the License.
         <version>@project.version@</version>
         <executions>
           <execution>
+            <id>compile-merged</id>
             <configuration>
               <mergeOutput>true</mergeOutput>
+              <outputDirectory>${project.build.directory}/joo/lib</outputDirectory>
               <outputFileName>merged-output-test.js</outputFileName>
               <verbose>true</verbose>
             </configuration>
             <goals>
               <goal>compile</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>copy-runtime</id>
+            <goals>
               <goal>copy-runtime</goal>
             </goals>
           </execution>
@@ -53,8 +60,8 @@ under the License.
         <configuration>
           <webResources>
             <resource>
-              <directory>${project.build.directory}/js-classes</directory>
-              <targetPath>js</targetPath>
+              <directory>${project.build.directory}/joo</directory>
+              <targetPath>joo</targetPath>
             </resource>
           </webResources>
         </configuration>

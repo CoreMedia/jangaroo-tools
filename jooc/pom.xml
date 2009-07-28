@@ -15,7 +15,6 @@
 
 
   <build>
-    <sourceDirectory>src/main/joo</sourceDirectory>
     <testResources>
       <testResource>
         <directory>src/test/joo</directory>
@@ -124,7 +123,7 @@
                     <file name="Array.js" />
                     <file name="joo/ImportMap.js" />
                     <file name="joo/ClassDeclaration.js" />
-                    <file name="joo/ClassLoader.js" />
+                    <file name="joo/StandardClassLoader.js" />
                     <file name="joo/DynamicClassLoader.js" />
                   </filelist>
                   <footer trimleading="yes">
@@ -154,7 +153,7 @@
                     <file name="Array.js" />
                     <file name="joo/ImportMap.js" />
                     <file name="joo/ClassDeclaration.js" />
-                    <file name="joo/ClassLoader.js" />
+                    <file name="joo/StandardClassLoader.js" />
                     <file name="joo/DynamicClassLoader.js" />
                   </filelist>
                   <footer trimleading="yes">

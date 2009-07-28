@@ -5,12 +5,12 @@ import joo.*;
 public class SystemClassLoader {
 
 {
-  joo.classLoader = new SystemClassLoader();
+  joo["classLoader"] = new SystemClassLoader();
 }
 
   public static const classDeclarationsByName : Object/*<String,SystemClassDeclaration>*/ = {};
 
-  public var debug : Boolean = true;
+  public var debug : Boolean = false;
 
   public function SystemClassLoader() {    
   }

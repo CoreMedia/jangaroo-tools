@@ -97,11 +97,11 @@ public class ClassDeclaration extends IdeDeclaration {
     if (optImplements != null) optImplements.generateCode(out);
     out.endString();
     out.write(",");
-    out.write("function($jooPublic,$jooPrivate){");
+    out.write("function("+ide.getName()+",$$private){");
     for (String importedPackage : packageImports) {
       out.write("with("+importedPackage+")");
     }
-    out.write("with($jooPublic)with($jooPrivate)return[");
+    out.write("with("+ide.getName()+")with($$private)return[");
     generateClassInits(out);
     body.generateCode(out);
     out.write("];},");

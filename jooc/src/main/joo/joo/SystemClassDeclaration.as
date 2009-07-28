@@ -148,7 +148,6 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
     if (this.boundMethodNames.length>0) {
       this.constructor_ = createMethodBindingConstructor(this.constructor_, this.boundMethodNames);
     }
-    this.privateStatics[this.className] = this.publicConstructor;
   }
 
   // must be defined static because otherwise, jooc will add .bind(this) to all function expressions!

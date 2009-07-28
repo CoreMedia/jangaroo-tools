@@ -16,13 +16,13 @@ package joo {
 
 import joo.*;
 
-public class ClassLoader extends joo.SystemClassLoader {
+public class StandardClassLoader extends joo.SystemClassLoader {
 
   private static var classDeclarations : Array = [];
 
   private var importMap : ImportMap;
 
-  public function ClassLoader() {
+  public function StandardClassLoader() {
     this.importMap = new ImportMap();
   }
 
@@ -30,10 +30,6 @@ public class ClassLoader extends joo.SystemClassLoader {
                                                   publicStaticMethodNames : Array):SystemClassDeclaration {
     var cd : ClassDeclaration = new ClassDeclaration(packageDef, directives, classDef, memberFactory, publicStaticMethodNames);
     classDeclarations.push(cd); // remember all created classes for later initialization.
-    if (cd.native_) {
-      // only init native class patches immediately:
-      cd.init();
-    }
     return cd;
   }
 
@@ -63,7 +59,7 @@ public class ClassLoader extends joo.SystemClassLoader {
    */
   public function run(mainClassName : String, ...args) : void {
     this.complete(function() : void {
-      var mainClass : SystemClassDeclaration = this.getRequiredClassDeclaration(mainClassName);
+      var mainClass : SystemClassDeclaration = this.getRequiredClassDeclaration(mainClassName) as SystemClassDeclaration;
       mainClass.publicConstructor["main"].apply(null,args);
     });
   }
@@ -77,14 +73,14 @@ public class ClassLoader extends joo.SystemClassLoader {
    * - import the class or
    * - load the class and use the constructor or a static method of the class. This will trigger initialization
    *   automatically.
-   * @param arguments the classes (type Class) to initialize.
+   * @param classes the classes (type Class) to initialize.
    * @return Function the initialized class (constructor function).
    */
-  public function init(... arguments) : Class {
+  public function init(... classes) : Class {
     var clazz : Class;
-    for (var i:int=0; i<arguments.length; ++i) {
-      if (arguments[i].$class) {
-        ((clazz = arguments[i]).$class as NativeClassDeclaration).init();
+    for (var i:int=0; i<classes.length; ++i) {
+      if (classes[i].$class) {
+        ((clazz = classes[i]).$class as NativeClassDeclaration).init();
       }
     }
     return clazz;
@@ -111,6 +107,10 @@ public class ClassLoader extends joo.SystemClassLoader {
   protected function completeAll() : void {
     classDeclarations.forEach(function(classDeclaration : ClassDeclaration) : void {
       classDeclaration.complete();
+      // init native class patches immediately:
+      if (classDeclaration.native_) {
+        classDeclaration.init();
+      }
     });
   }
 

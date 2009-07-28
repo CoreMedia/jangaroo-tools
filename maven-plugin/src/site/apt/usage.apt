@@ -52,14 +52,14 @@ Usage
   </project>
 +-------+
 
- By default, <<<jangaroo:compile>>> will generate the JavaScript output to <<<target/js-classes>>>, and
- <<<jangaroo:testCompile>>> to <<<target/test-js-classes>>>. The <<<jangaroo:copy-runtime>>> goal will run during
+ By default, <<<jangaroo:compile>>> will generate the JavaScript output to <<<target/joo/classes>>>, and
+ <<<jangaroo:testCompile>>> to <<<target/joo/test-classes>>>. The <<<jangaroo:copy-runtime>>> goal will run during
  the compile phase and extract the required Jangaroo runtime <<<joo/joo.js>>> to the compilation output directory.
 
 *Including compiled Jangaroo classes in a <<<war>>> project
 
  In most cases, Jangaroo sources will be part of a project of type <<<war>>>, packaged by the <<<maven-war-plugin>>>.
- To include the compiled Jangaroo classes in the generated WAR, e.g. in a scripts directory called <<</js>>>,
+ To include the compiled Jangaroo classes in the generated WAR, e.g. in a scripts directory called <<</joo>>>,
  add the Jangaroo compilation output directory as a <<<webResource>>> to the war-plugin configuration.
  If you do not actually build a J2EE Web application, and you do not want to add a fake web.xml, you must tell the
  maven-war-plugin to ignore the missing file.
@@ -75,8 +75,8 @@ Usage
           <configuration>
             <webResources>
               <resource>
-                <directory>${project.build.directory}/js-classes</directory>
-                <targetPath>js</targetPath>
+                <directory>${project.build.directory}/joo</directory>
+                <targetPath>joo</targetPath>
               </resource>
             </webResources>
             <failOnMissingWebXml>false</failOnMissingWebXml>
@@ -89,14 +89,14 @@ Usage
 +-------+
 
  The Jangaroo runtime <<<joo/joo.js>>> will be required to run the compiled Jangaroo code. The example
- above therefore assumes that the <<<jangaroo:copy-runtime>>> goal has been executed to extract <<<joo/joo.js>>>
- to <<<$\{project.build.directory\}/js-classes>>>.
+ above therefore assumes that the <<<jangaroo:copy-runtime>>> goal has been executed to extract <<<joo.js>>>
+ to <<<$\{project.build.directory\}/joo/lib>>>.
 
 *Compiling all Jangaroo classes to one output file
 
  To reduce the number of JavaScript files in your deployed application, the plugin supports concatenating all
  compiled Jangaroo classes to one single JavaScript file by setting the <<<mergeOutput>>> parameter to true.
- The default output file name is <<<$\{project.build.finalName\}.js>>> and may be changed by setting the
+ The default output file name is <<<target/joo/lib/$\{project.build.finalName\}.js>>> and may be changed by setting the
  <<<outputFileName>>> parameter.
 
 +-------+

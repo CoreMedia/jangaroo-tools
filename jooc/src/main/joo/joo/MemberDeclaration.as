@@ -136,7 +136,11 @@ public class MemberDeclaration {
       this.memberType = MEMBER_TYPE_VAR;
       this.getterOrSetter = null;
     }
-    var member : * = target[this.memberName];
+    try {
+      var member : * = target[this.memberName];
+    } catch (e : Error) {
+      // ignore Firefox' native member access exceptions.
+    }
     if (typeof member!="function") {
       var memberObject : Object = {};
       memberObject[this.memberName] = member;

@@ -52,7 +52,7 @@ under the License.
         <configuration>
           <webResources>
             <resource>
-              <directory>${project.build.directory}/js-classes</directory>
+              <directory>${project.build.directory}/joo/classes</directory>
               <targetPath>js</targetPath>
             </resource>
           </webResources>

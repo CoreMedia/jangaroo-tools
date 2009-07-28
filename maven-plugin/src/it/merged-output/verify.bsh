@@ -33,21 +33,21 @@ try
         return false;
     }
 
-    File jsDir = new File ( target, "js-classes" );
+    File jsDir = new File ( target, "joo"+File.separator+"lib" );
     if ( !jsDir.exists() || !jsDir.isDirectory() )
     {
-        System.err.println( "js-classes directory is missing or not a directory." );
+        System.err.println( "joo/lib directory is missing or not a directory." );
         return false;
     }
 
     File outputJs = new File ( jsDir, "merged-output-test.js" );
     if ( !outputJs.exists() || !outputJs.isFile() )
     {
-        System.err.println( "merged-output-test.js output file is missing or not a file." );
+        System.err.println( "joo/lib/merged-output-test.js output file is missing or not a file." );
         return false;
     }
 
-    File classRuntimeJs = new File ( jsDir, "joo"+File.separator+"joo.js" );
+    File classRuntimeJs = new File ( jsDir, "joo.js" );
     if ( !classRuntimeJs.exists() || !classRuntimeJs.isFile() )
     {
         System.err.println( "joo/joo.js runtime file is missing or not a file." );

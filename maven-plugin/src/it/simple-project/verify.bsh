@@ -33,10 +33,10 @@ try
         return false;
     }
 
-    File jsDir = new File ( target, "js-classes" );
+    File jsDir = new File ( target, "joo"+File.separator+"classes" );
     if ( !jsDir.exists() || !jsDir.isDirectory() )
     {
-        System.err.println( "js-classes directory is missing or not a directory." );
+        System.err.println( "joo/classes directory is missing or not a directory." );
         return false;
     }
 
@@ -54,7 +54,7 @@ try
         return false;
     }
 
-    File classRuntimeJs = new File ( jsDir, "joo"+File.separator+"joo.js" );
+    File classRuntimeJs = new File ( target, "joo"+File.separator+"lib"+File.separator+"joo.js" );
     if ( !classRuntimeJs.exists() || !classRuntimeJs.isFile() )
     {
         System.err.println( "joo/joo.js runtime file is missing or not a file." );
@@ -62,14 +62,21 @@ try
     }
 
 
-    File testJsDir = new File ( target, "test-js-classes" );
+    File testJsDir = new File ( target, "joo"+File.separator+"test-classes" );
     if ( !testJsDir.exists() || !testJsDir.isDirectory() )
     {
-        System.err.println( "test-js-classes directory is missing or not a directory." );
+        System.err.println( "joo/test-classes directory is missing or not a directory." );
         return false;
     }
 
-    testClassJs = new File ( testJsDir, "net"+File.separator+"jangaroo"+File.separator+"example"+File.separator+"TestClass.js" );
+    testClassJs = new File ( testJsDir, "net"+File.separator+"jangaroo"+File.separator+"example"+File.separator+"HelloWorldTest.js" );
+    if ( !testClassJs.exists() || !testClassJs.isFile() )
+    {
+        System.err.println( testClassJs + " output file is missing or not a file." );
+        return false;
+    }
+
+    testClassJs = new File ( testJsDir, "net"+File.separator+"jangaroo"+File.separator+"example"+File.separator+"MySuite.js" );
     if ( !testClassJs.exists() || !testClassJs.isFile() )
     {
         System.err.println( testClassJs + " output file is missing or not a file." );

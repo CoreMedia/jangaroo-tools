@@ -66,7 +66,7 @@ public class PackageMojo extends AbstractMojo {
   /**
    * Location of the scripts files.
    *
-   * @parameter expression="${project.build.directory}/js-classes"
+   * @parameter expression="${project.build.directory}/joo/classes"
    */
   private File scriptsDirectory;
 
