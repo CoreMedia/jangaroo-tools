@@ -18,7 +18,7 @@ public class CompilerMojo extends AbstractCompilerMojo {
 
   /**
    * Output directory for compiled classes.
-   * @parameter expression="${project.build.directory}/js-classes"
+   * @parameter expression="${project.build.directory}/joo/classes"
    */
   private File outputDirectory;
 
