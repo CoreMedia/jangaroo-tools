@@ -52,12 +52,10 @@ public class JooRunner {
    */
   public JooRunner() {
     this(new TraceOutputHandler() {
-      @Override
       public void print(String input) {
         System.out.print(input);
       }
 
-      @Override
       public void println(String input) {
         System.out.println(input);
       }
@@ -112,7 +110,6 @@ public class JooRunner {
     }
 
     ContextFactory.getGlobal().call(new ContextAction() {
-      @Override
       public Object run(Context cx) {
         try {
           cx.evaluateReader(scope, reader, name, 1, null);
@@ -137,7 +134,6 @@ public class JooRunner {
    */
   public void run(final String script) {
     ContextFactory.getGlobal().call(new ContextAction() {
-      @Override
       public Object run(Context cx) {
         cx.evaluateString(scope, script, "main", 1, null);
         return null;

@@ -153,7 +153,6 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
   }
 
 
-  @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
 
     if (!skipExec && !reportsDirectory.exists() && !reportsDirectory.isDirectory()) {
@@ -168,12 +167,10 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
 
     // create the joo runner that delegates all output to mojo log
     jooRunner = new JooRunner(new JooRunner.TraceOutputHandler() {
-      @Override
       public void print(String input) {
         getLog().info(input);
       }
 
-      @Override
       public void println(String input) {
         getLog().info(input);
       }
@@ -247,7 +244,7 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
 
     //wait for the xml report, created by the javaScript writer
     try {
-      if (!completeSignal.await(jooUnitTimeout, TimeUnit.MINUTES)) {
+      if (!completeSignal.await(jooUnitTimeout*60, TimeUnit.SECONDS)) {
         throw new MojoExecutionException("Testrun timeout");
       }
     } catch (InterruptedException e) {
