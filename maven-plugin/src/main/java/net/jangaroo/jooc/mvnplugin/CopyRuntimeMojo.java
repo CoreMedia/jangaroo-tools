@@ -22,7 +22,7 @@ public class CopyRuntimeMojo extends AbstractRuntimeMojo {
 
   /**
    * Target directory for the extracted runtime.
-   * @parameter expression="${project.build.directory}/js-classes"
+   * @parameter expression="${project.build.directory}/joo/lib"
    */
   private File outputDirectory;
 
