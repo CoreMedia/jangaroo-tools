@@ -40,9 +40,10 @@ public class CompilerMojo extends AbstractCompilerMojo {
    */
   private Set excludes = new HashSet();
   /**
-   * When "mergeOutput" is "true", this parameter specifies the name of the output file containing all
-   * compiled classes. Otherwise, this parameter will be ignored.
-   * @parameter expression="${project.build.finalName}.js"
+   * When "mergeOutput" is "true", this parameter specifies the name of the output file, relative to the
+   * outputDirectory, where all compiled classes should be merged.
+   * Otherwise, this parameter will be ignored.
+   * @parameter expression="../lib/${project.build.finalName}.js"
    */
   private String outputFileName;
 
