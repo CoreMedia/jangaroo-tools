@@ -16,7 +16,7 @@ public class DynamicClassLoader extends joo.StandardClassLoader {
   public var classLoadTimeoutMS : int = 0,
              urlPrefix : String = "joo/classes/";
   private var loadCheckTimer : *,
-              onCompleteCallback : Function;
+              onCompleteCallbacks : Array/*<Function>*/ = [];
 
   /**
    * Keep record of all classes whose dependencies still have to be loaded.
@@ -36,19 +36,19 @@ public class DynamicClassLoader extends joo.StandardClassLoader {
       if (this.debug) {
         trace("prepared class " + cd.fullClassName + ", removed from pending classes.");
       }
-      if (this.onCompleteCallback) {
+      if (this.onCompleteCallbacks.length) {
         this.loadPendingDependencies();
         if (this.loadCheckTimer) {
           window.clearTimeout(this.loadCheckTimer);
           this.loadCheckTimer = undefined;
         }
         if (isEmpty(this.pendingClassState)) {
-          var onCompleteCallback : Function = this.onCompleteCallback;
-          this.onCompleteCallback = null;
+          var onCompleteCallbacks : Array/*<Function>*/ = this.onCompleteCallbacks;
+          this.onCompleteCallbacks = [];
           // "invoke later":
           window.setTimeout(function() {
             this.completeAll();
-            this.doCompleteCallback(onCompleteCallback);
+            this.doCompleteCallbacks(onCompleteCallbacks);
           }, 0);
         } else if (this.classLoadTimeoutMS) {
           this.loadCheckTimer = window.setTimeout(this.throwMissingClassesError, this.classLoadTimeoutMS);
@@ -89,7 +89,7 @@ public class DynamicClassLoader extends joo.StandardClassLoader {
 
   private function load(fullClassName : String) : void {
     if (!this.getClassDeclaration(fullClassName)) {
-      if (!this.onCompleteCallback) {
+      if (this.onCompleteCallbacks.length==0) {
         if (this.pendingClassState[fullClassName]===undefined) {
           // we are not yet in completion phase: just add to pending classes:
           this.pendingClassState[fullClassName] = false;
@@ -135,7 +135,9 @@ public class DynamicClassLoader extends joo.StandardClassLoader {
    * @return void
    */
   public override function complete(onCompleteCallback : Function = undefined) : void {
-    this.onCompleteCallback = onCompleteCallback || defaultOnCompleteCallback;
+    if (onCompleteCallback || this.onCompleteCallbacks.length==0) {
+      this.onCompleteCallbacks.push(onCompleteCallback || defaultOnCompleteCallback);
+    }
     this.loadPendingDependencies();
     if (isEmpty(this.pendingClassState)) {
       // no deferred classes: do not behave any different than my superclass

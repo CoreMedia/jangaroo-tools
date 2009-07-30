@@ -101,7 +101,9 @@ public class StandardClassLoader extends joo.SystemClassLoader {
    */
   public function complete(onCompleteCallback : Function = undefined) : void {
     this.completeAll();
-    this.doCompleteCallback(onCompleteCallback);
+    if (onCompleteCallback) {
+      this.doCompleteCallbacks([onCompleteCallback]);
+    }
   }
 
   protected function completeAll() : void {
@@ -114,10 +116,13 @@ public class StandardClassLoader extends joo.SystemClassLoader {
     });
   }
 
-  protected function doCompleteCallback(onCompleteCallback : Function) : void {
-    if (onCompleteCallback) {
+  protected function doCompleteCallbacks(onCompleteCallbacks : Array/*Function*/) : void {
+    if (onCompleteCallbacks.length) {
       this.importMap.init();
-      onCompleteCallback(this.importMap.addToMap({}));
+      var importMap : Object = this.importMap.addToMap({});
+      for (var i:int = 0; i < onCompleteCallbacks.length; ++i) {
+        (onCompleteCallbacks[i] as Function)(importMap);
+      }
     }
   }
 }
