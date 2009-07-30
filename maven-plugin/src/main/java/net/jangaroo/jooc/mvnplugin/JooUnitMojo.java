@@ -109,7 +109,7 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
   private File testOutputDirectory;
 
   /**
-   * @parameter expression="${joo.testSuite}"
+   * @parameter expression="JooTestSuite"
    * @optional
    */
   private String testSuite;
