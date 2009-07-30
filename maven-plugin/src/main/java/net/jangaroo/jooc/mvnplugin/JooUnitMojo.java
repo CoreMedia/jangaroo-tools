@@ -14,7 +14,7 @@ import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
 import org.apache.maven.artifact.resolver.ArtifactResolutionResult;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.project.MavenProjectBuilder;
+import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.codehaus.plexus.util.xml.Xpp3DomBuilder;
@@ -34,6 +34,17 @@ import java.util.zip.ZipFile;
 public class JooUnitMojo extends AbstractRuntimeMojo {
 
   private JooRunner jooRunner;
+
+  /**
+   * The Maven project.
+   *
+   * @parameter expression="${project}"
+   * @required
+   * @readonly
+   * @description "The current Maven project"
+   */
+  private MavenProject project;
+
 
   /**
    * Set this to 'true' to bypass unit tests entirely. Its use is NOT RECOMMENDED, but quite
@@ -62,7 +73,7 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
   /**
    * Set the timeout in minutes
    *
-   * @parameter expression=10
+   * @parameter expression=2
    */
   private long jooUnitTimeout;
 
@@ -73,12 +84,6 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
    */
   protected ArtifactMetadataSource artifactMetadataSource;
 
-  /**
-   * @component
-   * @required
-   * @readonly
-   */
-  protected MavenProjectBuilder projectBuilder;
 
   /**
    * List of Remote Repositories used by the resolver
@@ -88,7 +93,6 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
    * @required
    */
   protected java.util.List remoteRepos;
-
 
   /**
    * Output directory for compiled classes.
@@ -133,7 +137,7 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
   /**
    * Collects the XMl from the FlexUnit run and releases the complete latch.
    */
-  static public class XmlCollector {
+  public class XmlCollector {
 
     public String xmlReport;
     public CountDownLatch completeSignal;
@@ -147,12 +151,55 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
     }
 
     public void collectXml(String xml) {
+      getLog().debug("Collecting XML report...");
       this.xmlReport = xml;
       completeSignal.countDown();
     }
   }
 
+  public class DynamicScriptLoader {
+    private JooRunner runner;
+    private File[] scriptDirectories;
 
+    public DynamicScriptLoader(JooRunner runner, File[] scriptDirectories) {
+      this.runner = runner;
+      this.scriptDirectories = scriptDirectories;
+    }
+
+    public String getClassName() {
+      return "DynamicScriptLoader";
+    }
+
+    public void loadScript(String url) {
+      getLog().debug("DynamicClassLoader requested " + url);
+      boolean loaded = false;
+      for (File dir : scriptDirectories) {
+        File script = new File(dir, url);
+        if (script.canRead()) {
+          try {
+            FileReader reader = new FileReader(script);
+            getLog().debug("DynamicClassLoader is loading script from  " + script.getPath());
+            runner.load(reader, url);
+            loaded = true;
+            break;
+          } catch (FileNotFoundException e) {
+            getLog().error(e);
+            throw new RuntimeException(e);
+          } catch (IOException e) {
+            getLog().error(e);
+            throw new RuntimeException(e);
+          }
+        }
+      }
+      if (!loaded) {
+        getLog().error("Could not load script: " + url);
+        throw new RuntimeException("Could not load script: " + url);
+      }
+    }
+  }
+
+
+  @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
 
     if (!skipExec && !reportsDirectory.exists() && !reportsDirectory.isDirectory()) {
@@ -162,142 +209,178 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
       }
     }
     if (testSuite != null) {
-    //create testsuite Name
-    final String testSuiteName = testSuite.substring(testSuite.lastIndexOf('.') + 1);
+      //create testsuite Name
+      final String testSuiteName = testSuite.substring(testSuite.lastIndexOf('.') + 1);
 
-    // create the joo runner that delegates all output to mojo log
-    jooRunner = new JooRunner(new JooRunner.TraceOutputHandler() {
-      public void print(String input) {
-        getLog().info(input);
+      // create the joo runner that delegates all output to mojo log
+      jooRunner = new JooRunner(new JooRunner.TraceOutputHandler() {
+        public void print(String input) {
+          getLog().info(input);
+        }
+
+        public void println(String input) {
+          getLog().info(input);
+        }
+      });
+
+      //retrieve and load the env dependency
+      Artifact env_rhino_js = resolveArtifact("thatcher", "env-rhino-js", null, "zip");
+      loadArtifactIntoJavaScriptContext(jooRunner, env_rhino_js, false);
+
+      //load the joo runtime
+      Artifact runtimeArtifact = resolveRuntimeArtifact();
+      loadRuntimeArtifact(jooRunner, runtimeArtifact);
+
+      //retrieve joo unit
+      Artifact jooUnit = resolveArtifact("net.jangaroo", "joounit", "lib", "zip");
+
+      if (jooUnit == null) {
+        throw new MojoExecutionException(String.format("no jooUnit found"));
       }
 
-      public void println(String input) {
-        getLog().info(input);
+      //retrieve all joo unit dependencies
+      Set<Artifact> jooUnitDependencies;
+      try {
+        jooUnitDependencies = resolveTransitively(jooUnit, remoteRepos);
+      } catch (Exception e) {
+        throw new MojoExecutionException(String.format("could not resolve %s transitively", jooUnit), e);
       }
-    });
 
-    //retrieve and load the env dependency
-    Artifact env_rhino_js = resolveArtifact("thatcher", "env-rhino-js", null, "zip");
-    loadArtifactIntoJavaScriptContext(jooRunner, env_rhino_js, false);
+      //... and load them
+      for (Artifact a : jooUnitDependencies) {
+        if ("lib".equals(a.getClassifier()) && "zip".equals(a.getType())) {
+          loadArtifactIntoJavaScriptContext(jooRunner, a, true);
+        }
+      }
 
-    //load the joo runtime
-    Artifact runtimeArtifact = resolveRuntimeArtifact();
-    loadRuntimeArtifact(jooRunner, runtimeArtifact);
+      // and load joo unit
+      loadArtifactIntoJavaScriptContext(jooRunner, jooUnit, true);
 
-    //retrieve joo unit
-    Artifact jooUnit = resolveArtifact("net.jangaroo", "joounit", "lib", "zip");
+      // load all artefacts of this projects that not have already been loaded
+      /* Set<Artifact> projectArtifacts = project.getDependencyArtifacts();
 
-    if (jooUnit == null) {
-      throw new MojoExecutionException(String.format("no jooUnit found"));
-    }
+      for (Artifact art : projectArtifacts) {
+        if (!jooUnitDependencies.contains(art) && "lib".equals(art.getClassifier()) && "zip".equals(art.getType())) {
+          loadArtifactIntoJavaScriptContext(jooRunner, art, true);
+        }
+      }*/
 
-    //retrieve all joo unit dependencies
-    Set<Artifact> jooUnitDependencies;
-    try {
-      jooUnitDependencies = resolveTransitively(jooUnit, remoteRepos);
-    } catch (Exception e) {
-      throw new MojoExecutionException(String.format("could not resolve %s transitively", jooUnit), e);
-    }
-
-    //... and load them
-    for (Artifact a : jooUnitDependencies) {
-      loadArtifactIntoJavaScriptContext(jooRunner, a, true);
-    }
-
-    // and load joo unit
-    loadArtifactIntoJavaScriptContext(jooRunner, jooUnit, true);
-
-    StringBuffer imports = new StringBuffer();
+      StringBuffer imports = new StringBuffer();
 
       //load all classes into javascript context
-      Collection<File> files = FileUtils.listFiles(outputDirectory, FileFilterUtils.suffixFileFilter("js"), FileFilterUtils.notFileFilter(FileFilterUtils.nameFileFilter("joo")));
-      imports.append(loadJavaScriptClass(files, outputDirectory));
+      /*Collection<File> files = FileUtils.listFiles(outputDirectory, FileFilterUtils.suffixFileFilter("js"), FileFilterUtils.notFileFilter(FileFilterUtils.nameFileFilter("joo")));
+      imports.append(loadJavaScriptClass(files, outputDirectory));     */
 
       //load all test classes into javascript context
-      files = FileUtils.listFiles(testOutputDirectory, new String[]{"js"}, true);
-      imports.append(loadJavaScriptClass(files, testOutputDirectory));
+      /*Collection<File> files = FileUtils.listFiles(testOutputDirectory, new String[]{"js"}, true);
+      imports.append(loadJavaScriptClass(files, testOutputDirectory));  */
 
-    //Latch that stops the mojo until all tests are complete
-    //and the xml report has been written.
-    final CountDownLatch completeSignal = new CountDownLatch(1);
-
-    //the collector that recieves the xml report of the JooRunnder
-    XmlCollector collector = new XmlCollector(completeSignal);
-
-    // add the collector to the scope
-    jooRunner.addInstanceToScope(collector, "collector");
-
-
-    // run the test suite with the xml printer
-    jooRunner.run(String.format(" with (joo.classLoader) {\n" +
-        "debug = true; \n" +
-        "      import_(\"flexunit.textui.TestRunner\");\n" +
-        "      import_(\"flexunit.textui.XmlResultPrinter\");\n" +
-        imports.toString() +
-        "      complete(function(imports) {with(imports){\n" +
-        "        var xmlWriter = new XmlResultPrinter();\n" +
-        "        TestRunner.run(%s.suite(), function(env){collector.collectXml(xmlWriter.getXml())}, xmlWriter);\n" +
-        "        " +
-        "      }});\n" +
-        "    }", testSuiteName));
-
-
-    //wait for the xml report, created by the javaScript writer
-    try {
-      if (!completeSignal.await(jooUnitTimeout*60, TimeUnit.SECONDS)) {
-        throw new MojoExecutionException("Testrun timeout");
+      //load the test suite file
+      File test = new File(testOutputDirectory, testSuite.replaceAll("\\.", "//") + ".js");
+      FileReader testReader = null;
+      try {
+        testReader = new FileReader(test);
+      } catch (FileNotFoundException e) {
+        throw new MojoExecutionException("could not read test suite", e);
       }
-    } catch (InterruptedException e) {
-      throw new MojoExecutionException("unknown error", e);
-    }
 
-    //write the report
-    final File file = new File(reportsDirectory, "TEST-" + testSuiteName + ".xml");
-    Writer writer = null;
-    try {
-      writer = new OutputStreamWriter(new FileOutputStream(file));
-      writer.write(collector.xmlReport);
-      writer.close();
-    } catch (final IOException e) {
-      throw new MojoExecutionException("Cannot create file " + file.getName(), e);
-    } finally {
-      IOUtil.close(writer);
-    }
-
-    //evaluate the result
-
-    int errors = 0;
-    int failures = 0;
-    int tests = 0;
-    long time = 0;
-    try {
-      final Xpp3Dom dom = Xpp3DomBuilder.build(new StringReader(collector.xmlReport));
-      errors += Integer.parseInt(dom.getAttribute("errors"));
-      failures += Integer.parseInt(dom.getAttribute("failures"));
-      tests += Integer.parseInt(dom.getAttribute("tests"));
-      time += Long.parseLong(dom.getAttribute("time"));
-    } catch (XmlPullParserException e) {
-      throw new MojoExecutionException("Cannot parse report of test suite " + testSuite, e);
-    } catch (IOException e) {
-      throw new MojoExecutionException("Cannot read report of test suite " + testSuite, e);
-    }
-    if (errors + failures > 0) {
-      final String msg = "There have been "
-          + errors
-          + " errors and "
-          + failures
-          + " failures testing JavaScript";
-      if (testFailureIgnore) {
-        getLog().error(msg);
-      } else {
-        throw new MojoFailureException(msg);
+      // and load it
+      try {
+        getLog().debug(String.format("Loading test suite %s into JavaScript Context", testSuite));
+        jooRunner.load(testReader, testSuite);
+      } catch (IOException e) {
+        throw new MojoExecutionException(String.format("Could no load test suite %s into JavaScript Context", testSuite), e);
       }
-    } else if (printSummary) {
-      getLog().info(" ");
-      getLog().info("Jangaroo Test results:");
-      getLog().info(String.format("%s tests have been executed. That took %s ms.", tests, time));
-      getLog().info(" ");
-    }
+      imports.append(String.format("      import_(\"%s\");\n", testSuite));
+
+      DynamicScriptLoader loader = new DynamicScriptLoader(jooRunner, new File[]{outputDirectory, testOutputDirectory});
+      jooRunner.addInstanceToScope(loader, "loader");
+
+      //Latch that stops the mojo until all tests are complete
+      //and the xml report has been written.
+      final CountDownLatch completeSignal = new CountDownLatch(1);
+
+      //the collector that recieves the xml report of the JooRunnder
+      XmlCollector collector = new XmlCollector(completeSignal);
+
+      // add the collector to the scope
+      jooRunner.addInstanceToScope(collector, "collector");
+
+      // run the test suite with the xml printer
+      jooRunner.run(String.format("" +
+          "with (joo.classLoader) {\n" +
+          "urlPrefix = \"\";\n" +
+          "loadScript = function(url){loader.loadScript(url);};\n" +
+          "js.XMLHttpRequest = XMLHttpRequest;\n" +
+          "debug = true; \n" +
+          "      import_(\"flexunit.textui.TestRunner\");\n" +
+          "      import_(\"flexunit.textui.XmlResultPrinter\");\n" +
+          imports.toString() +
+          "      complete(function(imports) {with(imports){\n" +
+          "        trace(\"start complete....\");" +
+          "        var xmlWriter = new XmlResultPrinter();\n" +
+          "        TestRunner.run(%s.suite(), function(env){trace(\"Tests completed...\");collector.collectXml(xmlWriter.getXml());}, xmlWriter);\n" +
+          "        " +
+          "      }});\n" +
+          "    }", testSuiteName));
+
+
+      //wait for the xml report, created by the javaScript writer
+      try {
+        if (!completeSignal.await(jooUnitTimeout, TimeUnit.MINUTES)) {
+          throw new MojoExecutionException("Testrun timeout");
+        }
+      } catch (InterruptedException e) {
+        throw new MojoExecutionException("unknown error", e);
+      }
+
+      //write the report
+      final File file = new File(reportsDirectory, "TEST-" + testSuiteName + ".xml");
+      Writer writer = null;
+      try {
+        writer = new OutputStreamWriter(new FileOutputStream(file));
+        writer.write(collector.xmlReport);
+        writer.close();
+      } catch (final IOException e) {
+        throw new MojoExecutionException("Cannot create file " + file.getName(), e);
+      } finally {
+        IOUtil.close(writer);
+      }
+
+      //evaluate the result
+
+      int errors = 0;
+      int failures = 0;
+      int tests = 0;
+      long time = 0;
+      try {
+        final Xpp3Dom dom = Xpp3DomBuilder.build(new StringReader(collector.xmlReport));
+        errors += Integer.parseInt(dom.getAttribute("errors"));
+        failures += Integer.parseInt(dom.getAttribute("failures"));
+        tests += Integer.parseInt(dom.getAttribute("tests"));
+        time += Long.parseLong(dom.getAttribute("time"));
+      } catch (XmlPullParserException e) {
+        throw new MojoExecutionException("Cannot parse report of test suite " + testSuite, e);
+      } catch (IOException e) {
+        throw new MojoExecutionException("Cannot read report of test suite " + testSuite, e);
+      }
+      if (errors + failures > 0) {
+        final String msg = "There have been "
+            + errors
+            + " errors and "
+            + failures
+            + " failures testing JavaScript";
+        if (testFailureIgnore) {
+          getLog().error(msg);
+        } else {
+          throw new MojoFailureException(msg);
+        }
+      } else if (printSummary) {
+        getLog().info(" ");
+        getLog().info("Jangaroo Test results:");
+        getLog().info(String.format("%s tests have been executed. That took %s ms.", tests, time));
+        getLog().info(" ");
+      }
     } else {
       getLog().error("No TestSuite defined skipping tests");
     }
@@ -359,17 +442,20 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
 
   private void loadArtifactIntoJavaScriptContext(JooRunner jooRunner, Artifact artifact, boolean joolib) throws MojoExecutionException, MojoFailureException {
     ZipFile zipArtifact = null;
+    boolean loaded = false;
     try {
       zipArtifact = new ZipFile(artifact.getFile(), ZipFile.OPEN_READ);
       Enumeration<? extends ZipEntry> entries = zipArtifact.entries();
       while (entries.hasMoreElements()) {
         ZipEntry zipEntry = entries.nextElement();
         if (!zipEntry.isDirectory() && zipEntry.getName().endsWith(".js")) {
-          if (joolib && !zipEntry.getName().startsWith("joo/lib/"))
+          if (joolib && !zipEntry.getName().startsWith("joo/lib/")) {
             continue;
+          }
           getLog().debug(String.format("Loading %s into JavaScript context", zipEntry.getName()));
           BufferedReader reader = new BufferedReader(new InputStreamReader(zipArtifact.getInputStream(zipEntry)));
           jooRunner.load(reader, zipEntry.getName());
+          loaded = true;
         }
       }
 
@@ -381,6 +467,9 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
       } catch (IOException e) {
         //
       }
+    }
+    if (!loaded) {
+      throw new MojoExecutionException("could not read artifact: " + artifact);
     }
   }
 

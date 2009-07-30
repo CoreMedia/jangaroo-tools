@@ -102,7 +102,6 @@ public class JooRunner {
    * @param reader the reader providing the code
    * @param name   an identifying name of the code (normally the file name)
    * @throws IOException
-   * @since upcoming
    */
   public void load(final Reader reader, final String name) throws IOException {
     if (reader == null) {
