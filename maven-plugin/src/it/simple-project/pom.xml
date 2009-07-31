@@ -37,7 +37,7 @@ under the License.
               <goal>compile</goal>
               <goal>copy-runtime</goal>
               <goal>testCompile</goal>
-              <goal>test</goal>
+              <!--goal>test</goal-->
             </goals>
           </execution>
         </executions>
