@@ -1,5 +1,5 @@
 package {
-import net.jangaroo.example.*;
+import net.jangaroo.example.HelloWorldTest;
 
 import flexunit.framework.TestSuite;
 
@@ -9,7 +9,6 @@ public class JooTestSuite {
   }
 
   public static function suite():TestSuite {
-    trace("creating TestSuite...");
     var theSuite:TestSuite = new TestSuite(HelloWorldTest);
     return theSuite;
   }

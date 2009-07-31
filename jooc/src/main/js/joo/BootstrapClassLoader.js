@@ -21,7 +21,14 @@ Function.prototype.bind = function(object) {
         var parts = name.split(".");
         for (var i=0; i<parts.length; ++i) {
           var subobject = object[parts[i]];
-          if (!subobject || create && String(subobject).indexOf("[JavaPackage")==0) {
+          try {
+            if(String(subobject).indexOf("[JavaPackage")==0) {
+              subobject =  null;
+            }
+          } catch(e) {
+            subobject = null;
+          }
+          if (!subobject) {
             if (create) {
               subobject = object[parts[i]] = {};
             } else {

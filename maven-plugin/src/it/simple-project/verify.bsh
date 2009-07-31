@@ -76,7 +76,7 @@ try
         return false;
     }
 
-    testClassJs = new File ( testJsDir, "net"+File.separator+"jangaroo"+File.separator+"example"+File.separator+"MySuite.js" );
+    testClassJs = new File ( testJsDir, "JooTestSuite.js" );
     if ( !testClassJs.exists() || !testClassJs.isFile() )
     {
         System.err.println( testClassJs + " output file is missing or not a file." );

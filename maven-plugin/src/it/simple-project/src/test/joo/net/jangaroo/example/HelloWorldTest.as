@@ -6,13 +6,11 @@ import net.jangaroo.example.HelloWorld;
 public class HelloWorldTest extends TestCase{
   
   public function testGreet():void {
-    trace("testGreet...");
     var greeter:HelloWorld = new HelloWorld();
     Assert.assertEquals("Hello, World!", greeter.greet("World"));
   }
 
   public function testHtmlGreet():void {
-    trace("testGreetHtml...");
     var greeter:HelloWorld = new HelloWorld();
     Assert.assertEquals("Hello, Wo&amp;rld!", greeter.greetHtml("Wo&rld"));
   } 
