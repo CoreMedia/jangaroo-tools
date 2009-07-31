@@ -193,7 +193,7 @@
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>shitty-maven-plugin</artifactId>
-          <version>1.0-alpha-3-rev7058-coremedia</version>
+          <version>1.0-alpha-3</version>
           <executions>
             <execution>
               <goals>
