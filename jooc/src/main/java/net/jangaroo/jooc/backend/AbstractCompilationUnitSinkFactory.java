@@ -28,7 +28,7 @@ public abstract class AbstractCompilationUnitSinkFactory implements CompilationU
   }
 
   protected void createOutputDirs(File outputFile) {
-    File parentDir = outputFile.getParentFile();
+    File parentDir = outputFile.getAbsoluteFile().getParentFile();
     if (!parentDir.exists() && !parentDir.mkdirs()) {
       Jooc.error("cannot create directories '" + parentDir.getAbsolutePath() + "'");
     }

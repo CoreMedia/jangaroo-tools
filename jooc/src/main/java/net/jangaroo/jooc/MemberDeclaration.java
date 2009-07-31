@@ -82,4 +82,10 @@ public abstract class MemberDeclaration extends IdeDeclaration {
     }
     return this;
   }
+
+  @Override
+  boolean allowDuplicates(AnalyzeContext context) {
+    // allow package members to clash with imports:
+    return context.getCurrentClass()==null || super.allowDuplicates(context);
+  }
 }

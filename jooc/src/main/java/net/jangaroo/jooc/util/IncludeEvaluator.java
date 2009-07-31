@@ -23,7 +23,7 @@ public class IncludeEvaluator {
     }
     File file = new File(filename);
     if (!file.isAbsolute()) {
-      File sourceDir = new File(sourceFilename).getParentFile();
+      File sourceDir = new File(sourceFilename).getAbsoluteFile().getParentFile();
       file = new File(sourceDir,filename);
     }
     Reader result = new FileReader(file);

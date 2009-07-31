@@ -16,7 +16,7 @@ public class MergedOutputCompilationUnitSinkFactory extends AbstractCompilationU
   private CompilationUnitSink sink;
 
   public MergedOutputCompilationUnitSinkFactory(JoocOptions options, final File outputFile) {
-    super(options, outputFile.getParentFile());
+    super(options, outputFile.getAbsoluteFile().getParentFile());
     this.outputFile = outputFile;
 
     createOutputDirs(outputFile);

@@ -26,7 +26,7 @@ public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUni
   protected String getOutputFileName(File sourceFile, String[] packageName) {
     String result;
     if (getOutputDir() == null) {
-      result = sourceFile.getParentFile().getAbsolutePath();
+      result = sourceFile.getAbsoluteFile().getParentFile().getAbsolutePath();
     } else {
       result = getOutputDir().getAbsolutePath();
       for (String aPackageName : packageName) {

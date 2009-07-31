@@ -45,8 +45,11 @@ public class ImportDirective extends NodeImplBase {
   }
 
   public void wasUsed(AnalyzeContext context) {
-    if (!used && !context.getCurrentClass().getIde().getQualifiedNameStr().equals(((IdeType)type).getIde().getQualifiedNameStr())) {
-      used = true;
+    if (!used) {
+      ClassDeclaration classDeclaration = context.getCurrentClass();
+      if (classDeclaration==null || !classDeclaration.getIde().getQualifiedNameStr().equals(((IdeType)type).getIde().getQualifiedNameStr())) {
+        used = true;
+      }
     }
   }
 
