@@ -40,7 +40,7 @@ public abstract class JooRuntimeTestCase extends JooTestCase {
   protected Context cx;
   protected Scriptable scope;
   protected ScriptableObject global;
-  private static final String CLASS_JS_FILE_PATH = "jangaroo-runtime.js";
+  private static final String CLASS_JS_FILE_PATH = "jangaroo-runtime-debug.js";
 //    Jooc. + /* "-debug" + */Jooc.OUTPUT_FILE_SUFFIX;
 
   public JooRuntimeTestCase(String name) {
