@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <parent>
+    <artifactId>jangaroo-tools</artifactId>
+    <groupId>net.jangaroo</groupId>
+    <version>0.3.2-SNAPSHOT</version>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>net.jangaroo</groupId>
+  <artifactId>jangaroo-runtime</artifactId>
+  <packaging>jangaroo</packaging>
+  <name>Jangaroo Runtime</name>
+  <version>0.3.2-SNAPSHOT</version>
+
+  <build>
+    <sourceDirectory>src/main/joo</sourceDirectory>
+    <testSourceDirectory>src/test/joo</testSourceDirectory>
+    <plugins>
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <phase>prepare-package</phase>
+            <configuration>
+              <tasks>
+                <concat destfile="target/joo/jangaroo-runtime.js">
+                  <filelist dir="src/main/pregenerated">
+                    <file name="joo/BootstrapClassLoader.js"/>
+                    <file name="joo/assert.js"/>
+                    <file name="joo/Class.js"/>
+                    <file name="joo/trace.js"/>
+                  </filelist>
+                  <filelist dir="target/joo/classes/">
+                    <file name="joo/MemberDeclaration.js"/>
+                    <file name="joo/NativeClassDeclaration.js"/>
+                    <file name="joo/SystemClassDeclaration.js"/>
+                    <file name="joo/SystemClassLoader.js"/>
+                    <file name="Array.js"/>
+                    <file name="joo/ImportMap.js"/>
+                    <file name="joo/ClassDeclaration.js"/>
+                    <file name="joo/StandardClassLoader.js"/>
+                    <file name="joo/DynamicClassLoader.js"/>
+                  </filelist>
+                  <footer trimleading="yes">
+                    joo.classLoader = new joo.DynamicClassLoader();
+                    joo.classLoader.debug = true;
+                  </footer>
+                </concat>
+              </tasks>
+              <!--   <tasks>
+              <concat destfile="target/joo/jangaroo-runtime.js">
+                <filelist dir="src/main/pregenerated">
+                  <file name="joo/BootstrapClassLoader.js"/>
+                  <file name="joo/assert.js"/>
+                  <file name="joo/Class.js"/>
+                  <file name="joo/trace.js"/>
+                </filelist>
+                <filelist dir="target">
+                  <file name="jangaroo-runtime-temp.js"/>
+                </filelist>
+                <footer trimleading="yes">
+                  joo.classLoader = new joo.DynamicClassLoader();
+                  joo.classLoader.debug = true;
+                </footer>
+              </concat>
+            </tasks>  -->
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>net.jangaroo</groupId>
+        <artifactId>jangaroo-maven-plugin</artifactId>
+        <version>0.3.2-SNAPSHOT</version>
+        <extensions>true</extensions>
+        <configuration>
+          <outputFileName>../../jangaroo-runtime-unsable-duetospecialpackaging.js</outputFileName>
+          <outputDirectory></outputDirectory>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+  <dependencies>
+    <dependency>
+      <groupId>net.jangaroo</groupId>
+      <artifactId>jangaroo-maven-plugin</artifactId>
+      <version>0.3.2-SNAPSHOT</version>
+    </dependency>
+  </dependencies>
+</project>

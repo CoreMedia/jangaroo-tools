@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>net.jangaroo</groupId>
   <artifactId>jangaroo-maven-plugin</artifactId>
@@ -32,10 +33,10 @@
         </configuration>
       </plugin>
 
-      <plugin>
+      <!--   <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-invoker-plugin</artifactId>
-      </plugin>
+      </plugin>-->
 
     </plugins>
   </build>
@@ -44,14 +45,6 @@
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-compiler</artifactId>
-      <version>0.3.2-SNAPSHOT</version>
-    </dependency>
-
-    <dependency>
-      <groupId>net.jangaroo</groupId>
-      <artifactId>jangaroo-compiler</artifactId>
-      <classifier>runtime</classifier>
-      <type>zip</type>
       <version>0.3.2-SNAPSHOT</version>
     </dependency>
 
@@ -125,7 +118,7 @@
       <artifactId>javascript-maven-archive</artifactId>
       <version>0.3.2-SNAPSHOT</version>
     </dependency>
-    
+
 
     <!-- Plexus -->
 

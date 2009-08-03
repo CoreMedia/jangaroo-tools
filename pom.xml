@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>net.jangaroo</groupId>
@@ -129,6 +130,10 @@
     <module>maven-plugin</module>
     <module>release</module>
     <module>javascript-maven-archive</module>
+    <module>jangaroo-runtime</module>
+    <module>jangaroo-browser</module>
+    <module>compiler-itests</module>
+
   </modules>
 
   <scm>
@@ -151,7 +156,7 @@
   <properties>
     <project.build.sourceEncoding>ISO-8859-1</project.build.sourceEncoding>
   </properties>
-  
+
   <build>
 
     <pluginManagement>

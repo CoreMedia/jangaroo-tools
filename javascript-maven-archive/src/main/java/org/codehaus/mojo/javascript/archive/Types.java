@@ -19,17 +19,16 @@ package org.codehaus.mojo.javascript.archive;
 /**
  * @author <a href="mailto:nicolas.deloof@gmail.com">nicolas De Loof</a>
  */
-public class Types
-{
+public class Types {
 
-    /**
-     * type for dependencies handled by the plugin
-     */
-    public static final String JAVASCRIPT_TYPE = "javascript";
+  /**
+   * type for dependencies handled by the plugin
+   */
+  public static final String JANGAROO_TYPE = "jangaroo";
 
-    /**
-     * extension for dependencies handled by the plugin
-     */
-    public static final String JAVASCRIPT_EXTENSION = "jar";
+  /**
+   * extension for dependencies handled by the plugin
+   */
+  public static final String JAVASCRIPT_EXTENSION = "jar";
 
 }

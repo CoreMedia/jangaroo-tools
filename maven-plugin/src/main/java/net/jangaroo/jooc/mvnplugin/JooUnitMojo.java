@@ -3,9 +3,7 @@
  */
 package net.jangaroo.jooc.mvnplugin;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.metadata.ArtifactMetadataSource;
 import org.apache.maven.artifact.metadata.ResolutionGroup;
@@ -20,8 +18,21 @@ import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.codehaus.plexus.util.xml.Xpp3DomBuilder;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.StringReader;
+import java.io.Writer;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipEntry;
@@ -104,7 +115,7 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
   /**
    * Output directory for compiled classes.
    *
-   * @parameter expression="${project.build.directory}/joo/test-classes"
+   * @parameter expression="${project.build.directory}/joo-test/classes"
    */
   private File testOutputDirectory;
 
@@ -205,10 +216,11 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
     if (!skipExec && !reportsDirectory.exists() && !reportsDirectory.isDirectory()) {
       if (!reportsDirectory.mkdirs()) {
         throw new MojoExecutionException("Cannot create report directry "
-            + reportsDirectory.toString());
+                + reportsDirectory.toString());
       }
     }
-    if (testSuite != null) {
+    File test = new File(testOutputDirectory, testSuite.replaceAll("\\.", "//") + ".js");
+    if (test.exists()) {
       //create testsuite Name
       final String testSuiteName = testSuite.substring(testSuite.lastIndexOf('.') + 1);
 
@@ -276,7 +288,7 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
       imports.append(loadJavaScriptClass(files, testOutputDirectory));  */
 
       //load the test suite file
-      File test = new File(testOutputDirectory, testSuite.replaceAll("\\.", "//") + ".js");
+
       FileReader testReader = null;
       try {
         testReader = new FileReader(test);
@@ -308,21 +320,21 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
 
       // run the test suite with the xml printer
       jooRunner.run(String.format("" +
-          "with (joo.classLoader) {\n" +
-          "urlPrefix = \"\";\n" +
-          "loadScript = function(url){loader.loadScript(url);};\n" +
-          "js.XMLHttpRequest = XMLHttpRequest;\n" +
-          "debug = true; \n" +
-          "      import_(\"flexunit.textui.TestRunner\");\n" +
-          "      import_(\"flexunit.textui.XmlResultPrinter\");\n" +
-          imports.toString() +
-          "      complete(function(imports) {with(imports){\n" +
-          "        trace(\"start complete....\");" +
-          "        var xmlWriter = new XmlResultPrinter();\n" +
-          "        TestRunner.run(%s.suite(), function(env){trace(\"Tests completed...\");collector.collectXml(xmlWriter.getXml());}, xmlWriter);\n" +
-          "        " +
-          "      }});\n" +
-          "    }", testSuiteName));
+              "with (joo.classLoader) {\n" +
+              "urlPrefix = \"\";\n" +
+              "loadScript = function(url){loader.loadScript(url);};\n" +
+              "js.XMLHttpRequest = XMLHttpRequest;\n" +
+              "debug = true; \n" +
+              "      import_(\"flexunit.textui.TestRunner\");\n" +
+              "      import_(\"flexunit.textui.XmlResultPrinter\");\n" +
+              imports.toString() +
+              "      complete(function(imports) {with(imports){\n" +
+              "        trace(\"start complete....\");" +
+              "        var xmlWriter = new XmlResultPrinter();\n" +
+              "        TestRunner.run(%s.suite(), function(env){trace(\"Tests completed...\");collector.collectXml(xmlWriter.getXml());}, xmlWriter);\n" +
+              "        " +
+              "      }});\n" +
+              "    }", testSuiteName));
 
 
       //wait for the xml report, created by the javaScript writer
@@ -366,10 +378,10 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
       }
       if (errors + failures > 0) {
         final String msg = "There have been "
-            + errors
-            + " errors and "
-            + failures
-            + " failures testing JavaScript";
+                + errors
+                + " errors and "
+                + failures
+                + " failures testing JavaScript";
         if (testFailureIgnore) {
           getLog().error(msg);
         } else {
@@ -382,7 +394,7 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
         getLog().info(" ");
       }
     } else {
-      getLog().error("No TestSuite defined skipping tests");
+      getLog().error("No TestSuite exists skipping tests");
     }
   }
 
@@ -474,27 +486,27 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
   }
 
   private Set<Artifact> resolveTransitively(Artifact artifact, final List<ArtifactRepository> repositories)
-      throws Exception {
+          throws Exception {
 
     ResolutionGroup resolutionGroup = artifactMetadataSource.retrieve(artifact,
-        this.localRepository, repositories);
+            this.localRepository, repositories);
     repositories.addAll(resolutionGroup.getResolutionRepositories());
 
     Set<Artifact> dependencies = resolutionGroup.getArtifacts();
     dependencies.add(artifact);
     ArtifactResolutionResult resolution =
-        this.resolver.resolveTransitively(
-            dependencies,
-            artifact, Collections.EMPTY_MAP,
-            this.localRepository,
-            repositories,
-            this.artifactMetadataSource, null,
-            Collections.EMPTY_LIST);
+            this.resolver.resolveTransitively(
+                    dependencies,
+                    artifact, Collections.EMPTY_MAP,
+                    this.localRepository,
+                    repositories,
+                    this.artifactMetadataSource, null,
+                    Collections.EMPTY_LIST);
 
     Set<Artifact> result = resolution.getArtifacts();
     if (result == null || result.isEmpty()) {
       throw new ArtifactNotFoundException("Artifact not found.",
-          artifact);
+              artifact);
     }
     return result;
   }

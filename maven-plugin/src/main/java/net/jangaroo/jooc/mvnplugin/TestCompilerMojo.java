@@ -18,12 +18,14 @@ public class TestCompilerMojo extends AbstractCompilerMojo {
 
   /**
    * Output directory for compiled classes.
-   * @parameter expression="${project.build.directory}/joo/test-classes"
+   *
+   * @parameter expression="${project.build.directory}/joo-test/classes"
    */
   private File testOutputDirectory;
 
   /**
    * Source directory to scan for files to compile.
+   *
    * @parameter expression="${basedir}/src/test/joo"
    */
   private File sourceDirectory;
@@ -42,6 +44,7 @@ public class TestCompilerMojo extends AbstractCompilerMojo {
   /**
    * When "mergeOutput" is "true", this parameter specifies the name of the output file containing all
    * compiled classes. Otherwise, this parameter will be ignored.
+   *
    * @parameter expression="../test-lib/${project.build.finalName}.js"
    */
   private String testOutputFileName;

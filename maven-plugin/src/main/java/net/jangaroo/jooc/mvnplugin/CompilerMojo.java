@@ -18,12 +18,14 @@ public class CompilerMojo extends AbstractCompilerMojo {
 
   /**
    * Output directory for compiled classes.
+   *
    * @parameter expression="${project.build.directory}/joo/classes"
    */
   private File outputDirectory;
 
   /**
    * Source directory to scan for files to compile.
+   *
    * @parameter expression="${basedir}/src/main/joo"
    */
   private File sourceDirectory;
@@ -40,10 +42,10 @@ public class CompilerMojo extends AbstractCompilerMojo {
    */
   private Set excludes = new HashSet();
   /**
-   * When "mergeOutput" is "true", this parameter specifies the name of the output file, relative to the
-   * outputDirectory, where all compiled classes should be merged.
-   * Otherwise, this parameter will be ignored.
-   * @parameter expression="../lib/${project.build.finalName}.js"
+   * When "mergeOutput" is "true", this parameter specifies the name of the output file containing all
+   * compiled classes. Otherwise, this parameter will be ignored.
+   *
+   * @parameter expression="${project.build.directory}/joo/${project.build.finalName}.js"
    */
   private String outputFileName;
 

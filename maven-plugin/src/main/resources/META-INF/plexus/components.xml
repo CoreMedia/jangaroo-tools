@@ -14,11 +14,11 @@
         <type>jangaroo</type>
         <extension>jar</extension>
         <language>jangaroo</language>
-        <addedToClasspath>false</addedToClasspath>
+        <addedToClasspath>true</addedToClasspath>
       </configuration>
     </component>
 
-  <!--
+    <!--
     A custom lifecycle for javascript packaging
     -->
     <component>
@@ -32,7 +32,8 @@
             <phases>
               <process-resources>org.apache.maven.plugins:maven-resources-plugin:resources</process-resources>
               <compile>net.jangaroo:jangaroo-maven-plugin:compile</compile>
-              <process-test-resources>org.apache.maven.plugins:maven-resources-plugin:testResources</process-test-resources>
+              <process-test-resources>org.apache.maven.plugins:maven-resources-plugin:testResources
+              </process-test-resources>
               <test-compile>net.jangaroo:jangaroo-maven-plugin:testCompile</test-compile>
               <test>net.jangaroo:jangaroo-maven-plugin:test</test>
               <package>net.jangaroo:jangaroo-maven-plugin:package</package>

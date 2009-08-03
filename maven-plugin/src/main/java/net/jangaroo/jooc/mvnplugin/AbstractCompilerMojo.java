@@ -18,19 +18,24 @@ import org.codehaus.plexus.compiler.util.scan.mapping.SuffixMapping;
 import org.codehaus.plexus.util.StringUtils;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Super class for mojos compiling Jangaroo sources.
  */
 public abstract class AbstractCompilerMojo extends AbstractMojo {
   private Log log = getLog();
-    /**
-    * The Maven project object
-    *
-    * @parameter expression="${project}"
-    */
-   private MavenProject project;
+  /**
+   * The Maven project object
+   *
+   * @parameter expression="${project}"
+   */
+  private MavenProject project;
   /**
    * Indicates whether the build will fail if there are compilation errors.
    *
@@ -61,6 +66,7 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
    * that cannot be resolved in the current compilation unit.
    * If "guessClasses" is also "true", "this." is only added for top-level identifiers not starting
    * with an upper case letter; these are considered classes or types that are already in scope.
+   *
    * @parameter default-value="false"
    */
   private boolean enableGuessingMembers;
@@ -70,17 +76,20 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
    * package, in the top-level package, or imported through a * import.
    * In combination with "enableGuessingMembers", undeclared identifiers starting with an upper case letter
    * are not assumed to be inherited members if this flag is "true".
+   *
    * @parameter default-value="false"
    */
   private boolean enableGuessingClasses;
   /**
    * If "enableGuessingTypeCasts" is "true", function calls with undeclared identifiers starting with an upper case
    * letter are assumed to be type casts. In the generated code, such type casts only appear as comments.
+   *
    * @parameter default-value="false"
    */
   private boolean enableGuessingTypeCasts;
   /**
    * If set to "true", the compiler will generate more detailed progress information.
+   *
    * @parameter expression="${maven.compiler.verbose}" default-value="false"
    */
   private boolean verbose;
@@ -98,11 +107,7 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
    * @parameter default-value="source"
    */
   private String debuglevel;
-  /**
-   * Set to "true" to produce one single output file for all generated compiled classes.
-   * @parameter default-value="false"
-   */
-  private boolean mergeOutput;
+
 
   public abstract String getOutputFileName();
 
@@ -112,6 +117,7 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
 
   /**
    * Runs the compile mojo
+   *
    * @throws MojoExecutionException
    * @throws MojoFailureException
    */
@@ -143,7 +149,7 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
     configuration.setVerbose(verbose);
 
     configuration.setOutputDirectory(getOutputDirectory());
-    configuration.setMergeOutput(mergeOutput);
+
     configuration.setOutputFileName(getOutputFileName());
 
     if (debug && StringUtils.isNotEmpty(debuglevel)) {
@@ -154,7 +160,7 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
         configuration.setDebugSource(true);
       } else if (!debuglevel.equalsIgnoreCase("none")) {
         throw new IllegalArgumentException("The specified debug level: '" + debuglevel
-          + "' is unsupported. " + "Legal values are 'none', 'lines', and 'source'.");
+                + "' is unsupported. " + "Legal values are 'none', 'lines', and 'source'.");
       }
     }
 
@@ -181,13 +187,13 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
 
     HashSet<File> sources = new HashSet<File>();
 
-    sources.addAll( computeStaleSources(configuration, getSourceInclusionScanner(staleMillis)) );
+    sources.addAll(computeStaleSources(configuration, getSourceInclusionScanner(staleMillis)));
 
     if (!sources.isEmpty() && configuration.isMergeOutput()) {
-      getLog().info( "RESCANNING!" );
+      getLog().info("RESCANNING!");
 
       sources.clear();
-      sources.addAll( computeStaleSources(configuration, getSourceInclusionScanner(Jooc.INPUT_FILE_SUFFIX_NO_DOT)) );
+      sources.addAll(computeStaleSources(configuration, getSourceInclusionScanner(Jooc.INPUT_FILE_SUFFIX_NO_DOT)));
     }
 
     configuration.setSourceFiles(new ArrayList<File>(sources));
@@ -202,8 +208,14 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
       if (!getOutputDirectory().mkdirs())
         throw new MojoExecutionException("Failed to create output directory " + getOutputDirectory().getAbsolutePath());
 
+    configuration.setMergeOutput(true);
     int result = compile(configuration);
     boolean compilationError = (result != Jooc.RESULT_CODE_OK);
+
+    configuration.setMergeOutput(false);
+    result = compile(configuration);
+    compilationError &= (result != Jooc.RESULT_CODE_OK);
+
     List messages = Collections.emptyList();
 
     if (compilationError && failOnError) {
@@ -243,10 +255,10 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
     return jooc.run(config);
   }
 
-  private Set computeStaleSources(JoocConfiguration configuration, SourceInclusionScanner scanner)  throws MojoExecutionException {
+  private Set computeStaleSources(JoocConfiguration configuration, SourceInclusionScanner scanner) throws MojoExecutionException {
     CompilerOutputStyle outputStyle = configuration.isMergeOutput()
-      ? CompilerOutputStyle.ONE_OUTPUT_FILE_FOR_ALL_INPUT_FILES
-      : CompilerOutputStyle.ONE_OUTPUT_FILE_PER_INPUT_FILE;
+            ? CompilerOutputStyle.ONE_OUTPUT_FILE_FOR_ALL_INPUT_FILES
+            : CompilerOutputStyle.ONE_OUTPUT_FILE_PER_INPUT_FILE;
 
     File outputDirectory = getOutputDirectory();
 
@@ -259,7 +271,7 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
       scanner.addSourceMapping(new SingleTargetSourceMapping(Jooc.INPUT_FILE_SUFFIX, configuration.getOutputFileName()));
 
     } else {
-      throw new MojoExecutionException( "Unknown compiler output style: '" + outputStyle + "'." );
+      throw new MojoExecutionException("Unknown compiler output style: '" + outputStyle + "'.");
     }
 
     Set staleSources = new HashSet();
@@ -276,7 +288,7 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
       }
       catch (InclusionScanException e) {
         throw new MojoExecutionException(
-          "Error scanning source root: \'" + rootFile.getAbsolutePath() + "\' " + "for stale files to recompile.", e);
+                "Error scanning source root: \'" + rootFile.getAbsolutePath() + "\' " + "for stale files to recompile.", e);
       }
     }
 

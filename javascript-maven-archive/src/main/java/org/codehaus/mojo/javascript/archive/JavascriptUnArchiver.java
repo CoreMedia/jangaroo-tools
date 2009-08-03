@@ -16,47 +16,42 @@ package org.codehaus.mojo.javascript.archive;
  * limitations under the License.
  */
 
-import java.io.InputStream;
-import java.io.IOException;
-import java.util.Collections;
-
-import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.ArchiveFileFilter;
 import org.codehaus.plexus.archiver.ArchiveFilterException;
+import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.zip.ZipUnArchiver;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Collections;
 
 /**
  * Custom archiver for javascript dependencies, packaged as "jsar" (JavaScript
  * ARchive), that are simply a jar of scripts and resources.
- * 
+ *
  * @author <a href="mailto:nicolas.deloof@gmail.com">Nicolas De Loof</a>
  * @plexus.component role="org.codehaus.plexus.archiver.UnArchiver"
- * role-hint="javascript"
+ * role-hint="jangaroo"
  */
 public class JavascriptUnArchiver
-    extends ZipUnArchiver
-{
-    /**
-     *
-     */
-    public JavascriptUnArchiver()
-    {
-        super();
-    }
-	
-    /**
-     * overwrite the super.extract() to set the default filter.
-     */
-	public void extract() throws ArchiverException, IOException 
-	{
-        setArchiveFilters( Collections.singletonList( new ArchiveFileFilter()
-        {
-            public boolean include( InputStream dataStream, String entryName )
-                throws ArchiveFilterException
-            {
-                return !entryName.startsWith( "META-INF" );
-            }
-        } ) );
-		super.extract();
+        extends ZipUnArchiver {
+  /**
+   *
+   */
+  public JavascriptUnArchiver() {
+    super();
+  }
+
+  /**
+   * overwrite the super.extract() to set the default filter.
+   */
+  public void extract() throws ArchiverException, IOException {
+    setArchiveFilters(Collections.singletonList(new ArchiveFileFilter() {
+      public boolean include(InputStream dataStream, String entryName)
+              throws ArchiveFilterException {
+        return !entryName.startsWith("META-INF");
+      }
+    }));
+    super.extract();
 	}
 }

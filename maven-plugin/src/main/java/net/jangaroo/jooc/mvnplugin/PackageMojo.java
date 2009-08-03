@@ -11,6 +11,7 @@ import java.io.File;
 
 /**
  * Packages the javascript stuff.
+ *
  * @goal package
  * @phase package
  */
@@ -36,6 +37,24 @@ public class PackageMojo extends AbstractMojo {
    */
   private File outputDirectory;
 
+
+  /**
+   * Source directory to scan for files to package in the sources archive. These files
+   * have been compiled.
+   *
+   * @parameter expression="${basedir}/src/main/joo"
+   */
+  private File sourceDirectory;
+
+  /**
+   * Source directory to scan for files to package in the sources archive. These files
+   * have not been compiled since these classes are available by default. They are needed
+   * to make them available via IDE.
+   *
+   * @parameter expression="${basedir}/src/main/ide-resources"
+   */
+  private File ideResourceDirectory;
+
   /**
    * The filename of the js file.
    *
@@ -52,13 +71,6 @@ public class PackageMojo extends AbstractMojo {
   private JavascriptArchiver archiver;
 
   /**
-   * Optional classifier
-   *
-   * @parameter
-   */
-  private String classifier;
-
-  /**
    * @parameter
    */
   private File manifest;
@@ -66,7 +78,7 @@ public class PackageMojo extends AbstractMojo {
   /**
    * Location of the scripts files.
    *
-   * @parameter expression="${project.build.directory}/joo/classes"
+   * @parameter expression="${project.build.directory}/joo/"
    */
   private File scriptsDirectory;
 
@@ -79,22 +91,45 @@ public class PackageMojo extends AbstractMojo {
       } else {
         archiver.createDefaultManifest(project);
       }
-      archiver.addDirectory(scriptsDirectory);
+      if (scriptsDirectory.exists()) {
+        archiver.addDirectory(scriptsDirectory);
+      }
       String groupId = project.getGroupId();
       String artifactId = project.getArtifactId();
       archiver.addFile(project.getFile(), "META-INF/maven/" + groupId + "/" + artifactId
               + "/pom.xml");
       archiver.setDestFile(jsarchive);
       archiver.createArchive();
+      archiver.reset();
     }
     catch (Exception e) {
       throw new MojoExecutionException("Failed to create the javascript archive", e);
     }
+    project.getArtifact().setFile(jsarchive);
 
-    if (classifier != null) {
-      projectHelper.attachArtifact(project, Types.JAVASCRIPT_TYPE, classifier, jsarchive);
-    } else {
-      project.getArtifact().setFile(jsarchive);
+    File asarchive = new File(outputDirectory, finalName + "-sources." + Types.JAVASCRIPT_EXTENSION);
+    try {
+      if (manifest != null) {
+        archiver.setManifest(manifest);
+      } else {
+        archiver.createDefaultManifest(project);
+      }
+      if (sourceDirectory.exists()) {
+        archiver.addDirectory(sourceDirectory);
+      }
+      if (ideResourceDirectory.exists()) {
+        archiver.addDirectory(ideResourceDirectory);
+      }
+      String groupId = project.getGroupId();
+      String artifactId = project.getArtifactId();
+      archiver.addFile(project.getFile(), "META-INF/maven/" + groupId + "/" + artifactId
+              + "/pom.xml");
+      archiver.setDestFile(asarchive);
+      archiver.createArchive();
     }
+    catch (Exception e) {
+      throw new MojoExecutionException("Failed to create the actionscript archive", e);
+    }
+    projectHelper.attachArtifact(project, "jar"/*Types.JANGAROO_TYPE*/, "sources", asarchive);
   }
 }
