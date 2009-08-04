@@ -1,32 +1,29 @@
 Function.prototype.bind = function(object) {
   var fn = this;
   return (function $boundMethod() {
-    return arguments.length ? fn.apply(object, arguments) : fn.call(object); // call is faster at least in Firefox.
+    return arguments.length ? fn.apply(object,arguments) : fn.call(object); // call is faster at least in Firefox.
   });
 };
 
-(function(theGlobalObject) {
+(function(theGlobalObject){
   // define alias "js" for the top-level package, so that name-clashes in AS3 can be resolved:
   theGlobalObject.js = theGlobalObject;
   // defined here to avoid global name space pollution and unneccessary closures:
   function clone(object) {
-    var empty = function() {
-    };
-    empty.prototype = object;
+    var empty = function(){ };
+    empty.prototype =  object;
     return new empty();
-  }
-
-  ;
+  };
   function createGetQualified(create) {
     return (function(name) {
       var object = theGlobalObject;
       if (name) {
         var parts = name.split(".");
-        for (var i = 0; i < parts.length; ++i) {
+        for (var i=0; i<parts.length; ++i) {
           var subobject = object[parts[i]];
           try {
-            if (String(subobject).indexOf("[JavaPackage") == 0) {
-              subobject = null;
+            if(String(subobject).indexOf("[JavaPackage")==0) {
+              subobject =  null;
             }
           } catch(e) {
             subobject = null;
