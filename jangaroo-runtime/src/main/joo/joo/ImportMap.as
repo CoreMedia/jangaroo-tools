@@ -1,5 +1,7 @@
 package joo {
 
+import joo.*;
+
 internal class ImportMap {
 
   private var importsByName : Object;

@@ -1,5 +1,7 @@
 package joo {
 
+import joo.*;
+
 public class SystemClassDeclaration extends NativeClassDeclaration {
 
   internal static function createDefaultConstructor(superName : String) : Function {

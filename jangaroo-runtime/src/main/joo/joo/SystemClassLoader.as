@@ -1,5 +1,7 @@
 package joo {
 
+import joo.*;
+
 public class SystemClassLoader {
 
 {
