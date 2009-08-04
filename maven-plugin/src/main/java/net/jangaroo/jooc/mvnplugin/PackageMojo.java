@@ -56,6 +56,13 @@ public class PackageMojo extends AbstractMojo {
   private File ideResourceDirectory;
 
   /**
+   * Source directory containing pregenrated javascript that will be just included.
+   *
+   * @parameter expression="${basedir}/src/main/pregenerated"
+   */
+  private File pregeneratedDirectory;
+
+  /**
    * The filename of the js file.
    *
    * @parameter default-value="${project.build.finalName}"
@@ -93,6 +100,9 @@ public class PackageMojo extends AbstractMojo {
       }
       if (scriptsDirectory.exists()) {
         archiver.addDirectory(scriptsDirectory);
+      }
+      if (pregeneratedDirectory.exists()) {
+        archiver.addDirectory(pregeneratedDirectory); 
       }
       String groupId = project.getGroupId();
       String artifactId = project.getArtifactId();

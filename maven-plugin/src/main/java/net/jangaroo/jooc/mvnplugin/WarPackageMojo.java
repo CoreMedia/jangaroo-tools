@@ -79,7 +79,7 @@ public class WarPackageMojo
   /**
    * Use the artifactId as folder
    *
-   * @parameter
+   * @parameter default-value="true"
    */
   private boolean useArtifactId;
 
@@ -125,6 +125,10 @@ public class WarPackageMojo
 
         if (pluginGroupId.equals(plugin.getGroupId()) && pluginArtifactId.equals(plugin.getArtifactId())) {
           Xpp3Dom dom = (Xpp3Dom) plugin.getConfiguration();
+          if (dom == null) {
+            dom = new Xpp3Dom("configuration");
+            plugin.setConfiguration(dom);
+          }
           Xpp3Dom excludes = dom.getChild("packagingExcludes");
           if (excludes == null) {
             excludes = new Xpp3Dom("packagingExcludes");

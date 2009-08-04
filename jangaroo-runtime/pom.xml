@@ -94,6 +94,7 @@
 
                 <zip destfile="target/jangaroo-runtime.jar" basedir="target" includes="jangaroo-runtime*.js"></zip>
                 <zip destfile="target/jangaroo-runtime-sources.jar" basedir="src/main/joo" includes="**/*.as"></zip>
+                <zip destfile="target/jangaroo-runtime-sources.jar" update="true" basedir="src/main/ide-resources" includes="**/*.as"></zip>
 
               </tasks>
             </configuration>

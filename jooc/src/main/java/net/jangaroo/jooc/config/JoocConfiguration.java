@@ -45,8 +45,7 @@ public class JoocConfiguration implements JoocOptions {
   }
 
   public File getOutputFile() {
-    return (mergeOutput && outputDirectory != null && outputFileName != null ?
-      new File(outputDirectory, outputFileName) : null);
+    return new File(outputFileName);
   }
 
   public boolean isDebug() {
