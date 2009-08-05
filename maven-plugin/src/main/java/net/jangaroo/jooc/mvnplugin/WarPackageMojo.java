@@ -98,9 +98,12 @@ public class WarPackageMojo
     File outputDirectory = new File(webappDirectory, scriptsDirectory);
 
     try {
+      getLog().error("before exclude");
       excludeFromWarPackaging();
+      getLog().error("before unpack");
       javascriptArtifactManager.unpack(project, DefaultArtifact.SCOPE_RUNTIME,
               new File(webappDirectory, scriptsDirectory + "/" + libsDirectory), useArtifactId);
+      getLog().error("after unpack");
     }
     catch (ArchiverException e) {
       throw new MojoExecutionException("Failed to unpack javascript dependencies", e);
@@ -139,7 +142,7 @@ public class WarPackageMojo
           }
 
           Set dependencies = project.getArtifacts();
-          getLog().error("Size of getArtifacts: " + dependencies.size());
+          getLog().debug("Size of getArtifacts: " + dependencies.size());
           String additionalExcludes = "";
           for (Iterator iterator = dependencies.iterator(); iterator.hasNext();) {
             Artifact dependency = (Artifact) iterator.next();
@@ -147,9 +150,9 @@ public class WarPackageMojo
             if (!dependency.isOptional() && Types.JANGAROO_TYPE.equals(dependency.getType())) {
               getLog().info("Excluding jangaroo dependency form war plugin [" + dependency.toString() + "]");
               // Add two excludes. The first one is effective when no nameclash occcurs
-              additionalExcludes += "WEB-INF/lib/" + dependency.getArtifactId() + "-" + dependency.getVersion() + ".jar,";
+              additionalExcludes += "WEB-INF" + File.separator + "lib" + File.separator + dependency.getArtifactId() + "-" + dependency.getVersion() + ".jar,";
               // the second when a nameclash occurs (artifact will hav groupId prepended before copying it into the lib dir)
-              additionalExcludes += "WEB-INF/lib/" + dependency.getGroupId() + "-" + dependency.getArtifactId() + "-" + dependency.getVersion() + ".jar,";
+              additionalExcludes += "WEB-INF" + File.separator + "lib" + File.separator + dependency.getGroupId() + "-" + dependency.getArtifactId() + "-" + dependency.getVersion() + ".jar,";
             }
           }
           excludes.setValue(excludes.getValue() + additionalExcludes);
