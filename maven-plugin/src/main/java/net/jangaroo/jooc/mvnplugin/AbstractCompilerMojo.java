@@ -67,7 +67,7 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
    * If "guessClasses" is also "true", "this." is only added for top-level identifiers not starting
    * with an upper case letter; these are considered classes or types that are already in scope.
    *
-   * @parameter default-value="false"
+   * @parameter default-value="true"
    */
   private boolean enableGuessingMembers;
   /**
@@ -77,7 +77,7 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
    * In combination with "enableGuessingMembers", undeclared identifiers starting with an upper case letter
    * are not assumed to be inherited members if this flag is "true".
    *
-   * @parameter default-value="false"
+   * @parameter default-value="true"
    */
   private boolean enableGuessingClasses;
   /**
