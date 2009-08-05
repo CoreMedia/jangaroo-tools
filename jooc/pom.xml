@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>net.jangaroo</groupId>
   <artifactId>jangaroo-compiler</artifactId>
@@ -15,11 +16,6 @@
 
 
   <build>
-    <testResources>
-      <testResource>
-        <directory>src/test/joo</directory>
-      </testResource>
-    </testResources>
 
     <plugins>
       <plugin>
@@ -47,26 +43,26 @@
             <configuration>
               <tasks>
 
-                <property name="cup.input.filename" value="joo.cup" />
-                <property name="cup.files.reldir" value="net/jangaroo/jooc" />
-                <property name="cup.output.dir" value="${generated.cup.sources.dir}/${cup.files.reldir}" />
-                <property name="cup.parser.classname" value="parser" />
-                <property name="cup.output.filename" value="${cup.output.dir}/${cup.parser.classname}.java" />
+                <property name="cup.input.filename" value="joo.cup"/>
+                <property name="cup.files.reldir" value="net/jangaroo/jooc"/>
+                <property name="cup.output.dir" value="${generated.cup.sources.dir}/${cup.files.reldir}"/>
+                <property name="cup.parser.classname" value="parser"/>
+                <property name="cup.output.filename" value="${cup.output.dir}/${cup.parser.classname}.java"/>
 
-                <mkdir dir="${cup.output.dir}" />
+                <mkdir dir="${cup.output.dir}"/>
 
                 <!-- forked java process may hang otherwise?! -->
-                <delete file="${cup.output.filename}" />
+                <delete file="${cup.output.filename}"/>
 
                 <java classname="java_cup.Main" fork="true" dir="${cup.output.dir}" failonerror="true">
                   <!-- arg value="-dump_states" /> -->
-                  <arg value="-interface" />
-                  <arg value="-expect" />
-                  <arg value="1" />
+                  <arg value="-interface"/>
+                  <arg value="-expect"/>
+                  <arg value="1"/>
                   <!--arg value="-dump"/-->
-                  <arg value="${cup.sources.dir}/${cup.files.reldir}/${cup.input.filename}" />
+                  <arg value="${cup.sources.dir}/${cup.files.reldir}/${cup.input.filename}"/>
                   <classpath>
-                    <path refid="maven.plugin.classpath" />
+                    <path refid="maven.plugin.classpath"/>
                   </classpath>
                 </java>
 
@@ -79,95 +75,6 @@
               <goal>run</goal>
             </goals>
           </execution>
-
-          <execution>
-            <id>create-temp-js</id>
-            <phase>generate-test-resources</phase>
-            <configuration>
-              <tasks>
-                <mkdir dir="${basedir}/target/temp/js" />
-              </tasks>
-            </configuration>
-            <goals>
-              <goal>run</goal>
-            </goals>
-          </execution>
-          
-          <!-- compile the runtime .as files in src/main/joo -->
-          <execution>
-            <id>compile-joo-runtime</id>
-            <phase>compile</phase>
-            <configuration>
-              <tasks>
-                <property name="runtime.classpath" refid="maven.runtime.classpath" />
-                <taskdef name="jooc" classname="net.jangaroo.jooc.ant.JoocTask" classpath="target/classes;${runtime.classpath}" />
-
-                <mkdir dir="target/temp/runtime/debug" />
-                <jooc destdir="target/temp/runtime/debug" failonerror="true" debug="true" debuglevel="source" verbose="true" enableassertions="true">
-                  <include name="**/*.as" />
-                  <src path="src/main/joo" />
-                </jooc>
-
-                <concat destfile="target/joo-debug.js">
-                  <filelist dir="src/main/js">
-                    <file name="joo/BootstrapClassLoader.js" />
-                    <file name="joo/assert.js" />
-                    <file name="joo/Class.js" />
-                    <file name="joo/trace.js" />
-                  </filelist>
-                  <filelist dir="target/temp/runtime/debug">
-                    <file name="joo/MemberDeclaration.js" />
-                    <file name="joo/NativeClassDeclaration.js" />
-                    <file name="joo/SystemClassDeclaration.js" />
-                    <file name="joo/SystemClassLoader.js" />
-                    <file name="Array.js" />
-                    <file name="joo/ImportMap.js" />
-                    <file name="joo/ClassDeclaration.js" />
-                    <file name="joo/StandardClassLoader.js" />
-                    <file name="joo/DynamicClassLoader.js" />
-                  </filelist>
-                  <footer trimleading="yes">
-                    joo.classLoader = new joo.DynamicClassLoader();
-                    joo.classLoader.debug = true;
-                  </footer>
-                </concat>
-
-                <mkdir dir="target/temp/runtime/deploy" />
-                <jooc destdir="target/temp/runtime/deploy" failonerror="true" debug="false" verbose="true" enableassertions="false">
-                  <include name="**/*.as" />
-                  <src path="src/main/joo" />
-                </jooc>
-
-                <concat destfile="target/joo.js">
-                  <filelist dir="src/main/js">
-                    <file name="joo/BootstrapClassLoader.js" />
-                    <file name="joo/assert.js" />
-                    <file name="joo/Class.js" />
-                    <file name="joo/trace.js" />
-                  </filelist>
-                  <filelist dir="target/temp/runtime/deploy">
-                    <file name="joo/MemberDeclaration.js" />
-                    <file name="joo/NativeClassDeclaration.js" />
-                    <file name="joo/SystemClassDeclaration.js" />
-                    <file name="joo/SystemClassLoader.js" />
-                    <file name="Array.js" />
-                    <file name="joo/ImportMap.js" />
-                    <file name="joo/ClassDeclaration.js" />
-                    <file name="joo/StandardClassLoader.js" />
-                    <file name="joo/DynamicClassLoader.js" />
-                  </filelist>
-                  <footer trimleading="yes">
-                    joo.classLoader = new joo.DynamicClassLoader();
-                  </footer>
-                </concat>
-
-              </tasks>
-            </configuration>
-            <goals>
-              <goal>run</goal>
-            </goals>
-          </execution>
-
         </executions>
         <dependencies>
           <dependency>
@@ -201,24 +108,11 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
-        <executions>
-          <execution>
-            <phase>package</phase>
-            <goals>
-              <goal>test-jar</goal>
-            </goals>
-          </execution>
-        </executions>
         <configuration>
           <archive>
-            <manifestFile>src/main/resources/META-INF/MANIFEST.MF</manifestFile>
             <manifest>
               <addClasspath>true</addClasspath>
-              <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-              <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
             </manifest>
-            <manifestEntries>
-            </manifestEntries>
           </archive>
         </configuration>
       </plugin>
@@ -236,17 +130,11 @@
               <appendAssemblyId>true</appendAssemblyId>
               <attach>true</attach>
               <descriptors>
-                <descriptor>src/main/assembly/runtime.xml</descriptor>
                 <descriptor>src/main/assembly/examples.xml</descriptor>
               </descriptors>
             </configuration>
           </execution>
         </executions>
-      </plugin>
-
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>shitty-maven-plugin</artifactId>
       </plugin>
 
       <plugin>
@@ -303,10 +191,6 @@
       <artifactId>ant</artifactId>
     </dependency>
 
-    <dependency>
-      <groupId>rhino</groupId>
-      <artifactId>js</artifactId>
-    </dependency>
 
   </dependencies>
 

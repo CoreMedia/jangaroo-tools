@@ -1,4 +1,0 @@
-Manifest-version: 1.0
-Main-Class: net.jangaroo.jooc.Jooc
-
-Name: net/jangaroo/jooc/

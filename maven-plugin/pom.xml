@@ -33,10 +33,10 @@
         </configuration>
       </plugin>
 
-      <!--   <plugin>
+      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-invoker-plugin</artifactId>
-      </plugin>-->
+      </plugin>
 
     </plugins>
   </build>
@@ -48,23 +48,6 @@
       <version>0.3.2-SNAPSHOT</version>
     </dependency>
 
-    <!--
-    <dependency>
-      <groupId>net.jangaroo</groupId>
-      <artifactId>joounit</artifactId>
-      <version>0.1-SNAPSHOT</version>
-      <classifier>lib</classifier>
-      <type>zip</type>
-    </dependency>
-
-    <dependency>
-      <groupId>net.jangaroo</groupId>
-      <artifactId>joounit</artifactId>
-      <version>0.1-SNAPSHOT</version>
-      <classifier>sources</classifier>
-      <type>jar</type>
-    </dependency>
-    -->
 
     <dependency>
       <groupId>org.apache.maven</groupId>
@@ -112,13 +95,6 @@
       <version>1.4</version>
       <scope>compile</scope>
     </dependency>
-
-    <dependency>
-      <groupId>com.coremedia.org.codehaus.mojo.javascript</groupId>
-      <artifactId>javascript-maven-archive</artifactId>
-      <version>0.3.2-SNAPSHOT</version>
-    </dependency>
-
 
     <!-- Plexus -->
 
