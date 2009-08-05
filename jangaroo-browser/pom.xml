@@ -32,6 +32,7 @@
             </goals>
             <configuration>
               <tasks>
+                <mkdir dir="target"/>
                 <zip destfile="target/jangaroo-browser.jar">
                   <zipfileset dir="." includes="pom.xml" fullpath="META-INF/${groupId}.${artifactId}/pom.xml"/>
                 </zip>
