@@ -32,12 +32,28 @@
             </goals>
             <configuration>
               <tasks>
+                <property name="runtime.classpath" refid="maven.runtime.classpath"/>
+                                <taskdef name="jooc" classname="net.jangaroo.jooc.ant.JoocTask"
+                                         classpath="target/classes;${runtime.classpath}"/>
+                <mkdir dir="target/joo/classes/"/>
+                <jooc destdir="target/joo/classes/" failonerror="true" debug="true" debuglevel="source"
+                      verbose="true" enableassertions="true">
+                  <include name="**/*.as"/>
+                  <src path="src/main/joo"/>
+                </jooc>
+
+                <concat destfile="target/joo/${artifactId}.js">
+                  <fileset dir="target/joo" includes="classes/**/*.js"/>
+                </concat>
+                
                 <mkdir dir="target"/>
                 <zip destfile="target/jangaroo-browser.jar">
                   <zipfileset dir="." includes="pom.xml" fullpath="META-INF/${groupId}.${artifactId}/pom.xml"/>
+                  <zipfileset dir="target/joo" includes="**/*" />
                 </zip>
                 <zip destfile="target/jangaroo-browser-sources.jar">
                   <zipfileset dir="src/main/ide-resources" includes="**/*.as"/>
+                  <zipfileset dir="src/main/joo" includes="**/*.as"/>
                   <zipfileset dir="." includes="pom.xml" fullpath="META-INF/${groupId}.${artifactId}/pom.xml"/>
                 </zip>
               </tasks>
@@ -87,6 +103,12 @@
       <artifactId>jangaroo-runtime</artifactId>
       <version>0.3.2-SNAPSHOT</version>
       <type>jangaroo</type>
+    </dependency>
+
+    <dependency>
+      <groupId>net.jangaroo</groupId>
+      <artifactId>jangaroo-compiler</artifactId>
+      <version>0.3.2-SNAPSHOT</version>
     </dependency>
   </dependencies>
 </project>
