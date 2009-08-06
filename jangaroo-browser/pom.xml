@@ -92,12 +92,12 @@
       <artifactId>jangaroo-runtime</artifactId>
       <version>0.3.2-SNAPSHOT</version>
     </dependency>
-    <dependency>
+<!--    <dependency> should have jangaroo reference but cannot have!
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-runtime</artifactId>
       <version>0.3.2-SNAPSHOT</version>
       <type>jangaroo</type>
-    </dependency>
+    </dependency>-->
 
     <dependency>
       <groupId>net.jangaroo</groupId>
