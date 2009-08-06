@@ -1,29 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
     <artifactId>jangaroo-tools</artifactId>
     <groupId>net.jangaroo</groupId>
-    <version>0.3.2-SNAPSHOT</version>
+    <version>0.3.2</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>net.jangaroo</groupId>
   <artifactId>jangaroo-compiler-itests</artifactId>
   <name>Jangaroo Integration Tests</name>
-  <version>0.3.2-SNAPSHOT</version>
+  <version>0.3.2</version>
   <packaging>jar</packaging>
 
   <dependencies>
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-runtime</artifactId>
-      <version>0.3.2-SNAPSHOT</version>
+      <version>0.3.2</version>
     </dependency>
 
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-compiler</artifactId>
-      <version>0.3.2-SNAPSHOT</version>
+      <version>0.3.2</version>
     </dependency>
 
     <dependency>
@@ -90,26 +89,21 @@
             <phase>process-test-resources</phase>
             <configuration>
               <tasks>
-                <property name="runtime.classpath" refid="maven.runtime.classpath"/>
-                <taskdef name="jooc" classname="net.jangaroo.jooc.ant.JoocTask"
-                         classpath="target/classes;${runtime.classpath}"/>
+                <property name="runtime.classpath" refid="maven.runtime.classpath" />
+                <taskdef name="jooc" classname="net.jangaroo.jooc.ant.JoocTask" classpath="target/classes;${runtime.classpath}" />
 
-                <mkdir dir="${basedir}/target/temp/js"/>
+                <mkdir dir="${basedir}/target/temp/js" />
 
-                <jooc destdir="target/temp/js"
-                      failonerror="true"
-                      debug="${jooc.debug}"
-                      verbose="true"
-                      enableassertions="${jooc.assert}">
-                  <include name="**/*.as"/>
-                  <exclude name="error/**/*.as"/>
-                  <exclude name="**/*_fragment.as"/>
-                  <src path="${basedir}/src/test/joo"/>
+                <jooc destdir="target/temp/js" failonerror="true" debug="${jooc.debug}" verbose="true" enableassertions="${jooc.assert}">
+                  <include name="**/*.as" />
+                  <exclude name="error/**/*.as" />
+                  <exclude name="**/*_fragment.as" />
+                  <src path="${basedir}/src/test/joo" />
                 </jooc>
 
                 <!--                <copy todir="${basedir}/target/temp/js">
             <fileset dir="${basedir}/src/test/joo">
-              <include name="**/*.as"/>
+              <include name="**/*.as" />
             </fileset>
           </copy>      -->
 
