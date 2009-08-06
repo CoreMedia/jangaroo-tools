@@ -33,55 +33,29 @@ try
         return false;
     }
 
-    File jsDir = new File ( target, "joo"+File.separator+"classes" );
+    File jsDir = new File ( target, "simple-project-1.0-SNAPSHOT/scripts/" );
     if ( !jsDir.exists() || !jsDir.isDirectory() )
     {
-        System.err.println( "joo/classes directory is missing or not a directory." );
+        System.err.println( jsDir + " directory is missing or not a directory." );
         return false;
     }
 
-    File helloWorldJs = new File ( jsDir, "net"+File.separator+"jangaroo"+File.separator+"example"+File.separator+"HelloWorld.js" );
+    File helloWorldJs = new File ( jsDir, "classes/net"+File.separator+"jangaroo"+File.separator+"example"+File.separator+"HelloWorld.js" );
     if ( !helloWorldJs.exists() || !helloWorldJs.isFile() )
     {
         System.err.println( "HelloWorld.js output file is missing or not a file." );
         return false;
     }
 
-    File testClassJs = new File ( jsDir, "net"+File.separator+"jangaroo"+File.separator+"example"+File.separator+"TestClass.js" );
+
+    File testClassJs = new File ( jsDir, "lib/simple-project.js" );
     if ( !testClassJs.exists() || !testClassJs.isFile() )
     {
-        System.err.println( "TestClass.js output file is missing or not a file." );
-        return false;
-    }
-
-    File classRuntimeJs = new File ( target, "joo"+File.separator+"lib"+File.separator+"joo.js" );
-    if ( !classRuntimeJs.exists() || !classRuntimeJs.isFile() )
-    {
-        System.err.println( "joo/joo.js runtime file is missing or not a file." );
+        System.err.println( "simple-project.js output file is missing or not a file." );
         return false;
     }
 
 
-    File testJsDir = new File ( target, "joo"+File.separator+"test-classes" );
-    if ( !testJsDir.exists() || !testJsDir.isDirectory() )
-    {
-        System.err.println( "joo/test-classes directory is missing or not a directory." );
-        return false;
-    }
-
-    testClassJs = new File ( testJsDir, "net"+File.separator+"jangaroo"+File.separator+"example"+File.separator+"HelloWorldTest.js" );
-    if ( !testClassJs.exists() || !testClassJs.isFile() )
-    {
-        System.err.println( testClassJs + " output file is missing or not a file." );
-        return false;
-    }
-
-    testClassJs = new File ( testJsDir, "JooTestSuite.js" );
-    if ( !testClassJs.exists() || !testClassJs.isFile() )
-    {
-        System.err.println( testClassJs + " output file is missing or not a file." );
-        return false;
-    }
 
 }
 catch( IOException e )

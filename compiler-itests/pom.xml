@@ -53,7 +53,7 @@
                 <artifactItem>
                   <groupId>net.jangaroo</groupId>
                   <artifactId>jangaroo-runtime</artifactId>
-                  <version>0.3.2-SNAPSHOT</version>
+                  <version>${version}</version>
                 </artifactItem>
               </artifactItems>
               <outputDirectory>${basedir}/target/temp/js</outputDirectory>

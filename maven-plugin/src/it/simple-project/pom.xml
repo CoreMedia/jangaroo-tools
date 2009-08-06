@@ -17,7 +17,9 @@ KIND, either express or implied.  See the License for the
 specific language governing permissions and limitations
 under the License.
 -->
-<project xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd' xmlns='http://maven.apache.org/POM/4.0.0'>
+<project xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+         xsi:schemaLocation='http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd'
+         xmlns='http://maven.apache.org/POM/4.0.0'>
   <modelVersion>4.0.0</modelVersion>
   <groupId>testwar</groupId>
   <artifactId>simple-project</artifactId>
@@ -25,35 +27,33 @@ under the License.
   <version>1.0-SNAPSHOT</version>
   <name>simple-project</name>
   <url>http://www.jangaroo.net</url>
- <build>
+  <build>
     <plugins>
       <plugin>
         <groupId>net.jangaroo</groupId>
         <artifactId>jangaroo-maven-plugin</artifactId>
-        <version>@project.version@</version>
+        <extensions>true</extensions>
         <executions>
           <execution>
+            <id>compile-as-sources</id>
+            <phase>compile</phase>
             <goals>
               <goal>compile</goal>
-              <goal>copy-runtime</goal>
-              <goal>testCompile</goal>
-              <!--goal>test</goal-->
+            </goals>
+            <configuration>
+              <outputFileName>${project.build.directory}/${project.build.finalName}/scripts/lib/${artifactId}.js
+              </outputFileName>
+              <outputDirectory>${project.build.directory}/${project.build.finalName}/scripts/classes</outputDirectory>
+            </configuration>
+          </execution>
+          <execution>
+            <id>war-package</id>
+            <goals>
+              <goal>war-package</goal>
             </goals>
           </execution>
         </executions>
-      </plugin>
-      
-      <plugin>
-        <artifactId>maven-war-plugin</artifactId>
-        <version>2.1-alpha-2</version>
-        <configuration>
-          <webResources>
-            <resource>
-              <directory>${project.build.directory}/joo/classes</directory>
-              <targetPath>js</targetPath>
-            </resource>
-          </webResources>
-        </configuration>
+        <version>@project.version@</version>
       </plugin>
 
     </plugins>

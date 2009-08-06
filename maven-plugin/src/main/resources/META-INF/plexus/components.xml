@@ -7,6 +7,18 @@
       <implementation>org.codehaus.mojo.javascript.archive.JavascriptArchiver</implementation>
     </component>
 
+    <component>
+      <role>org.codehaus.plexus.archiver.UnArchiver</role>
+      <role-hint>jangaroo</role-hint>
+      <implementation>org.codehaus.mojo.javascript.archive.JavascriptUnArchiver</implementation>
+    </component>
+    
+    <component>
+      <role>org.codehaus.mojo.javascript.archive.JavascriptArtifactManager</role>
+      <role-hint>default</role-hint>
+      <implementation>org.codehaus.mojo.javascript.archive.JavascriptArtifactManager</implementation>
+    </component>
+
     <!--
         A custom artifact handler for javascript archives (jsar).
         This requires the plugin to be configured with <extensions> set to true

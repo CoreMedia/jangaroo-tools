@@ -23,7 +23,7 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
-import org.codehaus.mojo.javascript.archive.JavascriptArtifactManager;
+import org.codehaus.mojo.javascript.archive.JavascriptUnArchiver;
 import org.codehaus.mojo.javascript.archive.Types;
 import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
@@ -84,9 +84,12 @@ public class WarPackageMojo
   private boolean useArtifactId;
 
   /**
-   * @component
+   * Plexus archiver.
+   *
+   * @component role="org.codehaus.plexus.archiver.UnArchiver" role-hint="jangaroo"
+   * @required
    */
-  private JavascriptArtifactManager javascriptArtifactManager;
+  private JavascriptUnArchiver unarchiver;
 
   /**
    * {@inheritDoc}
@@ -101,13 +104,57 @@ public class WarPackageMojo
       getLog().error("before exclude");
       excludeFromWarPackaging();
       getLog().error("before unpack");
-      javascriptArtifactManager.unpack(project, DefaultArtifact.SCOPE_RUNTIME,
+
+
+      unpack(project, DefaultArtifact.SCOPE_RUNTIME,
               new File(webappDirectory, scriptsDirectory + "/" + libsDirectory), useArtifactId);
       getLog().error("after unpack");
     }
     catch (ArchiverException e) {
       throw new MojoExecutionException("Failed to unpack javascript dependencies", e);
     }
+  }
+
+
+  public void unpack(MavenProject project, String scope, File target, boolean useArtifactId)
+          throws ArchiverException {
+    unarchiver.setOverwrite(false);
+
+    Set dependencies = project.getArtifacts();
+
+    for (Iterator iterator = dependencies.iterator(); iterator.hasNext();) {
+      Artifact dependency = (Artifact) iterator.next();
+      getLog().error("Dependency: " + dependency.getGroupId() + ":" + dependency.getArtifactId() + "type: " + dependency.getType());
+      if (!dependency.isOptional() && Types.JANGAROO_TYPE.equals(dependency.getType())) {
+        getLog().info("Unpack jangaroo dependency [" + dependency.toString() + "]");
+        unarchiver.setSourceFile(dependency.getFile());
+
+        File dest = target;
+        if (useArtifactId) {
+          dest = new File(target, dependency.getArtifactId());
+        }
+        unpack(dependency, dest);
+        /*artifactResolver.resolveTransitively()
+        for (Object artifact : dependency.getDependencyTrail()) {
+          getLogger().error("DependencyTrail: " + ((Artifact)artifact).getGroupId() + ":" + ((Artifact)artifact).getArtifactId() + "type: " + ((Artifact)artifact).getType());
+        } */
+      }
+    }
+  }
+
+  public void unpack(Artifact artifact, File target)
+          throws ArchiverException {
+    unarchiver.setSourceFile(artifact.getFile());
+    target.mkdirs();
+    unarchiver.setDestDirectory(target);
+    unarchiver.setOverwrite(false);
+    try {
+      unarchiver.extract();
+    }
+    catch (Exception e) {
+      throw new ArchiverException("Failed to extract javascript artifact to " + target, e);
+    }
+
   }
 
 

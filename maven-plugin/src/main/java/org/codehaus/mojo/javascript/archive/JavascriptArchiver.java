@@ -16,16 +16,16 @@ package org.codehaus.mojo.javascript.archive;
  * limitations under the License.
  */
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
 import org.codehaus.plexus.archiver.jar.Manifest;
 import org.codehaus.plexus.archiver.jar.ManifestException;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 
 /**
  * Custom archiver for javascript dependencies, packaged as "jsar" (JavaScript
@@ -33,7 +33,7 @@ import org.codehaus.plexus.archiver.jar.ManifestException;
  * 
  * @author <a href="mailto:nicolas.deloof@gmail.com">Nicolas De Loof</a>
  * @plexus.component role="org.codehaus.plexus.archiver.Archiver"
- * role-hint="javascript" instantiation-strategy="per-lookup"
+ * role-hint="jangaroo" instantiation-strategy="per-lookup"
  */
 public class JavascriptArchiver
     extends JarArchiver
