@@ -36,7 +36,35 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-invoker-plugin</artifactId>
-      </plugin>
+        <version>1.3</version>
+        <executions>
+          <execution>
+            <id>integration-test</id>
+            <configuration>
+              <debug>true</debug>
+              <projectsDirectory>src/it</projectsDirectory>
+              <pomIncludes>
+                <pomInclude>simple-lib/pom.xml</pomInclude>
+              </pomIncludes>
+              <pomExcludes>
+                <pomExclude>**/META-INF/**/pom.xml</pomExclude>
+              </pomExcludes>
+              <postBuildHookScript>verify.bsh</postBuildHookScript>
+              <localRepositoryPath>${project.build.directory}/local-repo</localRepositoryPath>
+              <goals>
+                <goal>clean</goal>
+                <goal>package</goal>
+              </goals>
+              <settingsFile>src/it/settings.xml</settingsFile>
+              <cloneProjectsTo>${project.build.directory}/its</cloneProjectsTo>
+            </configuration>
+            <goals>
+              <goal>install</goal>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin> 
 
     </plugins>
   </build>

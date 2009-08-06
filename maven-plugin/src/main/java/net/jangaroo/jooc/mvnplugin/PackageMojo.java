@@ -72,7 +72,7 @@ public class PackageMojo extends AbstractMojo {
   /**
    * Plexus archiver.
    *
-   * @component role="org.codehaus.plexus.archiver.Archiver" role-hint="javascript"
+   * @component role="org.codehaus.plexus.archiver.Archiver" role-hint="jangaroo"
    * @required
    */
   private JavascriptArchiver archiver;

@@ -1,6 +1,12 @@
 <component-set>
   <components>
 
+    <component>
+      <role>org.codehaus.plexus.archiver.Archiver</role>
+      <role-hint>jangaroo</role-hint>
+      <implementation>org.codehaus.mojo.javascript.archive.JavascriptArchiver</implementation>
+    </component>
+
     <!--
         A custom artifact handler for javascript archives (jsar).
         This requires the plugin to be configured with <extensions> set to true
@@ -41,6 +47,13 @@
               <deploy>org.apache.maven.plugins:maven-deploy-plugin:deploy</deploy>
             </phases>
           </lifecycle>
+          <lifecycle>
+            <id>clean</id>
+            <phases>
+              <clean>org.apache.maven.plugins:maven-clean-plugin:clean</clean>
+            </phases>
+          </lifecycle>
+          
         </lifecycles>
       </configuration>
     </component>
