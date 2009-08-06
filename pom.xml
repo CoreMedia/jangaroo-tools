@@ -128,7 +128,7 @@
   <modules>
     <module>jooc</module>
     <module>maven-plugin</module>
-    <module>release</module>
+<!--    <module>release</module>-->
     <module>jangaroo-runtime</module>
     <module>jangaroo-browser</module>
     <module>compiler-itests</module>
