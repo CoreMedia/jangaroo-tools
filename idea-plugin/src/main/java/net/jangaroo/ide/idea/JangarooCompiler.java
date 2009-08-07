@@ -67,7 +67,7 @@ public class JangarooCompiler implements TranslatingCompiler {
         throw new IllegalStateException("Output directory does not exit: "+outputDirectoryPath);
       }
       outputDirectoryPath = outputDirectoryVirtualFile.getPath();
-      String outputFileName = outputDirectoryPath + "/" + joocConfig.getOutputFileName();
+      String outputFileName = outputDirectoryPath + File.separator + joocConfig.getOutputFileName();
       IdeaCompileLog ideaCompileLog = new IdeaCompileLog(context);
       new Jooc(ideaCompileLog).run(joocConfig);
       for (final VirtualFile file : files) {
