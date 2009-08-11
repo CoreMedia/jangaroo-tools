@@ -3,14 +3,14 @@
   <groupId>net.jangaroo</groupId>
   <artifactId>jangaroo-compiler</artifactId>
   <packaging>jar</packaging>
-  <version>0.3.4-SNAPSHOT</version>
+  <version>0.3.4</version>
   <name>Jangaroo compiler</name>
 
   <parent>
     <groupId>net.jangaroo</groupId>
     <artifactId>jangaroo-tools</artifactId>
     <relativePath>../pom.xml</relativePath>
-    <version>0.3.4-SNAPSHOT</version>
+    <version>0.3.4</version>
   </parent>
 
 
