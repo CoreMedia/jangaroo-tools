@@ -49,18 +49,18 @@ public class PackageMojo extends AbstractMojo {
   /**
    * Source directory to scan for files to package in the sources archive. These files
    * have not been compiled since these classes are available by default. They are needed
-   * to make them available via IDE.
+   * to make them available via IDE and for the asdoc generations.
    *
-   * @parameter expression="${basedir}/src/main/ide-resources"
+   * @parameter expression="${basedir}/src/main/joo-api"
    */
-  private File ideResourceDirectory;
+  private File jooApiDirectory;
 
   /**
-   * Source directory containing pregenrated javascript that will be just included.
+   * Source directory containing javascript that will be just included.
    *
-   * @parameter expression="${basedir}/src/main/pregenerated"
+   * @parameter expression="${basedir}/src/main/joo-js"
    */
-  private File pregeneratedDirectory;
+  private File jooJsDirectory;
 
   /**
    * The filename of the js file.
@@ -101,8 +101,8 @@ public class PackageMojo extends AbstractMojo {
       if (scriptsDirectory.exists()) {
         archiver.addDirectory(scriptsDirectory);
       }
-      if (pregeneratedDirectory.exists()) {
-        archiver.addDirectory(pregeneratedDirectory); 
+      if (jooJsDirectory.exists()) {
+        archiver.addDirectory(jooJsDirectory);
       }
       String groupId = project.getGroupId();
       String artifactId = project.getArtifactId();
@@ -127,8 +127,8 @@ public class PackageMojo extends AbstractMojo {
       if (sourceDirectory.exists()) {
         archiver.addDirectory(sourceDirectory);
       }
-      if (ideResourceDirectory.exists()) {
-        archiver.addDirectory(ideResourceDirectory);
+      if (jooApiDirectory.exists()) {
+        archiver.addDirectory(jooApiDirectory);
       }
       String groupId = project.getGroupId();
       String artifactId = project.getArtifactId();

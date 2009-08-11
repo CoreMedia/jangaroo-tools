@@ -43,7 +43,7 @@
                   <zipfileset dir="target/joo" includes="**/*" />
                 </zip>
                 <zip destfile="target/jangaroo-browser-sources.jar">
-                  <zipfileset dir="src/main/ide-resources" includes="**/*.as" />
+                  <zipfileset dir="src/main/joo-api" includes="**/*.as" />
                   <zipfileset dir="src/main/joo" includes="**/*.as" />
                   <zipfileset dir="." includes="pom.xml" fullpath="META-INF/${groupId}.${artifactId}/pom.xml" />
                 </zip>
