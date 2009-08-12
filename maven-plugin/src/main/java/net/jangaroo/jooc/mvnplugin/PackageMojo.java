@@ -136,6 +136,7 @@ public class PackageMojo extends AbstractMojo {
               + "/pom.xml");
       archiver.setDestFile(asarchive);
       archiver.createArchive();
+      archiver.reset();
     }
     catch (Exception e) {
       throw new MojoExecutionException("Failed to create the actionscript archive", e);

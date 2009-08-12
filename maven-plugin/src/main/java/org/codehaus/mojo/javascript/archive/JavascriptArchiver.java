@@ -75,4 +75,15 @@ public class JavascriptArchiver
         writer.close();
         setManifest( mf );
     }
+
+  @Override
+  protected void cleanUp() {
+    getLogger().debug("clean up archiver..");
+    setIncludeEmptyDirs( false );
+    getDirs().clear();
+    getFiles().clear();
+    setIncludeEmptyDirs( true );
+    super.cleanUp();
+
+  }
 }
