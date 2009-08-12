@@ -70,20 +70,6 @@ public class WarPackageMojo
   private String scriptsDirectory;
 
   /**
-   * The folder for javascripts dependencies
-   *
-   * @parameter expression="${scripts}" default-value="lib"
-   */
-  private String libsDirectory;
-
-  /**
-   * Use the artifactId as folder
-   *
-   * @parameter default-value="true"
-   */
-  private boolean useArtifactId;
-
-  /**
    * Plexus archiver.
    *
    * @component role="org.codehaus.plexus.archiver.UnArchiver" role-hint="jangaroo"
@@ -98,17 +84,11 @@ public class WarPackageMojo
    */
   public void execute()
           throws MojoExecutionException, MojoFailureException {
-    File outputDirectory = new File(webappDirectory, scriptsDirectory);
-
     try {
-      getLog().error("before exclude");
       excludeFromWarPackaging();
-      getLog().error("before unpack");
-
 
       unpack(project, DefaultArtifact.SCOPE_RUNTIME,
-              new File(webappDirectory, scriptsDirectory + "/" + libsDirectory), useArtifactId);
-      getLog().error("after unpack");
+              new File(webappDirectory, scriptsDirectory));
     }
     catch (ArchiverException e) {
       throw new MojoExecutionException("Failed to unpack javascript dependencies", e);
@@ -116,7 +96,7 @@ public class WarPackageMojo
   }
 
 
-  public void unpack(MavenProject project, String scope, File target, boolean useArtifactId)
+  public void unpack(MavenProject project, String scope, File target)
           throws ArchiverException {
     unarchiver.setOverwrite(false);
 
@@ -124,16 +104,12 @@ public class WarPackageMojo
 
     for (Iterator iterator = dependencies.iterator(); iterator.hasNext();) {
       Artifact dependency = (Artifact) iterator.next();
-      getLog().error("Dependency: " + dependency.getGroupId() + ":" + dependency.getArtifactId() + "type: " + dependency.getType());
+      getLog().info("Dependency: " + dependency.getGroupId() + ":" + dependency.getArtifactId() + "type: " + dependency.getType());
       if (!dependency.isOptional() && Types.JANGAROO_TYPE.equals(dependency.getType())) {
         getLog().info("Unpack jangaroo dependency [" + dependency.toString() + "]");
         unarchiver.setSourceFile(dependency.getFile());
 
-        File dest = target;
-        if (useArtifactId) {
-          dest = new File(target, dependency.getArtifactId());
-        }
-        unpack(dependency, dest);
+        unpack(dependency, target);
         /*artifactResolver.resolveTransitively()
         for (Object artifact : dependency.getDependencyTrail()) {
           getLogger().error("DependencyTrail: " + ((Artifact)artifact).getGroupId() + ":" + ((Artifact)artifact).getArtifactId() + "type: " + ((Artifact)artifact).getType());
@@ -193,7 +169,7 @@ public class WarPackageMojo
           String additionalExcludes = "";
           for (Iterator iterator = dependencies.iterator(); iterator.hasNext();) {
             Artifact dependency = (Artifact) iterator.next();
-            getLog().error("Dependency: " + dependency.getGroupId() + ":" + dependency.getArtifactId() + "type: " + dependency.getType());
+            getLog().info("Dependency: " + dependency.getGroupId() + ":" + dependency.getArtifactId() + "type: " + dependency.getType());
             if (!dependency.isOptional() && Types.JANGAROO_TYPE.equals(dependency.getType())) {
               getLog().info("Excluding jangaroo dependency form war plugin [" + dependency.toString() + "]");
               // Add two excludes. The first one is effective when no nameclash occcurs
