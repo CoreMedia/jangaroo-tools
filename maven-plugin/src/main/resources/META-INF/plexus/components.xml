@@ -63,24 +63,5 @@
         </lifecycles>
       </configuration>
     </component>
-
-    <component>
-      <role>org.codehaus.mojo.javascript.assembler.AssemblerReader</role>
-      <role-hint>default</role-hint>
-      <implementation>org.codehaus.mojo.javascript.assembler.DefaultAssemblerReader</implementation>
-      <description></description>
-    </component>
-    <component>
-      <role>org.codehaus.mojo.javascript.assembler.AssemblerReaderManager</role>
-      <implementation>org.codehaus.mojo.javascript.assembler.DefaultAssemblerReaderManager</implementation>
-      <description></description>
-    </component>
-    <component>
-      <role>org.codehaus.mojo.javascript.assembler.AssemblerReader</role>
-      <role-hint>jsbuilder</role-hint>
-      <implementation>org.codehaus.mojo.javascript.assembler.JsBuilderAssemblerReader</implementation>
-      <description></description>
-    </component>
-
   </components>
 </component-set>
