@@ -1,19 +1,23 @@
-// Copyright 2008 CoreMedia AG
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing,
-// software distributed under the License is distributed on an "AS
-// IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
-// express or implied. See the License for the specific language
-// governing permissions and limitations under the License.
+/*
+ * Copyright 2009 CoreMedia AG
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); 
+ * you may not use this file except in compliance with the License. 
+ * You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0 
+ *
+ * Unless required by applicable law or agreed to in writing, 
+ * software distributed under the License is distributed on an "AS
+ * IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the License for the specific language 
+ * governing permissions and limitations under the License.
+ */
 
 // JangarooScript runtime support. Author: Frank Wienberg
+
 package joo {
 
+// this makes jooc generate a with(joo) statement:
 import joo.*;
 
 public class StandardClassLoader extends joo.SystemClassLoader {
@@ -26,7 +30,7 @@ public class StandardClassLoader extends joo.SystemClassLoader {
     this.importMap = new ImportMap();
   }
 
-  override internal function createClassDeclaration(packageDef : String, directives : Array, classDef : String, memberFactory : Function,
+  override protected function createClassDeclaration(packageDef : String, directives : Array, classDef : String, memberFactory : Function,
                                                   publicStaticMethodNames : Array):SystemClassDeclaration {
     var cd : ClassDeclaration = new ClassDeclaration(packageDef, directives, classDef, memberFactory, publicStaticMethodNames);
     classDeclarations.push(cd); // remember all created classes for later initialization.
@@ -34,7 +38,7 @@ public class StandardClassLoader extends joo.SystemClassLoader {
   }
 
   public function loadScript(uri : String) : void {
-    var script : Object = window.document.createElement("script");
+    var script : * = window.document.createElement("script");
     script.type = "text/javascript";
     window.document.body.appendChild(script);
     script.src = uri;
@@ -73,14 +77,14 @@ public class StandardClassLoader extends joo.SystemClassLoader {
    * - import the class or
    * - load the class and use the constructor or a static method of the class. This will trigger initialization
    *   automatically.
-   * @param classes the classes (type Class) to initialize.
+   * @param classes the classes (type Function) to initialize.
    * @return Function the initialized class (constructor function).
    */
-  public function init(... classes) : Class {
-    var clazz : Class;
+  public function init(... classes) : Function {
+    var clazz : Function;
     for (var i:int=0; i<classes.length; ++i) {
-      if (classes[i].$class) {
-        ((clazz = classes[i]).$class as NativeClassDeclaration).init();
+      if ("$class" in classes[i]) {
+        ((clazz = classes[i])["$class"] as NativeClassDeclaration).init();
       }
     }
     return clazz;
@@ -110,7 +114,7 @@ public class StandardClassLoader extends joo.SystemClassLoader {
     classDeclarations.forEach(function(classDeclaration : ClassDeclaration) : void {
       classDeclaration.complete();
       // init native class patches immediately:
-      if (classDeclaration.native_) {
+      if (classDeclaration.isNative()) {
         classDeclaration.init();
       }
     });

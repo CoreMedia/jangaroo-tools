@@ -1,5 +1,23 @@
+/*
+ * Copyright 2009 CoreMedia AG
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); 
+ * you may not use this file except in compliance with the License. 
+ * You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0 
+ *
+ * Unless required by applicable law or agreed to in writing, 
+ * software distributed under the License is distributed on an "AS
+ * IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the License for the specific language 
+ * governing permissions and limitations under the License.
+ */
+
+// JangarooScript runtime support. Author: Frank Wienberg
+
 package joo {
 
+// this makes jooc generate a with(joo) statement:
 import joo.*;
 
 public class DynamicClassLoader extends joo.StandardClassLoader {
@@ -28,8 +46,8 @@ public class DynamicClassLoader extends joo.StandardClassLoader {
    */
   private var pendingClassState : Object/*<String,Boolean>*/ = {};
 
-  override internal function createClassDeclaration(packageDef : String, directives : Array, classDef : String, memberFactory : Function,
-                                                    publicStaticMethodNames : Array):SystemClassDeclaration {
+  override protected function createClassDeclaration(packageDef : String, directives : Array, classDef : String, memberFactory : Function,
+                                                     publicStaticMethodNames : Array):SystemClassDeclaration {
     var cd : ClassDeclaration = super.createClassDeclaration(packageDef, directives, classDef, memberFactory, publicStaticMethodNames) as ClassDeclaration;
     this.pendingDependencies.push(cd);
     if (delete this.pendingClassState[cd.fullClassName]) {
@@ -46,7 +64,7 @@ public class DynamicClassLoader extends joo.StandardClassLoader {
           var onCompleteCallbacks : Array/*<Function>*/ = this.onCompleteCallbacks;
           this.onCompleteCallbacks = [];
           // "invoke later":
-          window.setTimeout(function() {
+          window.setTimeout(function() : void {
             this.completeAll();
             this.doCompleteCallbacks(onCompleteCallbacks);
           }, 0);
@@ -140,7 +158,7 @@ public class DynamicClassLoader extends joo.StandardClassLoader {
     }
     this.loadPendingDependencies();
     if (isEmpty(this.pendingClassState)) {
-      // no deferred classes: do not behave any different than my superclass
+      // no deferred classes: do not behave any different than my super class
       super.complete(onCompleteCallback);
     } else {
       for (var c:String in this.pendingClassState) {

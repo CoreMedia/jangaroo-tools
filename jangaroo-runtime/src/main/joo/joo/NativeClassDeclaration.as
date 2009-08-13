@@ -1,35 +1,57 @@
+/*
+ * Copyright 2009 CoreMedia AG
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); 
+ * you may not use this file except in compliance with the License. 
+ * You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0 
+ *
+ * Unless required by applicable law or agreed to in writing, 
+ * software distributed under the License is distributed on an "AS
+ * IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the License for the specific language 
+ * governing permissions and limitations under the License.
+ */
+
+// JangarooScript runtime support. Author: Frank Wienberg
+
 package joo {
 
+// this makes jooc generate a with(joo) statement:
 import joo.*;
 
 public class NativeClassDeclaration {
 
-  internal static function createEmptyConstructor(constructor_ : Class) : Class {
-    var emptyConstructor : Class = function() : void {
+  protected static function createEmptyConstructor(constructor_ : Function) : Function {
+    var emptyConstructor : Function = function() : void {
       this.constructor = constructor_;
     };
     emptyConstructor.prototype =  constructor_.prototype;
     return emptyConstructor;
   }
 
-  internal var
+  public var
           level : int = -1,
           fullClassName : String,
-          constructor_ : Class,
-          publicConstructor : Class,
+          constructor_ : Function,
+          publicConstructor : Function,
           completed  : Boolean = false,
           inited  : Boolean = false,
-          Public : Class,
+          Public : Function,
           superClassDeclaration : NativeClassDeclaration,
           interfaces : Array;
 
-  public function NativeClassDeclaration(fullClassName : String, publicConstructor : Class) {
-    this.fullClassName = fullClassName;
-    this.publicConstructor = publicConstructor;
-    this.publicConstructor.$class = this;
+  public function NativeClassDeclaration() {
   }
 
-  internal function complete() : NativeClassDeclaration {
+  public function create(fullClassName : String, publicConstructor : Function) : NativeClassDeclaration {
+    this.fullClassName = fullClassName;
+    this.publicConstructor = publicConstructor;
+    this.publicConstructor["$class"] = this;
+    return this;
+  }
+
+  public function complete() : NativeClassDeclaration {
     if (!this.completed) {
       this.completed = true;
       this.doComplete();
@@ -37,13 +59,13 @@ public class NativeClassDeclaration {
     return this;
   }
 
-  internal function doComplete() : void {
+  protected function doComplete() : void {
     this.interfaces = [];
     this.constructor_ = this.publicConstructor;
     this.Public = createEmptyConstructor(this.publicConstructor);
   }
 
-  internal function init() : NativeClassDeclaration {
+  public function init() : NativeClassDeclaration {
     if (!this.inited) {
       this.inited = true;
       this.complete();
@@ -52,7 +74,7 @@ public class NativeClassDeclaration {
     return this;
   }
 
-  internal function doInit() : void {
+  protected function doInit() : void {
   }
 
   public function isInstance(object : Object) : Boolean {

@@ -1,20 +1,23 @@
-// Copyright 2008 CoreMedia AG
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing,
-// software distributed under the License is distributed on an "AS
-// IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
-// express or implied. See the License for the specific language
-// governing permissions and limitations under the License.
+/*
+ * Copyright 2009 CoreMedia AG
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); 
+ * you may not use this file except in compliance with the License. 
+ * You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0 
+ *
+ * Unless required by applicable law or agreed to in writing, 
+ * software distributed under the License is distributed on an "AS
+ * IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the License for the specific language 
+ * governing permissions and limitations under the License.
+ */
 
 // JangarooScript runtime support. Author: Frank Wienberg
 
 package joo {
 
+// this makes jooc generate a with(joo) statement:
 import joo.*;
 
 public class ClassDeclaration extends joo.SystemClassDeclaration {
@@ -26,13 +29,13 @@ public class ClassDeclaration extends joo.SystemClassDeclaration {
     super(packageDef, directives, classDef, memberDeclarations, publicStaticMethods);
   }
 
-  internal function getDependencies() : Array {
+  public function getDependencies() : Array {
     var dependencies:Array = this.importMap.getImports();
     dependencies.push(this.importMap.findQualifiedName(this.extends_));
     return dependencies;
   }
 
-  override internal function parseDirectives(packageName : String, directives : Array):void {
+  override protected function parseDirectives(packageName : String, directives : Array):void {
     // super.parseDirectives(packageName, directives); // we know it's empty!
     this.importMap = new ImportMap();
     this.importMap.addImport(packageName+".*");
@@ -47,7 +50,7 @@ public class ClassDeclaration extends joo.SystemClassDeclaration {
     // else: TODO! use namespace, annotations, package-scope functions, namespace declarations...
   }
 
-  override internal function doComplete():void {
+  override protected function doComplete():void {
     this.extends_ = this.importMap.findQualifiedName(this.extends_);
     super.doComplete();
     for (var i:int=0; i<this.interfaces.length; ++i) {
@@ -69,7 +72,7 @@ public class ClassDeclaration extends joo.SystemClassDeclaration {
 
   private function createInitializingStaticMethod(methodName : String) : void {
     var classDeclaration : ClassDeclaration = this;
-    classDeclaration.publicConstructor[methodName] = function() {
+    classDeclaration.publicConstructor[methodName] = function() : * {
       //assert(!classDeclaration.inited);
       classDeclaration.init();
       return classDeclaration.publicConstructor[methodName].apply(null, arguments);
@@ -80,11 +83,11 @@ public class ClassDeclaration extends joo.SystemClassDeclaration {
     delete this.publicConstructor[methodName];
   }
 
-  internal override function doInit():void {
+  protected override function doInit():void {
     this.publicStaticMethodNames.forEach(this.deleteInitializingStaticMethod);
     super.doInit();
-    this.interfaces.forEach(function(interface_ : String, i : uint, interfaces) {
-      interfaces[i] = joo.classLoader.getRequiredClassDeclaration(interface_);
+    this.interfaces.forEach(function(interface_ : String, i : uint, interfaces : Array) : void {
+      interfaces[i] = classLoader.getRequiredClassDeclaration(interface_);
     });
   }
 
@@ -98,17 +101,17 @@ public class ClassDeclaration extends joo.SystemClassDeclaration {
    * otherwise.
    */
   public override function isInstance(object : Object) : Boolean {
-    return typeof object == "object" && object.constructor.$class ? this.isAssignableFrom(object.constructor.$class) : false;
+    return typeof object == "object" && object.constructor["$class"] ? this.isAssignableFrom(object.constructor["$class"]) : false;
   }
 
   /**
    * Determines if the class or interface represented by this
-   * <code>ClassDefinition</code> object is either the same as, or is a superclass or
-   * superinterface of, the class or interface represented by the specified
+   * <code>ClassDefinition</code> object is either the same as, or is a super class or
+   * super interface of, the class or interface represented by the specified
    * <code>ClassDefinition</code> parameter. It returns <code>true</code> if so;
    * otherwise it returns <code>false</code>.
    */
-  internal function isAssignableFrom(cd : NativeClassDeclaration) : Boolean {
+  protected function isAssignableFrom(cd : NativeClassDeclaration) : Boolean {
     do {
       if (this===cd) {
         return true;

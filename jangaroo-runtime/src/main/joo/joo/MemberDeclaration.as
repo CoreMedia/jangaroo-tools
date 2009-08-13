@@ -1,5 +1,23 @@
+/*
+ * Copyright 2009 CoreMedia AG
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); 
+ * you may not use this file except in compliance with the License. 
+ * You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0 
+ *
+ * Unless required by applicable law or agreed to in writing, 
+ * software distributed under the License is distributed on an "AS
+ * IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the License for the specific language 
+ * governing permissions and limitations under the License.
+ */
+
+// JangarooScript runtime support. Author: Frank Wienberg
+
 package joo {
 
+// this makes jooc generate a with(joo) statement:
 import joo.*;
 
 public class MemberDeclaration {
@@ -51,12 +69,13 @@ public class MemberDeclaration {
           _native : Boolean = false,
           _bound : Boolean = false,
           _override : Boolean = false,
+          _cloneFactory : Function;
+  public var
           memberType : String,
           getterOrSetter : String,
           memberName : String,
           slot : String,
-          value : *,
-          _cloneFactory : Class;
+          value : *;
 
   public function MemberDeclaration(tokens : Array) {
     for (var j:int=0; j<tokens.length; ++j) {
@@ -129,7 +148,7 @@ public class MemberDeclaration {
    : source[this.memberName];
    },*/
 
-  internal function getNativeMember(publicConstructor : Class) : * {
+  public function getNativeMember(publicConstructor : Function) : * {
     var target : * = this.isStatic() ? publicConstructor : publicConstructor.prototype;
     if (this.memberType==MEMBER_TYPE_FUNCTION && this.getterOrSetter) {
       // native variables are only declared as getter/setter functions, never implemented as such:
@@ -149,13 +168,13 @@ public class MemberDeclaration {
     return member;
   }
 
-  internal function hasOwnMember(target : Object) : Boolean {
+  public function hasOwnMember(target : Object) : Boolean {
     // fast path:
     if (!this.getterOrSetter && target.hasOwnProperty) {
       return target.hasOwnProperty(this.slot);
     }
     var value : * = this.retrieveMember(target);
-    if (value!==undefined) {
+    if (value!==undefined && target.constructor) {
       // is it really target's own member? Retrieve super's value:
       var superTarget : Object = target.constructor.prototype;
       var superValue : * = this.retrieveMember(superTarget);
@@ -166,7 +185,7 @@ public class MemberDeclaration {
     return false;
   }
 
-  internal function retrieveMember(target : Object) : * {
+  public function retrieveMember(target : Object) : * {
     if (!target) {
       return undefined;
     }
@@ -181,7 +200,7 @@ public class MemberDeclaration {
     return target[slot];
   }
 
-  internal function storeMember(target : Object) : void {
+  public function storeMember(target : Object) : void {
     // store only if not native:
     if (!this.isNative()) {
       var slot : String = this.slot;
@@ -210,7 +229,7 @@ public class MemberDeclaration {
     return this.memberType!=MEMBER_TYPE_FUNCTION && typeof this.value=="function" && this.value.constructor!==RegExp;
   }
 
-  public function _getCloneFactory() : Class {
+  public function _getCloneFactory() : Function {
     if (!this._cloneFactory) {
       this._cloneFactory = function() : void { };
       this._cloneFactory.prototype = this;
@@ -219,7 +238,7 @@ public class MemberDeclaration {
   }
 
   public function clone(changedProperties : Object) : MemberDeclaration {
-    var CloneFactory : Class = this._getCloneFactory();
+    var CloneFactory : Function = this._getCloneFactory();
     var clone : MemberDeclaration = new CloneFactory();
     for (var m:String in changedProperties) {
       clone[m] = changedProperties[m];

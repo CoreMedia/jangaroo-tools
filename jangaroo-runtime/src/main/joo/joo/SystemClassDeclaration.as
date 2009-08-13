@@ -1,23 +1,41 @@
+/*
+ * Copyright 2009 CoreMedia AG
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); 
+ * you may not use this file except in compliance with the License. 
+ * You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0 
+ *
+ * Unless required by applicable law or agreed to in writing, 
+ * software distributed under the License is distributed on an "AS
+ * IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the License for the specific language 
+ * governing permissions and limitations under the License.
+ */
+
+// JangarooScript runtime support. Author: Frank Wienberg
+
 package joo {
 
+// this makes jooc generate a with(joo) statement:
 import joo.*;
 
 public class SystemClassDeclaration extends NativeClassDeclaration {
 
-  internal static function createDefaultConstructor(superName : String) : Function {
+  protected static function createDefaultConstructor(superName : String) : Function {
     return (function $DefaultConstructor() : void {
       this[superName].apply(this,arguments);
     });
   }
 
-  internal static function createPublicConstructor(cd : NativeClassDeclaration) : void {
+  protected static function createPublicConstructor(cd : NativeClassDeclaration) : Function {
     return function joo$SystemClassDeclaration$constructor() : void {
       this.constructor =  cd.publicConstructor;
       cd.constructor_.apply(this, arguments);
     };
   }
 
-  private static function is_(object : Object, type : Function) : Boolean {
+  private static function is_(object : *, type : Function) : Boolean {
     if (!type || object===undefined || object===null) {
       return false;
     }
@@ -29,10 +47,11 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
   }
 
 {
-  joo["is"] = is_;
+  // publish as "joo.is()" for use from JavaScript:
+  getQualifiedObject("joo")["is"] = is_;
 }
 
-  internal var
+  protected var
           package_ : Object,
           isInterface : Boolean = false,
           namespace_ : String = "intern",
@@ -50,7 +69,7 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
   public function SystemClassDeclaration(packageDef : String, directives : Array, classDef : String, memberDeclarations : Function,
           publicStaticMethodNames : Array) {
     var packageName : String = packageDef.split(/\s+/ as String)[1] || "";
-    this.package_ = joo.getOrCreatePackage(packageName);
+    this.package_ = getOrCreatePackage(packageName);
     this.parseDirectives(packageName, directives);
     var classMatch : Array = classDef.match(/^\s*((public|internal|final|dynamic)\s+)*class\s+([A-Za-z][a-zA-Z$_0-9]*)(\s+extends\s+([a-zA-Z$_0-9.]+))?(\s+implements\s+([a-zA-Z$_0-9.,\s]+))?\s*$/) as Array;
     var interfaces : String;
@@ -76,33 +95,37 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
     this.interfaces = interfaces ? interfaces.split(/\s*,\s*/ as String) as Array : [];
     this.memberDeclarations = memberDeclarations;
     this.publicStaticMethodNames = publicStaticMethodNames;
-    var publicConstructor : Class = joo.getQualifiedObject(fullClassName);
+    var publicConstructor : Function = getQualifiedObject(fullClassName) as Function;
     if (publicConstructor) {
       this.native_ = true;
     } else {
       publicConstructor = createPublicConstructor(this);
       this.package_[this.className] = publicConstructor;
     }
-    super(fullClassName, publicConstructor);
-    this.privateStatics = { "Class": Class, "assert": joo["assert"], "is": is_, "trace": trace };
+    this.create(fullClassName, publicConstructor);
+    this.privateStatics = { "Class": Class, "assert": assert, "is": is_, "trace": trace };
+  }
+
+  public function isNative() : Boolean {
+    return this.native_;
   }
 
   //noinspection JSUnusedLocalSymbols
-  internal function parseDirectives(packageName : String, directives : Array) : void { }
+  protected function parseDirectives(packageName : String, directives : Array) : void { }
 
-  internal override function doComplete() : void {
-    this.superClassDeclaration = joo.classLoader.getRequiredClassDeclaration(this.extends_);
+  protected override function doComplete() : void {
+    this.superClassDeclaration = classLoader.getRequiredClassDeclaration(this.extends_);
     this.superClassDeclaration.complete();
     this.level = this.superClassDeclaration.level + 1;
     this.privateStatics.$super = this.level+"super";
-    var Super : Class = this.superClassDeclaration.Public;
+    var Super : Function = this.superClassDeclaration.Public;
     if (!this.native_) {
       this.publicConstructor.prototype = new Super();
     }
     this.Public = NativeClassDeclaration.createEmptyConstructor(this.publicConstructor);
   }
 
-  internal function initMembers() : void {
+  protected function initMembers() : void {
     this.initializerNames = [];
     this.staticInitializers = [];
     this.boundMethodNames = [];
@@ -169,7 +192,7 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
   }
 
   // must be defined static because otherwise, jooc will add .bind(this) to all function expressions!
-  private static function createMethodBindingConstructor(constructor_ : Class, boundMethodNames : Array) : Function {
+  private static function createMethodBindingConstructor(constructor_ : Function, boundMethodNames : Array) : Function {
     return function $bindMethods() : void {
       for (var i:int=0; i<boundMethodNames.length; ++i) {
         var slot : String = boundMethodNames[i] as String;
@@ -179,13 +202,13 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
     };
   }
 
-  internal function _initSlot(memberDeclaration : MemberDeclaration) : void {
+  protected function _initSlot(memberDeclaration : MemberDeclaration) : void {
     memberDeclaration.slot = memberDeclaration.isPrivate() && !memberDeclaration.isStatic()
             ? this.privateStatics["$"+memberDeclaration.memberName] = this.level + memberDeclaration.memberName
             : memberDeclaration.memberName;
   }
 
-  internal function initMethod(memberDeclaration : MemberDeclaration, member : Function) : void {
+  protected function initMethod(memberDeclaration : MemberDeclaration, member : Function) : void {
     if (memberDeclaration.memberName == this.className && !memberDeclaration.isStatic()) {
       if (memberDeclaration.getterOrSetter) {
         throw new Error(this+": Class name cannot be used for getter or setter: "+memberDeclaration);
@@ -199,7 +222,9 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
       if (this.extends_!="Object") {
         var superMethod : Function = memberDeclaration.retrieveMember(this.superClassDeclaration.Public.prototype);
       }
-      var overrides : Boolean = !!superMethod && superMethod!==Object.prototype[memberDeclaration.memberName];
+      var overrides : Boolean = !!superMethod
+        && superMethod!==member
+        && superMethod!==Object.prototype[memberDeclaration.memberName];
       if (overrides !== memberDeclaration.isOverride()) {
         var msg : String = overrides
                 ? "Method overrides without 'override' modifier"
@@ -217,13 +242,13 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
     }
   }
 
-  internal function _createMemberDeclaration(memberDeclaration : MemberDeclaration, changedProperties : Object) : MemberDeclaration {
+  protected function _createMemberDeclaration(memberDeclaration : MemberDeclaration, changedProperties : Object) : MemberDeclaration {
     var newMemberDeclaration : MemberDeclaration = memberDeclaration.clone(changedProperties);
     this._initSlot(newMemberDeclaration);
     return newMemberDeclaration;
   }
 
-  internal function _storeMember(memberDeclaration : MemberDeclaration, value : Object) : void {
+  protected function _storeMember(memberDeclaration : MemberDeclaration, value : Object) : void {
     this.memberDeclarations.push(memberDeclaration);
     this.memberDeclarationsByQualifiedName[memberDeclaration.getQualifiedName()] = memberDeclaration;
     memberDeclaration.value = value;
@@ -242,7 +267,7 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
     }
   }
 
-  internal override function doInit() : void {
+  protected override function doInit() : void {
     this.superClassDeclaration.init();
     this.initMembers();
     for (var i:int=0; i<this.staticInitializers.length; ++i) {

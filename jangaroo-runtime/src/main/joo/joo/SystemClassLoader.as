@@ -1,11 +1,30 @@
+/*
+ * Copyright 2009 CoreMedia AG
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); 
+ * you may not use this file except in compliance with the License. 
+ * You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0 
+ *
+ * Unless required by applicable law or agreed to in writing, 
+ * software distributed under the License is distributed on an "AS
+ * IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the License for the specific language 
+ * governing permissions and limitations under the License.
+ */
+
+// JangarooScript runtime support. Author: Frank Wienberg
+
 package joo {
 
+// this makes jooc generate a with(joo) statement:
 import joo.*;
 
 public class SystemClassLoader {
 
 {
-  joo["classLoader"] = new SystemClassLoader();
+  // must use qualified name, otherwise a global property would be created:
+  joo.classLoader = new SystemClassLoader();
 }
 
   public static const classDeclarationsByName : Object/*<String,SystemClassDeclaration>*/ = {};
@@ -21,7 +40,7 @@ public class SystemClassLoader {
     classDeclarationsByName[cd.fullClassName] = cd;
   }
 
-  internal function createClassDeclaration(packageDef : String, directives : Array, classDef : String, memberFactory : Function,
+  protected function createClassDeclaration(packageDef : String, directives : Array, classDef : String, memberFactory : Function,
                           publicStaticMethodNames : Array) : SystemClassDeclaration {
     return new SystemClassDeclaration(packageDef, directives, classDef, memberFactory, publicStaticMethodNames).init()
             as SystemClassDeclaration;
@@ -30,14 +49,14 @@ public class SystemClassLoader {
   public function getClassDeclaration(fullClassName : String) : NativeClassDeclaration {
     var cd : NativeClassDeclaration = classDeclarationsByName[fullClassName];
     if (!cd) {
-      var constructor_ : Class = joo.getQualifiedObject(fullClassName);
+      var constructor_ : Function = getQualifiedObject(fullClassName);
       if (constructor_) {
-        if (!constructor_.$class) {
+        if (!constructor_["$class"]) {
           // create SystemClassDeclaration for native classes:
           cd = this.createNativeClassDeclaration(fullClassName, constructor_).init();
           classDeclarationsByName[fullClassName] = cd;
         } else {
-          cd = constructor_.$class;
+          cd = constructor_["$class"];
         }
       }
     }
@@ -57,8 +76,8 @@ public class SystemClassLoader {
     return cd;
   }
 
-  protected function createNativeClassDeclaration(fullClassName : String, nativeClass : Class) : NativeClassDeclaration {
-    return new NativeClassDeclaration(fullClassName, nativeClass);
+  protected function createNativeClassDeclaration(fullClassName : String, nativeClass : Function) : NativeClassDeclaration {
+    return new NativeClassDeclaration().create(fullClassName, nativeClass);
   }
 
 }

@@ -1,3 +1,7 @@
+/**
+ * API and documentation by Adobe®.
+ * Licensed under http://creativecommons.org/licenses/by-nc-sa/3.0/
+ */
 package {
 
 /**
