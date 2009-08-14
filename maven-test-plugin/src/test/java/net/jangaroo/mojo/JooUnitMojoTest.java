@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2009, CoreMedia AG, Hamburg. All rights reserved.
  */
-package net.jangaroo.jooc.mvnplugin;
+package net.jangaroo.mojo;
 
 import org.apache.maven.plugin.testing.AbstractMojoTestCase;
 

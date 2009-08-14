@@ -3,7 +3,7 @@
     <plugins>
       <plugin>
         <groupId>net.jangaroo</groupId>
-        <artifactId>jangaroo-maven-plugin</artifactId>
+        <artifactId>jangaroo-test-plugin</artifactId>
         <configuration/>
         <configuration>
                 <testSuite>flexunit.framework.AllFrameworkTests</testSuite>

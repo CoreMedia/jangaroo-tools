@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2009, CoreMedia AG, Hamburg. All rights reserved.
  */
-package net.jangaroo.jooc.mvnplugin;
+package net.jangaroo.mojo;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.maven.artifact.Artifact;
@@ -12,6 +12,7 @@ import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
 import org.apache.maven.artifact.resolver.ArtifactResolutionResult;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
@@ -38,13 +39,50 @@ import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import net.jangaroo.util.JooRunner;
+
 /**
  * @goal test
  * @phase test
  */
-public class JooUnitMojo extends AbstractRuntimeMojo {
+public class JooUnitMojo extends AbstractMojo {
 
   private JooRunner jooRunner;
+
+  /**
+   * @component
+   * @required
+   * @readonly
+   */
+  protected org.apache.maven.artifact.factory.ArtifactFactory artifactFactory;
+
+  /**
+   * @component
+   * @required
+   * @readonly
+   */
+  protected org.apache.maven.artifact.resolver.ArtifactResolver resolver;
+
+  /**
+   * @parameter expression="${project.remoteArtifactRepositories}"
+   * @required
+   * @readonly
+   */
+  private java.util.List remoteRepositories;
+
+  /**
+   * @parameter expression="${localRepository}"
+   * @required
+   * @readonly
+   */
+  protected ArtifactRepository localRepository;
+
+  /**
+   * @parameter expression="${plugin.artifacts}"
+   * @required
+   * @readonly
+   */
+  private List<Artifact> pluginArtifacts;
 
   /**
    * The Maven project.
@@ -240,9 +278,9 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
       loadArtifactIntoJavaScriptContext(jooRunner, env_rhino_js, false);
 
       //load the joo runtime
-      Artifact runtimeArtifact = resolveRuntimeArtifact();
+      /*Artifact runtimeArtifact = resolveRuntimeArtifact();
       loadRuntimeArtifact(jooRunner, runtimeArtifact);
-
+        */
       //retrieve joo unit
       Artifact jooUnit = resolveArtifact("net.jangaroo", "joounit", "lib", "zip");
 
@@ -508,6 +546,37 @@ public class JooUnitMojo extends AbstractRuntimeMojo {
       throw new ArtifactNotFoundException("Artifact not found.",
               artifact);
     }
+    return result;
+  }
+
+  protected Artifact resolveArtifact(String groupId, String artifactId, String classifier, String type)  throws MojoFailureException, MojoExecutionException {
+    Artifact result = null;
+    for (Artifact pluginArtifact : pluginArtifacts) {
+        getLog().debug("Inspecting pluginArtifact: " + pluginArtifact);
+        if (groupId.equals(pluginArtifact.getGroupId()) &&
+          artifactId.equals(pluginArtifact.getArtifactId()) &&
+          (classifier == null || classifier.equals(pluginArtifact.getClassifier())) &&
+          type.equals(pluginArtifact.getType())) {
+
+          getLog().debug("Selected pluginArtifact: " + pluginArtifact);
+          result = pluginArtifact;
+          break;
+        }
+      }
+    if (result == null) {
+      throw new MojoExecutionException(String.format(
+        "Cannot find any version of the required artifact among the plugin artifacts: %s:%s:%s:%s",
+        groupId, artifactId, classifier, type));
+    }
+
+    getLog().debug("Using Jangaroo artifact: " + result);
+
+    try {
+      resolver.resolve( result, remoteRepositories, localRepository );
+    } catch (Exception e) {
+      throw new MojoExecutionException("Cannot resolve artifact", e);
+    }
+
     return result;
   }
 }
