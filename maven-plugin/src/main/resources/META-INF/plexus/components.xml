@@ -47,7 +47,6 @@
               <process-test-resources>org.apache.maven.plugins:maven-resources-plugin:testResources
               </process-test-resources>
               <test-compile>net.jangaroo:jangaroo-maven-plugin:testCompile</test-compile>
-              <test>net.jangaroo:jangaroo-maven-plugin:test</test>
               <package>net.jangaroo:jangaroo-maven-plugin:package</package>
               <install>org.apache.maven.plugins:maven-install-plugin:install</install>
               <deploy>org.apache.maven.plugins:maven-deploy-plugin:deploy</deploy>

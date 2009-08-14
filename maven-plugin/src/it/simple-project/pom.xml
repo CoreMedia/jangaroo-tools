@@ -39,12 +39,7 @@ under the License.
             <phase>compile</phase>
             <goals>
               <goal>compile</goal>
-            </goals>
-            <configuration>
-              <outputFileName>${project.build.directory}/${project.build.finalName}/scripts/lib/${artifactId}.js
-              </outputFileName>
-              <outputDirectory>${project.build.directory}/${project.build.finalName}/scripts/classes</outputDirectory>
-            </configuration>
+            </goals>            
           </execution>
           <execution>
             <id>war-package</id>

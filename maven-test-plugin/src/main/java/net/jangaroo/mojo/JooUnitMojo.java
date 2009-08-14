@@ -247,8 +247,6 @@ public class JooUnitMojo extends AbstractMojo {
     }
   }
 
-
-  @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
 
     if (!skipExec && !reportsDirectory.exists() && !reportsDirectory.isDirectory()) {
@@ -258,6 +256,10 @@ public class JooUnitMojo extends AbstractMojo {
       }
     }
     File test = new File(testOutputDirectory, testSuite.replaceAll("\\.", "//") + ".js");
+
+    // aload_1
+    // invoke_special #4
+    // if_cmpi
     if (test.exists()) {
       //create testsuite Name
       final String testSuiteName = testSuite.substring(testSuite.lastIndexOf('.') + 1);

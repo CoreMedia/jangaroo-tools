@@ -27,8 +27,10 @@ import org.codehaus.mojo.javascript.archive.JavascriptUnArchiver;
 import org.codehaus.mojo.javascript.archive.Types;
 import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
+import org.codehaus.plexus.util.FileUtils;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -69,6 +71,15 @@ public class WarPackageMojo
    */
   private String scriptsDirectory;
 
+
+   /**
+   * Output directory for compiled classes and the merged javascript file(s).
+   *
+   * @parameter expression="${project.build.directory}/joo"
+   */
+  private File compilerOutputRootDirectory;
+
+
   /**
    * Plexus archiver.
    *
@@ -84,14 +95,20 @@ public class WarPackageMojo
    */
   public void execute()
           throws MojoExecutionException, MojoFailureException {
+    File scriptDir = new File(webappDirectory, scriptsDirectory);
+
     try {
       excludeFromWarPackaging();
 
-      unpack(project, DefaultArtifact.SCOPE_RUNTIME,
-              new File(webappDirectory, scriptsDirectory));
+      unpack(project, DefaultArtifact.SCOPE_RUNTIME, scriptDir);
+      if(compilerOutputRootDirectory != null) {
+        FileUtils.copyDirectoryStructure(compilerOutputRootDirectory, scriptDir);
+      }
     }
     catch (ArchiverException e) {
       throw new MojoExecutionException("Failed to unpack javascript dependencies", e);
+    } catch (IOException e) {
+      throw new MojoExecutionException(String.format("Failed to copy classes to scripts %s directory", scriptDir), e);
     }
   }
 
