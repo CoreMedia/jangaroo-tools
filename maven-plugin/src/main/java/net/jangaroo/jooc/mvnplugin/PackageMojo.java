@@ -6,6 +6,7 @@ import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
 import org.codehaus.mojo.javascript.archive.JavascriptArchiver;
 import org.codehaus.mojo.javascript.archive.Types;
+import org.codehaus.plexus.util.FileUtils;
 
 import java.io.File;
 
@@ -117,30 +118,33 @@ public class PackageMojo extends AbstractMojo {
     }
     project.getArtifact().setFile(jsarchive);
 
-    File asarchive = new File(outputDirectory, finalName + "-sources." + Types.JAVASCRIPT_EXTENSION);
-    try {
-      if (manifest != null) {
-        archiver.setManifest(manifest);
-      } else {
-        archiver.createDefaultManifest(project);
+    if (sourceDirectory.exists() && sourceDirectory.list().length != 0 ||
+        jooApiDirectory.exists() && jooApiDirectory.list().length != 0) {
+      File asarchive = new File(outputDirectory, finalName + "-sources." + Types.JAVASCRIPT_EXTENSION);
+      try {
+        if (manifest != null) {
+          archiver.setManifest(manifest);
+        } else {
+          archiver.createDefaultManifest(project);
+        }
+        if (sourceDirectory.exists()) {
+          archiver.addDirectory(sourceDirectory);
+        }
+        if (jooApiDirectory.exists()) {
+          archiver.addDirectory(jooApiDirectory);
+        }
+        String groupId = project.getGroupId();
+        String artifactId = project.getArtifactId();
+        archiver.addFile(project.getFile(), "META-INF/maven/" + groupId + "/" + artifactId
+                + "/pom.xml");
+        archiver.setDestFile(asarchive);
+        archiver.createArchive();
+        archiver.reset();
       }
-      if (sourceDirectory.exists()) {
-        archiver.addDirectory(sourceDirectory);
+      catch (Exception e) {
+        throw new MojoExecutionException("Failed to create the actionscript archive", e);
       }
-      if (jooApiDirectory.exists()) {
-        archiver.addDirectory(jooApiDirectory);
-      }
-      String groupId = project.getGroupId();
-      String artifactId = project.getArtifactId();
-      archiver.addFile(project.getFile(), "META-INF/maven/" + groupId + "/" + artifactId
-              + "/pom.xml");
-      archiver.setDestFile(asarchive);
-      archiver.createArchive();
-      archiver.reset();
+      projectHelper.attachArtifact(project, "jar"/*Types.JANGAROO_TYPE*/, "sources", asarchive);
     }
-    catch (Exception e) {
-      throw new MojoExecutionException("Failed to create the actionscript archive", e);
-    }
-    projectHelper.attachArtifact(project, "jar"/*Types.JANGAROO_TYPE*/, "sources", asarchive);
   }
 }
