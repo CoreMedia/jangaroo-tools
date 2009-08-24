@@ -101,7 +101,7 @@ public class WarPackageMojo
       excludeFromWarPackaging();
 
       unpack(project, DefaultArtifact.SCOPE_RUNTIME, scriptDir);
-      if(compilerOutputRootDirectory != null) {
+      if(compilerOutputRootDirectory != null && compilerOutputRootDirectory.exists()) {
         FileUtils.copyDirectoryStructure(compilerOutputRootDirectory, scriptDir);
       }
     }
