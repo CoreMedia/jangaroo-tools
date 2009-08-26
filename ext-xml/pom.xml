@@ -1,0 +1,127 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>net.jangaroo</groupId>
+  <artifactId>ext-xml</artifactId>
+  <packaging>jar</packaging>
+  <version>0.3.6-SNAPSHOT</version>
+
+  <name>Jangaroo Ext JS Declarative XML Format</name>
+  <url>http://www.jangaroo.net/</url>
+
+  <prerequisites>
+    <maven>2.0.8</maven>
+  </prerequisites>
+
+  <licenses>
+    <license>
+      <name>Apache 2</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <organization>
+    <name>CoreMedia AG</name>
+    <url>http://www.coremedia.com/</url>
+  </organization>
+
+  <developers>
+    <developer>
+      <id>fwienber</id>
+      <name>Frank Wienberg</name>
+      <organization>CoreMedia AG</organization>
+      <organizationUrl>http://www.coremedia.com/</organizationUrl>
+      <email>frank@jangaroo.net</email>
+      <roles>
+        <role>architect</role>
+        <role>developer</role>
+      </roles>
+      <timezone>+1</timezone>
+    </developer>
+  </developers>
+
+  <contributors>
+
+  </contributors>
+
+  <pluginRepositories>
+
+  </pluginRepositories>
+
+  <repositories>
+    <repository>
+      <id>jangaroo</id>
+      <name>Jangaroo repository</name>
+      <url>http://repo.jangaroo.net/maven2</url>
+    </repository>
+    <repository>
+      <id>jangaroo-snapshots</id>
+      <name>Jangaroo snapshots repository</name>
+      <url>http://repo.jangaroo.net/maven2-snapshots</url>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
+
+  <scm>
+    <developerConnection>scm:perforce://coremedia/jangaroo/ext-xml</developerConnection>
+  </scm>
+
+  <distributionManagement>
+    <downloadUrl>http://repo.jangaroo.net/maven2</downloadUrl>
+    <repository>
+      <id>jangaroo</id>
+      <name>Jangaroo repository</name>
+      <url>scp://repo.jangaroo.net/home/jangaroo/maven2/repo</url>
+    </repository>
+    <snapshotRepository>
+      <id>jangaroo-snapshots</id>
+      <url>scp://repo.jangaroo.net/home/jangaroo/maven2/snapshots</url>
+    </snapshotRepository>
+  </distributionManagement>
+
+  <properties>
+    <project.build.sourceEncoding>ISO-8859-1</project.build.sourceEncoding>
+  </properties>
+
+  <dependencies>
+
+    <dependency>
+      <groupId>org.freemarker</groupId>
+      <artifactId>freemarker</artifactId>
+      <version>2.3.15</version>
+      <scope>compile</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>jtidy</groupId>
+      <artifactId>jtidy</artifactId>
+      <version>4aug2000r7-dev</version>
+    </dependency>
+
+  </dependencies>
+
+  <build>
+
+    <pluginManagement>
+      <plugins>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <configuration>
+            <source>1.5</source>
+            <target>1.5</target>
+          </configuration>
+        </plugin>
+
+      </plugins>
+
+    </pluginManagement>
+
+
+  </build>
+
+</project>
