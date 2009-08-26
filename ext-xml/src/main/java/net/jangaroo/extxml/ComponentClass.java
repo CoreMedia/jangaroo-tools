@@ -9,9 +9,17 @@ import java.io.File;
  */
 public class ComponentClass extends DescriptionHolder {
 
-  public ComponentClass(ComponentSuite suite, String relativeSrcFilePath) {
-    this.suite = suite;
+  public ComponentClass(String xtype, String className) {
+    this.xtype = xtype;
+    this.className = className;
+  }
+
+  public ComponentClass(String relativeSrcFilePath) {
     this.relativeSrcFilePath = relativeSrcFilePath;
+  }
+
+  public void setSuite(ComponentSuite suite) {
+    this.suite = suite;
   }
 
   public ComponentSuite getSuite() {
@@ -66,10 +74,14 @@ public class ComponentClass extends DescriptionHolder {
   @Override
   public String toString() {
     StringBuilder builder = new StringBuilder()
-      .append(  "file    ").append(relativeSrcFilePath)
       .append("\nclass   ").append(className)
-      .append("\nxtype   ").append(xtype)
-      .append("\nextends ").append(superClassName);
+      .append("\nxtype   ").append(xtype);
+   if (relativeSrcFilePath != null) {
+     builder.append(  "file    ").append(relativeSrcFilePath);
+   }
+    if (superClassName != null) {
+      builder.append("\nextends ").append(superClassName);
+    }
     for (ConfigAttribute cfg : cfgs) {
       builder.append("\n  ").append(cfg);
     }

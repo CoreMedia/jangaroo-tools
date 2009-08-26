@@ -104,7 +104,7 @@ public class SrcFileScanner {
               switch (pattern2lineTypeEntry.getValue()) {
                 case CLASS:
                   addIfHasXtype(cc);
-                  cc = new ComponentClass(componentSuite, relativeSrcFilePath);
+                  cc = new ComponentClass(relativeSrcFilePath);
                   cc.setClassName(jsType2asType(matcher.group(1)));
                   nextDescriptionHolder = cc;
                   descriptionLine = null;

@@ -11,10 +11,18 @@ import java.io.File;
  */
 public class ComponentSuite {
 
+  public ComponentSuite(File xsd) {
+    this(null, xsd, null);
+  }
+
   public ComponentSuite(String namespace, File xsd, File rootDir) {
     this.namespace = namespace;
     this.xsd = xsd;
     this.rootDir = rootDir;
+  }
+
+  public void setNamespace(String namespace) {
+    this.namespace = namespace;
   }
 
   public String getNamespace() {
@@ -30,6 +38,7 @@ public class ComponentSuite {
   }
 
   public void addComponentClass(ComponentClass cc) {
+    cc.setSuite(this);
     componentClassesByXtype.put(cc.getXtype(), cc);
     componentClassesByClassName.put(cc.getClassName(), cc);
   }
@@ -52,7 +61,7 @@ public class ComponentSuite {
     builder
       .append("namespace: ").append(namespace).append("\n")
       .append("xsd file:  ").append(xsd.getAbsolutePath()).append("\n")
-      .append("src root:  ").append(rootDir.getAbsolutePath()).append("\n\n");
+      .append("src root:  ").append(rootDir).append("\n\n");
     for (ComponentClass cc : getComponentClasses()) {
       builder.append(cc).append("\n\n");
       //builder.append(cc.getXtype()).append(": ").append(cc.getClassName()).append("\n");
