@@ -1,4 +1,4 @@
-<#-- @ftlvariable name="" type="com.coremedia.editor20xy.xslt.JooClass" -->
+<#-- @ftlvariable name="" type="net.jangaroo.extxml.JooClass" -->
 package ${packageName} {
 
 <#list imports as import>
