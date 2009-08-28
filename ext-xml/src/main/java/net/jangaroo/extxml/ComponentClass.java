@@ -1,8 +1,8 @@
 package net.jangaroo.extxml;
 
-import java.util.Set;
-import java.util.HashSet;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * The meta-model of an Ext JS component class.
@@ -14,8 +14,8 @@ public class ComponentClass extends DescriptionHolder {
     this.className = className;
   }
 
-  public ComponentClass(String relativeSrcFilePath) {
-    this.relativeSrcFilePath = relativeSrcFilePath;
+  public ComponentClass(File srcFile) {
+    this.srcFile = srcFile;
   }
 
   public void setSuite(ComponentSuite suite) {
@@ -27,27 +27,39 @@ public class ComponentClass extends DescriptionHolder {
   }
 
   public String getRelativeSrcFilePath() {
-    return relativeSrcFilePath;
+    if (srcFile != null) {
+      int rootDirPathLength = getSuite().getRootDir().getPath().length();
+      return srcFile.getPath().substring(rootDirPathLength);
+    }
+    return null;
   }
 
   public File getSrcFile() {
-    return new File(suite.getRootDir(), relativeSrcFilePath);
-  }
-
-  public String getXtype() {
-    return xtype;
+    return srcFile;
   }
 
   public void setXtype(String xtype) {
     this.xtype = xtype;
   }
 
-  public String getClassName() {
-    return className;
+  public String getXtype() {
+    return xtype;
+  }
+
+  public String getElementName() {
+    return suite.getPrefix() + xtype;
   }
 
   public void setClassName(String className) {
     this.className = className;
+  }
+
+  public String getClassName() {
+    return className;
+  }
+
+  public String getXsType() {
+    return suite.getPrefix() + className;
   }
 
   public String getSuperClassName() {
@@ -55,7 +67,6 @@ public class ComponentClass extends DescriptionHolder {
   }
 
   public ComponentClass getSuperClass() {
-    // TODO: search for super class in _all_ suites!
     return suite.getComponentClassByClassName(superClassName);
   }
 
@@ -63,7 +74,7 @@ public class ComponentClass extends DescriptionHolder {
     this.superClassName = superClassName;
   }
 
-  public Set<ConfigAttribute> getCfgs() {
+  public Collection<ConfigAttribute> getCfgs() {
     return cfgs;
   }
 
@@ -74,13 +85,13 @@ public class ComponentClass extends DescriptionHolder {
   @Override
   public String toString() {
     StringBuilder builder = new StringBuilder()
-      .append("\nclass   ").append(className)
+      .append("class   ").append(className)
       .append("\nxtype   ").append(xtype);
-   if (relativeSrcFilePath != null) {
-     builder.append(  "file    ").append(relativeSrcFilePath);
-   }
     if (superClassName != null) {
       builder.append("\nextends ").append(superClassName);
+    }
+    if (srcFile != null) {
+      builder.append("\nfile    ").append(getRelativeSrcFilePath());
     }
     for (ConfigAttribute cfg : cfgs) {
       builder.append("\n  ").append(cfg);
@@ -89,9 +100,9 @@ public class ComponentClass extends DescriptionHolder {
   }
 
   private ComponentSuite suite;
-  private String relativeSrcFilePath;
+  private File srcFile;
   private String xtype;
   private String className;
   private String superClassName;
-  private Set<ConfigAttribute> cfgs = new HashSet<ConfigAttribute>();
+  private Collection<ConfigAttribute> cfgs = new ArrayList<ConfigAttribute>();
 }

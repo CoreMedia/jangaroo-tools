@@ -28,8 +28,9 @@ public class XsdScanner {
       builderFactory.setNamespaceAware(true);
       DocumentBuilder builder = builderFactory.newDocumentBuilder();
       Document document = builder.parse(componentSuite.getXsd());
-      String targetNamespace = document.getDocumentElement().getAttribute("targetNamespace");
-      componentSuite.setNamespace(targetNamespace);
+      Element schemaElement = document.getDocumentElement();
+      componentSuite.setNamespace(schemaElement.getAttribute("targetNamespace"));
+      componentSuite.setNs(schemaElement.getAttribute("id"));
       NodeList components = document.getElementsByTagNameNS(XML_SCHEMA_URL, "element");
       for (int i=0; i<components.getLength(); ++i) {
         Element component = (Element)components.item(i);

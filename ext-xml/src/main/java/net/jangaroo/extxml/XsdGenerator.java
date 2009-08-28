@@ -8,6 +8,9 @@ import freemarker.template.TemplateException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.io.OutputStreamWriter;
+import java.io.BufferedWriter;
+import java.io.FileOutputStream;
 import java.text.MessageFormat;
 
 /**
@@ -22,7 +25,7 @@ public class XsdGenerator {
     cfg = new Configuration();
     cfg.setClassForTemplateLoading(XsdGenerator.class, "/net/jangaroo/extxml/templates");
     cfg.setObjectWrapper(new DefaultObjectWrapper());
-
+    cfg.setOutputEncoding("UTF-8");
     this.componentSuite = componentSuite;
   }
 
@@ -31,7 +34,7 @@ public class XsdGenerator {
     Template template = cfg.getTemplate("component-suite-xsd.ftl");
 
     /* Merge data-model with template */
-    Writer out = new FileWriter(componentSuite.getXsd());
+    Writer out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(componentSuite.getXsd()), "UTF-8"));
     System.out.println(MessageFormat.format("Writing XML Schema {0} to file {1}", componentSuite.getNamespace(), componentSuite.getXsd().getAbsolutePath()));
     template.process(componentSuite, out);
     out.close();

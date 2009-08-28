@@ -1,8 +1,11 @@
 package net.jangaroo.extxml;
 
 import java.util.Map;
-import java.util.HashMap;
 import java.util.Collection;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.io.File;
 
 /**
@@ -12,13 +15,35 @@ import java.io.File;
 public class ComponentSuite {
 
   public ComponentSuite(File xsd) {
-    this(null, xsd, null);
+    this(null, xsd, null, Collections.<File>emptyList());
   }
 
-  public ComponentSuite(String namespace, File xsd, File rootDir) {
+  public ComponentSuite(String namespace, File xsd, File rootDir, List<File> importedXsds) {
     this.namespace = namespace;
     this.xsd = xsd;
     this.rootDir = rootDir;
+    importedComponentSuites = new ArrayList<ComponentSuite>(importedXsds.size());
+    for (File importedXsd : importedXsds) {
+      importedComponentSuites.add(new XsdScanner(importedXsd).scan());
+    }
+    usedComponentSuites =  new LinkedHashMap<String,ComponentSuite>(importedComponentSuites.size());
+  }
+
+  public Map<String, ComponentSuite> getUsedComponentSuites() {
+    return usedComponentSuites;
+  }
+
+  public String getUsedComponentSuiteNamespaces() {
+    StringBuilder builder = new StringBuilder();
+    for (Map.Entry<String, ComponentSuite> usedComponentSuiteEntry : usedComponentSuites.entrySet()) {
+      builder
+        .append(" xmlns:")
+        .append(usedComponentSuiteEntry.getKey())
+        .append("='")
+        .append(usedComponentSuiteEntry.getValue().getNamespace())
+        .append("'");
+    }
+    return builder.toString();
   }
 
   public void setNamespace(String namespace) {
@@ -27,6 +52,18 @@ public class ComponentSuite {
 
   public String getNamespace() {
     return namespace;
+  }
+
+  public void setNs(String ns) {
+    this.ns = ns;
+  }
+
+  public String getNs() {
+    return ns;
+  }
+
+  public String getPrefix() {
+    return ns==null || ns.length()==0 ? "" : ns+":";
   }
 
   public File getXsd() {
@@ -48,11 +85,52 @@ public class ComponentSuite {
   }
 
   public ComponentClass getComponentClassByXtype(String xtype) {
-    return componentClassesByXtype.get(xtype);
+    ComponentClass componentClass = componentClassesByXtype.get(xtype);
+    if (componentClass==null) {
+      for (ComponentSuite importedComponentSuite : importedComponentSuites) {
+        componentClass = importedComponentSuite.getComponentClassByXtype(xtype);
+        if (componentClass!=null) {
+          updateUsedComponentSuites(importedComponentSuite);
+          break;
+        }
+      }
+    }
+    return componentClass;
   }
 
   public ComponentClass getComponentClassByClassName(String className) {
-    return componentClassesByClassName.get(className);
+    ComponentClass componentClass = componentClassesByClassName.get(className);
+    if (componentClass==null) {
+      for (ComponentSuite importedComponentSuite : importedComponentSuites) {
+        componentClass = importedComponentSuite.getComponentClassByClassName(className);
+        if (componentClass!=null) {
+          updateUsedComponentSuites(importedComponentSuite);
+          break;
+        }
+      }
+    }
+    return componentClass;
+  }
+
+  private void updateUsedComponentSuites(ComponentSuite importedComponentSuite) {
+    if (!usedComponentSuites.containsValue(importedComponentSuite)) {
+      String ns = importedComponentSuite.getNs();
+      if (ns==null || ns.length()==0 || usedComponentSuites.containsKey(ns)) {
+        // create a new unique prefix:
+        int index = 1;
+        while (usedComponentSuites.containsKey(ns = "cs"+index)) {
+          ++index;
+        }
+        importedComponentSuite.setNs(ns);
+      }
+      usedComponentSuites.put(ns, importedComponentSuite);
+    }
+  }
+
+  void resolveSuperClasses() {
+    for (ComponentClass cc : getComponentClasses()) {
+      cc.getSuperClass();
+    }
   }
 
   @Override
@@ -69,9 +147,13 @@ public class ComponentSuite {
     return builder.toString();
   }
 
+  private String ns;
   private String namespace;
   private File xsd;
   private File rootDir;
-  private Map<String,ComponentClass> componentClassesByXtype = new HashMap<String,ComponentClass>();
-  private Map<String,ComponentClass> componentClassesByClassName = new HashMap<String,ComponentClass>();
+  private Map<String,ComponentClass> componentClassesByXtype = new LinkedHashMap<String,ComponentClass>();
+  private Map<String,ComponentClass> componentClassesByClassName = new LinkedHashMap<String,ComponentClass>();
+  private List<ComponentSuite> importedComponentSuites;
+  private Map<String,ComponentSuite> usedComponentSuites;
+
 }
