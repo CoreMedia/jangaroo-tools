@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<joo:component xmlns="http://extjs.com/ext3" xmlns:joo="http://net.jangaroo.com/extxml" xmlns:cm="http://coremedia.com/editor/ext" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://coremedia.com/editor/ext http://localhost:8001/starterkit/resources/cap-ui-editor/coremedia-editor-ext.xsd">
+	<panel layout="border">
+		<defaults collapsible="true" split="true" animCollapse="false"/>
+		<items>
+			<layout region="north">
+				<panel>
+
+            </panel>
+			</layout>
+			<layout region="north">
+				<cm:header cls="cm-header" border="false" logoUrl="x.jpg" title="New Editor"/>
+			</layout>
+			<layout region="west">
+				<panel id="treeTabsPanel" title="Navigation" width="400" layout="fit" split="true">
+					<items>
+						<tabpanel id="treeTabs" activeTab="0" plain="true">
+							<defaults autoScroll="true"/>
+							<items>
+								<cm:editortreepanel id="repository-tree-panel" title="Repository" rootVisible="true" url="tree.jsp" selectionChangeListener="{currentContentController}"/>
+								<json><![CDATA[
+                {
+                  xtype: "editortreepanel",
+                  id: "navigation-tree-panel",
+                  title: "Navigation",
+                  rootVisible: false,
+                  url: "navtree.jsp",
+                  selectionChangeListener: currentContentController
+                }
+          ]]></json>
+							</items>
+						</tabpanel>
+					</items>
+				</panel>
+			</layout>
+			<layout region="center">
+				<panel id="contentPanel" title="Main Content" width="400" layout="fit" split="true" collapsible="true">
+					<items>
+						<tabpanel activeTab="0" plain="true">
+							<items>
+								<layout region="center">
+									<panel id="contenttestpanel" title="contentest" closable="true" layout="border">
+										<items>
+											<layout region="north">
+												<toolbar>
+													<items>
+														<cm:reloadbutton id="reloadbutton" text="reload" controller="{resourceController}"/>
+													</items>
+												</toolbar>
+											</layout>
+											<layout region="center">
+												<panel layout="fit">
+													<items>
+														<cm:contenttable title="Content Table" collapsible="false" width="auto"/>
+													</items>
+												</panel>
+											</layout>
+										</items>
+									</panel>
+								</layout>
+								<json><![CDATA[
+                {
+                  xtype: "grid",
+                  id: "mygrid",
+                  title: "MVC Testy",
+                  columns: [
+                    {
+                      header: "Id",
+                      sortable: false
+                    },
+                    {
+                      header: "Headline",
+                      sortable: false
+                    },
+                    {
+                      header: "State",
+                      sortable: false
+                    }
+                  ],
+                  store: contentStore
+                }
+                ]]></json>
+								<layout region="border">
+									<panel id="richtexttest" title="TinyMCE" closable="true" layout="border">
+										<items>
+											<layout region="north">
+												<panel id="toolbar" title="toolbar" closable="true">
+													<items>
+														<toolbar>
+															<items>
+																<cm:editorbutton text="Test Button" refid="richText" enableToggle="true"/>
+															</items>
+														</toolbar>
+													</items>
+												</panel>
+											</layout>
+											<layout region="center">
+												<cm:xtinymceeditor fieldLabel="Rich text" id="richText" name="richText" height="400" width="auto" value="Hallo" layout="fit">
+													<cm:tinymceSettings theme="advanced" plugins="safari,pagebreak,style,layer,table,advhr,advimage,advlink,emotions,iespell,insertdatetime,preview,media,searchreplace,print,contextmenu,paste,directionality,noneditable,visualchars,nonbreaking,xhtmlxtras,template,-example" theme_advanced_buttons1="mymenubutton,bold,italic,underline,strikethrough,|,justifyleft,justifycenter,justifyright,justifyfull,|,styleselect,formatselect,fontselect,fontsizeselect" theme_advanced_toolbar_location="top" theme_advanced_toolbar_align="left" theme_advanced_statusbar_location="bottom" theme_advanced_resizing="false"/>
+												</cm:xtinymceeditor>
+											</layout>
+										</items>
+									</panel>
+								</layout>
+							</items>
+						</tabpanel>
+					</items>
+				</panel>
+			</layout>
+			<layout region="east">
+				<cm:previewpanel id="previewpanel" url="../segment/english_tutorial/" beanModel="{currentContentModel}" closable="true" width="600px" layout="fit"/>
+			</layout>
+		</items>
+	</panel>
+</joo:component>

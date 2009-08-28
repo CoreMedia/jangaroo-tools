@@ -3,7 +3,6 @@ package net.jangaroo.extxml;
 import java.util.Map;
 import java.util.Collection;
 import java.util.List;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.io.File;
@@ -22,11 +21,8 @@ public class ComponentSuite {
     this.namespace = namespace;
     this.xsd = xsd;
     this.rootDir = rootDir;
-    importedComponentSuites = new ArrayList<ComponentSuite>(importedXsds.size());
-    for (File importedXsd : importedXsds) {
-      importedComponentSuites.add(new XsdScanner(importedXsd).scan());
-    }
-    usedComponentSuites =  new LinkedHashMap<String,ComponentSuite>(importedComponentSuites.size());
+    importedComponentSuites = new ComponentSuites(importedXsds);
+    usedComponentSuites = new LinkedHashMap<String, ComponentSuite>(importedXsds.size());
   }
 
   public Map<String, ComponentSuite> getUsedComponentSuites() {
@@ -63,7 +59,7 @@ public class ComponentSuite {
   }
 
   public String getPrefix() {
-    return ns==null || ns.length()==0 ? "" : ns+":";
+    return ns == null || ns.length() == 0 ? "" : ns + ":";
   }
 
   public File getXsd() {
@@ -87,11 +83,11 @@ public class ComponentSuite {
   public ComponentClass getComponentClassByXtype(String xtype) {
     ComponentClass componentClass = componentClassesByXtype.get(xtype);
     if (componentClass==null) {
-      for (ComponentSuite importedComponentSuite : importedComponentSuites) {
+      ComponentSuite importedComponentSuite = importedComponentSuites.getComponentSuiteDefiningXtype(xtype);
+      if (importedComponentSuite != null) {
         componentClass = importedComponentSuite.getComponentClassByXtype(xtype);
-        if (componentClass!=null) {
+        if (componentClass != null) {
           updateUsedComponentSuites(importedComponentSuite);
-          break;
         }
       }
     }
@@ -101,11 +97,11 @@ public class ComponentSuite {
   public ComponentClass getComponentClassByClassName(String className) {
     ComponentClass componentClass = componentClassesByClassName.get(className);
     if (componentClass==null) {
-      for (ComponentSuite importedComponentSuite : importedComponentSuites) {
+      ComponentSuite importedComponentSuite = importedComponentSuites.getComponentSuiteDefiningClassName(className);
+      if (importedComponentSuite != null) {
         componentClass = importedComponentSuite.getComponentClassByClassName(className);
-        if (componentClass!=null) {
+        if (componentClass != null) {
           updateUsedComponentSuites(importedComponentSuite);
-          break;
         }
       }
     }
@@ -115,10 +111,10 @@ public class ComponentSuite {
   private void updateUsedComponentSuites(ComponentSuite importedComponentSuite) {
     if (!usedComponentSuites.containsValue(importedComponentSuite)) {
       String ns = importedComponentSuite.getNs();
-      if (ns==null || ns.length()==0 || usedComponentSuites.containsKey(ns)) {
+      if (ns == null || ns.length() == 0 || usedComponentSuites.containsKey(ns)) {
         // create a new unique prefix:
         int index = 1;
-        while (usedComponentSuites.containsKey(ns = "cs"+index)) {
+        while (usedComponentSuites.containsKey(ns = "cs" + index)) {
           ++index;
         }
         importedComponentSuite.setNs(ns);
@@ -151,9 +147,9 @@ public class ComponentSuite {
   private String namespace;
   private File xsd;
   private File rootDir;
-  private Map<String,ComponentClass> componentClassesByXtype = new LinkedHashMap<String,ComponentClass>();
-  private Map<String,ComponentClass> componentClassesByClassName = new LinkedHashMap<String,ComponentClass>();
-  private List<ComponentSuite> importedComponentSuites;
-  private Map<String,ComponentSuite> usedComponentSuites;
+  private Map<String, ComponentClass> componentClassesByXtype = new LinkedHashMap<String, ComponentClass>();
+  private Map<String, ComponentClass> componentClassesByClassName = new LinkedHashMap<String, ComponentClass>();
+  private ComponentSuites importedComponentSuites;
+  private Map<String, ComponentSuite> usedComponentSuites;
 
 }

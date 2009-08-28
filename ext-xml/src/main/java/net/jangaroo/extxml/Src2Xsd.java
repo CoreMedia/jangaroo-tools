@@ -9,7 +9,7 @@ import java.util.ArrayList;
 
 /**
  * Ext JS Component JavaScript to XML Schema (xsd) transformer.
- * <p>Usage: src2xsd <i>targetNamespace</i> <i>xsd-file-name</i> <i>js-src-directory</i>
+ * <p>Usage: src2xsd <i>targetNamespace</i> <i>xsd-file-name</i> <i>js-src-directory</i> <i>imported-xsd-file-name*</i>
  */
 public class Src2Xsd {
   public static void main(String[] args) throws IOException, TemplateException {
