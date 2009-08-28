@@ -31,7 +31,6 @@ public class JooClassGenerator {
 
 
   private static final FileFilter XML_FILE_FILTER = new FileFilter() {
-    @Override
     public boolean accept(File file) {
       return file.getName().endsWith(".xml");
     }
