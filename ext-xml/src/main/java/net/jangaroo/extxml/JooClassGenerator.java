@@ -11,16 +11,13 @@ import net.sf.saxon.s9api.XdmNode;
 import net.sf.saxon.s9api.XsltCompiler;
 import net.sf.saxon.s9api.XsltExecutable;
 import net.sf.saxon.s9api.XsltTransformer;
-import org.apache.commons.lang.StringUtils;
 import org.apache.maven.shared.model.fileset.FileSet;
-import org.apache.maven.shared.model.fileset.mappers.MapperException;
 import org.apache.maven.shared.model.fileset.mappers.FileNameMapper;
 import org.apache.maven.shared.model.fileset.mappers.GlobPatternMapper;
+import org.apache.maven.shared.model.fileset.mappers.MapperException;
 import org.apache.maven.shared.model.fileset.util.FileSetManager;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.xml.sax.SAXException;
+import org.codehaus.plexus.util.FileUtils;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.stream.StreamSource;
@@ -31,11 +28,13 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
-import java.text.MessageFormat;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 public class JooClassGenerator {
@@ -48,14 +47,14 @@ public class JooClassGenerator {
 
   Processor processor;
   XsltCompiler compiler;
-  XsltExecutable excutable;
+  XsltExecutable executable;
   ComponentSuites componentSuites;
 
   public JooClassGenerator(ComponentSuites componentSuites) throws SaxonApiException {
     InputStream inputStream = getClass().getResourceAsStream("/net/jangaroo/extxml/templates/ExtXML2JSON.xsl");
     processor = new Processor(false);
     compiler = processor.newXsltCompiler();
-    excutable = compiler.compile(new StreamSource(inputStream));
+    executable = compiler.compile(new StreamSource(inputStream));
 
     this.componentSuites = componentSuites;
   }
@@ -70,7 +69,7 @@ public class JooClassGenerator {
     out.setOutputProperty(Serializer.Property.INDENT, "yes");
     out.setOutputWriter(stringWriter);
 
-    XsltTransformer trans = excutable.load();
+    XsltTransformer trans = executable.load();
     trans.setInitialContextNode(source);
     trans.setDestination(out);
     trans.transform();
@@ -79,7 +78,7 @@ public class JooClassGenerator {
   }
 
 
-  protected List<String> getImports(String json) throws JSONException, IOException, ParserConfigurationException, XPathExpressionException, SAXException {
+  protected List<String> getImports(String json) throws IOException, ParserConfigurationException, XPathExpressionException, SAXException {
     Set<String> xtypes = collectXTypesFromJSON(json);
     List<String> imports = new ArrayList<String>(xtypes.size());
     for (String xtype : xtypes) {
@@ -94,40 +93,32 @@ public class JooClassGenerator {
   }
 
 
-  protected Set<String> collectXTypesFromJSON(String json) throws JSONException {
-    JSONObject jsonObject = new JSONObject(json);
+  private static Pattern XTYPE_PATTERN = Pattern.compile("\\bxtype\\s*:\\s*['\"]([^'\"]+)['\"]");
+
+  private String nextXtype(Matcher xtypeMatcher) {
+    return xtypeMatcher.find() ? xtypeMatcher.group(1) : null;
+  }
+
+  Set<String> collectXTypesFromJSON(String json) {
     Set<String> set = new TreeSet<String>();
-    parseJSON(jsonObject, set);
-    return set;
-  }
-
-
-  private Set<String> parseJSON(JSONObject jsonObject, Set<String> set) throws JSONException {
-    if (jsonObject.has("xtype")) {
-      set.add(jsonObject.getString("xtype"));
-    }
-    if (jsonObject.has("items")) {
-      JSONArray jsonArray = jsonObject.getJSONArray("items");
-      for (int i = 0; i < jsonArray.length(); i++) {
-        parseJSON((JSONObject)jsonArray.get(i), set);
-      }
+    Matcher matcher = XTYPE_PATTERN.matcher(json);
+    String xtype;
+    while ((xtype = nextXtype(matcher)) != null) {
+      set.add(xtype);
     }
     return set;
   }
 
 
-  public void transformFile(File inputDir, String inputFileRelativePath,  File outputDir, String outputFileRelativePath) throws IOException, TemplateException, JSONException, ParserConfigurationException, XPathExpressionException, SAXException, SaxonApiException {
+  public void transformFile(File inputDir, String inputFileRelativePath,  File outputDir, String outputFileRelativePath) throws IOException, TemplateException, ParserConfigurationException, XPathExpressionException, SAXException, SaxonApiException {
     File outputFile = new File(outputDir, outputFileRelativePath);
     FileInputStream inputStream = new FileInputStream(new File(inputDir, inputFileRelativePath));
     String json = transform(inputStream);
-    String[] tokens = inputFileRelativePath.split("[\\\\/]");
+    String className = FileUtils.basename(inputFileRelativePath,".xml");
+    String packageName = FileUtils.dirname(inputFileRelativePath).replaceAll("[\\\\/]", ".");
 
-    String packageName = StringUtils.join(tokens, ".", 0, tokens.length - 1);
-    String className = tokens[tokens.length - 1];
-    className = className.substring(0, className.lastIndexOf("."));
-
-    JSONObject jsonObject = new JSONObject(json);
-    String extendsClass = componentSuites.getComponentClassByXtype(jsonObject.getString("xtype")).getClassName();
+    String xtype = nextXtype(XTYPE_PATTERN.matcher(json));
+    String extendsClass = componentSuites.getComponentClassByXtype(xtype).getClassName();
 
     generateJangarooClass(
       new JooClass(packageName, getImports(json), className, extendsClass, json), outputFile
@@ -150,7 +141,7 @@ public class JooClassGenerator {
   }
 
 
-  public void transformFiles(File inputDir, File outputDir) throws IOException, MapperException, SaxonApiException, SAXException, XPathExpressionException, TemplateException, JSONException, ParserConfigurationException {
+  public void transformFiles(File inputDir, File outputDir) throws IOException, MapperException, SaxonApiException, SAXException, XPathExpressionException, TemplateException, ParserConfigurationException {
     FileSet fileSet = new FileSet();
     fileSet.setDirectory(inputDir.getAbsolutePath());
     fileSet.setOutputDirectory(outputDir.getAbsolutePath());

@@ -49,6 +49,10 @@ public class JooClass {
     this.extendsClass = extendsClass;
   }
 
+  public String getXtype() {
+    return packageName.length()==0 ? className : packageName+"."+className;
+  }
+
   public String getJson() {
     return json;
   }
