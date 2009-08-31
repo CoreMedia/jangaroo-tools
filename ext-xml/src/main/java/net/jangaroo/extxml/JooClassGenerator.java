@@ -22,12 +22,7 @@ import org.codehaus.plexus.util.FileUtils;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.xpath.XPathExpressionException;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringWriter;
+import java.io.*;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -120,24 +115,22 @@ public class JooClassGenerator {
     String xtype = nextXtype(XTYPE_PATTERN.matcher(json));
     String extendsClass = componentSuites.getComponentClassByXtype(xtype).getClassName();
 
+    //noinspection ResultOfMethodCallIgnored
+    outputFile.getParentFile().mkdirs();
+    FileWriter writer = new FileWriter(outputFile);
     generateJangarooClass(
-      new JooClass(packageName, getImports(json), className, extendsClass, json), outputFile
-    );
+      new JooClass(packageName, getImports(json), className, extendsClass, json), writer);
   }
 
-
-  public void generateJangarooClass(JooClass jooClass, File outputFile) throws IOException, TemplateException {
+  public void generateJangarooClass(JooClass jooClass, Writer output) throws IOException, TemplateException {
     Configuration cfg = new Configuration();
     cfg.setClassForTemplateLoading(JooClass.class, "/");
     cfg.setObjectWrapper(new DefaultObjectWrapper());
 
     Template template = cfg.getTemplate("/net/jangaroo/extxml/templates/jangaroo_class.ftl");
 
-    //noinspection ResultOfMethodCallIgnored
-    outputFile.getParentFile().mkdirs();
-    FileWriter fileWriter = new FileWriter(outputFile);
-    template.process(jooClass, fileWriter);
-    fileWriter.close();
+    template.process(jooClass, output);
+    output.close();
   }
 
 
