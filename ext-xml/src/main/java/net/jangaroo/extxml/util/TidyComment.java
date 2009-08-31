@@ -43,7 +43,7 @@ public class TidyComment {
       Document document = tidy.parseDOM(new ByteArrayInputStream(dirtyHtml.getBytes("ISO-8859-1")), null);
       DOMSource domSource = new DOMSource(document.getDocumentElement());
       Transformer serializer = TransformerFactory.newInstance().newTransformer();
-      serializer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "true");
+      serializer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
       serializer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
       serializer.setOutputProperty(OutputKeys.DOCTYPE_PUBLIC, "-//W3C//DTD XHTML 1.0 Transitional//EN");
       serializer.setOutputProperty(OutputKeys.DOCTYPE_SYSTEM, "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd");
@@ -58,12 +58,12 @@ public class TidyComment {
     if (xml.indexOf("<body/>")!=-1) {
       return "";
     }
-    int bodyStart = xml.indexOf("<body>");
+    int bodyStart = xml.indexOf("<body");
     int bodyEnd = xml.indexOf("</body>");
     if (bodyStart==-1 || bodyEnd==-1) {
       // should not happen:
       throw new RuntimeException("No body element found in "+xml);
     }
-    return xml.substring(bodyStart+"<body>".length(),bodyEnd);
+    return xml.substring(xml.indexOf('>',bodyStart)+1,bodyEnd);
   }
 }
