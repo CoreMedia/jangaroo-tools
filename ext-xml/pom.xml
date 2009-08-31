@@ -39,6 +39,18 @@
       </roles>
       <timezone>+1</timezone>
     </developer>
+
+    <developer>
+      <id>fwienber</id>
+      <name>Michael Brügmann</name>
+      <organization>CoreMedia AG</organization>
+      <organizationUrl>http://www.coremedia.com/</organizationUrl>
+      <email>michael.bruegmann@coremedia.com</email>
+      <roles>
+        <role>developer</role>
+      </roles>
+      <timezone>+1</timezone>
+    </developer>
   </developers>
 
   <contributors>
@@ -108,9 +120,9 @@
     </dependency>
 
     <dependency>
-      <groupId>commons-io</groupId>
-      <artifactId>commons-io</artifactId>
-      <version>1.4</version>
+      <groupId>org.apache.maven.shared</groupId>
+      <artifactId>file-management</artifactId>
+      <version>1.2.1</version>
     </dependency>
 
     <dependency>
