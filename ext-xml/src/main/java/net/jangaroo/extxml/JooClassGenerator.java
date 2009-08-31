@@ -120,7 +120,7 @@ public class JooClassGenerator {
     File outputFile = new File(outputDir, outputFileRelativePath);
     FileInputStream inputStream = new FileInputStream(new File(inputDir, inputFileRelativePath));
     String json = transform(inputStream);
-    String[] tokens = inputFileRelativePath.split("/");
+    String[] tokens = inputFileRelativePath.split("[\\\\/]");
 
     String packageName = StringUtils.join(tokens, ".", 0, tokens.length - 1);
     String className = tokens[tokens.length - 1];
@@ -142,6 +142,8 @@ public class JooClassGenerator {
 
     Template template = cfg.getTemplate("/net/jangaroo/extxml/templates/jangaroo_class.ftl");
 
+    //noinspection ResultOfMethodCallIgnored
+    outputFile.getParentFile().mkdirs();
     FileWriter fileWriter = new FileWriter(outputFile);
     template.process(jooClass, fileWriter);
     fileWriter.close();
