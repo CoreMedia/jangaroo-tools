@@ -20,10 +20,12 @@ public class ComponentClass extends DescriptionHolder {
   public ComponentClass(String xtype, String fullClassName) {
     this.xtype = xtype;
     this.fullClassName = fullClassName;
+    this.imports = new ArrayList<String>();
   }
 
   public ComponentClass(File srcFile) {
     this.srcFile = srcFile;
+    this.imports = new ArrayList<String>();
   }
 
   public void setSuite(ComponentSuite suite) {
@@ -60,6 +62,10 @@ public class ComponentClass extends DescriptionHolder {
 
   public List<String> getImports() {
     return imports;
+  }
+
+  public void addImport(String className) {
+    imports.add(className);
   }
 
   public void setFullClassName(String fullClassName) {

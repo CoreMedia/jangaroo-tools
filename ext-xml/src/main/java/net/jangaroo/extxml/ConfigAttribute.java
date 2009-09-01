@@ -32,6 +32,28 @@ public class ConfigAttribute extends DescriptionHolder {
     return name + " : " + jsType;
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof ConfigAttribute)) return false;
+
+    ConfigAttribute that = (ConfigAttribute) o;
+
+    if (jsType != null ? !jsType.equals(that.jsType) : that.jsType != null) return false;
+    if (name != null ? !name.equals(that.name) : that.name != null) return false;
+    if (xsType != null ? !xsType.equals(that.xsType) : that.xsType != null) return false;
+
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = name != null ? name.hashCode() : 0;
+    result = 31 * result + (jsType != null ? jsType.hashCode() : 0);
+    result = 31 * result + (xsType != null ? xsType.hashCode() : 0);
+    return result;
+  }
+
   private String name;
   private String jsType;
   private String xsType;

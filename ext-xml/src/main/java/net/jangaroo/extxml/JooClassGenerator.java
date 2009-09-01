@@ -110,7 +110,7 @@ public class JooClassGenerator {
     FileInputStream inputStream = new FileInputStream(new File(inputDir, inputFileRelativePath));
     String json = transform(inputStream);
     String className = FileUtils.basename(inputFileRelativePath,".xml");
-    String packageName = FileUtils.dirname(inputFileRelativePath).replaceAll("[\\\\/]", ".");
+    String packageName = FileUtils.normalize(FileUtils.dirname(inputFileRelativePath)).replaceAll("[\\\\/]", ".");
 
     String xtype = nextXtype(XTYPE_PATTERN.matcher(json));
     String extendsClass = componentSuites.getComponentClassByXtype(xtype).getFullClassName();

@@ -1,10 +1,11 @@
 package testpackage{
 import ext.Panel;
+import my.other.Class;
 
 /**
- * @class testpackage.SimpleComponent
  * @xtype simplecomponent
- * @extends ext.Panel
+ * @cfg {Boolean/String} propertyOne
+ * @cfg {Number} propertyTwo
  */
 public class SimpleComponent extends Panel{
   public function SimpleComponent(config:* = undefined) {
