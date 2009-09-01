@@ -4,15 +4,25 @@ package net.jangaroo.extxml;
  * A meta model of an Ext JS component configuration attribute.
  */
 public class ConfigAttribute extends DescriptionHolder {
-  public ConfigAttribute(String name, String jsType) {
+
+  private String name;
+  private String jsType;
+  private String xsType;
+
+  public ConfigAttribute(String name, String jsType, String description) {
+    super(description);
     this.name = name;
     this.jsType = jsType;
     xsType =
-          jsType.equals("Boolean") ? "boolean"
-        : jsType.equals("Number")  ? "int"
-        : jsType.equals("Float")   ? "float"
-        : jsType.equals("Date")    ? "date"
-        :                            "string";
+        jsType.equals("Boolean") ? "boolean"
+            : jsType.equals("Number") ? "int"
+            : jsType.equals("Float") ? "float"
+            : jsType.equals("Date") ? "date"
+            : "string";
+  }
+  
+  public ConfigAttribute(String name, String jsType) {
+    this(name, jsType, null);
   }
 
   public String getName() {
@@ -53,8 +63,4 @@ public class ConfigAttribute extends DescriptionHolder {
     result = 31 * result + (xsType != null ? xsType.hashCode() : 0);
     return result;
   }
-
-  private String name;
-  private String jsType;
-  private String xsType;
 }
