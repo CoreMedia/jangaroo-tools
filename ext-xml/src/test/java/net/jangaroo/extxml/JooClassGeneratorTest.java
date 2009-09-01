@@ -7,12 +7,11 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import java.io.InputStream;
-import java.io.File;
 import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.ArrayList;
+import java.util.Collections;
 
 
 public class JooClassGeneratorTest extends TestCase {
@@ -114,7 +113,7 @@ public class JooClassGeneratorTest extends TestCase {
 
 
   public void testGenerateJangarooClass() throws Exception {
-    JooClass jooClazz = new JooClass("com.coremedia.test", new ArrayList(),"TestClass","SuperClass","json");
+    JooClass jooClazz = new JooClass("com.coremedia.test", Collections.<String>emptyList(), "TestClass","SuperClass","json");
     StringWriter writer = new StringWriter();
 
     jooClassGenerator.generateJangarooClass(jooClazz, writer);
