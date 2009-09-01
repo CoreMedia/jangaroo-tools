@@ -7,6 +7,12 @@ import java.io.File;
 import java.util.List;
 import java.util.ArrayList;
 
+import net.sf.saxon.s9api.SaxonApiException;
+import org.xml.sax.SAXException;
+
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.parsers.ParserConfigurationException;
+
 /**
  * A tool to define Ext JS Component suites in JavaScript, ActionScript, or XML.
  * <p>Usage: extxml <i>target-namespace xsd-output-file src-dir output-dir imported-xsd-file*</i>
@@ -37,14 +43,17 @@ import java.util.ArrayList;
  * </ul>
  */
 public class ExtXml {
-  public static void main(String[] args) throws IOException, TemplateException {
+  public static void main(String[] args) throws IOException, TemplateException, SaxonApiException, SAXException, XPathExpressionException, ParserConfigurationException {
     List<File> importedXsds = new ArrayList<File>(args.length - 3);
     for (int i = 3; i < args.length; i++) {
       importedXsds.add(new File(args[i]));
     }
-    SrcFileScanner fileScanner = new SrcFileScanner(new ComponentSuite(args[0], new File(args[1]), new File(args[2]), importedXsds));
+    ComponentSuite suite = new ComponentSuite(args[0], new File(args[1]), new File(args[2]), importedXsds, new File(args[4]));
+    SrcFileScanner fileScanner = new SrcFileScanner(suite);
     fileScanner.scan();
-    System.out.println(fileScanner.getComponentSuite());
-    new XsdGenerator(fileScanner.getComponentSuite()).generateXsd();
+    JooClassGenerator generator = new JooClassGenerator(suite);
+    generator.generateClasses();
+    System.out.println(suite);
+    new XsdGenerator(suite).generateXsd();
   }
 }

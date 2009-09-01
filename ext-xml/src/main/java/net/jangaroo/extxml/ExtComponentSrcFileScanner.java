@@ -7,23 +7,39 @@ import org.codehaus.plexus.util.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A FileScanner to read Ext JS component classes (JavaScript or ActionScript) into a {@link ComponentSuite}.
+ * A FileScanner to read Ext JS component classes (JavaScript or ActionScript or XML) into a {@link ComponentSuite}.
  */
 public class ExtComponentSrcFileScanner {
 
+  enum ComponentType {
+    JS("js"), AS("as"), XML("xml");
+
+    ComponentType(String extension) {
+      this.extension = extension;
+    }
+    public String extension;
+  }
+
   public static void scan(ComponentSuite componentSuite, File srcFile) {
     State state = new State(componentSuite, srcFile);
+    String ext = FileUtils.extension(srcFile.getName());
     try {
-      if (srcFile.getName().lastIndexOf(".as") != -1) {
+      if (ComponentType.AS.extension.equals(ext)) {
         String className = FileUtils.removeExtension(srcFile.getName());
         state.addClass(className);
         EXT_COMPONENT_AS_FILE_SCANNER.scan(srcFile, state);
-      } else {
+      } else if (ComponentType.JS.extension.equals(ext)) {
         EXT_COMPONENT_SRC_FILE_SCANNER.scan(srcFile, state);
+      } else if (ComponentType.XML.extension.equals(ext)) {
+        String className = FileUtils.removeExtension(srcFile.getName());
+        state.addClass(className);
+        componentSuite.addComponentClass(state.cc);
+        String packageName = FileUtils.dirname(state.cc.getRelativeSrcFilePath().substring(1)).replaceAll("[\\\\/]", ".");
+        state.cc.setFullClassName(packageName+"."+className);
+        state.cc.setXtype(packageName+"."+className);
       }
       state.end();
     } catch (IOException e) {
@@ -34,7 +50,7 @@ public class ExtComponentSrcFileScanner {
   private static FileScanner<State> EXT_COMPONENT_AS_FILE_SCANNER = new FileScanner<State>()
       .add(new Rule<State>("package\\s+([a-zA-Z0-9$_.]+)") {
         public void matched(State state, List<String> groups) {
-          state.cc.setFullClassName(groups.get(0)+"."+state.cc.getClassName());
+          state.cc.setFullClassName(groups.get(0) + "." + state.cc.getClassName());
         }
       })
       .add(new Rule<State>("import\\s+([a-zA-Z0-9$_.]+);") {
@@ -100,6 +116,13 @@ public class ExtComponentSrcFileScanner {
       });
 
   private static class State {
+
+    private ComponentSuite componentSuite;
+    private File srcFile;
+    private ComponentClass cc;
+    private StringBuilder description = new StringBuilder();
+    private DescriptionHolder descriptionHolder;
+
     State(ComponentSuite componentSuite, File srcFile) {
       this.componentSuite = componentSuite;
       this.srcFile = srcFile;
@@ -184,11 +207,5 @@ public class ExtComponentSrcFileScanner {
     private boolean isActionScript() {
       return srcFile.getName().lastIndexOf(".as") != -1;
     }
-
-    private ComponentSuite componentSuite;
-    private File srcFile;
-    private ComponentClass cc;
-    private StringBuilder description = new StringBuilder();
-    private DescriptionHolder descriptionHolder;
   }
 }

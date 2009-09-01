@@ -13,14 +13,25 @@ import java.io.File;
  */
 public class ComponentSuite {
 
+  private String ns;
+  private String namespace;
+  private File xsd;
+  private File rootDir;
+  private File outputDir;
+  private Map<String, ComponentClass> componentClassesByXtype = new LinkedHashMap<String, ComponentClass>();
+  private Map<String, ComponentClass> componentClassesByFullClassName = new LinkedHashMap<String, ComponentClass>();
+  private ComponentSuites importedComponentSuites;
+  private Map<String, ComponentSuite> usedComponentSuites;
+
   public ComponentSuite(File xsd) {
-    this(null, xsd, null, Collections.<File>emptyList());
+    this(null, xsd, null, Collections.<File>emptyList(), null);
   }
 
-  public ComponentSuite(String namespace, File xsd, File rootDir, List<File> importedXsds) {
+  public ComponentSuite(String namespace, File xsd, File rootDir, List<File> importedXsds, File outputDir) {
     this.namespace = namespace;
     this.xsd = xsd;
     this.rootDir = rootDir;
+    this.outputDir = outputDir;
     importedComponentSuites = new ComponentSuites(importedXsds);
     usedComponentSuites = new LinkedHashMap<String, ComponentSuite>(importedXsds.size());
   }
@@ -68,6 +79,10 @@ public class ComponentSuite {
 
   public File getRootDir() {
     return rootDir;
+  }
+
+  public File getOutputDir() {
+    return outputDir;
   }
 
   public void addComponentClass(ComponentClass cc) {
@@ -142,14 +157,5 @@ public class ComponentSuite {
     }
     return builder.toString();
   }
-
-  private String ns;
-  private String namespace;
-  private File xsd;
-  private File rootDir;
-  private Map<String, ComponentClass> componentClassesByXtype = new LinkedHashMap<String, ComponentClass>();
-  private Map<String, ComponentClass> componentClassesByFullClassName = new LinkedHashMap<String, ComponentClass>();
-  private ComponentSuites importedComponentSuites;
-  private Map<String, ComponentSuite> usedComponentSuites;
 
 }

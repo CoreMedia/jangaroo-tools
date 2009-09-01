@@ -7,6 +7,7 @@ import junit.framework.TestCase;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
 
 /**
  *
@@ -36,6 +37,7 @@ public class ExtComponentSrcFileScannerTest extends TestCase {
     assertNotNull(cc);
     assertEquals("panel", cc.getXtype());
     assertEquals("ext.Container", cc.getSuperClassName());
+    assertNotNull(cc.getDescription());
     for (ConfigAttribute attr : cc.getCfgs()) {
       assertNotNull(attr.getName());
       assertNotNull(attr.getJsType());
@@ -48,5 +50,14 @@ public class ExtComponentSrcFileScannerTest extends TestCase {
     }
     cc = suite.getComponentClassByXtype("container");
     assertNotNull(cc);
+  }
+
+  public void testXMLComponent() throws Exception {
+    ComponentSuite suite = new ComponentSuite("local",new File(""), new File(getClass().getResource("/").toURI()), Collections.<File>emptyList(), null);
+
+    ExtComponentSrcFileScanner.scan(suite, new File(getClass().getResource("/testpackage/testPackage.xml").toURI()));
+    ComponentClass cc = suite.getComponentClassByFullClassName("testpackage.testPackage");
+    assertNotNull(cc);
+    assertEquals("testpackage.testPackage", cc.getXtype());
   }
 }

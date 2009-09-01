@@ -5,7 +5,9 @@ import ext.ComponentMgr;
 <#list imports as import>
 import ${import};
 </#list>
-
+/**
+ * @xtype ${xtype}
+ */
 public class ${className} extends ${superClassName} {
 
   public const xtype:String = "${xtype}";

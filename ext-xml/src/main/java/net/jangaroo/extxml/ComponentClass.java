@@ -68,6 +68,10 @@ public class ComponentClass extends DescriptionHolder {
     imports.add(className);
   }
 
+  public void setImports(List<String> imports) {
+    this.imports = imports;
+  }
+
   public void setFullClassName(String fullClassName) {
     this.fullClassName = fullClassName;
   }
@@ -111,6 +115,10 @@ public class ComponentClass extends DescriptionHolder {
 
   public String getJson() {
     return json;
+  }
+
+  public void setJson(String json) {
+    this.json = json; 
   }
 
   @Override
