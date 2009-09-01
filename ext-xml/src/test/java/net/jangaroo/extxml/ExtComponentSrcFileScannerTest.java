@@ -15,7 +15,7 @@ public class ExtComponentSrcFileScannerTest extends TestCase {
   public void testActionScriptComponent() throws Exception {
     ComponentSuite suite = new ComponentSuite(new File(""));
 
-    ExtComponentSrcFileScanner.scan(suite,new File(getClass().getResource("/testpackage/SimpleComponent.as").toURI()));
+    ExtComponentSrcFileScanner.scan(suite, new File(getClass().getResource("/testpackage/SimpleComponent.as").toURI()));
     ComponentClass cc = suite.getComponentClassByClassName("testpackage.SimpleComponent");
     assertNotNull(cc);
     assertEquals("simplecomponent", cc.getXtype());
