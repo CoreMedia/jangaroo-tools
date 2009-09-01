@@ -25,7 +25,7 @@ public class JooClassGeneratorTest extends TestCase {
 
   private String toJSON(String fileName) throws ScriptException, SaxonApiException {
     InputStream inputStream = getClass().getResourceAsStream(fileName);
-    return reformatJSON(jooClassGenerator.transform(inputStream));
+    return reformatJSON(jooClassGenerator.transformToJSON(inputStream));
   }
 
   private String reformatJSON(String json) throws ScriptException {

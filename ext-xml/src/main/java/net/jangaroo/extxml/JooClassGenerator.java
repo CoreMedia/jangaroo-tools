@@ -5,10 +5,8 @@ import freemarker.template.DefaultObjectWrapper;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import net.sf.saxon.s9api.*;
-import org.apache.maven.shared.model.fileset.FileSet;
 import org.apache.maven.shared.model.fileset.mappers.FileNameMapper;
 import org.apache.maven.shared.model.fileset.mappers.GlobPatternMapper;
-import org.apache.maven.shared.model.fileset.util.FileSetManager;
 import org.codehaus.plexus.util.FileUtils;
 import org.xml.sax.SAXException;
 
@@ -48,7 +46,7 @@ public class JooClassGenerator {
   }
 
 
-  public String transform(InputStream inputStream) throws SaxonApiException {
+  public String transformToJSON(InputStream inputStream) throws SaxonApiException {
     StringWriter stringWriter = new StringWriter();
 
     XdmNode source = processor.newDocumentBuilder().build(new StreamSource(inputStream));
@@ -97,28 +95,6 @@ public class JooClassGenerator {
     return set;
   }
 
-
-  public void transformFile(File inputDir, String inputFileRelativePath, File outputDir, String outputFileRelativePath) throws IOException, TemplateException, ParserConfigurationException, XPathExpressionException, SAXException, SaxonApiException {
-    File outputFile = new File(outputDir, outputFileRelativePath);
-    FileInputStream inputStream = new FileInputStream(new File(inputDir, inputFileRelativePath));
-    String json = transform(inputStream);
-    String className = FileUtils.basename(inputFileRelativePath, ".xml");
-    String packageName = FileUtils.dirname(inputFileRelativePath).replaceAll("[\\\\/]", ".");
-
-    String xtype = nextXtype(XTYPE_PATTERN.matcher(json));
-    String extendsClass = componentSuite.getComponentClassByXtype(xtype).getFullClassName();
-
-    ComponentClass cc = componentSuite.getComponentClassByFullClassName(packageName + "." + className);
-    cc.setSuperClassName(extendsClass);
-    cc.setImports(getImports(json));
-    cc.setJson(json);
-
-    //noinspection ResultOfMethodCallIgnored
-    outputFile.getParentFile().mkdirs();
-    FileWriter writer = new FileWriter(outputFile);
-    generateJangarooClass(cc, writer);
-  }
-
   public void generateJangarooClass(ComponentClass jooClass, Writer output) throws IOException, TemplateException {
     Configuration cfg = new Configuration();
     cfg.setClassForTemplateLoading(ComponentClass.class, "/");
@@ -131,14 +107,21 @@ public class JooClassGenerator {
   }
 
   public void generateClasses() throws SaxonApiException, IOException, SAXException, XPathExpressionException, TemplateException, ParserConfigurationException {
-    FileSet fileSet = new FileSet();
-    fileSet.setDirectory(componentSuite.getRootDir().getAbsolutePath());
-    fileSet.setOutputDirectory(componentSuite.getOutputDir().getAbsolutePath());
-    fileSet.addInclude("**/*.xml");
-    for (String inputFile : new FileSetManager().getIncludedFiles(fileSet)) {
-      transformFile(
-          componentSuite.getRootDir(), inputFile,
-          componentSuite.getOutputDir(), XML_TO_JS_MAPPER.mapFileName(inputFile));
+    for (ComponentClass cc : componentSuite.getComponentClassesByType(ComponentType.XML)) {
+      FileInputStream inputStream = new FileInputStream(cc.getSrcFile());
+      String json = transformToJSON(inputStream);
+      inputStream.close();
+
+      String extendsXtype = nextXtype(XTYPE_PATTERN.matcher(json));
+      String extendsClass = componentSuite.getComponentClassByXtype(extendsXtype).getFullClassName();
+      cc.setSuperClassName(extendsClass);
+      cc.setImports(getImports(json));
+      cc.setJson(json);
+
+      File outputFile = new File(XML_TO_JS_MAPPER.mapFileName(cc.getSrcFile().getPath()));
+      outputFile.getParentFile().mkdirs();
+      FileWriter writer = new FileWriter(outputFile);
+      generateJangarooClass(cc, writer);
     }
 
   }

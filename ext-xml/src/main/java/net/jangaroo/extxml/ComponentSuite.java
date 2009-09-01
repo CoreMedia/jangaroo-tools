@@ -1,10 +1,6 @@
 package net.jangaroo.extxml;
 
-import java.util.Map;
-import java.util.Collection;
-import java.util.List;
-import java.util.Collections;
-import java.util.LinkedHashMap;
+import java.util.*;
 import java.io.File;
 
 /**
@@ -94,7 +90,7 @@ public class ComponentSuite {
   public Collection<ComponentClass> getComponentClasses() {
     return componentClassesByXtype.values();
   }
-
+  
   public ComponentClass getComponentClassByXtype(String xtype) {
     ComponentClass componentClass = componentClassesByXtype.get(xtype);
     if (componentClass==null) {
@@ -121,6 +117,16 @@ public class ComponentSuite {
       }
     }
     return componentClass;
+  }
+
+  public List<ComponentClass> getComponentClassesByType(ComponentType type) {
+    ArrayList<ComponentClass> result = new ArrayList<ComponentClass>();
+    for(ComponentClass clazz : componentClassesByXtype.values()) {
+      if(clazz.getType().equals(type)) {
+        result.add(clazz);
+      }
+    }
+    return result;
   }
 
   private void updateUsedComponentSuites(ComponentSuite importedComponentSuite) {

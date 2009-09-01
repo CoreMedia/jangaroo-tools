@@ -10,6 +10,16 @@ import java.util.List;
  */
 public class ComponentClass extends DescriptionHolder {
 
+  private ComponentSuite suite;
+  private File srcFile;
+  private String xtype;
+  private List<String> imports;
+  private String fullClassName;
+  private String superClassName;
+  private Collection<ConfigAttribute> cfgs = new ArrayList<ConfigAttribute>();
+  private String json;
+  private ComponentType type;
+
   public ComponentClass(List<String> imports, String fullClassName, String superClassName, String json) {
     this(fullClassName, fullClassName);
     this.imports = imports;
@@ -118,7 +128,15 @@ public class ComponentClass extends DescriptionHolder {
   }
 
   public void setJson(String json) {
-    this.json = json; 
+    this.json = json;
+  }
+
+  public ComponentType getType() {
+    return type;
+  }
+
+  public void setType(ComponentType type) {
+    this.type = type;
   }
 
   @Override
@@ -137,13 +155,4 @@ public class ComponentClass extends DescriptionHolder {
     }
     return builder.toString();
   }
-
-  private ComponentSuite suite;
-  private File srcFile;
-  private String xtype;
-  private List<String> imports;
-  private String fullClassName;
-  private String superClassName;
-  private Collection<ConfigAttribute> cfgs = new ArrayList<ConfigAttribute>();
-  private String json;
 }

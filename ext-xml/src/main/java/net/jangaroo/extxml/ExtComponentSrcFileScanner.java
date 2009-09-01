@@ -14,25 +14,18 @@ import java.util.List;
  */
 public class ExtComponentSrcFileScanner {
 
-  enum ComponentType {
-    JS("js"), AS("as"), XML("xml");
-
-    ComponentType(String extension) {
-      this.extension = extension;
-    }
-    public String extension;
-  }
-
   public static void scan(ComponentSuite componentSuite, File srcFile) {
     State state = new State(componentSuite, srcFile);
     String ext = FileUtils.extension(srcFile.getName());
     try {
-      if (ComponentType.AS.extension.equals(ext)) {
+      if (ComponentType.ActionScript.extension.equals(ext)) {
         String className = FileUtils.removeExtension(srcFile.getName());
         state.addClass(className);
+        state.cc.setType(ComponentType.ActionScript);
         EXT_COMPONENT_AS_FILE_SCANNER.scan(srcFile, state);
-      } else if (ComponentType.JS.extension.equals(ext)) {
+      } else if (ComponentType.JavaScript.extension.equals(ext)) {
         EXT_COMPONENT_SRC_FILE_SCANNER.scan(srcFile, state);
+        state.cc.setType(ComponentType.JavaScript);
       } else if (ComponentType.XML.extension.equals(ext)) {
         String className = FileUtils.removeExtension(srcFile.getName());
         state.addClass(className);
@@ -40,6 +33,7 @@ public class ExtComponentSrcFileScanner {
         String packageName = FileUtils.dirname(state.cc.getRelativeSrcFilePath().substring(1)).replaceAll("[\\\\/]", ".");
         state.cc.setFullClassName(packageName+"."+className);
         state.cc.setXtype(packageName+"."+className);
+        state.cc.setType(ComponentType.XML);
       }
       state.end();
     } catch (IOException e) {
