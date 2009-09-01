@@ -29,7 +29,7 @@ ${cfg.description}
   <#if componentClass.superClass??>
   <xs:element name='${componentClass.elementName}' type='${componentClass.xsType}' substitutionGroup='${componentClass.superClass.elementName}'>
   <#else>
-  <xs:element name='${componentClass.elementName}' type='${componentClass.className}'>
+  <xs:element name='${componentClass.elementName}' type='${componentClass.xsType}'>
   </#if>
     <#if componentClass.description??>
     <xs:annotation>
