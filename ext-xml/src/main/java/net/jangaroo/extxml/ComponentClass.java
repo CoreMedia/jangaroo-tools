@@ -3,15 +3,23 @@ package net.jangaroo.extxml;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * The meta-model of an Ext JS component class.
  */
 public class ComponentClass extends DescriptionHolder {
 
-  public ComponentClass(String xtype, String className) {
+  public ComponentClass(List<String> imports, String fullClassName, String superClassName, String json) {
+    this(fullClassName, fullClassName);
+    this.imports = imports;
+    this.superClassName = superClassName;
+    this.json = json;
+  }
+
+  public ComponentClass(String xtype, String fullClassName) {
     this.xtype = xtype;
-    this.className = className;
+    this.fullClassName = fullClassName;
   }
 
   public ComponentClass(File srcFile) {
@@ -50,16 +58,29 @@ public class ComponentClass extends DescriptionHolder {
     return suite.getPrefix() + xtype;
   }
 
-  public void setClassName(String className) {
-    this.className = className;
+  public List<String> getImports() {
+    return imports;
+  }
+
+  public void setFullClassName(String fullClassName) {
+    this.fullClassName = fullClassName;
+  }
+
+  public String getFullClassName() {
+    return fullClassName;
   }
 
   public String getClassName() {
-    return className;
+    return fullClassName.substring(fullClassName.lastIndexOf('.') + 1);
+  }
+
+  public String getPackageName() {
+    int lastDotPos = fullClassName.lastIndexOf('.');
+    return lastDotPos==-1 ? "" : fullClassName.substring(0, lastDotPos);
   }
 
   public String getXsType() {
-    return suite.getPrefix() + className;
+    return suite.getPrefix() + fullClassName;
   }
 
   public String getSuperClassName() {
@@ -67,7 +88,7 @@ public class ComponentClass extends DescriptionHolder {
   }
 
   public ComponentClass getSuperClass() {
-    return suite.getComponentClassByClassName(superClassName);
+    return suite.getComponentClassByFullClassName(superClassName);
   }
 
   public void setSuperClassName(String superClassName) {
@@ -82,10 +103,14 @@ public class ComponentClass extends DescriptionHolder {
     cfgs.add(cfg);
   }
 
+  public String getJson() {
+    return json;
+  }
+
   @Override
   public String toString() {
     StringBuilder builder = new StringBuilder()
-      .append("class   ").append(className)
+      .append("class   ").append(fullClassName)
       .append("\nxtype   ").append(xtype);
     if (superClassName != null) {
       builder.append("\nextends ").append(superClassName);
@@ -102,7 +127,9 @@ public class ComponentClass extends DescriptionHolder {
   private ComponentSuite suite;
   private File srcFile;
   private String xtype;
-  private String className;
+  private List<String> imports;
+  private String fullClassName;
   private String superClassName;
   private Collection<ConfigAttribute> cfgs = new ArrayList<ConfigAttribute>();
+  private String json;
 }

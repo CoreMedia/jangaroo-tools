@@ -40,7 +40,7 @@ public class ComponentSuites {
 
   public ComponentSuite getComponentSuiteDefiningClassName(String className) {
     for (ComponentSuite importedComponentSuite : componentSuites) {
-      if (importedComponentSuite.getComponentClassByClassName(className) != null) {
+      if (importedComponentSuite.getComponentClassByFullClassName(className) != null) {
         return importedComponentSuite;
       }
     }

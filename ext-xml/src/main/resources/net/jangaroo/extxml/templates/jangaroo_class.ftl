@@ -1,4 +1,4 @@
-<#-- @ftlvariable name="" type="net.jangaroo.extxml.JooClass" -->
+<#-- @ftlvariable name="" type="net.jangaroo.extxml.ComponentClass" -->
 package ${packageName} {
 
 import ext.ComponentMgr;
@@ -6,7 +6,7 @@ import ext.ComponentMgr;
 import ${import};
 </#list>
 
-public class ${className} extends ${extendsClass} {
+public class ${className} extends ${superClassName} {
 
   public const xtype:String = "${xtype}";
 {

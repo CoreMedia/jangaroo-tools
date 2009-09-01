@@ -87,7 +87,7 @@ public class JooClassGeneratorTest extends TestCase {
   }
 
   public void testPackage() throws Exception {
-    assertEquals("{xtype:\"panel\", title:\"I am inside a package!\"}", toJSON("/testpackage/testPackage.xml"));
+    assertEquals("{xtype:\"panel\", title:\"I am inside a package!\", items:[{xtype:\"testAll\"}]}", toJSON("/testpackage/testPackage.xml"));
   }
 
 
@@ -113,7 +113,7 @@ public class JooClassGeneratorTest extends TestCase {
 
 
   public void testGenerateJangarooClass() throws Exception {
-    JooClass jooClazz = new JooClass("com.coremedia.test", Collections.<String>emptyList(), "TestClass","SuperClass","json");
+    ComponentClass jooClazz = new ComponentClass(Collections.<String>emptyList(), "com.coremedia.test.TestClass","SuperClass","json");
     StringWriter writer = new StringWriter();
 
     jooClassGenerator.generateJangarooClass(jooClazz, writer);

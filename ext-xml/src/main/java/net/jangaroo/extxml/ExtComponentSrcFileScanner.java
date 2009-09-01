@@ -36,7 +36,7 @@ public class ExtComponentSrcFileScanner {
     })
     .add(new Rule<State>("@xtype\\s+([a-zA-Z.]+)") {
       public void matched(State state, List<String> groups) {
-        state.setXtype(groups.get(0), state.cc.getClassName());
+        state.setXtype(groups.get(0), state.cc.getFullClassName());
       }
     })
     .add(new Rule<State>("\\bExt.reg\\('([a-zA-Z.]+)',\\s*([a-zA-Z0-9$_.]+)\\);") {
@@ -72,7 +72,7 @@ public class ExtComponentSrcFileScanner {
     private void addClass(String className){
     addIfHasXtype(cc);
     cc = new ComponentClass(srcFile);
-    cc.setClassName(jsType2asType(className));
+    cc.setFullClassName(jsType2asType(className));
     setDescriptionHolder(cc);
   }
 
@@ -81,7 +81,7 @@ public class ExtComponentSrcFileScanner {
   }
 
   public void setXtype(String xtype, String className) {
-    if (cc.getXtype() == null && jsType2asType(className).equals(cc.getClassName())) {
+    if (cc.getXtype() == null && jsType2asType(className).equals(cc.getFullClassName())) {
       cc.setXtype(xtype);
     }
   }

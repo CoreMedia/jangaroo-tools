@@ -73,7 +73,7 @@ public class ComponentSuite {
   public void addComponentClass(ComponentClass cc) {
     cc.setSuite(this);
     componentClassesByXtype.put(cc.getXtype(), cc);
-    componentClassesByClassName.put(cc.getClassName(), cc);
+    componentClassesByFullClassName.put(cc.getFullClassName(), cc);
   }
 
   public Collection<ComponentClass> getComponentClasses() {
@@ -94,12 +94,12 @@ public class ComponentSuite {
     return componentClass;
   }
 
-  public ComponentClass getComponentClassByClassName(String className) {
-    ComponentClass componentClass = componentClassesByClassName.get(className);
+  public ComponentClass getComponentClassByFullClassName(String className) {
+    ComponentClass componentClass = componentClassesByFullClassName.get(className);
     if (componentClass==null) {
       ComponentSuite importedComponentSuite = importedComponentSuites.getComponentSuiteDefiningClassName(className);
       if (importedComponentSuite != null) {
-        componentClass = importedComponentSuite.getComponentClassByClassName(className);
+        componentClass = importedComponentSuite.getComponentClassByFullClassName(className);
         if (componentClass != null) {
           updateUsedComponentSuites(importedComponentSuite);
         }
@@ -148,7 +148,7 @@ public class ComponentSuite {
   private File xsd;
   private File rootDir;
   private Map<String, ComponentClass> componentClassesByXtype = new LinkedHashMap<String, ComponentClass>();
-  private Map<String, ComponentClass> componentClassesByClassName = new LinkedHashMap<String, ComponentClass>();
+  private Map<String, ComponentClass> componentClassesByFullClassName = new LinkedHashMap<String, ComponentClass>();
   private ComponentSuites importedComponentSuites;
   private Map<String, ComponentSuite> usedComponentSuites;
 

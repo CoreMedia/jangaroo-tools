@@ -81,7 +81,7 @@ public class JooClassGenerator {
       if (componentClass==null) {
         System.err.println(MessageFormat.format("xtype ''{0}'' not found in any imported component schema.", xtype));
       } else {
-        imports.add(componentClass.getClassName());
+        imports.add(componentClass.getFullClassName());
       }
     }
     return imports;
@@ -113,18 +113,18 @@ public class JooClassGenerator {
     String packageName = FileUtils.dirname(inputFileRelativePath).replaceAll("[\\\\/]", ".");
 
     String xtype = nextXtype(XTYPE_PATTERN.matcher(json));
-    String extendsClass = componentSuites.getComponentClassByXtype(xtype).getClassName();
+    String extendsClass = componentSuites.getComponentClassByXtype(xtype).getFullClassName();
 
     //noinspection ResultOfMethodCallIgnored
     outputFile.getParentFile().mkdirs();
     FileWriter writer = new FileWriter(outputFile);
     generateJangarooClass(
-      new JooClass(packageName, getImports(json), className, extendsClass, json), writer);
+      new ComponentClass(getImports(json), packageName+"."+className, extendsClass, json), writer);
   }
 
-  public void generateJangarooClass(JooClass jooClass, Writer output) throws IOException, TemplateException {
+  public void generateJangarooClass(ComponentClass jooClass, Writer output) throws IOException, TemplateException {
     Configuration cfg = new Configuration();
-    cfg.setClassForTemplateLoading(JooClass.class, "/");
+    cfg.setClassForTemplateLoading(ComponentClass.class, "/");
     cfg.setObjectWrapper(new DefaultObjectWrapper());
 
     Template template = cfg.getTemplate("/net/jangaroo/extxml/templates/jangaroo_class.ftl");
