@@ -138,6 +138,7 @@ public class JooClassGenerator {
     FileSet fileSet = new FileSet();
     fileSet.setDirectory(inputDir.getAbsolutePath());
     fileSet.setOutputDirectory(outputDir.getAbsolutePath());
+    fileSet.addInclude("**/*.xml");
     for (String inputFile : new FileSetManager().getIncludedFiles(fileSet)) {
       transformFile(
         inputDir, inputFile,
