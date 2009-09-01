@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<component xmlns="http://net.jangaroo.com/extxml" xmlns:ext="http://extjs.com/ext3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-    <ext:panel title="I am inside a package!"/>
+<component xmlns="http://net.jangaroo.com/extxml" xmlns:ext="http://extjs.com/ext3"
+           xmlns:local="http://net.jangaroo/extxml/test">
+  <ext:panel title="I am inside a package!">
+    <items>
+      <local:testAll/>
+    </items>
+  </ext:panel>
 </component>
