@@ -113,12 +113,16 @@ public class JooClassGenerator {
       inputStream.close();
 
       String extendsXtype = nextXtype(XTYPE_PATTERN.matcher(json));
-      String extendsClass = componentSuite.getComponentClassByXtype(extendsXtype).getFullClassName();
-      cc.setSuperClassName(extendsClass);
+      ComponentClass superClass = componentSuite.getComponentClassByXtype(extendsXtype);
+      if(superClass != null){
+        String extendsClass = componentSuite.getComponentClassByXtype(extendsXtype).getFullClassName();
+        cc.setSuperClassName(extendsClass);
+      }else{
+        System.err.println(String.format("No component class found for xtype '%s'", extendsXtype));
+      }
       cc.setImports(getImports(json));
       cc.setJson(json);
-
-      File outputFile = new File(XML_TO_JS_MAPPER.mapFileName(cc.getSrcFile().getPath()));
+      File outputFile = new File(componentSuite.getOutputDir(), XML_TO_JS_MAPPER.mapFileName(cc.getRelativeSrcFilePath()));
       outputFile.getParentFile().mkdirs();
       FileWriter writer = new FileWriter(outputFile);
       generateJangarooClass(cc, writer);

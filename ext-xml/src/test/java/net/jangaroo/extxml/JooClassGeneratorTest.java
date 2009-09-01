@@ -8,10 +8,12 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import java.io.InputStream;
 import java.io.StringWriter;
+import java.io.File;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.Collections;
+import java.net.URL;
 
 
 public class JooClassGeneratorTest extends TestCase {
@@ -121,5 +123,40 @@ public class JooClassGeneratorTest extends TestCase {
     System.out.println(writer.toString());
     assertEquals("Class not equals","package com.coremedia.test {import ext.ComponentMgr;/** * @xtype com.coremedia.test.TestClass */public class TestClass extends SuperClass {  public const xtype:String = \"com.coremedia.test.TestClass\";{  ext.ComponentMgr.registerType(xtype, TestClass);}  public function TestClass(config:* = undefined) {    super(Ext.apply(config, json));  }}}",writer.toString().replaceAll("\r\n",""));
   }
+
+  public void testGenerateClasses() throws Exception {
+    File rootDir = new File(getClass().getResource("/").toURI());
+    File outDir = computeTestDataRoot(getClass());
+    outDir.mkdir();
+    
+    ComponentSuite suite = new ComponentSuite("local",File.createTempFile("testXsd","xsd"), rootDir, Collections.<File>emptyList(), outDir);
+    ComponentClass cc = new ComponentClass(new File(getClass().getResource("/testpackage/testPackage.xml").toURI()));
+    ComponentClass panel = new ComponentClass("panel", "ext.Panel");
+    suite.addComponentClass(panel);
+    cc.setType(ComponentType.XML);
+    cc.setFullClassName("testpackage.testPackage");
+    cc.setXtype("testpackage.testPackage");
+    suite.addComponentClass(cc);
+
+    JooClassGenerator generator = new JooClassGenerator(suite);
+    generator.generateClasses();
+
+    assertEquals("{xtype: \"panel\", title: \"I am inside a package!\",items: [{xtype: \"testAll\"}]}",cc.getJson());
+    assertEquals("ext.Panel",cc.getSuperClassName());
+
+    File result = new File(outDir, "testpackage/testPackage.as");
+    assertTrue(result.exists());
+
+  }
+
+  public static File computeTestDataRoot(Class anyTestClass) {
+    final String clsUri = anyTestClass.getName().replace('.','/') + ".class";
+    final URL url = anyTestClass.getClassLoader().getResource(clsUri);
+    final String clsPath = url.getPath();
+    final File root = new File(clsPath.substring(0, clsPath.length() - clsUri.length()));
+    final File clsFile = new File(root, clsUri);
+    return new File(root.getParentFile(), "test-data");
+  }
+
 
 }

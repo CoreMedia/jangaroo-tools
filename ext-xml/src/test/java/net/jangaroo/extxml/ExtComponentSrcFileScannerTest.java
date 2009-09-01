@@ -20,6 +20,7 @@ public class ExtComponentSrcFileScannerTest extends TestCase {
     ExtComponentSrcFileScanner.scan(suite, new File(getClass().getResource("/testpackage/SimpleComponent.as").toURI()));
     ComponentClass cc = suite.getComponentClassByFullClassName("testpackage.SimpleComponent");
     assertNotNull(cc);
+    assertEquals(ComponentType.ActionScript, cc.getType());
     assertEquals("simplecomponent", cc.getXtype());
     assertEquals("ext.Panel", cc.getSuperClassName());
     assertTrue(cc.getImports().contains("ext.Panel"));
@@ -35,6 +36,7 @@ public class ExtComponentSrcFileScannerTest extends TestCase {
     assertTrue(suite.getComponentClasses().size() == 2);
     ComponentClass cc = suite.getComponentClassByFullClassName("ext.Panel");
     assertNotNull(cc);
+    assertEquals(ComponentType.JavaScript, cc.getType());
     assertEquals("panel", cc.getXtype());
     assertEquals("ext.Container", cc.getSuperClassName());
     assertNotNull(cc.getDescription());
@@ -58,6 +60,7 @@ public class ExtComponentSrcFileScannerTest extends TestCase {
     ExtComponentSrcFileScanner.scan(suite, new File(getClass().getResource("/testpackage/testPackage.xml").toURI()));
     ComponentClass cc = suite.getComponentClassByFullClassName("testpackage.testPackage");
     assertNotNull(cc);
+    assertEquals(ComponentType.XML, cc.getType());
     assertEquals("testpackage.testPackage", cc.getXtype());
   }
 }

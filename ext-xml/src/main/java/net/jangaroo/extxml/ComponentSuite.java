@@ -122,7 +122,7 @@ public class ComponentSuite {
   public List<ComponentClass> getComponentClassesByType(ComponentType type) {
     ArrayList<ComponentClass> result = new ArrayList<ComponentClass>();
     for(ComponentClass clazz : componentClassesByXtype.values()) {
-      if(clazz.getType().equals(type)) {
+      if(type.equals(clazz.getType())) {
         result.add(clazz);
       }
     }
