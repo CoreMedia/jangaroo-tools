@@ -48,7 +48,7 @@ class ApplyExpr extends Expr {
   }
 
   private boolean isTypeCast(JoocOptions options) {
-    if (scope!=null && fun instanceof IdeExpr) {
+    if (scope!=null && fun instanceof IdeExpr && !isInsideNewExpr()) {
       // TODO: make it work correctly for fully qualified identifiers!
       String name = ((IdeExpr)fun).ide.getName();
       // special case: it is a type cast to the current class:
@@ -64,6 +64,17 @@ class ApplyExpr extends Expr {
           : declScope.getDeclaration() == scope.getPackageDeclaration();
       }
     }
+    return false;
+  }
+
+  private boolean isInsideNewExpr() {
+    Node node = this;
+    do {
+      node = ((NodeImplBase)node).parentNode;
+      if (node instanceof NewExpr) {
+        return true;
+      }
+    } while (node instanceof NodeImplBase);
     return false;
   }
 

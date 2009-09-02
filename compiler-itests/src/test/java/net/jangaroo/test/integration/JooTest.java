@@ -437,6 +437,19 @@ public class JooTest extends JooRuntimeTestCase {
     eval("new net.jangaroo.test.JavaPackageTest();");
   }
 
+  public void testNew() throws Exception {
+    loadClass("package2.TestNew");
+    complete();
+    eval("obj = new package2.TestNew()");
+    expectString("foo", "obj.foo()");
+    expectString("foo", "obj.testNewCall()");
+    expectString("foo", "obj.testNewCallNoThis()");
+    expectString("foo", "package2.TestNew.testNewApplyExpr()");
+    expectString("foo", "package2.TestNew.testNewExpr()");
+    expectString("foo", "package2.TestNew.testNewStaticCall()");
+    expectString("foo", "package2.TestNew.testNewFullyQualified()");
+  }
+
   public static void main(String args[]) {
     junit.textui.TestRunner.run(JooTest.class);
   }
