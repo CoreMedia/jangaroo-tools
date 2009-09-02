@@ -8,16 +8,16 @@ import junit.framework.TestCase;
 import java.io.File;
 import java.net.URL;
 
+import utils.TestUtils;
+
 /**
  *
  */
 public class ExtXmlTest extends TestCase {
 
   public void testMain() throws Exception {
-    File outputDir = computeTestDataRoot(getClass());
-    outputDir.mkdir();
-
-    File rootDir = new File(getClass().getResource("/").toURI());
+    File outputDir = TestUtils.computeTestDataRoot(getClass());
+    File rootDir = TestUtils.getRootDir(getClass());
 
     String[] args = {"local", outputDir.getPath()+"/testComponentSuite.xsd", rootDir.getPath()+"/testComponentSuite/", outputDir.getPath()};
     ExtXml.main(args);
@@ -29,13 +29,5 @@ public class ExtXmlTest extends TestCase {
     assertTrue(asFile.exists());
 
   }
-
-  public static File computeTestDataRoot(Class anyTestClass) {
-    final String clsUri = anyTestClass.getName().replace('.','/') + ".class";
-    final URL url = anyTestClass.getClassLoader().getResource(clsUri);
-    final String clsPath = url.getPath();
-    final File root = new File(clsPath.substring(0, clsPath.length() - clsUri.length()));
-    final File clsFile = new File(root, clsUri);
-    return new File(root.getParentFile(), "test-data");
-  }
+  
 }

@@ -9,6 +9,8 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 
+import utils.TestUtils;
+
 /**
  *
  */
@@ -17,7 +19,7 @@ public class ExtComponentSrcFileScannerTest extends TestCase {
   public void testActionScriptComponent() throws Exception {
     ComponentSuite suite = new ComponentSuite(new File(""));
 
-    ExtComponentSrcFileScanner.scan(suite, new File(getClass().getResource("/testpackage/SimpleComponent.as").toURI()));
+    ExtComponentSrcFileScanner.scan(suite, TestUtils.getFile("/testpackage/SimpleComponent.as", getClass()));
     ComponentClass cc = suite.getComponentClassByFullClassName("testpackage.SimpleComponent");
     assertNotNull(cc);
     assertEquals(ComponentType.ActionScript, cc.getType());
@@ -32,7 +34,7 @@ public class ExtComponentSrcFileScannerTest extends TestCase {
   public void testJavaScriptComponent() throws Exception {
     ComponentSuite suite = new ComponentSuite(new File(""));
 
-    ExtComponentSrcFileScanner.scan(suite, new File(getClass().getResource("/js/test.js").toURI()));
+    ExtComponentSrcFileScanner.scan(suite, TestUtils.getFile("/js/test.js", getClass()));
     assertTrue(suite.getComponentClasses().size() == 2);
     ComponentClass cc = suite.getComponentClassByFullClassName("ext.Panel");
     assertNotNull(cc);
@@ -55,9 +57,9 @@ public class ExtComponentSrcFileScannerTest extends TestCase {
   }
 
   public void testXMLComponent() throws Exception {
-    ComponentSuite suite = new ComponentSuite("local",new File(""), new File(getClass().getResource("/").toURI()), Collections.<File>emptyList(), null);
+    ComponentSuite suite = new ComponentSuite("local",new File(""), TestUtils.getRootDir(getClass()), Collections.<File>emptyList(), null);
 
-    ExtComponentSrcFileScanner.scan(suite, new File(getClass().getResource("/testpackage/testPackage.xml").toURI()));
+    ExtComponentSrcFileScanner.scan(suite, TestUtils.getFile("/testpackage/testPackage.xml", getClass()));
     ComponentClass cc = suite.getComponentClassByFullClassName("testpackage.testPackage");
     assertNotNull(cc);
     assertEquals(ComponentType.XML, cc.getType());

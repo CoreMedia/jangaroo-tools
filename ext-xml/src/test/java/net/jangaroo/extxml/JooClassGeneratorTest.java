@@ -15,6 +15,8 @@ import java.util.TreeSet;
 import java.util.Collections;
 import java.net.URL;
 
+import utils.TestUtils;
+
 
 public class JooClassGeneratorTest extends TestCase {
 
@@ -125,12 +127,11 @@ public class JooClassGeneratorTest extends TestCase {
   }
 
   public void testGenerateClasses() throws Exception {
-    File rootDir = new File(getClass().getResource("/").toURI());
-    File outDir = computeTestDataRoot(getClass());
-    outDir.mkdir();
+    File rootDir = TestUtils.getRootDir(getClass());
+    File outDir = TestUtils.computeTestDataRoot(getClass());
     
     ComponentSuite suite = new ComponentSuite("local",File.createTempFile("testXsd","xsd"), rootDir, Collections.<File>emptyList(), outDir);
-    ComponentClass cc = new ComponentClass(new File(getClass().getResource("/testpackage/testPackage.xml").toURI()));
+    ComponentClass cc = new ComponentClass(TestUtils.getFile("/testpackage/testPackage.xml", getClass()));
     ComponentClass panel = new ComponentClass("panel", "ext.Panel");
     suite.addComponentClass(panel);
     cc.setType(ComponentType.XML);
@@ -148,15 +149,5 @@ public class JooClassGeneratorTest extends TestCase {
     assertTrue(result.exists());
 
   }
-
-  public static File computeTestDataRoot(Class anyTestClass) {
-    final String clsUri = anyTestClass.getName().replace('.','/') + ".class";
-    final URL url = anyTestClass.getClassLoader().getResource(clsUri);
-    final String clsPath = url.getPath();
-    final File root = new File(clsPath.substring(0, clsPath.length() - clsUri.length()));
-    final File clsFile = new File(root, clsUri);
-    return new File(root.getParentFile(), "test-data");
-  }
-
 
 }
