@@ -24,6 +24,8 @@ import java.io.FilenameFilter;
 import java.util.Set;
 import java.util.List;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.Iterator;
 import java.util.ArrayList;
 
 /**
@@ -42,6 +44,7 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
   List<Node> directives;
   IdeDeclaration primaryDeclaration;
   JooSymbol rBrace;
+  Set<String> externalUsages = new LinkedHashSet<String>();
 
 
   protected File sourceFile;
@@ -97,6 +100,17 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
      }
      out.write("\"\"],");
      primaryDeclaration.generateCode(out);
+     if (externalUsages.size()>0) {
+       out.write(",[");
+       for (Iterator<String> it = externalUsages.iterator(); it.hasNext();) {
+         String externalUsage = it.next();
+         out.write(externalUsage);
+         if (it.hasNext()) {
+           out.write(",");
+         }
+       }
+       out.write("]");
+     }
      out.writeSymbolWhitespace(rBrace);
      out.write(");");
   }
@@ -125,10 +139,12 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
       "isNaN",
       "NaN",
       "isFinite",
-      "encodeURIComponent",
+      "Infinity",
+      "decodeURI",
       "decodeURIComponent",
-      "trace",
-      "joo"});
+      "encodeURI",
+      "encodeURIComponent",
+      "trace"});
     super.analyze(parentNode, context);
     context.enterScope(packageDeclaration);
     packageDeclaration.analyze(this, context);
