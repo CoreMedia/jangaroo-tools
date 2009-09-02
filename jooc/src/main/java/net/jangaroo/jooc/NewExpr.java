@@ -23,24 +23,17 @@ import java.io.IOException;
 class NewExpr extends Expr {
 
   JooSymbol symNew;
-  Type type;
+  Expr applyConstructor;
   ParenthesizedExpr<CommaSeparatedList<Expr>> args;
 
-  public NewExpr(JooSymbol symNew, Type type) {
-    this(symNew, type, null, null, null);
-  }
-
-  public NewExpr(JooSymbol symNew, Type type, JooSymbol lParen, CommaSeparatedList<Expr> args, JooSymbol rParen) {
+  public NewExpr(JooSymbol symNew, Expr applyConstructor) {
     this.symNew = symNew;
-    this.type = type;
-    if (lParen!=null && rParen!=null) {
-      this.args = new ParenthesizedExpr<CommaSeparatedList<Expr>>(lParen, args, rParen);
-    }
+    this.applyConstructor = applyConstructor;
   }
 
   public Expr analyze(Node parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
-    type.analyze(this, context);
+    applyConstructor = applyConstructor.analyze(this, context);
     if (args != null)
       args.analyze(this, context);
     return this;
@@ -48,7 +41,7 @@ class NewExpr extends Expr {
 
   public void generateCode(JsWriter out) throws IOException {
     out.writeSymbol(symNew);
-    type.generateCode(out);
+    applyConstructor.generateCode(out);
     if (args != null)
       args.generateCode(out);
   }

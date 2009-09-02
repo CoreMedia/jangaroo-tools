@@ -368,9 +368,7 @@ expr ::=
     {: RESULT = new ThisExpr(t); :}
   | parenthesizedExpr:e
     {: RESULT = e; :}
-  | NEW:n type:t LPAREN:lp arguments:args RPAREN:rp
-    {: RESULT = new NewExpr(n,t,lp,args,rp); :}
-  | NEW:n type:t
+  | NEW:n expr:t
     {: RESULT = new NewExpr(n,t); :}
   | PLUSPLUS:op expr:e
     {: RESULT = new PrefixOpExpr(op,e); :} %prec PREFIX_PLUSPLUS
