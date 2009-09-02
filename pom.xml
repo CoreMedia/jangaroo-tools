@@ -130,6 +130,7 @@
     <module>jangaroo-runtime</module>
     <module>jangaroo-browser</module>
     <module>compiler-itests</module>
+    <module>ext-xml</module>
 
   </modules>
 
