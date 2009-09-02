@@ -84,7 +84,7 @@ class TopLevelIdeExpr extends IdeExpr {
         boolean maybeInScope = options.isEnableGuessingClasses() && Character.isUpperCase(ide.getName().charAt(0));
         String warningMsg = "Undeclared identifier: " + ide.getName();
         if (maybeInScope) {
-          warningMsg += ", assuming it is already in scope.";
+          warningMsg += ", assuming it is a top-level or *-imported class.";
         } else if (options.isEnableGuessingMembers()) {
           warningMsg += ", assuming it is an inherited member.";
         }
