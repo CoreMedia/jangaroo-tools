@@ -47,7 +47,8 @@ public class JooTest extends JooRuntimeTestCase {
     complete();
 
     String canonicalJsFileName = new File(jsFileName).getCanonicalPath();
-    boolean assertionsEnabled = canonicalJsFileName.contains(File.separatorChar + "debug-and-assert" + File.separatorChar);
+    // TODO: re-enable when we again have both kinds of tests:
+    boolean assertionsEnabled = Boolean.valueOf("true"); //canonicalJsFileName.contains(File.separatorChar + "debug-and-assert" + File.separatorChar);
 
     final String script = qualifiedName + ".testAssert()";
     System.out.println("\ncanonicalJsFileName: " + canonicalJsFileName);
