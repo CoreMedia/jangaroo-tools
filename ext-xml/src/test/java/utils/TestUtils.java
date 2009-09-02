@@ -9,7 +9,11 @@ import java.net.URISyntaxException;
 /**
  *
  */
-public class TestUtils {
+public abstract class TestUtils {
+
+  private TestUtils() {
+
+  }
 
   public static File computeTestDataRoot(Class anyTestClass) {
     final String clsUri = anyTestClass.getName().replace('.','/') + ".class";
