@@ -94,7 +94,7 @@
 
                 <mkdir dir="${basedir}/target/temp/js" />
 
-                <jooc destdir="target/temp/js" failonerror="true" debug="${jooc.debug}" verbose="true" enableassertions="${jooc.assert}">
+                <jooc destdir="target/temp/js" failonerror="true" debug="true" verbose="true" enableassertions="true">
                   <include name="**/*.as" />
                   <exclude name="error/**/*.as" />
                   <exclude name="**/*_fragment.as" />
