@@ -44,16 +44,22 @@ import javax.xml.parsers.ParserConfigurationException;
  */
 public class ExtXml {
   public static void main(String[] args) throws IOException, TemplateException, SaxonApiException, SAXException, XPathExpressionException, ParserConfigurationException {
-    List<File> importedXsds = new ArrayList<File>(args.length - 3);
-    for (int i = 3; i < args.length; i++) {
+    List<File> importedXsds = new ArrayList<File>(args.length - 4);
+    for (int i = 4; i < args.length; i++) {
       importedXsds.add(new File(args[i]));
     }
-    ComponentSuite suite = new ComponentSuite(args[0], new File(args[1]), new File(args[2]), importedXsds, new File(args[4]));
+    //Scan the directory for xml, as or javascript components and collect the data in ComponentClass, import all provided XSDs
+    ComponentSuite suite = new ComponentSuite(args[0], new File(args[1]), new File(args[2]), importedXsds, new File(args[3]));
     SrcFileScanner fileScanner = new SrcFileScanner(suite);
     fileScanner.scan();
+
+    //Generate JSON out of the xml compontents, complete the data in those ComponentClasses
     JooClassGenerator generator = new JooClassGenerator(suite);
     generator.generateClasses();
+
     System.out.println(suite);
+
+    //generate the XSD for that
     new XsdGenerator(suite).generateXsd();
   }
 }

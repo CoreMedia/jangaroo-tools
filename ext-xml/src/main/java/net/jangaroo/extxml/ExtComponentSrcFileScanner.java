@@ -31,8 +31,14 @@ public class ExtComponentSrcFileScanner {
         state.addClass(className);
         componentSuite.addComponentClass(state.cc);
         String packageName = FileUtils.dirname(state.cc.getRelativeSrcFilePath().substring(1)).replaceAll("[\\\\/]", ".");
-        state.cc.setFullClassName(packageName+"."+className);
-        state.cc.setXtype(packageName+"."+className);
+        String fullName = "";
+        if(packageName != null && ! "".equals(packageName))  {
+          fullName = packageName+"."+className;
+        } else {
+          fullName = className;
+        }
+        state.cc.setFullClassName(fullName);
+        state.cc.setXtype(fullName);
         state.cc.setType(ComponentType.XML);
       }
       state.end();
