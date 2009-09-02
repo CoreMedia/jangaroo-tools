@@ -5,13 +5,8 @@ import freemarker.template.DefaultObjectWrapper;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
-import java.io.OutputStreamWriter;
-import java.io.BufferedWriter;
-import java.io.FileOutputStream;
-import java.text.MessageFormat;
 
 /**
  * An XsdGenerator takes a {@link ComponentSuite} and (re)generates its XML Schema (.xsd) file.
@@ -29,15 +24,13 @@ public class XsdGenerator {
     this.componentSuite = componentSuite;
   }
 
-  public void generateXsd() throws IOException, TemplateException {
+  public void generateXsd(Writer out) throws IOException, TemplateException {
     /* Get or create a template */
     Template template = cfg.getTemplate("component-suite-xsd.ftl");
 
     /* Merge data-model with template */
-    Writer out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(componentSuite.getXsd()), "UTF-8"));
-    System.out.println(MessageFormat.format("Writing XML Schema {0} to file {1}", componentSuite.getNamespace(), componentSuite.getXsd().getAbsolutePath()));
+    System.out.println(String.format("Writing XML Schema %s ", componentSuite.getNamespace()));
     template.process(componentSuite, out);
-    out.close();
   }
 
   private ComponentSuite componentSuite;

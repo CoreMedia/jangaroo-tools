@@ -7,7 +7,6 @@ import freemarker.template.TemplateException;
 import net.sf.saxon.s9api.*;
 import org.apache.maven.shared.model.fileset.mappers.FileNameMapper;
 import org.apache.maven.shared.model.fileset.mappers.GlobPatternMapper;
-import org.codehaus.plexus.util.FileUtils;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -122,7 +121,7 @@ public class JooClassGenerator {
       }
       cc.setImports(getImports(json));
       cc.setJson(json);
-      File outputFile = new File(componentSuite.getOutputDir(), XML_TO_JS_MAPPER.mapFileName(cc.getRelativeSrcFilePath()));
+      File outputFile = new File(componentSuite.getAs3OutputDir(), XML_TO_JS_MAPPER.mapFileName(cc.getRelativeSrcFilePath()));
       outputFile.getParentFile().mkdirs();
       FileWriter writer = new FileWriter(outputFile);
       generateJangarooClass(cc, writer);

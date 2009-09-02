@@ -17,7 +17,7 @@ import utils.TestUtils;
 public class ExtComponentSrcFileScannerTest extends TestCase {
 
   public void testActionScriptComponent() throws Exception {
-    ComponentSuite suite = new ComponentSuite(new File(""));
+    ComponentSuite suite = new ComponentSuite();
 
     ExtComponentSrcFileScanner.scan(suite, TestUtils.getFile("/testpackage/SimpleComponent.as", getClass()));
     ComponentClass cc = suite.getComponentClassByFullClassName("testpackage.SimpleComponent");
@@ -32,7 +32,7 @@ public class ExtComponentSrcFileScannerTest extends TestCase {
   }
 
   public void testJavaScriptComponent() throws Exception {
-    ComponentSuite suite = new ComponentSuite(new File(""));
+    ComponentSuite suite = new ComponentSuite();
 
     ExtComponentSrcFileScanner.scan(suite, TestUtils.getFile("/js/test.js", getClass()));
     assertTrue(suite.getComponentClasses().size() == 2);
@@ -57,7 +57,7 @@ public class ExtComponentSrcFileScannerTest extends TestCase {
   }
 
   public void testXMLComponent() throws Exception {
-    ComponentSuite suite = new ComponentSuite("local",new File(""), TestUtils.getRootDir(getClass()), Collections.<File>emptyList(), null);
+    ComponentSuite suite = new ComponentSuite("local", TestUtils.getRootDir(getClass()), null);
 
     ExtComponentSrcFileScanner.scan(suite, TestUtils.getFile("/testpackage/testPackage.xml", getClass()));
     ComponentClass cc = suite.getComponentClassByFullClassName("testpackage.testPackage");

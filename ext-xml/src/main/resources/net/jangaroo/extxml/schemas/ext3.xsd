@@ -1,0 +1,4024 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="http://extjs.com/ext3" xmlns:xs="http://www.w3.org/2001/XMLSchema">  
+  <xs:complexType name='Ext.Action' xmlns='http://extjs.com/ext3'>
+    <xs:sequence>
+      <xs:any minOccurs='0' maxOccurs='unbounded' processContents='lax'/>
+    </xs:sequence>
+    <xs:attribute type='xs:string' name='text'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+The text to set for all components using this action (defaults to '').
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='iconCls'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+The icon CSS class for all components using this action (defaults to '').
+     * The class should supply a background image that will be used as the icon image.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='disabled'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+True to disable all components using this action, false to enable them (defaults to false).
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='hidden'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+True to hide all components using this action, false to show them (defaults to false).
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='handler'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+The function that will be invoked by each component tied to this action
+     * when the component's primary event is triggered (defaults to undefined).
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='scope'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+The scope in which the {@link #handler} function will execute.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType><!--Ext.Action-->
+<!-- done Ext.Action-->
+<!-- Ext.BoxComponent triggered by 'extends'-->
+  <xs:complexType name='Ext.BoxComponent' xmlns='http://extjs.com/ext3'>
+   <xs:complexContent>
+   <xs:extension base='Ext.Component'>
+    <xs:sequence>
+      <xs:any minOccurs='0' maxOccurs='unbounded' processContents='lax'/>
+    </xs:sequence>
+    <xs:attribute type='xs:int' name='x'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The local x (left) coordinate for this component if contained within a positioning container.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:int' name='y'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The local y (top) coordinate for this component if contained within a positioning container.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:int' name='pageX'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The page level x coordinate for this component if contained within a positioning container.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:int' name='pageY'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The page level y coordinate for this component if contained within a positioning container.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:int' name='height'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The height of this component in pixels (defaults to auto).
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:int' name='width'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The width of this component in pixels (defaults to auto).
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='autoHeight'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * True to use height:'auto', false to use fixed height (defaults to false). <b>Note</b>: Although many components 
+     * inherit this config option, not all will function as expected with a height of 'auto'. Setting autoHeight:true 
+     * means that the browser will manage height based on the element's contents, and that Ext will not manage it at all.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='autoWidth'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * True to use width:'auto', false to use fixed width (defaults to false). <b>Note</b>: Although many components 
+     * inherit this config option, not all will function as expected with a width of 'auto'. Setting autoWidth:true 
+     * means that the browser will manage width based on the element's contents, and that Ext will not manage it at all.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+   </xs:extension>
+   </xs:complexContent>
+  </xs:complexType><!--Ext.BoxComponent-->
+  <xs:element name='box' type='ext:Ext.BoxComponent' xmlns:ext='http://extjs.com/ext3'  substitutionGroup='ext:component'>
+    <xs:annotation>
+      <xs:documentation><![CDATA[
+
+ * <p>Base class for any visual {@link Ext.Component} that uses a box container.  BoxComponent provides automatic box
+ * model adjustments for sizing and positioning and will work correctly withnin the Component rendering model.  All
+ * container classes should subclass BoxComponent so that they will work consistently when nested within other Ext
+ * layout containers.</p>
+ * <p>A BoxComponent may be created as a custom Component which encapsulates any HTML element, either a pre-existing
+ * element, or one that is created to your specifications at render time. Usually, to participate in layouts,
+ * a Component will need to be a <b>Box</b>Component in order to have its width and height managed.</p>
+ * <p>To use a pre-existing element as a BoxComponent, configure it so that you preset the <b>el</b> property to the
+ * element to reference:<pre><code>
+var pageHeader = new Ext.BoxComponent({
+    el: 'my-header-div'
+});</code></pre>
+ * This may then be {@link Ext.Container#add added} to a {@link Ext.Container Container} as a child item.</p>
+ * <p>To create a BoxComponent based around a HTML element to be created at render time, use the
+ * {@link Ext.Component#autoEl autoEl} config option which takes the form of a
+ * {@link Ext.DomHelper DomHelper} specification:<pre><code>
+var myImage = new Ext.BoxComponent({
+    autoEl: {
+        tag: 'img',
+        src: '/images/my-image.jpg'
+    }
+});</code></pre></p>
+ * @constructor
+ * @param {Ext.Element/String/Object} config The configuration options.
+      ]]></xs:documentation>
+    </xs:annotation>
+  </xs:element>
+<!-- done Ext.BoxComponent-->
+<!-- Ext.Button triggered by 'extends'-->
+  <xs:complexType name='Ext.Button' xmlns='http://extjs.com/ext3'>
+   <xs:complexContent>
+   <xs:extension base='Ext.Component'>
+    <xs:sequence>
+      <xs:any minOccurs='0' maxOccurs='unbounded' processContents='lax'/>
+    </xs:sequence>
+    <xs:attribute type='xs:string' name='repeat'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+True to repeat fire the click event while the mouse is down. This can also be
+  an {@link Ext.util.ClickRepeater} config object (defaults to false).
+ * @constructor
+ * Create a new button
+ * @param {Object} config The config object
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:int' name='tabIndex'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+Set a DOM tabIndex for this button (defaults to undefined)
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='allowDepress'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * False to not allow a pressed Button to be depressed (defaults to undefined). Only valid when {@link #enableToggle} is true.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='enableToggle'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * True to enable pressed/not pressed toggling (defaults to false)
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='toggleHandler'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * Function called when a Button with {@link #enableToggle} set to true is clicked. Two arguments are passed:<ul class="mdetail-params">
+     * <li><b>button</b> : Ext.Button<div class="sub-desc">this Button object</div></li>
+     * <li><b>state</b> : Boolean<div class="sub-desc">The next state if the Button, true means pressed.</div></li>
+     * </ul>
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='menu'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * Standard menu attribute consisting of a reference to a menu object, a menu id or a menu config blob (defaults to undefined).
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='menuAlign'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The position to align the menu to (see {@link Ext.Element#alignTo} for more details, defaults to 'tl-bl?').
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='iconCls'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * A css class which sets a background image to be used as the icon for this button
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='type'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * submit, reset or button - defaults to 'button'
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='clickEvent'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The type of event to map to the button's event handler (defaults to 'click')
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='handleMouseEvents'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * False to disable visual cues on mouseover, mouseout and mousedown (defaults to true)
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='tooltipType'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The type of tooltip to use. Either "qtip" (default) for QuickTips or "title" for title attribute.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='buttonSelector'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * <p>(Optional) A {@link Ext.DomQuery DomQuery} selector which is used to extract the active, clickable element from the
+     * DOM structure created.</p>
+     * <p>When a custom {@link #template} is used, you  must ensure that this selector results in the selection of
+     * a focussable element.</p>
+     * <p>Defaults to <b><tt>"button:first-child"</tt></b>.</p>
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='template'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * (Optional) An {@link Ext.Template} with which to create the Button's main element. This Template must
+     * contain numeric substitution parameter 0 if it is to display the text property. Changing the template could
+     * require code modifications if required elements (e.g. a button) aren't present.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='cls'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * A CSS class string to apply to the button's main element.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='autoEl'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+@hide
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+   </xs:extension>
+   </xs:complexContent>
+  </xs:complexType><!--Ext.Button-->
+  <xs:element name='button' type='ext:Ext.Button' xmlns:ext='http://extjs.com/ext3'  substitutionGroup='ext:component'>
+    <xs:annotation>
+      <xs:documentation><![CDATA[
+
+ * Simple Button class
+Ext.Button = Ext.extend(Ext.Component, {
+    /**
+     * Read-only. True if this button is hidden
+     * @type Boolean
+      ]]></xs:documentation>
+    </xs:annotation>
+  </xs:element>
+<!-- done Ext.Button-->
+<!-- Ext.ColorPalette triggered by 'extends'-->
+  <xs:complexType name='Ext.ColorPalette' xmlns='http://extjs.com/ext3'>
+   <xs:complexContent>
+   <xs:extension base='Ext.Component'>
+    <xs:sequence>
+      <xs:any minOccurs='0' maxOccurs='unbounded' processContents='lax'/>
+    </xs:sequence>
+    <xs:attribute type='xs:string' name='tpl'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+An existing XTemplate instance to be used in place of the default template for rendering the component.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='itemCls'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The CSS class to apply to the containing element (defaults to "x-color-palette")
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='value'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The initial color to highlight (should be a valid 6-digit color hex code without the # symbol).  Note that
+     * the hex codes are case-sensitive.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='allowReselect'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+If set to true then reselecting a color that is already selected fires the {@link #select} event
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='autoEl'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+@hide
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+   </xs:extension>
+   </xs:complexContent>
+  </xs:complexType><!--Ext.ColorPalette-->
+  <xs:element name='colorpalette' type='ext:Ext.ColorPalette' xmlns:ext='http://extjs.com/ext3'  substitutionGroup='ext:component'>
+    <xs:annotation>
+      <xs:documentation><![CDATA[
+
+ * Simple color palette class for choosing colors.  The palette can be rendered to any container.<br />
+ * Here's an example of typical usage:
+ * <pre><code>
+var cp = new Ext.ColorPalette({value:'993300'});  // initial selected color
+cp.render('my-div');
+
+cp.on('select', function(palette, selColor){
+    // do something with selColor
+});
+</code></pre>
+ * @constructor
+ * Create a new ColorPalette
+ * @param {Object} config The config object
+      ]]></xs:documentation>
+    </xs:annotation>
+  </xs:element>
+<!-- done Ext.ColorPalette-->
+<!-- Ext.Component triggered by 'extends'-->
+  <xs:complexType name='Ext.Component' xmlns='http://extjs.com/ext3'>
+    <xs:sequence>
+      <xs:any minOccurs='0' maxOccurs='unbounded' processContents='lax'/>
+    </xs:sequence>
+    <xs:attribute type='xs:string' name='fieldLabel'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+The label text to display next to this Component (defaults to '')
+     * <p><b>This config is only used when this Component is rendered by a Container which has been
+     * configured to use the {@link Ext.form.FormLayout FormLayout} layout manager.</b></p>
+     * Example use:<pre><code>
+new Ext.FormPanel({
+    height: 100,
+    renderTo: Ext.getBody(),
+    items: [{
+        xtype: 'textfield',
+        fieldLabel: 'Name'
+    }]
+});
+</code></pre>
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='labelStyle'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+A CSS style specification to apply directly to this field's label (defaults to the
+     * container's labelStyle value if set, or '').<code></code>.
+     * <p><b>This config is only used when this Component is rendered by a Container which has been
+     * configured to use the {@link Ext.form.FormLayout FormLayout} layout manager.</b></p>
+     * Example use:<pre><code>
+new Ext.FormPanel({
+    height: 100,
+    renderTo: Ext.getBody(),
+    items: [{
+        xtype: 'textfield',
+        fieldLabel: 'Name',
+        labelStyle: 'font-weight:bold;'
+    }]
+});
+</code></pre>
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='labelSeparator'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+The standard separator to display after the text of each form label (defaults
+     * to the value of {@link Ext.layout.FormLayout#labelSeparator}, which is a colon ':' by default).  To display
+     * no separator for this field's label specify empty string ''.
+     * <p><b>This config is only used when this Component is rendered by a Container which has been
+     * configured to use the {@link Ext.form.FormLayout FormLayout} layout manager.</b></p>
+     * Example use:<pre><code>
+new Ext.FormPanel({
+    height: 100,
+    renderTo: Ext.getBody(),
+    items: [{
+        xtype: 'textfield',
+        fieldLabel: 'Name',
+        labelSeparator: '...'
+    }]
+});
+</code></pre>
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='hideLabel'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+True to completely hide the label element (defaults to false).  By default, even if
+     * you do not specify a {@link fieldLabel} the space will still be reserved so that the field will line up with
+     * other fields that do have labels. Setting this to true will cause the field to not reserve that space.
+     * <p><b>This config is only used when this Component is rendered by a Container which has been
+     * configured to use the {@link Ext.form.FormLayout FormLayout} layout manager.</b></p>
+     * Example use:<pre><code>
+new Ext.FormPanel({
+    height: 100,
+    renderTo: Ext.getBody(),
+    items: [{
+        xtype: 'textfield'
+        hideLabel: true
+    }]
+});
+</code></pre>
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='clearCls'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+The CSS class used to provide field clearing (defaults to 'x-form-clear-left').
+     * <p><b>This config is only used when this Component is rendered by a Container which has been
+     * configured to use the {@link Ext.form.FormLayout FormLayout} layout manager.</b></p>
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='itemCls'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+An additional CSS class to apply to the wrapper's form item element of this field (defaults
+     * to the container's itemCls value if set, or '').  Since it is applied to the item wrapper, it allows you to write
+     * standard CSS rules that can apply to the field, the label (if specified) or any other element within the markup for
+     * the field.
+     * <p><b>This config is only used when this Component is rendered by a Container which has been
+     * configured to use the {@link Ext.form.FormLayout FormLayout} layout manager.</b></p>
+     * Example use:<pre><code>
+// Apply a style to the field's label:
+&lt;style>
+    .required .x-form-item-label {font-weight:bold;color:red;}
+&lt;/style>
+
+new Ext.FormPanel({
+    height: 100,
+    renderTo: Ext.getBody(),
+    items: [{
+        xtype: 'textfield',
+        fieldLabel: 'Name',
+        itemCls: 'required' //this label will be styled
+    },{
+        xtype: 'textfield',
+        fieldLabel: 'Favorite Color'
+    }]
+});
+</code></pre>
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='id'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The unique id of this component (defaults to an auto-assigned id). You should assign an id if you need to
+     * be able to access the component later and you do not have an object reference available (e.g., using
+     * {@link Ext.ComponentMgr#getCmp}). Note that this id will also be used as the element id for the containing
+     * HTML element that is rendered to the page for this component. This allows you to write id-based CSS rules to
+     * style the specific instance of this component uniquely, and also to select sub-elements using this
+     * component's id as the parent.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='region'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+(It's neither here nor there) It's neither here nor there
+North and south and east and west
+(It has to be somewhere) It oughta be somewhere
+North and south and east and west
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:boolean' name='split'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * True to display a {@link Ext.SplitBar} between this region and its neighbor, allowing the user to resize
+     * the regions dynamically (defaults to false).  When split == true, it is common to specify a minSize
+     * and maxSize for the BoxComponent representing the region. These are not native configs of BoxComponent, and
+     * are used only by this class.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:boolean' name='closable'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='autoEl'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * A tag name or DomHelper spec to create an element with. This is intended to create shorthand
+     * utility components inline via JSON. It should not be used for higher level components which already create
+     * their own elements. Example usage:
+     * <pre><code>
+{xtype:'box', autoEl: 'div', cls:'my-class'}
+{xtype:'box', autoEl: {tag:'blockquote', html:'autoEl is cool!'}} // with DomHelper
+</code></pre>
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='xtype'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The registered xtype to create. This config option is not used when passing
+     * a config object into a constructor. This config option is used only when
+     * lazy instantiation is being used, and a child item of a Container is being
+     * specified not as a fully instantiated Component, but as a <i>Component config
+     * object</i>. The xtype will be looked up at render time up to determine what
+     * type of child Component to create.<br><br>
+     * The predefined xtypes are listed {@link Ext.Component here}.
+     * <br><br>
+     * If you subclass Components to create your own Components, you may register
+     * them using {@link Ext.ComponentMgr#registerType} in order to be able to
+     * take advantage of lazy instantiation and rendering.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='cls'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * An optional extra CSS class that will be added to this component's Element (defaults to '').  This can be
+     * useful for adding customized styles to the component or any of its children using standard CSS rules.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='overCls'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * An optional extra CSS class that will be added to this component's Element when the mouse moves
+     * over the Element, and removed when the mouse moves out. (defaults to '').  This can be
+     * useful for adding customized "active" or "hover" styles to the component or any of its children using standard CSS rules.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='style'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * A custom style specification to be applied to this component's Element.  Should be a valid argument to
+     * {@link Ext.Element#applyStyles}.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='ctCls'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * An optional extra CSS class that will be added to this component's container (defaults to '').  This can be
+     * useful for adding customized styles to the container or any of its children using standard CSS rules.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='disabled'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * Render this component disabled (default is false).
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='hidden'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * Render this component hidden (default is false).
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='plugins'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * An object or array of objects that will provide custom functionality for this component.  The only
+     * requirement for a valid plugin is that it contain an init method that accepts a reference of type Ext.Component.
+     * When a component is created, if any plugins are available, the component will call the init method on each
+     * plugin, passing a reference to itself.  Each plugin can then call methods or respond to events on the
+     * component as needed to provide its functionality.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='applyTo'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The id of the node, a DOM node or an existing Element corresponding to a DIV that is already present in
+     * the document that specifies some structural markup for this component.  When applyTo is used, constituent parts of
+     * the component can also be specified by id or CSS class name within the main element, and the component being created
+     * may attempt to create its subcomponents from that markup if applicable. Using this config, a call to render() is
+     * not required.  If applyTo is specified, any value passed for {@link #renderTo} will be ignored and the target
+     * element's parent node will automatically be used as the component's container.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='renderTo'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The id of the node, a DOM node or an existing Element that will be the container to render this component into.
+     * Using this config, a call to render() is not required.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='stateful'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * <p>A flag which causes the Component to attempt to restore the state of internal properties
+     * from a saved state on startup. The component must have either a {@link #stateId} or {@link #id}
+     * assigned for state to be managed.  Auto-generated ids are not guaranteed to be stable across page
+     * loads and cannot be relied upon to save and restore the same state for a component.<p>
+     * For state saving to work, the state manager's provider must have been set to an implementation
+     * of {@link Ext.state.Provider} which overrides the {@link Ext.state.Provider#set set}
+     * and {@link Ext.state.Provider#get get} methods to save and recall name/value pairs.
+     * A built-in implementation, {@link Ext.state.CookieProvider} is available.</p>
+     * <p>To set the state provider for the current page:</p>
+     * <pre><code>
+Ext.state.Manager.setProvider(new Ext.state.CookieProvider());
+</code></pre>
+     * <p>Components attempt to save state when one of the events listed in the {@link #stateEvents}
+     * configuration fires.</p>
+     * <p>You can perform extra processing on state save and restore by attaching handlers to the
+     * {@link #beforestaterestore}, {@link #staterestore}, {@link #beforestatesave} and {@link #statesave} events</p>
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='stateId'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The unique id for this component to use for state management purposes (defaults to the component id if one was
+     * set, otherwise null if the component is using a generated id).
+     * <p>See {@link #stateful} for an explanation of saving and restoring Component state.</p>
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='stateEvents'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * An array of events that, when fired, should trigger this component to save its state (defaults to none).
+     * These can be any types of events supported by this component, including browser or custom events (e.g.,
+     * ['click', 'customerchange']).
+     * <p>See {@link #stateful} for an explanation of saving and restoring Component state.</p>
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='disabledClass'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * CSS class added to the component when it is disabled (defaults to "x-item-disabled").
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='allowDomMove'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+	 * Whether the component can move the Dom node when rendering (defaults to true).
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='autoShow'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+	 * True if the component should check for hidden classes (e.g. 'x-hidden' or 'x-hide-display') and remove
+	 * them on render (defaults to false).
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='hideMode'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * <p>How this component should be hidden. Supported values are "visibility" (css visibility), "offsets" (negative
+     * offset position) and "display" (css display) - defaults to "display".</p>
+     * <p>For Containers which may be hidden and shown as part of a {@link Ext.layout.CardLayout card layout} Container such as a
+     * {@link Ext.TabPanel TabPanel}, it is recommended that hideMode is configured as "offsets". This ensures
+     * that hidden Components still have height and width so that layout managers can perform measurements when
+     * calculating layouts.</p>
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='hideParent'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * True to hide and show the component's container when hide/show is called on the component, false to hide
+     * and show the component itself (defaults to false).  For example, this can be used as a shortcut for a hide
+     * button on a window by setting hide:true on the button when adding it to its parent container.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType><!--Ext.Component-->
+  <xs:element name='component' type='ext:Ext.Component' xmlns:ext='http://extjs.com/ext3'>
+    <xs:annotation>
+      <xs:documentation><![CDATA[
+
+ * <p>Base class for all Ext components.  All subclasses of Component can automatically participate in the standard
+ * Ext component lifecycle of creation, rendering and destruction.  They also have automatic support for basic hide/show
+ * and enable/disable behavior.  Component allows any subclass to be lazy-rendered into any {@link Ext.Container} and
+ * to be automatically registered with the {@link Ext.ComponentMgr} so that it can be referenced at any time via
+ * {@link Ext#getCmp}.  All visual widgets that require rendering into a layout should subclass Component (or
+ * {@link Ext.BoxComponent} if managed box model handling is required).</p>
+ * <p>Every component has a specific xtype, which is its Ext-specific type name, along with methods for checking the
+ * xtype like {@link #getXType} and {@link #isXType}. This is the list of all valid xtypes:</p>
+ * <pre>
+xtype            Class
+-------------    ------------------
+box              Ext.BoxComponent
+button           Ext.Button
+colorpalette     Ext.ColorPalette
+component        Ext.Component
+container        Ext.Container
+cycle            Ext.CycleButton
+dataview         Ext.DataView
+datepicker       Ext.DatePicker
+editor           Ext.Editor
+editorgrid       Ext.grid.EditorGridPanel
+grid             Ext.grid.GridPanel
+paging           Ext.PagingToolbar
+panel            Ext.Panel
+progress         Ext.ProgressBar
+propertygrid     Ext.grid.PropertyGrid
+slider           Ext.Slider
+splitbutton      Ext.SplitButton
+statusbar        Ext.StatusBar
+tabpanel         Ext.TabPanel
+treepanel        Ext.tree.TreePanel
+viewport         Ext.Viewport
+window           Ext.Window
+
+Toolbar components
+---------------------------------------
+toolbar          Ext.Toolbar
+tbbutton         Ext.Toolbar.Button
+tbfill           Ext.Toolbar.Fill
+tbitem           Ext.Toolbar.Item
+tbseparator      Ext.Toolbar.Separator
+tbspacer         Ext.Toolbar.Spacer
+tbsplit          Ext.Toolbar.SplitButton
+tbtext           Ext.Toolbar.TextItem
+
+Form components
+---------------------------------------
+form             Ext.FormPanel
+checkbox         Ext.form.Checkbox
+combo            Ext.form.ComboBox
+datefield        Ext.form.DateField
+field            Ext.form.Field
+fieldset         Ext.form.FieldSet
+hidden           Ext.form.Hidden
+htmleditor       Ext.form.HtmlEditor
+label            Ext.form.Label
+numberfield      Ext.form.NumberField
+radio            Ext.form.Radio
+textarea         Ext.form.TextArea
+textfield        Ext.form.TextField
+timefield        Ext.form.TimeField
+trigger          Ext.form.TriggerField
+</pre>
+ * @constructor
+ * @param {Ext.Element/String/Object} config The configuration options.  If an element is passed, it is set as the internal
+ * element and its id used as the component id.  If a string is passed, it is assumed to be the id of an existing element
+ * and is used as the component id.  Otherwise, it is assumed to be a standard config object and is applied to the component.
+      ]]></xs:documentation>
+    </xs:annotation>
+  </xs:element>
+<!-- done Ext.Component-->
+  <xs:complexType name='Ext.ComponentMgr' xmlns='http://extjs.com/ext3'>
+    <xs:sequence>
+      <xs:any minOccurs='0' maxOccurs='unbounded' processContents='lax'/>
+    </xs:sequence>
+  </xs:complexType><!--Ext.ComponentMgr-->
+<!-- done Ext.ComponentMgr-->
+<!-- Ext.Container triggered by 'extends'-->
+  <xs:complexType name='Ext.Container' xmlns='http://extjs.com/ext3'>
+   <xs:complexContent>
+   <xs:extension base='Ext.BoxComponent'>
+    <xs:sequence>
+      <xs:any minOccurs='0' maxOccurs='unbounded' processContents='lax'/>
+    </xs:sequence>
+    <xs:attribute type='xs:string' name='monitorResize'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * True to automatically monitor window resize events to handle anything that is sensitive to the current size
+     * of the viewport.  This value is typically managed by the chosen {@link #layout} and should not need to be set manually.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='layout'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The layout type to be used in this container.  If not specified, a default {@link Ext.layout.ContainerLayout}
+     * will be created and used. Specific config values for the chosen layout type can be specified using 
+     * {@link #layoutConfig}. Valid values are:<ul class="mdetail-params">
+     * <li>absolute</li>
+     * <li>accordion</li>
+     * <li>anchor</li>
+     * <li>border</li>
+     * <li>card</li>
+     * <li>column</li>
+     * <li>fit</li>
+     * <li>form</li>
+     * <li>table</li></ul>
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='layoutConfig'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * This is a config object containing properties specific to the chosen layout (to be used in conjunction with
+     * the {@link #layout} config value).  For complete details regarding the valid config options for each layout
+     * type, see the layout class corresponding to the type specified:<ul class="mdetail-params">
+     * <li>{@link Ext.layout.Absolute}</li>
+     * <li>{@link Ext.layout.Accordion}</li>
+     * <li>{@link Ext.layout.AnchorLayout}</li>
+     * <li>{@link Ext.layout.BorderLayout}</li>
+     * <li>{@link Ext.layout.CardLayout}</li>
+     * <li>{@link Ext.layout.ColumnLayout}</li>
+     * <li>{@link Ext.layout.FitLayout}</li>
+     * <li>{@link Ext.layout.FormLayout}</li>
+     * <li>{@link Ext.layout.TableLayout}</li></ul>
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='bufferResize'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * When set to true (100 milliseconds) or a number of milliseconds, the layout assigned for this container will buffer
+     * the frequency it calculates and does a re-layout of components. This is useful for heavy containers or containers
+     * with a large quantity of sub-components for which frequent layout calls would be expensive.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='activeItem'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * A string component id or the numeric index of the component that should be initially activated within the
+     * container's layout on render.  For example, activeItem: 'item-1' or activeItem: 0 (index 0 = the first
+     * item in the container's collection).  activeItem only applies to layout styles that can display
+     * items one at a time (like {@link Ext.layout.Accordion}, {@link Ext.layout.CardLayout} and
+     * {@link Ext.layout.FitLayout}).  Related to {@link Ext.layout.ContainerLayout#activeItem}.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='items'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * A single item, or an array of child Components to be added to this container.
+     * Each item can be any type of object based on {@link Ext.Component}.<br><br>
+     * Component config objects may also be specified in order to avoid the overhead
+     * of constructing a real Component object if lazy rendering might mean that the
+     * added Component will not be rendered immediately. To take advantage of this
+     * "lazy instantiation", set the {@link Ext.Component#xtype} config property to
+     * the registered type of the Component wanted.<br><br>
+     * For a list of all available xtypes, see {@link Ext.Component}.
+     * If a single item is being passed, it should be passed directly as an object
+     * reference (e.g., items: {...}).  Multiple items should be passed as an array
+     * of objects (e.g., items: [{...}, {...}]).
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='defaults'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * A config object that will be applied to all components added to this container either via the {@link #items}
+     * config or via the {@link #add} or {@link #insert} methods.  The defaults config can contain any number of
+     * name/value property pairs to be added to each item, and should be valid for the types of items
+     * being added to the container.  For example, to automatically apply padding to the body of each of a set of
+     * contained {@link Ext.Panel} items, you could pass: defaults: {bodyStyle:'padding:15px'}.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='autoDestroy'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * If true the container will automatically destroy any contained component that is removed from it, else
+     * destruction must be handled manually (defaults to true).
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='hideBorders'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * True to hide the borders of each contained component, false to defer to the component's existing
+     * border settings (defaults to false).
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='defaultType'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * <p>The default {@link Ext.Component xtype} of child Components to create in this Container when
+     * a child item is specified as a raw configuration object, rather than as an instantiated Component.</p>
+     * <p>Defaults to 'panel'.</p>
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+   </xs:extension>
+   </xs:complexContent>
+  </xs:complexType><!--Ext.Container-->
+  <xs:element name='container' type='ext:Ext.Container' xmlns:ext='http://extjs.com/ext3'  substitutionGroup='ext:box'>
+    <xs:annotation>
+      <xs:documentation><![CDATA[
+
+ * <p>Base class for any {@link Ext.BoxComponent} that can contain other components. The most commonly
+ * used Container classes are {@link Ext.Panel}, {@link Ext.Window} and {@link Ext.TabPanel}, but you can
+ * create a lightweight Container to encapsulate an HTML element that is created to your
+ * specifications at render time by using the {@link Ext.Component#autoEl autoEl} config option
+ * which takes the form of a {@link Ext.DomHelper DomHelper} specification. If you do not need
+ * the capabilities offered by the above mentioned classes, for instance embedded
+ * {@link Ext.layout.ColumnLayout column} layouts inside FormPanels, then this is a useful technique.</p>
+ * <p>The code below illustrates both how to explicitly <i>create</i> a Container, and how to implicitly
+ * create one using the <b><tt>'container'</tt></b> xtype:<pre><code>
+var embeddedColumns = new Ext.Container({
+    autoEl: {},
+    layout: 'column',
+    defaults: {
+        xtype: 'container',
+        autoEl: {},
+        layout: 'form',
+        columnWidth: 0.5,
+        style: {
+            padding: '10px'
+        }
+    },
+    items: [{
+        items: {
+            xtype: 'datefield',
+            name: 'startDate',
+            fieldLabel: 'Start date'
+        }
+    }, {
+        items: {
+            xtype: 'datefield',
+            name: 'endDate',
+            fieldLabel: 'End date'
+        }
+    }]
+});</code></pre></p>
+ * Containers handle the basic behavior of containing items, namely adding, inserting and removing them.
+ * The specific layout logic required to visually render contained items is delegated to any one of the different
+ * {@link #layout} classes available.</p>
+ * <p>When either specifying child {@link #items} of a Container, or dynamically adding components to a Container,
+ * remember to consider how you wish the Container to arrange those child elements, and whether those child elements
+ * need to be sized using one of Ext's built-in layout schemes.</p>
+ * <p>By default, Containers use the {@link Ext.layout.ContainerLayout ContainerLayout} scheme. This simply renders
+ * child components, appending them one after the other inside the Container, and does not apply any sizing at all.
+ * This is a common source of confusion when widgets like GridPanels or TreePanels are added to Containers for
+ * which no layout has been specified. If a Container is left to use the ContainerLayout scheme, none of its child
+ * components will be resized, or changed in any way when the Container is resized.</p>
+ * <p>A very common example of this is where a developer will attempt to add a GridPanel to a TabPanel by wrapping
+ * the GridPanel <i>inside</i> a wrapping Panel and add that wrapping Panel to the TabPanel. This misses the point that
+ * Ext's inheritance means that a GridPanel <b>is</b> a Component which can be added unadorned into a Container. If
+ * that wrapping Panel has no layout configuration, then the GridPanel will not be sized as expected.<p>
+ * <p>Below is an example of adding a newly created GridPanel to a TabPanel. A TabPanel uses {@link Ext.layout.CardLayout}
+ * as its layout manager which means all its child items are sized to fit exactly into its client area. The following
+ * code requires prior knowledge of how to create GridPanels. See {@link Ext.grid.GridPanel}, {@link Ext.data.Store}
+ * and {@link Ext.data.JsonReader} as well as the grid examples in the Ext installation's <tt>examples/grid</tt>
+ * directory.</p><pre><code>
+//  Create the GridPanel.
+myGrid = new Ext.grid.GridPanel({
+    store: myStore,
+    columns: myColumnModel,
+    title: 'Results',
+});
+
+myTabPanel.add(myGrid);
+myTabPanel.setActiveTab(myGrid);
+</code></pre>
+      ]]></xs:documentation>
+    </xs:annotation>
+  </xs:element>
+<!-- done Ext.Container-->
+<!-- Ext.CycleButton triggered by 'extends'-->
+  <xs:complexType name='Ext.CycleButton' xmlns='http://extjs.com/ext3'>
+   <xs:complexContent>
+   <xs:extension base='Ext.SplitButton'>
+    <xs:sequence>
+      <xs:any minOccurs='0' maxOccurs='unbounded' processContents='lax'/>
+    </xs:sequence>
+    <xs:attribute type='xs:string' name='items'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+An array of {@link Ext.menu.CheckItem} <b>config</b> objects to be used when creating the
+     * button's menu items (e.g., {text:'Foo', iconCls:'foo-icon'})
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='showText'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+True to display the active item's text as the button text (defaults to false)
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='prependText'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+A static string to prepend before the active item's text when displayed as the
+     * button's text (only applies when showText = true, defaults to '')
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='changeHandler'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+A callback function that will be invoked each time the active menu
+     * item in the button's menu has changed.  If this callback is not supplied, the SplitButton will instead
+     * fire the {@link #change} event on active item change.  The changeHandler function will be called with the
+     * following argument list: (SplitButton this, Ext.menu.CheckItem item)
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='forceIcon'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+A css class which sets an image to be used as the static icon for this button.  This
+	 * icon will always be displayed regardless of which item is selected in the dropdown list.  This overrides the 
+	 * default behavior of changing the button's icon to match the selected item's icon on change.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+   </xs:extension>
+   </xs:complexContent>
+  </xs:complexType><!--Ext.CycleButton-->
+  <xs:element name='cycle' type='ext:Ext.CycleButton' xmlns:ext='http://extjs.com/ext3'  substitutionGroup='ext:splitbutton'>
+    <xs:annotation>
+      <xs:documentation><![CDATA[
+
+ * A specialized SplitButton that contains a menu of {@link Ext.menu.CheckItem} elements.  The button automatically
+ * cycles through each menu item on click, raising the button's {@link #change} event (or calling the button's
+ * {@link #changeHandler} function, if supplied) for the active menu item. Clicking on the arrow section of the
+ * button displays the dropdown menu just like a normal SplitButton.  Example usage:
+ * <pre><code>
+var btn = new Ext.CycleButton({
+    showText: true,
+    prependText: 'View as ',
+    items: [{
+        text:'text only',
+        iconCls:'view-text',
+        checked:true
+    },{
+        text:'HTML',
+        iconCls:'view-html'
+    }],
+    changeHandler:function(btn, item){
+        Ext.Msg.alert('Change View', item.text);
+    }
+});
+</code></pre>
+ * @constructor
+ * Create a new split button
+ * @param {Object} config The config object
+      ]]></xs:documentation>
+    </xs:annotation>
+  </xs:element>
+<!-- done Ext.CycleButton-->
+<!-- Ext.DataView triggered by 'extends'-->
+  <xs:complexType name='Ext.DataView' xmlns='http://extjs.com/ext3'>
+   <xs:complexContent>
+   <xs:extension base='Ext.BoxComponent'>
+    <xs:sequence>
+      <xs:any minOccurs='0' maxOccurs='unbounded' processContents='lax'/>
+    </xs:sequence>
+    <xs:attribute type='xs:string' name='tpl'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The HTML fragment or an array of fragments that will make up the template used by this DataView.  This should
+     * be specified in the same format expected by the constructor of {@link Ext.XTemplate}.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='store'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The {@link Ext.data.Store} to bind this DataView to.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='itemSelector'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * <b>This is a required setting</b>. A simple CSS selector (e.g. div.some-class or span:first-child) that will be 
+     * used to determine what nodes this DataView will be working with.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='multiSelect'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * True to allow selection of more than one item at a time, false to allow selection of only a single item
+     * at a time or no selection at all, depending on the value of {@link #singleSelect} (defaults to false).
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='singleSelect'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * True to allow selection of exactly one item at a time, false to allow no selection at all (defaults to false).
+     * Note that if {@link #multiSelect} = true, this value will be ignored.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='simpleSelect'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * True to enable multiselection by clicking on multiple items without requiring the user to hold Shift or Ctrl,
+     * false to force the user to hold Ctrl or Shift to select more than on item (defaults to false).
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='overClass'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * A CSS class to apply to each item in the view on mouseover (defaults to undefined).
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='loadingText'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * A string to display during data load operations (defaults to undefined).  If specified, this text will be
+     * displayed in a loading div and the view's contents will be cleared while loading, otherwise the view's
+     * contents will continue to display normally until the new data is loaded and the contents are replaced.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='selectedClass'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * A CSS class to apply to each selected item in the view (defaults to 'x-view-selected').
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='emptyText'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The text to display in the view when there is no data to display (defaults to '').
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='deferEmptyText'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+True to defer emptyText being applied until the store's first load
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='trackOver'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+True to enable mouseenter and mouseleave events
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+   </xs:extension>
+   </xs:complexContent>
+  </xs:complexType><!--Ext.DataView-->
+  <xs:element name='dataview' type='ext:Ext.DataView' xmlns:ext='http://extjs.com/ext3'  substitutionGroup='ext:box'>
+    <xs:annotation>
+      <xs:documentation><![CDATA[
+
+ * A mechanism for displaying data using custom layout templates and formatting. DataView uses an {@link Ext.XTemplate}
+ * as its internal templating mechanism, and is bound to an {@link Ext.data.Store}
+ * so that as the data in the store changes the view is automatically updated to reflect the changes.  The view also
+ * provides built-in behavior for many common events that can occur for its contained items including click, doubleclick,
+ * mouseover, mouseout, etc. as well as a built-in selection model. <b>In order to use these features, an {@link #itemSelector}
+ * config must be provided for the DataView to determine what nodes it will be working with.</b>
+ *
+ * <p>The example below binds a DataView to a {@link Ext.data.Store} and renders it into an {@link Ext.Panel}.</p>
+ * <pre><code>
+var store = new Ext.data.JsonStore({
+    url: 'get-images.php',
+    root: 'images',
+    fields: [
+        'name', 'url',
+        {name:'size', type: 'float'},
+        {name:'lastmod', type:'date', dateFormat:'timestamp'}
+    ]
+});
+store.load();
+
+var tpl = new Ext.XTemplate(
+    '&lt;tpl for="."&gt;',
+        '&lt;div class="thumb-wrap" id="{name}"&gt;',
+        '&lt;div class="thumb"&gt;&lt;img src="{url}" title="{name}"&gt;&lt;/div&gt;',
+        '&lt;span class="x-editable"&gt;{shortName}&lt;/span&gt;&lt;/div&gt;',
+    '&lt;/tpl&gt;',
+    '&lt;div class="x-clear"&gt;&lt;/div&gt;'
+);
+
+var panel = new Ext.Panel({
+    id:'images-view',
+    frame:true,
+    width:535,
+    autoHeight:true,
+    collapsible:true,
+    layout:'fit',
+    title:'Simple DataView',
+
+    items: new Ext.DataView({
+        store: store,
+        tpl: tpl,
+        autoHeight:true,
+        multiSelect: true,
+        overClass:'x-view-over',
+        itemSelector:'div.thumb-wrap',
+        emptyText: 'No images to display'
+    })
+});
+panel.render(document.body);
+</code></pre>
+ * @constructor
+ * Create a new DataView
+ * @param {Object} config The config object
+      ]]></xs:documentation>
+    </xs:annotation>
+  </xs:element>
+<!-- done Ext.DataView-->
+<!-- Ext.DatePicker triggered by 'extends'-->
+  <xs:complexType name='Ext.DatePicker' xmlns='http://extjs.com/ext3'>
+   <xs:complexContent>
+   <xs:extension base='Ext.Component'>
+    <xs:sequence>
+      <xs:any minOccurs='0' maxOccurs='unbounded' processContents='lax'/>
+    </xs:sequence>
+    <xs:attribute type='xs:string' name='todayText'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The text to display on the button that selects the current date (defaults to "Today")
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='okText'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The text to display on the ok button
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='cancelText'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The text to display on the cancel button
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='todayTip'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The tooltip to display for the button that selects the current date (defaults to "{current date} (Spacebar)")
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='minText'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The error text to display if the minDate validation fails (defaults to "This date is before the minimum date")
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='maxText'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The error text to display if the maxDate validation fails (defaults to "This date is after the maximum date")
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='format'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The default date format string which can be overriden for localization support.  The format must be
+     * valid according to {@link Date#parseDate} (defaults to 'm/d/y').
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='disabledDaysText'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The tooltip to display when the date falls on a disabled day (defaults to "Disabled")
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='disabledDatesText'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The tooltip text to display when the date falls on a disabled date (defaults to "Disabled")
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='constrainToViewport'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * <b>Deprecated</b> (not currently used). True to constrain the date picker to the viewport (defaults to true)
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='monthNames'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * An array of textual month names which can be overriden for localization support (defaults to Date.monthNames)
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='dayNames'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * An array of textual day names which can be overriden for localization support (defaults to Date.dayNames)
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='nextText'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The next month navigation button tooltip (defaults to 'Next Month (Control+Right)')
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='prevText'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The previous month navigation button tooltip (defaults to 'Previous Month (Control+Left)')
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='monthYearText'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The header month selector tooltip (defaults to 'Choose a month (Control+Up/Down to move years)')
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:int' name='startDay'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * Day index at which the week should begin, 0-based (defaults to 0, which is Sunday)
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='showToday'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * False to hide the footer area containing the Today button and disable the keyboard handler for spacebar
+     * that selects the current date (defaults to true).
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='minDate'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * Minimum allowable date (JavaScript date object, defaults to null)
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='maxDate'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * Maximum allowable date (JavaScript date object, defaults to null)
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='disabledDays'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * An array of days to disable, 0-based. For example, [0, 6] disables Sunday and Saturday (defaults to null).
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='disabledDatesRE'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * JavaScript regular expression used to disable a pattern of dates (defaults to null).  The {@link #disabledDates}
+     * config will generate this regex internally, but if you specify disabledDatesRE it will take precedence over the 
+     * disabledDates value.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='disabledDates'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * An array of "dates" to disable, as strings. These strings will be used to build a dynamic regular
+     * expression so they are very powerful. Some examples:
+     * <ul>
+     * <li>["03/08/2003", "09/16/2003"] would disable those exact dates</li>
+     * <li>["03/08", "09/16"] would disable those days for every year</li>
+     * <li>["^03/08"] would only match the beginning (useful if you are using short years)</li>
+     * <li>["03/../2006"] would disable every day in March 2006</li>
+     * <li>["^03"] would disable every day in every March</li>
+     * </ul>
+     * Note that the format of the dates included in the array should exactly match the {@link #format} config.
+     * In order to support regular expressions, if you are using a date format that has "." in it, you will have to
+     * escape the dot when restricting dates. For example: ["03\\.08\\.03"].
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='autoEl'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+@hide
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+   </xs:extension>
+   </xs:complexContent>
+  </xs:complexType><!--Ext.DatePicker-->
+  <xs:element name='datepicker' type='ext:Ext.DatePicker' xmlns:ext='http://extjs.com/ext3'  substitutionGroup='ext:component'>
+    <xs:annotation>
+      <xs:documentation><![CDATA[
+
+ * Simple date picker class.
+ * @constructor
+ * Create a new DatePicker
+ * @param {Object} config The config object
+      ]]></xs:documentation>
+    </xs:annotation>
+  </xs:element>
+<!-- done Ext.DatePicker-->
+<!-- Ext.Editor triggered by 'extends'-->
+  <xs:complexType name='Ext.Editor' xmlns='http://extjs.com/ext3'>
+   <xs:complexContent>
+   <xs:extension base='Ext.Component'>
+    <xs:sequence>
+      <xs:any minOccurs='0' maxOccurs='unbounded' processContents='lax'/>
+    </xs:sequence>
+    <xs:attribute type='xs:string' name='autoSize'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * True for the editor to automatically adopt the size of the underlying field, "width" to adopt the width only,
+     * or "height" to adopt the height only (defaults to false)
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='revertInvalid'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * True to automatically revert the field value and cancel the edit when the user completes an edit and the field
+     * validation fails (defaults to true)
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='ignoreNoChange'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * True to skip the edit completion process (no save, no events fired) if the user completes an edit and
+     * the value has not changed (defaults to false).  Applies only to string values - edits for other data types
+     * will never be ignored.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='hideEl'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * False to keep the bound element visible while the editor is displayed (defaults to true)
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='value'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The data value of the underlying field (defaults to "")
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='alignment'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The position to align to (see {@link Ext.Element#alignTo} for more details, defaults to "c-c?").
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='shadow'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+"sides" for sides/bottom only, "frame" for 4-way shadow, and "drop"
+     * for bottom-right shadow (defaults to "frame")
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='constrain'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+True to constrain the editor to the viewport
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='swallowKeys'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+Handle the keydown/keypress events so they don't propagate (defaults to true)
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='completeOnEnter'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+True to complete the edit when the enter key is pressed (defaults to false)
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='cancelOnEsc'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+True to cancel the edit when the escape key is pressed (defaults to false)
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='updateEl'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+True to update the innerHTML of the bound element when the update completes (defaults to false)
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+   </xs:extension>
+   </xs:complexContent>
+  </xs:complexType><!--Ext.Editor-->
+  <xs:element name='editor' type='ext:Ext.Editor' xmlns:ext='http://extjs.com/ext3'  substitutionGroup='ext:component'>
+    <xs:annotation>
+      <xs:documentation><![CDATA[
+
+ * A base editor field that handles displaying/hiding on demand and has some built-in sizing and event handling logic.
+ * @constructor
+ * Create a new Editor
+ * @param {Ext.form.Field} field The Field object (or descendant)
+ * @param {Object} config The config object
+      ]]></xs:documentation>
+    </xs:annotation>
+  </xs:element>
+<!-- done Ext.Editor-->
+<!-- Ext.Layer triggered by 'extends'-->
+  <xs:complexType name='Ext.Layer' xmlns='http://extjs.com/ext3'>
+    <xs:sequence>
+      <xs:any minOccurs='0' maxOccurs='unbounded' processContents='lax'/>
+    </xs:sequence>
+    <xs:attribute type='xs:int' name='shadowOffset'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+Number of pixels to offset the shadow (defaults to 3)
+ * @constructor
+ * @param {Object} config An object with config options.
+ * @param {String/HTMLElement} existingEl (optional) Uses an existing DOM element. If the element is not found it creates it.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType><!--Ext.Layer-->
+<!-- done Ext.Layer-->
+  <xs:complexType name='Ext.LoadMask' xmlns='http://extjs.com/ext3'>
+    <xs:sequence>
+      <xs:any minOccurs='0' maxOccurs='unbounded' processContents='lax'/>
+    </xs:sequence>
+    <xs:attribute type='xs:string' name='store'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * Optional Store to which the mask is bound. The mask is displayed when a load request is issued, and
+     * hidden on either load sucess, or load fail.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='removeMask'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * True to create a single-use mask that is automatically destroyed after loading (useful for page loads),
+     * False to persist the mask element reference for multiple uses (e.g., for paged data widgets).  Defaults to false.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='msg'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The text to display in a centered loading message box (defaults to 'Loading...')
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='msgCls'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The CSS class to apply to the loading message element (defaults to "x-mask-loading")
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType><!--Ext.LoadMask-->
+<!-- done Ext.LoadMask-->
+  <xs:complexType name='Ext.MessageBox' xmlns='http://extjs.com/ext3'>
+    <xs:sequence>
+      <xs:any minOccurs='0' maxOccurs='unbounded' processContents='lax'/>
+    </xs:sequence>
+  </xs:complexType><!--Ext.MessageBox-->
+<!-- done Ext.MessageBox-->
+<!-- Ext.PagingToolbar triggered by 'extends'-->
+  <xs:complexType name='Ext.PagingToolbar' xmlns='http://extjs.com/ext3'>
+   <xs:complexContent>
+   <xs:extension base='Ext.Toolbar'>
+    <xs:sequence>
+      <xs:any minOccurs='0' maxOccurs='unbounded' processContents='lax'/>
+    </xs:sequence>
+    <xs:attribute type='xs:string' name='store'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+The {@link Ext.data.Store} the paging toolbar should use as its data source (required).
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='displayInfo'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * True to display the displayMsg (defaults to false)
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:int' name='pageSize'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The number of records to display per page (defaults to 20)
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='displayMsg'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The paging status message to display (defaults to "Displaying {0} - {1} of {2}").  Note that this string is
+     * formatted using the braced numbers 0-2 as tokens that are replaced by the values for start, end and total
+     * respectively. These tokens should be preserved when overriding this string if showing those values is desired.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='emptyMsg'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The message to display when no records are found (defaults to "No data to display")
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+   </xs:extension>
+   </xs:complexContent>
+  </xs:complexType><!--Ext.PagingToolbar-->
+  <xs:element name='paging' type='ext:Ext.PagingToolbar' xmlns:ext='http://extjs.com/ext3'  substitutionGroup='ext:toolbar'>
+    <xs:annotation>
+      <xs:documentation><![CDATA[
+
+ * <p>A specialized toolbar that is bound to a {@link Ext.data.Store} and provides automatic paging control. This
+ * Component {@link Ext.data.Store#load load}s blocks of data into the Store passing parameters who's names are
+ * specified by the store's {@link Ext.data.Store#paramNames paramNames} property.</p>
+ * @constructor
+ * Create a new PagingToolbar
+ * @param {Object} config The config object
+      ]]></xs:documentation>
+    </xs:annotation>
+  </xs:element>
+<!-- done Ext.PagingToolbar-->
+<!-- Ext.Panel triggered by 'extends'-->
+  <xs:complexType name='Ext.Panel' xmlns='http://extjs.com/ext3'>
+   <xs:complexContent>
+   <xs:extension base='Ext.Container'>
+    <xs:sequence>
+      <xs:any minOccurs='0' maxOccurs='unbounded' processContents='lax'/>
+    </xs:sequence>
+    <xs:attribute type='xs:string' name='bodyCfg'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * <p>A {@link Ext.DomHelper DomHelper} configuration object specifying the element structure
+     * of this Panel's {@link #body} Element.</p>
+     * <p>This may be used to force the body Element to use a different form of markup than
+     * is created automatically. An example of this might be to create a child Panel containing
+     * custom content, such as a header, or forcing centering of all Panel
+     * content by having the body be a &lt;center&gt; element:</p><code><pre>
+new Ext.Panel({
+    title: 'New Message',
+    collapsible: true,
+    renderTo: Ext.getBody(),
+    width: 400,
+    bodyCfg: {
+        tag: 'center',
+        cls: 'x-panel-body'
+    },
+    items: [{
+        border: false,
+        header: false,
+        bodyCfg: {tag: 'h2', html: 'Message'}
+    }, {
+        xtype: 'textarea',
+        style: {
+            width: '95%',
+            marginBottom: '10px'
+        }
+    },
+        new Ext.Button({
+            text: 'Send',
+            minWidth: '100',
+            style: {
+                marginBottom: '10px'
+            }
+        })
+    ]
+});</pre></code>
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='applyTo'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The id of the node, a DOM node or an existing Element corresponding to a DIV that is already present in
+     * the document that specifies some panel-specific structural markup.  When applyTo is used, constituent parts of
+     * the panel can be specified by CSS class name within the main element, and the panel will automatically create those
+     * components from that markup. Any required components not specified in the markup will be autogenerated if necessary.
+     * The following class names are supported (baseCls will be replaced by {@link #baseCls}):
+     * <ul><li>baseCls + '-header'</li>
+     * <li>baseCls + '-header-text'</li>
+     * <li>baseCls + '-bwrap'</li>
+     * <li>baseCls + '-tbar'</li>
+     * <li>baseCls + '-body'</li>
+     * <li>baseCls + '-bbar'</li>
+     * <li>baseCls + '-footer'</li></ul>
+     * Using this config, a call to render() is not required.  If applyTo is specified, any value passed for
+     * {@link #renderTo} will be ignored and the target element's parent node will automatically be used as the panel's container.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='tbar'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The top toolbar of the panel. This can be either an {@link Ext.Toolbar} object or an array of
+     * buttons/button configs to be added to the toolbar.  Note that this is not available as a property after render.
+     * To access the top toolbar after render, use {@link #getTopToolbar}.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='bbar'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The bottom toolbar of the panel. This can be either an {@link Ext.Toolbar} object or an array of
+     * buttons/button configs to be added to the toolbar.  Note that this is not available as a property after render.
+     * To access the bottom toolbar after render, use {@link #getBottomToolbar}.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='header'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * True to create the header element explicitly, false to skip creating it.  By default, when header is not
+     * specified, if a {@link #title} is set the header will be created automatically, otherwise it will not.  If
+     * a title is set but header is explicitly set to false, the header will not be rendered.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='footer'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * True to create the footer element explicitly, false to skip creating it.  By default, when footer is not
+     * specified, if one or more buttons have been added to the panel the footer will be created automatically,
+     * otherwise it will not.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='title'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The title text to display in the panel header (defaults to '').  When a title is specified the header
+     * element will automatically be created and displayed unless {@link #header} is explicitly set to false.  If
+     * you don't want to specify a title at config time, but you may want one later, you must either specify a
+     * non-empty title (a blank space ' ' will do) or header:true so that the container element will get created.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='buttons'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * An array of {@link Ext.Button}s or {@link Ext.Button} configs used to add buttons to the footer of this panel.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='autoLoad'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * A valid url spec according to the Updater {@link Ext.Updater#update} method.
+     * If autoLoad is not null, the panel will attempt to load its contents
+     * immediately upon render.<p>
+     * The URL will become the default URL for this panel's {@link #body} element,
+     * so it may be {@link Ext.Element#refresh refresh}ed at any time.</p>
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='frame'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * True to render the panel with custom rounded borders, false to render with plain 1px square borders (defaults to false).
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='border'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * True to display the borders of the panel's body element, false to hide them (defaults to true).  By default,
+     * the border is a 2px wide inset border, but this can be further altered by setting {@link #bodyBorder} to false.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='bodyBorder'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * True to display an interior border on the body element of the panel, false to hide it (defaults to true).
+     * This only applies when {@link #border} == true.  If border == true and bodyBorder == false, the border will display
+     * as a 1px wide inset border, giving the entire body element an inset appearance.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='bodyStyle'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * Custom CSS styles to be applied to the body element in the format expected by {@link Ext.Element#applyStyles}
+     * (defaults to null).
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='iconCls'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * A CSS class that will provide a background image to be used as the header icon (defaults to '').  An example
+     * custom icon class would be something like: .my-icon { background: url(../images/my-icon.gif) 0 6px no-repeat !important;}
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='collapsible'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * True to make the panel collapsible and have the expand/collapse toggle button automatically rendered into
+     * the header tool button area, false to keep the panel statically sized with no button (defaults to false).
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='tools'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * An array of tool button configs to be added to the header tool area. When rendered, each tool is
+     * stored as an {@link Ext.Element Element} referenced by a public property called <tt><b></b>tools.<i>&lt;tool-type&gt;</i></tt>
+     * <p>Each tool config may contain the following properties:
+     * <div class="mdetail-params"><ul>
+     * <li><b>id</b> : String<div class="sub-desc"><b>Required.</b> The type
+     * of tool to create. Values may be<ul>
+     * <li><tt>toggle</tt> (Created by default when {@link #collapsible} is <tt>true</tt>)</li>
+     * <li><tt>close</tt></li>
+     * <li><tt>minimize</tt></li>
+     * <li><tt>maximize</tt></li>
+     * <li><tt>restore</tt></li>
+     * <li><tt>gear</tt></li>
+     * <li><tt>pin</tt></li>
+     * <li><tt>unpin</tt></li>
+     * <li><tt>right</tt></li>
+     * <li><tt>left</tt></li>
+     * <li><tt>up</tt></li>
+     * <li><tt>down</tt></li>
+     * <li><tt>refresh</tt></li>
+     * <li><tt>minus</tt></li>
+     * <li><tt>plus</tt></li>
+     * <li><tt>help</tt></li>
+     * <li><tt>search</tt></li>
+     * <li><tt>save</tt></li>
+     * <li><tt>print</tt></li>
+     * </ul></div></li>
+     * <li><b>handler</b> : Function<div class="sub-desc"><b>Required.</b> The function to
+     * call when clicked. Arguments passed are:<ul>
+     * <li><b>event</b> : Ext.EventObject<div class="sub-desc">The click event.</div></li>
+     * <li><b>toolEl</b> : Ext.Element<div class="sub-desc">The tool Element.</div></li>
+     * <li><b>Panel</b> : Ext.Panel<div class="sub-desc">The host Panel</div></li>
+     * </ul></div></li>
+     * <li><b>scope</b> : Object<div class="sub-desc">The scope in which to call the handler.</div></li>
+     * <li><b>qtip</b> : String/Object<div class="sub-desc">A tip string, or
+     * a config argument to {@link Ext.QuickTip#register}</div></li>
+     * <li><b>hidden</b> : Boolean<div class="sub-desc">True to initially render hidden.</div></li>
+     * <li><b>on</b> : Object<div class="sub-desc">A listener config object specifiying
+     * event listeners in the format of an argument to {@link #addListener}</div></li>
+     * </ul></div>
+     * Example usage:
+     * <pre><code>
+tools:[{
+    id:'refresh',
+    qtip: 'Refresh form Data',
+    // hidden:true,
+    handler: function(event, toolEl, panel){
+        // refresh logic
+    }
+}]
+</code></pre>
+     * Note that apart from the toggle tool which is provided when a panel is
+     * collapsible, these tools only provide the visual button. Any required
+     * functionality must be provided by adding handlers that implement the
+     * necessary behavior.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='hideCollapseTool'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * True to hide the expand/collapse toggle button when {@link #collapsible} = true, false to display it (defaults to false).
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='titleCollapse'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * True to allow expanding and collapsing the panel (when {@link #collapsible} = true) by clicking anywhere in the
+     * header bar, false to allow it only by clicking to tool button (defaults to false).
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='autoScroll'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * True to use overflow:'auto' on the panel's body element and show scroll bars automatically when necessary,
+     * false to clip any overflowing content (defaults to false).
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='floating'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * True to float the panel (absolute position it with automatic shimming and shadow), false to display it
+     * inline where it is rendered (defaults to false).  Note that by default, setting floating to true will cause the
+     * panel to display at negative offsets so that it is hidden -- because the panel is absolute positioned, the
+     * position must be set explicitly after render (e.g., myPanel.setPosition(100,100);).  Also, when floating a
+     * panel you should always assign a fixed width, otherwise it will be auto width and will expand to fill to the
+     * right edge of the viewport.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='shadow'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * True (or a valid Ext.Shadow {@link Ext.Shadow#mode} value) to display a shadow behind the panel, false to
+     * display no shadow (defaults to 'sides').  Note that this option only applies when floating = true.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:int' name='shadowOffset'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The number of pixels to offset the shadow if displayed (defaults to 4). Note that this option only applies
+     * when floating = true.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='shim'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * False to disable the iframe shim in browsers which need one (defaults to true).  Note that this option
+     * only applies when floating = true.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='html'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * An HTML fragment, or a {@link Ext.DomHelper DomHelper} specification to use
+     * as the panel's body content (defaults to ''). The HTML content is added by the Panel's
+     * afterRender method, and so the document will not contain this HTML at the time the render
+     * event is fired. This content is inserted into the body <i>before</i> any configured
+     * {@link #contentEl} is appended.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='contentEl'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The id of an existing HTML node to use as the panel's body content (defaults to ''). The
+     * specified Element is appended to the Panel's body Element by the Panel's afterRender method
+     * <i>after any configured {@link #html HTML} has been inserted</i>, and so the document will
+     * not contain this HTML at the time the render event is fired.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='keys'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * A KeyMap config object (in the format expected by {@link Ext.KeyMap#addBinding} used to assign custom key
+     * handling to this panel (defaults to null).
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='draggable'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+       * <p>True to enable dragging of this Panel (defaults to false).</p>
+       * <p>For custom drag/drop implementations, an Ext.Panel.DD
+       * config could also be passed in this config instead of true. Ext.Panel.DD is an internal,
+       * undocumented class which moves a proxy Element around in place of the Panel's element, but
+       * provides no other behaviour during dragging or on drop. It is a subclass of
+       * {@link Ext.dd.DragSource}, so behaviour may be added by implementing the interface methods
+       * of {@link Ext.dd.DragDrop} eg:
+       * <pre><code>
+new Ext.Panel({
+    title: 'Drag me',
+    x: 100,
+    y: 100,
+    renderTo: Ext.getBody(),
+    floating: true,
+    frame: true,
+    width: 400,
+    height: 200,
+    draggable: {
+//      Config option of Ext.Panel.DD class.
+//      It's a floating Panel, so do not show a placeholder proxy in the original position.
+        insertProxy: false,
+
+//      Called for each mousemove event while dragging the DD object.
+        onDrag : function(e){
+//          Record the x,y position of the drag proxy so that we can
+//          position the Panel at end of drag.
+            var pel = this.proxy.getEl();
+            this.x = pel.getLeft(true);
+            this.y = pel.getTop(true);
+
+//          Keep the Shadow aligned if there is one.
+            var s = this.panel.getEl().shadow;
+            if (s) {
+                s.realign(this.x, this.y, pel.getWidth(), pel.getHeight());
+            }
+        },
+
+//      Called on the mouseup event.
+        endDrag : function(e){
+            this.panel.setPosition(this.x, this.y);
+        }
+    }
+}).show();
+</code></pre>
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='tabTip'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+       * Adds a tooltip when mousing over the tab of a Ext.Panel which is an item of a Ext.TabPanel. Ext.QuickTips.init()
+       * must be called in order for the tips to render.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='disabled'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * Render this panel disabled (default is false). An important note when using the disabled config on panels is
+     * that IE will often fail to initialize the disabled mask element correectly if the panel's layout has not yet 
+     * completed by the time the Panel is disabled during the render process. If you experience this issue, you may 
+     * need to instead use the {@link afterlayout} event to initialize the disabled state:
+     * <pre><code>
+new Ext.Panel({
+    ...
+    listeners: {
+        'afterlayout': {
+            fn: function(p){
+                p.disable();
+            },
+            single: true // important, as many layouts can occur
+        }
+    }
+});
+</code></pre>
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='autoHeight'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * True to use height:'auto', false to use fixed height (defaults to false). <b>Note</b>: Setting autoHeight:true 
+     * means that the browser will manage the panel's height based on its contents, and that Ext will not manage it at 
+     * all. If the panel is within a layout that manages dimensions (fit, border, etc.) then setting autoHeight:true
+     * can cause issues with scrolling and will not generally work as expected since the panel will take on the height
+     * of its contents rather than the height required by the Ext layout.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='baseCls'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+    * The base CSS class to apply to this panel's element (defaults to 'x-panel').
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='collapsedCls'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+    * A CSS class to add to the panel's element after it has been collapsed (defaults to 'x-panel-collapsed').
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='maskDisabled'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+    * True to mask the panel when it is disabled, false to not mask it (defaults to true).  Either way, the panel
+    * will always tell its contained elements to disable themselves when it is disabled, but masking the panel
+    * can provide an additional visual cue that the panel is disabled.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='animCollapse'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+    * True to animate the transition when the panel is collapsed, false to skip the animation (defaults to true
+    * if the {@link Ext.Fx} class is available, otherwise false).
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='headerAsText'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+    * True to display the panel title in the header, false to hide it (defaults to true).
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='buttonAlign'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+    * The alignment of any buttons added to this panel.  Valid values are 'right,' 'left' and 'center' (defaults to 'right').
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='collapsed'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * True to render the panel collapsed, false to render it expanded (defaults to false).
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='collapseFirst'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+    * True to make sure the collapse/expand toggle button always renders first (to the left of) any other tools
+    * in the panel's title bar, false to render it last (defaults to true).
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:int' name='minButtonWidth'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * Minimum width in pixels of all buttons in this panel (defaults to 75)
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='elements'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * A comma-delimited list of panel elements to initialize when the panel is rendered.  Normally, this list will be
+     * generated automatically based on the items added to the panel at config time, but sometimes it might be useful to
+     * make sure a structural element is rendered even if not specified at config time (for example, you may want
+     * to add a button or toolbar dynamically after the panel has been rendered).  Adding those elements to this
+     * list will allocate the required placeholders in the panel when it is rendered.  Valid values are<ul>
+     * <li><b>header</b></li>
+     * <li><b>tbar</b> (top bar)</li>
+     * <li><b>body</b> (required)</li>
+     * <li><b>bbar</b> (bottom bar)</li>
+     * <li><b>footer</b><li>
+     * </ul>
+     * Defaults to 'body'.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='autoEl'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+@hide
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+   </xs:extension>
+   </xs:complexContent>
+  </xs:complexType><!--Ext.Panel-->
+  <xs:element name='panel' type='ext:Ext.Panel' xmlns:ext='http://extjs.com/ext3'  substitutionGroup='ext:container'>
+    <xs:annotation>
+      <xs:documentation><![CDATA[
+
+ * Panel is a container that has specific functionality and structural components that make it the perfect building
+ * block for application-oriented user interfaces. The Panel contains bottom and top toolbars, along with separate
+ * header, footer and body sections.  It also provides built-in expandable and collapsible behavior, along with a
+ * variety of prebuilt tool buttons that can be wired up to provide other customized behavior.  Panels can be easily
+ * dropped into any Container or layout, and the layout and rendering pipeline is completely managed by the framework.
+ * @constructor
+ * @param {Object} config The config object
+      ]]></xs:documentation>
+    </xs:annotation>
+  </xs:element>
+<!-- done Ext.Panel-->
+  <xs:complexType name='Ext.dd.PanelProxy' xmlns='http://extjs.com/ext3'>
+    <xs:sequence>
+      <xs:any minOccurs='0' maxOccurs='unbounded' processContents='lax'/>
+    </xs:sequence>
+    <xs:attribute type='xs:string' name='insertProxy'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+True to insert a placeholder proxy element while dragging the panel,
+      * false to drag with no proxy (defaults to true).
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType><!--Ext.dd.PanelProxy-->
+<!-- done Ext.dd.PanelProxy-->
+<!-- Ext.ProgressBar triggered by 'extends'-->
+  <xs:complexType name='Ext.ProgressBar' xmlns='http://extjs.com/ext3'>
+   <xs:complexContent>
+   <xs:extension base='Ext.BoxComponent'>
+    <xs:sequence>
+      <xs:any minOccurs='0' maxOccurs='unbounded' processContents='lax'/>
+    </xs:sequence>
+    <xs:attribute type='xs:string' name='id'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+The progress bar element's id (defaults to an auto-generated id)
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='baseCls'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+    * The base CSS class to apply to the progress bar's wrapper element (defaults to 'x-progress')
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='animate'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+    * True to animate the progress bar during transitions (defaults to false)
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+   </xs:extension>
+   </xs:complexContent>
+  </xs:complexType><!--Ext.ProgressBar-->
+  <xs:element name='progress' type='ext:Ext.ProgressBar' xmlns:ext='http://extjs.com/ext3'  substitutionGroup='ext:box'>
+    <xs:annotation>
+      <xs:documentation><![CDATA[
+
+ * <p>An updateable progress bar component.  The progress bar supports two different modes: manual and automatic.</p>
+ * <p>In manual mode, you are responsible for showing, updating (via {@link #updateProgress}) and clearing the
+ * progress bar as needed from your own code.  This method is most appropriate when you want to show progress
+ * throughout an operation that has predictable points of interest at which you can update the control.</p>
+ * <p>In automatic mode, you simply call {@link #wait} and let the progress bar run indefinitely, only clearing it
+ * once the operation is complete.  You can optionally have the progress bar wait for a specific amount of time
+ * and then clear itself.  Automatic mode is most appropriate for timed operations or asynchronous operations in
+ * which you have no need for indicating intermediate progress.</p>
+Ext.ProgressBar = Ext.extend(Ext.BoxComponent, {
+   /**
+    baseCls : 'x-progress',
+    
+    /**
+    animate : false,
+
+    // private
+    waitTimer : null,
+
+    // private
+    initComponent : function(){
+        Ext.ProgressBar.superclass.initComponent.call(this);
+        this.addEvents(
+            /**
+             * @event update
+             * Fires after each update interval
+             * @param {Ext.ProgressBar} this
+             * @param {Number} The current progress value
+             * @param {String} The current progress text
+      ]]></xs:documentation>
+    </xs:annotation>
+  </xs:element>
+<!-- done Ext.ProgressBar-->
+<!-- Ext.Resizable triggered by 'extends'-->
+  <xs:complexType name='Ext.Resizable' xmlns='http://extjs.com/ext3'>
+    <xs:sequence>
+      <xs:any minOccurs='0' maxOccurs='unbounded' processContents='lax'/>
+    </xs:sequence>
+    <xs:attribute type='xs:string' name='draggable'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+Convenience to initialize drag drop (defaults to false)
+ * @constructor
+ * Create a new resizable component
+ * @param {Mixed} el The id or element to resize
+ * @param {Object} config configuration options
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='constrainTo'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+Constrain the resize to a particular element
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='resizeRegion'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+Constrain the resize to a particular region
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType><!--Ext.Resizable-->
+<!-- done Ext.Resizable-->
+  <xs:complexType name='Ext.Shadow' xmlns='http://extjs.com/ext3'>
+    <xs:sequence>
+      <xs:any minOccurs='0' maxOccurs='unbounded' processContents='lax'/>
+    </xs:sequence>
+    <xs:attribute type='xs:string' name='mode'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The shadow display mode.  Supports the following options:<br />
+     * sides: Shadow displays on both sides and bottom only<br />
+     * frame: Shadow displays equally on all four sides<br />
+     * drop: Traditional bottom-right drop shadow (default)
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='offset'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The number of pixels to offset the shadow from the element (defaults to 4)
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType><!--Ext.Shadow-->
+<!-- done Ext.Shadow-->
+<!-- Ext.Slider triggered by 'extends'-->
+  <xs:complexType name='Ext.Slider' xmlns='http://extjs.com/ext3'>
+   <xs:complexContent>
+   <xs:extension base='Ext.BoxComponent'>
+    <xs:sequence>
+      <xs:any minOccurs='0' maxOccurs='unbounded' processContents='lax'/>
+    </xs:sequence>
+    <xs:attribute type='xs:int' name='value'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+The value to initialize the slider with. Defaults to minValue.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='vertical'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+Orient the Slider vertically rather than horizontally, defaults to false.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:int' name='minValue'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+The minimum value for the Slider. Defaults to 0.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:int' name='maxValue'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+The maximum value for the Slider. Defaults to 100.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:int' name='keyIncrement'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+How many units to change the Slider when adjusting with keyboard navigation. Defaults to 1. If the increment config is larger, it will be used instead.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:int' name='increment'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+How many units to change the slider when adjusting by drag and drop. Use this option to enable 'snapping'.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='clickToChange'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+Determines whether or not clicking on the Slider axis will change the slider. Defaults to true
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='animate'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+Turn on or off animation. Defaults to true
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+   </xs:extension>
+   </xs:complexContent>
+  </xs:complexType><!--Ext.Slider-->
+  <xs:element name='slider' type='ext:Ext.Slider' xmlns:ext='http://extjs.com/ext3'  substitutionGroup='ext:box'>
+    <xs:annotation>
+      <xs:documentation><![CDATA[
+
+ * Slider which supports vertical or horizontal orientation, keyboard adjustments, 
+ * configurable snapping, axis clicking and animation. Can be added as an item to
+ * any container. Example usage:
+<pre><code>
+new Ext.Slider({
+    renderTo: Ext.getBody(),
+    width: 200,
+    value: 50,
+    increment: 10,
+    minValue: 0,
+    maxValue: 100
+});
+</code></pre>
+      ]]></xs:documentation>
+    </xs:annotation>
+  </xs:element>
+<!-- done Ext.Slider-->
+<!-- Ext.SplitBar triggered by 'extends'-->
+  <xs:complexType name='Ext.SplitBar' xmlns='http://extjs.com/ext3'>
+    <xs:sequence>
+      <xs:any minOccurs='0' maxOccurs='unbounded' processContents='lax'/>
+    </xs:sequence>
+  </xs:complexType><!--Ext.SplitBar-->
+<!-- done Ext.SplitBar-->
+  <xs:complexType name='Ext.SplitBar.BasicLayoutAdapter' xmlns='http://extjs.com/ext3'>
+    <xs:sequence>
+      <xs:any minOccurs='0' maxOccurs='unbounded' processContents='lax'/>
+    </xs:sequence>
+  </xs:complexType><!--Ext.SplitBar.BasicLayoutAdapter-->
+<!-- done Ext.SplitBar.BasicLayoutAdapter-->
+<!-- Ext.SplitBar.AbsoluteLayoutAdapter triggered by 'extends'-->
+  <xs:complexType name='Ext.SplitBar.AbsoluteLayoutAdapter' xmlns='http://extjs.com/ext3'>
+    <xs:sequence>
+      <xs:any minOccurs='0' maxOccurs='unbounded' processContents='lax'/>
+    </xs:sequence>
+  </xs:complexType><!--Ext.SplitBar.AbsoluteLayoutAdapter-->
+<!-- done Ext.SplitBar.AbsoluteLayoutAdapter-->
+<!-- Ext.SplitButton triggered by 'extends'-->
+  <xs:complexType name='Ext.SplitButton' xmlns='http://extjs.com/ext3'>
+   <xs:complexContent>
+   <xs:extension base='Ext.Button'>
+    <xs:sequence>
+      <xs:any minOccurs='0' maxOccurs='unbounded' processContents='lax'/>
+    </xs:sequence>
+    <xs:attribute type='xs:string' name='arrowTooltip'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+The title attribute of the arrow
+ * @constructor
+ * Create a new menu button
+ * @param {Object} config The config object
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+   </xs:extension>
+   </xs:complexContent>
+  </xs:complexType><!--Ext.SplitButton-->
+  <xs:element name='splitbutton' type='ext:Ext.SplitButton' xmlns:ext='http://extjs.com/ext3'  substitutionGroup='ext:button'>
+    <xs:annotation>
+      <xs:documentation><![CDATA[
+
+ * A split button that provides a built-in dropdown arrow that can fire an event separately from the default
+ * click event of the button.  Typically this would be used to display a dropdown menu that provides additional
+ * options to the primary button action, but any custom handler can provide the arrowclick implementation.  Example usage:
+ * <pre><code>
+// display a dropdown menu:
+new Ext.SplitButton({
+	renderTo: 'button-ct', // the container id
+   	text: 'Options',
+   	handler: optionsHandler, // handle a click on the button itself
+   	menu: new Ext.menu.Menu({
+        items: [
+        	// these items will render as dropdown menu items when the arrow is clicked:
+	        {text: 'Item 1', handler: item1Handler},
+	        {text: 'Item 2', handler: item2Handler}
+        ]
+   	})
+});
+
+// Instead of showing a menu, you provide any type of custom
+// functionality you want when the dropdown arrow is clicked:
+new Ext.SplitButton({
+	renderTo: 'button-ct',
+   	text: 'Options',
+   	handler: optionsHandler,
+   	arrowHandler: myCustomHandler
+});
+</code></pre>
+Ext.SplitButton = Ext.extend(Ext.Button, {
+	// private
+    arrowSelector : 'button:last',
+
+    // private
+    initComponent : function(){
+        Ext.SplitButton.superclass.initComponent.call(this);
+        /**
+         * @event arrowclick
+         * Fires when this button's arrow is clicked
+         * @param {MenuButton} this
+         * @param {EventObject} e The click event
+      ]]></xs:documentation>
+    </xs:annotation>
+  </xs:element>
+<!-- done Ext.SplitButton-->
+<!-- Ext.StatusBar triggered by 'extends'-->
+  <xs:complexType name='Ext.StatusBar' xmlns='http://extjs.com/ext3'>
+   <xs:complexContent>
+   <xs:extension base='Ext.Toolbar'>
+    <xs:sequence>
+      <xs:any minOccurs='0' maxOccurs='unbounded' processContents='lax'/>
+    </xs:sequence>
+    <xs:attribute type='xs:string' name='statusAlign'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The alignment of the status element within the overall StatusBar layout.  When the StatusBar is rendered,
+     * it creates an internal div containing the status text and icon.  Any additional Toolbar items added in the
+     * StatusBar's {@link #items} config, or added via {@link #add} or any of the supported add* methods, will be
+     * rendered, in added order, to the opposite side.  The status element is greedy, so it will automatically
+     * expand to take up all sapce left over by any other items.  Example usage:
+     * <pre><code>
+// Create a left-aligned status bar containing a button,
+// separator and text item that will be right-aligned (default):
+new Ext.Panel({
+    title: 'StatusBar',
+    // etc.
+    bbar: new Ext.StatusBar({
+        defaultText: 'Default status text',
+        id: 'status-id',
+        items: [{
+            text: 'A Button'
+        }, '-', 'Plain Text']
+    })
+});
+
+// By adding the statusAlign config, this will create the
+// exact same toolbar, except the status and toolbar item
+// layout will be reversed from the previous example:
+new Ext.Panel({
+    title: 'StatusBar',
+    // etc.
+    bbar: new Ext.StatusBar({
+        defaultText: 'Default status text',
+        id: 'status-id',
+        statusAlign: 'right',
+        items: [{
+            text: 'A Button'
+        }, '-', 'Plain Text']
+    })
+});
+</code></pre>
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='defaultText'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The default {@link #text} value.  This will be used anytime the status bar is cleared with the 
+     * <tt>useDefaults:true</tt> option (defaults to '').
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='defaultIconCls'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The default {@link #iconCls} value (see the iconCls docs for additional details about customizing the icon).  
+     * This will be used anytime the status bar is cleared with the <tt>useDefaults:true</tt> option (defaults to '').
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='text'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * A string that will be rendered into the status element as the status message (defaults to '');
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='iconCls'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * A CSS class that will be applied to the status element and is expected to provide a background image that will
+     * serve as the status bar icon (defaults to '').  The class is applied directly to the div that also contains the
+     * status text, so the rule should provide the appropriate padding on the div to make room for the image. 
+     * Example usage:<pre><code>
+// Example CSS rule:
+.x-statusbar .x-status-custom {
+    padding-left: 25px;
+    background: transparent url(images/custom-icon.gif) no-repeat 3px 3px;
+}
+
+// Initializing the status bar:
+var sb = new Ext.StatusBar({
+    defaultIconCls: 'x-status-custom'
+});
+
+// Setting it in code:
+sb.setStatus({
+    text: 'New status',
+    iconCls: 'x-status-custom'
+});
+</code></pre>
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='cls'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The base class applied to the containing element for this component on render (defaults to 'x-statusbar')
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='busyIconCls'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The default {@link #iconCls} applied when calling {@link #showBusy} (defaults to 'x-status-busy'). It can be
+     * overridden at any time by passing the <tt>iconCls</tt> argument into <tt>showBusy</tt>. See the 
+     * iconCls docs for additional details about customizing the icon.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='busyText'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The default {@link #text} applied when calling {@link #showBusy} (defaults to 'Loading...'). It can be
+     * overridden at any time by passing the <tt>text</tt> argument into <tt>showBusy</tt>.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:int' name='autoClear'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The number of milliseconds to wait after setting the status via {@link #setStatus} before automatically
+     * clearing the status text and icon (defaults to 5000).  Note that this only applies when passing the 
+     * <tt>clear</tt> argument to setStatus since that is the only way to defer clearing the status.  This can
+     * be overridden by specifying a different <tt>wait</tt> value in setStatus. Calls to {@link #clearStatus} 
+     * always clear the status bar immediately and ignore this value.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+   </xs:extension>
+   </xs:complexContent>
+  </xs:complexType><!--Ext.StatusBar-->
+  <xs:element name='statusbar' type='ext:Ext.StatusBar' xmlns:ext='http://extjs.com/ext3'  substitutionGroup='ext:toolbar'>
+    <xs:annotation>
+      <xs:documentation><![CDATA[
+
+ * @constructor
+ * Creates a new StatusBar
+ * @param {Object/Array} config A config object
+      ]]></xs:documentation>
+    </xs:annotation>
+  </xs:element>
+<!-- done Ext.StatusBar-->
+<!-- Ext.TabPanel triggered by 'extends'-->
+  <xs:complexType name='Ext.TabPanel' xmlns='http://extjs.com/ext3'>
+   <xs:complexContent>
+   <xs:extension base='Ext.Panel'>
+    <xs:sequence>
+      <xs:any minOccurs='0' maxOccurs='unbounded' processContents='lax'/>
+    </xs:sequence>
+    <xs:attribute type='xs:string' name='layoutOnTabChange'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+Set to true to do a layout of tab items as tabs are changed.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='tabCls'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+<b>This config option is used on <u>child Components</u> of ths TabPanel.</b> A CSS
+     * class name applied to the tab strip item representing the child Component, allowing special
+     * styling to be applied.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='monitorResize'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+True to automatically monitor window resize events and rerender the layout on
+     * browser resize (defaults to true).
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='deferredRender'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+Internally, the TabPanel uses a {@link Ext.layout.CardLayout} to manage its tabs.
+     * This property will be passed on to the layout as its {@link Ext.layout.CardLayout#deferredRender} config value,
+     * determining whether or not each tab is rendered only when first accessed (defaults to true).
+     * <p>Be aware that leaving deferredRender as <b><tt>true</tt></b> means that, if the TabPanel is within
+     * a {@link Ext.form.FormPanel form}, then until a tab is activated, any Fields within that tab will not
+     * be rendered, and will therefore not be submitted and will not be available to either
+     * {@link Ext.form.BasicForm#getValues getValues} or {@link Ext.form.BasicForm#setValues setValues}.</p>
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:int' name='tabWidth'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+The initial width in pixels of each new tab (defaults to 120).
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:int' name='minTabWidth'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+The minimum width in pixels for each tab when {@link #resizeTabs} = true (defaults to 30).
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='resizeTabs'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+True to automatically resize each tab so that the tabs will completely fill the
+     * tab strip (defaults to false).  Setting this to true may cause specific widths that might be set per tab to
+     * be overridden in order to fit them all into view (although {@link #minTabWidth} will always be honored).
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='enableTabScroll'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+True to enable scrolling to tabs that may be invisible due to overflowing the
+     * overall TabPanel width. Only available with tabPosition:'top' (defaults to false).
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:int' name='scrollIncrement'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+The number of pixels to scroll each time a tab scroll button is pressed (defaults
+     * to 100, or if {@link #resizeTabs} = true, the calculated tab width).  Only applies when {@link #enableTabScroll} = true.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:int' name='scrollRepeatInterval'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+Number of milliseconds between each scroll while a tab scroll button is
+     * continuously pressed (defaults to 400).
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='scrollDuration'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+The number of milliseconds that each scroll animation should last (defaults to .35).
+     * Only applies when {@link #animScroll} = true.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='animScroll'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+True to animate tab scrolling so that hidden tabs slide smoothly into view (defaults
+     * to true).  Only applies when {@link #enableTabScroll} = true.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='tabPosition'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+The position where the tab strip should be rendered (defaults to 'top').  The only
+     * other supported value is 'bottom'.  Note that tab scrolling is only supported for position 'top'.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='baseCls'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+The base CSS class applied to the panel (defaults to 'x-tab-panel').
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='autoTabs'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * <p>True to query the DOM for any divs with a class of 'x-tab' to be automatically converted
+     * to tabs and added to this panel (defaults to false).  Note that the query will be executed within the scope of
+     * the container element only (so that multiple tab panels from markup can be supported via this method).</p>
+     * <p>This method is only possible when the markup is structured correctly as a container with nested
+     * divs containing the class 'x-tab'. To create TabPanels without these limitations, or to pull tab content from
+     * other elements on the page, see the example at the top of the class for generating tabs from markup.</p>
+     * <p>There are a couple of things to note when using this method:<ul>
+     * <li>When using the autoTabs config (as opposed to passing individual tab configs in the TabPanel's
+     * {@link #items} collection), you must use {@link #applyTo} to correctly use the specified id as the tab container.
+     * The autoTabs method <em>replaces</em> existing content with the TabPanel components.</li>
+     * <li>Make sure that you set {@link #deferredRender} to false so that the content elements for each tab will be
+     * rendered into the TabPanel immediately upon page load, otherwise they will not be transformed until each tab
+     * is activated and will be visible outside the TabPanel.</li>
+     * </ul>Example usage:</p>
+     * <pre><code>
+var tabs = new Ext.TabPanel({
+    applyTo: 'my-tabs',
+    activeTab: 0,
+    deferredRender: false,
+    autoTabs: true
+});
+
+// This markup will be converted to a TabPanel from the code above
+&lt;div id="my-tabs">
+    &lt;div class="x-tab" title="Tab 1">A simple tab&lt;/div>
+    &lt;div class="x-tab" title="Tab 2">Another one&lt;/div>
+&lt;/div>
+</code></pre>
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='autoTabSelector'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+The CSS selector used to search for tabs in existing markup when {@link #autoTabs}
+     * = true (defaults to 'div.x-tab').  This can be any valid selector supported by {@link Ext.DomQuery#select}.
+     * Note that the query will be executed within the scope of this tab panel only (so that multiple tab panels from
+     * markup can be supported on a page).
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='activeTab'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+A string id or the numeric index of the tab that should be initially
+     * activated on render (defaults to none).
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:int' name='tabMargin'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+The number of pixels of space to calculate into the sizing and scrolling of tabs. If you
+     * change the margin in CSS, you will need to update this value so calculations are correct with either resizeTabs
+     * or scrolling tabs. (defaults to 2)
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='plain'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+True to render the tab strip without a background container image (defaults to false).
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:int' name='wheelIncrement'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+For scrolling tabs, the number of pixels to increment on mouse wheel scrolling (defaults to 20).
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='collapsible'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * @hide
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='header'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * @hide
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='headerAsText'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * @hide
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='tools'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * @hide
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='hideCollapseTool'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * @hide
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='titleCollapse'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * @hide
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='collapsed'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * @hide
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='layout'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * @hide
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='layoutConfig'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * @hide
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+   </xs:extension>
+   </xs:complexContent>
+  </xs:complexType><!--Ext.TabPanel-->
+  <xs:element name='tabpanel' type='ext:Ext.TabPanel' xmlns:ext='http://extjs.com/ext3'  substitutionGroup='ext:panel'>
+    <xs:annotation>
+      <xs:documentation><![CDATA[
+
+ * @constructor
+ * @param {Object} config The configuration options
+      ]]></xs:documentation>
+    </xs:annotation>
+  </xs:element>
+<!-- done Ext.TabPanel-->
+<!-- Ext.Toolbar triggered by 'extends'-->
+  <xs:complexType name='Ext.Toolbar' xmlns='http://extjs.com/ext3'>
+   <xs:complexContent>
+   <xs:extension base='Ext.BoxComponent'>
+    <xs:sequence>
+      <xs:any minOccurs='0' maxOccurs='unbounded' processContents='lax'/>
+    </xs:sequence>
+    <xs:attribute type='xs:string' name='autoEl'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+@hide
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+   </xs:extension>
+   </xs:complexContent>
+  </xs:complexType><!--Ext.Toolbar-->
+  <xs:element name='toolbar' type='ext:Ext.Toolbar' xmlns:ext='http://extjs.com/ext3'  substitutionGroup='ext:box'>
+    <xs:annotation>
+      <xs:documentation><![CDATA[
+
+ * Basic Toolbar class. Toolbar elements can be created explicitly via their constructors, or implicitly
+ * via their xtypes.  Some items also have shortcut strings for creation.  
+ * @constructor
+ * Creates a new Toolbar
+ * @param {Object/Array} config A config object or an array of buttons to add
+      ]]></xs:documentation>
+    </xs:annotation>
+  </xs:element>
+<!-- done Ext.Toolbar-->
+  <xs:complexType name='Ext.Toolbar.Item' xmlns='http://extjs.com/ext3'>
+   <xs:complexContent>
+   <xs:extension base='Ext.BoxComponent'>
+    <xs:sequence>
+      <xs:any minOccurs='0' maxOccurs='unbounded' processContents='lax'/>
+    </xs:sequence>
+   </xs:extension>
+   </xs:complexContent>
+  </xs:complexType><!--Ext.Toolbar.Item-->
+  <xs:element name='tbitem' type='ext:Ext.Toolbar.Item' xmlns:ext='http://extjs.com/ext3'  substitutionGroup='ext:box'>
+    <xs:annotation>
+      <xs:documentation><![CDATA[
+
+ * Basic Toolbar class. Toolbar elements can be created explicitly via their constructors, or implicitly
+ * via their xtypes.  Some items also have shortcut strings for creation.  
+ * @constructor
+ * Creates a new Toolbar
+ * @param {Object/Array} config A config object or an array of buttons to add
+      ]]></xs:documentation>
+    </xs:annotation>
+  </xs:element>
+<!-- done Ext.Toolbar.Item-->
+<!-- Ext.Toolbar.Separator triggered by 'extends'-->
+  <xs:complexType name='Ext.Toolbar.Separator' xmlns='http://extjs.com/ext3'>
+   <xs:complexContent>
+   <xs:extension base='Ext.Toolbar.Item'>
+    <xs:sequence>
+      <xs:any minOccurs='0' maxOccurs='unbounded' processContents='lax'/>
+    </xs:sequence>
+   </xs:extension>
+   </xs:complexContent>
+  </xs:complexType><!--Ext.Toolbar.Separator-->
+  <xs:element name='tbseparator' type='ext:Ext.Toolbar.Separator' xmlns:ext='http://extjs.com/ext3'  substitutionGroup='ext:tbitem'>
+    <xs:annotation>
+      <xs:documentation><![CDATA[
+
+ * Basic Toolbar class. Toolbar elements can be created explicitly via their constructors, or implicitly
+ * via their xtypes.  Some items also have shortcut strings for creation.  
+ * @constructor
+ * Creates a new Toolbar
+ * @param {Object/Array} config A config object or an array of buttons to add
+ * A simple class that adds a vertical separator bar between toolbar items.  Example usage:
+ * <pre><code>
+new Ext.Panel({
+	tbar : [
+		'Item 1',
+		{xtype: 'tbseparator'}, // or '-'
+		'Item 2'
+	]
+});
+</code></pre>
+ * @constructor
+ * Creates a new Separator
+      ]]></xs:documentation>
+    </xs:annotation>
+  </xs:element>
+<!-- done Ext.Toolbar.Separator-->
+<!-- Ext.Toolbar.Spacer triggered by 'extends'-->
+  <xs:complexType name='Ext.Toolbar.Spacer' xmlns='http://extjs.com/ext3'>
+   <xs:complexContent>
+   <xs:extension base='Ext.Toolbar.Item'>
+    <xs:sequence>
+      <xs:any minOccurs='0' maxOccurs='unbounded' processContents='lax'/>
+    </xs:sequence>
+   </xs:extension>
+   </xs:complexContent>
+  </xs:complexType><!--Ext.Toolbar.Spacer-->
+  <xs:element name='tbspacer' type='ext:Ext.Toolbar.Spacer' xmlns:ext='http://extjs.com/ext3'  substitutionGroup='ext:tbitem'>
+    <xs:annotation>
+      <xs:documentation><![CDATA[
+
+ * Basic Toolbar class. Toolbar elements can be created explicitly via their constructors, or implicitly
+ * via their xtypes.  Some items also have shortcut strings for creation.  
+ * @constructor
+ * Creates a new Toolbar
+ * @param {Object/Array} config A config object or an array of buttons to add
+ * A simple class that adds a vertical separator bar between toolbar items.  Example usage:
+ * <pre><code>
+new Ext.Panel({
+	tbar : [
+		'Item 1',
+		{xtype: 'tbseparator'}, // or '-'
+		'Item 2'
+	]
+});
+</code></pre>
+ * @constructor
+ * Creates a new Separator
+ * A simple element that adds extra horizontal space between items in a toolbar.
+ * <pre><code>
+new Ext.Panel({
+	tbar : [
+		'Item 1',
+		{xtype: 'tbspacer'}, // or ' '
+		'Item 2'
+	]
+});
+</code></pre>
+ * @constructor
+ * Creates a new Spacer
+      ]]></xs:documentation>
+    </xs:annotation>
+  </xs:element>
+<!-- done Ext.Toolbar.Spacer-->
+<!-- Ext.Toolbar.Fill triggered by 'extends'-->
+  <xs:complexType name='Ext.Toolbar.Fill' xmlns='http://extjs.com/ext3'>
+   <xs:complexContent>
+   <xs:extension base='Ext.Toolbar.Spacer'>
+    <xs:sequence>
+      <xs:any minOccurs='0' maxOccurs='unbounded' processContents='lax'/>
+    </xs:sequence>
+   </xs:extension>
+   </xs:complexContent>
+  </xs:complexType><!--Ext.Toolbar.Fill-->
+  <xs:element name='tbfill' type='ext:Ext.Toolbar.Fill' xmlns:ext='http://extjs.com/ext3'  substitutionGroup='ext:tbspacer'>
+    <xs:annotation>
+      <xs:documentation><![CDATA[
+
+ * Basic Toolbar class. Toolbar elements can be created explicitly via their constructors, or implicitly
+ * via their xtypes.  Some items also have shortcut strings for creation.  
+ * @constructor
+ * Creates a new Toolbar
+ * @param {Object/Array} config A config object or an array of buttons to add
+ * A simple class that adds a vertical separator bar between toolbar items.  Example usage:
+ * <pre><code>
+new Ext.Panel({
+	tbar : [
+		'Item 1',
+		{xtype: 'tbseparator'}, // or '-'
+		'Item 2'
+	]
+});
+</code></pre>
+ * @constructor
+ * Creates a new Separator
+ * A simple element that adds extra horizontal space between items in a toolbar.
+ * <pre><code>
+new Ext.Panel({
+	tbar : [
+		'Item 1',
+		{xtype: 'tbspacer'}, // or ' '
+		'Item 2'
+	]
+});
+</code></pre>
+ * @constructor
+ * Creates a new Spacer
+ * A simple element that adds a greedy (100% width) horizontal space between items in a toolbar.
+ * <pre><code>
+new Ext.Panel({
+	tbar : [
+		'Item 1',
+		{xtype: 'tbfill'}, // or '->'
+		'Item 2'
+	]
+});
+</code></pre>
+ * @constructor
+ * Creates a new Spacer
+      ]]></xs:documentation>
+    </xs:annotation>
+  </xs:element>
+<!-- done Ext.Toolbar.Fill-->
+<!-- Ext.Toolbar.TextItem triggered by 'extends'-->
+  <xs:complexType name='Ext.Toolbar.TextItem' xmlns='http://extjs.com/ext3'>
+   <xs:complexContent>
+   <xs:extension base='Ext.Toolbar.Item'>
+    <xs:sequence>
+      <xs:any minOccurs='0' maxOccurs='unbounded' processContents='lax'/>
+    </xs:sequence>
+   </xs:extension>
+   </xs:complexContent>
+  </xs:complexType><!--Ext.Toolbar.TextItem-->
+  <xs:element name='tbtext' type='ext:Ext.Toolbar.TextItem' xmlns:ext='http://extjs.com/ext3'  substitutionGroup='ext:tbitem'>
+    <xs:annotation>
+      <xs:documentation><![CDATA[
+
+ * Basic Toolbar class. Toolbar elements can be created explicitly via their constructors, or implicitly
+ * via their xtypes.  Some items also have shortcut strings for creation.  
+ * @constructor
+ * Creates a new Toolbar
+ * @param {Object/Array} config A config object or an array of buttons to add
+ * A simple class that adds a vertical separator bar between toolbar items.  Example usage:
+ * <pre><code>
+new Ext.Panel({
+	tbar : [
+		'Item 1',
+		{xtype: 'tbseparator'}, // or '-'
+		'Item 2'
+	]
+});
+</code></pre>
+ * @constructor
+ * Creates a new Separator
+ * A simple element that adds extra horizontal space between items in a toolbar.
+ * <pre><code>
+new Ext.Panel({
+	tbar : [
+		'Item 1',
+		{xtype: 'tbspacer'}, // or ' '
+		'Item 2'
+	]
+});
+</code></pre>
+ * @constructor
+ * Creates a new Spacer
+ * A simple element that adds a greedy (100% width) horizontal space between items in a toolbar.
+ * <pre><code>
+new Ext.Panel({
+	tbar : [
+		'Item 1',
+		{xtype: 'tbfill'}, // or '->'
+		'Item 2'
+	]
+});
+</code></pre>
+ * @constructor
+ * Creates a new Spacer
+ * A simple class that renders text directly into a toolbar.
+ * <pre><code>
+new Ext.Panel({
+	tbar : [
+		{xtype: 'tbtext', text: 'Item 1'} // or simply 'Item 1'
+	]
+});
+</code></pre>
+ * @constructor
+ * Creates a new TextItem
+ * @param {String/Object} text A text string, or a config object containing a <tt>text</tt> property
+      ]]></xs:documentation>
+    </xs:annotation>
+  </xs:element>
+<!-- done Ext.Toolbar.TextItem-->
+<!-- Ext.Toolbar.Button triggered by 'extends'-->
+  <xs:complexType name='Ext.Toolbar.Button' xmlns='http://extjs.com/ext3'>
+   <xs:complexContent>
+   <xs:extension base='Ext.Button'>
+    <xs:sequence>
+      <xs:any minOccurs='0' maxOccurs='unbounded' processContents='lax'/>
+    </xs:sequence>
+   </xs:extension>
+   </xs:complexContent>
+  </xs:complexType><!--Ext.Toolbar.Button-->
+  <xs:element name='tbbutton' type='ext:Ext.Toolbar.Button' xmlns:ext='http://extjs.com/ext3'  substitutionGroup='ext:button'>
+    <xs:annotation>
+      <xs:documentation><![CDATA[
+
+ * Basic Toolbar class. Toolbar elements can be created explicitly via their constructors, or implicitly
+ * via their xtypes.  Some items also have shortcut strings for creation.  
+ * @constructor
+ * Creates a new Toolbar
+ * @param {Object/Array} config A config object or an array of buttons to add
+ * A simple class that adds a vertical separator bar between toolbar items.  Example usage:
+ * <pre><code>
+new Ext.Panel({
+	tbar : [
+		'Item 1',
+		{xtype: 'tbseparator'}, // or '-'
+		'Item 2'
+	]
+});
+</code></pre>
+ * @constructor
+ * Creates a new Separator
+ * A simple element that adds extra horizontal space between items in a toolbar.
+ * <pre><code>
+new Ext.Panel({
+	tbar : [
+		'Item 1',
+		{xtype: 'tbspacer'}, // or ' '
+		'Item 2'
+	]
+});
+</code></pre>
+ * @constructor
+ * Creates a new Spacer
+ * A simple element that adds a greedy (100% width) horizontal space between items in a toolbar.
+ * <pre><code>
+new Ext.Panel({
+	tbar : [
+		'Item 1',
+		{xtype: 'tbfill'}, // or '->'
+		'Item 2'
+	]
+});
+</code></pre>
+ * @constructor
+ * Creates a new Spacer
+ * A simple class that renders text directly into a toolbar.
+ * <pre><code>
+new Ext.Panel({
+	tbar : [
+		{xtype: 'tbtext', text: 'Item 1'} // or simply 'Item 1'
+	]
+});
+</code></pre>
+ * @constructor
+ * Creates a new TextItem
+ * @param {String/Object} text A text string, or a config object containing a <tt>text</tt> property
+ * A button that renders into a toolbar. Use the <tt>handler</tt> config to specify a callback function
+ * to handle the button's click event.
+ * <pre><code>
+new Ext.Panel({
+	tbar : [
+		{text: 'OK', handler: okHandler} // tbbutton is the default xtype if not specified
+	]
+});
+</code></pre>
+ * @constructor
+ * Creates a new Button
+ * @param {Object} config A standard {@link Ext.Button} config object
+      ]]></xs:documentation>
+    </xs:annotation>
+  </xs:element>
+<!-- done Ext.Toolbar.Button-->
+<!-- Ext.Toolbar.SplitButton triggered by 'extends'-->
+  <xs:complexType name='Ext.Toolbar.SplitButton' xmlns='http://extjs.com/ext3'>
+   <xs:complexContent>
+   <xs:extension base='Ext.SplitButton'>
+    <xs:sequence>
+      <xs:any minOccurs='0' maxOccurs='unbounded' processContents='lax'/>
+    </xs:sequence>
+   </xs:extension>
+   </xs:complexContent>
+  </xs:complexType><!--Ext.Toolbar.SplitButton-->
+  <xs:element name='tbsplit' type='ext:Ext.Toolbar.SplitButton' xmlns:ext='http://extjs.com/ext3'  substitutionGroup='ext:splitbutton'>
+    <xs:annotation>
+      <xs:documentation><![CDATA[
+
+ * Basic Toolbar class. Toolbar elements can be created explicitly via their constructors, or implicitly
+ * via their xtypes.  Some items also have shortcut strings for creation.  
+ * @constructor
+ * Creates a new Toolbar
+ * @param {Object/Array} config A config object or an array of buttons to add
+ * A simple class that adds a vertical separator bar between toolbar items.  Example usage:
+ * <pre><code>
+new Ext.Panel({
+	tbar : [
+		'Item 1',
+		{xtype: 'tbseparator'}, // or '-'
+		'Item 2'
+	]
+});
+</code></pre>
+ * @constructor
+ * Creates a new Separator
+ * A simple element that adds extra horizontal space between items in a toolbar.
+ * <pre><code>
+new Ext.Panel({
+	tbar : [
+		'Item 1',
+		{xtype: 'tbspacer'}, // or ' '
+		'Item 2'
+	]
+});
+</code></pre>
+ * @constructor
+ * Creates a new Spacer
+ * A simple element that adds a greedy (100% width) horizontal space between items in a toolbar.
+ * <pre><code>
+new Ext.Panel({
+	tbar : [
+		'Item 1',
+		{xtype: 'tbfill'}, // or '->'
+		'Item 2'
+	]
+});
+</code></pre>
+ * @constructor
+ * Creates a new Spacer
+ * A simple class that renders text directly into a toolbar.
+ * <pre><code>
+new Ext.Panel({
+	tbar : [
+		{xtype: 'tbtext', text: 'Item 1'} // or simply 'Item 1'
+	]
+});
+</code></pre>
+ * @constructor
+ * Creates a new TextItem
+ * @param {String/Object} text A text string, or a config object containing a <tt>text</tt> property
+ * A button that renders into a toolbar. Use the <tt>handler</tt> config to specify a callback function
+ * to handle the button's click event.
+ * <pre><code>
+new Ext.Panel({
+	tbar : [
+		{text: 'OK', handler: okHandler} // tbbutton is the default xtype if not specified
+	]
+});
+</code></pre>
+ * @constructor
+ * Creates a new Button
+ * @param {Object} config A standard {@link Ext.Button} config object
+ * A split button that renders into a toolbar.
+ * <pre><code>
+new Ext.Panel({
+	tbar : [
+		{
+			xtype: 'tbsplit',
+		   	text: 'Options',
+		   	handler: optionsHandler, // handle a click on the button itself
+		   	menu: new Ext.menu.Menu({
+		        items: [
+		        	// These items will display in a dropdown menu when the split arrow is clicked
+			        {text: 'Item 1', handler: item1Handler},
+			        {text: 'Item 2', handler: item2Handler}
+		        ]
+		   	})
+		}
+	]
+});
+</code></pre>
+ * @constructor
+ * Creates a new SplitButton
+ * @param {Object} config A standard {@link Ext.SplitButton} config object
+      ]]></xs:documentation>
+    </xs:annotation>
+  </xs:element>
+<!-- done Ext.Toolbar.SplitButton-->
+<!-- Ext.Viewport triggered by 'extends'-->
+  <xs:complexType name='Ext.Viewport' xmlns='http://extjs.com/ext3'>
+   <xs:complexContent>
+   <xs:extension base='Ext.Container'>
+    <xs:sequence>
+      <xs:any minOccurs='0' maxOccurs='unbounded' processContents='lax'/>
+    </xs:sequence>
+    <xs:attribute type='xs:string' name='applyTo'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+@hide
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='allowDomMove'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+@hide
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='hideParent'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+@hide
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='renderTo'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+@hide
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='hideParent'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+@hide
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:int' name='height'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+@hide
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:int' name='width'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+@hide
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='autoHeight'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+@hide
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='autoWidth'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+@hide
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='deferHeight'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+@hide
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='monitorResize'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+@hide
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+   </xs:extension>
+   </xs:complexContent>
+  </xs:complexType><!--Ext.Viewport-->
+  <xs:element name='viewport' type='ext:Ext.Viewport' xmlns:ext='http://extjs.com/ext3'  substitutionGroup='ext:container'>
+    <xs:annotation>
+      <xs:documentation><![CDATA[
+
+ * A specialized container representing the viewable application area (the browser viewport).
+ * <p> The Viewport renders itself to the document body, and automatically sizes itself to the size of
+ * the browser viewport and manages window resizing. There may only be one Viewport created
+ * in a page. Inner layouts are available by virtue of the fact that all {@link Ext.Panel Panel}s
+ * added to the Viewport, either through its {@link #items}, or through the items, or the {@link #add}
+ * method of any of its child Panels may themselves have a layout.</p>
+ * <p>The Viewport does not provide scrolling, so child Panels within the Viewport should provide
+ * for scrolling if needed using the {@link #autoScroll} config.</p>
+ * Example showing a classic application border layout :<pre><code>
+new Ext.Viewport({
+    layout: 'border',
+    items: [{
+        region: 'north',
+        html: '&lt;h1 class="x-panel-header">Page Title&lt;/h1>',
+        autoHeight: true,
+        border: false,
+        margins: '0 0 5 0'
+    }, {
+        region: 'west',
+        collapsible: true,
+        title: 'Navigation',
+        xtype: 'treepanel',
+        width: 200,
+        autoScroll: true,
+        split: true,
+        loader: new Ext.tree.TreeLoader(),
+        root: new Ext.tree.AsyncTreeNode({
+            expanded: true,
+            children: [{
+                text: 'Menu Option 1',
+                leaf: true
+            }, {
+                text: 'Menu Option 2',
+                leaf: true
+            }, {
+                text: 'Menu Option 3',
+                leaf: true
+            }]
+        }),
+        rootVisible: false,
+        listeners: {
+            click: function(n) {
+                Ext.Msg.alert('Navigation Tree Click', 'You clicked: "' + n.attributes.text + '"');
+            }
+        }
+    }, {
+        region: 'center',
+        xtype: 'tabpanel',
+        items: {
+            title: 'Default Tab',
+            html: 'The first tab\'s content. Others may be added dynamically'
+        }
+    }, {
+        region: 'south',
+        title: 'Information',
+        collapsible: true,
+        html: 'Information goes here',
+        split: true,
+        height: 100,
+        minHeight: 100
+    }]
+});
+</code></pre>
+ * @constructor
+ * Create a new Viewport
+ * @param {Object} config The config object
+      ]]></xs:documentation>
+    </xs:annotation>
+  </xs:element>
+<!-- done Ext.Viewport-->
+<!-- Ext.Window triggered by 'extends'-->
+  <xs:complexType name='Ext.Window' xmlns='http://extjs.com/ext3'>
+   <xs:complexContent>
+   <xs:extension base='Ext.Panel'>
+    <xs:sequence>
+      <xs:any minOccurs='0' maxOccurs='unbounded' processContents='lax'/>
+    </xs:sequence>
+    <xs:attribute type='xs:int' name='x'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The X position of the left edge of the Window on initial showing. Defaults to centering the Window within
+     * the width of the Window's container {@link Ext.Element Element) (The Element that the Window is rendered to).
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:int' name='y'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The Y position of the top edge of the Window on initial showing. Defaults to centering the Window within
+     * the height of the Window's container {@link Ext.Element Element) (The Element that the Window is rendered to).
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='modal'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * True to make the window modal and mask everything behind it when displayed, false to display it without
+     * restricting access to other UI elements (defaults to false).
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='animateTarget'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * Id or element from which the window should animate while opening (defaults to null with no animation).
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='resizeHandles'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * A valid {@link Ext.Resizable} handles config string (defaults to 'all').  Only applies when resizable = true.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='manager'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * A reference to the WindowGroup that should manage this window (defaults to {@link Ext.WindowMgr}).
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='defaultButton'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+    * The id / index of a button or a button instance to focus when this window received the focus.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='onEsc'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+    * Allows override of the built-in processing for the escape key. Default action
+    * is to close the Window (performing whatever action is specified in {@link #closeAction}.
+    * To prevent the Window closing when the escape key is pressed, specify this as
+    * Ext.emptyFn (See {@link Ext#emptyFn}).
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='collapsed'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * True to render the window collapsed, false to render it expanded (defaults to false). Note that if 
+     * {@link #expandOnShow} is true (the default) it will override the <tt>collapsed</tt> config and the window 
+     * will always be expanded when shown.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='maximized'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * True to initially display the window in a maximized state. (Defaults to false).
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='baseCls'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+    * The base CSS class to apply to this panel's element (defaults to 'x-window').
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='resizable'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * True to allow user resizing at each edge and corner of the window, false to disable resizing (defaults to true).
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='draggable'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * True to allow the window to be dragged by the header bar, false to disable dragging (defaults to true).  Note
+     * that by default the window will be centered in the viewport, so if dragging is disabled the window may need
+     * to be positioned programmatically after render (e.g., myWindow.setPosition(100, 100);).
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='closable'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * <p>True to display the 'close' tool button and allow the user to close the window, false to
+     * hide the button and disallow closing the window (default to true).</p>
+     * <p>By default, when close is requested by either clicking the close button in the header
+     * or pressing ESC when the Window has focus, the {@link #close} method will be called. This
+     * will <i>destroy</i> the Window and its content meaning that it may not be reused.</p>
+     * <p>To make closing a Window <i>hide</i> the Window so that it may be reused, set
+     * {@link #closeAction} to 'hide'.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='constrain'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * True to constrain the window to the viewport, false to allow it to fall outside of the viewport
+     * (defaults to false).  Optionally the header only can be constrained using {@link #constrainHeader}.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='constrainHeader'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * True to constrain the window header to the viewport, allowing the window body to fall outside of the viewport,
+     * false to allow the header to fall outside the viewport (defaults to false).  Optionally the entire window
+     * can be constrained using {@link #constrain}.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='plain'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * True to render the window body with a transparent background so that it will blend into the framing
+     * elements, false to add a lighter background color to visually highlight the body element and separate it
+     * more distinctly from the surrounding frame (defaults to false).
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='minimizable'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * True to display the 'minimize' tool button and allow the user to minimize the window, false to hide the button
+     * and disallow minimizing the window (defaults to false).  Note that this button provides no implementation --
+     * the behavior of minimizing a window is implementation-specific, so the minimize event must be handled and a
+     * custom minimize behavior implemented for this option to be useful.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='maximizable'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * True to display the 'maximize' tool button and allow the user to maximize the window, false to hide the button
+     * and disallow maximizing the window (defaults to false).  Note that when a window is maximized, the tool button
+     * will automatically change to a 'restore' button with the appropriate behavior already built-in that will
+     * restore the window to its previous size.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:int' name='minHeight'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The minimum height in pixels allowed for this window (defaults to 100).  Only applies when resizable = true.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:int' name='minWidth'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The minimum width in pixels allowed for this window (defaults to 200).  Only applies when resizable = true.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='expandOnShow'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * True to always expand the window when it is displayed, false to keep it in its current state (which may be
+     * {@link #collapsed}) when displayed (defaults to true).
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='closeAction'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * The action to take when the close button is clicked.  The default action is 'close' which will actually remove
+     * the window from the DOM and destroy it.  The other valid option is 'hide' which will simply hide the window
+     * by setting visibility to hidden and applying negative offsets, keeping the window available to be redisplayed
+     * via the {@link #show} method.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='elements'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+
+     * A comma-delimited list of panel elements to initialize when the window is rendered.  Normally, this list will be
+     * generated automatically based on the items added to the window at config time, but sometimes it might be useful to
+     * make sure a structural element is rendered even if not specified at config time (for example, you may want
+     * to add a button or toolbar dynamically after the window has been rendered).  Adding those elements to this
+     * list will allocate the required placeholders in the window when it is rendered.  Valid values are<ul>
+     * <li><b>header</b> (required)</li>
+     * <li><b>tbar</b> (top bar)</li>
+     * <li><b>body</b> (required)</li>
+     * <li><b>bbar</b> (bottom bar)</li>
+     * <li><b>footer</b><li>
+     * </ul>
+     * Defaults to 'header,body'.
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='monitorResize'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+@hide
+    * This is automatically managed based on the value of constrain and constrainToHeader
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='floating'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+@hide */
+    floating:true,
+
+    // private
+    initComponent : function(){
+        Ext.Window.superclass.initComponent.call(this);
+        this.addEvents(
+            /**
+             * @event activate
+             * Fires after the window has been visually activated via {@link setActive}.
+             * @param {Ext.Window} this
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type='xs:string' name='autoWidth'>
+      <xs:annotation>
+        <xs:documentation><![CDATA[
+@hide
+        ]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+   </xs:extension>
+   </xs:complexContent>
+  </xs:complexType><!--Ext.Window-->
+  <xs:element name='window' type='ext:Ext.Window' xmlns:ext='http://extjs.com/ext3'  substitutionGroup='ext:panel'>
+    <xs:annotation>
+      <xs:documentation><![CDATA[
+
+ * A specialized panel intended for use as an application window.  Windows are floated and draggable by default, and
+ * also provide specific behavior like the ability to maximize and restore (with an event for minimizing, since the
+ * minimize behavior is application-specific).  Windows can also be linked to a {@link Ext.WindowGroup} or managed
+ * by the {@link Ext.WindowMgr} to provide grouping, activation, to front/back and other application-specific behavior.
+ * @constructor
+ * @param {Object} config The config object
+      ]]></xs:documentation>
+    </xs:annotation>
+  </xs:element>
+<!-- done Ext.Window-->
+  <xs:complexType name='Ext.WindowGroup' xmlns='http://extjs.com/ext3'>
+    <xs:sequence>
+      <xs:any minOccurs='0' maxOccurs='unbounded' processContents='lax'/>
+    </xs:sequence>
+  </xs:complexType><!--Ext.WindowGroup-->
+<!-- done Ext.WindowGroup-->
+<!-- Ext.WindowMgr triggered by 'extends'-->
+  <xs:complexType name='Ext.WindowMgr' xmlns='http://extjs.com/ext3'>
+    <xs:sequence>
+      <xs:any minOccurs='0' maxOccurs='unbounded' processContents='lax'/>
+    </xs:sequence>
+  </xs:complexType><!--Ext.WindowMgr-->
+<!-- done Ext.WindowMgr-->
+</xs:schema>

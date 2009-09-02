@@ -1,7 +1,7 @@
 package net.jangaroo.extxml;
 
-import java.util.*;
 import java.io.File;
+import java.util.*;
 
 /**
  * A set of Ext JS components bundled under the same namespace.
@@ -11,25 +11,27 @@ public class ComponentSuite {
 
   private String ns;
   private String namespace;
-  private File xsd;
   private File rootDir;
-  private File outputDir;
+  private File as3OutputDir;
   private Map<String, ComponentClass> componentClassesByXtype = new LinkedHashMap<String, ComponentClass>();
   private Map<String, ComponentClass> componentClassesByFullClassName = new LinkedHashMap<String, ComponentClass>();
-  private ComponentSuites importedComponentSuites;
+  private ArrayList<ComponentSuite> importedComponentSuites;
   private Map<String, ComponentSuite> usedComponentSuites;
 
-  public ComponentSuite(File xsd) {
-    this(null, xsd, null, Collections.<File>emptyList(), null);
+  public ComponentSuite() {
+    this(null, null, null);
   }
 
-  public ComponentSuite(String namespace, File xsd, File rootDir, List<File> importedXsds, File outputDir) {
+  public ComponentSuite(String namespace, File rootDir, File as3OutputDir) {
     this.namespace = namespace;
-    this.xsd = xsd;
     this.rootDir = rootDir;
-    this.outputDir = outputDir;
-    importedComponentSuites = new ComponentSuites(importedXsds);
-    usedComponentSuites = new LinkedHashMap<String, ComponentSuite>(importedXsds.size());
+    this.as3OutputDir = as3OutputDir;
+    importedComponentSuites = new ArrayList<ComponentSuite>();
+    usedComponentSuites = new LinkedHashMap<String, ComponentSuite>();
+  }
+
+  public void addImportedComponentSuite(ComponentSuite importedSuite) {
+    this.importedComponentSuites.add(importedSuite);
   }
 
   public Map<String, ComponentSuite> getUsedComponentSuites() {
@@ -40,11 +42,11 @@ public class ComponentSuite {
     StringBuilder builder = new StringBuilder();
     for (Map.Entry<String, ComponentSuite> usedComponentSuiteEntry : usedComponentSuites.entrySet()) {
       builder
-        .append(" xmlns:")
-        .append(usedComponentSuiteEntry.getKey())
-        .append("='")
-        .append(usedComponentSuiteEntry.getValue().getNamespace())
-        .append("'");
+          .append(" xmlns:")
+          .append(usedComponentSuiteEntry.getKey())
+          .append("='")
+          .append(usedComponentSuiteEntry.getValue().getNamespace())
+          .append("'");
     }
     return builder.toString();
   }
@@ -69,16 +71,12 @@ public class ComponentSuite {
     return ns == null || ns.length() == 0 ? "" : ns + ":";
   }
 
-  public File getXsd() {
-    return xsd;
-  }
-
   public File getRootDir() {
     return rootDir;
   }
 
-  public File getOutputDir() {
-    return outputDir;
+  public File getAs3OutputDir() {
+    return as3OutputDir;
   }
 
   public void addComponentClass(ComponentClass cc) {
@@ -90,11 +88,17 @@ public class ComponentSuite {
   public Collection<ComponentClass> getComponentClasses() {
     return componentClassesByXtype.values();
   }
-  
+
   public ComponentClass getComponentClassByXtype(String xtype) {
     ComponentClass componentClass = componentClassesByXtype.get(xtype);
-    if (componentClass==null) {
-      ComponentSuite importedComponentSuite = importedComponentSuites.getComponentSuiteDefiningXtype(xtype);
+    if (componentClass == null) {
+      ComponentSuite importedComponentSuite = null;
+      for (ComponentSuite suite : importedComponentSuites) {
+        if (suite.getComponentClassByXtype(xtype) != null) {
+          importedComponentSuite = suite;
+          break;
+        }
+      }
       if (importedComponentSuite != null) {
         componentClass = importedComponentSuite.getComponentClassByXtype(xtype);
         if (componentClass != null) {
@@ -107,8 +111,14 @@ public class ComponentSuite {
 
   public ComponentClass getComponentClassByFullClassName(String className) {
     ComponentClass componentClass = componentClassesByFullClassName.get(className);
-    if (componentClass==null) {
-      ComponentSuite importedComponentSuite = importedComponentSuites.getComponentSuiteDefiningClassName(className);
+    if (componentClass == null) {
+      ComponentSuite importedComponentSuite = null;
+      for (ComponentSuite suite : importedComponentSuites) {
+        if (suite.getComponentClassByFullClassName(className) != null) {
+          importedComponentSuite = suite;
+          break;
+        }
+      }
       if (importedComponentSuite != null) {
         componentClass = importedComponentSuite.getComponentClassByFullClassName(className);
         if (componentClass != null) {
@@ -121,8 +131,8 @@ public class ComponentSuite {
 
   public List<ComponentClass> getComponentClassesByType(ComponentType type) {
     ArrayList<ComponentClass> result = new ArrayList<ComponentClass>();
-    for(ComponentClass clazz : componentClassesByXtype.values()) {
-      if(type.equals(clazz.getType())) {
+    for (ComponentClass clazz : componentClassesByXtype.values()) {
+      if (type.equals(clazz.getType())) {
         result.add(clazz);
       }
     }
@@ -154,9 +164,8 @@ public class ComponentSuite {
   public String toString() {
     StringBuilder builder = new StringBuilder();
     builder
-      .append("namespace: ").append(namespace).append("\n")
-      .append("xsd file:  ").append(xsd.getAbsolutePath()).append("\n")
-      .append("src root:  ").append(rootDir).append("\n\n");
+        .append("namespace: ").append(namespace).append("\n")
+        .append("src root:  ").append(rootDir).append("\n\n");
     for (ComponentClass cc : getComponentClasses()) {
       builder.append(cc).append("\n\n");
       //builder.append(cc.getXtype()).append(": ").append(cc.getClassName()).append("\n");

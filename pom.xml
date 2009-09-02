@@ -131,7 +131,7 @@
     <module>jangaroo-browser</module>
     <module>compiler-itests</module>
     <module>ext-xml</module>
-
+    <module>ext-xml-maven-plugin</module>
   </modules>
 
   <scm>

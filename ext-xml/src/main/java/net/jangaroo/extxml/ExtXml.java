@@ -2,8 +2,7 @@ package net.jangaroo.extxml;
 
 import freemarker.template.TemplateException;
 
-import java.io.IOException;
-import java.io.File;
+import java.io.*;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -44,12 +43,19 @@ import javax.xml.parsers.ParserConfigurationException;
  */
 public class ExtXml {
   public static void main(String[] args) throws IOException, TemplateException, SaxonApiException, SAXException, XPathExpressionException, ParserConfigurationException {
-    List<File> importedXsds = new ArrayList<File>(args.length - 4);
-    for (int i = 4; i < args.length; i++) {
-      importedXsds.add(new File(args[i]));
-    }
+
     //Scan the directory for xml, as or javascript components and collect the data in ComponentClass, import all provided XSDs
-    ComponentSuite suite = new ComponentSuite(args[0], new File(args[1]), new File(args[2]), importedXsds, new File(args[3]));
+    ComponentSuite suite = new ComponentSuite(args[0], new File(args[2]), new File(args[3]));
+    for (int i = 4; i < args.length; i++) {
+      InputStream in = null;
+      try{
+        in = new FileInputStream(new File(args[i]));
+        suite.addImportedComponentSuite(XsdScanner.scan(in));
+      }finally{
+        in.close();
+      }
+    }
+    suite.addImportedComponentSuite(XsdScanner.getExt3ComponentSuite());
     SrcFileScanner fileScanner = new SrcFileScanner(suite);
     fileScanner.scan();
 
@@ -60,6 +66,9 @@ public class ExtXml {
     System.out.println(suite);
 
     //generate the XSD for that
-    new XsdGenerator(suite).generateXsd();
+    Writer out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File(args[1])), "UTF-8"));
+
+    new XsdGenerator(suite).generateXsd(out);
+    out.close();
   }
 }

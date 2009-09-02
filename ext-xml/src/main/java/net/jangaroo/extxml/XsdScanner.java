@@ -1,12 +1,15 @@
 package net.jangaroo.extxml;
 
 import org.w3c.dom.Document;
-import org.w3c.dom.NodeList;
 import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import java.io.File;
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * An XsdScanner parses an Ext XML component declaration schema into a {@link ComponentSuite}.
@@ -14,20 +17,15 @@ import java.io.File;
 public class XsdScanner {
   private static final String XML_SCHEMA_URL = "http://www.w3.org/2001/XMLSchema";
 
-  public XsdScanner(File xsd) {
-    this.componentSuite = new ComponentSuite(xsd);
+  private XsdScanner() {
   }
 
-  public ComponentSuite getComponentSuite() {
-    return componentSuite;
-  }
-
-  public ComponentSuite scan() {
-    try {
+  public static ComponentSuite scan(InputStream xsd) throws IOException, SAXException, ParserConfigurationException {
+      ComponentSuite componentSuite = new ComponentSuite();
       DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
       builderFactory.setNamespaceAware(true);
       DocumentBuilder builder = builderFactory.newDocumentBuilder();
-      Document document = builder.parse(componentSuite.getXsd());
+      Document document = builder.parse(xsd);
       Element schemaElement = document.getDocumentElement();
       componentSuite.setNamespace(schemaElement.getAttribute("targetNamespace"));
       componentSuite.setNs(schemaElement.getAttribute("id"));
@@ -43,16 +41,9 @@ public class XsdScanner {
         componentSuite.addComponentClass(new ComponentClass(name, type));
       }
       return componentSuite;
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
   }
 
-  public static void main(String[] args) {
-    XsdScanner xsdScanner = new XsdScanner(new File(args[0]));
-    xsdScanner.scan();
-    System.out.println(xsdScanner.getComponentSuite());
+  public static ComponentSuite getExt3ComponentSuite() throws IOException, SAXException, ParserConfigurationException {
+    return scan(XsdScanner.class.getResourceAsStream("/net/jangaroo/extxml/schemas/ext3.xsd"));
   }
-
-  private ComponentSuite componentSuite;
 }

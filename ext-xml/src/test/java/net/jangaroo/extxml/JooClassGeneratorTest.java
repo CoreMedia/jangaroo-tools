@@ -2,19 +2,18 @@ package net.jangaroo.extxml;
 
 import junit.framework.TestCase;
 import net.sf.saxon.s9api.SaxonApiException;
+import utils.TestUtils;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
+import java.io.File;
 import java.io.InputStream;
 import java.io.StringWriter;
-import java.io.File;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.Collections;
-
-import utils.TestUtils;
 
 
 public class JooClassGeneratorTest extends TestCase {
@@ -129,7 +128,7 @@ public class JooClassGeneratorTest extends TestCase {
     File rootDir = TestUtils.getRootDir(getClass());
     File outDir = TestUtils.computeTestDataRoot(getClass());
     
-    ComponentSuite suite = new ComponentSuite("local",File.createTempFile("testXsd","xsd"), rootDir, Collections.<File>emptyList(), outDir);
+    ComponentSuite suite = new ComponentSuite("local", rootDir, outDir);
     ComponentClass cc = new ComponentClass(TestUtils.getFile("/testpackage/testPackage.xml", getClass()));
     ComponentClass panel = new ComponentClass("panel", "ext.Panel");
     suite.addComponentClass(panel);
