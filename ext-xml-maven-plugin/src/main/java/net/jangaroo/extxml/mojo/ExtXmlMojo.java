@@ -43,7 +43,7 @@ public class ExtXmlMojo extends AbstractMojo {
   /**
    * The namespace of the component suite
    *
-   * @parameter expression="${project.build.finalName}"
+   * @parameter expression="${project.artifactId}"
    */
   private String namespace;
 
@@ -57,7 +57,7 @@ public class ExtXmlMojo extends AbstractMojo {
   /**
    * The XSD Schema that will be generated for this component suite
    *
-   * @parameter expression="${project.build.finalName}.xsd"
+   * @parameter expression="${project.artifactId}.xsd"
    */
   private String xsd;
 

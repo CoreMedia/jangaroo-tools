@@ -48,14 +48,14 @@ try
     }
 
 
-    File testClassJs = new File ( jsDir, "simple-project-1.0-SNAPSHOT.js" );
+    File testClassJs = new File ( jsDir, "simple-project.js" );
     if ( !testClassJs.exists() || !testClassJs.isFile() )
     {
         System.err.println( testClassJs + " output file is missing or not a file." );
         return false;
     }
 
-    File deployedMergedJS = new File ( target, "simple-project-1.0-SNAPSHOT/scripts/simple-project-1.0-SNAPSHOT.js" );
+    File deployedMergedJS = new File ( target, "simple-project-1.0-SNAPSHOT/scripts/simple-project.js" );
     if ( !deployedMergedJS.exists() || !deployedMergedJS.isFile() )
     {
         System.err.println( deployedMergedJS + " output file is missing or not a file." );

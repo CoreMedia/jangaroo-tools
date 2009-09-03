@@ -9,10 +9,6 @@
   <name>Jangaroo Tools</name>
   <url>http://www.jangaroo.net/</url>
 
-  <prerequisites>
-    <maven>2.0.8</maven>
-  </prerequisites>
-
   <licenses>
     <license>
       <name>Apache 2</name>

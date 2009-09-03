@@ -79,7 +79,7 @@ public class PackageMojo extends AbstractMojo {
   /**
    * The filename of the js file.
    *
-   * @parameter default-value="${project.build.finalName}"
+   * @parameter default-value="${project.artifactId}"
    */
   private String finalName;
 

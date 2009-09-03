@@ -46,7 +46,7 @@ public class CompilerMojo extends AbstractCompilerMojo {
    * This parameter specifies the name of the output file containing all
    * compiled classes.
    *
-   * @parameter expression="${project.build.directory}/joo/${project.build.finalName}.js"
+   * @parameter expression="${project.build.directory}/joo/${project.artifactId}.js"
    */
   private String outputFileName;
 
