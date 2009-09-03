@@ -15,7 +15,7 @@ public class ${className} extends ${superClassName} {
   ext.ComponentMgr.registerType(xtype, ${className});
 }
 
-  public function ${className}(config:* = undefined) {
+  public function ${className}(config:* = {}) {
     super(Ext.apply(config, ${json}));
   }
 

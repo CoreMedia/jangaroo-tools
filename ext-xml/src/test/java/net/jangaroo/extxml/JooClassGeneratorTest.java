@@ -122,7 +122,7 @@ public class JooClassGeneratorTest extends TestCase {
     jooClassGenerator.generateJangarooClass(jooClazz, writer);
     writer.flush();
     System.out.println(writer.toString());
-    assertEquals("package com.coremedia.test {import ext.ComponentMgr;/** * @xtype com.coremedia.test.TestClass */public class TestClass extends SuperClass {  public const xtype:String = \"com.coremedia.test.TestClass\";{  ext.ComponentMgr.registerType(xtype, TestClass);}  public function TestClass(config:* = undefined) {    super(Ext.apply(config, json));  }}}",writer.toString().replaceAll("\r|\n",""));
+    assertEquals("package com.coremedia.test {import ext.ComponentMgr;/** * @xtype com.coremedia.test.TestClass */public class TestClass extends SuperClass {  public const xtype:String = \"com.coremedia.test.TestClass\";{  ext.ComponentMgr.registerType(xtype, TestClass);}  public function TestClass(config:* = {}) {    super(Ext.apply(config, json));  }}}",writer.toString().replaceAll("\r|\n",""));
   }
 
   public void testGenerateClasses() throws Exception {
@@ -141,7 +141,7 @@ public class JooClassGeneratorTest extends TestCase {
     JooClassGenerator generator = new JooClassGenerator(suite);
     generator.generateClasses();
 
-    assertEquals("{xtype: ext.Panel.xtype, title: \"I am inside a package!\",items: [{xtype: \"testAll\"}]}",cc.getJson());
+    assertEquals("{xtype: ext.Panel.xtype,title: \"I am inside a package!\",items: [{xtype: \"testAll\"}]}",cc.getJson().replaceAll("\r|\n",""));
     assertEquals("ext.Panel",cc.getSuperClassName());
 
     File result = new File(outDir, "testpackage/testPackage.as");

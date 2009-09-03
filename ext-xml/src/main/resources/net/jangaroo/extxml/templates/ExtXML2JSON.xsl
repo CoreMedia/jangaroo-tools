@@ -29,7 +29,7 @@
                 <!-- plain JSON in '<json><![CDATA[ ... ]]></json>' section -->
                 <xsl:when test="local-name() = 'json'">
                     <xsl:value-of select="." disable-output-escaping="yes"/>
-                    <xsl:if test="position()!=last()">,</xsl:if>
+                    <xsl:if test="position()!=last()">,&#xa;</xsl:if>
                 </xsl:when>
                 <!-- all other elements -->
                 <xsl:otherwise>
@@ -43,7 +43,7 @@
                             <xsl:text>"</xsl:text>
                             <!-- add other elements as attributes -->
                             <xsl:for-each select="*">
-                                <xsl:text>, </xsl:text>
+                                <xsl:text>,&#xa;</xsl:text>
                                 <xsl:call-template name="element"/>
                                 <xsl:if test="position()!=last()">,</xsl:if>
                             </xsl:for-each>
@@ -53,7 +53,7 @@
                             <xsl:call-template name="element"/>
                         </xsl:otherwise>
                     </xsl:choose>
-                    <xsl:text>}</xsl:text>
+                    <xsl:text>}&#xa;</xsl:text>
                     <xsl:if test="position()!=last()">,</xsl:if>
                 </xsl:otherwise>
             </xsl:choose>
@@ -68,11 +68,11 @@
         <xsl:text>"</xsl:text>
         <!-- add all xml attributes as JSON attributes -->
         <xsl:for-each select="@*">
-            <xsl:text>, </xsl:text>
+            <xsl:text>,&#xa;</xsl:text>
             <xsl:call-template name="attribute"/>
         </xsl:for-each>
         <xsl:for-each select="*">
-            <xsl:if test="position()=1">,</xsl:if>
+            <xsl:if test="position()=1">,&#xa;</xsl:if>
             <xsl:choose>
                 <!-- add attributes of the 'defaults' element as JSON attributes -->
                 <xsl:when test="local-name() = 'defaults'">
@@ -87,7 +87,7 @@
                     <xsl:value-of select="local-name()"/>
                     <xsl:text>: [</xsl:text>
                     <xsl:call-template name="main"/>
-                    <xsl:text>]</xsl:text>
+                    <xsl:text>]&#xa;</xsl:text>
                 </xsl:when>
                 <!-- add elements inside the 'menu' element as JSON array -->
                 <xsl:when test="local-name() = 'menu'">
@@ -109,7 +109,7 @@
             <xsl:call-template name="attribute"/>
             <xsl:if test="position()!=last()">,</xsl:if>
         </xsl:for-each>
-        <xsl:text>}</xsl:text>
+        <xsl:text>}&#xa;</xsl:text>
     </xsl:template>
 
     <!-- add a single XML attribute as JSON attribute-->
