@@ -6,9 +6,11 @@ package net.jangaroo.extxml.mojo;
 import freemarker.template.TemplateException;
 import net.jangaroo.extxml.*;
 import net.sf.saxon.s9api.SaxonApiException;
+import org.apache.maven.model.Plugin;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.project.MavenProject;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -22,6 +24,15 @@ import java.io.*;
  * @phase generate-sources
  */
 public class ExtXmlMojo extends AbstractMojo {
+
+   /**
+   * The maven project.
+   *
+   * @parameter expression="${project}"
+   * @required
+   * @readonly
+   */
+  private MavenProject project;
 
   /**
    * Source directory to scan for files to compile.
@@ -47,9 +58,16 @@ public class ExtXmlMojo extends AbstractMojo {
   /**
    * The XSD Schema that will be generated for this component suite
    *
-   * @parameter expression="${project.build.directory}/${project.build.finalName}.xsd"
+   * @parameter expression="${project.build.finalName}.xsd"
    */
-  private File xsd;
+  private String xsd;
+
+  /**
+   * The XSD Schema that will be generated for this component suite
+   *
+   * @parameter expression="${project.build.directory}/generated-resources"
+   */
+  private File generatedResourcesDirectory;
 
   /**
    * The XSD Schema that will be generated for this component suite
@@ -62,8 +80,13 @@ public class ExtXmlMojo extends AbstractMojo {
 
     if (!generatedSourcesDirectory.exists()) {
       getLog().info("generating sources into: " + generatedSourcesDirectory.getPath());
-      generatedSourcesDirectory.mkdir();
+      getLog().debug("created " + generatedSourcesDirectory.mkdirs());
     }
+    if (!generatedResourcesDirectory.exists()) {
+      getLog().info("generating resources into: " + generatedResourcesDirectory.getPath());
+      getLog().debug("created " + generatedResourcesDirectory.mkdirs());
+    }
+
 
     ComponentSuite suite = new ComponentSuite(namespace, sourceDirectory, generatedSourcesDirectory);
 
@@ -132,7 +155,7 @@ public class ExtXmlMojo extends AbstractMojo {
     Writer out = null;
     try {
       //generate the XSD for that
-      out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(xsd), "UTF-8"));
+      out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File(generatedResourcesDirectory, xsd)), "UTF-8"));
       new XsdGenerator(suite).generateXsd(out);
 
     } catch (IOException e) {
@@ -146,6 +169,11 @@ public class ExtXmlMojo extends AbstractMojo {
         } catch (IOException e) {
           e.printStackTrace();
         }
+      }
+    }
+    for (Plugin p : project.getPluginManagement().getPlugins()) {
+      if("net.jangaroo".equals(p.getGroupId()) && "jangaroo-maven-plugin".equals(p.getArtifactId())) {
+        getLog().debug(""+p.getConfiguration());
       }
     }
   }

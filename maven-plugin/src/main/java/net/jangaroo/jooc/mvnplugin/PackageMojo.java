@@ -6,7 +6,6 @@ import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
 import org.codehaus.mojo.javascript.archive.JavascriptArchiver;
 import org.codehaus.mojo.javascript.archive.Types;
-import org.codehaus.plexus.util.FileUtils;
 
 import java.io.File;
 
@@ -46,6 +45,20 @@ public class PackageMojo extends AbstractMojo {
    * @parameter expression="${basedir}/src/main/joo"
    */
   private File sourceDirectory;
+
+  /**
+   * Output directory for all ActionScript3 files generated out of exml components
+   *
+   * @parameter expression="${project.build.directory}/generated-sources/joo"
+   */
+  private File generatedSourcesDirectory;
+
+  /**
+   * Generated Resources
+   *
+   * @parameter expression="${project.build.directory}/generated-resources"
+   */
+  private File generatedResourcesDirectory;
 
   /**
    * Source directory to scan for files to package in the sources archive. These files
@@ -105,6 +118,9 @@ public class PackageMojo extends AbstractMojo {
       if (jooJsDirectory.exists()) {
         archiver.addDirectory(jooJsDirectory);
       }
+      if(generatedResourcesDirectory.exists()) {
+        archiver.addDirectory(generatedResourcesDirectory);
+      }
       String groupId = project.getGroupId();
       String artifactId = project.getArtifactId();
       archiver.addFile(project.getFile(), "META-INF/maven/" + groupId + "/" + artifactId
@@ -119,6 +135,7 @@ public class PackageMojo extends AbstractMojo {
     project.getArtifact().setFile(jsarchive);
 
     if (sourceDirectory.exists() && sourceDirectory.list().length != 0 ||
+        generatedSourcesDirectory.exists() && generatedSourcesDirectory.list().length != 0 ||
         jooApiDirectory.exists() && jooApiDirectory.list().length != 0) {
       File asarchive = new File(outputDirectory, finalName + "-sources." + Types.JAVASCRIPT_EXTENSION);
       try {
@@ -129,6 +146,9 @@ public class PackageMojo extends AbstractMojo {
         }
         if (sourceDirectory.exists()) {
           archiver.addDirectory(sourceDirectory);
+        }
+        if(generatedSourcesDirectory.exists()) {
+          archiver.addDirectory(generatedSourcesDirectory);
         }
         if (jooApiDirectory.exists()) {
           archiver.addDirectory(jooApiDirectory);

@@ -27,7 +27,7 @@ try
         return false;
     }
 
-    File xsd = new File ( target, "xml-only-1.0-SNAPSHOT.xsd" );
+    File xsd = new File ( target, "generated-resources"+File.separator+"xml-only-1.0-SNAPSHOT.xsd" );
     if ( !xsd.exists() || !xsd.isFile() )
     {
         System.err.println( "xml-only-1.0-SNAPSHOT.xsd output file is missing or not a file." );
