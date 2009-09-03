@@ -276,8 +276,8 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
 
     Set staleSources = new HashSet();
 
-    for (Iterator it = getCompileSourceRoots().iterator(); it.hasNext();) {
-      File rootFile = (File) it.next();
+    for (Object sourceRoot : project.getCompileSourceRoots()) {
+      File rootFile = new File((String) sourceRoot);
 
       if (!rootFile.isDirectory()) {
         continue;
@@ -288,7 +288,7 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
       }
       catch (InclusionScanException e) {
         throw new MojoExecutionException(
-                "Error scanning source root: \'" + rootFile.getAbsolutePath() + "\' " + "for stale files to recompile.", e);
+            "Error scanning source root: \'" + rootFile.getAbsolutePath() + "\' " + "for stale files to recompile.", e);
       }
     }
 

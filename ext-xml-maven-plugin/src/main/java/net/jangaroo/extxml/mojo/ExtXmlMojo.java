@@ -6,7 +6,6 @@ package net.jangaroo.extxml.mojo;
 import freemarker.template.TemplateException;
 import net.jangaroo.extxml.*;
 import net.sf.saxon.s9api.SaxonApiException;
-import org.apache.maven.model.Plugin;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -171,10 +170,8 @@ public class ExtXmlMojo extends AbstractMojo {
         }
       }
     }
-    for (Plugin p : project.getPluginManagement().getPlugins()) {
-      if("net.jangaroo".equals(p.getGroupId()) && "jangaroo-maven-plugin".equals(p.getArtifactId())) {
-        getLog().debug(""+p.getConfiguration());
-      }
-    }
+    
+    project.addCompileSourceRoot(generatedSourcesDirectory.getPath());
+    
   }
 }
