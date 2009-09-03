@@ -22,7 +22,7 @@ public class JooClassGeneratorTest extends TestCase {
 
   @Override
   protected void setUp() throws Exception {
-    jooClassGenerator = new JooClassGenerator(null);
+    jooClassGenerator = new JooClassGenerator(new ComponentSuite());
   }
 
   private String toJSON(String fileName) throws ScriptException, SaxonApiException {
@@ -94,7 +94,8 @@ public class JooClassGeneratorTest extends TestCase {
 
 
   public void testCollectXTypes() throws Exception {
-    Set<String> set = jooClassGenerator.collectXTypesFromJSON(toJSON("/testAll.xml"));
+
+    Set<String> set = jooClassGenerator.collectXTypesFromJSON(toJSON("/testAll.xml"),new StringBuffer());
 
     String expectedXTypes[] = {
         "contenttable",
@@ -140,7 +141,7 @@ public class JooClassGeneratorTest extends TestCase {
     JooClassGenerator generator = new JooClassGenerator(suite);
     generator.generateClasses();
 
-    assertEquals("{xtype: \"panel\", title: \"I am inside a package!\",items: [{xtype: \"testAll\"}]}",cc.getJson());
+    assertEquals("{xtype: ext.Panel.xtype, title: \"I am inside a package!\",items: [{xtype: \"testAll\"}]}",cc.getJson());
     assertEquals("ext.Panel",cc.getSuperClassName());
 
     File result = new File(outDir, "testpackage/testPackage.as");

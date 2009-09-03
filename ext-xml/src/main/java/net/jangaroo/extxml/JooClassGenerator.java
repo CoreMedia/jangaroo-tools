@@ -63,8 +63,8 @@ public class JooClassGenerator {
   }
 
 
-  protected List<String> getImports(String json) throws IOException, ParserConfigurationException, XPathExpressionException, SAXException {
-    Set<String> xtypes = collectXTypesFromJSON(json);
+  protected List<String> getImports(String json, StringBuffer result) throws IOException, ParserConfigurationException, XPathExpressionException, SAXException {
+    Set<String> xtypes = collectXTypesFromJSON(json, result);
     List<String> imports = new ArrayList<String>(xtypes.size());
     for (String xtype : xtypes) {
       ComponentClass componentClass = componentSuite.getComponentClassByXtype(xtype);
@@ -81,17 +81,23 @@ public class JooClassGenerator {
   private static Pattern XTYPE_PATTERN = Pattern.compile("\\bxtype\\s*:\\s*['\"]([^'\"]+)['\"]");
 
   private String nextXtype(Matcher xtypeMatcher) {
+
     return xtypeMatcher.find() ? xtypeMatcher.group(1) : null;
   }
 
-  Set<String> collectXTypesFromJSON(String json) {
-    Set<String> set = new TreeSet<String>();
+  Set<String> collectXTypesFromJSON(String json, StringBuffer result) {
+    Set<String> xtypes = new TreeSet<String>();
     Matcher matcher = XTYPE_PATTERN.matcher(json);
     String xtype;
     while ((xtype = nextXtype(matcher)) != null) {
-      set.add(xtype);
+      xtypes.add(xtype);
+      ComponentClass clazz = componentSuite.getComponentClassByXtype(xtype);
+      if(clazz != null) {
+        matcher.appendReplacement(result, "xtype: " + clazz.getFullClassName() + ".xtype");
+      }
     }
-    return set;
+    matcher.appendTail(result);     
+    return xtypes;
   }
 
   public void generateJangarooClass(ComponentClass jooClass, Writer output) throws IOException, TemplateException {
@@ -119,8 +125,9 @@ public class JooClassGenerator {
       }else{
         System.err.println(String.format("No component class found for xtype '%s'", extendsXtype));
       }
-      cc.setImports(getImports(json));
-      cc.setJson(json);
+      StringBuffer parsedJson = new StringBuffer();
+      cc.setImports(getImports(json, parsedJson));
+      cc.setJson(parsedJson.toString());
       File outputFile = new File(componentSuite.getAs3OutputDir(), XML_TO_JS_MAPPER.mapFileName(cc.getRelativeSrcFilePath()));
       outputFile.getParentFile().mkdirs();
       FileWriter writer = new FileWriter(outputFile);
