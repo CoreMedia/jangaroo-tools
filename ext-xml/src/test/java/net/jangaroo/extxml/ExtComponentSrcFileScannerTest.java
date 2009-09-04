@@ -31,23 +31,21 @@ public class ExtComponentSrcFileScannerTest extends TestCase {
 
     ExtComponentSrcFileScanner.scan(suite, TestUtils.getFile("/js/test.js", getClass()));
     assertTrue(suite.getComponentClasses().size() == 2);
-    ComponentClass cc = suite.getComponentClassByFullClassName("ext.Panel");
+    ComponentClass cc = suite.getComponentClassByFullClassName("example.Component2");
     assertNotNull(cc);
     assertEquals(ComponentType.JavaScript, cc.getType());
-    assertEquals("panel", cc.getXtype());
-    assertEquals("ext.Container", cc.getSuperClassName());
+    assertEquals("component2", cc.getXtype());
+    assertEquals("example.Component1", cc.getSuperClassName());
     assertNotNull(cc.getDescription());
     for (ConfigAttribute attr : cc.getCfgs()) {
       assertNotNull(attr.getName());
       assertNotNull(attr.getJsType());
-      if(attr.getName().equals("collapsible")) {
+      if(attr.getName().equals("attributeTwo")) {
         assertEquals("Boolean", attr.getJsType());
-        assertEquals("True to make the panel collapsible and have the expand/collapse toggle button automatically rendered into the header tool\n" +
-            "      button area, false to keep the panel statically sized with no button (defaults to false).\n" +
-            "   ", attr.getDescription());
+        assertEquals("sadfjaldsjfoöadsjööfiojads iofj adsojf oidsaj fodj foj adoifj", attr.getDescription());
       }
     }
-    cc = suite.getComponentClassByXtype("container");
+    cc = suite.getComponentClassByXtype("component2");
     assertNotNull(cc);
   }
 

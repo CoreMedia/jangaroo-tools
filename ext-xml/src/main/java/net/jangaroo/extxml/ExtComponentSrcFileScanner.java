@@ -14,6 +14,9 @@ import java.util.List;
  */
 public class ExtComponentSrcFileScanner {
 
+  private final static String XTYPE = "@xtype\\s+([a-zA-Z_$][a-zA-Z0-9_$]*)";
+  private final static String CFG = "@cfg\\s+[{]?([a-zA-Z0-9$_./]+)[}]? ([a-zA-Z0-9$_]+)(.*)$";
+
   public static void scan(ComponentSuite componentSuite, File srcFile) {
     State state = new State(componentSuite, srcFile);
     String ext = FileUtils.extension(srcFile.getName());
@@ -58,12 +61,12 @@ public class ExtComponentSrcFileScanner {
           state.addImport(groups.get(0));
         }
       })
-      .add(new Rule<State>("@xtype\\s+([a-zA-Z.]+)") {
+      .add(new Rule<State>(XTYPE) {
         public void matched(State state, List<String> groups) {
           state.setXtype(groups.get(0), state.cc.getFullClassName());
         }
       })
-      .add(new Rule<State>("@cfg\\s+[{]?([a-zA-Z0-9$_./]+)[}]? ([a-zA-Z0-9$_]+)(.*)$") {
+      .add(new Rule<State>(CFG) {
         public void matched(State state, List<String> groups) {
           // use List#remove(0) to skip optional type if missing:
           state.addCfg(groups.size() == 3 ? groups.remove(0) : "*", groups.remove(0), groups.remove(0));
@@ -86,7 +89,7 @@ public class ExtComponentSrcFileScanner {
           state.setExtends(groups.get(0));
         }
       })
-      .add(new Rule<State>("@xtype\\s+([a-zA-Z.]+)") {
+      .add(new Rule<State>(XTYPE) {
         public void matched(State state, List<String> groups) {
           state.setXtype(groups.get(0), state.cc.getFullClassName());
         }
@@ -97,7 +100,7 @@ public class ExtComponentSrcFileScanner {
           state.setXtype(groups.get(0), groups.get(1));
         }
       })
-      .add(new Rule<State>("@cfg\\s+[{]?([a-zA-Z0-9$_./]+)[}]? ([a-zA-Z0-9$_]+)(.*)$") {
+      .add(new Rule<State>(CFG) {
         public void matched(State state, List<String> groups) {
           // use List#remove(0) to skip optional type if missing:
           state.addCfg(groups.size() == 3 ? groups.remove(0) : "*", groups.remove(0), groups.remove(0));
