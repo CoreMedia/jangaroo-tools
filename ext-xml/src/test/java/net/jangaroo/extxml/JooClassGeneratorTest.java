@@ -122,7 +122,7 @@ public class JooClassGeneratorTest extends TestCase {
     jooClassGenerator.generateJangarooClass(jooClazz, writer);
     writer.flush();
     System.out.println(writer.toString());
-    assertEquals("package com.coremedia.test {import ext.ComponentMgr;/** * @xtype com.coremedia.test.TestClass */public class TestClass extends SuperClass {  public const xtype:String = \"com.coremedia.test.TestClass\";{  ext.ComponentMgr.registerType(xtype, TestClass);}  public function TestClass(config:* = {}) {    super(Ext.apply(config, json));  }}}",writer.toString().replaceAll("\r|\n",""));
+    assertEquals("package com.coremedia.test {import ext.ComponentMgr;/** * @xtype com.coremedia.test.TestClass */public class TestClass extends SuperClass {  public static const xtype:String = \"com.coremedia.test.TestClass\";{  ext.ComponentMgr.registerType(xtype, TestClass);}  public function TestClass(config:* = {}) {    super(Ext.apply(config, json));  }}}",writer.toString().replaceAll("\r|\n",""));
   }
 
   public void testGenerateClasses() throws Exception {

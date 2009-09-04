@@ -10,7 +10,7 @@ import ${import};
  */
 public class ${className} extends ${superClassName} {
 
-  public const xtype:String = "${xtype}";
+  public static const xtype:String = "${xtype}";
 {
   ext.ComponentMgr.registerType(xtype, ${className});
 }
