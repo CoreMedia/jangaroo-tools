@@ -4,11 +4,6 @@
 package net.jangaroo.extxml;
 
 import junit.framework.TestCase;
-
-import java.io.File;
-import java.util.Collection;
-import java.util.Collections;
-
 import utils.TestUtils;
 
 /**
@@ -63,6 +58,6 @@ public class ExtComponentSrcFileScannerTest extends TestCase {
     ComponentClass cc = suite.getComponentClassByFullClassName("testpackage.testPackage");
     assertNotNull(cc);
     assertEquals(ComponentType.XML, cc.getType());
-    assertEquals("testpackage.testPackage", cc.getXtype());
+    assertEquals("testPackage", cc.getXtype());
   }
 }

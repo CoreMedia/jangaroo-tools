@@ -38,7 +38,7 @@ public class ExtComponentSrcFileScanner {
           fullName = className;
         }
         state.cc.setFullClassName(fullName);
-        state.cc.setXtype(fullName);
+        state.cc.setXtype(className);
         state.cc.setType(ComponentType.XML);
       }
       state.end();
