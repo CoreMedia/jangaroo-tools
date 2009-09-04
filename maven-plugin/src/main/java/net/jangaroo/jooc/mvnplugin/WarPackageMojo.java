@@ -123,7 +123,7 @@ public class WarPackageMojo
       Artifact dependency = (Artifact) iterator.next();
       getLog().debug("Dependency: " + dependency.getGroupId() + ":" + dependency.getArtifactId() + "type: " + dependency.getType());
       if (!dependency.isOptional() && Types.JANGAROO_TYPE.equals(dependency.getType())) {
-        getLog().info("Unpack jangaroo dependency [" + dependency.toString() + "]");
+        getLog().debug("Unpack jangaroo dependency [" + dependency.toString() + "]");
         unarchiver.setSourceFile(dependency.getFile());
 
         unpack(dependency, target);
