@@ -135,13 +135,13 @@ public class JooClassGeneratorTest extends TestCase {
     suite.addComponentClass(panel);
     cc.setType(ComponentType.XML);
     cc.setFullClassName("testpackage.testPackage");
-    cc.setXtype("testpackage.testPackage");
+    cc.setXtype("testPackage");
     suite.addComponentClass(cc);
 
     JooClassGenerator generator = new JooClassGenerator(suite);
     generator.generateClasses();
 
-    assertEquals("{xtype: ext.Panel.xtype,title: \"I am inside a package!\",items: [{xtype: \"testAll\"}]}",cc.getJson().replaceAll("\r|\n",""));
+    assertEquals("{title: \"I am inside a package!\",items: [{xtype: \"testAll\"}]}",cc.getJson().replaceAll("\r|\n",""));
     assertEquals("ext.Panel",cc.getSuperClassName());
 
     File result = new File(outDir, "testpackage/testPackage.as");

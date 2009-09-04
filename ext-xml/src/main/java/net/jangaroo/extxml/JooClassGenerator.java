@@ -127,7 +127,18 @@ public class JooClassGenerator {
       }
       StringBuffer parsedJson = new StringBuffer();
       cc.setImports(getImports(json, parsedJson));
-      cc.setJson(parsedJson.toString());
+      Matcher matschi = Pattern.compile("\\bxtype\\s*:\\s*([a-zA-Z0-9.]+)").matcher(parsedJson.toString());
+      String dingsdi;
+      if(matschi.find()) {
+        dingsdi = matschi.replaceFirst("");
+        if(dingsdi.indexOf(",")==1) {
+          dingsdi = dingsdi.replaceFirst(",", "");
+        }
+      } else {
+        dingsdi = parsedJson.toString();
+      }
+
+      cc.setJson(dingsdi);
       File outputFile = new File(componentSuite.getAs3OutputDir(), XML_TO_JS_MAPPER.mapFileName(cc.getRelativeSrcFilePath()));
       outputFile.getParentFile().mkdirs();
       FileWriter writer = new FileWriter(outputFile);
