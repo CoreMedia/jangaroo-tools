@@ -10,33 +10,12 @@
   <description>This plugin generates ActionScript</description>
   <url>http://www.jangaroo.net</url>
 
-  <pluginRepositories>
-    <pluginRepository>
-      <id>codehaus</id>
-      <url>http://repository.codehaus.org</url>
-    </pluginRepository>
-    <pluginRepository>
-      <id>jangaroo</id>
-      <name>Jangaroo repository</name>
-      <url>http://repo.jangaroo.net/maven2</url>
-    </pluginRepository>
-  </pluginRepositories>
-
-  <repositories>
-    <repository>
-      <id>jangaroo</id>
-      <name>Jangaroo repository</name>
-      <url>http://repo.jangaroo.net/maven2</url>
-    </repository>
-    <repository>
-      <id>jangaroo-snapshots</id>
-      <name>Jangaroo snapshots repository</name>
-      <url>http://repo.jangaroo.net/maven2-snapshots</url>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
-    </repository>
-  </repositories>
+  <parent>
+    <groupId>net.jangaroo</groupId>
+    <artifactId>jangaroo-tools</artifactId>
+    <relativePath>../pom.xml</relativePath>
+    <version>0.3.6-SNAPSHOT</version>
+  </parent>
   
   <build>
     <plugins>

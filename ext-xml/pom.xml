@@ -9,90 +9,12 @@
   <name>Jangaroo Ext JS Declarative XML Format</name>
   <url>http://www.jangaroo.net/</url>
 
-  <licenses>
-    <license>
-      <name>Apache 2</name>
-      <url>http://www.apache.org/licenses/LICENSE-2.0</url>
-      <distribution>repo</distribution>
-    </license>
-  </licenses>
-
-  <organization>
-    <name>CoreMedia AG</name>
-    <url>http://www.coremedia.com/</url>
-  </organization>
-
-  <developers>
-    <developer>
-      <id>fwienber</id>
-      <name>Frank Wienberg</name>
-      <organization>CoreMedia AG</organization>
-      <organizationUrl>http://www.coremedia.com/</organizationUrl>
-      <email>frank@jangaroo.net</email>
-      <roles>
-        <role>architect</role>
-        <role>developer</role>
-      </roles>
-      <timezone>+1</timezone>
-    </developer>
-
-    <developer>
-      <id>fwienber</id>
-      <name>Michael Brügmann</name>
-      <organization>CoreMedia AG</organization>
-      <organizationUrl>http://www.coremedia.com/</organizationUrl>
-      <email>michael.bruegmann@coremedia.com</email>
-      <roles>
-        <role>developer</role>
-      </roles>
-      <timezone>+1</timezone>
-    </developer>
-  </developers>
-
-  <contributors>
-
-  </contributors>
-
-  <pluginRepositories>
-
-  </pluginRepositories>
-
-  <repositories>
-    <repository>
-      <id>jangaroo</id>
-      <name>Jangaroo repository</name>
-      <url>http://repo.jangaroo.net/maven2</url>
-    </repository>
-    <repository>
-      <id>jangaroo-snapshots</id>
-      <name>Jangaroo snapshots repository</name>
-      <url>http://repo.jangaroo.net/maven2-snapshots</url>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
-    </repository>
-  </repositories>
-
-  <scm>
-    <developerConnection>scm:perforce://coremedia/jangaroo/ext-xml</developerConnection>
-  </scm>
-
-  <distributionManagement>
-    <downloadUrl>http://repo.jangaroo.net/maven2</downloadUrl>
-    <repository>
-      <id>jangaroo</id>
-      <name>Jangaroo repository</name>
-      <url>scp://repo.jangaroo.net/home/jangaroo/maven2/repo</url>
-    </repository>
-    <snapshotRepository>
-      <id>jangaroo-snapshots</id>
-      <url>scp://repo.jangaroo.net/home/jangaroo/maven2/snapshots</url>
-    </snapshotRepository>
-  </distributionManagement>
-
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-  </properties>
+  <parent>
+    <groupId>net.jangaroo</groupId>
+    <artifactId>jangaroo-tools</artifactId>
+    <relativePath>../pom.xml</relativePath>
+    <version>0.3.6-SNAPSHOT</version>
+  </parent>
 
   <dependencies>
     <dependency>
@@ -127,27 +49,6 @@
       <version>9.2cm</version>
     </dependency>
 
-  </dependencies>
-
-  <build>
-
-    <pluginManagement>
-      <plugins>
-
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-compiler-plugin</artifactId>
-          <configuration>
-            <source>1.5</source>
-            <target>1.5</target>
-          </configuration>
-        </plugin>
-
-      </plugins>
-
-    </pluginManagement>
-
-
-  </build>
+  </dependencies>  
 
 </project>

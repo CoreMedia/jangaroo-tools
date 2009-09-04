@@ -66,6 +66,11 @@ public class ExtComponentSrcFileScanner {
           state.setXtype(groups.get(0), state.cc.getFullClassName());
         }
       })
+      .add(new Rule<State>("@ptype\\s+([a-zA-Z_$][a-zA-Z0-9_$]*)") {
+        public void matched(State state, List<String> groups) {
+          state.setXtype(groups.get(0), state.cc.getFullClassName());
+        }
+      })
       .add(new Rule<State>(CFG) {
         public void matched(State state, List<String> groups) {
           // use List#remove(0) to skip optional type if missing:
