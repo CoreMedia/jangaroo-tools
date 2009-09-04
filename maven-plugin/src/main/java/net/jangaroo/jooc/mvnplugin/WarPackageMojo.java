@@ -26,8 +26,8 @@ import org.apache.maven.project.MavenProject;
 import org.codehaus.mojo.javascript.archive.JavascriptUnArchiver;
 import org.codehaus.mojo.javascript.archive.Types;
 import org.codehaus.plexus.archiver.ArchiverException;
-import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.codehaus.plexus.util.FileUtils;
+import org.codehaus.plexus.util.xml.Xpp3Dom;
 
 import java.io.File;
 import java.io.IOException;
@@ -72,7 +72,7 @@ public class WarPackageMojo
   private String scriptsDirectory;
 
 
-   /**
+  /**
    * Output directory for compiled classes and the merged javascript file(s).
    *
    * @parameter expression="${project.build.directory}/joo"
@@ -101,7 +101,7 @@ public class WarPackageMojo
       excludeFromWarPackaging();
 
       unpack(project, DefaultArtifact.SCOPE_RUNTIME, scriptDir);
-      if(compilerOutputRootDirectory != null && compilerOutputRootDirectory.exists()) {
+      if (compilerOutputRootDirectory != null && compilerOutputRootDirectory.exists()) {
         FileUtils.copyDirectoryStructure(compilerOutputRootDirectory, scriptDir);
       }
     }
@@ -121,7 +121,7 @@ public class WarPackageMojo
 
     for (Iterator iterator = dependencies.iterator(); iterator.hasNext();) {
       Artifact dependency = (Artifact) iterator.next();
-      getLog().info("Dependency: " + dependency.getGroupId() + ":" + dependency.getArtifactId() + "type: " + dependency.getType());
+      getLog().debug("Dependency: " + dependency.getGroupId() + ":" + dependency.getArtifactId() + "type: " + dependency.getType());
       if (!dependency.isOptional() && Types.JANGAROO_TYPE.equals(dependency.getType())) {
         getLog().info("Unpack jangaroo dependency [" + dependency.toString() + "]");
         unarchiver.setSourceFile(dependency.getFile());
@@ -186,7 +186,7 @@ public class WarPackageMojo
           String additionalExcludes = "";
           for (Iterator iterator = dependencies.iterator(); iterator.hasNext();) {
             Artifact dependency = (Artifact) iterator.next();
-            getLog().info("Dependency: " + dependency.getGroupId() + ":" + dependency.getArtifactId() + "type: " + dependency.getType());
+            getLog().debug("Dependency: " + dependency.getGroupId() + ":" + dependency.getArtifactId() + "type: " + dependency.getType());
             if (!dependency.isOptional() && Types.JANGAROO_TYPE.equals(dependency.getType())) {
               getLog().info("Excluding jangaroo dependency form war plugin [" + dependency.toString() + "]");
               // Add two excludes. The first one is effective when no nameclash occcurs
