@@ -42,7 +42,7 @@ public class ExtComponentSrcFileScannerTest extends TestCase {
       assertNotNull(attr.getJsType());
       if(attr.getName().equals("attributeTwo")) {
         assertEquals("Boolean", attr.getJsType());
-        assertEquals("sadfjaldsjfoöadsjööfiojads iofj adsojf oidsaj fodj foj adoifj", attr.getDescription());
+        assertEquals("this is another description", attr.getDescription());
       }
     }
     cc = suite.getComponentClassByXtype("component2");

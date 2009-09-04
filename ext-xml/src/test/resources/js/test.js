@@ -40,7 +40,7 @@ Example.Component1 = {
  */
 Example.Component2 = {
     /** @cfg {Boolean} attributeTwo
-     * sadfjaldsjfoöadsjööfiojads iofj adsojf oidsaj fodj foj adoifj
+     * this is another description
      */
     attributeTwo: false
 };
