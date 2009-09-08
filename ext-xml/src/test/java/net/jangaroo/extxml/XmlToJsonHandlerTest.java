@@ -4,15 +4,16 @@
 package net.jangaroo.extxml;
 
 import junit.framework.TestCase;
-import org.xml.sax.XMLReader;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.XMLReaderFactory;
 import utils.TestUtils;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.List;
 
 /**
  *
@@ -65,6 +66,13 @@ public class XmlToJsonHandlerTest extends TestCase {
     assertEquals("json", tools.get("xtype"));
     assertEquals("gear", tools.get("id"));
     assertEquals("{function(x){return ''+x;}}", tools.get("handler"));
+
+    List<ConfigAttribute> cfgs = handler.getCfgs();
+    assertFalse(cfgs.isEmpty());
+    ConfigAttribute attr = cfgs.get(0);
+    assertEquals("myProperty",attr.getName());
+    assertEquals("String", attr.getJsType());
+    assertNull(attr.getDescription());
   }
 
   public void testTrueFalse() throws Exception {

@@ -70,6 +70,7 @@ public class JooClassGenerator {
         cc.setSuperClassName(handler.getSuperClassName());
         cc.setImports(handler.getImports());
         cc.setJson(handler.getJsonAsString());
+        cc.setCfgs(handler.getCfgs());
         File outputFile = new File(componentSuite.getAs3OutputDir(), XML_TO_JS_MAPPER.mapFileName(cc.getRelativeSrcFilePath()));
         outputFile.getParentFile().mkdirs();
         FileWriter writer = null;

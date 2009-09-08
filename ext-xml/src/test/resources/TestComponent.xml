@@ -2,7 +2,8 @@
 <component xmlns="http://net.jangaroo.com/extxml"
            xmlns:ext="http://extjs.com/ext3"
            xmlns:local="http://net.jangaroo/extxml/test">
-  <!-- Component with attribute-->
+  <cfg name="myProperty" type="String"/>
+  <!-- superclass of the the component with attributes-->
   <ext:panel title="I am a panel" layout="{config.myLayout}">
     <!-- attribute with sub-attributes
     default:{layout:"border"},

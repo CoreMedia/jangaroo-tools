@@ -123,6 +123,10 @@ public class ComponentClass extends DescriptionHolder {
     cfgs.add(cfg);
   }
 
+  public void setCfgs(List<ConfigAttribute> cfgs) {
+    this.cfgs = cfgs;
+  }
+
   public String getJson() {
     return json;
   }

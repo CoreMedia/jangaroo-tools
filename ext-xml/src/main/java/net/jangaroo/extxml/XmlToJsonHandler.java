@@ -22,6 +22,7 @@ public class XmlToJsonHandler implements ContentHandler {
   private ComponentSuite componentSuite;
 
   private HashMap<String, String> imports = new HashMap<String, String>();
+  private ArrayList<ConfigAttribute> cfgs = new ArrayList<ConfigAttribute>();
 
   private ErrorHandler errorHandler;
 
@@ -136,7 +137,10 @@ public class XmlToJsonHandler implements ContentHandler {
   public void startElement(String uri, String localName, String qName, Attributes atts) throws SAXException {
     if ("component".equals(localName)) {
       //start the parsing
+    } else if ("cfg".equals(localName)) {
+      cfgs.add(new ConfigAttribute(atts.getValue("name"), atts.getValue("type"), atts.getValue("description")));
     } else {
+
       JsonObject jsonObject = createJsonObject(atts);
       Json parentJson = objects.empty() ? null : objects.peek();
 
@@ -181,6 +185,8 @@ public class XmlToJsonHandler implements ContentHandler {
   public void endElement(String uri, String localName, String qName) throws SAXException {
     if ("component".equals(localName)) {
       //done
+    } else if ("cfg".equals(localName)) {
+
     } else {
       if (expectObjects) {
         String attr = attributes.pop();
@@ -229,12 +235,16 @@ public class XmlToJsonHandler implements ContentHandler {
     return new ArrayList<String>(imports.values());
   }
 
+  public List<ConfigAttribute> getCfgs() {
+    return cfgs;
+  }
+
   public String getSuperClassName() {
     return componentSuite.getComponentClassByXtype((String) this.result.get("xtype")).getFullClassName();
   }
 
   public String getJsonAsString() {
-    return ((JsonObject) result).toJsonString("","xtype");
+    return ((JsonObject) result).toJsonString("", "xtype");
   }
 
   interface Json {
@@ -312,8 +322,8 @@ public class XmlToJsonHandler implements ContentHandler {
             bf.append(value.toString());
           } else if (value instanceof JsonObject) {
             bf.append(((JsonObject) value).toJsonString("  " + spaces, null));
-          }else if (value instanceof JsonArray) {
-            bf.append(((JsonArray) value).toJsonString("  " + spaces));            
+          } else if (value instanceof JsonArray) {
+            bf.append(((JsonArray) value).toJsonString("  " + spaces));
           } else if (key.equals("xtype")) {
             String className = imports.get(value);
             if (className != null) {
