@@ -1,11 +1,9 @@
 package net.jangaroo.extxml;
 
 import freemarker.template.TemplateException;
-import net.sf.saxon.s9api.SaxonApiException;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.XPathExpressionException;
 import java.io.*;
 
 /**
@@ -38,16 +36,16 @@ import java.io.*;
  * </ul>
  */
 public class ExtXml {
-  public static void main(String[] args) throws IOException, TemplateException, SaxonApiException, SAXException, XPathExpressionException, ParserConfigurationException {
+  public static void main(String[] args) throws IOException, SAXException, ParserConfigurationException, TemplateException {
 
     //Scan the directory for xml, as or javascript components and collect the data in ComponentClass, import all provided XSDs
     ComponentSuite suite = new ComponentSuite(args[0], new File(args[2]), new File(args[3]));
     for (int i = 4; i < args.length; i++) {
       InputStream in = null;
-      try{
+      try {
         in = new FileInputStream(new File(args[i]));
         suite.addImportedComponentSuite(XsdScanner.scan(in));
-      }finally{
+      } finally {
         in.close();
       }
     }

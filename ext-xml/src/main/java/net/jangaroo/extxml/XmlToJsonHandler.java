@@ -73,11 +73,11 @@ public class XmlToJsonHandler implements ContentHandler {
 
   }
 
-  private JsonObject createJsonObject(String uri, String localName, String qName, Attributes atts) {
+  private JsonObject createJsonObject(Attributes atts) {
     JsonObject result = new JsonObject();
     for (int i = 0; i < atts.getLength(); i++) {
       String attsValue = atts.getValue(i);
-      Object typedValue = null;
+      Object typedValue;
       if ("true".equals(attsValue) || "false".equals(attsValue)) {
         typedValue = Boolean.parseBoolean(attsValue);
       } else if (attsValue.matches(numberPattern)) {
@@ -137,7 +137,7 @@ public class XmlToJsonHandler implements ContentHandler {
     if ("component".equals(localName)) {
       //start the parsing
     } else {
-      JsonObject jsonObject = createJsonObject(uri, localName, qName, atts);
+      JsonObject jsonObject = createJsonObject(atts);
       Json parentJson = objects.empty() ? null : objects.peek();
 
       if (expectObjects) {
@@ -226,7 +226,7 @@ public class XmlToJsonHandler implements ContentHandler {
   }
 
   public List<String> getImports() {
-    return new ArrayList(imports.values());
+    return new ArrayList<String>(imports.values());
   }
 
   public String getSuperClassName() {
@@ -302,7 +302,8 @@ public class XmlToJsonHandler implements ContentHandler {
         if (ignoreProperty == null || !key.equals(ignoreProperty)) {
           if (!first) {
             bf.append(",\n");
-            bf.append("  "+spaces);
+            bf.append("  ");
+            bf.append(spaces);
           }
           bf.append(key);
           bf.append(": ");
@@ -319,12 +320,12 @@ public class XmlToJsonHandler implements ContentHandler {
               bf.append(imports.get(value));
               bf.append(".xtype");
             } else {
-              bf.append("\"" + value.toString() + "\"");
+              bf.append("\"").append(value.toString()).append("\"");
             }
           } else if (((String) value).startsWith("{") && ((String) value).endsWith("}")) {
             bf.append(((String) value).substring(1, ((String) value).lastIndexOf("}")));
           } else {
-            bf.append("\"" + value.toString() + "\"");
+            bf.append("\"").append(value.toString()).append("\"");
           }
           first = false;
         }
