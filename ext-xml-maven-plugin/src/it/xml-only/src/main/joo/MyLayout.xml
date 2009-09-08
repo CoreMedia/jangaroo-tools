@@ -1,19 +1,9 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<component xmlns="http://net.jangaroo.com/extxml" xmlns:local="test:*" xmlns:ext="http://extjs.com/ext3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-    <ext:panel layout="border">
-        <ext:items>
-            <ext:layout region="north">
-                <ext:panel>
-                </ext:panel>
-            </ext:layout>
-            <ext:layout region="south">
-                <ext:panel>
-                </ext:panel>
-            </ext:layout>
-            <ext:layout region="west">
-                <ext:panel>
-                </ext:panel>
-            </ext:layout>
-        </ext:items>
-    </ext:panel>
+<component xmlns="http://net.jangaroo.com/extxml" xmlns:ext="http://extjs.com/ext3"
+           xmlns:local="http://net.jangaroo/extxml/test">
+  <ext:panel title="I am inside a package!">
+    <items>
+      <ext:label/>
+    </items>
+  </ext:panel>
 </component>

@@ -1,16 +1,12 @@
 package net.jangaroo.extxml;
 
 import freemarker.template.TemplateException;
-
-import java.io.*;
-import java.util.List;
-import java.util.ArrayList;
-
 import net.sf.saxon.s9api.SaxonApiException;
 import org.xml.sax.SAXException;
 
-import javax.xml.xpath.XPathExpressionException;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPathExpressionException;
+import java.io.*;
 
 /**
  * A tool to define Ext JS Component suites in JavaScript, ActionScript, or XML.
@@ -60,7 +56,7 @@ public class ExtXml {
     fileScanner.scan();
 
     //Generate JSON out of the xml compontents, complete the data in those ComponentClasses
-    JooClassGenerator generator = new JooClassGenerator(suite);
+    JooClassGenerator generator = new JooClassGenerator(suite, new StandardOutErrorHandler());
     generator.generateClasses();
 
     System.out.println(suite);

@@ -3,7 +3,7 @@
            xmlns:ext="http://extjs.com/ext3"
            xmlns:local="http://net.jangaroo/extxml/test">
   <!-- Component with attribute-->
-  <ext:panel title="I am inside a package!" layout="{config.myLayout}">
+  <ext:panel title="I am a panel" layout="{config.myLayout}">
     <!-- attribute with sub-attributes
     default:{layout:"border"},
     -->
@@ -12,7 +12,7 @@
     <!-- attribute-->
     <layoutConfig bla="blub">
       <anchor style="test"/>
-      <border type="3d"/>
+      <border type="solid"/>
     </layoutConfig>
 
     <!-- array with compontent
@@ -20,16 +20,7 @@
     -->
     <items>
       <local:testAll/>
-      <json><![CDATA[
-                {
-                  xtype: "editortreepanel",
-                  id: "navigation-tree-panel",
-                  title: "Navigation",
-                  rootVisible: false,
-                  url: "navtree.jsp",
-                  selectionChangeListener: currentContentController
-                }
-          ]]></json>
+      <json><![CDATA[{xtype: "editortreepanel"}]]></json>
     </items>
 
     <!-- array
@@ -53,7 +44,7 @@
         handler:function(){} }
       ]
       -->
-      <ext:json id="gear" handler="{function(x){return ''+x;}}"/>
+      <json id="gear" handler="{function(x){return ''+x;}}"/>
     </tools>
 
 

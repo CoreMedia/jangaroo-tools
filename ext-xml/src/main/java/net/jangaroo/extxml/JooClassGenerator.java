@@ -4,22 +4,14 @@ import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapper;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
-import net.sf.saxon.s9api.*;
 import org.apache.maven.shared.model.fileset.mappers.FileNameMapper;
 import org.apache.maven.shared.model.fileset.mappers.GlobPatternMapper;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+import org.xml.sax.XMLReader;
+import org.xml.sax.helpers.XMLReaderFactory;
 
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.stream.StreamSource;
-import javax.xml.xpath.XPathExpressionException;
 import java.io.*;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 
 public class JooClassGenerator {
@@ -31,74 +23,14 @@ public class JooClassGenerator {
     XML_TO_JS_MAPPER.setTo("*.as");
   }
 
-  Processor processor;
-  XsltCompiler compiler;
-  XsltExecutable executable;
+  ErrorHandler errorHandler;
   ComponentSuite componentSuite;
 
-  public JooClassGenerator(ComponentSuite componentSuite) throws SaxonApiException {
-    InputStream inputStream = getClass().getResourceAsStream("/net/jangaroo/extxml/templates/ExtXML2JSON.xsl");
-    processor = new Processor(false);
-    compiler = processor.newXsltCompiler();
-    executable = compiler.compile(new StreamSource(inputStream));
+  public JooClassGenerator(ComponentSuite componentSuite, ErrorHandler handler) {
+    this.errorHandler = handler;
     this.componentSuite = componentSuite;
   }
 
-
-  public String transformToJSON(InputStream inputStream) throws SaxonApiException {
-    StringWriter stringWriter = new StringWriter();
-
-    XdmNode source = processor.newDocumentBuilder().build(new StreamSource(inputStream));
-    Serializer out = new Serializer();
-    out.setOutputProperty(Serializer.Property.METHOD, "text");
-    out.setOutputProperty(Serializer.Property.INDENT, "yes");
-    out.setOutputWriter(stringWriter);
-
-    XsltTransformer trans = executable.load();
-    trans.setInitialContextNode(source);
-    trans.setDestination(out);
-    trans.transform();
-
-    return stringWriter.toString();
-  }
-
-
-  protected List<String> getImports(String json, StringBuffer result) throws IOException, ParserConfigurationException, XPathExpressionException, SAXException {
-    Set<String> xtypes = collectXTypesFromJSON(json, result);
-    List<String> imports = new ArrayList<String>(xtypes.size());
-    for (String xtype : xtypes) {
-      ComponentClass componentClass = componentSuite.getComponentClassByXtype(xtype);
-      if (componentClass == null) {
-        System.err.println(MessageFormat.format("xtype ''{0}'' not found in any imported component schema.", xtype));
-      } else {
-        imports.add(componentClass.getFullClassName());
-      }
-    }
-    return imports;
-  }
-
-
-  private static Pattern XTYPE_PATTERN = Pattern.compile("\\bxtype\\s*:\\s*['\"]([^'\"]+)['\"]");
-
-  private String nextXtype(Matcher xtypeMatcher) {
-
-    return xtypeMatcher.find() ? xtypeMatcher.group(1) : null;
-  }
-
-  Set<String> collectXTypesFromJSON(String json, StringBuffer result) {
-    Set<String> xtypes = new TreeSet<String>();
-    Matcher matcher = XTYPE_PATTERN.matcher(json);
-    String xtype;
-    while ((xtype = nextXtype(matcher)) != null) {
-      xtypes.add(xtype);
-      ComponentClass clazz = componentSuite.getComponentClassByXtype(xtype);
-      if(clazz != null) {
-        matcher.appendReplacement(result, "xtype: " + clazz.getFullClassName() + ".xtype");
-      }
-    }
-    matcher.appendTail(result);     
-    return xtypes;
-  }
 
   public void generateJangarooClass(ComponentClass jooClass, Writer output) throws IOException, TemplateException {
     Configuration cfg = new Configuration();
@@ -108,41 +40,55 @@ public class JooClassGenerator {
     Template template = cfg.getTemplate("/net/jangaroo/extxml/templates/jangaroo_class.ftl");
 
     template.process(jooClass, output);
-    output.close();
   }
 
-  public void generateClasses() throws SaxonApiException, IOException, SAXException, XPathExpressionException, TemplateException, ParserConfigurationException {
+  public void generateClasses() {
     for (ComponentClass cc : componentSuite.getComponentClassesByType(ComponentType.XML)) {
-      FileInputStream inputStream = new FileInputStream(cc.getSrcFile());
-      String json = transformToJSON(inputStream);
-      inputStream.close();
-
-      String extendsXtype = nextXtype(XTYPE_PATTERN.matcher(json));
-      ComponentClass superClass = componentSuite.getComponentClassByXtype(extendsXtype);
-      if(superClass != null){
-        String extendsClass = componentSuite.getComponentClassByXtype(extendsXtype).getFullClassName();
-        cc.setSuperClassName(extendsClass);
-      }else{
-        System.err.println(String.format("No component class found for xtype '%s'", extendsXtype));
-      }
-      StringBuffer parsedJson = new StringBuffer();
-      cc.setImports(getImports(json, parsedJson));
-      Matcher matschi = Pattern.compile("\\bxtype\\s*:\\s*([a-zA-Z0-9.]+)").matcher(parsedJson.toString());
-      String dingsdi;
-      if(matschi.find()) {
-        dingsdi = matschi.replaceFirst("");
-        if(dingsdi.indexOf(",")==1) {
-          dingsdi = dingsdi.replaceFirst(",", "");
+      FileInputStream inputStream = null;
+      XmlToJsonHandler handler = null;
+      try {
+        XMLReader xr = XMLReaderFactory.createXMLReader();
+        handler = new XmlToJsonHandler(this.componentSuite, this.errorHandler);
+        xr.setContentHandler(handler);
+        inputStream = new FileInputStream(cc.getSrcFile());
+        xr.parse(new InputSource(inputStream));
+      } catch (FileNotFoundException e) {
+        errorHandler.error("Exception while parsing", e);
+      } catch (IOException e) {
+        errorHandler.error("Exception while parsing", e);
+      } catch (SAXException e) {
+        errorHandler.error("Exception while parsing", e);
+      } finally {
+        try {
+          inputStream.close();
+        } catch (IOException e) {
+          //never happend
         }
-      } else {
-        dingsdi = parsedJson.toString();
       }
 
-      cc.setJson(dingsdi);
-      File outputFile = new File(componentSuite.getAs3OutputDir(), XML_TO_JS_MAPPER.mapFileName(cc.getRelativeSrcFilePath()));
-      outputFile.getParentFile().mkdirs();
-      FileWriter writer = new FileWriter(outputFile);
-      generateJangarooClass(cc, writer);
+      if (handler != null) {
+        cc.setSuperClassName(handler.getSuperClassName());
+        cc.setImports(handler.getImports());
+        cc.setJson(handler.getJsonAsString());
+        File outputFile = new File(componentSuite.getAs3OutputDir(), XML_TO_JS_MAPPER.mapFileName(cc.getRelativeSrcFilePath()));
+        outputFile.getParentFile().mkdirs();
+        FileWriter writer = null;
+        try {
+          writer = new FileWriter(outputFile);
+          generateJangarooClass(cc, writer);
+        } catch (IOException e) {
+          errorHandler.error("Exception while creating class", e);
+        } catch (TemplateException e) {
+          errorHandler.error("Exception while creating class", e);
+        } finally {
+          try {
+            writer.close();
+          } catch (IOException e) {
+            //never happen
+          }
+        }
+
+      }
     }
 
   }

@@ -5,7 +5,6 @@ package net.jangaroo.extxml.mojo;
 
 import freemarker.template.TemplateException;
 import net.jangaroo.extxml.*;
-import net.sf.saxon.s9api.SaxonApiException;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -13,7 +12,6 @@ import org.apache.maven.project.MavenProject;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.XPathExpressionException;
 import java.io.*;
 
 /**
@@ -99,10 +97,10 @@ public class ExtXmlMojo extends AbstractMojo {
       e.printStackTrace();
     }
     if (importedXsds != null) {
-      for (int i = 0; i < importedXsds.length; i++) {
+      for (File importedXsd : importedXsds) {
         InputStream in = null;
         try {
-          in = new FileInputStream(importedXsds[i]);
+          in = new FileInputStream(importedXsd);
           suite.addImportedComponentSuite(XsdScanner.scan(in));
         } catch (IOException e) {
           e.printStackTrace();
@@ -129,27 +127,10 @@ public class ExtXmlMojo extends AbstractMojo {
     }
 
     //Generate JSON out of the xml compontents, complete the data in those ComponentClasses
-    JooClassGenerator generator = null;
-    try {
-      generator = new JooClassGenerator(suite);
-    } catch (SaxonApiException e) {
-      throw new MojoExecutionException("Error while preparing joo class generator", e);
-    }
-    try {
-      generator.generateClasses();
-    } catch (SaxonApiException e) {
-      throw new MojoExecutionException("Error while generating classes", e);
-    } catch (IOException e) {
-      throw new MojoExecutionException("Error while generating classes", e);
-    } catch (SAXException e) {
-      throw new MojoExecutionException("Error while generating classes", e);
-    } catch (XPathExpressionException e) {
-      throw new MojoExecutionException("Error while generating classes", e);
-    } catch (TemplateException e) {
-      throw new MojoExecutionException("Error while generating classes", e);
-    } catch (ParserConfigurationException e) {
-      throw new MojoExecutionException("Error while generating classes", e);
-    }
+    JooClassGenerator generator = new JooClassGenerator(suite, new MavenErrorHandler()); 
+
+    generator.generateClasses();
+
     //generate the XSD for that
     Writer out = null;
     try {
@@ -172,6 +153,28 @@ public class ExtXmlMojo extends AbstractMojo {
     }
     
     project.addCompileSourceRoot(generatedSourcesDirectory.getPath());
-    
+  }
+  
+  class MavenErrorHandler implements ErrorHandler{
+
+    public void error(String message, int lineNumber, int columnNumber) {
+      getLog().error(String.format("ERROR in line %s, column %s: %s", lineNumber, columnNumber, message));
+    }
+
+    public void error(String message, Exception exception) {
+      getLog().error(message, exception);
+    }
+
+    public void error(String message) {
+      getLog().error(message);
+    }
+
+    public void warning(String message) {
+      getLog().warn(message);
+    }
+
+    public void warning(String message, int lineNumber, int columnNumber) {
+      getLog().warn(String.format("WARNING in line %s, column %s: %s", lineNumber, columnNumber, message));
+    }
   }
 }

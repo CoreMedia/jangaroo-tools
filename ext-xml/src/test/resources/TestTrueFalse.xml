@@ -2,10 +2,10 @@
 <component xmlns="http://net.jangaroo.com/extxml" xmlns:ext="http://extjs.com/ext3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <ext:panel>
         <ext:items>
-            <ext:panel id="foo" controller="{some.javascript()}"/>
-            <!--
-            <ext:panel id="bar" controller="{function(){do.something()}}"/>
-            -->
+            <ext:panel id="foo" x="true"/>
+            <ext:panel id="bar" x="false"/>
+            <ext:panel id="foo2" x="True"/>
+            <ext:panel id="bar2" x="FALSE"/>
         </ext:items>
     </ext:panel>
 </component>

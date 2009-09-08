@@ -2,18 +2,7 @@
 <component xmlns="http://net.jangaroo.com/extxml" xmlns:local="test:*" xmlns:ext="http://extjs.com/ext3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <local:mypanel layout="border">
         <ext:items>
-            <ext:layout region="north">
-                <ext:panel>
-                </ext:panel>
-            </ext:layout>
-            <ext:layout region="south">
-                <ext:panel>
-                </ext:panel>
-            </ext:layout>
-            <ext:layout region="west">
-                <ext:panel>
-                </ext:panel>
-            </ext:layout>
+            <ext:label/>
         </ext:items>
     </local:mypanel>
 </component>

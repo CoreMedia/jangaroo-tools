@@ -8,6 +8,8 @@ import org.xml.sax.ContentHandler;
 import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
 
+import java.text.NumberFormat;
+import java.text.ParseException;
 import java.util.*;
 
 /**
@@ -18,19 +20,23 @@ public class XmlToJsonHandler implements ContentHandler {
   private Locator locator;
   private Json result;
   private ComponentSuite componentSuite;
-  private String extendedXtype;
-  private Set<String> xtypes;
-  private List<String> imports;
+
+  private HashMap<String, String> imports = new HashMap<String, String>();
+
+  private ErrorHandler errorHandler;
+
+  private static String numberPattern = "-?([0-9]+\\.[0-9]*)|(\\.[0-9]+)|([0-9]+)([eE][+-]?[0-9]+)?";
+
+  private NumberFormat nf = NumberFormat.getNumberInstance(Locale.US);
 
   Stack<Json> objects = new Stack<Json>();
   Stack<String> attributes = new Stack<String>();
 
-  private boolean insideJson = false;
-
   private boolean expectObjects = true;
 
-  public XmlToJsonHandler(ComponentSuite componentSuite) {
+  public XmlToJsonHandler(ComponentSuite componentSuite, ErrorHandler handler) {
     this.componentSuite = componentSuite;
+    this.errorHandler = handler;
   }
 
   public void setDocumentLocator(Locator locator) {
@@ -42,9 +48,21 @@ public class XmlToJsonHandler implements ContentHandler {
   }
 
   public void endDocument() throws SAXException {
-    assert objects.empty();
-    assert attributes.empty();
-    assert expectObjects;
+    if (!objects.empty()) {
+      errorHandler.error("Json object stack not empty at the end of the document.",
+          locator.getLineNumber(),
+          locator.getColumnNumber());
+    }
+    if (!attributes.empty()) {
+      errorHandler.error("Attribute stack not empty at the end of the document.",
+          locator.getLineNumber(),
+          locator.getColumnNumber());
+    }
+    if (!expectObjects) {
+      errorHandler.error("The parser is in the wrong state at the end of the document.",
+          locator.getLineNumber(),
+          locator.getColumnNumber());
+    }
   }
 
   public void startPrefixMapping(String prefix, String uri) throws SAXException {
@@ -58,9 +76,61 @@ public class XmlToJsonHandler implements ContentHandler {
   private JsonObject createJsonObject(String uri, String localName, String qName, Attributes atts) {
     JsonObject result = new JsonObject();
     for (int i = 0; i < atts.getLength(); i++) {
-      result.properties.put(atts.getLocalName(i), atts.getValue(i));
+      String attsValue = atts.getValue(i);
+      Object typedValue = null;
+      if ("true".equals(attsValue) || "false".equals(attsValue)) {
+        typedValue = Boolean.parseBoolean(attsValue);
+      } else if (attsValue.matches(numberPattern)) {
+        try {
+          typedValue = nf.parse(attsValue);
+        } catch (ParseException e) {
+          //well seems to be not a number...
+          typedValue = attsValue;
+        }
+      } else {
+        typedValue = attsValue;
+      }
+      result.properties.put(atts.getLocalName(i), typedValue);
     }
     return result;
+  }
+
+  /**
+   * Adds the Json to the stack and
+   * indicates that no other json object is expected by the parser
+   *
+   * @param jsonObject the json to add to the stack
+   */
+  private void addObjectToStack(Json jsonObject) {
+    objects.push(jsonObject);
+    expectObjects = false;
+  }
+
+  /**
+   * Adds the Attribute to the stack and
+   * indicates that now only json objects are expected by the parser
+   *
+   * @param attribute the name of the attribute
+   */
+  private void addAttributeToStack(String attribute) {
+    attributes.push(attribute);
+    expectObjects = true;
+  }
+
+  /**
+   * Removes the last json object from stack and indicates that other json objects
+   * are expected by the parser
+   *
+   * @return the last json object from the stack
+   */
+  private Json removeObjectFromStack() {
+    expectObjects = true;
+    return objects.pop();
+  }
+
+  private void removeAttributeFromStack() {
+    attributes.pop();
+    expectObjects = false;
   }
 
   public void startElement(String uri, String localName, String qName, Attributes atts) throws SAXException {
@@ -71,7 +141,15 @@ public class XmlToJsonHandler implements ContentHandler {
       Json parentJson = objects.empty() ? null : objects.peek();
 
       if (expectObjects) {
-        jsonObject.set("$name", localName);
+        jsonObject.set("xtype", localName);
+        //find component clazz for xtype
+        ComponentClass compClazz = componentSuite.getComponentClassByXtype(localName);
+        if (compClazz != null) {
+          imports.put(localName, compClazz.getFullClassName());
+        } else {
+          imports.put(localName, null);
+          errorHandler.warning(String.format("No component class for xtype '%s' found!", localName), locator.getLineNumber(), locator.getColumnNumber());
+        }
 
         if (parentJson != null) {
           assert !attributes.empty();
@@ -88,16 +166,13 @@ public class XmlToJsonHandler implements ContentHandler {
             ((JsonArray) obj).push(jsonObject);
           }
         }
-        objects.push(jsonObject);
-        expectObjects = false;
+        addObjectToStack(jsonObject);
       } else {
         assert parentJson != null;
-        attributes.push(localName);
-        expectObjects = true;
-        if(!jsonObject.properties.isEmpty()) {
+        addAttributeToStack(localName);
+        if (!jsonObject.properties.isEmpty()) {
           parentJson.set(localName, jsonObject);
-          objects.push(jsonObject);
-          expectObjects = false;
+          addObjectToStack(jsonObject);
         }
       }
     }
@@ -112,28 +187,26 @@ public class XmlToJsonHandler implements ContentHandler {
         assert localName.equals(attr);
         expectObjects = false;
       } else {
-        Json json = objects.pop();
-        expectObjects = true;
-
-        if(json.get("$name") == null) {
-          attributes.pop();
-          expectObjects = false;
+        Json json = removeObjectFromStack();
+        if (json.get("xtype") == null) {
+          removeAttributeFromStack();
         }
+        //if the the last object has been removed,
+        //store the result
         if (objects.empty()) {
           result = json;
-        }
 
+        }
       }
     }
-
   }
 
   public void characters(char[] ch, int start, int length) throws SAXException {
     String str = "";
     for (int i = start; i < start + length; i++)
       str += ch[i];
-    if(!objects.empty() && objects.peek().get("$name")!= null && objects.peek().get("$name").equals("json"))
-      objects.peek().set("plain", str);
+    if (!objects.empty() && objects.peek().get("xtype") != null && objects.peek().get("xtype").equals("json"))
+      objects.peek().set("plain", "{" + str + "}");
   }
 
   public void ignorableWhitespace(char[] ch, int start, int length) throws SAXException {
@@ -148,8 +221,20 @@ public class XmlToJsonHandler implements ContentHandler {
 
   }
 
-  public String getJSON() {
-    return result.toString();
+  public Json getJSON() {
+    return result;
+  }
+
+  public List<String> getImports() {
+    return new ArrayList(imports.values());
+  }
+
+  public String getSuperClassName() {
+    return componentSuite.getComponentClassByXtype((String) this.result.get("xtype")).getFullClassName();
+  }
+
+  public String getJsonAsString() {
+    return ((JsonObject) result).toJsonString("","xtype");
   }
 
   interface Json {
@@ -158,11 +243,32 @@ public class XmlToJsonHandler implements ContentHandler {
     void set(String property, Object value);
   }
 
-  private class JsonArray implements Json {
+  class JsonArray implements Json {
     ArrayList<Object> items = new ArrayList<Object>();
 
     public String toString() {
       return items.toString();
+    }
+
+    public String toJsonString(String spaces) {
+      StringBuffer bf = new StringBuffer();
+      bf.append("[\n");
+      bf.append(spaces);
+      boolean first = true;
+      for (Object item : items) {
+        if (!first) {
+          bf.append(",\n");
+          bf.append(spaces);
+        }
+        if (item instanceof JsonObject) {
+          bf.append(((JsonObject) item).toJsonString("  " + spaces, null));
+        } else {
+          bf.append(item.toString());
+        }
+        first = false;
+      }
+      bf.append("]");
+      return bf.toString();
     }
 
     public Object get(String property) {
@@ -178,12 +284,55 @@ public class XmlToJsonHandler implements ContentHandler {
     }
   }
 
-  private class JsonObject implements Json {
+  class JsonObject implements Json {
     LinkedHashMap<String, Object> properties = new LinkedHashMap<String, Object>();
 
     public String toString() {
-      return properties.toString();
+      return toJsonString("", null);
     }
+
+    public String toJsonString(String spaces, String ignoreProperty) {
+      StringBuffer bf = new StringBuffer();
+      bf.append(spaces);
+      bf.append("{");
+      boolean first = true;
+      for (Map.Entry<String, Object> prop : this.properties.entrySet()) {
+        String key = prop.getKey();
+        Object value = prop.getValue();
+        if (ignoreProperty == null || !key.equals(ignoreProperty)) {
+          if (!first) {
+            bf.append(",\n");
+            bf.append("  "+spaces);
+          }
+          bf.append(key);
+          bf.append(": ");
+          if (value instanceof Number
+              || value instanceof Boolean) {
+            bf.append(value.toString());
+          } else if (value instanceof JsonObject) {
+            bf.append(((JsonObject) value).toJsonString("  " + spaces, null));
+          }else if (value instanceof JsonArray) {
+            bf.append(((JsonArray) value).toJsonString("  " + spaces));            
+          } else if (key.equals("xtype")) {
+            String className = imports.get(value);
+            if (className != null) {
+              bf.append(imports.get(value));
+              bf.append(".xtype");
+            } else {
+              bf.append("\"" + value.toString() + "\"");
+            }
+          } else if (((String) value).startsWith("{") && ((String) value).endsWith("}")) {
+            bf.append(((String) value).substring(1, ((String) value).lastIndexOf("}")));
+          } else {
+            bf.append("\"" + value.toString() + "\"");
+          }
+          first = false;
+        }
+      }
+      bf.append("}");
+      return bf.toString();
+    }
+
 
     public Object get(String property) {
       return properties.get(property);
