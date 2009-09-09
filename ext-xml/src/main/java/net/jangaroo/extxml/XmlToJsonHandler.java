@@ -83,7 +83,7 @@ public class XmlToJsonHandler implements ContentHandler {
       cfgs.add(new ConfigAttribute(atts.getValue("name"), atts.getValue("type")));
     } else if ("description".equals(localName)) {
       expectOptionalDescription = true;
-    } else if ("json".equals(localName)) {
+    } else if ("object".equals(localName)) {
       //handle json elements differently: either as a anonymous element with attributes or
       //json as text node of the element.
       if (expectObjects) {
@@ -126,7 +126,7 @@ public class XmlToJsonHandler implements ContentHandler {
     } else if ("cfg".equals(localName)) {
     } else if ("description".equals(localName)) {
       expectOptionalDescription = false;
-    } else if ("json".equals(localName)) {
+    } else if ("object".equals(localName)) {
       expectJSON = false;
     } else {
       if (expectObjects) {

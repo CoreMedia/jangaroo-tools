@@ -25,8 +25,10 @@
     -->
     <items>
       <ext:button text="Save"/>
-      <json><![CDATA[{xtype: "editortreepanel"}]]></json>
+      <object><![CDATA[{xtype: "editortreepanel"}]]></object>
+      <object/>
     </items>
+
 
     <!-- array
     menu:[
@@ -49,7 +51,7 @@
         handler:function(){} }
       ]
       -->
-      <json id="gear" handler="{function(x){return ''+x;}}"/>
+      <object id="gear" handler="{function(x){return ''+x;}}"/>
     </tools>
   </ext:panel>
 </component>

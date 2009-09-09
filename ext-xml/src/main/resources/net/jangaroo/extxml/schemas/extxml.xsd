@@ -2,7 +2,7 @@
 <xs:schema attributeFormDefault="unqualified"
            elementFormDefault="qualified"
            targetNamespace="http://net.jangaroo.com/extxml/0.1"
-           xmlns:extxml="http://net.jangaroo.com/extxml/0.1"
+           xmlns:exml="http://net.jangaroo.com/extxml/0.1"
            xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
   <xs:simpleType name="jsType">
@@ -27,7 +27,7 @@
     </xs:restriction>
   </xs:simpleType>
 
-  <xs:complexType name="cfgType">
+  <xs:complexType name="cfg">
     <xs:annotation>
       <xs:documentation>
         An additional config property of this component. The newly created property can
@@ -50,7 +50,7 @@
         </xs:documentation>
       </xs:annotation>
     </xs:attribute>
-    <xs:attribute name="type" type="extxml:jsType" use="required">
+    <xs:attribute name="type" type="exml:jsType" use="required">
       <xs:annotation>
         <xs:documentation>
           The type of the config property.
@@ -59,7 +59,7 @@
     </xs:attribute>
   </xs:complexType>
 
-  <xs:complexType name="componentType">
+  <xs:complexType name="component">
     <xs:annotation>
       <xs:documentation>
         An Ext XML Component consiting of optional cfg elements and one
@@ -67,20 +67,26 @@
       </xs:documentation>
     </xs:annotation>
     <xs:sequence>
-      <xs:element name="cfg" type="extxml:cfgType" minOccurs="0" maxOccurs="unbounded"/>
-      <xs:any maxOccurs="1" namespace="##other" processContents="strict"/>
+      <xs:element name="cfg" type="exml:cfg" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:any maxOccurs="1" namespace="##other" processContents="lax"/>
     </xs:sequence>
   </xs:complexType>
 
-  <xs:element name="component" type="extxml:componentType"/>
-
-  <xs:element name="plugins" type="extxml:pluginsType"/>
-  <xs:complexType name="pluginsType" xmlns="http://net.jangaroo.com/extxml">
-    <xs:sequence>
-      <xs:element name="plugin" type="extxml:pluginType" minOccurs='0' maxOccurs='unbounded'/>
-    </xs:sequence>
+  <xs:complexType name="object">
+    <xs:annotation>
+      <xs:documentation>
+        Creates an anonymous object. Either with attributes or with JSON as text node.
+      </xs:documentation>
+    </xs:annotation>
+    <xs:simpleContent>
+      <xs:restriction base="xs:string">
+        <xs:pattern value="123" />
+        <xs:anyAttribute processContents="skip"/>
+      </xs:restriction>
+    </xs:simpleContent>
   </xs:complexType>
-  <xs:complexType name="pluginType" xmlns="http://net.jangaroo.com/extxml">
+
+  <xs:complexType name="plugin">
     <xs:sequence>
       <xs:any minOccurs='0' maxOccurs='unbounded' processContents='lax'/>
     </xs:sequence>
@@ -89,4 +95,15 @@
     <xs:attribute name="forClass" type="xs:string"/>
   </xs:complexType>
 
+  <xs:complexType name="plugins">
+    <xs:sequence>
+      <xs:element name="plugin" type="exml:plugin" minOccurs='0' maxOccurs='unbounded'/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:element name="component" type="exml:component"/>
+
+  <xs:element name="plugins" type="exml:plugins"/>
+
+  <xs:element name="object" type="exml:object"/>
 </xs:schema>
