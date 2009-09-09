@@ -67,7 +67,7 @@
       </xs:documentation>
     </xs:annotation>
     <xs:sequence>
-      <xs:element name="cfg" type="extxml:cfgType" maxOccurs="unbounded"/>
+      <xs:element name="cfg" type="extxml:cfgType" minOccurs="0" maxOccurs="unbounded"/>
       <xs:any maxOccurs="1" namespace="##other" processContents="strict"/>
     </xs:sequence>
   </xs:complexType>
