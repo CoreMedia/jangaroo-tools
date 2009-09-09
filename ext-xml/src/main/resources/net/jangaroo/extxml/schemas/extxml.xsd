@@ -80,7 +80,6 @@
     </xs:annotation>
     <xs:simpleContent>
       <xs:restriction base="xs:string">
-        <xs:pattern value="123" />
         <xs:anyAttribute processContents="skip"/>
       </xs:restriction>
     </xs:simpleContent>
