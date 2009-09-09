@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<component xmlns="http://net.jangaroo.com/extxml"
+<component xmlns="http://net.jangaroo.com/extxml/0.1"
            xmlns:ext="http://extjs.com/ext3">
   <cfg name="myProperty" type="String"/>
   <cfg name="myPropertyWithDescription" type="Boolean">

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xs:schema attributeFormDefault="unqualified"
            elementFormDefault="qualified"
-           targetNamespace="http://net.jangaroo.com/extxml"
-           xmlns:extxml="http://net.jangaroo.com/extxml"
+           targetNamespace="http://net.jangaroo.com/extxml/0.1"
+           xmlns:extxml="http://net.jangaroo.com/extxml/0.1"
            xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
   <xs:simpleType name="jsType">
@@ -73,5 +73,20 @@
   </xs:complexType>
 
   <xs:element name="component" type="extxml:componentType"/>
+
+  <xs:element name="plugins" type="extxml:pluginsType"/>
+  <xs:complexType name="pluginsType" xmlns="http://net.jangaroo.com/extxml">
+    <xs:sequence>
+      <xs:element name="plugin" type="extxml:pluginType" minOccurs='0' maxOccurs='unbounded'/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="pluginType" xmlns="http://net.jangaroo.com/extxml">
+    <xs:sequence>
+      <xs:any minOccurs='0' maxOccurs='unbounded' processContents='lax'/>
+    </xs:sequence>
+    <xs:attribute name="forId" type="xs:string"/>
+    <xs:attribute name="forXtype" type="xs:QName"/>
+    <xs:attribute name="forClass" type="xs:string"/>
+  </xs:complexType>
 
 </xs:schema>
