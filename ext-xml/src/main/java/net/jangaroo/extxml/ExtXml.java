@@ -4,7 +4,14 @@ import freemarker.template.TemplateException;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 
 /**
  * A tool to define Ext JS Component suites in JavaScript, ActionScript, or XML.
@@ -46,7 +53,8 @@ public class ExtXml {
         in = new FileInputStream(new File(args[i]));
         suite.addImportedComponentSuite(XsdScanner.scan(in));
       } finally {
-        in.close();
+        if(in != null)
+          in.close();
       }
     }
     suite.addImportedComponentSuite(XsdScanner.getExt3ComponentSuite());

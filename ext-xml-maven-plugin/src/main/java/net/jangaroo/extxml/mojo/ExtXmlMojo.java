@@ -4,7 +4,12 @@
 package net.jangaroo.extxml.mojo;
 
 import freemarker.template.TemplateException;
-import net.jangaroo.extxml.*;
+import net.jangaroo.extxml.ComponentSuite;
+import net.jangaroo.extxml.ErrorHandler;
+import net.jangaroo.extxml.JooClassGenerator;
+import net.jangaroo.extxml.SrcFileScanner;
+import net.jangaroo.extxml.XsdGenerator;
+import net.jangaroo.extxml.XsdScanner;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -12,7 +17,14 @@ import org.apache.maven.project.MavenProject;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 
 /**
  * Mojo to compile Jangaroo sources during the compile phase.
@@ -22,7 +34,7 @@ import java.io.*;
  */
 public class ExtXmlMojo extends AbstractMojo {
 
-   /**
+  /**
    * The maven project.
    *
    * @parameter expression="${project}"
@@ -127,7 +139,7 @@ public class ExtXmlMojo extends AbstractMojo {
     }
 
     //Generate JSON out of the xml compontents, complete the data in those ComponentClasses
-    JooClassGenerator generator = new JooClassGenerator(suite, new MavenErrorHandler()); 
+    JooClassGenerator generator = new JooClassGenerator(suite, new MavenErrorHandler());
 
     generator.generateClasses();
 
@@ -151,11 +163,11 @@ public class ExtXmlMojo extends AbstractMojo {
         }
       }
     }
-    
+
     project.addCompileSourceRoot(generatedSourcesDirectory.getPath());
   }
-  
-  class MavenErrorHandler implements ErrorHandler{
+
+  class MavenErrorHandler implements ErrorHandler {
 
     public void error(String message, int lineNumber, int columnNumber) {
       getLog().error(String.format("ERROR in line %s, column %s: %s", lineNumber, columnNumber, message));
