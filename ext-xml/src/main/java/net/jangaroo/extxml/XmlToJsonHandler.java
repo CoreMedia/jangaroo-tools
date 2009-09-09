@@ -49,7 +49,6 @@ public class XmlToJsonHandler implements ContentHandler {
   }
 
   public void startDocument() throws SAXException {
-
   }
 
   public void endDocument() throws SAXException {
@@ -71,98 +70,9 @@ public class XmlToJsonHandler implements ContentHandler {
   }
 
   public void startPrefixMapping(String prefix, String uri) throws SAXException {
-
   }
 
   public void endPrefixMapping(String prefix) throws SAXException {
-
-  }
-
-  private JsonObject createJsonObject(Attributes atts) {
-    JsonObject result = new JsonObject();
-    for (int i = 0; i < atts.getLength(); i++) {
-      String attsValue = atts.getValue(i);
-      Object typedValue;
-      if ("true".equals(attsValue) || "false".equals(attsValue)) {
-        typedValue = Boolean.parseBoolean(attsValue);
-      } else if (attsValue.matches(numberPattern)) {
-        try {
-          typedValue = nf.parse(attsValue);
-        } catch (ParseException e) {
-          //well seems to be not a number...
-          typedValue = attsValue;
-        }
-      } else {
-        typedValue = attsValue;
-      }
-      result.properties.put(atts.getLocalName(i), typedValue);
-    }
-    return result;
-  }
-
-  /**
-   * adds the element to the current json object, if it is an array knows how to handle it...
-   * @param element the element to add.
-   */
-  private void addElementToJsonObject(Object element) {           
-    Json parentJson = objects.empty() ? null : objects.peek();
-    if (parentJson != null) {
-      assert !attributes.empty();
-      String attr = attributes.peek();
-      Object obj = parentJson.get(attr);
-      if (obj == null) {
-        parentJson.set(attr, element);
-      } else if (!(obj instanceof JsonArray)) {
-        JsonArray array = new JsonArray();
-        array.push(obj);
-        array.push(element);
-        parentJson.set(attr, array);
-      } else {
-        ((JsonArray) obj).push(element);
-      }
-    }
-  }
-
-  /**
-   * Adds the Json to the stack and
-   * indicates that no other json object is expected by the parser
-   *
-   * @param jsonObject the json to add to the stack
-   */
-  private void addObjectToStack(Json jsonObject) {
-    objects.push(jsonObject);
-    expectObjects = false;
-  }
-
-  /**
-   * Adds the Attribute to the stack and
-   * indicates that now only json objects are expected by the parser
-   *
-   * @param attribute the name of the attribute
-   */
-  private void addAttributeToStack(String attribute) {
-    attributes.push(attribute);
-    expectObjects = true;
-  }
-
-  /**
-   * Removes the last json object from stack and indicates that other json objects
-   * are expected by the parser
-   *
-   * @return the last json object from the stack
-   */
-  private Json removeObjectFromStack() {
-    expectObjects = true;
-    return objects.pop();
-  }
-
-  /**
-   * Remove the last attribute from the attribute stack and indicate that attributes are
-   * expected by the parser
-   */
-  private void removeAttributeFromStack() {
-    attributes.pop();
-    expectObjects = false;
   }
 
   public void startElement(String uri, String localName, String qName, Attributes atts) throws SAXException {
@@ -184,7 +94,6 @@ public class XmlToJsonHandler implements ContentHandler {
         }
       }
     } else {
-
       JsonObject jsonObject = createJsonObject(atts);
       Json parentJson = objects.empty() ? null : objects.peek();
 
@@ -252,15 +161,100 @@ public class XmlToJsonHandler implements ContentHandler {
   }
 
   public void ignorableWhitespace(char[] ch, int start, int length) throws SAXException {
-
   }
 
   public void processingInstruction(String target, String data) throws SAXException {
-
   }
 
   public void skippedEntity(String name) throws SAXException {
+  }
 
+  private JsonObject createJsonObject(Attributes atts) {
+    JsonObject result = new JsonObject();
+    for (int i = 0; i < atts.getLength(); i++) {
+      String attsValue = atts.getValue(i);
+      Object typedValue;
+      if ("true".equals(attsValue) || "false".equals(attsValue)) {
+        typedValue = Boolean.parseBoolean(attsValue);
+      } else if (attsValue.matches(numberPattern)) {
+        try {
+          typedValue = nf.parse(attsValue);
+        } catch (ParseException e) {
+          //well seems to be not a number...
+          typedValue = attsValue;
+        }
+      } else {
+        typedValue = attsValue;
+      }
+      result.properties.put(atts.getLocalName(i), typedValue);
+    }
+    return result;
+  }
+
+  /**
+   * adds the element to the current json object, if it is an array knows how to handle it...
+   *
+   * @param element the element to add.
+   */
+  private void addElementToJsonObject(Object element) {
+    Json parentJson = objects.empty() ? null : objects.peek();
+    if (parentJson != null) {
+      assert !attributes.empty();
+      String attr = attributes.peek();
+      Object obj = parentJson.get(attr);
+      if (obj == null) {
+        parentJson.set(attr, element);
+      } else if (!(obj instanceof JsonArray)) {
+        JsonArray array = new JsonArray();
+        array.push(obj);
+        array.push(element);
+        parentJson.set(attr, array);
+      } else {
+        ((JsonArray) obj).push(element);
+      }
+    }
+  }
+
+  /**
+   * Adds the Json to the stack and
+   * indicates that no other json object is expected by the parser
+   *
+   * @param jsonObject the json to add to the stack
+   */
+  private void addObjectToStack(Json jsonObject) {
+    objects.push(jsonObject);
+    expectObjects = false;
+  }
+
+  /**
+   * Adds the Attribute to the stack and
+   * indicates that now only json objects are expected by the parser
+   *
+   * @param attribute the name of the attribute
+   */
+  private void addAttributeToStack(String attribute) {
+    attributes.push(attribute);
+    expectObjects = true;
+  }
+
+  /**
+   * Removes the last json object from stack and indicates that other json objects
+   * are expected by the parser
+   *
+   * @return the last json object from the stack
+   */
+  private Json removeObjectFromStack() {
+    expectObjects = true;
+    return objects.pop();
+  }
+
+  /**
+   * Remove the last attribute from the attribute stack and indicate that attributes are
+   * expected by the parser
+   */
+  private void removeAttributeFromStack() {
+    attributes.pop();
+    expectObjects = false;
   }
 
   public Json getJSON() {
@@ -361,12 +355,13 @@ public class XmlToJsonHandler implements ContentHandler {
           } else if (value instanceof JsonArray) {
             bf.append(((JsonArray) value).toJsonString("  " + spaces));
           } else if (key.equals("xtype")) {
-            String className = imports.get(value);
+            String xtype = (String)value;
+            String className = imports.get(xtype);
             if (className != null) {
-              bf.append(imports.get(value));
+              bf.append(imports.get(xtype));
               bf.append(".xtype");
             } else {
-              bf.append("\"").append(value.toString()).append("\"");
+              bf.append("\"").append(xtype).append("\"");
             }
           } else if (((String) value).startsWith("{") && ((String) value).endsWith("}")) {
             bf.append(((String) value).substring(1, ((String) value).lastIndexOf("}")));
