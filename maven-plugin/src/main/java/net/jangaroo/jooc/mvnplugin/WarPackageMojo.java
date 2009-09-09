@@ -17,16 +17,16 @@ package net.jangaroo.jooc.mvnplugin;
  */
 
 import org.apache.maven.artifact.Artifact;
-import org.apache.maven.artifact.DefaultArtifact;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
-import org.codehaus.mojo.javascript.archive.JavascriptUnArchiver;
 import org.codehaus.mojo.javascript.archive.Types;
 import org.codehaus.plexus.archiver.ArchiverException;
-import org.codehaus.plexus.util.FileUtils;
+import org.codehaus.plexus.archiver.zip.ZipUnArchiver;
+import org.codehaus.plexus.components.io.fileselectors.FileInfo;
+import org.codehaus.plexus.components.io.fileselectors.FileSelector;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 
 import java.io.File;
@@ -72,21 +72,21 @@ public class WarPackageMojo
   private String scriptsDirectory;
 
 
-  /**
+  /*
    * Output directory for compiled classes and the merged javascript file(s).
    *
-   * @parameter expression="${project.build.directory}/joo"
+   * @parameter expression="${project.build.outputDirectory}"
+   *
+   private File compilerOutputRootDirectory;
    */
-  private File compilerOutputRootDirectory;
-
 
   /**
    * Plexus archiver.
    *
-   * @component role="org.codehaus.plexus.archiver.UnArchiver" role-hint="jangaroo"
+   * @component role="org.codehaus.plexus.archiver.UnArchiver" role-hint="zip"
    * @required
    */
-  private JavascriptUnArchiver unarchiver;
+  private ZipUnArchiver unarchiver;
 
   /**
    * {@inheritDoc}
@@ -100,23 +100,30 @@ public class WarPackageMojo
     try {
       excludeFromWarPackaging();
 
-      unpack(project, DefaultArtifact.SCOPE_RUNTIME, scriptDir);
-      if (compilerOutputRootDirectory != null && compilerOutputRootDirectory.exists()) {
-        FileUtils.copyDirectoryStructure(compilerOutputRootDirectory, scriptDir);
-      }
+      unpack(project, scriptDir);
+      //   if (compilerOutputRootDirectory != null && compilerOutputRootDirectory.exists()) {
+      //     FileUtils.copyDirectoryStructure(compilerOutputRootDirectory, scriptDir);
+      //   }
     }
     catch (ArchiverException e) {
       throw new MojoExecutionException("Failed to unpack javascript dependencies", e);
-    } catch (IOException e) {
+    }/* catch (IOException e) {
       throw new MojoExecutionException(String.format("Failed to copy classes to scripts %s directory", scriptDir), e);
-    }
+    }  */
   }
 
 
-  public void unpack(MavenProject project, String scope, File target)
+  public void unpack(MavenProject project, File target)
           throws ArchiverException {
-    unarchiver.setOverwrite(false);
 
+    unarchiver.setOverwrite(false);
+    unarchiver.setFileSelectors(new FileSelector[]{new FileSelector() {
+      @Override
+      public boolean isSelected(FileInfo fileInfo) throws IOException {
+        return !fileInfo.getName().startsWith("META-INF");
+      }
+
+    }});
     Set dependencies = project.getArtifacts();
 
     for (Iterator iterator = dependencies.iterator(); iterator.hasNext();) {

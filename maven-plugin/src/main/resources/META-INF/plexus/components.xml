@@ -12,12 +12,12 @@
       <role-hint>jangaroo</role-hint>
       <implementation>org.codehaus.mojo.javascript.archive.JavascriptUnArchiver</implementation>
     </component>
-    
+
     <!--
-        A custom artifact handler for javascript archives (jsar).
-        This requires the plugin to be configured with <extensions> set to true
-        on any project that uses javascript depedencies.
-     -->
+       A custom artifact handler for javascript archives (jsar).
+       This requires the plugin to be configured with <extensions> set to true
+       on any project that uses javascript depedencies.
+    -->
     <component>
       <role>org.apache.maven.artifact.handler.ArtifactHandler</role>
       <role-hint>jangaroo</role-hint>
@@ -42,11 +42,16 @@
           <lifecycle>
             <id>default</id>
             <phases>
+              <initialize>net.jangaroo:jangaroo-maven-plugin:initialize</initialize>
+              <generate-sources>net.jangaroo:ext-xml-maven-plugin:extxml</generate-sources>
               <process-resources>org.apache.maven.plugins:maven-resources-plugin:resources</process-resources>
               <compile>net.jangaroo:jangaroo-maven-plugin:compile</compile>
+              <generate-test-resources>net.jangaroo:jangaroo-maven-plugin:unpack-jangaroo-test-dependencies
+              </generate-test-resources>
               <process-test-resources>org.apache.maven.plugins:maven-resources-plugin:testResources
               </process-test-resources>
               <test-compile>net.jangaroo:jangaroo-maven-plugin:testCompile</test-compile>
+              <test>org.apache.maven.plugins:maven-surefire-plugin:test</test>
               <package>net.jangaroo:jangaroo-maven-plugin:package</package>
               <install>org.apache.maven.plugins:maven-install-plugin:install</install>
               <deploy>org.apache.maven.plugins:maven-deploy-plugin:deploy</deploy>
@@ -58,7 +63,7 @@
               <clean>org.apache.maven.plugins:maven-clean-plugin:clean</clean>
             </phases>
           </lifecycle>
-          
+
         </lifecycles>
       </configuration>
     </component>

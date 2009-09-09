@@ -38,8 +38,8 @@ under the License.
             <id>compile-as-sources</id>
             <phase>compile</phase>
             <goals>
-              <goal>compile</goal>
-            </goals>            
+              <goal>war-compile</goal>
+            </goals>
           </execution>
           <execution>
             <id>war-package</id>

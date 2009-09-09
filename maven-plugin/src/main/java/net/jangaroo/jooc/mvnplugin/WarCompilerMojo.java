@@ -9,24 +9,24 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Mojo to compile Jangaroo sources during the compile phase.
+ * Compiles AS as part of the WAR lifecycle. Not used in jangaroo lifecycle.
  *
- * @goal compile
+ * @goal war-compile
  * @phase compile
  */
-public class CompilerMojo extends AbstractCompilerMojo {
+public class WarCompilerMojo extends AbstractCompilerMojo {
 
   /**
    * Output directory for compiled classes.
    *
-   * @parameter expression="${project.build.outputDirectory}/classes"
+   * @parameter expression="${scripts}" default-value="${project.build.directory}/${project.build.finalName}/scripts/classes"
    */
   private File outputDirectory;
 
   /**
    * Source directory to scan for files to compile.
    *
-   * @parameter expression="${project.build.sourceDirectory}"
+   * @parameter expression="src/main/joo"
    */
   private File sourceDirectory;
   /**
@@ -46,7 +46,7 @@ public class CompilerMojo extends AbstractCompilerMojo {
    * This parameter specifies the name of the output file containing all
    * compiled classes.
    *
-   * @parameter expression="${project.build.outputDirectory}/${project.artifactId}.js"
+   * @parameter default-value="${project.build.directory}/${project.build.finalName}/scripts/${project.artifactId}.js"
    */
   private String outputFileName;
 
@@ -70,4 +70,5 @@ public class CompilerMojo extends AbstractCompilerMojo {
   public String getOutputFileName() {
     return outputFileName;
   }
+
 }
