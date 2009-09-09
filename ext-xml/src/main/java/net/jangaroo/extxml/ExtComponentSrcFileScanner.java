@@ -30,19 +30,20 @@ public class ExtComponentSrcFileScanner {
         EXT_COMPONENT_SRC_FILE_SCANNER.scan(srcFile, state);
         state.cc.setType(ComponentType.JavaScript);
       } else if (ComponentType.XML.extension.equals(ext)) {
+        ComponentClass clazz = new ComponentClass(srcFile);
+        clazz.setSuite(componentSuite);
         String className = FileUtils.removeExtension(srcFile.getName());
-        state.addClass(className);
-        componentSuite.addComponentClass(state.cc);
-        String packageName = FileUtils.dirname(state.cc.getRelativeSrcFilePath().substring(1)).replaceAll("[\\\\/]", ".");
-        String fullName = "";
+        String packageName = FileUtils.dirname(clazz.getRelativeSrcFilePath().substring(1)).replaceAll("[\\\\/]", ".");
+        String fullName;
         if(packageName != null && ! "".equals(packageName))  {
           fullName = packageName+"."+className;
         } else {
           fullName = className;
         }
-        state.cc.setFullClassName(fullName);
-        state.cc.setXtype(className);
-        state.cc.setType(ComponentType.XML);
+        clazz.setFullClassName(fullName);
+        clazz.setXtype(className);
+        clazz.setType(ComponentType.XML);
+        componentSuite.addComponentClass(clazz);
       }
       state.end();
     } catch (IOException e) {
