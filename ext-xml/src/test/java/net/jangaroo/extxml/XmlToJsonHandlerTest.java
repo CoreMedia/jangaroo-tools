@@ -54,18 +54,18 @@ public class XmlToJsonHandlerTest extends TestCase {
 
     XmlToJsonHandler.Json firstElem  = (XmlToJsonHandler.Json) itemsArray.get("0");
     assertNotNull(firstElem);
-    assertEquals("testAll", firstElem.get("xtype"));
+    assertEquals("button", firstElem.get("xtype"));
 
-    XmlToJsonHandler.Json jsonElem  = (XmlToJsonHandler.Json) itemsArray.get("1");
+    String jsonElem  = (String) itemsArray.get("1");
     assertNotNull(jsonElem);
-    assertEquals("json", jsonElem.get("xtype"));
-    assertEquals("{{xtype: \"editortreepanel\"}}", jsonElem.get("plain"));
+    assertEquals("{xtype: \"editortreepanel\"}", jsonElem);
 
     XmlToJsonHandler.Json tools = (XmlToJsonHandler.Json) json.get("tools");
     assertNotNull(tools);
-    assertEquals("json", tools.get("xtype"));
     assertEquals("gear", tools.get("id"));
     assertEquals("{function(x){return ''+x;}}", tools.get("handler"));
+
+    //config elements
 
     List<ConfigAttribute> cfgs = handler.getCfgs();
     assertFalse(cfgs.isEmpty());
@@ -73,6 +73,11 @@ public class XmlToJsonHandlerTest extends TestCase {
     assertEquals("myProperty",attr.getName());
     assertEquals("String", attr.getJsType());
     assertNull(attr.getDescription());
+
+    attr = cfgs.get(1);
+    assertEquals("myPropertyWithDescription",attr.getName());
+    assertEquals("Boolean", attr.getJsType());
+    assertNotNull(attr.getDescription());
   }
 
   public void testTrueFalse() throws Exception {

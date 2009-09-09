@@ -1,8 +1,12 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <component xmlns="http://net.jangaroo.com/extxml"
-           xmlns:ext="http://extjs.com/ext3"
-           xmlns:local="http://net.jangaroo/extxml/test">
+           xmlns:ext="http://extjs.com/ext3">
   <cfg name="myProperty" type="String"/>
+  <cfg name="myPropertyWithDescription" type="Boolean">
+    <description>
+      <![CDATA[This is my <b>descripion</b>]]>
+    </description>
+  </cfg>
   <!-- superclass of the the component with attributes-->
   <ext:panel title="I am a panel" layout="{config.myLayout}">
     <!-- attribute with sub-attributes
@@ -20,7 +24,7 @@
     items:{xtype:"testAll", ...}
     -->
     <items>
-      <local:testAll/>
+      <ext:button text="Save"/>
       <json><![CDATA[{xtype: "editortreepanel"}]]></json>
     </items>
 
@@ -47,8 +51,5 @@
       -->
       <json id="gear" handler="{function(x){return ''+x;}}"/>
     </tools>
-
-
-
   </ext:panel>
 </component>

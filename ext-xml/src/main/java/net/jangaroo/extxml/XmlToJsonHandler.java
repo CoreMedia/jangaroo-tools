@@ -35,6 +35,10 @@ public class XmlToJsonHandler implements ContentHandler {
 
   private boolean expectObjects = true;
 
+  private boolean expectOptionalDescription = false;
+
+  private boolean expectJSON = false;
+
   public XmlToJsonHandler(ComponentSuite componentSuite, ErrorHandler handler) {
     this.componentSuite = componentSuite;
     this.errorHandler = handler;
@@ -97,6 +101,29 @@ public class XmlToJsonHandler implements ContentHandler {
   }
 
   /**
+   * adds the element to the current json object, if it is an array knows how to handle it...
+   * @param element the element to add.
+   */
+  private void addElementToJsonObject(Object element) {           
+    Json parentJson = objects.empty() ? null : objects.peek();
+    if (parentJson != null) {
+      assert !attributes.empty();
+      String attr = attributes.peek();
+      Object obj = parentJson.get(attr);
+      if (obj == null) {
+        parentJson.set(attr, element);
+      } else if (!(obj instanceof JsonArray)) {
+        JsonArray array = new JsonArray();
+        array.push(obj);
+        array.push(element);
+        parentJson.set(attr, array);
+      } else {
+        ((JsonArray) obj).push(element);
+      }
+    }
+  }
+
+  /**
    * Adds the Json to the stack and
    * indicates that no other json object is expected by the parser
    *
@@ -129,6 +156,10 @@ public class XmlToJsonHandler implements ContentHandler {
     return objects.pop();
   }
 
+  /**
+   * Remove the last attribute from the attribute stack and indicate that attributes are
+   * expected by the parser
+   */
   private void removeAttributeFromStack() {
     attributes.pop();
     expectObjects = false;
@@ -138,7 +169,20 @@ public class XmlToJsonHandler implements ContentHandler {
     if ("component".equals(localName)) {
       //start the parsing
     } else if ("cfg".equals(localName)) {
-      cfgs.add(new ConfigAttribute(atts.getValue("name"), atts.getValue("type"), atts.getValue("description")));
+      //handle config elements
+      cfgs.add(new ConfigAttribute(atts.getValue("name"), atts.getValue("type")));
+    } else if ("description".equals(localName)) {
+      expectOptionalDescription = true;
+    } else if ("json".equals(localName)) {
+      //handle json elements differently: either as a anonymous element with attributes or
+      //json as text node of the element.
+      if (expectObjects) {
+        if (atts.getLength() == 0) {
+          expectJSON = true;
+        } else {
+          addElementToJsonObject(createJsonObject(atts));
+        }
+      }
     } else {
 
       JsonObject jsonObject = createJsonObject(atts);
@@ -154,22 +198,7 @@ public class XmlToJsonHandler implements ContentHandler {
           imports.put(localName, null);
           errorHandler.warning(String.format("No component class for xtype '%s' found!", localName), locator.getLineNumber(), locator.getColumnNumber());
         }
-
-        if (parentJson != null) {
-          assert !attributes.empty();
-          String attr = attributes.peek();
-          Object obj = parentJson.get(attr);
-          if (obj == null) {
-            parentJson.set(attr, jsonObject);
-          } else if (!(obj instanceof JsonArray)) {
-            JsonArray array = new JsonArray();
-            array.push(obj);
-            array.push(jsonObject);
-            parentJson.set(attr, array);
-          } else {
-            ((JsonArray) obj).push(jsonObject);
-          }
-        }
+        addElementToJsonObject(jsonObject);
         addObjectToStack(jsonObject);
       } else {
         assert parentJson != null;
@@ -186,7 +215,10 @@ public class XmlToJsonHandler implements ContentHandler {
     if ("component".equals(localName)) {
       //done
     } else if ("cfg".equals(localName)) {
-
+    } else if ("description".equals(localName)) {
+      expectOptionalDescription = false;
+    } else if ("json".equals(localName)) {
+      expectJSON = false;
     } else {
       if (expectObjects) {
         String attr = attributes.pop();
@@ -211,8 +243,12 @@ public class XmlToJsonHandler implements ContentHandler {
     String str = "";
     for (int i = start; i < start + length; i++)
       str += ch[i];
-    if (!objects.empty() && objects.peek().get("xtype") != null && objects.peek().get("xtype").equals("json"))
-      objects.peek().set("plain", "{" + str + "}");
+    if (expectOptionalDescription) {
+      cfgs.get(cfgs.size() - 1).setDescription(str);
+    }
+    if (expectJSON) {
+      addElementToJsonObject(str);
+    }
   }
 
   public void ignorableWhitespace(char[] ch, int start, int length) throws SAXException {

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema attributeFormDefault="unqualified"
+           elementFormDefault="qualified"
+           targetNamespace="http://net.jangaroo.com/extxml"
+           xmlns:extxml="http://net.jangaroo.com/extxml"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <xs:simpleType name="jsType">
+    <xs:annotation>
+      <xs:documentation>
+        The type of an javascript property.
+        <ul>
+          <li>String</li>
+          <li>Number</li>
+          <li>Boolean</li>
+          <li>Float</li>
+          <li>Date</li>
+        </ul>
+      </xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="String"/>
+      <xs:enumeration value="Number"/>
+      <xs:enumeration value="Boolean"/>
+      <xs:enumeration value="Float"/>
+      <xs:enumeration value="Date"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:complexType name="cfgType">
+    <xs:annotation>
+      <xs:documentation>
+        An additional config property of this component. The newly created property can
+        be used with binding in other properties of components, e.g. <i><b>{config.&lt;name of the property>}</b></i>
+      </xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="description" type="xs:string" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>
+            The description of the config property. optional.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="name" type="xs:string" use="required">
+      <xs:annotation>
+        <xs:documentation>
+          The name of the config property.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="type" type="extxml:jsType" use="required">
+      <xs:annotation>
+        <xs:documentation>
+          The type of the config property.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType>
+
+  <xs:complexType name="componentType">
+    <xs:annotation>
+      <xs:documentation>
+        An Ext XML Component consiting of optional cfg elements and one
+        component element that is the parent component. 
+      </xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="cfg" type="extxml:cfgType" maxOccurs="unbounded"/>
+      <xs:any maxOccurs="1" namespace="##other" processContents="strict"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:element name="component" type="extxml:componentType"/>
+
+</xs:schema>
