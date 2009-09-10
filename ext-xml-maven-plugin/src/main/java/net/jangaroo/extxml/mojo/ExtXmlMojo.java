@@ -144,22 +144,24 @@ public class ExtXmlMojo extends AbstractMojo {
     generator.generateClasses();
 
     //generate the XSD for that
-    Writer out = null;
-    try {
-      //generate the XSD for that
-      out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File(generatedResourcesDirectory, xsd)), "UTF-8"));
-      new XsdGenerator(suite).generateXsd(out);
+    if(!suite.getComponentClasses().isEmpty()) {
+      Writer out = null;
+      try {
+        //generate the XSD for that
+        out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File(generatedResourcesDirectory, xsd)), "UTF-8"));
+        new XsdGenerator(suite).generateXsd(out);
 
-    } catch (IOException e) {
-      throw new MojoExecutionException("Error while generating XML schema", e);
-    } catch (TemplateException e) {
-      throw new MojoExecutionException("Error while generating XML schema", e);
-    } finally {
-      if (out != null) {
-        try {
-          out.close();
-        } catch (IOException e) {
-          e.printStackTrace();
+      } catch (IOException e) {
+        throw new MojoExecutionException("Error while generating XML schema", e);
+      } catch (TemplateException e) {
+        throw new MojoExecutionException("Error while generating XML schema", e);
+      } finally {
+        if (out != null) {
+          try {
+            out.close();
+          } catch (IOException e) {
+            e.printStackTrace();
+          }
         }
       }
     }
