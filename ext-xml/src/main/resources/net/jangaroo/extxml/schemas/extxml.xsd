@@ -59,19 +59,6 @@
     </xs:attribute>
   </xs:complexType>
 
-  <xs:complexType name="component">
-    <xs:annotation>
-      <xs:documentation>
-        An Ext XML Component consiting of optional cfg elements and one
-        component element that is the parent component. 
-      </xs:documentation>
-    </xs:annotation>
-    <xs:sequence>
-      <xs:element name="cfg" type="exml:cfg" minOccurs="0" maxOccurs="unbounded"/>
-      <xs:any maxOccurs="1" namespace="##other" processContents="lax"/>
-    </xs:sequence>
-  </xs:complexType>
-
   <xs:complexType name="object">
     <xs:annotation>
       <xs:documentation>
@@ -85,7 +72,27 @@
     </xs:simpleContent>
   </xs:complexType>
 
-  <xs:complexType name="plugin">
+  <xs:complexType name="component">
+    <xs:annotation>
+      <xs:documentation>
+        An Ext XML Component consiting of optional cfg elements and one
+        component element that is the parent component.
+      </xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="cfg" type="exml:cfg" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:any maxOccurs="1" namespace="##other" processContents="lax"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="pluginAsRoot">
+    <xs:sequence>
+      <xs:element name="cfg" type="exml:cfg" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:any maxOccurs="1" namespace="##other" processContents='lax'/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="pluginAsConfig">
     <xs:sequence>
       <xs:any minOccurs='0' maxOccurs='unbounded' processContents='lax'/>
     </xs:sequence>
@@ -96,13 +103,15 @@
 
   <xs:complexType name="plugins">
     <xs:sequence>
-      <xs:element name="plugin" type="exml:plugin" minOccurs='0' maxOccurs='unbounded'/>
+      <xs:element name="plugin" type="exml:pluginAsConfig" minOccurs='0' maxOccurs='unbounded'/>
     </xs:sequence>
   </xs:complexType>
 
   <xs:element name="component" type="exml:component"/>
 
   <xs:element name="plugins" type="exml:plugins"/>
+
+  <xs:element name="plugin" type="exml:pluginAsRoot"/>
 
   <xs:element name="object" type="exml:object"/>
 </xs:schema>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<plugin xmlns="http://net.jangaroo.com/extxml/0.1"
+           xmlns:ext="http://extjs.com/ext3"
+           xmlns:cm="http://www.coremedia.com/ui/0.1">
+  <cm:AddItemsPlugin>
+    <items>
+      <ext:button text="Added with my plugin"/>
+    </items>
+  </cm:AddItemsPlugin>
+</plugin>
