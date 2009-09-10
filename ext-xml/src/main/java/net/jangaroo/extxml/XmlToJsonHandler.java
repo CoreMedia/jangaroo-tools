@@ -10,6 +10,7 @@ import org.xml.sax.SAXException;
 
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.text.MessageFormat;
 import java.util.*;
 
 /**
@@ -270,7 +271,17 @@ public class XmlToJsonHandler implements ContentHandler {
   }
 
   public String getSuperClassName() {
-    return componentSuite.getComponentClassByXtype((String) this.result.get("xtype")).getFullClassName();
+    String xtype = (String)this.result.get("xtype");
+    if (xtype == null) {
+      errorHandler.error("Component xtype not found.");
+      return null;
+    }
+    ComponentClass componentClass = componentSuite.getComponentClassByXtype(xtype);
+    if (componentClass == null) {
+      errorHandler.error(MessageFormat.format("Super component class for xtype ''{0}'' not found.", xtype));
+      return null;
+    }
+    return componentClass.getFullClassName();
   }
 
   public String getJsonAsString() {
