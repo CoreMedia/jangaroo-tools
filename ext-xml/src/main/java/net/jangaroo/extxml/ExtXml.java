@@ -46,8 +46,8 @@ public class ExtXml {
   public static void main(String[] args) throws IOException, SAXException, ParserConfigurationException, TemplateException {
 
     //Scan the directory for xml, as or javascript components and collect the data in ComponentClass, import all provided XSDs
-    ComponentSuite suite = new ComponentSuite(args[0], new File(args[2]), new File(args[3]));
-    for (int i = 4; i < args.length; i++) {
+    ComponentSuite suite = new ComponentSuite(args[0], args[1], new File(args[2]), new File(args[3]));
+    for (int i = 5; i < args.length; i++) {
       InputStream in = null;
       try {
         in = new FileInputStream(new File(args[i]));

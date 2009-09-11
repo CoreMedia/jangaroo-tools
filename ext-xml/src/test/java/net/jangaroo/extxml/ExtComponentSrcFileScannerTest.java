@@ -56,7 +56,7 @@ public class ExtComponentSrcFileScannerTest {
 
   @Test
   public void testXMLComponent() throws Exception {
-    ComponentSuite suite = new ComponentSuite("local", TestUtils.getRootDir(getClass()), null);
+    ComponentSuite suite = new ComponentSuite("local", "", TestUtils.getRootDir(getClass()), null);
 
     ExtComponentSrcFileScanner.scan(suite, TestUtils.getFile("/testpackage/testPackage.xml", getClass()));
     ComponentClass cc = suite.getComponentClassByFullClassName("testpackage.testPackage");

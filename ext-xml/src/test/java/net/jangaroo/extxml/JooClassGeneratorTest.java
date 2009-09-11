@@ -37,7 +37,7 @@ public class JooClassGeneratorTest{
     File rootDir = TestUtils.getRootDir(getClass());
     File outDir = TestUtils.computeTestDataRoot(getClass());
     
-    ComponentSuite suite = new ComponentSuite("local", rootDir, outDir);
+    ComponentSuite suite = new ComponentSuite("local", "", rootDir, outDir);
     ComponentClass panel = new ComponentClass("panel", "ext.Panel");
     ComponentClass label = new ComponentClass("label", "ext.Label");
     suite.addComponentClass(panel);

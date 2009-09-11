@@ -15,6 +15,8 @@ public class XsdGenerator {
 
   private static Configuration cfg;
 
+  private ComponentSuite componentSuite;
+
   public XsdGenerator(ComponentSuite componentSuite) throws IOException {
     /* Create and adjust freemarker configuration */
     cfg = new Configuration();
@@ -25,13 +27,14 @@ public class XsdGenerator {
   }
 
   public void generateXsd(Writer out) throws IOException, TemplateException {
-    /* Get or create a template */
-    Template template = cfg.getTemplate("component-suite-xsd.ftl");
+    //do nothing if suite is empty
+    if (!componentSuite.getComponentClasses().isEmpty()) {
+      /* Get or create a template */
+      Template template = cfg.getTemplate("component-suite-xsd.ftl");
 
-    /* Merge data-model with template */
-    System.out.println(String.format("Writing XML Schema %s ", componentSuite.getNamespace()));
-    template.process(componentSuite, out);
+      /* Merge data-model with template */
+      System.out.println(String.format("Writing XML Schema %s ", componentSuite.getNamespace()));
+      template.process(componentSuite, out);
+    }
   }
-
-  private ComponentSuite componentSuite;
 }

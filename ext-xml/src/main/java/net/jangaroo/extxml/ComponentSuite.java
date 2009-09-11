@@ -19,11 +19,12 @@ public class ComponentSuite {
   private Map<String, ComponentSuite> usedComponentSuites;
 
   public ComponentSuite() {
-    this(null, null, null);
+    this(null, null, null, null);
   }
 
-  public ComponentSuite(String namespace, File rootDir, File as3OutputDir) {
+  public ComponentSuite(String namespace, String namespacePrefix, File rootDir, File as3OutputDir) {
     this.namespace = namespace;
+    this.ns = namespacePrefix;
     this.rootDir = rootDir;
     this.as3OutputDir = as3OutputDir;
     importedComponentSuites = new ArrayList<ComponentSuite>();
@@ -64,7 +65,7 @@ public class ComponentSuite {
   }
 
   public String getNs() {
-    return ns;
+    return ns == null ? "" : ns;
   }
 
   public String getPrefix() {

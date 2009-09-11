@@ -61,6 +61,13 @@ public class ExtXmlMojo extends AbstractMojo {
   private String namespace;
 
   /**
+   * The namespace of the component suite
+   *
+   * @parameter expression="${project.artifactId}"
+   */
+  private String namespacePrefix;
+
+  /**
    * Output directory for all ActionScript3 files generated out of exml components
    *
    * @parameter expression="${project.build.directory}/generated-sources/joo"
@@ -100,7 +107,7 @@ public class ExtXmlMojo extends AbstractMojo {
     }
 
 
-    ComponentSuite suite = new ComponentSuite(namespace, sourceDirectory, generatedSourcesDirectory);
+    ComponentSuite suite = new ComponentSuite(namespace, namespacePrefix, sourceDirectory, generatedSourcesDirectory);
 
     try {
       suite.addImportedComponentSuite(XsdScanner.getExt3ComponentSuite());

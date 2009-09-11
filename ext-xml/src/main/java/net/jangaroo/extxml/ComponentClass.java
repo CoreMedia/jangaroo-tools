@@ -16,7 +16,7 @@ public class ComponentClass extends DescriptionHolder {
   private List<String> imports;
   private String fullClassName;
   private String superClassName;
-  private Collection<ConfigAttribute> cfgs = new ArrayList<ConfigAttribute>();
+  private List<ConfigAttribute> cfgs = new ArrayList<ConfigAttribute>();
   private String json;
   private ComponentType type;
 
@@ -67,7 +67,7 @@ public class ComponentClass extends DescriptionHolder {
   }
 
   public String getElementName() {
-    return suite.getPrefix() + xtype;
+    return xtype;
   }
 
   public List<String> getImports() {

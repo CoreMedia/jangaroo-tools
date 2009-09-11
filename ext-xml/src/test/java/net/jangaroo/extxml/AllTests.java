@@ -12,8 +12,10 @@ import org.junit.runners.Suite;
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
     ExtComponentSrcFileScannerTest.class,
+    XsdGeneratorTest.class,
     XmlToJsonHandlerTest.class,
     JooClassGeneratorTest.class,
-    ExtComponentSrcFileScannerTest.class})
+    ExtComponentSrcFileScannerTest.class,
+    ExtXmlTest.class})
 public class AllTests {
 }
