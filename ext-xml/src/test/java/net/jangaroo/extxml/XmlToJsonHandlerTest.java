@@ -17,6 +17,7 @@ import utils.TestUtils;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.util.List;
 
@@ -147,7 +148,12 @@ public class XmlToJsonHandlerTest {
     XMLReader xr = XMLReaderFactory.createXMLReader();
     XmlToJsonHandler handler = new XmlToJsonHandler(new ComponentSuite(), new StandardOutErrorHandler());
     xr.setContentHandler(handler);
-    xr.parse(new InputSource(new FileInputStream(TestUtils.getFile(path, getClass()))));
+    InputStream stream = new FileInputStream(TestUtils.getFile(path, getClass()));
+    try {
+      xr.parse(new InputSource(stream));
+    } finally {
+      stream.close();
+    }
     XmlToJsonHandler.Json json = handler.getJSON();
     System.out.println(json);
     return handler;
