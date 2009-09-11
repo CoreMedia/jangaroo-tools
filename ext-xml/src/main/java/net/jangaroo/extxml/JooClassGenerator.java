@@ -46,9 +46,10 @@ public class JooClassGenerator {
     for (ComponentClass cc : componentSuite.getComponentClassesByType(ComponentType.XML)) {
       FileInputStream inputStream = null;
       XmlToJsonHandler handler = null;
+      errorHandler.setCurrentFile(cc.getSrcFile());
       try {
         XMLReader xr = XMLReaderFactory.createXMLReader();
-        handler = new XmlToJsonHandler(this.componentSuite, this.errorHandler);
+        handler = new XmlToJsonHandler(componentSuite, errorHandler);
         xr.setContentHandler(handler);
         inputStream = new FileInputStream(cc.getSrcFile());
         xr.parse(new InputSource(inputStream));

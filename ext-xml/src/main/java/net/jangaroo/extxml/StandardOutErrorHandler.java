@@ -3,13 +3,21 @@
  */
 package net.jangaroo.extxml;
 
+import java.io.File;
+
 /**
  *
  */
 public class StandardOutErrorHandler implements ErrorHandler{
 
+  private File currentFile;
+
+  public void setCurrentFile(File file) {
+    this.currentFile = file;
+  }
+
   public void error(String message, int lineNumber, int columnNumber) {
-    System.err.println(String.format("ERROR in line %s, column %s: %s", lineNumber, columnNumber, message));
+    System.err.println(String.format("ERROR in %s, line %s, column %s: %s", currentFile, lineNumber, columnNumber, message));
   }
 
   public void error(String message, Exception exception) {
@@ -26,6 +34,6 @@ public class StandardOutErrorHandler implements ErrorHandler{
   }
 
   public void warning(String message, int lineNumber, int columnNumber) {
-   System.err.println(String.format("WARNING in line %s, column %s: %s", lineNumber, columnNumber, message));
+   System.err.println(String.format("WARNING in %s, line %s, column %s: %s", currentFile, lineNumber, columnNumber, message));
   }
 }

@@ -3,10 +3,14 @@
  */
 package net.jangaroo.extxml;
 
+import java.io.File;
+
 /**
  *
  */
 public interface ErrorHandler {
+
+  void setCurrentFile(File file);
 
   void error(String message, int lineNumber, int columnNumber);
 
