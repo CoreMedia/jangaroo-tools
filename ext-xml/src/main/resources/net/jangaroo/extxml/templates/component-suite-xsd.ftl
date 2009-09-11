@@ -9,7 +9,7 @@
     </#if>
         <xs:sequence>
           <#list componentClass.cfgs as cfg>
-            <#if cfg.jsType = "Object">
+            <#if cfg.jsType = "Object" || cfg.jsType = "Object/Array">
               <xs:element name='${cfg.name}'>
                 <xs:complexType>
                   <xs:simpleContent>
@@ -17,6 +17,15 @@
                       <xs:anyAttribute processContents="skip"/>
                     </xs:extension>
                   </xs:simpleContent>
+                </xs:complexType>
+              </xs:element>
+            </#if>
+            <#if cfg.jsType = "Array">
+              <xs:element name='${cfg.name}'>
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+                  </xs:sequence>
                 </xs:complexType>
               </xs:element>
             </#if>

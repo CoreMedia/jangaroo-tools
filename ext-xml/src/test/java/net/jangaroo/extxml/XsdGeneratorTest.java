@@ -77,6 +77,7 @@ public class XsdGeneratorTest {
     clazz.addCfg(new ConfigAttribute("simpleFloat","Float"));
     clazz.addCfg(new ConfigAttribute("simpleTypeWithDescription","Number","dlfjasdlfj adlsjf adsj foijd ofj \naksldjfklasj"));
     clazz.addCfg(new ConfigAttribute("simpleObject","Object"));
+    clazz.addCfg(new ConfigAttribute("simpleArray","Array","adsfasdfasdf"));
     suite.addComponentClass(clazz);
     createDom(suite);
   }
