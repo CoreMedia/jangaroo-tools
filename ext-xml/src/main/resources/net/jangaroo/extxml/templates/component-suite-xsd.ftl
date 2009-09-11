@@ -9,7 +9,7 @@
     </#if>
         <xs:sequence>
           <#list componentClass.cfgs as cfg>
-            <#if cfg.jsType = "Object" || cfg.jsType = "Object/Array">
+            <#if cfg.jsType = "Object" || cfg.jsType = "Object/Array" || cfg.jsType = "Mixed">
               <xs:element name='${cfg.name}'>
                 <xs:complexType>
                   <xs:simpleContent>
