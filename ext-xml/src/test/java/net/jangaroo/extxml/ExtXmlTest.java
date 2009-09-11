@@ -19,7 +19,11 @@ public class ExtXmlTest {
     File outputDir = TestUtils.computeTestDataRoot(getClass());
     File rootDir = TestUtils.getRootDir(getClass());
 
-    String[] args = {"local", outputDir.getPath() + "/testComponentSuite.xsd", rootDir.getPath() + "/testComponentSuite/", outputDir.getPath()};
+    String[] args = {"local",
+        "ll",
+        outputDir.getPath() + "/testComponentSuite.xsd", 
+        rootDir.getPath() + "/testComponentSuite/",
+        outputDir.getPath()};
     ExtXml.main(args);
 
     File resultXSD = new File(outputDir, "testComponentSuite.xsd");
