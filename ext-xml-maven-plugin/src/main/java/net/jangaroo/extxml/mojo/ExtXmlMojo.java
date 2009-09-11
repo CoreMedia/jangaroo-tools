@@ -25,6 +25,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Mojo to compile Jangaroo sources during the compile phase.
@@ -139,9 +142,28 @@ public class ExtXmlMojo extends AbstractMojo {
     }
 
     //Generate JSON out of the xml compontents, complete the data in those ComponentClasses
-    JooClassGenerator generator = new JooClassGenerator(suite, new MavenErrorHandler());
+    MavenErrorHandler errorHandler = new MavenErrorHandler();
 
+    JooClassGenerator generator = new JooClassGenerator(suite, errorHandler);
     generator.generateClasses();
+
+    if(!errorHandler.exceptions.isEmpty()) {
+     for (Map.Entry<String, Exception> entry: errorHandler.exceptions.entrySet()) {
+      throw new MojoExecutionException(entry.getKey(), entry.getValue());
+     }
+    }
+
+    if(!errorHandler.errors.isEmpty()) {
+      for (String msg : errorHandler.errors) {
+        throw new MojoFailureException(msg);
+      }
+    }
+
+    if(!errorHandler.warnings.isEmpty()) {
+      for (String msg : errorHandler.warnings) {
+        getLog().warn(msg);
+      }
+    }
 
     //generate the XSD for that
     if(!suite.getComponentClasses().isEmpty()) {
@@ -170,25 +192,27 @@ public class ExtXmlMojo extends AbstractMojo {
   }
 
   class MavenErrorHandler implements ErrorHandler {
-
+    ArrayList<String> errors = new ArrayList<String>();
+    ArrayList<String> warnings = new ArrayList<String>();
+    HashMap<String, Exception> exceptions = new HashMap<String, Exception>(); 
     public void error(String message, int lineNumber, int columnNumber) {
-      getLog().error(String.format("ERROR in line %s, column %s: %s", lineNumber, columnNumber, message));
+      errors.add(String.format("ERROR in line %s, column %s: %s", lineNumber, columnNumber, message));
     }
 
     public void error(String message, Exception exception) {
-      getLog().error(message, exception);
+      exceptions.put(message, exception);
     }
 
     public void error(String message) {
-      getLog().error(message);
+      errors.add(message);
     }
 
     public void warning(String message) {
-      getLog().warn(message);
+      warnings.add(message);
     }
 
     public void warning(String message, int lineNumber, int columnNumber) {
-      getLog().warn(String.format("WARNING in line %s, column %s: %s", lineNumber, columnNumber, message));
+      warnings.add(String.format("WARNING in line %s, column %s: %s", lineNumber, columnNumber, message));
     }
   }
 }

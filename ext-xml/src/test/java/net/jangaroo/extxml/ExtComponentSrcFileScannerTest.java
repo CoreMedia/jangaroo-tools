@@ -3,14 +3,18 @@
  */
 package net.jangaroo.extxml;
 
-import junit.framework.TestCase;
+import org.junit.Test;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import utils.TestUtils;
 
 /**
  *
  */
-public class ExtComponentSrcFileScannerTest extends TestCase {
+public class ExtComponentSrcFileScannerTest {
 
+  @Test
   public void testActionScriptComponent() throws Exception {
     ComponentSuite suite = new ComponentSuite();
 
@@ -26,6 +30,7 @@ public class ExtComponentSrcFileScannerTest extends TestCase {
     assertTrue(cc.getCfgs().contains(new ConfigAttribute("propertyTwo","Number")));
   }
 
+  @Test
   public void testJavaScriptComponent() throws Exception {
     ComponentSuite suite = new ComponentSuite();
 
@@ -49,6 +54,7 @@ public class ExtComponentSrcFileScannerTest extends TestCase {
     assertNotNull(cc);
   }
 
+  @Test
   public void testXMLComponent() throws Exception {
     ComponentSuite suite = new ComponentSuite("local", TestUtils.getRootDir(getClass()), null);
 

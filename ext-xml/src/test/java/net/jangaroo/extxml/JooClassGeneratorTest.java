@@ -1,6 +1,9 @@
 package net.jangaroo.extxml;
 
-import junit.framework.TestCase;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import org.junit.Before;
+import org.junit.Test;
 import utils.TestUtils;
 
 import java.io.File;
@@ -8,16 +11,16 @@ import java.io.StringWriter;
 import java.util.Collections;
 
 
-public class JooClassGeneratorTest extends TestCase {
+public class JooClassGeneratorTest{
 
   private JooClassGenerator jooClassGenerator = null;
 
-  @Override
-  protected void setUp() throws Exception {
+  @Before
+  public void initialize() throws Exception {
     jooClassGenerator = new JooClassGenerator(new ComponentSuite(), new StandardOutErrorHandler());
   }
 
-
+  @Test
   public void testGenerateJangarooClass() throws Exception {
     ComponentClass jooClazz = new ComponentClass(Collections.<String>emptyList(), "com.coremedia.test.TestClass","SuperClass","json");
     StringWriter writer = new StringWriter();
@@ -28,6 +31,7 @@ public class JooClassGeneratorTest extends TestCase {
     assertEquals("package com.coremedia.test {import ext.ComponentMgr;/** * @xtype com.coremedia.test.TestClass */public class TestClass extends SuperClass {  public static const xtype:String = \"com.coremedia.test.TestClass\";{  ext.ComponentMgr.registerType(xtype, TestClass);}  public function TestClass(config:* = {}) {    super(Ext.apply(config, json));  }}}",writer.toString().replaceAll("\r|\n",""));
   }
 
+  @Test
   public void testGenerateClasses() throws Exception {
     File rootDir = TestUtils.getRootDir(getClass());
     File outDir = TestUtils.computeTestDataRoot(getClass());

@@ -3,7 +3,8 @@
  */
 package net.jangaroo.extxml;
 
-import junit.framework.TestCase;
+import org.junit.Test;
+import static org.junit.Assert.assertTrue;
 import utils.TestUtils;
 
 import java.io.File;
@@ -11,8 +12,9 @@ import java.io.File;
 /**
  *
  */
-public class ExtXmlTest extends TestCase {
+public class ExtXmlTest {
 
+  @Test
   public void testMain() throws Exception {
     File outputDir = TestUtils.computeTestDataRoot(getClass());
     File rootDir = TestUtils.getRootDir(getClass());

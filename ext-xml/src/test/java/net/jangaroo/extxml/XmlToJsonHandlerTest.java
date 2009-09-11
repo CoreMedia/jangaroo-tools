@@ -3,7 +3,12 @@
  */
 package net.jangaroo.extxml;
 
-import junit.framework.TestCase;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import org.junit.Test;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
@@ -15,11 +20,13 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.List;
 
+
 /**
  *
  */
-public class XmlToJsonHandlerTest extends TestCase {
+public class XmlToJsonHandlerTest {
 
+  @Test
   public void testComponent() throws Exception {
     XmlToJsonHandler handler  = parseJson("/TestComponent.xml");
     XmlToJsonHandler.Json json = handler.getJSON();
@@ -80,6 +87,7 @@ public class XmlToJsonHandlerTest extends TestCase {
     assertNotNull(attr.getDescription());
   }
 
+  @Test
   public void testTrueFalse() throws Exception {
     XmlToJsonHandler handler = parseJson("/TestTrueFalse.xml");
     XmlToJsonHandler.Json json = handler.getJSON();
@@ -95,6 +103,7 @@ public class XmlToJsonHandlerTest extends TestCase {
     assertEquals("FALSE", s);
   }
 
+  @Test
   public void testNumber() throws Exception {
     XmlToJsonHandler handler = parseJson("/TestNumber.xml");
     XmlToJsonHandler.Json json = handler.getJSON();
@@ -119,6 +128,7 @@ public class XmlToJsonHandlerTest extends TestCase {
     assertEquals("3d",s);
   }
 
+  @Test
   public void testEmptyComponent() throws Exception {
     XmlToJsonHandler handler = parseJson("/EmptyCompontent.xml");
     String json = handler.getJsonAsString();
@@ -127,6 +137,7 @@ public class XmlToJsonHandlerTest extends TestCase {
     assertEquals("{anchor:\"100%\",frame:true,collapsible:true,draggable:true,cls:\"x-portlet\"}", json.replaceAll("\\s",""));
   }
 
+  @Test
   public void testToJsonString() throws Exception {
     XmlToJsonHandler handler = parseJson("/TestComponent.xml");
     System.out.println(handler.getJsonAsString());
