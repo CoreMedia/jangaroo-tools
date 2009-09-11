@@ -105,8 +105,7 @@ public class XmlToJsonHandler implements ContentHandler {
         if (compClazz != null) {
           imports.put(localName, compClazz.getFullClassName());
         } else {
-          imports.put(localName, null);
-          errorHandler.warning(String.format("No component class for xtype '%s' found!", localName), locator.getLineNumber(), locator.getColumnNumber());
+          errorHandler.error(String.format("No component class for xtype '%s' found!", localName), locator.getLineNumber(), locator.getColumnNumber());
         }
         addElementToJsonObject(jsonObject);
         addObjectToStack(jsonObject);
