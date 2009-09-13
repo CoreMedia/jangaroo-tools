@@ -28,7 +28,9 @@ public class ExtComponentSrcFileScanner {
         EXT_COMPONENT_AS_FILE_SCANNER.scan(srcFile, state);
       } else if (ComponentType.JavaScript.extension.equals(ext)) {
         EXT_COMPONENT_SRC_FILE_SCANNER.scan(srcFile, state);
-        state.cc.setType(ComponentType.JavaScript);
+        if (state.cc != null) {
+          state.cc.setType(ComponentType.JavaScript);
+        }
       } else if (ComponentType.XML.extension.equals(ext)) {
         ComponentClass clazz = new ComponentClass(srcFile);
         clazz.setSuite(componentSuite);
