@@ -35,8 +35,12 @@ public class ComponentSuite {
     this.importedComponentSuites.add(importedSuite);
   }
 
-  public Map<String, ComponentSuite> getUsedComponentSuites() {
+  public Map<String, ComponentSuite> getUsedComponentSuitesByNs() {
     return usedComponentSuites;
+  }
+
+  public Collection<ComponentSuite> getUsedComponentSuites() {
+    return usedComponentSuites.values();
   }
 
   public String getUsedComponentSuiteNamespaces() {

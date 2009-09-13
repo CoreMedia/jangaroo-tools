@@ -119,6 +119,20 @@ public class ComponentClass extends DescriptionHolder {
     return cfgs;
   }
 
+  public Collection<ConfigAttribute> getDirectCfgs() {
+    ComponentClass cc = getSuperClass();
+    if (cc != null) {
+      ArrayList<ConfigAttribute> directCfgs = new ArrayList<ConfigAttribute>(cfgs);
+      do {
+        directCfgs.removeAll(cc.getCfgs());
+        cc = cc.getSuperClass();
+      } while (cc != null);
+      System.out.println("Removed "+(cfgs.size()-directCfgs.size())+" inherited configs.");
+      return directCfgs;
+    }
+    return cfgs;
+  }
+
   public void addCfg(ConfigAttribute cfg) {
     cfgs.add(cfg);
   }
