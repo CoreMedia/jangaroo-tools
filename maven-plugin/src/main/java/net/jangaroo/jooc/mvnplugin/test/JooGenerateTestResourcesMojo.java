@@ -9,7 +9,6 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectBuilder;
 import org.apache.maven.project.ProjectBuildingException;
-import org.apache.maven.shared.dependency.tree.DependencyTreeBuilderException;
 import org.codehaus.mojo.javascript.archive.Types;
 import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.zip.ZipUnArchiver;
@@ -93,8 +92,6 @@ public class JooGenerateTestResourcesMojo extends AbstractMojo {
       throw new MojoExecutionException("Cannot unpack jangaroo dependencies/generate html test page", e);
     } catch (ArchiverException e) {
       throw new MojoExecutionException("Cannot unpack jangaroo dependencies/generate html test page", e);
-    } catch (DependencyTreeBuilderException e) {
-      throw new MojoExecutionException("Cannot unpack jangaroo dependencies/generate html test page", e);
     } catch (ProjectBuildingException e) {
       throw new MojoExecutionException("Cannot unpack jangaroo dependencies/generate html test page", e);
     }
@@ -145,7 +142,7 @@ public class JooGenerateTestResourcesMojo extends AbstractMojo {
   }
 
 
-  private void createHtmlPage() throws IOException, DependencyTreeBuilderException, MojoExecutionException, ProjectBuildingException {
+  private void createHtmlPage() throws IOException, MojoExecutionException, ProjectBuildingException {
     List<Artifact> dependencies = project.getTestArtifacts();
 
     List<Artifact> notJangaroo = new LinkedList<Artifact>();
