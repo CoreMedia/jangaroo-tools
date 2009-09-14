@@ -29,7 +29,7 @@ public class XmlToJsonHandlerTest {
 
   @Test
   public void testComponent() throws Exception {
-    XmlToJsonHandler handler  = parseJson("/TestComponent.xml");
+    XmlToJsonHandler handler  = parseJson("/TestComponent.exml");
     XmlToJsonHandler.Json json = handler.getJSON();
 
     assertTrue(json instanceof XmlToJsonHandler.JsonObject);
@@ -90,7 +90,7 @@ public class XmlToJsonHandlerTest {
 
   @Test
   public void testTrueFalse() throws Exception {
-    XmlToJsonHandler handler = parseJson("/TestTrueFalse.xml");
+    XmlToJsonHandler handler = parseJson("/TestTrueFalse.exml");
     XmlToJsonHandler.Json json = handler.getJSON();
 
     XmlToJsonHandler.Json itemsArray = (XmlToJsonHandler.Json) json.get("items");
@@ -106,7 +106,7 @@ public class XmlToJsonHandlerTest {
 
   @Test
   public void testNumber() throws Exception {
-    XmlToJsonHandler handler = parseJson("/TestNumber.xml");
+    XmlToJsonHandler handler = parseJson("/TestNumber.exml");
     XmlToJsonHandler.Json json = handler.getJSON();
 
     XmlToJsonHandler.Json itemsArray = (XmlToJsonHandler.Json) json.get("items");
@@ -131,7 +131,7 @@ public class XmlToJsonHandlerTest {
 
   @Test
   public void testEmptyComponent() throws Exception {
-    XmlToJsonHandler handler = parseJson("/EmptyCompontent.xml");
+    XmlToJsonHandler handler = parseJson("/EmptyCompontent.exml");
     String json = handler.getJsonAsString();
     assertNotNull(json);
     System.out.println(json);
@@ -140,7 +140,7 @@ public class XmlToJsonHandlerTest {
 
   @Test
   public void testToJsonString() throws Exception {
-    XmlToJsonHandler handler = parseJson("/TestComponent.xml");
+    XmlToJsonHandler handler = parseJson("/TestComponent.exml");
     System.out.println(handler.getJsonAsString());
   }
 

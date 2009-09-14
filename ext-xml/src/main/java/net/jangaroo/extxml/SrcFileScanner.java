@@ -30,7 +30,7 @@ public class SrcFileScanner {
     srcFiles.setDirectory(dir.getAbsolutePath());
     srcFiles.addInclude("**/*.js");
     srcFiles.addInclude("**/*.as");
-    srcFiles.addInclude("**/*.xml");
+    srcFiles.addInclude("**/*.exml");
     for (String srcFileRelativePath : new FileSetManager().getIncludedFiles(srcFiles)) {
       ExtComponentSrcFileScanner.scan(componentSuite, new File(dir, srcFileRelativePath));
     }

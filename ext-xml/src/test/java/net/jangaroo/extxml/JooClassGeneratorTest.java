@@ -43,8 +43,8 @@ public class JooClassGeneratorTest{
     suite.addComponentClass(panel);
     suite.addComponentClass(label);
     
-    ComponentClass cc = new ComponentClass(TestUtils.getFile("/testpackage/testPackage.xml", getClass()));
-    cc.setType(ComponentType.XML);
+    ComponentClass cc = new ComponentClass(TestUtils.getFile("/testpackage/testPackage.exml", getClass()));
+    cc.setType(ComponentType.EXML);
     cc.setFullClassName("testpackage.testPackage");
     cc.setXtype("testPackage");
     suite.addComponentClass(cc);

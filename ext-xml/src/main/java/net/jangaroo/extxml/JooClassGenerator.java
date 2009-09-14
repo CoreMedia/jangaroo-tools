@@ -19,7 +19,7 @@ public class JooClassGenerator {
   private static FileNameMapper XML_TO_JS_MAPPER = new GlobPatternMapper();
 
   static {
-    XML_TO_JS_MAPPER.setFrom("*.xml");
+    XML_TO_JS_MAPPER.setFrom("*.exml");
     XML_TO_JS_MAPPER.setTo("*.as");
   }
 
@@ -43,7 +43,7 @@ public class JooClassGenerator {
   }
 
   public void generateClasses() {
-    for (ComponentClass cc : componentSuite.getComponentClassesByType(ComponentType.XML)) {
+    for (ComponentClass cc : componentSuite.getComponentClassesByType(ComponentType.EXML)) {
       FileInputStream inputStream = null;
       XmlToJsonHandler handler = null;
       errorHandler.setCurrentFile(cc.getSrcFile());

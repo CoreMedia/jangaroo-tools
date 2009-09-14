@@ -31,7 +31,7 @@ public class ExtComponentSrcFileScanner {
         if (state.cc != null) {
           state.cc.setType(ComponentType.JavaScript);
         }
-      } else if (ComponentType.XML.extension.equals(ext)) {
+      } else if (ComponentType.EXML.extension.equals(ext)) {
         ComponentClass clazz = new ComponentClass(srcFile);
         clazz.setSuite(componentSuite);
         String className = FileUtils.removeExtension(srcFile.getName());
@@ -44,7 +44,7 @@ public class ExtComponentSrcFileScanner {
         }
         clazz.setFullClassName(fullName);
         clazz.setXtype(className);
-        clazz.setType(ComponentType.XML);
+        clazz.setType(ComponentType.EXML);
         componentSuite.addComponentClass(clazz);
       }
       state.end();

@@ -20,7 +20,7 @@ import java.io.Writer;
  * <ul>
  * <li>as a JavaScript file (*.js), using Ext's class and inheritance helpers,
  * <li>as an ActionScript file (*.as), which is then translated to JavaScript by the Jangaroo compiler (jooc), or
- * <li>as an XML file (*.xml), which is first transformed to an ActionScript file and then compiled by jooc.
+ * <li>as an XML file (*.exml), which is first transformed to an ActionScript file and then compiled by jooc.
  * </ul>
  * <p>All used or extended components from other component suites must be imported. This is done
  * by enumeration their XML Schema file locations.

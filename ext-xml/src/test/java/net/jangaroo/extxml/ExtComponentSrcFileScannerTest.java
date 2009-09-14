@@ -58,10 +58,10 @@ public class ExtComponentSrcFileScannerTest {
   public void testXMLComponent() throws Exception {
     ComponentSuite suite = new ComponentSuite("local", "", TestUtils.getRootDir(getClass()), null);
 
-    ExtComponentSrcFileScanner.scan(suite, TestUtils.getFile("/testpackage/testPackage.xml", getClass()));
+    ExtComponentSrcFileScanner.scan(suite, TestUtils.getFile("/testpackage/testPackage.exml", getClass()));
     ComponentClass cc = suite.getComponentClassByFullClassName("testpackage.testPackage");
     assertNotNull(cc);
-    assertEquals(ComponentType.XML, cc.getType());
+    assertEquals(ComponentType.EXML, cc.getType());
     assertEquals("testPackage", cc.getXtype());
   }
 }

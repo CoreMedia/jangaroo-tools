@@ -9,7 +9,7 @@ package net.jangaroo.extxml;
 public enum ComponentType {
   JavaScript("js"),
   ActionScript("as"),
-  XML("xml");
+  EXML("exml");
 
   ComponentType(String extension) {
     this.extension = extension;
