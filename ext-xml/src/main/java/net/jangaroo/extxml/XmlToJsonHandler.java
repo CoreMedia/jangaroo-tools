@@ -8,10 +8,16 @@ import org.xml.sax.ContentHandler;
 import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
 
+import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
-import java.text.MessageFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Stack;
 
 /**
  * Generates an internal representation for the component XML
@@ -79,6 +85,8 @@ public class XmlToJsonHandler implements ContentHandler {
   public void startElement(String uri, String localName, String qName, Attributes atts) throws SAXException {
     if ("component".equals(localName)) {
       //start the parsing
+    } else if ("import".equals(localName)) {
+      imports.put(null, atts.getValue("class"));
     } else if ("cfg".equals(localName)) {
       //handle config elements
       cfgs.add(new ConfigAttribute(atts.getValue("name"), atts.getValue("type")));
@@ -127,6 +135,7 @@ public class XmlToJsonHandler implements ContentHandler {
   public void endElement(String uri, String localName, String qName) throws SAXException {
     if ("component".equals(localName)) {
       //done
+    } else if ("import".equals(localName)) {
     } else if ("cfg".equals(localName)) {
     } else if ("description".equals(localName)) {
       expectOptionalDescription = false;
@@ -274,7 +283,7 @@ public class XmlToJsonHandler implements ContentHandler {
   }
 
   public String getSuperClassName() {
-    String xtype = (String)this.result.get("xtype");
+    String xtype = (String) this.result.get("xtype");
     if (xtype == null) {
       errorHandler.error("Component xtype not found.");
       return null;
@@ -369,7 +378,7 @@ public class XmlToJsonHandler implements ContentHandler {
           } else if (value instanceof JsonArray) {
             bf.append(((JsonArray) value).toJsonString("  " + spaces));
           } else if (key.equals("xtype") || key.equals("ptype")) {
-            String xtype = (String)value;
+            String xtype = (String) value;
             String className = imports.get(xtype);
             if (className != null) {
               bf.append(imports.get(xtype)).append(".").append(key);

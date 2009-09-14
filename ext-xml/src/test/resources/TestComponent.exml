@@ -1,33 +1,38 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <component xmlns="http://net.jangaroo.com/extxml/0.1"
            xmlns:ext="http://extjs.com/ext3">
+  <!-- add an extra import statement to the class -->
+  <import class="ext.MessageBox"/>
+
+  <!-- descripte the config properties of this compontent -->
   <cfg name="myProperty" type="String"/>
   <cfg name="myPropertyWithDescription" type="Boolean">
     <description>
       <![CDATA[This is my <b>descripion</b>]]>
     </description>
   </cfg>
+
   <!-- superclass of the the component with attributes-->
   <ext:panel title="I am a panel" layout="{config.myLayout}">
     <!-- attribute with sub-attributes
     default:{layout:"border"},
     -->
-    <default layout="border"/>
+    <ext:defaults layout="border"/>
 
     <!-- attribute-->
-    <layoutConfig bla="blub">
+    <ext:layoutConfig bla="blub">
       <anchor style="test"/>
       <border type="solid"/>
-    </layoutConfig>
+    </ext:layoutConfig>
 
     <!-- array with compontent
     items:{xtype:"testAll", ...}
     -->
-    <items>
+    <ext:items>
       <ext:button text="Save"/>
       <object><![CDATA[{xtype: "editortreepanel"}]]></object>
       <object/>
-    </items>
+    </ext:items>
 
 
     <!-- array
@@ -36,13 +41,13 @@
       {...}
     ]
     -->
-    <menu>
+    <ext:menu>
       <ext:menuitem text="juhu1"/>
       <ext:menuitem text="juhu2"/>
       <ext:menuitem text="juhu3"/>
-    </menu>
+    </ext:menu>
 
-    <tools>
+    <ext:tools>
       <!--
       anonymous object in array:
 
@@ -52,6 +57,6 @@
       ]
       -->
       <object id="gear" handler="{function(x){return ''+x;}}"/>
-    </tools>
+    </ext:tools>
   </ext:panel>
 </component>

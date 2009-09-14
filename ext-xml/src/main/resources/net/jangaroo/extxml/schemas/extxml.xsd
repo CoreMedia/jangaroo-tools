@@ -60,6 +60,16 @@
     </xs:attribute>
   </xs:complexType>
 
+  <xs:complexType name="import">
+    <xs:annotation>
+      <xs:documentation>
+        An additional config property of this component. The newly created property can
+        be used with binding in other properties of components, e.g. <i><b>{config.&lt;name of the property>}</b></i>
+      </xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="class" type="xs:string" use="required"/>
+  </xs:complexType>
+
   <xs:complexType name="object">
     <xs:annotation>
       <xs:documentation>
@@ -81,6 +91,7 @@
       </xs:documentation>
     </xs:annotation>
     <xs:sequence>
+      <xs:element name="import" type="exml:import" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element name="cfg" type="exml:cfg" minOccurs="0" maxOccurs="unbounded"/>
       <xs:any maxOccurs="1" namespace="##other" processContents="lax"/>
     </xs:sequence>

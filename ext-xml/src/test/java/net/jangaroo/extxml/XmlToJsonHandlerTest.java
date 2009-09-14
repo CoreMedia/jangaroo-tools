@@ -37,7 +37,7 @@ public class XmlToJsonHandlerTest {
     assertEquals("I am a panel", json.get("title"));
     assertEquals("{config.myLayout}", json.get("layout"));
 
-    XmlToJsonHandler.Json defaultProp = (XmlToJsonHandler.Json) json.get("default");
+    XmlToJsonHandler.Json defaultProp = (XmlToJsonHandler.Json) json.get("defaults");
     assertNotNull(defaultProp);
     assertNull(defaultProp.get("xtype"));
     assertEquals("border", defaultProp.get("layout"));
@@ -74,7 +74,6 @@ public class XmlToJsonHandlerTest {
     assertEquals("{function(x){return ''+x;}}", tools.get("handler"));
 
     //config elements
-
     List<ConfigAttribute> cfgs = handler.getCfgs();
     assertFalse(cfgs.isEmpty());
     ConfigAttribute attr = cfgs.get(0);
@@ -86,6 +85,11 @@ public class XmlToJsonHandlerTest {
     assertEquals("myPropertyWithDescription",attr.getName());
     assertEquals("Boolean", attr.getJsType());
     assertNotNull(attr.getDescription());
+
+    //imports
+    List<String> imports = handler.getImports();
+    assertTrue(imports.contains("ext.MessageBox"));
+
   }
 
   @Test
