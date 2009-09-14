@@ -99,7 +99,11 @@ public class XmlToJsonHandler implements ContentHandler {
       Json parentJson = objects.empty() ? null : objects.peek();
 
       if (expectObjects) {
-        jsonObject.set("xtype", localName);
+        String type = "xtype";
+        if (!attributes.isEmpty() && attributes.peek().equals("plugins")) {
+          type = "ptype";
+        }
+        jsonObject.set(type, localName);
         //find component clazz for xtype
         ComponentClass compClazz = componentSuite.getComponentClassByXtype(localName);
         if (compClazz != null) {
@@ -135,7 +139,7 @@ public class XmlToJsonHandler implements ContentHandler {
         expectObjects = false;
       } else {
         Json json = removeObjectFromStack();
-        if (json.get("xtype") == null) {
+        if (json.get("xtype") == null && json.get("ptype") == null) {
           removeAttributeFromStack();
         }
         //if the the last object has been removed,
@@ -364,12 +368,11 @@ public class XmlToJsonHandler implements ContentHandler {
             bf.append(((JsonObject) value).toJsonString("  " + spaces, null));
           } else if (value instanceof JsonArray) {
             bf.append(((JsonArray) value).toJsonString("  " + spaces));
-          } else if (key.equals("xtype")) {
+          } else if (key.equals("xtype") || key.equals("ptype")) {
             String xtype = (String)value;
             String className = imports.get(xtype);
             if (className != null) {
-              bf.append(imports.get(xtype));
-              bf.append(".xtype");
+              bf.append(imports.get(xtype)).append(".").append(key);
             } else {
               bf.append("\"").append(xtype).append("\"");
             }
