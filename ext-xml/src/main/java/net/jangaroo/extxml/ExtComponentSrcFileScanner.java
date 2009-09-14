@@ -14,7 +14,7 @@ import java.util.List;
  */
 public class ExtComponentSrcFileScanner {
 
-  private final static String XTYPE = "@xtype\\s+([a-zA-Z_$][a-zA-Z0-9_$]*)";
+  private final static String TYPE = "@[px]type\\s+([a-zA-Z_$][a-zA-Z0-9_$]*)";
   private final static String CFG = "@cfg\\s+[{]?([a-zA-Z0-9$_./]+)[}]? ([a-zA-Z0-9$_]+)(.*)$";
 
   public static void scan(ComponentSuite componentSuite, File srcFile) {
@@ -64,12 +64,7 @@ public class ExtComponentSrcFileScanner {
           state.addImport(groups.get(0));
         }
       })
-      .add(new Rule<State>(XTYPE) {
-        public void matched(State state, List<String> groups) {
-          state.setXtype(groups.get(0), state.cc.getFullClassName());
-        }
-      })
-      .add(new Rule<State>("@ptype\\s+([a-zA-Z_$][a-zA-Z0-9_$]*)") {
+      .add(new Rule<State>(TYPE) {
         public void matched(State state, List<String> groups) {
           state.setXtype(groups.get(0), state.cc.getFullClassName());
         }
@@ -84,6 +79,11 @@ public class ExtComponentSrcFileScanner {
         public void matched(State state, List<String> groups) {
           state.setExtends(groups.get(0));
         }
+      })
+      .add(new Rule<State>("public\\s+static\\s+const\\s+[px]type:String\\s+=\\s+\"([a-zA-Z0-9_]+)\"") {
+        public void matched(State state, List<String> groups) {
+          state.setXtype(groups.get(0), state.cc.getFullClassName());
+        }
       });
 
   private static FileScanner<State> EXT_COMPONENT_SRC_FILE_SCANNER = new FileScanner<State>()
@@ -97,7 +97,7 @@ public class ExtComponentSrcFileScanner {
           state.setExtends(groups.get(0));
         }
       })
-      .add(new Rule<State>(XTYPE) {
+      .add(new Rule<State>(TYPE) {
         public void matched(State state, List<String> groups) {
           state.setXtype(groups.get(0), state.cc.getFullClassName());
         }
