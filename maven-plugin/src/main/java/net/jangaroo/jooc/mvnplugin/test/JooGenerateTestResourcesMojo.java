@@ -14,6 +14,7 @@ import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.zip.ZipUnArchiver;
 import org.codehaus.plexus.components.io.fileselectors.FileInfo;
 import org.codehaus.plexus.components.io.fileselectors.FileSelector;
+import org.codehaus.plexus.util.FileUtils;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -74,11 +75,34 @@ public class JooGenerateTestResourcesMojo extends AbstractMojo {
    */
   private List remoteRepositories;
 
+  /**
+   * Output directory for compiled classes.
+   *
+   * @parameter expression="${project.build.outputDirectory}/classes"
+   */
+  private File outputDirectory;
+
+  /**
+   * This parameter specifies the name of the output file containing all
+   * compiled classes.
+   *
+   * @parameter expression="${project.build.outputDirectory}/${project.artifactId}.js"
+   */
+  private File outputFileName;
+
 
   /**
    * @component
    */
   private MavenProjectBuilder mavenProjectBuilder;
+
+
+  /**
+   * Classname of the Actionscript TestSuite that will start all tests.
+   *
+   * @parameter default-value="suite.TestSuite"
+   */
+  private String testSuiteName;
 
 
   @Override
@@ -87,6 +111,7 @@ public class JooGenerateTestResourcesMojo extends AbstractMojo {
       testOutputDirectory.mkdir();
       getLog().info("Unpacking jangaroo dependencies to " + testOutputDirectory);
       unpack();
+      copyMainJsAndClasses();
       createHtmlPage();
     } catch (IOException e) {
       throw new MojoExecutionException("Cannot unpack jangaroo dependencies/generate html test page", e);
@@ -97,28 +122,11 @@ public class JooGenerateTestResourcesMojo extends AbstractMojo {
     }
   }
 
-  public void log(String s) {
-    getLog().info(s);
+  private void copyMainJsAndClasses() throws IOException {
+    FileUtils.copyFileToDirectory(outputFileName, testOutputDirectory);
+    FileUtils.copyDirectory(outputDirectory, new File(testOutputDirectory, "classes"));
   }
 
-  public void printIt(Map<String, List<String>> a) {
-    for (String s : a.keySet()) {
-      String log = "a.put(\"" + s + "\", ";
-      if (a.get(s) == null || a.get(s).size() == 0) {
-        log += " null);";
-      } else {
-        log += " Arrays.asList(";
-        for (String s1 : a.get(s)) {
-          log += "\"" + s1 + "\", ";
-        }
-        log = log.substring(0, log.length() - 2);
-        log += "));";
-      }
-      log(log);
-    }
-
-
-  }
 
   public static List<String> sort(Map<String, List<String>> a) {
     List<String> alreadyOut = new LinkedList<String>();
@@ -155,6 +163,7 @@ public class JooGenerateTestResourcesMojo extends AbstractMojo {
 
 
     final Map<String, List<String>> artifact2Project = new HashMap<String, List<String>>();
+
     for (Artifact artifact : dependencies) {
       MavenProject mp = mavenProjectBuilder.buildFromRepository(artifact, remoteRepositories, localRepository, true);
       mp.resolveActiveArtifacts();
@@ -168,8 +177,10 @@ public class JooGenerateTestResourcesMojo extends AbstractMojo {
       }
       artifact2Project.put(artifact.getGroupId() + ":" + artifact.getArtifactId(), deps);
     }
-    printIt(artifact2Project);
+    getLog().info("" + artifact2Project);
     List<String> depsLineralized = sort(artifact2Project);
+    getLog().info("" + depsLineralized);
+
 
     testOutputDirectory.mkdir();
     File f = new File(testOutputDirectory, "tests.html");
@@ -187,6 +198,9 @@ public class JooGenerateTestResourcesMojo extends AbstractMojo {
         getLog().debug("Dependency: " + dependency);
         fw.write("<script type=\"text/javascript\" src=\"" + dependency.split(":")[1] + ".js\"></script>\n");
       }
+
+      fw.write("<script type=\"text/javascript\" src=\"" + project.getArtifact().getArtifactId() + "-test.js\"></script>\n");
+      fw.write("<script type=\"text/javascript\" src=\"" + project.getArtifact().getArtifactId() + ".js\"></script>\n");
       fw.write("  <script type=\"text/javascript\">\n" +
               "    //with (joo.classLoader=new joo.ClassLoader()) { // disable DynamicClassLoader, as all classes are already there!\n" +
               "    with (joo.classLoader) {\n" +
@@ -194,9 +208,9 @@ public class JooGenerateTestResourcesMojo extends AbstractMojo {
               "      urlPrefix=\"classes/\";\n" +
               "      classLoadTimeoutMS = 3000;\n" +
               "      import_(\"flexunit.textui.TestRunner\");\n" +
-              "      import_(\"suite.EditorTestSuite\");\n" +
+              "      import_(\"" + testSuiteName + "\");\n" +
               "      complete(function(imports) {with(imports){\n" +
-              "        TestRunner.run(EditorTestSuite.suite());\n" +
+              "        TestRunner.run(" + testSuiteName.substring(testSuiteName.lastIndexOf(".") + 1) + ".suite());\n" +
               "      }});\n" +
               "    }\n" +
               "  </script>\n" +
