@@ -19,8 +19,8 @@ public class JooClassGenerator {
   private static FileNameMapper XML_TO_JS_MAPPER = new GlobPatternMapper();
 
   static {
-    XML_TO_JS_MAPPER.setFrom("*.exml");
-    XML_TO_JS_MAPPER.setTo("*.as");
+    XML_TO_JS_MAPPER.setFrom("*." + ComponentType.EXML.extension);
+    XML_TO_JS_MAPPER.setTo("*." + ComponentType.ActionScript.extension);
   }
 
   ErrorHandler errorHandler;

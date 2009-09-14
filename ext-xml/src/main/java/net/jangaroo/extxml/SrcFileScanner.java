@@ -7,7 +7,7 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- * The FileScanner scans a directory for all *.as, *.js and *.xml files that contain Ext annotations and builds a
+ * The FileScanner scans a directory for all *.as, *.js and *.exml files that contain Ext annotations and builds a
  * {@link net.jangaroo.extxml.ComponentSuite} from all Ext JS component classes.
  */
 public class SrcFileScanner {
@@ -28,9 +28,9 @@ public class SrcFileScanner {
   private void scan(final File dir) throws IOException {
     FileSet srcFiles = new FileSet();
     srcFiles.setDirectory(dir.getAbsolutePath());
-    srcFiles.addInclude("**/*.js");
-    srcFiles.addInclude("**/*.as");
-    srcFiles.addInclude("**/*.exml");
+    srcFiles.addInclude("**/*." + ComponentType.JavaScript.extension);
+    srcFiles.addInclude("**/*." + ComponentType.ActionScript.extension);
+    srcFiles.addInclude("**/*." + ComponentType.EXML.extension);
     for (String srcFileRelativePath : new FileSetManager().getIncludedFiles(srcFiles)) {
       ExtComponentSrcFileScanner.scan(componentSuite, new File(dir, srcFileRelativePath));
     }
