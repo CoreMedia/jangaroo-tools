@@ -198,8 +198,6 @@ public class JooGenerateTestResourcesMojo extends AbstractMojo {
         getLog().debug("Dependency: " + dependency);
         fw.write("<script type=\"text/javascript\" src=\"" + dependency.split(":")[1] + ".js\"></script>\n");
       }
-
-      fw.write("<script type=\"text/javascript\" src=\"" + project.getArtifact().getArtifactId() + "-test.js\"></script>\n");
       fw.write("<script type=\"text/javascript\" src=\"" + project.getArtifact().getArtifactId() + ".js\"></script>\n");
       fw.write("  <script type=\"text/javascript\">\n" +
               "    //with (joo.classLoader=new joo.ClassLoader()) { // disable DynamicClassLoader, as all classes are already there!\n" +
