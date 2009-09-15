@@ -34,7 +34,7 @@ import java.util.Map;
  * @goal unpack-jangaroo-test-dependencies
  * @phase generate-test-resources
  */
-public class JooGenerateTestResourcesMojo extends AbstractMojo {
+public class JooGenerateTestResourcesMojo extends AbstractJooTestMojo {
 
   /**
    * The maven project.
@@ -46,14 +46,6 @@ public class JooGenerateTestResourcesMojo extends AbstractMojo {
   private MavenProject project;
 
 
-  /**
-   * Output directory for the janagroo artifact  unarchiver. All jangaroo dependencies will be unpacked into
-   * this directory.
-   *
-   * @parameter expression="${project.build.testOutputDirectory}"  default-value="${project.build.testOutputDirectory}"
-   * @required
-   */
-  private File testOutputDirectory;
 
   /**
    * Plexus archiver.
@@ -97,15 +89,8 @@ public class JooGenerateTestResourcesMojo extends AbstractMojo {
   private MavenProjectBuilder mavenProjectBuilder;
 
 
-  /**
-   * Classname of the Actionscript TestSuite that will start all tests.
-   *
-   * @parameter default-value="suite.TestSuite"
-   */
-  private String testSuiteName;
 
 
-  @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
     try {
       testOutputDirectory.mkdir();
@@ -168,7 +153,7 @@ public class JooGenerateTestResourcesMojo extends AbstractMojo {
       MavenProject mp = mavenProjectBuilder.buildFromRepository(artifact, remoteRepositories, localRepository, true);
       mp.resolveActiveArtifacts();
       List<String> deps = new LinkedList<String>();
-      getLog().info(mp.getArtifact().getArtifactId());
+
       for (Dependency dep : ((List<Dependency>) mp.getDependencies())) {
         if ("jangaroo".equals(dep.getType())) {
           deps.add(dep.getGroupId() + ":" + dep.getArtifactId());
@@ -177,9 +162,7 @@ public class JooGenerateTestResourcesMojo extends AbstractMojo {
       }
       artifact2Project.put(artifact.getGroupId() + ":" + artifact.getArtifactId(), deps);
     }
-    getLog().info("" + artifact2Project);
     List<String> depsLineralized = sort(artifact2Project);
-    getLog().info("" + depsLineralized);
 
 
     testOutputDirectory.mkdir();
@@ -207,12 +190,20 @@ public class JooGenerateTestResourcesMojo extends AbstractMojo {
               "      classLoadTimeoutMS = 3000;\n" +
               "      import_(\"flexunit.textui.TestRunner\");\n" +
               "      import_(\"" + testSuiteName + "\");\n" +
+              "      import_(\"flexunit.textui.XmlResultPrinter\");\n" +
               "      complete(function(imports) {with(imports){\n" +
-              "        TestRunner.run(" + testSuiteName.substring(testSuiteName.lastIndexOf(".") + 1) + ".suite());\n" +
-              "      }});\n" +
+              "        var xmlWriter = new XmlResultPrinter();\n" +
+              "        TestRunner.run(" + testSuiteName.substring(testSuiteName.lastIndexOf(".") + 1) + ".suite(),function(bla) {\n" +
+              "            result = xmlWriter.getXml();\n" +
+              "            document.getElementById(\"result\").firstChild.nodeValue = result;\n" +
+              "        },xmlWriter);\n" +
+              "      }});" +
               "    }\n" +
               "  </script>\n" +
-              "  </body>\n" +
+              "  <h1>TestResult</h1>\n" +
+              "   <pre id=\"result\">\n" +
+              "   </pre>\n" +
+              " </body>\n" +
               "</html>");
     } finally {
       if (fw != null) {
@@ -231,7 +222,6 @@ public class JooGenerateTestResourcesMojo extends AbstractMojo {
           throws IOException, ArchiverException, MojoExecutionException {
     unarchiver.setOverwrite(false);
     unarchiver.setFileSelectors(new FileSelector[]{new FileSelector() {
-      @Override
       public boolean isSelected(FileInfo fileInfo) throws IOException {
         return !fileInfo.getName().startsWith("META-INF");
       }

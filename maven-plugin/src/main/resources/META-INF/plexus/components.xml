@@ -48,10 +48,9 @@
               <compile>net.jangaroo:jangaroo-maven-plugin:compile</compile>
               <generate-test-resources>net.jangaroo:jangaroo-maven-plugin:unpack-jangaroo-test-dependencies
               </generate-test-resources>
-              <process-test-resources>org.apache.maven.plugins:maven-resources-plugin:testResources
-              </process-test-resources>
+              <process-test-resources>org.apache.maven.plugins:maven-resources-plugin:testResources</process-test-resources>
               <test-compile>net.jangaroo:jangaroo-maven-plugin:testCompile</test-compile>
-              <test>org.apache.maven.plugins:maven-surefire-plugin:test</test>
+              <test>net.jangaroo:jangaroo-maven-plugin:test</test>
               <package>net.jangaroo:jangaroo-maven-plugin:package</package>
               <install>org.apache.maven.plugins:maven-install-plugin:install</install>
               <deploy>org.apache.maven.plugins:maven-deploy-plugin:deploy</deploy>
