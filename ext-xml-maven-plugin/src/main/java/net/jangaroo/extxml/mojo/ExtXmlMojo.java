@@ -10,6 +10,7 @@ import net.jangaroo.extxml.JooClassGenerator;
 import net.jangaroo.extxml.SrcFileScanner;
 import net.jangaroo.extxml.XsdGenerator;
 import net.jangaroo.extxml.XsdScanner;
+import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -17,6 +18,7 @@ import org.apache.maven.project.MavenProject;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
+import java.io.BufferedInputStream;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
@@ -26,14 +28,19 @@ import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 /**
  * Mojo to compile Jangaroo sources during the compile phase.
  *
  * @goal extxml
  * @phase generate-sources
+ * @requiresDependencyResolution
  */
 public class ExtXmlMojo extends AbstractMojo {
 
@@ -125,16 +132,55 @@ public class ExtXmlMojo extends AbstractMojo {
           in = new FileInputStream(importedXsd);
           suite.addImportedComponentSuite(XsdScanner.scan(in));
         } catch (IOException e) {
-          e.printStackTrace();
+          throw new MojoExecutionException("Error while xsd scanning", e);
         } catch (SAXException e) {
-          e.printStackTrace();
+          throw new MojoExecutionException("Error while xsd scanning", e);
         } catch (ParserConfigurationException e) {
-          e.printStackTrace();
+          throw new MojoExecutionException("Error while xsd scanning", e);
         } finally {
           try {
             in.close();
           } catch (IOException e) {
-            e.printStackTrace();
+            throw new MojoExecutionException("Error while xsd scanning", e);
+          }
+        }
+      }
+    }
+
+    Set<Artifact> dependencies = project.getDependencyArtifacts();
+
+    for (Artifact dependency : dependencies) {
+      if (!dependency.isOptional() && "jangaroo".equals(dependency.getType())) {
+        ZipFile zipArtifact = null;
+        try {
+          zipArtifact = new ZipFile(dependency.getFile(), ZipFile.OPEN_READ);
+          Enumeration<? extends ZipEntry> entries = zipArtifact.entries();
+          while (entries.hasMoreElements()) {
+            ZipEntry zipEntry = entries.nextElement();
+            if (!zipEntry.isDirectory() && zipEntry.getName().endsWith(".xsd")) {
+              getLog().info(String.format("Loading %s", zipEntry.getName()));
+              BufferedInputStream stream = null;
+              try {
+                stream = new BufferedInputStream(zipArtifact.getInputStream(zipEntry));
+                suite.addImportedComponentSuite(XsdScanner.scan(stream));
+              } catch (SAXException e) {
+                throw new MojoExecutionException("Error while xsd scanning", e);
+              } catch (ParserConfigurationException e) {
+                throw new MojoExecutionException("Error while xsd scanning", e);
+              } finally {
+                stream.close();
+              }
+
+            }
+          }
+
+        } catch (IOException e) {
+          e.printStackTrace();
+        } finally {
+          try {
+            zipArtifact.close();
+          } catch (IOException e) {
+            //well...
           }
         }
       }
@@ -154,26 +200,26 @@ public class ExtXmlMojo extends AbstractMojo {
     JooClassGenerator generator = new JooClassGenerator(suite, errorHandler);
     generator.generateClasses();
 
-    if(!errorHandler.exceptions.isEmpty()) {
-     for (Map.Entry<String, Exception> entry: errorHandler.exceptions.entrySet()) {
-      throw new MojoExecutionException(entry.getKey(), entry.getValue());
-     }
+    if (!errorHandler.exceptions.isEmpty()) {
+      for (Map.Entry<String, Exception> entry : errorHandler.exceptions.entrySet()) {
+        throw new MojoExecutionException(entry.getKey(), entry.getValue());
+      }
     }
 
-    if(!errorHandler.errors.isEmpty()) {
+    if (!errorHandler.errors.isEmpty()) {
       for (String msg : errorHandler.errors) {
         throw new MojoFailureException(msg);
       }
     }
 
-    if(!errorHandler.warnings.isEmpty()) {
+    if (!errorHandler.warnings.isEmpty()) {
       for (String msg : errorHandler.warnings) {
         getLog().warn(msg);
       }
     }
 
     //generate the XSD for that
-    if(!suite.getComponentClasses().isEmpty()) {
+    if (!suite.getComponentClasses().isEmpty()) {
       Writer out = null;
       try {
         //generate the XSD for that
