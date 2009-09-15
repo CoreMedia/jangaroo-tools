@@ -1,21 +1,5 @@
 package net.jangaroo.jooc.mvnplugin;
 
-/*
- * Copyright 2001-2005 The Apache Software Foundation.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.plugin.AbstractMojo;
@@ -35,9 +19,37 @@ import java.util.Iterator;
 import java.util.Set;
 
 /**
- * Goal that prepares scripts for packaging as a web application.
+ * The <code>war-package</code> goal extracts all dependent jangaroo artifacts into
+ * the scripts directory of the web application to make them accessible from HTML
+ * pages during execution of the webapp.<br/>
+ * This goal is NOT bound to the jangaroo lifecycle. It should be used in conjunction with
+ * the <code>war-compile</code> goal in the <code>war</code> lifecycle by defining its execution
+ * as shown in the following sniplet<br/>
+ * <pre>
+ * ...
+ * &lt;plugin>
+ *  &lt;groupId>net.jangaroo&lt;/groupId>
+ *  &lt;artifactId>jangaroo-maven-plugin&lt;/artifactId>
+ *  &lt;extensions>true&lt;/extensions>
+ *  &lt;executions>
+ *   &lt;execution>
+ *     &lt;id>compile-as-sources&lt;/id>
+ *     &lt;phase>compile&lt;/phase>
+ *     &lt;goals>
+ *      &lt;goal>war-compile&lt;/goal>
+ *     &lt;/goals>
+ *   &lt;/execution>
+ *   &lt;execution>
+ *    &lt;id>war-package&lt;/id>
+ *    &lt;goals>
+ *     &lt;goal>war-package&lt;/goal>
+ *    &lt;/goals>
+ *   &lt;/execution>
+ *  &lt;/executions>
+ * &lt;/plugin>
+ * ...
+ * </pre>
  *
- * @author <a href="mailto:nicolas@apache.org">Nicolas De Loof</a>
  * @goal war-package
  * @requiresDependencyResolution runtime
  * @phase compile
@@ -57,7 +69,8 @@ public class WarPackageMojo
 
 
   /**
-   * The directory where the webapp is built.
+   * The directory where the webapp is built. Default is <code>${project.build.directory}/${project.build.finalName}</code>
+   * exactly as the default of the maven-war-plugin.
    *
    * @parameter expression="${project.build.directory}/${project.build.finalName}"
    * @required
@@ -65,20 +78,11 @@ public class WarPackageMojo
   private File webappDirectory;
 
   /**
-   * The folder in webapp for javascripts
+   * The folder below the <code>webappDirectory</code> for unpacking the javascript dependencies.
    *
    * @parameter expression="${scripts}" default-value="scripts"
    */
   private String scriptsDirectory;
-
-
-  /*
-   * Output directory for compiled classes and the merged javascript file(s).
-   *
-   * @parameter expression="${project.build.outputDirectory}"
-   *
-   private File compilerOutputRootDirectory;
-   */
 
   /**
    * Plexus archiver.
@@ -99,17 +103,11 @@ public class WarPackageMojo
 
     try {
       excludeFromWarPackaging();
-
       unpack(project, scriptDir);
-      //   if (compilerOutputRootDirectory != null && compilerOutputRootDirectory.exists()) {
-      //     FileUtils.copyDirectoryStructure(compilerOutputRootDirectory, scriptDir);
-      //   }
     }
     catch (ArchiverException e) {
       throw new MojoExecutionException("Failed to unpack javascript dependencies", e);
-    }/* catch (IOException e) {
-      throw new MojoExecutionException(String.format("Failed to copy classes to scripts %s directory", scriptDir), e);
-    }  */
+    }
   }
 
 
@@ -118,26 +116,20 @@ public class WarPackageMojo
 
     unarchiver.setOverwrite(false);
     unarchiver.setFileSelectors(new FileSelector[]{new FileSelector() {
-      @Override
       public boolean isSelected(FileInfo fileInfo) throws IOException {
         return !fileInfo.getName().startsWith("META-INF");
       }
 
     }});
-    Set dependencies = project.getArtifacts();
+    Set<Artifact> dependencies = project.getArtifacts();
 
-    for (Iterator iterator = dependencies.iterator(); iterator.hasNext();) {
-      Artifact dependency = (Artifact) iterator.next();
+    for (Artifact dependency : dependencies) {
       getLog().debug("Dependency: " + dependency.getGroupId() + ":" + dependency.getArtifactId() + "type: " + dependency.getType());
       if (!dependency.isOptional() && Types.JANGAROO_TYPE.equals(dependency.getType())) {
         getLog().debug("Unpack jangaroo dependency [" + dependency.toString() + "]");
         unarchiver.setSourceFile(dependency.getFile());
 
         unpack(dependency, target);
-        /*artifactResolver.resolveTransitively()
-        for (Object artifact : dependency.getDependencyTrail()) {
-          getLogger().error("DependencyTrail: " + ((Artifact)artifact).getGroupId() + ":" + ((Artifact)artifact).getArtifactId() + "type: " + ((Artifact)artifact).getType());
-        } */
       }
     }
   }

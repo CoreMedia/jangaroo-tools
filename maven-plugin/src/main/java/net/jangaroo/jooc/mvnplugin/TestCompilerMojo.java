@@ -42,8 +42,7 @@ public class TestCompilerMojo extends AbstractCompilerMojo {
    */
   private Set testExcludes = new HashSet();
   /**
-   * When "mergeOutput" is "true", this parameter specifies the name of the output file containing all
-   * compiled classes. Otherwise, this parameter will be ignored.
+   * Absolute output filename of the merged javascript.  
    *
    * @parameter expression="${project.build.testOutputDirectory}/${project.artifactId}-test.js"
    */

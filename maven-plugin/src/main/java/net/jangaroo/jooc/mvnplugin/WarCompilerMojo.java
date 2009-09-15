@@ -9,7 +9,35 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Compiles AS as part of the WAR lifecycle. Not used in jangaroo lifecycle.
+ * The <code>war-compile</code> goal compiles the Actionscript sources to javascript. The output directory
+ * is set to the web application script directory to have them accessible during web application execution.<br/>
+ * This goal is NOT bound to the jangaroo lifecycle. It should be used in conjunction with
+ * the <code>war-package</code> goal in the <code>war</code> lifecycle by defining its execution
+ * as shown in the following sniplet<br/>
+ * <pre>
+ * ...
+ * &lt;plugin>
+ *  &lt;groupId>net.jangaroo&lt;/groupId>
+ *  &lt;artifactId>jangaroo-maven-plugin&lt;/artifactId>
+ *  &lt;extensions>true&lt;/extensions>
+ *  &lt;executions>
+ *   &lt;execution>
+ *     &lt;id>compile-as-sources&lt;/id>
+ *     &lt;phase>compile&lt;/phase>
+ *     &lt;goals>
+ *      &lt;goal>war-compile&lt;/goal>
+ *     &lt;/goals>
+ *   &lt;/execution>
+ *   &lt;execution>
+ *    &lt;id>war-package&lt;/id>
+ *    &lt;goals>
+ *     &lt;goal>war-package&lt;/goal>
+ *    &lt;/goals>
+ *   &lt;/execution>
+ *  &lt;/executions>
+ * &lt;/plugin>
+ * ...
+ * </pre>
  *
  * @goal war-compile
  * @phase compile

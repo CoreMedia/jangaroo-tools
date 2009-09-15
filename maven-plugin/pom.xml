@@ -155,6 +155,25 @@
       <scope>provided</scope>
     </dependency>
 
+    <dependency>
+      <groupId>org.mortbay.jetty</groupId>
+      <artifactId>jetty</artifactId>
+      <version>7.0.0.pre5</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.openqa.selenium.server</groupId>
+      <artifactId>selenium-server</artifactId>
+      <version>1.0.1</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.seleniumhq.selenium.client-drivers</groupId>
+      <artifactId>selenium-java-client-driver</artifactId>
+      <version>1.0.1</version>
+    </dependency>
+
+
   </dependencies>
 
   <reporting>
