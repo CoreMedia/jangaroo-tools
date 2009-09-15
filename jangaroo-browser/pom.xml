@@ -14,6 +14,12 @@
   <build>
     <!--<sourceDirectory>src/main/joo</sourceDirectory>-->
     <plugins>
+ <plugin>
+        <groupId>net.jangaroo</groupId>
+        <artifactId>jangaroo-maven-plugin</artifactId>
+        <version>0.3.6-SNAPSHOT</version>
+        <extensions>true</extensions>
+      </plugin>
 
       <plugin>
         <artifactId>maven-antrun-plugin</artifactId>
@@ -89,12 +95,13 @@
       <artifactId>jangaroo-runtime</artifactId>
       <version>0.3.6-SNAPSHOT</version>
     </dependency>
-<!--    <dependency> should have jangaroo reference but cannot have!
+    <dependency> <!-- should have jangaroo reference but cannot have!-->
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-runtime</artifactId>
-      <version>0.3.2-SNAPSHOT</version>
+      <version>0.3.6-SNAPSHOT</version>
       <type>jangaroo</type>
-    </dependency>-->
+      <scope>runtime</scope>
+    </dependency>
 
     <dependency>
       <groupId>net.jangaroo</groupId>
