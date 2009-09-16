@@ -59,12 +59,18 @@ public class JooTestMojo extends AbstractJooTestMojo {
   private File testResultOutputDirectory;
 
   /**
-   * Specifies the port the embedded jetty will use to serve the html and javascript. Default is -1 and results
-   * in a random port.
+   * The jetty port is selected randomly within an range of <code>[jooUnitJettyPortLowerBound:jooUnitJettyPortUpperBound]</code>.
    *
    * @parameter
    */
-  private int jooUnitJettyPort = -1;
+  private int jooUnitJettyPortUpperBound = 10200;
+
+  /**
+   * The jetty port is selected randomly within an range of <code>[jooUnitJettyPortLowerBound:jooUnitJettyPortUpperBound]</code>.
+   *
+   * @parameter
+   */
+  private int jooUnitJettyPortLowerBound = 10100;
 
   /**
    * Specifies the time in milliseconds to wait for the test results in the browser. Default is 3000ms.
@@ -165,9 +171,9 @@ public class JooTestMojo extends AbstractJooTestMojo {
 
   private Server startJetty(Handler handler) throws MojoExecutionException {
     Server server;
-    if (jooUnitJettyPort == -1) {
+    if (jooUnitJettyPortUpperBound != jooUnitJettyPortLowerBound) {
       Random r = new Random(System.currentTimeMillis());
-      jooUnitJettyPort = r.nextInt(64000) + 1025;
+      int jooUnitJettyPort = r.nextInt(jooUnitJettyPortUpperBound-jooUnitJettyPortLowerBound) + jooUnitJettyPortLowerBound;
 
       server = new Server(jooUnitJettyPort);
       try {
@@ -180,7 +186,7 @@ public class JooTestMojo extends AbstractJooTestMojo {
         } catch (Exception e1) {
           getLog().error("Stopping Jetty failed. Never mind.");
         }
-        jooUnitJettyPort = r.nextInt(64000) + 1025;
+        jooUnitJettyPort = r.nextInt(jooUnitJettyPortUpperBound-jooUnitJettyPortLowerBound) + jooUnitJettyPortLowerBound;
 
         server = new Server(jooUnitJettyPort);
         try {
@@ -193,7 +199,7 @@ public class JooTestMojo extends AbstractJooTestMojo {
           } catch (Exception e2) {
             getLog().error("Stopping Jetty failed. Never mind.");
           }
-          jooUnitJettyPort = r.nextInt(64000) + 1025;
+          jooUnitJettyPort = r.nextInt(jooUnitJettyPortUpperBound-jooUnitJettyPortLowerBound) + jooUnitJettyPortLowerBound;
 
           server = new Server(jooUnitJettyPort);
           try {
@@ -213,18 +219,18 @@ public class JooTestMojo extends AbstractJooTestMojo {
 
 
     } else {
-      server = new Server(jooUnitJettyPort);
+      server = new Server(jooUnitJettyPortLowerBound);
       try {
         server.setHandler(handler);
         server.start();
       } catch (Exception e) {
-        getLog().error("Failed starting Jetty on port " + jooUnitJettyPort + " failed.");
+        getLog().error("Failed starting Jetty on port " + jooUnitJettyPortLowerBound + " failed.");
         try {
           server.stop();
         } catch (Exception e1) {
           getLog().error("Stopping Jetty failed. Never mind.");
         }
-        throw new MojoExecutionException("Cannot start jetty server on port " + jooUnitJettyPort);
+        throw new MojoExecutionException("Cannot start jetty server on port " + jooUnitJettyPortLowerBound);
       }
     }
     return server;

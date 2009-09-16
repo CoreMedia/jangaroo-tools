@@ -118,6 +118,10 @@
         <enabled>true</enabled>
       </snapshots>
     </repository>
+    <repository>
+      <id>openqa</id>
+      <url>http://nexus.openqa.org/content/repositories/releases/</url>
+    </repository>
   </repositories>
 
   <modules>

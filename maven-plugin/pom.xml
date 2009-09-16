@@ -161,10 +161,11 @@
     </dependency>
 
     <dependency>
-      <groupId>org.openqa.selenium.server</groupId>
+      <groupId>org.seleniumhq.selenium.server</groupId>
       <artifactId>selenium-server</artifactId>
       <version>1.0.1</version>
     </dependency>
+
 
     <dependency>
       <groupId>org.seleniumhq.selenium.client-drivers</groupId>
