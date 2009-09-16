@@ -151,7 +151,6 @@
       <groupId>net.jangaroo</groupId>
       <artifactId>ext-xml-maven-plugin</artifactId>
       <version>0.3.7-SNAPSHOT</version>
-      <scope>provided</scope>
     </dependency>
 
     <dependency>

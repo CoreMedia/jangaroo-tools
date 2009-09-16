@@ -125,13 +125,13 @@
   </repositories>
 
   <modules>
+    <module>ext-xml</module>
+    <module>ext-xml-maven-plugin</module>
     <module>jooc</module>
     <module>maven-plugin</module>
     <module>jangaroo-runtime</module>
     <module>jangaroo-browser</module>
     <module>compiler-itests</module>
-    <module>ext-xml</module>
-    <module>ext-xml-maven-plugin</module>
     <module>jangaroo-tools-bom</module>
   </modules>
 

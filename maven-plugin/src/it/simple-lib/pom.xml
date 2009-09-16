@@ -31,11 +31,6 @@ under the License.
     <plugins>
       <plugin>
         <groupId>net.jangaroo</groupId>
-        <artifactId>ext-xml-maven-plugin</artifactId>
-        <version>@project.version@</version>
-      </plugin>
-      <plugin>
-        <groupId>net.jangaroo</groupId>
         <artifactId>jangaroo-maven-plugin</artifactId>
         <extensions>true</extensions>
         <version>@project.version@</version>
