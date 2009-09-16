@@ -46,7 +46,6 @@ public class JooGenerateTestResourcesMojo extends AbstractJooTestMojo {
   private MavenProject project;
 
 
-
   /**
    * Plexus archiver.
    *
@@ -89,8 +88,6 @@ public class JooGenerateTestResourcesMojo extends AbstractJooTestMojo {
   private MavenProjectBuilder mavenProjectBuilder;
 
 
-
-
   public void execute() throws MojoExecutionException, MojoFailureException {
     try {
       testOutputDirectory.mkdir();
@@ -108,8 +105,16 @@ public class JooGenerateTestResourcesMojo extends AbstractJooTestMojo {
   }
 
   private void copyMainJsAndClasses() throws IOException {
-    FileUtils.copyFileToDirectory(outputFileName, testOutputDirectory);
-    FileUtils.copyDirectory(outputDirectory, new File(testOutputDirectory, "classes"));
+    if (outputFileName.exists()) {
+      FileUtils.copyFileToDirectory(outputFileName, testOutputDirectory);
+    } else {
+      getLog().info("Cannot copy " + outputFileName + " to " + testOutputDirectory + ". It does not exist.");
+    }
+    if (outputDirectory.exists()) {
+      FileUtils.copyDirectory(outputDirectory, new File(testOutputDirectory, "classes"));
+    } else {
+      getLog().info("Cannot copy " + outputDirectory + " to " + testOutputDirectory + ". It does not exist.");
+    }
   }
 
 
@@ -174,7 +179,6 @@ public class JooGenerateTestResourcesMojo extends AbstractJooTestMojo {
       fw.write("<html>\n" +
               "  <head><title>cap-ui-editor Tests</title></head>\n" +
               "  <body>");
-      getLog().info("About to sort");
 
 
       for (String dependency : depsLineralized) {
