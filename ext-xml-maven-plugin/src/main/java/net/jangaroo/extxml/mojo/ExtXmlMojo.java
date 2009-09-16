@@ -162,9 +162,11 @@ public class ExtXmlMojo extends AbstractMojo {
           throw new MojoExecutionException("Error while xsd scanning", e);
         } finally {
           try {
-            zipArtifact.close();
+            if(zipArtifact != null) {
+              zipArtifact.close();
+            }
           } catch (IOException e) {
-            //well...
+            throw new MojoExecutionException("Error while xsd scanning", e);
           }
         }
       }
