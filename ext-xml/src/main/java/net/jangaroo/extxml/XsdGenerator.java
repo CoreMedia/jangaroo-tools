@@ -16,25 +16,38 @@ public class XsdGenerator {
   private static Configuration cfg;
 
   private ComponentSuite componentSuite;
+  private ErrorHandler errorHandler;
 
-  public XsdGenerator(ComponentSuite componentSuite) throws IOException {
+  public XsdGenerator(ComponentSuite componentSuite, ErrorHandler errorHandler) {
     /* Create and adjust freemarker configuration */
     cfg = new Configuration();
     cfg.setClassForTemplateLoading(XsdGenerator.class, "/net/jangaroo/extxml/templates");
     cfg.setObjectWrapper(new DefaultObjectWrapper());
     cfg.setOutputEncoding("UTF-8");
     this.componentSuite = componentSuite;
+    this.errorHandler = errorHandler;
   }
 
-  public void generateXsd(Writer out) throws IOException, TemplateException {
+  public void generateXsd(Writer out) throws IOException {
     //do nothing if suite is empty
     if (!componentSuite.getComponentClasses().isEmpty()) {
       /* Get or create a template */
-      Template template = cfg.getTemplate("component-suite-xsd.ftl");
+      Template template = null;
+      try {
+        template = cfg.getTemplate("component-suite-xsd.ftl");
+      } catch (IOException e) {
+        errorHandler.error("Could not read xsd template", e);
+      }
 
       /* Merge data-model with template */
-      System.out.println(String.format("Writing XML Schema %s ", componentSuite.getNamespace()));
-      template.process(componentSuite, out);
+      if (template != null) {
+        errorHandler.info(String.format("Writing XML Schema %s ", componentSuite.getNamespace()));
+        try {
+          template.process(componentSuite, out);
+        } catch (TemplateException e) {
+          errorHandler.error("Error while generating xsd", e);
+        }
+      }
     }
   }
 }

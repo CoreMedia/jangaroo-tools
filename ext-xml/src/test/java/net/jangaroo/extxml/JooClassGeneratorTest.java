@@ -33,6 +33,17 @@ public class JooClassGeneratorTest{
   }
 
   @Test
+  public void classWithoutSuperClass() throws Exception {
+    ComponentClass jooClazz = new ComponentClass(Collections.<String>emptyList(), "com.coremedia.test.TestClass",null,"json");
+    StringWriter writer = new StringWriter();
+
+    jooClassGenerator.generateJangarooClass(jooClazz, writer);
+    writer.flush();
+    assertEquals("",writer.toString());
+    writer.close();
+  }
+
+  @Test
   public void testGenerateClasses() throws Exception {
     File rootDir = TestUtils.getRootDir(getClass());
     File outDir = TestUtils.computeTestDataRoot(getClass());

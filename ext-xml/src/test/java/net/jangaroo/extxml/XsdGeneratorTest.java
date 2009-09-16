@@ -32,7 +32,7 @@ public class XsdGeneratorTest {
   @Test
   public void emptySuite() throws Exception {
     ComponentSuite suite = new ComponentSuite();
-    XsdGenerator generator = new XsdGenerator(suite);
+    XsdGenerator generator = new XsdGenerator(suite, new StandardOutErrorHandler());
     StringWriter writer = new StringWriter();
     generator.generateXsd(writer);
 
@@ -96,7 +96,7 @@ public class XsdGeneratorTest {
   }
 
   private Document createDom(ComponentSuite suite) throws Exception {
-    XsdGenerator generator = new XsdGenerator(suite);
+    XsdGenerator generator = new XsdGenerator(suite, new StandardOutErrorHandler());
     StringWriter writer = new StringWriter();
     generator.generateXsd(writer);
     System.out.println(writer.toString());

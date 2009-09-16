@@ -36,4 +36,8 @@ public class StandardOutErrorHandler implements ErrorHandler{
   public void warning(String message, int lineNumber, int columnNumber) {
    System.err.println(String.format("WARNING in %s, line %s, column %s: %s", currentFile, lineNumber, columnNumber, message));
   }
+
+  public void info(String message) {
+    System.out.println(message);
+  }
 }

@@ -1,9 +1,5 @@
 package net.jangaroo.extxml;
 
-import freemarker.template.TemplateException;
-import org.xml.sax.SAXException;
-
-import javax.xml.parsers.ParserConfigurationException;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
@@ -43,7 +39,9 @@ import java.io.Writer;
  * </ul>
  */
 public class ExtXml {
-  public static void main(String[] args) throws IOException, SAXException, ParserConfigurationException, TemplateException {
+  public static void main(String[] args) throws IOException {
+
+    StandardOutErrorHandler errorHandler = new StandardOutErrorHandler();
 
     //Scan the directory for xml, as or javascript components and collect the data in ComponentClass, import all provided XSDs
     ComponentSuite suite = new ComponentSuite(args[0], args[1], new File(args[3]), new File(args[4]));
@@ -51,18 +49,19 @@ public class ExtXml {
       InputStream in = null;
       try {
         in = new FileInputStream(new File(args[i]));
-        suite.addImportedComponentSuite(XsdScanner.scan(in));
+        suite.addImportedComponentSuite(XsdScanner.scan(in, errorHandler));
       } finally {
-        if(in != null)
+        if(in != null) {
           in.close();
+        }
       }
     }
-    suite.addImportedComponentSuite(XsdScanner.getExt3ComponentSuite());
+    suite.addImportedComponentSuite(XsdScanner.getExt3ComponentSuite(errorHandler));
     SrcFileScanner fileScanner = new SrcFileScanner(suite);
     fileScanner.scan();
 
     //Generate JSON out of the xml compontents, complete the data in those ComponentClasses
-    JooClassGenerator generator = new JooClassGenerator(suite, new StandardOutErrorHandler());
+    JooClassGenerator generator = new JooClassGenerator(suite, errorHandler);
     generator.generateClasses();
 
     System.out.println(suite);
@@ -70,7 +69,7 @@ public class ExtXml {
     //generate the XSD for that
     Writer out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File(args[2])), "UTF-8"));
 
-    new XsdGenerator(suite).generateXsd(out);
+    new XsdGenerator(suite, errorHandler).generateXsd(out);
     out.close();
   }
 }

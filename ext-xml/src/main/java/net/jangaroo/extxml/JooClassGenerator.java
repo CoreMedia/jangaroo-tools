@@ -6,12 +6,18 @@ import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import org.apache.maven.shared.model.fileset.mappers.FileNameMapper;
 import org.apache.maven.shared.model.fileset.mappers.GlobPatternMapper;
+import org.codehaus.plexus.util.StringUtils;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.XMLReaderFactory;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Writer;
 
 
 public class JooClassGenerator {
@@ -31,41 +37,73 @@ public class JooClassGenerator {
     this.componentSuite = componentSuite;
   }
 
-
   public void generateJangarooClass(ComponentClass jooClass, Writer output) throws IOException, TemplateException {
-    Configuration cfg = new Configuration();
-    cfg.setClassForTemplateLoading(ComponentClass.class, "/");
-    cfg.setObjectWrapper(new DefaultObjectWrapper());
+    if (validateComponentClass(jooClass)) {
+      Configuration cfg = new Configuration();
+      cfg.setClassForTemplateLoading(ComponentClass.class, "/");
+      cfg.setObjectWrapper(new DefaultObjectWrapper());
 
-    Template template = cfg.getTemplate("/net/jangaroo/extxml/templates/jangaroo_class.ftl");
+      Template template = cfg.getTemplate("/net/jangaroo/extxml/templates/jangaroo_class.ftl");
 
-    template.process(jooClass, output);
+      template.process(jooClass, output);
+    }
+  }
+
+  private boolean validateComponentClass(ComponentClass jooClass) {
+    boolean result = true;
+    if (jooClass.getPackageName() == null) {
+      errorHandler.error(String.format("Package name of component '%s' is undefined!", jooClass.getFullClassName()));
+      result = false;
+    }
+
+    if (StringUtils.isEmpty(jooClass.getXtype())) {
+      errorHandler.error(String.format("Xtype of component '%s' is undefined!", jooClass.getFullClassName()));
+      result = false;
+    }
+
+    if (StringUtils.isEmpty(jooClass.getClassName())) {
+      errorHandler.error(String.format("Class name of component '%s' is undefined!", jooClass.getFullClassName()));
+      result = false;
+    }
+
+    if (StringUtils.isEmpty(jooClass.getSuperClassName())) {
+      errorHandler.error(String.format("Super class of component '%s' is undefined!", jooClass.getFullClassName()));
+      result = false;
+    }
+    return result;
+  }
+
+  private XmlToJsonHandler createHandlerFromClass(ComponentClass cc) {
+    FileInputStream inputStream = null;
+    XmlToJsonHandler handler = null;
+    errorHandler.setCurrentFile(cc.getSrcFile());
+    try {
+      XMLReader xr = XMLReaderFactory.createXMLReader();
+      handler = new XmlToJsonHandler(componentSuite, errorHandler);
+      xr.setContentHandler(handler);
+      inputStream = new FileInputStream(cc.getSrcFile());
+      xr.parse(new InputSource(inputStream));
+    } catch (FileNotFoundException e) {
+      errorHandler.error("Exception while parsing", e);
+    } catch (IOException e) {
+      errorHandler.error("Exception while parsing", e);
+    } catch (SAXException e) {
+      errorHandler.error("Exception while parsing", e);
+    } finally {
+      try {
+        if (inputStream != null) {
+          inputStream.close();
+        }
+      } catch (IOException e) {
+        //never happend
+      }
+    }
+    return handler;
   }
 
   public void generateClasses() {
     for (ComponentClass cc : componentSuite.getComponentClassesByType(ComponentType.EXML)) {
-      FileInputStream inputStream = null;
-      XmlToJsonHandler handler = null;
-      errorHandler.setCurrentFile(cc.getSrcFile());
-      try {
-        XMLReader xr = XMLReaderFactory.createXMLReader();
-        handler = new XmlToJsonHandler(componentSuite, errorHandler);
-        xr.setContentHandler(handler);
-        inputStream = new FileInputStream(cc.getSrcFile());
-        xr.parse(new InputSource(inputStream));
-      } catch (FileNotFoundException e) {
-        errorHandler.error("Exception while parsing", e);
-      } catch (IOException e) {
-        errorHandler.error("Exception while parsing", e);
-      } catch (SAXException e) {
-        errorHandler.error("Exception while parsing", e);
-      } finally {
-        try {
-          inputStream.close();
-        } catch (IOException e) {
-          //never happend
-        }
-      }
+      XmlToJsonHandler handler= createHandlerFromClass(cc);
 
       if (handler != null) {
         cc.setSuperClassName(handler.getSuperClassName());
@@ -73,6 +111,7 @@ public class JooClassGenerator {
         cc.setJson(handler.getJsonAsString());
         cc.setCfgs(handler.getCfgs());
         File outputFile = new File(componentSuite.getAs3OutputDir(), XML_TO_JS_MAPPER.mapFileName(cc.getRelativeSrcFilePath()));
+        //noinspection ResultOfMethodCallIgnored
         outputFile.getParentFile().mkdirs();
         FileWriter writer = null;
         try {
@@ -84,14 +123,14 @@ public class JooClassGenerator {
           errorHandler.error("Exception while creating class", e);
         } finally {
           try {
-            writer.close();
+            if (writer != null) {
+              writer.close();
+            }
           } catch (IOException e) {
             //never happen
           }
         }
-
       }
     }
-
   }
 }
