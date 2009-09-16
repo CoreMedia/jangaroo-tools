@@ -138,7 +138,7 @@ public class ExtXmlMojo extends AbstractMojo {
     Set<Artifact> dependencies = project.getDependencyArtifacts();
 
     for (Artifact dependency : dependencies) {
-      if (!dependency.isOptional() && "jangaroo".equals(dependency.getType())) {
+      if (!dependency.isOptional() && "jangaroo".equals(dependency.getType()) && dependency.getFile() != null) {
         ZipFile zipArtifact = null;
         try {
           zipArtifact = new ZipFile(dependency.getFile(), ZipFile.OPEN_READ);
