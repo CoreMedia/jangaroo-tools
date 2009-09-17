@@ -50,27 +50,35 @@ public class JooClassGenerator {
   }
 
   private boolean validateComponentClass(ComponentClass jooClass) {
-    boolean result = true;
+    boolean isValid = true;
     if (jooClass.getPackageName() == null) {
       errorHandler.error(String.format("Package name of component '%s' is undefined!", jooClass.getFullClassName()));
-      result = false;
+      isValid = false;
     }
 
     if (StringUtils.isEmpty(jooClass.getXtype())) {
       errorHandler.error(String.format("Xtype of component '%s' is undefined!", jooClass.getFullClassName()));
-      result = false;
+      isValid = false;
     }
 
     if (StringUtils.isEmpty(jooClass.getClassName())) {
       errorHandler.error(String.format("Class name of component '%s' is undefined!", jooClass.getFullClassName()));
-      result = false;
+      isValid = false;
     }
 
     if (StringUtils.isEmpty(jooClass.getSuperClassName())) {
       errorHandler.error(String.format("Super class of component '%s' is undefined!", jooClass.getFullClassName()));
-      result = false;
+      isValid = false;
     }
-    return result;
+
+    for (String importStr : jooClass.getImports()) {
+      if(StringUtils.isEmpty(importStr)) {
+        errorHandler.error(String.format("An empty import found. Something is wrong in your class %s", jooClass.getFullClassName()));
+        isValid = false;
+      }
+    }
+
+    return isValid;
   }
 
   private XmlToJsonHandler createHandlerFromClass(ComponentClass cc) {
