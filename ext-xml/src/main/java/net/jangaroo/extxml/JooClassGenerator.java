@@ -19,7 +19,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 
-
+/**
+ * Generates ActionScriptClasses out of xml components.
+ */
 public class JooClassGenerator {
 
   private static FileNameMapper XML_TO_JS_MAPPER = new GlobPatternMapper();
