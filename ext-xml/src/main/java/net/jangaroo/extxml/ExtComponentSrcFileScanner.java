@@ -17,40 +17,37 @@ public class ExtComponentSrcFileScanner {
   private final static String TYPE = "@[px]type\\s+([a-zA-Z_$][a-zA-Z0-9_$]*)";
   private final static String CFG = "@cfg\\s+[{]?([a-zA-Z0-9$_./]+)[}]? ([a-zA-Z0-9$_]+)(.*)$";
 
-  public static void scan(ComponentSuite componentSuite, File srcFile) {
+  public static void scan(ComponentSuite componentSuite, File srcFile) throws IOException {
     State state = new State(componentSuite, srcFile);
     String ext = FileUtils.extension(srcFile.getName());
-    try {
-      if (ComponentType.ActionScript.extension.equals(ext)) {
-        String className = FileUtils.removeExtension(srcFile.getName());
-        state.addClass(className);
-        state.cc.setType(ComponentType.ActionScript);
-        EXT_COMPONENT_AS_FILE_SCANNER.scan(srcFile, state);
-      } else if (ComponentType.JavaScript.extension.equals(ext)) {
-        EXT_COMPONENT_SRC_FILE_SCANNER.scan(srcFile, state);
-        if (state.cc != null) {
-          state.cc.setType(ComponentType.JavaScript);
-        }
-      } else if (ComponentType.EXML.extension.equals(ext)) {
-        ComponentClass clazz = new ComponentClass(srcFile);
-        clazz.setSuite(componentSuite);
-        String className = FileUtils.removeExtension(srcFile.getName());
-        String packageName = FileUtils.dirname(clazz.getRelativeSrcFilePath().substring(1)).replaceAll("[\\\\/]", ".");
-        String fullName;
-        if(packageName != null && ! "".equals(packageName))  {
-          fullName = packageName+"."+className;
-        } else {
-          fullName = className;
-        }
-        clazz.setFullClassName(fullName);
-        clazz.setXtype(className);
-        clazz.setType(ComponentType.EXML);
-        componentSuite.addComponentClass(clazz);
+    if (ComponentType.ActionScript.extension.equals(ext)) {
+      String className = FileUtils.removeExtension(srcFile.getName());
+      state.addClass(className);
+      state.cc.setType(ComponentType.ActionScript);
+      EXT_COMPONENT_AS_FILE_SCANNER.scan(srcFile, state);
+    } else if (ComponentType.JavaScript.extension.equals(ext)) {
+      EXT_COMPONENT_SRC_FILE_SCANNER.scan(srcFile, state);
+      if (state.cc != null) {
+        state.cc.setType(ComponentType.JavaScript);
       }
-      state.end();
-    } catch (IOException e) {
-      e.printStackTrace();
+    } else if (ComponentType.EXML.extension.equals(ext)) {
+      ComponentClass clazz = new ComponentClass(srcFile);
+      clazz.setSuite(componentSuite);
+      String className = FileUtils.removeExtension(srcFile.getName());
+      String packageName = FileUtils.dirname(clazz.getRelativeSrcFilePath().substring(1)).replaceAll("[\\\\/]", ".");
+      String fullName;
+      if (packageName != null && !"".equals(packageName)) {
+        fullName = packageName + "." + className;
+      } else {
+        fullName = className;
+      }
+      clazz.setFullClassName(fullName);
+      clazz.setXtype(className);
+      clazz.setType(ComponentType.EXML);
+      componentSuite.addComponentClass(clazz);
     }
+    state.end();
+
   }
 
   private static FileScanner<State> EXT_COMPONENT_AS_FILE_SCANNER = new FileScanner<State>()

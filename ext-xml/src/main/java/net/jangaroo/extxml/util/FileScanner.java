@@ -1,11 +1,11 @@
 package net.jangaroo.extxml.util;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.File;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 
 /**
@@ -20,19 +20,26 @@ public class FileScanner<State> {
   }
 
   public State scan(File file, State state) throws IOException {
-    BufferedReader reader = new BufferedReader(new FileReader(file));
-    String line;
-    while ((line = reader.readLine()) != null) {
-      for (Rule<State> rule : rules) {
-        Matcher matcher = rule.createMatcher(line);
-        if (matcher.find()) {
-          List<String> groups = new ArrayList<String>(matcher.groupCount());
-          for (int i=1; i<=matcher.groupCount(); ++i) {
-            groups.add(matcher.group(i));
+    BufferedReader reader = null;
+    try {
+      reader = new BufferedReader(new FileReader(file));
+      String line;
+      while ((line = reader.readLine()) != null) {
+        for (Rule<State> rule : rules) {
+          Matcher matcher = rule.createMatcher(line);
+          if (matcher.find()) {
+            List<String> groups = new ArrayList<String>(matcher.groupCount());
+            for (int i = 1; i <= matcher.groupCount(); ++i) {
+              groups.add(matcher.group(i));
+            }
+            rule.matched(state, groups);
+            break;
           }
-          rule.matched(state, groups);
-          break;
         }
+      }
+    } finally {
+      if (reader != null) {
+        reader.close();
       }
     }
     return state;

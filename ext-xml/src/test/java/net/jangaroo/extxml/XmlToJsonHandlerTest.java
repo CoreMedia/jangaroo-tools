@@ -3,11 +3,13 @@
  */
 package net.jangaroo.extxml;
 
+import org.junit.After;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import org.junit.Before;
 import org.junit.Test;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -27,10 +29,28 @@ import java.util.List;
  */
 public class XmlToJsonHandlerTest {
 
+  private XMLReader xr;
+  private XmlToJsonHandler jsonHandler;
+  private StandardOutErrorHandler errorHandler;
+
+
+  @Before
+  public void initTest() throws Exception {
+    xr = XMLReaderFactory.createXMLReader();
+    errorHandler = new StandardOutErrorHandler();
+    jsonHandler = new XmlToJsonHandler(new ComponentSuite(), errorHandler);
+    xr.setContentHandler(jsonHandler);
+  }
+
+  @After
+  public void checkExpectedErrors() {
+    //errorHandler.checkExpectedErrors();
+  }
+
   @Test
   public void testComponent() throws Exception {
-    XmlToJsonHandler handler  = parseJson("/TestComponent.exml");
-    XmlToJsonHandler.Json json = handler.getJSON();
+    parseJson("/TestComponent.exml");
+    XmlToJsonHandler.Json json = jsonHandler.getJSON();
 
     assertTrue(json instanceof XmlToJsonHandler.JsonObject);
     assertEquals("panel", json.get("xtype"));
@@ -74,7 +94,7 @@ public class XmlToJsonHandlerTest {
     assertEquals("{function(x){return ''+x;}}", tools.get("handler"));
 
     //config elements
-    List<ConfigAttribute> cfgs = handler.getCfgs();
+    List<ConfigAttribute> cfgs = jsonHandler.getCfgs();
     assertFalse(cfgs.isEmpty());
     ConfigAttribute attr = cfgs.get(0);
     assertEquals("myProperty",attr.getName());
@@ -87,15 +107,15 @@ public class XmlToJsonHandlerTest {
     assertNotNull(attr.getDescription());
 
     //imports
-    List<String> imports = handler.getImports();
+    List<String> imports = jsonHandler.getImports();
     assertTrue(imports.contains("ext.MessageBox"));
 
   }
 
   @Test
   public void testTrueFalse() throws Exception {
-    XmlToJsonHandler handler = parseJson("/TestTrueFalse.exml");
-    XmlToJsonHandler.Json json = handler.getJSON();
+    parseJson("/TestTrueFalse.exml");
+    XmlToJsonHandler.Json json = jsonHandler.getJSON();
 
     XmlToJsonHandler.Json itemsArray = (XmlToJsonHandler.Json) json.get("items");
     Boolean b = (Boolean) ((XmlToJsonHandler.Json)itemsArray.get("0")).get("x");
@@ -110,8 +130,8 @@ public class XmlToJsonHandlerTest {
 
   @Test
   public void testNumber() throws Exception {
-    XmlToJsonHandler handler = parseJson("/TestNumber.exml");
-    XmlToJsonHandler.Json json = handler.getJSON();
+    parseJson("/TestNumber.exml");
+    XmlToJsonHandler.Json json = jsonHandler.getJSON();
 
     XmlToJsonHandler.Json itemsArray = (XmlToJsonHandler.Json) json.get("items");
     Number n = (Number) ((XmlToJsonHandler.Json)itemsArray.get("0")).get("x");
@@ -135,8 +155,8 @@ public class XmlToJsonHandlerTest {
 
   @Test
   public void testEmptyComponent() throws Exception {
-    XmlToJsonHandler handler = parseJson("/EmptyCompontent.exml");
-    String json = handler.getJsonAsString();
+    parseJson("/EmptyCompontent.exml");
+    String json = jsonHandler.getJsonAsString();
     assertNotNull(json);
     System.out.println(json);
     assertEquals("{anchor:\"100%\",frame:true,collapsible:true,draggable:true,cls:\"x-portlet\"}", json.replaceAll("\\s",""));
@@ -144,22 +164,19 @@ public class XmlToJsonHandlerTest {
 
   @Test
   public void testToJsonString() throws Exception {
-    XmlToJsonHandler handler = parseJson("/TestComponent.exml");
-    System.out.println(handler.getJsonAsString());
+    parseJson("/TestComponent.exml");
+    System.out.println(jsonHandler.getJsonAsString());
   }
 
-  private XmlToJsonHandler parseJson(String path) throws SAXException, IOException, URISyntaxException {
-    XMLReader xr = XMLReaderFactory.createXMLReader();
-    XmlToJsonHandler handler = new XmlToJsonHandler(new ComponentSuite(), new StandardOutErrorHandler());
-    xr.setContentHandler(handler);
+  private void parseJson(String path) throws SAXException, IOException, URISyntaxException {
+
     InputStream stream = new FileInputStream(TestUtils.getFile(path, getClass()));
     try {
       xr.parse(new InputSource(stream));
     } finally {
       stream.close();
     }
-    XmlToJsonHandler.Json json = handler.getJSON();
+    XmlToJsonHandler.Json json = jsonHandler.getJSON();
     System.out.println(json);
-    return handler;
   }
 }

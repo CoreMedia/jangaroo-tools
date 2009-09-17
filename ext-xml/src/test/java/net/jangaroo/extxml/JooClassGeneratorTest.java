@@ -1,10 +1,12 @@
 package net.jangaroo.extxml;
 
+import org.junit.After;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 import utils.TestUtils;
+import utils.UnitTestErrorHandler;
 
 import java.io.File;
 import java.io.StringWriter;
@@ -14,10 +16,18 @@ import java.util.Collections;
 public class JooClassGeneratorTest{
 
   private JooClassGenerator jooClassGenerator = null;
+  private UnitTestErrorHandler errorHandler;
 
   @Before
   public void initialize() throws Exception {
-    jooClassGenerator = new JooClassGenerator(new ComponentSuite(), new StandardOutErrorHandler());
+    errorHandler = new UnitTestErrorHandler();
+    jooClassGenerator = new JooClassGenerator(new ComponentSuite(), errorHandler);
+  }
+
+  @After
+  public void checkExpectedErrors() {
+    errorHandler.checkExpectedErrors();
+
   }
 
   @Test
@@ -36,7 +46,7 @@ public class JooClassGeneratorTest{
   public void classWithoutSuperClass() throws Exception {
     ComponentClass jooClazz = new ComponentClass(Collections.<String>emptyList(), "com.coremedia.test.TestClass",null,"json");
     StringWriter writer = new StringWriter();
-
+    errorHandler.expectedErrorMessage = "Super class of component 'com.coremedia.test.TestClass' is undefined!";
     jooClassGenerator.generateJangarooClass(jooClazz, writer);
     writer.flush();
     assertEquals("",writer.toString());
@@ -60,7 +70,7 @@ public class JooClassGeneratorTest{
     cc.setXtype("testPackage");
     suite.addComponentClass(cc);
 
-    JooClassGenerator generator = new JooClassGenerator(suite, new StandardOutErrorHandler());
+    JooClassGenerator generator = new JooClassGenerator(suite, errorHandler);
     generator.generateClasses();
 
     assertEquals("{title:\"Iaminsideapackage!\",items:{xtype:ext.Label.xtype}}",cc.getJson().replaceAll("\\s",""));
