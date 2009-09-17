@@ -10,16 +10,25 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 
 /**
- * A tool to define Ext JS Component suites in JavaScript, ActionScript, or XML.
- * <p>Usage: extxml <i>target-namespace xsd-output-file src-dir output-dir imported-xsd-file*</i>
+ * A tool to define Ext JS Component suites in JavaScript, ActionScript, or XML (files with exml ending).
+ * <p>Usage: extxml <i>target-namespace namespace-prefix xsd-output-file src-dir output-dir imported-xsd-file*</i>
  * <p>Scans the given source directory (src-dir) for Ext JS component class definitions in any of the following three formats:
  * <ul>
  * <li>as a JavaScript file (*.js), using Ext's class and inheritance helpers,
- * <li>as an ActionScript file (*.as), which is then translated to JavaScript by the Jangaroo compiler (jooc), or
- * <li>as an XML file (*.exml), which is first transformed to an ActionScript file and then compiled by jooc.
+ * <li>as an ActionScript file (*.as), or
+ * <li>as an XML file (*.exml), which is first transformed to an ActionScript file.
  * </ul>
  * <p>All used or extended components from other component suites must be imported. This is done
  * by enumeration their XML Schema file locations.
+ * <p>All ActionScipt files have to comply with the following structure:
+ * <ul>
+ * <li>extend an ExtXml Component, i.e. ext.Panel</li>
+ * <li>define a public static const xtype, i.e. <i>public static const xtype:String = "myComponent";</i>
+ * <li>register the compontent in a static code block as Ext component, i.e
+ * <code>
+ * { ext.ComponentMgr.registerType(xtype, MyComponent); }
+ * </code>
+ * </li>
  * <p>All JavaScript files must contain the following documentation annotations in order to be
  * interpreted as an Ext JS component class:
  * <ul>
@@ -33,7 +42,6 @@ import java.io.Writer;
  * <p>The tool generates
  * <ul>
  * <li>ActionScript files for all XML files,
- * <li>TODO: JavaScript files for all ActionScript files (by invoking jooc),
  * <li>an XML Schema (*.xsd, given as xsd-output-file) describing the whole component suite, i.e.
  * an element, type and super type for each component, and an attribute for each configuration parameter.
  * </ul>
