@@ -65,7 +65,6 @@ public class XsdScanner {
 
   public ComponentSuite getExt3ComponentSuite() throws IOException {
     URL jarUrl = getClass().getResource("/net/jangaroo/extxml/schemas/ext3.xsd");
-    errorHandler.info("JAR URL: " + jarUrl.toExternalForm() + " " + jarUrl.toString());
     if (jarUrl != null) {
       URLConnection conn = jarUrl.openConnection();      
       InputStream stream = conn.getInputStream();

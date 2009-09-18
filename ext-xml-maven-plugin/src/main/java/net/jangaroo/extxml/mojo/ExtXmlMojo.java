@@ -116,27 +116,11 @@ public class ExtXmlMojo extends AbstractMojo {
     getLog().info("Loading ext3 xsd");
     ComponentSuite extSuite = null;
     try {
-       extSuite = xsdScanner.getExt3ComponentSuite();
-      //this only happens in IDEA...
-      if (extSuite == null) {
-        getLog().warn("Could not load ext3 xsd, we are in IDEA, trying something else..");
-        InputStream clazzStream = ClassLoader.getSystemClassLoader().getSystemResourceAsStream("/net/jangaroo/extxml/schemas/ext3.xsd");
-        try {
-          if (clazzStream != null) {
-            extSuite = xsdScanner.scan(clazzStream);
-          } else {
-            getLog().warn("that also does not work...");
-          }
-        } finally {
-          if (clazzStream != null) {
-            clazzStream.close();
-          }
-        }
-      }
+      extSuite = xsdScanner.getExt3ComponentSuite();
     } catch (IOException e) {
+      //sadly this happens in idea....
       throw new MojoExecutionException("Could not read EXT component suite", e);
     }
-
     suite.addImportedComponentSuite(extSuite);
 
     if (importedXsds != null) {
@@ -160,7 +144,7 @@ public class ExtXmlMojo extends AbstractMojo {
     Set<Artifact> dependencies = project.getDependencyArtifacts();
 
     for (Artifact dependency : dependencies) {
-      if (!dependency.isOptional() && "jangaroo".equals(dependency.getType()) && dependency.getFile() != null && "jar".equals(dependency.getClassifier())) {
+      if (!dependency.isOptional() && "jangaroo".equals(dependency.getType()) && dependency.getFile() != null && dependency.getFile().getName().endsWith(".jar")) {
         ZipFile zipArtifact = null;
         try {
           zipArtifact = new ZipFile(dependency.getFile(), ZipFile.OPEN_READ);
