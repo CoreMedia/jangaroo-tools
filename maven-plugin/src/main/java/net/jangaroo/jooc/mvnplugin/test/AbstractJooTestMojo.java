@@ -38,9 +38,16 @@ public abstract class AbstractJooTestMojo extends AbstractMojo {
    */
   protected File testOutputDirectory;
 
+  /**
+   * Source directory to scan for files to compile.
+   *
+   * @parameter expression="${project.build.testSourceDirectory}"
+   */
+  protected File testSourceDirectory;
+
 
   protected boolean isTestAvailable() {
-    File testSuite = new File(testOutputDirectory, "classes/" + testSuiteName.replace(".", File.separator) + ".js");
+    File testSuite = new File(testSourceDirectory, testSuiteName.replace(".", File.separator) + ".as");
     if (!testSuite.exists()) {
       getLog().info("The testSuite '" + testSuite + "' could not be found. Skipping.");
     }
