@@ -28,6 +28,16 @@ under the License.
   <name>simple-project</name>
   <url>http://www.jangaroo.net</url>
   <build>
+
+    <resources>
+      <resource>
+        <directory>src/main/joo-js</directory>
+      </resource>
+    </resources>
+    <outputDirectory>target/joo</outputDirectory>
+    <sourceDirectory>src/main/joo</sourceDirectory>
+    <testSourceDirectory>src/test/joo</testSourceDirectory>
+    <testOutputDirectory>target/joo-test</testOutputDirectory>
     <plugins>
       <plugin>
         <groupId>net.jangaroo</groupId>
