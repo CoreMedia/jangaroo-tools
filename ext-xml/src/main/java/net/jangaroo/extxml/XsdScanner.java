@@ -59,6 +59,7 @@ public class XsdScanner {
   }
 
   public static ComponentSuite getExt3ComponentSuite(ErrorHandler errorHandler) throws IOException {
+    errorHandler.info("Loading ext3 xsd");
     return scan(XsdScanner.class.getResourceAsStream("/net/jangaroo/extxml/schemas/ext3.xsd"), errorHandler);
   }
 }

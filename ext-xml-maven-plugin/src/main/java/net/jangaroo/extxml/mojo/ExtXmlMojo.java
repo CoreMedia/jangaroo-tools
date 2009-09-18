@@ -138,7 +138,7 @@ public class ExtXmlMojo extends AbstractMojo {
     Set<Artifact> dependencies = project.getDependencyArtifacts();
 
     for (Artifact dependency : dependencies) {
-      if (!dependency.isOptional() && "jangaroo".equals(dependency.getType()) && dependency.getFile() != null) {
+      if (!dependency.isOptional() && "jangaroo".equals(dependency.getType()) && dependency.getFile() != null && "jar".equals(dependency.getClassifier())) {
         ZipFile zipArtifact = null;
         try {
           zipArtifact = new ZipFile(dependency.getFile(), ZipFile.OPEN_READ);
@@ -154,10 +154,8 @@ public class ExtXmlMojo extends AbstractMojo {
               } finally {
                 stream.close();
               }
-
             }
           }
-
         } catch (IOException e) {
           throw new MojoExecutionException("Error while xsd scanning", e);
         } finally {
@@ -245,7 +243,10 @@ public class ExtXmlMojo extends AbstractMojo {
     }
 
     public void error(String message, Exception exception) {
-      this.exceptionMsg = message;
+      this.exceptionMsg = message; 
+      if(currentFile != null) {
+        this.exceptionMsg += String.format( " in file: %s", currentFile);
+      }
       this.lastException = exception;
     }
 
