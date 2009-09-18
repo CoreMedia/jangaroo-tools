@@ -3,13 +3,13 @@
   <parent>
     <artifactId>jangaroo-tools</artifactId>
     <groupId>net.jangaroo</groupId>
-    <version>0.3.8-SNAPSHOT</version>
+    <version>0.3.8</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>net.jangaroo</groupId>
   <artifactId>jangaroo-tools-bom</artifactId>
-  <version>0.3.8-SNAPSHOT</version>
+  <version>0.3.8</version>
   <name>Jangaroo Tools BOM</name>
   <description>A Jangaroo Tools Bill of Materials POM</description>
 
