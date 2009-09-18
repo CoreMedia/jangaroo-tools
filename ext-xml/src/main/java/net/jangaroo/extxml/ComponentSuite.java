@@ -32,7 +32,8 @@ public class ComponentSuite {
   }
 
   public void addImportedComponentSuite(ComponentSuite importedSuite) {
-    this.importedComponentSuites.add(importedSuite);
+    if(importedSuite != null)
+      this.importedComponentSuites.add(importedSuite);
   }
 
   public Map<String, ComponentSuite> getUsedComponentSuitesByNs() {

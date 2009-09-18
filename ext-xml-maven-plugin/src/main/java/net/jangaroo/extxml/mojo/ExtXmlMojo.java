@@ -111,18 +111,40 @@ public class ExtXmlMojo extends AbstractMojo {
 
     ComponentSuite suite = new ComponentSuite(namespace, namespacePrefix, sourceDirectory, generatedSourcesDirectory);
     MavenErrorHandler errorHandler = new MavenErrorHandler();
+    XsdScanner xsdScanner = new XsdScanner(errorHandler);
 
+    getLog().info("Loading ext3 xsd");
+    ComponentSuite extSuite = null;
     try {
-      suite.addImportedComponentSuite(XsdScanner.getExt3ComponentSuite(errorHandler));
+       extSuite = xsdScanner.getExt3ComponentSuite();
+      //this only happens in IDEA...
+      if (extSuite == null) {
+        getLog().warn("Could not load ext3 xsd, we are in IDEA, trying something else..");
+        InputStream clazzStream = ClassLoader.getSystemClassLoader().getSystemResourceAsStream("/net/jangaroo/extxml/schemas/ext3.xsd");
+        try {
+          if (clazzStream != null) {
+            extSuite = xsdScanner.scan(clazzStream);
+          } else {
+            getLog().warn("that also does not work...");
+          }
+        } finally {
+          if (clazzStream != null) {
+            clazzStream.close();
+          }
+        }
+      }
     } catch (IOException e) {
       throw new MojoExecutionException("Could not read EXT component suite", e);
     }
+
+    suite.addImportedComponentSuite(extSuite);
+
     if (importedXsds != null) {
       for (File importedXsd : importedXsds) {
         InputStream in = null;
         try {
           in = new FileInputStream(importedXsd);
-          suite.addImportedComponentSuite(XsdScanner.scan(in, errorHandler));
+          suite.addImportedComponentSuite(xsdScanner.scan(in));
         } catch (IOException e) {
           throw new MojoExecutionException("Error while xsd scanning", e);
         } finally {
@@ -150,7 +172,7 @@ public class ExtXmlMojo extends AbstractMojo {
               BufferedInputStream stream = null;
               try {
                 stream = new BufferedInputStream(zipArtifact.getInputStream(zipEntry));
-                suite.addImportedComponentSuite(XsdScanner.scan(stream, errorHandler));
+                suite.addImportedComponentSuite(xsdScanner.scan(stream));
               } finally {
                 stream.close();
               }
@@ -160,7 +182,7 @@ public class ExtXmlMojo extends AbstractMojo {
           throw new MojoExecutionException("Error while xsd scanning", e);
         } finally {
           try {
-            if(zipArtifact != null) {
+            if (zipArtifact != null) {
               zipArtifact.close();
             }
           } catch (IOException e) {
@@ -183,7 +205,7 @@ public class ExtXmlMojo extends AbstractMojo {
     JooClassGenerator generator = new JooClassGenerator(suite, errorHandler);
     generator.generateClasses();
 
-    if(errorHandler.lastException != null) {
+    if (errorHandler.lastException != null) {
       throw new MojoExecutionException(errorHandler.exceptionMsg, errorHandler.lastException);
     }
 
@@ -192,8 +214,8 @@ public class ExtXmlMojo extends AbstractMojo {
       errorsMsgs.append(msg);
       errorsMsgs.append("\n");
     }
-    
-    if(errorsMsgs.length() != 0) {
+
+    if (errorsMsgs.length() != 0) {
       throw new MojoFailureException(errorsMsgs.toString());
     }
 
@@ -243,9 +265,9 @@ public class ExtXmlMojo extends AbstractMojo {
     }
 
     public void error(String message, Exception exception) {
-      this.exceptionMsg = message; 
-      if(currentFile != null) {
-        this.exceptionMsg += String.format( " in file: %s", currentFile);
+      this.exceptionMsg = message;
+      if (currentFile != null) {
+        this.exceptionMsg += String.format(" in file: %s", currentFile);
       }
       this.lastException = exception;
     }

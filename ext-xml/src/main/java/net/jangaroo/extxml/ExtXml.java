@@ -53,18 +53,20 @@ public class ExtXml {
 
     //Scan the directory for xml, as or javascript components and collect the data in ComponentClass, import all provided XSDs
     ComponentSuite suite = new ComponentSuite(args[0], args[1], new File(args[3]), new File(args[4]));
+    XsdScanner scanner = new XsdScanner(errorHandler);
+
     for (int i = 5; i < args.length; i++) {
       InputStream in = null;
       try {
         in = new FileInputStream(new File(args[i]));
-        suite.addImportedComponentSuite(XsdScanner.scan(in, errorHandler));
+        suite.addImportedComponentSuite(scanner.scan(in));
       } finally {
         if(in != null) {
           in.close();
         }
       }
     }
-    suite.addImportedComponentSuite(XsdScanner.getExt3ComponentSuite(errorHandler));
+    suite.addImportedComponentSuite(scanner.getExt3ComponentSuite());
     SrcFileScanner fileScanner = new SrcFileScanner(suite);
     fileScanner.scan();
 

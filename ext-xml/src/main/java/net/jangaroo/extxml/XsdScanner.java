@@ -10,6 +10,8 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
+import java.net.URLConnection;
 
 /**
  * An XsdScanner parses an Ext XML component declaration schema into a {@link ComponentSuite}.
@@ -17,19 +19,22 @@ import java.io.InputStream;
 public class XsdScanner {
   private static final String XML_SCHEMA_URL = "http://www.w3.org/2001/XMLSchema";
 
-  private XsdScanner() {
-  }
+  private ErrorHandler errorHandler;
+  DocumentBuilder builder = null;
 
-  public static ComponentSuite scan(InputStream xsd, ErrorHandler errorHandler) throws IOException {
-    ComponentSuite componentSuite = new ComponentSuite();
+  public XsdScanner(ErrorHandler errorHandler) {
+    this.errorHandler = errorHandler;
     DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
     builderFactory.setNamespaceAware(true);
-    DocumentBuilder builder = null;
     try {
       builder = builderFactory.newDocumentBuilder();
     } catch (ParserConfigurationException e) {
       errorHandler.error("Error while preparing parser for xsd", e);
     }
+  }
+
+  public ComponentSuite scan(InputStream xsd) throws IOException {
+    ComponentSuite componentSuite = new ComponentSuite();
     Document document = null;
     try {
       if (builder != null) {
@@ -58,8 +63,24 @@ public class XsdScanner {
     return componentSuite;
   }
 
-  public static ComponentSuite getExt3ComponentSuite(ErrorHandler errorHandler) throws IOException {
-    errorHandler.info("Loading ext3 xsd");
-    return scan(XsdScanner.class.getResourceAsStream("/net/jangaroo/extxml/schemas/ext3.xsd"), errorHandler);
+  public ComponentSuite getExt3ComponentSuite() throws IOException {
+    URL jarUrl = getClass().getResource("/net/jangaroo/extxml/schemas/ext3.xsd");
+    errorHandler.info("JAR URL: " + jarUrl.toExternalForm() + " " + jarUrl.toString());
+    if (jarUrl != null) {
+      URLConnection conn = jarUrl.openConnection();      
+      InputStream stream = conn.getInputStream();
+      try {
+        if (stream != null) {
+          return scan(stream);
+        } else {
+          return null;
+        }
+      } finally {
+        if (stream != null) {
+          stream.close();
+        }
+      }
+    }
+    return null;
   }
 }
