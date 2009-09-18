@@ -4,7 +4,7 @@
   <groupId>net.jangaroo</groupId>
   <artifactId>ext-xml-maven-plugin</artifactId>
   <packaging>maven-plugin</packaging>
-  <version>0.3.9</version>
+  <version>0.3.10-SNAPSHOT</version>
 
   <name>Maven Plugin: XML to AS3</name>
   <description>This plugin generates ActionScript</description>
@@ -14,7 +14,7 @@
     <groupId>net.jangaroo</groupId>
     <artifactId>jangaroo-tools</artifactId>
     <relativePath>../pom.xml</relativePath>
-    <version>0.3.9</version>
+    <version>0.3.10-SNAPSHOT</version>
   </parent>
 
   <build>
@@ -75,7 +75,7 @@
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>ext-xml</artifactId>
-      <version>0.3.9</version>
+      <version>0.3.10-SNAPSHOT</version>
     </dependency>
 
     <dependency>
