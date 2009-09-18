@@ -10,7 +10,7 @@
   <artifactId>jangaroo-runtime</artifactId>
   <packaging>pom</packaging>
   <!-- Do not use jangaroo plugin here since you can't use AND create a plugin in one multi module project! -->
-  <name>Jangaroo Runtime</name>
+  <name>Joo Runtime</name>
   <version>0.3.8-SNAPSHOT</version>
 
   <build>

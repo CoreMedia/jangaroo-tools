@@ -8,10 +8,21 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>net.jangaroo</groupId>
   <artifactId>jangaroo-browser</artifactId>
-  <name>Jangaroo Browser</name>
+  <name>Joo Browser Compat. Lib</name>
   <version>0.3.8-SNAPSHOT</version>
   <packaging>pom</packaging>
   <build>
+
+    <resources>
+      <resource>
+        <directory>src/main/joo-js</directory>
+      </resource>
+    </resources>
+    <outputDirectory>target/joo</outputDirectory>
+    <sourceDirectory>src/main/joo</sourceDirectory>
+    <testSourceDirectory>src/test/joo</testSourceDirectory>
+    <testOutputDirectory>target/joo-test</testOutputDirectory>
+
     <!--<sourceDirectory>src/main/joo</sourceDirectory>-->
     <plugins>
       <plugin>

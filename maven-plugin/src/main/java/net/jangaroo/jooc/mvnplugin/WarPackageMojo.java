@@ -187,7 +187,7 @@ public class WarPackageMojo
             Artifact dependency = (Artifact) iterator.next();
             getLog().debug("Dependency: " + dependency.getGroupId() + ":" + dependency.getArtifactId() + "type: " + dependency.getType());
             if (!dependency.isOptional() && Types.JANGAROO_TYPE.equals(dependency.getType())) {
-              getLog().info("Excluding jangaroo dependency form war plugin [" + dependency.toString() + "]");
+              getLog().debug("Excluding jangaroo dependency form war plugin [" + dependency.toString() + "]");
               // Add two excludes. The first one is effective when no nameclash occcurs
               additionalExcludes += "WEB-INF" + File.separator + "lib" + File.separator + dependency.getArtifactId() + "-" + dependency.getVersion() + ".jar,";
               // the second when a nameclash occurs (artifact will hav groupId prepended before copying it into the lib dir)

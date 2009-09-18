@@ -42,7 +42,7 @@
           <lifecycle>
             <id>default</id>
             <phases>
-              <initialize>net.jangaroo:jangaroo-maven-plugin:initialize</initialize>
+           <!--   <initialize>net.jangaroo:jangaroo-maven-plugin:initialize</initialize>-->
               <generate-sources>net.jangaroo:ext-xml-maven-plugin:extxml</generate-sources>
               <process-resources>org.apache.maven.plugins:maven-resources-plugin:resources</process-resources>
               <compile>net.jangaroo:jangaroo-maven-plugin:compile</compile>

@@ -6,7 +6,7 @@
   <packaging>maven-plugin</packaging>
   <version>0.3.8-SNAPSHOT</version>
 
-  <name>ext xml maven plugin</name>
+  <name>Maven Plugin: XML to AS3</name>
   <description>This plugin generates ActionScript</description>
   <url>http://www.jangaroo.net</url>
 

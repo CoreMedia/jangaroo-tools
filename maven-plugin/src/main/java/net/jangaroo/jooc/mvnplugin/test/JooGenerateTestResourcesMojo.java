@@ -90,11 +90,13 @@ public class JooGenerateTestResourcesMojo extends AbstractJooTestMojo {
 
   public void execute() throws MojoExecutionException, MojoFailureException {
     try {
-      testOutputDirectory.mkdir();
-      getLog().info("Unpacking jangaroo dependencies to " + testOutputDirectory);
-      unpack();
-      copyMainJsAndClasses();
-      createHtmlPage();
+      if (isTestAvailable()) {
+        testOutputDirectory.mkdir();
+        getLog().info("Unpacking jangaroo dependencies to " + testOutputDirectory);
+        unpack();
+        copyMainJsAndClasses();
+        createHtmlPage();
+      }
     } catch (IOException e) {
       throw new MojoExecutionException("Cannot unpack jangaroo dependencies/generate html test page", e);
     } catch (ArchiverException e) {
@@ -107,6 +109,7 @@ public class JooGenerateTestResourcesMojo extends AbstractJooTestMojo {
   /**
    * Copies the project's jooc javascript output to the <code>testOutputDirectory</code> since they have to be
    * accessible by the javascript execution environment.
+   *
    * @throws IOException if copy fails
    */
   private void copyMainJsAndClasses() throws IOException {
@@ -126,28 +129,34 @@ public class JooGenerateTestResourcesMojo extends AbstractJooTestMojo {
   /**
    * Linearizes the acyclic, directed graph represented by <code>artifact2directDependencies</code> to a list
    * where every item just needs items that are contained in the list before itself.
+   *
    * @param artifact2directDependencies acyclic, directed dependency graph
-   * @return linearized dependency list 
+   * @return linearized dependency list
    */
   public static List<String> sort(Map<String, List<String>> artifact2directDependencies) {
+
     List<String> alreadyOut = new LinkedList<String>();
     while (!artifact2directDependencies.isEmpty()) {
-      String start = artifact2directDependencies.keySet().iterator().next();
-      while (artifact2directDependencies.get(start) != null && !artifact2directDependencies.get(start).isEmpty()) {
-        for (String s : artifact2directDependencies.get(start)) {
-          if (alreadyOut.contains(s)) {
-            artifact2directDependencies.remove(start);
-          } else {
-            start = s;
-            break;
-          }
-
-        }
-      }
-      artifact2directDependencies.remove(start);
-      alreadyOut.add(start);
+      String currentDep = goDeep(artifact2directDependencies.keySet().iterator().next(), artifact2directDependencies);
+      removeAll(currentDep, artifact2directDependencies);
+      alreadyOut.add(currentDep);
     }
     return alreadyOut;
+  }
+
+  private static String goDeep(String start, Map<String, List<String>> artifact2directDependencies) {
+    while (artifact2directDependencies.get(start) != null && !artifact2directDependencies.get(start).isEmpty()) {
+      start = artifact2directDependencies.get(start).iterator().next();
+    }
+    return start;
+  }
+
+  private static void removeAll(String toBeRemoved, Map<String, List<String>> artifact2directDependencies) {
+    artifact2directDependencies.remove(toBeRemoved);
+    
+    for (List<String> strings : artifact2directDependencies.values()) {
+      strings.remove(toBeRemoved);
+    }
   }
 
   private String getInternalId(Dependency dep) {
@@ -160,11 +169,19 @@ public class JooGenerateTestResourcesMojo extends AbstractJooTestMojo {
 
 
   private void createHtmlPage() throws IOException, ProjectBuildingException {
-    List<Artifact> dependencies = project.getTestArtifacts();
+    List<Artifact> testArtifacts = project.getTestArtifacts();
+
+    List<Artifact> notJangaroo = new LinkedList<Artifact>();
+    for (Artifact dependency : testArtifacts) {
+      if (!"jangaroo".equals(dependency.getType())) {
+        notJangaroo.add(dependency);
+      }
+    }
+    testArtifacts.removeAll(notJangaroo);
 
     final Map<String, List<String>> artifact2Project = new HashMap<String, List<String>>();
 
-    for (Artifact artifact : dependencies) {
+    for (Artifact artifact : testArtifacts) {
       MavenProject mp = mavenProjectBuilder.buildFromRepository(artifact, remoteRepositories, localRepository, true);
       List<String> deps = new LinkedList<String>();
       for (Dependency dep : ((List<Dependency>) mp.getDependencies())) {
@@ -174,8 +191,9 @@ public class JooGenerateTestResourcesMojo extends AbstractJooTestMojo {
       }
       artifact2Project.put(getInternalId(artifact), deps);
     }
+    getLog().debug("artifact2Project : " + artifact2Project);
     List<String> depsLineralized = sort(artifact2Project);
-
+    getLog().debug("depsLineralized  : " + depsLineralized);
 
     testOutputDirectory.mkdir();
     File f = new File(testOutputDirectory, "tests.html");
@@ -184,12 +202,11 @@ public class JooGenerateTestResourcesMojo extends AbstractJooTestMojo {
       f.createNewFile();
       fw = new FileWriter(f);
       fw.write("<html>\n" +
-              "  <head><title>cap-ui-editor Tests</title></head>\n" +
+              "  <head><title>" + project.getGroupId() + ":" + project.getArtifactId() + ":" + project.getVersion() + "</title></head>\n" +
               "  <body>");
 
 
       for (String dependency : depsLineralized) {
-        getLog().debug("Dependency: " + dependency);
         fw.write("<script type=\"text/javascript\" src=\"" + dependency.split(":")[1] + ".js\"></script>\n");
       }
       fw.write("<script type=\"text/javascript\" src=\"" + project.getArtifact().getArtifactId() + ".js\"></script>\n");
@@ -231,7 +248,8 @@ public class JooGenerateTestResourcesMojo extends AbstractJooTestMojo {
 
   /**
    * Unpacks all jangaroo dependencies (transitively) to <code>testOutputDirectory</code>.
-   * @throws IOException if file copy goes wrong
+   *
+   * @throws IOException       if file copy goes wrong
    * @throws ArchiverException if an archive is corrupt
    */
   public void unpack()
@@ -243,9 +261,9 @@ public class JooGenerateTestResourcesMojo extends AbstractJooTestMojo {
       }
 
     }});
-    
-    for ( Artifact dependency  : ((List<Artifact>)project.getTestArtifacts())) {
-      getLog().debug("Dependency: " + getInternalId(dependency) + "type: " + dependency.getType());
+
+    for (Artifact dependency : ((List<Artifact>) project.getTestArtifacts())) {
+      getLog().debug("Dependency: " + getInternalId(dependency) + " type: " + dependency.getType());
       if (!dependency.isOptional() && Types.JANGAROO_TYPE.equals(dependency.getType())) {
         unarchiver.setDestFile(null);
         unarchiver.setDestDirectory(testOutputDirectory);

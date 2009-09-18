@@ -27,6 +27,7 @@ import java.net.UnknownHostException;
 
 import com.thoughtworks.selenium.DefaultSelenium;
 import com.thoughtworks.selenium.Selenium;
+import com.thoughtworks.selenium.SeleniumException;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -53,7 +54,7 @@ public class JooTestMojo extends AbstractJooTestMojo {
    * Output directory for the janagroo artifact  unarchiver. All jangaroo dependencies will be unpacked into
    * this directory.
    *
-   * @parameter expression="${project.build.outputDirectory}/surefire-reports/"  default-value="${project.build.testOutputDirectory}"
+   * @parameter expression="${project.build.directory}/surefire-reports/"  default-value="${project.build.testOutputDirectory}"
    * @required
    */
   private File testResultOutputDirectory;
@@ -89,6 +90,7 @@ public class JooTestMojo extends AbstractJooTestMojo {
 
   /**
    * Defines the Selenium RC port. Default is 4444.
+   *
    * @parameter
    */
   private int jooUnitSeleniumRCPort = 4444;
@@ -96,8 +98,6 @@ public class JooTestMojo extends AbstractJooTestMojo {
   public void execute() throws MojoExecutionException, MojoFailureException {
     boolean integrationTestActive = false;
     for (MavenProject mavenProject : projects) {
-      getLog().debug("Current project: " + mavenProject.getId());
-
       for (Profile profile : ((List<Profile>) mavenProject.getActiveProfiles())) {
         getLog().debug("Active Profile: " + profile.getId());
         if ("integrationtest".equals(profile.getId())) {
@@ -106,62 +106,76 @@ public class JooTestMojo extends AbstractJooTestMojo {
       }
     }
 
-    if (!integrationTestActive) {
-      getLog().info("+----------------------------------------------------------------------+");
-      getLog().info("|  JooTestMojo is skipped due to inactive profile 'integrationtest'    |");
-      getLog().info("+----------------------------------------------------------------------+");
-    } else {
-      getLog().info("JooTest report directory:" + testResultOutputDirectory.getAbsolutePath());
-      ResourceHandler handler = new ResourceHandler();
-      try {
-        handler.setBaseResource(new FileResource(testOutputDirectory.toURI().toURL()));
-      } catch (IOException e) {
-        throw new MojoExecutionException(e.toString(), e);
-      } catch (URISyntaxException e) {
-        throw new MojoExecutionException(e.toString(), e);
-      }
-      Server server = startJetty(handler);
-      Selenium selenium;
-      String url;
-      try {
-        url = "http://" + InetAddress.getLocalHost().getHostName() + ":" + server.getConnectors()[0].getPort();
-      } catch (UnknownHostException e) {
-        throw new MojoExecutionException("I just don't know my own hostname ... ", e);
-      }
-      selenium = new DefaultSelenium(jooUnitSeleniumRCHost, jooUnitSeleniumRCPort, "*firefox", url);
-      try {
-        selenium.start();
-        getLog().debug("Opening " + url + "/tests.html");
-        selenium.open(url + "/tests.html");
-        selenium.waitForCondition("selenium.browserbot.getCurrentWindow().result != null", "" + jooUnitTestExecutionTimeout);
-        String testResultXml = selenium.getEval("selenium.browserbot.getCurrentWindow().result");
-        DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder dBuilder = documentBuilderFactory.newDocumentBuilder();
-        StringReader inStream = new StringReader(testResultXml);
-        InputSource inSource = new InputSource(inStream);
-        Document d = dBuilder.parse(inSource);
-        NodeList nl = d.getChildNodes();
-        NamedNodeMap namedNodeMap =  nl.item(0).getAttributes();
-        String failures = namedNodeMap.getNamedItem("failures").getNodeValue();
-        String errors = namedNodeMap.getNamedItem("errors").getNodeValue();
-        String tests = namedNodeMap.getNamedItem("tests").getNodeValue();
-        //String skipped = namedNodeMap.getNamedItem("skipped").getNodeValue();
-        getLog().info("Tests run: " + tests + ", Failures: " + failures + ", Errors: " + errors + ", Skipped: 0" /*+ skipped*/);
+    try {
+      InetAddress inetAddress = InetAddress.getAllByName(jooUnitSeleniumRCHost)[0];
+    } catch (UnknownHostException e) {
+      throw new MojoExecutionException("Cannot resolve host " + jooUnitSeleniumRCHost +
+              ". Please specify a host running the selenium remote controll or skip tests" +
+              " by deactivating the integrationtest profile!", e);
+    }
 
-        File result = new File(testResultOutputDirectory, "TEST-" + testSuiteName + ".xml");
-        FileUtils.writeStringToFile(result, testResultXml);
-      } catch (IOException e) {
-        throw new MojoExecutionException("Cannot write test results to file", e);
-      } catch (ParserConfigurationException e) {
-        throw new MojoExecutionException("Cannot create a simple XML Builder", e);
-      } catch (SAXException e) {
-        throw new MojoExecutionException("Cannot parse test result", e);
-      } finally {
-        selenium.stop();
+    if (isTestAvailable()) {
+      if (!integrationTestActive) {
+        getLog().info("+----------------------------------------------------------------------+");
+        getLog().info("|  JooTestMojo is skipped due to inactive profile 'integrationtest'    |");
+        getLog().info("+----------------------------------------------------------------------+");
+      } else {
+        getLog().info("JooTest report directory:" + testResultOutputDirectory.getAbsolutePath());
+        ResourceHandler handler = new ResourceHandler();
         try {
-          server.stop();
-        } catch (Exception e) {
-          throw new MojoExecutionException(e.getMessage(), e);
+          handler.setBaseResource(new FileResource(testOutputDirectory.toURI().toURL()));
+        } catch (IOException e) {
+          throw new MojoExecutionException(e.toString(), e);
+        } catch (URISyntaxException e) {
+          throw new MojoExecutionException(e.toString(), e);
+        }
+        Server server = startJetty(handler);
+        Selenium selenium;
+        String url;
+        try {
+          url = "http://" + InetAddress.getLocalHost().getHostName() + ":" + server.getConnectors()[0].getPort();
+        } catch (UnknownHostException e) {
+          throw new MojoExecutionException("I just don't know my own hostname ... ", e);
+        }
+        selenium = new DefaultSelenium(jooUnitSeleniumRCHost, jooUnitSeleniumRCPort, "*firefox", url);
+        try {
+          selenium.start();
+          getLog().debug("Opening " + url + "/tests.html");
+          selenium.open(url + "/tests.html");
+          getLog().debug("Waiting for test results for " + jooUnitTestExecutionTimeout + "ms ...");
+          selenium.waitForCondition("selenium.browserbot.getCurrentWindow().result != null", "" + jooUnitTestExecutionTimeout);
+          String testResultXml = selenium.getEval("selenium.browserbot.getCurrentWindow().result");
+          DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+          DocumentBuilder dBuilder = documentBuilderFactory.newDocumentBuilder();
+          StringReader inStream = new StringReader(testResultXml);
+          InputSource inSource = new InputSource(inStream);
+          Document d = dBuilder.parse(inSource);
+          NodeList nl = d.getChildNodes();
+          NamedNodeMap namedNodeMap = nl.item(0).getAttributes();
+          String failures = namedNodeMap.getNamedItem("failures").getNodeValue();
+          String errors = namedNodeMap.getNamedItem("errors").getNodeValue();
+          String tests = namedNodeMap.getNamedItem("tests").getNodeValue();
+          //String skipped = namedNodeMap.getNamedItem("skipped").getNodeValue();
+          getLog().info("Tests run: " + tests + ", Failures: " + failures + ", Errors: " + errors + ", Skipped: 0" /*+ skipped*/);
+
+          File result = new File(testResultOutputDirectory, "TEST-" + testSuiteName + ".xml");
+          FileUtils.writeStringToFile(result, testResultXml);
+        } catch (IOException e) {
+          throw new MojoExecutionException("Cannot write test results to file", e);
+        } catch (ParserConfigurationException e) {
+          throw new MojoExecutionException("Cannot create a simple XML Builder", e);
+        } catch (SAXException e) {
+          throw new MojoExecutionException("Cannot parse test result", e);
+        } catch (SeleniumException e) {
+          throw new MojoExecutionException("Selenium tests failed", e);
+        } finally {
+          selenium.stop();
+          try {
+            server.stop();
+          } catch (Exception e) {
+            getLog().error(e);
+            // never mind we just couldn't step the selenium server.
+          }
         }
       }
     }
@@ -173,7 +187,7 @@ public class JooTestMojo extends AbstractJooTestMojo {
     Server server;
     if (jooUnitJettyPortUpperBound != jooUnitJettyPortLowerBound) {
       Random r = new Random(System.currentTimeMillis());
-      int jooUnitJettyPort = r.nextInt(jooUnitJettyPortUpperBound-jooUnitJettyPortLowerBound) + jooUnitJettyPortLowerBound;
+      int jooUnitJettyPort = r.nextInt(jooUnitJettyPortUpperBound - jooUnitJettyPortLowerBound) + jooUnitJettyPortLowerBound;
 
       server = new Server(jooUnitJettyPort);
       try {
@@ -186,7 +200,7 @@ public class JooTestMojo extends AbstractJooTestMojo {
         } catch (Exception e1) {
           getLog().error("Stopping Jetty failed. Never mind.");
         }
-        jooUnitJettyPort = r.nextInt(jooUnitJettyPortUpperBound-jooUnitJettyPortLowerBound) + jooUnitJettyPortLowerBound;
+        jooUnitJettyPort = r.nextInt(jooUnitJettyPortUpperBound - jooUnitJettyPortLowerBound) + jooUnitJettyPortLowerBound;
 
         server = new Server(jooUnitJettyPort);
         try {
@@ -199,7 +213,7 @@ public class JooTestMojo extends AbstractJooTestMojo {
           } catch (Exception e2) {
             getLog().error("Stopping Jetty failed. Never mind.");
           }
-          jooUnitJettyPort = r.nextInt(jooUnitJettyPortUpperBound-jooUnitJettyPortLowerBound) + jooUnitJettyPortLowerBound;
+          jooUnitJettyPort = r.nextInt(jooUnitJettyPortUpperBound - jooUnitJettyPortLowerBound) + jooUnitJettyPortLowerBound;
 
           server = new Server(jooUnitJettyPort);
           try {

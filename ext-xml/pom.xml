@@ -6,7 +6,8 @@
   <packaging>jar</packaging>
   <version>0.3.8-SNAPSHOT</version>
 
-  <name>Jangaroo Ext JS Declarative XML Format</name>
+  <name>XML to AS3 transformer</name>
+  <description>Allows a declarative description of UI components</description>
   <url>http://www.jangaroo.net/</url>
 
   <parent>
