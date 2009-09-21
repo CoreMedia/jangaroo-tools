@@ -48,7 +48,7 @@ public class TestCompilerMojo extends AbstractCompilerMojo {
    */
   private String testOutputFileName;
 
-  protected List getCompileSourceRoots() {
+  protected List<File> getCompileSourceRoots() {
     return Collections.singletonList(sourceDirectory);
   }
 
@@ -61,9 +61,6 @@ public class TestCompilerMojo extends AbstractCompilerMojo {
     return getSourceInclusionScanner(testIncludes, testExcludes, staleMillis);
   }
 
-  protected SourceInclusionScanner getSourceInclusionScanner(String inputFileEnding) {
-    return getSourceInclusionScanner(testIncludes, testExcludes, inputFileEnding);
-  }
 
   public String getOutputFileName() {
     return testOutputFileName;

@@ -3,10 +3,7 @@ package net.jangaroo.jooc.mvnplugin;
 import org.codehaus.plexus.compiler.util.scan.SourceInclusionScanner;
 
 import java.io.File;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * The <code>war-compile</code> goal compiles the Actionscript sources to javascript. The output directory
@@ -78,8 +75,16 @@ public class WarCompilerMojo extends AbstractCompilerMojo {
    */
   private String outputFileName;
 
-  protected List getCompileSourceRoots() {
-    return Collections.singletonList(sourceDirectory);
+  /**
+   * Output directory for all ActionScript3 files generated out of exml components
+   *
+   * @parameter expression="${project.build.directory}/generated-sources/joo"
+   */
+  private File generatedSourcesDirectory;
+
+
+  protected List<File> getCompileSourceRoots() {
+    return Arrays.asList(sourceDirectory, generatedSourcesDirectory);
   }
 
   protected File getOutputDirectory() {
@@ -91,9 +96,6 @@ public class WarCompilerMojo extends AbstractCompilerMojo {
     return getSourceInclusionScanner(includes, excludes, staleMillis);
   }
 
-  protected SourceInclusionScanner getSourceInclusionScanner(String inputFileEnding) {
-    return getSourceInclusionScanner(includes, excludes, inputFileEnding);
-  }
 
   public String getOutputFileName() {
     return outputFileName;

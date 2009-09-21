@@ -111,7 +111,7 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
 
   public abstract String getOutputFileName();
 
-  protected abstract List getCompileSourceRoots();
+  protected abstract List<File> getCompileSourceRoots();
 
   protected abstract File getOutputDirectory();
 
@@ -122,17 +122,14 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
    * @throws MojoFailureException
    */
   public void execute() throws MojoExecutionException, MojoFailureException {
-    List compileSourceRoots = getCompileSourceRoots();
 
-    if (compileSourceRoots.isEmpty()) {
+
+    if (getCompileSourceRoots().isEmpty()) {
       getLog().info("No sources to compile");
 
       return;
     }
 
-    for (Object compileSourceRoot : compileSourceRoots) {
-      project.addCompileSourceRoot(compileSourceRoot.toString());
-    }
 
     // ----------------------------------------------------------------------
     // Create the compiler configuration
@@ -149,7 +146,6 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
     configuration.setVerbose(verbose);
 
     configuration.setOutputDirectory(getOutputDirectory());
-
     configuration.setOutputFileName(getOutputFileName());
 
     if (debug && StringUtils.isNotEmpty(debuglevel)) {
@@ -165,43 +161,20 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
     }
 
     if (getLog().isDebugEnabled()) {
-      log.debug("Source directories: " + compileSourceRoots.toString().replace(',', '\n'));
-
-      if (configuration.isMergeOutput()) {
-        log.debug("Output file: " + configuration.getOutputFile());
-      } else {
-        log.debug("Output directory: " + configuration.getOutputDirectory());
-      }
+      log.debug("Source directories: " + getCompileSourceRoots().toString().replace(',', '\n'));
+      log.debug("Output file: " + configuration.getOutputFile());
+      log.debug("Output directory: " + configuration.getOutputDirectory());
     }
 
-    if (configuration.isMergeOutput()) {
-      if (configuration.getOutputFileName() == null) {
-        getLog().error("<outputFileName> must not be empty when merging output into one file.");
-        return;
-      }
-
-      if (configuration.isDebugLines()) {
-        getLog().info("When output is merged into one file, debug mode 'lines' is not effective.");
-      }
-    }
 
     HashSet<File> sources = new HashSet<File>();
-
-    sources.addAll(computeStaleSources(configuration, getSourceInclusionScanner(staleMillis)));
-
-    if (!sources.isEmpty() && configuration.isMergeOutput()) {
-      getLog().info("RESCANNING!");
-
-      sources.clear();
-      sources.addAll(computeStaleSources(configuration, getSourceInclusionScanner(Jooc.INPUT_FILE_SUFFIX_NO_DOT)));
-    }
-
-    configuration.setSourceFiles(new ArrayList<File>(sources));
-
+    getLog().debug("starting source inclusion scanner");
+    sources.addAll(computeStaleSources(getSourceInclusionScanner(staleMillis)));
     if (sources.isEmpty()) {
       getLog().info("Nothing to compile - all classes are up to date");
       return;
     }
+    configuration.setSourceFiles(new ArrayList<File>(sources));
 
     // create output directory if it does not exist
     if (!getOutputDirectory().exists())
@@ -255,40 +228,28 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
     return jooc.run(config);
   }
 
-  private Set computeStaleSources(JoocConfiguration configuration, SourceInclusionScanner scanner) throws MojoExecutionException {
-    CompilerOutputStyle outputStyle = configuration.isMergeOutput()
-            ? CompilerOutputStyle.ONE_OUTPUT_FILE_FOR_ALL_INPUT_FILES
-            : CompilerOutputStyle.ONE_OUTPUT_FILE_PER_INPUT_FILE;
+  private Set<File> computeStaleSources(SourceInclusionScanner scanner) throws MojoExecutionException {
+
 
     File outputDirectory = getOutputDirectory();
 
-    if (outputStyle == CompilerOutputStyle.ONE_OUTPUT_FILE_PER_INPUT_FILE) {
 
-      scanner.addSourceMapping(new SuffixMapping(Jooc.INPUT_FILE_SUFFIX, Jooc.OUTPUT_FILE_SUFFIX));
+    scanner.addSourceMapping(new SuffixMapping(Jooc.INPUT_FILE_SUFFIX, Jooc.OUTPUT_FILE_SUFFIX));
+    getLog().debug("Searching for");
+    Set<File> staleSources = new HashSet<File>();
 
-    } else if (outputStyle == CompilerOutputStyle.ONE_OUTPUT_FILE_FOR_ALL_INPUT_FILES) {
-
-      scanner.addSourceMapping(new SingleTargetSourceMapping(Jooc.INPUT_FILE_SUFFIX, configuration.getOutputFileName()));
-
-    } else {
-      throw new MojoExecutionException("Unknown compiler output style: '" + outputStyle + "'.");
-    }
-
-    Set staleSources = new HashSet();
-
-    for (Object sourceRoot : project.getCompileSourceRoots()) {
-      File rootFile = new File((String) sourceRoot);
-
+    for (File rootFile : getCompileSourceRoots()) {
       if (!rootFile.isDirectory()) {
         continue;
       }
 
       try {
+        getLog().debug("scanner.getIncludedSources(" + rootFile + ", " + outputDirectory + ")");
         staleSources.addAll(scanner.getIncludedSources(rootFile, outputDirectory));
       }
       catch (InclusionScanException e) {
         throw new MojoExecutionException(
-            "Error scanning source root: \'" + rootFile.getAbsolutePath() + "\' " + "for stale files to recompile.", e);
+                "Error scanning source root: \'" + rootFile.getAbsolutePath() + "\' " + "for stale files to recompile.", e);
       }
     }
 
@@ -296,8 +257,6 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
   }
 
   protected abstract SourceInclusionScanner getSourceInclusionScanner(int staleMillis);
-
-  protected abstract SourceInclusionScanner getSourceInclusionScanner(String inputFileEnding);
 
   protected SourceInclusionScanner getSourceInclusionScanner(Set includes, Set excludes, int staleMillis) {
     SourceInclusionScanner scanner = null;
