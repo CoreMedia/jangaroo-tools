@@ -96,30 +96,19 @@ public class JooTestMojo extends AbstractJooTestMojo {
   private int jooUnitSeleniumRCPort = 4444;
 
   public void execute() throws MojoExecutionException, MojoFailureException {
-    boolean integrationTestActive = false;
-    for (MavenProject mavenProject : projects) {
-      for (Profile profile : ((List<Profile>) mavenProject.getActiveProfiles())) {
-        getLog().debug("Active Profile: " + profile.getId());
-        if ("integrationtest".equals(profile.getId())) {
-          integrationTestActive = true;
-        }
-      }
-    }
-
-    try {
-      InetAddress inetAddress = InetAddress.getAllByName(jooUnitSeleniumRCHost)[0];
-    } catch (UnknownHostException e) {
-      throw new MojoExecutionException("Cannot resolve host " + jooUnitSeleniumRCHost +
-              ". Please specify a host running the selenium remote controll or skip tests" +
-              " by deactivating the integrationtest profile!", e);
-    }
-
     if (isTestAvailable()) {
-      if (!integrationTestActive) {
+      if (!isIntegrationtestActive()) {
         getLog().info("+----------------------------------------------------------------------+");
         getLog().info("|  JooTestMojo is skipped due to inactive profile 'integrationtest'    |");
         getLog().info("+----------------------------------------------------------------------+");
       } else {
+        try {
+          InetAddress inetAddress = InetAddress.getAllByName(jooUnitSeleniumRCHost)[0];
+        } catch (UnknownHostException e) {
+          throw new MojoExecutionException("Cannot resolve host " + jooUnitSeleniumRCHost +
+                  ". Please specify a host running the selenium remote control or skip tests" +
+                  " by deactivating the integrationtest profile (mvn -P !integrationtest)!", e);
+        }
         getLog().info("JooTest report directory:" + testResultOutputDirectory.getAbsolutePath());
         ResourceHandler handler = new ResourceHandler();
         try {
@@ -180,6 +169,18 @@ public class JooTestMojo extends AbstractJooTestMojo {
       }
     }
 
+  }
+
+  private boolean isIntegrationtestActive() {
+    for (MavenProject mavenProject : projects) {
+      for (Profile profile : ((List<Profile>) mavenProject.getActiveProfiles())) {
+        getLog().debug("Active Profile: " + profile.getId());
+        if ("integrationtest".equals(profile.getId())) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
 
