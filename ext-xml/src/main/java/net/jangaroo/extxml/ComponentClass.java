@@ -47,7 +47,7 @@ public class ComponentClass extends DescriptionHolder {
   }
 
   public String getRelativeSrcFilePath() {
-    if (srcFile != null) {
+    if (srcFile != null && getSuite() != null && getSuite().getRootDir() != null) {
       int rootDirPathLength = getSuite().getRootDir().getPath().length();
       return srcFile.getPath().substring(rootDirPathLength);
     }
@@ -127,7 +127,7 @@ public class ComponentClass extends DescriptionHolder {
         directCfgs.removeAll(cc.getCfgs());
         cc = cc.getSuperClass();
       } while (cc != null);
-      System.out.println("Removed "+(cfgs.size()-directCfgs.size())+" inherited configs.");
+      //System.out.println("Removed "+(cfgs.size()-directCfgs.size())+" inherited configs.");
       return directCfgs;
     }
     return cfgs;
