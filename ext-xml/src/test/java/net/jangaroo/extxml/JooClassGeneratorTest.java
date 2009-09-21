@@ -38,7 +38,7 @@ public class JooClassGeneratorTest{
     jooClassGenerator.generateJangarooClass(jooClazz, writer);
     writer.flush();
     System.out.println(writer.toString());
-    assertEquals("package com.coremedia.test {import ext.ComponentMgr;/** * @xtype com.coremedia.test.TestClass */public class TestClass extends SuperClass {  public static const xtype:String = \"com.coremedia.test.TestClass\";{  ext.ComponentMgr.registerType(xtype, TestClass);}  public function TestClass(config:* = {}) {    super(Ext.apply(config, json));  }}}",writer.toString().replaceAll("\r|\n",""));
+    assertEquals("package com.coremedia.test {import Ext;import ext.ComponentMgr;/** * @xtype com.coremedia.test.TestClass */public class TestClass extends SuperClass {  public static const xtype:String = \"com.coremedia.test.TestClass\";{  ext.ComponentMgr.registerType(xtype, TestClass);}  public function TestClass(config:* = {}) {    super(Ext.apply(config, json));  }  public static function main(config:* = {}):void {    new com.coremedia.test.TestClass(config);  }}}",writer.toString().replaceAll("\r|\n",""));
     writer.close();
   }
 
