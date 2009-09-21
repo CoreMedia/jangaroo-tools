@@ -14,9 +14,6 @@ import java.util.List;
  */
 public class ExtComponentSrcFileScanner {
 
-  private final static String TYPE = "@[px]type\\s+([a-zA-Z_$][a-zA-Z0-9_$]*)";
-  private final static String CFG = "@cfg\\s+[{]?([a-zA-Z0-9$_./]+)[}]? ([a-zA-Z0-9$_]+)(.*)$";
-
   public static void scan(ComponentSuite componentSuite, File srcFile) throws IOException {
     State state = new State(componentSuite, srcFile);
     String ext = FileUtils.extension(srcFile.getName());
@@ -50,26 +47,47 @@ public class ExtComponentSrcFileScanner {
 
   }
 
+  // Rules used in both scanners:
+
+  private static final Rule<State> TYPE_RULE = new Rule<State>("@[px]type\\s+([a-zA-Z_$][a-zA-Z0-9_$]*)") {
+    public void matched(State state, List<String> groups) {
+      state.setXtype(groups.get(0), state.cc.getFullClassName());
+    }
+  };
+  private static final Rule<State> CFG_RULE = new Rule<State>("@cfg\\s+[{]?([a-zA-Z0-9$_./]+)[}]? ([a-zA-Z0-9$_]+)(.*)$") {
+    public void matched(State state, List<String> groups) {
+      // use List#remove(0) to skip optional type if missing:
+      state.addCfg(groups.size() == 3 ? groups.remove(0) : "*", groups.remove(0), groups.remove(0));
+    }
+  };
+  private static final Rule<State> COMMENT_START_RULE = new Rule<State>("^\\s*/\\*\\* ?(.*)$") {
+    public void matched(State state, List<String> groups) {
+      state.startComment(groups.get(0));
+    }
+  };
+  private static final Rule<State> COMMENT_RULE = new Rule<State>("^\\s*\\*? ?(.*)$") {
+    // inside comment: skip leading white space before first '*':
+    public void matched(State state, List<String> groups) {
+      state.addComment(groups.get(0));
+    }
+  };
+  private static final Rule<State> COMMENT_END_RULE = new Rule<State>("\\*/|@constructor") {
+    public void matched(State state, List<String> groups) {
+      state.endComment();
+    }
+  };
+
   private static FileScanner<State> EXT_COMPONENT_AS_FILE_SCANNER = new FileScanner<State>()
       .add(new Rule<State>("package\\s+([a-zA-Z0-9$_.]+)") {
         public void matched(State state, List<String> groups) {
           state.cc.setFullClassName(groups.get(0) + "." + state.cc.getClassName());
+          // Next comment following the package declaration is the class comment:
+          state.setDescriptionHolder(state.cc);
         }
       })
       .add(new Rule<State>("import\\s+([a-zA-Z0-9$_.]+);") {
         public void matched(State state, List<String> groups) {
           state.addImport(groups.get(0));
-        }
-      })
-      .add(new Rule<State>(TYPE) {
-        public void matched(State state, List<String> groups) {
-          state.setXtype(groups.get(0), state.cc.getFullClassName());
-        }
-      })
-      .add(new Rule<State>(CFG) {
-        public void matched(State state, List<String> groups) {
-          // use List#remove(0) to skip optional type if missing:
-          state.addCfg(groups.size() == 3 ? groups.remove(0) : "*", groups.remove(0), groups.remove(0));
         }
       })
       .add(new Rule<State>("extends\\s+([a-zA-Z0-9$_.]+)") {
@@ -81,7 +99,13 @@ public class ExtComponentSrcFileScanner {
         public void matched(State state, List<String> groups) {
           state.setXtype(groups.get(0), state.cc.getFullClassName());
         }
-      });
+      })
+      .add(TYPE_RULE)
+      .add(CFG_RULE)
+      .add(COMMENT_END_RULE)
+      .add(COMMENT_START_RULE)
+      .add(COMMENT_RULE)
+    ;
 
   private static FileScanner<State> EXT_COMPONENT_SRC_FILE_SCANNER = new FileScanner<State>()
       .add(new Rule<State>("@class\\s+([a-zA-Z0-9$_.]+)") {
@@ -94,40 +118,25 @@ public class ExtComponentSrcFileScanner {
           state.setExtends(groups.get(0));
         }
       })
-      .add(new Rule<State>(TYPE) {
-        public void matched(State state, List<String> groups) {
-          state.setXtype(groups.get(0), state.cc.getFullClassName());
-        }
-      })
       .add(new Rule<State>("\\bExt.reg\\('([a-zA-Z.]+)',\\s*([a-zA-Z0-9$_.]+)\\);") {
         public void matched(State state, List<String> groups) {
           // old-style xtype registration, still used e.g. in Ext.Component.js:
           state.setXtype(groups.get(0), groups.get(1));
         }
       })
-      .add(new Rule<State>(CFG) {
-        public void matched(State state, List<String> groups) {
-          // use List#remove(0) to skip optional type if missing:
-          state.addCfg(groups.size() == 3 ? groups.remove(0) : "*", groups.remove(0), groups.remove(0));
-        }
-      })
-      .add(new Rule<State>("\\*/|@constructor") {
-        public void matched(State state, List<String> groups) {
-          state.endComment();
-        }
-      })
-      .add(new Rule<State>("^\\s*\\*? ?(.*)$") {
-        // inside comment: skip leading white space before first '*':
-        public void matched(State state, List<String> groups) {
-          state.addComment(groups.get(0));
-        }
-      });
+      .add(TYPE_RULE)
+      .add(CFG_RULE)
+      .add(COMMENT_END_RULE)
+      .add(COMMENT_START_RULE)
+      .add(COMMENT_RULE)
+    ;
 
   private static class State {
 
     private ComponentSuite componentSuite;
     private File srcFile;
     private ComponentClass cc;
+    private boolean insideComment;
     private StringBuilder description = new StringBuilder();
     private DescriptionHolder descriptionHolder;
 
@@ -175,12 +184,22 @@ public class ExtComponentSrcFileScanner {
       }
     }
 
+    private void startComment(String comment) {
+      if (!insideComment) {
+        insideComment = true;
+        addComment(comment);
+      }
+    }
+
     private void endComment() {
-      setDescriptionHolder(null);
+      if (insideComment) {
+        setDescriptionHolder(null);
+        insideComment = false;
+      }
     }
 
     private void addComment(String comment) {
-      if (descriptionHolder != null) {
+      if (insideComment) {
         description.append(comment).append('\n');
       }
     }
@@ -204,8 +223,9 @@ public class ExtComponentSrcFileScanner {
 
     private void setDescriptionHolder(DescriptionHolder nextDescriptionHolder) {
       if (nextDescriptionHolder != descriptionHolder) {
-        if (descriptionHolder != null) {
-          descriptionHolder.setDescription(TidyComment.tidy(description.toString()));
+        String cleanedDescription = TidyComment.tidy(description.toString()).trim();
+        if (descriptionHolder != null && cleanedDescription.length()>0) {
+          descriptionHolder.setDescription(cleanedDescription);
           description = new StringBuilder();
         }
         descriptionHolder = nextDescriptionHolder;

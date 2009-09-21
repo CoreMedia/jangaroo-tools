@@ -10,20 +10,24 @@ Example.Component1 = {
 
 
 
-    /** @cfg {Boolean} attributeOne
+    /**
+     * @cfg {Boolean} attributeOne
      * Bla bladskljfasjd foij asdoifj oadsjf oiödsaj foijads ofij adsiojf
      */
     attributeOne : true,
 
-    /** @cfg {Boolean} attributeTwo
+    /**
+     * @cfg {Boolean} attributeTwo
      * sadfjaldsjfoöadsjööfiojads iofj adsojf oidsaj fodj foj adoifj
      */
     attributeTwo: false,
 
-    /** @cfg {Boolean} attributeFour
+    /**
+     * @cfg {Boolean} attributeFour
      * asdfasdf adsf adsf adsf dasf adsf dsa f
      */
-    /** @cfg {String} attributeFour
+    /**
+     * @cfg {String} attributeFour
      * <p>asd fasdf adsf asdf adsf adsdf</p>
      */
     attributeFour : 'lala'
@@ -39,7 +43,8 @@ Example.Component1 = {
  * @xtype component2
  */
 Example.Component2 = {
-    /** @cfg {Boolean} attributeTwo
+    /**
+     * @cfg {Boolean} attributeTwo
      * this is another description
      */
     attributeTwo: false
