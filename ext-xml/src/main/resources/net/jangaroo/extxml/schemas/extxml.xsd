@@ -15,6 +15,7 @@
           <li>Boolean</li>
           <li>Float</li>
           <li>Date</li>
+          <li>Object</li>
         </ul>
       </xs:documentation>
     </xs:annotation>
@@ -97,33 +98,7 @@
     </xs:sequence>
   </xs:complexType>
 
-  <xs:complexType name="pluginAsRoot">
-    <xs:sequence>
-      <xs:element name="cfg" type="exml:cfg" minOccurs="0" maxOccurs="unbounded"/>
-      <xs:any maxOccurs="1" namespace="##other" processContents='lax'/>
-    </xs:sequence>
-  </xs:complexType>
-
-  <xs:complexType name="pluginAsConfig">
-    <xs:sequence>
-      <xs:any minOccurs='0' maxOccurs='unbounded' processContents='lax'/>
-    </xs:sequence>
-    <xs:attribute name="forId" type="xs:string"/>
-    <xs:attribute name="forXtype" type="xs:QName"/>
-    <xs:attribute name="forClass" type="xs:string"/>
-  </xs:complexType>
-
-  <xs:complexType name="plugins">
-    <xs:sequence>
-      <xs:element name="plugin" type="exml:pluginAsConfig" minOccurs='0' maxOccurs='unbounded'/>
-    </xs:sequence>
-  </xs:complexType>
-
   <xs:element name="component" type="exml:component"/>
-
-  <xs:element name="plugins" type="exml:plugins"/>
-
-  <xs:element name="plugin" type="exml:pluginAsRoot"/>
 
   <xs:element name="object" type="exml:object"/>
 </xs:schema>
