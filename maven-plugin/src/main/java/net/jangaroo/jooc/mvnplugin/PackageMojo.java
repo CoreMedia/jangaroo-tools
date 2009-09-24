@@ -98,6 +98,14 @@ public class PackageMojo extends AbstractMojo {
   private JavascriptArchiver archiver;
 
   /**
+   * Plexus archiver.
+   *
+   * @component role="org.codehaus.plexus.archiver.Archiver" role-hint="jangaroo"
+   * @required
+   */
+  private JavascriptArchiver sourceArchiver;
+
+  /**
    * @parameter
    */
   private File manifest;
@@ -141,26 +149,32 @@ public class PackageMojo extends AbstractMojo {
       File asarchive = new File(targetDir, finalName + "-sources." + Types.JAVASCRIPT_EXTENSION);
       try {
         if (manifest != null) {
-          archiver.setManifest(manifest);
+          sourceArchiver.setManifest(manifest);
         } else {
-          archiver.createDefaultManifest(project);
+          sourceArchiver.createDefaultManifest(project);
         }
         if (sourceDirectory.exists()) {
-          archiver.addDirectory(sourceDirectory);
-        }
+          sourceArchiver.addDirectory(sourceDirectory);
+        } else {
+          getLog().debug("The sourceDirectory " + sourceDirectory + " does not exist.");
+        } 
         if (generatedSourcesDirectory.exists()) {
-          archiver.addDirectory(generatedSourcesDirectory);
-        }
+          sourceArchiver.addDirectory(generatedSourcesDirectory);
+        } else {
+          getLog().debug("The generatedSourcesDirectory " + generatedSourcesDirectory + " does not exist.");
+        } 
         if (jooApiDirectory.exists()) {
-          archiver.addDirectory(jooApiDirectory);
+          sourceArchiver.addDirectory(jooApiDirectory);
+        } else {
+          getLog().debug("The jooApiDirectory " + jooApiDirectory + " does not exist.");
         }
         String groupId = project.getGroupId();
         String artifactId = project.getArtifactId();
-        archiver.addFile(project.getFile(), "META-INF/maven/" + groupId + "/" + artifactId
+        sourceArchiver.addFile(project.getFile(), "META-INF/maven/" + groupId + "/" + artifactId
                 + "/pom.xml");
-        archiver.setDestFile(asarchive);
-        archiver.createArchive();
-        archiver.reset();
+        sourceArchiver.setDestFile(asarchive);
+        sourceArchiver.createArchive();
+        sourceArchiver.reset();
       }
       catch (Exception e) {
         throw new MojoExecutionException("Failed to create the actionscript archive", e);
