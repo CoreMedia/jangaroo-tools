@@ -14,9 +14,11 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.Stack;
 
 /**
@@ -28,7 +30,7 @@ public class XmlToJsonHandler implements ContentHandler {
   private Json result;
   private ComponentSuite componentSuite;
 
-  private HashMap<String, String> imports = new HashMap<String, String>();
+  private Set<String> imports = new LinkedHashSet<String>();
   private ArrayList<ConfigAttribute> cfgs = new ArrayList<ConfigAttribute>();
 
   private ErrorHandler errorHandler;
@@ -86,7 +88,7 @@ public class XmlToJsonHandler implements ContentHandler {
     if ("component".equals(localName)) {
       //start the parsing
     } else if ("import".equals(localName)) {
-      imports.put(null, atts.getValue("class"));
+      imports.add(atts.getValue("class"));
     } else if ("cfg".equals(localName)) {
       //handle config elements
       cfgs.add(new ConfigAttribute(atts.getValue("name"), atts.getValue("type")));
@@ -112,10 +114,10 @@ public class XmlToJsonHandler implements ContentHandler {
           type = "ptype";
         }
         jsonObject.set(type, localName);
-        //find component clazz for xtype
+        //find component class for xtype
         ComponentClass compClazz = componentSuite.getComponentClassByXtype(localName);
         if (compClazz != null) {
-          imports.put(localName, compClazz.getFullClassName());
+          imports.add(compClazz.getFullClassName());
         } else {
           errorHandler.error(String.format("No component class for xtype '%s' found!", localName), locator.getLineNumber(), locator.getColumnNumber());
         }
@@ -275,7 +277,7 @@ public class XmlToJsonHandler implements ContentHandler {
   }
 
   public List<String> getImports() {
-    return new ArrayList<String>(imports.values());
+    return new ArrayList<String>(imports);
   }
 
   public List<ConfigAttribute> getCfgs() {
@@ -359,7 +361,7 @@ public class XmlToJsonHandler implements ContentHandler {
   }
 
   class JsonObject implements Json {
-    LinkedHashMap<String, Object> properties = new LinkedHashMap<String, Object>();
+    HashMap<String, Object> properties = new LinkedHashMap<String, Object>();
 
     public String toString() {
       return toJsonString("", null);
@@ -390,9 +392,9 @@ public class XmlToJsonHandler implements ContentHandler {
             bf.append(((JsonArray) value).toJsonString("  " + spaces));
           } else if (key.equals("xtype") || key.equals("ptype")) {
             String xtype = (String) value;
-            String className = imports.get(xtype);
-            if (className != null) {
-              bf.append(imports.get(xtype)).append(".").append(key);
+            ComponentClass compClazz = componentSuite.getComponentClassByXtype(xtype);
+            if (compClazz != null) {
+              bf.append(compClazz.getFullClassName()).append(".").append(key);
             } else {
               bf.append("\"").append(xtype).append("\"");
             }
