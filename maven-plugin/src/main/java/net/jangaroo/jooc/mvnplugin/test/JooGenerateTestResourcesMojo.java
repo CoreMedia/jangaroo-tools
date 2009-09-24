@@ -10,6 +10,8 @@ import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectBuilder;
 import org.apache.maven.project.ProjectBuildingException;
 import org.codehaus.mojo.javascript.archive.Types;
+import org.codehaus.plexus.archiver.ArchiveFileFilter;
+import org.codehaus.plexus.archiver.ArchiveFilterException;
 import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.zip.ZipUnArchiver;
 import org.codehaus.plexus.components.io.fileselectors.FileInfo;
@@ -19,11 +21,8 @@ import org.codehaus.plexus.util.FileUtils;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.io.InputStream;
+import java.util.*;
 
 /**
  * Prepares the Javascript Testenvironment including generation of the HTML page and decompression
@@ -153,7 +152,7 @@ public class JooGenerateTestResourcesMojo extends AbstractJooTestMojo {
 
   private static void removeAll(String toBeRemoved, Map<String, List<String>> artifact2directDependencies) {
     artifact2directDependencies.remove(toBeRemoved);
-    
+
     for (List<String> strings : artifact2directDependencies.values()) {
       strings.remove(toBeRemoved);
     }
@@ -255,14 +254,17 @@ public class JooGenerateTestResourcesMojo extends AbstractJooTestMojo {
   public void unpack()
           throws IOException, ArchiverException {
     unarchiver.setOverwrite(false);
-    unarchiver.setFileSelectors(new FileSelector[]{new FileSelector() {
-      public boolean isSelected(FileInfo fileInfo) throws IOException {
-        return !fileInfo.getName().startsWith("META-INF");
-      }
+    unarchiver.setArchiveFilters(Collections.singletonList(
+            new ArchiveFileFilter() {
+              @Override
+              public boolean include(InputStream dataStream, String entryName) throws ArchiveFilterException {
+                return !entryName.startsWith("META-INF");
+              }
+            }));
 
-    }});
+    for (Artifact dependency : ((List<Artifact>) project.getTestArtifacts()))
 
-    for (Artifact dependency : ((List<Artifact>) project.getTestArtifacts())) {
+    {
       getLog().debug("Dependency: " + getInternalId(dependency) + " type: " + dependency.getType());
       if (!dependency.isOptional() && Types.JANGAROO_TYPE.equals(dependency.getType())) {
         unarchiver.setDestFile(null);
