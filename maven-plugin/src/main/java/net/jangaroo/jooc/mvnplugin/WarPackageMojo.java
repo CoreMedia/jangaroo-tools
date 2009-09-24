@@ -7,6 +7,8 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.mojo.javascript.archive.Types;
+import org.codehaus.plexus.archiver.ArchiveFileFilter;
+import org.codehaus.plexus.archiver.ArchiveFilterException;
 import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.zip.ZipUnArchiver;
 import org.codehaus.plexus.components.io.fileselectors.FileInfo;
@@ -15,6 +17,8 @@ import org.codehaus.plexus.util.xml.Xpp3Dom;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -102,7 +106,7 @@ public class WarPackageMojo
     File scriptDir = new File(webappDirectory, scriptsDirectory);
 
     try {
-      excludeFromWarPackaging();
+      excludeFromWarPackaging();    
       unpack(project, scriptDir);
     }
     catch (ArchiverException e) {
@@ -115,12 +119,13 @@ public class WarPackageMojo
           throws ArchiverException {
 
     unarchiver.setOverwrite(false);
-    unarchiver.setFileSelectors(new FileSelector[]{new FileSelector() {
-      public boolean isSelected(FileInfo fileInfo) throws IOException {
-        return !fileInfo.getName().startsWith("META-INF");
-      }
-
-    }});
+    unarchiver.setArchiveFilters(Collections.singletonList(
+            new ArchiveFileFilter() {
+              @Override
+              public boolean include(InputStream dataStream, String entryName) throws ArchiveFilterException {
+                return !entryName.startsWith("META-INF");
+              }
+            }));
     Set<Artifact> dependencies = project.getArtifacts();
 
     for (Artifact dependency : dependencies) {
