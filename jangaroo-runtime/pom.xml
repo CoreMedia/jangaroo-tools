@@ -3,7 +3,7 @@
   <parent>
     <artifactId>jangaroo-tools</artifactId>
     <groupId>net.jangaroo</groupId>
-    <version>0.3.13</version>
+    <version>0.3.14-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>net.jangaroo</groupId>
@@ -11,7 +11,7 @@
   <packaging>pom</packaging>
   <!-- Do not use jangaroo plugin here since you can't use AND create a plugin in one multi module project! -->
   <name>Joo Runtime</name>
-  <version>0.3.13</version>
+  <version>0.3.14-SNAPSHOT</version>
 
   <build>
     <sourceDirectory>src/main/joo</sourceDirectory>
@@ -137,7 +137,7 @@
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-compiler</artifactId>
-      <version>0.3.13</version>
+      <version>0.3.14-SNAPSHOT</version>
       <scope>provided</scope>
       <optional>true</optional>
     </dependency>
