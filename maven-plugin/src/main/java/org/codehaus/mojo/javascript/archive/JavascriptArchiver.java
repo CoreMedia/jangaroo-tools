@@ -30,59 +30,62 @@ import java.io.PrintWriter;
 /**
  * Custom archiver for javascript dependencies, packaged as "jsar" (JavaScript
  * ARchive), that are simply a jar of scripts and resources.
- * 
+ *
  * @author <a href="mailto:nicolas.deloof@gmail.com">Nicolas De Loof</a>
  * @plexus.component role="org.codehaus.plexus.archiver.Archiver"
  * role-hint="jangaroo" instantiation-strategy="per-lookup"
  */
 public class JavascriptArchiver
-    extends JarArchiver
-{
-    /**
-     *
-     */
-    public JavascriptArchiver()
-    {
-        super();
-        archiveType = Types.JAVASCRIPT_EXTENSION;
-    }
+        extends JarArchiver {
+  /**
+   *
+   */
+  public JavascriptArchiver() {
+    super();
+    archiveType = Types.JAVASCRIPT_EXTENSION;
+    duplicate = "add";
+  }
 
-    public void createDefaultManifest( MavenProject project )
-        throws ManifestException, IOException, ArchiverException
-    {
-        Manifest manifest = new Manifest();
-        Manifest.Attribute attr = new Manifest.Attribute( "Created-By", "Apache Maven" );
-        manifest.addConfiguredAttribute( attr );
-        attr = new Manifest.Attribute( "Implementation-Title", project.getName() );
-        manifest.addConfiguredAttribute( attr );
-        attr = new Manifest.Attribute( "Implementation-Version", project.getVersion() );
-        manifest.addConfiguredAttribute( attr );
-        attr = new Manifest.Attribute( "Implementation-Vendor-Id", project.getGroupId() );
-        manifest.addConfiguredAttribute( attr );
-        if ( project.getOrganization() != null )
-        {
-            String vendor = project.getOrganization().getName();
-            attr = new Manifest.Attribute( "Implementation-Vendor", vendor );
-            manifest.addConfiguredAttribute( attr );
-        }
-        attr = new Manifest.Attribute( "Built-By", System.getProperty( "user.name" ) );
-        manifest.addConfiguredAttribute( attr );
-
-        File mf = File.createTempFile( "maven", ".mf" );
-        mf.deleteOnExit();
-        PrintWriter writer = new PrintWriter( new FileWriter( mf ) );
-        manifest.write( writer );
-        writer.close();
-        setManifest( mf );
+  public void createDefaultManifest(MavenProject project)
+          throws ManifestException, IOException, ArchiverException {
+    Manifest manifest = new Manifest();
+    Manifest.Attribute attr = new Manifest.Attribute("Created-By", "Apache Maven");
+    manifest.addConfiguredAttribute(attr);
+    attr = new Manifest.Attribute("Implementation-Title", project.getName());
+    manifest.addConfiguredAttribute(attr);
+    attr = new Manifest.Attribute("Implementation-Version", project.getVersion());
+    manifest.addConfiguredAttribute(attr);
+    attr = new Manifest.Attribute("Implementation-Vendor-Id", project.getGroupId());
+    manifest.addConfiguredAttribute(attr);
+    if (project.getOrganization() != null) {
+      String vendor = project.getOrganization().getName();
+      attr = new Manifest.Attribute("Implementation-Vendor", vendor);
+      manifest.addConfiguredAttribute(attr);
     }
+    attr = new Manifest.Attribute("Built-By", System.getProperty("user.name"));
+    manifest.addConfiguredAttribute(attr);
+
+    File mf = File.createTempFile("maven", ".mf");
+    mf.deleteOnExit();
+    PrintWriter writer = new PrintWriter(new FileWriter(mf));
+    manifest.write(writer);
+    writer.close();
+    setManifest(mf);
+  }
+
+  @Override
+  public void reset() {
+    super.reset();
+    duplicate = "add";
+  }
 
   @Override
   protected void cleanUp() {
     getLogger().debug("clean up archiver..");
-    setIncludeEmptyDirs( false );
+    setIncludeEmptyDirs(false);
     getDirs().clear();
     getFiles().clear();
-    setIncludeEmptyDirs( true );
+    setIncludeEmptyDirs(true);
     super.cleanUp();
 
   }
