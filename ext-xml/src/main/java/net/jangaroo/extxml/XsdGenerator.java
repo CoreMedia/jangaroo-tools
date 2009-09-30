@@ -18,6 +18,11 @@ public class XsdGenerator {
   private ComponentSuite componentSuite;
   private ErrorHandler errorHandler;
 
+  /**
+   * 
+   * @param componentSuite
+   * @param errorHandler
+   */
   public XsdGenerator(ComponentSuite componentSuite, ErrorHandler errorHandler) {
     /* Create and adjust freemarker configuration */
     cfg = new Configuration();
