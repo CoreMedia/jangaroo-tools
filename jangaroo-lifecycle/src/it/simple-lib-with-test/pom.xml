@@ -60,6 +60,16 @@ under the License.
         <extensions>true</extensions>
         <version>@project.version@</version>
       </plugin>
+      <plugin>
+        <groupId>net.jangaroo</groupId>
+        <artifactId>jangaroo-maven-plugin</artifactId>
+        <version>@project.version@</version>
+      </plugin>
+      <plugin>
+        <groupId>net.jangaroo</groupId>
+        <artifactId>ext-xml-maven-plugin</artifactId>
+        <version>@project.version@</version>
+      </plugin>
     </plugins>
 
   </build>

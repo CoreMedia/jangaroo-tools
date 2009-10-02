@@ -1,19 +1,7 @@
 <component-set>
   <components>
 
-    <component>
-      <role>org.codehaus.plexus.archiver.Archiver</role>
-      <role-hint>jangaroo</role-hint>
-      <implementation>org.codehaus.mojo.javascript.archive.JavascriptArchiver</implementation>
-    </component>
-
-    <component>
-      <role>org.codehaus.plexus.archiver.UnArchiver</role>
-      <role-hint>jangaroo</role-hint>
-      <implementation>org.codehaus.mojo.javascript.archive.JavascriptUnArchiver</implementation>
-    </component>
-
-    <!--
+   <!--
        A custom artifact handler for javascript archives (jsar).
        This requires the plugin to be configured with <extensions> set to true
        on any project that uses javascript depedencies.
@@ -30,6 +18,7 @@
       </configuration>
     </component>
 
+
     <!--
     A custom lifecycle for javascript packaging
     -->
@@ -42,17 +31,17 @@
           <lifecycle>
             <id>default</id>
             <phases>
-           <!--   <initialize>net.jangaroo:jangaroo-maven-plugin:initialize</initialize>-->
-              <generate-sources>net.jangaroo:ext-xml-maven-plugin:extxml</generate-sources>
+              <generate-sources>net.jangaroo:ext-xml-maven-plugin:${pom.version}:extxml</generate-sources>
               <process-resources>org.apache.maven.plugins:maven-resources-plugin:resources</process-resources>
-              <compile>net.jangaroo:jangaroo-maven-plugin:compile</compile>
-              <generate-test-resources>net.jangaroo:jangaroo-maven-plugin:unpack-jangaroo-test-dependencies</generate-test-resources>
+              <compile>net.jangaroo:jangaroo-maven-plugin:${pom.version}:compile</compile>
+              <generate-test-resources>net.jangaroo:jangaroo-maven-plugin:${pom.version}:unpack-jangaroo-test-dependencies</generate-test-resources>
               <process-test-resources>org.apache.maven.plugins:maven-resources-plugin:testResources</process-test-resources>
-              <test-compile>net.jangaroo:jangaroo-maven-plugin:testCompile</test-compile>
-              <test>net.jangaroo:jangaroo-maven-plugin:test</test>
-              <package>net.jangaroo:jangaroo-maven-plugin:package</package>
+              <test-compile>net.jangaroo:jangaroo-maven-plugin:${pom.version}:testCompile</test-compile>
+              <test>net.jangaroo:jangaroo-maven-plugin:${pom.version}:test</test>
+              <package>net.jangaroo:jangaroo-maven-plugin:${pom.version}:package</package>
               <install>org.apache.maven.plugins:maven-install-plugin:install</install>
               <deploy>org.apache.maven.plugins:maven-deploy-plugin:deploy</deploy>
+              org.apache.maven.plugins:maven-dependency-plugin:2.0:copy-dependencies
             </phases>
           </lifecycle>
           <lifecycle>
