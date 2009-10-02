@@ -1,0 +1,109 @@
+
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+import java.io.*;
+
+import org.codehaus.plexus.util.*;
+
+boolean result = true;
+
+try
+{
+    File target = new File( basedir, "target" );
+    if ( !target.exists() || !target.isDirectory() )
+    {
+        System.err.println( "target file is missing or a directory." );
+        return false;
+    }
+
+    File artifact = new File( target, "simple-lib-with-test-1.0-SNAPSHOT.jar" );
+    if ( !artifact.exists() )
+    {
+        System.err.println( "artifact file is missing or a directory." );
+        return false;
+    }
+
+
+    File sourceartifact = new File( target, "simple-lib-with-test-1.0-SNAPSHOT-sources.jar" );
+    if ( !sourceartifact.exists() )
+    {
+        System.err.println( "sourceartifact file is missing or a directory." );
+        return false;
+    }
+
+
+    File jsDir = new File ( target, "joo"+File.separator+"classes" );
+    if ( !jsDir.exists() || !jsDir.isDirectory() )
+    {
+        System.err.println( "joo/classes directory is missing or not a directory." );
+        return false;
+    }
+
+    File helloWorldJs = new File ( jsDir, "net"+File.separator+"jangaroo"+File.separator+"example"+File.separator+"HelloWorld.js" );
+    if ( !helloWorldJs.exists() || !helloWorldJs.isFile() )
+    {
+        System.err.println( "HelloWorld.js output file is missing or not a file." );
+        return false;
+    }
+
+    File testClassJs = new File ( jsDir, "net"+File.separator+"jangaroo"+File.separator+"example"+File.separator+"TestClass.js" );
+    if ( !testClassJs.exists() || !testClassJs.isFile() )
+    {
+        System.err.println( "TestClass.js output file is missing or not a file." );
+        return false;
+    }
+
+    File classRuntimeJs = new File ( target, "joo"+File.separator+"simple-lib-with-test.js" );
+    if ( !classRuntimeJs.exists() || !classRuntimeJs.isFile() )
+    {
+        System.err.println( "joo/simple-lib-with-test.js runtime file is missing or not a file." );
+        return false;
+    }
+
+
+    File testJsDir = new File ( target, "joo-test" );
+    if ( !testJsDir.exists() || !testJsDir.isDirectory() )
+    {
+        System.err.println( "joo-test directory is missing or not a directory." );
+        return false;
+    }
+
+    testClassJs = new File ( testJsDir, "classes"+File.separator+"net"+File.separator+"jangaroo"+File.separator+"example"+File.separator+"HelloWorldTest.js" );
+    if ( !testClassJs.exists() || !testClassJs.isFile() )
+    {
+        System.err.println( testClassJs + " output file is missing or not a file." );
+        return false;
+    }
+
+    testClassJs = new File ( testJsDir, "classes"+File.separator+"suite"+File.separator+"TestSuite.js" );
+    if ( !testClassJs.exists() || !testClassJs.isFile() )
+    {
+        System.err.println( testClassJs + " output file is missing or not a file." );
+        return false;
+    }
+
+}
+catch( IOException e )
+{
+    e.printStackTrace();
+    result = false;
+}
+
+return result;

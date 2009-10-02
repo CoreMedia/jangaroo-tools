@@ -1,0 +1,69 @@
+<component-set>
+  <components>
+
+    <component>
+      <role>org.codehaus.plexus.archiver.Archiver</role>
+      <role-hint>jangaroo</role-hint>
+      <implementation>org.codehaus.mojo.javascript.archive.JavascriptArchiver</implementation>
+    </component>
+
+    <component>
+      <role>org.codehaus.plexus.archiver.UnArchiver</role>
+      <role-hint>jangaroo</role-hint>
+      <implementation>org.codehaus.mojo.javascript.archive.JavascriptUnArchiver</implementation>
+    </component>
+
+    <!--
+       A custom artifact handler for javascript archives (jsar).
+       This requires the plugin to be configured with <extensions> set to true
+       on any project that uses javascript depedencies.
+    -->
+    <component>
+      <role>org.apache.maven.artifact.handler.ArtifactHandler</role>
+      <role-hint>jangaroo</role-hint>
+      <implementation>org.apache.maven.artifact.handler.DefaultArtifactHandler</implementation>
+      <configuration>
+        <type>jangaroo</type>
+        <extension>jar</extension>
+        <language>jangaroo</language>
+        <addedToClasspath>true</addedToClasspath>
+      </configuration>
+    </component>
+
+    <!--
+    A custom lifecycle for javascript packaging
+    -->
+    <component>
+      <role>org.apache.maven.lifecycle.mapping.LifecycleMapping</role>
+      <role-hint>jangaroo</role-hint>
+      <implementation>org.apache.maven.lifecycle.mapping.DefaultLifecycleMapping</implementation>
+      <configuration>
+        <lifecycles>
+          <lifecycle>
+            <id>default</id>
+            <phases>
+           <!--   <initialize>net.jangaroo:jangaroo-maven-plugin:initialize</initialize>-->
+              <generate-sources>net.jangaroo:ext-xml-maven-plugin:extxml</generate-sources>
+              <process-resources>org.apache.maven.plugins:maven-resources-plugin:resources</process-resources>
+              <compile>net.jangaroo:jangaroo-maven-plugin:compile</compile>
+              <generate-test-resources>net.jangaroo:jangaroo-maven-plugin:unpack-jangaroo-test-dependencies</generate-test-resources>
+              <process-test-resources>org.apache.maven.plugins:maven-resources-plugin:testResources</process-test-resources>
+              <test-compile>net.jangaroo:jangaroo-maven-plugin:testCompile</test-compile>
+              <test>net.jangaroo:jangaroo-maven-plugin:test</test>
+              <package>net.jangaroo:jangaroo-maven-plugin:package</package>
+              <install>org.apache.maven.plugins:maven-install-plugin:install</install>
+              <deploy>org.apache.maven.plugins:maven-deploy-plugin:deploy</deploy>
+            </phases>
+          </lifecycle>
+          <lifecycle>
+            <id>clean</id>
+            <phases>
+              <clean>org.apache.maven.plugins:maven-clean-plugin:clean</clean>
+            </phases>
+          </lifecycle>
+
+        </lifecycles>
+      </configuration>
+    </component>
+  </components>
+</component-set>
