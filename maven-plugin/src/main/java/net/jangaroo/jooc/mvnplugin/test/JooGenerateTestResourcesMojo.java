@@ -113,12 +113,13 @@ public class JooGenerateTestResourcesMojo extends AbstractJooTestMojo {
    */
   private void copyMainJsAndClasses() throws IOException {
     if (outputFileName.exists()) {
-      FileUtils.copyFileToDirectory(outputFileName, testOutputDirectory);
+      FileUtils.copyFileToDirectoryIfModified(outputFileName, testOutputDirectory);
     } else {
       getLog().info("Cannot copy " + outputFileName + " to " + testOutputDirectory + ". It does not exist.");
     }
     if (outputDirectory.exists()) {
-      FileUtils.copyDirectory(outputDirectory, new File(testOutputDirectory, "classes"));
+      getLog().info("copy " + outputDirectory + " to " + new File(testOutputDirectory, "classes"));
+      FileUtils.copyDirectoryStructureIfModified(outputDirectory, new File(testOutputDirectory, "classes"));
     } else {
       getLog().info("Cannot copy " + outputDirectory + " to " + testOutputDirectory + ". It does not exist.");
     }
