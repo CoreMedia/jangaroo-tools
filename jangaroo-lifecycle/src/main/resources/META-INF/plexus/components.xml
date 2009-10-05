@@ -39,6 +39,7 @@
               <test-compile>net.jangaroo:jangaroo-maven-plugin:${pom.version}:testCompile</test-compile>
               <test>net.jangaroo:jangaroo-maven-plugin:${pom.version}:test</test>
               <package>net.jangaroo:jangaroo-maven-plugin:${pom.version}:package</package>
+              <verify>org.apache.maven.plugins:maven-source-plugin:2.1:jar-no-fork</verify>
               <install>org.apache.maven.plugins:maven-install-plugin:install</install>
               <deploy>org.apache.maven.plugins:maven-deploy-plugin:deploy</deploy>
               org.apache.maven.plugins:maven-dependency-plugin:2.0:copy-dependencies
