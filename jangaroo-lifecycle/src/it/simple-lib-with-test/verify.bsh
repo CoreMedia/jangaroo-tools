@@ -99,6 +99,20 @@ try
         return false;
     }
 
+    File jarFile = new File( target, "simple-lib-with-test-1.0-SNAPSHOT.jar" );
+    if ( !jarFile.isFile() )
+    {
+        System.err.println( "JAR file is missing" );
+        return false;
+    }
+
+    File sourcesJarFile = new File( target, "simple-lib-with-test-1.0-SNAPSHOT-sources.jar" );
+    if ( !sourcesJarFile.isFile() )
+    {
+        System.err.println( "Sources JAR file is missing" );
+        return false;
+    }
+
 }
 catch( IOException e )
 {

@@ -33,6 +33,7 @@ try
         return false;
     }
 
+
     File jsDir = new File ( target, "joo"+File.separator+"classes" );
     if ( !jsDir.exists() || !jsDir.isDirectory() )
     {
@@ -75,6 +76,28 @@ try
         System.err.println( testClassJs + " output file is missing or not a file." );
         return false;
     }  */
+
+    File target = new File( basedir, "target" );
+    if ( !target.exists() || !target.isDirectory() )
+    {
+        System.err.println( "target file is missing or a directory." );
+        return false;
+    }
+
+    File jarFile = new File( target, "simple-project-1.0-SNAPSHOT.jar" );
+    if ( !jarFile.isFile() )
+    {
+        System.err.println( "JAR file is missing" );
+        return false;
+    }
+
+    File sourcesJarFile = new File( target, "simple-project-1.0-SNAPSHOT-sources.jar" );
+    if ( !sourcesJarFile.isFile() )
+    {
+        System.err.println( "Sources JAR file is missing" );
+        return false;
+    }
+
 
 }
 catch( IOException e )
