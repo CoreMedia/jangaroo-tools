@@ -3,7 +3,7 @@
   <parent>
     <artifactId>jangaroo-tools</artifactId>
     <groupId>net.jangaroo</groupId>
-    <version>0.3.15</version>
+    <version>0.3.16-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
@@ -56,24 +56,24 @@
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-maven-plugin</artifactId>
-      <version>0.3.15</version>
+      <version>0.3.16-SNAPSHOT</version>
       <type>maven-plugin</type>
     </dependency>
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>ext-xml-maven-plugin</artifactId>
-      <version>0.3.15</version>
+      <version>0.3.16-SNAPSHOT</version>
       <type>maven-plugin</type>
     </dependency>
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-maven-plugin</artifactId>
-      <version>0.3.15</version>
+      <version>0.3.16-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>ext-xml-maven-plugin</artifactId>
-      <version>0.3.15</version>
+      <version>0.3.16-SNAPSHOT</version>
     </dependency>
   </dependencies>
 
