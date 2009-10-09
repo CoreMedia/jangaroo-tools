@@ -14,6 +14,7 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.project.MavenProjectHelper;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedWriter;
@@ -96,6 +97,11 @@ public class ExtXmlMojo extends AbstractMojo {
    * @parameter
    */
   private File[] importedXsds;
+
+  /**
+   * @component
+   */
+  MavenProjectHelper projectHelper;
 
   public void execute() throws MojoExecutionException, MojoFailureException {
 
@@ -214,8 +220,11 @@ public class ExtXmlMojo extends AbstractMojo {
       Writer out = null;
       try {
         //generate the XSD for that
-        out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File(generatedResourcesDirectory, xsd)), "UTF-8"));
+        File xsdFile = new File(generatedResourcesDirectory, xsd);
+        out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(xsdFile), "UTF-8"));
         new XsdGenerator(suite, errorHandler).generateXsd(out);
+        out.close();
+        projectHelper.attachArtifact(project, "xsd", xsdFile );        
 
       } catch (IOException e) {
         throw new MojoExecutionException("Error while generating XML schema", e);
