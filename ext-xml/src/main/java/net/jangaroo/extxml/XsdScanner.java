@@ -34,52 +34,37 @@ public class XsdScanner {
   }
 
   public ComponentSuite scan(InputStream xsd) throws IOException {
-    ComponentSuite componentSuite = new ComponentSuite();
-    Document document = null;
     try {
-      if (builder != null) {
-        document = builder.parse(xsd);
-      }
-    } catch (SAXException e) {
-      errorHandler.error("Error while parsing XSD", e);
-    }
-    if (document != null) {
-      Element schemaElement = document.getDocumentElement();
-
-      componentSuite.setNamespace(schemaElement.getAttribute("targetNamespace"));
-      componentSuite.setNs(schemaElement.getAttribute("id"));
-      NodeList components = document.getElementsByTagNameNS(XML_SCHEMA_URL, "element");
-      for (int i = 0; i < components.getLength(); ++i) {
-        Element component = (Element) components.item(i);
-        String name = component.getAttribute("name");
-        String type = component.getAttribute("type");
-        int colonPos = type.indexOf(':');
-        if (colonPos != -1) {
-          type = type.substring(colonPos + 1);
-        }
-        componentSuite.addComponentClass(new ComponentClass(name, type));
-      }
-    }
-    return componentSuite;
-  }
-
-  public ComponentSuite getExt3ComponentSuite() throws IOException {
-    URL jarUrl = getClass().getResource("/net/jangaroo/extxml/schemas/ext3.xsd");
-    if (jarUrl != null) {
-      URLConnection conn = jarUrl.openConnection();      
-      InputStream stream = conn.getInputStream();
+      ComponentSuite componentSuite = new ComponentSuite();
+      Document document = null;
       try {
-        if (stream != null) {
-          return scan(stream);
-        } else {
-          return null;
+        if (builder != null) {
+          document = builder.parse(xsd);
         }
-      } finally {
-        if (stream != null) {
-          stream.close();
+      } catch (SAXException e) {
+        errorHandler.error("Error while parsing XSD", e);
+      }
+      if (document != null) {
+        Element schemaElement = document.getDocumentElement();
+
+        componentSuite.setNamespace(schemaElement.getAttribute("targetNamespace"));
+        componentSuite.setNs(schemaElement.getAttribute("id"));
+        NodeList components = document.getElementsByTagNameNS(XML_SCHEMA_URL, "element");
+        for (int i = 0; i < components.getLength(); ++i) {
+          Element component = (Element) components.item(i);
+          String name = component.getAttribute("name");
+          String type = component.getAttribute("type");
+          int colonPos = type.indexOf(':');
+          if (colonPos != -1) {
+            type = type.substring(colonPos + 1);
+          }
+          componentSuite.addComponentClass(new ComponentClass(name, type));
         }
       }
+      return componentSuite;
+    } finally {
+      xsd.close();
     }
-    return null;
   }
+
 }

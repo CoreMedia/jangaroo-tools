@@ -73,10 +73,6 @@ public class JooClassGeneratorTest{
     File outDir = TestUtils.computeTestDataRoot(getClass());
     
     ComponentSuite suite = new ComponentSuite("local", "", rootDir, outDir);
-    ComponentClass panel = new ComponentClass("panel", "ext.Panel");
-    ComponentClass label = new ComponentClass("label", "ext.Label");
-    suite.addComponentClass(panel);
-    suite.addComponentClass(label);
     
     ComponentClass cc = new ComponentClass(TestUtils.getFile("/testpackage/testPackage.exml", getClass()));
     cc.setType(ComponentType.EXML);
@@ -87,7 +83,7 @@ public class JooClassGeneratorTest{
     JooClassGenerator generator = new JooClassGenerator(suite, errorHandler);
     generator.generateClasses();
 
-    assertEquals("{title:\"Iaminsideapackage!\",items:{xtype:ext.Label.xtype}}",cc.getJson().replaceAll("\\s",""));
+    assertEquals("{title:\"Iaminsideapackage!\",items:{xtype:ext.form.Label.xtype}}",cc.getJson().replaceAll("\\s",""));
     assertEquals("ext.Panel",cc.getSuperClassName());
 
     File result = new File(outDir, "testpackage/testPackage.as");
