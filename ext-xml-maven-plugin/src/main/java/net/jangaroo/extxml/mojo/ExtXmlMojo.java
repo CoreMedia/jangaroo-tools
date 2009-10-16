@@ -119,30 +119,12 @@ public class ExtXmlMojo extends AbstractMojo {
     MavenErrorHandler errorHandler = new MavenErrorHandler();
     XsdScanner xsdScanner = new XsdScanner(errorHandler);
 
-    getLog().info("Loading ext3 xsd");
-    ComponentSuite extSuite = null;
-    try {
-      extSuite = xsdScanner.getExt3ComponentSuite();
-    } catch (IOException e) {
-      //sadly this happens in idea....
-      throw new MojoExecutionException("Could not read EXT component suite", e);
-    }
-    suite.addImportedComponentSuite(extSuite);
-
     if (importedXsds != null) {
       for (File importedXsd : importedXsds) {
-        InputStream in = null;
         try {
-          in = new FileInputStream(importedXsd);
-          suite.addImportedComponentSuite(xsdScanner.scan(in));
+          suite.addImportedComponentSuite(xsdScanner.scan(new FileInputStream(importedXsd)));
         } catch (IOException e) {
           throw new MojoExecutionException("Error while xsd scanning", e);
-        } finally {
-          try {
-            in.close();
-          } catch (IOException e) {
-            throw new MojoExecutionException("Error while xsd scanning", e);
-          }
         }
       }
     }
@@ -159,13 +141,8 @@ public class ExtXmlMojo extends AbstractMojo {
             ZipEntry zipEntry = entries.nextElement();
             if (!zipEntry.isDirectory() && zipEntry.getName().endsWith(".xsd")) {
               getLog().info(String.format("Loading %s", zipEntry.getName()));
-              BufferedInputStream stream = null;
-              try {
-                stream = new BufferedInputStream(zipArtifact.getInputStream(zipEntry));
-                suite.addImportedComponentSuite(xsdScanner.scan(stream));
-              } finally {
-                stream.close();
-              }
+              InputStream stream = new BufferedInputStream(zipArtifact.getInputStream(zipEntry));
+              suite.addImportedComponentSuite(xsdScanner.scan(stream));
             }
           }
         } catch (IOException e) {

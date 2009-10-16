@@ -15,25 +15,34 @@ public class ComponentSuite {
   private File as3OutputDir;
   private Map<String, ComponentClass> componentClassesByXtype = new LinkedHashMap<String, ComponentClass>();
   private Map<String, ComponentClass> componentClassesByFullClassName = new LinkedHashMap<String, ComponentClass>();
-  private ArrayList<ComponentSuite> importedComponentSuites;
+  private ComponentSuiteRegistry componentSuiteRegistry;
   private Map<String, ComponentSuite> usedComponentSuites;
 
   public ComponentSuite() {
-    this(null, null, null, null);
+    this(new ComponentSuiteRegistry(), null, null, null, null);
   }
 
   public ComponentSuite(String namespace, String namespacePrefix, File rootDir, File as3OutputDir) {
+    this(new ComponentSuiteRegistry(), namespace, namespacePrefix, rootDir, as3OutputDir);
+  }
+
+  public ComponentSuite(ComponentSuiteRegistry componentSuiteRegistry, String namespace, String namespacePrefix, File rootDir, File as3OutputDir) {
+    this.componentSuiteRegistry = componentSuiteRegistry;
     this.namespace = namespace;
     this.ns = namespacePrefix;
     this.rootDir = rootDir;
     this.as3OutputDir = as3OutputDir;
-    importedComponentSuites = new ArrayList<ComponentSuite>();
+    componentSuiteRegistry.add(this);
     usedComponentSuites = new LinkedHashMap<String, ComponentSuite>();
+  }
+
+  public ComponentSuiteRegistry getComponentSuiteRegistry() {
+    return componentSuiteRegistry;
   }
 
   public void addImportedComponentSuite(ComponentSuite importedSuite) {
     if(importedSuite != null)
-      this.importedComponentSuites.add(importedSuite);
+      componentSuiteRegistry.add(importedSuite);
   }
 
   public Map<String, ComponentSuite> getUsedComponentSuitesByNs() {
@@ -96,42 +105,34 @@ public class ComponentSuite {
   }
 
   public ComponentClass getComponentClassByXtype(String xtype) {
-    ComponentClass componentClass = componentClassesByXtype.get(xtype);
-    if (componentClass == null) {
-      ComponentSuite importedComponentSuite = null;
-      for (ComponentSuite suite : importedComponentSuites) {
-        if (suite.getComponentClassByXtype(xtype) != null) {
-          importedComponentSuite = suite;
-          break;
-        }
-      }
-      if (importedComponentSuite != null) {
-        componentClass = importedComponentSuite.getComponentClassByXtype(xtype);
-        if (componentClass != null) {
-          updateUsedComponentSuites(importedComponentSuite);
-        }
-      }
+    return componentClassesByXtype.get(xtype);
+  }
+
+  public ComponentClass getComponentClassByNamespaceAndLocalName(String namespaceUri, String localName) {
+    ComponentSuite componentSuite = componentSuiteRegistry.getComponentSuite(namespaceUri);
+    ComponentClass componentClass = null;
+    if (componentSuite != null) {
+      componentClass = componentSuite.getComponentClassByXtype(localName);
+      updateUsedComponentSuites(componentClass);
+    } else {
+      System.out.println("*** compontentSuiteRegistry: "+componentSuiteRegistry.toString());
     }
     return componentClass;
   }
 
+  public ComponentClass findComponentClassByXtype(String xtype) {
+    ComponentClass componentClass = componentSuiteRegistry.findComponentClassByXtype(xtype);
+    updateUsedComponentSuites(componentClass);
+    return componentClass;
+  }
+
   public ComponentClass getComponentClassByFullClassName(String className) {
-    ComponentClass componentClass = componentClassesByFullClassName.get(className);
-    if (componentClass == null) {
-      ComponentSuite importedComponentSuite = null;
-      for (ComponentSuite suite : importedComponentSuites) {
-        if (suite.getComponentClassByFullClassName(className) != null) {
-          importedComponentSuite = suite;
-          break;
-        }
-      }
-      if (importedComponentSuite != null) {
-        componentClass = importedComponentSuite.getComponentClassByFullClassName(className);
-        if (componentClass != null) {
-          updateUsedComponentSuites(importedComponentSuite);
-        }
-      }
-    }
+    return componentClassesByFullClassName.get(className);
+  }
+
+  public ComponentClass findComponentClassByFullClassName(String className) {
+    ComponentClass componentClass = componentSuiteRegistry.findComponentClassByFullClassName(className);
+    updateUsedComponentSuites(componentClass);
     return componentClass;
   }
 
@@ -145,8 +146,12 @@ public class ComponentSuite {
     return result;
   }
 
-  private void updateUsedComponentSuites(ComponentSuite importedComponentSuite) {
-    if (!usedComponentSuites.containsValue(importedComponentSuite)) {
+  private void updateUsedComponentSuites(ComponentClass componentClass) {
+    if (componentClass == null) {
+      return;
+    }
+    ComponentSuite importedComponentSuite = componentClass.getSuite();
+    if (importedComponentSuite!=this && !usedComponentSuites.containsValue(importedComponentSuite)) {
       String ns = importedComponentSuite.getNs();
       if (ns == null || ns.length() == 0 || usedComponentSuites.containsKey(ns)) {
         // create a new unique prefix:

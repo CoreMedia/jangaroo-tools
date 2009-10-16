@@ -115,11 +115,11 @@ public class XmlToJsonHandler implements ContentHandler {
         }
         jsonObject.set(type, localName);
         //find component class for xtype
-        ComponentClass compClazz = componentSuite.getComponentClassByXtype(localName);
+        ComponentClass compClazz = componentSuite.getComponentClassByNamespaceAndLocalName(uri, localName);
         if (compClazz != null) {
           imports.add(compClazz.getFullClassName());
         } else {
-          errorHandler.error(String.format("No component class for xtype '%s' found!", localName), locator.getLineNumber(), locator.getColumnNumber());
+          errorHandler.error(String.format("No component class for xtype '%s' found in component suite '%s'!", localName, uri), locator.getLineNumber(), locator.getColumnNumber());
         }
         addElementToJsonObject(jsonObject);
         addObjectToStack(jsonObject);
@@ -292,7 +292,7 @@ public class XmlToJsonHandler implements ContentHandler {
         return null;
       }
 
-      ComponentClass componentClass = componentSuite.getComponentClassByXtype(xtype);
+      ComponentClass componentClass = componentSuite.findComponentClassByXtype(xtype);
       if (componentClass == null) {
         errorHandler.error(MessageFormat.format("Super component class for xtype ''{0}'' not found.", xtype));
         return null;
@@ -392,7 +392,7 @@ public class XmlToJsonHandler implements ContentHandler {
             bf.append(((JsonArray) value).toJsonString("  " + spaces));
           } else if (key.equals("xtype") || key.equals("ptype")) {
             String xtype = (String) value;
-            ComponentClass compClazz = componentSuite.getComponentClassByXtype(xtype);
+            ComponentClass compClazz = componentSuite.findComponentClassByXtype(xtype);
             if (compClazz != null) {
               bf.append(compClazz.getFullClassName()).append(".").append(key);
             } else {

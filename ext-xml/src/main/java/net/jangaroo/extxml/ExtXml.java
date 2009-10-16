@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 
@@ -52,25 +51,21 @@ public class ExtXml {
     StandardOutErrorHandler errorHandler = new StandardOutErrorHandler();
 
     //Scan the directory for xml, as or javascript components and collect the data in ComponentClass, import all provided XSDs
-    ComponentSuite suite = new ComponentSuite(args[0], args[1], new File(args[3]), new File(args[4]));
+    ComponentSuiteRegistry componentSuiteRegistry = new ComponentSuiteRegistry();
+    componentSuiteRegistry.setErrorHandler(errorHandler);
+
     XsdScanner scanner = new XsdScanner(errorHandler);
 
     for (int i = 5; i < args.length; i++) {
-      InputStream in = null;
-      try {
-        in = new FileInputStream(new File(args[i]));
-        suite.addImportedComponentSuite(scanner.scan(in));
-      } finally {
-        if(in != null) {
-          in.close();
-        }
-      }
+      componentSuiteRegistry.add(scanner.scan(new FileInputStream(new File(args[i]))));
     }
-    suite.addImportedComponentSuite(scanner.getExt3ComponentSuite());
+
+    ComponentSuite suite = new ComponentSuite(componentSuiteRegistry, args[0], args[1], new File(args[3]), new File(args[4]));
+    
     SrcFileScanner fileScanner = new SrcFileScanner(suite);
     fileScanner.scan();
 
-    //Generate JSON out of the xml compontents, complete the data in those ComponentClasses
+    //Generate JSON out of the xml components, complete the data in those ComponentClasses
     JooClassGenerator generator = new JooClassGenerator(suite, errorHandler);
     generator.generateClasses();
 
