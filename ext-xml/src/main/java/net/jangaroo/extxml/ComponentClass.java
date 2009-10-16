@@ -108,7 +108,7 @@ public class ComponentClass extends DescriptionHolder {
   }
 
   public ComponentClass getSuperClass() {
-    return suite.getComponentClassByFullClassName(superClassName);
+    return superClassName == null ? null : suite.findComponentClassByFullClassName(superClassName);
   }
 
   public void setSuperClassName(String superClassName) {
