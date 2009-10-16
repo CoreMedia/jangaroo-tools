@@ -3,7 +3,7 @@
   <groupId>net.jangaroo</groupId>
   <artifactId>jangaroo-maven-plugin</artifactId>
   <packaging>maven-plugin</packaging>
-  <version>0.3.16-SNAPSHOT</version>
+  <version>0.3.16</version>
   <name>Maven Plugin: Compile &amp; Test</name>
   <description>This plugin compiles Jangaroo sources to JavaScript.</description>
   <url>http://www.jangaroo.net</url>
@@ -12,7 +12,7 @@
     <groupId>net.jangaroo</groupId>
     <artifactId>jangaroo-tools</artifactId>
     <relativePath>../pom.xml</relativePath>
-    <version>0.3.16-SNAPSHOT</version>
+    <version>0.3.16</version>
   </parent>
 
   <distributionManagement>
@@ -51,7 +51,7 @@
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-compiler</artifactId>
-      <version>0.3.16-SNAPSHOT</version>
+      <version>0.3.16</version>
     </dependency>
 
 
@@ -122,7 +122,7 @@
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>ext-xml-maven-plugin</artifactId>
-      <version>0.3.16-SNAPSHOT</version>
+      <version>0.3.16</version>
     </dependency>
 
     <dependency>
