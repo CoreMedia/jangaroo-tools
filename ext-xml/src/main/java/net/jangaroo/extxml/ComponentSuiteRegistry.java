@@ -14,7 +14,7 @@ import java.net.URL;
  */
 public class ComponentSuiteRegistry {
 
-  private static final ComponentSuiteResolver NO_COMPONENT_SUITE_RESOLVER =   new ComponentSuiteResolver() {
+  private static final ComponentSuiteResolver NO_COMPONENT_SUITE_RESOLVER = new ComponentSuiteResolver() {
     public InputStream resolveComponentSuite(String namespaceUri) throws IOException {
       throw new IOException("No ComponentSuiteResolver installed.");
     }
@@ -42,6 +42,10 @@ public class ComponentSuiteRegistry {
     this.errorHandler = errorHandler;
   }
 
+  public ErrorHandler getErrorHandler() {
+    return errorHandler;
+  }
+
   public void add(ComponentSuite componentSuite) {
     componentSuitesByNamespaceUri.put(componentSuite.getNamespace(), componentSuite);
   }
@@ -57,9 +61,8 @@ public class ComponentSuiteRegistry {
         if (xsdInputStream == null) {
           errorHandler.error("No XSD registered for namespace URI " + namespaceUri);
         } else {
-          componentSuite = new XsdScanner(errorHandler).scan(xsdInputStream);
+          componentSuite = new XsdScanner(this).scan(xsdInputStream);
           assert namespaceUri.equals(componentSuite.getNamespace());
-          add(componentSuite);
         }
       } catch (IOException e) {
         errorHandler.error("Could not resolve XSD for namespace URI " + namespaceUri, e);

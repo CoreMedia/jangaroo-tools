@@ -21,7 +21,7 @@ public class JooClassGeneratorTest{
   @Before
   public void initialize() throws Exception {
     errorHandler = new UnitTestErrorHandler();
-    jooClassGenerator = new JooClassGenerator(new ComponentSuite(), errorHandler);
+    jooClassGenerator = new JooClassGenerator(new ComponentSuite(new ComponentSuiteRegistry(), "test", "test", null, null), errorHandler);
   }
 
   @After
@@ -72,7 +72,7 @@ public class JooClassGeneratorTest{
     File rootDir = TestUtils.getRootDir(getClass());
     File outDir = TestUtils.computeTestDataRoot(getClass());
     
-    ComponentSuite suite = new ComponentSuite("local", "", rootDir, outDir);
+    ComponentSuite suite = new ComponentSuite(new ComponentSuiteRegistry(), "local", "", rootDir, outDir);
     
     ComponentClass cc = new ComponentClass(TestUtils.getFile("/testpackage/testPackage.exml", getClass()));
     cc.setType(ComponentType.EXML);

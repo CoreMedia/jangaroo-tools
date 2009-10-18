@@ -54,7 +54,7 @@ public class ExtXml {
     ComponentSuiteRegistry componentSuiteRegistry = new ComponentSuiteRegistry();
     componentSuiteRegistry.setErrorHandler(errorHandler);
 
-    XsdScanner scanner = new XsdScanner(errorHandler);
+    XsdScanner scanner = new XsdScanner(componentSuiteRegistry);
 
     for (int i = 5; i < args.length; i++) {
       componentSuiteRegistry.add(scanner.scan(new FileInputStream(new File(args[i]))));

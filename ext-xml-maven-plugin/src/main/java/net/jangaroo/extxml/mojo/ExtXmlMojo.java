@@ -9,6 +9,7 @@ import net.jangaroo.extxml.JooClassGenerator;
 import net.jangaroo.extxml.SrcFileScanner;
 import net.jangaroo.extxml.XsdGenerator;
 import net.jangaroo.extxml.XsdScanner;
+import net.jangaroo.extxml.ComponentSuiteRegistry;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -115,9 +116,11 @@ public class ExtXmlMojo extends AbstractMojo {
     }
 
 
-    ComponentSuite suite = new ComponentSuite(namespace, namespacePrefix, sourceDirectory, generatedSourcesDirectory);
+    ComponentSuiteRegistry componentSuiteRegistry = new ComponentSuiteRegistry();
     MavenErrorHandler errorHandler = new MavenErrorHandler();
-    XsdScanner xsdScanner = new XsdScanner(errorHandler);
+    componentSuiteRegistry.setErrorHandler(errorHandler);
+    ComponentSuite suite = new ComponentSuite(componentSuiteRegistry, namespace, namespacePrefix, sourceDirectory, generatedSourcesDirectory);
+    XsdScanner xsdScanner = new XsdScanner(componentSuiteRegistry);
 
     if (importedXsds != null) {
       for (File importedXsd : importedXsds) {

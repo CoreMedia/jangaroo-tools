@@ -19,11 +19,11 @@ public class ComponentSuite {
   private Map<String, ComponentSuite> usedComponentSuites;
 
   public ComponentSuite() {
-    this(new ComponentSuiteRegistry(), null, null, null, null);
+    this(null, null, null, null, null);
   }
 
   public ComponentSuite(String namespace, String namespacePrefix, File rootDir, File as3OutputDir) {
-    this(new ComponentSuiteRegistry(), namespace, namespacePrefix, rootDir, as3OutputDir);
+    this(null, namespace, namespacePrefix, rootDir, as3OutputDir);
   }
 
   public ComponentSuite(ComponentSuiteRegistry componentSuiteRegistry, String namespace, String namespacePrefix, File rootDir, File as3OutputDir) {
@@ -32,7 +32,9 @@ public class ComponentSuite {
     this.ns = namespacePrefix;
     this.rootDir = rootDir;
     this.as3OutputDir = as3OutputDir;
-    componentSuiteRegistry.add(this);
+    if (componentSuiteRegistry != null) {
+      componentSuiteRegistry.add(this);
+    }
     usedComponentSuites = new LinkedHashMap<String, ComponentSuite>();
   }
 
@@ -86,8 +88,16 @@ public class ComponentSuite {
     return ns == null || ns.length() == 0 ? "" : ns + ":";
   }
 
+  public void setRootDir(File rootDir) {
+    this.rootDir = rootDir;
+  }
+
   public File getRootDir() {
     return rootDir;
+  }
+
+  public void setAs3OutputDir(File as3OutputDir) {
+    this.as3OutputDir = as3OutputDir;
   }
 
   public File getAs3OutputDir() {

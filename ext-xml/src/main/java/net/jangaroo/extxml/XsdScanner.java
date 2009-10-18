@@ -10,8 +10,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
-import java.net.URLConnection;
 
 /**
  * An XsdScanner parses an Ext XML component declaration schema into a {@link ComponentSuite}.
@@ -19,36 +17,37 @@ import java.net.URLConnection;
 public class XsdScanner {
   private static final String XML_SCHEMA_URL = "http://www.w3.org/2001/XMLSchema";
 
-  private ErrorHandler errorHandler;
+  private ComponentSuiteRegistry componentSuiteRegistry;
   DocumentBuilder builder = null;
 
-  public XsdScanner(ErrorHandler errorHandler) {
-    this.errorHandler = errorHandler;
+  public XsdScanner(ComponentSuiteRegistry componentSuiteRegistry) {
+    this.componentSuiteRegistry = componentSuiteRegistry;
     DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
     builderFactory.setNamespaceAware(true);
     try {
       builder = builderFactory.newDocumentBuilder();
     } catch (ParserConfigurationException e) {
-      errorHandler.error("Error while preparing parser for xsd", e);
+      componentSuiteRegistry.getErrorHandler().error("Error while preparing parser for xsd", e);
     }
   }
 
   public ComponentSuite scan(InputStream xsd) throws IOException {
     try {
-      ComponentSuite componentSuite = new ComponentSuite();
       Document document = null;
       try {
         if (builder != null) {
           document = builder.parse(xsd);
         }
       } catch (SAXException e) {
-        errorHandler.error("Error while parsing XSD", e);
+        componentSuiteRegistry.getErrorHandler().error("Error while parsing XSD", e);
       }
       if (document != null) {
         Element schemaElement = document.getDocumentElement();
 
-        componentSuite.setNamespace(schemaElement.getAttribute("targetNamespace"));
-        componentSuite.setNs(schemaElement.getAttribute("id"));
+        ComponentSuite componentSuite = new ComponentSuite(
+          componentSuiteRegistry,
+          schemaElement.getAttribute("targetNamespace"),
+          schemaElement.getAttribute("id"), null, null);
         NodeList components = document.getElementsByTagNameNS(XML_SCHEMA_URL, "element");
         for (int i = 0; i < components.getLength(); ++i) {
           Element component = (Element) components.item(i);
@@ -60,8 +59,9 @@ public class XsdScanner {
           }
           componentSuite.addComponentClass(new ComponentClass(name, type));
         }
+        return componentSuite;
       }
-      return componentSuite;
+      return null;
     } finally {
       xsd.close();
     }
