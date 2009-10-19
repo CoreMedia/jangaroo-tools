@@ -119,7 +119,7 @@ public class ExmlCompiler implements TranslatingCompiler {
     }
 
     private VirtualFile addMessage(CompilerMessageCategory compilerMessageCategory, String msg, int lineNumber, int columnNumber) {
-      VirtualFile file = LocalFileSystem.getInstance().findFileByPath(currentFile.getAbsolutePath());
+      VirtualFile file = currentFile==null ? null : LocalFileSystem.getInstance().findFileByPath(currentFile.getAbsolutePath());
       String fileUrl = file==null ? null : file.getUrl();
       context.addMessage(compilerMessageCategory, msg, fileUrl, lineNumber, columnNumber);
       return file;
