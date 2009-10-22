@@ -24,15 +24,15 @@ import java.io.Writer;
  */
 public class JooClassGenerator {
 
-  private static FileNameMapper XML_TO_JS_MAPPER = new GlobPatternMapper();
+  private static final FileNameMapper XML_TO_JS_MAPPER = new GlobPatternMapper();
 
   static {
-    XML_TO_JS_MAPPER.setFrom("*." + ComponentType.EXML.extension);
-    XML_TO_JS_MAPPER.setTo("*." + ComponentType.ActionScript.extension);
+    XML_TO_JS_MAPPER.setFrom("*." + ComponentType.EXML.getExtension());
+    XML_TO_JS_MAPPER.setTo("*." + ComponentType.ActionScript.getExtension());
   }
 
-  ErrorHandler errorHandler;
-  ComponentSuite componentSuite;
+  private ErrorHandler errorHandler;
+  private ComponentSuite componentSuite;
 
   public JooClassGenerator(ComponentSuite componentSuite, ErrorHandler handler) {
     this.errorHandler = handler;

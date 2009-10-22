@@ -15,6 +15,9 @@ public enum ComponentType {
     this.extension = extension;
   }
 
-  public String extension;
-  
+  private String extension;
+
+  public String getExtension() {
+    return extension;
+  }
 }

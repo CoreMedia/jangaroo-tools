@@ -17,17 +17,17 @@ public class ExtComponentSrcFileScanner {
   public static void scan(ComponentSuite componentSuite, File srcFile) throws IOException {
     State state = new State(componentSuite, srcFile);
     String ext = FileUtils.extension(srcFile.getName());
-    if (ComponentType.ActionScript.extension.equals(ext)) {
+    if (ComponentType.ActionScript.getExtension().equals(ext)) {
       String className = FileUtils.removeExtension(srcFile.getName());
       state.addClass(className);
       state.cc.setType(ComponentType.ActionScript);
       EXT_COMPONENT_AS_FILE_SCANNER.scan(srcFile, state);
-    } else if (ComponentType.JavaScript.extension.equals(ext)) {
+    } else if (ComponentType.JavaScript.getExtension().equals(ext)) {
       EXT_COMPONENT_SRC_FILE_SCANNER.scan(srcFile, state);
       if (state.cc != null) {
         state.cc.setType(ComponentType.JavaScript);
       }
-    } else if (ComponentType.EXML.extension.equals(ext)) {
+    } else if (ComponentType.EXML.getExtension().equals(ext)) {
       ComponentClass clazz = new ComponentClass(srcFile);
       clazz.setSuite(componentSuite);
       String className = FileUtils.removeExtension(srcFile.getName());
@@ -160,8 +160,9 @@ public class ExtComponentSrcFileScanner {
       if (isActionScript()) {
         String fullClassName = "";
         for (String imp : cc.getImports()) {
-          if (imp.endsWith(superClassName))
+          if (imp.endsWith(superClassName)) {
             fullClassName = imp;
+          }
         }
         cc.setSuperClassName(fullClassName);
       } else {

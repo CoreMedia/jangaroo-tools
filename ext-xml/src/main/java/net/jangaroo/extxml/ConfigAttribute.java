@@ -87,8 +87,12 @@ public class ConfigAttribute extends DescriptionHolder {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (!(o instanceof ConfigAttribute)) return false;
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof ConfigAttribute)) {
+      return false;
+    }
 
     ConfigAttribute that = (ConfigAttribute) o;
 
