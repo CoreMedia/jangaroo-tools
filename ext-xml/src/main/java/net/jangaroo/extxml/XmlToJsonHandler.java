@@ -42,6 +42,9 @@ public class XmlToJsonHandler implements ContentHandler {
   Stack<Json> objects = new Stack<Json>();
   Stack<String> attributes = new Stack<String>();
 
+  //stores all characters
+  private StringBuffer characterStack;
+
   private boolean expectObjects = true;
 
   private boolean expectOptionalDescription = false;
@@ -135,6 +138,15 @@ public class XmlToJsonHandler implements ContentHandler {
   }
 
   public void endElement(String uri, String localName, String qName) throws SAXException {
+    if (characterStack != null) {
+      if (expectOptionalDescription) {
+        cfgs.get(cfgs.size() - 1).setDescription(characterStack.toString());
+      }
+      if (expectJSON) {
+        addElementToJsonObject(characterStack.toString());
+      }
+      characterStack = null;
+    }
     if ("component".equals(localName)) {
       //done
     } else if ("import".equals(localName)) {
@@ -164,15 +176,17 @@ public class XmlToJsonHandler implements ContentHandler {
   }
 
   public void characters(char[] ch, int start, int length) throws SAXException {
-    String str = "";
-    for (int i = start; i < start + length; i++)
-      str += ch[i];
-    if (expectOptionalDescription) {
-      cfgs.get(cfgs.size() - 1).setDescription(str);
+    String cdata = new String(ch, start, length);
+    if (characterStack == null) {
+      characterStack = new StringBuffer();
+    }
+    characterStack.append(cdata);
+    /*if (expectOptionalDescription) {
+      cfgs.get(cfgs.size() - 1).setDescription(cdata);
     }
     if (expectJSON) {
-      addElementToJsonObject(str);
-    }
+      addElementToJsonObject(cdata);
+    }  */
   }
 
   public void ignorableWhitespace(char[] ch, int start, int length) throws SAXException {
@@ -305,7 +319,7 @@ public class XmlToJsonHandler implements ContentHandler {
   }
 
   public String getJsonAsString() {
-    if(result != null) {
+    if (result != null) {
       return ((JsonObject) result).toJsonString("", "xtype");
     } else {
       errorHandler.error("Xml Parser has no result.");

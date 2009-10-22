@@ -48,6 +48,29 @@ public class XmlToJsonHandlerTest {
   }
 
   @Test
+  public void testCDATA() throws Exception {
+    parseJson("/testCDATA.exml");
+    XmlToJsonHandler.Json json = jsonHandler.getJSON();
+
+    //config elements
+    List<ConfigAttribute> cfgs = jsonHandler.getCfgs();
+    ConfigAttribute attr = cfgs.get(0);
+    assertEquals("This is my <b>descripion</b>",attr.getDescription().trim());
+
+    attr = cfgs.get(1);
+    assertEquals("This is my <b>descripion</b>",attr.getDescription().trim());
+
+    XmlToJsonHandler.Json itemsArray = (XmlToJsonHandler.Json) json.get("items");
+
+    String jsonElem  = (String) itemsArray.get("0");
+    assertEquals("{xtype: \"editortreepanel\"}", jsonElem.trim());
+
+    jsonElem  = (String) itemsArray.get("1");
+    assertEquals("{xtype: \"editortreepanel\"}", jsonElem.trim());
+
+  }
+
+  @Test
   public void testComponent() throws Exception {
     parseJson("/TestComponent.exml");
     XmlToJsonHandler.Json json = jsonHandler.getJSON();
@@ -86,7 +109,7 @@ public class XmlToJsonHandlerTest {
 
     String jsonElem  = (String) itemsArray.get("1");
     assertNotNull(jsonElem);
-    assertEquals("{xtype: \"editortreepanel\"}", jsonElem);
+    assertEquals("{xtype: \"editortreepanel\"}", jsonElem.trim());
 
     XmlToJsonHandler.Json tools = (XmlToJsonHandler.Json) json.get("tools");
     assertNotNull(tools);
