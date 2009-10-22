@@ -12,6 +12,8 @@ import java.io.IOException;
  */
 public class SrcFileScanner {
 
+  private ComponentSuite componentSuite;
+
   public SrcFileScanner(ComponentSuite componentSuite) {
     this.componentSuite = componentSuite;
   }
@@ -28,13 +30,11 @@ public class SrcFileScanner {
   private void scan(final File dir) throws IOException {
     FileSet srcFiles = new FileSet();
     srcFiles.setDirectory(dir.getAbsolutePath());
-    srcFiles.addInclude("**/*." + ComponentType.JavaScript.extension);
-    srcFiles.addInclude("**/*." + ComponentType.ActionScript.extension);
-    srcFiles.addInclude("**/*." + ComponentType.EXML.extension);
+    srcFiles.addInclude("**/*." + ComponentType.JavaScript.getExtension());
+    srcFiles.addInclude("**/*." + ComponentType.ActionScript.getExtension());
+    srcFiles.addInclude("**/*." + ComponentType.EXML.getExtension());
     for (String srcFileRelativePath : new FileSetManager().getIncludedFiles(srcFiles)) {
       ExtComponentSrcFileScanner.scan(componentSuite, new File(dir, srcFileRelativePath));
     }
   }
-
-  private ComponentSuite componentSuite;
 }
