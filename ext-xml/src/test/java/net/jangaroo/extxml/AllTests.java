@@ -13,6 +13,7 @@ import org.junit.runners.Suite;
 @Suite.SuiteClasses({
     ExtComponentSrcFileScannerTest.class,
     XsdGeneratorTest.class,
+    XsdScannerTest.class,
     XmlToJsonHandlerTest.class,
     JooClassGeneratorTest.class,
     ExtComponentSrcFileScannerTest.class,
