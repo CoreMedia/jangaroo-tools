@@ -3,26 +3,26 @@
   <parent>
     <artifactId>jangaroo-tools</artifactId>
     <groupId>net.jangaroo</groupId>
-    <version>0.3.18-SNAPSHOT</version>
+    <version>0.3.18</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>net.jangaroo</groupId>
   <artifactId>jangaroo-compiler-itests</artifactId>
   <name>Joo Compiler Integration Tests</name>
-  <version>0.3.18-SNAPSHOT</version>
+  <version>0.3.18</version>
   <packaging>jar</packaging>
 
   <dependencies>
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-runtime</artifactId>
-      <version>0.3.18-SNAPSHOT</version>
+      <version>0.3.18</version>
     </dependency>
 
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-compiler</artifactId>
-      <version>0.3.18-SNAPSHOT</version>
+      <version>0.3.18</version>
     </dependency>
 
     <dependency>
