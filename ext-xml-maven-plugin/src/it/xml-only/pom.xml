@@ -34,7 +34,9 @@ under the License.
         <artifactId>ext-xml-maven-plugin</artifactId>
         <version>@project.version@</version>
         <configuration>
-          <importedXsdDirectory>xsds</importedXsdDirectory>
+          <importedXsds>
+            <importedXsd>ext3.xsd</importedXsd>
+          </importedXsds>
         </configuration>
         <executions>
           <execution>
