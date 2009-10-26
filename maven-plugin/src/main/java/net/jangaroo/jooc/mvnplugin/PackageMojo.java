@@ -48,23 +48,6 @@ public class PackageMojo extends AbstractMojo {
    */
   MavenProjectHelper projectHelper;
 
-  /**
-   * The output directory of the AS->JS compilation process. Default is ${project.build.outputDirectory}
-   *
-   * @parameter default-value="${project.build.outputDirectory}"
-   */
-  private File outputDirectory;
-
-
-  /**
-   * Source directory to scan for files to package in the sources archive. These files
-   * have not been compiled since these classes are available by default. They are needed
-   * to make them available via IDE and for the asdoc generations.
-   * Defaults to ${basedir}/src/main/joo-api
-   *
-   * @parameter default-value="${basedir}/src/main/joo-api"
-   */
-  private File jooApiDirectory;
 
 
   /**
