@@ -94,7 +94,7 @@
     <xs:sequence>
       <xs:element name="import" type="exml:import" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element name="cfg" type="exml:cfg" minOccurs="0" maxOccurs="unbounded"/>
-      <xs:any maxOccurs="1" namespace="##other" processContents="lax"/>
+      <xs:any minOccurs="1" maxOccurs="1" namespace="##other" processContents="lax"/>
     </xs:sequence>
   </xs:complexType>
 
