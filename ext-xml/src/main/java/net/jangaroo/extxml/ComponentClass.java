@@ -66,8 +66,13 @@ public class ComponentClass extends DescriptionHolder {
     return xtype;
   }
 
+  /**
+   * Returns the XML element name, this is either just the xtype or, if the xtype is
+   * the full qualified class name, the class name (without packages)
+   * @return the xml element name
+   */
   public String getElementName() {
-    return xtype;
+    return xtype.substring(xtype.lastIndexOf('.')+1);
   }
 
   public List<String> getImports() {

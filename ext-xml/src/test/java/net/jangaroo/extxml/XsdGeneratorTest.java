@@ -67,6 +67,33 @@ public class XsdGeneratorTest {
   }
 
   @Test
+  public void simpleSuiteWithFullQualifiedXtypes() throws Exception {
+    ComponentSuite suite = new ComponentSuite();
+    suite.setNamespace("com.coremedia.examples");
+    suite.setNs("cm");
+
+    ComponentClass clazz = new ComponentClass("com.coremedia.examples.TestClass", "com.coremedia.examples.TestClass");
+    suite.addComponentClass(clazz);
+    Document dom = createDom(suite);
+    assertNotNull(dom);
+    Element schemaElement = dom.getDocumentElement();
+    assertEquals("com.coremedia.examples", schemaElement.getAttribute("targetNamespace"));
+
+    NodeList types = dom.getElementsByTagNameNS(XML_SCHEMA_URL, "complexType");
+    assertNotNull(types);
+    Element type = (Element)types.item(0);
+    assertEquals("com.coremedia.examples.TestClass", type.getAttribute("name"));
+
+    NodeList components = dom.getElementsByTagNameNS(XML_SCHEMA_URL, "element");
+    assertNotNull(components);
+
+    Element elem = (Element)components.item(0);
+    assertNotNull(elem);
+    assertEquals("TestClass", elem.getAttribute("name"));
+    assertEquals("cm:com.coremedia.examples.TestClass", elem.getAttribute("type"));
+  }
+
+  @Test
   public void classWithAttributes() throws Exception {
     ComponentSuite suite = new ComponentSuite();
     suite.setNamespace("com.coremedia.examples");
