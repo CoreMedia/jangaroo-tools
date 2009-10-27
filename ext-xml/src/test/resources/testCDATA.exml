@@ -20,5 +20,14 @@
         ]]>
       </exml:object>
     </items>
+    <!-- to be fixed -->
+    <tbl>
+      <exml:object>
+        
+        <![CDATA[
+           {xtype: "editortreepanel"}
+         ]]>
+      </exml:object>
+    </tbl>
   </panel>
 </exml:component>

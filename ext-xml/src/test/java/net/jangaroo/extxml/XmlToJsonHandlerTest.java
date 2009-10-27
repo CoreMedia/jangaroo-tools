@@ -3,6 +3,8 @@
  */
 package net.jangaroo.extxml;
 
+import net.jangaroo.extxml.json.Json;
+import net.jangaroo.extxml.json.JsonObject;
 import org.junit.After;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -31,14 +33,12 @@ public class XmlToJsonHandlerTest {
 
   private XMLReader xr;
   private XmlToJsonHandler jsonHandler;
-  private StandardOutErrorHandler errorHandler;
 
 
   @Before
   public void initTest() throws Exception {
     xr = XMLReaderFactory.createXMLReader();
-    errorHandler = new StandardOutErrorHandler();
-    jsonHandler = new XmlToJsonHandler(new ComponentSuite(new ComponentSuiteRegistry(), "test", "test", null, null), errorHandler);
+    jsonHandler = new XmlToJsonHandler(new ComponentSuite("test", "test", null, null), ComponentSuiteRegistry.getInstance().getErrorHandler());
     xr.setContentHandler(jsonHandler);
   }
 
@@ -50,7 +50,7 @@ public class XmlToJsonHandlerTest {
   @Test
   public void testCDATA() throws Exception {
     parseJson("/testCDATA.exml");
-    XmlToJsonHandler.Json json = jsonHandler.getJSON();
+    Json json = jsonHandler.getJSON();
 
     //config elements
     List<ConfigAttribute> cfgs = jsonHandler.getCfgs();
@@ -60,58 +60,62 @@ public class XmlToJsonHandlerTest {
     attr = cfgs.get(1);
     assertEquals("This is my <b>descripion</b>",attr.getDescription().trim());
 
-    XmlToJsonHandler.Json itemsArray = (XmlToJsonHandler.Json) json.get("items");
+    Json itemsArray = (Json) json.get("items");
 
     String jsonElem  = (String) itemsArray.get("0");
-    assertEquals("{xtype: \"editortreepanel\"}", jsonElem.trim());
+    assertEquals("{{xtype: \"editortreepanel\"}}", jsonElem.trim());
 
     jsonElem  = (String) itemsArray.get("1");
-    assertEquals("{xtype: \"editortreepanel\"}", jsonElem.trim());
+    assertEquals("{{xtype: \"editortreepanel\"}}", jsonElem.trim());
+
+    String tbl = (String) json.get("tbl");
+    assertEquals("{{xtype: \"editortreepanel\"}}", tbl.trim());
+    
 
   }
 
   @Test
   public void testComponent() throws Exception {
     parseJson("/TestComponent.exml");
-    XmlToJsonHandler.Json json = jsonHandler.getJSON();
+    Json json = jsonHandler.getJSON();
 
-    assertTrue(json instanceof XmlToJsonHandler.JsonObject);
+    assertTrue(json instanceof JsonObject);
     assertEquals("panel", json.get("xtype"));
     assertEquals("I am a panel", json.get("title"));
     assertEquals("{config.myLayout}", json.get("layout"));
 
-    XmlToJsonHandler.Json defaultProp = (XmlToJsonHandler.Json) json.get("defaults");
+    Json defaultProp = (Json) json.get("defaults");
     assertNotNull(defaultProp);
     assertNull(defaultProp.get("xtype"));
     assertEquals("border", defaultProp.get("layout"));
 
-    XmlToJsonHandler.Json layoutConfig = (XmlToJsonHandler.Json) json.get("layoutConfig");
+    Json layoutConfig = (Json) json.get("layoutConfig");
     assertNotNull(layoutConfig);
     assertNull(layoutConfig.get("xtype"));
     assertEquals("blub", layoutConfig.get("bla"));
 
-    XmlToJsonHandler.Json anchor = (XmlToJsonHandler.Json) layoutConfig.get("anchor");
+    Json anchor = (Json) layoutConfig.get("anchor");
     assertNotNull(anchor);
     assertNull(anchor.get("xtype"));
     assertEquals("test", anchor.get("style"));
 
-    XmlToJsonHandler.Json border = (XmlToJsonHandler.Json) layoutConfig.get("border");
+    Json border = (Json) layoutConfig.get("border");
     assertNotNull(border);
     assertNull(border.get("xtype"));
     assertEquals("solid", border.get("type"));
     
-    XmlToJsonHandler.Json itemsArray = (XmlToJsonHandler.Json) json.get("items");
+    Json itemsArray = (Json) json.get("items");
     assertNotNull(itemsArray);
 
-    XmlToJsonHandler.Json firstElem  = (XmlToJsonHandler.Json) itemsArray.get("0");
+    Json firstElem  = (Json) itemsArray.get("0");
     assertNotNull(firstElem);
     assertEquals("button", firstElem.get("xtype"));
 
     String jsonElem  = (String) itemsArray.get("1");
     assertNotNull(jsonElem);
-    assertEquals("{xtype: \"editortreepanel\"}", jsonElem.trim());
+    assertEquals("{{xtype: \"editortreepanel\"}}", jsonElem.trim());
 
-    XmlToJsonHandler.Json tools = (XmlToJsonHandler.Json) json.get("tools");
+    Json tools = (Json) json.get("tools");
     assertNotNull(tools);
     assertEquals("gear", tools.get("id"));
     assertEquals("{function(x){return ''+x;}}", tools.get("handler"));
@@ -138,41 +142,41 @@ public class XmlToJsonHandlerTest {
   @Test
   public void testTrueFalse() throws Exception {
     parseJson("/TestTrueFalse.exml");
-    XmlToJsonHandler.Json json = jsonHandler.getJSON();
+    Json json = jsonHandler.getJSON();
 
-    XmlToJsonHandler.Json itemsArray = (XmlToJsonHandler.Json) json.get("items");
-    Boolean b = (Boolean) ((XmlToJsonHandler.Json)itemsArray.get("0")).get("x");
+    Json itemsArray = (Json) json.get("items");
+    Boolean b = (Boolean) ((Json)itemsArray.get("0")).get("x");
     assertTrue(b);
 
-    String s = (String) ((XmlToJsonHandler.Json)itemsArray.get("2")).get("x");
+    String s = (String) ((Json)itemsArray.get("2")).get("x");
     assertEquals("True", s);
 
-    s = (String) ((XmlToJsonHandler.Json)itemsArray.get("3")).get("x");
+    s = (String) ((Json)itemsArray.get("3")).get("x");
     assertEquals("FALSE", s);
   }
 
   @Test
   public void testNumber() throws Exception {
     parseJson("/TestNumber.exml");
-    XmlToJsonHandler.Json json = jsonHandler.getJSON();
+    Json json = jsonHandler.getJSON();
 
-    XmlToJsonHandler.Json itemsArray = (XmlToJsonHandler.Json) json.get("items");
-    Number n = (Number) ((XmlToJsonHandler.Json)itemsArray.get("0")).get("x");
+    Json itemsArray = (Json) json.get("items");
+    Number n = (Number) ((Json)itemsArray.get("0")).get("x");
     assertEquals(100, n.intValue());
 
-    String s = (String) ((XmlToJsonHandler.Json)itemsArray.get("1")).get("x");
+    String s = (String) ((Json)itemsArray.get("1")).get("x");
     assertEquals("200xyz",s);
 
-    n = (Number) ((XmlToJsonHandler.Json)itemsArray.get("2")).get("x");
+    n = (Number) ((Json)itemsArray.get("2")).get("x");
     assertEquals(1.5, n);
 
-     n = (Number) ((XmlToJsonHandler.Json)itemsArray.get("3")).get("x");
+     n = (Number) ((Json)itemsArray.get("3")).get("x");
     assertEquals(1, n.intValue());
 
-     n = (Number) ((XmlToJsonHandler.Json)itemsArray.get("4")).get("x");
+     n = (Number) ((Json)itemsArray.get("4")).get("x");
     assertEquals(-1.5, n);
 
-    s = (String) ((XmlToJsonHandler.Json)itemsArray.get("5")).get("x");
+    s = (String) ((Json)itemsArray.get("5")).get("x");
     assertEquals("3d",s);
   }
 
@@ -199,7 +203,7 @@ public class XmlToJsonHandlerTest {
     } finally {
       stream.close();
     }
-    XmlToJsonHandler.Json json = jsonHandler.getJSON();
+    Json json = jsonHandler.getJSON();
     System.out.println(json);
   }
 }
