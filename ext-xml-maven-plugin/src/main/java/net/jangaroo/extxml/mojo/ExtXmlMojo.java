@@ -116,11 +116,11 @@ public class ExtXmlMojo extends AbstractMojo {
     }
 
 
-    ComponentSuiteRegistry componentSuiteRegistry = new ComponentSuiteRegistry();
+    ComponentSuiteRegistry componentSuiteRegistry = ComponentSuiteRegistry.getInstance();
     MavenErrorHandler errorHandler = new MavenErrorHandler();
     componentSuiteRegistry.setErrorHandler(errorHandler);
-    ComponentSuite suite = new ComponentSuite(componentSuiteRegistry, namespace, namespacePrefix, sourceDirectory, generatedSourcesDirectory);
-    XsdScanner xsdScanner = new XsdScanner(componentSuiteRegistry);
+    ComponentSuite suite = new ComponentSuite(namespace, namespacePrefix, sourceDirectory, generatedSourcesDirectory);
+    XsdScanner xsdScanner = new XsdScanner();
 
     if (importedXsds != null) {
       for (File importedXsd : importedXsds) {

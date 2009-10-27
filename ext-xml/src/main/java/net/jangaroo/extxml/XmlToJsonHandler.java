@@ -3,6 +3,9 @@
  */
 package net.jangaroo.extxml;
 
+import net.jangaroo.extxml.json.Json;
+import net.jangaroo.extxml.json.JsonArray;
+import net.jangaroo.extxml.json.JsonObject;
 import org.xml.sax.Attributes;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.Locator;
@@ -12,12 +15,9 @@ import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 
@@ -39,7 +39,7 @@ public class XmlToJsonHandler implements ContentHandler {
 
   private NumberFormat nf = NumberFormat.getNumberInstance(Locale.US);
 
-  Stack<Json> objects = new Stack<Json>();
+  Stack<net.jangaroo.extxml.json.Json> objects = new Stack<Json>();
   Stack<String> attributes = new Stack<String>();
 
   //stores all characters
@@ -140,10 +140,10 @@ public class XmlToJsonHandler implements ContentHandler {
   public void endElement(String uri, String localName, String qName) throws SAXException {
     if (characterStack != null) {
       if (expectOptionalDescription) {
-        cfgs.get(cfgs.size() - 1).setDescription(characterStack.toString());
+        cfgs.get(cfgs.size() - 1).setDescription(characterStack.toString().trim());
       }
       if (expectJSON) {
-        addElementToJsonObject(characterStack.toString());
+        addElementToJsonObject("{" + characterStack.toString().trim() + "}");
       }
       characterStack = null;
     }
@@ -161,7 +161,7 @@ public class XmlToJsonHandler implements ContentHandler {
         assert localName.equals(attr);
         expectObjects = false;
       } else {
-        Json json = removeObjectFromStack();
+        net.jangaroo.extxml.json.Json json = removeObjectFromStack();
         if (json.get("xtype") == null && json.get("ptype") == null) {
           removeAttributeFromStack();
         }
@@ -176,17 +176,13 @@ public class XmlToJsonHandler implements ContentHandler {
   }
 
   public void characters(char[] ch, int start, int length) throws SAXException {
-    String cdata = new String(ch, start, length);
-    if (characterStack == null) {
-      characterStack = new StringBuffer();
+    if (expectOptionalDescription || expectJSON) {
+      String cdata = new String(ch, start, length);
+      if (characterStack == null) {
+        characterStack = new StringBuffer();
+      }
+      characterStack.append(cdata);
     }
-    characterStack.append(cdata);
-    /*if (expectOptionalDescription) {
-      cfgs.get(cfgs.size() - 1).setDescription(cdata);
-    }
-    if (expectJSON) {
-      addElementToJsonObject(cdata);
-    }  */
   }
 
   public void ignorableWhitespace(char[] ch, int start, int length) throws SAXException {
@@ -327,111 +323,4 @@ public class XmlToJsonHandler implements ContentHandler {
     }
   }
 
-  interface Json {
-    Object get(String property);
-
-    void set(String property, Object value);
-  }
-
-  class JsonArray implements Json {
-    ArrayList<Object> items = new ArrayList<Object>();
-
-    public String toString() {
-      return items.toString();
-    }
-
-    public String toJsonString(String spaces) {
-      StringBuffer bf = new StringBuffer();
-      bf.append("[\n");
-      bf.append(spaces);
-      boolean first = true;
-      for (Object item : items) {
-        if (!first) {
-          bf.append(",\n");
-          bf.append(spaces);
-        }
-        if (item instanceof JsonObject) {
-          bf.append(((JsonObject) item).toJsonString("  " + spaces, null));
-        } else {
-          bf.append(item.toString());
-        }
-        first = false;
-      }
-      bf.append("]");
-      return bf.toString();
-    }
-
-    public Object get(String property) {
-      return items.get(Integer.parseInt(property));
-    }
-
-    public void set(String property, Object value) {
-      items.set(Integer.parseInt(property), value);
-    }
-
-    public void push(Object value) {
-      this.items.add(value);
-    }
-  }
-
-  class JsonObject implements Json {
-    HashMap<String, Object> properties = new LinkedHashMap<String, Object>();
-
-    public String toString() {
-      return toJsonString("", null);
-    }
-
-    public String toJsonString(String spaces, String ignoreProperty) {
-      StringBuffer bf = new StringBuffer();
-      bf.append(spaces);
-      bf.append("{");
-      boolean first = true;
-      for (Map.Entry<String, Object> prop : this.properties.entrySet()) {
-        String key = prop.getKey();
-        Object value = prop.getValue();
-        if (ignoreProperty == null || !key.equals(ignoreProperty)) {
-          if (!first) {
-            bf.append(",\n");
-            bf.append("  ");
-            bf.append(spaces);
-          }
-          bf.append(key);
-          bf.append(": ");
-          if (value instanceof Number
-              || value instanceof Boolean) {
-            bf.append(value.toString());
-          } else if (value instanceof JsonObject) {
-            bf.append(((JsonObject) value).toJsonString("  " + spaces, null));
-          } else if (value instanceof JsonArray) {
-            bf.append(((JsonArray) value).toJsonString("  " + spaces));
-          } else if (key.equals("xtype") || key.equals("ptype")) {
-            String xtype = (String) value;
-            ComponentClass compClazz = componentSuite.findComponentClassByXtype(xtype);
-            if (compClazz != null) {
-              bf.append(compClazz.getFullClassName()).append(".").append(key);
-            } else {
-              bf.append("\"").append(xtype).append("\"");
-            }
-          } else if (((String) value).startsWith("{") && ((String) value).endsWith("}")) {
-            bf.append(((String) value).substring(1, ((String) value).lastIndexOf("}")));
-          } else {
-            bf.append("\"").append(value.toString()).append("\"");
-          }
-          first = false;
-        }
-      }
-      bf.append("}");
-      return bf.toString();
-    }
-
-
-    public Object get(String property) {
-      return properties.get(property);
-    }
-
-    public void set(String property, Object value) {
-      this.properties.put(property, value);
-
-    }
-  }
 }

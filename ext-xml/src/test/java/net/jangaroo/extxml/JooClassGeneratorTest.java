@@ -21,7 +21,7 @@ public class JooClassGeneratorTest{
   @Before
   public void initialize() throws Exception {
     errorHandler = new UnitTestErrorHandler();
-    jooClassGenerator = new JooClassGenerator(new ComponentSuite(new ComponentSuiteRegistry(), "test", "test", null, null), errorHandler);
+    jooClassGenerator = new JooClassGenerator(new ComponentSuite("test", "test", null, null), errorHandler);
   }
 
   @After
@@ -71,15 +71,14 @@ public class JooClassGeneratorTest{
   public void testGenerateClasses() throws Exception {
     File rootDir = TestUtils.getRootDir(getClass());
     File outDir = TestUtils.computeTestDataRoot(getClass());
-    ComponentSuiteRegistry reg = new ComponentSuiteRegistry();
 
-    ComponentSuite extSuite = new ComponentSuite(reg, "http://extjs.com/ext3", "ext",null, null);
+    ComponentSuite extSuite = new ComponentSuite("http://extjs.com/ext3", "ext",null, null);
     ComponentClass panel = new ComponentClass("panel", "ext.Panel");
     ComponentClass label = new ComponentClass("label", "ext.form.Label");
     extSuite.addComponentClass(panel);
     extSuite.addComponentClass(label);
     
-    ComponentSuite suite = new ComponentSuite(reg, "local", "", rootDir, outDir);
+    ComponentSuite suite = new ComponentSuite("local", "", rootDir, outDir);
     
     ComponentClass cc = new ComponentClass(TestUtils.getFile("/testpackage/testPackage.exml", getClass()));
     cc.setType(ComponentType.EXML);

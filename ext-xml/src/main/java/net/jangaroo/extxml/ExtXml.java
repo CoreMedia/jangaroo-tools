@@ -51,16 +51,16 @@ public class ExtXml {
     StandardOutErrorHandler errorHandler = new StandardOutErrorHandler();
 
     //Scan the directory for xml, as or javascript components and collect the data in ComponentClass, import all provided XSDs
-    ComponentSuiteRegistry componentSuiteRegistry = new ComponentSuiteRegistry();
+    ComponentSuiteRegistry componentSuiteRegistry = ComponentSuiteRegistry.getInstance();
     componentSuiteRegistry.setErrorHandler(errorHandler);
 
-    XsdScanner scanner = new XsdScanner(componentSuiteRegistry);
+    XsdScanner scanner = new XsdScanner();
 
     for (int i = 5; i < args.length; i++) {
       componentSuiteRegistry.add(scanner.scan(new FileInputStream(new File(args[i]))));
     }
 
-    ComponentSuite suite = new ComponentSuite(componentSuiteRegistry, args[0], args[1], new File(args[3]), new File(args[4]));
+    ComponentSuite suite = new ComponentSuite(args[0], args[1], new File(args[3]), new File(args[4]));
     
     SrcFileScanner fileScanner = new SrcFileScanner(suite);
     fileScanner.scan();

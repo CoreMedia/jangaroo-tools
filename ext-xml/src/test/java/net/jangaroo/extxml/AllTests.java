@@ -3,6 +3,7 @@
  */
 package net.jangaroo.extxml;
 
+import net.jangaroo.extxml.json.JsonTest;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 
@@ -15,6 +16,7 @@ import org.junit.runners.Suite;
     XsdGeneratorTest.class,
     XsdScannerTest.class,
     XmlToJsonHandlerTest.class,
+    JsonTest.class,
     JooClassGeneratorTest.class,
     ExtComponentSrcFileScannerTest.class,
     ExtXmlTest.class})

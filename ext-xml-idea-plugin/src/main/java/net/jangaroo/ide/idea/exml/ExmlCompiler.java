@@ -48,16 +48,16 @@ public class ExmlCompiler implements TranslatingCompiler {
     // TODO: how can we also receive *.as and *.js files to scan for annotations?
   }
 
-  private void compile(final CompileContext context, ComponentSuiteRegistry componentSuiteRegistry, Module module, final List<VirtualFile> files, List<OutputItem> outputItems, List<VirtualFile> filesToRecompile) {
+  private void compile(final CompileContext context, Module module, final List<VirtualFile> files, List<OutputItem> outputItems, List<VirtualFile> filesToRecompile) {
     final VirtualFile outputDirectory = context.getModuleOutputDirectory(module);
     assert outputDirectory!=null;
 
     ErrorHandler errorHandler = new IdeaErrorHandler(context);
-    componentSuiteRegistry.setErrorHandler(errorHandler);
+    ComponentSuiteRegistry.getInstance().setErrorHandler(errorHandler);
     ComponentSuite suite = null;
     for (final VirtualFile file : files) {
       if (suite == null) {
-        suite = componentSuiteRegistry.getComponentSuite(module.getName());
+        suite = ComponentSuiteRegistry.getInstance().getComponentSuite(module.getName());
         suite.setRootDir(new File(MakeUtil.getSourceRoot(context, module, file).getPath()));
         suite.setAs3OutputDir(new File(outputDirectory.getPath()));
       }
@@ -77,7 +77,9 @@ public class ExmlCompiler implements TranslatingCompiler {
 
   public ExitStatus compile(CompileContext context, VirtualFile[] files) {
     // always re-create component suite registry, so that we get updates:
-    ComponentSuiteRegistry componentSuiteRegistry = new ComponentSuiteRegistry(new IdeaComponentSuiteResolver());
+    ComponentSuiteRegistry componentSuiteRegistry = ComponentSuiteRegistry.getInstance();
+    componentSuiteRegistry.reset();
+    componentSuiteRegistry.setComponentSuiteResolver(new IdeaComponentSuiteResolver());
     List<OutputItem> outputItems = new ArrayList<OutputItem>(files.length);
     List<VirtualFile> filesToRecompile = new ArrayList<VirtualFile>(files.length);
     Map<Module,List<VirtualFile>> filesByModule = new HashMap<Module, List<VirtualFile>>(files.length);
@@ -91,7 +93,7 @@ public class ExmlCompiler implements TranslatingCompiler {
       filesOfModule.add(file);
     }
     for (Map.Entry<Module, List<VirtualFile>> filesOfModuleEntry : filesByModule.entrySet()) {
-      compile(context, componentSuiteRegistry, filesOfModuleEntry.getKey(), filesOfModuleEntry.getValue(), outputItems, filesToRecompile);
+      compile(context, filesOfModuleEntry.getKey(), filesOfModuleEntry.getValue(), outputItems, filesToRecompile);
     }
 
     final OutputItem[] outputItemArray = outputItems.toArray(new OutputItem[outputItems.size()]);

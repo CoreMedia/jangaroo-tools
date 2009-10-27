@@ -15,36 +15,26 @@ public class ComponentSuite {
   private File as3OutputDir;
   private Map<String, ComponentClass> componentClassesByXtype = new LinkedHashMap<String, ComponentClass>();
   private Map<String, ComponentClass> componentClassesByFullClassName = new LinkedHashMap<String, ComponentClass>();
-  private ComponentSuiteRegistry componentSuiteRegistry;
   private Map<String, ComponentSuite> usedComponentSuites;
 
   public ComponentSuite() {
-    this(null, null, null, null, null);
+    this(null, null, null, null);
   }
+
 
   public ComponentSuite(String namespace, String namespacePrefix, File rootDir, File as3OutputDir) {
-    this(null, namespace, namespacePrefix, rootDir, as3OutputDir);
-  }
-
-  public ComponentSuite(ComponentSuiteRegistry componentSuiteRegistry, String namespace, String namespacePrefix, File rootDir, File as3OutputDir) {
-    this.componentSuiteRegistry = componentSuiteRegistry;
     this.namespace = namespace;
     this.ns = namespacePrefix;
     this.rootDir = rootDir;
     this.as3OutputDir = as3OutputDir;
-    if (componentSuiteRegistry != null) {
-      componentSuiteRegistry.add(this);
-    }
+    ComponentSuiteRegistry.getInstance().add(this);
     usedComponentSuites = new LinkedHashMap<String, ComponentSuite>();
   }
 
-  public ComponentSuiteRegistry getComponentSuiteRegistry() {
-    return componentSuiteRegistry;
-  }
 
   public void addImportedComponentSuite(ComponentSuite importedSuite) {
     if(importedSuite != null)
-      componentSuiteRegistry.add(importedSuite);
+      ComponentSuiteRegistry.getInstance().add(importedSuite);
   }
 
   public Map<String, ComponentSuite> getUsedComponentSuitesByNs() {
@@ -119,19 +109,19 @@ public class ComponentSuite {
   }
 
   public ComponentClass getComponentClassByNamespaceAndLocalName(String namespaceUri, String localName) {
-    ComponentSuite componentSuite = componentSuiteRegistry.getComponentSuite(namespaceUri);
+    ComponentSuite componentSuite = ComponentSuiteRegistry.getInstance().getComponentSuite(namespaceUri);
     ComponentClass componentClass = null;
     if (componentSuite != null) {
       componentClass = componentSuite.getComponentClassByXtype(localName);
       updateUsedComponentSuites(componentClass);
     } else {
-      System.out.println("*** compontentSuiteRegistry: "+componentSuiteRegistry.toString());
+      System.out.println("*** compotentSuiteRegistry: "+ComponentSuiteRegistry.getInstance().toString());
     }
     return componentClass;
   }
 
   public ComponentClass findComponentClassByXtype(String xtype) {
-    ComponentClass componentClass = componentSuiteRegistry.findComponentClassByXtype(xtype);
+    ComponentClass componentClass = ComponentSuiteRegistry.getInstance().findComponentClassByXtype(xtype);
     updateUsedComponentSuites(componentClass);
     return componentClass;
   }
@@ -141,7 +131,7 @@ public class ComponentSuite {
   }
 
   public ComponentClass findComponentClassByFullClassName(String className) {
-    ComponentClass componentClass = componentSuiteRegistry.findComponentClassByFullClassName(className);
+    ComponentClass componentClass = ComponentSuiteRegistry.getInstance().findComponentClassByFullClassName(className);
     updateUsedComponentSuites(componentClass);
     return componentClass;
   }

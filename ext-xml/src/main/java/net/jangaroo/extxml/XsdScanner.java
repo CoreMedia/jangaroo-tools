@@ -17,17 +17,15 @@ import java.io.InputStream;
 public class XsdScanner {
   private static final String XML_SCHEMA_URL = "http://www.w3.org/2001/XMLSchema";
 
-  private ComponentSuiteRegistry componentSuiteRegistry;
   DocumentBuilder builder = null;
 
-  public XsdScanner(ComponentSuiteRegistry componentSuiteRegistry) {
-    this.componentSuiteRegistry = componentSuiteRegistry;
+  public XsdScanner() {
     DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
     builderFactory.setNamespaceAware(true);
     try {
       builder = builderFactory.newDocumentBuilder();
     } catch (ParserConfigurationException e) {
-      componentSuiteRegistry.getErrorHandler().error("Error while preparing parser for xsd", e);
+      ComponentSuiteRegistry.getInstance().getErrorHandler().error("Error while preparing parser for xsd", e);
     }
   }
 
@@ -39,13 +37,12 @@ public class XsdScanner {
           document = builder.parse(xsd);
         }
       } catch (SAXException e) {
-        componentSuiteRegistry.getErrorHandler().error("Error while parsing XSD", e);
+        ComponentSuiteRegistry.getInstance().getErrorHandler().error("Error while parsing XSD", e);
       }
       if (document != null) {
         Element schemaElement = document.getDocumentElement();
 
         ComponentSuite componentSuite = new ComponentSuite(
-          componentSuiteRegistry,
           schemaElement.getAttribute("targetNamespace"),
           schemaElement.getAttribute("id"), null, null);
         NodeList components = document.getElementsByTagNameNS(XML_SCHEMA_URL, "element");

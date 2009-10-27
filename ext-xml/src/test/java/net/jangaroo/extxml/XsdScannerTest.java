@@ -17,7 +17,7 @@ public class XsdScannerTest {
 
   @Test
   public void testSimpleXSD() throws Exception{
-    XsdScanner scanner = new XsdScanner(new ComponentSuiteRegistry());
+    XsdScanner scanner = new XsdScanner();
     File xsd = TestUtils.getFile("/schemas/ext3.xsd", getClass());
     ComponentSuite suite = scanner.scan(new FileInputStream(xsd));
     assertNotNull(suite);

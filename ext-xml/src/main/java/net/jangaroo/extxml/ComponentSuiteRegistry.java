@@ -19,15 +19,25 @@ public class ComponentSuiteRegistry {
     }
   };
 
+  private static final ComponentSuiteRegistry INSTANCE = new ComponentSuiteRegistry();
+
   private final Map<String, ComponentSuite> componentSuitesByNamespaceUri = new LinkedHashMap<String, ComponentSuite>(10);
-  private final ComponentSuiteResolver componentSuiteResolver;
+  private ComponentSuiteResolver componentSuiteResolver;
   private ErrorHandler errorHandler = new StandardOutErrorHandler();
 
-  public ComponentSuiteRegistry() {
+  private ComponentSuiteRegistry() {
     this(NO_COMPONENT_SUITE_RESOLVER);
   }
 
-  public ComponentSuiteRegistry(ComponentSuiteResolver componentSuiteResolver) {
+  private ComponentSuiteRegistry(ComponentSuiteResolver componentSuiteResolver) {
+    this.componentSuiteResolver = componentSuiteResolver;
+  }
+
+  public static ComponentSuiteRegistry getInstance() {
+    return INSTANCE;
+  }
+
+  public void setComponentSuiteResolver(ComponentSuiteResolver componentSuiteResolver) {
     this.componentSuiteResolver = componentSuiteResolver;
   }
 
@@ -51,7 +61,7 @@ public class ComponentSuiteRegistry {
         if (xsdInputStream == null) {
           errorHandler.error("No XSD registered for namespace URI " + namespaceUri);
         } else {
-          componentSuite = new XsdScanner(this).scan(xsdInputStream);
+          componentSuite = new XsdScanner().scan(xsdInputStream);
           assert namespaceUri.equals(componentSuite.getNamespace());
         }
       } catch (IOException e) {
@@ -90,5 +100,9 @@ public class ComponentSuiteRegistry {
       sb.append(suite.getNamespace()).append(", ");
     }
     return sb.toString();
+  }
+
+  public void reset() {
+    componentSuitesByNamespaceUri.clear();
   }
 }
