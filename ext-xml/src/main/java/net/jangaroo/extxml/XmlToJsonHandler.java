@@ -31,6 +31,7 @@ public class XmlToJsonHandler implements ContentHandler {
   private ComponentSuite componentSuite;
 
   private Set<String> imports = new LinkedHashSet<String>();
+  private String componentDescription = "";
   private ArrayList<ConfigAttribute> cfgs = new ArrayList<ConfigAttribute>();
 
   private ErrorHandler errorHandler;
@@ -47,9 +48,8 @@ public class XmlToJsonHandler implements ContentHandler {
 
   private boolean expectObjects = true;
 
-  private boolean expectOptionalDescription = false;
-
-  private boolean expectJSON = false;
+  private boolean expectsOptionalConfigDescription = false;
+  private boolean expectsOptionalComponentDescription = false;
 
   public XmlToJsonHandler(ComponentSuite componentSuite, ErrorHandler handler) {
     this.componentSuite = componentSuite;
@@ -89,20 +89,25 @@ public class XmlToJsonHandler implements ContentHandler {
 
   public void startElement(String uri, String localName, String qName, Attributes atts) throws SAXException {
     if ("component".equals(localName)) {
-      //start the parsing
+      //prepare characterStack for optional component description
+      expectsOptionalComponentDescription = true;
     } else if ("import".equals(localName)) {
       imports.add(atts.getValue("class"));
     } else if ("cfg".equals(localName)) {
       //handle config elements
       cfgs.add(new ConfigAttribute(atts.getValue("name"), atts.getValue("type")));
+      expectsOptionalConfigDescription = true;
     } else if ("description".equals(localName)) {
-      expectOptionalDescription = true;
+      if(expectsOptionalConfigDescription || expectsOptionalComponentDescription) {
+        characterStack = new StringBuffer();
+      }
     } else if ("object".equals(localName)) {
       //handle json elements differently: either as a anonymous element with attributes or
       //json as text node of the element.
       if (expectObjects) {
         if (atts.getLength() == 0) {
-          expectJSON = true;
+          //create new character Statck that will store the JSON string
+          characterStack = new StringBuffer();
         } else {
           addElementToJsonObject(createJsonObject(atts));
         }
@@ -138,23 +143,26 @@ public class XmlToJsonHandler implements ContentHandler {
   }
 
   public void endElement(String uri, String localName, String qName) throws SAXException {
-    if (characterStack != null) {
-      if (expectOptionalDescription) {
-        cfgs.get(cfgs.size() - 1).setDescription(characterStack.toString().trim());
-      }
-      if (expectJSON) {
-        addElementToJsonObject("{" + characterStack.toString().trim() + "}");
-      }
-      characterStack = null;
-    }
     if ("component".equals(localName)) {
       //done
     } else if ("import".equals(localName)) {
     } else if ("cfg".equals(localName)) {
     } else if ("description".equals(localName)) {
-      expectOptionalDescription = false;
+      if (characterStack != null) {
+        if(expectsOptionalConfigDescription) {
+          cfgs.get(cfgs.size() - 1).setDescription(characterStack.toString().trim());
+          expectsOptionalConfigDescription = false;
+        } else if (expectsOptionalComponentDescription) {
+          componentDescription = characterStack.toString().trim();
+          expectsOptionalComponentDescription = false;
+        }
+      }
+      characterStack = null;
     } else if ("object".equals(localName)) {
-      expectJSON = false;
+      if (characterStack != null) {
+        addElementToJsonObject("{" + characterStack.toString().trim() + "}");
+        characterStack = null;
+      }
     } else {
       if (expectObjects) {
         String attr = attributes.pop();
@@ -176,11 +184,8 @@ public class XmlToJsonHandler implements ContentHandler {
   }
 
   public void characters(char[] ch, int start, int length) throws SAXException {
-    if (expectOptionalDescription || expectJSON) {
+    if (characterStack != null) {
       String cdata = new String(ch, start, length);
-      if (characterStack == null) {
-        characterStack = new StringBuffer();
-      }
       characterStack.append(cdata);
     }
   }
@@ -292,6 +297,10 @@ public class XmlToJsonHandler implements ContentHandler {
 
   public List<ConfigAttribute> getCfgs() {
     return cfgs;
+  }
+
+  public String getComponentDescription() {
+    return componentDescription;
   }
 
   public String getSuperClassName() {

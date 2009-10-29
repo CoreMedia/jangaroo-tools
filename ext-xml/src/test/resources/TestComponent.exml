@@ -1,38 +1,41 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<component xmlns="http://net.jangaroo.com/extxml/0.1"
-           xmlns:ext="http://extjs.com/ext3">
+<exml:component xmlns:exml="http://net.jangaroo.com/extxml/0.1"
+           xmlns="http://extjs.com/ext3">
   <!-- add an extra import statement to the class -->
-  <import class="ext.MessageBox"/>
+  <exml:import class="ext.MessageBox"/>
 
   <!-- descripte the config properties of this compontent -->
-  <cfg name="myProperty" type="String"/>
-  <cfg name="myPropertyWithDescription" type="Boolean">
-    <description>
+  <exml:cfg name="myProperty" type="String"/>
+  <exml:cfg name="myPropertyWithDescription" type="Boolean">
+    <exml:description>
       <![CDATA[This is my <b>descripion</b>]]>
-    </description>
-  </cfg>
+    </exml:description>
+  </exml:cfg>
 
+  <exml:description>
+    <![CDATA[This is my <b>TestCompoent</b>]]>
+  </exml:description>
   <!-- superclass of the the component with attributes-->
-  <ext:panel title="I am a panel" layout="{config.myLayout}">
+  <panel title="I am a panel" layout="{config.myLayout}">
     <!-- attribute with sub-attributes
     default:{layout:"border"},
     -->
-    <ext:defaults layout="border"/>
+    <defaults layout="border"/>
 
     <!-- attribute-->
-    <ext:layoutConfig bla="blub">
+    <layoutConfig bla="blub">
       <anchor style="test"/>
       <border type="solid"/>
-    </ext:layoutConfig>
+    </layoutConfig>
 
     <!-- array with compontent
     items:{xtype:"testAll", ...}
     -->
-    <ext:items>
-      <ext:button text="Save"/>
-      <object><![CDATA[{xtype: "editortreepanel"}]]></object>
-      <object/>
-    </ext:items>
+    <items>
+      <button text="Save"/>
+      <exml:object><![CDATA[{xtype: "editortreepanel"}]]></exml:object>
+      <exml:object/>
+    </items>
 
 
     <!-- array
@@ -41,13 +44,13 @@
       {...}
     ]
     -->
-    <ext:menu>
-      <ext:menuitem text="juhu1"/>
-      <ext:menuitem text="juhu2"/>
-      <ext:menuitem text="juhu3"/>
-    </ext:menu>
+    <menu>
+      <menuitem text="juhu1"/>
+      <menuitem text="juhu2"/>
+      <menuitem text="juhu3"/>
+    </menu>
 
-    <ext:tools>
+    <tools>
       <!--
       anonymous object in array:
 
@@ -56,7 +59,7 @@
         handler:function(){} }
       ]
       -->
-      <object id="gear" handler="{function(x){return ''+x;}}"/>
-    </ext:tools>
-  </ext:panel>
-</component>
+      <exml:object id="gear" handler="{function(x){return ''+x;}}"/>
+    </tools>
+  </panel>
+</exml:component>

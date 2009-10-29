@@ -16,6 +16,7 @@
           <li>Float</li>
           <li>Date</li>
           <li>Object</li>
+          <li>Array</li>
         </ul>
       </xs:documentation>
     </xs:annotation>
@@ -26,6 +27,7 @@
       <xs:enumeration value="Float"/>
       <xs:enumeration value="Date"/>
       <xs:enumeration value="Object"/>
+      <xs:enumeration value="Array"/>
     </xs:restriction>
   </xs:simpleType>
 
@@ -37,7 +39,7 @@
       </xs:documentation>
     </xs:annotation>
     <xs:sequence>
-      <xs:element name="description" type="xs:string" minOccurs="0">
+      <xs:element name="description" type="xs:string" minOccurs="0" maxOccurs="1">
         <xs:annotation>
           <xs:documentation>
             The description of the config property. optional.
@@ -94,11 +96,19 @@
     <xs:sequence>
       <xs:element name="import" type="exml:import" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element name="cfg" type="exml:cfg" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="description" type="xs:string" minOccurs="0" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>
+            The description of the new component class. optional.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
       <xs:any minOccurs="1" maxOccurs="1" namespace="##other" processContents="lax"/>
     </xs:sequence>
   </xs:complexType>
 
   <xs:element name="component" type="exml:component"/>
-
   <xs:element name="object" type="exml:object"/>
+  <xs:attribute name="type" type="exml:jsType"/>
+
 </xs:schema>

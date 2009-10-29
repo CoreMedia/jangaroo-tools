@@ -46,6 +46,7 @@ public class XsdGeneratorTest {
     suite.setNs("cm");
 
     ComponentClass clazz = new ComponentClass("TestClass", "com.coremedia.examples.TestClass");
+    clazz.setDescription("Some Description");
     suite.addComponentClass(clazz);
     Document dom = createDom(suite);
     assertNotNull(dom);

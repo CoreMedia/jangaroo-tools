@@ -75,6 +75,16 @@ public class XmlToJsonHandlerTest {
   }
 
   @Test
+  public void testExmlTypeAttribute() throws Exception {
+    parseJson("/testExmlTypeAttribute.exml");
+    Json json = jsonHandler.getJSON();
+    Json itemsArray = (Json) json.get("items");
+
+    //assertTrue(itemsArray instanceof JsonArray);
+
+  }
+
+  @Test
   public void testComponent() throws Exception {
     parseJson("/TestComponent.exml");
     Json json = jsonHandler.getJSON();
@@ -136,6 +146,9 @@ public class XmlToJsonHandlerTest {
     //imports
     List<String> imports = jsonHandler.getImports();
     assertTrue(imports.contains("ext.MessageBox"));
+
+    //class description
+    assertEquals("This is my <b>TestCompoent</b>", jsonHandler.getComponentDescription());
 
   }
 

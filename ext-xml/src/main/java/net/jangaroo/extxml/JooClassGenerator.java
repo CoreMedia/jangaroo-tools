@@ -117,6 +117,7 @@ public class JooClassGenerator {
 
       if (handler != null) {
         cc.setSuperClassName(handler.getSuperClassName());
+        cc.setDescription(handler.getComponentDescription());
         cc.setImports(handler.getImports());
         cc.setJson(handler.getJsonAsString());
         cc.setCfgs(handler.getCfgs());
