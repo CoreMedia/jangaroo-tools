@@ -100,7 +100,6 @@ public class ExtComponentSrcFileScanner {
           state.setXtype(groups.get(0), state.cc.getFullClassName());
         }
       })
-      .add(TYPE_RULE)
       .add(CFG_RULE)
       .add(COMMENT_END_RULE)
       .add(COMMENT_START_RULE)

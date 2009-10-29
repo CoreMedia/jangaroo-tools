@@ -8,8 +8,9 @@ import ${import};
 </#list>
 
 /**
- * Do not edit. this is an auto-generated class.
- * @xtype ${xtype}
+ * ${description!}
+ *
+ * <b>Do not edit. this is an auto-generated class.</b>
  */
 public class ${className} extends ${superClassName} {
 
@@ -18,9 +19,10 @@ public class ${className} extends ${superClassName} {
   ext.ComponentMgr.registerType(xtype, ${className});
 }
 
-
   /**<#list cfgs as cfg>
    * @cfg {${cfg.jsType}} ${cfg.name}</#list>
+   *
+   * @see ${className} 
    */
   public function ${className}(config:* = {}) {
     super(Ext.apply(config, ${json}));

@@ -16,14 +16,14 @@ import utils.TestUtils;
 public class ExtComponentSrcFileScannerTest {
 
   @Test
-  public void actionScriptComponentWithXTypeComment() throws Exception {
+  public void actionScriptComponent() throws Exception {
     ComponentSuite suite = new ComponentSuite();
 
     ExtComponentSrcFileScanner.scan(suite, TestUtils.getFile("/testpackage/SimpleComponent.as", getClass()));
     ComponentClass cc = suite.getComponentClassByFullClassName("testpackage.SimpleComponent");
     assertNotNull(cc);
     assertEquals(ComponentType.ActionScript, cc.getType());
-    assertEquals("simplecomponent", cc.getXtype());
+    assertEquals("SimpleComponent", cc.getXtype());
     assertEquals("ext.Panel", cc.getSuperClassName());
     assertTrue(cc.getImports().contains("ext.Panel"));
     assertTrue(cc.getImports().contains("my.other.Class"));
@@ -32,23 +32,7 @@ public class ExtComponentSrcFileScannerTest {
   }
 
   @Test
-  public void actionScriptComponentOnlyWithXTypeConstant() throws Exception {
-    ComponentSuite suite = new ComponentSuite();
-
-    ExtComponentSrcFileScanner.scan(suite, TestUtils.getFile("/testpackage/SimpleComponent2.as", getClass()));
-    ComponentClass cc = suite.getComponentClassByFullClassName("testpackage.SimpleComponent2");
-    assertNotNull(cc);
-    assertEquals(ComponentType.ActionScript, cc.getType());
-    assertEquals("SimpleComponent2", cc.getXtype());
-    assertEquals("ext.Panel", cc.getSuperClassName());
-    assertTrue(cc.getImports().contains("ext.Panel"));
-    assertTrue(cc.getImports().contains("my.other.Class"));
-    assertTrue(cc.getCfgs().contains(new ConfigAttribute("propertyOne","Boolean/String")));
-    assertTrue(cc.getCfgs().contains(new ConfigAttribute("propertyTwo","Number")));
-  }
-
-  @Test
-  public void pluginWithCommentAndConstantPType() throws Exception {
+  public void simplePlugin() throws Exception {
     ComponentSuite suite = new ComponentSuite();
 
     ExtComponentSrcFileScanner.scan(suite, TestUtils.getFile("/testpackage/SimplePlugin.as", getClass()));
