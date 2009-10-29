@@ -4,6 +4,8 @@ import my.other.Class;
 
 /**
  * This is some class documentation
+ * with a new
+ * line
  */
 public class SimpleComponent extends Panel{
 
@@ -11,8 +13,9 @@ public class SimpleComponent extends Panel{
 
   /**
    * @cfg {Boolean/String} propertyOne
+   * here we also have some documentation
    * @cfg {Number} propertyTwo
-   * @param config
+   * some other documentation
    */
   public function SimpleComponent(config:* = undefined) {
     super(Ext.apply(config, {

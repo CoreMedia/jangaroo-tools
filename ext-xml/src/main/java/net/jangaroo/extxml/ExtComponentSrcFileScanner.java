@@ -102,7 +102,11 @@ public class ExtComponentSrcFileScanner {
       })
       .add(CFG_RULE)
       .add(COMMENT_END_RULE)
-      .add(COMMENT_START_RULE)
+      .add(new Rule<State>("^?\\s*/\\*\\*?(.*)$") {
+        public void matched(State state, List<String> groups) {
+          state.startComment(groups.get(0));
+        }
+      })
       .add(COMMENT_RULE)
     ;
 

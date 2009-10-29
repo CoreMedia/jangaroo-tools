@@ -24,6 +24,7 @@ public class ExtComponentSrcFileScannerTest {
     assertNotNull(cc);
     assertEquals(ComponentType.ActionScript, cc.getType());
     assertEquals("SimpleComponent", cc.getXtype());
+    assertEquals("This is some class documentation with a new line", cc.getDescription());
     assertEquals("ext.Panel", cc.getSuperClassName());
     assertTrue(cc.getImports().contains("ext.Panel"));
     assertTrue(cc.getImports().contains("my.other.Class"));
