@@ -13,7 +13,13 @@ import java.io.Writer;
  */
 public class XsdGenerator {
 
-  private static Configuration cfg;
+  private static Configuration cfg = new Configuration();
+  static {
+    /* Create and adjust freemarker configuration */
+    cfg.setClassForTemplateLoading(XsdGenerator.class, "/net/jangaroo/extxml/templates");
+    cfg.setObjectWrapper(new DefaultObjectWrapper());
+    cfg.setOutputEncoding("UTF-8");
+  }
 
   private ComponentSuite componentSuite;
   private ErrorHandler errorHandler;
@@ -23,12 +29,7 @@ public class XsdGenerator {
    * @param componentSuite
    * @param errorHandler
    */
-  public XsdGenerator(ComponentSuite componentSuite, ErrorHandler errorHandler) {
-    /* Create and adjust freemarker configuration */
-    cfg = new Configuration();
-    cfg.setClassForTemplateLoading(XsdGenerator.class, "/net/jangaroo/extxml/templates");
-    cfg.setObjectWrapper(new DefaultObjectWrapper());
-    cfg.setOutputEncoding("UTF-8");
+  public XsdGenerator(ComponentSuite componentSuite, ErrorHandler errorHandler) {    
     this.componentSuite = componentSuite;
     this.errorHandler = errorHandler;
   }

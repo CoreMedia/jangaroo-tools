@@ -12,12 +12,17 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXParseException;
+import utils.TestUtils;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
+import javax.xml.validation.Validator;
+import java.io.FileInputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -48,7 +53,7 @@ public class XsdGeneratorTest {
     ComponentClass clazz = new ComponentClass("TestClass", "com.coremedia.examples.TestClass");
     clazz.setDescription("Some Description");
     suite.addComponentClass(clazz);
-    Document dom = createDom(suite);
+    Document dom = createDom(suite, "/generateSchemaTests/SimpleSuite.exml");
     assertNotNull(dom);
     Element schemaElement = dom.getDocumentElement();
     assertEquals("com.coremedia.examples", schemaElement.getAttribute("targetNamespace"));
@@ -75,7 +80,7 @@ public class XsdGeneratorTest {
 
     ComponentClass clazz = new ComponentClass("com.coremedia.examples.TestClass", "com.coremedia.examples.TestClass");
     suite.addComponentClass(clazz);
-    Document dom = createDom(suite);
+    Document dom = createDom(suite ,"/generateSchemaTests/SimpleSuite.exml");
     assertNotNull(dom);
     Element schemaElement = dom.getDocumentElement();
     assertEquals("com.coremedia.examples", schemaElement.getAttribute("targetNamespace"));
@@ -107,7 +112,7 @@ public class XsdGeneratorTest {
     clazz.addCfg(new ConfigAttribute("simpleObject","Object"));
     clazz.addCfg(new ConfigAttribute("simpleArray","Array","adsfasdfasdf"));
     suite.addComponentClass(clazz);
-    createDom(suite);
+    createDom(suite, "/generateSchemaTests/ClassWithAttributes.exml");
   }
 
   @Test(expected = SAXParseException.class)
@@ -120,10 +125,10 @@ public class XsdGeneratorTest {
     clazz.addCfg(new ConfigAttribute("simpleType","Boolean"));
     clazz.addCfg(new ConfigAttribute("simpleType","Boolean"));
     suite.addComponentClass(clazz);
-    createDom(suite);
+    createDom(suite, "/generateSchemaTests/SimpleSuite.exml");
   }
 
-  private Document createDom(ComponentSuite suite) throws Exception {
+  private Document createDom(ComponentSuite suite, String path) throws Exception {
     XsdGenerator generator = new XsdGenerator(suite, new StandardOutErrorHandler());
     StringWriter writer = new StringWriter();
     generator.generateXsd(writer);
@@ -136,9 +141,14 @@ public class XsdGeneratorTest {
 
     // validate schema
     SchemaFactory factory = SchemaFactory.newInstance(XML_SCHEMA_URL);
-    Schema schema = factory.newSchema(new DOMSource(dom));
-    //Validator v = schema.newValidator();
-    //v.validate(null);
+    FileInputStream schemastream = new FileInputStream(TestUtils.getFile("/net/jangaroo/extxml/schemas/extxml.xsd", getClass()));
+    Schema schema = factory.newSchema(new Source[] {new DOMSource(dom), new StreamSource(schemastream)});
+
+    Validator v = schema.newValidator();
+    FileInputStream stream = new FileInputStream(TestUtils.getFile(path, getClass()));
+    v.validate(new StreamSource(stream));
+    stream.close();
+    schemastream.close();
 
     return dom;
 
