@@ -4,7 +4,7 @@
   <artifactId>jangaroo-maven-plugin</artifactId>
   <packaging>maven-plugin</packaging>
   <version>0.3.19-SNAPSHOT</version>
-  <name>Maven Plugin: Compile &amp; Test</name>
+  <name>Maven Plugin: Compile + Test</name>
   <description>This plugin compiles Jangaroo sources to JavaScript.</description>
   <url>http://www.jangaroo.net</url>
 
