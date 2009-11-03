@@ -121,13 +121,14 @@ public class XmlToJsonHandler implements ContentHandler {
         if (!attributes.isEmpty() && attributes.peek().equals("plugins")) {
           type = "ptype";
         }
-        jsonObject.set(type, localName);
-        //find component class for xtype
+        //find component class for namespace + localName:
         ComponentClass compClazz = componentSuite.getComponentClassByNamespaceAndLocalName(uri, localName);
         if (compClazz != null) {
           imports.add(compClazz.getFullClassName());
+          jsonObject.set(type, compClazz.getXtype());
         } else {
           errorHandler.error(String.format("No component class for xtype '%s' found in component suite '%s'!", localName, uri), locator.getLineNumber(), locator.getColumnNumber());
+          jsonObject.set(type, localName);
         }
         addElementToJsonObject(jsonObject);
         addObjectToStack(jsonObject);

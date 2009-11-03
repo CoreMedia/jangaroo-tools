@@ -49,12 +49,12 @@ public class ExtComponentSrcFileScanner {
 
   // Rules used in both scanners:
 
-  private static final Rule<State> TYPE_RULE = new Rule<State>("@[px]type\\s+([a-zA-Z_$][a-zA-Z0-9_$]*)") {
+  private static final Rule<State> TYPE_RULE = new Rule<State>("@[px]type\\s+([\\p{Alpha}$_.][\\p{Alnum}$_.]*)") {
     public void matched(State state, List<String> groups) {
       state.setXtype(groups.get(0), state.cc.getFullClassName());
     }
   };
-  private static final Rule<State> CFG_RULE = new Rule<State>("@cfg\\s+[{]?([a-zA-Z0-9$_./]+)[}]? ([a-zA-Z0-9$_]+)(.*)$") {
+  private static final Rule<State> CFG_RULE = new Rule<State>("@cfg\\s+[{]?([\\p{Alnum}$_./]+)[}]?\\s+([\\p{Alnum}$_]+)(.*)$") {
     public void matched(State state, List<String> groups) {
       // use List#remove(0) to skip optional type if missing:
       state.addCfg(groups.size() == 3 ? groups.remove(0) : "*", groups.remove(0), groups.remove(0));
@@ -78,24 +78,24 @@ public class ExtComponentSrcFileScanner {
   };
 
   private static FileScanner<State> EXT_COMPONENT_AS_FILE_SCANNER = new FileScanner<State>()
-      .add(new Rule<State>("package\\s+([a-zA-Z0-9$_.]+)") {
+      .add(new Rule<State>("^\\s*package\\s+([\\p{Alnum}$_.]+)") {
         public void matched(State state, List<String> groups) {
           state.cc.setFullClassName(groups.get(0) + "." + state.cc.getClassName());
           // Next comment following the package declaration is the class comment:
           state.setDescriptionHolder(state.cc);
         }
       })
-      .add(new Rule<State>("import\\s+([a-zA-Z0-9$_.]+);") {
+      .add(new Rule<State>("^\\s*import\\s+([\\p{Alnum}$_.]+);") {
         public void matched(State state, List<String> groups) {
           state.addImport(groups.get(0));
         }
       })
-      .add(new Rule<State>("extends\\s+([a-zA-Z0-9$_.]+)") {
+      .add(new Rule<State>("\\bextends\\s+([\\p{Alnum}$_.]+)") {
         public void matched(State state, List<String> groups) {
           state.setExtends(groups.get(0));
         }
       })
-      .add(new Rule<State>("public\\s+static\\s+const\\s+[px]type:String\\s+=\\s+\"([a-zA-Z0-9_]+)\"") {
+      .add(new Rule<State>("(?:public\\s+static|static\\s+public)\\s+const\\s+[px]type\\s*:\\s*String\\s*=\\s*['\"]([\\p{Alnum}$_.]+)['\"]") {
         public void matched(State state, List<String> groups) {
           state.setXtype(groups.get(0), state.cc.getFullClassName());
         }
@@ -111,17 +111,17 @@ public class ExtComponentSrcFileScanner {
     ;
 
   private static FileScanner<State> EXT_COMPONENT_SRC_FILE_SCANNER = new FileScanner<State>()
-      .add(new Rule<State>("@class\\s+([a-zA-Z0-9$_.]+)") {
+      .add(new Rule<State>("@class\\s+([\\p{Alnum}$_.]+)") {
         public void matched(State state, List<String> groups) {
           state.addClass(groups.get(0));
         }
       })
-      .add(new Rule<State>("@extends\\s+([a-zA-Z0-9$_.]+)") {
+      .add(new Rule<State>("@extends\\s+([\\p{Alnum}$_.]+)") {
         public void matched(State state, List<String> groups) {
           state.setExtends(groups.get(0));
         }
       })
-      .add(new Rule<State>("\\bExt.reg\\('([a-zA-Z.]+)',\\s*([a-zA-Z0-9$_.]+)\\);") {
+      .add(new Rule<State>("\\bExt.reg\\('([\\p{Alnum}$_.]+)',\\s*([\\p{Alnum}$_.]+)\\);") {
         public void matched(State state, List<String> groups) {
           // old-style xtype registration, still used e.g. in Ext.Component.js:
           state.setXtype(groups.get(0), groups.get(1));

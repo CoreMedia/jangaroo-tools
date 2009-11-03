@@ -71,6 +71,11 @@ public class ComponentSuiteRegistry {
     return componentSuite;
   }
 
+  public ComponentClass getComponentClass(String namespaceUri, String localName) {
+    ComponentSuite componentSuite = ComponentSuiteRegistry.getInstance().getComponentSuite(namespaceUri);
+    return componentSuite != null ? componentSuite.getComponentClassByLocalName(localName) : null;
+  }
+
   public ComponentClass findComponentClassByXtype(String xtype) {
     // now, search all known component suites for xtype:
     for (ComponentSuite suite : componentSuitesByNamespaceUri.values()) {

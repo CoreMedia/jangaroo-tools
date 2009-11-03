@@ -14,7 +14,8 @@ public class ComponentSuite {
   private File rootDir;
   private File as3OutputDir;
   private Map<String, ComponentClass> componentClassesByXtype = new LinkedHashMap<String, ComponentClass>();
-  private Map<String, ComponentClass> componentClassesByFullClassName = new LinkedHashMap<String, ComponentClass>();
+  private Map<String, ComponentClass> componentClassesByLocalName = new HashMap<String, ComponentClass>();
+  private Map<String, ComponentClass> componentClassesByFullClassName = new HashMap<String, ComponentClass>();
   private Map<String, ComponentSuite> usedComponentSuites;
 
   public ComponentSuite() {
@@ -97,6 +98,7 @@ public class ComponentSuite {
   public void addComponentClass(ComponentClass cc) {
     cc.setSuite(this);
     componentClassesByXtype.put(cc.getXtype(), cc);
+    componentClassesByLocalName.put(cc.getElementName(), cc);
     componentClassesByFullClassName.put(cc.getFullClassName(), cc);
   }
 
@@ -108,15 +110,13 @@ public class ComponentSuite {
     return componentClassesByXtype.get(xtype);
   }
 
+  public ComponentClass getComponentClassByLocalName(String localName) {
+    return componentClassesByLocalName.get(localName);
+  }
+
   public ComponentClass getComponentClassByNamespaceAndLocalName(String namespaceUri, String localName) {
-    ComponentSuite componentSuite = ComponentSuiteRegistry.getInstance().getComponentSuite(namespaceUri);
-    ComponentClass componentClass = null;
-    if (componentSuite != null) {
-      componentClass = componentSuite.getComponentClassByXtype(localName);
-      updateUsedComponentSuites(componentClass);
-    } else {
-      System.out.println("*** compotentSuiteRegistry: "+ComponentSuiteRegistry.getInstance().toString());
-    }
+    ComponentClass componentClass = ComponentSuiteRegistry.getInstance().getComponentClass(namespaceUri, localName);
+    updateUsedComponentSuites(componentClass);
     return componentClass;
   }
 
