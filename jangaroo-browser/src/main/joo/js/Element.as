@@ -10,6 +10,10 @@ public class Element extends Node {
 
 
 
+  public native function get tagName() : String;
+
+
+
   public native function get ownerDocument() : Document;
 
 
