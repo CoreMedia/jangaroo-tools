@@ -19,8 +19,11 @@ package joo {
 
 // this makes jooc generate a with(joo) statement:
 import joo.*;
+import Error;
 
 public class DynamicClassLoader extends joo.StandardClassLoader {
+
+  public static const STANDARD_URL_PREFIX:String = "joo/classes/";
 
   private static function isEmpty(object : Object) : Boolean {
     //noinspection LoopStatementThatDoesntLoopJS
@@ -32,7 +35,7 @@ public class DynamicClassLoader extends joo.StandardClassLoader {
 
 
   public var classLoadTimeoutMS : int = 0,
-             urlPrefix : String = "joo/classes/";
+             urlPrefix : String;
   private var loadCheckTimer : *,
               onCompleteCallbacks : Array/*<Function>*/ = [];
 
@@ -130,7 +133,26 @@ public class DynamicClassLoader extends joo.StandardClassLoader {
   }
 
   protected function getBaseUri() : String {
+    if (typeof this.urlPrefix != "string") {
+      this.urlPrefix = this.determineUrlPrefix();
+    }
     return this.urlPrefix;
+  }
+
+  private function determineUrlPrefix():String {
+    const RUNTIME_URL_PATTERN:RegExp = /^(.*)\bjangaroo-runtime(-debug)?.js$/;
+    var scripts:Array = window.document.getElementsByTagName("SCRIPT");
+    for (var i:int=0; i<scripts.length; ++i) {
+      var match:Array = RUNTIME_URL_PATTERN.exec(scripts[i].src);
+      if (match) {
+        return match[1] + "classes/";
+      }
+    }
+    if (this.debug) {
+      trace("WARNING: no joo.classLoader.urlPrefix set and Jangaroo Runtime script element not found. "
+        + "Falling back to standard urlPrefix '" + STANDARD_URL_PREFIX + "'.");
+    }
+    return STANDARD_URL_PREFIX;
   }
 
   protected function getUri(fullClassName : String) : String {
