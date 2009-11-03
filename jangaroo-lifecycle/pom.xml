@@ -10,7 +10,7 @@
   <artifactId>jangaroo-lifecycle</artifactId>
   <packaging>maven-plugin</packaging>
 
-  <name>Jangaroo Build Lifecycle &amp; Artifact Handling</name>
+  <name>Jangaroo Build Lifecycle + Artifact Handling</name>
 
   <build>
     <resources>
