@@ -144,7 +144,11 @@ public final class XmlToJsonHandler implements ContentHandler {
   }
 
   public void endElement(String uri, String localName, String qName) throws SAXException {
-    if ("description".equals(localName)) {
+    if ("component".equals(localName)) {
+      //done
+    } else if ("import".equals(localName)) {
+    } else if ("cfg".equals(localName)) {
+    } else if ("description".equals(localName)) {
       if (characterStack != null) {
         if(expectsOptionalConfigDescription) {
           cfgs.get(cfgs.size() - 1).setDescription(characterStack.toString().trim());
