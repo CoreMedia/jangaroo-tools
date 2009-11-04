@@ -1,37 +1,34 @@
 package net.jangaroo.jooc.mvnplugin.test;
 
-import org.apache.maven.plugin.AbstractMojo;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.project.MavenProject;
-import org.apache.maven.model.Profile;
-import org.apache.commons.io.FileUtils;
-import org.mortbay.jetty.Server;
-import org.mortbay.jetty.Handler;
-import org.mortbay.jetty.handler.ResourceHandler;
-import org.mortbay.resource.FileResource;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import org.w3c.dom.Document;
-import org.w3c.dom.NodeList;
-import org.w3c.dom.NamedNodeMap;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.StringReader;
-import java.util.Random;
-import java.util.List;
-import java.net.URISyntaxException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-
 import com.thoughtworks.selenium.DefaultSelenium;
 import com.thoughtworks.selenium.Selenium;
 import com.thoughtworks.selenium.SeleniumException;
+import org.apache.commons.io.FileUtils;
+import org.apache.maven.model.Profile;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.project.MavenProject;
+import org.mortbay.jetty.Handler;
+import org.mortbay.jetty.Server;
+import org.mortbay.jetty.handler.ResourceHandler;
+import org.mortbay.resource.FileResource;
+import org.w3c.dom.Document;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
+import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.DocumentBuilder;
+import java.io.File;
+import java.io.IOException;
+import java.io.StringReader;
+import java.net.InetAddress;
+import java.net.URISyntaxException;
+import java.net.UnknownHostException;
+import java.util.List;
+import java.util.Random;
 
 /**
  * @goal test
@@ -103,7 +100,9 @@ public class JooTestMojo extends AbstractJooTestMojo {
         getLog().info("+----------------------------------------------------------------------+");
       } else {
         try {
-          InetAddress inetAddress = InetAddress.getAllByName(jooUnitSeleniumRCHost)[0];
+          //check wether the host is reachable
+          //noinspection ResultOfMethodCallIgnored
+          InetAddress.getAllByName(jooUnitSeleniumRCHost);
         } catch (UnknownHostException e) {
           throw new MojoExecutionException("Cannot resolve host " + jooUnitSeleniumRCHost +
                   ". Please specify a host running the selenium remote control or skip tests" +

@@ -8,7 +8,7 @@ import java.util.List;
 /**
  * The meta-model of an Ext JS component class.
  */
-public class ComponentClass extends DescriptionHolder {
+public final class ComponentClass extends DescriptionHolder {
 
   private ComponentSuite suite;
   private File srcFile;
@@ -98,7 +98,7 @@ public class ComponentClass extends DescriptionHolder {
   public String getClassName() {
     return fullClassName.substring(fullClassName.lastIndexOf('.') + 1);
   }
-
+  
   public String getPackageName() {
     int lastDotPos = fullClassName.lastIndexOf('.');
     return lastDotPos==-1 ? "" : fullClassName.substring(0, lastDotPos);

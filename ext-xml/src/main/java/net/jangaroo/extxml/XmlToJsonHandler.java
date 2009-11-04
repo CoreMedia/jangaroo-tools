@@ -24,7 +24,7 @@ import java.util.Stack;
 /**
  * Generates an internal representation for the component XML
  */
-public class XmlToJsonHandler implements ContentHandler {
+public final class XmlToJsonHandler implements ContentHandler {
 
   private Locator locator;
   private Json result;
@@ -144,11 +144,7 @@ public class XmlToJsonHandler implements ContentHandler {
   }
 
   public void endElement(String uri, String localName, String qName) throws SAXException {
-    if ("component".equals(localName)) {
-      //done
-    } else if ("import".equals(localName)) {
-    } else if ("cfg".equals(localName)) {
-    } else if ("description".equals(localName)) {
+    if ("description".equals(localName)) {
       if (characterStack != null) {
         if(expectsOptionalConfigDescription) {
           cfgs.get(cfgs.size() - 1).setDescription(characterStack.toString().trim());

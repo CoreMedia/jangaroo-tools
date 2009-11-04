@@ -3,7 +3,6 @@ package net.jangaroo.jooc.mvnplugin.test;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.model.Dependency;
-import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
@@ -14,15 +13,17 @@ import org.codehaus.plexus.archiver.ArchiveFileFilter;
 import org.codehaus.plexus.archiver.ArchiveFilterException;
 import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.zip.ZipUnArchiver;
-import org.codehaus.plexus.components.io.fileselectors.FileInfo;
-import org.codehaus.plexus.components.io.fileselectors.FileSelector;
 import org.codehaus.plexus.util.FileUtils;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Prepares the Javascript Testenvironment including generation of the HTML page and decompression
@@ -202,8 +203,8 @@ public class JooGenerateTestResourcesMojo extends AbstractJooTestMojo {
       f.createNewFile();
       fw = new FileWriter(f);
       fw.write("<html>\n" +
-              "  <head><title>" + project.getGroupId() + ":" + project.getArtifactId() + ":" + project.getVersion() + "</title></head>\n" +
-              "  <body>");
+          "  <head><title>" + project.getGroupId() + ":" + project.getArtifactId() + ":" + project.getVersion() + "</title></head>\n" +
+          "  <body>");
 
 
       for (String dependency : depsLineralized) {
@@ -211,28 +212,28 @@ public class JooGenerateTestResourcesMojo extends AbstractJooTestMojo {
       }
       fw.write("<script type=\"text/javascript\" src=\"" + project.getArtifact().getArtifactId() + ".js\"></script>\n");
       fw.write("  <script type=\"text/javascript\">\n" +
-              "    //with (joo.classLoader=new joo.ClassLoader()) { // disable DynamicClassLoader, as all classes are already there!\n" +
-              "    with (joo.classLoader) {\n" +
-              "      debug = true;\n" +
-              "      urlPrefix=\"classes/\";\n" +
-              "      classLoadTimeoutMS = 3000;\n" +
-              "      import_(\"flexunit.textui.TestRunner\");\n" +
-              "      import_(\"" + testSuiteName + "\");\n" +
-              "      import_(\"flexunit.textui.XmlResultPrinter\");\n" +
-              "      complete(function(imports) {with(imports){\n" +
-              "        var xmlWriter = new XmlResultPrinter();\n" +
-              "        TestRunner.run(" + testSuiteName.substring(testSuiteName.lastIndexOf(".") + 1) + ".suite(),function(bla) {\n" +
-              "            result = xmlWriter.getXml();\n" +
-              "            document.getElementById(\"result\").firstChild.nodeValue = result;\n" +
-              "        },xmlWriter);\n" +
-              "      }});" +
-              "    }\n" +
-              "  </script>\n" +
-              "  <h1>TestResult</h1>\n" +
-              "   <pre id=\"result\">\n" +
-              "   </pre>\n" +
-              " </body>\n" +
-              "</html>");
+          "    //with (joo.classLoader=new joo.ClassLoader()) { // disable DynamicClassLoader, as all classes are already there!\n" +
+          "    with (joo.classLoader) {\n" +
+          "      debug = true;\n" +
+          "      urlPrefix=\"classes/\";\n" +
+          "      classLoadTimeoutMS = 3000;\n" +
+          "      import_(\"flexunit.textui.TestRunner\");\n" +
+          "      import_(\"" + testSuiteName + "\");\n" +
+          "      import_(\"flexunit.textui.XmlResultPrinter\");\n" +
+          "      complete(function(imports) {with(imports){\n" +
+          "        var xmlWriter = new XmlResultPrinter();\n" +
+          "        TestRunner.run(" + testSuiteName.substring(testSuiteName.lastIndexOf(".") + 1) + ".suite(),function(bla) {\n" +
+          "            result = xmlWriter.getXml();\n" +
+          "            document.getElementById(\"result\").firstChild.nodeValue = result;\n" +
+          "        },xmlWriter);\n" +
+          "      }});" +
+          "    }\n" +
+          "  </script>\n" +
+          "  <h1>TestResult</h1>\n" +
+          "   <pre id=\"result\">\n" +
+          "   </pre>\n" +
+          " </body>\n" +
+          "</html>");
     } finally {
       if (fw != null) {
         try {
@@ -253,19 +254,12 @@ public class JooGenerateTestResourcesMojo extends AbstractJooTestMojo {
    * @throws ArchiverException if an archive is corrupt
    */
   public void unpack()
-          throws IOException, ArchiverException {
+      throws IOException, ArchiverException {
     unarchiver.setOverwrite(false);
     unarchiver.setArchiveFilters(Collections.singletonList(
-            new ArchiveFileFilter() {
-              @Override
-              public boolean include(InputStream dataStream, String entryName) throws ArchiveFilterException {
-                return !entryName.startsWith("META-INF");
-              }
-            }));
+        new MetaInfArchiveFileFilter()));
 
-    for (Artifact dependency : ((List<Artifact>) project.getTestArtifacts()))
-
-    {
+    for (Artifact dependency : ((List<Artifact>) project.getTestArtifacts())) {
       getLog().debug("Dependency: " + getInternalId(dependency) + " type: " + dependency.getType());
       if (!dependency.isOptional() && Types.JANGAROO_TYPE.equals(dependency.getType())) {
         unarchiver.setDestFile(null);
@@ -274,5 +268,13 @@ public class JooGenerateTestResourcesMojo extends AbstractJooTestMojo {
         unarchiver.extract();
       }
     }
+  }
+
+  private static class MetaInfArchiveFileFilter implements ArchiveFileFilter {
+    @Override
+    public boolean include(InputStream dataStream, String entryName) throws ArchiveFilterException {
+      return !entryName.startsWith("META-INF");
+    }
+
   }
 }

@@ -1,24 +1,26 @@
 package net.jangaroo.extxml;
 
-import java.util.HashSet;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Map;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 
 /**
  * A meta model of an Ext JS component configuration attribute.
  */
-public class ConfigAttribute extends DescriptionHolder {
+public final class ConfigAttribute extends DescriptionHolder {
 
-  private static final Map<String,String> XS_TYPE_BY_JS_TYPE = new HashMap<String, String>(5);
+  private static final Map<String, String> XS_TYPE_BY_JS_TYPE = new HashMap<String, String>(5);
+
   static {
     XS_TYPE_BY_JS_TYPE.put("Boolean", "boolean");
-    XS_TYPE_BY_JS_TYPE.put("Number",  "int");
-    XS_TYPE_BY_JS_TYPE.put("Float",   "float");
-    XS_TYPE_BY_JS_TYPE.put("Date",    "date");
-    XS_TYPE_BY_JS_TYPE.put("String",  "string");
+    XS_TYPE_BY_JS_TYPE.put("Number", "int");
+    XS_TYPE_BY_JS_TYPE.put("Float", "float");
+    XS_TYPE_BY_JS_TYPE.put("Date", "date");
+    XS_TYPE_BY_JS_TYPE.put("String", "string");
   }
+
   private static final Collection<String> SEQUENCE_JS_TYPES = new HashSet<String>(Arrays.asList("Array", "MixedCollection", "Mixed"));
 
   private String name;
@@ -90,17 +92,17 @@ public class ConfigAttribute extends DescriptionHolder {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof ConfigAttribute)) {
+    if (o == null || getClass() != o.getClass()) {
       return false;
     }
 
     ConfigAttribute that = (ConfigAttribute) o;
 
-    return name.equals(that.name);
+    return !(name != null ? !name.equals(that.name) : that.name != null);
   }
 
   @Override
   public int hashCode() {
-    return name.hashCode();
+    return name != null ? name.hashCode() : 0;
   }
 }

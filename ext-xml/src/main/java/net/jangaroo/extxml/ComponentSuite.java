@@ -7,7 +7,7 @@ import java.util.*;
  * A set of Ext JS components bundled under the same namespace.
  * An XML schema can be defined that contains element definition for all component classes.
  */
-public class ComponentSuite {
+public final class ComponentSuite {
 
   private String ns;
   private String namespace;

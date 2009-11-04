@@ -12,7 +12,11 @@ import org.codehaus.plexus.archiver.jar.JarArchiver;
 import org.codehaus.plexus.archiver.jar.Manifest;
 import org.codehaus.plexus.archiver.jar.ManifestException;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintWriter;
 import java.util.Collections;
 
 /**
@@ -49,7 +53,8 @@ public class PackageMojo extends AbstractMojo {
   MavenProjectHelper projectHelper;
 
   /**
-   * List of files to exclude. Specified as fileset patterns. 
+   * List of files to exclude. Specified as fileset patterns.
+   *
    * @parameter
    */
   private String[] excludes;
@@ -83,7 +88,7 @@ public class PackageMojo extends AbstractMojo {
   private File compilerOutputDirectory;
 
   public void execute()
-          throws MojoExecutionException {
+      throws MojoExecutionException {
     File jsarchive = new File(targetDir, finalName + "." + Types.JAVASCRIPT_EXTENSION);
     try {
       if (manifest != null) {
@@ -91,12 +96,7 @@ public class PackageMojo extends AbstractMojo {
       } else {
         createDefaultManifest(project, archiver);
       }
-      archiver.setArchiveFilters(Collections.singletonList(new ArchiveFileFilter() {
-        @Override
-        public boolean include(InputStream dataStream, String entryName) throws ArchiveFilterException {
-          return !entryName.endsWith(".as");
-        }
-      }));
+      archiver.setArchiveFilters(Collections.singletonList(new PackagerArchiveFilter()));
       if (compilerOutputDirectory.exists()) {
         archiver.addDirectory(compilerOutputDirectory);
       }
@@ -104,7 +104,7 @@ public class PackageMojo extends AbstractMojo {
       String groupId = project.getGroupId();
       String artifactId = project.getArtifactId();
       archiver.addFile(project.getFile(), "META-INF/maven/" + groupId + "/" + artifactId
-              + "/pom.xml");
+          + "/pom.xml");
       archiver.setDestFile(jsarchive);
       archiver.createArchive();
       archiver.reset();
@@ -117,7 +117,7 @@ public class PackageMojo extends AbstractMojo {
   }
 
   private static void createDefaultManifest(MavenProject project, JarArchiver jarArchiver)
-          throws ManifestException, IOException, ArchiverException {
+      throws ManifestException, IOException, ArchiverException {
     Manifest manifest = new Manifest();
     Manifest.Attribute attr = new Manifest.Attribute("Created-By", "Apache Maven");
     manifest.addConfiguredAttribute(attr);
@@ -137,9 +137,23 @@ public class PackageMojo extends AbstractMojo {
 
     File mf = File.createTempFile("maven", ".mf");
     mf.deleteOnExit();
-    PrintWriter writer = new PrintWriter(new FileWriter(mf));
-    manifest.write(writer);
-    writer.close();
+    PrintWriter writer = null;
+    try {
+      writer = new PrintWriter(new FileWriter(mf));
+      manifest.write(writer);
+    } finally {
+      if (writer != null) {
+        writer.close();
+      }
+    }
     jarArchiver.setManifest(mf);
+  }
+
+  private static class PackagerArchiveFilter implements ArchiveFileFilter {
+    @Override
+    public boolean include(InputStream dataStream, String entryName) throws ArchiveFilterException {
+      return !entryName.endsWith(".as");
+    }
+
   }
 }

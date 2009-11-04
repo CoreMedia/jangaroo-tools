@@ -11,12 +11,9 @@ import org.codehaus.plexus.archiver.ArchiveFileFilter;
 import org.codehaus.plexus.archiver.ArchiveFilterException;
 import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.zip.ZipUnArchiver;
-import org.codehaus.plexus.components.io.fileselectors.FileInfo;
-import org.codehaus.plexus.components.io.fileselectors.FileSelector;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.Iterator;
@@ -59,7 +56,7 @@ import java.util.Set;
  * @phase compile
  */
 public class WarPackageMojo
-        extends AbstractMojo {
+    extends AbstractMojo {
 
 
   /**
@@ -102,11 +99,11 @@ public class WarPackageMojo
    * @see org.apache.maven.plugin.Mojo#execute()
    */
   public void execute()
-          throws MojoExecutionException, MojoFailureException {
+      throws MojoExecutionException, MojoFailureException {
     File scriptDir = new File(webappDirectory, scriptsDirectory);
 
     try {
-      excludeFromWarPackaging();    
+      excludeFromWarPackaging();
       unpack(project, scriptDir);
     }
     catch (ArchiverException e) {
@@ -116,16 +113,10 @@ public class WarPackageMojo
 
 
   public void unpack(MavenProject project, File target)
-          throws ArchiverException {
+      throws ArchiverException {
 
     unarchiver.setOverwrite(false);
-    unarchiver.setArchiveFilters(Collections.singletonList(
-            new ArchiveFileFilter() {
-              @Override
-              public boolean include(InputStream dataStream, String entryName) throws ArchiveFilterException {
-                return !entryName.startsWith("META-INF");
-              }
-            }));
+    unarchiver.setArchiveFilters(Collections.singletonList(new WarPackageArchiveFilter()));
     Set<Artifact> dependencies = project.getArtifacts();
 
     for (Artifact dependency : dependencies) {
@@ -140,7 +131,7 @@ public class WarPackageMojo
   }
 
   public void unpack(Artifact artifact, File target)
-          throws ArchiverException {
+      throws ArchiverException {
     unarchiver.setSourceFile(artifact.getFile());
     target.mkdirs();
     unarchiver.setDestDirectory(target);
@@ -202,6 +193,13 @@ public class WarPackageMojo
           excludes.setValue(excludes.getValue() + additionalExcludes);
         }
       }
+    }
+  }
+
+  private static class WarPackageArchiveFilter implements ArchiveFileFilter {
+    @Override
+    public boolean include(InputStream dataStream, String entryName) throws ArchiveFilterException {
+      return !entryName.startsWith("META-INF");
     }
   }
 }

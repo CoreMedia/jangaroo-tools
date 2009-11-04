@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<exml:component xmlns:exml="http://net.jangaroo.com/extxml/0.1"
+           xmlns:ex="com.coremedia.examples">
+  <ex:SubClass simpleType="true">
+    <ex:items>
+      <ex:SubClass simpleType="true"/>
+      <ex:TestClass simpleType="true"/>
+    </ex:items>
+  </ex:SubClass>
+</exml:component>

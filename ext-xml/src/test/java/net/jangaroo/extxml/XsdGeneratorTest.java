@@ -150,6 +150,25 @@ public class XsdGeneratorTest {
     createDom(suite, "/generateSchemaTests/ClassWithInheritence.exml");
   }
 
+  @Test
+  public void ignoreDuplicateInheritedProperties() throws Exception {
+    ComponentSuite suite = new ComponentSuite();
+    suite.setNamespace("com.coremedia.examples");
+    suite.setNs("cm");
+
+    ComponentClass clazz = new ComponentClass("TestClass", "com.coremedia.examples.TestClass");
+    clazz.addCfg(new ConfigAttribute("simpleType","Boolean"));
+    clazz.addCfg(new ConfigAttribute("items","Array","adsfasdfasdf"));
+    suite.addComponentClass(clazz);
+
+    ComponentClass subclass = new ComponentClass("SubClass", "com.coremedia.examples.SubClass");
+    subclass.setSuperClassName("com.coremedia.examples.TestClass");
+    subclass.addCfg(new ConfigAttribute("simpleType","Boolean"));
+    suite.addComponentClass(subclass);
+
+    createDom(suite, "/generateSchemaTests/IgnoreDuplicateInheritedProperties.exml");
+  }
+
   private Document createDom(ComponentSuite suite, String path) throws Exception {
     XsdGenerator generator = new XsdGenerator(suite, new StandardOutErrorHandler());
     StringWriter writer = new StringWriter();

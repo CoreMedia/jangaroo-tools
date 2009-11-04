@@ -22,7 +22,7 @@ import java.io.Writer;
 /**
  * Generates ActionScriptClasses out of xml components.
  */
-public class JooClassGenerator {
+public final class JooClassGenerator {
 
   private static final FileNameMapper XML_TO_JS_MAPPER = new GlobPatternMapper();
 
@@ -53,10 +53,6 @@ public class JooClassGenerator {
 
   private boolean validateComponentClass(ComponentClass jooClass) {
     boolean isValid = true;
-    if (jooClass.getPackageName() == null) {
-      errorHandler.error(String.format("Package name of component '%s' is undefined!", jooClass.getFullClassName()));
-      isValid = false;
-    }
 
     if (StringUtils.isEmpty(jooClass.getXtype())) {
       errorHandler.error(String.format("Xtype of component '%s' is undefined!", jooClass.getFullClassName()));
