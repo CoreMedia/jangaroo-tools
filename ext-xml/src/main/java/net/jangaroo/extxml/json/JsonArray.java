@@ -1,9 +1,10 @@
 package net.jangaroo.extxml.json;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class JsonArray implements Json {
-  ArrayList<Object> items = new ArrayList<Object>();
+  private List<Object> items = new ArrayList<Object>();
 
   public String toString() {
     return items.toString();

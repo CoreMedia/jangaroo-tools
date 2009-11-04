@@ -3,12 +3,15 @@ package net.jangaroo.extxml.json;
 import net.jangaroo.extxml.ComponentClass;
 import net.jangaroo.extxml.ComponentSuiteRegistry;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class JsonObject implements Json {
-  public HashMap<String, Object> properties = new LinkedHashMap<String, Object>();
+  private Map<String, Object> properties = new LinkedHashMap<String, Object>();
+
+  public boolean isEmpty() {
+    return properties.isEmpty();
+  }
 
   @Override
   public String toString() {

@@ -11,7 +11,7 @@ import java.io.Writer;
 /**
  * An XsdGenerator takes a {@link ComponentSuite} and (re)generates its XML Schema (.xsd) file.
  */
-public class XsdGenerator {
+public final class XsdGenerator {
 
   private static Configuration cfg = new Configuration();
   static {

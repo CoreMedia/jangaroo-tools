@@ -10,7 +10,7 @@ import java.io.IOException;
  * The FileScanner scans a directory for all *.as, *.js and *.exml files that contain Ext annotations and builds a
  * {@link net.jangaroo.extxml.ComponentSuite} from all Ext JS component classes.
  */
-public class SrcFileScanner {
+public final class SrcFileScanner {
 
   private ComponentSuite componentSuite;
 

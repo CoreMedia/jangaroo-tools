@@ -14,10 +14,10 @@ import java.io.InputStream;
 /**
  * An XsdScanner parses an Ext XML component declaration schema into a {@link ComponentSuite}.
  */
-public class XsdScanner {
+public final class XsdScanner {
   private static final String XML_SCHEMA_URL = "http://www.w3.org/2001/XMLSchema";
 
-  DocumentBuilder builder = null;
+  private DocumentBuilder builder = null;
 
   public XsdScanner() {
     DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();

@@ -12,7 +12,11 @@ import java.util.List;
 /**
  * A FileScanner to read Ext JS component classes (JavaScript or ActionScript or XML) into a {@link ComponentSuite}.
  */
-public class ExtComponentSrcFileScanner {
+public final class ExtComponentSrcFileScanner {
+
+  private ExtComponentSrcFileScanner() {
+    //hide the constructor  
+  }
 
   public static void scan(ComponentSuite componentSuite, File srcFile) throws IOException {
     State state = new State(componentSuite, srcFile);
@@ -77,7 +81,7 @@ public class ExtComponentSrcFileScanner {
     }
   };
 
-  private static FileScanner<State> EXT_COMPONENT_AS_FILE_SCANNER = new FileScanner<State>()
+  private final static FileScanner<State> EXT_COMPONENT_AS_FILE_SCANNER = new FileScanner<State>()
       .add(new Rule<State>("^\\s*package\\s+([\\p{Alnum}$_.]+)") {
         public void matched(State state, List<String> groups) {
           state.cc.setFullClassName(groups.get(0) + "." + state.cc.getClassName());
@@ -110,7 +114,7 @@ public class ExtComponentSrcFileScanner {
       .add(COMMENT_RULE)
     ;
 
-  private static FileScanner<State> EXT_COMPONENT_SRC_FILE_SCANNER = new FileScanner<State>()
+  private final static FileScanner<State> EXT_COMPONENT_SRC_FILE_SCANNER = new FileScanner<State>()
       .add(new Rule<State>("@class\\s+([\\p{Alnum}$_.]+)") {
         public void matched(State state, List<String> groups) {
           state.addClass(groups.get(0));

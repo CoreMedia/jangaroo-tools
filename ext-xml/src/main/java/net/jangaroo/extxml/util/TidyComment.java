@@ -16,8 +16,12 @@ import java.io.UnsupportedEncodingException;
 /**
  * A helper class to convert HTML-style comments into well-formed XHTML.
  */
-public class TidyComment {
+public final class TidyComment {
   private static final Tidy tidy;
+
+  private TidyComment() {
+    
+  }
 
   static {
     tidy = new Tidy();
@@ -37,10 +41,10 @@ public class TidyComment {
   }
 
   public static String tidy(String dirtyHtml) {
-    dirtyHtml = "<html><body>"+dirtyHtml+"</body></html>";
+    String wrappedHtml = "<html><body>"+dirtyHtml+"</body></html>";
     StringWriter result = new StringWriter();
     try {
-      Document document = tidy.parseDOM(new ByteArrayInputStream(dirtyHtml.getBytes("ISO-8859-1")), null);
+      Document document = tidy.parseDOM(new ByteArrayInputStream(wrappedHtml.getBytes("ISO-8859-1")), null);
       DOMSource domSource = new DOMSource(document.getDocumentElement());
       Transformer serializer = TransformerFactory.newInstance().newTransformer();
       serializer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");

@@ -11,7 +11,7 @@ import java.util.Map;
  * caches it for later access.
  * This class, more precise method {@link #getComponentSuite}, is not thread-safe!
  */
-public class ComponentSuiteRegistry {
+public final class ComponentSuiteRegistry {
 
   private static final ComponentSuiteResolver NO_COMPONENT_SUITE_RESOLVER = new ComponentSuiteResolver() {
     public InputStream resolveComponentSuite(String namespaceUri) throws IOException {

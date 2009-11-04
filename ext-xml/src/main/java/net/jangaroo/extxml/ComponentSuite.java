@@ -34,8 +34,9 @@ public final class ComponentSuite {
 
 
   public void addImportedComponentSuite(ComponentSuite importedSuite) {
-    if(importedSuite != null)
+    if(importedSuite != null) {
       ComponentSuiteRegistry.getInstance().add(importedSuite);
+    }
   }
 
   public Map<String, ComponentSuite> getUsedComponentSuitesByNs() {
@@ -152,24 +153,23 @@ public final class ComponentSuite {
     }
     ComponentSuite importedComponentSuite = componentClass.getSuite();
     if (importedComponentSuite!=this && !usedComponentSuites.containsValue(importedComponentSuite)) {
-      String ns = importedComponentSuite.getNs();
-      if (ns == null || ns.length() == 0 || usedComponentSuites.containsKey(ns)) {
+      String suiteNs = importedComponentSuite.getNs();
+      if (suiteNs == null || suiteNs.length() == 0 || usedComponentSuites.containsKey(suiteNs)) {
         // create a new unique prefix:
         int index = 1;
-        while (usedComponentSuites.containsKey(ns = "cs" + index)) {
+        while (usedComponentSuites.containsKey(suiteNs = "cs" + index)) {
           ++index;
         }
-        importedComponentSuite.setNs(ns);
+        importedComponentSuite.setNs(suiteNs);
       }
-      usedComponentSuites.put(ns, importedComponentSuite);
+      usedComponentSuites.put(suiteNs, importedComponentSuite);
     }
   }
 
   void resolveSuperClasses() {
     for (ComponentClass cc : getComponentClasses()) {
       if (cc.getSuperClass() == null && cc.getSuperClassName() != null) {
-        // TODO: use errorHandler to issue warning!
-        System.err.println("WARNING: Super component class '" + cc.getSuperClassName() + "' not found.");
+        ComponentSuiteRegistry.getInstance().getErrorHandler().warning("Super component class '" + cc.getSuperClassName() + "' not found.");
       }
     }
   }

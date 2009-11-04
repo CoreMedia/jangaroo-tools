@@ -32,7 +32,7 @@ public final class XmlToJsonHandler implements ContentHandler {
 
   private Set<String> imports = new LinkedHashSet<String>();
   private String componentDescription = "";
-  private ArrayList<ConfigAttribute> cfgs = new ArrayList<ConfigAttribute>();
+  private List<ConfigAttribute> cfgs = new ArrayList<ConfigAttribute>();
 
   private ErrorHandler errorHandler;
 
@@ -40,8 +40,8 @@ public final class XmlToJsonHandler implements ContentHandler {
 
   private NumberFormat nf = NumberFormat.getNumberInstance(Locale.US);
 
-  Stack<net.jangaroo.extxml.json.Json> objects = new Stack<Json>();
-  Stack<String> attributes = new Stack<String>();
+  private Stack<net.jangaroo.extxml.json.Json> objects = new Stack<Json>();
+  private Stack<String> attributes = new Stack<String>();
 
   //stores all characters
   private StringBuffer characterStack;
@@ -135,7 +135,7 @@ public final class XmlToJsonHandler implements ContentHandler {
       } else {
         assert parentJson != null;
         addAttributeToStack(localName);
-        if (!jsonObject.properties.isEmpty()) {
+        if (!jsonObject.isEmpty()) {
           parentJson.set(localName, jsonObject);
           addObjectToStack(jsonObject);
         }
@@ -201,7 +201,7 @@ public final class XmlToJsonHandler implements ContentHandler {
   }
 
   private JsonObject createJsonObject(Attributes atts) {
-    JsonObject result = new JsonObject();
+    JsonObject newJsonObject = new JsonObject();
     for (int i = 0; i < atts.getLength(); i++) {
       String attsValue = atts.getValue(i);
       Object typedValue;
@@ -217,9 +217,9 @@ public final class XmlToJsonHandler implements ContentHandler {
       } else {
         typedValue = attsValue;
       }
-      result.properties.put(atts.getLocalName(i), typedValue);
+      newJsonObject.set(atts.getLocalName(i), typedValue);
     }
-    return result;
+    return newJsonObject;
   }
 
   /**

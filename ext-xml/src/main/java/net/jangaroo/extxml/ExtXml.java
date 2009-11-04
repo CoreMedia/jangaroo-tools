@@ -45,7 +45,12 @@ import java.io.Writer;
  * an element, type and super type for each component, and an attribute for each configuration parameter.
  * </ul>
  */
-public class ExtXml {
+public final class ExtXml {
+
+  private ExtXml () {
+
+  }
+
   public static void main(String[] args) throws IOException {
 
     StandardOutErrorHandler errorHandler = new StandardOutErrorHandler();
