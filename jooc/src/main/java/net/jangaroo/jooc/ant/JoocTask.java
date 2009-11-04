@@ -163,12 +163,12 @@ public class JoocTask extends MatchingTask {
     // scan source directories and dest directory to build up
     // compile lists
     String[] list = src.list();
-    for (int i = 0; i < list.length; i++) {
-      File srcDir = getProject().resolveFile(list[i]);
+    for (String aList : list) {
+      File srcDir = getProject().resolveFile(aList);
       if (!srcDir.exists()) {
         throw new BuildException("srcdir \""
-                + srcDir.getPath()
-                + "\" does not exist!", getLocation());
+            + srcDir.getPath()
+            + "\" does not exist!", getLocation());
       }
       DirectoryScanner ds = this.getDirectoryScanner(srcDir);
       String[] files = ds.getIncludedFiles();
@@ -252,8 +252,7 @@ public class JoocTask extends MatchingTask {
       if (verbose) {
         StringBuffer cmdLine = new StringBuffer(100);
         cmdLine.append("jooc ");
-        for (int i = 0; i < joocArgs.length; i++) {
-          String joocArg = joocArgs[i];
+        for (String joocArg : joocArgs) {
           cmdLine.append(" ");
           cmdLine.append(joocArg);
         }
@@ -270,7 +269,7 @@ public class JoocTask extends MatchingTask {
   }
 
   protected String[] getJoocArgs() {
-    Vector args = new Vector(compileList.length + 10);
+    Vector<String> args = new Vector<String>(compileList.length + 10);
     if (debug) {
       args.add("-g");
       if (debugLevel != null) {
@@ -286,10 +285,10 @@ public class JoocTask extends MatchingTask {
       args.add("-d");
       args.add(destDir.getAbsolutePath());
     }
-    for (int i = 0; i < compileList.length; i++) {
-      String filename = compileList[i].getAbsolutePath();
+    for (File aCompileList : compileList) {
+      String filename = aCompileList.getAbsolutePath();
       args.add(filename);
     }
-    return (String[]) args.toArray(new String[args.size()]);
+    return args.toArray(new String[args.size()]);
   }
 }
