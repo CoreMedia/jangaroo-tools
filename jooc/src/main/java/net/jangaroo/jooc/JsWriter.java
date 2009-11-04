@@ -66,15 +66,16 @@ public final class JsWriter extends FilterWriter {
   }
 
   public void writeInt(int value) throws IOException {
-    if (shouldWrite())
+    if (shouldWrite()) {
       write(String.valueOf(value));
+    }
   }
 
   public void writeString(String value) throws IOException {
     if (shouldWrite()) {
-      if (value == null)
+      if (value == null) {
         write("null");
-      else {
+      } else {
         stringLiteralWriter.beginString();
         stringLiteralWriter.write(value);
         stringLiteralWriter.endString();
@@ -83,8 +84,9 @@ public final class JsWriter extends FilterWriter {
   }
 
   public void writeDate(Date value) throws IOException {
-    if (shouldWrite())
+    if (shouldWrite()) {
       writeString("new Date(" + value.getTime() + ")");
+    }
   }
 
   public void writeDate(Calendar value) throws IOException {
@@ -93,17 +95,17 @@ public final class JsWriter extends FilterWriter {
 
   public void writeObject(Object o) throws IOException {
     if (shouldWrite()) {
-      if (o instanceof String)
+      if (o instanceof String) {
         writeString((String) o);
-      else if (o instanceof Integer)
+      } else if (o instanceof Integer) {
         writeInt((Integer) o);
-      else if (o instanceof Date)
+      } else if (o instanceof Date) {
         writeDate((Date) o);
-      else if (o instanceof Calendar)
+      } else if (o instanceof Calendar) {
         writeDate((Calendar) o);
-      else if (o instanceof Object[])
+      } else if (o instanceof Object[]) {
         writeArray((Object[]) o);
-      else {
+      } else {
         throw new IOException(this.getClass().getName() + ": cannot write object: " + o.getClass().getName());
       }
     }
@@ -138,8 +140,9 @@ public final class JsWriter extends FilterWriter {
       write("[");
       int n = items.length;
       for (int i = 0; i < n; i++) {
-        if (i > 0)
+        if (i > 0) {
           write(',');
+        }
         writeObject(items[i]);
       }
       write("]");
@@ -206,21 +209,21 @@ public final class JsWriter extends FilterWriter {
   }
 
   private void writeLinesInsideString(String ws) throws IOException {
-    String[] lines = ws.split("\n",-1);
-    for (int i = 0; i < lines.length-1; i++) {
+    String[] lines = ws.split("\n", -1);
+    for (int i = 0; i < lines.length - 1; i++) {
       String line = lines[i];
-      if (line.length()>1) {
+      if (line.length() > 1) {
         checkOpenString();
-        write(line.substring(0,line.length()-1));
+        write(line.substring(0, line.length() - 1));
         write("\\n");
       }
-      if(checkCloseString()) {
+      if (checkCloseString()) {
         write("+");
       }
       write("\n");
     }
     String line = lines[lines.length - 1];
-    if (line.length()>0) {
+    if (line.length() > 0) {
       checkOpenString();
       write(line);
     }
@@ -234,9 +237,9 @@ public final class JsWriter extends FilterWriter {
       } else {
         write(ws);
       }
-    }
-    else if (getKeepLines())
+    } else if (getKeepLines()) {
       writeLines(ws);
+    }
   }
 
   protected void writeLines(String s) throws IOException {
@@ -244,24 +247,25 @@ public final class JsWriter extends FilterWriter {
   }
 
   protected void writeLines(String s, int off, int len) throws IOException {
-     int pos = off;
-     while ((pos = s.indexOf('\n', pos)+1) > 0 && pos < off+len+1) {
-       if (inString) {
-         write("\\n");
-         checkCloseString();
-         write('+');
-       }
-       write('\n');
-     }
+    int pos = off;
+    while ((pos = s.indexOf('\n', pos) + 1) > 0 && pos < off + len + 1) {
+      if (inString) {
+        write("\\n");
+        checkCloseString();
+        write('+');
+      }
+      write('\n');
+    }
   }
 
   public void writeToken(String token) throws IOException {
     if (shouldWrite()) {
       char firstSymbolChar = token.charAt(0);
       if ((isIdeChar(lastChar) && isIdeChar(firstSymbolChar)) ||
-            (lastChar == firstSymbolChar && "=><!&|+-*/&|^%".indexOf(lastChar) >= 0) ||
-            (firstSymbolChar == '=' && "=><!&|+-*/&|^%".indexOf(lastChar) >= 0))
+          (lastChar == firstSymbolChar && "=><!&|+-*/&|^%".indexOf(lastChar) >= 0) ||
+          (firstSymbolChar == '=' && "=><!&|+-*/&|^%".indexOf(lastChar) >= 0)) {
         write(' ');
+      }
       checkOpenString();
       write(token);
     }
@@ -276,15 +280,17 @@ public final class JsWriter extends FilterWriter {
   }
 
   public void writeSymbol(JooSymbol symbol, boolean withWhitespace) throws IOException {
-    if (withWhitespace)
+    if (withWhitespace) {
       writeSymbolWhitespace(symbol);
+    }
     writeSymbolToken(symbol);
   }
 
   /**
    * Variant of writeSymbol() to use if you want to transform the symbol text with a prefix and/or postfix string
-   * @param symbol the symbol to write
-   * @param prefix a (possibly empty) string to write before the symbol token string
+   *
+   * @param symbol  the symbol to write
+   * @param prefix  a (possibly empty) string to write before the symbol token string
    * @param postfix a (possibly empty) string to write after the symbol token string
    */
   public void writeSymbol(JooSymbol symbol, String prefix, String postfix) throws IOException {
@@ -298,10 +304,11 @@ public final class JsWriter extends FilterWriter {
 
   public void write(int c) throws IOException {
     if ((getKeepLines() && c == '\n') || shouldWrite()) {
-      if (lastChar == '*' && c == '/')
+      if (lastChar == '*' && c == '/') {
         super.write(' ');
+      }
       super.write(c);
-      lastChar = (char)c;
+      lastChar = (char) c;
     }
   }
 
@@ -310,16 +317,16 @@ public final class JsWriter extends FilterWriter {
       if (shouldWrite()) {
         if (inComment) {
           for (int i = 0; i < len; i++) {
-            char c = cbuf[off+i];
+            char c = cbuf[off + i];
             write(c);
           }
-        } else
+        } else {
           super.write(cbuf, off, len);
-        lastChar = cbuf[off+len-1];
-      }
-      else if (getKeepLines()) {
+        }
+        lastChar = cbuf[off + len - 1];
+      } else if (getKeepLines()) {
         for (int i = 0; i < len; i++) {
-          char c = cbuf[off+i];
+          char c = cbuf[off + i];
           if (c == '\n') {
             super.write(c);
             lastChar = c;
@@ -334,22 +341,25 @@ public final class JsWriter extends FilterWriter {
       if (shouldWrite()) {
         if (inComment) {
           for (int i = 0; i < len; i++) {
-           char c = str.charAt(off+i);
+            char c = str.charAt(off + i);
             write(c);
           }
-        } else
+        } else {
           super.write(str, off, len);
-        lastChar = str.charAt(off+len-1);
-      } else if (getKeepLines())
+        }
+        lastChar = str.charAt(off + len - 1);
+      } else if (getKeepLines()) {
         writeLines(str, off, len);
+      }
     }
   }
 
   private static String qualifiedNameToIde(String[] qn) {
     StringBuffer result = new StringBuffer(20);
     for (int i = 0; i < qn.length; i++) {
-      if (i > 0)
+      if (i > 0) {
         result.append('$');
+      }
       result.append(qn[i]);
     }
     return result.toString();
@@ -372,7 +382,7 @@ public final class JsWriter extends FilterWriter {
   public String getFunctionNameAsIde(FunctionExpr functionExpr) {
     IdeDeclaration classDeclaration = functionExpr.getParentDeclaration();
     String classNameAsIde = "";
-    if (classDeclaration!=null) {
+    if (classDeclaration != null) {
       classNameAsIde = getQualifiedNameAsIde(classDeclaration);
     }
     JooSymbol sym = functionExpr.getSymbol();
@@ -397,7 +407,7 @@ public final class JsWriter extends FilterWriter {
 
   public String getSuperConstructorNameAsIde(ClassDeclaration classDeclaration) {
     MethodDeclaration constructorDeclaration = classDeclaration.getConstructorDeclaration();
-    String superClassName= getSuperClassNameAsIde(constructorDeclaration.getClassDeclaration());
+    String superClassName = getSuperClassNameAsIde(constructorDeclaration.getClassDeclaration());
     return "super$" + superClassName;
   }
 
@@ -409,13 +419,14 @@ public final class JsWriter extends FilterWriter {
   public String getPrototypeHelperVariableName(ClassDeclaration classDeclaration) {
     return "$";
   }
+
   public String getConstructorHelperVariableName(ClassDeclaration classDeclaration) {
     return "$";
   }
 
   public void close() throws IOException {
     shouldWrite(); // will close comments
-    Debug.assertTrue(nOpenBeginComments == 0, ""+ nOpenBeginComments + " endComment() missing");
+    Debug.assertTrue(nOpenBeginComments == 0, "" + nOpenBeginComments + " endComment() missing");
     super.close();
   }
 }
