@@ -1,11 +1,15 @@
 package net.jangaroo.jooc.backend;
 
-import net.jangaroo.jooc.*;
+import net.jangaroo.jooc.CodeGenerator;
+import net.jangaroo.jooc.IdeDeclaration;
+import net.jangaroo.jooc.Jooc;
+import net.jangaroo.jooc.JsWriter;
+import net.jangaroo.jooc.PackageDeclaration;
 import net.jangaroo.jooc.config.JoocOptions;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.FileWriter;
+import java.io.IOException;
 
 /**
  * Compilation unit sink factory for one compilation unit per output file.
@@ -29,32 +33,35 @@ public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUni
       result = sourceFile.getAbsoluteFile().getParentFile().getAbsolutePath();
     } else {
       result = getOutputDir().getAbsolutePath();
+      StringBuffer buffy = new StringBuffer(result);
       for (String aPackageName : packageName) {
-        result += File.separator;
-        result += aPackageName;
+        buffy.append(File.separator);
+        buffy.append(aPackageName);
       }
+      result = buffy.toString();
     }
     result += File.separator;
     result += sourceFile.getName();
     int dotpos = result.lastIndexOf('.');
-    if (dotpos >= 0)
+    if (dotpos >= 0) {
       result = result.substring(0, dotpos);
+    }
     result += suffix;
     return result;
   }
 
   public CompilationUnitSink createSink(PackageDeclaration packageDeclaration,
-                               IdeDeclaration primaryDeclaration, File sourceFile,
-                               final boolean verbose) {
+                                        IdeDeclaration primaryDeclaration, File sourceFile,
+                                        final boolean verbose) {
     final File outFile = getOutputFile(sourceFile, packageDeclaration.getQualifiedName());
     String fileName = outFile.getName();
     String classPart = fileName.substring(0, fileName.lastIndexOf('.'));
 
     String className = primaryDeclaration.getName();
-    if (!classPart.equals(className))
+    if (!classPart.equals(className)) {
       Jooc.warning(primaryDeclaration.getSymbol(),
-       "class name should be equal to file name: expected " + classPart + ", found " + className);
-
+          "class name should be equal to file name: expected " + classPart + ", found " + className);
+    }
     createOutputDirs(outFile);
 
     return new CompilationUnitSink() {

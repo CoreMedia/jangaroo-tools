@@ -290,6 +290,6 @@ public class JoocTask extends MatchingTask {
       String filename = compileList[i].getAbsolutePath();
       args.add(filename);
     }
-    return (String[]) args.toArray(new String[0]);
+    return (String[]) args.toArray(new String[args.size()]);
   }
 }
