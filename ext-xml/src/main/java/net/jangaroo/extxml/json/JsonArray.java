@@ -10,26 +10,46 @@ public class JsonArray implements Json {
     return items.toString();
   }
 
-  public String toJsonString(String spaces) {
-    StringBuffer bf = new StringBuffer();
-    bf.append("[\n");
-    bf.append(spaces);
-    boolean first = true;
-    for (Object item : items) {
-      if (!first) {
-        bf.append(",\n");
-        bf.append(spaces);
-      }
-      if (item instanceof JsonObject) {
-        bf.append(((JsonObject) item).toJsonString("  " + spaces, null));
-      } else {
-        bf.append(item.toString());
-      }
-      first = false;
+  /**
+   * Make a prettyprinted JSON text of this JSONArray.
+   * Warning: This method assumes that the data structure is acyclical.
+   *
+   * @param indentFactor The number of spaces to add to each level of
+   *                     indentation.
+   * @param indent       The indention of the top level.
+   * @return a printable, displayable, transmittable
+   *         representation of the array.
+   */
+  String toString(int indentFactor, int indent){
+    int len = items.size();
+    if (len == 0) {
+      return "[]";
     }
-    bf.append("]");
-    return bf.toString();
+    int i;
+    StringBuffer sb = new StringBuffer("[");
+    if (len == 1) {
+      sb.append(JsonObject.valueToString(null, this.items.get(0), indentFactor, indent));
+    } else {
+      int newindent = indent + indentFactor;
+      sb.append('\n');
+      for (i = 0; i < len; i += 1) {
+        if (i > 0) {
+          sb.append(",\n");
+        }
+        for (int j = 0; j < newindent; j += 1) {
+          sb.append(' ');
+        }
+        sb.append(JsonObject.valueToString(null, this.items.get(i),indentFactor, newindent));
+      }
+      sb.append('\n');
+      for (i = 0; i < indent; i += 1) {
+        sb.append(' ');
+      }
+    }
+    sb.append(']');
+    return sb.toString();
   }
+
 
   public Object get(String property) {
     return items.get(Integer.parseInt(property));
