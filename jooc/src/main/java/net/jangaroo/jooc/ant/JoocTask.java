@@ -256,7 +256,7 @@ public class JoocTask extends MatchingTask {
           cmdLine.append(" ");
           cmdLine.append(joocArg);
         }
-        project.log(cmdLine.toString());
+        getProject().log(cmdLine.toString());
       }
       if (jooc.run(joocArgs) != 0) {
         if (failOnError) {

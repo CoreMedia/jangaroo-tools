@@ -57,7 +57,7 @@ class TopLevelIdeExpr extends IdeExpr {
 
   @Override
   public void generateCode(JsWriter out) throws IOException {
-    if (addThis(out.options)) {
+    if (addThis(out.getOptions())) {
       synthesizedDotExpr.generateCode(out);
     } else {
       super.generateCode(out);

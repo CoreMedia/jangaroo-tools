@@ -26,15 +26,15 @@ import java.util.Date;
 /**
  * @author Andreas Gawecki
  */
-public class JsWriter extends FilterWriter {
+public final class JsWriter extends FilterWriter {
 
-  JsStringLiteralWriter stringLiteralWriter;
-  JoocOptions options;
-  boolean inComment = false;
-  int nOpenBeginComments = 0;
-  char lastChar = ' ';
-  boolean inString = false;
-  int nOpenStrings = 0;
+  private JsStringLiteralWriter stringLiteralWriter;
+  private JoocOptions options;
+  private boolean inComment = false;
+  private int nOpenBeginComments = 0;
+  private char lastChar = ' ';
+  private boolean inString = false;
+  private int nOpenStrings = 0;
 
   public JsWriter(Writer target) {
     super(target);
@@ -43,6 +43,10 @@ public class JsWriter extends FilterWriter {
 
   public void setOptions(JoocOptions options) {
     this.options = options;
+  }
+
+  public JoocOptions getOptions() {
+    return options;
   }
 
   public boolean getKeepSource() {
@@ -92,7 +96,7 @@ public class JsWriter extends FilterWriter {
       if (o instanceof String)
         writeString((String) o);
       else if (o instanceof Integer)
-        writeInt(((Integer) o).intValue());
+        writeInt((Integer) o);
       else if (o instanceof Date)
         writeDate((Date) o);
       else if (o instanceof Calendar)
@@ -253,21 +257,18 @@ public class JsWriter extends FilterWriter {
 
   public void writeToken(String token) throws IOException {
     if (shouldWrite()) {
-      String text = token;
-      char firstSymbolChar = text.charAt(0);
+      char firstSymbolChar = token.charAt(0);
       if ((isIdeChar(lastChar) && isIdeChar(firstSymbolChar)) ||
             (lastChar == firstSymbolChar && "=><!&|+-*/&|^%".indexOf(lastChar) >= 0) ||
             (firstSymbolChar == '=' && "=><!&|+-*/&|^%".indexOf(lastChar) >= 0))
         write(' ');
       checkOpenString();
-      write(text);
+      write(token);
     }
   }
 
   private boolean isIdeChar(final char ch) {
-    if (ch == '$' || ch == '_')
-      return true;
-    return Character.isLetterOrDigit(ch); // this logic must be in line with the Scanner Ide pattern
+    return ch == '$' || ch == '_' || Character.isLetterOrDigit(ch);
   }
 
   public void writeSymbol(JooSymbol symbol) throws IOException {

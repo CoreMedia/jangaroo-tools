@@ -36,7 +36,7 @@ class ApplyExpr extends Expr {
 
   public void generateCode(JsWriter out) throws IOException {
     // leave out constructor function if called as type cast function!
-    if (isTypeCast(out.options)) {
+    if (isTypeCast(out.getOptions())) {
       out.beginComment();
       fun.generateCode(out);
       out.endComment();
