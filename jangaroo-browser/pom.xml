@@ -3,13 +3,13 @@
   <parent>
     <artifactId>jangaroo-tools</artifactId>
     <groupId>net.jangaroo</groupId>
-    <version>0.3.19-SNAPSHOT</version>
+    <version>0.3.19</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>net.jangaroo</groupId>
   <artifactId>jangaroo-browser</artifactId>
   <name>Joo Browser Compat. Lib</name>
-  <version>0.3.19-SNAPSHOT</version>
+  <version>0.3.19</version>
   <packaging>pom</packaging>
   <build>
 
@@ -105,12 +105,12 @@
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-runtime</artifactId>
-      <version>0.3.19-SNAPSHOT</version>
+      <version>0.3.19</version>
     </dependency>
     <dependency> <!-- should have jangaroo reference but cannot have!-->
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-runtime</artifactId>
-      <version>0.3.19-SNAPSHOT</version>
+      <version>0.3.19</version>
       <type>jangaroo</type>
       <scope>runtime</scope>
     </dependency>
@@ -118,7 +118,7 @@
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-compiler</artifactId>
-      <version>0.3.19-SNAPSHOT</version>
+      <version>0.3.19</version>
     </dependency>
   </dependencies>
 </project>
