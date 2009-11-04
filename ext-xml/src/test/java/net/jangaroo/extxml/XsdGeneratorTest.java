@@ -128,6 +128,28 @@ public class XsdGeneratorTest {
     createDom(suite, "/generateSchemaTests/SimpleSuite.exml");
   }
 
+  @Test
+  public void classWithInheritence() throws Exception {
+    ComponentSuite suite = new ComponentSuite();
+    suite.setNamespace("com.coremedia.examples");
+    suite.setNs("cm");
+
+    ComponentClass clazz = new ComponentClass("TestClass", "com.coremedia.examples.TestClass");
+    clazz.addCfg(new ConfigAttribute("simpleFloat","Float"));
+    clazz.addCfg(new ConfigAttribute("simpleTypeWithDescription","Number","dlfjasdlfj adlsjf adsj foijd ofj \naksldjfklasj"));
+    clazz.addCfg(new ConfigAttribute("simpleObject","Object"));
+    clazz.addCfg(new ConfigAttribute("simpleArray","Array","adsfasdfasdf"));
+    suite.addComponentClass(clazz);
+
+    ComponentClass subclass = new ComponentClass("SubClass", "com.coremedia.examples.SubClass");
+    subclass.setSuperClassName("com.coremedia.examples.TestClass");
+    subclass.addCfg(new ConfigAttribute("simpleType","Boolean"));
+    subclass.addCfg(new ConfigAttribute("items","Array","adsfasdfasdf"));
+    suite.addComponentClass(subclass);    
+
+    createDom(suite, "/generateSchemaTests/ClassWithInheritence.exml");
+  }
+
   private Document createDom(ComponentSuite suite, String path) throws Exception {
     XsdGenerator generator = new XsdGenerator(suite, new StandardOutErrorHandler());
     StringWriter writer = new StringWriter();

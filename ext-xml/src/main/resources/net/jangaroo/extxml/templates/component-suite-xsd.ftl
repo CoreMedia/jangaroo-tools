@@ -10,14 +10,14 @@
     <xs:complexContent>
       <xs:extension base='${componentClass.superClass.xsType}'>
     </#if>
-        <xs:all>
+        <xs:choice>
           <#list componentClass.directCfgs as cfg>
           <#if cfg.sequence || cfg.object>
             <xs:element name='${cfg.name}' minOccurs="0" maxOccurs="1">
               <#if cfg.description??>
               <xs:annotation>
                 <xs:documentation>
-    ${cfg.description}
+                ${cfg.description}
                 </xs:documentation>
               </xs:annotation>
               </#if>
@@ -40,13 +40,13 @@
             </xs:element>
           </#if>
           </#list>
-        </xs:all>
+        </xs:choice>
         <#list componentClass.directCfgs as cfg>
         <xs:attribute type='xs:${cfg.xsType}' name='${cfg.name}'>
           <#if cfg.description??>
           <xs:annotation>
             <xs:documentation>
-${cfg.description}
+            ${cfg.description}
             </xs:documentation>
           </xs:annotation>
           </#if>
