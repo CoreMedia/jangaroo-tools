@@ -44,7 +44,9 @@ public final class JooClassGenerator {
       Configuration cfg = new Configuration();
       cfg.setClassForTemplateLoading(ComponentClass.class, "/");
       cfg.setObjectWrapper(new DefaultObjectWrapper());
-
+      if(jooClass.getJson() != null) {
+        cfg.setSharedVariable("jsonForTemplate", jooClass.getJson().toString(2, 4));
+      }
       Template template = cfg.getTemplate("/net/jangaroo/extxml/templates/jangaroo_class.ftl");
 
       template.process(jooClass, output);
@@ -115,7 +117,7 @@ public final class JooClassGenerator {
         cc.setSuperClassName(handler.getSuperClassName());
         cc.setDescription(handler.getComponentDescription());
         cc.setImports(handler.getImports());
-        cc.setJson(handler.getJsonAsString());
+        cc.setJson(handler.getJson());
         cc.setCfgs(handler.getCfgs());
         File outputFile = new File(componentSuite.getAs3OutputDir(), XML_TO_JS_MAPPER.mapFileName(cc.getRelativeSrcFilePath()));
         //noinspection ResultOfMethodCallIgnored

@@ -158,7 +158,7 @@ public class JsonObject implements Json {
    *         with <code>{</code>&nbsp;<small>(left brace)</small> and ending
    *         with <code>}</code>&nbsp;<small>(right brace)</small>.
    */
-  String toString(int indentFactor, int indent) {
+  public String toString(int indentFactor, int indent) {
     int j;
     int n = properties.size();
     if (n == 0) {

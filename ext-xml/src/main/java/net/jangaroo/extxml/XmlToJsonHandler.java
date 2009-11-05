@@ -324,10 +324,10 @@ public final class XmlToJsonHandler implements ContentHandler {
     }
   }
 
-  public String getJsonAsString() {
+  public Json getJson() {
     if (result != null) {
       ((JsonObject) result).remove("xtype");
-      return ((JsonObject) result).toString(2);
+      return (result);
     } else {
       errorHandler.error("Xml Parser has no result.");
       return null;

@@ -1,5 +1,6 @@
 package net.jangaroo.extxml;
 
+import net.jangaroo.extxml.json.JsonObject;
 import org.junit.After;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -32,20 +33,35 @@ public class JooClassGeneratorTest{
 
   @Test
   public void testGenerateJangarooClass() throws Exception {
-    ComponentClass jooClazz = new ComponentClass(Collections.<String>emptyList(), "com.coremedia.test.TestClass","SuperClass","json");
+    ComponentClass jooClazz = new ComponentClass(Collections.<String>emptyList(), "com.coremedia.test.TestClass","SuperClass",null);
     jooClazz.setDescription("My Description");
     StringWriter writer = new StringWriter();
 
     jooClassGenerator.generateJangarooClass(jooClazz, writer);
     writer.flush();
     System.out.println(writer.toString());
-    assertEquals("package com.coremedia.test {import Ext;import ext.ComponentMgr;/** * My Description * * <b>Do not edit. this is an auto-generated class.</b> */public class TestClass extends SuperClass {  public static const xtype:String = \"com.coremedia.test.TestClass\";{  ext.ComponentMgr.registerType(xtype, TestClass);}  /**   *   * @see TestClass    */  public function TestClass(config:* = {}) {    super(Ext.apply(config, json));  }  public static function main(config:* = {}):void {    new com.coremedia.test.TestClass(config);  }}}",writer.toString().replaceAll("\r|\n",""));
+    assertEquals("package com.coremedia.test {import Ext;import ext.ComponentMgr;/** * My Description * * <b>Do not edit. this is an auto-generated class.</b> */public class TestClass extends SuperClass {  public static const xtype:String = \"com.coremedia.test.TestClass\";{  ext.ComponentMgr.registerType(xtype, TestClass);}  /**   *   * @see TestClass    */  public function TestClass(config:* = {}) {    super(Ext.apply(config, {}));  }  public static function main(config:* = {}):void {    new com.coremedia.test.TestClass(config);  }}}",writer.toString().replaceAll("\r|\n",""));
+    writer.close();
+  }
+
+  @Test
+  public void testGenerateJangarooClassWithJson() throws Exception {
+    JsonObject start = new JsonObject();
+    start.set("json", "{somestuff}");
+    ComponentClass jooClazz = new ComponentClass(Collections.<String>emptyList(), "com.coremedia.test.TestClass","SuperClass",start);
+    jooClazz.setDescription("My Description");
+    StringWriter writer = new StringWriter();
+
+    jooClassGenerator.generateJangarooClass(jooClazz, writer);
+    writer.flush();
+    System.out.println(writer.toString());
+    assertEquals("package com.coremedia.test {import Ext;import ext.ComponentMgr;/** * My Description * * <b>Do not edit. this is an auto-generated class.</b> */public class TestClass extends SuperClass {  public static const xtype:String = \"com.coremedia.test.TestClass\";{  ext.ComponentMgr.registerType(xtype, TestClass);}  /**   *   * @see TestClass    */  public function TestClass(config:* = {}) {    super(Ext.apply(config, {json: somestuff}));  }  public static function main(config:* = {}):void {    new com.coremedia.test.TestClass(config);  }}}",writer.toString().replaceAll("\r|\n",""));
     writer.close();
   }
 
   @Test
   public void testGenerateJangarooClassWithAttributes() throws Exception {
-    ComponentClass jooClazz = new ComponentClass(Collections.<String>emptyList(), "com.coremedia.test.TestClass","SuperClass","json");
+    ComponentClass jooClazz = new ComponentClass(Collections.<String>emptyList(), "com.coremedia.test.TestClass","SuperClass",null);
     jooClazz.addCfg(new ConfigAttribute("property", "Number"));
     jooClazz.addCfg(new ConfigAttribute("property2", "Number/String"));
     StringWriter writer = new StringWriter();
@@ -53,13 +69,13 @@ public class JooClassGeneratorTest{
     jooClassGenerator.generateJangarooClass(jooClazz, writer);
     writer.flush();
     System.out.println(writer.toString());
-    assertEquals("package com.coremedia.test {import Ext;import ext.ComponentMgr;/** *  * * <b>Do not edit. this is an auto-generated class.</b> */public class TestClass extends SuperClass {  public static const xtype:String = \"com.coremedia.test.TestClass\";{  ext.ComponentMgr.registerType(xtype, TestClass);}  /**   * @cfg {Number} property   * @cfg {String} property2   *   * @see TestClass    */  public function TestClass(config:* = {}) {    super(Ext.apply(config, json));  }  public static function main(config:* = {}):void {    new com.coremedia.test.TestClass(config);  }}}",writer.toString().replaceAll("\r|\n",""));
+    assertEquals("package com.coremedia.test {import Ext;import ext.ComponentMgr;/** *  * * <b>Do not edit. this is an auto-generated class.</b> */public class TestClass extends SuperClass {  public static const xtype:String = \"com.coremedia.test.TestClass\";{  ext.ComponentMgr.registerType(xtype, TestClass);}  /**   * @cfg {Number} property   * @cfg {String} property2   *   * @see TestClass    */  public function TestClass(config:* = {}) {    super(Ext.apply(config, {}));  }  public static function main(config:* = {}):void {    new com.coremedia.test.TestClass(config);  }}}",writer.toString().replaceAll("\r|\n",""));
     writer.close();
   }
 
   @Test
   public void classWithoutSuperClass() throws Exception {
-    ComponentClass jooClazz = new ComponentClass(Collections.<String>emptyList(), "com.coremedia.test.TestClass",null,"json");
+    ComponentClass jooClazz = new ComponentClass(Collections.<String>emptyList(), "com.coremedia.test.TestClass",null,null);
     StringWriter writer = new StringWriter();
     errorHandler.expectedErrorMessage = "Super class of component 'com.coremedia.test.TestClass' is undefined!";
     jooClassGenerator.generateJangarooClass(jooClazz, writer);
@@ -90,7 +106,7 @@ public class JooClassGeneratorTest{
     JooClassGenerator generator = new JooClassGenerator(suite, errorHandler);
     generator.generateClasses();
 
-    assertEquals("{title:\"Iaminsideapackage!\",items:{xtype:ext.form.Label.xtype}}",cc.getJson().replaceAll("\\s",""));
+    assertEquals("{title:\"Iaminsideapackage!\",items:{xtype:ext.form.Label.xtype}}",cc.getJson().toString(0,0).replaceAll("\\s",""));
     assertEquals("ext.Panel",cc.getSuperClassName());
 
     File result = new File(outDir, "testpackage/testPackage.as");

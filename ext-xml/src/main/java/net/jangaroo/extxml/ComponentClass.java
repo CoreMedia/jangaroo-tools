@@ -1,5 +1,7 @@
 package net.jangaroo.extxml;
 
+import net.jangaroo.extxml.json.Json;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -17,10 +19,10 @@ public final class ComponentClass extends DescriptionHolder {
   private String fullClassName;
   private String superClassName;
   private List<ConfigAttribute> cfgs = new ArrayList<ConfigAttribute>();
-  private String json;
+  private Json json;
   private ComponentType type;
 
-  public ComponentClass(List<String> imports, String fullClassName, String superClassName, String json) {
+  public ComponentClass(List<String> imports, String fullClassName, String superClassName, Json json) {
     this(fullClassName, fullClassName);
     this.imports = imports;
     this.superClassName = superClassName;
@@ -146,11 +148,11 @@ public final class ComponentClass extends DescriptionHolder {
     this.cfgs = cfgs;
   }
 
-  public String getJson() {
+  public Json getJson() {
     return json;
   }
 
-  public void setJson(String json) {
+  public void setJson(Json json) {
     this.json = json;
   }
 
@@ -161,6 +163,7 @@ public final class ComponentClass extends DescriptionHolder {
   public void setType(ComponentType type) {
     this.type = type;
   }
+
 
   @Override
   public String toString() {

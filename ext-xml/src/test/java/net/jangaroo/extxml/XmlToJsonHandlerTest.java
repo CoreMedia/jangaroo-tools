@@ -196,16 +196,16 @@ public class XmlToJsonHandlerTest {
   @Test
   public void testEmptyComponent() throws Exception {
     parseJson("/EmptyCompontent.exml");
-    String json = jsonHandler.getJsonAsString();
+    Json json = jsonHandler.getJson();
     assertNotNull(json);
     System.out.println(json);
-    assertEquals("{anchor:\"100%\",frame:true,collapsible:true,draggable:true,cls:\"x-portlet\"}", json.replaceAll("\\s",""));
+    assertEquals("{anchor:\"100%\",frame:true,collapsible:true,draggable:true,cls:\"x-portlet\"}", json.toString(0,0).replaceAll("\\s",""));
   }
 
   @Test
   public void testToJsonString() throws Exception {
     parseJson("/TestComponent.exml");
-    System.out.println(jsonHandler.getJsonAsString());
+    System.out.println(jsonHandler.getJson());
   }
 
   private void parseJson(String path) throws SAXException, IOException, URISyntaxException {

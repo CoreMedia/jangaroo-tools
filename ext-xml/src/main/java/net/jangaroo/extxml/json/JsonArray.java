@@ -20,7 +20,7 @@ public class JsonArray implements Json {
    * @return a printable, displayable, transmittable
    *         representation of the array.
    */
-  String toString(int indentFactor, int indent){
+  public String toString(int indentFactor, int indent){
     int len = items.size();
     if (len == 0) {
       return "[]";

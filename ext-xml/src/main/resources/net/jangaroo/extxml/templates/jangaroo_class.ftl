@@ -25,7 +25,7 @@ public class ${className} extends ${superClassName} {
    * @see ${className} 
    */
   public function ${className}(config:* = {}) {
-    super(Ext.apply(config, ${json}));
+    super(Ext.apply(config, ${jsonForTemplate!"{}"}));
   }
 
   public static function main(config:* = {}):void {
