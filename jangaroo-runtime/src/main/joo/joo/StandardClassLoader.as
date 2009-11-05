@@ -37,11 +37,12 @@ public class StandardClassLoader extends joo.SystemClassLoader {
     return cd;
   }
 
-  public function loadScript(uri : String) : void {
-    var script : * = window.document.createElement("script");
+  public function loadScript(uri : String) : Object {
+    var script : Object = window.document.createElement("script");
     script.type = "text/javascript";
-    window.document.body.appendChild(script);
+    window.document.getElementsByTagName("HEAD")[0].appendChild(script);
     script.src = uri;
+    return script;
   }
 
   /**

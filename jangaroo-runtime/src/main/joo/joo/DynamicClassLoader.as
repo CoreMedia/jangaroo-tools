@@ -34,10 +34,8 @@ public class DynamicClassLoader extends joo.StandardClassLoader {
   }
 
 
-  public var classLoadTimeoutMS : int = 0,
-             urlPrefix : String;
-  private var loadCheckTimer : *,
-              onCompleteCallbacks : Array/*<Function>*/ = [];
+  public var urlPrefix : String;
+  private var onCompleteCallbacks : Array/*<Function>*/ = [];
 
   /**
    * Keep record of all classes whose dependencies still have to be loaded.
@@ -59,10 +57,6 @@ public class DynamicClassLoader extends joo.StandardClassLoader {
       }
       if (this.onCompleteCallbacks.length) {
         this.loadPendingDependencies();
-        if (this.loadCheckTimer) {
-          window.clearTimeout(this.loadCheckTimer);
-          this.loadCheckTimer = undefined;
-        }
         if (isEmpty(this.pendingClassState)) {
           var onCompleteCallbacks : Array/*<Function>*/ = this.onCompleteCallbacks;
           this.onCompleteCallbacks = [];
@@ -71,24 +65,21 @@ public class DynamicClassLoader extends joo.StandardClassLoader {
             this.completeAll();
             this.doCompleteCallbacks(onCompleteCallbacks);
           }, 0);
-        } else if (this.classLoadTimeoutMS) {
-          this.loadCheckTimer = window.setTimeout(this.throwMissingClassesError, this.classLoadTimeoutMS);
         }
       }
     }
     return cd;
   }
 
-  private function throwMissingClassesError() : void {
-    var sb : Array = [];
-    for (var loading:String in this.pendingClassState) {
-      if (this.pendingClassState[loading]) {
-        sb.push(loading);
-      }
-    }
-    if (sb.length>0) {
-      throw new Error("The following classes were not loaded after "+this.classLoadTimeoutMS+" milliseconds: "+sb.join(", "));
-    }
+  // separate factory function to move the anonymous function out of the caller's scope:
+  private function createClassLoadErrorHandler(fullClassName:String, url:String):Function {
+    return function():void {
+      this.classLoadErrorHandler(fullClassName, url);
+    };
+  }
+
+  public function classLoadErrorHandler(fullClassName:String, url:String):void {
+    trace("Class "+fullClassName+" not found at URL ["+url+"].");
   }
 
   /**
@@ -126,7 +117,9 @@ public class DynamicClassLoader extends joo.StandardClassLoader {
           if (this.debug) {
             trace("triggering to load class "+fullClassName+" from URL "+url+".");
           }
-          this.loadScript(url);
+          var script:Object = this.loadScript(url);
+          // script.onerror does not work in IE, but since this feature is for debugging only, we don't mind:
+          script.onerror = this.createClassLoadErrorHandler(fullClassName, script['src']);
         }
       }
     }
