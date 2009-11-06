@@ -35,6 +35,7 @@ public class DynamicClassLoader extends joo.StandardClassLoader {
 
 
   public var urlPrefix : String;
+  public var noCache : Boolean = false;
   private var onCompleteCallbacks : Array/*<Function>*/ = [];
 
   /**
@@ -149,8 +150,11 @@ public class DynamicClassLoader extends joo.StandardClassLoader {
   }
 
   protected function getUri(fullClassName : String) : String {
-    var baseUri : String = this.getBaseUri();
-    return baseUri + fullClassName.replace(/\./g as String,"/") + ".js";
+    var uri : String = this.getBaseUri() + fullClassName.replace(/\./g,"/") + ".js";
+    if (this.noCache) {
+      uri += "?_dc=" + new Date().getTime();
+    }
+    return uri;
   }
 
   /**
