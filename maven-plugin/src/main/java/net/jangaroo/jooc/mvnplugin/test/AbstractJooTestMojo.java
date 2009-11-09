@@ -53,4 +53,24 @@ public abstract class AbstractJooTestMojo extends AbstractMojo {
     }
     return testSuite.exists();
   }
+
+  /**
+   * Set this to 'true' to bypass unit tests entirely. Its use is NOT RECOMMENDED, especially if you
+   * enable it using the "maven.test.skip" property, because maven.test.skip disables both running the
+   * tests and compiling the tests. Consider using the skipTests parameter instead.
+   *
+   * @parameter expression="${maven.test.skip}"
+   */
+  protected boolean skip;
+
+
+  /**
+   * Set this to 'true' to skip running tests, but still compile them. Its use is NOT RECOMMENDED, but quite
+   * convenient on occasion.
+   *
+   * @parameter expression="${skipTests}"
+   */
+  protected boolean skipTests;
+
+
 }

@@ -4,7 +4,6 @@ import com.thoughtworks.selenium.DefaultSelenium;
 import com.thoughtworks.selenium.Selenium;
 import com.thoughtworks.selenium.SeleniumException;
 import org.apache.commons.io.FileUtils;
-import org.apache.maven.model.Profile;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
@@ -92,13 +91,17 @@ public class JooTestMojo extends AbstractJooTestMojo {
    */
   private int jooUnitSeleniumRCPort = 4444;
 
+  /**
+   * Set this to true to ignore a failure during testing. Its use is NOT RECOMMENDED, but quite convenient on
+   * occasion.
+   *
+   * @parameter expression="${maven.test.failure.ignore}"
+   */
+  protected boolean testFailureIgnore;
+
   public void execute() throws MojoExecutionException, MojoFailureException {
-    if (isTestAvailable()) {
-      if (!isIntegrationtestActive()) {
-        getLog().info("+----------------------------------------------------------------------+");
-        getLog().info("|  JooTestMojo is skipped due to inactive profile 'integrationtest'    |");
-        getLog().info("+----------------------------------------------------------------------+");
-      } else {
+    if (!skip && !skipTests) {
+      if (isTestAvailable()) {
         try {
           //check wether the host is reachable
           //noinspection ResultOfMethodCallIgnored
@@ -133,19 +136,7 @@ public class JooTestMojo extends AbstractJooTestMojo {
           getLog().debug("Waiting for test results for " + jooUnitTestExecutionTimeout + "ms ...");
           selenium.waitForCondition("selenium.browserbot.getCurrentWindow().result != null", "" + jooUnitTestExecutionTimeout);
           String testResultXml = selenium.getEval("selenium.browserbot.getCurrentWindow().result");
-          DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
-          DocumentBuilder dBuilder = documentBuilderFactory.newDocumentBuilder();
-          StringReader inStream = new StringReader(testResultXml);
-          InputSource inSource = new InputSource(inStream);
-          Document d = dBuilder.parse(inSource);
-          NodeList nl = d.getChildNodes();
-          NamedNodeMap namedNodeMap = nl.item(0).getAttributes();
-          String failures = namedNodeMap.getNamedItem("failures").getNodeValue();
-          String errors = namedNodeMap.getNamedItem("errors").getNodeValue();
-          String tests = namedNodeMap.getNamedItem("tests").getNodeValue();
-          //String skipped = namedNodeMap.getNamedItem("skipped").getNodeValue();
-          getLog().info("Tests run: " + tests + ", Failures: " + failures + ", Errors: " + errors + ", Skipped: 0" /*+ skipped*/);
-
+          evalTestOutput(testResultXml);
           File result = new File(testResultOutputDirectory, "TEST-" + testSuiteName + ".xml");
           FileUtils.writeStringToFile(result, testResultXml);
         } catch (IOException e) {
@@ -167,19 +158,24 @@ public class JooTestMojo extends AbstractJooTestMojo {
         }
       }
     }
-
   }
 
-  private boolean isIntegrationtestActive() {
-    for (MavenProject mavenProject : projects) {
-      for (Profile profile : ((List<Profile>) mavenProject.getActiveProfiles())) {
-        getLog().debug("Active Profile: " + profile.getId());
-        if ("integrationtest".equals(profile.getId())) {
-          return true;
-        }
-      }
+  void evalTestOutput(String testResultXml) throws ParserConfigurationException, IOException, SAXException, MojoFailureException {
+    DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+    DocumentBuilder dBuilder = documentBuilderFactory.newDocumentBuilder();
+    StringReader inStream = new StringReader(testResultXml);
+    InputSource inSource = new InputSource(inStream);
+    Document d = dBuilder.parse(inSource);
+    NodeList nl = d.getChildNodes();
+    NamedNodeMap namedNodeMap = nl.item(0).getAttributes();
+    String failures = namedNodeMap.getNamedItem("failures").getNodeValue();
+    String errors = namedNodeMap.getNamedItem("errors").getNodeValue();
+    String tests = namedNodeMap.getNamedItem("tests").getNodeValue();
+    //String skipped = namedNodeMap.getNamedItem("skipped").getNodeValue();
+    getLog().info("Tests run: " + tests + ", Failures: " + failures + ", Errors: " + errors + ", Skipped: 0" /*+ skipped*/);
+    if (!testFailureIgnore && (Integer.parseInt(errors) > 0 || Integer.parseInt(failures) > 0)) {
+      throw new MojoFailureException("There are test failures");
     }
-    return false;
   }
 
 

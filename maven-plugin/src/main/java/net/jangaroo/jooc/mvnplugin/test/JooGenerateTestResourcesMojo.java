@@ -89,20 +89,24 @@ public class JooGenerateTestResourcesMojo extends AbstractJooTestMojo {
 
 
   public void execute() throws MojoExecutionException, MojoFailureException {
-    try {
-      if (isTestAvailable()) {
-        testOutputDirectory.mkdir();
-        getLog().info("Unpacking jangaroo dependencies to " + testOutputDirectory);
-        unpack();
-        copyMainJsAndClasses();
-        createHtmlPage();
+    if (!skip) {
+      try {
+        if (isTestAvailable()) {
+          testOutputDirectory.mkdir();
+          getLog().info("Unpacking jangaroo dependencies to " + testOutputDirectory);
+          unpack();
+          copyMainJsAndClasses();
+          createHtmlPage();
+        }
+      } catch (IOException e) {
+        throw new MojoExecutionException("Cannot unpack jangaroo dependencies/generate html test page", e);
+      } catch (ArchiverException e) {
+        throw new MojoExecutionException("Cannot unpack jangaroo dependencies/generate html test page", e);
+      } catch (ProjectBuildingException e) {
+        throw new MojoExecutionException("Cannot unpack jangaroo dependencies/generate html test page", e);
       }
-    } catch (IOException e) {
-      throw new MojoExecutionException("Cannot unpack jangaroo dependencies/generate html test page", e);
-    } catch (ArchiverException e) {
-      throw new MojoExecutionException("Cannot unpack jangaroo dependencies/generate html test page", e);
-    } catch (ProjectBuildingException e) {
-      throw new MojoExecutionException("Cannot unpack jangaroo dependencies/generate html test page", e);
+    } else {
+      getLog().info("Skipping generation of test resources");
     }
   }
 
@@ -203,8 +207,8 @@ public class JooGenerateTestResourcesMojo extends AbstractJooTestMojo {
       f.createNewFile();
       fw = new FileWriter(f);
       fw.write("<html>\n" +
-          "  <head><title>" + project.getGroupId() + ":" + project.getArtifactId() + ":" + project.getVersion() + "</title></head>\n" +
-          "  <body>");
+              "  <head><title>" + project.getGroupId() + ":" + project.getArtifactId() + ":" + project.getVersion() + "</title></head>\n" +
+              "  <body>");
 
 
       for (String dependency : depsLineralized) {
@@ -212,28 +216,28 @@ public class JooGenerateTestResourcesMojo extends AbstractJooTestMojo {
       }
       fw.write("<script type=\"text/javascript\" src=\"" + project.getArtifact().getArtifactId() + ".js\"></script>\n");
       fw.write("  <script type=\"text/javascript\">\n" +
-          "    //with (joo.classLoader=new joo.ClassLoader()) { // disable DynamicClassLoader, as all classes are already there!\n" +
-          "    with (joo.classLoader) {\n" +
-          "      debug = true;\n" +
-          "      urlPrefix=\"classes/\";\n" +
-          "      classLoadTimeoutMS = 3000;\n" +
-          "      import_(\"flexunit.textui.TestRunner\");\n" +
-          "      import_(\"" + testSuiteName + "\");\n" +
-          "      import_(\"flexunit.textui.XmlResultPrinter\");\n" +
-          "      complete(function(imports) {with(imports){\n" +
-          "        var xmlWriter = new XmlResultPrinter();\n" +
-          "        TestRunner.run(" + testSuiteName.substring(testSuiteName.lastIndexOf(".") + 1) + ".suite(),function(bla) {\n" +
-          "            result = xmlWriter.getXml();\n" +
-          "            document.getElementById(\"result\").firstChild.nodeValue = result;\n" +
-          "        },xmlWriter);\n" +
-          "      }});" +
-          "    }\n" +
-          "  </script>\n" +
-          "  <h1>TestResult</h1>\n" +
-          "   <pre id=\"result\">\n" +
-          "   </pre>\n" +
-          " </body>\n" +
-          "</html>");
+              "    //with (joo.classLoader=new joo.ClassLoader()) { // disable DynamicClassLoader, as all classes are already there!\n" +
+              "    with (joo.classLoader) {\n" +
+              "      debug = true;\n" +
+              "      urlPrefix=\"classes/\";\n" +
+              "      classLoadTimeoutMS = 3000;\n" +
+              "      import_(\"flexunit.textui.TestRunner\");\n" +
+              "      import_(\"" + testSuiteName + "\");\n" +
+              "      import_(\"flexunit.textui.XmlResultPrinter\");\n" +
+              "      complete(function(imports) {with(imports){\n" +
+              "        var xmlWriter = new XmlResultPrinter();\n" +
+              "        TestRunner.run(" + testSuiteName.substring(testSuiteName.lastIndexOf(".") + 1) + ".suite(),function(bla) {\n" +
+              "            result = xmlWriter.getXml();\n" +
+              "            document.getElementById(\"result\").firstChild.nodeValue = result;\n" +
+              "        },xmlWriter);\n" +
+              "      }});" +
+              "    }\n" +
+              "  </script>\n" +
+              "  <h1>TestResult</h1>\n" +
+              "   <pre id=\"result\">\n" +
+              "   </pre>\n" +
+              " </body>\n" +
+              "</html>");
     } finally {
       if (fw != null) {
         try {
@@ -254,10 +258,10 @@ public class JooGenerateTestResourcesMojo extends AbstractJooTestMojo {
    * @throws ArchiverException if an archive is corrupt
    */
   public void unpack()
-      throws IOException, ArchiverException {
+          throws IOException, ArchiverException {
     unarchiver.setOverwrite(false);
     unarchiver.setArchiveFilters(Collections.singletonList(
-        new MetaInfArchiveFileFilter()));
+            new MetaInfArchiveFileFilter()));
 
     for (Artifact dependency : ((List<Artifact>) project.getTestArtifacts())) {
       getLog().debug("Dependency: " + getInternalId(dependency) + " type: " + dependency.getType());
