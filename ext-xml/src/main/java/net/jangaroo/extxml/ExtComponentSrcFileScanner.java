@@ -43,7 +43,7 @@ public final class ExtComponentSrcFileScanner {
         fullName = className;
       }
       clazz.setFullClassName(fullName);
-      clazz.setXtype(className);
+      clazz.setXtype(fullName);
       clazz.setType(ComponentType.EXML);
       componentSuite.addComponentClass(clazz);
     }
@@ -99,7 +99,7 @@ public final class ExtComponentSrcFileScanner {
           state.setExtends(groups.get(0));
         }
       })
-      .add(new Rule<State>("(?:public\\s+static|static\\s+public)\\s+const\\s+[px]type\\s*:\\s*String\\s*=\\s*['\"]([\\p{Alnum}$_.]+)['\"]") {
+      .add(new Rule<State>("(?:public\\s+static|static\\s+public)\\s+const\\s+[px]type\\s*:\\s*String\\s*=\\s*['\"]([^'\"]+)['\"]") {
         public void matched(State state, List<String> groups) {
           state.setXtype(groups.get(0), state.cc.getFullClassName());
         }

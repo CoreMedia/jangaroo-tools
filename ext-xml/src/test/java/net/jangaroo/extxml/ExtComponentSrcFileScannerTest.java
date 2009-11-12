@@ -78,6 +78,6 @@ public class ExtComponentSrcFileScannerTest {
     ComponentClass cc = suite.getComponentClassByFullClassName("testpackage.testPackage");
     assertNotNull(cc);
     assertEquals(ComponentType.EXML, cc.getType());
-    assertEquals("testPackage", cc.getXtype());
+    assertEquals("testpackage.testPackage", cc.getXtype());
   }
 }
