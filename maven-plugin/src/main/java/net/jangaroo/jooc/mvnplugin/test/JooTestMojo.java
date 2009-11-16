@@ -109,7 +109,7 @@ public class JooTestMojo extends AbstractJooTestMojo {
         } catch (UnknownHostException e) {
           throw new MojoExecutionException("Cannot resolve host " + jooUnitSeleniumRCHost +
                   ". Please specify a host running the selenium remote control or skip tests" +
-                  " by deactivating the integrationtest profile (mvn -P !integrationtest)!", e);
+                  " by -DskipTests", e);
         }
         getLog().info("JooTest report directory:" + testResultOutputDirectory.getAbsolutePath());
         ResourceHandler handler = new ResourceHandler();
@@ -139,6 +139,7 @@ public class JooTestMojo extends AbstractJooTestMojo {
           evalTestOutput(testResultXml);
           File result = new File(testResultOutputDirectory, "TEST-" + testSuiteName + ".xml");
           FileUtils.writeStringToFile(result, testResultXml);
+          result.setLastModified(System.currentTimeMillis());
         } catch (IOException e) {
           throw new MojoExecutionException("Cannot write test results to file", e);
         } catch (ParserConfigurationException e) {
