@@ -22,12 +22,12 @@ public class ExmlApplicationComponent implements ApplicationComponent {
     ftm.registerFileType(ftm.getFileTypeByExtension("xml"), "exml");
     ExternalResourceManager erm = ExternalResourceManager.getInstance();
     erm.addStdResource("http://net.jangaroo.com/extxml/0.1", "/net/jangaroo/extxml/schemas/extxml.xsd", getClass());
-    erm.addStdResource(EXT3_XSD_URI, "/net/jangaroo/extxml/schemas/ext3.xsd", getClass());
+    erm.addStdResource(EXT3_XSD_URI, "/ext3.xsd", getClass());
   }
 
   public void disposeComponent() {
     ExternalResourceManager erm = ExternalResourceManager.getInstance();
     erm.removeResource("http://net.jangaroo.com/extxml/0.1", "/net/jangaroo/extxml/schemas/extxml.xsd");
-    erm.removeResource(EXT3_XSD_URI, "/net/jangaroo/extxml/schemas/ext3.xsd");
+    erm.removeResource(EXT3_XSD_URI, "/ext3.xsd");
   }
 }

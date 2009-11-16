@@ -9,6 +9,12 @@ import com.intellij.openapi.compiler.TranslatingCompiler;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.OrderRootType;
+import com.intellij.openapi.roots.OrderEntry;
+import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
+import com.intellij.openapi.roots.libraries.Library;
+import com.intellij.openapi.roots.libraries.LibraryTable;
 import net.jangaroo.extxml.ComponentSuite;
 import net.jangaroo.extxml.ComponentSuiteRegistry;
 import net.jangaroo.extxml.ComponentSuiteResolver;
@@ -17,19 +23,22 @@ import net.jangaroo.extxml.ExtComponentSrcFileScanner;
 import net.jangaroo.extxml.JooClassGenerator;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import java.net.URL;
 
 /**
- * 
+ *
  */
 public class ExmlCompiler implements TranslatingCompiler {
 
@@ -49,17 +58,19 @@ public class ExmlCompiler implements TranslatingCompiler {
   }
 
   private void compile(final CompileContext context, Module module, final List<VirtualFile> files, List<OutputItem> outputItems, List<VirtualFile> filesToRecompile) {
-    final VirtualFile outputDirectory = context.getModuleOutputDirectory(module);
-    assert outputDirectory!=null;
-
     ErrorHandler errorHandler = new IdeaErrorHandler(context);
     ComponentSuiteRegistry.getInstance().setErrorHandler(errorHandler);
     ComponentSuite suite = null;
     for (final VirtualFile file : files) {
       if (suite == null) {
         suite = ComponentSuiteRegistry.getInstance().getComponentSuite(module.getName());
-        suite.setRootDir(new File(MakeUtil.getSourceRoot(context, module, file).getPath()));
-        suite.setAs3OutputDir(new File(outputDirectory.getPath()));
+        if (suite == null) {
+          context.addMessage(CompilerMessageCategory.ERROR, "No XML Schema (.xsd) found for component suite module " + module.getName(), null, -1, -1);
+          return;
+        }
+        String srcRootDir = MakeUtil.getSourceRoot(context, module, file).getPath();
+        suite.setRootDir(new File(srcRootDir));
+        suite.setAs3OutputDir(new File(findAs3RootDir(module)));
       }
       context.addMessage(CompilerMessageCategory.INFORMATION, "exml->as", file.getUrl(), -1, -1);
       try {
@@ -75,11 +86,23 @@ public class ExmlCompiler implements TranslatingCompiler {
     // TODO: let generateClasses() return a set of generated files and add these to outputItems!
   }
 
+  private String findAs3RootDir(Module module) {
+    VirtualFile[] srcRoots = ModuleRootManager.getInstance(module).getSourceRoots();
+    for (VirtualFile srcRoot : srcRoots) {
+      String path = srcRoot.getPath();
+      if (path.matches(".*\\bgenerated-sources\\b.*")) {
+        return path;
+      }
+    }
+    return srcRoots[0].getPath();
+  }
+
   public ExitStatus compile(CompileContext context, VirtualFile[] files) {
     // always re-create component suite registry, so that we get updates:
     ComponentSuiteRegistry componentSuiteRegistry = ComponentSuiteRegistry.getInstance();
     componentSuiteRegistry.reset();
-    componentSuiteRegistry.setComponentSuiteResolver(new IdeaComponentSuiteResolver());
+    IdeaComponentSuiteResolver componentSuiteResolver = new IdeaComponentSuiteResolver();
+    componentSuiteRegistry.setComponentSuiteResolver(componentSuiteResolver);
     List<OutputItem> outputItems = new ArrayList<OutputItem>(files.length);
     List<VirtualFile> filesToRecompile = new ArrayList<VirtualFile>(files.length);
     Map<Module,List<VirtualFile>> filesByModule = new HashMap<Module, List<VirtualFile>>(files.length);
@@ -93,6 +116,7 @@ public class ExmlCompiler implements TranslatingCompiler {
       filesOfModule.add(file);
     }
     for (Map.Entry<Module, List<VirtualFile>> filesOfModuleEntry : filesByModule.entrySet()) {
+      componentSuiteResolver.setModule(filesOfModuleEntry.getKey());
       compile(context, filesOfModuleEntry.getKey(), filesOfModuleEntry.getValue(), outputItems, filesToRecompile);
     }
 
@@ -154,10 +178,26 @@ public class ExmlCompiler implements TranslatingCompiler {
 
   private static class IdeaComponentSuiteResolver implements ComponentSuiteResolver {
 
+    private Module module;
+
+    public Module getModule() {
+      return module;
+    }
+
+    public void setModule(Module module) {
+      this.module = module;
+    }
+
     public InputStream resolveComponentSuite(String namespaceUri) throws IOException {
       String filename = ExternalResourceManager.getInstance().getResourceLocation(namespaceUri);
-      if (filename == null) {
-        return null;
+      if (namespaceUri.equals(filename)) { // not found: IDEA returns the namespaceUri itself!
+        return findComponentSuiteInLibraries(namespaceUri);
+      }
+      if (filename.startsWith("jar:")) {
+        filename = new URL(filename).getPath();
+      }
+      if (filename.startsWith("file:")) {
+        filename = new URL(filename).getPath().substring(1); // also skip leading '/' or '\'
       }
       int zipSeparator = filename.indexOf('!');
       if (zipSeparator != -1) {
@@ -168,6 +208,49 @@ public class ExmlCompiler implements TranslatingCompiler {
       }
       return new FileInputStream(filename);
     }
+
+    private InputStream findComponentSuiteInLibraries(final String namespaceUri) throws FileNotFoundException {
+      final String filename = findComponentSuiteFilename(namespaceUri);
+      if (filename != null) {
+        SwingUtilities.invokeLater(new Runnable() {
+          public void run() {
+            ExternalResourceManager.getInstance().addResource(namespaceUri, filename);
+          }
+        });
+        return new FileInputStream(filename);
+      }
+      return null;
+    }
+
+    private String findComponentSuiteFilename(String namespaceUri) {
+      if (namespaceUri.equals(module.getName())) {
+        return ModuleRootManager.getInstance(module).getContentRoots()[0].getPath() + "/target/generated-resources/" + module.getName() + ".xsd";
+      }
+      System.out.println("Scanning dependencies of " + module.getName());
+      LibraryTable libraryTable = ProjectLibraryTable.getInstance(module.getProject());
+      OrderEntry[] orderEntries = ModuleRootManager.getInstance(module).getOrderEntries();
+      String namespaceUriPart = ":" + namespaceUri + ":";
+      for (OrderEntry orderEntry: orderEntries) {
+        Library library = libraryTable.getLibraryByName(orderEntry.getPresentableName());
+        if (library != null && library.getName().indexOf(namespaceUriPart) != -1) {
+          // found the right library!
+          VirtualFile[] files = library.getFiles(OrderRootType.CLASSES);
+          // check that library is not empty:
+          if (files.length == 0) {
+            files = library.getFiles(OrderRootType.SOURCES);
+          }
+          if (files.length > 0) {
+            String filename = files[0].getPath();
+            int lastDot = filename.lastIndexOf('.');
+            filename = filename.substring(0, lastDot) + ".xsd";
+            if (new File(filename).exists()) {
+              return filename;
+            }
+          }
+        }
+      }
+      return null;
+    }
   }
-  
+
 }

@@ -4,7 +4,7 @@
   <description>
     A plugin supporting the Jangaroo EXML format for Ext JS UI development.
   </description>
-  <version>0.3.17</version>
+  <version>0.3.19.3</version>
   <vendor url="http://www.jangaroo.net"
           email="info@jangaroo.net"
           logo="/net/jangaroo/jooley-16x16.png">Jangaroo</vendor>
