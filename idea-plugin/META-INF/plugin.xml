@@ -5,13 +5,14 @@
     A plugin for compiling ActionScript 3 code to JavaScript using the Jangaroo Open Source
     Compiler jooc.
   </description>
-  <version>0.3</version>
+  <version>0.3.19.1</version>
   <vendor url="http://www.jangaroo.net"
           email="info@jangaroo.net"
           logo="/net/jangaroo/jooley-16x16.png">Jangaroo</vendor>
   <idea-version since-build="9852"/>
 
   <depends>JavaScript</depends>
+  <depends>org.jetbrains.idea.maven</depends>
 
   <application-components>
     <!-- Add your application components here -->
@@ -31,6 +32,10 @@
   <extensions defaultExtensionNs="com.intellij">
     <facetType implementation="net.jangaroo.ide.idea.JangarooFacetType"/>
     <frameworkSupport implementation="net.jangaroo.ide.idea.JangarooFacetTypeFrameworkSupportProvider"/>
+  </extensions>
+
+  <extensions xmlns="org.jetbrains.idea.maven">
+    <facetImporter implementation="net.jangaroo.ide.idea.JangarooFacetImporter"/>
   </extensions>
 
 </idea-plugin>
