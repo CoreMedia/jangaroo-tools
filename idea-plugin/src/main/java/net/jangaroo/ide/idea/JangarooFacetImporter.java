@@ -25,7 +25,8 @@ import java.io.File;
  */
 public class JangarooFacetImporter extends org.jetbrains.idea.maven.facets.FacetImporter<JangarooFacet, JangarooFacetConfiguration, JangarooFacetType> {
   private static final String JANGAROO_GROUP_ID = "net.jangaroo";
-  private static final String JANGAROO_MAVEN_PLUGIN_ARTIFACT_ID = "jangaroo-maven-plugin";
+  private static final String JANGAROO_LIFECYCLE_MAVEN_PLUGIN_ARTIFACT_ID = "jangaroo-maven-plugin";
+  private static final String JANGAROO_MAVEN_PLUGIN_ARTIFACT_ID = "jangaroo-lifecycle";
   private static final String JANGAROO_PACKAGING_TYPE = "jangaroo";
   private static final String DEFAULT_JANGAROO_FACET_NAME = "Jangaroo";
 
@@ -34,7 +35,9 @@ public class JangarooFacetImporter extends org.jetbrains.idea.maven.facets.Facet
   }
 
   public boolean isApplicable(MavenProjectModel mavenProjectModel) {
-    return mavenProjectModel.findPlugin(myPluginGroupID, myPluginArtifactID) != null;
+    return JANGAROO_PACKAGING_TYPE.equals(mavenProjectModel.getPackaging()) ||
+      mavenProjectModel.findPlugin(JANGAROO_GROUP_ID, JANGAROO_LIFECYCLE_MAVEN_PLUGIN_ARTIFACT_ID) != null ||
+      mavenProjectModel.findPlugin(JANGAROO_GROUP_ID, JANGAROO_MAVEN_PLUGIN_ARTIFACT_ID) != null;
   }
 
   @Override
@@ -86,7 +89,7 @@ public class JangarooFacetImporter extends org.jetbrains.idea.maven.facets.Facet
     // "debug" (boolean; true), "debuglevel" ("none", "lines", "source"; "source")
     jooConfig.outputDirectory = "war".equals(mavenProjectModel.getPackaging())
       ? mavenProjectModel.getBuildDirectory() + File.separator + mavenProjectModel.getMavenModel().getBuild().getFinalName() + File.separator + "scripts" + File.separator + "classes"
-      : mavenProjectModel.getOutputDirectory() + File.separator + "joo" + File.separator + "classes";
+      : mavenProjectModel.getBuildDirectory() + File.separator + "joo" + File.separator + "classes";
 
 //    ModifiableRootModel moduleRootModel = ModuleRootManager.getInstance(module).getModifiableModel();
 //    for (MavenArtifact mavenArtifact : mavenProjectModel.getDependencies()) {
