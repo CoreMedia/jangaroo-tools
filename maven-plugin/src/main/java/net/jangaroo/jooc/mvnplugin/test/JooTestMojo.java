@@ -134,7 +134,12 @@ public class JooTestMojo extends AbstractJooTestMojo {
           getLog().debug("Opening " + url + "/tests.html");
           selenium.open(url + "/tests.html");
           getLog().debug("Waiting for test results for " + jooUnitTestExecutionTimeout + "ms ...");
-          selenium.waitForCondition("selenium.browserbot.getCurrentWindow().result != null", "" + jooUnitTestExecutionTimeout);
+          selenium.waitForCondition("selenium.browserbot.getCurrentWindow().result != null || selenium.browserbot.getCurrentWindow().classLoadingError != null", "" + jooUnitTestExecutionTimeout);
+          String classLoadingError = selenium.getEval("selenium.browserbot.getCurrentWindow().classLoadingError");
+          if (classLoadingError != null) {
+            throw new MojoExecutionException(classLoadingError);
+          }
+
           String testResultXml = selenium.getEval("selenium.browserbot.getCurrentWindow().result");
           evalTestOutput(testResultXml);
           File result = new File(testResultOutputDirectory, "TEST-" + testSuiteName + ".xml");

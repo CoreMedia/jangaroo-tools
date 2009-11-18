@@ -219,8 +219,9 @@ public class JooGenerateTestResourcesMojo extends AbstractJooTestMojo {
               "    //with (joo.classLoader=new joo.ClassLoader()) { // disable DynamicClassLoader, as all classes are already there!\n" +
               "    with (joo.classLoader) {\n" +
               "      debug = true;\n" +
-              "      urlPrefix=\"classes/\";\n" +
-              "      classLoadTimeoutMS = 3000;\n" +
+              "      classLoadErrorHandler = function(fullClassName, url) {\n" +
+              "         classLoadingError = \"Class \"+fullClassName+\" not found at URL [\"+url+\"].\";\n" +
+              "      }; \n" +
               "      import_(\"flexunit.textui.TestRunner\");\n" +
               "      import_(\"" + testSuiteName + "\");\n" +
               "      import_(\"flexunit.textui.XmlResultPrinter\");\n" +
