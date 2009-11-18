@@ -136,7 +136,7 @@ public class JooTestMojo extends AbstractJooTestMojo {
           getLog().debug("Waiting for test results for " + jooUnitTestExecutionTimeout + "ms ...");
           selenium.waitForCondition("selenium.browserbot.getCurrentWindow().result != null || selenium.browserbot.getCurrentWindow().classLoadingError != null", "" + jooUnitTestExecutionTimeout);
           String classLoadingError = selenium.getEval("selenium.browserbot.getCurrentWindow().classLoadingError");
-          if (classLoadingError != null) {
+          if (classLoadingError != null && !classLoadingError.equals("null")) {
             throw new MojoExecutionException(classLoadingError);
           }
 
