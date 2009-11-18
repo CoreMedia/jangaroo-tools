@@ -191,7 +191,10 @@ public class ExmlCompiler implements TranslatingCompiler {
     public InputStream resolveComponentSuite(String namespaceUri) throws IOException {
       String filename = ExternalResourceManager.getInstance().getResourceLocation(namespaceUri);
       if (namespaceUri.equals(filename)) { // not found: IDEA returns the namespaceUri itself!
-        return findComponentSuiteInLibraries(namespaceUri);
+        filename = findComponentSuiteInLibraries(namespaceUri);
+        if (filename == null) {
+          return null;
+        }
       }
       if (filename.startsWith("jar:")) {
         filename = new URL(filename).getPath();
@@ -209,7 +212,7 @@ public class ExmlCompiler implements TranslatingCompiler {
       return new FileInputStream(filename);
     }
 
-    private InputStream findComponentSuiteInLibraries(final String namespaceUri) throws FileNotFoundException {
+    private String findComponentSuiteInLibraries(final String namespaceUri) throws FileNotFoundException {
       final String filename = findComponentSuiteFilename(namespaceUri);
       if (filename != null) {
         SwingUtilities.invokeLater(new Runnable() {
@@ -217,7 +220,7 @@ public class ExmlCompiler implements TranslatingCompiler {
             ExternalResourceManager.getInstance().addResource(namespaceUri, filename);
           }
         });
-        return new FileInputStream(filename);
+        return filename;
       }
       return null;
     }
@@ -240,12 +243,7 @@ public class ExmlCompiler implements TranslatingCompiler {
             files = library.getFiles(OrderRootType.SOURCES);
           }
           if (files.length > 0) {
-            String filename = files[0].getPath();
-            int lastDot = filename.lastIndexOf('.');
-            filename = filename.substring(0, lastDot) + ".xsd";
-            if (new File(filename).exists()) {
-              return filename;
-            }
+            return files[0].getPath() + namespaceUri + ".xsd";
           }
         }
       }
