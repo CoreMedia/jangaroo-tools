@@ -6,7 +6,7 @@
   <xs:import namespace="${usedComponentSuite.namespace}"/>
   </#list>
   <#list componentClasses as componentClass>
-  <xs:complexType name='${componentClass.fullClassName}'>
+  <xs:complexType id='${componentClass.elementName}' name='${componentClass.fullClassName}'>
     <xs:all>
       <#list componentClass.allCfgs as cfg>
       <#if cfg.sequence || cfg.object>
