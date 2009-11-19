@@ -1,6 +1,7 @@
 package net.jangaroo.ide.idea.exml;
 
 import com.intellij.compiler.make.MakeUtil;
+import com.intellij.compiler.impl.javaCompiler.OutputItemImpl;
 import com.intellij.javaee.ExternalResourceManager;
 import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompileScope;
@@ -12,6 +13,8 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.OrderEntry;
+import com.intellij.openapi.roots.LibraryOrderEntry;
+import com.intellij.openapi.roots.ModuleOrderEntry;
 import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
@@ -21,6 +24,8 @@ import net.jangaroo.extxml.ComponentSuiteResolver;
 import net.jangaroo.extxml.ErrorHandler;
 import net.jangaroo.extxml.ExtComponentSrcFileScanner;
 import net.jangaroo.extxml.JooClassGenerator;
+import net.jangaroo.extxml.XsdGenerator;
+import net.jangaroo.extxml.SrcFileScanner;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -29,6 +34,10 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.FileNotFoundException;
+import java.io.Writer;
+import java.io.BufferedWriter;
+import java.io.OutputStreamWriter;
+import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -42,6 +51,11 @@ import java.net.URL;
  */
 public class ExmlCompiler implements TranslatingCompiler {
 
+  private static final String EXT3_XSD_URI = "http://extjs.com/ext3";
+  private static final String JOO_SOURCES_PATH_REG_EXP = ".*\\bmain[/\\\\]joo\\b.*";
+  private static final String GENERATED_SOURCES_PATH_REG_EXP = ".*\\bgenerated-sources\\b.*";
+  private static final String EXML_SUFFIX_NO_DOT = "exml";
+
   @NotNull
   public String getDescription() {
     return "EXML Compiler";
@@ -53,44 +67,103 @@ public class ExmlCompiler implements TranslatingCompiler {
   }
 
   public boolean isCompilableFile(VirtualFile file, CompileContext context) {
-    return "exml".equals(file.getExtension());
-    // TODO: how can we also receive *.as and *.js files to scan for annotations?
+    String extension = file.getExtension();
+    return EXML_SUFFIX_NO_DOT.equals(extension) || "as".equals(extension) || "js".equals(extension);
   }
 
-  private void compile(final CompileContext context, Module module, final List<VirtualFile> files, List<OutputItem> outputItems, List<VirtualFile> filesToRecompile) {
-    ErrorHandler errorHandler = new IdeaErrorHandler(context);
-    ComponentSuiteRegistry.getInstance().setErrorHandler(errorHandler);
+  private static String getXsdFilename(Module module) {
+    return ModuleRootManager.getInstance(module).getContentRoots()[0].getPath() + "/target/generated-resources/" + module.getName() + ".xsd";
+  }
+
+  private void generateXsd(CompileContext context, Module module, List<OutputItem> outputItems, List<VirtualFile> filesToRecompile, ErrorHandler errorHandler) {
+    String moduleName = module.getName();
+    String xsdFilename = getXsdFilename(module);
+    // Generate the XSD for the given module.
+    Writer out;
+    try {
+      out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File(xsdFilename)), "UTF-8"));
+      context.addMessage(CompilerMessageCategory.INFORMATION, "Generating XSD for module "+moduleName, LocalFileSystem.getInstance().findFileByPath(xsdFilename).getUrl(), -1, -1);
+    } catch (Exception e) {
+      errorHandler.error("Cannot write component suite XSD file.", e);
+      return;
+    }
+    String sourceRootDir = findSourceRootDir(module, JOO_SOURCES_PATH_REG_EXP);
+    ComponentSuite suite = new ComponentSuite(moduleName, moduleName.substring(0,Math.max(1, moduleName.length())).toLowerCase(),
+      new File(sourceRootDir), new File(findGeneratedAs3RootDir(module)));
+    
+    SrcFileScanner fileScanner = new SrcFileScanner(suite);
+    ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+    try {
+      Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
+      fileScanner.scan();
+    } catch (IOException e) {
+      errorHandler.error("Error scanning component suite files.", e);
+      return;
+    } finally {
+      Thread.currentThread().setContextClassLoader(contextClassLoader);
+    }
+    try {
+      new XsdGenerator(suite, errorHandler).generateXsd(out);
+    } catch (IOException e) {
+      errorHandler.error("Error while writing component suite XSD file.", e);
+    }
+  }
+
+  private void compile(final CompileContext context, Module module, final List<VirtualFile> files, List<OutputItem> outputItems, List<VirtualFile> filesToRecompile, ErrorHandler errorHandler) {
     ComponentSuite suite = null;
+    String srcRootDir = null;
     for (final VirtualFile file : files) {
-      if (suite == null) {
-        suite = ComponentSuiteRegistry.getInstance().getComponentSuite(module.getName());
+      if (EXML_SUFFIX_NO_DOT.equals(file.getExtension())) {
         if (suite == null) {
-          context.addMessage(CompilerMessageCategory.ERROR, "No XML Schema (.xsd) found for component suite module " + module.getName(), null, -1, -1);
-          return;
+          suite = ComponentSuiteRegistry.getInstance().getComponentSuite(module.getName());
+          if (suite == null) {
+            context.addMessage(CompilerMessageCategory.ERROR, "No XML Schema (.xsd) found for component suite module " + module.getName(), null, -1, -1);
+            return;
+          }
+          srcRootDir = MakeUtil.getSourceRoot(context, module, file).getPath();
+          suite.setRootDir(new File(srcRootDir));
+          suite.setAs3OutputDir(new File(findGeneratedAs3RootDir(module)));
         }
-        String srcRootDir = MakeUtil.getSourceRoot(context, module, file).getPath();
-        suite.setRootDir(new File(srcRootDir));
-        suite.setAs3OutputDir(new File(findAs3RootDir(module)));
-      }
-      context.addMessage(CompilerMessageCategory.INFORMATION, "exml->as", file.getUrl(), -1, -1);
-      try {
-        ExtComponentSrcFileScanner.scan(suite, new File(file.getPath()));
-      } catch (IOException e) {
-        context.addMessage(CompilerMessageCategory.ERROR, "Exception "+e, file.getUrl(), -1, -1);
-        filesToRecompile.add(file);
+        OutputItem outputItem = createOutputItem(srcRootDir, MakeUtil.getSourceRoot(context, module, file), file);
+        context.addMessage(CompilerMessageCategory.INFORMATION, "exml->as ("+outputItem.getOutputPath()+")", file.getUrl(), -1, -1);
+        try {
+          ExtComponentSrcFileScanner.scan(suite, new File(file.getPath()));
+          outputItems.add(outputItem);
+          filesToRecompile.add(LocalFileSystem.getInstance().findFileByPath(outputItem.getOutputPath()));
+        } catch (IOException e) {
+          context.addMessage(CompilerMessageCategory.ERROR, "Exception "+e, file.getUrl(), -1, -1);
+          filesToRecompile.add(file);
+        }
       }
     }
-    //Generate JSON out of the xml compontents, complete the data in those ComponentClasses
-    JooClassGenerator generator = new JooClassGenerator(suite, errorHandler);
-    generator.generateClasses();
-    // TODO: let generateClasses() return a set of generated files and add these to outputItems!
+    if (suite != null) {
+      //Generate JSON out of the xml compontents, complete the data in those ComponentClasses
+      JooClassGenerator generator = new JooClassGenerator(suite, errorHandler);
+      generator.generateClasses();
+      // TODO: let generateClasses() return a set of generated files and add these to outputItems!
+    }
   }
 
-  private String findAs3RootDir(Module module) {
+  private String findGeneratedAs3RootDir(Module module) {
+    return findSourceRootDir(module, GENERATED_SOURCES_PATH_REG_EXP);
+  }
+
+  // TODO: very similar to a helper method in Jangaroo compiler IDEA plugin. Refactor?
+  private OutputItem createOutputItem(final String outputDirectory, VirtualFile sourceRoot, final VirtualFile file) {
+    if (sourceRoot==null) {
+      throw new IllegalStateException("File not under any source root: '" + file.getPath() + "'.");
+    }
+    String filePath = file.getPath();
+    String relativePath = filePath.substring(sourceRoot.getPath().length(), filePath.lastIndexOf('.')+1);
+    String outputFilePath = outputDirectory + relativePath + EXML_SUFFIX_NO_DOT;
+    return new OutputItemImpl(outputDirectory, outputFilePath, file);
+  }
+  
+  private String findSourceRootDir(Module module, String GENERATED_SOURCES_PATH_REG_EXP) {
     VirtualFile[] srcRoots = ModuleRootManager.getInstance(module).getSourceRoots();
     for (VirtualFile srcRoot : srcRoots) {
       String path = srcRoot.getPath();
-      if (path.matches(".*\\bgenerated-sources\\b.*")) {
+      if (path.matches(GENERATED_SOURCES_PATH_REG_EXP)) {
         return path;
       }
     }
@@ -101,6 +174,8 @@ public class ExmlCompiler implements TranslatingCompiler {
     // always re-create component suite registry, so that we get updates:
     ComponentSuiteRegistry componentSuiteRegistry = ComponentSuiteRegistry.getInstance();
     componentSuiteRegistry.reset();
+    ErrorHandler errorHandler = new IdeaErrorHandler(context);
+    componentSuiteRegistry.setErrorHandler(errorHandler);
     IdeaComponentSuiteResolver componentSuiteResolver = new IdeaComponentSuiteResolver();
     componentSuiteRegistry.setComponentSuiteResolver(componentSuiteResolver);
     List<OutputItem> outputItems = new ArrayList<OutputItem>(files.length);
@@ -115,9 +190,13 @@ public class ExmlCompiler implements TranslatingCompiler {
       }
       filesOfModule.add(file);
     }
+    for (Module module : filesByModule.keySet()) {
+      componentSuiteResolver.setModule(module);
+      generateXsd(context, module, outputItems, filesToRecompile, errorHandler);
+    }
     for (Map.Entry<Module, List<VirtualFile>> filesOfModuleEntry : filesByModule.entrySet()) {
       componentSuiteResolver.setModule(filesOfModuleEntry.getKey());
-      compile(context, filesOfModuleEntry.getKey(), filesOfModuleEntry.getValue(), outputItems, filesToRecompile);
+      compile(context, filesOfModuleEntry.getKey(), filesOfModuleEntry.getValue(), outputItems, filesToRecompile, errorHandler);
     }
 
     final OutputItem[] outputItemArray = outputItems.toArray(new OutputItem[outputItems.size()]);
@@ -227,23 +306,38 @@ public class ExmlCompiler implements TranslatingCompiler {
 
     private String findComponentSuiteFilename(String namespaceUri) {
       if (namespaceUri.equals(module.getName())) {
-        return ModuleRootManager.getInstance(module).getContentRoots()[0].getPath() + "/target/generated-resources/" + module.getName() + ".xsd";
+        return getXsdFilename(module);
       }
-      System.out.println("Scanning dependencies of " + module.getName());
+      System.out.println("Scanning dependencies of " + module.getName() + " for XSD with URI "+namespaceUri+"...");
       LibraryTable libraryTable = ProjectLibraryTable.getInstance(module.getProject());
       OrderEntry[] orderEntries = ModuleRootManager.getInstance(module).getOrderEntries();
-      String namespaceUriPart = ":" + namespaceUri + ":";
+      String namespaceUriPart;
+      String xsdBasename;
+      if (namespaceUri.equals(EXT3_XSD_URI)) {
+        namespaceUriPart = "net.jangaroo:ext-as:jangaroo:";
+        xsdBasename = "ext3";
+      } else {
+        namespaceUriPart = ":" + namespaceUri + ":";
+        xsdBasename = namespaceUri;
+      }
       for (OrderEntry orderEntry: orderEntries) {
-        Library library = libraryTable.getLibraryByName(orderEntry.getPresentableName());
-        if (library != null && library.getName().indexOf(namespaceUriPart) != -1) {
-          // found the right library!
-          VirtualFile[] files = library.getFiles(OrderRootType.CLASSES);
-          // check that library is not empty:
-          if (files.length == 0) {
-            files = library.getFiles(OrderRootType.SOURCES);
+        String orderEntryName = orderEntry.getPresentableName();
+        if (orderEntry instanceof LibraryOrderEntry) {
+          Library library = libraryTable.getLibraryByName(orderEntryName);
+          if (library != null && library.getName().indexOf(namespaceUriPart) != -1) {
+            // found the right library!
+            VirtualFile[] files = library.getFiles(OrderRootType.CLASSES);
+            // check that library is not empty:
+            if (files.length == 0) {
+              files = library.getFiles(OrderRootType.SOURCES);
+            }
+            if (files.length > 0) {
+              return files[0].getPath() + xsdBasename + ".xsd";
+            }
           }
-          if (files.length > 0) {
-            return files[0].getPath() + namespaceUri + ".xsd";
+        } else if (orderEntry instanceof ModuleOrderEntry) {
+          if (namespaceUri.equals(orderEntryName)) {
+            return getXsdFilename(((ModuleOrderEntry)orderEntry).getModule());
           }
         }
       }

@@ -20,15 +20,6 @@
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library name="ext3.xsd">
-        <CLASSES>
-          <root url="file://$MODULE_DIR$/../../jangaroo-libs/jangaroo-libs/ext-as/src/main/resources" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
       <library>
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/codehaus/plexus/plexus-utils/1.5.15/plexus-utils-1.5.15.jar!/" />
@@ -59,6 +50,24 @@
         <SOURCES>
           <root url="jar://$MAVEN_REPOSITORY$/org/apache/maven/shared/file-management/1.2.1/file-management-1.2.1-sources.jar!/" />
         </SOURCES>
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/apache/maven/shared/maven-shared-io/1.1/maven-shared-io-1.1.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/jtidy/jtidy/4aug2000r7-dev/jtidy-4aug2000r7-dev.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
       </library>
     </orderEntry>
   </component>
