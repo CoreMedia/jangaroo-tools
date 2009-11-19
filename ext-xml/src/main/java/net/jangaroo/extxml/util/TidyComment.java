@@ -41,7 +41,7 @@ public final class TidyComment {
   }
 
   public static String tidy(String dirtyHtml) {
-    String wrappedHtml = "<html><body>"+dirtyHtml+"</body></html>";
+    String wrappedHtml = "<html xmlns:ext=\"http://extjs.com/ext3\"><body>"+dirtyHtml+"</body></html>";
     StringWriter result = new StringWriter();
     try {
       Document document = tidy.parseDOM(new ByteArrayInputStream(wrappedHtml.getBytes("ISO-8859-1")), null);
@@ -53,7 +53,7 @@ public final class TidyComment {
       serializer.setOutputProperty(OutputKeys.DOCTYPE_SYSTEM, "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd");
       serializer.transform(domSource, new StreamResult(result));
     } catch (TransformerException e) {
-      //throw new RuntimeException(e);
+      throw new RuntimeException(e);
     } catch (UnsupportedEncodingException e) {
       // should not happen for ISO-8859-1:
       throw new RuntimeException(e);
