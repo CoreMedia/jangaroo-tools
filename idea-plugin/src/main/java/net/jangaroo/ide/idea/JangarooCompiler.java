@@ -64,7 +64,8 @@ public class JangarooCompiler implements TranslatingCompiler {
       String outputDirectoryPath = joocConfig.getOutputDirectory().getPath();
       VirtualFile outputDirectoryVirtualFile = LocalFileSystem.getInstance().findFileByPath(outputDirectoryPath);
       if (outputDirectoryVirtualFile == null) {
-        throw new IllegalStateException("Output directory does not exit: "+outputDirectoryPath);
+        context.addMessage(CompilerMessageCategory.ERROR, "Output directory does not exit: "+outputDirectoryPath, null, -1, -1);
+        return;
       }
       outputDirectoryPath = outputDirectoryVirtualFile.getPath();
       String outputFileName = outputDirectoryPath + File.separator + joocConfig.getOutputFileName();
@@ -78,6 +79,7 @@ public class JangarooCompiler implements TranslatingCompiler {
             ? new OutputItemImpl(outputDirectoryPath, outputFileName, file)
             : createOutputItem(outputDirectoryPath, MakeUtil.getSourceRoot(context, module, file), file);
           outputItems.add(outputItem);
+          context.addMessage(CompilerMessageCategory.INFORMATION, "as->js ("+outputItem.getOutputPath()+")", outputItem.getSourceFile().getUrl(), -1, -1);
         }
       }
     }
