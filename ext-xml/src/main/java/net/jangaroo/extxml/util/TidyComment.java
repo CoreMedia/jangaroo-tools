@@ -53,7 +53,7 @@ public final class TidyComment {
       serializer.setOutputProperty(OutputKeys.DOCTYPE_SYSTEM, "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd");
       serializer.transform(domSource, new StreamResult(result));
     } catch (TransformerException e) {
-      throw new RuntimeException(e);
+      //throw new RuntimeException(e);
     } catch (UnsupportedEncodingException e) {
       // should not happen for ISO-8859-1:
       throw new RuntimeException(e);
@@ -64,6 +64,10 @@ public final class TidyComment {
     }
     int bodyStart = xml.indexOf("<body");
     int bodyEnd = xml.indexOf("</body>");
+    if(bodyEnd == -1)  {
+      xml += "</body></html>";
+      bodyEnd = xml.indexOf("</body>");
+    }
     if (bodyStart==-1 || bodyEnd==-1) {
       // should not happen:
       throw new RuntimeException("No body element found in "+xml);

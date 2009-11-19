@@ -12,6 +12,8 @@ import org.junit.runners.Suite;
  */
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
+    ComponentClassTest.class,
+    ConfigAttributeTest.class,
     ExtComponentSrcFileScannerTest.class,
     XsdGeneratorTest.class,
     XsdScannerTest.class,

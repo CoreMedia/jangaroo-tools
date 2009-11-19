@@ -5,7 +5,9 @@ import net.jangaroo.extxml.json.Json;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * The meta-model of an Ext JS component class.
@@ -138,6 +140,21 @@ public final class ComponentClass extends DescriptionHolder {
       return directCfgs;
     }
     return cfgs;
+  }
+
+  public Collection<ConfigAttribute> getAllCfgs() {
+    ComponentClass cc = getSuperClass();
+    if (cc != null) {
+     Set<ConfigAttribute> allCfgs = new HashSet<ConfigAttribute>();
+     allCfgs.addAll(cfgs);
+      do {
+        allCfgs.addAll(cc.getCfgs());
+        cc = cc.getSuperClass();
+      } while (cc != null);
+      //System.out.println("Removed "+(cfgs.size()-allCfgs.size())+" inherited configs.");
+      return allCfgs;
+    }
+    return new HashSet(cfgs);
   }
 
   public void addCfg(ConfigAttribute cfg) {
