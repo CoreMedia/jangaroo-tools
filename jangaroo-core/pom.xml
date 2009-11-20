@@ -9,6 +9,12 @@
   <version>0.3.21-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Jangaroo Core</name>
+  <distributionManagement>
+    <site>
+      <id>jangaroo</id>
+      <url>scp://repo.jangaroo.net/home/jangaroo/maven2/site/jangaroo-core</url>
+    </site>
+  </distributionManagement>
 
   <modules>
     <module>ext-xml</module>

@@ -14,6 +14,14 @@
     <version>1</version>
   </parent>
 
+  <distributionManagement>
+    <site>
+      <id>jangaroo</id>
+      <url>scp://repo.jangaroo.net/home/jangaroo/maven2/site/jangaroo-hudson-plugin</url>
+    </site>
+  </distributionManagement>
+  
+
   <dependencies>
     <dependency>
       <groupId>org.jvnet.hudson.main</groupId>
