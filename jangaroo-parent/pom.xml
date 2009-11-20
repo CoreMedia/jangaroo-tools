@@ -26,7 +26,7 @@
     </snapshotRepository>
     <site>
       <id>jangaroo</id>
-      <url>scp://repo.jangaroo.net/home/jangaroo/maven2/repo</url>
+      <url>scp://repo.jangaroo.net/home/jangaroo/maven2/site/${project.artifactId}</url>
     </site>
   </distributionManagement>
 
