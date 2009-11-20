@@ -15,13 +15,6 @@
   </parent>
 
 
-  <distributionManagement>
-    <downloadUrl>http://repo.jangaroo.net/maven2</downloadUrl>
-    <site>
-      <id>jangaroo</id>
-      <url>scp://repo.jangaroo.net/home/jangaroo/maven2/site/</url>
-    </site>
-  </distributionManagement>
   <repositories>
     <repository>
       <id>jangaroo</id>
