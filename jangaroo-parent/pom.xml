@@ -24,6 +24,10 @@
       <id>jangaroo-snapshots</id>
       <url>scp://repo.jangaroo.net/home/jangaroo/maven2/snapshots</url>
     </snapshotRepository>
+    <site>
+      <id>jangaroo</id>
+      <url>scp://repo.jangaroo.net/home/jangaroo/maven2/site/jangaroo-core</url>
+    </site>
   </distributionManagement>
 
 
