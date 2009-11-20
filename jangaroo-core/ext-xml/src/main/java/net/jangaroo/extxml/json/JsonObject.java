@@ -133,6 +133,7 @@ public class JsonObject implements Json {
       String xtype = (String) value;
       ComponentClass compClazz = ComponentSuiteRegistry.getInstance().findComponentClassByXtype(xtype);
       if (compClazz != null) {
+        ComponentSuiteRegistry.getInstance().getErrorHandler().info(String.format("Using compontent class '%s' for xtype '%s'", compClazz, value));
         return (compClazz.getFullClassName())+ (".") + (key);
       } else {
         return ("\"") + (xtype) + ("\"");
