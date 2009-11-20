@@ -9,6 +9,15 @@
   <name>Jangaroo Tools</name>
   <url>http://www.jangaroo.net/</url>
 
+
+  <distributionManagement>
+    <downloadUrl>http://repo.jangaroo.net/maven2</downloadUrl>
+    <site>
+      <id>jangaroo</id>
+      <url>scp://repo.jangaroo.net/home/jangaroo/maven2/site/</url>
+    </site>
+  </distributionManagement>  
+
   <licenses>
     <license>
       <name>Apache 2</name>
@@ -99,7 +108,6 @@
     <module>jangaroo-maven</module>
     <module>jangaroo-hudson-plugin</module>
     <module>jangaroo-core</module>
-    <module>jangaroo-parent</module>
   </modules>
 
   <scm>

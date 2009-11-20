@@ -3,7 +3,7 @@
   <parent>
     <artifactId>jangaroo-parent</artifactId>
     <groupId>net.jangaroo</groupId>
-    <version>0.3.21-SNAPSHOT</version>
+    <version>1</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>net.jangaroo</groupId>
@@ -17,6 +17,7 @@
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-runtime</artifactId>
       <version>0.3.21-SNAPSHOT</version>
+      <type>jangaroo</type>
     </dependency>
 
     <dependency>
@@ -45,7 +46,7 @@
         <executions>
           <execution>
             <goals>
-              <goal>unpack</goal>
+              <goal>copy</goal>
             </goals>
             <phase>process-test-resources</phase>
             <configuration>
@@ -53,10 +54,11 @@
                 <artifactItem>
                   <groupId>net.jangaroo</groupId>
                   <artifactId>jangaroo-runtime</artifactId>
-                  <version>${version}</version>
+                  <type>jangaroo</type>
+                  <version>${project.version}</version>
                 </artifactItem>
               </artifactItems>
-              <outputDirectory>${basedir}/target/temp/js</outputDirectory>
+              <outputDirectory>${basedir}/target/</outputDirectory>
             </configuration>
           </execution>
         </executions>
@@ -89,6 +91,8 @@
             <phase>process-test-resources</phase>
             <configuration>
               <tasks>
+                <unzip src="${basedir}/target/jangaroo-runtime-${project.version}.jangaroo" dest="${basedir}/target/temp/js"/>
+                
                 <property name="runtime.classpath" refid="maven.runtime.classpath" />
                 <taskdef name="jooc" classname="net.jangaroo.jooc.ant.JoocTask" classpath="target/classes;${runtime.classpath}" />
 

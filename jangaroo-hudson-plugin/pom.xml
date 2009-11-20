@@ -11,7 +11,7 @@
   <parent>
     <groupId>net.jangaroo</groupId>
     <artifactId>jangaroo-parent</artifactId>
-    <version>0.3.21-SNAPSHOT</version>
+    <version>1</version>
   </parent>
 
   <dependencies>
