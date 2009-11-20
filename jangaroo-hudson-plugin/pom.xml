@@ -14,13 +14,15 @@
     <version>1</version>
   </parent>
 
-  <distributionManagement>
-    <site>
-      <id>jangaroo</id>
-      <url>scp://repo.jangaroo.net/home/jangaroo/maven2/site/jangaroo-hudson-plugin</url>
-    </site>
-  </distributionManagement>
-  
+  <repositories>
+    <repository>
+      <id>java-net</id>
+      <url>http://download.java.net/maven/2</url>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
 
   <dependencies>
     <dependency>
