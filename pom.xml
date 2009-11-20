@@ -16,7 +16,16 @@
       <id>jangaroo</id>
       <url>scp://repo.jangaroo.net/home/jangaroo/maven2/site/</url>
     </site>
-  </distributionManagement>  
+  </distributionManagement>
+  <repositories>
+    <repository>
+      <id>jangaroo</id>
+      <url>http://repo.jangaroo.net/maven2/</url>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
 
   <licenses>
     <license>
