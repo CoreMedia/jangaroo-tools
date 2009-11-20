@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <parent>
+    <artifactId>jangaroo-parent</artifactId>
+    <groupId>net.jangaroo</groupId>
+    <version>0.3.21-SNAPSHOT</version>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
+
+  <artifactId>jangaroo-lifecycle</artifactId>
+  <packaging>maven-plugin</packaging>
+
+  <name>Jangaroo Build Lifecycle + Artifact Handling</name>
+
+  <build>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>true</filtering>
+      </resource>
+    </resources>
+    <plugins>
+
+      <plugin>
+        <artifactId>maven-plugin-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-invoker-plugin</artifactId>
+        <version>1.4</version>
+        <configuration>
+          <debug>true</debug>
+          <projectsDirectory>src/it</projectsDirectory>
+          <pomIncludes>
+            <pomInclude>simple-lib-with-test/pom.xml</pomInclude>
+          </pomIncludes>
+          <postBuildHookScript>verify.bsh</postBuildHookScript>
+          <cloneProjectsTo>${project.build.directory}/its</cloneProjectsTo>
+        </configuration>
+        <executions>
+          <execution>
+            <id>integration-test</id>
+
+            <goals>
+              <goal>install</goal>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+    </plugins>
+  </build>
+
+  <dependencies>
+    <dependency>
+      <groupId>net.jangaroo</groupId>
+      <artifactId>jangaroo-maven-plugin</artifactId>
+      <version>0.3.21-SNAPSHOT</version>
+      <type>maven-plugin</type>
+    </dependency>
+    <dependency>
+      <groupId>net.jangaroo</groupId>
+      <artifactId>ext-xml-maven-plugin</artifactId>
+      <version>0.3.21-SNAPSHOT</version>
+      <type>maven-plugin</type>
+    </dependency>
+    <dependency>
+      <groupId>net.jangaroo</groupId>
+      <artifactId>jangaroo-maven-plugin</artifactId>
+      <version>0.3.21-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>net.jangaroo</groupId>
+      <artifactId>ext-xml-maven-plugin</artifactId>
+      <version>0.3.21-SNAPSHOT</version>
+    </dependency>
+  </dependencies>
+
+
+</project>

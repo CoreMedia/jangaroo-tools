@@ -1,0 +1,39 @@
+Jangaroo
+
+ Jangaroo is an Open Source project building developer tools that adopt the power of ActionScript 3 to create high-quality JavaScript frameworks and applications. Jangaroo software is released under the Apache License, Version 2.0.
+
+Why use Jangaroo?
+
+ There are two main use cases when you might want to use Jangaroo tools:
+
+    * JavaScript programming in the large - Adopt ActionScript 3 language features like packages,
+    classes, interfaces, private members, and many more to create even large-scale client-side Web
+    code, where you otherwise would have used JavaScript directly. This approach is extremely
+    helpful when creating frameworks with explicit public APIs, but also for larger applications
+    that use such frameworks.
+
+    * Running ActionScript 3 code directly in the browser - You are implementing a Web project
+    that must not rely on plugins and/or requires close integration into an HTML Web site,
+    possibly already using some JavaScript framework. You want to reuse or build upon existing
+    ActionScript 3 code (utility classes, frameworks like FlexUnit, custom code) as well as
+    JavaScript APIs and code.
+
+
+Organization of the Project
+
+* Jangaroo Core
+
+ Compiler, JavaScript Runtime and Browser Emulation.
+
+* Jangaroo Maven Integration
+
+ Consists of the Maven Jangaroo Lifecycle and JooCompiler, ExtXml and JooTest Plugin.
+
+* JooTest Hudson Plugin
+
+ Integration in Hudson. With this Plugin the Hudson Continuous Integration collects test
+results and continues build even though tests fail.
+
+* Jangaroo Parent
+
+ Common parent POM for all Jangaroo Projects.
