@@ -4,6 +4,7 @@
 package net.jangaroo.extxml;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 import utils.TestUtils;
 
@@ -21,6 +22,7 @@ public class XsdScannerTest {
     File xsd = TestUtils.getFile("/schemas/ext3.xsd", getClass());
     ComponentSuite suite = scanner.scan(new FileInputStream(xsd));
     assertNotNull(suite);
+    assertEquals("ext",suite.getNs());
     ComponentClass cclass = suite.getComponentClassByXtype("container");
     assertNotNull(cclass);
   }

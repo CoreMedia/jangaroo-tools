@@ -44,7 +44,7 @@ public final class XsdScanner {
 
         ComponentSuite componentSuite = new ComponentSuite(
           schemaElement.getAttribute("targetNamespace"),
-          schemaElement.getAttribute("id"), null, null);
+          schemaElement.lookupPrefix(schemaElement.getAttribute("targetNamespace")), null, null);
         NodeList components = document.getElementsByTagNameNS(XML_SCHEMA_URL, "element");
         for (int i = 0; i < components.getLength(); ++i) {
           Element component = (Element) components.item(i);
