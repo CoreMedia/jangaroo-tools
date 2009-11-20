@@ -7,8 +7,13 @@
   <packaging>pom</packaging>
   <artifactId>jangaroo-parent</artifactId>
   <groupId>net.jangaroo</groupId>
-  <version>0.3.21-SNAPSHOT</version>
+  <version>1-SNAPSHOT</version>
   <name>Jangaroo Default Settings</name>
+
+  <scm>
+    <developerConnection>scm:perforce://coremedia/jangaroo/jangaroo-parent</developerConnection>
+  </scm>
+  
 
   <distributionManagement>
     <downloadUrl>http://repo.jangaroo.net/maven2</downloadUrl>
