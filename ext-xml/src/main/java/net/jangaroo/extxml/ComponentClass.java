@@ -185,16 +185,16 @@ public final class ComponentClass extends DescriptionHolder {
   @Override
   public String toString() {
     StringBuilder builder = new StringBuilder()
-      .append("class   ").append(fullClassName)
-      .append("\nxtype   ").append(xtype);
+      .append("class: ").append(fullClassName)
+      .append(" xtype: ").append(xtype);
     if (superClassName != null) {
-      builder.append("\nextends ").append(superClassName);
+      builder.append(" extends ").append(superClassName);
     }
     if (srcFile != null) {
-      builder.append("\nfile    ").append(getRelativeSrcFilePath());
+      builder.append(" file ").append(getRelativeSrcFilePath());
     }
     for (ConfigAttribute cfg : cfgs) {
-      builder.append("\n  ").append(cfg);
+      builder.append(" ").append(cfg);
     }
     return builder.toString();
   }

@@ -4,6 +4,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+import org.codehaus.plexus.util.StringUtils;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -54,7 +55,10 @@ public final class XsdScanner {
           if (colonPos != -1) {
             type = type.substring(colonPos + 1);
           }
-          componentSuite.addComponentClass(new ComponentClass(name, type));
+          if(!StringUtils.isEmpty(type)) {
+            ComponentSuiteRegistry.getInstance().getErrorHandler().info(String.format("Register class '%s' with xtype '%s'", type, name));
+            componentSuite.addComponentClass(new ComponentClass(name, type));
+          }
         }
         return componentSuite;
       }
