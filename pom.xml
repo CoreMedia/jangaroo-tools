@@ -8,6 +8,11 @@
 
   <name>Jangaroo Tools</name>
   <url>http://www.jangaroo.net/</url>
+  <parent>
+    <groupId>net.jangaroo</groupId>
+    <artifactId>jangaroo-parent</artifactId>
+    <version>1</version>
+  </parent>
 
 
   <distributionManagement>
