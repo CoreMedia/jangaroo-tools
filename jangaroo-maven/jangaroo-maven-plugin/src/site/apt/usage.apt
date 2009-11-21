@@ -24,8 +24,16 @@
 
 Usage
 
- To compile your Jangaroo classes and test classes, add the <<<jangaroo-maven-plugin>>> to your <<<pom.xml>>>
- and register the goals <<<compile>>>, <<<testCompile>>>, and <<<copy-runtime>>> for execution.
+ This plugin is most likely used to create web applications that utilize Jangaroo artifacts.
+It should not be used manually to create Jangaroo libraries - therefore one should create POM 
+with packagingType <<<jangaroo>>>. The Jangaroo packaging type is defined in the 
+{{{../jangaroo-lifecycle/index.html}Jangaroo Lifecycle}}.
+
+ A typical configuration can been seen below. The <<<ext-xml-maven-plugin:extxml>>> goal is used to transform
+<<<EXML>>> UI descriptions to AS3 code in the <<<generate-sources>>> phase. The <<<jangaroo-maven-plugin:war-compile>>> 
+goal compiles the generated (or hand-written) AS3 sources to JavaScript. The last Jangaroo specific goal is the
+<<<jangaroo-maven-plugin:war-package>>> goal that extracts all dependent Jangaroo artifacts into the webapp's joo 
+directory. 
 
 +-------+
   <project>
@@ -34,95 +42,37 @@ Usage
       <plugins>
         <plugin>
           <groupId>net.jangaroo</groupId>
-          <artifactId>jangaroo-maven-plugin</artifactId>
-          <version>0.3</version>
+          <artifactId>ext-xml-maven-plugin</artifactId>
+          <version>${jangaroo_version}</version>
           <executions>
             <execution>
               <goals>
-                <goal>compile</goal>
-                <goal>copy-runtime</goal>
-                <goal>testCompile</goal>
+                <goal>extxml</goal>
               </goals>
             </execution>
           </executions>
         </plugin>
-      </plugins>
-    </build>
-    [...]
-  </project>
-+-------+
 
- By default, <<<jangaroo:compile>>> will generate the JavaScript output to <<<target/joo/classes>>>, and
- <<<jangaroo:testCompile>>> to <<<target/joo/test-classes>>>. The <<<jangaroo:copy-runtime>>> goal will run during
- the compile phase and extract the required Jangaroo runtime <<<joo/joo.js>>> to the compilation output directory.
-
-*Including compiled Jangaroo classes in a <<<war>>> project
-
- In most cases, Jangaroo sources will be part of a project of type <<<war>>>, packaged by the <<<maven-war-plugin>>>.
- To include the compiled Jangaroo classes in the generated WAR, e.g. in a scripts directory called <<</joo>>>,
- add the Jangaroo compilation output directory as a <<<webResource>>> to the war-plugin configuration.
- If you do not actually build a J2EE Web application, and you do not want to add a fake web.xml, you must tell the
- maven-war-plugin to ignore the missing file.
-
-+-------+
-  <project>
-    [...]
-    <build>
-      <plugins>
-        <plugin>
-          <artifactId>maven-war-plugin</artifactId>
-          <version>2.1-alpha-2</version>
-          <configuration>
-            <webResources>
-              <resource>
-                <directory>${project.build.directory}/joo</directory>
-                <targetPath>joo</targetPath>
-              </resource>
-            </webResources>
-            <failOnMissingWebXml>false</failOnMissingWebXml>
-          </configuration>
-        </plugin>
-      </plugins>
-    </build>
-    [...]
-  </project>
-+-------+
-
- The Jangaroo runtime <<<joo/joo.js>>> will be required to run the compiled Jangaroo code. The example
- above therefore assumes that the <<<jangaroo:copy-runtime>>> goal has been executed to extract <<<joo.js>>>
- to <<<$\{project.build.directory\}/joo/lib>>>.
-
-*Compiling all Jangaroo classes to one output file
-
- To reduce the number of JavaScript files in your deployed application, the plugin supports concatenating all
- compiled Jangaroo classes to one single JavaScript file by setting the <<<mergeOutput>>> parameter to true.
- The default output file name is <<<target/joo/lib/$\{project.build.finalName\}.js>>> and may be changed by setting the
- <<<outputFileName>>> parameter.
-
-+-------+
-  <project>
-    [...]
-    <build>
-      <plugins>
         <plugin>
           <groupId>net.jangaroo</groupId>
           <artifactId>jangaroo-maven-plugin</artifactId>
-          <version>0.3</version>
+          <version>${jangaroo_version}</version>
           <executions>
             <execution>
-              <configuration>
-                <mergeOutput>true</mergeOutput>
-              </configuration>
               <goals>
-                <goal>compile</goal>
-                <goal>copy-runtime</goal>
-                <goal>testCompile</goal>
+                <goal>war-compile</goal>
+              </goals>
+            </execution>
+            <execution>
+              <goals>
+                <goal>war-package</goal>
               </goals>
             </execution>
           </executions>
-        </plugin>
+
       </plugins>
     </build>
     [...]
   </project>
 +-------+
+

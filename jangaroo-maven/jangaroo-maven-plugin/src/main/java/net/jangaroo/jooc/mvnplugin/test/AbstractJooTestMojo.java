@@ -34,7 +34,6 @@ public abstract class AbstractJooTestMojo extends AbstractMojo {
    * this directory.
    *
    * @parameter expression="${project.build.testOutputDirectory}"  default-value="${project.build.testOutputDirectory}"
-   * @required
    */
   protected File testOutputDirectory;
 

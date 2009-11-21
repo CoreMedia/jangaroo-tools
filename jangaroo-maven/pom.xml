@@ -9,13 +9,15 @@
   <version>0.3.21-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Jangaroo Maven Integration</name>
+  <url>http://repo.jangaroo.net/site/jangaroo-maven</url>
 
   <parent>
     <artifactId>jangaroo-parent</artifactId>
     <groupId>net.jangaroo</groupId>
     <version>1</version>
+    <relativePath>../jangaroo-parent/pom.xml</relativePath>
   </parent>
-  
+
   <modules>
     <module>jangaroo-lifecycle</module>
     <module>jangaroo-maven-plugin</module>

@@ -8,10 +8,12 @@
   <packaging>hpi</packaging>
   <name>JooTest Hudson Plugin</name>
   <description>This plug-in provides an integration of Hudson and JooTest.</description>
+  <url>http://repo.jangaroo.net/site/jangaroo-hudson-plugin</url>
   <parent>
     <groupId>net.jangaroo</groupId>
     <artifactId>jangaroo-parent</artifactId>
     <version>1</version>
+    <relativePath>../jangaroo-parent/pom.xml</relativePath>
   </parent>
 
   <repositories>

@@ -30,6 +30,14 @@ import java.util.List;
 import java.util.Random;
 
 /**
+ * Executes JooUnit tests.
+ * Unpacks all dependency to its output directory, generates a tests.html which starts up the class
+ * <code>testSuiteName</code>. Since a real browser is the best JavaScript execution environment 
+ * the test now fires up a jetty on a random port between <code>jooUnitJettyPortLowerBound</code> and 
+ * <code>jooUnitJettyPortUpperBound</code> contacts a selenium server given by 
+ * <code>jooUnitSeleniumRCHost</code>. The Selenium Remote Control then starts a browser, navigates
+ * the browser to the Jetty we just started and waits for <code>jooUnitTestExecutionTimeout</code>ms
+ * for the results to appear on the browser screen.
  * @goal test
  * @phase test
  */

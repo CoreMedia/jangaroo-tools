@@ -25,8 +25,9 @@ under the License.
       <item name="Introduction" href="index.html"/>
       <item name="Goals" href="plugin-info.html"/>
       <item name="Usage" href="usage.html"/>
-      <item name="FAQ" href="faq.html"/>
+      <item name="Dependencies" href="dependencies.html"/>
+      <item name="Project Summary" href="project-summary.html"/>
+      <item name="License" href="license.html"/>
     </menu>
-    <menu ref="reports"/>
   </body>
 </project>

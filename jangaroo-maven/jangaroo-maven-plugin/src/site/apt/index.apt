@@ -29,11 +29,10 @@ Jangaroo Maven Plugin
 
 * Goals Overview
 
- * {{{compile-mojo.html}jangaroo:compile}} compiles Jangaroo classes during the compile phase.
+ * {{{war-compile-mojo.html}jangaroo:war-compile}} compiles Jangaroo classes into the the web application. It is typically bound to the compile phase.
 
- * {{{testCompile-mojo.html}jangaroo:testCompile}} compiles Jangaroo test classes during the test-compile phase.
+ * {{{war-package-mojo.html}jangaroo:war-package}} extracts all dependencies of type jangaroo into the web application target directory. Typically bound to the package phase.
 
- * {{{copy-runtime-mojo.html}jangaroo:copy-runtime}} extracts the Jangaroo runtime to the output directory.
 
 * Usage
 
