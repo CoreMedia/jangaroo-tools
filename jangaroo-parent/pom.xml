@@ -8,9 +8,21 @@
   <version>2-SNAPSHOT</version>
   <name>Jangaroo Default Settings</name>
 
+  <url>http://repo.jangaroo.net/site/</url>
+
   <scm>
     <developerConnection>scm:perforce://coremedia/jangaroo/jangaroo-parent</developerConnection>
   </scm>
+
+  <licenses>
+    <license>
+      <name>Apache 2</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+      <comments>A business-friendly OSS license</comments>
+    </license>
+  </licenses>
+
   
 
   <distributionManagement>
