@@ -8,7 +8,7 @@
   <version>2-SNAPSHOT</version>
   <name>Jangaroo Default Settings</name>
 
-  <url>http://repo.jangaroo.net/site/</url>
+  <url>http://repo.jangaroo.net/site/jangaroo-parent</url>
 
   <scm>
     <developerConnection>scm:perforce://coremedia/jangaroo/jangaroo-parent</developerConnection>
@@ -38,7 +38,7 @@
     </snapshotRepository>
     <site>
       <id>jangaroo</id>
-      <url>scp://repo.jangaroo.net/home/jangaroo/maven2/site</url>
+      <url>scp://repo.jangaroo.net/home/jangaroo/maven2/site/jangaroo-parent</url>
     </site>
   </distributionManagement>
 
