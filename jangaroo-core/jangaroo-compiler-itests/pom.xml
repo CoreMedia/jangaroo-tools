@@ -93,7 +93,7 @@
             <phase>process-test-resources</phase>
             <configuration>
               <tasks>
-                <unzip src="${basedir}/target/jangaroo-runtime-${project.version}.jangaroo"
+                <unzip src="${basedir}/target/jangaroo-runtime-${project.version}.jar"
                        dest="${basedir}/target/temp/js"/>
 
                 <property name="runtime.classpath" refid="maven.runtime.classpath"/>

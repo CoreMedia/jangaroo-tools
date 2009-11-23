@@ -12,7 +12,7 @@
   <artifactId>jangaroo-browser</artifactId>
   <name>Joo Browser Compat. Lib</name>
   <version>0.3.21-SNAPSHOT</version>
-  <packaging>pom</packaging>
+  <packaging>jangaroo</packaging>
   <build>
 
     <resources>
@@ -29,13 +29,13 @@
     <plugins>
       <plugin>
         <groupId>net.jangaroo</groupId>
-        <artifactId>jangaroo-maven-plugin</artifactId>
+        <artifactId>jangaroo-lifecycle</artifactId>
         <version>0.3.20</version>
         <!-- We cannot use the latest version here since we can't use AND build it in the same process -->
         <extensions>true</extensions>
       </plugin>
 
-      <plugin>
+  <!--    <plugin>
         <artifactId>maven-antrun-plugin</artifactId>
         <executions>
           <execution>
@@ -80,7 +80,7 @@
             <version>0.3.21-SNAPSHOT</version>
           </dependency>
         </dependencies>
-      </plugin>
+      </plugin>           
 
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
@@ -98,6 +98,7 @@
                 <artifact>
                   <file>${basedir}/target/jangaroo-browser.jar</file>
                   <type>jangaroo</type>
+                  <extensions></extensions>
                 </artifact>
                 <artifact>
                   <file>${basedir}/target/jangaroo-browser-sources.jar</file>
@@ -109,7 +110,7 @@
             </configuration>
           </execution>
         </executions>
-      </plugin>
+      </plugin>  -->
     </plugins>
   </build>
   <dependencies>
@@ -119,7 +120,6 @@
       <artifactId>jangaroo-runtime</artifactId>
       <version>0.3.21-SNAPSHOT</version>
       <type>jangaroo</type>
-      <scope>runtime</scope>
     </dependency>
 
 
