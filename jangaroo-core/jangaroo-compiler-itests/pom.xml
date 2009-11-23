@@ -42,6 +42,12 @@
   <build>
 
     <plugins>
+      <plugin>
+        <groupId>net.jangaroo</groupId>
+        <artifactId>jangaroo-lifecycle</artifactId>
+        <version>0.3.20</version>
+        <extensions>true</extensions>
+      </plugin>
 
       <plugin>
         <artifactId>maven-dependency-plugin</artifactId>
