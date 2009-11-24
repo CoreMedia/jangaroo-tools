@@ -56,15 +56,15 @@ public class JangarooCompiler implements TranslatingCompiler {
   }
 
   private void compile(CompileContext context, Module module, final List<VirtualFile> files, List<OutputItem> outputItems, List<VirtualFile> filesToRecompile) {
-    final VirtualFile outputDirectory = context.getModuleOutputDirectory(module);
-    assert outputDirectory!=null;
-
     JoocConfiguration joocConfig = getJoocConfiguration(module, files);
     if (joocConfig!=null) {
       String outputDirectoryPath = joocConfig.getOutputDirectory().getPath();
+      if (new File(outputDirectoryPath).mkdirs()) {
+        LocalFileSystem.getInstance().refresh(false);
+      }
       VirtualFile outputDirectoryVirtualFile = LocalFileSystem.getInstance().findFileByPath(outputDirectoryPath);
       if (outputDirectoryVirtualFile == null) {
-        context.addMessage(CompilerMessageCategory.ERROR, "Output directory does not exit: "+outputDirectoryPath, null, -1, -1);
+        context.addMessage(CompilerMessageCategory.ERROR, "Output directory does not exist and could not be created: "+outputDirectoryPath, null, -1, -1);
         return;
       }
       outputDirectoryPath = outputDirectoryVirtualFile.getPath();
