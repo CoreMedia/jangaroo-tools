@@ -22,9 +22,14 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.roots.ModuleOrderEntry;
+import com.intellij.openapi.roots.OrderEntry;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.facet.FacetManager;
 import com.intellij.compiler.make.MakeUtil;
 import com.intellij.compiler.impl.javaCompiler.OutputItemImpl;
+import com.intellij.javaee.web.facet.WebFacet;
 import org.jetbrains.annotations.NotNull;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.CompileLog;
@@ -59,10 +64,9 @@ public class JangarooCompiler implements TranslatingCompiler {
     JoocConfiguration joocConfig = getJoocConfiguration(module, files);
     if (joocConfig!=null) {
       String outputDirectoryPath = joocConfig.getOutputDirectory().getPath();
-      if (new File(outputDirectoryPath).mkdirs()) {
-        LocalFileSystem.getInstance().refresh(false);
-      }
-      VirtualFile outputDirectoryVirtualFile = LocalFileSystem.getInstance().findFileByPath(outputDirectoryPath);
+      VirtualFile outputDirectoryVirtualFile = new File(outputDirectoryPath).mkdirs()
+        ? LocalFileSystem.getInstance().refreshAndFindFileByPath(outputDirectoryPath)
+        : LocalFileSystem.getInstance().findFileByPath(outputDirectoryPath);
       if (outputDirectoryVirtualFile == null) {
         context.addMessage(CompilerMessageCategory.ERROR, "Output directory does not exist and could not be created: "+outputDirectoryPath, null, -1, -1);
         return;
@@ -90,7 +94,9 @@ public class JangarooCompiler implements TranslatingCompiler {
     if (jangarooFacet==null) {
       return null;
     }
+    JangarooFacet webJangarooFacet = findWebJangarooFacet(jangarooFacet);
     JoocConfigurationBean joocConfigurationBean = jangarooFacet.getConfiguration().getState();
+    JoocConfigurationBean joocOutputConfigurationBean = webJangarooFacet.getConfiguration().getState();
     JoocConfiguration joocConfig = new JoocConfiguration();
     joocConfig.setVerbose(joocConfigurationBean.verbose);
     joocConfig.setDebug(joocConfigurationBean.isDebug());
@@ -102,11 +108,11 @@ public class JangarooCompiler implements TranslatingCompiler {
     joocConfig.setEnableGuessingMembers(joocConfigurationBean.enableGuessingMembers);
     joocConfig.setMergeOutput(joocConfigurationBean.mergeOutput);
     if (joocConfigurationBean.mergeOutput) {
-      File outputFile = new File(joocConfigurationBean.getOutputFileName());
+      File outputFile = new File(joocOutputConfigurationBean.getOutputFileName());
       joocConfig.setOutputDirectory(outputFile.getParentFile());
       joocConfig.setOutputFileName(outputFile.getName());
     } else {
-      joocConfig.setOutputDirectory(joocConfigurationBean.getOutputDirectory());
+      joocConfig.setOutputDirectory(joocOutputConfigurationBean.getOutputDirectory());
     }
     List<File> sourceFiles = new ArrayList<File>(virtualSourceFiles.size());
     for (VirtualFile virtualSourceFile : virtualSourceFiles) {
@@ -114,6 +120,30 @@ public class JangarooCompiler implements TranslatingCompiler {
     }
     joocConfig.setSourceFiles(sourceFiles);
     return joocConfig;
+  }
+
+  private static JangarooFacet findWebJangarooFacet(JangarooFacet jangarooFacet) {
+    Module module = jangarooFacet.getModule();
+    if (FacetManager.getInstance(module).getFacetByType(WebFacet.ID) == null) {
+      // try to find another Jangaroo module with a Web Facet that has a module-dependency on this module:
+      for (Module otherModule : ModuleManager.getInstance(module.getProject()).getModules()) {
+        if (!otherModule.equals(module)) {
+          FacetManager facetManager = FacetManager.getInstance(otherModule);
+          if (facetManager.getFacetByType(WebFacet.ID) != null) {
+            JangarooFacet webJangarooFacet = facetManager.getFacetByType(JangarooFacetType.ID);
+            if (webJangarooFacet != null) {
+              OrderEntry[] orderEntries = ModuleRootManager.getInstance(otherModule).getOrderEntries();
+              for (OrderEntry orderEntry: orderEntries) {
+                if (orderEntry instanceof ModuleOrderEntry && ((ModuleOrderEntry)orderEntry).getModule().equals(module)) {
+                  return webJangarooFacet;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    return jangarooFacet;
   }
 
   private OutputItem createOutputItem(final String outputDirectory, VirtualFile sourceRoot, final VirtualFile file) {
