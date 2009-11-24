@@ -49,7 +49,7 @@ public class ExmlProjectComponent implements ProjectComponent {
     // language injection: see http://www.jetbrains.net/devnet/message/5208687
     PsiManager.getInstance(project).registerLanguageInjector(new LanguageInjector() {
       public void getLanguagesToInject(@NotNull PsiLanguageInjectionHost psiLanguageInjectionHost, @NotNull InjectedLanguagePlaces injectedLanguagePlaces) {
-        System.out.println("psiLanguageInjectionHost: "+psiLanguageInjectionHost);
+        //System.out.println("psiLanguageInjectionHost: "+psiLanguageInjectionHost);
         if (psiLanguageInjectionHost.getContainingFile().getName().endsWith(".exml") && psiLanguageInjectionHost instanceof XmlAttributeValue) {
           XmlAttributeValue attributeValue = (XmlAttributeValue)psiLanguageInjectionHost;
           if (isImportClassAttribute(attributeValue)) {
