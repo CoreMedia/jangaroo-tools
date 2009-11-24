@@ -19,6 +19,16 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypeManager;
+import com.intellij.openapi.util.TextRange;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.LanguageInjector;
+import com.intellij.psi.PsiLanguageInjectionHost;
+import com.intellij.psi.InjectedLanguagePlaces;
+import com.intellij.psi.xml.XmlAttributeValue;
+import com.intellij.psi.xml.XmlTag;
+import com.intellij.psi.xml.XmlAttribute;
+import com.intellij.lang.Language;
+import com.intellij.lang.javascript.JavaScriptSupportLoader;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -36,6 +46,40 @@ public class ExmlProjectComponent implements ProjectComponent {
 
   public void initComponent() {
     exmlc = new ExmlCompiler();
+    // language injection: see http://www.jetbrains.net/devnet/message/5208687
+    PsiManager.getInstance(project).registerLanguageInjector(new LanguageInjector() {
+      public void getLanguagesToInject(@NotNull PsiLanguageInjectionHost psiLanguageInjectionHost, @NotNull InjectedLanguagePlaces injectedLanguagePlaces) {
+        System.out.println("psiLanguageInjectionHost: "+psiLanguageInjectionHost);
+        if (psiLanguageInjectionHost.getContainingFile().getName().endsWith(".exml") && psiLanguageInjectionHost instanceof XmlAttributeValue) {
+          XmlAttributeValue attributeValue = (XmlAttributeValue)psiLanguageInjectionHost;
+          if (isImportClassAttribute(attributeValue)) {
+            injectedLanguagePlaces.addPlace(JavaScriptSupportLoader.ECMA_SCRIPT_L4, new TextRange(1, attributeValue.getTextRange().getLength()-1), "import ", ";");
+          } else {
+            String text = attributeValue.getText();
+            if (text.startsWith("\"{") && text.endsWith("}\"")) {
+              TextRange innerRange = new TextRange(2, attributeValue.getTextRange().getLength() - 2);
+              injectedLanguagePlaces.addPlace(getAS3(), innerRange, "function(config){return (", ");}");
+            }
+          }
+        }
+      }
+    });
+  }
+
+  private static Language getAS3() {
+    return JavaScriptSupportLoader.JAVASCRIPT.getLanguage();
+    //return JavaScriptSupportLoader.ECMA_SCRIPT_L4;
+    //return ((LanguageFileType)FileTypeManager.getInstance().getFileTypeByExtension("as")).getLanguage();
+  }
+
+  private static boolean isImportClassAttribute(XmlAttributeValue attributeValue) {
+    if (attributeValue.getParent() instanceof XmlAttribute &&
+      "class".equals(((XmlAttribute)attributeValue.getParent()).getName())) {
+      XmlTag element = (XmlTag)attributeValue.getParent().getParent();
+      return "import".equals(element.getLocalName()) &&
+        ExmlApplicationComponent.EXML_NAMESPACE_URI.equals(element.getNamespace());
+    }
+    return false;
   }
 
   public void disposeComponent() {

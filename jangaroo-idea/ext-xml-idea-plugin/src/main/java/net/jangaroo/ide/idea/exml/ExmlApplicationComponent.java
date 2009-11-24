@@ -11,6 +11,8 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ExmlApplicationComponent implements ApplicationComponent {
 
+  static final String EXML_NAMESPACE_URI = "http://net.jangaroo.com/extxml/0.1";
+
   @NotNull
   public String getComponentName() {
     return "exmlGlobals";
@@ -20,11 +22,11 @@ public class ExmlApplicationComponent implements ApplicationComponent {
     FileTypeManager ftm = FileTypeManager.getInstance();
     ftm.registerFileType(ftm.getFileTypeByExtension("xml"), "exml");
     ExternalResourceManager erm = ExternalResourceManager.getInstance();
-    erm.addStdResource("http://net.jangaroo.com/extxml/0.1", "/net/jangaroo/extxml/schemas/extxml.xsd", getClass());
+    erm.addStdResource(EXML_NAMESPACE_URI, "/net/jangaroo/extxml/schemas/extxml.xsd", getClass());
   }
 
   public void disposeComponent() {
     ExternalResourceManager erm = ExternalResourceManager.getInstance();
-    erm.removeResource("http://net.jangaroo.com/extxml/0.1", "/net/jangaroo/extxml/schemas/extxml.xsd");
+    erm.removeResource(EXML_NAMESPACE_URI, "/net/jangaroo/extxml/schemas/extxml.xsd");
   }
 }

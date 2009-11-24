@@ -10,7 +10,7 @@
           logo="/net/jangaroo/jooley-16x16.png">Jangaroo</vendor>
   <idea-version since-build="9852" until-build="9999"/>
 
-  <!--depends>Jangaroo IDEA Plugin</depends-->
+  <depends>JavaScript</depends>
 
   <application-components>
     <component>
