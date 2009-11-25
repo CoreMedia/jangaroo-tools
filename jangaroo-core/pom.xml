@@ -3,18 +3,21 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
+
   <parent>
     <artifactId>jangaroo-parent</artifactId>
     <groupId>net.jangaroo</groupId>
-    <version>2-SNAPSHOT</version>
+    <version>2</version>
     <relativePath>../jangaroo-parent/pom.xml</relativePath>
   </parent>
+
   <groupId>net.jangaroo</groupId>
   <artifactId>jangaroo-core</artifactId>
   <version>0.3.21-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Jangaroo Core</name>
   <url>http://repo.jangaroo.net/site/jangaroo-core/</url>
+
   <modules>
     <module>ext-xml</module>
     <module>jangaroo-browser</module>
