@@ -285,7 +285,7 @@ public final class XmlToJsonHandler implements ContentHandler {
     expectObjects = false;
   }
 
-  public Json getJSON() {
+  public Json getRawResult() {
     return result;
   }
 

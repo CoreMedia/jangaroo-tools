@@ -51,7 +51,7 @@ public class XmlToJsonHandlerTest {
   @Test
   public void testCDATA() throws Exception {
     parseJson("/testCDATA.exml");
-    Json json = jsonHandler.getJSON();
+    Json json = jsonHandler.getRawResult();
 
     //config elements
     List<ConfigAttribute> cfgs = jsonHandler.getCfgs();
@@ -78,7 +78,7 @@ public class XmlToJsonHandlerTest {
   @Test
   public void testExmlTypeAttribute() throws Exception {
     parseJson("/testExmlTypeAttribute.exml");
-    Json json = jsonHandler.getJSON();
+    Json json = jsonHandler.getRawResult();
     Json itemsArray = (Json) json.get("items");
 
     //assertTrue(itemsArray instanceof JsonArray);
@@ -88,7 +88,7 @@ public class XmlToJsonHandlerTest {
   @Test
   public void testComponent() throws Exception {
     parseJson("/TestComponent.exml");
-    Json json = jsonHandler.getJSON();
+    Json json = jsonHandler.getRawResult();
 
     assertTrue(json instanceof JsonObject);
     assertEquals("panel", json.get("xtype"));
@@ -156,7 +156,7 @@ public class XmlToJsonHandlerTest {
   @Test
   public void testTrueFalse() throws Exception {
     parseJson("/TestTrueFalse.exml");
-    Json json = jsonHandler.getJSON();
+    Json json = jsonHandler.getRawResult();
 
     Json itemsArray = (Json) json.get("items");
     Boolean b = (Boolean) ((Json)itemsArray.get("0")).get("x");
@@ -172,7 +172,7 @@ public class XmlToJsonHandlerTest {
   @Test
   public void testNumber() throws Exception {
     parseJson("/TestNumber.exml");
-    Json json = jsonHandler.getJSON();
+    Json json = jsonHandler.getRawResult();
 
     Json itemsArray = (Json) json.get("items");
     Number n = (Number) ((Json)itemsArray.get("0")).get("x");
@@ -217,7 +217,7 @@ public class XmlToJsonHandlerTest {
     } finally {
       stream.close();
     }
-    Json json = jsonHandler.getJSON();
+    Json json = jsonHandler.getRawResult();
     System.out.println(json);
   }
 }
