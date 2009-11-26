@@ -17,34 +17,34 @@ import java.io.UnsupportedEncodingException;
  * A helper class to convert HTML-style comments into well-formed XHTML.
  */
 public final class TidyComment {
-  private static final Tidy tidy;
+  private static final Tidy TIDY;
 
   private TidyComment() {
     
   }
 
   static {
-    tidy = new Tidy();
-    tidy.setDropEmptyParas(true);
-    tidy.setDropFontTags(true);
-    tidy.setFixComments(true);
-    tidy.setHideEndTags(false);
-    tidy.setIndentAttributes(true);
-    tidy.setMakeClean(true);
-    tidy.setQuiet(true);
-    tidy.setQuoteAmpersand(true);
-    tidy.setShowWarnings(false);
-    tidy.setXHTML(true);
-    tidy.setXmlOut(true);
-    tidy.setXmlSpace(false);
-    tidy.setXmlPi(false);
+    TIDY = new Tidy();
+    TIDY.setDropEmptyParas(true);
+    TIDY.setDropFontTags(true);
+    TIDY.setFixComments(true);
+    TIDY.setHideEndTags(false);
+    TIDY.setIndentAttributes(true);
+    TIDY.setMakeClean(true);
+    TIDY.setQuiet(true);
+    TIDY.setQuoteAmpersand(true);
+    TIDY.setShowWarnings(false);
+    TIDY.setXHTML(true);
+    TIDY.setXmlOut(true);
+    TIDY.setXmlSpace(false);
+    TIDY.setXmlPi(false);
   }
 
   public static String tidy(String dirtyHtml) {
     String wrappedHtml = "<html xmlns:ext=\"http://extjs.com/ext3\"><body>"+dirtyHtml+"</body></html>";
     StringWriter result = new StringWriter();
     try {
-      Document document = tidy.parseDOM(new ByteArrayInputStream(wrappedHtml.getBytes("ISO-8859-1")), null);
+      Document document = TIDY.parseDOM(new ByteArrayInputStream(wrappedHtml.getBytes("ISO-8859-1")), null);
       DOMSource domSource = new DOMSource(document.getDocumentElement());
       Transformer serializer = TransformerFactory.newInstance().newTransformer();
       serializer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
