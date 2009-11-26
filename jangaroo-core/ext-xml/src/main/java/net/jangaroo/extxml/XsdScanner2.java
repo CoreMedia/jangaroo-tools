@@ -117,7 +117,7 @@ public class XsdScanner2 {
           parser.close();
         }
       } catch (XMLStreamException e) {
-        e.printStackTrace();
+        Log.getErrorHandler().error("Error while parsing XSD", e);
       }
     }
   }
