@@ -34,7 +34,9 @@ public final class SrcFileScanner {
     srcFiles.addInclude("**/*." + ComponentType.ActionScript.getExtension());
     srcFiles.addInclude("**/*." + ComponentType.EXML.getExtension());
     for (String srcFileRelativePath : new FileSetManager().getIncludedFiles(srcFiles)) {
-      ExtComponentSrcFileScanner.scan(componentSuite, new File(dir, srcFileRelativePath));
+      File theFile = new File(dir, srcFileRelativePath);
+      Log.getErrorHandler().setCurrentFile(theFile);
+      ExtComponentSrcFileScanner.scan(componentSuite, theFile);
     }
   }
 }
