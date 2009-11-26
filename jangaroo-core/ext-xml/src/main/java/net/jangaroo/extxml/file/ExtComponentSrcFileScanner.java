@@ -1,14 +1,14 @@
 package net.jangaroo.extxml.file;
 
+import net.jangaroo.extxml.ComponentClass;
+import net.jangaroo.extxml.ComponentSuite;
+import net.jangaroo.extxml.ComponentType;
+import net.jangaroo.extxml.ConfigAttribute;
+import net.jangaroo.extxml.DescriptionHolder;
+import net.jangaroo.extxml.Log;
 import net.jangaroo.extxml.util.FileScanner;
 import net.jangaroo.extxml.util.Rule;
 import net.jangaroo.extxml.util.TidyComment;
-import net.jangaroo.extxml.ComponentSuite;
-import net.jangaroo.extxml.ComponentType;
-import net.jangaroo.extxml.Log;
-import net.jangaroo.extxml.ComponentClass;
-import net.jangaroo.extxml.DescriptionHolder;
-import net.jangaroo.extxml.ConfigAttribute;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.StringUtils;
 
@@ -207,7 +207,7 @@ public final class ExtComponentSrcFileScanner {
         if (StringUtils.isEmpty(cc.getSuperClassName())) {
           Log.getErrorHandler().warning("Compontent class has no super class");
         }
-        if(cc.getImports().isEmpty()) {
+        if (cc.getImports().isEmpty()) {
           Log.getErrorHandler().warning("No imports in Compontent class");
         }
       }
@@ -232,7 +232,7 @@ public final class ExtComponentSrcFileScanner {
     private void addIfHasXtype(ComponentClass cc) {
       if (cc != null && cc.getXtype() != null) {
         componentSuite.addComponentClass(cc);
-      } 
+      }
     }
 
     private void setDescriptionHolder(DescriptionHolder nextDescriptionHolder) {
