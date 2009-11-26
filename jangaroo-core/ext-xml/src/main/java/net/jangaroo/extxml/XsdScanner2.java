@@ -18,7 +18,6 @@ public class XsdScanner2 {
   private ComponentSuite componentSuite;
   private XMLStreamReader parser = null;
   private Stack<ComponentClass> ccStack = new Stack<ComponentClass>();
-  private boolean expectingCfgs = false;
 
   public ComponentSuite getComponentSuite() {
     return componentSuite;
@@ -57,7 +56,6 @@ public class XsdScanner2 {
     String name = parser.getAttributeValue(null, "name");
 
     ccStack.push(new ComponentClass(id, name));
-    expectingCfgs = true;
   }
 
   private void createConfigElementAttribute() {
