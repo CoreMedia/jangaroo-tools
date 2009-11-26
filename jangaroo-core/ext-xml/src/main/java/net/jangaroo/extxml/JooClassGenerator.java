@@ -31,11 +31,9 @@ public final class JooClassGenerator {
     XML_TO_JS_MAPPER.setTo("*." + ComponentType.ActionScript.getExtension());
   }
 
-  private ErrorHandler errorHandler;
   private ComponentSuite componentSuite;
 
-  public JooClassGenerator(ComponentSuite componentSuite, ErrorHandler handler) {
-    this.errorHandler = handler;
+  public JooClassGenerator(ComponentSuite componentSuite) {
     this.componentSuite = componentSuite;
   }
 
@@ -57,23 +55,23 @@ public final class JooClassGenerator {
     boolean isValid = true;
 
     if (StringUtils.isEmpty(jooClass.getXtype())) {
-      errorHandler.error(String.format("Xtype of component '%s' is undefined!", jooClass.getFullClassName()));
+      Log.getErrorHandler().error(String.format("Xtype of component '%s' is undefined!", jooClass.getFullClassName()));
       isValid = false;
     }
 
     if (StringUtils.isEmpty(jooClass.getClassName())) {
-      errorHandler.error(String.format("Class name of component '%s' is undefined!", jooClass.getFullClassName()));
+      Log.getErrorHandler().error(String.format("Class name of component '%s' is undefined!", jooClass.getFullClassName()));
       isValid = false;
     }
 
     if (StringUtils.isEmpty(jooClass.getSuperClassName())) {
-      errorHandler.error(String.format("Super class of component '%s' is undefined!", jooClass.getFullClassName()));
+      Log.getErrorHandler().error(String.format("Super class of component '%s' is undefined!", jooClass.getFullClassName()));
       isValid = false;
     }
 
     for (String importStr : jooClass.getImports()) {
       if(StringUtils.isEmpty(importStr)) {
-        errorHandler.error(String.format("An empty import found. Something is wrong in your class %s", jooClass.getFullClassName()));
+        Log.getErrorHandler().error(String.format("An empty import found. Something is wrong in your class %s", jooClass.getFullClassName()));
         isValid = false;
       }
     }
@@ -84,19 +82,19 @@ public final class JooClassGenerator {
   private XmlToJsonHandler createHandlerFromClass(ComponentClass cc) {
     FileInputStream inputStream = null;
     XmlToJsonHandler handler = null;
-    errorHandler.setCurrentFile(cc.getSrcFile());
+    Log.getErrorHandler().setCurrentFile(cc.getSrcFile());
     try {
       XMLReader xr = XMLReaderFactory.createXMLReader();
-      handler = new XmlToJsonHandler(componentSuite, errorHandler);
+      handler = new XmlToJsonHandler(componentSuite);
       xr.setContentHandler(handler);
       inputStream = new FileInputStream(cc.getSrcFile());
       xr.parse(new InputSource(inputStream));
     } catch (FileNotFoundException e) {
-      errorHandler.error("Exception while parsing", e);
+      Log.getErrorHandler().error("Exception while parsing", e);
     } catch (IOException e) {
-      errorHandler.error("Exception while parsing", e);
+      Log.getErrorHandler().error("Exception while parsing", e);
     } catch (SAXException e) {
-      errorHandler.error("Exception while parsing", e);
+      Log.getErrorHandler().error("Exception while parsing", e);
     } finally {
       try {
         if (inputStream != null) {
@@ -127,9 +125,9 @@ public final class JooClassGenerator {
           writer = new FileWriter(outputFile);
           generateJangarooClass(cc, writer);
         } catch (IOException e) {
-          errorHandler.error("Exception while creating class", e);
+          Log.getErrorHandler().error("Exception while creating class", e);
         } catch (TemplateException e) {
-          errorHandler.error("Exception while creating class", e);
+          Log.getErrorHandler().error("Exception while creating class", e);
         } finally {
           try {
             if (writer != null) {

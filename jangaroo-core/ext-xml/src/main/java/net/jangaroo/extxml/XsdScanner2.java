@@ -112,7 +112,7 @@ public class XsdScanner2 {
         } // end switch
       }
     } catch (XMLStreamException e) {
-      ComponentSuiteRegistry.getInstance().getErrorHandler().error("Error while parsing XSD", e);
+      Log.getErrorHandler().error("Error while parsing XSD", e);
     } finally {
       try {
         if (parser != null) {

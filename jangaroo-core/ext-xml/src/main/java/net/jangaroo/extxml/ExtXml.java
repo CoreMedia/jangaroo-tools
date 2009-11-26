@@ -53,11 +53,10 @@ public final class ExtXml {
 
   public static void main(String[] args) throws IOException {
 
-    StandardOutErrorHandler errorHandler = new StandardOutErrorHandler();
+    Log.setErrorHandler(new StandardOutErrorHandler());
 
     //Scan the directory for xml, as or javascript components and collect the data in ComponentClass, import all provided XSDs
     ComponentSuiteRegistry componentSuiteRegistry = ComponentSuiteRegistry.getInstance();
-    componentSuiteRegistry.setErrorHandler(errorHandler);
 
     XsdScanner scanner = new XsdScanner();
 
@@ -71,7 +70,7 @@ public final class ExtXml {
     fileScanner.scan();
 
     //Generate JSON out of the xml components, complete the data in those ComponentClasses
-    JooClassGenerator generator = new JooClassGenerator(suite, errorHandler);
+    JooClassGenerator generator = new JooClassGenerator(suite);
     generator.generateClasses();
 
     System.out.println(suite);
@@ -79,7 +78,7 @@ public final class ExtXml {
     //generate the XSD for that
     Writer out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File(args[2])), "UTF-8"));
 
-    new XsdGenerator(suite, errorHandler).generateXsd(out);
+    new XsdGenerator(suite).generateXsd(out);
     out.close();
   }
 }

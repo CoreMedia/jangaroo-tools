@@ -26,7 +26,7 @@ public final class XsdScanner {
     try {
       builder = builderFactory.newDocumentBuilder();
     } catch (ParserConfigurationException e) {
-      ComponentSuiteRegistry.getInstance().getErrorHandler().error("Error while preparing parser for xsd", e);
+      Log.getErrorHandler().error("Error while preparing parser for xsd", e);
     }
   }
 
@@ -38,7 +38,7 @@ public final class XsdScanner {
           document = builder.parse(xsd);
         }
       } catch (SAXException e) {
-        ComponentSuiteRegistry.getInstance().getErrorHandler().error("Error while parsing XSD", e);
+        Log.getErrorHandler().error("Error while parsing XSD", e);
       }
       if (document != null) {
         Element schemaElement = document.getDocumentElement();
@@ -56,7 +56,7 @@ public final class XsdScanner {
             type = type.substring(colonPos + 1);
           }
           if(!StringUtils.isEmpty(type)) {
-            ComponentSuiteRegistry.getInstance().getErrorHandler().info(String.format("Register class '%s' with xtype '%s'", type, name));
+            Log.getErrorHandler().info(String.format("Register class '%s' with xtype '%s'", type, name));
             componentSuite.addComponentClass(new ComponentClass(name, type));
           }
         }

@@ -34,8 +34,6 @@ public final class XmlToJsonHandler implements ContentHandler {
   private String componentDescription = "";
   private List<ConfigAttribute> cfgs = new ArrayList<ConfigAttribute>();
 
-  private ErrorHandler errorHandler;
-
   private static String numberPattern = "-?([0-9]+\\.[0-9]*)|(\\.[0-9]+)|([0-9]+)([eE][+-]?[0-9]+)?";
 
   private NumberFormat nf = NumberFormat.getNumberInstance(Locale.US);
@@ -51,9 +49,8 @@ public final class XmlToJsonHandler implements ContentHandler {
   private boolean expectsOptionalConfigDescription = false;
   private boolean expectsOptionalComponentDescription = false;
 
-  public XmlToJsonHandler(ComponentSuite componentSuite, ErrorHandler handler) {
+  public XmlToJsonHandler(ComponentSuite componentSuite) {
     this.componentSuite = componentSuite;
-    this.errorHandler = handler;
   }
 
   public void setDocumentLocator(Locator locator) {
@@ -65,17 +62,17 @@ public final class XmlToJsonHandler implements ContentHandler {
 
   public void endDocument() throws SAXException {
     if (!objects.empty()) {
-      errorHandler.error("Json object stack not empty at the end of the document.",
+      Log.getErrorHandler().error("Json object stack not empty at the end of the document.",
           locator.getLineNumber(),
           locator.getColumnNumber());
     }
     if (!attributes.empty()) {
-      errorHandler.error("Attribute stack not empty at the end of the document.",
+      Log.getErrorHandler().error("Attribute stack not empty at the end of the document.",
           locator.getLineNumber(),
           locator.getColumnNumber());
     }
     if (!expectObjects) {
-      errorHandler.error("The parser is in the wrong state at the end of the document.",
+      Log.getErrorHandler().error("The parser is in the wrong state at the end of the document.",
           locator.getLineNumber(),
           locator.getColumnNumber());
     }
@@ -127,7 +124,7 @@ public final class XmlToJsonHandler implements ContentHandler {
           imports.add(compClazz.getFullClassName());
           jsonObject.set(type, compClazz.getXtype());
         } else {
-          errorHandler.error(String.format("No component class for element name '%s' found in component suite '%s'!", localName, uri), locator.getLineNumber(), locator.getColumnNumber());
+          Log.getErrorHandler().error(String.format("No component class for element name '%s' found in component suite '%s'!", localName, uri), locator.getLineNumber(), locator.getColumnNumber());
           jsonObject.set(type, localName);
         }
         addElementToJsonObject(jsonObject);
@@ -308,18 +305,18 @@ public final class XmlToJsonHandler implements ContentHandler {
     if (result != null) {
       String xtype = (String) this.result.get("xtype");
       if (xtype == null) {
-        errorHandler.error("Component xtype not found.");
+        Log.getErrorHandler().error("Component xtype not found.");
         return null;
       }
 
       ComponentClass componentClass = componentSuite.findComponentClassByXtype(xtype);
       if (componentClass == null) {
-        errorHandler.error(MessageFormat.format("Super component class for xtype ''{0}'' not found.", xtype));
+        Log.getErrorHandler().error(MessageFormat.format("Super component class for xtype ''{0}'' not found.", xtype));
         return null;
       }
       return componentClass.getFullClassName();
     } else {
-      errorHandler.error("Xml Parser has no result.");
+      Log.getErrorHandler().error("Xml Parser has no result.");
       return null;
     }
   }
@@ -329,7 +326,7 @@ public final class XmlToJsonHandler implements ContentHandler {
       ((JsonObject) result).remove("xtype");
       return (result);
     } else {
-      errorHandler.error("Xml Parser has no result.");
+      Log.getErrorHandler().error("Xml Parser has no result.");
       return null;
     }
   }

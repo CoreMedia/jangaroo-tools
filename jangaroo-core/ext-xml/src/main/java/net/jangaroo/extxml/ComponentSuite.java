@@ -169,7 +169,7 @@ public final class ComponentSuite {
   void resolveSuperClasses() {
     for (ComponentClass cc : getComponentClasses()) {
       if (cc.getSuperClass() == null && cc.getSuperClassName() != null) {
-        ComponentSuiteRegistry.getInstance().getErrorHandler().warning("Super component class '" + cc.getSuperClassName() + "' not found.");
+        Log.getErrorHandler().warning("Super component class '" + cc.getSuperClassName() + "' not found.");
       }
     }
   }

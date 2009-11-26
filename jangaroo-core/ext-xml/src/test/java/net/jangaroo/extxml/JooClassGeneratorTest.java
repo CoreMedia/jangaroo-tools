@@ -22,7 +22,8 @@ public class JooClassGeneratorTest{
   @Before
   public void initialize() throws Exception {
     errorHandler = new UnitTestErrorHandler();
-    jooClassGenerator = new JooClassGenerator(new ComponentSuite("test", "test", null, null), errorHandler);
+    Log.setErrorHandler(errorHandler);
+    jooClassGenerator = new JooClassGenerator(new ComponentSuite("test", "test", null, null));
   }
 
   @After
@@ -103,7 +104,7 @@ public class JooClassGeneratorTest{
     cc.setXtype("testPackage");
     suite.addComponentClass(cc);
 
-    JooClassGenerator generator = new JooClassGenerator(suite, errorHandler);
+    JooClassGenerator generator = new JooClassGenerator(suite);
     generator.generateClasses();
 
     assertEquals("{title:\"Iaminsideapackage!\",items:{xtype:ext.form.Label.xtype}}",cc.getJson().toString(0,0).replaceAll("\\s",""));

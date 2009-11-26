@@ -22,16 +22,13 @@ public final class XsdGenerator {
   }
 
   private ComponentSuite componentSuite;
-  private ErrorHandler errorHandler;
 
   /**
    * 
    * @param componentSuite
-   * @param errorHandler
    */
-  public XsdGenerator(ComponentSuite componentSuite, ErrorHandler errorHandler) {    
+  public XsdGenerator(ComponentSuite componentSuite) {    
     this.componentSuite = componentSuite;
-    this.errorHandler = errorHandler;
   }
 
   public void generateXsd(Writer out) throws IOException {
@@ -42,16 +39,16 @@ public final class XsdGenerator {
       try {
         template = cfg.getTemplate("component-suite-xsd.ftl");
       } catch (IOException e) {
-        errorHandler.error("Could not read xsd template", e);
+        Log.getErrorHandler().error("Could not read xsd template", e);
       }
 
       /* Merge data-model with template */
       if (template != null) {
-        errorHandler.info(String.format("Writing XML Schema %s ", componentSuite.getNamespace()));
+        Log.getErrorHandler().info(String.format("Writing XML Schema %s ", componentSuite.getNamespace()));
         try {
           template.process(componentSuite, out);
         } catch (TemplateException e) {
-          errorHandler.error("Error while generating xsd", e);
+          Log.getErrorHandler().error("Error while generating xsd", e);
         }
       }
     }

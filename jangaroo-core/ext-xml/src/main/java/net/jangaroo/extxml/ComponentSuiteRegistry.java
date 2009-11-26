@@ -23,7 +23,6 @@ public final class ComponentSuiteRegistry {
 
   private final Map<String, ComponentSuite> componentSuitesByNamespaceUri = new LinkedHashMap<String, ComponentSuite>(10);
   private ComponentSuiteResolver componentSuiteResolver;
-  private ErrorHandler errorHandler = new StandardOutErrorHandler();
 
   private ComponentSuiteRegistry() {
     this(NO_COMPONENT_SUITE_RESOLVER);
@@ -41,13 +40,6 @@ public final class ComponentSuiteRegistry {
     this.componentSuiteResolver = componentSuiteResolver;
   }
 
-  public void setErrorHandler(ErrorHandler errorHandler) {
-    this.errorHandler = errorHandler;
-  }
-
-  public ErrorHandler getErrorHandler() {
-    return errorHandler;
-  }
 
   public void add(ComponentSuite componentSuite) {
     componentSuitesByNamespaceUri.put(componentSuite.getNamespace(), componentSuite);
@@ -59,13 +51,13 @@ public final class ComponentSuiteRegistry {
       try {
         InputStream xsdInputStream = componentSuiteResolver.resolveComponentSuite(namespaceUri);
         if (xsdInputStream == null) {
-          errorHandler.error("No XSD registered for namespace URI " + namespaceUri);
+          Log.getErrorHandler().error("No XSD registered for namespace URI " + namespaceUri);
         } else {
           componentSuite = new XsdScanner().scan(xsdInputStream);
           assert namespaceUri.equals(componentSuite.getNamespace());
         }
       } catch (IOException e) {
-        errorHandler.error("Could not resolve XSD for namespace URI " + namespaceUri, e);
+        Log.getErrorHandler().error("Could not resolve XSD for namespace URI " + namespaceUri, e);
       }
     }
     return componentSuite;

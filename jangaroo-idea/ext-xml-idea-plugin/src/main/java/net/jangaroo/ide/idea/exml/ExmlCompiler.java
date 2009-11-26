@@ -17,6 +17,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import net.jangaroo.extxml.ComponentSuite;
 import net.jangaroo.extxml.ComponentSuiteRegistry;
 import net.jangaroo.extxml.ErrorHandler;
+import net.jangaroo.extxml.Log;
 import net.jangaroo.extxml.ExtComponentSrcFileScanner;
 import net.jangaroo.extxml.JooClassGenerator;
 import net.jangaroo.extxml.SrcFileScanner;
@@ -71,7 +72,7 @@ public class ExmlCompiler implements TranslatingCompiler {
     return contentRoots.length > 0 ? contentRoots[0].getPath() + "/target/generated-resources/" + module.getName() + ".xsd" : null;
   }
 
-  private void addModuleDependenciesToComponentSuiteRegistry(Module module, ErrorHandler errorHandler, Map<String, String> resourceMap) {
+  private void addModuleDependenciesToComponentSuiteRegistry(Module module, Map<String, String> resourceMap) {
     // Add all dependent component suites to component suite registry, so they are found when looking for some xtype of fullClassName:
     //System.out.println("Scanning dependencies of " + moduleName + " for component suite XSDs...");
     OrderEntry[] orderEntries = ModuleRootManager.getInstance(module).getOrderEntries();
@@ -118,7 +119,7 @@ public class ExmlCompiler implements TranslatingCompiler {
             resourceMap.put(componentSuite.getNamespace(), filename);
           }
         } catch (IOException e) {
-          errorHandler.error("Error while scanning XSD file "+xsdInputStream, e);
+          Log.getErrorHandler().error("Error while scanning XSD file "+xsdInputStream, e);
         }
       }
     }
@@ -128,7 +129,7 @@ public class ExmlCompiler implements TranslatingCompiler {
     }
   }
 
-  private void generateXsd(Module module, ErrorHandler errorHandler) {
+  private void generateXsd(Module module) {
     String sourceRootDir = findSourceRootDir(module, JOO_SOURCES_PATH_REG_EXP);
     String moduleName = module.getName();
     ComponentSuite suite = new ComponentSuite(moduleName, moduleName.substring(0,Math.max(1, moduleName.length())).toLowerCase(),
@@ -140,7 +141,7 @@ public class ExmlCompiler implements TranslatingCompiler {
       Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
       fileScanner.scan();
     } catch (IOException e) {
-      errorHandler.error("Error scanning component suite files.", e);
+      Log.getErrorHandler().error("Error scanning component suite files.", e);
       return;
     } finally {
       Thread.currentThread().setContextClassLoader(contextClassLoader);
@@ -150,22 +151,22 @@ public class ExmlCompiler implements TranslatingCompiler {
       File xsdFile = new File(xsdFilename);
       // (re-)generate the XSD for the given module.
       Writer out;
-      errorHandler.setCurrentFile(xsdFile);
+      Log.getErrorHandler().setCurrentFile(xsdFile);
       try {
         out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(xsdFile), "UTF-8"));
       } catch (Exception e) {
-        errorHandler.error("Cannot write component suite XSD file.", e);
+        Log.getErrorHandler().error("Cannot write component suite XSD file.", e);
         return;
       }
       try {
-        new XsdGenerator(suite, errorHandler).generateXsd(out);
+        new XsdGenerator(suite).generateXsd(out);
       } catch (IOException e) {
-        errorHandler.error("Error while writing component suite XSD file.", e);
+        Log.getErrorHandler().error("Error while writing component suite XSD file.", e);
       }
     }
   }
 
-  private void compile(final CompileContext context, Module module, final List<VirtualFile> files, List<OutputItem> outputItems, List<VirtualFile> filesToRecompile, ErrorHandler errorHandler) {
+  private void compile(final CompileContext context, Module module, final List<VirtualFile> files, List<OutputItem> outputItems, List<VirtualFile> filesToRecompile) {
     ComponentSuite suite = null;
     String srcRootDir = null;
     for (final VirtualFile file : files) {
@@ -194,7 +195,7 @@ public class ExmlCompiler implements TranslatingCompiler {
     }
     if (suite != null) {
       //Generate JSON out of the XML components, complete the data in those ComponentClasses
-      JooClassGenerator generator = new JooClassGenerator(suite, errorHandler);
+      JooClassGenerator generator = new JooClassGenerator(suite);
       generator.generateClasses();
       // TODO: let generateClasses() return a set of generated files and add these to outputItems!
     }
@@ -230,8 +231,8 @@ public class ExmlCompiler implements TranslatingCompiler {
     // always re-create component suite registry, so that we get updates:
     final ComponentSuiteRegistry componentSuiteRegistry = ComponentSuiteRegistry.getInstance();
     componentSuiteRegistry.reset();
-    ErrorHandler errorHandler = new IdeaErrorHandler(context);
-    componentSuiteRegistry.setErrorHandler(errorHandler);
+
+    Log.setErrorHandler(new IdeaErrorHandler(context));
     List<OutputItem> outputItems = new ArrayList<OutputItem>(files.length);
     List<VirtualFile> filesToRecompile = new ArrayList<VirtualFile>(files.length);
     Map<Module,List<VirtualFile>> filesByModule = new HashMap<Module, List<VirtualFile>>(files.length);
