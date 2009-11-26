@@ -44,7 +44,7 @@ public final class XsdGenerator {
 
       /* Merge data-model with template */
       if (template != null) {
-        Log.getErrorHandler().info(String.format("Writing XML Schema %s ", componentSuite.getNamespace()));
+        Log.getErrorHandler().info(String.format("Writing XML Schema '%s' ", componentSuite.getNamespace()));
         try {
           template.process(componentSuite, out);
         } catch (TemplateException e) {

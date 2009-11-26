@@ -11,6 +11,7 @@ import org.junit.Before;
 import org.junit.Test;
 import utils.TestUtils;
 import utils.UnitTestErrorHandler;
+import net.jangaroo.extxml.file.ExtComponentSrcFileScanner;
 
 /**
  *
@@ -26,7 +27,7 @@ public class ExtComponentSrcFileScannerTest {
   public void actionScriptComponent() throws Exception {
     ComponentSuite suite = new ComponentSuite();
 
-    ExtComponentSrcFileScanner.scan(suite, TestUtils.getFile("/testpackage/SimpleComponent.as", getClass()));
+    ExtComponentSrcFileScanner.scan(suite, TestUtils.getFile("/testpackage/SimpleComponent.as", getClass()), ComponentType.ActionScript);
     ComponentClass cc = suite.getComponentClassByFullClassName("testpackage.SimpleComponent");
     assertNotNull(cc);
     assertEquals(ComponentType.ActionScript, cc.getType());
@@ -43,7 +44,7 @@ public class ExtComponentSrcFileScannerTest {
   public void simplePlugin() throws Exception {
     ComponentSuite suite = new ComponentSuite();
 
-    ExtComponentSrcFileScanner.scan(suite, TestUtils.getFile("/testpackage/SimplePlugin.as", getClass()));
+    ExtComponentSrcFileScanner.scan(suite, TestUtils.getFile("/testpackage/SimplePlugin.as", getClass()), ComponentType.ActionScript);
     ComponentClass cc = suite.getComponentClassByFullClassName("testpackage.SimplePlugin");
     assertNotNull(cc);
     assertEquals(ComponentType.ActionScript, cc.getType());
@@ -57,7 +58,7 @@ public class ExtComponentSrcFileScannerTest {
   public void testJavaScriptComponent() throws Exception {
     ComponentSuite suite = new ComponentSuite();
 
-    ExtComponentSrcFileScanner.scan(suite, TestUtils.getFile("/js/test.js", getClass()));
+    ExtComponentSrcFileScanner.scan(suite, TestUtils.getFile("/js/test.js", getClass()), ComponentType.JavaScript);
     assertTrue(suite.getComponentClasses().size() == 2);
     ComponentClass cc = suite.getComponentClassByFullClassName("example.Component2");
     assertNotNull(cc);
@@ -77,14 +78,5 @@ public class ExtComponentSrcFileScannerTest {
     assertNotNull(cc);
   }
 
-  @Test
-  public void testXMLComponent() throws Exception {
-    ComponentSuite suite = new ComponentSuite("local", "", TestUtils.getRootDir(getClass()), null);
-
-    ExtComponentSrcFileScanner.scan(suite, TestUtils.getFile("/testpackage/testPackage.exml", getClass()));
-    ComponentClass cc = suite.getComponentClassByFullClassName("testpackage.testPackage");
-    assertNotNull(cc);
-    assertEquals(ComponentType.EXML, cc.getType());
-    assertEquals("testpackage.testPackage", cc.getXtype());
-  }
+ 
 }

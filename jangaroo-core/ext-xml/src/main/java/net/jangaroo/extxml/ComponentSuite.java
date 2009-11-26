@@ -166,7 +166,7 @@ public final class ComponentSuite {
     }
   }
 
-  void resolveSuperClasses() {
+  public void resolveSuperClasses() {
     for (ComponentClass cc : getComponentClasses()) {
       if (cc.getSuperClass() == null && cc.getSuperClassName() != null) {
         Log.getErrorHandler().warning("Super component class '" + cc.getSuperClassName() + "' not found.");

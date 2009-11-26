@@ -1,7 +1,11 @@
-package net.jangaroo.extxml;
+package net.jangaroo.extxml.file;
 
+import net.jangaroo.extxml.ComponentSuite;
+import net.jangaroo.extxml.ComponentType;
+import net.jangaroo.extxml.Log;
 import org.apache.maven.shared.model.fileset.FileSet;
 import org.apache.maven.shared.model.fileset.util.FileSetManager;
+import org.codehaus.plexus.util.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,6 +28,8 @@ public final class SrcFileScanner {
 
   public void scan() throws IOException {
     scan(componentSuite.getRootDir());
+
+    //resolving all super classes
     componentSuite.resolveSuperClasses();
   }
 
@@ -34,9 +40,17 @@ public final class SrcFileScanner {
     srcFiles.addInclude("**/*." + ComponentType.ActionScript.getExtension());
     srcFiles.addInclude("**/*." + ComponentType.EXML.getExtension());
     for (String srcFileRelativePath : new FileSetManager().getIncludedFiles(srcFiles)) {
-      File theFile = new File(dir, srcFileRelativePath);
-      Log.getErrorHandler().setCurrentFile(theFile);
-      ExtComponentSrcFileScanner.scan(componentSuite, theFile);
+      File srcFile = new File(dir, srcFileRelativePath);
+      Log.getErrorHandler().setCurrentFile(srcFile);
+      
+      ComponentType type = ComponentType.from(FileUtils.extension(srcFile.getName()));
+
+      if (ComponentType.EXML.equals(type)) {
+        ExmlComponentSrcFileScanner.scan(componentSuite, srcFile, type);
+      } else {
+        //parse AS3 or JS files
+        ExtComponentSrcFileScanner.scan(componentSuite, srcFile, type);
+      }
     }
   }
 }

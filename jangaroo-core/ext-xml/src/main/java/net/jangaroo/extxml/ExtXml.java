@@ -1,5 +1,7 @@
 package net.jangaroo.extxml;
 
+import net.jangaroo.extxml.file.SrcFileScanner;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;

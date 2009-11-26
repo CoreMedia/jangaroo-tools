@@ -8,7 +8,7 @@ import net.jangaroo.extxml.ComponentSuiteRegistry;
 import net.jangaroo.extxml.ErrorHandler;
 import net.jangaroo.extxml.JooClassGenerator;
 import net.jangaroo.extxml.Log;
-import net.jangaroo.extxml.SrcFileScanner;
+import net.jangaroo.extxml.file.SrcFileScanner;
 import net.jangaroo.extxml.XsdGenerator;
 import net.jangaroo.extxml.XsdScanner;
 import org.apache.maven.artifact.Artifact;

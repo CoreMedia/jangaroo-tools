@@ -20,6 +20,7 @@ import org.junit.runners.Suite;
     XmlToJsonHandlerTest.class,
     JsonTest.class,
     JooClassGeneratorTest.class,
+    ExmlComponentSrcFileScannerTest.class,
     ExtComponentSrcFileScannerTest.class,
     ExtXmlTest.class})
 public class AllTests {

@@ -1,16 +1,23 @@
-package net.jangaroo.extxml;
+package net.jangaroo.extxml.file;
 
 import net.jangaroo.extxml.util.FileScanner;
 import net.jangaroo.extxml.util.Rule;
 import net.jangaroo.extxml.util.TidyComment;
+import net.jangaroo.extxml.ComponentSuite;
+import net.jangaroo.extxml.ComponentType;
+import net.jangaroo.extxml.Log;
+import net.jangaroo.extxml.ComponentClass;
+import net.jangaroo.extxml.DescriptionHolder;
+import net.jangaroo.extxml.ConfigAttribute;
 import org.codehaus.plexus.util.FileUtils;
+import org.codehaus.plexus.util.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
 /**
- * A FileScanner to read Ext JS component classes (JavaScript or ActionScript or XML) into a {@link ComponentSuite}.
+ * A FileScanner to read Ext JS component classes (JavaScript or ActionScript) into a {@link net.jangaroo.extxml.ComponentSuite}.
  */
 public final class ExtComponentSrcFileScanner {
 
@@ -18,34 +25,19 @@ public final class ExtComponentSrcFileScanner {
     //hide the constructor  
   }
 
-  public static void scan(ComponentSuite componentSuite, File srcFile) throws IOException {
+  public static void scan(ComponentSuite componentSuite, File srcFile, ComponentType type) throws IOException {
     State state = new State(componentSuite, srcFile);
-    String ext = FileUtils.extension(srcFile.getName());
-    if (ComponentType.ActionScript.getExtension().equals(ext)) {
+    if (ComponentType.ActionScript.equals(type)) {
       String className = FileUtils.removeExtension(srcFile.getName());
       state.addClass(className);
       state.cc.setType(ComponentType.ActionScript);
+      Log.getErrorHandler().info(String.format("Parsing AS3 class '%s'", className));
       EXT_COMPONENT_AS_FILE_SCANNER.scan(srcFile, state);
-    } else if (ComponentType.JavaScript.getExtension().equals(ext)) {
+    } else if (ComponentType.JavaScript.equals(type)) {
       EXT_COMPONENT_SRC_FILE_SCANNER.scan(srcFile, state);
       if (state.cc != null) {
         state.cc.setType(ComponentType.JavaScript);
       }
-    } else if (ComponentType.EXML.getExtension().equals(ext)) {
-      ComponentClass clazz = new ComponentClass(srcFile);
-      clazz.setSuite(componentSuite);
-      String className = FileUtils.removeExtension(srcFile.getName());
-      String packageName = FileUtils.dirname(clazz.getRelativeSrcFilePath().substring(1)).replaceAll("[\\\\/]", ".");
-      String fullName;
-      if (packageName != null && !"".equals(packageName)) {
-        fullName = packageName + "." + className;
-      } else {
-        fullName = className;
-      }
-      clazz.setFullClassName(fullName);
-      clazz.setXtype(fullName);
-      clazz.setType(ComponentType.EXML);
-      componentSuite.addComponentClass(clazz);
     }
     state.end();
 
@@ -111,8 +103,7 @@ public final class ExtComponentSrcFileScanner {
           state.startComment(groups.get(0));
         }
       })
-      .add(COMMENT_RULE)
-    ;
+      .add(COMMENT_RULE);
 
   private final static FileScanner<State> EXT_COMPONENT_SRC_FILE_SCANNER = new FileScanner<State>()
       .add(new Rule<State>("@class\\s+([\\p{Alnum}$_.]+)") {
@@ -135,8 +126,7 @@ public final class ExtComponentSrcFileScanner {
       .add(CFG_RULE)
       .add(COMMENT_END_RULE)
       .add(COMMENT_START_RULE)
-      .add(COMMENT_RULE)
-    ;
+      .add(COMMENT_RULE);
 
   private static class State {
 
@@ -212,8 +202,19 @@ public final class ExtComponentSrcFileScanner {
       }
     }
 
+    void validateCompontentClass(ComponentClass cc) {
+      if (cc != null) {
+        if (StringUtils.isEmpty(cc.getSuperClassName())) {
+          Log.getErrorHandler().error("Compontent class has no super class");
+        }
+      }
+    }
+
     void end() {
       addIfHasXtype(cc);
+      if (cc != null) {
+        Log.getErrorHandler().info(String.format("Component class '%s' with xtype '%s parsed", cc.getFullClassName(), cc.getXtype()));
+      }
     }
 
     private String jsType2asType(String jsType) {
@@ -232,7 +233,7 @@ public final class ExtComponentSrcFileScanner {
     private void setDescriptionHolder(DescriptionHolder nextDescriptionHolder) {
       if (nextDescriptionHolder != descriptionHolder) {
         String cleanedDescription = TidyComment.tidy(description.toString()).trim();
-        if (descriptionHolder != null && cleanedDescription.length()>0) {
+        if (descriptionHolder != null && cleanedDescription.length() > 0) {
           descriptionHolder.setDescription(cleanedDescription);
           description = new StringBuilder();
         }
