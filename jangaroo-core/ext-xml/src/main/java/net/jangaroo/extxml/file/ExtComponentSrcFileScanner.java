@@ -202,20 +202,25 @@ public final class ExtComponentSrcFileScanner {
       }
     }
 
-    void validateCompontentClass(ComponentClass cc) {
+    void validateComponentClass(ComponentClass cc) {
       if (cc != null) {
         if (StringUtils.isEmpty(cc.getSuperClassName())) {
-          Log.getErrorHandler().error("Compontent class has no super class");
+          Log.getErrorHandler().warning("Compontent class has no super class");
+        }
+        if(cc.getImports().isEmpty()) {
+          Log.getErrorHandler().warning("No imports in Compontent class");
         }
       }
     }
 
     void end() {
       addIfHasXtype(cc);
+      validateComponentClass(cc);
       if (cc != null) {
         Log.getErrorHandler().info(String.format("Component class '%s' with xtype '%s parsed", cc.getFullClassName(), cc.getXtype()));
       }
     }
+
 
     private String jsType2asType(String jsType) {
       int lastDotPos = jsType.lastIndexOf('.');
@@ -227,7 +232,7 @@ public final class ExtComponentSrcFileScanner {
     private void addIfHasXtype(ComponentClass cc) {
       if (cc != null && cc.getXtype() != null) {
         componentSuite.addComponentClass(cc);
-      }
+      } 
     }
 
     private void setDescriptionHolder(DescriptionHolder nextDescriptionHolder) {
