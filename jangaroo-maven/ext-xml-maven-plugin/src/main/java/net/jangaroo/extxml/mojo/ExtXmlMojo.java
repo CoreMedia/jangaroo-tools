@@ -4,12 +4,13 @@
 package net.jangaroo.extxml.mojo;
 
 import net.jangaroo.extxml.ComponentSuite;
+import net.jangaroo.extxml.ComponentSuiteRegistry;
 import net.jangaroo.extxml.ErrorHandler;
 import net.jangaroo.extxml.JooClassGenerator;
+import net.jangaroo.extxml.Log;
 import net.jangaroo.extxml.SrcFileScanner;
 import net.jangaroo.extxml.XsdGenerator;
 import net.jangaroo.extxml.XsdScanner;
-import net.jangaroo.extxml.ComponentSuiteRegistry;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -118,7 +119,7 @@ public class ExtXmlMojo extends AbstractMojo {
 
     ComponentSuiteRegistry componentSuiteRegistry = ComponentSuiteRegistry.getInstance();
     MavenErrorHandler errorHandler = new MavenErrorHandler();
-    componentSuiteRegistry.setErrorHandler(errorHandler);
+    Log.setErrorHandler(errorHandler);
     ComponentSuite suite = new ComponentSuite(namespace, namespacePrefix, sourceDirectory, generatedSourcesDirectory);
     XsdScanner xsdScanner = new XsdScanner();
 
@@ -172,7 +173,7 @@ public class ExtXmlMojo extends AbstractMojo {
 
     //Generate JSON out of the xml compontents, complete the data in those ComponentClasses
 
-    JooClassGenerator generator = new JooClassGenerator(suite, errorHandler);
+    JooClassGenerator generator = new JooClassGenerator(suite);
     generator.generateClasses();
 
     if (errorHandler.lastException != null) {
@@ -202,7 +203,7 @@ public class ExtXmlMojo extends AbstractMojo {
         //generate the XSD for that
         File xsdFile = new File(generatedResourcesDirectory, xsd);
         out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(xsdFile), "UTF-8"));
-        new XsdGenerator(suite, errorHandler).generateXsd(out);
+        new XsdGenerator(suite).generateXsd(out);
         out.close();
         projectHelper.attachArtifact(project, "xsd", xsdFile );        
 

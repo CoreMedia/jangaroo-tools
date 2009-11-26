@@ -37,6 +37,7 @@ public class XmlToJsonHandlerTest {
 
   @Before
   public void initTest() throws Exception {
+    Log.setErrorHandler(new StandardOutErrorHandler());
     xr = XMLReaderFactory.createXMLReader();
     jsonHandler = new XmlToJsonHandler(new ComponentSuite("test", "test", null, null));
     xr.setContentHandler(jsonHandler);
