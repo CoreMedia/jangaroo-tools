@@ -1,31 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
     <groupId>net.jangaroo</groupId>
     <artifactId>jangaroo-core</artifactId>
-    <version>0.3.21-SNAPSHOT</version>
+    <version>0.3.21</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>net.jangaroo</groupId>
   <artifactId>jangaroo-compiler-itests</artifactId>
   <name>Joo Compiler Integration Tests</name>
-  <version>0.3.21-SNAPSHOT</version>
+  <version>0.3.21</version>
   <packaging>jar</packaging>
 
   <dependencies>
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-runtime</artifactId>
-      <version>0.3.21-SNAPSHOT</version>
+      <version>0.3.21</version>
       <type>jangaroo</type>
     </dependency>
 
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-compiler</artifactId>
-      <version>0.3.21-SNAPSHOT</version>
+      <version>0.3.21</version>
     </dependency>
 
     <dependency>
@@ -99,20 +98,18 @@
             <phase>process-test-resources</phase>
             <configuration>
               <tasks>
-                <unzip src="${basedir}/target/jangaroo-runtime-${project.version}.jar"
-                       dest="${basedir}/target/temp/js"/>
+                <unzip src="${basedir}/target/jangaroo-runtime-${project.version}.jar" dest="${basedir}/target/temp/js" />
 
-                <property name="runtime.classpath" refid="maven.runtime.classpath"/>
-                <taskdef name="jooc" classname="net.jangaroo.jooc.ant.JoocTask"
-                         classpath="target/classes;${runtime.classpath}"/>
+                <property name="runtime.classpath" refid="maven.runtime.classpath" />
+                <taskdef name="jooc" classname="net.jangaroo.jooc.ant.JoocTask" classpath="target/classes;${runtime.classpath}" />
 
-                <mkdir dir="${basedir}/target/temp/js"/>
+                <mkdir dir="${basedir}/target/temp/js" />
 
                 <jooc destdir="target/temp/js" failonerror="true" debug="true" verbose="true" enableassertions="true">
-                  <include name="**/*.as"/>
-                  <exclude name="error/**/*.as"/>
-                  <exclude name="**/*_fragment.as"/>
-                  <src path="${basedir}/src/test/joo"/>
+                  <include name="**/*.as" />
+                  <exclude name="error/**/*.as" />
+                  <exclude name="**/*_fragment.as" />
+                  <src path="${basedir}/src/test/joo" />
                 </jooc>
 
                 <!--                <copy todir="${basedir}/target/temp/js">

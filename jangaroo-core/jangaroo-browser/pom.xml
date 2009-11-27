@@ -1,17 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
     <groupId>net.jangaroo</groupId>
     <artifactId>jangaroo-core</artifactId>
-    <version>0.3.21-SNAPSHOT</version>
+    <version>0.3.21</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>net.jangaroo</groupId>
   <artifactId>jangaroo-browser</artifactId>
   <name>Joo Browser Compat. Lib</name>
-  <version>0.3.21-SNAPSHOT</version>
+  <version>0.3.21</version>
   <packaging>jangaroo</packaging>
   <build>
 
@@ -45,29 +44,27 @@
             </goals>
             <configuration>
               <tasks>
-                <property name="runtime.classpath" refid="maven.runtime.classpath"/>
-                <taskdef name="jooc" classname="net.jangaroo.jooc.ant.JoocTask"
-                         classpath="target/classes;${runtime.classpath}"/>
-                <mkdir dir="target/joo/classes/"/>
-                <jooc destdir="target/joo/classes/" failonerror="true" debug="true" debuglevel="source" verbose="true"
-                      enableassertions="true">
-                  <include name="**/*.as"/>
-                  <src path="src/main/joo"/>
+                <property name="runtime.classpath" refid="maven.runtime.classpath" />
+                <taskdef name="jooc" classname="net.jangaroo.jooc.ant.JoocTask" classpath="target/classes;${runtime.classpath}" />
+                <mkdir dir="target/joo/classes/" />
+                <jooc destdir="target/joo/classes/" failonerror="true" debug="true" debuglevel="source" verbose="true" enableassertions="true">
+                  <include name="**/*.as" />
+                  <src path="src/main/joo" />
                 </jooc>
 
                 <concat destfile="target/joo/${artifactId}.js">
-                  <fileset dir="target/joo" includes="classes/**/*.js"/>
+                  <fileset dir="target/joo" includes="classes/**/*.js" />
                 </concat>
 
-                <mkdir dir="target"/>
+                <mkdir dir="target" />
                 <zip destfile="target/jangaroo-browser.jar">
-                  <zipfileset dir="." includes="pom.xml" fullpath="META-INF/${groupId}.${artifactId}/pom.xml"/>
-                  <zipfileset dir="target/joo" includes="**/*"/>
+                  <zipfileset dir="." includes="pom.xml" fullpath="META-INF/${groupId}.${artifactId}/pom.xml" />
+                  <zipfileset dir="target/joo" includes="**/*" />
                 </zip>
                 <zip destfile="target/jangaroo-browser-sources.jar">
-                  <zipfileset dir="src/main/joo-api" includes="**/*.as"/>
-                  <zipfileset dir="src/main/joo" includes="**/*.as"/>
-                  <zipfileset dir="." includes="pom.xml" fullpath="META-INF/${groupId}.${artifactId}/pom.xml"/>
+                  <zipfileset dir="src/main/joo-api" includes="**/*.as" />
+                  <zipfileset dir="src/main/joo" includes="**/*.as" />
+                  <zipfileset dir="." includes="pom.xml" fullpath="META-INF/${groupId}.${artifactId}/pom.xml" />
                 </zip>
               </tasks>
             </configuration>
@@ -118,7 +115,7 @@
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-runtime</artifactId>
-      <version>0.3.21-SNAPSHOT</version>
+      <version>0.3.21</version>
       <type>jangaroo</type>
     </dependency>
 
