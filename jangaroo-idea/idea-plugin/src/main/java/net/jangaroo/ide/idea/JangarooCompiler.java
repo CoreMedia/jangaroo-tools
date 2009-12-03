@@ -124,19 +124,17 @@ public class JangarooCompiler implements TranslatingCompiler {
 
   private static JangarooFacet findWebJangarooFacet(JangarooFacet jangarooFacet) {
     Module module = jangarooFacet.getModule();
-    if (FacetManager.getInstance(module).getFacetByType(WebFacet.ID) == null) {
-      // try to find another Jangaroo module with a Web Facet that has a module-dependency on this module:
-      for (Module otherModule : ModuleManager.getInstance(module.getProject()).getModules()) {
-        if (!otherModule.equals(module)) {
-          FacetManager facetManager = FacetManager.getInstance(otherModule);
-          if (facetManager.getFacetByType(WebFacet.ID) != null) {
-            JangarooFacet webJangarooFacet = facetManager.getFacetByType(JangarooFacetType.ID);
-            if (webJangarooFacet != null) {
-              OrderEntry[] orderEntries = ModuleRootManager.getInstance(otherModule).getOrderEntries();
-              for (OrderEntry orderEntry: orderEntries) {
-                if (orderEntry instanceof ModuleOrderEntry && ((ModuleOrderEntry)orderEntry).getModule().equals(module)) {
-                  return webJangarooFacet;
-                }
+    // try to find another Jangaroo module with a Web Facet that has a module-dependency on this module:
+    for (Module otherModule : ModuleManager.getInstance(module.getProject()).getModules()) {
+      if (!otherModule.equals(module)) {
+        FacetManager facetManager = FacetManager.getInstance(otherModule);
+        if (facetManager.getFacetByType(WebFacet.ID) != null) {
+          JangarooFacet webJangarooFacet = facetManager.getFacetByType(JangarooFacetType.ID);
+          if (webJangarooFacet != null) {
+            OrderEntry[] orderEntries = ModuleRootManager.getInstance(otherModule).getOrderEntries();
+            for (OrderEntry orderEntry: orderEntries) {
+              if (orderEntry instanceof ModuleOrderEntry && ((ModuleOrderEntry)orderEntry).getModule().equals(module)) {
+                return webJangarooFacet;
               }
             }
           }
