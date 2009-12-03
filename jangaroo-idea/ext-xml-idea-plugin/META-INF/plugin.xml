@@ -1,16 +1,18 @@
 <!DOCTYPE idea-plugin PUBLIC "Plugin/DTD" "http://plugins.intellij.net/plugin.dtd">
 <idea-plugin url="http://www.jangaroo.net" version="2">
-  <name>EXML IDEA Plugin</name>
+  <name>Jangaroo EXML</name>
+  <id>net.jangaroo.idea.exml</id>
   <description>
     A plugin supporting the Jangaroo EXML format for Ext JS UI development.
   </description>
-  <version>0.3.20</version>
+  <version>0.3.21</version>
   <vendor url="http://www.jangaroo.net"
           email="info@jangaroo.net"
           logo="/net/jangaroo/jooley-16x16.png">Jangaroo</vendor>
   <idea-version since-build="9852" until-build="9999"/>
 
   <depends>JavaScript</depends>
+  <depends>net.jangaroo.idea.language</depends>
 
   <application-components>
     <component>

@@ -14,15 +14,18 @@ import com.intellij.openapi.roots.OrderEntry;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.facet.FacetManager;
 import net.jangaroo.extxml.ComponentSuite;
 import net.jangaroo.extxml.ComponentSuiteRegistry;
 import net.jangaroo.extxml.ErrorHandler;
 import net.jangaroo.extxml.Log;
-import net.jangaroo.extxml.ExtComponentSrcFileScanner;
 import net.jangaroo.extxml.JooClassGenerator;
-import net.jangaroo.extxml.SrcFileScanner;
 import net.jangaroo.extxml.XsdGenerator;
 import net.jangaroo.extxml.XsdScanner;
+import net.jangaroo.extxml.ComponentType;
+import net.jangaroo.extxml.file.SrcFileScanner;
+import net.jangaroo.extxml.file.ExmlComponentSrcFileScanner;
+import net.jangaroo.ide.idea.JangarooFacetType;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -50,7 +53,6 @@ public class ExmlCompiler implements TranslatingCompiler {
 
   private static final String JOO_SOURCES_PATH_REG_EXP = ".*\\bmain[/\\\\]joo\\b.*";
   private static final String GENERATED_SOURCES_PATH_REG_EXP = ".*\\bgenerated-sources\\b.*";
-  private static final String EXML_SUFFIX_NO_DOT = "exml";
 
   @NotNull
   public String getDescription() {
@@ -63,8 +65,13 @@ public class ExmlCompiler implements TranslatingCompiler {
   }
 
   public boolean isCompilableFile(VirtualFile file, CompileContext context) {
-    String extension = file.getExtension();
-    return EXML_SUFFIX_NO_DOT.equals(extension) || "as".equals(extension) || "js".equals(extension);
+    if (ComponentType.from(file.getExtension()) != null) {
+      Module module = context.getModuleByFile(file);
+      if (module != null && FacetManager.getInstance(module).getFacetByType(JangarooFacetType.ID) != null) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private static String getXsdFilename(Module module) {   
@@ -170,7 +177,7 @@ public class ExmlCompiler implements TranslatingCompiler {
     ComponentSuite suite = null;
     String srcRootDir = null;
     for (final VirtualFile file : files) {
-      if (EXML_SUFFIX_NO_DOT.equals(file.getExtension())) {
+      if (ComponentType.EXML.getExtension().equals(file.getExtension())) {
         if (suite == null) {
           suite = ComponentSuiteRegistry.getInstance().getComponentSuite(module.getName());
           if (suite == null) {
@@ -184,7 +191,7 @@ public class ExmlCompiler implements TranslatingCompiler {
         OutputItem outputItem = createOutputItem(srcRootDir, MakeUtil.getSourceRoot(context, module, file), file);
         context.addMessage(CompilerMessageCategory.INFORMATION, "exml->as ("+outputItem.getOutputPath()+")", file.getUrl(), -1, -1);
         try {
-          ExtComponentSrcFileScanner.scan(suite, new File(file.getPath()));
+          ExmlComponentSrcFileScanner.scan(suite, new File(file.getPath()), ComponentType.EXML);
           outputItems.add(outputItem);
           filesToRecompile.add(LocalFileSystem.getInstance().findFileByPath(outputItem.getOutputPath()));
         } catch (IOException e) {
@@ -212,7 +219,7 @@ public class ExmlCompiler implements TranslatingCompiler {
     }
     String filePath = file.getPath();
     String relativePath = filePath.substring(sourceRoot.getPath().length(), filePath.lastIndexOf('.')+1);
-    String outputFilePath = outputDirectory + relativePath + EXML_SUFFIX_NO_DOT;
+    String outputFilePath = outputDirectory + relativePath + ComponentType.EXML.getExtension();
     return new OutputItemImpl(outputDirectory, outputFilePath, file);
   }
   
@@ -248,9 +255,9 @@ public class ExmlCompiler implements TranslatingCompiler {
     final Map<String,String> resourceMap = new LinkedHashMap<String,String>();
     for (Map.Entry<Module, List<VirtualFile>> filesOfModuleEntry : filesByModule.entrySet()) {
       Module module = filesOfModuleEntry.getKey();
-      addModuleDependenciesToComponentSuiteRegistry(module, errorHandler, resourceMap);
-      generateXsd(module, errorHandler);
-      compile(context, module, filesOfModuleEntry.getValue(), outputItems, filesToRecompile, errorHandler);
+      addModuleDependenciesToComponentSuiteRegistry(module, resourceMap);
+      generateXsd(module);
+      compile(context, module, filesOfModuleEntry.getValue(), outputItems, filesToRecompile);
     }
     SwingUtilities.invokeLater(new Runnable() {
       public void run() {
