@@ -119,8 +119,8 @@ public final class JooClassGenerator {
         cc.setCfgs(handler.getCfgs());
         File outputFile = new File(componentSuite.getAs3OutputDir(), XML_TO_JS_MAPPER.mapFileName(cc.getRelativeSrcFilePath()));
 
-        if(!outputFile.getParentFile().mkdirs()) {
-          Log.getErrorHandler().warning("could not create parent folder");
+        if (outputFile.getParentFile().mkdirs()) {
+          Log.getErrorHandler().info("Created parent output folder for "+outputFile.getAbsolutePath());
         }
         FileWriter writer = null;
         try {
