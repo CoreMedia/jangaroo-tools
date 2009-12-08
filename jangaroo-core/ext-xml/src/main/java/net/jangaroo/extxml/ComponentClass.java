@@ -51,8 +51,12 @@ public final class ComponentClass extends DescriptionHolder {
   }
 
   public String getRelativeSrcFilePath() {
-    if (srcFile != null && getSuite() != null && getSuite().getRootDir() != null) {
-      int rootDirPathLength = getSuite().getRootDir().getPath().length();
+    return relativeSrcFilePath(getSuite(), getSrcFile());
+  }
+
+  public static String relativeSrcFilePath(ComponentSuite suite, File srcFile) {
+    if (srcFile != null && suite != null && suite.getRootDir() != null) {
+      int rootDirPathLength = suite.getRootDir().getPath().length();
       return srcFile.getPath().substring(rootDirPathLength);
     }
     return null;

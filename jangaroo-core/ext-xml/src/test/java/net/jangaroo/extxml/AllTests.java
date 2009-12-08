@@ -17,7 +17,7 @@ import org.junit.runners.Suite;
     ExtComponentSrcFileScannerTest.class,
     XsdGeneratorTest.class,
     XsdScannerTest.class,
-    XmlToJsonHandlerTest.class,
+    ExmlToJsonHandlerTest.class,
     JsonTest.class,
     JooClassGeneratorTest.class,
     ExmlComponentSrcFileScannerTest.class,

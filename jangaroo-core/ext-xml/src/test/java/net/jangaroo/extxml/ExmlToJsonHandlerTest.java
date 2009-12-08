@@ -16,6 +16,7 @@ import org.junit.Test;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
+import org.xml.sax.ContentHandler;
 import org.xml.sax.helpers.XMLReaderFactory;
 import utils.TestUtils;
 
@@ -29,18 +30,15 @@ import java.util.List;
 /**
  *
  */
-public class XmlToJsonHandlerTest {
+public class ExmlToJsonHandlerTest {
 
-  private XMLReader xr;
-  private XmlToJsonHandler jsonHandler;
+  private ExmlToJsonHandler jsonHandler;
+  private ExmlToComponentMetadataHandler metadataHandler;
 
 
   @Before
   public void initTest() throws Exception {
     Log.setErrorHandler(new StandardOutErrorHandler());
-    xr = XMLReaderFactory.createXMLReader();
-    jsonHandler = new XmlToJsonHandler(new ComponentSuite("test", "test", null, null));
-    xr.setContentHandler(jsonHandler);
   }
 
   @After
@@ -50,11 +48,11 @@ public class XmlToJsonHandlerTest {
 
   @Test
   public void testCDATA() throws Exception {
-    parseJson("/testCDATA.exml");
-    Json json = jsonHandler.getRawResult();
+    parseExml("/testCDATA.exml");
+    Json json = jsonHandler.getJson();
 
     //config elements
-    List<ConfigAttribute> cfgs = jsonHandler.getCfgs();
+    List<ConfigAttribute> cfgs = metadataHandler.getCfgs();
     ConfigAttribute attr = cfgs.get(0);
     assertEquals("This is my <b>descripion</b>",attr.getDescription().trim());
 
@@ -77,8 +75,8 @@ public class XmlToJsonHandlerTest {
 
   @Test
   public void testExmlTypeAttribute() throws Exception {
-    parseJson("/testExmlTypeAttribute.exml");
-    Json json = jsonHandler.getRawResult();
+    parseExml("/testExmlTypeAttribute.exml");
+    Json json = jsonHandler.getJson();
     Json itemsArray = (Json) json.get("items");
 
     //assertTrue(itemsArray instanceof JsonArray);
@@ -87,11 +85,11 @@ public class XmlToJsonHandlerTest {
 
   @Test
   public void testComponent() throws Exception {
-    parseJson("/TestComponent.exml");
-    Json json = jsonHandler.getRawResult();
+    parseExml("/TestComponent.exml");
+    Json json = jsonHandler.getJson();
 
     assertTrue(json instanceof JsonObject);
-    assertEquals("panel", json.get("xtype"));
+    assertEquals("panel", jsonHandler.getXtype());
     assertEquals("I am a panel", json.get("title"));
     assertEquals("{config.myLayout}", json.get("layout"));
 
@@ -132,7 +130,7 @@ public class XmlToJsonHandlerTest {
     assertEquals("{function(x){return ''+x;}}", tools.get("handler"));
 
     //config elements
-    List<ConfigAttribute> cfgs = jsonHandler.getCfgs();
+    List<ConfigAttribute> cfgs = metadataHandler.getCfgs();
     assertFalse(cfgs.isEmpty());
     ConfigAttribute attr = cfgs.get(0);
     assertEquals("myProperty",attr.getName());
@@ -149,14 +147,14 @@ public class XmlToJsonHandlerTest {
     assertTrue(imports.contains("ext.MessageBox"));
 
     //class description
-    assertEquals("This is my <b>TestCompoent</b>", jsonHandler.getComponentDescription());
+    assertEquals("This is my <b>TestCompoent</b>", metadataHandler.getComponentDescription());
 
   }
 
   @Test
   public void testTrueFalse() throws Exception {
-    parseJson("/TestTrueFalse.exml");
-    Json json = jsonHandler.getRawResult();
+    parseExml("/TestTrueFalse.exml");
+    Json json = jsonHandler.getJson();
 
     Json itemsArray = (Json) json.get("items");
     Boolean b = (Boolean) ((Json)itemsArray.get("0")).get("x");
@@ -171,8 +169,8 @@ public class XmlToJsonHandlerTest {
 
   @Test
   public void testNumber() throws Exception {
-    parseJson("/TestNumber.exml");
-    Json json = jsonHandler.getRawResult();
+    parseExml("/TestNumber.exml");
+    Json json = jsonHandler.getJson();
 
     Json itemsArray = (Json) json.get("items");
     Number n = (Number) ((Json)itemsArray.get("0")).get("x");
@@ -196,7 +194,7 @@ public class XmlToJsonHandlerTest {
 
   @Test
   public void testEmptyComponent() throws Exception {
-    parseJson("/EmptyCompontent.exml");
+    parseExml("/EmptyCompontent.exml");
     Json json = jsonHandler.getJson();
     assertNotNull(json);
     System.out.println(json);
@@ -205,19 +203,29 @@ public class XmlToJsonHandlerTest {
 
   @Test
   public void testToJsonString() throws Exception {
-    parseJson("/TestComponent.exml");
+    parseExml("/TestComponent.exml");
     System.out.println(jsonHandler.getJson());
   }
 
-  private void parseJson(String path) throws SAXException, IOException, URISyntaxException {
+  private void parseExml(String path) throws SAXException, IOException, URISyntaxException {
+    ComponentSuite dummyComponentSuite = new ComponentSuite("test", "test", null, null);
+    jsonHandler = new ExmlToJsonHandler(dummyComponentSuite);
+    parseExmlWithHandler(path, jsonHandler);
+    metadataHandler = new ExmlToComponentMetadataHandler(dummyComponentSuite);
+    parseExmlWithHandler(path, metadataHandler);
+    Json json = jsonHandler.getJson();
+    System.out.println("xtype: " + jsonHandler.getXtype());
+    System.out.println(json);
+  }
 
+  private void parseExmlWithHandler(String path, ContentHandler handler) throws SAXException, URISyntaxException, IOException {
+    XMLReader xr = XMLReaderFactory.createXMLReader();
+    xr.setContentHandler(handler);
     InputStream stream = new FileInputStream(TestUtils.getFile(path, getClass()));
     try {
       xr.parse(new InputSource(stream));
     } finally {
       stream.close();
     }
-    Json json = jsonHandler.getRawResult();
-    System.out.println(json);
   }
 }

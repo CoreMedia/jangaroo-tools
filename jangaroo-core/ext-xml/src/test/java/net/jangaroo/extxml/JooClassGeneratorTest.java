@@ -102,6 +102,7 @@ public class JooClassGeneratorTest{
     cc.setType(ComponentType.EXML);
     cc.setFullClassName("testpackage.testPackage");
     cc.setXtype("testPackage");
+    cc.setSuperClassName("ext.Panel");
     suite.addComponentClass(cc);
 
     JooClassGenerator generator = new JooClassGenerator(suite);

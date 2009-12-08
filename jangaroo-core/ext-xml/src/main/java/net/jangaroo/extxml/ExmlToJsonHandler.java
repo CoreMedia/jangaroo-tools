@@ -7,11 +7,10 @@ import net.jangaroo.extxml.json.Json;
 import net.jangaroo.extxml.json.JsonArray;
 import net.jangaroo.extxml.json.JsonObject;
 import org.xml.sax.Attributes;
-import org.xml.sax.ContentHandler;
 import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 
-import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -24,15 +23,14 @@ import java.util.Stack;
 /**
  * Generates an internal representation for the component XML
  */
-public final class XmlToJsonHandler implements ContentHandler {
+public final class ExmlToJsonHandler extends CharacterRecordingHandler {
 
   private Locator locator;
   private Json result;
-  private ComponentSuite componentSuite;
+  private String resultXtype;
+  private final ComponentSuite componentSuite;
 
   private Set<String> imports = new LinkedHashSet<String>();
-  private String componentDescription = "";
-  private List<ConfigAttribute> cfgs = new ArrayList<ConfigAttribute>();
 
   private static String numberPattern = "-?([0-9]+\\.[0-9]*)|(\\.[0-9]+)|([0-9]+)([eE][+-]?[0-9]+)?";
 
@@ -41,15 +39,9 @@ public final class XmlToJsonHandler implements ContentHandler {
   private Stack<net.jangaroo.extxml.json.Json> objects = new Stack<Json>();
   private Stack<String> attributes = new Stack<String>();
 
-  //stores all characters
-  private StringBuffer characterStack;
-
   private boolean expectObjects = true;
 
-  private boolean expectsOptionalConfigDescription = false;
-  private boolean expectsOptionalComponentDescription = false;
-
-  public XmlToJsonHandler(ComponentSuite componentSuite) {
+  public ExmlToJsonHandler(ComponentSuite componentSuite) {
     this.componentSuite = componentSuite;
   }
 
@@ -57,56 +49,32 @@ public final class XmlToJsonHandler implements ContentHandler {
     this.locator = locator;
   }
 
-  public void startDocument() throws SAXException {
-  }
-
   public void endDocument() throws SAXException {
     if (!objects.empty()) {
-      Log.getErrorHandler().error("Json object stack not empty at the end of the document.",
-          locator.getLineNumber(),
-          locator.getColumnNumber());
+      throw new SAXParseException("Json object stack not empty at the end of the document.", locator);
     }
     if (!attributes.empty()) {
-      Log.getErrorHandler().error("Attribute stack not empty at the end of the document.",
-          locator.getLineNumber(),
-          locator.getColumnNumber());
+      throw new SAXParseException("Attribute stack not empty at the end of the document.", locator);
     }
     if (!expectObjects) {
-      Log.getErrorHandler().error("The parser is in the wrong state at the end of the document.",
-          locator.getLineNumber(),
-          locator.getColumnNumber());
+      throw new SAXParseException("The parser is in the wrong state at the end of the document.", locator);
     }
-  }
-
-  public void startPrefixMapping(String prefix, String uri) throws SAXException {
-  }
-
-  public void endPrefixMapping(String prefix) throws SAXException {
   }
 
   public void startElement(String uri, String localName, String qName, Attributes atts) throws SAXException {
-    if ("component".equals(localName)) {
-      //prepare characterStack for optional component description
-      expectsOptionalComponentDescription = true;
-    } else if ("import".equals(localName)) {
-      imports.add(atts.getValue("class"));
-    } else if ("cfg".equals(localName)) {
-      //handle config elements
-      cfgs.add(new ConfigAttribute(atts.getValue("name"), atts.getValue("type")));
-      expectsOptionalConfigDescription = true;
-    } else if ("description".equals(localName)) {
-      if(expectsOptionalConfigDescription || expectsOptionalComponentDescription) {
-        characterStack = new StringBuffer();
-      }
-    } else if ("object".equals(localName)) {
-      //handle json elements differently: either as a anonymous element with attributes or
-      //json as text node of the element.
-      if (expectObjects) {
-        if (atts.getLength() == 0) {
-          //create new character Statck that will store the JSON string
-          characterStack = new StringBuffer();
-        } else {
-          addElementToJsonObject(createJsonObject(atts));
+    if (ExtXml.EXML_NAMESPACE_URI.equals(uri)) {
+      if ("import".equals(localName)) {
+        imports.add(atts.getValue("class"));
+      } else if ("object".equals(localName)) {
+        //handle json elements differently: either as a anonymous element with attributes or
+        //json as text node of the element.
+        if (expectObjects) {
+          if (atts.getLength() == 0) {
+            //start recording characters of the JSON string:
+            startRecordingCharacters();
+          } else {
+            addElementToJsonObject(createJsonObject(atts));
+          }
         }
       }
     } else {
@@ -141,25 +109,12 @@ public final class XmlToJsonHandler implements ContentHandler {
   }
 
   public void endElement(String uri, String localName, String qName) throws SAXException {
-    if ("component".equals(localName)) {
-      //done
-    } else if ("import".equals(localName)) {
-    } else if ("cfg".equals(localName)) {
-    } else if ("description".equals(localName)) {
-      if (characterStack != null) {
-        if(expectsOptionalConfigDescription) {
-          cfgs.get(cfgs.size() - 1).setDescription(characterStack.toString().trim());
-          expectsOptionalConfigDescription = false;
-        } else if (expectsOptionalComponentDescription) {
-          componentDescription = characterStack.toString().trim();
-          expectsOptionalComponentDescription = false;
+    if (ExtXml.EXML_NAMESPACE_URI.equals(uri)) {
+      if ("object".equals(localName)) {
+        String characters = popRecordedCharacters();
+        if (characters != null) {
+          addElementToJsonObject("{" + characters.trim() + "}");
         }
-      }
-      characterStack = null;
-    } else if ("object".equals(localName)) {
-      if (characterStack != null) {
-        addElementToJsonObject("{" + characterStack.toString().trim() + "}");
-        characterStack = null;
       }
     } else {
       if (expectObjects) {
@@ -175,26 +130,10 @@ public final class XmlToJsonHandler implements ContentHandler {
         //store the result
         if (objects.empty()) {
           result = json;
-
+          resultXtype = (String)((JsonObject) result).remove("xtype");
         }
       }
     }
-  }
-
-  public void characters(char[] ch, int start, int length) throws SAXException {
-    if (characterStack != null) {
-      String cdata = new String(ch, start, length);
-      characterStack.append(cdata);
-    }
-  }
-
-  public void ignorableWhitespace(char[] ch, int start, int length) throws SAXException {
-  }
-
-  public void processingInstruction(String target, String data) throws SAXException {
-  }
-
-  public void skippedEntity(String name) throws SAXException {
   }
 
   private JsonObject createJsonObject(Attributes atts) {
@@ -285,50 +224,15 @@ public final class XmlToJsonHandler implements ContentHandler {
     expectObjects = false;
   }
 
-  public Json getRawResult() {
-    return result;
-  }
-
   public List<String> getImports() {
     return new ArrayList<String>(imports);
   }
 
-  public List<ConfigAttribute> getCfgs() {
-    return cfgs;
-  }
-
-  public String getComponentDescription() {
-    return componentDescription;
-  }
-
-  public String getSuperClassName() {
-    if (result != null) {
-      String xtype = (String) this.result.get("xtype");
-      if (xtype == null) {
-        Log.getErrorHandler().error("Component xtype not found.");
-        return null;
-      }
-
-      ComponentClass componentClass = componentSuite.findComponentClassByXtype(xtype);
-      if (componentClass == null) {
-        Log.getErrorHandler().error(MessageFormat.format("Super component class for xtype ''{0}'' not found.", xtype));
-        return null;
-      }
-      return componentClass.getFullClassName();
-    } else {
-      Log.getErrorHandler().error("Xml Parser has no result.");
-      return null;
-    }
-  }
-
   public Json getJson() {
-    if (result != null) {
-      ((JsonObject) result).remove("xtype");
-      return (result);
-    } else {
-      Log.getErrorHandler().error("Xml Parser has no result.");
-      return null;
-    }
+    return result;
   }
 
+  public String getXtype() {
+    return resultXtype;
+  }
 }

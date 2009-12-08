@@ -55,7 +55,7 @@ public class JsonObject implements Json {
     char c = 0;
     int i;
     int len = string.length();
-    StringBuffer sb = new StringBuffer(len + 4);
+    StringBuilder sb = new StringBuilder(len + 4);
     String t;
 
     sb.append('"');
@@ -93,7 +93,7 @@ public class JsonObject implements Json {
           if (c < ' ' || (c >= '\u0080' && c < '\u00a0') ||
               (c >= '\u2000' && c < '\u2100')) {
             t = "000" + Integer.toHexString(c);
-            sb.append("\\u" + t.substring(t.length() - 4));
+            sb.append("\\u").append(t.substring(t.length() - 4));
           } else {
             sb.append(c);
           }
@@ -134,7 +134,7 @@ public class JsonObject implements Json {
       String xtype = (String) value;
       ComponentClass compClazz = ComponentSuiteRegistry.getInstance().findComponentClassByXtype(xtype);
       if (compClazz != null) {
-        Log.getErrorHandler().info(String.format("Using compontent class '%s' for xtype '%s'", compClazz, value));
+        //Log.getErrorHandler().info(String.format("Using compontent class '%s' for xtype '%s'", compClazz, value));
         return (compClazz.getFullClassName())+ (".") + (key);
       } else {
         return ("\"") + (xtype) + ("\"");
@@ -212,7 +212,7 @@ public class JsonObject implements Json {
     this.properties.put(property, value);
   }
 
-  public void remove(String property) {
-    this.properties.remove(property);
+  public Object remove(String property) {
+    return this.properties.remove(property);
   }
 }

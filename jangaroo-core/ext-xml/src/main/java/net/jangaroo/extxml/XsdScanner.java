@@ -56,7 +56,7 @@ public final class XsdScanner {
             type = type.substring(colonPos + 1);
           }
           if(!StringUtils.isEmpty(type)) {
-            Log.getErrorHandler().info(String.format("Register class '%s' with xtype '%s'", type, name));
+            //Log.getErrorHandler().info(String.format("Register class '%s' with xtype '%s'", type, name));
             componentSuite.addComponentClass(new ComponentClass(name, type));
           }
         }
