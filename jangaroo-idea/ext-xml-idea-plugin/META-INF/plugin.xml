@@ -5,7 +5,7 @@
   <description>
     A plugin supporting the Jangaroo EXML format for Ext JS UI development.
   </description>
-  <version>0.3.21</version>
+  <version>0.3.22-SNAPSHOT</version>
   <vendor url="http://www.jangaroo.net"
           email="info@jangaroo.net"
           logo="/net/jangaroo/jooley-16x16.png">Jangaroo</vendor>
@@ -32,9 +32,8 @@
     <!-- Add your actions here -->
   </actions>
 
-  <!--extensions defaultExtensionNs="com.intellij">
-    <facetType implementation="net.jangaroo.ide.idea.JangarooFacetType"/>
-    <frameworkSupport implementation="net.jangaroo.ide.idea.JangarooFacetTypeFrameworkSupportProvider"/>
-  </extensions-->
+  <extensions defaultExtensionNs="com.intellij.xml">
+    <elementDescriptorProvider implementation="net.jangaroo.ide.idea.exml.ComponentXmlElementDescriptorProvider"/>
+  </extensions>
 
 </idea-plugin>

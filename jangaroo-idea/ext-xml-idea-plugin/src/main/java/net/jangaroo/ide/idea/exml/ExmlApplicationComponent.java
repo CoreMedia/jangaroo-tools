@@ -23,6 +23,18 @@ public class ExmlApplicationComponent implements ApplicationComponent {
     ftm.registerFileType(ftm.getFileTypeByExtension("xml"), "exml");
     ExternalResourceManager erm = ExternalResourceManager.getInstance();
     erm.addStdResource(EXML_NAMESPACE_URI, "/net/jangaroo/extxml/schemas/extxml.xsd", getClass());
+//import com.intellij.psi.filters.AndFilter;
+//import com.intellij.psi.filters.ClassFilter;
+//import com.intellij.psi.filters.position.TargetNamespaceFilter;
+//import com.intellij.psi.meta.MetaDataRegistrar;
+//import com.intellij.psi.xml.XmlDocument;
+//    MetaDataRegistrar.getInstance().registerMetaData(
+//      new AndFilter(
+//        new ClassFilter(XmlDocument.class),
+//        new TargetNamespaceFilter(EXML_NAMESPACE_URI)
+//      ),
+//      XmlNSDescriptor.class
+//    );
   }
 
   public void disposeComponent() {

@@ -14,21 +14,21 @@
  */
 package net.jangaroo.ide.idea.exml;
 
-import com.intellij.openapi.components.ProjectComponent;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.compiler.CompilerManager;
-import com.intellij.openapi.fileTypes.FileType;
-import com.intellij.openapi.fileTypes.FileTypeManager;
-import com.intellij.openapi.util.TextRange;
-import com.intellij.psi.PsiManager;
-import com.intellij.psi.LanguageInjector;
-import com.intellij.psi.PsiLanguageInjectionHost;
-import com.intellij.psi.InjectedLanguagePlaces;
-import com.intellij.psi.xml.XmlAttributeValue;
-import com.intellij.psi.xml.XmlTag;
-import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.lang.Language;
 import com.intellij.lang.javascript.JavaScriptSupportLoader;
+import com.intellij.openapi.compiler.CompilerManager;
+import com.intellij.openapi.components.ProjectComponent;
+import com.intellij.openapi.fileTypes.FileType;
+import com.intellij.openapi.fileTypes.FileTypeManager;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.TextRange;
+import com.intellij.psi.InjectedLanguagePlaces;
+import com.intellij.psi.LanguageInjector;
+import com.intellij.psi.PsiLanguageInjectionHost;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.xml.XmlAttribute;
+import com.intellij.psi.xml.XmlAttributeValue;
+import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -64,6 +64,31 @@ public class ExmlProjectComponent implements ProjectComponent {
         }
       }
     });
+//    import com.intellij.patterns.PlatformPatterns;
+//    import com.intellij.patterns.InitialPatternCondition;
+//    import com.intellij.patterns.XmlElementPattern;
+//    import com.intellij.psi.PsiElement;
+//    import com.intellij.psi.PsiReference;
+//    import com.intellij.psi.PsiReferenceProvider;
+//    import com.intellij.psi.impl.source.resolve.reference.ReferenceProvidersRegistry;
+//    import com.intellij.util.ProcessingContext;
+//    import org.jetbrains.annotations.Nullable;
+//    ReferenceProvidersRegistry.getInstance(project).registerReferenceProvider(
+//      new XmlElementPattern(new InitialPatternCondition<XmlTag>(XmlTag.class) {
+//        @Override
+//        public boolean accepts(@Nullable Object o, ProcessingContext context) {
+//          return super.accepts(o, context) && "http://extjs.com/ext3".equals(((XmlTag)o).getNamespace());
+//        }
+//      }), 
+//      new PsiReferenceProvider() {
+//        @NotNull
+//        @Override
+//        public PsiReference[] getReferencesByElement(@NotNull PsiElement psiElement, @NotNull ProcessingContext processingContext) {
+//          //System.out.println("getReferencesByElement("+psiElement.getText()+")");
+//          return new PsiReference[0];
+//        }
+//      }
+//     );
   }
 
   private static Language getAS3() {

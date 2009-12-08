@@ -13,7 +13,7 @@
     <orderEntry type="module-library">
       <library name="ext-xml">
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/net/jangaroo/ext-xml/0.3.21/ext-xml-0.3.21.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/net/jangaroo/ext-xml/0.3.22-SNAPSHOT/ext-xml-0.3.22-SNAPSHOT.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>
