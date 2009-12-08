@@ -7,17 +7,13 @@ import freemarker.template.TemplateException;
 import org.apache.maven.shared.model.fileset.mappers.FileNameMapper;
 import org.apache.maven.shared.model.fileset.mappers.GlobPatternMapper;
 import org.codehaus.plexus.util.StringUtils;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import org.xml.sax.XMLReader;
-import org.xml.sax.helpers.XMLReaderFactory;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
+
+import net.jangaroo.extxml.file.ExmlComponentSrcFileScanner;
 
 /**
  * Generates ActionScriptClasses out of xml components.
@@ -79,67 +75,41 @@ public final class JooClassGenerator {
     return isValid;
   }
 
-  private XmlToJsonHandler createHandlerFromClass(ComponentClass cc) {
-    FileInputStream inputStream = null;
-    XmlToJsonHandler handler = null;
-    Log.getErrorHandler().setCurrentFile(cc.getSrcFile());
-    try {
-      XMLReader xr = XMLReaderFactory.createXMLReader();
-      handler = new XmlToJsonHandler(componentSuite);
-      xr.setContentHandler(handler);
-      inputStream = new FileInputStream(cc.getSrcFile());
-      xr.parse(new InputSource(inputStream));
-    } catch (FileNotFoundException e) {
-      Log.getErrorHandler().error("Exception while parsing", e);
-    } catch (IOException e) {
-      Log.getErrorHandler().error("Exception while parsing", e);
-    } catch (SAXException e) {
-      Log.getErrorHandler().error("Exception while parsing", e);
-    } finally {
-      try {
-        if (inputStream != null) {
-          inputStream.close();
-        }
-      } catch (IOException e) {
-        //never happend
-      }
-    }
-    return handler;
-  }
-
   public void generateClasses() {
     for (ComponentClass cc : componentSuite.getComponentClassesByType(ComponentType.EXML)) {
-      XmlToJsonHandler handler= createHandlerFromClass(cc);
+      generateClass(cc);
+    }
+  }
 
-      if (handler != null) {
-        cc.setSuperClassName(handler.getSuperClassName());
-        cc.setDescription(handler.getComponentDescription());
-        cc.setImports(handler.getImports());
-        cc.setJson(handler.getJson());
-        cc.setCfgs(handler.getCfgs());
-        File outputFile = new File(componentSuite.getAs3OutputDir(), XML_TO_JS_MAPPER.mapFileName(cc.getRelativeSrcFilePath()));
+  public File generateClass(ComponentClass componentClass) {
+    ExmlToJsonHandler handler= new ExmlToJsonHandler(componentSuite);
+    if (ExmlComponentSrcFileScanner.parseExmlWithHandler(componentClass, handler)) {
+      componentClass.setImports(handler.getImports());
+      componentClass.setJson(handler.getJson());
+      File outputFile = new File(componentSuite.getAs3OutputDir(), XML_TO_JS_MAPPER.mapFileName(componentClass.getRelativeSrcFilePath()));
 
-        if (outputFile.getParentFile().mkdirs()) {
-          Log.getErrorHandler().info("Created parent output folder for "+outputFile.getAbsolutePath());
-        }
-        FileWriter writer = null;
+      if (outputFile.getParentFile().mkdirs()) {
+        Log.getErrorHandler().info("Created parent output folder for "+outputFile.getAbsolutePath());
+      }
+      FileWriter writer = null;
+      try {
+        writer = new FileWriter(outputFile);
+        generateJangarooClass(componentClass, writer);
+      } catch (IOException e) {
+        Log.getErrorHandler().error("Exception while creating class", e);
+      } catch (TemplateException e) {
+        Log.getErrorHandler().error("Exception while creating class", e);
+      } finally {
         try {
-          writer = new FileWriter(outputFile);
-          generateJangarooClass(cc, writer);
-        } catch (IOException e) {
-          Log.getErrorHandler().error("Exception while creating class", e);
-        } catch (TemplateException e) {
-          Log.getErrorHandler().error("Exception while creating class", e);
-        } finally {
-          try {
-            if (writer != null) {
-              writer.close();
-            }
-          } catch (IOException e) {
-            //never happen
+          if (writer != null) {
+            writer.close();
           }
+        } catch (IOException e) {
+          //never happen
         }
       }
+      return outputFile;
     }
+    return null;
   }
 }

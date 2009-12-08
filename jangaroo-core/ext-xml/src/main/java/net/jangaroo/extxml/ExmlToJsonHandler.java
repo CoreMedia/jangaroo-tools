@@ -6,6 +6,7 @@ package net.jangaroo.extxml;
 import net.jangaroo.extxml.json.Json;
 import net.jangaroo.extxml.json.JsonArray;
 import net.jangaroo.extxml.json.JsonObject;
+import net.jangaroo.extxml.file.ExmlComponentSrcFileScanner;
 import org.xml.sax.Attributes;
 import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
@@ -62,7 +63,7 @@ public final class ExmlToJsonHandler extends CharacterRecordingHandler {
   }
 
   public void startElement(String uri, String localName, String qName, Attributes atts) throws SAXException {
-    if (ExtXml.EXML_NAMESPACE_URI.equals(uri)) {
+    if (ExmlComponentSrcFileScanner.EXML_NAMESPACE_URI.equals(uri)) {
       if ("import".equals(localName)) {
         imports.add(atts.getValue("class"));
       } else if ("object".equals(localName)) {
@@ -109,7 +110,7 @@ public final class ExmlToJsonHandler extends CharacterRecordingHandler {
   }
 
   public void endElement(String uri, String localName, String qName) throws SAXException {
-    if (ExtXml.EXML_NAMESPACE_URI.equals(uri)) {
+    if (ExmlComponentSrcFileScanner.EXML_NAMESPACE_URI.equals(uri)) {
       if ("object".equals(localName)) {
         String characters = popRecordedCharacters();
         if (characters != null) {

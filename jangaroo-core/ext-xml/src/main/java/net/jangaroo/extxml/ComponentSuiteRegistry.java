@@ -1,7 +1,5 @@
 package net.jangaroo.extxml;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -13,33 +11,16 @@ import java.util.Map;
  */
 public final class ComponentSuiteRegistry {
 
-  private static final ComponentSuiteResolver NO_COMPONENT_SUITE_RESOLVER = new ComponentSuiteResolver() {
-    public InputStream resolveComponentSuite(String namespaceUri) throws IOException {
-      throw new IOException("No ComponentSuiteResolver installed.");
-    }
-  };
-
   private static final ComponentSuiteRegistry INSTANCE = new ComponentSuiteRegistry();
 
   private final Map<String, ComponentSuite> componentSuitesByNamespaceUri = new LinkedHashMap<String, ComponentSuite>(10);
-  private ComponentSuiteResolver componentSuiteResolver;
 
   private ComponentSuiteRegistry() {
-    this(NO_COMPONENT_SUITE_RESOLVER);
-  }
-
-  private ComponentSuiteRegistry(ComponentSuiteResolver componentSuiteResolver) {
-    this.componentSuiteResolver = componentSuiteResolver;
   }
 
   public static ComponentSuiteRegistry getInstance() {
     return INSTANCE;
   }
-
-  public void setComponentSuiteResolver(ComponentSuiteResolver componentSuiteResolver) {
-    this.componentSuiteResolver = componentSuiteResolver;
-  }
-
 
   public void add(ComponentSuite componentSuite) {
     componentSuitesByNamespaceUri.put(componentSuite.getNamespace(), componentSuite);
@@ -48,23 +29,13 @@ public final class ComponentSuiteRegistry {
   public ComponentSuite getComponentSuite(String namespaceUri) {
     ComponentSuite componentSuite = componentSuitesByNamespaceUri.get(namespaceUri);
     if (componentSuite == null) {
-      try {
-        InputStream xsdInputStream = componentSuiteResolver.resolveComponentSuite(namespaceUri);
-        if (xsdInputStream == null) {
-          Log.getErrorHandler().error("No XSD registered for namespace URI " + namespaceUri);
-        } else {
-          componentSuite = new XsdScanner().scan(xsdInputStream);
-          assert namespaceUri.equals(componentSuite.getNamespace());
-        }
-      } catch (IOException e) {
-        Log.getErrorHandler().error("Could not resolve XSD for namespace URI " + namespaceUri, e);
-      }
+      Log.getErrorHandler().info("Component suite for namespace URI "+namespaceUri+" not found in registry.");
     }
     return componentSuite;
   }
 
   public ComponentClass getComponentClass(String namespaceUri, String localName) {
-    ComponentSuite componentSuite = ComponentSuiteRegistry.getInstance().getComponentSuite(namespaceUri);
+    ComponentSuite componentSuite = getInstance().getComponentSuite(namespaceUri);
     return componentSuite != null ? componentSuite.getComponentClassByLocalName(localName) : null;
   }
 

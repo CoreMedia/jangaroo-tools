@@ -8,6 +8,8 @@ import org.xml.sax.SAXParseException;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.jangaroo.extxml.file.ExmlComponentSrcFileScanner;
+
 /**
  * Generates an internal representation of all metadata of the component described by the given EXML.
  */
@@ -34,7 +36,7 @@ public class ExmlToComponentMetadataHandler extends CharacterRecordingHandler {
   }
 
   public void startElement(String uri, String localName, String qName, Attributes atts) throws SAXException {
-    if (ExtXml.EXML_NAMESPACE_URI.equals(uri)) {
+    if (ExmlComponentSrcFileScanner.EXML_NAMESPACE_URI.equals(uri)) {
       if ("component".equals(localName)) {
         //prepare characterStack for optional component description
         expectsOptionalComponentDescription = true;
@@ -62,7 +64,7 @@ public class ExmlToComponentMetadataHandler extends CharacterRecordingHandler {
 
   @Override
   public void endElement(String uri, String localName, String qName) throws SAXException {
-    if (ExtXml.EXML_NAMESPACE_URI.equals(uri)) {
+    if (ExmlComponentSrcFileScanner.EXML_NAMESPACE_URI.equals(uri)) {
       if ("description".equals(localName)) {
         String characters = popRecordedCharacters();
         if (characters != null) {

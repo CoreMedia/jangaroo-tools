@@ -215,10 +215,6 @@ public final class ExtComponentSrcFileScanner {
 
     void end() {
       addIfHasXtype(cc);
-      validateComponentClass(cc);
-      if (cc != null) {
-        Log.getErrorHandler().info(String.format("Component class '%s' with xtype '%s parsed", cc.getFullClassName(), cc.getXtype()));
-      }
     }
 
 
@@ -230,8 +226,14 @@ public final class ExtComponentSrcFileScanner {
     }
 
     private void addIfHasXtype(ComponentClass cc) {
-      if (cc != null && cc.getXtype() != null) {
-        componentSuite.addComponentClass(cc);
+      if (cc != null) {
+        if (cc.getXtype() != null) {
+          validateComponentClass(cc);
+          componentSuite.addComponentClass(cc);
+          Log.getErrorHandler().info(String.format("Component class '%s' with xtype '%s' parsed.", cc.getFullClassName(), cc.getXtype()));
+        } else {
+          Log.getErrorHandler().info(String.format("Class '%s' has no xtype - skipped.", cc.getFullClassName()));
+        }
       }
     }
 
