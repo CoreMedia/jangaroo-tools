@@ -13,10 +13,10 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
+import org.xml.sax.ContentHandler;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
-import org.xml.sax.ContentHandler;
 import org.xml.sax.helpers.XMLReaderFactory;
 import utils.TestUtils;
 
@@ -54,22 +54,22 @@ public class ExmlToJsonHandlerTest {
     //config elements
     List<ConfigAttribute> cfgs = metadataHandler.getCfgs();
     ConfigAttribute attr = cfgs.get(0);
-    assertEquals("This is my <b>descripion</b>",attr.getDescription().trim());
+    assertEquals("This is my <b>descripion</b>", attr.getDescription().trim());
 
     attr = cfgs.get(1);
-    assertEquals("This is my <b>descripion</b>",attr.getDescription().trim());
+    assertEquals("This is my <b>descripion</b>", attr.getDescription().trim());
 
     Json itemsArray = (Json) json.get("items");
 
-    String jsonElem  = (String) itemsArray.get("0");
+    String jsonElem = (String) itemsArray.get("0");
     assertEquals("{{xtype: \"editortreepanel\"}}", jsonElem.trim());
 
-    jsonElem  = (String) itemsArray.get("1");
+    jsonElem = (String) itemsArray.get("1");
     assertEquals("{{xtype: \"editortreepanel\"}}", jsonElem.trim());
 
     String tbl = (String) json.get("tbl");
     assertEquals("{{xtype: \"editortreepanel\"}}", tbl.trim());
-    
+
 
   }
 
@@ -112,15 +112,15 @@ public class ExmlToJsonHandlerTest {
     assertNotNull(border);
     assertNull(border.get("xtype"));
     assertEquals("solid", border.get("type"));
-    
+
     Json itemsArray = (Json) json.get("items");
     assertNotNull(itemsArray);
 
-    Json firstElem  = (Json) itemsArray.get("0");
+    Json firstElem = (Json) itemsArray.get("0");
     assertNotNull(firstElem);
     assertEquals("button", firstElem.get("xtype"));
 
-    String jsonElem  = (String) itemsArray.get("1");
+    String jsonElem = (String) itemsArray.get("1");
     assertNotNull(jsonElem);
     assertEquals("{{xtype: \"editortreepanel\"}}", jsonElem.trim());
 
@@ -133,12 +133,12 @@ public class ExmlToJsonHandlerTest {
     List<ConfigAttribute> cfgs = metadataHandler.getCfgs();
     assertFalse(cfgs.isEmpty());
     ConfigAttribute attr = cfgs.get(0);
-    assertEquals("myProperty",attr.getName());
+    assertEquals("myProperty", attr.getName());
     assertEquals("String", attr.getJsType());
     assertNull(attr.getDescription());
 
     attr = cfgs.get(1);
-    assertEquals("myPropertyWithDescription",attr.getName());
+    assertEquals("myPropertyWithDescription", attr.getName());
     assertEquals("Boolean", attr.getJsType());
     assertNotNull(attr.getDescription());
 
@@ -157,13 +157,13 @@ public class ExmlToJsonHandlerTest {
     Json json = jsonHandler.getJson();
 
     Json itemsArray = (Json) json.get("items");
-    Boolean b = (Boolean) ((Json)itemsArray.get("0")).get("x");
+    Boolean b = (Boolean) ((Json) itemsArray.get("0")).get("x");
     assertTrue(b);
 
-    String s = (String) ((Json)itemsArray.get("2")).get("x");
+    String s = (String) ((Json) itemsArray.get("2")).get("x");
     assertEquals("True", s);
 
-    s = (String) ((Json)itemsArray.get("3")).get("x");
+    s = (String) ((Json) itemsArray.get("3")).get("x");
     assertEquals("FALSE", s);
   }
 
@@ -173,23 +173,23 @@ public class ExmlToJsonHandlerTest {
     Json json = jsonHandler.getJson();
 
     Json itemsArray = (Json) json.get("items");
-    Number n = (Number) ((Json)itemsArray.get("0")).get("x");
+    Number n = (Number) ((Json) itemsArray.get("0")).get("x");
     assertEquals(100, n.intValue());
 
-    String s = (String) ((Json)itemsArray.get("1")).get("x");
-    assertEquals("200xyz",s);
+    String s = (String) ((Json) itemsArray.get("1")).get("x");
+    assertEquals("200xyz", s);
 
-    n = (Number) ((Json)itemsArray.get("2")).get("x");
+    n = (Number) ((Json) itemsArray.get("2")).get("x");
     assertEquals(1.5, n);
 
-     n = (Number) ((Json)itemsArray.get("3")).get("x");
+    n = (Number) ((Json) itemsArray.get("3")).get("x");
     assertEquals(1, n.intValue());
 
-     n = (Number) ((Json)itemsArray.get("4")).get("x");
+    n = (Number) ((Json) itemsArray.get("4")).get("x");
     assertEquals(-1.5, n);
 
-    s = (String) ((Json)itemsArray.get("5")).get("x");
-    assertEquals("3d",s);
+    s = (String) ((Json) itemsArray.get("5")).get("x");
+    assertEquals("3d", s);
   }
 
   @Test
@@ -198,7 +198,7 @@ public class ExmlToJsonHandlerTest {
     Json json = jsonHandler.getJson();
     assertNotNull(json);
     System.out.println(json);
-    assertEquals("{anchor:\"100%\",frame:true,collapsible:true,draggable:true,cls:\"x-portlet\"}", json.toString(0,0).replaceAll("\\s",""));
+    assertEquals("{anchor:\"100%\",frame:true,collapsible:true,draggable:true,cls:\"x-portlet\"}", json.toString(0, 0).replaceAll("\\s", ""));
   }
 
   @Test
@@ -207,8 +207,19 @@ public class ExmlToJsonHandlerTest {
     System.out.println(jsonHandler.getJson());
   }
 
+  private ComponentSuite createExt3Suite() {
+    ComponentSuite ext3Suite = new ComponentSuite("http://extjs.com/ext3", "ext", null, null);
+    ext3Suite.addComponentClass(new ComponentClass("panel", "ext.Panel"));
+    ext3Suite.addComponentClass(new ComponentClass("button", "ext.Button"));
+    ext3Suite.addComponentClass(new ComponentClass("menuitem", "ext.MenuItem"));
+
+    return ext3Suite;
+  }
+
   private void parseExml(String path) throws SAXException, IOException, URISyntaxException {
     ComponentSuite dummyComponentSuite = new ComponentSuite("test", "test", null, null);
+
+    dummyComponentSuite.addImportedComponentSuite(createExt3Suite());
     jsonHandler = new ExmlToJsonHandler(dummyComponentSuite);
     parseExmlWithHandler(path, jsonHandler);
     metadataHandler = new ExmlToComponentMetadataHandler(dummyComponentSuite);

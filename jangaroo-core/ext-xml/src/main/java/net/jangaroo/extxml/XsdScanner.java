@@ -42,7 +42,7 @@ public class XsdScanner {
 
   private ComponentClass createComponentClass() {
     String name = parser.getAttributeValue(null, "name");
-    System.out.println("createComponentClass: " + name);
+    Log.getErrorHandler().info(String.format("createComponentClass: '%s'", name));
     ComponentClass componentClass = new ComponentClass(null, name);
     ccStack.push(componentClass);
     return componentClass;
@@ -54,7 +54,7 @@ public class XsdScanner {
     ComponentClass componentClass = ccStack.lastElement();
     assert typeName.equals(componentClass.getFullClassName());
     componentClass.setXtype(xtype);
-    System.out.printf("Added xtype %s to component class %s.%n", xtype, typeName);
+    Log.getErrorHandler().info(String.format("Added xtype '%s' to component class '%s'", xtype, typeName));
   }
 
   private String afterColon(String typeName) {
@@ -65,7 +65,7 @@ public class XsdScanner {
     String supertypeName = afterColon(parser.getAttributeValue(null, "base"));
     ComponentClass componentClass = ccStack.lastElement();
     componentClass.setSuperClassName(supertypeName);
-    System.out.printf("Added supertype %s to component class %s.%n", supertypeName, componentClass.getFullClassName());
+    Log.getErrorHandler().info(String.format("Added supertype '%s' to component class '%s'", supertypeName, componentClass.getFullClassName()));
   }
 
   private ConfigAttribute createConfigElementAttribute() {
@@ -136,7 +136,7 @@ public class XsdScanner {
           for (ComponentClass c : ccStack) {
             componentSuite.addComponentClass(c);
           }
-        } else if (isLocalName(COMPLEX_TYPE)) {
+        } else if (isLocalName(COMPLEX_TYPE) && !isInsideCfg) {
           isInsideComplexType = false;
         } else if (isLocalName(ELEMENT)) {
           isInsideCfg = false;

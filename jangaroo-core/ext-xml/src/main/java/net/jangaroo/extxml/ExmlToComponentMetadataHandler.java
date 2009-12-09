@@ -1,5 +1,6 @@
 package net.jangaroo.extxml;
 
+import net.jangaroo.extxml.file.ExmlComponentSrcFileScanner;
 import org.xml.sax.Attributes;
 import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
@@ -7,8 +8,6 @@ import org.xml.sax.SAXParseException;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import net.jangaroo.extxml.file.ExmlComponentSrcFileScanner;
 
 /**
  * Generates an internal representation of all metadata of the component described by the given EXML.
@@ -45,19 +44,18 @@ public class ExmlToComponentMetadataHandler extends CharacterRecordingHandler {
         cfgs.add(new ConfigAttribute(atts.getValue("name"), atts.getValue("type")));
         expectsOptionalConfigDescription = true;
       } else if ("description".equals(localName)) {
-        if(expectsOptionalConfigDescription || expectsOptionalComponentDescription) {
+        if (expectsOptionalConfigDescription || expectsOptionalComponentDescription) {
           // start recording characters of the description:
           startRecordingCharacters();
         }
       }
-    } else if (superComponentClass == null){
+    } else if (superComponentClass == null) {
       superComponentClass = componentSuite.getComponentClassByNamespaceAndLocalName(uri, localName);
       if (superComponentClass == null) {
-        throw new SAXParseException(String.format("No component class for element name '%s' found in component suite '%s'!", localName, uri), locator);
+        throw new SAXParseException(String.format("No component class for element name '%s' found in component suite '%s'", localName, uri), locator);
       } else {
-//        Log.getErrorHandler().info("Found super class "+superComponentClass.getFullClassName());
-//        System.out.println("Found super class "+superComponentClass.getFullClassName());
-        // TODO: we could stop the parsing here, but how is this done with a ContentHandler? Throw SAXException("Done")?
+        Log.getErrorHandler().info("Found super class " + superComponentClass.getFullClassName());
+       // TODO: we could stop the parsing here, but how is this done with a ContentHandler? Throw SAXException("Done")?
       }
     }
   }
@@ -68,7 +66,7 @@ public class ExmlToComponentMetadataHandler extends CharacterRecordingHandler {
       if ("description".equals(localName)) {
         String characters = popRecordedCharacters();
         if (characters != null) {
-          if(expectsOptionalConfigDescription) {
+          if (expectsOptionalConfigDescription) {
             cfgs.get(cfgs.size() - 1).setDescription(characters.trim());
             expectsOptionalConfigDescription = false;
           } else if (expectsOptionalComponentDescription) {
