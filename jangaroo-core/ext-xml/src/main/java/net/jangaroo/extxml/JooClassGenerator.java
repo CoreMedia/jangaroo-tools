@@ -4,6 +4,7 @@ import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapper;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
+import net.jangaroo.extxml.file.ExmlComponentSrcFileScanner;
 import org.apache.maven.shared.model.fileset.mappers.FileNameMapper;
 import org.apache.maven.shared.model.fileset.mappers.GlobPatternMapper;
 import org.codehaus.plexus.util.StringUtils;
@@ -12,8 +13,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
-
-import net.jangaroo.extxml.file.ExmlComponentSrcFileScanner;
 
 /**
  * Generates ActionScriptClasses out of xml components.
@@ -38,7 +37,7 @@ public final class JooClassGenerator {
       Configuration cfg = new Configuration();
       cfg.setClassForTemplateLoading(ComponentClass.class, "/");
       cfg.setObjectWrapper(new DefaultObjectWrapper());
-      if(jooClass.getJson() != null) {
+      if (jooClass.getJson() != null) {
         cfg.setSharedVariable("jsonForTemplate", jooClass.getJson().toString(2, 4));
       }
       Template template = cfg.getTemplate("/net/jangaroo/extxml/templates/jangaroo_class.ftl");
@@ -66,7 +65,7 @@ public final class JooClassGenerator {
     }
 
     for (String importStr : jooClass.getImports()) {
-      if(StringUtils.isEmpty(importStr)) {
+      if (StringUtils.isEmpty(importStr)) {
         Log.getErrorHandler().error(String.format("An empty import found. Something is wrong in your class %s", jooClass.getFullClassName()));
         isValid = false;
       }
@@ -82,15 +81,18 @@ public final class JooClassGenerator {
   }
 
   public File generateClass(ComponentClass componentClass) {
-    ExmlToJsonHandler handler= new ExmlToJsonHandler(componentSuite);
+    ExmlToJsonHandler handler = new ExmlToJsonHandler(componentSuite);
     if (ExmlComponentSrcFileScanner.parseExmlWithHandler(componentClass, handler)) {
       componentClass.setImports(handler.getImports());
       componentClass.setJson(handler.getJson());
       File outputFile = new File(componentSuite.getAs3OutputDir(), XML_TO_JS_MAPPER.mapFileName(componentClass.getRelativeSrcFilePath()));
 
-      if (outputFile.getParentFile().mkdirs()) {
-        Log.getErrorHandler().info("Created parent output folder for "+outputFile.getAbsolutePath());
+      if(!outputFile.getParentFile().exists()) {
+        if (outputFile.getParentFile().mkdirs()) {
+          Log.getErrorHandler().info("Created parent output folder for " + outputFile.getAbsolutePath());
+        }
       }
+
       FileWriter writer = null;
       try {
         writer = new FileWriter(outputFile);
