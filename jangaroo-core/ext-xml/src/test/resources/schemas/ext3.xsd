@@ -5,24 +5,326 @@
   </xs:complexType>
   <xs:element name='component' type='ext:ext.Component'>
   </xs:element>
+
   <xs:complexType name='ext.Container'>
+    <xs:complexContent>
+      <xs:extension base='ext:ext.BoxComponent'>
+        <xs:all>
+            <xs:element name='layout' minOccurs="0" maxOccurs="1">
+              <xs:annotation>
+                <xs:documentation>
+    <p><b>*Important</b>: In order for child items to be correctly sized and positioned, typically a layout manager <b>must</b> be specified through the <code>layout</code> configuration option.</p><br/><p>The sizing and positioning of child {@link items} is the responsibility of the Container's layout manager which creates and manages the type of layout you have in mind. For example:</p><pre><code>new Ext.Window({
+width:300, height: 300,
+layout: 'fit', // explicitly set layout manager: override the default (layout:'auto')
+items: [{
+title: 'Panel inside a Window'
+}]
+}).show();
+</code></pre><p>If the {@link #layout} configuration is not explicitly specified for a general purpose container (e.g. Container or Panel) the {@link Ext.layout.ContainerLayout default layout manager} will be used which does nothing but render child components sequentially into the Container (no sizing or positioning will be performed in this situation). Some container classes implicitly specify a default layout (e.g. FormPanel specifies <code>layout:'form'</code>). Other specific purpose classes internally specify/manage their internal layout (e.g. GridPanel, TabPanel, TreePanel, Toolbar, Menu, etc.).</p><br/><p><b><code>layout</code></b> may be specified as either as an Object or as a String:</p><div><ul class="mdetail-params"><li><u>Specify as an Object</u></li><li style="list-style: none"><div><ul class="mdetail-params"><li>Example usage:</li><li style="list-style: none"><pre><code>layout: {
+type: 'vbox',
+padding: '5',
+align: 'left'
+}
+</code></pre></li><li><tt><b>type</b></tt></li><li style="list-style: none"><br/><p>The layout type to be used for this container. If not specified, a default {@link Ext.layout.ContainerLayout} will be created and used.</p><br/><p>Valid layout <tt>type</tt> values are:</p><div class="sub-desc"><ul class="mdetail-params"><li><tt><b>{@link Ext.layout.AbsoluteLayout absolute}</b></tt></li><li><tt><b>{@link Ext.layout.AccordionLayout accordion}</b></tt></li><li><tt><b>{@link Ext.layout.AnchorLayout anchor}</b></tt></li><li><tt><b>{@link Ext.layout.ContainerLayout auto}</b></tt>     <b>Default</b></li><li><tt><b>{@link Ext.layout.BorderLayout border}</b></tt></li><li><tt><b>{@link Ext.layout.CardLayout card}</b></tt></li><li><tt><b>{@link Ext.layout.ColumnLayout column}</b></tt></li><li><tt><b>{@link Ext.layout.FitLayout fit}</b></tt></li><li><tt><b>{@link Ext.layout.FormLayout form}</b></tt></li><li><tt><b>{@link Ext.layout.HBoxLayout hbox}</b></tt></li><li><tt><b>{@link Ext.layout.MenuLayout menu}</b></tt></li><li><tt><b>{@link Ext.layout.TableLayout table}</b></tt></li><li><tt><b>{@link Ext.layout.ToolbarLayout toolbar}</b></tt></li><li><tt><b>{@link Ext.layout.VBoxLayout vbox}</b></tt></li></ul></div></li><li>Layout specific configuration properties</li><li style="list-style: none"><br/><p>Additional layout specific configuration properties may also be specified. For complete details regarding the valid config options for each layout type, see the layout class corresponding to the <tt>type</tt> specified.</p></li></ul></div></li><li><u>Specify as a String</u></li><li style="list-style: none"><div><ul class="mdetail-params"><li>Example usage:</li><li style="list-style: none"><pre><code>layout: 'vbox',
+layoutConfig: {
+padding: '5',
+align: 'left'
+}
+</code></pre></li><li><tt><b>layout</b></tt></li><li style="list-style: none"><br/><p>The layout <tt>type</tt> to be used for this container (see list of valid layout type values above).</p><br/></li><li><tt><b>{@link #layoutConfig}</b></tt></li><li style="list-style: none"><br/><p>Additional layout specific configuration properties. For complete details regarding the valid config options for each layout type, see the layout class corresponding to the <tt>layout</tt> specified.</p></li></ul></div></li></ul></div>
+                </xs:documentation>
+              </xs:annotation>
+              <xs:complexType>
+                <xs:simpleContent>
+                  <xs:extension base="xs:string">
+                    <xs:anyAttribute processContents="skip"/>
+                  </xs:extension>
+                </xs:simpleContent>
+              </xs:complexType>
+            </xs:element>
+            <xs:element name='layoutConfig' minOccurs="0" maxOccurs="1">
+              <xs:annotation>
+                <xs:documentation>
+    This is a config object containing properties specific to the chosen <b><code>{@link #layout}</code></b> if <b><code>{@link #layout}</code></b> has been specified as a <i>string</i>.<br/><br/>
+                </xs:documentation>
+              </xs:annotation>
+              <xs:complexType>
+                <xs:simpleContent>
+                  <xs:extension base="xs:string">
+                    <xs:anyAttribute processContents="skip"/>
+                  </xs:extension>
+                </xs:simpleContent>
+              </xs:complexType>
+            </xs:element>
+            <xs:element name='items' minOccurs="0" maxOccurs="1">
+              <xs:annotation>
+                <xs:documentation>
+    <pre><b>** IMPORTANT</b>: be sure to <b>{@link #layout specify a <code>layout</code>} if needed ! **</b></pre><p>A single item, or an array of child Components to be added to this container, for example:</p><pre><code>// specifying a single item
+items: {...},
+layout: 'fit',    // specify a layout!
 
-    <xs:all>
-      <xs:element name='items' minOccurs="0" maxOccurs="1">
-        <xs:complexType>
-          <xs:sequence>
-            <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
-          </xs:sequence>
-          <xs:anyAttribute processContents="skip"/>
-        </xs:complexType>
-      </xs:element>
-    </xs:all>
+// specifying multiple items
+items: [{...}, {...}],
+layout: 'anchor', // specify a layout!
+</code></pre><p>Each item may be:</p><div><ul class="mdetail-params"><li>any type of object based on {@link Ext.Component}</li><li>a fully instanciated object or</li><li>an object literal that:</li><li style="list-style: none"><div><ul class="mdetail-params"><li>has a specified <code>{@link Ext.Component#xtype xtype}</code></li><li>the {@link Ext.Component#xtype} specified is associated with the Component desired and should be chosen from one of the available xtypes as listed in {@link Ext.Component}.</li><li>If an <code>{@link Ext.Component#xtype xtype}</code> is not explicitly specified, the {@link #defaultType} for that Container is used.</li><li>will be "lazily instanciated", avoiding the overhead of constructing a fully instanciated Component object</li></ul></div></li></ul></div><p><b>Notes</b>:</p><div><ul class="mdetail-params"><li>Ext uses lazy rendering. Child Components will only be rendered should it become necessary. Items are automatically laid out when they are first shown (no sizing is done while hidden), or in response to a {@link #doLayout} call.</li><li>Do not specify <code>{@link Ext.Panel#contentEl contentEl}</code>/ <code>{@link Ext.Panel#html html}</code> with <code>items</code>.</li></ul></div>
+                </xs:documentation>
+              </xs:annotation>
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+                </xs:sequence>
+                <xs:anyAttribute processContents="skip"/>
+              </xs:complexType>
+            </xs:element>
+            <xs:element name='defaults' minOccurs="0" maxOccurs="1">
+              <xs:annotation>
+                <xs:documentation>
+    <p>A config object that will be applied to all components added to this container either via the {@link #items} config or via the {@link #add} or {@link #insert} methods. The <tt>defaults</tt> config can contain any number of name/value property pairs to be added to each item, and should be valid for the types of items being added to the container. For example, to automatically apply padding to the body of each of a set of contained {@link Ext.Panel} items, you could pass: <tt>defaults: {bodyStyle:'padding:15px'}</tt>.</p><br/><p><b>Note</b>: <tt>defaults</tt> will not be applied to config objects if the option is already specified. For example:</p><pre><code>defaults: {               // defaults are applied to items, not the container
+autoScroll:true
+},
+items: [
+{
+xtype: 'panel',   // defaults <b>do not</b> have precedence over
+id: 'panel1',     // options in config objects, so the defaults
+autoScroll: false // will not be applied here, panel1 will be autoScroll:false
+},
+new Ext.Panel({       // defaults <b>do</b> have precedence over options
+id: 'panel2',     // options in components, so the defaults
+autoScroll: false // will be applied here, panel2 will be autoScroll:true.
+})
+]
+</code></pre>
+                </xs:documentation>
+              </xs:annotation>
+              <xs:complexType>
+                <xs:simpleContent>
+                  <xs:extension base="xs:string">
+                    <xs:anyAttribute processContents="skip"/>
+                  </xs:extension>
+                </xs:simpleContent>
+              </xs:complexType>
+            </xs:element>
+            <xs:element name='bubbleEvents' minOccurs="0" maxOccurs="1">
+              <xs:annotation>
+                <xs:documentation>
+    <p>An array of events that, when fired, should be bubbled to any parent container. Defaults to <tt>['add', 'remove']</tt>.</p>
+                </xs:documentation>
+              </xs:annotation>
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
+        </xs:all>
+        <xs:attribute type='xs:boolean' name='monitorResize'>
+          <xs:annotation>
+            <xs:documentation>
+True to automatically monitor window resize events to handle anything that is sensitive to the current size of the viewport. This value is typically managed by the chosen <code>{@link #layout}</code> and should not need to be set manually.
+            </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+        <xs:attribute type='xs:string' name='layout'>
+          <xs:annotation>
+            <xs:documentation>
+<p><b>*Important</b>: In order for child items to be correctly sized and positioned, typically a layout manager <b>must</b> be specified through the <code>layout</code> configuration option.</p><br/><p>The sizing and positioning of child {@link items} is the responsibility of the Container's layout manager which creates and manages the type of layout you have in mind. For example:</p><pre><code>new Ext.Window({
+width:300, height: 300,
+layout: 'fit', // explicitly set layout manager: override the default (layout:'auto')
+items: [{
+title: 'Panel inside a Window'
+}]
+}).show();
+</code></pre><p>If the {@link #layout} configuration is not explicitly specified for a general purpose container (e.g. Container or Panel) the {@link Ext.layout.ContainerLayout default layout manager} will be used which does nothing but render child components sequentially into the Container (no sizing or positioning will be performed in this situation). Some container classes implicitly specify a default layout (e.g. FormPanel specifies <code>layout:'form'</code>). Other specific purpose classes internally specify/manage their internal layout (e.g. GridPanel, TabPanel, TreePanel, Toolbar, Menu, etc.).</p><br/><p><b><code>layout</code></b> may be specified as either as an Object or as a String:</p><div><ul class="mdetail-params"><li><u>Specify as an Object</u></li><li style="list-style: none"><div><ul class="mdetail-params"><li>Example usage:</li><li style="list-style: none"><pre><code>layout: {
+type: 'vbox',
+padding: '5',
+align: 'left'
+}
+</code></pre></li><li><tt><b>type</b></tt></li><li style="list-style: none"><br/><p>The layout type to be used for this container. If not specified, a default {@link Ext.layout.ContainerLayout} will be created and used.</p><br/><p>Valid layout <tt>type</tt> values are:</p><div class="sub-desc"><ul class="mdetail-params"><li><tt><b>{@link Ext.layout.AbsoluteLayout absolute}</b></tt></li><li><tt><b>{@link Ext.layout.AccordionLayout accordion}</b></tt></li><li><tt><b>{@link Ext.layout.AnchorLayout anchor}</b></tt></li><li><tt><b>{@link Ext.layout.ContainerLayout auto}</b></tt>     <b>Default</b></li><li><tt><b>{@link Ext.layout.BorderLayout border}</b></tt></li><li><tt><b>{@link Ext.layout.CardLayout card}</b></tt></li><li><tt><b>{@link Ext.layout.ColumnLayout column}</b></tt></li><li><tt><b>{@link Ext.layout.FitLayout fit}</b></tt></li><li><tt><b>{@link Ext.layout.FormLayout form}</b></tt></li><li><tt><b>{@link Ext.layout.HBoxLayout hbox}</b></tt></li><li><tt><b>{@link Ext.layout.MenuLayout menu}</b></tt></li><li><tt><b>{@link Ext.layout.TableLayout table}</b></tt></li><li><tt><b>{@link Ext.layout.ToolbarLayout toolbar}</b></tt></li><li><tt><b>{@link Ext.layout.VBoxLayout vbox}</b></tt></li></ul></div></li><li>Layout specific configuration properties</li><li style="list-style: none"><br/><p>Additional layout specific configuration properties may also be specified. For complete details regarding the valid config options for each layout type, see the layout class corresponding to the <tt>type</tt> specified.</p></li></ul></div></li><li><u>Specify as a String</u></li><li style="list-style: none"><div><ul class="mdetail-params"><li>Example usage:</li><li style="list-style: none"><pre><code>layout: 'vbox',
+layoutConfig: {
+padding: '5',
+align: 'left'
+}
+</code></pre></li><li><tt><b>layout</b></tt></li><li style="list-style: none"><br/><p>The layout <tt>type</tt> to be used for this container (see list of valid layout type values above).</p><br/></li><li><tt><b>{@link #layoutConfig}</b></tt></li><li style="list-style: none"><br/><p>Additional layout specific configuration properties. For complete details regarding the valid config options for each layout type, see the layout class corresponding to the <tt>layout</tt> specified.</p></li></ul></div></li></ul></div>
+            </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+        <xs:attribute type='xs:string' name='layoutConfig'>
+          <xs:annotation>
+            <xs:documentation>
+This is a config object containing properties specific to the chosen <b><code>{@link #layout}</code></b> if <b><code>{@link #layout}</code></b> has been specified as a <i>string</i>.<br/><br/>
+            </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+        <xs:attribute type='xs:string' name='bufferResize'>
+          <xs:annotation>
+            <xs:documentation>
+When set to true (50 milliseconds) or a number of milliseconds, the layout assigned for this container will buffer the frequency it calculates and does a re-layout of components. This is useful for heavy containers or containers with a large quantity of sub-components for which frequent layout calls would be expensive. Defaults to <tt>50</tt>.
+            </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+        <xs:attribute type='xs:string' name='activeItem'>
+          <xs:annotation>
+            <xs:documentation>
+A string component id or the numeric index of the component that should be initially activated within the container's layout on render. For example, activeItem: 'item-1' or activeItem: 0 (index 0 = the first item in the container's collection). activeItem only applies to layout styles that can display items one at a time (like {@link Ext.layout.AccordionLayout}, {@link Ext.layout.CardLayout} and {@link Ext.layout.FitLayout}). Related to {@link Ext.layout.ContainerLayout#activeItem}.
+            </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+        <xs:attribute type='xs:string' name='items'>
+          <xs:annotation>
+            <xs:documentation>
+<pre><b>** IMPORTANT</b>: be sure to <b>{@link #layout specify a <code>layout</code>} if needed ! **</b></pre><p>A single item, or an array of child Components to be added to this container, for example:</p><pre><code>// specifying a single item
+items: {...},
+layout: 'fit',    // specify a layout!
+
+// specifying multiple items
+items: [{...}, {...}],
+layout: 'anchor', // specify a layout!
+</code></pre><p>Each item may be:</p><div><ul class="mdetail-params"><li>any type of object based on {@link Ext.Component}</li><li>a fully instanciated object or</li><li>an object literal that:</li><li style="list-style: none"><div><ul class="mdetail-params"><li>has a specified <code>{@link Ext.Component#xtype xtype}</code></li><li>the {@link Ext.Component#xtype} specified is associated with the Component desired and should be chosen from one of the available xtypes as listed in {@link Ext.Component}.</li><li>If an <code>{@link Ext.Component#xtype xtype}</code> is not explicitly specified, the {@link #defaultType} for that Container is used.</li><li>will be "lazily instanciated", avoiding the overhead of constructing a fully instanciated Component object</li></ul></div></li></ul></div><p><b>Notes</b>:</p><div><ul class="mdetail-params"><li>Ext uses lazy rendering. Child Components will only be rendered should it become necessary. Items are automatically laid out when they are first shown (no sizing is done while hidden), or in response to a {@link #doLayout} call.</li><li>Do not specify <code>{@link Ext.Panel#contentEl contentEl}</code>/ <code>{@link Ext.Panel#html html}</code> with <code>items</code>.</li></ul></div>
+            </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+        <xs:attribute type='xs:string' name='defaults'>
+          <xs:annotation>
+            <xs:documentation>
+<p>A config object that will be applied to all components added to this container either via the {@link #items} config or via the {@link #add} or {@link #insert} methods. The <tt>defaults</tt> config can contain any number of name/value property pairs to be added to each item, and should be valid for the types of items being added to the container. For example, to automatically apply padding to the body of each of a set of contained {@link Ext.Panel} items, you could pass: <tt>defaults: {bodyStyle:'padding:15px'}</tt>.</p><br/><p><b>Note</b>: <tt>defaults</tt> will not be applied to config objects if the option is already specified. For example:</p><pre><code>defaults: {               // defaults are applied to items, not the container
+autoScroll:true
+},
+items: [
+{
+xtype: 'panel',   // defaults <b>do not</b> have precedence over
+id: 'panel1',     // options in config objects, so the defaults
+autoScroll: false // will not be applied here, panel1 will be autoScroll:false
+},
+new Ext.Panel({       // defaults <b>do</b> have precedence over options
+id: 'panel2',     // options in components, so the defaults
+autoScroll: false // will be applied here, panel2 will be autoScroll:true.
+})
+]
+</code></pre>
+            </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+        <xs:attribute type='xs:boolean' name='autoDestroy'>
+        </xs:attribute>
+        <xs:attribute type='xs:boolean' name='forceLayout'>
+        </xs:attribute>
+        <xs:attribute type='xs:boolean' name='hideBorders'>
+        </xs:attribute>
+        <xs:attribute type='xs:string' name='defaultType'>
+        </xs:attribute>
+        <xs:attribute type='xs:string' name='resizeEvent'>
+        </xs:attribute>
+        <xs:attribute type='xs:string' name='bubbleEvents'>
+          <xs:annotation>
+            <xs:documentation>
+<p>An array of events that, when fired, should be bubbled to any parent container. Defaults to <tt>['add', 'remove']</tt>.</p>
+            </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+      </xs:extension>
+    </xs:complexContent>
   </xs:complexType>
-  <xs:complexType name='ext.BoxComponent'>
+  <xs:element name='container' type='ext:ext.Container' substitutionGroup='ext:box'>
+    <xs:annotation>
+      <xs:documentation>
+Orientation constant - Create a vertical SplitBar @static @type Number Orientation constant - Create a horizontal SplitBar @static @type Number Placement constant - The resizing element is to the left of the splitter element @static @type Number Placement constant - The resizing element is to the right of the splitter element @static @type Number Placement constant - The resizing element is positioned above the splitter element @static @type Number Placement constant - The resizing element is positioned under splitter element @static @type Number <p>Base class for any {@link Ext.BoxComponent} that may contain other Components. Containers handle the basic behavior of containing items, namely adding, inserting and removing items.</p><p>The most commonly used Container classes are {@link Ext.Panel}, {@link Ext.Window} and {@link Ext.TabPanel}. If you do not need the capabilities offered by the aforementioned classes you can create a lightweight Container to be encapsulated by an HTML element to your specifications by using the <tt><b>{@link Ext.Component#autoEl autoEl}</b></tt> config option. This is a useful technique when creating embedded {@link Ext.layout.ColumnLayout column} layouts inside {@link Ext.form.FormPanel FormPanels} for example.</p><p>The code below illustrates both how to explicitly create a Container, and how to implicitly create one using the <b><tt>'container'</tt></b> xtype:</p><pre><code>// explicitly create a Container
+var embeddedColumns = new Ext.Container({
+autoEl: 'div',  // This is the default
+layout: 'column',
+defaults: {
+// implicitly create Container by specifying xtype
+xtype: 'container',
+autoEl: 'div', // This is the default.
+layout: 'form',
+columnWidth: 0.5,
+style: {
+padding: '10px'
+}
+},
+//  The two items below will be Ext.Containers, each encapsulated by a &lt;DIV&gt; element.
+items: [{
+items: {
+xtype: 'datefield',
+name: 'startDate',
+fieldLabel: 'Start date'
+}
+}, {
+items: {
+xtype: 'datefield',
+name: 'endDate',
+fieldLabel: 'End date'
+}
+}]
+});</code></pre><br/><br/> <p><u><b>Layout</b></u></p><p>Container classes delegate the rendering of child Components to a layout manager class which must be configured into the Container using the <code><b>{@link #layout}</b></code> configuration property.</p><p>When either specifying child <code>{@link #items}</code> of a Container, or dynamically {@link #add adding} Components to a Container, remember to consider how you wish the Container to arrange those child elements, and whether those child elements need to be sized using one of Ext's built-in <b><code>{@link #layout}</code></b> schemes. By default, Containers use the {@link Ext.layout.ContainerLayout ContainerLayout} scheme which only renders child components, appending them one after the other inside the Container, and <b>does not apply any sizing</b> at all.</p><p>A common mistake is when a developer neglects to specify a <b><code>{@link #layout}</code></b> (e.g. widgets like GridPanels or TreePanels are added to Containers for which no <tt><b>{@link #layout}</b></tt> has been specified). If a Container is left to use the default {@link Ext.layout.ContainerLayout ContainerLayout} scheme, none of its child components will be resized, or changed in any way when the Container is resized.</p><p>Certain layout managers allow dynamic addition of child components. Those that do include {@link Ext.layout.CardLayout}, {@link Ext.layout.AnchorLayout}, {@link Ext.layout.FormLayout}, and {@link Ext.layout.TableLayout}. For example:</p><pre><code>//  Create the GridPanel.
+var myNewGrid = new Ext.grid.GridPanel({
+store: myStore,
+columns: myColumnModel,
+title: 'Results', // the title becomes the title of the tab
+});
 
+myTabPanel.add(myNewGrid); // {@link Ext.TabPanel} implicitly uses {@link Ext.layout.CardLayout CardLayout}
+myTabPanel.{@link Ext.TabPanel#setActiveTab setActiveTab}(myNewGrid);
+</code></pre><br/><br/> <p>The example above adds a newly created GridPanel to a TabPanel. Note that a TabPanel uses {@link Ext.layout.CardLayout} as its layout manager which means all its child items are sized to {@link Ext.layout.FitLayout fit} exactly into its client area.</p><p><b><u>Overnesting is a common problem</u></b>. An example of overnesting occurs when a GridPanel is added to a TabPanel by wrapping the GridPanel <i>inside</i> a wrapping Panel (that has no <tt><b>{@link #layout}</b></tt> specified) and then add that wrapping Panel to the TabPanel. The point to realize is that a GridPanel <b>is</b> a Component which can be added directly to a Container. If the wrapping Panel has no <tt><b>{@link #layout}</b></tt> configuration, then the overnested GridPanel will not be sized as expected.</p><p/><p><u><b>Adding via remote configuration</b></u></p><p>A server side script can be used to add Components which are generated dynamically on the server. An example of adding a GridPanel to a TabPanel where the GridPanel is generated by the server based on certain parameters:</p><pre><code>// execute an Ajax request to invoke server side script:
+Ext.Ajax.request({
+url: 'gen-invoice-grid.php',
+// send additional parameters to instruct server script
+params: {
+startDate: Ext.getCmp('start-date').getValue(),
+endDate: Ext.getCmp('end-date').getValue()
+},
+// process the response object to add it to the TabPanel:
+success: function(xhr) {
+var newComponent = eval(xhr.responseText); // see discussion below
+myTabPanel.add(newComponent); // add the component to the TabPanel
+myTabPanel.setActiveTab(newComponent);
+},
+failure: function() {
+Ext.Msg.alert("Grid create failed", "Server communication failure");
+}
+});
+</code></pre><p>The server script needs to return an executable Javascript statement which, when processed using <tt>eval()</tt>, will return either a config object with an {@link Ext.Component#xtype xtype}, or an instantiated Component. The server might return this for example:</p><pre><code>(function() {
+function formatDate(value){
+return value ? value.dateFormat('M d, Y') : '';
+};
+
+var store = new Ext.data.Store({
+url: 'get-invoice-data.php',
+baseParams: {
+startDate: '01/01/2008',
+endDate: '01/31/2008'
+},
+reader: new Ext.data.JsonReader({
+record: 'transaction',
+idProperty: 'id',
+totalRecords: 'total'
+}, [
+'customer',
+'invNo',
+{name: 'date', type: 'date', dateFormat: 'm/d/Y'},
+{name: 'value', type: 'float'}
+])
+});
+
+var grid = new Ext.grid.GridPanel({
+title: 'Invoice Report',
+bbar: new Ext.PagingToolbar(store),
+store: store,
+columns: [
+{header: "Customer", width: 250, dataIndex: 'customer', sortable: true},
+{header: "Invoice Number", width: 120, dataIndex: 'invNo', sortable: true},
+{header: "Invoice Date", width: 100, dataIndex: 'date', renderer: formatDate, sortable: true},
+{header: "Value", width: 120, dataIndex: 'value', renderer: 'usMoney', sortable: true}
+],
+});
+store.load();
+return grid;  // return instantiated component
+})();
+</code></pre><p>When the above code fragment is passed through the <tt>eval</tt> function in the success handler of the Ajax request, the code is executed by the Javascript processor, and the anonymous function runs, and returns the instantiated grid component.</p><p>Note: since the code above is <i>generated</i> by a server script, the <tt>baseParams</tt> for the Store, the metadata to allow generation of the Record layout, and the ColumnModel can all be generated into the code since these are all known on the server.</p>
+      </xs:documentation>
+    </xs:annotation>
+  </xs:element>
+
+  <xs:complexType name='ext.BoxComponent'>
   </xs:complexType>
   <xs:element name='box' type='ext:ext.BoxComponent'>
-  </xs:element>
-  <xs:element name='container' type='ext:ext.Container'>
   </xs:element>
 </xs:schema>
