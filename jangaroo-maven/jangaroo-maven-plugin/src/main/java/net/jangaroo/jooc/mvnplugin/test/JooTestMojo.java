@@ -32,12 +32,13 @@ import java.util.Random;
 /**
  * Executes JooUnit tests.
  * Unpacks all dependency to its output directory, generates a tests.html which starts up the class
- * <code>testSuiteName</code>. Since a real browser is the best JavaScript execution environment 
- * the test now fires up a jetty on a random port between <code>jooUnitJettyPortLowerBound</code> and 
- * <code>jooUnitJettyPortUpperBound</code> contacts a selenium server given by 
+ * <code>testSuiteName</code>. Since a real browser is the best JavaScript execution environment
+ * the test now fires up a jetty on a random port between <code>jooUnitJettyPortLowerBound</code> and
+ * <code>jooUnitJettyPortUpperBound</code> contacts a selenium server given by
  * <code>jooUnitSeleniumRCHost</code>. The Selenium Remote Control then starts a browser, navigates
  * the browser to the Jetty we just started and waits for <code>jooUnitTestExecutionTimeout</code>ms
  * for the results to appear on the browser screen.
+ *
  * @goal test
  * @phase test
  */
@@ -116,8 +117,8 @@ public class JooTestMojo extends AbstractJooTestMojo {
           InetAddress.getAllByName(jooUnitSeleniumRCHost);
         } catch (UnknownHostException e) {
           throw new MojoExecutionException("Cannot resolve host " + jooUnitSeleniumRCHost +
-                  ". Please specify a host running the selenium remote control or skip tests" +
-                  " by -DskipTests", e);
+              ". Please specify a host running the selenium remote control or skip tests" +
+              " by -DskipTests", e);
         }
         getLog().info("JooTest report directory:" + testResultOutputDirectory.getAbsolutePath());
         ResourceHandler handler = new ResourceHandler();
@@ -160,7 +161,11 @@ public class JooTestMojo extends AbstractJooTestMojo {
         } catch (SAXException e) {
           throw new MojoExecutionException("Cannot parse test result", e);
         } catch (SeleniumException e) {
-          throw new MojoExecutionException("Selenium tests failed", e);
+          if (!testFailureIgnore) {
+            throw new MojoExecutionException("Selenium setup failure", e);
+          } else {
+            getLog().warn("Selenium setup failure", e);
+          }
         } finally {
           selenium.stop();
           try {
