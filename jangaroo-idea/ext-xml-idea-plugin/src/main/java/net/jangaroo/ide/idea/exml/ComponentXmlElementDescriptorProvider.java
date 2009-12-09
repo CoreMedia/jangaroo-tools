@@ -125,8 +125,8 @@ public class ComponentXmlElementDescriptorProvider implements XmlElementDescript
       return xmlElementDescriptor.getContentType();
     }
 
-    public XmlElementDescriptor getElementDescriptor(XmlTag xmltag, XmlTag xmltag1) {
-      return xmlElementDescriptor.getElementDescriptor(xmltag, xmltag1);
+    public XmlElementDescriptor getElementDescriptor(XmlTag childTag, XmlTag contextTag) {
+      return xmlElementDescriptor.getElementDescriptor(childTag, contextTag);
     }
 
     public String getQualifiedName() {
