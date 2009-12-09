@@ -54,11 +54,11 @@ public class XsdScanner {
     ComponentClass componentClass = ccStack.lastElement();
     assert typeName.equals(componentClass.getFullClassName());
     componentClass.setXtype(xtype);
-    Log.getErrorHandler().info(String.format("Added xtype '%s' to component class '%s'", xtype, typeName));
+    Log.getErrorHandler().info(String.format("Added xtype '%s' to component class '%s'", xtype, componentClass.getFullClassName()));
   }
 
   private String afterColon(String typeName) {
-    return typeName.substring(typeName.indexOf(':')+1);
+    return typeName.substring(typeName.indexOf(':') + 1);
   }
 
   private void addSupertypeToComponentClass() {
@@ -68,19 +68,19 @@ public class XsdScanner {
     Log.getErrorHandler().info(String.format("Added supertype '%s' to component class '%s'", supertypeName, componentClass.getFullClassName()));
   }
 
-  private ConfigAttribute createConfigElementAttribute() {
+  private void addConfigElementAttribute() {
     String name = parser.getAttributeValue(null, "name");
     ConfigAttribute attr = new ConfigAttribute(name, "Array");
     ccStack.lastElement().addCfg(attr);
-    return attr;
+    Log.getErrorHandler().info(String.format("Added config attribute '%s' to component class '%s'", attr.getName(), ccStack.lastElement().getFullClassName()));
   }
 
-  private ConfigAttribute createConfigAttribute() {
+  private void addConfigAttribute() {
     String name = parser.getAttributeValue(null, "name");
     String type = parser.getAttributeValue(null, "type");
     ConfigAttribute attr = new ConfigAttribute(name, type);
     ccStack.lastElement().addCfg(attr);
-    return attr;
+    Log.getErrorHandler().info(String.format("Added config attribute '%s' to component class '%s'", attr.getName(), ccStack.lastElement().getFullClassName()));
   }
 
   public ComponentSuite scan(InputStream xsd) throws IOException {
@@ -88,7 +88,7 @@ public class XsdScanner {
 
     try {
       parser = factory.createXMLStreamReader(xsd);
-      while (parser.hasNext()) { 
+      while (parser.hasNext()) {
         int event = parser.next();
         if (XML_SCHEMA_URL.equals(parser.getNamespaceURI())) {
           dispatch(event);
@@ -120,26 +120,30 @@ public class XsdScanner {
           break;
         } else if (isLocalName(ELEMENT)) {
           if (isInsideComplexType) {
-            createConfigElementAttribute();
+            addConfigElementAttribute();
             isInsideCfg = true;
           } else {
             addXtypeToComponentClass();
           }
-        } else  if (isInsideComplexType && !isInsideCfg && isLocalName(EXTENSION)) {
+        } else if (isInsideComplexType && !isInsideCfg && isLocalName(EXTENSION)) {
           addSupertypeToComponentClass();
         } else if (isLocalName(ATTRIBUTE)) {
-          createConfigAttribute();
+          addConfigAttribute();
         }
         break;
       case XMLStreamConstants.END_ELEMENT:
         if (isLocalName(SCHEMA)) {
-          for (ComponentClass c : ccStack) {
-            componentSuite.addComponentClass(c);
-          }
+          assert ccStack.isEmpty();
         } else if (isLocalName(COMPLEX_TYPE) && !isInsideCfg) {
           isInsideComplexType = false;
         } else if (isLocalName(ELEMENT)) {
-          isInsideCfg = false;
+          if (isInsideCfg) {
+            isInsideCfg = false;
+          } else {
+            ComponentClass componentClass = ccStack.pop();
+            componentSuite.addComponentClass(componentClass);
+            Log.getErrorHandler().info(String.format("Added component class '%s, %s' to component suite '%s'", componentClass.getXtype(), componentClass.getFullClassName(), componentSuite.getNamespace()));
+          }
         }
 
         break;

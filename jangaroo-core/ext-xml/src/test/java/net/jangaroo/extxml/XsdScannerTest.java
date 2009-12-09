@@ -3,8 +3,10 @@
  */
 package net.jangaroo.extxml;
 
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import utils.TestUtils;
 
@@ -23,7 +25,21 @@ public class XsdScannerTest {
     ComponentSuite suite = scanner.scan(new FileInputStream(xsd));
     assertNotNull(suite);
     assertEquals("ext",suite.getNs());
-    ComponentClass cclass = suite.getComponentClassByXtype("container");
+    ComponentClass cclass = suite.getComponentClassByXtype("component");
     assertNotNull(cclass);
+
+    assertEquals("ext.Component", cclass.getFullClassName());
+    assertFalse(cclass.getCfgs().isEmpty());
+
+    ComponentClass container = suite.getComponentClassByFullClassName("ext.Container");
+    assertEquals("container", container.getXtype());
+    assertEquals("ext.BoxComponent", container.getSuperClassName());
+    assertEquals(18, container.getCfgs().size());
+
+    ComponentClass gridPanel = suite.getComponentClassByXtype("grid");
+    ComponentClass panel = gridPanel.getSuperClass();
+    assertEquals(container, panel.getSuperClass());
+    //should also be the same class.
+    assertTrue(container == panel.getSuperClass());
   }
 }

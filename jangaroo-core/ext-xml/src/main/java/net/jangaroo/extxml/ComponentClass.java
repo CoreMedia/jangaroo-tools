@@ -158,7 +158,7 @@ public final class ComponentClass extends DescriptionHolder {
       //System.out.println("Removed "+(cfgs.size()-allCfgs.size())+" inherited configs.");
       return allCfgs;
     }
-    return new HashSet(cfgs);
+    return new HashSet<ConfigAttribute>(cfgs);
   }
 
   public void addCfg(ConfigAttribute cfg) {
@@ -201,5 +201,37 @@ public final class ComponentClass extends DescriptionHolder {
       builder.append(" ").append(cfg);
     }
     return builder.toString();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    ComponentClass that = (ComponentClass) o;
+
+    if (!fullClassName.equals(that.fullClassName)) {
+      return false;
+    }
+    if (superClassName != null ? !superClassName.equals(that.superClassName) : that.superClassName != null) {
+      return false;
+    }
+    if (!xtype.equals(that.xtype)) {
+      return false;
+    }
+
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = xtype.hashCode();
+    result = 31 * result + fullClassName.hashCode();
+    result = 31 * result + (superClassName != null ? superClassName.hashCode() : 0);
+    return result;
   }
 }
