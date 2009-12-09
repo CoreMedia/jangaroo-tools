@@ -52,7 +52,7 @@ public class ExmlToComponentMetadataHandler extends CharacterRecordingHandler {
     } else if (superComponentClass == null) {
       superComponentClass = componentSuite.getComponentClassByNamespaceAndLocalName(uri, localName);
       if (superComponentClass == null) {
-        throw new SAXParseException(String.format("No component class for element name '%s' found in component suite '%s'", localName, uri), locator);
+        throw new SAXParseException(String.format("Base component class with element name '%s' not found in component suite '%s'", localName, uri), locator);
       } else {
         Log.getErrorHandler().info("Found super class " + superComponentClass.getFullClassName());
        // TODO: we could stop the parsing here, but how is this done with a ContentHandler? Throw SAXException("Done")?
