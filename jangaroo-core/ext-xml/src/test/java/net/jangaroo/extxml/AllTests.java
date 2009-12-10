@@ -4,6 +4,14 @@
 package net.jangaroo.extxml;
 
 import net.jangaroo.extxml.json.JsonTest;
+import net.jangaroo.extxml.model.ComponentClassTest;
+import net.jangaroo.extxml.model.ConfigAttributeTest;
+import net.jangaroo.extxml.xml.ExmlToJsonHandlerTest;
+import net.jangaroo.extxml.xml.XsdScannerTest;
+import net.jangaroo.extxml.file.ExtComponentSrcFileScannerTest;
+import net.jangaroo.extxml.file.ExmlComponentSrcFileScannerTest;
+import net.jangaroo.extxml.generation.JooClassGeneratorTest;
+import net.jangaroo.extxml.generation.XsdGeneratorTest;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 

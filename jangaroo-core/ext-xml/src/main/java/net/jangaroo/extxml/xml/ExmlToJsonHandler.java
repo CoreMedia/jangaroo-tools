@@ -1,12 +1,15 @@
 /*
  * Copyright (c) 2009, CoreMedia AG, Hamburg. All rights reserved.
  */
-package net.jangaroo.extxml;
+package net.jangaroo.extxml.xml;
 
 import net.jangaroo.extxml.json.Json;
 import net.jangaroo.extxml.json.JsonArray;
 import net.jangaroo.extxml.json.JsonObject;
 import net.jangaroo.extxml.file.ExmlComponentSrcFileScanner;
+import net.jangaroo.extxml.model.ComponentSuite;
+import net.jangaroo.extxml.model.ComponentClass;
+import net.jangaroo.extxml.log.Log;
 import org.xml.sax.Attributes;
 import org.xml.sax.Locator;
 import org.xml.sax.SAXException;

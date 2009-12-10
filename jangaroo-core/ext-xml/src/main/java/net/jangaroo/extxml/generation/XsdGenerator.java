@@ -1,9 +1,11 @@
-package net.jangaroo.extxml;
+package net.jangaroo.extxml.generation;
 
 import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapper;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
+import net.jangaroo.extxml.log.Log;
+import net.jangaroo.extxml.model.ComponentSuite;
 
 import java.io.IOException;
 import java.io.Writer;

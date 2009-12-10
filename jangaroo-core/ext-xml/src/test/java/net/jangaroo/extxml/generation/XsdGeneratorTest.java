@@ -1,8 +1,11 @@
 /*
  * Copyright (c) 2009, CoreMedia AG, Hamburg. All rights reserved.
  */
-package net.jangaroo.extxml;
+package net.jangaroo.extxml.generation;
 
+import net.jangaroo.extxml.model.ComponentClass;
+import net.jangaroo.extxml.model.ComponentSuite;
+import net.jangaroo.extxml.model.ConfigAttribute;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;

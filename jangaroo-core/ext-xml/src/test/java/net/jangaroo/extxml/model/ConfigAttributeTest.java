@@ -1,8 +1,9 @@
 /*
  * Copyright (c) 2009, CoreMedia AG, Hamburg. All rights reserved.
  */
-package net.jangaroo.extxml;
+package net.jangaroo.extxml.model;
 
+import net.jangaroo.extxml.model.ConfigAttribute;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import org.junit.Test;

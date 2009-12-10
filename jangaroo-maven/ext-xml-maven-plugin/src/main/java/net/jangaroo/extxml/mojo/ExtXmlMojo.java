@@ -3,14 +3,14 @@
  */
 package net.jangaroo.extxml.mojo;
 
-import net.jangaroo.extxml.ComponentSuite;
+import net.jangaroo.extxml.model.ComponentSuite;
 import net.jangaroo.extxml.ComponentSuiteRegistry;
-import net.jangaroo.extxml.ErrorHandler;
-import net.jangaroo.extxml.JooClassGenerator;
-import net.jangaroo.extxml.Log;
+import net.jangaroo.extxml.log.ErrorHandler;
+import net.jangaroo.extxml.generation.JooClassGenerator;
+import net.jangaroo.extxml.log.Log;
 import net.jangaroo.extxml.file.SrcFileScanner;
-import net.jangaroo.extxml.XsdGenerator;
-import net.jangaroo.extxml.XsdScanner;
+import net.jangaroo.extxml.generation.XsdGenerator;
+import net.jangaroo.extxml.xml.XsdScanner;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;

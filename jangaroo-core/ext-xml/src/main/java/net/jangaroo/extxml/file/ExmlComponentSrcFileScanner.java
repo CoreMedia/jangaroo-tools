@@ -3,23 +3,15 @@
  */
 package net.jangaroo.extxml.file;
 
-import net.jangaroo.extxml.ComponentClass;
-import net.jangaroo.extxml.ComponentSuite;
-import net.jangaroo.extxml.ComponentType;
-import net.jangaroo.extxml.Log;
-import net.jangaroo.extxml.ExmlToComponentMetadataHandler;
+import net.jangaroo.extxml.model.ComponentClass;
+import net.jangaroo.extxml.model.ComponentSuite;
+import net.jangaroo.extxml.model.ComponentType;
+import net.jangaroo.extxml.xml.ContentHandlerUtils;
+import net.jangaroo.extxml.xml.ExmlToComponentMetadataHandler;
 import org.codehaus.plexus.util.FileUtils;
-import org.xml.sax.ContentHandler;
-import org.xml.sax.XMLReader;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXParseException;
-import org.xml.sax.SAXException;
-import org.xml.sax.helpers.XMLReaderFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 
 public class ExmlComponentSrcFileScanner {
 
@@ -40,7 +32,7 @@ public class ExmlComponentSrcFileScanner {
     clazz.setType(ComponentType.EXML);
     //parse EXML file for meta data
     ExmlToComponentMetadataHandler metadataHandler= new ExmlToComponentMetadataHandler(componentSuite);
-    if (parseExmlWithHandler(clazz, metadataHandler)) {
+    if (ContentHandlerUtils.parseExmlWithHandler(clazz, metadataHandler)) {
       clazz.setSuperClassLocalName(metadataHandler.getSuperClassLocalName());
       clazz.setSuperClassNamespaceUri(metadataHandler.getSuperClassUri());
       clazz.setDescription(metadataHandler.getComponentDescription());
@@ -61,32 +53,5 @@ public class ExmlComponentSrcFileScanner {
     return fullName;
   }
 
-  public static boolean parseExmlWithHandler(ComponentClass cc, ContentHandler handler) {
-    FileInputStream inputStream = null;
-    Log.getErrorHandler().setCurrentFile(cc.getSrcFile());
-    try {
-      XMLReader xr = XMLReaderFactory.createXMLReader();
-      xr.setContentHandler(handler);
-      inputStream = new FileInputStream(cc.getSrcFile());
-      xr.parse(new InputSource(inputStream));
-      return true;
-    } catch (FileNotFoundException e) {
-      Log.getErrorHandler().error("Exception while parsing", e);
-    } catch (IOException e) {
-      Log.getErrorHandler().error("Exception while parsing", e);
-    } catch (SAXParseException e) {
-      Log.getErrorHandler().error(e.getMessage(), e.getLineNumber(), e.getColumnNumber());
-    } catch (SAXException e) {
-      Log.getErrorHandler().error("Exception while parsing", e);
-    } finally {
-      try {
-        if (inputStream != null) {
-          inputStream.close();
-        }
-      } catch (IOException e) {
-        //never happened
-      }
-    }
-    return false;
-  }
+
 }

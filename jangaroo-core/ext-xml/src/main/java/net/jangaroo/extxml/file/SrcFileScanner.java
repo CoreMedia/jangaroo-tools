@@ -1,8 +1,8 @@
 package net.jangaroo.extxml.file;
 
-import net.jangaroo.extxml.ComponentSuite;
-import net.jangaroo.extxml.ComponentType;
-import net.jangaroo.extxml.Log;
+import net.jangaroo.extxml.model.ComponentSuite;
+import net.jangaroo.extxml.model.ComponentType;
+import net.jangaroo.extxml.log.Log;
 import org.apache.maven.shared.model.fileset.FileSet;
 import org.apache.maven.shared.model.fileset.util.FileSetManager;
 import org.codehaus.plexus.util.FileUtils;
@@ -12,7 +12,7 @@ import java.io.IOException;
 
 /**
  * The FileScanner scans a directory for all *.as, *.js and *.exml files that contain Ext annotations and builds a
- * {@link net.jangaroo.extxml.ComponentSuite} from all Ext JS component classes.
+ * {@link net.jangaroo.extxml.model.ComponentSuite} from all Ext JS component classes.
  */
 public final class SrcFileScanner {
 

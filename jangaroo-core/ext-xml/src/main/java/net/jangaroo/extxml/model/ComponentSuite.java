@@ -1,4 +1,7 @@
-package net.jangaroo.extxml;
+package net.jangaroo.extxml.model;
+
+import net.jangaroo.extxml.ComponentSuiteRegistry;
+import net.jangaroo.extxml.log.Log;
 
 import java.io.File;
 import java.util.*;

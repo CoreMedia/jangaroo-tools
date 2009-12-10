@@ -1,4 +1,4 @@
-package net.jangaroo.extxml;
+package net.jangaroo.extxml.model;
 
 import java.util.Arrays;
 import java.util.Collection;

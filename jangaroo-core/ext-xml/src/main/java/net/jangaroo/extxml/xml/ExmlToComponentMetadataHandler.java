@@ -1,6 +1,8 @@
-package net.jangaroo.extxml;
+package net.jangaroo.extxml.xml;
 
 import net.jangaroo.extxml.file.ExmlComponentSrcFileScanner;
+import net.jangaroo.extxml.model.ComponentSuite;
+import net.jangaroo.extxml.model.ConfigAttribute;
 import org.xml.sax.Attributes;
 import org.xml.sax.Locator;
 import org.xml.sax.SAXException;

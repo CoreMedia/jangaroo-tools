@@ -1,4 +1,4 @@
-<#-- @ftlvariable name="" type="net.jangaroo.extxml.ComponentClass" -->
+<#-- @ftlvariable name="" type="net.jangaroo.extxml.model.ComponentClass" -->
 package ${packageName} {
 
 import Ext;

@@ -1,8 +1,7 @@
 package net.jangaroo.extxml.json;
 
-import net.jangaroo.extxml.ComponentClass;
+import net.jangaroo.extxml.model.ComponentClass;
 import net.jangaroo.extxml.ComponentSuiteRegistry;
-import net.jangaroo.extxml.Log;
 
 import java.util.Iterator;
 import java.util.LinkedHashMap;

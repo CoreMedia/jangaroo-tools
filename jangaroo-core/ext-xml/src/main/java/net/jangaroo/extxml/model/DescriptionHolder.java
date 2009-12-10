@@ -1,4 +1,4 @@
-package net.jangaroo.extxml;
+package net.jangaroo.extxml.model;
 
 public class DescriptionHolder {
   private String description;

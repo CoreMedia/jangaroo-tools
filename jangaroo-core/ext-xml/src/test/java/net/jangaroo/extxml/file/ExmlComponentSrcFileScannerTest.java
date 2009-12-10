@@ -1,13 +1,15 @@
 /*
  * Copyright (c) 2009, CoreMedia AG, Hamburg. All rights reserved.
  */
-package net.jangaroo.extxml;
+package net.jangaroo.extxml.file;
 
-import net.jangaroo.extxml.file.ExmlComponentSrcFileScanner;
-import org.junit.Test;
-import static org.junit.Assert.assertNotNull;
-import utils.TestUtils;
 import static junit.framework.Assert.assertEquals;
+import net.jangaroo.extxml.model.ComponentClass;
+import net.jangaroo.extxml.model.ComponentSuite;
+import net.jangaroo.extxml.model.ComponentType;
+import static org.junit.Assert.assertNotNull;
+import org.junit.Test;
+import utils.TestUtils;
 
 public class ExmlComponentSrcFileScannerTest {
   @Test

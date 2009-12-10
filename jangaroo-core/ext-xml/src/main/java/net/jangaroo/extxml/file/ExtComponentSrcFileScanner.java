@@ -1,11 +1,11 @@
 package net.jangaroo.extxml.file;
 
-import net.jangaroo.extxml.ComponentClass;
-import net.jangaroo.extxml.ComponentSuite;
-import net.jangaroo.extxml.ComponentType;
-import net.jangaroo.extxml.ConfigAttribute;
-import net.jangaroo.extxml.DescriptionHolder;
-import net.jangaroo.extxml.Log;
+import net.jangaroo.extxml.model.ComponentClass;
+import net.jangaroo.extxml.model.ComponentSuite;
+import net.jangaroo.extxml.model.ComponentType;
+import net.jangaroo.extxml.model.ConfigAttribute;
+import net.jangaroo.extxml.model.DescriptionHolder;
+import net.jangaroo.extxml.log.Log;
 import net.jangaroo.extxml.util.FileScanner;
 import net.jangaroo.extxml.util.Rule;
 import net.jangaroo.extxml.util.TidyComment;
@@ -16,7 +16,7 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- * A FileScanner to read Ext JS component classes (JavaScript or ActionScript) into a {@link net.jangaroo.extxml.ComponentSuite}.
+ * A FileScanner to read Ext JS component classes (JavaScript or ActionScript) into a {@link net.jangaroo.extxml.model.ComponentSuite}.
  */
 public final class ExtComponentSrcFileScanner {
 

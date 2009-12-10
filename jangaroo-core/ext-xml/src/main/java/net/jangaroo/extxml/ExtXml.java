@@ -1,6 +1,12 @@
 package net.jangaroo.extxml;
 
 import net.jangaroo.extxml.file.SrcFileScanner;
+import net.jangaroo.extxml.xml.XsdScanner;
+import net.jangaroo.extxml.model.ComponentSuite;
+import net.jangaroo.extxml.log.Log;
+import net.jangaroo.extxml.log.StandardOutErrorHandler;
+import net.jangaroo.extxml.generation.XsdGenerator;
+import net.jangaroo.extxml.generation.JooClassGenerator;
 
 import java.io.BufferedWriter;
 import java.io.File;

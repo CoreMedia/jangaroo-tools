@@ -1,4 +1,4 @@
-<#-- @ftlvariable name="" type="net.jangaroo.extxml.ComponentSuite" -->
+<#-- @ftlvariable name="" type="net.jangaroo.extxml.model.ComponentSuite" -->
 <?xml version="1.0" encoding="UTF-8"?>
 <xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="${namespace}" xmlns:${ns}="${namespace}" xmlns:xs="http://www.w3.org/2001/XMLSchema"${usedComponentSuiteNamespaces}>
 <#list usedComponentSuites as usedComponentSuite>
