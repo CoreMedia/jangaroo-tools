@@ -4,7 +4,6 @@ import net.jangaroo.extxml.file.ExmlComponentSrcFileScanner;
 import org.xml.sax.Attributes;
 import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,8 +19,8 @@ public class ExmlToComponentMetadataHandler extends CharacterRecordingHandler {
 
   private String componentDescription = "";
   private List<ConfigAttribute> cfgs = new ArrayList<ConfigAttribute>();
-  private ComponentClass superComponentClass;
-
+  private String superClassLocalName;
+  private String superClassNamespaceUri;
   private boolean expectsOptionalConfigDescription = false;
   private boolean expectsOptionalComponentDescription = false;
 
@@ -49,14 +48,11 @@ public class ExmlToComponentMetadataHandler extends CharacterRecordingHandler {
           startRecordingCharacters();
         }
       }
-    } else if (superComponentClass == null) {
-      superComponentClass = componentSuite.getComponentClassByNamespaceAndLocalName(uri, localName);
-      if (superComponentClass == null) {
-        throw new SAXParseException(String.format("Base component class with element name '%s' not found in component suite '%s'", localName, uri), locator);
-      } else {
-        Log.getErrorHandler().info("Found super class " + superComponentClass.getFullClassName());
-       // TODO: we could stop the parsing here, but how is this done with a ContentHandler? Throw SAXException("Done")?
-      }
+    } else if (superClassLocalName == null && superClassNamespaceUri == null) {
+      superClassLocalName = localName;
+      superClassNamespaceUri = uri;
+      //throw new SAXParseException(String.format("Base component class with element name '%s' not found in component suite '%s'", localName, uri), locator);
+
     }
   }
 
@@ -78,6 +74,15 @@ public class ExmlToComponentMetadataHandler extends CharacterRecordingHandler {
     }
   }
 
+  public String getSuperClassLocalName() {
+    return superClassLocalName;
+  }
+
+  public String getSuperClassUri() {
+    return superClassNamespaceUri;
+  }
+
+
   public List<ConfigAttribute> getCfgs() {
     return cfgs;
   }
@@ -85,9 +90,4 @@ public class ExmlToComponentMetadataHandler extends CharacterRecordingHandler {
   public String getComponentDescription() {
     return componentDescription;
   }
-
-  public String getSuperClassName() {
-    return superComponentClass == null ? null : superComponentClass.getFullClassName();
-  }
-
 }

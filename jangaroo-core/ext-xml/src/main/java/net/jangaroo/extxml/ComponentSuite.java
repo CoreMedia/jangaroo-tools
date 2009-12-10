@@ -170,6 +170,13 @@ public final class ComponentSuite {
     for (ComponentClass cc : getComponentClasses()) {
       if (cc.getSuperClass() == null && cc.getSuperClassName() != null) {
         Log.getErrorHandler().warning("Super component class '" + cc.getSuperClassName() + "' not found.");
+      } else if (cc.getSuperClassName() == null && cc.getSuperClassNamespaceUri() != null && cc.getSuperClassLocalName() != null)  {
+        ComponentClass supercl = this.getComponentClassByNamespaceAndLocalName(cc.getSuperClassNamespaceUri(), cc.getSuperClassLocalName());
+        if(supercl != null) {
+          cc.setSuperClassName(supercl.getFullClassName());
+        } else {
+          Log.getErrorHandler().error(String.format("Super component class with element name '%s' not found in component suite '%s'", cc.getSuperClassLocalName(), cc.getSuperClassNamespaceUri()));
+        }
       }
     }
   }

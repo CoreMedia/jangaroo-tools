@@ -10,7 +10,6 @@ import net.jangaroo.extxml.util.FileScanner;
 import net.jangaroo.extxml.util.Rule;
 import net.jangaroo.extxml.util.TidyComment;
 import org.codehaus.plexus.util.FileUtils;
-import org.codehaus.plexus.util.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -204,9 +203,6 @@ public final class ExtComponentSrcFileScanner {
 
     void validateComponentClass(ComponentClass cc) {
       if (cc != null) {
-        if (StringUtils.isEmpty(cc.getSuperClassName())) {
-          Log.getErrorHandler().warning("Compontent class has no super class");
-        }
         if (cc.getImports().isEmpty()) {
           Log.getErrorHandler().warning("No imports in Compontent class");
         }

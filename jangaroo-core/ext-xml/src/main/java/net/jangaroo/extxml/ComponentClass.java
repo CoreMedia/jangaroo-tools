@@ -19,6 +19,8 @@ public final class ComponentClass extends DescriptionHolder {
   private String xtype;
   private List<String> imports;
   private String fullClassName;
+  private String superClassLocalName;
+  private String superClassNamespaceUri;
   private String superClassName;
   private List<ConfigAttribute> cfgs = new ArrayList<ConfigAttribute>();
   private Json json;
@@ -233,5 +235,21 @@ public final class ComponentClass extends DescriptionHolder {
     result = 31 * result + fullClassName.hashCode();
     result = 31 * result + (superClassName != null ? superClassName.hashCode() : 0);
     return result;
+  }
+
+  public void setSuperClassLocalName(String superClassLocalName) {
+    this.superClassLocalName = superClassLocalName;
+  }
+
+  public void setSuperClassNamespaceUri(String superClassNamespaceUri) {
+   this.superClassNamespaceUri = superClassNamespaceUri;
+  }
+
+  public String getSuperClassLocalName() {
+    return superClassLocalName;
+  }
+
+  public String getSuperClassNamespaceUri() {
+    return superClassNamespaceUri;
   }
 }

@@ -30,7 +30,7 @@ public final class SrcFileScanner {
     scan(componentSuite.getRootDir());
 
     //resolving all super classes
-    componentSuite.resolveSuperClasses();
+   componentSuite.resolveSuperClasses();
   }
 
   private void scan(final File dir) throws IOException {

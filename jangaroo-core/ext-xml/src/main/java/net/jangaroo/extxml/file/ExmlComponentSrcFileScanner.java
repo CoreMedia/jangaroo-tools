@@ -41,7 +41,8 @@ public class ExmlComponentSrcFileScanner {
     //parse EXML file for meta data
     ExmlToComponentMetadataHandler metadataHandler= new ExmlToComponentMetadataHandler(componentSuite);
     if (parseExmlWithHandler(clazz, metadataHandler)) {
-      clazz.setSuperClassName(metadataHandler.getSuperClassName());
+      clazz.setSuperClassLocalName(metadataHandler.getSuperClassLocalName());
+      clazz.setSuperClassNamespaceUri(metadataHandler.getSuperClassUri());
       clazz.setDescription(metadataHandler.getComponentDescription());
       clazz.setCfgs(metadataHandler.getCfgs());
     }

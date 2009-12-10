@@ -75,7 +75,7 @@ public class XsdScanner {
     Log.getErrorHandler().info(String.format("Added config attribute '%s' to component class '%s'", attr.getName(), ccStack.lastElement().getFullClassName()));
   }
 
-  private void addConfigAttribute() {
+  private void addConfigAttribute() throws XMLStreamException {
     String name = parser.getAttributeValue(null, "name");
     String type = parser.getAttributeValue(null, "type");
     ConfigAttribute attr = new ConfigAttribute(name, type);
@@ -108,7 +108,7 @@ public class XsdScanner {
     return componentSuite;
   }
 
-  private void dispatch(int event) {
+  private void dispatch(int event) throws XMLStreamException {
     switch (event) {
       case XMLStreamConstants.START_ELEMENT:
         if (isLocalName(SCHEMA)) {

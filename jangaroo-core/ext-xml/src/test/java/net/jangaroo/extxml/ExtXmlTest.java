@@ -18,19 +18,22 @@ public class ExtXmlTest {
   public void testMain() throws Exception {
     File outputDir = TestUtils.computeTestDataRoot(getClass());
     File rootDir = TestUtils.getRootDir(getClass());
+    File extXsd = TestUtils.getFile("/schemas/ext3.xsd", getClass());
 
-    String[] args = {"local",
-        "ll",
-        outputDir.getPath() + "/testComponentSuite.xsd", 
+    String[] args = {"test",
+        "test",
+        outputDir.getPath() + "/test.xsd",
         rootDir.getPath() + "/testComponentSuite/",
-        outputDir.getPath()};
+        outputDir.getPath(),
+        extXsd.getAbsolutePath()};
     ExtXml.main(args);
 
-    File resultXSD = new File(outputDir, "testComponentSuite.xsd");
+    File resultXSD = new File(outputDir, "test.xsd");
     assertTrue(resultXSD.exists());
 
     File asFile = new File(outputDir, "MyLayout.as");
     assertTrue(asFile.exists());
+    assertTrue(asFile.length() > 100);
 
   }
 
