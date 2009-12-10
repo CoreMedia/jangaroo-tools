@@ -94,13 +94,22 @@ public class XsdScanner {
 
   private void parseDocumentation() throws XMLStreamException {
     StringBuffer txt = new StringBuffer();
-    if (parser.hasNext()) {
+    while (parser.hasNext()) {
       parser.next();
+
       if (parser.hasText()) {
         txt.append(parser.getText());
+      } else if (parser.isStartElement()) {
+        txt.append("<"+parser.getLocalName()+">");
+      } else if (parser.isEndElement()) {
+        if(isLocalName(DOCUMENTATION)) {
+          break;
+        } else {
+          txt.append("</"+parser.getLocalName()+">");
+        }
       }
     }
-    if (currentAttr != null && isInsideCfg) {
+    if (currentAttr != null) {
       currentAttr.setDescription(txt.toString());
     } else {
       ccStack.lastElement().setDescription(txt.toString());
@@ -171,6 +180,8 @@ public class XsdScanner {
             componentSuite.addComponentClass(componentClass);
             Log.getErrorHandler().info(String.format("Added component class '%s, %s' to component suite '%s'", componentClass.getXtype(), componentClass.getFullClassName(), componentSuite.getNamespace()));
           }
+        } else if(isLocalName(ATTRIBUTE)) {
+          currentAttr = null;
         }
 
         break;
