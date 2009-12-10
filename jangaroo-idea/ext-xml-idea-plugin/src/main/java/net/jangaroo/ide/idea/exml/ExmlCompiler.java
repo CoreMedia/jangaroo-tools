@@ -2,6 +2,7 @@ package net.jangaroo.ide.idea.exml;
 
 import com.intellij.compiler.impl.javaCompiler.OutputItemImpl;
 import com.intellij.compiler.make.MakeUtil;
+import com.intellij.facet.FacetManager;
 import com.intellij.javaee.ExternalResourceManager;
 import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompileScope;
@@ -14,17 +15,16 @@ import com.intellij.openapi.roots.OrderEntry;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.facet.FacetManager;
-import net.jangaroo.extxml.ComponentSuite;
 import net.jangaroo.extxml.ComponentSuiteRegistry;
-import net.jangaroo.extxml.ErrorHandler;
-import net.jangaroo.extxml.Log;
-import net.jangaroo.extxml.JooClassGenerator;
-import net.jangaroo.extxml.XsdGenerator;
-import net.jangaroo.extxml.XsdScanner;
-import net.jangaroo.extxml.ComponentType;
-import net.jangaroo.extxml.file.SrcFileScanner;
 import net.jangaroo.extxml.file.ExmlComponentSrcFileScanner;
+import net.jangaroo.extxml.file.SrcFileScanner;
+import net.jangaroo.extxml.generation.JooClassGenerator;
+import net.jangaroo.extxml.generation.XsdGenerator;
+import net.jangaroo.extxml.log.ErrorHandler;
+import net.jangaroo.extxml.log.Log;
+import net.jangaroo.extxml.model.ComponentSuite;
+import net.jangaroo.extxml.model.ComponentType;
+import net.jangaroo.extxml.xml.XsdScanner;
 import net.jangaroo.ide.idea.JangarooFacetType;
 import org.jetbrains.annotations.NotNull;
 
@@ -40,9 +40,9 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.LinkedHashMap;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -74,12 +74,12 @@ public class ExmlCompiler implements TranslatingCompiler {
     return false;
   }
 
-  private static String getXsdRoot(Module module) {   
+  private static String getXsdRoot(Module module) {
     VirtualFile[] contentRoots = ModuleRootManager.getInstance(module).getContentRoots();
     return contentRoots.length > 0 ? contentRoots[0].getPath() + "/target/generated-resources/" : null;
   }
 
-  private static String getXsdFilename(Module module) {   
+  private static String getXsdFilename(Module module) {
     String xsdRoot = getXsdRoot(module);
     return xsdRoot != null ? xsdRoot + module.getName() + ".xsd" : null;
   }
@@ -89,12 +89,12 @@ public class ExmlCompiler implements TranslatingCompiler {
     //System.out.println("Scanning dependencies of " + moduleName + " for component suite XSDs...");
     OrderEntry[] orderEntries = ModuleRootManager.getInstance(module).getOrderEntries();
     XsdScanner scanner = new XsdScanner();
-    for (OrderEntry orderEntry: orderEntries) {
+    for (OrderEntry orderEntry : orderEntries) {
       String filename = null;
       InputStream xsdInputStream = null;
       try {
         if (orderEntry instanceof ModuleOrderEntry) {
-          Module usedModule = ((ModuleOrderEntry)orderEntry).getModule();
+          Module usedModule = ((ModuleOrderEntry) orderEntry).getModule();
           if (usedModule != null) {
             filename = getXsdFilename(usedModule);
             xsdInputStream = new FileInputStream(new File(filename));
@@ -131,7 +131,7 @@ public class ExmlCompiler implements TranslatingCompiler {
             resourceMap.put(componentSuite.getNamespace(), filename);
           }
         } catch (IOException e) {
-          Log.getErrorHandler().error("Error while scanning XSD file "+xsdInputStream, e);
+          Log.getErrorHandler().error("Error while scanning XSD file " + xsdInputStream, e);
         }
       }
     }
@@ -144,9 +144,9 @@ public class ExmlCompiler implements TranslatingCompiler {
   private ComponentSuite scanSrcFiles(Module module) {
     String sourceRootDir = findSourceRootDir(module, JOO_SOURCES_PATH_REG_EXP);
     String moduleName = module.getName();
-    ComponentSuite suite = new ComponentSuite(moduleName, moduleName.substring(0,Math.max(1, moduleName.length())).toLowerCase(),
-      new File(sourceRootDir), new File(findGeneratedAs3RootDir(module)));
-    
+    ComponentSuite suite = new ComponentSuite(moduleName, moduleName.substring(0, Math.max(1, moduleName.length())).toLowerCase(),
+        new File(sourceRootDir), new File(findGeneratedAs3RootDir(module)));
+
     SrcFileScanner fileScanner = new SrcFileScanner(suite);
     ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
     try {
@@ -205,7 +205,7 @@ public class ExmlCompiler implements TranslatingCompiler {
           filesToRecompile.add(file);
         } else {
           OutputItem outputItem = new OutputItemImpl(srcRootDir, outputFile.getPath().replace(File.separatorChar, '/'), file);
-          context.addMessage(CompilerMessageCategory.INFORMATION, "exml->as ("+outputItem.getOutputPath()+")", file.getUrl(), -1, -1);
+          context.addMessage(CompilerMessageCategory.INFORMATION, "exml->as (" + outputItem.getOutputPath() + ")", file.getUrl(), -1, -1);
           outputItems.add(outputItem);
           // trigger as->js compilation:
           filesToRecompile.add(LocalFileSystem.getInstance().findFileByPath(outputItem.getOutputPath()));
@@ -242,17 +242,17 @@ public class ExmlCompiler implements TranslatingCompiler {
     Log.setErrorHandler(new IdeaErrorHandler(context));
     List<OutputItem> outputItems = new ArrayList<OutputItem>(files.length);
     List<VirtualFile> filesToRecompile = new ArrayList<VirtualFile>(files.length);
-    Map<Module,List<VirtualFile>> filesByModule = new HashMap<Module, List<VirtualFile>>(files.length);
+    Map<Module, List<VirtualFile>> filesByModule = new HashMap<Module, List<VirtualFile>>(files.length);
     for (final VirtualFile file : files) {
       Module module = context.getModuleByFile(file);
       List<VirtualFile> filesOfModule = filesByModule.get(module);
-      if (filesOfModule==null) {
+      if (filesOfModule == null) {
         filesOfModule = new ArrayList<VirtualFile>(files.length);
         filesByModule.put(module, filesOfModule);
       }
       filesOfModule.add(file);
     }
-    final Map<String,String> resourceMap = new LinkedHashMap<String,String>();
+    final Map<String, String> resourceMap = new LinkedHashMap<String, String>();
     for (Map.Entry<Module, List<VirtualFile>> filesOfModuleEntry : filesByModule.entrySet()) {
       Module module = filesOfModuleEntry.getKey();
       addModuleDependenciesToComponentSuiteRegistry(module, resourceMap);
@@ -274,6 +274,7 @@ public class ExmlCompiler implements TranslatingCompiler {
       public OutputItem[] getSuccessfullyCompiled() {
         return outputItemArray;
       }
+
       public VirtualFile[] getFilesToRecompile() {
         return filesToRecompileArray;
       }
@@ -293,8 +294,8 @@ public class ExmlCompiler implements TranslatingCompiler {
     }
 
     private VirtualFile addMessage(CompilerMessageCategory compilerMessageCategory, String msg, int lineNumber, int columnNumber) {
-      VirtualFile file = currentFile==null ? null : LocalFileSystem.getInstance().findFileByPath(currentFile.getAbsolutePath());
-      String fileUrl = file==null ? null : file.getUrl();
+      VirtualFile file = currentFile == null ? null : LocalFileSystem.getInstance().findFileByPath(currentFile.getAbsolutePath());
+      String fileUrl = file == null ? null : file.getUrl();
       context.addMessage(compilerMessageCategory, msg, fileUrl, lineNumber, columnNumber);
       return file;
     }

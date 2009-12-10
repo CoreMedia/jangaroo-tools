@@ -1,6 +1,13 @@
 package net.jangaroo.ide.idea.exml;
 
 import com.intellij.codeInsight.daemon.Validator;
+import com.intellij.lang.javascript.index.JavaScriptIndex;
+import com.intellij.lang.javascript.psi.resolve.JSResolveUtil;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.impl.source.xml.XmlElementDescriptorProvider;
@@ -13,14 +20,7 @@ import com.intellij.xml.XmlElementDescriptor;
 import com.intellij.xml.XmlElementDescriptorAwareAboutChildren;
 import com.intellij.xml.XmlNSDescriptor;
 import com.intellij.xml.util.XmlUtil;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.module.Module;
-import com.intellij.lang.javascript.psi.resolve.JSResolveUtil;
-import com.intellij.lang.javascript.index.JavaScriptIndex;
-import net.jangaroo.extxml.ComponentType;
+import net.jangaroo.extxml.model.ComponentType;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -30,13 +30,14 @@ import org.jetbrains.annotations.NotNull;
 public class ComponentXmlElementDescriptorProvider implements XmlElementDescriptorProvider {
   public XmlElementDescriptor getDescriptor(XmlTag xmltag) {
     String namespace = xmltag.getNamespace();
-    if (xmltag.getContainingFile().getName().endsWith("."+ComponentType.EXML.getExtension())
-      && !ExmlApplicationComponent.EXML_NAMESPACE_URI.equals(namespace)) {
+    if (xmltag.getContainingFile().getName().endsWith("." + ComponentType.EXML.getExtension())
+        && !ExmlApplicationComponent.EXML_NAMESPACE_URI.equals(namespace)) {
       XmlNSDescriptor xmlNSDescriptor = xmltag.getNSDescriptor(namespace, false);
       XmlElementDescriptor xmlElementDescriptor = xmlNSDescriptor != null ? xmlNSDescriptor.getElementDescriptor(xmltag) : null;
-      if(xmlElementDescriptor == null)
+      if (xmlElementDescriptor == null) {
         xmlElementDescriptor = XmlUtil.findXmlDescriptorByType(xmltag);
-      return xmlElementDescriptor==null ? null : new ComponentXmlElementDescriptor(xmlElementDescriptor);
+      }
+      return xmlElementDescriptor == null ? null : new ComponentXmlElementDescriptor(xmlElementDescriptor);
     }
     return null;
   }
@@ -55,7 +56,7 @@ public class ComponentXmlElementDescriptorProvider implements XmlElementDescript
     public PsiElement getDeclaration() {
       PsiElement declaration = xmlElementDescriptor.getDeclaration();
       if (declaration instanceof XmlTag) {
-        String className = ((XmlTag)declaration).getAttributeValue("type");
+        String className = ((XmlTag) declaration).getAttributeValue("type");
         if (className != null) {
           className = XmlUtil.findLocalNameByQualifiedName(className);
           Project project = xmlElementDescriptor.getDeclaration().getProject();
@@ -139,19 +140,19 @@ public class ComponentXmlElementDescriptorProvider implements XmlElementDescript
 
     public void setName(String s) throws IncorrectOperationException {
       if (xmlElementDescriptor instanceof PsiWritableMetaData) {
-        ((PsiWritableMetaData)xmlElementDescriptor).setName(s);
+        ((PsiWritableMetaData) xmlElementDescriptor).setName(s);
       }
     }
 
     public boolean allowElementsFromNamespace(String s, XmlTag xmltag) {
       return !(xmlElementDescriptor instanceof XmlElementDescriptorAwareAboutChildren)
-        || ((XmlElementDescriptorAwareAboutChildren)xmlElementDescriptor).allowElementsFromNamespace(s, xmltag);
+          || ((XmlElementDescriptorAwareAboutChildren) xmlElementDescriptor).allowElementsFromNamespace(s, xmltag);
     }
 
-    @SuppressWarnings({ "unchecked" })
+    @SuppressWarnings({"unchecked"})
     public void validate(@NotNull XmlTag xmlTag, @NotNull ValidationHost validationHost) {
       if (xmlElementDescriptor instanceof Validator) {
-        ((Validator)xmlElementDescriptor).validate(xmlTag, validationHost);
+        ((Validator) xmlElementDescriptor).validate(xmlTag, validationHost);
       }
     }
   }
