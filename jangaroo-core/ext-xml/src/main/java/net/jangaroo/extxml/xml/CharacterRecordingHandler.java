@@ -1,7 +1,7 @@
 package net.jangaroo.extxml.xml;
 
-import org.xml.sax.helpers.DefaultHandler;
 import org.xml.sax.SAXException;
+import org.xml.sax.helpers.DefaultHandler;
 
 /**
  * A ContentHandler that records characters (CDATA). Recording can be started and is stopped when
@@ -13,6 +13,14 @@ public class CharacterRecordingHandler extends DefaultHandler {//stores all char
   protected void startRecordingCharacters() {
     //create new character Stack that will store all following CDATA sections
     characterStack = new StringBuffer();
+  }
+
+  public void ignorableWhitespace(char ch[], int start, int length)
+      throws SAXException {
+    if (characterStack != null) {
+      String cdata = new String(ch, start, length);
+      characterStack.append(cdata);
+    }
   }
 
   public void characters(char[] ch, int start, int length) throws SAXException {

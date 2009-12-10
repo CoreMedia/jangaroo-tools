@@ -3,9 +3,9 @@
  */
 package net.jangaroo.extxml.xml;
 
-import net.jangaroo.extxml.model.ComponentSuite;
-import net.jangaroo.extxml.model.ComponentClass;
 import net.jangaroo.extxml.log.Log;
+import net.jangaroo.extxml.model.ComponentClass;
+import net.jangaroo.extxml.model.ComponentSuite;
 import net.jangaroo.extxml.model.ConfigAttribute;
 
 import javax.xml.stream.XMLInputFactory;
@@ -23,6 +23,7 @@ public class XsdScanner {
   private ComponentSuite componentSuite;
   private XMLStreamReader parser = null;
   private Stack<ComponentClass> ccStack = new Stack<ComponentClass>();
+  private ConfigAttribute currentAttr = null;
   private boolean isInsideComplexType = false;
   private boolean isInsideCfg = false;
   private static final String SCHEMA = "schema";
@@ -30,6 +31,7 @@ public class XsdScanner {
   private static final String ELEMENT = "element";
   private static final String ATTRIBUTE = "attribute";
   private static final String EXTENSION = "extension";
+  private static final String DOCUMENTATION = "documentation";
 
   public ComponentSuite getComponentSuite() {
     return componentSuite;
@@ -53,7 +55,7 @@ public class XsdScanner {
     return componentClass;
   }
 
-  private void addXtypeToComponentClass() {
+  private void addXtypeToComponentClass() throws XMLStreamException {
     String xtype = parser.getAttributeValue(null, "name");
     String typeName = afterColon(parser.getAttributeValue(null, "type"));
     ComponentClass componentClass = ccStack.lastElement();
@@ -73,10 +75,11 @@ public class XsdScanner {
     Log.getErrorHandler().info(String.format("Added supertype '%s' to component class '%s'", supertypeName, componentClass.getFullClassName()));
   }
 
-  private void addConfigElementAttribute() {
+  private void addConfigElementAttribute() throws XMLStreamException {
     String name = parser.getAttributeValue(null, "name");
     ConfigAttribute attr = new ConfigAttribute(name, "Array");
     ccStack.lastElement().addCfg(attr);
+    currentAttr = attr;
     Log.getErrorHandler().info(String.format("Added config attribute '%s' to component class '%s'", attr.getName(), ccStack.lastElement().getFullClassName()));
   }
 
@@ -85,7 +88,23 @@ public class XsdScanner {
     String type = parser.getAttributeValue(null, "type");
     ConfigAttribute attr = new ConfigAttribute(name, type);
     ccStack.lastElement().addCfg(attr);
+    currentAttr = attr;
     Log.getErrorHandler().info(String.format("Added config attribute '%s' to component class '%s'", attr.getName(), ccStack.lastElement().getFullClassName()));
+  }
+
+  private void parseDocumentation() throws XMLStreamException {
+    StringBuffer txt = new StringBuffer();
+    if (parser.hasNext()) {
+      parser.next();
+      if (parser.hasText()) {
+        txt.append(parser.getText());
+      }
+    }
+    if (currentAttr != null && isInsideCfg) {
+      currentAttr.setDescription(txt.toString());
+    } else {
+      ccStack.lastElement().setDescription(txt.toString());
+    }
   }
 
   public ComponentSuite scan(InputStream xsd) throws IOException {
@@ -134,6 +153,8 @@ public class XsdScanner {
           addSupertypeToComponentClass();
         } else if (isLocalName(ATTRIBUTE)) {
           addConfigAttribute();
+        } else if (isLocalName(DOCUMENTATION)) {
+          parseDocumentation();
         }
         break;
       case XMLStreamConstants.END_ELEMENT:
@@ -144,6 +165,7 @@ public class XsdScanner {
         } else if (isLocalName(ELEMENT)) {
           if (isInsideCfg) {
             isInsideCfg = false;
+            currentAttr = null;
           } else {
             ComponentClass componentClass = ccStack.pop();
             componentSuite.addComponentClass(componentClass);

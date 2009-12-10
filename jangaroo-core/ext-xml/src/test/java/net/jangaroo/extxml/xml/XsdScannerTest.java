@@ -31,12 +31,14 @@ public class XsdScannerTest {
     assertNotNull(cclass);
 
     assertEquals("ext.Component", cclass.getFullClassName());
+    assertNotNull(cclass.getDescription());
     assertFalse(cclass.getCfgs().isEmpty());
 
     ComponentClass container = suite.getComponentClassByFullClassName("ext.Container");
     assertEquals("container", container.getXtype());
     assertEquals("ext.BoxComponent", container.getSuperClassName());
     assertEquals(18, container.getCfgs().size());
+    assertNotNull(container.getCfgs().iterator().next().getDescription());
 
     ComponentClass gridPanel = suite.getComponentClassByXtype("grid");
     ComponentClass panel = gridPanel.getSuperClass();
