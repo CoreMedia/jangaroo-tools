@@ -5,7 +5,7 @@ package net.jangaroo.extxml.log;
 
 public final class Log {
 
-  private static ErrorHandler errorHandler;
+  private static ErrorHandler errorHandler = new StandardOutErrorHandler();
 
   private Log() {
     
@@ -16,9 +16,6 @@ public final class Log {
   }
 
   public static ErrorHandler getErrorHandler() {
-    if(errorHandler == null) {
-      errorHandler = new StandardOutErrorHandler();
-    }
     return errorHandler;
   }
 }
