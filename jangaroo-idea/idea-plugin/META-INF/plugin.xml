@@ -6,7 +6,7 @@
     A plugin for compiling ActionScript 3 code to JavaScript using the Jangaroo Open Source
     Compiler jooc.
   </description>
-  <version>0.3.21</version>
+  <version>0.3.21.1</version>
   <vendor url="http://www.jangaroo.net"
           email="info@jangaroo.net"
           logo="/net/jangaroo/jooley-16x16.png">Jangaroo</vendor>
@@ -14,6 +14,7 @@
 
   <depends>JavaScript</depends>
   <depends>org.jetbrains.idea.maven</depends>
+  <depends>com.intellij.javaee</depends>
 
   <application-components>
     <!-- Add your application components here -->
@@ -33,6 +34,7 @@
   <extensions defaultExtensionNs="com.intellij">
     <facetType implementation="net.jangaroo.ide.idea.JangarooFacetType"/>
     <frameworkSupport implementation="net.jangaroo.ide.idea.JangarooFacetTypeFrameworkSupportProvider"/>
+    <javaee.web.customBuildParticipant implementation="net.jangaroo.ide.idea.JangarooWebBuildParticipant"/>
   </extensions>
 
   <extensions xmlns="org.jetbrains.idea.maven">

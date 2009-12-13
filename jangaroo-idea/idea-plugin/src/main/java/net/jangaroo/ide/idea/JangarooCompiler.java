@@ -22,14 +22,9 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.roots.ModuleOrderEntry;
-import com.intellij.openapi.roots.OrderEntry;
-import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.facet.FacetManager;
 import com.intellij.compiler.make.MakeUtil;
 import com.intellij.compiler.impl.javaCompiler.OutputItemImpl;
-import com.intellij.javaee.web.facet.WebFacet;
 import org.jetbrains.annotations.NotNull;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.CompileLog;
@@ -94,9 +89,7 @@ public class JangarooCompiler implements TranslatingCompiler {
     if (jangarooFacet==null) {
       return null;
     }
-    JangarooFacet webJangarooFacet = findWebJangarooFacet(jangarooFacet);
     JoocConfigurationBean joocConfigurationBean = jangarooFacet.getConfiguration().getState();
-    JoocConfigurationBean joocOutputConfigurationBean = webJangarooFacet.getConfiguration().getState();
     JoocConfiguration joocConfig = new JoocConfiguration();
     joocConfig.setVerbose(joocConfigurationBean.verbose);
     joocConfig.setDebug(joocConfigurationBean.isDebug());
@@ -108,11 +101,11 @@ public class JangarooCompiler implements TranslatingCompiler {
     joocConfig.setEnableGuessingMembers(joocConfigurationBean.enableGuessingMembers);
     joocConfig.setMergeOutput(joocConfigurationBean.mergeOutput);
     if (joocConfigurationBean.mergeOutput) {
-      File outputFile = new File(joocOutputConfigurationBean.getOutputFileName());
+      File outputFile = new File(joocConfigurationBean.getOutputFileName());
       joocConfig.setOutputDirectory(outputFile.getParentFile());
       joocConfig.setOutputFileName(outputFile.getName());
     } else {
-      joocConfig.setOutputDirectory(joocOutputConfigurationBean.getOutputDirectory());
+      joocConfig.setOutputDirectory(joocConfigurationBean.getOutputDirectory());
     }
     List<File> sourceFiles = new ArrayList<File>(virtualSourceFiles.size());
     for (VirtualFile virtualSourceFile : virtualSourceFiles) {
@@ -122,28 +115,6 @@ public class JangarooCompiler implements TranslatingCompiler {
     return joocConfig;
   }
 
-  private static JangarooFacet findWebJangarooFacet(JangarooFacet jangarooFacet) {
-    Module module = jangarooFacet.getModule();
-    // try to find another Jangaroo module with a Web Facet that has a module-dependency on this module:
-    for (Module otherModule : ModuleManager.getInstance(module.getProject()).getModules()) {
-      if (!otherModule.equals(module)) {
-        FacetManager facetManager = FacetManager.getInstance(otherModule);
-        if (facetManager.getFacetByType(WebFacet.ID) != null) {
-          JangarooFacet webJangarooFacet = facetManager.getFacetByType(JangarooFacetType.ID);
-          if (webJangarooFacet != null) {
-            OrderEntry[] orderEntries = ModuleRootManager.getInstance(otherModule).getOrderEntries();
-            for (OrderEntry orderEntry: orderEntries) {
-              if (orderEntry instanceof ModuleOrderEntry && ((ModuleOrderEntry)orderEntry).getModule().equals(module)) {
-                return webJangarooFacet;
-              }
-            }
-          }
-        }
-      }
-    }
-    return jangarooFacet;
-  }
-
   private OutputItem createOutputItem(final String outputDirectory, VirtualFile sourceRoot, final VirtualFile file) {
     if (sourceRoot==null) {
       throw new IllegalStateException("File not under any source root: '" + file.getPath() + "'.");
@@ -151,6 +122,7 @@ public class JangarooCompiler implements TranslatingCompiler {
     String filePath = file.getPath();
     String relativePath = filePath.substring(sourceRoot.getPath().length(), filePath.lastIndexOf('.'));
     String outputFilePath = outputDirectory + relativePath + Jooc.OUTPUT_FILE_SUFFIX;
+    LocalFileSystem.getInstance().refreshAndFindFileByPath(outputFilePath);
     return new OutputItemImpl(outputDirectory, outputFilePath, file);
   }
 
