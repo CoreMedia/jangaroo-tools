@@ -43,6 +43,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Arrays;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -178,14 +179,14 @@ public class ExmlCompiler implements TranslatingCompiler {
       } catch (IOException e) {
         Log.getErrorHandler().error("Error while writing component suite XSD file.", e);
       }
-      outputItems.add(new OutputItemImpl(getXsdRoot(module), xsdFilename, null));
+      // OutputItems without source file not allowed: outputItems.add(new OutputItemImpl(getXsdRoot(module), xsdFilename, null));
     }
   }
 
   private void compile(final CompileContext context, Module module, final List<VirtualFile> files, List<OutputItem> outputItems, List<VirtualFile> filesToRecompile) {
     JooClassGenerator generator = null;
     ComponentSuite suite = null;
-    String srcRootDir = null;
+    String as3OutputDir = null;
     for (final VirtualFile file : files) {
       if (ComponentType.EXML.getExtension().equals(file.getExtension())) {
         if (suite == null) {
@@ -194,9 +195,10 @@ public class ExmlCompiler implements TranslatingCompiler {
             context.addMessage(CompilerMessageCategory.ERROR, "No XML Schema (.xsd) found for component suite module " + module.getName(), null, -1, -1);
             return;
           }
-          srcRootDir = MakeUtil.getSourceRoot(context, module, file).getPath();
+          String srcRootDir = MakeUtil.getSourceRoot(context, module, file).getPath();
           suite.setRootDir(new File(srcRootDir));
-          suite.setAs3OutputDir(new File(findGeneratedAs3RootDir(module)));
+          as3OutputDir = findGeneratedAs3RootDir(module);
+          suite.setAs3OutputDir(new File(as3OutputDir));
           generator = new JooClassGenerator(suite);
         }
         File outputFile = generator.generateClass(suite.getComponentClassByFullClassName(ExmlComponentSrcFileScanner.getComponentClassName(suite, new File(file.getPath()))));
@@ -204,11 +206,10 @@ public class ExmlCompiler implements TranslatingCompiler {
           //context.addMessage(CompilerMessageCategory.INFORMATION, "exml->as compilation failed.", file.getUrl(), -1, -1);
           filesToRecompile.add(file);
         } else {
-          OutputItem outputItem = new OutputItemImpl(srcRootDir, outputFile.getPath().replace(File.separatorChar, '/'), file);
+          OutputItem outputItem = new OutputItemImpl(as3OutputDir, outputFile.getPath().replace(File.separatorChar, '/'), file);
           context.addMessage(CompilerMessageCategory.INFORMATION, "exml->as (" + outputItem.getOutputPath() + ")", file.getUrl(), -1, -1);
+          LocalFileSystem.getInstance().refreshIoFiles(Arrays.asList(outputFile));
           outputItems.add(outputItem);
-          // trigger as->js compilation:
-          filesToRecompile.add(LocalFileSystem.getInstance().findFileByPath(outputItem.getOutputPath()));
         }
       }
     }
