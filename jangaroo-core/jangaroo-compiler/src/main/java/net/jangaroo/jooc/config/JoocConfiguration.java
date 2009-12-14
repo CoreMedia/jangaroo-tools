@@ -65,7 +65,7 @@ public class JoocConfiguration implements JoocOptions {
   }
 
   public boolean isDebugSource() {
-    return  debug && debugSource;
+    return debug && debugSource;
   }
 
   public void setDebugSource(boolean debugSource) {
@@ -149,8 +149,9 @@ public class JoocConfiguration implements JoocOptions {
   }
 
   public void setSourceFiles(List<File> sourceFiles) {
-    if (sourceFiles == null)
+    if (sourceFiles == null) {
       throw new IllegalArgumentException("sourceFiles == null");
+    }
 
     this.sourceFiles = new ArrayList<File>(sourceFiles);
   }

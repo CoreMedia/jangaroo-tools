@@ -1,7 +1,15 @@
 package net.jangaroo.jooc.config;
 
 import net.jangaroo.jooc.Jooc;
-import org.apache.commons.cli.*;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.GnuParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.MissingArgumentException;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.OptionBuilder;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.UnrecognizedOptionException;
 
 import java.io.File;
 import java.util.Arrays;
@@ -24,38 +32,38 @@ public class JoocCommandLineParser {
     }
   }
 
-  @SuppressWarnings({ "AccessStaticViaInstance" })
+  @SuppressWarnings({"AccessStaticViaInstance"})
   public JoocConfiguration parse(String[] argv) throws Exception {
     JoocConfiguration config = new JoocConfiguration();
 
     Option help = new Option("help", "print this message");
     Option version = OptionBuilder
-      .withDescription("print version information and exit")
-      .create("version");
+        .withDescription("print version information and exit")
+        .create("version");
     Option verboseOption = OptionBuilder.withLongOpt("verbose")
-      .withDescription("be extra verbose")
-      .create("v");
-    Option debugOption = OptionBuilder.withDescription( "generate debugging information " +
-      "(possible modes: source, lines, none)" )
-      .hasOptionalArgs()
-      .withArgName("mode")
-      .create("g");
+        .withDescription("be extra verbose")
+        .create("v");
+    Option debugOption = OptionBuilder.withDescription("generate debugging information " +
+        "(possible modes: source, lines, none)")
+        .hasOptionalArgs()
+        .withArgName("mode")
+        .create("g");
     Option destinationDir = OptionBuilder.withArgName("dir")
-      .hasArg()
-      .withDescription("destination directory for generated JavaScript files")
-      .create("d");
+        .hasArg()
+        .withDescription("destination directory for generated JavaScript files")
+        .create("d");
     Option enableAssertionsOption = OptionBuilder.withLongOpt("enableassertions")
-            .withDescription("enable assertions")
-            .create("ea");
+        .withDescription("enable assertions")
+        .create("ea");
     Option allowDuplicateLocalVariablesOption = OptionBuilder.withLongOpt("allowduplicatelocalvariables")
-            .withDescription("allow multiple declarations of local variables")
-            .create("ad");
+        .withDescription("allow multiple declarations of local variables")
+        .create("ad");
     Option enableGuessingOption = OptionBuilder.withDescription(
-      "Enable heuristic for guessing member access ('members'), classes in scope ('classes'), and type casts ('typecasts').")
-      .withLongOpt("enableguessing")
-      .hasOptionalArgs()
-      .withArgName("mode")
-      .create("eg");
+        "Enable heuristic for guessing member access ('members'), classes in scope ('classes'), and type casts ('typecasts').")
+        .withLongOpt("enableguessing")
+        .hasOptionalArgs()
+        .withArgName("mode")
+        .create("eg");
     Options options = new Options();
     options.addOption(help);
     options.addOption(version);
@@ -87,16 +95,19 @@ public class JoocCommandLineParser {
     if (line.hasOption(destinationDir.getOpt())) {
       String destionationDirName = line.getOptionValue(destinationDir.getOpt());
       File destDir = new File(destionationDirName);
-      if (!destDir.exists())
+      if (!destDir.exists()) {
         throw new IllegalArgumentException("destination directory does not exist: " + destDir.getAbsolutePath());
+      }
       config.setOutputDirectory(destDir);
     }
 
-    if (line.hasOption(enableAssertionsOption.getOpt()))
+    if (line.hasOption(enableAssertionsOption.getOpt())) {
       config.setEnableAssertions(true);
+    }
 
-    if (line.hasOption(allowDuplicateLocalVariablesOption.getOpt()))
+    if (line.hasOption(allowDuplicateLocalVariablesOption.getOpt())) {
       config.setAllowDuplicateLocalVariables(true);
+    }
 
     if (line.hasOption(debugOption.getOpt())) {
       String[] values = line.getOptionValues(debugOption.getOpt());
@@ -112,16 +123,17 @@ public class JoocCommandLineParser {
           System.out.println("-g option value: " + Arrays.asList(values));
         }
         for (String value : values) {
-          if (value.equals("source"))
+          if (value.equals("source")) {
             config.setDebugSource(true);
-          else if (value.equals("lines"))
+          } else if (value.equals("lines")) {
             config.setDebugLines(true);
-          else if (value.equals("none")) {
+          } else if (value.equals("none")) {
             config.setDebug(false);
             config.setDebugSource(false);
             config.setDebugLines(false);
-          } else
+          } else {
             throw new IllegalArgumentException("unknown -g argument: " + value);
+          }
         }
       }
     } else {
@@ -142,14 +154,15 @@ public class JoocCommandLineParser {
           System.out.println("-g option value: " + Arrays.asList(values));
         }
         for (String value : values) {
-          if (value.equals("members"))
+          if (value.equals("members")) {
             config.setEnableGuessingMembers(true);
-          else if (value.equals("classes"))
+          } else if (value.equals("classes")) {
             config.setEnableGuessingClasses(true);
-          else if (value.equals("typecasts")) {
+          } else if (value.equals("typecasts")) {
             config.setEnableGuessingTypeCasts(true);
-          } else
+          } else {
             throw new IllegalArgumentException("unknown -eg argument: " + value);
+          }
         }
       }
     } else {
@@ -172,8 +185,9 @@ public class JoocCommandLineParser {
       return null;
     }
 
-    for (String fileName : fileNames)
+    for (String fileName : fileNames) {
       config.addSourceFile(fileName);
+    }
 
     return config;
   }
