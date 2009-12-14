@@ -324,6 +324,10 @@ public class ExmlCompiler implements TranslatingCompiler {
     public void info(String message) {
       addMessage(CompilerMessageCategory.INFORMATION, message, -1, -1);
     }
+
+    public void debug(String message) {
+      //ignore debug messages for now
+    }
   }
 
 }
