@@ -1,10 +1,8 @@
 package net.jangaroo.extxml.xml;
 
 import net.jangaroo.extxml.file.ExmlComponentSrcFileScanner;
-import net.jangaroo.extxml.model.ComponentSuite;
 import net.jangaroo.extxml.model.ConfigAttribute;
 import org.xml.sax.Attributes;
-import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
 
 import java.util.ArrayList;
@@ -15,9 +13,6 @@ import java.util.List;
  */
 public class ExmlToComponentMetadataHandler extends CharacterRecordingHandler {
 
-  private final ComponentSuite componentSuite;
-
-  private Locator locator;
 
   private String componentDescription = "";
   private List<ConfigAttribute> cfgs = new ArrayList<ConfigAttribute>();
@@ -26,14 +21,6 @@ public class ExmlToComponentMetadataHandler extends CharacterRecordingHandler {
   private boolean expectsOptionalConfigDescription = false;
   private boolean expectsOptionalComponentDescription = false;
 
-
-  public ExmlToComponentMetadataHandler(ComponentSuite componentSuite) {
-    this.componentSuite = componentSuite;
-  }
-
-  public void setDocumentLocator(Locator locator) {
-    this.locator = locator;
-  }
 
   public void startElement(String uri, String localName, String qName, Attributes atts) throws SAXException {
     if (ExmlComponentSrcFileScanner.EXML_NAMESPACE_URI.equals(uri)) {

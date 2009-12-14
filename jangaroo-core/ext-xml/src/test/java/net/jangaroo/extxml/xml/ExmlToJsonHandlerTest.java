@@ -5,13 +5,11 @@ package net.jangaroo.extxml.xml;
 
 import net.jangaroo.extxml.json.Json;
 import net.jangaroo.extxml.json.JsonObject;
-import net.jangaroo.extxml.xml.ExmlToComponentMetadataHandler;
-import net.jangaroo.extxml.xml.ExmlToJsonHandler;
+import net.jangaroo.extxml.log.Log;
+import net.jangaroo.extxml.log.StandardOutErrorHandler;
 import net.jangaroo.extxml.model.ComponentClass;
 import net.jangaroo.extxml.model.ComponentSuite;
 import net.jangaroo.extxml.model.ConfigAttribute;
-import net.jangaroo.extxml.log.Log;
-import net.jangaroo.extxml.log.StandardOutErrorHandler;
 import org.junit.After;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -229,7 +227,7 @@ public class ExmlToJsonHandlerTest {
     dummyComponentSuite.addImportedComponentSuite(createExt3Suite());
     jsonHandler = new ExmlToJsonHandler(dummyComponentSuite);
     parseExmlWithHandler(path, jsonHandler);
-    metadataHandler = new ExmlToComponentMetadataHandler(dummyComponentSuite);
+    metadataHandler = new ExmlToComponentMetadataHandler();
     parseExmlWithHandler(path, metadataHandler);
     Json json = jsonHandler.getJson();
     System.out.println("xtype: " + jsonHandler.getXtype());
