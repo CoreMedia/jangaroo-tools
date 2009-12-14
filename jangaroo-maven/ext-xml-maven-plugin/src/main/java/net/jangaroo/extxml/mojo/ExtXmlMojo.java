@@ -261,5 +261,9 @@ public class ExtXmlMojo extends AbstractMojo {
     public void info(String message) {
       getLog().info(message);
     }
+
+    public void debug(String message) {
+      getLog().debug(message);
+    }
   }
 }

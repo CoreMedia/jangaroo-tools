@@ -55,6 +55,10 @@ public class UnitTestErrorHandler implements ErrorHandler {
 
   }
 
+  public void debug(String message) {
+
+  }
+
   public void checkExpectedErrors() {
     if(!expectedErrorOccured && expectedErrorMessage != null) {
       fail(String.format("expected error %s not occured", expectedErrorMessage));

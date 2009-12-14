@@ -94,7 +94,7 @@ public final class JooClassGenerator {
 
       if(!outputFile.getParentFile().exists()) {
         if (outputFile.getParentFile().mkdirs()) {
-          Log.getErrorHandler().info("Created parent output folder for " + outputFile.getAbsolutePath());
+          Log.getErrorHandler().debug("Created parent output folder for " + outputFile.getAbsolutePath());
         }
       }
 

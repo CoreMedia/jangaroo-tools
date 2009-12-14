@@ -23,4 +23,6 @@ public interface ErrorHandler {
   void warning(String message, int lineNumber, int columnNumber);
 
   void info(String message);
+
+  void debug(String message);
 }

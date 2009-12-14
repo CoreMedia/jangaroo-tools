@@ -40,4 +40,8 @@ public class StandardOutErrorHandler implements ErrorHandler{
   public void info(String message) {
     System.out.println(message);
   }
+
+  public void debug(String message) {
+    System.out.println(message);
+  }
 }

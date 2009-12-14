@@ -49,7 +49,7 @@ public class XsdScanner {
 
   private ComponentClass createComponentClass() {
     String name = parser.getAttributeValue(null, "name");
-    Log.getErrorHandler().info(String.format("createComponentClass: '%s'", name));
+    Log.getErrorHandler().debug(String.format("createComponentClass: '%s'", name));
     ComponentClass componentClass = new ComponentClass(null, name);
     ccStack.push(componentClass);
     return componentClass;
@@ -61,7 +61,7 @@ public class XsdScanner {
     ComponentClass componentClass = ccStack.lastElement();
     assert typeName.equals(componentClass.getFullClassName());
     componentClass.setXtype(xtype);
-    Log.getErrorHandler().info(String.format("Added xtype '%s' to component class '%s'", xtype, componentClass.getFullClassName()));
+    Log.getErrorHandler().debug(String.format("Added xtype '%s' to component class '%s'", xtype, componentClass.getFullClassName()));
   }
 
   private String afterColon(String typeName) {
@@ -72,7 +72,7 @@ public class XsdScanner {
     String supertypeName = afterColon(parser.getAttributeValue(null, "base"));
     ComponentClass componentClass = ccStack.lastElement();
     componentClass.setSuperClassName(supertypeName);
-    Log.getErrorHandler().info(String.format("Added supertype '%s' to component class '%s'", supertypeName, componentClass.getFullClassName()));
+    Log.getErrorHandler().debug(String.format("Added supertype '%s' to component class '%s'", supertypeName, componentClass.getFullClassName()));
   }
 
   private void addConfigElementAttribute() throws XMLStreamException {
@@ -80,7 +80,7 @@ public class XsdScanner {
     ConfigAttribute attr = new ConfigAttribute(name, "Array");
     ccStack.lastElement().addCfg(attr);
     currentAttr = attr;
-    Log.getErrorHandler().info(String.format("Added config attribute '%s' to component class '%s'", attr.getName(), ccStack.lastElement().getFullClassName()));
+    Log.getErrorHandler().debug(String.format("Added config attribute '%s' to component class '%s'", attr.getName(), ccStack.lastElement().getFullClassName()));
   }
 
   private void addConfigAttribute() throws XMLStreamException {
@@ -89,7 +89,7 @@ public class XsdScanner {
     ConfigAttribute attr = new ConfigAttribute(name, type);
     ccStack.lastElement().addCfg(attr);
     currentAttr = attr;
-    Log.getErrorHandler().info(String.format("Added config attribute '%s' to component class '%s'", attr.getName(), ccStack.lastElement().getFullClassName()));
+    Log.getErrorHandler().debug(String.format("Added config attribute '%s' to component class '%s'", attr.getName(), ccStack.lastElement().getFullClassName()));
   }
 
   private void parseDocumentation() throws XMLStreamException {
@@ -100,12 +100,12 @@ public class XsdScanner {
       if (parser.hasText()) {
         txt.append(parser.getText());
       } else if (parser.isStartElement()) {
-        txt.append("<"+parser.getLocalName()+">");
+        txt.append("<").append(parser.getLocalName()).append(">");
       } else if (parser.isEndElement()) {
         if(isLocalName(DOCUMENTATION)) {
           break;
         } else {
-          txt.append("</"+parser.getLocalName()+">");
+          txt.append("</").append(parser.getLocalName()).append(">");
         }
       }
     }
@@ -178,7 +178,7 @@ public class XsdScanner {
           } else {
             ComponentClass componentClass = ccStack.pop();
             componentSuite.addComponentClass(componentClass);
-            Log.getErrorHandler().info(String.format("Added component class '%s, %s' to component suite '%s'", componentClass.getXtype(), componentClass.getFullClassName(), componentSuite.getNamespace()));
+            Log.getErrorHandler().debug(String.format("Added component class '%s, %s' to component suite '%s'", componentClass.getXtype(), componentClass.getFullClassName(), componentSuite.getNamespace()));
           }
         } else if(isLocalName(ATTRIBUTE)) {
           currentAttr = null;
