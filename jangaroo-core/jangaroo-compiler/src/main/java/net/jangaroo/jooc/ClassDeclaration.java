@@ -16,7 +16,12 @@
 package net.jangaroo.jooc;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Andreas Gawecki
@@ -25,9 +30,9 @@ public class ClassDeclaration extends IdeDeclaration {
 
   protected JooSymbol symClass;
   protected Extends optExtends;
-  private Map<String,MemberDeclaration> members = new LinkedHashMap<String,MemberDeclaration>();
+  private Map<String, MemberDeclaration> members = new LinkedHashMap<String, MemberDeclaration>();
   private Set<String> boundMethodCandidates = new HashSet<String>();
-  private Map<String,Set<Scope>> classInit = new HashMap<String,Set<Scope>>();
+  private Map<String, Set<Scope>> classInit = new HashMap<String, Set<Scope>>();
   private List<String> packageImports;
 
   public Extends getOptExtends() {
@@ -54,8 +59,8 @@ public class ClassDeclaration extends IdeDeclaration {
 
   public ClassDeclaration(JooSymbol[] modifiers, JooSymbol cls, Ide ide, Extends ext, Implements impl, ClassBody body) {
     super(modifiers,
-            MODIFIER_ABSTRACT|MODIFIER_FINAL|MODIFIERS_SCOPE|MODIFIER_STATIC|MODIFIER_DYNAMIC,
-            ide);
+        MODIFIER_ABSTRACT | MODIFIER_FINAL | MODIFIERS_SCOPE | MODIFIER_STATIC | MODIFIER_DYNAMIC,
+        ide);
     this.symClass = cls;
     this.optExtends = ext;
     this.optImplements = impl;
@@ -81,11 +86,12 @@ public class ClassDeclaration extends IdeDeclaration {
   }
 
   public void setConstructor(MethodDeclaration methodDeclaration) {
-     if (constructor != null)
-       Jooc.error(methodDeclaration, "Only one constructor allowed per class");
+    if (constructor != null) {
+      Jooc.error(methodDeclaration, "Only one constructor allowed per class");
+    }
 //     if (methodDeclaration != body.declararations.get(0))
 //       Jooc.error(methodDeclaration, "Constructor declaration must be the first declaration in a class");
-     constructor = methodDeclaration;
+    constructor = methodDeclaration;
   }
 
   public void generateCode(JsWriter out) throws IOException {
@@ -93,15 +99,19 @@ public class ClassDeclaration extends IdeDeclaration {
     writeModifiers(out);
     out.writeSymbol(symClass);
     ide.generateCode(out);
-    if (optExtends != null) optExtends.generateCode(out);
-    if (optImplements != null) optImplements.generateCode(out);
+    if (optExtends != null) {
+      optExtends.generateCode(out);
+    }
+    if (optImplements != null) {
+      optImplements.generateCode(out);
+    }
     out.endString();
     out.write(",");
-    out.write("function("+ide.getName()+",$$private){");
+    out.write("function(" + ide.getName() + ",$$private){");
     for (String importedPackage : packageImports) {
-      out.write("with("+importedPackage+")");
+      out.write("with(" + importedPackage + ")");
     }
-    out.write("with("+ide.getName()+")with($$private)return[");
+    out.write("with(" + ide.getName() + ")with($$private)return[");
     generateClassInits(out);
     body.generateCode(out);
     out.write("];},");
@@ -128,7 +138,7 @@ public class ClassDeclaration extends IdeDeclaration {
   }
 
   private static boolean recheckScopes(String qualifiedNameStr, Set<Scope> recheckScopes) {
-    if (recheckScopes==null) {
+    if (recheckScopes == null) {
       return true; // marker for "already verified it is a class"
     }
     // if class guessing is enabled, we still have to check that the identifier was not a forward-access which
@@ -145,7 +155,7 @@ public class ClassDeclaration extends IdeDeclaration {
     out.write("[");
     boolean isFirst = true;
     for (MemberDeclaration memberDeclaration : members.values()) {
-      if (memberDeclaration.isMethod() && !memberDeclaration.isPrivate() && !memberDeclaration.isProtected()  && memberDeclaration.isStatic() && !memberDeclaration.isNative()) {
+      if (memberDeclaration.isMethod() && !memberDeclaration.isPrivate() && !memberDeclaration.isProtected() && memberDeclaration.isStatic() && !memberDeclaration.isNative()) {
         if (isFirst) {
           isFirst = false;
         } else {
@@ -169,8 +179,12 @@ public class ClassDeclaration extends IdeDeclaration {
     context.enterScope(this);
     // ...and one scope for instance members!
     context.enterScope(this);
-    if (optExtends != null) optExtends.analyze(this, context);
-    if (optImplements != null) optImplements.analyze(this, context);
+    if (optExtends != null) {
+      optExtends.analyze(this, context);
+    }
+    if (optImplements != null) {
+      optImplements.analyze(this, context);
+    }
     body.analyze(this, context);
     context.leaveScope(this);
     context.leaveScope(this);
@@ -188,18 +202,18 @@ public class ClassDeclaration extends IdeDeclaration {
 
   public boolean isPrivateMember(String memberName) {
     MemberDeclaration memberDeclaration = getMemberDeclaration(memberName);
-    return memberDeclaration!=null && memberDeclaration.isPrivate();
+    return memberDeclaration != null && memberDeclaration.isPrivate();
   }
 
   public boolean isPrivateStaticMember(String memberName) {
     MemberDeclaration memberDeclaration = getMemberDeclaration(memberName);
-    return memberDeclaration!=null && memberDeclaration.isPrivate() && memberDeclaration.isStatic();
+    return memberDeclaration != null && memberDeclaration.isPrivate() && memberDeclaration.isStatic();
   }
 
   public Type getSuperClassType() {
     return optExtends != null
-      ? optExtends.superClass
-      : new IdeType(new Ide(new JooSymbol("Object")));
+        ? optExtends.superClass
+        : new IdeType(new Ide(new JooSymbol("Object")));
   }
 
   public String getSuperClassPath() {
@@ -221,13 +235,13 @@ public class ClassDeclaration extends IdeDeclaration {
     // really another class?
     if (!(qualifiedNameStr.equals(getName()) || qualifiedNameStr.equals(getQualifiedNameStr()))) {
       Scope declaringScope = context.getScope().findScopeThatDeclares(qualifiedNameStr);
-      if (declaringScope!=null && declaringScope.getDeclaration().equals(getParentDeclaration())) {
+      if (declaringScope != null && declaringScope.getDeclaration().equals(getParentDeclaration())) {
         classInit.put(qualifiedNameStr, null); // null: marker for "already verified it is a class" 
-      } else if (declaringScope==null && context.getConfig().isEnableGuessingClasses() &&
-        !(ide instanceof QualifiedIde) && Character.isUpperCase(qualifiedNameStr.charAt(0))) {
+      } else if (declaringScope == null && context.getConfig().isEnableGuessingClasses() &&
+          !(ide instanceof QualifiedIde) && Character.isUpperCase(qualifiedNameStr.charAt(0))) {
         // store current context to repeat look-up in rendering phase, when all declarations are known:
         Set<Scope> scopes = classInit.get(qualifiedNameStr);
-        if (scopes==null) {
+        if (scopes == null) {
           if (classInit.containsKey(qualifiedNameStr)) {
             return; // "already verified it is a class"
           }

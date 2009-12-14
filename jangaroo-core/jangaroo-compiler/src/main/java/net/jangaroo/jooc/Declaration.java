@@ -35,19 +35,19 @@ abstract class Declaration extends NodeImplBase {
   protected int allowedModifiers = -1;
 
   protected static final int MODIFIER_PUBLIC = 1;
-  protected static final int MODIFIER_PROTECTED = 2*MODIFIER_PUBLIC;
-  protected static final int MODIFIER_PRIVATE = 2*MODIFIER_PROTECTED;
-  protected static final int MODIFIER_INTERNAL = 2*MODIFIER_PRIVATE;
-  protected static final int MODIFIER_STATIC = 2*MODIFIER_INTERNAL;
-  protected static final int MODIFIER_ABSTRACT = 2*MODIFIER_STATIC;
-  protected static final int MODIFIER_FINAL = 2*MODIFIER_ABSTRACT;
-  protected static final int MODIFIER_OVERRIDE = 2*MODIFIER_FINAL;
-  protected static final int MODIFIER_DYNAMIC = 2*MODIFIER_OVERRIDE;
-  protected static final int MODIFIER_NAMESPACE = 2*MODIFIER_DYNAMIC;
-  protected static final int MODIFIER_NATIVE = 2*MODIFIER_NAMESPACE;
+  protected static final int MODIFIER_PROTECTED = 2 * MODIFIER_PUBLIC;
+  protected static final int MODIFIER_PRIVATE = 2 * MODIFIER_PROTECTED;
+  protected static final int MODIFIER_INTERNAL = 2 * MODIFIER_PRIVATE;
+  protected static final int MODIFIER_STATIC = 2 * MODIFIER_INTERNAL;
+  protected static final int MODIFIER_ABSTRACT = 2 * MODIFIER_STATIC;
+  protected static final int MODIFIER_FINAL = 2 * MODIFIER_ABSTRACT;
+  protected static final int MODIFIER_OVERRIDE = 2 * MODIFIER_FINAL;
+  protected static final int MODIFIER_DYNAMIC = 2 * MODIFIER_OVERRIDE;
+  protected static final int MODIFIER_NAMESPACE = 2 * MODIFIER_DYNAMIC;
+  protected static final int MODIFIER_NATIVE = 2 * MODIFIER_NAMESPACE;
 
   protected static final int MODIFIERS_SCOPE =
-    MODIFIER_PRIVATE|MODIFIER_PROTECTED|MODIFIER_PUBLIC|MODIFIER_INTERNAL|MODIFIER_NAMESPACE;
+      MODIFIER_PRIVATE | MODIFIER_PROTECTED | MODIFIER_PUBLIC | MODIFIER_INTERNAL | MODIFIER_NAMESPACE;
 
   protected Declaration(JooSymbol[] modifiers, int allowedModifiers) {
     this.symModifiers = modifiers;
@@ -61,34 +61,40 @@ abstract class Declaration extends NodeImplBase {
 
   protected void computeModifiers() {
     modifiers = 0;
-    for (int i = 0; i < symModifiers.length; i++) {
-      JooSymbol modifier = symModifiers[i];
+    for (JooSymbol modifier : symModifiers) {
       int flag = getModifierFlag(modifier);
-      if ((allowedModifiers & flag) == 0)
-        Jooc.error(modifier, "modifier '" +  modifier.getText() + "' not allowed here");
-      if ((flag & modifiers) != 0)
-        Jooc.error(modifier, "duplicate modifier '" +  modifier.getText() + "'");
-      if ((flag & MODIFIERS_SCOPE) != 0 && (modifiers & MODIFIERS_SCOPE) != 0)
-        Jooc.error(modifier, "duplicate scope modifier '" +  modifier.getText() + "'");
+      if ((allowedModifiers & flag) == 0) {
+        Jooc.error(modifier, "modifier '" + modifier.getText() + "' not allowed here");
+      }
+      if ((flag & modifiers) != 0) {
+        Jooc.error(modifier, "duplicate modifier '" + modifier.getText() + "'");
+      }
+      if ((flag & MODIFIERS_SCOPE) != 0 && (modifiers & MODIFIERS_SCOPE) != 0) {
+        Jooc.error(modifier, "duplicate scope modifier '" + modifier.getText() + "'");
+      }
       modifiers |= flag;
     }
   }
 
   int getModifierFlag(JooSymbol modifier) {
     switch (modifier.sym) {
-      case sym.PUBLIC: return MODIFIER_PUBLIC;
-      case sym.PROTECTED: return MODIFIER_PROTECTED;
-      case sym.PRIVATE: return MODIFIER_PRIVATE;
-      case sym.INTERNAL: return MODIFIER_INTERNAL;
+      case sym.PUBLIC:
+        return MODIFIER_PUBLIC;
+      case sym.PROTECTED:
+        return MODIFIER_PROTECTED;
+      case sym.PRIVATE:
+        return MODIFIER_PRIVATE;
+      case sym.INTERNAL:
+        return MODIFIER_INTERNAL;
       case sym.IDE:
         return
-            modifier.getText().equals(SyntacticKeywords.DYNAMIC)  ? MODIFIER_DYNAMIC
-          : modifier.getText().equals(SyntacticKeywords.STATIC)   ? MODIFIER_STATIC
-          : modifier.getText().equals(SyntacticKeywords.FINAL)    ? MODIFIER_FINAL
-          : modifier.getText().equals(SyntacticKeywords.NATIVE)   ? MODIFIER_NATIVE
-          : modifier.getText().equals(SyntacticKeywords.OVERRIDE) ? MODIFIER_OVERRIDE
-          : MODIFIER_NAMESPACE;
-       
+            modifier.getText().equals(SyntacticKeywords.DYNAMIC) ? MODIFIER_DYNAMIC
+                : modifier.getText().equals(SyntacticKeywords.STATIC) ? MODIFIER_STATIC
+                : modifier.getText().equals(SyntacticKeywords.FINAL) ? MODIFIER_FINAL
+                : modifier.getText().equals(SyntacticKeywords.NATIVE) ? MODIFIER_NATIVE
+                : modifier.getText().equals(SyntacticKeywords.OVERRIDE) ? MODIFIER_OVERRIDE
+                : MODIFIER_NAMESPACE;
+
     }
     Jooc.error(modifier, "internal compiler error: invalid modifier '" + modifier.getText() + "'");
     return -1;

@@ -35,19 +35,26 @@ class JsStringLiteralWriter extends SubstitutingWriter {
   }
 
   protected String substitute(char ch) {
-    if (ch == '"')
+    if (ch == '"') {
       return "\\\"";
-    if (ch == '\n')
+    }
+    if (ch == '\n') {
       return "\\n";
+    }
     if (ch == '/' && insideScriptTag)
-      // this prevents literals containing </script> from terminating the script tag
+    // this prevents literals containing </script> from terminating the script tag
+    {
       return "\\/";
-    if (ch == '\\')
+    }
+    if (ch == '\\') {
       return "\\\\";
-    if ((int) ch < 16)
+    }
+    if ((int) ch < 16) {
       return "\\x0" + Integer.toHexString((int) ch);
-    if ((int) ch < 32)
+    }
+    if ((int) ch < 32) {
       return "\\x" + Integer.toHexString((int) ch);
+    }
     return null;
   }
 

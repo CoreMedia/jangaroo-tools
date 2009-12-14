@@ -24,14 +24,14 @@ import java.util.Arrays;
  */
 class ForInStatement extends LoopStatement {
 
-  JooSymbol symEach;
-  JooSymbol lParen;
-  VariableDeclaration decl;
-  Ide ide; // only as alternative to decl
-  JooSymbol symIn;
-  Expr expr;
-  JooSymbol rParen;
-  Ide auxIde; // generated for each loop auxilliary variable
+  private JooSymbol symEach;
+  private JooSymbol lParen;
+  private VariableDeclaration decl;
+  private Ide ide; // only as alternative to decl
+  private JooSymbol symIn;
+  private Expr expr;
+  private JooSymbol rParen;
+  private Ide auxIde; // generated for each loop auxilliary variable
   private static final JooSymbol SYM_VAR = new JooSymbol(sym.VAR, "var");
   private static final JooSymbol SYM_EQ = new JooSymbol(sym.EQ, "=");
   private static final JooSymbol SYM_SEMICOLON = new JooSymbol(sym.SEMICOLON, ";");
@@ -50,7 +50,7 @@ class ForInStatement extends LoopStatement {
 
   private ForInStatement(JooSymbol symFor, JooSymbol symEach, JooSymbol lParen, VariableDeclaration decl, Ide ide, JooSymbol symIn, Expr expr, JooSymbol rParen, Statement body) {
     super(symFor, body);
-    if (!(symEach==null || SyntacticKeywords.EACH.equals(symEach.getText()))) {
+    if (!(symEach == null || SyntacticKeywords.EACH.equals(symEach.getText()))) {
       Jooc.error(symEach, "'for' must be followed by '(' or 'each'.");
     }
     this.symEach = symEach;
@@ -63,16 +63,16 @@ class ForInStatement extends LoopStatement {
   }
 
   protected void generateLoopHeaderCode(JsWriter out) throws IOException {
-    if (symEach!=null) {
+    if (symEach != null) {
       out.beginComment();
       out.writeSymbol(symEach);
       out.endComment();
     }
     out.writeSymbol(lParen);
-    if (symEach!=null) {
+    if (symEach != null) {
       new VariableDeclaration(SYM_VAR, auxIde, null, null).generateCode(out);
     } else {
-      if (decl!=null) {
+      if (decl != null) {
         decl.generateCode(out);
       } else {
         ide.generateCode(out);
@@ -81,18 +81,18 @@ class ForInStatement extends LoopStatement {
     out.writeSymbol(symIn);
     expr.generateCode(out);
     out.writeSymbol(rParen);
-    if (symEach!=null) {
+    if (symEach != null) {
       // synthesize assigning the correct index to the variable given in the original for each statement:
       ArrayIndexExpr indexExpr = new ArrayIndexExpr(expr, SYM_LBRACK,
-        new CommaSeparatedList<IdeExpr>(new IdeExpr(auxIde)),
-        SYM_RBRACK);
-      Node assignment = new SemicolonTerminatedStatement(decl!=null
-        ? new VariableDeclaration(SYM_VAR, decl.ide, decl.optTypeRelation, new Initializer(SYM_EQ, indexExpr))
-        : new AssignmentOpExpr(new IdeExpr(ide), SYM_EQ, indexExpr),
-        SYM_SEMICOLON);
+          new CommaSeparatedList<IdeExpr>(new IdeExpr(auxIde)),
+          SYM_RBRACK);
+      Node assignment = new SemicolonTerminatedStatement(decl != null
+          ? new VariableDeclaration(SYM_VAR, decl.ide, decl.optTypeRelation, new Initializer(SYM_EQ, indexExpr))
+          : new AssignmentOpExpr(new IdeExpr(ide), SYM_EQ, indexExpr),
+          SYM_SEMICOLON);
       // inject synthesized statement into loop body:
       if (body instanceof BlockStatement) {
-        ((BlockStatement)body).statements.add(0, assignment);
+        ((BlockStatement) body).statements.add(0, assignment);
       } else {
         body = new BlockStatement(SYM_LBRACE, Arrays.asList(assignment, body), SYM_RBRACE);
       }
@@ -105,10 +105,10 @@ class ForInStatement extends LoopStatement {
   }
 
   protected void analyzeLoopHeader(AnalyzeContext context) {
-    if (symEach!=null) {
+    if (symEach != null) {
       auxIde = context.getScope().createAuxVar();
     }
-    if (decl!=null) {
+    if (decl != null) {
       decl.analyze(this, context);
     } else {
       ide.analyze(this, context);

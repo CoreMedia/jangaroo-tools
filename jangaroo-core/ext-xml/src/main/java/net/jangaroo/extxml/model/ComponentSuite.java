@@ -20,6 +20,7 @@ public final class ComponentSuite {
   private Map<String, ComponentClass> componentClassesByLocalName = new HashMap<String, ComponentClass>();
   private Map<String, ComponentClass> componentClassesByFullClassName = new HashMap<String, ComponentClass>();
   private Map<String, ComponentSuite> usedComponentSuites;
+  private List<ResourceBundleModel> resoureBundles = new ArrayList<ResourceBundleModel>();
 
   public ComponentSuite() {
     this(null, null, null, null);
@@ -97,6 +98,11 @@ public final class ComponentSuite {
 
   public File getAs3OutputDir() {
     return as3OutputDir;
+  }
+
+  public void addResourceBundleModel(ResourceBundleModel rb) {
+    rb.setSuite(this);
+    resoureBundles.add(rb);
   }
 
   public void addComponentClass(ComponentClass cc) {

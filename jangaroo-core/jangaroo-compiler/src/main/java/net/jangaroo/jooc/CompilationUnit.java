@@ -19,14 +19,14 @@ import net.jangaroo.jooc.backend.CompilationUnitSink;
 import net.jangaroo.jooc.backend.CompilationUnitSinkFactory;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.FilenameFilter;
-import java.util.Set;
-import java.util.List;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Iterator;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author Andreas Gawecki
@@ -39,12 +39,12 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
   }
 
   private Set<String> samePackageSymbols;
-  PackageDeclaration packageDeclaration;
-  JooSymbol lBrace;
-  List<Node> directives;
-  IdeDeclaration primaryDeclaration;
-  JooSymbol rBrace;
-  Set<String> externalUsages = new LinkedHashSet<String>();
+  private PackageDeclaration packageDeclaration;
+  private JooSymbol lBrace;
+  private List<Node> directives;
+  private IdeDeclaration primaryDeclaration;
+  private JooSymbol rBrace;
+  private Set<String> externalUsages = new LinkedHashSet<String>();
 
 
   protected File sourceFile;
@@ -74,7 +74,7 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
   }
 
   private static String withoutAS(String name) {
-    return name.substring(0,name.length()- Jooc.INPUT_FILE_SUFFIX.length());
+    return name.substring(0, name.length() - Jooc.INPUT_FILE_SUFFIX.length());
   }
 
   public File getSourceFile() {
@@ -84,35 +84,35 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
   public void writeOutput(CompilationUnitSinkFactory writerFactory,
                           boolean verbose) throws Jooc.CompilerError {
     CompilationUnitSink sink = writerFactory.createSink(
-      packageDeclaration, primaryDeclaration,
-      sourceFile, verbose);
+        packageDeclaration, primaryDeclaration,
+        sourceFile, verbose);
 
     sink.writeOutput(this);
   }
 
   public void generateCode(JsWriter out) throws IOException {
-     out.write(Jooc.CLASS_LOADER_FULLY_QUALIFIED_NAME + ".prepare(");
-     packageDeclaration.generateCode(out);
-     out.writeSymbolWhitespace(lBrace);
-     out.write("[");
-     if (directives!=null) {
-       generateCode(directives, out);
-     }
-     out.write("\"\"],");
-     primaryDeclaration.generateCode(out);
-     if (externalUsages.size()>0) {
-       out.write(",[");
-       for (Iterator<String> it = externalUsages.iterator(); it.hasNext();) {
-         String externalUsage = it.next();
-         out.write(externalUsage);
-         if (it.hasNext()) {
-           out.write(",");
-         }
-       }
-       out.write("]");
-     }
-     out.writeSymbolWhitespace(rBrace);
-     out.write(");");
+    out.write(Jooc.CLASS_LOADER_FULLY_QUALIFIED_NAME + ".prepare(");
+    packageDeclaration.generateCode(out);
+    out.writeSymbolWhitespace(lBrace);
+    out.write("[");
+    if (directives != null) {
+      generateCode(directives, out);
+    }
+    out.write("\"\"],");
+    primaryDeclaration.generateCode(out);
+    if (externalUsages.size() > 0) {
+      out.write(",[");
+      for (Iterator<String> it = externalUsages.iterator(); it.hasNext();) {
+        String externalUsage = it.next();
+        out.write(externalUsage);
+        if (it.hasNext()) {
+          out.write(",");
+        }
+      }
+      out.write("]");
+    }
+    out.writeSymbolWhitespace(rBrace);
+    out.write(");");
   }
 
   public Node analyze(Node parentNode, AnalyzeContext context) {
@@ -120,31 +120,31 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
     IdeType globalObject = new IdeType("globalObject");
     context.enterScope(globalObject);
     declareIdes(context.getScope(), new String[]{
-      "undefined",
-      "window",  // TODO: or rather have to import?
-      "int",
-      "uint",
-      "Object",
-      "Function",
-      "Class",
-      "Array",
-      "Boolean",
-      "String",
-      "Number",
-      "RegExp",
-      "Date",
-      "Math",
-      "parseInt",
-      "parseFloat",
-      "isNaN",
-      "NaN",
-      "isFinite",
-      "Infinity",
-      "decodeURI",
-      "decodeURIComponent",
-      "encodeURI",
-      "encodeURIComponent",
-      "trace"});
+        "undefined",
+        "window",  // TODO: or rather have to import?
+        "int",
+        "uint",
+        "Object",
+        "Function",
+        "Class",
+        "Array",
+        "Boolean",
+        "String",
+        "Number",
+        "RegExp",
+        "Date",
+        "Math",
+        "parseInt",
+        "parseFloat",
+        "isNaN",
+        "NaN",
+        "isFinite",
+        "Infinity",
+        "decodeURI",
+        "decodeURIComponent",
+        "encodeURI",
+        "encodeURIComponent",
+        "trace"});
     super.analyze(parentNode, context);
     context.enterScope(packageDeclaration);
     packageDeclaration.analyze(this, context);
@@ -162,9 +162,9 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
     for (String samePackageSymbol : samePackageSymbols) {
       ImportDirective importDirective = new ImportDirective(packageIde, samePackageSymbol);
       packageScope.declareIde(samePackageSymbol, importDirective);
-      directives.add(0,importDirective);
+      directives.add(0, importDirective);
     }
-    if (this.directives==null) {
+    if (this.directives == null) {
       this.directives = directives;
     } else {
       this.directives.addAll(0, directives);
@@ -173,13 +173,13 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
   }
 
   private void declareIdes(Scope scope, String[] identifiers) {
-    for (String identifier: identifiers) {
+    for (String identifier : identifiers) {
       scope.declareIde(identifier, new IdeType(identifier));
     }
   }
 
   public JooSymbol getSymbol() {
-     return packageDeclaration.getSymbol();
+    return packageDeclaration.getSymbol();
   }
 
 }

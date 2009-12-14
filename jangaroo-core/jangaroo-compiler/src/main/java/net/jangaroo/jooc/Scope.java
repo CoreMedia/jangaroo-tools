@@ -17,8 +17,8 @@ package net.jangaroo.jooc;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Andreas Gawecki
@@ -41,7 +41,7 @@ class Scope {
     return parent;
   }
 
-  protected Map<String,Node> ides = new HashMap<String,Node>();
+  protected Map<String, Node> ides = new HashMap<String, Node>();
   protected List<LabeledStatement> labels = new ArrayList<LabeledStatement>();
   protected List<LoopStatement> loopStatementStack = new ArrayList<LoopStatement>();
   protected List<KeywordStatement> loopOrSwitchStatementStack = new ArrayList<KeywordStatement>();
@@ -52,7 +52,7 @@ class Scope {
 
   public Node declareIde(String name, Node node, boolean allowDuplicates, JooSymbol ideSymbol) {
     Node oldNode = declareIde(name, node);
-    if (oldNode!=null) {
+    if (oldNode != null) {
       String msg = "Duplicate declaration of identifier '" + name + "'";
       if (allowDuplicates) {
         Jooc.warning(ideSymbol, msg);
@@ -65,20 +65,22 @@ class Scope {
 
   public void defineLabel(LabeledStatement labeledStatement) {
     LabeledStatement s = lookupLabel(labeledStatement.ide);
-    if (s != null)
+    if (s != null) {
       Jooc.error(labeledStatement.ide.ide, "label already defined in scope: '" + labeledStatement.ide.getName() + "'");
+    }
     labels.add(labeledStatement);
   }
 
   public void undefineLabel() {
-    labels.remove(labels.size()-1);
+    labels.remove(labels.size() - 1);
   }
 
   public LabeledStatement lookupLabel(Ide ide) {
     String name = ide.getName();
     for (LabeledStatement label : labels) {
-      if (label.ide.getName().equals(name))
+      if (label.ide.getName().equals(name)) {
         return label;
+      }
     }
     Jooc.error(ide.ide, "undeclared label '" + name + "'");
     return null; // not reached
@@ -97,24 +99,25 @@ class Scope {
   }
 
   public Scope findScopeThatDeclares(String name) {
-    return getIdeDeclaration(name)!=null ? this
-      : getParentScope()==null ? null
-      : getParentScope().findScopeThatDeclares(name);
+    return getIdeDeclaration(name) != null ? this
+        : getParentScope() == null ? null
+        : getParentScope().findScopeThatDeclares(name);
   }
 
   public Node lookupIde(Ide ide) {
     Scope scope = findScopeThatDeclares(ide);
-    if (scope == null)
+    if (scope == null) {
       Jooc.error(ide.ide, "undeclared identifier: '" + ide.getName() + "'");
+    }
     return scope.getIdeDeclaration(ide);
   }
 
   public Ide createAuxVar() {
-    int i=1;
+    int i = 1;
     while (true) {
       String auxVarName = "$" + i;
       Ide auxVar = new Ide(new JooSymbol(auxVarName));
-      if (findScopeThatDeclares(auxVar)==null) {
+      if (findScopeThatDeclares(auxVar) == null) {
         declareIde(auxVarName, auxVar);
         return auxVar;
       }
@@ -133,43 +136,48 @@ class Scope {
 
   public void exitLoop(LoopStatement loopStatement) {
     Debug.assertTrue(loopStatement == getCurrentLoop(), "loopStatement == getCurrentLoop()");
-    loopStatementStack.remove(loopStatementStack.size()-1);
+    loopStatementStack.remove(loopStatementStack.size() - 1);
     Debug.assertTrue(loopStatement == getCurrentLoopOrSwitch(), "loopStatement == getCurrentLoopOrSwitch()");
-    loopOrSwitchStatementStack.remove(loopOrSwitchStatementStack.size()-1);
+    loopOrSwitchStatementStack.remove(loopOrSwitchStatementStack.size() - 1);
   }
 
   public void exitSwitch(SwitchStatement switchStatement) {
     Debug.assertTrue(switchStatement == getCurrentLoopOrSwitch(), "switchStatement == getCurrentLoopOrSwitch()");
-    loopOrSwitchStatementStack.remove(loopOrSwitchStatementStack.size()-1);
+    loopOrSwitchStatementStack.remove(loopOrSwitchStatementStack.size() - 1);
   }
 
   public LoopStatement getCurrentLoop() {
-    if (loopStatementStack.isEmpty())
+    if (loopStatementStack.isEmpty()) {
       return null;
-    return loopStatementStack.get(loopStatementStack.size()-1);
+    }
+    return loopStatementStack.get(loopStatementStack.size() - 1);
   }
 
   public Statement getCurrentLoopOrSwitch() {
-    if (loopOrSwitchStatementStack.isEmpty())
+    if (loopOrSwitchStatementStack.isEmpty()) {
       return null;
-    return loopOrSwitchStatementStack.get(loopOrSwitchStatementStack.size()-1);
+    }
+    return loopOrSwitchStatementStack.get(loopOrSwitchStatementStack.size() - 1);
   }
 
   public PackageDeclaration getPackageDeclaration() {
-    if (ideDeclaration instanceof PackageDeclaration)
+    if (ideDeclaration instanceof PackageDeclaration) {
       return (PackageDeclaration) ideDeclaration;
+    }
     return parent.getPackageDeclaration();
   }
 
   public ClassDeclaration getClassDeclaration() {
-    if (ideDeclaration instanceof ClassDeclaration)
+    if (ideDeclaration instanceof ClassDeclaration) {
       return (ClassDeclaration) ideDeclaration;
-    return parent==null ? null : parent.getClassDeclaration();
+    }
+    return parent == null ? null : parent.getClassDeclaration();
   }
 
   public MethodDeclaration getMethodDeclaration() {
-    if (ideDeclaration instanceof MethodDeclaration)
+    if (ideDeclaration instanceof MethodDeclaration) {
       return (MethodDeclaration) ideDeclaration;
+    }
     return parent == null ? null : parent.getMethodDeclaration();
   }
 

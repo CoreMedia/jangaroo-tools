@@ -34,7 +34,7 @@ package net.jangaroo.jooc;
  *
  * @author Andreas Gawecki
  */
-public class Debug {
+public final class Debug {
 
   public static boolean enabled = true;
 

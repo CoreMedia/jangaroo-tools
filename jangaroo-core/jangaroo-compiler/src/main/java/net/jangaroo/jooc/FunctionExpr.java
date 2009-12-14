@@ -22,15 +22,15 @@ import java.io.IOException;
  */
 class FunctionExpr extends Expr {
 
-  JooSymbol symFun;
-  Ide ide;
-  JooSymbol lParen;
-  Parameters params;
-  JooSymbol rParen;
-  TypeRelation optTypeRelation;
-  BlockStatement body;
+  private JooSymbol symFun;
+  private Ide ide;
+  private JooSymbol lParen;
+  private Parameters params;
+  private JooSymbol rParen;
+  private TypeRelation optTypeRelation;
+  private BlockStatement body;
 
-  IdeDeclaration parentDeclaration;
+  private IdeDeclaration parentDeclaration;
   private boolean thisUsed;
 
   public FunctionExpr(JooSymbol symFun, Ide ide, JooSymbol lParen, Parameters params, JooSymbol rParen, TypeRelation optTypeRelation, BlockStatement body) {
@@ -49,24 +49,26 @@ class FunctionExpr extends Expr {
 
   public Expr analyze(Node parentNode, AnalyzeContext context) {
     parentDeclaration = context.getCurrentClass();
-    if (parentDeclaration==null) {
+    if (parentDeclaration == null) {
       Node declaration = context.getScope().getDeclaration();
       if (declaration instanceof IdeDeclaration) {
-        parentDeclaration = (IdeDeclaration)declaration;
+        parentDeclaration = (IdeDeclaration) declaration;
       }
     }
     super.analyze(parentNode, context);
-    if (ide!=null) {
+    if (ide != null) {
       context.getScope().declareIde(ide.getName(), this);
     }
     context.enterScope(this);
-    if (params != null)
+    if (params != null) {
       params.analyze(this, context);
-    if (context.getScope().getIdeDeclaration("arguments")==null) {
+    }
+    if (context.getScope().getIdeDeclaration("arguments") == null) {
       context.getScope().declareIde("arguments", this); // is always defined inside a function!
     }
-    if (optTypeRelation != null)
+    if (optTypeRelation != null) {
       optTypeRelation.analyze(this, context);
+    }
     body.analyze(this, context);
     context.leaveScope(this);
     return this;
@@ -75,21 +77,26 @@ class FunctionExpr extends Expr {
   public void notifyThisUsed(AnalyzeContext context) {
     MethodDeclaration methodDeclaration = context.getScope().getMethodDeclaration();
     // if "this" is used inside non-static method, remember that:
-    if (methodDeclaration!=null && !methodDeclaration.isStatic()) {
+    if (methodDeclaration != null && !methodDeclaration.isStatic()) {
       thisUsed = true;
     }
   }
 
   public void generateCode(JsWriter out) throws IOException {
     out.writeSymbol(symFun);
-    if (ide!=null) {
+    if (ide != null) {
       out.writeToken(ide.getName());
-    } else if (out.getKeepSource())
+    } else if (out.getKeepSource()) {
       out.writeToken(out.getFunctionNameAsIde(this));
+    }
     out.writeSymbol(lParen);
-    if (params != null) params.generateCode(out);
+    if (params != null) {
+      params.generateCode(out);
+    }
     out.writeSymbol(rParen);
-    if (optTypeRelation != null) optTypeRelation.generateCode(out);
+    if (optTypeRelation != null) {
+      optTypeRelation.generateCode(out);
+    }
     body.generateCode(out);
     if (thisUsed) {
       out.write(".bind(this)");
@@ -97,7 +104,7 @@ class FunctionExpr extends Expr {
   }
 
   public JooSymbol getSymbol() {
-     return symFun;
+    return symFun;
   }
 
   boolean isCompileTimeConstant() {

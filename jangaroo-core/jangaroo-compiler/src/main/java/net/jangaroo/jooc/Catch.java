@@ -23,10 +23,10 @@ import java.util.List;
  */
 class Catch extends KeywordStatement {
 
-  JooSymbol lParen;
-  Parameter param;
-  JooSymbol rParen;
-  BlockStatement block;
+  private JooSymbol lParen;
+  private Parameter param;
+  private JooSymbol rParen;
+  private BlockStatement block;
 
   public Catch(JooSymbol symCatch, JooSymbol lParen, Parameter param, JooSymbol rParen, BlockStatement block) {
     super(symCatch);
@@ -37,12 +37,12 @@ class Catch extends KeywordStatement {
   }
 
   public void generateCode(JsWriter out) throws IOException {
-    List<Catch> catches = ((TryStatement)parentNode).catches;
+    List<Catch> catches = ((TryStatement) parentNode).catches;
     Catch firstCatch = catches.get(0);
     boolean isFirst = equals(firstCatch);
-    boolean isLast = equals(catches.get(catches.size()-1));
+    boolean isLast = equals(catches.get(catches.size() - 1));
     TypeRelation typeRelation = param.optTypeRelation;
-    boolean hasCondition = typeRelation != null && typeRelation.getType().getSymbol().sym!=sym.MUL;
+    boolean hasCondition = typeRelation != null && typeRelation.getType().getSymbol().sym != sym.MUL;
     if (!hasCondition && !isLast) {
       Jooc.error(rParen, "Only last catch clause may be untyped.");
     }
@@ -55,7 +55,7 @@ class Catch extends KeywordStatement {
       // "(localErrorVar)":
       out.writeSymbol(lParen, !hasCondition);
       out.writeSymbol(errorVar, !hasCondition);
-      if (!hasCondition && typeRelation!=null) {
+      if (!hasCondition && typeRelation != null) {
         // can only be ": *", add as comment:
         typeRelation.generateCode(out);
       }

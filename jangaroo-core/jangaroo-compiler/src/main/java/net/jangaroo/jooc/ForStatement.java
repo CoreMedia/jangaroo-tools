@@ -22,13 +22,13 @@ import java.io.IOException;
  */
 class ForStatement extends ConditionalLoopStatement {
 
-  JooSymbol lParen;
-  ForInitializer forInit;
-  JooSymbol symSemicolon1;
-  Expr optCond;
-  JooSymbol symSemicolon2;
-  Expr optStep;
-  JooSymbol rParen;
+  private JooSymbol lParen;
+  private ForInitializer forInit;
+  private JooSymbol symSemicolon1;
+  private Expr optCond;
+  private JooSymbol symSemicolon2;
+  private Expr optStep;
+  private JooSymbol rParen;
 
   public ForStatement(JooSymbol symFor, JooSymbol lParen, ForInitializer forInit, JooSymbol symSemicolon1, Expr optCond, JooSymbol symSemicolon2, Expr optStep, JooSymbol rParen, Statement body) {
     super(symFor, optCond, body);
@@ -42,19 +42,22 @@ class ForStatement extends ConditionalLoopStatement {
 
   protected void generateLoopHeaderCode(JsWriter out) throws IOException {
     out.writeSymbol(lParen);
-    if (forInit!=null)
+    if (forInit != null) {
       forInit.generateCode(out);
+    }
     out.writeSymbol(symSemicolon1);
     super.generateLoopHeaderCode(out);
     out.writeSymbol(symSemicolon2);
-    if (optStep != null)
+    if (optStep != null) {
       optStep.generateCode(out);
+    }
     out.writeSymbol(rParen);
   }
 
   protected void analyzeLoopHeader(AnalyzeContext context) {
-    if (forInit!=null)
+    if (forInit != null) {
       forInit.analyze(this, context);
+    }
     super.analyzeLoopHeader(context);
   }
 
