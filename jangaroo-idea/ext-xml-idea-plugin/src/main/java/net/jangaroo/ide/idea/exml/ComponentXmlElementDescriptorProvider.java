@@ -1,6 +1,5 @@
 package net.jangaroo.ide.idea.exml;
 
-import com.intellij.codeInsight.daemon.Validator;
 import com.intellij.lang.javascript.index.JavaScriptIndex;
 import com.intellij.lang.javascript.psi.resolve.JSResolveUtil;
 import com.intellij.openapi.module.Module;
@@ -11,14 +10,12 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.impl.source.xml.XmlElementDescriptorProvider;
-import com.intellij.psi.meta.PsiWritableMetaData;
-import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.util.IncorrectOperationException;
-import com.intellij.xml.XmlAttributeDescriptor;
+import com.intellij.psi.xml.XmlFile;
+import com.intellij.psi.xml.XmlDocument;
 import com.intellij.xml.XmlElementDescriptor;
-import com.intellij.xml.XmlElementDescriptorAwareAboutChildren;
 import com.intellij.xml.XmlNSDescriptor;
+import com.intellij.xml.impl.schema.XmlElementDescriptorImpl;
 import com.intellij.xml.util.XmlUtil;
 import net.jangaroo.extxml.model.ComponentType;
 import org.jetbrains.annotations.NotNull;
@@ -37,29 +34,29 @@ public class ComponentXmlElementDescriptorProvider implements XmlElementDescript
       if (xmlElementDescriptor == null) {
         xmlElementDescriptor = XmlUtil.findXmlDescriptorByType(xmltag);
       }
-      return xmlElementDescriptor == null ? null : new ComponentXmlElementDescriptor(xmlElementDescriptor);
+      return xmlElementDescriptor instanceof XmlElementDescriptorImpl ? new ComponentXmlElementDescriptor((XmlElementDescriptorImpl)xmlElementDescriptor) : null;
     }
     return null;
   }
 
-  public static class ComponentXmlElementDescriptor implements XmlElementDescriptor, PsiWritableMetaData, Validator<XmlTag>, XmlElementDescriptorAwareAboutChildren {
-    private final XmlElementDescriptor xmlElementDescriptor;
+  public static class ComponentXmlElementDescriptor extends XmlElementDescriptorImpl {
 
-    public ComponentXmlElementDescriptor(@NotNull XmlElementDescriptor xmlElementDescriptor) {
-      this.xmlElementDescriptor = xmlElementDescriptor;
+    public ComponentXmlElementDescriptor() {
+      super();
     }
 
-    public XmlElementDescriptor getXmlElementDescriptor() {
-      return xmlElementDescriptor;
+    public ComponentXmlElementDescriptor(@NotNull XmlElementDescriptorImpl xmlElementDescriptor) {
+      super((XmlTag)xmlElementDescriptor.getDeclaration());
+      NSDescriptor = xmlElementDescriptor.getNSDescriptor();
     }
 
     public PsiElement getDeclaration() {
-      PsiElement declaration = xmlElementDescriptor.getDeclaration();
-      if (declaration instanceof XmlTag) {
-        String className = ((XmlTag) declaration).getAttributeValue("type");
+      XmlTag declaration = (XmlTag)super.getDeclaration();
+      if (declaration != null) {
+        String className = declaration.getAttributeValue("type");
         if (className != null) {
           className = XmlUtil.findLocalNameByQualifiedName(className);
-          Project project = xmlElementDescriptor.getDeclaration().getProject();
+          Project project = declaration.getProject();
           VirtualFile exmlFile = findExmlFile(project, className);
           if (exmlFile == null) {
             return JSResolveUtil.findClassByQName(className, JavaScriptIndex.getInstance(project), null);
@@ -86,74 +83,19 @@ public class ComponentXmlElementDescriptorProvider implements XmlElementDescript
       return null;
     }
 
-    public String getName(PsiElement psielement) {
-      return xmlElementDescriptor.getName(psielement);
-    }
-
-    public String getName() {
-      return xmlElementDescriptor.getName();
-    }
-
-    public void init(PsiElement psielement) {
-      xmlElementDescriptor.init(psielement);
-    }
-
-    public Object[] getDependences() {
-      return xmlElementDescriptor.getDependences();
-    }
-
     public XmlNSDescriptor getNSDescriptor() {
-      return xmlElementDescriptor.getNSDescriptor();
-    }
-
-    public XmlElementDescriptor[] getElementsDescriptors(XmlTag xmltag) {
-      return xmlElementDescriptor.getElementsDescriptors(xmltag);
-    }
-
-    public XmlAttributeDescriptor[] getAttributesDescriptors(XmlTag xmltag) {
-      return xmlElementDescriptor.getAttributesDescriptors(xmltag);
-    }
-
-    public XmlAttributeDescriptor getAttributeDescriptor(String s, XmlTag xmltag) {
-      return xmlElementDescriptor.getAttributeDescriptor(s, xmltag);
-    }
-
-    public XmlAttributeDescriptor getAttributeDescriptor(XmlAttribute xmlattribute) {
-      return xmlElementDescriptor.getAttributeDescriptor(xmlattribute);
-    }
-
-    public int getContentType() {
-      return xmlElementDescriptor.getContentType();
-    }
-
-    public XmlElementDescriptor getElementDescriptor(XmlTag childTag, XmlTag contextTag) {
-      return xmlElementDescriptor.getElementDescriptor(childTag, contextTag);
-    }
-
-    public String getQualifiedName() {
-      return xmlElementDescriptor.getQualifiedName();
-    }
-
-    public String getDefaultName() {
-      return xmlElementDescriptor.getDefaultName();
-    }
-
-    public void setName(String s) throws IncorrectOperationException {
-      if (xmlElementDescriptor instanceof PsiWritableMetaData) {
-        ((PsiWritableMetaData) xmlElementDescriptor).setName(s);
+      if (NSDescriptor == null || !NSDescriptor.getDeclaration().isValid()) {
+        XmlFile xmlfile = XmlUtil.getContainingFile(super.getDeclaration()); // use old getDeclaration() behavior!
+        if (xmlfile != null) {
+          XmlDocument xmldocument = xmlfile.getDocument();
+          if (xmldocument != null) {
+            return NSDescriptor = (XmlNSDescriptor)xmldocument.getMetaData();
+          }
+        }
+        return null;
       }
+      return NSDescriptor;
     }
 
-    public boolean allowElementsFromNamespace(String s, XmlTag xmltag) {
-      return !(xmlElementDescriptor instanceof XmlElementDescriptorAwareAboutChildren)
-          || ((XmlElementDescriptorAwareAboutChildren) xmlElementDescriptor).allowElementsFromNamespace(s, xmltag);
-    }
-
-    @SuppressWarnings({"unchecked"})
-    public void validate(@NotNull XmlTag xmlTag, @NotNull ValidationHost validationHost) {
-      if (xmlElementDescriptor instanceof Validator) {
-        ((Validator) xmlElementDescriptor).validate(xmlTag, validationHost);
-      }
-    }
   }
 }
