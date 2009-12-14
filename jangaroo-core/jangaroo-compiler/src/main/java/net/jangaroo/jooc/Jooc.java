@@ -26,9 +26,11 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The Jangaroo AS3-to-JS Compiler's main class.
+ *
  * @author Andreas Gawecki
  * @author Frank Wienberg
  */
@@ -47,7 +49,7 @@ public class Jooc {
   public static final String INPUT_FILE_SUFFIX_NO_DOT = AS_SUFFIX_NO_DOT;
   public static final String INPUT_FILE_SUFFIX = AS_SUFFIX;
   public static final String OUTPUT_FILE_SUFFIX = ".js";
-  
+
   public static final String CLASS_LOADER_NAME = "classLoader";
   public static final String CLASS_LOADER_PACKAGE_NAME = "joo";
   public static final String CLASS_LOADER_FULLY_QUALIFIED_NAME = CLASS_LOADER_PACKAGE_NAME + "." + CLASS_LOADER_NAME;
@@ -57,7 +59,7 @@ public class Jooc {
   private static ThreadLocal<CompileLog> logHolder = new ThreadLocal<CompileLog>();
   private CompileLog log;
 
-  private ArrayList<CompilationUnit> compilationUnits = new ArrayList<CompilationUnit>();
+  private List<CompilationUnit> compilationUnits = new ArrayList<CompilationUnit>();
 
   public Jooc() {
     this(new StdOutCompileLog());
@@ -90,18 +92,18 @@ public class Jooc {
 
     if (config.isMergeOutput()) {
       codeSinkFactory = new MergedOutputCompilationUnitSinkFactory(
-        config, config.getOutputFile()
+          config, config.getOutputFile()
       );
     } else {
       codeSinkFactory = new SingleFileCompilationUnitSinkFactory(
-        config, config.getOutputDirectory(), OUTPUT_FILE_SUFFIX
+          config, config.getOutputDirectory(), OUTPUT_FILE_SUFFIX
       );
     }
     return codeSinkFactory;
   }
 
   static class CompilerError extends RuntimeException {
-    JooSymbol symbol = null;
+    private JooSymbol symbol = null;
 
     CompilerError(String msg) {
       super(msg);
@@ -119,12 +121,18 @@ public class Jooc {
 
   public static String getResultCodeDescription(int resultCode) {
     switch (resultCode) {
-      case RESULT_CODE_OK: return "ok";
-      case RESULT_CODE_COMPILATION_FAILED: return "compilation failed";
-      case RESULT_CODE_INTERNAL_COMPILER_ERROR: return "internal compiler error";
-      case RESULT_CODE_UNRECOGNIZED_OPTION: return "unrecognized option";
-      case RESULT_CODE_MISSING_OPTION_ARGUMENT: return "missing option argument";
-      default: return "unknown result code";
+      case RESULT_CODE_OK:
+        return "ok";
+      case RESULT_CODE_COMPILATION_FAILED:
+        return "compilation failed";
+      case RESULT_CODE_INTERNAL_COMPILER_ERROR:
+        return "internal compiler error";
+      case RESULT_CODE_UNRECOGNIZED_OPTION:
+        return "unrecognized option";
+      case RESULT_CODE_MISSING_OPTION_ARGUMENT:
+        return "missing option argument";
+      default:
+        return "unknown result code";
     }
   }
 
@@ -154,18 +162,22 @@ public class Jooc {
 
   protected void processSource(File file) {
     CompilationUnit unit = parse(file);
-    if (unit != null)
+    if (unit != null) {
       compilationUnits.add(unit);
+    }
   }
 
   protected CompilationUnit parse(File in) {
-    if (in.isDirectory())
+    if (in.isDirectory()) {
       error("Input file is a directory: " + in.getAbsolutePath());
-    if (!in.getName().endsWith(JS2_SUFFIX) && !in.getName().endsWith(AS_SUFFIX))
+    }
+    if (!in.getName().endsWith(JS2_SUFFIX) && !in.getName().endsWith(AS_SUFFIX)) {
       error("Input file must end with '" + JS2_SUFFIX + " or " + AS_SUFFIX + "': " + in.getAbsolutePath());
+    }
     Scanner s;
-    if (config.isVerbose())
+    if (config.isVerbose()) {
       System.out.println("Parsing " + in.getAbsolutePath());
+    }
     try {
       s = new Scanner(new FileReader(in));
     } catch (FileNotFoundException e) {
@@ -222,10 +234,11 @@ public class Jooc {
       System.out.println(e.getMessage());
       return e.getExitCode();
     } catch (CompilerError e) {
-      if (e.symbol != null)
+      if (e.symbol != null) {
         log.error(e.symbol, e.getMessage());
-      else
+      } else {
         log.error(e.getMessage());
+      }
       return RESULT_CODE_COMPILATION_FAILED;
     } catch (Exception e) {
       e.printStackTrace();
@@ -237,8 +250,9 @@ public class Jooc {
   public static void main(String[] argv) {
     Jooc compiler = new Jooc();
     int result = compiler.run(argv);
-    if (result != 0)
+    if (result != 0) {
       System.exit(result);
+    }
   }
 
 }

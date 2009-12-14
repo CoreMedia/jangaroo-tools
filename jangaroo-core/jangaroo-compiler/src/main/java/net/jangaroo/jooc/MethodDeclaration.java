@@ -23,32 +23,32 @@ import java.io.IOException;
  */
 public class MethodDeclaration extends MemberDeclaration {
 
-  JooSymbol symFunction;
-  JooSymbol symGetOrSet;
-  JooSymbol lParen;
+  private JooSymbol symFunction;
+  private JooSymbol symGetOrSet;
+  private JooSymbol lParen;
 
   public Parameters getParams() {
     return params;
   }
 
-  Parameters params;
-  JooSymbol rParen;
+  private Parameters params;
+  private JooSymbol rParen;
 
-  Statement optBody;
+  private Statement optBody;
 
   boolean isConstructor = false;
   boolean containsSuperConstructorCall = false;
 
   private static final int defaultAllowedMethodModifers =
-     MODIFIER_OVERRIDE|MODIFIER_ABSTRACT|MODIFIER_FINAL|MODIFIERS_SCOPE|MODIFIER_STATIC|MODIFIER_NATIVE;
+      MODIFIER_OVERRIDE | MODIFIER_ABSTRACT | MODIFIER_FINAL | MODIFIERS_SCOPE | MODIFIER_STATIC | MODIFIER_NATIVE;
 
   public MethodDeclaration(JooSymbol[] modifiers, JooSymbol symFunction, Ide ide, JooSymbol lParen,
-       Parameters params, JooSymbol rParen, TypeRelation optTypeRelation, Statement optBody) {
+                           Parameters params, JooSymbol rParen, TypeRelation optTypeRelation, Statement optBody) {
     this(modifiers, symFunction, null, ide, lParen, params, rParen, optTypeRelation, optBody);
   }
 
   public MethodDeclaration(JooSymbol[] modifiers, JooSymbol symFunction, JooSymbol symGetOrSet, Ide ide, JooSymbol lParen,
-       Parameters params, JooSymbol rParen, TypeRelation optTypeRelation, Statement optBody) {
+                           Parameters params, JooSymbol rParen, TypeRelation optTypeRelation, Statement optBody) {
     super(modifiers, defaultAllowedMethodModifers, ide, optTypeRelation);
     this.symFunction = symFunction;
     this.symGetOrSet = symGetOrSet;
@@ -71,7 +71,7 @@ public class MethodDeclaration extends MemberDeclaration {
   }
 
   public boolean isGetterOrSetter() {
-    return symGetOrSet!=null;
+    return symGetOrSet != null;
   }
 
   public boolean isGetter() {
@@ -95,44 +95,51 @@ public class MethodDeclaration extends MemberDeclaration {
   }
 
   public boolean isAbstract() {
-    return classDeclaration!=null && classDeclaration.isInterface() || super.isAbstract();
+    return classDeclaration != null && classDeclaration.isInterface() || super.isAbstract();
   }
 
   public Node analyze(Node parentNode, AnalyzeContext context) {
     parentDeclaration = classDeclaration = context.getCurrentClass();
-    if (classDeclaration!=null && ide.getName().equals(classDeclaration.getName())) {
+    if (classDeclaration != null && ide.getName().equals(classDeclaration.getName())) {
       isConstructor = true;
       classDeclaration.setConstructor(this);
       allowedModifiers = MODIFIERS_SCOPE | MODIFIER_NATIVE;
     }
     super.analyze(parentNode, context); // computes modifiers
-    if (overrides() && isAbstract())
+    if (overrides() && isAbstract()) {
       Jooc.error(this, "overriding methods are not allowed to be declared abstract");
-    if (isAbstract()) {
-      if (classDeclaration==null) {
-        Jooc.error(this, "package-scoped function "+getName()+" must not be abstract.");
-      }
-      if (!classDeclaration.isAbstract())
-        Jooc.error(this, classDeclaration.getName() + "is not declared abstract");
-      if (optBody instanceof BlockStatement)
-        Jooc.error(this, "abstract method must not be implemented");
     }
-    if (isNative() && optBody instanceof BlockStatement)
+    if (isAbstract()) {
+      if (classDeclaration == null) {
+        Jooc.error(this, "package-scoped function " + getName() + " must not be abstract.");
+      }
+      if (!classDeclaration.isAbstract()) {
+        Jooc.error(this, classDeclaration.getName() + "is not declared abstract");
+      }
+      if (optBody instanceof BlockStatement) {
+        Jooc.error(this, "abstract method must not be implemented");
+      }
+    }
+    if (isNative() && optBody instanceof BlockStatement) {
       Jooc.error(this, "native method must not be implemented");
+    }
 
-    if (!isAbstract() && !isNative() && !(optBody instanceof BlockStatement))
+    if (!isAbstract() && !isNative() && !(optBody instanceof BlockStatement)) {
       Jooc.error(this, "method must either be implemented or declared abstract or native");
+    }
 
     //TODO:check whether abstract method does not actually override
 
     context.enterScope(this);
-    if (params != null)
+    if (params != null) {
       params.analyze(this, context);
-    if (context.getScope().getIdeDeclaration("arguments")==null) {
+    }
+    if (context.getScope().getIdeDeclaration("arguments") == null) {
       context.getScope().declareIde("arguments", this); // is always defined inside a function!
     }
-    if (optTypeRelation != null)
+    if (optTypeRelation != null) {
       optTypeRelation.analyze(this, context);
+    }
     optBody.analyze(this, context);
     context.leaveScope(this);
 
@@ -147,13 +154,13 @@ public class MethodDeclaration extends MemberDeclaration {
   @Override
   void handleDuplicateDeclaration(AnalyzeContext context, Node oldNode) {
     if (isGetterOrSetter() && oldNode instanceof MethodDeclaration) {
-      MethodDeclaration other = (MethodDeclaration)oldNode;
-      if (other.isGetterOrSetter() && isGetter()!=other.isGetter()) {
+      MethodDeclaration other = (MethodDeclaration) oldNode;
+      if (other.isGetterOrSetter() && isGetter() != other.isGetter()) {
         // found counterpart for this getter or setter:
         // replace declaration by a combination of both:
         context.getScope().declareIde(getName(), new GetterSetterPair(
-          isGetter() ? this : other,
-          isSetter() ? this : other));
+            isGetter() ? this : other,
+            isSetter() ? this : other));
         // ...and do not trigger warning or error!
         return;
       }
@@ -173,7 +180,7 @@ public class MethodDeclaration extends MemberDeclaration {
       out.beginString();
       writeModifiers(out);
       String methodName = ide.getName();
-      if (classDeclaration!=null && !isConstructor && !isStatic() && !isGetterOrSetter() && classDeclaration.isBoundMethod(methodName)) {
+      if (classDeclaration != null && !isConstructor && !isStatic() && !isGetterOrSetter() && classDeclaration.isBoundMethod(methodName)) {
         // TODO: move this into an annotation!
         out.writeToken("bound");
       }
@@ -193,8 +200,8 @@ public class MethodDeclaration extends MemberDeclaration {
             // do not name the constructor initializer function like the class, or it will be called
             // instead of the constructor function generated by the runtime! So we prefix it with a "$".
             // The name is for debugging purposes only, anyway.
-            out.writeToken("$"+methodName);
-          } else if (symGetOrSet!=null) {
+            out.writeToken("$" + methodName);
+          } else if (symGetOrSet != null) {
             out.writeToken(symGetOrSet.getText() + "$" + methodName);
           } else {
             out.writeToken(methodName);
@@ -207,20 +214,23 @@ public class MethodDeclaration extends MemberDeclaration {
       params.generateCode(out);
       if (optBody instanceof BlockStatement) {
         // inject into body for generating initilizers later:
-        ((BlockStatement)optBody).addBlockStartCodeGenerator(params.getParameterInitializerCodeGenerator());
+        ((BlockStatement) optBody).addBlockStartCodeGenerator(params.getParameterInitializerCodeGenerator());
       }
     }
     out.writeSymbol(rParen);
-    if (optTypeRelation != null) optTypeRelation.generateCode(out);
+    if (optTypeRelation != null) {
+      optTypeRelation.generateCode(out);
+    }
     if (isConstructor() && !containsSuperConstructorCall() && optBody instanceof BlockStatement) {
-      ((BlockStatement)optBody).addBlockStartCodeGenerator(new CodeGenerator() {
+      ((BlockStatement) optBody).addBlockStartCodeGenerator(new CodeGenerator() {
         public void generateCode(JsWriter out) throws IOException {
           out.writeToken("this[$super]();");
         }
       });
     }
-    if (optBody!=null)
+    if (optBody != null) {
       optBody.generateCode(out);
+    }
     if (isAbstract() || isNative()) {
       out.endComment();
     }
