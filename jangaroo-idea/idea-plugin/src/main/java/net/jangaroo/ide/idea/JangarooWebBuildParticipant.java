@@ -33,8 +33,11 @@ public class JangarooWebBuildParticipant extends CustomWebBuildParticipant {
     Set<Module> usedModules = new HashSet<Module>(orderEntries.length);
     for (OrderEntry orderEntry : orderEntries) {
       if (orderEntry instanceof ModuleOrderEntry) {
-        usedModules.add(((ModuleOrderEntry)orderEntry).getModule());
-      }
+        Module module = ((ModuleOrderEntry)orderEntry).getModule();
+        if (module != null) { // might be null if it is a "red" reference!
+          usedModules.add(module);
+        }
+      } // TODO: else check for Jangaroo dependency to library and register build instruction to unpack the jar.
     }
     for (Module module : usedModules) {
       FacetManager facetManager = FacetManager.getInstance(module);
