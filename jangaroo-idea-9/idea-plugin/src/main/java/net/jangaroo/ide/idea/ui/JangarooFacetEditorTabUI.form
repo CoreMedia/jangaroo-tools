@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="net.jangaroo.ide.idea.ui.JangarooFacetEditorTabUI">
+  <grid id="27dc6" binding="rootComponent" layout-manager="GridLayoutManager" row-count="7" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+    <margin top="0" left="0" bottom="0" right="0"/>
+    <constraints>
+      <xy x="20" y="20" width="440" height="297"/>
+    </constraints>
+    <properties/>
+    <border type="none"/>
+    <children>
+      <component id="64277" class="javax.swing.JCheckBox" binding="verboseCheckBox">
+        <constraints>
+          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text value="&amp;verbose compiler output"/>
+        </properties>
+      </component>
+      <vspacer id="ee5e8">
+        <constraints>
+          <grid row="6" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
+        </constraints>
+      </vspacer>
+      <component id="b1ae9" class="javax.swing.JCheckBox" binding="enableAssertionsCheckBox">
+        <constraints>
+          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <selected value="true"/>
+          <text value="enable &amp;assertions"/>
+        </properties>
+      </component>
+      <grid id="c23e" layout-manager="GridLayoutManager" row-count="2" column-count="4" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+        <margin top="0" left="0" bottom="0" right="0"/>
+        <constraints>
+          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties/>
+        <border type="none"/>
+        <children>
+          <component id="5385c" class="javax.swing.JRadioButton" binding="keepDebugSourceRadioButton" default-binding="true">
+            <constraints>
+              <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <name value="g_source"/>
+              <selected value="true"/>
+              <text value="&amp;keep (debug source)"/>
+            </properties>
+            <clientProperties>
+              <hideActionText class="java.lang.Boolean" value="false"/>
+            </clientProperties>
+          </component>
+          <component id="cdc36" class="javax.swing.JRadioButton" binding="keepNewLinesOnlyRadioButton" default-binding="true">
+            <constraints>
+              <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <name value="g_lines"/>
+              <text value="keep new-&amp;lines only"/>
+            </properties>
+          </component>
+          <component id="70ad" class="javax.swing.JRadioButton" binding="suppressWhiteSpaceRadioButton">
+            <constraints>
+              <grid row="1" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <name value="g_none"/>
+              <text value="&amp;suppress"/>
+            </properties>
+          </component>
+          <component id="d74e4" class="javax.swing.JLabel">
+            <constraints>
+              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text value="White space"/>
+            </properties>
+          </component>
+          <hspacer id="5f3ea">
+            <constraints>
+              <grid row="1" column="3" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+            </constraints>
+          </hspacer>
+        </children>
+      </grid>
+      <component id="30ca4" class="javax.swing.JCheckBox" binding="allowDuplicateVariableCheckBox" default-binding="true">
+        <constraints>
+          <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text value="allow &amp;duplicate variable "/>
+        </properties>
+      </component>
+      <grid id="4ae91" layout-manager="GridLayoutManager" row-count="2" column-count="4" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+        <margin top="0" left="0" bottom="0" right="0"/>
+        <constraints>
+          <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties/>
+        <border type="none"/>
+        <children>
+          <component id="99fee" class="javax.swing.JLabel">
+            <constraints>
+              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text value="Identifier guessing"/>
+            </properties>
+          </component>
+          <component id="d2367" class="javax.swing.JCheckBox" binding="guessInheritedMembersCheckBox" default-binding="true">
+            <constraints>
+              <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <selected value="true"/>
+              <text value="guess inherited &amp;members"/>
+            </properties>
+          </component>
+          <component id="a5143" class="javax.swing.JCheckBox" binding="guessInScopeClassesCheckBox" default-binding="true">
+            <constraints>
+              <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <selected value="true"/>
+              <text value="guess in-scope &amp;classes"/>
+            </properties>
+          </component>
+          <component id="c94e2" class="javax.swing.JCheckBox" binding="guessTypeCastsCheckBox" default-binding="true">
+            <constraints>
+              <grid row="1" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text value="guess &amp;type casts"/>
+            </properties>
+          </component>
+          <hspacer id="ae039">
+            <constraints>
+              <grid row="1" column="3" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+            </constraints>
+          </hspacer>
+        </children>
+      </grid>
+      <grid id="b2cb7" layout-manager="GridLayoutManager" row-count="3" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+        <margin top="0" left="0" bottom="0" right="0"/>
+        <constraints>
+          <grid row="5" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties/>
+        <border type="none"/>
+        <children>
+          <component id="6a4bd" class="javax.swing.JCheckBox" binding="mergeOutputCheckBox" default-binding="true">
+            <constraints>
+              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text value="Merge output"/>
+            </properties>
+          </component>
+          <component id="43692" class="javax.swing.JLabel">
+            <constraints>
+              <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="2" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text value="Output directory:"/>
+            </properties>
+          </component>
+          <component id="e8dd8" class="javax.swing.JLabel">
+            <constraints>
+              <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="2" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text value="Merged output file:"/>
+            </properties>
+          </component>
+          <component id="22810" class="com.intellij.openapi.ui.TextFieldWithBrowseButton" binding="outputDirTextField">
+            <constraints>
+              <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="7" anchor="0" fill="1" indent="0" use-parent-layout="false">
+                <preferred-size width="200" height="-1"/>
+              </grid>
+            </constraints>
+            <properties>
+              <alignmentX value="0.5"/>
+              <autoscrolls value="false"/>
+              <text value=""/>
+            </properties>
+          </component>
+          <component id="1bdba" class="com.intellij.openapi.ui.TextFieldWithBrowseButton" binding="mergedOutputFileTextField">
+            <constraints>
+              <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false">
+                <preferred-size width="200" height="-1"/>
+              </grid>
+            </constraints>
+            <properties>
+              <alignmentX value="0.5"/>
+              <autoscrolls value="false"/>
+              <text value=""/>
+            </properties>
+          </component>
+        </children>
+      </grid>
+    </children>
+  </grid>
+  <buttonGroups>
+    <group name="whiteSpaceButtonGroup" bound="true">
+      <member id="5385c"/>
+      <member id="cdc36"/>
+      <member id="70ad"/>
+    </group>
+  </buttonGroups>
+</form>

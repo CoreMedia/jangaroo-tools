@@ -1,0 +1,44 @@
+<!DOCTYPE idea-plugin PUBLIC "Plugin/DTD" "http://plugins.intellij.net/plugin.dtd">
+<idea-plugin url="http://www.jangaroo.net" version="2">
+  <name>Jangaroo Language</name>
+  <id>net.jangaroo.idea.language</id>
+  <description>
+    A plugin for compiling ActionScript 3 code to JavaScript using the Jangaroo Open Source
+    Compiler jooc.
+  </description>
+  <version>0.3.22</version>
+  <vendor url="http://www.jangaroo.net"
+          email="info@jangaroo.net"
+          logo="/net/jangaroo/jooley-16x16.png">Jangaroo</vendor>
+  <idea-version since-build="9852" until-build="9999"/>
+
+  <depends>JavaScript</depends>
+  <depends>org.jetbrains.idea.maven</depends>
+  <depends>com.intellij.javaee</depends>
+
+  <application-components>
+    <!-- Add your application components here -->
+  </application-components>
+
+  <project-components>
+    <!-- Add your project components here -->
+    <component>
+      <implementation-class>net.jangaroo.ide.idea.JoocProjectComponent</implementation-class>
+    </component>
+  </project-components>
+
+  <actions>
+    <!-- Add your actions here -->
+  </actions>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <facetType implementation="net.jangaroo.ide.idea.JangarooFacetType"/>
+    <frameworkSupport implementation="net.jangaroo.ide.idea.JangarooFacetTypeFrameworkSupportProvider"/>
+    <javaee.web.customBuildParticipant implementation="net.jangaroo.ide.idea.JangarooWebBuildParticipant"/>
+  </extensions>
+
+  <extensions xmlns="org.jetbrains.idea.maven">
+    <facetImporter implementation="net.jangaroo.ide.idea.JangarooFacetImporter"/>
+  </extensions>
+
+</idea-plugin>
