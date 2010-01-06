@@ -20,8 +20,8 @@ import net.jangaroo.extxml.file.ExmlComponentSrcFileScanner;
 import net.jangaroo.extxml.file.SrcFileScanner;
 import net.jangaroo.extxml.generation.JooClassGenerator;
 import net.jangaroo.extxml.generation.XsdGenerator;
-import net.jangaroo.extxml.log.ErrorHandler;
 import net.jangaroo.extxml.log.Log;
+import net.jangaroo.extxml.log.LogHandler;
 import net.jangaroo.extxml.model.ComponentSuite;
 import net.jangaroo.extxml.model.ComponentType;
 import net.jangaroo.extxml.xml.XsdScanner;
@@ -132,7 +132,7 @@ public class ExmlCompiler implements TranslatingCompiler {
             resourceMap.put(componentSuite.getNamespace(), filename);
           }
         } catch (IOException e) {
-          Log.getErrorHandler().error("Error while scanning XSD file " + xsdInputStream, e);
+          Log.e("Error while scanning XSD file " + xsdInputStream, e);
         }
       }
     }
@@ -154,7 +154,7 @@ public class ExmlCompiler implements TranslatingCompiler {
       Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
       fileScanner.scan();
     } catch (IOException e) {
-      Log.getErrorHandler().error("Error scanning component suite files.", e);
+      Log.e("Error scanning component suite files.", e);
     } finally {
       Thread.currentThread().setContextClassLoader(contextClassLoader);
     }
@@ -167,17 +167,17 @@ public class ExmlCompiler implements TranslatingCompiler {
       File xsdFile = new File(xsdFilename);
       // (re-)generate the XSD for the given module.
       Writer out;
-      Log.getErrorHandler().setCurrentFile(xsdFile);
+      Log.setCurrentFile(xsdFile);
       try {
         out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(xsdFile), "UTF-8"));
       } catch (Exception e) {
-        Log.getErrorHandler().error("Cannot write component suite XSD file.", e);
+        Log.e("Cannot write component suite XSD file.", e);
         return;
       }
       try {
         new XsdGenerator(suite).generateXsd(out);
       } catch (IOException e) {
-        Log.getErrorHandler().error("Error while writing component suite XSD file.", e);
+        Log.e("Error while writing component suite XSD file.", e);
       }
       // OutputItems without source file not allowed: outputItems.add(new OutputItemImpl(getXsdRoot(module), xsdFilename, null));
     }
@@ -240,7 +240,7 @@ public class ExmlCompiler implements TranslatingCompiler {
     final ComponentSuiteRegistry componentSuiteRegistry = ComponentSuiteRegistry.getInstance();
     componentSuiteRegistry.reset();
 
-    Log.setErrorHandler(new IdeaErrorHandler(context));
+    Log.setLogHandler(new IdeaErrorHandler(context));
     List<OutputItem> outputItems = new ArrayList<OutputItem>(files.length);
     List<VirtualFile> filesToRecompile = new ArrayList<VirtualFile>(files.length);
     Map<Module, List<VirtualFile>> filesByModule = new HashMap<Module, List<VirtualFile>>(files.length);
@@ -282,7 +282,7 @@ public class ExmlCompiler implements TranslatingCompiler {
     };
   }
 
-  private static class IdeaErrorHandler implements ErrorHandler {
+  private static class IdeaErrorHandler implements LogHandler {
     private final CompileContext context;
     private File currentFile;
 
