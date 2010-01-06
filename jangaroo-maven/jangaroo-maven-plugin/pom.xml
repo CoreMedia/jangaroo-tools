@@ -33,12 +33,22 @@
           </execution>
         </executions>
       </plugin>
-
-
     </plugins>
   </build>
 
   <dependencies>
+    <dependency>
+      <groupId>net.jangaroo</groupId>
+      <artifactId>jangaroo-utils</artifactId>
+      <version>0.3.23-SNAPSHOT</version>
+    </dependency>
+
+    <dependency>
+      <groupId>net.jangaroo</groupId>
+      <artifactId>properties-compiler</artifactId>
+      <version>0.3.23-SNAPSHOT</version>
+    </dependency>
+
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-compiler</artifactId>
