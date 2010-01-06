@@ -1,12 +1,10 @@
 package net.jangaroo.extxml;
 
 import net.jangaroo.extxml.file.SrcFileScanner;
-import net.jangaroo.extxml.xml.XsdScanner;
-import net.jangaroo.extxml.model.ComponentSuite;
-import net.jangaroo.utils.log.Log;
-import net.jangaroo.extxml.log.StandardOutLogHandler;
-import net.jangaroo.extxml.generation.XsdGenerator;
 import net.jangaroo.extxml.generation.JooClassGenerator;
+import net.jangaroo.extxml.generation.XsdGenerator;
+import net.jangaroo.extxml.model.ComponentSuite;
+import net.jangaroo.extxml.xml.XsdScanner;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -60,8 +58,6 @@ public final class ExtXml {
   }
 
   public static void main(String[] args) throws IOException {
-
-    Log.setLogHandler(new StandardOutLogHandler());
 
     //Scan the directory for xml, as or javascript components and collect the data in ComponentClass, import all provided XSDs
     ComponentSuiteRegistry componentSuiteRegistry = ComponentSuiteRegistry.getInstance();

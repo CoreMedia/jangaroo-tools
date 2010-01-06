@@ -5,8 +5,6 @@ package net.jangaroo.extxml.xml;
 
 import net.jangaroo.extxml.json.Json;
 import net.jangaroo.extxml.json.JsonObject;
-import net.jangaroo.utils.log.Log;
-import net.jangaroo.extxml.log.StandardOutLogHandler;
 import net.jangaroo.extxml.model.ComponentClass;
 import net.jangaroo.extxml.model.ComponentSuite;
 import net.jangaroo.extxml.model.ConfigAttribute;
@@ -43,7 +41,6 @@ public class ExmlToJsonHandlerTest {
 
   @Before
   public void initTest() throws Exception {
-    Log.setLogHandler(new StandardOutLogHandler());
   }
 
   @After
