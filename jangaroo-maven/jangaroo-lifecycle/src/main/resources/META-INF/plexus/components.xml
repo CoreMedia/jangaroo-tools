@@ -31,7 +31,8 @@
           <lifecycle>
             <id>default</id>
             <phases>
-              <generate-sources>net.jangaroo:ext-xml-maven-plugin:${pom.version}:extxml</generate-sources>
+              <generate-sources> net.jangaroo:ext-xml-maven-plugin:${pom.version}:extxml</generate-sources>
+              <generate-resources>net.jangaroo:jangaroo-maven-plugin:${pom.version}:properties</generate-resources>
               <process-resources>org.apache.maven.plugins:maven-resources-plugin:resources</process-resources>
               <compile>net.jangaroo:jangaroo-maven-plugin:${pom.version}:compile</compile>
               <generate-test-resources>net.jangaroo:jangaroo-maven-plugin:${pom.version}:unpack-jangaroo-test-dependencies</generate-test-resources>
