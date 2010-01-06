@@ -60,6 +60,7 @@
                     <file name="joo/ClassDeclaration.js" />
                     <file name="joo/StandardClassLoader.js" />
                     <file name="joo/DynamicClassLoader.js" />
+                    <file name="joo/ResourceBundleAwareClassLoader.js" />
                   </filelist>
                   <footer trimleading="yes">
                     joo.classLoader = new joo.DynamicClassLoader();
@@ -90,6 +91,7 @@
                     <file name="joo/ClassDeclaration.js" />
                     <file name="joo/StandardClassLoader.js" />
                     <file name="joo/DynamicClassLoader.js" />
+                    <file name="joo/ResourceBundleAwareClassLoader.js" />
                   </filelist>
                   <footer trimleading="yes">
                     joo.classLoader = new joo.DynamicClassLoader();

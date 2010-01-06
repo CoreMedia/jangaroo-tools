@@ -18,6 +18,7 @@
 
   <modules>
     <module>ext-xml</module>
+    <module>properties-compiler</module>
     <module>jangaroo-browser</module>
     <module>jangaroo-runtime</module>
     <module>jangaroo-compiler</module>
