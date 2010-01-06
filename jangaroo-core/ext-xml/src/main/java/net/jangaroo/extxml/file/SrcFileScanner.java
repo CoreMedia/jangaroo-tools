@@ -41,7 +41,7 @@ public final class SrcFileScanner {
     srcFiles.addInclude("**/*." + ComponentType.EXML.getExtension());
     for (String srcFileRelativePath : new FileSetManager().getIncludedFiles(srcFiles)) {
       File srcFile = new File(dir, srcFileRelativePath);
-      Log.getErrorHandler().setCurrentFile(srcFile);
+      Log.setCurrentFile(srcFile);
       
       ComponentType type = ComponentType.from(FileUtils.extension(srcFile.getName()));
 

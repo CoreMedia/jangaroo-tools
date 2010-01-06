@@ -55,23 +55,23 @@ public final class JooClassGenerator {
     boolean isValid = true;
 
     if (StringUtils.isEmpty(jooClass.getXtype())) {
-      Log.getErrorHandler().error(String.format("Xtype of component '%s' is undefined!", jooClass.getFullClassName()));
+      Log.e(String.format("Xtype of component '%s' is undefined!", jooClass.getFullClassName()));
       isValid = false;
     }
 
     if (StringUtils.isEmpty(jooClass.getClassName())) {
-      Log.getErrorHandler().error(String.format("Class name of component '%s' is undefined!", jooClass.getFullClassName()));
+      Log.e(String.format("Class name of component '%s' is undefined!", jooClass.getFullClassName()));
       isValid = false;
     }
 
     if (StringUtils.isEmpty(jooClass.getSuperClassName())) {
-      Log.getErrorHandler().error(String.format("Super class of component '%s' is undefined!", jooClass.getFullClassName()));
+      Log.e(String.format("Super class of component '%s' is undefined!", jooClass.getFullClassName()));
       isValid = false;
     }
 
     for (String importStr : jooClass.getImports()) {
       if (StringUtils.isEmpty(importStr)) {
-        Log.getErrorHandler().error(String.format("An empty import found. Something is wrong in your class %s", jooClass.getFullClassName()));
+        Log.e(String.format("An empty import found. Something is wrong in your class %s", jooClass.getFullClassName()));
         isValid = false;
       }
     }
@@ -94,7 +94,7 @@ public final class JooClassGenerator {
 
       if(!outputFile.getParentFile().exists()) {
         if (outputFile.getParentFile().mkdirs()) {
-          Log.getErrorHandler().debug("Created parent output folder for " + outputFile.getAbsolutePath());
+          Log.d("Created parent output folder for " + outputFile.getAbsolutePath());
         }
       }
 
@@ -103,9 +103,9 @@ public final class JooClassGenerator {
         writer = new FileWriter(outputFile);
         generateJangarooClass(componentClass, writer);
       } catch (IOException e) {
-        Log.getErrorHandler().error("Exception while creating class", e);
+        Log.e("Exception while creating class", e);
       } catch (TemplateException e) {
-        Log.getErrorHandler().error("Exception while creating class", e);
+        Log.e("Exception while creating class", e);
       } finally {
         try {
           if (writer != null) {

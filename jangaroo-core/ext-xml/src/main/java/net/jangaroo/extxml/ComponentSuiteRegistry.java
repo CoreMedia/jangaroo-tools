@@ -33,7 +33,7 @@ public final class ComponentSuiteRegistry {
   public ComponentSuite getComponentSuite(String namespaceUri) {
     ComponentSuite componentSuite = componentSuitesByNamespaceUri.get(namespaceUri);
     if (componentSuite == null) {
-      Log.getErrorHandler().info("Component suite for namespace URI "+namespaceUri+" not found in registry.");
+      Log.i("Component suite for namespace URI "+namespaceUri+" not found in registry.");
     }
     return componentSuite;
   }

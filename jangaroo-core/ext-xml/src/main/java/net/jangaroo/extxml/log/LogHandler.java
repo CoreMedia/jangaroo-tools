@@ -8,7 +8,7 @@ import java.io.File;
 /**
  *
  */
-public interface ErrorHandler {
+public interface LogHandler {
 
   void setCurrentFile(File file);
 

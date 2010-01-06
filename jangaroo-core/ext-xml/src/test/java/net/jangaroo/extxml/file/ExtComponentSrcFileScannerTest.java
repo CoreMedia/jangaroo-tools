@@ -10,7 +10,7 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 import utils.TestUtils;
-import utils.UnitTestErrorHandler;
+import utils.UnitTestLogHandler;
 import net.jangaroo.extxml.file.ExtComponentSrcFileScanner;
 import net.jangaroo.extxml.model.ComponentClass;
 import net.jangaroo.extxml.model.ComponentSuite;
@@ -25,7 +25,7 @@ public class ExtComponentSrcFileScannerTest {
 
   @Before
   public void initTest() throws Exception {
-    Log.setErrorHandler(new UnitTestErrorHandler());
+    Log.setLogHandler(new UnitTestLogHandler());
   }
 
   @Test

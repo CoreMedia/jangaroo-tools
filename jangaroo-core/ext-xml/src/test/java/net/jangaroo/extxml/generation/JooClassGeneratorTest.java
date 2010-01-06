@@ -13,7 +13,7 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 import utils.TestUtils;
-import utils.UnitTestErrorHandler;
+import utils.UnitTestLogHandler;
 
 import java.io.File;
 import java.io.StringWriter;
@@ -23,18 +23,18 @@ import java.util.Collections;
 public class JooClassGeneratorTest{
 
   private JooClassGenerator jooClassGenerator = null;
-  private UnitTestErrorHandler errorHandler;
+  private UnitTestLogHandler logHandler;
 
   @Before
   public void initialize() throws Exception {
-    errorHandler = new UnitTestErrorHandler();
-    Log.setErrorHandler(errorHandler);
+    logHandler = new UnitTestLogHandler();
+    Log.setLogHandler(logHandler);
     jooClassGenerator = new JooClassGenerator(new ComponentSuite("test", "test", null, null));
   }
 
   @After
   public void checkExpectedErrors() {
-    errorHandler.checkExpectedErrors();
+    logHandler.checkExpectedErrors();
 
   }
 
@@ -84,7 +84,7 @@ public class JooClassGeneratorTest{
   public void classWithoutSuperClass() throws Exception {
     ComponentClass jooClazz = new ComponentClass(Collections.<String>emptyList(), "com.coremedia.test.TestClass",null,null);
     StringWriter writer = new StringWriter();
-    errorHandler.expectedErrorMessage = "Super class of component 'com.coremedia.test.TestClass' is undefined!";
+    logHandler.expectedErrorMessage = "Super class of component 'com.coremedia.test.TestClass' is undefined!";
     jooClassGenerator.generateJangarooClass(jooClazz, writer);
     writer.flush();
     assertEquals("",writer.toString());

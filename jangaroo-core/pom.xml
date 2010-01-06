@@ -23,6 +23,7 @@
     <module>jangaroo-runtime</module>
     <module>jangaroo-compiler</module>
     <module>jangaroo-compiler-itests</module>
+    <module>jangaroo-utils</module>
   </modules>
 
 </project>

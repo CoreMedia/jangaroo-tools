@@ -5,7 +5,7 @@ package net.jangaroo.extxml.mojo;
 
 import net.jangaroo.extxml.model.ComponentSuite;
 import net.jangaroo.extxml.ComponentSuiteRegistry;
-import net.jangaroo.extxml.log.ErrorHandler;
+import net.jangaroo.extxml.log.LogHandler;
 import net.jangaroo.extxml.generation.JooClassGenerator;
 import net.jangaroo.extxml.log.Log;
 import net.jangaroo.extxml.file.SrcFileScanner;
@@ -118,8 +118,8 @@ public class ExtXmlMojo extends AbstractMojo {
 
 
     ComponentSuiteRegistry componentSuiteRegistry = ComponentSuiteRegistry.getInstance();
-    MavenErrorHandler errorHandler = new MavenErrorHandler();
-    Log.setErrorHandler(errorHandler);
+    MavenLogHandler errorHandler = new MavenLogHandler();
+    Log.setLogHandler(errorHandler);
     ComponentSuite suite = new ComponentSuite(namespace, namespacePrefix, sourceDirectory, generatedSourcesDirectory);
     XsdScanner xsdScanner = new XsdScanner();
 
@@ -223,7 +223,7 @@ public class ExtXmlMojo extends AbstractMojo {
     project.addCompileSourceRoot(generatedSourcesDirectory.getPath());
   }
 
-  class MavenErrorHandler implements ErrorHandler {
+  class MavenLogHandler implements LogHandler {
     ArrayList<String> errors = new ArrayList<String>();
     ArrayList<String> warnings = new ArrayList<String>();
     Exception lastException;

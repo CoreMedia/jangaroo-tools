@@ -41,16 +41,16 @@ public final class XsdGenerator {
       try {
         template = cfg.getTemplate("component-suite-xsd.ftl");
       } catch (IOException e) {
-        Log.getErrorHandler().error("Could not read xsd template", e);
+        Log.e("Could not read xsd template", e);
       }
 
       /* Merge data-model with template */
       if (template != null) {
-        Log.getErrorHandler().info(String.format("Writing XML Schema '%s' ", componentSuite.getNamespace()));
+        Log.i(String.format("Writing XML Schema '%s' ", componentSuite.getNamespace()));
         try {
           template.process(componentSuite, out);
         } catch (TemplateException e) {
-          Log.getErrorHandler().error("Error while generating xsd", e);
+          Log.e("Error while generating xsd", e);
         }
       }
     }

@@ -8,7 +8,7 @@ import java.io.File;
 /**
  *
  */
-public class StandardOutErrorHandler implements ErrorHandler{
+public class StandardOutLogHandler implements LogHandler {
 
   private File currentFile;
 

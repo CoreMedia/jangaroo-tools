@@ -96,7 +96,7 @@ public final class ExmlToJsonHandler extends CharacterRecordingHandler {
           imports.add(compClazz.getFullClassName());
           jsonObject.set(type, compClazz.getXtype());
         } else {
-          Log.getErrorHandler().error(String.format("No component class for element name '%s' found in component suite '%s'!", localName, uri), locator.getLineNumber(), locator.getColumnNumber());
+          Log.e(String.format("No component class for element name '%s' found in component suite '%s'!", localName, uri), locator.getLineNumber(), locator.getColumnNumber());
           jsonObject.set(type, localName);
         }
         addElementToJsonObject(jsonObject);

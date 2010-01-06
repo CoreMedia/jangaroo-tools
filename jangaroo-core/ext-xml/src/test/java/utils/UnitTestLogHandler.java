@@ -3,7 +3,7 @@
  */
 package utils;
 
-import net.jangaroo.extxml.log.ErrorHandler;
+import net.jangaroo.extxml.log.LogHandler;
 import static org.junit.Assert.fail;
 import static org.junit.Assert.assertEquals;
 
@@ -12,7 +12,7 @@ import java.io.File;
 /**
  *
  */
-public class UnitTestErrorHandler implements ErrorHandler {
+public class UnitTestLogHandler implements LogHandler {
 
   public String expectedErrorMessage;
   private boolean expectedErrorOccured;

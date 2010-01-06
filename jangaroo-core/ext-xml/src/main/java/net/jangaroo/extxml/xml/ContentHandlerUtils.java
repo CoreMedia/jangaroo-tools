@@ -23,7 +23,7 @@ public final class ContentHandlerUtils {
   }
   public static boolean parseExmlWithHandler(ComponentClass cc, ContentHandler handler) {
     FileInputStream inputStream = null;
-    Log.getErrorHandler().setCurrentFile(cc.getSrcFile());
+    Log.setCurrentFile(cc.getSrcFile());
     try {
       XMLReader xr = XMLReaderFactory.createXMLReader();
       xr.setContentHandler(handler);
@@ -31,13 +31,13 @@ public final class ContentHandlerUtils {
       xr.parse(new InputSource(inputStream));
       return true;
     } catch (FileNotFoundException e) {
-      Log.getErrorHandler().error("Exception while parsing", e);
+      Log.e("Exception while parsing", e);
     } catch (IOException e) {
-      Log.getErrorHandler().error("Exception while parsing", e);
+      Log.e("Exception while parsing", e);
     } catch (SAXParseException e) {
-      Log.getErrorHandler().error(e.getMessage(), e.getLineNumber(), e.getColumnNumber());
+      Log.e(e.getMessage(), e.getLineNumber(), e.getColumnNumber());
     } catch (SAXException e) {
-      Log.getErrorHandler().error("Exception while parsing", e);
+      Log.e("Exception while parsing", e);
     } finally {
       try {
         if (inputStream != null) {

@@ -30,7 +30,7 @@ public final class ExtComponentSrcFileScanner {
       String className = FileUtils.removeExtension(srcFile.getName());
       state.addClass(className);
       state.cc.setType(ComponentType.ActionScript);
-      Log.getErrorHandler().info(String.format("Parsing AS3 class '%s'", className));
+      Log.i(String.format("Parsing AS3 class '%s'", className));
       EXT_COMPONENT_AS_FILE_SCANNER.scan(srcFile, state);
     } else if (ComponentType.JavaScript.equals(type)) {
       EXT_COMPONENT_SRC_FILE_SCANNER.scan(srcFile, state);
@@ -204,7 +204,7 @@ public final class ExtComponentSrcFileScanner {
     void validateComponentClass(ComponentClass cc) {
       if (cc != null) {
         if (cc.getImports().isEmpty()) {
-          Log.getErrorHandler().warning("No imports in Compontent class");
+          Log.w("No imports in Compontent class");
         }
       }
     }
@@ -226,9 +226,9 @@ public final class ExtComponentSrcFileScanner {
         if (cc.getXtype() != null) {
           validateComponentClass(cc);
           componentSuite.addComponentClass(cc);
-          Log.getErrorHandler().info(String.format("Component class '%s' with xtype '%s' parsed.", cc.getFullClassName(), cc.getXtype()));
+          Log.i(String.format("Component class '%s' with xtype '%s' parsed.", cc.getFullClassName(), cc.getXtype()));
         } else {
-          Log.getErrorHandler().info(String.format("Class '%s' has no xtype - skipped.", cc.getFullClassName()));
+          Log.i(String.format("Class '%s' has no xtype - skipped.", cc.getFullClassName()));
         }
       }
     }
