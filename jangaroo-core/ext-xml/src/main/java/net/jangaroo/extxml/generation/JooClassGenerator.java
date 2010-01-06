@@ -9,7 +9,7 @@ import net.jangaroo.extxml.xml.ExmlToJsonHandler;
 import net.jangaroo.extxml.model.ComponentClass;
 import net.jangaroo.extxml.model.ComponentSuite;
 import net.jangaroo.extxml.model.ComponentType;
-import net.jangaroo.extxml.log.Log;
+import net.jangaroo.utils.log.Log;
 import org.apache.maven.shared.model.fileset.mappers.FileNameMapper;
 import org.apache.maven.shared.model.fileset.mappers.GlobPatternMapper;
 import org.codehaus.plexus.util.StringUtils;

@@ -3,7 +3,7 @@
  */
 package utils;
 
-import net.jangaroo.extxml.log.LogHandler;
+import net.jangaroo.utils.log.LogHandler;
 import static org.junit.Assert.fail;
 import static org.junit.Assert.assertEquals;
 

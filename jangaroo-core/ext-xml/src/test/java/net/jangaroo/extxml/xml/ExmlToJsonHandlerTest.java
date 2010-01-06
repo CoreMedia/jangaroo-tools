@@ -5,7 +5,7 @@ package net.jangaroo.extxml.xml;
 
 import net.jangaroo.extxml.json.Json;
 import net.jangaroo.extxml.json.JsonObject;
-import net.jangaroo.extxml.log.Log;
+import net.jangaroo.utils.log.Log;
 import net.jangaroo.extxml.log.StandardOutLogHandler;
 import net.jangaroo.extxml.model.ComponentClass;
 import net.jangaroo.extxml.model.ComponentSuite;

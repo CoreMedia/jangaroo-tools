@@ -5,9 +5,9 @@ package net.jangaroo.extxml.mojo;
 
 import net.jangaroo.extxml.model.ComponentSuite;
 import net.jangaroo.extxml.ComponentSuiteRegistry;
-import net.jangaroo.extxml.log.LogHandler;
+import net.jangaroo.utils.log.LogHandler;
 import net.jangaroo.extxml.generation.JooClassGenerator;
-import net.jangaroo.extxml.log.Log;
+import net.jangaroo.utils.log.Log;
 import net.jangaroo.extxml.file.SrcFileScanner;
 import net.jangaroo.extxml.generation.XsdGenerator;
 import net.jangaroo.extxml.xml.XsdScanner;

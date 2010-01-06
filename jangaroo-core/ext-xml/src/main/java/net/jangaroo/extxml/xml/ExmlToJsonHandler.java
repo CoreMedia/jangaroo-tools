@@ -9,7 +9,7 @@ import net.jangaroo.extxml.json.JsonObject;
 import net.jangaroo.extxml.file.ExmlComponentSrcFileScanner;
 import net.jangaroo.extxml.model.ComponentSuite;
 import net.jangaroo.extxml.model.ComponentClass;
-import net.jangaroo.extxml.log.Log;
+import net.jangaroo.utils.log.Log;
 import org.xml.sax.Attributes;
 import org.xml.sax.Locator;
 import org.xml.sax.SAXException;

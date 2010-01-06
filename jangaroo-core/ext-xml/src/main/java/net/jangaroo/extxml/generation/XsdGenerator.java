@@ -4,7 +4,7 @@ import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapper;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
-import net.jangaroo.extxml.log.Log;
+import net.jangaroo.utils.log.Log;
 import net.jangaroo.extxml.model.ComponentSuite;
 
 import java.io.IOException;

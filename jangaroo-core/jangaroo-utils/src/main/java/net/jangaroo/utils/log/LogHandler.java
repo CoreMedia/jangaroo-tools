@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2009, CoreMedia AG, Hamburg. All rights reserved.
  */
-package net.jangaroo.extxml.log;
+package net.jangaroo.utils.log;
 
 import java.io.File;
 

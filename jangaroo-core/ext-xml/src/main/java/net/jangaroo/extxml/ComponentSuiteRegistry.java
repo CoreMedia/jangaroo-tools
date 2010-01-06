@@ -2,7 +2,7 @@ package net.jangaroo.extxml;
 
 import net.jangaroo.extxml.model.ComponentClass;
 import net.jangaroo.extxml.model.ComponentSuite;
-import net.jangaroo.extxml.log.Log;
+import net.jangaroo.utils.log.Log;
 
 import java.util.LinkedHashMap;
 import java.util.Map;

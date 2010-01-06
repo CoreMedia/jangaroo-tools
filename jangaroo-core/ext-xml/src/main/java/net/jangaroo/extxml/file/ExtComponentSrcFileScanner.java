@@ -5,7 +5,7 @@ import net.jangaroo.extxml.model.ComponentSuite;
 import net.jangaroo.extxml.model.ComponentType;
 import net.jangaroo.extxml.model.ConfigAttribute;
 import net.jangaroo.extxml.model.DescriptionHolder;
-import net.jangaroo.extxml.log.Log;
+import net.jangaroo.utils.log.Log;
 import net.jangaroo.extxml.util.FileScanner;
 import net.jangaroo.extxml.util.Rule;
 import net.jangaroo.extxml.util.TidyComment;

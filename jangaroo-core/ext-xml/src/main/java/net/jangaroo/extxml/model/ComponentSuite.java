@@ -1,10 +1,15 @@
 package net.jangaroo.extxml.model;
 
 import net.jangaroo.extxml.ComponentSuiteRegistry;
-import net.jangaroo.extxml.log.Log;
+import net.jangaroo.utils.log.Log;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * A set of Ext JS components bundled under the same namespace.

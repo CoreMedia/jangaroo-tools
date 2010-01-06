@@ -4,7 +4,7 @@
 package net.jangaroo.extxml.xml;
 
 import net.jangaroo.extxml.model.ComponentClass;
-import net.jangaroo.extxml.log.Log;
+import net.jangaroo.utils.log.Log;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;

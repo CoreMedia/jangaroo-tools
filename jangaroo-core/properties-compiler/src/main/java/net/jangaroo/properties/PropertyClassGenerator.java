@@ -10,6 +10,7 @@ import freemarker.template.TemplateException;
 import net.jangaroo.properties.model.LocalizationSuite;
 import net.jangaroo.properties.model.PropertiesClass;
 import net.jangaroo.properties.model.ResourceBundleClass;
+import net.jangaroo.utils.log.Log;
 import org.codehaus.plexus.util.FileUtils;
 
 import java.io.File;
@@ -54,7 +55,7 @@ public class PropertyClassGenerator {
 
       if (!outputFile.getParentFile().exists()) {
         if (outputFile.getParentFile().mkdirs()) {
-          //TODO:Errror
+          Log.e("Could not create output folder");
         }
       }
 
@@ -63,9 +64,9 @@ public class PropertyClassGenerator {
         writer = new FileWriter(outputFile);
         generatePropertiesClass(pl, writer);
       } catch (IOException e) {
-        //Todo:Log.getErrorHandler().error("Exception while creating class", e);
+        Log.e("error while generating class", e);
       } catch (TemplateException e) {
-        //Todo:Log.getErrorHandler().error("Exception while creating class", e);
+        Log.e("error while generating class", e);
       } finally {
         try {
           if (writer != null) {

@@ -2,7 +2,7 @@ package net.jangaroo.extxml.file;
 
 import net.jangaroo.extxml.model.ComponentSuite;
 import net.jangaroo.extxml.model.ComponentType;
-import net.jangaroo.extxml.log.Log;
+import net.jangaroo.utils.log.Log;
 import org.apache.maven.shared.model.fileset.FileSet;
 import org.apache.maven.shared.model.fileset.util.FileSetManager;
 import org.codehaus.plexus.util.FileUtils;
