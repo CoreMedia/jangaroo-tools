@@ -20,7 +20,7 @@ public class PropertiesFileScannerTest {
     PropertiesFileScanner scanner = new PropertiesFileScanner(suite);
     scanner.scan();
 
-    assertEquals(1, scanner.getSuite().getResourceBundles().size());
+    assertEquals(2, scanner.getSuite().getResourceBundles().size());
     ResourceBundleClass rbc = scanner.getSuite().getResourceBundles().iterator().next();
 
     assertEquals("PropertiesTest",rbc.getClassName());
