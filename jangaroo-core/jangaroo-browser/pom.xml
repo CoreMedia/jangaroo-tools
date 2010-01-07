@@ -18,18 +18,20 @@
       <resource>
         <directory>src/main/joo-js</directory>
       </resource>
+      <resource>
+        <directory>src/main/joo-api</directory>
+      </resource>
     </resources>
     <outputDirectory>target/joo</outputDirectory>
     <sourceDirectory>src/main/joo</sourceDirectory>
     <testSourceDirectory>src/test/joo</testSourceDirectory>
     <testOutputDirectory>target/joo-test</testOutputDirectory>
 
-    <!--<sourceDirectory>src/main/joo</sourceDirectory>-->
     <plugins>
       <plugin>
         <groupId>net.jangaroo</groupId>
         <artifactId>jangaroo-lifecycle</artifactId>
-        <version>0.3.20</version>
+        <version>0.3.22</version>
         <!-- We cannot use the latest version here since we can't use AND build it in the same process -->
         <extensions>true</extensions>
       </plugin>
