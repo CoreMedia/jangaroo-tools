@@ -52,7 +52,7 @@ public class TestExpressions {
   }
 
   public function testCharLiterals():String {
-    return '\'' + '�' + '\\' + '\b' + '\t' + '\n' + '\f' + '\r' + '\'' + '/' + '\'' + '\u00C6' + '\u01bF' + 'e' + '"' + '\'';
+    return '\'' + '€' + '\\' + '\b' + '\t' + '\n' + '\f' + '\r' + '\'' + '/' + '\'' + '\u00C6' + '\u01bF' + 'e' + '"' + '\'';
   }
 
   public function testRegexpLiterals():String {
