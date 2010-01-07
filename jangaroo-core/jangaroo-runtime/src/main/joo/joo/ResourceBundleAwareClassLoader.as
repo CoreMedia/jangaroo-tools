@@ -24,7 +24,6 @@ public class ResourceBundleAwareClassLoader extends joo.DynamicClassLoader {
   private static const RESOURCE_BUNDLE_PATTERN:RegExp = /.+_properties/;
 
   public var supportedLocales:Array = ["en"];
-
   public var localeCookieName:String = "locale";
 
   private static function isBundleName(fullClassName:String):Boolean {
@@ -43,7 +42,7 @@ public class ResourceBundleAwareClassLoader extends joo.DynamicClassLoader {
   private function getCurrentLocale():String {
 
     var userLocale:String = loadCookie();
-    var result:String = "en";
+    var result:String;
 
     if (!userLocale) {
       if (navigator) {
