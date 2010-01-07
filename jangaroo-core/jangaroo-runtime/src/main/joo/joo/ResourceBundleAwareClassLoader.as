@@ -25,51 +25,57 @@ public class ResourceBundleAwareClassLoader extends joo.DynamicClassLoader {
 
   public var supportedLocales:Array = ["en"];
 
+  public var localeCookieName:String = "locale";
+
   private static function isBundleName(fullClassName:String):Boolean {
 
     return fullClassName.match(RESOURCE_BUNDLE_PATTERN);
 
   }
 
+  private function loadCookie():String {
+    var cookieKey : String = localeCookieName.replace(/([.*+?^${}()|[\]\/\\])/g, "\\$1");
+    var match : Array = window.document.cookie.match("(?:^|;)\\s*" + cookieKey + "=([^;]*)");
+    return match ? decodeURIComponent(match[1]) : null;
+  }
+
 
   private function getCurrentLocale():String {
-    var userLocale:String = "en";
+
+    var userLocale:String = loadCookie();
     var result:String = "en";
 
-    if (navigator) {
-      if (navigator.language) {
-        userLocale = navigator.language;
-      }
-      else if (navigator.browserLanguage) {
-        userLocale = navigator.browserLanguage;
-      }
-      else if (navigator.systemLanguage) {
-        return navigator.systemLanguage;
-      }
-      else if (navigator.userLanguage) {
-        userLocale = navigator.userLanguage;
+    if (!userLocale) {
+      if (navigator) {
+        if (navigator.language) {
+          userLocale = navigator.language;
+        }
+        else if (navigator.browserLanguage) {
+          userLocale = navigator.browserLanguage;
+        }
+        else if (navigator.systemLanguage) {
+            return navigator.systemLanguage;
+          }
+          else if (navigator.userLanguage) {
+              userLocale = navigator.userLanguage;
+            }
+        userLocale = userLocale.replace(/-/g, "_");
+      } else {
+        userLocale = "en";
       }
     }
-    userLocale = userLocale.replace(/-/g,"_");
 
-    var exactMatchFilter:Function = function(item:String, index:int, array:Array):Boolean {
-      return item === userLocale;
-    };
-
-    var almostMatchFilter:Function = function(item:String, index:int, array:Array):Boolean {
-        return item.indexOf(userLocale) != -1;
-    };
-
-    var exactMatch:Array = supportedLocales.filter(exactMatchFilter);
-
-    if(exactMatch.length > 0){
-      result = exactMatch.pop() as String;
-    } else {
-
-      var possibleMatch:Array = supportedLocales.filter(almostMatchFilter);
-      if(possibleMatch.length > 0){
-        result = possibleMatch.pop() as String;
+    //find longest match
+    var longestMatch:String;
+    for (var i:int=0;i<supportedLocales.length;i++ ) {
+      if(userLocale.indexOf(supportedLocales[i]) === 0) {
+        if(!longestMatch || longestMatch.length > supportedLocales[i]) {
+          longestMatch = supportedLocales[i];
+        }
       }
+    }
+    if(longestMatch) {
+      result = longestMatch;
     }
 
     //The default language "en" has no ending.
