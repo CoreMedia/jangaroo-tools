@@ -21,7 +21,9 @@ import joo.*;
 
 public class ResourceBundleAwareClassLoader extends joo.DynamicClassLoader {
 
-  private static const RESOURCE_BUNDLE_PATTERN = /.+_properties/;
+  private static const RESOURCE_BUNDLE_PATTERN:RegExp = /.+_properties/;
+
+  public var supportedLocales:Array = ["en"];
 
   private static function isBundleName(fullClassName:String):Boolean {
 
@@ -30,25 +32,54 @@ public class ResourceBundleAwareClassLoader extends joo.DynamicClassLoader {
   }
 
 
-  private static function getCurrentLocale():String {
+  private function getCurrentLocale():String {
+    var userLocale:String = "en";
+    var result:String = "en";
 
     if (navigator) {
       if (navigator.language) {
-        return navigator.language;
+        userLocale = navigator.language;
       }
       else if (navigator.browserLanguage) {
-        return navigator.browserLanguage;
+        userLocale = navigator.browserLanguage;
       }
       else if (navigator.systemLanguage) {
         return navigator.systemLanguage;
       }
       else if (navigator.userLanguage) {
-        return navigator.userLanguage;
+        userLocale = navigator.userLanguage;
+      }
+    }
+    userLocale = userLocale.replace(/-/g,"_");
+
+    var exactMatchFilter:Function = function(item:String, index:int, array:Array):Boolean {
+      return item === userLocale;
+    };
+
+    var almostMatchFilter:Function = function(item:String, index:int, array:Array):Boolean {
+        return item.indexOf(userLocale) != -1;
+    };
+
+    var exactMatch:Array = supportedLocales.filter(exactMatchFilter);
+
+    if(exactMatch.length > 0){
+      result = exactMatch.pop() as String;
+    } else {
+
+      var possibleMatch:Array = supportedLocales.filter(almostMatchFilter);
+      if(possibleMatch.length > 0){
+        result = possibleMatch.pop() as String;
       }
     }
 
-    return "en";
+    //The default language "en" has no ending.
+    if(result === "en") {
+       result = "";
+    } else {
+      result = "_" + result;
+    }
 
+    return result;
   }
 
 
@@ -56,7 +87,7 @@ public class ResourceBundleAwareClassLoader extends joo.DynamicClassLoader {
 
     if (isBundleName(fullClassName)) {
 
-      fullClassName += "_" + getCurrentLocale();
+      fullClassName += getCurrentLocale();
 
     }
 
