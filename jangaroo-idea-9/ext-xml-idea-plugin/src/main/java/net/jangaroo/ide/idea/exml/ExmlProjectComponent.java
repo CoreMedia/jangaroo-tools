@@ -102,7 +102,7 @@ public class ExmlProjectComponent implements ProjectComponent {
       "class".equals(((XmlAttribute)attributeValue.getParent()).getName())) {
       XmlTag element = (XmlTag)attributeValue.getParent().getParent();
       return "import".equals(element.getLocalName()) &&
-        ExmlApplicationComponent.EXML_NAMESPACE_URI.equals(element.getNamespace());
+        ExmlResourceProvider.EXML_NAMESPACE_URI.equals(element.getNamespace());
     }
     return false;
   }

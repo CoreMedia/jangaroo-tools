@@ -1,15 +1,15 @@
 /*
  * Copyright 2009 CoreMedia AG
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); 
- * you may not use this file except in compliance with the License. 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0 
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, 
+ * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an "AS
- * IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
- * express or implied. See the License for the specific language 
+ * IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
 package net.jangaroo.ide.idea;
@@ -25,6 +25,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.facet.FacetManager;
 import com.intellij.compiler.make.MakeUtil;
 import com.intellij.compiler.impl.javaCompiler.OutputItemImpl;
+import com.intellij.util.Chunk;
 import org.jetbrains.annotations.NotNull;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.CompileLog;
@@ -35,7 +36,7 @@ import java.util.*;
 import java.io.File;
 
 /**
- * 
+ *
  */
 public class JangarooCompiler implements TranslatingCompiler {
 
@@ -55,16 +56,17 @@ public class JangarooCompiler implements TranslatingCompiler {
     return Jooc.AS_SUFFIX_NO_DOT.equals(file.getExtension());
   }
 
-  private void compile(CompileContext context, Module module, final List<VirtualFile> files, List<OutputItem> outputItems, List<VirtualFile> filesToRecompile) {
+  private String compile(CompileContext context, Module module, final List<VirtualFile> files, List<OutputItem> outputItems, List<VirtualFile> filesToRecompile) {
     JoocConfiguration joocConfig = getJoocConfiguration(module, files);
+    String outputDirectoryPath = null;
     if (joocConfig!=null) {
-      String outputDirectoryPath = joocConfig.getOutputDirectory().getPath();
+      outputDirectoryPath = joocConfig.getOutputDirectory().getPath();
       VirtualFile outputDirectoryVirtualFile = new File(outputDirectoryPath).mkdirs()
         ? LocalFileSystem.getInstance().refreshAndFindFileByPath(outputDirectoryPath)
         : LocalFileSystem.getInstance().findFileByPath(outputDirectoryPath);
       if (outputDirectoryVirtualFile == null) {
         context.addMessage(CompilerMessageCategory.ERROR, "Output directory does not exist and could not be created: "+outputDirectoryPath, null, -1, -1);
-        return;
+        return null;
       }
       outputDirectoryPath = outputDirectoryVirtualFile.getPath();
       String outputFileName = outputDirectoryPath + File.separator + joocConfig.getOutputFileName();
@@ -75,13 +77,14 @@ public class JangarooCompiler implements TranslatingCompiler {
           filesToRecompile.add(file);
         } else {
           OutputItem outputItem = joocConfig.isMergeOutput()
-            ? new OutputItemImpl(outputDirectoryPath, outputFileName, file)
+            ? new OutputItemImpl(outputFileName, file)
             : createOutputItem(outputDirectoryPath, MakeUtil.getSourceRoot(context, module, file), file);
           outputItems.add(outputItem);
           context.addMessage(CompilerMessageCategory.INFORMATION, "as->js ("+outputItem.getOutputPath()+")", outputItem.getSourceFile().getUrl(), -1, -1);
         }
       }
     }
+    return outputDirectoryPath;
   }
 
   private JoocConfiguration getJoocConfiguration(Module module, List<VirtualFile> virtualSourceFiles) {
@@ -123,12 +126,10 @@ public class JangarooCompiler implements TranslatingCompiler {
     String relativePath = filePath.substring(sourceRoot.getPath().length(), filePath.lastIndexOf('.'));
     String outputFilePath = outputDirectory + relativePath + Jooc.OUTPUT_FILE_SUFFIX;
     LocalFileSystem.getInstance().refreshAndFindFileByPath(outputFilePath);
-    return new OutputItemImpl(outputDirectory, outputFilePath, file);
+    return new OutputItemImpl(outputFilePath, file);
   }
 
-  public ExitStatus compile(CompileContext context, VirtualFile[] files) {
-    List<OutputItem> outputItems = new ArrayList<OutputItem>(files.length);
-    List<VirtualFile> filesToRecompile = new ArrayList<VirtualFile>(files.length);
+  public void compile(CompileContext context, Chunk<Module> moduleChunk, VirtualFile[] files, OutputSink outputSink) {
     Map<Module,List<VirtualFile>> filesByModule = new HashMap<Module, List<VirtualFile>>(files.length);
     for (final VirtualFile file : files) {
       Module module = context.getModuleByFile(file);
@@ -140,18 +141,13 @@ public class JangarooCompiler implements TranslatingCompiler {
       filesOfModule.add(file);
     }
     for (Map.Entry<Module, List<VirtualFile>> filesOfModuleEntry : filesByModule.entrySet()) {
-      compile(context, filesOfModuleEntry.getKey(), filesOfModuleEntry.getValue(), outputItems, filesToRecompile);
+      List<OutputItem> outputItems = new ArrayList<OutputItem>(files.length);
+      List<VirtualFile> filesToRecompile = new ArrayList<VirtualFile>(files.length);
+      String outputRoot = compile(context, filesOfModuleEntry.getKey(), filesOfModuleEntry.getValue(), outputItems, filesToRecompile);
+      if (outputRoot != null) {
+        outputSink.add(outputRoot, outputItems, filesToRecompile.toArray(new VirtualFile[filesToRecompile.size()]));
+      }
     }
-    final OutputItem[] outputItemArray = outputItems.toArray(new OutputItem[outputItems.size()]);
-    final VirtualFile[] filesToRecompileArray = filesToRecompile.toArray(new VirtualFile[filesToRecompile.size()]);
-    return new ExitStatus() {
-      public OutputItem[] getSuccessfullyCompiled() {
-        return outputItemArray;
-      }
-      public VirtualFile[] getFilesToRecompile() {
-        return filesToRecompileArray;
-      }
-    };
   }
 
   private static class IdeaCompileLog implements CompileLog {

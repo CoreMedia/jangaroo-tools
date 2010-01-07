@@ -9,7 +9,7 @@
   <vendor url="http://www.jangaroo.net"
           email="info@jangaroo.net"
           logo="/net/jangaroo/jooley-16x16.png">Jangaroo</vendor>
-  <idea-version since-build="9852" until-build="9999"/>
+  <idea-version since-build="10000"/>
 
   <depends>JavaScript</depends>
   <depends>net.jangaroo.idea.language</depends>
@@ -32,8 +32,9 @@
     <!-- Add your actions here -->
   </actions>
 
-  <extensions defaultExtensionNs="com.intellij.xml">
-    <elementDescriptorProvider implementation="net.jangaroo.ide.idea.exml.ComponentXmlElementDescriptorProvider"/>
+  <extensions defaultExtensionNs="com.intellij">
+    <xml.elementDescriptorProvider implementation="net.jangaroo.ide.idea.exml.ComponentXmlElementDescriptorProvider"/>
+    <standardResourceProvider implementation="net.jangaroo.ide.idea.exml.ExmlResourceProvider"/>
   </extensions>
 
 </idea-plugin>

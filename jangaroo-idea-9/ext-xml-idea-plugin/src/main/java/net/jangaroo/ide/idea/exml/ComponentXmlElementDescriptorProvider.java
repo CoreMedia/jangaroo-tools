@@ -28,7 +28,7 @@ public class ComponentXmlElementDescriptorProvider implements XmlElementDescript
   public XmlElementDescriptor getDescriptor(XmlTag xmltag) {
     String namespace = xmltag.getNamespace();
     if (xmltag.getContainingFile().getName().endsWith("." + ComponentType.EXML.getExtension())
-        && !ExmlApplicationComponent.EXML_NAMESPACE_URI.equals(namespace)) {
+        && !ExmlResourceProvider.EXML_NAMESPACE_URI.equals(namespace)) {
       XmlNSDescriptor xmlNSDescriptor = xmltag.getNSDescriptor(namespace, false);
       XmlElementDescriptor xmlElementDescriptor = xmlNSDescriptor != null ? xmlNSDescriptor.getElementDescriptor(xmltag) : null;
       if (xmlElementDescriptor == null) {

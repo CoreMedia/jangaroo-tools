@@ -7,11 +7,9 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * The EXML plugin's global configuration.
- * Adds XML Schemata for EXML 0.1.
+ * Adds *.exml file type to be treated as XML.
  */
 public class ExmlApplicationComponent implements ApplicationComponent {
-
-  static final String EXML_NAMESPACE_URI = "http://net.jangaroo.com/extxml/0.1";
 
   @NotNull
   public String getComponentName() {
@@ -21,8 +19,6 @@ public class ExmlApplicationComponent implements ApplicationComponent {
   public void initComponent() {
     FileTypeManager ftm = FileTypeManager.getInstance();
     ftm.registerFileType(ftm.getFileTypeByExtension("xml"), "exml");
-    ExternalResourceManager erm = ExternalResourceManager.getInstance();
-    erm.addStdResource(EXML_NAMESPACE_URI, "/net/jangaroo/extxml/schemas/extxml.xsd", getClass());
 //import com.intellij.psi.filters.AndFilter;
 //import com.intellij.psi.filters.ClassFilter;
 //import com.intellij.psi.filters.position.TargetNamespaceFilter;
@@ -38,7 +34,5 @@ public class ExmlApplicationComponent implements ApplicationComponent {
   }
 
   public void disposeComponent() {
-    ExternalResourceManager erm = ExternalResourceManager.getInstance();
-    erm.removeResource(EXML_NAMESPACE_URI, "/net/jangaroo/extxml/schemas/extxml.xsd");
   }
 }

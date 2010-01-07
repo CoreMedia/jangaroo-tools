@@ -10,7 +10,7 @@
   <vendor url="http://www.jangaroo.net"
           email="info@jangaroo.net"
           logo="/net/jangaroo/jooley-16x16.png">Jangaroo</vendor>
-  <idea-version since-build="9852" until-build="9999"/>
+  <idea-version since-build="10000"/>
 
   <depends>JavaScript</depends>
   <depends>org.jetbrains.idea.maven</depends>
@@ -33,12 +33,12 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <facetType implementation="net.jangaroo.ide.idea.JangarooFacetType"/>
-    <frameworkSupport implementation="net.jangaroo.ide.idea.JangarooFacetTypeFrameworkSupportProvider"/>
-    <javaee.web.customBuildParticipant implementation="net.jangaroo.ide.idea.JangarooWebBuildParticipant"/>
+    <packaging.elementType implementation="net.jangaroo.ide.idea.JangarooCompilerOutputElementType"/>
+    <packaging.sourceItemProvider implementation="net.jangaroo.ide.idea.JangarooCompilerOutputSourceItemProvider"/>
   </extensions>
 
-  <extensions xmlns="org.jetbrains.idea.maven">
-    <facetImporter implementation="net.jangaroo.ide.idea.JangarooFacetImporter"/>
+  <extensions defaultExtensionNs="org.jetbrains.idea.maven">
+    <importer implementation="net.jangaroo.ide.idea.JangarooMavenImporter"/>
   </extensions>
 
 </idea-plugin>

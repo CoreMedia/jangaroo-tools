@@ -30,13 +30,14 @@ import javax.swing.*;
  * Jangaroo FacetType.
  */
 public class JangarooFacetType extends FacetType<JangarooFacet, JangarooFacetConfiguration> {
-  
-  public static final FacetTypeId<JangarooFacet> ID = new FacetTypeId<JangarooFacet>("jangaroo");
+
+  private static final String JANGAROO_STRING_ID = "jangaroo";
+  public static final FacetTypeId<JangarooFacet> ID = new FacetTypeId<JangarooFacet>(JANGAROO_STRING_ID);
   public static final JangarooFacetType INSTANCE = new JangarooFacetType();
-  static final String JANGAROO_FACET_ICON_URL = "/net/jangaroo/jooley-16x16.png";
+  public static final String JANGAROO_FACET_ICON_URL = "/net/jangaroo/jooley-16x16.png";
 
   public JangarooFacetType() {
-    super(ID, "jangaroo", "Jangaroo");
+    super(ID, JANGAROO_STRING_ID, "Jangaroo");
   }
 
   public JangarooFacetConfiguration createDefaultConfiguration() {
