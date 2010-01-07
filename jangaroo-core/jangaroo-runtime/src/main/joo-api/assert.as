@@ -1,3 +1,6 @@
 package {
-native function assert(condition : Boolean) : void;
+
+public native function assert(condition : Boolean) : void;
+
 }
+
