@@ -7,6 +7,7 @@ import net.jangaroo.properties.model.LocalizationSuite;
 import net.jangaroo.properties.model.PropertiesClass;
 import net.jangaroo.properties.model.ResourceBundleClass;
 import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.io.StringWriter;
@@ -30,7 +31,17 @@ public class PropertyClassGeneratorTest {
     p.put("key2", "Die Platte \\\"{1}\\\" enthält {0}.");
     PropertiesClass pc = new PropertiesClass(rbc, Locale.ENGLISH,p, null);
     generator.generatePropertiesClass(pc, writer);
-    System.out.println(writer.toString());
+    assertEquals("package testPackage {\n" +
+        "\n" +
+        "/**\n" +
+        " * Properties class for Locale en\n" +
+        " */\n" +
+        "public class PropertiesTest_properties {\n" +
+        "\n" +
+        "public static const key = \"Die Platte \\\"{1}\\\" enthält {0}.\";\n" +
+        "public static const key2 = \"Die Platte \\\"{1}\\\" enthält {0}.\";\n" +
+        "}\n" +
+        "}",writer.toString());
   }
 
  
