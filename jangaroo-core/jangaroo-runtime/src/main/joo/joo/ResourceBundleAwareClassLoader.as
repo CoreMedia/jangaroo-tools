@@ -78,7 +78,7 @@ public class ResourceBundleAwareClassLoader extends joo.DynamicClassLoader {
     }
 
     //The default language "en" has no ending.
-    if(result === "en") {
+    if(!result || result === "en") {
        result = "";
     } else {
       result = "_" + result;
