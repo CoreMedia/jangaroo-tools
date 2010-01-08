@@ -15,6 +15,7 @@ import java.util.Locale;
 import java.util.Properties;
 
 public class PropertyClassGeneratorTest {
+  private static final String LINE_SEPARATOR = System.getProperty("line.separator");
 
   @Test
   public void testSimplePropertySet() throws Exception {
@@ -31,7 +32,7 @@ public class PropertyClassGeneratorTest {
     p.put("key2", "Die Platte \\\"{1}\\\" enthält {0}.");
     PropertiesClass pc = new PropertiesClass(rbc, Locale.ENGLISH,p, null);
     generator.generatePropertiesClass(pc, writer);
-    assertEquals("package testPackage {\n" +
+    assertEquals(("package testPackage {\n" +
         "\n" +
         "/**\n" +
         " * Properties class for Locale en\n" +
@@ -41,7 +42,7 @@ public class PropertyClassGeneratorTest {
         "public static const key = \"Die Platte \\\"{1}\\\" enthält {0}.\";\n" +
         "public static const key2 = \"Die Platte \\\"{1}\\\" enthält {0}.\";\n" +
         "}\n" +
-        "}",writer.toString());
+        "}").replaceAll("\n", LINE_SEPARATOR), writer.toString());
   }
 
  
