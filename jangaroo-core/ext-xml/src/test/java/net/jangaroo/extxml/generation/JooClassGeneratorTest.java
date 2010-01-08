@@ -21,6 +21,8 @@ import java.util.Collections;
 
 public class JooClassGeneratorTest{
 
+  private static final String LINE_SEPARATOR = System.getProperty("line.separator");
+  
   private JooClassGenerator jooClassGenerator = null;
   private UnitTestLogHandler logHandler;
 
@@ -46,7 +48,7 @@ public class JooClassGeneratorTest{
     jooClassGenerator.generateJangarooClass(jooClazz, writer);
     writer.flush();
     System.out.println(writer.toString());
-    assertEquals("package com.coremedia.test {\n" +
+    assertEquals(("package com.coremedia.test {\n" +
         "\n" +
         "import ext.Ext;\n" +
         "import ext.ComponentMgr;\n" +
@@ -76,7 +78,7 @@ public class JooClassGeneratorTest{
         "  }\n" +
         "\n" +
         "}\n" +
-        "}", writer.toString());
+        "}").replaceAll("\n", LINE_SEPARATOR), writer.toString());
     writer.close();
   }
 
@@ -91,7 +93,7 @@ public class JooClassGeneratorTest{
     jooClassGenerator.generateJangarooClass(jooClazz, writer);
     writer.flush();
     System.out.println(writer.toString());
-    assertEquals("package com.coremedia.test {\n" +
+    assertEquals(("package com.coremedia.test {\n" +
         "\n" +
         "import ext.Ext;\n" +
         "import ext.ComponentMgr;\n" +
@@ -121,7 +123,7 @@ public class JooClassGeneratorTest{
         "  }\n" +
         "\n" +
         "}\n" +
-        "}",writer.toString());
+        "}").replaceAll("\n", LINE_SEPARATOR),writer.toString());
     writer.close();
   }
 
@@ -135,7 +137,7 @@ public class JooClassGeneratorTest{
     jooClassGenerator.generateJangarooClass(jooClazz, writer);
     writer.flush();
     System.out.println(writer.toString());
-    assertEquals("package com.coremedia.test {\n" +
+    assertEquals(("package com.coremedia.test {\n" +
         "\n" +
         "import ext.Ext;\n" +
         "import ext.ComponentMgr;\n" +
@@ -167,7 +169,7 @@ public class JooClassGeneratorTest{
         "  }\n" +
         "\n" +
         "}\n" +
-        "}",writer.toString());
+        "}").replaceAll("\n", LINE_SEPARATOR),writer.toString());
     writer.close();
   }
 
