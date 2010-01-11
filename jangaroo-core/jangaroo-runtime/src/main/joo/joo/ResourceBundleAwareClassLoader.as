@@ -21,7 +21,7 @@ import joo.*;
 
 public class ResourceBundleAwareClassLoader extends joo.DynamicClassLoader {
 
-  private static const RESOURCE_BUNDLE_PATTERN:RegExp = /.+_properties/;
+  private static const RESOURCE_BUNDLE_PATTERN:RegExp = /_properties$/;
 
   public var supportedLocales:Array = ["en"];
   public var localeCookieName:String = "locale";
@@ -44,42 +44,33 @@ public class ResourceBundleAwareClassLoader extends joo.DynamicClassLoader {
     var userLocale:String = loadCookie();
     var result:String;
 
-    if (!userLocale) {
-      if (navigator) {
-        if (navigator.language) {
-          userLocale = navigator.language;
-        }
-        else if (navigator.browserLanguage) {
-          userLocale = navigator.browserLanguage;
-        }
-        else if (navigator.systemLanguage) {
-            return navigator.systemLanguage;
-          }
-          else if (navigator.userLanguage) {
-              userLocale = navigator.userLanguage;
-            }
+    if (!userLocale && navigator) {
+      userLocale = navigator.language || navigator.browserLanguage || navigator.systemLanguage || navigator.userLanguage;
+      if (userLocale) {
         userLocale = userLocale.replace(/-/g, "_");
-      } else {
-        userLocale = "en";
       }
+    }
+
+    if (!userLocale) {
+      userLocale = "en";
     }
 
     //find longest match
     var longestMatch:String;
-    for (var i:int=0;i<supportedLocales.length;i++ ) {
-      if(userLocale.indexOf(supportedLocales[i]) === 0) {
-        if(!longestMatch || longestMatch.length > supportedLocales[i]) {
+    for (var i:int = 0; i < supportedLocales.length; i++) {
+      if (userLocale.indexOf(supportedLocales[i]) === 0) {
+        if (!longestMatch || longestMatch.length > supportedLocales[i]) {
           longestMatch = supportedLocales[i];
         }
       }
     }
-    if(longestMatch) {
+    if (longestMatch) {
       result = longestMatch;
     }
 
     //The default language "en" has no ending.
-    if(!result || result === "en") {
-       result = "";
+    if (!result || result === "en") {
+      result = "";
     } else {
       result = "_" + result;
     }
