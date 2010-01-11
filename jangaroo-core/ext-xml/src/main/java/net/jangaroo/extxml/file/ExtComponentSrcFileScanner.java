@@ -167,7 +167,7 @@ public final class ExtComponentSrcFileScanner {
     }
 
     public void setXtype(String xtype, String className) {
-      if (cc.getXtype() == null && jsType2asType(className).equals(cc.getFullClassName())) {
+      if (cc != null && cc.getXtype() == null && jsType2asType(className).equals(cc.getFullClassName())) {
         cc.setXtype(xtype);
       }
     }
