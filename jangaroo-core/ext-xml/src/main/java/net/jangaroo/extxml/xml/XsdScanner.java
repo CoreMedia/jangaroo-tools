@@ -56,7 +56,10 @@ public class XsdScanner {
   }
 
   private void addXtypeToComponentClass() throws XMLStreamException {
-    String xtype = parser.getAttributeValue(null, "name");
+    String xtype = parser.getAttributeValue(null, "id");
+    if (xtype == null) {
+      xtype = parser.getAttributeValue(null, "name");
+    }
     String typeName = afterColon(parser.getAttributeValue(null, "type"));
     ComponentClass componentClass = ccStack.lastElement();
     assert typeName.equals(componentClass.getFullClassName());

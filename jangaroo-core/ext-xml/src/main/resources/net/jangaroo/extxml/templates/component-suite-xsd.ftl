@@ -58,9 +58,9 @@ ${cfg.description}
     </#if>
   </xs:complexType>
   <#if componentClass.superClass??>
-  <xs:element name='${componentClass.elementName}' type='${componentClass.xsType}' substitutionGroup='${componentClass.superClass.suite.prefix}${componentClass.superClass.elementName}'>
+  <xs:element id='${componentClass.xtype}' name='${componentClass.elementName}' type='${componentClass.xsType}' substitutionGroup='${componentClass.superClass.suite.prefix}${componentClass.superClass.elementName}'>
   <#else>
-  <xs:element name='${componentClass.elementName}' type='${componentClass.xsType}'>
+  <xs:element id='${componentClass.xtype}' name='${componentClass.elementName}' type='${componentClass.xsType}'>
   </#if>
     <#if componentClass.description??>
     <xs:annotation>
