@@ -4,6 +4,7 @@ import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapper;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
+import freemarker.core.Environment;
 import net.jangaroo.utils.log.Log;
 import net.jangaroo.extxml.model.ComponentSuite;
 
@@ -15,6 +16,7 @@ import java.io.Writer;
  */
 public final class XsdGenerator {
 
+  private final static String outputCharset = "UTF-8";
   private static Configuration cfg = new Configuration();
   static {
     /* Create and adjust freemarker configuration */
@@ -48,7 +50,9 @@ public final class XsdGenerator {
       if (template != null) {
         Log.i(String.format("Writing XML Schema '%s' ", componentSuite.getNamespace()));
         try {
-          template.process(componentSuite, out);
+          Environment env = template.createProcessingEnvironment(componentSuite, out);
+          env.setOutputEncoding(outputCharset);
+          env.process();
         } catch (TemplateException e) {
           Log.e("Error while generating xsd", e);
         }

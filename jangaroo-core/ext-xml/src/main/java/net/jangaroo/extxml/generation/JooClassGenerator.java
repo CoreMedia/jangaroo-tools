@@ -4,19 +4,21 @@ import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapper;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
-import net.jangaroo.extxml.xml.ContentHandlerUtils;
-import net.jangaroo.extxml.xml.ExmlToJsonHandler;
+import freemarker.core.Environment;
 import net.jangaroo.extxml.model.ComponentClass;
 import net.jangaroo.extxml.model.ComponentSuite;
 import net.jangaroo.extxml.model.ComponentType;
+import net.jangaroo.extxml.xml.ContentHandlerUtils;
+import net.jangaroo.extxml.xml.ExmlToJsonHandler;
 import net.jangaroo.utils.log.Log;
 import org.apache.maven.shared.model.fileset.mappers.FileNameMapper;
 import org.apache.maven.shared.model.fileset.mappers.GlobPatternMapper;
 import org.codehaus.plexus.util.StringUtils;
 
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.Writer;
 
 /**
@@ -25,6 +27,7 @@ import java.io.Writer;
 public final class JooClassGenerator {
 
   private static final FileNameMapper XML_TO_JS_MAPPER = new GlobPatternMapper();
+  private final static String outputCharset = "UTF-8";
 
   static {
     XML_TO_JS_MAPPER.setFrom("*." + ComponentType.EXML.getExtension());
@@ -46,8 +49,9 @@ public final class JooClassGenerator {
         cfg.setSharedVariable("jsonForTemplate", jooClass.getJson().toString(2, 4));
       }
       Template template = cfg.getTemplate("/net/jangaroo/extxml/templates/jangaroo_class.ftl");
-
-      template.process(jooClass, output);
+      Environment env = template.createProcessingEnvironment(jooClass, output);
+      env.setOutputEncoding(outputCharset);
+      env.process();
     }
   }
 
@@ -98,9 +102,9 @@ public final class JooClassGenerator {
         }
       }
 
-      FileWriter writer = null;
+     Writer writer = null;
       try {
-        writer = new FileWriter(outputFile);
+        writer = new OutputStreamWriter(new FileOutputStream(outputFile), outputCharset);
         generateJangarooClass(componentClass, writer);
       } catch (IOException e) {
         Log.e("Exception while creating class", e);

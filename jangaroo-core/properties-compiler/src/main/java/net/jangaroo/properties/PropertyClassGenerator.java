@@ -3,6 +3,7 @@
  */
 package net.jangaroo.properties;
 
+import freemarker.core.Environment;
 import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapper;
 import freemarker.template.Template;
@@ -14,13 +15,16 @@ import net.jangaroo.utils.log.Log;
 import org.codehaus.plexus.util.FileUtils;
 
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.Locale;
 
 public class PropertyClassGenerator {
   private static Configuration cfg = new Configuration();
+
+  private final static String outputCharset = "UTF-8";
 
   static {
     /* Create and adjust freemarker configuration */
@@ -38,7 +42,9 @@ public class PropertyClassGenerator {
 
   public void generatePropertiesClass(PropertiesClass propertiesClass, Writer out) throws IOException, TemplateException {
     Template template = cfg.getTemplate("properties_class.ftl");
-    template.process(propertiesClass, out);
+    Environment env = template.createProcessingEnvironment(propertiesClass, out);
+    env.setOutputEncoding(outputCharset);
+    env.process();
   }
 
   public void generateJangarooClasses(ResourceBundleClass rbc) throws IOException, TemplateException {
@@ -62,9 +68,9 @@ public class PropertyClassGenerator {
         }
       }
 
-      FileWriter writer = null;
+      Writer writer = null;
       try {
-        writer = new FileWriter(outputFile);
+        writer = new OutputStreamWriter(new FileOutputStream(outputFile), outputCharset);
         generatePropertiesClass(pl, writer);
       } catch (IOException e) {
         Log.e("error while generating class", e);
