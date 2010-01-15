@@ -88,6 +88,7 @@ public class ClassDeclaration extends joo.SystemClassDeclaration {
     super.doInit();
     this.interfaces.forEach(function(interface_ : String, i : uint, interfaces : Array) : void {
       interfaces[i] = classLoader.getRequiredClassDeclaration(interface_);
+      interfaces[i].init();
     });
   }
 
