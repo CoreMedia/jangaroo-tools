@@ -238,8 +238,8 @@ public final class ExtComponentSrcFileScanner {
         String cleanedDescription = TidyComment.tidy(description.toString()).trim();
         if (descriptionHolder != null && cleanedDescription.length() > 0) {
           descriptionHolder.setDescription(cleanedDescription);
-          description = new StringBuilder();
         }
+        description = new StringBuilder();
         descriptionHolder = nextDescriptionHolder;
       }
     }
