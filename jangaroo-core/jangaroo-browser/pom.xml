@@ -31,7 +31,7 @@
       <plugin>
         <groupId>net.jangaroo</groupId>
         <artifactId>jangaroo-lifecycle</artifactId>
-        <version>0.3.22</version>
+        <version>0.4.0</version>
         <!-- We cannot use the latest version here since we can't use AND build it in the same process -->
         <extensions>true</extensions>
       </plugin>
@@ -76,7 +76,7 @@
           <dependency>
             <groupId>net.jangaroo</groupId>
             <artifactId>jangaroo-compiler</artifactId>
-            <version>0.3.21-SNAPSHOT</version>
+            <version>0.4.0</version>
           </dependency>
         </dependencies>
       </plugin>           
