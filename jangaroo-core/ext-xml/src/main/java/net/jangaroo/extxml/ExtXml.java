@@ -34,6 +34,7 @@ import java.io.Writer;
  * { ext.ComponentMgr.registerType(xtype, MyComponent); }
  * </code>
  * </li>
+ * </ul>
  * <p>All JavaScript files must contain the following documentation annotations in order to be
  * interpreted as an Ext JS component class:
  * <ul>
