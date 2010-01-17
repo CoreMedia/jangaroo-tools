@@ -132,7 +132,7 @@ public class JsonObject implements Json {
     } else if ("xtype".equals(key) || "ptype".equals(key)) {
       String xtype = (String) value;
       ComponentClass compClazz = ComponentSuiteRegistry.getInstance().findComponentClassByXtype(xtype);
-      if (compClazz != null) {
+      if (compClazz != null && !compClazz.getFullClassName().startsWith("ext.")) {
         //Log.getLogHandler().info(String.format("Using compontent class '%s' for xtype '%s'", compClazz, value));
         return (compClazz.getFullClassName())+ (".") + (key);
       } else {

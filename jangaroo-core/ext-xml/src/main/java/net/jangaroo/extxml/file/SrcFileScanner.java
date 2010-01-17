@@ -37,6 +37,7 @@ public final class SrcFileScanner {
     FileSet srcFiles = new FileSet();
     srcFiles.setDirectory(dir.getAbsolutePath());
     srcFiles.addInclude("**/*." + ComponentType.JavaScript.getExtension());
+    srcFiles.addExclude("**/*-more." + ComponentType.JavaScript.getExtension()); // exclude special Ext JS files
     srcFiles.addInclude("**/*." + ComponentType.ActionScript.getExtension());
     srcFiles.addInclude("**/*." + ComponentType.EXML.getExtension());
     for (String srcFileRelativePath : new FileSetManager().getIncludedFiles(srcFiles)) {

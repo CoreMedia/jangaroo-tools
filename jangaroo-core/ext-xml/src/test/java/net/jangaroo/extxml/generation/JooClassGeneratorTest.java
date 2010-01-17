@@ -207,7 +207,7 @@ public class JooClassGeneratorTest{
     JooClassGenerator generator = new JooClassGenerator(suite);
     generator.generateClasses();
 
-    assertEquals("{title:\"Iaminsideapackage!\",items:{xtype:ext.form.Label.xtype}}",cc.getJson().toString(0,0).replaceAll("\\s",""));
+    assertEquals("{title:\"Iaminsideapackage!\",items:{xtype:\"label\"}}",cc.getJson().toString(0,0).replaceAll("\\s",""));
     assertEquals("ext.Panel",cc.getSuperClassName());
 
     File result = new File(outDir, "testpackage/testPackage.as");
