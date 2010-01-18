@@ -28,7 +28,7 @@ public class ResourceBundleAwareClassLoader extends joo.DynamicClassLoader {
 
   private static function isBundleName(fullClassName:String):Boolean {
 
-    return fullClassName.match(RESOURCE_BUNDLE_PATTERN);
+    return !!fullClassName.match(RESOURCE_BUNDLE_PATTERN);
 
   }
 
@@ -39,13 +39,12 @@ public class ResourceBundleAwareClassLoader extends joo.DynamicClassLoader {
   }
 
 
-  private function getCurrentLocale():String {
+  public function getCurrentLocale():String {
 
     var userLocale:String = loadCookie();
-    var result:String;
 
-    if (!userLocale && navigator) {
-      userLocale = navigator.language || navigator.browserLanguage || navigator.systemLanguage || navigator.userLanguage;
+    if (!userLocale && window.navigator) {
+      userLocale = window.navigator.language || window.navigator.browserLanguage || window.navigator.systemLanguage || window.navigator.userLanguage;
       if (userLocale) {
         userLocale = userLocale.replace(/-/g, "_");
       }
@@ -64,26 +63,22 @@ public class ResourceBundleAwareClassLoader extends joo.DynamicClassLoader {
         }
       }
     }
-    if (longestMatch) {
-      result = longestMatch;
-    }
-
-    //The default language "en" has no ending.
-    if (!result || result === "en") {
-      result = "";
-    } else {
-      result = "_" + result;
-    }
-
-    return result;
+    return longestMatch;
   }
 
+  private function getCurrentLocaleSuffix():String {
+    var locale:String = getCurrentLocale();
+    //The default language "en" has no ending.
+    return !locale || locale === "en"
+      ? ""
+      : "_" + locale;
+  }
 
   override protected function getUri(fullClassName : String):String {
 
     if (isBundleName(fullClassName)) {
 
-      fullClassName += getCurrentLocale();
+      fullClassName += getCurrentLocaleSuffix();
 
     }
 
