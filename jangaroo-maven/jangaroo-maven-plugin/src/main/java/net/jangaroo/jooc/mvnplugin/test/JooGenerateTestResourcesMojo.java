@@ -16,9 +16,11 @@ import org.codehaus.plexus.archiver.zip.ZipUnArchiver;
 import org.codehaus.plexus.util.FileUtils;
 
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -202,10 +204,10 @@ public class JooGenerateTestResourcesMojo extends AbstractJooTestMojo {
 
     testOutputDirectory.mkdir();
     File f = new File(testOutputDirectory, "tests.html");
-    FileWriter fw = null;
+    Writer fw = null;
     try {
       f.createNewFile();
-      fw = new FileWriter(f);
+      fw = new OutputStreamWriter(new FileOutputStream(f), "UTF-8");
       fw.write("<html>\n" +
               "  <head><title>" + project.getGroupId() + ":" + project.getArtifactId() + ":" + project.getVersion() + "</title></head>\n" +
               "  <body>");
