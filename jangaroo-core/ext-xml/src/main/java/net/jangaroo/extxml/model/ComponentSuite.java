@@ -10,6 +10,8 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Collections;
+import java.util.Comparator;
 
 /**
  * A set of Ext JS components bundled under the same namespace.
@@ -21,10 +23,16 @@ public final class ComponentSuite {
   private String namespace;
   private File rootDir;
   private File as3OutputDir;
-  private Map<String, ComponentClass> componentClassesByXtype = new LinkedHashMap<String, ComponentClass>();
+  private Map<String, ComponentClass> componentClassesByXtype = new HashMap<String, ComponentClass>();
   private Map<String, ComponentClass> componentClassesByLocalName = new HashMap<String, ComponentClass>();
   private Map<String, ComponentClass> componentClassesByFullClassName = new HashMap<String, ComponentClass>();
   private Map<String, ComponentSuite> usedComponentSuites;
+  private static final Comparator<ComponentClass> COMPONENT_CLASS_BY_ELEMENT_NAME_COMPARATOR = new Comparator<ComponentClass>() {
+    @Override
+    public int compare(ComponentClass cc1, ComponentClass cc2) {
+      return cc1.getElementName().compareTo(cc2.getElementName());
+    }
+  };
 
   public ComponentSuite() {
     this(null, null, null, null);
@@ -109,6 +117,12 @@ public final class ComponentSuite {
     componentClassesByXtype.put(cc.getXtype(), cc);
     componentClassesByLocalName.put(cc.getElementName(), cc);
     componentClassesByFullClassName.put(cc.getFullClassName(), cc);
+  }
+
+  public List<ComponentClass> getSortedComponentClasses() {
+    List<ComponentClass> components = new ArrayList<ComponentClass>(getComponentClasses());
+    Collections.sort(components, COMPONENT_CLASS_BY_ELEMENT_NAME_COMPARATOR);
+    return components;
   }
 
   public Collection<ComponentClass> getComponentClasses() {

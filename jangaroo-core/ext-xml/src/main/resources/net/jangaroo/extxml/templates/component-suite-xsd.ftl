@@ -4,7 +4,7 @@
 <#list usedComponentSuites as usedComponentSuite>
   <xs:import namespace="${usedComponentSuite.namespace}"/>
 </#list>
-<#list componentClasses as componentClass>
+<#list sortedComponentClasses as componentClass>
   <xs:complexType name='${componentClass.fullClassName}'>
     <#if componentClass.superClass??>
     <xs:complexContent>
