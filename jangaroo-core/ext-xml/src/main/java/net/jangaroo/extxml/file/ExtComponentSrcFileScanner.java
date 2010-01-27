@@ -30,7 +30,7 @@ public final class ExtComponentSrcFileScanner {
       String className = FileUtils.removeExtension(srcFile.getName());
       state.addClass(className);
       state.cc.setType(ComponentType.ActionScript);
-      Log.i(String.format("Parsing AS3 class '%s'", className));
+      Log.d(String.format("Parsing AS3 class '%s'", className));
       EXT_COMPONENT_AS_FILE_SCANNER.scan(srcFile, state);
     } else if (ComponentType.JavaScript.equals(type)) {
       EXT_COMPONENT_SRC_FILE_SCANNER.scan(srcFile, state);
@@ -49,7 +49,7 @@ public final class ExtComponentSrcFileScanner {
       state.setXtype(groups.get(0), state.cc.getFullClassName());
     }
   };
-  private static final Rule<State> CFG_RULE = new Rule<State>("@cfg\\s+[{]?([\\p{Alnum}$_./]+)[}]?\\s+([\\p{Alnum}$_]+)(.*)$") {
+  private static final Rule<State> CFG_RULE = new Rule<State>("@cfg\\s+[{]?([\\p{Alnum}$_./|]+)[}]?\\s+([\\p{Alnum}$_]+)(.*)$") {
     public void matched(State state, List<String> groups) {
       // use List#remove(0) to skip optional type if missing:
       state.addCfg(groups.size() == 3 ? groups.remove(0) : "*", groups.remove(0), groups.remove(0));
@@ -246,7 +246,7 @@ public final class ExtComponentSrcFileScanner {
           componentSuite.addComponentClass(cc);
           Log.i(String.format("Component class '%s' with xtype '%s' parsed.", cc.getFullClassName(), cc.getXtype()));
         } else {
-          Log.i(String.format("Class '%s' has no xtype - skipped.", cc.getFullClassName()));
+          Log.d(String.format("Class '%s' has no xtype - skipped.", cc.getFullClassName()));
         }
       }
     }
