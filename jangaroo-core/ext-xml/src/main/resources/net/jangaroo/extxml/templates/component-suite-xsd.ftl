@@ -22,20 +22,10 @@
               </xs:annotation>
               </#if>
               <xs:complexType>
-                <#if cfg.sequence>
                 <xs:sequence>
                   <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
                 </xs:sequence>
-                <#if cfg.object>
                 <xs:anyAttribute processContents="skip"/>
-                </#if>
-                <#else>
-                <xs:simpleContent>
-                  <xs:extension base="xs:string">
-                    <xs:anyAttribute processContents="skip"/>
-                  </xs:extension>
-                </xs:simpleContent>
-                </#if>
               </xs:complexType>
             </xs:element>
           </#if>
