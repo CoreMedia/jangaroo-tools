@@ -3,14 +3,14 @@
   <parent>
     <groupId>net.jangaroo</groupId>
     <artifactId>jangaroo-core</artifactId>
-    <version>0.4.3</version>
+    <version>0.4.4-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>net.jangaroo</groupId>
   <artifactId>jangaroo-browser</artifactId>
   <name>Joo Browser Compat. Lib</name>
-  <version>0.4.3</version>
+  <version>0.4.4-SNAPSHOT</version>
   <packaging>jangaroo</packaging>
   <build>
 
@@ -117,7 +117,7 @@
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-runtime</artifactId>
-      <version>0.4.3</version>
+      <version>0.4.4-SNAPSHOT</version>
       <type>jangaroo</type>
     </dependency>
 
