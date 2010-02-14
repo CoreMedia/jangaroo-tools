@@ -150,7 +150,7 @@ public class DynamicClassLoader extends joo.StandardClassLoader {
 
   protected function getUri(fullClassName : String) : String {
     var baseUri : String = this.getBaseUri();
-    return baseUri + fullClassName.replace(/\./g as String,"/") + ".js";
+    return baseUri + fullClassName.replace(/\./g,"/") + ".js";
   }
 
   /**
