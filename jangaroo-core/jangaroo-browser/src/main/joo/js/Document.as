@@ -88,6 +88,11 @@ public class Document extends Node {
 
   public native function get location() : Location;
 
+
+
+  public native function createRange() : Range;
+
+
 }
 
 }

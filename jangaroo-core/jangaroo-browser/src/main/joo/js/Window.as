@@ -112,6 +112,12 @@ public class Window {
 
   public native function close() : void;
 
+
+  /**
+   * Firefox only.
+   */
+  public native function getSelection() : Selection;
+
 }
 
 }
