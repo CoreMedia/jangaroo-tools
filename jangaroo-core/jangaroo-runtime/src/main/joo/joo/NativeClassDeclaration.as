@@ -22,7 +22,7 @@ import joo.*;
 
 public class NativeClassDeclaration {
 
-  protected static function createEmptyConstructor(constructor_ : Function) : Function {
+  internal static function createEmptyConstructor(constructor_ : Function) : Function {
     var emptyConstructor : Function = function() : void {
       this.constructor = constructor_;
     };
