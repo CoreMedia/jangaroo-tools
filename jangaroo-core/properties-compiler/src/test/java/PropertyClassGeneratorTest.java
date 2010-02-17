@@ -28,8 +28,8 @@ public class PropertyClassGeneratorTest {
 
     ResourceBundleClass rbc = new ResourceBundleClass("testPackage.PropertiesTest");
     Properties p = new Properties();
-    p.put("key", "Die Platte \\\"{1}\\\" enthält {0}.");
-    p.put("key2", "Die Platte \\\"{1}\\\" enthält {0}.");
+    p.put("key", "Die Platte \"{1}\" enthält {0}.");
+    p.put("key2", "Die Platte \"{1}\" enthält {0}.");
     PropertiesClass pc = new PropertiesClass(rbc, Locale.ENGLISH,p, null);
     generator.generatePropertiesClass(pc, writer);
     assertEquals(("package testPackage {\n" +
@@ -39,8 +39,8 @@ public class PropertyClassGeneratorTest {
         " */\n" +
         "public class PropertiesTest_properties {\n" +
         "\n" +
-        "public static const key = \"Die Platte \\\"{1}\\\" enthält {0}.\";\n" +
-        "public static const key2 = \"Die Platte \\\"{1}\\\" enthält {0}.\";\n" +
+        "public static const key:String = \"Die Platte \\\"{1}\\\" enthält {0}.\";\n" +
+        "public static const key2:String = \"Die Platte \\\"{1}\\\" enthält {0}.\";\n" +
         "}\n" +
         "}").replaceAll("\n", LINE_SEPARATOR), writer.toString());
   }

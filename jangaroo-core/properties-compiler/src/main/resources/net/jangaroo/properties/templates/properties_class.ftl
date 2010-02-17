@@ -7,7 +7,7 @@ package ${resourceBundle.packageName} {
 public class ${resourceBundle.className}_properties {
 
 <#list props as property>
-public static const ${property.key} = "${property.value}";
+public static const ${property.key}:String = "${property.value?js_string}";
 </#list>
 }
 }
