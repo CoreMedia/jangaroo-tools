@@ -2,23 +2,15 @@ package net.jangaroo.jooc.mvnplugin.test;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.model.Resource;
 
 import java.io.File;
+import java.util.List;
 
 /**
- * Created by IntelliJ IDEA.
- * User: sannies
- * Date: 15.09.2009
- * Time: 20:04:43
- * To change this template use File | Settings | File Templates.
+ * 
  */
 public abstract class AbstractJooTestMojo extends AbstractMojo {
-  /**
-   * Classname of the Actionscript TestSuite that will start all tests.
-   *
-   * @parameter default-value="suite.TestSuite"
-   */
-  protected String testSuiteName;
 
   /**
    * The maven project.
@@ -44,13 +36,30 @@ public abstract class AbstractJooTestMojo extends AbstractMojo {
    */
   protected File testSourceDirectory;
 
+  /**
+   * the tests.html file relative to the test resources folder
+   *
+   * @parameter expression="tests.html"
+   */
+  protected String testsHtml;
+
+   /**
+   * the tests.html file relative to the test resources folder
+   *
+   * @parameter expression="${project.testResources}"
+   */
+  protected List<Resource> testResources;
+
 
   protected boolean isTestAvailable() {
-    File testSuite = new File(testSourceDirectory, testSuiteName.replace(".", File.separator) + ".as");
-    if (!testSuite.exists()) {
-      getLog().info("The testSuite '" + testSuite + "' could not be found. Skipping.");
+   for(Resource r : testResources) {
+      File testFile = new File(r.getDirectory(), testsHtml);
+      if(testFile.exists()) {
+        return true;
+      }
     }
-    return testSuite.exists();
+    getLog().info("The tests.html file '" + testsHtml + "' could not be found. Skipping.");
+    return false;
   }
 
   /**

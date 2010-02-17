@@ -2,6 +2,7 @@ package net.jangaroo.jooc.mvnplugin.test;
 
 import junit.framework.Assert;
 import junit.framework.TestCase;
+import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.xml.sax.SAXException;
@@ -9,6 +10,7 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 
 /**
  *
@@ -40,7 +42,7 @@ public class JooTestMojoTest extends TestCase {
     Assert.assertTrue(f.mkdirs());
 
     jooTestMojo.testSourceDirectory = f;
-    jooTestMojo.testSuiteName = "doesntexist";
+    jooTestMojo.testResources = new ArrayList<Resource>();
     jooTestMojo.execute();
     Assert.assertTrue(f.delete());
   }

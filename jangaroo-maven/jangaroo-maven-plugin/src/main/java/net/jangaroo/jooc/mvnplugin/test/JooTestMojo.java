@@ -151,7 +151,7 @@ public class JooTestMojo extends AbstractJooTestMojo {
 
           String testResultXml = selenium.getEval("selenium.browserbot.getCurrentWindow().result");
           evalTestOutput(testResultXml);
-          File result = new File(testResultOutputDirectory, "TEST-" + testSuiteName + ".xml");
+          File result = new File(testResultOutputDirectory, "TEST-" + project.getArtifactId() + ".xml");
           FileUtils.writeStringToFile(result, testResultXml);
           result.setLastModified(System.currentTimeMillis());
         } catch (IOException e) {
