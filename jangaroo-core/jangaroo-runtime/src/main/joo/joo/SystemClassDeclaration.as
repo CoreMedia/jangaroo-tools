@@ -121,7 +121,7 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
     var Super : Function = this.superClassDeclaration.Public;
     if (!this.native_) {
       this.publicConstructor.prototype = new Super();
-      this.publicConstructor["superclass"] = this.superClassDeclaration.publicConstructor.prototype; // Ext Core compatibility!
+      this.publicConstructor["superclass"] = this.publicConstructor.prototype; // Ext Core compatibility!
     }
     this.Public = NativeClassDeclaration.createEmptyConstructor(this.publicConstructor);
   }
