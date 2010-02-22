@@ -71,11 +71,13 @@ public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUni
 
         try {
           JsWriter out = new JsWriter(new FileWriter(outFile));
-
-          out.setOptions(getOptions());
           try {
-            codeGenerator.generateCode(out);
-            out.close();
+            try {
+              out.setOptions(getOptions());
+              codeGenerator.generateCode(out);
+            } finally {
+              out.close();
+            }
           } catch (IOException e) {
             outFile.delete();
             throw Jooc.error("error writing file: '" + outFile.getAbsolutePath() + "'", e);

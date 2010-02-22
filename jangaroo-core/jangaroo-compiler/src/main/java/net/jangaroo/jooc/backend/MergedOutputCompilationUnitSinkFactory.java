@@ -29,13 +29,14 @@ public class MergedOutputCompilationUnitSinkFactory extends AbstractCompilationU
       public void writeOutput(CodeGenerator codeGenerator) {
 
         try {
-
           JsWriter out = new JsWriter(new FileWriter(outputFile, true));
-
-          out.setOptions(getOptions());
           try {
-            codeGenerator.generateCode(out);
-            out.close();
+            try {
+              out.setOptions(getOptions());
+              codeGenerator.generateCode(out);
+            } finally {
+              out.close();
+            }
           } catch (IOException e) {
             outputFile.delete();
             throw Jooc.error("error writing file: '" + outputFile.getAbsolutePath() + "'", e);
