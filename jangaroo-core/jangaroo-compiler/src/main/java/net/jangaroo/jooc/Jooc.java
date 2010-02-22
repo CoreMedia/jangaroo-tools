@@ -136,20 +136,20 @@ public class Jooc {
     }
   }
 
-  public static void error(String msg) {
-    throw new CompilerError(msg);
+  public static CompilerError error(String msg) {
+    return new CompilerError(msg);
   }
 
-  static void error(JooSymbol symbol, String msg) {
-    throw new CompilerError(symbol, msg);
+  static CompilerError error(JooSymbol symbol, String msg) {
+    return new CompilerError(symbol, msg);
   }
 
-  public static void error(Node node, String msg) {
-    error(node.getSymbol(), msg);
+  public static CompilerError error(Node node, String msg) {
+    return error(node.getSymbol(), msg);
   }
 
-  public static void error(String msg, Throwable t) {
-    throw new CompilerError(msg, t);
+  public static CompilerError error(String msg, Throwable t) {
+    return new CompilerError(msg, t);
   }
 
   public static void warning(JooSymbol symbol, String msg) {
@@ -169,10 +169,10 @@ public class Jooc {
 
   protected CompilationUnit parse(File in) {
     if (in.isDirectory()) {
-      error("Input file is a directory: " + in.getAbsolutePath());
+      throw error("Input file is a directory: " + in.getAbsolutePath());
     }
     if (!in.getName().endsWith(JS2_SUFFIX) && !in.getName().endsWith(AS_SUFFIX)) {
-      error("Input file must end with '" + JS2_SUFFIX + " or " + AS_SUFFIX + "': " + in.getAbsolutePath());
+      throw error("Input file must end with '" + JS2_SUFFIX + " or " + AS_SUFFIX + "': " + in.getAbsolutePath());
     }
     Scanner s;
     if (config.isVerbose()) {

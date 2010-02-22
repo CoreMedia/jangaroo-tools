@@ -3,14 +3,13 @@
  */
 package net.jangaroo.extxml.mojo;
 
-import net.jangaroo.extxml.model.ComponentSuite;
-import net.jangaroo.extxml.ComponentSuiteRegistry;
-import net.jangaroo.utils.log.LogHandler;
-import net.jangaroo.extxml.generation.JooClassGenerator;
-import net.jangaroo.utils.log.Log;
 import net.jangaroo.extxml.file.SrcFileScanner;
+import net.jangaroo.extxml.generation.JooClassGenerator;
 import net.jangaroo.extxml.generation.XsdGenerator;
+import net.jangaroo.extxml.model.ComponentSuite;
 import net.jangaroo.extxml.xml.XsdScanner;
+import net.jangaroo.utils.log.Log;
+import net.jangaroo.utils.log.LogHandler;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -117,7 +116,6 @@ public class ExtXmlMojo extends AbstractMojo {
     }
 
 
-    ComponentSuiteRegistry componentSuiteRegistry = ComponentSuiteRegistry.getInstance();
     MavenLogHandler errorHandler = new MavenLogHandler();
     Log.setLogHandler(errorHandler);
     ComponentSuite suite = new ComponentSuite(namespace, namespacePrefix, sourceDirectory, generatedSourcesDirectory);

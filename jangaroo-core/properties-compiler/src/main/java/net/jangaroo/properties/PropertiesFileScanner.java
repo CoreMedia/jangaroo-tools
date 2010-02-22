@@ -16,12 +16,10 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.Locale;
 import java.util.Properties;
-import java.util.regex.Pattern;
 
 public final class PropertiesFileScanner {
 
   private LocalizationSuite suite;
-  private static Pattern LOCALE_PATTERN  = Pattern.compile("^(\\p{Lower}{2})(_(\\p{Upper}{2}))?");
 
   public PropertiesFileScanner(LocalizationSuite suite) {
     this.suite = suite;
@@ -41,7 +39,7 @@ public final class PropertiesFileScanner {
 
       String className = FileUtils.removeExtension(srcFile.getName());
 
-      Locale locale = null;
+      Locale locale;
       if (className.indexOf("_") != -1) {
         String localeString = className.substring(className.indexOf("_") + 1, className.length());
         if(localeString.indexOf("_") != -1) {
@@ -62,7 +60,7 @@ public final class PropertiesFileScanner {
         locale = Locale.ENGLISH;
       }
 
-      String packageName = FileUtils.dirname(srcFileRelativePath.substring(0)).replaceAll("[\\\\/]", ".");
+      String packageName = FileUtils.dirname(srcFileRelativePath).replaceAll("[\\\\/]", ".");
 
       String fullName;
       if (packageName != null && !"".equals(packageName)) {
@@ -84,7 +82,8 @@ public final class PropertiesFileScanner {
       } finally {
         r.close();
       }
-      PropertiesClass propertiesCl = new PropertiesClass(bundle, locale, p, srcFile);
+      // Create properties class, which registers itself with the bundle.
+      new PropertiesClass(bundle, locale, p, srcFile);
     }
   }
 }

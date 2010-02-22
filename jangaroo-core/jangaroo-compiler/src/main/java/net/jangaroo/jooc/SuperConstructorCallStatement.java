@@ -35,10 +35,10 @@ class SuperConstructorCallStatement extends Statement {
     super.analyze(parentNode, context);
     MethodDeclaration method = context.getCurrentMethod();
     if (method == null || !method.isConstructor()) {
-      Jooc.error(getSymbol(), "must only call super constructor from constructor method");
+      throw Jooc.error(getSymbol(), "must only call super constructor from constructor method");
     }
     if (method.containsSuperConstructorCall()) {
-      Jooc.error(getSymbol(), "must not call super constructor twice");
+      throw Jooc.error(getSymbol(), "must not call super constructor twice");
     }
     method.setContainsSuperConstructorCall(true);
 

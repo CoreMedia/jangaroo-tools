@@ -71,11 +71,11 @@ class TopLevelIdeExpr extends IdeExpr {
       if (declaringScope==null) {
         // check for fully qualified ide:
         DotExpr currentDotExpr = synthesizedDotExpr;
-        String ideName = ide.getName();
+        StringBuilder ideName = new StringBuilder(ide.getName());
         while (currentDotExpr.parentNode instanceof DotExpr) {
           currentDotExpr = (DotExpr)currentDotExpr.parentNode;
-          ideName += "." + currentDotExpr.getArg2().ide.getName();
-          declaringScope = scope.findScopeThatDeclares(ideName);
+          ideName.append('.').append(currentDotExpr.getArg2().ide.getName());
+          declaringScope = scope.findScopeThatDeclares(ideName.toString());
           if (declaringScope!=null) {
             // it has been defined in the meantime or is an imported qualified identifier:
             return false;
@@ -95,9 +95,8 @@ class TopLevelIdeExpr extends IdeExpr {
         if (ideDeclaration instanceof MemberDeclaration) {
           MemberDeclaration memberDeclaration = (MemberDeclaration)ideDeclaration;
           return !memberDeclaration.isStatic() && !memberDeclaration.isConstructor();
-        } else {
-          // must be an imported namespace.
         }
+        // must be an imported namespace.
       }
     }
     return false;

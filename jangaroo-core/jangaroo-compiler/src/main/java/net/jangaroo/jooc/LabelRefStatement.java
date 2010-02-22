@@ -37,11 +37,11 @@ class LabelRefStatement extends KeywordExprStatement {
     if (optLabel == null) {
       Statement loopOrSwitchStatement = scope.getCurrentLoopOrSwitch();
       if (loopOrSwitchStatement == null)
-        Jooc.error(this, "not inside loop or switch");
+        throw Jooc.error(this, "not inside loop or switch");
     } else {
       labelDeclaration = scope.lookupLabel(optLabel);
       if (!(labelDeclaration.statement instanceof LoopStatement))
-        Jooc.error(this, "label does not reference loop statement");
+        throw Jooc.error(this, "label does not reference loop statement");
     }
     return this;
   }

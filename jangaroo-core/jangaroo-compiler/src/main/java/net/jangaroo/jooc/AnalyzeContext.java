@@ -37,7 +37,7 @@ public class AnalyzeContext {
 
   public void leaveScope(Node declaration) {
     if (declaration != scope.getDeclaration())
-      Jooc.error("internal error: wrong scope to leave");
+      throw Jooc.error("internal error: wrong scope to leave");
     scope = scope.getParentScope();
   }
 

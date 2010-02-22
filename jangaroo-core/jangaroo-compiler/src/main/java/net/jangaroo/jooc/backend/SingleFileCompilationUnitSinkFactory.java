@@ -77,11 +77,11 @@ public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUni
             codeGenerator.generateCode(out);
             out.close();
           } catch (IOException e) {
-            Jooc.error("error writing file: '" + outFile.getAbsolutePath() + "'", e);
             outFile.delete();
+            throw Jooc.error("error writing file: '" + outFile.getAbsolutePath() + "'", e);
           }
         } catch (IOException e) {
-          Jooc.error("cannot open output file for writing: '" + outFile.getAbsolutePath() + "'", e);
+          throw Jooc.error("cannot open output file for writing: '" + outFile.getAbsolutePath() + "'", e);
         }
 
       }

@@ -106,7 +106,7 @@ abstract class AbstractVariableDeclaration extends MemberDeclaration {
   public Node analyze(Node parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     if (optInitializer == null && isConst()) {
-      Jooc.error(optSymConstOrVar, "constant must be initialized");
+      throw Jooc.error(optSymConstOrVar, "constant must be initialized");
     }
     if (optInitializer != null) {
       optInitializer.analyze(this, context);

@@ -53,7 +53,7 @@ public class MethodDeclaration extends MemberDeclaration {
     this.symFunction = symFunction;
     this.symGetOrSet = symGetOrSet;
     if (isGetterOrSetter() && !(isGetter() || isSetter())) {
-      Jooc.error(symGetOrSet, "Expected 'get' or 'set'.");
+      throw Jooc.error(symGetOrSet, "Expected 'get' or 'set'.");
     }
     this.lParen = lParen;
     this.params = params;
@@ -82,7 +82,7 @@ public class MethodDeclaration extends MemberDeclaration {
     return isGetterOrSetter() && SyntacticKeywords.SET.equals(symGetOrSet.getText());
   }
 
-  public boolean isConstructor() {
+  public final boolean isConstructor() {
     return isConstructor;
   }
 
@@ -99,7 +99,8 @@ public class MethodDeclaration extends MemberDeclaration {
   }
 
   public Node analyze(Node parentNode, AnalyzeContext context) {
-    parentDeclaration = classDeclaration = context.getCurrentClass();
+    classDeclaration = context.getCurrentClass();
+    parentDeclaration = classDeclaration;
     if (classDeclaration != null && ide.getName().equals(classDeclaration.getName())) {
       isConstructor = true;
       classDeclaration.setConstructor(this);
@@ -107,25 +108,25 @@ public class MethodDeclaration extends MemberDeclaration {
     }
     super.analyze(parentNode, context); // computes modifiers
     if (overrides() && isAbstract()) {
-      Jooc.error(this, "overriding methods are not allowed to be declared abstract");
+      throw Jooc.error(this, "overriding methods are not allowed to be declared abstract");
     }
     if (isAbstract()) {
       if (classDeclaration == null) {
-        Jooc.error(this, "package-scoped function " + getName() + " must not be abstract.");
+        throw Jooc.error(this, "package-scoped function " + getName() + " must not be abstract.");
       }
       if (!classDeclaration.isAbstract()) {
-        Jooc.error(this, classDeclaration.getName() + "is not declared abstract");
+        throw Jooc.error(this, classDeclaration.getName() + "is not declared abstract");
       }
       if (optBody instanceof BlockStatement) {
-        Jooc.error(this, "abstract method must not be implemented");
+        throw Jooc.error(this, "abstract method must not be implemented");
       }
     }
     if (isNative() && optBody instanceof BlockStatement) {
-      Jooc.error(this, "native method must not be implemented");
+      throw Jooc.error(this, "native method must not be implemented");
     }
 
     if (!isAbstract() && !isNative() && !(optBody instanceof BlockStatement)) {
-      Jooc.error(this, "method must either be implemented or declared abstract or native");
+      throw Jooc.error(this, "method must either be implemented or declared abstract or native");
     }
 
     //TODO:check whether abstract method does not actually override
@@ -170,7 +171,6 @@ public class MethodDeclaration extends MemberDeclaration {
 
   public void generateCode(JsWriter out) throws IOException {
     boolean isAbstract = isAbstract();
-    boolean isConstructor = isConstructor();
     if (isAbstract) {
       out.beginComment();
       writeModifiers(out);
@@ -221,12 +221,8 @@ public class MethodDeclaration extends MemberDeclaration {
     if (optTypeRelation != null) {
       optTypeRelation.generateCode(out);
     }
-    if (isConstructor() && !containsSuperConstructorCall() && optBody instanceof BlockStatement) {
-      ((BlockStatement) optBody).addBlockStartCodeGenerator(new CodeGenerator() {
-        public void generateCode(JsWriter out) throws IOException {
-          out.writeToken("this[$super]();");
-        }
-      });
+    if (isConstructor && !containsSuperConstructorCall() && optBody instanceof BlockStatement) {
+      ((BlockStatement) optBody).addBlockStartCodeGenerator(new SuperCallCodeGenerator());
     }
     if (optBody != null) {
       optBody.generateCode(out);
@@ -237,4 +233,9 @@ public class MethodDeclaration extends MemberDeclaration {
     out.write(',');
   }
 
+  private static class SuperCallCodeGenerator implements CodeGenerator {
+    public void generateCode(JsWriter out) throws IOException {
+      out.writeToken("this[$super]();");
+    }
+  }
 }

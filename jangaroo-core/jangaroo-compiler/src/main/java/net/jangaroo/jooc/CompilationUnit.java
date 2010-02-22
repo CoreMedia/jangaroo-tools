@@ -62,11 +62,7 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
   public void setSourceFile(File sourceFile) {
     this.sourceFile = sourceFile;
     File folder = sourceFile.getAbsoluteFile().getParentFile();
-    String[] symbols = folder.list(new FilenameFilter() {
-      public boolean accept(File dir, String name) {
-        return name.endsWith(Jooc.INPUT_FILE_SUFFIX);
-      }
-    });
+    String[] symbols = folder.list(new SourceFilenameFilter());
     samePackageSymbols = new HashSet<String>(symbols.length);
     for (String symbol : symbols) {
       samePackageSymbols.add(withoutAS(symbol));
@@ -182,4 +178,9 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
     return packageDeclaration.getSymbol();
   }
 
+  private static class SourceFilenameFilter implements FilenameFilter {
+    public boolean accept(File dir, String name) {
+      return name.endsWith(Jooc.INPUT_FILE_SUFFIX);
+    }
+  }
 }

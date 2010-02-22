@@ -40,7 +40,7 @@ public class Parameter extends IdeDeclaration {
     if (optTypeRelation!=null) {
       optTypeRelation.analyze(this, context);
       if (isRest() && !"Array".equals(optTypeRelation.getType().getSymbol().getText())) {
-        Jooc.error(optTypeRelation.getSymbol(), "Rest parameter must have Array type.");
+        throw Jooc.error(optTypeRelation.getSymbol(), "Rest parameter must have Array type.");
       }
     }
     if (optInitializer!=null) {

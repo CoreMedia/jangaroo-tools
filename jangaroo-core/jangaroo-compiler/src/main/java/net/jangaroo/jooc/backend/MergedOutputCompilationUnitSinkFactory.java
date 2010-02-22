@@ -37,11 +37,11 @@ public class MergedOutputCompilationUnitSinkFactory extends AbstractCompilationU
             codeGenerator.generateCode(out);
             out.close();
           } catch (IOException e) {
-            Jooc.error("error writing file: '" + outputFile.getAbsolutePath() + "'", e);
             outputFile.delete();
+            throw Jooc.error("error writing file: '" + outputFile.getAbsolutePath() + "'", e);
           }
         } catch (IOException e) {
-          Jooc.error("cannot open output file for writing: '" + outputFile.getAbsolutePath() + "'", e);
+          throw Jooc.error("cannot open output file for writing: '" + outputFile.getAbsolutePath() + "'", e);
         }
 
       }

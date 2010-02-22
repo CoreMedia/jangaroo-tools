@@ -57,22 +57,10 @@ class Scope {
       if (allowDuplicates) {
         Jooc.warning(ideSymbol, msg);
       } else {
-        Jooc.error(ideSymbol, msg);
+        throw Jooc.error(ideSymbol, msg);
       }
     }
     return oldNode;
-  }
-
-  public void defineLabel(LabeledStatement labeledStatement) {
-    LabeledStatement s = lookupLabel(labeledStatement.ide);
-    if (s != null) {
-      Jooc.error(labeledStatement.ide.ide, "label already defined in scope: '" + labeledStatement.ide.getName() + "'");
-    }
-    labels.add(labeledStatement);
-  }
-
-  public void undefineLabel() {
-    labels.remove(labels.size() - 1);
   }
 
   public LabeledStatement lookupLabel(Ide ide) {
@@ -82,8 +70,7 @@ class Scope {
         return label;
       }
     }
-    Jooc.error(ide.ide, "undeclared label '" + name + "'");
-    return null; // not reached
+    throw Jooc.error(ide.ide, "undeclared label '" + name + "'");
   }
 
   public Node getIdeDeclaration(Ide ide) {
@@ -107,7 +94,7 @@ class Scope {
   public Node lookupIde(Ide ide) {
     Scope scope = findScopeThatDeclares(ide);
     if (scope == null) {
-      Jooc.error(ide.ide, "undeclared identifier: '" + ide.getName() + "'");
+      throw Jooc.error(ide.ide, "undeclared identifier: '" + ide.getName() + "'");
     }
     return scope.getIdeDeclaration(ide);
   }

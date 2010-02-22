@@ -87,7 +87,7 @@ public class ClassDeclaration extends IdeDeclaration {
 
   public void setConstructor(MethodDeclaration methodDeclaration) {
     if (constructor != null) {
-      Jooc.error(methodDeclaration, "Only one constructor allowed per class");
+      throw Jooc.error(methodDeclaration, "Only one constructor allowed per class");
     }
 //     if (methodDeclaration != body.declararations.get(0))
 //       Jooc.error(methodDeclaration, "Constructor declaration must be the first declaration in a class");

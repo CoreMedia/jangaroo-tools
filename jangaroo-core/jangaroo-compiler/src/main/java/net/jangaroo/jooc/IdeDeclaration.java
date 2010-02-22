@@ -77,7 +77,7 @@ public abstract class IdeDeclaration extends Declaration {
     if (allowDuplicates(context)) {
       Jooc.warning(getSymbol(), msg);
     } else {
-      Jooc.error(getSymbol(), msg);
+      throw Jooc.error(getSymbol(), msg);
     }
   }
 

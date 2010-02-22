@@ -44,7 +44,7 @@ class Catch extends KeywordStatement {
     TypeRelation typeRelation = param.optTypeRelation;
     boolean hasCondition = typeRelation != null && typeRelation.getType().getSymbol().sym != sym.MUL;
     if (!hasCondition && !isLast) {
-      Jooc.error(rParen, "Only last catch clause may be untyped.");
+      throw Jooc.error(rParen, "Only last catch clause may be untyped.");
     }
     final JooSymbol errorVar = firstCatch.param.getIde().ide;
     final JooSymbol localErrorVar = param.getIde().ide;
@@ -80,15 +80,7 @@ class Catch extends KeywordStatement {
       out.writeToken(")");
     }
     if (!localErrorVar.getText().equals(errorVar.getText())) {
-      block.addBlockStartCodeGenerator(new CodeGenerator() {
-        public void generateCode(JsWriter out) throws IOException {
-          out.writeToken("var");
-          out.writeSymbolToken(localErrorVar);
-          out.writeToken("=");
-          out.writeSymbolToken(errorVar);
-          out.writeToken(";");
-        }
-      });
+      block.addBlockStartCodeGenerator(new VarCodeGenerator(localErrorVar, errorVar));
     }
     block.generateCode(out);
     if (isLast && !(isFirst && !hasCondition)) {
@@ -106,4 +98,21 @@ class Catch extends KeywordStatement {
     return this;
   }
 
+  private static class VarCodeGenerator implements CodeGenerator {
+    private final JooSymbol localErrorVar;
+    private final JooSymbol errorVar;
+
+    public VarCodeGenerator(JooSymbol localErrorVar, JooSymbol errorVar) {
+      this.localErrorVar = localErrorVar;
+      this.errorVar = errorVar;
+    }
+
+    public void generateCode(JsWriter out) throws IOException {
+      out.writeToken("var");
+      out.writeSymbolToken(localErrorVar);
+      out.writeToken("=");
+      out.writeSymbolToken(errorVar);
+      out.writeToken(";");
+    }
+  }
 }

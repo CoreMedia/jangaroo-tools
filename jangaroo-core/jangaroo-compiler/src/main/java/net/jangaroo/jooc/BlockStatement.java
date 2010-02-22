@@ -59,7 +59,7 @@ class BlockStatement extends Statement {
     for (Node o : statements) {
       if (o instanceof SuperConstructorCallStatement) return;
     }
-    Jooc.error(lBrace, "super constructor must be called directly in method block");
+    throw Jooc.error(lBrace, "super constructor must be called directly in method block");
   }
 
   public JooSymbol getSymbol() {

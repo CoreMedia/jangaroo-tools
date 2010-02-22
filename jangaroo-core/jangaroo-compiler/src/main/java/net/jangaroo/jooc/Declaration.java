@@ -50,7 +50,7 @@ abstract class Declaration extends NodeImplBase {
       MODIFIER_PRIVATE | MODIFIER_PROTECTED | MODIFIER_PUBLIC | MODIFIER_INTERNAL | MODIFIER_NAMESPACE;
 
   protected Declaration(JooSymbol[] modifiers, int allowedModifiers) {
-    this.symModifiers = modifiers;
+    this.symModifiers = modifiers.clone();
     this.allowedModifiers = allowedModifiers;
     computeModifiers();
   }
@@ -64,13 +64,13 @@ abstract class Declaration extends NodeImplBase {
     for (JooSymbol modifier : symModifiers) {
       int flag = getModifierFlag(modifier);
       if ((allowedModifiers & flag) == 0) {
-        Jooc.error(modifier, "modifier '" + modifier.getText() + "' not allowed here");
+        throw Jooc.error(modifier, "modifier '" + modifier.getText() + "' not allowed here");
       }
       if ((flag & modifiers) != 0) {
-        Jooc.error(modifier, "duplicate modifier '" + modifier.getText() + "'");
+        throw Jooc.error(modifier, "duplicate modifier '" + modifier.getText() + "'");
       }
       if ((flag & MODIFIERS_SCOPE) != 0 && (modifiers & MODIFIERS_SCOPE) != 0) {
-        Jooc.error(modifier, "duplicate scope modifier '" + modifier.getText() + "'");
+        throw Jooc.error(modifier, "duplicate scope modifier '" + modifier.getText() + "'");
       }
       modifiers |= flag;
     }
@@ -96,8 +96,7 @@ abstract class Declaration extends NodeImplBase {
                 : MODIFIER_NAMESPACE;
 
     }
-    Jooc.error(modifier, "internal compiler error: invalid modifier '" + modifier.getText() + "'");
-    return -1;
+    throw Jooc.error(modifier, "internal compiler error: invalid modifier '" + modifier.getText() + "'");
   }
 
   protected int getModifiers() {
