@@ -26,7 +26,7 @@ public class IncludeEvaluator {
       File sourceDir = new File(sourceFilename).getAbsoluteFile().getParentFile();
       file = new File(sourceDir,filename);
     }
-    Reader result = new FileReader(file);
+    Reader result = new InputStreamReader(new FileInputStream(file), "UTF-8");
     if (hasLineRange) {
       int startLine = Integer.parseInt(matcher.group(2))+1;
       int endLine = Integer.parseInt(matcher.group(3));

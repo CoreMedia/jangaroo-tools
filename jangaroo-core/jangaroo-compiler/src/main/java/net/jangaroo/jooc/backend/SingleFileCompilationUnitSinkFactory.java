@@ -8,8 +8,9 @@ import net.jangaroo.jooc.PackageDeclaration;
 import net.jangaroo.jooc.config.JoocOptions;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.FileOutputStream;
 
 /**
  * Compilation unit sink factory for one compilation unit per output file.
@@ -70,7 +71,7 @@ public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUni
           System.out.println("writing file: '" + outFile.getAbsolutePath() + "'");
 
         try {
-          JsWriter out = new JsWriter(new FileWriter(outFile));
+          JsWriter out = new JsWriter(new OutputStreamWriter(new FileOutputStream(outFile), "UTF-8"));
           try {
             try {
               out.setOptions(getOptions());

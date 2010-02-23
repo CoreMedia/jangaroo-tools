@@ -49,16 +49,4 @@ public class LineRangeReader extends Reader {
   public void close() throws IOException {
     delegate.close();
   }
-
-  public static void main(String[] args) throws IOException {
-    String filename = args[0];
-    int startLine = Integer.parseInt(args[1]);
-    int endLine = Integer.parseInt(args[2]);
-    BufferedReader bufferedReader = new BufferedReader(new LineRangeReader(new FileReader(filename), startLine, endLine));
-    String line;
-    while ((line=bufferedReader.readLine())!=null) {
-      System.out.println(line);
-    }
-    bufferedReader.close();
-  }
 }

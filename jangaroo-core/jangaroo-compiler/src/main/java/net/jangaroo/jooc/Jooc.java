@@ -23,8 +23,9 @@ import net.jangaroo.jooc.config.JoocCommandLineParser;
 import net.jangaroo.jooc.config.JoocConfiguration;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
+import java.io.InputStreamReader;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -179,8 +180,8 @@ public class Jooc {
       System.out.println("Parsing " + in.getAbsolutePath());
     }
     try {
-      s = new Scanner(new FileReader(in));
-    } catch (FileNotFoundException e) {
+      s = new Scanner(new InputStreamReader(new FileInputStream(in), "UTF-8"));
+    } catch (IOException e) {
       throw new CompilerError("Input file not found: " + in.getAbsolutePath());
     }
     s.setFileName(in.getAbsolutePath());

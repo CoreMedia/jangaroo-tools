@@ -5,7 +5,8 @@ import net.jangaroo.jooc.config.JoocOptions;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.FileWriter;
+import java.io.OutputStreamWriter;
+import java.io.FileOutputStream;
 
 /**
  * Compilation unit sink factory writing all generated classes to one file.
@@ -29,7 +30,7 @@ public class MergedOutputCompilationUnitSinkFactory extends AbstractCompilationU
       public void writeOutput(CodeGenerator codeGenerator) {
 
         try {
-          JsWriter out = new JsWriter(new FileWriter(outputFile, true));
+          JsWriter out = new JsWriter(new OutputStreamWriter(new FileOutputStream(outputFile, true), "UTF-8"));
           try {
             try {
               out.setOptions(getOptions());
