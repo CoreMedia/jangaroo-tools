@@ -175,6 +175,7 @@ nonterminal StaticInitializer staticInitializer;
 nonterminal ArrayList statementsInSwitch;
 nonterminal TypeRelation typeRelation;
 nonterminal Type type;
+nonterminal IdeType ideType;
 nonterminal CommaSeparatedList typeList;
 nonterminal VariableDeclaration variableDeclaration;
 nonterminal VariableDeclaration optNextVariableDeclaration;
@@ -483,7 +484,7 @@ exprOrObjectLiteral ::=
 extends ::=
     {: RESULT = null; :}
   |
-    EXTENDS:e type:t
+    EXTENDS:e ideType:t
     {: RESULT = new Extends(e,t); :}
   ;
 
@@ -782,16 +783,21 @@ staticInitializer ::=
   ;
 
 type ::=
-    qualifiedIde:ide
-    {: RESULT = new IdeType(ide); :}
+    ideType:it
+    {: RESULT = it; :}
   | MUL:any
     {: RESULT = new VoidType(any); :}
   | VOID:v
     {: RESULT = new VoidType(v); :}
   ;
 
+ideType ::=
+    qualifiedIde:ide
+    {: RESULT = new IdeType(ide); :}
+  ;
+
 typeList ::=
-    type:t
+    ideType:t
     {: RESULT = new CommaSeparatedList(t); :}
   | type:t COMMA:c typeList:l
     {: RESULT = new CommaSeparatedList(t,c,l); :}

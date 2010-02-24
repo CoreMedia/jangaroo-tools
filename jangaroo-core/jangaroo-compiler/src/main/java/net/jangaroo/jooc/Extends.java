@@ -22,13 +22,13 @@ import java.io.IOException;
  */
 public class Extends extends NodeImplBase  {
   JooSymbol symExtends;
-  Type superClass;
+  IdeType superClass;
 
   public Type getSuperClass() {
     return superClass;
   }
 
-  public Extends(JooSymbol extds, Type superClass) {
+  public Extends(JooSymbol extds, IdeType superClass) {
     this.symExtends = extds;
     this.superClass = superClass;
   }
