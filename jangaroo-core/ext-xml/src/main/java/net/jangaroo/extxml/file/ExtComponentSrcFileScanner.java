@@ -179,7 +179,7 @@ public final class ExtComponentSrcFileScanner {
           }
         }
         cc.setSuperClassName(fullClassName);
-      } else {
+      } else if (cc != null) {
         cc.setSuperClassName(jsType2asType(superClassName));
       }
     }
