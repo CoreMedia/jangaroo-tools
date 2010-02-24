@@ -451,6 +451,16 @@ public class JooTest extends JooRuntimeTestCase {
     expectString("foo", "package2.TestNew.testNewFullyQualified()");
   }
 
+  public void testPackageHidesVar() throws Exception {
+    loadClass("package2.TestInternal");
+    loadClass("package1.TestPackageHidesVar");
+    complete();
+    eval("obj = new package1.TestPackageHidesVar()");
+    // known bug:
+    //expectString("function", "obj.getTestInternal()");
+    expectString("string", "obj.getTestInternal()");
+  }
+
   public static void main(String args[]) {
     junit.textui.TestRunner.run(JooTest.class);
   }
