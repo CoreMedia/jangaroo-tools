@@ -88,6 +88,8 @@ public class JooTestMojo extends AbstractJooTestMojo {
 
   /**
    * Defines the Selenium RC host. Default is localhost.
+   * If the system property SELENIUM_RC_HOST is set, it is used prior to the
+   * maven parameter.
    *
    * @parameter
    */
@@ -111,6 +113,7 @@ public class JooTestMojo extends AbstractJooTestMojo {
   public void execute() throws MojoExecutionException, MojoFailureException {
     if (!skip && !skipTests) {
       if (isTestAvailable()) {
+        jooUnitSeleniumRCHost = System.getProperty("SELENIUM_RC_HOST", jooUnitSeleniumRCHost);
         try {
           //check wether the host is reachable
           //noinspection ResultOfMethodCallIgnored
