@@ -37,6 +37,10 @@ public class DynamicClassLoader extends joo.StandardClassLoader {
   public var urlPrefix : String;
   private var onCompleteCallbacks : Array/*<Function>*/ = [];
 
+  public function DynamicClassLoader() {
+    classLoader = this;
+  }
+
   /**
    * Keep record of all classes whose dependencies still have to be loaded.
    */
@@ -48,8 +52,8 @@ public class DynamicClassLoader extends joo.StandardClassLoader {
   private var pendingClassState : Object/*<String,Boolean>*/ = {};
 
   override protected function createClassDeclaration(packageDef : String, directives : Array, classDef : String, memberFactory : Function,
-                                                     publicStaticMethodNames : Array):SystemClassDeclaration {
-    var cd : ClassDeclaration = super.createClassDeclaration(packageDef, directives, classDef, memberFactory, publicStaticMethodNames) as ClassDeclaration;
+                                                     publicStaticMethodNames : Array, dependencies : Array):SystemClassDeclaration {
+    var cd : ClassDeclaration = super.createClassDeclaration(packageDef, directives, classDef, memberFactory, publicStaticMethodNames, dependencies) as ClassDeclaration;
     this.pendingDependencies.push(cd);
     if (delete this.pendingClassState[cd.fullClassName]) {
       if (this.debug) {
@@ -58,17 +62,24 @@ public class DynamicClassLoader extends joo.StandardClassLoader {
       if (this.onCompleteCallbacks.length) {
         this.loadPendingDependencies();
         if (isEmpty(this.pendingClassState)) {
-          var onCompleteCallbacks : Array/*<Function>*/ = this.onCompleteCallbacks;
-          this.onCompleteCallbacks = [];
-          // "invoke later":
-          window.setTimeout(function() : void {
-            this.completeAll();
-            this.doCompleteCallbacks(onCompleteCallbacks);
-          }, 0);
+          this.doCompleteCallbacks(onCompleteCallbacks);
         }
       }
     }
     return cd;
+  }
+
+  override protected function doCompleteCallbacks(onCompleteCallbacks : Array/*Function*/):void {
+    this.onCompleteCallbacks = [];
+    // "invoke later":
+    window.setTimeout(function() : void {
+      this.completeAll();
+      this.internalDoCompleteCallbacks(onCompleteCallbacks);
+    }, 0);
+  }
+
+  private function internalDoCompleteCallbacks(onCompleteCallbacks : Array/*Function*/):void {
+    super.doCompleteCallbacks(onCompleteCallbacks);
   }
 
   // separate factory function to move the anonymous function out of the caller's scope:
@@ -133,7 +144,7 @@ public class DynamicClassLoader extends joo.StandardClassLoader {
   }
 
   private function determineUrlPrefix():String {
-    const RUNTIME_URL_PATTERN:RegExp = /^(.*)\bjangaroo-runtime(-debug)?.js$/;
+    const RUNTIME_URL_PATTERN:RegExp = /^(.*)\bjangaroo-runtime[^.]*\.js$/;
     var scripts:Array = window.document.getElementsByTagName("SCRIPT");
     for (var i:int=0; i<scripts.length; ++i) {
       var match:Array = RUNTIME_URL_PATTERN.exec(scripts[i].src);

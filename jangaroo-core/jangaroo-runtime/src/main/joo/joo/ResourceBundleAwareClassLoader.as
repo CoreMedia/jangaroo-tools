@@ -23,8 +23,18 @@ public class ResourceBundleAwareClassLoader extends joo.DynamicClassLoader {
 
   private static const RESOURCE_BUNDLE_PATTERN:RegExp = /_properties$/;
 
-  public var supportedLocales:Array = ["en"];
-  public var localeCookieName:String = "locale";
+  public var supportedLocales:Array;
+  public var localeCookieName:String;
+
+  public function ResourceBundleAwareClassLoader(supportedLocales:Array = ["en"], localeCookieName:String = "locale") {
+    var debug:Boolean = classLoader.debug;
+    var urlPrefix:String = (classLoader as DynamicClassLoader).urlPrefix;
+    super();
+    this.debug = debug;
+    this.urlPrefix = urlPrefix;
+    this.supportedLocales = supportedLocales;
+    this.localeCookieName = localeCookieName;
+  }
 
   private static function isBundleName(fullClassName:String):Boolean {
 

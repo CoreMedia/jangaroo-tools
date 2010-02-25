@@ -80,7 +80,10 @@ public class ImportMap {
 
   public function addToMap(map : Object) : Object {
     for (var im : String in this.importsByName) {
-      map[im] = classLoader.getRequiredClassDeclaration(this.importsByName[im]).publicConstructor;
+      const classDeclaration:NativeClassDeclaration = classLoader.getClassDeclaration(this.importsByName[im]);
+      if (classDeclaration) {
+        map[im] = classDeclaration.publicConstructor;
+      } // else it may be an unused and thus not loaded import.
     }
     return map;
   }

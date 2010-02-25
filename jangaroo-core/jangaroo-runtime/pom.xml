@@ -37,20 +37,20 @@
                 <property name="runtime.classpath" refid="maven.compile.classpath" />
                 <taskdef name="jooc" classname="net.jangaroo.jooc.ant.JoocTask" classpath="target/classes;${runtime.classpath}" />
 
-                <mkdir dir="target/temp/runtime/debug" />
-                <jooc destdir="target/temp/runtime/debug" failonerror="true" debug="true" debuglevel="source" verbose="true" enableassertions="true">
+                <mkdir dir="target/temp/runtime/debug/classes" />
+                <jooc destdir="target/temp/runtime/debug/classes" failonerror="true" debug="true" debuglevel="source" verbose="true" enableassertions="true">
                   <include name="**/*.as" />
                   <src path="src/main/joo" />
                 </jooc>
 
                 <concat destfile="target/jangaroo-runtime-debug.js">
-                  <filelist dir="src/main/joo-js">
+                  <filelist dir="src/main/joo-js/classes">
                     <file name="joo/BootstrapClassLoader.js" />
                     <file name="joo/assert.js" />
                     <file name="joo/Class.js" />
                     <file name="joo/trace.js" />
                   </filelist>
-                  <filelist dir="target/temp/runtime/debug">
+                  <filelist dir="target/temp/runtime/debug/classes">
                     <file name="joo/MemberDeclaration.js" />
                     <file name="joo/NativeClassDeclaration.js" />
                     <file name="joo/SystemClassDeclaration.js" />
@@ -63,8 +63,7 @@
                     <file name="joo/ResourceBundleAwareClassLoader.js" />
                   </filelist>
                   <footer trimleading="yes">
-                    joo.classLoader = new joo.DynamicClassLoader();
-                    joo.classLoader.debug = true;
+                    new joo.DynamicClassLoader().debug = true;
                   </footer>
                 </concat>
 
@@ -75,13 +74,13 @@
                 </jooc>
 
                 <concat destfile="target/jangaroo-runtime.js">
-                  <filelist dir="src/main/joo-js">
+                  <filelist dir="src/main/joo-js/classes">
                     <file name="joo/BootstrapClassLoader.js" />
                     <file name="joo/assert.js" />
                     <file name="joo/Class.js" />
                     <file name="joo/trace.js" />
                   </filelist>
-                  <filelist dir="target/temp/runtime/deploy">
+                  <filelist dir="target/temp/runtime/deploy/">
                     <file name="joo/MemberDeclaration.js" />
                     <file name="joo/NativeClassDeclaration.js" />
                     <file name="joo/SystemClassDeclaration.js" />
@@ -98,10 +97,16 @@
                   </footer>
                 </concat>
 
+                <zip destfile="target/jangaroo-runtime.jar">
+                  <fileset dir="target" includes="jangaroo-runtime*.js"/>
+                  <fileset dir="src/main/joo-js"/>
+                  <fileset dir="target/temp/runtime/debug"/>
+                </zip>
 
-                <zip destfile="target/jangaroo-runtime.jar" basedir="target" includes="jangaroo-runtime*.js" />
-                <zip destfile="target/jangaroo-runtime-sources.jar" basedir="src/main/joo" includes="**/*.as" />
-                <zip destfile="target/jangaroo-runtime-sources.jar" update="true" basedir="src/main/joo-api" includes="**/*.as" />
+                <zip destfile="target/jangaroo-runtime-sources.jar">
+                  <fileset dir="src/main/joo" includes="**/*.as" />
+                  <fileset dir="src/main/joo-api" includes="**/*.as" />
+                </zip>
 
               </tasks>
             </configuration>

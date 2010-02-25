@@ -31,8 +31,8 @@ public class StandardClassLoader extends joo.SystemClassLoader {
   }
 
   override protected function createClassDeclaration(packageDef : String, directives : Array, classDef : String, memberFactory : Function,
-                                                  publicStaticMethodNames : Array):SystemClassDeclaration {
-    var cd : ClassDeclaration = new ClassDeclaration(packageDef, directives, classDef, memberFactory, publicStaticMethodNames);
+                                                  publicStaticMethodNames : Array, dependencies : Array):SystemClassDeclaration {
+    var cd : ClassDeclaration = new ClassDeclaration(packageDef, directives, classDef, memberFactory, publicStaticMethodNames, dependencies);
     classDeclarations.push(cd); // remember all created classes for later initialization.
     return cd;
   }

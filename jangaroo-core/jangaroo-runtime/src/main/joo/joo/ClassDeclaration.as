@@ -23,15 +23,19 @@ import joo.*;
 public class ClassDeclaration extends joo.SystemClassDeclaration {
 
   private var importMap : ImportMap;
+  private var dependencies : Array;
 
   public function ClassDeclaration(packageDef:String, directives : Array, classDef:String, memberDeclarations:Function,
-          publicStaticMethods : Array) {
+          publicStaticMethods : Array, dependencies : Array) {
     super(packageDef, directives, classDef, memberDeclarations, publicStaticMethods);
+    this.dependencies = dependencies;
   }
 
   public function getDependencies() : Array {
-    var dependencies:Array = this.importMap.getImports();
-    dependencies.push(this.importMap.findQualifiedName(this.extends_));
+    var dependencies:Array = this.dependencies
+      ? this.dependencies            // new compiler output: explicit runtime dependencies
+      : this.importMap.getImports(); // backwards-compatibility for older compiler output
+    dependencies = dependencies.concat([this.importMap.findQualifiedName(this.extends_)]);
     return dependencies;
   }
 
