@@ -87,11 +87,11 @@ public class JooTestMojo extends AbstractJooTestMojo {
 
 
   /**
-   * Defines the Selenium RC host. Default is hudson.
+   * Defines the Selenium RC host. Default is localhost.
    *
    * @parameter
    */
-  private String jooUnitSeleniumRCHost = "hudson";
+  private String jooUnitSeleniumRCHost = "localhost";
 
   /**
    * Defines the Selenium RC port. Default is 4444.
