@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -33,7 +32,6 @@ public class ClassDeclaration extends IdeDeclaration {
   private Map<String, MemberDeclaration> members = new LinkedHashMap<String, MemberDeclaration>();
   private Set<String> boundMethodCandidates = new HashSet<String>();
   private Map<String, Set<Scope>> classInit = new HashMap<String, Set<Scope>>();
-  private List<String> packageImports;
 
   public Extends getOptExtends() {
     return optExtends;
@@ -108,7 +106,7 @@ public class ClassDeclaration extends IdeDeclaration {
     out.endString();
     out.write(",");
     out.write("function(" + ide.getName() + ",$$private){");
-    for (String importedPackage : packageImports) {
+    for (String importedPackage : getPackageDeclaration().getPackageImports()) {
       out.write("with(" + importedPackage + ")");
     }
     out.write("with(" + ide.getName() + ")with($$private)return[");
@@ -172,7 +170,6 @@ public class ClassDeclaration extends IdeDeclaration {
   public Node analyze(Node parentNode, AnalyzeContext context) {
     // do *not* call super!
     this.parentNode = parentNode;
-    packageImports = context.getCurrentPackage().getPackageImports();
     context.getScope().declareIde(getName(), this);
     parentDeclaration = context.getScope().getPackageDeclaration();
     // one scope for static members...

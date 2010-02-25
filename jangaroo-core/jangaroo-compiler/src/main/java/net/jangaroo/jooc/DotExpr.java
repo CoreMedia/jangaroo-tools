@@ -19,6 +19,7 @@ import java.io.IOException;
 
 /**
  * @author Andreas Gawecki
+ * @author Frank Wienberg
  */
 class DotExpr extends BinaryOpExpr {
 
@@ -28,15 +29,15 @@ class DotExpr extends BinaryOpExpr {
     super(expr, symDot, new IdeExpr(ide));
   }
 
-  public IdeExpr getArg2() {
-    return (IdeExpr)arg2;
+  public Ide getArg2() {
+    return ((IdeExpr)arg2).ide;
   }
 
   public Expr analyze(Node parentNode, AnalyzeContext context) {
     this.classDeclaration = context.getCurrentClass();
     // check candidates for instance methods declared in same file, accessed as function:
     if (this.classDeclaration !=null) {
-      String property = getArg2().ide.getName();
+      String property = getArg2().getName();
       // check and handle instance methods declared in same file, accessed as function:
       if (arg1 instanceof ThisExpr
         && !(parentNode instanceof DotExpr)
@@ -46,12 +47,11 @@ class DotExpr extends BinaryOpExpr {
              (((PrefixOpExpr)parentNode).op.sym==sym.TYPEOF || ((PrefixOpExpr)parentNode).op.sym==sym.DELETE))) {
         this.classDeclaration.addBoundMethodCandidate(property);
       } else {
-        QualifiedIde fqie = getFullyQualifiedIde();
-        if (fqie!=null) {
-          String qualifiedName = fqie.getQualifiedNameStr();
-          if (context.getCurrentPackage().isFullyQualifiedIde(context, qualifiedName)) {
+        Ide packageIde = arg1.asQualifiedIde();
+        if (packageIde != null) {
+          if (context.getCurrentPackage().isPackage(packageIde.getQualifiedNameStr())) {
             // Replace my AST subtree by qualified identifier subtree:
-            return new TopLevelIdeExpr(fqie).analyze(parentNode, context);
+            return new TopLevelIdeExpr(asQualifiedIde(packageIde)).analyze(parentNode, context);
           }
         }
       }
@@ -64,20 +64,20 @@ class DotExpr extends BinaryOpExpr {
     return this;
   }
 
-  private QualifiedIde getFullyQualifiedIde() {
-    Ide prefixIde =
-      arg1 instanceof IdeExpr && !(arg1 instanceof ThisExpr || arg1 instanceof SuperExpr) ? ((IdeExpr)arg1).ide
-        : arg1 instanceof DotExpr ? ((DotExpr)arg1).getFullyQualifiedIde()
-        : null;
-    if (prefixIde!=null) {
-      return new QualifiedIde(prefixIde, op, getArg2().ide.getSymbol());
-    }
-    return null;
+  @Override
+  Ide asQualifiedIde() {
+    Ide packageIde = arg1.asQualifiedIde();
+    return packageIde == null ? null : asQualifiedIde(packageIde);
   }
 
+  private QualifiedIde asQualifiedIde(Ide packageIde) {
+    return new QualifiedIde(packageIde, op, getArg2().getSymbol());
+  }
+
+  @Override
   public void generateCode(JsWriter out) throws IOException {
     if (classDeclaration!=null) {
-      String property = getArg2().ide.getName();
+      String property = getArg2().getName();
       // check and handle private instance members and super method access:
       if ( arg1 instanceof ThisExpr && classDeclaration.isPrivateMember(property)
         || arg1 instanceof SuperExpr) {

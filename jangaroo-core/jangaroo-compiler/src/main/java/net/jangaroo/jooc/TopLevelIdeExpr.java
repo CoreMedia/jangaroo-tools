@@ -32,6 +32,11 @@ class TopLevelIdeExpr extends IdeExpr {
   }
 
   @Override
+  Ide asQualifiedIde() {
+    return ide;
+  }
+
+  @Override
   public Expr analyze(Node parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     scope = context.getScope();
@@ -74,7 +79,7 @@ class TopLevelIdeExpr extends IdeExpr {
         StringBuilder ideName = new StringBuilder(ide.getName());
         while (currentDotExpr.parentNode instanceof DotExpr) {
           currentDotExpr = (DotExpr)currentDotExpr.parentNode;
-          ideName.append('.').append(currentDotExpr.getArg2().ide.getName());
+          ideName.append('.').append(currentDotExpr.getArg2().getName());
           declaringScope = scope.findScopeThatDeclares(ideName.toString());
           if (declaringScope!=null) {
             // it has been defined in the meantime or is an imported qualified identifier:
@@ -95,8 +100,9 @@ class TopLevelIdeExpr extends IdeExpr {
         if (ideDeclaration instanceof MemberDeclaration) {
           MemberDeclaration memberDeclaration = (MemberDeclaration)ideDeclaration;
           return !memberDeclaration.isStatic() && !memberDeclaration.isConstructor();
+        //} else {
+          // must be an imported namespace.
         }
-        // must be an imported namespace.
       }
     }
     return false;

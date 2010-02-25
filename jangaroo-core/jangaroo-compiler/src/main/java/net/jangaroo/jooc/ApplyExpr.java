@@ -82,6 +82,9 @@ class ApplyExpr extends Expr {
     super.analyze(parentNode, context);
     fun = fun.analyze(this, context);
     scope = context.getScope();
+    if (fun instanceof DotExpr && ((DotExpr)fun).arg1 instanceof TopLevelIdeExpr) {
+      context.getScope().addExternalUsage((IdeExpr)((DotExpr)fun).arg1);
+    }
     if (args != null)
       args.analyze(this, context);
     return this;

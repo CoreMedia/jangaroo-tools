@@ -35,7 +35,7 @@ public class Ide extends NodeImplBase {
     if (declaringScope != null) {
       Node ideDeclaration = declaringScope.getIdeDeclaration(this);
       if (ideDeclaration instanceof ImportDirective) {
-        ((ImportDirective)ideDeclaration).wasUsed(context);
+        ((ImportDirective)ideDeclaration).wasUsed(context.getCurrentClass());
       }
     }
     return this;

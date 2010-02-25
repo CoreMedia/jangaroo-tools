@@ -23,8 +23,6 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -44,7 +42,6 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
   private List<Node> directives;
   private IdeDeclaration primaryDeclaration;
   private JooSymbol rBrace;
-  private Set<String> externalUsages = new LinkedHashSet<String>();
 
 
   protected File sourceFile;
@@ -96,17 +93,20 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
     }
     out.write("\"\"],");
     primaryDeclaration.generateCode(out);
-    if (externalUsages.size() > 0) {
-      out.write(",[");
-      for (Iterator<String> it = externalUsages.iterator(); it.hasNext();) {
-        String externalUsage = it.next();
-        out.write(externalUsage);
-        if (it.hasNext()) {
+    out.write(",[");
+    boolean first = true;
+    for (Node node : directives) {
+      if (node instanceof ImportDirective && ((ImportDirective)node).isUsed()) {
+        String externalUsage = ((ImportDirective)node).getQualifiedName();
+        if (first) {
+          first = false;
+        } else {
           out.write(",");
         }
+        out.write('"'+externalUsage+'"');
       }
-      out.write("]");
     }
+    out.write("]");
     out.writeSymbolWhitespace(rBrace);
     out.write(");");
   }

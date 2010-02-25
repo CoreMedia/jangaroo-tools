@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Set;
+import java.util.HashSet;
 
 /**
  * @author Andreas Gawecki
@@ -26,6 +28,7 @@ import java.util.Collections;
 public class PackageDeclaration extends IdeDeclaration  {
 
   JooSymbol symPackage;
+  private Set<String> packages = new HashSet<String>();
   private List<String> packageImports = new ArrayList<String>();
   private List<String> namespaces = new ArrayList<String>();
 
@@ -34,8 +37,16 @@ public class PackageDeclaration extends IdeDeclaration  {
     this.symPackage = symPackage;
   }
 
-  public void addPackageImport(String packageName) {
-    packageImports.add(packageName);
+  public void addImport(QualifiedIde ide) {
+    String packageName = ide.prefix.getQualifiedNameStr();
+    packages.add(packageName);
+    if ("*".equals(ide.getName())) {
+      packageImports.add(packageName);
+    }
+  }
+
+  public boolean isPackage(String fullyQualifiedName) {
+    return packages.contains(fullyQualifiedName);
   }
 
   public List<String> getPackageImports() {

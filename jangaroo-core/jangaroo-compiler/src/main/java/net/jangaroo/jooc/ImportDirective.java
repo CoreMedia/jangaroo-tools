@@ -27,26 +27,33 @@ public class ImportDirective extends NodeImplBase {
 
   JooSymbol importKeyword;
   Type type;
-  private boolean used;
+  private final boolean explicit;
+  private boolean used = false;
 
   private static Ide createIde(Ide prefix, JooSymbol symIde) {
     return prefix==null ? new Ide(symIde) : new QualifiedIde(prefix, DOT_SYMBOL, symIde);
   }
 
   public ImportDirective(Ide packageIde, String typeName) {
-    this(IMPORT_SYMBOL, new IdeType(createIde(packageIde, new JooSymbol(typeName))));
-    used = false;
+    this(IMPORT_SYMBOL, new IdeType(createIde(packageIde, new JooSymbol(typeName))), false);
   }
 
   public ImportDirective(JooSymbol importKeyword, Type type) {
-    this.importKeyword = importKeyword;
-    this.type = type;
-    used = true; // TODO: maybe later, we can filter out unused explicit imports.
+    this(importKeyword, type, true);
   }
 
-  public void wasUsed(AnalyzeContext context) {
+  private ImportDirective(JooSymbol importKeyword, Type type, boolean explicit) {
+    this.importKeyword = importKeyword;
+    this.type = type;
+    this.explicit = explicit;
+  }
+
+  public boolean isUsed() {
+    return used;
+  }
+
+  public void wasUsed(ClassDeclaration classDeclaration) {
     if (!used) {
-      ClassDeclaration classDeclaration = context.getCurrentClass();
       if (classDeclaration==null || !classDeclaration.getIde().getQualifiedNameStr().equals(((IdeType)type).getIde().getQualifiedNameStr())) {
         used = true;
       }
@@ -58,13 +65,11 @@ public class ImportDirective extends NodeImplBase {
     super.analyze(parentNode, context);
     if (type instanceof IdeType) {
       Ide ide = ((IdeType)type).ide;
+      if (ide instanceof QualifiedIde) {
+        context.getCurrentPackage().addImport((QualifiedIde)ide);
+      }
       String typeName = ide.getName();
-      if ("*".equals(typeName)) {
-        // found *-import, do not register, but add to package import list:
-        String packageName = ((QualifiedIde)ide).prefix.getQualifiedNameStr();
-        context.getCurrentPackage().addPackageImport(packageName);
-        wasUsed(context);
-      } else {
+      if (!"*".equals(typeName)) {
         context.getScope().declareIde(typeName, this);
         // also add the fully qualified name (might be the same string for top level imports):
         context.getScope().declareIde(ide.getQualifiedNameStr(), this);
@@ -73,8 +78,12 @@ public class ImportDirective extends NodeImplBase {
     return this;
   }
 
+  public String getQualifiedName() {
+    return ((IdeType)type).ide.getQualifiedNameStr();
+  }
+
   public void generateCode(JsWriter out) throws IOException {
-    if (used) {
+    if (used || explicit) {
       out.beginString();
       out.writeSymbol(importKeyword);
       type.generateCode(out);

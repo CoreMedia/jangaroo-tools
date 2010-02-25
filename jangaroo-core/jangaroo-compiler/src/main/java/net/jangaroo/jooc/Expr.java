@@ -29,4 +29,8 @@ abstract class Expr extends NodeImplBase {
     return false;
   }
 
+  Ide asQualifiedIde() {
+    return null;
+  }
+  
 }

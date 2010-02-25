@@ -147,6 +147,21 @@ class Scope {
     return loopOrSwitchStatementStack.get(loopOrSwitchStatementStack.size() - 1);
   }
 
+  public void addExternalUsage(IdeExpr ideExpr) {
+    String fqn = ideExpr.ide.getQualifiedNameStr();
+    Scope packageScope = findScopeThatDeclares(fqn);
+    if (packageScope != null) {
+      Node classImport = packageScope.getIdeDeclaration(fqn);
+      if (classImport instanceof ImportDirective) {
+        ((ImportDirective)classImport).wasUsed(getClassDeclaration());
+      }
+    }
+  }
+
+  public CompilationUnit getCompilationUnit() {
+    return (CompilationUnit)getPackageDeclaration().parentNode;
+  }
+
   public PackageDeclaration getPackageDeclaration() {
     if (ideDeclaration instanceof PackageDeclaration) {
       return (PackageDeclaration) ideDeclaration;
