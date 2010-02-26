@@ -6,7 +6,7 @@
     A plugin for compiling ActionScript 3 code to JavaScript using the Jangaroo Open Source
     Compiler jooc.
   </description>
-  <version>0.3.22</version>
+  <version>0.4.4.0</version>
   <vendor url="http://www.jangaroo.net"
           email="info@jangaroo.net"
           logo="/net/jangaroo/jooley-16x16.png">Jangaroo</vendor>
