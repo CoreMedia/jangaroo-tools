@@ -27,6 +27,8 @@ import java.io.InputStreamReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 /**
@@ -190,6 +192,7 @@ public class Jooc {
     try {
       Symbol tree = p.parse();
       CompilationUnit unit = (CompilationUnit) tree.value;
+      unit.setSourcePath(config.getSourcePath());
       unit.setSourceFile(in);
       return unit;
     } catch (Scanner.ScanError se) {

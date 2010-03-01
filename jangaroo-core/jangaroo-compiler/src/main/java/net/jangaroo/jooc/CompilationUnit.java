@@ -21,10 +21,7 @@ import net.jangaroo.jooc.backend.CompilationUnitSinkFactory;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author Andreas Gawecki
@@ -36,13 +33,13 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
     return packageDeclaration;
   }
 
-  private Set<String> samePackageSymbols;
+  private Collection<String> samePackageSymbols;
   private PackageDeclaration packageDeclaration;
   private JooSymbol lBrace;
   private List<Node> directives;
   private IdeDeclaration primaryDeclaration;
   private JooSymbol rBrace;
-
+  private Collection<File> sourcePath = new LinkedHashSet<File>();
 
   protected File sourceFile;
 
@@ -56,14 +53,25 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
     this.rBrace = rBrace;
   }
 
+  public Collection<File> getSourcePath() {
+    return sourcePath;
+  }
+
+  /**
+   * Set the source path in order to add additional source root directories. These are needed to
+   * detect implicit imports to classes within the same package.
+   *
+   * @param sourcePath a collection of root directories containing Jangaroo sources
+   */
+  public void setSourcePath(final Collection<File> sourcePath) {
+    this.sourcePath = sourcePath;
+  }
+
+  /**
+   * @param sourceFile the source file of this compilation unit.
+   */
   public void setSourceFile(File sourceFile) {
     this.sourceFile = sourceFile;
-    File folder = sourceFile.getAbsoluteFile().getParentFile();
-    String[] symbols = folder.list(new SourceFilenameFilter());
-    samePackageSymbols = new HashSet<String>(symbols.length);
-    for (String symbol : symbols) {
-      samePackageSymbols.add(withoutAS(symbol));
-    }
   }
 
   private static String withoutAS(String name) {
@@ -77,8 +85,8 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
   public void writeOutput(CompilationUnitSinkFactory writerFactory,
                           boolean verbose) throws Jooc.CompilerError {
     CompilationUnitSink sink = writerFactory.createSink(
-        packageDeclaration, primaryDeclaration,
-        sourceFile, verbose);
+      packageDeclaration, primaryDeclaration,
+      sourceFile, verbose);
 
     sink.writeOutput(this);
   }
@@ -96,14 +104,14 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
     out.write(",[");
     boolean first = true;
     for (Node node : directives) {
-      if (node instanceof ImportDirective && ((ImportDirective)node).isUsed()) {
-        String externalUsage = ((ImportDirective)node).getQualifiedName();
+      if (node instanceof ImportDirective && ((ImportDirective) node).isUsed()) {
+        String externalUsage = ((ImportDirective) node).getQualifiedName();
         if (first) {
           first = false;
         } else {
           out.write(",");
         }
-        out.write('"'+externalUsage+'"');
+        out.write('"' + externalUsage + '"');
       }
     }
     out.write("]");
@@ -112,35 +120,37 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
   }
 
   public Node analyze(Node parentNode, AnalyzeContext context) {
+    samePackageSymbols = new HashSet<String>();
+    addSamePackageSymbols();
     // establish global scope for built-in identifiers:
     IdeType globalObject = new IdeType("globalObject");
     context.enterScope(globalObject);
     declareIdes(context.getScope(), new String[]{
-        "undefined",
-        "window",  // TODO: or rather have to import?
-        "int",
-        "uint",
-        "Object",
-        "Function",
-        "Class",
-        "Array",
-        "Boolean",
-        "String",
-        "Number",
-        "RegExp",
-        "Date",
-        "Math",
-        "parseInt",
-        "parseFloat",
-        "isNaN",
-        "NaN",
-        "isFinite",
-        "Infinity",
-        "decodeURI",
-        "decodeURIComponent",
-        "encodeURI",
-        "encodeURIComponent",
-        "trace"});
+      "undefined",
+      "window",  // TODO: or rather have to import?
+      "int",
+      "uint",
+      "Object",
+      "Function",
+      "Class",
+      "Array",
+      "Boolean",
+      "String",
+      "Number",
+      "RegExp",
+      "Date",
+      "Math",
+      "parseInt",
+      "parseFloat",
+      "isNaN",
+      "NaN",
+      "isFinite",
+      "Infinity",
+      "decodeURI",
+      "decodeURIComponent",
+      "encodeURI",
+      "encodeURIComponent",
+      "trace"});
     super.analyze(parentNode, context);
     context.enterScope(packageDeclaration);
     packageDeclaration.analyze(this, context);
@@ -149,6 +159,29 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
     context.leaveScope(packageDeclaration);
     context.leaveScope(globalObject);
     return this;
+  }
+
+  private void addSamePackageSymbols() {
+    final File thisUnitsFolder = sourceFile.getAbsoluteFile().getParentFile();
+    addSamePackageFolderSymbols(thisUnitsFolder);
+    final String relativePackagePath = getRelativePackagePath();
+    for (File sourceDir : getSourcePath()) {
+      final File packageFolder = relativePackagePath.isEmpty() ? sourceDir : new File(sourceDir, relativePackagePath);
+      addSamePackageFolderSymbols(packageFolder);
+    }
+  }
+
+  private String getRelativePackagePath() {
+    return QualifiedIde.constructQualifiedNameStr(packageDeclaration.getQualifiedName(), File.separator);
+  }
+
+  private void addSamePackageFolderSymbols(final File folder) {
+    String[] symbols = folder.list(new SourceFilenameFilter());
+    if (symbols != null) {
+      for (String symbol : symbols) {
+        samePackageSymbols.add(withoutAS(symbol));
+      }
+    }
   }
 
   private void analyzeDirectives(AnalyzeContext context) {

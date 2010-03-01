@@ -23,6 +23,8 @@ public class JoocConfiguration implements JoocOptions {
   private boolean mergeOutput = false;
   private String outputFileName;
 
+  private List<File> sourcePath = new ArrayList<File>();
+
   private List<File> sourceFiles = new ArrayList<File>();
 
   public JoocConfiguration() {
@@ -142,6 +144,14 @@ public class JoocConfiguration implements JoocOptions {
 
   public void setOutputDirectory(File outputDirectory) {
     this.outputDirectory = outputDirectory;
+  }
+
+  public List<File> getSourcePath() {
+    return sourcePath;
+  }
+
+  public void setSourcePath(final List<File> sourcePath) {
+    this.sourcePath = sourcePath;
   }
 
   public List<File> getSourceFiles() {

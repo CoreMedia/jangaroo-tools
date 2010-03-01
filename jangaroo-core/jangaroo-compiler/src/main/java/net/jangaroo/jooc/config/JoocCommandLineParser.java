@@ -12,7 +12,10 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.UnrecognizedOptionException;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Arrays;
+import java.util.StringTokenizer;
 
 /**
  * Parses the jooc command line to produce a {@link JoocConfiguration}.
@@ -52,6 +55,10 @@ public class JoocCommandLineParser {
         .hasArg()
         .withDescription("destination directory for generated JavaScript files")
         .create("d");
+    Option sourcePath = OptionBuilder.withArgName("path")
+        .hasArg()
+        .withDescription("source root directories, separated by the system dependant path separator character (e.g. ':' on Unix systems, ';' on Windows")
+        .create("sourcepath");
     Option enableAssertionsOption = OptionBuilder.withLongOpt("enableassertions")
         .withDescription("enable assertions")
         .create("ea");
@@ -70,6 +77,7 @@ public class JoocCommandLineParser {
     options.addOption(verboseOption);
     options.addOption(debugOption);
     options.addOption(destinationDir);
+    options.addOption(sourcePath);
     options.addOption(enableAssertionsOption);
     options.addOption(allowDuplicateLocalVariablesOption);
     options.addOption(enableGuessingOption);
@@ -93,12 +101,28 @@ public class JoocCommandLineParser {
     config.setVerbose(line.hasOption(verboseOption.getOpt()));
 
     if (line.hasOption(destinationDir.getOpt())) {
-      String destionationDirName = line.getOptionValue(destinationDir.getOpt());
-      File destDir = new File(destionationDirName);
+      String destinationDirName = line.getOptionValue(destinationDir.getOpt()).trim();
+      File destDir = new File(destinationDirName);
       if (!destDir.exists()) {
         throw new IllegalArgumentException("destination directory does not exist: " + destDir.getAbsolutePath());
       }
       config.setOutputDirectory(destDir);
+    }
+
+    if (line.hasOption(sourcePath.getOpt())) {
+      String sourcePathString = line.getOptionValue(sourcePath.getOpt()).trim();
+      if (!sourcePathString.isEmpty()) {
+        final String[] sourceDirs = sourcePathString.split("\\Q" + File.pathSeparatorChar + "\\E");
+        final List<File> sourcePathFiles = new ArrayList<File>(sourceDirs.length);
+        for (String sourceDirPath : sourceDirs) {
+          File sourceDir = new File(sourceDirPath);
+          if (!sourceDir.exists()) {
+            throw new IllegalArgumentException("source directory does not exist: " + sourceDir.getAbsolutePath());
+          }
+          sourcePathFiles.add(sourceDir);
+        }
+        config.setSourcePath(sourcePathFiles);
+      }
     }
 
     if (line.hasOption(enableAssertionsOption.getOpt())) {
