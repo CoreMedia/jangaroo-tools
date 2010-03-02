@@ -42,13 +42,6 @@
 
     <plugins>
       <plugin>
-        <groupId>net.jangaroo</groupId>
-        <artifactId>jangaroo-lifecycle</artifactId>
-        <version>0.4.0</version>
-        <extensions>true</extensions>
-      </plugin>
-
-      <plugin>
         <artifactId>maven-dependency-plugin</artifactId>
         <executions>
           <execution>
@@ -109,7 +102,7 @@
                   <include name="**/*.as" />
                   <exclude name="error/**/*.as" />
                   <exclude name="**/*_fragment.as" />
-                  <src path="${basedir}/src/test/joo" />
+                  <src path="${basedir}/src/test/joo;${basedir}/src/test/joo2" />
                 </jooc>
 
                 <!--                <copy todir="${basedir}/target/temp/js">

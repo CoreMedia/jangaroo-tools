@@ -15,8 +15,6 @@
 
 package package1 {
 
-import package1.TestInterface;
-
 public class TestImplements implements TestInterface {
 
   public function implementMe(x : String) : Number {

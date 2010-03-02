@@ -15,8 +15,6 @@
 
 package package1 {
 
-import package1.TestInitializers;
-
 public class TestImplicitSuper extends TestInitializers {
 
   public function TestImplicitSuper() {

@@ -15,8 +15,6 @@
 
 package package1 /*blubber*/ {
 
-import package1.TestGetterSetter;
-
 /**
  * a comment
  */

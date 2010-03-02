@@ -15,9 +15,6 @@
 
 package package1 {
 
-import package1.TestImplements;
-import package1.TestInterface2;
-
 public class TestInheritImplements extends TestImplements implements TestInterface2 {
 
   public function implementMe2(x : String) : Number {
