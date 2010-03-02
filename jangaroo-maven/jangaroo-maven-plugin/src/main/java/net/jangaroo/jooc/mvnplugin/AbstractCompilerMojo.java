@@ -175,6 +175,7 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
       return;
     }
     configuration.setSourceFiles(new ArrayList<File>(sources));
+    configuration.setSourcePath(getCompileSourceRoots());
 
     // create output directory if it does not exist
     if (!getOutputDirectory().exists())
