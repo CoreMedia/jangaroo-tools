@@ -37,6 +37,7 @@ public class JoocTask extends MatchingTask {
 
   private Path src;
   private File destDir;
+  private String sourcepath;
   private boolean debug = false;
   private String debugLevel = null;
   private boolean enableAssertions = false;
@@ -166,6 +167,7 @@ public class JoocTask extends MatchingTask {
   public void execute() throws BuildException {
     checkParameters();
     resetFileLists();
+    sourcepath = "";
     // scan source directories and dest directory to build up
     // compile lists
     String[] list = src.list();
@@ -176,6 +178,10 @@ public class JoocTask extends MatchingTask {
             + srcDir.getPath()
             + "\" does not exist!", getLocation());
       }
+      if (!sourcepath.isEmpty()) {
+        sourcepath += File.pathSeparator;
+      }
+      sourcepath += srcDir.getAbsolutePath();
       DirectoryScanner ds = this.getDirectoryScanner(srcDir);
       String[] files = ds.getIncludedFiles();
       scanDir(srcDir, destDir != null ? destDir : srcDir, files);
@@ -296,6 +302,8 @@ public class JoocTask extends MatchingTask {
       args.add("-d");
       args.add(destDir.getAbsolutePath());
     }
+    args.add("-sourcepath");
+    args.add(sourcepath);
     for (File aCompileList : compileList) {
       String filename = aCompileList.getAbsolutePath();
       args.add(filename);
