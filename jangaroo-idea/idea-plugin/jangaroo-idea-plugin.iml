@@ -9,7 +9,7 @@
       <sourceFolder url="file://$MODULE_DIR$/src/main/java" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/out" />
     </content>
-    <orderEntry type="jdk" jdkName="IDEA 9886" jdkType="IDEA JDK" />
+    <orderEntry type="jdk" jdkName="IDEA" jdkType="IDEA JDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module-library">
       <library>
@@ -23,8 +23,8 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/net/jangaroo/jangaroo-compiler/0.4.4/jangaroo-compiler-0.4.4.jar!/" />
-          <root url="jar://$MAVEN_REPOSITORY$/net/jangaroo/jangaroo-utils/0.4.4/jangaroo-utils-0.4.4.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/net/jangaroo/jangaroo-utils/0.4.5/jangaroo-utils-0.4.5.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/net/jangaroo/jangaroo-compiler/0.4.5/jangaroo-compiler-0.4.5.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

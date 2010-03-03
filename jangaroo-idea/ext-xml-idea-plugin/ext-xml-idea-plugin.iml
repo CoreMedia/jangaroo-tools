@@ -65,8 +65,8 @@
     <orderEntry type="module-library">
       <library name="exmlc">
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/net/jangaroo/ext-xml/0.4.4/ext-xml-0.4.4.jar!/" />
-          <root url="jar://$MAVEN_REPOSITORY$/net/jangaroo/jangaroo-utils/0.4.4/jangaroo-utils-0.4.4.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/net/jangaroo/jangaroo-utils/0.4.5/jangaroo-utils-0.4.5.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/net/jangaroo/ext-xml/0.4.5/ext-xml-0.4.5.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
