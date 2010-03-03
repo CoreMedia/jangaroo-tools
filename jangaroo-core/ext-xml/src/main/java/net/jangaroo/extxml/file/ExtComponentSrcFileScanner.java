@@ -115,10 +115,22 @@ public final class ExtComponentSrcFileScanner {
           state.setExtends(groups.get(0));
         }
       })
-      .add(new Rule<State>("\\bExt.reg\\('([\\p{Alnum}$_.]+)',\\s*([\\p{Alnum}$_.]+)\\);") {
+      .add(new Rule<State>("\\bExt\\.reg\\('([\\p{Alnum}$_.]+)',\\s*([\\p{Alnum}$_.]+)\\);") {
         public void matched(State state, List<String> groups) {
           // old-style xtype registration, still used e.g. in Ext.Component.js:
           state.setXtype(groups.get(0), groups.get(1));
+        }
+      })
+      .add(new Rule<State>("\\bExt\\.Container\\.LAYOUTS\\['([\\p{Alnum}$_.]+)'\\]\\s*=\\s*([\\p{Alnum}$_.]+);") {
+        public void matched(State state, List<String> groups) {
+          // layout type registration using LAYOUTS['type']:
+          state.setXtype(groups.get(0) + "layout", groups.get(1));
+        }
+      })
+      .add(new Rule<State>("\\bExt\\.Container\\.LAYOUTS\\.([\\p{Alnum}$_.]+)\\s*=\\s*([\\p{Alnum}$_.]+);") {
+        public void matched(State state, List<String> groups) {
+          // layout type registration using LAYOUTS.type:
+          state.setXtype(groups.get(0) + "layout", groups.get(1));
         }
       })
       .add(TYPE_RULE)
@@ -136,7 +148,12 @@ public final class ExtComponentSrcFileScanner {
       "Ext.grid.DateColumn",     "datecolumn",
       "Ext.grid.TemplateColumn", "templatecolumn",
       "Ext.util.Observable",     "observable",
-      "Ext.data.Field",          "datafield"
+      "Ext.data.Field",          "datafield",
+      // "abstract" layouts:
+      "Ext.layout.ContainerLayout", "containerlayout",
+      "Ext.layout.BoxLayout",       "boxlayout",
+      // Ext.layout.Container.LAYOUTS setting comes too late for this class, so we have to assign it manually:
+      "Ext.layout.BorderLayout",    "borderlayout"
     };
 
     private ComponentSuite componentSuite;

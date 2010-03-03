@@ -86,18 +86,23 @@ public final class ExmlToJsonHandler extends CharacterRecordingHandler {
       Json parentJson = objects.empty() ? null : objects.peek();
 
       if (expectObjects) {
-        String type = "xtype";
-        if (!attributes.isEmpty() && attributes.peek().equals("plugins")) {
-          type = "ptype";
+        jsonObject.setTypePropertyName("xtype");
+        if (!attributes.isEmpty()) {
+          String attribute = attributes.peek();
+          if (attribute.equals("plugins")) {
+            jsonObject.setTypePropertyName("ptype");
+          } else if (attribute.equals("layout")) {
+            jsonObject.setTypePropertyName("type");
+          }
         }
         //find component class for namespace + localName:
         ComponentClass compClazz = componentSuite.getComponentClassByNamespaceAndLocalName(uri, localName);
         if (compClazz != null) {
           imports.add(compClazz.getFullClassName());
-          jsonObject.set(type, compClazz.getXtype());
+          jsonObject.setType(compClazz.getXtype());
         } else {
           Log.e(String.format("No component class for element name '%s' found in component suite '%s'!", localName, uri), locator.getLineNumber(), locator.getColumnNumber());
-          jsonObject.set(type, localName);
+          jsonObject.setType(localName);
         }
         addElementToJsonObject(jsonObject);
         addObjectToStack(jsonObject);
@@ -127,7 +132,7 @@ public final class ExmlToJsonHandler extends CharacterRecordingHandler {
         expectObjects = false;
       } else {
         net.jangaroo.extxml.json.Json json = removeObjectFromStack();
-        if (json.get("xtype") == null && json.get("ptype") == null) {
+        if (!(json instanceof JsonObject && ((JsonObject)json).getTypePropertyName() != null)) {
           removeAttributeFromStack();
         }
         //if the the last object has been removed,

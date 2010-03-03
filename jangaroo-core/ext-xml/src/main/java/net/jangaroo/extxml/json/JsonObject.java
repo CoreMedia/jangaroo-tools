@@ -9,6 +9,23 @@ import java.util.Map;
 
 public class JsonObject implements Json {
   private Map<String, Object> properties = new LinkedHashMap<String, Object>();
+  private String typePropertyName;
+
+  public String getTypePropertyName() {
+    return typePropertyName;
+  }
+
+  public void setTypePropertyName(String typePropertyName) {
+    this.typePropertyName = typePropertyName;
+  }
+
+  public String getType() {
+    return (String)get(getTypePropertyName());
+  }
+
+  public void setType(String type) {
+    set(getTypePropertyName(), type);
+  }
 
   public boolean isEmpty() {
     return properties.isEmpty();
@@ -129,8 +146,12 @@ public class JsonObject implements Json {
       return ((JsonObject) value).toString(indentFactor, indent);
     } else if (value instanceof JsonArray) {
       return ((JsonArray) value).toString(indentFactor, indent);
-    } else if ("xtype".equals(key) || "ptype".equals(key)) {
+    } else if ("xtype".equals(key) || "ptype".equals(key) || "type".equals(key)) {
       String xtype = (String) value;
+      if ("type".equals(key) && xtype.endsWith("layout")) {
+        // by convention, layout "type"s have a "layout" postfix in EXML that has to be cut off again:
+        xtype = xtype.substring(0, xtype.length() - "layout".length());
+      }
       ComponentClass compClazz = ComponentSuiteRegistry.getInstance().findComponentClassByXtype(xtype);
       if (compClazz != null && !compClazz.getFullClassName().startsWith("ext.")) {
         //Log.getLogHandler().info(String.format("Using compontent class '%s' for xtype '%s'", compClazz, value));
