@@ -3,7 +3,7 @@ package net.jangaroo.jooc.mvnplugin;
 import org.codehaus.plexus.compiler.util.scan.SourceInclusionScanner;
 
 import java.io.File;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -26,9 +26,17 @@ public class TestCompilerMojo extends AbstractCompilerMojo {
   /**
    * Source directory to scan for files to compile.
    *
-   * @parameter expression="${project.build.testSourceDirectory}"
+   * @parameter expression="${project.build.sourceDirectory}"
    */
   private File sourceDirectory;
+
+  /**
+   * Source directory to scan for files to compile.
+   *
+   * @parameter expression="${project.build.testSourceDirectory}"
+   */
+  private File testSourceDirectory;
+
   /**
    * A list of test inclusion filters for the compiler.
    *
@@ -49,7 +57,7 @@ public class TestCompilerMojo extends AbstractCompilerMojo {
   private String testOutputFileName;
 
   protected List<File> getCompileSourceRoots() {
-    return Collections.singletonList(sourceDirectory);
+    return Arrays.asList(sourceDirectory, testSourceDirectory);
   }
 
   protected File getOutputDirectory() {
