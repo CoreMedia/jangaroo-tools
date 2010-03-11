@@ -142,7 +142,7 @@ public class ExtXmlMojo extends AbstractMojo {
           while (entries.hasMoreElements()) {
             ZipEntry zipEntry = entries.nextElement();
             if (!zipEntry.isDirectory() && zipEntry.getName().endsWith(".xsd")) {
-              getLog().info(String.format("Loading %s", zipEntry.getName()));
+              getLog().info(String.format("Loading %s from %s", zipEntry.getName(), dependency.getFile().getAbsolutePath()));
               InputStream stream = new BufferedInputStream(zipArtifact.getInputStream(zipEntry));
               suite.addImportedComponentSuite(xsdScanner.scan(stream));
             }
