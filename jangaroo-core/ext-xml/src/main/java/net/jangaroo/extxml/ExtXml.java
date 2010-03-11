@@ -82,8 +82,10 @@ public final class ExtXml {
 
     //generate the XSD for that
     Writer out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File(args[2])), "UTF-8"));
-
-    new XsdGenerator(suite).generateXsd(out);
-    out.close();
+    try {
+      new XsdGenerator(suite).generateXsd(out);
+    } finally {
+      out.close();
+    }
   }
 }
