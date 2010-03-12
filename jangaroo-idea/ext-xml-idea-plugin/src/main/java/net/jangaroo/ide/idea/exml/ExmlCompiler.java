@@ -3,7 +3,6 @@ package net.jangaroo.ide.idea.exml;
 import com.intellij.compiler.impl.javaCompiler.OutputItemImpl;
 import com.intellij.compiler.make.MakeUtil;
 import com.intellij.facet.FacetManager;
-import com.intellij.javaee.ExternalResourceManager;
 import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompileScope;
 import com.intellij.openapi.compiler.CompilerMessageCategory;
@@ -20,15 +19,14 @@ import net.jangaroo.extxml.file.ExmlComponentSrcFileScanner;
 import net.jangaroo.extxml.file.SrcFileScanner;
 import net.jangaroo.extxml.generation.JooClassGenerator;
 import net.jangaroo.extxml.generation.XsdGenerator;
-import net.jangaroo.utils.log.Log;
-import net.jangaroo.utils.log.LogHandler;
 import net.jangaroo.extxml.model.ComponentSuite;
 import net.jangaroo.extxml.model.ComponentType;
 import net.jangaroo.extxml.xml.XsdScanner;
 import net.jangaroo.ide.idea.JangarooFacetType;
+import net.jangaroo.utils.log.Log;
+import net.jangaroo.utils.log.LogHandler;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
@@ -38,12 +36,11 @@ import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Arrays;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -75,49 +72,44 @@ public class ExmlCompiler implements TranslatingCompiler {
     return false;
   }
 
-  private static String getXsdRoot(Module module) {
-    VirtualFile[] contentRoots = ModuleRootManager.getInstance(module).getContentRoots();
-    return contentRoots.length > 0 ? contentRoots[0].getPath() + "/target/generated-resources/" : null;
+  private static ExmlcConfigurationBean getExmlcConfiguration(Module module) {
+    ExmlFacet exmlFacet = FacetManager.getInstance(module).getFacetByType(ExmlFacetType.ID);
+    if (exmlFacet==null) {
+      return null;
+    }
+    return exmlFacet.getConfiguration().getState();
   }
 
-  private static String getXsdFilename(Module module) {
-    String xsdRoot = getXsdRoot(module);
-    return xsdRoot != null ? xsdRoot + module.getName() + ".xsd" : null;
+  static String getXsdFilename(Module module) {
+    if (module != null) {
+      ExmlcConfigurationBean exmlcConfig = getExmlcConfiguration(module);
+      if (exmlcConfig != null) {
+        return exmlcConfig.getGeneratedResourcesDirectory() + "/" + exmlcConfig.getXsd();
+      }
+    }
+    return null;
   }
 
-  private void addModuleDependenciesToComponentSuiteRegistry(Module module, Map<String, String> resourceMap) {
+  private void addModuleDependenciesToComponentSuiteRegistry(Module module) {
     // Add all dependent component suites to component suite registry, so they are found when looking for some xtype of fullClassName:
     //System.out.println("Scanning dependencies of " + moduleName + " for component suite XSDs...");
     OrderEntry[] orderEntries = ModuleRootManager.getInstance(module).getOrderEntries();
     XsdScanner scanner = new XsdScanner();
     for (OrderEntry orderEntry : orderEntries) {
-      String filename = null;
       InputStream xsdInputStream = null;
       try {
         if (orderEntry instanceof ModuleOrderEntry) {
-          Module usedModule = ((ModuleOrderEntry) orderEntry).getModule();
-          if (usedModule != null) {
-            filename = getXsdFilename(usedModule);
-            xsdInputStream = new FileInputStream(new File(filename));
+          String xsdFilename = getXsdFilename(((ModuleOrderEntry)orderEntry).getModule());
+          if (xsdFilename != null) {
+            xsdInputStream = new FileInputStream(xsdFilename);
           }
         } else {
-          VirtualFile[] files = orderEntry.getFiles(OrderRootType.CLASSES);
-          // check that library is not empty:
-          for (VirtualFile file : files) {
-            // TODO: make it work for classes, not only for jars!
-            filename = file.getPath();
-            if (filename.endsWith("!/")) { // it is a jar:
-              ZipFile zipFile = new ZipFile(filename.substring(0, filename.length() - "!/".length()));
-              // find a *.xsd in jar's root folder:
-              Enumeration<? extends ZipEntry> enumeration = zipFile.entries();
-              while (enumeration.hasMoreElements()) {
-                ZipEntry zipEntry = enumeration.nextElement();
-                if (!zipEntry.isDirectory() && zipEntry.getName().indexOf('/') == -1 && zipEntry.getName().endsWith(".xsd")) {
-                  filename = filename + zipEntry.getName();
-                  xsdInputStream = zipFile.getInputStream(zipEntry);
-                  break;
-                }
-              }
+          String zipFileName = findDependentModuleZipFileName(orderEntry);
+          if (zipFileName != null) {
+            ZipFile zipFile = new ZipFile(zipFileName);
+            ZipEntry zipEntry = findXsdZipEntry(zipFile);
+            if (zipEntry != null) {
+              xsdInputStream = zipFile.getInputStream(zipEntry);
             }
           }
         }
@@ -127,19 +119,37 @@ public class ExmlCompiler implements TranslatingCompiler {
       if (xsdInputStream != null) {
         //System.out.println("  found XSD " + xsdInputStream + "...");
         try {
-          ComponentSuite componentSuite = scanner.scan(xsdInputStream);
-          if (componentSuite != null) {
-            resourceMap.put(componentSuite.getNamespace(), filename);
-          }
+          scanner.scan(xsdInputStream); // adds scan result ComponentSuite to ComponentSuiteRegistry
         } catch (IOException e) {
           Log.e("Error while scanning XSD file " + xsdInputStream, e);
         }
       }
     }
-    String xsdFilename = getXsdFilename(module);
-    if (xsdFilename != null) {
-      resourceMap.put(module.getName(), xsdFilename);
+  }
+
+  static String findDependentModuleZipFileName(OrderEntry orderEntry) throws IOException {
+    VirtualFile[] files = orderEntry.getFiles(OrderRootType.CLASSES);
+    // check that library is not empty:
+    for (VirtualFile file : files) {
+      // TODO: make it work for classes, not only for jars!
+      String filename = file.getPath();
+      if (filename.endsWith("!/")) { // it is a jar:
+        return filename.substring(0, filename.length() - "!/".length());
+      }
     }
+    return null;
+  }
+
+  static ZipEntry findXsdZipEntry(ZipFile zipFile) throws IOException {
+    // find a *.xsd in jar's root folder:
+    Enumeration<? extends ZipEntry> enumeration = zipFile.entries();
+    while (enumeration.hasMoreElements()) {
+      ZipEntry zipEntry = enumeration.nextElement();
+      if (!zipEntry.isDirectory() && zipEntry.getName().indexOf('/') == -1 && zipEntry.getName().endsWith(".xsd")) {
+        return zipEntry;
+      }
+    }
+    return null;
   }
 
   private ComponentSuite scanSrcFiles(Module module) {
@@ -161,14 +171,15 @@ public class ExmlCompiler implements TranslatingCompiler {
     return suite;
   }
 
-  private void generateXsd(Module module, ComponentSuite suite, List<OutputItem> outputItems) {
+  private void generateXsd(Module module, ComponentSuite suite) {
     if (!suite.getComponentClasses().isEmpty()) {
       String xsdFilename = getXsdFilename(module);
-      File xsdFile = new File(xsdFilename);
-      // (re-)generate the XSD for the given module.
       Writer out;
-      Log.setCurrentFile(xsdFile);
+      File xsdFile;
       try {
+        xsdFile = new File(xsdFilename);
+        // (re-)generate the XSD for the given module.
+        Log.setCurrentFile(xsdFile);
         out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(xsdFile), "UTF-8"));
       } catch (Exception e) {
         Log.e("Cannot write component suite XSD file.", e);
@@ -176,10 +187,10 @@ public class ExmlCompiler implements TranslatingCompiler {
       }
       try {
         new XsdGenerator(suite).generateXsd(out);
+        LocalFileSystem.getInstance().refreshIoFiles(Arrays.asList(xsdFile));
       } catch (IOException e) {
         Log.e("Error while writing component suite XSD file.", e);
       }
-      // OutputItems without source file not allowed: outputItems.add(new OutputItemImpl(getXsdRoot(module), xsdFilename, null));
     }
   }
 
@@ -253,22 +264,13 @@ public class ExmlCompiler implements TranslatingCompiler {
       }
       filesOfModule.add(file);
     }
-    final Map<String, String> resourceMap = new LinkedHashMap<String, String>();
     for (Map.Entry<Module, List<VirtualFile>> filesOfModuleEntry : filesByModule.entrySet()) {
       Module module = filesOfModuleEntry.getKey();
-      addModuleDependenciesToComponentSuiteRegistry(module, resourceMap);
+      addModuleDependenciesToComponentSuiteRegistry(module);
       ComponentSuite suite = scanSrcFiles(module);
       compile(context, module, filesOfModuleEntry.getValue(), outputItems, filesToRecompile);
-      generateXsd(module, suite, outputItems);
+      generateXsd(module, suite);
     }
-    SwingUtilities.invokeLater(new Runnable() {
-      public void run() {
-        ExternalResourceManager externalResourceManager = ExternalResourceManager.getInstance();
-        for (Map.Entry<String, String> uri2filename : resourceMap.entrySet()) {
-          externalResourceManager.addResource(uri2filename.getKey(), uri2filename.getValue());
-        }
-      }
-    });
     final OutputItem[] outputItemArray = outputItems.toArray(new OutputItem[outputItems.size()]);
     final VirtualFile[] filesToRecompileArray = filesToRecompile.toArray(new VirtualFile[filesToRecompile.size()]);
     return new ExitStatus() {
