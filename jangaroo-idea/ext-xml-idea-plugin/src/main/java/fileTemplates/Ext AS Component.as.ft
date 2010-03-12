@@ -1,0 +1,19 @@
+package ${PACKAGE_NAME}#if (${PACKAGE_NAME} != "") #end{
+
+import ext.Ext;
+import ext.ComponentMgr;
+
+public class ${NAME} extends ${Super_class_name} {
+
+  public static const xtype:String = "#if (${PACKAGE_NAME} != "")${PACKAGE_NAME}.#end${NAME}";
+{
+  ComponentMgr.registerType(xtype, ${NAME});
+}
+
+  public function ${NAME}(config:* = undefined) {
+    super(Ext.apply(config, {
+      
+    }));
+  }
+}
+}

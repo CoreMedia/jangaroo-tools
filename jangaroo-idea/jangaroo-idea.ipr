@@ -28,6 +28,7 @@
       <entry name="?*.dtd" />
       <entry name="?*.tld" />
       <entry name="?*.ftl" />
+      <entry name="?*.ft" />
     </wildcardResourcePatterns>
   </component>
   <component name="CopyrightManager" default="">
@@ -250,7 +251,7 @@
       <module name="jangaroo-idea-plugin" />
       <option name="VM_PARAMETERS" value=" -Xms256m -Xmx768m -XX:MaxPermSize=156m -ea -agentlib:yjpagent=disablej2ee,disablecounts,disablealloc,sessionname=IntelliJIDEA" />
       <option name="PROGRAM_PARAMETERS" value="" />
-      <log_file path="/home/mohlendo/.IntelliJIdea8x/system/plugins-sandbox/system/log/idea.log" checked="false" skipped="true" show_all="false" alias="IDEA LOG" />
+      <log_file path="C:/Users/fwienber/.IntelliJIdea8x/system/plugins-sandbox/system/log/idea.log" checked="true" skipped="true" show_all="false" alias="IDEA LOG" />
       <RunnerSettings RunnerId="Debug">
         <option name="DEBUG_PORT" value="51028" />
         <option name="TRANSPORT" value="0" />
