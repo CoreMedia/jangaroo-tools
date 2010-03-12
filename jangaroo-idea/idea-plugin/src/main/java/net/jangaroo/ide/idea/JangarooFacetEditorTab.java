@@ -16,10 +16,8 @@ package net.jangaroo.ide.idea;
 
 import com.intellij.facet.ui.FacetEditorTab;
 import com.intellij.openapi.options.ConfigurationException;
-import com.intellij.openapi.util.IconLoader;
 import net.jangaroo.ide.idea.ui.JangarooFacetEditorTabUI;
 import org.jetbrains.annotations.Nls;
-import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
@@ -37,11 +35,11 @@ public class JangarooFacetEditorTab extends FacetEditorTab {
 
   @Nls
   public String getDisplayName() {
-    return "Jangaroo !";
+    return "Jangaroo";
   }
 
   public Icon getIcon() {
-    return IconLoader.getIcon(JangarooFacetType.JANGAROO_FACET_ICON_URL);
+    return JangarooFacetType.INSTANCE.getIcon();
   }
 
   public String getHelpTopic() {
