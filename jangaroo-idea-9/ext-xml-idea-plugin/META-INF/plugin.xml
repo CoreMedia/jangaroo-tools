@@ -5,11 +5,11 @@
   <description>
     A plugin supporting the Jangaroo EXML format for Ext JS UI development.
   </description>
-  <version>0.4.0.0</version>
+  <version>9-0.4.3-0</version>
   <vendor url="http://www.jangaroo.net"
           email="info@jangaroo.net"
           logo="/net/jangaroo/jooley-16x16.png">Jangaroo</vendor>
-  <idea-version since-build="10000"/>
+  <idea-version since-build="IU-93.94"/>
 
   <depends>JavaScript</depends>
   <depends>net.jangaroo.idea.language</depends>
