@@ -2,19 +2,17 @@ package net.jangaroo.ide.idea;
 
 import com.intellij.openapi.module.ModifiableModuleModel;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.roots.libraries.Library;
-import com.intellij.openapi.roots.libraries.LibraryTable;
-import com.intellij.openapi.roots.ModifiableRootModel;
-import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.OrderRootType;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.LocalFileSystem;
+//import com.intellij.openapi.roots.libraries.Library;
+//import com.intellij.openapi.roots.libraries.LibraryTable;
+//import com.intellij.openapi.roots.ModifiableRootModel;
+//import com.intellij.openapi.roots.OrderRootType;
+//import com.intellij.openapi.vfs.VirtualFile;
+//import com.intellij.openapi.vfs.LocalFileSystem;
 import org.jetbrains.idea.maven.project.MavenProjectModel;
 import org.jetbrains.idea.maven.project.MavenRootModelAdapter;
 import org.jetbrains.idea.maven.project.MavenProjectsTree;
 import org.jetbrains.idea.maven.project.PostProjectConfigurationTask;
 import org.jetbrains.idea.maven.project.MavenArtifact;
-import org.jdom.Element;
 
 import java.util.Map;
 import java.util.List;
@@ -25,8 +23,8 @@ import java.io.File;
  */
 public class JangarooFacetImporter extends org.jetbrains.idea.maven.facets.FacetImporter<JangarooFacet, JangarooFacetConfiguration, JangarooFacetType> {
   private static final String JANGAROO_GROUP_ID = "net.jangaroo";
-  private static final String JANGAROO_LIFECYCLE_MAVEN_PLUGIN_ARTIFACT_ID = "jangaroo-maven-plugin";
-  private static final String JANGAROO_MAVEN_PLUGIN_ARTIFACT_ID = "jangaroo-lifecycle";
+  private static final String JANGAROO_LIFECYCLE_MAVEN_PLUGIN_ARTIFACT_ID = "jangaroo-lifecycle";
+  private static final String JANGAROO_MAVEN_PLUGIN_ARTIFACT_ID = "jangaroo-maven-plugin";
   private static final String JANGAROO_PACKAGING_TYPE = "jangaroo";
   private static final String DEFAULT_JANGAROO_FACET_NAME = "Jangaroo";
 
@@ -60,6 +58,7 @@ public class JangarooFacetImporter extends org.jetbrains.idea.maven.facets.Facet
     return value != null ? Boolean.valueOf(value) : defaultValue;
   }
 
+  /*
   private void createModuleLibrary(ModifiableRootModel moduleRootModel, MavenArtifact artifact) {
     // add Maven artifact with classifier "-sources" as module library!
     LibraryTable table = moduleRootModel.getModuleLibraryTable();
@@ -76,6 +75,7 @@ public class JangarooFacetImporter extends org.jetbrains.idea.maven.facets.Facet
       libraryModel.commit();
     }
   }
+  */
   
   protected void reimportFacet(ModifiableModuleModel modifiableModuleModel, Module module, MavenRootModelAdapter mavenRootModelAdapter, JangarooFacet jangarooFacet, MavenProjectsTree mavenProjectsTree, MavenProjectModel mavenProjectModel, Map<MavenProjectModel, String> mavenProjectModelStringMap, List<PostProjectConfigurationTask> postProjectConfigurationTasks) {
     //System.out.println("reimportFacet called!");
