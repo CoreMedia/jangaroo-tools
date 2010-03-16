@@ -63,10 +63,10 @@
     </orderEntry>
     <orderEntry type="module" module-name="jangaroo-idea-plugin" />
     <orderEntry type="module-library">
-      <library name="exmlc">
+      <library name="exmlc-0.4.8">
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/net/jangaroo/jangaroo-utils/0.4.5/jangaroo-utils-0.4.5.jar!/" />
-          <root url="jar://$MAVEN_REPOSITORY$/net/jangaroo/ext-xml/0.4.5/ext-xml-0.4.5.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/net/jangaroo/jangaroo-utils/0.4.8/jangaroo-utils-0.4.8.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/net/jangaroo/ext-xml/0.4.8/ext-xml-0.4.8.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
