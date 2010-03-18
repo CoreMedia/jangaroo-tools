@@ -12,11 +12,11 @@
  * express or implied. See the License for the specific language 
  * governing permissions and limitations under the License.
  */
-package net.jangaroo.ide.idea;
+package net.jangaroo.ide.idea.exml;
 
 import com.intellij.facet.ui.FacetEditorTab;
 import com.intellij.openapi.options.ConfigurationException;
-import net.jangaroo.ide.idea.ui.JangarooFacetEditorTabUI;
+import net.jangaroo.ide.idea.exml.ui.ExmlFacetEditorTabUI;
 import org.jetbrains.annotations.Nls;
 
 import javax.swing.*;
@@ -24,22 +24,22 @@ import javax.swing.*;
 /**
  * Jangaroo Facet settings (Editor Tab).
  */
-public class JangarooFacetEditorTab extends FacetEditorTab {
-  private JoocConfigurationBean joocConfigurationBean;
-  private JangarooFacetEditorTabUI form;
+public class ExmlFacetEditorTab extends FacetEditorTab {
+  private ExmlcConfigurationBean exmlcConfigurationBean;
+  private ExmlFacetEditorTabUI form;
 
 
-  public JangarooFacetEditorTab(JoocConfigurationBean joocConfigurationBean) {
-    this.joocConfigurationBean = joocConfigurationBean;
+  public ExmlFacetEditorTab(ExmlcConfigurationBean exmlcConfigurationBean) {
+    this.exmlcConfigurationBean = exmlcConfigurationBean;
   }
 
   @Nls
   public String getDisplayName() {
-    return "Jangaroo";
+    return "EXML";
   }
 
   public Icon getIcon() {
-    return JangarooFacetType.INSTANCE.getIcon();
+    return ExmlFacetType.INSTANCE.getIcon();
   }
 
   public String getHelpTopic() {
@@ -48,24 +48,24 @@ public class JangarooFacetEditorTab extends FacetEditorTab {
 
   public JComponent createComponent() {
     if (form==null) {
-      form = new JangarooFacetEditorTabUI();
+      form = new ExmlFacetEditorTabUI();
     }
     return form.getRootComponent();
   }
 
   public boolean isModified() {
-    return form!=null && form.isModified(joocConfigurationBean);
+    return form!=null && form.isModified(exmlcConfigurationBean);
   }
 
   public void apply() throws ConfigurationException {
     if (form!=null) {
-      form.getData(joocConfigurationBean);
+      form.getData(exmlcConfigurationBean);
     }
   }
 
   public void reset() {
     if (form!=null) {
-      form.setData(joocConfigurationBean);
+      form.setData(exmlcConfigurationBean);
     }
   }
 
@@ -74,7 +74,7 @@ public class JangarooFacetEditorTab extends FacetEditorTab {
     form = null;
   }
 
-  public JoocConfigurationBean getJoocConfigurationBean() {
-    return joocConfigurationBean;
+  public ExmlcConfigurationBean getExmlcConfigurationBean() {
+    return exmlcConfigurationBean;
   }
 }

@@ -33,8 +33,14 @@
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">
-    <xml.elementDescriptorProvider implementation="net.jangaroo.ide.idea.exml.ComponentXmlElementDescriptorProvider"/>
+    <iconProvider implementation="net.jangaroo.ide.idea.exml.ExmlIconProvider"/>
+    <facetType implementation="net.jangaroo.ide.idea.exml.ExmlFacetType"/>
     <standardResourceProvider implementation="net.jangaroo.ide.idea.exml.ExmlResourceProvider"/>
+    <xml.elementDescriptorProvider implementation="net.jangaroo.ide.idea.exml.ComponentXmlElementDescriptorProvider"/>
   </extensions>
 
+  <extensions defaultExtensionNs="org.jetbrains.idea.maven">
+    <importer implementation="net.jangaroo.ide.idea.exml.ExmlMavenImporter"/>
+  </extensions>
+  
 </idea-plugin>

@@ -22,6 +22,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.facet.FacetManager;
 import com.intellij.compiler.make.MakeUtil;
 import com.intellij.compiler.impl.javaCompiler.OutputItemImpl;
@@ -60,6 +61,11 @@ public class JangarooCompiler implements TranslatingCompiler {
     JoocConfiguration joocConfig = getJoocConfiguration(module, files);
     String outputDirectoryPath = null;
     if (joocConfig!=null) {
+      ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
+      VirtualFile[] allSourceRoots = moduleRootManager.getSourceRoots();
+      // TODO: to filter out test sources, we could use moduleRootManager.getFileIndex().isInTestSourceContent(<virtualFile>)
+      List<File> sourcePath = virtualToIoFiles(Arrays.asList(allSourceRoots));
+      joocConfig.setSourcePath(sourcePath);
       outputDirectoryPath = joocConfig.getOutputDirectory().getPath();
       VirtualFile outputDirectoryVirtualFile = new File(outputDirectoryPath).mkdirs()
         ? LocalFileSystem.getInstance().refreshAndFindFileByPath(outputDirectoryPath)
@@ -110,12 +116,17 @@ public class JangarooCompiler implements TranslatingCompiler {
     } else {
       joocConfig.setOutputDirectory(joocConfigurationBean.getOutputDirectory());
     }
-    List<File> sourceFiles = new ArrayList<File>(virtualSourceFiles.size());
-    for (VirtualFile virtualSourceFile : virtualSourceFiles) {
-      sourceFiles.add(VfsUtil.virtualToIoFile(virtualSourceFile));
-    }
+    List<File> sourceFiles = virtualToIoFiles(virtualSourceFiles);
     joocConfig.setSourceFiles(sourceFiles);
     return joocConfig;
+  }
+
+  private static List<File> virtualToIoFiles(List<VirtualFile> virtualFiles) {
+    List<File> ioFiles = new ArrayList<File>(virtualFiles.size());
+    for (VirtualFile virtualSourceFile : virtualFiles) {
+      ioFiles.add(VfsUtil.virtualToIoFile(virtualSourceFile));
+    }
+    return ioFiles;
   }
 
   private OutputItem createOutputItem(final String outputDirectory, VirtualFile sourceRoot, final VirtualFile file) {
