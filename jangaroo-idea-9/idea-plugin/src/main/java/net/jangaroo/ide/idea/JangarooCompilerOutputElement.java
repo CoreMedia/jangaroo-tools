@@ -46,13 +46,11 @@ public class JangarooCompilerOutputElement extends PackagingElement<JangarooComp
                                                      @NotNull ArtifactType artifactType) {
     JangarooFacet facet = (JangarooFacet)myFacetPointer.getFacet();
     if (facet != null) {
-      // TODO: compute relativePath from webModule's JangarooFacet, if it exists:
-      String relativePath = DeploymentUtil.trimForwardSlashes("/scripts/classes");
-      File outputDirectory = facet.getConfiguration().getState().getOutputDirectory();
+      File outputDirectory = facet.getConfiguration().getState().getOutputDirectory().getParentFile();
       if (outputDirectory.exists()) {
         VirtualFile outputRoot = LocalFileSystem.getInstance().findFileByIoFile(outputDirectory);
         assert outputRoot != null;
-        creator.subFolderByRelativePath(relativePath).addDirectoryCopyInstructions(outputRoot);
+        creator.addDirectoryCopyInstructions(outputRoot);
       }
     }
   }

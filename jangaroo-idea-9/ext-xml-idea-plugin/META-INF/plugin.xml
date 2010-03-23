@@ -5,13 +5,14 @@
   <description>
     A plugin supporting the Jangaroo EXML format for Ext JS UI development.
   </description>
-  <version>9-0.4.8-0</version>
+  <version>9-0.4.8-1</version>
   <vendor url="http://www.jangaroo.net"
           email="info@jangaroo.net"
           logo="/net/jangaroo/jooley-16x16.png">Jangaroo</vendor>
   <idea-version since-build="IU-93.94"/>
 
   <depends>JavaScript</depends>
+  <depends>org.jetbrains.idea.maven</depends>
   <depends>net.jangaroo.idea.language</depends>
 
   <application-components>
@@ -40,7 +41,7 @@
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.idea.maven">
-    <importer implementation="net.jangaroo.ide.idea.exml.ExmlMavenImporter"/>
+    <importer implementation="net.jangaroo.ide.idea.exml.ExmlFacetImporter"/>
   </extensions>
   
 </idea-plugin>

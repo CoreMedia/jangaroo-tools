@@ -21,41 +21,32 @@ import com.intellij.facet.ui.FacetValidatorsManager;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.WriteExternalException;
 import com.intellij.openapi.components.PersistentStateComponent;
-import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.ModuleRootModel;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.module.Module;
 import com.intellij.util.xmlb.XmlSerializerUtil;
 import org.jdom.Element;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Jangaroo IDEA Facet configuration.
  */
 public class JangarooFacetConfiguration implements FacetConfiguration, PersistentStateComponent<JoocConfigurationBean> {
 
-  private JoocConfigurationBean joocConfigurationBean;
+  private JoocConfigurationBean joocConfigurationBean = new JoocConfigurationBean();
 
   public FacetEditorTab[] createEditorTabs(FacetEditorContext facetEditorContext, FacetValidatorsManager facetValidatorsManager) {
-    return new FacetEditorTab[]{ new JangarooFacetEditorTab(getJoocConfigurationBean(facetEditorContext))};
+    return new FacetEditorTab[]{ new JangarooFacetEditorTab(initJoocConfigurationBean(facetEditorContext))};
   }
 
-  private synchronized JoocConfigurationBean getJoocConfigurationBean(FacetEditorContext facetEditorContext) {
-    if (joocConfigurationBean==null) {
-      String outputPrefix = null, moduleName = null;
-      if (facetEditorContext!=null) {
-        Module module = facetEditorContext.getModule();
-        if (module != null) {
-          ModuleRootModel rootModel = facetEditorContext.getRootModel();
-          if (rootModel != null) {
-            VirtualFile[] contentRoots = rootModel.getContentRoots();
-            if (contentRoots.length > 0) {
-              outputPrefix = contentRoots[0].getPath();
-              moduleName = module.getName();
-            }
-          }
-        }
+  private synchronized JoocConfigurationBean initJoocConfigurationBean(@NotNull FacetEditorContext facetEditorContext) {
+    if (joocConfigurationBean.getOutputFileName() == null) {
+      Module module = facetEditorContext.getModule();
+      ModuleRootModel rootModel = facetEditorContext.getRootModel();
+      VirtualFile[] contentRoots = rootModel.getContentRoots();
+      if (contentRoots.length > 0) {
+        joocConfigurationBean.init(contentRoots[0].getPath(), module.getName());
       }
-      joocConfigurationBean = new JoocConfigurationBean(outputPrefix, moduleName);
     }
     return joocConfigurationBean;
   }
@@ -69,15 +60,11 @@ public class JangarooFacetConfiguration implements FacetConfiguration, Persisten
   }
 
   public JoocConfigurationBean getState() {
-    return getJoocConfigurationBean(null);
+    return joocConfigurationBean;
   }
 
   public void loadState(JoocConfigurationBean state) {
-    if (joocConfigurationBean==null) {
-      joocConfigurationBean = state;
-    } else {
-      // copy into existing instance, as it may already be used by some JangarooFacetEditorTab:
-      XmlSerializerUtil.copyBean(state, joocConfigurationBean);
-    }
+    // copy into existing instance, as it may already be used by some JangarooFacetEditorTab:
+    XmlSerializerUtil.copyBean(state, joocConfigurationBean);
   }
 }

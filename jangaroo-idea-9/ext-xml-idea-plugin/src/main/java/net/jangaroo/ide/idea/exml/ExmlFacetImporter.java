@@ -1,6 +1,6 @@
 package net.jangaroo.ide.idea.exml;
 
-import com.intellij.facet.FacetManager;
+import com.intellij.idea.IdeaLogger;
 import com.intellij.javaee.ExternalResourceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModuleRootManager;
@@ -9,9 +9,13 @@ import com.intellij.openapi.roots.ModuleOrderEntry;
 import net.jangaroo.extxml.model.ComponentSuite;
 import net.jangaroo.extxml.xml.XsdScanner;
 import net.jangaroo.utils.log.Log;
+import org.jetbrains.idea.maven.importing.FacetImporter;
 import org.jetbrains.idea.maven.importing.MavenModifiableModelsProvider;
 import org.jetbrains.idea.maven.importing.MavenRootModelAdapter;
-import org.jetbrains.idea.maven.project.*;
+import org.jetbrains.idea.maven.project.MavenProject;
+import org.jetbrains.idea.maven.project.MavenProjectChanges;
+import org.jetbrains.idea.maven.project.MavenProjectsProcessorTask;
+import org.jetbrains.idea.maven.project.MavenProjectsTree;
 
 import javax.swing.*;
 import java.io.FileInputStream;
@@ -28,47 +32,36 @@ import java.util.zip.ZipFile;
 /**
  * A Facet-from-Maven Importer for the EXML Facet type.
  */
-public class ExmlMavenImporter extends org.jetbrains.idea.maven.importing.MavenImporter {
+public class ExmlFacetImporter extends FacetImporter<ExmlFacet, ExmlFacetConfiguration, ExmlFacetType> {
   // TODO: share these constants with Jangaroo Language plugin:
   private static final String JANGAROO_GROUP_ID = "net.jangaroo";
   private static final String JANGAROO_LIFECYCLE_MAVEN_PLUGIN_ARTIFACT_ID = "jangaroo-lifecycle";
   private static final String EXML_MAVEN_PLUGIN_ARTIFACT_ID = "ext-xml-maven-plugin";
   private static final String DEFAULT_EXML_FACET_NAME = "EXML";
 
-  public ExmlMavenImporter() {
-    super();
+  public ExmlFacetImporter() {
+    super(JANGAROO_GROUP_ID, EXML_MAVEN_PLUGIN_ARTIFACT_ID, ExmlFacetType.INSTANCE, DEFAULT_EXML_FACET_NAME);
   }
 
-  @Override
-  public boolean isSupportedDependency(MavenArtifact artifact) {
-    return false;
-  }
-
-  @Override
   public boolean isApplicable(MavenProject mavenProjectModel) {
     return mavenProjectModel.findPlugin(JANGAROO_GROUP_ID, JANGAROO_LIFECYCLE_MAVEN_PLUGIN_ARTIFACT_ID) != null ||
       mavenProjectModel.findPlugin(JANGAROO_GROUP_ID, EXML_MAVEN_PLUGIN_ARTIFACT_ID) != null;
   }
 
-  @Override
-  public void preProcess(Module module, MavenProject mavenProject, MavenProjectChanges mavenProjectChanges, MavenModifiableModelsProvider mavenModifiableModelsProvider) {
-    // TODO: anything to do here?
+  protected void setupFacet(ExmlFacet exmlFacet, MavenProject mavenProjectModel) {
+    //System.out.println("setupFacet called!");
   }
 
   @Override
-  public void process(MavenModifiableModelsProvider modifiableModelsProvider, Module module,
-                      MavenRootModelAdapter rootModel, MavenProjectsTree mavenModel, MavenProject mavenProjectModel,
-                      MavenProjectChanges changes, Map<MavenProject, String> mavenProjectToModuleName,
-                      List<MavenProjectsProcessorTask> postTasks) {
-    FacetManager facetManager = FacetManager.getInstance(module);
-    ExmlFacet exmlFacet = facetManager.getFacetByType(ExmlFacetType.ID);
-    if (exmlFacet == null) {
-      exmlFacet = facetManager.addFacet(ExmlFacetType.INSTANCE, DEFAULT_EXML_FACET_NAME, null);
-    }
+  protected void reimportFacet(MavenModifiableModelsProvider modelsProvider, Module module,
+                               MavenRootModelAdapter rootModel, ExmlFacet exmlFacet, MavenProjectsTree mavenTree,
+                               MavenProject mavenProjectModel, MavenProjectChanges changes,
+                               Map<MavenProject, String> mavenProjectToModuleName, List<MavenProjectsProcessorTask> postTasks) {
+    //System.out.println("reimportFacet called!");
     ExmlcConfigurationBean exmlConfig = exmlFacet.getConfiguration().getState();
     exmlConfig.setSourceDirectory(mavenProjectModel.getSources().get(0));
     exmlConfig.setGeneratedSourcesDirectory(mavenProjectModel.getGeneratedSourcesDirectory() + "/joo");
-    exmlConfig.setGeneratedResourcesDirectory(mavenProjectModel.getBuildDirectory() + "/generated-resources");
+    exmlConfig.setGeneratedResourcesDirectory(getTargetOutputPath(mavenProjectModel,  "generated-resources"));
     exmlConfig.setNamespace(mavenProjectModel.getMavenModel().getArtifactId());
     exmlConfig.setNamespacePrefix(mavenProjectModel.getMavenModel().getArtifactId());
     exmlConfig.setXsd(mavenProjectModel.getMavenModel().getArtifactId() + ".xsd");
@@ -83,6 +76,11 @@ public class ExmlMavenImporter extends org.jetbrains.idea.maven.importing.MavenI
         }
       }
     });
+  }
+
+  public void collectSourceFolders(MavenProject mavenProject, List<String> result) {
+    // TODO: peek into Maven config of ext-xml goal!
+    result.add("target/generated-sources/joo");
   }
 
   private Map<String, String> getXsdResourcesOfModule(Module module) {
@@ -116,11 +114,11 @@ public class ExmlMavenImporter extends org.jetbrains.idea.maven.importing.MavenI
       }
     }
     String xsdFilename = ExmlCompiler.getXsdFilename(module);
-    if (xsdFilename != null) {
+    if (xsdFilename != null && new File(xsdFilename).exists()) {
       try {
         addResource(resourceMap, scanner, new FileInputStream(xsdFilename), xsdFilename);
       } catch (FileNotFoundException e) {
-        Log.e("Error while scanning XSD file " + xsdFilename, e);
+        IdeaLogger.getInstance("exml").warn("Error while scanning XSD file " + xsdFilename, e);
       }
     }
     return resourceMap;
@@ -134,7 +132,7 @@ public class ExmlMavenImporter extends org.jetbrains.idea.maven.importing.MavenI
         resourceMap.put(componentSuite.getNamespace(), filename);
       }
     } catch (IOException e) {
-      Log.e("Error while scanning XSD file " + filename, e);
+      ExmlCompiler.getLog().warn("Error while scanning XSD file " + filename, e);
     }
   }
 

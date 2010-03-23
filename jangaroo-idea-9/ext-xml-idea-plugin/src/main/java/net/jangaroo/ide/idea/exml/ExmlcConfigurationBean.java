@@ -60,10 +60,9 @@ public class ExmlcConfigurationBean {
   private String generatedResourcesDirectory;
 
   public ExmlcConfigurationBean() {
-    this(null, null);
   }
 
-  public ExmlcConfigurationBean(String outputPrefix, String moduleName) {
+  public void init(String outputPrefix, String moduleName) {
     if (outputPrefix != null) {
       sourceDirectory = getIdeaUrl(outputPrefix + "/" + DEFAULT_SOURCE_DIRECTORY);
       generatedSourcesDirectory = getIdeaUrl(outputPrefix + "/" + DEFAULT_GENERATED_SOURCES_DIRECTORY);

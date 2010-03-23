@@ -14,10 +14,12 @@
  */
 package net.jangaroo.ide.idea;
 
+import com.intellij.idea.IdeaLogger;
 import com.intellij.openapi.compiler.CompileScope;
 import com.intellij.openapi.compiler.TranslatingCompiler;
 import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompilerMessageCategory;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -71,7 +73,9 @@ public class JangarooCompiler implements TranslatingCompiler {
         ? LocalFileSystem.getInstance().refreshAndFindFileByPath(outputDirectoryPath)
         : LocalFileSystem.getInstance().findFileByPath(outputDirectoryPath);
       if (outputDirectoryVirtualFile == null) {
-        context.addMessage(CompilerMessageCategory.ERROR, "Output directory does not exist and could not be created: "+outputDirectoryPath, null, -1, -1);
+        String message = "Output directory does not exist and could not be created: " + outputDirectoryPath;
+        context.addMessage(CompilerMessageCategory.ERROR, message, null, -1, -1);
+        getLog().error(message);
         return null;
       }
       outputDirectoryPath = outputDirectoryVirtualFile.getPath();
@@ -86,7 +90,9 @@ public class JangarooCompiler implements TranslatingCompiler {
             ? new OutputItemImpl(outputFileName, file)
             : createOutputItem(outputDirectoryPath, MakeUtil.getSourceRoot(context, module, file), file);
           outputItems.add(outputItem);
-          context.addMessage(CompilerMessageCategory.INFORMATION, "as->js ("+outputItem.getOutputPath()+")", outputItem.getSourceFile().getUrl(), -1, -1);
+          String fileUrl = outputItem.getSourceFile().getUrl();
+          context.addMessage(CompilerMessageCategory.INFORMATION, "as->js (" + outputItem.getOutputPath() + ")", fileUrl, -1, -1);
+          getLog().info("as->js: " + fileUrl + " -> " + outputItem.getOutputPath());
         }
       }
     }
@@ -161,6 +167,10 @@ public class JangarooCompiler implements TranslatingCompiler {
     }
   }
 
+  private static Logger getLog() {
+    return IdeaLogger.getInstance("net.jangaroo.ide.idea.JangarooCompiler");
+  }
+
   private static class IdeaCompileLog implements CompileLog {
     private CompileContext compileContext;
     private Set<VirtualFile> filesWithErrors;
@@ -179,18 +189,22 @@ public class JangarooCompiler implements TranslatingCompiler {
 
     public void error(JooSymbol sym, String msg) {
       filesWithErrors.add(addMessage(CompilerMessageCategory.ERROR, msg, sym));
+      getLog().error(sym.getFileName() + ":" + msg);
     }
 
     public void error(String msg) {
       compileContext.addMessage(CompilerMessageCategory.ERROR, msg, null, -1, -1);
+      getLog().error(msg);
     }
 
     public void warning(JooSymbol sym, String msg) {
       addMessage(CompilerMessageCategory.WARNING, msg, sym);
+      getLog().warn(sym.getFileName() + ":" + msg);
     }
 
     public void warning(String msg) {
       compileContext.addMessage(CompilerMessageCategory.WARNING, msg, null, -1, -1);
+      getLog().warn(msg);
     }
 
     public boolean hasErrors() {

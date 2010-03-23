@@ -3,10 +3,12 @@ package net.jangaroo.ide.idea.exml;
 import com.intellij.compiler.impl.javaCompiler.OutputItemImpl;
 import com.intellij.compiler.make.MakeUtil;
 import com.intellij.facet.FacetManager;
+import com.intellij.idea.IdeaLogger;
 import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompileScope;
 import com.intellij.openapi.compiler.CompilerMessageCategory;
 import com.intellij.openapi.compiler.TranslatingCompiler;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModuleOrderEntry;
 import com.intellij.openapi.roots.ModuleRootManager;
@@ -39,7 +41,6 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Arrays;
@@ -50,9 +51,6 @@ import java.util.zip.ZipFile;
  *
  */
 public class ExmlCompiler implements TranslatingCompiler {
-
-  private static final String JOO_SOURCES_PATH_REG_EXP = ".*\\bmain[/\\\\]joo\\b.*";
-  private static final String GENERATED_SOURCES_PATH_REG_EXP = ".*\\bgenerated-sources\\b.*";
 
   @NotNull
   public String getDescription() {
@@ -74,17 +72,14 @@ public class ExmlCompiler implements TranslatingCompiler {
     return false;
   }
 
-  private static ExmlcConfigurationBean getExmlcConfiguration(Module module) {
+  private static ExmlcConfigurationBean getExmlConfig(Module module) {
     ExmlFacet exmlFacet = FacetManager.getInstance(module).getFacetByType(ExmlFacetType.ID);
-    if (exmlFacet==null) {
-      return null;
-    }
-    return exmlFacet.getConfiguration().getState();
+    return exmlFacet == null ? null : exmlFacet.getConfiguration().getState();
   }
 
   static String getXsdFilename(Module module) {
     if (module != null) {
-      ExmlcConfigurationBean exmlcConfig = getExmlcConfiguration(module);
+      ExmlcConfigurationBean exmlcConfig = getExmlConfig(module);
       if (exmlcConfig != null) {
         return exmlcConfig.getGeneratedResourcesDirectory() + "/" + exmlcConfig.getXsd();
       }
@@ -155,10 +150,14 @@ public class ExmlCompiler implements TranslatingCompiler {
   }
 
   private ComponentSuite scanSrcFiles(Module module) {
-    String sourceRootDir = findSourceRootDir(module, JOO_SOURCES_PATH_REG_EXP);
+    String sourceRootDir = findSourceRootDir(module);
+    String generatedAs3RootDir = findGeneratedAs3RootDir(module);
+    if (sourceRootDir == null || generatedAs3RootDir == null) {
+      return null;
+    }
     String moduleName = module.getName();
     ComponentSuite suite = new ComponentSuite(moduleName, moduleName.substring(0, Math.max(1, moduleName.length())).toLowerCase(),
-        new File(sourceRootDir), new File(findGeneratedAs3RootDir(module)));
+        new File(sourceRootDir), new File(generatedAs3RootDir));
 
     SrcFileScanner fileScanner = new SrcFileScanner(suite);
     ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
@@ -176,22 +175,26 @@ public class ExmlCompiler implements TranslatingCompiler {
   private void generateXsd(Module module, ComponentSuite suite) {
     if (!suite.getComponentClasses().isEmpty()) {
       String xsdFilename = getXsdFilename(module);
-      Writer out;
-      File xsdFile;
-      try {
-        xsdFile = new File(xsdFilename);
-        // (re-)generate the XSD for the given module.
-        Log.setCurrentFile(xsdFile);
-        out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(xsdFile), "UTF-8"));
-      } catch (Exception e) {
-        Log.e("Cannot write component suite XSD file.", e);
-        return;
-      }
-      try {
-        new XsdGenerator(suite).generateXsd(out);
-        LocalFileSystem.getInstance().refreshIoFiles(Arrays.asList(xsdFile));
-      } catch (IOException e) {
-        Log.e("Error while writing component suite XSD file.", e);
+      if (xsdFilename != null) {
+        Writer out;
+        File xsdFile;
+        try {
+          xsdFile = new File(xsdFilename);
+          //noinspection ResultOfMethodCallIgnored
+          xsdFile.getParentFile().mkdirs();
+          // (re-)generate the XSD for the given module.
+          Log.setCurrentFile(xsdFile);
+          out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(xsdFile), "UTF-8"));
+        } catch (Exception e) {
+          Log.e("Cannot write component suite XSD file.", e);
+          return;
+        }
+        try {
+          new XsdGenerator(suite).generateXsd(out);
+          LocalFileSystem.getInstance().refreshIoFiles(Arrays.asList(xsdFile));
+        } catch (IOException e) {
+          Log.e("Error while writing component suite XSD file.", e);
+        }
       }
     }
   }
@@ -221,6 +224,7 @@ public class ExmlCompiler implements TranslatingCompiler {
         } else {
           OutputItem outputItem = new OutputItemImpl(outputFile.getPath().replace(File.separatorChar, '/'), file);
           context.addMessage(CompilerMessageCategory.INFORMATION, "exml->as (" + outputItem.getOutputPath() + ")", file.getUrl(), -1, -1);
+          getLog().info("exml->as: " + file.getUrl() + " -> " + outputItem.getOutputPath());
           LocalFileSystem.getInstance().refreshIoFiles(Arrays.asList(outputFile));
           outputItems.add(outputItem);
         }
@@ -235,18 +239,18 @@ public class ExmlCompiler implements TranslatingCompiler {
   }
 
   private String findGeneratedAs3RootDir(Module module) {
-    return findSourceRootDir(module, GENERATED_SOURCES_PATH_REG_EXP);
+    ExmlcConfigurationBean exmlConfig = getExmlConfig(module);
+    return exmlConfig == null ? null : getVFPath(exmlConfig.getGeneratedSourcesDirectory());
   }
 
-  private String findSourceRootDir(Module module, String GENERATED_SOURCES_PATH_REG_EXP) {
-    VirtualFile[] srcRoots = ModuleRootManager.getInstance(module).getSourceRoots();
-    for (VirtualFile srcRoot : srcRoots) {
-      String path = srcRoot.getPath();
-      if (path.matches(GENERATED_SOURCES_PATH_REG_EXP)) {
-        return path;
-      }
-    }
-    return srcRoots[0].getPath();
+  private String findSourceRootDir(Module module) {
+    ExmlcConfigurationBean exmlConfig = getExmlConfig(module);
+    return exmlConfig == null ? null : getVFPath(exmlConfig.getSourceDirectory());
+  }
+
+  private static String getVFPath(String path) {
+    VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByPath(path);
+    return virtualFile == null ? null : virtualFile.getPath();
   }
 
   public void compile(CompileContext context, Chunk<Module> moduleChunk, VirtualFile[] files, OutputSink outputSink) {
@@ -265,19 +269,24 @@ public class ExmlCompiler implements TranslatingCompiler {
       }
       filesOfModule.add(file);
     }
-    final Map<String, String> resourceMap = new LinkedHashMap<String, String>();
     for (Map.Entry<Module, List<VirtualFile>> filesOfModuleEntry : filesByModule.entrySet()) {
       Module module = filesOfModuleEntry.getKey();
       addModuleDependenciesToComponentSuiteRegistry(module);
       ComponentSuite suite = scanSrcFiles(module);
-      List<OutputItem> outputItems = new ArrayList<OutputItem>(files.length);
-      List<VirtualFile> filesToRecompile = new ArrayList<VirtualFile>(files.length);
-      String outputRoot = compile(context, module, filesOfModuleEntry.getValue(), outputItems, filesToRecompile);
-      if (outputRoot != null) {
-        outputSink.add(outputRoot, outputItems, filesToRecompile.toArray(new VirtualFile[filesToRecompile.size()]));
-        generateXsd(module, suite);
+      if (suite != null) {
+        List<OutputItem> outputItems = new ArrayList<OutputItem>(files.length);
+        List<VirtualFile> filesToRecompile = new ArrayList<VirtualFile>(files.length);
+        String outputRoot = compile(context, module, filesOfModuleEntry.getValue(), outputItems, filesToRecompile);
+        if (outputRoot != null) {
+          outputSink.add(outputRoot, outputItems, filesToRecompile.toArray(new VirtualFile[filesToRecompile.size()]));
+          generateXsd(module, suite);
+        }
       }
     }
+  }
+
+  static Logger getLog() {
+    return IdeaLogger.getInstance("net.jangaroo.ide.idea.exml.ExmlCompiler");
   }
 
   private static class IdeaErrorHandler implements LogHandler {
@@ -301,29 +310,33 @@ public class ExmlCompiler implements TranslatingCompiler {
 
     public void error(String message, int lineNumber, int columnNumber) {
       addMessage(CompilerMessageCategory.ERROR, message, lineNumber, columnNumber);
+      getLog().error(message);
     }
 
     public void error(String message, Exception exception) {
-      addMessage(CompilerMessageCategory.ERROR, message + ": " + exception.getLocalizedMessage(), -1, -1);
+      error(message + ": " + exception.getLocalizedMessage(), -1, -1);
     }
 
     public void error(String message) {
-      addMessage(CompilerMessageCategory.ERROR, message, -1, -1);
+      error(message, -1, -1);
     }
 
     public void warning(String message) {
-      addMessage(CompilerMessageCategory.WARNING, message, -1, -1);
+      warning(message, -1, -1);
     }
 
     public void warning(String message, int lineNumber, int columnNumber) {
       addMessage(CompilerMessageCategory.WARNING, message, lineNumber, columnNumber);
+      getLog().warn(message);
     }
 
     public void info(String message) {
       addMessage(CompilerMessageCategory.INFORMATION, message, -1, -1);
+      getLog().info(message);
     }
 
     public void debug(String message) {
+      getLog().debug(message);
       //ignore debug messages for now
     }
   }

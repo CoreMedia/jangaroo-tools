@@ -26,35 +26,27 @@ import com.intellij.openapi.util.WriteExternalException;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.xmlb.XmlSerializerUtil;
 import org.jdom.Element;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * EXML IDEA Facet configuration, so far empty.
  */
 public class ExmlFacetConfiguration implements FacetConfiguration, PersistentStateComponent<ExmlcConfigurationBean> {
 
-  private ExmlcConfigurationBean exmlcConfigurationBean;
+  private ExmlcConfigurationBean exmlcConfigurationBean = new ExmlcConfigurationBean();
 
   public FacetEditorTab[] createEditorTabs(FacetEditorContext facetEditorContext, FacetValidatorsManager facetValidatorsManager) {
-    return new FacetEditorTab[]{ new ExmlFacetEditorTab(getExmlcConfigurationBean(facetEditorContext))};
+    return new FacetEditorTab[]{ new ExmlFacetEditorTab(initExmlcConfigurationBean(facetEditorContext))};
   }
 
-  private synchronized ExmlcConfigurationBean getExmlcConfigurationBean(FacetEditorContext facetEditorContext) {
-    if (exmlcConfigurationBean==null) {
-      String outputPrefix = null, moduleName = null;
-      if (facetEditorContext!=null) {
-        Module module = facetEditorContext.getModule();
-        if (module != null) {
-          ModuleRootModel rootModel = facetEditorContext.getRootModel();
-          if (rootModel != null) {
-            VirtualFile[] contentRoots = rootModel.getContentRoots();
-            if (contentRoots.length > 0) {
-              outputPrefix = contentRoots[0].getPath();
-              moduleName = module.getName();
-            }
-          }
-        }
+  private synchronized ExmlcConfigurationBean initExmlcConfigurationBean(@NotNull FacetEditorContext facetEditorContext) {
+    if (exmlcConfigurationBean.getXsd() == null) {
+      Module module = facetEditorContext.getModule();
+      ModuleRootModel rootModel = facetEditorContext.getRootModel();
+      VirtualFile[] contentRoots = rootModel.getContentRoots();
+      if (contentRoots.length > 0) {
+        exmlcConfigurationBean.init(contentRoots[0].getPath(), module.getName());
       }
-      exmlcConfigurationBean = new ExmlcConfigurationBean(outputPrefix, moduleName);
     }
     return exmlcConfigurationBean;
   }
@@ -68,15 +60,11 @@ public class ExmlFacetConfiguration implements FacetConfiguration, PersistentSta
   }
 
   public ExmlcConfigurationBean getState() {
-    return getExmlcConfigurationBean(null);
+    return exmlcConfigurationBean;
   }
 
   public void loadState(ExmlcConfigurationBean state) {
-    if (exmlcConfigurationBean==null) {
-      exmlcConfigurationBean = state;
-    } else {
-      // copy into existing instance, as it may already be used by some JangarooFacetEditorTab:
-      XmlSerializerUtil.copyBean(state, exmlcConfigurationBean);
-    }
+    // copy into existing instance, as it may already be used by some JangarooFacetEditorTab:
+    XmlSerializerUtil.copyBean(state, exmlcConfigurationBean);
   }
 }

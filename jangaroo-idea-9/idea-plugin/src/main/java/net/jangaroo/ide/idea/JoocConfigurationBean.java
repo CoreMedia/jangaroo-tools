@@ -44,10 +44,9 @@ public class JoocConfigurationBean {
   public static final String IDEA_URL_PREFIX = "file://";
 
   public JoocConfigurationBean() {
-    this(null, null);
   }
 
-  public JoocConfigurationBean(String outputPrefix, String moduleName) {
+  public void init(String outputPrefix, String moduleName) {
     if (outputPrefix!=null) {
       outputDirectory = outputPrefix + "/" + outputDirectory;
       if (moduleName==null) {
