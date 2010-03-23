@@ -102,6 +102,7 @@ public class JangarooFacetImporter extends FacetImporter<JangarooFacet, Jangaroo
 
   public void collectSourceFolders(MavenProject mavenProject, List<String> result) {
     collectSourceOrTestFolders(mavenProject, "compile", "src/main/joo", result);
+    result.add("src/main/joo-api"); // must be a source folder in IDEA for references to API-only classes to work
   }
 
   public void collectTestFolders(MavenProject mavenProject, List<String> result) {

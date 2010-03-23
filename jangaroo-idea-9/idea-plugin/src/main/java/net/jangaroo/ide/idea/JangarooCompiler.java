@@ -157,6 +157,11 @@ public class JangarooCompiler implements TranslatingCompiler {
     Map<Module,List<VirtualFile>> filesByModule = new HashMap<Module, List<VirtualFile>>(files.length);
     for (final VirtualFile file : files) {
       Module module = context.getModuleByFile(file);
+      // hack: skip all files under .../joo-api:
+      VirtualFile sourceRoot = MakeUtil.getSourceRoot(context, module, file);
+      if (sourceRoot.getPath().endsWith("/joo-api")) {
+        continue;
+      }
       List<VirtualFile> filesOfModule = filesByModule.get(module);
       if (filesOfModule==null) {
         filesOfModule = new ArrayList<VirtualFile>(files.length);
