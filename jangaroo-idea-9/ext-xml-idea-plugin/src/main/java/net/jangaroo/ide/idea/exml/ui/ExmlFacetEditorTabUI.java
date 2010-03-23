@@ -30,6 +30,7 @@ public class ExmlFacetEditorTabUI {
   private TextFieldWithBrowseButton sourceDirTextField;
   private TextFieldWithBrowseButton generatedSourcesDirTextField;
   private TextFieldWithBrowseButton generatedResourcesDirTextField;
+  private JCheckBox showCompilerInfoMessages;
 
   private static final FileChooserDescriptor SOURCE_DIRECTORY_CHOOSER_DESCRIPTOR = FileChooserDescriptorFactory.createSingleFolderDescriptor();
   private static final FileChooserDescriptor GENERATED_SOURCE_DIRECTORY_CHOOSER_DESCRIPTOR = FileChooserDescriptorFactory.createSingleFolderDescriptor();
@@ -62,17 +63,24 @@ public class ExmlFacetEditorTabUI {
     sourceDirTextField.setText(data.getSourceDirectory());
     generatedSourcesDirTextField.setText(data.getGeneratedSourcesDirectory());
     generatedResourcesDirTextField.setText(data.getGeneratedResourcesDirectory());
+    showCompilerInfoMessages.setSelected(data.isShowCompilerInfoMessages());
   }
 
   public ExmlcConfigurationBean getData(ExmlcConfigurationBean data) {
     data.setSourceDirectory(sourceDirTextField.getText());
     data.setGeneratedSourcesDirectory(generatedSourcesDirTextField.getText());
     data.setGeneratedResourcesDirectory(generatedResourcesDirTextField.getText());
+    data.setShowCompilerInfoMessages(showCompilerInfoMessages.isSelected());
     return data;
   }
 
   public boolean isModified(ExmlcConfigurationBean data) {
-    return !getData(new ExmlcConfigurationBean()).equals(data);
+    ExmlcConfigurationBean currentData = new ExmlcConfigurationBean();
+    // TODO: namespace, namespacePrefix and xsd not yet used by UI, so copy these:
+    currentData.setNamespace(data.getNamespace());
+    currentData.setNamespacePrefix(data.getNamespacePrefix());
+    currentData.setXsd(data.getXsd());
+    return !getData(currentData).equals(data);
   }
 
   private void createUIComponents() {

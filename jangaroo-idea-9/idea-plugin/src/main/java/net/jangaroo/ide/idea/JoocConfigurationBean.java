@@ -41,6 +41,7 @@ public class JoocConfigurationBean {
   public String outputDirectory = "target/js-classes-debug";
   public boolean mergeOutput = false;
   public String outputFileName = OUTPUT_FILE_NAME_DIR + DEFAULT_OUTPUT_FILE_NAME + OUTPUT_FILE_NAME_EXTENSION;
+  public boolean showCompilerInfoMessages = false;
   public static final String IDEA_URL_PREFIX = "file://";
 
   public JoocConfigurationBean() {
@@ -89,7 +90,8 @@ public class JoocConfigurationBean {
       if (flags[i] != thatFlags[i])
         return false;
     }
-    return debugLevel==that.debugLevel && outputDirectory.equals(that.outputDirectory) && outputFileName.equals(that.outputFileName);
+    return debugLevel==that.debugLevel && outputDirectory.equals(that.outputDirectory)
+      && outputFileName.equals(that.outputFileName) && showCompilerInfoMessages == that.showCompilerInfoMessages;
   }
 
   @Override
@@ -101,6 +103,7 @@ public class JoocConfigurationBean {
     result = 31 * result + debugLevel;
     result = 31 * result + outputDirectory.hashCode();
     result = 31 * result + outputFileName.hashCode();
+    result = 31 * result + (showCompilerInfoMessages ? 1 : 0);
     return result;
   }
 

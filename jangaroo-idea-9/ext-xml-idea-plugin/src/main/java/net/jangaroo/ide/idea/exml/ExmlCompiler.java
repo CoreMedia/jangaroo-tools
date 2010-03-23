@@ -203,6 +203,7 @@ public class ExmlCompiler implements TranslatingCompiler {
     JooClassGenerator generator = null;
     ComponentSuite suite = null;
     String as3OutputDir = null;
+    boolean showCompilerInfoMessages = getExmlConfig(module).isShowCompilerInfoMessages();
     for (final VirtualFile file : files) {
       if (ComponentType.EXML.getExtension().equals(file.getExtension())) {
         if (suite == null) {
@@ -223,7 +224,9 @@ public class ExmlCompiler implements TranslatingCompiler {
           filesToRecompile.add(file);
         } else {
           OutputItem outputItem = new OutputItemImpl(outputFile.getPath().replace(File.separatorChar, '/'), file);
-          context.addMessage(CompilerMessageCategory.INFORMATION, "exml->as (" + outputItem.getOutputPath() + ")", file.getUrl(), -1, -1);
+          if (showCompilerInfoMessages) {
+            context.addMessage(CompilerMessageCategory.INFORMATION, "exml->as (" + outputItem.getOutputPath() + ")", file.getUrl(), -1, -1);
+          }
           getLog().info("exml->as: " + file.getUrl() + " -> " + outputItem.getOutputPath());
           LocalFileSystem.getInstance().refreshIoFiles(Arrays.asList(outputFile));
           outputItems.add(outputItem);
@@ -258,19 +261,23 @@ public class ExmlCompiler implements TranslatingCompiler {
     final ComponentSuiteRegistry componentSuiteRegistry = ComponentSuiteRegistry.getInstance();
     componentSuiteRegistry.reset();
 
-    Log.setLogHandler(new IdeaErrorHandler(context));
+    IdeaErrorHandler errorHandler = new IdeaErrorHandler(context);
+    Log.setLogHandler(errorHandler);
     Map<Module, List<VirtualFile>> filesByModule = new HashMap<Module, List<VirtualFile>>(files.length);
     for (final VirtualFile file : files) {
       Module module = context.getModuleByFile(file);
-      List<VirtualFile> filesOfModule = filesByModule.get(module);
-      if (filesOfModule == null) {
-        filesOfModule = new ArrayList<VirtualFile>(files.length);
-        filesByModule.put(module, filesOfModule);
+      if (getExmlConfig(module) != null) {
+        List<VirtualFile> filesOfModule = filesByModule.get(module);
+        if (filesOfModule == null) {
+          filesOfModule = new ArrayList<VirtualFile>(files.length);
+          filesByModule.put(module, filesOfModule);
+        }
+        filesOfModule.add(file);
       }
-      filesOfModule.add(file);
     }
     for (Map.Entry<Module, List<VirtualFile>> filesOfModuleEntry : filesByModule.entrySet()) {
       Module module = filesOfModuleEntry.getKey();
+      errorHandler.setShowCompilerInfoMessages(getExmlConfig(module).isShowCompilerInfoMessages());
       addModuleDependenciesToComponentSuiteRegistry(module);
       ComponentSuite suite = scanSrcFiles(module);
       if (suite != null) {
@@ -291,10 +298,15 @@ public class ExmlCompiler implements TranslatingCompiler {
 
   private static class IdeaErrorHandler implements LogHandler {
     private final CompileContext context;
+    private boolean showCompilerInfoMessages = true;
     private File currentFile;
 
     public IdeaErrorHandler(CompileContext context) {
       this.context = context;
+    }
+
+    public void setShowCompilerInfoMessages(boolean showCompilerInfoMessages) {
+      this.showCompilerInfoMessages = showCompilerInfoMessages;
     }
 
     public void setCurrentFile(File file) {
@@ -331,7 +343,9 @@ public class ExmlCompiler implements TranslatingCompiler {
     }
 
     public void info(String message) {
-      addMessage(CompilerMessageCategory.INFORMATION, message, -1, -1);
+      if (showCompilerInfoMessages) {
+        addMessage(CompilerMessageCategory.INFORMATION, message, -1, -1);
+      }
       getLog().info(message);
     }
 

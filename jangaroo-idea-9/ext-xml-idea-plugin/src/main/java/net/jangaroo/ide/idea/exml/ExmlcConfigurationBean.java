@@ -59,6 +59,8 @@ public class ExmlcConfigurationBean {
    */
   private String generatedResourcesDirectory;
 
+  private boolean showCompilerInfoMessages;
+
   public ExmlcConfigurationBean() {
   }
 
@@ -73,6 +75,14 @@ public class ExmlcConfigurationBean {
       namespacePrefix = moduleName;
       xsd = moduleName + ".xsd";
     }
+  }
+
+  public boolean isShowCompilerInfoMessages() {
+    return showCompilerInfoMessages;
+  }
+
+  public void setShowCompilerInfoMessages(boolean showCompilerInfoMessages) {
+    this.showCompilerInfoMessages = showCompilerInfoMessages;
   }
 
   public String getSourceDirectory() {
@@ -134,15 +144,16 @@ public class ExmlcConfigurationBean {
       return false;
     if (generatedSourcesDirectory != null ? !generatedSourcesDirectory.equals(that.generatedSourcesDirectory) : that.generatedSourcesDirectory != null)
       return false;
-    if (namespace != null ? !namespace.equals(that.namespace) : that.namespace != null) return false;
+    if (namespace != null ? !namespace.equals(that.namespace) : that.namespace != null)
+      return false;
     if (namespacePrefix != null ? !namespacePrefix.equals(that.namespacePrefix) : that.namespacePrefix != null)
       return false;
     if (sourceDirectory != null ? !sourceDirectory.equals(that.sourceDirectory) : that.sourceDirectory != null)
       return false;
-    //noinspection RedundantIfStatement
+    //noinspection SimplifiableIfStatement
     if (xsd != null ? !xsd.equals(that.xsd) : that.xsd != null) return false;
 
-    return true;
+    return showCompilerInfoMessages == that.showCompilerInfoMessages;
   }
 
   @Override
@@ -153,6 +164,7 @@ public class ExmlcConfigurationBean {
     result = 31 * result + (generatedSourcesDirectory != null ? generatedSourcesDirectory.hashCode() : 0);
     result = 31 * result + (xsd != null ? xsd.hashCode() : 0);
     result = 31 * result + (generatedResourcesDirectory != null ? generatedResourcesDirectory.hashCode() : 0);
+    result = 31 * result + (showCompilerInfoMessages ? 1 : 0);
     return result;
   }
 

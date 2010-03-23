@@ -33,7 +33,6 @@ import org.jetbrains.annotations.NotNull;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.CompileLog;
 import net.jangaroo.jooc.JooSymbol;
-import net.jangaroo.jooc.config.JoocConfiguration;
 
 import java.util.*;
 import java.io.File;
@@ -91,12 +90,19 @@ public class JangarooCompiler implements TranslatingCompiler {
             : createOutputItem(outputDirectoryPath, MakeUtil.getSourceRoot(context, module, file), file);
           outputItems.add(outputItem);
           String fileUrl = outputItem.getSourceFile().getUrl();
-          context.addMessage(CompilerMessageCategory.INFORMATION, "as->js (" + outputItem.getOutputPath() + ")", fileUrl, -1, -1);
+          if (joocConfig.showCompilerInfoMessages) {
+            context.addMessage(CompilerMessageCategory.INFORMATION, "as->js (" + outputItem.getOutputPath() + ")", fileUrl, -1, -1);
+          }
           getLog().info("as->js: " + fileUrl + " -> " + outputItem.getOutputPath());
         }
       }
     }
     return outputDirectoryPath;
+  }
+
+  // a little hack so we don't need another wrapper:
+  private static class JoocConfiguration extends net.jangaroo.jooc.config.JoocConfiguration {
+    public boolean showCompilerInfoMessages;
   }
 
   private JoocConfiguration getJoocConfiguration(Module module, List<VirtualFile> virtualSourceFiles) {
@@ -124,6 +130,7 @@ public class JangarooCompiler implements TranslatingCompiler {
     }
     List<File> sourceFiles = virtualToIoFiles(virtualSourceFiles);
     joocConfig.setSourceFiles(sourceFiles);
+    joocConfig.showCompilerInfoMessages = joocConfigurationBean.showCompilerInfoMessages;
     return joocConfig;
   }
 

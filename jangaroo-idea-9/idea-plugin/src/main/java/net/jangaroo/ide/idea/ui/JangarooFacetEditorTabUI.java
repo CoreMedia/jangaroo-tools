@@ -47,6 +47,7 @@ public class JangarooFacetEditorTabUI {
   private JCheckBox mergeOutputCheckBox;
   private TextFieldWithBrowseButton outputDirTextField;
   private TextFieldWithBrowseButton mergedOutputFileTextField;
+  private JCheckBox showCompilerInfoMessages;
   private ButtonGroup whiteSpaceButtonGroup;
 
   private static final FileChooserDescriptor OUTPUT_DIRECTORY_CHOOSER_DESCRIPTOR = FileChooserDescriptorFactory.createSingleFolderDescriptor();
@@ -117,6 +118,7 @@ public class JangarooFacetEditorTabUI {
     mergedOutputFileTextField.setEnabled(data.mergeOutput);
     outputDirTextField.setText(JoocConfigurationBean.getPath(data.outputDirectory));
     mergedOutputFileTextField.setText(JoocConfigurationBean.getPath(data.outputFileName));
+    showCompilerInfoMessages.setSelected(data.showCompilerInfoMessages);
   }
 
   public JoocConfigurationBean getData(JoocConfigurationBean data) {
@@ -134,6 +136,7 @@ public class JangarooFacetEditorTabUI {
     data.mergeOutput = mergeOutputCheckBox.isSelected();
     data.outputDirectory = JoocConfigurationBean.getIdeaUrl(outputDirTextField.getText());
     data.outputFileName = JoocConfigurationBean.getIdeaUrl(mergedOutputFileTextField.getText());
+    data.showCompilerInfoMessages = showCompilerInfoMessages.isSelected();
     return data;
   }
 
