@@ -66,8 +66,7 @@
   <xs:complexType name="import">
     <xs:annotation>
       <xs:documentation>
-        An additional config property of this component. The newly created property can
-        be used with binding in other properties of components, e.g. <i><b>{config.&lt;name of the property>}</b></i>
+        Imports the specified class into the component. This is necessary when using third-party classes inside code blocks like event handlers. 
       </xs:documentation>
     </xs:annotation>
     <xs:attribute name="class" type="xs:string" use="required"/>
