@@ -14,6 +14,8 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
+import org.apache.maven.shared.model.fileset.FileSet;
+import org.apache.maven.shared.model.fileset.util.FileSetManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -45,6 +47,21 @@ public class PropertiesMojo extends AbstractMojo {
   private File resourceDirectory;
 
   /**
+   *
+   * Fileset for properties. default is:
+   * {@code
+   * <properties>
+   *   <directory>${basedir}/src/main/resources</directory>
+   *   <includes>
+   *     <include>**\/*.properties</include>
+   *   </includes>
+   * </properties>
+   * }
+   * @parameter
+   */
+  private FileSet properties;
+
+  /**
    * Output directory for all ActionScript3 files generated out of exml components
    *
    * @parameter expression="${project.build.directory}/generated-sources/joo"
@@ -56,7 +73,6 @@ public class PropertiesMojo extends AbstractMojo {
    */
   MavenProjectHelper projectHelper;
 
-  @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
     if (!generatedSourcesDirectory.exists()) {
       getLog().info("generating sources into: " + generatedSourcesDirectory.getPath());
@@ -64,8 +80,13 @@ public class PropertiesMojo extends AbstractMojo {
     }
     MavenLogHandler logHandler = new MavenLogHandler();
     Log.setLogHandler(logHandler);
-
-    LocalizationSuite suite = new LocalizationSuite(resourceDirectory, generatedSourcesDirectory);
+    if (properties == null) {
+      properties = new FileSet();
+      properties.setDirectory(resourceDirectory.getAbsolutePath());
+      properties.addInclude("**/*.properties");
+    }
+    
+    LocalizationSuite suite = new LocalizationSuite(properties, generatedSourcesDirectory);
 
     PropertiesFileScanner scanner = new PropertiesFileScanner(suite);
     try {

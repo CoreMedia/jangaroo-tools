@@ -30,10 +30,7 @@ public final class PropertiesFileScanner {
   }
 
   public void scan() throws IOException {
-    FileSet srcFiles = new FileSet();
-    srcFiles.setDirectory(suite.getRootDir().getAbsolutePath());
-    srcFiles.addInclude("**/*.properties");
-    for (String srcFileRelativePath : new FileSetManager().getIncludedFiles(srcFiles)) {
+    for (String srcFileRelativePath : new FileSetManager().getIncludedFiles(suite.getProperties())) {
 
       File srcFile = new File(suite.getRootDir(), srcFileRelativePath);
 

@@ -3,6 +3,8 @@
  */
 package net.jangaroo.properties.model;
 
+import org.apache.maven.shared.model.fileset.FileSet;
+
 import java.io.File;
 import java.util.Collection;
 import java.util.HashMap;
@@ -10,14 +12,14 @@ import java.util.Map;
 
 public class LocalizationSuite {
 
-  private File rootDir;
+  private FileSet properties;
 
   private File outputDir;
 
   private Map<String, ResourceBundleClass> resourceBundlesByFullClassName = new HashMap<String, ResourceBundleClass>();
 
-  public LocalizationSuite(File rootDir, File outputDir) {
-    this.rootDir = rootDir;
+  public LocalizationSuite(FileSet properties, File outputDir) {
+    this.properties = properties;
     this.outputDir = outputDir;
   }
 
@@ -25,9 +27,11 @@ public class LocalizationSuite {
     return outputDir;
   }
 
-  public File getRootDir() {
-    return rootDir;
+  public FileSet getProperties() {
+    return properties;
   }
+
+
 
   public void addResourceBundleClass(ResourceBundleClass rbc) {
     this.resourceBundlesByFullClassName.put(rbc.getFullClassName(), rbc);
@@ -39,5 +43,9 @@ public class LocalizationSuite {
 
   public Collection<ResourceBundleClass> getResourceBundles() {
     return this.resourceBundlesByFullClassName.values();
+  }
+
+  public File getRootDir() {
+    return new File(properties.getDirectory());
   }
 }

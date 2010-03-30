@@ -6,6 +6,7 @@ import net.jangaroo.properties.PropertyClassGenerator;
 import net.jangaroo.properties.model.LocalizationSuite;
 import net.jangaroo.properties.model.PropertiesClass;
 import net.jangaroo.properties.model.ResourceBundleClass;
+import org.apache.maven.shared.model.fileset.FileSet;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
@@ -19,8 +20,11 @@ public class PropertyClassGeneratorTest {
 
   @Test
   public void testSimplePropertySet() throws Exception {
+    FileSet properties = new FileSet();
+    properties.setDirectory(getClass().getResource("/").getPath());
+    properties.addInclude("**/*.properties");
 
-    LocalizationSuite suite = new LocalizationSuite(new File(getClass().getResource("/").toURI()), null);
+    LocalizationSuite suite = new LocalizationSuite(properties, null);
 
     PropertyClassGenerator generator =  new PropertyClassGenerator(suite);
 
