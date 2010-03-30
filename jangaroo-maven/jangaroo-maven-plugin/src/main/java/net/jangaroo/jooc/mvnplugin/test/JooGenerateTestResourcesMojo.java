@@ -156,7 +156,7 @@ public class JooGenerateTestResourcesMojo extends AbstractJooTestMojo {
   }
 
   private static class MetaInfArchiveFileFilter implements ArchiveFileFilter {
-    @Override
+    
     public boolean include(InputStream dataStream, String entryName) throws ArchiveFilterException {
       return !entryName.startsWith("META-INF");
     }
