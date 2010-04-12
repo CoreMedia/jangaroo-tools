@@ -65,10 +65,7 @@ public class JangarooFacetImporter extends FacetImporter<JangarooFacet, Jangaroo
   }
 
   private boolean getBooleanConfigurationValue(MavenProject mavenProjectModel, String configName, boolean defaultValue) {
-    String value = mavenProjectModel.findPluginGoalConfigurationValue(JANGAROO_GROUP_ID, JANGAROO_MAVEN_PLUGIN_ARTIFACT_ID, "war-compile", configName);
-    if (value == null) {
-      value = mavenProjectModel.findPluginGoalConfigurationValue(JANGAROO_GROUP_ID, JANGAROO_MAVEN_PLUGIN_ARTIFACT_ID, "compile", configName);
-    }
+    String value = mavenProjectModel.findPluginGoalConfigurationValue(JANGAROO_GROUP_ID, JANGAROO_MAVEN_PLUGIN_ARTIFACT_ID, "compile", configName);
     if (value == null) {
       value = findConfigValue(mavenProjectModel, configName);
     }
