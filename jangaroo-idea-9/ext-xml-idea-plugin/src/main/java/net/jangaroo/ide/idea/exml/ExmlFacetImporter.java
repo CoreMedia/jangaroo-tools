@@ -35,7 +35,7 @@ import java.util.zip.ZipFile;
 public class ExmlFacetImporter extends FacetImporter<ExmlFacet, ExmlFacetConfiguration, ExmlFacetType> {
   // TODO: share these constants with Jangaroo Language plugin:
   private static final String JANGAROO_GROUP_ID = "net.jangaroo";
-  private static final String JANGAROO_LIFECYCLE_MAVEN_PLUGIN_ARTIFACT_ID = "jangaroo-lifecycle";
+  private static final String JANGAROO_PACKAGING_TYPE = "jangaroo";
   private static final String EXML_MAVEN_PLUGIN_ARTIFACT_ID = "ext-xml-maven-plugin";
   private static final String DEFAULT_EXML_FACET_NAME = "EXML";
 
@@ -44,7 +44,7 @@ public class ExmlFacetImporter extends FacetImporter<ExmlFacet, ExmlFacetConfigu
   }
 
   public boolean isApplicable(MavenProject mavenProjectModel) {
-    return mavenProjectModel.findPlugin(JANGAROO_GROUP_ID, JANGAROO_LIFECYCLE_MAVEN_PLUGIN_ARTIFACT_ID) != null ||
+    return JANGAROO_PACKAGING_TYPE.equals(mavenProjectModel.getPackaging()) ||
       mavenProjectModel.findPlugin(JANGAROO_GROUP_ID, EXML_MAVEN_PLUGIN_ARTIFACT_ID) != null;
   }
 
@@ -58,7 +58,8 @@ public class ExmlFacetImporter extends FacetImporter<ExmlFacet, ExmlFacetConfigu
                                MavenProject mavenProjectModel, MavenProjectChanges changes,
                                Map<MavenProject, String> mavenProjectToModuleName, List<MavenProjectsProcessorTask> postTasks) {
     //System.out.println("reimportFacet called!");
-    ExmlcConfigurationBean exmlConfig = exmlFacet.getConfiguration().getState();
+    ExmlFacetConfiguration exmlFacetConfiguration = exmlFacet.getConfiguration();
+    ExmlcConfigurationBean exmlConfig = exmlFacetConfiguration.getState();
     exmlConfig.setSourceDirectory(mavenProjectModel.getSources().get(0));
     exmlConfig.setGeneratedSourcesDirectory(mavenProjectModel.getGeneratedSourcesDirectory() + "/joo");
     exmlConfig.setGeneratedResourcesDirectory(getTargetOutputPath(mavenProjectModel,  "generated-resources"));

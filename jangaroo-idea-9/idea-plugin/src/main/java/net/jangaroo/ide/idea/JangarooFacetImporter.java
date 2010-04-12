@@ -1,11 +1,11 @@
 package net.jangaroo.ide.idea;
 
+import com.intellij.facet.FacetManager;
 import com.intellij.javaee.facet.JavaeeFacet;
 import com.intellij.javaee.ui.packaging.ExplodedWarArtifactType;
 import com.intellij.javaee.ui.packaging.JavaeeFacetResourcesPackagingElement;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.JavadocOrderRootType;
 import com.intellij.openapi.roots.ModifiableRootModel;
@@ -20,7 +20,10 @@ import com.intellij.packaging.elements.CompositePackagingElement;
 import com.intellij.packaging.elements.PackagingElement;
 import com.intellij.packaging.elements.PackagingElementFactory;
 import com.intellij.packaging.elements.PackagingElementResolvingContext;
+import com.intellij.packaging.impl.elements.ArtifactPackagingElement;
 import org.jdom.Element;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.idea.maven.embedder.MavenConsole;
 import org.jetbrains.idea.maven.importing.FacetImporter;
 import org.jetbrains.idea.maven.importing.MavenModifiableModelsProvider;
@@ -38,7 +41,6 @@ import java.io.File;
  */
 public class JangarooFacetImporter extends FacetImporter<JangarooFacet, JangarooFacetConfiguration, JangarooFacetType> {
   private static final String JANGAROO_GROUP_ID = "net.jangaroo";
-  private static final String JANGAROO_LIFECYCLE_MAVEN_PLUGIN_ARTIFACT_ID = "jangaroo-lifecycle";
   private static final String JANGAROO_MAVEN_PLUGIN_ARTIFACT_ID = "jangaroo-maven-plugin";
   private static final String JANGAROO_PACKAGING_TYPE = "jangaroo";
   private static final String DEFAULT_JANGAROO_FACET_NAME = "Jangaroo";
@@ -49,7 +51,6 @@ public class JangarooFacetImporter extends FacetImporter<JangarooFacet, Jangaroo
 
   public boolean isApplicable(MavenProject mavenProjectModel) {
     return JANGAROO_PACKAGING_TYPE.equals(mavenProjectModel.getPackaging()) ||
-      mavenProjectModel.findPlugin(JANGAROO_GROUP_ID, JANGAROO_LIFECYCLE_MAVEN_PLUGIN_ARTIFACT_ID) != null ||
       mavenProjectModel.findPlugin(JANGAROO_GROUP_ID, JANGAROO_MAVEN_PLUGIN_ARTIFACT_ID) != null;
   }
 
@@ -75,9 +76,14 @@ public class JangarooFacetImporter extends FacetImporter<JangarooFacet, Jangaroo
   }
 
   @Override
-  protected void reimportFacet(MavenModifiableModelsProvider modelsProvider, Module module, MavenRootModelAdapter rootModel, JangarooFacet jangarooFacet, MavenProjectsTree mavenTree, MavenProject mavenProjectModel, MavenProjectChanges changes, Map<MavenProject, String> mavenProjectToModuleName, List<MavenProjectsProcessorTask> postTasks) {
+  protected void reimportFacet(MavenModifiableModelsProvider modelsProvider, Module module,
+                               MavenRootModelAdapter rootModel, JangarooFacet jangarooFacet,
+                               MavenProjectsTree mavenTree, MavenProject mavenProjectModel,
+                               MavenProjectChanges changes, Map<MavenProject, String> mavenProjectToModuleName,
+                               List<MavenProjectsProcessorTask> postTasks) {
     //System.out.println("reimportFacet called!");
-    JoocConfigurationBean jooConfig = jangarooFacet.getConfiguration().getState();
+    JangarooFacetConfiguration jangarooFacetConfiguration = jangarooFacet.getConfiguration();
+    JoocConfigurationBean jooConfig = jangarooFacetConfiguration.getState();
     jooConfig.allowDuplicateLocalVariables = getBooleanConfigurationValue(mavenProjectModel, "allowDuplicateLocalVariables", jooConfig.allowDuplicateLocalVariables);
     jooConfig.verbose = getBooleanConfigurationValue(mavenProjectModel, "verbose", false);
     jooConfig.enableAssertions = getBooleanConfigurationValue(mavenProjectModel, "enableAssertions", false);
@@ -97,7 +103,9 @@ public class JangarooFacetImporter extends FacetImporter<JangarooFacet, Jangaroo
       }
     }
     moduleRootModel.commit();
-    postTasks.add(new AddJangarooCompilerOutputToExplodedWebArtifactsTask(jangarooFacet));
+    if ("war".equals(mavenProjectModel.getPackaging())) {
+      postTasks.add(new AddJangarooCompilerOutputToExplodedWebArtifactsTask(jangarooFacet));
+    }
   }
 
   public void collectSourceFolders(MavenProject mavenProject, List<String> result) {
@@ -191,54 +199,112 @@ public class JangarooFacetImporter extends FacetImporter<JangarooFacet, Jangaroo
     public void perform(final Project project, MavenEmbeddersManager embeddersManager, MavenConsole console, MavenProgressIndicator indicator) throws MavenProcessCanceledException {
       ApplicationManager.getApplication().runReadAction(new Runnable() {
         public void run() {
-          // find all modules in this project that use our Jangaroo module:
-          Set<Module> dependingModules = getDependingModules(jangarooFacet.getModule(), project);
-          // Find all exploded war artifacts that contain the output of a Web facet of a module that has a (transitive)
-          // dependency on our Jangaroo module.
-          // This includes the Jangaroo module itself, if it also has a Web facet!
-          ArtifactManager artifactManager = ArtifactManager.getInstance(project);
-          PackagingElementResolvingContext packagingElementResolvingContext = artifactManager.getResolvingContext();
-          JangarooCompilerOutputElement jangarooCompilerOutput = null;
-          for (Artifact artifact : artifactManager.getArtifactsByType(ExplodedWarArtifactType.getInstance())) {
-            CompositePackagingElement<?> rootElement = artifact.getRootElement();
-            if (hasWebFacetWithDependency(dependingModules, packagingElementResolvingContext, rootElement)) {
-              if (jangarooCompilerOutput == null) {
-                jangarooCompilerOutput = new JangarooCompilerOutputElement(project, jangarooFacet);
-              }
-              PackagingElementFactory.getInstance().getOrCreateDirectory(rootElement, "scripts").addOrFindChild(jangarooCompilerOutput);
+          Module webModule = jangarooFacet.getModule();
+          // for this Jangaroo-enabled Web app, add all Jangaroo-dependent modules' Jangaroo compiler output.
+
+          // find the IDEA exploded Web artifact for this Jangaroo-enabled Web app module:
+          final Artifact artifact = getExplodedWebArtifact(webModule);
+          if (artifact != null) {
+            // instruct IDEA to build the Web app on make:
+            final ArtifactManager artifactManager = ArtifactManager.getInstance(project);
+            if (!artifact.isBuildOnMake()) {
+              ApplicationManager.getApplication().invokeLater(new Runnable() {
+                public void run() {
+                  ApplicationManager.getApplication().runWriteAction(new Runnable() {
+                    public void run() {
+                      ModifiableArtifactModel modifiableArtifactModel = artifactManager.createModifiableModel();
+                      final ModifiableArtifact modifiableArtifact = modifiableArtifactModel.getOrCreateModifiableArtifact(artifact);
+                      modifiableArtifact.setBuildOnMake(true);
+                      modifiableArtifactModel.commit();
+                    }
+                  });
+                }
+              });
+            }
+
+            // get all Jangaroo Facets used by this Web app:
+            Set<JangarooFacet> dependencies = getTransitiveJangarooDependencies(jangarooFacet);
+            // remove all Jangaroo Facets already contained in some overlay:
+            Set<JangarooFacet> overlays = findTransitiveJangarooOverlays(artifactManager, artifact);
+            for (JangarooFacet overlay : overlays) {
+              dependencies.remove(overlay);
+              dependencies.removeAll(getTransitiveJangarooDependencies(overlay));
+            }
+            // add the remaining modules' output to the Web app's scripts directory:
+            CompositePackagingElement<?> scriptsDirectory =
+              PackagingElementFactory.getInstance().getOrCreateDirectory(artifact.getRootElement(), "scripts");
+            for (JangarooFacet dependency : dependencies) {
+              scriptsDirectory.addOrFindChild(new JangarooCompilerOutputElement(project, dependency));
             }
           }
         }
       });
     }
 
-    private static Set<Module> getDependingModules(Module jooModule, Project project) {
-      Module[] modules = ModuleManager.getInstance(project).getSortedModules();
-      Set<Module> dependingModules = new HashSet<Module>();
-      dependingModules.add(jooModule);
-      for (Module module : modules) {
-        Module[] dependencies = ModuleRootManager.getInstance(module).getDependencies();
-        for (Module dependency : dependencies) {
-          if (dependingModules.contains(dependency)) {
-            dependingModules.add(module);
-            break;
-          }
+    private static Artifact getExplodedWebArtifact(Module module) {
+      ArtifactManager artifactManager = ArtifactManager.getInstance(module.getProject());
+      for (Artifact artifact : artifactManager.getArtifactsByType(ExplodedWarArtifactType.getInstance())) {
+        Module artifactModule = findModule(artifactManager, artifact);
+        if (module.equals(artifactModule)) {
+          return artifact;
         }
       }
-      return dependingModules;
+      return null;
     }
 
-    private static boolean hasWebFacetWithDependency(Set<Module> dependingModules, PackagingElementResolvingContext packagingElementResolvingContext, CompositePackagingElement<?> rootElement) {
-      List<PackagingElement<?>> children = rootElement.getChildren();
-      for (PackagingElement<?> packagingElement : children) {
+    private static @Nullable Module findModule(@NotNull ArtifactManager artifactManager, @NotNull Artifact artifact) {
+      PackagingElementResolvingContext packagingElementResolvingContext = artifactManager.getResolvingContext();
+      for (PackagingElement<?> packagingElement : artifact.getRootElement().getChildren()) {
         if (packagingElement instanceof JavaeeFacetResourcesPackagingElement) {
           JavaeeFacet facet = ((JavaeeFacetResourcesPackagingElement) packagingElement).findFacet(packagingElementResolvingContext);
-          if (facet != null && dependingModules.contains(facet.getModule())) {
-            return true;
+          if (facet != null) {
+            return facet.getModule();
           }
         }
       }
-      return false;
+      return null;
+    }
+
+    private static Set<JangarooFacet> findTransitiveJangarooOverlays(ArtifactManager artifactManager, Artifact artifact) {
+      Set<JangarooFacet> overlays = new LinkedHashSet<JangarooFacet>();
+      for (PackagingElement<?> packagingElement : artifact.getRootElement().getChildren()) {
+        if (packagingElement instanceof ArtifactPackagingElement) {
+          String artifactName = ((ArtifactPackagingElement) packagingElement).getArtifactName();
+          if (artifactName != null) {
+            Artifact overlayArtifact = artifactManager.findArtifact(artifactName);
+            if (overlayArtifact != null) {
+              Module overlayModule = findModule(artifactManager, overlayArtifact);
+              if (overlayModule != null) {
+                JangarooFacet overlayJangarooFacet = findJangarooFacet(overlayModule);
+                if (overlayJangarooFacet != null) {
+                  overlays.add(overlayJangarooFacet);
+                }
+                overlays.addAll(findTransitiveJangarooOverlays(artifactManager, overlayArtifact));
+              }
+            }
+          }
+        }
+      }
+      return overlays;
+    }
+
+    private static Set<JangarooFacet> getTransitiveJangarooDependencies(JangarooFacet jangarooFacet) {
+      return collectTransitiveJangarooDependencies(jangarooFacet, new LinkedHashSet<JangarooFacet>());
+    }
+
+    private static Set<JangarooFacet> collectTransitiveJangarooDependencies(JangarooFacet jangarooFacet, Set<JangarooFacet> dependencies) {
+      for (Module directDependency : ModuleRootManager.getInstance(jangarooFacet.getModule()).getDependencies()) {
+        JangarooFacet dependentModuleJangarooFacet = findJangarooFacet(directDependency);
+        if (dependentModuleJangarooFacet != null) {
+          dependencies.add(dependentModuleJangarooFacet);
+          collectTransitiveJangarooDependencies(dependentModuleJangarooFacet, dependencies);
+        }
+      }
+      return dependencies;
+    }
+
+    private static JangarooFacet findJangarooFacet(Module module) {
+      return FacetManager.getInstance(module).findFacet(JangarooFacetType.ID, DEFAULT_JANGAROO_FACET_NAME);
     }
   }
 }
