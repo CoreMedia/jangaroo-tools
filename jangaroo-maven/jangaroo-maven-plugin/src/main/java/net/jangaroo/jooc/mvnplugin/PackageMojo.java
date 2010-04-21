@@ -5,8 +5,6 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
 import org.codehaus.mojo.javascript.archive.Types;
-import org.codehaus.plexus.archiver.ArchiveFileFilter;
-import org.codehaus.plexus.archiver.ArchiveFilterException;
 import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
 import org.codehaus.plexus.archiver.jar.Manifest;
@@ -15,9 +13,7 @@ import org.codehaus.plexus.archiver.jar.ManifestException;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintWriter;
-import java.util.Collections;
 
 /**
  * Creates the jangaroo archive and attaches them to the project.<br>
@@ -96,7 +92,6 @@ public class PackageMojo extends AbstractMojo {
       } else {
         createDefaultManifest(project, archiver);
       }
-      archiver.setArchiveFilters(Collections.singletonList(new PackagerArchiveFilter()));
       if (compilerOutputDirectory.exists()) {
         archiver.addDirectory(compilerOutputDirectory);
       }
@@ -149,11 +144,4 @@ public class PackageMojo extends AbstractMojo {
     jarArchiver.setManifest(mf);
   }
 
-  private static class PackagerArchiveFilter implements ArchiveFileFilter {
-    @Override
-    public boolean include(InputStream dataStream, String entryName) throws ArchiveFilterException {
-      return !entryName.endsWith(".as");
-    }
-
-  }
 }
