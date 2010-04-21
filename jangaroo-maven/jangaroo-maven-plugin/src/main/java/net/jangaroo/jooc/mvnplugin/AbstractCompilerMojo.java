@@ -8,20 +8,24 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.compiler.CompilerError;
-import org.codehaus.plexus.compiler.CompilerOutputStyle;
 import org.codehaus.plexus.compiler.util.scan.InclusionScanException;
 import org.codehaus.plexus.compiler.util.scan.SimpleSourceInclusionScanner;
 import org.codehaus.plexus.compiler.util.scan.SourceInclusionScanner;
 import org.codehaus.plexus.compiler.util.scan.StaleSourceScanner;
-import org.codehaus.plexus.compiler.util.scan.mapping.SingleTargetSourceMapping;
 import org.codehaus.plexus.compiler.util.scan.mapping.SuffixMapping;
+import org.codehaus.plexus.util.FileUtils;
+import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.StringUtils;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -115,6 +119,8 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
 
   protected abstract File getOutputDirectory();
 
+  protected abstract File getTempOutputDirectory();
+
   /**
    * Runs the compile mojo
    *
@@ -145,9 +151,6 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
     configuration.setEnableGuessingTypeCasts(enableGuessingTypeCasts);
     configuration.setVerbose(verbose);
 
-    configuration.setOutputDirectory(getOutputDirectory());
-    configuration.setOutputFileName(getOutputFileName());
-
     if (debug && StringUtils.isNotEmpty(debuglevel)) {
       if (debuglevel.equalsIgnoreCase("lines")) {
         configuration.setDebugLines(true);
@@ -156,13 +159,12 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
         configuration.setDebugSource(true);
       } else if (!debuglevel.equalsIgnoreCase("none")) {
         throw new IllegalArgumentException("The specified debug level: '" + debuglevel
-                + "' is unsupported. " + "Legal values are 'none', 'lines', and 'source'.");
+          + "' is unsupported. " + "Legal values are 'none', 'lines', and 'source'.");
       }
     }
 
     if (getLog().isDebugEnabled()) {
       log.debug("Source directories: " + getCompileSourceRoots().toString().replace(',', '\n'));
-      log.debug("Output file: " + configuration.getOutputFile());
       log.debug("Output directory: " + configuration.getOutputDirectory());
     }
 
@@ -176,54 +178,96 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
     }
     configuration.setSourceFiles(new ArrayList<File>(sources));
     configuration.setSourcePath(getCompileSourceRoots());
+    configuration.setMergeOutput(false);
 
-    // create output directory if it does not exist
-    if (!getOutputDirectory().exists())
-      if (!getOutputDirectory().mkdirs())
-        throw new MojoExecutionException("Failed to create output directory " + getOutputDirectory().getAbsolutePath());
-
-    configuration.setMergeOutput(true);
+    configuration.setOutputDirectory(getOutputDirectory());
     int result = compile(configuration);
     boolean compilationError = (result != Jooc.RESULT_CODE_OK);
 
-    configuration.setMergeOutput(false);
+    // for now, always set debug mode to "lines only" for concatenated file:
+    configuration.setDebug(true);
+    configuration.setDebugLines(true);
+    configuration.setDebugSource(false);
+    configuration.setOutputDirectory(getTempOutputDirectory());
     result = compile(configuration);
+    if (result == Jooc.RESULT_CODE_OK) {
+      buildOutputFile(getTempOutputDirectory(), getOutputFileName());
+    }
+
     compilationError &= (result != Jooc.RESULT_CODE_OK);
 
-    List messages = Collections.emptyList();
+    List<CompilerError> messages = Collections.emptyList();
 
     if (compilationError && failOnError) {
       getLog().info("-------------------------------------------------------------");
       getLog().error("COMPILATION ERROR : ");
       getLog().info("-------------------------------------------------------------");
       if (messages != null) {
-        for (Iterator i = messages.iterator(); i.hasNext();) {
-          CompilerError message = (CompilerError) i.next();
-
+        for (CompilerError message : messages) {
           getLog().error(message.toString());
-
         }
         getLog().info(messages.size() + ((messages.size() > 1) ? " errors " : "error"));
         getLog().info("-------------------------------------------------------------");
       }
       throw new MojoFailureException("Compilation failed");
     } else {
-      for (Iterator i = messages.iterator(); i.hasNext();) {
-        CompilerError message = (CompilerError) i.next();
-
+      for (CompilerError message : messages) {
         getLog().warn(message.toString());
       }
     }
   }
 
-  private int compile(JoocConfiguration config) {
+  private void buildOutputFile(File tempOutputDir, String outputFileName) throws MojoExecutionException {
+    File outputFile = new File(outputFileName);
+
+    if (getLog().isDebugEnabled()) {
+      log.debug("Output file: " + outputFile);
+    }
+
+    try {
+      // If the directory where the output file is going to land
+      // doesn't exist then create it.
+      File outputFileDirectory = outputFile.getParentFile();
+
+      if (!outputFileDirectory.exists()) {
+        //noinspection ResultOfMethodCallIgnored
+        outputFileDirectory.mkdirs();
+      }
+
+      @SuppressWarnings({"unchecked"})
+      List<File> files = FileUtils.getFiles(tempOutputDir, "**/*.js", "");
+      // We should now have all the files we want to concat so let's do it.
+      Writer fos = new OutputStreamWriter(new FileOutputStream(outputFile), "UTF-8");
+      int tempOutputDirPathLength = tempOutputDir.getAbsolutePath().length() + 1;
+      for (File file : files) {
+        String className = file.getAbsolutePath();
+        className = className.substring(tempOutputDirPathLength, className.length() - ".js".length());
+        className = className.replace(File.separatorChar, '.');
+        fos.write("// class " + className + "\n");
+        IOUtil.copy(new FileInputStream(file), fos, "UTF-8");
+        fos.write('\n');
+      }
+      fos.close();
+    } catch (IOException e) {
+      throw new MojoExecutionException(e.toString());
+    }
+  }
+
+  private int compile(JoocConfiguration config) throws MojoExecutionException {
+    File outputDirectory = config.getOutputDirectory();
+
+    // create output directory if it does not exist
+    if (!outputDirectory.exists())
+      if (!outputDirectory.mkdirs())
+        throw new MojoExecutionException("Failed to create output directory " + outputDirectory.getAbsolutePath());
+
+
     final List<File> sources = config.getSourceFiles();
-    File output = config.isMergeOutput() ? config.getOutputFile() : getOutputDirectory();
 
     log.info("Compiling " + sources.size() +
-            " joo source file"
-            + (sources.size() == 1 ? "" : "s")
-            + " to " + output);
+      " joo source file"
+      + (sources.size() == 1 ? "" : "s")
+      + " to " + outputDirectory);
 
     Jooc jooc = new Jooc();
     return jooc.run(config);
@@ -246,11 +290,12 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
 
       try {
         getLog().debug("scanner.getIncludedSources(" + rootFile + ", " + outputDirectory + ")");
+        //noinspection unchecked
         staleSources.addAll(scanner.getIncludedSources(rootFile, outputDirectory));
       }
       catch (InclusionScanException e) {
         throw new MojoExecutionException(
-                "Error scanning source root: \'" + rootFile.getAbsolutePath() + "\' " + "for stale files to recompile.", e);
+          "Error scanning source root: \'" + rootFile.getAbsolutePath() + "\' " + "for stale files to recompile.", e);
       }
     }
 
@@ -259,8 +304,8 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
 
   protected abstract SourceInclusionScanner getSourceInclusionScanner(int staleMillis);
 
-  protected SourceInclusionScanner getSourceInclusionScanner(Set includes, Set excludes, int staleMillis) {
-    SourceInclusionScanner scanner = null;
+  protected SourceInclusionScanner getSourceInclusionScanner(Set<String> includes, Set<String> excludes, int staleMillis) {
+    SourceInclusionScanner scanner;
 
     if (includes.isEmpty() && excludes.isEmpty()) {
       scanner = new StaleSourceScanner(staleMillis);
@@ -274,8 +319,8 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
     return scanner;
   }
 
-  protected SourceInclusionScanner getSourceInclusionScanner(Set includes, Set excludes, String inputFileEnding) {
-    SourceInclusionScanner scanner = null;
+  protected SourceInclusionScanner getSourceInclusionScanner(Set<String> includes, Set<String> excludes, String inputFileEnding) {
+    SourceInclusionScanner scanner;
 
     if (includes.isEmpty() && excludes.isEmpty()) {
       includes = Collections.singleton("**/*." + inputFileEnding);

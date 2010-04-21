@@ -42,13 +42,23 @@ public class TestCompilerMojo extends AbstractCompilerMojo {
    *
    * @parameter
    */
-  private Set testIncludes = new HashSet();
+
+  private Set<String> testIncludes = new HashSet<String>();
   /**
    * A list of test exclusion filters for the compiler.
    *
    * @parameter
    */
-  private Set testExcludes = new HashSet();
+
+  private Set<String> testExcludes = new HashSet<String>();
+
+  /**
+   * Temporary output directory for compiled classes to be packaged into a single *.js file.
+   *
+   * @parameter expression="${project.build.directory}/temp/joo-test/classes"
+   */
+  private File testTempOutputDirectory;
+
   /**
    * Absolute output filename of the merged javascript.  
    *
@@ -64,6 +74,9 @@ public class TestCompilerMojo extends AbstractCompilerMojo {
     return testOutputDirectory;
   }
 
+  protected File getTempOutputDirectory() {
+    return testTempOutputDirectory;
+  }
 
   protected SourceInclusionScanner getSourceInclusionScanner(int staleMillis) {
     return getSourceInclusionScanner(testIncludes, testExcludes, staleMillis);
