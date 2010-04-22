@@ -81,7 +81,7 @@ public class ComponentXmlElementDescriptorProvider implements XmlElementDescript
     }
 
     private static VirtualFile findExmlFile(Project project, String className) {
-      String exmlFileName = className.replaceAll("\\.", "/") + "." + ComponentType.EXML.getExtension();
+      String exmlFileName = className.replace('.', '/') + "." + ComponentType.EXML.getExtension();
       Module[] modules = ModuleManager.getInstance(project).getModules();
       for (Module module : modules) {
         VirtualFile[] contentRoots = ModuleRootManager.getInstance(module).getSourceRoots();
