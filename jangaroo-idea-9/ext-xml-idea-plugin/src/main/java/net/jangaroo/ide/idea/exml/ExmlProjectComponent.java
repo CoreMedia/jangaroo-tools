@@ -91,7 +91,8 @@ public class ExmlProjectComponent implements ProjectComponent {
                 XmlTag xmlTag = (XmlTag)node;
 
                 // find relative path to source root to determine package name:
-                String packageName = getModuleRelativePath(exmlFile.getParent()).replace('/', '.');
+                VirtualFile packageDir = exmlFile.getParent();
+                String packageName = packageDir == null ? "" : getModuleRelativePath(packageDir).replace('/', '.');
                 String className = exmlFile.getNameWithoutExtension();
 
                 StringBuilder codePrefix = new StringBuilder("package ").append(packageName).append("{\n");
