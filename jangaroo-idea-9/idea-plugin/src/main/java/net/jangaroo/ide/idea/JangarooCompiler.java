@@ -14,7 +14,6 @@
  */
 package net.jangaroo.ide.idea;
 
-import com.intellij.idea.IdeaLogger;
 import com.intellij.openapi.compiler.CompileScope;
 import com.intellij.openapi.compiler.TranslatingCompiler;
 import com.intellij.openapi.compiler.CompileContext;
@@ -180,7 +179,7 @@ public class JangarooCompiler implements TranslatingCompiler {
   }
 
   private static Logger getLog() {
-    return IdeaLogger.getInstance("net.jangaroo.ide.idea.JangarooCompiler");
+    return Logger.getInstance("net.jangaroo.ide.idea.JangarooCompiler");
   }
 
   private static class IdeaCompileLog implements CompileLog {

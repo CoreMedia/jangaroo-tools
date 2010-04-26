@@ -1,8 +1,8 @@
 package net.jangaroo.ide.idea.exml;
 
-import com.intellij.idea.IdeaLogger;
 import com.intellij.lang.javascript.index.JavaScriptIndex;
 import com.intellij.lang.javascript.psi.resolve.JSResolveUtil;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -105,7 +105,7 @@ public class ComponentXmlElementDescriptorProvider implements XmlElementDescript
                     return fileInJar;
                   }
                 } catch (MalformedURLException e) {
-                  IdeaLogger.getInstance(ComponentXmlElementDescriptorProvider.class.getName()).error("Error while peeking into library jar file " + file.getPath() + ": " + e);
+                  Logger.getInstance(ComponentXmlElementDescriptorProvider.class.getName()).error("Error while peeking into library jar file " + file.getPath() + ": " + e);
                 }
               }
             }

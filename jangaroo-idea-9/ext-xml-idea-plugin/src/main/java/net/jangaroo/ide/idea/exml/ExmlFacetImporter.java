@@ -1,6 +1,6 @@
 package net.jangaroo.ide.idea.exml;
 
-import com.intellij.idea.IdeaLogger;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.javaee.ExternalResourceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModuleRootManager;
@@ -8,7 +8,6 @@ import com.intellij.openapi.roots.OrderEntry;
 import com.intellij.openapi.roots.ModuleOrderEntry;
 import net.jangaroo.extxml.model.ComponentSuite;
 import net.jangaroo.extxml.xml.XsdScanner;
-import net.jangaroo.utils.log.Log;
 import org.jetbrains.idea.maven.importing.FacetImporter;
 import org.jetbrains.idea.maven.importing.MavenModifiableModelsProvider;
 import org.jetbrains.idea.maven.importing.MavenRootModelAdapter;
@@ -119,7 +118,7 @@ public class ExmlFacetImporter extends FacetImporter<ExmlFacet, ExmlFacetConfigu
       try {
         addResource(resourceMap, scanner, new FileInputStream(xsdFilename), xsdFilename);
       } catch (FileNotFoundException e) {
-        IdeaLogger.getInstance("exml").warn("Error while scanning XSD file " + xsdFilename, e);
+        Logger.getInstance("exml").warn("Error while scanning XSD file " + xsdFilename, e);
       }
     }
     return resourceMap;

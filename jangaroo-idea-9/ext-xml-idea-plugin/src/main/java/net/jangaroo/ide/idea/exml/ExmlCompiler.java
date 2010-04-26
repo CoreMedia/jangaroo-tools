@@ -3,7 +3,6 @@ package net.jangaroo.ide.idea.exml;
 import com.intellij.compiler.impl.javaCompiler.OutputItemImpl;
 import com.intellij.compiler.make.MakeUtil;
 import com.intellij.facet.FacetManager;
-import com.intellij.idea.IdeaLogger;
 import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompileScope;
 import com.intellij.openapi.compiler.CompilerMessageCategory;
@@ -293,7 +292,7 @@ public class ExmlCompiler implements TranslatingCompiler {
   }
 
   static Logger getLog() {
-    return IdeaLogger.getInstance("net.jangaroo.ide.idea.exml.ExmlCompiler");
+    return Logger.getInstance("net.jangaroo.ide.idea.exml.ExmlCompiler");
   }
 
   private static class IdeaErrorHandler implements LogHandler {
