@@ -30,11 +30,14 @@ import org.jetbrains.idea.maven.importing.MavenModifiableModelsProvider;
 import org.jetbrains.idea.maven.importing.MavenRootModelAdapter;
 import org.jetbrains.idea.maven.project.*;
 import org.jetbrains.idea.maven.utils.MavenConstants;
+import org.jetbrains.idea.maven.utils.MavenJDOMUtil;
 import org.jetbrains.idea.maven.utils.MavenProcessCanceledException;
 import org.jetbrains.idea.maven.utils.MavenProgressIndicator;
 
 import java.util.*;
 import java.io.File;
+
+import static org.jetbrains.idea.maven.importing.MavenExtraArtifactType.SOURCES;
 
 /**
  * A Facet-from-Maven Importer for the Jangaroo Facet type.
@@ -65,7 +68,7 @@ public class JangarooFacetImporter extends FacetImporter<JangarooFacet, Jangaroo
   }
 
   private boolean getBooleanConfigurationValue(MavenProject mavenProjectModel, String configName, boolean defaultValue) {
-    String value = mavenProjectModel.findPluginGoalConfigurationValue(JANGAROO_GROUP_ID, JANGAROO_MAVEN_PLUGIN_ARTIFACT_ID, "compile", configName);
+    String value = findGoalConfigValue(mavenProjectModel, "compile", configName);
     if (value == null) {
       value = findConfigValue(mavenProjectModel, configName);
     }
@@ -88,9 +91,7 @@ public class JangarooFacetImporter extends FacetImporter<JangarooFacet, Jangaroo
     jooConfig.enableGuessingMembers = getBooleanConfigurationValue(mavenProjectModel, "enableGuessingMembers", true);
     jooConfig.enableGuessingTypeCasts = getBooleanConfigurationValue(mavenProjectModel, "enableGuessingTypeCasts", false);
     // "debug" (boolean; true), "debuglevel" ("none", "lines", "source"; "source")
-    jooConfig.outputDirectory = "war".equals(mavenProjectModel.getPackaging())
-      ? mavenProjectModel.getBuildDirectory() + File.separator + mavenProjectModel.getMavenModel().getBuild().getFinalName() + File.separator + "scripts" + File.separator + "classes"
-      : mavenProjectModel.getBuildDirectory() + File.separator + "joo" + File.separator + "classes";
+    jooConfig.outputDirectory = mavenProjectModel.getBuildDirectory() + File.separator + "joo" + File.separator + "classes";
 
     ModifiableRootModel moduleRootModel = ModuleRootManager.getInstance(module).getModifiableModel();
     for (MavenArtifact mavenArtifact : mavenProjectModel.getDependencies()) {
@@ -114,18 +115,16 @@ public class JangarooFacetImporter extends FacetImporter<JangarooFacet, Jangaroo
     collectSourceOrTestFolders(mavenProject, "testCompile", "src/test/joo", result);
   }
 
-  private void collectSourceOrTestFolders(MavenProject mavenProject, String goal, String defaultDir, List<String> result) {
-    Element sourcesElement = mavenProject.findPluginGoalConfigurationElement(JANGAROO_GROUP_ID, JANGAROO_MAVEN_PLUGIN_ARTIFACT_ID, goal, "sources");
-    if (sourcesElement == null) {
-      result.add(defaultDir);
-      return;
-    }
-    for (Object each : sourcesElement.getChildren("fileset")) {
-      String dir = findChildElementValue((Element)each, "directory", null);
-      if (dir != null) {
-        result.add(dir);
+  private void collectSourceOrTestFolders(MavenProject mavenProject, String goal, String defaultDir, List<String> sourceDirs) {
+    Element goalConfiguration = getGoalConfig(mavenProject, goal);
+    if (goalConfiguration != null) {
+      List<String> mvnSrcDirs = MavenJDOMUtil.findChildrenValuesByPath(goalConfiguration, "sources", "directory");
+      if (!mvnSrcDirs.isEmpty()) {
+        sourceDirs.addAll(mvnSrcDirs);
+        return;
       }
     }
+    sourceDirs.add(defaultDir);
   }
 
   private static class PatchJangarooLibraryTask implements MavenProjectsProcessorTask {
@@ -154,13 +153,13 @@ public class JangarooFacetImporter extends FacetImporter<JangarooFacet, Jangaroo
             public void run() {
               Library.ModifiableModel libraryModel = library.getModifiableModel();
               // Jangaroo specialty: add a CLASSES root for the SOURCES artifact!
-              String newUrl = artifact.getUrlForClassifier(MavenConstants.SOURCES_CLASSIFIER);
+              String newUrl = artifact.getUrlForExtraArtifact(SOURCES.getDefaultClassifier(), SOURCES.getDefaultExtension());
               for (String url : libraryModel.getUrls(OrderRootType.CLASSES)) {
                 if (newUrl != null && newUrl.equals(url)) {
                   newUrl = null; // do not add again!
                   break;
                 }
-                if (MavenConstants.SCOPE_SYSTEM.equals(artifact.getScope()) || isRepositoryUrl(artifact, url, MavenConstants.SOURCES_CLASSIFIER)) {
+                if (MavenConstants.SCOPE_SYSTEM.equals(artifact.getScope()) || isRepositoryUrl(artifact, url, SOURCES.getDefaultClassifier())) {
                   libraryModel.removeRoot(url, OrderRootType.CLASSES);
                 }
               }
@@ -180,7 +179,7 @@ public class JangarooFacetImporter extends FacetImporter<JangarooFacet, Jangaroo
     }
 
     private boolean isRepositoryUrl(MavenArtifact artifact, String url, String classifier) {
-      return url.endsWith(artifact.getRelativePathForClassifier(classifier) + JarFileSystem.JAR_SEPARATOR);
+      return url.endsWith(artifact.getRelativePathForExtraArtifact(classifier, SOURCES.getDefaultExtension()) + JarFileSystem.JAR_SEPARATOR);
     }
 
 
