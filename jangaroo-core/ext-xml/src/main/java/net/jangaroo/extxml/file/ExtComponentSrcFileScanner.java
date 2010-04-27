@@ -44,7 +44,7 @@ public final class ExtComponentSrcFileScanner {
 
   // Rules used in both scanners:
 
-  private static final Rule<State> TYPE_RULE = new Rule<State>("@[px]type\\s+([\\p{Alpha}$_.][\\p{Alnum}$_.]*)") {
+  private static final Rule<State> TYPE_RULE = new Rule<State>("@[apx]type\\s+([\\p{Alpha}$_.][\\p{Alnum}$_.]*)") {
     public void matched(State state, List<String> groups) {
       state.setXtype(groups.get(0), state.cc.getFullClassName());
     }
@@ -90,7 +90,7 @@ public final class ExtComponentSrcFileScanner {
           state.setExtends(groups.get(0));
         }
       })
-      .add(new Rule<State>("(?:public\\s+static|static\\s+public)\\s+const\\s+[px]type\\s*:\\s*String\\s*=\\s*['\"]([^'\"]+)['\"]") {
+      .add(new Rule<State>("(?:public\\s+static|static\\s+public)\\s+const\\s+[apx]type\\s*:\\s*String\\s*=\\s*['\"]([^'\"]+)['\"]") {
         public void matched(State state, List<String> groups) {
           state.setXtype(groups.get(0), state.cc.getFullClassName());
         }
@@ -153,7 +153,9 @@ public final class ExtComponentSrcFileScanner {
       "Ext.layout.ContainerLayout", "containerlayout",
       "Ext.layout.BoxLayout",       "boxlayout",
       // Ext.layout.Container.LAYOUTS setting comes too late for this class, so we have to assign it manually:
-      "Ext.layout.BorderLayout",    "borderlayout"
+      "Ext.layout.BorderLayout",    "borderlayout",
+      // Ext's built-in Action class:
+      "Ext.Action",                 "action"
     };
 
     private ComponentSuite componentSuite;

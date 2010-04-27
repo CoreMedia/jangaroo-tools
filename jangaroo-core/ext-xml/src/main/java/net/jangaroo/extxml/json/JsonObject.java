@@ -143,7 +143,25 @@ public class JsonObject implements Json {
         || value instanceof Boolean) {
       return (value.toString());
     } else if (value instanceof JsonObject) {
-      return ((JsonObject) value).toString(indentFactor, indent);
+      JsonObject jsonObject = (JsonObject)value;
+      String xtype = (String)jsonObject.get("xtype");
+      if (xtype != null) {
+        ComponentClass compClazz = ComponentSuiteRegistry.getInstance().findComponentClassByXtype(xtype);
+        if (compClazz != null) {
+          JsonObject actionCfg = (JsonObject)jsonObject.get("action");
+          if (actionCfg != null) {
+            String atype = (String)actionCfg.get("atype");
+            if (atype != null) {
+              ComponentClass actionClazz = ComponentSuiteRegistry.getInstance().findComponentClassByXtype(atype);
+              if (actionClazz != null) {
+                actionCfg.remove("atype");
+                return String.format("new %s(new %s(%s))", compClazz.getFullClassName(), actionClazz.getFullClassName(), valueToString("action", actionCfg, indentFactor, indent));
+              }
+            }
+          }
+        }
+      }
+      return jsonObject.toString(indentFactor, indent);
     } else if (value instanceof JsonArray) {
       return ((JsonArray) value).toString(indentFactor, indent);
     } else if ("xtype".equals(key) || "ptype".equals(key) || "type".equals(key)) {
