@@ -191,7 +191,7 @@ public final class ExtComponentSrcFileScanner {
 
     private void setExtends(String superClassName) {
       if (isActionScript()) {
-        String fullClassName = "";
+        String fullClassName = cc.getPackageName() + "." + superClassName;
         for (String imp : cc.getImports()) {
           if (imp.endsWith(superClassName)) {
             fullClassName = imp;

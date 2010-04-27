@@ -191,9 +191,7 @@ public final class ComponentSuite {
   public void resolveSuperClasses() {
     for (ComponentClass cc : getComponentClasses()) {
       if (cc.getSuperClass() == null && cc.getSuperClassName() != null) {
-        if (cc.getSuperClassName().length() > 0) {
-          Log.w("Super component class '" + cc.getSuperClassName() + "' not found.");
-        }
+        Log.w("Super component class '" + cc.getSuperClassName() + "' not found.");
       } else if (cc.getSuperClassName() == null && cc.getSuperClassNamespaceUri() != null && cc.getSuperClassLocalName() != null)  {
         ComponentClass supercl = this.getComponentClassByNamespaceAndLocalName(cc.getSuperClassNamespaceUri(), cc.getSuperClassLocalName());
         if(supercl != null) {
