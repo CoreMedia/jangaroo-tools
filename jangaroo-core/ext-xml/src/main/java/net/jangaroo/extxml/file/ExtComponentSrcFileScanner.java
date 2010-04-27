@@ -154,8 +154,8 @@ public final class ExtComponentSrcFileScanner {
       "Ext.layout.BoxLayout",       "boxlayout",
       // Ext.layout.Container.LAYOUTS setting comes too late for this class, so we have to assign it manually:
       "Ext.layout.BorderLayout",    "borderlayout",
-      // Ext's built-in Action class:
-      "Ext.Action",                 "action"
+      // Ext's built-in Action class: use upper-case xtype so it does not clash with the attribute "action"!
+      "Ext.Action",                 "Action"
     };
 
     private ComponentSuite componentSuite;
