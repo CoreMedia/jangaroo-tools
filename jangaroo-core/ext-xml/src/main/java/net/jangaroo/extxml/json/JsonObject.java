@@ -123,7 +123,7 @@ public class JsonObject implements Json {
   /**
    * Make a prettyprinted JSON text of an object value.
    * <p/>
-   * Warning: This method assumes that the data structure is acyclical.
+   * Warning: This method assumes that the data structure is acyclic.
    *
    * @param key          The key of the value.
    * @param value        The value to be serialized.
@@ -155,6 +155,13 @@ public class JsonObject implements Json {
               ComponentClass actionClazz = ComponentSuiteRegistry.getInstance().findComponentClassByXtype(atype);
               if (actionClazz != null) {
                 actionCfg.remove("atype");
+                // apply component configuration over action configuration:
+                for (Map.Entry<String,Object> cfgProp : jsonObject.properties.entrySet()) {
+                  String cfg = cfgProp.getKey();
+                  if (!"xtype".equals(cfg) && !"action".equals(cfg)) {
+                    actionCfg.set(cfg, cfgProp.getValue());
+                  }
+                }
                 return String.format("new %s(new %s(%s))", compClazz.getFullClassName(), actionClazz.getFullClassName(), valueToString("action", actionCfg, indentFactor, indent));
               }
             }
