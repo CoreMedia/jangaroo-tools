@@ -35,6 +35,7 @@ import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.xml.XmlElementDescriptor;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -61,7 +62,7 @@ public class ExmlProjectComponent implements ProjectComponent {
         }
       }
     }
-    return null;
+    return "";
   }
 
   public void initComponent() {
