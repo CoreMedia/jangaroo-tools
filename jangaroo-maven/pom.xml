@@ -4,7 +4,7 @@
 
   <groupId>net.jangaroo</groupId>
   <artifactId>jangaroo-maven</artifactId>
-  <version>0.5.0</version>
+  <version>0.5.1-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Jangaroo Maven Integration</name>
   <url>http://repo.jangaroo.net/site/jangaroo-maven</url>
