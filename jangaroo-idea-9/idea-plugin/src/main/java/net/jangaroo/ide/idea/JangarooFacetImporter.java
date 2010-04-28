@@ -91,7 +91,7 @@ public class JangarooFacetImporter extends FacetImporter<JangarooFacet, Jangaroo
     jooConfig.enableGuessingMembers = getBooleanConfigurationValue(mavenProjectModel, "enableGuessingMembers", true);
     jooConfig.enableGuessingTypeCasts = getBooleanConfigurationValue(mavenProjectModel, "enableGuessingTypeCasts", false);
     // "debug" (boolean; true), "debuglevel" ("none", "lines", "source"; "source")
-    jooConfig.outputDirectory = mavenProjectModel.getBuildDirectory() + File.separator + "joo" + File.separator + "classes";
+    jooConfig.outputDirectory = mavenProjectModel.getBuildDirectory() + File.separator + "joo" + File.separator + "scripts" + File.separator + "classes";
 
     ModifiableRootModel moduleRootModel = ModuleRootManager.getInstance(module).getModifiableModel();
     for (MavenArtifact mavenArtifact : mavenProjectModel.getDependencies()) {

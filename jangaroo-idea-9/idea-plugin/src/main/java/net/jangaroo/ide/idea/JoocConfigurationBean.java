@@ -29,7 +29,7 @@ public class JoocConfigurationBean {
   public static final int DEBUG_LEVEL_LINES = 50;
   public static final int DEBUG_LEVEL_SOURCE = 100;
 
-  private static final String OUTPUT_FILE_NAME_DIR = "target/joo/classes";
+  private static final String OUTPUT_FILE_NAME_DIR = "target/joo/scripts/classes";
   private static final String DEFAULT_OUTPUT_FILE_NAME = "js-classes";
   private static final String OUTPUT_FILE_NAME_EXTENSION = ".js";
 
@@ -38,7 +38,7 @@ public class JoocConfigurationBean {
   public boolean enableAssertions = true;
   public boolean allowDuplicateLocalVariables = false;
   public boolean enableGuessingMembers = true, enableGuessingClasses = true, enableGuessingTypeCasts = false;
-  public String outputDirectory = "target/js-classes-debug";
+  public String outputDirectory = "target/joo/scripts/classes";
   public boolean mergeOutput = false;
   public String outputFileName = OUTPUT_FILE_NAME_DIR + DEFAULT_OUTPUT_FILE_NAME + OUTPUT_FILE_NAME_EXTENSION;
   public boolean showCompilerInfoMessages = false;
