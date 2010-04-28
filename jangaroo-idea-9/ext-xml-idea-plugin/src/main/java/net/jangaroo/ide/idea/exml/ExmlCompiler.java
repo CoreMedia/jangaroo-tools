@@ -321,7 +321,7 @@ public class ExmlCompiler implements TranslatingCompiler {
 
     public void error(String message, int lineNumber, int columnNumber) {
       addMessage(CompilerMessageCategory.ERROR, message, lineNumber, columnNumber);
-      getLog().error(message);
+      getLog().debug("EXML Compiler Error: " + message);
     }
 
     public void error(String message, Exception exception) {
@@ -338,14 +338,14 @@ public class ExmlCompiler implements TranslatingCompiler {
 
     public void warning(String message, int lineNumber, int columnNumber) {
       addMessage(CompilerMessageCategory.WARNING, message, lineNumber, columnNumber);
-      getLog().warn(message);
+      getLog().debug("EXML Compiler Warning: " + message);
     }
 
     public void info(String message) {
       if (showCompilerInfoMessages) {
         addMessage(CompilerMessageCategory.INFORMATION, message, -1, -1);
       }
-      getLog().info(message);
+      getLog().debug("EXML Compiler Info: " + message);
     }
 
     public void debug(String message) {

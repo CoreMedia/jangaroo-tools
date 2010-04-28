@@ -73,7 +73,7 @@ public class JangarooCompiler implements TranslatingCompiler {
       if (outputDirectoryVirtualFile == null) {
         String message = "Output directory does not exist and could not be created: " + outputDirectoryPath;
         context.addMessage(CompilerMessageCategory.ERROR, message, null, -1, -1);
-        getLog().error(message);
+        getLog().warn(message);
         return null;
       }
       outputDirectoryPath = outputDirectoryVirtualFile.getPath();
@@ -200,22 +200,22 @@ public class JangarooCompiler implements TranslatingCompiler {
 
     public void error(JooSymbol sym, String msg) {
       filesWithErrors.add(addMessage(CompilerMessageCategory.ERROR, msg, sym));
-      getLog().error(sym.getFileName() + ":" + msg);
+      getLog().debug(sym.getFileName() + ": Jangaroo Compile Error: " + msg);
     }
 
     public void error(String msg) {
       compileContext.addMessage(CompilerMessageCategory.ERROR, msg, null, -1, -1);
-      getLog().error(msg);
+      getLog().debug("Jangaroo Compile Error: " + msg);
     }
 
     public void warning(JooSymbol sym, String msg) {
       addMessage(CompilerMessageCategory.WARNING, msg, sym);
-      getLog().warn(sym.getFileName() + ":" + msg);
+      getLog().debug(sym.getFileName() + ": Jangaroo Compile Warning: " + msg);
     }
 
     public void warning(String msg) {
       compileContext.addMessage(CompilerMessageCategory.WARNING, msg, null, -1, -1);
-      getLog().warn(msg);
+      getLog().debug("Jangaroo Compile Warning: " + msg);
     }
 
     public boolean hasErrors() {
