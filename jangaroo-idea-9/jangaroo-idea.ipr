@@ -268,26 +268,20 @@
   </component>
   <component name="ProjectRunConfigurationManager">
     <configuration default="false" name="EXML" type="#org.jetbrains.idea.devkit.run.PluginConfigurationType" factoryName="Plugin">
-      <module name="jangaroo-idea-plugin" />
+      <module name="ext-xml-idea-plugin" />
       <option name="VM_PARAMETERS" value=" -Xms256m -Xmx768m -XX:MaxPermSize=156m -ea -agentlib:yjpagent=disablej2ee,disablecounts,disablealloc,sessionname=IntelliJIDEA" />
       <option name="PROGRAM_PARAMETERS" value="" />
       <log_file path="$PROJECT_DIR$/../../../.IntelliJIdea90/system/plugins-sandbox/system/log/idea.log" checked="true" skipped="true" show_all="false" alias="IDEA LOG" />
-      <RunnerSettings RunnerId="Debug">
-        <option name="DEBUG_PORT" value="56909" />
-        <option name="TRANSPORT" value="0" />
-        <option name="LOCAL" value="true" />
-      </RunnerSettings>
       <RunnerSettings RunnerId="Debug">
         <option name="DEBUG_PORT" value="51028" />
         <option name="TRANSPORT" value="0" />
         <option name="LOCAL" value="true" />
       </RunnerSettings>
       <ConfigurationWrapper RunnerId="Debug" />
-      <ConfigurationWrapper RunnerId="Debug" />
       <method />
     </configuration>
     <configuration default="false" name="Jangaroo Language" type="#org.jetbrains.idea.devkit.run.PluginConfigurationType" factoryName="Plugin">
-      <module name="jangaroo-idea-plugin" />
+      <module name="ext-xml-idea-plugin" />
       <option name="VM_PARAMETERS" value=" -Xms256m -Xmx768m -XX:MaxPermSize=156m -ea -agentlib:yjpagent=disablej2ee,disablecounts,disablealloc,sessionname=IntelliJIDEA" />
       <option name="PROGRAM_PARAMETERS" value="" />
       <log_file path="$PROJECT_DIR$/../../../.IntelliJIdea90/system/plugins-sandbox/system/log/idea.log" checked="true" skipped="true" show_all="false" alias="IDEA LOG" />

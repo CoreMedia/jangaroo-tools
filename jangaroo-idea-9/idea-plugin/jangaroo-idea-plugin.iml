@@ -23,8 +23,8 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/net/jangaroo/jangaroo-compiler/0.4.8/jangaroo-compiler-0.4.8.jar!/" />
-          <root url="jar://$MAVEN_REPOSITORY$/net/jangaroo/jangaroo-utils/0.4.8/jangaroo-utils-0.4.8.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/net/jangaroo/jangaroo-compiler/0.5.0/jangaroo-compiler-0.5.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/net/jangaroo/jangaroo-utils/0.5.0/jangaroo-utils-0.5.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
