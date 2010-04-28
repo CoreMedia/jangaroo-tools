@@ -17,8 +17,8 @@ import java.io.PrintWriter;
 
 /**
  * Creates the jangaroo archive and attaches them to the project.<br>
- * The jangaroo archive is created by zipping the <code>${project.build.outputDirectory}</code>
- * and ommiting all ActionScript files.
+ * The jangaroo archive is created by zipping the <code>packageSourceDirectory</code>
+ * (defaults to target/joo).
  * <p/>
  * The <code>package</code> goal is executed in the <code>package</code> phase of the jangaroo lifecycle.
  *
@@ -77,11 +77,11 @@ public class PackageMojo extends AbstractMojo {
   private File manifest;
 
   /**
-   * Location of the compiled scripts files. Defaults to ${project.build.directory}/joo/
+   * Location of files to be packaged. Defaults to ${project.build.directory}/joo/
    *
    * @parameter expression="${project.build.directory}/joo/"
    */
-  private File compilerOutputDirectory;
+  private File packageSourceDirectory;
 
   public void execute()
       throws MojoExecutionException {
@@ -92,8 +92,8 @@ public class PackageMojo extends AbstractMojo {
       } else {
         createDefaultManifest(project, archiver);
       }
-      if (compilerOutputDirectory.exists()) {
-        archiver.addDirectory(compilerOutputDirectory);
+      if (packageSourceDirectory.exists()) {
+        archiver.addDirectory(packageSourceDirectory);
       }
 
       String groupId = project.getGroupId();

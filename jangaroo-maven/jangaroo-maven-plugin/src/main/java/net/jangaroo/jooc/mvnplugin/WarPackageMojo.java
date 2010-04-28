@@ -32,7 +32,7 @@ import java.util.ArrayList;
 
 /**
  * The <code>war-package</code> goal extracts all dependent jangaroo artifacts into
- * the scripts directory of the web application to make them accessible from HTML
+ * the web application to make them accessible from HTML
  * pages during execution of the webapp. It also copies optional Jangaroo compiler
  * output from the current module into the web application.<br/>
  * This goal is NOT bound to the jangaroo lifecycle. It is aimed to be used in conjunction with
@@ -100,11 +100,12 @@ public class WarPackageMojo
   private List remoteRepositories;
 
   /**
-   * Location of the compiled scripts files. Defaults to ${project.build.directory}/joo/
+   * Location of Jangaroo resources of this module (including compiler output, usually under "scripts/") to be added
+   * to the webapp. Defaults to ${project.build.directory}/joo/
    *
    * @parameter expression="${project.build.directory}/joo/"
    */
-  private File compilerOutputDirectory;
+  private File packageSourceDirectory;
 
   /**
    * The directory where the webapp is built. Default is <code>${project.build.directory}/${project.build.finalName}</code>
@@ -114,13 +115,6 @@ public class WarPackageMojo
    * @required
    */
   private File webappDirectory;
-
-  /**
-   * The folder below the <code>webappDirectory</code> for unpacking the javascript dependencies.
-   *
-   * @parameter expression="${scripts}" default-value="scripts"
-   */
-  private String scriptsDirectory;
 
   /**
    * Plexus archiver.
@@ -137,14 +131,13 @@ public class WarPackageMojo
    */
   public void execute()
       throws MojoExecutionException, MojoFailureException {
-    File scriptDir = new File(webappDirectory, scriptsDirectory);
-    scriptDir.mkdirs();
+    webappDirectory.mkdirs();
 
     try {
       excludeFromWarPackaging();
-      unpack(scriptDir);
-      copyJangarooOutput(scriptDir);
-      concatModuleScripts(scriptDir);
+      unpack(webappDirectory);
+      copyJangarooOutput(webappDirectory);
+      concatModuleScripts(new File(webappDirectory, "scripts"));
     }
     catch (ArchiverException e) {
       throw new MojoExecutionException("Failed to unpack javascript dependencies", e);
@@ -231,12 +224,12 @@ public class WarPackageMojo
   }
 
   private void copyJangarooOutput(File target) throws IOException {
-    if (!compilerOutputDirectory.exists()) {
-      getLog().debug("No Jangaroo compiler output directory " + compilerOutputDirectory.getAbsolutePath() + ", skipping copy Jangaroo output.");
+    if (!packageSourceDirectory.exists()) {
+      getLog().debug("No Jangaroo compiler output directory " + packageSourceDirectory.getAbsolutePath() + ", skipping copy Jangaroo output.");
     } else {
-      getLog().info("Copying Jangaroo output from " + compilerOutputDirectory + " to " + target);
-      FileUtils.copyDirectoryStructureIfModified(compilerOutputDirectory, target);
-      if (new File(compilerOutputDirectory, "jangaroo-module.js").exists()) {
+      getLog().info("Copying Jangaroo output from " + packageSourceDirectory + " to " + target);
+      FileUtils.copyDirectoryStructureIfModified(packageSourceDirectory, target);
+      if (new File(packageSourceDirectory, "jangaroo-module.js").exists()) {
         File copiedJangarooModuleFile = new File(target, "jangaroo-module.js");
         if (copiedJangarooModuleFile.delete()) {
           getLog().info("File " + copiedJangarooModuleFile.getAbsolutePath() + " removed from copy.");
@@ -256,7 +249,6 @@ public class WarPackageMojo
     List<String> depsLineralized = sort(artifact2Project);
     getLog().debug("depsLineralized  : " + depsLineralized);
 
-    //noinspection ResultOfMethodCallIgnored
     Writer fw = createJangarooModulesFile(scriptDirectory);
     try {
       fw.write("// This file contains collected JavaScript code from dependent Jangaroo modules.\n\n");
@@ -268,11 +260,11 @@ public class WarPackageMojo
           includeJangarooModuleScript(artifact, fw);
         }
       }
-      File jangarooModuleFile = new File(compilerOutputDirectory, "jangaroo-module.js");
+      File jangarooModuleFile = new File(packageSourceDirectory, "jangaroo-module.js");
       if (jangarooModuleFile.exists()) {
         writeJangarooModuleScript(project.getArtifact(), new FileInputStream(jangarooModuleFile), fw);
       } else {
-        getLog().debug("No jangaroo-module.js file in " + compilerOutputDirectory.getAbsolutePath());
+        getLog().debug("No jangaroo-module.js file in " + packageSourceDirectory.getAbsolutePath());
       }
     } finally {
       try {
@@ -284,6 +276,7 @@ public class WarPackageMojo
   }
 
   private Writer createJangarooModulesFile(File scriptDirectory) throws IOException {
+    scriptDirectory.mkdirs();
     File f = new File(scriptDirectory, "jangaroo-modules.js");
     getLog().info("Creating Jangaroo collected code script '" + f.getAbsolutePath() + "'.");
     return new OutputStreamWriter(new FileOutputStream(f), "UTF-8");
@@ -387,7 +380,7 @@ public class WarPackageMojo
               additionalExcludes += "WEB-INF" + File.separator + "lib" + File.separator + dependency.getGroupId() + "-" + dependency.getArtifactId() + "-" + dependency.getVersion() + ".jar,";
             }
           }
-          additionalExcludes += "scripts" + File.separator + "jangaroo-module.js";
+          additionalExcludes += "jangaroo-module.js";
           excludes.setValue(excludes.getValue() + additionalExcludes);
         }
       }

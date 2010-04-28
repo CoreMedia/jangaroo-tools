@@ -34,10 +34,10 @@ try
     }
 
 
-    File jsDir = new File ( target, "joo"+File.separator+"classes" );
+    File jsDir = new File ( target, "joo"+File.separator+"scripts"+File.separator+"classes" );
     if ( !jsDir.exists() || !jsDir.isDirectory() )
     {
-        System.err.println( "joo/classes directory is missing or not a directory." );
+        System.err.println( "joo/scripts/classes directory is missing or not a directory." );
         return false;
     }
 

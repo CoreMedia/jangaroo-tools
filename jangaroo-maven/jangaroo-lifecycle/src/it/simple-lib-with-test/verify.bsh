@@ -49,10 +49,10 @@ try
     }
 
 
-    File jsDir = new File ( target, "joo"+File.separator+"classes" );
+    File jsDir = new File ( target, "joo"+File.separator+"scripts"+File.separator+"classes" );
     if ( !jsDir.exists() || !jsDir.isDirectory() )
     {
-        System.err.println( "joo/classes directory is missing or not a directory." );
+        System.err.println( "joo/scripts/classes directory is missing or not a directory." );
         return false;
     }
 
@@ -70,18 +70,18 @@ try
         return false;
     }
 
-    File classRuntimeJs = new File ( target, "joo"+File.separator+"simple-lib-with-test.js" );
+    File classRuntimeJs = new File ( target, "joo"+File.separator+"scripts"+File.separator+"simple-lib-with-test.js" );
     if ( !classRuntimeJs.exists() || !classRuntimeJs.isFile() )
     {
-        System.err.println( "joo/simple-lib-with-test.js runtime file is missing or not a file." );
+        System.err.println( "joo/scripts/simple-lib-with-test.js runtime file is missing or not a file." );
         return false;
     }
 
 
-    File testJsDir = new File ( target, "joo-test" );
+    File testJsDir = new File ( target, "joo-test/scripts" );
     if ( !testJsDir.exists() || !testJsDir.isDirectory() )
     {
-        System.err.println( "joo-test directory is missing or not a directory." );
+        System.err.println( "joo-test/scripts directory is missing or not a directory." );
         return false;
     }
 

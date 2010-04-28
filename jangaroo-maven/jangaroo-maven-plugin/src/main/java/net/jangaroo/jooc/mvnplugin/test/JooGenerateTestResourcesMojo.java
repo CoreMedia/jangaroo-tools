@@ -64,7 +64,7 @@ public class JooGenerateTestResourcesMojo extends AbstractJooTestMojo {
   /**
    * Output directory for compiled classes.
    *
-   * @parameter expression="${project.build.outputDirectory}/classes"
+   * @parameter expression="${project.build.outputDirectory}/scripts/classes"
    */
   private File outputDirectory;
 
@@ -72,7 +72,7 @@ public class JooGenerateTestResourcesMojo extends AbstractJooTestMojo {
    * This parameter specifies the name of the output file containing all
    * compiled classes.
    *
-   * @parameter expression="${project.build.outputDirectory}/${project.artifactId}.js"
+   * @parameter expression="${project.build.outputDirectory}/scripts/${project.artifactId}.js"
    */
   private File outputFileName;
 
@@ -112,16 +112,20 @@ public class JooGenerateTestResourcesMojo extends AbstractJooTestMojo {
     for(Resource r : testResources) {
       FileUtils.copyDirectoryStructureIfModified(new File(r.getDirectory()), testOutputDirectory);
     }
+    File scriptsDir = new File(testOutputDirectory, "scripts");
+    //noinspection ResultOfMethodCallIgnored
+    scriptsDir.mkdirs();
     if (outputFileName.exists()) {
-      FileUtils.copyFileToDirectoryIfModified(outputFileName, testOutputDirectory);
+      FileUtils.copyFileToDirectoryIfModified(outputFileName, scriptsDir);
     } else {
-      getLog().info("Cannot copy " + outputFileName + " to " + testOutputDirectory + ". It does not exist.");
+      getLog().info("Cannot copy file " + outputFileName + ". It does not exist.");
     }
     if (outputDirectory.exists()) {
-      getLog().info("copy " + outputDirectory + " to " + new File(testOutputDirectory, "classes"));
-      FileUtils.copyDirectoryStructureIfModified(outputDirectory, new File(testOutputDirectory, "classes"));
+      final File dest = new File(scriptsDir, "classes");
+      getLog().info("copy " + outputDirectory + " to " + dest);
+      FileUtils.copyDirectoryStructureIfModified(outputDirectory, dest);
     } else {
-      getLog().info("Cannot copy " + outputDirectory + " to " + testOutputDirectory + ". It does not exist.");
+      getLog().info("Cannot copy from " + outputDirectory + ". It does not exist.");
     }
   }
 

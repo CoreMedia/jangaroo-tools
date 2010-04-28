@@ -19,7 +19,7 @@ public class TestCompilerMojo extends AbstractCompilerMojo {
   /**
    * Output directory for compiled classes.
    *
-   * @parameter expression="${project.build.testOutputDirectory}/classes"
+   * @parameter expression="${project.build.testOutputDirectory}/scripts/classes"
    */
   private File testOutputDirectory;
 
@@ -31,7 +31,7 @@ public class TestCompilerMojo extends AbstractCompilerMojo {
   private File sourceDirectory;
 
   /**
-   * Source directory to scan for files to compile.
+   * Source directory to scan for test files to compile.
    *
    * @parameter expression="${project.build.testSourceDirectory}"
    */
@@ -62,7 +62,7 @@ public class TestCompilerMojo extends AbstractCompilerMojo {
   /**
    * Absolute output filename of the merged javascript.  
    *
-   * @parameter expression="${project.build.testOutputDirectory}/${project.artifactId}-test.js"
+   * @parameter expression="${project.build.testOutputDirectory}/scripts/${project.artifactId}-test.js"
    */
   private String testOutputFileName;
 

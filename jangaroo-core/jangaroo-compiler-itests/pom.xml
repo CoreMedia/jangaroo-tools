@@ -74,7 +74,7 @@
             </property>
             <property>
               <name>net.jangaroo.jooc.test.destination</name>
-              <value>${basedir}/target/temp/js</value>
+              <value>${basedir}/target/temp/scripts</value>
             </property>
           </systemProperties>
         </configuration>
@@ -91,26 +91,19 @@
             <phase>process-test-resources</phase>
             <configuration>
               <tasks>
-                <unzip src="${basedir}/target/jangaroo-runtime-${project.version}.jar" dest="${basedir}/target/temp/js" />
+                <unzip src="${basedir}/target/jangaroo-runtime-${project.version}.jar" dest="${basedir}/target/temp" />
 
                 <property name="runtime.classpath" refid="maven.runtime.classpath" />
                 <taskdef name="jooc" classname="net.jangaroo.jooc.ant.JoocTask" classpath="target/classes;${runtime.classpath}" />
 
                 <mkdir dir="${basedir}/target/temp/js" />
 
-                <jooc destdir="target/temp/js" failonerror="true" debug="true" verbose="true" enableassertions="true">
+                <jooc destdir="target/temp/scripts" failonerror="true" debug="true" verbose="true" enableassertions="true">
                   <include name="**/*.as" />
                   <exclude name="error/**/*.as" />
                   <exclude name="**/*_fragment.as" />
                   <src path="${basedir}/src/test/joo;${basedir}/src/test/joo2" />
                 </jooc>
-
-                <!--                <copy todir="${basedir}/target/temp/js">
-            <fileset dir="${basedir}/src/test/joo">
-              <include name="**/*.as" />
-            </fileset>
-          </copy>      -->
-
 
               </tasks>
             </configuration>

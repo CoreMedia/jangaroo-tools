@@ -23,7 +23,7 @@ import Error;
 
 public class DynamicClassLoader extends joo.StandardClassLoader {
 
-  public static const STANDARD_URL_PREFIX:String = "joo/classes/";
+  public static const STANDARD_URL_PREFIX:String = "scripts/classes/";
 
   private static function isEmpty(object : Object) : Boolean {
     //noinspection LoopStatementThatDoesntLoopJS

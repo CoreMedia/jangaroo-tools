@@ -144,8 +144,9 @@ public class JooTestMojo extends AbstractJooTestMojo {
         selenium = new DefaultSelenium(jooUnitSeleniumRCHost, jooUnitSeleniumRCPort, "*firefox", url);
         try {
           selenium.start();
-          getLog().debug("Opening " + url + "/tests.html");
-          selenium.open(url + "/tests.html");
+          final String testsHtmlUrl = url + "/" + testsHtml.replace(File.separatorChar, '/');
+          getLog().debug("Opening " + testsHtmlUrl);
+          selenium.open(testsHtmlUrl);
           getLog().debug("Waiting for test results for " + jooUnitTestExecutionTimeout + "ms ...");
           selenium.waitForCondition("selenium.browserbot.getCurrentWindow().result != null || selenium.browserbot.getCurrentWindow().classLoadingError != null", "" + jooUnitTestExecutionTimeout);
           String classLoadingError = selenium.getEval("selenium.browserbot.getCurrentWindow().classLoadingError");

@@ -37,20 +37,20 @@
                 <property name="runtime.classpath" refid="maven.compile.classpath" />
                 <taskdef name="jooc" classname="net.jangaroo.jooc.ant.JoocTask" classpath="target/classes;${runtime.classpath}" />
 
-                <mkdir dir="target/temp/runtime/debug/classes" />
-                <jooc destdir="target/temp/runtime/debug/classes" failonerror="true" debug="true" debuglevel="source" verbose="true" enableassertions="true">
+                <mkdir dir="target/temp/runtime/debug/scripts/classes" />
+                <jooc destdir="target/temp/runtime/debug/scripts/classes" failonerror="true" debug="true" debuglevel="source" verbose="true" enableassertions="true">
                   <include name="**/*.as" />
                   <src path="src/main/joo" />
                 </jooc>
 
-                <concat destfile="target/jangaroo-runtime-debug.js">
-                  <filelist dir="src/main/joo-js/classes">
+                <concat destfile="target/scripts/jangaroo-runtime-debug.js">
+                  <filelist dir="src/main/joo-js/scripts/classes">
                     <file name="joo/BootstrapClassLoader.js" />
                     <file name="joo/assert.js" />
                     <file name="joo/Class.js" />
                     <file name="joo/trace.js" />
                   </filelist>
-                  <filelist dir="target/temp/runtime/debug/classes">
+                  <filelist dir="target/temp/runtime/debug/scripts/classes">
                     <file name="joo/MemberDeclaration.js" />
                     <file name="joo/NativeClassDeclaration.js" />
                     <file name="joo/SystemClassDeclaration.js" />
@@ -73,8 +73,8 @@
                   <src path="src/main/joo" />
                 </jooc>
 
-                <concat destfile="target/jangaroo-runtime.js">
-                  <filelist dir="src/main/joo-js/classes">
+                <concat destfile="target/scripts/jangaroo-runtime.js">
+                  <filelist dir="src/main/joo-js/scripts/classes">
                     <file name="joo/BootstrapClassLoader.js" />
                     <file name="joo/assert.js" />
                     <file name="joo/Class.js" />
@@ -98,7 +98,7 @@
                 </concat>
 
                 <zip destfile="target/jangaroo-runtime.jar">
-                  <fileset dir="target" includes="jangaroo-runtime*.js" />
+                  <fileset dir="target" includes="scripts/jangaroo-runtime*.js" />
                   <fileset dir="src/main/joo-js" />
                   <fileset dir="target/temp/runtime/debug" />
                 </zip>
