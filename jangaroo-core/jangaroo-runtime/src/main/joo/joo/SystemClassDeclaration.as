@@ -117,7 +117,7 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
     this.superClassDeclaration = classLoader.getRequiredClassDeclaration(this.extends_);
     this.superClassDeclaration.complete();
     this.level = this.superClassDeclaration.level + 1;
-    this.privateStatics.$super = this.level+"super";
+    this.privateStatics.$super = "$" + this.level+"super";
     var Super : Function = this.superClassDeclaration.Public;
     if (!this.native_) {
       this.publicConstructor.prototype = new Super();
@@ -162,7 +162,7 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
       }
     }
     var defaultConstructor : Function = this.native_ ? this.publicConstructor :
-      this.publicConstructor.prototype[this.level+"super"] =
+      this.publicConstructor.prototype["$"+this.level+"super"] =
       this.initializerNames.length==0 ? this.superClassDeclaration.constructor_ : createSuperCall(this);
     if (!this.constructor_) {
       // create empty default constructor:
@@ -205,7 +205,7 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
 
   protected function _initSlot(memberDeclaration : MemberDeclaration) : void {
     memberDeclaration.slot = memberDeclaration.isPrivate() && !memberDeclaration.isStatic()
-            ? this.privateStatics["$"+memberDeclaration.memberName] = this.level + memberDeclaration.memberName
+            ? this.privateStatics["$"+memberDeclaration.memberName] = "$" + this.level + memberDeclaration.memberName
             : memberDeclaration.memberName;
   }
 
