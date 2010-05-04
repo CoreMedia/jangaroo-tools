@@ -175,7 +175,7 @@ public class JoocCommandLineParser {
         config.setEnableGuessingTypeCasts(true);
       } else {
         if (config.isVerbose()) {
-          System.out.println("-g option value: " + Arrays.asList(values));
+          System.out.println("-eg option value: " + Arrays.asList(values));
         }
         for (String value : values) {
           if (value.equals("members")) {
@@ -198,7 +198,7 @@ public class JoocCommandLineParser {
       /*
       System.out.println("enableassertions=" +  enableAssertions);
       */
-      System.out.println("-g option values:");
+      System.out.println("-ea option values:");
       System.out.println("source=" + config.isDebugSource());
       System.out.println("lines=" + config.isDebugLines());
     }

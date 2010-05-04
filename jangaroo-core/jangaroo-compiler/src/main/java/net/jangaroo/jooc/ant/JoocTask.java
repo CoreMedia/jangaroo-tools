@@ -320,7 +320,8 @@ public class JoocTask extends MatchingTask {
           + (destDir != null ? " to " + destDir : ""));
 
       String[] joocArgs = getJoocArgs();
-      Jooc jooc = new Jooc();
+      Jooc jooc = new Jooc(new AntCompileLog(getProject()));
+      log("configured AntCompileLog");
       if (verbose) {
         StringBuffer cmdLine = new StringBuffer(100);
         cmdLine.append("jooc ");
