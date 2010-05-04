@@ -43,6 +43,8 @@ public class JoocTask extends MatchingTask {
   private boolean enableAssertions = false;
   private boolean verbose = false;
   protected boolean failOnError = true;
+  private boolean allowduplicatelocalvariables;
+  private boolean enableguessingmembers, enableguessingclasses, enableguessingtypecasts;
   protected File[] compileList = new File[0];
 
   public boolean getEnableassertions() {
@@ -122,6 +124,62 @@ public class JoocTask extends MatchingTask {
    */
   public boolean getFailonerror() {
     return failOnError;
+  }
+
+  /**
+   * Gets the allowduplicatelocalvariables flag.
+   */
+  public boolean isAllowduplicatelocalvariables() {
+    return allowduplicatelocalvariables;
+  }
+
+  /**
+   * Sets the allowduplicatelocalvariables flag.
+   */
+  public void setAllowduplicatelocalvariables(final boolean allowduplicatelocalvariables) {
+    this.allowduplicatelocalvariables = allowduplicatelocalvariables;
+  }
+
+  /**
+   * Gets the enableguessing members flag.
+   */
+  public boolean isEnableguessingmembers() {
+    return enableguessingmembers;
+  }
+
+  /**
+   * Sets the enableguessing members flag.
+   */
+  public void setEnableguessingmembers(final boolean enableguessingmembers) {
+    this.enableguessingmembers = enableguessingmembers;
+  }
+
+  /**
+   * Gets the enableguessing classes flag.
+   */
+  public boolean isEnableguessingclasses() {
+    return enableguessingclasses;
+  }
+
+  /**
+   * Sets the enableguessing classes flag.
+   */
+  public void setEnableguessingclasses(final boolean enableguessingclasses) {
+    this.enableguessingclasses = enableguessingclasses;
+  }
+
+  /**
+   * Gets the enableguessing typecasts flag.
+   */
+  public boolean isEnableguessingtypecasts() {
+    return enableguessingtypecasts;
+  }
+
+  /**
+   * Sets the enableguessing typecasts flag.
+   */
+  public void setEnableguessingtypecasts(final boolean enableguessingtypecasts) {
+    this.enableguessingtypecasts = enableguessingtypecasts;
   }
 
   /**
@@ -297,6 +355,21 @@ public class JoocTask extends MatchingTask {
     }
     if (enableAssertions) {
       args.add("-ea");
+    }
+    if (allowduplicatelocalvariables) {
+      args.add("-ad");
+    }
+    if (enableguessingmembers) {
+      args.add("-eg");
+      args.add("members");
+    }
+    if (enableguessingclasses) {
+      args.add("-eg");
+      args.add("classes");
+    }
+    if (enableguessingtypecasts) {
+      args.add("-eg");
+      args.add("typecasts");
     }
     if (destDir != null) {
       args.add("-d");
