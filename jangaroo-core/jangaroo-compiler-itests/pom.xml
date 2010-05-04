@@ -98,7 +98,12 @@
 
                 <mkdir dir="${basedir}/target/temp/js" />
 
-                <jooc destdir="target/temp/scripts" failonerror="true" debug="true" verbose="true" enableassertions="true">
+                <jooc destdir="target/temp/scripts"
+                      failonerror="true"
+                      debug="true"
+                      verbose="true"
+                      enableassertions="true"
+                      enableguessingmembers="true">
                   <include name="**/*.as" />
                   <exclude name="error/**/*.as" />
                   <exclude name="**/*_fragment.as" />

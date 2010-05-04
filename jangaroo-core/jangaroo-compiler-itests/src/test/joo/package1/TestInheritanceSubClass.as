@@ -17,20 +17,19 @@ package package1 {
 
 public class TestInheritanceSubClass extends package1.TestInheritanceSuperClass {
 
-  public function TestInheritanceSubClass(slot1 :int, slot2 :int) {
-    super(slot1);
-    this.slot2 = slot2;
+  public function TestInheritanceSubClass(slot1Value :int, slot2Value :int) {
+    super(slot1Value);
+    slot2 = slot2Value;
   }
 
-  protected var slot2;
-  var slot3;
+  protected var slot2 :int, slot3 :int;
 
   public function setSlot2(value :int) :void {
-    this.slot2 = value;
+    slot2 = value;
   }
 
   public function getSlot2() :int {
-    return this.slot2;
+    return slot2;
   }
 
   override public function m() :int {

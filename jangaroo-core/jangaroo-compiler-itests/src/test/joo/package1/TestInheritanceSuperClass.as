@@ -17,22 +17,22 @@ package package1 {
 
 public class TestInheritanceSuperClass {
 
-  public function TestInheritanceSuperClass(slot1 :int) {
-    this.slot1 = slot1;
+  public function TestInheritanceSuperClass(value :int) {
+    slot1 = value;
   }
 
-  protected var slot1;
+  protected var slot1 :int;
 
   public function setSlot1(value :int) :void {
-    this.slot1 = value;
+    slot1 = value;
   }
 
   public function getSlot1() :int {
-    return this.slot1;
+    return slot1;
   }
 
   public function m() :int {
-    return this.getSlot1();
+    return getSlot1();
   }
 
 }
