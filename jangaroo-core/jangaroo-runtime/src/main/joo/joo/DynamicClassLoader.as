@@ -112,6 +112,10 @@ public class DynamicClassLoader extends joo.StandardClassLoader {
 
   private function load(fullClassName : String) : void {
     if (!this.getClassDeclaration(fullClassName)) {
+      if (joo__loadClasses) {
+        joo__loadClasses(fullClassName);
+        return;
+      }
       if (this.onCompleteCallbacks.length==0) {
         if (this.pendingClassState[fullClassName]===undefined) {
           // we are not yet in completion phase: just add to pending classes:

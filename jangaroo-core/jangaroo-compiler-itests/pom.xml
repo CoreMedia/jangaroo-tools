@@ -103,7 +103,8 @@
                       debug="true"
                       verbose="true"
                       enableassertions="true"
-                      enableguessingmembers="true">
+                      enableguessingmembers="true"
+                      enableguessingclasses="true">
                   <include name="**/*.as" />
                   <exclude name="error/**/*.as" />
                   <exclude name="**/*_fragment.as" />

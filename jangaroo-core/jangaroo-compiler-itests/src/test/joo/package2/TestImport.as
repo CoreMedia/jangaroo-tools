@@ -15,7 +15,7 @@
 
 package package2 {
 
-import package1.TestMethodCall;
+import package1.*;
 import package1.package11.TestSubPackage;
 
 public class TestImport extends TestMethodCall {
@@ -23,9 +23,12 @@ public class TestImport extends TestMethodCall {
   private static const TEST_CLASS_INIT : String = TestStaticInitializer.s2;
 
   public function TestImport() {
+    var ti :TestImplements = new TestImplements();
+    var i :int = ti.implementMe("abc");
+    assert(i == 3);
   }
 
-  public static function main() : int {
+  public static function main() : String {
     var testImport : TestImport  = new TestImport();
     return TEST_CLASS_INIT + "/" + (testImport.m(-19) + TestSubPackage.test());
   }

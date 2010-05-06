@@ -220,9 +220,11 @@ public class JooTest extends JooRuntimeTestCase {
 
   public void testImport() throws Exception {
     loadClass("package2.TestImport");
+
+    //todo remove this once *imports are added as implicit imports:
     loadClass("package1.TestMethodCall");
-    loadClass("package1.package11.TestSubPackage");
-    loadClass("package2.TestStaticInitializer");
+    loadClass("package1.TestImplements");
+
     complete();
     expectString("s2/s1"+"/"+(-19+42), "package2.TestImport.main()");
   }
@@ -297,7 +299,6 @@ public class JooTest extends JooRuntimeTestCase {
   }
 
   public void testTypeCast() throws Exception {
-    loadClass("package2.TestInclude");
     loadClass("package1.TestTypeCast");
     complete();
     eval("obj = new package1.TestTypeCast()");
@@ -384,9 +385,7 @@ public class JooTest extends JooRuntimeTestCase {
   }
 
   public void testInterface() throws Exception {
-    loadClass("package1.TestInterface");
     loadClass("package1.TestImplements");
-    loadClass("package1.TestInterface2");
     loadClass("package1.TestInheritImplements");
     complete();
     eval("obj = new package1.TestImplements();");
@@ -452,7 +451,6 @@ public class JooTest extends JooRuntimeTestCase {
   }
 
   public void testPackageHidesVar() throws Exception {
-    loadClass("package2.TestInternal");
     loadClass("package1.TestPackageHidesVar");
     complete();
     eval("obj = new package1.TestPackageHidesVar()");
