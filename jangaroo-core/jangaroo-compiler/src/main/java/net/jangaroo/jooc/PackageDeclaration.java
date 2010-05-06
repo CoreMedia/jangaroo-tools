@@ -24,6 +24,7 @@ import java.util.HashSet;
 
 /**
  * @author Andreas Gawecki
+ * @author Frank Wienberg
  */
 public class PackageDeclaration extends IdeDeclaration  {
 
