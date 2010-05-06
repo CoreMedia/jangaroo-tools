@@ -19,6 +19,7 @@ import java.io.IOException;
 
 /**
  * @author Andreas Gawecki
+ * @author Frank Wienberg
  */
 public class ImportDirective extends NodeImplBase {
 
