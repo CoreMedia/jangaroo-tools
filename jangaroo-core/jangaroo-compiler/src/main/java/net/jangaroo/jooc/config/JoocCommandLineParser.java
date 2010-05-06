@@ -198,7 +198,7 @@ public class JoocCommandLineParser {
       /*
       System.out.println("enableassertions=" +  enableAssertions);
       */
-      System.out.println("-ea option values:");
+      System.out.println("-g option values:");
       System.out.println("source=" + config.isDebugSource());
       System.out.println("lines=" + config.isDebugLines());
     }
