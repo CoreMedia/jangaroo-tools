@@ -22,32 +22,32 @@ public class TestBind {
   }
 
   public function getState() : String {
-    return this.state;
+    return state;
   }
 
   public function getState1() : String {
-    return this.state;
+    return state;
   }
 
   public function getState2() : String {
-    return this.state;
+    return state;
   }
 
   public function getState3() : String {
-    return this.state;
+    return state;
   }
 
   public function getState4() : String {
-    return this.state;
+    return state;
   }
 
   // will be auto-bound!
   private function getStatePrivate() : String {
-    return this.state;
+    return state;
   }
 
   public function testInvokeLocalVar() : * {
-    var f : Function = this.getState1;
+    var f : Function = getState1;
     return f();
   }
 
@@ -57,7 +57,7 @@ public class TestBind {
   }
 
   public function testInvokeParameter() : String {
-    return this.invoke(this.getState3);
+    return invoke(this.getState3);
   }
 
   public function testInvokeParameterUnqualified() : String {
