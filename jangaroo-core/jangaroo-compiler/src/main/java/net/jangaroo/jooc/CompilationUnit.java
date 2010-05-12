@@ -33,10 +33,10 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
     return packageDeclaration;
   }
 
-  private Collection<String> samePackageSymbols;
   private PackageDeclaration packageDeclaration;
   private JooSymbol lBrace;
   private List<Node> directives;
+  private List<Node> implicitDirectives = new ArrayList<Node>(10);
   private IdeDeclaration primaryDeclaration;
   private JooSymbol rBrace;
   private Collection<File> sourcePath = new LinkedHashSet<File>();
@@ -96,22 +96,29 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
     packageDeclaration.generateCode(out);
     out.writeSymbolWhitespace(lBrace);
     out.write("[");
+    Collection<Node> allDirectives = implicitDirectives;
     if (directives != null) {
-      generateCode(directives, out);
+      allDirectives = new ArrayList<Node>(implicitDirectives.size()+directives.size());
+      allDirectives.addAll(implicitDirectives);
+      allDirectives.addAll(directives);
     }
+    generateCode(allDirectives, out);
     out.write("\"\"],");
     primaryDeclaration.generateCode(out);
     out.write(",[");
     boolean first = true;
-    for (Node node : directives) {
-      if (node instanceof ImportDirective && ((ImportDirective) node).isUsed()) {
-        String externalUsage = ((ImportDirective) node).getQualifiedName();
-        if (first) {
-          first = false;
-        } else {
-          out.write(",");
+    for (Node node : allDirectives) {
+      if (node instanceof ImportDirective) {
+        ImportDirective importDirective = (ImportDirective) node;
+        if (importDirective.isUsed()) {
+          String externalUsage = importDirective.getQualifiedName();
+          if (first) {
+            first = false;
+          } else {
+            out.write(",");
+          }
+          out.write('"' + externalUsage + '"');
         }
-        out.write('"' + externalUsage + '"');
       }
     }
     out.write("]");
@@ -120,8 +127,6 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
   }
 
   public Node analyze(Node parentNode, AnalyzeContext context) {
-    samePackageSymbols = new HashSet<String>();
-    addSamePackageSymbols();
     // establish global scope for built-in identifiers:
     IdeType globalObject = new IdeType("globalObject");
     context.enterScope(globalObject);
@@ -151,7 +156,16 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
       "encodeURI",
       "encodeURIComponent",
       "trace"});
+
+    // add implicit same package import
+    Ide packageIde = packageDeclaration.getIde();
+    if (packageIde != null)
+      addStarImport(packageIde);
+    // add implicit toplevel package import
+    addStarImport(null);
+
     super.analyze(parentNode, context);
+
     context.enterScope(packageDeclaration);
     packageDeclaration.analyze(this, context);
     analyzeDirectives(context);
@@ -161,44 +175,36 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
     return this;
   }
 
-  private void addSamePackageSymbols() {
-    final File thisUnitsFolder = sourceFile.getAbsoluteFile().getParentFile();
-    addSamePackageFolderSymbols(thisUnitsFolder);
-    final String relativePackagePath = getRelativePackagePath();
-    for (File sourceDir : getSourcePath()) {
-      final File packageFolder = relativePackagePath.isEmpty() ? sourceDir : new File(sourceDir, relativePackagePath);
-      addSamePackageFolderSymbols(packageFolder);
-    }
+  private void addStarImport(final Ide packageIde) {
+    ImportDirective importDirective = new ImportDirective(packageIde, "*");
+    directives.add(0, importDirective);
   }
 
-  private String getRelativePackagePath() {
-    return QualifiedIde.constructQualifiedNameStr(packageDeclaration.getQualifiedName(), File.separator);
+  private String getRelativePackagePath(String packageName) {
+    return packageName.replace('.', File.separatorChar);
   }
 
-  private void addSamePackageFolderSymbols(final File folder) {
+  private void addPackageFolderSymbols(final File folder, List<String> list) {
     String[] symbols = folder.list(new SourceFilenameFilter());
     if (symbols != null) {
       for (String symbol : symbols) {
-        samePackageSymbols.add(withoutAS(symbol));
+        list.add(withoutAS(symbol));
       }
     }
   }
 
+  public List<String> getPackageIdes(String packageName) {
+    List<String> result = new ArrayList<String>(10);
+    final String relativePackagePath = getRelativePackagePath(packageName);
+    for (File sourceDir : getSourcePath()) {
+      final File packageFolder = relativePackagePath.isEmpty() ? sourceDir : new File(sourceDir, relativePackagePath);
+      addPackageFolderSymbols(packageFolder, result);
+    }
+    return result;
+  }
+
   private void analyzeDirectives(AnalyzeContext context) {
-    Ide packageIde = context.getCurrentPackage().getIde();
-    Scope packageScope = context.getScope();
-    List<Node> directives = new ArrayList<Node>();
-    for (String samePackageSymbol : samePackageSymbols) {
-      ImportDirective importDirective = new ImportDirective(packageIde, samePackageSymbol);
-      packageScope.declareIde(samePackageSymbol, importDirective);
-      directives.add(0, importDirective);
-    }
-    if (this.directives == null) {
-      this.directives = directives;
-    } else {
-      this.directives.addAll(0, directives);
-    }
-    this.directives = analyze(this, this.directives, context);
+     this.directives = analyze(this, this.directives, context);
   }
 
   private void declareIdes(Scope scope, String[] identifiers) {
@@ -209,6 +215,14 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
 
   public JooSymbol getSymbol() {
     return packageDeclaration.getSymbol();
+  }
+
+  /**
+   * Callback to be used in ImportDirective#analyze()
+   * @param directive must already be analyzed
+   */
+  public void addImplicitDirective(final ImportDirective directive) {
+    implicitDirectives.add(directive);
   }
 
   private static class SourceFilenameFilter implements FilenameFilter {

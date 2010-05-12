@@ -176,7 +176,8 @@ nonterminal ArrayList statementsInSwitch;
 nonterminal TypeRelation typeRelation;
 nonterminal Type type;
 nonterminal IdeType ideType;
-nonterminal CommaSeparatedList typeList;
+nonterminal IdeExpr ideExpr;
+nonterminal CommaSeparatedList ideList;
 nonterminal VariableDeclaration variableDeclaration;
 nonterminal VariableDeclaration optNextVariableDeclaration;
 
@@ -307,9 +308,9 @@ constOrVar ::=
 
 directive ::=
     IMPORT:i qualifiedIde:ide
-    {: RESULT = new ImportDirective(i,new IdeType(ide)); :}
-  | IMPORT:i qualifiedIde:ide DOT:dot MUL:all
-    {: RESULT = new ImportDirective(i,new IdeType(new QualifiedIde(ide,dot,all))); :}
+    {: RESULT = new ImportDirective(i,ide); :}
+  | IMPORT:i qualifiedIde:ide DOT:dot MUL:star
+    {: RESULT = new ImportDirective(i,new QualifiedIde(ide,dot,star)); :}
   | LBRACK:lb ide:ide RBRACK:rb
     {: RESULT = new Annotation(lb, ide, rb); :}
   | LBRACK:lb ide:ide LPAREN:lb2 annotationFields:af RPAREN:rb2 RBRACK:rb
@@ -329,7 +330,7 @@ nonEmptyAnnotationFields ::=
 
 annotationField ::=
     ide:name EQ:eq expr:value
-    {: RESULT = new ObjectField(new IdeExpr(name),eq,value); :}
+    {: RESULT = new ObjectField(name,eq,value); :}
   | expr:value
     {: RESULT = new ObjectField(null,null,value); :}
   ;
@@ -484,13 +485,13 @@ exprOrObjectLiteral ::=
 extends ::=
     {: RESULT = null; :}
   |
-    EXTENDS:e ideType:t
-    {: RESULT = new Extends(e,t); :}
+    EXTENDS:e qualifiedIde:ide
+    {: RESULT = new Extends(e,ide); :}
   ;
 
 interfaceExtends ::=
     {: RESULT = null; :}
-  | EXTENDS:i typeList:l
+  | EXTENDS:i ideList:l
     {: RESULT = new Implements(i,l); :}
   ;
 
@@ -522,7 +523,7 @@ ide ::=
 
 implements ::=
     {: RESULT = null; :}
-  | IMPLEMENTS:i typeList:l
+  | IMPLEMENTS:i ideList:l
     {: RESULT = new Implements(i,l); :}
   ;
 
@@ -571,6 +572,13 @@ modifiers ::=
     {: RESULT = list; list.add(0, m); :}
   ;
 
+namespacedIde ::=
+    ide:ide
+    {: RESULT = ide; :}
+  | modifier:namespace NAMESPACESEP:sep IDE:ide
+    {: RESULT = new NamespacedIde(namespace, sep, ide); :}
+  ;
+
 nonEmptyArguments ::=
     exprOrObjectLiteral:arg
     {: RESULT = new CommaSeparatedList(arg); :}
@@ -596,7 +604,7 @@ nonEmptyObjectFields ::=
 
 objectField ::=
     ide:name COLON:c exprOrObjectLiteral:value
-    {: RESULT = new ObjectField(new IdeExpr(name),c,value); :}
+    {: RESULT = new ObjectField(name,c,value); :}
   | STRING_LITERAL:l COLON:c exprOrObjectLiteral:value
     {: RESULT = new ObjectField(new LiteralExpr(l),c,value); :}
   | INT_LITERAL:l COLON:c exprOrObjectLiteral:value
@@ -689,13 +697,6 @@ qualifiedIde ::=
     {: RESULT = ide; :}
   | qualifiedIde:prefix DOT:d IDE:ide
     {: RESULT = new QualifiedIde(prefix, d, ide); :}
-  ;
-
-namespacedIde ::=
-    ide:ide
-    {: RESULT = ide; :}
-  | modifier:namespace NAMESPACESEP:sep IDE:ide
-    {: RESULT = new NamespacedIde(namespace, sep, ide); :}
   ;
 
 labelableStatement ::=
@@ -796,11 +797,16 @@ ideType ::=
     {: RESULT = new IdeType(ide); :}
   ;
 
-typeList ::=
-    ideType:t
-    {: RESULT = new CommaSeparatedList(t); :}
-  | type:t COMMA:c typeList:l
-    {: RESULT = new CommaSeparatedList(t,c,l); :}
+ideExpr ::=
+    qualifiedIde:ide
+    {: RESULT = new TopLevelIdeExpr(ide); :}
+  ;
+
+ideList ::=
+    qualifiedIde:ide
+    {: RESULT = new CommaSeparatedList<Ide>(ide); :}
+  | qualifiedIde:ide COMMA:c ideList:l
+    {: RESULT = new CommaSeparatedList<Ide>(ide,c,l); :}
   ;
 
 typeRelation ::=

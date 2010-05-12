@@ -29,15 +29,8 @@ public class Ide extends NodeImplBase {
   }
 
   @Override
-  public Node analyze(Node parentNode, AnalyzeContext context) {
+  public Node analyze(final Node parentNode, final AnalyzeContext context) {
     super.analyze(parentNode, context);
-    Scope declaringScope = context.getScope().findScopeThatDeclares(this);
-    if (declaringScope != null) {
-      Node ideDeclaration = declaringScope.getIdeDeclaration(this);
-      if (ideDeclaration instanceof ImportDirective) {
-        ((ImportDirective)ideDeclaration).wasUsed(context.getCurrentClass());
-      }
-    }
     return this;
   }
 

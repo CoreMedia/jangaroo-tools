@@ -24,6 +24,7 @@ import java.util.Set;
 
 /**
  * @author Andreas Gawecki
+ * @author Frank Wienberg
  */
 public class ClassDeclaration extends IdeDeclaration {
 
@@ -205,19 +206,6 @@ public class ClassDeclaration extends IdeDeclaration {
   public boolean isPrivateStaticMember(String memberName) {
     MemberDeclaration memberDeclaration = getMemberDeclaration(memberName);
     return memberDeclaration != null && memberDeclaration.isPrivate() && memberDeclaration.isStatic();
-  }
-
-  public Type getSuperClassType() {
-    return optExtends != null
-        ? optExtends.superClass
-        : new IdeType(new Ide(new JooSymbol("Object")));
-  }
-
-  public String getSuperClassPath() {
-    Type type = getSuperClassType();
-    //TODO: scope class declarations, implement getSuperClassDeclaration()
-    IdeType ideType = (IdeType) type;
-    return ideType.getIde().getQualifiedNameStr();
   }
 
   public void addBoundMethodCandidate(String memberName) {

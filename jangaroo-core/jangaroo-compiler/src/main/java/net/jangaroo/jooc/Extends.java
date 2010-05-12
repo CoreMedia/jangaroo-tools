@@ -22,13 +22,9 @@ import java.io.IOException;
  */
 public class Extends extends NodeImplBase  {
   JooSymbol symExtends;
-  IdeType superClass;
+  Ide superClass;
 
-  public Type getSuperClass() {
-    return superClass;
-  }
-
-  public Extends(JooSymbol extds, IdeType superClass) {
+  public Extends(JooSymbol extds, Ide superClass) {
     this.symExtends = extds;
     this.superClass = superClass;
   }
@@ -37,6 +33,7 @@ public class Extends extends NodeImplBase  {
   public Node analyze(Node parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     superClass.analyze(this, context);
+    context.getScope().addExternalUsage(superClass);
     return this;
   }
 

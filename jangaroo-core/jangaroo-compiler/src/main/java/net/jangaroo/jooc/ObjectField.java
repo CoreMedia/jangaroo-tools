@@ -22,35 +22,36 @@ import java.io.IOException;
  */
 class ObjectField extends NodeImplBase {
 
-  Expr nameExpr;
+  Node label;
   JooSymbol symColon;
   Expr value;
 
-  public ObjectField(Expr nameExpr, JooSymbol symColon, Expr value) {
-    this.nameExpr = nameExpr;
+  public ObjectField(Node node, JooSymbol symColon, Expr value) {
+    assert node instanceof Ide || node instanceof LiteralExpr;
+    this.label = node;
     this.symColon = symColon;
     this.value = value;
   }
 
   public Node analyze(Node parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
-    if (nameExpr!=null) {
-      nameExpr = nameExpr.analyze(this, context);
+    if (label !=null) {
+      label = label.analyze(this, context);
     }
     value = value.analyze(this, context);
     return this;
   }
 
   public void generateCode(JsWriter out) throws IOException {
-    if (nameExpr!=null) {
-      nameExpr.generateCode(out);
+    if (label !=null) {
+      label.generateCode(out);
       out.writeSymbol(symColon);
     }
     value.generateCode(out);
   }
 
   public JooSymbol getSymbol() {
-    return nameExpr.getSymbol();
+    return label.getSymbol();
   }
 
 

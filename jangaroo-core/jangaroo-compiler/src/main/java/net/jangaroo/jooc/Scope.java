@@ -147,13 +147,13 @@ class Scope {
     return loopOrSwitchStatementStack.get(loopOrSwitchStatementStack.size() - 1);
   }
 
-  public void addExternalUsage(IdeExpr ideExpr) {
-    String fqn = ideExpr.ide.getQualifiedNameStr();
+  public void addExternalUsage(Ide ide) {
+    String fqn = ide.getQualifiedNameStr();
     Scope packageScope = findScopeThatDeclares(fqn);
     if (packageScope != null) {
       Node classImport = packageScope.getIdeDeclaration(fqn);
       if (classImport instanceof ImportDirective) {
-        ((ImportDirective)classImport).wasUsed(getClassDeclaration());
+        ((ImportDirective)classImport).wasUsed();
       }
     }
   }

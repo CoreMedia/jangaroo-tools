@@ -34,12 +34,6 @@ class NewExpr extends Expr {
   public Expr analyze(Node parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     applyConstructor = applyConstructor.analyze(this, context);
-    if (applyConstructor instanceof ApplyExpr) {
-      Expr funExpr = ((ApplyExpr)applyConstructor).fun;
-      if (funExpr instanceof IdeExpr) {
-        context.getScope().addExternalUsage((IdeExpr)funExpr);
-      }
-    }
     if (args != null)
       args.analyze(this, context);
     return this;

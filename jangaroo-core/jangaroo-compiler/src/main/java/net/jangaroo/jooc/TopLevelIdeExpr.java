@@ -42,6 +42,9 @@ class TopLevelIdeExpr extends IdeExpr {
     scope = context.getScope();
     if (scope!=null) {
       Scope declaringScope = scope.findScopeThatDeclares(ide);
+      if (declaringScope != null) {
+        scope.addExternalUsage(ide);
+      }
       if (declaringScope==null || declaringScope.getDeclaration() instanceof ClassDeclaration) {
         // move ide's white-space in front of the newly introduced "this.":
         JooSymbol thisSymbol = new JooSymbol(sym.THIS, ide.ide.fileName, ide.ide.line, ide.ide.column, ide.ide.whitespace, "this");

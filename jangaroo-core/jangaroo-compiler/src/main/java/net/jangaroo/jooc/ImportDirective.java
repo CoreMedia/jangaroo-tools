@@ -16,6 +16,7 @@
 package net.jangaroo.jooc;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * @author Andreas Gawecki
@@ -27,25 +28,25 @@ public class ImportDirective extends NodeImplBase {
   private static final JooSymbol DOT_SYMBOL = new JooSymbol(sym.DOT, ".");
 
   JooSymbol importKeyword;
-  Type type;
+  Ide ide;
   private final boolean explicit;
   private boolean used = false;
 
   private static Ide createIde(Ide prefix, JooSymbol symIde) {
-    return prefix==null ? new Ide(symIde) : new QualifiedIde(prefix, DOT_SYMBOL, symIde);
+    return prefix == null ? new Ide(symIde) : new QualifiedIde(prefix, DOT_SYMBOL, symIde);
   }
 
   public ImportDirective(Ide packageIde, String typeName) {
-    this(IMPORT_SYMBOL, new IdeType(createIde(packageIde, new JooSymbol(typeName))), false);
+    this(IMPORT_SYMBOL, createIde(packageIde, new JooSymbol(typeName)), false);
   }
 
-  public ImportDirective(JooSymbol importKeyword, Type type) {
-    this(importKeyword, type, true);
+  public ImportDirective(JooSymbol importKeyword, Ide ide) {
+    this(importKeyword, ide, true);
   }
 
-  private ImportDirective(JooSymbol importKeyword, Type type, boolean explicit) {
+  private ImportDirective(JooSymbol importKeyword, Ide ide, boolean explicit) {
     this.importKeyword = importKeyword;
-    this.type = type;
+    this.ide = ide;
     this.explicit = explicit;
   }
 
@@ -53,48 +54,55 @@ public class ImportDirective extends NodeImplBase {
     return used;
   }
 
-  public void wasUsed(ClassDeclaration classDeclaration) {
-    if (!used) {
-      if (classDeclaration==null || !classDeclaration.getIde().getQualifiedNameStr().equals(((IdeType)type).getIde().getQualifiedNameStr())) {
-        used = true;
-      }
-    }
+  public void wasUsed() {
+    used = true;
   }
 
   @Override
   public Node analyze(Node parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
-    if (type instanceof IdeType) {
-      Ide ide = ((IdeType)type).ide;
-      if (ide instanceof QualifiedIde) {
-        context.getCurrentPackage().addImport((QualifiedIde)ide);
+    String typeName = ide.getName();
+    Scope packageScope = context.getScope();
+    Ide packageIde = null;
+    String packageName = "";
+    if (ide instanceof QualifiedIde) {
+      packageIde = ((QualifiedIde) ide).prefix;
+      packageName = packageIde.getQualifiedNameStr();
+      context.getCurrentPackage().addImport((QualifiedIde) ide);
+    }
+    if ("*".equals(typeName)) {
+      final CompilationUnit compilationUnit = context.getScope().getCompilationUnit();
+      final List<String> ides = compilationUnit.getPackageIdes(packageName);
+      for (String typeToImport : ides) {
+        ImportDirective importDirective = new ImportDirective(packageIde, typeToImport);
+        importDirective.analyze(parentNode, context);
+        compilationUnit.addImplicitDirective(importDirective);
+        //System.out.println("*** adding implicit import " + importDirective.getQualifiedName());
       }
-      String typeName = ide.getName();
-      if (!"*".equals(typeName)) {
-        context.getScope().declareIde(typeName, this);
-        // also add the fully qualified name (might be the same string for top level imports):
-        context.getScope().declareIde(ide.getQualifiedNameStr(), this);
-      }
+    } else {
+      packageScope.declareIde(typeName, this);
+      // also add the fully qualified name (might be the same string for top level imports):
+      packageScope.declareIde(ide.getQualifiedNameStr(), this);
     }
     return this;
   }
 
   public String getQualifiedName() {
-    return ((IdeType)type).ide.getQualifiedNameStr();
+    return ide.getQualifiedNameStr();
   }
 
   public void generateCode(JsWriter out) throws IOException {
     if (used || explicit) {
       out.beginString();
       out.writeSymbol(importKeyword);
-      type.generateCode(out);
+      ide.generateCode(out);
       out.endString();
       out.writeToken(",");
     }
   }
 
   public JooSymbol getSymbol() {
-      return importKeyword;
+    return importKeyword;
   }
 
 }

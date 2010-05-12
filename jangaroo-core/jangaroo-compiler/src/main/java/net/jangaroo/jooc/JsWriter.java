@@ -61,10 +61,6 @@ public final class JsWriter extends FilterWriter {
     return options.isEnableAssertions();
   }
 
-  public Writer getTarget() {
-    return out;
-  }
-
   public void writeInt(int value) throws IOException {
     if (shouldWrite()) {
       write(String.valueOf(value));
@@ -292,6 +288,7 @@ public final class JsWriter extends FilterWriter {
    * @param symbol  the symbol to write
    * @param prefix  a (possibly empty) string to write before the symbol token string
    * @param postfix a (possibly empty) string to write after the symbol token string
+   * @throws java.io.IOException if an IO error occurs
    */
   public void writeSymbol(JooSymbol symbol, String prefix, String postfix) throws IOException {
     writeSymbolWhitespace(symbol);
@@ -365,18 +362,8 @@ public final class JsWriter extends FilterWriter {
     return result.toString();
   }
 
-  public String getCompatibilityName(String name) {
-    return name.replace('$', '_');
-  }
-
   public String getQualifiedNameAsIde(IdeDeclaration ideDeclaration) {
     return qualifiedNameToIde(ideDeclaration.getQualifiedName());
-  }
-
-  public String getMethodNameAsIde(MethodDeclaration methodDeclaration) {
-    ClassDeclaration classDeclaration = methodDeclaration.getClassDeclaration();
-    String classNameAsIde = getQualifiedNameAsIde(classDeclaration);
-    return classNameAsIde + "$" + methodDeclaration.getName();
   }
 
   public String getFunctionNameAsIde(FunctionExpr functionExpr) {
@@ -387,41 +374,6 @@ public final class JsWriter extends FilterWriter {
     }
     JooSymbol sym = functionExpr.getSymbol();
     return classNameAsIde + "$" + sym.getLine() + "_" + sym.getColumn();
-  }
-
-  public String getSuperClassNameAsIde(ClassDeclaration classDeclaration) {
-    Type type = classDeclaration.getSuperClassType();
-    //TODO: define ApplyType
-    //TODO: scope class declarations, implement getSuperClassDeclaration()
-    IdeType ideType = (IdeType) type;
-    return qualifiedNameToIde(ideType.getIde().getQualifiedName());
-  }
-
-  public String getSuperMethodName(MethodDeclaration methodDeclaration) {
-    return getSuperMethodName(methodDeclaration.getClassDeclaration(), methodDeclaration.getName());
-  }
-
-  public String getSuperMethodName(ClassDeclaration classDeclaration, String methodName) {
-    return getSuperMethodName(getSuperClassNameAsIde(classDeclaration), methodName);
-  }
-
-  public String getSuperConstructorNameAsIde(ClassDeclaration classDeclaration) {
-    MethodDeclaration constructorDeclaration = classDeclaration.getConstructorDeclaration();
-    String superClassName = getSuperClassNameAsIde(constructorDeclaration.getClassDeclaration());
-    return "super$" + superClassName;
-  }
-
-  //TODO:make private once we scope classes and super calls:
-  private String getSuperMethodName(String className, String methodName) {
-    return "super$" + className + "$" + methodName;
-  }
-
-  public String getPrototypeHelperVariableName(ClassDeclaration classDeclaration) {
-    return "$";
-  }
-
-  public String getConstructorHelperVariableName(ClassDeclaration classDeclaration) {
-    return "$";
   }
 
   public void close() throws IOException {

@@ -22,9 +22,9 @@ import java.io.IOException;
  */
 class Implements extends NodeImplBase {
   JooSymbol symImplements;
-  CommaSeparatedList<Type> superTypes;
+  CommaSeparatedList<Ide> superTypes;
 
-  public Implements(JooSymbol symImplements, CommaSeparatedList<Type> superTypes) {
+  public Implements(JooSymbol symImplements, CommaSeparatedList<Ide> superTypes) {
     this.symImplements = symImplements;
     this.superTypes = superTypes;
   }
@@ -33,6 +33,12 @@ class Implements extends NodeImplBase {
   public Node analyze(Node parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     superTypes.analyze(this, context);
+    CommaSeparatedList<Ide> superTypes = this.superTypes;
+    while (superTypes != null) {
+      Ide superType = superTypes.head;
+      context.getScope().addExternalUsage(superType);
+      superTypes = superTypes.tail;
+    }
     return this;
   }
 
