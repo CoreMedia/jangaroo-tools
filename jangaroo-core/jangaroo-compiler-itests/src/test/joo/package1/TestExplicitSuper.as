@@ -15,7 +15,7 @@
 
 package package1 {
 
-public class TestExplicitSuper extends TestInitializers {
+public class TestExplicitSuper extends package1.TestInitializers {
 
   public function TestExplicitSuper() {
     super();

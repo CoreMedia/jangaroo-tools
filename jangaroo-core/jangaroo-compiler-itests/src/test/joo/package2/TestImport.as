@@ -30,6 +30,15 @@ public class TestImport extends TestMethodCall {
 
   public static function main() : String {
     var testImport : TestImport  = new TestImport();
+
+    var cti  :ClassToImport = new ClassToImport();
+    cti.setX("foo");
+    assert(cti.getX() === "foo");
+
+    var tcti  :ToplevelClassToImport = new ToplevelClassToImport();
+    tcti.setX("foo");
+    assert(tcti.getX() === "foo");
+
     return TEST_CLASS_INIT + "/" + (testImport.m(-19) + TestSubPackage.test());
   }
 

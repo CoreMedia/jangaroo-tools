@@ -19,25 +19,31 @@ public class TestInitializers {
 
   public function TestInitializers() {
     this.slot2 = this.slot1 + 1;
+    assert(slot3.nolabel === 1);
+    assert(slot3.alsonolabel === 2);
+    assert(slot3[33] === 33);
+    assert(slot3["44"] === 44);    
   }
 
   protected var slot1 : int = 1;
   protected var slot2 : int;
   protected var slot3 : Object = {
     nolabel: 1,
-    alsonolabel: 2
+    alsonolabel: 2,
+    33: 33,
+    "44": 44
   };
 
   public function getSlot1() :int {
-    return this.slot1;
+    return slot1;
   }
 
   public function getSlot2() :int {
-    return this.slot2;
+    return slot2;
   }
 
   public function getSlot3() :Object {
-    return this.slot3;
+    return slot3;
   }
 
 }
