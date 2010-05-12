@@ -17,8 +17,6 @@
 
 package joo {
 
-// this makes jooc generate a with(joo) statement:
-import joo.*;
 import Error;
 
 public class DynamicClassLoader extends joo.StandardClassLoader {
@@ -112,8 +110,8 @@ public class DynamicClassLoader extends joo.StandardClassLoader {
 
   private function load(fullClassName : String) : void {
     if (!this.getClassDeclaration(fullClassName)) {
-      if (joo__loadClasses) {
-        joo__loadClasses(fullClassName);
+      if (window.joo__loadClasses) {
+        window.joo__loadClasses(fullClassName);
         return;
       }
       if (this.onCompleteCallbacks.length==0) {

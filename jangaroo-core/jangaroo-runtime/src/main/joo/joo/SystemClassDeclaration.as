@@ -17,9 +17,6 @@
 
 package joo {
 
-// this makes jooc generate a with(joo) statement:
-import joo.*;
-
 public class SystemClassDeclaration extends NativeClassDeclaration {
 
   protected static function createDefaultConstructor(superName : String) : Function {

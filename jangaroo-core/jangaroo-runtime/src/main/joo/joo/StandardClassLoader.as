@@ -17,9 +17,6 @@
 
 package joo {
 
-// this makes jooc generate a with(joo) statement:
-import joo.*;
-
 public class StandardClassLoader extends joo.SystemClassLoader {
 
   private static var classDeclarations : Array = [];
@@ -81,7 +78,7 @@ public class StandardClassLoader extends joo.SystemClassLoader {
    * @param classes the classes (type Function) to initialize.
    * @return Function the initialized class (constructor function).
    */
-  public function init(... classes) : Function {
+  public override function init(... classes) : Function {
     var clazz : Function;
     for (var i:int=0; i<classes.length; ++i) {
       if ("$class" in classes[i]) {

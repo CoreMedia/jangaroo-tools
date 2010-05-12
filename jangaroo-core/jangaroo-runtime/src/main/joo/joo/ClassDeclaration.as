@@ -17,9 +17,6 @@
 
 package joo {
 
-// this makes jooc generate a with(joo) statement:
-import joo.*;
-
 public class ClassDeclaration extends joo.SystemClassDeclaration {
 
   private var importMap : ImportMap;

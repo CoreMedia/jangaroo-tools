@@ -17,9 +17,6 @@
 
 package joo {
 
-// this makes jooc generate a with(joo) statement:
-import joo.*;
-
 public class SystemClassLoader {
 
 {
@@ -80,5 +77,8 @@ public class SystemClassLoader {
     return new NativeClassDeclaration().create(fullClassName, nativeClass);
   }
 
+   public function init(... classes) :void {
+        // ignore
+   }
 }
 }
