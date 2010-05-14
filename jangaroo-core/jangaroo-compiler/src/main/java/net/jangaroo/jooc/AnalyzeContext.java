@@ -15,7 +15,6 @@
 
 package net.jangaroo.jooc;
 
-import net.jangaroo.jooc.config.JoocConfiguration;
 import net.jangaroo.jooc.config.JoocOptions;
 
 /**
@@ -31,11 +30,11 @@ public class AnalyzeContext {
     this.config = config;
   }
 
-  public void enterScope(Node declaration) {
+  public void enterScope(AstNode declaration) {
     scope = new Scope(declaration, scope);
   }
 
-  public void leaveScope(Node declaration) {
+  public void leaveScope(AstNode declaration) {
     if (declaration != scope.getDeclaration())
       throw Jooc.error("internal error: wrong scope to leave");
     scope = scope.getParentScope();

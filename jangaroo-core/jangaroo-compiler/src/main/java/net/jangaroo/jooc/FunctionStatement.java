@@ -16,8 +16,6 @@
 package net.jangaroo.jooc;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.ArrayList;
 
 /**
  * @author Frank Wienberg
@@ -31,7 +29,7 @@ class FunctionStatement extends Statement {
   }
 
   @Override
-  public Node analyze(Node parentNode, AnalyzeContext context) {
+  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     fun.analyze(this, context);
     return this;

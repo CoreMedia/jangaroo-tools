@@ -32,7 +32,7 @@ class LabeledStatement extends Statement {
     this.statement = statement;
   }
 
-  public Node analyze(Node parentNode, AnalyzeContext context) {
+  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     statement.analyze(this, context);
     return this;

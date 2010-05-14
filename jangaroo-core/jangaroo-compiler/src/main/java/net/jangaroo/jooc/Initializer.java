@@ -30,7 +30,7 @@ class Initializer extends NodeImplBase {
     this.value = value;
   }
 
-  public Node analyze(Node parentNode, AnalyzeContext context) {
+  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     value = value.analyze(this, context);
     return this;

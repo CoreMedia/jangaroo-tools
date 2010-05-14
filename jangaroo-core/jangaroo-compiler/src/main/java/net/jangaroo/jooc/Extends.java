@@ -30,7 +30,7 @@ public class Extends extends NodeImplBase  {
   }
 
   @Override
-  public Node analyze(Node parentNode, AnalyzeContext context) {
+  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     superClass.analyze(this, context);
     context.getScope().addExternalUsage(superClass);

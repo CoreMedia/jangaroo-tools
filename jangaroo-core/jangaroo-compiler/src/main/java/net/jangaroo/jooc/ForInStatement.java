@@ -86,7 +86,7 @@ class ForInStatement extends LoopStatement {
       ArrayIndexExpr indexExpr = new ArrayIndexExpr(expr, SYM_LBRACK,
           new CommaSeparatedList<IdeExpr>(new IdeExpr(auxIde)),
           SYM_RBRACK);
-      Node assignment = new SemicolonTerminatedStatement(decl != null
+      AstNode assignment = new SemicolonTerminatedStatement(decl != null
           ? new VariableDeclaration(SYM_VAR, decl.ide, decl.optTypeRelation, new Initializer(SYM_EQ, indexExpr))
           : new AssignmentOpExpr(new IdeExpr(ide), SYM_EQ, indexExpr),
           SYM_SEMICOLON);

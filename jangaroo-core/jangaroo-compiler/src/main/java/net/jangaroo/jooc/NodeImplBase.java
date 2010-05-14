@@ -23,24 +23,24 @@ import java.util.List;
 /**
  * @author Andreas Gawecki
  */
-public abstract class NodeImplBase implements Node {
+public abstract class NodeImplBase implements AstNode {
 
-  Node parentNode;
+  AstNode parentNode;
 
-  void generateCode(Collection<? extends Node> nodes, JsWriter out) throws IOException {
-    for (Node node : nodes) {
+  void generateCode(Collection<? extends AstNode> nodes, JsWriter out) throws IOException {
+    for (AstNode node : nodes) {
       node.generateCode(out);
     }
   }
 
-  public Node analyze(Node parentNode, AnalyzeContext context) {
+  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
     this.parentNode = parentNode;
     return this;
   }
 
-  public <N extends Node> List<N> analyze(Node parent, List<N> nodes, AnalyzeContext context) {
+  public <N extends AstNode> List<N> analyze(AstNode parent, List<N> nodes, AnalyzeContext context) {
     List<N> result = new ArrayList<N>(nodes.size());
-    for (Node node : nodes) {
+    for (AstNode node : nodes) {
       result.add((N)node.analyze(parent, context));
     }
     return result;

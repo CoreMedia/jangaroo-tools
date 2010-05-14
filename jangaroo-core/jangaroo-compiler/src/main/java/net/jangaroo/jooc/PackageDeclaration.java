@@ -68,7 +68,7 @@ public class PackageDeclaration extends IdeDeclaration  {
     out.write(",");
   }
 
-  public Node analyze(Node parentNode, AnalyzeContext context) {
+  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
     // do *not* call super!
     this.parentNode = parentNode;
     return this;

@@ -39,7 +39,7 @@ class ObjectLiteral extends Expr {
     out.writeSymbol(rParen);
   }
 
-  public Expr analyze(Node parentNode, AnalyzeContext context) {
+  public Expr analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     if (fields != null)
       fields.analyze(this, context);

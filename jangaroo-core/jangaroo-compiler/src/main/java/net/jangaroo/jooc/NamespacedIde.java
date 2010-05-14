@@ -41,7 +41,7 @@ public class NamespacedIde extends Ide {
     }
   }
   @Override
-  public Node analyze(Node parentNode, AnalyzeContext context) {
+  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
     warnUndefinedNamespace(context, namespace);
     return super.analyze(parentNode, context);
   }

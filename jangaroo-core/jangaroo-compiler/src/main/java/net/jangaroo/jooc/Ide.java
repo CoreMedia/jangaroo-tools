@@ -29,7 +29,7 @@ public class Ide extends NodeImplBase {
   }
 
   @Override
-  public Node analyze(final Node parentNode, final AnalyzeContext context) {
+  public AstNode analyze(final AstNode parentNode, final AnalyzeContext context) {
     super.analyze(parentNode, context);
     return this;
   }

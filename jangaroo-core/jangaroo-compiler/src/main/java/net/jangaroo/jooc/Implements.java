@@ -30,7 +30,7 @@ class Implements extends NodeImplBase {
   }
 
   @Override
-  public Node analyze(Node parentNode, AnalyzeContext context) {
+  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     superTypes.analyze(this, context);
     CommaSeparatedList<Ide> superTypes = this.superTypes;

@@ -31,7 +31,7 @@ class SuperConstructorCallStatement extends Statement {
     this.args = new ParenthesizedExpr<CommaSeparatedList<Expr>>(lParen, args, rParen);
   }
 
-  public Node analyze(Node parentNode, AnalyzeContext context) {
+  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     MethodDeclaration method = context.getCurrentMethod();
     if (method == null || !method.isConstructor()) {

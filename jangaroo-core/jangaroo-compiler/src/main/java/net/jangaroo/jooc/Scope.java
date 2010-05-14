@@ -25,15 +25,15 @@ import java.util.Map;
  */
 class Scope {
 
-  protected Node ideDeclaration;
+  protected AstNode ideDeclaration;
   protected Scope parent;
 
-  public Scope(Node ideDeclaration, Scope parent) {
+  public Scope(AstNode ideDeclaration, Scope parent) {
     this.ideDeclaration = ideDeclaration;
     this.parent = parent;
   }
 
-  public Node getDeclaration() {
+  public AstNode getDeclaration() {
     return ideDeclaration;
   }
 
@@ -41,17 +41,17 @@ class Scope {
     return parent;
   }
 
-  protected Map<String, Node> ides = new HashMap<String, Node>();
+  protected Map<String, AstNode> ides = new HashMap<String, AstNode>();
   protected List<LabeledStatement> labels = new ArrayList<LabeledStatement>();
   protected List<LoopStatement> loopStatementStack = new ArrayList<LoopStatement>();
   protected List<KeywordStatement> loopOrSwitchStatementStack = new ArrayList<KeywordStatement>();
 
-  public Node declareIde(String name, Node decl) {
+  public AstNode declareIde(String name, AstNode decl) {
     return ides.put(name, decl);
   }
 
-  public Node declareIde(String name, Node node, boolean allowDuplicates, JooSymbol ideSymbol) {
-    Node oldNode = declareIde(name, node);
+  public AstNode declareIde(String name, AstNode node, boolean allowDuplicates, JooSymbol ideSymbol) {
+    AstNode oldNode = declareIde(name, node);
     if (oldNode != null) {
       String msg = "Duplicate declaration of identifier '" + name + "'";
       if (allowDuplicates) {
@@ -73,11 +73,11 @@ class Scope {
     throw Jooc.error(ide.ide, "undeclared label '" + name + "'");
   }
 
-  public Node getIdeDeclaration(Ide ide) {
+  public AstNode getIdeDeclaration(Ide ide) {
     return getIdeDeclaration(ide.getName());
   }
 
-  public Node getIdeDeclaration(String name) {
+  public AstNode getIdeDeclaration(String name) {
     return ides.get(name);
   }
 
@@ -91,7 +91,7 @@ class Scope {
         : getParentScope().findScopeThatDeclares(name);
   }
 
-  public Node lookupIde(Ide ide) {
+  public AstNode lookupIde(Ide ide) {
     Scope scope = findScopeThatDeclares(ide);
     if (scope == null) {
       throw Jooc.error(ide.ide, "undeclared identifier: '" + ide.getName() + "'");
@@ -151,7 +151,7 @@ class Scope {
     String fqn = ide.getQualifiedNameStr();
     Scope packageScope = findScopeThatDeclares(fqn);
     if (packageScope != null) {
-      Node classImport = packageScope.getIdeDeclaration(fqn);
+      AstNode classImport = packageScope.getIdeDeclaration(fqn);
       if (classImport instanceof ImportDirective) {
         ((ImportDirective)classImport).wasUsed();
       }

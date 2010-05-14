@@ -15,15 +15,16 @@
 
 package net.jangaroo.jooc;
 
-import java.io.IOException;
-
 /**
  * @author Andreas Gawecki
  */
-interface Node extends CodeGenerator {
+interface AstNode extends CodeGenerator {
 
   JooSymbol getSymbol();
 
-  Node analyze(Node parentNode, AnalyzeContext context);
+  //void accept(AstVisitor visitor);
+  AstNode analyze(AstNode parentNode, AnalyzeContext context);
+
+
 
 }

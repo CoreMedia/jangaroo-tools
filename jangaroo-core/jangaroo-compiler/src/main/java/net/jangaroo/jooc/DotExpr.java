@@ -33,7 +33,7 @@ class DotExpr extends BinaryOpExpr {
     return ((IdeExpr)arg2).ide;
   }
 
-  public Expr analyze(Node parentNode, AnalyzeContext context) {
+  public Expr analyze(AstNode parentNode, AnalyzeContext context) {
     this.classDeclaration = context.getCurrentClass();
     // check candidates for instance methods declared in same file, accessed as function:
     if (this.classDeclaration !=null) {

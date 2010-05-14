@@ -68,7 +68,7 @@ class ApplyExpr extends Expr {
   }
 
   private boolean isInsideNewExpr() {
-    Node node = this;
+    AstNode node = this;
     do {
       node = ((NodeImplBase)node).parentNode;
       if (node instanceof NewExpr) {
@@ -78,7 +78,7 @@ class ApplyExpr extends Expr {
     return false;
   }
 
-  public Expr analyze(Node parentNode, AnalyzeContext context) {
+  public Expr analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     fun = fun.analyze(this, context);
     scope = context.getScope();

@@ -37,7 +37,7 @@ public class IdeType extends Type {
   }
 
   @Override
-  public Node analyze(Node parentNode, AnalyzeContext context) {
+  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     ide.analyze(this, context);
     return this;

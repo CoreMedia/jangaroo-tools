@@ -40,7 +40,7 @@ class TryStatement extends KeywordStatement {
     this.finallyBlock = finallyBlock;
   }
 
-  public Node analyze(Node parentNode, AnalyzeContext context) {
+  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     block.analyze(this, context);
     catches = analyze(this, catches, context);

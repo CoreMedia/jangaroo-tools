@@ -35,8 +35,8 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
 
   private PackageDeclaration packageDeclaration;
   private JooSymbol lBrace;
-  private List<Node> directives;
-  private List<Node> implicitDirectives = new ArrayList<Node>(10);
+  private List<AstNode> directives;
+  private List<AstNode> implicitDirectives = new ArrayList<AstNode>(10);
   private IdeDeclaration primaryDeclaration;
   private JooSymbol rBrace;
   private Collection<File> sourcePath = new LinkedHashSet<File>();
@@ -45,7 +45,7 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
 
   protected JsWriter out;
 
-  public CompilationUnit(PackageDeclaration packageDeclaration, JooSymbol lBrace, List<Node> directives, IdeDeclaration primaryDeclaration, JooSymbol rBrace) {
+  public CompilationUnit(PackageDeclaration packageDeclaration, JooSymbol lBrace, List<AstNode> directives, IdeDeclaration primaryDeclaration, JooSymbol rBrace) {
     this.packageDeclaration = packageDeclaration;
     this.lBrace = lBrace;
     this.directives = directives;
@@ -96,9 +96,9 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
     packageDeclaration.generateCode(out);
     out.writeSymbolWhitespace(lBrace);
     out.write("[");
-    Collection<Node> allDirectives = implicitDirectives;
+    Collection<AstNode> allDirectives = implicitDirectives;
     if (directives != null) {
-      allDirectives = new ArrayList<Node>(implicitDirectives.size()+directives.size());
+      allDirectives = new ArrayList<AstNode>(implicitDirectives.size()+directives.size());
       allDirectives.addAll(implicitDirectives);
       allDirectives.addAll(directives);
     }
@@ -107,7 +107,7 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
     primaryDeclaration.generateCode(out);
     out.write(",[");
     boolean first = true;
-    for (Node node : allDirectives) {
+    for (AstNode node : allDirectives) {
       if (node instanceof ImportDirective) {
         ImportDirective importDirective = (ImportDirective) node;
         if (importDirective.isUsed()) {
@@ -126,7 +126,7 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
     out.write(");");
   }
 
-  public Node analyze(Node parentNode, AnalyzeContext context) {
+  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
     // establish global scope for built-in identifiers:
     IdeType globalObject = new IdeType("globalObject");
     context.enterScope(globalObject);

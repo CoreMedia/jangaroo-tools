@@ -25,11 +25,11 @@ class ThisExpr extends IdeExpr {
   }
 
   @Override
-  public Expr analyze(Node parentNode, AnalyzeContext context) {
+  public Expr analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     Scope scope = context.getScope();
     while (scope!=null) {
-      Node scopeDecl = scope.getDeclaration();
+      AstNode scopeDecl = scope.getDeclaration();
       if (scopeDecl instanceof FunctionExpr) {
         ((FunctionExpr)scopeDecl).notifyThisUsed(context);
       }

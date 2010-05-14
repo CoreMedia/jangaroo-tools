@@ -37,7 +37,7 @@ class TopLevelIdeExpr extends IdeExpr {
   }
 
   @Override
-  public Expr analyze(Node parentNode, AnalyzeContext context) {
+  public Expr analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     scope = context.getScope();
     if (scope!=null) {
@@ -99,7 +99,7 @@ class TopLevelIdeExpr extends IdeExpr {
         Jooc.warning(ide.getSymbol(), warningMsg);
         return !maybeInScope && options.isEnableGuessingMembers();
       } else if (declaringScope.getDeclaration() instanceof ClassDeclaration) {
-        Node ideDeclaration = declaringScope.getIdeDeclaration(ide);
+        AstNode ideDeclaration = declaringScope.getIdeDeclaration(ide);
         if (ideDeclaration instanceof MemberDeclaration) {
           MemberDeclaration memberDeclaration = (MemberDeclaration)ideDeclaration;
           return !memberDeclaration.isStatic() && !memberDeclaration.isConstructor();

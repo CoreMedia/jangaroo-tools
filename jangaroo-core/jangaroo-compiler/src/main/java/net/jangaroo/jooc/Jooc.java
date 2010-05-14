@@ -27,8 +27,6 @@ import java.io.InputStreamReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedHashSet;
 import java.util.List;
 
 /**
@@ -147,7 +145,7 @@ public class Jooc {
     return new CompilerError(symbol, msg);
   }
 
-  public static CompilerError error(Node node, String msg) {
+  public static CompilerError error(AstNode node, String msg) {
     return error(node.getSymbol(), msg);
   }
 

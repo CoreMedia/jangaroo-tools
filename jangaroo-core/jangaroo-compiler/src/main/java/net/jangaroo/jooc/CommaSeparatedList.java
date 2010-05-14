@@ -20,7 +20,7 @@ import java.io.IOException;
 /**
  * @author Andreas Gawecki
  */
-class CommaSeparatedList<NodeType extends Node> extends Expr {
+class CommaSeparatedList<NodeType extends AstNode> extends Expr {
   NodeType head;
   JooSymbol symComma;
   CommaSeparatedList<NodeType> tail;
@@ -48,7 +48,7 @@ class CommaSeparatedList<NodeType extends Node> extends Expr {
   }
 
 
-  public Expr analyze(Node parentNode, AnalyzeContext context) {
+  public Expr analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     head.analyze(this, context);
     if (tail != null)

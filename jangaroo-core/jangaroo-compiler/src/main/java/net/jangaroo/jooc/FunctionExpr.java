@@ -47,10 +47,10 @@ class FunctionExpr extends Expr {
     return parentDeclaration;
   }
 
-  public Expr analyze(Node parentNode, AnalyzeContext context) {
+  public Expr analyze(AstNode parentNode, AnalyzeContext context) {
     parentDeclaration = context.getCurrentClass();
     if (parentDeclaration == null) {
-      Node declaration = context.getScope().getDeclaration();
+      AstNode declaration = context.getScope().getDeclaration();
       if (declaration instanceof IdeDeclaration) {
         parentDeclaration = (IdeDeclaration) declaration;
       }

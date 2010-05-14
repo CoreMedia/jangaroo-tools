@@ -137,7 +137,7 @@ nonterminal FunctionExpr namedFunctionExpr;
 nonterminal Ide ide;
 nonterminal Implements implements;
 nonterminal Implements interfaceExtends;
-nonterminal Node directive;
+nonterminal AstNode directive;
 nonterminal ArrayList optDirectives;
 nonterminal Expr lvalue;
 nonterminal MethodDeclaration methodDeclaration;

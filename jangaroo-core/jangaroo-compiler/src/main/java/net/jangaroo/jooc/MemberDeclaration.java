@@ -62,7 +62,7 @@ public abstract class MemberDeclaration extends IdeDeclaration {
     return false;
   }
 
-  public Node analyze(Node parentNode, AnalyzeContext context) {
+  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
     ClassDeclaration classDeclaration = context.getCurrentClass();
     Scope scope = context.getScope();
     if (classDeclaration==scope.getDeclaration() && isStatic()) {

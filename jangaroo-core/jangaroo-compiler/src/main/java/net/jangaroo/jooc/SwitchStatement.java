@@ -26,14 +26,14 @@ class SwitchStatement extends KeywordStatement {
   ParenthesizedExpr cond;
   BlockStatement block;
 
-  public SwitchStatement(JooSymbol symSwitch, ParenthesizedExpr cond, JooSymbol lBrace, List<Node> statements, JooSymbol rBrace) {
+  public SwitchStatement(JooSymbol symSwitch, ParenthesizedExpr cond, JooSymbol lBrace, List<AstNode> statements, JooSymbol rBrace) {
     super(symSwitch);
     this.cond = cond;
     this.block = new BlockStatement(lBrace, statements, rBrace);
   }
 
 
-  public Node analyze(Node parentNode, AnalyzeContext context) {
+  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     cond.analyze(this, context);
     context.getScope().enterSwitch(this);

@@ -39,7 +39,7 @@ class IfStatement extends KeywordStatement {
     this.ifFalse = ifFalse;
   }
 
-  public Node analyze(Node parentNode, AnalyzeContext context) {
+  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     cond = cond.analyze(this, context);
     ifTrue.analyze(this, context);

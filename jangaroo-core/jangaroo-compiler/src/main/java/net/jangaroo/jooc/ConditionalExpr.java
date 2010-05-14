@@ -44,7 +44,7 @@ class ConditionalExpr extends Expr {
     ifFalse.generateCode(out);
   }
 
-  public Expr analyze(Node parentNode, AnalyzeContext context) {
+  public Expr analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     cond = cond.analyze(this, context);
     ifTrue = ifTrue.analyze(this, context);

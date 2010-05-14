@@ -33,7 +33,7 @@ class ForInitializer extends NodeImplBase {
     this.expr = expr;
   }
 
-  public Node analyze(Node parentNode, AnalyzeContext context) {
+  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     if (decl!=null)
       decl.analyze(this, context);

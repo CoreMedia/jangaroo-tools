@@ -22,7 +22,7 @@ import java.io.IOException;
  */
 class SemicolonTerminatedStatement extends Statement {
 
-  Node optStatement;
+  AstNode optStatement;
   JooSymbol optSymSemicolon;
 
   /**
@@ -35,7 +35,7 @@ class SemicolonTerminatedStatement extends Statement {
   /**
    * Optional statement with optional semicolon, but at least one must be specified (non-null).
    */
-  SemicolonTerminatedStatement(Node optStatement, JooSymbol optSymSemicolon) {
+  SemicolonTerminatedStatement(AstNode optStatement, JooSymbol optSymSemicolon) {
     Debug.assertTrue(optStatement!=null || optSymSemicolon!=null, "Both statement and semicolon not specified in SemicolonTerminatedStatement.");
     this.optStatement = optStatement;
     this.optSymSemicolon = optSymSemicolon;
@@ -52,7 +52,7 @@ class SemicolonTerminatedStatement extends Statement {
       out.writeSymbol(optSymSemicolon);
   }
 
-  public Node analyze(Node parentNode, AnalyzeContext context) {
+  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
     // check for special case "assert statement":
     if (optStatement instanceof ApplyExpr && optSymSemicolon!=null) {
       ApplyExpr applyExpr = (ApplyExpr)optStatement;

@@ -25,11 +25,11 @@ import java.util.ArrayList;
 class BlockStatement extends Statement {
 
   JooSymbol lBrace;
-  List<Node> statements;
+  List<AstNode> statements;
   JooSymbol rBrace;
   List<CodeGenerator> blockStartCodeGenerators = new ArrayList<CodeGenerator>(3);
 
-  public BlockStatement(JooSymbol lBrace, List<Node> statements, JooSymbol rBrace) {
+  public BlockStatement(JooSymbol lBrace, List<AstNode> statements, JooSymbol rBrace) {
     this.lBrace = lBrace;
     this.statements = statements;
     this.rBrace = rBrace;
@@ -48,7 +48,7 @@ class BlockStatement extends Statement {
     out.writeSymbol(rBrace);
   }
 
-  public Node analyze(Node parentNode, AnalyzeContext context) {
+  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     statements = analyze(this, statements, context);
     return this;
@@ -56,7 +56,7 @@ class BlockStatement extends Statement {
 
   // TODO: Check when analyzing the super call
   public void checkSuperConstructorCall() {
-    for (Node o : statements) {
+    for (AstNode o : statements) {
       if (o instanceof SuperConstructorCallStatement) return;
     }
     throw Jooc.error(lBrace, "super constructor must be called directly in method block");

@@ -31,7 +31,7 @@ class NewExpr extends Expr {
     this.applyConstructor = applyConstructor;
   }
 
-  public Expr analyze(Node parentNode, AnalyzeContext context) {
+  public Expr analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     applyConstructor = applyConstructor.analyze(this, context);
     if (args != null)

@@ -35,7 +35,7 @@ public class Parameter extends IdeDeclaration {
   }
 
   @Override
-  public Node analyze(Node parentNode, AnalyzeContext context) {
+  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     if (optTypeRelation!=null) {
       optTypeRelation.analyze(this, context);

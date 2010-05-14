@@ -21,7 +21,7 @@ package net.jangaroo.jooc;
 abstract class Expr extends NodeImplBase {
 
   @Override
-  public Expr analyze(Node parentNode, AnalyzeContext context) {
+  public Expr analyze(AstNode parentNode, AnalyzeContext context) {
     return (Expr)super.analyze(parentNode, context);
   }
 

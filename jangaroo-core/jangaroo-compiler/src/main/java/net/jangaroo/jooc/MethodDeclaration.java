@@ -98,7 +98,7 @@ public class MethodDeclaration extends MemberDeclaration {
     return classDeclaration != null && classDeclaration.isInterface() || super.isAbstract();
   }
 
-  public Node analyze(Node parentNode, AnalyzeContext context) {
+  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
     classDeclaration = context.getCurrentClass();
     parentDeclaration = classDeclaration;
     if (classDeclaration != null && ide.getName().equals(classDeclaration.getName())) {
@@ -153,7 +153,7 @@ public class MethodDeclaration extends MemberDeclaration {
   }
 
   @Override
-  void handleDuplicateDeclaration(AnalyzeContext context, Node oldNode) {
+  void handleDuplicateDeclaration(AnalyzeContext context, AstNode oldNode) {
     if (isGetterOrSetter() && oldNode instanceof MethodDeclaration) {
       MethodDeclaration other = (MethodDeclaration) oldNode;
       if (other.isGetterOrSetter() && isGetter() != other.isGetter()) {

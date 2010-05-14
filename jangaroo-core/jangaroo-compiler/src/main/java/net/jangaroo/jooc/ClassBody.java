@@ -24,16 +24,16 @@ import java.util.List;
 public class ClassBody extends NodeImplBase {
   JooSymbol lBrace;
 
-  public List<Node> getDeclararations() {
+  public List<AstNode> getDeclararations() {
     return declararations;
   }
 
-  List<Node> declararations;
+  List<AstNode> declararations;
   JooSymbol rBrace;
 
   ClassDeclaration classDeclaration;
 
-  public ClassBody(JooSymbol lBrace, List<Node> declararations, JooSymbol rBrace) {
+  public ClassBody(JooSymbol lBrace, List<AstNode> declararations, JooSymbol rBrace) {
     this.lBrace = lBrace;
     this.declararations = declararations;
     this.rBrace = rBrace;
@@ -45,7 +45,7 @@ public class ClassBody extends NodeImplBase {
     out.writeSymbolWhitespace(rBrace);
   }
 
-  public Node analyze(Node parentNode, AnalyzeContext context) {
+  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     declararations = analyze(this, declararations, context);
     return this;

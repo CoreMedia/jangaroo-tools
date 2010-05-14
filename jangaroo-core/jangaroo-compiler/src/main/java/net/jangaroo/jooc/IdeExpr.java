@@ -29,7 +29,7 @@ class IdeExpr extends Expr {
   }
 
   @Override
-  public Expr analyze(Node parentNode, AnalyzeContext context) {
+  public Expr analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     ide.analyze(this, context);
     return this;

@@ -22,18 +22,18 @@ import java.io.IOException;
  */
 class ObjectField extends NodeImplBase {
 
-  Node label;
+  AstNode label;
   JooSymbol symColon;
   Expr value;
 
-  public ObjectField(Node node, JooSymbol symColon, Expr value) {
+  public ObjectField(AstNode node, JooSymbol symColon, Expr value) {
     assert node instanceof Ide || node instanceof LiteralExpr;
     this.label = node;
     this.symColon = symColon;
     this.value = value;
   }
 
-  public Node analyze(Node parentNode, AnalyzeContext context) {
+  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     if (label !=null) {
       label = label.analyze(this, context);

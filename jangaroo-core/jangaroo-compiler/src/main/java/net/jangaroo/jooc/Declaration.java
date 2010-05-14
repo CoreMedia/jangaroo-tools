@@ -28,7 +28,7 @@ abstract class Declaration extends NodeImplBase {
 
   JooSymbol[] symModifiers;
 
-  protected Node parentDeclaration = null;
+  protected AstNode parentDeclaration = null;
   protected ClassDeclaration classDeclaration = null;
 
   private int modifiers = -1;
@@ -55,7 +55,7 @@ abstract class Declaration extends NodeImplBase {
     computeModifiers();
   }
 
-  public Node getParentDeclaration() {
+  public AstNode getParentDeclaration() {
     return parentDeclaration;
   }
 
@@ -141,7 +141,7 @@ abstract class Declaration extends NodeImplBase {
     }
   }
 
-  public Node analyze(Node parentNode, AnalyzeContext context) {
+  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     parentDeclaration = context.getScope().getDeclaration();
     classDeclaration = context.getCurrentClass();

@@ -31,7 +31,7 @@ class LabelRefStatement extends KeywordExprStatement {
 
   protected LabeledStatement labelDeclaration = null;
 
-  public Node analyze(Node parentNode, AnalyzeContext context) {
+  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     Scope scope = context.getScope();
     if (optLabel == null) {

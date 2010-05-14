@@ -32,7 +32,7 @@ class ParenthesizedExpr<ExprType extends Expr> extends Expr {
     this.rParen = rParen;
   }
 
-  public Expr analyze(Node parentNode, AnalyzeContext context) {
+  public Expr analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     if (expr!=null)
       expr = (ExprType)expr.analyze(this, context);

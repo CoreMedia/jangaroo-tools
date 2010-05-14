@@ -59,7 +59,7 @@ public class ImportDirective extends NodeImplBase {
   }
 
   @Override
-  public Node analyze(Node parentNode, AnalyzeContext context) {
+  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     String typeName = ide.getName();
     Scope packageScope = context.getScope();

@@ -47,7 +47,7 @@ public abstract class IdeDeclaration extends Declaration {
   }
 
   public String[] getQualifiedName() {
-    Node parentDeclaration = getParentDeclaration();
+    AstNode parentDeclaration = getParentDeclaration();
     if (!(parentDeclaration instanceof IdeDeclaration)) {
       return getIde() == null ? new String[0] : getIde().getQualifiedName();
     } else {
@@ -63,16 +63,16 @@ public abstract class IdeDeclaration extends Declaration {
     return QualifiedIde.constructQualifiedNameStr(getQualifiedName(), ".");
   }
 
-  public Node analyze(Node parentNode, AnalyzeContext context) {
+  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
-    Node oldNode = context.getScope().declareIde(getName(), this);
+    AstNode oldNode = context.getScope().declareIde(getName(), this);
     if (oldNode!=null) {
       handleDuplicateDeclaration(context, oldNode);
     }
     return this;
   }
 
-  void handleDuplicateDeclaration(AnalyzeContext context, Node oldNode) {
+  void handleDuplicateDeclaration(AnalyzeContext context, AstNode oldNode) {
     String msg = "Duplicate declaration of identifier '" + getName() + "'";
     if (allowDuplicates(context)) {
       Jooc.warning(getSymbol(), msg);
