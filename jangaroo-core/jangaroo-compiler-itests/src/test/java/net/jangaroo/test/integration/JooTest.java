@@ -183,6 +183,7 @@ public class JooTest extends JooRuntimeTestCase {
     expectNumber(3, "obj.testBreakLabeledDo()");
     expectNumber(3, "obj.testBreakLabeledBlock()");
     expectNumber(1, "obj.testBreakLabeledIf()");
+    expectNumber(14, "obj.testBreakDuplicateLabel()");
     expectString("x, y, z", "obj.testForIn({ y: 2, x :1, z: 3})");
     expectString("x, y, z", "obj.testForIn2({ y: 2, x :1, z: 3})");
     expectString("1, 2, 3", "obj.testForEach({ y: 2, x :1, z: 3})");

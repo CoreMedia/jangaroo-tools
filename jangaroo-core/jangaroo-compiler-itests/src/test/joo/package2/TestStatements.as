@@ -247,6 +247,23 @@ public class TestStatements {
     return i;
   }
 
+  function testBreakDuplicateLabel():int {
+    var i:int = 0;
+    label: {
+      i = 1;
+      break label;
+      i = 2;
+    }
+    var j:int = 3;
+    label: {
+      j = 4;
+      break label;
+      j = 5;
+      i = 6;
+    }
+    return 10*i+j;
+  }
+
   public var cleanedUp:Boolean = false;
 }
 }
