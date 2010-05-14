@@ -29,9 +29,10 @@ abstract class KeywordExprStatement extends SemicolonTerminatedStatement {
     this.symKeyword = symKeyword;
   }
 
-  public void generateCode(JsWriter out) throws IOException {
+  @Override
+  protected void generateStatementCode(final JsWriter out) throws IOException {
     out.writeSymbol(symKeyword);
-    super.generateCode(out);
+    super.generateStatementCode(out);
   }
 
   public JooSymbol getSymbol() {

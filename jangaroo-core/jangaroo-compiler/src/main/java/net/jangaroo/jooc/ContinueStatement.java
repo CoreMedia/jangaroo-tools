@@ -24,4 +24,9 @@ class ContinueStatement extends LabelRefStatement {
     super(symContinue, optLabel, symSemicolon);
   }
 
+  @Override
+  protected void checkValidLabeledStatement(final LabeledStatement labelDeclaration) {
+    if (!(labelDeclaration.statement instanceof LoopStatement))
+      throw Jooc.error(this, "label '" + optLabel.getName() + "' does not reference a loop statement");
+  }
 }

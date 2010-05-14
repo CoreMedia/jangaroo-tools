@@ -15,12 +15,14 @@
 
 package net.jangaroo.jooc;
 
+import java.io.IOException;
+
 /**
  * A LabelRefStatement is either a break or continue statement
  *
  * @author Andreas Gawecki
  */
-class LabelRefStatement extends KeywordExprStatement {
+abstract class LabelRefStatement extends KeywordExprStatement {
 
   LabelRefStatement(JooSymbol symStatement, Ide optLabel, JooSymbol symSemicolon) {
     super(symStatement, null, symSemicolon);
@@ -39,11 +41,20 @@ class LabelRefStatement extends KeywordExprStatement {
       if (loopOrSwitchStatement == null)
         throw Jooc.error(this, "not inside loop or switch");
     } else {
-      labelDeclaration = scope.lookupLabel(optLabel);
-      if (!(labelDeclaration.statement instanceof LoopStatement))
-        throw Jooc.error(this, "label does not reference loop statement");
+      labelDeclaration = scope.findLabel(optLabel);
+      if (labelDeclaration == null)
+        throw Jooc.error(optLabel, "undeclared label '" + optLabel.getName() + "'");
+      checkValidLabeledStatement(labelDeclaration);
     }
     return this;
   }
 
+  protected abstract void checkValidLabeledStatement(final LabeledStatement labelDeclaration);
+
+  @Override
+  protected void generateStatementCode(final JsWriter out) throws IOException {
+    super.generateStatementCode(out);
+    if (optLabel != null)
+      optLabel.generateCode(out);
+  }
 }

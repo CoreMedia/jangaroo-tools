@@ -25,4 +25,9 @@ class BreakStatement extends LabelRefStatement {
     super(symBreak, optIde, symSemicolon);
   }
 
+  @Override
+  protected void checkValidLabeledStatement(final LabeledStatement labelDeclaration) {
+    // break may exit any statement
+  }
+
 }

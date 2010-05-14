@@ -63,14 +63,26 @@ class Scope {
     return oldNode;
   }
 
-  public LabeledStatement lookupLabel(Ide ide) {
+  public void defineLabel(LabeledStatement labeledStatement) {
+    LabeledStatement s = findLabel(labeledStatement.ide);
+    if (s != null) {
+      Jooc.error(labeledStatement.ide.ide, "label already defined in scope: '" + labeledStatement.ide.getName() + "'");
+    }
+    labels.add(labeledStatement);
+  }
+
+  public void undefineLabel() {
+    labels.remove(labels.size() - 1);
+  }
+
+  public LabeledStatement findLabel(Ide ide) {
     String name = ide.getName();
     for (LabeledStatement label : labels) {
       if (label.ide.getName().equals(name)) {
         return label;
       }
     }
-    throw Jooc.error(ide.ide, "undeclared label '" + name + "'");
+    return null;
   }
 
   public AstNode getIdeDeclaration(Ide ide) {
@@ -87,8 +99,8 @@ class Scope {
 
   public Scope findScopeThatDeclares(String name) {
     return getIdeDeclaration(name) != null ? this
-        : getParentScope() == null ? null
-        : getParentScope().findScopeThatDeclares(name);
+      : getParentScope() == null ? null
+      : getParentScope().findScopeThatDeclares(name);
   }
 
   public AstNode lookupIde(Ide ide) {
@@ -153,13 +165,13 @@ class Scope {
     if (packageScope != null) {
       AstNode classImport = packageScope.getIdeDeclaration(fqn);
       if (classImport instanceof ImportDirective) {
-        ((ImportDirective)classImport).wasUsed();
+        ((ImportDirective) classImport).wasUsed();
       }
     }
   }
 
   public CompilationUnit getCompilationUnit() {
-    return (CompilationUnit)getPackageDeclaration().parentNode;
+    return (CompilationUnit) getPackageDeclaration().parentNode;
   }
 
   public PackageDeclaration getPackageDeclaration() {
