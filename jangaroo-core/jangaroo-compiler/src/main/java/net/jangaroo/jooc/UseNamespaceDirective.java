@@ -34,8 +34,9 @@ public class UseNamespaceDirective extends NodeImplBase {
 
   @Override
   public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
+    namespace.analyze(this, context);
     PackageDeclaration packageDeclaration = context.getCurrentPackage();
-    if (packageDeclaration!=null) {
+    if (packageDeclaration != null) {
       packageDeclaration.addNamespace(namespace.getQualifiedNameStr());
     }
     return super.analyze(parentNode, context);
