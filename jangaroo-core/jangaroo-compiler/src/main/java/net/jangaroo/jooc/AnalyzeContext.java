@@ -31,11 +31,11 @@ public class AnalyzeContext {
   }
 
   public void enterScope(AstNode declaration) {
-    scope = new Scope(declaration, scope);
+    scope = new ValueScope(declaration, scope);
   }
 
   public void leaveScope(AstNode declaration) {
-    if (declaration != scope.getDeclaration())
+    if (declaration != scope.getDefiningNode())
       throw Jooc.error("internal error: wrong scope to leave");
     scope = scope.getParentScope();
   }
@@ -65,5 +65,34 @@ public class AnalyzeContext {
 
   public JoocOptions getConfig() {
     return config;
+  }
+
+  public void defineLabel(final LabeledStatement labeledStatement) {
+    scope = new LabelScope(labeledStatement, scope);
+  }
+
+  public void undefineLabel() {
+    assert scope instanceof LabelScope;
+    scope = scope.getParentScope();
+  }
+
+  public void enterLoop(final LoopStatement loopStatement) {
+    scope = new LabelScope(loopStatement, scope);
+  }
+
+  public void exitLoop(final LoopStatement statement) {
+    assert scope instanceof LabelScope;
+    assert ((LabelScope) scope).getStatement() == statement;
+    scope = scope.getParentScope();
+  }
+
+  public void enterSwitch(final SwitchStatement statement) {
+    scope = new LabelScope(statement, scope);
+  }
+
+  public void exitSwitch(final SwitchStatement statement) {
+    assert scope instanceof LabelScope;
+    assert ((LabelScope) scope).getStatement() == statement;
+    scope = scope.getParentScope();
   }
 }
