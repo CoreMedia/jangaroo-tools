@@ -4,8 +4,8 @@ import java.io.IOException;
 
 /**
  * An object aggregating the getter and the setter {@link MethodDeclaration} of the same property.
- * Used only as a synthesized node returned by {@link net.jangaroo.jooc.Scope#getIdeDeclaration(String)} and
- * {@link net.jangaroo.jooc.Scope#getIdeDeclaration(Ide)}.
+ * Used only as a synthesized node returned by {@link Scope#getIdeDeclaration(String)} and
+ * {@link Scope#getIdeDeclaration(Ide)}.
  */
 public class GetterSetterPair extends NodeImplBase {
   private MethodDeclaration getter, setter;

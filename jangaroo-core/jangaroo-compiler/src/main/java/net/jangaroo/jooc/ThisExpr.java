@@ -29,11 +29,11 @@ class ThisExpr extends IdeExpr {
     super.analyze(parentNode, context);
     Scope scope = context.getScope();
     while (scope!=null) {
-      AstNode scopeDecl = scope.getDeclaration();
+      AstNode scopeDecl = scope.getDefiningNode();
       if (scopeDecl instanceof FunctionExpr) {
         ((FunctionExpr)scopeDecl).notifyThisUsed(context);
       }
-      scope = scope.parent;
+      scope = scope.getParentScope(); //todo add getFunctionExpr() to Scope interface?
     }
     return this;
   }

@@ -220,7 +220,7 @@ public class ClassDeclaration extends IdeDeclaration {
     // really another class?
     if (!(qualifiedNameStr.equals(getName()) || qualifiedNameStr.equals(getQualifiedNameStr()))) {
       Scope declaringScope = context.getScope().findScopeThatDeclares(qualifiedNameStr);
-      if (declaringScope != null && declaringScope.getDeclaration().equals(getParentDeclaration())) {
+      if (declaringScope != null && declaringScope.getDefiningNode().equals(getParentDeclaration())) {
         classInit.put(qualifiedNameStr, null); // null: marker for "already verified it is a class" 
       } else if (declaringScope == null && context.getConfig().isEnableGuessingClasses() &&
           !(ide instanceof QualifiedIde) && Character.isUpperCase(qualifiedNameStr.charAt(0))) {

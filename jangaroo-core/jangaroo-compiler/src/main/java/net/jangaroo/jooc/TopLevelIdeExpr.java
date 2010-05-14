@@ -45,7 +45,7 @@ class TopLevelIdeExpr extends IdeExpr {
       if (declaringScope != null) {
         scope.addExternalUsage(ide);
       }
-      if (declaringScope==null || declaringScope.getDeclaration() instanceof ClassDeclaration) {
+      if (declaringScope==null || declaringScope.getDefiningNode() instanceof ClassDeclaration) {
         // move ide's white-space in front of the newly introduced "this.":
         JooSymbol thisSymbol = new JooSymbol(sym.THIS, ide.ide.fileName, ide.ide.line, ide.ide.column, ide.ide.whitespace, "this");
         JooSymbol ideWithoutWhitespace = new JooSymbol(ide.ide.sym, ide.ide.fileName, ide.ide.line, ide.ide.column, "", ide.ide.text);
@@ -98,7 +98,7 @@ class TopLevelIdeExpr extends IdeExpr {
         }
         Jooc.warning(ide.getSymbol(), warningMsg);
         return !maybeInScope && options.isEnableGuessingMembers();
-      } else if (declaringScope.getDeclaration() instanceof ClassDeclaration) {
+      } else if (declaringScope.getDefiningNode() instanceof ClassDeclaration) {
         AstNode ideDeclaration = declaringScope.getIdeDeclaration(ide);
         if (ideDeclaration instanceof MemberDeclaration) {
           MemberDeclaration memberDeclaration = (MemberDeclaration)ideDeclaration;

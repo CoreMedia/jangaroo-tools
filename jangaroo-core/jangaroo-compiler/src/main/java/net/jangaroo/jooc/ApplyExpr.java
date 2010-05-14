@@ -61,7 +61,7 @@ class ApplyExpr extends Expr {
         Scope declScope = scope.findScopeThatDeclares(name);
         return declScope == null
           ? options.isEnableGuessingTypeCasts()
-          : declScope.getDeclaration() == scope.getPackageDeclaration();
+          : declScope.getDefiningNode() == scope.getPackageDeclaration();
       }
     }
     return false;

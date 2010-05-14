@@ -143,7 +143,7 @@ abstract class Declaration extends NodeImplBase {
 
   public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
-    parentDeclaration = context.getScope().getDeclaration();
+    parentDeclaration = context.getScope().getDefiningNode();
     classDeclaration = context.getCurrentClass();
     return this;
   }

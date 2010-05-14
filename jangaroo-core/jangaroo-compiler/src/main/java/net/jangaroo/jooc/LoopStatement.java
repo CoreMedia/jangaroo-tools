@@ -43,11 +43,11 @@ abstract class LoopStatement extends KeywordStatement {
 
   public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
-    context.getScope().enterLoop(this);
+    context.enterLoop(this);
     analyzeLoopHeader(context);
     body.analyze(this, context);
     analyzeLoopFooter(context);
-    context.getScope().exitLoop(this);
+    context.exitLoop(this);
     return this;
   }
 

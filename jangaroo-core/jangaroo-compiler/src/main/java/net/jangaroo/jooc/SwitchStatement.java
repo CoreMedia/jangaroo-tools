@@ -36,9 +36,9 @@ class SwitchStatement extends KeywordStatement {
   public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     cond.analyze(this, context);
-    context.getScope().enterSwitch(this);
+    context.enterSwitch(this);
     block.analyze(this, context);
-    context.getScope().exitSwitch(this);
+    context.exitSwitch(this);
     return this;
   }
 

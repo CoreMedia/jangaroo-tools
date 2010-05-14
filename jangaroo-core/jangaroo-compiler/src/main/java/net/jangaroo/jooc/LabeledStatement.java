@@ -34,9 +34,9 @@ class LabeledStatement extends Statement {
 
   public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
-    context.getScope().defineLabel(this);
+    context.defineLabel(this);
     statement.analyze(this, context);
-    context.getScope().undefineLabel();
+    context.undefineLabel();
     return this;
   }
 
