@@ -17,11 +17,9 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import java.io.*; // <%@page import="java.io.*" %>
 
-import java.io.*;
-
-import org.codehaus.plexus.util.*;
-
+//<%! public boolean test(File basedir) {
 boolean result = true;
 
 try
@@ -77,7 +75,7 @@ try
         return false;
     }  */
 
-    File target = new File( basedir, "target" );
+    target = new File( basedir, "target" );
     if ( !target.exists() || !target.isDirectory() )
     {
         System.err.println( "target file is missing or a directory." );
@@ -100,7 +98,7 @@ try
 
 
 }
-catch( IOException e )
+catch( Exception e )
 {
     e.printStackTrace();
     result = false;
