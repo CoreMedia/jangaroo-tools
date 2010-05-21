@@ -1,6 +1,7 @@
 <#-- @ftlvariable name="" type="net.jangaroo.extxml.model.ComponentSuite" -->
 <?xml version="1.0" encoding="UTF-8"?>
-<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="${namespace}" xmlns:${ns}="${namespace}" xmlns:xs="http://www.w3.org/2001/XMLSchema"${usedComponentSuiteNamespaces}>
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="${namespace}" xmlns:${ns}="${namespace}" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:exml="http://net.jangaroo.com/extxml/0.1"${usedComponentSuiteNamespaces}>
+  <xs:import namespace="http://net.jangaroo.com/extxml/0.1"/>
 <#list usedComponentSuites as usedComponentSuite>
   <xs:import namespace="${usedComponentSuite.namespace}"/>
 </#list>
@@ -32,7 +33,7 @@
           </#list>
         </xs:sequence>
         <#list componentClass.directCfgs as cfg>
-        <xs:attribute type='xs:${cfg.xsType}' name='${cfg.name}'>
+        <xs:attribute type='exml:${cfg.xsType}' name='${cfg.name}'>
           <#if cfg.description??>
           <xs:annotation>
             <xs:documentation>

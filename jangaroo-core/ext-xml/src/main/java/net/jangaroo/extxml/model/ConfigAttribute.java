@@ -1,25 +1,18 @@
 package net.jangaroo.extxml.model;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 
 /**
  * A meta model of an Ext JS component configuration attribute.
  */
 public final class ConfigAttribute extends DescriptionHolder {
 
-  private static final Map<String, String> XS_TYPE_BY_JS_TYPE = new HashMap<String, String>(5);
-
-  static {
-    XS_TYPE_BY_JS_TYPE.put("Boolean", "boolean");
-    XS_TYPE_BY_JS_TYPE.put("Number", "int");
-    XS_TYPE_BY_JS_TYPE.put("Float", "float");
-    XS_TYPE_BY_JS_TYPE.put("Date", "date");
-    XS_TYPE_BY_JS_TYPE.put("String", "string");
-  }
+  private static final Set<String> SIMPLE_JS_TYPES = new HashSet<String>(Arrays.asList(
+    "Boolean",
+    "Number",
+    "Date",
+    "String"
+  ));
 
   private static final Collection<String> SEQUENCE_JS_TYPES = new HashSet<String>(Arrays.asList("Array", "MixedCollection", "Mixed"));
 
@@ -32,10 +25,13 @@ public final class ConfigAttribute extends DescriptionHolder {
     this.name = name;
     this.jsTypes = new HashSet<String>(Arrays.asList(jsType.split("[^a-zA-Z0-9$_.]")));
     if (jsTypes.size() == 1) {
-      xsType = XS_TYPE_BY_JS_TYPE.get(jsTypes.iterator().next());
+      xsType = jsTypes.iterator().next();
+      if (!SIMPLE_JS_TYPES.contains(xsType)) {
+        xsType = null;
+      }
     }
     if (xsType == null) {
-      xsType = "string";
+      xsType = "String";
     }
   }
 
@@ -57,7 +53,7 @@ public final class ConfigAttribute extends DescriptionHolder {
 
   public boolean isSimple() {
     for (String jsType : jsTypes) {
-      if (!XS_TYPE_BY_JS_TYPE.containsKey(jsType)) {
+      if (!SIMPLE_JS_TYPES.contains(jsType)) {
         return false;
       }
     }
@@ -75,7 +71,7 @@ public final class ConfigAttribute extends DescriptionHolder {
 
   public boolean isObject() {
     for (String jsType : jsTypes) {
-      if (!XS_TYPE_BY_JS_TYPE.containsKey(jsType) && !SEQUENCE_JS_TYPES.contains(jsType)) {
+      if (!SIMPLE_JS_TYPES.contains(jsType) && !SEQUENCE_JS_TYPES.contains(jsType)) {
         return true;
       }
     }

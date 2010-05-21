@@ -5,6 +5,28 @@
            xmlns:exml="http://net.jangaroo.com/extxml/0.1"
            xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
+  <xs:simpleType name="String">
+    <xs:restriction base="xs:string"/>
+  </xs:simpleType>
+
+  <xs:simpleType name="Boolean">
+     <xs:restriction base="xs:string">
+        <xs:pattern value="(\{.*\})|true|false"/>
+     </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="Number">
+     <xs:restriction base="xs:string">
+        <xs:pattern value="(\{.*\})|((([0-9]+\.[0-9]*)|(\.[0-9]+)|([0-9]+))([eE][+-]?[0-9]+)?)"/>
+     </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="Date">
+     <xs:restriction base="xs:string">
+       <!-- TODO: do we want a pattern-based restriction to valid date literals? -->
+     </xs:restriction>
+  </xs:simpleType>
+
   <xs:simpleType name="jsType">
     <xs:annotation>
       <xs:documentation>
