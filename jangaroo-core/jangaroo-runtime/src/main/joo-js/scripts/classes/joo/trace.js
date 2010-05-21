@@ -8,5 +8,7 @@ joo.trace = function joo$trace(msg) {
     console.trace(msg);
   } else if (console = joo.getQualifiedObject("trace")) {
     console(msg);
+  } else if (console = joo.getQualifiedObject("opera")) {
+    console.postError(msg);
   }
 };
