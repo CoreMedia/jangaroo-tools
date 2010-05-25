@@ -44,7 +44,11 @@ public class NativeClassDeclaration {
   public function create(fullClassName : String, publicConstructor : Function) : NativeClassDeclaration {
     this.fullClassName = fullClassName;
     this.publicConstructor = publicConstructor;
-    this.publicConstructor["$class"] = this;
+    try {
+      this.publicConstructor["$class"] = this;
+    } catch (e:Error) {
+      // ignore that expando properties do not work with certain native objects in certain browsers, e.g. IE7 / XMLHttpRequest
+    }
     return this;
   }
 
