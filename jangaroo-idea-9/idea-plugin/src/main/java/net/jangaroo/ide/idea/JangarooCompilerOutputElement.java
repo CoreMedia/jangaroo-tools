@@ -48,7 +48,7 @@ public class JangarooCompilerOutputElement extends PackagingElement<JangarooComp
     if (facet != null) {
       File outputDirectory = facet.getConfiguration().getState().getOutputDirectory().getParentFile();
       if (outputDirectory.exists()) {
-        VirtualFile outputRoot = LocalFileSystem.getInstance().findFileByIoFile(outputDirectory);
+        VirtualFile outputRoot = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(outputDirectory);
         assert outputRoot != null;
         creator.addDirectoryCopyInstructions(outputRoot);
       }
