@@ -3,7 +3,6 @@ package net.jangaroo.ide.idea;
 import com.intellij.compiler.ant.Generator;
 import com.intellij.facet.pointers.FacetPointer;
 import com.intellij.facet.pointers.FacetPointersManager;
-import com.intellij.openapi.deployment.DeploymentUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
