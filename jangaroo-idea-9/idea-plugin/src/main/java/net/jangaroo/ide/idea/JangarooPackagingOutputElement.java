@@ -17,17 +17,17 @@ import java.io.File;
 import java.util.Collections;
 import java.util.List;
 
-public class JangarooCompilerOutputElement extends PackagingElement<JangarooCompilerOutputElement.JangarooCompilerOutputElementState> {
+public class JangarooPackagingOutputElement extends PackagingElement<JangarooPackagingOutputElement.JangarooCompilerOutputElementState> {
 
-  public JangarooCompilerOutputElement(Project project, JangarooFacet facet) {
-    super(JangarooCompilerOutputElementType.getInstance());
+  public JangarooPackagingOutputElement(Project project, JangarooFacet facet) {
+    super(JangarooPackagingOutputElementType.getInstance());
     myProject = project;
     myFacetPointer = facet == null ? null : FacetPointersManager.getInstance(project).create(facet);
   }
 
 
   public PackagingElementPresentation createPresentation(@NotNull ArtifactEditorContext context) {
-    return new DelegatedPackagingElementPresentation(new JangarooCompilerOutputNodePresentation(myFacetPointer));
+    return new DelegatedPackagingElementPresentation(new JangarooPackagingOutputNodePresentation(myFacetPointer));
   }
 
 
@@ -45,11 +45,17 @@ public class JangarooCompilerOutputElement extends PackagingElement<JangarooComp
                                                      @NotNull ArtifactType artifactType) {
     JangarooFacet facet = (JangarooFacet)myFacetPointer.getFacet();
     if (facet != null) {
-      File outputDirectory = facet.getConfiguration().getState().getOutputDirectory().getParentFile();
-      if (outputDirectory.exists()) {
-        VirtualFile outputRoot = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(outputDirectory);
-        assert outputRoot != null;
-        creator.addDirectoryCopyInstructions(outputRoot);
+      File outputDirectory = facet.getConfiguration().getState().getOutputDirectory(); // ./scripts/classes
+      if (outputDirectory != null) {
+        outputDirectory = outputDirectory.getParentFile(); // ./scripts
+        if (outputDirectory != null) {
+          outputDirectory = outputDirectory.getParentFile(); // .
+          if (outputDirectory != null && outputDirectory.exists()) {
+            VirtualFile outputRoot = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(outputDirectory);
+            assert outputRoot != null;
+            creator.addDirectoryCopyInstructions(outputRoot);
+          }
+        }
       }
     }
   }
@@ -61,9 +67,9 @@ public class JangarooCompilerOutputElement extends PackagingElement<JangarooComp
   }
 
   public boolean isEqualTo(@NotNull PackagingElement element) {
-    return (element instanceof JangarooCompilerOutputElement) &&
+    return (element instanceof JangarooPackagingOutputElement) &&
       myFacetPointer != null &&
-      myFacetPointer.equals(((JangarooCompilerOutputElement)element).myFacetPointer);
+      myFacetPointer.equals(((JangarooPackagingOutputElement)element).myFacetPointer);
   }
 
   public JangarooCompilerOutputElementState getState() {

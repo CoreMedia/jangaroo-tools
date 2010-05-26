@@ -6,6 +6,7 @@ import com.intellij.javaee.ui.packaging.ExplodedWarArtifactType;
 import com.intellij.javaee.ui.packaging.JavaeeFacetResourcesPackagingElement;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.JavadocOrderRootType;
 import com.intellij.openapi.roots.ModifiableRootModel;
@@ -15,12 +16,18 @@ import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
 import com.intellij.openapi.vfs.JarFileSystem;
-import com.intellij.packaging.artifacts.*;
+import com.intellij.packaging.artifacts.Artifact;
+import com.intellij.packaging.artifacts.ArtifactManager;
+import com.intellij.packaging.artifacts.ModifiableArtifact;
+import com.intellij.packaging.artifacts.ModifiableArtifactModel;
 import com.intellij.packaging.elements.CompositePackagingElement;
 import com.intellij.packaging.elements.PackagingElement;
-import com.intellij.packaging.elements.PackagingElementFactory;
 import com.intellij.packaging.elements.PackagingElementResolvingContext;
+import com.intellij.packaging.impl.elements.ArchivePackagingElement;
 import com.intellij.packaging.impl.elements.ArtifactPackagingElement;
+import com.intellij.packaging.impl.elements.DirectoryPackagingElement;
+import com.intellij.packaging.impl.elements.LibraryPackagingElement;
+import com.intellij.packaging.impl.elements.ModuleOutputPackagingElement;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -28,7 +35,12 @@ import org.jetbrains.idea.maven.embedder.MavenConsole;
 import org.jetbrains.idea.maven.importing.FacetImporter;
 import org.jetbrains.idea.maven.importing.MavenModifiableModelsProvider;
 import org.jetbrains.idea.maven.importing.MavenRootModelAdapter;
-import org.jetbrains.idea.maven.project.*;
+import org.jetbrains.idea.maven.project.MavenArtifact;
+import org.jetbrains.idea.maven.project.MavenEmbeddersManager;
+import org.jetbrains.idea.maven.project.MavenProject;
+import org.jetbrains.idea.maven.project.MavenProjectChanges;
+import org.jetbrains.idea.maven.project.MavenProjectsProcessorTask;
+import org.jetbrains.idea.maven.project.MavenProjectsTree;
 import org.jetbrains.idea.maven.utils.MavenConstants;
 import org.jetbrains.idea.maven.utils.MavenJDOMUtil;
 import org.jetbrains.idea.maven.utils.MavenProcessCanceledException;
@@ -102,7 +114,7 @@ public class JangarooFacetImporter extends FacetImporter<JangarooFacet, Jangaroo
     }
     moduleRootModel.commit();
     if ("war".equals(mavenProjectModel.getPackaging())) {
-      postTasks.add(new AddJangarooCompilerOutputToExplodedWebArtifactsTask(jangarooFacet));
+      postTasks.add(new AddJangarooPackagingOutputToExplodedWebArtifactsTask(jangarooFacet));
     }
   }
 
@@ -185,10 +197,10 @@ public class JangarooFacetImporter extends FacetImporter<JangarooFacet, Jangaroo
 
   }
 
-  private static class AddJangarooCompilerOutputToExplodedWebArtifactsTask implements MavenProjectsProcessorTask {
+  private static class AddJangarooPackagingOutputToExplodedWebArtifactsTask implements MavenProjectsProcessorTask {
     private final JangarooFacet jangarooFacet;
 
-    private AddJangarooCompilerOutputToExplodedWebArtifactsTask(JangarooFacet jangarooFacet) {
+    private AddJangarooPackagingOutputToExplodedWebArtifactsTask(JangarooFacet jangarooFacet) {
       this.jangarooFacet = jangarooFacet;
     }
 
@@ -226,15 +238,42 @@ public class JangarooFacetImporter extends FacetImporter<JangarooFacet, Jangaroo
               dependencies.remove(overlay);
               dependencies.removeAll(getTransitiveJangarooDependencies(overlay));
             }
-            // add the remaining modules' output to the Web app's scripts directory:
-            CompositePackagingElement<?> scriptsDirectory =
-              PackagingElementFactory.getInstance().getOrCreateDirectory(artifact.getRootElement(), "scripts");
+            // add the remaining modules' Jangaroo packaging output to the Web app's root directory:
+            CompositePackagingElement<?> rootDirectory = artifact.getRootElement();
+            removeJangarooJarsFromWebInfLib(project, rootDirectory);
             for (JangarooFacet dependency : dependencies) {
-              scriptsDirectory.addOrFindChild(new JangarooCompilerOutputElement(project, dependency));
+              rootDirectory.addOrFindChild(new JangarooPackagingOutputElement(project, dependency));
             }
           }
         }
       });
+    }
+
+    private static void removeJangarooJarsFromWebInfLib(Project project, CompositePackagingElement<?> rootDirectory) {
+      DirectoryPackagingElement libDir = rootDirectory.addOrFindChild(new DirectoryPackagingElement("WEB-INF")).addOrFindChild(new DirectoryPackagingElement("lib"));
+      PackagingElementResolvingContext packagingElementResolvingContext = ArtifactManager.getInstance(project).getResolvingContext();
+      ModuleManager moduleManager = ModuleManager.getInstance(project);
+      Collection<PackagingElement<?>> toBeRemovedLibraries = new ArrayList<PackagingElement<?>>();
+      for (PackagingElement packagingElement : libDir.getChildren()) {
+        if (packagingElement instanceof LibraryPackagingElement) {
+          Library library = ((LibraryPackagingElement)packagingElement).findLibrary(packagingElementResolvingContext);
+          if (library.getName().indexOf(":jangaroo:") != -1) {
+            toBeRemovedLibraries.add(packagingElement);
+          }
+        } else if (packagingElement instanceof ArchivePackagingElement) {
+          List<PackagingElement<?>> archiveChildren = ((ArchivePackagingElement)packagingElement).getChildren();
+          if (!archiveChildren.isEmpty()) {
+            PackagingElement<?> modulePackagingElement = archiveChildren.get(0);
+            if (modulePackagingElement instanceof ModuleOutputPackagingElement) {
+              Module module = moduleManager.findModuleByName(((ModuleOutputPackagingElement)modulePackagingElement).getModuleName());
+              if (FacetManager.getInstance(module).getFacetsByType(JangarooFacetType.ID) != null) {
+                toBeRemovedLibraries.add(packagingElement);
+              }
+            }
+          }
+        }
+      }
+      libDir.removeChildren(toBeRemovedLibraries);
     }
 
     private static Artifact getExplodedWebArtifact(Module module) {

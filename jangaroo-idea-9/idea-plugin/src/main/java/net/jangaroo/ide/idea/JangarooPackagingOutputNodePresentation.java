@@ -7,16 +7,16 @@ import com.intellij.packaging.ui.TreeNodePresentation;
 import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.annotations.NotNull;
 
-public class JangarooCompilerOutputNodePresentation extends TreeNodePresentation {
+public class JangarooPackagingOutputNodePresentation extends TreeNodePresentation {
 
-  public JangarooCompilerOutputNodePresentation(FacetPointer facetPointer) {
+  public JangarooPackagingOutputNodePresentation(FacetPointer facetPointer) {
     myFacetPointer = facetPointer;
   }
 
 
   public String getPresentableName() {
     String moduleName = myFacetPointer == null ? "<unknown>" : myFacetPointer.getModuleName();
-    return (new StringBuilder()).append("'").append(moduleName).append("' Jangaroo compiler output").toString();
+    return (new StringBuilder()).append("'").append(moduleName).append("' Jangaroo packaging output").toString();
   }
 
   public void render(@NotNull PresentationData presentationData, SimpleTextAttributes mainAttributes,
