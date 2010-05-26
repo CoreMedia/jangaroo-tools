@@ -4,7 +4,7 @@
   <groupId>net.jangaroo</groupId>
   <artifactId>jangaroo-tools</artifactId>
   <packaging>pom</packaging>
-  <version>0.5.1</version>
+  <version>0.5.2-SNAPSHOT</version>
   <url>http://repo.jangaroo.net/site/jangaroo-tools</url>
   <name>Jangaroo Tools</name>
 
