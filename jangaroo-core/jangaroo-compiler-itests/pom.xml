@@ -3,28 +3,28 @@
   <parent>
     <groupId>net.jangaroo</groupId>
     <artifactId>jangaroo-core</artifactId>
-    <version>0.5.1-SNAPSHOT</version>
+    <version>0.5.1</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>net.jangaroo</groupId>
   <artifactId>jangaroo-compiler-itests</artifactId>
   <name>Joo Compiler Integration Tests</name>
-  <version>0.5.1-SNAPSHOT</version>
+  <version>0.5.1</version>
   <packaging>jar</packaging>
 
   <dependencies>
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-runtime</artifactId>
-      <version>0.5.1-SNAPSHOT</version>
+      <version>0.5.1</version>
       <type>jangaroo</type>
     </dependency>
 
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-compiler</artifactId>
-      <version>0.5.1-SNAPSHOT</version>
+      <version>0.5.1</version>
     </dependency>
 
     <dependency>
@@ -98,13 +98,7 @@
 
                 <mkdir dir="${basedir}/target/temp/js" />
 
-                <jooc destdir="target/temp/scripts"
-                      failonerror="true"
-                      debug="true"
-                      verbose="true"
-                      enableassertions="true"
-                      enableguessingmembers="true"
-                      enableguessingclasses="true">
+                <jooc destdir="target/temp/scripts" failonerror="true" debug="true" verbose="true" enableassertions="true" enableguessingmembers="true" enableguessingclasses="true">
                   <include name="**/*.as" />
                   <exclude name="error/**/*.as" />
                   <exclude name="**/*_fragment.as" />

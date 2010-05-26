@@ -3,14 +3,14 @@
   <groupId>net.jangaroo</groupId>
   <artifactId>jangaroo-maven-plugin</artifactId>
   <packaging>maven-plugin</packaging>
-  <version>0.5.1-SNAPSHOT</version>
+  <version>0.5.1</version>
   <name>Maven Plugin: Compile + Test</name>
   <description>This plugin compiles Jangaroo sources to JavaScript.</description>
 
   <parent>
     <groupId>net.jangaroo</groupId>
     <artifactId>jangaroo-maven</artifactId>
-    <version>0.5.1-SNAPSHOT</version>
+    <version>0.5.1</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
@@ -40,19 +40,19 @@
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-utils</artifactId>
-      <version>0.5.1-SNAPSHOT</version>
+      <version>0.5.1</version>
     </dependency>
 
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>properties-compiler</artifactId>
-      <version>0.5.1-SNAPSHOT</version>
+      <version>0.5.1</version>
     </dependency>
 
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-compiler</artifactId>
-      <version>0.5.1-SNAPSHOT</version>
+      <version>0.5.1</version>
     </dependency>
 
 
@@ -123,7 +123,7 @@
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>ext-xml-maven-plugin</artifactId>
-      <version>0.5.1-SNAPSHOT</version>
+      <version>0.5.1</version>
     </dependency>
 
     <dependency>
