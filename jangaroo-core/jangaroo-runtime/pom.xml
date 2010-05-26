@@ -21,7 +21,7 @@
       <plugin>
         <groupId>net.jangaroo</groupId>
         <artifactId>jangaroo-lifecycle</artifactId>
-        <version>0.4.0</version>
+        <version>0.5.0</version>
         <!-- We cannot use the latest version here since we can't use AND build it in the same process -->
         <extensions>true</extensions>
       </plugin>
