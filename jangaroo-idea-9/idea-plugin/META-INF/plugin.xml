@@ -6,7 +6,7 @@
     A plugin for compiling ActionScript 3 code to JavaScript using the Jangaroo Open Source
     Compiler jooc.
   </description>
-  <version>9.0.5.0.0</version>
+  <version>9.0.5.1.0</version>
   <vendor url="http://www.jangaroo.net"
           email="info@jangaroo.net"
           logo="/net/jangaroo/jooley-16x16.png">Jangaroo</vendor>
@@ -33,8 +33,8 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <facetType implementation="net.jangaroo.ide.idea.JangarooFacetType"/>
-    <packaging.elementType implementation="net.jangaroo.ide.idea.JangarooCompilerOutputElementType"/>
-    <packaging.sourceItemProvider implementation="net.jangaroo.ide.idea.JangarooCompilerOutputSourceItemProvider"/>
+    <packaging.elementType implementation="net.jangaroo.ide.idea.JangarooPackagingOutputElementType"/>
+    <packaging.sourceItemProvider implementation="net.jangaroo.ide.idea.JangarooPackagingOutputSourceItemProvider"/>
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.idea.maven">
