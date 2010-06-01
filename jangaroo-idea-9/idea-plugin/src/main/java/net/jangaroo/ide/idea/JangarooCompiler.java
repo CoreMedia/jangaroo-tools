@@ -77,7 +77,7 @@ public class JangarooCompiler implements TranslatingCompiler {
         return null;
       }
       outputDirectoryPath = outputDirectoryVirtualFile.getPath();
-      String outputFileName = outputDirectoryPath + File.separator + joocConfig.getOutputFileName();
+      String outputFileName = outputDirectoryPath + "/" + joocConfig.getOutputFileName();
       IdeaCompileLog ideaCompileLog = new IdeaCompileLog(context);
       new Jooc(ideaCompileLog).run(joocConfig);
       for (final VirtualFile file : files) {
