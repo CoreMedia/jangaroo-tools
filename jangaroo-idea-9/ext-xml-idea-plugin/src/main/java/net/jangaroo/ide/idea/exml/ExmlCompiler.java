@@ -6,6 +6,7 @@ import com.intellij.facet.FacetManager;
 import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompileScope;
 import com.intellij.openapi.compiler.CompilerMessageCategory;
+import com.intellij.openapi.compiler.IntermediateOutputCompiler;
 import com.intellij.openapi.compiler.TranslatingCompiler;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -26,7 +27,6 @@ import net.jangaroo.utils.log.Log;
 import net.jangaroo.extxml.model.ComponentSuite;
 import net.jangaroo.extxml.model.ComponentType;
 import net.jangaroo.extxml.xml.XsdScanner;
-import net.jangaroo.ide.idea.JangarooFacetType;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedWriter;
@@ -49,7 +49,7 @@ import java.util.zip.ZipFile;
 /**
  *
  */
-public class ExmlCompiler implements TranslatingCompiler {
+public class ExmlCompiler implements TranslatingCompiler, IntermediateOutputCompiler {
 
   @NotNull
   public String getDescription() {
@@ -64,14 +64,14 @@ public class ExmlCompiler implements TranslatingCompiler {
   public boolean isCompilableFile(VirtualFile file, CompileContext context) {
     if (ComponentType.from(file.getExtension()) != null) {
       Module module = context.getModuleByFile(file);
-      if (module != null && FacetManager.getInstance(module).getFacetByType(JangarooFacetType.ID) != null) {
+      if (module != null && FacetManager.getInstance(module).getFacetByType(ExmlFacetType.ID) != null) {
         return true;
       }
     }
     return false;
   }
 
-  private static ExmlcConfigurationBean getExmlConfig(Module module) {
+  public static ExmlcConfigurationBean getExmlConfig(Module module) {
     ExmlFacet exmlFacet = FacetManager.getInstance(module).getFacetByType(ExmlFacetType.ID);
     return exmlFacet == null ? null : exmlFacet.getConfiguration().getState();
   }
@@ -240,7 +240,7 @@ public class ExmlCompiler implements TranslatingCompiler {
     return as3OutputDir;
   }
 
-  private String findGeneratedAs3RootDir(Module module) {
+  public static String findGeneratedAs3RootDir(Module module) {
     ExmlcConfigurationBean exmlConfig = getExmlConfig(module);
     return exmlConfig == null ? null : getVFPath(exmlConfig.getGeneratedSourcesDirectory());
   }
