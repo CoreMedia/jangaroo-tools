@@ -34,8 +34,8 @@ import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.xml.XmlElementDescriptor;
+import net.jangaroo.ide.idea.properties.PropertiesCompiler;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -47,6 +47,7 @@ import java.util.List;
 public class ExmlProjectComponent implements ProjectComponent {
   private Project project;
   private ExmlCompiler exmlc;
+  private PropertiesCompiler propc;
 
   public ExmlProjectComponent(Project project) {
     this.project = project;
@@ -67,6 +68,7 @@ public class ExmlProjectComponent implements ProjectComponent {
 
   public void initComponent() {
     exmlc = new ExmlCompiler();
+    propc = new PropertiesCompiler();
     // language injection: see http://www.jetbrains.net/devnet/message/5208687
     PsiManager.getInstance(project).registerLanguageInjector(new LanguageInjector() {
       public void getLanguagesToInject(@NotNull PsiLanguageInjectionHost psiLanguageInjectionHost, @NotNull InjectedLanguagePlaces injectedLanguagePlaces) {
@@ -167,6 +169,7 @@ public class ExmlProjectComponent implements ProjectComponent {
 
   public void disposeComponent() {
     exmlc = null;
+    propc = null;
   }
 
   @NotNull
@@ -177,15 +180,23 @@ public class ExmlProjectComponent implements ProjectComponent {
   public void projectOpened() {
     CompilerManager compilerManager = CompilerManager.getInstance(project);
     FileType exml = FileTypeManager.getInstance().getFileTypeByExtension("exml");
+    FileType properties = FileTypeManager.getInstance().getFileTypeByExtension("properties");
+    FileType actionscript = FileTypeManager.getInstance().getFileTypeByExtension("as");
+
     compilerManager.addCompilableFileType(exml);
-    FileType javascript = FileTypeManager.getInstance().getFileTypeByExtension("as");
     compilerManager.addTranslatingCompiler(exmlc,
       Collections.<FileType>singleton(exml),
-      Collections.<FileType>singleton(javascript));
+      Collections.<FileType>singleton(actionscript));
+
+    compilerManager.addCompilableFileType(properties);
+    compilerManager.addTranslatingCompiler(propc,
+      Collections.<FileType>singleton(properties),
+      Collections.<FileType>singleton(actionscript));
   }
 
   public void projectClosed() {
     CompilerManager compilerManager = CompilerManager.getInstance(project);
     compilerManager.removeCompiler(exmlc);
+    compilerManager.removeCompiler(propc);
   }
 }
