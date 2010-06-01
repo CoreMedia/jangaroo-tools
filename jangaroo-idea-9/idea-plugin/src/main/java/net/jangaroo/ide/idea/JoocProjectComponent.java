@@ -49,9 +49,11 @@ public class JoocProjectComponent implements ProjectComponent {
 
   public void projectOpened() {
     CompilerManager compilerManager = CompilerManager.getInstance(project);
+
     FileType actionscript = FileTypeManager.getInstance().getFileTypeByExtension("as");
-    compilerManager.addCompilableFileType(actionscript);
     FileType javascript = FileTypeManager.getInstance().getFileTypeByExtension("js");
+
+    compilerManager.addCompilableFileType(actionscript);
     compilerManager.addTranslatingCompiler(jooc,
       Collections.<FileType>singleton(actionscript),
       Collections.<FileType>singleton(javascript));
