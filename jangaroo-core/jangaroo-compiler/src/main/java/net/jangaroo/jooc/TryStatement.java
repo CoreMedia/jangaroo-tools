@@ -40,6 +40,14 @@ class TryStatement extends KeywordStatement {
     this.finallyBlock = finallyBlock;
   }
 
+  @Override
+  public void scope(final Scope scope) {
+    block.scope(scope);
+    scope(catches, scope);
+    if (finallyBlock != null)
+      finallyBlock.scope(scope);
+  }
+
   public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     block.analyze(this, context);

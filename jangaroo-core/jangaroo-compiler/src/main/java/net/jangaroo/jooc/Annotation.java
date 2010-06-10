@@ -39,6 +39,12 @@ public class Annotation extends NodeImplBase {
     this.rightBracket = rightBracket;
   }
 
+  @Override
+  public void scope(final Scope scope) {
+    ide.scope(scope);
+    annotationFields.scope(scope);
+  }
+
   public JooSymbol getSymbol() {
     return ide.getSymbol();
   }

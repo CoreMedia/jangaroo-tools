@@ -30,14 +30,10 @@ public class TestSyntaxErrors extends JooTestCase {
    * The number of erroneous .as files. Increase whenever you add a new error file.
    * Specifying this number makes sure that no files are accidentially forgotten.
    */
-  private static int ERROR_FILE_COUNT = 5;
+  private static int ERROR_FILE_COUNT = 7;
 
   public TestSyntaxErrors(String name) {
     super(name);
-  }
-
-  public void testSucceedingCompilation() {
-    assertEquals(Jooc.RESULT_CODE_OK, runJooc(new String[]{"package1/TestMethodCall.as"}));
   }
 
   public void testAllErrorClasses() {

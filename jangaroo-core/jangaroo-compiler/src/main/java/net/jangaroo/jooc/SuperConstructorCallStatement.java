@@ -27,13 +27,13 @@ class SuperConstructorCallStatement extends Statement {
   ParenthesizedExpr<CommaSeparatedList<Expr>> args;
 
   public SuperConstructorCallStatement(JooSymbol symSuper, JooSymbol lParen, CommaSeparatedList<Expr> args, JooSymbol rParen) {
-    this.fun = new SuperExpr(symSuper);
+    this.fun = new IdeExpr(symSuper);
     this.args = new ParenthesizedExpr<CommaSeparatedList<Expr>>(lParen, args, rParen);
   }
 
-  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
-    super.analyze(parentNode, context);
-    MethodDeclaration method = context.getCurrentMethod();
+  @Override
+  public void scope(final Scope scope) {
+    FunctionDeclaration method = scope.getMethodDeclaration();
     if (method == null || !method.isConstructor()) {
       throw Jooc.error(getSymbol(), "must only call super constructor from constructor method");
     }
@@ -41,7 +41,14 @@ class SuperConstructorCallStatement extends Statement {
       throw Jooc.error(getSymbol(), "must not call super constructor twice");
     }
     method.setContainsSuperConstructorCall(true);
+    fun.scope(scope);
+    if (args != null)
+      args.scope(scope);
+  }
 
+  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
+    super.analyze(parentNode, context);
+    fun.analyze(this, context);
     if (args != null)
       args.analyze(this, context);
     return this;

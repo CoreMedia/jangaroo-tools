@@ -30,6 +30,10 @@ class DefaultStatement extends Statement {
     this.symColon = symColon;
   }
 
+  @Override
+  public void scope(final Scope scope) {
+  }
+
   public void generateCode(JsWriter out) throws IOException {
     out.writeSymbol(symDefault);
     out.writeSymbol(symColon);

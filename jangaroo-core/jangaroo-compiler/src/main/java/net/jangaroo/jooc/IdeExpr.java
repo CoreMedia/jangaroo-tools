@@ -24,19 +24,33 @@ class IdeExpr extends Expr {
 
   Ide ide;
 
+  public IdeExpr(JooSymbol symIde) {
+    this(new Ide(symIde));
+  }
+
   public IdeExpr(Ide ide) {
     this.ide = ide;
+  }
+
+  public static IdeExpr fromPrefix(JooSymbol symPrefix, JooSymbol symDot, Ide ide) {
+    return new IdeExpr(ide.qualify(symPrefix, symDot));
+  }
+
+  @Override
+  public void scope(final Scope scope) {
+    ide.scope(scope);
   }
 
   @Override
   public Expr analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     ide.analyze(this, context);
+    ide.analyzeAsExpr(parentNode, this, context);
     return this;
   }
 
   public void generateCode(JsWriter out) throws IOException {
-    ide.generateCode(out);
+    ide.generateCodeAsExpr(this, out);
   }
 
   public JooSymbol getSymbol() {

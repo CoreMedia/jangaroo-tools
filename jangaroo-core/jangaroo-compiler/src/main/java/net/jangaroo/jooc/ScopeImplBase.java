@@ -1,3 +1,18 @@
+/*
+ * Copyright 2010 CoreMedia AG
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an "AS
+ * IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language
+ * governing permissions and limitations under the License.
+ */
+
 package net.jangaroo.jooc;
 
 public abstract class ScopeImplBase implements Scope {
@@ -14,21 +29,21 @@ public abstract class ScopeImplBase implements Scope {
   }
 
   @Override
+  public void addImport(final ImportDirective importDirective) {
+    mustBeInsideValueScope();
+    parent.addImport(importDirective);
+  }
+
+  @Override
   public AstNode getDefiningNode() {
     if (parent == null) return null;
     return parent.getDefiningNode();
   }
 
   @Override
-  public AstNode declareIde(final String name, final AstNode decl) {
+  public IdeDeclaration declareIde(final IdeDeclaration decl) {
     mustBeInsideValueScope();
-    return parent.declareIde(name, decl);
-  }
-
-  @Override
-  public AstNode declareIde(final String name, final AstNode node, final boolean allowDuplicates, final JooSymbol ideSymbol) {
-    mustBeInsideValueScope();
-    return parent.declareIde(name, node, allowDuplicates, ideSymbol);
+    return parent.declareIde(decl);
   }
 
   private void mustBeInsideValueScope() {
@@ -37,33 +52,21 @@ public abstract class ScopeImplBase implements Scope {
   }
 
   @Override
-  public LabeledStatement findLabel(final Ide ide) {
-    if (parent == null) return null;
-    return parent.findLabel(ide);
+  public LabeledStatement lookupLabel(final Ide ide) {
+    if (parent == null) {
+        throw Jooc.error(ide, "undeclared label '" + ide.getName() + "'");
+    }
+    return parent.lookupLabel(ide);
   }
 
   @Override
-  public AstNode getIdeDeclaration(final Ide ide) {
-    if (parent == null) return null;
-    return parent.getIdeDeclaration(ide);
+  public IdeDeclaration lookupDeclaration(final Ide ide) {
+    return parent == null ? null : parent.lookupDeclaration(ide);
   }
 
   @Override
-  public AstNode getIdeDeclaration(final String name) {
-    if (parent == null) return null;
-    return parent.getIdeDeclaration(name);
-  }
-
-  @Override
-  public Scope findScopeThatDeclares(final Ide ide) {
-    if (parent == null) return null;
-    return parent.findScopeThatDeclares(ide);
-  }
-
-  @Override
-  public Scope findScopeThatDeclares(final String name) {
-    if (parent == null) return null;
-    return parent.findScopeThatDeclares(name);
+  public boolean isDeclared(final Ide ide) {
+    return parent != null && getParentScope().isDeclared(ide);
   }
 
   @Override
@@ -84,12 +87,6 @@ public abstract class ScopeImplBase implements Scope {
   }
 
   @Override
-  public void addExternalUsage(final Ide ide) {
-    mustBeInsideValueScope();
-    parent.addExternalUsage(ide);
-  }
-
-  @Override
   public CompilationUnit getCompilationUnit() {
     return parent == null ? null : parent.getCompilationUnit();
   }
@@ -105,7 +102,16 @@ public abstract class ScopeImplBase implements Scope {
   }
 
   @Override
-  public MethodDeclaration getMethodDeclaration() {
+  public FunctionDeclaration getMethodDeclaration() {
     return parent == null ? null : parent.getMethodDeclaration();
+  }
+
+  @Override
+  public FunctionExpr getFunctionExpr() {
+    return parent == null ? null : parent.getFunctionExpr();
+  }
+
+  public boolean isPackage(final String fullyQualifiedName) {
+    return parent != null && parent.isPackage(fullyQualifiedName);
   }
 }

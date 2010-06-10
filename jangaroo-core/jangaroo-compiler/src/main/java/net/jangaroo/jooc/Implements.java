@@ -30,15 +30,20 @@ class Implements extends NodeImplBase {
   }
 
   @Override
-  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
-    super.analyze(parentNode, context);
-    superTypes.analyze(this, context);
+  public void scope(final Scope scope) {
+    superTypes.scope(scope);
     CommaSeparatedList<Ide> superTypes = this.superTypes;
     while (superTypes != null) {
       Ide superType = superTypes.head;
-      context.getScope().addExternalUsage(superType);
+      superType.addExternalUsage();
       superTypes = superTypes.tail;
     }
+  }
+
+  @Override
+  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
+    super.analyze(parentNode, context);
+    superTypes.analyze(this, context);
     return this;
   }
 

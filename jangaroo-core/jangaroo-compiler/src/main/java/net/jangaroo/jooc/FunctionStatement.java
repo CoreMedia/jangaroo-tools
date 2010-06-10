@@ -28,6 +28,10 @@ class FunctionStatement extends Statement {
     this.fun = fun;
   }
 
+  public void scope(final Scope scope) {
+    fun.scope(scope);
+  }
+
   @Override
   public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);

@@ -31,6 +31,12 @@ class BinaryOpExpr extends OpExpr {
     this.arg2 = arg2;
   }
 
+  @Override
+  public void scope(final Scope scope) {
+    arg1.scope(scope);
+    arg2.scope(scope);
+  }
+
   public void generateCode(JsWriter out) throws IOException {
     arg1.generateCode(out);
     out.writeSymbol(op);

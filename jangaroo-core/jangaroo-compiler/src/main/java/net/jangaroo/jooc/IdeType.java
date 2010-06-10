@@ -28,12 +28,13 @@ public class IdeType extends Type {
 
   Ide ide;
 
-  public IdeType(String name) {
-    this(new Ide(new JooSymbol(name)));
-  }
-
   public IdeType(Ide ide) {
     this.ide = ide;
+  }
+
+  @Override
+  public void scope(final Scope scope) {
+    ide.scope(scope);
   }
 
   @Override
@@ -51,4 +52,9 @@ public class IdeType extends Type {
       return ide.getSymbol();
   }
 
+  @Override
+  public IdeDeclaration resolveDeclaration() {
+    final IdeDeclaration ideDeclaration = ide.getDeclaration(false);
+    return ideDeclaration == null ? null : ideDeclaration.resolveDeclaration();
+  }
 }

@@ -22,9 +22,8 @@ interface AstNode extends CodeGenerator {
 
   JooSymbol getSymbol();
 
-  //void accept(AstVisitor visitor);
+  void scope(Scope scope);
+
   AstNode analyze(AstNode parentNode, AnalyzeContext context);
-
-
 
 }

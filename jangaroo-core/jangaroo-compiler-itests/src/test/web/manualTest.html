@@ -1,0 +1,35 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+  <title>joo test</title>
+  <script type="text/javascript" src="scripts/jangaroo-runtime-debug.js"></script>
+  <script type="text/javascript">
+    joo.classLoader.urlPrefix = "scripts/";
+  </script>
+  <script type="text/javascript" src="scripts/package1/TestMethodCall.js"></script>
+  <script type="text/javascript" src="scripts/package1/TestTypeCast.js"></script>
+  <script type="text/javascript">
+
+    var assert = function(b) {
+      if (!b)
+        throw new Error("assertion failed");
+    }
+    
+    joo.classLoader.complete();
+    joo.classLoader.init(package1.TestTypeCast);
+    joo.classLoader.init(package1.TestMethodCall);
+
+    package1.TestMethodCall.s(43);
+    var obj = new package1.TestMethodCall();
+    var m1 = obj.m(43); // === 43);
+    obj = new package1.TestTypeCast();
+    var m2 = package1.TestTypeCast.testAsCast(obj); //===true);
+    var m3 = package1.TestTypeCast.testFunctionCast(obj); //===obj);
+  </script>
+</head>
+<body>
+
+  <p>manual jangaroo test</p>
+</body>
+</html>

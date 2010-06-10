@@ -32,6 +32,13 @@ class ParenthesizedExpr<ExprType extends Expr> extends Expr {
     this.rParen = rParen;
   }
 
+  @Override
+  public void scope(final Scope scope) {
+    if (expr!=null) {
+      expr.scope(scope);
+    }
+  }
+
   public Expr analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     if (expr!=null)

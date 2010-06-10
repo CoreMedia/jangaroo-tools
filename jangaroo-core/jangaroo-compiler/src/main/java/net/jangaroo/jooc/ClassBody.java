@@ -31,13 +31,19 @@ public class ClassBody extends NodeImplBase {
   List<AstNode> declararations;
   JooSymbol rBrace;
 
-  ClassDeclaration classDeclaration;
-
   public ClassBody(JooSymbol lBrace, List<AstNode> declararations, JooSymbol rBrace) {
     this.lBrace = lBrace;
     this.declararations = declararations;
     this.rBrace = rBrace;
   }
+
+  @Override
+  public void scope(final Scope scope) {
+    for (AstNode node : declararations) {
+      node.scope(scope);
+    }
+  }
+
 
   public void generateCode(JsWriter out) throws IOException {
     out.writeSymbolWhitespace(lBrace);

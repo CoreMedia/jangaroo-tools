@@ -21,19 +21,15 @@ public interface Scope {
 
   Scope getParentScope();
 
-  AstNode declareIde(String name, AstNode decl);
+  void addImport(ImportDirective importDirective);
 
-  AstNode declareIde(String name, AstNode node, boolean allowDuplicates, JooSymbol ideSymbol);
+  IdeDeclaration declareIde(IdeDeclaration decl);
 
-  LabeledStatement findLabel(Ide ide);
+  LabeledStatement lookupLabel(Ide ide);
 
-  AstNode getIdeDeclaration(Ide ide);
+  IdeDeclaration lookupDeclaration(Ide ide);
 
-  AstNode getIdeDeclaration(String name);
-
-  Scope findScopeThatDeclares(Ide ide);
-
-  Scope findScopeThatDeclares(String name);
+  boolean isDeclared(Ide ide);
 
   Ide createAuxVar();
 
@@ -41,13 +37,16 @@ public interface Scope {
 
   Statement getCurrentLoopOrSwitch();
 
-  void addExternalUsage(Ide ide);
-
   CompilationUnit getCompilationUnit();
 
   PackageDeclaration getPackageDeclaration();
 
   ClassDeclaration getClassDeclaration();
 
-  MethodDeclaration getMethodDeclaration();
+  FunctionDeclaration getMethodDeclaration();
+
+  FunctionExpr getFunctionExpr();
+
+  boolean isPackage(String fullyQualifiedName);
+
 }

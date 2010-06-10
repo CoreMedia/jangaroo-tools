@@ -14,14 +14,14 @@ public class LabelScope extends ScopeImplBase {
   }
 
   @Override
-  public LabeledStatement findLabel(Ide ide) {
+  public LabeledStatement lookupLabel(Ide ide) {
     if (statement instanceof LabeledStatement) {
      LabeledStatement ls = (LabeledStatement) statement;
      if (ls.ide.getName().equals(ide.getName())) {
         return ls;
       }
     }
-    return super.findLabel(ide);
+    return super.lookupLabel(ide);
   }
 
   @Override

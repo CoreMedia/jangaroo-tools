@@ -38,12 +38,30 @@ public abstract class NodeImplBase implements AstNode {
     return this;
   }
 
+  public <N extends AstNode> void scope(List<N> nodes, Scope scope) {
+    for (AstNode node : nodes) {
+      node.scope(scope);
+    }
+  }
+
   public <N extends AstNode> List<N> analyze(AstNode parent, List<N> nodes, AnalyzeContext context) {
     List<N> result = new ArrayList<N>(nodes.size());
     for (AstNode node : nodes) {
       result.add((N)node.analyze(parent, context));
     }
     return result;
+  }
+
+  public interface Scoped {
+    void run(Scope scope);
+  }
+
+  public void withNewDeclarationScope(final AstNode definingNode, final Scope scope, final Scoped scoped) {
+    scoped.run(new DeclarationScope(definingNode, scope));
+  }
+
+  public void withNewLabelScope(final Statement statement, final Scope scope, final Scoped scoped) {
+    scoped.run(new LabelScope(statement, scope));
   }
 
 }

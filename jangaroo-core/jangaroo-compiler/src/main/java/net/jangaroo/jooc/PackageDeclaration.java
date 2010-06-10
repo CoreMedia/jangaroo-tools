@@ -29,33 +29,10 @@ import java.util.HashSet;
 public class PackageDeclaration extends IdeDeclaration  {
 
   JooSymbol symPackage;
-  private Set<String> packages = new HashSet<String>();
-  private List<String> packageImports = new ArrayList<String>();
-  private List<String> namespaces = new ArrayList<String>();
 
   public PackageDeclaration(JooSymbol symPackage, Ide ide) {
     super(new JooSymbol[0], 0, ide);
     this.symPackage = symPackage;
-  }
-
-  public void addImport(QualifiedIde ide) {
-    String packageName = ide.prefix.getQualifiedNameStr();
-    packages.add(packageName);
-    if ("*".equals(ide.getName())) {
-      packageImports.add(packageName);
-    }
-  }
-
-  public boolean isPackage(String fullyQualifiedName) {
-    return packages.contains(fullyQualifiedName);
-  }
-
-  public List<String> getPackageImports() {
-    return Collections.unmodifiableList(packageImports);
-  }
-
-  public void addNamespace(String namespace) {
-    namespaces.add(namespace);
   }
 
   public void generateCode(JsWriter out) throws IOException {
@@ -68,22 +45,16 @@ public class PackageDeclaration extends IdeDeclaration  {
     out.write(",");
   }
 
-  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
-    // do *not* call super!
-    this.parentNode = parentNode;
-    return this;
-  }
-
   public JooSymbol getSymbol() {
     return symPackage;
   }
 
-  public boolean isFullyQualifiedIde(AnalyzeContext context, String dotExpr) {
-    return packageImports.contains(dotExpr.substring(0, dotExpr.lastIndexOf('.')))
-      || context.getScope().findScopeThatDeclares(dotExpr) != null;
+  public boolean equals(Object other) {
+    return other instanceof PackageDeclaration &&
+      getIde().equals(((PackageDeclaration) other).getIde());
   }
 
-  public boolean isNamespace(String namespace) {
-    return namespaces.contains(namespace);
+  public boolean isTopLevel() {
+    return ide == null;
   }
 }

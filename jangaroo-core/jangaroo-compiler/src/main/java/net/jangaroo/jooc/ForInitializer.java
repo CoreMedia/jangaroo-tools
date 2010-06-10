@@ -33,6 +33,14 @@ class ForInitializer extends NodeImplBase {
     this.expr = expr;
   }
 
+  @Override
+  public void scope(final Scope scope) {
+    if (decl!=null)
+      decl.scope(scope);
+    if (expr!=null)
+      expr.scope(scope);
+  }
+
   public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     if (decl!=null)

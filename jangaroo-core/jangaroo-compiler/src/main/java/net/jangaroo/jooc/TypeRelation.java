@@ -35,6 +35,11 @@ public class TypeRelation extends NodeImplBase {
     this.type = type;
   }
 
+  @Override
+  public void scope(final Scope scope) {
+    type.scope(scope);
+  }
+
   public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     type.analyze(this, context);

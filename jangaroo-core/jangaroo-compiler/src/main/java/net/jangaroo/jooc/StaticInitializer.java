@@ -38,11 +38,21 @@ class StaticInitializer extends Declaration {
     out.write(",");
   }
 
+  @Override
+  public void scope(final Scope scope) {
+    super.scope(scope);
+    //todo pop non-static member scope here?
+    withNewDeclarationScope(this, scope, new Scoped() {
+      @Override
+      public void run(final Scope scope) {
+        block.scope(scope);
+      }
+    });
+  }
+
   public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
-    context.enterScope(this);
     block.analyze(this, context);
-    context.leaveScope(this);
     return this;
   }
 

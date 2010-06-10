@@ -15,8 +15,6 @@
 
 package net.jangaroo.jooc;
 
-import net.jangaroo.jooc.config.JoocOptions;
-
 import java.io.IOException;
 
 /**
@@ -27,16 +25,33 @@ class ApplyExpr extends Expr {
 
   Expr fun;
   ParenthesizedExpr<CommaSeparatedList<Expr>> args;
-  Scope scope;
+
+  private boolean insideNewExpr = false;
 
   public ApplyExpr(Expr fun, JooSymbol lParen, CommaSeparatedList<Expr> args, JooSymbol rParen) {
     this.fun = fun;
     this.args = new ParenthesizedExpr<CommaSeparatedList<Expr>>(lParen, args, rParen);
   }
 
+  public boolean isInsideNewExpr() {
+    return insideNewExpr;
+  }
+
+  public void setInsideNewExpr(final boolean insideNewExpr) {
+    this.insideNewExpr = insideNewExpr;
+  }
+
+  @Override
+  public void scope(final Scope scope) {
+    fun.scope(scope);
+    args.scope(scope);
+  }
+
   public void generateCode(JsWriter out) throws IOException {
     // leave out constructor function if called as type cast function!
-    if (isTypeCast(out.getOptions())) {
+    // these old-style type casts are soo ugly....
+    // let through typecast to String
+    if (isTypeCast() && !(fun instanceof IdeExpr && ((IdeExpr)fun).ide.getQualifiedNameStr().equals("String"))) {
       out.beginComment();
       fun.generateCode(out);
       out.endComment();
@@ -47,41 +62,21 @@ class ApplyExpr extends Expr {
       args.generateCode(out);
   }
 
-  private boolean isTypeCast(JoocOptions options) {
-    if (scope!=null && fun instanceof IdeExpr && !isInsideNewExpr()) {
-      // TODO: make it work correctly for fully qualified identifiers!
-      String name = ((IdeExpr)fun).ide.getName();
-      // special case: it is a type cast to the current class:
-      if (scope.getClassDeclaration()!=null && scope.getClassDeclaration().getName().equals(name)) {
-        return true;
-      }
-      // heuristic for types: start with upper case letter.
-      // otherwise, it is most likely an imported package-namespaced function.
-      if (Character.isUpperCase(name.charAt(0))) {
-        Scope declScope = scope.findScopeThatDeclares(name);
-        return declScope == null
-          ? options.isEnableGuessingTypeCasts()
-          : declScope.getDefiningNode() == scope.getPackageDeclaration();
-      }
-    }
-    return false;
+  private boolean isTypeCast() {
+    return fun instanceof IdeExpr && !isInsideNewExpr() && isType((IdeExpr)fun);
   }
 
-  private boolean isInsideNewExpr() {
-    AstNode node = this;
-    do {
-      node = ((NodeImplBase)node).parentNode;
-      if (node instanceof NewExpr) {
-        return true;
-      }
-    } while (node instanceof NodeImplBase);
-    return false;
+  private boolean isType(IdeExpr fun) {
+    final Ide ide = fun.ide;
+    AstNode declaration = ide.getDeclaration(false);
+    return declaration != null &&
+      (declaration instanceof ClassDeclaration || declaration instanceof PredefinedTypeDeclaration ||
+        (declaration instanceof FunctionDeclaration && ((FunctionDeclaration)declaration).isConstructor()));
   }
 
   public Expr analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     fun = fun.analyze(this, context);
-    scope = context.getScope();
     if (args != null)
       args.analyze(this, context);
     return this;
@@ -90,6 +85,5 @@ class ApplyExpr extends Expr {
   public JooSymbol getSymbol() {
     return fun.getSymbol();
   }
-
 
 }

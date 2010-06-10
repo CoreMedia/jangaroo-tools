@@ -20,7 +20,8 @@ import java.io.IOException;
 /**
  * @author Andreas Gawecki
  */
-public class Extends extends NodeImplBase  {
+public class Extends extends NodeImplBase {
+
   JooSymbol symExtends;
   Ide superClass;
 
@@ -30,20 +31,28 @@ public class Extends extends NodeImplBase  {
   }
 
   @Override
+  public void scope(final Scope scope) {
+    superClass.scope(scope);
+  }
+
+  @Override
   public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
+    if (!(superClass.getDeclaration() instanceof ClassDeclaration)) {
+      throw new Jooc.CompilerError(superClass.getSymbol(), "identifier in extends clause must denote a class");
+    }
     superClass.analyze(this, context);
-    context.getScope().addExternalUsage(superClass);
+    superClass.addExternalUsage();
     return this;
   }
 
   public void generateCode(JsWriter out) throws IOException {
-     out.writeSymbol(symExtends);
-     superClass.generateCode(out);
+    out.writeSymbol(symExtends);
+    superClass.generateCode(out);
   }
 
   public JooSymbol getSymbol() {
-     return symExtends;
+    return symExtends;
   }
 
 }

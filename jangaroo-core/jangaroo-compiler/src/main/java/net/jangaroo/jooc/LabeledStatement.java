@@ -32,11 +32,20 @@ class LabeledStatement extends Statement {
     this.statement = statement;
   }
 
+  @Override
+  public void scope(final Scope scope) {
+    ide.scope(scope);
+    withNewLabelScope(this, scope, new Scoped() {
+      @Override
+      public void run(final Scope scope) {
+        statement.scope(scope);
+      }
+    });
+  }
+
   public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
-    context.defineLabel(this);
     statement.analyze(this, context);
-    context.undefineLabel();
     return this;
   }
 

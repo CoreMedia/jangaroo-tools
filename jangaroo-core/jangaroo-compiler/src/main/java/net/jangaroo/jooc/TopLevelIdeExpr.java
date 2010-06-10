@@ -15,17 +15,12 @@
 
 package net.jangaroo.jooc;
 
-import net.jangaroo.jooc.config.JoocOptions;
-
 import java.io.IOException;
 
 /**
  * @author Frank Wienberg
  */
 class TopLevelIdeExpr extends IdeExpr {
-
-  private Scope scope;
-  private DotExpr synthesizedDotExpr;
 
   public TopLevelIdeExpr(Ide ide) {
     super(ide);
@@ -39,76 +34,58 @@ class TopLevelIdeExpr extends IdeExpr {
   @Override
   public Expr analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
-    scope = context.getScope();
-    if (scope!=null) {
-      Scope declaringScope = scope.findScopeThatDeclares(ide);
-      if (declaringScope != null) {
-        scope.addExternalUsage(ide);
-      }
-      if (declaringScope==null || declaringScope.getDefiningNode() instanceof ClassDeclaration) {
-        // move ide's white-space in front of the newly introduced "this.":
-        JooSymbol thisSymbol = new JooSymbol(sym.THIS, ide.ide.fileName, ide.ide.line, ide.ide.column, ide.ide.whitespace, "this");
-        JooSymbol ideWithoutWhitespace = new JooSymbol(ide.ide.sym, ide.ide.fileName, ide.ide.line, ide.ide.column, "", ide.ide.text);
-        synthesizedDotExpr = new DotExpr(new ThisExpr(thisSymbol), new JooSymbol("."), new Ide(ideWithoutWhitespace));
-        synthesizedDotExpr.analyze(parentNode, context);
-      }
+    Scope scope = ide.getScope();
+    if (scope != null) {
+      ide.addExternalUsage();
+      //todo handle references to static super members
       if (!(parentNode instanceof DotExpr)
         && !(parentNode instanceof ApplyExpr)) {
         ClassDeclaration classDeclaration = scope.getClassDeclaration();
-        if (classDeclaration!=null) {
-          classDeclaration.addInitIfClass(ide.getQualifiedNameStr(), context);
+        if (classDeclaration != null) {
+          classDeclaration.addInitIfClass(ide);
         }
       }
     }
     return this;
   }
 
+ /*
   @Override
   public void generateCode(JsWriter out) throws IOException {
-    if (addThis(out.getOptions())) {
-      synthesizedDotExpr.generateCode(out);
+    if (ide instanceof QualifiedIde) { //todo collapse QualifiedIde, NamespacedIde and Ide
+      ide.generateCode(out);
     } else {
-      super.generateCode(out);
-    }
-  }
-
-  private boolean addThis(JoocOptions options) {
-    if (synthesizedDotExpr!=null) {
-      // verify that ide is actually undefined or a non-static, non-constructor member:
-      Scope declaringScope = scope.findScopeThatDeclares(ide);
-      if (declaringScope==null) {
-        // check for fully qualified ide:
-        DotExpr currentDotExpr = synthesizedDotExpr;
-        StringBuilder ideName = new StringBuilder(ide.getName());
-        while (currentDotExpr.parentNode instanceof DotExpr) {
-          currentDotExpr = (DotExpr)currentDotExpr.parentNode;
-          ideName.append('.').append(currentDotExpr.getArg2().getName());
-          declaringScope = scope.findScopeThatDeclares(ideName.toString());
-          if (declaringScope!=null) {
-            // it has been defined in the meantime or is an imported qualified identifier:
-            return false;
+      out.writeSymbolWhitespace(ide.getSymbol());
+      IdeDeclaration decl = ide.getDeclaration();
+      String[] prefix = null;
+      if (decl.isMember()) {
+        if (decl.isPrivate()) {
+          DotExpr.writePrivateMemberAccess(null, null, ide, decl.isStatic(), out);
+          return;
+        }
+        if (decl.isStatic()) {
+          if (decl.getClassDeclaration() != ide.getScope().getClassDeclaration()) {
+            // not within same class, same class is within 'with' scope for now
+            prefix = new String[]{ decl.getClassDeclaration().getQualifiedNameStr(), "."};
           }
+        } else if (!decl.isConstructor()) {
+          prefix = new String[] {"this" , "."};
         }
-        boolean maybeInScope = options.isEnableGuessingClasses() && Character.isUpperCase(ide.getName().charAt(0));
-        String warningMsg = "Undeclared identifier: " + ide.getName();
-        if (maybeInScope) {
-          warningMsg += ", assuming it is a top-level or *-imported class.";
-        } else if (options.isEnableGuessingMembers()) {
-          warningMsg += ", assuming it is an inherited member.";
-        }
-        Jooc.warning(ide.getSymbol(), warningMsg);
-        return !maybeInScope && options.isEnableGuessingMembers();
-      } else if (declaringScope.getDefiningNode() instanceof ClassDeclaration) {
-        AstNode ideDeclaration = declaringScope.getIdeDeclaration(ide);
-        if (ideDeclaration instanceof MemberDeclaration) {
-          MemberDeclaration memberDeclaration = (MemberDeclaration)ideDeclaration;
-          return !memberDeclaration.isStatic() && !memberDeclaration.isConstructor();
-        //} else {
-          // must be an imported namespace.
+      } else {
+        // add package prefix if it is not a local
+        if (decl.getParentDeclaration() instanceof PackageDeclaration) {
+          String qname = ((PackageDeclaration)decl.getParentDeclaration()).getQualifiedNameStr();
+          if (!qname.isEmpty())
+            prefix = new String[]{qname, "."};
         }
       }
+      if (prefix != null) {
+        for (String token : prefix) {
+          out.write(token);
+        }
+      }
+      out.writeSymbol(ide.getSymbol(), false);
     }
-    return false;
   }
-
+*/
 }

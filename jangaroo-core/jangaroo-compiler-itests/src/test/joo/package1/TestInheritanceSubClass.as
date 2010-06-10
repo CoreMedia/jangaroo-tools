@@ -22,7 +22,7 @@ public class TestInheritanceSubClass extends package1.TestInheritanceSuperClass 
     slot2 = slot2Value;
   }
 
-  protected var slot2 :int, slot3 :int;
+  protected var slot2 :int;
 
   public function setSlot2(value :int) :void {
     slot2 = value;

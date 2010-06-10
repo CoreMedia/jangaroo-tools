@@ -33,12 +33,14 @@ public class UseNamespaceDirective extends NodeImplBase {
   }
 
   @Override
+  public void scope(final Scope scope) {
+    namespace.scope(scope);
+  }
+
+  @Override
   public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
+    Jooc.warning(namespace.getSymbol(), "namespaces are not yet implemented, ignoring use namespace " + namespace.getName());
     namespace.analyze(this, context);
-    PackageDeclaration packageDeclaration = context.getCurrentPackage();
-    if (packageDeclaration != null) {
-      packageDeclaration.addNamespace(namespace.getQualifiedNameStr());
-    }
     return super.analyze(parentNode, context);
   }
 

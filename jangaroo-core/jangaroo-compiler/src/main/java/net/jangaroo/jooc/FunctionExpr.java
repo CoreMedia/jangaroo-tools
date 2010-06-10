@@ -22,6 +22,8 @@ import java.io.IOException;
  */
 class FunctionExpr extends Expr {
 
+  public final static Ide ARGUMENTS_IDE = new Ide(new JooSymbol("arguments"));
+
   private JooSymbol symFun;
   private Ide ide;
   private JooSymbol lParen;
@@ -47,35 +49,50 @@ class FunctionExpr extends Expr {
     return parentDeclaration;
   }
 
-  public Expr analyze(AstNode parentNode, AnalyzeContext context) {
-    parentDeclaration = context.getCurrentClass();
+  public void scope(final Scope scope) {
+    parentDeclaration = scope.getClassDeclaration();
     if (parentDeclaration == null) {
-      AstNode declaration = context.getScope().getDefiningNode();
+      AstNode declaration = scope.getDefiningNode();
       if (declaration instanceof IdeDeclaration) {
         parentDeclaration = (IdeDeclaration) declaration;
       }
     }
-    super.analyze(parentNode, context);
     if (ide != null) {
-      context.getScope().declareIde(ide.getName(), this);
+      IdeDeclaration decl = new VariableDeclaration(null, ide, null, null);
+      decl.scope(scope);
     }
-    context.enterScope(this);
+    withNewDeclarationScope(this, scope, new Scoped() {
+      public void run(final Scope scope) {
+        new Parameter(null, ARGUMENTS_IDE, null, null).scope(scope); // is always defined inside a function!
+        withNewDeclarationScope(FunctionExpr.this, scope, new Scoped() {
+          public void run(final Scope scope) {
+            if (params != null) {
+              params.scope(scope);
+            }
+            if (optTypeRelation != null) {
+              optTypeRelation.scope(scope);
+            }
+            body.scope(scope);
+          }
+        });
+      }
+    });
+  }
+
+  public Expr analyze(AstNode parentNode, AnalyzeContext context) {
+    super.analyze(parentNode, context);
     if (params != null) {
       params.analyze(this, context);
-    }
-    if (context.getScope().getIdeDeclaration("arguments") == null) {
-      context.getScope().declareIde("arguments", this); // is always defined inside a function!
     }
     if (optTypeRelation != null) {
       optTypeRelation.analyze(this, context);
     }
     body.analyze(this, context);
-    context.leaveScope(this);
     return this;
   }
 
-  public void notifyThisUsed(AnalyzeContext context) {
-    MethodDeclaration methodDeclaration = context.getScope().getMethodDeclaration();
+  public void notifyThisUsed(Scope scope) {
+    FunctionDeclaration methodDeclaration = scope.getMethodDeclaration();
     // if "this" is used inside non-static method, remember that:
     if (methodDeclaration != null && !methodDeclaration.isStatic()) {
       thisUsed = true;

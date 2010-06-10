@@ -28,6 +28,11 @@ abstract class UnaryOpExpr extends OpExpr {
     this.arg = arg;
   }
 
+  @Override
+  public void scope(final Scope scope) {
+    arg.scope(scope);
+  }
+
   public Expr analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     arg = arg.analyze(this, context);

@@ -35,6 +35,11 @@ class BlockStatement extends Statement {
     this.rBrace = rBrace;
   }
 
+  @Override
+  public void scope(final Scope scope) {
+    scope(statements, scope);
+  }
+
   public void addBlockStartCodeGenerator(CodeGenerator blockStartCodeGenerator) {
     blockStartCodeGenerators.add(blockStartCodeGenerator);
   }

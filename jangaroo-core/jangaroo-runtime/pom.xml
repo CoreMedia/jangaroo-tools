@@ -40,7 +40,7 @@
                 <mkdir dir="target/temp/runtime/debug/scripts/classes" />
                 <jooc destdir="target/temp/runtime/debug/scripts/classes" failonerror="true" debug="true" debuglevel="source" verbose="true" enableassertions="true">
                   <include name="**/*.as" />
-                  <src path="src/main/joo" />
+                  <src path="src/main/joo;src/main/joo-api" />
                 </jooc>
 
                 <concat destfile="target/scripts/jangaroo-runtime-debug.js">
@@ -62,7 +62,7 @@
                     <file name="joo/DynamicClassLoader.js" />
                     <file name="joo/ResourceBundleAwareClassLoader.js" />
                   </filelist>
-                  <footer trimleading="yes">
+                  <footer trimleading="no">
                     new joo.DynamicClassLoader().debug = true;
                   </footer>
                 </concat>
@@ -70,7 +70,7 @@
                 <mkdir dir="target/temp/runtime/deploy" />
                 <jooc destdir="target/temp/runtime/deploy" failonerror="true" debug="false" verbose="true" enableassertions="false">
                   <include name="**/*.as" />
-                  <src path="src/main/joo" />
+                  <src path="src/main/joo;src/main/joo-api" />
                 </jooc>
 
                 <concat destfile="target/scripts/jangaroo-runtime.js">

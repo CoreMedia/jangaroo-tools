@@ -37,6 +37,7 @@ public abstract class JooTestCase extends TestCase {
 
   protected String sourceDir = null;
   protected String destinationDir = null;
+  protected String sourcePath = null;
 
   protected String getProperty(String name, String defaultValue) {
     return System.getProperty(name, defaultValue);
@@ -45,6 +46,7 @@ public abstract class JooTestCase extends TestCase {
   protected void setUp() throws Exception {
     sourceDir = getProperty("net.jangaroo.jooc.test.source", ".");
     destinationDir = getProperty("net.jangaroo.jooc.test.destination", null);
+    sourcePath = sourceDir;
   }
 
   protected String[] concat(String[] arr1, String[] arr2) {
@@ -89,6 +91,7 @@ public abstract class JooTestCase extends TestCase {
     if (debug) args = concat("-g", args);
     if (ea) args = concat("-ea", args);
     if (destinationDir != null) args = concat(new String[]{"-d", destinationDir}, args);
+    if (sourcePath != null) args = concat(new String[]{"-sourcepath", sourcePath}, args);
     Jooc compiler = new Jooc();
     System.out.println("jooc " + toString(args));
     return compiler.run(args);

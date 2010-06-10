@@ -39,6 +39,14 @@ class IfStatement extends KeywordStatement {
     this.ifFalse = ifFalse;
   }
 
+  @Override
+  public void scope(final Scope scope) {
+    cond.scope(scope);
+    ifTrue.scope(scope);
+    if (ifFalse != null)
+      ifFalse.scope(scope);
+  }
+
   public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     cond = cond.analyze(this, context);

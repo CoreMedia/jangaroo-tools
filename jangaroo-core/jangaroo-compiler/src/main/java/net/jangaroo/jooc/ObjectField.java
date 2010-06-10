@@ -33,6 +33,14 @@ class ObjectField extends NodeImplBase {
     this.value = value;
   }
 
+  @Override
+  public void scope(final Scope scope) {
+    if (label != null) {
+      label.scope(scope);
+    }
+    value.scope(scope);
+  }
+
   public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     if (label !=null) {

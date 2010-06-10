@@ -315,16 +315,6 @@ public class JooTest extends JooRuntimeTestCase {
     expectBoolean(true, "package1.TestTypeCast.testFunctionCast(obj)===obj");
   }
 
-  public void testNoSuper() throws Exception {
-    loadClass("package1.TestNoSuper");
-    try {
-      complete();
-    } catch (Exception e) {
-      return;
-    }
-    fail("exception expected");
-  }
-
   public void testYesSuper1() throws Exception {
     loadClass("package1.TestInheritanceSuperClass");
     loadClass("package1.TestInheritanceSubClass");

@@ -32,6 +32,7 @@ class ForInStatement extends LoopStatement {
   private Expr expr;
   private JooSymbol rParen;
   private Ide auxIde; // generated for each loop auxilliary variable
+
   private static final JooSymbol SYM_VAR = new JooSymbol(sym.VAR, "var");
   private static final JooSymbol SYM_EQ = new JooSymbol(sym.EQ, "=");
   private static final JooSymbol SYM_SEMICOLON = new JooSymbol(sym.SEMICOLON, ";");
@@ -104,10 +105,22 @@ class ForInStatement extends LoopStatement {
     super.generateLoopFooterCode(out);    //To change body of overridden methods use File | Settings | File Templates.
   }
 
-  protected void analyzeLoopHeader(AnalyzeContext context) {
+  @Override
+  public void scope(final Scope scope) {
+    super.scope(scope);
     if (symEach != null) {
-      auxIde = context.getScope().createAuxVar();
+      auxIde = scope.createAuxVar();
+      auxIde.scope(scope);
     }
+    if (decl != null) {
+      decl.scope(scope);
+    } else {
+      ide.scope(scope);
+    }
+    expr.scope(scope);
+  }
+
+  protected void analyzeLoopHeader(AnalyzeContext context) {
     if (decl != null) {
       decl.analyze(this, context);
     } else {

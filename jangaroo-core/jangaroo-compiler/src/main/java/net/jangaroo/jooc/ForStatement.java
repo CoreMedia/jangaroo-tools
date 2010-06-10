@@ -54,11 +54,25 @@ class ForStatement extends ConditionalLoopStatement {
     out.writeSymbol(rParen);
   }
 
+  @Override
+  public void scope(final Scope scope) {
+    if (forInit != null) {
+      forInit.scope(scope);
+    }
+    super.scope(scope);
+    if (optStep != null) {
+      optStep.scope(scope);
+    }
+  }
+
   protected void analyzeLoopHeader(AnalyzeContext context) {
     if (forInit != null) {
       forInit.analyze(this, context);
     }
     super.analyzeLoopHeader(context);
+    if (optStep != null) {
+      optStep.analyze(this, context);
+    }
   }
 
 }

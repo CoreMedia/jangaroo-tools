@@ -28,6 +28,10 @@ class LiteralExpr extends Expr {
     this.value = value;
   }
 
+  @Override
+  public void scope(final Scope scope) {
+  }
+
   public void generateCode(JsWriter out) throws IOException {
     out.writeSymbol(value);
   }

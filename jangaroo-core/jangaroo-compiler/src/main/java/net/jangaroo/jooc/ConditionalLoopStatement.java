@@ -29,6 +29,14 @@ abstract class ConditionalLoopStatement extends LoopStatement {
     this.optCond = optCond;
   }
 
+  @Override
+  public void scope(final Scope scope) {
+    super.scope(scope);
+    if (optCond != null) {
+      optCond.scope(scope);
+    }
+  }
+
   protected void analyzeLoopHeader(AnalyzeContext context) {
     if (optCond != null)
       optCond = optCond.analyze(this, context);

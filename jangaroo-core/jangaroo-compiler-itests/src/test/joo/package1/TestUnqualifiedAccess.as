@@ -25,6 +25,10 @@ public class TestUnqualifiedAccess {
   protected var protectedSlot :String;
   public var publicSlot :String;
 
+  public function testOtherPrivateAccess(other :TestUnqualifiedAccess) : String {
+    return other.privateSlot;
+  }
+
   public function setPrivateSlot(value :String) :void {
     privateSlot = value;
   }
@@ -61,11 +65,11 @@ public class TestUnqualifiedAccess {
     return localFunction();
   }
 
-  public function testForwardPrivateUnqualified(p : *) : void {
+  public function testForwardPrivateUnqualified(p : *) : * {
     return forwardPrivate(p);
   }
 
-  private function forwardPrivate(p : *) : void {
+  private function forwardPrivate(p : *) : * {
     return p;
   }
 

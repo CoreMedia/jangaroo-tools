@@ -21,17 +21,13 @@ import java.io.IOException;
  * @author Andreas Gawecki
  * @author Frank Wienberg
  */
-abstract class AbstractVariableDeclaration extends MemberDeclaration {
+abstract class AbstractVariableDeclaration extends TypedIdeDeclaration {
 
   JooSymbol optSymConstOrVar;
   Initializer optInitializer;
   AbstractVariableDeclaration optNextVariableDeclaration;
-  JooSymbol optSymSemicolon;
 
-  protected AbstractVariableDeclaration(JooSymbol[] modifiers, int allowedModifiers, JooSymbol optSymConstOrVar, Ide ide,
-                                        TypeRelation optTypeRelation, Initializer optInitializer, JooSymbol optSymSemicolon) {
-    this(modifiers, allowedModifiers, optSymConstOrVar, ide, optTypeRelation, optInitializer, null, optSymSemicolon);
-  }
+  JooSymbol optSymSemicolon;
 
   protected AbstractVariableDeclaration(JooSymbol[] modifiers, int allowedModifiers, JooSymbol optSymConstOrVar, Ide ide,
                                         TypeRelation optTypeRelation, Initializer optInitializer, AbstractVariableDeclaration optNextVariableDeclaration, JooSymbol optSymSemicolon
@@ -41,6 +37,17 @@ abstract class AbstractVariableDeclaration extends MemberDeclaration {
     this.optInitializer = optInitializer;
     this.optNextVariableDeclaration = optNextVariableDeclaration;
     this.optSymSemicolon = optSymSemicolon;
+  }
+
+  @Override
+  public void scope(final Scope scope) {
+    super.scope(scope);
+    if (optInitializer != null) {
+      optInitializer.scope(scope);
+    }
+    if (optNextVariableDeclaration != null) {
+      optNextVariableDeclaration.scope(scope);
+    }
   }
 
   public void generateCode(JsWriter out) throws IOException {
@@ -117,4 +124,8 @@ abstract class AbstractVariableDeclaration extends MemberDeclaration {
     return this;
   }
 
+  @Override
+  public IdeDeclaration resolveDeclaration() {
+    return optTypeRelation == null ? null : optTypeRelation.getType().resolveDeclaration();
+  }
 }

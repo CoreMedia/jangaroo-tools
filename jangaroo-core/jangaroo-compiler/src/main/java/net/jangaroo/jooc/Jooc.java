@@ -22,12 +22,8 @@ import net.jangaroo.jooc.backend.SingleFileCompilationUnitSinkFactory;
 import net.jangaroo.jooc.config.JoocCommandLineParser;
 import net.jangaroo.jooc.config.JoocConfiguration;
 
-import java.io.File;
-import java.io.InputStreamReader;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.*;
+import java.util.*;
 
 /**
  * The Jangaroo AS3-to-JS Compiler's main class.
@@ -47,7 +43,6 @@ public class Jooc {
   public static final String JS2_SUFFIX = "." + JS2_SUFFIX_NO_DOT;
   public static final String AS_SUFFIX_NO_DOT = "as";
   public static final String AS_SUFFIX = "." + AS_SUFFIX_NO_DOT;
-  public static final String INPUT_FILE_SUFFIX_NO_DOT = AS_SUFFIX_NO_DOT;
   public static final String INPUT_FILE_SUFFIX = AS_SUFFIX;
   public static final String OUTPUT_FILE_SUFFIX = ".js";
 
@@ -60,7 +55,13 @@ public class Jooc {
   private static ThreadLocal<CompileLog> logHolder = new ThreadLocal<CompileLog>();
   private CompileLog log;
 
-  private List<CompilationUnit> compilationUnits = new ArrayList<CompilationUnit>();
+  private List<File> canoncicalSourcePath = new ArrayList<File>();
+  private List<CompilationUnit> compileQueue = new ArrayList<CompilationUnit>();
+
+  private Map<String, CompilationUnit> compilationUnitsByQName = new LinkedHashMap<String, CompilationUnit>();
+  private Map<File, CompilationUnit> compilationUnitsByFile = new HashMap<File, CompilationUnit>();
+
+  private Scope globalScope;
 
   public Jooc() {
     this(new StdOutCompileLog());
@@ -71,15 +72,24 @@ public class Jooc {
   }
 
   public int run(JoocConfiguration config) {
+    globalScope = buildGlobalScope();
     logHolder.set(log);
     this.config = config;
+    for (File sourceDir : config.getSourcePath()) {
+      try {
+        canoncicalSourcePath.add(sourceDir.getCanonicalFile());
+      } catch (IOException e) {
+        throw new CompilerError("Cannot canonicalize source path dir: " + sourceDir.getAbsolutePath());
+      }
+    }
+
     for (File sourceFile : config.getSourceFiles()) {
       processSource(sourceFile);
     }
 
     CompilationUnitSinkFactory codeSinkFactory = createSinkFactory(config);
 
-    for (CompilationUnit unit : compilationUnits) {
+    for (CompilationUnit unit : compileQueue) {
       unit.analyze(null, new AnalyzeContext(config));
       unit.writeOutput(codeSinkFactory, config.isVerbose());
     }
@@ -88,16 +98,78 @@ public class Jooc {
     return result;
   }
 
+  private static void declareTypes(Scope scope, String[] identifiers) {
+    for (String identifier : identifiers) {
+      IdeDeclaration decl = new PredefinedTypeDeclaration(identifier);
+      decl.scope(scope);
+    }
+  }
+
+  private static void declareClasses(Scope scope, String[] identifiers) {
+    for (String identifier : identifiers) {
+      Ide ide = new Ide(new JooSymbol(identifier));
+      IdeDeclaration decl = new ClassDeclaration(new JooSymbol[0], new JooSymbol("class"), ide, null, null,
+        new ClassBody(null, Collections.EMPTY_LIST, null));
+      decl.scope(scope);
+    }
+  }
+
+  private static void declareValues(Scope scope, String[] identifiers) {
+    for (String identifier : identifiers) {
+      Ide ide = new Ide(new JooSymbol(identifier));
+      IdeDeclaration decl = new VariableDeclaration(new JooSymbol("var"), ide, null, null);
+      decl.scope(scope);
+    }
+  }
+
+  private static Scope buildGlobalScope() {
+    // establish global scope for built-in identifiers:
+    Scope scope = new DeclarationScope(null, null);
+
+    //todo move these into runtime api *as files where possible, for functions/objects extend import mechanism
+    declareTypes(scope, new String[]{
+      "int",
+      "uint"});
+
+    declareClasses(scope, new String[]{
+      "Object",
+      "Function",
+      "Class",
+      "Boolean",
+      "String",
+      "Number",
+      "RegExp",
+      "Date",
+      "Math"});
+
+    declareValues(scope, new String[]{
+      "undefined",
+      "this",
+      "window",
+      "parseInt",
+      "parseFloat",
+      "isNaN",
+      "NaN",
+      "isFinite",
+      "Infinity",
+      "decodeURI",
+      "decodeURIComponent",
+      "encodeURI",
+      "encodeURIComponent",
+      "trace"});
+    return scope;
+  }
+
   private CompilationUnitSinkFactory createSinkFactory(JoocConfiguration config) {
     CompilationUnitSinkFactory codeSinkFactory;
 
     if (config.isMergeOutput()) {
       codeSinkFactory = new MergedOutputCompilationUnitSinkFactory(
-          config, config.getOutputFile()
+        config, config.getOutputFile()
       );
     } else {
       codeSinkFactory = new SingleFileCompilationUnitSinkFactory(
-          config, config.getOutputDirectory(), OUTPUT_FILE_SUFFIX
+        config, config.getOutputDirectory(), OUTPUT_FILE_SUFFIX
       );
     }
     return codeSinkFactory;
@@ -157,15 +229,126 @@ public class Jooc {
     logHolder.get().warning(symbol, msg);
   }
 
-  protected void processSource(String fileName) {
-    processSource(new File(fileName));
+  protected CompilationUnit importSource(File file) {
+    File canonicalFile;
+    try {
+      canonicalFile = file.getCanonicalFile();
+    } catch (IOException e) {
+      throw new CompilerError("I/O error while canonicalizing source file: " + file.getAbsolutePath());
+    }
+    CompilationUnit unit = compilationUnitsByFile.get(canonicalFile);
+    if (unit == null) {
+      unit = parse(file);
+      if (unit != null) {
+        unit.scope(globalScope);
+        String qname = unit.getPackageDeclaration().getQualifiedNameStr() + "." + unit.getPrimaryDeclaration().getIde().getName();
+
+        // check valid file name for qname
+        File sourceDir = findSourceDir(canonicalFile);
+        File expectedSourceFile = buildSourceFileName(sourceDir, qname);
+        if (!expectedSourceFile.equals(canonicalFile)) {
+          warning(unit.getSymbol(),
+            String.format("expected '%s' as the file name for this compilation unit, found: '%s'. -sourcepath not set (correctly)?",
+              expectedSourceFile.getAbsolutePath(),
+              canonicalFile.getAbsolutePath()));
+        }
+        compilationUnitsByQName.put(qname, unit);
+        compilationUnitsByFile.put(canonicalFile, unit);
+      }
+    }
+    return unit;
+  }
+
+  private File buildSourceFileName(final File sourceDir, final String qname) {
+    return new File(sourceDir, qname.replace('.', File.separatorChar) + AS_SUFFIX);
+  }
+
+  private File findSourceDir(final File file) {
+    for (File sourceDir : canoncicalSourcePath) {
+      if (isParent(sourceDir, file)) {
+        return sourceDir;
+      }
+    }
+    return null;
+  }
+
+  private boolean isParent(File dir, File file) {
+    File parent = file.getParentFile();
+    while (parent != null) {
+      if (parent.equals(dir)) {
+        return true;
+      }
+      parent = parent.getParentFile();
+    }
+    return false;
   }
 
   protected void processSource(File file) {
-    CompilationUnit unit = parse(file);
-    if (unit != null) {
-      compilationUnits.add(unit);
+    CompilationUnit unit = importSource(file);
+    if (unit != null)
+      compileQueue.add(unit);
+  }
+
+  public IdeDeclaration resolveImport(final ImportDirective importDirective) {
+    String qname = importDirective.getQualifiedName();
+    CompilationUnit compilationUnit = compilationUnitsByQName.get(qname);
+    if (compilationUnit == null) {
+      File source = findSourceFile(qname);
+      compilationUnit = importSource(source);
     }
+    if (compilationUnit == null) {
+      throw error("unable to resolve import of " + qname);
+    }
+    return compilationUnit.getPrimaryDeclaration();
+  }
+
+  private File findSourceFile(final String qname) {
+    String relativeFileName = qname.replace('.', File.separatorChar) + AS_SUFFIX;
+    for (File sourceDir : getConfig().getSourcePath()) {
+      File sourceFile = new File(sourceDir, relativeFileName);
+      if (sourceFile.exists()) {
+        return sourceFile;
+      }
+    }
+    throw error("cannot find source file for " + qname);
+  }
+
+  public List<String> getPackageIdes(String packageName) {
+    List<String> result = new ArrayList<String>(10);
+    final String relativePackagePath = getRelativeFileName(packageName);
+    for (File sourceDir : getConfig().getSourcePath()) {
+      final File packageFolder = relativePackagePath.isEmpty() ? sourceDir : new File(sourceDir, relativePackagePath);
+      addPackageFolderSymbols(packageFolder, result);
+    }
+    return result;
+  }
+
+  private String getRelativeFileName(String qualifiedName) {
+    return qualifiedName.replace('.', File.separatorChar);
+  }
+
+  private void addPackageFolderSymbols(final File folder, List<String> list) {
+    String[] symbols = folder.list(new SourceFilenameFilter());
+    if (symbols != null) {
+      for (String symbol : symbols) {
+        list.add(withoutAS(symbol));
+      }
+    }
+  }
+
+  private static class SourceFilenameFilter implements FilenameFilter {
+    public boolean accept(File dir, String name) {
+      return name.endsWith(Jooc.INPUT_FILE_SUFFIX);
+    }
+  }
+
+  private static String withoutAS(String name) {
+    return name.substring(0, name.length() - Jooc.INPUT_FILE_SUFFIX.length());
+  }
+
+
+  public JoocConfiguration getConfig() {
+    return config;
   }
 
   protected CompilationUnit parse(File in) {
@@ -190,7 +373,7 @@ public class Jooc {
     try {
       Symbol tree = p.parse();
       CompilationUnit unit = (CompilationUnit) tree.value;
-      unit.setSourcePath(config.getSourcePath());
+      unit.setCompiler(this);
       unit.setSourceFile(in);
       return unit;
     } catch (Scanner.ScanError se) {

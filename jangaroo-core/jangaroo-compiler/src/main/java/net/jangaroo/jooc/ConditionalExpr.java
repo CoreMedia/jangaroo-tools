@@ -36,6 +36,13 @@ class ConditionalExpr extends Expr {
     this.ifFalse = ifFalse;
   }
 
+  @Override
+  public void scope(final Scope scope) {
+    cond.scope(scope);
+    ifTrue.scope(scope);
+    ifFalse.scope(scope);
+  }
+
   public void generateCode(JsWriter out) throws IOException {
     cond.generateCode(out);
     out.writeSymbol(symQuestion);

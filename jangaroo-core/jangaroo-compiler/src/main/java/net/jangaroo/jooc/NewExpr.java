@@ -29,6 +29,16 @@ class NewExpr extends Expr {
   public NewExpr(JooSymbol symNew, Expr applyConstructor) {
     this.symNew = symNew;
     this.applyConstructor = applyConstructor;
+    if (applyConstructor instanceof ApplyExpr) {
+      ((ApplyExpr)applyConstructor).setInsideNewExpr(true);
+    }
+  }
+
+  @Override
+  public void scope(final Scope scope) {
+    applyConstructor.scope(scope);
+    if (args != null)
+      args.scope(scope);
   }
 
   public Expr analyze(AstNode parentNode, AnalyzeContext context) {

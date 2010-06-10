@@ -16,7 +16,6 @@
 package net.jangaroo.jooc;
 
 import java.io.IOException;
-import java.util.List;
 
 /**
  * @author Andreas Gawecki
@@ -30,7 +29,6 @@ public class ImportDirective extends NodeImplBase {
   JooSymbol importKeyword;
   Ide ide;
   private final boolean explicit;
-  private boolean used = false;
 
   private static Ide createIde(Ide prefix, JooSymbol symIde) {
     return prefix == null ? new Ide(symIde) : new QualifiedIde(prefix, DOT_SYMBOL, symIde);
@@ -50,41 +48,13 @@ public class ImportDirective extends NodeImplBase {
     this.explicit = explicit;
   }
 
-  public boolean isUsed() {
-    return used;
+  public boolean isExplicit() {
+    return explicit;
   }
 
-  public void wasUsed() {
-    used = true;
-  }
-
-  @Override
-  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
-    super.analyze(parentNode, context);
-    String typeName = ide.getName();
-    Scope packageScope = context.getScope();
-    Ide packageIde = null;
-    String packageName = "";
-    if (ide instanceof QualifiedIde) {
-      packageIde = ((QualifiedIde) ide).prefix;
-      packageName = packageIde.getQualifiedNameStr();
-      context.getCurrentPackage().addImport((QualifiedIde) ide);
-    }
-    if ("*".equals(typeName)) {
-      final CompilationUnit compilationUnit = context.getScope().getCompilationUnit();
-      final List<String> ides = compilationUnit.getPackageIdes(packageName);
-      for (String typeToImport : ides) {
-        ImportDirective importDirective = new ImportDirective(packageIde, typeToImport);
-        importDirective.analyze(parentNode, context);
-        compilationUnit.addImplicitDirective(importDirective);
-        //System.out.println("*** adding implicit import " + importDirective.getQualifiedName());
-      }
-    } else {
-      packageScope.declareIde(typeName, this);
-      // also add the fully qualified name (might be the same string for top level imports):
-      packageScope.declareIde(ide.getQualifiedNameStr(), this);
-    }
-    return this;
+  public void scope(final Scope scope) {
+    ide.scope(scope);
+    scope.addImport(this);
   }
 
   public String getQualifiedName() {
@@ -92,7 +62,7 @@ public class ImportDirective extends NodeImplBase {
   }
 
   public void generateCode(JsWriter out) throws IOException {
-    if (used || explicit) {
+    if (explicit) {
       out.beginString();
       out.writeSymbol(importKeyword);
       ide.generateCode(out);
@@ -105,4 +75,23 @@ public class ImportDirective extends NodeImplBase {
     return importKeyword;
   }
 
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    final ImportDirective that = (ImportDirective) o;
+
+    if (explicit != that.explicit) return false;
+    if (ide != null ? !ide.equals(that.ide) : that.ide != null) return false;
+
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = ide != null ? ide.hashCode() : 0;
+    result = 31 * result + (explicit ? 1 : 0);
+    return result;
+  }
 }

@@ -29,7 +29,8 @@ public class TestParamInitializers /* blub ber *//*extends Object*/ {
 
   public static const DEFAULT_FOR_C : Number = 3;
 
-  public function initParams2( a : String = "bar", b : String = a, c = DEFAULT_FOR_C) : String {
+  //  Error: Parameterinitialisierer unbekannt oder keine Kompilierungszeit-Konstante.
+  public function initParams2( a : String = "bar", b : String = a, c = DEFAULT_FOR_C) : String { //todo reset to b = a? flex compc complains unknown initializer
     return a + "/" + b + "/" + c;
   }
 

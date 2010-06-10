@@ -140,8 +140,7 @@ nonterminal Implements interfaceExtends;
 nonterminal AstNode directive;
 nonterminal ArrayList optDirectives;
 nonterminal Expr lvalue;
-nonterminal MethodDeclaration methodDeclaration;
-nonterminal IdeDeclaration memberDeclaration;
+nonterminal FunctionDeclaration functionDeclaration;
 nonterminal JooSymbol modifier;
 nonterminal ArrayList modifiers;
 nonterminal CommaSeparatedList nonEmptyArguments;
@@ -176,7 +175,6 @@ nonterminal ArrayList statementsInSwitch;
 nonterminal TypeRelation typeRelation;
 nonterminal Type type;
 nonterminal IdeType ideType;
-nonterminal IdeExpr ideExpr;
 nonterminal CommaSeparatedList ideList;
 nonterminal VariableDeclaration variableDeclaration;
 nonterminal VariableDeclaration optNextVariableDeclaration;
@@ -212,12 +210,12 @@ precedence left PLUS, MINUS;
 precedence left MUL, DIV, MOD;
 /* 14 */
 precedence right PREFIX_PLUSPLUS, PREFIX_MINUSMINUS, PREFIX_PLUS, PREFIX_MINUS,
-                 BITNOT, NOT, NEW, DELETE, TYPEOF, VOID;
+                 BITNOT, NOT, DELETE, TYPEOF, VOID;
 /* 15 */
 precedence left DOT, LPAREN, LBRACK, LBRACE;
 /* 16 */
 precedence left PLUSPLUS, MINUSMINUS; /* postfix */
-precedence right NAMESPACESEP;
+precedence right NAMESPACESEP, NEW;
 
 start with compilationUnit;
 
@@ -263,8 +261,10 @@ classBodyDeclarations ::=
   ;
 
 classBodyDeclaration ::=
-    memberDeclaration:decl
-    {: RESULT = decl; :}
+    fieldDeclaration:decl
+    {: decl.setIsClassMember(true); RESULT = decl; :}
+  | functionDeclaration:decl
+    {: decl.setIsClassMember(true); RESULT = decl; :}
   | staticInitializer:decl
     {: RESULT = decl; :}
   ;
@@ -295,8 +295,10 @@ compilationUnitDeclaration ::=
   | modifiers:m ide:namespace ide:ide EQ:eq STRING_LITERAL:l SEMICOLON:s
     {: RESULT = new FieldDeclaration((JooSymbol[])m.toArray(new JooSymbol[0]), namespace, ide, null, new Initializer(eq, new LiteralExpr(l)), s); :}
 */
-  | memberDeclaration:md
-    {: RESULT = md; :}
+  | fieldDeclaration:decl
+    {: RESULT = decl; :}
+  | functionDeclaration:decl
+    {: RESULT = decl; :}
   ;
 
 constOrVar ::=
@@ -367,7 +369,7 @@ expr ::=
   | anonFunctionExpr:e
     {: RESULT = e; :}
   | THIS:t
-    {: RESULT = new ThisExpr(t); :}
+    {: RESULT = new IdeExpr(t); :}
   | parenthesizedExpr:e
     {: RESULT = e; :}
   | NEW:n expr:t
@@ -391,7 +393,7 @@ expr ::=
   | expr:expr LPAREN:lp arguments:args RPAREN:rp
     {: RESULT = new ApplyExpr(expr,lp,args,rp); :}
   | expr:e AS:as type:t
-    {: RESULT = e; :}
+    {: RESULT = new AsExpr(e,as,t); :}
   | expr:e1 IS:is expr:e2
     {: RESULT = new IsExpr(e1,is,e2); :}
   | expr:e PLUSPLUS:op
@@ -528,28 +530,23 @@ implements ::=
   ;
 
 lvalue ::=
-    namespacedIde:ide
-    {: RESULT = new TopLevelIdeExpr(ide); :}
+    qualifiedIde:ide
+    {: RESULT = new IdeExpr(ide); :}
+  | THIS:s DOT:d namespacedIde:ide
+    {: RESULT = IdeExpr.fromPrefix(s,d,ide); :}
+  | SUPER:s DOT:d namespacedIde:ide
+    {: RESULT = IdeExpr.fromPrefix(s,d,ide); :}
   | expr:e DOT:d namespacedIde:ide
     {: RESULT = new DotExpr(e,d,ide); :}
-  | SUPER:s DOT:d namespacedIde:ide
-    {: RESULT = new DotExpr(new SuperExpr(s),d,ide); :}
   | expr:expr LBRACK:lb commaExpr:index RBRACK:rb
     {: RESULT = new ArrayIndexExpr(expr,lb,index,rb); :}
   ;
 
-memberDeclaration ::=
-    fieldDeclaration:decl
-    {: RESULT = decl; :}
-  | methodDeclaration:decl
-    {: RESULT = decl; :}
-  ;
-
-methodDeclaration ::=
+functionDeclaration ::=
     modifiers:m FUNCTION:f IDE:getOrSet ide:ide LPAREN:lp parameters:params RPAREN:rp optTypeRelation:t optBody:b
-    {: RESULT = new MethodDeclaration((JooSymbol[])m.toArray(new JooSymbol[0]),f,getOrSet,ide,lp,params,rp,t,b); :}
+    {: RESULT = new FunctionDeclaration((JooSymbol[])m.toArray(new JooSymbol[0]),f,getOrSet,ide,lp,params,rp,t,b); :}
   | modifiers:m FUNCTION:f ide:ide LPAREN:lp parameters:params RPAREN:rp optTypeRelation:t optBody:b
-    {: RESULT = new MethodDeclaration((JooSymbol[])m.toArray(new JooSymbol[0]),f,ide,lp,params,rp,t,b); :}
+    {: RESULT = new FunctionDeclaration((JooSymbol[])m.toArray(new JooSymbol[0]),f,ide,lp,params,rp,t,b); :}
   ;
 
 modifier ::=
@@ -795,11 +792,6 @@ type ::=
 ideType ::=
     qualifiedIde:ide
     {: RESULT = new IdeType(ide); :}
-  ;
-
-ideExpr ::=
-    qualifiedIde:ide
-    {: RESULT = new TopLevelIdeExpr(ide); :}
   ;
 
 ideList ::=

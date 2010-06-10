@@ -50,7 +50,7 @@ public class JooSymbol extends java_cup.runtime.Symbol {
   }
 
   public String toString() {
-    return "line "+line+", column "+column+": '" + whitespace + "', '" + text + "'";
+    return "line "+line+", column "+column+": '" + whitespace + "', '" + text + "'" + " file " + fileName;
   }
 
   public String getText() {

@@ -1,15 +1,15 @@
 /*
  * Copyright 2008 CoreMedia AG
- * 
- * Licensed under the Apache License, Version 2.0 (the "License"); 
- * you may not use this file except in compliance with the License. 
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0 
- * 
- * Unless required by applicable law or agreed to in writing, 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an "AS
- * IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
- * express or implied. See the License for the specific language 
+ * IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
 
@@ -21,7 +21,7 @@ import java.io.IOException;
  * @author Andreas Gawecki
  * @author Frank Wienberg
  */
-public class MethodDeclaration extends MemberDeclaration {
+public class FunctionDeclaration extends TypedIdeDeclaration {
 
   private JooSymbol symFunction;
   private JooSymbol symGetOrSet;
@@ -37,18 +37,19 @@ public class MethodDeclaration extends MemberDeclaration {
   private Statement optBody;
 
   boolean isConstructor = false;
+  boolean isClassMember = false;
   boolean containsSuperConstructorCall = false;
 
   private static final int defaultAllowedMethodModifers =
-      MODIFIER_OVERRIDE | MODIFIER_ABSTRACT | MODIFIER_FINAL | MODIFIERS_SCOPE | MODIFIER_STATIC | MODIFIER_NATIVE;
+    MODIFIER_OVERRIDE | MODIFIER_ABSTRACT | MODIFIER_FINAL | MODIFIERS_SCOPE | MODIFIER_STATIC | MODIFIER_NATIVE;
 
-  public MethodDeclaration(JooSymbol[] modifiers, JooSymbol symFunction, Ide ide, JooSymbol lParen,
-                           Parameters params, JooSymbol rParen, TypeRelation optTypeRelation, Statement optBody) {
+  public FunctionDeclaration(JooSymbol[] modifiers, JooSymbol symFunction, Ide ide, JooSymbol lParen,
+                             Parameters params, JooSymbol rParen, TypeRelation optTypeRelation, Statement optBody) {
     this(modifiers, symFunction, null, ide, lParen, params, rParen, optTypeRelation, optBody);
   }
 
-  public MethodDeclaration(JooSymbol[] modifiers, JooSymbol symFunction, JooSymbol symGetOrSet, Ide ide, JooSymbol lParen,
-                           Parameters params, JooSymbol rParen, TypeRelation optTypeRelation, Statement optBody) {
+  public FunctionDeclaration(JooSymbol[] modifiers, JooSymbol symFunction, JooSymbol symGetOrSet, Ide ide, JooSymbol lParen,
+                             Parameters params, JooSymbol rParen, TypeRelation optTypeRelation, Statement optBody) {
     super(modifiers, defaultAllowedMethodModifers, ide, optTypeRelation);
     this.symFunction = symFunction;
     this.symGetOrSet = symGetOrSet;
@@ -59,6 +60,14 @@ public class MethodDeclaration extends MemberDeclaration {
     this.params = params;
     this.rParen = rParen;
     this.optBody = optBody;
+  }
+
+  public boolean isClassMember() {
+    return isClassMember;
+  }
+
+  public void setIsClassMember(final boolean classMember) {
+    isClassMember = classMember;
   }
 
   public boolean overrides() {
@@ -98,15 +107,15 @@ public class MethodDeclaration extends MemberDeclaration {
     return classDeclaration != null && classDeclaration.isInterface() || super.isAbstract();
   }
 
-  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
-    classDeclaration = context.getCurrentClass();
-    parentDeclaration = classDeclaration;
+  @Override
+  public void scope(final Scope scope) {
+    super.scope(scope);
     if (classDeclaration != null && ide.getName().equals(classDeclaration.getName())) {
       isConstructor = true;
       classDeclaration.setConstructor(this);
       allowedModifiers = MODIFIERS_SCOPE | MODIFIER_NATIVE;
+      computeModifiers();
     }
-    super.analyze(parentNode, context); // computes modifiers
     if (overrides() && isAbstract()) {
       throw Jooc.error(this, "overriding methods are not allowed to be declared abstract");
     }
@@ -131,42 +140,71 @@ public class MethodDeclaration extends MemberDeclaration {
 
     //TODO:check whether abstract method does not actually override
 
-    context.enterScope(this);
-    if (params != null) {
-      params.analyze(this, context);
-    }
-    if (context.getScope().getIdeDeclaration("arguments") == null) {
-      context.getScope().declareIde("arguments", this); // is always defined inside a function!
-    }
-    if (optTypeRelation != null) {
-      optTypeRelation.analyze(this, context);
-    }
-    optBody.analyze(this, context);
-    context.leaveScope(this);
-
+    withNewDeclarationScope(this, scope, new Scoped() {
+      public void run(final Scope scope) {
+        if (!isStatic()) {
+          ClassDeclaration currentClass = scope.getClassDeclaration();
+          if (classDeclaration != null) { // otherwise we are in a global function - todo parse them as function declaration
+            // declare this and super
+            final Type thisType = currentClass.getThisType();
+            final Type superType = currentClass.getSuperType();
+            new Parameter(null, new Ide("super"), new TypeRelation(null, superType), null).scope(scope);
+            new Parameter(null, new Ide("this"), new TypeRelation(null, thisType), null).scope(scope);
+          }
+        }
+        new Parameter(null, FunctionExpr.ARGUMENTS_IDE, null, null).scope(scope); // is always defined inside a method!
+        withNewDeclarationScope(FunctionDeclaration.this, scope, new Scoped() {
+          public void run(final Scope scope) {
+            if (params != null) {
+              params.scope(scope);
+            }
+            if (optTypeRelation != null) {
+              optTypeRelation.scope(scope);
+            }
+            if (optBody != null) {
+              optBody.scope(scope);
+            }
+          }
+        });
+      }
+    });
     if (containsSuperConstructorCall()) {
       // must be contained at top level
       BlockStatement block = (BlockStatement) optBody;
       block.checkSuperConstructorCall();
     }
+  }
+
+  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
+    super.analyze(parentNode, context); // computes modifiers
+    if (params != null) {
+      params.analyze(this, context);
+    }
+    if (optTypeRelation != null) {
+      optTypeRelation.analyze(this, context);
+    }
+    if (optBody != null) {
+      optBody.analyze(this, context);
+    }
     return this;
   }
 
   @Override
-  void handleDuplicateDeclaration(AnalyzeContext context, AstNode oldNode) {
-    if (isGetterOrSetter() && oldNode instanceof MethodDeclaration) {
-      MethodDeclaration other = (MethodDeclaration) oldNode;
+  void handleDuplicateDeclaration(Scope scope, AstNode oldNode) {
+    if (isGetterOrSetter() && oldNode instanceof FunctionDeclaration) {
+      FunctionDeclaration other = (FunctionDeclaration) oldNode;
       if (other.isGetterOrSetter() && isGetter() != other.isGetter()) {
         // found counterpart for this getter or setter:
         // replace declaration by a combination of both:
-        context.getScope().declareIde(getName(), new GetterSetterPair(
-            isGetter() ? this : other,
-            isSetter() ? this : other));
+        final GetterSetterPair setterPair = new GetterSetterPair(
+          isGetter() ? this : other,
+          isSetter() ? this : other);
+        setterPair.scope(scope);
         // ...and do not trigger warning or error!
         return;
       }
     }
-    super.handleDuplicateDeclaration(context, oldNode);
+    super.handleDuplicateDeclaration(scope, oldNode);
   }
 
   public void generateCode(JsWriter out) throws IOException {
@@ -237,5 +275,11 @@ public class MethodDeclaration extends MemberDeclaration {
     public void generateCode(JsWriter out) throws IOException {
       out.writeToken("this[$super]();");
     }
+  }
+
+  @Override
+  public IdeDeclaration resolveDeclaration() {
+    // todo this looks quirky, try not to define constructor within scope?
+    return isConstructor() ? getClassDeclaration() : super.resolveDeclaration();
   }
 }

@@ -34,9 +34,9 @@ class VariableDeclaration extends AbstractVariableDeclaration {
   }
 
   @Override
-  boolean allowDuplicates(AnalyzeContext context) {
-    // It is "worst practice" to redeclare local variables in AS3, so we made this configurable:
-    return context.getConfig().isAllowDuplicateLocalVariables();
+  boolean allowDuplicates(Scope scope) {
+    // todo It is "worst practice" to redeclare local variables in AS3, make this configurable:
+    return true;
   }
 
   protected void generateStartCode(JsWriter out) throws IOException {

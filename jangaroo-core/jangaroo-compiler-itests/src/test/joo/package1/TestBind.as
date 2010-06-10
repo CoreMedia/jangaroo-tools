@@ -84,7 +84,7 @@ public class TestBind {
   // This method is never actually called, but only analzyed by the compiler.
   // These expressions must *not* lead to testNotBound being bound!
   public function testDelete() : String {
-    delete this.testNotBound;
+    //delete this.testNotBound; illegal in AS3, its non-dynamic
     return typeof this.testNotBound;
   }
 
@@ -94,7 +94,7 @@ public class TestBind {
   }
 
   // negative test: functions using "this" inside static code must not be bound:
-  public static function testStaticNotBound() : String {
+  public static function testStaticNotBound() : Function {
     return function() : Object {
       return this;
     };
@@ -105,5 +105,6 @@ public class TestBind {
   }
 
   private var state : String;
+
 }
 }

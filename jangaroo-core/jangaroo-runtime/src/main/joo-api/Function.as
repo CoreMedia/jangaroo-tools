@@ -82,17 +82,4 @@ public class Function extends Object {
 
 }
 
-class Arguments extends Object {
-
-  public native function get length():uint;
-
-
-
-  public native function get callee():Function;
-
-
-
-  public native function get caller():Function;
-
-}
 

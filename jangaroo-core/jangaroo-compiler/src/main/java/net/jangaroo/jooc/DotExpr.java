@@ -21,88 +21,33 @@ import java.io.IOException;
  * @author Andreas Gawecki
  * @author Frank Wienberg
  */
-class DotExpr extends BinaryOpExpr {
+class DotExpr extends PostfixOpExpr {
 
-  ClassDeclaration classDeclaration;
+  Ide ide;
 
   public DotExpr(Expr expr, JooSymbol symDot, Ide ide) {
-    super(expr, symDot, new IdeExpr(ide));
+    super(symDot, expr);
+    this.ide = ide;
   }
 
-  public Ide getArg2() {
-    return ((IdeExpr)arg2).ide;
-  }
-
-  public Expr analyze(AstNode parentNode, AnalyzeContext context) {
-    this.classDeclaration = context.getCurrentClass();
-    // check candidates for instance methods declared in same file, accessed as function:
-    if (this.classDeclaration !=null) {
-      String property = getArg2().getName();
-      // check and handle instance methods declared in same file, accessed as function:
-      if (arg1 instanceof ThisExpr
-        && !(parentNode instanceof DotExpr)
-        && !(parentNode instanceof ApplyExpr)
-        && !(parentNode instanceof AssignmentOpExpr && ((AssignmentOpExpr)parentNode).arg1== this)
-        && !(parentNode instanceof PrefixOpExpr &&
-             (((PrefixOpExpr)parentNode).op.sym==sym.TYPEOF || ((PrefixOpExpr)parentNode).op.sym==sym.DELETE))) {
-        this.classDeclaration.addBoundMethodCandidate(property);
-      } else {
-        Ide packageIde = arg1.asQualifiedIde();
-        if (packageIde != null) {
-          if (context.getCurrentPackage().isPackage(packageIde.getQualifiedNameStr())) {
-            // Replace my AST subtree by qualified identifier subtree:
-            return new TopLevelIdeExpr(asQualifiedIde(packageIde)).analyze(parentNode, context);
-          }
-        }
-      }
-    }
-    super.analyze(parentNode, context);
-    // check access to constant from another class; other class then must be initialized:
-    if (this.classDeclaration!=null && arg1 instanceof IdeExpr && !(parentNode instanceof ApplyExpr)) {
-      classDeclaration.addInitIfClass(((IdeExpr)arg1).ide.getQualifiedNameStr(), context);
-    }
-    return this;
+  public Ide getIde() {
+    return ide;
   }
 
   @Override
-  Ide asQualifiedIde() {
-    Ide packageIde = arg1.asQualifiedIde();
-    return packageIde == null ? null : asQualifiedIde(packageIde);
-  }
-
-  private QualifiedIde asQualifiedIde(Ide packageIde) {
-    return new QualifiedIde(packageIde, op, getArg2().getSymbol());
+  public void scope(final Scope scope) {
+    super.scope(scope);
+    ide.scope(scope);
   }
 
   @Override
-  public void generateCode(JsWriter out) throws IOException {
-    if (classDeclaration!=null) {
-      String property = getArg2().getName();
-      // check and handle private instance members and super method access:
-      if ( arg1 instanceof ThisExpr && classDeclaration.isPrivateMember(property)
-        || arg1 instanceof SuperExpr) {
-        out.writeSymbolWhitespace(arg1.getSymbol());
-        out.writeToken("this");
-        out.write("[");
-        // awkward, but we have to be careful if we add characters to tokens:
-        out.writeSymbol(getArg2().getSymbol(),  "$", "");
-        out.write("]");
-        return;
-      }
-      // check and handle private static member access:
-      if (arg1 instanceof IdeExpr && classDeclaration.isPrivateStaticMember(property)) {
-        String qualifiedName = ((IdeExpr)arg1).ide.getQualifiedNameStr();
-        // Found private static member access candidate qualifiedName+"."+property in class classDeclaration.getQualifiedNameStr()
-        if (qualifiedName.equals(classDeclaration.getName())
-          || qualifiedName.equals(classDeclaration.getQualifiedNameStr())) {
-          // Found private static member access qualifiedName+"."+property
-          JooSymbol arg1Symbol = arg1.getSymbol();
-          // replace current class by "$jooPrivate":
-          arg1 = new IdeExpr(new Ide(new JooSymbol(net.jangaroo.jooc.sym.IDE, arg1Symbol.fileName, arg1Symbol.line,
-            arg1Symbol.column, arg1Symbol.whitespace, "$$private")));
-        }
-      }
-    }
+  public Expr analyze(final AstNode parentNode, final AnalyzeContext context) {
+    return super.analyze(parentNode, context);
+  }
+
+  @Override
+  public void generateCode(final JsWriter out) throws IOException {
     super.generateCode(out);
+    ide.generateCode(out);
   }
 }

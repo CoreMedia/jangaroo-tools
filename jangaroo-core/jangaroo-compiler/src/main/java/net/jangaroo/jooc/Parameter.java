@@ -35,11 +35,23 @@ public class Parameter extends IdeDeclaration {
   }
 
   @Override
+  public void scope(final Scope scope) {
+    super.scope(scope);
+    if (optTypeRelation != null) {
+      optTypeRelation.scope(scope);
+    }
+    if (optInitializer != null) {
+      optInitializer.scope(scope);
+    }
+  }
+
+  @Override
   public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     if (optTypeRelation!=null) {
       optTypeRelation.analyze(this, context);
       if (isRest() && !"Array".equals(optTypeRelation.getType().getSymbol().getText())) {
+        //todo replace that condition with real Array definition lookup
         throw Jooc.error(optTypeRelation.getSymbol(), "Rest parameter must have Array type.");
       }
     }
@@ -97,5 +109,11 @@ public class Parameter extends IdeDeclaration {
       }
     }
   }
+
+  @Override
+  public IdeDeclaration resolveDeclaration() {
+    return optTypeRelation == null ? null : optTypeRelation.getType().resolveDeclaration();
+  }
+
 
 }

@@ -19,4 +19,11 @@ package net.jangaroo.jooc;
  * @author Andreas Gawecki
  */
 public abstract class Type extends NodeImplBase {
+
+  /**
+   * Resolve this type to the underlying Class or PredefinedType declaration
+   */
+  public IdeDeclaration resolveDeclaration() {
+    return null;
+  }
 }

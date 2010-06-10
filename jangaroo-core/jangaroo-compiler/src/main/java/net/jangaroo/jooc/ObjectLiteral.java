@@ -39,6 +39,13 @@ class ObjectLiteral extends Expr {
     out.writeSymbol(rParen);
   }
 
+  @Override
+  public void scope(final Scope scope) {
+    if (fields != null) {
+      fields.scope(scope);
+    }
+  }
+
   public Expr analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     if (fields != null)

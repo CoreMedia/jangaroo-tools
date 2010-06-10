@@ -23,6 +23,8 @@ import java.io.IOException;
  */
 public class FieldDeclaration extends AbstractVariableDeclaration {
 
+  private boolean isClassMember = false;
+
   public FieldDeclaration(JooSymbol[] modifiers, JooSymbol symConstOrVar, Ide ide,
       TypeRelation optTypeRelation, Initializer optInitializer, JooSymbol optSymSemicolon) {
     this(modifiers, symConstOrVar, ide, optTypeRelation, optInitializer, null, optSymSemicolon);
@@ -39,6 +41,19 @@ public class FieldDeclaration extends AbstractVariableDeclaration {
   @Override
   public boolean isField() {
     return true;
+  }
+
+  public void setIsClassMember(final boolean b) {
+    isClassMember = b;
+    FieldDeclaration nextField = (FieldDeclaration) optNextVariableDeclaration;
+    if (nextField != null) {
+      nextField.setIsClassMember(b);
+    }
+  }
+
+  @Override
+  public boolean isClassMember() {
+    return isClassMember;
   }
 
   @Override

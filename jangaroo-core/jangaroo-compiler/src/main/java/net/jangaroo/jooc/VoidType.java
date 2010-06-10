@@ -23,4 +23,9 @@ class VoidType extends IdeType {
   public VoidType(JooSymbol symVoid) {
     super(new Ide(symVoid));
   }
+
+  @Override
+  public IdeDeclaration resolveDeclaration() {
+    return null;
+  }
 }

@@ -89,12 +89,21 @@ class Catch extends KeywordStatement {
     }
   }
 
+  @Override
+  public void scope(final Scope scope) {
+    withNewDeclarationScope(this, scope, new Scoped() {
+      @Override
+      public void run(final Scope scope) {
+        param.scope(scope);
+        block.scope(scope);
+      }
+    });
+  }
+
   public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
-    context.enterScope(this);
     param.analyze(this, context);
     block.analyze(this, context);
-    context.leaveScope(this);
     return this;
   }
 

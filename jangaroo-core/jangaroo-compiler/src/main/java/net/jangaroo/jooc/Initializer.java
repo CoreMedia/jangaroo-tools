@@ -30,6 +30,11 @@ class Initializer extends NodeImplBase {
     this.value = value;
   }
 
+  @Override
+  public void scope(final Scope scope) {
+    value.scope(scope);
+  }
+
   public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     value = value.analyze(this, context);

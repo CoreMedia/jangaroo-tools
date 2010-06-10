@@ -84,15 +84,15 @@ public class TestExpressions {
     return n;
   }
 
-  public function testFunExpr(n:int):void {
+  public function testFunExpr(n:int):Function {
     return function(m:int) { return n*m; };
   }
 
-  public function testPrefixOpExpr(n:int):void {
+  public function testPrefixOpExpr(n:int):int{
     return 1+-n+11;
   }
 
-  public function testPostfixOpExpr(n:int):void {
+  public function testPostfixOpExpr(n:int):int {
     var x:int = 1+n--;
     return n+x;
   }

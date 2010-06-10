@@ -31,6 +31,12 @@ class ArrayIndexExpr extends Expr {
     this.indexExpr = new ParenthesizedExpr(lBrac, index, rBrac);
   }
 
+  @Override
+  public void scope(final Scope scope) {
+    array.scope(scope);
+    indexExpr.scope(scope);
+  }
+
   public JooSymbol getSymbol() {
     return array.getSymbol();
   }

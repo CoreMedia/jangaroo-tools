@@ -33,20 +33,17 @@ abstract class LabelRefStatement extends KeywordExprStatement {
 
   protected LabeledStatement labelDeclaration = null;
 
-  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
-    super.analyze(parentNode, context);
-    Scope scope = context.getScope();
+  @Override
+  public void scope(final Scope scope) {
+    super.scope(scope);
     if (optLabel == null) {
       Statement loopOrSwitchStatement = scope.getCurrentLoopOrSwitch();
       if (loopOrSwitchStatement == null)
         throw Jooc.error(this, "not inside loop or switch");
     } else {
-      labelDeclaration = scope.findLabel(optLabel);
-      if (labelDeclaration == null)
-        throw Jooc.error(optLabel, "undeclared label '" + optLabel.getName() + "'");
+      labelDeclaration = scope.lookupLabel(optLabel);
       checkValidLabeledStatement(labelDeclaration);
     }
-    return this;
   }
 
   protected abstract void checkValidLabeledStatement(final LabeledStatement labelDeclaration);

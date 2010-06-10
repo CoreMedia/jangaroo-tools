@@ -22,28 +22,27 @@ import java.io.IOException;
  */
 public class QualifiedIde extends Ide {
 
-  protected Ide prefix;
+  private Ide qualifier;
   private JooSymbol symDot;
 
-
-  public QualifiedIde(Ide prefix, JooSymbol symDot, JooSymbol symIde) {
+  public QualifiedIde(Ide qualifier, JooSymbol symDot, JooSymbol symIde) {
     super(symIde);
-    this.prefix = prefix;
+    this.qualifier = qualifier;
     this.symDot = symDot;
+    qualifier.setQualified(this);
   }
 
-  public void generateCode(JsWriter out) throws IOException {
-    prefix.generateCode(out);
-    out.writeSymbol(symDot);
-    out.writeSymbol(ide);
+  @Override
+  protected Ide getQualifier() {
+    return qualifier;
   }
 
   public String[] getQualifiedName() {
-    return append(prefix.getQualifiedName(), ide.getText());
+    return append(qualifier.getQualifiedName(), ide.getText());
   }
 
   static String[] append(String[] prefixName, String ideText) {
-    String[] result = new String[prefixName.length+1];
+    String[] result = new String[prefixName.length + 1];
     System.arraycopy(prefixName, 0, result, 0, prefixName.length);
     result[prefixName.length] = ideText;
     return result;
@@ -55,16 +54,109 @@ public class QualifiedIde extends Ide {
   }
 
   public JooSymbol getSymbol() {
-    return prefix.getSymbol();
+    return qualifier.getSymbol();
   }
 
   static String constructQualifiedNameStr(String[] qualifiedName, String separator) {
     StringBuilder sb = new StringBuilder();
     for (int i = 0; i < qualifiedName.length; i++) {
-      if (i>0)
+      if (i > 0)
         sb.append(separator);
       sb.append(qualifiedName[i]);
     }
     return sb.toString();
   }
+
+  @Override
+  public Ide qualify(final JooSymbol symQualifier, final JooSymbol symDot) {
+    return qualifier.qualify(symQualifier, symDot);
+  }
+
+  @Override
+  public boolean addExternalUsage() {
+    if (qualifier.addExternalUsage()) {
+      return true;
+    }
+    return super.addExternalUsage();
+  }
+
+  @Override
+  public void scope(final Scope scope) {
+    qualifier.scope(scope);
+    super.scope(scope);
+  }
+
+  @Override
+  public AstNode analyze(final AstNode parentNode, final AnalyzeContext context) {
+    qualifier.analyze(this, context);
+    return super.analyze(parentNode, context);
+  }
+
+  public void generateCode(JsWriter out) throws IOException {
+    qualifier.generateCode(out);
+    out.writeSymbol(symDot);
+    out.writeSymbol(ide);
+  }
+
+  @Override
+  public void analyzeAsExpr(final AstNode exprParent, final Expr parentExpr, final AnalyzeContext context) {
+    qualifier.analyzeAsExpr(exprParent, parentExpr, context);
+    super.analyzeAsExpr(exprParent, parentExpr, context);
+    if (isQualifiedByThis()|| isQualifiedBySuper()) {
+      getDeclaration(true);
+    }
+  }
+
+  @Override
+  public void generateCodeAsExpr(final Expr parentExpr, final JsWriter out) throws IOException {
+    IdeDeclaration declaration = getDeclaration(false);
+    if (declaration != null) {
+      if (declaration.isClassMember()) {
+        // check and handle private instance members and super method access:
+        if (isQualifiedByThis() && declaration.isPrivate()
+          || isQualifiedBySuper()) {
+          writePrivateMemberAccess(qualifier.getSymbol(), symDot, this, declaration.isStatic(), out);
+          return;
+        }
+        // check and handle private static member access:
+        if (declaration.isPrivateStatic() && !declaration.isMethod()) {
+          IdeDeclaration prefixDeclaration = qualifier.resolveDeclaration();
+          // Found private static member access candidate qualifiedName+"."+property
+          if (getScope().getClassDeclaration().equals(prefixDeclaration)) {
+            // Found private static member access qualifiedName+"."+property
+            writePrivateMemberAccess(qualifier.getSymbol(), symDot, this, true, out);
+            return;
+          }
+          // todo flag error, but do that in analyze phase! will cause a runtime error: undefined member
+        }
+      }
+      generateCode(out);
+    } else {
+      qualifier.generateCodeAsExpr(parentExpr, out);
+      out.writeSymbol(symDot);
+      out.writeSymbol(ide);
+    }
+  }
+
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    if (!super.equals(o)) return false;
+
+    final QualifiedIde that = (QualifiedIde) o;
+
+    if (qualifier != null ? !qualifier.equals(that.qualifier) : that.qualifier != null) return false;
+
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = super.hashCode();
+    result = 31 * result + (qualifier != null ? qualifier.hashCode() : 0);
+    return result;
+  }
+
+
 }

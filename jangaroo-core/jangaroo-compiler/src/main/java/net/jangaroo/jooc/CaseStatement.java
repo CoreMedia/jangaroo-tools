@@ -31,6 +31,11 @@ class CaseStatement extends KeywordStatement {
     this.symColon = symColon;
   }
 
+  @Override
+  public void scope(final Scope scope) {
+    expr.scope(scope);
+  }
+
   public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     expr = expr.analyze(this, context);

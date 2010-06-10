@@ -3,14 +3,15 @@ package net.jangaroo.jooc;
 import java.io.IOException;
 
 /**
- * An object aggregating the getter and the setter {@link MethodDeclaration} of the same property.
- * Used only as a synthesized node returned by {@link Scope#getIdeDeclaration(String)} and
- * {@link Scope#getIdeDeclaration(Ide)}.
+ * An object aggregating the getter and the setter {@link FunctionDeclaration} of the same property.
+ * Used only as a synthesized node returned by {@link Scope#lookupDeclaration(Ide)}. Therefore, scope and analyze methods should do nothing as the component
+ * methods getter and setter are already scoped and analyzed.
  */
-public class GetterSetterPair extends NodeImplBase {
-  private MethodDeclaration getter, setter;
+public class GetterSetterPair extends IdeDeclaration {
+  private FunctionDeclaration getter, setter;
 
-  GetterSetterPair(MethodDeclaration getter, MethodDeclaration setter) {
+  GetterSetterPair(FunctionDeclaration getter, FunctionDeclaration setter) {
+    super(new JooSymbol[0], 0, getter.getIde());
     this.getter = getter;
     this.setter = setter;
   }
@@ -19,12 +20,16 @@ public class GetterSetterPair extends NodeImplBase {
     return getter.getSymbol();
   }
 
-  public MethodDeclaration getGetter() {
+  public FunctionDeclaration getGetter() {
     return getter;
   }
 
-  public MethodDeclaration getSetter() {
+  public FunctionDeclaration getSetter() {
     return setter;
+  }
+
+  @Override
+  public void scope(final Scope scope) {
   }
 
   public void generateCode(JsWriter out) throws IOException {

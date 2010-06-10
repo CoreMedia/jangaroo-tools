@@ -25,16 +25,17 @@ class ThisExpr extends IdeExpr {
   }
 
   @Override
+  public void scope(final Scope scope) {
+    super.scope(scope);
+    FunctionExpr funExpr = scope.getFunctionExpr();
+    if (funExpr != null) {
+      funExpr.notifyThisUsed(scope);
+    }
+  }
+
+  @Override
   public Expr analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
-    Scope scope = context.getScope();
-    while (scope!=null) {
-      AstNode scopeDecl = scope.getDefiningNode();
-      if (scopeDecl instanceof FunctionExpr) {
-        ((FunctionExpr)scopeDecl).notifyThisUsed(context);
-      }
-      scope = scope.getParentScope(); //todo add getFunctionExpr() to Scope interface?
-    }
     return this;
   }
 }

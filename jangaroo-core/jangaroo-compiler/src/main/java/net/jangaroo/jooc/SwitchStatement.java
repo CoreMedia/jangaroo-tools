@@ -32,13 +32,21 @@ class SwitchStatement extends KeywordStatement {
     this.block = new BlockStatement(lBrace, statements, rBrace);
   }
 
+  @Override
+  public void scope(final Scope scope) {
+    withNewLabelScope(this, scope, new Scoped() {
+      @Override
+      public void run(final Scope scope) {
+        cond.scope(scope);
+        block.scope(scope);
+      }
+    });
+  }
 
   public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     cond.analyze(this, context);
-    context.enterSwitch(this);
     block.analyze(this, context);
-    context.exitSwitch(this);
     return this;
   }
 

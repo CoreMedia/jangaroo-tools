@@ -41,6 +41,13 @@ class SemicolonTerminatedStatement extends Statement {
     this.optSymSemicolon = optSymSemicolon;
   }
 
+  @Override
+  public void scope(final Scope scope) {
+    if (optStatement != null) {
+      optStatement.scope(scope);
+    }
+  }
+
   protected void generateStatementCode(JsWriter out) throws IOException {
     if (optStatement!=null)
       optStatement.generateCode(out);

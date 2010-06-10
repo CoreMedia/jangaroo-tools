@@ -25,24 +25,25 @@ public class NamespacedIde extends Ide {
   private JooSymbol namespace;
   private JooSymbol symNamespaceSep;
 
-
   public NamespacedIde(JooSymbol namespace, JooSymbol symNamespaceSep, JooSymbol symIde) {
     super(symIde);
     this.namespace = namespace;
-    this.symNamespaceSep = symNamespaceSep;
   }
 
-  static void warnUndefinedNamespace(AnalyzeContext context, JooSymbol namespace) {
-    if (namespace.sym==sym.IDE) { // all other symbols should be predefined namespaces like "public" etc.
-      String namespaceName = namespace.getText();
-      if (!context.getCurrentPackage().isNamespace(namespaceName) && context.getScope().findScopeThatDeclares(namespaceName)==null) {
-        Jooc.warning(namespace, "Undeclared namespace '"+ namespaceName +"', assuming it already is in scope.");
-      }
-    }
+  void warnUndefinedNamespace(Scope scope, Ide namespace) {
+
   }
+
+  @Override
+  public void scope(final Scope scope) {
+    super.scope(scope);
+  }
+
   @Override
   public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
-    warnUndefinedNamespace(context, namespace);
+    if (namespace.sym == sym.IDE) { // all other symbols should be predefined namespaces like "public" etc.
+      Jooc.warning(namespace, "namespaces are not yet implemented, ignoring namespace " + namespace.getText());
+    }
     return super.analyze(parentNode, context);
   }
 
@@ -77,4 +78,21 @@ public class NamespacedIde extends Ide {
     return namespace;
   }
 
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    if (!super.equals(o)) return false;
+
+    final NamespacedIde that = (NamespacedIde) o;
+    return namespace.getText().equals(that.namespace.getText());
+
+  }
+
+  @Override
+  public int hashCode() {
+    int result = super.hashCode();
+    result = 31 * result + namespace.getText().hashCode();
+    return result;
+  }
 }

@@ -16,24 +16,29 @@
 package package2 {
 
 import package1.*;
+import package1.ClassToImport;
+import package1.ClassToImport2;
+import package1.TestMethodCall;
 import package1.package11.TestSubPackage;
+import package3.ClassToImport; // IDEA takes this as disambiguating but flexsdk compc still complains ambiguity if ClassToImport would be used unqualified 
 
 public class TestImport extends TestMethodCall {
 
   private static const TEST_CLASS_INIT : String = TestStaticInitializer.s2;
 
   public function TestImport() {
+    //var xxxHelloWorld = function() { return {greet:function(){}}; };
     var ti :TestImplements = new TestImplements();
     var i :int = ti.implementMe("abc");
     assert(i == 3);
+    package3.ClassToImport.m_package3(); // package prefix is required to resolve ambiguity with package1.ClassToImport
   }
 
-  public static function main() : String {
+  public static function main(arguments :String) : String {
     var testImport : TestImport  = new TestImport();
 
-    var cti  :ClassToImport = new ClassToImport();
-    cti.setX("foo");
-    assert(cti.getX() === "foo");
+    var cti  :package1.ClassToImport2 = new package1.ClassToImport2(); //todo remove package prefix?
+    cti.m2_package1();
 
     var tcti  :ToplevelClassToImport = new ToplevelClassToImport();
     tcti.setX("foo");

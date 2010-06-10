@@ -14,6 +14,10 @@ public class EmptyDeclaration extends Declaration {
     this.symSemicolon = symSemicolon;
   }
 
+  @Override
+  public void scope(final Scope scope) {
+  }
+
   public JooSymbol getSymbol() {
     return symSemicolon;
   }

@@ -59,6 +59,10 @@ abstract class Declaration extends NodeImplBase {
     return parentDeclaration;
   }
 
+  public ClassDeclaration getClassDeclaration() {
+    return classDeclaration;
+  }
+
   protected void computeModifiers() {
     modifiers = 0;
     for (JooSymbol modifier : symModifiers) {
@@ -115,6 +119,10 @@ abstract class Declaration extends NodeImplBase {
     return (getModifiers() & MODIFIER_PRIVATE) != 0;
   }
 
+  public boolean isPrivateStatic() {
+    return isPrivate() && isStatic();
+  }
+
   public boolean isStatic() {
     return (getModifiers() & MODIFIER_STATIC) != 0;
   }
@@ -131,21 +139,17 @@ abstract class Declaration extends NodeImplBase {
     return (getModifiers() & MODIFIER_NATIVE) != 0;
   }
 
-  public ClassDeclaration getClassDeclaration() {
-    return classDeclaration;
-  }
-
   protected void writeModifiers(JsWriter out) throws IOException {
     for (JooSymbol modifier : symModifiers) {
       out.writeSymbol(modifier);
     }
   }
 
-  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
-    super.analyze(parentNode, context);
-    parentDeclaration = context.getScope().getDefiningNode();
-    classDeclaration = context.getCurrentClass();
-    return this;
+
+  @Override
+  public void scope(final Scope scope) {
+    parentDeclaration = scope.getDefiningNode();
+    classDeclaration = scope.getClassDeclaration();
   }
 
 }

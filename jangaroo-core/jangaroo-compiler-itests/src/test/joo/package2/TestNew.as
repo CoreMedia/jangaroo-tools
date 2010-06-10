@@ -53,7 +53,7 @@ public class TestNew {
   }
 
   public static function testNewFullyQualified() : String {
-    return new package2.TestNew().foo();
+    return new package2 . /*blubbber*/ TestNew().foo();
   }
 
 }

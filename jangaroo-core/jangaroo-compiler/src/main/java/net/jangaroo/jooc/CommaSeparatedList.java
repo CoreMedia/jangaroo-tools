@@ -35,6 +35,14 @@ class CommaSeparatedList<NodeType extends AstNode> extends Expr {
     this.tail = tail;
   }
 
+  @Override
+  public void scope(final Scope scope) {
+    head.scope(scope);
+    if (tail != null) {
+      tail.scope(scope);
+    }
+  }
+
   public void generateCode(JsWriter out) throws IOException {
     head.generateCode(out);
     if (symComma != null) {
