@@ -1,21 +1,12 @@
 package net.jangaroo.jooc.config;
 
 import net.jangaroo.jooc.Jooc;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.GnuParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.MissingArgumentException;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.OptionBuilder;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.UnrecognizedOptionException;
+import org.apache.commons.cli.*;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Arrays;
-import java.util.StringTokenizer;
+import java.util.List;
 
 /**
  * Parses the jooc command line to produce a {@link JoocConfiguration}.
@@ -59,6 +50,10 @@ public class JoocCommandLineParser {
         .hasArg()
         .withDescription("source root directories, separated by the system dependant path separator character (e.g. ':' on Unix systems, ';' on Windows")
         .create("sourcepath");
+    Option classPath = OptionBuilder.withArgName("path")
+        .hasArg()
+        .withDescription("source root directories or jangaroo jars of dependent classes, separated by the system dependant path separator character (e.g. ':' on Unix systems, ';' on Windows")
+        .create("classpath");
     Option enableAssertionsOption = OptionBuilder.withLongOpt("enableassertions")
         .withDescription("enable assertions")
         .create("ea");
@@ -78,6 +73,7 @@ public class JoocCommandLineParser {
     options.addOption(debugOption);
     options.addOption(destinationDir);
     options.addOption(sourcePath);
+    options.addOption(classPath);
     options.addOption(enableAssertionsOption);
     options.addOption(allowDuplicateLocalVariablesOption);
     options.addOption(enableGuessingOption);
@@ -109,20 +105,14 @@ public class JoocCommandLineParser {
       config.setOutputDirectory(destDir);
     }
 
-    if (line.hasOption(sourcePath.getOpt())) {
-      String sourcePathString = line.getOptionValue(sourcePath.getOpt()).trim();
-      if (!sourcePathString.isEmpty()) {
-        final String[] sourceDirs = sourcePathString.split("\\Q" + File.pathSeparatorChar + "\\E");
-        final List<File> sourcePathFiles = new ArrayList<File>(sourceDirs.length);
-        for (String sourceDirPath : sourceDirs) {
-          File sourceDir = new File(sourceDirPath);
-          if (!sourceDir.exists()) {
-            throw new IllegalArgumentException("source directory does not exist: " + sourceDir.getAbsolutePath());
-          }
-          sourcePathFiles.add(sourceDir);
-        }
-        config.setSourcePath(sourcePathFiles);
-      }
+    List<File> sp = parsePath(line, sourcePath);
+    List<File> cp = parsePath(line, classPath);
+
+   if (sp != null) {
+      config.setSourcePath(sp);
+    }
+    if (sp != null) {
+      config.setClassPath(cp);
     }
 
     if (line.hasOption(enableAssertionsOption.getOpt())) {
@@ -215,6 +205,26 @@ public class JoocCommandLineParser {
 
     return config;
   }
+
+  private List<File> parsePath(final CommandLine line, final Option opt) {
+    if (line.hasOption(opt.getOpt())) {
+      String sourcePathString = line.getOptionValue(opt.getOpt()).trim();
+      if (!sourcePathString.isEmpty()) {
+        final String[] sourceDirs = sourcePathString.split("\\Q" + File.pathSeparatorChar + "\\E");
+        final List<File> sourcePathFiles = new ArrayList<File>(sourceDirs.length);
+        for (String sourceDirPath : sourceDirs) {
+          File sourceDir = new File(sourceDirPath);
+          if (!sourceDir.exists()) {
+            throw new IllegalArgumentException("directory or file does not exist: " + sourceDir.getAbsolutePath());
+          }
+          sourcePathFiles.add(sourceDir);
+        }
+        return sourcePathFiles;
+      }
+    }
+    return null;
+  }
+
 
   protected void printHelp(Options options) {
     HelpFormatter formatter = new HelpFormatter();

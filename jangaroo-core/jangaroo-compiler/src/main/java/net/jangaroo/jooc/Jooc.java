@@ -22,8 +22,14 @@ import net.jangaroo.jooc.backend.SingleFileCompilationUnitSinkFactory;
 import net.jangaroo.jooc.config.JoocCommandLineParser;
 import net.jangaroo.jooc.config.JoocConfiguration;
 
-import java.io.*;
+import java.io.File;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.*;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipError;
+import java.util.zip.ZipFile;
 
 /**
  * The Jangaroo AS3-to-JS Compiler's main class.
@@ -59,7 +65,6 @@ public class Jooc {
   private List<CompilationUnit> compileQueue = new ArrayList<CompilationUnit>();
 
   private Map<String, CompilationUnit> compilationUnitsByQName = new LinkedHashMap<String, CompilationUnit>();
-  private Map<File, CompilationUnit> compilationUnitsByFile = new HashMap<File, CompilationUnit>();
 
   private Scope globalScope;
 
@@ -229,38 +234,27 @@ public class Jooc {
     logHolder.get().warning(symbol, msg);
   }
 
-  protected CompilationUnit importSource(File file) {
-    File canonicalFile;
-    try {
-      canonicalFile = file.getCanonicalFile();
-    } catch (IOException e) {
-      throw new CompilerError("I/O error while canonicalizing source file: " + file.getAbsolutePath());
-    }
-    CompilationUnit unit = compilationUnitsByFile.get(canonicalFile);
-    if (unit == null) {
-      unit = parse(file);
-      if (unit != null) {
-        unit.scope(globalScope);
-        String qname = unit.getPackageDeclaration().getQualifiedNameStr() + "." + unit.getPrimaryDeclaration().getIde().getName();
+  public static void warning(String msg) {
+    logHolder.get().warning(msg);
+  }
 
-        // check valid file name for qname
-        File sourceDir = findSourceDir(canonicalFile);
-        File expectedSourceFile = buildSourceFileName(sourceDir, qname);
-        if (!expectedSourceFile.equals(canonicalFile)) {
-          warning(unit.getSymbol(),
-            String.format("expected '%s' as the file name for this compilation unit, found: '%s'. -sourcepath not set (correctly)?",
-              expectedSourceFile.getAbsolutePath(),
-              canonicalFile.getAbsolutePath()));
-        }
-        compilationUnitsByQName.put(qname, unit);
-        compilationUnitsByFile.put(canonicalFile, unit);
+  protected CompilationUnit importSource(InputSource source) {
+    CompilationUnit unit = parse(source);
+    if (unit != null) {
+      unit.scope(globalScope);
+      String prefix = unit.getPackageDeclaration().getQualifiedNameStr();
+      if (!prefix.isEmpty()) {
+        prefix += ".";
       }
+      String qname = prefix + unit.getPrimaryDeclaration().getIde().getName();
+      checkValidFileName(qname, unit, source);
+      compilationUnitsByQName.put(qname, unit);
     }
     return unit;
   }
 
-  private File buildSourceFileName(final File sourceDir, final String qname) {
-    return new File(sourceDir, qname.replace('.', File.separatorChar) + AS_SUFFIX);
+  private String buildSourceFileName(final InputSource inputSource, final String qname) {
+    return qname.replace('.', inputSource.getFileSeparatorChar()) + AS_SUFFIX;
   }
 
   private File findSourceDir(final File file) {
@@ -284,16 +278,20 @@ public class Jooc {
   }
 
   protected void processSource(File file) {
-    CompilationUnit unit = importSource(file);
-    if (unit != null)
+    if (file.isDirectory()) {
+      throw error("Input file is a directory: " + file.getAbsolutePath());
+    }
+    CompilationUnit unit = importSource(new FileInputSource(file, findSourceDir(file)));
+    if (unit != null) {
       compileQueue.add(unit);
+    }
   }
 
   public IdeDeclaration resolveImport(final ImportDirective importDirective) {
     String qname = importDirective.getQualifiedName();
     CompilationUnit compilationUnit = compilationUnitsByQName.get(qname);
     if (compilationUnit == null) {
-      File source = findSourceFile(qname);
+      InputSource source = findSource(qname);
       compilationUnit = importSource(source);
     }
     if (compilationUnit == null) {
@@ -302,15 +300,56 @@ public class Jooc {
     return compilationUnit.getPrimaryDeclaration();
   }
 
-  private File findSourceFile(final String qname) {
+  private InputSource findSource(final String qname) {
     String relativeFileName = qname.replace('.', File.separatorChar) + AS_SUFFIX;
+    // scan sourcepath
     for (File sourceDir : getConfig().getSourcePath()) {
       File sourceFile = new File(sourceDir, relativeFileName);
-      if (sourceFile.exists()) {
-        return sourceFile;
+      if (sourceFile.exists() && !sourceFile.isDirectory()) {
+        return new FileInputSource(sourceFile, sourceDir);
       }
     }
-    throw error("cannot find source file for " + qname);
+    // scan classpath
+    relativeFileName = relativeFileName.replace(File.separatorChar, '/');
+    String zipEntryName = "META-INF/joo-api/" + relativeFileName;
+    for (File classes : getConfig().getClassPath()) {
+      if (classes.exists()) {
+        if (classes.isDirectory()) {
+          File sourceFile = new File(classes, relativeFileName);
+          if (sourceFile.exists() && !sourceFile.isDirectory()) {
+            return new FileInputSource(sourceFile, classes);
+          }
+        } else try {
+          //todo cache zip files
+          ZipFile zipFile = new ZipFile(classes);
+          ZipEntry entry = zipFile.getEntry(zipEntryName);
+          if (entry != null && !entry.isDirectory()) {
+            return new ZipFileInputSource(zipFile, entry, relativeFileName);
+          }
+          zipFile.close();
+        } catch (IOException e) {
+          //ignore - or log warning? javac does'nt do that either?!
+        } catch (ZipError e) {
+          warning("error reading zip/jar file " + classes.getAbsolutePath() + ": " + e.getMessage());
+        }
+      }
+    }
+    throw error("cannot find source for " + qname);
+  }
+
+  private void checkValidFileName(final String qname, final CompilationUnit unit, final InputSource source) {
+    // check valid file name for qname
+    String path = source.getRelativePath();
+    if (path != null) {
+      String expectedPath = buildSourceFileName(source, qname);
+      if (!expectedPath.equals(path)) {
+        warning(unit.getSymbol(),
+          String.format("expected '%s' as the file name for %s, found: '%s'. -sourcepath not set (correctly)?",
+            expectedPath,
+            qname,
+            path));
+      }
+    }
   }
 
   public List<String> getPackageIdes(String packageName) {
@@ -351,30 +390,28 @@ public class Jooc {
     return config;
   }
 
-  protected CompilationUnit parse(File in) {
-    if (in.isDirectory()) {
-      throw error("Input file is a directory: " + in.getAbsolutePath());
-    }
+  protected CompilationUnit parse(InputSource in) {
+
     if (!in.getName().endsWith(JS2_SUFFIX) && !in.getName().endsWith(AS_SUFFIX)) {
-      throw error("Input file must end with '" + JS2_SUFFIX + " or " + AS_SUFFIX + "': " + in.getAbsolutePath());
+      throw error("Input file must end with '" + JS2_SUFFIX + " or " + AS_SUFFIX + "': " + in.getName());
     }
     Scanner s;
     if (config.isVerbose()) {
-      System.out.println("Parsing " + in.getAbsolutePath());
+      System.out.println("Parsing " + in.getName());
     }
     try {
-      s = new Scanner(new InputStreamReader(new FileInputStream(in), "UTF-8"));
+      s = new Scanner(new InputStreamReader(in.getInputStream(), "UTF-8"));
     } catch (IOException e) {
-      throw new CompilerError("Input file not found: " + in.getAbsolutePath());
+      throw new CompilerError("Input file not found: " + in.getName());
     }
-    s.setFileName(in.getAbsolutePath());
+    s.setFileName(in.getName());
     parser p = new parser(s);
     p.setCompileLog(log);
     try {
       Symbol tree = p.parse();
       CompilationUnit unit = (CompilationUnit) tree.value;
       unit.setCompiler(this);
-      unit.setSourceFile(in);
+      unit.setSource(in);
       return unit;
     } catch (Scanner.ScanError se) {
       log.error(se.sym, se.getMessage());

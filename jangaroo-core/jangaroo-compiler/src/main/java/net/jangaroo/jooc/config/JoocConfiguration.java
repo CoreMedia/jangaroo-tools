@@ -23,7 +23,8 @@ public class JoocConfiguration implements JoocOptions {
   private boolean mergeOutput = false;
   private String outputFileName;
 
-  private List<File> sourcePath = new ArrayList<File>();
+  private List<File> sourcePath = new ArrayList<File>(); // may contain directories which are source roots
+  private List<File> classPath = new ArrayList<File>(); // may contain directories and jar files
 
   private List<File> sourceFiles = new ArrayList<File>();
 
@@ -152,6 +153,14 @@ public class JoocConfiguration implements JoocOptions {
 
   public void setSourcePath(final List<File> sourcePath) {
     this.sourcePath = sourcePath;
+  }
+
+  public List<File> getClassPath() {
+    return classPath;
+  }
+
+  public void setClassPath(final List<File> classPath) {
+    this.classPath = classPath;
   }
 
   public List<File> getSourceFiles() {

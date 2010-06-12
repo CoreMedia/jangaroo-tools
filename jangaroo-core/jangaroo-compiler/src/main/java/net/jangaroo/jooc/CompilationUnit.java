@@ -38,7 +38,7 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
   private IdeDeclaration primaryDeclaration;
   private JooSymbol rBrace;
   private Set<String> dependencies = new LinkedHashSet<String>();
-  private File sourceFile;
+  private InputSource source;
   private Jooc compiler;
 
   public CompilationUnit(PackageDeclaration packageDeclaration, JooSymbol lBrace, List<AstNode> directives, IdeDeclaration primaryDeclaration, JooSymbol rBrace) {
@@ -102,18 +102,15 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
   }
 
   /**
-   * @param sourceFile the source file of this compilation unit.
+   * @param source the source of this compilation unit.
    */
-  public void setSourceFile(File sourceFile) {
-    this.sourceFile = sourceFile;
-  }
-
-  public File getSourceFile() {
-    return sourceFile;
+  public void setSource(InputSource source) {
+    this.source = source;
   }
 
   public void writeOutput(CompilationUnitSinkFactory writerFactory,
                           boolean verbose) throws Jooc.CompilerError {
+    File sourceFile = ((FileInputSource) this.source).getFile();
     CompilationUnitSink sink = writerFactory.createSink(
       packageDeclaration, primaryDeclaration,
       sourceFile, verbose);
