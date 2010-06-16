@@ -253,6 +253,12 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
     var _static : Boolean = memberDeclaration.isStatic();
     var _private : Boolean = memberDeclaration.isPrivate();
     var target : Object = _static ? _private ? this.privateStatics : this.publicConstructor : this.publicConstructor.prototype;
+
+    // for compatibility with Prototype (which defines Node as an Object in IE):
+    if (!target) {
+      target = {};
+    }
+    
     if (!memberDeclaration.hasOwnMember(target)) {
       memberDeclaration.storeMember(target);
       if (memberDeclaration.hasInitializer()) {
