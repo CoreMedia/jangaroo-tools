@@ -36,6 +36,7 @@ public class JoocTask extends MatchingTask {
       = "Compile failed; see the compiler error output for details.";
 
   private Path src;
+  private String classpath;
   private File destDir;
   private String sourcepath;
   private boolean debug = false;
@@ -44,7 +45,6 @@ public class JoocTask extends MatchingTask {
   private boolean verbose = false;
   protected boolean failOnError = true;
   private boolean allowduplicatelocalvariables;
-  private boolean enableguessingmembers, enableguessingclasses, enableguessingtypecasts;
   protected File[] compileList = new File[0];
 
   public boolean getEnableassertions() {
@@ -89,10 +89,25 @@ public class JoocTask extends MatchingTask {
   }
 
   /**
-   * Gets the source dirs to find the source java files.
+   * Get the source dirs to find the source java files.
    */
   public Path getSrcdir() {
     return src;
+  }
+
+  /**
+   * Set the classpath to find the joo library files.
+   */
+
+  public void setClasspath(final String classpath) {
+    this.classpath = classpath;
+  }
+
+  /**
+   * Get the classpath to find joo library files.
+   */
+  public String getClasspath() {
+    return classpath;
   }
 
   /**
@@ -104,7 +119,7 @@ public class JoocTask extends MatchingTask {
   }
 
   /**
-   * Gets the destination directory into which the java source files
+   * Get the destination directory into which the java source files
    * should be compiled.
    */
   public File getDestdir() {
@@ -138,48 +153,6 @@ public class JoocTask extends MatchingTask {
    */
   public void setAllowduplicatelocalvariables(final boolean allowduplicatelocalvariables) {
     this.allowduplicatelocalvariables = allowduplicatelocalvariables;
-  }
-
-  /**
-   * Gets the enableguessing members flag.
-   */
-  public boolean isEnableguessingmembers() {
-    return enableguessingmembers;
-  }
-
-  /**
-   * Sets the enableguessing members flag.
-   */
-  public void setEnableguessingmembers(final boolean enableguessingmembers) {
-    this.enableguessingmembers = enableguessingmembers;
-  }
-
-  /**
-   * Gets the enableguessing classes flag.
-   */
-  public boolean isEnableguessingclasses() {
-    return enableguessingclasses;
-  }
-
-  /**
-   * Sets the enableguessing classes flag.
-   */
-  public void setEnableguessingclasses(final boolean enableguessingclasses) {
-    this.enableguessingclasses = enableguessingclasses;
-  }
-
-  /**
-   * Gets the enableguessing typecasts flag.
-   */
-  public boolean isEnableguessingtypecasts() {
-    return enableguessingtypecasts;
-  }
-
-  /**
-   * Sets the enableguessing typecasts flag.
-   */
-  public void setEnableguessingtypecasts(final boolean enableguessingtypecasts) {
-    this.enableguessingtypecasts = enableguessingtypecasts;
   }
 
   /**
@@ -360,18 +333,6 @@ public class JoocTask extends MatchingTask {
     if (allowduplicatelocalvariables) {
       args.add("-ad");
     }
-    if (enableguessingmembers) {
-      args.add("-eg");
-      args.add("members");
-    }
-    if (enableguessingclasses) {
-      args.add("-eg");
-      args.add("classes");
-    }
-    if (enableguessingtypecasts) {
-      args.add("-eg");
-      args.add("typecasts");
-    }
     if (destDir != null) {
       args.add("-d");
       args.add(destDir.getAbsolutePath());
@@ -382,6 +343,11 @@ public class JoocTask extends MatchingTask {
       String filename = aCompileList.getAbsolutePath();
       args.add(filename);
     }
+    if (classpath != null) {
+      args.add("-classpath");
+      args.add(classpath);
+    }
+
     return args.toArray(new String[args.size()]);
   }
 }
