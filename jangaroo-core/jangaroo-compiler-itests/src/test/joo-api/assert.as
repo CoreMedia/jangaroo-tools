@@ -1,6 +1,5 @@
 package {
-  public function assert(...arguments) :void {
-    
-  }
+
+public native function assert(condition : Boolean) : void;
 
 }
