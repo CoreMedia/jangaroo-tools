@@ -22,6 +22,8 @@ import package1.TestMethodCall;
 import package1.package11.TestSubPackage;
 import package3.ClassToImport; // IDEA takes this as disambiguating but flexsdk compc still complains ambiguity if ClassToImport would be used unqualified 
 
+import packageInJar.TestClassInJar;
+
 public class TestImport extends TestMethodCall {
 
   private static const TEST_CLASS_INIT : String = TestStaticInitializer.s2;
@@ -32,6 +34,7 @@ public class TestImport extends TestMethodCall {
     var i :int = ti.implementMe("abc");
     assert(i == 3);
     package3.ClassToImport.m_package3(); // package prefix is required to resolve ambiguity with package1.ClassToImport
+    TestClassInJar.m();
   }
 
   public static function main(arguments :String) : String {

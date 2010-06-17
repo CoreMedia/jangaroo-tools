@@ -91,14 +91,29 @@
             <phase>process-test-resources</phase>
             <configuration>
               <tasks>
+
+
                 <unzip src="${basedir}/target/jangaroo-runtime-${project.version}.jar" dest="${basedir}/target/temp" />
 
                 <property name="runtime.classpath" refid="maven.runtime.classpath" />
                 <taskdef name="jooc" classname="net.jangaroo.jooc.ant.JoocTask" classpath="target/classes;${runtime.classpath}" />
 
-                <mkdir dir="${basedir}/target/temp/js" />
+                <mkdir dir="${basedir}/target/temp/scripts" />
+                <mkdir dir="${basedir}/target/joo-lib" />
 
-                <jooc destdir="target/temp/scripts" failonerror="true" debug="true" verbose="true" enableassertions="true" enableguessingmembers="true" enableguessingclasses="true">
+                <property name="testjar" value="${basedir}/target/joo-lib/test.jar"/>
+                <jar destfile="${testjar}" duplicate="fail">
+                  <metainf dir="${basedir}/src/test" includes="joo-api/**"/>
+                </jar>
+
+                <!-- make API classes available to runtime: -->
+                <jooc destdir="target/temp/scripts" failonerror="true" debug="true" verbose="true" enableassertions="true">
+                  <include name="**/TestClassInJar.as" />
+                  <src path="${basedir}/src/test/joo-api"  />
+                </jooc>
+                
+                <jooc destdir="target/temp/scripts" failonerror="true" debug="true" verbose="true" enableassertions="true"
+                      classpath="${testjar}">
                   <include name="**/*.as" />
                   <exclude name="error/**/*.as" />
                   <exclude name="**/*_fragment.as" />
