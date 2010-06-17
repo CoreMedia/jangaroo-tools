@@ -39,6 +39,8 @@ import java.util.zip.ZipFile;
  */
 public class Jooc {
 
+  final static String JOO_API_IN_JAR_DIRECTORY_PREFIX = "META-INF/joo-api/";
+
   public static final int RESULT_CODE_OK = 0;
   public static final int RESULT_CODE_COMPILATION_FAILED = 1;
   public static final int RESULT_CODE_INTERNAL_COMPILER_ERROR = 2;
@@ -310,8 +312,8 @@ public class Jooc {
       }
     }
     // scan classpath
-    relativeFileName = relativeFileName.replace(File.separatorChar, '/');
-    String zipEntryName = "META-INF/joo-api/" + relativeFileName;
+    String relativeZipEntryPath = relativeFileName.replace(File.separatorChar, '/');
+    String apiZipEntryName = JOO_API_IN_JAR_DIRECTORY_PREFIX + relativeZipEntryPath ;
     for (File classes : getConfig().getClassPath()) {
       if (classes.exists()) {
         if (classes.isDirectory()) {
@@ -319,18 +321,23 @@ public class Jooc {
           if (sourceFile.exists() && !sourceFile.isDirectory()) {
             return new FileInputSource(sourceFile, classes);
           }
-        } else try {
-          //todo cache zip files
-          ZipFile zipFile = new ZipFile(classes);
-          ZipEntry entry = zipFile.getEntry(zipEntryName);
-          if (entry != null && !entry.isDirectory()) {
-            return new ZipFileInputSource(zipFile, entry, relativeFileName);
+        } else if (classes.getName().endsWith(".jar") || classes.getName().endsWith(".zip")) {
+          try {
+            //todo cache zip files
+            ZipFile zipFile = new ZipFile(classes);
+            ZipEntry entry = zipFile.getEntry(relativeZipEntryPath );
+            if (entry == null || entry.isDirectory()) {
+              entry = zipFile.getEntry(apiZipEntryName );
+            }
+            if (entry != null && !entry.isDirectory()) {
+              return new ZipFileInputSource(zipFile, entry, relativeZipEntryPath );
+            }
+            zipFile.close();
+          } catch (IOException e) {
+            //ignore - or log warning? javac does'nt do that either?!
+          } catch (ZipError e) {
+            warning("error reading zip/jar file " + classes.getAbsolutePath() + ": " + e.getMessage());
           }
-          zipFile.close();
-        } catch (IOException e) {
-          //ignore - or log warning? javac does'nt do that either?!
-        } catch (ZipError e) {
-          warning("error reading zip/jar file " + classes.getAbsolutePath() + ": " + e.getMessage());
         }
       }
     }
