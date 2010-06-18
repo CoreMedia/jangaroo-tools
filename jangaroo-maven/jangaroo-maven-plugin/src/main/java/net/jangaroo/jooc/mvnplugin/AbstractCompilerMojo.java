@@ -2,11 +2,13 @@ package net.jangaroo.jooc.mvnplugin;
 
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.config.JoocConfiguration;
+import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
+import org.codehaus.mojo.javascript.archive.Types;
 import org.codehaus.plexus.compiler.CompilerError;
 import org.codehaus.plexus.compiler.util.scan.InclusionScanException;
 import org.codehaus.plexus.compiler.util.scan.SimpleSourceInclusionScanner;
@@ -17,17 +19,8 @@ import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.StringUtils;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.io.*;
+import java.util.*;
 
 /**
  * Super class for mojos compiling Jangaroo sources.
@@ -65,32 +58,6 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
    * @parameter default-value="false"
    */
   private boolean allowDuplicateLocalVariables;
-  /**
-   * Set "enableGuessingMembers" to "true" in order to generate "this." before all top-level identifiers
-   * that cannot be resolved in the current compilation unit.
-   * If "guessClasses" is also "true", "this." is only added for top-level identifiers not starting
-   * with an upper case letter; these are considered classes or types that are already in scope.
-   *
-   * @parameter default-value="true"
-   */
-  private boolean enableGuessingMembers;
-  /**
-   * For undeclared top-level identifiers starting with an upper case letter, only issue a warning
-   * that they are assumed to be already in scope, i.e. classes or interfaces in the same
-   * package, in the top-level package, or imported through a * import.
-   * In combination with "enableGuessingMembers", undeclared identifiers starting with an upper case letter
-   * are not assumed to be inherited members if this flag is "true".
-   *
-   * @parameter default-value="true"
-   */
-  private boolean enableGuessingClasses;
-  /**
-   * If "enableGuessingTypeCasts" is "true", function calls with undeclared identifiers starting with an upper case
-   * letter are assumed to be type casts. In the generated code, such type casts only appear as comments.
-   *
-   * @parameter default-value="false"
-   */
-  private boolean enableGuessingTypeCasts;
   /**
    * If set to "true", the compiler will generate more detailed progress information.
    *
@@ -146,9 +113,6 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
     configuration.setDebug(debug);
     configuration.setEnableAssertions(enableAssertions);
     configuration.setAllowDuplicateLocalVariables(allowDuplicateLocalVariables);
-    configuration.setEnableGuessingMembers(enableGuessingMembers);
-    configuration.setEnableGuessingClasses(enableGuessingClasses);
-    configuration.setEnableGuessingTypeCasts(enableGuessingTypeCasts);
     configuration.setVerbose(verbose);
 
     if (debug && StringUtils.isNotEmpty(debuglevel)) {
@@ -164,7 +128,8 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
     }
 
     if (getLog().isDebugEnabled()) {
-      log.debug("Source directories: " + getCompileSourceRoots().toString().replace(',', '\n'));
+      log.debug("Source path: " + configuration.getSourcePath().toString().replace(',', '\n'));
+      log.debug("Class path: " + configuration.getClassPath().toString().replace(',', '\n'));
       log.debug("Output directory: " + configuration.getOutputDirectory());
     }
 
@@ -178,23 +143,29 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
     }
     configuration.setSourceFiles(new ArrayList<File>(sources));
     configuration.setSourcePath(getCompileSourceRoots());
-    configuration.setMergeOutput(false);
+    configuration.setClassPath(getActionScriptClassPath());
+
+    //todo make this configurable
+    configuration.setGenerateApi(true);
 
     configuration.setOutputDirectory(getOutputDirectory());
     int result = compile(configuration);
     boolean compilationError = (result != Jooc.RESULT_CODE_OK);
 
-    // for now, always set debug mode to "lines only" for concatenated file:
-    configuration.setDebug(true);
-    configuration.setDebugLines(true);
-    configuration.setDebugSource(false);
-    configuration.setOutputDirectory(getTempOutputDirectory());
-    result = compile(configuration);
-    if (result == Jooc.RESULT_CODE_OK) {
-      buildOutputFile(getTempOutputDirectory(), getOutputFileName());
-    }
+    if (!compilationError) {
+      // for now, always set debug mode to "lines only" for concatenated file:
+      configuration.setDebug(true);
+      configuration.setDebugLines(true);
+      configuration.setDebugSource(false);
+      configuration.setDebugSource(false);
+      configuration.setOutputDirectory(getTempOutputDirectory());
+      result = compile(configuration);
+      if (result == Jooc.RESULT_CODE_OK) {
+        buildOutputFile(getTempOutputDirectory(), getOutputFileName());
+      }
 
-    compilationError &= (result != Jooc.RESULT_CODE_OK);
+      compilationError &= (result != Jooc.RESULT_CODE_OK);
+    }
 
     List<CompilerError> messages = Collections.emptyList();
 
@@ -215,6 +186,23 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
         getLog().warn(message.toString());
       }
     }
+  }
+
+  protected List<File> getActionScriptClassPath() {
+    List<File> classPath = new ArrayList<File>();
+    Collection<Artifact> dependencies = getArtifacts();
+    for (Artifact dependency : dependencies) {
+      if (getLog().isDebugEnabled()) {
+        getLog().debug("Dependency: " + dependency.getGroupId() + ":" + dependency.getArtifactId() + "type: " + dependency.getType());
+      }
+      if (!dependency.isOptional() && Types.JANGAROO_TYPE.equals(dependency.getType())) {
+        if (getLog().isDebugEnabled()) {
+          getLog().debug("adding to classpath: jangaroo dependency [" + dependency.toString() + "]");
+        }
+        classPath.add(dependency.getFile());
+      }
+    }
+    return classPath;
   }
 
   private void buildOutputFile(File tempOutputDir, String outputFileName) throws MojoExecutionException {
@@ -334,4 +322,10 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
 
     return scanner;
   }
+
+  @SuppressWarnings({"unchecked"})
+  private Set<Artifact> getArtifacts() {
+    return (Set<Artifact>) project.getArtifacts();
+  }
+
 }
