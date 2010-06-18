@@ -56,8 +56,8 @@ class IfStatement extends KeywordStatement {
     return this;
   }
 
-  public void generateCode(JsWriter out) throws IOException {
-    super.generateCode(out);
+  protected void generateJsCode(JsWriter out) throws IOException {
+    super.generateJsCode(out);
     cond.generateCode(out);
     ifTrue.generateCode(out);
     if (symElse != null) {

@@ -26,7 +26,7 @@ class PrefixOpExpr extends UnaryOpExpr {
     super(op, arg);
   }
 
-  public void generateCode(JsWriter out) throws IOException {
+  protected void generateJsCode(JsWriter out) throws IOException {
     out.writeSymbol(op);
     arg.generateCode(out);
   }

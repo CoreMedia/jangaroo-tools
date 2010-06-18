@@ -46,8 +46,8 @@ class DotExpr extends PostfixOpExpr {
   }
 
   @Override
-  public void generateCode(final JsWriter out) throws IOException {
-    super.generateCode(out);
+  protected void generateJsCode(final JsWriter out) throws IOException {
+    super.generateJsCode(out);
     ide.generateCode(out);
   }
 }

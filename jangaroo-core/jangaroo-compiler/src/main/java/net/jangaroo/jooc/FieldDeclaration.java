@@ -57,6 +57,11 @@ public class FieldDeclaration extends AbstractVariableDeclaration {
   }
 
   @Override
+  protected void generateAsApiCode(final JsWriter out) throws IOException {
+    super.generateAsApiCode(out);
+  }
+
+  @Override
   protected void generateStartCode(JsWriter out) throws IOException {
     out.beginString();
     writeModifiers(out);

@@ -43,6 +43,12 @@ class CommaSeparatedList<NodeType extends AstNode> extends Expr {
     }
   }
 
+  @Override
+  protected void generateJsCode(final JsWriter out) throws IOException {
+    throw new UnsupportedOperationException("should not be called"); 
+  }
+
+  @Override
   public void generateCode(JsWriter out) throws IOException {
     head.generateCode(out);
     if (symComma != null) {

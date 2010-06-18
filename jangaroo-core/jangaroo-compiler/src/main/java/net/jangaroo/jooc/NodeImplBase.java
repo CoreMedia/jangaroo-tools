@@ -33,6 +33,24 @@ public abstract class NodeImplBase implements AstNode {
     }
   }
 
+  @Override
+  public void generateCode(final JsWriter out) throws IOException {
+    if (out.isWriteActionScriptApi()) {
+      generateAsApiCode(out);
+    } else {
+      generateJsCode(out);
+    }
+  }
+
+  protected abstract void generateJsCode(final JsWriter out) throws IOException;
+
+  /**
+   * Default implementation generates same code as JS. Overwritten where this must differ.
+   */
+  protected void generateAsApiCode(final JsWriter out) throws IOException {
+    generateJsCode(out);
+  }
+
   public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
     this.parentNode = parentNode;
     return this;

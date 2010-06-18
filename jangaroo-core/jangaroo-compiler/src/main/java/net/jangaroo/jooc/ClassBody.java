@@ -44,8 +44,14 @@ public class ClassBody extends NodeImplBase {
     }
   }
 
+  @Override
+  protected void generateAsApiCode(final JsWriter out) throws IOException {
+    out.writeSymbol(lBrace);
+    generateCode(declararations, out);
+    out.writeSymbol(rBrace);
+  }
 
-  public void generateCode(JsWriter out) throws IOException {
+  protected void generateJsCode(JsWriter out) throws IOException {
     out.writeSymbolWhitespace(lBrace);
     generateCode(declararations, out);
     out.writeSymbolWhitespace(rBrace);

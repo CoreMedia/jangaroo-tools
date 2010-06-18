@@ -50,7 +50,7 @@ class ForInitializer extends NodeImplBase {
     return this;
   }
 
-  public void generateCode(JsWriter out) throws IOException {
+  protected void generateJsCode(JsWriter out) throws IOException {
     if (decl != null)
       decl.generateCode(out);
     else if (expr != null)

@@ -66,8 +66,11 @@ In these cases, the grammar requires an identifier after the namespace keyword.
 
 package net.jangaroo.jooc;
 
+import java.io.Reader;
+import java.io.IOException;
 import java.util.HashMap;
 import java_cup.runtime.*;
+import net.jangaroo.jooc.input.InputSource;
 import net.jangaroo.jooc.util.IncludeEvaluator;
 
 %%
@@ -104,6 +107,7 @@ static int[] terminalsAllowedBeforeRegexpLiteral = {
   StringBuffer string = new StringBuffer();
   String fileName = "";
   int lastToken = -1;
+  InputSource inputSource;
 
   private boolean maybeRegexpLiteral() {
     for (int i = 0; i < terminalsAllowedBeforeRegexpLiteral.length; i++) {
@@ -113,12 +117,17 @@ static int[] terminalsAllowedBeforeRegexpLiteral = {
     return false;
   }
 
-  public void setFileName(String fileName) {
-    this.fileName = fileName;
+  public InputSource getInputSource() {
+    return inputSource;
   }
 
-  public String getFileName() {
-    return fileName;
+  public void setInputSource(InputSource in) {
+    this.inputSource = in;
+    this.fileName = in.getPath();
+  }
+
+   public Reader createIncludeReader(String include) throws IOException {
+    return IncludeEvaluator.createReader(include, getInputSource());
   }
 
   private JooSymbol symbol(int type) {
@@ -314,7 +323,7 @@ Include           = "include \"" ~"\""
 
   {Comment}                       { whitespace += yytext(); }
   {WhiteSpace}                    { whitespace += yytext(); }
-  {Include}                       { yypushStream(IncludeEvaluator.createReader(yytext(),getFileName())); }
+  {Include}                       { yypushStream(createIncludeReader(yytext())); }
 
   "as"                            { return symbol(AS); }
   "break"                         { return symbol(BREAK); }

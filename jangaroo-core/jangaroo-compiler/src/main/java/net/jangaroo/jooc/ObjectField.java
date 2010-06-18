@@ -50,7 +50,7 @@ class ObjectField extends NodeImplBase {
     return this;
   }
 
-  public void generateCode(JsWriter out) throws IOException {
+  protected void generateJsCode(JsWriter out) throws IOException {
     if (label !=null) {
       label.generateCode(out);
       out.writeSymbol(symColon);

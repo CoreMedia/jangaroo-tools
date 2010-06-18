@@ -39,6 +39,7 @@ public class JoocTask extends MatchingTask {
   private String classpath;
   private File destDir;
   private String sourcepath;
+  private boolean generateapi = false;
   private boolean debug = false;
   private String debugLevel = null;
   private boolean enableAssertions = false;
@@ -53,6 +54,14 @@ public class JoocTask extends MatchingTask {
 
   public void setEnableassertions(boolean enableAssertions) {
     this.enableAssertions = enableAssertions;
+  }
+
+  public boolean isGenerateapi() {
+    return generateapi;
+  }
+
+  public void setGenerateapi(final boolean generateapi) {
+    this.generateapi = generateapi;
   }
 
   /**
@@ -333,21 +342,23 @@ public class JoocTask extends MatchingTask {
     if (allowduplicatelocalvariables) {
       args.add("-ad");
     }
+    if (isGenerateapi()) {
+      args.add("-api");
+    }
     if (destDir != null) {
       args.add("-d");
       args.add(destDir.getAbsolutePath());
     }
     args.add("-sourcepath");
     args.add(sourcepath);
+    if (classpath != null && !classpath.isEmpty()) {
+      args.add("-classpath");
+      args.add(classpath);
+    }
     for (File aCompileList : compileList) {
       String filename = aCompileList.getAbsolutePath();
       args.add(filename);
     }
-    if (classpath != null) {
-      args.add("-classpath");
-      args.add(classpath);
-    }
-
     return args.toArray(new String[args.size()]);
   }
 }

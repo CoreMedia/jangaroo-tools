@@ -32,7 +32,7 @@ public class GetterSetterPair extends IdeDeclaration {
   public void scope(final Scope scope) {
   }
 
-  public void generateCode(JsWriter out) throws IOException {
+  protected void generateJsCode(JsWriter out) throws IOException {
     throw new IllegalStateException("GetterSetterPair#generateCode() should never be called!");
   }
 }

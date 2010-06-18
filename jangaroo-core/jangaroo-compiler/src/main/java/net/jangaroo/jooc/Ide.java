@@ -90,7 +90,7 @@ public class Ide extends NodeImplBase {
     this.scope = scope;
   }
 
-  public void generateCode(JsWriter out) throws IOException {
+  protected void generateJsCode(JsWriter out) throws IOException {
     out.writeSymbol(ide);
   }
 
@@ -294,7 +294,7 @@ public class Ide extends NodeImplBase {
         (exprParent instanceof AssignmentOpExpr && ((AssignmentOpExpr) exprParent).arg2 == parentExpr));
   }
 
-  public void generateCodeAsExpr(Expr parentExpr, final JsWriter out) throws IOException {
+  protected void generateCodeAsExpr(Expr parentExpr, final JsWriter out) throws IOException {
     out.writeSymbolWhitespace(ide);
     IdeDeclaration decl = getDeclaration();
     String[] prefix = null;

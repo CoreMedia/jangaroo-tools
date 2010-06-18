@@ -30,7 +30,7 @@ public class PredefinedTypeDeclaration extends IdeDeclaration {
   }
 
   @Override
-  public void generateCode(final JsWriter out) throws IOException {
+  protected void generateJsCode(final JsWriter out) throws IOException {
     throw new UnsupportedOperationException("there should be no code generation for predefined types");
   }
 

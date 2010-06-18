@@ -16,4 +16,6 @@ public interface JoocOptions {
   boolean isEnableGuessingClasses();
 
   boolean isEnableGuessingTypeCasts();
+
+  boolean isGenerateApi();
 }

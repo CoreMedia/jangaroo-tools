@@ -5,7 +5,6 @@ import org.apache.commons.cli.*;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -57,6 +56,9 @@ public class JoocCommandLineParser {
     Option enableAssertionsOption = OptionBuilder.withLongOpt("enableassertions")
         .withDescription("enable assertions")
         .create("ea");
+    Option generateApiOption = OptionBuilder.withLongOpt("generateapi")
+        .withDescription("generate ActionScript API stubs")
+        .create("api");
     Option allowDuplicateLocalVariablesOption = OptionBuilder.withLongOpt("allowduplicatelocalvariables")
         .withDescription("allow multiple declarations of local variables")
         .create("ad");
@@ -75,6 +77,7 @@ public class JoocCommandLineParser {
     options.addOption(sourcePath);
     options.addOption(classPath);
     options.addOption(enableAssertionsOption);
+    options.addOption(generateApiOption);
     options.addOption(allowDuplicateLocalVariablesOption);
     options.addOption(enableGuessingOption);
     CommandLineParser parser = new GnuParser();
@@ -114,28 +117,22 @@ public class JoocCommandLineParser {
     if (sp != null) {
       config.setClassPath(cp);
     }
-
     if (line.hasOption(enableAssertionsOption.getOpt())) {
       config.setEnableAssertions(true);
     }
-
+    if (line.hasOption(generateApiOption.getOpt())) {
+      config.setGenerateApi(true);
+    }
     if (line.hasOption(allowDuplicateLocalVariablesOption.getOpt())) {
       config.setAllowDuplicateLocalVariables(true);
     }
-
     if (line.hasOption(debugOption.getOpt())) {
       String[] values = line.getOptionValues(debugOption.getOpt());
       config.setDebug(true);
       if (values == null || values.length == 0) {
-        if (config.isVerbose()) {
-          System.out.println("-g option present.");
-        }
         config.setDebugLines(true);
         config.setDebugSource(true);
       } else {
-        if (config.isVerbose()) {
-          System.out.println("-g option value: " + Arrays.asList(values));
-        }
         for (String value : values) {
           if (value.equals("source")) {
             config.setDebugSource(true);
@@ -154,40 +151,11 @@ public class JoocCommandLineParser {
       config.setDebugSource(false);
       config.setDebugLines(true);
     }
-    if (line.hasOption(enableGuessingOption.getOpt())) {
-      String[] values = line.getOptionValues(enableGuessingOption.getOpt());
-      if (values == null || values.length == 0) {
-        if (config.isVerbose()) {
-          System.out.println("-eg option present.");
-        }
-        config.setEnableGuessingMembers(true);
-        config.setEnableGuessingClasses(true);
-        config.setEnableGuessingTypeCasts(true);
-      } else {
-        if (config.isVerbose()) {
-          System.out.println("-eg option value: " + Arrays.asList(values));
-        }
-        for (String value : values) {
-          if (value.equals("members")) {
-            config.setEnableGuessingMembers(true);
-          } else if (value.equals("classes")) {
-            config.setEnableGuessingClasses(true);
-          } else if (value.equals("typecasts")) {
-            config.setEnableGuessingTypeCasts(true);
-          } else {
-            throw new IllegalArgumentException("unknown -eg argument: " + value);
-          }
-        }
-      }
-    } else {
-      config.setEnableGuessingMembers(false);
-      config.setEnableGuessingClasses(false);
-      config.setEnableGuessingTypeCasts(false);
-    }
     if (config.isVerbose()) {
       /*
       System.out.println("enableassertions=" +  enableAssertions);
       */
+      System.out.println("-genarateapi: " + config.isGenerateApi());
       System.out.println("-g option values:");
       System.out.println("source=" + config.isDebugSource());
       System.out.println("lines=" + config.isDebugLines());
@@ -213,7 +181,8 @@ public class JoocCommandLineParser {
         final String[] sourceDirs = sourcePathString.split("\\Q" + File.pathSeparatorChar + "\\E");
         final List<File> sourcePathFiles = new ArrayList<File>(sourceDirs.length);
         for (String sourceDirPath : sourceDirs) {
-          File sourceDir = new File(sourceDirPath);
+          // be tolerant, accept also '/' as file separator
+          File sourceDir = new File(sourceDirPath.replace('/', File.separatorChar));
           if (!sourceDir.exists()) {
             throw new IllegalArgumentException("directory or file does not exist: " + sourceDir.getAbsolutePath());
           }
@@ -222,7 +191,7 @@ public class JoocCommandLineParser {
         return sourcePathFiles;
       }
     }
-    return null;
+    return new ArrayList<File>();
   }
 
 

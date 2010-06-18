@@ -54,7 +54,7 @@ class SuperConstructorCallStatement extends Statement {
     return this;
   }
 
-  public void generateCode(JsWriter out) throws IOException {
+  protected void generateJsCode(JsWriter out) throws IOException {
     generateFunCode(out);
     generateArgsCode(out);
   }

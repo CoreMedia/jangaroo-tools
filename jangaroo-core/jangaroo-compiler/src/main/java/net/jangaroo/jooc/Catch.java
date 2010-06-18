@@ -36,7 +36,7 @@ class Catch extends KeywordStatement {
     this.block = block;
   }
 
-  public void generateCode(JsWriter out) throws IOException {
+  protected void generateJsCode(JsWriter out) throws IOException {
     List<Catch> catches = ((TryStatement) parentNode).catches;
     Catch firstCatch = catches.get(0);
     boolean isFirst = equals(firstCatch);

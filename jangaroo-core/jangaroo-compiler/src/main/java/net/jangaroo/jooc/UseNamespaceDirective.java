@@ -44,7 +44,7 @@ public class UseNamespaceDirective extends NodeImplBase {
     return super.analyze(parentNode, context);
   }
 
-  public void generateCode(JsWriter out) throws IOException {
+  protected void generateJsCode(JsWriter out) throws IOException {
     out.beginString();
     out.writeSymbol(useKeyword);
     out.writeSymbol(namespaceKeyword);

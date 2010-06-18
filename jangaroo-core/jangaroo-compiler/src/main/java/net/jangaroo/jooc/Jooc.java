@@ -21,15 +21,14 @@ import net.jangaroo.jooc.backend.MergedOutputCompilationUnitSinkFactory;
 import net.jangaroo.jooc.backend.SingleFileCompilationUnitSinkFactory;
 import net.jangaroo.jooc.config.JoocCommandLineParser;
 import net.jangaroo.jooc.config.JoocConfiguration;
+import net.jangaroo.jooc.input.FileInputSource;
+import net.jangaroo.jooc.input.InputSource;
+import net.jangaroo.jooc.input.PathInputSource;
 
 import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.*;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipError;
-import java.util.zip.ZipFile;
 
 /**
  * The Jangaroo AS3-to-JS Compiler's main class.
@@ -70,6 +69,10 @@ public class Jooc {
 
   private Scope globalScope;
 
+  private InputSource sourcePathInputSource;
+  private InputSource classPathInputSource;
+
+
   public Jooc() {
     this(new StdOutCompileLog());
   }
@@ -90,15 +93,27 @@ public class Jooc {
       }
     }
 
-    for (File sourceFile : config.getSourceFiles()) {
-      processSource(sourceFile);
-    }
+    try {
+      sourcePathInputSource = PathInputSource.fromFiles(canoncicalSourcePath, AS_SUFFIX, new String[]{""});
+      classPathInputSource = PathInputSource.fromFiles(config.getClassPath(), AS_SUFFIX, new String[]{"", JOO_API_IN_JAR_DIRECTORY_PREFIX});
+      for (File sourceFile : config.getSourceFiles()) {
+        processSource(sourceFile);
+      }
 
-    CompilationUnitSinkFactory codeSinkFactory = createSinkFactory(config);
-
-    for (CompilationUnit unit : compileQueue) {
-      unit.analyze(null, new AnalyzeContext(config));
-      unit.writeOutput(codeSinkFactory, config.isVerbose());
+      CompilationUnitSinkFactory codeSinkFactory = createSinkFactory(config, false);
+      CompilationUnitSinkFactory apiSinkFactory = null;
+      if (config.isGenerateApi()) {
+        apiSinkFactory = createSinkFactory(config, true);
+      }
+      for (CompilationUnit unit : compileQueue) {
+        unit.analyze(null, new AnalyzeContext(config));
+        unit.writeOutput(codeSinkFactory, config.isVerbose());
+        if (config.isGenerateApi()) {
+          unit.writeOutput(apiSinkFactory, config.isVerbose());
+        }
+      }
+    } catch (IOException e) {
+      throw new CompilerError("IO Exception occured", e);
     }
     int result = log.hasErrors() ? 1 : 0;
     logHolder.remove();
@@ -167,17 +182,23 @@ public class Jooc {
     return scope;
   }
 
-  private CompilationUnitSinkFactory createSinkFactory(JoocConfiguration config) {
+  private CompilationUnitSinkFactory createSinkFactory(JoocConfiguration config, final boolean generateActionScriptApi) {
     CompilationUnitSinkFactory codeSinkFactory;
 
-    if (config.isMergeOutput()) {
+    if (!generateActionScriptApi && config.isMergeOutput()) {
       codeSinkFactory = new MergedOutputCompilationUnitSinkFactory(
         config, config.getOutputFile()
       );
     } else {
-      codeSinkFactory = new SingleFileCompilationUnitSinkFactory(
-        config, config.getOutputDirectory(), OUTPUT_FILE_SUFFIX
-      );
+      File outputDirectory = config.getOutputDirectory();
+      if (generateActionScriptApi) {
+        if (outputDirectory == null) {
+          throw error("-generateapi needs an output directory, specify one with the -d option");
+        }
+        outputDirectory = new File(outputDirectory, JOO_API_IN_JAR_DIRECTORY_PREFIX);
+      }
+      final String suffix = generateActionScriptApi ? AS_SUFFIX : OUTPUT_FILE_SUFFIX;
+      codeSinkFactory = new SingleFileCompilationUnitSinkFactory(config, outputDirectory, generateActionScriptApi, suffix);
     }
     return codeSinkFactory;
   }
@@ -283,7 +304,7 @@ public class Jooc {
     if (file.isDirectory()) {
       throw error("Input file is a directory: " + file.getAbsolutePath());
     }
-    CompilationUnit unit = importSource(new FileInputSource(file, findSourceDir(file)));
+    CompilationUnit unit = importSource(new FileInputSource(findSourceDir(file), file, AS_SUFFIX));
     if (unit != null) {
       compileQueue.add(unit);
     }
@@ -303,45 +324,20 @@ public class Jooc {
   }
 
   private InputSource findSource(final String qname) {
-    String relativeFileName = qname.replace('.', File.separatorChar) + AS_SUFFIX;
     // scan sourcepath
-    for (File sourceDir : getConfig().getSourcePath()) {
-      File sourceFile = new File(sourceDir, relativeFileName);
-      if (sourceFile.exists() && !sourceFile.isDirectory()) {
-        return new FileInputSource(sourceFile, sourceDir);
-      }
+    InputSource result = sourcePathInputSource.getChild(getInputSourceFileName(qname, sourcePathInputSource, AS_SUFFIX));
+    if (result == null) {
+      // scan classpath
+      result = classPathInputSource.getChild(getInputSourceFileName(qname, classPathInputSource, AS_SUFFIX));
     }
-    // scan classpath
-    String relativeZipEntryPath = relativeFileName.replace(File.separatorChar, '/');
-    String apiZipEntryName = JOO_API_IN_JAR_DIRECTORY_PREFIX + relativeZipEntryPath ;
-    for (File classes : getConfig().getClassPath()) {
-      if (classes.exists()) {
-        if (classes.isDirectory()) {
-          File sourceFile = new File(classes, relativeFileName);
-          if (sourceFile.exists() && !sourceFile.isDirectory()) {
-            return new FileInputSource(sourceFile, classes);
-          }
-        } else if (classes.getName().endsWith(".jar") || classes.getName().endsWith(".zip")) {
-          try {
-            //todo cache zip files
-            ZipFile zipFile = new ZipFile(classes);
-            ZipEntry entry = zipFile.getEntry(relativeZipEntryPath );
-            if (entry == null || entry.isDirectory()) {
-              entry = zipFile.getEntry(apiZipEntryName );
-            }
-            if (entry != null && !entry.isDirectory()) {
-              return new ZipFileInputSource(zipFile, entry, relativeZipEntryPath );
-            }
-            zipFile.close();
-          } catch (IOException e) {
-            //ignore - or log warning? javac does'nt do that either?!
-          } catch (ZipError e) {
-            warning("error reading zip/jar file " + classes.getAbsolutePath() + ": " + e.getMessage());
-          }
-        }
-      }
+    if (result == null) {
+      throw error("cannot find source for " + qname);
     }
-    throw error("cannot find source for " + qname);
+    return result;
+  }
+
+  private String getInputSourceFileName(final String qname, InputSource is, String extension) {
+    return qname.replace('.', is.getFileSeparatorChar()) + extension;
   }
 
   private void checkValidFileName(final String qname, final CompilationUnit unit, final InputSource source) {
@@ -361,35 +357,31 @@ public class Jooc {
 
   public List<String> getPackageIdes(String packageName) {
     List<String> result = new ArrayList<String>(10);
-    final String relativePackagePath = getRelativeFileName(packageName);
-    for (File sourceDir : getConfig().getSourcePath()) {
-      final File packageFolder = relativePackagePath.isEmpty() ? sourceDir : new File(sourceDir, relativePackagePath);
-      addPackageFolderSymbols(packageFolder, result);
-    }
+    addPackageFolderSymbols(result, packageName, sourcePathInputSource);
+    addPackageFolderSymbols(result, packageName, classPathInputSource);
     return result;
   }
 
-  private String getRelativeFileName(String qualifiedName) {
-    return qualifiedName.replace('.', File.separatorChar);
+  private void addPackageFolderSymbols(final List<String> result, final String packageName, final InputSource path) {
+    addPackageFolderSymbols(path.getChild(getInputSourceFileName(packageName, path, "")),
+      result);
   }
 
-  private void addPackageFolderSymbols(final File folder, List<String> list) {
-    String[] symbols = folder.list(new SourceFilenameFilter());
-    if (symbols != null) {
-      for (String symbol : symbols) {
-        list.add(withoutAS(symbol));
+  private void addPackageFolderSymbols(final InputSource folder, List<String> list) {
+    if (folder != null) {
+      final List<InputSource> childList = folder.list();
+      for (InputSource child : childList) {
+        if (!child.isDirectory()) {
+          list.add(nameWithoutExtension(child));
+        }
       }
     }
   }
 
-  private static class SourceFilenameFilter implements FilenameFilter {
-    public boolean accept(File dir, String name) {
-      return name.endsWith(Jooc.INPUT_FILE_SUFFIX);
-    }
-  }
-
-  private static String withoutAS(String name) {
-    return name.substring(0, name.length() - Jooc.INPUT_FILE_SUFFIX.length());
+  private static String nameWithoutExtension(InputSource input) {
+    String name = input.getName();
+    int lastDot = name.lastIndexOf('.');
+    return lastDot >= 0 ? name.substring(0, lastDot) : name;
   }
 
 
@@ -404,14 +396,14 @@ public class Jooc {
     }
     Scanner s;
     if (config.isVerbose()) {
-      System.out.println("Parsing " + in.getName());
+      System.out.println("Parsing " + in.getPath());
     }
     try {
       s = new Scanner(new InputStreamReader(in.getInputStream(), "UTF-8"));
     } catch (IOException e) {
-      throw new CompilerError("Input file not found: " + in.getName());
+      throw new CompilerError("Cannot read input file: " + in.getPath());
     }
-    s.setFileName(in.getName());
+    s.setInputSource(in);
     parser p = new parser(s);
     p.setCompileLog(log);
     try {

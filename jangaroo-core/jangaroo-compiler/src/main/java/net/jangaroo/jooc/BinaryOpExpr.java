@@ -37,7 +37,7 @@ class BinaryOpExpr extends OpExpr {
     arg2.scope(scope);
   }
 
-  public void generateCode(JsWriter out) throws IOException {
+  protected void generateJsCode(JsWriter out) throws IOException {
     arg1.generateCode(out);
     out.writeSymbol(op);
     arg2.generateCode(out);

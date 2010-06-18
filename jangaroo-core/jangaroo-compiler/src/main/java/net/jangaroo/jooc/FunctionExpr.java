@@ -99,7 +99,7 @@ class FunctionExpr extends Expr {
     }
   }
 
-  public void generateCode(JsWriter out) throws IOException {
+  protected void generateJsCode(JsWriter out) throws IOException {
     out.writeSymbol(symFun);
     if (ide != null) {
       out.writeToken(ide.getName());

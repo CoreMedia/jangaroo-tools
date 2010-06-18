@@ -38,7 +38,7 @@ class AsExpr extends Expr {
     type.scope(scope);
   }
 
-  public void generateCode(JsWriter out) throws IOException {
+  protected void generateJsCode(JsWriter out) throws IOException {
     e.generateCode(out);
     out.beginComment();
       out.writeSymbolToken(symAs);

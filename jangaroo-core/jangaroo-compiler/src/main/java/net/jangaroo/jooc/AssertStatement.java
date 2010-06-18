@@ -31,7 +31,7 @@ class AssertStatement extends KeywordExprStatement {
     this.rParen = rParen;
   }
 
-  public void generateCode(JsWriter out) throws IOException {
+  protected void generateJsCode(JsWriter out) throws IOException {
     if (out.getEnableAssertions()) {
       out.writeSymbolWhitespace(symKeyword);
       out.writeToken("assert");
@@ -49,7 +49,7 @@ class AssertStatement extends KeywordExprStatement {
       out.writeSymbol(optSymSemicolon);
     } else {
       out.beginComment();
-      super.generateCode(out);
+      super.generateJsCode(out);
       out.endComment();
     }
   }

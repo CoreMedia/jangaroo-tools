@@ -65,7 +65,19 @@ public class Parameter extends IdeDeclaration {
     return optSymConstOrRest !=null && optSymConstOrRest.sym==sym.REST;
   }
 
-  public void generateCode(JsWriter out) throws IOException {
+  protected void generateAsApiCode(JsWriter out) throws IOException {
+    if (optSymConstOrRest != null) {
+      out.writeSymbol(optSymConstOrRest);
+    }
+    ide.generateCode(out);
+    if (optTypeRelation!=null)
+      optTypeRelation.generateCode(out);
+    if (optInitializer != null) {
+      optInitializer.generateCode(out);
+    }
+  }
+
+  protected void generateJsCode(JsWriter out) throws IOException {
     Debug.assertTrue(getModifiers() == 0, "Parameters must not have any modifiers");
     boolean isRest = isRest();
     if (optSymConstOrRest != null) {
@@ -78,11 +90,14 @@ public class Parameter extends IdeDeclaration {
     if (!isRest) {
       ide.generateCode(out);
     }
-    // in the method signature, comment out initializer code.
-    out.beginComment();
     if (optTypeRelation!=null)
       optTypeRelation.generateCode(out);
-    out.endComment();
+    // in the method signature, comment out initializer code.
+    if (optInitializer != null) {
+      out.beginComment();
+      optInitializer.generateCode(out);
+      out.endComment();
+    }
   }
 
   public boolean hasInitializer() {

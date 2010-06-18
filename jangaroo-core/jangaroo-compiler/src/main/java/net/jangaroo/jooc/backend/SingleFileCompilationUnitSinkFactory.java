@@ -18,10 +18,12 @@ import java.io.FileOutputStream;
 public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUnitSinkFactory {
 
   private String suffix;
+  private boolean generateApi;
 
-  public SingleFileCompilationUnitSinkFactory(JoocOptions options, File destinationDir, String suffix) {
+  public SingleFileCompilationUnitSinkFactory(JoocOptions options, File destinationDir, boolean generateApi, String suffix) {
     super(options, destinationDir);
     this.suffix = suffix;
+    this.generateApi = generateApi;
   }
 
   protected File getOutputFile(File sourceFile, String[] packageName) {
@@ -75,6 +77,7 @@ public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUni
           try {
             try {
               out.setOptions(getOptions());
+              out.setWriteActionScriptApi(generateApi);
               codeGenerator.generateCode(out);
             } finally {
               out.close();

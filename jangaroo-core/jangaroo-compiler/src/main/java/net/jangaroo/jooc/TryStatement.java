@@ -57,8 +57,8 @@ class TryStatement extends KeywordStatement {
     return this;
   }
 
-  public void generateCode(JsWriter out) throws IOException {
-    super.generateCode(out);
+  protected void generateJsCode(JsWriter out) throws IOException {
+    super.generateJsCode(out);
     block.generateCode(out);
     generateCode(catches, out);
     if (symFinally != null) {

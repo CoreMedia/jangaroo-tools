@@ -50,8 +50,8 @@ class SwitchStatement extends KeywordStatement {
     return this;
   }
 
-  public void generateCode(JsWriter out) throws IOException {
-    super.generateCode(out);
+  protected void generateJsCode(JsWriter out) throws IOException {
+    super.generateJsCode(out);
     cond.generateCode(out);
     block.generateCode(out);
   }

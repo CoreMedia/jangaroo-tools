@@ -207,7 +207,33 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
     super.handleDuplicateDeclaration(scope, oldNode);
   }
 
-  public void generateCode(JsWriter out) throws IOException {
+  protected void generateAsApiCode(JsWriter out) throws IOException {
+    if (!isPrivate()) {
+      writeModifiers(out);
+      if (!isNative()) {
+        out.writeSymbolWhitespace(symFunction);
+        out.writeToken(SyntacticKeywords.NATIVE);
+        out.writeSymbol(symFunction, false);
+      } else {
+        out.writeSymbol(symFunction);
+      }
+      if (symGetOrSet != null) {
+        out.writeSymbol(symGetOrSet);
+      }
+      ide.generateCode(out);
+      out.writeSymbol(lParen);
+      if (params != null) {
+        params.generateCode(out);
+      }
+      out.writeSymbol(rParen);
+      if (optTypeRelation != null) {
+        optTypeRelation.generateCode(out);
+      }
+      out.writeToken(";");
+    }
+  }
+
+  protected void generateJsCode(JsWriter out) throws IOException {
     boolean isAbstract = isAbstract();
     if (isAbstract) {
       out.beginComment();

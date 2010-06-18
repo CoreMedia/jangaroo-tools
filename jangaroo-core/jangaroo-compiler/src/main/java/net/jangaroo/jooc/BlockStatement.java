@@ -44,7 +44,7 @@ class BlockStatement extends Statement {
     blockStartCodeGenerators.add(blockStartCodeGenerator);
   }
 
-  public void generateCode(JsWriter out) throws IOException {
+  protected void generateJsCode(JsWriter out) throws IOException {
     out.writeSymbol(lBrace);
     for (CodeGenerator codeGenerator : blockStartCodeGenerators) {
       codeGenerator.generateCode(out);

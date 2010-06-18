@@ -2,6 +2,7 @@ package net.jangaroo.jooc.config;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -12,7 +13,7 @@ public class JoocConfiguration implements JoocOptions {
   private boolean debug;
   private boolean debugLines, debugSource;
 
-  private boolean help, version, verbose, enableAssertions;
+  private boolean help, version, verbose, enableAssertions, generateApi;
 
   private boolean allowDuplicateLocalVariables;
 
@@ -25,7 +26,6 @@ public class JoocConfiguration implements JoocOptions {
 
   private List<File> sourcePath = new ArrayList<File>(); // may contain directories which are source roots
   private List<File> classPath = new ArrayList<File>(); // may contain directories and jar files
-
   private List<File> sourceFiles = new ArrayList<File>();
 
   public JoocConfiguration() {
@@ -81,6 +81,15 @@ public class JoocConfiguration implements JoocOptions {
 
   public void setVerbose(boolean verbose) {
     this.verbose = verbose;
+  }
+
+  @Override
+  public boolean isGenerateApi() {
+    return generateApi;
+  }
+
+  public void setGenerateApi(final boolean generateApi) {
+    this.generateApi = generateApi;
   }
 
   public boolean isHelp() {
@@ -148,7 +157,7 @@ public class JoocConfiguration implements JoocOptions {
   }
 
   public List<File> getSourcePath() {
-    return sourcePath;
+    return Collections.unmodifiableList(sourcePath);
   }
 
   public void setSourcePath(final List<File> sourcePath) {
@@ -156,15 +165,16 @@ public class JoocConfiguration implements JoocOptions {
   }
 
   public List<File> getClassPath() {
-    return classPath;
+    return Collections.unmodifiableList(classPath);
   }
 
   public void setClassPath(final List<File> classPath) {
+    assert classPath != null;
     this.classPath = classPath;
   }
 
   public List<File> getSourceFiles() {
-    return sourceFiles;
+    return Collections.unmodifiableList(sourceFiles);
   }
 
   public void setSourceFiles(List<File> sourceFiles) {

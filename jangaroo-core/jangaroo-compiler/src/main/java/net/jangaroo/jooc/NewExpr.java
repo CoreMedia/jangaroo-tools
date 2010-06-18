@@ -49,7 +49,7 @@ class NewExpr extends Expr {
     return this;
   }
 
-  public void generateCode(JsWriter out) throws IOException {
+  protected void generateJsCode(JsWriter out) throws IOException {
     out.writeSymbol(symNew);
     applyConstructor.generateCode(out);
     if (args != null)

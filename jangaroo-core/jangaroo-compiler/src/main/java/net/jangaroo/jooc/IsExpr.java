@@ -26,7 +26,7 @@ class IsExpr extends BinaryOpExpr {
     super(e1, symIs, e2);
   }
 
-  public void generateCode(JsWriter out) throws IOException {
+  protected void generateJsCode(JsWriter out) throws IOException {
     out.writeSymbol(op);
     out.write('(');
     arg1.generateCode(out);

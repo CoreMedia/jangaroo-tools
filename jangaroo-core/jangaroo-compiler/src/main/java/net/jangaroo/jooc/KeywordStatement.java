@@ -29,7 +29,7 @@ abstract class KeywordStatement extends Statement {
     this.symKeyword = symKeyword;
   }
 
-  public void generateCode(JsWriter out) throws IOException {
+  protected void generateJsCode(JsWriter out) throws IOException {
     out.writeSymbol(symKeyword);
   }
 

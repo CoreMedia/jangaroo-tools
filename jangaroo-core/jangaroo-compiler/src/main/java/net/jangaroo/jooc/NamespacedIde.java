@@ -47,7 +47,7 @@ public class NamespacedIde extends Ide {
     return super.analyze(parentNode, context);
   }
 
-  public void generateCode(JsWriter out) throws IOException {
+  protected void generateJsCode(JsWriter out) throws IOException {
     // so far, namespaces are only comments:
     out.beginComment();
     out.writeSymbol(namespace);

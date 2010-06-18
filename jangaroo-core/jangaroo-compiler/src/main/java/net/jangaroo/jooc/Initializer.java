@@ -41,7 +41,12 @@ class Initializer extends NodeImplBase {
     return this;
   }
 
-  public void generateCode(JsWriter out) throws IOException {
+  @Override
+  protected void generateAsApiCode(final JsWriter out) throws IOException {
+    //skip it
+  }
+
+  protected void generateJsCode(JsWriter out) throws IOException {
     out.writeSymbol(symEq);
     value.generateCode(out);
   }

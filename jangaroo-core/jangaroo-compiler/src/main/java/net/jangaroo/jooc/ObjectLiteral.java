@@ -32,7 +32,7 @@ class ObjectLiteral extends Expr {
     this.rParen = rParen;
   }
 
-  public void generateCode(JsWriter out) throws IOException {
+  protected void generateJsCode(JsWriter out) throws IOException {
     out.writeSymbol(lBrace);
     if (fields != null)
       fields.generateCode(out);

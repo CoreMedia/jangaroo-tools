@@ -29,7 +29,12 @@ class StaticInitializer extends Declaration {
     this.block = block;
   }
 
-  public void generateCode(JsWriter out) throws IOException {
+  @Override
+  protected void generateAsApiCode(final JsWriter out) throws IOException {
+    //skip it
+  }
+
+  protected void generateJsCode(JsWriter out) throws IOException {
     out.beginComment();
     writeModifiers(out);
     out.endComment();

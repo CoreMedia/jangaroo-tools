@@ -49,7 +49,7 @@ class IdeExpr extends Expr {
     return this;
   }
 
-  public void generateCode(JsWriter out) throws IOException {
+  protected void generateJsCode(JsWriter out) throws IOException {
     ide.generateCodeAsExpr(this, out);
   }
 

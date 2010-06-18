@@ -22,7 +22,12 @@ public class EmptyDeclaration extends Declaration {
     return symSemicolon;
   }
 
-  public void generateCode(JsWriter out) throws IOException {
+  @Override
+  protected void generateAsApiCode(final JsWriter out) throws IOException {
+    out.writeSymbol(symSemicolon);
+  }
+
+  protected void generateJsCode(JsWriter out) throws IOException {
     out.writeSymbolWhitespace(symSemicolon);
   }
 }

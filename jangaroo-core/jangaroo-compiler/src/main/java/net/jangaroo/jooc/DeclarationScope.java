@@ -94,7 +94,6 @@ class DeclarationScope extends ScopeImplBase implements Scope {
   @Override
   public IdeDeclaration declareIde(IdeDeclaration decl) {
     final Ide ide = decl.getIde();
-    assert ide.getScope() == this;
     final String name = ide.getName();
     if (importsByName.containsKey(name)) {
       throw new Jooc.CompilerError(ide.getSymbol(), "attempt to redefine an imported identifier " + name);

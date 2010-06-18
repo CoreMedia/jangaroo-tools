@@ -46,7 +46,13 @@ public class TypeRelation extends NodeImplBase {
     return this;
   }
 
-  public void generateCode(JsWriter out) throws IOException {
+  @Override
+  protected void generateAsApiCode(final JsWriter out) throws IOException {
+    out.writeSymbol(symRelation);
+    type.generateCode(out);
+  }
+
+  protected void generateJsCode(JsWriter out) throws IOException {
     out.beginCommentWriteSymbol(symRelation);
     type.generateCode(out);
     out.endComment();

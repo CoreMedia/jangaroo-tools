@@ -49,7 +49,7 @@ public class Annotation extends NodeImplBase {
     return ide.getSymbol();
   }
 
-  public void generateCode(JsWriter out) throws IOException {
+  protected void generateJsCode(JsWriter out) throws IOException {
     out.beginComment();
     out.writeSymbol(leftBracket);
     ide.generateCode(out);

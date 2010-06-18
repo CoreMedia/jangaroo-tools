@@ -61,7 +61,17 @@ public class ImportDirective extends NodeImplBase {
     return ide.getQualifiedNameStr();
   }
 
-  public void generateCode(JsWriter out) throws IOException {
+  @Override
+  protected void generateAsApiCode(final JsWriter out) throws IOException {
+    if (explicit) {
+      out.writeSymbol(importKeyword);
+      ide.generateCode(out);
+    }
+    // else skip it
+  }
+
+
+  protected void generateJsCode(JsWriter out) throws IOException {
     if (explicit) {
       out.beginString();
       out.writeSymbol(importKeyword);

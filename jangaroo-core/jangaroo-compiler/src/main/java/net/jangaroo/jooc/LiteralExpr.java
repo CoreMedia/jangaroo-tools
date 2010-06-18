@@ -32,7 +32,7 @@ class LiteralExpr extends Expr {
   public void scope(final Scope scope) {
   }
 
-  public void generateCode(JsWriter out) throws IOException {
+  protected void generateJsCode(JsWriter out) throws IOException {
     out.writeSymbol(value);
   }
 

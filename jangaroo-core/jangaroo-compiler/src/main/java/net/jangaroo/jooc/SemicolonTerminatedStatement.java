@@ -53,7 +53,7 @@ class SemicolonTerminatedStatement extends Statement {
       optStatement.generateCode(out);
   }
   
-  public void generateCode(JsWriter out) throws IOException {
+  protected void generateJsCode(JsWriter out) throws IOException {
     generateStatementCode(out);
     if (optSymSemicolon !=null)
       out.writeSymbol(optSymSemicolon);

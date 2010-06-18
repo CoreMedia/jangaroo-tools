@@ -17,6 +17,8 @@ package net.jangaroo.jooc;
 
 import net.jangaroo.jooc.backend.CompilationUnitSink;
 import net.jangaroo.jooc.backend.CompilationUnitSinkFactory;
+import net.jangaroo.jooc.input.FileInputSource;
+import net.jangaroo.jooc.input.InputSource;
 
 import java.io.File;
 import java.io.IOException;
@@ -118,7 +120,16 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
     sink.writeOutput(this);
   }
 
-  public void generateCode(JsWriter out) throws IOException {
+  @Override
+  protected void generateAsApiCode(final JsWriter out) throws IOException {
+    packageDeclaration.generateCode(out);
+    out.writeSymbol(lBrace);
+    generateCode(directives, out);
+    primaryDeclaration.generateCode(out);
+    out.writeSymbol(rBrace);
+  }
+
+  protected void generateJsCode(JsWriter out) throws IOException {
     out.write(Jooc.CLASS_LOADER_FULLY_QUALIFIED_NAME + ".prepare(");
     packageDeclaration.generateCode(out);
     out.writeSymbolWhitespace(lBrace);

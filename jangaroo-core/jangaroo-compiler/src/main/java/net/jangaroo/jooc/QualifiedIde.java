@@ -92,7 +92,7 @@ public class QualifiedIde extends Ide {
     return super.analyze(parentNode, context);
   }
 
-  public void generateCode(JsWriter out) throws IOException {
+  protected void generateJsCode(JsWriter out) throws IOException {
     qualifier.generateCode(out);
     out.writeSymbol(symDot);
     out.writeSymbol(ide);
@@ -108,7 +108,7 @@ public class QualifiedIde extends Ide {
   }
 
   @Override
-  public void generateCodeAsExpr(final Expr parentExpr, final JsWriter out) throws IOException {
+  protected void generateCodeAsExpr(final Expr parentExpr, final JsWriter out) throws IOException {
     IdeDeclaration declaration = getDeclaration(false);
     if (declaration != null) {
       if (declaration.isClassMember()) {

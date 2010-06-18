@@ -47,7 +47,7 @@ class ApplyExpr extends Expr {
     args.scope(scope);
   }
 
-  public void generateCode(JsWriter out) throws IOException {
+  protected void generateJsCode(JsWriter out) throws IOException {
     // leave out constructor function if called as type cast function!
     // these old-style type casts are soo ugly....
     // let through typecast to String

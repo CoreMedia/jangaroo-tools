@@ -87,7 +87,20 @@ public class ClassDeclaration extends IdeDeclaration {
     constructor = methodDeclaration;
   }
 
-  public void generateCode(JsWriter out) throws IOException {
+  protected void generateAsApiCode(JsWriter out) throws IOException {
+    writeModifiers(out);
+    out.writeSymbol(symClass);
+    ide.generateCode(out);
+    if (optExtends != null) {
+      optExtends.generateCode(out);
+    }
+    if (optImplements != null) {
+      optImplements.generateCode(out);
+    }
+    body.generateCode(out);
+  }
+
+  protected void generateJsCode(JsWriter out) throws IOException {
     if (isNative()) {
       out.beginComment();
     }
@@ -245,7 +258,7 @@ public class ClassDeclaration extends IdeDeclaration {
   public boolean isSubclassOf(final ClassDeclaration classDeclaration) {
     return optExtends != null && (
       optExtends.superClass.getDeclaration() == classDeclaration ||
-        ((ClassDeclaration)optExtends.superClass.getDeclaration()).isSubclassOf(classDeclaration));
+        ((ClassDeclaration) optExtends.superClass.getDeclaration()).isSubclassOf(classDeclaration));
   }
 
   public Type getThisType() {

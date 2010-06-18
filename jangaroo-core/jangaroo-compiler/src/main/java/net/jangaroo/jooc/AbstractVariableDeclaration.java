@@ -26,6 +26,7 @@ abstract class AbstractVariableDeclaration extends TypedIdeDeclaration {
   JooSymbol optSymConstOrVar;
   Initializer optInitializer;
   AbstractVariableDeclaration optNextVariableDeclaration;
+  private boolean hasPreviousVariableDeclaration = false;
 
   JooSymbol optSymSemicolon;
 
@@ -50,7 +51,28 @@ abstract class AbstractVariableDeclaration extends TypedIdeDeclaration {
     }
   }
 
-  public void generateCode(JsWriter out) throws IOException {
+  protected void generateAsApiCode(JsWriter out) throws IOException {
+    if (!isPrivate()) {
+      writeModifiers(out);
+      out.writeSymbol(optSymConstOrVar);
+      ide.generateCode(out);
+      if (optTypeRelation != null) {
+        optTypeRelation.generateCode(out);
+      }
+      if (optInitializer != null) {
+        out.writeSymbol(optInitializer.symEq);
+        optInitializer.value.generateCode(out);
+      }
+      if (optNextVariableDeclaration != null) {
+        optNextVariableDeclaration.generateCode(out);
+      }
+      if (optSymSemicolon != null) {
+        out.writeSymbol(optSymSemicolon);
+      }
+    }
+  }
+
+  protected void generateJsCode(JsWriter out) throws IOException {
     if (hasPreviousVariableDeclaration()) {
       Debug.assertTrue(optSymConstOrVar != null && optSymConstOrVar.sym == sym.COMMA, "Additional variable declarations must start with a COMMA.");
       out.writeSymbol(optSymConstOrVar);
@@ -83,7 +105,7 @@ abstract class AbstractVariableDeclaration extends TypedIdeDeclaration {
   }
 
   protected boolean hasPreviousVariableDeclaration() {
-    return parentNode instanceof AbstractVariableDeclaration;
+    return hasPreviousVariableDeclaration;
   }
 
   protected AbstractVariableDeclaration getPreviousVariableDeclaration() {
@@ -121,6 +143,7 @@ abstract class AbstractVariableDeclaration extends TypedIdeDeclaration {
     if (optNextVariableDeclaration != null) {
       optNextVariableDeclaration.analyze(this, context);
     }
+    hasPreviousVariableDeclaration = parentNode instanceof AbstractVariableDeclaration;
     return this;
   }
 

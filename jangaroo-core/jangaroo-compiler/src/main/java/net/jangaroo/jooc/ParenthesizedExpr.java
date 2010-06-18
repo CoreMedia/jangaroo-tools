@@ -46,7 +46,7 @@ class ParenthesizedExpr<ExprType extends Expr> extends Expr {
     return this;
   }
 
-  public void generateCode(JsWriter out) throws IOException {
+  protected void generateJsCode(JsWriter out) throws IOException {
     out.writeSymbol(lParen);
     if (expr!=null)
       expr.generateCode(out);

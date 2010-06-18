@@ -26,7 +26,7 @@ class PostfixOpExpr extends UnaryOpExpr {
     super(op, arg);
   }
 
-  public void generateCode(JsWriter out) throws IOException {
+  protected void generateJsCode(JsWriter out) throws IOException {
     arg.generateCode(out);
     out.writeSymbol(op);
   }

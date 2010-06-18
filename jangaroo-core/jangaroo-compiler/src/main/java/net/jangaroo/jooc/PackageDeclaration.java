@@ -16,11 +16,6 @@
 package net.jangaroo.jooc;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Set;
-import java.util.HashSet;
 
 /**
  * @author Andreas Gawecki
@@ -35,7 +30,14 @@ public class PackageDeclaration extends IdeDeclaration  {
     this.symPackage = symPackage;
   }
 
-  public void generateCode(JsWriter out) throws IOException {
+  protected void generateAsApiCode(JsWriter out) throws IOException {
+    out.writeSymbol(symPackage);
+    if (ide!=null) {
+      ide.generateCode(out);
+    }
+  }
+
+  protected void generateJsCode(JsWriter out) throws IOException {
     out.beginString();
     out.writeSymbol(symPackage);
     if (ide!=null) {

@@ -49,7 +49,7 @@ class LabeledStatement extends Statement {
     return this;
   }
 
-  public void generateCode(JsWriter out) throws IOException {
+  protected void generateJsCode(JsWriter out) throws IOException {
     ide.generateCode(out);
     out.writeSymbol(symColon);
     statement.generateCode(out);

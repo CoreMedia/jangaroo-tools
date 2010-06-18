@@ -43,7 +43,7 @@ class ConditionalExpr extends Expr {
     ifFalse.scope(scope);
   }
 
-  public void generateCode(JsWriter out) throws IOException {
+  protected void generateJsCode(JsWriter out) throws IOException {
     cond.generateCode(out);
     out.writeSymbol(symQuestion);
     ifTrue.generateCode(out);

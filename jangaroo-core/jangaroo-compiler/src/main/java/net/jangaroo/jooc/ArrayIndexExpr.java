@@ -49,7 +49,7 @@ class ArrayIndexExpr extends Expr {
     return this;
   }
 
-  public void generateCode(JsWriter out) throws IOException {
+  protected void generateJsCode(JsWriter out) throws IOException {
     array.generateCode(out);
     indexExpr.generateCode(out);
   }
