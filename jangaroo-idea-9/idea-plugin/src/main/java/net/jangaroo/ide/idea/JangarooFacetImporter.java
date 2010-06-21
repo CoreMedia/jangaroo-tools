@@ -328,10 +328,10 @@ public class JangarooFacetImporter extends FacetImporter<JangarooFacet, Jangaroo
     }
 
     private static Set<JangarooFacet> collectTransitiveJangarooDependencies(JangarooFacet jangarooFacet, Set<JangarooFacet> dependencies) {
+      dependencies.add(jangarooFacet);
       for (Module directDependency : ModuleRootManager.getInstance(jangarooFacet.getModule()).getDependencies()) {
         JangarooFacet dependentModuleJangarooFacet = findJangarooFacet(directDependency);
         if (dependentModuleJangarooFacet != null) {
-          dependencies.add(dependentModuleJangarooFacet);
           collectTransitiveJangarooDependencies(dependentModuleJangarooFacet, dependencies);
         }
       }
