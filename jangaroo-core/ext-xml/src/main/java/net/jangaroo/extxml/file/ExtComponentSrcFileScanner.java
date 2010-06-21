@@ -46,60 +46,80 @@ public final class ExtComponentSrcFileScanner {
 
   private static final Rule<State> TYPE_RULE = new Rule<State>("@[apx]type\\s+([\\p{Alpha}$_.][\\p{Alnum}$_.]*)") {
     public void matched(State state, List<String> groups) {
-      state.setXtype(groups.get(0), state.cc.getFullClassName());
+      if (state.insideComment) {
+        state.setXtype(groups.get(0), state.cc.getFullClassName());
+      }
     }
   };
   private static final Rule<State> CFG_RULE = new Rule<State>("@cfg\\s+[{]?([\\p{Alnum}$_./|]+)[}]?\\s+([\\p{Alnum}$_]+)(.*)$") {
     public void matched(State state, List<String> groups) {
-      // use List#remove(0) to skip optional type if missing:
-      state.addCfg(groups.size() == 3 ? groups.remove(0) : "*", groups.remove(0), groups.remove(0));
+      if (state.insideComment) {
+        // use List#remove(0) to skip optional type if missing:
+        state.addCfg(groups.size() == 3 ? groups.remove(0) : "*", groups.remove(0), groups.remove(0));
+      }
     }
   };
   private static final Rule<State> COMMENT_START_RULE = new Rule<State>("^\\s*/\\*\\* ?(.*)$") {
     public void matched(State state, List<String> groups) {
-      state.startComment(groups.get(0));
+      if (!state.insideComment) {
+        state.startComment(groups.get(0));
+      }
     }
   };
   private static final Rule<State> COMMENT_RULE = new Rule<State>("^\\s*\\*? ?(.*)$") {
     // inside comment: skip leading white space before first '*':
     public void matched(State state, List<String> groups) {
-      state.addComment(groups.get(0));
+      if (state.insideComment) {
+        state.addComment(groups.get(0));
+      }
     }
   };
-  private static final Rule<State> COMMENT_END_RULE = new Rule<State>("\\*/|@constructor") {
+  private static final Rule<State> COMMENT_END_RULE = new Rule<State>("\\*/") {
     public void matched(State state, List<String> groups) {
-      state.endComment();
+      if (state.insideComment) {
+        state.endComment();
+      }
     }
   };
 
   private final static FileScanner<State> EXT_COMPONENT_AS_FILE_SCANNER = new FileScanner<State>()
       .add(new Rule<State>("^\\s*package\\s+([\\p{Alnum}$_.]+)") {
         public void matched(State state, List<String> groups) {
-          state.cc.setFullClassName(groups.get(0) + "." + state.cc.getClassName());
-          // Next comment following the package declaration is the class comment:
-          state.setDescriptionHolder(state.cc);
+          if (!state.insideComment) {
+            state.cc.setFullClassName(groups.get(0) + "." + state.cc.getClassName());
+            // Next comment following the package declaration is the class comment:
+            state.setDescriptionHolder(state.cc);
+          }
         }
       })
       .add(new Rule<State>("^\\s*import\\s+([\\p{Alnum}$_.]+);") {
         public void matched(State state, List<String> groups) {
-          state.addImport(groups.get(0));
+          if (!state.insideComment) {
+            state.addImport(groups.get(0));
+          }
         }
       })
       .add(new Rule<State>("\\bextends\\s+([\\p{Alnum}$_.]+)") {
         public void matched(State state, List<String> groups) {
-          state.setExtends(groups.get(0));
+          if (!state.insideComment) {
+            state.setExtends(groups.get(0));
+          }
         }
       })
       .add(new Rule<State>("(?:public\\s+static|static\\s+public)\\s+const\\s+[apx]type\\s*:\\s*String\\s*=\\s*['\"]([^'\"]+)['\"]") {
         public void matched(State state, List<String> groups) {
-          state.setXtype(groups.get(0), state.cc.getFullClassName());
+          if (!state.insideComment) {
+            state.setXtype(groups.get(0), state.cc.getFullClassName());
+          }
         }
       })
       .add(CFG_RULE)
       .add(COMMENT_END_RULE)
       .add(new Rule<State>("^?\\s*/\\*\\*?(.*)$") {
         public void matched(State state, List<String> groups) {
-          state.startComment(groups.get(0));
+          if (!state.insideComment) {
+            state.startComment(groups.get(0));
+          }
         }
       })
       .add(COMMENT_RULE);
@@ -107,30 +127,47 @@ public final class ExtComponentSrcFileScanner {
   private final static FileScanner<State> EXT_COMPONENT_SRC_FILE_SCANNER = new FileScanner<State>()
       .add(new Rule<State>("@class\\s+([\\p{Alnum}$_.]+)") {
         public void matched(State state, List<String> groups) {
-          state.addClass(groups.get(0));
+          if (state.insideComment) {
+            state.addClass(groups.get(0));
+          }
         }
       })
       .add(new Rule<State>("@extends\\s+([\\p{Alnum}$_.]+)") {
         public void matched(State state, List<String> groups) {
-          state.setExtends(groups.get(0));
+          if (state.insideComment) {
+            state.setExtends(groups.get(0));
+          }
+        }
+      })
+      .add(new Rule<State>("@constructor") {
+        public void matched(State state, List<String> groups) {
+          if (state.insideComment) {
+            state.setDescriptionHolder(null); // assign collected description to class
+          }
         }
       })
       .add(new Rule<State>("\\bExt\\.reg\\('([\\p{Alnum}$_.]+)',\\s*([\\p{Alnum}$_.]+)\\);") {
         public void matched(State state, List<String> groups) {
-          // old-style xtype registration, still used e.g. in Ext.Component.js:
-          state.setXtype(groups.get(0), groups.get(1));
+          if (!state.insideComment) {
+            // old-style xtype registration, still used e.g. in Ext.Component.js:
+            state.setXtype(groups.get(0), groups.get(1));
+          }
         }
       })
       .add(new Rule<State>("\\bExt\\.Container\\.LAYOUTS\\['([\\p{Alnum}$_.]+)'\\]\\s*=\\s*([\\p{Alnum}$_.]+);") {
         public void matched(State state, List<String> groups) {
-          // layout type registration using LAYOUTS['type']:
-          state.setXtype(groups.get(0) + "layout", groups.get(1));
+          if (!state.insideComment) {
+            // layout type registration using LAYOUTS['type']:
+            state.setXtype(groups.get(0) + "layout", groups.get(1));
+          }
         }
       })
       .add(new Rule<State>("\\bExt\\.Container\\.LAYOUTS\\.([\\p{Alnum}$_.]+)\\s*=\\s*([\\p{Alnum}$_.]+);") {
         public void matched(State state, List<String> groups) {
-          // layout type registration using LAYOUTS.type:
-          state.setXtype(groups.get(0) + "layout", groups.get(1));
+          if (!state.insideComment) {
+            // layout type registration using LAYOUTS.type:
+            state.setXtype(groups.get(0) + "layout", groups.get(1));
+          }
         }
       })
       .add(TYPE_RULE)
@@ -219,23 +256,20 @@ public final class ExtComponentSrcFileScanner {
     }
 
     private void startComment(String comment) {
-      if (!insideComment) {
-        insideComment = true;
-        addComment(comment);
-      }
+      assert !insideComment;
+      insideComment = true;
+      addComment(comment);
     }
 
     private void endComment() {
-      if (insideComment) {
-        setDescriptionHolder(null);
-        insideComment = false;
-      }
+      assert insideComment;
+      setDescriptionHolder(null);
+      insideComment = false;
     }
 
     private void addComment(String comment) {
-      if (insideComment) {
-        description.append(comment).append('\n');
-      }
+      assert insideComment;
+      description.append(comment).append('\n');
     }
 
     void validateComponentClass(ComponentClass cc) {
