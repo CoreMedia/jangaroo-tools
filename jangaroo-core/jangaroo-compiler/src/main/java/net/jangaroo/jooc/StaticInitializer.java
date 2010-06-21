@@ -46,8 +46,8 @@ class StaticInitializer extends Declaration {
   @Override
   public void scope(final Scope scope) {
     super.scope(scope);
-    //todo pop non-static member scope here?
-    withNewDeclarationScope(this, scope, new Scoped() {
+    // pop non-static member scope
+    withNewDeclarationScope(this, scope.getParentScope(), new Scoped() {
       @Override
       public void run(final Scope scope) {
         block.scope(scope);
