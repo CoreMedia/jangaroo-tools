@@ -159,6 +159,7 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
       configuration.setDebugSource(false);
       configuration.setDebugSource(false);
       configuration.setOutputDirectory(getTempOutputDirectory());
+      configuration.setGenerateApi(false);
       result = compile(configuration);
       if (result == Jooc.RESULT_CODE_OK) {
         buildOutputFile(getTempOutputDirectory(), getOutputFileName());
