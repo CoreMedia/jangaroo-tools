@@ -87,7 +87,10 @@ public class Ide extends NodeImplBase {
 
   @Override
   public void scope(final Scope scope) {
-    this.scope = scope;
+    // scope is "single assignment", allow further assignments to facilitate tree sharing
+    if (this.scope == null) {
+      this.scope = scope;
+    }
   }
 
   protected void generateJsCode(JsWriter out) throws IOException {
@@ -179,16 +182,13 @@ public class Ide extends NodeImplBase {
     if (declaration == null) {
       declaration = getScope().lookupDeclaration(this);
       if (declaration == null) {
-        declaration = resolveMemberDeclaration(errorIfUndeclared);
-        if (declaration == null) {
-          declaration = NULL_DECL; // prevent multiple lookups when called with !errorIfUndeclared multiple times
-        } else if (declaration.getClassDeclaration() != getScope().getClassDeclaration()) {
-          if (declaration.isPrivate()) {
-            throw new Jooc.CompilerError(this.getSymbol(), "private member access");
-          }
-          if (declaration.isProtected() && !getScope().getClassDeclaration().isSubclassOf(declaration.getClassDeclaration())) {
-            throw new Jooc.CompilerError(this.getSymbol(), "protected member access of non-superclass");
-          }
+        declaration = NULL_DECL; // prevent multiple lookups when called with !errorIfUndeclared multiple times
+      } else if (declaration.getClassDeclaration() != getScope().getClassDeclaration()) {
+        if (declaration.isPrivate()) {
+          throw new Jooc.CompilerError(this.getSymbol(), "private member access");
+        }
+        if (declaration.isProtected() && !getScope().getClassDeclaration().isSubclassOf(declaration.getClassDeclaration())) {
+          throw new Jooc.CompilerError(this.getSymbol(), "protected member access of non-superclass");
         }
       }
     }
@@ -197,34 +197,6 @@ public class Ide extends NodeImplBase {
       throw Jooc.error(ide, "undeclared identifier '" + getName() + "'");
     }
     return result;
-  }
-
-  private IdeDeclaration resolveMemberDeclaration(final boolean errorIfUndeclared) {
-    // look if this is a class member
-    IdeDeclaration qualifierDecl = isQualified()
-      ? getQualifier().resolveDeclaration()
-      : getScope().getClassDeclaration(); // implicit "this."
-    if (qualifierDecl != null && qualifierDecl instanceof ClassDeclaration) {
-      ClassDeclaration classDecl = (ClassDeclaration) qualifierDecl;
-      while (classDecl != null) {
-        IdeDeclaration declaration = classDecl.getMemberDeclaration(getName());
-        if (declaration != null) {
-          return declaration;
-        }
-        classDecl = classDecl.getSuperClass();
-      }
-    }
-    //todo move these into Object or * type declaration
-    if ("prototype".equals(getName()) || "constructor".equals(getName())) {
-      return new FieldDeclaration(new JooSymbol[0], null, new Ide(getName()), null, null, null);
-    }
-    if (errorIfUndeclared) {
-      if (qualifierDecl == null) {
-        throw Jooc.error(ide, String.format("Cannot resolve type %s", getQualifier().getQualifiedNameStr()));
-      }
-      throw Jooc.error(ide, String.format("Cannot resolve member '%s' of type %s", getName(), qualifierDecl.getIde().getName()));
-    }
-    return null;
   }
 
   public Ide qualify(final JooSymbol symQualifier, final JooSymbol symDot) {

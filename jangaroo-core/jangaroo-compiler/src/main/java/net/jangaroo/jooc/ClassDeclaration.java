@@ -166,12 +166,13 @@ public class ClassDeclaration extends IdeDeclaration {
 
   @Override
   public void scope(final Scope scope) {
+    // this declares this classes ide:
     super.scope(scope);
+
     // define these here so they get the right scope:
-    thisType = new IdeType(getIde());
+    thisType = new IdeType(new Ide(getIde().getSymbol()));
     superType = new IdeType(optExtends == null ? new Ide("Object") : optExtends.superClass);
 
-    //do not scope parameters directly since that would define them inside current scope! we will define them inside MethodDeclaration
     thisType.scope(scope);
     superType.scope(scope);
     if (optImplements != null) {
@@ -248,11 +249,6 @@ public class ClassDeclaration extends IdeDeclaration {
     if (decl != null && decl != this && decl instanceof ClassDeclaration) {
       classInit.add(ide.getQualifiedNameStr());
     }
-  }
-
-  public ClassDeclaration getSuperClass() {
-    //todo extend with Object declaration
-    return optExtends == null ? null : (ClassDeclaration) optExtends.superClass.getDeclaration();
   }
 
   public boolean isSubclassOf(final ClassDeclaration classDeclaration) {

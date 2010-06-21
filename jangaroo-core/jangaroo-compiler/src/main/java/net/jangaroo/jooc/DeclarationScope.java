@@ -106,6 +106,7 @@ class DeclarationScope extends ScopeImplBase implements Scope {
 
   @Override
   public IdeDeclaration lookupDeclaration(Ide ide) {
+    IdeDeclaration decl = null;
     if (ide instanceof QualifiedIde) {
       String qname = ide.getQualifiedNameStr();
       if (importsByQualifiedName.containsKey(qname))
@@ -119,12 +120,68 @@ class DeclarationScope extends ScopeImplBase implements Scope {
         }
         return resolveImport(importsOfThisIde.get(0));
       }
-      IdeDeclaration decl = ides.get(ide.getName());
-      if (decl != null)
-        return decl;
+      decl = ides.get(ide.getName());
     }
-    return super.lookupDeclaration(ide);
+    if (decl == null && (definingNode instanceof ClassDeclaration)) {
+      decl = resolveMemberDeclaration(ide);
+    }
+    //todo move these into Object or * type declaration
+    if (decl == null && ("prototype".equals(ide.getName()) || "constructor".equals(ide.getName()))) {
+      decl = new FieldDeclaration(new JooSymbol[0], null, new Ide(ide.getName()), null, null, null);
+    }
+    return decl != null ? decl : super.lookupDeclaration(ide);
   }
+
+  private IdeDeclaration resolveMemberDeclaration(Ide ide) {
+    // look if ide is a class member
+    IdeDeclaration qualifierDecl = ide.isQualified()
+      ? ide.getQualifier().resolveDeclaration()
+      : getClassDeclaration(); // implicit "this."
+    if (qualifierDecl != null && qualifierDecl instanceof ClassDeclaration) {
+      return resolveMemberDeclaration1(ide, (ClassDeclaration) qualifierDecl, new HashSet<ClassDeclaration>(), new LinkedList<ClassDeclaration>());
+    }
+    return null;
+  }
+
+  private IdeDeclaration resolveMemberDeclaration1(Ide ide, ClassDeclaration classDecl, Set<ClassDeclaration> visited, LinkedList<ClassDeclaration> chain) {
+    if (visited.contains(classDecl)) {
+      if (chain.contains(classDecl)) {
+        throw new Jooc.CompilerError(classDecl.getSymbol(), "cyclic syperclass chain");
+      }
+      return null;
+    }
+    visited.add(classDecl);
+    final int chainSize = chain.size();
+    chain.add(classDecl);
+    IdeDeclaration declaration = classDecl.getMemberDeclaration(ide.getName());
+    if (declaration == null && classDecl.optExtends != null) {
+      declaration = resolveMemberInSuper(ide, classDecl, visited, chain, classDecl.optExtends.superClass);
+    }
+    if (declaration == null && classDecl.optImplements != null) {
+      CommaSeparatedList<Ide> implemented = classDecl.optImplements.superTypes;
+      while (implemented != null && declaration == null) {
+        declaration = resolveMemberInSuper(ide, classDecl, visited, chain, implemented.head);
+        implemented = implemented.tail;
+      }
+    }
+    chain.removeLast();
+    assert chainSize == chain.size();
+    return declaration;
+  }
+
+  private IdeDeclaration resolveMemberInSuper(final Ide ide,
+                                              final ClassDeclaration classDecl,
+                                              final Set<ClassDeclaration> visited,
+                                              final LinkedList<ClassDeclaration> chain,
+                                              final Ide superIde) {
+    IdeDeclaration superClassDecl = superIde.getDeclaration();
+    if (superClassDecl != null)
+      if (!(superClassDecl instanceof ClassDeclaration)) {
+        throw new Jooc.CompilerError(classDecl.optExtends.superClass.getSymbol(), "expected class identifier");
+      }
+    return resolveMemberDeclaration1(ide, (ClassDeclaration) superClassDecl, visited, chain);
+  }
+
 
   private IdeDeclaration resolveImport(final ImportDirective importDirective) {
     return getCompilationUnit().getCompiler().resolveImport(importDirective);
