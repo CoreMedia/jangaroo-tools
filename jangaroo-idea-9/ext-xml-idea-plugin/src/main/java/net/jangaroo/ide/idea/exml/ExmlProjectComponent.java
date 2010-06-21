@@ -87,11 +87,8 @@ public class ExmlProjectComponent implements ProjectComponent {
             if (text.startsWith("\"{") && text.endsWith("}\"")) {
 
               ASTNode node = attributeValue.getParent().getNode();
-              while (node != null && node.getTreeParent() instanceof XmlTag && !"component".equals(((XmlTag)node.getTreeParent()).getLocalName())) {
-                node = node.getTreeParent();
-              }
-              if (node instanceof XmlTag) {
-                XmlTag xmlTag = (XmlTag)node;
+              XmlTag xmlTag = findTopLevelTag(node);
+              if (xmlTag != null) {
 
                 // find relative path to source root to determine package name:
                 VirtualFile packageDir = exmlFile.getParent();
@@ -132,6 +129,20 @@ public class ExmlProjectComponent implements ProjectComponent {
     });
   }
 
+  private static XmlTag findTopLevelTag(ASTNode node) {
+    while (node != null) {
+      ASTNode parent = node.getTreeParent();
+      if (node instanceof XmlTag && parent instanceof XmlTag) {
+        XmlTag tag = (XmlTag)parent;
+        if ("component".equals(tag.getLocalName()) && ExmlResourceProvider.EXML_NAMESPACE_URI.equals(tag.getNamespace())) {
+          return (XmlTag)node;
+        }
+      }
+      node = parent;
+    }
+    return null;
+  }
+
   private static String findSuperClass(XmlTag xmlTag) {
     XmlElementDescriptor descriptor = xmlTag.getDescriptor();
     String superClassName = null;
@@ -148,7 +159,7 @@ public class ExmlProjectComponent implements ProjectComponent {
     while (sibling != null) {
       if (sibling instanceof XmlTag) {
         XmlTag topLevelXmlTag = (XmlTag)sibling;
-        if ("import".equals(topLevelXmlTag .getLocalName())) {
+        if ("import".equals(topLevelXmlTag.getLocalName())) {
           imports.add(topLevelXmlTag .getAttributeValue("class"));
         }
       }
