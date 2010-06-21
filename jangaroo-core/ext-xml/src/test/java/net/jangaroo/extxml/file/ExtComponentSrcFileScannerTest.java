@@ -11,7 +11,6 @@ import org.junit.Before;
 import org.junit.Test;
 import utils.TestUtils;
 import utils.UnitTestLogHandler;
-import net.jangaroo.extxml.file.ExtComponentSrcFileScanner;
 import net.jangaroo.extxml.model.ComponentClass;
 import net.jangaroo.extxml.model.ComponentSuite;
 import net.jangaroo.extxml.model.ComponentType;
@@ -64,7 +63,7 @@ public class ExtComponentSrcFileScannerTest {
     ComponentSuite suite = new ComponentSuite();
 
     ExtComponentSrcFileScanner.scan(suite, TestUtils.getFile("/js/test.js", getClass()), ComponentType.JavaScript);
-    assertTrue(suite.getComponentClasses().size() == 2);
+    assertEquals(2, suite.getComponentClasses().size());
     ComponentClass cc = suite.getComponentClassByFullClassName("example.Component2");
     assertNotNull(cc);
     assertEquals(ComponentType.JavaScript, cc.getType());
