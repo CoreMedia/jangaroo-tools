@@ -14,6 +14,8 @@
  */
 package net.jangaroo.ide.idea;
 
+import com.intellij.compiler.impl.CompilerUtil;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompileScope;
 import com.intellij.openapi.compiler.TranslatingCompiler;
 import com.intellij.openapi.compiler.CompileContext;
@@ -26,8 +28,8 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.facet.FacetManager;
 import com.intellij.compiler.make.MakeUtil;
-import com.intellij.compiler.impl.javaCompiler.OutputItemImpl;
 import com.intellij.util.Chunk;
+import net.jangaroo.ide.idea.util.OutputSinkItem;
 import org.jetbrains.annotations.NotNull;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.CompileLog;
@@ -54,49 +56,44 @@ public class JangarooCompiler implements TranslatingCompiler {
   public boolean isCompilableFile(VirtualFile file, CompileContext context) {
     // Does not work due to ClassLoader problems:
     // return JavaScriptSupportLoader.ECMA_SCRIPT_L4.equals(JavaScriptSupportLoader.getLanguageDialect(file));
-    return Jooc.AS_SUFFIX_NO_DOT.equals(file.getExtension());
+    return Jooc.AS_SUFFIX_NO_DOT.equals(file.getExtension())
+      && (file.getParent() == null || !file.getParent().getPath().endsWith("/joo-api")); // hack: skip all files under .../joo-api
   }
 
-  private String compile(CompileContext context, Module module, final List<VirtualFile> files, List<OutputItem> outputItems, List<VirtualFile> filesToRecompile) {
+  private OutputSinkItem compile(CompileContext context, Module module, final List<VirtualFile> files) {
     JoocConfiguration joocConfig = getJoocConfiguration(module, files);
-    String outputDirectoryPath = null;
+    OutputSinkItem outputSinkItem = null;
     if (joocConfig!=null) {
       ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
       VirtualFile[] allSourceRoots = moduleRootManager.getSourceRoots();
       // TODO: to filter out test sources, we could use moduleRootManager.getFileIndex().isInTestSourceContent(<virtualFile>)
       List<File> sourcePath = virtualToIoFiles(Arrays.asList(allSourceRoots));
       joocConfig.setSourcePath(sourcePath);
-      outputDirectoryPath = joocConfig.getOutputDirectory().getPath();
-      VirtualFile outputDirectoryVirtualFile = new File(outputDirectoryPath).mkdirs()
-        ? LocalFileSystem.getInstance().refreshAndFindFileByPath(outputDirectoryPath)
-        : LocalFileSystem.getInstance().findFileByPath(outputDirectoryPath);
-      if (outputDirectoryVirtualFile == null) {
-        String message = "Output directory does not exist and could not be created: " + outputDirectoryPath;
+      String outputDirectoryPath = joocConfig.getOutputDirectory().getPath();
+      try {
+        outputSinkItem = new OutputSinkItem(outputDirectoryPath);
+        IdeaCompileLog ideaCompileLog = new IdeaCompileLog(context);
+        new Jooc(ideaCompileLog).run(joocConfig);
+        for (final VirtualFile file : files) {
+          if (ideaCompileLog.hasErrors(file)) {
+            outputSinkItem.addFileToRecompile(file);
+          } else {
+            File outputFile = computeOutputFile(context, module, outputDirectoryPath, file);
+            outputSinkItem.addOutputItem(file, outputFile);
+            String fileUrl = file.getUrl();
+            if (joocConfig.showCompilerInfoMessages) {
+              context.addMessage(CompilerMessageCategory.INFORMATION, "as->js (" + outputFile.getPath() + ")", fileUrl, -1, -1);
+            }
+            getLog().info("as->js: " + fileUrl + " -> " + outputFile.getPath());
+          }
+        }
+      } catch (SecurityException e) {
+        String message = "Output directory " + outputDirectoryPath + " does not exist and could not be created: " + e.getMessage();
         context.addMessage(CompilerMessageCategory.ERROR, message, null, -1, -1);
         getLog().warn(message);
-        return null;
-      }
-      outputDirectoryPath = outputDirectoryVirtualFile.getPath();
-      String outputFileName = outputDirectoryPath + "/" + joocConfig.getOutputFileName();
-      IdeaCompileLog ideaCompileLog = new IdeaCompileLog(context);
-      new Jooc(ideaCompileLog).run(joocConfig);
-      for (final VirtualFile file : files) {
-        if (ideaCompileLog.hasErrors(file)) {
-          filesToRecompile.add(file);
-        } else {
-          OutputItem outputItem = joocConfig.isMergeOutput()
-            ? new OutputItemImpl(outputFileName, file)
-            : createOutputItem(outputDirectoryPath, MakeUtil.getSourceRoot(context, module, file), file);
-          outputItems.add(outputItem);
-          String fileUrl = outputItem.getSourceFile().getUrl();
-          if (joocConfig.showCompilerInfoMessages) {
-            context.addMessage(CompilerMessageCategory.INFORMATION, "as->js (" + outputItem.getOutputPath() + ")", fileUrl, -1, -1);
-          }
-          getLog().info("as->js: " + fileUrl + " -> " + outputItem.getOutputPath());
-        }
       }
     }
-    return outputDirectoryPath;
+    return outputSinkItem;
   }
 
   // a little hack so we don't need another wrapper:
@@ -119,7 +116,7 @@ public class JangarooCompiler implements TranslatingCompiler {
     joocConfig.setEnableAssertions(joocConfigurationBean.enableAssertions);
     joocConfig.setEnableGuessingClasses(joocConfigurationBean.enableGuessingClasses);
     joocConfig.setEnableGuessingMembers(joocConfigurationBean.enableGuessingMembers);
-    joocConfig.setMergeOutput(joocConfigurationBean.mergeOutput);
+    joocConfig.setMergeOutput(false); // no longer supported: joocConfigurationBean.mergeOutput;
     if (joocConfigurationBean.mergeOutput) {
       File outputFile = new File(joocConfigurationBean.getOutputFileName());
       joocConfig.setOutputDirectory(outputFile.getParentFile());
@@ -141,40 +138,35 @@ public class JangarooCompiler implements TranslatingCompiler {
     return ioFiles;
   }
 
-  private OutputItem createOutputItem(final String outputDirectory, VirtualFile sourceRoot, final VirtualFile file) {
+  private @NotNull File computeOutputFile(CompileContext context, Module module, final String outputDirectory, final VirtualFile file) {
+    VirtualFile sourceRoot = MakeUtil.getSourceRoot(context, module, file);
     if (sourceRoot==null) {
       throw new IllegalStateException("File not under any source root: '" + file.getPath() + "'.");
     }
     String filePath = file.getPath();
     String relativePath = filePath.substring(sourceRoot.getPath().length(), filePath.lastIndexOf('.'));
     String outputFilePath = outputDirectory + relativePath + Jooc.OUTPUT_FILE_SUFFIX;
-    LocalFileSystem.getInstance().refreshAndFindFileByPath(outputFilePath);
-    return new OutputItemImpl(outputFilePath, file);
+    return new File(outputFilePath);
   }
 
-  public void compile(CompileContext context, Chunk<Module> moduleChunk, VirtualFile[] files, OutputSink outputSink) {
-    Map<Module,List<VirtualFile>> filesByModule = new HashMap<Module, List<VirtualFile>>(files.length);
-    for (final VirtualFile file : files) {
-      Module module = context.getModuleByFile(file);
-      // hack: skip all files under .../joo-api:
-      VirtualFile sourceRoot = MakeUtil.getSourceRoot(context, module, file);
-      if (sourceRoot.getPath().endsWith("/joo-api")) {
-        continue;
+  public void compile(final CompileContext context, Chunk<Module> moduleChunk, final VirtualFile[] files, final OutputSink outputSink) {
+    final Collection<OutputSinkItem> outputs = new ArrayList<OutputSinkItem>();
+    final Map<Module, List<VirtualFile>> filesByModule = CompilerUtil.buildModuleToFilesMap(context, files);
+
+    ApplicationManager.getApplication().runReadAction(new Runnable() {
+
+      public void run() {
+        for (Map.Entry<Module, List<VirtualFile>> filesOfModuleEntry : filesByModule.entrySet()) {
+          OutputSinkItem outputSinkItem = compile(context, filesOfModuleEntry.getKey(), filesOfModuleEntry.getValue());
+          if (outputSinkItem != null) {
+            outputs.add(outputSinkItem);
+          }
+        }
       }
-      List<VirtualFile> filesOfModule = filesByModule.get(module);
-      if (filesOfModule==null) {
-        filesOfModule = new ArrayList<VirtualFile>(files.length);
-        filesByModule.put(module, filesOfModule);
-      }
-      filesOfModule.add(file);
-    }
-    for (Map.Entry<Module, List<VirtualFile>> filesOfModuleEntry : filesByModule.entrySet()) {
-      List<OutputItem> outputItems = new ArrayList<OutputItem>(files.length);
-      List<VirtualFile> filesToRecompile = new ArrayList<VirtualFile>(files.length);
-      String outputRoot = compile(context, filesOfModuleEntry.getKey(), filesOfModuleEntry.getValue(), outputItems, filesToRecompile);
-      if (outputRoot != null) {
-        outputSink.add(outputRoot, outputItems, filesToRecompile.toArray(new VirtualFile[filesToRecompile.size()]));
-      }
+
+    });
+    for (OutputSinkItem outputSinkItem : outputs) {
+      outputSinkItem.addTo(outputSink);
     }
   }
 
