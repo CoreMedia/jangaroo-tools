@@ -14,6 +14,9 @@ package {
  */
 public class Error {
 
+  public var name :String;
+  public var message :String;
+
   /**
    * Creates a new Error object. If message is specified, its value is assigned to the object's Error.message property.
    * @example

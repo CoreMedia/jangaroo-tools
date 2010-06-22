@@ -20,7 +20,7 @@ package {
  * assigning classes to an existing instance object at runtime.
  * <p>Any static properties and methods of a class live on the class's Class object. Class, itself, declares prototype.
  */
-public dynamic native class Class {
+public dynamic class Class {
 
 }
 
