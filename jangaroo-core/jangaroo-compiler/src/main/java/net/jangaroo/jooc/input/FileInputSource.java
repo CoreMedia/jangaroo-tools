@@ -10,14 +10,14 @@ public class FileInputSource extends DirectoryInputSource {
   private File file;
   private List<InputSource> children;
 
-  public FileInputSource(final File sourceDir, final File file, final String fileExtension) {
-    super(fileExtension);
+  public FileInputSource(final File sourceDir, final File file) {
+    super();
     this.sourceDir = sourceDir;
     this.file = file;
   }
 
-  public FileInputSource(final File file, final String fileExtension) {
-    this(file, null, fileExtension);
+  public FileInputSource(final File file) {
+    this(file, null);
   }
 
   @Override
@@ -60,7 +60,7 @@ public class FileInputSource extends DirectoryInputSource {
 
   @Override
   public InputSource getParent() {
-    return new FileInputSource(sourceDir, file.getParentFile(), getFileExtension());
+    return new FileInputSource(sourceDir, file.getParentFile());
   }
 
   @Override
@@ -75,14 +75,9 @@ public class FileInputSource extends DirectoryInputSource {
     }
     if (children == null) {
       children = new ArrayList<InputSource>();
-      File[] childFiles = file.listFiles(new FileFilter() {
-        @Override
-        public boolean accept(final File pathname) {
-          return pathname.isDirectory() || pathname.getName().endsWith(getFileExtensionWithDot());
-        }
-      });
+      File[] childFiles = file.listFiles();
       for (File childFile : childFiles) {
-        children.add(new FileInputSource(sourceDir, childFile, getFileExtensionWithDot()));
+        children.add(new FileInputSource(sourceDir, childFile));
       }
     }
     return children;
@@ -91,8 +86,8 @@ public class FileInputSource extends DirectoryInputSource {
   @Override
   public InputSource getChild(final String path) {
     File sourceFile = new File(file, path);
-    return sourceFile.exists() && (sourceFile.isDirectory() || sourceFile.getName().endsWith(getFileExtensionWithDot()))
-      ? new FileInputSource(sourceDir, sourceFile, getFileExtension())
+    return sourceFile.exists()
+      ? new FileInputSource(sourceDir, sourceFile)
       : null;
   }
 

@@ -9,13 +9,5 @@ public interface JoocOptions {
 
   boolean isEnableAssertions();
 
-  boolean isAllowDuplicateLocalVariables();
-
-  boolean isEnableGuessingMembers();
-
-  boolean isEnableGuessingClasses();
-
-  boolean isEnableGuessingTypeCasts();
-
   boolean isGenerateApi();
 }

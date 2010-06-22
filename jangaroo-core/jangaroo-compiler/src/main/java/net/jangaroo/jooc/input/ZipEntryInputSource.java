@@ -62,6 +62,9 @@ public class ZipEntryInputSource implements InputSource {
 
   @Override
   public InputSource getChild(final String path) {
+    if (path.startsWith("../")) {
+      return getParent().getChild(path.substring(3));
+    }
     String p = getRelativePath();
     if (!p.isEmpty()) {
       p += '/';

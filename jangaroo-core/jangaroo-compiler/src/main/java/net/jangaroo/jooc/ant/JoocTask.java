@@ -39,7 +39,7 @@ public class JoocTask extends MatchingTask {
   private String classpath;
   private File destDir;
   private String sourcepath;
-  private boolean generateapi = false;
+  private File apiDestDir;
   private boolean debug = false;
   private String debugLevel = null;
   private boolean enableAssertions = false;
@@ -56,12 +56,12 @@ public class JoocTask extends MatchingTask {
     this.enableAssertions = enableAssertions;
   }
 
-  public boolean isGenerateapi() {
-    return generateapi;
+  public File getApiDestDir() {
+    return apiDestDir;
   }
 
-  public void setGenerateapi(final boolean generateapi) {
-    this.generateapi = generateapi;
+  public void setApiDestDir(final File apiDestDir) {
+    this.apiDestDir = apiDestDir;
   }
 
   /**
@@ -342,12 +342,13 @@ public class JoocTask extends MatchingTask {
     if (allowduplicatelocalvariables) {
       args.add("-ad");
     }
-    if (isGenerateapi()) {
-      args.add("-api");
-    }
     if (destDir != null) {
       args.add("-d");
       args.add(destDir.getAbsolutePath());
+    }
+    if (apiDestDir != null) {
+      args.add("-api");
+      args.add(apiDestDir.getAbsolutePath());
     }
     args.add("-sourcepath");
     args.add(sourcepath);

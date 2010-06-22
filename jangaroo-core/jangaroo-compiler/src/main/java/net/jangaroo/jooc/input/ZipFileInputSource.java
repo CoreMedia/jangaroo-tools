@@ -17,24 +17,21 @@ public class ZipFileInputSource extends DirectoryInputSource {
    * Create an InputSource directory from the given zip or jar file, providing a "union view" over the zip file
    * with all entries with paths relative to the given root directories
    *
-   * @param file          a zip or jar file
-   * @param fileExtension the extension for listed leaf input sources (with or without leading dot)
-   * @param rootDirs      a list of directories to accept as roots (e.g. ["", "META-INF/joo-api"], in lookup order
+   * @param file     a zip or jar file
+   * @param rootDirs a list of directories to accept as roots (e.g. ["", "META-INF/joo-api"], in lookup order
    * @throws IOException if an IO error occurs
    */
-  public ZipFileInputSource(final File file, String fileExtension, String[] rootDirs) throws IOException {
-    super(fileExtension);
+  public ZipFileInputSource(final File file, String[] rootDirs) throws IOException {
+    super();
     this.file = file;
     this.zipFile = new ZipFile(file);
     this.rootDirs = rootDirs;
     final Enumeration<? extends ZipEntry> zipEntryEnum = zipFile.entries();
     while (zipEntryEnum.hasMoreElements()) {
       ZipEntry entry = zipEntryEnum.nextElement();
-      if (entry.isDirectory() || entry.getName().endsWith(getFileExtensionWithDot())) {
-        final String relativePath = getRelativePath(entry.getName());
-        if (relativePath != null && !entries.containsKey(relativePath)) {
-          this.entries.put(relativePath, new ZipEntryInputSource(this, entry, relativePath));
-        }
+      final String relativePath = getRelativePath(entry.getName());
+      if (relativePath != null && !entries.containsKey(relativePath)) {
+        this.entries.put(relativePath, new ZipEntryInputSource(this, entry, relativePath));
       }
     }
   }

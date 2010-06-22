@@ -5,20 +5,7 @@ import java.io.InputStream;
 
 public abstract class DirectoryInputSource implements InputSource {
 
-  private String fileExtension;
-  private String fileExtensionWithDot;
-
-  protected DirectoryInputSource(final String fileExtension) {
-    this.fileExtension = fileExtension;
-    fileExtensionWithDot = fileExtension.startsWith(".") ? fileExtension : "." + fileExtension;
-  }
-
-  public String getFileExtension() {
-    return fileExtension;
-  }
-
-  public String getFileExtensionWithDot() {
-    return fileExtensionWithDot;
+  protected DirectoryInputSource() {
   }
 
   @Override

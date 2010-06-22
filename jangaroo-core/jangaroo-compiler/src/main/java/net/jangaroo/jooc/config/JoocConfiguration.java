@@ -13,13 +13,12 @@ public class JoocConfiguration implements JoocOptions {
   private boolean debug;
   private boolean debugLines, debugSource;
 
-  private boolean help, version, verbose, enableAssertions, generateApi;
+  private boolean help, version, verbose, enableAssertions;
 
   private boolean allowDuplicateLocalVariables;
 
-  private boolean enableGuessingMembers, enableGuessingClasses, enableGuessingTypeCasts;
-
   private File outputDirectory;
+  private File apiOutputDirectory;
 
   private boolean mergeOutput = false;
   private String outputFileName;
@@ -85,11 +84,7 @@ public class JoocConfiguration implements JoocOptions {
 
   @Override
   public boolean isGenerateApi() {
-    return generateApi;
-  }
-
-  public void setGenerateApi(final boolean generateApi) {
-    this.generateApi = generateApi;
+    return apiOutputDirectory != null;
   }
 
   public boolean isHelp() {
@@ -124,36 +119,20 @@ public class JoocConfiguration implements JoocOptions {
     this.allowDuplicateLocalVariables = allowDuplicateLocalVariables;
   }
 
-  public boolean isEnableGuessingMembers() {
-    return enableGuessingMembers;
-  }
-
-  public void setEnableGuessingMembers(boolean enableGuessingMembers) {
-    this.enableGuessingMembers = enableGuessingMembers;
-  }
-
-  public boolean isEnableGuessingClasses() {
-    return enableGuessingClasses;
-  }
-
-  public void setEnableGuessingClasses(boolean enableGuessingClasses) {
-    this.enableGuessingClasses = enableGuessingClasses;
-  }
-
-  public boolean isEnableGuessingTypeCasts() {
-    return enableGuessingTypeCasts;
-  }
-
-  public void setEnableGuessingTypeCasts(boolean enableGuessingTypeCasts) {
-    this.enableGuessingTypeCasts = enableGuessingTypeCasts;
-  }
-
   public File getOutputDirectory() {
     return outputDirectory;
   }
 
   public void setOutputDirectory(File outputDirectory) {
     this.outputDirectory = outputDirectory;
+  }
+
+  public File getApiOutputDirectory() {
+    return apiOutputDirectory;
+  }
+
+  public void setApiOutputDirectory(final File apiOutputDirectory) {
+    this.apiOutputDirectory = apiOutputDirectory;
   }
 
   public List<File> getSourcePath() {

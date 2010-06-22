@@ -29,7 +29,7 @@ public class IncludeEvaluator {
       InputSource parent = source.getParent();
       InputSource input = parent.getChild(filename);
       if (input == null) {
-        throw new IOException("cannot find input file " + source.getPath() + "/" + filename);
+        throw new IOException("cannot find input file " + parent.getPath() + parent.getFileSeparatorChar() + filename);
       }
       in = input.getInputStream();
     }

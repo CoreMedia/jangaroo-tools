@@ -58,7 +58,7 @@ public class ClassDeclaration extends IdeDeclaration {
 
   public ClassDeclaration(JooSymbol[] modifiers, JooSymbol cls, Ide ide, Extends ext, Implements impl, ClassBody body) {
     super(modifiers,
-      MODIFIER_ABSTRACT | MODIFIER_FINAL | MODIFIERS_SCOPE | MODIFIER_STATIC | MODIFIER_DYNAMIC | MODIFIER_NATIVE,
+      MODIFIER_ABSTRACT | MODIFIER_FINAL | MODIFIERS_SCOPE | MODIFIER_STATIC | MODIFIER_DYNAMIC,
       ide);
     this.symClass = cls;
     this.optExtends = ext;
@@ -101,9 +101,6 @@ public class ClassDeclaration extends IdeDeclaration {
   }
 
   protected void generateJsCode(JsWriter out) throws IOException {
-    if (isNative()) {
-      out.beginComment();
-    }
     out.beginString();
     writeModifiers(out);
     out.writeSymbol(symClass);
@@ -125,9 +122,6 @@ public class ClassDeclaration extends IdeDeclaration {
     body.generateCode(out);
     out.write("];},");
     generateStaticMethodList(out);
-    if (isNative()) {
-      out.endComment();
-    }
   }
 
   private void generateClassInits(JsWriter out) throws IOException {
@@ -210,9 +204,6 @@ public class ClassDeclaration extends IdeDeclaration {
     }
     if (optImplements != null) {
       optImplements.analyze(this, context);
-    }
-    if (isNative() && !body.getDeclararations().isEmpty()) {
-      throw Jooc.error(this, "native class must have an empty body");
     }
     body.analyze(this, context);
     return this;

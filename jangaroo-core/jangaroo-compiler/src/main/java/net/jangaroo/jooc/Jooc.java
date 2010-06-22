@@ -82,6 +82,22 @@ public class Jooc {
   }
 
   public int run(JoocConfiguration config) {
+    try {
+      return run1(config);
+    } catch (CompilerError e) {
+      if (e.symbol != null) {
+        log.error(e.symbol, e.getMessage());
+      } else {
+        log.error(e.getMessage());
+      }
+      return RESULT_CODE_COMPILATION_FAILED;
+    } catch (Exception e) {
+      e.printStackTrace();
+      return RESULT_CODE_INTERNAL_COMPILER_ERROR;
+    }
+  }
+
+  private int run1(JoocConfiguration config) {
     globalScope = buildGlobalScope();
     logHolder.set(log);
     this.config = config;
@@ -94,8 +110,8 @@ public class Jooc {
     }
 
     try {
-      sourcePathInputSource = PathInputSource.fromFiles(canoncicalSourcePath, AS_SUFFIX, new String[]{""});
-      classPathInputSource = PathInputSource.fromFiles(config.getClassPath(), AS_SUFFIX, new String[]{"", JOO_API_IN_JAR_DIRECTORY_PREFIX});
+      sourcePathInputSource = PathInputSource.fromFiles(canoncicalSourcePath, new String[]{""});
+      classPathInputSource = PathInputSource.fromFiles(config.getClassPath(), new String[]{"", JOO_API_IN_JAR_DIRECTORY_PREFIX});
       for (File sourceFile : config.getSourceFiles()) {
         processSource(sourceFile);
       }
@@ -190,13 +206,7 @@ public class Jooc {
         config, config.getOutputFile()
       );
     } else {
-      File outputDirectory = config.getOutputDirectory();
-      if (generateActionScriptApi) {
-        if (outputDirectory == null) {
-          throw error("-generateapi needs an output directory, specify one with the -d option");
-        }
-        outputDirectory = new File(outputDirectory, JOO_API_IN_JAR_DIRECTORY_PREFIX);
-      }
+      File outputDirectory = generateActionScriptApi ? config.getApiOutputDirectory() : config.getOutputDirectory();
       final String suffix = generateActionScriptApi ? AS_SUFFIX : OUTPUT_FILE_SUFFIX;
       codeSinkFactory = new SingleFileCompilationUnitSinkFactory(config, outputDirectory, generateActionScriptApi, suffix);
     }
@@ -304,7 +314,7 @@ public class Jooc {
     if (file.isDirectory()) {
       throw error("Input file is a directory: " + file.getAbsolutePath());
     }
-    CompilationUnit unit = importSource(new FileInputSource(findSourceDir(file), file, AS_SUFFIX));
+    CompilationUnit unit = importSource(new FileInputSource(findSourceDir(file), file));
     if (unit != null) {
       compileQueue.add(unit);
     }
@@ -315,6 +325,9 @@ public class Jooc {
     CompilationUnit compilationUnit = compilationUnitsByQName.get(qname);
     if (compilationUnit == null) {
       InputSource source = findSource(qname);
+      if (source == null) {
+        throw error(importDirective.getSymbol(), "cannot find source for " + qname);
+      }
       compilationUnit = importSource(source);
     }
     if (compilationUnit == null) {
@@ -329,9 +342,6 @@ public class Jooc {
     if (result == null) {
       // scan classpath
       result = classPathInputSource.getChild(getInputSourceFileName(qname, classPathInputSource, AS_SUFFIX));
-    }
-    if (result == null) {
-      throw error("cannot find source for " + qname);
     }
     return result;
   }
@@ -371,7 +381,7 @@ public class Jooc {
     if (folder != null) {
       final List<InputSource> childList = folder.list();
       for (InputSource child : childList) {
-        if (!child.isDirectory()) {
+        if (!child.isDirectory() && child.getName().endsWith(AS_SUFFIX)) {
           list.add(nameWithoutExtension(child));
         }
       }
@@ -442,8 +452,8 @@ public class Jooc {
 
   public int run(String[] argv) {
     try {
-      JoocCommandLineParser parser = new JoocCommandLineParser();
-      config = parser.parse(argv);
+      JoocCommandLineParser commandLineParser = new JoocCommandLineParser();
+      config = commandLineParser.parse(argv);
       if (config != null) {
         if (config.isVersion()) {
           printVersion();
@@ -454,16 +464,6 @@ public class Jooc {
     } catch (JoocCommandLineParser.CommandLineParseException e) {
       System.out.println(e.getMessage());
       return e.getExitCode();
-    } catch (CompilerError e) {
-      if (e.symbol != null) {
-        log.error(e.symbol, e.getMessage());
-      } else {
-        log.error(e.getMessage());
-      }
-      return RESULT_CODE_COMPILATION_FAILED;
-    } catch (Exception e) {
-      e.printStackTrace();
-      return RESULT_CODE_INTERNAL_COMPILER_ERROR;
     }
     return RESULT_CODE_OK;
   }

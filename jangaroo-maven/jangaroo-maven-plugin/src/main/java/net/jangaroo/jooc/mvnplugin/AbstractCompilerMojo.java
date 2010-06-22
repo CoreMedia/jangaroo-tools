@@ -79,6 +79,13 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
    */
   private String debuglevel;
 
+  /**
+   * Output directory for generated API stubs.
+   *
+   * @parameter expression="${project.build.outputDirectory}/META-INF/joo-api"
+   */
+  private File apiOutputDirectory;
+
 
   public abstract String getOutputFileName();
 
@@ -127,13 +134,6 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
       }
     }
 
-    if (getLog().isDebugEnabled()) {
-      log.debug("Source path: " + configuration.getSourcePath().toString().replace(',', '\n'));
-      log.debug("Class path: " + configuration.getClassPath().toString().replace(',', '\n'));
-      log.debug("Output directory: " + configuration.getOutputDirectory());
-    }
-
-
     HashSet<File> sources = new HashSet<File>();
     getLog().debug("starting source inclusion scanner");
     sources.addAll(computeStaleSources(getSourceInclusionScanner(staleMillis)));
@@ -144,11 +144,19 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
     configuration.setSourceFiles(new ArrayList<File>(sources));
     configuration.setSourcePath(getCompileSourceRoots());
     configuration.setClassPath(getActionScriptClassPath());
-
-    //todo make this configurable
-    configuration.setGenerateApi(true);
-
+    configuration.setVerbose(true); //todo remove after debuggin jooc
     configuration.setOutputDirectory(getOutputDirectory());
+    configuration.setApiOutputDirectory(apiOutputDirectory);
+
+    if (getLog().isDebugEnabled()) {
+      log.debug("Source path: " + configuration.getSourcePath().toString().replace(',', '\n'));
+      log.debug("Class path: " + configuration.getClassPath().toString().replace(',', '\n'));
+      log.debug("Output directory: " + configuration.getOutputDirectory());
+      if (configuration.getApiOutputDirectory() != null) {
+        log.debug("API output directory: " + configuration.getApiOutputDirectory());
+      }
+    }
+
     int result = compile(configuration);
     boolean compilationError = (result != Jooc.RESULT_CODE_OK);
 
@@ -159,7 +167,7 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
       configuration.setDebugSource(false);
       configuration.setDebugSource(false);
       configuration.setOutputDirectory(getTempOutputDirectory());
-      configuration.setGenerateApi(false);
+      configuration.setApiOutputDirectory(null);
       result = compile(configuration);
       if (result == Jooc.RESULT_CODE_OK) {
         buildOutputFile(getTempOutputDirectory(), getOutputFileName());
@@ -249,6 +257,11 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
     if (!outputDirectory.exists())
       if (!outputDirectory.mkdirs())
         throw new MojoExecutionException("Failed to create output directory " + outputDirectory.getAbsolutePath());
+
+    // create api output directory if it does not exist
+    if (apiOutputDirectory != null && !apiOutputDirectory.exists())
+      if (!apiOutputDirectory.mkdirs())
+        throw new MojoExecutionException("Failed to create api output directory " + apiOutputDirectory.getAbsolutePath());
 
 
     final List<File> sources = config.getSourceFiles();

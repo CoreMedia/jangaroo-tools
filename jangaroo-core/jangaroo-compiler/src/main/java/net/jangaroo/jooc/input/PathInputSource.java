@@ -14,25 +14,25 @@ public class PathInputSource extends DirectoryInputSource {
     throw new UnsupportedOperationException("not impl.");
   }
 
-  public static PathInputSource fromFiles(List<File> files, String fileExtension, String[] rootDirs)  throws IOException {
+  public static PathInputSource fromFiles(List<File> files, String[] rootDirs)  throws IOException {
     List<InputSource> entries = new ArrayList<InputSource>();
     String name = "";
     for (File file :files) {
       if (file.isDirectory()) {
-        entries.add(new FileInputSource(file, file, fileExtension));
+        entries.add(new FileInputSource(file, file));
       } else if (file.getName().endsWith(".jar") || file.getName().endsWith(".zip")) {
-        entries.add(new ZipFileInputSource(file, fileExtension, rootDirs));
+        entries.add(new ZipFileInputSource(file, rootDirs));
       }
       if (!name.isEmpty()) {
         name += File.pathSeparatorChar;
       }
       name += file.getAbsolutePath();
     }
-    return new PathInputSource(name, fileExtension, entries);
+    return new PathInputSource(name, entries);
   }
 
-  public PathInputSource(final String name, final String fileExtension, final List<InputSource> entries) {
-    super(fileExtension);
+  public PathInputSource(final String name, final List<InputSource> entries) {
+    super();
     this.name = name;
     this.entries = entries;
   }
@@ -76,7 +76,7 @@ public class PathInputSource extends DirectoryInputSource {
         result.add(child);
       }
     }
-    return result == null ? null : new PathInputSource("(" + getName() + ")" + path, getFileExtension(), result);
+    return result == null ? null : new PathInputSource("(" + getName() + ")" + path, result);
   }
 
   @Override

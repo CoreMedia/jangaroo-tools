@@ -26,7 +26,7 @@ public class JoocCommandLineParser {
   }
 
   @SuppressWarnings({"AccessStaticViaInstance"})
-  public JoocConfiguration parse(String[] argv) throws Exception {
+  public JoocConfiguration parse(String[] argv) throws CommandLineParseException {
     JoocConfiguration config = new JoocConfiguration();
 
     Option help = new Option("help", "print this message");
@@ -56,8 +56,9 @@ public class JoocCommandLineParser {
     Option enableAssertionsOption = OptionBuilder.withLongOpt("enableassertions")
         .withDescription("enable assertions")
         .create("ea");
-    Option generateApiOption = OptionBuilder.withLongOpt("generateapi")
-        .withDescription("generate ActionScript API stubs")
+    Option apiDestinationDir = OptionBuilder.withLongOpt("apiDir")
+        .withDescription("destination directory where to generate ActionScript API stubs")
+        .hasArg()
         .create("api");
     Option allowDuplicateLocalVariablesOption = OptionBuilder.withLongOpt("allowduplicatelocalvariables")
         .withDescription("allow multiple declarations of local variables")
@@ -77,7 +78,7 @@ public class JoocCommandLineParser {
     options.addOption(sourcePath);
     options.addOption(classPath);
     options.addOption(enableAssertionsOption);
-    options.addOption(generateApiOption);
+    options.addOption(apiDestinationDir);
     options.addOption(allowDuplicateLocalVariablesOption);
     options.addOption(enableGuessingOption);
     CommandLineParser parser = new GnuParser();
@@ -89,6 +90,8 @@ public class JoocCommandLineParser {
       throw new CommandLineParseException(e.getMessage(), Jooc.RESULT_CODE_UNRECOGNIZED_OPTION);
     } catch (MissingArgumentException e) {
       throw new CommandLineParseException(e.getMessage(), Jooc.RESULT_CODE_MISSING_OPTION_ARGUMENT);
+    } catch (ParseException e) {
+      throw new CommandLineParseException(e.getMessage(), Jooc.RESULT_CODE_UNRECOGNIZED_OPTION);
     }
 
     if (line.hasOption("help")) {
@@ -120,8 +123,13 @@ public class JoocCommandLineParser {
     if (line.hasOption(enableAssertionsOption.getOpt())) {
       config.setEnableAssertions(true);
     }
-    if (line.hasOption(generateApiOption.getOpt())) {
-      config.setGenerateApi(true);
+    if (line.hasOption(apiDestinationDir.getOpt())) {
+      String destinationDirName = line.getOptionValue(apiDestinationDir.getOpt()).trim();
+      File destDir = new File(destinationDirName);
+      if (!destDir.exists()) {
+        throw new IllegalArgumentException("destination directory for API stubs does not exist: " + destDir.getAbsolutePath());
+      }
+      config.setApiOutputDirectory(destDir);
     }
     if (line.hasOption(allowDuplicateLocalVariablesOption.getOpt())) {
       config.setAllowDuplicateLocalVariables(true);
