@@ -3,7 +3,7 @@
   <parent>
     <groupId>net.jangaroo</groupId>
     <artifactId>jangaroo-core</artifactId>
-    <version>0.5.2-SNAPSHOT</version>
+    <version>0.6.0-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
@@ -12,7 +12,7 @@
   <packaging>pom</packaging>
   <!-- Do not use jangaroo plugin here since you can't use AND create a plugin in one multi module project! -->
   <name>Joo Runtime</name>
-  <version>0.5.2-SNAPSHOT</version>
+  <version>0.6.0-SNAPSHOT</version>
 
   <build>
     <sourceDirectory>src/main/joo</sourceDirectory>
@@ -38,9 +38,13 @@
                 <taskdef name="jooc" classname="net.jangaroo.jooc.ant.JoocTask" classpath="target/classes;${runtime.classpath}" />
 
                 <mkdir dir="target/temp/runtime/debug/scripts/classes" />
-                <jooc destdir="target/temp/runtime/debug/scripts/classes" failonerror="true" debug="true" debuglevel="source" verbose="true" enableassertions="true">
+                <mkdir dir="target/temp/runtime/debug/META-INF/joo-api" />
+                <jooc destdir="target/temp/runtime/debug/scripts/classes"
+                      apidestdir="target/temp/runtime/debug/META-INF/joo-api"
+                      failonerror="true" debug="true" debuglevel="source" verbose="true" enableassertions="true"
+                      classpath="${basedir}/src/main/joo-api">
                   <include name="**/*.as" />
-                  <src path="src/main/joo;src/main/joo-api" />
+                  <src path="src/main/joo" />
                 </jooc>
 
                 <concat destfile="target/scripts/jangaroo-runtime-debug.js">
@@ -101,6 +105,8 @@
                   <fileset dir="target" includes="scripts/jangaroo-runtime*.js" />
                   <fileset dir="src/main/joo-js" />
                   <fileset dir="target/temp/runtime/debug" />
+                  <zipfileset dir="src/main/joo-api" includes="**/*.as" prefix="META-INF/joo-api"/>
+
                 </zip>
 
                 <zip destfile="target/jangaroo-runtime-sources.jar">
@@ -153,7 +159,7 @@
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-compiler</artifactId>
-      <version>0.5.2-SNAPSHOT</version>
+      <version>0.6.0-SNAPSHOT</version>
       <scope>provided</scope>
       <optional>true</optional>
     </dependency>
