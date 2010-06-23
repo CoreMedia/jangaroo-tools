@@ -51,11 +51,6 @@ public class PackageDeclaration extends IdeDeclaration  {
     return symPackage;
   }
 
-  public boolean equals(Object other) {
-    return other instanceof PackageDeclaration &&
-      getIde().equals(((PackageDeclaration) other).getIde());
-  }
-
   public boolean isTopLevel() {
     return ide == null;
   }
