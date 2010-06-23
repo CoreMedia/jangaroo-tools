@@ -194,7 +194,11 @@ class DeclarationScope extends ScopeImplBase implements Scope {
       if (!isFirst)
         msg += " and ";
       isFirst = false;
-      msg += importDirective.getQualifiedName(); //todo add imported file paths
+      msg += importDirective.getQualifiedName();
+      JooSymbol importedIdeSymbol = resolveImport(importDirective).getSymbol();
+      msg += "(" +
+        importedIdeSymbol.getFileName() + ":" + importedIdeSymbol.getLine() + "," + importedIdeSymbol.getColumn() +
+        ")";
     }
     msg += " are available.";
     throw new Jooc.CompilerError(ide.getSymbol(), msg);
