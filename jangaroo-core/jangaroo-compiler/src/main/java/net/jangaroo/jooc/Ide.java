@@ -28,7 +28,7 @@ public class Ide extends NodeImplBase {
   private Scope scope;
   private Ide qualified;
 
-  private static IdeDeclaration NULL_DECL = new VariableDeclaration(null, null, null, null);
+  private static final IdeDeclaration NULL_DECL = new VariableDeclaration(null, null, null, null);
 
   public Ide(final String ide) {
     this(new JooSymbol(ide));
