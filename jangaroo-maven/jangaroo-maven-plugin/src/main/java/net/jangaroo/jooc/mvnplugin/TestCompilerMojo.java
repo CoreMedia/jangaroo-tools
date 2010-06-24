@@ -3,10 +3,7 @@ package net.jangaroo.jooc.mvnplugin;
 import org.codehaus.plexus.compiler.util.scan.SourceInclusionScanner;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Mojo to compile Jangaroo sources from during the test-compile phase.
@@ -66,6 +63,15 @@ public class TestCompilerMojo extends AbstractCompilerMojo {
    */
   private String testOutputFileName;
 
+  /**
+   * 
+   * @return null as API stub generation does not make sense for test sources
+   */
+  @Override
+  protected File getApiOutputDirectory() {
+    return null;
+  }
+
   protected List<File> getCompileSourceRoots() {
     return Arrays.asList(sourceDirectory, testSourceDirectory);
   }
@@ -85,5 +91,12 @@ public class TestCompilerMojo extends AbstractCompilerMojo {
 
   public String getOutputFileName() {
     return testOutputFileName;
+  }
+
+  @Override
+  protected List<File> getActionScriptClassPath() {
+    final List<File> classPath = new ArrayList<File>(super.getActionScriptClassPath());
+    classPath.add(0, getGeneratedSourcesDirectory());
+    return classPath;
   }
 }

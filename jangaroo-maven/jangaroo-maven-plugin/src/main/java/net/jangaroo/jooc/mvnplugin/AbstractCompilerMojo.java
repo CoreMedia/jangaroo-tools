@@ -80,12 +80,11 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
   private String debuglevel;
 
   /**
-   * Output directory for generated API stubs.
+   * Output directory for all generated ActionScript3 files to compile.
    *
-   * @parameter expression="${project.build.outputDirectory}/META-INF/joo-api"
+   * @parameter expression="${project.build.directory}/generated-sources/joo"
    */
-  private File apiOutputDirectory;
-
+  private File generatedSourcesDirectory;
 
   public abstract String getOutputFileName();
 
@@ -94,6 +93,12 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
   protected abstract File getOutputDirectory();
 
   protected abstract File getTempOutputDirectory();
+
+  public File getGeneratedSourcesDirectory() {
+    return generatedSourcesDirectory;
+  }
+
+  protected abstract File getApiOutputDirectory();
 
   /**
    * Runs the compile mojo
@@ -146,7 +151,7 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
     configuration.setClassPath(getActionScriptClassPath());
     configuration.setVerbose(true); //todo remove after debuggin jooc
     configuration.setOutputDirectory(getOutputDirectory());
-    configuration.setApiOutputDirectory(apiOutputDirectory);
+    configuration.setApiOutputDirectory(getApiOutputDirectory());
 
     if (getLog().isDebugEnabled()) {
       log.debug("Source path: " + configuration.getSourcePath().toString().replace(',', '\n'));
@@ -259,10 +264,10 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
         throw new MojoExecutionException("Failed to create output directory " + outputDirectory.getAbsolutePath());
 
     // create api output directory if it does not exist
+    File apiOutputDirectory = getApiOutputDirectory();
     if (apiOutputDirectory != null && !apiOutputDirectory.exists())
       if (!apiOutputDirectory.mkdirs())
         throw new MojoExecutionException("Failed to create api output directory " + apiOutputDirectory.getAbsolutePath());
-
 
     final List<File> sources = config.getSourceFiles();
 

@@ -55,14 +55,18 @@ public class CompilerMojo extends AbstractCompilerMojo {
   private String outputFileName;
 
   /**
-   * Output directory for all generated ActionScript3 files to compile.
+   * Output directory for generated API stubs.
    *
-   * @parameter expression="${project.build.directory}/generated-sources/joo"
+   * @parameter expression="${project.build.outputDirectory}/META-INF/joo-api"
    */
-  private File generatedSourcesDirectory;    
+  private File apiOutputDirectory;
+
+  public File getApiOutputDirectory() {
+    return apiOutputDirectory;
+  }
 
   protected List<File> getCompileSourceRoots() {
-    return Arrays.asList(sourceDirectory,generatedSourcesDirectory);
+    return Arrays.asList(sourceDirectory,getGeneratedSourcesDirectory());
   }
 
   protected File getOutputDirectory() {
@@ -80,4 +84,5 @@ public class CompilerMojo extends AbstractCompilerMojo {
   public String getOutputFileName() {
     return outputFileName;
   }
+
 }
