@@ -50,6 +50,7 @@
                 <concat destfile="target/scripts/jangaroo-runtime-debug.js">
                   <filelist dir="src/main/joo-js/scripts/classes">
                     <file name="joo/BootstrapClassLoader.js" />
+                    <file name="joo/window.js"/>
                     <file name="joo/assert.js" />
                     <file name="joo/Class.js" />
                     <file name="joo/trace.js" />
@@ -72,9 +73,11 @@
                 </concat>
 
                 <mkdir dir="target/temp/runtime/deploy" />
-                <jooc destdir="target/temp/runtime/deploy" failonerror="true" debug="false" verbose="true" enableassertions="false">
+                <jooc destdir="target/temp/runtime/deploy" failonerror="true" debug="false" verbose="true"
+                      enableassertions="false"
+                      classpath="${basedir}/src/main/joo-api">
                   <include name="**/*.as" />
-                  <src path="src/main/joo;src/main/joo-api" />
+                  <src path="src/main/joo" />
                 </jooc>
 
                 <concat destfile="target/scripts/jangaroo-runtime.js">
