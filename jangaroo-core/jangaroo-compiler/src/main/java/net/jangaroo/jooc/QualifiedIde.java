@@ -102,40 +102,65 @@ public class QualifiedIde extends Ide {
   public void analyzeAsExpr(final AstNode exprParent, final Expr parentExpr, final AnalyzeContext context) {
     qualifier.analyzeAsExpr(exprParent, parentExpr, context);
     super.analyzeAsExpr(exprParent, parentExpr, context);
-    if (isQualifiedByThis()|| isQualifiedBySuper()) {
-      getDeclaration(true);
+    final IdeDeclaration qualifierDeclaration = qualifier.getDeclaration(false);
+    if (qualifierDeclaration != null) {
+      if (qualifierDeclaration instanceof ClassDeclaration) {
+        // full qualified access to static class member
+        IdeDeclaration memberDeclaration = ((ClassDeclaration) qualifierDeclaration).getStaticMemberDeclaration(this.getName());
+        if (memberDeclaration == null) {
+          throw Jooc.error(ide, "unresolved static member " + ide.getText());
+        }
+      } /* else  {
+        // todo perform this check also for DotExpr and unqualified Ide
+        IdeDeclaration type = qualifierDeclaration.resolveDeclaration();
+        if (type != null && type != getScope().getCompilationUnit().getCompiler().getAnyDeclaration()) {
+          IdeDeclaration memberDeclaration = type.resolvePropertyDeclaration(this.getName());
+          if (memberDeclaration == null ) {
+            //todo introduce strict mode where this is an error
+            Jooc.warning(ide,
+              type == getScope().getCompilationUnit().getCompiler().getVoidDeclaration()
+                ? "member access to void type"
+                : ("unresolved member " + ide.getText()));
+          }
+        }
+      }*/
     }
   }
 
   @Override
-  protected void generateCodeAsExpr(final Expr parentExpr, final JsWriter out) throws IOException {
-    IdeDeclaration declaration = getDeclaration(false);
-    if (declaration != null) {
-      if (declaration.isClassMember()) {
-        // check and handle private instance members and super method access:
-        if (isQualifiedByThis() && declaration.isPrivate()
-          || isQualifiedBySuper()) {
-          writePrivateMemberAccess(qualifier.getSymbol(), symDot, this, declaration.isStatic(), out);
-          return;
-        }
-        // check and handle private static member access:
-        if (declaration.isPrivateStatic() && !declaration.isMethod()) {
-          IdeDeclaration prefixDeclaration = qualifier.resolveDeclaration();
-          // Found private static member access candidate qualifiedName+"."+property
-          if (getScope().getClassDeclaration().equals(prefixDeclaration)) {
-            // Found private static member access qualifiedName+"."+property
-            writePrivateMemberAccess(qualifier.getSymbol(), symDot, this, true, out);
-            return;
-          }
-          // todo flag error, but do that in analyze phase! will cause a runtime error: undefined member
-        }
+  public IdeDeclaration resolveDeclaration() {
+    IdeDeclaration result = super.resolveDeclaration();
+    if (result == null) {
+      IdeDeclaration prefixDeclaration = getQualifier().resolveDeclaration();
+      if (prefixDeclaration != null) {
+        result = prefixDeclaration.resolvePropertyDeclaration(this.getName());
       }
-      generateCode(out);
-    } else {
-      qualifier.generateCodeAsExpr(parentExpr, out);
-      out.writeSymbol(symDot);
-      out.writeSymbol(ide);
     }
+    return result;
+  }
+
+  @Override
+  protected void generateCodeAsExpr(final Expr parentExpr, final JsWriter out) throws IOException {
+    boolean commentOutQualifierCode = false;
+    IdeDeclaration memberDeclaration = null;
+    final IdeDeclaration qualifierDeclaration = qualifier.getDeclaration(false);
+    if (qualifierDeclaration != null && qualifierDeclaration.equals(getScope().getClassDeclaration())) {
+      memberDeclaration  = ((ClassDeclaration)qualifierDeclaration).getStaticMemberDeclaration(this.getName());
+      commentOutQualifierCode = memberDeclaration  != null && memberDeclaration.isPrivateStatic();
+    }
+    if (memberDeclaration == null) {
+      final IdeDeclaration type = qualifier.resolveDeclaration();
+      memberDeclaration = Ide.resolveMember(type, this);
+    }
+    if (commentOutQualifierCode) {
+      // we will generate another qualifier in writeMemberAccess
+      out.beginComment();
+    }
+    qualifier.generateCodeAsExpr(parentExpr, out);
+    if (commentOutQualifierCode) {
+      out.endComment();
+    }
+    writeMemberAccess(memberDeclaration, symDot, this, true, out);
   }
 
   @Override

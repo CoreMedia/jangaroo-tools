@@ -26,7 +26,8 @@ abstract class Declaration extends NodeImplBase {
     return symModifiers;
   }
 
-  JooSymbol[] symModifiers;
+  protected JooSymbol[] symModifiers;
+  protected JooSymbol[] symInheritedModifiers = new JooSymbol[0];
 
   protected AstNode parentDeclaration = null;
   protected ClassDeclaration classDeclaration = null;
@@ -63,24 +64,36 @@ abstract class Declaration extends NodeImplBase {
     return classDeclaration;
   }
 
+  protected void setInheritedModifiers(final JooSymbol[] modifiers) {
+    symInheritedModifiers = modifiers;
+    computeModifiers();
+  }
+
   protected void computeModifiers() {
     modifiers = 0;
     for (JooSymbol modifier : symModifiers) {
-      int flag = getModifierFlag(modifier);
-      if ((allowedModifiers & flag) == 0) {
-        throw Jooc.error(modifier, "modifier '" + modifier.getText() + "' not allowed here");
-      }
-      if ((flag & modifiers) != 0) {
-        throw Jooc.error(modifier, "duplicate modifier '" + modifier.getText() + "'");
-      }
-      if ((flag & MODIFIERS_SCOPE) != 0 && (modifiers & MODIFIERS_SCOPE) != 0) {
-        throw Jooc.error(modifier, "duplicate scope modifier '" + modifier.getText() + "'");
-      }
-      modifiers |= flag;
+      computeModifier(modifier);
+    }
+    for (JooSymbol modifier : symInheritedModifiers) {
+      computeModifier(modifier);
     }
   }
 
-  int getModifierFlag(JooSymbol modifier) {
+  private void computeModifier(final JooSymbol modifier) {
+    int flag = getModifierFlag(modifier);
+    if ((allowedModifiers & flag) == 0) {
+      throw Jooc.error(modifier, "modifier '" + modifier.getText() + "' not allowed here");
+    }
+    if ((flag & modifiers) != 0) {
+      throw Jooc.error(modifier, "duplicate modifier '" + modifier.getText() + "'");
+    }
+    if ((flag & MODIFIERS_SCOPE) != 0 && (modifiers & MODIFIERS_SCOPE) != 0) {
+      throw Jooc.error(modifier, "duplicate scope modifier '" + modifier.getText() + "'");
+    }
+    modifiers |= flag;
+  }
+
+  protected int getModifierFlag(JooSymbol modifier) {
     switch (modifier.sym) {
       case sym.PUBLIC:
         return MODIFIER_PUBLIC;

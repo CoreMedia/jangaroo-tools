@@ -16,10 +16,7 @@
 package net.jangaroo.jooc;
 
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author Andreas Gawecki
@@ -30,6 +27,7 @@ public class ClassDeclaration extends IdeDeclaration {
   protected JooSymbol symClass;
   protected Extends optExtends;
   private Map<String, TypedIdeDeclaration> members = new LinkedHashMap<String, TypedIdeDeclaration>();
+  private Map<String, TypedIdeDeclaration> staticMembers = new LinkedHashMap<String, TypedIdeDeclaration>();
   private Set<String> boundMethodCandidates = new HashSet<String>();
   private Set<String> classInit = new HashSet<String>();
   private ClassBody body;
@@ -143,7 +141,7 @@ public class ClassDeclaration extends IdeDeclaration {
   private void generateStaticMethodList(JsWriter out) throws IOException {
     out.write("[");
     boolean isFirst = true;
-    for (TypedIdeDeclaration memberDeclaration : members.values()) {
+    for (TypedIdeDeclaration memberDeclaration : staticMembers.values()) {
       if (memberDeclaration.isMethod() && !memberDeclaration.isPrivate() && !memberDeclaration.isProtected() && memberDeclaration.isStatic() && !memberDeclaration.isNative()) {
         if (isFirst) {
           isFirst = false;
@@ -210,21 +208,15 @@ public class ClassDeclaration extends IdeDeclaration {
   }
 
   public void registerMember(TypedIdeDeclaration memberDeclaration) {
-    members.put(memberDeclaration.getName(), memberDeclaration);
+    (memberDeclaration.isStatic() ? staticMembers : members).put(memberDeclaration.getName(), memberDeclaration);
   }
 
   public TypedIdeDeclaration getMemberDeclaration(String memberName) {
     return members.get(memberName);
   }
 
-  public boolean isPrivateMember(String memberName) {
-    TypedIdeDeclaration memberDeclaration = getMemberDeclaration(memberName);
-    return memberDeclaration != null && memberDeclaration.isPrivate();
-  }
-
-  public boolean isPrivateStaticMember(String memberName) {
-    TypedIdeDeclaration memberDeclaration = getMemberDeclaration(memberName);
-    return memberDeclaration != null && memberDeclaration.isPrivate() && memberDeclaration.isStatic();
+  public TypedIdeDeclaration getStaticMemberDeclaration(String memberName) {
+    return staticMembers.get(memberName);
   }
 
   public void addBoundMethodCandidate(String memberName) {
@@ -259,5 +251,58 @@ public class ClassDeclaration extends IdeDeclaration {
   @Override
   public IdeDeclaration resolveDeclaration() {
     return this;
+  }
+
+  /**
+   * Lookup a non-static member of the given name
+   * @param ide the member name
+   * @return a non-static member if found, null otherwise
+   */
+  public IdeDeclaration resolvePropertyDeclaration(String ide) {
+    return resolvePropertyDeclaration1(ide, this, new HashSet<ClassDeclaration>(), new LinkedList<ClassDeclaration>());
+  }
+
+  private IdeDeclaration resolvePropertyDeclaration1(String ide, ClassDeclaration classDecl, Set<ClassDeclaration> visited, LinkedList<ClassDeclaration> chain) {
+    if (visited.contains(classDecl)) {
+      if (chain.contains(classDecl)) {
+        throw new Jooc.CompilerError(classDecl.getSymbol(), "cyclic syperclass chain");
+      }
+      return null;
+    }
+    visited.add(classDecl);
+    final int chainSize = chain.size();
+    chain.add(classDecl);
+    IdeDeclaration declaration = classDecl.getMemberDeclaration(ide);
+    if (declaration == null && classDecl.optExtends != null) {
+      declaration = resolvePropertyInSuper(ide, classDecl, visited, chain, classDecl.optExtends.superClass);
+    }
+    if (declaration == null && classDecl.optImplements != null) {
+      CommaSeparatedList<Ide> implemented = classDecl.optImplements.superTypes;
+      while (implemented != null && declaration == null) {
+        declaration = resolvePropertyInSuper(ide, classDecl, visited, chain, implemented.head);
+        implemented = implemented.tail;
+      }
+    }
+    chain.removeLast();
+    assert chainSize == chain.size();
+    return declaration;
+  }
+
+  private IdeDeclaration resolvePropertyInSuper(final String ide,
+                                              final ClassDeclaration classDecl,
+                                              final Set<ClassDeclaration> visited,
+                                              final LinkedList<ClassDeclaration> chain,
+                                              final Ide superIde) {
+    IdeDeclaration superClassDecl = superIde.getDeclaration();
+    if (superClassDecl != null)
+      if (!(superClassDecl instanceof ClassDeclaration)) {
+        throw new Jooc.CompilerError(classDecl.optExtends.superClass.getSymbol(), "expected class identifier");
+      }
+    return resolvePropertyDeclaration1(ide, (ClassDeclaration) superClassDecl, visited, chain);
+  }
+
+
+  public IdeDeclaration getSuperTypeDeclaration() {
+    return optExtends == null ? null : optExtends.superClass.getDeclaration();
   }
 }

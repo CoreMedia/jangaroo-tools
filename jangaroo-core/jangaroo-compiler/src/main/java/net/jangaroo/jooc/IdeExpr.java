@@ -46,6 +46,7 @@ class IdeExpr extends Expr {
     super.analyze(parentNode, context);
     ide.analyze(this, context);
     ide.analyzeAsExpr(parentNode, this, context);
+    setType(ide.resolveDeclaration());
     return this;
   }
 

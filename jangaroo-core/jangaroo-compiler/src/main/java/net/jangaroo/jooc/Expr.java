@@ -20,6 +20,16 @@ package net.jangaroo.jooc;
  */
 abstract class Expr extends NodeImplBase {
 
+  private IdeDeclaration type;
+
+  public IdeDeclaration getType() {
+    return type;
+  }
+
+  public void setType(final IdeDeclaration type) {//toto compute type in more subclasses during analyze()
+    this.type = type;
+  }
+
   @Override
   public Expr analyze(AstNode parentNode, AnalyzeContext context) {
     return (Expr)super.analyze(parentNode, context);
@@ -32,5 +42,5 @@ abstract class Expr extends NodeImplBase {
   Ide asQualifiedIde() {
     return null;
   }
-  
+
 }

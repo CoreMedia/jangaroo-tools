@@ -25,17 +25,28 @@ public class FieldDeclaration extends AbstractVariableDeclaration {
 
   private boolean isClassMember = false;
 
-  public FieldDeclaration(JooSymbol[] modifiers, JooSymbol symConstOrVar, Ide ide,
-      TypeRelation optTypeRelation, Initializer optInitializer, JooSymbol optSymSemicolon) {
-    this(modifiers, symConstOrVar, ide, optTypeRelation, optInitializer, null, optSymSemicolon);
-  }
-
-  public FieldDeclaration(JooSymbol[] modifiers, JooSymbol symConstOrVar, Ide ide,
-                          TypeRelation optTypeRelation, Initializer optInitializer, FieldDeclaration optNextFieldDeclaration, JooSymbol optSymSemicolon
+  public FieldDeclaration(JooSymbol[] modifiers,
+                          JooSymbol symConstOrVar,
+                          Ide ide,
+                          TypeRelation optTypeRelation, Initializer optInitializer,
+                          FieldDeclaration optNextFieldDeclaration,
+                          JooSymbol optSymSemicolon
   ) {
     super(modifiers,
             MODIFIERS_SCOPE|MODIFIER_STATIC,
             symConstOrVar, ide, optTypeRelation, optInitializer, optNextFieldDeclaration, optSymSemicolon);
+    // inherit modifiers of first declaration to those following this declaration
+    if (optSymSemicolon != null && optNextFieldDeclaration != null) {
+      optNextFieldDeclaration.setInheritedModifiers(modifiers);
+    }
+  }
+
+  @Override
+  protected void setInheritedModifiers(final JooSymbol[] modifiers) {
+    super.setInheritedModifiers(modifiers);
+    if (optNextVariableDeclaration != null) {
+      optNextVariableDeclaration.setInheritedModifiers(modifiers);
+    }
   }
 
   @Override

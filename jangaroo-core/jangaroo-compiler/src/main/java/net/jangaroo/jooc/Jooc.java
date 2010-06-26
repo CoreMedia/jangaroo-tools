@@ -67,11 +67,14 @@ public class Jooc {
 
   private Map<String, CompilationUnit> compilationUnitsByQName = new LinkedHashMap<String, CompilationUnit>();
 
-  private Scope globalScope;
-
   private InputSource sourcePathInputSource;
   private InputSource classPathInputSource;
 
+  private final Scope globalScope = new DeclarationScope(null, null);
+  private final IdeDeclaration voidDeclaration = declareType(globalScope, "void");
+  private final IdeDeclaration anyDeclaration = declareType(globalScope, "*");
+  private final IdeDeclaration intDeclaration = declareType(globalScope, "int");
+  private final IdeDeclaration uintDeclaration = declareType(globalScope, "uint");
 
   public Jooc() {
     this(new StdOutCompileLog());
@@ -79,6 +82,22 @@ public class Jooc {
 
   public Jooc(CompileLog log) {
     this.log = log;
+  }
+
+  public IdeDeclaration getUintDeclaration() {
+    return uintDeclaration;
+  }
+
+  public IdeDeclaration getIntDeclaration() {
+    return intDeclaration;
+  }
+
+  public IdeDeclaration getAnyDeclaration() {
+    return anyDeclaration;
+  }
+
+  public IdeDeclaration getVoidDeclaration() {
+    return voidDeclaration;
   }
 
   public int run(JoocConfiguration config) {
@@ -98,9 +117,9 @@ public class Jooc {
   }
 
   private int run1(JoocConfiguration config) {
-    globalScope = buildGlobalScope();
     logHolder.set(log);
     this.config = config;
+    buildGlogalScope();
     for (File sourceDir : config.getSourcePath()) {
       try {
         canoncicalSourcePath.add(sourceDir.getCanonicalFile());
@@ -136,11 +155,16 @@ public class Jooc {
     return result;
   }
 
-  private static void declareTypes(Scope scope, String[] identifiers) {
-    for (String identifier : identifiers) {
-      IdeDeclaration decl = new PredefinedTypeDeclaration(identifier);
-      decl.scope(scope);
-    }
+  private void buildGlogalScope() {
+    //todo declare this depending on context
+    declareValues(globalScope, new String[]{
+      "this"});
+  }
+
+  private static IdeDeclaration declareType(Scope scope, String identifier) {
+    IdeDeclaration decl = new PredefinedTypeDeclaration(identifier);
+    decl.scope(scope);
+    return decl;
   }
 
   private static void declareClasses(Scope scope, String[] identifiers) {
@@ -158,44 +182,6 @@ public class Jooc {
       IdeDeclaration decl = new VariableDeclaration(new JooSymbol("var"), ide, null, null);
       decl.scope(scope);
     }
-  }
-
-  private static Scope buildGlobalScope() {
-    // establish global scope for built-in identifiers:
-    Scope scope = new DeclarationScope(null, null);
-
-    //todo move these into runtime api *as files where possible, for functions/objects extend import mechanism
-    declareTypes(scope, new String[]{
-      "int",
-      "uint"});
-
-    declareClasses(scope, new String[]{
-      "Object",
-      "Function",
-      "Class",
-      "Boolean",
-      "String",
-      "Number",
-      "RegExp",
-      "Date",
-      "Math"});
-
-    declareValues(scope, new String[]{
-      "undefined",
-      "this",
-      "window",
-      "parseInt",
-      "parseFloat",
-      "isNaN",
-      "NaN",
-      "isFinite",
-      "Infinity",
-      "decodeURI",
-      "decodeURIComponent",
-      "encodeURI",
-      "encodeURIComponent",
-      "trace"});
-    return scope;
   }
 
   private CompilationUnitSinkFactory createSinkFactory(JoocConfiguration config, final boolean generateActionScriptApi) {

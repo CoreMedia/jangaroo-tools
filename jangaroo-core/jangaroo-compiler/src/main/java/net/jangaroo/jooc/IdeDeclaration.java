@@ -105,10 +105,18 @@ public abstract class IdeDeclaration extends Declaration {
     return false;
   }
 
+  public boolean isPrivateStaticMethod() {
+    return isPrivate() && isStatic() && isMethod();
+  }
+
   /**
    * Resolve this declaration to the underlying Class or PredefinedType declaration
    */
   public IdeDeclaration resolveDeclaration() {
+    return null;
+  }
+
+  public IdeDeclaration resolvePropertyDeclaration(String ide) {
     return null;
   }
 }

@@ -499,7 +499,7 @@ interfaceExtends ::=
 
 fieldDeclaration ::=
     modifiers:m constOrVar:cov ide:ide optTypeRelation:t optInitializer:init optNextFieldDeclaration:nf SEMICOLON:s
-    {: RESULT = new FieldDeclaration((JooSymbol[])m.toArray(new JooSymbol[0]), cov, ide, t, init, nf, s); :}
+    {: RESULT = new FieldDeclaration((JooSymbol[])m.toArray(new JooSymbol[m.size()]), cov, ide, t, init, nf, s); :}
   ;
 
 optNextFieldDeclaration ::=
@@ -784,9 +784,9 @@ type ::=
     ideType:it
     {: RESULT = it; :}
   | MUL:any
-    {: RESULT = new VoidType(any); :}
+    {: RESULT = new IdeType(any); :}
   | VOID:v
-    {: RESULT = new VoidType(v); :}
+    {: RESULT = new IdeType(v); :}
   ;
 
 ideType ::=

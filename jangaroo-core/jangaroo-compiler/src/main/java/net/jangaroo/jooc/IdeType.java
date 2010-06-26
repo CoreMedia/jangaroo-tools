@@ -32,6 +32,10 @@ public class IdeType extends Type {
     this.ide = ide;
   }
 
+  public IdeType(JooSymbol symIde) {
+    this(new Ide(symIde));
+  }
+
   @Override
   public void scope(final Scope scope) {
     ide.scope(scope);

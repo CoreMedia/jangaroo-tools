@@ -42,12 +42,23 @@ class DotExpr extends PostfixOpExpr {
 
   @Override
   public Expr analyze(final AstNode parentNode, final AnalyzeContext context) {
-    return super.analyze(parentNode, context);
+    super.analyze(parentNode, context);
+    IdeDeclaration qualiferType = arg.getType();
+    if (qualiferType != null) {
+      setType(arg.getType().resolvePropertyDeclaration(ide.getName()));
+    }
+    if (arg.getType() != null) {
+      IdeDeclaration memberDeclaration = arg.getType().resolvePropertyDeclaration(ide.getName());
+      assert memberDeclaration == null || !memberDeclaration.isStatic();
+    }
+
+    return this;
   }
 
   @Override
   protected void generateJsCode(final JsWriter out) throws IOException {
-    super.generateJsCode(out);
-    ide.generateCode(out);
+    arg.generateCode(out);
+    Ide.writeMemberAccess(Ide.resolveMember(arg.getType(), ide), op, ide, true, out);
   }
+
 }

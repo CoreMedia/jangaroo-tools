@@ -156,7 +156,7 @@ public class Ide extends NodeImplBase {
   }
 
   /**
-   * Resolve the declaration of this ide to the underlying Class or PredefinedType declaration
+   * Resolve the declaration of this ide to the underlying declaration.
    * callable after scoping phase
    *
    * @return null if the declaration cannot be resolved
@@ -268,39 +268,62 @@ public class Ide extends NodeImplBase {
 
   protected void generateCodeAsExpr(Expr parentExpr, final JsWriter out) throws IOException {
     out.writeSymbolWhitespace(ide);
-    IdeDeclaration decl = getDeclaration();
-    String[] prefix = null;
-    if (decl.isClassMember()) {
-      if (decl.isPrivate() && !(decl.isStatic() && decl.isMethod())) {
-        writePrivateMemberAccess(null, null, this, decl.isStatic(), out);
-        return;
-      } else if (decl.isStatic()) {
-        if (decl.getClassDeclaration() != getScope().getClassDeclaration()) {
-          // not within same class, same class is within 'with' scope for now
-          prefix = new String[]{decl.getClassDeclaration().getQualifiedNameStr(), "."};
-        }
-      } else if (!decl.isConstructor()) {
-        prefix = new String[]{"this", "."};
-      }
-    } else {
-      // add package prefix if it is not a local
-      if (decl.getParentDeclaration() instanceof PackageDeclaration) {
-        String qname = ((PackageDeclaration) decl.getParentDeclaration()).getQualifiedNameStr();
-        if (!qname.isEmpty())
-          prefix = new String[]{qname, "."};
-      }
+    if (isSuper()) {
+      out.writeToken("this");
+      return;
     }
-    if (prefix != null) {
-      for (String token : prefix) {
-        out.writeToken(token);
+    if (!isThis()) { // shortcut optimization, general case below should generate same code
+      IdeDeclaration decl = getDeclaration(false);
+      if (decl != null) {
+        // todo private static methods are not private yet
+        if (decl.isClassMember()) {
+          if (decl.isStatic() && !decl.isPrivateStatic()) {
+            out.writeToken(decl.getClassDeclaration().getQualifiedNameStr());
+          } else if (!decl.isConstructor() && !decl.isPrivateStatic()) {
+            out.writeToken("this");
+          }
+          writeMemberAccess(decl, null, this, false, out);
+          return;
+        }
+        // add package prefix if it is not a local
+        if (!decl.isClassMember() && decl.getParentDeclaration() instanceof PackageDeclaration) {
+          String qname = ((PackageDeclaration) decl.getParentDeclaration()).getQualifiedNameStr();
+          if (!qname.isEmpty()) {
+            out.writeToken(qname);
+            out.writeToken(".");
+          }
+        }
       }
     }
     out.writeSymbol(ide, false);
   }
 
-  protected static void writePrivateMemberAccess(JooSymbol optSymQualifier, final JooSymbol optSymDot, Ide memberIde, boolean isStatic, final JsWriter out) throws IOException {
-    if (optSymQualifier != null) {
-      out.writeSymbolWhitespace(optSymQualifier);
+  static void writeMemberAccess(IdeDeclaration memberDeclaration, final JooSymbol optSymDot, Ide memberIde, boolean writeMemberWhitespace, final JsWriter out) throws IOException {
+    if (memberDeclaration != null) {
+      if (memberIde.isQualifiedBySuper() || memberDeclaration.isPrivate()) {
+        writePrivateMemberAccess(optSymDot, memberIde, writeMemberWhitespace, memberDeclaration.isStatic(), out);
+        return;
+      }
+    }
+    if (optSymDot != null) {
+      out.writeSymbol(optSymDot);
+    } else if (!memberDeclaration.isConstructor()) {
+      out.writeToken(".");
+    }
+    out.writeSymbol(memberIde.ide, writeMemberWhitespace);
+  }
+
+  protected static IdeDeclaration resolveMember(final IdeDeclaration type, final Ide memberIde) {
+    IdeDeclaration declaration = null;
+    if (type != null) {
+      declaration = type.resolvePropertyDeclaration(memberIde.getName());
+    }
+    return declaration;
+  }
+
+  static void writePrivateMemberAccess(final JooSymbol optSymDot, Ide memberIde, boolean writeMemberWhitespace, boolean isStatic, final JsWriter out) throws IOException {
+    if (writeMemberWhitespace) {
+      out.writeSymbolWhitespace(memberIde.ide);
     }
     if (isStatic) {
       out.writeToken("$$private");
@@ -311,14 +334,13 @@ public class Ide extends NodeImplBase {
       }
       out.writeSymbol(memberIde.ide, false);
     } else {
-      out.writeToken("this");
-      out.write("[");
+      out.writeToken("[");
       if (optSymDot != null) {
         out.writeSymbolWhitespace(optSymDot);
       }
       // awkward, but we have to be careful if we add characters to tokens:
       out.writeToken("$" + memberIde.getName());
-      out.write("]");
+      out.writeToken("]");
     }
   }
 

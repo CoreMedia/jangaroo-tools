@@ -76,7 +76,7 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
 
   @Override
   public boolean isMethod() {
-    return true;
+    return isClassMember();
   }
 
   public boolean isGetterOrSetter() {
