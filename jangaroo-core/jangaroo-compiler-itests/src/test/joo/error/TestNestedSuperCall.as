@@ -14,9 +14,9 @@
  */
 
 package error {
-  public class ConfusingLabel {
-    public function fun() {
-      x :String = "x";
+  public class TestNestedSuperCall {
+    public function TestNestedSuperCall() {
+      if (true) {super();}
     }
   }
 }

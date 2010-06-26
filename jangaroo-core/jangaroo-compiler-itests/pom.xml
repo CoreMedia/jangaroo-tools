@@ -112,10 +112,12 @@
                   <src path="${basedir}/src/test/joo-api"  />
                 </jooc>
 
+                <!--${net.jangaroo:jangaroo-runtime:jangaroo}??-->
                 <property name="destdir" value="target/temp/scripts"/>
                 <mkdir dir="${destdir}/META-INF/joo-api" />
                 <jooc destdir="${destdir}" failonerror="true" debug="true" verbose="true" enableassertions="true"
-                      classpath="${joo-api.jar}" apidestdir="${destdir}/META-INF/joo-api">
+                      classpath="${basedir}/../jangaroo-runtime/target/jangaroo-runtime.jar;${joo-api.jar}"
+                      apidestdir="${destdir}/META-INF/joo-api">
                   <include name="**/*.as" />
                   <exclude name="error/**/*.as" />
                   <exclude name="**/*_fragment.as" />

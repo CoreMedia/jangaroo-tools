@@ -13,27 +13,19 @@
  * governing permissions and limitations under the License.
  */
 
-package package1 {
+package error {
 
-public class TestInheritanceSuperClass {
+import error.StaticAccessSuperClass;
 
-  public function TestInheritanceSuperClass(value :int) {
-    slot1 = value;
+import package2.*;
+
+/**
+ * static members are not inherited
+ */
+public class TestStaticAccessViaSubClass {
+
+  {
+    var s:String = TestStaticAccessInSubClass.s1; // error: unresolved variable s1
   }
-
-  public var slot1 :int;
-
-  public function setSlot1(value :int) :void {
-    slot1 = value;
-  }
-
-  public function getSlot1() :int {
-    return slot1;
-  }
-
-  public function m() :int {
-    return getSlot1();
-  }
-
 }
 }

@@ -14,10 +14,13 @@
  */
 
 package error {
-  public class DuplicateSuperCall {
-    public function DuplicateSuperCall() {
-      super();
-      super();
-    }
-  }
+
+/**
+ * static members are not inherited
+ */
+public class StaticAccessSuperClass {
+
+  static public var s1 :String= "error.TestStaticAccessInSubClass.s1";
+
+}
 }

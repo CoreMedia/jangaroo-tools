@@ -14,62 +14,79 @@
  */
 
 package package2 {
+import package2.TestStaticAccess;
 
 public class TestStaticAccess {
 
-  static public var s1 :String= "s1";
-  static private var s2 :String = "s2";
+  static public var s1:String = "s1";
+  static private var s2:String = "s2";
 
-  static public function get_s1() :String {
+  static public function get_s1():String {
     return s1;
   }
 
-  static public function set_s1(_s1 :String) :void {
+  static public function set_s1(_s1:String):void {
     s1 = _s1;
   }
 
-  static public function get_s1_qualified() :String {
-    var s1 :String = "qualified error";
+  static public function get_s1_qualified():String {
+    var s1:String = "qualified error";
     return TestStaticAccess.s1;
   }
 
-  static public function set_s1_qualified(s1 :String) :void {
+  static public function set_s1_qualified(s1:String):void {
     TestStaticAccess.s1 = s1;
   }
 
-  static public function get_s1_fully_qualified() :String {
-    var s1 :String = "fully qualified error";
+  static public function get_s1_fully_qualified():String {
+    var s1:String = "fully qualified error";
     return package2.TestStaticAccess.s1;
   }
 
-  static public function set_s1_fully_qualified(s1 :String) :void {
+  static public function set_s1_fully_qualified(s1:String):void {
     package2.TestStaticAccess.s1 = s1;
   }
 
-  static public function get_s2() :String {
+  static public function get_s2():String {
     return s2;
   }
 
-  static public function set_s2(_s2 :String) :void {
+  static public function set_s2(_s2:String):void {
     s2 = _s2;
   }
 
-  static public function get_s2_qualified() :String {
-    var s2 :String = "qualified error";
+  static public function get_s2_qualified():String {
+    var s2:String = "qualified error";
     return TestStaticAccess.s2;
   }
 
-  static public function set_s2_qualified(s2 :String) :void {
+  static public function set_s2_qualified(s2:String):void {
     TestStaticAccess.s2 = s2;
   }
 
-  static public function get_s2_fully_qualified() :String {
-    var s2 :String = "fully qualified error";
+  static public function get_s2_fully_qualified():String {
+    var s2:String = "fully qualified error";
     return package2.TestStaticAccess.s2;
   }
 
-  static public function set_s2_fully_qualified(s2 :String) :void {
+  static public function set_s2_fully_qualified(s2:String):void {
     package2.TestStaticAccess.s2 = s2;
+  }
+
+  static private function get_s2_private():String {
+    return s2;
+  }
+
+  static public function get_s2_via_private_static_method():String {
+    return get_s2_private();
+  }
+
+  static public function get_s2_via_private_static_method_qualified():String {
+    return TestStaticAccess.get_s2_private();
+  }
+
+  static public function get_s2_via_private_static_method_full_qualified():String {
+    return package2.TestStaticAccess.get_s2_private();
   }
 
 }

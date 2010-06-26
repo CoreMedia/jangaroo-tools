@@ -15,18 +15,17 @@
 
 package error {
 
-public class UndefinedLabel {
+import error.StaticAccessSuperClass;
 
-  function undefinedLabel():void {
-    var i:int = 0;
-    label: {
-      i = 1;
-      break label;
-    }
-    if (true) {
-      break label;
-    }
+import package2.*;
+
+/**
+ * static members are not inherited
+ */
+public class TestStaticAccessInSubClass extends StaticAccessSuperClass {
+
+  {
+    var s:String = s1; // error: unresolved variable s1
   }
 }
-
 }

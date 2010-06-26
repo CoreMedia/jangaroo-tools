@@ -14,9 +14,10 @@
  */
 
 package error {
-  public class NestedSuperCall {
-    public function NestedSuperCall() {
-      if (true) {super();}
+  public class TestDuplicateSuperCall {
+    public function TestDuplicateSuperCall() {
+      super();
+      super();
     }
   }
 }

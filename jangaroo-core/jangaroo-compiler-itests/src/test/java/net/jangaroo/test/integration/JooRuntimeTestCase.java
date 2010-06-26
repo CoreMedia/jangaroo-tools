@@ -17,17 +17,12 @@ package net.jangaroo.test.integration;
 
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.test.JooTestCase;
-import org.mozilla.javascript.Context;
-import org.mozilla.javascript.ContextFactory;
-import org.mozilla.javascript.Function;
-import org.mozilla.javascript.Scriptable;
-import org.mozilla.javascript.ScriptableObject;
+import org.mozilla.javascript.*;
 
 import java.io.File;
 import java.io.FileReader;
 import java.io.Reader;
 import java.io.StringReader;
-import java.util.Arrays;
 
 /**
  * A JooTestCase to be executed at runtime
@@ -125,20 +120,10 @@ public abstract class JooRuntimeTestCase extends JooTestCase {
     }
 
     public Object eval(Context cx, String script) throws Exception {
-      System.out.print("evaluating script '" + script + "': ");
+      //System.out.print("evaluating script '" + script + "': ");
       Reader reader = new StringReader(script);
-      try {
-        Object result = cx.evaluateReader(this, reader, "", 1, null);
-        // Convert the result to a string and print it.
-        printJsResult(result);
-        return result;
-      } catch (Exception e) {
-        System.out.println("failed: Exception " + e.getClass().getName() + ": " + e.getMessage());
-        throw e;
-      } catch (Error e) {
-        System.out.println("failed: Error " + e.getClass().getName() + ": " + e.getMessage());
-        throw e;
-      }
+      Object result = cx.evaluateReader(this, reader, "", 1, null);
+      return result;
     }
   }
 
@@ -171,6 +156,23 @@ public abstract class JooRuntimeTestCase extends JooTestCase {
 
   protected Object load(File jsFile) throws Exception {
     return global.load(cx, jsFile);
+  }
+
+  protected Object loadAll() throws Exception {
+    return loadAll(new File(global.getJsDir()));
+  }
+
+  protected Object loadAll(final File dir) throws Exception {
+    File[] files = dir.listFiles();
+    Object lastResult = null;
+    for (File file :files) {
+      if (file.isDirectory()) {
+        lastResult = loadAll(file);
+      } else if (file.getName().endsWith(".js")) {
+        lastResult = load(file);
+      }
+    }
+    return lastResult;
   }
 
   protected void loadClass(String qualifiedJooClassName) throws Exception {
@@ -221,7 +223,7 @@ public abstract class JooRuntimeTestCase extends JooTestCase {
       actual = (String) result;
     else fail("expected string result, found: " + result.getClass().getName());
     if (!actual.contains(expected)) {
-      fail("expected substring '" + expected + "' not found within: '" + result + "'");
+      fail("expected substring '" + expected + "' not found within: " + unparse(result));
     }
   }
 
@@ -230,7 +232,7 @@ public abstract class JooRuntimeTestCase extends JooTestCase {
     double actual = 0;
     if (result instanceof Number)
       actual = ((Number) result).doubleValue();
-    else fail("expected numeric result, found: " + result.getClass().getName());
+    else fail("expected numeric result, found: " + result.getClass().getName() + ": " + unparse(result));
     assertEquals(expected, actual, 0.00000000001);
   }
 
@@ -241,6 +243,22 @@ public abstract class JooRuntimeTestCase extends JooTestCase {
       actual = (Boolean) result;
     else fail("expected boolean result, found: " + result.getClass().getName());
     assertEquals(expected, actual);
+  }
+
+  protected void expectException(String script) throws Exception {
+    try {
+      Object result = eval(script);
+      fail("expected exception, but got regular result: " + unparse(result));
+    } catch (Exception e) {
+      // ok
+    }
+  }
+
+  private String unparse(final Object result) {
+    if (result instanceof String) {
+      return "'" + result + "'";
+    }
+    return result.toString();
   }
 
   public void testRhino() throws Exception {

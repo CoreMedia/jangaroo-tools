@@ -13,27 +13,18 @@
  * governing permissions and limitations under the License.
  */
 
-package package1 {
+package error {
+import package2.TestStaticAccess;
 
-public class TestInheritanceSuperClass {
+/**
+ * static members are not accessible via instances
+ * we still don't check this in Jooc so this class is not yet named TestStaticAccessViaInstance
+ */
+public class /*Test*/ StaticAccessViaInstance {
 
-  public function TestInheritanceSuperClass(value :int) {
-    slot1 = value;
+  {
+    var t:TestStaticAccess = new TestStaticAccess();
+    var s:String = t.get_s1(); // error: unresolved function or method s
   }
-
-  public var slot1 :int;
-
-  public function setSlot1(value :int) :void {
-    slot1 = value;
-  }
-
-  public function getSlot1() :int {
-    return slot1;
-  }
-
-  public function m() :int {
-    return getSlot1();
-  }
-
 }
 }

@@ -13,27 +13,10 @@
  * governing permissions and limitations under the License.
  */
 
-package package1 {
+package error {
 
-public class TestInheritanceSuperClass {
-
-  public function TestInheritanceSuperClass(value :int) {
-    slot1 = value;
-  }
-
-  public var slot1 :int;
-
-  public function setSlot1(value :int) :void {
-    slot1 = value;
-  }
-
-  public function getSlot1() :int {
-    return slot1;
-  }
-
-  public function m() :int {
-    return getSlot1();
-  }
+public class TestUndefinedSuper extends SomeSuperClassWhichDoestNotExist {
 
 }
+
 }

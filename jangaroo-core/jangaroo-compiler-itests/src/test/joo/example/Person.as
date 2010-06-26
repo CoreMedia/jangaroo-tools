@@ -15,6 +15,8 @@
 
 package example {
 
+import joo.window;
+
 /**
  * This class models a person.
  */

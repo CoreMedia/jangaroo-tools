@@ -14,9 +14,9 @@
  */
 
 package error {
-
-public class UndefinedSuper extends SomeSuperClassWhichDoestNotExist {
-
-}
-
+  public class TestConfusingLabel {
+    public function fun() {
+      x :String = "x";
+    }
+  }
 }

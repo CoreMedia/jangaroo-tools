@@ -21,16 +21,17 @@ import net.jangaroo.jooc.Jooc;
 import java.io.File;
 
 /**
- * Test that all .as files in the error directory produce compiler errors.
+ * Test that all Test*.as files in the error directory and subdirectories produce compiler errors.
  */
 public class TestSyntaxErrors extends JooTestCase {
+
   private static final String ERROR_PACKAGE_PATH = "error";
 
   /**
    * The number of erroneous .as files. Increase whenever you add a new error file.
    * Specifying this number makes sure that no files are accidentially forgotten.
    */
-  private static int ERROR_FILE_COUNT = 8;
+  private static int ERROR_FILE_COUNT = 10;
 
   public TestSyntaxErrors(String name) {
     super(name);
@@ -45,18 +46,21 @@ public class TestSyntaxErrors extends JooTestCase {
 
   private int checkAllErrorClasses(File baseDir, String baseDirName) {
     File[] files = baseDir.listFiles();
-    int result = 0;
+    int total = 0;
     for (int i = 0; i < files.length; i++) {
       File file = files[i];
       if (file.isDirectory()) {
-        result += checkAllErrorClasses(file, baseDirName + "/" + file.getName());
-      } else if (file.getName().endsWith(".as")) {
+        checkAllErrorClasses(file, baseDirName + "/" + file.getName());
+      } else if (file.getName().startsWith("Test") && file.getName().endsWith(".as")) {
         int resultCode = runJooc(baseDirName + "/" + file.getName());
-        assertEquals(Jooc.RESULT_CODE_COMPILATION_FAILED, resultCode);
-        result++;
+        if (resultCode == Jooc.RESULT_CODE_COMPILATION_FAILED) {
+          total++;
+        } else {
+          fail("expected compilation failure for " + file.getAbsolutePath() + " but got " + resultCode);
+        }
       }
     }
-    return result;
+    return total;
   }
 }
 

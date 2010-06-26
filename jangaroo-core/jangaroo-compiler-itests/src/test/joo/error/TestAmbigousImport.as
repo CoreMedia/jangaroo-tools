@@ -4,8 +4,8 @@ package error {
 import package1.*;
 import package3.ClassToImport;
 
-public class AmbigousImport {
-  public function AmbigousImport() {
+public class TestAmbigousImport {
+  public function TestAmbigousImport() {
   }
 
 

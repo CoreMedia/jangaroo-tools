@@ -25,18 +25,47 @@ import java.io.File;
 
 public class JooTest extends JooRuntimeTestCase {
 
-  public JooTest(String name) {
+  public JooTest(String name) throws Exception {
     super(name);
   }
 
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+  }
 
-  public void testIdentityMethod() throws Exception {
+  public void testMethodCall() throws Exception {
     loadClass("package1.TestMethodCall");
     complete();
     initClass("package1.TestMethodCall");
     expectNumber(43, "package1.TestMethodCall.s(43)");
     eval("obj = new package1.TestMethodCall();");
+    eval("t = new package1.TestMethodCall();");
     expectNumber(43, "obj.m(43)");
+    expectNumber(43, "obj.callm(43, t)");
+    expectNumber(43, "obj.callmViaThis(43, t)");
+    expectNumber(43, "obj.callmViaObject(43, t)");
+    expectNumber(43, "obj.callmViaVar(43, t)");
+    expectNumber(43, "obj.callmViaField(43, t)");
+    expectNumber(43, "obj.callmViaThisDotField(43, t)");
+
+    //expectException( "obj.prot(43)");
+    expectNumber(44, "obj.prot(43)");
+    expectNumber(44, "obj.callProt(43, t)");
+    expectNumber(44, "obj.callProtViaThis(43, t)");
+    //expectException( "obj.callProtViaObject(43, t)");
+    expectNumber(44, "obj.callProtViaObject(43, t)");
+    expectNumber(44, "obj.callProtViaVar(43, t)");
+    expectNumber(44, "obj.callProtViaField(43, t)");
+    expectNumber(44, "obj.callProtViaThisDotField(43, t)");
+
+    expectException( "obj.priv(43)");
+    expectNumber(45, "obj.callPriv(43, t)");
+    expectNumber(45, "obj.callPrivViaThis(43, t)");
+    expectException( "obj.callPrivViaObject(43, t)");
+    expectNumber(45, "obj.callPrivViaVar(43, t)");
+    expectNumber(45, "obj.callPrivViaField(43, t)");
+    expectNumber(45, "obj.callPrivViaThisDotField(43, t)");
   }
 
   public void testAssert() throws Exception {
@@ -118,6 +147,27 @@ public class JooTest extends JooRuntimeTestCase {
     eval("package2.TestStaticAccess.set_s2_fully_qualified('s2_mod4');");
     expectGetAndGetQualified("s2", false, "s2_mod4");
 
+    expectString("s2_mod4", "package2.TestStaticAccess.get_s2_via_private_static_method()");
+    expectString("s2_mod4", "package2.TestStaticAccess.get_s2_via_private_static_method_qualified()");
+    expectString("s2_mod4", "package2.TestStaticAccess.get_s2_via_private_static_method_full_qualified()");
+  }
+
+  public void testStaticAccess2() throws Exception {
+    loadClass("package2.TestStaticAccess2");
+    complete();
+    initClass("package2.TestStaticAccess2");
+    eval("package2.TestStaticAccess.s1='s1_mod1';");
+    expectGetAndGetQualified("s1", true, "s1_mod1");
+    eval("package2.TestStaticAccess2.set_s1_qualified('s1_mod3');");
+    expectGetAndGetQualified("s1", true, "s1_mod3");
+    eval("package2.TestStaticAccess2.set_s1_fully_qualified('s1_mod4');");
+    expectGetAndGetQualified("s1", true, "s1_mod4");
+
+    eval("package2.TestStaticAccess2.set_s2_qualified('s2_mod3');");
+    expectGetAndGetQualified2("s2", "s2_mod3");
+    eval("package2.TestStaticAccess2.set_s2_fully_qualified('s2_mod4');");
+    expectGetAndGetQualified2("s2", "s2_mod4");
+
     // TODO: test that static members are *not* inherited.
   }
 
@@ -140,6 +190,11 @@ public class JooTest extends JooRuntimeTestCase {
     expectString(expected, "package2.TestStaticAccess.get_"+memberName+"()");
     expectString(expected, "package2.TestStaticAccess.get_"+memberName+"_qualified()");
     expectString(expected, "package2.TestStaticAccess.get_"+memberName+"_fully_qualified()");
+  }
+
+  private void expectGetAndGetQualified2(String memberName, String expected) throws Exception {
+    expectString(expected, "package2.TestStaticAccess2.get_"+memberName+"_qualified()");
+    expectString(expected, "package2.TestStaticAccess2.get_"+memberName+"_fully_qualified()");
   }
 
   public void testInternal() throws Exception {
@@ -338,8 +393,8 @@ public class JooTest extends JooRuntimeTestCase {
 
     expectString("foo/bar/baz", "obj.initParams2('foo','bar','baz')");
     expectString("foo/bar/3", "obj.initParams2('foo','bar')");
-    expectString("foo/foo/3", "obj.initParams2('foo')");
-    expectString("bar/bar/3", "obj.initParams2()");
+    expectString("foo/b/3", "obj.initParams2('foo')");
+    expectString("bar/b/3", "obj.initParams2()");
 
     expectString("foo/bar/3", "obj.initParams3('foo','bar','a',2,true)");
     expectString("foo/bar/0", "obj.initParams3('foo','bar')");

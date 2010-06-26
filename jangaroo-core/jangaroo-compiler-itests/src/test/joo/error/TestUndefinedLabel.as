@@ -13,27 +13,20 @@
  * governing permissions and limitations under the License.
  */
 
-package package1 {
+package error {
 
-public class TestInheritanceSuperClass {
+public class TestUndefinedLabel {
 
-  public function TestInheritanceSuperClass(value :int) {
-    slot1 = value;
+  function undefinedLabel():void {
+    var i:int = 0;
+    label: {
+      i = 1;
+      break label;
+    }
+    if (true) {
+      break label;
+    }
   }
-
-  public var slot1 :int;
-
-  public function setSlot1(value :int) :void {
-    slot1 = value;
-  }
-
-  public function getSlot1() :int {
-    return slot1;
-  }
-
-  public function m() :int {
-    return getSlot1();
-  }
-
 }
+
 }
