@@ -1,0 +1,1 @@
+joo.window = window;

@@ -63,7 +63,8 @@ Function.prototype.bind = function(object) {
           $extends = "Object";
         }
         publicConstructor.prototype[$extends] = superConstructor;
-        var members = memberFactory(publicConstructor, {$super: $extends});
+        var privateStatics = {$super: $extends};
+        var members = memberFactory(publicConstructor, privateStatics);
         var staticInitializer;
         for (var i = 0; i < members.length; ++i) {
           var memberDeclaration = members[i];
@@ -71,7 +72,8 @@ Function.prototype.bind = function(object) {
             case "function": staticInitializer = memberDeclaration; break;
             case "string":
               var isStatic = memberDeclaration.match(/\bstatic\b/);
-              var target = isStatic ? publicConstructor : publicConstructor.prototype;
+              var isPrivate = memberDeclaration.match(/\bprivate\b/);
+              var target = isStatic ? isPrivate ? privateStatics : publicConstructor : publicConstructor.prototype;
               var member = members[++i];
               if (typeof member == "function") {
                 var methodName = memberDeclaration.match(/function\s+([a-zA-Z$_0-9]+)/)[1];

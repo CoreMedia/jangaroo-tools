@@ -77,8 +77,8 @@ public class SystemClassLoader {
     return new NativeClassDeclaration().create(fullClassName, nativeClass);
   }
 
-   public function init(... classes) :void {
-        // ignore
+   public function init(... classes) :Function {
+     return null;
    }
 }
 }
