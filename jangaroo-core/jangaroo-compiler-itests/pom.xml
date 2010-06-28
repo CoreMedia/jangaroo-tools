@@ -82,7 +82,9 @@
 
 
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.4</version>
         <executions>
           <execution>
             <goals>
@@ -112,11 +114,14 @@
                   <src path="${basedir}/src/test/joo-api"  />
                 </jooc>
 
-                <!--${net.jangaroo:jangaroo-runtime:jangaroo}??-->
+                <property name="jangaroo-runtime.jar" value="${net.jangaroo:jangaroo-runtime:jangaroo}"/>
                 <property name="destdir" value="target/temp/scripts"/>
+
                 <mkdir dir="${destdir}/META-INF/joo-api" />
+
+                <echo message="jangaroo-runtime.jar path is ${jangaroo-runtime.jar}"/>
                 <jooc destdir="${destdir}" failonerror="true" debug="true" verbose="true" enableassertions="true"
-                      classpath="${basedir}/../jangaroo-runtime/target/jangaroo-runtime.jar;${joo-api.jar}"
+                      classpath="${jangaroo-runtime.jar};${joo-api.jar}"
                       apidestdir="${destdir}/META-INF/joo-api">
                   <include name="**/*.as" />
                   <exclude name="error/**/*.as" />
