@@ -85,6 +85,7 @@
                 <concat destfile="target/scripts/jangaroo-runtime.js">
                   <filelist dir="src/main/joo-js/scripts/classes">
                     <file name="joo/BootstrapClassLoader.js" />
+                    <file name="joo/window.js"/>
                     <file name="joo/assert.js" />
                     <file name="joo/Class.js" />
                     <file name="joo/trace.js" />
