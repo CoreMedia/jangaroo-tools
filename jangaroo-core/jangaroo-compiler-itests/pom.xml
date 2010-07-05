@@ -121,7 +121,7 @@
 
                 <echo message="jangaroo-runtime.jar path is ${jangaroo-runtime.jar}"/>
                 <jooc destdir="${destdir}" failonerror="true" debug="true" verbose="true" enableassertions="true"
-                      classpath="${jangaroo-runtime.jar};${joo-api.jar}"
+                      classpath="${jangaroo-runtime.jar}${path.separator}${joo-api.jar}"
                       apidestdir="${destdir}/META-INF/joo-api">
                   <include name="**/*.as" />
                   <exclude name="error/**/*.as" />
