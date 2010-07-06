@@ -263,6 +263,7 @@ public class Ide extends NodeImplBase {
         exprParent instanceof CommaSeparatedList ||
         exprParent instanceof Initializer ||
         exprParent instanceof AsExpr ||
+        exprParent instanceof ObjectField ||
         (exprParent instanceof AssignmentOpExpr && ((AssignmentOpExpr) exprParent).arg2 == parentExpr));
   }
 
