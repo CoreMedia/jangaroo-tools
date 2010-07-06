@@ -56,7 +56,7 @@ Function.prototype.bind = function(object) {
         };
         var superConstructor;
         if ($extends) {
-          superConstructor = joo[$extends];
+          superConstructor = joo.getQualifiedObject($extends);
           publicConstructor.prototype = clone(superConstructor.prototype);
         } else {
           superConstructor = Object;

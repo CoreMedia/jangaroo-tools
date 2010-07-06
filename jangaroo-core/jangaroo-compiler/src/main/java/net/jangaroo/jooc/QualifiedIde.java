@@ -140,7 +140,7 @@ public class QualifiedIde extends Ide {
   }
 
   @Override
-  protected void generateCodeAsExpr(final Expr parentExpr, final JsWriter out) throws IOException {
+  protected void generateCodeAsExpr(final JsWriter out) throws IOException {
     boolean commentOutQualifierCode = false;
     IdeDeclaration memberDeclaration = null;
     final IdeDeclaration qualifierDeclaration = qualifier.getDeclaration(false);
@@ -156,7 +156,7 @@ public class QualifiedIde extends Ide {
       // we will generate another qualifier in writeMemberAccess
       out.beginComment();
     }
-    qualifier.generateCodeAsExpr(parentExpr, out);
+    qualifier.generateCodeAsExpr(out);
     if (commentOutQualifierCode) {
       out.endComment();
     }

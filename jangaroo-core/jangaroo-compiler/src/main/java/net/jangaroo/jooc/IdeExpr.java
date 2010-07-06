@@ -51,7 +51,7 @@ class IdeExpr extends Expr {
   }
 
   protected void generateJsCode(JsWriter out) throws IOException {
-    ide.generateCodeAsExpr(this, out);
+    ide.generateCodeAsExpr(out);
   }
 
   public JooSymbol getSymbol() {

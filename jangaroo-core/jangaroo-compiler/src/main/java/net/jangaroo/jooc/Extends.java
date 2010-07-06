@@ -48,7 +48,7 @@ public class Extends extends NodeImplBase {
 
   protected void generateJsCode(JsWriter out) throws IOException {
     out.writeSymbol(symExtends);
-    superClass.generateCode(out);
+    superClass.generateCodeAsExpr(out);
   }
 
   public JooSymbol getSymbol() {
