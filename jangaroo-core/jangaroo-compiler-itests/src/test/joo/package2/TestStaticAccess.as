@@ -21,6 +21,9 @@ public class TestStaticAccess {
   static public var s1:String = "s1";
   static private var s2:String = "s2";
 
+  public function TestStaticAccess() {
+  }
+
   static public function get_s1():String {
     return s1;
   }
