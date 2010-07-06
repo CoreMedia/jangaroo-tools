@@ -41,6 +41,10 @@ public class TestBind {
     return state;
   }
 
+  public function getState5() : String {
+    return state;
+  }
+
   // will be auto-bound!
   private function getStatePrivate() : String {
     return state;
@@ -62,6 +66,13 @@ public class TestBind {
 
   public function testInvokeParameterUnqualified() : String {
     return invoke(getState4);
+  }
+
+  public function testInvokeObjectField() : String {
+    var o:* = {
+      getState5: getState5
+    };
+    return invoke(o.getState5);
   }
 
   public function testInvokeParameterUnqualifiedPrivate() : String {

@@ -469,6 +469,7 @@ public class JooTest extends JooRuntimeTestCase {
     expectString("foo", "obj.testInvokeParameter()");
     expectString("foo", "obj.testInvokeParameterUnqualified()");
     expectString("foo", "obj.testInvokeParameterUnqualifiedPrivate()");
+    expectString("foo", "obj.testInvokeObjectField()");
     expectString("foo", "obj.testLocalFunction()");
     expectString("foo", "obj.testLocalFunctionUnqualified()");
     expectString("bar", "obj.testNotBound.call({getState: function(){return 'bar';}})");
