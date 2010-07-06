@@ -143,7 +143,10 @@ public class QualifiedIde extends Ide {
   protected void generateCodeAsExpr(final JsWriter out) throws IOException {
     boolean commentOutQualifierCode = false;
     IdeDeclaration memberDeclaration = null;
-    final IdeDeclaration qualifierDeclaration = qualifier.getDeclaration(false);
+    IdeDeclaration qualifierDeclaration = qualifier.getDeclaration(false);
+    if (qualifierDeclaration != null && qualifierDeclaration.isConstructor()) {
+      qualifierDeclaration = qualifierDeclaration.getClassDeclaration();
+    }
     if (qualifierDeclaration != null && qualifierDeclaration.equals(getScope().getClassDeclaration())) {
       memberDeclaration  = ((ClassDeclaration)qualifierDeclaration).getStaticMemberDeclaration(this.getName());
       commentOutQualifierCode = memberDeclaration  != null && memberDeclaration.isPrivateStatic();
