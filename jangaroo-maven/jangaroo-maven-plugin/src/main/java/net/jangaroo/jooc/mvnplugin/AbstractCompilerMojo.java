@@ -149,7 +149,6 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
     configuration.setSourceFiles(new ArrayList<File>(sources));
     configuration.setSourcePath(getCompileSourceRoots());
     configuration.setClassPath(getActionScriptClassPath());
-    configuration.setVerbose(true); //todo remove after debuggin jooc
     configuration.setOutputDirectory(getOutputDirectory());
     configuration.setApiOutputDirectory(getApiOutputDirectory());
 
