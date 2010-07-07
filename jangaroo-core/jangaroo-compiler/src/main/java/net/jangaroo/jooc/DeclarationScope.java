@@ -129,10 +129,6 @@ class DeclarationScope extends ScopeImplBase implements Scope {
         decl = getClassDeclaration().resolvePropertyDeclaration(ide.getName());
       }
     }
-    //todo move these into Object or * type declaration
-    if (decl == null && ("prototype".equals(ide.getName()) || "constructor".equals(ide.getName()))) {
-      decl = new FieldDeclaration(new JooSymbol[0], null, new Ide(ide.getName()), null, null, null, null);
-    }
     return decl != null ? decl : super.lookupDeclaration(ide);
   }
 

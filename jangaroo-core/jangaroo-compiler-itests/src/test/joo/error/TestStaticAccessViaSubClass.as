@@ -15,7 +15,7 @@
 
 package error {
 
-import error.StaticAccessSuperClass;
+import package2.StaticAccessSuperClass;
 
 import package2.*;
 

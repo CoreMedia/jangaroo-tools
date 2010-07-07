@@ -14,9 +14,8 @@
  */
 
 package package2 {
-import package2.TestStaticAccess;
 
-public class TestStaticAccess {
+public class TestStaticAccess extends StaticAccessSuperClass {
 
   static public var s1:String = "s1";
   static private var s2:String = "s2";
@@ -24,10 +23,36 @@ public class TestStaticAccess {
   public function TestStaticAccess() {
   }
 
-  static public function get_s1():String {
-    return s1;
+  static public function get_s0():String {
+      return s0;
+    }
+ 
+  static public function set_s0(_s0:String):void {
+    s0 = _s0;
   }
 
+  static public function get_s0_qualified():String {
+    var s0:String = "qualified error";
+    return StaticAccessSuperClass.s0;
+  }
+
+  static public function set_s0_qualified(s0:String):void {
+    StaticAccessSuperClass.s0 = s0;
+  }
+
+  static public function get_s0_fully_qualified():String {
+    var s0:String = "fully qualified error";
+    return package2.StaticAccessSuperClass.s0;
+  }
+
+  static public function set_s0_fully_qualified(s0:String):void {
+    package2.StaticAccessSuperClass.s0 = s0;
+  }
+
+  static public function get_s1():String {
+      return s1;
+    }
+  
   static public function set_s1(_s1:String):void {
     s1 = _s1;
   }

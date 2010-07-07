@@ -128,8 +128,18 @@ public class JooTest extends JooRuntimeTestCase {
     loadClass("package2.TestStaticAccess");
     complete();
     initClass("package2.TestStaticAccess");
+    expectGetAndGetQualified("s0", false, "s0");
     expectGetAndGetQualified("s1", true, "s1");
     expectGetAndGetQualified("s2", false, "s2");
+
+    eval("package2.StaticAccessSuperClass.s0='s0_mod1';");
+    expectGetAndGetQualified("s0", false, "s0_mod1");
+    eval("package2.TestStaticAccess.set_s0('s0_mod2');");
+    expectGetAndGetQualified("s0", false, "s0_mod2");
+    eval("package2.TestStaticAccess.set_s0_qualified('s0_mod3');");
+    expectGetAndGetQualified("s0", false, "s0_mod3");
+    eval("package2.TestStaticAccess.set_s0_fully_qualified('s0_mod4');");
+    expectGetAndGetQualified("s0", false, "s0_mod4");
 
     eval("package2.TestStaticAccess.s1='s1_mod1';");
     expectGetAndGetQualified("s1", true, "s1_mod1");

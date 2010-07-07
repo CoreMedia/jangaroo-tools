@@ -276,7 +276,6 @@ public class Ide extends NodeImplBase {
     if (!isThis()) { // shortcut optimization, general case below should generate same code
       IdeDeclaration decl = getDeclaration(false);
       if (decl != null) {
-        // todo private static methods are not private yet
         if (decl.isClassMember()) {
           if (decl.isStatic() && !decl.isPrivateStatic()) {
             out.writeToken(decl.getClassDeclaration().getQualifiedNameStr());

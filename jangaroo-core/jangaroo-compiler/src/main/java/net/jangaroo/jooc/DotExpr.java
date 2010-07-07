@@ -45,11 +45,11 @@ class DotExpr extends PostfixOpExpr {
     super.analyze(parentNode, context);
     IdeDeclaration qualiferType = arg.getType();
     if (qualiferType != null) {
-      setType(arg.getType().resolvePropertyDeclaration(ide.getName()));
-    }
-    if (arg.getType() != null) {
       IdeDeclaration memberDeclaration = arg.getType().resolvePropertyDeclaration(ide.getName());
-      assert memberDeclaration == null || !memberDeclaration.isStatic();
+      if (memberDeclaration != null && memberDeclaration.isStatic()) {
+        throw Jooc.error(ide.ide, "static member used in dynamic context");
+      }
+      setType(memberDeclaration);
     }
 
     return this;

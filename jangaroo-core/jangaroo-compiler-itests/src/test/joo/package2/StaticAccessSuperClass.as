@@ -13,19 +13,14 @@
  * governing permissions and limitations under the License.
  */
 
-package error {
-
-import error.StaticAccessSuperClass;
-
-import package2.*;
+package package2 {
 
 /**
  * static members are not inherited
  */
-public class TestStaticAccessInSubClass extends StaticAccessSuperClass {
+public class StaticAccessSuperClass {
 
-  {
-    var s:String = s1; // error: unresolved variable s1
-  }
+  static public var s0 :String= "s0";
+
 }
 }

@@ -41,7 +41,7 @@ public class MemberDeclaration {
 
 {
   // no static initializers in system classes, use static block:
-  SUPPORTS_GETTERS_SETTERS = "__defineGetter__" in Object.prototype;
+  SUPPORTS_GETTERS_SETTERS = "__defineGetter__" in Object['prototype'];
   DEFINE_METHOD = {
     "get":  "__defineGetter__",
     "set": "__defineSetter__"
@@ -173,7 +173,7 @@ public class MemberDeclaration {
     var value : * = this.retrieveMember(target);
     if (value!==undefined && target.constructor) {
       // is it really target's own member? Retrieve super's value:
-      var superTarget : Object = target.constructor.prototype;
+      var superTarget : Function = target.constructor.prototype as Function;
       var superValue : * = this.retrieveMember(superTarget);
       if (value!==superValue) {
         return true;

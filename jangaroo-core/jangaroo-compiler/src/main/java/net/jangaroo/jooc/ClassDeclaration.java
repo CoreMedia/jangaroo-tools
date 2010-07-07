@@ -273,6 +273,9 @@ public class ClassDeclaration extends IdeDeclaration {
     final int chainSize = chain.size();
     chain.add(classDecl);
     IdeDeclaration declaration = classDecl.getMemberDeclaration(ide);
+    if (declaration == null) {
+      declaration = classDecl.getStaticMemberDeclaration(ide);
+    }
     if (declaration == null && classDecl.optExtends != null) {
       declaration = resolvePropertyInSuper(ide, classDecl, visited, chain, classDecl.optExtends.superClass);
     }

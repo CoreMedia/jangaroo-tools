@@ -22,6 +22,25 @@ package {
  */
 public dynamic class Class {
 
+  /**
+    * A reference to the prototype object of a class or function object. The prototype property is automatically created
+    * and attached to any class or function object that you create. If you create a class, the value of the prototype property is
+    * shared by all instances of the class and is accessible only as a class property. Instances of your class cannot
+    * directly access the prototype property
+    * <p>A class's prototype object is a special instance of that class that provides a mechanism for sharing state
+    * across all instances of a class. At run time, when a property is not found on a class instance, the delegate,
+    * which is the class prototype object, is checked for that property. If the prototype object does not contain the
+    * property, the process continues with the prototype object's delegate checking in consecutively higher levels in
+    * the hierarchy until Flash Player or the Adobe Integrated Runtime finds the property.
+    * <p>Note: In ActionScript 3.0, prototype inheritance is not the primary mechanism for inheritance. Class
+    * inheritance, which drives the inheritance of fixed properties in class definitions, is the primary inheritance
+    * mechanism in ActionScript 3.0.
+    * @return Object A reference to the prototype object of a class or function object.
+    */
+   public native function get prototype() : Object;
+
+   public native function set prototype(o:Object):void;
+  
 }
 
 }
