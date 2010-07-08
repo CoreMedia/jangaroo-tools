@@ -119,7 +119,7 @@ public class Jooc {
   private int run1(JoocConfiguration config) {
     logHolder.set(log);
     this.config = config;
-    buildGlogalScope();
+    buildGlobalScope();
     for (File sourceDir : config.getSourcePath()) {
       try {
         canoncicalSourcePath.add(sourceDir.getCanonicalFile());
@@ -148,14 +148,14 @@ public class Jooc {
         }
       }
     } catch (IOException e) {
-      throw new CompilerError("IO Exception occured", e);
+      throw new CompilerError("IO Exception occurred", e);
     }
     int result = log.hasErrors() ? 1 : 0;
     logHolder.remove();
     return result;
   }
 
-  private void buildGlogalScope() {
+  private void buildGlobalScope() {
     //todo declare this depending on context
     declareValues(globalScope, new String[]{
       "this"});
