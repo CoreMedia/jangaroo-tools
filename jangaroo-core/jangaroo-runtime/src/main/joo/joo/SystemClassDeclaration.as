@@ -222,7 +222,7 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
       }
       var overrides : Boolean = !!superMethod
         && superMethod!==member
-        && superMethod!==Object.prototype[memberDeclaration.memberName];
+        && superMethod!==Object['prototype'][memberDeclaration.memberName];
       if (overrides !== memberDeclaration.isOverride()) {
         var msg : String = overrides
                 ? "Method overrides without 'override' modifier"
