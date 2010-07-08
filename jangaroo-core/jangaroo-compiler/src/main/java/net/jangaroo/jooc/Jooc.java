@@ -171,7 +171,7 @@ public class Jooc {
     for (String identifier : identifiers) {
       Ide ide = new Ide(new JooSymbol(identifier));
       IdeDeclaration decl = new ClassDeclaration(new JooSymbol[0], new JooSymbol("class"), ide, null, null,
-        new ClassBody(null, Collections.EMPTY_LIST, null));
+        new ClassBody(null, Collections.<AstNode>emptyList(), null));
       decl.scope(scope);
     }
   }
