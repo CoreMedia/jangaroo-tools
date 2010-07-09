@@ -236,7 +236,8 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
       }
 
       @SuppressWarnings({"unchecked"})
-      List<File> files = FileUtils.getFiles(tempOutputDir, "**/*.js", "");
+      // resource bundle classes should always be loaded dynamically:
+      List<File> files = FileUtils.getFiles(tempOutputDir, "**/*.js", "**/*_properties*.js");
       // We should now have all the files we want to concat so let's do it.
       Writer fos = new OutputStreamWriter(new FileOutputStream(outputFile), "UTF-8");
       int tempOutputDirPathLength = tempOutputDir.getAbsolutePath().length() + 1;
