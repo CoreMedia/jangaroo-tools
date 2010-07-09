@@ -17,8 +17,6 @@
 
 package joo {
 
-import joo.*;
-
 public class ResourceBundleAwareClassLoader extends joo.DynamicClassLoader {
 
   private static const RESOURCE_BUNDLE_PATTERN:RegExp = /_properties$/;
@@ -26,7 +24,7 @@ public class ResourceBundleAwareClassLoader extends joo.DynamicClassLoader {
   public var supportedLocales:Array;
   public var localeCookieName:String;
 
-  public function ResourceBundleAwareClassLoader(supportedLocales:Array = ["en"], localeCookieName:String = "locale") {
+  public function ResourceBundleAwareClassLoader(supportedLocales:Array = ["en"], localeCookieName:String = "joo.locale") {
     var debug:Boolean = classLoader.debug;
     var urlPrefix:String = (classLoader as DynamicClassLoader).urlPrefix;
     super();
@@ -42,8 +40,12 @@ public class ResourceBundleAwareClassLoader extends joo.DynamicClassLoader {
 
   }
 
-  private function loadCookie():String {
-    var cookieKey : String = localeCookieName.replace(/([.*+?^${}()|[\]\/\\])/g, "\\$1");
+  private function escape(s:String):String {
+    return s.replace(/([.*+?^${}()|[\]\/\\])/g, "\\$1");
+  }
+
+  private function readLocaleFromCookie():String {
+    var cookieKey : String = escape(localeCookieName);
     var match : Array = window.document.cookie.match("(?:^|;)\\s*" + cookieKey + "=([^;]*)");
     return match ? decodeURIComponent(match[1]) : null;
   }
@@ -51,7 +53,7 @@ public class ResourceBundleAwareClassLoader extends joo.DynamicClassLoader {
 
   public function getCurrentLocale():String {
 
-    var userLocale:String = loadCookie();
+    var userLocale:String = readLocaleFromCookie();
 
     if (!userLocale && window.navigator) {
       userLocale = window.navigator.language || window.navigator.browserLanguage || window.navigator.systemLanguage || window.navigator.userLanguage;
