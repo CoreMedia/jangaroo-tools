@@ -51,12 +51,15 @@ public class JangarooPackagingOutputElement extends PackagingElement<JangarooPac
         if (outputDirectory != null) {
           outputDirectory = outputDirectory.getParentFile(); // .
           if (outputDirectory != null && outputDirectory.exists()) {
-            VirtualFile outputRoot = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(outputDirectory);
-            assert outputRoot != null;
-            creator.addDirectoryCopyInstructions(outputRoot);
+            VirtualFile outputRoot = LocalFileSystem.getInstance().findFileByIoFile(outputDirectory);
+            if (outputRoot != null) {
+              creator.addDirectoryCopyInstructions(outputRoot);
+              return;
+            }
           }
         }
       }
+      JangarooCompiler.getLog().error("Output folder not available for Jangaroo output of module " + facet.getModule().getName() + ".");
     }
   }
 
