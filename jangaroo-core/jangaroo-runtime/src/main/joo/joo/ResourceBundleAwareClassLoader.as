@@ -19,10 +19,14 @@ package joo {
 
 public class ResourceBundleAwareClassLoader extends joo.DynamicClassLoader {
 
+  private static const DAYS_TILL_LOCALE_COOKIE_EXPIRY:int = 10*356;
+
   private static const RESOURCE_BUNDLE_PATTERN:RegExp = /_properties$/;
 
   public var supportedLocales:Array;
   public var localeCookieName:String;
+  public var localeCookiePath:String = window.location.pathname;
+  public var localeCookieDomain:String = null;
 
   public function ResourceBundleAwareClassLoader(supportedLocales:Array = ["en"], localeCookieName:String = "joo.locale") {
     var debug:Boolean = classLoader.debug;
@@ -50,9 +54,30 @@ public class ResourceBundleAwareClassLoader extends joo.DynamicClassLoader {
     return match ? decodeURIComponent(match[1]) : null;
   }
 
+  private function setCookie(name:String, value:String,
+                             path:String = null,
+                             expires:Date = null,
+                             domain:String = null,
+                             secure:Boolean = false):void {
+    window.document.cookie =
+            name + "=" + encodeURIComponent(value) +
+                    ((expires === null) ? "" : ("; expires=" + expires.toGMTString())) +
+                    ((path === null) ? "" : ("; path=" + path)) +
+                    ((domain === null) ? "" : ("; domain=" + domain)) +
+                    (secure ? "; secure" : "");
+  }
 
-  public function getCurrentLocale():String {
+  private function getLocaleCookieExpiry():Date {
+    var date:Date = new Date();
+    date.setTime(date.getTime() + (DAYS_TILL_LOCALE_COOKIE_EXPIRY * 24 * 60 * 60 * 1000));
+    return date;
+  }
 
+  public function setLocale(locale :String ):void {
+    setCookie(localeCookieName, locale, localeCookiePath, getLocaleCookieExpiry(), localeCookieDomain);
+  }
+
+  public function getLocale():String {
     var userLocale:String = readLocaleFromCookie();
 
     if (!userLocale && window.navigator) {
@@ -79,7 +104,7 @@ public class ResourceBundleAwareClassLoader extends joo.DynamicClassLoader {
   }
 
   private function getCurrentLocaleSuffix():String {
-    var locale:String = getCurrentLocale();
+    var locale:String = getLocale();
     //The default language "en" has no ending.
     return !locale || locale === "en"
       ? ""
