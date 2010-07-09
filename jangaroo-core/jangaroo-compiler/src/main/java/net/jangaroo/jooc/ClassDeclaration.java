@@ -163,10 +163,13 @@ public class ClassDeclaration extends IdeDeclaration {
 
     // define these here so they get the right scope:
     thisType = new IdeType(new Ide(getIde().getSymbol()));
-    superType = new IdeType(optExtends == null ? new Ide("Object") : optExtends.superClass);
+    superType = "Object".equals(getQualifiedNameStr()) ? null
+      : new IdeType(optExtends == null ? new Ide("Object") : optExtends.superClass);
 
     thisType.scope(scope);
-    superType.scope(scope);
+    if (superType != null) {
+      superType.scope(scope);
+    }
     if (optImplements != null) {
       optImplements.scope(scope);
     }
@@ -195,8 +198,7 @@ public class ClassDeclaration extends IdeDeclaration {
   }
 
   public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
-    // do *not* call super!
-    this.parentNode = parentNode;
+    super.analyze(parentNode, context);
     if (optExtends != null) {
       optExtends.analyze(this, context);
     }
@@ -235,9 +237,9 @@ public class ClassDeclaration extends IdeDeclaration {
   }
 
   public boolean isSubclassOf(final ClassDeclaration classDeclaration) {
-    return optExtends != null && (
-      optExtends.superClass.getDeclaration() == classDeclaration ||
-        ((ClassDeclaration) optExtends.superClass.getDeclaration()).isSubclassOf(classDeclaration));
+    ClassDeclaration superTypeDeclaration = getSuperTypeDeclaration();
+    return superTypeDeclaration != null &&
+      (superTypeDeclaration == classDeclaration || superTypeDeclaration.isSubclassOf(classDeclaration));
   }
 
   public Type getThisType() {
@@ -305,7 +307,7 @@ public class ClassDeclaration extends IdeDeclaration {
   }
 
 
-  public IdeDeclaration getSuperTypeDeclaration() {
-    return optExtends == null ? null : optExtends.superClass.getDeclaration();
+  public ClassDeclaration getSuperTypeDeclaration() {
+    return superType == null ? null : (ClassDeclaration)superType.ide.getDeclaration();
   }
 }

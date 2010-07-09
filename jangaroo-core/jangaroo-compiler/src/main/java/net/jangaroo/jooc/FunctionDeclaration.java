@@ -147,9 +147,12 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
           if (classDeclaration != null) { // otherwise we are in a global function - todo parse them as function declaration
             // declare this and super
             final Type thisType = currentClass.getThisType();
-            final Type superType = currentClass.getSuperType();
-            new Parameter(null, new Ide("super"), new TypeRelation(null, superType), null).scope(scope);
             new Parameter(null, new Ide("this"), new TypeRelation(null, thisType), null).scope(scope);
+
+            final Type superType = currentClass.getSuperType();
+            if (superType != null) {
+              new Parameter(null, new Ide("super"), new TypeRelation(null, superType), null).scope(scope);
+            }
           }
         }
         new Parameter(null, FunctionExpr.ARGUMENTS_IDE, null, null).scope(scope); // is always defined inside a method!
