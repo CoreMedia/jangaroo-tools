@@ -29,32 +29,16 @@ public class JoocConfigurationBean {
   public static final int DEBUG_LEVEL_LINES = 50;
   public static final int DEBUG_LEVEL_SOURCE = 100;
 
-  private static final String OUTPUT_FILE_NAME_DIR = "target/joo/scripts/classes";
-  private static final String DEFAULT_OUTPUT_FILE_NAME = "js-classes";
-  private static final String OUTPUT_FILE_NAME_EXTENSION = ".js";
-
   public int debugLevel = DEBUG_LEVEL_SOURCE;
   public boolean verbose = false;
   public boolean enableAssertions = true;
   public boolean allowDuplicateLocalVariables = false;
-  public boolean enableGuessingMembers = true, enableGuessingClasses = true, enableGuessingTypeCasts = false;
+  public String outputPrefix;
   public String outputDirectory = "target/joo/scripts/classes";
-  public boolean mergeOutput = false;
-  public String outputFileName = OUTPUT_FILE_NAME_DIR + DEFAULT_OUTPUT_FILE_NAME + OUTPUT_FILE_NAME_EXTENSION;
   public boolean showCompilerInfoMessages = false;
   public static final String IDEA_URL_PREFIX = "file://";
 
   public JoocConfigurationBean() {
-  }
-
-  public void init(String outputPrefix, String moduleName) {
-    if (outputPrefix!=null) {
-      outputDirectory = outputPrefix + "/" + outputDirectory;
-      if (moduleName==null) {
-        moduleName = DEFAULT_OUTPUT_FILE_NAME;
-      }
-      outputFileName = outputPrefix + "/" + OUTPUT_FILE_NAME_DIR + moduleName + OUTPUT_FILE_NAME_EXTENSION;
-    }
   }
 
   public boolean isDebug() {
@@ -70,11 +54,16 @@ public class JoocConfigurationBean {
   }
 
   public File getOutputDirectory() {
-    return new File(getPath(outputDirectory));
+    File outputDir = new File(getPath(outputDirectory));
+    if (!outputDir.isAbsolute() && outputPrefix != null && outputPrefix.length() > 0) {
+      outputDir = new File(outputPrefix + outputDir.getPath());
+    }
+    return outputDir;
   }
 
-  public String getOutputFileName() {
-    return getPath(outputFileName);
+  public File getApiOutputDirectory() {
+    // TODO: make configurable
+    return new File(getOutputDirectory(), "../../META-INF/joo-api");
   }
 
   @Override
@@ -90,8 +79,10 @@ public class JoocConfigurationBean {
       if (flags[i] != thatFlags[i])
         return false;
     }
-    return debugLevel==that.debugLevel && outputDirectory.equals(that.outputDirectory)
-      && outputFileName.equals(that.outputFileName) && showCompilerInfoMessages == that.showCompilerInfoMessages;
+    //noinspection StringEquality
+    return debugLevel==that.debugLevel
+      && (outputPrefix==null ? that.outputPrefix==null : outputPrefix.equals(that.outputPrefix))
+      && outputDirectory.equals(that.outputDirectory);
   }
 
   @Override
@@ -102,15 +93,12 @@ public class JoocConfigurationBean {
     }
     result = 31 * result + debugLevel;
     result = 31 * result + outputDirectory.hashCode();
-    result = 31 * result + outputFileName.hashCode();
-    result = 31 * result + (showCompilerInfoMessages ? 1 : 0);
     return result;
   }
 
   private boolean[] getFlags() {
     return new boolean[]{verbose, enableAssertions,
-      allowDuplicateLocalVariables, enableGuessingMembers, enableGuessingClasses, enableGuessingTypeCasts,
-      mergeOutput};
+      allowDuplicateLocalVariables, showCompilerInfoMessages};
   }
 
   public static String getPath(String ideaUrl) {

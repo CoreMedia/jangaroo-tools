@@ -21,6 +21,11 @@ import com.intellij.openapi.compiler.TranslatingCompiler;
 import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompilerMessageCategory;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.roots.LibraryOrderEntry;
+import com.intellij.openapi.roots.ModuleOrderEntry;
+import com.intellij.openapi.roots.ModuleSourceOrderEntry;
+import com.intellij.openapi.roots.OrderEntry;
+import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -49,7 +54,6 @@ public class JangarooCompiler implements TranslatingCompiler {
   }
 
   public boolean validateConfiguration(CompileScope scope) {
-    // TODO: what to check beforehand?
     return true;
   }
 
@@ -64,11 +68,6 @@ public class JangarooCompiler implements TranslatingCompiler {
     JoocConfiguration joocConfig = getJoocConfiguration(module, files);
     OutputSinkItem outputSinkItem = null;
     if (joocConfig!=null) {
-      ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
-      VirtualFile[] allSourceRoots = moduleRootManager.getSourceRoots();
-      // TODO: to filter out test sources, we could use moduleRootManager.getFileIndex().isInTestSourceContent(<virtualFile>)
-      List<File> sourcePath = virtualToIoFiles(Arrays.asList(allSourceRoots));
-      joocConfig.setSourcePath(sourcePath);
       String outputDirectoryPath = joocConfig.getOutputDirectory().getPath();
       try {
         outputSinkItem = new OutputSinkItem(outputDirectoryPath);
@@ -114,20 +113,33 @@ public class JangarooCompiler implements TranslatingCompiler {
     joocConfig.setDebugSource(joocConfigurationBean.isDebugSource());
     joocConfig.setAllowDuplicateLocalVariables(joocConfigurationBean.allowDuplicateLocalVariables);
     joocConfig.setEnableAssertions(joocConfigurationBean.enableAssertions);
-    joocConfig.setEnableGuessingClasses(joocConfigurationBean.enableGuessingClasses);
-    joocConfig.setEnableGuessingMembers(joocConfigurationBean.enableGuessingMembers);
+
+    Collection<File> classPath = new LinkedHashSet<File>();
+    Collection<File> sourcePath = new LinkedHashSet<File>();
+    addToClassOrSourcePath(module, classPath, sourcePath);
+    joocConfig.setClassPath(new ArrayList<File>(classPath));
+    joocConfig.setSourcePath(new ArrayList<File>(sourcePath));
+
+    joocConfig.setApiOutputDirectory(joocConfigurationBean.getApiOutputDirectory());
     joocConfig.setMergeOutput(false); // no longer supported: joocConfigurationBean.mergeOutput;
-    if (joocConfigurationBean.mergeOutput) {
-      File outputFile = new File(joocConfigurationBean.getOutputFileName());
-      joocConfig.setOutputDirectory(outputFile.getParentFile());
-      joocConfig.setOutputFileName(outputFile.getName());
-    } else {
-      joocConfig.setOutputDirectory(joocConfigurationBean.getOutputDirectory());
-    }
+    joocConfig.setOutputDirectory(joocConfigurationBean.getOutputDirectory());
     List<File> sourceFiles = virtualToIoFiles(virtualSourceFiles);
     joocConfig.setSourceFiles(sourceFiles);
     joocConfig.showCompilerInfoMessages = joocConfigurationBean.showCompilerInfoMessages;
     return joocConfig;
+  }
+
+  private void addToClassOrSourcePath(Module module, Collection<File> classPath, Collection<File> sourcePath) {
+    for (OrderEntry orderEntry : ModuleRootManager.getInstance(module).getOrderEntries()) {
+      if (orderEntry instanceof ModuleSourceOrderEntry) {
+        // TODO: to filter out test sources, we could use moduleRootManager.getFileIndex().isInTestSourceContent(<virtualFile>)
+        sourcePath.addAll(virtualToIoFiles(Arrays.asList(((ModuleSourceOrderEntry)orderEntry).getRootModel().getSourceRoots())));
+      } else if (orderEntry instanceof LibraryOrderEntry) {
+        classPath.addAll(virtualToIoFiles(Arrays.asList(((LibraryOrderEntry)orderEntry).getRootFiles(OrderRootType.CLASSES_AND_OUTPUT))));
+      } else if (orderEntry instanceof ModuleOrderEntry) {
+        addToClassOrSourcePath(((ModuleOrderEntry)orderEntry).getModule(), classPath, sourcePath);
+      }
+    }
   }
 
   private static List<File> virtualToIoFiles(List<VirtualFile> virtualFiles) {
@@ -170,7 +182,7 @@ public class JangarooCompiler implements TranslatingCompiler {
     }
   }
 
-  private static Logger getLog() {
+  static Logger getLog() {
     return Logger.getInstance("net.jangaroo.ide.idea.JangarooCompiler");
   }
 

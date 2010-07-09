@@ -23,7 +23,6 @@ import com.intellij.openapi.util.WriteExternalException;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.roots.ModuleRootModel;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.module.Module;
 import com.intellij.util.xmlb.XmlSerializerUtil;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
@@ -40,13 +39,10 @@ public class JangarooFacetConfiguration implements FacetConfiguration, Persisten
   }
 
   private synchronized JoocConfigurationBean initJoocConfigurationBean(@NotNull FacetEditorContext facetEditorContext) {
-    if (joocConfigurationBean.getOutputFileName() == null) {
-      Module module = facetEditorContext.getModule();
+    if (joocConfigurationBean.outputPrefix == null) {
       ModuleRootModel rootModel = facetEditorContext.getRootModel();
       VirtualFile[] contentRoots = rootModel.getContentRoots();
-      if (contentRoots.length > 0) {
-        joocConfigurationBean.init(contentRoots[0].getPath(), module.getName());
-      }
+      joocConfigurationBean.outputPrefix = contentRoots.length > 0 ? contentRoots[0].getPath() + "/" : "";
     }
     return joocConfigurationBean;
   }

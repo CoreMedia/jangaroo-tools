@@ -17,8 +17,6 @@ package net.jangaroo.ide.idea.ui;
 import net.jangaroo.ide.idea.JoocConfigurationBean;
 
 import javax.swing.*;
-import javax.swing.event.ChangeListener;
-import javax.swing.event.ChangeEvent;
 
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.ui.TextComponentAccessor;
@@ -41,37 +39,20 @@ public class JangarooFacetEditorTabUI {
   private JRadioButton keepNewLinesOnlyRadioButton;
   private JRadioButton suppressWhiteSpaceRadioButton;
   private JCheckBox allowDuplicateVariableCheckBox;
-  private JCheckBox guessInheritedMembersCheckBox;
-  private JCheckBox guessInScopeClassesCheckBox;
-  private JCheckBox guessTypeCastsCheckBox;
-  private JCheckBox mergeOutputCheckBox;
   private TextFieldWithBrowseButton outputDirTextField;
-  private TextFieldWithBrowseButton mergedOutputFileTextField;
   private JCheckBox showCompilerInfoMessages;
   private ButtonGroup whiteSpaceButtonGroup;
 
   private static final FileChooserDescriptor OUTPUT_DIRECTORY_CHOOSER_DESCRIPTOR = FileChooserDescriptorFactory.createSingleFolderDescriptor();
-  private static final FileChooserDescriptor MERGED_OUTPUT_FILE_CHOOSER_DESCRIPTOR = FileChooserDescriptorFactory.createSingleLocalFileDescriptor();
 
   static {
     OUTPUT_DIRECTORY_CHOOSER_DESCRIPTOR.setTitle("Choose Jangaroo Output Directory");
     OUTPUT_DIRECTORY_CHOOSER_DESCRIPTOR.setDescription("Choose the directory where Jangaroo should place JavaScript files containing compiled ActionScript classes.");
-    MERGED_OUTPUT_FILE_CHOOSER_DESCRIPTOR.setTitle("Choose Jangaroo Merged Output File");
-    MERGED_OUTPUT_FILE_CHOOSER_DESCRIPTOR.setDescription("Choose the file where Jangaroo should create the merged JavaScript file containing all compiled ActionScript classes.");
   }
 
   public JangarooFacetEditorTabUI() {
     outputDirTextField.addBrowseFolderListener(null,null, null, OUTPUT_DIRECTORY_CHOOSER_DESCRIPTOR,
       TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT);
-    mergedOutputFileTextField.addBrowseFolderListener(null, null, null, MERGED_OUTPUT_FILE_CHOOSER_DESCRIPTOR,
-      TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT);
-    mergeOutputCheckBox.addChangeListener(new ChangeListener() {
-      public void stateChanged(ChangeEvent e) {
-        boolean selected = mergeOutputCheckBox.isSelected();
-        outputDirTextField.setEnabled(!selected);
-        mergedOutputFileTextField.setEnabled(selected);
-      }
-    });
   }
 
   public JPanel getRootComponent() {
@@ -110,14 +91,7 @@ public class JangarooFacetEditorTabUI {
         : data.isDebugLines()  ? keepNewLinesOnlyRadioButton
         : suppressWhiteSpaceRadioButton).getModel(), true);
     allowDuplicateVariableCheckBox.setSelected(data.allowDuplicateLocalVariables);
-    guessInheritedMembersCheckBox.setSelected(data.enableGuessingMembers);
-    guessInScopeClassesCheckBox.setSelected(data.enableGuessingClasses);
-    guessTypeCastsCheckBox.setSelected(data.enableGuessingTypeCasts);
-    mergeOutputCheckBox.setSelected(data.mergeOutput);
-    outputDirTextField.setEnabled(!data.mergeOutput);
-    mergedOutputFileTextField.setEnabled(data.mergeOutput);
     outputDirTextField.setText(JoocConfigurationBean.getPath(data.outputDirectory));
-    mergedOutputFileTextField.setText(JoocConfigurationBean.getPath(data.outputFileName));
     showCompilerInfoMessages.setSelected(data.showCompilerInfoMessages);
   }
 
@@ -130,12 +104,7 @@ public class JangarooFacetEditorTabUI {
         keepNewLinesOnlyRadioButton.getModel().equals(debugSelection) ? JoocConfigurationBean.DEBUG_LEVEL_LINES
                                                                       : JoocConfigurationBean.DEBUG_LEVEL_NONE;
     data.allowDuplicateLocalVariables = allowDuplicateVariableCheckBox.isSelected();
-    data.enableGuessingMembers = guessInheritedMembersCheckBox.isSelected();
-    data.enableGuessingClasses = guessInScopeClassesCheckBox.isSelected();
-    data.enableGuessingTypeCasts = guessTypeCastsCheckBox.isSelected();
-    data.mergeOutput = mergeOutputCheckBox.isSelected();
     data.outputDirectory = JoocConfigurationBean.getIdeaUrl(outputDirTextField.getText());
-    data.outputFileName = JoocConfigurationBean.getIdeaUrl(mergedOutputFileTextField.getText());
     data.showCompilerInfoMessages = showCompilerInfoMessages.isSelected();
     return data;
   }

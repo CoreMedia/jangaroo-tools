@@ -23,11 +23,13 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/net/jangaroo/jangaroo-compiler/0.5.1/jangaroo-compiler-0.5.1.jar!/" />
-          <root url="jar://$MAVEN_REPOSITORY$/net/jangaroo/jangaroo-utils/0.5.1/jangaroo-utils-0.5.1.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/net/jangaroo/jangaroo-compiler/0.6.0-SNAPSHOT/jangaroo-compiler-0.6.0-SNAPSHOT.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/net/jangaroo/jangaroo-utils/0.6.0-SNAPSHOT/jangaroo-utils-0.6.0-SNAPSHOT.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES />
+        <SOURCES>
+          <root url="file://$MODULE_DIR$/../../jangaroo-core/jangaroo-compiler/src/main/java" />
+        </SOURCES>
       </library>
     </orderEntry>
   </component>

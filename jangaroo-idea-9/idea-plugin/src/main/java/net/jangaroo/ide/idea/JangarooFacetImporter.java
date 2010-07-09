@@ -8,14 +8,8 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.JavadocOrderRootType;
-import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.libraries.Library;
-import com.intellij.openapi.roots.libraries.LibraryTable;
-import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
-import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.packaging.artifacts.Artifact;
 import com.intellij.packaging.artifacts.ArtifactManager;
 import com.intellij.packaging.artifacts.ModifiableArtifact;
@@ -41,15 +35,17 @@ import org.jetbrains.idea.maven.project.MavenProject;
 import org.jetbrains.idea.maven.project.MavenProjectChanges;
 import org.jetbrains.idea.maven.project.MavenProjectsProcessorTask;
 import org.jetbrains.idea.maven.project.MavenProjectsTree;
-import org.jetbrains.idea.maven.utils.MavenConstants;
 import org.jetbrains.idea.maven.utils.MavenJDOMUtil;
 import org.jetbrains.idea.maven.utils.MavenProcessCanceledException;
 import org.jetbrains.idea.maven.utils.MavenProgressIndicator;
 
-import java.util.*;
 import java.io.File;
-
-import static org.jetbrains.idea.maven.importing.MavenExtraArtifactType.SOURCES;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * A Facet-from-Maven Importer for the Jangaroo Facet type.
@@ -99,20 +95,9 @@ public class JangarooFacetImporter extends FacetImporter<JangarooFacet, Jangaroo
     jooConfig.allowDuplicateLocalVariables = getBooleanConfigurationValue(mavenProjectModel, "allowDuplicateLocalVariables", jooConfig.allowDuplicateLocalVariables);
     jooConfig.verbose = getBooleanConfigurationValue(mavenProjectModel, "verbose", false);
     jooConfig.enableAssertions = getBooleanConfigurationValue(mavenProjectModel, "enableAssertions", false);
-    jooConfig.enableGuessingClasses = getBooleanConfigurationValue(mavenProjectModel, "enableGuessingClasses", true);
-    jooConfig.enableGuessingMembers = getBooleanConfigurationValue(mavenProjectModel, "enableGuessingMembers", true);
-    jooConfig.enableGuessingTypeCasts = getBooleanConfigurationValue(mavenProjectModel, "enableGuessingTypeCasts", false);
     // "debug" (boolean; true), "debuglevel" ("none", "lines", "source"; "source")
     jooConfig.outputDirectory = mavenProjectModel.getBuildDirectory() + File.separator + "joo" + File.separator + "scripts" + File.separator + "classes";
 
-    ModifiableRootModel moduleRootModel = ModuleRootManager.getInstance(module).getModifiableModel();
-    for (MavenArtifact mavenArtifact : mavenProjectModel.getDependencies()) {
-      if (JANGAROO_PACKAGING_TYPE.equals(mavenArtifact.getType())) {
-        System.out.println("Found 'jangaroo' dependency: " + mavenArtifact.getFile().getAbsolutePath());
-        postTasks.add(new PatchJangarooLibraryTask(mavenArtifact));
-      }
-    }
-    moduleRootModel.commit();
     if ("war".equals(mavenProjectModel.getPackaging())) {
       postTasks.add(new AddJangarooPackagingOutputToExplodedWebArtifactsTask(jangarooFacet));
     }
@@ -137,64 +122,6 @@ public class JangarooFacetImporter extends FacetImporter<JangarooFacet, Jangaroo
       }
     }
     sourceDirs.add(defaultDir);
-  }
-
-  private static class PatchJangarooLibraryTask implements MavenProjectsProcessorTask {
-    private final MavenArtifact artifact;
-
-    public PatchJangarooLibraryTask(MavenArtifact mavenArtifact) {
-      this.artifact = mavenArtifact;
-    }
-
-    public void perform(Project project, MavenEmbeddersManager embeddersManager, MavenConsole console, MavenProgressIndicator indicator) throws MavenProcessCanceledException {
-      // add Maven artifact with classifier "-sources" as module library!
-      LibraryTable table = LibraryTablesRegistrar.getInstance().getLibraryTableByLevel(LibraryTablesRegistrar.PROJECT_LEVEL, project);
-      if (table == null) {
-        System.out.println("  Project level libraries could not be retrieved to patch 'jangaroo' dependency " + artifact.getFile().getAbsolutePath());
-        return;
-      }
-      String libName = "Maven: " + artifact.getDisplayStringForLibraryName();
-      final Library library = table.getLibraryByName(libName);
-      if (library == null) {
-        System.out.println("  Project level library '"+libName+"' not found, cannot patch 'jangaroo' dependency " + artifact.getFile().getAbsolutePath());
-        return;
-      }
-      ApplicationManager.getApplication().invokeLater(new Runnable() {
-        public void run() {
-          ApplicationManager.getApplication().runWriteAction(new Runnable() {
-            public void run() {
-              Library.ModifiableModel libraryModel = library.getModifiableModel();
-              // Jangaroo specialty: add a CLASSES root for the SOURCES artifact!
-              String newUrl = artifact.getUrlForExtraArtifact(SOURCES.getDefaultClassifier(), SOURCES.getDefaultExtension());
-              for (String url : libraryModel.getUrls(OrderRootType.CLASSES)) {
-                if (newUrl != null && newUrl.equals(url)) {
-                  newUrl = null; // do not add again!
-                  break;
-                }
-                if (MavenConstants.SCOPE_SYSTEM.equals(artifact.getScope()) || isRepositoryUrl(artifact, url, SOURCES.getDefaultClassifier())) {
-                  libraryModel.removeRoot(url, OrderRootType.CLASSES);
-                }
-              }
-              if (newUrl != null) {
-                libraryModel.addRoot(newUrl, OrderRootType.CLASSES);
-              }
-              // Jangaroo specialty: there is no javadoc!
-              OrderRootType javadocOrderRootType = JavadocOrderRootType.getInstance();
-              for (String javadocUrl : libraryModel.getUrls(javadocOrderRootType)) {
-                libraryModel.removeRoot(javadocUrl, javadocOrderRootType);
-              }
-              libraryModel.commit();
-            }
-          });
-        }
-      });
-    }
-
-    private boolean isRepositoryUrl(MavenArtifact artifact, String url, String classifier) {
-      return url.endsWith(artifact.getRelativePathForExtraArtifact(classifier, SOURCES.getDefaultExtension()) + JarFileSystem.JAR_SEPARATOR);
-    }
-
-
   }
 
   private static class AddJangarooPackagingOutputToExplodedWebArtifactsTask implements MavenProjectsProcessorTask {
