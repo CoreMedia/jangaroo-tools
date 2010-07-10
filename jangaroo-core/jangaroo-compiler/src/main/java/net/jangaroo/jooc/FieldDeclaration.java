@@ -54,6 +54,11 @@ public class FieldDeclaration extends AbstractVariableDeclaration {
     return true;
   }
 
+  public boolean isConst() {
+    return optSymConstOrVar != null && "const".equals(optSymConstOrVar.getText())
+      && (optInitializer == null || optInitializer.value.isCompileTimeConstant());
+  }
+
   public void setIsClassMember(final boolean b) {
     isClassMember = b;
     FieldDeclaration nextField = (FieldDeclaration) optNextVariableDeclaration;

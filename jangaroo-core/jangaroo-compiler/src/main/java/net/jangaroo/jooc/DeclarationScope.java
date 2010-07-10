@@ -52,7 +52,6 @@ class DeclarationScope extends ScopeImplBase implements Scope {
     if (packageIde != null) {
       packageName = packageIde.getQualifiedNameStr();
       packages.add(packageName);
-      compilationUnit.addImport((QualifiedIde) ide);
     }
     if ("*".equals(name)) {
       final List<String> ides = compilationUnit.getCompiler().getPackageIdes(packageName);

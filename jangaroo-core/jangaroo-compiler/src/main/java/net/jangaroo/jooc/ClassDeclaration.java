@@ -111,11 +111,8 @@ public class ClassDeclaration extends IdeDeclaration {
     }
     out.endString();
     out.write(",");
-    out.write("function(" + ide.getName() + ",$$private){");
-    for (String importedPackage : ide.getScope().getCompilationUnit().getPackageImports()) {
-      out.write("with(" + importedPackage + ")");
-    }
-    out.write("with(" + ide.getName() + ")with($$private)return[");
+    out.write("function($$private){");
+    out.write("with($$private)return[");
     generateClassInits(out);
     body.generateCode(out);
     out.write("];},");
@@ -232,7 +229,7 @@ public class ClassDeclaration extends IdeDeclaration {
   public void addInitIfClass(Ide ide) {
     final IdeDeclaration decl = ide.getDeclaration(false);
     if (decl != null && decl != this && decl instanceof ClassDeclaration) {
-      classInit.add(ide.getQualifiedNameStr());
+      classInit.add(decl.getQualifiedNameStr());
     }
   }
 

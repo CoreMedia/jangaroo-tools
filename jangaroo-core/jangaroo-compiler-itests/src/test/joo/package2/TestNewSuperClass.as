@@ -1,11 +1,11 @@
 /*
- * Copyright 2008 CoreMedia AG
- * 
+ * Copyright 2009 CoreMedia AG
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); 
  * you may not use this file except in compliance with the License. 
  * You may obtain a copy of the License at
  * http://www.apache.org/licenses/LICENSE-2.0 
- * 
+ *
  * Unless required by applicable law or agreed to in writing, 
  * software distributed under the License is distributed on an "AS
  * IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
@@ -13,19 +13,16 @@
  * governing permissions and limitations under the License.
  */
 
-package package1 /*blubber*/ {
+package package2 {
 
-/**
-* a comment
-*/
-public class TestIs /* blub ber *//*extends Object*/ {
+public class TestNewSuperClass {
 
-  public static function testIs(object : Object, type : Class) : Boolean {
-    return object is type;
+  public function TestNewSuperClass() {
   }
 
-  public static function testConcreteIs() : Boolean {
-    return new TestImplements() is TestInterface;
+  public function foo() : String {
+    return "foo";
   }
+
 }
 }

@@ -277,10 +277,12 @@ public class Ide extends NodeImplBase {
       IdeDeclaration decl = getDeclaration(false);
       if (decl != null) {
         if (decl.isClassMember()) {
-          if (decl.isStatic() && !decl.isPrivateStatic()) {
-            out.writeToken(decl.getClassDeclaration().getQualifiedNameStr());
-          } else if (!decl.isConstructor() && !decl.isPrivateStatic()) {
-            out.writeToken("this");
+          if (!decl.isPrivateStatic()) {
+            if (decl.isStatic()) {
+              out.writeToken(decl.getClassDeclaration().getQualifiedNameStr());
+            } else {
+              out.writeToken("this");
+            }
           }
           writeMemberAccess(decl, null, this, false, out);
           return;

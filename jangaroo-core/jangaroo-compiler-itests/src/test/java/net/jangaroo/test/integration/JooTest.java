@@ -263,7 +263,7 @@ public class JooTest extends JooRuntimeTestCase {
     expectString("undefined", "obj.testDelete1(o); typeof(o.tobedeleted)");
     expectString("undefined", "obj.testDelete2(o2, 'tobedeleted'); typeof(o.tobedeleted)");
     expectString("is an Error: foo", "obj.testTryCatchFinally(new Error('foo'))");
-    expectString("is not an Error: bar", "obj.testTryCatchFinally('bar')");
+    expectString("is not an Error: bar", "obj.testTryCatchFinally(new String('bar'))");
     expectBoolean(true, "obj.cleanedUp");
   }
 
@@ -446,6 +446,14 @@ public class JooTest extends JooRuntimeTestCase {
     expectBoolean(false, "package1.TestIs.testIs(new package1.TestIs(), String)");
     expectBoolean(true, "package1.TestIs.testIs('foo', String)");
     expectBoolean(true, "package1.TestIs.testIs(new String('foo'), String)");
+    expectBoolean(true, "package1.TestIs.testConcreteIs()");
+  }
+
+  public void testCatch() throws Exception {
+    loadClass("package1.TestCatch");
+    complete();
+    expectBoolean(true, "package1.TestCatch.testCatch()");
+    expectException("package1.TestCatch.testFallThrough()");
   }
 
   public void testInterface() throws Exception {
@@ -513,6 +521,7 @@ public class JooTest extends JooRuntimeTestCase {
     expectString("foo", "package2.TestNew.testNewExpr()");
     expectString("foo", "package2.TestNew.testNewStaticCall()");
     expectString("foo", "package2.TestNew.testNewFullyQualified()");
+    expectString("foo", "package2.TestNew.testNewSuperClass()");
   }
 
   public void testPackageHidesVar() throws Exception {

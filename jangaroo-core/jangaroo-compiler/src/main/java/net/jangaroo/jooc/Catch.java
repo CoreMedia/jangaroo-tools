@@ -20,6 +20,7 @@ import java.util.List;
 
 /**
  * @author Andreas Gawecki
+ * @author Frank Wienberg
  */
 class Catch extends KeywordStatement {
 
@@ -75,7 +76,9 @@ class Catch extends KeywordStatement {
       out.writeSymbolToken(errorVar);
       out.writeSymbolWhitespace(typeRelation.symRelation);
       out.writeToken(",");
-      typeRelation.getType().generateCode(out);
+      Ide typeIde = ((IdeType)typeRelation.getType()).getIde();
+      out.writeSymbolWhitespace(typeIde.getIde());
+      out.writeToken(typeIde.getDeclaration().getQualifiedNameStr());
       out.writeSymbol(rParen);
       out.writeToken(")");
     }
@@ -83,9 +86,16 @@ class Catch extends KeywordStatement {
       block.addBlockStartCodeGenerator(new VarCodeGenerator(localErrorVar, errorVar));
     }
     block.generateCode(out);
-    if (isLast && !(isFirst && !hasCondition)) {
-      // last catch clause causes the JS catch block:
-      out.writeToken("}");
+    if (isLast) {
+      if (hasCondition) {
+        out.writeToken("else throw");
+        out.writeSymbolToken(errorVar);
+        out.writeToken(";");
+      }
+      if (!(isFirst && !hasCondition)) {
+        // last catch clause closes the JS catch block:
+        out.writeToken("}");
+      }
     }
   }
 

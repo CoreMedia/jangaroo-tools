@@ -36,11 +36,14 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
     if (!type || object===undefined || object===null) {
       return false;
     }
+    // instanceof or constructor may return false negatives:
+    if (object instanceof type || object.constructor===type) {
+      return true;
+    }
     if (type["$class"]) {
       return (type["$class"] as NativeClassDeclaration).isInstance(object);
     }
-    // fallback:
-    return object instanceof type || object.constructor===type;
+    return false;
   }
 
 {
@@ -100,7 +103,8 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
       this.package_[this.className] = publicConstructor;
     }
     this.create(fullClassName, publicConstructor);
-    this.privateStatics = { "Class": Class, "assert": assert, "is": is_, "trace": trace };
+    var jooPackage:* = getQualifiedObject("joo");
+    this.privateStatics = { "assert": jooPackage.assert, "is": is_, "trace": jooPackage.trace };
   }
 
   public function isNative() : Boolean {
@@ -127,7 +131,7 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
     this.initializerNames = [];
     this.staticInitializers = [];
     this.boundMethodNames = [];
-    var memberDeclarations : Array = this.memberDeclarations(this.publicConstructor, this.privateStatics);
+    var memberDeclarations : Array = this.memberDeclarations(this.privateStatics);
     this.memberDeclarations = [];
     this.memberDeclarationsByQualifiedName = {};
     this.constructor_ = null;

@@ -15,15 +15,11 @@
 
 package package2 {
 
-public class TestNew {
+public class TestNew extends TestNewSuperClass {
 
   private var slot : Class = TestNew;
 
   public function TestNew() {
-  }
-
-  public function foo() : String {
-    return "foo";
   }
 
   public function testNewCall() : String {
@@ -54,6 +50,10 @@ public class TestNew {
 
   public static function testNewFullyQualified() : String {
     return new package2 . /*blubbber*/ TestNew().foo();
+  }
+
+  public static function testNewSuperClass() : String {
+    return new TestNewSuperClass().foo();
   }
 
 }

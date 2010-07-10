@@ -13,19 +13,25 @@
  * governing permissions and limitations under the License.
  */
 
-package package1 /*blubber*/ {
+package package1 {
 
-/**
-* a comment
-*/
-public class TestIs /* blub ber *//*extends Object*/ {
+public class TestCatch {
 
-  public static function testIs(object : Object, type : Class) : Boolean {
-    return object is type;
+  public static function testCatch() : Boolean {
+    try {
+      throw new TestImplements();
+    } catch (e : TestInterface) {
+      return true;
+    }
+    return false;
   }
 
-  public static function testConcreteIs() : Boolean {
-    return new TestImplements() is TestInterface;
+  public static function testFallThrough() : void {
+    try {
+      throw new Error("general error");
+    } catch (e : TestInterface) {
+      // Error should not be caught!
+    }
   }
 }
 }

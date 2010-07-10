@@ -109,13 +109,17 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
 
   @Override
   public void scope(final Scope scope) {
-    super.scope(scope);
+    final ClassDeclaration classDeclaration = scope.getClassDeclaration();
+    Ide oldIde = ide;
     if (classDeclaration != null && ide.getName().equals(classDeclaration.getName())) {
       isConstructor = true;
       classDeclaration.setConstructor(this);
       allowedModifiers = MODIFIERS_SCOPE | MODIFIER_NATIVE;
       computeModifiers();
+      ide = null; // do NOT declare constructor ide in scope, as it would override the class, is not inherited, etc.!
     }
+    super.scope(scope);
+    ide = oldIde;
     if (overrides() && isAbstract()) {
       throw Jooc.error(this, "overriding methods are not allowed to be declared abstract");
     }

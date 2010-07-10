@@ -13,7 +13,7 @@ Function.prototype.bind = function(object) {
     var empty = function(){ };
     empty.prototype =  object;
     return new empty();
-  };
+  }
   function createGetQualified(create) {
     return (function(name) {
       var object = theGlobalObject;
@@ -64,7 +64,7 @@ Function.prototype.bind = function(object) {
         }
         publicConstructor.prototype[$extends] = superConstructor;
         var privateStatics = {$super: $extends};
-        var members = memberFactory(publicConstructor, privateStatics);
+        var members = memberFactory(privateStatics);
         var staticInitializer;
         for (var i = 0; i < members.length; ++i) {
           var memberDeclaration = members[i];

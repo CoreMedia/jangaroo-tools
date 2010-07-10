@@ -51,19 +51,6 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
     this.rBrace = rBrace;
   }
 
-  private List<String> packageImports = new ArrayList<String>();
-
-  public void addImport(QualifiedIde ide) {
-    if ("*".equals(ide.getName())) {
-      String packageName = ide.getQualifier().getQualifiedNameStr();
-      packageImports.add(packageName);
-    }
-  }
-
-  public List<String> getPackageImports() {
-    return Collections.unmodifiableList(packageImports);
-  }
-
   @Override
   public void scope(final Scope scope) {
     withNewDeclarationScope(this, scope, new Scoped() {
