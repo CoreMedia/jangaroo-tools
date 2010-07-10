@@ -47,6 +47,6 @@ package {
  * trace(obj.propName); // undefined
  * </pre>
  */
-public var undefined: *;
+public const undefined: *;
 
 }

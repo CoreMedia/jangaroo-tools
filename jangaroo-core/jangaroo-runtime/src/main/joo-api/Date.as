@@ -16,6 +16,11 @@ package {
  */
 public final dynamic class Date extends Object {
 
+
+  public native function Date(yearOrValue:Number = undefined, month:Number = undefined, date:Number = undefined, hours:Number = undefined, minutes:Number = undefined, seconds:Number = undefined, ms:Number = undefined);
+
+
+
   public native function getDate():Number;
 
 

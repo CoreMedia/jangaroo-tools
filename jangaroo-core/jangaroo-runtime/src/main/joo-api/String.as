@@ -66,7 +66,7 @@ public class String extends Object {
 
 
 
-  public native function localeCompare(that:String):Boolean;
+  public native function localeCompare(that:String):int;
 
 
 
