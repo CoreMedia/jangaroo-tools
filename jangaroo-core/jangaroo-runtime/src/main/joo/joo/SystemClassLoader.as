@@ -20,8 +20,7 @@ package joo {
 public class SystemClassLoader {
 
 {
-  // must use qualified name, otherwise a global property would be created:
-  joo.classLoader = new SystemClassLoader();
+  classLoader = new SystemClassLoader();
 }
 
   public static const classDeclarationsByName : Object/*<String,SystemClassDeclaration>*/ = {};
@@ -62,7 +61,7 @@ public class SystemClassLoader {
 
   /**
    * @param className
-   * @return
+   * @return NativeClassDeclaration the class declaration with the given name.
    * @throws Error - ClassNotFound
    */
   public function getRequiredClassDeclaration(className : String) : NativeClassDeclaration {
@@ -77,8 +76,8 @@ public class SystemClassLoader {
     return new NativeClassDeclaration().create(fullClassName, nativeClass);
   }
 
-   public function init(... classes) :Function {
-     return null;
-   }
+  public function init(... classes) :Function {
+    return null;
+  }
 }
 }
