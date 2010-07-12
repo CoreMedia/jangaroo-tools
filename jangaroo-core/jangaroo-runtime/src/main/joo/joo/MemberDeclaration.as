@@ -154,7 +154,7 @@ public class MemberDeclaration {
     }
     try {
       var member : * = target[this.memberName];
-    } catch (e : Error) {
+    } catch (e : *) {
       // ignore Firefox' native member access exceptions.
     }
     if (typeof member!="function") {
