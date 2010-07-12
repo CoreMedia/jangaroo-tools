@@ -45,6 +45,18 @@ Function.prototype.bind = function(object) {
   theGlobalObject.joo = {
     getOrCreatePackage: createGetQualified(true),
     getQualifiedObject: createGetQualified(false),
+
+    /*
+    unsupported ActionScript features:
+      - private non-static members
+      - field initializers
+      - typed catch clauses
+      - dynamic class loading + resource bundles
+      - all classes must reside within the joo package
+
+     Caveat: static code blocks are executed immediately
+
+     */
     classLoader: {
       prepare: function(packageDef, directives, classDef, memberFactory) {
         var classMatch = classDef.match(/^\s*((public|internal|final|dynamic)\s+)*class\s+([A-Za-z][a-zA-Z$_0-9]*)(\s+extends\s+([a-zA-Z$_0-9.]+))?(\s+implements\s+([a-zA-Z$_0-9.,\s]+))?\s*$/);
