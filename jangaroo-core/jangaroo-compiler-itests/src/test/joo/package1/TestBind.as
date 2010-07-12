@@ -92,7 +92,7 @@ public class TestBind {
   }
 
   // negative tests>
-  // This method is never actually called, but only analzyed by the compiler.
+  // This method is never actually called, but only analyzed by the compiler.
   // These expressions must *not* lead to testNotBound being bound!
   public function testDelete() : String {
     //delete this.testNotBound; illegal in AS3, its non-dynamic
