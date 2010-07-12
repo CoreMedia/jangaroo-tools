@@ -59,7 +59,7 @@ public class ExmlProjectComponent implements ProjectComponent {
     if (module != null) {
       for (VirtualFile sourceRoot : ModuleRootManager.getInstance(module).getSourceRoots()) {
         if (VfsUtil.isAncestor(sourceRoot, file, false)) {
-          return file.getPath().substring(sourceRoot.getPath().length() + 1);
+          return VfsUtil.getRelativePath(file, sourceRoot, '.');
         }
       }
     }
@@ -92,7 +92,7 @@ public class ExmlProjectComponent implements ProjectComponent {
 
                 // find relative path to source root to determine package name:
                 VirtualFile packageDir = exmlFile.getParent();
-                String packageName = packageDir == null ? "" : getModuleRelativePath(packageDir).replace('/', '.');
+                String packageName = packageDir == null ? "" : getModuleRelativePath(packageDir);
                 String className = exmlFile.getNameWithoutExtension();
 
                 StringBuilder codePrefix = new StringBuilder("package ").append(packageName).append("{\n");

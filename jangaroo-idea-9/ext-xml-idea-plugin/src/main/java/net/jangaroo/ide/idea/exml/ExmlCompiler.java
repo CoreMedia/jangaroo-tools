@@ -57,7 +57,6 @@ public class ExmlCompiler implements TranslatingCompiler, IntermediateOutputComp
   }
 
   public boolean validateConfiguration(CompileScope scope) {
-    // TODO: what to check beforehand?
     return true;
   }
 
