@@ -60,9 +60,14 @@ public class NativeClassDeclaration {
     return this;
   }
 
+  // built-in Error constructor called as function unfortunately always creates a new Error object, so we have to emulate it:
+  private static const ERROR_CONSTRUCTOR:Function = function(message:String):void {
+    this.message = message || "";
+  };
+
   protected function doComplete() : void {
     this.interfaces = [];
-    this.constructor_ = this.publicConstructor;
+    this.constructor_ = this.publicConstructor === Error ? ERROR_CONSTRUCTOR : this.publicConstructor;
     this.Public = createEmptyConstructor(this.publicConstructor);
   }
 
