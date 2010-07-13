@@ -3,7 +3,7 @@
   <parent>
     <groupId>net.jangaroo</groupId>
     <artifactId>jangaroo-core</artifactId>
-    <version>0.6.0-SNAPSHOT</version>
+    <version>0.6.0</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
@@ -12,7 +12,7 @@
   <packaging>pom</packaging>
   <!-- Do not use jangaroo plugin here since you can't use AND create a plugin in one multi module project! -->
   <name>Joo Runtime</name>
-  <version>0.6.0-SNAPSHOT</version>
+  <version>0.6.0</version>
 
   <build>
     <sourceDirectory>src/main/joo</sourceDirectory>
@@ -41,10 +41,7 @@
 
                 <mkdir dir="target/temp/runtime/debug/scripts/classes" />
                 <mkdir dir="target/temp/runtime/debug/META-INF/joo-api" />
-                <jooc destdir="target/temp/runtime/debug/scripts/classes"
-                      apidestdir="target/temp/runtime/debug/META-INF/joo-api"
-                      failonerror="true" debug="true" debuglevel="source" verbose="true" enableassertions="true"
-                      classpath="${basedir}/src/main/joo-api">
+                <jooc destdir="target/temp/runtime/debug/scripts/classes" apidestdir="target/temp/runtime/debug/META-INF/joo-api" failonerror="true" debug="true" debuglevel="source" verbose="true" enableassertions="true" classpath="${basedir}/src/main/joo-api">
                   <include name="**/*.as" />
                   <src path="src/main/joo" />
                 </jooc>
@@ -52,7 +49,7 @@
                 <concat destfile="target/scripts/jangaroo-runtime-debug.js">
                   <filelist dir="src/main/joo-js/scripts/classes">
                     <file name="joo/BootstrapClassLoader.js" />
-                    <file name="joo/window.js"/>
+                    <file name="joo/window.js" />
                     <file name="joo/assert.js" />
                     <file name="joo/Class.js" />
                     <file name="joo/trace.js" />
@@ -75,9 +72,7 @@
                 </concat>
 
                 <mkdir dir="target/temp/runtime/deploy" />
-                <jooc destdir="target/temp/runtime/deploy" failonerror="true" debug="false" verbose="true"
-                      enableassertions="false"
-                      classpath="${basedir}/src/main/joo-api">
+                <jooc destdir="target/temp/runtime/deploy" failonerror="true" debug="false" verbose="true" enableassertions="false" classpath="${basedir}/src/main/joo-api">
                   <include name="**/*.as" />
                   <src path="src/main/joo" />
                 </jooc>
@@ -85,7 +80,7 @@
                 <concat destfile="target/scripts/jangaroo-runtime.js">
                   <filelist dir="src/main/joo-js/scripts/classes">
                     <file name="joo/BootstrapClassLoader.js" />
-                    <file name="joo/window.js"/>
+                    <file name="joo/window.js" />
                     <file name="joo/assert.js" />
                     <file name="joo/Class.js" />
                     <file name="joo/trace.js" />
@@ -111,7 +106,7 @@
                   <fileset dir="target" includes="scripts/jangaroo-runtime*.js" />
                   <fileset dir="src/main/joo-js" />
                   <fileset dir="target/temp/runtime/debug" />
-                  <zipfileset dir="src/main/joo-api" includes="**/*.as" prefix="META-INF/joo-api"/>
+                  <zipfileset dir="src/main/joo-api" includes="**/*.as" prefix="META-INF/joo-api" />
 
                 </zip>
 
@@ -165,7 +160,7 @@
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-compiler</artifactId>
-      <version>0.6.0-SNAPSHOT</version>
+      <version>0.6.0</version>
       <scope>provided</scope>
       <optional>true</optional>
     </dependency>
