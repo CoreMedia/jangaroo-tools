@@ -14,7 +14,7 @@ package {
  * method is called. The Date.UTC() and Date.parse() methods are exceptions; they are static methods.
  * <p>To use the Date class, construct a Date instance using the new operator.
  */
-public final dynamic class Date extends Object {
+public dynamic class Date extends Object {
 
 
   public native function Date(yearOrValue:Number = undefined, month:Number = undefined, date:Number = undefined, hours:Number = undefined, minutes:Number = undefined, seconds:Number = undefined, ms:Number = undefined);
