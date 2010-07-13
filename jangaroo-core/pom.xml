@@ -11,7 +11,7 @@
 
   <groupId>net.jangaroo</groupId>
   <artifactId>jangaroo-core</artifactId>
-  <version>0.6.0</version>
+  <version>0.6.1-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Jangaroo Core</name>
   <url>http://repo.jangaroo.net/site/jangaroo-core/</url>
