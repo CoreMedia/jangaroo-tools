@@ -59,7 +59,7 @@ public class JangarooPackagingOutputElement extends PackagingElement<JangarooPac
           }
         }
       }
-      JangarooCompiler.getLog().error("Output folder not available for Jangaroo output of module " + facet.getModule().getName() + ".");
+      JangarooCompiler.getLog().warn("Output folder not available for Jangaroo output of module " + facet.getModule().getName() + ".");
     }
   }
 
