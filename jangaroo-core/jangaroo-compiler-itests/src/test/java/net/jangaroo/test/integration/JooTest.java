@@ -515,7 +515,7 @@ public class JooTest extends JooRuntimeTestCase {
     complete();
     eval("obj = new package2.TestNew()");
     expectString("foo", "obj.foo()");
-    expectString("foo", "obj.testNewCall()");
+    expectString("foo", "obj.testNewWithoutParens()");
     expectString("foo", "obj.testNewCall()");
     expectString("foo", "obj.testNewCallNoThis()");
     expectString("foo", "package2.TestNew.testNewApplyExpr()");
