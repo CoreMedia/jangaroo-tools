@@ -17,7 +17,7 @@
 
 package joo {
 
-public class ResourceBundleAwareClassLoader extends joo.DynamicClassLoader {
+public class ResourceBundleAwareClassLoader extends DynamicClassLoader {
 
   private static const DAYS_TILL_LOCALE_COOKIE_EXPIRY:int = 10*356;
 
@@ -25,7 +25,7 @@ public class ResourceBundleAwareClassLoader extends joo.DynamicClassLoader {
 
   public var supportedLocales:Array;
   public var localeCookieName:String;
-  public var localeCookiePath:String = window.location.pathname;
+  public var localeCookiePath:String = getQualifiedObject("location.pathname");
   public var localeCookieDomain:String = null;
 
   public function ResourceBundleAwareClassLoader(supportedLocales:Array = ["en"], localeCookieName:String = "joo.locale") {
@@ -50,7 +50,8 @@ public class ResourceBundleAwareClassLoader extends joo.DynamicClassLoader {
 
   private function readLocaleFromCookie():String {
     var cookieKey : String = escape(localeCookieName);
-    var match : Array = window.document.cookie.match("(?:^|;)\\s*" + cookieKey + "=([^;]*)");
+    var document:* = getQualifiedObject("document");
+    var match : Array = document.cookie.match("(?:^|;)\\s*" + cookieKey + "=([^;]*)");
     return match ? decodeURIComponent(match[1]) : null;
   }
 
@@ -59,7 +60,8 @@ public class ResourceBundleAwareClassLoader extends joo.DynamicClassLoader {
                              expires:Date = null,
                              domain:String = null,
                              secure:Boolean = false):void {
-    window.document.cookie =
+    var document:* = getQualifiedObject("document");
+    document.cookie =
             name + "=" + encodeURIComponent(value) +
                     ((expires === null) ? "" : ("; expires=" + expires.toGMTString())) +
                     ((path === null) ? "" : ("; path=" + path)) +
@@ -80,10 +82,13 @@ public class ResourceBundleAwareClassLoader extends joo.DynamicClassLoader {
   public function getLocale():String {
     var userLocale:String = readLocaleFromCookie();
 
-    if (!userLocale && window.navigator) {
-      userLocale = window.navigator.language || window.navigator.browserLanguage || window.navigator.systemLanguage || window.navigator.userLanguage;
-      if (userLocale) {
-        userLocale = userLocale.replace(/-/g, "_");
+    if (!userLocale) {
+      var navigator:* = getQualifiedObject("navigator");
+      if (navigator) {
+        userLocale = navigator.language || navigator.browserLanguage || navigator.systemLanguage || navigator.userLanguage;
+        if (userLocale) {
+          userLocale = userLocale.replace(/-/g, "_");
+        }
       }
     }
 

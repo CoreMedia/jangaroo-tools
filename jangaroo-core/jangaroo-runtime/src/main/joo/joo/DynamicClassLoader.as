@@ -17,9 +17,7 @@
 
 package joo {
 
-import Error;
-
-public class DynamicClassLoader extends joo.StandardClassLoader {
+public class DynamicClassLoader extends StandardClassLoader {
 
   public static const STANDARD_URL_PREFIX:String = "scripts/classes/";
 
@@ -70,7 +68,7 @@ public class DynamicClassLoader extends joo.StandardClassLoader {
   override protected function doCompleteCallbacks(onCompleteCallbacks : Array/*Function*/):void {
     this.onCompleteCallbacks = [];
     // "invoke later":
-    window.setTimeout(function() : void {
+    getQualifiedObject("setTimeout")(function() : void {
       this.completeAll();
       this.internalDoCompleteCallbacks(onCompleteCallbacks);
     }, 0);
@@ -110,8 +108,9 @@ public class DynamicClassLoader extends joo.StandardClassLoader {
 
   private function load(fullClassName : String) : void {
     if (!this.getClassDeclaration(fullClassName)) {
-      if (window.joo__loadClasses) {
-        window.joo__loadClasses(fullClassName);
+      var joo__loadClasses:Function = getQualifiedObject("joo__loadClasses");
+      if (joo__loadClasses) {
+        joo__loadClasses(fullClassName);
         return;
       }
       if (this.onCompleteCallbacks.length==0) {
@@ -147,7 +146,8 @@ public class DynamicClassLoader extends joo.StandardClassLoader {
 
   private function determineUrlPrefix():String {
     const RUNTIME_URL_PATTERN:RegExp = /^(.*)\bjangaroo-runtime[^.]*\.js$/;
-    var scripts:Array = window.document.getElementsByTagName("SCRIPT");
+    var document:* = getQualifiedObject("document");
+    var scripts:Array = document.getElementsByTagName("SCRIPT");
     for (var i:int=0; i<scripts.length; ++i) {
       var match:Array = RUNTIME_URL_PATTERN.exec(scripts[i].src);
       if (match) {

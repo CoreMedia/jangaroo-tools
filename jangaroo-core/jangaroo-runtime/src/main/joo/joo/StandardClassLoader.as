@@ -17,7 +17,7 @@
 
 package joo {
 
-public class StandardClassLoader extends joo.SystemClassLoader {
+public class StandardClassLoader extends SystemClassLoader {
 
   private static var classDeclarations : Array = [];
 
@@ -35,9 +35,10 @@ public class StandardClassLoader extends joo.SystemClassLoader {
   }
 
   public function loadScript(uri : String) : Object {
-    var script : Object = window.document.createElement("script");
+    var document:* = getQualifiedObject("document");
+    var script : Object = document.createElement("script");
     script.type = "text/javascript";
-    window.document.getElementsByTagName("HEAD")[0].appendChild(script);
+    document.getElementsByTagName("HEAD")[0].appendChild(script);
     script.src = uri;
     return script;
   }

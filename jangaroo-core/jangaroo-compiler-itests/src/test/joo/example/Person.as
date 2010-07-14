@@ -15,7 +15,7 @@
 
 package example {
 
-import joo.window;
+import joo.getQualifiedObject;
 
 /**
  * This class models a person.
@@ -51,7 +51,7 @@ public class Person {
    * Render this person as HTML into the current document.
    */
   public function render(): void {
-    window.document.write("<div>"+this.renderInner()+"</div>");
+    getQualifiedObject("document").write("<div>"+this.renderInner()+"</div>");
   }
 
   /**
