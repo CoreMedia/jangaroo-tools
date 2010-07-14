@@ -22,6 +22,11 @@ public class TestNew extends TestNewSuperClass {
   public function TestNew() {
   }
 
+  public function testNewWithoutParens() : String {
+    var t :TestNew = new TestNew;
+    return t.foo();
+  }
+
   public function testNewCall() : String {
     return new this.slot().foo();
   }
