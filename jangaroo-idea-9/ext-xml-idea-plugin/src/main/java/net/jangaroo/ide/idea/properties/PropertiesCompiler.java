@@ -66,9 +66,10 @@ public class PropertiesCompiler implements TranslatingCompiler, IntermediateOutp
     if ("properties".equals(file.getExtension())) {
       Module module = context.getModuleByFile(file);
       if (module != null) {
-        if (FacetManager.getInstance(module).getFacetByType(ExmlFacetType.ID) != null  // must have EXML Facet!
-          && !MakeUtil.getSourceRoot(context, module, file).getPath().endsWith("/webapp")) { // hack: skip all files under .../webapp
-          return true;
+        FacetManager facetManager = FacetManager.getInstance(module);
+        if (facetManager != null && facetManager.getFacetByType(ExmlFacetType.ID) != null) { // must have EXML Facet!
+          VirtualFile sourceRoot = MakeUtil.getSourceRoot(context, module, file);
+          return !(sourceRoot != null && sourceRoot.getPath().endsWith("/webapp")); // hack: skip all files under .../webapp
         }
       }
     }
