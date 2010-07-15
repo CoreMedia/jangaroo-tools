@@ -119,4 +119,10 @@ public abstract class IdeDeclaration extends Declaration {
   public IdeDeclaration resolvePropertyDeclaration(String ide) {
     return null;
   }
+
+  @Override
+  public String toString() {
+    return getQualifiedNameStr();
+  }
+
 }

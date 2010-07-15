@@ -492,6 +492,9 @@ public class JooTest extends JooRuntimeTestCase {
     expectString("foo", "obj.testLocalFunctionUnqualified()");
     expectString("bar", "obj.testNotBound.call({getState: function(){return 'bar';}})");
     expectBoolean(true, "package1.TestBind.testStaticNotBound().call('bar')=='bar'");
+    expectString("foo", "obj.testInvokeLocalVarMethod()");
+    expectString("foo", "obj.testInvokeFieldMethod()");
+    expectString("foo", "obj.testReturn()");
   }
 
   public void testMultiDeclarations() throws Exception {

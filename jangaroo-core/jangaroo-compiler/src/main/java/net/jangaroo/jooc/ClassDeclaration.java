@@ -28,7 +28,6 @@ public class ClassDeclaration extends IdeDeclaration {
   protected Extends optExtends;
   private Map<String, TypedIdeDeclaration> members = new LinkedHashMap<String, TypedIdeDeclaration>();
   private Map<String, TypedIdeDeclaration> staticMembers = new LinkedHashMap<String, TypedIdeDeclaration>();
-  private Set<String> boundMethodCandidates = new HashSet<String>();
   private Set<String> classInit = new HashSet<String>();
   private ClassBody body;
   private FunctionDeclaration constructor = null;
@@ -216,14 +215,6 @@ public class ClassDeclaration extends IdeDeclaration {
 
   public TypedIdeDeclaration getStaticMemberDeclaration(String memberName) {
     return staticMembers.get(memberName);
-  }
-
-  public void addBoundMethodCandidate(String memberName) {
-    boundMethodCandidates.add(memberName);
-  }
-
-  public boolean isBoundMethod(String methodName) {
-    return boundMethodCandidates.contains(methodName);
   }
 
   public void addInitIfClass(Ide ide) {

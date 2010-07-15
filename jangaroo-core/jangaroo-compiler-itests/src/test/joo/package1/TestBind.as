@@ -64,6 +64,25 @@ public class TestBind {
     return invoke(this.getState3);
   }
 
+  public function testInvokeLocalVarMethod() : String {
+    var test:TestUnqualifiedAccess = new TestUnqualifiedAccess(state);
+    return invoke(test.getPrivateSlot);
+  }
+
+  private var test:TestUnqualifiedAccess;
+  public function testInvokeFieldMethod() : String {
+    test = new TestUnqualifiedAccess(state);
+    return invoke(test.getPrivateSlot);
+  }
+
+  public function testReturn() : String {
+    return getGetPrivateSlot()();
+  }
+
+  private function getGetPrivateSlot():Function {
+    return test.getPrivateSlot;
+  }
+
   public function testInvokeParameterUnqualified() : String {
     return invoke(getState4);
   }

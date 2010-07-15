@@ -32,7 +32,6 @@ public class MemberDeclaration {
           STATIC : String = "static",
           FINAL : String = "final",
           NATIVE : String = "native",
-          BOUND : String = "bound",
           OVERRIDE : String = "override";
 
   private static var SUPPORTS_GETTERS_SETTERS : Boolean;
@@ -64,7 +63,6 @@ public class MemberDeclaration {
           _static : Boolean = false,
           _final : Boolean = false,
           _native : Boolean = false,
-          _bound : Boolean = false,
           _override : Boolean = false,
           _cloneFactory : Function;
   public var
@@ -82,7 +80,6 @@ public class MemberDeclaration {
           case STATIC:
           case FINAL:
           case NATIVE:
-          case BOUND:
           case OVERRIDE:
             this["_"+token] = true; break;
           case MEMBER_TYPE_VAR:
@@ -127,10 +124,6 @@ public class MemberDeclaration {
 
   public function isOverride() : Boolean {
     return this._override;
-  }
-
-  public function isBound() : Boolean {
-    return this._bound;
   }
 
   public function isMethod() : Boolean {
@@ -250,9 +243,6 @@ public class MemberDeclaration {
     }
     if (this._override) {
       sb.push(OVERRIDE);
-    }
-    if (this._bound) {
-      sb.push(BOUND);
     }
     sb.push(this.memberType);
     if (this.getterOrSetter) {

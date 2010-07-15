@@ -130,13 +130,21 @@ public class QualifiedIde extends Ide {
   @Override
   public IdeDeclaration resolveDeclaration() {
     IdeDeclaration result = super.resolveDeclaration();
-    if (result == null) {
-      IdeDeclaration prefixDeclaration = getQualifier().resolveDeclaration();
-      if (prefixDeclaration != null) {
-        result = prefixDeclaration.resolvePropertyDeclaration(this.getName());
-      }
-    }
-    return result;
+    return result == null
+      ? resolveQualifiedIdeDeclaration()
+      : result;
+  }
+
+  @Override
+  protected IdeDeclaration getMemberDeclaration() {
+    return resolveQualifiedIdeDeclaration();
+  }
+
+  private IdeDeclaration resolveQualifiedIdeDeclaration() {
+    IdeDeclaration prefixDeclaration = getQualifier().resolveDeclaration();
+    return prefixDeclaration != null
+      ? prefixDeclaration.resolvePropertyDeclaration(this.getName())
+      : null;
   }
 
   @Override
@@ -154,6 +162,10 @@ public class QualifiedIde extends Ide {
     if (memberDeclaration == null) {
       final IdeDeclaration type = qualifier.resolveDeclaration();
       memberDeclaration = Ide.resolveMember(type, this);
+    }
+    if (bound) {
+      writeBoundMethodAccess(out, qualifier, symDot, memberDeclaration);
+      return;
     }
     if (commentOutQualifierCode) {
       // we will generate another qualifier in writeMemberAccess

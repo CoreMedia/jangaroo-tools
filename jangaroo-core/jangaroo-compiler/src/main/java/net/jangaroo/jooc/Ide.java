@@ -27,6 +27,7 @@ public class Ide extends NodeImplBase {
   private IdeDeclaration declaration;
   private Scope scope;
   private Ide qualified;
+  protected boolean bound;
 
   private static final IdeDeclaration NULL_DECL = new VariableDeclaration(null, null, null, null);
 
@@ -219,23 +220,33 @@ public class Ide extends NodeImplBase {
       //todo check wheter super method exists and is non-static
     }
     checkDefinedAccessChain();
-    ClassDeclaration classDeclaration = getScope().getClassDeclaration();
-    // check candidates for instance methods declared in same file, accessed as function:
-    if (classDeclaration != null) {
-      // check and handle instance methods declared in same file, accessed as function:
-      if (isBoundMethodCandidate(exprParent, parentExpr))
-        classDeclaration.addBoundMethodCandidate(getName());
+    if (isBoundMethodCandidate(exprParent, parentExpr)) {
+      IdeDeclaration memberDeclaration = getMemberDeclaration();
+      // check candidates for instance methods, accessed as function:
+      if (memberDeclaration != null && memberDeclaration.isMethod() && !((FunctionDeclaration)memberDeclaration).isGetterOrSetter() && !memberDeclaration.isStatic()) {
+        // check and handle instance methods declared in same file, accessed as function:
+        bound = true;
+      }
     }
     if (scope != null) {
       addExternalUsage();
       //todo handle references to static super members
       // check access to constant of another class; other class then must be initialized:
       if (isQualified() && !isQualifier() && !(exprParent instanceof ApplyExpr)) {
+        ClassDeclaration classDeclaration = getScope().getClassDeclaration();
         if (classDeclaration != null) {
           classDeclaration.addInitIfClass(getQualifier());
         }
       }
     }
+  }
+
+  protected IdeDeclaration getMemberDeclaration() {
+    IdeDeclaration declaration = getDeclaration(false);
+    if (declaration != null && declaration.isClassMember()) {
+      return declaration;
+    }
+    return declaration;
   }
 
   private void checkDefinedAccessChain() {
@@ -258,13 +269,13 @@ public class Ide extends NodeImplBase {
   }
 
   private boolean isBoundMethodCandidate(final AstNode exprParent, final Expr parentExpr) {
-    return isThisAccess() && !isQualifier() &&
-      (exprParent instanceof ParenthesizedExpr ||
+    return exprParent instanceof ParenthesizedExpr ||
         exprParent instanceof CommaSeparatedList ||
         exprParent instanceof Initializer ||
         exprParent instanceof AsExpr ||
         exprParent instanceof ObjectField ||
-        (exprParent instanceof AssignmentOpExpr && ((AssignmentOpExpr) exprParent).arg2 == parentExpr));
+        exprParent instanceof ReturnStatement ||
+        (exprParent instanceof AssignmentOpExpr && ((AssignmentOpExpr) exprParent).arg2 == parentExpr);
   }
 
   protected void generateCodeAsExpr(final JsWriter out) throws IOException {
@@ -281,6 +292,10 @@ public class Ide extends NodeImplBase {
             if (decl.isStatic()) {
               out.writeToken(decl.getClassDeclaration().getQualifiedNameStr());
             } else {
+              if (bound) {
+                writeBoundMethodAccess(out, null, null, decl);
+                return;
+              }
               out.writeToken("this");
             }
           }
@@ -300,6 +315,28 @@ public class Ide extends NodeImplBase {
     out.writeSymbol(ide, false);
   }
 
+  protected void writeBoundMethodAccess(JsWriter out, Ide optIde, JooSymbol optSymDot, IdeDeclaration decl) throws IOException {
+    out.writeToken("$$bound(");
+    if (optIde != null) {
+      optIde.generateCodeAsExpr(out);
+    } else {
+      out.writeToken("this");
+    }
+    if (optSymDot != null) {
+      out.writeSymbolWhitespace(optSymDot);
+    }
+    out.writeToken(",");
+    if (isQualifiedBySuper() || decl.isPrivate()) {
+      // awkward, but we have to be careful if we add characters to tokens:
+      out.writeToken("$" + getName());
+    } else {
+      out.beginString();
+      out.writeToken(getName());
+      out.endString();
+    }
+    out.writeToken(")");
+  }
+
   static void writeMemberAccess(IdeDeclaration memberDeclaration, final JooSymbol optSymDot, Ide memberIde, boolean writeMemberWhitespace, final JsWriter out) throws IOException {
     if (memberDeclaration != null) {
       if (memberIde.isQualifiedBySuper() || memberDeclaration.isPrivate()) {
@@ -309,7 +346,7 @@ public class Ide extends NodeImplBase {
     }
     if (optSymDot != null) {
       out.writeSymbol(optSymDot);
-    } else if (!memberDeclaration.isConstructor()) {
+    } else if (memberDeclaration != null && !memberDeclaration.isConstructor()) {
       out.writeToken(".");
     }
     out.writeSymbol(memberIde.ide, writeMemberWhitespace);

@@ -46,6 +46,13 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
     return false;
   }
 
+  private static function boundMethod(object:Object, methodName:String):Function {
+    return object['$$b_'+methodName] ||
+      (object['$$b_'+methodName] = function():* {
+        return object[methodName].apply(object,arguments);
+      });
+  }
+
 {
   // publish as "joo.is()" for use from JavaScript:
   getQualifiedObject("joo")["is"] = is_;
@@ -63,7 +70,6 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
           memberDeclarationsByQualifiedName : Object,
           initializerNames : Array/*<String>*/, // names of slots that contain initializer functions
           staticInitializers : Array/*<MemberDeclaration>*/,
-          boundMethodNames : Array/*<String>*/,  // names of slots that contain methods that need to be bound to "this"
           publicStaticMethodNames : Array;
 
   public function SystemClassDeclaration(packageDef : String, directives : Array, classDef : String, memberDeclarations : Function,
@@ -104,7 +110,12 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
     }
     this.create(fullClassName, publicConstructor);
     var jooPackage:* = getQualifiedObject("joo");
-    this.privateStatics = { "assert": jooPackage.assert, "is": is_, "trace": jooPackage.trace };
+    this.privateStatics = {
+      "assert": jooPackage.assert,
+      "is": is_,
+      "trace": jooPackage.trace,
+      "$$bound": boundMethod
+    };
   }
 
   public function isNative() : Boolean {
@@ -130,7 +141,6 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
   protected function initMembers() : void {
     this.initializerNames = [];
     this.staticInitializers = [];
-    this.boundMethodNames = [];
     var memberDeclarations : Array = this.memberDeclarations(this.privateStatics);
     this.memberDeclarations = [];
     this.memberDeclarationsByQualifiedName = {};
@@ -169,9 +179,6 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
       // create empty default constructor:
       this.constructor_ = defaultConstructor;
     }
-    if (this.boundMethodNames.length>0) {
-      this.constructor_ = createMethodBindingConstructor(this.constructor_, this.boundMethodNames);
-    }
   }
 
   // must be defined static because otherwise, jooc will add .bind(this) to all function expressions!
@@ -190,17 +197,6 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
         var slot : String = cd.initializerNames[i] as String;
         this[slot] = this[slot]();
       }
-    };
-  }
-
-  // must be defined static because otherwise, jooc will add .bind(this) to all function expressions!
-  private static function createMethodBindingConstructor(constructor_ : Function, boundMethodNames : Array) : Function {
-    return function $bindMethods() : void {
-      for (var i:int=0; i<boundMethodNames.length; ++i) {
-        var slot : String = boundMethodNames[i] as String;
-        this[slot] = this[slot].bind(this);
-      }
-      constructor_.apply(this, arguments);
     };
   }
 
@@ -238,9 +234,6 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
         this._storeMember(this._createMemberDeclaration(memberDeclaration, {_namespace: MemberDeclaration.NAMESPACE_PRIVATE}), superMethod);
       }
       this._storeMember(memberDeclaration, member);
-      if (memberDeclaration.isBound()) {
-        this.boundMethodNames.push(memberDeclaration.slot);
-      }
     }
   }
 
