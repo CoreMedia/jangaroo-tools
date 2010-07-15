@@ -31,7 +31,6 @@ import org.jetbrains.idea.maven.importing.MavenModifiableModelsProvider;
 import org.jetbrains.idea.maven.importing.MavenRootModelAdapter;
 import org.jetbrains.idea.maven.project.MavenArtifact;
 import org.jetbrains.idea.maven.project.MavenEmbeddersManager;
-import org.jetbrains.idea.maven.project.MavenPlugin;
 import org.jetbrains.idea.maven.project.MavenProject;
 import org.jetbrains.idea.maven.project.MavenProjectChanges;
 import org.jetbrains.idea.maven.project.MavenProjectsProcessorTask;
@@ -63,19 +62,7 @@ public class JangarooFacetImporter extends FacetImporter<JangarooFacet, Jangaroo
 
   public boolean isApplicable(MavenProject mavenProjectModel) {
     return JANGAROO_PACKAGING_TYPE.equals(mavenProjectModel.getPackaging()) ||
-      hasJangarooCompileGoal(mavenProjectModel);
-  }
-
-  private static boolean hasJangarooCompileGoal(MavenProject mavenProjectModel) {
-    MavenPlugin mavenPlugin = mavenProjectModel.findPlugin(JANGAROO_GROUP_ID, JANGAROO_MAVEN_PLUGIN_ARTIFACT_ID);
-    if (mavenPlugin != null) {
-      for (MavenPlugin.Execution execution : mavenPlugin.getExecutions()) {
-        if (execution.getGoals().contains("compile")) {
-          return true;
-        }
-      }
-    }
-    return false;
+      mavenProjectModel.findPlugin(JANGAROO_GROUP_ID, JANGAROO_MAVEN_PLUGIN_ARTIFACT_ID) != null;
   }
 
   @Override
