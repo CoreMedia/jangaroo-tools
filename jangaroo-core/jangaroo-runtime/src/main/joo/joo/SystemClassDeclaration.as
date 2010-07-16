@@ -54,8 +54,10 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
   }
 
 {
-  // publish as "joo.is()" for use from JavaScript:
-  getQualifiedObject("joo")["is"] = is_;
+  // publish "is" and "boundMethod" as "joo.is" and "joo.boundMethod" for use from JavaScript:
+  var jooPackage:* = getQualifiedObject("joo");
+  jooPackage["is"] = is_;
+  jooPackage["boundMethod"] = boundMethod;
 }
 
   protected var
@@ -109,13 +111,7 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
       this.package_[this.className] = publicConstructor;
     }
     this.create(fullClassName, publicConstructor);
-    var jooPackage:* = getQualifiedObject("joo");
-    this.privateStatics = {
-      "assert": jooPackage.assert,
-      "is": is_,
-      "trace": jooPackage.trace,
-      "$$bound": boundMethod
-    };
+    this.privateStatics = {};
   }
 
   public function isNative() : Boolean {
@@ -129,7 +125,6 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
     this.superClassDeclaration = classLoader.getRequiredClassDeclaration(this.extends_);
     this.superClassDeclaration.complete();
     this.level = this.superClassDeclaration.level + 1;
-    this.privateStatics.$super = "$" + this.level+"super";
     var Super : Function = this.superClassDeclaration.Public;
     if (!this.native_) {
       this.publicConstructor.prototype = new Super();
@@ -141,7 +136,7 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
   protected function initMembers() : void {
     this.initializerNames = [];
     this.staticInitializers = [];
-    var memberDeclarations : Array = this.memberDeclarations(this.privateStatics);
+    var memberDeclarations : Array = this.memberDeclarations("$" + this.level, this.privateStatics);
     this.memberDeclarations = [];
     this.memberDeclarationsByQualifiedName = {};
     this.constructor_ = null;
@@ -200,12 +195,6 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
     };
   }
 
-  protected function _initSlot(memberDeclaration : MemberDeclaration) : void {
-    memberDeclaration.slot = memberDeclaration.isPrivate() && !memberDeclaration.isStatic()
-            ? this.privateStatics["$"+memberDeclaration.memberName] = "$" + this.level + memberDeclaration.memberName
-            : memberDeclaration.memberName;
-  }
-
   protected function initMethod(memberDeclaration : MemberDeclaration, member : Function) : void {
     if (memberDeclaration.memberName == this.className && !memberDeclaration.isStatic()) {
       if (memberDeclaration.getterOrSetter) {
@@ -213,7 +202,7 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
       }
       this.constructor_ = memberDeclaration.isNative() ? this.publicConstructor : member;
     } else {
-      this._initSlot(memberDeclaration);
+      memberDeclaration.initSlot(this.level);
       if (memberDeclaration.isNative()) {
         member = memberDeclaration.getNativeMember(this.publicConstructor);
       }
@@ -239,7 +228,7 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
 
   protected function _createMemberDeclaration(memberDeclaration : MemberDeclaration, changedProperties : Object) : MemberDeclaration {
     var newMemberDeclaration : MemberDeclaration = memberDeclaration.clone(changedProperties);
-    this._initSlot(newMemberDeclaration);
+    newMemberDeclaration.initSlot(this.level);
     return newMemberDeclaration;
   }
 

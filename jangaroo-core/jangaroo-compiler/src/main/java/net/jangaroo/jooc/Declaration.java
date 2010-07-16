@@ -132,6 +132,10 @@ abstract class Declaration extends NodeImplBase {
     return (getModifiers() & MODIFIER_PRIVATE) != 0;
   }
 
+  public boolean isOverride() {
+    return (getModifiers() & MODIFIER_OVERRIDE) != 0;
+  }
+
   public boolean isPrivateStatic() {
     return isPrivate() && isStatic();
   }

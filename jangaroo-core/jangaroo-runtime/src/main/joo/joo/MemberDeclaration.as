@@ -130,6 +130,12 @@ public class MemberDeclaration {
     return this.memberType==MEMBER_TYPE_FUNCTION;
   }
 
+  internal function initSlot(level : int) : void {
+    slot = isPrivate() && !isStatic()
+            ? "$" + level + memberName
+            : memberName;
+  }
+
   // public function retrieveMember(source : Object) : Function
   /* not needed if we take reflection seriously!
    retrieveMember: function joo$MemberDeclaration$getMember(source) {

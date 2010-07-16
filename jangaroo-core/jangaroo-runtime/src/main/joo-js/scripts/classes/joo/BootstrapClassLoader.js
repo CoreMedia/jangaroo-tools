@@ -72,11 +72,11 @@ Function.prototype.bind = function(object) {
           publicConstructor.prototype = clone(superConstructor.prototype);
         } else {
           superConstructor = Object;
-          $extends = "Object";
         }
-        publicConstructor.prototype[$extends] = superConstructor;
-        var privateStatics = {$super: $extends};
-        var members = memberFactory(privateStatics);
+        var level = "$" + className + "_";
+        publicConstructor.prototype[level + "super"] = superConstructor;
+        var privateStatics = {};
+        var members = memberFactory(level, privateStatics);
         var staticInitializer;
         for (var i = 0; i < members.length; ++i) {
           var memberDeclaration = members[i];

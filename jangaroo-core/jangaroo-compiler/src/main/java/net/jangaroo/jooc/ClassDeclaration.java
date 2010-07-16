@@ -110,8 +110,13 @@ public class ClassDeclaration extends IdeDeclaration {
     }
     out.endString();
     out.write(",");
-    out.write("function($$private){");
-    out.write("with($$private)return[");
+    out.write("function($$l,$$private){var is=joo.is,assert=joo.assert,trace=joo.trace,$$bound=joo.boundMethod,$super=$$l+'super'");
+    for (TypedIdeDeclaration member : members.values()) {
+      if (member.isPrivate() || member.isOverride()) {
+        out.write(",$" + member.getName() + "=$$l+'" + member.getName() + "'");
+      }
+    }
+    out.write(";return[");
     generateClassInits(out);
     body.generateCode(out);
     out.write("];},");
