@@ -217,7 +217,7 @@ public class Ide extends NodeImplBase {
         throw Jooc.error(ide, "use of super is only allowed within non-static methods");
       if (currentMethod.isStatic())
         throw Jooc.error(ide, "use of super inside static method");
-      //todo check wheter super method exists and is non-static
+      //todo check whether super method exists and is non-static
     }
     checkDefinedAccessChain();
     if (isBoundMethodCandidate(exprParent, parentExpr)) {
