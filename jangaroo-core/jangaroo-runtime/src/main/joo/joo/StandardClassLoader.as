@@ -21,15 +21,15 @@ public class StandardClassLoader extends SystemClassLoader {
 
   private static var classDeclarations : Array = [];
 
-  private var importMap : ImportMap;
+  private var imports : Array;
 
   public function StandardClassLoader() {
-    this.importMap = new ImportMap();
+    imports = [];
   }
 
-  override protected function createClassDeclaration(packageDef : String, directives : Array, classDef : String, memberFactory : Function,
+  override protected function createClassDeclaration(packageDef : String, classDef : String, memberFactory : Function,
                                                   publicStaticMethodNames : Array, dependencies : Array):SystemClassDeclaration {
-    var cd : ClassDeclaration = new ClassDeclaration(packageDef, directives, classDef, memberFactory, publicStaticMethodNames, dependencies);
+    var cd : ClassDeclaration = new ClassDeclaration(packageDef, classDef, memberFactory, publicStaticMethodNames, dependencies);
     classDeclarations.push(cd); // remember all created classes for later initialization.
     return cd;
   }
@@ -49,7 +49,7 @@ public class StandardClassLoader extends SystemClassLoader {
    * @param fullClassName : String the fully qualified class name (package plus name) of the class to load and import.
    */
   public function import_(fullClassName : String) : void {    
-    this.importMap.addImport(fullClassName);
+    imports.push(fullClassName);
   }
 
   /**
@@ -121,8 +121,11 @@ public class StandardClassLoader extends SystemClassLoader {
 
   protected function doCompleteCallbacks(onCompleteCallbacks : Array/*Function*/) : void {
     if (onCompleteCallbacks.length) {
-      this.importMap.init();
-      var importMap : Object = this.importMap.addToMap({});
+      var importMap : Object = {};
+      imports.forEach(function(fullClassName:String):void {
+        var className : String = fullClassName.substring(fullClassName.lastIndexOf(".") + 1);
+        importMap[className] = classLoader.getRequiredClassDeclaration(fullClassName).init();
+      });
       for (var i:int = 0; i < onCompleteCallbacks.length; ++i) {
         (onCompleteCallbacks[i] as Function)(importMap);
       }

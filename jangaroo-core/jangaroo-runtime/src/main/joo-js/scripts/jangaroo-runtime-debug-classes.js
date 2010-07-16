@@ -9,7 +9,6 @@
     "joo.SystemClassDeclaration",
     "joo.SystemClassLoader",
     "Array",
-    "joo.ImportMap",
     "joo.ClassDeclaration",
     "joo.StandardClassLoader",
     "joo.DynamicClassLoader",

@@ -30,15 +30,15 @@ public class SystemClassLoader {
   public function SystemClassLoader() {    
   }
 
-  public function prepare(packageDef : String, directives : Array, classDef : String, memberFactory : Function,
+  public function prepare(packageDef : String, classDef : String, memberFactory : Function,
                           publicStaticMethodNames : Array, dependencies : Array) : void {
-    var cd : SystemClassDeclaration = this.createClassDeclaration(packageDef, directives, classDef, memberFactory, publicStaticMethodNames, dependencies);
+    var cd : SystemClassDeclaration = this.createClassDeclaration(packageDef, classDef, memberFactory, publicStaticMethodNames, dependencies);
     classDeclarationsByName[cd.fullClassName] = cd;
   }
 
-  protected function createClassDeclaration(packageDef : String, directives : Array, classDef : String, memberFactory : Function,
+  protected function createClassDeclaration(packageDef : String, classDef : String, memberFactory : Function,
                           publicStaticMethodNames : Array, dependencies : Array) : SystemClassDeclaration {
-    return new SystemClassDeclaration(packageDef, directives, classDef, memberFactory, publicStaticMethodNames).init()
+    return new SystemClassDeclaration(packageDef, classDef, memberFactory, publicStaticMethodNames).init()
             as SystemClassDeclaration;
   }
 

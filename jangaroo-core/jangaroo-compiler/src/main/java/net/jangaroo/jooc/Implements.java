@@ -49,7 +49,15 @@ class Implements extends NodeImplBase {
 
   protected void generateJsCode(JsWriter out) throws IOException {
      out.writeSymbol(symImplements);
-     superTypes.generateCode(out);
+     generateImplements(superTypes, out);
+  }
+
+  private void generateImplements(CommaSeparatedList<Ide> superTypes, JsWriter out) throws IOException {
+    superTypes.head.generateCodeAsExpr(out);
+    if (superTypes.symComma != null) {
+      out.writeSymbol(superTypes.symComma);
+      generateImplements(superTypes.tail, out);
+    }
   }
 
   public JooSymbol getSymbol() {

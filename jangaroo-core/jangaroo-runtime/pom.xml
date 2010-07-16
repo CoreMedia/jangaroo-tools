@@ -59,7 +59,6 @@
                     <file name="joo/SystemClassDeclaration.js" />
                     <file name="joo/SystemClassLoader.js" />
                     <file name="Array.js" />
-                    <file name="joo/ImportMap.js" />
                     <file name="joo/ClassDeclaration.js" />
                     <file name="joo/StandardClassLoader.js" />
                     <file name="joo/DynamicClassLoader.js" />
@@ -89,7 +88,6 @@
                     <file name="joo/SystemClassDeclaration.js" />
                     <file name="joo/SystemClassLoader.js" />
                     <file name="Array.js" />
-                    <file name="joo/ImportMap.js" />
                     <file name="joo/ClassDeclaration.js" />
                     <file name="joo/StandardClassLoader.js" />
                     <file name="joo/DynamicClassLoader.js" />

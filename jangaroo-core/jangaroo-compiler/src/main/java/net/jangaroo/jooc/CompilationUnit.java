@@ -119,10 +119,10 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
   protected void generateJsCode(JsWriter out) throws IOException {
     out.write(Jooc.CLASS_LOADER_FULLY_QUALIFIED_NAME + ".prepare(");
     packageDeclaration.generateCode(out);
-    out.writeSymbolWhitespace(lBrace);
-    out.write("[");
+    out.beginComment();
+    out.writeSymbol(lBrace);
     generateCode(directives, out);
-    out.write("\"\"],");
+    out.endComment();
     primaryDeclaration.generateCode(out);
     out.write(",[");
     boolean first = true;

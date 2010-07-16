@@ -47,9 +47,9 @@ public class DynamicClassLoader extends StandardClassLoader {
    */
   private var pendingClassState : Object/*<String,Boolean>*/ = {};
 
-  override protected function createClassDeclaration(packageDef : String, directives : Array, classDef : String, memberFactory : Function,
+  override protected function createClassDeclaration(packageDef : String, classDef : String, memberFactory : Function,
                                                      publicStaticMethodNames : Array, dependencies : Array):SystemClassDeclaration {
-    var cd : ClassDeclaration = super.createClassDeclaration(packageDef, directives, classDef, memberFactory, publicStaticMethodNames, dependencies) as ClassDeclaration;
+    var cd : ClassDeclaration = super.createClassDeclaration(packageDef, classDef, memberFactory, publicStaticMethodNames, dependencies) as ClassDeclaration;
     this.pendingDependencies.push(cd);
     if (delete this.pendingClassState[cd.fullClassName]) {
       if (this.debug) {

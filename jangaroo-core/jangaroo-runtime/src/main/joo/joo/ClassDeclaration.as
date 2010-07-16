@@ -19,45 +19,20 @@ package joo {
 
 public class ClassDeclaration extends SystemClassDeclaration {
 
-  private var importMap : ImportMap;
   private var dependencies : Array;
 
-  public function ClassDeclaration(packageDef:String, directives : Array, classDef:String, memberDeclarations:Function,
+  public function ClassDeclaration(packageDef:String, classDef:String, memberDeclarations:Function,
           publicStaticMethods : Array, dependencies : Array) {
-    super(packageDef, directives, classDef, memberDeclarations, publicStaticMethods);
+    super(packageDef, classDef, memberDeclarations, publicStaticMethods);
     this.dependencies = dependencies;
   }
 
   public function getDependencies() : Array {
-    var dependencies:Array = this.dependencies
-      ? this.dependencies            // new compiler output: explicit runtime dependencies
-      : this.importMap.getImports(); // backwards-compatibility for older compiler output
-    dependencies = dependencies.concat([this.importMap.findQualifiedName(this.extends_)]);
-    return dependencies;
-  }
-
-  override protected function parseDirectives(packageName : String, directives : Array):void {
-    // super.parseDirectives(packageName, directives); // we know it's empty!
-    this.importMap = new ImportMap();
-    this.importMap.addImport(packageName+".*");
-    directives.forEach(this.parseDirective);
-  }
-
-  private function parseDirective(directive : String) : void {
-    var importMatch : Array = directive.match(/^\s*import\s+(([a-zA-Z$_0-9]+\.)*(\*|[a-zA-Z$_0-9]+))\s*$/) as Array;
-    if (importMatch) {
-      this.importMap.addImport(importMatch[1]);
-    }
-    // else: TODO! use namespace, annotations, package-scope functions, namespace declarations...
+    return this.dependencies;
   }
 
   override protected function doComplete():void {
-    this.extends_ = this.importMap.findQualifiedName(this.extends_);
     super.doComplete();
-    for (var i:int=0; i<this.interfaces.length; ++i) {
-      this.interfaces[i] = this.importMap.findQualifiedName(this.interfaces[i]);
-    }
-    this.importMap.addToMap(this.privateStatics);
     createInitializingConstructor(this);
     this.publicStaticMethodNames.forEach(this.createInitializingStaticMethod);
   }

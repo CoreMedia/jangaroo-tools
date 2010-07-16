@@ -74,11 +74,10 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
           staticInitializers : Array/*<MemberDeclaration>*/,
           publicStaticMethodNames : Array;
 
-  public function SystemClassDeclaration(packageDef : String, directives : Array, classDef : String, memberDeclarations : Function,
+  public function SystemClassDeclaration(packageDef : String, classDef : String, memberDeclarations : Function,
           publicStaticMethodNames : Array) {
     var packageName : String = packageDef.split(/\s+/ as String)[1] || "";
     this.package_ = getOrCreatePackage(packageName);
-    this.parseDirectives(packageName, directives);
     var classMatch : Array = classDef.match(/^\s*((public|internal|final|dynamic)\s+)*class\s+([A-Za-z][a-zA-Z$_0-9]*)(\s+extends\s+([a-zA-Z$_0-9.]+))?(\s+implements\s+([a-zA-Z$_0-9.,\s]+))?\s*$/) as Array;
     var interfaces : String;
     if (classMatch) {
@@ -117,9 +116,6 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
   public function isNative() : Boolean {
     return this.native_;
   }
-
-  //noinspection JSUnusedLocalSymbols
-  protected function parseDirectives(packageName : String, directives : Array) : void { }
 
   protected override function doComplete() : void {
     this.superClassDeclaration = classLoader.getRequiredClassDeclaration(this.extends_);

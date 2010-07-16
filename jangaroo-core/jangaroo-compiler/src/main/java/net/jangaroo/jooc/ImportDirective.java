@@ -48,10 +48,6 @@ public class ImportDirective extends NodeImplBase {
     this.explicit = explicit;
   }
 
-  public boolean isExplicit() {
-    return explicit;
-  }
-
   public void scope(final Scope scope) {
     ide.scope(scope);
     scope.addImport(this);
@@ -73,11 +69,10 @@ public class ImportDirective extends NodeImplBase {
 
   protected void generateJsCode(JsWriter out) throws IOException {
     if (explicit) {
-      out.beginString();
+      out.beginComment();
       out.writeSymbol(importKeyword);
       ide.generateCode(out);
-      out.endString();
-      out.writeToken(",");
+      out.endComment();
     }
   }
 
