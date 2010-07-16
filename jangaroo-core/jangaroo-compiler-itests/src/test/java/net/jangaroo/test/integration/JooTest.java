@@ -37,7 +37,6 @@ public class JooTest extends JooRuntimeTestCase {
   public void testMethodCall() throws Exception {
     loadClass("package1.TestMethodCall");
     complete();
-    initClass("package1.TestMethodCall");
     expectNumber(43, "package1.TestMethodCall.s(43)");
     eval("obj = new package1.TestMethodCall();");
     eval("t = new package1.TestMethodCall();");
@@ -127,7 +126,6 @@ public class JooTest extends JooRuntimeTestCase {
   public void testStaticAccess() throws Exception {
     loadClass("package2.TestStaticAccess");
     complete();
-    initClass("package2.TestStaticAccess");
     expectGetAndGetQualified("s0", false, "s0");
     expectGetAndGetQualified("s1", true, "s1");
     expectGetAndGetQualified("s2", false, "s2");
@@ -181,6 +179,14 @@ public class JooTest extends JooRuntimeTestCase {
     // TODO: test that static members are *not* inherited.
   }
 
+  public void testStaticAccess3() throws Exception {
+    loadClass("package2.TestStaticAccess3");
+    complete();
+    // TODO: FIXME: the following initClass should not be necessary!
+    initClass("package2.TestStaticAccess");
+    expectString("s1", "package2.TestStaticAccess3.testInitOtherClass()");
+  }
+
   public void testMemberNames() throws Exception {
     loadClass("package1.TestMemberNames");
     complete();
@@ -210,7 +216,6 @@ public class JooTest extends JooRuntimeTestCase {
   public void testInternal() throws Exception {
     loadClass("package2.TestInternal");
     complete();
-    initClass("package2.TestInternal");
     expectString("internal", "new package2.TestInternal().returnInternal()");
   }
 
