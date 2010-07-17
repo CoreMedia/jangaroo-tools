@@ -182,8 +182,6 @@ public class JooTest extends JooRuntimeTestCase {
   public void testStaticAccess3() throws Exception {
     loadClass("package2.TestStaticAccess3");
     complete();
-    // TODO: FIXME: the following initClass should not be necessary!
-    initClass("package2.TestStaticAccess");
     expectString("s1", "package2.TestStaticAccess3.testInitOtherClass()");
   }
 
@@ -538,8 +536,8 @@ public class JooTest extends JooRuntimeTestCase {
     complete();
     eval("obj = new package1.TestPackageHidesVar()");
     // known bug:
-    //expectString("function", "obj.getTestInternal()");
-    expectString("string", "obj.getTestInternal()");
+    //expectString("function", "obj.getTestClass()");
+    expectString("string", "obj.getClass()");
   }
 
   public static void main(String args[]) {

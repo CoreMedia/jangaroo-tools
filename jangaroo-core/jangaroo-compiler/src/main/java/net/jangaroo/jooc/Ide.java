@@ -148,7 +148,7 @@ public class Ide extends NodeImplBase {
 
   public boolean addExternalUsage() {
     IdeDeclaration decl = getDeclaration(false);
-    if (decl == null || decl instanceof PackageDeclaration) {
+    if (decl == null || !decl.isPrimaryDeclaration()) {
       return false;
     }
     CompilationUnit currentUnit = getScope().getCompilationUnit();
@@ -231,11 +231,17 @@ public class Ide extends NodeImplBase {
     if (scope != null) {
       addExternalUsage();
       //todo handle references to static super members
-      // check access to constant of another class; other class then must be initialized:
-      if (isQualified() && !isQualifier() && !(exprParent instanceof ApplyExpr)) {
+      // check access to another class or a constant of another class; other class then must be initialized:
+      if (!isQualifier() && !(exprParent instanceof ApplyExpr)) {
         ClassDeclaration classDeclaration = getScope().getClassDeclaration();
         if (classDeclaration != null) {
-          classDeclaration.addInitIfClass(getQualifier());
+          if (isQualified()) {
+            // access to constant of other class
+            classDeclaration.addInitIfClass(getQualifier());
+          } else {
+            // access to other class
+            classDeclaration.addInitIfClass(this);
+          }
         }
       }
     }

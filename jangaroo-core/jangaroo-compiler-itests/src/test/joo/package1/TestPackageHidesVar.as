@@ -15,16 +15,16 @@
 
 package package1 {
 
-import package2.TestInternal;
+import package3.ClassToImport;
 
 public class TestPackageHidesVar {
 
   public function TestPackageHidesVar() {
   }
 
-  public function getTestInternal():String {
-    var package2:Object = { TestInternal: "bar" };
-    return typeof package2.TestInternal; // returns "function", not "string", because in AS3, you cannot hide packages/classes! 
+  public function getClass():String {
+    var package3:Object = { ClassToImport: "bar" };
+    return typeof package3.ClassToImport; // returns "function", not "string", because in AS3, you cannot hide packages/classes! 
   }
 }
 }

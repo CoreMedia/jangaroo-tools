@@ -120,6 +120,7 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
     }
     super.scope(scope);
     ide = oldIde;
+    //todo check correct override usage
     if (overrides() && isAbstract()) {
       throw Jooc.error(this, "overriding methods are not allowed to be declared abstract");
     }

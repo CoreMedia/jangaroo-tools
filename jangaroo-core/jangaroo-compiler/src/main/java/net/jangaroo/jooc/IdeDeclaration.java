@@ -125,4 +125,10 @@ public abstract class IdeDeclaration extends Declaration {
     return getQualifiedNameStr();
   }
 
+  public boolean isPrimaryDeclaration() {
+    return ide != null &&
+      ide.getScope() != null &&
+      ide.getScope().getCompilationUnit() != null &&
+      this == ide.getScope().getCompilationUnit().getPrimaryDeclaration();
+  }
 }
