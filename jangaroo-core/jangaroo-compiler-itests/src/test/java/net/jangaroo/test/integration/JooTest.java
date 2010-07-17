@@ -535,7 +535,7 @@ public class JooTest extends JooRuntimeTestCase {
     loadClass("package1.TestPackageHidesVar");
     complete();
     eval("obj = new package1.TestPackageHidesVar()");
-    // known bug:
+    // todo known bug:
     //expectString("function", "obj.getTestClass()");
     expectString("string", "obj.getClass()");
   }
