@@ -36,7 +36,7 @@ public class JoocCommandLineParser {
     Option verboseOption = OptionBuilder.withLongOpt("verbose")
         .withDescription("be extra verbose")
         .create("v");
-    Option debugOption = OptionBuilder.withDescription("generate debugging information " +
+    Option debugOption = OptionBuilder.withDescription("generate debuggable output " +
         "(possible modes: source, lines, none)")
         .hasOptionalArgs()
         .withArgName("mode")
@@ -63,12 +63,6 @@ public class JoocCommandLineParser {
     Option allowDuplicateLocalVariablesOption = OptionBuilder.withLongOpt("allowduplicatelocalvariables")
         .withDescription("allow multiple declarations of local variables")
         .create("ad");
-    Option enableGuessingOption = OptionBuilder.withDescription(
-        "Enable heuristic for guessing member access ('members'), classes in scope ('classes'), and type casts ('typecasts').")
-        .withLongOpt("enableguessing")
-        .hasOptionalArgs()
-        .withArgName("mode")
-        .create("eg");
     Options options = new Options();
     options.addOption(help);
     options.addOption(version);
@@ -80,7 +74,6 @@ public class JoocCommandLineParser {
     options.addOption(enableAssertionsOption);
     options.addOption(apiDestinationDir);
     options.addOption(allowDuplicateLocalVariablesOption);
-    options.addOption(enableGuessingOption);
     CommandLineParser parser = new GnuParser();
     CommandLine line = null;
 
