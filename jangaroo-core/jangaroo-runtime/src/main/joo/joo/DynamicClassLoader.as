@@ -35,6 +35,7 @@ public class DynamicClassLoader extends StandardClassLoader {
 
   public function DynamicClassLoader() {
     classLoader = this;
+    this.urlPrefix = this.determineUrlPrefix();
   }
 
   /**
@@ -138,20 +139,25 @@ public class DynamicClassLoader extends StandardClassLoader {
   }
 
   protected function getBaseUri() : String {
-    if (typeof this.urlPrefix != "string") {
-      this.urlPrefix = this.determineUrlPrefix();
-    }
     return this.urlPrefix;
   }
 
   private function determineUrlPrefix():String {
     const RUNTIME_URL_PATTERN:RegExp = /^(.*)\bjangaroo-runtime[^.]*\.js$/;
     var document:* = getQualifiedObject("document");
-    var scripts:Array = document.getElementsByTagName("SCRIPT");
-    for (var i:int=0; i<scripts.length; ++i) {
-      var match:Array = RUNTIME_URL_PATTERN.exec(scripts[i].src);
-      if (match) {
-        return match[1] + "classes/";
+    if (document) {
+      var scripts:Array = document["getElementsByTagName"]("SCRIPT");
+      for (var i:int=0; i<scripts.length; ++i) {
+        var match:Array = RUNTIME_URL_PATTERN.exec(scripts[i].src);
+        if (match) {
+          var code:String = scripts[i]["innerHTML"];
+          if (code && code.length) {
+            getQualifiedObject("setTimeout")(function() : void {
+              getQualifiedObject("eval")(code);
+            }, 0);
+          }
+          return match[1] + "classes/";
+        }
       }
     }
     if (this.debug) {
