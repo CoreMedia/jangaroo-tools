@@ -25,6 +25,7 @@ class SuperConstructorCallStatement extends Statement {
 
   Expr fun;
   ParenthesizedExpr<CommaSeparatedList<Expr>> args;
+  private ClassDeclaration classDeclaration;
 
   public SuperConstructorCallStatement(JooSymbol symSuper, JooSymbol lParen, CommaSeparatedList<Expr> args, JooSymbol rParen) {
     this.fun = new IdeExpr(symSuper);
@@ -44,6 +45,7 @@ class SuperConstructorCallStatement extends Statement {
     fun.scope(scope);
     if (args != null)
       args.scope(scope);
+    classDeclaration = scope.getClassDeclaration();
   }
 
   public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
@@ -57,6 +59,7 @@ class SuperConstructorCallStatement extends Statement {
   protected void generateJsCode(JsWriter out) throws IOException {
     generateFunCode(out);
     generateArgsCode(out);
+    classDeclaration.generateFieldInitCode(out);
   }
 
   protected void generateFunCode(JsWriter out) throws IOException {

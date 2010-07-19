@@ -73,6 +73,15 @@ public class FieldDeclaration extends AbstractVariableDeclaration {
   }
 
   @Override
+  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
+    super.analyze(parentNode, context);
+    if (!isStatic() && optInitializer != null && !optInitializer.value.isCompileTimeConstant()) {
+      getClassDeclaration().addFieldWithInitializer(this);
+    }
+    return this;
+  }
+
+  @Override
   protected void generateAsApiCode(final JsWriter out) throws IOException {
     super.generateAsApiCode(out);
   }
@@ -113,5 +122,10 @@ public class FieldDeclaration extends AbstractVariableDeclaration {
       out.writeSymbolWhitespace(optSymSemicolon);
       out.writeToken(",");
     }
+  }
+
+  public void generateInitCode(JsWriter out) throws IOException {
+    String accessCode = "this" + (isPrivate() ? "[$" + getName() + "]" : "." + getName());
+    out.write(";" + accessCode + "=" + accessCode + "()");
   }
 }

@@ -290,7 +290,7 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
       optTypeRelation.generateCode(out);
     }
     if (isConstructor && !containsSuperConstructorCall() && optBody instanceof BlockStatement) {
-      ((BlockStatement) optBody).addBlockStartCodeGenerator(new SuperCallCodeGenerator());
+      ((BlockStatement) optBody).addBlockStartCodeGenerator(new SuperCallCodeGenerator(classDeclaration));
     }
     if (optBody != null) {
       optBody.generateCode(out);
@@ -302,8 +302,16 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
   }
 
   private static class SuperCallCodeGenerator implements CodeGenerator {
+    private ClassDeclaration classDeclaration;
+
+    public SuperCallCodeGenerator(ClassDeclaration classDeclaration) {
+      this.classDeclaration = classDeclaration;
+    }
+
     public void generateCode(JsWriter out) throws IOException {
-      out.writeToken("this[$super]();");
+      out.writeToken("this[$super]()");
+      classDeclaration.generateFieldInitCode(out);
+      out.writeToken(";");
     }
   }
 

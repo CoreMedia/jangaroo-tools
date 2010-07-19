@@ -19,12 +19,6 @@ package joo {
 
 public class SystemClassDeclaration extends NativeClassDeclaration {
 
-  protected static function createDefaultConstructor(superName : String) : Function {
-    return (function $DefaultConstructor() : void {
-      this[superName].apply(this,arguments);
-    });
-  }
-
   protected static function createPublicConstructor(cd : NativeClassDeclaration) : Function {
     return function joo$SystemClassDeclaration$constructor() : void {
       this.constructor =  cd.publicConstructor;
@@ -70,7 +64,6 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
           privateStatics : Object,
           memberDeclarations : * /* Function, then Array */,
           memberDeclarationsByQualifiedName : Object,
-          initializerNames : Array/*<String>*/, // names of slots that contain initializer functions
           staticInitializers : Array/*<MemberDeclaration>*/,
           publicStaticMethodNames : Array;
 
@@ -130,7 +123,6 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
   }
 
   protected function initMembers() : void {
-    this.initializerNames = [];
     this.staticInitializers = [];
     var memberDeclarations : Array = this.memberDeclarations("$" + this.level, this.privateStatics);
     this.memberDeclarations = [];
@@ -163,32 +155,11 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
           }
       }
     }
-    var defaultConstructor : Function = this.native_ ? this.publicConstructor :
-      this.publicConstructor.prototype["$"+this.level+"super"] =
-      this.initializerNames.length==0 ? this.superClassDeclaration.constructor_ : createSuperCall(this);
+    this.publicConstructor.prototype["$"+this.level+"super"] = this.superClassDeclaration.constructor_;
     if (!this.constructor_) {
-      // create empty default constructor:
-      this.constructor_ = defaultConstructor;
+      // reuse native public constructor or super class constructor:
+      this.constructor_ = this.native_ ? this.publicConstructor : this.superClassDeclaration.constructor_;
     }
-  }
-
-  // must be defined static because otherwise, jooc will add .bind(this) to all function expressions!
-  private static function createSuperCall(cd : SystemClassDeclaration) : Function {
-    if (cd.extends_=="Object") {
-      return function $super() : void {
-        for (var i:int=0; i<cd.initializerNames.length; ++i) {
-          var slot : String = cd.initializerNames[i] as String;
-          this[slot] = this[slot]();
-        }
-      };
-    }
-    return function $super() : void {
-      cd.superClassDeclaration.constructor_.apply(this,arguments);
-      for (var i:int=0; i<cd.initializerNames.length; ++i) {
-        var slot : String = cd.initializerNames[i] as String;
-        this[slot] = this[slot]();
-      }
-    };
   }
 
   protected function initMethod(memberDeclaration : MemberDeclaration, member : Function) : void {
@@ -246,8 +217,6 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
       if (memberDeclaration.hasInitializer()) {
         if (_static) {
           this.staticInitializers.push(memberDeclaration);
-        } else {
-          this.initializerNames.push(memberDeclaration.slot);
         }
       }
     }

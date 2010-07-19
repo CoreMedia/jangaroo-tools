@@ -33,6 +33,7 @@ public class ClassDeclaration extends IdeDeclaration {
   private FunctionDeclaration constructor = null;
   private IdeType thisType;
   private IdeType superType;
+  private List<FieldDeclaration> fieldsWithInitializer = new ArrayList<FieldDeclaration>();
 
 
   public Extends getOptExtends() {
@@ -119,6 +120,12 @@ public class ClassDeclaration extends IdeDeclaration {
     out.write(";return[");
     generateClassInits(out);
     body.generateCode(out);
+    if (constructor == null && !fieldsWithInitializer.isEmpty()) {
+      // generate default constructor that calls field initializers:
+      out.write("\"public function " + getName() + "\",function $" + getName() + "(){this[$super]();");
+      generateFieldInitCode(out);
+      out.write("}");
+    }
     out.write("];},");
     generateStaticMethodList(out);
   }
@@ -302,5 +309,15 @@ public class ClassDeclaration extends IdeDeclaration {
 
   public ClassDeclaration getSuperTypeDeclaration() {
     return superType == null ? null : (ClassDeclaration)superType.ide.getDeclaration();
+  }
+
+  public void addFieldWithInitializer(FieldDeclaration fieldDeclaration) {
+    fieldsWithInitializer.add(fieldDeclaration);
+  }
+
+  public void generateFieldInitCode(JsWriter out) throws IOException {
+    for (FieldDeclaration field : fieldsWithInitializer) {
+      field.generateInitCode(out);
+    }
   }
 }
