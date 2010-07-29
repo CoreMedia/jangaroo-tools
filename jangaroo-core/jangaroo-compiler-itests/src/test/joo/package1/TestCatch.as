@@ -15,15 +15,25 @@
 
 package package1 {
 
+import package3.ClassToImport;
+
 public class TestCatch {
 
-  public static function testCatch() : Boolean {
+  public static var finallyExecuted :Boolean;
+
+  public static function testCatch(thrower :Function) : String {
+    finallyExecuted = false;
     try {
-      throw new TestImplements();
+      thrower();
+      return "nothing thrown";
+    } catch (e2 : package3.ClassToImport) {
+      return "ClassToImport";
     } catch (e : TestInterface) {
-      return true;
+      return "TestInterface";
+    } finally {
+      finallyExecuted = false;
     }
-    return false;
+    return "nothing catched";
   }
 
   public static function testFallThrough() : void {
