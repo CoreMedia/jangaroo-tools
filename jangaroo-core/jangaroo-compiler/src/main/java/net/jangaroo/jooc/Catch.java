@@ -118,7 +118,7 @@ class Catch extends KeywordStatement {
       Type type = typeRelation.getType();
       if (type instanceof IdeType) {
         IdeType ideType = (IdeType) type;
-        ideType.getIde().addExternalUsage();
+        ideType.getIde().usageInExpr(ideType);
       }
     }
     block.analyze(this, context);

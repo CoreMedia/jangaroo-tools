@@ -229,20 +229,23 @@ public class Ide extends NodeImplBase {
       }
     }
     if (scope != null) {
-      addExternalUsage();
-      //todo handle references to static super members
-      // check access to another class or a constant of another class; other class then must be initialized:
-      if (!isQualifier() && !(exprParent instanceof ApplyExpr)) {
-        ClassDeclaration classDeclaration = getScope().getClassDeclaration();
-        if (classDeclaration != null) {
-          if (isQualified()) {
-            // access to constant of other class
-            classDeclaration.addInitIfClass(getQualifier());
-          } else {
-            // access to other class
-            classDeclaration.addInitIfClass(this);
-          }
+      usageInExpr(exprParent);
+    }
+  }
+
+  public void usageInExpr(final AstNode exprParent) {
+    addExternalUsage();
+    //todo handle references to static super members
+    // check access to another class or a constant of another class; other class then must be initialized:
+    if (!isQualifier() && !(exprParent instanceof ApplyExpr)) {
+      ClassDeclaration classDeclaration = getScope().getClassDeclaration();
+      if (classDeclaration != null) {
+        if (isQualified()) {
+          // access to constant of other class?
+          classDeclaration.addInitIfClass(getQualifier());
         }
+        // access to other class?
+        classDeclaration.addInitIfClass(this);
       }
     }
   }
