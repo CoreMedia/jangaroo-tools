@@ -78,12 +78,12 @@ public abstract class JooRuntimeTestCase extends JooTestCase {
       System.out.println();
     }
 
-    public static void joo__loadClasses(Context cx, Scriptable thisObj, Object[] args, Function funObj) throws Exception {
+    public static void joo__loadScript(Context cx, Scriptable thisObj, Object[] args, Function funObj) throws Exception {
       Global global = (Global) thisObj;
       for (Object arg : args) {
         // Convert the arbitrary JavaScript value into a string form.
         String s = Context.toString(arg);
-        global.loadClass(cx, s);
+        global.load(cx, s);
       }
     }
 
@@ -114,9 +114,8 @@ public abstract class JooRuntimeTestCase extends JooTestCase {
     }
 
 
-    public void loadClass(Context cx, String qualifiedJooClassName) throws Exception {
-      String jsFileName = jsFileName(qualifiedJooClassName);
-      load(cx, jsFileName);
+    public void import_(Context cx, String qualifiedJooClassName) throws Exception {
+      eval(cx, "joo.classLoader.import_('" + qualifiedJooClassName + "')");
     }
 
     public Object eval(Context cx, String script) throws Exception {
@@ -134,11 +133,12 @@ public abstract class JooRuntimeTestCase extends JooTestCase {
     cx.setLanguageVersion(Context.VERSION_1_5);
     cx.initStandardObjects(global);
     global.defineFunctionProperties(new String[]{"trace"},  Global.class, ScriptableObject.DONTENUM);
-    global.defineFunctionProperties(new String[]{"joo__loadClasses"},  Global.class, ScriptableObject.EMPTY);
+    global.defineFunctionProperties(new String[]{"joo__loadScript"},  Global.class, ScriptableObject.EMPTY);
     global.defineFunctionProperties(new String[]{"setTimeout"},  Global.class, ScriptableObject.EMPTY);
     global.defineProperty("window", global, ScriptableObject.EMPTY);
     global.setJsDir(destinationDir);
     load(CLASS_JS_FILE_PATH);
+    eval("joo.classLoader.urlPrefix = '/'");
   }
 
   protected void tearDown() throws Exception {
@@ -175,8 +175,8 @@ public abstract class JooRuntimeTestCase extends JooTestCase {
     return lastResult;
   }
 
-  protected void loadClass(String qualifiedJooClassName) throws Exception {
-    global.loadClass(cx, qualifiedJooClassName);
+  protected void import_(String qualifiedJooClassName) throws Exception {
+    global.import_(cx, qualifiedJooClassName);
   }
 
   protected void initClass(String qualifiedJooClassName) throws Exception {
@@ -188,7 +188,7 @@ public abstract class JooRuntimeTestCase extends JooTestCase {
   }
 
   protected void runClass(String qualifiedJooClassName) throws Exception {
-    loadClass(qualifiedJooClassName);
+    import_(qualifiedJooClassName);
     complete();
     //initClass(qualifiedJooClassName);
     eval(qualifiedJooClassName + ".main()");

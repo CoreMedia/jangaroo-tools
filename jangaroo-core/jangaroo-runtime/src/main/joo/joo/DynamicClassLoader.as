@@ -109,11 +109,6 @@ public class DynamicClassLoader extends StandardClassLoader {
 
   private function load(fullClassName : String) : void {
     if (!this.getClassDeclaration(fullClassName)) {
-      var joo__loadClasses:Function = getQualifiedObject("joo__loadClasses");
-      if (joo__loadClasses) {
-        joo__loadClasses(fullClassName);
-        return;
-      }
       if (this.onCompleteCallbacks.length==0) {
         if (this.pendingClassState[fullClassName]===undefined) {
           // we are not yet in completion phase: just add to pending classes:
@@ -126,9 +121,9 @@ public class DynamicClassLoader extends StandardClassLoader {
         if (this.pendingClassState[fullClassName]!==true) {
           // trigger loading:
           this.pendingClassState[fullClassName] = true;
-          var url : String = this.getUri(fullClassName);
+          var url:String = this.getUri(fullClassName);
           if (this.debug) {
-            trace("triggering to load class "+fullClassName+" from URL "+url+".");
+            trace("triggering to load class " + fullClassName + " from URL " + url + ".");
           }
           var script:Object = this.loadScript(url);
           // script.onerror does not work in IE, but since this feature is for debugging only, we don't mind:

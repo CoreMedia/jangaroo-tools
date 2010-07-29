@@ -5,29 +5,14 @@
   <title>joo test</title>
   <script type="text/javascript" src="scripts/jangaroo-runtime-debug.js"></script>
   <script type="text/javascript">
-    joo.classLoader.urlPrefix = "scripts/";
-  </script>
-  <script type="text/javascript" src="scripts/package1/TestCatch.js"></script>
-  <script type="text/javascript" src="scripts/package1/TestInterface.js"></script>
-  <script type="text/javascript" src="scripts/package1/TestImplements.js"></script>
-  <script type="text/javascript" src="scripts/package3/ClassToImport.js"></script>
-  <script type="text/javascript">
 
-    var assert = function(b) {
-      if (!b)
-        throw new Error("assertion failed");
-    }
-    
-    joo.classLoader.complete();
-    joo.classLoader.init(package1.TestCatch);
-    joo.classLoader.init(package1.TestInterface);
-    joo.classLoader.init(package3.ClassToImport);
-
-    var s = package1.TestCatch.testCatch(function() {throw new package3.ClassToImport(); });
-    assert(s === "ClassToImport");
-
-    s = package1.TestCatch.testCatch(function() {throw new package1.TestImplements(); });
-    assert(s === "TestInterface");
+    joo.classLoader.import_("package1.TestCatch");
+    joo.classLoader.complete(function(imports){with(imports){
+      var s = TestCatch.testCatch(function() {throw new package3.ClassToImport(); });
+      assert(s === "ClassToImport");
+      s = TestCatch.testCatch(function() {throw new package1.TestImplements(); });
+      assert(s === "TestInterface");
+    }});
 
   </script>
 </head>
