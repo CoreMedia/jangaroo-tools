@@ -146,8 +146,7 @@ class DeclarationScope extends ScopeImplBase implements Scope {
       msg += importDirective.getQualifiedName();
       JooSymbol importedIdeSymbol = resolveImport(importDirective).getSymbol();
       msg += "(" +
-        importedIdeSymbol.getFileName() + ":" + importedIdeSymbol.getLine() + "," + importedIdeSymbol.getColumn() +
-        ")";
+        importedIdeSymbol.getFileName() + ":" + importedIdeSymbol.getLine() + "," + importedIdeSymbol.getColumn();
     }
     msg += " are available.";
     throw new Jooc.CompilerError(ide.getSymbol(), msg);
