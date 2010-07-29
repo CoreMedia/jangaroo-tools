@@ -7,8 +7,10 @@
   <script type="text/javascript">
     joo.classLoader.urlPrefix = "scripts/";
   </script>
-  <script type="text/javascript" src="scripts/package1/TestMethodCall.js"></script>
-  <script type="text/javascript" src="scripts/package1/TestTypeCast.js"></script>
+  <script type="text/javascript" src="scripts/package1/TestCatch.js"></script>
+  <script type="text/javascript" src="scripts/package1/TestInterface.js"></script>
+  <script type="text/javascript" src="scripts/package1/TestImplements.js"></script>
+  <script type="text/javascript" src="scripts/package3/ClassToImport.js"></script>
   <script type="text/javascript">
 
     var assert = function(b) {
@@ -17,15 +19,16 @@
     }
     
     joo.classLoader.complete();
-    joo.classLoader.init(package1.TestTypeCast);
-    joo.classLoader.init(package1.TestMethodCall);
+    joo.classLoader.init(package1.TestCatch);
+    joo.classLoader.init(package1.TestInterface);
+    joo.classLoader.init(package3.ClassToImport);
 
-    package1.TestMethodCall.s(43);
-    var obj = new package1.TestMethodCall();
-    var m1 = obj.m(43); // === 43);
-    obj = new package1.TestTypeCast();
-    var m2 = package1.TestTypeCast.testAsCast(obj); //===true);
-    var m3 = package1.TestTypeCast.testFunctionCast(obj); //===obj);
+    var s = package1.TestCatch.testCatch(function() {throw new package3.ClassToImport(); });
+    assert(s === "ClassToImport");
+
+    s = package1.TestCatch.testCatch(function() {throw new package1.TestImplements(); });
+    assert(s === "TestInterface");
+
   </script>
 </head>
 <body>

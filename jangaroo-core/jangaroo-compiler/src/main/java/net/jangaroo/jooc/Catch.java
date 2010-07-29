@@ -113,6 +113,14 @@ class Catch extends KeywordStatement {
   public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     param.analyze(this, context);
+    TypeRelation typeRelation = param.optTypeRelation;
+    if (typeRelation != null) {
+      Type type = typeRelation.getType();
+      if (type instanceof IdeType) {
+        IdeType ideType = (IdeType) type;
+        ideType.getIde().addExternalUsage();
+      }
+    }
     block.analyze(this, context);
     return this;
   }
