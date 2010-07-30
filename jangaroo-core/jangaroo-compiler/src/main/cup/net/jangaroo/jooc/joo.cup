@@ -394,81 +394,81 @@ expr ::=
     {: RESULT = new ApplyExpr(expr,lp,args,rp); :}
   | expr:e AS:as type:t
     {: RESULT = new AsExpr(e,as,t); :}
-  | expr:e1 IS:is expr:e2
+  | expr:e1 IS:is exprOrObjectLiteral:e2
     {: RESULT = new IsExpr(e1,is,e2); :}
   | expr:e PLUSPLUS:op
     {: RESULT = new PostfixOpExpr(op,e); :}
   | expr:e MINUSMINUS:op
     {: RESULT = new PostfixOpExpr(op,e); :}
-  | expr:e1 MUL:op expr:e2
+  | expr:e1 MUL:op exprOrObjectLiteral:e2
     {: RESULT = new BinaryOpExpr(e1,op,e2); :}
-  | expr:e1 DIV:op expr:e2
+  | expr:e1 DIV:op exprOrObjectLiteral:e2
     {: RESULT = new BinaryOpExpr(e1,op,e2); :}
-  | expr:e1 MOD:op expr:e2
+  | expr:e1 MOD:op exprOrObjectLiteral:e2
     {: RESULT = new BinaryOpExpr(e1,op,e2); :}
-  | expr:e1 PLUS:op expr:e2
+  | expr:e1 PLUS:op exprOrObjectLiteral:e2
     {: RESULT = new BinaryOpExpr(e1,op,e2); :}
-  | expr:e1 MINUS:op expr:e2
+  | expr:e1 MINUS:op exprOrObjectLiteral:e2
     {: RESULT = new BinaryOpExpr(e1,op,e2); :}
-  | expr:e1 LSHIFT:op expr:e2
+  | expr:e1 LSHIFT:op exprOrObjectLiteral:e2
     {: RESULT = new BinaryOpExpr(e1,op,e2); :}
-  | expr:e1 RSHIFT:op expr:e2
+  | expr:e1 RSHIFT:op exprOrObjectLiteral:e2
     {: RESULT = new BinaryOpExpr(e1,op,e2); :}
-  | expr:e1 URSHIFT:op expr:e2
+  | expr:e1 URSHIFT:op exprOrObjectLiteral:e2
     {: RESULT = new BinaryOpExpr(e1,op,e2); :}
-  | expr:e1 LT:op expr:e2
+  | expr:e1 LT:op exprOrObjectLiteral:e2
     {: RESULT = new BinaryOpExpr(e1,op,e2); :}
-  | expr:e1 GT:op expr:e2
+  | expr:e1 GT:op exprOrObjectLiteral:e2
     {: RESULT = new BinaryOpExpr(e1,op,e2); :}
-  | expr:e1 LTEQ:op expr:e2
+  | expr:e1 LTEQ:op exprOrObjectLiteral:e2
     {: RESULT = new BinaryOpExpr(e1,op,e2); :}
-  | expr:e1 GTEQ:op expr:e2
+  | expr:e1 GTEQ:op exprOrObjectLiteral:e2
     {: RESULT = new BinaryOpExpr(e1,op,e2); :}
-  | expr:e1 INSTANCEOF:op expr:e2
+  | expr:e1 INSTANCEOF:op exprOrObjectLiteral:e2
     {: RESULT = new BinaryOpExpr(e1,op,e2); :}
-  | expr:e1 EQEQ:op expr:e2
+  | expr:e1 EQEQ:op exprOrObjectLiteral:e2
     {: RESULT = new BinaryOpExpr(e1,op,e2); :}
-  | expr:e1 NOTEQ:op expr:e2
+  | expr:e1 NOTEQ:op exprOrObjectLiteral:e2
     {: RESULT = new BinaryOpExpr(e1,op,e2); :}
-  | expr:e1 EQEQEQ:op expr:e2
+  | expr:e1 EQEQEQ:op exprOrObjectLiteral:e2
     {: RESULT = new BinaryOpExpr(e1,op,e2); :}
-  | expr:e1 NOTEQEQ:op expr:e2
+  | expr:e1 NOTEQEQ:op exprOrObjectLiteral:e2
     {: RESULT = new BinaryOpExpr(e1,op,e2); :}
-  | expr:e1 AND:op expr:e2
+  | expr:e1 AND:op exprOrObjectLiteral:e2
     {: RESULT = new BinaryOpExpr(e1,op,e2); :}
-  | expr:e1 XOR:op expr:e2
+  | expr:e1 XOR:op exprOrObjectLiteral:e2
     {: RESULT = new BinaryOpExpr(e1,op,e2); :}
-  | expr:e1 OR:op expr:e2
+  | expr:e1 OR:op exprOrObjectLiteral:e2
     {: RESULT = new BinaryOpExpr(e1,op,e2); :}
-  | expr:e1 ANDAND:op expr:e2
+  | expr:e1 ANDAND:op exprOrObjectLiteral:e2
     {: RESULT = new BinaryOpExpr(e1,op,e2); :}
-  | expr:e1 OROR:op expr:e2
+  | expr:e1 OROR:op exprOrObjectLiteral:e2
     {: RESULT = new BinaryOpExpr(e1,op,e2); :}
   | expr:e1 IN:op expr:e2
     {: RESULT = new BinaryOpExpr(e1,op,e2); :}
   | lvalue:lv EQ:op exprOrObjectLiteral:e
     {: RESULT = new AssignmentOpExpr(lv,op,e); :}
-  | lvalue:lv MULTEQ:op expr:e
+  | lvalue:lv MULTEQ:op exprOrObjectLiteral:e
     {: RESULT = new AssignmentOpExpr(lv,op,e); :}
-  | lvalue:lv DIVEQ:op expr:e
+  | lvalue:lv DIVEQ:op exprOrObjectLiteral:e
     {: RESULT = new AssignmentOpExpr(lv,op,e); :}
-  | lvalue:lv MODEQ:op expr:e
+  | lvalue:lv MODEQ:op exprOrObjectLiteral:e
     {: RESULT = new AssignmentOpExpr(lv,op,e); :}
-  | lvalue:lv PLUSEQ:op expr:e
+  | lvalue:lv PLUSEQ:op exprOrObjectLiteral:e
     {: RESULT = new AssignmentOpExpr(lv,op,e); :}
-  | lvalue:lv MINUSEQ:op expr:e
+  | lvalue:lv MINUSEQ:op exprOrObjectLiteral:e
     {: RESULT = new AssignmentOpExpr(lv,op,e); :}
-  | lvalue:lv LSHIFTEQ:op expr:e
+  | lvalue:lv LSHIFTEQ:op exprOrObjectLiteral:e
     {: RESULT = new AssignmentOpExpr(lv,op,e); :}
-  | lvalue:lv RSHIFTEQ:op expr:e
+  | lvalue:lv RSHIFTEQ:op exprOrObjectLiteral:e
     {: RESULT = new AssignmentOpExpr(lv,op,e); :}
-  | lvalue:lv URSHIFTEQ:op expr:e
+  | lvalue:lv URSHIFTEQ:op exprOrObjectLiteral:e
     {: RESULT = new AssignmentOpExpr(lv,op,e); :}
-  | lvalue:lv ANDEQ:op expr:e
+  | lvalue:lv ANDEQ:op exprOrObjectLiteral:e
     {: RESULT = new AssignmentOpExpr(lv,op,e); :}
-  | lvalue:lv XOREQ:op expr:e
+  | lvalue:lv XOREQ:op exprOrObjectLiteral:e
     {: RESULT = new AssignmentOpExpr(lv,op,e); :}
-  | lvalue:lv OREQ:op expr:e
+  | lvalue:lv OREQ:op exprOrObjectLiteral:e
     {: RESULT = new AssignmentOpExpr(lv,op,e); :}
   | expr:cond QUESTION:q exprOrObjectLiteral:e1 COLON:c exprOrObjectLiteral:e2
     {: RESULT = new ConditionalExpr(cond,q,e1,c,e2); :}

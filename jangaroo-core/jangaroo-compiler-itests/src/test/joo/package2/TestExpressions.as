@@ -70,6 +70,13 @@ public class TestExpressions {
     return o.x + o.y;
   }
 
+  public function testObjectLiteralsInBooleanShortcuts(p1 :Object, p2 :Object,i:int):int {
+    var o : * = p1 || { x: 123, "y": 0 };
+    var o2 : * = p2&&{x:1,"y":456};
+    //var o3 :* = { x: 11, y: 12 } || 4711; todo make object literals an expression
+    return o.x + (o2 ? o2.y : i); // + o3.x;
+  }
+
   public function testArrayLiterals():String {
     return [ 1+2-2,2+3-3,3+4-4,4,5,6,7,8,9,0 ].join(',');
   }
