@@ -394,7 +394,7 @@ expr ::=
     {: RESULT = new ApplyExpr(expr,lp,args,rp); :}
   | expr:e AS:as type:t
     {: RESULT = new AsExpr(e,as,t); :}
-  | expr:e1 IS:is exprOrObjectLiteral:e2
+  | expr:e1 IS:is expr:e2
     {: RESULT = new IsExpr(e1,is,e2); :}
   | expr:e PLUSPLUS:op
     {: RESULT = new PostfixOpExpr(op,e); :}
