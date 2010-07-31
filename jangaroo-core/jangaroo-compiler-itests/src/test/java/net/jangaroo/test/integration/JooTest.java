@@ -296,6 +296,7 @@ public class JooTest extends JooRuntimeTestCase {
     expectNumber(9+456, "obj.testObjectLiteralsInBooleanShortcuts({x:9,y:10},true,99)");
     expectNumber(9+88, "obj.testObjectLiteralsInBooleanShortcuts({x:9,y:10},false,88)");
     expectString("1,2,3,4,5,6,7,8,9,0", "obj.testArrayLiterals()");
+    expectBoolean(true, "obj.testIsPrecedence()");
   }
 
   public void testImport() throws Exception {

@@ -92,7 +92,7 @@ public class TestExpressions {
   }
 
   public function testFunExpr(n:int):Function {
-    return function(m:int) { return n*m; };
+    return function(m:int):int { return n*m; };
   }
 
   public function testPrefixOpExpr(n:int):int{
@@ -112,5 +112,17 @@ public class TestExpressions {
     return prop in obj;
   }
 
+  public function testIsPrecedence():Boolean {
+    var expected:Object = parseInt("foo");
+    var actual:Object = parseInt("bar");
+    if (expected is Number &&
+      actual is Number &&
+      isNaN(Number(expected)) &&
+      isNaN(Number(actual))) {
+      return true;
+    }
+    expected = 1;
+    return false;
+  }
 }
 }
