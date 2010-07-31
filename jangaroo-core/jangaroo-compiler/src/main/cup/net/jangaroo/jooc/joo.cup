@@ -179,42 +179,42 @@ nonterminal CommaSeparatedList ideList;
 nonterminal VariableDeclaration variableDeclaration;
 nonterminal VariableDeclaration optNextVariableDeclaration;
 
-// TODO: check precedences with spec; they are from reference http://hell.org.ua/Docs/oreilly/web2/action/ch05_01.htm
-/* 1 */
+// see http://livedocs.adobe.com/flex/3/html/help.html?content=03_Language_and_Syntax_14.html#119081
+/* 1 - Comma */
 precedence left COMMA;
-/* 2 */
+/* 2 - Assignment */
 precedence right EQ, MULTEQ, DIVEQ, MODEQ, PLUSEQ, MINUSEQ, LSHIFTEQ, RSHIFTEQ, URSHIFTEQ, ANDEQ, XOREQ, OREQ;
-/* 3 */
+/* 3 - Conditional */
 precedence right QUESTION, COLON;
-/* 4 */
+/* 4 - Logical OR */
 precedence left  OROR;
-/* 5 */
+/* 5 - Logical AND */
 precedence left  ANDAND;
-/* 6 */
+/* 6 - Bitwise OR */
 precedence left  OR;
-/* 7 */
+/* 7 - Bitwise XOR */
 precedence left  XOR;
-/* 8 */
+/* 8 - Bitwise AND */
 precedence left  AND;
-/* 9 */
+/* 9 - Equality */
 precedence left  EQEQ, NOTEQ, EQEQEQ, NOTEQEQ;
-/* 10 */
+/* 10 - Relational */
 precedence left LT, LTEQ, GT, GTEQ;
 precedence left INSTANCEOF, IS, IN;
 precedence left AS;
-/* 11 */
+/* 11 - Bitwise shift */
 precedence left LSHIFT, RSHIFT, URSHIFT;
-/* 12 */
+/* 12 - Additive */
 precedence left PLUS, MINUS;
-/* 13 */
+/* 13 - Multiplicative */
 precedence left MUL, DIV, MOD;
-/* 14 */
+/* 14 - Unary */
 precedence right PREFIX_PLUSPLUS, PREFIX_MINUSMINUS, PREFIX_PLUS, PREFIX_MINUS,
                  BITNOT, NOT, DELETE, TYPEOF, VOID;
-/* 15 */
+/* 15 - Postfix */
+precedence left PLUSPLUS, MINUSMINUS;
+/* 16 - Primary */
 precedence left DOT, LPAREN, LBRACK, LBRACE;
-/* 16 */
-precedence left PLUSPLUS, MINUSMINUS; /* postfix */
 precedence right NAMESPACESEP, NEW;
 
 start with compilationUnit;
