@@ -102,11 +102,7 @@ public abstract class JooRuntimeTestCase extends JooTestCase {
       String jsFileName = jsFile.getAbsolutePath();
       System.out.println("loading script " + jsFileName);
       FileReader reader = new FileReader(jsFile);
-      Object result = cx.evaluateReader(this, reader, jsFileName, 1, null);
-      printJsResult(result);
-      // Convert the result to a string and print it.
-      System.out.println(Context.toString(result));
-      return result;
+      return cx.evaluateReader(this, reader, jsFileName, 1, null);
     }
 
     public void load(Context cx, String jsFileName) throws Exception {
