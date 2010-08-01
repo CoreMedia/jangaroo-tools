@@ -65,9 +65,9 @@ package {
  * Using functions instead of classes, you can construct custom prototype inheritance trees. With classes, the
  * prototype inheritance tree mirrors the class inheritance tree. However, since the prototype objects are dynamic,
  * you can add and delete prototype-based properties at run time.
- * @see #prototype
+ * @see Function#prototype
  */
-public class Object {
+public dynamic class Object {
 
   /**
    * A reference to the class object or constructor function for a given object instance. If an object is an instance
