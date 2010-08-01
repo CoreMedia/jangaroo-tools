@@ -88,9 +88,9 @@
         </executions>
         <dependencies>
           <dependency>
-            <groupId>edu.princeton.cup</groupId>
-            <artifactId>java-cup</artifactId>
-            <version>10k</version>
+            <groupId>net.jangaroo</groupId>
+            <artifactId>jangaroo-cup</artifactId>
+            <version>0.6.1-SNAPSHOT</version>
           </dependency>
         </dependencies>
       </plugin>
@@ -180,15 +180,15 @@
   </properties>
 
   <dependencies>
+    <dependency>
+      <groupId>net.jangaroo</groupId>
+      <artifactId>jangaroo-cup</artifactId>
+      <version>0.6.1-SNAPSHOT</version>
+    </dependency>
 
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>edu.princeton.cup</groupId>
-      <artifactId>java-cup-runtime</artifactId>
     </dependency>
 
     <dependency>

@@ -23,6 +23,7 @@
     <module>jangaroo-compiler</module>
     <module>jangaroo-compiler-itests</module>
     <module>jangaroo-utils</module>
+    <module>jangaroo-cup</module>
   </modules>
 
 </project>

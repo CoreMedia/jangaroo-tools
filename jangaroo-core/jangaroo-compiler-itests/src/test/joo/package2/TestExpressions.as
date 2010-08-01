@@ -70,11 +70,21 @@ public class TestExpressions {
     return o.x + o.y;
   }
 
+  public function testNestedObjectLiterals():int {
+    var o : * = { x: { xx: 123 }, "y": {'yy':456}};
+    return o.x.xx + o.y.yy;
+  }
+
+  public function testObjectLiteralWithFun():int {
+    var o : * = { fn: function():int {return 123;}, "y": 456 };
+    return o.fn() + o.y;
+  }
+
   public function testObjectLiteralsInBooleanShortcuts(p1 :Object, p2 :Object,i:int):int {
     var o : * = p1 || { x: 123, "y": 0 };
     var o2 : * = p2&&{x:1,"y":456};
-    //var o3 :* = { x: 11, y: 12 } || 4711; todo make object literals an expression
-    return o.x + (o2 ? o2.y : i); // + o3.x;
+    var o3 :* = { x: 11, y: 12 } || 4711;
+    return o.x + (o2 ? o2.y : i) + o3.x;
   }
 
   public function testArrayLiterals():String {

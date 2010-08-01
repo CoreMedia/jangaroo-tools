@@ -38,6 +38,44 @@ parser code  {:
     this.log = log;
   }
 
+  private boolean containsLineTerminator(String text) {
+    return text.indexOf('\n') >= 0 || text.indexOf('\r') >= 0;
+  }
+
+  @Override
+  protected final short get_action(int state, int token) {
+    short action = super.get_action(state, token);
+    // mimik precondition token notin { '{', 'function' } for expression statements
+    if (action == 0 && token == sym.LBRACE) {
+      // this is only the case if we are not just before parsing an expression statement
+      action = super.get_action(state, sym.LBRACE_EXPR);
+    } else if (action == 0 && token == sym.FUNCTION) {
+      // this is only the case if we are not just before parsing an expression statement
+      action = super.get_action(state, sym.FUNCTION_EXPR);
+    }
+    return action;
+  }
+
+  private boolean hasAction(int token) {
+    return get_action(((Symbol)stack.peek()).parse_state, token) != 0;
+  }
+
+  private boolean insertVirtualToken(int token, String whitespace) {
+    cur_token = new JooSymbol(token, null, -1, -1, "", ";");
+    scanner.pushback(whitespace);
+    return true;
+  }
+
+  protected boolean error_recovery(boolean debug) {
+    String whitespace = ((JooSymbol)cur_token).whitespace;
+    // try semicolon insertion
+    if (cur_token.sym == sym.RBRACE /*|| cur_token.sym == sym.EOF */ || containsLineTerminator(whitespace)) {
+      if (hasAction(sym.SEMICOLON))
+        return insertVirtualToken(sym.SEMICOLON, whitespace);
+    }
+    return false;
+  }
+
   public void report_error(String message, Object info) {
     if (info instanceof JooSymbol) {
       log.error((JooSymbol) info, message);
@@ -47,7 +85,7 @@ parser code  {:
   }
 
   public void unrecovered_syntax_error(Symbol cur_token) {
-    //report_error(message, info);
+    report_error("Syntax error: " + scanner.getSymbolAbbreviation(cur_token.sym), cur_token);
     done_parsing();
     throw new FatalSyntaxError("Fatal Syntax Error");
   }
@@ -59,7 +97,8 @@ parser code  {:
   }
 
   public void syntax_error(Symbol cur_token) {
-    report_error("Syntax error: " + scanner.getSymbolAbbreviation(cur_token.sym), cur_token);
+    //ignore, we try to recover with SEMICOLON or EXPR_STATEMENT_START insertion
+    //if that fails, unrecovered_syntax_error() will be called and report the error
   }
 
   protected Scanner scanner;
@@ -108,6 +147,10 @@ terminal JooSymbol IDE;
 terminal JooSymbol NULL_LITERAL;
 terminal JooSymbol REGEXP_LITERAL;
 
+// virtual token to mark the begin of an expression parsed as a statement
+terminal JooSymbol EXPR_STATEMENT_START; 
+terminal JooSymbol FUNCTION_EXPR, LBRACE_EXPR;
+
 // pseudo-terminals for precedence setting, never returned from scanner:
 terminal JooSymbol PREFIX_PLUSPLUS, PREFIX_MINUSMINUS, PREFIX_PLUS, PREFIX_MINUS;
 
@@ -116,6 +159,7 @@ terminal JooSymbol SCAN_ERROR;
 
 nonterminal CommaSeparatedList arguments;
 nonterminal ParenthesizedExpr arrayLiteral;
+nonterminal BlockStatement functionBody;
 nonterminal BlockStatement block;
 nonterminal ArrayList catches;
 nonterminal Catch catchClause;
@@ -128,12 +172,11 @@ nonterminal CompilationUnit compilationUnit;
 nonterminal IdeDeclaration compilationUnitDeclaration;
 nonterminal JooSymbol constOrVar;
 nonterminal Expr expr;
-nonterminal Expr exprOrObjectLiteral;
 nonterminal Extends extends;
 nonterminal FieldDeclaration fieldDeclaration;
 nonterminal FieldDeclaration optNextFieldDeclaration;
-nonterminal FunctionExpr anonFunctionExpr;
-nonterminal FunctionExpr namedFunctionExpr;
+nonterminal FunctionExpr functionExpr;
+nonterminal FunctionStatement functionStatement;
 nonterminal Ide ide;
 nonterminal Implements implements;
 nonterminal Implements interfaceExtends;
@@ -156,7 +199,7 @@ nonterminal Statement optBody;
 nonterminal ArrayList optCatches;
 nonterminal Expr optCommaExpr;
 nonterminal JooSymbol optConst;
-nonterminal Expr optExprOrObjectLiteral;
+nonterminal Expr optExpr;
 nonterminal Ide optIde;
 nonterminal Initializer optInitializer;
 nonterminal TypeRelation optTypeRelation;
@@ -211,10 +254,10 @@ precedence left MUL, DIV, MOD;
 /* 14 - Unary */
 precedence right PREFIX_PLUSPLUS, PREFIX_MINUSMINUS, PREFIX_PLUS, PREFIX_MINUS,
                  BITNOT, NOT, DELETE, TYPEOF, VOID;
-/* 15 - Postfix */
-precedence left PLUSPLUS, MINUSMINUS;
-/* 16 - Primary */
+/* 15 */
 precedence left DOT, LPAREN, LBRACK, LBRACE;
+/* 16 */
+precedence left PLUSPLUS, MINUSMINUS; /* postfix */
 precedence right NAMESPACESEP, NEW;
 
 start with compilationUnit;
@@ -231,6 +274,11 @@ arrayLiteral ::=
   ;
 
 block ::=
+    LBRACE:lb statements:s RBRACE:rb
+    {: RESULT = new BlockStatement(lb,s,rb); :}
+  ;
+
+functionBody ::=
     LBRACE:lb statements:s RBRACE:rb
     {: RESULT = new BlockStatement(lb,s,rb); :}
   ;
@@ -362,11 +410,13 @@ expr ::=
     {: RESULT = new LiteralExpr(l); :}
   | NULL_LITERAL:l
     {: RESULT = new LiteralExpr(l); :}
+  | objectLiteral:e
+    {: RESULT = e; :}
   | arrayLiteral:v
     {: RESULT = v; :}
   | lvalue:v
     {: RESULT = v; :}
-  | anonFunctionExpr:e
+  | functionExpr:e
     {: RESULT = e; :}
   | THIS:t
     {: RESULT = new IdeExpr(t); :}
@@ -400,89 +450,79 @@ expr ::=
     {: RESULT = new PostfixOpExpr(op,e); :}
   | expr:e MINUSMINUS:op
     {: RESULT = new PostfixOpExpr(op,e); :}
-  | expr:e1 MUL:op exprOrObjectLiteral:e2
+  | expr:e1 MUL:op expr:e2
     {: RESULT = new BinaryOpExpr(e1,op,e2); :}
-  | expr:e1 DIV:op exprOrObjectLiteral:e2
+  | expr:e1 DIV:op expr:e2
     {: RESULT = new BinaryOpExpr(e1,op,e2); :}
-  | expr:e1 MOD:op exprOrObjectLiteral:e2
+  | expr:e1 MOD:op expr:e2
     {: RESULT = new BinaryOpExpr(e1,op,e2); :}
-  | expr:e1 PLUS:op exprOrObjectLiteral:e2
+  | expr:e1 PLUS:op expr:e2
     {: RESULT = new BinaryOpExpr(e1,op,e2); :}
-  | expr:e1 MINUS:op exprOrObjectLiteral:e2
+  | expr:e1 MINUS:op expr:e2
     {: RESULT = new BinaryOpExpr(e1,op,e2); :}
-  | expr:e1 LSHIFT:op exprOrObjectLiteral:e2
+  | expr:e1 LSHIFT:op expr:e2
     {: RESULT = new BinaryOpExpr(e1,op,e2); :}
-  | expr:e1 RSHIFT:op exprOrObjectLiteral:e2
+  | expr:e1 RSHIFT:op expr:e2
     {: RESULT = new BinaryOpExpr(e1,op,e2); :}
-  | expr:e1 URSHIFT:op exprOrObjectLiteral:e2
+  | expr:e1 URSHIFT:op expr:e2
     {: RESULT = new BinaryOpExpr(e1,op,e2); :}
-  | expr:e1 LT:op exprOrObjectLiteral:e2
+  | expr:e1 LT:op expr:e2
     {: RESULT = new BinaryOpExpr(e1,op,e2); :}
-  | expr:e1 GT:op exprOrObjectLiteral:e2
+  | expr:e1 GT:op expr:e2
     {: RESULT = new BinaryOpExpr(e1,op,e2); :}
-  | expr:e1 LTEQ:op exprOrObjectLiteral:e2
+  | expr:e1 LTEQ:op expr:e2
     {: RESULT = new BinaryOpExpr(e1,op,e2); :}
-  | expr:e1 GTEQ:op exprOrObjectLiteral:e2
+  | expr:e1 GTEQ:op expr:e2
     {: RESULT = new BinaryOpExpr(e1,op,e2); :}
-  | expr:e1 INSTANCEOF:op exprOrObjectLiteral:e2
+  | expr:e1 INSTANCEOF:op expr:e2
     {: RESULT = new BinaryOpExpr(e1,op,e2); :}
-  | expr:e1 EQEQ:op exprOrObjectLiteral:e2
+  | expr:e1 EQEQ:op expr:e2
     {: RESULT = new BinaryOpExpr(e1,op,e2); :}
-  | expr:e1 NOTEQ:op exprOrObjectLiteral:e2
+  | expr:e1 NOTEQ:op expr:e2
     {: RESULT = new BinaryOpExpr(e1,op,e2); :}
-  | expr:e1 EQEQEQ:op exprOrObjectLiteral:e2
+  | expr:e1 EQEQEQ:op expr:e2
     {: RESULT = new BinaryOpExpr(e1,op,e2); :}
-  | expr:e1 NOTEQEQ:op exprOrObjectLiteral:e2
+  | expr:e1 NOTEQEQ:op expr:e2
     {: RESULT = new BinaryOpExpr(e1,op,e2); :}
-  | expr:e1 AND:op exprOrObjectLiteral:e2
+  | expr:e1 AND:op expr:e2
     {: RESULT = new BinaryOpExpr(e1,op,e2); :}
-  | expr:e1 XOR:op exprOrObjectLiteral:e2
+  | expr:e1 XOR:op expr:e2
     {: RESULT = new BinaryOpExpr(e1,op,e2); :}
-  | expr:e1 OR:op exprOrObjectLiteral:e2
+  | expr:e1 OR:op expr:e2
     {: RESULT = new BinaryOpExpr(e1,op,e2); :}
-  | expr:e1 ANDAND:op exprOrObjectLiteral:e2
+  | expr:e1 ANDAND:op expr:e2
     {: RESULT = new BinaryOpExpr(e1,op,e2); :}
-  | expr:e1 OROR:op exprOrObjectLiteral:e2
+  | expr:e1 OROR:op expr:e2
     {: RESULT = new BinaryOpExpr(e1,op,e2); :}
   | expr:e1 IN:op expr:e2
     {: RESULT = new BinaryOpExpr(e1,op,e2); :}
-  | lvalue:lv EQ:op exprOrObjectLiteral:e
+  | lvalue:lv EQ:op expr:e
     {: RESULT = new AssignmentOpExpr(lv,op,e); :}
-  | lvalue:lv MULTEQ:op exprOrObjectLiteral:e
+  | lvalue:lv MULTEQ:op expr:e
     {: RESULT = new AssignmentOpExpr(lv,op,e); :}
-  | lvalue:lv DIVEQ:op exprOrObjectLiteral:e
+  | lvalue:lv DIVEQ:op expr:e
     {: RESULT = new AssignmentOpExpr(lv,op,e); :}
-  | lvalue:lv MODEQ:op exprOrObjectLiteral:e
+  | lvalue:lv MODEQ:op expr:e
     {: RESULT = new AssignmentOpExpr(lv,op,e); :}
-  | lvalue:lv PLUSEQ:op exprOrObjectLiteral:e
+  | lvalue:lv PLUSEQ:op expr:e
     {: RESULT = new AssignmentOpExpr(lv,op,e); :}
-  | lvalue:lv MINUSEQ:op exprOrObjectLiteral:e
+  | lvalue:lv MINUSEQ:op expr:e
     {: RESULT = new AssignmentOpExpr(lv,op,e); :}
-  | lvalue:lv LSHIFTEQ:op exprOrObjectLiteral:e
+  | lvalue:lv LSHIFTEQ:op expr:e
     {: RESULT = new AssignmentOpExpr(lv,op,e); :}
-  | lvalue:lv RSHIFTEQ:op exprOrObjectLiteral:e
+  | lvalue:lv RSHIFTEQ:op expr:e
     {: RESULT = new AssignmentOpExpr(lv,op,e); :}
-  | lvalue:lv URSHIFTEQ:op exprOrObjectLiteral:e
+  | lvalue:lv URSHIFTEQ:op expr:e
     {: RESULT = new AssignmentOpExpr(lv,op,e); :}
-  | lvalue:lv ANDEQ:op exprOrObjectLiteral:e
+  | lvalue:lv ANDEQ:op expr:e
     {: RESULT = new AssignmentOpExpr(lv,op,e); :}
-  | lvalue:lv XOREQ:op exprOrObjectLiteral:e
+  | lvalue:lv XOREQ:op expr:e
     {: RESULT = new AssignmentOpExpr(lv,op,e); :}
-  | lvalue:lv OREQ:op exprOrObjectLiteral:e
+  | lvalue:lv OREQ:op expr:e
     {: RESULT = new AssignmentOpExpr(lv,op,e); :}
-  | expr:cond QUESTION:q exprOrObjectLiteral:e1 COLON:c exprOrObjectLiteral:e2
+  | expr:cond QUESTION:q expr:e1 COLON:c expr:e2
     {: RESULT = new ConditionalExpr(cond,q,e1,c,e2); :}
   ;
-
-exprOrObjectLiteral ::=
-    expr:e
-    {: RESULT = e; :}
-  | objectLiteral:e
-    {: RESULT = e; :}
-  | namedFunctionExpr:e
-    {: RESULT = e; :}
-  ;
-
 
 extends ::=
     {: RESULT = null; :}
@@ -508,14 +548,14 @@ optNextFieldDeclaration ::=
     {: RESULT = new FieldDeclaration(new JooSymbol[0], c, ide, t, init, nf, null); :}
   ;
 
-anonFunctionExpr ::=
-    FUNCTION:f LPAREN:lp parameters:params RPAREN:rp optTypeRelation:t block:b
-    {: RESULT = new FunctionExpr(f,null,lp,params,rp,t,b); :}
+functionExpr ::=
+    FUNCTION_EXPR:f optIde:ide LPAREN:lp parameters:params RPAREN:rp optTypeRelation:t functionBody:b
+    {: RESULT = new FunctionExpr(f,ide,lp,params,rp,t,b); :}
   ;
 
-namedFunctionExpr ::=
-    FUNCTION:f ide:ide LPAREN:lp parameters:params RPAREN:rp optTypeRelation:t block:b
-    {: RESULT = new FunctionExpr(f,ide,lp,params,rp,t,b); :}
+functionStatement ::=
+    FUNCTION:f ide:ide LPAREN:lp parameters:params RPAREN:rp optTypeRelation:t functionBody:b
+    {: RESULT = new FunctionStatement(new FunctionExpr(f,ide,lp,params,rp,t,b)); :}
   ;
 
 ide ::=
@@ -577,9 +617,9 @@ namespacedIde ::=
   ;
 
 nonEmptyArguments ::=
-    exprOrObjectLiteral:arg
+    expr:arg
     {: RESULT = new CommaSeparatedList(arg); :}
-  | exprOrObjectLiteral:arg COMMA:c nonEmptyArguments:args
+  | expr:arg COMMA:c nonEmptyArguments:args
     {: RESULT = new CommaSeparatedList(arg,c,args); :}
   ;
 
@@ -600,11 +640,11 @@ nonEmptyObjectFields ::=
   ;
 
 objectField ::=
-    ide:name COLON:c exprOrObjectLiteral:value
+    ide:name COLON:c expr:value
     {: RESULT = new ObjectField(name,c,value); :}
-  | STRING_LITERAL:l COLON:c exprOrObjectLiteral:value
+  | STRING_LITERAL:l COLON:c expr:value
     {: RESULT = new ObjectField(new LiteralExpr(l),c,value); :}
-  | INT_LITERAL:l COLON:c exprOrObjectLiteral:value
+  | INT_LITERAL:l COLON:c expr:value
     {: RESULT = new ObjectField(new LiteralExpr(l),c,value); :}
   ;
 
@@ -615,12 +655,12 @@ objectFields ::=
   ;
 
 objectLiteral ::=
-    LBRACE:lb objectFields:fields RBRACE:rb
+    LBRACE_EXPR:lb objectFields:fields RBRACE:rb
     {: RESULT = new ObjectLiteral(lb,fields,rb); :}
   ;
 
 optBody ::=
-    block:b
+    functionBody:b
     {: RESULT = b; :}
   | SEMICOLON:s
     {: RESULT = new SemicolonTerminatedStatement(s); :}
@@ -642,9 +682,9 @@ optConst ::=
   | CONST
   ;
 
-optExprOrObjectLiteral ::=
+optExpr ::=
     {: RESULT = null; :}
-  | exprOrObjectLiteral:e
+  | expr:e
     {: RESULT = e; :}
   ;
 
@@ -656,7 +696,7 @@ optIde ::=
 
 optInitializer ::=
     {: RESULT = null; :}
-  | EQ:eq exprOrObjectLiteral:expr
+  | EQ:eq expr:expr
     {: RESULT = new Initializer(eq,expr); :}
   ;
 
@@ -685,7 +725,7 @@ parameters ::=
   ;
 
 parenthesizedExpr ::=
-    LPAREN:lp exprOrObjectLiteral:e RPAREN:rp
+    LPAREN:lp expr:e RPAREN:rp
     {: RESULT = new ParenthesizedExpr(lp,e,rp); :}
   ;
 
@@ -727,8 +767,8 @@ labelableStatement ::=
     {: RESULT = new TryStatement(t,b,c,f,fb); :}
   | block:b
     {: RESULT = b; :}
-  | namedFunctionExpr:f
-    {: RESULT = new FunctionStatement(f); :}
+  | functionStatement:fs
+    {: RESULT = fs; :}
   ;
 
 statement ::=
@@ -744,7 +784,7 @@ statement ::=
     {: RESULT = new BreakStatement(b,ide,s); :}
   | CONTINUE:c optIde:ide SEMICOLON:s
     {: RESULT = new ContinueStatement(c,ide,s); :}
-  | RETURN:r optExprOrObjectLiteral:e SEMICOLON:s
+  | RETURN:r optExpr:e SEMICOLON:s
     {: RESULT = new ReturnStatement(r,e,s); :}
   | THROW:t commaExpr:e SEMICOLON:s
     {: RESULT = new ThrowStatement(t,e,s); :}

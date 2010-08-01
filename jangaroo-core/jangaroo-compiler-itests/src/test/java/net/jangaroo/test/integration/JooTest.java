@@ -270,6 +270,17 @@ public class JooTest extends JooRuntimeTestCase {
     expectBoolean(true, "obj.cleanedUp");
   }
 
+  public void testSemicolonInsertion() throws Exception {
+    import_("package2.TestSemicolonInsertion");
+    complete();
+    eval("obj = new package2.TestSemicolonInsertion;");
+    eval("obj.testMissingBeforeBlockEnd();");
+    eval("obj.testMissingAfterRegexp();");
+    eval("obj.testMissingAfterReturn();");
+    eval("obj.testMissingBeforeBlockEnd2();");
+    expectBoolean(true, "undefined === obj.testMissingAfterReturn()");
+  }
+
   public void testExpressions() throws Exception {
     import_("package2.TestExpressions");
     complete();
@@ -292,9 +303,11 @@ public class JooTest extends JooRuntimeTestCase {
     expectString(dq, "obj.testCharLiterals()");
     expectString("2,7,2,2,2", "obj.testRegexpLiterals()");
     expectNumber(123+456, "obj.testObjectLiterals()");
-    expectNumber(123+456, "obj.testObjectLiteralsInBooleanShortcuts(false,true,99)");
-    expectNumber(9+456, "obj.testObjectLiteralsInBooleanShortcuts({x:9,y:10},true,99)");
-    expectNumber(9+88, "obj.testObjectLiteralsInBooleanShortcuts({x:9,y:10},false,88)");
+    expectNumber(123+456, "obj.testNestedObjectLiterals()");
+    expectNumber(123+456, "obj.testObjectLiteralWithFun()");
+    expectNumber(123+456+11, "obj.testObjectLiteralsInBooleanShortcuts(false,true,99)");
+    expectNumber(9+456+11, "obj.testObjectLiteralsInBooleanShortcuts({x:9,y:10},true,99)");
+    expectNumber(9+88+11, "obj.testObjectLiteralsInBooleanShortcuts({x:9,y:10},false,88)");
     expectString("1,2,3,4,5,6,7,8,9,0", "obj.testArrayLiterals()");
     expectBoolean(true, "obj.testIsPrecedence()");
   }
