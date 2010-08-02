@@ -398,7 +398,6 @@ public class WarPackageMojo
   }
 
   private static class WarPackageArchiveFilter implements ArchiveFileFilter {
-    @Override
     public boolean include(InputStream dataStream, String entryName) throws ArchiveFilterException {
       return !entryName.startsWith("META-INF");
     }
