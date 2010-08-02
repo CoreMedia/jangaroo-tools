@@ -27,7 +27,7 @@ class ObjectField extends NodeImplBase {
   Expr value;
 
   public ObjectField(AstNode node, JooSymbol symColon, Expr value) {
-    assert node instanceof Ide || node instanceof LiteralExpr;
+    assert node == null || node instanceof Ide || node instanceof LiteralExpr;
     this.label = node;
     this.symColon = symColon;
     this.value = value;
