@@ -10,6 +10,8 @@ import java.util.*;
  *
  * @goal testCompile
  * @phase test-compile
+ * @requiresDependencyResolution test
+ *
  */
 public class TestCompilerMojo extends AbstractCompilerMojo {
 

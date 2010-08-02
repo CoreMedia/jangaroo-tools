@@ -10,6 +10,7 @@ import java.util.*;
  *
  * @goal compile
  * @phase compile
+ * @requiresDependencyResolution compile
  */
 public class CompilerMojo extends AbstractCompilerMojo {
 
