@@ -19,6 +19,14 @@
     <testSourceDirectory>src/test/joo</testSourceDirectory>
     <plugins>
       <plugin>
+        <groupId>net.jangaroo</groupId>
+        <artifactId>jangaroo-lifecycle</artifactId>
+        <version>0.6.0</version>
+        <!-- We cannot use the latest version here since we can't use AND build it in the same process -->
+        <extensions>true</extensions>
+      </plugin>
+
+      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-antrun-plugin</artifactId>
         <version>1.4</version>
@@ -127,7 +135,7 @@
               <artifacts>
                 <artifact>
                   <file>${basedir}/target/jangaroo-runtime.jar</file>
-                  <type>jar</type>
+                  <type>jangaroo</type>
                 </artifact>
                 <artifact>
                   <file>${basedir}/target/jangaroo-runtime-sources.jar</file>
