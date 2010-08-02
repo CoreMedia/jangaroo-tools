@@ -66,15 +66,10 @@ under the License.
   <dependencies>
     <dependency>
       <groupId>net.jangaroo</groupId>
-      <artifactId>jangaroo-browser</artifactId>
-      <version>0.3.20</version>
-      <type>jangaroo</type>
-    </dependency>
-    <dependency>
-      <groupId>net.jangaroo</groupId>
       <artifactId>joounit</artifactId>
-      <version>0.5.16</version>
       <type>jangaroo</type>
+      <scope>test</scope>
+      <version>0.6.1</version>
     </dependency>
   </dependencies>
 </project>
