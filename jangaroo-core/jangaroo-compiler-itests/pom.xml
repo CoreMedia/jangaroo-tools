@@ -44,7 +44,7 @@
       <plugin>
         <groupId>net.jangaroo</groupId>
         <artifactId>jangaroo-lifecycle</artifactId>
-        <version>0.5.1</version>
+        <version>0.6.0</version>
         <!-- We cannot use the latest version here since we can't use AND build it in the same process -->
         <extensions>true</extensions>
       </plugin>

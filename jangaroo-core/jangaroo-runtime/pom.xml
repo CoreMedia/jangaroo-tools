@@ -98,7 +98,7 @@
                   </footer>
                 </concat>
 
-                <zip destfile="target/jangaroo-runtime.jar">
+                <zip destfile="target/jangaroo-runtime-${project.version}.jar">
                   <fileset dir="target" includes="scripts/jangaroo-runtime*.js" />
                   <fileset dir="src/main/joo-js" />
                   <fileset dir="target/temp/runtime/debug" />
@@ -106,7 +106,7 @@
 
                 </zip>
 
-                <zip destfile="target/jangaroo-runtime-sources.jar">
+                <zip destfile="target/jangaroo-runtime-sources-${project.version}.jar">
                   <fileset dir="src/main/joo" includes="**/*.as" />
                   <fileset dir="src/main/joo-api" includes="**/*.as" />
                 </zip>
@@ -134,11 +134,11 @@
             <configuration>
               <artifacts>
                 <artifact>
-                  <file>${basedir}/target/jangaroo-runtime.jar</file>
+                  <file>${basedir}/target/jangaroo-runtime-${project.version}.jar</file>
                   <type>jangaroo</type>
                 </artifact>
                 <artifact>
-                  <file>${basedir}/target/jangaroo-runtime-sources.jar</file>
+                  <file>${basedir}/target/jangaroo-runtime-sources-${project.version}.jar</file>
                   <type>jar</type>
                   <classifier>sources</classifier>
                 </artifact>
