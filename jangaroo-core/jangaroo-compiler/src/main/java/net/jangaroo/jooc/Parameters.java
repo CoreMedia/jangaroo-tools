@@ -35,7 +35,7 @@ public class Parameters extends CommaSeparatedList<Parameter> {
   }
 
   protected void generateTailCode(JsWriter out) throws IOException {
-    if (!tail.head.isRest()) {
+    if (out.isWriteActionScriptApi() || !tail.head.isRest()) {
       super.generateTailCode(out);
     } else {
       out.beginCommentWriteSymbol(symComma);
