@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2009, CoreMedia AG, Hamburg. All rights reserved.
  */
 
