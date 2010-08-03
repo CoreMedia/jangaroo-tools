@@ -24,16 +24,18 @@ public class ResourceBundleAwareClassLoader extends DynamicClassLoader {
   private static const RESOURCE_BUNDLE_PATTERN:RegExp = /_properties$/;
 
   public var supportedLocales:Array;
+  public var defaultLocale:String;
   public var localeCookieName:String;
   public var localeCookiePath:String = getQualifiedObject("location.pathname");
   public var localeCookieDomain:String = null;
 
   public static var INSTANCE:ResourceBundleAwareClassLoader;
 
-  public function ResourceBundleAwareClassLoader(supportedLocales:Array = ["en"], localeCookieName:String = "joo.locale") {
+  public function ResourceBundleAwareClassLoader(supportedLocales:Array = ["en"], defaultLocale:String = "en", localeCookieName:String = "joo.locale") {
     INSTANCE = this;
     super();
     this.supportedLocales = supportedLocales;
+    this.defaultLocale = defaultLocale;
     this.localeCookieName = localeCookieName;
   }
 
@@ -103,7 +105,7 @@ public class ResourceBundleAwareClassLoader extends DynamicClassLoader {
     }
 
     if (!userLocale) {
-      userLocale = "en";
+      userLocale = defaultLocale;
     }
 
     //find longest match
@@ -120,7 +122,7 @@ public class ResourceBundleAwareClassLoader extends DynamicClassLoader {
   private function getLocalizedResourceClassName(cd:NativeClassDeclaration):String {
     var localizedResourceClassName:String = cd.fullClassName;
     var locale:String = getLocale();
-    if (locale) {
+    if (locale && locale !== defaultLocale) {
       localizedResourceClassName += "_" + locale;
     }
     return localizedResourceClassName;
