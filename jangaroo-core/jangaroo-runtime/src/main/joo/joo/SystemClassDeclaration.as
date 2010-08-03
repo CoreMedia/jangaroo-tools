@@ -155,10 +155,14 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
           }
       }
     }
-    this.publicConstructor.prototype["$"+this.level+"super"] = this.superClassDeclaration.constructor_;
-    if (!this.constructor_) {
-      // reuse native public constructor or super class constructor:
-      this.constructor_ = this.native_ ? this.publicConstructor : this.superClassDeclaration.constructor_;
+    if (!this.isInterface) {
+      if (!this.native_) {
+        this.publicConstructor.prototype["$" + this.level + "super"] = this.superClassDeclaration.constructor_;
+      }
+      if (!this.constructor_) {
+        // reuse native public constructor or super class constructor:
+        this.constructor_ = this.native_ ? this.publicConstructor : this.superClassDeclaration.constructor_;
+      }
     }
   }
 
