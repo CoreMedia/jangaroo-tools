@@ -276,9 +276,12 @@ public class JooTest extends JooRuntimeTestCase {
     eval("obj = new package2.TestSemicolonInsertion;");
     eval("obj.testMissingBeforeBlockEnd();");
     eval("obj.testMissingAfterRegexp();");
-    eval("obj.testMissingAfterReturn();");
     eval("obj.testMissingBeforeBlockEnd2();");
     expectBoolean(true, "undefined === obj.testMissingAfterReturn()");
+    expectNumber(33, "obj.testMissingAfterContinue()");
+    expectNumber(33, "obj.testMissingAfterBreak()");
+    expectNumber(13, "obj.testMissingBeforePostfixPlusPlus()");
+    expectNumber(31, "obj.testMissingBeforePostfixMinusMinus()");
   }
 
   public void testExpressions() throws Exception {

@@ -37,10 +37,14 @@ public class JoocCommandLineParser {
         .withDescription("be extra verbose")
         .create("v");
     Option debugOption = OptionBuilder.withDescription("generate debuggable output " +
-        "(possible modes: source, lines, none)")
+          "(possible modes: source, lines, none)")
         .hasOptionalArgs()
         .withArgName("mode")
         .create("g");
+    Option autoSemicolonOption = OptionBuilder.withDescription("automatic semicolon insertion mode, " +
+          "possible modes: error, warn (default), quirk (no warnings)")
+        .hasArg()
+        .create("autosemicolon");
     Option destinationDir = OptionBuilder.withArgName("dir")
         .hasArg()
         .withDescription("destination directory for generated JavaScript files")
@@ -68,6 +72,7 @@ public class JoocCommandLineParser {
     options.addOption(version);
     options.addOption(verboseOption);
     options.addOption(debugOption);
+    options.addOption(autoSemicolonOption);
     options.addOption(destinationDir);
     options.addOption(sourcePath);
     options.addOption(classPath);
@@ -126,6 +131,18 @@ public class JoocCommandLineParser {
     }
     if (line.hasOption(allowDuplicateLocalVariablesOption.getOpt())) {
       config.setAllowDuplicateLocalVariables(true);
+    }
+    if (line.hasOption(autoSemicolonOption.getOpt())) {
+      String value = line.getOptionValue(autoSemicolonOption.getOpt());
+      if (value.equals("error")) {
+        config.setSemicolonInsertionMode(JoocOptions.SemicolonInsertionMode.ERROR);
+      } else if (value.equals("warn")) {
+        config.setSemicolonInsertionMode(JoocOptions.SemicolonInsertionMode.WARN);
+      } else if (value.equals("quirks")) {
+        config.setSemicolonInsertionMode(JoocOptions.SemicolonInsertionMode.QUIRKS);
+      } else {
+        throw new IllegalArgumentException("unknown -autosemicolon argument: " + value);
+      }
     }
     if (line.hasOption(debugOption.getOpt())) {
       String[] values = line.getOptionValues(debugOption.getOpt());

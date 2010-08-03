@@ -10,6 +10,8 @@ import java.util.List;
  */
 public class JoocConfiguration implements JoocOptions {
 
+  private SemicolonInsertionMode semicolonInsertionMode = SemicolonInsertionMode.WARN;
+
   private boolean debug;
   private boolean debugLines, debugSource;
 
@@ -28,6 +30,14 @@ public class JoocConfiguration implements JoocOptions {
   private List<File> sourceFiles = new ArrayList<File>();
 
   public JoocConfiguration() {
+  }
+
+  public SemicolonInsertionMode getSemicolonInsertionMode() {
+    return semicolonInsertionMode;
+  }
+
+  public void setSemicolonInsertionMode(final SemicolonInsertionMode semicolonInsertionMode) {
+    this.semicolonInsertionMode = semicolonInsertionMode;
   }
 
   public boolean isMergeOutput() {

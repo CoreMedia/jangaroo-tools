@@ -55,7 +55,7 @@ class SemicolonTerminatedStatement extends Statement {
   
   protected void generateJsCode(JsWriter out) throws IOException {
     generateStatementCode(out);
-    if (optSymSemicolon !=null)
+    if (optSymSemicolon != null)
       out.writeSymbol(optSymSemicolon);
   }
 
@@ -78,8 +78,9 @@ class SemicolonTerminatedStatement extends Statement {
     //? new AssertStatement(ide.ide,lp,(Expr)args.head,rp,s)
     
     super.analyze(parentNode, context);
-    if (optStatement!=null)
+    if (optStatement!=null) {
       optStatement = optStatement.analyze(this, context);
+    }
     return this;
   }
 

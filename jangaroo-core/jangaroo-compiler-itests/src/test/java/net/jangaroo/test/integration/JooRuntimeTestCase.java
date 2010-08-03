@@ -122,6 +122,19 @@ public abstract class JooRuntimeTestCase extends JooTestCase {
     }
   }
 
+  protected String readClassCode(String qualifiedJooClassName) throws Exception {
+    String jsFileName = jsFileName(qualifiedJooClassName);
+    File file = new File(global.getJsDir(), jsFileName);
+    Reader in = new FileReader(file);
+    StringBuilder builder = new StringBuilder();
+    int n;
+    char[] buf = new char[512];
+    while ((n = in.read()) > 0) {
+      builder.append(buf, 0, n);
+    }
+    return builder.toString();
+  }
+
   protected void setUp() throws Exception {
     super.setUp();
     global = new Global();

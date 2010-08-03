@@ -77,7 +77,14 @@ package net.jangaroo.jooc;
 %line
 %column
 
-%cup
+%implements java_cup.runtime.Scanner
+%function scan
+%type java_cup.runtime.Symbol
+%eofval{
+  return new java_cup.runtime.Symbol(<CUPSYM>.EOF);
+%eofval}
+%eofclose
+
 
 %{
 
@@ -101,15 +108,6 @@ package net.jangaroo.jooc;
     whitespace = "";
     return result;
   }
-
-  /**
-   * Pushback the current token so that it will be read again the next time next_token() is called
-   */
-  public void pushback(String whitespace) {
-    yypushback(yylength());
-    this.whitespace = whitespace;
-  }
-
 %}
 
 LineTerminator = \r|\n|\r\n

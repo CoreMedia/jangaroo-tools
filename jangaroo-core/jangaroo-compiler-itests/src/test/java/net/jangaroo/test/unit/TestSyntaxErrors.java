@@ -15,10 +15,12 @@
 
 package net.jangaroo.test.unit;
 
-import net.jangaroo.test.JooTestCase;
 import net.jangaroo.jooc.Jooc;
+import net.jangaroo.test.JooTestCase;
 
 import java.io.File;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Test that all Test*.as files in the error directory and subdirectories produce compiler errors.
@@ -31,7 +33,7 @@ public class TestSyntaxErrors extends JooTestCase {
    * The number of erroneous .as files. Increase whenever you add a new error file.
    * Specifying this number makes sure that no files are accidentially forgotten.
    */
-  private static int ERROR_FILE_COUNT = 9;
+  private static int ERROR_FILE_COUNT = 14;
 
   public TestSyntaxErrors(String name) {
     super(name);
@@ -47,8 +49,8 @@ public class TestSyntaxErrors extends JooTestCase {
   private int checkAllErrorClasses(File baseDir, String baseDirName) {
     File[] files = baseDir.listFiles();
     int total = 0;
-    for (int i = 0; i < files.length; i++) {
-      File file = files[i];
+    List<File> passed = new LinkedList<File>();
+    for (File file : files) {
       if (file.isDirectory()) {
         checkAllErrorClasses(file, baseDirName + "/" + file.getName());
       } else if (file.getName().startsWith("Test") && file.getName().endsWith(".as")) {
@@ -56,9 +58,17 @@ public class TestSyntaxErrors extends JooTestCase {
         if (resultCode == Jooc.RESULT_CODE_COMPILATION_FAILED) {
           total++;
         } else {
-          fail("expected compilation failure for " + file.getAbsolutePath() + " but got " + resultCode);
+          passed.add(file);
         }
       }
+    }
+    if (passed.size() > 0) {
+      StringBuilder msg = new StringBuilder();
+      for (File file :passed) {
+        msg.append(msg.length() == 0 ? "expected compilation failure for " : ", ");
+        msg.append(file.getAbsolutePath());
+      }
+      fail(msg.toString());
     }
     return total;
   }

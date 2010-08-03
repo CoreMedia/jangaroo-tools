@@ -46,8 +46,6 @@ public class Jooc {
   public static final int RESULT_CODE_UNRECOGNIZED_OPTION = 3;
   public static final int RESULT_CODE_MISSING_OPTION_ARGUMENT = 4;
 
-  public static final String JS2_SUFFIX_NO_DOT = "js2";
-  public static final String JS2_SUFFIX = "." + JS2_SUFFIX_NO_DOT;
   public static final String AS_SUFFIX_NO_DOT = "as";
   public static final String AS_SUFFIX = "." + AS_SUFFIX_NO_DOT;
   public static final String INPUT_FILE_SUFFIX = AS_SUFFIX;
@@ -387,8 +385,8 @@ public class Jooc {
 
   protected CompilationUnit parse(InputSource in) {
 
-    if (!in.getName().endsWith(JS2_SUFFIX) && !in.getName().endsWith(AS_SUFFIX)) {
-      throw error("Input file must end with '" + JS2_SUFFIX + " or " + AS_SUFFIX + "': " + in.getName());
+    if (!in.getName().endsWith(AS_SUFFIX)) {
+      throw error("Input file must end with '" + AS_SUFFIX + "': " + in.getName());
     }
     Scanner s;
     if (config.isVerbose()) {
@@ -402,6 +400,7 @@ public class Jooc {
     s.setInputSource(in);
     parser p = new parser(s);
     p.setCompileLog(log);
+    p.setSemicolonInsertionMode(config.getSemicolonInsertionMode());
     try {
       Symbol tree = p.parse();
       CompilationUnit unit = (CompilationUnit) tree.value;

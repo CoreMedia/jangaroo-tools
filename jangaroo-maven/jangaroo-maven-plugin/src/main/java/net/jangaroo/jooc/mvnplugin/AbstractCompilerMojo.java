@@ -2,6 +2,7 @@ package net.jangaroo.jooc.mvnplugin;
 
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.config.JoocConfiguration;
+import net.jangaroo.jooc.config.JoocOptions;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -27,30 +28,35 @@ import java.util.*;
  */
 public abstract class AbstractCompilerMojo extends AbstractMojo {
   private Log log = getLog();
+
   /**
    * The Maven project object
    *
    * @parameter expression="${project}"
    */
   private MavenProject project;
+
   /**
    * Indicates whether the build will fail if there are compilation errors.
    *
    * @parameter expression="${maven.compiler.failOnError}" default-value="true"
    */
   private boolean failOnError = true;
+
   /**
    * Set "debug" to "true" in order to create debuggable output. See "debuglevel" parameter.
    *
    * @parameter expression="${maven.compile.debug}" default-value="true"
    */
   private boolean debug;
+
   /**
    * Set "enableAssertions" to "true" in order to generate runtime checks for assert statements.
    *
    * @parameter expression="${maven.compile.ea}" default-value="false"
    */
   private boolean enableAssertions;
+
   /**
    * Set "allowDuplicateLocalVariables" to "true" in order to allow multiple declarations of local variables
    * within the same scope.
@@ -58,12 +64,14 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
    * @parameter default-value="false"
    */
   private boolean allowDuplicateLocalVariables;
+
   /**
    * If set to "true", the compiler will generate more detailed progress information.
    *
    * @parameter expression="${maven.compiler.verbose}" default-value="false"
    */
   private boolean verbose;
+
   /**
    * Sets the granularity in milliseconds of the last modification
    * date for testing whether a source needs recompilation.
@@ -71,6 +79,7 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
    * @parameter expression="${lastModGranularityMs}" default-value="0"
    */
   private int staleMillis;
+
   /**
    * Keyword list to be appended to the -g  command-line switch. Legal values are one of the following keywords: none, lines, or source.
    * If debuglevel is not specified, by default, nothing will be appended to -g. If debug is not turned on, this attribute will be ignored.
@@ -78,6 +87,13 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
    * @parameter default-value="source"
    */
   private String debuglevel;
+
+  /**
+   * Keyword list to be appended to the -autosemicolon  command-line switch. Legal values are one of the following keywords: error, warn (default), or quirks.
+   *
+   * @parameter default-value="warn"
+   */
+  private String autoSemicolon;
 
   /**
    * Output directory for all generated ActionScript3 files to compile.
@@ -136,6 +152,19 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
       } else if (!debuglevel.equalsIgnoreCase("none")) {
         throw new IllegalArgumentException("The specified debug level: '" + debuglevel
           + "' is unsupported. " + "Legal values are 'none', 'lines', and 'source'.");
+      }
+    }
+
+    if (StringUtils.isNotEmpty(autoSemicolon)) {
+      if (autoSemicolon.equalsIgnoreCase("error")) {
+        configuration.setSemicolonInsertionMode(JoocOptions.SemicolonInsertionMode.ERROR);
+      } else if (autoSemicolon.equalsIgnoreCase("warn")) {
+        configuration.setSemicolonInsertionMode(JoocOptions.SemicolonInsertionMode.WARN);
+      } else if (autoSemicolon.equalsIgnoreCase("quirks")) {
+        configuration.setSemicolonInsertionMode(JoocOptions.SemicolonInsertionMode.QUIRKS);
+      } else {
+        throw new IllegalArgumentException("The specified semicolon insertion mode: '" + autoSemicolon
+          + "' is unsupported. " + "Legal values are 'error', 'warn', and 'quirks'.");
       }
     }
 

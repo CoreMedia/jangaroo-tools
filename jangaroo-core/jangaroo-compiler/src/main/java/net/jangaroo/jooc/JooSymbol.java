@@ -19,12 +19,14 @@ package net.jangaroo.jooc;
  * @author Andreas Gawecki
  */
 public class JooSymbol extends java_cup.runtime.Symbol {
-  protected int line;
-  protected int column;
-  protected String whitespace;
-  protected String text;
-  protected Object jooValue;
-  protected String fileName;
+
+  private int line;
+  private int column;
+  private String whitespace;
+  private String text;
+  private Object jooValue;
+  private String fileName;
+  private boolean isVirtual;
 
   public JooSymbol(String text) {
     this(net.jangaroo.jooc.sym.IDE,  text);
@@ -77,5 +79,11 @@ public class JooSymbol extends java_cup.runtime.Symbol {
     return column;
   }
 
+  public boolean isVirtual() {
+    return isVirtual;
+  }
 
+  public void setVirtual(final boolean virtual) {
+    isVirtual = virtual;
+  }
 }

@@ -32,6 +32,13 @@ private const someConst : * = 99
   public function testMissingBeforeBlockEnd():void {
     doSomeThing();doSomeThing()}
 
+  public function testMissingBeforeBlockEnd2():* {
+    doSomeThing();
+    return computeSomeThing()
+
+    //keep the newlines please
+  }
+
   public function testMissingButNewLine():void {
     { 1
 2 } 3
@@ -43,15 +50,51 @@ doSomeThing();
   }
 
   public function testMissingAfterReturn():void {
-    return
-    1 + 2
+    // wondering why this is red in IDEA? http://youtrack.jetbrains.net/issue/IDEA-57039
+    return /* please keep this comment containing a line feed
+*/    1 + 2
   }
 
-  public function testMissingBeforeBlockEnd2():* {
-    doSomeThing();
-    return computeSomeThing()
-
-   //keep the newlines please
+  public function testMissingAfterContinue():int {
+    var result :int = 0;
+    var label :* = 99;
+    label: for (var i:int = 1; i <= 2; i++) {
+      for (var j:int = 10; j <= 20; j+=10) {
+        if (i < 2) continue
+          label;
+        result += j;
+      }
+      result += i;
+    }
+    return result;
   }
+
+  public function testMissingAfterBreak():int {
+    var result :int = 0;
+    var label :* = 99;
+    label: for (var i:int = 1; i <= 2; i++) {
+      for (var j:int = 10; j <= 20; j+=10) {
+        if (i < 2) break
+          label;
+        result += j;
+      }
+      result += i;
+    }
+    return result;
+  }
+
+  public function testMissingBeforePostfixPlusPlus():* {
+    var i :int = 13;
+    return i
+            ++ i;
+  }
+
+
+  public function testMissingBeforePostfixMinusMinus():* {
+    var i :int = 31;
+    return i
+            -- i;
+  }
+
 }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2008 CoreMedia AG
+ * Copyright 2008-2010 CoreMedia AG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,17 @@
  */
 
 /*
- * JangarooScript LALR(1) Grammar for the CUP parser generator
+ * ActionScript 3 LALR(1) Grammar for the CUP parser generator
  *
  * Authors: Andreas Gawecki, Frank Wienberg
  */
 
 package net.jangaroo.jooc;
 
+import net.jangaroo.jooc.config.JoocOptions;
 import java_cup.runtime.*;
 import java.util.ArrayList;
+import java.util.regex.Pattern;
 
 parser code  {:
 
@@ -32,26 +34,38 @@ parser code  {:
     }
   }
 
-  CompileLog log;
+  private JoocOptions.SemicolonInsertionMode semicolonInsertionMode;
+  private CompileLog log;
+  private boolean eofSeen = false;
+
+  // pattern for line terminator characters according to ECMA-262:
+  private static Pattern lineTerminators = Pattern.compile("[\n\r\u2028\u2029]");
 
   public void setCompileLog(CompileLog log) {
     this.log = log;
   }
 
+  public void setSemicolonInsertionMode(JoocOptions.SemicolonInsertionMode semicolonInsertionMode) {
+    this.semicolonInsertionMode = semicolonInsertionMode;
+  }
+
   private boolean containsLineTerminator(String text) {
-    return text.indexOf('\n') >= 0 || text.indexOf('\r') >= 0;
+    return lineTerminators.matcher(text).find();
   }
 
   @Override
   protected final short get_action(int state, int token) {
     short action = super.get_action(state, token);
-    // mimik precondition token notin { '{', 'function' } for expression statements
-    if (action == 0 && token == sym.LBRACE) {
-      // this is only the case if we are not just before parsing an expression statement
-      action = super.get_action(state, sym.LBRACE_EXPR);
-    } else if (action == 0 && token == sym.FUNCTION) {
-      // this is only the case if we are not just before parsing an expression statement
-      action = super.get_action(state, sym.FUNCTION_EXPR);
+    
+    if (action == 0) {
+      // mimic ECMA-262 grammar precondition: token notin { '{', 'function' } for expression statements
+      if (token == sym.LBRACE) {
+        // this is only the case if we are not just before parsing an expression statement
+        action = super.get_action(state, sym.LBRACE_EXPR);
+      } else if (token == sym.FUNCTION) {
+        // this is only the case if we are not just before parsing an expression statement
+        action = super.get_action(state, sym.FUNCTION_EXPR);
+      }
     }
     return action;
   }
@@ -60,20 +74,77 @@ parser code  {:
     return get_action(((Symbol)stack.peek()).parse_state, token) != 0;
   }
 
-  private boolean insertVirtualToken(int token, String whitespace) {
-    cur_token = new JooSymbol(token, null, -1, -1, "", ";");
-    scanner.pushback(whitespace);
+  private boolean insertVirtualToken(int token, String text) {
+    if (eofSeen) {
+      return false;
+    }
+    JooSymbol currentToken = (JooSymbol)cur_token;
+    eofSeen = currentToken.sym == sym.EOF; 
+    if (currentToken.isVirtual() && currentToken.sym == token) {
+      // avoid infinite loop, but isn't it a parser bug?
+      report_error("Internal parser error: infinite loop during virtual token insertion: " + scanner.getSymbolAbbreviation(cur_token.sym), cur_token);
+      return false;
+    }
+    JooSymbol virtualToken = new JooSymbol(token, currentToken.getFileName(), currentToken.getLine(), currentToken.getColumn(), "", text);
+    virtualToken.setVirtual(true);
+    cur_token = virtualToken;
+    scanner.pushback(currentToken);
     return true;
   }
 
+  private int getActionFromTable(int sym) {
+    return super.get_action(((Symbol) stack.peek()).parse_state, sym);
+  }
+
+  private boolean isActionDefinedFor(int sym) {
+    return getActionFromTable(sym) != 0;
+  }
+
+  private boolean isShiftActionDefinedFor(int sym) {
+    return getActionFromTable(sym) > 0;
+  }
+
   protected boolean error_recovery(boolean debug) {
-    String whitespace = ((JooSymbol)cur_token).whitespace;
+    String whitespace = ((JooSymbol)cur_token).getWhitespace();
+      boolean isPostfixOp = cur_token.sym == sym.PLUSPLUS || cur_token.sym == sym.MINUSMINUS;
     // try semicolon insertion
-    if (cur_token.sym == sym.RBRACE /*|| cur_token.sym == sym.EOF */ || containsLineTerminator(whitespace)) {
-      if (hasAction(sym.SEMICOLON))
-        return insertVirtualToken(sym.SEMICOLON, whitespace);
+    if (isShiftActionDefinedFor(sym.NO_LINE_TERMINATOR_HERE) || 
+         (isPostfixOp && isActionDefinedFor(sym.NO_LINE_TERMINATOR_HERE_POSTFIX_OP))) {
+      // ECMA-262 restricted production
+      if (containsLineTerminator(whitespace)) {
+        // avoid syntax error later on if there is no action for semicolon
+        checkSemicolonInsertionMode();
+        if (isActionDefinedFor(sym.SEMICOLON)) {
+          return insertVirtualToken(sym.SEMICOLON, ";");
+        } else if (isPostfixOp) {
+          report_fatal_error("postfix operator should be on same line (semicolon insertion would produce syntax error)", cur_token);
+        }
+      }
+      // no semicolon to insert, proceed as if a NO_LINE_TERMINATOR_HERE token has been seen
+      return insertVirtualToken(isPostfixOp ? sym.NO_LINE_TERMINATOR_HERE_POSTFIX_OP : sym.NO_LINE_TERMINATOR_HERE,
+        "[no line terminator here]");
+    }
+    if (isActionDefinedFor(sym.SEMICOLON)) {
+      boolean isBraceOrEof = cur_token.sym == sym.RBRACE || cur_token.sym == sym.EOF;
+      if (!isBraceOrEof) {
+        checkSemicolonInsertionMode();
+      }
+      if (isBraceOrEof || containsLineTerminator(whitespace)) {
+        return insertVirtualToken(sym.SEMICOLON, ";");
+      }
     }
     return false;
+  }
+
+  private void checkSemicolonInsertionMode() {
+    switch (semicolonInsertionMode) {
+      case ERROR:
+        log.error((JooSymbol) cur_token, "automatic semicolon insertion required by language spec, but forbidden by jooc semicolonInsertionMode");
+        break;
+      case WARN:
+        log.warning((JooSymbol) cur_token, "automatic semicolon insertion");
+        break;
+    }
   }
 
   public void report_error(String message, Object info) {
@@ -97,7 +168,7 @@ parser code  {:
   }
 
   public void syntax_error(Symbol cur_token) {
-    //ignore, we try to recover with SEMICOLON or EXPR_STATEMENT_START insertion
+    //ignore, we try to recover with SEMICOLON insertion
     //if that fails, unrecovered_syntax_error() will be called and report the error
   }
 
@@ -147,9 +218,15 @@ terminal JooSymbol IDE;
 terminal JooSymbol NULL_LITERAL;
 terminal JooSymbol REGEXP_LITERAL;
 
-// virtual token to mark the begin of an expression parsed as a statement
-terminal JooSymbol EXPR_STATEMENT_START; 
+// virtual tokens to mark the begin of a function or object literal expression
+// inserted by parser if no other action is available
 terminal JooSymbol FUNCTION_EXPR, LBRACE_EXPR;
+
+// virtual token to mark ++ or -- parsed as postfix
+terminal JooSymbol POSTFIX_INCREMENT;
+
+// virtual tokens to handle the ECMA-262 restricted productions for semicolon insertion
+terminal JooSymbol NO_LINE_TERMINATOR_HERE, NO_LINE_TERMINATOR_HERE_POSTFIX_OP;
 
 // pseudo-terminals for precedence setting, never returned from scanner:
 terminal JooSymbol PREFIX_PLUSPLUS, PREFIX_MINUSMINUS, PREFIX_PLUS, PREFIX_MINUS;
@@ -257,7 +334,7 @@ precedence right PREFIX_PLUSPLUS, PREFIX_MINUSMINUS, PREFIX_PLUS, PREFIX_MINUS,
 /* 15 */
 precedence left DOT, LPAREN, LBRACK, LBRACE;
 /* 16 */
-precedence left PLUSPLUS, MINUSMINUS; /* postfix */
+precedence left PLUSPLUS, MINUSMINUS, NO_LINE_TERMINATOR_HERE_POSTFIX_OP; /* postfix todo: use virtual terminals for postfix */
 precedence right NAMESPACESEP, NEW;
 
 start with compilationUnit;
@@ -446,9 +523,9 @@ expr ::=
     {: RESULT = new AsExpr(e,as,t); :}
   | expr:e1 IS:is expr:e2
     {: RESULT = new IsExpr(e1,is,e2); :}
-  | expr:e PLUSPLUS:op
+  | expr:e NO_LINE_TERMINATOR_HERE_POSTFIX_OP PLUSPLUS:op
     {: RESULT = new PostfixOpExpr(op,e); :}
-  | expr:e MINUSMINUS:op
+  | expr:e NO_LINE_TERMINATOR_HERE_POSTFIX_OP MINUSMINUS:op
     {: RESULT = new PostfixOpExpr(op,e); :}
   | expr:e1 MUL:op expr:e2
     {: RESULT = new BinaryOpExpr(e1,op,e2); :}
@@ -773,20 +850,26 @@ labelableStatement ::=
 
 statement ::=
     SEMICOLON:s
-    {: RESULT = new SemicolonTerminatedStatement(s); :}
+    {: RESULT = new EmptyStatement(s); :}
   | commaExpr:e SEMICOLON:s
     {: RESULT = new SemicolonTerminatedStatement(e,s); :}
   | ide:ide COLON:c labelableStatement:s
     {: RESULT = new LabeledStatement(ide,c,s); :}
   | variableDeclaration:decl SEMICOLON:s
     {: RESULT = new SemicolonTerminatedStatement(decl, s); :}
-  | BREAK:b optIde:ide SEMICOLON:s
+  | BREAK:b SEMICOLON:s
+    {: RESULT = new BreakStatement(b,null,s); :}
+  | BREAK:b NO_LINE_TERMINATOR_HERE ide:ide SEMICOLON:s
     {: RESULT = new BreakStatement(b,ide,s); :}
-  | CONTINUE:c optIde:ide SEMICOLON:s
+  | CONTINUE:c SEMICOLON:s
+    {: RESULT = new ContinueStatement(c,null,s); :}
+  | CONTINUE:c NO_LINE_TERMINATOR_HERE ide:ide SEMICOLON:s
     {: RESULT = new ContinueStatement(c,ide,s); :}
-  | RETURN:r optExpr:e SEMICOLON:s
+  | RETURN:r  SEMICOLON:s
+    {: RESULT = new ReturnStatement(r,null,s); :}
+  | RETURN:r  NO_LINE_TERMINATOR_HERE expr:e SEMICOLON:s
     {: RESULT = new ReturnStatement(r,e,s); :}
-  | THROW:t commaExpr:e SEMICOLON:s
+  | THROW:t NO_LINE_TERMINATOR_HERE commaExpr:e SEMICOLON:s
     {: RESULT = new ThrowStatement(t,e,s); :}
   | SUPER:s LPAREN:lp arguments:args RPAREN:rp
     {: RESULT = new SuperConstructorCallStatement(s,lp,args,rp); :}

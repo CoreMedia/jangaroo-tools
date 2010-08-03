@@ -66,12 +66,23 @@ class ForStatement extends ConditionalLoopStatement {
   }
 
   protected void analyzeLoopHeader(AnalyzeContext context) {
+    // check conformance to ECMA-262 7.9.1: a semicolon is never inserted automatically if
+    // that semicolon would become one of the two semicolons in the header of a for statement
+    checkNonVirtualSemicolon(symSemicolon1);
+    checkNonVirtualSemicolon(symSemicolon2);
     if (forInit != null) {
       forInit.analyze(this, context);
     }
     super.analyzeLoopHeader(context);
     if (optStep != null) {
       optStep.analyze(this, context);
+    }
+  }
+
+  private void checkNonVirtualSemicolon(JooSymbol semi) {
+    if (semi.isVirtual()) {
+      throw Jooc.error(semi, "missing ';'" +
+        "(automatic semicolon insertion would become one of the two semicolons in the header of a for statement)");
     }
   }
 

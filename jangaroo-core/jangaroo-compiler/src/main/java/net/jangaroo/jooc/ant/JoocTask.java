@@ -47,6 +47,7 @@ public class JoocTask extends MatchingTask {
   protected boolean failOnError = true;
   private boolean allowduplicatelocalvariables;
   protected File[] compileList = new File[0];
+  private String autoSemicolon = null;
 
   public boolean getEnableassertions() {
     return enableAssertions;
@@ -201,6 +202,14 @@ public class JoocTask extends MatchingTask {
     return verbose;
   }
 
+  public String getAutoSemicolon() {
+    return autoSemicolon;
+  }
+
+  public void setAutoSemicolon(final String autoSemicolon) {
+    this.autoSemicolon = autoSemicolon;
+  }
+
   /**
    * Executes the task.
    */
@@ -332,6 +341,10 @@ public class JoocTask extends MatchingTask {
       if (debugLevel != null) {
         args.add(debugLevel);
       }
+    }
+    if (autoSemicolon != null) {
+      args.add("-autosemicolon");
+      args.add(autoSemicolon);
     }
     if (verbose) {
       args.add("-v");
