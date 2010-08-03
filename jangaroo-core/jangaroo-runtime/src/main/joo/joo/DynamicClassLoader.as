@@ -29,13 +29,18 @@ public class DynamicClassLoader extends StandardClassLoader {
     return true;
   }
 
+  public static var INSTANCE:DynamicClassLoader;
 
   public var urlPrefix : String;
   private var onCompleteCallbacks : Array/*<Function>*/ = [];
 
   public function DynamicClassLoader() {
-    classLoader = this;
-    this.urlPrefix = this.determineUrlPrefix();
+    this.debug = classLoader.debug;
+    this.urlPrefix = classLoader['urlPrefix'];
+    classLoader = INSTANCE = this;
+    if (!this.urlPrefix) {
+      this.urlPrefix = this.determineUrlPrefix();
+    }
   }
 
   /**
@@ -48,9 +53,8 @@ public class DynamicClassLoader extends StandardClassLoader {
    */
   private var pendingClassState : Object/*<String,Boolean>*/ = {};
 
-  override protected function createClassDeclaration(packageDef : String, classDef : String, memberFactory : Function,
-                                                     publicStaticMethodNames : Array, dependencies : Array):SystemClassDeclaration {
-    var cd : ClassDeclaration = super.createClassDeclaration(packageDef, classDef, memberFactory, publicStaticMethodNames, dependencies) as ClassDeclaration;
+  override public function prepare(packageDef:String, classDef:String, memberFactory:Function, publicStaticMethodNames:Array, dependencies:Array):SystemClassDeclaration {
+    var cd:SystemClassDeclaration = super.prepare(packageDef, classDef, memberFactory, publicStaticMethodNames, dependencies);
     this.pendingDependencies.push(cd);
     if (delete this.pendingClassState[cd.fullClassName]) {
       if (this.debug) {

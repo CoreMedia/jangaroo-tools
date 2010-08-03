@@ -66,6 +66,13 @@ under the License.
   <dependencies>
     <dependency>
       <groupId>net.jangaroo</groupId>
+      <artifactId>jangaroo-runtime</artifactId>
+      <version>0.6.1-SNAPSHOT</version>
+      <type>jangaroo</type>
+    </dependency>
+
+    <dependency>
+      <groupId>net.jangaroo</groupId>
       <artifactId>joounit</artifactId>
       <type>jangaroo</type>
       <scope>test</scope>

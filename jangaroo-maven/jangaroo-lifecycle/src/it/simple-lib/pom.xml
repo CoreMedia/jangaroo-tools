@@ -47,4 +47,14 @@ under the License.
       </plugin>
     </plugins>
   </build>
+
+  <dependencies>
+    <dependency>
+      <groupId>net.jangaroo</groupId>
+      <artifactId>jangaroo-runtime</artifactId>
+      <version>0.6.1-SNAPSHOT</version>
+      <type>jangaroo</type>
+    </dependency>
+  </dependencies>
+
 </project>

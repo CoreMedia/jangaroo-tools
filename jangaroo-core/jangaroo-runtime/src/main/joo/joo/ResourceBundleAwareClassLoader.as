@@ -28,20 +28,29 @@ public class ResourceBundleAwareClassLoader extends DynamicClassLoader {
   public var localeCookiePath:String = getQualifiedObject("location.pathname");
   public var localeCookieDomain:String = null;
 
+  public static var INSTANCE:ResourceBundleAwareClassLoader;
+
   public function ResourceBundleAwareClassLoader(supportedLocales:Array = ["en"], localeCookieName:String = "joo.locale") {
-    var debug:Boolean = classLoader.debug;
-    var urlPrefix:String = (classLoader as DynamicClassLoader).urlPrefix;
+    INSTANCE = this;
     super();
-    this.debug = debug;
-    this.urlPrefix = urlPrefix;
     this.supportedLocales = supportedLocales;
     this.localeCookieName = localeCookieName;
   }
 
-  private static function isBundleName(fullClassName:String):Boolean {
+  override protected function createClassDeclaration(packageDef : String, classDef : String, memberFactory : Function,
+                                                     publicStaticMethodNames : Array, dependencies : Array):SystemClassDeclaration {
+    var cd : ClassDeclaration = super.createClassDeclaration(packageDef, classDef, memberFactory, publicStaticMethodNames, dependencies) as ClassDeclaration;
+    if (cd.fullClassName.match(RESOURCE_BUNDLE_PATTERN)) {
+      cd.getDependencies().push(getLocalizedResourceClassName(cd));
+    }
+    return cd;
+  }
 
-    return !!fullClassName.match(RESOURCE_BUNDLE_PATTERN);
-
+  public function createSingleton(resourceBundle:Class):Object {
+    var cd:NativeClassDeclaration = resourceBundle['$class'] as NativeClassDeclaration;
+    var fullLocalizedClassName:String = getLocalizedResourceClassName(cd);
+    var LocalizedResourceBundle:Class = getQualifiedObject(fullLocalizedClassName);
+    return new LocalizedResourceBundle();
   }
 
   private function escape(s:String):String {
@@ -85,7 +94,8 @@ public class ResourceBundleAwareClassLoader extends DynamicClassLoader {
     if (!userLocale) {
       var navigator:* = getQualifiedObject("navigator");
       if (navigator) {
-        userLocale = navigator.language || navigator.browserLanguage || navigator.systemLanguage || navigator.userLanguage;
+        userLocale = navigator['language'] || navigator['browserLanguage']
+          || navigator['systemLanguage'] || navigator['userLanguage'];
         if (userLocale) {
           userLocale = userLocale.replace(/-/g, "_");
         }
@@ -97,35 +107,23 @@ public class ResourceBundleAwareClassLoader extends DynamicClassLoader {
     }
 
     //find longest match
-    var longestMatch:String;
+    var longestMatch:String = "";
     for (var i:int = 0; i < supportedLocales.length; i++) {
-      if (userLocale.indexOf(supportedLocales[i]) === 0) {
-        if (!longestMatch || longestMatch.length > supportedLocales[i]) {
-          longestMatch = supportedLocales[i];
-        }
+      if (userLocale.indexOf(supportedLocales[i]) === 0
+        && supportedLocales[i].length > longestMatch.length) {
+        longestMatch = supportedLocales[i];
       }
     }
     return longestMatch;
   }
 
-  private function getCurrentLocaleSuffix():String {
+  private function getLocalizedResourceClassName(cd:NativeClassDeclaration):String {
+    var localizedResourceClassName:String = cd.fullClassName;
     var locale:String = getLocale();
-    //The default language "en" has no ending.
-    return !locale || locale === "en"
-      ? ""
-      : "_" + locale;
-  }
-
-  override protected function getUri(fullClassName : String):String {
-
-    if (isBundleName(fullClassName)) {
-
-      fullClassName += getCurrentLocaleSuffix();
-
+    if (locale) {
+      localizedResourceClassName += "_" + locale;
     }
-
-    return super.getUri(fullClassName);
-
+    return localizedResourceClassName;
   }
 
 }

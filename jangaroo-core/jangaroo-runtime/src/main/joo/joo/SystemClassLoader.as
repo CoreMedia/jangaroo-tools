@@ -31,9 +31,10 @@ public class SystemClassLoader {
   }
 
   public function prepare(packageDef : String, classDef : String, memberFactory : Function,
-                          publicStaticMethodNames : Array, dependencies : Array) : void {
+                          publicStaticMethodNames : Array, dependencies : Array) : SystemClassDeclaration {
     var cd : SystemClassDeclaration = this.createClassDeclaration(packageDef, classDef, memberFactory, publicStaticMethodNames, dependencies);
     classDeclarationsByName[cd.fullClassName] = cd;
+    return cd;
   }
 
   protected function createClassDeclaration(packageDef : String, classDef : String, memberFactory : Function,

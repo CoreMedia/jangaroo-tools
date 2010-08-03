@@ -19,7 +19,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.util.Locale;
 
 public class PropertyClassGenerator {
   private static Configuration cfg = new Configuration();
@@ -54,8 +53,7 @@ public class PropertyClassGenerator {
 
       String convertedName = FileUtils.dirname(rel) + "/" + rbc.getClassName() + "_properties";
 
-      //"en" is the default thats why we don't add the language here
-      if (!pl.getLocale().equals(Locale.ENGLISH)) {
+      if (pl.getLocale() != null) {
         convertedName += "_" + pl.getLocale();
       }
       convertedName += ".as";

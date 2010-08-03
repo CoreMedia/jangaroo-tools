@@ -54,7 +54,7 @@ public final class PropertiesFileScanner {
         }
         className = className.substring(0, className.indexOf("_"));
       } else {
-        locale = Locale.ENGLISH;
+        locale = null;
       }
 
       String packageName = FileUtils.dirname(srcFileRelativePath).replaceAll("[\\\\/]", ".");
