@@ -5,6 +5,7 @@ package net.jangaroo.properties.model;
 
 import java.io.File;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
@@ -36,8 +37,8 @@ public class PropertiesClass {
     return properties;
   }
 
-  public Set getProps() {
-    return properties.entrySet();
+  public Set<Map.Entry<Object,Object>> getProps() {
+    return getProperties().entrySet();
   }
 
   public File getSrcFile() {
