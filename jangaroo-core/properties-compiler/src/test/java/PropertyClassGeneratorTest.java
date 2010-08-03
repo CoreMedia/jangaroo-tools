@@ -38,13 +38,20 @@ public class PropertyClassGeneratorTest {
     generator.generatePropertiesClass(pc, writer);
     assertEquals(("package testPackage {\n" +
         "\n" +
-        "/**\n" +
-        " * Properties class for Locale en\n" +
-        " */\n" +
-        "public class PropertiesTest_properties {\n" +
+        "import joo.ResourceBundleAwareClassLoader;\n" +
         "\n" +
-        "public static const key:String = \"Die Platte \\\"{1}\\\" enthält {0}.\";\n" +
-        "public static const key2:String = \"Die Platte \\\"{1}\\\" enthält {0}.\";\n" +
+        "/**\n" +
+        " * Properties class for ResourceBundle PropertiesTest and Locale en.\n" +
+        " */\n" +
+        "[ResourceBundle('PropertiesTest_en')]\n" +
+        "public class PropertiesTest_properties_en extends PropertiesTest_properties {\n" +
+        "\n" +
+        "\n" +
+        "[Resource(key='key',bundle='PropertiesTest_en')]\n" +
+        "public const key:String = \"Die Platte \\\"{1}\\\" enthält {0}.\";\n" +
+        "[Resource(key='key2',bundle='PropertiesTest_en')]\n" +
+        "public const key2:String = \"Die Platte \\\"{1}\\\" enthält {0}.\";\n" +
+        "\n" +
         "}\n" +
         "}").replaceAll("\n", LINE_SEPARATOR), writer.toString());
   }
