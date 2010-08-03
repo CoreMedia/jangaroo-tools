@@ -48,6 +48,4 @@ public class PropertyClassGeneratorTest {
         "}\n" +
         "}").replaceAll("\n", LINE_SEPARATOR), writer.toString());
   }
-
- 
 }
