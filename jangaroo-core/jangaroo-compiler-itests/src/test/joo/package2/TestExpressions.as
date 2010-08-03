@@ -36,11 +36,11 @@ public class TestExpressions {
   }
 
   public function testStringLiteralsDQ():String {
-    return "'€\\\b\t\n\f\r\'/'\xc6\u01Bfe\"'"; // IDEA marks the \xdd constant red, but this is correct (at least in AS 3)
+    return "'€\\\b\t\n\f\r\'/'\xc6\u01Bfe\"'";
   }
 
   public function testStringLiteralsSQ():String {
-    return '"€\\\b\t\n\f\r\'/"\xc6\u01Bfe\'"'; // IDEA marks the \x and \u red, but this is correct (at least in AS 3)
+    return '"€\\\b\t\n\f\r\'/"\xc6\u01Bfe\'"';
   }
 
   public function testStringLiterals3():String {

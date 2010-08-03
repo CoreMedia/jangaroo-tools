@@ -297,8 +297,8 @@ public class JooTest extends JooRuntimeTestCase {
     expectNumber(130, "(obj.testFunExpr(13))(10)");
     expectNumber(-2, "obj.testPrefixOpExpr(14)");
     expectNumber(30, "obj.testPostfixOpExpr(15)");
-    String dq = "'€\\\b\t\n\f\r\'/'\u00C6\u01Bfe\"'"; // "'�\\\b\t\n\f\r\'/'\xc6\u01Bfe\"'"
-    String sq = "\"€\\\b\t\n\f\r\'/\"\u00C6\u01Bfe'\""; // '"�\\\b\t\n\f\r\'/"\xc6\u01Bfe\'"'
+    String dq = "'€\\\b\t\n\f\r\'/'\u00C6\u01Bfe\"'"; // "'€\\\b\t\n\f\r\'/'\xc6\u01Bfe\"'"
+    String sq = "\"€\\\b\t\n\f\r\'/\"\u00C6\u01Bfe'\""; // '"€\\\b\t\n\f\r\'/"\xc6\u01Bfe\'"'
     expectString(dq, "obj.testStringLiteralsDQ()");
     expectString(sq, "obj.testStringLiteralsSQ()");
     expectString("ActionScript <span class='heavy'>3.0</span>", "obj.testStringLiterals3()");

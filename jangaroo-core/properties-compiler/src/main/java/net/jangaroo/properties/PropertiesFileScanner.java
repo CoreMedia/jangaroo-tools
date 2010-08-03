@@ -6,13 +6,14 @@ package net.jangaroo.properties;
 import net.jangaroo.properties.model.LocalizationSuite;
 import net.jangaroo.properties.model.PropertiesClass;
 import net.jangaroo.properties.model.ResourceBundleClass;
-import org.apache.maven.shared.model.fileset.FileSet;
 import org.apache.maven.shared.model.fileset.util.FileSetManager;
 import org.codehaus.plexus.util.FileUtils;
 
+import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.Locale;
 import java.util.Properties;
@@ -73,7 +74,7 @@ public final class PropertiesFileScanner {
       }
 
       Properties p = new Properties();
-      Reader r = new FileReader(srcFile);
+      Reader r = new BufferedReader(new InputStreamReader(new FileInputStream(srcFile), "UTF-8"));
       try {
         p.load(r);
       } finally {

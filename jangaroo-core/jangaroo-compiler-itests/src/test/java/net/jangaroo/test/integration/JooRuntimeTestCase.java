@@ -19,8 +19,10 @@ import net.jangaroo.jooc.Jooc;
 import net.jangaroo.test.JooTestCase;
 import org.mozilla.javascript.*;
 
+import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
 
@@ -101,7 +103,7 @@ public abstract class JooRuntimeTestCase extends JooTestCase {
     public Object load(Context cx, File jsFile) throws Exception {
       String jsFileName = jsFile.getAbsolutePath();
       System.out.println("loading script " + jsFileName);
-      FileReader reader = new FileReader(jsFile);
+      Reader reader = new BufferedReader(new InputStreamReader(new FileInputStream(jsFile), "UTF-8"));
       return cx.evaluateReader(this, reader, jsFileName, 1, null);
     }
 

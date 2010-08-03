@@ -2,8 +2,9 @@ package net.jangaroo.extxml.util;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -22,7 +23,7 @@ public class FileScanner<State> {
   public State scan(File file, State state) throws IOException {
     BufferedReader reader = null;
     try {
-      reader = new BufferedReader(new FileReader(file));
+      reader = new BufferedReader(new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8")));
       String line;
       while ((line = reader.readLine()) != null) {
         for (Rule<State> rule : rules) {
