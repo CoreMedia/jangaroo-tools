@@ -127,7 +127,7 @@ public abstract class JooRuntimeTestCase extends JooTestCase {
   protected String readClassCode(String qualifiedJooClassName) throws Exception {
     String jsFileName = jsFileName(qualifiedJooClassName);
     File file = new File(global.getJsDir(), jsFileName);
-    Reader in = new FileReader(file);
+    Reader in = new InputStreamReader(new FileInputStream(file), "UTF-8");
     StringBuilder builder = new StringBuilder();
     int n;
     char[] buf = new char[512];
