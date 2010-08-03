@@ -22,9 +22,7 @@
       <comments>A business-friendly OSS license</comments>
     </license>
   </licenses>
-
   
-
   <distributionManagement>
     <downloadUrl>http://repo.jangaroo.net/maven2</downloadUrl>
     <repository>
@@ -83,10 +81,16 @@
 
 
   <build>
+    <extensions>
+      <extension>
+        <groupId>org.apache.maven.wagon</groupId>
+        <artifactId>wagon-ssh</artifactId>
+        <version>1.0-beta-6</version>
+      </extension>
+    </extensions>
 
     <pluginManagement>
       <plugins>
-
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
@@ -177,10 +181,8 @@
           </configuration>
         </plugin>
       </plugins>
-
     </pluginManagement>
-
-
+    
   </build>
 
   <dependencyManagement>
