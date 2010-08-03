@@ -237,7 +237,7 @@ public class Ide extends NodeImplBase {
     addExternalUsage();
     //todo handle references to static super members
     // check access to another class or a constant of another class; other class then must be initialized:
-    if (!isQualifier() && !(exprParent instanceof ApplyExpr)) {
+    if (!(exprParent instanceof ApplyExpr)) {
       ClassDeclaration classDeclaration = getScope().getClassDeclaration();
       if (classDeclaration != null) {
         if (isQualified()) {
@@ -245,7 +245,9 @@ public class Ide extends NodeImplBase {
           classDeclaration.addInitIfClass(getQualifier());
         }
         // access to other class?
-        classDeclaration.addInitIfClass(this);
+        if (!isQualifier()) {
+          classDeclaration.addInitIfClass(this);
+        }
       }
     }
   }
