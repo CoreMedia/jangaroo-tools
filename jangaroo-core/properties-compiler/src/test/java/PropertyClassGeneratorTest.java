@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2009, CoreMedia AG, Hamburg. All rights reserved.
  */
 
@@ -10,7 +10,6 @@ import org.apache.maven.shared.model.fileset.FileSet;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
-import java.io.File;
 import java.io.StringWriter;
 import java.util.Locale;
 import java.util.Properties;
