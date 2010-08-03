@@ -203,6 +203,7 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
 
   protected List<File> getActionScriptClassPath() {
     List<File> classPath = new ArrayList<File>();
+    classPath.add(new File(project.getBasedir(), "src/main/joo-api"));
     Collection<Artifact> dependencies = getArtifacts();
     for (Artifact dependency : dependencies) {
       if (getLog().isDebugEnabled()) {
