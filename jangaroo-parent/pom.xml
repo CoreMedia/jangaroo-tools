@@ -197,13 +197,6 @@
         <scope>provided</scope>
       </dependency>
 
-      <dependency>
-        <groupId>rhino</groupId>
-        <artifactId>js</artifactId>
-        <version>1.7R1</version>
-        <scope>test</scope>
-      </dependency>
-
     </dependencies>
 
   </dependencyManagement>

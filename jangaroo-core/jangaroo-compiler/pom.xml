@@ -88,9 +88,9 @@
         </executions>
         <dependencies>
           <dependency>
-            <groupId>net.jangaroo</groupId>
-            <artifactId>jangaroo-cup</artifactId>
-            <version>0.6.1-SNAPSHOT</version>
+            <groupId>edu.princeton.cup</groupId>
+            <artifactId>java-cup</artifactId>
+            <version>10k</version>
           </dependency>
         </dependencies>
       </plugin>
@@ -181,9 +181,9 @@
 
   <dependencies>
     <dependency>
-      <groupId>net.jangaroo</groupId>
-      <artifactId>jangaroo-cup</artifactId>
-      <version>0.6.1-SNAPSHOT</version>
+      <groupId>edu.princeton.cup</groupId>
+      <artifactId>java-cup</artifactId>
+      <version>10k</version>
     </dependency>
 
     <dependency>

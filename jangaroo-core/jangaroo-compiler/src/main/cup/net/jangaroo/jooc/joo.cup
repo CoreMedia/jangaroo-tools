@@ -39,7 +39,7 @@ parser code  {:
   private boolean eofSeen = false;
 
   // pattern for line terminator characters according to ECMA-262:
-  private static Pattern lineTerminators = Pattern.compile("[\n\r\u2028\u2029]");
+  private final static Pattern LINE_TERMINATORS_PATTERN = Pattern.compile("[\n\r\u2028\u2029]");
 
   public void setCompileLog(CompileLog log) {
     this.log = log;
@@ -50,28 +50,7 @@ parser code  {:
   }
 
   private boolean containsLineTerminator(String text) {
-    return lineTerminators.matcher(text).find();
-  }
-
-  @Override
-  protected final short get_action(int state, int token) {
-    short action = super.get_action(state, token);
-    
-    if (action == 0) {
-      // mimic ECMA-262 grammar precondition: token notin { '{', 'function' } for expression statements
-      if (token == sym.LBRACE) {
-        // this is only the case if we are not just before parsing an expression statement
-        action = super.get_action(state, sym.LBRACE_EXPR);
-      } else if (token == sym.FUNCTION) {
-        // this is only the case if we are not just before parsing an expression statement
-        action = super.get_action(state, sym.FUNCTION_EXPR);
-      }
-    }
-    return action;
-  }
-
-  private boolean hasAction(int token) {
-    return get_action(((Symbol)stack.peek()).parse_state, token) != 0;
+    return LINE_TERMINATORS_PATTERN.matcher(text).find();
   }
 
   private boolean insertVirtualToken(int token, String text) {
@@ -79,7 +58,7 @@ parser code  {:
       return false;
     }
     JooSymbol currentToken = (JooSymbol)cur_token;
-    eofSeen = currentToken.sym == sym.EOF; 
+    eofSeen = eofSeen || currentToken.sym == sym.EOF;
     if (currentToken.isVirtual() && currentToken.sym == token) {
       // avoid infinite loop, but isn't it a parser bug?
       report_error("Internal parser error: infinite loop during virtual token insertion: " + scanner.getSymbolAbbreviation(cur_token.sym), cur_token);
@@ -92,8 +71,16 @@ parser code  {:
     return true;
   }
 
+  private boolean replaceToken(int token) {
+    JooSymbol currentToken = (JooSymbol)cur_token;
+    JooSymbol newToken = new JooSymbol(token, currentToken.getFileName(), currentToken.getLine(),
+      currentToken.getColumn(), currentToken.getWhitespace(), currentToken.getText());
+    cur_token = newToken;
+    return true;
+  }
+
   private int getActionFromTable(int sym) {
-    return super.get_action(((Symbol) stack.peek()).parse_state, sym);
+    return get_action(((Symbol) stack.peek()).parse_state, sym);
   }
 
   private boolean isActionDefinedFor(int sym) {
@@ -107,13 +94,24 @@ parser code  {:
   protected boolean error_recovery(boolean debug) {
     String whitespace = ((JooSymbol)cur_token).getWhitespace();
       boolean isPostfixOp = cur_token.sym == sym.PLUSPLUS || cur_token.sym == sym.MINUSMINUS;
-    // try semicolon insertion
-    if (isShiftActionDefinedFor(sym.NO_LINE_TERMINATOR_HERE) || 
+
+   // mimic ECMA-262 grammar precondition: token notin { '{', 'function' } for expression statements
+   if (cur_token.sym == sym.LBRACE && isActionDefinedFor(sym.LBRACE_EXPR)) {
+     // this is only the case if we are not just before parsing an expression statement
+     return replaceToken(sym.LBRACE_EXPR);
+   }
+   if (cur_token.sym == sym.FUNCTION && isActionDefinedFor(sym.FUNCTION_EXPR)) {
+     // this is only the case if we are not just before parsing an expression statement
+     return replaceToken(sym.FUNCTION_EXPR);
+   }
+
+   // try semicolon insertion
+   if (isShiftActionDefinedFor(sym.NO_LINE_TERMINATOR_HERE) ||
          (isPostfixOp && isActionDefinedFor(sym.NO_LINE_TERMINATOR_HERE_POSTFIX_OP))) {
       // ECMA-262 restricted production
       if (containsLineTerminator(whitespace)) {
-        // avoid syntax error later on if there is no action for semicolon
         checkSemicolonInsertionMode();
+        // avoid syntax error later on if there is no action for semicolon
         if (isActionDefinedFor(sym.SEMICOLON)) {
           return insertVirtualToken(sym.SEMICOLON, ";");
         } else if (isPostfixOp) {
