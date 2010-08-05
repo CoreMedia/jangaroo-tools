@@ -52,7 +52,6 @@
       <url>http://repo.jangaroo.net/maven2</url>
       <snapshots>
         <enabled>false</enabled>
-        <updatePolicy>never</updatePolicy>
       </snapshots>
     </pluginRepository>
   </pluginRepositories>
@@ -64,18 +63,7 @@
       <url>http://repo.jangaroo.net/maven2</url>
       <snapshots>
         <enabled>false</enabled>
-        <updatePolicy>never</updatePolicy>
       </snapshots>
-
-    </repository>
-    <repository>
-      <id>openqa</id>
-      <url>http://nexus.openqa.org/content/repositories/releases/</url>
-      <snapshots>
-        <enabled>false</enabled>
-        <updatePolicy>never</updatePolicy>
-      </snapshots>
-
     </repository>
   </repositories>
 
