@@ -62,6 +62,8 @@ namespace = "hello"
 namespace()
 
 In these cases, the grammar requires an identifier after the namespace keyword.
+
+
 */
 
 package net.jangaroo.jooc;
@@ -108,9 +110,10 @@ package net.jangaroo.jooc;
     whitespace = "";
     return result;
   }
+
 %}
 
-LineTerminator = \r|\n|\r\n
+LineTerminator = [\n\r\u2028\u2029]
 InputCharacter = [^\r\n]
 WhiteSpace = {LineTerminator} | [ \t\f]
 
@@ -132,17 +135,27 @@ FLit2    = \. [0-9]+
 FLit3    = [0-9]+
 Exponent = [eE] [+-]? [0-9]+
 
-RegexpFirst = [^\n\\*/]
-Regexp = [^\n\\/]
-RegexpFlag = [gim]
 InvalidRegexpFlag = [$_]|[:letter:]
-NonTerminator = [^\n]
+
+/* Regexp fragments translated from ECMA-262 grammar: */
+RegularExpressionFirstChar = (!(!{RegularExpressionNonTerminator}|[*\\\/\[])) | {RegularExpressionBackslashSequence} | {RegularExpressionClass}
+RegularExpressionChar = (!(!{RegularExpressionNonTerminator}|[\\\/\[])) | {RegularExpressionBackslashSequence} | {RegularExpressionClass}
+RegularExpressionBackslashSequence = "\\" {RegularExpressionNonTerminator}
+RegularExpressionNonTerminator = [^\n\r\u2028\u2029]
+RegularExpressionClass = "[" {RegularExpressionClassChar}* "]"
+
+/* Flex compc does not accept an unquoted / within a character class, contrary to ECMA.262: */
+RegularExpressionClassChar = [^\n\r\u2028\u2029\]\\\/] | {RegularExpressionBackslashSequence}
+
+RegularExpressionFlag = {IdentifierStart}
+
+RegexpRest = {RegularExpressionChar}* "/" {RegularExpressionFlag}*
 
 HexDigit          = [0-9abcdefABCDEF]
 
 Include           = "include \"" ~"\""
 
-%state STRING_SQ, STRING_DQ, REGEXPFIRST, REGEXP
+%state STRING_SQ, STRING_DQ, REGEXP_FIRST, REGEXP_REST
 
 %%
 
@@ -251,12 +264,12 @@ Include           = "include \"" ~"\""
   "/"                             { if (!maybeExpr())
                                       return symbol(DIV);
                                     multiStateText = yytext();
-                                    yybegin(REGEXPFIRST);
+                                    yybegin(REGEXP_FIRST);
                                     string.setLength(0); }
   "/="                            { if (!maybeExpr())
                                       return symbol(DIVEQ);
                                     multiStateText = yytext();
-                                    yybegin(REGEXP);
+                                    yybegin(REGEXP_REST);
                                     string.setLength(0);
                                     string.append('='); }
 
@@ -306,32 +319,21 @@ Include           = "include \"" ~"\""
 }
 
 
-<REGEXPFIRST> {
-  {RegexpFirst}                   { multiStateText += yytext(); string.append(yytext()); yybegin(REGEXP); }
-  "\\"{NonTerminator}             { multiStateText += yytext(); string.append(yytext()); yybegin(REGEXP); }
+<REGEXP_FIRST> {
+  {RegularExpressionFirstChar}    { multiStateText += yytext(); string.append(yytext()); yybegin(REGEXP_REST); }
   {LineTerminator}                { error("unterminated regular expression at end of line"); }
 }
 
-<REGEXP> {
-  "/"                             { multiStateText += yytext();
+<REGEXP_REST> {
+  {RegexpRest}                    { multiStateText += yytext();
                                     yybegin(YYINITIAL);
                                     return multiStateSymbol(REGEXP_LITERAL, string.toString());
                                   }
-  "/"{RegexpFlag}+                { multiStateText += yytext();
-                                    yybegin(YYINITIAL);
-                                    return multiStateSymbol(REGEXP_LITERAL, string.toString());
-                                  }
-  "/"{RegexpFlag}+{InvalidRegexpFlag}
-                                  { error("invalid regular expression flag: '" +
-                                      yytext().charAt(yytext().length()-1) + "'");
-                                  }
-  {Regexp}+                       { multiStateText += yytext(); string.append(yytext()); }
-  "\\"{NonTerminator}             { multiStateText += yytext(); string.append(yytext()); }
   {LineTerminator}                { error("unterminated regular expression at end of line"); }
 }
 
 /* error catchall */
-<YYINITIAL,STRING_DQ,STRING_SQ,REGEXP,REGEXPFIRST> .|\n
+<YYINITIAL,STRING_DQ,STRING_SQ,REGEXP_FIRST,REGEXP_REST> .|\n
                                   { char ch = yytext().charAt(0);
                                     String hex = Integer.toHexString((int)ch);
                                     while (hex.length() < 4)

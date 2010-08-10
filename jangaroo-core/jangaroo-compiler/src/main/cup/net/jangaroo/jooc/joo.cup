@@ -233,7 +233,8 @@ terminal JooSymbol PREFIX_PLUSPLUS, PREFIX_MINUSMINUS, PREFIX_PLUS, PREFIX_MINUS
 terminal JooSymbol SCAN_ERROR;
 
 nonterminal CommaSeparatedList arguments;
-nonterminal ParenthesizedExpr arrayLiteral;
+nonterminal ArrayLiteral arrayLiteral;
+nonterminal CommaSeparatedList arrayLiteralFields;
 nonterminal BlockStatement functionBody;
 nonterminal BlockStatement block;
 nonterminal ArrayList catches;
@@ -246,6 +247,7 @@ nonterminal ClassDeclaration classDeclaration;
 nonterminal CompilationUnit compilationUnit;
 nonterminal IdeDeclaration compilationUnitDeclaration;
 nonterminal JooSymbol constOrVar;
+nonterminal JooSymbol optComma;
 nonterminal Expr expr;
 nonterminal Extends extends;
 nonterminal FieldDeclaration fieldDeclaration;
@@ -344,34 +346,42 @@ arguments ::=
   ;
 
 arrayLiteral ::=
-    LBRACK:lb arguments:args RBRACK:rb
-    {: RESULT = new ParenthesizedExpr(lb,args,rb); :}
+  LBRACK:lb arrayLiteralFields:f RBRACK:rb
+    {: RESULT = new ArrayLiteral(lb,f,rb); :}
+  ;
+
+arrayLiteralFields ::=
+    {: RESULT = null; :}
+  |  expr:e
+    {: RESULT = new CommaSeparatedList(e); :}
+  | optExpr:e COMMA:c arrayLiteralFields:rest
+    {: RESULT = new CommaSeparatedList(e,c,rest); :}
   ;
 
 block ::=
-    LBRACE:lb statements:s RBRACE:rb
+  LBRACE:lb statements:s RBRACE:rb
     {: RESULT = new BlockStatement(lb,s,rb); :}
   ;
 
 functionBody ::=
-    LBRACE:lb statements:s RBRACE:rb
+   LBRACE:lb statements:s RBRACE:rb
     {: RESULT = new BlockStatement(lb,s,rb); :}
   ;
 
 catches ::=
-    catchClause:c
+  catchClause:c
     {: RESULT = new ArrayList(1); RESULT.add(c); :}
   |  catches:l catchClause:c
     {: RESULT = l; l.add(c); :}
   ;
 
 catchClause ::=
-    CATCH:c LPAREN:lp parameter:p RPAREN:rp block:b
+  CATCH:c LPAREN:lp parameter:p RPAREN:rp block:b
     {: RESULT = new Catch(c,lp,p,rp,b); :}
   ;
 
 classBody ::=
-    LBRACE:lb classBodyDeclarations:decls RBRACE:rb
+  LBRACE:lb classBodyDeclarations:decls RBRACE:rb
     {: RESULT = new ClassBody(lb, decls, rb); :}
   ;
 
@@ -731,7 +741,7 @@ objectFields ::=
 
 objectLiteral ::=
     LBRACE_EXPR:lb objectFields:fields RBRACE:rb
-    {: RESULT = new ObjectLiteral(lb,fields,rb); :}
+    {: RESULT = new ObjectLiteral(lb,fields,null,rb); :}
   ;
 
 optBody ::=
@@ -744,6 +754,12 @@ optBody ::=
 optCatches ::=
     {: RESULT = new ArrayList(); :}
   | catches:c
+    {: RESULT = c; :}
+  ;
+
+optComma ::=
+    {: RESULT = null; :}
+  | COMMA:c
     {: RESULT = c; :}
   ;
 

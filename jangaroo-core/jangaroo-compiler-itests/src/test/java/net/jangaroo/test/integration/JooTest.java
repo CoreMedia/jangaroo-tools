@@ -290,7 +290,6 @@ public class JooTest extends JooRuntimeTestCase {
     eval("obj = new package2.TestExpressions;");
     expectNumber(200, "obj.testCond(true, 200, 300)");
     expectNumber(300, "obj.testCond(false, 200, 300)");
-    expectNumber(1, "obj.antitestRegexpLiterals()");
     expectString("foo", "obj.testCommaExprAsArrayIndex('foo')");
     expectNumber(24, "obj.testParenExpr(11)");
     expectNumber(7, "obj.testBinOpExpr(12)");
@@ -304,14 +303,19 @@ public class JooTest extends JooRuntimeTestCase {
     expectString("ActionScript <span class='heavy'>3.0</span>", "obj.testStringLiterals3()");
     expectString("<item id=\"155\">banana</item>", "obj.testStringLiterals4()");
     expectString(dq, "obj.testCharLiterals()");
-    expectString("2,7,2,2,2", "obj.testRegexpLiterals()");
+    expectString("2,7,2,2,2,3", "obj.testRegexpLiterals()");
+    expectNumber(18, "obj.antitestRegexpLiterals1()");
+    expectNumber(34, "obj.antitestRegexpLiterals2((99*2),2,{p:3})");
     expectNumber(123+456, "obj.testObjectLiterals()");
     expectNumber(123+456, "obj.testNestedObjectLiterals()");
     expectNumber(123+456, "obj.testObjectLiteralWithFun()");
     expectNumber(123+456+11, "obj.testObjectLiteralsInBooleanShortcuts(false,true,99)");
     expectNumber(9+456+11, "obj.testObjectLiteralsInBooleanShortcuts({x:9,y:10},true,99)");
     expectNumber(9+88+11, "obj.testObjectLiteralsInBooleanShortcuts({x:9,y:10},false,88)");
-    expectString("1,2,3,4,5,6,7,8,9,0", "obj.testArrayLiterals()");
+    expectString("", "obj.testArrayLiterals1()");
+    expectString("1", "obj.testArrayLiterals2()");
+    expectString("1,2,3,4,5,6,7,8,9,0", "obj.testArrayLiterals3()");
+    expectString(",1,2,,,3,4,5,6,7,8,9,0,", "obj.testArrayLiterals4()");
     expectBoolean(true, "obj.testIsPrecedence()");
   }
 

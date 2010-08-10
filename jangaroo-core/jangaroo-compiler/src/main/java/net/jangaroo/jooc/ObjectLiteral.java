@@ -24,19 +24,27 @@ class ObjectLiteral extends Expr {
 
   JooSymbol lBrace;
   CommaSeparatedList<ObjectField> fields;
-  JooSymbol rParen;
+  JooSymbol optComma;
+  JooSymbol rBrace;
 
-  public ObjectLiteral(JooSymbol lBrace, CommaSeparatedList<ObjectField> fields, JooSymbol rParen) {
+  /**
+   *
+   * @param optComma null for the time beeing, Flex compc does not accept a trailing comma, contrary to array literals...
+   */
+  public ObjectLiteral(JooSymbol lBrace, CommaSeparatedList<ObjectField> fields, JooSymbol optComma, JooSymbol rBrace) {
     this.lBrace = lBrace;
     this.fields = fields;
-    this.rParen = rParen;
+    this.optComma = optComma;
+    this.rBrace = rBrace;
   }
-
+ 
   protected void generateJsCode(JsWriter out) throws IOException {
     out.writeSymbol(lBrace);
     if (fields != null)
       fields.generateCode(out);
-    out.writeSymbol(rParen);
+    if (optComma != null)
+      fields.generateCode(out);
+    out.writeSymbol(rBrace);
   }
 
   @Override

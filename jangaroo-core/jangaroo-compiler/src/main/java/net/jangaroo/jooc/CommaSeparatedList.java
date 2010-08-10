@@ -37,7 +37,9 @@ class CommaSeparatedList<NodeType extends AstNode> extends Expr {
 
   @Override
   public void scope(final Scope scope) {
-    head.scope(scope);
+    if (head != null) {
+        head.scope(scope);
+    }
     if (tail != null) {
       tail.scope(scope);
     }
@@ -50,7 +52,9 @@ class CommaSeparatedList<NodeType extends AstNode> extends Expr {
 
   @Override
   public void generateCode(JsWriter out) throws IOException {
-    head.generateCode(out);
+    if (head != null) {
+      head.generateCode(out);
+    }
     if (symComma != null) {
       generateTailCode(out);
     }
@@ -58,20 +62,24 @@ class CommaSeparatedList<NodeType extends AstNode> extends Expr {
 
   protected void generateTailCode(JsWriter out) throws IOException {
     out.writeSymbol(symComma);
-    tail.generateCode(out);
+    if (tail != null) {
+      tail.generateCode(out);
+    }
   }
 
 
   public Expr analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
-    head.analyze(this, context);
+    if (head != null) {
+      head.analyze(this, context);
+    }
     if (tail != null)
       tail.analyze(this, context);
     return this;
   }
 
   public JooSymbol getSymbol() {
-    return head.getSymbol();
+    return head != null ? head.getSymbol() : symComma;
   }
 
 }

@@ -20,17 +20,12 @@ public class TestExpressions {
   public function TestExpressions() {
   }
 
-  public function antitestRegexpLiterals():int {
-    var i:Number = 1 / 2 / 3;
-    ++i; // just to avoid "unused variable" warning
-    return (1 + 1) / 2;
-  }
-
   public function testCommaExprAsArrayIndex(foo:String):String {
     var a : Array = [];
     a[1,0] = foo; // commaExpr as array index makes no sense, but is allowed anyway.
     return a[0];
   }
+
   public function testParenExpr(n:int):int {
     return (n+1)*2;
   }
@@ -61,14 +56,29 @@ public class TestExpressions {
       " abc abcabcab cabcabc abca bcabcabcabcabcab cabcab cabcabc".match(/(abc)+/g).length,
       "abc".match(/(abc)*/).length,
       "abc\n  abc \nabc abc abc \nabc\n abc ".match(/^abc$/mg).length,
-      "abc\n\tAbc".match(/c(\s+)a/i).length
+      "abc\n\tAbc".match(/c(\s+)a/i).length,
+      // note that compc (3+4) does not accept an unquoted / within a character class, as well as earlier Thino versions:
+      "/opt/net/jangaroo/$as3-w/o-flash.html".match(/(\w|[_.\-])+([A-Za-z0-9_\/.\-$])+\w+/).length
+      //todo rhino reports invalid quantifier '+': ,"info@jangaroo.net".match(/(\w|[_.\-])+@((\w|-)+\.)+\w{2,4}+/)
       ].join(',');
   }
 
-  public function testObjectLiterals():int {
-    var o : * = { x: 123, "y": 456 };
-    return o.x + o.y;
+  public function antitestRegexpLiterals1():int {
+    var i:Number = (99 * 2) / 2 / 3;
+    return (i + 3) / 2;
   }
+
+  public function antitestRegexpLiterals2(b:int, hi:int, g:*):int {
+    // keep that line feed after b please:
+    var i:int = b
+            /hi/g.p;
+    return i + 1;
+  }
+
+  public function testObjectLiterals():int {
+      var o : * = { x: 123, "y": 456 };
+      return o.x + o.y;
+    }
 
   public function testNestedObjectLiterals():int {
     var o : * = { x: { xx: 123 }, "y": {'yy':456}};
@@ -87,8 +97,20 @@ public class TestExpressions {
     return o.x + (o2 ? o2.y : i) + o3.x;
   }
 
-  public function testArrayLiterals():String {
-    return [ 1+2-2,2+3-3,3+4-4,4,5,6,7,8,9,0 ].join(',');
+  public function testArrayLiterals1():String {
+    return [].join(',');
+  }
+
+  public function testArrayLiterals2():String {
+    return [1+2-2].join(',');
+  }
+
+  public function testArrayLiterals3():String {
+    return [1+2-2,2+3-3,3+4-4,4,5,6,7,8,9,0].join(',');
+  }
+
+  public function testArrayLiterals4():String {
+    return [,1+2-2,2+3-3,,,3+4-4,4,5,6,7,8,9,0,,].join(',');
   }
 
   public function testBinOpExpr(n:int):int {
