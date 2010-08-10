@@ -95,6 +95,13 @@ parser code  {:
     String whitespace = ((JooSymbol)cur_token).getWhitespace();
       boolean isPostfixOp = cur_token.sym == sym.PLUSPLUS || cur_token.sym == sym.MINUSMINUS;
 
+   // check for regular expression start
+   if ((cur_token.sym == sym.DIV || cur_token.sym == sym.DIVEQ) && isActionDefinedFor(sym.REGEXP_START)) {
+     // this is only the case if we are not just before parsing an expression statement
+     scanner.startRegexp((JooSymbol)cur_token);
+     return replaceToken(sym.REGEXP_START);
+   }
+
    // mimic ECMA-262 grammar precondition: token notin { '{', 'function' } for expression statements
    if (cur_token.sym == sym.LBRACE && isActionDefinedFor(sym.LBRACE_EXPR)) {
      // this is only the case if we are not just before parsing an expression statement
@@ -219,6 +226,10 @@ terminal JooSymbol REGEXP_LITERAL;
 // virtual tokens to mark the begin of a function or object literal expression
 // inserted by parser if no other action is available
 terminal JooSymbol FUNCTION_EXPR, LBRACE_EXPR;
+
+// virtual tokens to mark the begin of a regular expression literal
+// inserted by parser if no other action is available
+terminal JooSymbol REGEXP_START;
 
 // virtual token to mark ++ or -- parsed as postfix
 terminal JooSymbol POSTFIX_INCREMENT;
@@ -491,7 +502,7 @@ expr ::=
     {: RESULT = new LiteralExpr(l); :}
   | STRING_LITERAL:l
     {: RESULT = new LiteralExpr(l); :}
-  | REGEXP_LITERAL:l
+  | REGEXP_START REGEXP_LITERAL:l
     {: RESULT = new LiteralExpr(l); :}
   | NULL_LITERAL:l
     {: RESULT = new LiteralExpr(l); :}

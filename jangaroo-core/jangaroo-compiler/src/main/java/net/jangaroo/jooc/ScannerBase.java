@@ -9,26 +9,10 @@ import java.util.HashMap;
 
 public abstract class ScannerBase implements sym {
 
-  static int[] possibleTerminalsBeforeExpr = {
-    CASE, DO, ELSE, IN, INSTANCEOF,
-    RETURN, TYPEOF, WITH,
-    PLUS, MINUS, NOT, DIV, MOD, MUL,
-    LSHIFT, RSHIFT, URSHIFT,
-    LT, GT, LTEQ, GTEQ,
-    EQ, EQEQ, EQEQEQ, NOTEQ, NOTEQEQ,
-    AND, XOR, OR, ANDAND, OROR,
-    QUESTION, COLON, SEMICOLON, COMMA,
-    MULTEQ, DIVEQ, MODEQ, PLUSEQ, MINUSEQ,
-    LSHIFTEQ, RSHIFTEQ, URSHIFTEQ,
-    ANDEQ, XOREQ, OREQ,
-    LPAREN, LBRACE, LBRACK
-  };
-
   protected String whitespace = "";
   protected String multiStateText = "";
   protected StringBuffer string = new StringBuffer();
   protected String fileName = "";
-  protected int lastToken = -1;
   protected InputSource inputSource;
   protected JooSymbol pushedBackToken;
 
@@ -40,7 +24,6 @@ public abstract class ScannerBase implements sym {
     if (pushedBackToken != null) {
       JooSymbol result = pushedBackToken;
       pushedBackToken = null;
-      lastToken = -1;
       return result;
     }
     return scan();
@@ -52,18 +35,6 @@ public abstract class ScannerBase implements sym {
   public void pushback(JooSymbol token) {
     assert pushedBackToken == null;
     pushedBackToken = token;
-  }
-
-  private boolean lastTokenIn(int[] terminals) {
-    for (int terminal : terminals) {
-      if (lastToken == terminal)
-        return true;
-    }
-    return false;
-  }
-
-  protected boolean maybeExpr() {
-    return lastTokenIn(possibleTerminalsBeforeExpr);
   }
 
   public InputSource getInputSource() {

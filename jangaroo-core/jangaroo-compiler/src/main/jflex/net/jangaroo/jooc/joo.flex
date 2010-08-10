@@ -1,5 +1,5 @@
 /*
- * Copyright 2008 CoreMedia AG
+ * Copyright 2008-2010 CoreMedia AG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -90,27 +90,32 @@ package net.jangaroo.jooc;
 
 %{
 
-  protected JooSymbol symbol(int type) {
-    lastToken = type;
-    JooSymbol result = new JooSymbol(type, fileName, yyline + 1, yycolumn + 1, whitespace, yytext());
+  protected JooSymbol symbol(int sym) {
+    JooSymbol result = new JooSymbol(sym, fileName, yyline + 1, yycolumn + 1, whitespace, yytext());
     whitespace = "";
     return result;
   }
 
-  protected JooSymbol symbol(int type, Object value) {
-    lastToken = type;
-    JooSymbol result = new JooSymbol(type, fileName, yyline + 1, yycolumn + 1, whitespace, yytext(), value);
+  protected JooSymbol symbol(int sym, Object value) {
+    JooSymbol result = new JooSymbol(sym, fileName, yyline + 1, yycolumn + 1, whitespace, yytext(), value);
     whitespace = "";
     return result;
   }
 
-  protected JooSymbol multiStateSymbol(int type, Object value) {
-    lastToken = type;
-    JooSymbol result = new JooSymbol(type, fileName, yyline + 1, yycolumn + 1, whitespace, multiStateText, value);
+  protected JooSymbol multiStateSymbol(int sym, Object value) {
+    JooSymbol result = new JooSymbol(sym, fileName, yyline + 1, yycolumn + 1, whitespace, multiStateText, value);
     whitespace = "";
     return result;
   }
 
+  protected void startRegexp(JooSymbol regexpStart) {
+    multiStateText = regexpStart.getText();
+    string.setLength(0);
+    string.append(multiStateText);
+    assert(regexpStart.sym == sym.DIV || regexpStart.sym == sym.DIVEQ);
+    yybegin(regexpStart.sym == sym.DIV ? REGEXP_FIRST : REGEXP_REST);
+  }
+  
 %}
 
 LineTerminator = [\n\r\u2028\u2029]
@@ -260,18 +265,8 @@ Include           = "include \"" ~"\""
   "!=="                           { return symbol(NOTEQEQ); }
   "..."                           { return symbol(REST); }
   "::"                            { return symbol(NAMESPACESEP); }
-
-  "/"                             { if (!maybeExpr())
-                                      return symbol(DIV);
-                                    multiStateText = yytext();
-                                    yybegin(REGEXP_FIRST);
-                                    string.setLength(0); }
-  "/="                            { if (!maybeExpr())
-                                      return symbol(DIVEQ);
-                                    multiStateText = yytext();
-                                    yybegin(REGEXP_REST);
-                                    string.setLength(0);
-                                    string.append('='); }
+  "/"                             { return symbol(DIV); }
+  "/="                            { return symbol(DIVEQ); }
 
   \"                              { multiStateText = yytext(); yybegin(STRING_DQ); string.setLength(0); }
   \'                              { multiStateText = yytext(); yybegin(STRING_SQ); string.setLength(0); }
@@ -326,6 +321,7 @@ Include           = "include \"" ~"\""
 
 <REGEXP_REST> {
   {RegexpRest}                    { multiStateText += yytext();
+                                    string.append(yytext());
                                     yybegin(YYINITIAL);
                                     return multiStateSymbol(REGEXP_LITERAL, string.toString());
                                   }

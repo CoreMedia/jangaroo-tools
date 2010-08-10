@@ -56,6 +56,7 @@ public class TestExpressions {
       " abc abcabcab cabcabc abca bcabcabcabcabcab cabcab cabcabc".match(/(abc)+/g).length,
       "abc".match(/(abc)*/).length,
       "abc\n  abc \nabc abc abc \nabc\n abc ".match(/^abc$/mg).length,
+      "=abc\n\tAbc".match(/=(abc)(\s+)(a)/i).length,
       "abc\n\tAbc".match(/c(\s+)a/i).length,
       // note that compc (3+4) does not accept an unquoted / within a character class, as well as earlier Thino versions:
       "/opt/net/jangaroo/$as3-w/o-flash.html".match(/(\w|[_.\-])+([A-Za-z0-9_\/.\-$])+\w+/).length
@@ -73,6 +74,12 @@ public class TestExpressions {
     var i:int = b
             /hi/g.p;
     return i + 1;
+  }
+
+  public function antitestRegexpLiterals3():int {
+    var i:int = 66;
+    i /=2;
+    return i;
   }
 
   public function testObjectLiterals():int {

@@ -32,16 +32,16 @@ public class JooSymbol extends java_cup.runtime.Symbol {
     this(net.jangaroo.jooc.sym.IDE,  text);
   }
 
-  public JooSymbol(int type, String text) {
-    this(type,  "", -1, -1, "", text);
+  public JooSymbol(int sym, String text) {
+    this(sym,  "", -1, -1, "", text);
   }
 
-  public JooSymbol(int type, String fileName, int line, int column, String whitespace, String text) {
-    this(type, fileName, line, column, whitespace, text, null);
+  public JooSymbol(int sym, String fileName, int line, int column, String whitespace, String text) {
+    this(sym, fileName, line, column, whitespace, text, null);
   }
 
-  public JooSymbol(int type, String fileName, int line, int column, String whitespace, String text, Object jooValue) {
-    super(type, -1, -1, null);
+  public JooSymbol(int sym, String fileName, int line, int column, String whitespace, String text, Object jooValue) {
+    super(sym, -1, -1, null);
     this.fileName = fileName;
     this.value = this;
     this.line = line;
