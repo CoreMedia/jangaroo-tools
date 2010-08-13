@@ -29,7 +29,7 @@ public final class Number extends Object {
    * mathematical operation or function returns a value larger than can be
    * represented. 
    */
-  public static const POSITIVE_INFINITY : Number = Infinity;
+  public static native function get POSITIVE_INFINITY() : Number;
   /**
    * Specifies the IEEE-754 value representing negative infinity.
    * The value of this property is the same as that of the constant -Infinity.
@@ -37,7 +37,7 @@ public final class Number extends Object {
    * mathematical operation or function returns a negative value larger than
    * can be represented. 
    */
-  public static const NEGATIVE_INFINITY : Number = -Infinity;
+  public static native function get NEGATIVE_INFINITY() : Number;
 
   /**
    * The largest representable number (double-precision IEEE-754).

@@ -15,5 +15,5 @@ package {
  * trace(-7 / 0); // -Infinity
  * </pre>
  */
-public const Infinity : Number = Infinity;
+public native function get Infinity() : Number;
 }

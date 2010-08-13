@@ -33,7 +33,7 @@ package {
  * or you will lose the ability to store data in an array.</p>
  * @see Object
  */
-public class Array extends Object {
+public dynamic class Array extends Object {
 
   /**
    * Specifies case-insensitive sorting for the Array class sorting methods.
