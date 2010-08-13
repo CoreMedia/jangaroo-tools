@@ -668,6 +668,8 @@ implements ::=
 lvalue ::=
     qualifiedIde:ide
     {: RESULT = new IdeExpr(ide); :}
+  | modifier:namespace NAMESPACESEP:sep IDE:ide
+    {: RESULT = new IdeExpr(new NamespacedIde(namespace, sep, ide)); :}
   | THIS:s DOT:d namespacedIde:ide
     {: RESULT = IdeExpr.fromPrefix(s,d,ide); :}
   | SUPER:s DOT:d namespacedIde:ide
