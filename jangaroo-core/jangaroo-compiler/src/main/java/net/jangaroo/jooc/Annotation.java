@@ -42,7 +42,9 @@ public class Annotation extends NodeImplBase {
   @Override
   public void scope(final Scope scope) {
     ide.scope(scope);
-    annotationFields.scope(scope);
+    if (annotationFields != null) {
+      annotationFields.scope(scope);
+    }
   }
 
   public JooSymbol getSymbol() {
