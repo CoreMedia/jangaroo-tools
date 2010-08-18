@@ -71,8 +71,6 @@ public class Jooc {
   private final Scope globalScope = new DeclarationScope(null, null);
   private final IdeDeclaration voidDeclaration = declareType(globalScope, "void");
   private final IdeDeclaration anyDeclaration = declareType(globalScope, "*");
-  private final IdeDeclaration intDeclaration = declareType(globalScope, "int");
-  private final IdeDeclaration uintDeclaration = declareType(globalScope, "uint");
 
   public Jooc() {
     this(new StdOutCompileLog());
@@ -80,14 +78,6 @@ public class Jooc {
 
   public Jooc(CompileLog log) {
     this.log = log;
-  }
-
-  public IdeDeclaration getUintDeclaration() {
-    return uintDeclaration;
-  }
-
-  public IdeDeclaration getIntDeclaration() {
-    return intDeclaration;
   }
 
   public IdeDeclaration getAnyDeclaration() {

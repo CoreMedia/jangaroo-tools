@@ -58,6 +58,11 @@
                     <file name="joo/NativeClassDeclaration.js" />
                     <file name="joo/SystemClassDeclaration.js" />
                     <file name="joo/SystemClassLoader.js" />
+                    <file name="int.js" />
+                    <file name="uint.js" />
+                    <file name="ArgumentError.js" />
+                    <file name="DefinitionError.js" />
+                    <file name="SecurityError.js" />
                     <file name="Array.js" />
                     <file name="joo/ClassDeclaration.js" />
                     <file name="joo/StandardClassLoader.js" />
@@ -87,6 +92,11 @@
                     <file name="joo/NativeClassDeclaration.js" />
                     <file name="joo/SystemClassDeclaration.js" />
                     <file name="joo/SystemClassLoader.js" />
+                    <file name="int.js" />
+                    <file name="uint.js" />
+                    <file name="ArgumentError.js" />
+                    <file name="DefinitionError.js" />
+                    <file name="SecurityError.js" />
                     <file name="Array.js" />
                     <file name="joo/ClassDeclaration.js" />
                     <file name="joo/StandardClassLoader.js" />
