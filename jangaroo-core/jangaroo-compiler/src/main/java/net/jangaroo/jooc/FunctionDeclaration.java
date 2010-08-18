@@ -41,7 +41,7 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
   boolean containsSuperConstructorCall = false;
 
   private static final int defaultAllowedMethodModifers =
-    MODIFIER_OVERRIDE | MODIFIER_ABSTRACT | MODIFIER_FINAL | MODIFIERS_SCOPE | MODIFIER_STATIC | MODIFIER_NATIVE;
+    MODIFIER_OVERRIDE | MODIFIER_ABSTRACT | MODIFIER_VIRTUAL | MODIFIER_FINAL | MODIFIERS_SCOPE | MODIFIER_STATIC | MODIFIER_NATIVE;
 
   public FunctionDeclaration(JooSymbol[] modifiers, JooSymbol symFunction, Ide ide, JooSymbol lParen,
                              Parameters params, JooSymbol rParen, TypeRelation optTypeRelation, Statement optBody) {

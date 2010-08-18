@@ -48,5 +48,6 @@ public interface SyntacticKeywords {
   static final String OVERRIDE = "override";
   static final String SET = "set";
   static final String STATIC = "static";
+  static final String VIRTUAL = "virtual";
 
 }

@@ -46,6 +46,7 @@ abstract class Declaration extends NodeImplBase {
   protected static final int MODIFIER_DYNAMIC = 2 * MODIFIER_OVERRIDE;
   protected static final int MODIFIER_NAMESPACE = 2 * MODIFIER_DYNAMIC;
   protected static final int MODIFIER_NATIVE = 2 * MODIFIER_NAMESPACE;
+  protected static final int MODIFIER_VIRTUAL = 2 * MODIFIER_NATIVE;
 
   protected static final int MODIFIERS_SCOPE =
       MODIFIER_PRIVATE | MODIFIER_PROTECTED | MODIFIER_PUBLIC | MODIFIER_INTERNAL | MODIFIER_NAMESPACE;
@@ -110,6 +111,7 @@ abstract class Declaration extends NodeImplBase {
                 : modifier.getText().equals(SyntacticKeywords.FINAL) ? MODIFIER_FINAL
                 : modifier.getText().equals(SyntacticKeywords.NATIVE) ? MODIFIER_NATIVE
                 : modifier.getText().equals(SyntacticKeywords.OVERRIDE) ? MODIFIER_OVERRIDE
+                : modifier.getText().equals(SyntacticKeywords.VIRTUAL) ? MODIFIER_VIRTUAL
                 : MODIFIER_NAMESPACE;
 
     }
