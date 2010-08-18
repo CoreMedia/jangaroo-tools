@@ -1,5 +1,7 @@
 package net.jangaroo.jooc.input;
 
+import net.jangaroo.utils.BOMStripperInputStream;
+
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +34,7 @@ public class FileInputSource extends DirectoryInputSource {
 
   @Override
   public InputStream getInputStream() throws IOException {
-    return isDirectory() ? super.getInputStream() : new FileInputStream(file);
+    return isDirectory() ? super.getInputStream() : new BOMStripperInputStream(new FileInputStream(file));
   }
 
   @Override

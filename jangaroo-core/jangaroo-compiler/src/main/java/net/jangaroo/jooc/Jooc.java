@@ -24,6 +24,7 @@ import net.jangaroo.jooc.config.JoocConfiguration;
 import net.jangaroo.jooc.input.FileInputSource;
 import net.jangaroo.jooc.input.InputSource;
 import net.jangaroo.jooc.input.PathInputSource;
+import net.jangaroo.utils.BOMStripperInputStream;
 
 import java.io.File;
 import java.io.IOException;
@@ -383,7 +384,7 @@ public class Jooc {
       System.out.println("Parsing " + in.getPath());
     }
     try {
-      s = new Scanner(new InputStreamReader(in.getInputStream(), "UTF-8"));
+      s = new Scanner(new InputStreamReader(new BOMStripperInputStream(in.getInputStream()), "UTF-8"));
     } catch (IOException e) {
       throw new CompilerError("Cannot read input file: " + in.getPath());
     }

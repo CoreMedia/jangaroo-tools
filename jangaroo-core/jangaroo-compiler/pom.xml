@@ -181,6 +181,12 @@
 
   <dependencies>
     <dependency>
+      <groupId>net.jangaroo</groupId>
+      <artifactId>jangaroo-utils</artifactId>
+      <version>0.7.1-SNAPSHOT</version>
+    </dependency>
+
+    <dependency>
       <groupId>edu.princeton.cup</groupId>
       <artifactId>java-cup</artifactId>
       <version>10k</version>
