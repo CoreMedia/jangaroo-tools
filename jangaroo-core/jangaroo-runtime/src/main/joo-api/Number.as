@@ -58,6 +58,8 @@ public final class Number extends Object {
    */
   public static native function get NaN() : Number;
 
+  public native function Number(value:* = 0);
+
   /**
    * Returns a string representation of the number in exponential notation.
    * The string contains one digit before the decimal point and up to 20 digits after the decimal point,
