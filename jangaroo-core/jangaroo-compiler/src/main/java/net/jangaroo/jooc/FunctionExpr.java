@@ -99,11 +99,13 @@ class FunctionExpr extends Expr {
     }
   }
 
+  public Ide getIde() {
+    return ide;
+  }
+
   protected void generateJsCode(JsWriter out) throws IOException {
     out.writeSymbol(symFun);
-    if (ide != null) {
-      out.writeToken(ide.getName());
-    } else if (out.getKeepSource()) {
+    if (out.getKeepSource()) {
       out.writeToken(out.getFunctionNameAsIde(this));
     }
     out.writeSymbol(lParen);
