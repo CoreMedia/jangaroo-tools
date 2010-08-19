@@ -212,7 +212,7 @@ terminal JooSymbol QUESTION, COLON, SEMICOLON, COMMA, DOT;
 terminal JooSymbol MULTEQ, DIVEQ, MODEQ, PLUSEQ, MINUSEQ;
 terminal JooSymbol NAMESPACESEP;
 terminal JooSymbol LSHIFTEQ, RSHIFTEQ, URSHIFTEQ;
-terminal JooSymbol ANDEQ, XOREQ, OREQ;
+terminal JooSymbol ANDEQ, XOREQ, OREQ, ANDANDEQ, OROREQ;
 terminal JooSymbol LPAREN, RPAREN, LBRACE, RBRACE, LBRACK, RBRACK;
 
 terminal JooSymbol INT_LITERAL;
@@ -314,7 +314,7 @@ nonterminal VariableDeclaration optNextVariableDeclaration;
 /* 1 - Comma */
 precedence left COMMA;
 /* 2 - Assignment */
-precedence right EQ, MULTEQ, DIVEQ, MODEQ, PLUSEQ, MINUSEQ, LSHIFTEQ, RSHIFTEQ, URSHIFTEQ, ANDEQ, XOREQ, OREQ;
+precedence right EQ, MULTEQ, DIVEQ, MODEQ, PLUSEQ, MINUSEQ, LSHIFTEQ, RSHIFTEQ, URSHIFTEQ, ANDEQ, XOREQ, OREQ, ANDANDEQ, OROREQ;
 /* 3 - Conditional */
 precedence right QUESTION, COLON;
 /* 4 - Logical OR */
@@ -433,7 +433,9 @@ compilationUnit ::=
   ;
 
 compilationUnitDeclaration ::=
-    classDeclaration:cd
+    classDeclaration:cd SEMICOLON:s
+    {: RESULT = cd; :}
+  | classDeclaration:cd
     {: RESULT = cd; :}
 /*
   | modifiers:m ide:namespace ide:ide EQ:eq STRING_LITERAL:l SEMICOLON:s
@@ -615,6 +617,10 @@ expr ::=
   | lvalue:lv XOREQ:op expr:e
     {: RESULT = new AssignmentOpExpr(lv,op,e); :}
   | lvalue:lv OREQ:op expr:e
+    {: RESULT = new AssignmentOpExpr(lv,op,e); :}
+  | lvalue:lv ANDANDEQ:op expr:e
+    {: RESULT = new AssignmentOpExpr(lv,op,e); :}
+  | lvalue:lv OROREQ:op expr:e
     {: RESULT = new AssignmentOpExpr(lv,op,e); :}
   | expr:cond QUESTION:q expr:e1 COLON:c expr:e2
     {: RESULT = new ConditionalExpr(cond,q,e1,c,e2); :}
