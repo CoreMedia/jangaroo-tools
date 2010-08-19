@@ -47,7 +47,7 @@ public final class int {
    * int.MAX_VALUE = 2147483647
    * </pre>
    */
-  public static const MAX_VALUE:int = 2147483647;
+  public static native function get MAX_VALUE():int;
 
   /**
    *
@@ -65,7 +65,7 @@ public final class int {
    * int.MAX_VALUE = 2147483647
    * </pre>
    */
-  public static const MIN_VALUE:int = -2147483647; // TODO: compiler bug! should be -2147483648!!
+  public static native function get MIN_VALUE():int;
 
   /**
    * Constructor; creates a new int object. You must use the int constructor when using <code>int.toString()</code> and

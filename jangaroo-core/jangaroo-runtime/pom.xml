@@ -48,6 +48,8 @@
 
                 <concat destfile="target/scripts/jangaroo-runtime-debug.js">
                   <filelist dir="src/main/joo-js/scripts/classes">
+                    <file name="int.js" />
+                    <file name="uint.js" />
                     <file name="joo/BootstrapClassLoader.js" />
                     <file name="joo/assert.js" />
                     <file name="joo/Class.js" />
@@ -58,8 +60,6 @@
                     <file name="joo/NativeClassDeclaration.js" />
                     <file name="joo/SystemClassDeclaration.js" />
                     <file name="joo/SystemClassLoader.js" />
-                    <file name="int.js" />
-                    <file name="uint.js" />
                     <file name="ArgumentError.js" />
                     <file name="DefinitionError.js" />
                     <file name="SecurityError.js" />
@@ -82,6 +82,8 @@
 
                 <concat destfile="target/scripts/jangaroo-runtime.js">
                   <filelist dir="src/main/joo-js/scripts/classes">
+                    <file name="int.js" />
+                    <file name="uint.js" />
                     <file name="joo/BootstrapClassLoader.js" />
                     <file name="joo/assert.js" />
                     <file name="joo/Class.js" />
@@ -92,8 +94,6 @@
                     <file name="joo/NativeClassDeclaration.js" />
                     <file name="joo/SystemClassDeclaration.js" />
                     <file name="joo/SystemClassLoader.js" />
-                    <file name="int.js" />
-                    <file name="uint.js" />
                     <file name="ArgumentError.js" />
                     <file name="DefinitionError.js" />
                     <file name="SecurityError.js" />
