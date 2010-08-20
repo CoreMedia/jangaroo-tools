@@ -80,7 +80,7 @@ public class JoocCommandLineParser {
     options.addOption(apiDestinationDir);
     options.addOption(allowDuplicateLocalVariablesOption);
     CommandLineParser parser = new GnuParser();
-    CommandLine line = null;
+    CommandLine line;
 
     try {
       line = parser.parse(options, argv);
@@ -115,7 +115,7 @@ public class JoocCommandLineParser {
    if (sp != null) {
       config.setSourcePath(sp);
     }
-    if (sp != null) {
+    if (cp != null) {
       config.setClassPath(cp);
     }
     if (line.hasOption(enableAssertionsOption.getOpt())) {

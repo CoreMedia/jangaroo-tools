@@ -10,25 +10,21 @@ public class PathInputSource extends DirectoryInputSource {
   private String name;
   private List<InputSource> entries;
 
-  public static PathInputSource fromPath(String path) {
-    throw new UnsupportedOperationException("not impl.");
-  }
-
   public static PathInputSource fromFiles(List<File> files, String[] rootDirs)  throws IOException {
     List<InputSource> entries = new ArrayList<InputSource>();
-    String name = "";
+    StringBuffer name = new StringBuffer();
     for (File file :files) {
       if (file.isDirectory()) {
         entries.add(new FileInputSource(file, file));
       } else if (file.getName().endsWith(".jar") || file.getName().endsWith(".zip")) {
         entries.add(new ZipFileInputSource(file, rootDirs));
       }
-      if (!name.isEmpty()) {
-        name += File.pathSeparatorChar;
+      if (! (name.length()==0)) {
+        name.append(File.pathSeparatorChar);
       }
-      name += file.getAbsolutePath();
+      name.append(file.getAbsolutePath());
     }
-    return new PathInputSource(name, entries);
+    return new PathInputSource(name.toString(), entries);
   }
 
   public PathInputSource(final String name, final List<InputSource> entries) {

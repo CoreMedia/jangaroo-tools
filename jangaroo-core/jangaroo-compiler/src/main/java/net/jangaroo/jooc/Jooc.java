@@ -156,15 +156,6 @@ public class Jooc {
     return decl;
   }
 
-  private static void declareClasses(Scope scope, String[] identifiers) {
-    for (String identifier : identifiers) {
-      Ide ide = new Ide(new JooSymbol(identifier));
-      IdeDeclaration decl = new ClassDeclaration(new JooSymbol[0], new JooSymbol("class"), ide, null, null,
-        new ClassBody(null, Collections.<AstNode>emptyList(), null));
-      decl.scope(scope);
-    }
-  }
-
   private static void declareValues(Scope scope, String[] identifiers) {
     for (String identifier : identifiers) {
       Ide ide = new Ide(new JooSymbol(identifier));

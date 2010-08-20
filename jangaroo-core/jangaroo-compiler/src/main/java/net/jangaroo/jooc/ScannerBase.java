@@ -31,6 +31,7 @@ public abstract class ScannerBase implements sym {
 
   /**
    * Pushback the current token so that it will be read again the next time next_token() is called
+   * @param token the token
    */
   public void pushback(JooSymbol token) {
     assert pushedBackToken == null;
@@ -69,7 +70,7 @@ public abstract class ScannerBase implements sym {
   }
 
   public String getSymbolAbbreviation(int sym) {
-    String value = (String) symbolMap.get(new Integer(sym));
+    String value = symbolMap.get(new Integer(sym));
     if (value != null)
       return "'" + value + "'";
     switch (sym) {
@@ -190,7 +191,7 @@ public abstract class ScannerBase implements sym {
     defsym("::", NAMESPACESEP);
   }
 
-  class ScanError extends RuntimeException {
+  static class ScanError extends RuntimeException {
 
     JooSymbol sym;
 

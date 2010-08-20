@@ -138,18 +138,18 @@ class DeclarationScope extends ScopeImplBase implements Scope {
 
   private void ambigousImport(Ide ide, Collection<ImportDirective> importsOfThisIde) {
     boolean isFirst = true;
-    String msg = "Can not resolve a multiname reference unambiguously: ";
+    StringBuffer msg = new StringBuffer();
+    msg.append("Can not resolve a multiname reference unambiguously: ");
     for (ImportDirective importDirective : importsOfThisIde) {
       if (!isFirst)
-        msg += " and ";
+        msg.append(" and ");
       isFirst = false;
-      msg += importDirective.getQualifiedName();
+     msg.append(importDirective.getQualifiedName());
       JooSymbol importedIdeSymbol = resolveImport(importDirective).getSymbol();
-      msg += "(" +
-        importedIdeSymbol.getFileName() + ":" + importedIdeSymbol.getLine() + "," + importedIdeSymbol.getColumn();
+      msg.append("(").append(importedIdeSymbol.getFileName()).append(":").append(importedIdeSymbol.getLine()).append(",").append(importedIdeSymbol.getColumn());
     }
-    msg += " are available.";
-    throw new Jooc.CompilerError(ide.getSymbol(), msg);
+    msg.append(" are available.");
+    throw new Jooc.CompilerError(ide.getSymbol(), msg.toString());
   }
 
   public boolean isDeclared(Ide ide) {

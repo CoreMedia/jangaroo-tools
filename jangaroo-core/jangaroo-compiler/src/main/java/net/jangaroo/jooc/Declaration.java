@@ -36,7 +36,7 @@ abstract class Declaration extends NodeImplBase {
   protected int allowedModifiers = -1;
 
   protected static final int MODIFIER_PUBLIC = 1;
-  protected static final int MODIFIER_PROTECTED = 2 * MODIFIER_PUBLIC;
+  protected static final int MODIFIER_PROTECTED = 2;
   protected static final int MODIFIER_PRIVATE = 2 * MODIFIER_PROTECTED;
   protected static final int MODIFIER_INTERNAL = 2 * MODIFIER_PRIVATE;
   protected static final int MODIFIER_STATIC = 2 * MODIFIER_INTERNAL;
