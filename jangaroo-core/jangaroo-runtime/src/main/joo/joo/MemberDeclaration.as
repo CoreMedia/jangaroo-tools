@@ -25,6 +25,7 @@ public class MemberDeclaration {
           MEMBER_TYPE_VAR : String = "var",
           MEMBER_TYPE_CONST : String = "const",
           MEMBER_TYPE_FUNCTION : String = "function",
+          MEMBER_TYPE_CLASS : String = "class",
           NAMESPACE_PRIVATE : String = "private",
           NAMESPACE_INTERNAL : String = "internal",
           NAMESPACE_PROTECTED : String = "protected",
@@ -85,6 +86,7 @@ public class MemberDeclaration {
           case MEMBER_TYPE_VAR:
           case MEMBER_TYPE_CONST:
           case MEMBER_TYPE_FUNCTION:
+          case MEMBER_TYPE_CLASS:
             this.memberType = token; break;
           default:
             // "private", "public", "protected", "internal" or a custom namespace:
@@ -95,6 +97,9 @@ public class MemberDeclaration {
           this.getterOrSetter = this.memberName; // detected getter or setter
         }
         this.memberName = token; // token following the member type is the member name
+        if (this.memberType === MEMBER_TYPE_CLASS) {
+          break; // let classLoader.prepare parse the rest!
+        }
       }
     }
     if (!this.memberType) {

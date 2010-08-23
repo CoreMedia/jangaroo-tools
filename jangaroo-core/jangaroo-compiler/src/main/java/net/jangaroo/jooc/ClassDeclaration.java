@@ -24,6 +24,7 @@ import java.util.*;
  */
 public class ClassDeclaration extends IdeDeclaration {
 
+  private List<AstNode> directives;
   protected JooSymbol symClass;
   protected Extends optExtends;
   private Map<String, TypedIdeDeclaration> members = new LinkedHashMap<String, TypedIdeDeclaration>();
@@ -34,7 +35,7 @@ public class ClassDeclaration extends IdeDeclaration {
   private IdeType thisType;
   private IdeType superType;
   private List<FieldDeclaration> fieldsWithInitializer = new ArrayList<FieldDeclaration>();
-
+  private List<IdeDeclaration> secondaryDeclarations = Collections.emptyList();
 
   public Extends getOptExtends() {
     return optExtends;
@@ -54,10 +55,11 @@ public class ClassDeclaration extends IdeDeclaration {
     return constructor;
   }
 
-  public ClassDeclaration(JooSymbol[] modifiers, JooSymbol cls, Ide ide, Extends ext, Implements impl, ClassBody body) {
+  public ClassDeclaration(List<AstNode> directives, JooSymbol[] modifiers, JooSymbol cls, Ide ide, Extends ext, Implements impl, ClassBody body) {
     super(modifiers,
       MODIFIER_ABSTRACT | MODIFIER_FINAL | MODIFIERS_SCOPE | MODIFIER_STATIC | MODIFIER_DYNAMIC,
       ide);
+    this.directives = directives;
     this.symClass = cls;
     this.optExtends = ext;
     this.optImplements = impl;
@@ -70,6 +72,28 @@ public class ClassDeclaration extends IdeDeclaration {
 
   public boolean isAbstract() {
     return isInterface() || super.isAbstract();
+  }
+
+  @Override
+  public boolean isPrivate() {
+    return super.isPrivate() || !isPrimaryDeclaration(); // secondary classes are always private!
+  }
+
+  @Override
+  public boolean isStatic() {
+    return super.isStatic() || !isPrimaryDeclaration(); // secondary classes are always static!
+  }
+
+  @Override
+  public boolean isClassMember() {
+    return super.isClassMember() || !isPrimaryDeclaration(); // secondary classes are private static class members!
+  }
+
+  @Override
+  public String[] getQualifiedName() {
+    return  isPrimaryDeclaration()
+      ? super.getQualifiedName()
+      : new String[]{"$$private", getName()}; // secondary class is in static private scope!
   }
 
   public String getName() {
@@ -86,6 +110,8 @@ public class ClassDeclaration extends IdeDeclaration {
   }
 
   protected void generateAsApiCode(JsWriter out) throws IOException {
+    generateCode(directives, out);
+
     writeModifiers(out);
     out.writeSymbol(symClass);
     ide.generateCode(out);
@@ -99,6 +125,9 @@ public class ClassDeclaration extends IdeDeclaration {
   }
 
   protected void generateJsCode(JsWriter out) throws IOException {
+    out.beginComment();
+    generateCode(directives, out);
+    out.endComment();
     out.beginString();
     writeModifiers(out);
     out.writeSymbol(symClass);
@@ -126,6 +155,11 @@ public class ClassDeclaration extends IdeDeclaration {
       generateFieldInitCode(out);
       out.write("}");
     }
+
+    for (IdeDeclaration secondaryDeclaration : secondaryDeclarations) {
+      secondaryDeclaration.generateJsCode(out);
+    }
+
     out.write("];},");
     generateStaticMethodList(out);
   }
@@ -164,9 +198,17 @@ public class ClassDeclaration extends IdeDeclaration {
     out.write("]");
   }
 
+  void scopeDirectives(Scope scope, Ide packageIde) {
+    if (packageIde != null)
+      addStarImport(packageIde);
+    // add implicit toplevel package import
+    addStarImport(null);
+    scope(directives, scope);
+  }
+
   @Override
   public void scope(final Scope scope) {
-    // this declares this classes ide:
+    // this declares this class's ide:
     super.scope(scope);
 
     // define these here so they get the right scope:
@@ -190,6 +232,9 @@ public class ClassDeclaration extends IdeDeclaration {
         withNewDeclarationScope(ClassDeclaration.this, scope, new Scoped() {
           @Override
           public void run(final Scope scope) {
+            for (IdeDeclaration secondaryDeclaration : secondaryDeclarations) {
+              secondaryDeclaration.scope(scope);
+            }
             body.scope(scope);
           }
         });
@@ -205,7 +250,13 @@ public class ClassDeclaration extends IdeDeclaration {
     }
   }
 
+  void addStarImport(final Ide packageIde) {
+    ImportDirective importDirective = new ImportDirective(packageIde, "*");
+    directives.add(0, importDirective);
+  }
+
   public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
+    this.directives = analyze(this, this.directives, context);
     super.analyze(parentNode, context);
     if (optExtends != null) {
       optExtends.analyze(this, context);
@@ -248,6 +299,10 @@ public class ClassDeclaration extends IdeDeclaration {
 
   public Type getSuperType() {
     return superType;
+  }
+
+  public void setSecondaryDeclarations(List<IdeDeclaration> secondaryDeclarations) {
+    this.secondaryDeclarations = secondaryDeclarations;
   }
 
   @Override

@@ -145,12 +145,19 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
               }
               var member : Object = memberDeclarations[i];
             }
-            if (memberDeclaration.memberType == "function") {
-              this.initMethod(memberDeclaration, member as Function);
-            } else {
-              for (var memberName:String in member) {
-                this._storeMember(this._createMemberDeclaration(memberDeclaration, {memberName: memberName}), member[memberName]);
-              }
+            switch (memberDeclaration.memberType) {
+              case MemberDeclaration.MEMBER_TYPE_FUNCTION:
+                this.initMethod(memberDeclaration, member as Function);
+                break;
+              case MemberDeclaration.MEMBER_TYPE_CLASS:
+                var secondaryClass:SystemClassDeclaration = classLoader.prepare(this.package_ + "." + this.className, item, member as Function,
+                  memberDeclarations[++i], []);
+                this.privateStatics[memberDeclaration.memberName] = secondaryClass.publicConstructor;
+                break;
+              default:
+                for (var memberName:String in member) {
+                  this._storeMember(this._createMemberDeclaration(memberDeclaration, {memberName: memberName}), member[memberName]);
+                }
             }
           }
       }

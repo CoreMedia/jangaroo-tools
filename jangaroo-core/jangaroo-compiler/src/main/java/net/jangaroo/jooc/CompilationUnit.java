@@ -36,18 +36,19 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
 
   private PackageDeclaration packageDeclaration;
   private JooSymbol lBrace;
-  private List<AstNode> directives;
   private IdeDeclaration primaryDeclaration;
   private JooSymbol rBrace;
   private Set<String> dependencies = new LinkedHashSet<String>();
   private InputSource source;
   private Jooc compiler;
 
-  public CompilationUnit(PackageDeclaration packageDeclaration, JooSymbol lBrace, List<AstNode> directives, IdeDeclaration primaryDeclaration, JooSymbol rBrace) {
+  public CompilationUnit(PackageDeclaration packageDeclaration, JooSymbol lBrace, IdeDeclaration primaryDeclaration, JooSymbol rBrace, List<IdeDeclaration> secondaryDeclarations) {
     this.packageDeclaration = packageDeclaration;
     this.lBrace = lBrace;
-    this.directives = directives;
     this.primaryDeclaration = primaryDeclaration;
+    if (primaryDeclaration instanceof ClassDeclaration) {
+      ((ClassDeclaration)primaryDeclaration).setSecondaryDeclarations(secondaryDeclarations);
+    }
     this.rBrace = rBrace;
   }
 
@@ -57,12 +58,11 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
       @Override
       public void run(final Scope scope) {
         // add implicit same package import
+
         Ide packageIde = packageDeclaration.getIde();
-        if (packageIde != null)
-          addStarImport(packageIde);
-        // add implicit toplevel package import
-        addStarImport(null);
-        scope(directives, scope);
+        if (primaryDeclaration instanceof ClassDeclaration) {
+          ((ClassDeclaration)primaryDeclaration).scopeDirectives(scope, packageIde);
+        }
         packageDeclaration.scope(scope);
         withNewDeclarationScope(packageDeclaration, scope, new Scoped() {
           @Override
@@ -111,7 +111,6 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
   protected void generateAsApiCode(final JsWriter out) throws IOException {
     packageDeclaration.generateCode(out);
     out.writeSymbol(lBrace);
-    generateCode(directives, out);
     primaryDeclaration.generateCode(out);
     out.writeSymbol(rBrace);
   }
@@ -121,7 +120,6 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
     packageDeclaration.generateCode(out);
     out.beginComment();
     out.writeSymbol(lBrace);
-    generateCode(directives, out);
     out.endComment();
     primaryDeclaration.generateCode(out);
     out.write(",[");
@@ -143,18 +141,8 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
     super.analyze(parentNode, context);
 
     packageDeclaration.analyze(this, context);
-    analyzeDirectives(context);
     primaryDeclaration.analyze(this, context);
     return this;
-  }
-
-  private void addStarImport(final Ide packageIde) {
-    ImportDirective importDirective = new ImportDirective(packageIde, "*");
-    directives.add(0, importDirective);
-  }
-
-  private void analyzeDirectives(AnalyzeContext context) {
-    this.directives = analyze(this, this.directives, context);
   }
 
   public JooSymbol getSymbol() {

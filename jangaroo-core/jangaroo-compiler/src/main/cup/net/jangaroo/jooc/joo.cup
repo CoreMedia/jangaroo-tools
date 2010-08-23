@@ -255,6 +255,7 @@ nonterminal Expr commaExpr;
 nonterminal ArrayList classBodyDeclarations;
 nonterminal Declaration classBodyDeclaration;
 nonterminal ClassDeclaration classDeclaration;
+nonterminal ArrayList optClassDeclarations;
 nonterminal CompilationUnit compilationUnit;
 nonterminal IdeDeclaration compilationUnitDeclaration;
 nonterminal JooSymbol constOrVar;
@@ -414,10 +415,10 @@ classBodyDeclaration ::=
   ;
 
 classDeclaration ::=
-    modifiers:m CLASS:c ide:ide extends:e implements:i classBody:b
-    {: RESULT = new ClassDeclaration((JooSymbol[])m.toArray(new JooSymbol[0]),c,ide,e,i,b); :}
-  | modifiers:m INTERFACE:i ide:ide interfaceExtends:ie classBody:b
-    {: RESULT = new ClassDeclaration((JooSymbol[])m.toArray(new JooSymbol[0]),i,ide,null,ie,b); :}
+    optDirectives:ds modifiers:m CLASS:c ide:ide extends:e implements:i classBody:b
+    {: RESULT = new ClassDeclaration(ds, (JooSymbol[])m.toArray(new JooSymbol[0]),c,ide,e,i,b); :}
+  | optDirectives:ds modifiers:m INTERFACE:i ide:ide interfaceExtends:ie classBody:b
+    {: RESULT = new ClassDeclaration(ds, (JooSymbol[])m.toArray(new JooSymbol[0]),i,ide,null,ie,b); :}
   ;
 
 commaExpr ::=
@@ -428,8 +429,8 @@ commaExpr ::=
   ;
 
 compilationUnit ::=
-    packageDeclaration:p LBRACE:lb optDirectives:ds compilationUnitDeclaration:c RBRACE:rb
-    {: RESULT = new CompilationUnit(p,lb,ds,c,rb); :}
+    packageDeclaration:p LBRACE:lb compilationUnitDeclaration:c RBRACE:rb optClassDeclarations:cds
+    {: RESULT = new CompilationUnit(p,lb,c,rb, cds); :}
   ;
 
 compilationUnitDeclaration ::=
@@ -441,10 +442,16 @@ compilationUnitDeclaration ::=
   | modifiers:m ide:namespace ide:ide EQ:eq STRING_LITERAL:l SEMICOLON:s
     {: RESULT = new FieldDeclaration((JooSymbol[])m.toArray(new JooSymbol[0]), namespace, ide, null, new Initializer(eq, new LiteralExpr(l)), s); :}
 */
-  | fieldDeclaration:decl
+  | optDirectives:ds fieldDeclaration:decl
     {: RESULT = decl; :}
-  | functionDeclaration:decl
+  | optDirectives:ds functionDeclaration:decl
     {: RESULT = decl; :}
+  ;
+
+optClassDeclarations ::=
+    {: RESULT = new ArrayList(); :}
+  | classDeclaration:cd optClassDeclarations:cds
+    {: RESULT = cds; RESULT.add(0,cd); :}
   ;
 
 constOrVar ::=
