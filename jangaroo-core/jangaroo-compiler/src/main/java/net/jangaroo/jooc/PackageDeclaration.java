@@ -30,6 +30,14 @@ public class PackageDeclaration extends IdeDeclaration  {
     this.symPackage = symPackage;
   }
 
+  @Override
+  public void scope(Scope scope) {
+    Ide oldIde = ide;
+    ide = null;
+    super.scope(scope);
+    ide = oldIde;
+  }
+
   protected void generateAsApiCode(JsWriter out) throws IOException {
     out.writeSymbol(symPackage);
     if (ide!=null) {
