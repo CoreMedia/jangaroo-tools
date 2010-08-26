@@ -184,21 +184,23 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
       if (memberDeclaration.isNative()) {
         member = memberDeclaration.getNativeMember(this.publicConstructor);
       }
-      if (this.extends_!="Object") {
-        var superMethod : Function = memberDeclaration.retrieveMember(this.superClassDeclaration.Public.prototype);
-      }
-      var overrides : Boolean = !!superMethod
-        && superMethod!==member
-        && superMethod!==Object['prototype'][memberDeclaration.memberName];
-      if (overrides !== memberDeclaration.isOverride()) {
-        var msg : String = overrides
-                ? "Method overrides without 'override' modifier"
-                : "Method with 'override' modifier does not override";
-        throw new Error(this+": "+msg+": "+memberDeclaration);
-      }
-      if (overrides) {
-        // found overriding: store super class' method as private member:
-        this._storeMember(this._createMemberDeclaration(memberDeclaration, {_namespace: MemberDeclaration.NAMESPACE_PRIVATE}), superMethod);
+      if (memberDeclaration.isMethod()) {
+        if (this.extends_!="Object") {
+          var superMethod : Function = memberDeclaration.retrieveMember(this.superClassDeclaration.Public.prototype);
+        }
+        var overrides : Boolean = !!superMethod
+          && superMethod!==member
+          && superMethod!==Object['prototype'][memberDeclaration.memberName];
+        if (overrides !== memberDeclaration.isOverride()) {
+          var msg : String = overrides
+                  ? "Method overrides without 'override' modifier"
+                  : "Method with 'override' modifier does not override";
+          throw new Error(this+": "+msg+": "+memberDeclaration);
+        }
+        if (overrides) {
+          // found overriding: store super class' method as private member:
+          this._storeMember(this._createMemberDeclaration(memberDeclaration, {_namespace: MemberDeclaration.NAMESPACE_PRIVATE}), superMethod);
+        }
       }
       this._storeMember(memberDeclaration, member);
     }
@@ -248,7 +250,11 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
   }
 
   public function getMemberDeclaration(namespace_ : String, memberName : String) : MemberDeclaration {
-    return this.memberDeclarationsByQualifiedName[namespace_+"::"+memberName];
+    var memberDeclaration:MemberDeclaration = this.memberDeclarationsByQualifiedName[namespace_ + "::" + memberName];
+    return !memberDeclaration && this.superClassDeclaration && this.superClassDeclaration["getMemberDeclaration"]
+      ? (this.superClassDeclaration as SystemClassDeclaration).getMemberDeclaration(namespace_, memberName)
+      : memberDeclaration;
+
   }
 }
 }
