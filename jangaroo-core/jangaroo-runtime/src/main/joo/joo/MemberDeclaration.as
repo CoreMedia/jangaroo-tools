@@ -33,7 +33,8 @@ public class MemberDeclaration {
           STATIC : String = "static",
           FINAL : String = "final",
           NATIVE : String = "native",
-          OVERRIDE : String = "override";
+          OVERRIDE : String = "override",
+          VIRTUAL : String = "virtual";
 
   private static var SUPPORTS_GETTERS_SETTERS : Boolean;
   private static var DEFINE_METHOD : Object;
@@ -88,6 +89,8 @@ public class MemberDeclaration {
           case MEMBER_TYPE_FUNCTION:
           case MEMBER_TYPE_CLASS:
             this.memberType = token; break;
+          case VIRTUAL:
+            break; // ignore, but do not consider a namespace
           default:
             // "private", "public", "protected", "internal" or a custom namespace:
             this._namespace = token;
