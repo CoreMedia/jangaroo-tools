@@ -473,7 +473,7 @@ public class String {
    * @see http://help.adobe.com/en_US/as3/dev/WS5b3ccc516d4fbf351e63e3d118a9b90204-7f00.html Finding substrings and patterns in strings
    * @see http://help.adobe.com/en_US/as3/dev/WS5b3ccc516d4fbf351e63e3d118a9b90204-7ef4.html Finding a substring by character position
    */
-  public native function substring(startIndex:Number = 0, endIndex:Number = 0x7fffffff):String
+  public native function substring(startIndex:Number = 0, endIndex:Number = 0x7fffffff):String;
 
   /**
    * Returns a copy of this string, with all uppercase characters converted
