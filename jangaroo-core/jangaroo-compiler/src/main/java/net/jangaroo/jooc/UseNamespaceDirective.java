@@ -28,6 +28,7 @@ public class UseNamespaceDirective extends NodeImplBase {
 
   public UseNamespaceDirective(JooSymbol useKeyword, JooSymbol namespaceKeyword, Ide namespace) {
     this.useKeyword = useKeyword;
+    assert SyntacticKeywords.NAMESPACE.equals(namespaceKeyword.getText());
     this.namespaceKeyword = namespaceKeyword;
     this.namespace = namespace;
   }
@@ -44,13 +45,17 @@ public class UseNamespaceDirective extends NodeImplBase {
     return super.analyze(parentNode, context);
   }
 
+  @Override
+  protected void generateAsApiCode(JsWriter out) throws IOException {
+    // no API code generated!
+  }
+
   protected void generateJsCode(JsWriter out) throws IOException {
-    out.beginString();
+    out.beginComment();
     out.writeSymbol(useKeyword);
     out.writeSymbol(namespaceKeyword);
     namespace.generateCode(out);
-    out.endString();
-    out.writeToken(",");
+    out.endComment();
   }
 
   public JooSymbol getSymbol() {

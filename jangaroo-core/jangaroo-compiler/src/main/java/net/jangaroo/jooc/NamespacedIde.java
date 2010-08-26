@@ -57,7 +57,7 @@ public class NamespacedIde extends Ide {
   }
 
   static String getNamespacePrefix(JooSymbol namespace) {
-    return namespace==null || namespace.sym!=sym.IDE ? "" : namespace.getText()+"::";
+    return ""; // TODO: namespace==null || namespace.sym!=sym.IDE ? "" : namespace.getText()+"::";
   }
 
   @Override

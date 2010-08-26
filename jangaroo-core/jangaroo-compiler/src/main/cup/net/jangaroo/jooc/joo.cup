@@ -264,6 +264,7 @@ nonterminal Expr expr;
 nonterminal Extends extends;
 nonterminal FieldDeclaration fieldDeclaration;
 nonterminal FieldDeclaration optNextFieldDeclaration;
+nonterminal NamespaceDeclaration namespaceDeclaration;
 nonterminal FunctionExpr functionExpr;
 nonterminal FunctionStatement functionStatement;
 nonterminal Ide ide;
@@ -438,13 +439,11 @@ compilationUnitDeclaration ::=
     {: RESULT = cd; :}
   | classDeclaration:cd
     {: RESULT = cd; :}
-/*
-  | modifiers:m ide:namespace ide:ide EQ:eq STRING_LITERAL:l SEMICOLON:s
-    {: RESULT = new FieldDeclaration((JooSymbol[])m.toArray(new JooSymbol[0]), namespace, ide, null, new Initializer(eq, new LiteralExpr(l)), s); :}
-*/
   | optDirectives:ds fieldDeclaration:decl
     {: RESULT = decl; :}
   | optDirectives:ds functionDeclaration:decl
+    {: RESULT = decl; :}
+  | optDirectives:ds namespaceDeclaration:decl
     {: RESULT = decl; :}
   ;
 
@@ -651,6 +650,14 @@ fieldDeclaration ::=
     {: RESULT = new FieldDeclaration((JooSymbol[])m.toArray(new JooSymbol[m.size()]), cov, ide, t, init, nf, s); :}
   ;
 
+namespaceDeclaration ::=
+    modifiers:m EQ:eq STRING_LITERAL:l SEMICOLON:s
+    {: RESULT = new NamespaceDeclaration((JooSymbol[])m.subList(0, m.size()-2).toArray(new JooSymbol[m.size()-2]),
+                                         (JooSymbol)m.get(m.size()-2), new Ide((JooSymbol)m.get(m.size()-1)),
+                                         new Initializer(eq, new LiteralExpr(l)), s);
+    :}
+  ;
+
 optNextFieldDeclaration ::=
     {: RESULT = null; :}
   | COMMA:c ide:ide optTypeRelation:t optInitializer:init optNextFieldDeclaration:nf
@@ -849,8 +856,8 @@ parenthesizedExpr ::=
 qualifiedIde ::=
     ide:ide
     {: RESULT = ide; :}
-  | qualifiedIde:prefix DOT:d IDE:ide
-    {: RESULT = new QualifiedIde(prefix, d, ide); :}
+  | qualifiedIde:prefix DOT:d namespacedIde:ide
+    {: RESULT = new QualifiedIde(prefix, d, ide.ide); :}
   ;
 
 labelableStatement ::=
