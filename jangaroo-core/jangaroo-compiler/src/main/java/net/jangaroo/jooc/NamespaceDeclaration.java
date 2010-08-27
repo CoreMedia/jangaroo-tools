@@ -51,7 +51,7 @@ public class NamespaceDeclaration extends IdeDeclaration {
     out.writeToken(",");
     optInitializer.value.generateCode(out);
     out.writeSymbolWhitespace(optSymSemicolon);
-    out.writeToken(",");
+    out.writeToken(",[]");
   }
 
 }

@@ -56,8 +56,8 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
 
   protected var
           package_ : Object,
-          isInterface : Boolean = false,
-          namespace_ : String = "intern",
+          type : String = MemberDeclaration.MEMBER_TYPE_CLASS,
+          namespace_ : String = MemberDeclaration.NAMESPACE_INTERNAL,
           className : String,
           native_ : Boolean = false,
           extends_ : String = "Object",
@@ -67,11 +67,18 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
           staticInitializers : Array/*<MemberDeclaration>*/,
           publicStaticMethodNames : Array;
 
+  private static const DECLARATION_PATTERN_CLASS:RegExp =
+    /^\s*((public|internal|final|dynamic)\s+)*class\s+([A-Za-z][a-zA-Z$_0-9]*)(\s+extends\s+([a-zA-Z$_0-9.]+))?(\s+implements\s+([a-zA-Z$_0-9.,\s]+))?\s*$/;
+  private static const DECLARATION_PATTERN_INTERFACE:RegExp =
+    /^\s*((public|internal)\s+)?interface\s+([A-Za-z][a-zA-Z$_0-9]*)(\s+extends\s+([a-zA-Z$_0-9.,\s]+))?\s*$/;
+  private static const DECLARATION_PATTERN_NAMESPACE:RegExp =
+    /^\s*((public|internal)\s+)?namespace\s+([A-Za-z][a-zA-Z$_0-9]*)\s*$/;
+
   public function SystemClassDeclaration(packageDef : String, classDef : String, memberDeclarations : Function,
           publicStaticMethodNames : Array) {
     var packageName : String = packageDef.split(/\s+/ as String)[1] || "";
     this.package_ = getOrCreatePackage(packageName);
-    var classMatch : Array = classDef.match(/^\s*((public|internal|final|dynamic)\s+)*class\s+([A-Za-z][a-zA-Z$_0-9]*)(\s+extends\s+([a-zA-Z$_0-9.]+))?(\s+implements\s+([a-zA-Z$_0-9.,\s]+))?\s*$/) as Array;
+    var classMatch : Array = classDef.match(DECLARATION_PATTERN_CLASS);
     var interfaces : String;
     if (classMatch) {
       if (classMatch[5]) {
@@ -79,9 +86,16 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
       }
       interfaces = classMatch[7];
     } else {
-      classMatch = classDef.match(/^\s*((public|internal)\s+)?interface\s+([A-Za-z][a-zA-Z$_0-9]*)(\s+extends\s+([a-zA-Z$_0-9.,\s]+))?\s*$/) as Array;
-      this.isInterface = true;
-      interfaces = classMatch[5];
+      classMatch = classDef.match(DECLARATION_PATTERN_INTERFACE);
+      if (classMatch) {
+        this.type = MemberDeclaration.MEMBER_TYPE_INTERFACE;
+        interfaces = classMatch[5];
+      } else {
+        classMatch = classDef.match(DECLARATION_PATTERN_NAMESPACE);
+        if (classMatch) {
+          this.type = MemberDeclaration.MEMBER_TYPE_NAMESPACE;
+        }
+      }
     }
     if (!classMatch) {
       throw new Error("SyntaxError: \""+classDef+"\" does not match.");
@@ -104,6 +118,18 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
     }
     this.create(fullClassName, publicConstructor);
     this.privateStatics = {};
+  }
+
+  public function isClass() : Boolean {
+    return this.type === MemberDeclaration.MEMBER_TYPE_CLASS;
+  }
+
+  public function isInterface() : Boolean {
+    return this.type === MemberDeclaration.MEMBER_TYPE_INTERFACE;
+  }
+
+  public function isNamespace() : Boolean {
+    return this.type === MemberDeclaration.MEMBER_TYPE_NAMESPACE;
   }
 
   public function isNative() : Boolean {
@@ -151,7 +177,7 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
                 break;
               case MemberDeclaration.MEMBER_TYPE_CLASS:
                 var secondaryClass:SystemClassDeclaration = classLoader.prepare(this.package_ + "." + this.className, item, member as Function,
-                  memberDeclarations[++i], []);
+                  memberDeclarations[++i], [], version);
                 this.privateStatics[memberDeclaration.memberName] = secondaryClass.publicConstructor;
                 break;
               default:
@@ -162,7 +188,7 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
           }
       }
     }
-    if (!this.isInterface) {
+    if (!this.isInterface()) {
       if (!this.native_) {
         this.publicConstructor.prototype["$" + this.level + "super"] = this.superClassDeclaration.constructor_;
       }

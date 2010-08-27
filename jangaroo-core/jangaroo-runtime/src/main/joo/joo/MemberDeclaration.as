@@ -26,6 +26,8 @@ public class MemberDeclaration {
           MEMBER_TYPE_CONST : String = "const",
           MEMBER_TYPE_FUNCTION : String = "function",
           MEMBER_TYPE_CLASS : String = "class",
+          MEMBER_TYPE_INTERFACE : String = "interface",
+          MEMBER_TYPE_NAMESPACE : String = "namespace",
           NAMESPACE_PRIVATE : String = "private",
           NAMESPACE_INTERNAL : String = "internal",
           NAMESPACE_PROTECTED : String = "protected",
@@ -61,7 +63,7 @@ public class MemberDeclaration {
   }
 
   internal var
-          _namespace : String = "internal",
+          _namespace : String = NAMESPACE_INTERNAL,
           _static : Boolean = false,
           _final : Boolean = false,
           _native : Boolean = false,

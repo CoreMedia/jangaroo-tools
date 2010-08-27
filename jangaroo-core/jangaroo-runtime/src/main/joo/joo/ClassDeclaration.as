@@ -94,7 +94,7 @@ public class ClassDeclaration extends SystemClassDeclaration {
         return true;
       }
       // TODO: optimize: pre-calculate set of all implemented interfaces of a class!
-      if (this.isInterface) {
+      if (this.isInterface()) {
         // I am an interface: search all implemented interfaces recursively:
         if (cd.interfaces.some(this.isAssignableFrom)) {
           return true;
