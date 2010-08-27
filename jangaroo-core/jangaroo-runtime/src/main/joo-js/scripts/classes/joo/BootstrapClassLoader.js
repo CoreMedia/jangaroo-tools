@@ -1,10 +1,3 @@
-Function.prototype.bind = function(object) {
-  var fn = this;
-  return (function $boundMethod() {
-    return arguments.length ? fn.apply(object,arguments) : fn.call(object); // call is faster at least in Firefox.
-  });
-};
-
 (function(theGlobalObject){
   // define alias "js" for the top-level package, so that name-clashes in AS3 can be resolved:
   theGlobalObject.js = theGlobalObject;

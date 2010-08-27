@@ -40,15 +40,7 @@ class FunctionStatement extends Statement {
   }
 
   protected void generateJsCode(JsWriter out) throws IOException {
-    if (fun.getIde() != null) {
-      out.writeToken("var");
-      out.writeSymbol(fun.getIde().getSymbol());
-      out.writeToken("=");
-    }
     fun.generateCode(out);
-    if (fun.getIde() != null) {
-      out.writeToken(";");
-    }
   }
 
   public JooSymbol getSymbol() {

@@ -28,6 +28,7 @@ public class Ide extends NodeImplBase {
   private Scope scope;
   private Ide qualified;
   protected boolean bound;
+  protected boolean rewriteThis;
 
   private static final IdeDeclaration NULL_DECL = new VariableDeclaration(null, null, null, null);
 
@@ -208,7 +209,7 @@ public class Ide extends NodeImplBase {
     if (needsThisAtRuntime()) {
       FunctionExpr funExpr = scope.getFunctionExpr();
       if (funExpr != null) {
-        funExpr.notifyThisUsed(scope);
+        rewriteThis = funExpr.notifyThisUsed(scope);
       }
     }
     if (isSuper()) {
@@ -291,39 +292,41 @@ public class Ide extends NodeImplBase {
 
   protected void generateCodeAsExpr(final JsWriter out) throws IOException {
     out.writeSymbolWhitespace(ide);
-    if (isSuper()) {
-      out.writeToken("this");
+    if (isSuper() || isThis()) {
+      writeThis(out);
       return;
     }
-    if (!isThis()) { // shortcut optimization, general case below should generate same code
-      IdeDeclaration decl = getDeclaration(false);
-      if (decl != null) {
-        if (decl.isClassMember()) {
-          if (!decl.isPrivateStatic()) {
-            if (decl.isStatic()) {
-              out.writeToken(decl.getClassDeclaration().getQualifiedNameStr());
-            } else {
-              if (bound) {
-                writeBoundMethodAccess(out, null, null, decl);
-                return;
-              }
-              out.writeToken("this");
+    IdeDeclaration decl = getDeclaration(false);
+    if (decl != null) {
+      if (decl.isClassMember()) {
+        if (!decl.isPrivateStatic()) {
+          if (decl.isStatic()) {
+            out.writeToken(decl.getClassDeclaration().getQualifiedNameStr());
+          } else {
+            if (bound) {
+              writeBoundMethodAccess(out, null, null, decl);
+              return;
             }
+            writeThis(out);
           }
-          writeMemberAccess(decl, null, this, false, out);
-          return;
         }
-        // add package prefix if it is not a local
-        if (!decl.isClassMember() && decl.getParentDeclaration() instanceof PackageDeclaration) {
-          String qname = ((PackageDeclaration) decl.getParentDeclaration()).getQualifiedNameStr();
-          if (!qname.isEmpty()) {
-            out.writeToken(qname);
-            out.writeToken(".");
-          }
+        writeMemberAccess(decl, null, this, false, out);
+        return;
+      }
+      // add package prefix if it is not a local
+      if (!decl.isClassMember() && decl.getParentDeclaration() instanceof PackageDeclaration) {
+        String qname = ((PackageDeclaration) decl.getParentDeclaration()).getQualifiedNameStr();
+        if (!qname.isEmpty()) {
+          out.writeToken(qname);
+          out.writeToken(".");
         }
       }
     }
     out.writeSymbol(ide, false);
+  }
+
+  private void writeThis(JsWriter out) throws IOException {
+    out.writeToken(rewriteThis ? "$this" : "this");
   }
 
   protected void writeBoundMethodAccess(JsWriter out, Ide optIde, JooSymbol optSymDot, IdeDeclaration decl) throws IOException {
@@ -331,7 +334,7 @@ public class Ide extends NodeImplBase {
     if (optIde != null) {
       optIde.generateCodeAsExpr(out);
     } else {
-      out.writeToken("this");
+      writeThis(out);
     }
     if (optSymDot != null) {
       out.writeSymbolWhitespace(optSymDot);

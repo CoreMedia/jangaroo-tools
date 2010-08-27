@@ -45,7 +45,6 @@ public class TestBind {
     return state;
   }
 
-  // will be auto-bound!
   private function getStatePrivate() : String {
     return state;
   }
@@ -73,6 +72,20 @@ public class TestBind {
   public function testInvokeFieldMethod() : String {
     test = new TestUnqualifiedAccess(state);
     return invoke(test.getPrivateSlot);
+  }
+
+  public function testInvokeFieldMethodThroughLocalFunction() : String {
+    function foo():String {
+      return this.getState();
+    }
+    return foo();
+  }
+
+  public function testInvokeFieldMethodThroughLocalFunctionUnqualified() : String {
+    function foo():String {
+      return getState();
+    }
+    return foo();
   }
 
   public function testReturn() : String {

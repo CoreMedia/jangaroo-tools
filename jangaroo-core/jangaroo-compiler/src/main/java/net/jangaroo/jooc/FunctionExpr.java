@@ -91,21 +91,29 @@ class FunctionExpr extends Expr {
     return this;
   }
 
-  public void notifyThisUsed(Scope scope) {
-    FunctionDeclaration methodDeclaration = scope.getMethodDeclaration();
-    // if "this" is used inside non-static method, remember that:
-    if (methodDeclaration != null && !methodDeclaration.isStatic()) {
-      thisUsed = true;
+  public boolean notifyThisUsed(Scope scope) {
+    if (!thisUsed) {
+      FunctionDeclaration methodDeclaration = scope.getMethodDeclaration();
+      // if "this" is used inside non-static method, remember that:
+      if (methodDeclaration != null && !methodDeclaration.isStatic()) {
+        thisUsed = true;
+        ((BlockStatement)methodDeclaration.getBody()).addBlockStartCodeGenerator(new CodeGenerator() {
+          @Override
+          public void generateCode(JsWriter out) throws IOException {
+            out.write("var $this=this;");
+          }
+        });
+        return true;
+      }
     }
-  }
-
-  public Ide getIde() {
-    return ide;
+    return thisUsed;
   }
 
   protected void generateJsCode(JsWriter out) throws IOException {
     out.writeSymbol(symFun);
-    if (out.getKeepSource()) {
+    if (ide != null) {
+      out.writeToken(ide.getName());
+    } else if (out.getKeepSource()) {
       out.writeToken(out.getFunctionNameAsIde(this));
     }
     out.writeSymbol(lParen);
@@ -117,9 +125,6 @@ class FunctionExpr extends Expr {
       optTypeRelation.generateCode(out);
     }
     body.generateCode(out);
-    if (thisUsed) {
-      out.write(".bind(this)");
-    }
   }
 
   public JooSymbol getSymbol() {

@@ -107,6 +107,10 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
     return classDeclaration != null && classDeclaration.isInterface() || super.isAbstract();
   }
 
+  public Statement getBody() {
+    return optBody;
+  }
+
   @Override
   public void scope(final Scope scope) {
     final ClassDeclaration classDeclaration = scope.getClassDeclaration();
