@@ -244,6 +244,14 @@ public final class JsWriter extends FilterWriter {
       }
     } else if (getKeepLines()) {
       writeLines(ws);
+    } else {
+      writeLine(ws);
+    }
+  }
+
+  private void writeLine(String ws) throws IOException {
+    if (ws.indexOf('\n') != -1) {
+      writeNewline();
     }
   }
 
@@ -254,13 +262,17 @@ public final class JsWriter extends FilterWriter {
   protected void writeLines(String s, int off, int len) throws IOException {
     int pos = off;
     while ((pos = s.indexOf('\n', pos) + 1) > 0 && pos < off + len + 1) {
-      if (inString) {
-        write("\\n");
-        checkCloseString();
-        write('+');
-      }
-      write('\n');
+      writeNewline();
     }
+  }
+
+  private void writeNewline() throws IOException {
+    if (inString) {
+      write("\\n");
+      checkCloseString();
+      write('+');
+    }
+    write('\n');
   }
 
   public void writeToken(String token) throws IOException {

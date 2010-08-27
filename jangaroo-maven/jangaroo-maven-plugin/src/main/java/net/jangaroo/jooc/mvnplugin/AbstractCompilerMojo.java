@@ -194,10 +194,9 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
     boolean compilationError = (result != Jooc.RESULT_CODE_OK);
 
     if (!compilationError) {
-      // for now, always set debug mode to "lines only" for concatenated file:
-      configuration.setDebug(true);
-      configuration.setDebugLines(true);
-      configuration.setDebugSource(false);
+      // for now, always set debug mode to "false" for concatenated file:
+      configuration.setDebug(false);
+      configuration.setDebugLines(false);
       configuration.setDebugSource(false);
       configuration.setOutputDirectory(getTempOutputDirectory());
       configuration.setApiOutputDirectory(null);
