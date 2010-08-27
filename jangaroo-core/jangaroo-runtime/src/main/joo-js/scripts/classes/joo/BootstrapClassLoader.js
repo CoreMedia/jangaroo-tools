@@ -43,6 +43,7 @@ Function.prototype.bind = function(object) {
   }
 
   theGlobalObject.joo = {
+    version: "0.7.1",
     getOrCreatePackage: createGetQualified(true),
     getQualifiedObject: createGetQualified(false),
 
