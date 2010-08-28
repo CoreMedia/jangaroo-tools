@@ -55,7 +55,7 @@ public class JoocCommandLineParser {
         .create("sourcepath");
     Option classPath = OptionBuilder.withArgName("path")
         .hasArg()
-        .withDescription("source root directories or jangaroo jars of dependent classes, separated by the system dependant path separator character (e.g. ':' on Unix systems, ';' on Windows")
+        .withDescription("source root directories or jangaroo jars of dependent classes, separated by the system dependent path separator character (e.g. ':' on Unix systems, ';' on Windows")
         .create("classpath");
     Option enableAssertionsOption = OptionBuilder.withLongOpt("enableassertions")
         .withDescription("enable assertions")
