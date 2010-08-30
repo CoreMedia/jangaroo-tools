@@ -134,24 +134,6 @@
         <artifactId>maven-deploy-plugin</artifactId>
         <version>2.5</version>
       </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-install-plugin</artifactId>
-        <version>2.3.1</version>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-resources-plugin</artifactId>
-        <version>2.4.3</version>
-        <configuration>
-          <includeEmptyDirs>true</includeEmptyDirs>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-clean-plugin</artifactId>
-        <version>2.4.1</version>
-      </plugin>
     </plugins>
   </build>
 
