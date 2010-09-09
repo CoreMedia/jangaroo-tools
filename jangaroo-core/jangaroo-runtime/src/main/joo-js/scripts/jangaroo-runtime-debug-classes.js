@@ -9,6 +9,7 @@
     "joo.SystemClassDeclaration",
     "joo.SystemClassLoader",
     "Array",
+    "Date",
     "joo.ClassDeclaration",
     "joo.StandardClassLoader",
     "joo.DynamicClassLoader",

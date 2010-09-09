@@ -64,6 +64,7 @@
                     <file name="DefinitionError.js" />
                     <file name="SecurityError.js" />
                     <file name="Array.js" />
+                    <file name="Date.js" />
                     <file name="joo/ClassDeclaration.js" />
                     <file name="joo/StandardClassLoader.js" />
                     <file name="joo/DynamicClassLoader.js" />
@@ -98,6 +99,7 @@
                     <file name="DefinitionError.js" />
                     <file name="SecurityError.js" />
                     <file name="Array.js" />
+                    <file name="Date.js" />
                     <file name="joo/ClassDeclaration.js" />
                     <file name="joo/StandardClassLoader.js" />
                     <file name="joo/DynamicClassLoader.js" />
