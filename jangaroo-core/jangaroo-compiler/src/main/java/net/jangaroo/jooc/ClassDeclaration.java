@@ -158,6 +158,7 @@ public class ClassDeclaration extends IdeDeclaration {
 
     for (IdeDeclaration secondaryDeclaration : secondaryDeclarations) {
       secondaryDeclaration.generateJsCode(out);
+      out.writeToken(",");
     }
 
     out.write("];},");
