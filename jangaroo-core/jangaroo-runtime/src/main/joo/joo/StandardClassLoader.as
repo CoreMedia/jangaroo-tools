@@ -129,7 +129,7 @@ public class StandardClassLoader extends SystemClassLoader {
       var importMap : Object = {};
       imports.forEach(function(fullClassName:String):void {
         var className : String = fullClassName.substring(fullClassName.lastIndexOf(".") + 1);
-        importMap[className] = classLoader.getRequiredClassDeclaration(fullClassName).init();
+        importMap[className] = classLoader.getRequiredClassDeclaration(fullClassName).init().publicConstructor;
       });
       for (var i:int = 0; i < onCompleteCallbacks.length; ++i) {
         (onCompleteCallbacks[i] as Function)(importMap);
