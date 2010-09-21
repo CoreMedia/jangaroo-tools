@@ -30,7 +30,8 @@ import java.util.*;
  */
 public class CompilationUnit extends NodeImplBase implements CodeGenerator {
 
-  public static final String JANGAROO_RUNTIME_VERSION = "0.7.1"; // TODO: move to properties file or use Maven artifact version?
+  public static final String JANGAROO_RUNTIME_VERSION = "0.7.1"; // TODO: move to properties file
+  public static final String JANGAROO_COMPILER_VERSION = "0.7.2"; // TODO: use Maven artifact version
 
   public PackageDeclaration getPackageDeclaration() {
     return packageDeclaration;
@@ -136,6 +137,7 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
     }
     out.write("]");
     out.write(", \"" + JANGAROO_RUNTIME_VERSION + "\"");
+    out.write(", \"" + JANGAROO_COMPILER_VERSION + "\"");
     out.writeSymbolWhitespace(rBrace);
     out.write(");");
   }
