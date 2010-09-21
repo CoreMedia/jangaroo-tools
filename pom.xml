@@ -141,7 +141,7 @@
   </build>
 
   <scm>
-    <developerConnection>scm:perforce://coremedia/jangaroo</developerConnection>
+    <developerConnection>scm:git:git@github.com:CoreMedia/jangaroo-tools.git</developerConnection>
   </scm>
 
 

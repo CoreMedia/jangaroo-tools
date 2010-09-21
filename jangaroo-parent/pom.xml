@@ -11,7 +11,7 @@
   <url>http://repo.jangaroo.net/site/jangaroo-parent</url>
 
   <scm>
-    <developerConnection>scm:perforce://coremedia/jangaroo/jangaroo-parent</developerConnection>
+    <developerConnection>scm:git:git@github.com:CoreMedia/jangaroo-tools.git</developerConnection>
   </scm>
 
   <licenses>
