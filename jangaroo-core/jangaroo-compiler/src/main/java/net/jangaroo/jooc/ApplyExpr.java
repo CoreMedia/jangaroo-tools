@@ -48,30 +48,45 @@ class ApplyExpr extends Expr {
   }
 
   protected void generateJsCode(JsWriter out) throws IOException {
-    // leave out constructor function if called as type cast function!
-    // these old-style type casts are soo ugly....
-    // let through typecast to String
-    if (isTypeCast() && !(fun instanceof IdeExpr && ((IdeExpr)fun).ide.getQualifiedNameStr().equals("String"))) {
-      out.beginComment();
-      fun.generateCode(out);
-      out.endComment();
-    } else {
-      fun.generateCode(out);
-    }
+    generateFunJsCode(out);
     if (args != null)
       args.generateCode(out);
   }
 
-  private boolean isTypeCast() {
-    return fun instanceof IdeExpr && !isInsideNewExpr() && isType((IdeExpr)fun);
+  private void generateFunJsCode(JsWriter out) throws IOException {
+    // leave out constructor function if called as type cast function!
+    // these old-style type casts are soo ugly....
+    if (isTypeCast()) {
+      out.beginComment();
+      fun.generateCode(out);
+      out.endComment();
+    } else {
+      if (fun instanceof IdeExpr) {
+        // take care of reserved words called as functions (Rhino does not like):
+        JooSymbol funSymbol = ((IdeExpr)fun).ide.getSymbol();
+        if (SyntacticKeywords.RESERVED_WORDS.contains(funSymbol.getText())) {
+          out.writeSymbolWhitespace(funSymbol);
+          out.writeToken("$$" + funSymbol.getText());
+          return;
+        }
+      }
+      fun.generateCode(out);
+    }
   }
 
-  private boolean isType(IdeExpr fun) {
+  private boolean isTypeCast() {
+    return fun instanceof IdeExpr && !isInsideNewExpr() && isNonTopLevelType((IdeExpr)fun);
+  }
+
+  private boolean isNonTopLevelType(IdeExpr fun) {
     final Ide ide = fun.ide;
-    AstNode declaration = ide.getDeclaration(false);
+    IdeDeclaration declaration = ide.getDeclaration(false);
     return declaration != null &&
       (declaration instanceof ClassDeclaration || declaration instanceof PredefinedTypeDeclaration ||
-        (declaration instanceof FunctionDeclaration && ((FunctionDeclaration)declaration).isConstructor()));
+        (declaration instanceof FunctionDeclaration && declaration.isConstructor()))
+      && (declaration.isClassMember() ||
+      (declaration.getParentDeclaration() instanceof PackageDeclaration
+        && ((PackageDeclaration)declaration.getParentDeclaration()).getQualifiedName().length > 0));
   }
 
   public Expr analyze(AstNode parentNode, AnalyzeContext context) {

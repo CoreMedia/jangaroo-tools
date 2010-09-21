@@ -15,6 +15,10 @@
 
 package net.jangaroo.jooc;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * Identifiers with special meaning become keywords in certain syntactic contexts:
 
@@ -49,5 +53,7 @@ public interface SyntacticKeywords {
   static final String SET = "set";
   static final String STATIC = "static";
   static final String VIRTUAL = "virtual";
+
+  static final Set<String> RESERVED_WORDS = new HashSet<String>(Arrays.asList("int", "uint"));
 
 }

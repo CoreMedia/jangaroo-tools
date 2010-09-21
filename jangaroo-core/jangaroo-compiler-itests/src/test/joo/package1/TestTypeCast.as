@@ -24,6 +24,7 @@ public class TestTypeCast {
 
   public static function testAsCast(p : Object) : TestTypeCast {
     var r :Number = 99.7;
+    var n :Number = Number("99.8");
     var i :int = int(r);
     return p as TestTypeCast;
   }
