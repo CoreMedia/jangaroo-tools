@@ -1,0 +1,9 @@
+# IDEA
+*.iml
+*.ipr
+*.iws
+# Backups
+*.*~
+# Maven target dirs
+*/target/
+*/*/target/
