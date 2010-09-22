@@ -67,7 +67,7 @@ under the License.
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-runtime</artifactId>
-      <version>0.7.1</version>
+      <version>0.7.2</version>
       <type>jangaroo</type>
     </dependency>
 
