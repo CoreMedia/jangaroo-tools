@@ -4,14 +4,14 @@
   <groupId>net.jangaroo</groupId>
   <artifactId>jangaroo-tools</artifactId>
   <packaging>pom</packaging>
-  <version>0.7.3-SNAPSHOT</version>
+  <version>0.7.2-SNAPSHOT</version>
   <url>http://repo.jangaroo.net/site/jangaroo-tools</url>
   <name>Jangaroo Tools</name>
 
   <parent>
     <groupId>net.jangaroo</groupId>
     <artifactId>jangaroo-parent</artifactId>
-    <version>7-SNAPSHOT</version>
+    <version>6-SNAPSHOT</version>
     <relativePath>jangaroo-parent/pom.xml</relativePath>
   </parent>
 
