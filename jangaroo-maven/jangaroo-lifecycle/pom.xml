@@ -3,11 +3,11 @@
   <parent>
     <groupId>net.jangaroo</groupId>
     <artifactId>jangaroo-maven</artifactId>
-    <version>0.7.2-SNAPSHOT</version>
+    <version>0.7.2</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
-  <version>0.7.2-SNAPSHOT</version>
+  <version>0.7.2</version>
   <artifactId>jangaroo-lifecycle</artifactId>
   <packaging>maven-plugin</packaging>
 
@@ -37,24 +37,24 @@
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-maven-plugin</artifactId>
-      <version>0.7.2-SNAPSHOT</version>
+      <version>0.7.2</version>
       <type>maven-plugin</type>
     </dependency>
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>ext-xml-maven-plugin</artifactId>
-      <version>0.7.2-SNAPSHOT</version>
+      <version>0.7.2</version>
       <type>maven-plugin</type>
     </dependency>
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-maven-plugin</artifactId>
-      <version>0.7.2-SNAPSHOT</version>
+      <version>0.7.2</version>
     </dependency>
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>ext-xml-maven-plugin</artifactId>
-      <version>0.7.2-SNAPSHOT</version>
+      <version>0.7.2</version>
     </dependency>
   </dependencies>
 

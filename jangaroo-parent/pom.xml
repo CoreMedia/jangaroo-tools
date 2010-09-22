@@ -5,7 +5,7 @@
   <packaging>pom</packaging>
   <artifactId>jangaroo-parent</artifactId>
   <groupId>net.jangaroo</groupId>
-  <version>0.7.2-SNAPSHOT</version>
+  <version>0.7.2</version>
   <name>Jangaroo Default Settings</name>
 
   <url>http://repo.jangaroo.net/site/jangaroo-parent</url>
