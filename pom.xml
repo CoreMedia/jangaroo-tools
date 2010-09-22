@@ -8,14 +8,6 @@
   <url>http://repo.jangaroo.net/site/jangaroo-tools</url>
   <name>Jangaroo Tools</name>
 
-  <parent>
-    <groupId>net.jangaroo</groupId>
-    <artifactId>jangaroo-parent</artifactId>
-    <version>6-SNAPSHOT</version>
-    <relativePath>jangaroo-parent/pom.xml</relativePath>
-  </parent>
-
-
   <repositories>
     <repository>
       <id>jangaroo</id>
@@ -25,91 +17,6 @@
       </snapshots>
     </repository>
   </repositories>
-
-  <licenses>
-    <license>
-      <name>Apache 2</name>
-      <url>http://www.apache.org/licenses/LICENSE-2.0</url>
-      <distribution>repo</distribution>
-    </license>
-  </licenses>
-
-  <organization>
-    <name>CoreMedia AG</name>
-    <url>http://www.coremedia.com/</url>
-  </organization>
-
-  <developers>
-    <developer>
-      <id>agawecki</id>
-      <name>Andreas Gawecki</name>
-      <organization>CoreMedia AG</organization>
-      <organizationUrl>http://www.coremedia.com/</organizationUrl>
-      <email>andreas@jangaroo.net</email>
-      <roles>
-        <role>architect</role>
-        <role>developer</role>
-      </roles>
-      <timezone>+1</timezone>
-    </developer>
-    <developer>
-      <id>fwienber</id>
-      <name>Frank Wienberg</name>
-      <organization>CoreMedia AG</organization>
-      <organizationUrl>http://www.coremedia.com/</organizationUrl>
-      <email>frank@jangaroo.net</email>
-      <roles>
-        <role>architect</role>
-        <role>developer</role>
-      </roles>
-      <timezone>+1</timezone>
-    </developer>
-    <developer>
-      <id>okummer</id>
-      <name>Olaf Kummer</name>
-      <organization>CoreMedia AG</organization>
-      <organizationUrl>http://www.coremedia.com/</organizationUrl>
-      <email>olaf@jangaroo.net</email>
-      <roles>
-        <role>architect</role>
-        <role>developer</role>
-      </roles>
-      <timezone>+1</timezone>
-    </developer>
-    <developer>
-      <id>dhomann</id>
-      <name>Dennis Homann</name>
-      <organization>CoreMedia AG</organization>
-      <organizationUrl>http://www.coremedia.com/</organizationUrl>
-      <email>dennis@jangaroo.net</email>
-      <roles>
-        <role>developer</role>
-      </roles>
-      <timezone>+1</timezone>
-    </developer>
-    <developer>
-      <id>mbostani</id>
-      <name>Masiar Bostanipoor</name>
-      <organization>CoreMedia AG</organization>
-      <organizationUrl>http://www.coremedia.com/</organizationUrl>
-      <email>masiar@jangaroo.net</email>
-      <roles>
-        <role>web design</role>
-      </roles>
-      <timezone>+1</timezone>
-    </developer>
-    <developer>
-      <id>sannies</id>
-      <name>Sebastian Annies</name>
-      <organization>CoreMedia AG</organization>
-      <organizationUrl>http://www.coremedia.com/</organizationUrl>
-      <email>sannies@coremedia.com</email>
-      <roles>
-        <role>Mavenizer</role>
-      </roles>
-      <timezone>+1</timezone>
-    </developer>
-  </developers>
 
 
   <modules>
