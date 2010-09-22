@@ -16,6 +16,22 @@
   <name>Jangaroo Core</name>
   <url>http://repo.jangaroo.net/site/jangaroo-core/</url>
 
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>2.6</version>
+        </plugin>
+
+        <plugin>
+          <artifactId>maven-jar-plugin</artifactId>
+          <version>2.3.1</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
+
   <modules>
     <module>ext-xml</module>
     <module>properties-compiler</module>
