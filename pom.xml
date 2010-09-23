@@ -8,23 +8,6 @@
   <url>http://repo.jangaroo.net/site/jangaroo-tools</url>
   <name>Jangaroo Tools</name>
 
-  <distributionManagement>
-    <downloadUrl>http://repo.jangaroo.net/maven2</downloadUrl>
-    <repository>
-      <id>jangaroo</id>
-      <name>Jangaroo repository</name>
-      <url>scp://repo.jangaroo.net/home/jangaroo/maven2/repo</url>
-    </repository>
-    <snapshotRepository>
-      <id>jangaroo-snapshots</id>
-      <url>scp://repo.jangaroo.net/home/jangaroo/maven2/snapshots</url>
-    </snapshotRepository>
-    <site>
-      <id>jangaroo</id>
-      <url>scp://repo.jangaroo.net/home/jangaroo/maven2/site/</url>
-    </site>
-  </distributionManagement>
-
   <modules>
     <module>jangaroo-parent</module>
     <module>jangaroo-maven</module>
@@ -38,6 +21,9 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-deploy-plugin</artifactId>
         <version>2.5</version>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -46,6 +32,13 @@
         <configuration>
           <preparationGoals>clean install</preparationGoals>
         </configuration>
+        <dependencies>
+          <dependency>
+            <groupId>org.apache.maven.scm</groupId>
+            <artifactId>maven-scm-provider-gitexe</artifactId>
+            <version>1.3</version>
+          </dependency>
+        </dependencies>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -56,7 +49,9 @@
   </build>
 
   <scm>
-    <developerConnection>scm:git:git://github.com/CoreMedia/jangaroo-tools.git</developerConnection>
+    <url>http://github.com/CoreMedia/jangaroo-tools</url>
+    <connection>scm:git:git://github.com/CoreMedia/jangaroo-tools.git</connection>
+    <developerConnection>scm:git:git@github.com:CoreMedia/jangaroo-tools.git</developerConnection>
   </scm>
 
 
