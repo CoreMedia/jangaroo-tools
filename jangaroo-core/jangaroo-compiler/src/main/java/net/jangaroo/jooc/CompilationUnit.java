@@ -22,7 +22,10 @@ import net.jangaroo.jooc.input.InputSource;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author Andreas Gawecki
@@ -31,7 +34,7 @@ import java.util.*;
 public class CompilationUnit extends NodeImplBase implements CodeGenerator {
 
   public static final String JANGAROO_RUNTIME_VERSION = "0.7.1"; // TODO: move to properties file
-  public static final String JANGAROO_COMPILER_VERSION = "0.7.2"; // TODO: use Maven artifact version
+  public static final String JANGAROO_COMPILER_VERSION = "0.7.5"; // TODO: use Maven artifact version
 
   public PackageDeclaration getPackageDeclaration() {
     return packageDeclaration;

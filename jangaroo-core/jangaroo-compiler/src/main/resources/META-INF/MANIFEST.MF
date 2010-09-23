@@ -1,4 +1,4 @@
 Manifest-Version: 1.0
-Class-Path: jangaroo-utils-0.7.2-SNAPSHOT.jar java-cup-runtime-10k.jar commons-cli-1.1.jar
+Class-Path: jangaroo-utils-0.7.5.jar java-cup-runtime-10k.jar commons-cli-1.1.jar
 Name: net/jangaroo/jooc
 Main-Class: net.jangaroo.jooc.Jooc
