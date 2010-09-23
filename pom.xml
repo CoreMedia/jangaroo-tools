@@ -4,7 +4,7 @@
   <groupId>net.jangaroo</groupId>
   <artifactId>jangaroo-tools</artifactId>
   <packaging>pom</packaging>
-  <version>0.7.4-SNAPSHOT</version>
+  <version>0.7.4</version>
   <url>http://repo.jangaroo.net/site/jangaroo-tools</url>
   <name>Jangaroo Tools</name>
 
@@ -46,6 +46,11 @@
         <configuration>
           <preparationGoals>clean install</preparationGoals>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>2.4.3</version>
       </plugin>
     </plugins>
   </build>

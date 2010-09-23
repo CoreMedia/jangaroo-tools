@@ -5,32 +5,16 @@
   <parent>
     <artifactId>jangaroo-parent</artifactId>
     <groupId>net.jangaroo</groupId>
-    <version>0.7.4-SNAPSHOT</version>
+    <version>0.7.4</version>
     <relativePath>../jangaroo-parent/pom.xml</relativePath>
   </parent>
 
   <groupId>net.jangaroo</groupId>
   <artifactId>jangaroo-core</artifactId>
-  <version>0.7.4-SNAPSHOT</version>
+  <version>0.7.4</version>
   <packaging>pom</packaging>
   <name>Jangaroo Core</name>
   <url>http://repo.jangaroo.net/site/jangaroo-core/</url>
-
-  <build>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <artifactId>maven-surefire-plugin</artifactId>
-          <version>2.6</version>
-        </plugin>
-
-        <plugin>
-          <artifactId>maven-jar-plugin</artifactId>
-          <version>2.3.1</version>
-        </plugin>
-      </plugins>
-    </pluginManagement>
-  </build>
 
   <modules>
     <module>ext-xml</module>
