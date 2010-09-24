@@ -31,10 +31,10 @@ public class SystemClassLoader {
   }
 
   public function prepare(packageDef : String, classDef : String, memberFactory : Function,
-                          publicStaticMethodNames : Array, dependencies : Array, version:String) : SystemClassDeclaration {
+                          publicStaticMethodNames : Array, dependencies : Array, runtimeApiVersion:String, compilerVersion:String) : SystemClassDeclaration {
     var cd : SystemClassDeclaration = this.createClassDeclaration(packageDef, classDef, memberFactory, publicStaticMethodNames, dependencies);
-    if (version !== joo.version) {
-      throw new Error("Runtime version " + joo.version + " and class version " + version
+    if (runtimeApiVersion !== joo.runtimeApiVersion) {
+      throw new Error("Runtime version " + joo.runtimeApiVersion + " and class version " + runtimeApiVersion
         + " of " + cd.fullClassName + " do not match. "
         + "Please recompile with the correct compiler version or replace jangaroo-runtime[-debug].js.");
     }

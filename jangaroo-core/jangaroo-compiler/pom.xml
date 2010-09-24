@@ -15,9 +15,14 @@
 
 
   <build>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>true</filtering>
+      </resource>
+    </resources>
 
     <plugins>
-
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -122,6 +127,8 @@
           <archive>
             <manifest>
               <addClasspath>true</addClasspath>
+              <mainClass>net.jangaroo.jooc.Jooc</mainClass>
+              <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
             </manifest>
           </archive>
         </configuration>
@@ -177,6 +184,8 @@
   <properties>
     <generated.cup.sources.dir>${project.build.directory}/generated-sources/cup</generated.cup.sources.dir>
     <cup.sources.dir>${basedir}/src/main/cup</cup.sources.dir>
+    <!-- the runtime API version the current jooc version relies on, included into the generated *.js files: -->
+    <jangaroo.runtime-api.version>0.7.1</jangaroo.runtime-api.version>
   </properties>
 
   <dependencies>

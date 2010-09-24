@@ -36,7 +36,6 @@
   }
 
   theGlobalObject.joo = {
-    version: "0.7.1",
     getOrCreatePackage: createGetQualified(true),
     getQualifiedObject: createGetQualified(false),
 
@@ -52,7 +51,8 @@
 
      */
     classLoader: {
-      prepare: function(packageDef, classDef, memberFactory) {
+      prepare: function(packageDef, classDef, memberFactory, publicStaticMethodNames, dependencies, runtimeApiVersion, compilerVersion) {
+        joo.runtimeApiVersion = runtimeApiVersion;
         var classMatch = classDef.match(/^\s*((public|internal|final|dynamic)\s+)*class\s+([A-Za-z][a-zA-Z$_0-9]*)(\s+extends\s+([a-zA-Z$_0-9.]+))?(\s+implements\s+([a-zA-Z$_0-9.,\s]+))?\s*$/);
         var className = classMatch[3];
         var $extends = classMatch[5];

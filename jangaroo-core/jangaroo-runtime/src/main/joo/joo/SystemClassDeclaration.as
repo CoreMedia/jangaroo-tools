@@ -177,7 +177,7 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
                 break;
               case MemberDeclaration.MEMBER_TYPE_CLASS:
                 var secondaryClass:SystemClassDeclaration = classLoader.prepare(this.package_ + "." + this.className, item, member as Function,
-                  memberDeclarations[++i], [], version);
+                  memberDeclarations[++i], [], runtimeApiVersion);
                 this.privateStatics[memberDeclaration.memberName] = secondaryClass.publicConstructor;
                 break;
               default:

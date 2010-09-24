@@ -39,6 +39,9 @@ import java.util.*;
  */
 public class Jooc {
 
+  private final static String COMPILER_VERSION_KEY = "jooc.compiler.version";
+  private final String RUNTIME_VERSION_KEY = "jooc.runtime.version";
+
   final static String JOO_API_IN_JAR_DIRECTORY_PREFIX = "META-INF/joo-api/";
 
   public static final int RESULT_CODE_OK = 0;
@@ -72,6 +75,7 @@ public class Jooc {
   private final Scope globalScope = new DeclarationScope(null, null);
   private final IdeDeclaration voidDeclaration = declareType(globalScope, "void");
   private final IdeDeclaration anyDeclaration = declareType(globalScope, "*");
+  private ResourceBundle joocProperties;
 
   public Jooc() {
     this(new StdOutCompileLog());
@@ -79,6 +83,8 @@ public class Jooc {
 
   public Jooc(CompileLog log) {
     this.log = log;
+    joocProperties = ResourceBundle.getBundle ("net.jangaroo.jooc.jooc");
+    assert joocProperties != null;
   }
 
   public IdeDeclaration getAnyDeclaration() {
@@ -177,6 +183,14 @@ public class Jooc {
       codeSinkFactory = new SingleFileCompilationUnitSinkFactory(config, outputDirectory, generateActionScriptApi, suffix);
     }
     return codeSinkFactory;
+  }
+
+  public String getVersion() {
+    return joocProperties.getString(COMPILER_VERSION_KEY);
+  }
+
+  public String getRuntimeVersion() {
+    return joocProperties.getString(RUNTIME_VERSION_KEY);
   }
 
   static class CompilerError extends RuntimeException {
