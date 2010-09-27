@@ -75,25 +75,13 @@ public class ClassDeclaration extends IdeDeclaration {
   }
 
   @Override
-  public boolean isPrivate() {
-    return super.isPrivate() || !isPrimaryDeclaration(); // secondary classes are always private!
-  }
-
-  @Override
   public boolean isStatic() {
     return super.isStatic() || !isPrimaryDeclaration(); // secondary classes are always static!
   }
 
   @Override
   public boolean isClassMember() {
-    return super.isClassMember() || !isPrimaryDeclaration(); // secondary classes are private static class members!
-  }
-
-  @Override
-  public String[] getQualifiedName() {
-    return  isPrimaryDeclaration()
-      ? super.getQualifiedName()
-      : new String[]{"$$private", getName()}; // secondary class is in static private scope!
+    return super.isClassMember() || !isPrimaryDeclaration(); // secondary classes are (static) class members!
   }
 
   public String getName() {
@@ -266,6 +254,9 @@ public class ClassDeclaration extends IdeDeclaration {
       optImplements.analyze(this, context);
     }
     body.analyze(this, context);
+    for (IdeDeclaration secondaryDeclaration : secondaryDeclarations) {
+      secondaryDeclaration.analyze(this, context);
+    }
     return this;
   }
 

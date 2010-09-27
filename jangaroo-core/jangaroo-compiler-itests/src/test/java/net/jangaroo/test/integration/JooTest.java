@@ -573,6 +573,12 @@ public class JooTest extends JooRuntimeTestCase {
     expectString("string", "obj.getClass()");
   }
 
+  public void testHelperClasses() throws Exception {
+    import_("package1.TestHelperClasses");
+    complete();
+    expectString("foo", "package1.TestHelperClasses.getText()");
+  }
+
   public static void main(String args[]) {
     junit.textui.TestRunner.run(JooTest.class);
   }
