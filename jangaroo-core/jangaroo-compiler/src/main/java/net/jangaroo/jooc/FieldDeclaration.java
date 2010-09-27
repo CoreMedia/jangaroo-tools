@@ -16,6 +16,8 @@
 package net.jangaroo.jooc;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Andreas Gawecki
@@ -96,6 +98,15 @@ public class FieldDeclaration extends AbstractVariableDeclaration {
     out.write(",{");
   }
 
+  private static final Map<String,String> DEFAULT_VALUE_BY_TYPE = new HashMap<String,String>(10);
+  static {
+    DEFAULT_VALUE_BY_TYPE.put("Boolean", "false");
+    DEFAULT_VALUE_BY_TYPE.put("int", "0");
+    DEFAULT_VALUE_BY_TYPE.put("Number", "NaN");
+    DEFAULT_VALUE_BY_TYPE.put("uint", "0");
+    DEFAULT_VALUE_BY_TYPE.put("*", "undefined");
+  }
+
   @Override
   protected void generateInitializerCode(JsWriter out) throws IOException {
     if (optInitializer != null) {
@@ -110,7 +121,12 @@ public class FieldDeclaration extends AbstractVariableDeclaration {
         out.writeToken(");}");
       }
     } else {
-      out.write(": undefined");
+      String typeName = this.optTypeRelation == null ? "*" : this.optTypeRelation.getType().getSymbol().getText();
+      String emptyValue = DEFAULT_VALUE_BY_TYPE.get(typeName);
+      if (emptyValue == null) {
+        emptyValue = "null";
+      }
+      out.write(":" + emptyValue);
     }
   }
 

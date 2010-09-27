@@ -21,7 +21,7 @@ public class TestMultiDeclarations {
   public var c=1, d : String, e:String="foo";
   public var f:int=2, g:Object = {toString: function():String{return "bar";}};
 
-  public static const EXPECTED_RESULT : String = "undefined/undefined/1/undefined/foo/2/bar";
+  public static const EXPECTED_RESULT : String = "undefined/undefined/1/null/foo/2/bar";
 
   public function TestMultiDeclarations() {
   }
@@ -32,7 +32,7 @@ public class TestMultiDeclarations {
 
   public function testVariables() : String {
     var a, b;
-    var c=1, d : String, e:String="foo";
+    var c=1, d : String = null, e:String="foo";
     var f:int=2, g:Object = {toString: function():String{return "bar";}};
     return a+"/"+b+"/"+c+"/"+d+"/"+e+"/"+f+"/"+g;
   }
