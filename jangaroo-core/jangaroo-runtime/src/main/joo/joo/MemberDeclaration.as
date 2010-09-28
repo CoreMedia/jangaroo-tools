@@ -75,6 +75,10 @@ public class MemberDeclaration {
           memberName : String,
           slot : String,
           value : *;
+  /**
+   * The metadata (annotations) associated with this member.
+   */
+  public var metadata : Object = {};
 
   public function MemberDeclaration(tokens : Array) {
     for (var j:int=0; j<tokens.length; ++j) {

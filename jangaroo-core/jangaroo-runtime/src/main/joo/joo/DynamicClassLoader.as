@@ -53,12 +53,8 @@ public class DynamicClassLoader extends StandardClassLoader {
    */
   private var pendingClassState : Object/*<String,Boolean>*/ = {};
 
-  override public function prepare(packageDef:String, classDef:String, memberFactory:Function,
-                                   publicStaticMethodNames:Array, dependencies:Array,
-                                   runtimeApiVersion:String, compilerVersion:String):SystemClassDeclaration {
-    var cd:SystemClassDeclaration = super.prepare(packageDef, classDef, memberFactory,
-            publicStaticMethodNames, dependencies,
-            runtimeApiVersion, compilerVersion);
+  override public function prepare(...params):SystemClassDeclaration {
+    var cd:SystemClassDeclaration = super.prepare.apply(this, params) as SystemClassDeclaration;
     this.pendingDependencies.push(cd);
     if (delete this.pendingClassState[cd.fullClassName]) {
       if (this.debug) {

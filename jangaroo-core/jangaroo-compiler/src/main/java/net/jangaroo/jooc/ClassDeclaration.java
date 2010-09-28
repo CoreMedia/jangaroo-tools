@@ -113,9 +113,7 @@ public class ClassDeclaration extends IdeDeclaration {
   }
 
   protected void generateJsCode(JsWriter out) throws IOException {
-    out.beginComment();
     generateCode(directives, out);
-    out.endComment();
     out.beginString();
     writeModifiers(out);
     out.writeSymbol(symClass);

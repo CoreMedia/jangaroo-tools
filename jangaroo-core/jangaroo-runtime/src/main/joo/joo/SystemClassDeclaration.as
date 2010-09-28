@@ -66,6 +66,10 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
           memberDeclarationsByQualifiedName : Object,
           staticInitializers : Array/*<MemberDeclaration>*/,
           publicStaticMethodNames : Array;
+  /**
+   * The metadata (annotations) associated with this class.
+   */
+  public var metadata : Object = {};
 
   private static const DECLARATION_PATTERN_CLASS:RegExp =
     /^\s*((public|internal|final|dynamic)\s+)*class\s+([A-Za-z][a-zA-Z$_0-9]*)(\s+extends\s+([a-zA-Z$_0-9.]+))?(\s+implements\s+([a-zA-Z$_0-9.,\s]+))?\s*$/;
@@ -76,7 +80,7 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
 
   public function SystemClassDeclaration(packageDef : String, classDef : String, memberDeclarations : Function,
           publicStaticMethodNames : Array) {
-    var packageName : String = packageDef.split(/\s+/ as String)[1] || "";
+    var packageName : String = packageDef.split(/\s+/)[1] || "";
     this.package_ = getOrCreatePackage(packageName);
     var classMatch : Array = classDef.match(DECLARATION_PATTERN_CLASS);
     var interfaces : String;
@@ -154,16 +158,17 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
     this.memberDeclarations = [];
     this.memberDeclarationsByQualifiedName = {};
     this.constructor_ = null;
+    var metadata:Object = {};
     for (var i:int=0; i<memberDeclarations.length; ++i) {
       var item : * = memberDeclarations[i];
       switch (typeof item) {
-        case "undefined":
-          continue;
         case "function":
           this.staticInitializers.push(item);
           break;
         case "string":
           var memberDeclaration : MemberDeclaration = MemberDeclaration.create(item);
+          memberDeclaration.metadata = metadata;
+          metadata = {};
           if (memberDeclaration) {
             if (!memberDeclaration.isNative()) {
               if (++i >= memberDeclarations.length) {
@@ -186,6 +191,9 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
                 }
             }
           }
+          break;
+        case "object":
+          SystemClassLoader.addToMetadata(metadata, item);
       }
     }
     if (!this.isInterface()) {

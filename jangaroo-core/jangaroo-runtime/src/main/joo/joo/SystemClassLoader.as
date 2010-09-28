@@ -30,9 +30,20 @@ public class SystemClassLoader {
   public function SystemClassLoader() {    
   }
 
-  public function prepare(packageDef : String, classDef : String, memberFactory : Function,
-                          publicStaticMethodNames : Array, dependencies : Array, runtimeApiVersion:String, compilerVersion:String) : SystemClassDeclaration {
+  public function prepare(...params) : SystemClassDeclaration {
+    var packageDef : String = params[0];
+    var metadata : Object = {};
+    for (var i:int = 1; typeof params[i] == "object"; i++) {
+      addToMetadata(metadata, params[i]);
+    }
+    var classDef : String = params[i++];
+    var memberFactory : Function = params[i++];
+    var publicStaticMethodNames : Array = params[i++];
+    var dependencies : Array = params[i++];
+    var runtimeApiVersion:String = params[i++];
+    var compilerVersion:String = params[i++];
     var cd : SystemClassDeclaration = this.createClassDeclaration(packageDef, classDef, memberFactory, publicStaticMethodNames, dependencies);
+    cd.metadata = metadata;
     if (runtimeApiVersion !== joo.runtimeApiVersion) {
       throw new Error("Runtime version " + joo.runtimeApiVersion + " and class version " + runtimeApiVersion
         + " of " + cd.fullClassName + " do not match. "
@@ -40,6 +51,12 @@ public class SystemClassLoader {
     }
     classDeclarationsByName[cd.fullClassName] = cd;
     return cd;
+  }
+
+  static function addToMetadata(metadata:Object, annotation:*):void {
+    for (var m:String in annotation) {
+      metadata[m] = annotation[m];
+    }
   }
 
   protected function createClassDeclaration(packageDef : String, classDef : String, memberFactory : Function,

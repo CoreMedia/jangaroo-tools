@@ -579,6 +579,21 @@ public class JooTest extends JooRuntimeTestCase {
     expectString("foo", "package1.TestHelperClasses.getText()");
   }
 
+  public void testAnnotations() throws Exception {
+    import_("package1.TestAnnotations");
+    complete();
+    expectNumber(1,     "package1.TestAnnotations.$class.metadata.ClassAnnotation.num");
+    expectBoolean(true, "package1.TestAnnotations.$class.metadata.ClassAnnotation.bool");
+    expectString("foo", "package1.TestAnnotations.$class.metadata.ClassAnnotation.str");
+
+    expectBoolean(true, "!!package1.TestAnnotations.$class.getMemberDeclaration('public','getState').metadata.Bindable");
+
+    expectBoolean(false, "package1.TestAnnotations.$class.getMemberDeclaration('private','state').metadata.Serializable.transitive");
+
+    // TODO: I did not yet find out how constructors are represented in AS3 reflection.
+    //expectString("bar", "package1.TestAnnotations.$class.getMemberDeclaration('public','TestAnnotations').metadata.foo");
+  }
+
   public static void main(String args[]) {
     junit.textui.TestRunner.run(JooTest.class);
   }

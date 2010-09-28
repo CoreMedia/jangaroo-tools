@@ -17,24 +17,26 @@ package net.jangaroo.jooc;
 import java.io.IOException;
 
 /**
- * An annotation (sqare bracket meta data).
+ * An annotation (square bracket meta data).
+ *
+ * @author Frank Wienberg
  */
 public class Annotation extends NodeImplBase {
 
   JooSymbol leftBracket;
   Ide ide;
-  ParenthesizedExpr<CommaSeparatedList<ObjectField>> annotationFields;
+  ObjectLiteral annotationFields;
   JooSymbol rightBracket;
 
   public Annotation(JooSymbol leftBracket, Ide ide, JooSymbol rightBracket) {
     this(leftBracket, ide, null, null, null, rightBracket);
   }
 
-  public Annotation(JooSymbol leftBracket, Ide ide, JooSymbol leftBrace, CommaSeparatedList<ObjectField> annotationFields, JooSymbol rightBrace, JooSymbol rightBracket) {
+  public Annotation(JooSymbol leftBracket, Ide ide, JooSymbol leftParen, CommaSeparatedList<ObjectField> annotationFields, JooSymbol rightParen, JooSymbol rightBracket) {
     this.leftBracket = leftBracket;
     this.ide = ide;
-    if (leftBrace!=null && rightBrace!=null) {
-      this.annotationFields = new ParenthesizedExpr<CommaSeparatedList<ObjectField>>(leftBrace, annotationFields, rightBrace);
+    if (leftParen!=null && rightParen!=null) {
+      this.annotationFields = new ObjectLiteral(leftParen, annotationFields, null, rightParen);
     }
     this.rightBracket = rightBracket;
   }
@@ -52,13 +54,16 @@ public class Annotation extends NodeImplBase {
   }
 
   protected void generateJsCode(JsWriter out) throws IOException {
-    out.beginComment();
-    out.writeSymbol(leftBracket);
+    out.writeSymbolWhitespace(leftBracket);
+    out.writeToken("{");
     ide.generateCode(out);
-    if (annotationFields!=null) {
+    out.writeToken(":");
+    if (annotationFields == null) {
+      out.writeToken("{}");
+    } else {
       annotationFields.generateCode(out);
     }
-    out.writeSymbol(rightBracket);
-    out.endComment();
+    out.writeSymbolWhitespace(rightBracket);
+    out.writeToken("},");
   }
 }

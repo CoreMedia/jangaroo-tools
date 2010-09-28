@@ -53,7 +53,9 @@ class ObjectField extends NodeImplBase {
   protected void generateJsCode(JsWriter out) throws IOException {
     if (label !=null) {
       label.generateCode(out);
-      out.writeSymbol(symColon);
+      // do not rely on the symbol actually being a colon:
+      out.writeSymbolWhitespace(symColon);
+      out.writeToken(":");
     }
     value.generateCode(out);
   }
