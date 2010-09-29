@@ -126,7 +126,7 @@ public class ClassDeclaration extends IdeDeclaration {
     }
     out.endString();
     out.write(",");
-    out.write("function($$l,$$private){var is=joo.is,assert=joo.assert,trace=joo.trace,$$bound=joo.boundMethod,$super=$$l+'super'");
+    out.write("function($$l,$$private){var is=joo.is,as=joo.as,assert=joo.assert,trace=joo.trace,$$bound=joo.boundMethod,$super=$$l+'super'");
     for (TypedIdeDeclaration member : members.values()) {
       if (member.isPrivate() || member.isOverride()) {
         out.write(",$" + member.getName() + "=$$l+'" + member.getName() + "'");

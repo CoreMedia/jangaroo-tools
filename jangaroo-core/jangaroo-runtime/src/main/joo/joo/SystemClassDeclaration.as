@@ -26,20 +26,6 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
     };
   }
 
-  private static function is_(object : *, type : Function) : Boolean {
-    if (!type || object===undefined || object===null) {
-      return false;
-    }
-    // instanceof or constructor may return false negatives:
-    if (object instanceof type || object.constructor===type) {
-      return true;
-    }
-    if (type["$class"]) {
-      return (type["$class"] as NativeClassDeclaration).isInstance(object);
-    }
-    return false;
-  }
-
   private static function boundMethod(object:Object, methodName:String):Function {
     return object['$$b_'+methodName] ||
       (object['$$b_'+methodName] = function():* {
@@ -48,9 +34,8 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
   }
 
 {
-  // publish "is" and "boundMethod" as "joo.is" and "joo.boundMethod" for use from JavaScript:
+  // publish "boundMethod" as "joo.boundMethod" for use from JavaScript:
   var jooPackage:* = getQualifiedObject("joo");
-  jooPackage["is"] = is_;
   jooPackage["boundMethod"] = boundMethod;
 }
 
@@ -110,10 +95,10 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
     if (packageName) {
       fullClassName = packageName+"."+this.className;
     }
-    this.interfaces = interfaces ? interfaces.split(/\s*,\s*/ as String) as Array : [];
+    this.interfaces = interfaces ? interfaces.split(/\s*,\s*/) : [];
     this.memberDeclarations = memberDeclarations;
     this.publicStaticMethodNames = publicStaticMethodNames;
-    var publicConstructor : Function = getQualifiedObject(fullClassName) as Function;
+    var publicConstructor : Function = getQualifiedObject(fullClassName);
     if (publicConstructor) {
       this.native_ = true;
     } else {

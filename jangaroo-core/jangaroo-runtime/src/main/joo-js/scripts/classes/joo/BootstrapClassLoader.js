@@ -39,6 +39,24 @@
     getOrCreatePackage: createGetQualified(true),
     getQualifiedObject: createGetQualified(false),
 
+    is: function(object, type) {
+      if (!type || object===undefined || object===null) {
+        return false;
+      }
+      // instanceof or constructor may return false negatives:
+      if (object instanceof type || object.constructor===type) {
+        return true;
+      }
+      if (type["$class"]) {
+        return type["$class"].isInstance(object);
+      }
+      return false;
+    },
+
+    as: function (object, type) {
+      return joo.is(object, type) ? object : null;
+    },
+
     /*
     unsupported ActionScript features:
       - private non-static members

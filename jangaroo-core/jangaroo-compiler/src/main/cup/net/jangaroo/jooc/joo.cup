@@ -546,7 +546,7 @@ expr ::=
     {: RESULT = new PrefixOpExpr(op,e); :}
   | expr:expr LPAREN:lp arguments:args RPAREN:rp
     {: RESULT = new ApplyExpr(expr,lp,args,rp); :}
-  | expr:e AS:as type:t
+  | expr:e AS:as expr:t
     {: RESULT = new AsExpr(e,as,t); :}
   | expr:e1 IS:is expr:e2
     {: RESULT = new IsExpr(e1,is,e2); :}

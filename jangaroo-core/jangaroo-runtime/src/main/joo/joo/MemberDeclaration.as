@@ -56,7 +56,7 @@ public class MemberDeclaration {
 }
 
   public static function create(memberDeclarationStr : String) : MemberDeclaration {
-    var tokens : Array = memberDeclarationStr.split(/\s+/ as String) as Array;
+    var tokens : Array = memberDeclarationStr.split(/\s+/);
     // ignore imports:
     return tokens[0]=="import" ? null
            : new MemberDeclaration(tokens);
@@ -186,7 +186,7 @@ public class MemberDeclaration {
     var value : * = this.retrieveMember(target);
     if (value!==undefined && target.constructor) {
       // is it really target's own member? Retrieve super's value:
-      var superTarget : Function = target.constructor.prototype as Function;
+      var superTarget : Object = target.constructor.prototype;
       var superValue : * = this.retrieveMember(superTarget);
       if (value!==superValue) {
         return true;

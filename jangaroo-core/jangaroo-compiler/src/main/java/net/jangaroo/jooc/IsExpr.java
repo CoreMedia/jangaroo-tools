@@ -20,18 +20,10 @@ import java.io.IOException;
 /**
  * @author Frank Wienberg
  */
-class IsExpr extends BinaryOpExpr {
+class IsExpr extends BinaryPrefixOpExpr {
 
   public IsExpr(Expr e1, JooSymbol symIs, Expr e2) {
     super(e1, symIs, e2);
   }
 
-  protected void generateJsCode(JsWriter out) throws IOException {
-    out.writeSymbol(op);
-    out.write('(');
-    arg1.generateCode(out);
-    out.write(',');
-    arg2.generateCode(out);
-    out.write(')');
-  }
 }
