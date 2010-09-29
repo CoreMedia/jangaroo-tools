@@ -484,9 +484,9 @@ public class JooTest extends JooRuntimeTestCase {
     import_("package1.TestImplements");
     complete();
     expectString("TestInterface", "package1.TestCatch.testCatch(function() {throw new package1.TestImplements(); })");
-    //todo implement finally expectBoolean(true, "package1.TestCatch.finallyExecuted");
+    expectBoolean(true, "package1.TestCatch.finallyExecuted");
     expectString("ClassToImport", "package1.TestCatch.testCatch(function() {throw new package3.ClassToImport(); })");
-    //todo implement finally expectBoolean(true, "package1.TestCatch.finallyExecuted");
+    expectBoolean(true, "package1.TestCatch.finallyExecuted");
     expectException("package1.TestCatch.testFallThrough()");
   }
 

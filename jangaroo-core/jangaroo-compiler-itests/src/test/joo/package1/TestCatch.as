@@ -30,11 +30,10 @@ public class TestCatch {
       return "ClassToImport";
     } catch (e : TestInterface) {
       return "TestInterface";
-    /*todo implement finally
     } finally {
-      finallyExecuted = false;*/
+      finallyExecuted = true;
     }
-    return "nothing catched";
+    return "nothing caught";
   }
 
   public static function testFallThrough() : void {
