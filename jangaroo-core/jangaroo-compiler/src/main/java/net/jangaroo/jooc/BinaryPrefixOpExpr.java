@@ -12,10 +12,11 @@ public class BinaryPrefixOpExpr extends BinaryOpExpr {
   }
 
   protected void generateJsCode(JsWriter out) throws IOException {
-    out.writeSymbol(op);
+    out.writeSymbolToken(op);
     out.write('(');
     arg1.generateCode(out);
     out.write(',');
+    out.writeSymbolWhitespace(op);
     arg2.generateCode(out);
     out.write(')');
   }
