@@ -44,13 +44,51 @@ public class SystemClassLoader {
     var compilerVersion:String = params[i++];
     var cd : SystemClassDeclaration = this.createClassDeclaration(packageDef, classDef, memberFactory, publicStaticMethodNames, dependencies);
     cd.metadata = metadata;
-    if (runtimeApiVersion !== joo.runtimeApiVersion) {
-      throw new Error("Runtime version " + joo.runtimeApiVersion + " and class version " + runtimeApiVersion
-        + " of " + cd.fullClassName + " do not match. "
-        + "Please recompile with the correct compiler version or replace jangaroo-runtime[-debug].js.");
+    if (!isRuntimeCompatible(runtimeApiVersion, compilerVersion)) {
+      throw new Error("Runtime version " + joo.runtimeApiVersion + "/" + joo.compilerVersion +
+        " and class version " + runtimeApiVersion + "/" + compilerVersion +
+        " of " + cd.fullClassName + " do not match. " +
+        "Please recompile with the correct compiler version or replace jangaroo-runtime[-debug].js.");
     }
     classDeclarationsByName[cd.fullClassName] = cd;
     return cd;
+  }
+
+  private static function toVersionParts(version:String):Array/*int*/ {
+    var parts:Array = version.split(".");
+    for (var i:uint = 0; i < parts.length; ++i) {
+      parts[i] = parseInt(parts[i], 10);
+    }
+    return parts;
+  }
+
+  /**
+   * @internal
+   * Used for runtime-to-class compatibility check. <code>internal</code>, not <code>private</code>, for testing purposes.
+   * A class runtimeApiVersion/compilerVersion is compatible with the current Runtime if
+   * <ul>
+   * <li>the runtimeApiVersion matches the Runtime's runtimeApiVersion exactly and</li>
+   * <li>the compilerVersion is lower or the same as the Runtime's compilerVersion.</li>
+   * </ul>
+   * @param runtimeApiVersion the runtime API version to check for compatibility with the loaded Jangaroo Runtime
+   * @param compilerVersion the compiler version to check for compatibility with the loaded Jangaroo Runtime
+   * @return Boolean whether the given runtimeApiVersion/compilerVersion is compatible with the current Runtime.
+   */
+  internal static function isRuntimeCompatible(runtimeApiVersion:String, compilerVersion:String):Boolean {
+    // The Runtime API version must match exactly:
+    if (runtimeApiVersion !== joo.runtimeApiVersion) {
+      return false;
+    }
+    // The compiler versions must be compared part-by-part:
+    var runtimeCompilerVersionParts:Array/*.<uint>*/ = toVersionParts(joo.compilerVersion);
+    var compilerVersionParts:Array/*.<uint>*/ = toVersionParts(compilerVersion);
+    for (var i:uint = 0; i < compilerVersionParts.length; ++i) {
+      if (compilerVersionParts[i] != runtimeCompilerVersionParts[i]) {
+        // The given class must be compiled with an older or the same compiler version as the Runtime:
+        return compilerVersionParts[i] < runtimeCompilerVersionParts[i];
+      }
+    }
+    return true;
   }
 
   static function addToMetadata(metadata:Object, annotation:*):void {
