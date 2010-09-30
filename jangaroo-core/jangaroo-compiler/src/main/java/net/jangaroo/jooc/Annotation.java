@@ -25,27 +25,29 @@ public class Annotation extends NodeImplBase {
 
   JooSymbol leftBracket;
   Ide ide;
-  ObjectLiteral annotationFields;
+  JooSymbol optLeftParen;
+  CommaSeparatedList<AnnotationParameter> optAnnotationParameters;
+  JooSymbol optRightParen;
   JooSymbol rightBracket;
 
   public Annotation(JooSymbol leftBracket, Ide ide, JooSymbol rightBracket) {
     this(leftBracket, ide, null, null, null, rightBracket);
   }
 
-  public Annotation(JooSymbol leftBracket, Ide ide, JooSymbol leftParen, CommaSeparatedList<ObjectField> annotationFields, JooSymbol rightParen, JooSymbol rightBracket) {
+  public Annotation(JooSymbol leftBracket, Ide ide, JooSymbol optLeftParen, CommaSeparatedList<AnnotationParameter> optAnnotationParameters, JooSymbol optRightParen, JooSymbol optRightBracket) {
     this.leftBracket = leftBracket;
     this.ide = ide;
-    if (leftParen!=null && rightParen!=null) {
-      this.annotationFields = new ObjectLiteral(leftParen, annotationFields, null, rightParen);
-    }
-    this.rightBracket = rightBracket;
+    this.optLeftParen = optLeftParen;
+    this.optRightParen = optRightParen;
+    this.optAnnotationParameters = optAnnotationParameters;
+    this.rightBracket = optRightBracket;
   }
 
   @Override
   public void scope(final Scope scope) {
     ide.scope(scope);
-    if (annotationFields != null) {
-      annotationFields.scope(scope);
+    if (optAnnotationParameters != null) {
+      optAnnotationParameters.scope(scope);
     }
   }
 
@@ -58,12 +60,35 @@ public class Annotation extends NodeImplBase {
     out.writeToken("{");
     ide.generateCode(out);
     out.writeToken(":");
-    if (annotationFields == null) {
-      out.writeToken("{}");
-    } else {
-      annotationFields.generateCode(out);
+    if (optLeftParen != null) {
+      out.writeSymbolWhitespace(optLeftParen);
     }
+    out.writeToken("{");
+    if (optAnnotationParameters != null) {
+      optAnnotationParameters.generateCode(out);
+    }
+    if (optRightParen != null) {
+      out.writeSymbolWhitespace(optRightParen);
+    }
+    out.writeToken("}");
     out.writeSymbolWhitespace(rightBracket);
     out.writeToken("},");
   }
+
+  @Override
+  protected void generateAsApiCode(JsWriter out) throws IOException {
+    out.writeSymbol(leftBracket);
+    ide.generateCode(out);
+    if (optLeftParen != null) {
+      out.writeSymbol(optLeftParen);
+    }
+    if (optAnnotationParameters != null) {
+      optAnnotationParameters.generateCode(out);
+    }
+    if (optRightParen != null) {
+      out.writeSymbol(optRightParen);
+    }
+    out.writeSymbol(rightBracket);
+  }
+
 }

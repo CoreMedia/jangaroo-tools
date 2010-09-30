@@ -260,6 +260,7 @@ nonterminal CompilationUnit compilationUnit;
 nonterminal IdeDeclaration compilationUnitDeclaration;
 nonterminal JooSymbol constOrVar;
 nonterminal JooSymbol optComma;
+nonterminal LiteralExpr literalExpr;
 nonterminal Expr expr;
 nonterminal Extends extends;
 nonterminal FieldDeclaration fieldDeclaration;
@@ -281,9 +282,9 @@ nonterminal Parameters nonEmptyParameters;
 nonterminal CommaSeparatedList nonEmptyObjectFields;
 nonterminal ObjectField objectField;
 nonterminal CommaSeparatedList objectFields;
-nonterminal CommaSeparatedList nonEmptyAnnotationFields;
-nonterminal ObjectField annotationField;
-nonterminal CommaSeparatedList annotationFields;
+nonterminal CommaSeparatedList nonEmptyAnnotationParameters;
+nonterminal AnnotationParameter annotationParameter;
+nonterminal CommaSeparatedList annotationParameters;
 nonterminal ObjectLiteral objectLiteral;
 nonterminal Statement optBody;
 nonterminal ArrayList optCatches;
@@ -467,31 +468,31 @@ directive ::=
     {: RESULT = new ImportDirective(i,new QualifiedIde(ide,dot,star)); :}
   | LBRACK:lb ide:ide RBRACK:rb
     {: RESULT = new Annotation(lb, ide, rb); :}
-  | LBRACK:lb ide:ide LPAREN:lb2 annotationFields:af RPAREN:rb2 RBRACK:rb
-    {: RESULT = new Annotation(lb, ide, lb2, af, rb2, rb); :}
+  | LBRACK:lb ide:ide LPAREN:lb2 annotationParameters:ap RPAREN:rb2 RBRACK:rb
+    {: RESULT = new Annotation(lb, ide, lb2, ap, rb2, rb); :}
   | USE:u ide:n qualifiedIde:namespace
     {: RESULT = new UseNamespaceDirective(u, n.ide, namespace); :}
   | SEMICOLON:s
     {: RESULT = new EmptyDeclaration(s); :}
   ;
 
-nonEmptyAnnotationFields ::=
-    annotationField:f
-    {: RESULT = new CommaSeparatedList(f); :}
-  | annotationField:f COMMA:c nonEmptyAnnotationFields:tail
-    {: RESULT = new CommaSeparatedList(f, c, tail); :}
+nonEmptyAnnotationParameters ::=
+    annotationParameter:ap
+    {: RESULT = new CommaSeparatedList(ap); :}
+  | annotationParameter:ap COMMA:c nonEmptyAnnotationParameters:tail
+    {: RESULT = new CommaSeparatedList(ap, c, tail); :}
   ;
 
-annotationField ::=
-    ide:name EQ:eq expr:value
-    {: RESULT = new ObjectField(name,eq,value); :}
-  | expr:value
-    {: RESULT = new ObjectField(null,null,value); :}
+annotationParameter ::=
+    ide:name EQ:eq literalExpr:value
+    {: RESULT = new AnnotationParameter(name,eq,value); :}
+  | literalExpr:value
+    {: RESULT = new AnnotationParameter(null,null,value); :}
   ;
 
-annotationFields ::=
+annotationParameters ::=
     {: RESULT = null; :}
-  | nonEmptyAnnotationFields:f
+  | nonEmptyAnnotationParameters:f
     {: RESULT = f; :}
   ;
 
@@ -501,7 +502,7 @@ optDirectives ::=
     {: RESULT = ds; RESULT.add(0,d); :}
   ;
 
-expr ::=
+literalExpr ::=
     INT_LITERAL:l
     {: RESULT = new LiteralExpr(l); :}
   | FLOAT_LITERAL:l
@@ -514,6 +515,11 @@ expr ::=
     {: RESULT = new LiteralExpr(l); :}
   | NULL_LITERAL:l
     {: RESULT = new LiteralExpr(l); :}
+  ;
+
+expr ::=
+    literalExpr:le
+    {: RESULT = le; :}
   | objectLiteral:e
     {: RESULT = e; :}
   | arrayLiteral:v

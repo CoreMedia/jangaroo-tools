@@ -39,16 +39,12 @@ class ObjectLiteral extends Expr {
   }
  
   protected void generateJsCode(JsWriter out) throws IOException {
-    // do not rely on the symbol actually being a left brace:
-    out.writeSymbolWhitespace(lBrace);
-    out.writeToken("{");
+    out.writeSymbol(lBrace);
     if (fields != null)
       fields.generateCode(out);
     if (optComma != null)
       out.writeSymbol(optComma);
-    // do not rely on the symbol actually being a right brace:
-    out.writeSymbolWhitespace(rBrace);
-    out.writeToken("}");
+    out.writeSymbol(rBrace);
   }
 
   @Override

@@ -18,41 +18,58 @@ package net.jangaroo.jooc;
 import java.io.IOException;
 
 /**
- * @author Andreas Gawecki
+ * @author Frank Wienberg
  */
-class ObjectField extends NodeImplBase {
+class AnnotationParameter extends NodeImplBase {
 
-  AstNode label;
-  JooSymbol symColon;
-  Expr value;
+  Ide optName;
+  JooSymbol optSymEq;
+  LiteralExpr value;
 
-  public ObjectField(AstNode node, JooSymbol symColon, Expr value) {
-    this.label = node;
-    this.symColon = symColon;
+  public AnnotationParameter(Ide optName, JooSymbol optSymEq, LiteralExpr value) {
+    this.optName = optName;
+    this.optSymEq = optSymEq;
     this.value = value;
   }
 
   @Override
   public void scope(final Scope scope) {
-    label.scope(scope);
-    value.scope(scope);
+    if (value != null) {
+      // TODO: is value really optional?
+      value.scope(scope);
+    }
   }
 
   public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
-    label = label.analyze(this, context);
-    value = value.analyze(this, context);
+    if (value != null) {
+      value = (LiteralExpr)value.analyze(this, context);
+    }
     return this;
   }
 
+  @Override
+  protected void generateAsApiCode(JsWriter out) throws IOException {
+    if (optName != null && optSymEq != null) {
+      optName.generateCode(out);
+      out.writeSymbol(optSymEq);
+    }
+    value.generateCode(out);
+  }
+
   protected void generateJsCode(JsWriter out) throws IOException {
-    label.generateCode(out);
-    out.writeSymbol(symColon);
+    if (optName != null && optSymEq != null) {
+      optName.generateCode(out);
+      out.writeSymbolWhitespace(optSymEq);
+    } else {
+      out.writeToken("$value");
+    }
+    out.writeToken(":");
     value.generateCode(out);
   }
 
   public JooSymbol getSymbol() {
-    return label.getSymbol();
+    return optName == null ? value.getSymbol() : optName.getSymbol();
   }
 
 
