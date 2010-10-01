@@ -47,8 +47,10 @@
       if (object instanceof type || object.constructor===type) {
         return true;
       }
-      if (type["$class"]) {
-        return type["$class"].isInstance(object);
+      var classDeclaration = type["$class"];
+      if (classDeclaration) {
+        classDeclaration.init(); // make sure it is initialized!
+        return classDeclaration.isInstance(object);
       }
       return false;
     },

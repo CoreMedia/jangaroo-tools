@@ -57,9 +57,9 @@ public class DynamicClassLoader extends StandardClassLoader {
     var cd:SystemClassDeclaration = super.prepare.apply(this, params) as SystemClassDeclaration;
     this.pendingDependencies.push(cd);
     if (delete this.pendingClassState[cd.fullClassName]) {
-      if (this.debug) {
-        trace("prepared class " + cd.fullClassName + ", removed from pending classes.");
-      }
+//      if (this.debug) {
+//        trace("prepared class " + cd.fullClassName + ", removed from pending classes.");
+//      }
       if (this.onCompleteCallbacks.length) {
         this.loadPendingDependencies();
         if (isEmpty(this.pendingClassState)) {
@@ -91,7 +91,7 @@ public class DynamicClassLoader extends StandardClassLoader {
   }
 
   public function classLoadErrorHandler(fullClassName:String, url:String):void {
-    trace("Class "+fullClassName+" not found at URL ["+url+"].");
+    trace("[ERROR] Jangaroo Runtime: Class "+fullClassName+" not found at URL ["+url+"].");
   }
 
   /**
@@ -117,18 +117,18 @@ public class DynamicClassLoader extends StandardClassLoader {
         if (this.pendingClassState[fullClassName]===undefined) {
           // we are not yet in completion phase: just add to pending classes:
           this.pendingClassState[fullClassName] = false;
-          if (this.debug) {
-            trace("added to pending classes: "+fullClassName+".");
-          }
+//          if (this.debug) {
+//            trace("added to pending classes: "+fullClassName+".");
+//          }
         }
       } else {
         if (this.pendingClassState[fullClassName]!==true) {
           // trigger loading:
           this.pendingClassState[fullClassName] = true;
           var url:String = this.getUri(fullClassName);
-          if (this.debug) {
-            trace("triggering to load class " + fullClassName + " from URL " + url + ".");
-          }
+//          if (this.debug) {
+//            trace("triggering to load class " + fullClassName + " from URL " + url + ".");
+//          }
           var script:Object = this.loadScript(url);
           // script.onerror does not work in IE, but since this feature is for debugging only, we don't mind:
           script.onerror = this.createClassLoadErrorHandler(fullClassName, script['src']);
@@ -160,7 +160,7 @@ public class DynamicClassLoader extends StandardClassLoader {
       }
     }
     if (this.debug) {
-      trace("WARNING: no joo.classLoader.urlPrefix set and Jangaroo Runtime script element not found. "
+      trace("[WARN] Jangaroo Runtime: No joo.classLoader.urlPrefix set and Jangaroo Runtime script element not found. "
         + "Falling back to standard urlPrefix '" + STANDARD_URL_PREFIX + "'.");
     }
     return STANDARD_URL_PREFIX;
@@ -200,7 +200,7 @@ public class DynamicClassLoader extends StandardClassLoader {
   }
 
   private static function defaultOnCompleteCallback() : void {
-    trace("All classes loaded!");
+    trace("[INFO] Jangaroo Runtime: All classes loaded!");
   }
 
   private function loadPendingDependencies():void {

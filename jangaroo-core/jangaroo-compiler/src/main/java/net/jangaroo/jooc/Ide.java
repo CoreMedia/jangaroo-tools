@@ -238,16 +238,22 @@ public class Ide extends NodeImplBase {
     addExternalUsage();
     //todo handle references to static super members
     // check access to another class or a constant of another class; other class then must be initialized:
-    if (!(exprParent instanceof ApplyExpr)) {
+    if (!(exprParent instanceof ApplyExpr) && !(exprParent instanceof NewExpr) && !(exprParent instanceof IsExpr) && !(exprParent instanceof AsExpr)) {
       ClassDeclaration classDeclaration = getScope().getClassDeclaration();
       if (classDeclaration != null) {
         if (isQualified()) {
           // access to constant of other class?
-          classDeclaration.addInitIfClass(getQualifier());
+          // TODO: If the static member is a method, we should not add a class init.
+          //       Unfortunately, declaration information seems not to be available at this point in time.
+          if (classDeclaration.addInitIfClass(getQualifier())) {
+            //System.out.println(" adding class init " + getQualifier() + " because constant used in " + exprParent);
+          }
         }
         // access to other class?
         if (!isQualifier()) {
-          classDeclaration.addInitIfClass(this);
+          if (classDeclaration.addInitIfClass(this)) {
+            //System.out.println(" adding class init " + this + " because class used in " + exprParent);
+          }
         }
       }
     }

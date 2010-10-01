@@ -71,11 +71,20 @@ public class NativeClassDeclaration {
     this.Public = createEmptyConstructor(this.publicConstructor);
   }
 
+  private static var initializationDepth:String = "";
+
   public function init() : NativeClassDeclaration {
     if (!this.inited) {
       this.inited = true;
       this.complete();
+      if (classLoader.debug) {
+        trace("[INFO] Jangaroo Runtime: initializing class " + initializationDepth + this.fullClassName);
+        initializationDepth += "  ";
+      }
       this.doInit();
+      if (classLoader.debug) {
+        initializationDepth = initializationDepth.substr(0, initializationDepth.length - 2);
+      }
     }
     return this;
   }
