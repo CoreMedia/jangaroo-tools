@@ -66,7 +66,7 @@ abstract class Declaration extends NodeImplBase {
   }
 
   protected void setInheritedModifiers(final JooSymbol[] modifiers) {
-    symInheritedModifiers = modifiers;
+    symInheritedModifiers = modifiers.clone();
     computeModifiers();
   }
 

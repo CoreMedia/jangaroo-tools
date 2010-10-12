@@ -245,15 +245,11 @@ public class Ide extends NodeImplBase {
           // access to constant of other class?
           // TODO: If the static member is a method, we should not add a class init.
           //       Unfortunately, declaration information seems not to be available at this point in time.
-          if (classDeclaration.addInitIfClass(getQualifier())) {
-            //System.out.println(" adding class init " + getQualifier() + " because constant used in " + exprParent);
-          }
+          classDeclaration.addInitIfClass(getQualifier());
         }
         // access to other class?
         if (!isQualifier()) {
-          if (classDeclaration.addInitIfClass(this)) {
-            //System.out.println(" adding class init " + this + " because class used in " + exprParent);
-          }
+          classDeclaration.addInitIfClass(this);
         }
       }
     }

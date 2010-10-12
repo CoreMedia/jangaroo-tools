@@ -25,7 +25,7 @@ public class ZipFileInputSource extends DirectoryInputSource {
     super();
     this.file = file;
     this.zipFile = new ZipFile(file);
-    this.rootDirs = rootDirs;
+    this.rootDirs = rootDirs.clone();
     final Enumeration<? extends ZipEntry> zipEntryEnum = zipFile.entries();
     while (zipEntryEnum.hasMoreElements()) {
       ZipEntry entry = zipEntryEnum.nextElement();

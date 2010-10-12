@@ -270,13 +270,11 @@ public class ClassDeclaration extends IdeDeclaration {
     return staticMembers.get(memberName);
   }
 
-  public boolean addInitIfClass(Ide ide) {
+  public void addInitIfClass(Ide ide) {
     final IdeDeclaration decl = ide.getDeclaration(false);
     if (decl != null && decl != this && decl instanceof ClassDeclaration) {
       classInit.add(decl.getQualifiedNameStr());
-      return true;
     }
-    return false;
   }
 
   public boolean isSubclassOf(final ClassDeclaration classDeclaration) {
