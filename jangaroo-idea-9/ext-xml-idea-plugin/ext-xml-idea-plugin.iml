@@ -13,8 +13,8 @@
     <orderEntry type="module-library">
       <library name="ext-xml">
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/net/jangaroo/jangaroo-utils/0.7.0/jangaroo-utils-0.7.0.jar!/" />
-          <root url="jar://$MAVEN_REPOSITORY$/net/jangaroo/ext-xml/0.7.0/ext-xml-0.7.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/net/jangaroo/ext-xml/0.7.7/ext-xml-0.7.7.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/net/jangaroo/jangaroo-utils/0.7.7/jangaroo-utils-0.7.7.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>
@@ -26,7 +26,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/net/jangaroo/properties-compiler/0.7.0/properties-compiler-0.7.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/net/jangaroo/properties-compiler/0.7.7/properties-compiler-0.7.7.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

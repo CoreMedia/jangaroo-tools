@@ -14,7 +14,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/edu/princeton/cup/java-cup-runtime/10k/java-cup-runtime-10k.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/edu/princeton/cup/java-cup/10k/java-cup-10k.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -23,8 +23,8 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/net/jangaroo/jangaroo-compiler/0.7.1/jangaroo-compiler-0.7.1.jar!/" />
-          <root url="jar://$MAVEN_REPOSITORY$/net/jangaroo/jangaroo-utils/0.7.1/jangaroo-utils-0.7.1.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/net/jangaroo/jangaroo-compiler/0.7.7/jangaroo-compiler-0.7.7.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/net/jangaroo/jangaroo-utils/0.7.7/jangaroo-utils-0.7.7.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>
