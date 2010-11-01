@@ -39,11 +39,13 @@ public class MemberDeclaration {
           VIRTUAL : String = "virtual";
 
   private static var SUPPORTS_GETTERS_SETTERS : Boolean;
+  private static var SUPPORTS_PROPERTIES : Boolean;
   private static var DEFINE_METHOD : Object;
   private static var LOOKUP_METHOD : Object;
 
 {
   // no static initializers in system classes, use static block:
+  SUPPORTS_PROPERTIES = "defineProperty" in Object;
   SUPPORTS_GETTERS_SETTERS = "__defineGetter__" in Object['prototype'];
   DEFINE_METHOD = {
     "get":  "__defineGetter__",
@@ -201,7 +203,9 @@ public class MemberDeclaration {
     }
     var slot : String = this.slot;
     if (this.getterOrSetter) {
-      if (SUPPORTS_GETTERS_SETTERS) {
+      if (SUPPORTS_PROPERTIES) {
+        return _lookupPropertyDescriptor(target);
+      } else if (SUPPORTS_GETTERS_SETTERS) {
         return target[LOOKUP_METHOD[this.getterOrSetter]](slot);
       } else {
         slot = this.getterOrSetter+"$"+slot;
@@ -210,12 +214,35 @@ public class MemberDeclaration {
     return target[slot];
   }
 
+  internal function _lookupPropertyDescriptor(target:Object):Object {
+    var slot:String = this.slot;
+    do {
+      var propertyDescriptor:Object = Object['getOwnPropertyDescriptor'](target, slot);
+      if (propertyDescriptor) {
+        var getterOrSetter:Function = propertyDescriptor[this.getterOrSetter];
+        if (getterOrSetter) {
+          return getterOrSetter;
+        }
+      }
+      var oldTarget:Object = target;
+      target = target.constructor ? target.constructor.prototype : null;
+    } while (target && target !== oldTarget);
+    return undefined;
+  }
+
   public function storeMember(target : Object) : void {
     // store only if not native:
     if (!this.isNative()) {
       var slot : String = this.slot;
       if (this.getterOrSetter) {
-        if (SUPPORTS_GETTERS_SETTERS) {
+        if (SUPPORTS_PROPERTIES) {
+          // we have to redefine the property as a whole, so we look up the existing definition first:
+          var propertyDescriptor:Object = _lookupPropertyDescriptor(target)
+            || { configurable: true, enumerable: true };
+          propertyDescriptor[this.getterOrSetter] = this.value;
+          Object['defineProperty'](target, slot, propertyDescriptor);
+          return;
+        } else if (SUPPORTS_GETTERS_SETTERS) {
           // defining a getter or setter disables the counterpart setter/getter from the prototype,
           // so copy that setter/getter before, if "target" does not already define it:
           var oppositeMethodType:* = this.getterOrSetter==METHOD_TYPE_GET ? METHOD_TYPE_SET : METHOD_TYPE_GET;
