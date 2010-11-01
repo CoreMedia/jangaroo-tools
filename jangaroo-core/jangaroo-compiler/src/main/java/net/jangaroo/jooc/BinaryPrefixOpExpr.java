@@ -11,6 +11,13 @@ public class BinaryPrefixOpExpr extends BinaryOpExpr {
     super(arg1, op, arg2);
   }
 
+  @Override
+  protected void generateAsApiCode(JsWriter out) throws IOException {
+    arg1.generateCode(out);
+    out.writeSymbol(op);
+    arg2.generateCode(out);
+  }
+
   protected void generateJsCode(JsWriter out) throws IOException {
     out.writeSymbolToken(op);
     out.write('(');
