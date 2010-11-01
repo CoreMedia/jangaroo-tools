@@ -353,19 +353,30 @@ public class Ide extends NodeImplBase {
     out.writeToken(")");
   }
 
-  static void writeMemberAccess(IdeDeclaration memberDeclaration, final JooSymbol optSymDot, Ide memberIde, boolean writeMemberWhitespace, final JsWriter out) throws IOException {
+  static void writeMemberAccess(IdeDeclaration memberDeclaration, JooSymbol optSymDot, Ide memberIde, boolean writeMemberWhitespace, final JsWriter out) throws IOException {
     if (memberDeclaration != null) {
       if (memberIde.isQualifiedBySuper() || memberDeclaration.isPrivate()) {
         writePrivateMemberAccess(optSymDot, memberIde, writeMemberWhitespace, memberDeclaration.isStatic(), out);
         return;
       }
     }
+    if (optSymDot == null && memberDeclaration != null && !memberDeclaration.isConstructor()) {
+      optSymDot = new JooSymbol(".");
+    }
+    boolean quote = false;
     if (optSymDot != null) {
-      out.writeSymbol(optSymDot);
-    } else if (memberDeclaration != null && !memberDeclaration.isConstructor()) {
-      out.writeToken(".");
+      if (memberIde.ide.getText().startsWith("@")) {
+        quote = true;
+        out.writeSymbolWhitespace(optSymDot);
+        out.writeToken("['");
+      } else {
+        out.writeSymbol(optSymDot);
+      }
     }
     out.writeSymbol(memberIde.ide, writeMemberWhitespace);
+    if (quote) {
+      out.writeToken("']");
+    }
   }
 
   protected static IdeDeclaration resolveMember(final IdeDeclaration type, final Ide memberIde) {
