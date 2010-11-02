@@ -15,12 +15,10 @@
 
 package net.jangaroo.jooc;
 
-import java.io.IOException;
-
 /**
  * @author Frank Wienberg
  */
-class IsExpr extends BinaryPrefixOpExpr {
+class IsExpr extends InfixOpExpr {
 
   public IsExpr(Expr e1, JooSymbol symIs, Expr e2) {
     super(e1, symIs, e2);

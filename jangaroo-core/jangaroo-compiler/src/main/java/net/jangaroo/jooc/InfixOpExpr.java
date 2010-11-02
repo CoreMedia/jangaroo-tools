@@ -3,11 +3,12 @@ package net.jangaroo.jooc;
 import java.io.IOException;
 
 /**
- * A BinaryOpExpr where the operand is generated as a function receiving the two arguments.
+ * A BinaryOpExpr for AS3 infix operators that are not supported directly in JS.
+ * For JS, the operand is generated as a function receiving the two arguments.
  * @author Frank Wienberg
  */
-public class BinaryPrefixOpExpr extends BinaryOpExpr {
-  public BinaryPrefixOpExpr(Expr arg1, JooSymbol op, Expr arg2) {
+public class InfixOpExpr extends BinaryOpExpr {
+  public InfixOpExpr(Expr arg1, JooSymbol op, Expr arg2) {
     super(arg1, op, arg2);
   }
 
