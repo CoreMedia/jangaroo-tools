@@ -109,13 +109,20 @@ package net.jangaroo.jooc;
   }
 
   protected void startRegexp(JooSymbol regexpStart) {
-    multiStateText = regexpStart.getText();
+    multiStateText = "";
     string.setLength(0);
-    string.append(multiStateText);
+    whitespace = regexpStart.getWhitespace();
     assert(regexpStart.sym == sym.DIV || regexpStart.sym == sym.DIVEQ);
-    yybegin(regexpStart.sym == sym.DIV ? REGEXP_FIRST : REGEXP_REST);
+    pushback(regexpStart.sym == sym.DIVEQ ? 2 : 1);
+    yybegin(REGEXP_START);
   }
-  
+
+  // workaround for bug in jflex column counting, works only if no newline is in these n characters 
+  private void pushback(int n) {
+    yypushback(n);
+    yycolumn -= n;
+  }
+
 %}
 
 LineTerminator = [\n\r\u2028\u2029]
@@ -142,15 +149,20 @@ Exponent = [eE] [+-]? [0-9]+
 
 InvalidRegexpFlag = [$_]|[:letter:]
 
-/* Regexp fragments translated from ECMA-262 grammar: */
+/*
+ Regexp fragments translated from ECMA-262 grammar. These contain rules of the form "a but not b".
+ From the jflex manual: By applying DeMorgan we get set difference:
+ the expression that matches everything of a not matched by b is !(!a|b)
+*/
 RegularExpressionFirstChar = (!(!{RegularExpressionNonTerminator}|[*\\\/\[])) | {RegularExpressionBackslashSequence} | {RegularExpressionClass}
 RegularExpressionChar = (!(!{RegularExpressionNonTerminator}|[\\\/\[])) | {RegularExpressionBackslashSequence} | {RegularExpressionClass}
 RegularExpressionBackslashSequence = "\\" {RegularExpressionNonTerminator}
+
 RegularExpressionNonTerminator = [^\n\r\u2028\u2029]
 RegularExpressionClass = "[" {RegularExpressionClassChar}* "]"
 
 /* Flex compc does not accept an unquoted / within a character class, contrary to ECMA.262: */
-RegularExpressionClassChar = [^\n\r\u2028\u2029\]\\\/] | {RegularExpressionBackslashSequence}
+RegularExpressionClassChar = [^\n\r\u2028\u2029\]\\] | {RegularExpressionBackslashSequence}
 
 RegularExpressionFlag = {IdentifierStart}
 
@@ -160,7 +172,7 @@ HexDigit          = [0-9abcdefABCDEF]
 
 Include           = "include \"" ~"\""
 
-%state STRING_SQ, STRING_DQ, REGEXP_FIRST, REGEXP_REST
+%state STRING_SQ, STRING_DQ, REGEXP_START, REGEXP_FIRST, REGEXP_REST
 
 %%
 
@@ -316,6 +328,10 @@ Include           = "include \"" ~"\""
 }
 
 
+<REGEXP_START> {
+  "/"                             { multiStateText += yytext(); string.append(yytext()); yybegin(REGEXP_FIRST); }
+}
+
 <REGEXP_FIRST> {
   {RegularExpressionFirstChar}    { multiStateText += yytext(); string.append(yytext()); yybegin(REGEXP_REST); }
   {LineTerminator}                { error("unterminated regular expression at end of line"); }
@@ -331,11 +347,7 @@ Include           = "include \"" ~"\""
 }
 
 /* error catchall */
-<YYINITIAL,STRING_DQ,STRING_SQ,REGEXP_FIRST,REGEXP_REST> .|\n
-                                  { char ch = yytext().charAt(0);
-                                    String hex = Integer.toHexString((int)ch);
-                                    while (hex.length() < 4)
-                                      hex = "0"+hex;
-                                    error("illegal character: \\u" + hex);
-                                  }
+<YYINITIAL,STRING_DQ> .|\n                     { error("unrecognized input token"); }
+<REGEXP_START,REGEXP_FIRST,REGEXP_REST> .|\n   { error("invalid regular expression literal"); } //todo be more precise
+
 <<EOF>>                           { if (yymoreStreams()) yypopStream(); else return symbol(EOF); }
