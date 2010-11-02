@@ -303,7 +303,7 @@ public class JooTest extends JooRuntimeTestCase {
     expectString("ActionScript <span class='heavy'>3.0</span>", "obj.testStringLiterals3()");
     expectString("<item id=\"155\">banana</item>", "obj.testStringLiterals4()");
     expectString(dq, "obj.testCharLiterals()");
-    expectString("2,7,2,2,4,2,3", "obj.testRegexpLiterals()");
+    expectString("2,7,2,2,4,2,3,10", "obj.testRegexpLiterals()");
     expectNumber(18, "obj.antitestRegexpLiterals1()");
     expectNumber(34, "obj.antitestRegexpLiterals2((99*2),2,{p:3})");
     expectNumber(33, "obj.antitestRegexpLiterals3()");

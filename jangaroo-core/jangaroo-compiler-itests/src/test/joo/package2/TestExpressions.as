@@ -59,8 +59,9 @@ public class TestExpressions {
       "=abc\n\tAbc".match(/=(abc)(\s+)(a)/i).length,
       "abc\n\tAbc".match(/c(\s+)a/i).length,
       // note that compc (3+4) does not accept an unquoted / within a character class, as well as earlier Thino versions:
-      "/opt/net/jangaroo/$as3-w/o-flash.html".match(/(\w|[_.\-])+([A-Za-z0-9_\/.\-$])+\w+/).length
-      //todo rhino reports invalid quantifier '+': ,"info@jangaroo.net".match(/(\w|[_.\-])+@((\w|-)+\.)+\w{2,4}+/)
+      "/opt/net/jangaroo/$as3-w/o-flash.html".match(/(\w|[_.\-])+([A-Za-z0-9_\/.\-$])+\w+/).length,
+     //todo rhino reports invalid quantifier '+': ,"info@jangaroo.net".match(/(\w|[_.\-])+@((\w|-)+\.)+\w{2,4}+/)
+      "http://a/b/c/g#s/../x".match(/^(([^:/?#]+):)?(\/\/([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?/).length
       ].join(',');
   }
 
