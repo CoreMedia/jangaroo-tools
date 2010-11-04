@@ -19,7 +19,7 @@
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-runtime</artifactId>
       <version>0.7.9-SNAPSHOT</version>
-      <type>jangaroo</type>
+      <type>jar</type>
     </dependency>
 
     <dependency>
@@ -65,7 +65,7 @@
                 <artifactItem>
                   <groupId>net.jangaroo</groupId>
                   <artifactId>jangaroo-runtime</artifactId>
-                  <type>jangaroo</type>
+                  <type>jar</type>
                   <version>${project.version}</version>
                 </artifactItem>
               </artifactItems>
@@ -123,7 +123,7 @@
                   <src path="${basedir}/src/test/joo-api" />
                 </jooc>
 
-                <property name="jangaroo-runtime.jar" value="${net.jangaroo:jangaroo-runtime:jangaroo}" />
+                <property name="jangaroo-runtime.jar" value="${net.jangaroo:jangaroo-runtime:jar}" />
                 <property name="destdir" value="target/temp/scripts" />
 
                 <mkdir dir="${destdir}/META-INF/joo-api" />

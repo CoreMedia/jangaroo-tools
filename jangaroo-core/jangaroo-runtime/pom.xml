@@ -140,7 +140,7 @@
               <artifacts>
                 <artifact>
                   <file>${basedir}/target/jangaroo-runtime-${project.version}.jar</file>
-                  <type>jangaroo</type>
+                  <type>jar</type>
                 </artifact>
                 <artifact>
                   <file>${basedir}/target/jangaroo-runtime-sources-${project.version}.jar</file>
