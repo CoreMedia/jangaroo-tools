@@ -45,6 +45,14 @@
 
     <plugins>
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-deploy-plugin</artifactId>
+        <version>2.5</version>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+      <plugin>
         <groupId>net.jangaroo</groupId>
         <artifactId>jangaroo-lifecycle</artifactId>
         <version>0.7.1</version>
@@ -103,8 +111,6 @@
             <phase>process-test-resources</phase>
             <configuration>
               <tasks>
-
-
                 <unzip src="${basedir}/target/jangaroo-runtime-${project.version}.jar" dest="${basedir}/target/temp" />
 
                 <property name="runtime.classpath" refid="maven.runtime.classpath" />
