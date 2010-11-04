@@ -17,12 +17,12 @@
   <url>http://repo.jangaroo.net/site/jangaroo-core/</url>
 
   <modules>
+    <module>jangaroo-utils</module>
     <module>ext-xml</module>
     <module>properties-compiler</module>
     <module>jangaroo-runtime</module>
     <module>jangaroo-compiler</module>
     <module>jangaroo-compiler-itests</module>
-    <module>jangaroo-utils</module>
   </modules>
 
   <build>
