@@ -10,9 +10,9 @@
 
   <modules>
     <module>jangaroo-parent</module>
+    <module>jangaroo-core</module>
     <module>jangaroo-maven</module>
     <module>jangaroo-hudson-plugin</module>
-    <module>jangaroo-core</module>
   </modules>
 
   <build>
