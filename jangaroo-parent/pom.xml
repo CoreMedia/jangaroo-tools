@@ -5,7 +5,7 @@
   <packaging>pom</packaging>
   <artifactId>jangaroo-parent</artifactId>
   <groupId>net.jangaroo</groupId>
-  <version>0.7.8</version>
+  <version>0.7.9-SNAPSHOT</version>
   <name>Jangaroo Default Settings</name>
   <inceptionYear>2002</inceptionYear>
 
