@@ -204,7 +204,8 @@ public class MemberDeclaration {
     var slot : String = this.slot;
     if (this.getterOrSetter) {
       if (SUPPORTS_PROPERTIES) {
-        return _lookupPropertyDescriptor(target);
+        var propertyDescriptor:Object = _lookupPropertyDescriptor(target);
+        return propertyDescriptor ? propertyDescriptor[this.getterOrSetter] : undefined;
       } else if (SUPPORTS_GETTERS_SETTERS) {
         return target[LOOKUP_METHOD[this.getterOrSetter]](slot);
       } else {
@@ -219,10 +220,7 @@ public class MemberDeclaration {
     do {
       var propertyDescriptor:Object = Object['getOwnPropertyDescriptor'](target, slot);
       if (propertyDescriptor) {
-        var getterOrSetter:Function = propertyDescriptor[this.getterOrSetter];
-        if (getterOrSetter) {
-          return getterOrSetter;
-        }
+        return propertyDescriptor;
       }
       var oldTarget:Object = target;
       target = target.constructor ? target.constructor.prototype : null;
