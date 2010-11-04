@@ -1,11 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <parent>
-    <groupId>net.jangaroo</groupId>
-    <artifactId>jangaroo-core</artifactId>
-    <version>0.7.8-SNAPSHOT</version>
-    <relativePath>../pom.xml</relativePath>
-  </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>net.jangaroo</groupId>
   <artifactId>jangaroo-runtime</artifactId>
@@ -13,6 +7,13 @@
   <!-- Do not use jangaroo plugin here since you can't use AND create a plugin in one multi module project! -->
   <name>Joo Runtime</name>
   <version>0.7.8-SNAPSHOT</version>
+
+  <parent>
+    <artifactId>jangaroo-parent</artifactId>
+    <groupId>net.jangaroo</groupId>
+    <version>0.7.8-SNAPSHOT</version>
+    <relativePath>../../jangaroo-parent/pom.xml</relativePath>
+  </parent>
 
   <build>
     <sourceDirectory>src/main/joo</sourceDirectory>

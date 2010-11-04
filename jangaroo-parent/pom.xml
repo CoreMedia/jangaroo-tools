@@ -7,8 +7,15 @@
   <groupId>net.jangaroo</groupId>
   <version>0.7.8-SNAPSHOT</version>
   <name>Jangaroo Default Settings</name>
+  <inceptionYear>2002</inceptionYear>
 
   <url>http://repo.jangaroo.net/site/jangaroo-parent</url>
+
+  <!--parent>
+    <groupId>org.sonatype.oss</groupId>
+    <artifactId>oss-parent</artifactId>
+    <version>5</version>
+  </parent-->
 
   <licenses>
     <license>
@@ -96,6 +103,11 @@
     </developer>
   </developers>
 
+  <scm>
+    <url>http://github.com/CoreMedia/jangaroo-tools</url>
+    <connection>scm:git:git://github.com/CoreMedia/jangaroo-tools.git</connection>
+    <developerConnection>scm:git:git@github.com:CoreMedia/jangaroo-tools.git</developerConnection>
+  </scm>
   
   <distributionManagement>
     <downloadUrl>http://repo.jangaroo.net/maven2</downloadUrl>
@@ -141,6 +153,35 @@
     </repository>
   </repositories>
 
+  <profiles>
+    <profile>
+      <id>release-signing</id>
+      <activation>
+        <property>
+          <name>performRelease</name>
+          <value>true</value>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>1.1</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles> 
 
   <build>
     <extensions>
@@ -300,5 +341,14 @@
     </dependencies>
 
   </dependencyManagement>
+
+  <reporting>
+    <plugins>
+      <plugin>
+        <artifactId>maven-plugin-plugin</artifactId>
+        <version>2.6</version>
+      </plugin>
+    </plugins>
+  </reporting>
 
 </project>
