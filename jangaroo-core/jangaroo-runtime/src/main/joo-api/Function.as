@@ -66,8 +66,6 @@ public class Function extends Object {
    */
   public native function call(thisArg : * = NaN, ... args):Object;
 
-  public native function bind(thisArg:Object):Function;
-
   /**
     * A reference to the prototype object of a class or function object. The prototype property is automatically created
     * and attached to any class or function object that you create. If you create a class, the value of the prototype property is
