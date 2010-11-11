@@ -594,6 +594,13 @@ public class JooTest extends JooRuntimeTestCase {
     //expectString("bar", "package1.TestAnnotations.$class.getMemberDeclaration('public','TestAnnotations').metadata.foo");
   }
 
+  public void testTrace() throws Exception {
+    import_("package1.TestTrace");
+    complete();
+    eval("new package1.TestTrace()");
+    // TODO: so far, we only test for errors. Find a way to check the actual console output.
+  }
+
   public static void main(String args[]) {
     junit.textui.TestRunner.run(JooTest.class);
   }
