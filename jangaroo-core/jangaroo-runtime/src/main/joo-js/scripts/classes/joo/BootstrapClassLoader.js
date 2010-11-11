@@ -7,7 +7,6 @@
     empty.prototype =  object;
     return new empty();
   }
-  var toString = Object.prototype.toString;
   function createGetQualified(create) {
     return (function(name) {
       var object = theGlobalObject;
@@ -15,9 +14,12 @@
         var parts = name.split(".");
         for (var i=0; i<parts.length; ++i) {
           var subobject = object[parts[i]];
-          // ignore Rhino Java packages:
-          if(toString.call(subobject).indexOf("[JavaPackage")==0) {
-            subobject =  null;
+          try {
+            if(String(subobject).indexOf("[JavaPackage")==0) {
+              subobject =  null;
+            }
+          } catch(e) {
+            // ignore
           }
           if (!subobject) {
             if (create) {
