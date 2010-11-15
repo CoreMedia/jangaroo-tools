@@ -1,6 +1,7 @@
-// function trace(msg : String) : void
-joo.trace = function joo$trace(msg) {
-  var logLevelMatches = String(msg).match(/^\[([A-Z]+)\]\s*(.*)$/);
+// function trace(...msg) : void
+joo.trace = function joo$trace() {
+  var msg = Array.prototype.join.call(arguments, " ");
+  var logLevelMatches = msg.match(/^\[(LOG|INFO|WARN|ERROR)\]\s*(.*)$/);
   var logLevel = logLevelMatches ? logLevelMatches[1].toLowerCase() : null;
   msg = "AS3: " + msg;
   var console;
