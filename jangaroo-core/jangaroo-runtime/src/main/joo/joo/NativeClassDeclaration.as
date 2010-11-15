@@ -27,13 +27,18 @@ public class NativeClassDeclaration {
     return emptyConstructor;
   }
 
+  internal static const STATE_LOADED : int = 0;
+  internal static const STATE_COMPLETING : int = 1;
+  internal static const STATE_COMPLETED : int = 2;
+  internal static const STATE_INITIALIZING : int = 3;
+  internal static const STATE_INITIALIZED : int = 4;
+
   public var
           level : int = -1,
           fullClassName : String,
           constructor_ : Function,
           publicConstructor : Function,
-          completed  : Boolean = false,
-          inited  : Boolean = false,
+          state  : int = STATE_LOADED,
           Public : Function,
           superClassDeclaration : NativeClassDeclaration,
           interfaces : Array;
@@ -53,9 +58,10 @@ public class NativeClassDeclaration {
   }
 
   public function complete() : NativeClassDeclaration {
-    if (!this.completed) {
-      this.completed = true;
+    if (state < STATE_COMPLETING ) {
+      state = STATE_COMPLETING;
       this.doComplete();
+      state = STATE_COMPLETED;
     }
     return this;
   }
@@ -74,17 +80,20 @@ public class NativeClassDeclaration {
   private static var initializationDepth:String = "";
 
   public function init() : NativeClassDeclaration {
-    if (!this.inited) {
-      this.inited = true;
-      this.complete();
+    if (state < STATE_INITIALIZING ) {
+      complete();
+      state = STATE_INITIALIZING;
       if (classLoader.debug) {
-        trace("[INFO] Jangaroo Runtime: initializing class " + initializationDepth + this.fullClassName);
+        trace("[INFO] Jangaroo Runtime: initializing class " + initializationDepth + fullClassName);
         initializationDepth += "  ";
       }
-      this.doInit();
+      doInit();
       if (classLoader.debug) {
         initializationDepth = initializationDepth.substr(0, initializationDepth.length - 2);
       }
+      state = STATE_INITIALIZED;
+    } else if (state === STATE_INITIALIZING) {
+      trace("[WARN] Jangaroo Runtime: cyclic static initializer dependency in " + fullClassName);
     }
     return this;
   }
