@@ -4,13 +4,13 @@
   <groupId>net.jangaroo</groupId>
   <artifactId>jangaroo-compiler-itests</artifactId>
   <name>Joo Compiler Integration Tests</name>
-  <version>0.7.10</version>
+  <version>0.7.11-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <parent>
     <artifactId>jangaroo-parent</artifactId>
     <groupId>net.jangaroo</groupId>
-    <version>0.7.10</version>
+    <version>0.7.11-SNAPSHOT</version>
     <relativePath>../../jangaroo-parent/pom.xml</relativePath>
   </parent>
 
@@ -18,14 +18,14 @@
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-runtime</artifactId>
-      <version>0.7.10</version>
+      <version>0.7.11-SNAPSHOT</version>
       <type>jar</type>
     </dependency>
 
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-compiler</artifactId>
-      <version>0.7.10</version>
+      <version>0.7.11-SNAPSHOT</version>
     </dependency>
 
     <dependency>
