@@ -28,13 +28,6 @@ under the License.
   <name>simple-project</name>
   <url>http://www.jangaroo.net</url>
 
-  <repositories>
-    <repository>
-      <id>jangaroo</id>
-      <url>http://repo.jangaroo.net/maven2/</url>
-    </repository>
-  </repositories>
-
   <build>
     <resources>
       <resource>
@@ -59,7 +52,7 @@ under the License.
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-runtime</artifactId>
-      <version>0.7.1</version>
+      <version>0.7.10</version>
       <type>jangaroo</type>
     </dependency>
   </dependencies>
