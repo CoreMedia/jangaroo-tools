@@ -55,7 +55,7 @@ public class SystemClassLoader {
   }
 
   private static function toVersionParts(version:String):Array/*int*/ {
-    var parts:Array = version.split(".");
+    var parts:Array = (version || "").split(".");
     for (var i:uint = 0; i < parts.length; ++i) {
       parts[i] = parseInt(parts[i], 10);
     }
@@ -82,8 +82,8 @@ public class SystemClassLoader {
     // The compiler versions must be compared part-by-part:
     var runtimeCompilerVersionParts:Array/*.<uint>*/ = toVersionParts(joo.compilerVersion);
     var compilerVersionParts:Array/*.<uint>*/ = toVersionParts(compilerVersion);
-    for (var i:uint = 0; i < compilerVersionParts.length; ++i) {
-      if (compilerVersionParts[i] != runtimeCompilerVersionParts[i]) {
+    for (var i:uint = 0; i < runtimeCompilerVersionParts.length; ++i) {
+      if (compilerVersionParts[i] !== runtimeCompilerVersionParts[i]) {
         // The given class must be compiled with an older or the same compiler version as the Runtime:
         return compilerVersionParts[i] < runtimeCompilerVersionParts[i];
       }
@@ -108,13 +108,9 @@ public class SystemClassLoader {
     if (!cd) {
       var constructor_ : Function = getQualifiedObject(fullClassName);
       if (constructor_) {
-        if (!constructor_["$class"]) {
-          // create SystemClassDeclaration for native classes:
-          cd = this.createNativeClassDeclaration(fullClassName, constructor_).init();
-          classDeclarationsByName[fullClassName] = cd;
-        } else {
-          cd = constructor_["$class"];
-        }
+        // create SystemClassDeclaration for native classes:
+        cd = this.createNativeClassDeclaration(fullClassName, constructor_).init();
+        classDeclarationsByName[fullClassName] = cd;
       }
     }
     return cd;

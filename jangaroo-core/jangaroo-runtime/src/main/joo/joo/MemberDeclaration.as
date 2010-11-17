@@ -45,7 +45,12 @@ public class MemberDeclaration {
 
 {
   // no static initializers in system classes, use static block:
-  SUPPORTS_PROPERTIES = "defineProperty" in Object;
+  try {
+    // just try getting a property of some Object and see if it fails:
+    SUPPORTS_PROPERTIES = Object['getOwnPropertyDescriptor']({foo:1},"foo").value === 1;
+  } catch (e:*) {
+    SUPPORTS_PROPERTIES = false;
+  }
   SUPPORTS_GETTERS_SETTERS = "__defineGetter__" in Object['prototype'];
   DEFINE_METHOD = {
     "get":  "__defineGetter__",
