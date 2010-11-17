@@ -113,16 +113,6 @@
   </scm>
   
   <distributionManagement>
-    <!--downloadUrl>http://repo.jangaroo.net/maven2</downloadUrl>
-    <repository>
-      <id>jangaroo</id>
-      <name>Jangaroo repository</name>
-      <url>scp://repo.jangaroo.net/home/jangaroo/maven2/repo</url>
-    </repository>
-    <snapshotRepository>
-      <id>jangaroo-snapshots</id>
-      <url>scp://repo.jangaroo.net/home/jangaroo/maven2/snapshots</url>
-    </snapshotRepository-->
     <site>
       <id>jangaroo</id>
       <url>scp://repo.jangaroo.net/home/jangaroo/maven2/site/</url>
