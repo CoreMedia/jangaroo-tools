@@ -474,6 +474,9 @@ public class JooTest extends JooRuntimeTestCase {
     expectBoolean(false, "package1.TestIs.testIs(new package1.TestIs(), String)");
     expectBoolean(true, "package1.TestIs.testIs('foo', String)");
     expectBoolean(true, "package1.TestIs.testIs(new String('foo'), String)");
+    expectBoolean(true, "package1.TestIs.testIs(new TypeError('foo'), Error)");
+    expectBoolean(true, "package1.TestIs.testIs(new TypeError('foo'), TypeError)");
+    expectBoolean(true, "package1.TestIs.testIs(package1.TestIs, Class)");
     expectBoolean(true, "package1.TestIs.testConcreteIs()");
   }
 
