@@ -4,7 +4,7 @@
 
   <groupId>net.jangaroo</groupId>
   <artifactId>jangaroo-maven</artifactId>
-  <version>0.7.12</version>
+  <version>0.7.13-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Jangaroo Maven Integration</name>
   <url>http://repo.jangaroo.net/site/jangaroo-maven</url>
@@ -12,7 +12,7 @@
   <parent>
     <artifactId>jangaroo-parent</artifactId>
     <groupId>net.jangaroo</groupId>
-    <version>0.7.12</version>
+    <version>0.7.13-SNAPSHOT</version>
     <relativePath>../jangaroo-parent/pom.xml</relativePath>
   </parent>
 

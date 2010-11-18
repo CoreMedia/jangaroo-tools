@@ -3,13 +3,13 @@
   <groupId>net.jangaroo</groupId>
   <artifactId>jangaroo-compiler</artifactId>
   <packaging>jar</packaging>
-  <version>0.7.12</version>
+  <version>0.7.13-SNAPSHOT</version>
   <name>Joo Compiler</name>
 
   <parent>
     <artifactId>jangaroo-parent</artifactId>
     <groupId>net.jangaroo</groupId>
-    <version>0.7.12</version>
+    <version>0.7.13-SNAPSHOT</version>
     <relativePath>../../jangaroo-parent/pom.xml</relativePath>
   </parent>
 
@@ -192,7 +192,7 @@
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-utils</artifactId>
-      <version>0.7.12</version>
+      <version>0.7.13-SNAPSHOT</version>
     </dependency>
 
     <dependency>
