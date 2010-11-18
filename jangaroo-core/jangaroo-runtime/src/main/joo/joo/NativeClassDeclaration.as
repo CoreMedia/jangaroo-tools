@@ -49,7 +49,7 @@ public class NativeClassDeclaration {
   public function create(fullClassName : String, publicConstructor : Function) : NativeClassDeclaration {
     this.fullClassName = fullClassName;
     this.publicConstructor = publicConstructor;
-    if (fullClassName != "TypeError") { // crashes IE9 beta :-(
+    if (fullClassName != "Error") { // setting expando properties on Error and querying them on TypeError crashes IE9 beta :-(
       try {
         this.publicConstructor["$class"] = this;
       } catch (e:*) {
