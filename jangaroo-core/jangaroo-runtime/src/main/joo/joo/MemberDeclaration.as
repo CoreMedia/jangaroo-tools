@@ -45,11 +45,14 @@ public class MemberDeclaration {
 
 {
   // no static initializers in system classes, use static block:
-  try {
-    // just try getting a property of some Object and see if it fails:
-    SUPPORTS_PROPERTIES = Object['getOwnPropertyDescriptor']({foo:1},"foo").value === 1;
-  } catch (e:*) {
-    SUPPORTS_PROPERTIES = false;
+  if ('getOwnPropertyDescriptor' in Object) {
+    try {
+      // To make sure we are not in IE8, which implements this method only partially,
+      // just try getting a property of some Object and see if it fails:
+      SUPPORTS_PROPERTIES = Object['getOwnPropertyDescriptor']({foo:1},"foo").value === 1;
+    } catch (e:*) {
+      // ignore
+    }
   }
   SUPPORTS_GETTERS_SETTERS = "__defineGetter__" in Object['prototype'];
   DEFINE_METHOD = {
