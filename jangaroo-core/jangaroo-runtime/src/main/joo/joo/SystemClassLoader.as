@@ -108,9 +108,13 @@ public class SystemClassLoader {
     if (!cd) {
       var constructor_ : Function = getQualifiedObject(fullClassName);
       if (constructor_) {
-        // create SystemClassDeclaration for native classes:
-        cd = this.createNativeClassDeclaration(fullClassName, constructor_).init();
-        classDeclarationsByName[fullClassName] = cd;
+        if (!constructor_["$class"]) {
+          // create SystemClassDeclaration for native classes:
+          cd = this.createNativeClassDeclaration(fullClassName, constructor_).init();
+          classDeclarationsByName[fullClassName] = cd;
+        } else {
+          cd = constructor_["$class"];
+        }
       }
     }
     return cd;
