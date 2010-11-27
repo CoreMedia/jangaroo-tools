@@ -16,6 +16,9 @@
 package net.jangaroo.jooc;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author Andreas Gawecki
@@ -27,6 +30,7 @@ class ApplyExpr extends Expr {
   ParenthesizedExpr<CommaSeparatedList<Expr>> args;
 
   private boolean insideNewExpr = false;
+  private static final Set<String> COERCE_FUNCTION_NAMES = new HashSet<String>(Arrays.asList("Number", "String", "Boolean", "int", "uint", "Date", "Array", "RegExp"));
 
   public ApplyExpr(Expr fun, JooSymbol lParen, CommaSeparatedList<Expr> args, JooSymbol rParen) {
     this.fun = fun;
@@ -75,18 +79,17 @@ class ApplyExpr extends Expr {
   }
 
   private boolean isTypeCast() {
-    return fun instanceof IdeExpr && !isInsideNewExpr() && isNonTopLevelType((IdeExpr)fun);
+    return fun instanceof IdeExpr && !isInsideNewExpr() && isNonCoercingType((IdeExpr)fun);
   }
 
-  private boolean isNonTopLevelType(IdeExpr fun) {
+  private boolean isNonCoercingType(IdeExpr fun) {
     final Ide ide = fun.ide;
     IdeDeclaration declaration = ide.getDeclaration(false);
     return declaration != null &&
       (declaration instanceof ClassDeclaration || declaration instanceof PredefinedTypeDeclaration ||
         (declaration instanceof FunctionDeclaration && declaration.isConstructor()))
-      && (declaration.isClassMember() ||
-      (declaration.getParentDeclaration() instanceof PackageDeclaration
-        && ((PackageDeclaration)declaration.getParentDeclaration()).getQualifiedName().length > 0));
+      && (declaration.isClassMember() || !COERCE_FUNCTION_NAMES.contains(declaration.getQualifiedNameStr())
+      );
   }
 
   public Expr analyze(AstNode parentNode, AnalyzeContext context) {
