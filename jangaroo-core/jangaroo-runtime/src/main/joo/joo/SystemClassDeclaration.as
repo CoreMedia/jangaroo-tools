@@ -135,6 +135,7 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
       this.publicConstructor["superclass"] = this.publicConstructor.prototype; // Ext Core compatibility!
     }
     this.Public = NativeClassDeclaration.createEmptyConstructor(this.publicConstructor);
+    initTypes();
   }
 
   protected function initMembers() : void {
@@ -163,7 +164,7 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
             }
             switch (memberDeclaration.memberType) {
               case MemberDeclaration.MEMBER_TYPE_FUNCTION:
-                this.initMethod(memberDeclaration, member as Function);
+                this.initMethod(memberDeclaration, Function(member));
                 break;
               case MemberDeclaration.MEMBER_TYPE_CLASS:
                 var secondaryClass:NativeClassDeclaration = classLoader.prepare("package "+this.fullClassName, item, member as Function,

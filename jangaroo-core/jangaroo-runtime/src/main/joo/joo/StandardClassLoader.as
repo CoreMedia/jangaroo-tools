@@ -67,7 +67,7 @@ public class StandardClassLoader extends SystemClassLoader {
    */
   public function run(mainClassName : String, ...args) : void {
     this.complete(function() : void {
-      var mainClass : SystemClassDeclaration = this.getRequiredClassDeclaration(mainClassName) as SystemClassDeclaration;
+      var mainClass : SystemClassDeclaration = SystemClassDeclaration(this.getRequiredClassDeclaration(mainClassName));
       mainClass.publicConstructor["main"].apply(null,args);
     });
   }
@@ -132,7 +132,7 @@ public class StandardClassLoader extends SystemClassLoader {
         importMap[className] = classLoader.getRequiredClassDeclaration(fullClassName).init().publicConstructor;
       });
       for (var i:int = 0; i < onCompleteCallbacks.length; ++i) {
-        (onCompleteCallbacks[i] as Function)(importMap);
+        onCompleteCallbacks[i](importMap);
       }
     }
   }

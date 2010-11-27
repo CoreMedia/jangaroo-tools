@@ -1,6 +1,5 @@
-// simulate ActionScript's Class object for type casts and "is"
+// simulate ActionScript's meta class "Class": at least provide placeholder and empty init function.
 Class = function joo$Class(c){return c;};
 Class.$class = {
-  init: function(){},
-  isInstance: function(f){return typeof f=="function";}
+  init: function(){}
 };

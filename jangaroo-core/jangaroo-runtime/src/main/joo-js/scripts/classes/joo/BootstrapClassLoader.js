@@ -43,14 +43,18 @@
       if (!type || object===undefined || object===null) {
         return false;
       }
-      // instanceof or constructor may return false negatives:
-      if (object instanceof type || object.constructor===type) {
+      // constructor or instanceof may return false negatives:
+      if (object.constructor === type || object instanceof type) {
         return true;
       }
-      var classDeclaration = type["$class"];
-      if (classDeclaration) {
-        classDeclaration.init(); // make sure it is initialized!
-        return classDeclaration.isInstance(object);
+      // special case meta-class Class:
+      if (type === Class) {
+        return !!object["$class"];
+      }
+      var classDeclaration = object.constructor["$class"];
+      var typeDeclaration = type["$class"];
+      if (classDeclaration && typeDeclaration) {
+        return !!classDeclaration.Types.prototype[typeDeclaration.fullClassName];
       }
       return false;
     },

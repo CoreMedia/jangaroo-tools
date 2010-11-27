@@ -54,7 +54,7 @@ public class DynamicClassLoader extends StandardClassLoader {
   private var pendingClassState : Object/*<String,Boolean>*/ = {};
 
   override public function prepare(...params):SystemClassDeclaration {
-    var cd:SystemClassDeclaration = super.prepare.apply(this, params) as SystemClassDeclaration;
+    var cd:SystemClassDeclaration = SystemClassDeclaration(super.prepare.apply(this, params));
     this.pendingDependencies.push(cd);
     if (delete this.pendingClassState[cd.fullClassName]) {
 //      if (this.debug) {
@@ -205,7 +205,7 @@ public class DynamicClassLoader extends StandardClassLoader {
 
   private function loadPendingDependencies():void {
     for (var j:int=0; j<this.pendingDependencies.length; ++j) {
-      var dependencies : Array = (this.pendingDependencies[j] as ClassDeclaration).getDependencies();
+      var dependencies : Array = ClassDeclaration(this.pendingDependencies[j]).getDependencies();
       for (var i:int=0; i<dependencies.length; ++i) {
         this.load(dependencies[i]);
       }

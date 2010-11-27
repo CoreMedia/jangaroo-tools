@@ -68,42 +68,5 @@ public class ClassDeclaration extends SystemClassDeclaration {
     });
   }
 
-  /**
-   * Determines if the specified <code>Object</code> is assignment-compatible
-   * with the object represented by this <code>ClassDefinition</code>.
-   * The method returns <code>true</code> if the specified
-   * <code>Object</code> argument is non-null and can be cast to the
-   * reference type represented by this <code>Class</code> object without
-   * raising a <code>ClassCastException.</code> It returns <code>false</code>
-   * otherwise.
-   */
-  public override function isInstance(object : Object) : Boolean {
-    return typeof object == "object" && object.constructor["$class"] ? this.isAssignableFrom(object.constructor["$class"]) : false;
-  }
-
-  /**
-   * Determines if the class or interface represented by this
-   * <code>ClassDefinition</code> object is either the same as, or is a super class or
-   * super interface of, the class or interface represented by the specified
-   * <code>ClassDefinition</code> parameter. It returns <code>true</code> if so;
-   * otherwise it returns <code>false</code>.
-   */
-  protected function isAssignableFrom(cd : NativeClassDeclaration) : Boolean {
-    do {
-      if (this===cd) {
-        return true;
-      }
-      // TODO: optimize: pre-calculate set of all implemented interfaces of a class!
-      if (this.isInterface()) {
-        // I am an interface: search all implemented interfaces recursively:
-        if (cd.interfaces.some(this.isAssignableFrom)) {
-          return true;
-        }
-      }
-      cd = cd.superClassDeclaration;
-    } while(cd);
-    return false;
-  }
-
 }
 }

@@ -113,7 +113,7 @@ public class ResourceBundleAwareClassLoader extends DynamicClassLoader {
 
   override protected function createClassDeclaration(packageDef : String, classDef : String, memberFactory : Function,
                                                      publicStaticMethodNames : Array, dependencies : Array):SystemClassDeclaration {
-    var cd : ClassDeclaration = super.createClassDeclaration(packageDef, classDef, memberFactory, publicStaticMethodNames, dependencies) as ClassDeclaration;
+    var cd : ClassDeclaration = ClassDeclaration(super.createClassDeclaration(packageDef, classDef, memberFactory, publicStaticMethodNames, dependencies));
     if (cd.fullClassName.match(RESOURCE_BUNDLE_PATTERN)) {
       cd.getDependencies().push(getLocalizedResourceClassName(cd));
     }
@@ -125,7 +125,7 @@ public class ResourceBundleAwareClassLoader extends DynamicClassLoader {
    * In case your want to implement a custom resource bundle, use the following code to
    * generate a locale-specific instance of your bundle class:
    * <pre>
-   * public static const INSTANCE:My_properties = ResourceBundleAwareClassLoader.INSTANCE.createSingleton(My_properties) as My_properties;
+   * public static const INSTANCE:My_properties = My_properties(ResourceBundleAwareClassLoader.INSTANCE.createSingleton(My_properties));
    * </pre>
    * @param resourceBundle the resource bundle class for which the subclass corresponding to the current locale
    *   is to be instantiated.
@@ -133,7 +133,7 @@ public class ResourceBundleAwareClassLoader extends DynamicClassLoader {
    * @see #getLocale
    */
   public function createSingleton(resourceBundle:Class):Object {
-    var cd:NativeClassDeclaration = resourceBundle['$class'] as NativeClassDeclaration;
+    var cd:NativeClassDeclaration = NativeClassDeclaration(resourceBundle['$class']);
     var fullLocalizedClassName:String = getLocalizedResourceClassName(cd);
     var LocalizedResourceBundle:Class = getQualifiedObject(fullLocalizedClassName);
     return new LocalizedResourceBundle();

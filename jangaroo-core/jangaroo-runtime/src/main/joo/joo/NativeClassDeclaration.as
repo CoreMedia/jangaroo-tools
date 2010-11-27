@@ -16,7 +16,6 @@
 // JangarooScript runtime support. Author: Frank Wienberg
 
 package joo {
-
 public class NativeClassDeclaration {
 
   internal static function createEmptyConstructor(constructor_ : Function) : Function {
@@ -41,6 +40,7 @@ public class NativeClassDeclaration {
           state  : int = STATE_LOADED,
           Public : Function,
           superClassDeclaration : NativeClassDeclaration,
+          Types: Class,
           interfaces : Array;
 
   public function NativeClassDeclaration() {
@@ -77,6 +77,16 @@ public class NativeClassDeclaration {
     this.interfaces = [];
     this.constructor_ = this.publicConstructor === Error ? ERROR_CONSTRUCTOR : this.publicConstructor;
     this.Public = createEmptyConstructor(this.publicConstructor);
+    initTypes();
+  }
+
+  protected function initTypes():void {
+    Types = function():void {};
+    var types:Object = Types.prototype = superClassDeclaration ? new superClassDeclaration.Types() : {};
+    types[fullClassName] = true;
+    for (var i:int = 0; i < interfaces.length; i++) {
+      types[interfaces[i]] = true;
+    }
   }
 
   private static var initializationDepth:String = "";
@@ -101,10 +111,6 @@ public class NativeClassDeclaration {
   }
 
   protected function doInit() : void {
-  }
-
-  public function isInstance(object : Object) : Boolean {
-    return object instanceof this.constructor_ || object && object.constructor===this.constructor_;
   }
 
   public function getQualifiedName() : String {

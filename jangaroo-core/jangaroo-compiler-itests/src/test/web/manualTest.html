@@ -6,12 +6,9 @@
   <script type="text/javascript" src="scripts/jangaroo-runtime-debug.js"></script>
   <script type="text/javascript">
 
-    joo.classLoader.import_("package1.TestCatch");
-    joo.classLoader.complete(function(imports){with(imports){
-      var s = TestCatch.testCatch(function() {throw new package3.ClassToImport(); });
-      assert(s === "ClassToImport");
-      s = TestCatch.testCatch(function() {throw new package1.TestImplements(); });
-      assert(s === "TestInterface");
+    joo.classLoader.import_("package1.TestInheritImplements");
+    joo.classLoader.complete(function(imports){imports.assert=joo.assert;imports.is =joo.is; with(imports){
+      assert(is(new TestInheritImplements(), package1.TestInterface));
     }});
 
   </script>
