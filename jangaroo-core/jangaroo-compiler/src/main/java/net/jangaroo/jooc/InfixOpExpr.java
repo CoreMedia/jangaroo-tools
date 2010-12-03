@@ -8,8 +8,17 @@ import java.io.IOException;
  * @author Frank Wienberg
  */
 public class InfixOpExpr extends BinaryOpExpr {
-  public InfixOpExpr(Expr arg1, JooSymbol op, Expr arg2) {
+  protected InfixOpExpr(Expr arg1, JooSymbol op, Expr arg2) {
     super(arg1, op, arg2);
+  }
+
+  @Override
+  public void scope(Scope scope) {
+    super.scope(scope);
+    ClassDeclaration classDeclaration = scope.getClassDeclaration();
+    if (classDeclaration != null) {
+      classDeclaration.addBuiltInUsage(op.getText());
+    }
   }
 
   @Override

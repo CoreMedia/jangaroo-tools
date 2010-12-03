@@ -22,6 +22,7 @@ import java.io.IOException;
  */
 class SemicolonTerminatedStatement extends Statement {
 
+  private ClassDeclaration classDeclaration;
   AstNode optStatement;
   JooSymbol optSymSemicolon;
 
@@ -43,6 +44,7 @@ class SemicolonTerminatedStatement extends Statement {
 
   @Override
   public void scope(final Scope scope) {
+    classDeclaration = scope.getClassDeclaration();
     if (optStatement != null) {
       optStatement.scope(scope);
     }
@@ -64,13 +66,17 @@ class SemicolonTerminatedStatement extends Statement {
     if (optStatement instanceof ApplyExpr && optSymSemicolon!=null) {
       ApplyExpr applyExpr = (ApplyExpr)optStatement;
       JooSymbol funSymbol = applyExpr.fun.getSymbol();
-      if (SyntacticKeywords.ASSERT.equals(funSymbol.getText())) {
-        ParenthesizedExpr<CommaSeparatedList<Expr>> args = applyExpr.args;
-        CommaSeparatedList<Expr> params = args.expr;
-        if (params != null && params.tail == null) {
-          AssertStatement assertStatement = new AssertStatement(funSymbol, args.lParen, params.head, args.rParen, optSymSemicolon);
-          assertStatement.analyze(parentNode, context);
-          return assertStatement; 
+      String functionName = funSymbol.getText();
+      if ("trace".equals(functionName) || SyntacticKeywords.ASSERT.equals(functionName)) {
+        classDeclaration.addBuiltInUsage(functionName);
+        if (SyntacticKeywords.ASSERT.equals(functionName)) {
+          ParenthesizedExpr<CommaSeparatedList<Expr>> args = applyExpr.args;
+          CommaSeparatedList<Expr> params = args.expr;
+          if (params != null && params.tail == null) {
+            AssertStatement assertStatement = new AssertStatement(funSymbol, args.lParen, params.head, args.rParen, optSymSemicolon);
+            assertStatement.analyze(parentNode, context);
+            return assertStatement;
+          }
         }
       }
     }

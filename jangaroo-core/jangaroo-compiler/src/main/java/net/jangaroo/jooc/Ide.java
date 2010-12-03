@@ -226,6 +226,7 @@ public class Ide extends NodeImplBase {
       // check candidates for instance methods, accessed as function:
       if (memberDeclaration != null && memberDeclaration.isMethod() && !((FunctionDeclaration)memberDeclaration).isGetterOrSetter() && !memberDeclaration.isStatic()) {
         // check and handle instance methods declared in same file, accessed as function:
+        getScope().getClassDeclaration().addBuiltInUsage("$$bound");
         bound = true;
       }
     }

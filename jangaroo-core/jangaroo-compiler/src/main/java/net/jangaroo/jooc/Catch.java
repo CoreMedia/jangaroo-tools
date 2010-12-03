@@ -43,7 +43,7 @@ class Catch extends KeywordStatement {
     boolean isFirst = equals(firstCatch);
     boolean isLast = equals(catches.get(catches.size() - 1));
     TypeRelation typeRelation = param.optTypeRelation;
-    boolean hasCondition = typeRelation != null && typeRelation.getType().getSymbol().sym != sym.MUL;
+    boolean hasCondition = hasCondition();
     if (!hasCondition && !isLast) {
       throw Jooc.error(rParen, "Only last catch clause may be untyped.");
     }
@@ -99,8 +99,16 @@ class Catch extends KeywordStatement {
     }
   }
 
+  private boolean hasCondition() {
+    TypeRelation typeRelation = param.optTypeRelation;
+    return typeRelation != null && typeRelation.getType().getSymbol().sym != sym.MUL;
+  }
+
   @Override
   public void scope(final Scope scope) {
+    if (hasCondition()) {
+      scope.getClassDeclaration().addBuiltInUsage("is");
+    }
     withNewDeclarationScope(this, scope, new Scoped() {
       @Override
       public void run(final Scope scope) {

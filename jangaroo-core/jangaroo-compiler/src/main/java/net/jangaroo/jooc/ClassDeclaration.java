@@ -36,6 +36,7 @@ public class ClassDeclaration extends IdeDeclaration {
   private IdeType superType;
   private List<FieldDeclaration> fieldsWithInitializer = new ArrayList<FieldDeclaration>();
   private List<IdeDeclaration> secondaryDeclarations = Collections.emptyList();
+  private Set<String> usedBuiltIns = new LinkedHashSet<String>();
 
   public Extends getOptExtends() {
     return optExtends;
@@ -112,6 +113,10 @@ public class ClassDeclaration extends IdeDeclaration {
     body.generateCode(out);
   }
 
+  void addBuiltInUsage(String builtIn) {
+    usedBuiltIns.add(builtIn);
+  }
+
   protected void generateJsCode(JsWriter out) throws IOException {
     generateCode(directives, out);
     out.beginString();
@@ -126,18 +131,14 @@ public class ClassDeclaration extends IdeDeclaration {
     }
     out.endString();
     out.write(",");
-    out.write("function($$l,$$private){var is=joo.is,as=joo.as,assert=joo.assert,trace=joo.trace,$$bound=joo.boundMethod,$super=$$l+'super'");
-    for (TypedIdeDeclaration member : members.values()) {
-      if (member.isPrivate() || member.isOverride()) {
-        out.write(",$" + member.getName() + "=$$l+'" + member.getName() + "'");
-      }
-    }
-    out.write(";return[");
+    out.write("function($$l,$$private){");
+    writeScopeVars(out);
+    out.write("return[");
     generateClassInits(out);
     body.generateCode(out);
     if (constructor == null && !fieldsWithInitializer.isEmpty()) {
       // generate default constructor that calls field initializers:
-      out.write("\"public function " + getName() + "\",function $" + getName() + "(){this[$super]();");
+      out.write("\"public function " + getName() + "\",function $" + getName() + "(){this[$$l+'super']();");
       generateFieldInitCode(out);
       out.write("}");
     }
@@ -149,6 +150,24 @@ public class ClassDeclaration extends IdeDeclaration {
 
     out.write("];},");
     generateStaticMethodList(out);
+  }
+
+  private void writeScopeVars(JsWriter out) throws IOException {
+    Map<String,String> scopeVars = new LinkedHashMap<String, String>();
+    for (String builtIn : usedBuiltIns) {
+      String sourceName = "joo." + ("$$bound".equals(builtIn) ? "boundMethod" : builtIn);
+      scopeVars.put(builtIn, sourceName);
+    }
+    for (TypedIdeDeclaration member : members.values()) {
+      if (member.isPrivate() || member.isOverride()) {
+        scopeVars.put("$" + member.getName(), "$$l+'" + member.getName() + "'");
+      }
+    }
+    out.write("var $super=$$l+'super'");
+    for (Map.Entry<String, String> scopeVar : scopeVars.entrySet()) {
+      out.write("," + scopeVar.getKey() + "=" + scopeVar.getValue());
+    }
+    out.write(";");
   }
 
   private void generateClassInits(JsWriter out) throws IOException {
