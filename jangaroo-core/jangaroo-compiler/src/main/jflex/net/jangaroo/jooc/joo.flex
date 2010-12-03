@@ -305,7 +305,7 @@ Include           = "include \"" ~"\""
 \\(u{HexDigit}{4}|x{HexDigit}{2}) { multiStateText += yytext();
                                    char val = (char) Integer.parseInt(yytext().substring(2),16);
                         	   string.append(val); }
-  \\.                             { error("Illegal escape sequence"); }
+  \\.                             { multiStateText += yytext(); string.append(yytext().substring(1)); }
   {LineTerminator}                { error("Unterminated string at end of line"); }
 }
 
@@ -323,7 +323,7 @@ Include           = "include \"" ~"\""
 \\(u{HexDigit}{4}|x{HexDigit}{2}) { multiStateText += yytext();
                                    char val = (char) Integer.parseInt(yytext().substring(2),16);
                         	   string.append(val); }
-  \\.                             { error("Illegal escape sequence"); }
+  \\.                             { multiStateText += yytext(); string.append(yytext().substring(1)); }
   {LineTerminator}                { error("Unterminated string at end of line"); }
 }
 
