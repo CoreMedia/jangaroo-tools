@@ -220,7 +220,12 @@ public class MemberDeclaration {
         slot = this.getterOrSetter+"$"+slot;
       }
     }
-    return target[slot];
+    try {
+      return target[slot];
+    } catch (e:*) {
+      // some IE oddities may throw error instead of returning undefined
+      return undefined;
+    }
   }
 
   internal function _lookupPropertyDescriptor(target:Object):Object {
@@ -237,8 +242,8 @@ public class MemberDeclaration {
   }
 
   public function storeMember(target : Object) : void {
-    // store only if not native:
-    if (!this.isNative()) {
+    // store only if not native and not already present:
+    if (!isNative() && !hasOwnMember(target)) {
       var slot : String = this.slot;
       if (this.getterOrSetter) {
         if (SUPPORTS_PROPERTIES) {
@@ -255,7 +260,7 @@ public class MemberDeclaration {
           var counterpart : Function = target[LOOKUP_METHOD[oppositeMethodType]](slot);
           // if counterpart is defined, check that it is not overridden (differs from prototype's counterpart):
           if (counterpart && counterpart===target.constructor.prototype[LOOKUP_METHOD[oppositeMethodType]](slot)) {
-              // set the counterpart directly on target. This may be redundant, but we cannot find out.
+            // set the counterpart directly on target. This may be redundant, but we cannot find out.
             target[DEFINE_METHOD[oppositeMethodType]](slot, counterpart);
           }
           target[DEFINE_METHOD[this.getterOrSetter]](slot, this.value);

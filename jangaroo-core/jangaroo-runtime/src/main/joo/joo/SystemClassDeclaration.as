@@ -245,13 +245,9 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
       target = {};
     }
     
-    if (!memberDeclaration.hasOwnMember(target)) {
-      memberDeclaration.storeMember(target);
-      if (memberDeclaration.hasInitializer()) {
-        if (_static) {
-          this.staticInitializers.push(memberDeclaration);
-        }
-      }
+    memberDeclaration.storeMember(target);
+    if (_static && memberDeclaration.hasInitializer()) {
+      this.staticInitializers.push(memberDeclaration);
     }
   }
 
