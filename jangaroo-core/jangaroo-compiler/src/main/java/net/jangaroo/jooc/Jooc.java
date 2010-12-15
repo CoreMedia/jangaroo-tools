@@ -270,16 +270,17 @@ public class Jooc {
     return qname.replace('.', inputSource.getFileSeparatorChar()) + AS_SUFFIX;
   }
 
-  private File findSourceDir(final File file) {
+  private File findSourceDir(final File file) throws IOException {
+    File canonicalFile = file.getCanonicalFile();
     for (File sourceDir : canoncicalSourcePath) {
-      if (isParent(sourceDir, file)) {
+      if (isParent(sourceDir, canonicalFile)) {
         return sourceDir;
       }
     }
     return null;
   }
 
-  private boolean isParent(File dir, File file) {
+  private boolean isParent(File dir, File file) throws IOException {
     File parent = file.getParentFile();
     while (parent != null) {
       if (parent.equals(dir)) {
@@ -290,7 +291,7 @@ public class Jooc {
     return false;
   }
 
-  protected void processSource(File file) {
+  protected void processSource(File file) throws IOException {
     if (file.isDirectory()) {
       throw error("Input file is a directory: " + file.getAbsolutePath());
     }
