@@ -261,11 +261,9 @@ public class WarPackageMojo
         }
       }
       File jangarooModuleFile = new File(packageSourceDirectory, "jangaroo-module.js");
-      if (jangarooModuleFile.exists()) {
-        writeJangarooModuleScript(project.getArtifact(), new FileInputStream(jangarooModuleFile), fw);
-      } else {
-        getLog().debug("No jangaroo-module.js file in " + packageSourceDirectory.getAbsolutePath());
-      }
+      FileInputStream jooModuleInputStream = jangarooModuleFile.exists()
+        ? new FileInputStream(jangarooModuleFile) : null;
+      writeJangarooModuleScript(project.getArtifact(), jooModuleInputStream, fw);
     } finally {
       try {
         fw.close();
@@ -285,21 +283,21 @@ public class WarPackageMojo
   private void includeJangarooModuleScript(Artifact artifact, Writer fw) throws IOException {
     ZipFile zipFile = new ZipFile(artifact.getFile());
     ZipEntry zipEntry = zipFile.getEntry("jangaroo-module.js");
-    if (zipEntry != null) {
-      InputStream jooModuleInputStream = zipFile.getInputStream(zipEntry);
-      writeJangarooModuleScript(artifact, jooModuleInputStream, fw);
-    } else {
-      getLog().debug("No jangaroo-module.js in " + artifact);
-    }
+    InputStream jooModuleInputStream = zipEntry != null ? zipFile.getInputStream(zipEntry) : null;
+    writeJangarooModuleScript(artifact, jooModuleInputStream, fw);
   }
 
   private void writeJangarooModuleScript(Artifact artifact, InputStream jooModuleInputStream, Writer fw) throws IOException {
     String fullAtifactName = artifact.getGroupId() + ":" + artifact.getArtifactId() + ":" + artifact.getVersion();
-    getLog().info("Appending jangaroo-module.js from " + fullAtifactName);
-    fw.write("// FROM " + fullAtifactName
-      + ":\n");
-    IOUtil.copy(jooModuleInputStream, fw, "UTF-8");
-    fw.write('\n'); // file might not end with new-line, better insert one
+    fw.write("// FROM " + fullAtifactName + ":\n");
+    if (jooModuleInputStream == null) {
+      getLog().debug("No jangaroo-module.js in " + fullAtifactName + ", creating joo.loadModule(...) code.");
+      fw.write("joo.loadModule(\"" + artifact.getArtifactId() + "\");\n");
+    } else {
+      getLog().info("Appending jangaroo-module.js from " + fullAtifactName);
+      IOUtil.copy(jooModuleInputStream, fw, "UTF-8");
+      fw.write('\n'); // file might not end with new-line, better insert one
+    }
   }
 
   private Map<String, Artifact> artifactByInternalId(List<Artifact> jooArtifacts) {
