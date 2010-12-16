@@ -25,6 +25,7 @@ class AnnotationParameter extends NodeImplBase {
   Ide optName;
   JooSymbol optSymEq;
   LiteralExpr value;
+  private CompilationUnit compilationUnit;
 
   public AnnotationParameter(Ide optName, JooSymbol optSymEq, LiteralExpr value) {
     this.optName = optName;
@@ -37,6 +38,7 @@ class AnnotationParameter extends NodeImplBase {
     if (value != null) {
       // TODO: is value really optional?
       value.scope(scope);
+      compilationUnit = scope.getCompilationUnit();
     }
   }
 
@@ -44,6 +46,18 @@ class AnnotationParameter extends NodeImplBase {
     super.analyze(parentNode, context);
     if (value != null) {
       value = (LiteralExpr)value.analyze(this, context);
+      String metaName = ((CommaSeparatedList)parentNode).parentNode.getSymbol().getText();
+      if ("Embed".equals(metaName) && optName != null && "source".equals(optName.getName())) {
+        JooSymbol valueSymbol = value.getSymbol();
+        String text = valueSymbol.getText();
+        String quote = text.substring(0, 1);
+        String source = (String)valueSymbol.getJooValue();
+        String absoluteSource = compilationUnit.addResourceDependency(source);
+        value.value = new JooSymbol(valueSymbol.sym, valueSymbol.getFileName(),
+          valueSymbol.getLine(), valueSymbol.getColumn(), valueSymbol.getWhitespace(),
+          quote + absoluteSource + quote,
+          absoluteSource);
+      }
     }
     return this;
   }

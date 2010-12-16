@@ -153,9 +153,9 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
           break;
         case "string":
           var memberDeclaration : MemberDeclaration = MemberDeclaration.create(item);
-          memberDeclaration.metadata = metadata;
-          metadata = {};
           if (memberDeclaration) {
+            memberDeclaration.metadata = metadata;
+            metadata = {};
             if (!memberDeclaration.isNative()) {
               if (++i >= memberDeclarations.length) {
                 throw new Error(this + ": Member expected after modifiers '" + item + "'.");
@@ -238,6 +238,11 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
     memberDeclaration.value = value;
     var _static : Boolean = memberDeclaration.isStatic();
     var _private : Boolean = memberDeclaration.isPrivate();
+
+    if (_static && memberDeclaration.hasInitializer()) {
+      this.staticInitializers.push(memberDeclaration);
+    }
+    _processMetadata(memberDeclaration);
     var target : Object = _static ? _private ? this.privateStatics : this.publicConstructor : this.publicConstructor.prototype;
 
     // for compatibility with Prototype (which defines Node as an Object in IE):
@@ -246,8 +251,17 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
     }
     
     memberDeclaration.storeMember(target);
-    if (_static && memberDeclaration.hasInitializer()) {
-      this.staticInitializers.push(memberDeclaration);
+  }
+
+  protected function _processMetadata(memberDeclaration : MemberDeclaration):void {
+    var metadata:Object = memberDeclaration.metadata;
+    if (metadata) {
+      for (var metaFunctionName:String in metadata) {
+        var metaFunction:Function = getQualifiedObject("joo.meta." + metaFunctionName);
+        if (metaFunction) {
+          metaFunction(this, memberDeclaration, metadata[metaFunctionName]);
+        }
+      }
     }
   }
 

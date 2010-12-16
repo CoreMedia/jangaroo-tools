@@ -51,6 +51,15 @@ public class Annotation extends NodeImplBase {
     }
   }
 
+  @Override
+  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
+    super.analyze(parentNode, context);
+    if (optAnnotationParameters != null) {
+      optAnnotationParameters.analyze(this, context);
+    }
+    return this;
+  }
+
   public JooSymbol getSymbol() {
     return ide.getSymbol();
   }

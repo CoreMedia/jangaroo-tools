@@ -166,6 +166,20 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
     }
   }
 
+  /**
+   * Add a dependency to a resource at the given path, which is relative to this compilation unit's file.
+   * @param relativePath relative path of the dependency
+   * @return the path relative to the source directory
+   */
+  public String addResourceDependency(String relativePath) {
+    String path = new File(source.getParent().getRelativePath(), relativePath).getPath().replace('\\', '/');
+    if (path.startsWith("/")) {
+      path = path.substring(1);
+    }
+    dependencies.add("resource:" + path);
+    return path;
+  }
+
   @Override
   public String toString() {
     return getClass().getSimpleName() + "(" + getPrimaryDeclaration().getQualifiedNameStr() + ")";

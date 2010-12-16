@@ -32,6 +32,7 @@ public class DynamicClassLoader extends StandardClassLoader {
   public static var INSTANCE:DynamicClassLoader;
 
   public var urlPrefix : String;
+  private var resourceByPath : Object = {};
   private var onCompleteCallbacks : Array/*<Function>*/ = [];
 
   public function DynamicClassLoader() {
@@ -56,9 +57,18 @@ public class DynamicClassLoader extends StandardClassLoader {
   override public function prepare(...params):SystemClassDeclaration {
     var cd:SystemClassDeclaration = SystemClassDeclaration(super.prepare.apply(this, params));
     this.pendingDependencies.push(cd);
-    if (delete this.pendingClassState[cd.fullClassName]) {
+    fireDependency(cd.fullClassName);
+    return cd;
+  }
+
+  public function addDependency(dependency:String):void {
+    pendingClassState[dependency] = true;
+  }
+
+  public function fireDependency(dependency:String):void {
+    if (delete this.pendingClassState[dependency]) {
 //      if (this.debug) {
-//        trace("prepared class " + cd.fullClassName + ", removed from pending classes.");
+//        trace("prepared class " + dependency + ", removed from pending classes.");
 //      }
       if (this.onCompleteCallbacks.length) {
         this.loadPendingDependencies();
@@ -67,7 +77,6 @@ public class DynamicClassLoader extends StandardClassLoader {
         }
       }
     }
-    return cd;
   }
 
   override protected function doCompleteCallbacks(onCompleteCallbacks : Array/*Function*/):void {
@@ -112,6 +121,11 @@ public class DynamicClassLoader extends StandardClassLoader {
   }
 
   private function load(fullClassName : String) : void {
+    var resourcePathMatch:Array = fullClassName.match(/^resource:(.*)$/);
+    if (resourcePathMatch) {
+      loadResource(resourcePathMatch[1]);
+      return;
+    }
     if (!this.getClassDeclaration(fullClassName)) {
       if (this.onCompleteCallbacks.length==0) {
         if (this.pendingClassState[fullClassName]===undefined) {
@@ -135,6 +149,56 @@ public class DynamicClassLoader extends StandardClassLoader {
         }
       }
     }
+  }
+
+  private static const RESOURCE_TYPE_IMAGE:String = "Image";
+  private static const RESOURCE_TYPE_AUDIO:String = "Audio";
+  private static const RESOURCE_TYPE_BY_EXTENSION:Object = {
+    "png": RESOURCE_TYPE_IMAGE,
+    "gif": RESOURCE_TYPE_IMAGE,
+    "jpg": RESOURCE_TYPE_IMAGE,
+    "jpeg": RESOURCE_TYPE_IMAGE,
+    "mp3": RESOURCE_TYPE_AUDIO,
+    "ogg": RESOURCE_TYPE_AUDIO
+  };
+  // TODO: map more extensions, also for video etc.
+  // TODO: improvement: instead of extensions, we could do a HEAD request to the path and map the Content-Type to media/resource type.
+
+  private function loadResource(path:String):void {
+    var resource:Object = resourceByPath[path];
+    if (!resource) {
+      var dotPos:int = path.lastIndexOf('.');
+      var extension:String = path.substring(dotPos + 1);
+      var resourceType:String = RESOURCE_TYPE_BY_EXTENSION[extension];
+      if (resourceType) {
+        var resourceTypeClass:Class = getQualifiedObject(resourceType);
+        if (resourceTypeClass) {
+          resourceByPath[path] = resource = new (resourceTypeClass)();
+          if (resourceType === RESOURCE_TYPE_IMAGE) {
+            addDependency("resource:" + path);
+            resource.onload = function():void {
+              fireDependency("resource:" + path);
+            };
+            resource.onerror = function(m:*):void {
+              trace("[WARN]", "Error while loading resource " + path + ": " + m);
+              // however, we do not want dynamic loading to fail completely:
+              fireDependency("resource:" + path);
+            }
+          } else if (resourceType === RESOURCE_TYPE_AUDIO) {
+            resource.preload = "auto"; // Embed -> load early, but don't wait for load like with images.
+          }
+          resource.src = urlPrefix + path;
+        } else {
+          trace("[WARN]", "Resource type " + resourceType + " not supported by client, ignoring resource " + path);
+        }
+      } else {
+        trace("[WARN]", "Ignoring unsupported media type of file " + path);
+      }
+    }
+  }
+
+  public function getResource(path:String):Object {
+    return resourceByPath[path];
   }
 
   protected function getBaseUri() : String {

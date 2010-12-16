@@ -41,6 +41,7 @@ public class FileInputSource extends DirectoryInputSource {
   public String getRelativePath() {
     try {
       return sourceDir == null ? file.getCanonicalPath() :
+        sourceDir.equals(file) ? "" :
         file.getCanonicalPath().substring(sourceDir.getCanonicalPath().length() + 1);
     } catch (IOException e) {
       return null;

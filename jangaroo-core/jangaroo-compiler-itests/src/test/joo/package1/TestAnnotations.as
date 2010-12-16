@@ -31,5 +31,7 @@ public class TestAnnotations {
   [Serializable(transitive=false)]
   private var state : String;
 
+  [Embed(source="jooley.png")]
+  private var jooleyClass : Class;
 }
 }
