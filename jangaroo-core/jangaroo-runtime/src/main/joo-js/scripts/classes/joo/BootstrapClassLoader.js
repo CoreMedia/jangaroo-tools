@@ -35,11 +35,13 @@
     });
   }
 
-  theGlobalObject.joo = {
-    getOrCreatePackage: createGetQualified(true),
-    getQualifiedObject: createGetQualified(false),
+  if (!theGlobalObject.joo) {
+    theGlobalObject.joo = {};
+  }
+  joo.getOrCreatePackage = createGetQualified(true);
+  joo.getQualifiedObject = createGetQualified(false);
 
-    is: function(object, type) {
+  joo.is = function(object, type) {
       if (!type || object===undefined || object===null) {
         return false;
       }
@@ -57,11 +59,11 @@
         return !!classDeclaration.Types.prototype[typeDeclaration.fullClassName];
       }
       return false;
-    },
+    };
 
-    as: function (object, type) {
+    joo.as = function (object, type) {
       return joo.is(object, type) ? object : null;
-    },
+    };
 
     /*
     unsupported ActionScript features:
@@ -74,7 +76,7 @@
      Caveat: static code blocks are executed immediately
 
      */
-    classLoader: {
+    joo.classLoader = {
       prepare: function(packageDef, classDef, memberFactory, publicStaticMethodNames, dependencies, runtimeApiVersion, compilerVersion) {
         joo.runtimeApiVersion = runtimeApiVersion;
         joo.compilerVersion = compilerVersion;
@@ -127,6 +129,5 @@
       init: function() {
         // ignore
       }
-    }
-  };
+    };
 })(this);
