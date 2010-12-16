@@ -1,5 +1,7 @@
 (function() {
   var SYSTEM_CLASSES = [
+    "int",
+    "uint",
     "joo.BootstrapClassLoader",
     "joo.assert",
     "joo.Class",
@@ -8,6 +10,9 @@
     "joo.NativeClassDeclaration",
     "joo.SystemClassDeclaration",
     "joo.SystemClassLoader",
+    "ArgumentError",
+    "DefinitionError",
+    "SecurityError",
     "Array",
     "Date",
     "joo.ClassDeclaration",
