@@ -27,6 +27,7 @@ public class JooSymbol extends java_cup.runtime.Symbol {
   private Object jooValue;
   private String fileName;
   private boolean isVirtual;
+  private boolean semicolonInsertedBefore;
 
   public JooSymbol(String text) {
     this(net.jangaroo.jooc.sym.IDE,  text);
@@ -85,5 +86,13 @@ public class JooSymbol extends java_cup.runtime.Symbol {
 
   public void setVirtual(final boolean virtual) {
     isVirtual = virtual;
+  }
+
+  public boolean isSemicolonInsertedBefore() {
+    return semicolonInsertedBefore;
+  }
+
+  public void setSemicolonInsertedBefore(final boolean semicolonInsertedBefore) {
+    this.semicolonInsertedBefore = semicolonInsertedBefore;
   }
 }

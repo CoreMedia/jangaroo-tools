@@ -33,7 +33,7 @@ public class TestSyntaxErrors extends JooTestCase {
    * The number of erroneous .as files. Increase whenever you add a new error file.
    * Specifying this number makes sure that no files are accidentially forgotten.
    */
-  private static int ERROR_FILE_COUNT = 14;
+  private static int ERROR_FILE_COUNT = 15;
 
   public TestSyntaxErrors(String name) {
     super(name);

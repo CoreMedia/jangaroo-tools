@@ -59,6 +59,16 @@ parser code  {:
     }
     JooSymbol currentToken = (JooSymbol)cur_token;
     eofSeen = eofSeen || currentToken.sym == sym.EOF;
+    if (token == sym.SEMICOLON) {
+       if (currentToken.isSemicolonInsertedBefore()) {
+         // we already tried semicolon insertion here, avoid infinite loop
+         unrecovered_syntax_error(cur_token);
+       }
+       boolean isBraceOrEof = cur_token.sym == sym.RBRACE || cur_token.sym == sym.EOF;
+       if (!isBraceOrEof) {
+         checkSemicolonInsertionMode();
+       }
+    }
     if (currentToken.isVirtual() && currentToken.sym == token) {
       // avoid infinite loop, but isn't it a parser bug?
       report_error("Internal parser error: infinite loop during virtual token insertion: " + scanner.getSymbolAbbreviation(cur_token.sym), cur_token);
@@ -66,6 +76,7 @@ parser code  {:
     }
     JooSymbol virtualToken = new JooSymbol(token, currentToken.getFileName(), currentToken.getLine(), currentToken.getColumn(), "", text);
     virtualToken.setVirtual(true);
+    currentToken.setSemicolonInsertedBefore(token == sym.SEMICOLON);
     cur_token = virtualToken;
     scanner.pushback(currentToken);
     return true;
@@ -117,7 +128,6 @@ parser code  {:
          (isPostfixOp && isActionDefinedFor(sym.NO_LINE_TERMINATOR_HERE_POSTFIX_OP))) {
       // ECMA-262 restricted production
       if (containsLineTerminator(whitespace)) {
-        checkSemicolonInsertionMode();
         // avoid syntax error later on if there is no action for semicolon
         if (isActionDefinedFor(sym.SEMICOLON)) {
           return insertVirtualToken(sym.SEMICOLON, ";");
@@ -131,9 +141,6 @@ parser code  {:
     }
     if (isActionDefinedFor(sym.SEMICOLON)) {
       boolean isBraceOrEof = cur_token.sym == sym.RBRACE || cur_token.sym == sym.EOF;
-      if (!isBraceOrEof) {
-        checkSemicolonInsertionMode();
-      }
       if (isBraceOrEof || containsLineTerminator(whitespace)) {
         return insertVirtualToken(sym.SEMICOLON, ";");
       }
@@ -161,9 +168,7 @@ parser code  {:
   }
 
   public void unrecovered_syntax_error(Symbol cur_token) {
-    report_error("Syntax error: " + scanner.getSymbolAbbreviation(cur_token.sym), cur_token);
-    done_parsing();
-    throw new FatalSyntaxError("Fatal Syntax Error");
+    report_fatal_error("Syntax error: " + scanner.getSymbolAbbreviation(cur_token.sym), cur_token);
   }
 
   public void report_fatal_error(String message, Object info) {
