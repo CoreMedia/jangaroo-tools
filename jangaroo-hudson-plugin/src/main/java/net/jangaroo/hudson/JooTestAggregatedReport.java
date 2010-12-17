@@ -9,7 +9,7 @@ import hudson.model.Action;
 import hudson.tasks.test.AbstractTestResultAction;
 import hudson.tasks.test.AggregatedTestResultAction;
 import hudson.tasks.test.TestResultProjectAction;
-import hudson.tasks.junit.CaseResult;
+import hudson.tasks.test.TestResult;
 
 import java.util.List;
 import java.util.Map;
@@ -56,18 +56,18 @@ public class JooTestAggregatedReport extends AggregatedTestResultAction implemen
         return b.getAction(JooTestReport.class);
     }
 
-    /**
-     *
-     */
-    @Override
-    public String getTestResultPath(CaseResult it) {
-        StringBuilder path = new StringBuilder("../");
-        path.append(it.getOwner().getProject().getShortUrl());
-        path.append(it.getOwner().getNumber());
-        path.append("/");
-        path.append(getUrlName());
-        path.append("/");
-        path.append(it.getRelativePathFrom(null));
-        return path.toString();
-    }
+  /**
+   *
+   */
+  @Override
+  public String getTestResultPath(TestResult it) {
+      StringBuilder path = new StringBuilder("../");
+      path.append(it.getOwner().getProject().getShortUrl());
+      path.append(it.getOwner().getNumber());
+      path.append("/");
+      path.append(getUrlName());
+      path.append("/");
+      path.append(it.getRelativePathFrom(null));
+      return path.toString();
+  }
 }
