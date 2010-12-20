@@ -30,6 +30,7 @@ import hudson.maven.MavenBuildProxy;
 import hudson.maven.MavenBuildProxy.BuildCallable;
 import hudson.maven.MavenBuilder;
 import hudson.maven.MavenModule;
+import hudson.maven.MavenProjectActionBuilder;
 import hudson.maven.MavenReporter;
 import hudson.maven.MavenReporterDescriptor;
 import hudson.maven.MojoInfo;
@@ -47,7 +48,10 @@ import org.codehaus.plexus.configuration.xml.XmlPlexusConfiguration;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Date;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.ListIterator;
 
 /**
  * Records the surefire test result.
@@ -86,24 +90,23 @@ public class JooTestArchiver extends MavenReporter {
       return true;
     }
 
+
     if (reportsDir.exists()) {
+      // surefire:test just skips itself when the current project is not a java project
 
       FileSet fs = Util.createFileSet(reportsDir, "*.xml", "testng-results.xml,testng-failed.xml");
       DirectoryScanner ds = fs.getDirectoryScanner();
 
-      if (ds.getIncludedFiles().length == 0) {
-        // no test in this module
+      if (ds.getIncludedFiles().length == 0)
+      // no test in this module
+      {
         return true;
       }
-      listener.getLogger().println("build.getTimestamp() " + build.getTimestamp());
 
       if (result == null) {
-        long t = System.currentTimeMillis() - build.getMilliSecsSinceBuildStart();
-        listener.getLogger().println("Build took " + new Date(t) + " ms: " + t);
-        result = new TestResult(t - 1000/*error margin*/, ds);
-      } else {
-        result.parse(build.getTimestamp().getTimeInMillis() - 1000/*error margin*/, ds);
+        result = new TestResult();
       }
+      result.parse(System.currentTimeMillis() - build.getMilliSecsSinceBuildStart(), ds);
 
       int failCount = build.execute(new BuildCallable<Integer, IOException>() {
         public Integer call(MavenBuild build) throws IOException, InterruptedException {
@@ -116,7 +119,7 @@ public class JooTestArchiver extends MavenReporter {
           if (result.getFailCount() > 0) {
             build.setResult(Result.UNSTABLE);
           }
-          build.registerAsProjectAction(JooTestArchiver.this);
+          build.registerAsProjectAction(new FactoryImpl());
           return result.getFailCount();
         }
       });
@@ -124,7 +127,7 @@ public class JooTestArchiver extends MavenReporter {
       // if surefire plugin is going to kill maven because of a test failure,
       // intercept that (or otherwise build will be marked as failure)
       if (failCount > 0 && error instanceof MojoFailureException) {
-        forceMarkAsSuccess();
+        MavenBuilder.markAsSuccess = true;
       }
     }
 
@@ -132,24 +135,37 @@ public class JooTestArchiver extends MavenReporter {
   }
 
   /**
-   * Intercept the test failure, so that the build will not be marked
-   * as a failure.
-   * <p>
-   * Extracted as a separate method to avoid a Sonar warning. This construct
-   * is used in the Surefire plugin in exactly this way and we'd rather leave
-   * it this way.
+   * Up to 1.372, there was a bug that causes Hudson to persist {@link JooTestArchiver} with the entire test result
+   * in it. If we are loading those, fix it up in memory to reduce the memory footprint.
+   * <p/>
+   * It'd be nice we can save the record to remove problematic portion, but that might have
+   * additional side effect.
    */
-  private static void forceMarkAsSuccess() {
-    MavenBuilder.markAsSuccess = true;
+  public static void fixUp(List<MavenProjectActionBuilder> builders) {
+    if (builders == null) {
+      return;
+    }
+    for (ListIterator<MavenProjectActionBuilder> itr = builders.listIterator(); itr.hasNext();) {
+      MavenProjectActionBuilder b = itr.next();
+      if (b instanceof JooTestArchiver) {
+        itr.set(new FactoryImpl());
+      }
+    }
   }
 
-  public Action getProjectAction(MavenModule module) {
-    return new TestResultProjectAction(module);
+  /**
+   * Part of the serialization data attached to {@link MavenBuild}.
+   */
+  static final class FactoryImpl implements MavenProjectActionBuilder {
+    public Collection<? extends Action> getProjectActions(MavenModule module) {
+      return Collections.singleton(new TestResultProjectAction(module));
+    }
   }
 
   private boolean isJooTest(MojoInfo mojo) {
-    if (!mojo.is("net.jangaroo", "jangaroo-maven-plugin", "test"))
+    if (!mojo.is("net.jangaroo", "jangaroo-maven-plugin", "test")) {
       return false;
+    }
 
     try {
       Boolean skip = mojo.getConfigurationValue("skip", Boolean.class);
