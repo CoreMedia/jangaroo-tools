@@ -159,7 +159,8 @@ public class DynamicClassLoader extends StandardClassLoader {
     "jpg": RESOURCE_TYPE_IMAGE,
     "jpeg": RESOURCE_TYPE_IMAGE,
     "mp3": RESOURCE_TYPE_AUDIO,
-    "ogg": RESOURCE_TYPE_AUDIO
+    "ogg": RESOURCE_TYPE_AUDIO,
+    "wav": RESOURCE_TYPE_AUDIO
   };
   // TODO: map more extensions, also for video etc.
   // TODO: improvement: instead of extensions, we could do a HEAD request to the path and map the Content-Type to media/resource type.
@@ -185,6 +186,14 @@ public class DynamicClassLoader extends StandardClassLoader {
               fireDependency("resource:" + path);
             }
           } else if (resourceType === RESOURCE_TYPE_AUDIO) {
+            if (!resource['canPlayType']("audio/" + extension)) {
+              // try another MIME type / extension:
+              var fallbackExtension:String = findFallback(resource);
+              if (!fallbackExtension) {
+                return;
+              }
+              path = path.substring(0, dotPos) + "." + fallbackExtension;
+            }
             resource.preload = "auto"; // Embed -> load early, but don't wait for load like with images.
           }
           resource.src = urlPrefix + path;
@@ -195,6 +204,23 @@ public class DynamicClassLoader extends StandardClassLoader {
         trace("[WARN]", "Ignoring unsupported media type of file " + path);
       }
     }
+  }
+
+  private static const AUDIO_FALLBACK_ORDER:Array = ["mp3", "ogg", "wav"];
+  private static var AUDIO_FALLBACK_EXTENSION:String = null;
+  private static function findFallback(audio:Object):String {
+    if (AUDIO_FALLBACK_EXTENSION === null) {
+      for (var i:int = 0; i < AUDIO_FALLBACK_ORDER.length; i++) {
+        var fallback:String = AUDIO_FALLBACK_ORDER[i];
+        if (audio['canPlayType']("audio/" + fallback)) {
+          return AUDIO_FALLBACK_EXTENSION = fallback;
+        }
+      }
+      trace("[WARN]", "Could not find any audio extension that this client can play (" + AUDIO_FALLBACK_ORDER.join(",") +
+        "), no sound available.");
+      AUDIO_FALLBACK_EXTENSION = "";
+    }
+    return AUDIO_FALLBACK_EXTENSION;
   }
 
   public function getResource(path:String):Object {
