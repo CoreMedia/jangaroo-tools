@@ -46,7 +46,7 @@
       <groupId>org.jvnet.hudson.main</groupId>
       <artifactId>maven-plugin</artifactId>
       <version>1.389</version>
-    </dependency>
+    </dependency>      
     <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>servlet-api</artifactId>
@@ -89,6 +89,7 @@
         <version>1.50</version>
         <extensions>true</extensions>
         <configuration>
+          <disabledTestInjection>true</disabledTestInjection>
           <showDeprecation>true</showDeprecation>
         </configuration>
       </plugin>
