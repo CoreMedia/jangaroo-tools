@@ -95,7 +95,7 @@
           superConstructor = Object;
         }
         var level = "$" + className + "_";
-        publicConstructor.prototype[level + "super"] = superConstructor;
+        publicConstructor.prototype["super" + level] = superConstructor;
         var privateStatics = {};
         var members = memberFactory(level, privateStatics);
         var staticInitializer;

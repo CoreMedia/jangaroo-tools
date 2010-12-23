@@ -138,7 +138,7 @@ public class ClassDeclaration extends IdeDeclaration {
     body.generateCode(out);
     if (constructor == null && !fieldsWithInitializer.isEmpty()) {
       // generate default constructor that calls field initializers:
-      out.write("\"public function " + getName() + "\",function $" + getName() + "(){this[$$l+'super']();");
+      out.write("\"public function " + getName() + "\",function " + getName() + "$(){this['super'+$$l]();");
       generateFieldInitCode(out);
       out.write("}");
     }
@@ -160,10 +160,10 @@ public class ClassDeclaration extends IdeDeclaration {
     }
     for (TypedIdeDeclaration member : members.values()) {
       if (member.isPrivate() || member.isOverride()) {
-        scopeVars.put("$" + member.getName(), "$$l+'" + member.getName() + "'");
+        scopeVars.put("$" + member.getName(),  "'" + member.getName() +"'+$$l");
       }
     }
-    out.write("var $super=$$l+'super'");
+    out.write("var $super='super'+$$l");
     for (Map.Entry<String, String> scopeVar : scopeVars.entrySet()) {
       out.write("," + scopeVar.getKey() + "=" + scopeVar.getValue());
     }

@@ -184,7 +184,7 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
     }
     if (!this.isInterface()) {
       if (!this.native_) {
-        this.publicConstructor.prototype["$" + this.level + "super"] = this.superClassDeclaration.constructor_;
+        this.publicConstructor.prototype["super$" + this.level] = this.superClassDeclaration.constructor_;
       }
       if (!this.constructor_) {
         // reuse native public constructor or super class constructor:
