@@ -77,7 +77,7 @@
 
      */
     joo.classLoader = {
-      prepare: function(packageDef, classDef, memberFactory, publicStaticMethodNames, dependencies, runtimeApiVersion, compilerVersion) {
+      prepare: function(packageDef, classDef, inheritanceLevel, memberFactory, publicStaticMethodNames, dependencies, runtimeApiVersion, compilerVersion) {
         joo.runtimeApiVersion = runtimeApiVersion;
         joo.compilerVersion = compilerVersion;
         var classMatch = classDef.match(/^\s*((public|internal|final|dynamic)\s+)*class\s+([A-Za-z][a-zA-Z$_0-9]*)(\s+extends\s+([a-zA-Z$_0-9.]+))?(\s+implements\s+([a-zA-Z$_0-9.,\s]+))?\s*$/);
@@ -94,10 +94,9 @@
         } else {
           superConstructor = Object;
         }
-        var level = "$" + className + "_";
-        publicConstructor.prototype["super" + level] = superConstructor;
+        publicConstructor.prototype["super$" + inheritanceLevel] = superConstructor;
         var privateStatics = {};
-        var members = memberFactory(level, privateStatics);
+        var members = memberFactory(privateStatics);
         var staticInitializer;
         for (var i = 0; i < members.length; ++i) {
           var memberDeclaration = members[i];

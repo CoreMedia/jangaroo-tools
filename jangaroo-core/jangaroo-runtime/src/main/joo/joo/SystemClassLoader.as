@@ -37,12 +37,18 @@ public class SystemClassLoader {
       addToMetadata(metadata, params[i]);
     }
     var classDef : String = params[i++];
+    var inheritanceLevel:* = params[i++];
+    if (typeof inheritanceLevel !== "number") {
+      // No inheritance level? Runtime version < 0.8.0.
+      // Be backwards-compatible, so that we at least generate the right error:
+      i--;
+    }
     var memberFactory : Function = params[i++];
     var publicStaticMethodNames : Array = params[i++];
     var dependencies : Array = params[i++];
     var runtimeApiVersion:String = params[i++];
     var compilerVersion:String = params[i++];
-    var cd : SystemClassDeclaration = this.createClassDeclaration(packageDef, classDef, memberFactory, publicStaticMethodNames, dependencies);
+    var cd : SystemClassDeclaration = this.createClassDeclaration(packageDef, classDef, inheritanceLevel, memberFactory, publicStaticMethodNames, dependencies);
     cd.metadata = metadata;
     if (!isRuntimeCompatible(runtimeApiVersion, compilerVersion)) {
       throw new Error("Runtime version " + joo.runtimeApiVersion + "/" + joo.compilerVersion +
@@ -97,9 +103,9 @@ public class SystemClassLoader {
     }
   }
 
-  protected function createClassDeclaration(packageDef : String, classDef : String, memberFactory : Function,
+  protected function createClassDeclaration(packageDef : String, classDef : String, inheritanceLevel : int, memberFactory : Function,
                           publicStaticMethodNames : Array, dependencies : Array) : SystemClassDeclaration {
-    return new SystemClassDeclaration(packageDef, classDef, memberFactory, publicStaticMethodNames).init()
+    return new SystemClassDeclaration(packageDef, classDef, inheritanceLevel, memberFactory, publicStaticMethodNames).init()
             as SystemClassDeclaration;
   }
 

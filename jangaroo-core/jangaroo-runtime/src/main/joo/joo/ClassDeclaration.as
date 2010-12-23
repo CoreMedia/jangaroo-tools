@@ -21,9 +21,9 @@ public class ClassDeclaration extends SystemClassDeclaration {
 
   private var dependencies : Array;
 
-  public function ClassDeclaration(packageDef:String, classDef:String, memberDeclarations:Function,
+  public function ClassDeclaration(packageDef:String, classDef:String, inheritanceLevel : int, memberDeclarations:Function,
           publicStaticMethods : Array, dependencies : Array) {
-    super(packageDef, classDef, memberDeclarations, publicStaticMethods);
+    super(packageDef, classDef, inheritanceLevel, memberDeclarations, publicStaticMethods);
     this.dependencies = dependencies;
   }
 

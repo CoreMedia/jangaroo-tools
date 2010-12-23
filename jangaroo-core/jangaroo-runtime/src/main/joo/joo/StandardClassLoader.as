@@ -27,9 +27,9 @@ public class StandardClassLoader extends SystemClassLoader {
     imports = [];
   }
 
-  override protected function createClassDeclaration(packageDef : String, classDef : String, memberFactory : Function,
+  override protected function createClassDeclaration(packageDef : String, classDef : String, inheritanceLevel : int, memberFactory : Function,
                                                   publicStaticMethodNames : Array, dependencies : Array):SystemClassDeclaration {
-    var cd : ClassDeclaration = new ClassDeclaration(packageDef, classDef, memberFactory, publicStaticMethodNames, dependencies);
+    var cd : ClassDeclaration = new ClassDeclaration(packageDef, classDef, inheritanceLevel, memberFactory, publicStaticMethodNames, dependencies);
     classDeclarations.push(cd); // remember all created classes for later initialization.
     return cd;
   }

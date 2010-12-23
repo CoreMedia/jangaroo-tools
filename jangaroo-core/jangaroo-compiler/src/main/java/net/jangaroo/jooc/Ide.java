@@ -343,14 +343,13 @@ public class Ide extends NodeImplBase {
       out.writeSymbolWhitespace(optSymDot);
     }
     out.writeToken(",");
+    out.beginString();
     if (isQualifiedBySuper() || decl.isPrivate()) {
-      // awkward, but we have to be careful if we add characters to tokens:
-      out.writeToken("$" + getName());
+      out.writeToken(getName() + "$" + scope.getClassDeclaration().getInheritanceLevel());
     } else {
-      out.beginString();
       out.writeToken(getName());
-      out.endString();
     }
+    out.endString();
     out.writeToken(")");
   }
 
@@ -401,13 +400,13 @@ public class Ide extends NodeImplBase {
       }
       out.writeSymbol(memberIde.ide, false);
     } else {
-      out.writeToken("[");
       if (optSymDot != null) {
-        out.writeSymbolWhitespace(optSymDot);
+        out.writeSymbol(optSymDot);
+      } else {
+        out.writeToken(".");
       }
       // awkward, but we have to be careful if we add characters to tokens:
-      out.writeToken("$" + memberIde.getName());
-      out.writeToken("]");
+      out.writeToken(memberIde.getName() + "$" + memberIde.scope.getClassDeclaration().getInheritanceLevel());
     }
   }
 

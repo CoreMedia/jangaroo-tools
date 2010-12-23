@@ -33,7 +33,6 @@ public class NativeClassDeclaration {
   internal static const STATE_INITIALIZED : int = 4;
 
   public var
-          level : int = -1,
           fullClassName : String,
           constructor_ : Function,
           publicConstructor : Function,

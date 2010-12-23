@@ -313,7 +313,7 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
     }
 
     public void generateCode(JsWriter out) throws IOException {
-      out.writeToken("this[$super]()");
+      out.writeToken("this.super$" + classDeclaration.getInheritanceLevel() + "()");
       classDeclaration.generateFieldInitCode(out);
       out.writeToken(";");
     }
