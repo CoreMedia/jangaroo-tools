@@ -23,7 +23,7 @@ import java.util.regex.Pattern;
  */
 public abstract class IdeDeclaration extends Declaration {
 
-  private static Pattern PRIVATE_MEMBER_NAME = Pattern.compile("\\$[0-9]+$");
+  private static Pattern PRIVATE_MEMBER_NAME = Pattern.compile("[^$]\\$[0-9]+$");
 
   Ide ide;
 
