@@ -100,7 +100,7 @@ class FunctionExpr extends Expr {
         ((BlockStatement)methodDeclaration.getBody()).addBlockStartCodeGenerator(new CodeGenerator() {
           @Override
           public void generateCode(JsWriter out) throws IOException {
-            out.write("var $this=this;");
+            out.write("var this$=this;");
           }
         });
         return true;

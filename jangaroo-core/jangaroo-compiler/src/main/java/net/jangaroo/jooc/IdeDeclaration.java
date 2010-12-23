@@ -23,7 +23,7 @@ import java.util.regex.Pattern;
  */
 public abstract class IdeDeclaration extends Declaration {
 
-  private static Pattern PRIVATE_MEMBER_NAME = Pattern.compile("^[$](\\p{Alpha}|[_$])(\\p{Alnum}|[_$])*$");
+  private static Pattern PRIVATE_MEMBER_NAME = Pattern.compile("\\$[0-9]+$");
 
   Ide ide;
 
@@ -31,7 +31,7 @@ public abstract class IdeDeclaration extends Declaration {
     super(modifiers, allowedModifiers);
     this.ide = ide;
     if (ide != null && PRIVATE_MEMBER_NAME.matcher(ide.getName()).matches()) {
-      Jooc.warning(ide.getSymbol(), "Jangaroo identifier must not be an ActionScript identifier prefixed with a dollar sign ('$').");
+      Jooc.warning(ide.getSymbol(), "Jangaroo identifier must not be an ActionScript identifier postfixed with a dollar sign ('$') followed by a number.");
     }
   }
 

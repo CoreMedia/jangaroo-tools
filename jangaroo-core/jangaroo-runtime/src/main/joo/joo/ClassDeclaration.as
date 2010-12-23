@@ -38,7 +38,7 @@ public class ClassDeclaration extends SystemClassDeclaration {
   }
 
   private static function createInitializingConstructor(classDeclaration : ClassDeclaration) : void {
-    // anonymous function has to be inside a static function, or jooc will replace "this" with "$this":
+    // anonymous function has to be inside a static function, or jooc will replace "this" with "this$":
     classDeclaration.constructor_ = function() : void {
       classDeclaration.init();
       assert(classDeclaration.constructor_!=null); // must have been set, at least to a default constructor!

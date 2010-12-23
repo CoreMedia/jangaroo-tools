@@ -3,13 +3,13 @@
   <groupId>net.jangaroo</groupId>
   <artifactId>jangaroo-compiler</artifactId>
   <packaging>jar</packaging>
-  <version>0.7.13-SNAPSHOT</version>
+  <version>0.8.0-SNAPSHOT</version>
   <name>Joo Compiler</name>
 
   <parent>
     <artifactId>jangaroo-parent</artifactId>
     <groupId>net.jangaroo</groupId>
-    <version>0.7.13-SNAPSHOT</version>
+    <version>0.8.0-SNAPSHOT</version>
     <relativePath>../../jangaroo-parent/pom.xml</relativePath>
   </parent>
 
@@ -185,14 +185,14 @@
     <generated.cup.sources.dir>${project.build.directory}/generated-sources/cup</generated.cup.sources.dir>
     <cup.sources.dir>${basedir}/src/main/cup</cup.sources.dir>
     <!-- the runtime API version the current jooc version relies on, included into the generated *.js files: -->
-    <jangaroo.runtime-api.version>0.7.1</jangaroo.runtime-api.version>
+    <jangaroo.runtime-api.version>0.8.0</jangaroo.runtime-api.version>
   </properties>
 
   <dependencies>
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-utils</artifactId>
-      <version>0.7.13-SNAPSHOT</version>
+      <version>0.8.0-SNAPSHOT</version>
     </dependency>
 
     <dependency>

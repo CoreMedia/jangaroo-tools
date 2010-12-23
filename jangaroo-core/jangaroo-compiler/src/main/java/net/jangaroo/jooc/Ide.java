@@ -329,7 +329,7 @@ public class Ide extends NodeImplBase {
   }
 
   private void writeThis(JsWriter out) throws IOException {
-    out.writeToken(rewriteThis ? "$this" : "this");
+    out.writeToken(rewriteThis ? "this$" : "this");
   }
 
   protected void writeBoundMethodAccess(JsWriter out, Ide optIde, JooSymbol optSymDot, IdeDeclaration decl) throws IOException {

@@ -156,7 +156,7 @@ public class MemberDeclaration {
 
   internal function initSlot(level : int) : void {
     slot = isPrivate() && !isStatic()
-            ? "$" + level + memberName
+            ? memberName + "$" + level
             : memberName;
   }
 
@@ -217,7 +217,7 @@ public class MemberDeclaration {
       } else if (SUPPORTS_GETTERS_SETTERS) {
         return target[LOOKUP_METHOD[this.getterOrSetter]](slot);
       } else {
-        slot = this.getterOrSetter+"$"+slot;
+        slot = slot+"$"+this.getterOrSetter;
       }
     }
     try {
@@ -266,7 +266,7 @@ public class MemberDeclaration {
           target[DEFINE_METHOD[this.getterOrSetter]](slot, this.value);
           return;
         } else {
-          slot = this.getterOrSetter+"$"+slot;
+          slot = slot+"$"+this.getterOrSetter;
         }
       }
       target[slot] = this.value;
