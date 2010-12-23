@@ -64,7 +64,7 @@ class SuperConstructorCallStatement extends Statement {
 
   protected void generateFunCode(JsWriter out) throws IOException {
     out.writeSymbolWhitespace(getSymbol());
-    out.writeToken("this[$super]");
+    out.writeToken("this.super$" + classDeclaration.getInheritanceLevel());
   }
 
   protected void generateArgsCode(JsWriter out) throws IOException {

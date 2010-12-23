@@ -46,6 +46,7 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
           className : String,
           native_ : Boolean = false,
           extends_ : String = "Object",
+          level : int = -1,
           privateStatics : Object,
           memberDeclarations : * /* Function, then Array */,
           memberDeclarationsByQualifiedName : Object,
@@ -63,7 +64,7 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
   private static const DECLARATION_PATTERN_NAMESPACE:RegExp =
     /^\s*((public|internal)\s+)?namespace\s+([A-Za-z][a-zA-Z$_0-9]*)\s*$/;
 
-  public function SystemClassDeclaration(packageDef : String, classDef : String, memberDeclarations : Function,
+  public function SystemClassDeclaration(packageDef : String, classDef : String, inheritanceLevel : int, memberDeclarations : Function,
           publicStaticMethodNames : Array) {
     var packageName : String = packageDef.split(/\s+/)[1] || "";
     this.package_ = getOrCreatePackage(packageName);
@@ -89,6 +90,7 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
     if (!classMatch) {
       throw new Error("SyntaxError: \""+classDef+"\" does not match.");
     }
+    this.level = inheritanceLevel;
     this.namespace_ = classMatch[2];
     this.className    = classMatch[3];
     var fullClassName : String = this.className;
@@ -128,7 +130,6 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
   protected override function doComplete() : void {
     this.superClassDeclaration = classLoader.getRequiredClassDeclaration(this.extends_);
     this.superClassDeclaration.complete();
-    this.level = this.superClassDeclaration.level + 1;
     var Super : Function = this.superClassDeclaration.Public;
     if (!this.native_) {
       this.publicConstructor.prototype = new Super();
@@ -140,7 +141,7 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
 
   protected function initMembers() : void {
     this.staticInitializers = [];
-    var memberDeclarations : Array = this.memberDeclarations("$" + this.level, this.privateStatics);
+    var memberDeclarations : Array = this.memberDeclarations(this.privateStatics);
     this.memberDeclarations = [];
     this.memberDeclarationsByQualifiedName = {};
     this.constructor_ = null;
@@ -160,15 +161,19 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
               if (++i >= memberDeclarations.length) {
                 throw new Error(this + ": Member expected after modifiers '" + item + "'.");
               }
-              var member : Object = memberDeclarations[i];
+              var member : * = memberDeclarations[i];
             }
             switch (memberDeclaration.memberType) {
               case MemberDeclaration.MEMBER_TYPE_FUNCTION:
                 this.initMethod(memberDeclaration, Function(member));
                 break;
               case MemberDeclaration.MEMBER_TYPE_CLASS:
-                var secondaryClass:NativeClassDeclaration = classLoader.prepare("package "+this.fullClassName, item, member as Function,
-                  memberDeclarations[++i], [], runtimeApiVersion, compilerVersion).complete();
+                var helperInheritanceLevel:int = int(member);
+                var helperMemberDeclarations:Function = memberDeclarations[++i];
+                var helperStatics:Array = memberDeclarations[++i];
+                var secondaryClass:NativeClassDeclaration = classLoader.prepare("package "+this.fullClassName, item,
+                        helperInheritanceLevel, helperMemberDeclarations,
+                        helperStatics, [], runtimeApiVersion, compilerVersion).complete();
                 this.publicConstructor[memberDeclaration.memberName] = secondaryClass.publicConstructor;
                 break;
               default:

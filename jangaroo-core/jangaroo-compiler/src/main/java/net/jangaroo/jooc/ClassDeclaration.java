@@ -37,6 +37,7 @@ public class ClassDeclaration extends IdeDeclaration {
   private List<FieldDeclaration> fieldsWithInitializer = new ArrayList<FieldDeclaration>();
   private List<IdeDeclaration> secondaryDeclarations = Collections.emptyList();
   private Set<String> usedBuiltIns = new LinkedHashSet<String>();
+  private int inheritanceLevel = -1;
 
   public Extends getOptExtends() {
     return optExtends;
@@ -131,14 +132,15 @@ public class ClassDeclaration extends IdeDeclaration {
     }
     out.endString();
     out.write(",");
-    out.write("function($$l,$$private){");
-    writeScopeVars(out);
+    out.write(getInheritanceLevel() + ",");
+    out.write("function($$private){");
+    writeBuiltInAliases(out);
     out.write("return[");
     generateClassInits(out);
     body.generateCode(out);
     if (constructor == null && !fieldsWithInitializer.isEmpty()) {
       // generate default constructor that calls field initializers:
-      out.write("\"public function " + getName() + "\",function " + getName() + "$(){this['super'+$$l]();");
+      out.write("\"public function " + getName() + "\",function " + getName() + "$(){this.super$" + getInheritanceLevel() + "();");
       generateFieldInitCode(out);
       out.write("}");
     }
@@ -152,22 +154,21 @@ public class ClassDeclaration extends IdeDeclaration {
     generateStaticMethodList(out);
   }
 
-  private void writeScopeVars(JsWriter out) throws IOException {
-    Map<String,String> scopeVars = new LinkedHashMap<String, String>();
+  private void writeBuiltInAliases(JsWriter out) throws IOException {
+    boolean first = true;
     for (String builtIn : usedBuiltIns) {
       String sourceName = "joo." + ("$$bound".equals(builtIn) ? "boundMethod" : builtIn);
-      scopeVars.put(builtIn, sourceName);
-    }
-    for (TypedIdeDeclaration member : members.values()) {
-      if (member.isPrivate() || member.isOverride()) {
-        scopeVars.put("$" + member.getName(),  "'" + member.getName() +"'+$$l");
+      if (first) {
+        out.writeToken("var");
+        first = false;
+      } else {
+        out.writeToken(",");
       }
+      out.writeToken(builtIn);
+      out.writeToken("=");
+      out.writeToken(sourceName);
     }
-    out.write("var $super='super'+$$l");
-    for (Map.Entry<String, String> scopeVar : scopeVars.entrySet()) {
-      out.write("," + scopeVar.getKey() + "=" + scopeVar.getValue());
-    }
-    out.write(";");
+    out.writeToken(";");
   }
 
   private void generateClassInits(JsWriter out) throws IOException {
@@ -368,6 +369,27 @@ public class ClassDeclaration extends IdeDeclaration {
         throw new Jooc.CompilerError(classDecl.optExtends.superClass.getSymbol(), "expected class identifier");
       }
     return resolvePropertyDeclaration1(ide, (ClassDeclaration) superClassDecl, visited, chain);
+  }
+
+  public int getInheritanceLevel() {
+    if (inheritanceLevel < 0) {
+      inheritanceLevel = computeInheritanceLevel();
+    }
+    return inheritanceLevel;
+  }
+
+  private int computeInheritanceLevel() {
+    if (superType == null)  {
+      return 0;
+    }
+    if ("Object".equals(superType.ide.getQualifiedNameStr())) {
+      return 1;
+    }
+    IdeDeclaration superClassDecl = superType.ide.getDeclaration();
+    if (!(superClassDecl instanceof ClassDeclaration)) {
+      throw new Jooc.CompilerError(optExtends.superClass.getSymbol(), "expected class identifier");
+    }
+    return 1 + ((ClassDeclaration)superClassDecl).getInheritanceLevel();
   }
 
 

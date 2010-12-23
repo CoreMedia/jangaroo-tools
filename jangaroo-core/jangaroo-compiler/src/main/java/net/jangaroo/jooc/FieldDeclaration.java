@@ -141,7 +141,7 @@ public class FieldDeclaration extends AbstractVariableDeclaration {
   }
 
   public void generateInitCode(JsWriter out) throws IOException {
-    String accessCode = "this" + (isPrivate() ? "[$" + getName() + "]" : "." + getName());
+    String accessCode = "this." + getName() + (isPrivate() ? "$" + classDeclaration.getInheritanceLevel() : "");
     out.write(";" + accessCode + "=" + accessCode + "()");
   }
 }

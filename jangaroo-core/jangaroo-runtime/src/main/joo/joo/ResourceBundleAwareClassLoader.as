@@ -12,7 +12,6 @@
  * express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
-
 package joo {
 
 /**
@@ -65,7 +64,6 @@ public class ResourceBundleAwareClassLoader extends DynamicClassLoader {
   private var localeCookiePath:String;
 
   /**
-   *
    * Set before any resource bundle is loaded.
    * @see #getLocale
    */
@@ -111,9 +109,9 @@ public class ResourceBundleAwareClassLoader extends DynamicClassLoader {
     return supportedLocales[0];
   }
 
-  override protected function createClassDeclaration(packageDef : String, classDef : String, memberFactory : Function,
+  override protected function createClassDeclaration(packageDef : String, classDef : String, inheritanceLevel : int, memberFactory : Function,
                                                      publicStaticMethodNames : Array, dependencies : Array):SystemClassDeclaration {
-    var cd : ClassDeclaration = ClassDeclaration(super.createClassDeclaration(packageDef, classDef, memberFactory, publicStaticMethodNames, dependencies));
+    var cd : ClassDeclaration = ClassDeclaration(super.createClassDeclaration(packageDef, classDef, inheritanceLevel, memberFactory, publicStaticMethodNames, dependencies));
     if (cd.fullClassName.match(RESOURCE_BUNDLE_PATTERN)) {
       cd.getDependencies().push(getLocalizedResourceClassName(cd));
     }
