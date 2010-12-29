@@ -263,7 +263,7 @@ public class WarPackageMojo
       File jangarooModuleFile = new File(packageSourceDirectory, "jangaroo-module.js");
       FileInputStream jooModuleInputStream = jangarooModuleFile.exists()
         ? new FileInputStream(jangarooModuleFile) : null;
-      writeJangarooModuleScript(project.getArtifact(), jooModuleInputStream, fw);
+      writeJangarooModuleScript(project.getArtifact(), jooModuleInputStream, fw, false); // TODO: only generate loadModule() code if compile goal has been executed?
     } finally {
       try {
         fw.close();
@@ -284,15 +284,18 @@ public class WarPackageMojo
     ZipFile zipFile = new ZipFile(artifact.getFile());
     ZipEntry zipEntry = zipFile.getEntry("jangaroo-module.js");
     InputStream jooModuleInputStream = zipEntry != null ? zipFile.getInputStream(zipEntry) : null;
-    writeJangarooModuleScript(artifact, jooModuleInputStream, fw);
+    writeJangarooModuleScript(artifact, jooModuleInputStream, fw, true);
   }
 
-  private void writeJangarooModuleScript(Artifact artifact, InputStream jooModuleInputStream, Writer fw) throws IOException {
+  private void writeJangarooModuleScript(Artifact artifact, InputStream jooModuleInputStream, Writer fw, boolean autoGenerate) throws IOException {
     String fullAtifactName = artifact.getGroupId() + ":" + artifact.getArtifactId() + ":" + artifact.getVersion();
     fw.write("// FROM " + fullAtifactName + ":\n");
     if (jooModuleInputStream == null) {
-      getLog().debug("No jangaroo-module.js in " + fullAtifactName + ", creating joo.loadModule(...) code.");
-      fw.write("joo.loadModule(\"" + artifact.getArtifactId() + "\");\n");
+      getLog().debug("No jangaroo-module.js in " + fullAtifactName + ".");
+      if (autoGenerate) {
+        getLog().debug("Creating joo.loadModule(...) code for " + fullAtifactName + ".");
+        fw.write("joo.loadModule(\"" + artifact.getArtifactId() + "\");\n");
+      }
     } else {
       getLog().info("Appending jangaroo-module.js from " + fullAtifactName);
       IOUtil.copy(jooModuleInputStream, fw, "UTF-8");
