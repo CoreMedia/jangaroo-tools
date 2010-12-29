@@ -34,20 +34,6 @@ public class StandardClassLoader extends SystemClassLoader {
     return cd;
   }
 
-  public function loadScript(uri:String):Object {
-    var joo__loadScript:Function = getQualifiedObject("joo__loadScript");
-    if (joo__loadScript) {
-      joo__loadScript(uri);
-      return {};
-    }
-    var document:* = getQualifiedObject("document");
-    var script:Object = document.createElement("script");
-    script.type = "text/javascript";
-    document.getElementsByTagName("HEAD")[0].appendChild(script);
-    script.src = uri;
-    return script;
-  }
-
   /**
    * Import the class given by its fully qualified class name (package plus name).
    * All imports are collected in a hash and can be used in the #complete() callback function.

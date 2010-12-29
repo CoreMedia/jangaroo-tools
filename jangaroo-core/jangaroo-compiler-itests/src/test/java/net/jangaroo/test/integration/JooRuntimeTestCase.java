@@ -38,7 +38,7 @@ public abstract class JooRuntimeTestCase extends JooTestCase {
   protected Global global;
   private Context cx;
 
-  private static final String CLASS_JS_FILE_PATH = "jangaroo-runtime-debug.js";
+  private static final String CLASS_JS_FILE_PATH = "jangaroo-module.js";
 //    Jooc. + /* "-debug" + */Jooc.OUTPUT_FILE_SUFFIX;
 
   public static String jsFileName(final String qualifiedJooClassName) {
@@ -55,38 +55,21 @@ public abstract class JooRuntimeTestCase extends JooTestCase {
 
   static public class Global extends ScriptableObject {
 
+    private final Joo joo = new Joo(this);
+
+    public Joo getJoo() {
+      return joo;
+    }
+
     public String getClassName() {
       return "global";
     }
 
-    private String jsDir;
-
-    public String getJsDir() {
-      return jsDir;
-    }
-
-    public void setJsDir(final String jsDir) {
-      this.jsDir = jsDir;
-    }
-
-    static public void trace(Context cx, Scriptable thisObj, Object[] args, Function funObj) {
-      for (int i = 0; i < args.length; i++) {
-        if (i > 0)
-          System.out.print(" ");
-        // Convert the arbitrary JavaScript value into a string form.
-        String s = Context.toString(args[i]);
-        System.out.print(s);
-      }
-      System.out.println();
-    }
-
-    public static void joo__loadScript(Context cx, Scriptable thisObj, Object[] args, Function funObj) throws Exception {
-      Global global = (Global) thisObj;
-      for (Object arg : args) {
-        // Convert the arbitrary JavaScript value into a string form.
-        String s = Context.toString(arg);
-        global.load(cx, s);
-      }
+    public Object eval(Context cx, String script) throws Exception {
+      //System.out.print("evaluating script '" + script + "': ");
+      Reader reader = new StringReader(script);
+      Object result = cx.evaluateReader(this, reader, "", 1, null);
+      return result;
     }
 
     public static void setTimeout(Context cx, Scriptable thisObj, Object[] args, Function funObj) throws Exception {
@@ -99,12 +82,68 @@ public abstract class JooRuntimeTestCase extends JooTestCase {
     public void printJsResult(Object result) throws Exception {
       System.out.println(Context.toString(result) + " (" + result.getClass().getName() + ")");
     }
+  }
+
+  static public class Joo extends ScriptableObject {
+    private Global global;
+    private String jsDir;
+
+    public Joo(Global global) {
+      this.global = global;
+    }
+
+    public String getClassName() {
+      return "joo";
+    }
+
+    public String getJsDir() {
+      return jsDir;
+    }
+
+    public void setJsDir(final String jsDir) {
+      this.jsDir = jsDir;
+    }
+
+    public static void trace(Context cx, Scriptable thisObj, Object[] args, Function funObj) {
+      for (int i = 0; i < args.length; i++) {
+        if (i > 0)
+          System.out.print(" ");
+        // Convert the arbitrary JavaScript value into a string form.
+        String s = Context.toString(args[i]);
+        System.out.print(s);
+      }
+      System.out.println();
+    }
+
+    public static Scriptable loadScriptAsync(Context cx, Scriptable thisObj, Object[] args, Function funObj) throws Exception {
+      _loadScript(cx, thisObj, args, funObj); // TODO: make it really async?
+      return new HTMLScriptElement((String)args[0]);
+    }
+
+    private static class HTMLScriptElement extends ScriptableObject {
+      private HTMLScriptElement(String src) {
+        defineProperty("src", src, ScriptableObject.EMPTY);
+      }
+      @Override
+      public String getClassName() {
+        return "HTMLScriptElement";
+      }
+    }
+
+    public static void _loadScript(Context cx, Scriptable thisObj, Object[] args, Function funObj) throws Exception {
+      Joo joo = (Joo) thisObj;
+      for (Object arg : args) {
+        // Convert the arbitrary JavaScript value into a string form.
+        String s = Context.toString(arg);
+        joo.load(cx, s);
+      }
+    }
 
     public Object load(Context cx, File jsFile) throws Exception {
       String jsFileName = jsFile.getAbsolutePath();
       System.out.println("loading script " + jsFileName);
       Reader reader = new BufferedReader(new InputStreamReader(new FileInputStream(jsFile), "UTF-8"));
-      return cx.evaluateReader(this, reader, jsFileName, 1, null);
+      return cx.evaluateReader(global, reader, jsFileName, 1, null);
     }
 
     public void load(Context cx, String jsFileName) throws Exception {
@@ -113,20 +152,14 @@ public abstract class JooRuntimeTestCase extends JooTestCase {
 
 
     public void import_(Context cx, String qualifiedJooClassName) throws Exception {
-      eval(cx, "joo.classLoader.import_('" + qualifiedJooClassName + "')");
+      global.eval(cx, "joo.classLoader.import_('" + qualifiedJooClassName + "')");
     }
 
-    public Object eval(Context cx, String script) throws Exception {
-      //System.out.print("evaluating script '" + script + "': ");
-      Reader reader = new StringReader(script);
-      Object result = cx.evaluateReader(this, reader, "", 1, null);
-      return result;
-    }
   }
 
   protected String readClassCode(String qualifiedJooClassName) throws Exception {
     String jsFileName = jsFileName(qualifiedJooClassName);
-    File file = new File(global.getJsDir(), jsFileName);
+    File file = new File(global.joo.getJsDir(), jsFileName);
     Reader in = new InputStreamReader(new FileInputStream(file), "UTF-8");
     StringBuilder builder = new StringBuilder();
     int n;
@@ -143,13 +176,14 @@ public abstract class JooRuntimeTestCase extends JooTestCase {
     cx = ContextFactory.getGlobal().enterContext();
     cx.setLanguageVersion(Context.VERSION_1_5);
     cx.initStandardObjects(global);
-    global.defineFunctionProperties(new String[]{"trace"},  Global.class, ScriptableObject.DONTENUM);
-    global.defineFunctionProperties(new String[]{"joo__loadScript"},  Global.class, ScriptableObject.EMPTY);
     global.defineFunctionProperties(new String[]{"setTimeout"},  Global.class, ScriptableObject.EMPTY);
     global.defineProperty("window", global, ScriptableObject.EMPTY);
-    global.setJsDir(destinationDir);
+    global.defineProperty("joo", Global.class, ScriptableObject.EMPTY);
+    global.joo.defineProperty("debug", true, ScriptableObject.EMPTY);
+    global.joo.defineProperty("scriptsUrl", "scripts/", ScriptableObject.EMPTY);
+    global.joo.defineFunctionProperties(new String[]{"trace", "_loadScript", "loadScriptAsync"},  Joo.class, ScriptableObject.EMPTY);
+    global.joo.setJsDir(destinationDir);
     load(CLASS_JS_FILE_PATH);
-    eval("joo.classLoader.urlPrefix = '/'");
   }
 
   protected void tearDown() throws Exception {
@@ -158,7 +192,7 @@ public abstract class JooRuntimeTestCase extends JooTestCase {
   }
 
   protected void load(String jsFileName) throws Exception {
-    global.load(cx, jsFileName);
+    global.joo.load(cx, jsFileName);
   }
 
   protected void printJsResult(Object result) throws Exception {
@@ -166,11 +200,11 @@ public abstract class JooRuntimeTestCase extends JooTestCase {
   }
 
   protected Object load(File jsFile) throws Exception {
-    return global.load(cx, jsFile);
+    return global.joo.load(cx, jsFile);
   }
 
   protected Object loadAll() throws Exception {
-    return loadAll(new File(global.getJsDir()));
+    return loadAll(new File(global.joo.getJsDir()));
   }
 
   protected Object loadAll(final File dir) throws Exception {
@@ -187,7 +221,7 @@ public abstract class JooRuntimeTestCase extends JooTestCase {
   }
 
   protected void import_(String qualifiedJooClassName) throws Exception {
-    global.import_(cx, qualifiedJooClassName);
+    global.joo.import_(cx, qualifiedJooClassName);
   }
 
   protected void initClass(String qualifiedJooClassName) throws Exception {

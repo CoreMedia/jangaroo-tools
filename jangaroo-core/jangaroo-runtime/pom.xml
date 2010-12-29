@@ -39,35 +39,6 @@
                   <src path="src/main/joo" />
                 </jooc>
 
-                <concat destfile="target/scripts/jangaroo-runtime-debug.js">
-                  <filelist dir="src/main/joo-js/scripts/classes">
-                    <file name="int.js" />
-                    <file name="uint.js" />
-                    <file name="joo/BootstrapClassLoader.js" />
-                    <file name="joo/assert.js" />
-                    <file name="joo/Class.js" />
-                    <file name="joo/trace.js" />
-                  </filelist>
-                  <filelist dir="target/temp/runtime/debug/scripts/classes">
-                    <file name="joo/MemberDeclaration.js" />
-                    <file name="joo/NativeClassDeclaration.js" />
-                    <file name="joo/SystemClassDeclaration.js" />
-                    <file name="joo/SystemClassLoader.js" />
-                    <file name="ArgumentError.js" />
-                    <file name="DefinitionError.js" />
-                    <file name="SecurityError.js" />
-                    <file name="Array.js" />
-                    <file name="Date.js" />
-                    <file name="joo/ClassDeclaration.js" />
-                    <file name="joo/StandardClassLoader.js" />
-                    <file name="joo/DynamicClassLoader.js" />
-                    <file name="joo/ResourceBundleAwareClassLoader.js" />
-                  </filelist>
-                  <footer trimleading="no">
-                    new joo.DynamicClassLoader().debug = true;
-                  </footer>
-                </concat>
-
                 <mkdir dir="target/temp/runtime/deploy" />
                 <jooc destdir="target/temp/runtime/deploy" failonerror="true" debug="false" verbose="true" enableassertions="false" classpath="${basedir}/src/main/joo-api">
                   <include name="**/*.as" />
@@ -99,7 +70,7 @@
                     <file name="joo/ResourceBundleAwareClassLoader.js" />
                   </filelist>
                   <footer trimleading="yes">
-                    joo.classLoader = new joo.DynamicClassLoader();
+                    joo._createClassLoader();
                   </footer>
                 </concat>
 
