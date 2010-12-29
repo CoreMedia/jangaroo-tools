@@ -1,4 +1,4 @@
-if (typeof this.joo !== "object") {
+if (typeof joo !== "object") {
   joo = {};
 }
 if (typeof joo.debug !== "boolean") {
