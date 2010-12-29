@@ -1,7 +1,7 @@
 (function(theGlobalObject){
   // define alias "js" for the top-level package, so that name-clashes in AS3 can be resolved:
   theGlobalObject.js = theGlobalObject;
-  // defined here to avoid global name space pollution and unneccessary closures:
+  // defined here to avoid global name space pollution and unnecessary closures:
   function clone(object) {
     var empty = function(){ };
     empty.prototype =  object;
