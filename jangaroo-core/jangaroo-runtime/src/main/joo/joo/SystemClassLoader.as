@@ -25,9 +25,10 @@ public class SystemClassLoader {
 
   public static const classDeclarationsByName : Object/*<String,SystemClassDeclaration>*/ = {};
 
-  public var debug : Boolean = false;
+  public var debug : Boolean;
 
   public function SystemClassLoader() {    
+    debug = joo.debug;
   }
 
   public function prepare(...params) : SystemClassDeclaration {

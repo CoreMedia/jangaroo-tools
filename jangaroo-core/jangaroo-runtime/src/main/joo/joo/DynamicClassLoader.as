@@ -19,8 +19,6 @@ package joo {
 
 public class DynamicClassLoader extends StandardClassLoader {
 
-  public static const STANDARD_URL_PREFIX:String = "scripts/classes/";
-
   private static function isEmpty(object : Object) : Boolean {
     //noinspection LoopStatementThatDoesntLoopJS
     for (var m:String in object) {
@@ -31,17 +29,13 @@ public class DynamicClassLoader extends StandardClassLoader {
 
   public static var INSTANCE:DynamicClassLoader;
 
-  public var urlPrefix : String;
+  private var urlPrefix : String;
   private var resourceByPath : Object = {};
   private var onCompleteCallbacks : Array/*<Function>*/ = [];
 
   public function DynamicClassLoader() {
-    this.debug = classLoader.debug;
-    this.urlPrefix = classLoader['urlPrefix'];
+    this.urlPrefix = scriptsUrl + "classes/";
     classLoader = INSTANCE = this;
-    if (!this.urlPrefix) {
-      this.urlPrefix = this.determineUrlPrefix();
-    }
   }
 
   /**
@@ -143,7 +137,7 @@ public class DynamicClassLoader extends StandardClassLoader {
 //          if (this.debug) {
 //            trace("triggering to load class " + fullClassName + " from URL " + url + ".");
 //          }
-          var script:Object = this.loadScript(url);
+          var script:Object = loadScriptAsync(url);
           // script.onerror does not work in IE, but since this feature is for debugging only, we don't mind:
           script.onerror = this.createClassLoadErrorHandler(fullClassName, script['src']);
         }
@@ -229,31 +223,6 @@ public class DynamicClassLoader extends StandardClassLoader {
 
   protected function getBaseUri() : String {
     return this.urlPrefix;
-  }
-
-  private function determineUrlPrefix():String {
-    const RUNTIME_URL_PATTERN:RegExp = /^(.*)\bjangaroo-runtime[^.]*\.js$/;
-    var document:* = getQualifiedObject("document");
-    if (document) {
-      var scripts:Array = document["getElementsByTagName"]("SCRIPT");
-      for (var i:int=0; i<scripts.length; ++i) {
-        var match:Array = RUNTIME_URL_PATTERN.exec(scripts[i].src);
-        if (match) {
-          var code:String = scripts[i]["innerHTML"];
-          if (code && code.length) {
-            getQualifiedObject("setTimeout")(function() : void {
-              getQualifiedObject("eval")(code);
-            }, 0);
-          }
-          return match[1] + "classes/";
-        }
-      }
-    }
-    if (this.debug) {
-      trace("[WARN] Jangaroo Runtime: No joo.classLoader.urlPrefix set and Jangaroo Runtime script element not found. "
-        + "Falling back to standard urlPrefix '" + STANDARD_URL_PREFIX + "'.");
-    }
-    return STANDARD_URL_PREFIX;
   }
 
   protected function getUri(fullClassName : String) : String {

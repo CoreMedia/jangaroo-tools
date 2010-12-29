@@ -89,16 +89,16 @@ public class ResourceBundleAwareClassLoader extends DynamicClassLoader {
    * @see #INSTANCE
    * @see #getLocale
    */
-  public function ResourceBundleAwareClassLoader(supportedLocales:Array = ["en"],
-                                                 localeCookieName:String = "joo.locale",
-                                                 localeCookiePath:String = null,
-                                                 localeCookieDomain:String = null) {
+  public function ResourceBundleAwareClassLoader(supportedLocales:Array = undefined,
+                                                 localeCookieName:String = undefined,
+                                                 localeCookiePath:String = undefined,
+                                                 localeCookieDomain:String = undefined) {
     INSTANCE = this;
     super();
-    this.supportedLocales = supportedLocales;
-    this.localeCookieName = localeCookieName;
-    this.localeCookiePath = localeCookiePath || getQualifiedObject("location.pathname");
-    this.localeCookieDomain = localeCookieDomain;
+    this.supportedLocales = supportedLocales || localization.supportedLocales || ["en"];
+    this.localeCookieName = localeCookieName || localization.localeCookieName || "joo.locale";
+    this.localeCookiePath = localeCookiePath || localization.localeCookiePath || getQualifiedObject("location.pathname");
+    this.localeCookieDomain = localeCookieDomain || localization.localeCookieDomain || null;
   }
 
   public function getSupportedLocales():Array {

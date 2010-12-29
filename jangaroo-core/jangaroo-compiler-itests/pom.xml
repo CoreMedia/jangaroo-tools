@@ -85,7 +85,7 @@
             </property>
             <property>
               <name>net.jangaroo.jooc.test.destination</name>
-              <value>${basedir}/target/temp/scripts</value>
+              <value>${basedir}/target/temp/</value>
             </property>
           </systemProperties>
         </configuration>
@@ -118,7 +118,7 @@
                 </jar>
 
                 <!-- make API classes available to runtime: -->
-                <jooc destdir="target/temp/scripts" failonerror="true" debug="true" verbose="true" enableassertions="true">
+                <jooc destdir="target/temp/scripts/classes" failonerror="true" debug="true" verbose="true" enableassertions="true">
                   <include name="**/TestClassInJar.as" />
                   <src path="${basedir}/src/test/joo-api" />
                 </jooc>
@@ -129,7 +129,7 @@
                 <mkdir dir="${destdir}/META-INF/joo-api" />
 
                 <echo message="jangaroo-runtime.jar path is ${jangaroo-runtime.jar}" />
-                <jooc destdir="${destdir}" failonerror="true" debug="true" verbose="true" enableassertions="true" classpath="${jangaroo-runtime.jar}${path.separator}${joo-api.jar}" apidestdir="${destdir}/META-INF/joo-api">
+                <jooc destdir="${destdir}/classes" failonerror="true" debug="true" verbose="true" enableassertions="true" classpath="${jangaroo-runtime.jar}${path.separator}${joo-api.jar}" apidestdir="${destdir}/META-INF/joo-api">
                   <include name="**/*.as" />
                   <exclude name="error/**/*.as" />
                   <exclude name="**/*_fragment.as" />
@@ -141,7 +141,7 @@
                 <jar destfile="${compiler-itests.jar}" duplicate="fail">
                   <fileset dir="${destdir}" includes="**" />
                 </jar>
-                <jooc destdir="${destdir}" failonerror="true" debug="true" verbose="true" enableassertions="true" classpath="${compiler-itests.jar}${path.separator}${joo-api.jar}">
+                <jooc destdir="${destdir}/classes" failonerror="true" debug="true" verbose="true" enableassertions="true" classpath="${compiler-itests.jar}${path.separator}${joo-api.jar}">
                   <include name="**/*.as" />
                   <src path="${basedir}/src/test/joo3" />
                 </jooc>
