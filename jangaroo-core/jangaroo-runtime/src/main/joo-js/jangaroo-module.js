@@ -51,7 +51,4 @@ if (typeof joo.loadScriptAsync !== "function") {
 joo.loadModule = function loadModule(moduleName/*:String*/) {
   joo.loadScript(joo.scriptsUrl + moduleName + ".js", null);
 };
-joo._createClassLoader = function createClassLoader() {
-  joo.classLoader = new ('localization' in joo ? joo.ResourceBundleAwareClassLoader : joo.DynamicClassLoader)();
-};
 joo.loadScript("scripts/jangaroo-runtime.js", "scripts/jangaroo-runtime-debug.js");
