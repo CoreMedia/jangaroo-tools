@@ -69,9 +69,9 @@
                     <file name="joo/DynamicClassLoader.js" />
                     <file name="joo/ResourceBundleAwareClassLoader.js" />
                   </filelist>
-                  <footer trimleading="yes">
-                    joo._createClassLoader();
-                  </footer>
+                  <filelist dir="src/main/joo-js/scripts/classes">
+                    <file name="joo/_createClassLoader.js" />
+                  </filelist>
                 </concat>
 
                 <zip destfile="target/jangaroo-runtime-${project.version}.jar">
