@@ -38,7 +38,7 @@ public abstract class JooRuntimeTestCase extends JooTestCase {
   protected Global global;
   private Context cx;
 
-  private static final String CLASS_JS_FILE_PATH = "jangaroo-module.js";
+  private static final String CLASS_JS_FILE_PATH = "jangaroo-runtime.js";
 //    Jooc. + /* "-debug" + */Jooc.OUTPUT_FILE_SUFFIX;
 
   public static String jsFileName(final String qualifiedJooClassName) {

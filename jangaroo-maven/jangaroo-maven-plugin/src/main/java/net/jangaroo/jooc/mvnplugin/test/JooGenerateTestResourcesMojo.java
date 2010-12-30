@@ -1,100 +1,67 @@
 package net.jangaroo.jooc.mvnplugin.test;
 
-import org.apache.maven.artifact.Artifact;
-import org.apache.maven.artifact.repository.ArtifactRepository;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.project.MavenProject;
-import org.apache.maven.project.MavenProjectBuilder;
+import net.jangaroo.jooc.mvnplugin.PackageApplicationMojo;
 import org.apache.maven.model.Resource;
-import org.codehaus.mojo.javascript.archive.Types;
-import org.codehaus.plexus.archiver.ArchiveFileFilter;
-import org.codehaus.plexus.archiver.ArchiveFilterException;
-import org.codehaus.plexus.archiver.ArchiverException;
-import org.codehaus.plexus.archiver.zip.ZipUnArchiver;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.Collections;
 import java.util.List;
 
 /**
- * Prepares the Javascript Testenvironment including generation of the HTML page and decompression
- * of jangaroo dependencies.
- * This plugin is executed in the <code>generate-test-resources</code> phase of the jangaroo lifecycle.
+ * Prepares the Javascript Testenvironment including generation of the HTML page and decompression of jangaroo
+ * dependencies. This plugin is executed in the <code>generate-test-resources</code> phase of the jangaroo lifecycle.
  *
  * @requiresDependencyResolution test
  * @goal unpack-jangaroo-test-dependencies
  * @phase generate-test-resources
  */
-public class JooGenerateTestResourcesMojo extends AbstractJooTestMojo {
+@SuppressWarnings({"UnusedDeclaration"})
+public class JooGenerateTestResourcesMojo extends PackageApplicationMojo {
 
   /**
-   * The maven project.
+   * Output directory for the janagroo artifact  unarchiver. All jangaroo dependencies will be unpacked into this
+   * directory.
    *
-   * @parameter expression="${project}"
-   * @required
-   * @readonly
+   * @parameter expression="${project.build.testOutputDirectory}"  default-value="${project.build.testOutputDirectory}"
    */
-  private MavenProject project;
-
+  protected File testOutputDirectory;
 
   /**
-   * Plexus archiver.
+   * Set this to 'true' to bypass unit tests entirely. Its use is NOT RECOMMENDED, especially if you enable it using the
+   * "maven.test.skip" property, because maven.test.skip disables both running the tests and compiling the tests.
+   * Consider using the skipTests parameter instead.
    *
-   * @component role="org.codehaus.plexus.archiver.UnArchiver" role-hint="zip"
-   * @required
+   * @parameter expression="${maven.test.skip}"
    */
-  private ZipUnArchiver unarchiver;
+  protected boolean skip;
 
   /**
-   * @parameter expression="${localRepository}"
-   * @required
-   */
-  private ArtifactRepository localRepository;
-
-  /**
-   * @parameter expression="${project.remoteArtifactRepositories}"
-   * @required
-   */
-  private List remoteRepositories;
-
-  /**
-   * Output directory for compiled classes.
+   * the tests.html file relative to the test resources folder
    *
-   * @parameter expression="${project.build.outputDirectory}/scripts/classes"
+   * @parameter expression="${project.testResources}"
    */
-  private File outputDirectory;
+  protected List<Resource> testResources;
 
-  /**
-   * This parameter specifies the name of the output file containing all
-   * compiled classes.
-   *
-   * @parameter expression="${project.build.outputDirectory}/scripts/${project.artifactId}.js"
-   */
-  private File outputFileName;
+  protected boolean isTestAvailable() {
+    return true; // TODO
+  }
 
-
-  /**
-   * @component
-   */
-  private MavenProjectBuilder mavenProjectBuilder;
-
-
-  public void execute() throws MojoExecutionException, MojoFailureException {
+  public void execute() throws MojoExecutionException {
     if (!skip) {
       try {
         if (isTestAvailable()) {
-          testOutputDirectory.mkdir();
           getLog().info("Unpacking jangaroo dependencies to " + testOutputDirectory);
-          unpack();
-          copyMainJsAndClasses();
+          createWebapp(testOutputDirectory);
+          for (Resource r : testResources) {
+            File testResourceDirectory = new File(r.getDirectory());
+            if (testResourceDirectory.exists()) {
+              FileUtils.copyDirectoryStructureIfModified(testResourceDirectory, testOutputDirectory);
+            }
+          }
         }
       } catch (IOException e) {
-        throw new MojoExecutionException("Cannot unpack jangaroo dependencies/generate html test page", e);
-      } catch (ArchiverException e) {
         throw new MojoExecutionException("Cannot unpack jangaroo dependencies/generate html test page", e);
       }
     } else {
@@ -102,68 +69,4 @@ public class JooGenerateTestResourcesMojo extends AbstractJooTestMojo {
     }
   }
 
-  /**
-   * Copies the project's jooc javascript output to the <code>testOutputDirectory</code> since they have to be
-   * accessible by the javascript execution environment.
-   *
-   * @throws IOException if copy fails
-   */
-  private void copyMainJsAndClasses() throws IOException {
-    for(Resource r : testResources) {
-      FileUtils.copyDirectoryStructureIfModified(new File(r.getDirectory()), testOutputDirectory);
-    }
-    File scriptsDir = new File(testOutputDirectory, "scripts");
-    //noinspection ResultOfMethodCallIgnored
-    scriptsDir.mkdirs();
-    if (outputFileName.exists()) {
-      FileUtils.copyFileToDirectoryIfModified(outputFileName, scriptsDir);
-    } else {
-      getLog().info("Cannot copy file " + outputFileName + ". It does not exist.");
-    }
-    if (outputDirectory.exists()) {
-      final File dest = new File(scriptsDir, "classes");
-      getLog().info("copy " + outputDirectory + " to " + dest);
-      FileUtils.copyDirectoryStructureIfModified(outputDirectory, dest);
-    } else {
-      getLog().info("Cannot copy from " + outputDirectory + ". It does not exist.");
-    }
-  }
-
-
-  private String getInternalId(Artifact art) {
-    return art.getGroupId() + ":" + art.getArtifactId();
-  }
-
-
-
-  /**
-   * Unpacks all jangaroo dependencies (transitively) to <code>testOutputDirectory</code>.
-   *
-   * @throws IOException       if file copy goes wrong
-   * @throws ArchiverException if an archive is corrupt
-   */
-  public void unpack()
-          throws IOException, ArchiverException {
-    unarchiver.setOverwrite(false);
-    unarchiver.setArchiveFilters(Collections.singletonList(
-            new MetaInfArchiveFileFilter()));
-
-    for (Artifact dependency : ((List<Artifact>) project.getTestArtifacts())) {
-      getLog().debug("Dependency: " + getInternalId(dependency) + " type: " + dependency.getType());
-      if (!dependency.isOptional() && Types.JANGAROO_TYPE.equals(dependency.getType())) {
-        unarchiver.setDestFile(null);
-        unarchiver.setDestDirectory(testOutputDirectory);
-        unarchiver.setSourceFile(dependency.getFile());
-        unarchiver.extract();
-      }
-    }
-  }
-
-  private static class MetaInfArchiveFileFilter implements ArchiveFileFilter {
-    
-    public boolean include(InputStream dataStream, String entryName) throws ArchiveFilterException {
-      return !entryName.startsWith("META-INF");
-    }
-
-  }
 }

@@ -16,7 +16,7 @@ package joo {
 
 /**
  * Jangaroo's debug mode.
- * Must be set before loading jangaroo-modules.js.
+ * Must be set before loading jangaroo-application.js.
  */
 public var debug : Boolean;
 
