@@ -20,7 +20,7 @@ public class localization {
    * The supported locales of this Jangaroo application, represented as an Array of String locales.
    * The first element of this list is used as the default locale to use when all other attempts to determine
    * a locale fail.
-   * Must be set before loading jangaroo-modules.js.
+   * Must be set before loading jangaroo-application.js.
    */
   public static var supportedLocales:Array;
 

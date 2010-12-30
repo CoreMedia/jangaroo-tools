@@ -17,7 +17,7 @@ package joo {
 /**
  * Jangaroo's script URL prefix to use for script- and class-loading.
  * Defaults to "scripts/".
- * Must be set before loading jangaroo-modules.js.
+ * Must be set before loading jangaroo-application.js.
  */
 public var scriptsUrl : String;
 

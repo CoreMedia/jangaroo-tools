@@ -43,6 +43,7 @@ import java.util.Random;
  * @goal test
  * @phase test
  */
+@SuppressWarnings({"UnusedDeclaration", "FieldCanBeLocal", "ResultOfMethodCallIgnored"})
 public class JooTestMojo extends AbstractJooTestMojo {
 
 

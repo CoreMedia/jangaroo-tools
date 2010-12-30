@@ -1,34 +1,17 @@
 package net.jangaroo.jooc.mvnplugin;
 
 import org.apache.maven.artifact.Artifact;
-import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.model.Plugin;
-import org.apache.maven.model.Dependency;
-import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.project.MavenProject;
-import org.apache.maven.project.ProjectBuildingException;
-import org.apache.maven.project.MavenProjectBuilder;
 import org.codehaus.mojo.javascript.archive.Types;
 import org.codehaus.plexus.archiver.ArchiveFileFilter;
 import org.codehaus.plexus.archiver.ArchiveFilterException;
-import org.codehaus.plexus.archiver.ArchiverException;
-import org.codehaus.plexus.archiver.zip.ZipUnArchiver;
-import org.codehaus.plexus.archiver.zip.ZipFile;
-import org.codehaus.plexus.archiver.zip.ZipEntry;
-import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
-import org.codehaus.plexus.util.IOUtil;
 
-import java.io.*;
-import java.util.Collections;
+import java.io.File;
+import java.io.InputStream;
 import java.util.Set;
-import java.util.List;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.ArrayList;
 
 /**
  * The <code>war-package</code> goal extracts all dependent jangaroo artifacts into
@@ -67,45 +50,8 @@ import java.util.ArrayList;
  * @requiresDependencyResolution runtime
  * @phase compile
  */
-@SuppressWarnings({ "ResultOfMethodCallIgnored" })
-public class WarPackageMojo
-    extends AbstractMojo {
-
-
-  /**
-   * The maven project.
-   *
-   * @parameter expression="${project}"
-   * @required
-   * @readonly
-   */
-  private MavenProject project;
-
-
-  /**
-   * @component
-   */
-  private MavenProjectBuilder mavenProjectBuilder;
-
-  /**
-   * @parameter expression="${localRepository}"
-   * @required
-   */
-  private ArtifactRepository localRepository;
-
-  /**
-   * @parameter expression="${project.remoteArtifactRepositories}"
-   * @required
-   */
-  private List remoteRepositories;
-
-  /**
-   * Location of Jangaroo resources of this module (including compiler output, usually under "scripts/") to be added
-   * to the webapp. Defaults to ${project.build.directory}/joo/
-   *
-   * @parameter expression="${project.build.directory}/joo/"
-   */
-  private File packageSourceDirectory;
+@SuppressWarnings({"ResultOfMethodCallIgnored", "UnusedDeclaration"})
+public class WarPackageMojo extends PackageApplicationMojo {
 
   /**
    * The directory where the webapp is built. Default is <code>${project.build.directory}/${project.build.finalName}</code>
@@ -117,225 +63,15 @@ public class WarPackageMojo
   private File webappDirectory;
 
   /**
-   * Plexus archiver.
-   *
-   * @component role="org.codehaus.plexus.archiver.UnArchiver" role-hint="zip"
-   * @required
-   */
-  private ZipUnArchiver unarchiver;
-
-  /**
    * {@inheritDoc}
    *
    * @see org.apache.maven.plugin.Mojo#execute()
    */
   public void execute()
       throws MojoExecutionException, MojoFailureException {
-    webappDirectory.mkdirs();
 
-    try {
-      excludeFromWarPackaging();
-      unpack(webappDirectory);
-      copyJangarooOutput(webappDirectory);
-      concatModuleScripts(new File(webappDirectory, "scripts"));
-    }
-    catch (ArchiverException e) {
-      throw new MojoExecutionException("Failed to unpack javascript dependencies", e);
-    } catch (IOException e) {
-      throw new MojoExecutionException("Failed to create jangaroo-modules.js", e);
-    } catch (ProjectBuildingException e) {
-      throw new MojoExecutionException("Failed to create jangaroo-modules.js", e);
-    }
-  }
-
-  public void unpack(File target)
-      throws ArchiverException {
-
-    unarchiver.setOverwrite(false);
-    unarchiver.setArchiveFilters(Collections.singletonList(new WarPackageArchiveFilter()));
-    Set<Artifact> dependencies = getArtifacts();
-
-    for (Artifact dependency : dependencies) {
-      getLog().debug("Dependency: " + dependency.getGroupId() + ":" + dependency.getArtifactId() + "type: " + dependency.getType());
-      if (!dependency.isOptional() && Types.JANGAROO_TYPE.equals(dependency.getType())) {
-        getLog().debug("Unpacking jangaroo dependency [" + dependency.toString() + "]");
-        unarchiver.setSourceFile(dependency.getFile());
-
-        unpack(dependency, target);
-      }
-    }
-  }
-
-  public void unpack(Artifact artifact, File target)
-      throws ArchiverException {
-    unarchiver.setSourceFile(artifact.getFile());
-    target.mkdirs();
-    unarchiver.setDestDirectory(target);
-    unarchiver.setOverwrite(false);
-    try {
-      unarchiver.extract();
-    }
-    catch (Exception e) {
-      throw new ArchiverException("Failed to extract javascript artifact to " + target, e);
-    }
-
-  }
-
-
-  /**
-   * Linearizes the acyclic, directed graph represented by <code>artifact2directDependencies</code> to a list
-   * where every item just needs items that are contained in the list before itself.
-   *
-   * @param artifact2directDependencies acyclic, directed dependency graph
-   * @return linearized dependency list
-   */
-  public static List<String> sort(Map<String, List<String>> artifact2directDependencies) {
-
-    List<String> alreadyOut = new LinkedList<String>();
-    while (!artifact2directDependencies.isEmpty()) {
-      String currentDep = goDeep(artifact2directDependencies.keySet().iterator().next(), artifact2directDependencies);
-      removeAll(currentDep, artifact2directDependencies);
-      alreadyOut.add(currentDep);
-    }
-    return alreadyOut;
-  }
-
-  private static String goDeep(String start, Map<String, List<String>> artifact2directDependencies) {
-    while (artifact2directDependencies.get(start) != null && !artifact2directDependencies.get(start).isEmpty()) {
-      start = artifact2directDependencies.get(start).iterator().next();
-    }
-    return start;
-  }
-
-  private static void removeAll(String toBeRemoved, Map<String, List<String>> artifact2directDependencies) {
-    artifact2directDependencies.remove(toBeRemoved);
-
-    for (List<String> strings : artifact2directDependencies.values()) {
-      strings.remove(toBeRemoved);
-    }
-  }
-
-  private static String getInternalId(Dependency dep) {
-    return dep.getGroupId() + ":" + dep.getArtifactId();
-  }
-
-  private static String getInternalId(Artifact art) {
-    return art.getGroupId() + ":" + art.getArtifactId();
-  }
-
-  private void copyJangarooOutput(File target) throws IOException {
-    if (!packageSourceDirectory.exists()) {
-      getLog().debug("No Jangaroo compiler output directory " + packageSourceDirectory.getAbsolutePath() + ", skipping copy Jangaroo output.");
-    } else {
-      getLog().info("Copying Jangaroo output from " + packageSourceDirectory + " to " + target);
-      FileUtils.copyDirectoryStructureIfModified(packageSourceDirectory, target);
-      if (new File(packageSourceDirectory, "jangaroo-module.js").exists()) {
-        File copiedJangarooModuleFile = new File(target, "jangaroo-module.js");
-        if (copiedJangarooModuleFile.delete()) {
-          getLog().info("File " + copiedJangarooModuleFile.getAbsolutePath() + " removed from copy.");
-        } else {
-          getLog().warn("Copied file " + copiedJangarooModuleFile.getAbsolutePath() + " could not be cleaned up.");
-        }
-      }
-    }
-  }
-
-  private void concatModuleScripts(File scriptDirectory) throws IOException, ProjectBuildingException {
-    List<Artifact> jooArtifacts = getJangarooDependencies();
-
-    final Map<String, List<String>> artifact2Project = computeDependencyGraph(jooArtifacts);
-    getLog().debug("artifact2Project : " + artifact2Project);
-
-    List<String> depsLineralized = sort(artifact2Project);
-    getLog().debug("depsLineralized  : " + depsLineralized);
-
-    Writer fw = createJangarooModulesFile(scriptDirectory);
-    try {
-      fw.write("// This file contains collected JavaScript code from dependent Jangaroo modules.\n\n");
-
-      final Map<String, Artifact> internalId2Artifact = artifactByInternalId(jooArtifacts);
-      for (String dependency : depsLineralized) {
-        Artifact artifact = internalId2Artifact.get(dependency);
-        if (artifact != null) { // may be a scope="test" or other kind of dependency not included in getDependencies()
-          includeJangarooModuleScript(artifact, fw);
-        }
-      }
-      File jangarooModuleFile = new File(packageSourceDirectory, "jangaroo-module.js");
-      FileInputStream jooModuleInputStream = jangarooModuleFile.exists()
-        ? new FileInputStream(jangarooModuleFile) : null;
-      writeJangarooModuleScript(project.getArtifact(), jooModuleInputStream, fw, false); // TODO: only generate loadModule() code if compile goal has been executed?
-    } finally {
-      try {
-        fw.close();
-      } catch (IOException e) {
-        getLog().warn("IOException on close ignored.", e);
-      }
-    }
-  }
-
-  private Writer createJangarooModulesFile(File scriptDirectory) throws IOException {
-    scriptDirectory.mkdirs();
-    File f = new File(scriptDirectory, "jangaroo-modules.js");
-    getLog().info("Creating Jangaroo collected code script '" + f.getAbsolutePath() + "'.");
-    return new OutputStreamWriter(new FileOutputStream(f), "UTF-8");
-  }
-
-  private void includeJangarooModuleScript(Artifact artifact, Writer fw) throws IOException {
-    ZipFile zipFile = new ZipFile(artifact.getFile());
-    ZipEntry zipEntry = zipFile.getEntry("jangaroo-module.js");
-    InputStream jooModuleInputStream = zipEntry != null ? zipFile.getInputStream(zipEntry) : null;
-    writeJangarooModuleScript(artifact, jooModuleInputStream, fw, true);
-  }
-
-  private void writeJangarooModuleScript(Artifact artifact, InputStream jooModuleInputStream, Writer fw, boolean autoGenerate) throws IOException {
-    String fullAtifactName = artifact.getGroupId() + ":" + artifact.getArtifactId() + ":" + artifact.getVersion();
-    fw.write("// FROM " + fullAtifactName + ":\n");
-    if (jooModuleInputStream == null) {
-      getLog().debug("No jangaroo-module.js in " + fullAtifactName + ".");
-      if (autoGenerate) {
-        getLog().debug("Creating joo.loadModule(...) code for " + fullAtifactName + ".");
-        fw.write("joo.loadModule(\"" + artifact.getArtifactId() + "\");\n");
-      }
-    } else {
-      getLog().info("Appending jangaroo-module.js from " + fullAtifactName);
-      IOUtil.copy(jooModuleInputStream, fw, "UTF-8");
-      fw.write('\n'); // file might not end with new-line, better insert one
-    }
-  }
-
-  private Map<String, Artifact> artifactByInternalId(List<Artifact> jooArtifacts) {
-    final Map<String, Artifact> internalId2Artifact = new HashMap<String, Artifact>();
-    for (Artifact artifact : jooArtifacts) {
-      String internalId = getInternalId(artifact);
-      internalId2Artifact.put(internalId, artifact);
-    }
-    return internalId2Artifact;
-  }
-
-  private List<Artifact> getJangarooDependencies() {
-    List<Artifact> jooArtifacts = new ArrayList<Artifact>();
-    for (Artifact dependency : getArtifacts()) {
-      if ("jangaroo".equals(dependency.getType())) {
-        jooArtifacts.add(dependency);
-      }
-    }
-    return jooArtifacts;
-  }
-
-  private Map<String, List<String>> computeDependencyGraph(List<Artifact> artifacts) throws ProjectBuildingException {
-    final Map<String, List<String>> artifact2Project = new HashMap<String, List<String>>();
-    for (Artifact artifact : artifacts) {
-      MavenProject mp = mavenProjectBuilder.buildFromRepository(artifact, remoteRepositories, localRepository, true);
-      List<String> deps = new LinkedList<String>();
-      for (Dependency dep : getDependencies(mp)) {
-        if ("jangaroo".equals(dep.getType())) {
-          deps.add(getInternalId(dep));
-        }
-      }
-      String internalId = getInternalId(artifact);
-      artifact2Project.put(internalId, deps);
-    }
-    return artifact2Project;
+    excludeFromWarPackaging();
+    createWebapp(webappDirectory);
   }
 
   /**
@@ -381,21 +117,10 @@ public class WarPackageMojo
               additionalExcludes += "WEB-INF" + File.separator + "lib" + File.separator + dependency.getGroupId() + "-" + dependency.getArtifactId() + "-" + dependency.getVersion() + ".jar,";
             }
           }
-          additionalExcludes += "jangaroo-module.js";
           excludes.setValue(excludes.getValue() + additionalExcludes);
         }
       }
     }
-  }
-
-  @SuppressWarnings({ "unchecked" })
-  private static List<Dependency> getDependencies(MavenProject mp) {
-    return (List<Dependency>) mp.getDependencies();
-  }
-
-  @SuppressWarnings({ "unchecked" })
-  private Set<Artifact> getArtifacts() {
-    return (Set<Artifact>)project.getArtifacts();
   }
 
   private static class WarPackageArchiveFilter implements ArchiveFileFilter {
