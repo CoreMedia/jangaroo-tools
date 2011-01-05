@@ -16,7 +16,6 @@
 // JangarooScript runtime support. Author: Frank Wienberg
 
 package joo {
-
 public class DynamicClassLoader extends StandardClassLoader {
 
   private static function isEmpty(object : Object) : Boolean {
@@ -34,7 +33,7 @@ public class DynamicClassLoader extends StandardClassLoader {
   private var onCompleteCallbacks : Array/*<Function>*/ = [];
 
   public function DynamicClassLoader() {
-    this.urlPrefix = scriptsUrl + "classes/";
+    this.urlPrefix = "scripts/classes/";
     classLoader = INSTANCE = this;
   }
 
@@ -190,7 +189,7 @@ public class DynamicClassLoader extends StandardClassLoader {
             }
             resource.preload = "auto"; // Embed -> load early, but don't wait for load like with images.
           }
-          resource.src = urlPrefix + path;
+          resource.src = baseUrl + urlPrefix + path;
         } else {
           trace("[WARN]", "Resource type " + resourceType + " not supported by client, ignoring resource " + path);
         }

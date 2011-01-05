@@ -189,6 +189,9 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
     }
     if (!this.isInterface()) {
       if (!this.native_) {
+        if(!this.superClassDeclaration.constructor_) {
+          throw new Error("Class " + this.fullClassName + " extends " + this.superClassDeclaration.fullClassName + " whose constructor is not defined!");
+        }
         this.publicConstructor.prototype["super$" + this.level] = this.superClassDeclaration.constructor_;
       }
       if (!this.constructor_) {

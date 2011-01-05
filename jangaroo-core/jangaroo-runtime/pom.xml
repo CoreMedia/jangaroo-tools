@@ -45,7 +45,7 @@
                   <src path="src/main/joo" />
                 </jooc>
 
-                <concat destfile="target/scripts/jangaroo-runtime.js">
+                <concat destfile="target/scripts/net.jangaroo.jangaroo-runtime.classes.js">
                   <filelist dir="src/main/joo-js/scripts/classes">
                     <file name="int.js" />
                     <file name="uint.js" />
@@ -75,7 +75,7 @@
                 </concat>
 
                 <zip destfile="target/jangaroo-runtime-${project.version}.jar">
-                  <fileset dir="target" includes="scripts/jangaroo-runtime*.js" />
+                  <fileset dir="target" includes="scripts/*jangaroo-runtime*.js" />
                   <fileset dir="src/main/joo-js" />
                   <fileset dir="target/temp/runtime/debug" />
                   <zipfileset dir="src/main/joo-api" includes="**/*.as" prefix="META-INF/joo-api" />

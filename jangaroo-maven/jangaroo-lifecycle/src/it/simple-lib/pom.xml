@@ -34,10 +34,10 @@ under the License.
         <directory>src/main/joo-js</directory>
       </resource>
     </resources>
-    <outputDirectory>target/joo</outputDirectory>
+    <outputDirectory>target/jangaroo-output</outputDirectory>
     <sourceDirectory>src/main/joo</sourceDirectory>
     <testSourceDirectory>src/test/joo</testSourceDirectory>
-    <testOutputDirectory>target/joo-test</testOutputDirectory>
+    <testOutputDirectory>target/jangaroo-output-test</testOutputDirectory>
     <plugins>
       <plugin>
         <groupId>net.jangaroo</groupId>

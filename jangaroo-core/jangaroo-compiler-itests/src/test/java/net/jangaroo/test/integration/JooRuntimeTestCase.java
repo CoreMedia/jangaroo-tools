@@ -38,7 +38,7 @@ public abstract class JooRuntimeTestCase extends JooTestCase {
   protected Global global;
   private Context cx;
 
-  private static final String CLASS_JS_FILE_PATH = "jangaroo-runtime.js";
+  private static final String CLASS_JS_FILE_PATH = "scripts/jangaroo-runtime.js";
 //    Jooc. + /* "-debug" + */Jooc.OUTPUT_FILE_SUFFIX;
 
   public static String jsFileName(final String qualifiedJooClassName) {
@@ -180,7 +180,7 @@ public abstract class JooRuntimeTestCase extends JooTestCase {
     global.defineProperty("window", global, ScriptableObject.EMPTY);
     global.defineProperty("joo", Global.class, ScriptableObject.EMPTY);
     global.joo.defineProperty("debug", true, ScriptableObject.EMPTY);
-    global.joo.defineProperty("scriptsUrl", "scripts/", ScriptableObject.EMPTY);
+    global.joo.defineProperty("baseUrl", "", ScriptableObject.EMPTY);
     global.joo.defineFunctionProperties(new String[]{"trace", "_loadScript", "loadScriptAsync"},  Joo.class, ScriptableObject.EMPTY);
     global.joo.setJsDir(destinationDir);
     load(CLASS_JS_FILE_PATH);

@@ -13,6 +13,7 @@ import java.util.*;
  * @requiresDependencyResolution test
  *
  */
+@SuppressWarnings({"UnusedDeclaration"})
 public class TestCompilerMojo extends AbstractCompilerMojo {
 
   /**
@@ -61,7 +62,7 @@ public class TestCompilerMojo extends AbstractCompilerMojo {
   /**
    * Absolute output filename of the merged javascript.  
    *
-   * @parameter expression="${project.build.testOutputDirectory}/scripts/${project.artifactId}-test.js"
+   * @parameter expression="${project.build.testOutputDirectory}/scripts/${project.groupId}.${project.artifactId}-test.classes.js"
    */
   private String testOutputFileName;
 

@@ -22,7 +22,7 @@
     "joo._createClassLoader"
   ];
   for (var c=0; c<SYSTEM_CLASSES.length; ++c) {
-    var url = joo.scriptsUrl + "classes/" + SYSTEM_CLASSES[c].replace(/\./g,"/") + ".js";
+    var url = "scripts/classes/" + SYSTEM_CLASSES[c].replace(/\./g,"/") + ".js";
     joo.loadScript(url);
   }
 })();

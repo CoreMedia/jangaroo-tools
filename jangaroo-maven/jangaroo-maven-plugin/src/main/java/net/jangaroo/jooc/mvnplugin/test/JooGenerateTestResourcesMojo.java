@@ -7,6 +7,7 @@ import org.codehaus.plexus.util.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Writer;
 import java.util.List;
 
 /**
@@ -69,4 +70,9 @@ public class JooGenerateTestResourcesMojo extends PackageApplicationMojo {
     }
   }
 
+  @Override
+  protected void writeThisJangarooModuleScript(File scriptDirectory, Writer fw) throws IOException {
+    super.writeThisJangarooModuleScript(scriptDirectory, fw);
+    fw.write("joo.loadModule(\"" + project.getGroupId() + "\",\"" + project.getArtifactId() + "-test\");\n");
+  }
 }

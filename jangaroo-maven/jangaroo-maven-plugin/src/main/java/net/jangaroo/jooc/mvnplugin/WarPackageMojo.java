@@ -4,6 +4,7 @@ import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.project.MavenProject;
 import org.codehaus.mojo.javascript.archive.Types;
 import org.codehaus.plexus.archiver.ArchiveFileFilter;
 import org.codehaus.plexus.archiver.ArchiveFilterException;

@@ -12,6 +12,7 @@ import java.util.*;
  * @phase compile
  * @requiresDependencyResolution compile
  */
+@SuppressWarnings({"UnusedDeclaration"})
 public class CompilerMojo extends AbstractCompilerMojo {
 
   /**
@@ -24,7 +25,7 @@ public class CompilerMojo extends AbstractCompilerMojo {
   /**
    * Temporary output directory for compiled classes to be packaged into a single *.js file.
    *
-   * @parameter expression="${project.build.directory}/temp/joo/classes"
+   * @parameter expression="${project.build.directory}/temp/jangaroo-output/classes"
    */
   private File tempOutputDirectory;
 
@@ -39,19 +40,19 @@ public class CompilerMojo extends AbstractCompilerMojo {
    *
    * @parameter
    */
-  private Set<String> includes = new HashSet();
+  private Set<String> includes = new HashSet<String>();
   /**
    * A list of exclusion filters for the compiler.
    *
    * @parameter
    */
-  private Set<String> excludes = new HashSet();
+  private Set<String> excludes = new HashSet<String>();
 
   /**
    * This parameter specifies the name of the output file containing all
    * compiled classes.
    *
-   * @parameter expression="${project.build.outputDirectory}/scripts/${project.artifactId}.js"
+   * @parameter expression="${project.build.outputDirectory}/scripts/${project.groupId}.${project.artifactId}.classes.js"
    */
   private String outputFileName;
 
