@@ -76,9 +76,9 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
 
   /**
    * Location of Jangaroo resources of this module (including compiler output, usually under "scripts/") to be added
-   * to the webapp. Defaults to ${project.build.directory}/joo/
+   * to the webapp. Defaults to ${project.build.directory}/jangaroo-output/
    *
-   * @parameter expression="${project.build.directory}/joo/"
+   * @parameter expression="${project.build.directory}/jangaroo-output/"
    */
   private File packageSourceDirectory;
 
@@ -216,10 +216,7 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
           includeJangarooModuleScript(scriptDirectory, artifact, fw);
         }
       }
-      File jangarooModuleFile = new File(packageSourceDirectory, project.getArtifactId() + ".js");
-      FileInputStream jooModuleInputStream = jangarooModuleFile.exists()
-        ? new FileInputStream(jangarooModuleFile) : null;
-      writeJangarooModuleScript(scriptDirectory, project.getArtifact(), jooModuleInputStream, fw);
+      writeThisJangarooModuleScript(scriptDirectory, fw);
     } finally {
       try {
         fw.close();
@@ -227,6 +224,13 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
         getLog().warn("IOException on close ignored.", e);
       }
     }
+  }
+
+  protected void writeThisJangarooModuleScript(File scriptDirectory, Writer fw) throws IOException {
+    File jangarooModuleFile = new File(packageSourceDirectory, "scripts/" + project.getArtifactId() + ".js");
+    FileInputStream jooModuleInputStream = jangarooModuleFile.exists()
+      ? new FileInputStream(jangarooModuleFile) : null;
+    writeJangarooModuleScript(scriptDirectory, project.getArtifact(), jooModuleInputStream, fw);
   }
 
   private Writer createJangarooModulesFile(File scriptDirectory) throws IOException {
@@ -239,7 +243,7 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
 
   private void includeJangarooModuleScript(File scriptDirectory, Artifact artifact, Writer fw) throws IOException {
     ZipFile zipFile = new ZipFile(artifact.getFile());
-    ZipEntry zipEntry = zipFile.getEntry(artifact.getArtifactId() + ".js");
+    ZipEntry zipEntry = zipFile.getEntry("scripts/" + artifact.getArtifactId() + ".js");
     InputStream jooModuleInputStream = zipEntry != null ? zipFile.getInputStream(zipEntry) : null;
     writeJangarooModuleScript(scriptDirectory, artifact, jooModuleInputStream, fw);
   }
@@ -249,9 +253,9 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
     fw.write("// FROM " + fullAtifactName + ":\n");
     if (jooModuleInputStream == null) {
       getLog().debug("No " + artifact.getArtifactId() + ".js in " + fullAtifactName + ".");
-      if (new File(scriptDirectory, artifact.getArtifactId() + ".js").exists()) {
+      if (new File(scriptDirectory, artifact.getGroupId() + "." + artifact.getArtifactId() + ".classes.js").exists()) {
         getLog().debug("Creating joo.loadModule(...) code for " + fullAtifactName + ".");
-        fw.write("joo.loadModule(\"" + artifact.getArtifactId() + "\");\n");
+        fw.write("joo.loadModule(\"" + artifact.getGroupId() + "\",\"" + artifact.getArtifactId() + "\");\n");
       }
     } else {
       getLog().info("Appending " + artifact.getArtifactId() + ".js from " + fullAtifactName);

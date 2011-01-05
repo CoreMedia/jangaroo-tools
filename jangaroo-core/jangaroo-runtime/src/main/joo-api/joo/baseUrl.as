@@ -15,10 +15,13 @@
 package joo {
 
 /**
- * Jangaroo's script URL prefix to use for script- and class-loading.
- * Defaults to "scripts/".
+ * Jangaroo's base URL to use for loading resources like scripts and classes.
  * Must be set before loading jangaroo-application.js.
+ * If not set, it is determined by finding the first script element with a jangaroo-* src URL
+ * and using its base URL minus the "joo" path.
+ * If this fails, the base URL defaults to the empty string, so the "joo" path is relative to
+ * the current request URL.
  */
-public var scriptsUrl : String;
+public var baseUrl : String;
 
 }
