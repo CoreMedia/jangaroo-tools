@@ -14,7 +14,7 @@ if (typeof joo._loadScript !== "function") {
 if (typeof joo.baseUrl !== "string") {
   joo.baseUrl = (function() {
     var baseUrl = "";
-    var JANGAROO_SCRIPT_PATTERN = /^(.*\/)scripts\/jangaroo-.*\.js$/;
+    var JANGAROO_SCRIPT_PATTERN = /^(.*\/)joo\/jangaroo-.*\.js$/;
     var scripts = window.document.getElementsByTagName("SCRIPT");
     for (var i=0; i<scripts.length; ++i) {
       var match = JANGAROO_SCRIPT_PATTERN.exec(scripts[i].src);
@@ -49,6 +49,6 @@ if (typeof joo.loadScriptAsync !== "function") {
   };
 }
 joo.loadModule = function loadModule(groupId/*:String*/, artifactId/*:String*/) {
-  joo.loadScript("scripts/" + groupId + "." + artifactId + ".classes.js", null);
+  joo.loadScript("joo/" + groupId + "." + artifactId + ".classes.js", null);
 };
-joo.loadScript("scripts/net.jangaroo.jangaroo-runtime.classes.js", "scripts/net.jangaroo.jangaroo-runtime-debug.js");
+joo.loadScript("joo/net.jangaroo.jangaroo-runtime.classes.js", "joo/net.jangaroo.jangaroo-runtime-debug.js");

@@ -32,9 +32,9 @@
                 <property name="runtime.classpath" refid="maven.compile.classpath" />
                 <taskdef name="jooc" classname="net.jangaroo.jooc.ant.JoocTask" classpath="target/classes;${runtime.classpath}" />
 
-                <mkdir dir="target/temp/runtime/debug/scripts/classes" />
+                <mkdir dir="target/temp/runtime/debug/joo/classes" />
                 <mkdir dir="target/temp/runtime/debug/META-INF/joo-api" />
-                <jooc destdir="target/temp/runtime/debug/scripts/classes" apidestdir="target/temp/runtime/debug/META-INF/joo-api" failonerror="true" debug="true" debuglevel="source" verbose="true" enableassertions="true" classpath="${basedir}/src/main/joo-api">
+                <jooc destdir="target/temp/runtime/debug/joo/classes" apidestdir="target/temp/runtime/debug/META-INF/joo-api" failonerror="true" debug="true" debuglevel="source" verbose="true" enableassertions="true" classpath="${basedir}/src/main/joo-api">
                   <include name="**/*.as" />
                   <src path="src/main/joo" />
                 </jooc>
@@ -45,8 +45,8 @@
                   <src path="src/main/joo" />
                 </jooc>
 
-                <concat destfile="target/scripts/net.jangaroo.jangaroo-runtime.classes.js">
-                  <filelist dir="src/main/joo-js/scripts/classes">
+                <concat destfile="target/joo/net.jangaroo.jangaroo-runtime.classes.js">
+                  <filelist dir="src/main/joo-js/joo/classes">
                     <file name="int.js" />
                     <file name="uint.js" />
                     <file name="joo/BootstrapClassLoader.js" />
@@ -69,13 +69,13 @@
                     <file name="joo/DynamicClassLoader.js" />
                     <file name="joo/ResourceBundleAwareClassLoader.js" />
                   </filelist>
-                  <filelist dir="src/main/joo-js/scripts/classes">
+                  <filelist dir="src/main/joo-js/joo/classes">
                     <file name="joo/_createClassLoader.js" />
                   </filelist>
                 </concat>
 
                 <zip destfile="target/jangaroo-runtime-${project.version}.jar">
-                  <fileset dir="target" includes="scripts/*jangaroo-runtime*.js" />
+                  <fileset dir="target" includes="joo/*jangaroo-runtime*.js" />
                   <fileset dir="src/main/joo-js" />
                   <fileset dir="target/temp/runtime/debug" />
                   <zipfileset dir="src/main/joo-api" includes="**/*.as" prefix="META-INF/joo-api" />

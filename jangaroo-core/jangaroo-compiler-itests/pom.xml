@@ -109,7 +109,7 @@
                 <property name="runtime.classpath" refid="maven.runtime.classpath" />
                 <taskdef name="jooc" classname="net.jangaroo.jooc.ant.JoocTask" classpath="target/classes;${runtime.classpath}" />
 
-                <mkdir dir="${basedir}/target/temp/scripts" />
+                <mkdir dir="${basedir}/target/temp/joo" />
                 <mkdir dir="${basedir}/target/joo-lib" />
 
                 <property name="joo-api.jar" value="${basedir}/target/joo-lib/joo-api.jar" />
@@ -118,13 +118,13 @@
                 </jar>
 
                 <!-- make API classes available to runtime: -->
-                <jooc destdir="target/temp/scripts/classes" failonerror="true" debug="true" verbose="true" enableassertions="true">
+                <jooc destdir="target/temp/joo/classes" failonerror="true" debug="true" verbose="true" enableassertions="true">
                   <include name="**/TestClassInJar.as" />
                   <src path="${basedir}/src/test/joo-api" />
                 </jooc>
 
                 <property name="jangaroo-runtime.jar" value="${net.jangaroo:jangaroo-runtime:jar}" />
-                <property name="destdir" value="target/temp/scripts" />
+                <property name="destdir" value="target/temp/joo" />
 
                 <mkdir dir="${destdir}/META-INF/joo-api" />
 

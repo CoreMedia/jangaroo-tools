@@ -92,7 +92,7 @@ public class PackageMojo extends AbstractMojo {
    * If this file is not created through copying the corresponding resource, and the jsClassesFile exists,
    * a file containing the code to load the concatenated Jangaroo classes file is created.
    *
-   * @parameter expression="${project.build.directory}/jangaroo-output/scripts/${project.artifactId}.js"
+   * @parameter expression="${project.build.directory}/jangaroo-output/joo/${project.artifactId}.js"
    */
   private File moduleJsFile;
 
@@ -100,7 +100,7 @@ public class PackageMojo extends AbstractMojo {
    * This parameter specifies the name of the output file containing all
    * compiled classes.
    *
-   * @parameter expression="${project.build.outputDirectory}/scripts/${project.groupId}.${project.artifactId}.classes.js"
+   * @parameter expression="${project.build.outputDirectory}/joo/${project.groupId}.${project.artifactId}.classes.js"
    */
   private File jsClassesFile;
 

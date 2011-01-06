@@ -18,7 +18,7 @@ public class CompilerMojo extends AbstractCompilerMojo {
   /**
    * Output directory for compiled classes.
    *
-   * @parameter expression="${project.build.outputDirectory}/scripts/classes"
+   * @parameter expression="${project.build.outputDirectory}/joo/classes"
    */
   private File outputDirectory;
 
@@ -52,7 +52,7 @@ public class CompilerMojo extends AbstractCompilerMojo {
    * This parameter specifies the name of the output file containing all
    * compiled classes.
    *
-   * @parameter expression="${project.build.outputDirectory}/scripts/${project.groupId}.${project.artifactId}.classes.js"
+   * @parameter expression="${project.build.outputDirectory}/joo/${project.groupId}.${project.artifactId}.classes.js"
    */
   private String outputFileName;
 
