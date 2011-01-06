@@ -1,5 +1,6 @@
 package net.jangaroo.jooc.mvnplugin;
 
+import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
@@ -16,6 +17,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.util.Set;
 
 /**
  * Creates the jangaroo archive and attaches them to the project.<br>
@@ -164,6 +166,8 @@ public class PackageMojo extends AbstractMojo {
     }
     attr = new Manifest.Attribute("Built-By", System.getProperty("user.name"));
     manifest.addConfiguredAttribute(attr);
+    attr = new Manifest.Attribute("Class-Path", jangarooDependencies(project));
+    manifest.addConfiguredAttribute(attr);
 
     File mf = File.createTempFile("maven", ".mf");
     mf.deleteOnExit();
@@ -177,6 +181,18 @@ public class PackageMojo extends AbstractMojo {
       }
     }
     jarArchiver.setManifest(mf);
+  }
+
+  @SuppressWarnings({"unchecked"})
+  private static String jangarooDependencies(MavenProject project) {
+    StringBuilder sb = new StringBuilder();
+    Set<Artifact> dependencyArtifacts = project.getDependencyArtifacts();
+    for (Artifact artifact : dependencyArtifacts) {
+      if ("jangaroo".equals(artifact.getType())) {
+        sb.append(artifact.getArtifactId()).append("-").append(artifact.getVersion()).append(".jar ");
+      }
+    }
+    return sb.toString();
   }
 
 }
