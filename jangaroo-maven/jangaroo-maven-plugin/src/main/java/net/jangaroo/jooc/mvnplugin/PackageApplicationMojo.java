@@ -75,7 +75,7 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
   private List remoteRepositories;
 
   /**
-   * Location of Jangaroo resources of this module (including compiler output, usually under "scripts/") to be added
+   * Location of Jangaroo resources of this module (including compiler output, usually under "joo/") to be added
    * to the webapp. Defaults to ${project.build.directory}/jangaroo-output/
    *
    * @parameter expression="${project.build.directory}/jangaroo-output/"
@@ -101,7 +101,7 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
     try {
       unpack(webappDirectory);
       copyJangarooOutput(webappDirectory);
-      concatModuleScripts(new File(webappDirectory, "scripts"));
+      concatModuleScripts(new File(webappDirectory, "joo"));
     }
     catch (ArchiverException e) {
       throw new MojoExecutionException("Failed to unpack javascript dependencies", e);
@@ -227,7 +227,7 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
   }
 
   protected void writeThisJangarooModuleScript(File scriptDirectory, Writer fw) throws IOException {
-    File jangarooModuleFile = new File(packageSourceDirectory, "scripts/" + project.getArtifactId() + ".js");
+    File jangarooModuleFile = new File(packageSourceDirectory, "joo/" + project.getArtifactId() + ".js");
     FileInputStream jooModuleInputStream = jangarooModuleFile.exists()
       ? new FileInputStream(jangarooModuleFile) : null;
     writeJangarooModuleScript(scriptDirectory, project.getArtifact(), jooModuleInputStream, fw);
@@ -243,7 +243,7 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
 
   private void includeJangarooModuleScript(File scriptDirectory, Artifact artifact, Writer fw) throws IOException {
     ZipFile zipFile = new ZipFile(artifact.getFile());
-    ZipEntry zipEntry = zipFile.getEntry("scripts/" + artifact.getArtifactId() + ".js");
+    ZipEntry zipEntry = zipFile.getEntry("joo/" + artifact.getArtifactId() + ".js");
     InputStream jooModuleInputStream = zipEntry != null ? zipFile.getInputStream(zipEntry) : null;
     writeJangarooModuleScript(scriptDirectory, artifact, jooModuleInputStream, fw);
   }

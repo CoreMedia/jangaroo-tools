@@ -33,7 +33,7 @@ public class DynamicClassLoader extends StandardClassLoader {
   private var onCompleteCallbacks : Array/*<Function>*/ = [];
 
   public function DynamicClassLoader() {
-    this.urlPrefix = "scripts/classes/";
+    this.urlPrefix = "joo/classes/";
     classLoader = INSTANCE = this;
   }
 
