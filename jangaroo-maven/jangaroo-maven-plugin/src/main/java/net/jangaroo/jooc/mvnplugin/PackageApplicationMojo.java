@@ -243,7 +243,7 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
 
   private void includeJangarooModuleScript(File scriptDirectory, Artifact artifact, Writer fw) throws IOException {
     ZipFile zipFile = new ZipFile(artifact.getFile());
-    ZipEntry zipEntry = zipFile.getEntry("joo/" + artifact.getArtifactId() + ".js");
+    ZipEntry zipEntry = zipFile.getEntry("joo/" + artifact.getArtifactId() + ".module.js");
     InputStream jooModuleInputStream = zipEntry != null ? zipFile.getInputStream(zipEntry) : null;
     writeJangarooModuleScript(scriptDirectory, artifact, jooModuleInputStream, fw);
   }
