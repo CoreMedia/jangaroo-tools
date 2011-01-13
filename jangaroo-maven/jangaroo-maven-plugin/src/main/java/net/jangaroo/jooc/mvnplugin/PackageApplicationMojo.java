@@ -252,13 +252,13 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
     String fullAtifactName = artifact.getGroupId() + ":" + artifact.getArtifactId() + ":" + artifact.getVersion();
     fw.write("// FROM " + fullAtifactName + ":\n");
     if (jooModuleInputStream == null) {
-      getLog().debug("No " + artifact.getArtifactId() + ".js in " + fullAtifactName + ".");
+      getLog().debug("No " + artifact.getArtifactId() + ".module.js in " + fullAtifactName + ".");
       if (new File(scriptDirectory, artifact.getGroupId() + "." + artifact.getArtifactId() + ".classes.js").exists()) {
         getLog().debug("Creating joo.loadModule(...) code for " + fullAtifactName + ".");
         fw.write("joo.loadModule(\"" + artifact.getGroupId() + "\",\"" + artifact.getArtifactId() + "\");\n");
       }
     } else {
-      getLog().info("Appending " + artifact.getArtifactId() + ".js from " + fullAtifactName);
+      getLog().info("Appending " + artifact.getArtifactId() + ".module.js from " + fullAtifactName);
       IOUtil.copy(jooModuleInputStream, fw, "UTF-8");
       fw.write('\n'); // file might not end with new-line, better insert one
     }
