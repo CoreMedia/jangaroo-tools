@@ -51,4 +51,7 @@ if (typeof joo.loadScriptAsync !== "function") {
 joo.loadModule = function loadModule(groupId/*:String*/, artifactId/*:String*/) {
   joo.loadScript("joo/" + groupId + "." + artifactId + ".classes.js", null);
 };
+joo.loadStyleSheet = function(href) {
+  document.write('<link rel="stylesheet" type="text/css" href="' + joo.baseUrl + href + '" />');
+};
 joo.loadScript("joo/net.jangaroo.jangaroo-runtime.classes.js", "joo/net.jangaroo.jangaroo-runtime-debug.js");
