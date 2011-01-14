@@ -39,37 +39,6 @@ joo.loadScript = function loadScript(standardSrc/*:String*/, debugSrc/*:String =
 joo.loadDebugScript = function loadDebugScript(debugSrc/*:String*/) {
   joo.loadScript(null, debugSrc);
 };
-(function() {
-  var modules = {};
-  function getModule(groupId, artifactId) {
-    var id = groupId + ":" + artifactId;
-    var module = modules[id];
-    if (!module) {
-      modules[id] = module = {
-        groupId: groupId,
-        artifactId: artifactId,
-        state: "not loaded"
-      }
-    }
-    return module;
-  }
-  joo.loadModule = function loadModule(groupId, artifactId) {
-    var module = getModule(groupId, artifactId);
-    if (module.state === "not loaded") {
-      joo.loadScript("joo/" + groupId + "." + artifactId + ".module.js");
-      module.state = "loading";
-    }
-  };
-  joo.prepareModule = function prepareModule(groupId, artifactId, requiredScripts, code) {
-    var module = getModule(groupId, artifactId);
-    module.dependentModules = requiredScripts;
-    module.code = code;
-    module.state = "loaded";
-    for (var i = 0; i < requiredScripts.length; ++i) {
-      joo.loadModule(groupId, artifactId);
-    }
-  };
-})();
 if (typeof joo.loadScriptAsync !== "function") {
   joo.loadScriptAsync = function loadScriptAsync(url) {
     var script = document.createElement("script");
@@ -79,7 +48,7 @@ if (typeof joo.loadScriptAsync !== "function") {
     return script;
   };
 }
-joo.loadModuleClasses = function loadModuleClasses(groupId/*:String*/, artifactId/*:String*/) {
+joo.loadModule = function loadModule(groupId/*:String*/, artifactId/*:String*/) {
   joo.loadScript("joo/" + groupId + "." + artifactId + ".classes.js", null);
 };
 joo.loadScript("joo/net.jangaroo.jangaroo-runtime.classes.js", "joo/net.jangaroo.jangaroo-runtime-debug.js");
