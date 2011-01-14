@@ -34,7 +34,7 @@ public class JoocConfigurationBean {
   public boolean enableAssertions = true;
   public boolean allowDuplicateLocalVariables = false;
   public String outputPrefix;
-  public String outputDirectory = "target/joo/scripts/classes";
+  public String outputDirectory = "target/jangaroo-output/joo/classes";
   public boolean showCompilerInfoMessages = false;
   public static final String IDEA_URL_PREFIX = "file://";
 
