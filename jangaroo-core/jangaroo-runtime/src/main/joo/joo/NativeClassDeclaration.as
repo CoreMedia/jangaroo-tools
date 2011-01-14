@@ -18,6 +18,8 @@
 package joo {
 public class NativeClassDeclaration {
 
+  internal static const RESOURCE_BUNDLE_PATTERN:RegExp = /_properties$/;
+
   internal static function createEmptyConstructor(constructor_ : Function) : Function {
     var emptyConstructor : Function = function() : void {
       this.constructor = constructor_;
@@ -103,7 +105,7 @@ public class NativeClassDeclaration {
         initializationDepth = initializationDepth.substr(0, initializationDepth.length - 2);
       }
       state = STATE_INITIALIZED;
-    } else if (state === STATE_INITIALIZING) {
+    } else if (state === STATE_INITIALIZING && !fullClassName.match(RESOURCE_BUNDLE_PATTERN)) {
       trace("[WARN] Jangaroo Runtime: cyclic static initializer dependency in " + fullClassName);
     }
     return this;

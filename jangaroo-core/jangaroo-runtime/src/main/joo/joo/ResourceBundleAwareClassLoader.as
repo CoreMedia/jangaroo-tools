@@ -14,6 +14,7 @@
  */
 package joo {
 
+
 /**
  * A class loader that provides special treatment of resource bundle classes.
  * It maintains a current locale and loads a locale-specific subclass of any
@@ -47,8 +48,6 @@ package joo {
 public class ResourceBundleAwareClassLoader extends DynamicClassLoader {
 
   private static const DAYS_TILL_LOCALE_COOKIE_EXPIRY:int = 10*356;
-
-  private static const RESOURCE_BUNDLE_PATTERN:RegExp = /_properties$/;
 
   /**
    * The ResourceBundleAwareClassLoader singleton, which is created or overwritten
@@ -112,7 +111,7 @@ public class ResourceBundleAwareClassLoader extends DynamicClassLoader {
   override protected function createClassDeclaration(packageDef : String, classDef : String, inheritanceLevel : int, memberFactory : Function,
                                                      publicStaticMethodNames : Array, dependencies : Array):SystemClassDeclaration {
     var cd : ClassDeclaration = ClassDeclaration(super.createClassDeclaration(packageDef, classDef, inheritanceLevel, memberFactory, publicStaticMethodNames, dependencies));
-    if (cd.fullClassName.match(RESOURCE_BUNDLE_PATTERN)) {
+    if (cd.fullClassName.match(NativeClassDeclaration.RESOURCE_BUNDLE_PATTERN)) {
       cd.getDependencies().push(getLocalizedResourceClassName(cd));
     }
     return cd;
