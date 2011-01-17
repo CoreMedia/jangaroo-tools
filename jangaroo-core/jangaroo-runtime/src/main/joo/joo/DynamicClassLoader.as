@@ -248,8 +248,8 @@ public class DynamicClassLoader extends StandardClassLoader {
     }
     this.loadPendingDependencies();
     if (isEmpty(this.pendingClassState)) {
-      // no deferred classes: do not behave any different than my super class
-      super.complete(onCompleteCallback);
+      // no deferred classes, thus no dependency will trigger execution, so do it explicitly:
+      doCompleteCallbacks(onCompleteCallbacks);
     } else {
       for (var c:String in this.pendingClassState) {
         this.load(c);
