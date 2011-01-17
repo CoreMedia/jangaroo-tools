@@ -4,7 +4,7 @@ if (typeof joo !== "object") {
 if (typeof joo.debug !== "boolean") {
   joo.debug = typeof location === "object" &&
     typeof location.hash === "string" &&
-    location.hash.match(/(^#|&)joo.debug(&|$)/);
+    location.hash.match(/(^#|&)joo.debug(=true|&|$)/);
 }
 if (typeof joo._loadScript !== "function") {
   joo._loadScript = function _loadScript(src/*:String*/) {
