@@ -1,7 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   
-  <version>0.8.0-SNAPSHOT</version>
+  <version>0.8.0</version>
 
   <artifactId>jangaroo-hudson-plugin</artifactId>
   <packaging>hpi</packaging>
@@ -11,7 +11,7 @@
   <parent>
     <groupId>net.jangaroo</groupId>
     <artifactId>jangaroo-parent</artifactId>
-    <version>0.8.0-SNAPSHOT</version>
+    <version>0.8.0</version>
     <relativePath>../jangaroo-parent/pom.xml</relativePath>
   </parent>
 
@@ -86,17 +86,22 @@
       <plugin>
         <groupId>org.jvnet.hudson.tools</groupId>
         <artifactId>maven-hpi-plugin</artifactId>
-        <version>1.50</version>
+        <version>1.57</version>
         <extensions>true</extensions>
         <configuration>
           <disabledTestInjection>true</disabledTestInjection>
           <showDeprecation>true</showDeprecation>
         </configuration>
       </plugin>
+       <plugin>
+        <groupId>org.kohsuke</groupId>
+        <artifactId>access-modifier-checker</artifactId>
+        <version>1.0</version>
+      </plugin>
       <plugin>
         <groupId>org.kohsuke.stapler</groupId>
         <artifactId>maven-stapler-plugin</artifactId>
-        <version>1.12</version>
+        <version>1.15</version>
         <extensions>true</extensions>
       </plugin>
       <plugin>
