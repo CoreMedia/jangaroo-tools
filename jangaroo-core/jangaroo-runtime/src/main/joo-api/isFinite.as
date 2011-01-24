@@ -5,10 +5,11 @@
 package {
 
 /**
- * Returns true if the value is a finite number, or false if the value is Infinity or -Infinity. The presence of
- * Infinity or -Infinity indicates a mathematical error condition such as division by 0.
+ * Returns <code>true</code> if the value is a finite number, or <code>false</code> if the value is <code>Infinity</code> or <code>-Infinity</code>. The presence of <code>Infinity</code> or <code>-Infinity</code> indicates a mathematical error condition such as division by 0.
  * @param num A number to evaluate as finite or infinite.
- * @return Boolean Returns true if it is a finite number or false if it is infinity or negative infinity
+ *
+ * @return Returns <code>true</code> if it is a finite number or <code>false</code> if it is infinity or negative infinity
+ *
  */
 public native function isFinite(num : *) : Boolean;
 

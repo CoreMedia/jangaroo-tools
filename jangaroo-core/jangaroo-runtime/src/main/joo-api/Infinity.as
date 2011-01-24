@@ -4,16 +4,15 @@
  */
 package {
 /**
- * A special value representing positive Infinity.
- * The value of this constant is the same as Number.POSITIVE_INFINITY.
+ * A special value representing positive <code>Infinity</code>. The value of this constant is the same as <code>Number.POSITIVE_INFINITY</code>.
  * @see Number#POSITIVE_INFINITY
- * @example
- * The result of division by 0 is Infinity, but only when the divisor is a positive number.
- * <pre>
+ *
+ * @example The result of division by 0 is <code>Infinity</code>, but only when the divisor is a positive number.
+ * <listing>
  * trace(0 / 0);  // NaN
  * trace(7 / 0);  // Infinity
  * trace(-7 / 0); // -Infinity
- * </pre>
+ * </listing>
  */
 public native function get Infinity() : Number;
 }
