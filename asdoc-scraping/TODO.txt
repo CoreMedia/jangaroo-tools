@@ -1,0 +1,5 @@
+* treat <pre> like <listing>
+* in both, entity-escape "<" and "*" (&lt;, &lowast;)
+* implement ...rest parameters correctly, not that IDEA does not like "arguments" as rest parameter name
+* default implementation + private field for getter + setter
+* handle package-scope functions
