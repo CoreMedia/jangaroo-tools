@@ -168,7 +168,8 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
                 this.initMethod(memberDeclaration, Function(member));
                 break;
               case MemberDeclaration.MEMBER_TYPE_CLASS:
-                var helperInheritanceLevel:int = int(member);
+                //noinspection UnnecessaryLocalVariableJS
+                var helperInheritanceLevel:int = member;
                 var helperMemberDeclarations:Function = memberDeclarations[++i];
                 var helperStatics:Array = memberDeclarations[++i];
                 var secondaryClass:NativeClassDeclaration = classLoader.prepare("package "+this.fullClassName, item,
