@@ -152,7 +152,7 @@ public class ASDocScreenScraper {
     NodeList implementsNodes = (NodeList)implementsExpression.evaluate(doc, XPathConstants.NODESET);
     String implementsClause = getImplementsClause(implementsNodes);
 
-    XPathExpression propertyDeclarations = xpath.compile("//*[@class='content']//*[name()='span'][not(@product)][contains(@runtime,'Flash::9')]");
+    XPathExpression propertyDeclarations = xpath.compile("//*[@class='content']//*[name()='span'][not(@product)][contains(@runtime,'Flash::9')] | //*[@class='content']/*[@class='MainContent']/*[name()='span'][not(@product)][not(@runtime)]");
     //XPathExpression propertyDeclarations = xpath.compile("//*[@class='MainContent'][2]/*[name()='div'][@class='detailBody']");
     NodeList propertyDeclarationNodes = (NodeList)propertyDeclarations.evaluate(doc, XPathConstants.NODESET);
 
