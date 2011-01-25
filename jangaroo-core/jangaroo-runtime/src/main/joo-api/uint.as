@@ -119,7 +119,7 @@ public final class uint {
    * trace(rgb); // 0xfa8072
    * </pre>
    */
-  public native function toString(radix:uint):String;
+  public native function toString(radix:uint = 10):String;
 
   /**
    * Returns the primitive uint type value of the specified uint object.

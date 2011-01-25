@@ -1126,7 +1126,7 @@ public dynamic class Array {
    *  trace(vegetables); // spinach,cilantro,onion,green pepper,avocado
    * </listing></div>
    */
-  public native function splice(startIndex:int, deleteCount:uint, ... values):Array;
+  public native function splice(startIndex:int, deleteCount:uint = 0, ... values):Array;
 
   /**
    * Returns a string that represents the elements in the specified array. Every element in the array, starting with index 0 and ending with the highest index, is converted to a concatenated string and separated by commas. In the ActionScript 3.0 implementation, this method returns the same value as the <code>Array.toString()</code> method.

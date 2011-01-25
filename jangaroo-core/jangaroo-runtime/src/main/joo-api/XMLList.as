@@ -22,9 +22,7 @@ public final dynamic class XMLList {
    * @see #XMLList()
    *
    */
-  public function XMLList(value:Object) {
-    throw new Error('not implemented'); // TODO: implement!
-  }
+  public native function XMLList(value:Object = null);
 
   /**
    * Calls the <code>attribute()</code> method of each XML object and returns an XMLList object of the results. The results match the given <code>attributeName</code> parameter. If there is no match, the <code>attribute()</code> method returns an empty XMLList object.

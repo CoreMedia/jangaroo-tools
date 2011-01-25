@@ -125,7 +125,7 @@ public final class int {
    * trace(rgb); // 0xfa8072
    * </pre>
    */
-  public native function toString(radix:uint):String;
+  public native function toString(radix:uint = 10):String;
 
   /**
    * Returns the primitive value of the specified int object.
