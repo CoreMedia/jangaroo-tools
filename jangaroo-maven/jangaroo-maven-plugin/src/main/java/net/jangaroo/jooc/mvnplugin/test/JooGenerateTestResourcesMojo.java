@@ -22,7 +22,7 @@ import java.util.List;
 public class JooGenerateTestResourcesMojo extends PackageApplicationMojo {
 
   /**
-   * Output directory for the janagroo artifact  unarchiver. All jangaroo dependencies will be unpacked into this
+   * Output directory for the jangaroo artifact unarchiver. All jangaroo dependencies will be unpacked into this
    * directory.
    *
    * @parameter expression="${project.build.testOutputDirectory}"  default-value="${project.build.testOutputDirectory}"
