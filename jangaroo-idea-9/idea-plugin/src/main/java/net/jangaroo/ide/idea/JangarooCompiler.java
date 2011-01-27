@@ -61,7 +61,7 @@ public class JangarooCompiler implements TranslatingCompiler {
     // Does not work due to ClassLoader problems:
     // return JavaScriptSupportLoader.ECMA_SCRIPT_L4.equals(JavaScriptSupportLoader.getLanguageDialect(file));
     return Jooc.AS_SUFFIX_NO_DOT.equals(file.getExtension())
-      && (file.getParent() == null || !file.getParent().getPath().endsWith("/joo-api")); // hack: skip all files under .../joo-api
+      && file.getPath().indexOf("/joo-api/") == -1; // hack: skip all files under .../joo-api
   }
 
   private OutputSinkItem compile(CompileContext context, Module module, final List<VirtualFile> files) {
