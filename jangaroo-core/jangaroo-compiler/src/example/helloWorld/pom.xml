@@ -33,13 +33,8 @@
         <plugins>
           <plugin>
             <groupId>net.jangaroo</groupId>
-            <artifactId>jangaroo-lifecycle</artifactId>
-            <version>${jangaroo_version}</version>
-            <extensions>true</extensions>
-          </plugin>
-          <plugin>
-            <groupId>net.jangaroo</groupId>
             <artifactId>jangaroo-maven-plugin</artifactId>
+            <extensions>true</extensions>
             <version>${jangaroo_version}</version>
             <executions>
               <execution>

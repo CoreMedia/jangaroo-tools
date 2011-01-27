@@ -27,7 +27,7 @@ Usage
  This plugin is most likely used to create web applications that utilize Jangaroo artifacts.
 It should not be used manually to create Jangaroo libraries - therefore one should create POM 
 with packagingType <<<jangaroo>>>. The Jangaroo packaging type is defined in the 
-{{{../jangaroo-lifecycle/index.html}Jangaroo Lifecycle}}.
+{{{../jangaroo-maven-plugin/index.html}Jangaroo Maven Plugin}}.
 
  A typical configuration can been seen below. The <<<ext-xml-maven-plugin:extxml>>> goal is used to transform
 <<<EXML>>> UI descriptions to AS3 code in the <<<generate-sources>>> phase. The <<<jangaroo-maven-plugin:war-compile>>> 

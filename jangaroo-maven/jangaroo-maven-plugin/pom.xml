@@ -19,7 +19,19 @@
   </prerequisites>
 
   <build>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>true</filtering>
+      </resource>
+    </resources>
+
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-invoker-plugin</artifactId>
+        <version>1.4</version>
+      </plugin>
       <plugin>
         <artifactId>maven-plugin-plugin</artifactId>
         <configuration>

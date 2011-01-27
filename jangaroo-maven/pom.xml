@@ -17,9 +17,8 @@
   </parent>
 
   <modules>
-    <module>jangaroo-lifecycle</module>
-    <module>jangaroo-maven-plugin</module>
     <module>ext-xml-maven-plugin</module>
+    <module>jangaroo-maven-plugin</module>
   </modules>
 
   <build>

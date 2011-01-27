@@ -21,48 +21,30 @@ under the License.
          xsi:schemaLocation='http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd'
          xmlns='http://maven.apache.org/POM/4.0.0'>
   <modelVersion>4.0.0</modelVersion>
-  <groupId>test</groupId>
-  <artifactId>simple-lib-with-test</artifactId>
+  <groupId>testwar</groupId>
+  <artifactId>simple-project</artifactId>
   <packaging>jangaroo</packaging>
   <version>1.0-SNAPSHOT</version>
   <name>simple-project</name>
   <url>http://www.jangaroo.net</url>
-  <profiles>
-    <profile>
-      <id>integrationtest</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
-    </profile>
-  </profiles>
 
-  <repositories>
-    <repository>
-      <id>jangaroo</id>
-      <url>http://repo.jangaroo.net/maven2/</url>
-    </repository>
-  </repositories>
-  
   <build>
     <resources>
       <resource>
         <directory>src/main/joo-js</directory>
       </resource>
     </resources>
-    <outputDirectory>target/jangaroo-output</outputDirectory>
     <sourceDirectory>src/main/joo</sourceDirectory>
-    <testSourceDirectory>src/test/joo</testSourceDirectory>
-    <testOutputDirectory>target/jangaroo-output-test</testOutputDirectory>
     <plugins>
       <plugin>
         <groupId>net.jangaroo</groupId>
-        <artifactId>jangaroo-lifecycle</artifactId>
+        <artifactId>jangaroo-maven-plugin</artifactId>
         <extensions>true</extensions>
         <version>@project.version@</version>
       </plugin>
     </plugins>
-
   </build>
+
   <dependencies>
     <dependency>
       <groupId>net.jangaroo</groupId>
@@ -70,13 +52,6 @@ under the License.
       <version>0.8.0</version>
       <type>jangaroo</type>
     </dependency>
-
-    <dependency>
-      <groupId>net.jangaroo</groupId>
-      <artifactId>joounit</artifactId>
-      <type>jangaroo</type>
-      <scope>test</scope>
-      <version>0.8.1</version>
-    </dependency>
   </dependencies>
+
 </project>
