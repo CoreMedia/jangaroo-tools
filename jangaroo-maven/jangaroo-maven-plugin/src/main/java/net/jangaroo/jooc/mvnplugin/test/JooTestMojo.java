@@ -4,6 +4,8 @@ import com.thoughtworks.selenium.DefaultSelenium;
 import com.thoughtworks.selenium.Selenium;
 import com.thoughtworks.selenium.SeleniumException;
 import org.apache.commons.io.FileUtils;
+import org.apache.maven.model.Resource;
+import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
@@ -44,8 +46,63 @@ import java.util.Random;
  * @phase test
  */
 @SuppressWarnings({"UnusedDeclaration", "FieldCanBeLocal", "ResultOfMethodCallIgnored"})
-public class JooTestMojo extends AbstractJooTestMojo {
+public class JooTestMojo extends AbstractMojo {
 
+  /**
+   * The maven project.
+   *
+   * @parameter expression="${project}"
+   * @required
+   * @readonly
+   */
+  protected MavenProject project;
+  /**
+   * Location of Jangaroo resources of this module (including compiler output, usually under "joo/") to be added
+   * to the webapp. Defaults to ${project.build.outputDirectory}
+   *
+   * @parameter expression="${project.build.outputDirectory}"
+   */
+  private File outputDirectory;
+  /**
+   * Output directory for the jangaroo artifact unarchiver. All jangaroo dependencies will be unpacked into this
+   * directory.
+   *
+   * @parameter expression="${project.build.testOutputDirectory}"  default-value="${project.build.testOutputDirectory}"
+   */
+  protected File testOutputDirectory;
+  /**
+   * Source directory to scan for files to compile.
+   *
+   * @parameter expression="${project.build.testSourceDirectory}"
+   */
+  protected File testSourceDirectory;
+  /**
+   * the tests.html file relative to the test resources folder
+   *
+   * @parameter expression="tests.html"
+   */
+  protected String testsHtml;
+  /**
+  * the tests.html file relative to the test resources folder
+  *
+  * @parameter expression="${project.testResources}"
+  */
+ protected List<Resource> testResources;
+  /**
+   * Set this to 'true' to bypass unit tests entirely. Its use is NOT RECOMMENDED, especially if you
+   * enable it using the "maven.test.skip" property, because maven.test.skip disables both running the
+   * tests and compiling the tests. Consider using the skipTests parameter instead.
+   *
+   * @parameter expression="${maven.test.skip}"
+   */
+  protected boolean skip;
+  /**
+   * Set this to 'true' to skip running tests, but still compile them. Its use is NOT RECOMMENDED, but quite
+   * convenient on occasion.
+   *
+   * @parameter expression="${skipTests}"
+   */
+  protected boolean skipTests;
 
   /**
    * This is the list of projects currently slated to be built by Maven.
@@ -58,10 +115,9 @@ public class JooTestMojo extends AbstractJooTestMojo {
 
 
   /**
-   * Output directory for the janagroo artifact  unarchiver. All jangaroo dependencies will be unpacked into
-   * this directory.
+   * Output directory for test results.
    *
-   * @parameter expression="${project.build.directory}/surefire-reports/"  default-value="${project.build.testOutputDirectory}"
+   * @parameter expression="${project.build.directory}/surefire-reports/"  default-value="${project.build.directory}/surefire-reports/"
    * @required
    */
   private File testResultOutputDirectory;
@@ -111,6 +167,17 @@ public class JooTestMojo extends AbstractJooTestMojo {
    * @parameter expression="${maven.test.failure.ignore}"
    */
   protected boolean testFailureIgnore;
+
+  protected boolean isTestAvailable() {
+   for(Resource r : testResources) {
+      File testFile = new File(r.getDirectory(), testsHtml);
+      if(testFile.exists()) {
+        return true;
+      }
+    }
+    getLog().info("The tests.html file '" + testsHtml + "' could not be found. Skipping.");
+    return false;
+  }
 
   public void execute() throws MojoExecutionException, MojoFailureException {
     if (!skip && !skipTests) {

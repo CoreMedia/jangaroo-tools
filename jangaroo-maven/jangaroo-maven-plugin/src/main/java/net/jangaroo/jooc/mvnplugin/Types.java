@@ -1,4 +1,4 @@
-package org.codehaus.mojo.javascript.archive;
+package net.jangaroo.jooc.mvnplugin;
 
 /*
  * Copyright 2001-2005 The Apache Software Foundation.

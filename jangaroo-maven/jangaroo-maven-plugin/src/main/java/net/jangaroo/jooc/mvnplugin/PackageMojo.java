@@ -5,7 +5,6 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
-import org.codehaus.mojo.javascript.archive.Types;
 import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
 import org.codehaus.plexus.archiver.jar.Manifest;
@@ -21,8 +20,8 @@ import java.util.Set;
 
 /**
  * Creates the jangaroo archive and attaches them to the project.<br>
- * The jangaroo archive is created by zipping the <code>packageSourceDirectory</code>
- * (defaults to target/jangaroo-output).
+ * The jangaroo archive is created by zipping the <code>outputDirectory</code>
+ * (defaults to target/classes).
  * <p/>
  * The <code>package</code> goal is executed in the <code>package</code> phase of the jangaroo lifecycle.
  *
@@ -82,29 +81,30 @@ public class PackageMojo extends AbstractMojo {
   private File manifest;
 
   /**
-   * Location of files to be packaged. Defaults to ${project.build.directory}/jangaroo-output/
+   * Location of files to be packaged, which are all files placed in the other goal's outputDirectory.
+   * Defaults to ${project.build.outputDirectory}
    *
-   * @parameter expression="${project.build.directory}/jangaroo-output/"
+   * @parameter expression="${project.build.outputDirectory}"
    */
-  private File packageSourceDirectory;
+  private File outputDirectory;
 
   /**
-   * This parameter specifies the name of the file containing the JavaScript code to execute when this
-   * module is used.
+   * This parameter specifies the path and name of the file containing the JavaScript code to execute when this
+   * module is used, relative to the outputDirectory.
    * If this file is not created through copying the corresponding resource, and the jsClassesFile exists,
    * a file containing the code to load the concatenated Jangaroo classes file is created.
    *
-   * @parameter expression="${project.build.outputDirectory}/joo/${project.artifactId}.module.js"
+   * @parameter expression="joo/${project.artifactId}.module.js"
    */
-  private File moduleJsFile;
+  private String moduleJsFile;
 
   /**
-   * This parameter specifies the name of the output file containing all
-   * compiled classes.
+   * This parameter specifies the path and name of the output file containing all
+   * compiled classes, relative to the outputDirectory.
    *
-   * @parameter expression="${project.build.outputDirectory}/joo/${project.groupId}.${project.artifactId}.classes.js"
+   * @parameter expression="joo/${project.groupId}.${project.artifactId}.classes.js"
    */
-  private File jsClassesFile;
+  private String moduleClassesJsFile;
 
   public void execute()
       throws MojoExecutionException {
@@ -115,9 +115,9 @@ public class PackageMojo extends AbstractMojo {
       } else {
         createDefaultManifest(project, archiver);
       }
-      if (packageSourceDirectory.exists()) {
-        archiver.addDirectory(packageSourceDirectory);
-        if (!moduleJsFile.exists() && jsClassesFile.exists()) {
+      if (outputDirectory.exists()) {
+        archiver.addDirectory(outputDirectory);
+        if (!getModuleJsFile().exists() && new File(outputDirectory, moduleClassesJsFile).exists()) {
           createDefaultModuleJsFile();
         }
       }
@@ -137,7 +137,12 @@ public class PackageMojo extends AbstractMojo {
 
   }
 
+  private File getModuleJsFile() {
+    return new File(outputDirectory, moduleJsFile);
+  }
+
   private void createDefaultModuleJsFile() throws IOException {
+    File moduleJsFile = getModuleJsFile();
     File moduleJsDir = moduleJsFile.getParentFile();
     if (moduleJsDir != null) {
       moduleJsDir.mkdirs();
@@ -188,7 +193,7 @@ public class PackageMojo extends AbstractMojo {
     StringBuilder sb = new StringBuilder();
     Set<Artifact> dependencyArtifacts = project.getDependencyArtifacts();
     for (Artifact artifact : dependencyArtifacts) {
-      if ("jangaroo".equals(artifact.getType())) {
+      if (Types.JANGAROO_TYPE.equals(artifact.getType())) {
         sb.append(artifact.getArtifactId()).append("-").append(artifact.getVersion()).append(".jar ");
       }
     }

@@ -16,18 +16,29 @@ import java.util.*;
 public class CompilerMojo extends AbstractCompilerMojo {
 
   /**
-   * Output directory for compiled classes.
+   * Output directory into whose joo/classes sub-directory compiled classes are generated.
+   * This property is used for <code>jangaroo</code> packaging type as {@link #getOutputDirectory}.
    *
-   * @parameter expression="${project.build.outputDirectory}/joo/classes"
+   * @parameter expression="${project.build.outputDirectory}"
    */
   private File outputDirectory;
+
+  /**
+   * Location of Jangaroo resources of this module (including compiler output, usually under "joo/") to be added
+   * to the webapp. This property is used for <code>war</code> packaging type (actually, all packaging types
+   * but <code>jangaroo</code>) as {@link #getOutputDirectory}.
+   * Defaults to ${project.build.directory}/jangaroo-output/
+   *
+   * @parameter expression="${project.build.directory}/jangaroo-output/"
+   */
+  private File packageSourceDirectory;
 
   /**
    * Temporary output directory for compiled classes to be packaged into a single *.js file.
    *
    * @parameter expression="${project.build.directory}/temp/jangaroo-output/classes"
    */
-  private File tempOutputDirectory;
+  private File tempClassesOutputDirectory;
 
   /**
    * Source directory to scan for files to compile.
@@ -49,22 +60,22 @@ public class CompilerMojo extends AbstractCompilerMojo {
   private Set<String> excludes = new HashSet<String>();
 
   /**
-   * This parameter specifies the name of the output file containing all
-   * compiled classes.
+   * This parameter specifies the path and name of the output file containing all
+   * compiled classes, relative to the outputDirectory.
    *
-   * @parameter expression="${project.build.outputDirectory}/joo/${project.groupId}.${project.artifactId}.classes.js"
+   * @parameter expression="joo/${project.groupId}.${project.artifactId}.classes.js"
    */
-  private String outputFileName;
+  private String moduleClassesJsFile;
 
   /**
-   * Output directory for generated API stubs.
+   * Output directory for generated API stubs, relative to the outputDirectory.
    *
-   * @parameter expression="${project.build.outputDirectory}/META-INF/joo-api"
+   * @parameter expression="META-INF/joo-api"
    */
-  private File apiOutputDirectory;
+  private String apiOutputDirectory;
 
   public File getApiOutputDirectory() {
-    return apiOutputDirectory;
+    return isJangarooPackaging() ? new File(outputDirectory, apiOutputDirectory) : null;
   }
 
   protected List<File> getCompileSourceRoots() {
@@ -72,19 +83,19 @@ public class CompilerMojo extends AbstractCompilerMojo {
   }
 
   protected File getOutputDirectory() {
-    return outputDirectory;
+    return isJangarooPackaging() ? outputDirectory : packageSourceDirectory;
   }
 
-  protected File getTempOutputDirectory() {
-    return tempOutputDirectory;
+  protected File getTempClassesOutputDirectory() {
+    return tempClassesOutputDirectory;
   }
 
   protected SourceInclusionScanner getSourceInclusionScanner(int staleMillis) {
     return getSourceInclusionScanner(includes, excludes, staleMillis);
   }
 
-  public String getOutputFileName() {
-    return outputFileName;
+  public String getModuleClassesJsFileName() {
+    return moduleClassesJsFile;
   }
 
 }

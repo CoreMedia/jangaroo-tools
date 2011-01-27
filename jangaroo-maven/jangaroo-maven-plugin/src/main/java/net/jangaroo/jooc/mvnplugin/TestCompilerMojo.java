@@ -17,11 +17,21 @@ import java.util.*;
 public class TestCompilerMojo extends AbstractCompilerMojo {
 
   /**
-   * Output directory for compiled classes.
+   * Test output directory into whose joo/classes sub-directory compiled classes are generated.
    *
-   * @parameter expression="${project.build.testOutputDirectory}/joo/classes"
+   * @parameter expression="${project.build.testOutputDirectory}"
    */
   private File testOutputDirectory;
+
+  /**
+   * Location of Jangaroo test resources of this module (including compiler output, usually under "joo/") to be added
+   * to the webapp. This property is used for <code>war</code> packaging type (actually, all packaging types
+   * but <code>jangaroo</code>) as {@link #getOutputDirectory}.
+   * Defaults to ${project.build.directory}/jangaroo-test-output/
+   *
+   * @parameter expression="${project.build.directory}/jangaroo-test-output/"
+   */
+  private File testPackageSourceDirectory;
 
   /**
    * Source directory to scan for files to compile.
@@ -55,16 +65,17 @@ public class TestCompilerMojo extends AbstractCompilerMojo {
   /**
    * Temporary output directory for compiled classes to be packaged into a single *.js file.
    *
-   * @parameter expression="${project.build.directory}/temp/joo-test/classes"
+   * @parameter expression="${project.build.directory}/temp/jangaroo-test-output/classes"
    */
-  private File testTempOutputDirectory;
+  private File tempTestClassesOutputDirectory;
 
   /**
-   * Absolute output filename of the merged javascript.  
+   * This parameter specifies the path and name of the output file containing all
+   * compiled classes, relative to the testOutputDirectory.
    *
-   * @parameter expression="${project.build.testOutputDirectory}/joo/${project.groupId}.${project.artifactId}-test.classes.js"
+   * @parameter expression="joo/${project.groupId}.${project.artifactId}-test.classes.js"
    */
-  private String testOutputFileName;
+  private String moduleTestClassesJsFile;
 
   /**
    * 
@@ -80,11 +91,12 @@ public class TestCompilerMojo extends AbstractCompilerMojo {
   }
 
   protected File getOutputDirectory() {
-    return testOutputDirectory;
+    return isJangarooPackaging() ? testOutputDirectory : testPackageSourceDirectory;
   }
 
-  protected File getTempOutputDirectory() {
-    return testTempOutputDirectory;
+
+  protected File getTempClassesOutputDirectory() {
+    return tempTestClassesOutputDirectory;
   }
 
   protected SourceInclusionScanner getSourceInclusionScanner(int staleMillis) {
@@ -92,8 +104,8 @@ public class TestCompilerMojo extends AbstractCompilerMojo {
   }
 
 
-  public String getOutputFileName() {
-    return testOutputFileName;
+  public String getModuleClassesJsFileName() {
+    return moduleTestClassesJsFile;
   }
 
   @Override

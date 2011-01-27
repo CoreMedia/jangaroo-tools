@@ -4,8 +4,6 @@ import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.project.MavenProject;
-import org.codehaus.mojo.javascript.archive.Types;
 import org.codehaus.plexus.archiver.ArchiveFileFilter;
 import org.codehaus.plexus.archiver.ArchiveFilterException;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
@@ -30,16 +28,9 @@ import java.util.Set;
  *  &lt;extensions>true&lt;/extensions>
  *  &lt;executions>
  *   &lt;execution>
- *     &lt;id>compile-as-sources&lt;/id>
- *     &lt;phase>compile&lt;/phase>
  *     &lt;goals>
  *      &lt;goal>compile&lt;/goal>
- *     &lt;/goals>
- *   &lt;/execution>
- *   &lt;execution>
- *    &lt;id>war-package&lt;/id>
- *    &lt;goals>
- *     &lt;goal>war-package&lt;/goal>
+ *      &lt;goal>war-package&lt;/goal>
  *    &lt;/goals>
  *   &lt;/execution>
  *  &lt;/executions>
@@ -49,7 +40,7 @@ import java.util.Set;
  *
  * @goal war-package
  * @requiresDependencyResolution runtime
- * @phase compile
+ * @phase prepare-package
  */
 @SuppressWarnings({"ResultOfMethodCallIgnored", "UnusedDeclaration"})
 public class WarPackageMojo extends PackageApplicationMojo {
@@ -62,6 +53,17 @@ public class WarPackageMojo extends PackageApplicationMojo {
    * @required
    */
   private File webappDirectory;
+  /**
+   * Location of Jangaroo resources of this module (including compiler output, usually under "joo/") to be added
+   * to the webapp. Defaults to ${project.build.directory}/jangaroo-output/
+   *
+   * @parameter expression="${project.build.directory}/jangaroo-output/"
+   */
+  private File packageSourceDirectory;
+
+  public File getPackageSourceDirectory() {
+    return packageSourceDirectory;
+  }
 
   /**
    * {@inheritDoc}

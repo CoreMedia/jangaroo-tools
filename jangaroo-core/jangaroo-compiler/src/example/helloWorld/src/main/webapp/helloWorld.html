@@ -1,43 +1,14 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
-        "http://www.w3.org/TR/html4/loose.dtd">
+<!DOCTYPE html>
 <html>
 <head>
-  <title>Hello World - Jangaroo Tools Examples</title>
-  <script type="text/javascript" src="joo/joo.js"></script>
-  <script type="text/javascript" src="net/jangaroo/example/HelloWorld.js"></script>
-  <script type="text/javascript">
-    //<![CDATA[
-
-    // asserts that all required classes have been loaded
-    joo.classLoader.complete();
-
-    // instantiate the example class
-    var helloWorld = new net.jangaroo.example.HelloWorld();
-
-    // button onclick event handler
-    function sayHello() {
-      // grab the input and output elements
-      var outputDiv = document.getElementById("output");
-      var inputField = document.getElementById("nameField");
-
-      // call the #greetHtml method of the HelloWorld class, and output the return value
-      outputDiv.innerHTML = helloWorld.greetHtml(inputField.value);
-    }
-    // ]]>
-  </script>
+  <title>Hello World - Jangaroo</title>
 </head>
 <body>
-  <h1>Example: Hello World</h1>
-
-  <p>
-    Enter a name and click on the "Say hello" button.
-  </p>
-
-  <form action="#" onsubmit="sayHello(); return false;">
-    <input type="text" id="nameField">
-    <button id="greetButton" type="submit">Say hello</button>
-  </form>
-
-  <div id="output"> </div>
+<h1 id="output"></h1>
+<script type="text/javascript"
+        src="joo/jangaroo-application.js"></script>
+<script type="text/javascript">
+  joo.classLoader.run("net.jangaroo.example.HelloWorld", "output");
+</script>
 </body>
 </html>

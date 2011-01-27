@@ -8,7 +8,6 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectBuilder;
 import org.apache.maven.project.ProjectBuildingException;
-import org.codehaus.mojo.javascript.archive.Types;
 import org.codehaus.plexus.archiver.ArchiveFileFilter;
 import org.codehaus.plexus.archiver.ArchiveFilterException;
 import org.codehaus.plexus.archiver.ArchiverException;
@@ -75,20 +74,14 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
   private List remoteRepositories;
 
   /**
-   * Location of Jangaroo resources of this module (including compiler output, usually under "joo/") to be added
-   * to the webapp. Defaults to ${project.build.directory}/jangaroo-output/
-   *
-   * @parameter expression="${project.build.directory}/jangaroo-output/"
-   */
-  private File packageSourceDirectory;
-
-  /**
    * Plexus archiver.
    *
    * @component role="org.codehaus.plexus.archiver.UnArchiver" role-hint="zip"
    * @required
    */
   private ZipUnArchiver unarchiver;
+
+  public abstract File getPackageSourceDirectory();
 
   /**
    * Create the Jangaroo Web app in the given Web app directory.
@@ -188,6 +181,7 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
   }
 
   private void copyJangarooOutput(File target) throws IOException {
+    File packageSourceDirectory = getPackageSourceDirectory();
     if (!packageSourceDirectory.exists()) {
       getLog().debug("No Jangaroo compiler output directory " + packageSourceDirectory.getAbsolutePath() + ", skipping copy Jangaroo output.");
     } else {
@@ -227,7 +221,7 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
   }
 
   protected void writeThisJangarooModuleScript(File scriptDirectory, Writer fw) throws IOException {
-    File jangarooModuleFile = new File(packageSourceDirectory, "joo/" + project.getArtifactId() + ".js");
+    File jangarooModuleFile = new File(getPackageSourceDirectory(), "joo/" + project.getArtifactId() + ".js");
     FileInputStream jooModuleInputStream = jangarooModuleFile.exists()
       ? new FileInputStream(jangarooModuleFile) : null;
     writeJangarooModuleScript(scriptDirectory, project.getArtifact(), jooModuleInputStream, fw);
@@ -276,7 +270,7 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
   private List<Artifact> getJangarooDependencies() {
     List<Artifact> jooArtifacts = new ArrayList<Artifact>();
     for (Artifact dependency : getArtifacts()) {
-      if ("jangaroo".equals(dependency.getType())) {
+      if (Types.JANGAROO_TYPE.equals(dependency.getType())) {
         jooArtifacts.add(dependency);
       }
     }
@@ -289,7 +283,7 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
       MavenProject mp = mavenProjectBuilder.buildFromRepository(artifact, remoteRepositories, localRepository, true);
       List<String> deps = new LinkedList<String>();
       for (Dependency dep : getDependencies(mp)) {
-        if ("jangaroo".equals(dep.getType())) {
+        if (Types.JANGAROO_TYPE.equals(dep.getType())) {
           deps.add(getInternalId(dep));
         }
       }

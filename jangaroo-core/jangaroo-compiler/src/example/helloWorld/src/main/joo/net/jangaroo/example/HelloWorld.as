@@ -16,7 +16,8 @@
 package net.jangaroo.example {
 
   /**
-   * A simple example demonstrating how to receive and return typed arguments.
+   * A simple example demonstrating how to use the browser API
+   * via Jangaroo and receive and return typed arguments.
    */
   public class HelloWorld {
 
@@ -29,14 +30,9 @@ package net.jangaroo.example {
       return "Hello, " + name + "!";
     }
 
-    /**
-     * Returns a personalized and HTML-escaped greeting.
-     * @param name name of the person to greet
-     * @return String a personalized and HTML-escaped greeting
-     */
-    public function greetHtml(name : String) : String {
-      return this.greet(name).replace(/&/g, "&amp;").replace(/</g, "&lt;");
+    public static function main(outputElementId : String) : void {
+      var name:String = window.prompt("What's your name?", "");
+      window.document.getElementById(outputElementId).innerHTML = new HelloWorld().greet(name);
     }
-
   }
 }

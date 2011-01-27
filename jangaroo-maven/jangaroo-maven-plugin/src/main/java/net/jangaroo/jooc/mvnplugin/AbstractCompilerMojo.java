@@ -9,7 +9,6 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
-import org.codehaus.mojo.javascript.archive.Types;
 import org.codehaus.plexus.compiler.CompilerError;
 import org.codehaus.plexus.compiler.util.scan.InclusionScanException;
 import org.codehaus.plexus.compiler.util.scan.SimpleSourceInclusionScanner;
@@ -102,13 +101,21 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
    */
   private File generatedSourcesDirectory;
 
-  public abstract String getOutputFileName();
+  public abstract String getModuleClassesJsFileName();
+
+  public File getModuleClassesJsFile() {
+    return new File(getOutputDirectory(), getModuleClassesJsFileName());
+  }
 
   protected abstract List<File> getCompileSourceRoots();
 
   protected abstract File getOutputDirectory();
 
-  protected abstract File getTempOutputDirectory();
+  protected File getClassesOutputDirectory() {
+    return new File(getOutputDirectory(), "joo/classes");
+  }
+
+  protected abstract File getTempClassesOutputDirectory();
 
   public File getGeneratedSourcesDirectory() {
     return generatedSourcesDirectory;
@@ -178,7 +185,7 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
     configuration.setSourceFiles(new ArrayList<File>(sources));
     configuration.setSourcePath(getCompileSourceRoots());
     configuration.setClassPath(getActionScriptClassPath());
-    configuration.setOutputDirectory(getOutputDirectory());
+    configuration.setOutputDirectory(getClassesOutputDirectory());
     configuration.setApiOutputDirectory(getApiOutputDirectory());
 
     if (getLog().isDebugEnabled()) {
@@ -198,11 +205,11 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
       configuration.setDebug(false);
       configuration.setDebugLines(false);
       configuration.setDebugSource(false);
-      configuration.setOutputDirectory(getTempOutputDirectory());
+      configuration.setOutputDirectory(getTempClassesOutputDirectory());
       configuration.setApiOutputDirectory(null);
       result = compile(configuration);
       if (result == Jooc.RESULT_CODE_OK) {
-        buildOutputFile(getTempOutputDirectory(), getOutputFileName());
+        buildOutputFile(getTempClassesOutputDirectory(), getModuleClassesJsFile());
       }
 
       compilationError &= (result != Jooc.RESULT_CODE_OK);
@@ -247,9 +254,7 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
     return classPath;
   }
 
-  private void buildOutputFile(File tempOutputDir, String outputFileName) throws MojoExecutionException {
-    File outputFile = new File(outputFileName);
-
+  private void buildOutputFile(File tempOutputDir, File outputFile) throws MojoExecutionException {
     if (getLog().isDebugEnabled()) {
       log.debug("Output file: " + outputFile);
     }
@@ -312,7 +317,7 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
   private Set<File> computeStaleSources(SourceInclusionScanner scanner) throws MojoExecutionException {
 
 
-    File outputDirectory = getOutputDirectory();
+    File outputDirectory = getClassesOutputDirectory();
 
 
     scanner.addSourceMapping(new SuffixMapping(Jooc.INPUT_FILE_SUFFIX, Jooc.OUTPUT_FILE_SUFFIX));
@@ -376,4 +381,7 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
     return (Set<Artifact>) project.getArtifacts();
   }
 
+  protected boolean isJangarooPackaging() {
+    return Types.JANGAROO_TYPE.equals(project.getPackaging());
+  }
 }

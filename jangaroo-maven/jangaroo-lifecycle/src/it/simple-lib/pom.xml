@@ -34,10 +34,7 @@ under the License.
         <directory>src/main/joo-js</directory>
       </resource>
     </resources>
-    <outputDirectory>target/jangaroo-output</outputDirectory>
     <sourceDirectory>src/main/joo</sourceDirectory>
-    <testSourceDirectory>src/test/joo</testSourceDirectory>
-    <testOutputDirectory>target/jangaroo-output-test</testOutputDirectory>
     <plugins>
       <plugin>
         <groupId>net.jangaroo</groupId>
@@ -52,7 +49,7 @@ under the License.
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-runtime</artifactId>
-      <version>0.7.12</version>
+      <version>0.8.0</version>
       <type>jangaroo</type>
     </dependency>
   </dependencies>
