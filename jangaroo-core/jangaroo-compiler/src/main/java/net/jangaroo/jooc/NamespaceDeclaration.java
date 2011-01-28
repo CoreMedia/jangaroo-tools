@@ -41,6 +41,22 @@ public class NamespaceDeclaration extends IdeDeclaration {
   }
 
   @Override
+  protected void generateAsApiCode(JsWriter out) throws IOException {
+    writeModifiers(out);
+    out.writeSymbol(symNamespace);
+    ide.generateCode(out);
+    if (optInitializer != null) {
+      out.writeSymbol(optInitializer.symEq);
+      optInitializer.value.generateAsApiCode(out);
+    }
+    if (optSymSemicolon != null) {
+      out.writeSymbol(optSymSemicolon);
+    } else {
+      out.writeToken(";");
+    }
+  }
+
+  @Override
   protected void generateJsCode(JsWriter out) throws IOException {
     out.beginString();
     writeModifiers(out);
@@ -50,7 +66,9 @@ public class NamespaceDeclaration extends IdeDeclaration {
     out.writeSymbolWhitespace(optInitializer.symEq);
     out.writeToken(",");
     optInitializer.value.generateCode(out);
-    out.writeSymbolWhitespace(optSymSemicolon);
+    if (optSymSemicolon != null) {
+      out.writeSymbolWhitespace(optSymSemicolon);
+    }
     out.writeToken(",[]");
   }
 
