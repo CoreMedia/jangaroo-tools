@@ -98,7 +98,7 @@ public class SystemClassLoader {
     return true;
   }
 
-  static function addToMetadata(metadata:Object, annotation:*):void {
+  internal static function addToMetadata(metadata:Object, annotation:*):void {
     for (var m:String in annotation) {
       metadata[m] = annotation[m];
     }
