@@ -222,7 +222,7 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
   protected void generateAsApiCode(JsWriter out) throws IOException {
     if (!isPrivate()) {
       writeModifiers(out);
-      if (!isNative()) {
+      if (!isNative() && !isAbstract() && !isConstructor()) {
         out.writeSymbolWhitespace(symFunction);
         out.writeToken(SyntacticKeywords.NATIVE);
         out.writeSymbol(symFunction, false);
@@ -241,7 +241,32 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
       if (optTypeRelation != null) {
         optTypeRelation.generateCode(out);
       }
-      out.writeToken(";");
+      if (isConstructor() && !isNative()) {
+        // ASDoc does not allow a native constructor if the super class constructor needs parameters!
+        out.writeToken("{super(");
+        if (classDeclaration != null) {
+          ClassDeclaration superType = classDeclaration.getSuperTypeDeclaration();
+          if (superType != null) {
+            FunctionDeclaration superConstructor = superType.getConstructor();
+            if (superConstructor != null) {
+              Parameters superParameters = superConstructor.getParams();
+              boolean first = true;
+              while (superParameters != null && superParameters.head.optInitializer == null) {
+                if (first) {
+                  first = false;
+                } else {
+                  out.writeToken(",");
+                }
+                out.write(FieldDeclaration.getDefaultValue(superParameters.head.optTypeRelation));
+                superParameters = (Parameters)superParameters.tail;
+              }
+            }
+          }
+        }
+        out.writeToken(");}");
+      } else {
+        out.writeToken(";");
+      }
     }
   }
 

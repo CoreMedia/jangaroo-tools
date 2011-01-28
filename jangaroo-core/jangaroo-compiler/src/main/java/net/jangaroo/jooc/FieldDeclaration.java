@@ -121,13 +121,19 @@ public class FieldDeclaration extends AbstractVariableDeclaration {
         out.writeToken(");}");
       }
     } else {
-      String typeName = this.optTypeRelation == null ? "*" : this.optTypeRelation.getType().getSymbol().getText();
-      String emptyValue = DEFAULT_VALUE_BY_TYPE.get(typeName);
-      if (emptyValue == null) {
-        emptyValue = "null";
-      }
+      TypeRelation typeRelation = this.optTypeRelation;
+      String emptyValue = getDefaultValue(typeRelation);
       out.write(":" + emptyValue);
     }
+  }
+
+  static String getDefaultValue(TypeRelation typeRelation) {
+    String typeName = typeRelation == null ? "*" : typeRelation.getType().getSymbol().getText();
+    String emptyValue = DEFAULT_VALUE_BY_TYPE.get(typeName);
+    if (emptyValue == null) {
+      emptyValue = "null";
+    }
+    return emptyValue;
   }
 
   @Override
