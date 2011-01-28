@@ -13,7 +13,7 @@ package {
  * @see http://help.adobe.com/en_US/as3/learn/WS5b3ccc516d4fbf351e63e3d118a9b90204-7f30.html Methods
  *
  */
-public class Function {
+public final class Function {
   /**
    * Specifies the value of <code>thisObject</code> to be used within any function that ActionScript calls. This method also specifies the parameters to be passed to any called function. Because <code>apply()</code> is a method of the Function class, it is also a method of every Function object in ActionScript.
    * <p>The parameters are specified as an Array object, unlike <code>Function.call()</code>, which specifies parameters as a comma-delimited list. This is often useful when the number of parameters to be passed is not known until the script actually executes.</p>
