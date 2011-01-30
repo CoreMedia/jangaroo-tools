@@ -41,17 +41,15 @@ public class ClassDeclaration extends SystemClassDeclaration {
     // anonymous function has to be inside a static function, or jooc will replace "this" with "this$":
     classDeclaration.constructor_ = function() : void {
       classDeclaration.init();
-      assert(classDeclaration.constructor_!=null); // must have been set, at least to a default constructor!
+      // classDeclaration.constructor_ must have been set, at least to a default constructor:
       classDeclaration.constructor_.apply(this, arguments);
     };
   }
 
   private function createInitializingStaticMethod(methodName : String) : void {
-    var classDeclaration : ClassDeclaration = this;
-    classDeclaration.publicConstructor[methodName] = function() : * {
-      //assert(!classDeclaration.inited);
-      classDeclaration.init();
-      return classDeclaration.publicConstructor[methodName].apply(null, arguments);
+    this.publicConstructor[methodName] = function() : * {
+      this.init();
+      return this.publicConstructor[methodName].apply(null, arguments);
     };
   }
 
