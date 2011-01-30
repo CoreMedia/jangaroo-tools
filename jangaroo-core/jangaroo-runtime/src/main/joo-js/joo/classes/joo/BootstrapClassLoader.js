@@ -7,6 +7,11 @@
     empty.prototype =  object;
     return new empty();
   }
+  function copyFromTo(source, target) {
+    for (var m in source) {
+      target[m] = source[m];
+    }
+  }
   function createGetQualified(create) {
     return (function(name) {
       var object = theGlobalObject;
@@ -71,6 +76,7 @@
       - field initializers
       - typed catch clauses
       - dynamic class loading + resource bundles
+      - implicit empty constructor (must have explicit constructor)
       - all classes must reside within the joo package
 
      Caveat: static code blocks are executed immediately
@@ -84,18 +90,18 @@
         var className = classMatch[3];
         var $extends = classMatch[5];
         var constructor;
-        var publicConstructor = joo[className] = function() {
-          constructor.apply(this, arguments);
-        };
+        var prototype;
         var superConstructor;
         if ($extends) {
           superConstructor = joo.getQualifiedObject($extends);
-          publicConstructor.prototype = clone(superConstructor.prototype);
+          prototype = clone(superConstructor.prototype);
         } else {
           superConstructor = Object;
+          prototype = {};
         }
-        publicConstructor.prototype["super$" + inheritanceLevel] = superConstructor;
+        prototype["super$" + inheritanceLevel] = superConstructor;
         var privateStatics = {};
+        var publicStatics = {};
         var members = memberFactory(privateStatics);
         var staticInitializer;
         for (var i = 0; i < members.length; ++i) {
@@ -105,19 +111,23 @@
             case "string":
               var isStatic = memberDeclaration.match(/\bstatic\b/);
               var isPrivate = memberDeclaration.match(/\bprivate\b/);
-              var target = isStatic ? isPrivate ? privateStatics : publicConstructor : publicConstructor.prototype;
+              var target = isStatic ? isPrivate ? privateStatics : publicStatics : prototype;
               var member = members[++i];
               if (typeof member == "function") {
                 var methodName = memberDeclaration.match(/function\s+([a-zA-Z$_0-9]+)/)[1];
                 if (methodName == className) {
-                  constructor = member;
+                  // found constructor!
+                  joo[className] = constructor = member;
+                  constructor.prototype = prototype;
+                  // add collected public static members as constructor members
+                  copyFromTo(publicStatics, constructor);
+                  // from now on, directly store public static members as constructor members:
+                  publicStatics = constructor;
                 } else {
                   target[methodName] = member;
                 }
               } else {
-                for (var m in member) {
-                  target[m] = member[m];
-                }
+                copyFromTo(member, target);
               }
           }
         }
