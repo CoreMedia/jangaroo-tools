@@ -17,6 +17,6 @@ package joo {
 /**
  * Jangaroo's singleton class loader object.
  */
-public var classLoader : SystemClassLoader;
+public var classLoader:SystemClassLoader;
 
 }

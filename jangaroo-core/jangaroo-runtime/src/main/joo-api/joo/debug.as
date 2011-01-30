@@ -15,9 +15,14 @@
 package joo {
 
 /**
- * Jangaroo's debug mode.
- * Must be set before loading jangaroo-application.js.
+ * Jangaroo's debug mode, determining whether classes are loaded by separate requests and containing all
+ * white-space and comments, or as one concatenated file per module without any white-space or comments.
+ * <p>Must be set before loading jangaroo-application.js.</p>
+ *
+ * @see joo.loadScript
+ * @see joo.loadDebugScript
+ * @see joo.loadModule
  */
-public var debug : Boolean;
+public var debug:Boolean;
 
 }

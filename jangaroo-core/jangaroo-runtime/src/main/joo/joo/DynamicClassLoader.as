@@ -28,12 +28,10 @@ public class DynamicClassLoader extends StandardClassLoader {
 
   public static var INSTANCE:DynamicClassLoader;
 
-  private var urlPrefix : String;
   private var resourceByPath : Object = {};
   private var onCompleteCallbacks : Array/*<Function>*/ = [];
 
   public function DynamicClassLoader() {
-    this.urlPrefix = "joo/classes/";
     classLoader = INSTANCE = this;
   }
 
@@ -132,7 +130,7 @@ public class DynamicClassLoader extends StandardClassLoader {
         if (this.pendingClassState[fullClassName]!==true) {
           // trigger loading:
           this.pendingClassState[fullClassName] = true;
-          var url:String = this.getUri(fullClassName);
+          var url:String = getRelativeClassUrl(fullClassName);
 //          if (this.debug) {
 //            trace("triggering to load class " + fullClassName + " from URL " + url + ".");
 //          }
@@ -189,7 +187,7 @@ public class DynamicClassLoader extends StandardClassLoader {
             }
             resource.preload = "auto"; // Embed -> load early, but don't wait for load like with images.
           }
-          resource.src = baseUrl + urlPrefix + path;
+          resource.src = baseUrl + "joo/classes/" + path;
         } else {
           trace("[WARN]", "Resource type " + resourceType + " not supported by client, ignoring resource " + path);
         }
@@ -218,15 +216,6 @@ public class DynamicClassLoader extends StandardClassLoader {
 
   public function getResource(path:String):Object {
     return resourceByPath[path];
-  }
-
-  protected function getBaseUri() : String {
-    return this.urlPrefix;
-  }
-
-  protected function getUri(fullClassName : String) : String {
-    var baseUri : String = this.getBaseUri();
-    return baseUri + fullClassName.replace(/\./g,"/") + ".js";
   }
 
   /**

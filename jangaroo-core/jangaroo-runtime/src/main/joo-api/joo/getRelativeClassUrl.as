@@ -15,14 +15,14 @@
 package joo {
 
 /**
- * Load a script from the given URL by creating a DOM script element. In most browsers,
- * this allows download of scripts in parallel and leads to execution using a first-come-first-serve
- * strategy.
- * @param url the script source URL, relative to <code>joo.baseUrl</code>, to use in production (= non-debug) mode
- * @return the generated script element
- *
+ * Return a URL relative to <code>joo.baseUrl</code> to load the class given by its fully qualified name.
+ * You can use this URL with <code>joo.loadScript</code> or <code>joo.loadScriptAsync</code>.
+ * This function is used internally and usually not needed by application code.
+ * @param qualifiedName the qualified name of a class, interface, or function for which to compute the relative URL
+ * @return  the <code>baseUrl</code>-relative URL of the given qualified class, interface, or function
  * @see joo.baseUrl
  */
-public native function loadScriptAsync(url : String) : Object;
+public native function getRelativeClassUrl(qualifiedName:String):String;
+
 
 }

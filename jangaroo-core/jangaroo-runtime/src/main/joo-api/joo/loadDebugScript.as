@@ -15,14 +15,15 @@
 package joo {
 
 /**
- * Load a script from the given URL by creating a DOM script element. In most browsers,
- * this allows download of scripts in parallel and leads to execution using a first-come-first-serve
- * strategy.
- * @param url the script source URL, relative to <code>joo.baseUrl</code>, to use in production (= non-debug) mode
- * @return the generated script element
+ * If in debug mode, load a script from the given URL by writing a script element into the document. This downloads and
+ * executes the script immediately after the current script block terminates.
+ * <p>This method allows a convenient and more readable notation for <code>loadScript(null, debugUrl)</code>.</p>
+ * @param debugUrl the script source URL, relative to <code>baseUrl</code>, to use in debug mode
  *
+ * @see joo.loadScript
  * @see joo.baseUrl
+ * @see joo.debug
  */
-public native function loadScriptAsync(url : String) : Object;
+public native function loadDebugScript(debugUrl:String):void;
 
 }

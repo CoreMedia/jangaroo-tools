@@ -19,7 +19,7 @@ package joo {
  * Although in AS3, packages do not have a runtime representation, in Jangaroo, they have.
  * @param packageName the fully qualified name of the package to retrieve or create
  * @return * the package object retrieved or created.
- * @see getQualifiedObject()
+ * @see joo.getQualifiedObject()
  */
 public native function getOrCreatePackage(packageName : String) : *;
 
