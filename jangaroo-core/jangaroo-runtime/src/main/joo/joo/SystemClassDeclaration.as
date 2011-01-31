@@ -21,7 +21,6 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
 
   protected static function createPublicConstructor(cd : NativeClassDeclaration) : Function {
     return function joo$SystemClassDeclaration$constructor() : void {
-      this.constructor =  cd.publicConstructor;
       cd.constructor_.apply(this, arguments);
     };
   }
@@ -133,7 +132,8 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
     var Super : Function = this.superClassDeclaration.Public;
     if (!this.native_) {
       this.publicConstructor.prototype = new Super();
-      this.publicConstructor["superclass"] = this.publicConstructor.prototype; // Ext Core compatibility!
+      this.publicConstructor.prototype['constructor'] = this.publicConstructor;
+      this.publicConstructor["superclass"] = Super.prototype; // Ext Core compatibility!
     }
     this.Public = NativeClassDeclaration.createEmptyConstructor(this.publicConstructor);
     initTypes();

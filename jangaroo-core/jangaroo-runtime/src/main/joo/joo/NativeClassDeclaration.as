@@ -21,9 +21,7 @@ public class NativeClassDeclaration {
   internal static const RESOURCE_BUNDLE_PATTERN:RegExp = /_properties$/;
 
   internal static function createEmptyConstructor(constructor_ : Function) : Function {
-    var emptyConstructor : Function = function() : void {
-      this.constructor = constructor_;
-    };
+    var emptyConstructor : Function = function() : void {};
     emptyConstructor.prototype =  constructor_.prototype;
     return emptyConstructor;
   }
