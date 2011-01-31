@@ -57,9 +57,18 @@ class SuperConstructorCallStatement extends Statement {
   }
 
   protected void generateJsCode(JsWriter out) throws IOException {
-    generateFunCode(out);
-    generateArgsCode(out);
-    classDeclaration.generateFieldInitCode(out);
+    if (classDeclaration.getInheritanceLevel() > 1) {
+      generateFunCode(out);
+      generateArgsCode(out);
+      classDeclaration.generateFieldInitCode(out, true, false);
+    } else { // suppress for classes extending Object
+      // Object super call does nothing anyway:
+      out.beginComment();
+      out.writeSymbol(getSymbol());
+      generateArgsCode(out);
+      out.endComment();
+      classDeclaration.generateFieldInitCode(out, false, false);
+    }
   }
 
   protected void generateFunCode(JsWriter out) throws IOException {

@@ -140,8 +140,8 @@ public class ClassDeclaration extends IdeDeclaration {
     body.generateCode(out);
     if (constructor == null && !fieldsWithInitializer.isEmpty()) {
       // generate default constructor that calls field initializers:
-      out.write("\"public function " + getName() + "\",function " + getName() + "$(){this.super$" + getInheritanceLevel() + "();");
-      generateFieldInitCode(out);
+      out.write("\"public function " + getName() + "\",function " + getName() + "$(){");
+      new SuperCallCodeGenerator().generateCode(out);
       out.write("}");
     }
 
@@ -152,6 +152,21 @@ public class ClassDeclaration extends IdeDeclaration {
 
     out.write("];},");
     generateStaticMethodList(out);
+  }
+
+  void addSuperCallCodeGenerator(BlockStatement body) {
+    body.addBlockStartCodeGenerator(new SuperCallCodeGenerator());
+  }
+
+  private class SuperCallCodeGenerator implements CodeGenerator {
+
+    public void generateCode(JsWriter out) throws IOException {
+      int inheritanceLevel = getInheritanceLevel();
+      if (inheritanceLevel > 1) { // suppress for classes extending Object
+        out.writeToken("this.super$" + inheritanceLevel + "();");
+      }
+      generateFieldInitCode(out, false, true);
+    }
   }
 
   private void writeBuiltInAliases(JsWriter out) throws IOException {
@@ -401,9 +416,16 @@ public class ClassDeclaration extends IdeDeclaration {
     fieldsWithInitializer.add(fieldDeclaration);
   }
 
-  public void generateFieldInitCode(JsWriter out) throws IOException {
-    for (FieldDeclaration field : fieldsWithInitializer) {
-      field.generateInitCode(out);
+  public void generateFieldInitCode(JsWriter out, boolean startWithSemicolon, boolean endWithSemicolon) throws IOException {
+    Iterator<FieldDeclaration> iterator = fieldsWithInitializer.iterator();
+    if (iterator.hasNext()) {
+      if (startWithSemicolon) {
+        out.write(";");
+      }
+      do {
+        FieldDeclaration field = iterator.next();
+        field.generateInitCode(out, endWithSemicolon || iterator.hasNext());
+      } while (iterator.hasNext());
     }
   }
 }
