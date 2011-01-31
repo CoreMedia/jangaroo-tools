@@ -23,7 +23,7 @@ public class SystemClassLoader {
   classLoader = new SystemClassLoader();
 }
 
-  public static const classDeclarationsByName : Object/*<String,SystemClassDeclaration>*/ = {};
+  public static const classDeclarationsByName : Object/*<String,JooClassDeclaration>*/ = {};
 
   public var debug : Boolean;
 
@@ -31,7 +31,7 @@ public class SystemClassLoader {
     debug = joo.debug;
   }
 
-  public function prepare(...params) : SystemClassDeclaration {
+  public function prepare(...params) : JooClassDeclaration {
     var packageDef : String = params[0];
     var metadata : Object = {};
     for (var i:int = 1; typeof params[i] == "object"; i++) {
@@ -49,7 +49,7 @@ public class SystemClassLoader {
     var dependencies : Array = params[i++];
     var runtimeApiVersion:String = params[i++];
     var compilerVersion:String = params[i++];
-    var cd : SystemClassDeclaration = this.createClassDeclaration(packageDef, classDef, inheritanceLevel, memberFactory, publicStaticMethodNames, dependencies);
+    var cd : JooClassDeclaration = this.createClassDeclaration(packageDef, classDef, inheritanceLevel, memberFactory, publicStaticMethodNames, dependencies);
     cd.metadata = metadata;
     if (!isRuntimeCompatible(runtimeApiVersion, compilerVersion)) {
       throw new Error("Runtime version " + joo.runtimeApiVersion + "/" + joo.compilerVersion +
@@ -105,9 +105,8 @@ public class SystemClassLoader {
   }
 
   protected function createClassDeclaration(packageDef : String, classDef : String, inheritanceLevel : int, memberFactory : Function,
-                          publicStaticMethodNames : Array, dependencies : Array) : SystemClassDeclaration {
-    return new SystemClassDeclaration(packageDef, classDef, inheritanceLevel, memberFactory, publicStaticMethodNames).init()
-            as SystemClassDeclaration;
+                          publicStaticMethodNames : Array, dependencies : Array) : JooClassDeclaration {
+    return JooClassDeclaration(new JooClassDeclaration(packageDef, classDef, inheritanceLevel, memberFactory, publicStaticMethodNames, dependencies).init());
   }
 
   public function getClassDeclaration(fullClassName : String) : NativeClassDeclaration {
@@ -116,7 +115,7 @@ public class SystemClassLoader {
       var constructor_ : Function = getQualifiedObject(fullClassName);
       if (constructor_) {
         if (!constructor_["$class"]) {
-          // create SystemClassDeclaration for native classes:
+          // create JooClassDeclaration for native classes:
           cd = this.createNativeClassDeclaration(fullClassName, constructor_).init();
           classDeclarationsByName[fullClassName] = cd;
         } else {

@@ -57,14 +57,13 @@
                   <filelist dir="target/temp/runtime/deploy/">
                     <file name="joo/MemberDeclaration.js" />
                     <file name="joo/NativeClassDeclaration.js" />
-                    <file name="joo/SystemClassDeclaration.js" />
+                    <file name="joo/JooClassDeclaration.js" />
                     <file name="joo/SystemClassLoader.js" />
                     <file name="ArgumentError.js" />
                     <file name="DefinitionError.js" />
                     <file name="SecurityError.js" />
                     <file name="Array.js" />
                     <file name="Date.js" />
-                    <file name="joo/ClassDeclaration.js" />
                     <file name="joo/StandardClassLoader.js" />
                     <file name="joo/DynamicClassLoader.js" />
                     <file name="joo/ResourceBundleAwareClassLoader.js" />

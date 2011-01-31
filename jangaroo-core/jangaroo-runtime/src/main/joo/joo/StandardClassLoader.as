@@ -28,8 +28,8 @@ public class StandardClassLoader extends SystemClassLoader {
   }
 
   override protected function createClassDeclaration(packageDef : String, classDef : String, inheritanceLevel : int, memberFactory : Function,
-                                                  publicStaticMethodNames : Array, dependencies : Array):SystemClassDeclaration {
-    var cd : ClassDeclaration = new ClassDeclaration(packageDef, classDef, inheritanceLevel, memberFactory, publicStaticMethodNames, dependencies);
+                                                  publicStaticMethodNames : Array, dependencies : Array):JooClassDeclaration {
+    var cd : JooClassDeclaration = new JooClassDeclaration(packageDef, classDef, inheritanceLevel, memberFactory, publicStaticMethodNames, dependencies);
     classDeclarations.push(cd); // remember all created classes for later initialization.
     return cd;
   }
@@ -53,7 +53,7 @@ public class StandardClassLoader extends SystemClassLoader {
    */
   public function run(mainClassName : String, ...args) : void {
     this.complete(function() : void {
-      var mainClass : SystemClassDeclaration = SystemClassDeclaration(this.getRequiredClassDeclaration(mainClassName));
+      var mainClass : JooClassDeclaration = JooClassDeclaration(this.getRequiredClassDeclaration(mainClassName));
       mainClass.publicConstructor["main"].apply(null,args);
     });
   }
@@ -102,7 +102,7 @@ public class StandardClassLoader extends SystemClassLoader {
   }
 
   protected function completeAll() : void {
-    classDeclarations.forEach(function(classDeclaration : ClassDeclaration) : void {
+    classDeclarations.forEach(function(classDeclaration : JooClassDeclaration) : void {
       classDeclaration.complete();
       // init native class patches immediately:
       if (classDeclaration.isNative()) {

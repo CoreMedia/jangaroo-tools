@@ -109,8 +109,8 @@ public class ResourceBundleAwareClassLoader extends DynamicClassLoader {
   }
 
   override protected function createClassDeclaration(packageDef : String, classDef : String, inheritanceLevel : int, memberFactory : Function,
-                                                     publicStaticMethodNames : Array, dependencies : Array):SystemClassDeclaration {
-    var cd : ClassDeclaration = ClassDeclaration(super.createClassDeclaration(packageDef, classDef, inheritanceLevel, memberFactory, publicStaticMethodNames, dependencies));
+                                                     publicStaticMethodNames : Array, dependencies : Array):JooClassDeclaration {
+    var cd : JooClassDeclaration = JooClassDeclaration(super.createClassDeclaration(packageDef, classDef, inheritanceLevel, memberFactory, publicStaticMethodNames, dependencies));
     if (cd.fullClassName.match(NativeClassDeclaration.RESOURCE_BUNDLE_PATTERN)) {
       cd.getDependencies().push(getLocalizedResourceClassName(cd));
     }

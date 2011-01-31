@@ -17,26 +17,13 @@
 
 package joo {
 
-public class SystemClassDeclaration extends NativeClassDeclaration {
+public class JooClassDeclaration extends NativeClassDeclaration {
 
   protected static function createPublicConstructor(cd : NativeClassDeclaration) : Function {
     return function joo$SystemClassDeclaration$constructor() : void {
       cd.constructor_.apply(this, arguments);
     };
   }
-
-  private static function boundMethod(object:Object, methodName:String):Function {
-    return object['$$b_'+methodName] ||
-      (object['$$b_'+methodName] = function():* {
-        return object[methodName].apply(object,arguments);
-      });
-  }
-
-{
-  // publish "boundMethod" as "joo.boundMethod" for use from JavaScript:
-  var jooPackage:* = getQualifiedObject("joo");
-  jooPackage["boundMethod"] = boundMethod;
-}
 
   protected var
           package_ : Object,
@@ -50,7 +37,8 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
           memberDeclarations : * /* Function, then Array */,
           memberDeclarationsByQualifiedName : Object,
           staticInitializers : Array/*<MemberDeclaration>*/,
-          publicStaticMethodNames : Array;
+          publicStaticMethodNames : Array,
+          dependencies : Array;
   /**
    * The metadata (annotations) associated with this class.
    */
@@ -63,8 +51,8 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
   private static const DECLARATION_PATTERN_NAMESPACE:RegExp =
     /^\s*((public|internal)\s+)?namespace\s+([A-Za-z][a-zA-Z$_0-9]*)\s*$/;
 
-  public function SystemClassDeclaration(packageDef : String, classDef : String, inheritanceLevel : int, memberDeclarations : Function,
-          publicStaticMethodNames : Array) {
+  public function JooClassDeclaration(packageDef : String, classDef : String, inheritanceLevel : int, memberDeclarations : Function,
+          publicStaticMethodNames : Array, dependencies : Array) {
     var packageName : String = packageDef.split(/\s+/)[1] || "";
     this.package_ = getOrCreatePackage(packageName);
     var classMatch : Array = classDef.match(DECLARATION_PATTERN_CLASS);
@@ -107,6 +95,7 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
       this.package_[this.className] = publicConstructor;
     }
     this.create(fullClassName, publicConstructor);
+    this.dependencies = dependencies;
     this.privateStatics = {};
   }
 
@@ -137,6 +126,8 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
     }
     this.Public = NativeClassDeclaration.createEmptyConstructor(this.publicConstructor);
     initTypes();
+    createInitializingConstructor(this);
+    this.publicStaticMethodNames.forEach(this.createInitializingStaticMethod);
   }
 
   protected function initMembers() : void {
@@ -275,6 +266,7 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
   }
 
   protected override function doInit() : void {
+    this.publicStaticMethodNames.forEach(this.deleteInitializingStaticMethod);
     this.superClassDeclaration.init();
     this.initMembers();
     for (var i:int=0; i<this.staticInitializers.length; ++i) {
@@ -286,14 +278,42 @@ public class SystemClassDeclaration extends NativeClassDeclaration {
         target[staticInitializer.slot] = target[staticInitializer.slot]();
       }
     }
+    this.interfaces.forEach(function(interface_ : String, i : uint, interfaces : Array) : void {
+      interfaces[i] = classLoader.getRequiredClassDeclaration(interface_);
+      interfaces[i].init();
+    });
   }
 
   public function getMemberDeclaration(namespace_ : String, memberName : String) : MemberDeclaration {
     var memberDeclaration:MemberDeclaration = this.memberDeclarationsByQualifiedName[namespace_ + "::" + memberName];
     return !memberDeclaration && this.superClassDeclaration && this.superClassDeclaration["getMemberDeclaration"]
-      ? (this.superClassDeclaration as SystemClassDeclaration).getMemberDeclaration(namespace_, memberName)
+      ? JooClassDeclaration(this.superClassDeclaration).getMemberDeclaration(namespace_, memberName)
       : memberDeclaration;
 
+  }
+
+  public function getDependencies() : Array {
+    return this.dependencies;
+  }
+
+  protected static function createInitializingConstructor(classDeclaration : JooClassDeclaration) : void {
+    // anonymous function has to be inside a static function, or jooc will replace "this" with "this$":
+    classDeclaration.constructor_ = function() : void {
+      classDeclaration.init();
+      // classDeclaration.constructor_ must have been set, at least to a default constructor:
+      classDeclaration.constructor_.apply(this, arguments);
+    };
+  }
+
+  protected function createInitializingStaticMethod(methodName : String) : void {
+    this.publicConstructor[methodName] = function() : * {
+      this.init();
+      return this.publicConstructor[methodName].apply(null, arguments);
+    };
+  }
+
+  protected function deleteInitializingStaticMethod(methodName : String) : void {
+    delete this.publicConstructor[methodName];
   }
 }
 }

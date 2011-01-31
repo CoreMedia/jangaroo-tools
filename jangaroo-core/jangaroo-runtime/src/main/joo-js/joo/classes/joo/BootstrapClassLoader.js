@@ -70,6 +70,13 @@
       return joo.is(object, type) ? object : null;
     };
 
+  joo.boundMethod = function boundMethod(object, methodName) {
+    return object['$$b_' + methodName] ||
+      (object['$$b_' + methodName] = function() {
+        return object[methodName].apply(object, arguments);
+      });
+  };
+
     /*
     unsupported ActionScript features:
       - private non-static members

@@ -38,15 +38,15 @@ public class DynamicClassLoader extends StandardClassLoader {
   /**
    * Keep record of all classes whose dependencies still have to be loaded.
    */
-  private var pendingDependencies : Array/*<ClassDeclaration>*/ = [];
+  private var pendingDependencies : Array/*<JooClassDeclaration>*/ = [];
   /**
    * false => pending
    * true => loading
    */
   private var pendingClassState : Object/*<String,Boolean>*/ = {};
 
-  override public function prepare(...params):SystemClassDeclaration {
-    var cd:SystemClassDeclaration = SystemClassDeclaration(super.prepare.apply(this, params));
+  override public function prepare(...params):JooClassDeclaration {
+    var cd:JooClassDeclaration = JooClassDeclaration(super.prepare.apply(this, params));
     this.pendingDependencies.push(cd);
     fireDependency(cd.fullClassName);
     return cd;
@@ -252,7 +252,7 @@ public class DynamicClassLoader extends StandardClassLoader {
 
   private function loadPendingDependencies():void {
     for (var j:int=0; j<this.pendingDependencies.length; ++j) {
-      var dependencies : Array = ClassDeclaration(this.pendingDependencies[j]).getDependencies();
+      var dependencies : Array = JooClassDeclaration(this.pendingDependencies[j]).getDependencies();
       for (var i:int=0; i<dependencies.length; ++i) {
         this.load(dependencies[i]);
       }
