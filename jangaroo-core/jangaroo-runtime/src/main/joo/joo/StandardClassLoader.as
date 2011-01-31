@@ -68,7 +68,8 @@ public class StandardClassLoader extends SystemClassLoader {
    * - load the class and use the constructor or a static method of the class. This will trigger initialization
    *   automatically.
    * @param classes the classes (type Function) to initialize.
-   * @return Function the initialized class (constructor function).
+   * @return Function the last initialized class (constructor function). It only makes sense to use the return value
+   *   if you use this method with exactly one parameter.
    */
   public override function init(... classes) : Function {
     var clazz : Function;
