@@ -78,12 +78,12 @@
   };
 
     /*
-    unsupported ActionScript features:
-      - private non-static members
-      - field initializers
-      - typed catch clauses
+    unsupported ActionScript features during bootstrap:
+      - private non-static members (use internal instead)
+      - field initializers (initialize in constructor instead)
       - dynamic class loading + resource bundles
       - implicit empty constructor (must have explicit constructor)
+      - Array methods like forEach (not supported by all browsers)
       - all classes must reside within the joo package
 
      Caveat: static code blocks are executed immediately
@@ -96,19 +96,11 @@
         var classMatch = classDef.match(/^\s*((public|internal|final|dynamic)\s+)*class\s+([A-Za-z][a-zA-Z$_0-9]*)(\s+extends\s+([a-zA-Z$_0-9.]+))?(\s+implements\s+([a-zA-Z$_0-9.,\s]+))?\s*$/);
         var className = classMatch[3];
         var $extends = classMatch[5];
-        var constructor;
-        var prototype;
-        var superConstructor;
-        if ($extends) {
-          superConstructor = joo.getQualifiedObject($extends);
-          prototype = clone(superConstructor.prototype);
-        } else {
-          superConstructor = Object;
-          prototype = {};
-        }
+        var constructor = {}; // also used for collecting static member
+        var superConstructor = $extends ? joo.getQualifiedObject($extends) : Object;
+        var prototype = clone(superConstructor.prototype);
         prototype["super$" + inheritanceLevel] = superConstructor;
         var privateStatics = {};
-        var publicStatics = {};
         var members = memberFactory(privateStatics);
         var staticInitializer;
         for (var i = 0; i < members.length; ++i) {
@@ -118,18 +110,15 @@
             case "string":
               var isStatic = memberDeclaration.match(/\bstatic\b/);
               var isPrivate = memberDeclaration.match(/\bprivate\b/);
-              var target = isStatic ? isPrivate ? privateStatics : publicStatics : prototype;
+              var target = isStatic ? isPrivate ? privateStatics : constructor : prototype;
               var member = members[++i];
               if (typeof member == "function") {
                 var methodName = memberDeclaration.match(/function\s+([a-zA-Z$_0-9]+)/)[1];
-                if (methodName == className) {
-                  // found constructor!
+                if (methodName == className) { // found constructor!
+                  // add collected public static members to the real constructor
+                  copyFromTo(constructor, member);
                   joo[className] = constructor = member;
                   constructor.prototype = prototype;
-                  // add collected public static members as constructor members
-                  copyFromTo(publicStatics, constructor);
-                  // from now on, directly store public static members as constructor members:
-                  publicStatics = constructor;
                 } else {
                   target[methodName] = member;
                 }

@@ -20,9 +20,9 @@ public class NativeClassDeclaration {
 
   internal static const RESOURCE_BUNDLE_PATTERN:RegExp = /_properties$/;
 
-  internal static function createEmptyConstructor(constructor_ : Function) : Function {
+  internal static function createEmptyConstructor(prototype_ : Object) : Function {
     var emptyConstructor : Function = function() : void {};
-    emptyConstructor.prototype =  constructor_.prototype;
+    emptyConstructor.prototype =  prototype_;
     return emptyConstructor;
   }
 
@@ -72,10 +72,15 @@ public class NativeClassDeclaration {
     this.message = message || "";
   };
 
-  protected function doComplete() : void {
-    this.interfaces = [];
-    this.constructor_ = this.publicConstructor === Error ? ERROR_CONSTRUCTOR : this.publicConstructor;
-    this.Public = createEmptyConstructor(this.publicConstructor);
+  internal function doComplete() : void {
+    interfaces = [];
+    if (publicConstructor !== Error) {
+      constructor_ = publicConstructor;
+    } else {
+      constructor_ = ERROR_CONSTRUCTOR;
+      constructor_.prototype = publicConstructor.prototype;
+    }
+    Public = createEmptyConstructor(publicConstructor.prototype);
     initTypes();
   }
 
@@ -109,7 +114,7 @@ public class NativeClassDeclaration {
     return this;
   }
 
-  protected function doInit() : void {
+  internal function doInit() : void {
   }
 
   public function getQualifiedName() : String {

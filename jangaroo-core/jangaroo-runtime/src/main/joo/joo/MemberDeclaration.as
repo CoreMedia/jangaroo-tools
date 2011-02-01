@@ -236,7 +236,7 @@ public class MemberDeclaration {
         return propertyDescriptor;
       }
       var oldTarget:Object = target;
-      target = target.constructor ? target.constructor.prototype : null;
+      target = target.constructor ? target.constructor['superclass'] || target.constructor.prototype : null;
     } while (target && target !== oldTarget);
     return undefined;
   }
@@ -274,7 +274,7 @@ public class MemberDeclaration {
   }
 
   public function hasInitializer() : Boolean {
-    return this.memberType!=MEMBER_TYPE_FUNCTION && typeof this.value=="function" && this.value.constructor!==RegExp;
+    return memberType!=MEMBER_TYPE_FUNCTION && memberType!=MEMBER_TYPE_CLASS && typeof value=="function" && value.constructor!==RegExp;
   }
 
   public function _getCloneFactory() : Function {

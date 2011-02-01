@@ -53,8 +53,8 @@ public class StandardClassLoader extends SystemClassLoader {
    */
   public function run(mainClassName : String, ...args) : void {
     this.complete(function() : void {
-      var mainClass : JooClassDeclaration = JooClassDeclaration(this.getRequiredClassDeclaration(mainClassName));
-      mainClass.publicConstructor["main"].apply(null,args);
+      var mainClass : NativeClassDeclaration = this.getRequiredClassDeclaration(mainClassName).init();
+      mainClass.constructor_["main"].apply(null,args);
     });
   }
 
@@ -102,22 +102,24 @@ public class StandardClassLoader extends SystemClassLoader {
   }
 
   protected function completeAll() : void {
-    classDeclarations.forEach(function(classDeclaration : JooClassDeclaration) : void {
+    for (var i:int = 0; i < classDeclarations.length; i++) {
+      var classDeclaration:JooClassDeclaration = classDeclarations[i];
       classDeclaration.complete();
       // init native class patches immediately:
       if (classDeclaration.isNative()) {
         classDeclaration.init();
       }
-    });
+    }
   }
 
   protected function doCompleteCallbacks(onCompleteCallbacks : Array/*Function*/) : void {
     if (onCompleteCallbacks.length) {
       var importMap : Object = {};
-      imports.forEach(function(fullClassName:String):void {
+      for (var j:int = 0; j < imports.length; j++) {
+        var fullClassName:String = imports[j];
         var className : String = fullClassName.substring(fullClassName.lastIndexOf(".") + 1);
-        importMap[className] = classLoader.getRequiredClassDeclaration(fullClassName).init().publicConstructor;
-      });
+        importMap[className] = classLoader.getRequiredClassDeclaration(fullClassName).init().constructor_;
+      }
       for (var i:int = 0; i < onCompleteCallbacks.length; ++i) {
         onCompleteCallbacks[i](importMap);
       }

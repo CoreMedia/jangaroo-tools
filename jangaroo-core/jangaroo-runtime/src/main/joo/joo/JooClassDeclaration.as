@@ -19,12 +19,6 @@ package joo {
 
 public class JooClassDeclaration extends NativeClassDeclaration {
 
-  protected static function createPublicConstructor(cd : NativeClassDeclaration) : Function {
-    return function joo$SystemClassDeclaration$constructor() : void {
-      cd.constructor_.apply(this, arguments);
-    };
-  }
-
   protected var
           package_ : Object,
           type : String = MemberDeclaration.MEMBER_TYPE_CLASS,
@@ -87,16 +81,18 @@ public class JooClassDeclaration extends NativeClassDeclaration {
     this.interfaces = interfaces ? interfaces.split(/\s*,\s*/) : [];
     this.memberDeclarations = memberDeclarations;
     this.publicStaticMethodNames = publicStaticMethodNames;
-    var publicConstructor : Function = getQualifiedObject(fullClassName);
+    this.dependencies = dependencies;
+    this.privateStatics = {};
+    this.publicConstructor = getQualifiedObject(fullClassName);
     if (publicConstructor) {
       this.native_ = true;
     } else {
-      publicConstructor = createPublicConstructor(this);
-      this.package_[this.className] = publicConstructor;
+      this.package_[this.className] = this.publicConstructor = createInitializingConstructor(this);
+      for (var i:int = 0; i < publicStaticMethodNames.length; i++) {
+        createInitializingStaticMethod(publicStaticMethodNames[i]);
+      }
     }
     this.create(fullClassName, publicConstructor);
-    this.dependencies = dependencies;
-    this.privateStatics = {};
   }
 
   public function isClass() : Boolean {
@@ -115,7 +111,7 @@ public class JooClassDeclaration extends NativeClassDeclaration {
     return this.native_;
   }
 
-  protected override function doComplete() : void {
+  internal override function doComplete() : void {
     this.superClassDeclaration = classLoader.getRequiredClassDeclaration(this.extends_);
     this.superClassDeclaration.complete();
     var Super : Function = this.superClassDeclaration.Public;
@@ -124,27 +120,25 @@ public class JooClassDeclaration extends NativeClassDeclaration {
       this.publicConstructor.prototype['constructor'] = this.publicConstructor;
       this.publicConstructor["superclass"] = Super.prototype; // Ext Core compatibility!
     }
-    this.Public = NativeClassDeclaration.createEmptyConstructor(this.publicConstructor);
+    this.Public = NativeClassDeclaration.createEmptyConstructor(this.publicConstructor.prototype);
     initTypes();
-    createInitializingConstructor(this);
-    this.publicStaticMethodNames.forEach(this.createInitializingStaticMethod);
   }
 
-  protected function initMembers() : void {
+  internal function initMembers() : void {
     this.staticInitializers = [];
-    var memberDeclarations : Array = this.memberDeclarations(this.privateStatics);
+    var memberDeclarations:Array = this.memberDeclarations(this.privateStatics);
     this.memberDeclarations = [];
     this.memberDeclarationsByQualifiedName = {};
-    this.constructor_ = null;
+    this.constructor_ = isNative() ? publicConstructor : null;
     var metadata:Object = {};
-    for (var i:int=0; i<memberDeclarations.length; ++i) {
-      var item : * = memberDeclarations[i];
+    for (var i:int = 0; i < memberDeclarations.length; ++i) {
+      var item:* = memberDeclarations[i];
       switch (typeof item) {
         case "function":
           this.staticInitializers.push(item);
           break;
         case "string":
-          var memberDeclaration : MemberDeclaration = MemberDeclaration.create(item);
+          var memberDeclaration:MemberDeclaration = MemberDeclaration.create(item);
           if (memberDeclaration) {
             memberDeclaration.metadata = metadata;
             metadata = {};
@@ -152,7 +146,7 @@ public class JooClassDeclaration extends NativeClassDeclaration {
               if (++i >= memberDeclarations.length) {
                 throw new Error(this + ": Member expected after modifiers '" + item + "'.");
               }
-              var member : * = memberDeclarations[i];
+              var member:* = memberDeclarations[i];
             }
             switch (memberDeclaration.memberType) {
               case MemberDeclaration.MEMBER_TYPE_FUNCTION:
@@ -163,10 +157,12 @@ public class JooClassDeclaration extends NativeClassDeclaration {
                 var helperInheritanceLevel:int = member;
                 var helperMemberDeclarations:Function = memberDeclarations[++i];
                 var helperStatics:Array = memberDeclarations[++i];
-                var secondaryClass:NativeClassDeclaration = classLoader.prepare("package "+this.fullClassName, item,
-                        helperInheritanceLevel, helperMemberDeclarations,
-                        helperStatics, [], runtimeApiVersion, compilerVersion).complete();
-                this.publicConstructor[memberDeclaration.memberName] = secondaryClass.publicConstructor;
+                var secondaryClass:NativeClassDeclaration = classLoader.prepare("package " + this.fullClassName, item,
+                  helperInheritanceLevel, helperMemberDeclarations,
+                  helperStatics, [], runtimeApiVersion, compilerVersion).complete();
+                memberDeclaration._static = true;
+                memberDeclaration.initSlot(level);
+                this._storeMember(memberDeclaration, secondaryClass.publicConstructor);
                 break;
               default:
                 for (var memberName:String in member) {
@@ -179,26 +175,51 @@ public class JooClassDeclaration extends NativeClassDeclaration {
           SystemClassLoader.addToMetadata(metadata, item);
       }
     }
-    if (!this.isInterface()) {
-      if (!this.native_) {
-        if(!this.superClassDeclaration.constructor_) {
-          throw new Error("Class " + this.fullClassName + " extends " + this.superClassDeclaration.fullClassName + " whose constructor is not defined!");
-        }
-        this.publicConstructor.prototype["super$" + this.level] = this.superClassDeclaration.constructor_;
+    if (!isInterface() && !native_) {
+      if (!superClassDeclaration.constructor_) {
+        throw new Error("Class " + fullClassName + " extends " + superClassDeclaration.fullClassName + " whose constructor is not defined!");
       }
+      Public.prototype["super$" + level] = superClassDeclaration.constructor_;
       if (!this.constructor_) {
-        // reuse native public constructor or super class constructor:
-        this.constructor_ = this.native_ ? this.publicConstructor : this.superClassDeclaration.constructor_;
+        // no explicit constructor found
+        // generate constructor invoking super() and initialize it from the "collecting" constructor:
+        _setConstructor(createSuperConstructor(level));
       }
     }
   }
 
-  protected function initMethod(memberDeclaration : MemberDeclaration, member : Function) : void {
+  internal function _setConstructor(constructor_:Function):void {
+    // replay all non-private static members collected so far for new constructor_ function:
+    for (var i:int = 0; i < memberDeclarations.length; i++) {
+      var memberDeclaration:MemberDeclaration = memberDeclarations[i];
+      if (memberDeclaration.isStatic() && !memberDeclaration.isPrivate()) {
+        memberDeclaration.storeMember(constructor_);
+      }
+    }
+    constructor_['$class'] = this;
+    if (superClassDeclaration) {
+      constructor_['superclass'] = superClassDeclaration.Public.prototype; // Ext Core compatibility!
+    }
+    constructor_.prototype = Public.prototype;
+    constructor_.prototype['constructor'] = constructor_;
+    // replace initializing constructor by the real one:
+    package_[className] = this.constructor_ = constructor_;
+  }
+
+  private static function createSuperConstructor(level:int):Function {
+    return function generatedConstructor$():void {
+      this['super$' + level]();
+    };
+  }
+
+  internal function initMethod(memberDeclaration : MemberDeclaration, member : Function) : void {
     if (memberDeclaration.memberName == this.className && !memberDeclaration.isStatic()) {
       if (memberDeclaration.getterOrSetter) {
         throw new Error(this+": Class name cannot be used for getter or setter: "+memberDeclaration);
       }
-      this.constructor_ = memberDeclaration.isNative() ? this.publicConstructor : member;
+      if (!native_ && !memberDeclaration.isNative()) {
+        _setConstructor(member);
+      }
     } else {
       memberDeclaration.initSlot(this.level);
       if (memberDeclaration.isNative()) {
@@ -206,7 +227,7 @@ public class JooClassDeclaration extends NativeClassDeclaration {
       }
       if (memberDeclaration.isMethod()) {
         if (this.extends_!="Object") {
-          var superMethod : Function = memberDeclaration.retrieveMember(this.superClassDeclaration.Public.prototype);
+          var superMethod : Function = memberDeclaration.retrieveMember(superClassDeclaration.Public.prototype);
         }
         var overrides : Boolean = !!superMethod
           && superMethod!==member
@@ -226,13 +247,13 @@ public class JooClassDeclaration extends NativeClassDeclaration {
     }
   }
 
-  protected function _createMemberDeclaration(memberDeclaration : MemberDeclaration, changedProperties : Object) : MemberDeclaration {
+  internal function _createMemberDeclaration(memberDeclaration : MemberDeclaration, changedProperties : Object) : MemberDeclaration {
     var newMemberDeclaration : MemberDeclaration = memberDeclaration.clone(changedProperties);
     newMemberDeclaration.initSlot(this.level);
     return newMemberDeclaration;
   }
 
-  protected function _storeMember(memberDeclaration : MemberDeclaration, value : Object) : void {
+  internal function _storeMember(memberDeclaration : MemberDeclaration, value : Object) : void {
     this.memberDeclarations.push(memberDeclaration);
     this.memberDeclarationsByQualifiedName[memberDeclaration.getQualifiedName()] = memberDeclaration;
     memberDeclaration.value = value;
@@ -243,17 +264,15 @@ public class JooClassDeclaration extends NativeClassDeclaration {
       this.staticInitializers.push(memberDeclaration);
     }
     _processMetadata(memberDeclaration);
-    var target : Object = _static ? _private ? this.privateStatics : this.publicConstructor : this.publicConstructor.prototype;
+    var target : Object = _static ? _private ? privateStatics : constructor_ : Public.prototype;
 
-    // for compatibility with Prototype (which defines Node as an Object in IE):
-    if (!target) {
-      target = {};
+    if (target) {
+      memberDeclaration.storeMember(target);
     }
-    
-    memberDeclaration.storeMember(target);
+    // if constructor_ is not yet set, static non-private members will be added later by _setConstructor().
   }
 
-  protected function _processMetadata(memberDeclaration : MemberDeclaration):void {
+  internal function _processMetadata(memberDeclaration : MemberDeclaration):void {
     var metadata:Object = memberDeclaration.metadata;
     if (metadata) {
       for (var metaFunctionName:String in metadata) {
@@ -265,23 +284,21 @@ public class JooClassDeclaration extends NativeClassDeclaration {
     }
   }
 
-  protected override function doInit() : void {
-    this.publicStaticMethodNames.forEach(this.deleteInitializingStaticMethod);
+  internal override function doInit() : void {
     this.superClassDeclaration.init();
+    for (var j:int = 0; j < interfaces.length; j++) {
+      interfaces[j] = classLoader.getRequiredClassDeclaration(interfaces[j]).init();
+    }
     this.initMembers();
     for (var i:int=0; i<this.staticInitializers.length; ++i) {
       var staticInitializer : * = this.staticInitializers[i];
       if (typeof staticInitializer=="function") {
         staticInitializer();
       } else {
-        var target : Object = staticInitializer.isPrivate() ? this.privateStatics : this.publicConstructor;
+        var target : Object = staticInitializer.isPrivate() ? this.privateStatics : this.constructor_;
         target[staticInitializer.slot] = target[staticInitializer.slot]();
       }
     }
-    this.interfaces.forEach(function(interface_ : String, i : uint, interfaces : Array) : void {
-      interfaces[i] = classLoader.getRequiredClassDeclaration(interface_);
-      interfaces[i].init();
-    });
   }
 
   public function getMemberDeclaration(namespace_ : String, memberName : String) : MemberDeclaration {
@@ -296,24 +313,20 @@ public class JooClassDeclaration extends NativeClassDeclaration {
     return this.dependencies;
   }
 
-  protected static function createInitializingConstructor(classDeclaration : JooClassDeclaration) : void {
+  private static function createInitializingConstructor(classDeclaration : JooClassDeclaration) : Function {
     // anonymous function has to be inside a static function, or jooc will replace "this" with "this$":
-    classDeclaration.constructor_ = function() : void {
+    return function() : void {
       classDeclaration.init();
       // classDeclaration.constructor_ must have been set, at least to a default constructor:
       classDeclaration.constructor_.apply(this, arguments);
     };
   }
 
-  protected function createInitializingStaticMethod(methodName : String) : void {
+  internal function createInitializingStaticMethod(methodName : String) : void {
     this.publicConstructor[methodName] = function() : * {
       this.init();
-      return this.publicConstructor[methodName].apply(null, arguments);
+      return this.constructor_[methodName].apply(null, arguments);
     };
-  }
-
-  protected function deleteInitializingStaticMethod(methodName : String) : void {
-    delete this.publicConstructor[methodName];
   }
 }
 }
