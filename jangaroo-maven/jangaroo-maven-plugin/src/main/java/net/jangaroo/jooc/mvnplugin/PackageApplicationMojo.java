@@ -221,7 +221,7 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
   }
 
   protected void writeThisJangarooModuleScript(File scriptDirectory, Writer fw) throws IOException {
-    File jangarooModuleFile = new File(getPackageSourceDirectory(), "joo/" + project.getArtifactId() + ".js");
+    File jangarooModuleFile = new File(getPackageSourceDirectory(), "joo/" + project.getArtifactId() + ".module.js");
     FileInputStream jooModuleInputStream = jangarooModuleFile.exists()
       ? new FileInputStream(jangarooModuleFile) : null;
     writeJangarooModuleScript(scriptDirectory, project.getArtifact(), jooModuleInputStream, fw);
