@@ -172,7 +172,9 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
    * @return the path relative to the source directory
    */
   public String addResourceDependency(String relativePath) {
-    String path = new File(source.getParent().getRelativePath(), relativePath).getPath().replace('\\', '/');
+    String path = relativePath.startsWith("/") || relativePath.startsWith("\\")
+      ? relativePath
+      : new File(source.getParent().getRelativePath(), relativePath).getPath().replace('\\', '/');
     if (path.startsWith("/")) {
       path = path.substring(1);
     }
