@@ -144,7 +144,7 @@
               <goal>single</goal>
             </goals>
             <configuration>
-              <appendAssemblyId>true</appendAssemblyId>
+              <appendAssemblyId>false</appendAssemblyId>
               <attach>true</attach>
               <descriptors>
                 <descriptor>src/main/assembly/examples.xml</descriptor>
@@ -152,6 +152,16 @@
             </configuration>
           </execution>
         </executions>
+        <configuration>
+          <descriptorRefs>
+            <descriptorRef>jar-with-dependencies</descriptorRef>
+          </descriptorRefs>
+          <archive>
+            <manifest>
+              <mainClass>net.jangaroo.jooc.Jooc</mainClass>
+            </manifest>
+          </archive>
+        </configuration>
       </plugin>
 
       <plugin>
@@ -209,6 +219,7 @@
     <dependency>
       <groupId>ant</groupId>
       <artifactId>ant</artifactId>
+      <scope>compile</scope>
     </dependency>
 
   </dependencies>
