@@ -150,6 +150,7 @@
           <archive>
             <manifest>
               <mainClass>net.jangaroo.jooc.Jooc</mainClass>
+              <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
             </manifest>
           </archive>
         </configuration>
