@@ -60,11 +60,12 @@ public class ExmlFacetImporter extends FacetImporter<ExmlFacet, ExmlFacetConfigu
     ExmlFacetConfiguration exmlFacetConfiguration = exmlFacet.getConfiguration();
     ExmlcConfigurationBean exmlConfig = exmlFacetConfiguration.getState();
     exmlConfig.setSourceDirectory(mavenProjectModel.getSources().get(0));
-    exmlConfig.setGeneratedSourcesDirectory(mavenProjectModel.getGeneratedSourcesDirectory() + "/joo");
+    exmlConfig.setGeneratedSourcesDirectory(mavenProjectModel.getGeneratedSourcesDirectory(false) + "/joo");
     exmlConfig.setGeneratedResourcesDirectory(getTargetOutputPath(mavenProjectModel,  "generated-resources"));
-    exmlConfig.setNamespace(mavenProjectModel.getMavenModel().getArtifactId());
-    exmlConfig.setNamespacePrefix(mavenProjectModel.getMavenModel().getArtifactId());
-    exmlConfig.setXsd(mavenProjectModel.getMavenModel().getArtifactId() + ".xsd");
+    String artifactId = mavenProjectModel.getMavenId().getArtifactId();
+    exmlConfig.setNamespace(artifactId);
+    exmlConfig.setNamespacePrefix(artifactId);
+    exmlConfig.setXsd(artifactId + ".xsd");
 
     final Map<String, String> resourceMap = getXsdResourcesOfModule(module);
     SwingUtilities.invokeLater(new Runnable() {

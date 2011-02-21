@@ -1,16 +1,16 @@
 <!DOCTYPE idea-plugin PUBLIC "Plugin/DTD" "http://plugins.intellij.net/plugin.dtd">
 <idea-plugin url="http://www.jangaroo.net" version="2">
   <name>Jangaroo Language</name>
-  <id>net.jangaroo.idea.language</id>
+  <id>net.jangaroo.idea.10.language</id>
   <description>
     A plugin for compiling ActionScript 3 code to JavaScript using the Jangaroo Open Source
     Compiler jooc.
   </description>
-  <version>9.0.8.0.1</version>
+  <version>10.0.8.1.0</version>
   <vendor url="http://www.jangaroo.net"
           email="info@jangaroo.net"
           logo="/net/jangaroo/jooley-16x16.png">Jangaroo</vendor>
-  <idea-version since-build="IU-95.66"/>
+  <idea-version since-build="IU-99.32"/>
 
   <depends>JavaScript</depends>
   <depends>org.jetbrains.idea.maven</depends>
