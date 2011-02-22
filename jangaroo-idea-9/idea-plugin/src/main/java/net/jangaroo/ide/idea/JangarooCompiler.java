@@ -137,7 +137,10 @@ public class JangarooCompiler implements TranslatingCompiler {
       } else if (orderEntry instanceof LibraryOrderEntry) {
         classPath.addAll(virtualToIoFiles(Arrays.asList(((LibraryOrderEntry)orderEntry).getRootFiles(OrderRootType.CLASSES_AND_OUTPUT))));
       } else if (orderEntry instanceof ModuleOrderEntry) {
-        addToClassOrSourcePath(((ModuleOrderEntry)orderEntry).getModule(), classPath, sourcePath);
+        Module dependentModule = ((ModuleOrderEntry)orderEntry).getModule();
+        if (dependentModule != null) {
+          addToClassOrSourcePath(dependentModule, classPath, sourcePath);
+        }
       }
     }
   }
