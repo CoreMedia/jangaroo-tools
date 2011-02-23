@@ -33,6 +33,9 @@ public class TestInheritanceSubClass extends package1.TestInheritanceSuperClass 
   }
 
   override public function m() :int {
+    // call method via super although not necessary (not overridden):
+    super.getSlot1();
+    // call super method:
     return super.m()+1;
   }
 
