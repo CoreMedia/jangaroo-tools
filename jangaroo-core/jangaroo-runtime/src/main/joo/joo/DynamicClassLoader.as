@@ -142,9 +142,12 @@ public class DynamicClassLoader extends StandardClassLoader {
     }
   }
 
+  private static const RESOURCE_TYPE_STRING:String = "String";
   private static const RESOURCE_TYPE_IMAGE:String = "Image";
   private static const RESOURCE_TYPE_AUDIO:String = "Audio";
   private static const RESOURCE_TYPE_BY_EXTENSION:Object = {
+    "txt": RESOURCE_TYPE_STRING,
+    "csv": RESOURCE_TYPE_STRING,
     "png": RESOURCE_TYPE_IMAGE,
     "gif": RESOURCE_TYPE_IMAGE,
     "jpg": RESOURCE_TYPE_IMAGE,
@@ -163,6 +166,18 @@ public class DynamicClassLoader extends StandardClassLoader {
       var extension:String = path.substring(dotPos + 1);
       var resourceType:String = RESOURCE_TYPE_BY_EXTENSION[extension];
       if (resourceType) {
+        if (resourceType === RESOURCE_TYPE_STRING) {
+          var xhr:Object = new (getQualifiedObject('XMLHttpRequest'))();
+          xhr.open('GET', baseUrl + "joo/classes/" + path);
+          xhr.onreadystatechange = function():void {
+            if (xhr.readyState === 4) {
+              resourceByPath[path] = xhr.responseText;
+              fireDependency("resource:" + path);
+            }
+          };
+          xhr.send(null);
+          return;
+        }
         var resourceTypeClass:Class = getQualifiedObject(resourceType);
         if (resourceTypeClass) {
           resourceByPath[path] = resource = new (resourceTypeClass)();
