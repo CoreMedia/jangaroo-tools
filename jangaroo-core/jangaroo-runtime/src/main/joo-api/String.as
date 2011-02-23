@@ -38,7 +38,7 @@ public class String {
    * @see http://help.adobe.com/en_US/as3/learn/WS5b3ccc516d4fbf351e63e3d118a9b90204-7f87.html Type conversions
    *
    */
-  public native function String(val:String = null);
+  public native function String(val:* = undefined);
 
   /**
    * Returns the character in the position specified by the <code>index</code> parameter. If <code>index</code> is not a number from 0 to <code>string.length - 1</code>, an empty string is returned.
