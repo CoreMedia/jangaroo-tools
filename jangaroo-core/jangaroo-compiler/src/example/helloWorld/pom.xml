@@ -24,8 +24,8 @@
       <description>A Hello World Jangaroo Application</description>
 
       <properties>
-        <jangaroo_version>0.8.1-SNAPSHOT</jangaroo_version>
-        <jangaroo_libs_version>0.8.2-SNAPSHOT</jangaroo_libs_version>
+        <jangaroo_version>0.8.2-SNAPSHOT</jangaroo_version>
+        <jangaroo_libs_version>0.8.3-SNAPSHOT</jangaroo_libs_version>
       </properties>
 
       <build>
@@ -48,7 +48,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-war-plugin</artifactId>
-            <version>2.1</version>
+            <version>2.1.1</version>
             <configuration>
               <failOnMissingWebXml>false</failOnMissingWebXml>
             </configuration>
