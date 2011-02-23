@@ -347,7 +347,7 @@ public class ClassDeclaration extends IdeDeclaration {
   private IdeDeclaration resolvePropertyDeclaration1(String ide, ClassDeclaration classDecl, Set<ClassDeclaration> visited, LinkedList<ClassDeclaration> chain) {
     if (visited.contains(classDecl)) {
       if (chain.contains(classDecl)) {
-        throw new Jooc.CompilerError(classDecl.getSymbol(), "cyclic syperclass chain");
+        throw new Jooc.CompilerError(classDecl.getSymbol(), "cyclic superclass chain");
       }
       return null;
     }
