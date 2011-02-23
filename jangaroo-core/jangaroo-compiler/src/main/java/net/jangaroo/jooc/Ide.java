@@ -344,7 +344,7 @@ public class Ide extends NodeImplBase {
     }
     out.writeToken(",");
     out.beginString();
-    if (isQualifiedBySuper() || decl.isPrivate()) {
+    if (usePrivateMemberName(decl)) {
       out.writeToken(getName() + "$" + scope.getClassDeclaration().getInheritanceLevel());
     } else {
       out.writeToken(getName());
@@ -355,7 +355,7 @@ public class Ide extends NodeImplBase {
 
   static void writeMemberAccess(IdeDeclaration memberDeclaration, JooSymbol optSymDot, Ide memberIde, boolean writeMemberWhitespace, final JsWriter out) throws IOException {
     if (memberDeclaration != null) {
-      if (memberIde.isQualifiedBySuper() || memberDeclaration.isPrivate()) {
+      if (memberIde.usePrivateMemberName(memberDeclaration)) {
         writePrivateMemberAccess(optSymDot, memberIde, writeMemberWhitespace, memberDeclaration.isStatic(), out);
         return;
       }
@@ -377,6 +377,11 @@ public class Ide extends NodeImplBase {
     if (quote) {
       out.writeToken("']");
     }
+  }
+
+  private boolean usePrivateMemberName(IdeDeclaration memberDeclaration) {
+    return isQualifiedBySuper()
+      || memberDeclaration.isPrivate();
   }
 
   protected static IdeDeclaration resolveMember(final IdeDeclaration type, final Ide memberIde) {
