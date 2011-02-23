@@ -381,6 +381,7 @@ public class Ide extends NodeImplBase {
 
   private boolean usePrivateMemberName(IdeDeclaration memberDeclaration) {
     return isQualifiedBySuper()
+      && scope.getClassDeclaration().getMemberDeclaration(getName()) != null
       || memberDeclaration.isPrivate();
   }
 
