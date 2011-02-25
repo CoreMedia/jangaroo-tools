@@ -42,7 +42,7 @@ public class PropertiesMojo extends AbstractMojo {
   /**
    * Source directory to scan for files to compile.
    *
-   * @parameter expression="${basedir}/src/main/resources"
+   * @parameter expression="${basedir}/src/main/joo"
    */
   private File resourceDirectory;
 
@@ -51,7 +51,7 @@ public class PropertiesMojo extends AbstractMojo {
    * Fileset for properties. default is:
    * {@code
    * <properties>
-   *   <directory>${basedir}/src/main/resources</directory>
+   *   <directory>${basedir}/src/main/joo</directory>
    *   <includes>
    *     <include>**\/*.properties</include>
    *   </includes>
