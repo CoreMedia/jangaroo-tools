@@ -65,15 +65,6 @@ class ApplyExpr extends Expr {
       fun.generateCode(out);
       out.endComment();
     } else {
-      if (fun instanceof IdeExpr) {
-        // take care of reserved words called as functions (Rhino does not like):
-        JooSymbol funSymbol = ((IdeExpr)fun).ide.getSymbol();
-        if (SyntacticKeywords.RESERVED_WORDS.contains(funSymbol.getText())) {
-          out.writeSymbolWhitespace(funSymbol);
-          out.writeToken("$$" + funSymbol.getText());
-          return;
-        }
-      }
       fun.generateCode(out);
     }
   }

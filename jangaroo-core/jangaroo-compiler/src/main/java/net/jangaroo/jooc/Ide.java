@@ -96,7 +96,17 @@ public class Ide extends NodeImplBase {
   }
 
   protected void generateJsCode(JsWriter out) throws IOException {
-    out.writeSymbol(ide);
+    out.writeSymbolWhitespace(ide);
+    writeIde(out);
+  }
+
+  private void writeIde(JsWriter out) throws IOException {
+    // take care of reserved words called as functions (Rhino does not like):
+    if (SyntacticKeywords.RESERVED_WORDS.contains(ide.getText())) {
+      out.writeToken("$$" + ide.getText());
+    } else {
+      out.writeSymbol(ide, false);
+    }
   }
 
   public String[] getQualifiedName() {
@@ -325,7 +335,7 @@ public class Ide extends NodeImplBase {
         }
       }
     }
-    out.writeSymbol(ide, false);
+    writeIde(out);
   }
 
   private void writeThis(JsWriter out) throws IOException {
