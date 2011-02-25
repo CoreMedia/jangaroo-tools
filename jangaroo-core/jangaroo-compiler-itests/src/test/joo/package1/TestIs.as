@@ -27,5 +27,14 @@ public class TestIs /* blub ber *//*extends Object*/ {
   public static function testConcreteIs() : Boolean {
     return new TestImplements() is TestInterface;
   }
+
+  public static function testIsInt(any : *) : Boolean {
+    return any is int;
+  }
+
+  public static function testIsUint(any : *) : Boolean {
+    return any is uint;
+  }
+
 }
 }

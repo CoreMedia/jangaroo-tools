@@ -406,6 +406,12 @@ public class JooTest extends JooRuntimeTestCase {
     eval("obj = new package1.TestTypeCast()");
     expectBoolean(true, "package1.TestTypeCast.testAsCast(obj)===obj");
     expectBoolean(true, "package1.TestTypeCast.testFunctionCast(obj)===obj");
+
+    expectNumber(123, "package1.TestTypeCast.testCastToUint(123.9)");
+    expectNumber(0, "package1.TestTypeCast.testCastToUint(-.1)");
+    expectNumber(0, "package1.TestTypeCast.testCastToUint(-.9)");
+    expectNumber(4294967295.0, "package1.TestTypeCast.testCastToUint(-1)");
+    expectNumber(4294967294.0, "package1.TestTypeCast.testCastToUint(-2.9)");
   }
 
   public void testYesSuper1() throws Exception {
@@ -478,6 +484,26 @@ public class JooTest extends JooRuntimeTestCase {
     expectBoolean(true, "package1.TestIs.testIs(new TypeError('foo'), TypeError)");
     expectBoolean(true, "package1.TestIs.testIs(package1.TestIs, Class)");
     expectBoolean(true, "package1.TestIs.testConcreteIs()");
+
+    expectBoolean(true, "package1.TestIs.testIsInt(0)");
+    expectBoolean(true, "package1.TestIs.testIsUint(0)");
+    expectBoolean(true, "package1.TestIs.testIsInt(123)");
+    expectBoolean(true, "package1.TestIs.testIsUint(123)");
+    expectBoolean(true, "package1.TestIs.testIsInt(new Number(123))");
+    expectBoolean(true, "package1.TestIs.testIsUint(new Number(123))");
+    expectBoolean(true, "package1.TestIs.testIsInt(-123)");
+    expectBoolean(false, "package1.TestIs.testIsUint(-123)");
+    expectBoolean(true, "package1.TestIs.testIsInt(new Number(-123))");
+    expectBoolean(false, "package1.TestIs.testIsUint(new Number(-123))");
+    expectBoolean(false, "package1.TestIs.testIsInt(123.4)");
+    expectBoolean(false, "package1.TestIs.testIsUint(123.4)");
+    expectBoolean(false, "package1.TestIs.testIsUint(123.4)");
+    expectBoolean(false, "package1.TestIs.testIsInt(-123.4)");
+    expectBoolean(false, "package1.TestIs.testIsUint(-123.4)");
+    expectBoolean(false, "package1.TestIs.testIsInt(NaN)");
+    expectBoolean(false, "package1.TestIs.testIsUint(NaN)");
+    expectBoolean(false, "package1.TestIs.testIsInt('foo')");
+    expectBoolean(false, "package1.TestIs.testIsUint('foo')");
   }
 
   public void testCatch() throws Exception {

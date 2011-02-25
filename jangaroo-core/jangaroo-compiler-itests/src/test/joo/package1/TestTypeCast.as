@@ -36,5 +36,9 @@ public class TestTypeCast {
     return TestTypeCast(p);
   }
 
+  public static function testCastToUint(any:*):uint {
+    return uint(any);
+  }
+
 }
 }
