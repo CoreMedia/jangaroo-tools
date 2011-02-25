@@ -58,6 +58,15 @@
       if (type === Class) {
         return !!object["$class"];
       }
+      // special case int and uint:
+      if (type === $$int || type === $$uint) {
+        if ((typeof object === 'number' || object instanceof Number) && !isNaN(object)) {
+          var intValue = Math.floor(object);
+          return intValue == object && (type !== $$uint || intValue >= 0);
+        }
+        return false;
+      }
+      // all other Jangaroo classes:
       var classDeclaration = object.constructor["$class"];
       var typeDeclaration = type["$class"];
       if (classDeclaration && typeDeclaration) {
