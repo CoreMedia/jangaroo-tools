@@ -26,7 +26,7 @@ abstract class Expr extends NodeImplBase {
     return type;
   }
 
-  public void setType(final IdeDeclaration type) {//toto compute type in more subclasses during analyze()
+  public void setType(final IdeDeclaration type) {//TODO compute type in more subclasses during analyze()
     this.type = type;
   }
 
