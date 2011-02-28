@@ -287,7 +287,7 @@ public class MemberDeclaration {
 
   public function clone(changedProperties : Object) : MemberDeclaration {
     var CloneFactory : Function = this._getCloneFactory();
-    var clone : MemberDeclaration = new CloneFactory();
+    var clone : MemberDeclaration = MemberDeclaration(new CloneFactory());
     for (var m:String in changedProperties) {
       clone[m] = changedProperties[m];
     }
