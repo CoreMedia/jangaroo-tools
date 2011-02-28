@@ -634,6 +634,7 @@ public class JooTest extends JooRuntimeTestCase {
     import_("package1.TestVector");
     complete();
     expectString("foo|bar", "package1.TestVector.testConstructorAndSingleAssignment('foo', 'bar')");
+    expectString("9|7", "package1.TestVector.testIntConstructorAndSingleAssignment(9, 7)");
     expectString("foo|bar", "package1.TestVector.testConversion('foo', 'bar')");
     expectString("foo|bar", "package1.TestVector.testLiteral('foo', 'bar')");
     expectString("foo|bar", "package1.TestVector.testForEach('foo', 'bar')");

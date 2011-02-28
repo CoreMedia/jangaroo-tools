@@ -24,6 +24,13 @@ public class TestVector {
     return vector.join("|");
   }
 
+  public static function testIntConstructorAndSingleAssignment(i1:int, i2:int) : String {
+    var vector:Vector.<int> = new Vector.<int>();
+    vector[0] = i1;
+    vector[1] = i2;
+    return vector.join("|");
+  }
+
   public static function testConversion(s1:String, s2:String) : String {
     var vector:Vector.<String> = Vector.<String>(["foo", "bar"]);
     return vector.join("|");
