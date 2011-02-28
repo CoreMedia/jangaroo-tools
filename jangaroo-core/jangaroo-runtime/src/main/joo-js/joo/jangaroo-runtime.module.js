@@ -72,6 +72,7 @@ if (!joo.debug) {
       "DefinitionError",
       "SecurityError",
       "Array",
+      "Vector",
       "Date",
       "joo.StandardClassLoader",
       "joo.DynamicClassLoader",

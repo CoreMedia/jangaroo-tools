@@ -281,6 +281,7 @@ Include           = "include \"" ~"\""
   "::"                            { return symbol(NAMESPACESEP); }
   "/"                             { return symbol(DIV); }
   "/="                            { return symbol(DIVEQ); }
+  ".<"                            { return symbol(DOTLT); }
 
   \"                              { multiStateText = yytext(); yybegin(STRING_DQ); string.setLength(0); }
   \'                              { multiStateText = yytext(); yybegin(STRING_SQ); string.setLength(0); }

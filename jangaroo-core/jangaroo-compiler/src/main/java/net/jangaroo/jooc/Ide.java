@@ -100,6 +100,11 @@ public class Ide extends NodeImplBase {
     writeIde(out);
   }
 
+  @Override
+  protected void generateAsApiCode(JsWriter out) throws IOException {
+    out.writeSymbol(ide);
+  }
+
   private void writeIde(JsWriter out) throws IOException {
     // take care of reserved words called as functions (Rhino does not like):
     if (SyntacticKeywords.RESERVED_WORDS.contains(ide.getText())) {

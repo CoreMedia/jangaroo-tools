@@ -53,7 +53,14 @@ public class NamespacedIde extends Ide {
     out.writeSymbol(namespace);
     out.writeSymbol(symNamespaceSep);
     out.endComment();
-    out.writeSymbol(ide);
+    super.generateJsCode(out);
+  }
+
+  @Override
+  protected void generateAsApiCode(JsWriter out) throws IOException {
+    out.writeSymbol(namespace);
+    out.writeSymbol(symNamespaceSep);
+    super.generateAsApiCode(out);
   }
 
   static String getNamespacePrefix(JooSymbol namespace) {

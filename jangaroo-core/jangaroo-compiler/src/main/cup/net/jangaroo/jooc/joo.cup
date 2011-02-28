@@ -219,6 +219,7 @@ terminal JooSymbol NAMESPACESEP;
 terminal JooSymbol LSHIFTEQ, RSHIFTEQ, URSHIFTEQ;
 terminal JooSymbol ANDEQ, XOREQ, OREQ, ANDANDEQ, OROREQ;
 terminal JooSymbol LPAREN, RPAREN, LBRACE, RBRACE, LBRACK, RBRACK;
+terminal JooSymbol DOTLT;
 
 terminal JooSymbol INT_LITERAL;
 terminal JooSymbol FLOAT_LITERAL;
@@ -537,6 +538,8 @@ expr ::=
     {: RESULT = new IdeExpr(t); :}
   | parenthesizedExpr:e
     {: RESULT = e; :}
+  | NEW:n LT:lt type:t GT:gt arrayLiteral:v
+    {: RESULT = new VectorLiteral(n, lt, t, gt, v); :}
   | NEW:n expr:t
     {: RESULT = new NewExpr(n,t); :}
   | PLUSPLUS:op expr:e
@@ -867,6 +870,8 @@ parenthesizedExpr ::=
 qualifiedIde ::=
     ide:ide
     {: RESULT = ide; :}
+  | IDE:ide DOTLT:dotlt type:t GT:gt
+    {: RESULT = new IdeWithTypeParam(ide, dotlt, t, gt); :}
   | qualifiedIde:prefix DOT:d namespacedIde:ide
     {: RESULT = new QualifiedIde(prefix, d, ide.ide); :}
   ;

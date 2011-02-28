@@ -49,7 +49,12 @@ public class IdeType extends Type {
   }
 
   protected void generateJsCode(JsWriter out) throws IOException {
-    ide.generateCode(out);
+    ide.generateJsCode(out);
+  }
+
+  @Override
+  protected void generateAsApiCode(JsWriter out) throws IOException {
+    ide.generateAsApiCode(out);
   }
 
   public JooSymbol getSymbol() {

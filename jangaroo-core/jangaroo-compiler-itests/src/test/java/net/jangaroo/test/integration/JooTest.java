@@ -630,6 +630,15 @@ public class JooTest extends JooRuntimeTestCase {
     // TODO: so far, we only test for errors. Find a way to check the actual console output.
   }
 
+  public void testVector() throws Exception {
+    import_("package1.TestVector");
+    complete();
+    expectString("foo|bar", "package1.TestVector.testConstructorAndSingleAssignment('foo', 'bar')");
+    expectString("foo|bar", "package1.TestVector.testConversion('foo', 'bar')");
+    expectString("foo|bar", "package1.TestVector.testLiteral('foo', 'bar')");
+    expectString("foo|bar", "package1.TestVector.testForEach('foo', 'bar')");
+  }
+
   public static void main(String args[]) {
     junit.textui.TestRunner.run(JooTest.class);
   }

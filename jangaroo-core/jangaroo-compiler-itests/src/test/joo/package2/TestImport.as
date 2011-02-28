@@ -37,6 +37,10 @@ public class TestImport extends TestMethodCall {
     TestClassInJar.m();
   }
 
+  public function testVectorResultInApi():Vector.<String> {
+    return new <String>["a", "b"];
+  }
+
   public static function main(arguments :String) : String {
     var testImport : TestImport  = new TestImport();
 

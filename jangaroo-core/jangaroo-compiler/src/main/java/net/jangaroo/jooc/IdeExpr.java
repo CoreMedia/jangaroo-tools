@@ -54,6 +54,11 @@ class IdeExpr extends Expr {
     ide.generateCodeAsExpr(out);
   }
 
+  @Override
+  protected void generateAsApiCode(JsWriter out) throws IOException {
+    ide.generateAsApiCode(out);
+  }
+
   public JooSymbol getSymbol() {
      return ide.getSymbol();
   }

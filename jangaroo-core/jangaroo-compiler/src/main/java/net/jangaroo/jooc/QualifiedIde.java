@@ -93,9 +93,16 @@ public class QualifiedIde extends Ide {
   }
 
   protected void generateJsCode(JsWriter out) throws IOException {
-    qualifier.generateCode(out);
+    qualifier.generateJsCode(out);
     out.writeSymbol(symDot);
-    out.writeSymbol(ide);
+    super.generateJsCode(out);
+  }
+
+  @Override
+  protected void generateAsApiCode(JsWriter out) throws IOException {
+    qualifier.generateAsApiCode(out);
+    out.writeSymbol(symDot);
+    super.generateAsApiCode(out);
   }
 
   @Override

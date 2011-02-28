@@ -54,7 +54,7 @@ public class TypeRelation extends NodeImplBase {
 
   protected void generateJsCode(JsWriter out) throws IOException {
     out.beginCommentWriteSymbol(symRelation);
-    type.generateCode(out);
+    type.generateAsApiCode(out);
     out.endComment();
    }
 
