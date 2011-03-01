@@ -40,6 +40,11 @@ public class TestParamInitializers /* blub ber *//*extends Object*/ {
   public function initParams4( a : String = undefined, b : String = "foo", c : String = undefined, ...rest) : String {
     return a + "/" + b + "/" + c + "/" + rest.length;
   }
-  
+
+  public function testParamWithAnyTypeWithoutWhitespaceSyntax(a:*=undefined):void {
+    // just a syntax test: '*=' in typed parameter initializers must not be mistaken as a single token and raise a syntax error!
+    // in contrast, in the following line, '*=' is a single token:
+    a*=5;
+  }
 }
 }
