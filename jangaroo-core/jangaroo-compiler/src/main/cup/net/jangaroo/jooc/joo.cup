@@ -207,6 +207,7 @@ terminal JooSymbol USE;
 terminal JooSymbol VAR, VOID;
 terminal JooSymbol WHILE, WITH;
 
+terminal JooSymbol ANYTYPE;
 terminal JooSymbol REST;
 terminal JooSymbol PLUSPLUS, MINUSMINUS, PLUS, MINUS, NOT, DIV, MOD, MUL;
 terminal JooSymbol LSHIFT, RSHIFT, URSHIFT;
@@ -990,6 +991,8 @@ ideList ::=
 typeRelation ::=
     COLON:s type:t
     {: RESULT = new TypeRelation(s,t); :}
+  | ANYTYPE:at
+    {: RESULT = new TypeRelation(at); :}
   ;
 
 variableDeclaration ::=

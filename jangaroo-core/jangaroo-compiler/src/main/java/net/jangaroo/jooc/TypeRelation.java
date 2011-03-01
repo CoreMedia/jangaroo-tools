@@ -30,6 +30,11 @@ public class TypeRelation extends NodeImplBase {
 
   Type type;
 
+  public TypeRelation(JooSymbol symAnyType) {
+    this(new JooSymbol(sym.COLON, symAnyType.getFileName(), symAnyType.getLine(), symAnyType.getColumn(), symAnyType.getWhitespace(), ":"),
+      new IdeType(new JooSymbol(sym.MUL, symAnyType.getFileName(), symAnyType.getLine(), symAnyType.getColumn() + 1, "", "*")));
+  }
+
   public TypeRelation(JooSymbol symRelation, Type type) {
     this.symRelation = symRelation;
     this.type = type;

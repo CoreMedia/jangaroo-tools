@@ -265,6 +265,7 @@ Include           = "include \"" ~"\""
   ">>>"                           { return symbol(URSHIFT); }
   "+="                            { return symbol(PLUSEQ); }
   "-="                            { return symbol(MINUSEQ); }
+  ":*"                            { return symbol(ANYTYPE); }
   "*="                            { return symbol(MULTEQ); }
   "&="                            { return symbol(ANDEQ); }
   "&&="                           { return symbol(ANDANDEQ); }
