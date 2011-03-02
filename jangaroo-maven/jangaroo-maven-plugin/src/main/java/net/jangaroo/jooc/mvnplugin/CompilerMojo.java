@@ -41,12 +41,6 @@ public class CompilerMojo extends AbstractCompilerMojo {
   private File tempClassesOutputDirectory;
 
   /**
-   * Source directory to scan for files to compile.
-   *
-   * @parameter expression="${project.build.sourceDirectory}"
-   */
-  private File sourceDirectory;
-  /**
    * A list of inclusion filters for the compiler.
    *
    * @parameter

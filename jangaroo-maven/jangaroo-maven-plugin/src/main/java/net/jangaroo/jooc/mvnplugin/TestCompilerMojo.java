@@ -17,6 +17,13 @@ import java.util.*;
 public class TestCompilerMojo extends AbstractCompilerMojo {
 
   /**
+   * Output directory for all generated ActionScript3 test files to compile.
+   *
+   * @parameter expression="${project.build.directory}/generated-test-sources/joo"
+   */
+  private File generatedTestSourcesDirectory;
+
+  /**
    * Test output directory into whose joo/classes sub-directory compiled classes are generated.
    *
    * @parameter expression="${project.build.testOutputDirectory}"
@@ -87,7 +94,7 @@ public class TestCompilerMojo extends AbstractCompilerMojo {
   }
 
   protected List<File> getCompileSourceRoots() {
-    return Arrays.asList(sourceDirectory, testSourceDirectory);
+    return Arrays.asList(testSourceDirectory, generatedTestSourcesDirectory);
   }
 
   protected File getOutputDirectory() {
@@ -111,6 +118,7 @@ public class TestCompilerMojo extends AbstractCompilerMojo {
   @Override
   protected List<File> getActionScriptClassPath() {
     final List<File> classPath = new ArrayList<File>(super.getActionScriptClassPath());
+    classPath.add(0, sourceDirectory);
     classPath.add(0, getGeneratedSourcesDirectory());
     return classPath;
   }

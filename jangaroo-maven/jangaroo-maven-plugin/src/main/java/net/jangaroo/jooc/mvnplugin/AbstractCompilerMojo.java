@@ -95,6 +95,13 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
   private String autoSemicolon;
 
   /**
+   * Source directory to scan for files to compile.
+   *
+   * @parameter expression="${project.build.sourceDirectory}"
+   */
+  protected File sourceDirectory;
+
+  /**
    * Output directory for all generated ActionScript3 files to compile.
    *
    * @parameter expression="${project.build.directory}/generated-sources/joo"
