@@ -211,6 +211,7 @@ terminal JooSymbol WHILE, WITH;
 
 terminal JooSymbol ANYTYPE;
 terminal JooSymbol REST;
+terminal JooSymbol DOTDOT;
 terminal JooSymbol PLUSPLUS, MINUSMINUS, PLUS, MINUS, NOT, DIV, MOD, MUL;
 terminal JooSymbol LSHIFT, RSHIFT, URSHIFT;
 terminal JooSymbol LT, GT, LTEQ, GTEQ;
@@ -231,6 +232,7 @@ terminal JooSymbol STRING_LITERAL;
 terminal JooSymbol IDE;
 terminal JooSymbol NULL_LITERAL;
 terminal JooSymbol REGEXP_LITERAL;
+terminal JooSymbol EMPTY_XML_LIST_LITERAL;
 
 // virtual tokens to mark the begin of a function or object literal expression
 // inserted by parser if no other action is available
@@ -473,8 +475,6 @@ constOrVar ::=
 directive ::=
     IMPORT:i qualifiedIde:ide
     {: RESULT = new ImportDirective(i,ide); :}
-  | IMPORT:i qualifiedIde:ide DOT:dot MUL:star
-    {: RESULT = new ImportDirective(i,new QualifiedIde(ide,dot,star)); :}
   | LBRACK:lb ide:ide RBRACK:rb
     {: RESULT = new Annotation(lb, ide, rb); :}
   | LBRACK:lb ide:ide LPAREN:lb2 annotationParameters:ap RPAREN:rb2 RBRACK:rb
@@ -524,6 +524,9 @@ literalExpr ::=
     {: RESULT = new LiteralExpr(l); :}
   | NULL_LITERAL:l
     {: RESULT = new LiteralExpr(l); :}
+  | EMPTY_XML_LIST_LITERAL:l
+    {: RESULT = new LiteralExpr(l); :}
+
   ;
 
 expr ::=
@@ -615,6 +618,12 @@ expr ::=
     {: RESULT = new BinaryOpExpr(e1,op,e2); :}
   | expr:e1 OROR:op expr:e2
     {: RESULT = new BinaryOpExpr(e1,op,e2); :}
+  | expr:e1 DOT:d parenthesizedExpr:e2
+    {: RESULT = new BinaryOpExpr(e1,d,e2); :}
+  | expr:e DOTDOT:d namespacedIde:ide
+    {: RESULT = new DotExpr(e,d,ide); :}
+  | expr:e DOT:d MUL:any
+    {: RESULT = new DotExpr(e,d,new Ide(any)); :}
   | expr:e1 IN:op expr:e2
     {: RESULT = new BinaryOpExpr(e1,op,e2); :}
   | lvalue:lv EQ:op expr:e
@@ -877,6 +886,8 @@ qualifiedIde ::=
     {: RESULT = new IdeWithTypeParam(ide, dotlt, t, gt); :}
   | qualifiedIde:prefix DOT:d namespacedIde:ide
     {: RESULT = new QualifiedIde(prefix, d, ide.ide); :}
+  | qualifiedIde:prefix DOT:d MUL:any
+    {: RESULT = new QualifiedIde(prefix, d, any); :}
   ;
 
 labelableStatement ::=

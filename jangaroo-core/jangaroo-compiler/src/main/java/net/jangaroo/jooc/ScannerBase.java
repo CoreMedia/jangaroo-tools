@@ -190,6 +190,7 @@ public abstract class ScannerBase implements sym {
     defsym("===", EQEQEQ);
     defsym("!==", NOTEQEQ);
     defsym("...", REST);
+    defsym("..", DOTDOT);
     defsym(".<", DOTLT);
     defsym("::", NAMESPACESEP);
   }

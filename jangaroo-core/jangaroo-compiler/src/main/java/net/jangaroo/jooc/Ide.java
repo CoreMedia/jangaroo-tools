@@ -281,7 +281,8 @@ public class Ide extends NodeImplBase {
 
   private void checkDefinedAccessChain() {
     if (!isQualified() && //this method is called for every node of a qualified ide tree, so we rely on the call on the root ide
-      !isDeclared() && !isValidPackageAccessChain()) {
+      !isDeclared() && !isValidPackageAccessChain() &&
+      !ide.getText().startsWith("@")) { // E4X: .(@foo == ...) identifiers do not need to be declared!
       throw Jooc.error(ide, "undeclared identifier '" + getName() + "'");
     }
   }

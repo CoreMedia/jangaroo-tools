@@ -174,7 +174,7 @@ public abstract class JooRuntimeTestCase extends JooTestCase {
     super.setUp();
     global = new Global();
     cx = ContextFactory.getGlobal().enterContext();
-    cx.setLanguageVersion(Context.VERSION_1_5);
+    cx.setLanguageVersion(Context.VERSION_1_6);
     cx.initStandardObjects(global);
     global.defineFunctionProperties(new String[]{"setTimeout"},  Global.class, ScriptableObject.EMPTY);
     global.defineProperty("window", global, ScriptableObject.EMPTY);

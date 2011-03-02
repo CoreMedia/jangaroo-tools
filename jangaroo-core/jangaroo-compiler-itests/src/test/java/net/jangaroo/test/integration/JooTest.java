@@ -644,6 +644,16 @@ public class JooTest extends JooRuntimeTestCase {
     expectString("foo|bar", "package1.TestVector.testForEach('foo', 'bar')");
   }
 
+  public void testE4X() throws Exception {
+    import_("package2.TestE4X");
+    complete();
+    expectString("<foo baz=\"faz\">bar</foo>", "package2.TestE4X.testParseUnparse(\"<foo baz='faz'>bar</foo>\")");
+    expectString("my test string", "package2.TestE4X.testDotDot('my test string')");
+    expectString("<one>eins</one>\n<two>zwei</two>", "package2.TestE4X.testDotAsterisk('<test><one>eins</one><two>zwei</two></test>')");
+    expectString("zwei", "package2.TestE4X.testDotParens('<test><item id=\"one\">eins</item><item id=\"two\">zwei</item></test>', 'two')");
+    expectString("<one>eins</one>\n<two>zwei</two>", "package2.TestE4X.testXMLList('<one>eins</one>', '<two>zwei</two>')");
+  }
+
   public static void main(String args[]) {
     junit.textui.TestRunner.run(JooTest.class);
   }

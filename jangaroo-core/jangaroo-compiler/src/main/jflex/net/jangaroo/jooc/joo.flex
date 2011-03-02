@@ -278,11 +278,13 @@ Include           = "include \"" ~"\""
   ">>>="                          { return symbol(URSHIFTEQ); }
   "==="                           { return symbol(EQEQEQ); }
   "!=="                           { return symbol(NOTEQEQ); }
+  ".."                            { return symbol(DOTDOT); }
   "..."                           { return symbol(REST); }
   "::"                            { return symbol(NAMESPACESEP); }
   "/"                             { return symbol(DIV); }
   "/="                            { return symbol(DIVEQ); }
   ".<"                            { ++vectorNestingLevel; yybegin(VECTOR_TYPE); return symbol(DOTLT); }
+  "<></>"                         { return symbol(EMPTY_XML_LIST_LITERAL); }
 
   \"                              { multiStateText = yytext(); yybegin(STRING_DQ); string.setLength(0); }
   \'                              { multiStateText = yytext(); yybegin(STRING_SQ); string.setLength(0); }
