@@ -70,7 +70,7 @@ public class JooClassGeneratorTest{
         "   * @see TestClass \n" +
         "   */\n" +
         "  public function TestClass(config:* = {}) {\n" +
-        "    super(Ext.apply(config, {}));\n" +
+        "    super(Ext.apply({}, config));\n" +
         "  }\n" +
         "\n" +
         "  public static function main(config:* = {}):void {\n" +
@@ -115,7 +115,7 @@ public class JooClassGeneratorTest{
         "   * @see TestClass \n" +
         "   */\n" +
         "  public function TestClass(config:* = {}) {\n" +
-        "    super(Ext.apply(config, {json: somestuff}));\n" +
+        "    super(Ext.apply({json: somestuff}, config));\n" +
         "  }\n" +
         "\n" +
         "  public static function main(config:* = {}):void {\n" +
@@ -161,7 +161,7 @@ public class JooClassGeneratorTest{
         "   * @see TestClass \n" +
         "   */\n" +
         "  public function TestClass(config:* = {}) {\n" +
-        "    super(Ext.apply(config, {}));\n" +
+        "    super(Ext.apply({}, config));\n" +
         "  }\n" +
         "\n" +
         "  public static function main(config:* = {}):void {\n" +
