@@ -76,7 +76,7 @@ public class ASDocScreenScraper {
     }
     Document classSummaryDocument = loadAndParse(new URI(ADOBE_FLASH_PLATFORM_REFERENCE_BASE_URL + "class-summary.html"));
     XPath xpath = xPathFactory.newXPath();
-    XPathExpression classNodesExpression = xpath.compile("//*[@class='summaryTable']//*[name()='tr'][not(@product)][contains(@runtime,'Flash::9')]//*[name()='a']/@href");
+    XPathExpression classNodesExpression = xpath.compile("//*[@class='summaryTable']//*[name()='tr'][not(@product)][contains(@runtime,'Flash::')]//*[name()='a']/@href");
     NodeList classNodes = (NodeList)classNodesExpression.evaluate(classSummaryDocument, XPathConstants.NODESET);
     System.out.println("Hits: " + classNodes.getLength());
     for (int i = 0; i < classNodes.getLength(); i++) {
@@ -152,7 +152,7 @@ public class ASDocScreenScraper {
     NodeList implementsNodes = (NodeList)implementsExpression.evaluate(doc, XPathConstants.NODESET);
     String implementsClause = getImplementsClause(implementsNodes);
 
-    XPathExpression propertyDeclarations = xpath.compile("//*[@class='content']//*[name()='span'][not(@product)][contains(@runtime,'Flash::9')] | //*[@class='content']/*[@class='MainContent']/*[name()='span'][not(@product)][not(@runtime)]");
+    XPathExpression propertyDeclarations = xpath.compile("//*[@class='content']//*[name()='span'][not(@product)][contains(@runtime,'Flash::')] | //*[@class='content']/*[@class='MainContent']/*[name()='span'][not(@product)][not(@runtime)]");
     //XPathExpression propertyDeclarations = xpath.compile("//*[@class='MainContent'][2]/*[name()='div'][@class='detailBody']");
     NodeList propertyDeclarationNodes = (NodeList)propertyDeclarations.evaluate(doc, XPathConstants.NODESET);
 
