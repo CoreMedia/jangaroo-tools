@@ -161,6 +161,13 @@ public class JooTestMojo extends AbstractMojo {
   private int jooUnitSeleniumRCPort = 4444;
 
   /**
+   * Selenium browser start command. Default is *firefox
+   *
+   * @parameter
+   */
+  private String jooUnitSeleniumBrowserStartCommand = "*firefox";
+
+  /**
    * Set this to true to ignore a failure during testing. Its use is NOT RECOMMENDED, but quite convenient on
    * occasion.
    *
@@ -209,7 +216,7 @@ public class JooTestMojo extends AbstractMojo {
         } catch (UnknownHostException e) {
           throw new MojoExecutionException("I just don't know my own hostname ... ", e);
         }
-        selenium = new DefaultSelenium(jooUnitSeleniumRCHost, jooUnitSeleniumRCPort, "*firefox", url);
+        selenium = new DefaultSelenium(jooUnitSeleniumRCHost, jooUnitSeleniumRCPort, jooUnitSeleniumBrowserStartCommand, url);
         try {
           selenium.start();
           final String testsHtmlUrl = url + "/" + testsHtml.replace(File.separatorChar, '/');
