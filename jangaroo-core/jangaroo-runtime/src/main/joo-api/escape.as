@@ -12,8 +12,8 @@ package {
  * <tr>
  * <td><code>A B C D E F G H I J K L M N O P Q R S T U V W X Y Z</code></td></tr>
  * <tr>
- * <td><code>@ - _ . * + /</code></td></tr></table>
- * <p><b>Note:</b> Use the <code>encodeURIComponent()</code> function, instead of the <code>escape()</code> function, to treat special separator characters (<code>@ + /</code>) as regular text to encode.</p>
+ * <td><code>&#64; - _ . * + /</code></td></tr></table>
+ * <p><b>Note:</b> Use the <code>encodeURIComponent()</code> function, instead of the <code>escape()</code> function, to treat special separator characters (<code>&#64; + /</code>) as regular text to encode.</p>
  * @param str The expression to convert into a string and encode in a URL-encoded format.
  *
  * @return A URL-encoded string.

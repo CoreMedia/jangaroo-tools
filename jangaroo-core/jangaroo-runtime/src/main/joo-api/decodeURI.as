@@ -41,7 +41,7 @@ package {
  * <td><code>?</code></td></tr>
  * <tr>
  * <td><code>%40</code></td>
- * <td><code>@</code></td></tr></table>
+ * <td><code>&#64;</code></td></tr></table>
  * @param uri A string encoded with the <code>encodeURI</code> function.
  *
  * @return A string in which all characters previously escaped by the <code>encodeURI</code> function are restored to their unescaped representation.

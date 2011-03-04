@@ -26,7 +26,7 @@ package joo {
  * <pre>
  * new joo.ResourceBundleAwareClassLoader(["en", "de"]);
  * </pre>
- * <p>You can create resource bundle classes by creating <code>*_<locale>.properties</code>
+ * <p>You can create resource bundle classes by creating <code>*_<i>locale</i>.properties</code>
  * files below the <code>src/main/joo</code> directory. These files are translated to AS3
  * code by the Jangaroo properties compiler (Maven goal: <code>properties</code>).
  * Each resource bundle must consist of properties files for each supported locale, where
