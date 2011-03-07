@@ -287,7 +287,7 @@ Include           = "include \"" ~"\""
   \"                              { multiStateText = yytext(); yybegin(STRING_DQ); string.setLength(0); }
   \'                              { multiStateText = yytext(); yybegin(STRING_SQ); string.setLength(0); }
 
-  {DecIntegerLiteral}             { return symbol(INT_LITERAL, new Integer(yytext())); }
+  {DecIntegerLiteral}             { return symbol(INT_LITERAL, new Long(yytext())); }
   {HexIntegerLiteral}             { return symbol(INT_LITERAL, Long.parseLong(yytext().substring(2),16)); }
   {DoubleLiteral}                 { return symbol(FLOAT_LITERAL, new Double(yytext())); }
 }
