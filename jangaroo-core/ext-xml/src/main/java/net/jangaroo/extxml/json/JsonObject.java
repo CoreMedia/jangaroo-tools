@@ -1,11 +1,14 @@
 package net.jangaroo.extxml.json;
 
-import net.jangaroo.extxml.model.ComponentClass;
 import net.jangaroo.extxml.ComponentSuiteRegistry;
+import net.jangaroo.extxml.model.ComponentClass;
+import net.jangaroo.utils.log.Log;
 
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class JsonObject implements Json {
   private Map<String, Object> properties = new LinkedHashMap<String, Object>();
@@ -144,30 +147,6 @@ public class JsonObject implements Json {
       return (value.toString());
     } else if (value instanceof JsonObject) {
       JsonObject jsonObject = (JsonObject)value;
-      String xtype = (String)jsonObject.get("xtype");
-      if (xtype != null) {
-        ComponentClass compClazz = ComponentSuiteRegistry.getInstance().findComponentClassByXtype(xtype);
-        if (compClazz != null) {
-          JsonObject actionCfg = (JsonObject)jsonObject.get("action");
-          if (actionCfg != null) {
-            String atype = (String)actionCfg.get("atype");
-            if (atype != null) {
-              ComponentClass actionClazz = ComponentSuiteRegistry.getInstance().findComponentClassByXtype(atype);
-              if (actionClazz != null) {
-                actionCfg.remove("atype");
-                // apply component configuration over action configuration:
-                for (Map.Entry<String,Object> cfgProp : jsonObject.properties.entrySet()) {
-                  String cfg = cfgProp.getKey();
-                  if (!"xtype".equals(cfg) && !"action".equals(cfg)) {
-                    actionCfg.set(cfg, cfgProp.getValue());
-                  }
-                }
-                return String.format("new %s(new %s(%s))", compClazz.getFullClassName(), actionClazz.getFullClassName(), valueToString("action", actionCfg, indentFactor, indent));
-              }
-            }
-          }
-        }
-      }
       return jsonObject.toString(indentFactor, indent);
     } else if (value instanceof JsonArray) {
       return ((JsonArray) value).toString(indentFactor, indent);
@@ -206,48 +185,58 @@ public class JsonObject implements Json {
    *         with <code>}</code>&nbsp;<small>(right brace)</small>.
    */
   public String toString(int indentFactor, int indent) {
-    int j;
-    int n = properties.size();
-    if (n == 0) {
-      return "{}";
+    Set<String> keySet = this.properties.keySet();
+
+    // special handling for "atype":
+    ComponentClass actionClass = null;
+    Object atype = get("atype");
+    if (atype instanceof String) {
+      actionClass = ComponentSuiteRegistry.getInstance().findComponentClassByXtype((String)atype);
+      if (actionClass == null) {
+        Log.e("No Action found for atype '" + atype + "'.");
+      } else {
+        // "atype" property is not rendered, because it is replaced by "new ...Action({...})
+        keySet = new LinkedHashSet<String>(keySet); // copy, keySet is not modifiable!
+        keySet.remove("atype");
+      }
     }
-    Iterator<String> keys = this.properties.keySet().iterator();
-    StringBuffer sb = new StringBuffer("{");
+
+    StringBuilder sb = new StringBuilder("{");
     int newindent = indent + indentFactor;
-    String key;
+    int n = keySet.size();
+    Iterator<String> keys = keySet.iterator();
     if (n == 1) {
-      key = keys.next();
-      sb.append(key);
-      sb.append(": ");
-      sb.append(valueToString(key, this.properties.get(key), indentFactor,
-          indent));
-    } else {
+      writeKeyValue(keys.next(), indentFactor, indent, sb);
+    } else if (n > 1) {
       while (keys.hasNext()) {
-        key = keys.next();
         if (sb.length() > 1) {
-          sb.append(",\n");
-        } else {
-          sb.append('\n');
+          sb.append(",");
         }
-        for (j = 0; j < newindent; j += 1) {
-          sb.append(' ');
-        }
-        sb.append(key);
-        sb.append(": ");
-        sb.append(valueToString(key, this.properties.get(key), indentFactor,
-            newindent));
+        newlineAndIndent(sb, newindent);
+        writeKeyValue(keys.next(), indentFactor, newindent, sb);
       }
       if (sb.length() > 1) {
-        sb.append('\n');
-        for (j = 0; j < indent; j += 1) {
-          sb.append(' ');
-        }
+        newlineAndIndent(sb, indent);
       }
     }
     sb.append('}');
-    return sb.toString();
+    return actionClass == null
+      ? sb.toString()
+      : String.format("new %s(%s)", actionClass.getFullClassName(), sb.toString());
   }
 
+  private void newlineAndIndent(StringBuilder sb, int indent) {
+    sb.append('\n');
+    for (int i = 0; i < indent; i++) {
+      sb.append(' ');
+    }
+  }
+
+  private void writeKeyValue(String key, int indentFactor, int indent, StringBuilder sb) {
+    sb.append(key);
+    sb.append(": ");
+    sb.append(valueToString(key, this.properties.get(key), indentFactor, indent));
+  }
 
   public Object get(String property) {
     return properties.get(property);

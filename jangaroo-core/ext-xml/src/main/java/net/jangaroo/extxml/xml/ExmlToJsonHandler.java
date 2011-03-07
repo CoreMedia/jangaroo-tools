@@ -93,7 +93,7 @@ public final class ExmlToJsonHandler extends CharacterRecordingHandler {
             jsonObject.setTypePropertyName("ptype");
           } else if (attribute.equals("layout")) {
             jsonObject.setTypePropertyName("type");
-          } else if (attribute.equals("action")) {
+          } else if (attribute.equals("baseAction")) {
             jsonObject.setTypePropertyName("atype");
           }
         }
