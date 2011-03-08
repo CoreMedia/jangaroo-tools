@@ -282,6 +282,10 @@ public class JooTest extends JooRuntimeTestCase {
     expectNumber(33, "obj.testMissingAfterBreak()");
     expectNumber(13, "obj.testMissingBeforePostfixPlusPlus()");
     expectNumber(31, "obj.testMissingBeforePostfixMinusMinus()");
+    expectNumber(101, "obj.testReturnPreIncrement(100)");
+    expectNumber(100, "obj.testReturnPostIncrement(100)");
+    expectNumber(99, "obj.testReturnPreDecrement(100)");
+    expectNumber(100, "obj.testReturnPostDecrement(100)");
   }
 
   public void testExpressions() throws Exception {

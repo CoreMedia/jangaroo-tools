@@ -96,13 +96,21 @@ doSomeThing();
             -- i;
   }
 
-  /*
-   * Known compiler bug, produces SyntaxError:
-   *
   public function testReturnPreIncrement(x:int):int {
     return ++x;
   }
-  */
+
+  public function testReturnPostIncrement(x:int):int {
+    return x++;
+  }
+
+  public function testReturnPreDecrement(x:int):int {
+    return --x;
+  }
+
+  public function testReturnPostDecrement(x:int):int {
+    return x--;
+  }
 
 }
 }

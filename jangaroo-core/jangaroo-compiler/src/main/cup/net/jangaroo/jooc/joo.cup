@@ -124,8 +124,8 @@ parser code  {:
    }
 
    // try semicolon insertion
-   if (isShiftActionDefinedFor(sym.NO_LINE_TERMINATOR_HERE) ||
-         (isPostfixOp && isActionDefinedFor(sym.NO_LINE_TERMINATOR_HERE_POSTFIX_OP))) {
+   boolean isShiftActionDefinedForNoLineTherminatorHere = isShiftActionDefinedFor(sym.NO_LINE_TERMINATOR_HERE);
+   if (isShiftActionDefinedForNoLineTherminatorHere || (isPostfixOp && isActionDefinedFor(sym.NO_LINE_TERMINATOR_HERE_POSTFIX_OP))) {
       // ECMA-262 restricted production
       if (containsLineTerminator(whitespace)) {
         // avoid syntax error later on if there is no action for semicolon
@@ -135,8 +135,10 @@ parser code  {:
           report_fatal_error("postfix operator should be on same line (semicolon insertion would produce syntax error)", cur_token);
         }
       }
-      // no semicolon to insert, proceed as if a NO_LINE_TERMINATOR_HERE token has been seen
-      return insertVirtualToken(isPostfixOp ? sym.NO_LINE_TERMINATOR_HERE_POSTFIX_OP : sym.NO_LINE_TERMINATOR_HERE,
+      // no semicolon to insert, proceed as if a NO_LINE_TERMINATOR_HERE(_POSTFIX_OP) token has been seen
+      return insertVirtualToken(isShiftActionDefinedForNoLineTherminatorHere
+        ? sym.NO_LINE_TERMINATOR_HERE
+        : sym.NO_LINE_TERMINATOR_HERE_POSTFIX_OP,
         "[no line terminator here]");
     }
     if (isActionDefinedFor(sym.SEMICOLON)) {
