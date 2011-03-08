@@ -172,7 +172,7 @@ HexDigit          = [0-9abcdefABCDEF]
 
 Include           = "include \"" ~"\""
 
-%state STRING_SQ, STRING_DQ, REGEXP_START, REGEXP_FIRST, REGEXP_REST
+%state STRING_SQ, STRING_DQ, REGEXP_START, REGEXP_FIRST, REGEXP_REST, VECTOR_TYPE
 
 %%
 
@@ -282,7 +282,7 @@ Include           = "include \"" ~"\""
   "::"                            { return symbol(NAMESPACESEP); }
   "/"                             { return symbol(DIV); }
   "/="                            { return symbol(DIVEQ); }
-  ".<"                            { return symbol(DOTLT); }
+  ".<"                            { ++vectorNestingLevel; yybegin(VECTOR_TYPE); return symbol(DOTLT); }
 
   \"                              { multiStateText = yytext(); yybegin(STRING_DQ); string.setLength(0); }
   \'                              { multiStateText = yytext(); yybegin(STRING_SQ); string.setLength(0); }
@@ -290,6 +290,15 @@ Include           = "include \"" ~"\""
   {DecIntegerLiteral}             { return symbol(INT_LITERAL, new Long(yytext())); }
   {HexIntegerLiteral}             { return symbol(INT_LITERAL, Long.parseLong(yytext().substring(2),16)); }
   {DoubleLiteral}                 { return symbol(FLOAT_LITERAL, new Double(yytext())); }
+}
+
+<VECTOR_TYPE> {
+  {Comment}                       { whitespace += yytext(); }
+  {WhiteSpace}                    { whitespace += yytext(); }
+  {Identifier}                    { return symbol(IDE, yytext()); }
+  "."                             { return symbol(DOT); }
+  ".<"                            { ++vectorNestingLevel; return symbol(DOTLT); }
+  ">"                             { if (--vectorNestingLevel == 0) { yybegin(YYINITIAL); } return symbol(GT); }
 }
 
 <STRING_DQ> {
@@ -351,5 +360,5 @@ Include           = "include \"" ~"\""
 /* error catchall */
 <YYINITIAL,STRING_DQ> .|\n                     { error("unrecognized input token"); }
 <REGEXP_START,REGEXP_FIRST,REGEXP_REST> .|\n   { error("invalid regular expression literal"); } //todo be more precise
-
+<VECTOR_TYPE> .|\n                             { error("invalid Vector type"); }
 <<EOF>>                           { if (yymoreStreams()) yypopStream(); else return symbol(EOF); }

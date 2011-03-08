@@ -50,5 +50,8 @@ public class TestVector {
     return sb.join("|");
   }
 
+  public static function testNestedVector() : void {
+    var nestedVector:Vector.<Vector.<String>> = Vector.<Vector.<String>>([["foo", "bar"], ["baz"]]);
+  }
 }
 }
