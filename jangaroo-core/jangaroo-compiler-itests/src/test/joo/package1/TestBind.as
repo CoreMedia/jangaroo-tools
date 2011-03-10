@@ -147,6 +147,12 @@ public class TestBind {
     return f();
   }
 
+  public native function doesNotExist():void;
+
+  public function testBindNonExistentMethod() : Function {
+    return doesNotExist;
+  }
+
   private var state : String;
 
 }
