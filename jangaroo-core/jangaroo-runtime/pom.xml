@@ -6,12 +6,12 @@
   <packaging>pom</packaging>
   <!-- Do not use jangaroo plugin here since you can't use AND create a plugin in one multi module project! -->
   <name>Joo Runtime</name>
-  <version>0.8.3</version>
+  <version>0.8.4-SNAPSHOT</version>
 
   <parent>
     <artifactId>jangaroo-parent</artifactId>
     <groupId>net.jangaroo</groupId>
-    <version>0.8.3</version>
+    <version>0.8.4-SNAPSHOT</version>
     <relativePath>../../jangaroo-parent/pom.xml</relativePath>
   </parent>
 
@@ -132,7 +132,7 @@
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-compiler</artifactId>
-      <version>0.8.3</version>
+      <version>0.8.4-SNAPSHOT</version>
       <scope>provided</scope>
       <optional>true</optional>
     </dependency>
