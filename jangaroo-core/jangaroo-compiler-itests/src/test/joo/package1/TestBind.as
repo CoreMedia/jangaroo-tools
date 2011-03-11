@@ -149,6 +149,11 @@ public class TestBind {
 
   public native function doesNotExist():void;
 
+  public function testBindMethodInBinaryOpExpr():Boolean {
+    var gS:Function = this.getState;
+    return gS === this.getState;
+  }
+
   public function testBindNonExistentMethod() : Function {
     return doesNotExist;
   }
