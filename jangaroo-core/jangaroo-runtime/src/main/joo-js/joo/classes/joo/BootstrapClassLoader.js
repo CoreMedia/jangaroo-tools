@@ -83,7 +83,7 @@
     return object['$$b_' + methodName] ||
       (typeof object[methodName] === "function" ? (object['$$b_' + methodName] = function() {
         return object[methodName].apply(object, arguments);
-      }) : undefined);
+      }) : object[methodName]);
   };
 
     /*
