@@ -112,13 +112,13 @@ public class TestBind {
   }
 
   public function testLocalFunction() : String {
-    return invoke(function() {
+    return invoke(function():String {
       return this.getState();
     });
   }
 
   public function testLocalFunctionUnqualified() : String {
-    return invoke(function() {
+    return invoke(function():String {
       return getState();
     });
   }
@@ -156,6 +156,10 @@ public class TestBind {
 
   public function testBindNonExistentMethod() : Function {
     return doesNotExist;
+  }
+
+  public function testBindTwiceReturnsSameFunction():Boolean {
+    return this.getState === this.getState;
   }
 
   private var state : String;

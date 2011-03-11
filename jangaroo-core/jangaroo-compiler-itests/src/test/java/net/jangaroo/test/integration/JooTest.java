@@ -566,6 +566,7 @@ public class JooTest extends JooRuntimeTestCase {
     expectString("foo", "obj.testReturn()");
     expectBoolean(true, "obj.testBindMethodInBinaryOpExpr()");
     expectString("undefined", "typeof obj.testBindNonExistentMethod()");
+    expectBoolean(true, "obj.testBindTwiceReturnsSameFunction()");
   }
 
   public void testMultiDeclarations() throws Exception {
