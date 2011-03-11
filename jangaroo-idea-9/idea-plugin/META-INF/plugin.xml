@@ -6,11 +6,11 @@
     A plugin for compiling ActionScript 3 code to JavaScript using the Jangaroo Open Source
     Compiler jooc.
   </description>
-  <version>10.0.8.1.1</version>
+  <version>10.0.8.3.0</version>
   <vendor url="http://www.jangaroo.net"
           email="info@jangaroo.net"
           logo="/net/jangaroo/jooley-16x16.png">Jangaroo</vendor>
-  <idea-version since-build="IU-99.32"/>
+  <idea-version since-build="IU-103.72"/>
 
   <depends>JavaScript</depends>
   <depends>org.jetbrains.idea.maven</depends>
