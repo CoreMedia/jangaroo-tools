@@ -190,7 +190,7 @@ public class MemberDeclaration {
 
   public function hasOwnMember(target : Object) : Boolean {
     // fast path:
-    if (!this.getterOrSetter && target.hasOwnProperty) {
+    if (!this.getterOrSetter && "hasOwnProperty" in target) {
       return target.hasOwnProperty(this.slot);
     }
     var value : * = this.retrieveMember(target);
