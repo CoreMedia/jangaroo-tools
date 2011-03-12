@@ -20,7 +20,7 @@ import java.io.IOException;
 /**
  * @author Andreas Gawecki
  */
-abstract class Declaration extends NodeImplBase {
+abstract class Declaration extends Statement {
 
   public JooSymbol[] getSymModifiers() {
     return symModifiers;

@@ -17,6 +17,8 @@ package package2 {
 
 public class TestStatements {
 
+  public static var s:*;
+
   public function TestStatements() {
   }
 
@@ -151,6 +153,7 @@ public class TestStatements {
     } finally {
       this.cleanedUp = true;
     }
+    return "this is not expected";
   }
 
   function testBreakDo():int {
@@ -265,5 +268,15 @@ public class TestStatements {
   }
 
   public var cleanedUp:Boolean = false;
+
+label:
+    s = "";
 }
+
 }
+
+import package2.TestStatements;
+
+TestStatements.s = 1 + 2;
+
+import package2.TestInclude;

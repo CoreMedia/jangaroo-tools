@@ -27,6 +27,8 @@ public abstract class IdeDeclaration extends Declaration {
 
   Ide ide;
 
+  private boolean isClassMember;
+
   protected IdeDeclaration(JooSymbol[] modifiers, int allowedModifiers, Ide ide) {
     super(modifiers, allowedModifiers);
     this.ide = ide;
@@ -98,7 +100,14 @@ public abstract class IdeDeclaration extends Declaration {
   }
 
   public boolean isClassMember() {
-    return false;
+    mustBeAnalyzed();
+    return parentNode instanceof ClassBody;
+  }
+
+  private void mustBeAnalyzed() {
+    if (parentNode == null) {
+      throw new IllegalStateException("this AST node must be analyzed");
+    }
   }
 
   public boolean isConstructor() {
@@ -131,4 +140,5 @@ public abstract class IdeDeclaration extends Declaration {
       ide.getScope().getCompilationUnit() != null &&
       this == ide.getScope().getCompilationUnit().getPrimaryDeclaration();
   }
+
 }

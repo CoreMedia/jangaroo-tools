@@ -207,7 +207,7 @@ terminal JooSymbol SUPER, SWITCH;
 terminal JooSymbol THIS, THROW, TRY, TYPEOF;
 terminal JooSymbol USE;
 terminal JooSymbol VAR, VOID;
-terminal JooSymbol WHILE, WITH;
+terminal JooSymbol WHILE;
 
 terminal JooSymbol ANYTYPE;
 terminal JooSymbol REST;
@@ -240,17 +240,11 @@ terminal JooSymbol FUNCTION_EXPR, LBRACE_EXPR;
 // inserted by parser if no other action is available
 terminal JooSymbol REGEXP_START;
 
-// virtual token to mark ++ or -- parsed as postfix
-terminal JooSymbol POSTFIX_INCREMENT;
-
 // virtual tokens to handle the ECMA-262 restricted productions for semicolon insertion
 terminal JooSymbol NO_LINE_TERMINATOR_HERE, NO_LINE_TERMINATOR_HERE_POSTFIX_OP;
 
 // pseudo-terminals for precedence setting, never returned from scanner:
 terminal JooSymbol PREFIX_PLUSPLUS, PREFIX_MINUSMINUS, PREFIX_PLUS, PREFIX_MINUS;
-
-// pseudo-terminal carried in Scanner.ScanError, never returned by scanner:
-terminal JooSymbol SCAN_ERROR;
 
 nonterminal CommaSeparatedList arguments;
 nonterminal ArrayLiteral arrayLiteral;
@@ -261,22 +255,16 @@ nonterminal ArrayList catches;
 nonterminal Catch catchClause;
 nonterminal ClassBody classBody;
 nonterminal Expr commaExpr;
-nonterminal ArrayList classBodyDeclarations;
-nonterminal Declaration classBodyDeclaration;
 nonterminal ClassDeclaration classDeclaration;
 nonterminal ArrayList optClassDeclarations;
 nonterminal CompilationUnit compilationUnit;
 nonterminal IdeDeclaration compilationUnitDeclaration;
 nonterminal JooSymbol constOrVar;
-nonterminal JooSymbol optComma;
 nonterminal LiteralExpr literalExpr;
 nonterminal Expr expr;
 nonterminal Extends extends;
-nonterminal FieldDeclaration fieldDeclaration;
-nonterminal FieldDeclaration optNextFieldDeclaration;
 nonterminal NamespaceDeclaration namespaceDeclaration;
 nonterminal FunctionExpr functionExpr;
-nonterminal FunctionStatement functionStatement;
 nonterminal Ide ide;
 nonterminal Implements implements;
 nonterminal Implements interfaceExtends;
@@ -313,13 +301,13 @@ nonterminal Statement statement;
 nonterminal Statement labelableStatement;
 nonterminal ArrayList statements;
 nonterminal Statement statementInSwitch;
-nonterminal StaticInitializer staticInitializer;
 nonterminal ArrayList statementsInSwitch;
 nonterminal TypeRelation typeRelation;
 nonterminal Type type;
 nonterminal IdeType ideType;
 nonterminal CommaSeparatedList ideList;
 nonterminal VariableDeclaration variableDeclaration;
+nonterminal VariableDeclaration forVariableDeclaration;
 nonterminal VariableDeclaration optNextVariableDeclaration;
 
 // see http://livedocs.adobe.com/flex/3/html/help.html?content=03_Language_and_Syntax_14.html#119081
@@ -404,25 +392,8 @@ catchClause ::=
   ;
 
 classBody ::=
-  LBRACE:lb classBodyDeclarations:decls RBRACE:rb
-    {: RESULT = new ClassBody(lb, decls, rb); :}
-  ;
-
-classBodyDeclarations ::=
-    {: RESULT = new ArrayList(); :}
-  | classBodyDeclarations:list directive:d
-    {: RESULT = list; list.add(d); :}
-  | classBodyDeclarations:list	classBodyDeclaration:decl
-    {: RESULT = list; list.add(decl); :}
-  ;
-
-classBodyDeclaration ::=
-    fieldDeclaration:decl
-    {: decl.setIsClassMember(true); RESULT = decl; :}
-  | functionDeclaration:decl
-    {: decl.setIsClassMember(true); RESULT = decl; :}
-  | staticInitializer:decl
-    {: RESULT = decl; :}
+  block:body
+    {: RESULT = new ClassBody(body); :}
   ;
 
 classDeclaration ::=
@@ -449,7 +420,7 @@ compilationUnitDeclaration ::=
     {: RESULT = cd; :}
   | classDeclaration:cd
     {: RESULT = cd; :}
-  | optDirectives:ds fieldDeclaration:decl
+  | optDirectives:ds variableDeclaration:decl
     {: RESULT = decl; :}
   | optDirectives:ds functionDeclaration:decl
     {: RESULT = decl; :}
@@ -662,11 +633,6 @@ interfaceExtends ::=
     {: RESULT = new Implements(i,l); :}
   ;
 
-fieldDeclaration ::=
-    modifiers:m constOrVar:cov ide:ide optTypeRelation:t optInitializer:init optNextFieldDeclaration:nf SEMICOLON:s
-    {: RESULT = new FieldDeclaration((JooSymbol[])m.toArray(new JooSymbol[m.size()]), cov, ide, t, init, nf, s); :}
-  ;
-
 namespaceDeclaration ::=
     modifiers:m EQ:eq STRING_LITERAL:l SEMICOLON:s
     {: RESULT = new NamespaceDeclaration((JooSymbol[])m.subList(0, m.size()-2).toArray(new JooSymbol[m.size()-2]),
@@ -675,20 +641,16 @@ namespaceDeclaration ::=
     :}
   ;
 
-optNextFieldDeclaration ::=
-    {: RESULT = null; :}
-  | COMMA:c ide:ide optTypeRelation:t optInitializer:init optNextFieldDeclaration:nf
-    {: RESULT = new FieldDeclaration(new JooSymbol[0], c, ide, t, init, nf, null); :}
-  ;
-
 functionExpr ::=
     FUNCTION_EXPR:f optIde:ide LPAREN:lp parameters:params RPAREN:rp optTypeRelation:t functionBody:b
     {: RESULT = new FunctionExpr(f,ide,lp,params,rp,t,b); :}
   ;
 
-functionStatement ::=
-    FUNCTION:f ide:ide LPAREN:lp parameters:params RPAREN:rp optTypeRelation:t functionBody:b
-    {: RESULT = new FunctionStatement(new FunctionExpr(f,ide,lp,params,rp,t,b)); :}
+functionDeclaration ::=
+    modifiers:m FUNCTION:f IDE:getOrSet ide:ide LPAREN:lp parameters:params RPAREN:rp optTypeRelation:t optBody:b
+    {: RESULT = new FunctionDeclaration((JooSymbol[])m.toArray(new JooSymbol[0]),f,getOrSet,ide,lp,params,rp,t,b); :}
+  | modifiers:m FUNCTION:f ide:ide LPAREN:lp parameters:params RPAREN:rp optTypeRelation:t optBody:b
+    {: RESULT = new FunctionDeclaration((JooSymbol[])m.toArray(new JooSymbol[0]),f,ide,lp,params,rp,t,b); :}
   ;
 
 ide ::=
@@ -715,13 +677,6 @@ lvalue ::=
     {: RESULT = new DotExpr(e,d,ide); :}
   | expr:expr LBRACK:lb commaExpr:index RBRACK:rb
     {: RESULT = new ArrayIndexExpr(expr,lb,index,rb); :}
-  ;
-
-functionDeclaration ::=
-    modifiers:m FUNCTION:f IDE:getOrSet ide:ide LPAREN:lp parameters:params RPAREN:rp optTypeRelation:t optBody:b
-    {: RESULT = new FunctionDeclaration((JooSymbol[])m.toArray(new JooSymbol[0]),f,getOrSet,ide,lp,params,rp,t,b); :}
-  | modifiers:m FUNCTION:f ide:ide LPAREN:lp parameters:params RPAREN:rp optTypeRelation:t optBody:b
-    {: RESULT = new FunctionDeclaration((JooSymbol[])m.toArray(new JooSymbol[0]),f,ide,lp,params,rp,t,b); :}
   ;
 
 modifier ::=
@@ -807,12 +762,6 @@ optCatches ::=
     {: RESULT = c; :}
   ;
 
-optComma ::=
-    {: RESULT = null; :}
-  | COMMA:c
-    {: RESULT = c; :}
-  ;
-
 optCommaExpr ::=
     {: RESULT = null; :}
   | commaExpr:e
@@ -894,8 +843,8 @@ labelableStatement ::=
     {: RESULT = new ForStatement(f,lp,null,s1,e1,s2,e2,rp,s); :}
   | FOR:f LPAREN:lp commaExpr:e SEMICOLON:s1 optCommaExpr:e1 SEMICOLON:s2 optCommaExpr:e2 RPAREN:rp statement:s
     {: RESULT = new ForStatement(f,lp,new ForInitializer(e),s1,e1,s2,e2,rp,s); :}
-  | FOR:f LPAREN:lp VAR:var ide:ide optTypeRelation:t optInitializer:init optNextVariableDeclaration:nv SEMICOLON:s1 optCommaExpr:e1 SEMICOLON:s2 optCommaExpr:e2 RPAREN:rp statement:s
-    {: RESULT = new ForStatement(f,lp,new ForInitializer(new VariableDeclaration(var,ide,t,init, nv)),s1,e1,s2,e2,rp,s); :}
+  | FOR:f LPAREN:lp forVariableDeclaration:vd SEMICOLON:s1 optCommaExpr:e1 SEMICOLON:s2 optCommaExpr:e2 RPAREN:rp statement:s
+    {: RESULT = new ForStatement(f,lp,new ForInitializer(vd),s1,e1,s2,e2,rp,s); :}
   | FOR:f LPAREN:lp ide:ide IN:in expr:e RPAREN:rp statement:s
     {: RESULT = new ForInStatement(f,null,lp,ide,in,e,rp,s); :}
   | FOR:f LPAREN:lp VAR:var ide:ide optTypeRelation:t IN:in expr:e RPAREN:rp statement:s
@@ -910,7 +859,7 @@ labelableStatement ::=
     {: RESULT = new TryStatement(t,b,c,f,fb); :}
   | block:b
     {: RESULT = b; :}
-  | functionStatement:fs
+  | functionDeclaration:fs
     {: RESULT = fs; :}
   ;
 
@@ -921,8 +870,8 @@ statement ::=
     {: RESULT = new SemicolonTerminatedStatement(e,s); :}
   | ide:ide COLON:c labelableStatement:s
     {: RESULT = new LabeledStatement(ide,c,s); :}
-  | variableDeclaration:decl SEMICOLON:s
-    {: RESULT = new SemicolonTerminatedStatement(decl, s); :}
+  | variableDeclaration:decl
+    {: RESULT = decl; :}
   | BREAK:b SEMICOLON:s
     {: RESULT = new BreakStatement(b,null,s); :}
   | BREAK:b NO_LINE_TERMINATOR_HERE ide:ide SEMICOLON:s
@@ -964,11 +913,6 @@ statementsInSwitch ::=
     {: RESULT = l; l.add(s); :}
   ;
 
-staticInitializer ::=
-    block:b
-    {: RESULT = new StaticInitializer(b); :}
-  ;
-
 type ::=
     ideType:it
     {: RESULT = it; :}
@@ -997,9 +941,14 @@ typeRelation ::=
     {: RESULT = new TypeRelation(at); :}
   ;
 
+forVariableDeclaration ::=
+  VAR:v ide:ide optTypeRelation:t optInitializer:init optNextVariableDeclaration:nf
+    {: RESULT = new VariableDeclaration(null, v, ide, t, init, nf, null); :}
+  ;
+
 variableDeclaration ::=
-    constOrVar:cov ide:ide optTypeRelation:t optInitializer:init optNextVariableDeclaration:nv
-    {: RESULT = new VariableDeclaration(cov,ide,t,init, nv); :}
+  modifiers:m constOrVar:cov ide:ide optTypeRelation:t optInitializer:init optNextVariableDeclaration:nf SEMICOLON:s
+    {: RESULT = new VariableDeclaration((JooSymbol[])m.toArray(new JooSymbol[m.size()]), cov, ide, t, init, nf, s); :}
   ;
 
 optNextVariableDeclaration ::=

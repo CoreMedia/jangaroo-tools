@@ -34,7 +34,7 @@ public class ClassDeclaration extends IdeDeclaration {
   private FunctionDeclaration constructor = null;
   private IdeType thisType;
   private IdeType superType;
-  private List<FieldDeclaration> fieldsWithInitializer = new ArrayList<FieldDeclaration>();
+  private List<VariableDeclaration> fieldsWithInitializer = new ArrayList<VariableDeclaration>();
   private List<IdeDeclaration> secondaryDeclarations = Collections.emptyList();
   private Set<String> usedBuiltIns = new LinkedHashSet<String>();
   private int inheritanceLevel = -1;
@@ -412,18 +412,18 @@ public class ClassDeclaration extends IdeDeclaration {
     return superType == null ? null : (ClassDeclaration)superType.ide.getDeclaration();
   }
 
-  public void addFieldWithInitializer(FieldDeclaration fieldDeclaration) {
+  public void addFieldWithInitializer(VariableDeclaration fieldDeclaration) {
     fieldsWithInitializer.add(fieldDeclaration);
   }
 
   public void generateFieldInitCode(JsWriter out, boolean startWithSemicolon, boolean endWithSemicolon) throws IOException {
-    Iterator<FieldDeclaration> iterator = fieldsWithInitializer.iterator();
+    Iterator<VariableDeclaration> iterator = fieldsWithInitializer.iterator();
     if (iterator.hasNext()) {
       if (startWithSemicolon) {
         out.write(";");
       }
       do {
-        FieldDeclaration field = iterator.next();
+        VariableDeclaration field = iterator.next();
         field.generateInitCode(out, endWithSemicolon || iterator.hasNext());
       } while (iterator.hasNext());
     }

@@ -16,55 +16,46 @@
 package net.jangaroo.jooc;
 
 import java.io.IOException;
-import java.util.List;
 
 /**
  * @author Andreas Gawecki
  */
 public class ClassBody extends NodeImplBase {
-  JooSymbol lBrace;
 
-  public List<AstNode> getDeclararations() {
-    return declararations;
+  private BlockStatement block;
+
+  public BlockStatement getBlock() {
+    return block;
   }
 
-  List<AstNode> declararations;
-  JooSymbol rBrace;
-
-  public ClassBody(JooSymbol lBrace, List<AstNode> declararations, JooSymbol rBrace) {
-    this.lBrace = lBrace;
-    this.declararations = declararations;
-    this.rBrace = rBrace;
+  public ClassBody(BlockStatement block) {
+    this.block = block;
   }
 
   @Override
   public void scope(final Scope scope) {
-    for (AstNode node : declararations) {
-      node.scope(scope);
-    }
+     block.scope(scope);
   }
 
   @Override
   protected void generateAsApiCode(final JsWriter out) throws IOException {
-    out.writeSymbol(lBrace);
-    generateCode(declararations, out);
-    out.writeSymbol(rBrace);
+    block.generateAsApiCode(out);
   }
 
   protected void generateJsCode(JsWriter out) throws IOException {
-    out.writeSymbolWhitespace(lBrace);
-    generateCode(declararations, out);
-    out.writeSymbolWhitespace(rBrace);
+    out.writeSymbolWhitespace(block.lBrace);
+    generateCode(block.statements, out);
+    out.writeSymbolWhitespace(block.rBrace);
   }
 
   public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
-    declararations = analyze(this, declararations, context);
+    block.analyze(this, context);
     return this;
   }
 
   public JooSymbol getSymbol() {
-    return lBrace;
+    return block.lBrace;
   }
 
 }

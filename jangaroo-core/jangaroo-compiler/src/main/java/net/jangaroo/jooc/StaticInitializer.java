@@ -22,11 +22,11 @@ import java.io.IOException;
  */
 class StaticInitializer extends Declaration {
 
-  BlockStatement block;
+  Statement statement;
 
-  public StaticInitializer(BlockStatement block) {
+  public StaticInitializer(Statement statement) {
     super(new JooSymbol[]{ }, MODIFIER_STATIC);
-    this.block = block;
+    this.statement = statement;
   }
 
   @Override
@@ -39,7 +39,14 @@ class StaticInitializer extends Declaration {
     writeModifiers(out);
     out.endComment();
     out.write("function()");
-    block.generateCode(out);
+    boolean isBlock = statement instanceof BlockStatement;
+    if (!isBlock) {
+      out.write("{");
+    }
+    statement.generateCode(out);
+    if (!isBlock) {
+      out.write("}");
+    }
     out.write(",");
   }
 
@@ -50,14 +57,14 @@ class StaticInitializer extends Declaration {
     withNewDeclarationScope(this, scope.getParentScope(), new Scoped() {
       @Override
       public void run(final Scope scope) {
-        block.scope(scope);
+        statement.scope(scope);
       }
     });
   }
 
   public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
-    block.analyze(this, context);
+    statement.analyze(this, context);
     return this;
   }
 

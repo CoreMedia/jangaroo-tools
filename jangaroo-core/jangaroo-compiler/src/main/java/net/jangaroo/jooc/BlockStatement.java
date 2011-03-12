@@ -44,6 +44,12 @@ class BlockStatement extends Statement {
     blockStartCodeGenerators.add(blockStartCodeGenerator);
   }
 
+  @Override
+  protected void generateAsApiCode(JsWriter out) throws IOException {
+    //todo we have to be more restrictive here...
+    super.generateAsApiCode(out);
+  }
+
   protected void generateJsCode(JsWriter out) throws IOException {
     out.writeSymbol(lBrace);
     for (CodeGenerator codeGenerator : blockStartCodeGenerators) {

@@ -37,7 +37,6 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
   private Statement optBody;
 
   boolean isConstructor = false;
-  boolean isClassMember = false;
   boolean containsSuperConstructorCall = false;
 
   private static final int defaultAllowedMethodModifers =
@@ -60,14 +59,6 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
     this.params = params;
     this.rParen = rParen;
     this.optBody = optBody;
-  }
-
-  public boolean isClassMember() {
-    return isClassMember;
-  }
-
-  public void setIsClassMember(final boolean classMember) {
-    isClassMember = classMember;
   }
 
   public boolean overrides() {
@@ -257,7 +248,7 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
                 } else {
                   out.writeToken(",");
                 }
-                out.write(FieldDeclaration.getDefaultValue(superParameters.head.optTypeRelation));
+                out.write(VariableDeclaration.getDefaultValue(superParameters.head.optTypeRelation));
                 superParameters = (Parameters)superParameters.tail;
               }
             }
