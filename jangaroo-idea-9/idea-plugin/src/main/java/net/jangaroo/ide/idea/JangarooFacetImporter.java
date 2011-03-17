@@ -96,9 +96,18 @@ public class JangarooFacetImporter extends FacetImporter<JangarooFacet, Jangaroo
     jooConfig.verbose = getBooleanConfigurationValue(mavenProjectModel, "verbose", false);
     jooConfig.enableAssertions = getBooleanConfigurationValue(mavenProjectModel, "enableAssertions", false);
     // "debug" (boolean; true), "debuglevel" ("none", "lines", "source"; "source")
-    jooConfig.outputDirectory = mavenProjectModel.getBuildDirectory() + File.separator + "jangaroo-output" + File.separator + "joo" + File.separator + "classes";
+    boolean isWar = "war".equals(mavenProjectModel.getPackaging());
+    String outputDirectory = findConfigValue(mavenProjectModel, "outputDirectory");
+    if (outputDirectory == null) {
+      outputDirectory = isWar ? "target/jangaroo-output" : mavenProjectModel.getOutputDirectory();
+    }
+    File outputDir = new File(outputDirectory);
+    if (!outputDir.isAbsolute()) {
+      outputDir = new File(mavenProjectModel.getDirectory(), outputDirectory);
+    }
+    jooConfig.outputDirectory = new File(outputDir, "joo/classes").getAbsolutePath();
 
-    if ("war".equals(mavenProjectModel.getPackaging())) {
+    if (isWar) {
       postTasks.add(new AddJangarooPackagingOutputToExplodedWebArtifactsTask(jangarooFacet));
     }
   }
