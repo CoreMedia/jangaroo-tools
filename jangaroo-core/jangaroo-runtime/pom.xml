@@ -49,6 +49,7 @@
                   <filelist dir="src/main/joo-js/joo/classes">
                     <file name="int.js" />
                     <file name="uint.js" />
+                    <file name="Vector.js" />
                     <file name="joo/BootstrapClassLoader.js" />
                     <file name="joo/assert.js" />
                     <file name="joo/Class.js" />
@@ -63,7 +64,6 @@
                     <file name="DefinitionError.js" />
                     <file name="SecurityError.js" />
                     <file name="Array.js" />
-                    <file name="Vector.js" />
                     <file name="Date.js" />
                     <file name="joo/StandardClassLoader.js" />
                     <file name="joo/DynamicClassLoader.js" />
