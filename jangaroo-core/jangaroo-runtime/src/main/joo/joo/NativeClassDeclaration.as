@@ -74,7 +74,7 @@ public class NativeClassDeclaration {
 
   internal function doComplete() : void {
     interfaces = [];
-    if (publicConstructor !== Error) {
+    if (Class(publicConstructor) !== Error) {
       constructor_ = publicConstructor;
     } else {
       constructor_ = ERROR_CONSTRUCTOR;
@@ -85,12 +85,13 @@ public class NativeClassDeclaration {
   }
 
   protected function initTypes():void {
-    Types = function():void {};
-    var types:Object = Types.prototype = superClassDeclaration ? new superClassDeclaration.Types() : {};
+    var types:Object = superClassDeclaration ? new superClassDeclaration.Types() : {};
     types[fullClassName] = true;
     for (var i:int = 0; i < interfaces.length; i++) {
       types[interfaces[i]] = true;
     }
+    Types = Class(function():void {});
+    Types.prototype = types;
   }
 
   private static var initializationDepth:String = "";
