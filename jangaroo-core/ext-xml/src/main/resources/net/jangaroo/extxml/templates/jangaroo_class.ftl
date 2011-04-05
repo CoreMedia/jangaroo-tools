@@ -24,11 +24,17 @@ public class ${className} extends ${superClassName} {
    *
    * @see ${className} 
    */
-  public function ${className}(config:* = {}) {
-    super(Ext.apply(${jsonForTemplate!"{}"}, config));
+  public function ${className}(config:Object = null) {
+    if(config = null) {
+      config = {};
+    }
+    super(Ext.apply(config, ${jsonForTemplate!"{}"}));
   }
 
-  public static function main(config:* = {}):void {
+  public static function main(config:Object = null):void {
+    if(config = null) {
+      config = {};
+    }
     new ${fullClassName}(config);
   }
 
