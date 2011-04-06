@@ -5,7 +5,7 @@
   <packaging>pom</packaging>
   <artifactId>jangaroo-parent</artifactId>
   <groupId>net.jangaroo</groupId>
-  <version>0.8.4-SNAPSHOT</version>
+  <version>0.8.4</version>
   <name>Jangaroo Default Settings</name>
   <inceptionYear>2002</inceptionYear>
 
@@ -15,7 +15,7 @@
     <groupId>org.sonatype.oss</groupId>
     <artifactId>oss-parent</artifactId>
     <version>7</version>
-    <relativePath></relativePath>
+    <relativePath />
   </parent>
 
   <licenses>
