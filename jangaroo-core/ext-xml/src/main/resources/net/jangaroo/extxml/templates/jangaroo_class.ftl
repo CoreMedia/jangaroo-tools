@@ -25,16 +25,13 @@ public class ${className} extends ${superClassName} {
    * @see ${className} 
    */
   public function ${className}(config:Object = null) {
-    if(config = null) {
+    if(config == null) {
       config = {};
     }
-    super(Ext.apply(config, ${jsonForTemplate!"{}"}));
+    super(Ext.apply(${jsonForTemplate!"{}"}, config));
   }
 
   public static function main(config:Object = null):void {
-    if(config = null) {
-      config = {};
-    }
     new ${fullClassName}(config);
   }
 

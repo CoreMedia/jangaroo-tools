@@ -69,11 +69,14 @@ public class JooClassGeneratorTest{
         "   *\n" +
         "   * @see TestClass \n" +
         "   */\n" +
-        "  public function TestClass(config:* = {}) {\n" +
+        "  public function TestClass(config:Object = null) {\n" +
+        "    if(config == null) {\n" +
+        "      config = {};\n"+
+        "    }\n"+
         "    super(Ext.apply({}, config));\n" +
         "  }\n" +
         "\n" +
-        "  public static function main(config:* = {}):void {\n" +
+        "  public static function main(config:Object = null):void {\n" +
         "    new com.coremedia.test.TestClass(config);\n" +
         "  }\n" +
         "\n" +
@@ -114,11 +117,14 @@ public class JooClassGeneratorTest{
         "   *\n" +
         "   * @see TestClass \n" +
         "   */\n" +
-        "  public function TestClass(config:* = {}) {\n" +
+        "  public function TestClass(config:Object = null) {\n" +
+        "    if(config == null) {\n" +
+        "      config = {};\n"+
+        "    }\n"+
         "    super(Ext.apply({json: somestuff}, config));\n" +
         "  }\n" +
         "\n" +
-        "  public static function main(config:* = {}):void {\n" +
+        "  public static function main(config:Object = null):void {\n" +
         "    new com.coremedia.test.TestClass(config);\n" +
         "  }\n" +
         "\n" +
@@ -160,11 +166,14 @@ public class JooClassGeneratorTest{
         "   *\n" +
         "   * @see TestClass \n" +
         "   */\n" +
-        "  public function TestClass(config:* = {}) {\n" +
+        "  public function TestClass(config:Object = null) {\n" +
+        "    if(config == null) {\n" +
+        "      config = {};\n"+
+        "    }\n"+
         "    super(Ext.apply({}, config));\n" +
         "  }\n" +
         "\n" +
-        "  public static function main(config:* = {}):void {\n" +
+        "  public static function main(config:Object = null):void {\n" +
         "    new com.coremedia.test.TestClass(config);\n" +
         "  }\n" +
         "\n" +
