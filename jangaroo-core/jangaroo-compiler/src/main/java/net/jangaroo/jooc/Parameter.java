@@ -116,12 +116,7 @@ public class Parameter extends IdeDeclaration {
   void generateRestParamCode(JsWriter out, int paramIndex) throws IOException {
     String paramName = getName();
     if (paramName != null && !(paramName.equals("arguments") && paramIndex==0)) {
-      out.write("var "+paramName+"=");
-      if (paramIndex==0) {
-        out.write("arguments;");
-      } else {
-        out.write("Array.prototype.slice.call(arguments,"+paramIndex+");");
-      }
+      out.write("var " + paramName + "=Array.prototype.slice.call(arguments" + (paramIndex == 0 ? "" : "," + paramIndex) + ");");
     }
   }
 
