@@ -212,7 +212,7 @@ public class JooTestMojo extends AbstractMojo {
         Selenium selenium;
         String url;
         try {
-          url = "http://" + InetAddress.getLocalHost().getHostName() + ":" + server.getConnectors()[0].getPort();
+          url = "http://" + InetAddress.getLocalHost().getCanonicalHostName() + ":" + server.getConnectors()[0].getPort();
         } catch (UnknownHostException e) {
           throw new MojoExecutionException("I just don't know my own hostname ... ", e);
         }
