@@ -2,18 +2,18 @@ package {
 
 
 /**
- * The Vector class lets you access and manipulate a vector — an array whose elements all have the same data type. The data type of a Vector's elements is known as the Vector's <i>base type</i>. The base type can be any class, including built in classes and custom classes. The base type is specified when declaring a Vector variable as well as when creating an instance by calling the class constructor.
- * <p>As with an Array, you can use the array access operator (<code>[]</code>) to set or retrieve the value of a Vector element. Several Vector methods also provide mechanisms for setting and retrieving element values. These include <code>push()</code>, <code>pop()</code>, <code>shift()</code>, <code>unshift()</code>, and others. The properties and methods of a Vector object are similar — in most cases identical — to the properties and methods of an Array. In most cases where you would use an Array in which all the elements have the same data type, a Vector instance is preferable. However, Vector instances are dense arrays, meaning it must have a value (or <code>null</code>) in each index. Array instances don't have this same restriction.</p>
- * <p>The Vector's base type is specified using postfix type parameter syntax. Type parameter syntax is a sequence consisting of a dot (<code>.</code>), left angle bracket (<code><</code>), class name, then a right angle bracket (<code>></code>), as shown in this example:</p>
- * <p>In the first line of the example, the variable <code>v</code> is declared as a Vector.<String> instance. In other words, it represents a Vector (an array) that can only hold String instances and from which only String instances can be retrieved. The second line constructs an instance of the same Vector type (that is, a Vector whose elements are all String objects) and assigns it to <code>v</code>.</p>
+ * The Vector class lets you access and manipulate a vector - an array whose elements all have the same data type. The data type of a Vector's elements is known as the Vector's <i>base type</i>. The base type can be any class, including built in classes and custom classes. The base type is specified when declaring a Vector variable as well as when creating an instance by calling the class constructor.
+ * <p>As with an Array, you can use the array access operator (<code>[]</code>) to set or retrieve the value of a Vector element. Several Vector methods also provide mechanisms for setting and retrieving element values. These include <code>push()</code>, <code>pop()</code>, <code>shift()</code>, <code>unshift()</code>, and others. The properties and methods of a Vector object are similar - in most cases identical - to the properties and methods of an Array. In most cases where you would use an Array in which all the elements have the same data type, a Vector instance is preferable. However, Vector instances are dense arrays, meaning it must have a value (or <code>null</code>) in each index. Array instances don't have this same restriction.</p>
+ * <p>The Vector's base type is specified using postfix type parameter syntax. Type parameter syntax is a sequence consisting of a dot (<code>.</code>), left angle bracket (<code>&lt;</code>), class name, then a right angle bracket (<code>&gt;</code>), as shown in this example:</p>
+ * <p>In the first line of the example, the variable <code>v</code> is declared as a Vector.&lt;String&gt; instance. In other words, it represents a Vector (an array) that can only hold String instances and from which only String instances can be retrieved. The second line constructs an instance of the same Vector type (that is, a Vector whose elements are all String objects) and assigns it to <code>v</code>.</p>
  * <listing>
- *  var v:Vector.<String>;
- *  v = new Vector.<String>();
+ *  var v:Vector.&lt;String&gt;;
+ *  v = new Vector.&lt;String&gt;();
  * </listing>
- * <p>A variable declared with the Vector.<T> data type can only store a Vector instance that is constructed with the same base type <code>T</code>. For example, a Vector that's constructed by calling <code>new Vector.<String>()</code> can't be assigned to a variable that's declared with the Vector.<int> data type. The base types must match exactly. For example, the following code doesn't compile because the object's base type isn't the same as the variable's declared base type (even though Sprite is a subclass of DisplayObject):</p>
+ * <p>A variable declared with the Vector.&lt;T&gt; data type can only store a Vector instance that is constructed with the same base type <code>T</code>. For example, a Vector that's constructed by calling <code>new Vector.&lt;String&gt;()</code> can't be assigned to a variable that's declared with the Vector.<int> data type. The base types must match exactly. For example, the following code doesn't compile because the object's base type isn't the same as the variable's declared base type (even though Sprite is a subclass of DisplayObject):</p>
  * <listing>
  *  // This code doesn't compile even though Sprite is a DisplayObject subclass
- *  var v:Vector.<DisplayObject> = new Vector.<Sprite>();
+ *  var v:Vector.&lt;DisplayObject&gt; = new Vector.&lt;Sprite&gt;();
  * </listing>
  * <p>To convert a Vector with base type <code>T</code> to a Vector of a superclass of <code>T</code>, use the <code>Vector()</code> global function.</p>
  * <p>In addition to the data type restriction, the Vector class has other restrictions that distinguish it from the Array class:</p>
@@ -70,28 +70,28 @@ public final dynamic class Vector$object {
 
   /**
    * Creates a Vector with the specified base type.
-   * <p>When calling the <code>Vector.<T>()</code> constructor, specify the base type using type parameter syntax. Type parameter syntax is a sequence consisting of a dot (<code>.</code>), left angle bracket (<code><</code>), class name, then a right angle bracket (<code>></code>), as shown in this example:</p>
+   * <p>When calling the <code>Vector.&lt;T&gt;()</code> constructor, specify the base type using type parameter syntax. Type parameter syntax is a sequence consisting of a dot (<code>.</code>), left angle bracket (<code><</code>), class name, then a right angle bracket (<code>></code>), as shown in this example:</p>
    * <listing>
-   *      var v:Vector.<String> = new Vector.<String>();
+   *      var v:Vector.&lt;String&gt; = new Vector.&lt;String&gt;();
    *     </listing>
    * <p>To create a Vector instance from an Array or another Vector (such as one with a different base type), use the <code>Vector()</code> global function.</p>
    * <p>To create a pre-populated Vector instance, use the following syntax instead of using the parameters specified below:</p>
    * <listing>
-   *      // var v:Vector.<T> = new <T>[E0, ..., En-1 ,];
+   *      // var v:Vector.&lt;T&gt; = new &lt;T&gt;[E0, ..., En-1 ,];
    *      // For example:
-   *      var v:Vector.<int> = new <int>[0,1,2,];
+   *      var v:Vector.&lt;int&gt; = new &lt;int&gt;[0,1,2,];
    *     </listing>
    * <p>The following information applies to this syntax:</p>
    * <ul>
    * <li>It is supported in Flash Professional CS5 and later, Flash Builder 4 and later, and Flex 4 and later.</li>
    * <li>The trailing comma is optional.</li>
-   * <li>Empty items in the array are not supported; a statement such as <code>var v:Vector.<int> = new <int>[0,,2,]</code> throws a compiler error.</li>
+   * <li>Empty items in the array are not supported; a statement such as <code>var v:Vector.&lt;int&gt; = new &lt;int&gt;[0,,2,]</code> throws a compiler error.</li>
    * <li>You can't specify a default length for the Vector instance. Instead, the length is the same as the number of elements in the initialization list.</li>
    * <li>You can't specify whether the Vector instance has a fixed length. Instead, use the <code>fixed</code> property.</li>
    * <li>Data loss or errors can occur if items passed as values don't match the specified type. For example:</li>
    * <li>
    * <listing>
-   *      var v:Vector.<int> = new <int>[4.2]; // compiler error when running in strict mode
+   *      var v:Vector.&lt;int&gt; = new &lt;int&gt;[4.2]; // compiler error when running in strict mode
    *      trace(v[0]); //returns 4 when not running in strict mode
    *     </listing></li></ul>
    * @param length The initial length (number of elements) of the Vector. If this parameter is greater than zero, the specified number of Vector elements are created and populated with the default value appropriate to the base type (<code>null</code> for reference types).
@@ -118,7 +118,7 @@ public final dynamic class Vector$object {
    * Executes a test function on each item in the Vector until an item is reached that returns <code>false</code> for the specified function. You use this method to determine whether all items in a Vector meet a criterion, such as having values less than a particular number.
    * <p>For this method, the second parameter, <code>thisObject</code>, must be <code>null</code> if the first parameter, <code>callback</code>, is a method closure. That is the most common way of using this method.</p>
    * <p>However, suppose you create a function on a frame on the main timeline using Flash Professional, but you want it to be called in a different <code>this</code> context:</p>
-   * <pre>    function myFunction(item:T, index:int, vector:Vector.<T>):Boolean {
+   * <pre>    function myFunction(item:T, index:int, vector:Vector.&lt;T&gt;):Boolean {
    // your code here
    }
    </pre>
@@ -126,13 +126,13 @@ public final dynamic class Vector$object {
    * <pre>    myVector.every(myFunction, someObject);
    </pre>
    * <p>Because <code>myFunction</code> is a member of the main class of the SWF file, it cannot be executed in a different <code>this</code> context. Flash runtimes throw an exception when this code runs. You can avoid this runtime error by assigning the function to a variable, as follows:</p>
-   * <pre>    var myFunction:Function = function(item:T, index:int, vector:Vector.<T>):Boolean {
+   * <pre>    var myFunction:Function = function(item:T, index:int, vector:Vector.&lt;T&gt;):Boolean {
    //your code here
    };
    myVector.every(myFunction, someObject);
    </pre>
    * @param callback The function to run on each item in the Vector. This function is invoked with three arguments: the current item from the Vector, the index of the item, and the Vector object:
-   * <pre>function callback(item:T, index:int, vector:Vector.<T>):Boolean {
+   * <pre>function callback(item:T, index:int, vector:Vector.&lt;T&gt;):Boolean {
    // your code here
    }
    </pre>
@@ -150,21 +150,21 @@ public final dynamic class Vector$object {
    * Executes a test function on each item in the Vector and returns a new Vector containing all items that return <code>true</code> for the specified function. If an item returns <code>false</code>, it is not included in the result Vector. The base type of the return Vector matches the base type of the Vector on which the method is called.
    * <p>For this method, the second parameter, <code>thisObject</code>, must be <code>null</code> if the first parameter, <code>callback</code>, is a method closure. That is the most common way of using this method.</p>
    * <p>However, suppose you create a function on a frame on the main timeline using Flash Professional, but you want it to be called in a different <code>this</code> context:</p>
-   * <pre>     function myFunction(item:T, index:int, vector:Vector.<T>):Boolean {
+   * <pre>     function myFunction(item:T, index:int, vector:Vector.&lt;T&gt;):Boolean {
    // your code here
    }
    </pre>
    * <p>Suppose you then use the <code>filter()</code> method on a Vector called <code>myVector</code>:</p>
-   * <pre>     var result:Vector.<T> = myVector.filter(myFunction, someObject);
+   * <pre>     var result:Vector.&lt;T&gt; = myVector.filter(myFunction, someObject);
    </pre>
    * <p>Because <code>myFunction</code> is a member of the main class of the SWF file, it cannot be executed in a different <code>this</code> context. Flash runtimes throw an exception when this code runs. You can avoid this runtime error by assigning the function to a variable, as follows:</p>
-   * <pre>     var myFunction:Function = function(item:T, index:int, vector:Vector.<T>):Boolean {
+   * <pre>     var myFunction:Function = function(item:T, index:int, vector:Vector.&lt;T&gt;):Boolean {
    //your code here
    };
    myVector.filter(myFunction, someObject);
    </pre>
    * @param callback The function to run on each item in the Vector. This function is invoked with three arguments: the current item from the Vector, the index of the item, and the Vector object:
-   * <pre>function callback(item:T, index:int, vector:Vector.<T>):Boolean;</pre>
+   * <pre>function callback(item:T, index:int, vector:Vector.&lt;T&gt;):Boolean;</pre>
    * @param thisObject The object that the identifer <code>this</code> in the callback function refers to when the function is called.
    *
    * @return A new Vector that contains all items from the original Vector for which the <code>callback</code> function returned <code>true</code>.
@@ -178,7 +178,7 @@ public final dynamic class Vector$object {
    * Executes a function on each item in the Vector.
    * <p>For this method, the second parameter, <code>thisObject</code>, must be <code>null</code> if the first parameter, <code>callback</code>, is a method closure. That is the most common way of using this method.</p>
    * <p>However, suppose you create a function on a frame on the main timeline using Flash Professional, but you want it to be called in a different <code>this</code> context:</p>
-   * <pre>     function myFunction(item:T, index:int, vector:Vector.<T>):void {
+   * <pre>     function myFunction(item:T, index:int, vector:Vector.&lt;T&gt;):void {
    // your code here
    }
    </pre>
@@ -186,13 +186,13 @@ public final dynamic class Vector$object {
    * <pre>     myVector.forEach(myFunction, someObject);
    </pre>
    * <p>Because <code>myFunction</code> is a member of the main class of the SWF file, it cannot be executed in a different <code>this</code> context. Flash runtimes throw an exception when this code runs. You can avoid this runtime error by assigning the function to a variable, as follows:</p>
-   * <pre>     var myFunction:Function = function(item:T, index:int, vector:Vector.<T>):void {
+   * <pre>     var myFunction:Function = function(item:T, index:int, vector:Vector.&lt;T&gt;):void {
    //your code here
    };
    myVector.forEach(myFunction, someObject);
    </pre>
    * @param callback The function to run on each item in the Vector. This function is invoked with three arguments: the current item from the Vector, the index of the item, and the Vector object:
-   * <pre>function callback(item:T, index:int, vector:Vector.<T>):void;</pre>
+   * <pre>function callback(item:T, index:int, vector:Vector.&lt;T&gt;):void;</pre>
    * <p>Any return value from the function call is discarded.</p>
    * @param thisObject The object that the identifer <code>this</code> in the callback function refers to when the function is called.
    *
@@ -241,7 +241,7 @@ public final dynamic class Vector$object {
    * Executes a function on each item in the Vector, and returns a new Vector of items corresponding to the results of calling the function on each item in this Vector. The result Vector has the same base type and <code>length</code> as the original Vector. The element at index <code>i</code> in the result Vector is the result of the call on the element at index <code>i</code> in the original Vector.
    * <p>For this method, the second parameter, <code>thisObject</code>, must be <code>null</code> if the first parameter, <code>callback</code>, is a method closure. That is the most common way of using this method.</p>
    * <p>However, suppose you create a function on a frame on the main timeline, using Flash Professional but you want it to be called in a different <code>this</code> context:</p>
-   * <pre>     function myFunction(item:Object, index:int, vector:Vector.<T>):T {
+   * <pre>     function myFunction(item:Object, index:int, vector:Vector.&lt;T&gt;):T {
    // your code here
    }
    </pre>
@@ -249,13 +249,13 @@ public final dynamic class Vector$object {
    * <pre>     myVector.map(myFunction, someObject);
    </pre>
    * <p>Because <code>myFunction</code> is a member of the main class of the SWF file, it cannot be executed in a different <code>this</code> context. Flash runtimes throw an exception when this code runs. You can avoid this runtime error by assigning the function to a variable, as follows:</p>
-   * <pre>     var myFunction:Function = function(item:T, index:int, vector:Vector.<T>):void {
+   * <pre>     var myFunction:Function = function(item:T, index:int, vector:Vector.&lt;T&gt;):void {
    //your code here
    };
    myVector.map(myFunction, someObject);
    </pre>
    * @param callback The function to run on each item in the Vector. This function is invoked with three arguments: the current item from the Vector, the index of the item, and the Vector object:
-   * <pre>function callback(item:T, index:int, vector:Vector.<T>):T;</pre>
+   * <pre>function callback(item:T, index:int, vector:Vector.&lt;T&gt;):T;</pre>
    * @param thisObject The object that the identifer <code>this</code> in the callback function refers to when the function is called.
    *
    * @return A new Vector that contains the results of calling the function on each item in this Vector. The result Vector has the same base type and <code>length</code> as the original.
@@ -330,7 +330,7 @@ public final dynamic class Vector$object {
    * Executes a test function on each item in the Vector until an item is reached that returns <code>true</code>. Use this method to determine whether any items in a Vector meet a criterion, such as having a value less than a particular number.
    * <p>For this method, the second parameter, <code>thisObject</code>, must be <code>null</code> if the first parameter, <code>callback</code>, is a method closure. That is the most common way of using this method.</p>
    * <p>However, suppose you create a function on a frame on the main timeline, but you want it to be called in a different <code>this</code> context:</p>
-   * <pre>     function myFunction(item:Object, index:int, vector:Vector.<T>):Boolean {
+   * <pre>     function myFunction(item:Object, index:int, vector:Vector.&lt;T&gt;):Boolean {
    // your code here
    }
    </pre>
@@ -338,13 +338,13 @@ public final dynamic class Vector$object {
    * <pre>     myVector.some(myFunction, someObject);
    </pre>
    * <p>Because <code>myFunction</code> is a member of the main class of the SWF file, it cannot be executed in a different <code>this</code> context. Flash runtimes throw an exception when this code runs. You can avoid this runtime error by assigning the function to a variable, as follows:</p>
-   * <pre>     var myFunction:Function = function(item:T, index:int, vector:Vector.<T>):Boolean {
+   * <pre>     var myFunction:Function = function(item:T, index:int, vector:Vector.&lt;T&gt;):Boolean {
    //your code here
    };
    myVector.some(myFunction, someObject);
    </pre>
    * @param callback The function to run on each item in the Vector. This function is invoked with three arguments: the current item from the Vector, the index of the item, and the Vector object:
-   * <pre>function callback(item:T, index:int, vector:Vector.<T>):Boolean</pre>
+   * <pre>function callback(item:T, index:int, vector:Vector.&lt;T&gt;):Boolean</pre>
    * <p>The callback function should return a Boolean value.</p>
    * @param thisObject The object that the identifer <code>this</code> in the callback function refers to when the function is called.
    *
