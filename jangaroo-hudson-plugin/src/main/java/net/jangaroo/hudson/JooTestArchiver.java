@@ -78,9 +78,6 @@ public class JooTestArchiver extends MavenReporter {
     if (!isJooTest(mojo)) {
       return true;
     }
-
-    listener.getLogger().println("Zeichne JOO auf");
-
     File reportsDir;
     try {
       reportsDir = mojo.getConfigurationValue("testResultOutputDirectory", File.class);
