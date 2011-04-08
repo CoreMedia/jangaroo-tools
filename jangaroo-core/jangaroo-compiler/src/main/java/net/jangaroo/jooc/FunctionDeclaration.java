@@ -49,7 +49,7 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
 
   public FunctionDeclaration(JooSymbol[] modifiers, JooSymbol symFunction, JooSymbol symGetOrSet, Ide ide, JooSymbol lParen,
                              Parameters params, JooSymbol rParen, TypeRelation optTypeRelation, Statement optBody) {
-    super(modifiers, defaultAllowedMethodModifers, ide, optTypeRelation);
+    super(modifiers, ide, optTypeRelation);
     this.symFunction = symFunction;
     this.symGetOrSet = symGetOrSet;
     if (isGetterOrSetter() && !(isGetter() || isSetter())) {
@@ -60,6 +60,7 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
     this.rParen = rParen;
     this.optBody = optBody;
   }
+
 
   public boolean overrides() {
     return (getModifiers() & MODIFIER_OVERRIDE) != 0;
@@ -103,14 +104,50 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
   }
 
   @Override
-  public void scope(final Scope scope) {
+  public void scope(Scope scope) {
+    if (isClassMember()) {
+      scopeMethod(scope);
+    } else {
+      scopeFunction(scope);
+    }
+  }
+
+  public void scopeFunction(final Scope scope) {
+    parentDeclaration = scope.getClassDeclaration();
+    if (parentDeclaration == null) {
+      AstNode declaration = scope.getDefiningNode();
+      if (declaration instanceof IdeDeclaration) {
+        parentDeclaration = (IdeDeclaration) declaration;
+      }
+    }
+    if (ide != null) {
+      IdeDeclaration decl = new VariableDeclaration(null, ide, null, null);
+      decl.scope(scope);
+    }
+    withNewDeclarationScope(this, scope, new Scoped() {
+      public void run(final Scope scope) {
+        new Parameter(null, FunctionExpr.ARGUMENTS_IDE, null, null).scope(scope); // is always defined inside a function!
+        withNewDeclarationScope(FunctionDeclaration.this, scope, new Scoped() {
+          public void run(final Scope scope) {
+            if (params != null) {
+              params.scope(scope);
+            }
+            if (optTypeRelation != null) {
+              optTypeRelation.scope(scope);
+            }
+            optBody.scope(scope);
+          }
+        });
+      }
+    });
+  }
+
+  public void scopeMethod(final Scope scope) {
     final ClassDeclaration classDeclaration = scope.getClassDeclaration();
     Ide oldIde = ide;
     if (classDeclaration != null && ide.getName().equals(classDeclaration.getName())) {
       isConstructor = true;
       classDeclaration.setConstructor(this);
-      allowedModifiers = MODIFIERS_SCOPE | MODIFIER_NATIVE;
-      computeModifiers();
       ide = null; // do NOT declare constructor ide in scope, as it would override the class, is not inherited, etc.!
     }
     super.scope(scope);
@@ -190,6 +227,11 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
       optBody.analyze(this, context);
     }
     return this;
+  }
+
+  @Override
+  protected int getAllowedModifiers() {
+    return isConstructor() ? MODIFIERS_SCOPE | MODIFIER_NATIVE : defaultAllowedMethodModifers;
   }
 
   @Override

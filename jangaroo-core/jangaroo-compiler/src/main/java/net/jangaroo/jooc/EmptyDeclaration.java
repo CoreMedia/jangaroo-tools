@@ -10,7 +10,7 @@ public class EmptyDeclaration extends Declaration {
   private JooSymbol symSemicolon;
 
   public EmptyDeclaration(JooSymbol symSemicolon) {
-    super(new JooSymbol[0], 0);
+    super(new JooSymbol[0]);
     this.symSemicolon = symSemicolon;
   }
 

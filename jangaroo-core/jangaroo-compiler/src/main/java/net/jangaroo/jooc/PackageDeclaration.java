@@ -26,7 +26,7 @@ public class PackageDeclaration extends IdeDeclaration  {
   JooSymbol symPackage;
 
   public PackageDeclaration(JooSymbol symPackage, Ide ide) {
-    super(new JooSymbol[0], 0, ide);
+    super(ide);
     this.symPackage = symPackage;
   }
 

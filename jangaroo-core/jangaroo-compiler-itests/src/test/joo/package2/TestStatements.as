@@ -275,8 +275,3 @@ label:
 
 }
 
-import package2.TestStatements;
-
-TestStatements.s = 1 + 2;
-
-import package2.TestInclude;

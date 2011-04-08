@@ -58,14 +58,17 @@ public class ClassDeclaration extends IdeDeclaration {
   }
 
   public ClassDeclaration(List<AstNode> directives, JooSymbol[] modifiers, JooSymbol cls, Ide ide, Extends ext, Implements impl, ClassBody body) {
-    super(modifiers,
-      MODIFIER_ABSTRACT | MODIFIER_FINAL | MODIFIERS_SCOPE | MODIFIER_STATIC | MODIFIER_DYNAMIC,
-      ide);
+    super(modifiers, ide);
     this.directives = directives;
     this.symClass = cls;
     this.optExtends = ext;
     this.optImplements = impl;
     this.body = body;
+  }
+
+  @Override
+  protected int getAllowedModifiers() {
+    return MODIFIER_ABSTRACT | MODIFIER_FINAL | MODIFIERS_SCOPE | MODIFIER_STATIC | MODIFIER_DYNAMIC;
   }
 
   public boolean isInterface() {
@@ -249,17 +252,17 @@ public class ClassDeclaration extends IdeDeclaration {
     // one scope for static members...
     withNewDeclarationScope(this, scope, new Scoped() {
       @Override
-      public void run(final Scope scope) {
+      public void run(final Scope staticScope) {
         // ...and one scope for instance members!
-        withNewDeclarationScope(ClassDeclaration.this, scope, new Scoped() {
+        withNewDeclarationScope(ClassDeclaration.this, staticScope, new Scoped() {
           @Override
-          public void run(final Scope scope) {
-            for (IdeDeclaration secondaryDeclaration : secondaryDeclarations) {
-              secondaryDeclaration.scope(scope);
-            }
-            body.scope(scope);
+          public void run(final Scope instanceScope) {
+            body.scope(staticScope, instanceScope);
           }
         });
+        for (IdeDeclaration secondaryDeclaration : secondaryDeclarations) {
+          secondaryDeclaration.scope(staticScope); //todo is this the correct scope?!
+        }
       }
     });
   }

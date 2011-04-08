@@ -21,13 +21,19 @@ import java.io.IOException;
  * @author Andreas Gawecki
  * @author Frank Wienberg
  */
-public class ImportDirective extends NodeImplBase {
+public class ImportDirective extends Directive {
 
   private static final JooSymbol IMPORT_SYMBOL = new JooSymbol(sym.IMPORT, "import");
   private static final JooSymbol DOT_SYMBOL = new JooSymbol(sym.DOT, ".");
 
   JooSymbol importKeyword;
   Ide ide;
+
+  /**
+   * null if not explicit
+   */
+  JooSymbol symSemicolon;
+
   private final boolean explicit;
 
   private static Ide createIde(Ide prefix, JooSymbol symIde) {
@@ -38,8 +44,9 @@ public class ImportDirective extends NodeImplBase {
     this(IMPORT_SYMBOL, createIde(packageIde, new JooSymbol(typeName)), false);
   }
 
-  public ImportDirective(JooSymbol importKeyword, Ide ide) {
+  public ImportDirective(JooSymbol importKeyword, Ide ide, JooSymbol symSemicolon) {
     this(importKeyword, ide, true);
+    this.symSemicolon = symSemicolon;
   }
 
   private ImportDirective(JooSymbol importKeyword, Ide ide, boolean explicit) {
@@ -62,6 +69,7 @@ public class ImportDirective extends NodeImplBase {
     if (explicit) {
       out.writeSymbol(importKeyword);
       ide.generateCode(out);
+      out.writeSymbol(symSemicolon);
     }
     // else skip it
   }
@@ -72,6 +80,7 @@ public class ImportDirective extends NodeImplBase {
       out.beginComment();
       out.writeSymbol(importKeyword);
       ide.generateCode(out);
+      out.writeSymbol(symSemicolon);
       out.endComment();
     }
   }

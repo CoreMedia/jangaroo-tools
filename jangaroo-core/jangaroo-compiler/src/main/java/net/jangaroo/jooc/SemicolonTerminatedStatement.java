@@ -75,6 +75,7 @@ class SemicolonTerminatedStatement extends Statement {
           if (params != null && params.tail == null) {
             AssertStatement assertStatement = new AssertStatement(funSymbol, args.lParen, params.head, args.rParen, optSymSemicolon);
             assertStatement.analyze(parentNode, context);
+            //todo this is the only case where analyze() returns something different than 'this' - think of other ways to do this than tree rewriting
             return assertStatement;
           }
         }

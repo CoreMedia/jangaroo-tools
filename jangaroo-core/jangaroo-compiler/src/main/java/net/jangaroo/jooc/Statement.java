@@ -15,8 +15,18 @@
 
 package net.jangaroo.jooc;
 
+import java.io.IOException;
+
 /**
+ * Statements are language elements that perform or specify an action at runtime.
+ *
  * @author Andreas Gawecki
  */
-abstract class Statement extends NodeImplBase {
+abstract class Statement extends Directive {
+
+  @Override
+  protected void generateAsApiCode(final JsWriter out) throws IOException {
+    //skip it
+  }
+
 }

@@ -15,7 +15,6 @@
 
 package net.jangaroo.jooc;
 
-import javax.naming.OperationNotSupportedException;
 import java.io.IOException;
 
 /**
@@ -26,7 +25,12 @@ public class PredefinedTypeDeclaration extends IdeDeclaration {
   //todo define well-known types as final consts here
 
   public PredefinedTypeDeclaration(final String name) {
-    super(new JooSymbol[]{}, MODIFIER_PUBLIC, new Ide(new JooSymbol(name)));
+    super(new Ide(new JooSymbol(name)));
+  }
+
+  @Override
+  protected int getAllowedModifiers() {
+    return MODIFIER_PUBLIC;
   }
 
   @Override

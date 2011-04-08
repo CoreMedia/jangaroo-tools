@@ -23,8 +23,8 @@ public abstract class TypedIdeDeclaration extends IdeDeclaration {
   private JooSymbol namespace;
   TypeRelation optTypeRelation;
 
-  public TypedIdeDeclaration(JooSymbol[] modifiers, int allowedModifiers, Ide ide, TypeRelation optTypeRelation) {
-    super(modifiers, allowedModifiers, ide);
+  public TypedIdeDeclaration(JooSymbol[] modifiers, Ide ide, TypeRelation optTypeRelation) {
+    super(modifiers, ide);
     this.namespace = findNamespace(modifiers);
     this.optTypeRelation = optTypeRelation;
   }
@@ -49,10 +49,6 @@ public abstract class TypedIdeDeclaration extends IdeDeclaration {
       optTypeRelation.scope(scope);
     }
     ClassDeclaration classDeclaration = scope.getClassDeclaration();
-    if (classDeclaration == scope.getDefiningNode() && isStatic()) {
-      // back out one scope in order to store static members in a different scope:
-      scope = scope.getParentScope();
-    }
     super.scope(scope);
     if (isClassMember()) {
       if (classDeclaration != null) {

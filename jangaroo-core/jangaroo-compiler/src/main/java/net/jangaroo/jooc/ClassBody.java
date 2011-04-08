@@ -1,5 +1,5 @@
 /*
- * Copyright 2008 CoreMedia AG
+ * Copyright 2011 CoreMedia AG
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); 
  * you may not use this file except in compliance with the License. 
@@ -16,46 +16,64 @@
 package net.jangaroo.jooc;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * @author Andreas Gawecki
  */
-public class ClassBody extends NodeImplBase {
+public class ClassBody extends AbstractBlock {
 
-  private BlockStatement block;
 
-  public BlockStatement getBlock() {
-    return block;
+  public ClassBody(JooSymbol lBrace, List<Directive> directives, JooSymbol rBrace) {
+    super(rBrace, directives, lBrace);
+    for (Directive directive :directives) {
+      directive.setClassMember(true);
+    }
   }
 
-  public ClassBody(BlockStatement block) {
-    this.block = block;
+  public void scope(Scope staticScope, Scope instanceScope) {
+    for (Directive directive : directives) {
+      directive.scope(directive.isStatic() ? staticScope : instanceScope);
+    }
   }
 
   @Override
-  public void scope(final Scope scope) {
-     block.scope(scope);
-  }
-
-  @Override
-  protected void generateAsApiCode(final JsWriter out) throws IOException {
-    block.generateAsApiCode(out);
+  protected void generateAsApiCode(JsWriter out) throws IOException {
+    out.writeSymbol(lBrace);
+    for (Directive directive : directives) {
+      directive.generateAsApiCode(out);
+    }
+    out.writeSymbol(rBrace);
   }
 
   protected void generateJsCode(JsWriter out) throws IOException {
-    out.writeSymbolWhitespace(block.lBrace);
-    generateCode(block.statements, out);
-    out.writeSymbolWhitespace(block.rBrace);
+    out.writeSymbolWhitespace(lBrace);
+    boolean inStaticInitializerBlock = false;
+    for (Directive directive : directives) {
+      final boolean isStaticInitializer = !(directive instanceof Declaration); //todo handle directives which are not statements
+      if (isStaticInitializer) {
+        inStaticInitializerBlock = beginStaticInitializer(out, inStaticInitializerBlock);
+      } else {
+        inStaticInitializerBlock = endStaticInitializer(out, inStaticInitializerBlock);
+      }
+      directive.generateJsCode(out);
+    }
+    endStaticInitializer(out, inStaticInitializerBlock);
+    out.writeSymbolWhitespace(rBrace);
   }
 
-  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
-    super.analyze(parentNode, context);
-    block.analyze(this, context);
-    return this;
+  private boolean beginStaticInitializer(JsWriter out, boolean inStaticInitializerBlock) throws IOException {
+    if (!inStaticInitializerBlock) {
+      out.writeToken("function(){");
+    }
+    return true;
   }
 
-  public JooSymbol getSymbol() {
-    return block.lBrace;
+  private boolean endStaticInitializer(JsWriter out, boolean inStaticInitializerBlock) throws IOException {
+    if (inStaticInitializerBlock) {
+      out.writeToken("},");
+    }
+    return false;
   }
 
 }

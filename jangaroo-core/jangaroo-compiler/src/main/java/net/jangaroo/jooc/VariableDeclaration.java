@@ -32,42 +32,70 @@ public class VariableDeclaration extends TypedIdeDeclaration {
   JooSymbol optSymSemicolon;
 
   public VariableDeclaration(JooSymbol[] modifiers,
-                             JooSymbol symConstOrVar,
+                             JooSymbol optSymConstOrVar,
                              Ide ide,
-                             TypeRelation optTypeRelation, Initializer optInitializer,
+                             TypeRelation optTypeRelation,
+                             Initializer optInitializer,
                              VariableDeclaration optNextVariableDeclaration,
-                             JooSymbol optSymSemicolon
-  ) {
-    this(modifiers, MODIFIERS_SCOPE | MODIFIER_STATIC,
-            symConstOrVar, ide, optTypeRelation, optInitializer, optNextVariableDeclaration, optSymSemicolon);
+                             JooSymbol optSymSemicolon  ) {
     // inherit modifiers of first declaration to those following this declaration
+    super(modifiers, ide, optTypeRelation);
+    this.optSymConstOrVar = optSymConstOrVar;
+    this.optInitializer = optInitializer;
+    this.optNextVariableDeclaration = optNextVariableDeclaration;
+    this.optSymSemicolon = optSymSemicolon;
     if (optSymSemicolon != null && optNextVariableDeclaration != null) {
       optNextVariableDeclaration.setInheritedModifiers(modifiers);
     }
   }
 
-  protected VariableDeclaration(JooSymbol[] modifiers,
-                                int allowedModifiers,
-                                JooSymbol optSymConstOrVar,
-                                Ide ide,
-                                TypeRelation optTypeRelation,
-                                Initializer optInitializer,
-                                VariableDeclaration optNextVariableDeclaration,
-                                JooSymbol optSymSemicolon
-  ) {
-    super(modifiers, allowedModifiers, ide, optTypeRelation);
-    this.optSymConstOrVar = optSymConstOrVar;
-    this.optInitializer = optInitializer;
-    this.optNextVariableDeclaration = optNextVariableDeclaration;
-    this.optSymSemicolon = optSymSemicolon;
+  protected int getAllowedModifiers() {
+    return MODIFIERS_SCOPE | MODIFIER_STATIC;
   }
 
+  public VariableDeclaration(JooSymbol symConstOrVar,
+                             Ide ide,
+                             TypeRelation optTypeRelation,
+                             Initializer optInitializer,
+                             VariableDeclaration optNextVariableDeclaration,
+                             JooSymbol optSymSemicolon) {
+    this(new JooSymbol[0], symConstOrVar, ide, optTypeRelation, optInitializer, optNextVariableDeclaration, optSymSemicolon);
+  }
+
+  public VariableDeclaration(JooSymbol symConstOrVar,
+                             Ide ide,
+                             TypeRelation optTypeRelation,
+                             Initializer optInitializer,
+                             VariableDeclaration optNextVariableDeclaration) {
+    this(symConstOrVar, ide, optTypeRelation, optInitializer, optNextVariableDeclaration, null);
+  }
+
+  public VariableDeclaration(JooSymbol symConstOrVar,
+                             Ide ide,
+                             TypeRelation optTypeRelation,
+                             Initializer optInitializer) {
+    this(symConstOrVar, ide, optTypeRelation, optInitializer, null);
+  }
+
+  public VariableDeclaration(JooSymbol symConstOrVar,
+                             Ide ide,
+                             TypeRelation optTypeRelation) {
+    this(symConstOrVar, ide, optTypeRelation, null, null, null);
+  }
 
   @Override
   protected void setInheritedModifiers(final JooSymbol[] modifiers) {
     super.setInheritedModifiers(modifiers);
     if (optNextVariableDeclaration != null) {
       optNextVariableDeclaration.setInheritedModifiers(modifiers);
+    }
+  }
+
+  @Override
+  public void setClassMember(boolean classMember) {
+    super.setClassMember(classMember);
+    if (optNextVariableDeclaration != null) {
+      optNextVariableDeclaration.setClassMember(classMember);
     }
   }
 
@@ -139,7 +167,7 @@ public class VariableDeclaration extends TypedIdeDeclaration {
     DEFAULT_VALUE_BY_TYPE.put("*", "undefined");
   }
 
-  protected void generateInitializerCode(JsWriter out) throws IOException {
+  protected void generateFieldInitializerCode(JsWriter out) throws IOException {
     if (optInitializer != null) {
       out.writeSymbolWhitespace(optInitializer.symEq);
       out.write(':');
@@ -187,6 +215,20 @@ public class VariableDeclaration extends TypedIdeDeclaration {
       generateFieldEndCode(out);
     } else {
       generateVarEndCode(out);
+    }
+  }
+
+  protected void generateInitializerCode(JsWriter out) throws IOException {
+    if (isClassMember()) {
+      generateFieldInitializerCode(out);
+    } else {
+      generateVarInitializerCode(out);
+    }
+  }
+
+  private void generateVarInitializerCode(JsWriter out) throws IOException {
+    if (optInitializer != null) {
+      optInitializer.generateCode(out);
     }
   }
 
@@ -241,8 +283,7 @@ public class VariableDeclaration extends TypedIdeDeclaration {
         optTypeRelation.generateCode(out);
       }
       if (optInitializer != null) {
-        out.writeSymbol(optInitializer.symEq);
-        optInitializer.value.generateCode(out);
+        optInitializer.generateAsApiCode(out);
       }
       if (optNextVariableDeclaration != null) {
         optNextVariableDeclaration.generateCode(out);
@@ -259,13 +300,6 @@ public class VariableDeclaration extends TypedIdeDeclaration {
 
   protected VariableDeclaration getPreviousVariableDeclaration() {
     return (VariableDeclaration) parentNode;
-  }
-
-  @Override
-  public boolean isClassMember() {
-    return super.isClassMember() ||
-            (parentNode instanceof VariableDeclaration &&
-                    ((VariableDeclaration) parentNode).isClassMember());
   }
 
   protected VariableDeclaration getFirstVariableDeclaration() {

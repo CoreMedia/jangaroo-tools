@@ -46,6 +46,14 @@ class Initializer extends NodeImplBase {
     value.generateCode(out);
   }
 
+  @Override
+  protected void generateAsApiCode(JsWriter out) throws IOException {
+    //todo clarify whether initializers are part of public API
+    if (value instanceof LiteralExpr) {
+      super.generateAsApiCode(out);
+    }
+  }
+
   public JooSymbol getSymbol() {
       return symEq;
   }

@@ -27,14 +27,16 @@ public abstract class IdeDeclaration extends Declaration {
 
   Ide ide;
 
-  private boolean isClassMember;
-
-  protected IdeDeclaration(JooSymbol[] modifiers, int allowedModifiers, Ide ide) {
-    super(modifiers, allowedModifiers);
+  protected IdeDeclaration(JooSymbol[] modifiers, Ide ide) {
+    super(modifiers);
     this.ide = ide;
     if (ide != null && PRIVATE_MEMBER_NAME.matcher(ide.getName()).matches()) {
       Jooc.warning(ide.getSymbol(), "Jangaroo identifier must not be an ActionScript identifier postfixed with a dollar sign ('$') followed by a number.");
     }
+  }
+
+  protected IdeDeclaration(Ide ide) {
+    this(new JooSymbol[0], ide);
   }
 
   public Ide getIde() {
@@ -97,17 +99,6 @@ public abstract class IdeDeclaration extends Declaration {
 
   public boolean isMethod() {
     return false;
-  }
-
-  public boolean isClassMember() {
-    mustBeAnalyzed();
-    return parentNode instanceof ClassBody;
-  }
-
-  private void mustBeAnalyzed() {
-    if (parentNode == null) {
-      throw new IllegalStateException("this AST node must be analyzed");
-    }
   }
 
   public boolean isConstructor() {

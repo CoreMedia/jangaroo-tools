@@ -17,20 +17,13 @@ package package2 {
 
 public class TestStaticAccess extends StaticAccessSuperClass {
 
-  static public var s1:String;
+  static public var s1:String = "s1";
   static private var s2:String = "s2";
 
   public function TestStaticAccess() {
   }
 
-  namespace n;
-
-  s1 = "s1";
-  n function m(n :int) { return n; }
-
-
   static public function get_s0():String {
-    var s : *=4;
     return s0;
   }
  

@@ -20,17 +20,19 @@ import java.io.IOException;
 /**
  * @author Frank Wienberg
  */
-public class UseNamespaceDirective extends NodeImplBase {
+public class UseNamespaceDirective extends Directive {
 
   JooSymbol useKeyword;
   JooSymbol namespaceKeyword;
   Ide namespace;
+  JooSymbol symSemicolon;
 
-  public UseNamespaceDirective(JooSymbol useKeyword, JooSymbol namespaceKeyword, Ide namespace) {
+  public UseNamespaceDirective(JooSymbol useKeyword, JooSymbol namespaceKeyword, Ide namespace, JooSymbol symSemicolon) {
     this.useKeyword = useKeyword;
     assert SyntacticKeywords.NAMESPACE.equals(namespaceKeyword.getText());
     this.namespaceKeyword = namespaceKeyword;
     this.namespace = namespace;
+    this.symSemicolon = symSemicolon;
   }
 
   @Override
@@ -55,6 +57,7 @@ public class UseNamespaceDirective extends NodeImplBase {
     out.writeSymbol(useKeyword);
     out.writeSymbol(namespaceKeyword);
     namespace.generateCode(out);
+    out.writeSymbol(symSemicolon);
     out.endComment();
   }
 
