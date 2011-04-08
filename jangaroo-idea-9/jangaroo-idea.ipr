@@ -325,11 +325,11 @@
   <component name="libraryTable">
     <library name="jangaroo-utils">
       <CLASSES>
-        <root url="jar://$MAVEN_REPOSITORY$/net/jangaroo/jangaroo-utils/0.8.1/jangaroo-utils-0.8.1.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/net/jangaroo/jangaroo-utils/0.8.3/jangaroo-utils-0.8.3.jar!/" />
       </CLASSES>
       <JAVADOC />
       <SOURCES>
-        <root url="jar://$MAVEN_REPOSITORY$/net/jangaroo/jangaroo-utils/0.8.1/jangaroo-utils-0.8.1-sources.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/net/jangaroo/jangaroo-utils/0.8.3/jangaroo-utils-0.8.3-sources.jar!/" />
       </SOURCES>
     </library>
   </component>
