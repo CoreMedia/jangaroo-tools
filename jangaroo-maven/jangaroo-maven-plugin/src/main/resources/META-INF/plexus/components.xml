@@ -1,7 +1,7 @@
 <component-set>
   <components>
 
-   <!--
+    <!--
        A custom artifact handler for javascript archives (jsar).
        This requires the plugin to be configured with <extensions> set to true
        on any project that uses javascript depedencies.
@@ -14,7 +14,7 @@
         <type>jangaroo</type>
         <extension>jar</extension>
         <language>jangaroo</language>
-        <addedToClasspath>true</addedToClasspath>
+        <addedToClasspath>false</addedToClasspath>
       </configuration>
     </component>
 
@@ -27,32 +27,23 @@
       <role-hint>jangaroo</role-hint>
       <implementation>org.apache.maven.lifecycle.mapping.DefaultLifecycleMapping</implementation>
       <configuration>
-        <lifecycles>
-          <lifecycle>
-            <id>default</id>
-            <phases>
-              <generate-sources>net.jangaroo:jangaroo-maven-plugin:${pom.version}:properties, net.jangaroo:ext-xml-maven-plugin:${pom.version}:extxml</generate-sources>
-              <process-resources>org.apache.maven.plugins:maven-resources-plugin:resources</process-resources>
-              <compile>net.jangaroo:jangaroo-maven-plugin:${pom.version}:compile</compile>
-              <generate-test-sources>net.jangaroo:ext-xml-maven-plugin:${pom.version}:test-extxml</generate-test-sources>
-              <generate-test-resources>net.jangaroo:jangaroo-maven-plugin:${pom.version}:unpack-jangaroo-test-dependencies</generate-test-resources>
-              <process-test-resources>org.apache.maven.plugins:maven-resources-plugin:testResources</process-test-resources>
-              <test-compile>net.jangaroo:jangaroo-maven-plugin:${pom.version}:testCompile</test-compile>
-              <test>net.jangaroo:jangaroo-maven-plugin:${pom.version}:test</test>
-              <package>net.jangaroo:jangaroo-maven-plugin:${pom.version}:package</package>
-              <verify>org.apache.maven.plugins:maven-source-plugin:jar</verify>
-              <install>org.apache.maven.plugins:maven-install-plugin:install</install>
-              <deploy>org.apache.maven.plugins:maven-deploy-plugin:deploy</deploy>
-            </phases>
-          </lifecycle>
-          <lifecycle>
-            <id>clean</id>
-            <phases>
-              <clean>org.apache.maven.plugins:maven-clean-plugin:clean</clean>
-            </phases>
-          </lifecycle>
-
-        </lifecycles>
+        <phases>
+          <generate-sources>net.jangaroo:jangaroo-maven-plugin:${pom.version}:properties,
+            net.jangaroo:ext-xml-maven-plugin:${pom.version}:extxml
+          </generate-sources>
+          <process-resources>org.apache.maven.plugins:maven-resources-plugin:resources</process-resources>
+          <compile>net.jangaroo:jangaroo-maven-plugin:${pom.version}:compile</compile>
+          <generate-test-sources>net.jangaroo:ext-xml-maven-plugin:${pom.version}:test-extxml</generate-test-sources>
+          <generate-test-resources>net.jangaroo:jangaroo-maven-plugin:${pom.version}:unpack-jangaroo-test-dependencies
+          </generate-test-resources>
+          <process-test-resources>org.apache.maven.plugins:maven-resources-plugin:testResources</process-test-resources>
+          <test-compile>net.jangaroo:jangaroo-maven-plugin:${pom.version}:testCompile</test-compile>
+          <test>net.jangaroo:jangaroo-maven-plugin:${pom.version}:test</test>
+          <package>net.jangaroo:jangaroo-maven-plugin:${pom.version}:package</package>
+          <verify>org.apache.maven.plugins:maven-source-plugin:jar</verify>
+          <install>org.apache.maven.plugins:maven-install-plugin:install</install>
+          <deploy>org.apache.maven.plugins:maven-deploy-plugin:deploy</deploy>
+        </phases>
       </configuration>
     </component>
   </components>
