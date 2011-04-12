@@ -556,13 +556,14 @@ public class JooTest extends JooRuntimeTestCase {
     expectString("foo", "obj.testInvokeParameterUnqualifiedPrivate()");
     expectString("foo", "obj.testInvokeObjectField()");
     expectString("foo", "obj.testLocalFunction()");
-    expectString("foo", "obj.testLocalFunctionUnqualified()");
     expectString("bar", "obj.testNotBound.call({getState: function(){return 'bar';}})");
     expectBoolean(true, "package1.TestBind.testStaticNotBound().call('bar')=='bar'");
     expectString("foo", "obj.testInvokeLocalVarMethod()");
     expectString("foo", "obj.testInvokeFieldMethod()");
-    expectString("foo", "obj.testInvokeFieldMethodThroughLocalFunction()");
-    expectString("foo", "obj.testInvokeFieldMethodThroughLocalFunctionUnqualified()");
+    eval("state = 'global';");
+    expectString("global", "obj.testUnboundThisInLocalFunction()");
+    expectString("bar", "obj.testThisInLocalFunction('bar')");
+    expectString("foo", "obj.testMemberInScopeOfLocalFunction()");
     expectString("foo", "obj.testReturn()");
     expectBoolean(true, "obj.testBindMethodInBinaryOpExpr()");
     expectString("undefined", "typeof obj.testBindNonExistentMethod()");

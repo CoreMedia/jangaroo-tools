@@ -74,16 +74,23 @@ public class TestBind {
     return invoke(test.getPrivateSlot);
   }
 
-  public function testInvokeFieldMethodThroughLocalFunction() : String {
+  public function testUnboundThisInLocalFunction(result : String) : String {
     function foo():String {
-      return this.getState();
+      return this.state;
     }
     return foo();
   }
 
-  public function testInvokeFieldMethodThroughLocalFunctionUnqualified() : String {
+  public function testThisInLocalFunction(result : String) : String {
     function foo():String {
-      return getState();
+      return this.state;
+    }
+    return foo.call({ state: result }) as String;
+  }
+
+  public function testMemberInScopeOfLocalFunction() : String {
+    function foo():String {
+      return state;
     }
     return foo();
   }
@@ -112,12 +119,6 @@ public class TestBind {
   }
 
   public function testLocalFunction() : String {
-    return invoke(function():String {
-      return this.getState();
-    });
-  }
-
-  public function testLocalFunctionUnqualified() : String {
     return invoke(function():String {
       return getState();
     });
