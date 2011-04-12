@@ -248,7 +248,7 @@ public abstract class JooRuntimeTestCase extends JooTestCase {
     String actual = null;
     if (result instanceof String)
       actual = (String) result;
-    else fail("expected string result, found: " + result.getClass().getName());
+    else fail("expected string result, found: " + (result == null ? "null" : result.getClass().getName()));
     if (!expected.equals(actual)) {
       if (actual.length() == expected.length()) {
         int i = 0;
