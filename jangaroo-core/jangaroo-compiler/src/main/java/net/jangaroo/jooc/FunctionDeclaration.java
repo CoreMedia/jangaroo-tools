@@ -152,16 +152,21 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
     withNewDeclarationScope(this, scope, new Scoped() {
       public void run(final Scope scope) {
         if (!isStatic()) {
-          ClassDeclaration currentClass = scope.getClassDeclaration();
-          if (classDeclaration != null) { // otherwise we are in a global function - todo parse them as function declaration
-            // declare this and super
-            final Type thisType = currentClass.getThisType();
-            new Parameter(null, new Ide("this"), new TypeRelation(null, thisType), null).scope(scope);
+          if (isMethod()) {
+            ClassDeclaration currentClass = scope.getClassDeclaration();
+            if (classDeclaration != null) { // otherwise we are in a global function - todo parse them as function declaration
+              // declare this and super
+              final Type thisType = currentClass.getThisType();
+              new Parameter(null, new Ide("this"), new TypeRelation(null, thisType), null).scope(scope);
 
-            final Type superType = currentClass.getSuperType();
-            if (superType != null) {
-              new Parameter(null, new Ide("super"), new TypeRelation(null, superType), null).scope(scope);
+              final Type superType = currentClass.getSuperType();
+              if (superType != null) {
+                new Parameter(null, new Ide("super"), new TypeRelation(null, superType), null).scope(scope);
+              }
             }
+          } else {
+            // an anonymous function allows usage of "this", but it is untyped:
+            new Parameter(null, new Ide("this"), null, null).scope(scope);
           }
         }
         new Parameter(null, FunctionExpr.ARGUMENTS_IDE, null, null).scope(scope); // is always defined inside a method!

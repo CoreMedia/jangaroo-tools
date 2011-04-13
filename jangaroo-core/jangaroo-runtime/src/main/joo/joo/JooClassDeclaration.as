@@ -324,8 +324,8 @@ public class JooClassDeclaration extends NativeClassDeclaration {
 
   internal function createInitializingStaticMethod(methodName : String) : void {
     this.publicConstructor[methodName] = function() : * {
-      this.init();
-      return this.constructor_[methodName].apply(null, arguments);
+      init();
+      return constructor_[methodName].apply(null, arguments);
     };
   }
 }

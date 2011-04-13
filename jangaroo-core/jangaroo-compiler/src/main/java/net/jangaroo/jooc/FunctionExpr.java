@@ -64,6 +64,8 @@ class FunctionExpr extends Expr {
     withNewDeclarationScope(this, scope, new Scoped() {
       public void run(final Scope scope) {
         new Parameter(null, ARGUMENTS_IDE, null, null).scope(scope); // is always defined inside a function!
+        // an anonymous function allows usage of "this", but it is untyped:
+        new Parameter(null, new Ide("this"), null, null).scope(scope);
         withNewDeclarationScope(FunctionExpr.this, scope, new Scoped() {
           public void run(final Scope scope) {
             if (params != null) {

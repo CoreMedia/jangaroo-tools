@@ -74,8 +74,7 @@ public class Ide extends NodeImplBase {
     return "this".equals(ide.getText());
   }
 
-  private boolean needsThisAtRuntime() {
-    if (isThis() || isSuper()) return true;
+  private boolean isNonStaticMember() {
     if (!isQualified() && isDeclared()) {
       IdeDeclaration decl = getDeclaration();
       return decl.isClassMember() && !decl.isStatic();
@@ -221,7 +220,7 @@ public class Ide extends NodeImplBase {
   }
 
   public void analyzeAsExpr(AstNode exprParent, Expr parentExpr, final AnalyzeContext context) {
-    if (needsThisAtRuntime()) {
+    if (isNonStaticMember()) {
       FunctionExpr funExpr = scope.getFunctionExpr();
       if (funExpr != null) {
         rewriteThis = funExpr.notifyThisUsed(scope);
@@ -312,7 +311,7 @@ public class Ide extends NodeImplBase {
   protected void generateCodeAsExpr(final JsWriter out) throws IOException {
     out.writeSymbolWhitespace(ide);
     if (isSuper() || isThis()) {
-      writeThis(out);
+      out.writeToken("this");
       return;
     }
     IdeDeclaration decl = getDeclaration(false);

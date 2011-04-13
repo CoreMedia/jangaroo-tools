@@ -74,8 +74,8 @@ public class DynamicClassLoader extends StandardClassLoader {
     this.onCompleteCallbacks = [];
     // "invoke later":
     getQualifiedObject("setTimeout")(function() : void {
-      this.completeAll();
-      this.internalDoCompleteCallbacks(onCompleteCallbacks);
+      completeAll();
+      internalDoCompleteCallbacks(onCompleteCallbacks);
     }, 0);
   }
 
@@ -86,7 +86,7 @@ public class DynamicClassLoader extends StandardClassLoader {
   // separate factory function to move the anonymous function out of the caller's scope:
   private function createClassLoadErrorHandler(fullClassName:String, url:String):Function {
     return function():void {
-      this.classLoadErrorHandler(fullClassName, url);
+      classLoadErrorHandler(fullClassName, url);
     };
   }
 
