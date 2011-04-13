@@ -314,7 +314,6 @@ public class JooClassDeclaration extends NativeClassDeclaration {
   }
 
   private static function createInitializingConstructor(classDeclaration : JooClassDeclaration) : Function {
-    // anonymous function has to be inside a static function, or jooc will replace "this" with "this$":
     return function() : void {
       classDeclaration.init();
       // classDeclaration.constructor_ must have been set, at least to a default constructor:
