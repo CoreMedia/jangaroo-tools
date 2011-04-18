@@ -58,6 +58,10 @@ public class FunctionExpr extends Expr {
     implicitParams.add(new Parameter(null, ARGUMENTS_IDE, null, null));
   }
 
+  public FunctionDeclaration getFunctionDeclaration() {
+    return functionDeclaration;
+  }
+
   public Parameters getParams() {
     return params;
   }

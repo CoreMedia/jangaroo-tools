@@ -229,10 +229,16 @@ public class Ide extends NodeImplBase {
     }
     if (isSuper()) {
       FunctionDeclaration currentMethod = getScope().getMethodDeclaration();
-      if (currentMethod == null)
+      if (currentMethod == null) {
         throw Jooc.error(ide, "use of super is only allowed within non-static methods");
-      if (currentMethod.isStatic())
+      }
+      if (currentMethod.isStatic()) {
         throw Jooc.error(ide, "use of super inside static method");
+      }
+      FunctionExpr currentFunction = getScope().getFunctionExpr();
+      if (currentFunction.getFunctionDeclaration() != currentMethod) {
+        throw Jooc.error(ide, "super calls might only be used within instance methods, not in local functions");
+      }
       //todo check whether super method exists and is non-static
     }
     checkDefinedAccessChain();
