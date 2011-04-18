@@ -1,13 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="My Component Builder" basedir=".">
-  <property name="flex.version" value="flex_sdk_4.1"/>
-  <property name="flex.version" value="flex_sdk_3.5.0.12683"/>
-  <property name="FLEX_HOME" value="C:/Users/agawecki/Programme/${flex.version}"/>
-  <property name="DEPLOY_DIR" value="C:/Users/agawecki/temp"/>
-  <property name="COMPONENT_ROOT" value="components"/>
-  <taskdef resource="flexTasks.tasks"
-           classpath="C:/Users/agawecki/Programme/${flex.version}/ant/lib/flexTasks.jar"/>
 
+  <property name="flextest.version" value="flex_sdk_4.1"/>
+
+  <property name="FLEX_HOME" value="C:/Users/agawecki/Programme/${flextest.version}"/>
+  <property name="COMPONENT_ROOT" value="components"/>
+  <property name="FLASH_PLAYER.EXE" value="${FLEX_HOME}/runtimes/player/10.1/win/FlashPlayerDebugger.exe"/>
+
+  <property name="DEPLOY_DIR" value="C:/git/jangaroo-tools/jangaroo-core/jangaroo-compiler-itests/target"/>
+  <property name="FLEX_MAIN.SWF" value="${DEPLOY_DIR}/Main.swf"/>
+
+  <taskdef resource="flexTasks.tasks" classpath="${FLEX_HOME}/ant/lib/flexTasks.jar"/>
+
+  <target name="flextest" depends="flexmain">
+     <exec executable="${FLASH_PLAYER.EXE}" failonerror="true" dir="${DEPLOY_DIR}" >
+       <arg value="file:///${FLEX_MAIN.SWF}"/>
+     </exec>
+  </target>
+
+  <target name="flexmain">
+    <mkdir dir="${DEPLOY_DIR}"/>
+    <copy todir="${DEPLOY_DIR}">
+      <fileset dir="web"/>
+    </copy>
+    <mxmlc file="flex/flextest/Main.mxml" output="${FLEX_MAIN.SWF}" warnings="true" strict="true">
+      <load-config filename="${FLEX_HOME}/frameworks/flex-config.xml"/>
+      <source-path path-element="${basedir}/flex"/>
+      <source-path path-element="${basedir}/joo"/>
+      <source-path path-element="${basedir}/joo2"/>
+      <compiler.debug>true</compiler.debug>
+      <compiler.library-path dir="${FLEX_HOME}/frameworks" append="true">
+        <include name="${DEPLOY_DIR}/MyComps.swc" />
+      </compiler.library-path>
+    </mxmlc>
+  </target>
 
   <target name="main">
     <fileset id="sources" dir="${basedir}">
@@ -34,13 +60,6 @@
       <source-path path-element="${basedir}/joo2"/>
     </compc>
   </target>
-  
-  <target name="TestNew">
-    <compc output="${DEPLOY_DIR}/MyComps.swc" include-classes="package2.TestNew" strict="true" warnings="true">
-      <source-path path-element="${basedir}/joo"/>
-      <source-path path-element="${basedir}/joo2"/>
-    </compc>
-  </target>
 
   <target name="TestBind">
     <compc output="${DEPLOY_DIR}/MyComps.swc" include-classes="package1.TestBind" strict="true" warnings="true">
@@ -51,6 +70,20 @@
 
   <target name="TestNativeClass">
     <compc output="${DEPLOY_DIR}/MyComps.swc" include-classes="package1.TestNativeClass" strict="true" warnings="true">
+      <source-path path-element="${basedir}/joo"/>
+      <source-path path-element="${basedir}/joo2"/>
+    </compc>
+  </target>
+
+  <target name="TestRestParams">
+    <compc output="${DEPLOY_DIR}/MyComps.swc" include-classes="package1.TestRestParams" strict="true" warnings="true">
+      <source-path path-element="${basedir}/joo"/>
+      <source-path path-element="${basedir}/joo2"/>
+    </compc>
+  </target>
+
+  <target name="TestPropertyAccessFromStaticCode">
+    <compc output="${DEPLOY_DIR}/MyComps.swc" include-classes="error.TestPropertyAccessFromStaticCode" strict="true" warnings="true">
       <source-path path-element="${basedir}/joo"/>
       <source-path path-element="${basedir}/joo2"/>
     </compc>
