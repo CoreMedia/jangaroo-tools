@@ -23,15 +23,10 @@ public class TestStaticInitializer {
   static public var s1 :String= "s" + "1";
   static public var s2 :String;
 
-  {
-    s2 = "s2/" + s1;
-  }
+  s2 = "s2/" + s1;
+  s3 = "s3/" + s2;
 
   static public var s3 :String;
-
-  {
-    s3 = "s3/" + s2;
-  }
 
   static private var f :Function;
   static public var fv :int;
