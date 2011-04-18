@@ -30,7 +30,7 @@ public class JooClassDeclaration extends NativeClassDeclaration {
           privateStatics : Object,
           memberDeclarations : * /* Function, then Array */,
           memberDeclarationsByQualifiedName : Object,
-          staticInitializers : Array/*<MemberDeclaration>*/,
+          staticInitializers : Array/*<MemberDeclaration|Function>*/,
           publicStaticMethodNames : Array,
           dependencies : Array;
   /**
@@ -293,8 +293,10 @@ public class JooClassDeclaration extends NativeClassDeclaration {
     for (var i:int=0; i<this.staticInitializers.length; ++i) {
       var staticInitializer : * = this.staticInitializers[i];
       if (typeof staticInitializer=="function") {
+        // static statements
         staticInitializer();
       } else {
+        // static variable initializer expression
         var target : Object = staticInitializer.isPrivate() ? this.privateStatics : this.constructor_;
         target[staticInitializer.slot] = target[staticInitializer.slot]();
       }

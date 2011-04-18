@@ -1,4 +1,4 @@
-package error {
+package package1 {
 
 public class TestExpressionAsDeclarationWithoutSemicolon {
 

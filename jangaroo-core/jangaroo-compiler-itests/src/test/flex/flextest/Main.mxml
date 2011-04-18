@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" xmlns="*"
+    layout="vertical"
+    creationComplete = "initApp()" >
+
+    <mx:Script>
+        <![CDATA[
+        //import flash.system.System;
+            public function initApp():void
+            {
+              mainTxt.text = "Calling test...\n";
+              try {
+                testBind();
+                mainTxt.text += "success!";
+                trace("success!");
+                //System.exit(0);
+              } catch (e :Error) {
+                mainTxt.text += "fail: " + e.message + " (" + e + ")";
+                throw e;
+                //System.exit(1);
+              }
+            }
+
+        ]]>
+    </mx:Script>
+
+    <mx:TextArea id = "mainTxt" width="400" />
+
+</mx:Application>

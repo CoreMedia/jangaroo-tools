@@ -27,12 +27,16 @@ public abstract class IdeDeclaration extends Declaration {
 
   Ide ide;
 
-  protected IdeDeclaration(JooSymbol[] modifiers, int allowedModifiers, Ide ide) {
-    super(modifiers, allowedModifiers);
+  protected IdeDeclaration(JooSymbol[] modifiers, Ide ide) {
+    super(modifiers);
     this.ide = ide;
     if (ide != null && PRIVATE_MEMBER_NAME.matcher(ide.getName()).matches()) {
       Jooc.warning(ide.getSymbol(), "Jangaroo identifier must not be an ActionScript identifier postfixed with a dollar sign ('$') followed by a number.");
     }
+  }
+
+  protected IdeDeclaration(Ide ide) {
+    this(new JooSymbol[0], ide);
   }
 
   public Ide getIde() {
@@ -97,10 +101,6 @@ public abstract class IdeDeclaration extends Declaration {
     return false;
   }
 
-  public boolean isClassMember() {
-    return false;
-  }
-
   public boolean isConstructor() {
     return false;
   }
@@ -131,4 +131,5 @@ public abstract class IdeDeclaration extends Declaration {
       ide.getScope().getCompilationUnit() != null &&
       this == ide.getScope().getCompilationUnit().getPrimaryDeclaration();
   }
+
 }

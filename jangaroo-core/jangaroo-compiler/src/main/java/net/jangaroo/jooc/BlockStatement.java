@@ -15,59 +15,23 @@
 
 package net.jangaroo.jooc;
 
-import java.io.IOException;
 import java.util.List;
-import java.util.ArrayList;
 
 /**
  * @author Andreas Gawecki
  */
-class BlockStatement extends Statement {
+class BlockStatement extends AbstractBlock {
 
-  JooSymbol lBrace;
-  List<AstNode> statements;
-  JooSymbol rBrace;
-  List<CodeGenerator> blockStartCodeGenerators = new ArrayList<CodeGenerator>(3);
-
-  public BlockStatement(JooSymbol lBrace, List<AstNode> statements, JooSymbol rBrace) {
-    this.lBrace = lBrace;
-    this.statements = statements;
-    this.rBrace = rBrace;
-  }
-
-  @Override
-  public void scope(final Scope scope) {
-    scope(statements, scope);
-  }
-
-  public void addBlockStartCodeGenerator(CodeGenerator blockStartCodeGenerator) {
-    blockStartCodeGenerators.add(blockStartCodeGenerator);
-  }
-
-  protected void generateJsCode(JsWriter out) throws IOException {
-    out.writeSymbol(lBrace);
-    for (CodeGenerator codeGenerator : blockStartCodeGenerators) {
-      codeGenerator.generateCode(out);
-    }
-    generateCode(statements, out);
-    out.writeSymbol(rBrace);
-  }
-
-  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
-    super.analyze(parentNode, context);
-    statements = analyze(this, statements, context);
-    return this;
+  public BlockStatement(JooSymbol lBrace, List<Directive> directives, JooSymbol rBrace) {
+    super(rBrace, directives, lBrace);
   }
 
   // TODO: Check when analyzing the super call
   public void checkSuperConstructorCall() {
-    for (AstNode o : statements) {
+    for (AstNode o : directives) {
       if (o instanceof SuperConstructorCallStatement) return;
     }
     throw Jooc.error(lBrace, "super constructor must be called directly in method block");
   }
 
-  public JooSymbol getSymbol() {
-     return rBrace;
-  }
 }

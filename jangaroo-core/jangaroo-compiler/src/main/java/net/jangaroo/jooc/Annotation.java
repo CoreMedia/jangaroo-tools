@@ -21,7 +21,7 @@ import java.io.IOException;
  *
  * @author Frank Wienberg
  */
-public class Annotation extends NodeImplBase {
+public class Annotation extends Directive {
 
   JooSymbol leftBracket;
   Ide ide;

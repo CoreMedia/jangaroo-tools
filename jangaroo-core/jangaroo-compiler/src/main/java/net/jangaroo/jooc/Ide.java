@@ -74,7 +74,8 @@ public class Ide extends NodeImplBase {
     return "this".equals(ide.getText());
   }
 
-  private boolean isNonStaticMember() {
+  private boolean needsThisAtRuntime() {
+    if (isSuper()) return true;
     if (!isQualified() && isDeclared()) {
       IdeDeclaration decl = getDeclaration();
       return decl.isClassMember() && !decl.isStatic();
@@ -220,7 +221,7 @@ public class Ide extends NodeImplBase {
   }
 
   public void analyzeAsExpr(AstNode exprParent, Expr parentExpr, final AnalyzeContext context) {
-    if (isNonStaticMember()) {
+    if (needsThisAtRuntime()) {
       FunctionExpr funExpr = scope.getFunctionExpr();
       if (funExpr != null) {
         rewriteThis = funExpr.notifyThisUsed(scope);
@@ -228,10 +229,16 @@ public class Ide extends NodeImplBase {
     }
     if (isSuper()) {
       FunctionDeclaration currentMethod = getScope().getMethodDeclaration();
-      if (currentMethod == null)
+      if (currentMethod == null) {
         throw Jooc.error(ide, "use of super is only allowed within non-static methods");
-      if (currentMethod.isStatic())
+      }
+      if (currentMethod.isStatic()) {
         throw Jooc.error(ide, "use of super inside static method");
+      }
+      FunctionExpr currentFunction = getScope().getFunctionExpr();
+      if (currentFunction.getFunctionDeclaration() != currentMethod) {
+        throw Jooc.error(ide, "super calls might only be used within instance methods, not in local functions");
+      }
       //todo check whether super method exists and is non-static
     }
     checkDefinedAccessChain();
@@ -310,33 +317,35 @@ public class Ide extends NodeImplBase {
 
   protected void generateCodeAsExpr(final JsWriter out) throws IOException {
     out.writeSymbolWhitespace(ide);
-    if (isSuper() || isThis()) {
-      out.writeToken("this");
+    if (isSuper()) {
+      writeThis(out);
       return;
     }
-    IdeDeclaration decl = getDeclaration(false);
-    if (decl != null) {
-      if (decl.isClassMember()) {
-        if (!decl.isPrivateStatic()) {
-          if (decl.isStatic()) {
-            out.writeToken(decl.getClassDeclaration().getQualifiedNameStr());
-          } else {
-            if (bound) {
-              writeBoundMethodAccess(out, null, null, decl);
-              return;
+    if (!isThis()) {
+      IdeDeclaration decl = getDeclaration(false);
+      if (decl != null) {
+        if (decl.isClassMember()) {
+          if (!decl.isPrivateStatic()) {
+            if (decl.isStatic()) {
+              out.writeToken(decl.getClassDeclaration().getQualifiedNameStr());
+            } else {
+              if (bound) {
+                writeBoundMethodAccess(out, null, null, decl);
+                return;
+              }
+              writeThis(out);
             }
-            writeThis(out);
           }
+          writeMemberAccess(decl, null, this, false, out);
+          return;
         }
-        writeMemberAccess(decl, null, this, false, out);
-        return;
-      }
-      // add package prefix if it is not a local
-      if (!decl.isClassMember() && decl.getParentDeclaration() instanceof PackageDeclaration) {
-        String qname = ((PackageDeclaration) decl.getParentDeclaration()).getQualifiedNameStr();
-        if (!qname.isEmpty()) {
-          out.writeToken(qname);
-          out.writeToken(".");
+        // add package prefix if it is not a local
+        if (!decl.isClassMember() && decl.getParentDeclaration() instanceof PackageDeclaration) {
+          String qname = ((PackageDeclaration) decl.getParentDeclaration()).getQualifiedNameStr();
+          if (!qname.isEmpty()) {
+            out.writeToken(qname);
+            out.writeToken(".");
+          }
         }
       }
     }

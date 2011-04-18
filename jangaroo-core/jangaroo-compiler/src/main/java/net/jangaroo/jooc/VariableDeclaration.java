@@ -16,30 +16,125 @@
 package net.jangaroo.jooc;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Andreas Gawecki
  * @author Frank Wienberg
  */
-class VariableDeclaration extends AbstractVariableDeclaration {
+public class VariableDeclaration extends TypedIdeDeclaration {
 
-  public VariableDeclaration(JooSymbol symConstOrVar, Ide ide,
-      TypeRelation optTypeRelation, Initializer optInitializer) {
+  JooSymbol optSymConstOrVar;
+  Initializer optInitializer;
+  VariableDeclaration optNextVariableDeclaration;
+  private boolean hasPreviousVariableDeclaration = false;
+  JooSymbol optSymSemicolon;
+
+  public VariableDeclaration(JooSymbol[] modifiers,
+                             JooSymbol optSymConstOrVar,
+                             Ide ide,
+                             TypeRelation optTypeRelation,
+                             Initializer optInitializer,
+                             VariableDeclaration optNextVariableDeclaration,
+                             JooSymbol optSymSemicolon  ) {
+    // inherit modifiers of first declaration to those following this declaration
+    super(modifiers, ide, optTypeRelation);
+    this.optSymConstOrVar = optSymConstOrVar;
+    this.optInitializer = optInitializer;
+    this.optNextVariableDeclaration = optNextVariableDeclaration;
+    this.optSymSemicolon = optSymSemicolon;
+    if (optSymSemicolon != null && optNextVariableDeclaration != null) {
+      optNextVariableDeclaration.setInheritedModifiers(modifiers);
+    }
+  }
+
+  protected int getAllowedModifiers() {
+    return MODIFIERS_SCOPE | MODIFIER_STATIC;
+  }
+
+  public VariableDeclaration(JooSymbol symConstOrVar,
+                             Ide ide,
+                             TypeRelation optTypeRelation,
+                             Initializer optInitializer,
+                             VariableDeclaration optNextVariableDeclaration,
+                             JooSymbol optSymSemicolon) {
+    this(new JooSymbol[0], symConstOrVar, ide, optTypeRelation, optInitializer, optNextVariableDeclaration, optSymSemicolon);
+  }
+
+  public VariableDeclaration(JooSymbol symConstOrVar,
+                             Ide ide,
+                             TypeRelation optTypeRelation,
+                             Initializer optInitializer,
+                             VariableDeclaration optNextVariableDeclaration) {
+    this(symConstOrVar, ide, optTypeRelation, optInitializer, optNextVariableDeclaration, null);
+  }
+
+  public VariableDeclaration(JooSymbol symConstOrVar,
+                             Ide ide,
+                             TypeRelation optTypeRelation,
+                             Initializer optInitializer) {
     this(symConstOrVar, ide, optTypeRelation, optInitializer, null);
   }
 
-  public VariableDeclaration(JooSymbol symConstOrVar, Ide ide,
-      TypeRelation optTypeRelation, Initializer optInitializer, VariableDeclaration optNextVariableDeclaration) {
-    super(new JooSymbol[]{}, 0, symConstOrVar, ide, optTypeRelation, optInitializer, optNextVariableDeclaration, null);
+  public VariableDeclaration(JooSymbol symConstOrVar,
+                             Ide ide,
+                             TypeRelation optTypeRelation) {
+    this(symConstOrVar, ide, optTypeRelation, null, null, null);
   }
 
   @Override
-  boolean allowDuplicates(Scope scope) {
-    // todo It is "worst practice" to redeclare local variables in AS3, make this configurable:
-    return true;
+  protected void setInheritedModifiers(final JooSymbol[] modifiers) {
+    super.setInheritedModifiers(modifiers);
+    if (optNextVariableDeclaration != null) {
+      optNextVariableDeclaration.setInheritedModifiers(modifiers);
+    }
+  }
+
+  @Override
+  public void setClassMember(boolean classMember) {
+    super.setClassMember(classMember);
+    if (optNextVariableDeclaration != null) {
+      optNextVariableDeclaration.setClassMember(classMember);
+    }
+  }
+
+  @Override
+  public boolean isField() {
+    return isClassMember();
+  }
+
+  public boolean isCompileTimeConstant() {
+    return isConst() && (optInitializer == null || optInitializer.value.isCompileTimeConstant());
+  }
+
+  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
+    super.analyze(parentNode, context);
+    if (optInitializer == null && isConst()) {
+      throw Jooc.error(optSymConstOrVar, "constant must be initialized");
+    }
+    if (optInitializer != null) {
+      optInitializer.analyze(this, context);
+    }
+    if (optNextVariableDeclaration != null) {
+      optNextVariableDeclaration.analyze(this, context);
+    }
+    hasPreviousVariableDeclaration = parentNode instanceof VariableDeclaration;
+    if (isClassMember() && !isStatic() && optInitializer != null && !optInitializer.value.isCompileTimeConstant()) {
+      getClassDeclaration().addFieldWithInitializer(this);
+    }
+    return this;
   }
 
   protected void generateStartCode(JsWriter out) throws IOException {
+    if (isClassMember()) {
+      generateFieldStartCode(out);
+    } else {
+      generateVarStartCode(out);
+    }
+  }
+
+  protected void generateVarStartCode(JsWriter out) throws IOException {
     out.beginComment();
     writeModifiers(out);
     out.endComment();
@@ -54,4 +149,181 @@ class VariableDeclaration extends AbstractVariableDeclaration {
     }
   }
 
+  protected void generateFieldStartCode(JsWriter out) throws IOException {
+    out.beginString();
+    writeModifiers(out);
+    if (optSymConstOrVar!=null)
+      out.writeSymbol(optSymConstOrVar);
+    out.endString();
+    out.write(",{");
+  }
+
+  private static final Map<String,String> DEFAULT_VALUE_BY_TYPE = new HashMap<String,String>(10);
+  static {
+    DEFAULT_VALUE_BY_TYPE.put("Boolean", "false");
+    DEFAULT_VALUE_BY_TYPE.put("int", "0");
+    DEFAULT_VALUE_BY_TYPE.put("Number", "NaN");
+    DEFAULT_VALUE_BY_TYPE.put("uint", "0");
+    DEFAULT_VALUE_BY_TYPE.put("*", "undefined");
+  }
+
+  protected void generateFieldInitializerCode(JsWriter out) throws IOException {
+    if (optInitializer != null) {
+      out.writeSymbolWhitespace(optInitializer.symEq);
+      out.write(':');
+      boolean mustEvaluateAtRuntime = !optInitializer.value.isCompileTimeConstant();
+      if (mustEvaluateAtRuntime) {
+        out.writeToken("function(){return(");
+      }
+      optInitializer.value.generateCode(out);
+      if (mustEvaluateAtRuntime) {
+        out.writeToken(");}");
+      }
+    } else {
+      TypeRelation typeRelation = this.optTypeRelation;
+      String emptyValue = getDefaultValue(typeRelation);
+      out.write(":" + emptyValue);
+    }
+  }
+
+  static String getDefaultValue(TypeRelation typeRelation) {
+    String typeName = typeRelation == null ? "*" : typeRelation.getType().getSymbol().getText();
+    String emptyValue = DEFAULT_VALUE_BY_TYPE.get(typeName);
+    if (emptyValue == null) {
+      emptyValue = "null";
+    }
+    return emptyValue;
+  }
+
+  protected void generateFieldEndCode(JsWriter out) throws IOException {
+    if (!hasPreviousVariableDeclaration()) {
+      out.write('}');
+      Debug.assertTrue(optSymSemicolon != null, "optSymSemicolon != null");
+      out.writeSymbolWhitespace(optSymSemicolon);
+      out.writeToken(",");
+    }
+  }
+
+  protected void generateVarEndCode(JsWriter out) throws IOException {
+    if (optSymSemicolon != null) {
+      out.writeSymbol(optSymSemicolon);
+    }
+  }
+
+  protected void generateEndCode(JsWriter out) throws IOException {
+    if (isClassMember()) {
+      generateFieldEndCode(out);
+    } else {
+      generateVarEndCode(out);
+    }
+  }
+
+  protected void generateInitializerCode(JsWriter out) throws IOException {
+    if (isClassMember()) {
+      generateFieldInitializerCode(out);
+    } else {
+      generateVarInitializerCode(out);
+    }
+  }
+
+  private void generateVarInitializerCode(JsWriter out) throws IOException {
+    if (optInitializer != null) {
+      optInitializer.generateCode(out);
+    }
+  }
+
+  public void generateInitCode(JsWriter out, boolean endWithSemicolon) throws IOException {
+    String accessCode = "this." + getName() + (isPrivate() ? "$" + classDeclaration.getInheritanceLevel() : "");
+    out.write(accessCode + "=" + accessCode + "()");
+    if (endWithSemicolon) {
+      out.write(";");
+    }
+  }
+
+  boolean allowDuplicates(Scope scope) {
+    // todo It is "worst practice" to redeclare local variables in AS3, make this configurable:
+    return !isClassMember();
+  }
+
+  protected void generateJsCode(JsWriter out) throws IOException {
+    if (hasPreviousVariableDeclaration()) {
+      Debug.assertTrue(optSymConstOrVar != null && optSymConstOrVar.sym == sym.COMMA, "Additional variable declarations must start with a COMMA.");
+      out.writeSymbol(optSymConstOrVar);
+    } else {
+      generateStartCode(out);
+    }
+    ide.generateCode(out);
+    if (optTypeRelation != null) {
+      optTypeRelation.generateCode(out);
+    }
+    generateInitializerCode(out);
+    if (optNextVariableDeclaration != null) {
+      optNextVariableDeclaration.generateCode(out);
+    }
+    generateEndCode(out);
+  }
+
+  @Override
+  public void scope(final Scope scope) {
+    super.scope(scope);
+    if (optInitializer != null) {
+      optInitializer.scope(scope);
+    }
+    if (optNextVariableDeclaration != null) {
+      optNextVariableDeclaration.scope(scope);
+    }
+  }
+
+  protected void generateAsApiCode(JsWriter out) throws IOException {
+    if (!isPrivate()) {
+      writeModifiers(out);
+      out.writeSymbol(optSymConstOrVar);
+      ide.generateCode(out);
+      if (optTypeRelation != null) {
+        optTypeRelation.generateCode(out);
+      }
+      if (optInitializer != null) {
+        optInitializer.generateAsApiCode(out);
+      }
+      if (optNextVariableDeclaration != null) {
+        optNextVariableDeclaration.generateCode(out);
+      }
+      if (optSymSemicolon != null) {
+        out.writeSymbol(optSymSemicolon);
+      }
+    }
+  }
+
+  protected boolean hasPreviousVariableDeclaration() {
+    return hasPreviousVariableDeclaration;
+  }
+
+  protected VariableDeclaration getPreviousVariableDeclaration() {
+    return (VariableDeclaration) parentNode;
+  }
+
+  protected VariableDeclaration getFirstVariableDeclaration() {
+    VariableDeclaration firstVariableDeclaration = this;
+    while (firstVariableDeclaration.hasPreviousVariableDeclaration()) {
+      firstVariableDeclaration = firstVariableDeclaration.getPreviousVariableDeclaration();
+    }
+    return firstVariableDeclaration;
+  }
+
+  @Override
+  protected int getModifiers() {
+    return hasPreviousVariableDeclaration()
+        ? getFirstVariableDeclaration().getModifiers()
+        : super.getModifiers();
+  }
+
+  public boolean isConst() {
+    VariableDeclaration firstVariableDeclaration = getFirstVariableDeclaration();
+    return firstVariableDeclaration.optSymConstOrVar != null && firstVariableDeclaration.optSymConstOrVar.sym == sym.CONST;
+  }
+
+  @Override
+  public IdeDeclaration resolveDeclaration() {
+    return optTypeRelation == null ? null : optTypeRelation.getType().resolveDeclaration();
+  }
 }

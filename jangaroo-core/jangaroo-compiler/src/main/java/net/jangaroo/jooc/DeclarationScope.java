@@ -27,6 +27,7 @@ class DeclarationScope extends ScopeImplBase implements Scope {
   protected Map<String, IdeDeclaration> ides = new HashMap<String, IdeDeclaration>();
   private Map<String, List<ImportDirective>> importsByName = new HashMap<String, List<ImportDirective>>();
   private Map<String, ImportDirective> importsByQualifiedName = new HashMap<String, ImportDirective>();
+  private boolean isInstanceScope = false;
 
   public boolean isPackage(String fullyQualifiedName) {
     return packages.contains(fullyQualifiedName) || super.isPackage(fullyQualifiedName);
@@ -126,6 +127,9 @@ class DeclarationScope extends ScopeImplBase implements Scope {
       decl = ides.get(ide.getName());
       if (decl == null && getDefiningNode() != null && getClassDeclaration() == getDefiningNode()) {
         decl = getClassDeclaration().resolvePropertyDeclaration(ide.getName());
+        if (decl != null && !isInstanceScope && !decl.isStatic()) {
+          throw Jooc.error(ide, "access to instance property in static context: '" + ide.getName() + "'");
+        }
       }
     }
     return decl != null ? decl : super.lookupDeclaration(ide);
@@ -197,7 +201,10 @@ class DeclarationScope extends ScopeImplBase implements Scope {
   @Override
   public FunctionDeclaration getMethodDeclaration() {
     if (definingNode instanceof FunctionDeclaration) {
-      return (FunctionDeclaration) definingNode;
+      final FunctionDeclaration functionDeclaration = (FunctionDeclaration) definingNode;
+      if (functionDeclaration.isClassMember()) {
+        return functionDeclaration;
+      }
     }
     return super.getMethodDeclaration();
   }
@@ -210,4 +217,7 @@ class DeclarationScope extends ScopeImplBase implements Scope {
     return super.getFunctionExpr();
   }
 
+  public void setIsInstanceScope(boolean b) {
+    isInstanceScope = true;
+  }
 }

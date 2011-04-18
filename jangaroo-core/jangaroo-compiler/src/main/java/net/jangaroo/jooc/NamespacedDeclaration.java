@@ -20,24 +20,27 @@ import java.io.IOException;
 /**
  * @author Frank Wienberg
  */
-public class NamespaceDeclaration extends IdeDeclaration {
+public class NamespacedDeclaration extends IdeDeclaration {
 
   private Initializer optInitializer;
   private JooSymbol symNamespace;
   private JooSymbol optSymSemicolon;
 
-  public NamespaceDeclaration(JooSymbol[] modifiers,
-                              JooSymbol symNamespace,
-                              Ide ide,
-                              Initializer optInitializer,
-                              JooSymbol optSymSemicolon) {
-    super(modifiers,
-      MODIFIER_PUBLIC | MODIFIER_INTERNAL,
-      ide);
+  public NamespacedDeclaration(JooSymbol[] modifiers,
+                               JooSymbol symNamespace,
+                               Ide ide,
+                               Initializer optInitializer,
+                               JooSymbol optSymSemicolon) {
+    super(modifiers,ide);
     assert SyntacticKeywords.NAMESPACE.equals(symNamespace.getText());
     this.symNamespace = symNamespace;
     this.optInitializer = optInitializer;
     this.optSymSemicolon = optSymSemicolon;
+  }
+
+  @Override
+  protected int getAllowedModifiers() {
+    return MODIFIER_PUBLIC | MODIFIER_INTERNAL;
   }
 
   @Override

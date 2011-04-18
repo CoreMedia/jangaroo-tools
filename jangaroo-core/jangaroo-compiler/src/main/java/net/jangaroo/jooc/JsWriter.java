@@ -387,16 +387,6 @@ public final class JsWriter extends FilterWriter {
     return qualifiedNameToIde(ideDeclaration.getQualifiedName());
   }
 
-  public String getFunctionNameAsIde(FunctionExpr functionExpr) {
-    IdeDeclaration classDeclaration = functionExpr.getParentDeclaration();
-    String classNameAsIde = "";
-    if (classDeclaration != null) {
-      classNameAsIde = getQualifiedNameAsIde(classDeclaration);
-    }
-    JooSymbol sym = functionExpr.getSymbol();
-    return classNameAsIde + "$" + sym.getLine() + "_" + sym.getColumn();
-  }
-
   public void close() throws IOException {
     shouldWrite(); // will close comments
     Debug.assertTrue(nOpenBeginComments == 0, "" + nOpenBeginComments + " endComment() missing");

@@ -11,7 +11,7 @@ public class GetterSetterPair extends IdeDeclaration {
   private FunctionDeclaration getter, setter;
 
   GetterSetterPair(FunctionDeclaration getter, FunctionDeclaration setter) {
-    super(new JooSymbol[0], 0, getter.getIde());
+    super(getter.getIde());
     this.getter = getter;
     this.setter = setter;
   }

@@ -28,7 +28,7 @@ public class Parameter extends IdeDeclaration {
   Initializer optInitializer;
 
   public Parameter(JooSymbol optSymConst, Ide ide, TypeRelation optTypeRelation, Initializer optInitializer) {
-    super(new JooSymbol[0], 0, ide);
+    super(ide);
     this.optSymConstOrRest = optSymConst;
     this.optTypeRelation = optTypeRelation;
     this.optInitializer = optInitializer;

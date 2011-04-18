@@ -26,10 +26,10 @@ class SwitchStatement extends KeywordStatement {
   ParenthesizedExpr cond;
   BlockStatement block;
 
-  public SwitchStatement(JooSymbol symSwitch, ParenthesizedExpr cond, JooSymbol lBrace, List<AstNode> statements, JooSymbol rBrace) {
+  public SwitchStatement(JooSymbol symSwitch, ParenthesizedExpr cond, JooSymbol lBrace, List<Directive> directives, JooSymbol rBrace) {
     super(symSwitch);
     this.cond = cond;
-    this.block = new BlockStatement(lBrace, statements, rBrace);
+    this.block = new BlockStatement(lBrace, directives, rBrace);
   }
 
   @Override

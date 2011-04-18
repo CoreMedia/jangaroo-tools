@@ -67,7 +67,9 @@ class IdeExpr extends Expr {
   boolean isCompileTimeConstant() {
     IdeDeclaration ideDeclaration = ide.getDeclaration(false);
     // accept constant fields, not being defined in the current class (because these have to be initialized first):
-    return ideDeclaration instanceof FieldDeclaration && ((FieldDeclaration)ideDeclaration).isConst() && ideDeclaration.getClassDeclaration() != ide.getScope().getClassDeclaration();
+    return ideDeclaration instanceof VariableDeclaration &&
+            ((VariableDeclaration)ideDeclaration).isCompileTimeConstant() &&
+            ideDeclaration.getClassDeclaration() != ide.getScope().getClassDeclaration();
   }
 
 }

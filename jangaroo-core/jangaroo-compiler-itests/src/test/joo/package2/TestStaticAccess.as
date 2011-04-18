@@ -24,8 +24,8 @@ public class TestStaticAccess extends StaticAccessSuperClass {
   }
 
   static public function get_s0():String {
-      return s0;
-    }
+    return s0;
+  }
  
   static public function set_s0(_s0:String):void {
     s0 = _s0;

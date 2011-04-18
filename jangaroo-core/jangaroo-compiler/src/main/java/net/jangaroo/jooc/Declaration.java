@@ -18,9 +18,14 @@ package net.jangaroo.jooc;
 import java.io.IOException;
 
 /**
+ * Declarations are statements used to define entities such as variables, functions, classes,
+ * and interfaces.
+ *
+ * todo rename to Definition (ECMAScript/Adobe speak)
+ *
  * @author Andreas Gawecki
  */
-abstract class Declaration extends NodeImplBase {
+abstract class Declaration extends Statement {
 
   public JooSymbol[] getSymModifiers() {
     return symModifiers;
@@ -33,7 +38,6 @@ abstract class Declaration extends NodeImplBase {
   protected ClassDeclaration classDeclaration = null;
 
   private int modifiers = -1;
-  protected int allowedModifiers = -1;
 
   protected static final int MODIFIER_PUBLIC = 1;
   protected static final int MODIFIER_PROTECTED = 2;
@@ -51,9 +55,8 @@ abstract class Declaration extends NodeImplBase {
   protected static final int MODIFIERS_SCOPE =
       MODIFIER_PRIVATE | MODIFIER_PROTECTED | MODIFIER_PUBLIC | MODIFIER_INTERNAL | MODIFIER_NAMESPACE;
 
-  protected Declaration(JooSymbol[] modifiers, int allowedModifiers) {
+  protected Declaration(JooSymbol[] modifiers) {
     this.symModifiers = modifiers.clone();
-    this.allowedModifiers = allowedModifiers;
     computeModifiers();
   }
 
@@ -82,9 +85,6 @@ abstract class Declaration extends NodeImplBase {
 
   private void computeModifier(final JooSymbol modifier) {
     int flag = getModifierFlag(modifier);
-    if ((allowedModifiers & flag) == 0) {
-      throw Jooc.error(modifier, "modifier '" + modifier.getText() + "' not allowed here");
-    }
     if ((flag & modifiers) != 0) {
       throw Jooc.error(modifier, "duplicate modifier '" + modifier.getText() + "'");
     }
@@ -92,6 +92,27 @@ abstract class Declaration extends NodeImplBase {
       throw Jooc.error(modifier, "duplicate scope modifier '" + modifier.getText() + "'");
     }
     modifiers |= flag;
+  }
+
+  private void checkAllowedModifiers() {
+    int allowedModifiers = getAllowedModifiers();
+    for (JooSymbol modifier : symModifiers) {
+      int flag = getModifierFlag(modifier);
+      if ((allowedModifiers & flag) == 0) {
+        throw Jooc.error(modifier, "modifier '" + modifier.getText() + "' not allowed here");
+      }
+    }
+  }
+
+  protected int getAllowedModifiers() {
+    return 0;
+  }
+
+  @Override
+  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
+    final AstNode node = super.analyze(parentNode, context);
+    checkAllowedModifiers();
+    return node;
   }
 
   protected int getModifierFlag(JooSymbol modifier) {

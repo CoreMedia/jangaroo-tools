@@ -34,7 +34,7 @@ public class ClassDeclaration extends IdeDeclaration {
   private FunctionDeclaration constructor = null;
   private IdeType thisType;
   private IdeType superType;
-  private List<FieldDeclaration> fieldsWithInitializer = new ArrayList<FieldDeclaration>();
+  private List<VariableDeclaration> fieldsWithInitializer = new ArrayList<VariableDeclaration>();
   private List<IdeDeclaration> secondaryDeclarations = Collections.emptyList();
   private Set<String> usedBuiltIns = new LinkedHashSet<String>();
   private int inheritanceLevel = -1;
@@ -58,14 +58,17 @@ public class ClassDeclaration extends IdeDeclaration {
   }
 
   public ClassDeclaration(List<AstNode> directives, JooSymbol[] modifiers, JooSymbol cls, Ide ide, Extends ext, Implements impl, ClassBody body) {
-    super(modifiers,
-      MODIFIER_ABSTRACT | MODIFIER_FINAL | MODIFIERS_SCOPE | MODIFIER_STATIC | MODIFIER_DYNAMIC,
-      ide);
+    super(modifiers, ide);
     this.directives = directives;
     this.symClass = cls;
     this.optExtends = ext;
     this.optImplements = impl;
     this.body = body;
+  }
+
+  @Override
+  protected int getAllowedModifiers() {
+    return MODIFIER_ABSTRACT | MODIFIER_FINAL | MODIFIERS_SCOPE | MODIFIER_STATIC | MODIFIER_DYNAMIC;
   }
 
   public boolean isInterface() {
@@ -249,17 +252,19 @@ public class ClassDeclaration extends IdeDeclaration {
     // one scope for static members...
     withNewDeclarationScope(this, scope, new Scoped() {
       @Override
-      public void run(final Scope scope) {
+      public void run(final Scope staticScope) {
         // ...and one scope for instance members!
-        withNewDeclarationScope(ClassDeclaration.this, scope, new Scoped() {
+        withNewDeclarationScope(ClassDeclaration.this, staticScope, new Scoped() {
           @Override
-          public void run(final Scope scope) {
-            for (IdeDeclaration secondaryDeclaration : secondaryDeclarations) {
-              secondaryDeclaration.scope(scope);
-            }
-            body.scope(scope);
+          public void run(final Scope instanceScope) {
+            //todo ugly, maybe we should define ClassScope implements Scope to lookup inherited members
+            ((DeclarationScope)instanceScope).setIsInstanceScope(true);
+            body.scope(staticScope, instanceScope);
           }
         });
+        for (IdeDeclaration secondaryDeclaration : secondaryDeclarations) {
+          secondaryDeclaration.scope(staticScope); //todo is this the correct scope?!
+        }
       }
     });
   }
@@ -412,18 +417,18 @@ public class ClassDeclaration extends IdeDeclaration {
     return superType == null ? null : (ClassDeclaration)superType.ide.getDeclaration();
   }
 
-  public void addFieldWithInitializer(FieldDeclaration fieldDeclaration) {
+  public void addFieldWithInitializer(VariableDeclaration fieldDeclaration) {
     fieldsWithInitializer.add(fieldDeclaration);
   }
 
   public void generateFieldInitCode(JsWriter out, boolean startWithSemicolon, boolean endWithSemicolon) throws IOException {
-    Iterator<FieldDeclaration> iterator = fieldsWithInitializer.iterator();
+    Iterator<VariableDeclaration> iterator = fieldsWithInitializer.iterator();
     if (iterator.hasNext()) {
       if (startWithSemicolon) {
         out.write(";");
       }
       do {
-        FieldDeclaration field = iterator.next();
+        VariableDeclaration field = iterator.next();
         field.generateInitCode(out, endWithSemicolon || iterator.hasNext());
       } while (iterator.hasNext());
     }

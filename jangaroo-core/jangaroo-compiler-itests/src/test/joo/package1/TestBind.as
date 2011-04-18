@@ -74,25 +74,32 @@ public class TestBind {
     return invoke(test.getPrivateSlot);
   }
 
-  public function testUnboundThisInLocalFunction(result : String) : String {
+  public function testInvokeFieldMethodThroughLocalFunction() : String {
     function foo():String {
-      return this.state;
+      return getState();
     }
-    return foo();
+    return foo.call({getState: function():String{return "too bad"}}) as String;
   }
 
-  public function testThisInLocalFunction(result : String) : String {
+  public function testDontInvokeFieldMethodThroughLocalFunction() : String {
     function foo():String {
-      return this.state;
+      return this.getState();
     }
-    return foo.call({ state: result }) as String;
+    return foo.call({getState: function():String{return "sounds good"}}) as String;
   }
 
-  public function testMemberInScopeOfLocalFunction() : String {
-    function foo():String {
-      return state;
-    }
-    return foo();
+  public function testInvokeFieldMethodThroughLocalFunctionExpr() : String {
+    var foo :Function = function ():String {
+      return getState();
+    };
+    return foo.call({getState: function():String{return "too bad"}}) as String;
+  }
+
+  public function testDontInvokeFieldMethodThroughLocalFunctionExpr() : String {
+    var foo :Function = function():String {
+      return this.getState();
+    };
+    return foo.call({getState: function():String{return "sounds good"}}) as String;
   }
 
   public function testReturn() : String {
@@ -118,7 +125,21 @@ public class TestBind {
     return invoke(getStatePrivate);
   }
 
+  public function testLocalFunctionIde() : int {
+    var f:Function = function g(i:int):int {
+      if (i == 0) return 0;
+      return i + g(i - 1);
+    };
+    return f(10);
+  }
+
   public function testLocalFunction() : String {
+    return invoke(function():String {
+      return getState();
+    });
+  }
+
+  public function testLocalFunctionUnqualified() : String {
     return invoke(function():String {
       return getState();
     });
@@ -148,16 +169,19 @@ public class TestBind {
     return f();
   }
 
-  public native function doesNotExist():void;
+  //todo native functions dont validate in Flex/Flash
+  //public native function doesNotExist():void;
 
   public function testBindMethodInBinaryOpExpr():Boolean {
     var gS:Function = this.getState;
     return gS === this.getState;
   }
 
+  /*
+  //todo re-write this test to pass in Flex?!
   public function testBindNonExistentMethod() : Function {
     return doesNotExist;
-  }
+  }*/
 
   public function testBindTwiceReturnsSameFunction():Boolean {
     return this.getState === this.getState;
@@ -167,3 +191,4 @@ public class TestBind {
 
 }
 }
+

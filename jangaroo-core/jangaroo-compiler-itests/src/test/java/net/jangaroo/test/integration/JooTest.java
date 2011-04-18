@@ -222,6 +222,10 @@ public class JooTest extends JooRuntimeTestCase {
     complete();
     expectNumber(1, "package2.TestStaticInitializer.return1()");
     expectNumber(2, "package2.TestStaticInitializer.return2()");
+
+    expectString("function", "typeof package2.TestStaticInitializer.FUN");
+    expectString("something", "var o = { slot: 'bad' }; package2.TestStaticInitializer.FUN.call(o, 'something'); o.slot");
+    expectString("something", "var o = { slot: 'bad' }; package2.TestStaticInitializer.FUN2_PUBLIC.call(o, 'something'); o.slot");
   }
 
   public void testLocalVariables() throws Exception {
@@ -400,8 +404,6 @@ public class JooTest extends JooRuntimeTestCase {
     expectBoolean(true, "obj.testLocalFunction()");
 
     expectString("foo", "obj.testForwardPrivateUnqualified('foo')");
-
-    // TODO: test "unqualified access to super members"!
   }
 
   public void testTypeCast() throws Exception {
@@ -556,17 +558,24 @@ public class JooTest extends JooRuntimeTestCase {
     expectString("foo", "obj.testInvokeParameterUnqualifiedPrivate()");
     expectString("foo", "obj.testInvokeObjectField()");
     expectString("foo", "obj.testLocalFunction()");
+    expectNumber(55, "obj.testLocalFunctionIde()");
+    expectString("foo", "obj.testLocalFunctionUnqualified()");
     expectString("bar", "obj.testNotBound.call({getState: function(){return 'bar';}})");
     expectBoolean(true, "package1.TestBind.testStaticNotBound().call('bar')=='bar'");
     expectString("foo", "obj.testInvokeLocalVarMethod()");
     expectString("foo", "obj.testInvokeFieldMethod()");
-    eval("state = 'global';");
-    expectString("global", "obj.testUnboundThisInLocalFunction()");
-    expectString("bar", "obj.testThisInLocalFunction('bar')");
-    expectString("foo", "obj.testMemberInScopeOfLocalFunction()");
+
+    expectString("foo", "obj.testInvokeFieldMethodThroughLocalFunction()");
+    expectString("foo", "obj.testInvokeFieldMethodThroughLocalFunctionExpr()");
+    expectString("sounds good", "obj.testDontInvokeFieldMethodThroughLocalFunction()");
+    expectString("sounds good", "obj.testDontInvokeFieldMethodThroughLocalFunctionExpr()");
+
     expectString("foo", "obj.testReturn()");
     expectBoolean(true, "obj.testBindMethodInBinaryOpExpr()");
-    expectString("undefined", "typeof obj.testBindNonExistentMethod()");
+
+    //todo re-write this test to pass in Flex?!
+    //expectString("undefined", "typeof obj.testBindNonExistentMethod()");
+
     expectBoolean(true, "obj.testBindTwiceReturnsSameFunction()");
   }
 
