@@ -321,29 +321,31 @@ public class Ide extends NodeImplBase {
       writeThis(out);
       return;
     }
-    IdeDeclaration decl = getDeclaration(false);
-    if (decl != null) {
-      if (decl.isClassMember()) {
-        if (!decl.isPrivateStatic()) {
-          if (decl.isStatic()) {
-            out.writeToken(decl.getClassDeclaration().getQualifiedNameStr());
-          } else {
-            if (bound) {
-              writeBoundMethodAccess(out, null, null, decl);
-              return;
+    if (!isThis()) {
+      IdeDeclaration decl = getDeclaration(false);
+      if (decl != null) {
+        if (decl.isClassMember()) {
+          if (!decl.isPrivateStatic()) {
+            if (decl.isStatic()) {
+              out.writeToken(decl.getClassDeclaration().getQualifiedNameStr());
+            } else {
+              if (bound) {
+                writeBoundMethodAccess(out, null, null, decl);
+                return;
+              }
+              writeThis(out);
             }
-            writeThis(out);
           }
+          writeMemberAccess(decl, null, this, false, out);
+          return;
         }
-        writeMemberAccess(decl, null, this, false, out);
-        return;
-      }
-      // add package prefix if it is not a local
-      if (!decl.isClassMember() && decl.getParentDeclaration() instanceof PackageDeclaration) {
-        String qname = ((PackageDeclaration) decl.getParentDeclaration()).getQualifiedNameStr();
-        if (!qname.isEmpty()) {
-          out.writeToken(qname);
-          out.writeToken(".");
+        // add package prefix if it is not a local
+        if (!decl.isClassMember() && decl.getParentDeclaration() instanceof PackageDeclaration) {
+          String qname = ((PackageDeclaration) decl.getParentDeclaration()).getQualifiedNameStr();
+          if (!qname.isEmpty()) {
+            out.writeToken(qname);
+            out.writeToken(".");
+          }
         }
       }
     }
