@@ -171,12 +171,12 @@ public class VariableDeclaration extends TypedIdeDeclaration {
     if (optInitializer != null) {
       out.writeSymbolWhitespace(optInitializer.symEq);
       out.write(':');
-      boolean isCompileTimeConstant = optInitializer.value.isCompileTimeConstant();
-      if (!isCompileTimeConstant) {
+      boolean mustEvaluateAtRuntime = !optInitializer.value.isCompileTimeConstant();
+      if (mustEvaluateAtRuntime) {
         out.writeToken("function(){return(");
       }
       optInitializer.value.generateCode(out);
-      if (!isCompileTimeConstant) {
+      if (mustEvaluateAtRuntime) {
         out.writeToken(");}");
       }
     } else {
