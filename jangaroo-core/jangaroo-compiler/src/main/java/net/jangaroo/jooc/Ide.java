@@ -75,7 +75,7 @@ public class Ide extends NodeImplBase {
   }
 
   private boolean needsThisAtRuntime() {
-    if (isThis() || isSuper()) return true;
+    if (isSuper()) return true;
     if (!isQualified() && isDeclared()) {
       IdeDeclaration decl = getDeclaration();
       return decl.isClassMember() && !decl.isStatic();
@@ -311,7 +311,7 @@ public class Ide extends NodeImplBase {
 
   protected void generateCodeAsExpr(final JsWriter out) throws IOException {
     out.writeSymbolWhitespace(ide);
-    if (isSuper() || isThis()) {
+    if (isSuper()) {
       writeThis(out);
       return;
     }

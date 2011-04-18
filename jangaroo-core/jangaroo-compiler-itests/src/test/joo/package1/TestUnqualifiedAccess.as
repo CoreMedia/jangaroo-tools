@@ -54,7 +54,7 @@ public class TestUnqualifiedAccess {
   }
 
   public function testConstructorAccess() : Boolean {
-    return this.constructor === TestUnqualifiedAccess;
+    return this['constructor'] === TestUnqualifiedAccess;
   }
 
   // a local function must be found, or it will be assumed to be a member:
@@ -69,7 +69,7 @@ public class TestUnqualifiedAccess {
     return forwardPrivate(p);
   }
 
-  private function forwardPrivate(p : *) : * {
+  private function forwardPrivate(p:*):* {
     return p;
   }
 
@@ -77,8 +77,9 @@ public class TestUnqualifiedAccess {
   public static var SET_BY_STATIC_INITIALIZER : String;
 
 {
-  var test : String = "o";
+  static var test : String = "o";
   SET_BY_STATIC_INITIALIZER = "f" + test + test;
 }
+
 }
 }

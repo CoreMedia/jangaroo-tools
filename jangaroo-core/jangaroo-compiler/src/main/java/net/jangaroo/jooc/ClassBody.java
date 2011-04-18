@@ -50,7 +50,7 @@ public class ClassBody extends AbstractBlock {
     out.writeSymbolWhitespace(lBrace);
     boolean inStaticInitializerBlock = false;
     for (Directive directive : directives) {
-      final boolean isStaticInitializer = !(directive instanceof Declaration); //todo handle directives which are not statements
+      final boolean isStaticInitializer = directive instanceof Statement && !(directive instanceof Declaration);
       if (isStaticInitializer) {
         inStaticInitializerBlock = beginStaticInitializer(out, inStaticInitializerBlock);
       } else {

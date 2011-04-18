@@ -53,7 +53,7 @@ public class StandardClassLoader extends SystemClassLoader {
    */
   public function run(mainClassName : String, ...args) : void {
     this.complete(function() : void {
-      var mainClass : NativeClassDeclaration = this.getRequiredClassDeclaration(mainClassName).init();
+      var mainClass : NativeClassDeclaration = getRequiredClassDeclaration(mainClassName).init();
       mainClass.constructor_["main"].apply(null,args);
     });
   }

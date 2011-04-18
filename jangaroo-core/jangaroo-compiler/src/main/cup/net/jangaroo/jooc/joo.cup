@@ -257,7 +257,6 @@ terminal JooSymbol SCAN_ERROR;
 nonterminal CommaSeparatedList arguments;
 nonterminal ArrayLiteral arrayLiteral;
 nonterminal CommaSeparatedList arrayLiteralFields;
-nonterminal BlockStatement functionBody;
 nonterminal BlockStatement block;
 nonterminal ArrayList catches;
 nonterminal Catch catchClause;
@@ -293,11 +292,11 @@ nonterminal CommaSeparatedList nonEmptyAnnotationParameters;
 nonterminal AnnotationParameter annotationParameter;
 nonterminal CommaSeparatedList annotationParameters;
 nonterminal ObjectLiteral objectLiteral;
-nonterminal Statement optBody;
 nonterminal ArrayList optCatches;
 nonterminal Expr optCommaExpr;
 nonterminal JooSymbol optConst;
 nonterminal Expr optExpr;
+nonterminal Ide optGetOrSet;
 nonterminal Ide optIde;
 nonterminal Initializer optInitializer;
 nonterminal TypeRelation optTypeRelation;
@@ -381,11 +380,6 @@ arrayLiteralFields ::=
 
 block ::=
   LBRACE:lb statements:s RBRACE:rb
-    {: RESULT = new BlockStatement(lb,s,rb); :}
-  ;
-
-functionBody ::=
-   LBRACE:lb statements:s RBRACE:rb
     {: RESULT = new BlockStatement(lb,s,rb); :}
   ;
 
@@ -663,15 +657,19 @@ namespacedDeclaration ::=
   ;
 
 functionExpr ::=
-    FUNCTION_EXPR:f optIde:ide LPAREN:lp parameters:params RPAREN:rp optTypeRelation:t functionBody:b
-    {: RESULT = new FunctionExpr(f,ide,lp,params,rp,t,b); :}
+    FUNCTION_EXPR:f optIde:ide LPAREN:lp parameters:params RPAREN:rp optTypeRelation:t block:b
+    {: RESULT = new FunctionExpr(null,f,ide,lp,params,rp,t,b); :}
   ;
 
 functionDeclaration ::=
-    modifiers:m FUNCTION:f IDE:getOrSet ide:ide LPAREN:lp parameters:params RPAREN:rp optTypeRelation:t optBody:b
-    {: RESULT = new FunctionDeclaration((JooSymbol[])m.toArray(new JooSymbol[0]),f,getOrSet,ide,lp,params,rp,t,b); :}
-  | modifiers:m FUNCTION:f ide:ide LPAREN:lp parameters:params RPAREN:rp optTypeRelation:t optBody:b
-    {: RESULT = new FunctionDeclaration((JooSymbol[])m.toArray(new JooSymbol[0]),f,ide,lp,params,rp,t,b); :}
+    modifiers:m FUNCTION:f ide:ide LPAREN:lp parameters:params RPAREN:rp optTypeRelation:t block:b
+    {: RESULT = new FunctionDeclaration(m,f,null,ide,lp,params,rp,t,b,null); :}
+  | modifiers:m FUNCTION:f ide:ide LPAREN:lp parameters:params RPAREN:rp optTypeRelation:t SEMICOLON:s
+    {: RESULT = new FunctionDeclaration(m,f,null,ide,lp,params,rp,t,null,s); :}
+  | modifiers:m FUNCTION:f IDE:getOrSet ide:ide LPAREN:lp parameters:params RPAREN:rp optTypeRelation:t block:b
+    {: RESULT = new FunctionDeclaration(m,f,getOrSet,ide,lp,params,rp,t,b,null); :}
+  | modifiers:m FUNCTION:f IDE:getOrSet ide:ide LPAREN:lp parameters:params RPAREN:rp optTypeRelation:t SEMICOLON:s
+    {: RESULT = new FunctionDeclaration(m,f,getOrSet,ide,lp,params,rp,t,null,s); :}
   ;
 
 ide ::=
@@ -768,13 +766,6 @@ objectFields ::=
 objectLiteral ::=
     LBRACE_EXPR:lb objectFields:fields RBRACE:rb
     {: RESULT = new ObjectLiteral(lb,fields,null,rb); :}
-  ;
-
-optBody ::=
-    functionBody:b
-    {: RESULT = b; :}
-  | SEMICOLON:s
-    {: RESULT = new SemicolonTerminatedStatement(s); :}
   ;
 
 optCatches ::=

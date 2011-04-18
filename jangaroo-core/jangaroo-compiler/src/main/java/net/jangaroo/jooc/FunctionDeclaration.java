@@ -16,6 +16,7 @@
 package net.jangaroo.jooc;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * @author Andreas Gawecki
@@ -23,18 +24,9 @@ import java.io.IOException;
  */
 public class FunctionDeclaration extends TypedIdeDeclaration {
 
-  private JooSymbol symFunction;
+  private FunctionExpr fun;
   private JooSymbol symGetOrSet;
-  private JooSymbol lParen;
-
-  public Parameters getParams() {
-    return params;
-  }
-
-  private Parameters params;
-  private JooSymbol rParen;
-
-  private Statement optBody;
+  private JooSymbol optSymSemicolon;
 
   boolean isConstructor = false;
   boolean containsSuperConstructorCall = false;
@@ -42,25 +34,18 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
   private static final int defaultAllowedMethodModifers =
     MODIFIER_OVERRIDE | MODIFIER_ABSTRACT | MODIFIER_VIRTUAL | MODIFIER_FINAL | MODIFIERS_SCOPE | MODIFIER_STATIC | MODIFIER_NATIVE;
 
-  public FunctionDeclaration(JooSymbol[] modifiers, JooSymbol symFunction, Ide ide, JooSymbol lParen,
-                             Parameters params, JooSymbol rParen, TypeRelation optTypeRelation, Statement optBody) {
-    this(modifiers, symFunction, null, ide, lParen, params, rParen, optTypeRelation, optBody);
-  }
-
-  public FunctionDeclaration(JooSymbol[] modifiers, JooSymbol symFunction, JooSymbol symGetOrSet, Ide ide, JooSymbol lParen,
-                             Parameters params, JooSymbol rParen, TypeRelation optTypeRelation, Statement optBody) {
-    super(modifiers, ide, optTypeRelation);
-    this.symFunction = symFunction;
+  public FunctionDeclaration(List<JooSymbol> modifiers, JooSymbol symFunction, JooSymbol symGetOrSet, Ide ide, JooSymbol lParen,
+                             Parameters params, JooSymbol rParen, TypeRelation optTypeRelation,
+                             BlockStatement optBody,
+                             JooSymbol optSymSemicolon) {
+    super(modifiers.toArray(new JooSymbol[modifiers.size()]), ide, null); //todo pass Function type as typeRelation
+    this.fun = new FunctionExpr(this, symFunction, ide, lParen, params, rParen, optTypeRelation, optBody);
     this.symGetOrSet = symGetOrSet;
+    this.optSymSemicolon = optSymSemicolon;
     if (isGetterOrSetter() && !(isGetter() || isSetter())) {
       throw Jooc.error(symGetOrSet, "Expected 'get' or 'set'.");
     }
-    this.lParen = lParen;
-    this.params = params;
-    this.rParen = rParen;
-    this.optBody = optBody;
   }
-
 
   public boolean overrides() {
     return (getModifiers() & MODIFIER_OVERRIDE) != 0;
@@ -99,50 +84,20 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
     return classDeclaration != null && classDeclaration.isInterface() || super.isAbstract();
   }
 
-  public Statement getBody() {
-    return optBody;
+  public Parameters getParams() {
+    return fun.getParams();
+  }
+
+  private boolean hasBody() {
+    return fun.hasBody();
+  }
+
+  public BlockStatement getBody() {
+    return fun.getBody();
   }
 
   @Override
   public void scope(Scope scope) {
-    if (isClassMember()) {
-      scopeMethod(scope);
-    } else {
-      scopeFunction(scope);
-    }
-  }
-
-  public void scopeFunction(final Scope scope) {
-    parentDeclaration = scope.getClassDeclaration();
-    if (parentDeclaration == null) {
-      AstNode declaration = scope.getDefiningNode();
-      if (declaration instanceof IdeDeclaration) {
-        parentDeclaration = (IdeDeclaration) declaration;
-      }
-    }
-    if (ide != null) {
-      IdeDeclaration decl = new VariableDeclaration(null, ide, null, null);
-      decl.scope(scope);
-    }
-    withNewDeclarationScope(this, scope, new Scoped() {
-      public void run(final Scope scope) {
-        new Parameter(null, FunctionExpr.ARGUMENTS_IDE, null, null).scope(scope); // is always defined inside a function!
-        withNewDeclarationScope(FunctionDeclaration.this, scope, new Scoped() {
-          public void run(final Scope scope) {
-            if (params != null) {
-              params.scope(scope);
-            }
-            if (optTypeRelation != null) {
-              optTypeRelation.scope(scope);
-            }
-            optBody.scope(scope);
-          }
-        });
-      }
-    });
-  }
-
-  public void scopeMethod(final Scope scope) {
     final ClassDeclaration classDeclaration = scope.getClassDeclaration();
     Ide oldIde = ide;
     if (classDeclaration != null && ide.getName().equals(classDeclaration.getName())) {
@@ -163,69 +118,41 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
       if (!classDeclaration.isAbstract()) {
         throw Jooc.error(this, classDeclaration.getName() + "is not declared abstract");
       }
-      if (optBody instanceof BlockStatement) {
+      if (hasBody()) {
         throw Jooc.error(this, "abstract method must not be implemented");
       }
     }
-    if (isNative() && optBody instanceof BlockStatement) {
+    if (isNative() && hasBody()) {
       throw Jooc.error(this, "native method must not be implemented");
     }
-
-    if (!isAbstract() && !isNative() && !(optBody instanceof BlockStatement)) {
+    if (!isAbstract() && !isNative() && !hasBody()) {
       throw Jooc.error(this, "method must either be implemented or declared abstract or native");
     }
-
     //TODO:check whether abstract method does not actually override
-
-    withNewDeclarationScope(this, scope, new Scoped() {
-      public void run(final Scope scope) {
-        if (!isStatic()) {
-          ClassDeclaration currentClass = scope.getClassDeclaration();
-          if (classDeclaration != null) { // otherwise we are in a global function - todo parse them as function declaration
-            // declare this and super
-            final Type thisType = currentClass.getThisType();
-            new Parameter(null, new Ide("this"), new TypeRelation(null, thisType), null).scope(scope);
-
-            final Type superType = currentClass.getSuperType();
-            if (superType != null) {
-              new Parameter(null, new Ide("super"), new TypeRelation(null, superType), null).scope(scope);
-            }
-          }
+    if (!isStatic()) {
+      ClassDeclaration currentClass = scope.getClassDeclaration();
+      if (classDeclaration != null) { // otherwise we are in a global function - todo parse them as function declaration
+        // declare this and super
+        final Type thisType = currentClass.getThisType();
+        final Parameter thisParam = new Parameter(null, new Ide("this"), new TypeRelation(null, thisType), null);
+        fun.addImplicitParam(thisParam);
+        final Type superType = currentClass.getSuperType();
+        if (superType != null) {
+          fun.addImplicitParam(new Parameter(null, new Ide("super"), new TypeRelation(null, superType), null));
         }
-        new Parameter(null, FunctionExpr.ARGUMENTS_IDE, null, null).scope(scope); // is always defined inside a method!
-        withNewDeclarationScope(FunctionDeclaration.this, scope, new Scoped() {
-          public void run(final Scope scope) {
-            if (params != null) {
-              params.scope(scope);
-            }
-            if (optTypeRelation != null) {
-              optTypeRelation.scope(scope);
-            }
-            if (optBody != null) {
-              optBody.scope(scope);
-            }
-          }
-        });
       }
-    });
+    }
+    fun.scope(scope);
     if (containsSuperConstructorCall()) {
       // must be contained at top level
-      BlockStatement block = (BlockStatement) optBody;
+      BlockStatement block = (BlockStatement) getBody();
       block.checkSuperConstructorCall();
     }
   }
 
   public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context); // computes modifiers
-    if (params != null) {
-      params.analyze(this, context);
-    }
-    if (optTypeRelation != null) {
-      optTypeRelation.analyze(this, context);
-    }
-    if (optBody != null) {
-      optBody.analyze(this, context);
-    }
+    fun.analyze(this, context);
     return this;
   }
 
@@ -256,24 +183,17 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
     if (!isPrivate()) {
       writeModifiers(out);
       if (!isNative() && !isAbstract() && !isConstructor()) {
-        out.writeSymbolWhitespace(symFunction);
+        out.writeSymbolWhitespace(fun.getFunSymbol());
         out.writeToken(SyntacticKeywords.NATIVE);
-        out.writeSymbol(symFunction, false);
+        out.writeSymbol(fun.getFunSymbol(), false);
       } else {
-        out.writeSymbol(symFunction);
+        out.writeSymbol(fun.getFunSymbol());
       }
       if (symGetOrSet != null) {
         out.writeSymbol(symGetOrSet);
       }
       ide.generateCode(out);
-      out.writeSymbol(lParen);
-      if (params != null) {
-        params.generateCode(out);
-      }
-      out.writeSymbol(rParen);
-      if (optTypeRelation != null) {
-        optTypeRelation.generateCode(out);
-      }
+      fun.generateSignatureCode(out);
       if (isConstructor() && !isNative()) {
         // ASDoc does not allow a native constructor if the super class constructor needs parameters!
         out.writeToken("{super(");
@@ -304,63 +224,60 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
   }
 
   protected void generateJsCode(JsWriter out) throws IOException {
-    boolean isAbstract = isAbstract();
-    if (isAbstract) {
-      out.beginComment();
-      writeModifiers(out);
-      out.writeSymbol(symFunction);
-      ide.generateCode(out);
+    assert isClassMember() || (!isNative() && !isAbstract());
+    if (isConstructor && !containsSuperConstructorCall() && hasBody()) {
+      classDeclaration.addSuperCallCodeGenerator(getBody());
+    }
+    if (!isClassMember()) {
+      fun.generateJsCode(out);
     } else {
-      out.beginString();
-      writeModifiers(out);
-      out.writeSymbol(symFunction);
-      if (isGetterOrSetter()) {
-        out.writeSymbol(symGetOrSet);
-      }
-      ide.generateCode(out);
-      out.endString();
-      if (isNative()) {
+      if (isAbstract()) {
         out.beginComment();
+        writeModifiers(out);
+        out.writeSymbol(fun.getFunSymbol());
+        ide.generateCode(out);
       } else {
-        out.write(",");
-        out.writeToken("function");
-        if (out.getKeepSource()) {
-          String methodName = ide.getName();
-          if (isConstructor) {
-            // do not name the constructor initializer function like the class, or it will be called
-            // instead of the constructor function generated by the runtime! So we prefix it with a "$".
-            // The name is for debugging purposes only, anyway.
-            out.writeToken(methodName + "$");
-          } else if (symGetOrSet != null) {
-            out.writeToken(methodName + "$" + symGetOrSet.getText());
-          } else {
-            out.writeToken(methodName);
+        out.beginString();
+        writeModifiers(out);
+        out.writeSymbol(fun.getFunSymbol());
+        if (isGetterOrSetter()) {
+          out.writeSymbol(symGetOrSet);
+        }
+        ide.generateCode(out);
+        out.endString();
+        if (isNative()) {
+          out.beginComment();
+        } else {
+          out.write(",");
+          out.writeToken("function");
+          if (out.getKeepSource()) {
+            String functionName = ide.getName();
+            if (isConstructor) {
+              // do not name the constructor initializer function like the class, or it will be called
+              // instead of the constructor function generated by the runtime! So we prefix it with a "$".
+              // The name is for debugging purposes only, anyway.
+              out.writeToken(functionName + "$");
+            } else if (symGetOrSet != null) {
+              out.writeToken(functionName + "$" + symGetOrSet.getText());
+            } else {
+              out.writeToken(functionName);
+            }
           }
         }
       }
-    }
-    out.writeSymbol(lParen);
-    if (params != null) {
-      params.generateCode(out);
-      if (optBody instanceof BlockStatement) {
-        // inject into body for generating initilizers later:
-        ((BlockStatement) optBody).addBlockStartCodeGenerator(params.getParameterInitializerCodeGenerator());
+      fun.generateFunTailCode(out);
+      if (isClassMember()) {
+        if (isAbstract() || isNative()) {
+          out.endComment();
+        }
+        out.write(',');
       }
     }
-    out.writeSymbol(rParen);
-    if (optTypeRelation != null) {
-      optTypeRelation.generateCode(out);
-    }
-    if (isConstructor && !containsSuperConstructorCall() && optBody instanceof BlockStatement) {
-      classDeclaration.addSuperCallCodeGenerator((BlockStatement) optBody);
-    }
-    if (optBody != null) {
-      optBody.generateCode(out);
-    }
-    if (isAbstract() || isNative()) {
-      out.endComment();
-    }
-    out.write(',');
+  }
+
+  @Override
+  public JooSymbol getSymbol() {
+    return fun.getSymbol();
   }
 
   @Override

@@ -257,6 +257,8 @@ public class ClassDeclaration extends IdeDeclaration {
         withNewDeclarationScope(ClassDeclaration.this, staticScope, new Scoped() {
           @Override
           public void run(final Scope instanceScope) {
+            //todo ugly, maybe we should define ClassScope implements Scope to lookup inherited members
+            ((DeclarationScope)instanceScope).setIsInstanceScope(true);
             body.scope(staticScope, instanceScope);
           }
         });
