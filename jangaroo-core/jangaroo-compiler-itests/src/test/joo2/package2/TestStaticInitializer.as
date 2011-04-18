@@ -53,5 +53,15 @@ public class TestStaticInitializer {
   static public function return2() : Number {
     return 2;
   }
+
+  public static const FUN:Function = function(s:String):void {
+    this.slot = s;
+  };
+
+  private static const FUN2:Function = function(s:String):void {
+    this.slot = s;
+  };
+
+  public static const FUN2_PUBLIC :Function = FUN2;
 }
 }

@@ -222,6 +222,10 @@ public class JooTest extends JooRuntimeTestCase {
     complete();
     expectNumber(1, "package2.TestStaticInitializer.return1()");
     expectNumber(2, "package2.TestStaticInitializer.return2()");
+
+    expectString("function", "typeof package2.TestStaticInitializer.FUN");
+    expectString("something", "var o = { slot: 'bad' }; package2.TestStaticInitializer.FUN.call(o, 'something'); o.slot");
+    expectString("something", "var o = { slot: 'bad' }; package2.TestStaticInitializer.FUN2_PUBLIC.call(o, 'something'); o.slot");
   }
 
   public void testLocalVariables() throws Exception {
