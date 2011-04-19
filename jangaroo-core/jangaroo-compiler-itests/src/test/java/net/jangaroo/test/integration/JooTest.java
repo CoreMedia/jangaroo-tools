@@ -454,6 +454,9 @@ public class JooTest extends JooRuntimeTestCase {
     expectString("foo/bar/undefined/0", "obj.initParams4('foo','bar')");
     expectString("foo/foo/undefined/0", "obj.initParams4('foo')");
     expectString("undefined/foo/undefined/0", "obj.initParams4()");
+
+    expectNumber(5*99, "obj.testParamWithAnyTypeWithoutWhitespaceSyntax()");
+    expectNumber(6*88, "obj.testParamWithAnyTypeWithoutWhitespaceSyntax2()");
   }
 
   public void testRestParams() throws Exception {
