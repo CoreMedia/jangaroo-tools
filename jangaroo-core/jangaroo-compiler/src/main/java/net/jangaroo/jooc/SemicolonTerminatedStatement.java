@@ -69,21 +69,8 @@ class SemicolonTerminatedStatement extends Statement {
       String functionName = funSymbol.getText();
       if ("trace".equals(functionName) || SyntacticKeywords.ASSERT.equals(functionName)) {
         classDeclaration.addBuiltInUsage(functionName);
-        if (SyntacticKeywords.ASSERT.equals(functionName)) {
-          ParenthesizedExpr<CommaSeparatedList<Expr>> args = applyExpr.args;
-          CommaSeparatedList<Expr> params = args.expr;
-          if (params != null && params.tail == null) {
-            AssertStatement assertStatement = new AssertStatement(funSymbol, args.lParen, params.head, args.rParen, optSymSemicolon);
-            assertStatement.analyze(parentNode, context);
-            //todo this is the only case where analyze() returns something different than 'this' - think of other ways to do this than tree rewriting
-            return assertStatement;
-          }
-        }
       }
     }
-    //: new SemicolonTerminatedStatement(new ApplyExpr(new TopLevelIdeExpr(ide), lp, args, rp), s);
-    //? new AssertStatement(ide.ide,lp,(Expr)args.head,rp,s)
-    
     super.analyze(parentNode, context);
     if (optStatement!=null) {
       optStatement = optStatement.analyze(this, context);

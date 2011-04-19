@@ -53,8 +53,23 @@ class ApplyExpr extends Expr {
 
   protected void generateJsCode(JsWriter out) throws IOException {
     generateFunJsCode(out);
-    if (args != null)
-      args.generateCode(out);
+    if (args != null) {
+      boolean isAssert = fun instanceof IdeExpr && SyntacticKeywords.ASSERT.equals(fun.getSymbol().getText());
+      if (isAssert) {
+        JooSymbol symKeyword = fun.getSymbol();
+        out.writeSymbol(args.lParen);
+        args.expr.generateCode(out);
+        out.writeToken(", ");
+        out.writeString(symKeyword.getFileName());
+        out.writeToken(", ");
+        out.writeInt(symKeyword.getLine());
+        out.write(", ");
+        out.writeInt(symKeyword.getColumn());
+        out.writeSymbol(args.rParen);
+      } else {
+        args.generateCode(out);
+      }
+    }
   }
 
   private void generateFunJsCode(JsWriter out) throws IOException {
