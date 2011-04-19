@@ -155,7 +155,6 @@ public abstract class ScannerBase implements sym {
     defsym("!", NOT);
     defsym("?", QUESTION);
     defsym(":", COLON);
-    defsym(":*", ANYTYPE);
     defsym("==", EQEQ);
     defsym("<=", LTEQ);
     defsym(">=", GTEQ);

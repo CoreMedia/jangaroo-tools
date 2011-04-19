@@ -113,14 +113,15 @@ package net.jangaroo.jooc;
     string.setLength(0);
     whitespace = regexpStart.getWhitespace();
     assert(regexpStart.sym == sym.DIV || regexpStart.sym == sym.DIVEQ);
-    pushback(regexpStart.sym == sym.DIVEQ ? 2 : 1);
+    yypushback(regexpStart.getText().length()); // scan it again as part of the regexp
     yybegin(REGEXP_START);
   }
 
-  // workaround for bug in jflex column counting, works only if no newline is in these n characters 
-  private void pushback(int n) {
-    yypushback(n);
-    yycolumn -= n;
+  protected void startType(JooSymbol typeStart) {
+    assert(typeStart.sym == sym.MULTEQ);
+    JooSymbol mul = new JooSymbol(sym.MUL, typeStart.getFileName(), typeStart.getLine(), typeStart.getColumn(), "", "*");
+    pushback(mul);
+    yypushback(1); // the "="
   }
 
 %}
@@ -265,7 +266,6 @@ Include           = "include \"" ~"\""
   ">>>"                           { return symbol(URSHIFT); }
   "+="                            { return symbol(PLUSEQ); }
   "-="                            { return symbol(MINUSEQ); }
-  ":*"                            { return symbol(ANYTYPE); }
   "*="                            { return symbol(MULTEQ); }
   "&="                            { return symbol(ANDEQ); }
   "&&="                           { return symbol(ANDANDEQ); }

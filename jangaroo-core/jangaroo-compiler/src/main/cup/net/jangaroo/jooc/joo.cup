@@ -103,14 +103,20 @@ parser code  {:
   }
 
   protected boolean error_recovery(boolean debug) {
-    String whitespace = ((JooSymbol)cur_token).getWhitespace();
-      boolean isPostfixOp = cur_token.sym == sym.PLUSPLUS || cur_token.sym == sym.MINUSMINUS;
+   String whitespace = ((JooSymbol)cur_token).getWhitespace();
+   boolean isPostfixOp = cur_token.sym == sym.PLUSPLUS || cur_token.sym == sym.MINUSMINUS;
 
    // check for regular expression start
    if ((cur_token.sym == sym.DIV || cur_token.sym == sym.DIVEQ) && isActionDefinedFor(sym.REGEXP_START)) {
      // this is only the case if we are not just before parsing an expression statement
      scanner.startRegexp((JooSymbol)cur_token);
      return replaceToken(sym.REGEXP_START);
+   }
+
+   // check for Type start
+   if (cur_token.sym == sym.MULTEQ && isActionDefinedFor(sym.TYPE_START)) {
+     scanner.startType((JooSymbol)cur_token);
+     return replaceToken(sym.TYPE_START);
    }
 
    // mimic ECMA-262 grammar precondition: token notin { '{', 'function' } for expression statements
@@ -214,7 +220,6 @@ terminal JooSymbol USE;
 terminal JooSymbol VAR, VOID;
 terminal JooSymbol WHILE, WITH;
 
-terminal JooSymbol ANYTYPE;
 terminal JooSymbol REST;
 terminal JooSymbol PLUSPLUS, MINUSMINUS, PLUS, MINUS, NOT, DIV, MOD, MUL;
 terminal JooSymbol LSHIFT, RSHIFT, URSHIFT;
@@ -241,9 +246,13 @@ terminal JooSymbol REGEXP_LITERAL;
 // inserted by parser if no other action is available
 terminal JooSymbol FUNCTION_EXPR, LBRACK_EXPR, LBRACE_EXPR;
 
-// virtual tokens to mark the begin of a regular expression literal
+// virtual token to mark the begin of a regular expression literal
 // inserted by parser if no other action is available
 terminal JooSymbol REGEXP_START;
+
+// virtual token to mark the beginning of an any type (disambiguate the any type "*" and operator "*=")
+// inserted by parser if no other action is available
+terminal JooSymbol TYPE_START;
 
 // virtual tokens to handle the ECMA-262 restricted productions for semicolon insertion
 terminal JooSymbol NO_LINE_TERMINATOR_HERE, NO_LINE_TERMINATOR_HERE_POSTFIX_OP;
@@ -949,8 +958,8 @@ ideList ::=
 typeRelation ::=
     COLON:s type:t
     {: RESULT = new TypeRelation(s,t); :}
-  | ANYTYPE:at
-    {: RESULT = new TypeRelation(at); :}
+  | COLON:s TYPE_START type:t
+    {: RESULT = new TypeRelation(s, t); :}
   ;
 
 forVariableDeclaration ::=
