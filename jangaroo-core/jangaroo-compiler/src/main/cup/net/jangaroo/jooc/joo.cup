@@ -316,7 +316,6 @@ nonterminal ParenthesizedExpr parenthesizedExpr;
 nonterminal Ide qualifiedIde;
 nonterminal Ide namespacedIde;
 nonterminal Statement statement;
-nonterminal Statement labelableStatement;
 nonterminal ArrayList statements;
 nonterminal Statement statementInSwitch;
 nonterminal ArrayList statementsInSwitch;
@@ -849,8 +848,32 @@ qualifiedIde ::=
     {: RESULT = new QualifiedIde(prefix, d, ide.ide); :}
   ;
 
-labelableStatement ::=
-    IF:i parenthesizedExpr:cond statement:ts ELSE:e statement:es
+statement ::=
+    SEMICOLON:s
+    {: RESULT = new EmptyStatement(s); :}
+  | commaExpr:e SEMICOLON:s
+    {: RESULT = new SemicolonTerminatedStatement(e,s); :}
+  | ide:ide COLON:c statement:s
+    {: RESULT = new LabeledStatement(ide,c,s); :}
+  | variableDeclaration:decl
+    {: RESULT = decl; :}
+  | BREAK:b SEMICOLON:s
+    {: RESULT = new BreakStatement(b,null,s); :}
+  | BREAK:b NO_LINE_TERMINATOR_HERE ide:ide SEMICOLON:s
+    {: RESULT = new BreakStatement(b,ide,s); :}
+  | CONTINUE:c SEMICOLON:s
+    {: RESULT = new ContinueStatement(c,null,s); :}
+  | CONTINUE:c NO_LINE_TERMINATOR_HERE ide:ide SEMICOLON:s
+    {: RESULT = new ContinueStatement(c,ide,s); :}
+  | RETURN:r  SEMICOLON:s
+    {: RESULT = new ReturnStatement(r,null,s); :}
+  | RETURN:r  NO_LINE_TERMINATOR_HERE expr:e SEMICOLON:s
+    {: RESULT = new ReturnStatement(r,e,s); :}
+  | THROW:t NO_LINE_TERMINATOR_HERE commaExpr:e SEMICOLON:s
+    {: RESULT = new ThrowStatement(t,e,s); :}
+  | SUPER:sup LPAREN:lp arguments:args RPAREN:rp SEMICOLON:s
+    {: RESULT = new SuperConstructorCallStatement(sup,lp,args,rp, s); :}
+  | IF:i parenthesizedExpr:cond statement:ts ELSE:e statement:es
     {: RESULT = new IfStatement(i,cond,ts,e,es); :}
   | IF:i parenthesizedExpr:cond statement:ts
     {: RESULT = new IfStatement(i,cond,ts); :}
@@ -882,35 +905,6 @@ labelableStatement ::=
     {: RESULT = b; :}
   | functionDeclaration:fs
     {: RESULT = fs; :}
-  ;
-
-statement ::=
-    SEMICOLON:s
-    {: RESULT = new EmptyStatement(s); :}
-  | commaExpr:e SEMICOLON:s
-    {: RESULT = new SemicolonTerminatedStatement(e,s); :}
-  | ide:ide COLON:c statement:s
-    {: RESULT = new LabeledStatement(ide,c,s); :}
-  | variableDeclaration:decl
-    {: RESULT = decl; :}
-  | BREAK:b SEMICOLON:s
-    {: RESULT = new BreakStatement(b,null,s); :}
-  | BREAK:b NO_LINE_TERMINATOR_HERE ide:ide SEMICOLON:s
-    {: RESULT = new BreakStatement(b,ide,s); :}
-  | CONTINUE:c SEMICOLON:s
-    {: RESULT = new ContinueStatement(c,null,s); :}
-  | CONTINUE:c NO_LINE_TERMINATOR_HERE ide:ide SEMICOLON:s
-    {: RESULT = new ContinueStatement(c,ide,s); :}
-  | RETURN:r  SEMICOLON:s
-    {: RESULT = new ReturnStatement(r,null,s); :}
-  | RETURN:r  NO_LINE_TERMINATOR_HERE expr:e SEMICOLON:s
-    {: RESULT = new ReturnStatement(r,e,s); :}
-  | THROW:t NO_LINE_TERMINATOR_HERE commaExpr:e SEMICOLON:s
-    {: RESULT = new ThrowStatement(t,e,s); :}
-  | SUPER:s LPAREN:lp arguments:args RPAREN:rp
-    {: RESULT = new SuperConstructorCallStatement(s,lp,args,rp); :}
-  | labelableStatement:s
-    {: RESULT = s; :}
   ;
 
 statements ::=

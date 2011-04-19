@@ -25,11 +25,13 @@ class SuperConstructorCallStatement extends Statement {
 
   Expr fun;
   ParenthesizedExpr<CommaSeparatedList<Expr>> args;
+  JooSymbol symSemicolon;
   private ClassDeclaration classDeclaration;
 
-  public SuperConstructorCallStatement(JooSymbol symSuper, JooSymbol lParen, CommaSeparatedList<Expr> args, JooSymbol rParen) {
+  public SuperConstructorCallStatement(JooSymbol symSuper, JooSymbol lParen, CommaSeparatedList<Expr> args, JooSymbol rParen, JooSymbol symSemicolon) {
     this.fun = new IdeExpr(symSuper);
     this.args = new ParenthesizedExpr<CommaSeparatedList<Expr>>(lParen, args, rParen);
+    this.symSemicolon = symSemicolon;
   }
 
   @Override
@@ -69,6 +71,7 @@ class SuperConstructorCallStatement extends Statement {
       out.endComment();
       classDeclaration.generateFieldInitCode(out, false, false);
     }
+    out.writeSymbol(symSemicolon);
   }
 
   protected void generateFunCode(JsWriter out) throws IOException {
