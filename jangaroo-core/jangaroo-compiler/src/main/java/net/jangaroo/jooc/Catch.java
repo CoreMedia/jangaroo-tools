@@ -28,6 +28,7 @@ class Catch extends KeywordStatement {
   private Parameter param;
   private JooSymbol rParen;
   private BlockStatement block;
+  private TryStatement parentNode;
 
   public Catch(JooSymbol symCatch, JooSymbol lParen, Parameter param, JooSymbol rParen, BlockStatement block) {
     super(symCatch);
@@ -38,7 +39,7 @@ class Catch extends KeywordStatement {
   }
 
   protected void generateJsCode(JsWriter out) throws IOException {
-    List<Catch> catches = ((TryStatement) parentNode).catches;
+    List<Catch> catches = getParentTryStatement().catches;
     Catch firstCatch = catches.get(0);
     boolean isFirst = equals(firstCatch);
     boolean isLast = equals(catches.get(catches.size() - 1));
@@ -99,6 +100,10 @@ class Catch extends KeywordStatement {
     }
   }
 
+  private TryStatement getParentTryStatement() {
+    return parentNode;
+  }
+
   private boolean hasCondition() {
     TypeRelation typeRelation = param.optTypeRelation;
     return typeRelation != null && typeRelation.getType().getSymbol().sym != sym.MUL;
@@ -120,6 +125,7 @@ class Catch extends KeywordStatement {
 
   public void analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
+    this.parentNode = (TryStatement) parentNode;
     param.analyze(this, context);
     TypeRelation typeRelation = param.optTypeRelation;
     if (typeRelation != null) {

@@ -28,8 +28,8 @@ public class VariableDeclaration extends TypedIdeDeclaration {
   JooSymbol optSymConstOrVar;
   Initializer optInitializer;
   VariableDeclaration optNextVariableDeclaration;
-  private boolean hasPreviousVariableDeclaration = false;
   JooSymbol optSymSemicolon;
+  private VariableDeclaration previousVariableDeclaration;
 
   public VariableDeclaration(JooSymbol[] modifiers,
                              JooSymbol optSymConstOrVar,
@@ -44,8 +44,11 @@ public class VariableDeclaration extends TypedIdeDeclaration {
     this.optInitializer = optInitializer;
     this.optNextVariableDeclaration = optNextVariableDeclaration;
     this.optSymSemicolon = optSymSemicolon;
-    if (optSymSemicolon != null && optNextVariableDeclaration != null) {
-      optNextVariableDeclaration.setInheritedModifiers(modifiers);
+    if (optNextVariableDeclaration != null) {
+      optNextVariableDeclaration.previousVariableDeclaration = this;
+      if (optSymSemicolon != null) {
+        optNextVariableDeclaration.setInheritedModifiers(modifiers);
+      }
     }
   }
 
@@ -119,7 +122,6 @@ public class VariableDeclaration extends TypedIdeDeclaration {
     if (optNextVariableDeclaration != null) {
       optNextVariableDeclaration.analyze(this, context);
     }
-    hasPreviousVariableDeclaration = parentNode instanceof VariableDeclaration;
     if (isClassMember() && !isStatic() && optInitializer != null && !optInitializer.value.isCompileTimeConstant()) {
       getClassDeclaration().addFieldWithInitializer(this);
     }
@@ -294,11 +296,11 @@ public class VariableDeclaration extends TypedIdeDeclaration {
   }
 
   protected boolean hasPreviousVariableDeclaration() {
-    return hasPreviousVariableDeclaration;
+    return previousVariableDeclaration != null;
   }
 
   protected VariableDeclaration getPreviousVariableDeclaration() {
-    return (VariableDeclaration) parentNode;
+    return previousVariableDeclaration;
   }
 
   protected VariableDeclaration getFirstVariableDeclaration() {

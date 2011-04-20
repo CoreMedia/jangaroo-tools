@@ -24,8 +24,6 @@ import java.util.List;
  */
 public abstract class NodeImplBase implements AstNode {
 
-  AstNode parentNode;
-
   void generateCode(Collection<? extends AstNode> nodes, JsWriter out) throws IOException {
     for (AstNode node : nodes) {
       node.generateCode(out);
@@ -51,7 +49,6 @@ public abstract class NodeImplBase implements AstNode {
   }
 
   public void analyze(AstNode parentNode, AnalyzeContext context) {
-    this.parentNode = parentNode;
   }
 
   public <N extends AstNode> void scope(List<N> nodes, Scope scope) {

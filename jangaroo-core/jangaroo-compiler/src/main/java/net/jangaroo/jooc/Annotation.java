@@ -41,6 +41,10 @@ public class Annotation extends Directive {
     this.optRightParen = optRightParen;
     this.optAnnotationParameters = optAnnotationParameters;
     this.rightBracket = optRightBracket;
+    for (CommaSeparatedList<AnnotationParameter> params = optAnnotationParameters; params != null; params = params.tail) {
+      params.head.setParentAnnotation(this);
+
+    }
   }
 
   @Override
@@ -99,4 +103,7 @@ public class Annotation extends Directive {
     out.writeSymbol(rightBracket);
   }
 
+  public String getMetaName() {
+    return getSymbol().getText();
+  }
 }

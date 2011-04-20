@@ -26,11 +26,20 @@ class AnnotationParameter extends NodeImplBase {
   JooSymbol optSymEq;
   LiteralExpr value;
   private CompilationUnit compilationUnit;
+  private Annotation parentAnnotation;
 
   public AnnotationParameter(Ide optName, JooSymbol optSymEq, LiteralExpr value) {
     this.optName = optName;
     this.optSymEq = optSymEq;
     this.value = value;
+  }
+
+  public Annotation getParentAnnotation() {
+    return parentAnnotation;
+  }
+
+  public void setParentAnnotation(Annotation parentAnnotation) {
+    this.parentAnnotation = parentAnnotation;
   }
 
   @Override
@@ -46,7 +55,7 @@ class AnnotationParameter extends NodeImplBase {
     super.analyze(parentNode, context);
     if (value != null) {
       value.analyze(this, context);
-      String metaName = ((CommaSeparatedList)parentNode).parentNode.getSymbol().getText();
+      String metaName = parentAnnotation.getMetaName();
       if ("Embed".equals(metaName) && optName != null && "source".equals(optName.getName())) {
         JooSymbol valueSymbol = value.getSymbol();
         String text = valueSymbol.getText();
