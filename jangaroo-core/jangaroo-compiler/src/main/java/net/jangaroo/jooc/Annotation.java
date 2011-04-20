@@ -52,12 +52,11 @@ public class Annotation extends Directive {
   }
 
   @Override
-  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
+  public void analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     if (optAnnotationParameters != null) {
       optAnnotationParameters.analyze(this, context);
     }
-    return this;
   }
 
   public JooSymbol getSymbol() {

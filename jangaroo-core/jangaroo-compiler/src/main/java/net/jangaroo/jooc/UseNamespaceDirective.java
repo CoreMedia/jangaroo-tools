@@ -41,10 +41,10 @@ public class UseNamespaceDirective extends Directive {
   }
 
   @Override
-  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
+  public void analyze(AstNode parentNode, AnalyzeContext context) {
     Jooc.warning(namespace.getSymbol(), "namespaces are not yet implemented, ignoring use namespace " + namespace.getName());
     namespace.analyze(this, context);
-    return super.analyze(parentNode, context);
+    super.analyze(parentNode, context);
   }
 
   @Override

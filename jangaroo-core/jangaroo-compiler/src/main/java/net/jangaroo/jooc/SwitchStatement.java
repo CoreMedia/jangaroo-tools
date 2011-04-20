@@ -43,11 +43,10 @@ class SwitchStatement extends KeywordStatement {
     });
   }
 
-  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
+  public void analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     cond.analyze(this, context);
     block.analyze(this, context);
-    return this;
   }
 
   protected void generateJsCode(JsWriter out) throws IOException {

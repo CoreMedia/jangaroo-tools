@@ -50,12 +50,11 @@ class SuperConstructorCallStatement extends Statement {
     classDeclaration = scope.getClassDeclaration();
   }
 
-  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
+  public void analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     fun.analyze(this, context);
     if (args != null)
       args.analyze(this, context);
-    return this;
   }
 
   protected void generateJsCode(JsWriter out) throws IOException {

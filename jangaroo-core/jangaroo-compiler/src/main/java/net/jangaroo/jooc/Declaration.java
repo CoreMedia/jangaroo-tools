@@ -109,10 +109,9 @@ abstract class Declaration extends Statement {
   }
 
   @Override
-  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
-    final AstNode node = super.analyze(parentNode, context);
+  public void analyze(AstNode parentNode, AnalyzeContext context) {
+    super.analyze(parentNode, context);
     checkAllowedModifiers();
-    return node;
   }
 
   protected int getModifierFlag(JooSymbol modifier) {

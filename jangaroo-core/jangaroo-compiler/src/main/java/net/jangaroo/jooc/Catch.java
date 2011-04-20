@@ -118,7 +118,7 @@ class Catch extends KeywordStatement {
     });
   }
 
-  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
+  public void analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     param.analyze(this, context);
     TypeRelation typeRelation = param.optTypeRelation;
@@ -130,7 +130,6 @@ class Catch extends KeywordStatement {
       }
     }
     block.analyze(this, context);
-    return this;
   }
 
   private static class VarCodeGenerator implements CodeGenerator {

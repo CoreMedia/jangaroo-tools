@@ -42,10 +42,10 @@ class AnnotationParameter extends NodeImplBase {
     }
   }
 
-  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
+  public void analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     if (value != null) {
-      value = (LiteralExpr)value.analyze(this, context);
+      value.analyze(this, context);
       String metaName = ((CommaSeparatedList)parentNode).parentNode.getSymbol().getText();
       if ("Embed".equals(metaName) && optName != null && "source".equals(optName.getName())) {
         JooSymbol valueSymbol = value.getSymbol();
@@ -59,7 +59,6 @@ class AnnotationParameter extends NodeImplBase {
           absoluteSource);
       }
     }
-    return this;
   }
 
   @Override

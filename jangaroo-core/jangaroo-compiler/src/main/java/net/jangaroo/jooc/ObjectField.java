@@ -38,11 +38,10 @@ class ObjectField extends NodeImplBase {
     value.scope(scope);
   }
 
-  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
+  public void analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
-    label = label.analyze(this, context);
-    value = value.analyze(this, context);
-    return this;
+    label.analyze(this, context);
+    value.analyze(this, context);
   }
 
   protected void generateJsCode(JsWriter out) throws IOException {

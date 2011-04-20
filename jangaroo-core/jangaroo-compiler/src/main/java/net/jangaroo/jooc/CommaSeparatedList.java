@@ -68,14 +68,13 @@ class CommaSeparatedList<NodeType extends AstNode> extends Expr {
   }
 
 
-  public Expr analyze(AstNode parentNode, AnalyzeContext context) {
+  public void analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     if (head != null) {
       head.analyze(this, context);
     }
     if (tail != null)
       tail.analyze(this, context);
-    return this;
   }
 
   public JooSymbol getSymbol() {

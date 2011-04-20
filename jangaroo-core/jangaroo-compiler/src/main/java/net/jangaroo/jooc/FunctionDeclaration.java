@@ -150,10 +150,9 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
     }
   }
 
-  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
+  public void analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context); // computes modifiers
     fun.analyze(this, context);
-    return this;
   }
 
   @Override

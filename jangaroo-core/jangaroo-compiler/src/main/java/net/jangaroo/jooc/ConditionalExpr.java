@@ -51,12 +51,11 @@ class ConditionalExpr extends Expr {
     ifFalse.generateCode(out);
   }
 
-  public Expr analyze(AstNode parentNode, AnalyzeContext context) {
+  public void analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
-    cond = cond.analyze(this, context);
-    ifTrue = ifTrue.analyze(this, context);
-    ifFalse = ifFalse.analyze(this, context);
-    return this;
+    cond.analyze(this, context);
+    ifTrue.analyze(this, context);
+    ifFalse.analyze(this, context);
   }
 
   public JooSymbol getSymbol() {

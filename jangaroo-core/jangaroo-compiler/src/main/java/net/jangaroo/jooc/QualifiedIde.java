@@ -87,9 +87,9 @@ public class QualifiedIde extends Ide {
   }
 
   @Override
-  public AstNode analyze(final AstNode parentNode, final AnalyzeContext context) {
+  public void analyze(final AstNode parentNode, final AnalyzeContext context) {
     qualifier.analyze(this, context);
-    return super.analyze(parentNode, context);
+    super.analyze(parentNode, context);
   }
 
   protected void generateJsCode(JsWriter out) throws IOException {

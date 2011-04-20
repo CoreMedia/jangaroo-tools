@@ -36,14 +36,13 @@ public class Extends extends NodeImplBase {
   }
 
   @Override
-  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
+  public void analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     if (!(superClass.getDeclaration() instanceof ClassDeclaration)) {
       throw new Jooc.CompilerError(superClass.getSymbol(), "identifier in extends clause must denote a class");
     }
     superClass.analyze(this, context);
     superClass.addExternalUsage();
-    return this;
   }
 
   protected void generateJsCode(JsWriter out) throws IOException {

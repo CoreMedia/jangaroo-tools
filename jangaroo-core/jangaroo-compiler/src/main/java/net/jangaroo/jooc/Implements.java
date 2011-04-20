@@ -35,7 +35,7 @@ class Implements extends NodeImplBase {
   }
 
   @Override
-  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
+  public void analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     superTypes.analyze(this, context);
     CommaSeparatedList<Ide> superTypes = this.superTypes;
@@ -44,7 +44,6 @@ class Implements extends NodeImplBase {
       superType.addExternalUsage();
       superTypes = superTypes.tail;
     }
-    return this;
   }
 
   protected void generateJsCode(JsWriter out) throws IOException {

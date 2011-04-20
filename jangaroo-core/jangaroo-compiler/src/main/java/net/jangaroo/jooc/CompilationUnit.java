@@ -142,12 +142,10 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
     out.write(");");
   }
 
-  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
+  public void analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
-
     packageDeclaration.analyze(this, context);
     primaryDeclaration.analyze(this, context);
-    return this;
   }
 
   public JooSymbol getSymbol() {

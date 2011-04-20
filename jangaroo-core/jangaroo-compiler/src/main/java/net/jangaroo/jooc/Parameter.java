@@ -46,7 +46,7 @@ public class Parameter extends IdeDeclaration {
   }
 
   @Override
-  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
+  public void analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     if (optTypeRelation!=null) {
       optTypeRelation.analyze(this, context);
@@ -58,7 +58,6 @@ public class Parameter extends IdeDeclaration {
     if (optInitializer!=null) {
       optInitializer.analyze(this, context);
     }
-    return this;
   }
 
   public boolean isRest() {

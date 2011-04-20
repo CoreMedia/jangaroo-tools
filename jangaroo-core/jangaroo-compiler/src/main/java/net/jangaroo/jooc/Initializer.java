@@ -35,10 +35,9 @@ class Initializer extends NodeImplBase {
     value.scope(scope);
   }
 
-  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
+  public void analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
-    value = value.analyze(this, context);
-    return this;
+    value.analyze(this, context);
   }
 
   protected void generateJsCode(JsWriter out) throws IOException {

@@ -35,10 +35,9 @@ public class AbstractBlock extends Statement {
     out.writeSymbol(rBrace);
   }
 
-  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
+  public void analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
-    directives = analyze(this, directives, context);
-    return this;
+    analyze(this, directives, context);
   }
 
   public JooSymbol getSymbol() {

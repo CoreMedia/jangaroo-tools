@@ -108,7 +108,7 @@ public class VariableDeclaration extends TypedIdeDeclaration {
     return isConst() && (optInitializer == null || optInitializer.value.isCompileTimeConstant());
   }
 
-  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
+  public void analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     if (optInitializer == null && isConst()) {
       throw Jooc.error(optSymConstOrVar, "constant must be initialized");
@@ -123,7 +123,6 @@ public class VariableDeclaration extends TypedIdeDeclaration {
     if (isClassMember() && !isStatic() && optInitializer != null && !optInitializer.value.isCompileTimeConstant()) {
       getClassDeclaration().addFieldWithInitializer(this);
     }
-    return this;
   }
 
   protected void generateStartCode(JsWriter out) throws IOException {

@@ -39,11 +39,10 @@ class ParenthesizedExpr<E extends Expr> extends Expr {
     }
   }
 
-  public Expr analyze(AstNode parentNode, AnalyzeContext context) {
+  public void analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     if (expr!=null)
-      expr = (E)expr.analyze(this, context);
-    return this;
+      expr.analyze(this, context);
   }
 
   protected void generateExprCode(JsWriter out) throws IOException {

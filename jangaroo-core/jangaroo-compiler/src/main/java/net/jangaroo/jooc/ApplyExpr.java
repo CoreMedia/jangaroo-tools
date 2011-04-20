@@ -98,12 +98,11 @@ class ApplyExpr extends Expr {
       );
   }
 
-  public Expr analyze(AstNode parentNode, AnalyzeContext context) {
+  public void analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
-    fun = fun.analyze(this, context);
+    fun.analyze(this, context);
     if (args != null)
       args.analyze(this, context);
-    return this;
   }
 
   public JooSymbol getSymbol() {

@@ -36,10 +36,9 @@ class CaseStatement extends KeywordStatement {
     expr.scope(scope);
   }
 
-  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
+  public void analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
-    expr = expr.analyze(this, context);
-    return this;
+    expr.analyze(this, context);
   }
 
   protected void generateJsCode(JsWriter out) throws IOException {

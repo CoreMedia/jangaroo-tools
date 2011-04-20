@@ -31,8 +31,8 @@ abstract class Expr extends NodeImplBase {
   }
 
   @Override
-  public Expr analyze(AstNode parentNode, AnalyzeContext context) {
-    return (Expr)super.analyze(parentNode, context);
+  public void analyze(AstNode parentNode, AnalyzeContext context) {
+    super.analyze(parentNode, context);
   }
 
   boolean isCompileTimeConstant() {

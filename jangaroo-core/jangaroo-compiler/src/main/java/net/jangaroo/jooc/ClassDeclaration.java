@@ -282,8 +282,8 @@ public class ClassDeclaration extends IdeDeclaration {
     directives.add(0, importDirective);
   }
 
-  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
-    this.directives = analyze(this, this.directives, context);
+  public void analyze(AstNode parentNode, AnalyzeContext context) {
+    analyze(this, directives, context);
     super.analyze(parentNode, context);
     if (optExtends != null) {
       optExtends.analyze(this, context);
@@ -295,7 +295,6 @@ public class ClassDeclaration extends IdeDeclaration {
     for (IdeDeclaration secondaryDeclaration : secondaryDeclarations) {
       secondaryDeclaration.analyze(this, context);
     }
-    return this;
   }
 
   public void registerMember(TypedIdeDeclaration memberDeclaration) {

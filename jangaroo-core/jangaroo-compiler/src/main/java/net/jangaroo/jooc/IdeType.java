@@ -42,10 +42,9 @@ public class IdeType extends Type {
   }
 
   @Override
-  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
+  public void analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     ide.analyze(this, context);
-    return this;
   }
 
   protected void generateJsCode(JsWriter out) throws IOException {

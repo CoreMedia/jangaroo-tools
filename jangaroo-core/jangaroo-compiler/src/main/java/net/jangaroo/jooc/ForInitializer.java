@@ -41,13 +41,12 @@ class ForInitializer extends NodeImplBase {
       expr.scope(scope);
   }
 
-  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
+  public void analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     if (decl!=null)
       decl.analyze(this, context);
     if (expr!=null)
-      expr = expr.analyze(this, context);
-    return this;
+      expr.analyze(this, context);
   }
 
   protected void generateJsCode(JsWriter out) throws IOException {

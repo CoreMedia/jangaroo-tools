@@ -141,7 +141,7 @@ public class FunctionExpr extends Expr {
   }
 
 
-  public Expr analyze(AstNode parentNode, AnalyzeContext context) {
+  public void analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     if (params != null) {
       params.analyze(this, context);
@@ -152,7 +152,6 @@ public class FunctionExpr extends Expr {
     if (optBody != null) {
       optBody.analyze(this, context);
     }
-    return this;
   }
 
   public void addImplicitParam(Parameter parameter) {

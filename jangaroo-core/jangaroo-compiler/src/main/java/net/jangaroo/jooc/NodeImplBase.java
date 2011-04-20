@@ -17,7 +17,6 @@ package net.jangaroo.jooc;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -51,9 +50,8 @@ public abstract class NodeImplBase implements AstNode {
     generateJsCode(out);
   }
 
-  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
+  public void analyze(AstNode parentNode, AnalyzeContext context) {
     this.parentNode = parentNode;
-    return this;
   }
 
   public <N extends AstNode> void scope(List<N> nodes, Scope scope) {
@@ -62,12 +60,10 @@ public abstract class NodeImplBase implements AstNode {
     }
   }
 
-  public <N extends AstNode> List<N> analyze(AstNode parent, List<N> nodes, AnalyzeContext context) {
-    List<N> result = new ArrayList<N>(nodes.size());
+  public <N extends AstNode> void analyze(AstNode parent, List<N> nodes, AnalyzeContext context) {
     for (AstNode node : nodes) {
-      result.add((N)node.analyze(parent, context));
+      node.analyze(parent, context);
     }
-    return result;
   }
 
   public interface Scoped {

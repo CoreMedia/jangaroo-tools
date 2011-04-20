@@ -24,6 +24,6 @@ interface AstNode extends CodeGenerator {
 
   void scope(Scope scope);
 
-  AstNode analyze(AstNode parentNode, AnalyzeContext context);
+  void analyze(AstNode parentNode, AnalyzeContext context);
 
 }

@@ -41,7 +41,7 @@ class DotExpr extends PostfixOpExpr {
   }
 
   @Override
-  public Expr analyze(final AstNode parentNode, final AnalyzeContext context) {
+  public void analyze(final AstNode parentNode, final AnalyzeContext context) {
     super.analyze(parentNode, context);
     IdeDeclaration qualiferType = arg.getType();
     if (qualiferType != null) {
@@ -52,7 +52,6 @@ class DotExpr extends PostfixOpExpr {
       setType(memberDeclaration);
     }
 
-    return this;
   }
 
   @Override

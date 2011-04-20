@@ -126,7 +126,7 @@ class ForInStatement extends LoopStatement {
     } else {
       ide.analyze(this, context);
     }
-    expr = expr.analyze(this, context);
+    expr.analyze(this, context);
   }
 
 }

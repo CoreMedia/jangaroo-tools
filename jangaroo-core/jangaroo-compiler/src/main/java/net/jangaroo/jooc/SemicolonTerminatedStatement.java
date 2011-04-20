@@ -61,7 +61,7 @@ class SemicolonTerminatedStatement extends Statement {
       out.writeSymbol(optSymSemicolon);
   }
 
-  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
+  public void analyze(AstNode parentNode, AnalyzeContext context) {
     // check for special case "assert statement":
     if (optStatement instanceof ApplyExpr && optSymSemicolon!=null) {
       ApplyExpr applyExpr = (ApplyExpr)optStatement;
@@ -73,9 +73,8 @@ class SemicolonTerminatedStatement extends Statement {
     }
     super.analyze(parentNode, context);
     if (optStatement!=null) {
-      optStatement = optStatement.analyze(this, context);
+      optStatement.analyze(this, context);
     }
-    return this;
   }
 
   public JooSymbol getSymbol() {

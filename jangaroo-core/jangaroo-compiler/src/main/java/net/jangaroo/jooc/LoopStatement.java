@@ -51,12 +51,11 @@ abstract class LoopStatement extends KeywordStatement {
     });
   }
 
-  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
+  public void analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     analyzeLoopHeader(context);
     body.analyze(this, context);
     analyzeLoopFooter(context);
-    return this;
   }
 
   protected abstract void analyzeLoopHeader(AnalyzeContext context);

@@ -40,11 +40,11 @@ public class NamespacedIde extends Ide {
   }
 
   @Override
-  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
+  public void analyze(AstNode parentNode, AnalyzeContext context) {
     if (namespace.sym == sym.IDE) { // all other symbols should be predefined namespaces like "public" etc.
       Jooc.warning(namespace, "namespaces are not yet implemented, ignoring namespace " + namespace.getText());
     }
-    return super.analyze(parentNode, context);
+    super.analyze(parentNode, context);
   }
 
   protected void generateJsCode(JsWriter out) throws IOException {

@@ -47,13 +47,12 @@ class IfStatement extends KeywordStatement {
       ifFalse.scope(scope);
   }
 
-  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
+  public void analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
-    cond = cond.analyze(this, context);
+    cond.analyze(this, context);
     ifTrue.analyze(this, context);
     if (ifFalse != null)
       ifFalse.analyze(this, context);
-    return this;
   }
 
   protected void generateJsCode(JsWriter out) throws IOException {

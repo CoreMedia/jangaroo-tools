@@ -43,10 +43,9 @@ class LabeledStatement extends Statement {
     });
   }
 
-  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
+  public void analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     statement.analyze(this, context);
-    return this;
   }
 
   protected void generateJsCode(JsWriter out) throws IOException {

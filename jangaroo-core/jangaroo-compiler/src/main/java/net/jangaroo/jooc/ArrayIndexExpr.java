@@ -42,11 +42,10 @@ class ArrayIndexExpr extends Expr {
   }
 
   @Override
-  public Expr analyze(AstNode parentNode, AnalyzeContext context) {
+  public void analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     array.analyze(this, context);
     indexExpr.analyze(this, context);
-    return this;
   }
 
   protected void generateJsCode(JsWriter out) throws IOException {

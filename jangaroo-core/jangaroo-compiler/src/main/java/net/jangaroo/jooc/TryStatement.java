@@ -48,13 +48,12 @@ class TryStatement extends KeywordStatement {
       finallyBlock.scope(scope);
   }
 
-  public AstNode analyze(AstNode parentNode, AnalyzeContext context) {
+  public void analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     block.analyze(this, context);
-    catches = analyze(this, catches, context);
+    analyze(this, catches, context);
     if (finallyBlock != null)
       finallyBlock.analyze(this, context);
-    return this;
   }
 
   protected void generateJsCode(JsWriter out) throws IOException {

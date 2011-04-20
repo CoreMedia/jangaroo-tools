@@ -26,12 +26,12 @@ class EmptyStatement extends SemicolonTerminatedStatement {
   }
 
   @Override
-  public AstNode analyze(final AstNode parentNode, final AnalyzeContext context) {
+  public void analyze(final AstNode parentNode, final AnalyzeContext context) {
     // this is an empty statement.  Check conformance to ECMA-262 7.9.1:
     //   'a semicolon is never inserted automatically if the semicolon would then be parsed as an empty statement'
     if (optSymSemicolon.isVirtual()) {
       throw Jooc.error(optSymSemicolon, "missing ';' (automatic semicolon insertion would create an empty statement)");
     }
-    return super.analyze(parentNode, context);
+    super.analyze(parentNode, context);
   }
 }

@@ -54,11 +54,10 @@ class ObjectLiteral extends Expr {
     }
   }
 
-  public Expr analyze(AstNode parentNode, AnalyzeContext context) {
+  public void analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     if (fields != null)
       fields.analyze(this, context);
-    return this;
   }
 
   public JooSymbol getSymbol() {
