@@ -1,8 +1,7 @@
 package net.jangaroo.properties.model;
 
 /**
- * Created by IntelliJ IDEA. User: fwienber Date: 23.04.11 Time: 22:24 To change this template use File | Settings |
- * File Templates.
+ * A POJO to store key, value, and comment of a single property read from a properties file.
  */
 public class Property {
 
