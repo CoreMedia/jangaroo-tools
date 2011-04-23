@@ -6,6 +6,8 @@ package net.jangaroo.properties;
 import net.jangaroo.properties.model.LocalizationSuite;
 import net.jangaroo.properties.model.PropertiesClass;
 import net.jangaroo.properties.model.ResourceBundleClass;
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.maven.shared.model.fileset.util.FileSetManager;
 import org.codehaus.plexus.util.FileUtils;
 
@@ -73,10 +75,12 @@ public final class PropertiesFileScanner {
         suite.addResourceBundleClass(bundle);
       }
 
-      Properties p = new Properties();
+      PropertiesConfiguration p = new PropertiesConfiguration();
       Reader r = new BufferedReader(new InputStreamReader(new FileInputStream(srcFile), "UTF-8"));
       try {
         p.load(r);
+      } catch (ConfigurationException e) {
+        e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
       } finally {
         r.close();
       }

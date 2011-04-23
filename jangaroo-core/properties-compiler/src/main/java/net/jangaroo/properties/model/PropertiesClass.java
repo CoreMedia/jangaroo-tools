@@ -3,7 +3,13 @@
  */
 package net.jangaroo.properties.model;
 
+import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.commons.configuration.PropertiesConfigurationLayout;
+
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
@@ -13,10 +19,10 @@ public class PropertiesClass {
 
   private ResourceBundleClass resourceBundle;
   private Locale locale;
-  private Properties properties;
+  private PropertiesConfiguration properties;
   private File srcFile;
 
-  public PropertiesClass(ResourceBundleClass resourceBundle, Locale locale, Properties properties, File srcFile) {
+  public PropertiesClass(ResourceBundleClass resourceBundle, Locale locale, PropertiesConfiguration properties, File srcFile) {
     this.resourceBundle = resourceBundle;
     resourceBundle.addLocaleProperties(locale, this);
 
@@ -33,12 +39,23 @@ public class PropertiesClass {
     return locale;
   }
 
-  public Properties getProperties() {
-    return properties;
+  public String getComment() {
+    return adjustComment(properties.getLayout().getCanonicalHeaderComment(true));
   }
 
-  public Set<Map.Entry<Object,Object>> getProps() {
-    return getProperties().entrySet();
+  public List<Property> getProps() {
+    PropertiesConfigurationLayout layout = properties.getLayout();
+    List<Property> props = new ArrayList<Property>();
+    Iterator keys = properties.getKeys();
+    while (keys.hasNext()) {
+      String key = (String)keys.next();
+      props.add(new Property(adjustComment(layout.getCanonicalComment(key, true)), key, properties.getString(key)));
+    }
+    return props;
+  }
+
+  private String adjustComment(String canonicalComment) {
+    return canonicalComment == null ? null : canonicalComment.replaceAll("(^|\\n)#", "\n *");
   }
 
   public File getSrcFile() {
