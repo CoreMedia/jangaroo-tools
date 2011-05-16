@@ -10,6 +10,7 @@ import com.intellij.openapi.compiler.IntermediateOutputCompiler;
 import com.intellij.openapi.compiler.TranslatingCompiler;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.roots.ModuleFileIndex;
 import com.intellij.openapi.roots.ModuleOrderEntry;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderEntry;
@@ -204,6 +205,11 @@ public class ExmlCompiler implements TranslatingCompiler, IntermediateOutputComp
     boolean showCompilerInfoMessages = getExmlConfig(module).isShowCompilerInfoMessages();
     for (final VirtualFile file : files) {
       if (ComponentType.EXML.getExtension().equals(file.getExtension())) {
+        ModuleFileIndex moduleFileIndex = ModuleRootManager.getInstance(module).getFileIndex();
+        if (!moduleFileIndex.isInSourceContent(file) || moduleFileIndex.isInTestSourceContent(file)) {
+          // prevent NPE in EXML generator when <file> is not under non-test source root:
+          continue;
+        }
         if (suite == null) {
           suite = ComponentSuiteRegistry.getInstance().getComponentSuite(module.getName());
           if (suite == null) {
