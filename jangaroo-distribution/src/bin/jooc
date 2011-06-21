@@ -1,0 +1,13 @@
+#! /bin/sh
+
+bindir=`dirname "$0"`
+JAVA_ARGS="-jar $bindir/jangaroo-compiler-${jangaroo.version}.jar"
+
+if [ -n "$JAVA_HOME"  ] ; then
+  "$JAVA_HOME/bin/java" $JAVA_ARGS $@
+else
+  echo "ERROR: JAVA_HOME environment variable is not set."
+  echo "Please set the JAVA_HOME variable in your environment to match the"
+  echo "location of your Java installation."
+  exit 1
+fi

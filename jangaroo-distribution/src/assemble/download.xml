@@ -1,0 +1,52 @@
+<assembly xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.0 http://maven.apache.org/xsd/assembly-1.1.0.xsd">
+  <id>download</id>
+  <formats>
+    <format>zip</format>
+  </formats>
+  <baseDirectory>/</baseDirectory>
+  <fileSets>
+    <fileSet>
+      <directory>target/work</directory>
+      <outputDirectory>/</outputDirectory>
+    </fileSet>
+  </fileSets>
+  <files>
+    <file>
+      <source>src/bin/jooc.bat</source>
+      <filtered>true</filtered>
+      <lineEnding>dos</lineEnding>
+    </file>
+    <file>
+      <source>src/bin/jooc</source>
+      <filtered>true</filtered>
+      <lineEnding>unix</lineEnding>
+      <fileMode>0755</fileMode>
+    </file>
+
+    <file>
+      <source>src/bin/propc.bat</source>
+      <filtered>true</filtered>
+      <lineEnding>dos</lineEnding>
+    </file>
+    <file>
+      <source>src/bin/propc</source>
+      <filtered>true</filtered>
+      <lineEnding>unix</lineEnding>
+      <fileMode>0755</fileMode>
+    </file>
+
+    <file>
+      <source>src/bin/exmlc.bat</source>
+      <filtered>true</filtered>
+      <lineEnding>dos</lineEnding>
+    </file>
+    <file>
+      <source>src/bin/exmlc</source>
+      <filtered>true</filtered>
+      <lineEnding>unix</lineEnding>
+      <fileMode>0755</fileMode>
+    </file>
+  </files>
+</assembly>
