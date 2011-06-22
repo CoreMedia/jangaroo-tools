@@ -264,7 +264,7 @@ public dynamic class Array {
    * }
    * </listing>
    */
-  public function filter(callback:Function, thisObject:* = undefined):Array {
+  public function filter(callback:Function, thisObject:* = null):Array {
     var len:uint = this.length;
     var res:Array = [];
     var i:uint = 0;
@@ -360,7 +360,7 @@ public dynamic class Array {
    * }
    * </listing></div>
    */
-  public function forEach(callback:Function, thisObject:* = undefined):void {
+  public function forEach(callback:Function, thisObject:* = null):void {
     var i:uint = 0,
       j:uint = this.length;
     // for maximum performance, repeat for-loop code with different function invocations:
@@ -452,7 +452,7 @@ public dynamic class Array {
    * trace(phoneNumber); // 8888675309
    * </listing></div>
    */
-  public native function join(sep:*):String;
+  public native function join(sep:* = null):String;
 
   /**
    * Searches for an item in an array, working backward from the last item, and returns the index position of the matching item using strict equality (<code>===</code>).
@@ -572,7 +572,7 @@ public dynamic class Array {
    * trace(letter);     // c
    * </listing>
    */
-  public native function pop():Object;
+  public native function pop():*;
 
   /**
    * Adds one or more elements to the end of an array and returns the new length of the array.
@@ -635,7 +635,7 @@ public dynamic class Array {
    * trace(firstLetter); // a
    * </listing>
    */
-  public native function shift():Object;
+  public native function shift():*;
 
   /**
    * Returns a new array that consists of a range of elements from the original array, without modifying the original array. The returned array includes the <code>startIndex</code> element and all elements up to, but not including, the <code>endIndex</code> element.
@@ -670,7 +670,7 @@ public dynamic class Array {
    * trace(someLetters); // e,f
    * </listing></div>
    */
-  public native function slice(startIndex:int = 0, endIndex:int = -1):Array;
+  public native function slice(startIndex:* = 0, endIndex:* = 0xffffffff):Array;
 
   /**
    * Executes a test function on each item in the array until an item is reached that returns <code>true</code>. Use this method to determine whether any items in an array meet a criterion, such as having a value less than a particular number.
@@ -900,7 +900,7 @@ public dynamic class Array {
    * trace(numbers); // 3,5,10,34,100
    * </listing></div>
    */
-  public native function sort(... args):Array;
+  public native function sort(... args):*;
 
   /**
    * Sorts the elements in an array according to one or more fields in the array. The array should have the following characteristics:
@@ -1077,7 +1077,7 @@ public dynamic class Array {
    * // barb : 35
    * </listing></div>
    */
-  public native function sortOn(fieldName:Object, options:Object = null):Array; // TODO: avoid Array prototype pollution, but implement... how?
+  public native function sortOn(fieldName:*, options:* = 0, ...rest):*; // TODO: avoid Array prototype pollution, but implement... how?
 
   /**
    * Adds elements to and removes elements from an array. This method modifies the array without making a copy.
@@ -1087,9 +1087,11 @@ public dynamic class Array {
    *     // your statements here
    * }
    * </pre>
-   * @param startIndex An integer that specifies the index of the element in the array where the insertion or deletion begins. You can use a negative integer to specify a position relative to the end of the array (for example, -1 is the last element of the array).
-   * @param deleteCount An integer that specifies the number of elements to be deleted. This number includes the element specified in the <code>startIndex</code> parameter. If you do not specify a value for the <code>deleteCount</code> parameter, the method deletes all of the values from the <code>startIndex</code> element to the last element in the array. If the value is 0, no elements are deleted.
-   * @param values An optional list of one or more comma-separated values to insert into the array at the position specified in the <code>startIndex</code> parameter. If an inserted value is of type Array, the array is kept intact and inserted as a single element. For example, if you splice an existing array of length three with another array of length three, the resulting array will have only four elements. One of the elements, however, will be an array of length three.
+   * @param args the following parameters:
+   * <ul>
+   *   <li><code>startIndex</code> &mdash; An integer that specifies the index of the element in the array where the insertion or deletion begins. You can use a negative integer to specify a position relative to the end of the array (for example, -1 is the last element of the array)./<li>
+   *   <li><code>deleteCount</code> &mdash; An integer that specifies the number of elements to be deleted. This number includes the element specified in the <code>startIndex</code> parameter. If you do not specify a value for the <code>deleteCount</code> parameter, the method deletes all of the values from the <code>startIndex</code> element to the last element in the array. If the value is 0, no elements are deleted.
+   * <li><code>values</code> &mdash; one or more comma-separated values to insert into the array at the position specified in the <code>startIndex</code> parameter. If an inserted value is of type Array, the array is kept intact and inserted as a single element. For example, if you splice an existing array of length three with another array of length three, the resulting array will have only four elements. One of the elements, however, will be an array of length three.
    *
    * @return An array containing the elements that were removed from the original array.
    *
@@ -1126,7 +1128,7 @@ public dynamic class Array {
    *  trace(vegetables); // spinach,cilantro,onion,green pepper,avocado
    * </listing></div>
    */
-  public native function splice(startIndex:int, deleteCount:uint = 0, ... values):Array;
+  public native function splice(...args):Array;
 
   /**
    * Returns a string that represents the elements in the specified array. Every element in the array, starting with index 0 and ending with the highest index, is converted to a concatenated string and separated by commas. In the ActionScript 3.0 implementation, this method returns the same value as the <code>Array.toString()</code> method.
