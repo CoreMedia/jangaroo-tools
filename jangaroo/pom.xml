@@ -34,4 +34,11 @@
     </plugins>
   </build>
 
+  <scm>
+    <url>http://github.com/CoreMedia/jangaroo-tools</url>
+    <connection>scm:git:git://github.com/CoreMedia/jangaroo-tools.git</connection>
+    <developerConnection>scm:git:git@github.com:CoreMedia/jangaroo-tools.git</developerConnection>
+  </scm>
+
+
 </project>
