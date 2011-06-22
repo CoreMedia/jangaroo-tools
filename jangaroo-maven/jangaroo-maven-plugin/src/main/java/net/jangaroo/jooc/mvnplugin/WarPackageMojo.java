@@ -42,7 +42,7 @@ import java.util.Set;
  * @requiresDependencyResolution runtime
  * @phase prepare-package
  */
-@SuppressWarnings({"ResultOfMethodCallIgnored", "UnusedDeclaration"})
+@SuppressWarnings({"ResultOfMethodCallIgnored", "UnusedDeclaration", "UnusedPrivateField"})
 public class WarPackageMojo extends PackageApplicationMojo {
 
   /**

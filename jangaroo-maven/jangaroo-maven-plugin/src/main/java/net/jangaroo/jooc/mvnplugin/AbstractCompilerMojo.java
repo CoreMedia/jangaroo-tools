@@ -25,6 +25,7 @@ import java.util.*;
 /**
  * Super class for mojos compiling Jangaroo sources.
  */
+@SuppressWarnings({"UnusedDeclaration", "UnusedPrivateField"})
 public abstract class AbstractCompilerMojo extends AbstractMojo {
   private Log log = getLog();
 

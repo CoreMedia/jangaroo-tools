@@ -12,7 +12,7 @@ import java.util.*;
  * @phase compile
  * @requiresDependencyResolution compile
  */
-@SuppressWarnings({"UnusedDeclaration"})
+@SuppressWarnings({"UnusedDeclaration", "UnusedPrivateField"})
 public class CompilerMojo extends AbstractCompilerMojo {
 
   /**

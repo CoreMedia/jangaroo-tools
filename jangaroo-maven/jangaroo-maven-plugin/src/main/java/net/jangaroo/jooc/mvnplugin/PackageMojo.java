@@ -28,7 +28,7 @@ import java.util.Set;
  * @goal package
  * @phase package
  */
-@SuppressWarnings({"ResultOfMethodCallIgnored", "UnusedDeclaration"})
+@SuppressWarnings({"ResultOfMethodCallIgnored", "UnusedDeclaration", "UnusedPrivateField"})
 public class PackageMojo extends AbstractMojo {
   /**
    * The maven project.

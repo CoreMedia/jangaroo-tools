@@ -13,7 +13,7 @@ import java.util.*;
  * @requiresDependencyResolution test
  *
  */
-@SuppressWarnings({"UnusedDeclaration"})
+@SuppressWarnings({"UnusedDeclaration", "UnusedPrivateField"})
 public class TestCompilerMojo extends AbstractCompilerMojo {
 
   /**
