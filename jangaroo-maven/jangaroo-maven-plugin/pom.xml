@@ -4,7 +4,7 @@
   <artifactId>jangaroo-maven-plugin</artifactId>
   <packaging>maven-plugin</packaging>
   <version>0.8.5-SNAPSHOT</version>
-  <name>Maven Plugin: Compile + Test</name>
+  <name>Jangaroo Maven Plugin</name>
   <description>This plugin compiles Jangaroo sources to JavaScript.</description>
 
   <parent>
@@ -62,7 +62,6 @@
       <artifactId>jangaroo-compiler</artifactId>
       <version>0.8.5-SNAPSHOT</version>
     </dependency>
-
 
     <dependency>
       <groupId>org.apache.maven</groupId>
@@ -122,20 +121,16 @@
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-webapp</artifactId>
-      <version>7.0.2.v20100331</version>
     </dependency>
 
     <dependency>
       <groupId>org.seleniumhq.selenium.server</groupId>
       <artifactId>selenium-server</artifactId>
-      <version>1.0.1</version>
     </dependency>
-
 
     <dependency>
       <groupId>org.seleniumhq.selenium.client-drivers</groupId>
       <artifactId>selenium-java-client-driver</artifactId>
-      <version>1.0.2</version>
     </dependency>
 
 

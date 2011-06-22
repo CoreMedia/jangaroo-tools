@@ -32,14 +32,12 @@
     <dependency>
       <groupId>org.freemarker</groupId>
       <artifactId>freemarker</artifactId>
-      <version>2.3.15</version>
       <scope>compile</scope>
     </dependency>
 
     <dependency>
       <groupId>jtidy</groupId>
       <artifactId>jtidy</artifactId>
-      <version>4aug2000r7-dev</version>
     </dependency>
 
     <dependency>
