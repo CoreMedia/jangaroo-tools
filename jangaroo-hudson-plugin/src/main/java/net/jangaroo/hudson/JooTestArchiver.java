@@ -74,6 +74,7 @@ public class JooTestArchiver extends MavenReporter {
     return true;
   }
 
+  @SuppressWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
   public boolean postExecute(MavenBuildProxy build, MavenProject pom, MojoInfo mojo, final BuildListener listener, Throwable error) throws InterruptedException, IOException {
     if (!isJooTest(mojo)) {
       return true;
