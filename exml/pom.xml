@@ -13,8 +13,6 @@
   <artifactId>exml</artifactId>
   <version>0.8.5-SNAPSHOT</version>
   <packaging>pom</packaging>
-  <name>Exml Compiler</name>
-  <url>http://repo.jangaroo.net/site/jangaroo-core/</url>
 
   <modules>
     <module>ext-xml</module>
