@@ -10,7 +10,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>net.jangaroo</groupId>
   <artifactId>jangaroo-distribution</artifactId>
-  <version>0.8.4-SNAPSHOT</version>
+  <version>0.8.4</version>
   <name>jangaroo-distribution</name>
   <description>
     All Jangaroo tools as a single download:
@@ -129,7 +129,7 @@
           <overWriteReleases>false</overWriteReleases>
           <overWriteSnapshots>false</overWriteSnapshots>
           <overWriteIfNewer>true</overWriteIfNewer>
-          <artifactItems/>
+          <artifactItems />
         </configuration>
       </plugin>
       <plugin>
