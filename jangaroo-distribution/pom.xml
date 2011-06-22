@@ -25,6 +25,13 @@
     <developerConnection>scm:git:git@github.com:CoreMedia/jangaroo-tools.git</developerConnection>
   </scm>
 
+  <distributionManagement>
+    <site>
+      <id>jangaroo</id>
+      <url>scp://repo.jangaroo.net/home/jangaroo/maven2/site/</url>
+    </site>
+  </distributionManagement>
+
   <properties>
     <jangaroo.version>0.8.4</jangaroo.version>
   </properties>
