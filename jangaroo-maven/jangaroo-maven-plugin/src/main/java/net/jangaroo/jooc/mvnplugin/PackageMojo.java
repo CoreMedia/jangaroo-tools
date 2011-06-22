@@ -129,8 +129,7 @@ public class PackageMojo extends AbstractMojo {
       archiver.setDestFile(jsarchive);
       archiver.createArchive();
       archiver.reset();
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       throw new MojoExecutionException("Failed to create the javascript archive", e);
     }
     project.getArtifact().setFile(jsarchive);
@@ -148,9 +147,15 @@ public class PackageMojo extends AbstractMojo {
       moduleJsDir.mkdirs();
     }
     getLog().info("Creating Jangaroo module classes loader script '" + moduleJsFile.getAbsolutePath() + "'.");
-    OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(moduleJsFile), "UTF-8");
-    writer.write("joo.loadModule(\"" + project.getGroupId() + "\",\"" + project.getArtifactId() + "\");\n");
-    writer.close();
+    OutputStreamWriter writer = null;
+    try {
+      writer = new OutputStreamWriter(new FileOutputStream(moduleJsFile), "UTF-8");
+      writer.write("joo.loadModule(\"" + project.getGroupId() + "\",\"" + project.getArtifactId() + "\");\n");
+    } finally {
+      if (writer != null) {
+        writer.close();
+      }
+    }
   }
 
   private static void createDefaultManifest(MavenProject project, JarArchiver jarArchiver)
