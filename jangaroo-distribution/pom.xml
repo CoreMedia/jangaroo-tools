@@ -19,9 +19,16 @@
     * exmlc - EXML-to-AS3 compiler
   </description>
 
+  <scm>
+    <url>http://github.com/CoreMedia/jangaroo-tools</url>
+    <connection>scm:git:git://github.com/CoreMedia/jangaroo-tools.git</connection>
+    <developerConnection>scm:git:git@github.com:CoreMedia/jangaroo-tools.git</developerConnection>
+  </scm>
+
   <properties>
     <jangaroo.version>0.8.4</jangaroo.version>
   </properties>
+
   <dependencies>
     <dependency>
       <groupId>net.jangaroo</groupId>
