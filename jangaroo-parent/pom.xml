@@ -7,7 +7,7 @@
   <artifactId>jangaroo-parent</artifactId>
   <groupId>net.jangaroo</groupId>
   <version>0.8.5-SNAPSHOT</version>
-  <name>Jangaroo Default Settings</name>
+  <name>Jangaroo Parent</name>
   <inceptionYear>2002</inceptionYear>
 
   <url>http://repo.jangaroo.net/site/jangaroo-parent</url>
