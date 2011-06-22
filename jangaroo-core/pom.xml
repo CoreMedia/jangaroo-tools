@@ -18,8 +18,6 @@
 
   <modules>
     <module>jangaroo-utils</module>
-    <module>ext-xml</module>
-    <module>properties-compiler</module>
     <module>jangaroo-runtime</module>
     <module>jangaroo-compiler</module>
     <module>jangaroo-compiler-itests</module>

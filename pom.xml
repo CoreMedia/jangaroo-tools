@@ -11,6 +11,7 @@
   <modules>
     <module>jangaroo-parent</module>
     <module>jangaroo-core</module>
+    <module>exml</module>
     <module>jangaroo-maven</module>
     <module>jangaroo-hudson-plugin</module>
   </modules>
