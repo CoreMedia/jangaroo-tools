@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>net.jangaroo</groupId>
   <artifactId>jangaroo-maven-plugin</artifactId>
@@ -64,8 +65,30 @@
     </dependency>
 
     <dependency>
+      <groupId>net.jangaroo</groupId>
+      <artifactId>ext-xml-maven-plugin</artifactId>
+      <version>0.8.5-SNAPSHOT</version>
+      <scope>runtime</scope>
+    </dependency>
+
+    <dependency>
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-project</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.maven.shared</groupId>
+      <artifactId>file-management</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.codehaus.plexus</groupId>
+      <artifactId>plexus-archiver</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-model</artifactId>
     </dependency>
 
     <dependency>
@@ -76,7 +99,6 @@
     <dependency>
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-artifact</artifactId>
-      <scope>compile</scope>
     </dependency>
 
     <dependency>
@@ -88,17 +110,18 @@
     <dependency>
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
-      <scope>compile</scope>
     </dependency>
 
     <dependency>
       <groupId>org.apache.maven.plugins</groupId>
       <artifactId>maven-resources-plugin</artifactId>
+      <scope>runtime</scope>
     </dependency>
 
-     <dependency>
+    <dependency>
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-archiver</artifactId>
+      <scope>runtime</scope>
     </dependency>
 
     <!-- Plexus -->
@@ -113,19 +136,13 @@
     </dependency>
 
     <dependency>
-      <groupId>net.jangaroo</groupId>
-      <artifactId>ext-xml-maven-plugin</artifactId>
-      <version>0.8.5-SNAPSHOT</version>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-server</artifactId>
     </dependency>
 
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-webapp</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.seleniumhq.selenium.server</groupId>
-      <artifactId>selenium-server</artifactId>
+      <artifactId>jetty-util</artifactId>
     </dependency>
 
     <dependency>
@@ -133,6 +150,21 @@
       <artifactId>selenium-java-client-driver</artifactId>
     </dependency>
 
+    <dependency>
+      <groupId>org.freemarker</groupId>
+      <artifactId>freemarker</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>jtidy</groupId>
+      <artifactId>jtidy</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+    </dependency>
 
   </dependencies>
 
