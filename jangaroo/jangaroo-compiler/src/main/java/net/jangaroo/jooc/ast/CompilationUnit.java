@@ -37,7 +37,7 @@ import java.util.Set;
  * @author Andreas Gawecki
  * @author Frank Wienberg
  */
-public class CompilationUnit extends NodeImplBase implements CodeGenerator {
+public class CompilationUnit extends NodeImplBase {
 
   public PackageDeclaration getPackageDeclaration() {
     return packageDeclaration;
@@ -119,6 +119,15 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
       sourceFile, verbose);
 
     sink.writeOutput(this);
+  }
+
+  @Override
+  public void generateCode(final JsWriter out, boolean generateApi) throws IOException {
+    if (generateApi) {
+      generateAsApiCode(out);
+    } else {
+      generateJsCode(out);
+    }
   }
 
   @Override

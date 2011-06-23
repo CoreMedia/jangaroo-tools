@@ -217,6 +217,12 @@ public class FunctionExpr extends Expr {
           public void generateCode(JsWriter out, boolean generateApi) throws IOException {
             out.write("var this$=this;");
           }
+          public void generateJsCode(final JsWriter out) throws IOException {
+            out.write("var this$=this;");
+          }
+          public void generateAsApiCode(JsWriter out) throws IOException {
+            throw new UnsupportedOperationException();
+          }
         });
         return true;
       }

@@ -56,24 +56,32 @@ public class CommaSeparatedList<T extends AstNode> extends Expr {
   }
 
   @Override
-  public void generateJsCode(final JsWriter out) throws IOException {
-    throw new UnsupportedOperationException("should not be called"); 
+  public void generateAsApiCode(JsWriter out) throws IOException {
+    if (getHead() != null) {
+      getHead().generateAsApiCode(out);
+    }
+    if (getSymComma() != null) {
+      out.writeSymbol(getSymComma());
+      if (getTail() != null) {
+        getTail().generateAsApiCode(out);
+      }
+    }
   }
 
   @Override
-  public void generateCode(JsWriter out, boolean generateApi) throws IOException {
+  public void generateJsCode(final JsWriter out) throws IOException {
     if (getHead() != null) {
-      getHead().generateCode(out, generateApi);
+      getHead().generateJsCode(out);
     }
     if (getSymComma() != null) {
-      generateTailCode(out, generateApi);
+      generateTailAsJsCode(out);
     }
   }
 
-  protected void generateTailCode(JsWriter out, boolean generateApi) throws IOException {
+  protected void generateTailAsJsCode(JsWriter out) throws IOException {
     out.writeSymbol(getSymComma());
     if (getTail() != null) {
-      getTail().generateCode(out, generateApi);
+      getTail().generateJsCode(out);
     }
   }
 

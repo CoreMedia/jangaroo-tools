@@ -68,7 +68,7 @@ public class UseNamespaceDirective extends Directive {
     out.beginComment();
     out.writeSymbol(getUseKeyword());
     out.writeSymbol(getNamespaceKeyword());
-    getNamespace().generateCode(out, true);
+    getNamespace().generateCode(out, false);
     out.writeSymbol(getSymSemicolon());
     out.endComment();
   }

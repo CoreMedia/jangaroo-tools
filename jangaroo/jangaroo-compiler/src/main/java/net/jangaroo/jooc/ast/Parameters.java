@@ -43,12 +43,12 @@ public class Parameters extends CommaSeparatedList<Parameter> {
     visitor.visitParameters(this);
   }
 
-  protected void generateTailCode(JsWriter out, boolean generateApi) throws IOException {
-    if (generateApi || !super.getTail().getHead().isRest()) {
-      super.generateTailCode(out, generateApi);
+  protected void generateTailAsJsCode(JsWriter out) throws IOException {
+    if (!super.getTail().getHead().isRest()) {
+      super.generateTailAsJsCode(out);
     } else {
       out.beginCommentWriteSymbol(getSymComma());
-      super.getTail().generateCode(out, generateApi);
+      super.getTail().generateJsCode(out);
       out.endComment();
     }
   }
@@ -82,6 +82,16 @@ public class Parameters extends CommaSeparatedList<Parameter> {
             out.write("}");
           }
         }
+      }
+
+      @Override
+      public void generateJsCode(JsWriter out) throws IOException {
+        generateCode(out, false);
+      }
+
+      @Override
+      public void generateAsApiCode(JsWriter out) throws IOException {
+        generateCode(out, true);
       }
     };
   }

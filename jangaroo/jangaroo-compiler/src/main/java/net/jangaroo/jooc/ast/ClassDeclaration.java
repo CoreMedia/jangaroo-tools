@@ -195,6 +195,16 @@ public class ClassDeclaration extends IdeDeclaration {
       }
       generateFieldInitCode(out, false, true);
     }
+
+    @Override
+    public void generateJsCode(JsWriter out) throws IOException {
+      generateCode(out, false);
+    }
+
+    @Override
+    public void generateAsApiCode(JsWriter out) throws IOException {
+      throw new UnsupportedOperationException();
+    }
   }
 
   private void writeBuiltInAliases(JsWriter out) throws IOException {

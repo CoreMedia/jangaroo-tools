@@ -167,5 +167,15 @@ public class Catch extends KeywordStatement {
       out.writeSymbolToken(errorVar);
       out.writeToken(";");
     }
+
+    @Override
+    public void generateJsCode(JsWriter out) throws IOException {
+      generateCode(out, false);
+    }
+
+    @Override
+    public void generateAsApiCode(JsWriter out) throws IOException {
+      generateCode(out, true);
+    }
   }
 }
