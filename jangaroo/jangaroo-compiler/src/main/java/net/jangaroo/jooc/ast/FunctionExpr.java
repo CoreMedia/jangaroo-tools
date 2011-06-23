@@ -173,7 +173,7 @@ public class FunctionExpr extends Expr {
 
   public void generateFunTailCode(JsWriter out) throws IOException {
     if (params != null && hasBody()) {
-      // inject into body for generating initilizers later:
+      // inject into body for generating initializers later:
       getBody().addBlockStartCodeGenerator(params.getParameterInitializerCodeGenerator());
     }
     generateSignatureCode(out);
