@@ -68,11 +68,11 @@ public class TryStatement extends KeywordStatement {
 
   public void generateJsCode(JsWriter out) throws IOException {
     super.generateJsCode(out);
-    getBlock().generateCode(out);
-    generateCode(getCatches(), out);
+    getBlock().generateCode(out, false);
+    generateCode(getCatches(), out, false);
     if (getSymFinally() != null) {
       out.writeSymbol(getSymFinally());
-      getFinallyBlock().generateCode(out);
+      getFinallyBlock().generateCode(out, false);
     }
    }
 

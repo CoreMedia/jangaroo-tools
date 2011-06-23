@@ -64,7 +64,7 @@ public class SemicolonTerminatedStatement extends Statement {
 
   protected void generateStatementCode(JsWriter out) throws IOException {
     if (getOptStatement() !=null)
-      getOptStatement().generateCode(out);
+      getOptStatement().generateCode(out, false);
   }
   
   public void generateJsCode(JsWriter out) throws IOException {

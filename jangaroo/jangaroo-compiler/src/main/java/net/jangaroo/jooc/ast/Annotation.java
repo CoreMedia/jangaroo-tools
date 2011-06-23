@@ -80,14 +80,14 @@ public class Annotation extends Directive {
   public void generateJsCode(JsWriter out) throws IOException {
     out.writeSymbolWhitespace(getLeftBracket());
     out.writeToken("{");
-    getIde().generateCode(out);
+    getIde().generateCode(out, false);
     out.writeToken(":");
     if (getOptLeftParen() != null) {
       out.writeSymbolWhitespace(getOptLeftParen());
     }
     out.writeToken("{");
     if (getOptAnnotationParameters() != null) {
-      getOptAnnotationParameters().generateCode(out);
+      getOptAnnotationParameters().generateCode(out, false);
     }
     if (getOptRightParen() != null) {
       out.writeSymbolWhitespace(getOptRightParen());
@@ -100,12 +100,12 @@ public class Annotation extends Directive {
   @Override
   public void generateAsApiCode(JsWriter out) throws IOException {
     out.writeSymbol(getLeftBracket());
-    getIde().generateCode(out);
+    getIde().generateCode(out, true);
     if (getOptLeftParen() != null) {
       out.writeSymbol(getOptLeftParen());
     }
     if (getOptAnnotationParameters() != null) {
-      getOptAnnotationParameters().generateCode(out);
+      getOptAnnotationParameters().generateCode(out, true);
     }
     if (getOptRightParen() != null) {
       out.writeSymbol(getOptRightParen());

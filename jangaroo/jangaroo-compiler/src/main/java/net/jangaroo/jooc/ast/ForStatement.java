@@ -54,13 +54,13 @@ public class ForStatement extends ConditionalLoopStatement {
   protected void generateLoopHeaderCode(JsWriter out) throws IOException {
     out.writeSymbol(lParen);
     if (forInit != null) {
-      forInit.generateCode(out);
+      forInit.generateCode(out, false);
     }
     out.writeSymbol(symSemicolon1);
     super.generateLoopHeaderCode(out);
     out.writeSymbol(symSemicolon2);
     if (optStep != null) {
-      optStep.generateCode(out);
+      optStep.generateCode(out, false);
     }
     out.writeSymbol(rParen);
   }

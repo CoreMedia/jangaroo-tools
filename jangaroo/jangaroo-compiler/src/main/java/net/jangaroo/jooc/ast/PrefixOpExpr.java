@@ -17,9 +17,6 @@ package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.JsWriter;
-import net.jangaroo.jooc.ast.AstVisitor;
-import net.jangaroo.jooc.ast.Expr;
-import net.jangaroo.jooc.ast.UnaryOpExpr;
 
 import java.io.IOException;
 
@@ -39,7 +36,7 @@ public class PrefixOpExpr extends UnaryOpExpr {
 
   public void generateJsCode(JsWriter out) throws IOException {
     out.writeSymbol(getOp());
-    getArg().generateCode(out);
+    getArg().generateCode(out, false);
   }
 
   public JooSymbol getSymbol() {

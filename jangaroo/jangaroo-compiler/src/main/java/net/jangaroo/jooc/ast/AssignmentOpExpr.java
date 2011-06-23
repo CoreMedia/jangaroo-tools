@@ -17,9 +17,6 @@ package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.JsWriter;
-import net.jangaroo.jooc.ast.AstVisitor;
-import net.jangaroo.jooc.ast.BinaryOpExpr;
-import net.jangaroo.jooc.ast.Expr;
 import net.jangaroo.jooc.config.JoocConfiguration;
 import net.jangaroo.jooc.sym;
 
@@ -56,7 +53,7 @@ public class AssignmentOpExpr extends BinaryOpExpr {
       options.setDebugLines(debugLines);
       out.writeToken(getOp().sym == sym.ANDANDEQ ? "&&" : "||");
       out.writeToken("(");
-      getArg2().generateCode(out);
+      getArg2().generateCode(out, false);
       out.writeToken(")");
     } else {
       super.generateJsCode(out);

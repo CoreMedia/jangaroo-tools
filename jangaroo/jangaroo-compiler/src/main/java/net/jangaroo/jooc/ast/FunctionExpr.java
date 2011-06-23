@@ -176,21 +176,21 @@ public class FunctionExpr extends Expr {
       // inject into body for generating initializers later:
       getBody().addBlockStartCodeGenerator(params.getParameterInitializerCodeGenerator());
     }
-    generateSignatureCode(out);
+    generateSignatureCode(out, false);
     if (hasBody()) {
-      getBody().generateCode(out);
+      getBody().generateCode(out, false);
     }
 
   }
 
-  public void generateSignatureCode(JsWriter out) throws IOException {
+  public void generateSignatureCode(JsWriter out, boolean generateApi) throws IOException {
     out.writeSymbol(lParen);
     if (params != null) {
-      params.generateCode(out);
+      params.generateCode(out, generateApi);
     }
     out.writeSymbol(rParen);
     if (optTypeRelation != null) {
-      optTypeRelation.generateCode(out);
+      optTypeRelation.generateCode(out, generateApi);
     }
   }
 
@@ -214,7 +214,7 @@ public class FunctionExpr extends Expr {
         thisUsed = true;
         ((BlockStatement)methodDeclaration.getBody()).addBlockStartCodeGenerator(new CodeGenerator() {
           @Override
-          public void generateCode(JsWriter out) throws IOException {
+          public void generateCode(JsWriter out, boolean generateApi) throws IOException {
             out.write("var this$=this;");
           }
         });

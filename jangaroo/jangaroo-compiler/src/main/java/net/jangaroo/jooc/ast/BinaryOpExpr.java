@@ -48,9 +48,9 @@ public class BinaryOpExpr extends OpExpr {
   }
 
   public void generateJsCode(JsWriter out) throws IOException {
-    getArg1().generateCode(out);
+    getArg1().generateCode(out, false);
     out.writeSymbol(getOp());
-    getArg2().generateCode(out);
+    getArg2().generateCode(out, false);
   }
 
   public void analyze(AstNode parentNode, AnalyzeContext context) {

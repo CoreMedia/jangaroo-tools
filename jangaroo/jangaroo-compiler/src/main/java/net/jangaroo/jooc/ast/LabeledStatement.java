@@ -59,9 +59,9 @@ public class LabeledStatement extends Statement {
   }
 
   public void generateJsCode(JsWriter out) throws IOException {
-    getIde().generateCode(out);
+    getIde().generateCode(out, false);
     out.writeSymbol(getSymColon());
-    getStatement().generateCode(out);
+    getStatement().generateCode(out, false);
   }
 
   public JooSymbol getSymbol() {

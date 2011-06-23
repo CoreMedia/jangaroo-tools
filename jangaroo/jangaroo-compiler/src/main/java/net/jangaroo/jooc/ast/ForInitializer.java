@@ -19,11 +19,6 @@ import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
-import net.jangaroo.jooc.ast.AstNode;
-import net.jangaroo.jooc.ast.AstVisitor;
-import net.jangaroo.jooc.ast.Declaration;
-import net.jangaroo.jooc.ast.Expr;
-import net.jangaroo.jooc.ast.NodeImplBase;
 
 import java.io.IOException;
 
@@ -66,9 +61,9 @@ public class ForInitializer extends NodeImplBase {
 
   public void generateJsCode(JsWriter out) throws IOException {
     if (getDecl() != null)
-      getDecl().generateCode(out);
+      getDecl().generateCode(out, false);
     else if (getExpr() != null)
-      getExpr().generateCode(out);
+      getExpr().generateCode(out, false);
   }
 
   public JooSymbol getSymbol() {

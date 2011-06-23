@@ -21,10 +21,6 @@ import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.SyntacticKeywords;
-import net.jangaroo.jooc.ast.AstNode;
-import net.jangaroo.jooc.ast.AstVisitor;
-import net.jangaroo.jooc.ast.Directive;
-import net.jangaroo.jooc.ast.Ide;
 
 import java.io.IOException;
 
@@ -72,7 +68,7 @@ public class UseNamespaceDirective extends Directive {
     out.beginComment();
     out.writeSymbol(getUseKeyword());
     out.writeSymbol(getNamespaceKeyword());
-    getNamespace().generateCode(out);
+    getNamespace().generateCode(out, true);
     out.writeSymbol(getSymSemicolon());
     out.endComment();
   }

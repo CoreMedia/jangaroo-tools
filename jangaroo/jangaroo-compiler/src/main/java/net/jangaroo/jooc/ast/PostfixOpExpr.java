@@ -17,9 +17,6 @@ package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.JsWriter;
-import net.jangaroo.jooc.ast.AstVisitor;
-import net.jangaroo.jooc.ast.Expr;
-import net.jangaroo.jooc.ast.UnaryOpExpr;
 
 import java.io.IOException;
 
@@ -38,7 +35,7 @@ public class PostfixOpExpr extends UnaryOpExpr {
   }
 
   public void generateJsCode(JsWriter out) throws IOException {
-    getArg().generateCode(out);
+    getArg().generateCode(out, false);
     out.writeSymbol(getOp());
   }
 

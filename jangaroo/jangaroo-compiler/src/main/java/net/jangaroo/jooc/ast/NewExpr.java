@@ -19,12 +19,6 @@ import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
-import net.jangaroo.jooc.ast.ApplyExpr;
-import net.jangaroo.jooc.ast.AstNode;
-import net.jangaroo.jooc.ast.AstVisitor;
-import net.jangaroo.jooc.ast.CommaSeparatedList;
-import net.jangaroo.jooc.ast.Expr;
-import net.jangaroo.jooc.ast.ParenthesizedExpr;
 
 import java.io.IOException;
 
@@ -66,9 +60,9 @@ public class NewExpr extends Expr {
 
   public void generateJsCode(JsWriter out) throws IOException {
     out.writeSymbol(getSymNew());
-    getApplyConstructor().generateCode(out);
+    getApplyConstructor().generateCode(out, false);
     if (getArgs() != null)
-      getArgs().generateCode(out);
+      getArgs().generateCode(out, false);
   }
 
   public JooSymbol getSymbol() {

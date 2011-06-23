@@ -19,9 +19,6 @@ import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
-import net.jangaroo.jooc.ast.AstNode;
-import net.jangaroo.jooc.ast.AstVisitor;
-import net.jangaroo.jooc.ast.Expr;
 
 import java.io.IOException;
 
@@ -58,9 +55,9 @@ public class ParenthesizedExpr<E extends Expr> extends Expr {
       getExpr().analyze(this, context);
   }
 
-  protected void generateExprCode(JsWriter out) throws IOException {
+  private void generateExprCode(JsWriter out) throws IOException {
     if (getExpr() !=null) {
-      getExpr().generateCode(out);
+      getExpr().generateCode(out, false);
     }
   }
 

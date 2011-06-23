@@ -29,15 +29,15 @@ import java.util.List;
  */
 public abstract class NodeImplBase implements AstNode {
 
-  public void generateCode(Collection<? extends AstNode> nodes, JsWriter out) throws IOException {
+  public void generateCode(Collection<? extends AstNode> nodes, JsWriter out, boolean generateApi) throws IOException {
     for (AstNode node : nodes) {
-      node.generateCode(out);
+      node.generateCode(out, generateApi);
     }
   }
 
   @Override
-  public void generateCode(final JsWriter out) throws IOException {
-    if (out.isWriteActionScriptApi()) {
+  public void generateCode(final JsWriter out, boolean generateApi) throws IOException {
+    if (generateApi) {
       generateAsApiCode(out);
     } else {
       generateJsCode(out);

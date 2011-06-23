@@ -123,19 +123,19 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
 
   @Override
   public void generateAsApiCode(final JsWriter out) throws IOException {
-    packageDeclaration.generateCode(out);
+    packageDeclaration.generateCode(out, true);
     out.writeSymbol(lBrace);
-    primaryDeclaration.generateCode(out);
+    primaryDeclaration.generateCode(out, true);
     out.writeSymbol(rBrace);
   }
 
   public void generateJsCode(JsWriter out) throws IOException {
     out.write(Jooc.CLASS_LOADER_FULLY_QUALIFIED_NAME + ".prepare(");
-    packageDeclaration.generateCode(out);
+    packageDeclaration.generateCode(out, false);
     out.beginComment();
     out.writeSymbol(lBrace);
     out.endComment();
-    primaryDeclaration.generateCode(out);
+    primaryDeclaration.generateCode(out, false);
     out.write(",[");
     boolean first = true;
     for (String qname : dependencies) {

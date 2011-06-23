@@ -43,19 +43,19 @@ public class Parameters extends CommaSeparatedList<Parameter> {
     visitor.visitParameters(this);
   }
 
-  protected void generateTailCode(JsWriter out) throws IOException {
-    if (out.isWriteActionScriptApi() || !super.getTail().getHead().isRest()) {
-      super.generateTailCode(out);
+  protected void generateTailCode(JsWriter out, boolean generateApi) throws IOException {
+    if (generateApi || !super.getTail().getHead().isRest()) {
+      super.generateTailCode(out, generateApi);
     } else {
       out.beginCommentWriteSymbol(getSymComma());
-      super.getTail().generateCode(out);
+      super.getTail().generateCode(out, generateApi);
       out.endComment();
     }
   }
 
   public CodeGenerator getParameterInitializerCodeGenerator() {
     return new CodeGenerator() {
-      public void generateCode(JsWriter out) throws IOException {
+      public void generateCode(JsWriter out, boolean generateApi) throws IOException {
         // first pass: generate conditionals and count parameters.
         int cnt = 0;
         StringBuilder code = new StringBuilder();
@@ -78,7 +78,7 @@ public class Parameters extends CommaSeparatedList<Parameter> {
             break;
           }
           if (param.hasInitializer()) {
-            param.generateBodyInitializerCode(out);
+            param.generateBodyInitializerCode(out, generateApi);
             out.write("}");
           }
         }

@@ -19,9 +19,6 @@ import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
-import net.jangaroo.jooc.ast.AstNode;
-import net.jangaroo.jooc.ast.AstVisitor;
-import net.jangaroo.jooc.ast.Expr;
 
 import java.io.IOException;
 
@@ -57,11 +54,11 @@ public class ConditionalExpr extends Expr {
   }
 
   public void generateJsCode(JsWriter out) throws IOException {
-    getCond().generateCode(out);
+    getCond().generateCode(out, false);
     out.writeSymbol(getSymQuestion());
-    getIfTrue().generateCode(out);
+    getIfTrue().generateCode(out, false);
     out.writeSymbol(getSymColon());
-    getIfFalse().generateCode(out);
+    getIfFalse().generateCode(out, false);
   }
 
   public void analyze(AstNode parentNode, AnalyzeContext context) {

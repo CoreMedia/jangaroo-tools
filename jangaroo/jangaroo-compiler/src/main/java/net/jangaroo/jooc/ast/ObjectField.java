@@ -19,10 +19,6 @@ import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
-import net.jangaroo.jooc.ast.AstNode;
-import net.jangaroo.jooc.ast.AstVisitor;
-import net.jangaroo.jooc.ast.Expr;
-import net.jangaroo.jooc.ast.NodeImplBase;
 
 import java.io.IOException;
 
@@ -59,9 +55,9 @@ public class ObjectField extends NodeImplBase {
   }
 
   public void generateJsCode(JsWriter out) throws IOException {
-    getLabel().generateCode(out);
+    getLabel().generateCode(out, false);
     out.writeSymbol(getSymColon());
-    getValue().generateCode(out);
+    getValue().generateCode(out, false);
   }
 
   public JooSymbol getSymbol() {

@@ -72,7 +72,7 @@ public class Catch extends KeywordStatement {
       out.writeSymbol(errorVar, !hasCondition);
       if (!hasCondition && typeRelation != null) {
         // can only be ": *", add as comment:
-        typeRelation.generateCode(out);
+        typeRelation.generateCode(out, false);
       }
       out.writeSymbol(rParen, !hasCondition);
       if (hasCondition || !isLast) {
@@ -99,7 +99,7 @@ public class Catch extends KeywordStatement {
     if (!localErrorVar.getText().equals(errorVar.getText())) {
       block.addBlockStartCodeGenerator(new VarCodeGenerator(localErrorVar, errorVar));
     }
-    block.generateCode(out);
+    block.generateCode(out, false);
     if (isLast) {
       if (hasCondition) {
         out.writeToken("else throw");
@@ -160,7 +160,7 @@ public class Catch extends KeywordStatement {
       this.errorVar = errorVar;
     }
 
-    public void generateCode(JsWriter out) throws IOException {
+    public void generateCode(JsWriter out, boolean generateApi) throws IOException {
       out.writeToken("var");
       out.writeSymbolToken(localErrorVar);
       out.writeToken("=");

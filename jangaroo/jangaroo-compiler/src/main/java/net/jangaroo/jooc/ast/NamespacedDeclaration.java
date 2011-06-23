@@ -18,10 +18,6 @@ package net.jangaroo.jooc.ast;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.SyntacticKeywords;
-import net.jangaroo.jooc.ast.AstVisitor;
-import net.jangaroo.jooc.ast.Ide;
-import net.jangaroo.jooc.ast.IdeDeclaration;
-import net.jangaroo.jooc.ast.Initializer;
 
 import java.io.IOException;
 
@@ -60,7 +56,7 @@ public class NamespacedDeclaration extends IdeDeclaration {
   public void generateAsApiCode(JsWriter out) throws IOException {
     writeModifiers(out);
     out.writeSymbol(symNamespace);
-    getIde().generateCode(out);
+    getIde().generateCode(out, true);
     if (optInitializer != null) {
       out.writeSymbol(optInitializer.getSymEq());
       optInitializer.getValue().generateAsApiCode(out);
@@ -77,11 +73,11 @@ public class NamespacedDeclaration extends IdeDeclaration {
     out.beginString();
     writeModifiers(out);
     out.writeSymbol(symNamespace);
-    getIde().generateCode(out);
+    getIde().generateCode(out, false);
     out.endString();
     out.writeSymbolWhitespace(optInitializer.getSymEq());
     out.writeToken(",");
-    optInitializer.getValue().generateCode(out);
+    optInitializer.getValue().generateCode(out, false);
     if (optSymSemicolon != null) {
       out.writeSymbolWhitespace(optSymSemicolon);
     }

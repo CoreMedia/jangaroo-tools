@@ -52,7 +52,7 @@ public class Initializer extends NodeImplBase {
 
   public void generateJsCode(JsWriter out) throws IOException {
     out.writeSymbol(getSymEq());
-    getValue().generateCode(out);
+    getValue().generateCode(out, false);
   }
 
   @Override

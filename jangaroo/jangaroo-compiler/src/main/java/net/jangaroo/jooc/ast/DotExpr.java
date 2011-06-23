@@ -20,12 +20,6 @@ import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
-import net.jangaroo.jooc.ast.AstNode;
-import net.jangaroo.jooc.ast.AstVisitor;
-import net.jangaroo.jooc.ast.Expr;
-import net.jangaroo.jooc.ast.Ide;
-import net.jangaroo.jooc.ast.IdeDeclaration;
-import net.jangaroo.jooc.ast.PostfixOpExpr;
 
 import java.io.IOException;
 
@@ -73,7 +67,7 @@ public class DotExpr extends PostfixOpExpr {
 
   @Override
   public void generateJsCode(final JsWriter out) throws IOException {
-    getArg().generateCode(out);
+    getArg().generateCode(out, false);
     Ide.writeMemberAccess(Ide.resolveMember(getArg().getType(), getIde()), getOp(), getIde(), true, out);
   }
 

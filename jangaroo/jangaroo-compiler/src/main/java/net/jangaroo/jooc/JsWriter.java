@@ -36,7 +36,6 @@ public final class JsWriter extends FilterWriter {
   private char lastChar = ' ';
   private boolean inString = false;
   private int nOpenStrings = 0;
-  private boolean writeActionScriptApi = false;
 
   public JsWriter(Writer target) {
     super(target);
@@ -47,16 +46,8 @@ public final class JsWriter extends FilterWriter {
     this.options = options;
   }
 
-  public void setWriteActionScriptApi(final boolean writeActionScriptApi) {
-    this.writeActionScriptApi = writeActionScriptApi;
-  }
-
   public JoocOptions getOptions() {
     return options;
-  }
-
-  public boolean isWriteActionScriptApi() {
-    return writeActionScriptApi;
   }
 
   public boolean getKeepSource() {

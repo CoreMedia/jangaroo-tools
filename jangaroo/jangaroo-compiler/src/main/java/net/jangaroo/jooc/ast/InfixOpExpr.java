@@ -3,10 +3,6 @@ package net.jangaroo.jooc.ast;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
-import net.jangaroo.jooc.ast.AstVisitor;
-import net.jangaroo.jooc.ast.BinaryOpExpr;
-import net.jangaroo.jooc.ast.ClassDeclaration;
-import net.jangaroo.jooc.ast.Expr;
 
 import java.io.IOException;
 
@@ -36,18 +32,18 @@ public class InfixOpExpr extends BinaryOpExpr {
 
   @Override
   public void generateAsApiCode(JsWriter out) throws IOException {
-    getArg1().generateCode(out);
+    getArg1().generateCode(out, true);
     out.writeSymbol(getOp());
-    getArg2().generateCode(out);
+    getArg2().generateCode(out, true);
   }
 
   public void generateJsCode(JsWriter out) throws IOException {
     out.writeSymbolToken(getOp());
     out.write('(');
-    getArg1().generateCode(out);
+    getArg1().generateCode(out, false);
     out.write(',');
     out.writeSymbolWhitespace(getOp());
-    getArg2().generateCode(out);
+    getArg2().generateCode(out, false);
     out.write(')');
   }
 }

@@ -61,19 +61,19 @@ public class CommaSeparatedList<T extends AstNode> extends Expr {
   }
 
   @Override
-  public void generateCode(JsWriter out) throws IOException {
+  public void generateCode(JsWriter out, boolean generateApi) throws IOException {
     if (getHead() != null) {
-      getHead().generateCode(out);
+      getHead().generateCode(out, generateApi);
     }
     if (getSymComma() != null) {
-      generateTailCode(out);
+      generateTailCode(out, generateApi);
     }
   }
 
-  protected void generateTailCode(JsWriter out) throws IOException {
+  protected void generateTailCode(JsWriter out, boolean generateApi) throws IOException {
     out.writeSymbol(getSymComma());
     if (getTail() != null) {
-      getTail().generateCode(out);
+      getTail().generateCode(out, generateApi);
     }
   }
 

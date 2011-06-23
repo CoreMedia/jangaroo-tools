@@ -19,9 +19,6 @@ import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
-import net.jangaroo.jooc.ast.AstNode;
-import net.jangaroo.jooc.ast.KeywordStatement;
-import net.jangaroo.jooc.ast.Statement;
 
 import java.io.IOException;
 
@@ -40,7 +37,7 @@ public abstract class LoopStatement extends KeywordStatement {
   public void generateJsCode(JsWriter out) throws IOException {
     super.generateJsCode(out);
     generateLoopHeaderCode(out);
-    getBody().generateCode(out);
+    getBody().generateCode(out, false);
     generateLoopFooterCode(out);
   }
 

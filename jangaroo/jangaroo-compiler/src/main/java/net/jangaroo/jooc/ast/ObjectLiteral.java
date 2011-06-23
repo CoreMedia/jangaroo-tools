@@ -51,7 +51,7 @@ public class ObjectLiteral extends Expr {
   public void generateJsCode(JsWriter out) throws IOException {
     out.writeSymbol(getlBrace());
     if (getFields() != null)
-      getFields().generateCode(out);
+      getFields().generateCode(out, false);
     if (getOptComma() != null)
       out.writeSymbol(getOptComma());
     out.writeSymbol(getrBrace());

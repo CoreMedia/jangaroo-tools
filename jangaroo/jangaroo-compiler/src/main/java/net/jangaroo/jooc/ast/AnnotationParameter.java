@@ -83,21 +83,21 @@ public class AnnotationParameter extends NodeImplBase {
   @Override
   public void generateAsApiCode(JsWriter out) throws IOException {
     if (getOptName() != null && getOptSymEq() != null) {
-      getOptName().generateCode(out);
+      getOptName().generateCode(out, true);
       out.writeSymbol(getOptSymEq());
     }
-    getValue().generateCode(out);
+    getValue().generateCode(out, true);
   }
 
   public void generateJsCode(JsWriter out) throws IOException {
     if (getOptName() != null && getOptSymEq() != null) {
-      getOptName().generateCode(out);
+      getOptName().generateCode(out, false);
       out.writeSymbolWhitespace(getOptSymEq());
     } else {
       out.writeToken("$value");
     }
     out.writeToken(":");
-    getValue().generateCode(out);
+    getValue().generateCode(out, false);
   }
 
   public JooSymbol getSymbol() {

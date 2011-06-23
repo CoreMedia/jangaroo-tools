@@ -18,9 +18,6 @@ package net.jangaroo.jooc.ast;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
-import net.jangaroo.jooc.ast.AstVisitor;
-import net.jangaroo.jooc.ast.Ide;
-import net.jangaroo.jooc.ast.IdeDeclaration;
 
 import java.io.IOException;
 
@@ -53,7 +50,7 @@ public class PackageDeclaration extends IdeDeclaration {
   public void generateAsApiCode(JsWriter out) throws IOException {
     out.writeSymbol(getSymPackage());
     if (getIde() !=null) {
-      getIde().generateCode(out);
+      getIde().generateCode(out, true);
     }
   }
 
@@ -61,7 +58,7 @@ public class PackageDeclaration extends IdeDeclaration {
     out.beginString();
     out.writeSymbol(getSymPackage());
     if (getIde() !=null) {
-      getIde().generateCode(out);
+      getIde().generateCode(out, false);
     }
     out.endString();
     out.write(",");

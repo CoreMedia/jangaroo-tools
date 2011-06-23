@@ -77,8 +77,7 @@ public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUni
           try {
             try {
               out.setOptions(getOptions());
-              out.setWriteActionScriptApi(generateApi);
-              codeGenerator.generateCode(out);
+              codeGenerator.generateCode(out, generateApi);
             } finally {
               out.close();
             }

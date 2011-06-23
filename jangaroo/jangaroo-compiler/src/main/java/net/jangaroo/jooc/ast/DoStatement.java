@@ -51,7 +51,7 @@ public class DoStatement extends ConditionalLoopStatement {
 
   protected void generateLoopFooterCode(JsWriter out) throws IOException {
     out.writeSymbol(getSymWhile());
-    getOptCond().generateCode(out);
+    getOptCond().generateCode(out, false);
     out.writeSymbol(getSymSemicolon());
   }
 

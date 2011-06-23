@@ -84,14 +84,14 @@ public class SuperConstructorCallStatement extends Statement {
     out.writeSymbol(getSymSemicolon());
   }
 
-  protected void generateFunCode(JsWriter out) throws IOException {
+  private void generateFunCode(JsWriter out) throws IOException {
     out.writeSymbolWhitespace(getSymbol());
     out.writeToken("this.super$" + classDeclaration.getInheritanceLevel());
   }
 
-  protected void generateArgsCode(JsWriter out) throws IOException {
+  private void generateArgsCode(JsWriter out) throws IOException {
     if (getArgs() != null)
-      getArgs().generateCode(out);
+      getArgs().generateCode(out, false);
   }
 
   public JooSymbol getSymbol() {

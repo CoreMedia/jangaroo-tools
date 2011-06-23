@@ -104,18 +104,18 @@ public class ClassDeclaration extends IdeDeclaration {
   }
 
   public void generateAsApiCode(JsWriter out) throws IOException {
-    generateCode(directives, out);
+    generateCode(directives, out, true);
 
     writeModifiers(out);
     out.writeSymbol(getSymClass());
-    getIde().generateCode(out);
+    getIde().generateCode(out, true);
     if (getOptExtends() != null) {
-      getOptExtends().generateCode(out);
+      getOptExtends().generateCode(out, true);
     }
     if (getOptImplements() != null) {
-      getOptImplements().generateCode(out);
+      getOptImplements().generateCode(out, true);
     }
-    body.generateCode(out);
+    body.generateCode(out, true);
   }
 
   public void addBuiltInUsage(String builtIn) {
@@ -123,16 +123,16 @@ public class ClassDeclaration extends IdeDeclaration {
   }
 
   public void generateJsCode(JsWriter out) throws IOException {
-    generateCode(directives, out);
+    generateCode(directives, out, false);
     out.beginString();
     writeModifiers(out);
     out.writeSymbol(getSymClass());
-    getIde().generateCode(out);
+    getIde().generateCode(out, false);
     if (getOptExtends() != null) {
-      getOptExtends().generateCode(out);
+      getOptExtends().generateCode(out, false);
     }
     if (getOptImplements() != null) {
-      getOptImplements().generateCode(out);
+      getOptImplements().generateCode(out, false);
     }
     out.endString();
     out.write(",");
@@ -141,11 +141,11 @@ public class ClassDeclaration extends IdeDeclaration {
     writeBuiltInAliases(out);
     out.write("return[");
     generateClassInits(out);
-    body.generateCode(out);
+    body.generateCode(out, false);
     if (constructor == null && !fieldsWithInitializer.isEmpty()) {
       // generate default constructor that calls field initializers:
       out.write("\"public function " + getName() + "\",function " + getName() + "$(){");
-      new SuperCallCodeGenerator().generateCode(out);
+      new SuperCallCodeGenerator().generateCode(out, false);
       out.write("}");
     }
 
@@ -188,7 +188,7 @@ public class ClassDeclaration extends IdeDeclaration {
 
   private class SuperCallCodeGenerator implements CodeGenerator {
 
-    public void generateCode(JsWriter out) throws IOException {
+    public void generateCode(JsWriter out, boolean generateApi) throws IOException {
       int inheritanceLevel = getInheritanceLevel();
       if (inheritanceLevel > 1) { // suppress for classes extending Object
         out.writeToken("this.super$" + inheritanceLevel + "();");

@@ -36,7 +36,7 @@ public class MergedOutputCompilationUnitSinkFactory extends AbstractCompilationU
           try {
             try {
               out.setOptions(getOptions());
-              codeGenerator.generateCode(out);
+              codeGenerator.generateCode(out, false);
             } finally {
               out.close();
             }
