@@ -61,9 +61,9 @@ public class ForInitializer extends NodeImplBase {
 
   public void generateJsCode(JsWriter out) throws IOException {
     if (getDecl() != null)
-      getDecl().generateCode(out, false);
+      getDecl().generateJsCode(out);
     else if (getExpr() != null)
-      getExpr().generateCode(out, false);
+      getExpr().generateJsCode(out);
   }
 
   public JooSymbol getSymbol() {

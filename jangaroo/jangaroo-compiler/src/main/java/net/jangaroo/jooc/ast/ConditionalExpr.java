@@ -54,11 +54,11 @@ public class ConditionalExpr extends Expr {
   }
 
   public void generateJsCode(JsWriter out) throws IOException {
-    getCond().generateCode(out, false);
+    getCond().generateJsCode(out);
     out.writeSymbol(getSymQuestion());
-    getIfTrue().generateCode(out, false);
+    getIfTrue().generateJsCode(out);
     out.writeSymbol(getSymColon());
-    getIfFalse().generateCode(out, false);
+    getIfFalse().generateJsCode(out);
   }
 
   public void analyze(AstNode parentNode, AnalyzeContext context) {

@@ -49,7 +49,7 @@ public abstract class ConditionalLoopStatement extends LoopStatement {
 
   protected void generateLoopHeaderCode(JsWriter out) throws IOException {
     if (getOptCond() != null)
-      getOptCond().generateCode(out, false);
+      getOptCond().generateJsCode(out);
   }
 
 

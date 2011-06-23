@@ -36,7 +36,7 @@ public class PrefixOpExpr extends UnaryOpExpr {
 
   public void generateJsCode(JsWriter out) throws IOException {
     out.writeSymbol(getOp());
-    getArg().generateCode(out, false);
+    getArg().generateJsCode(out);
   }
 
   public JooSymbol getSymbol() {

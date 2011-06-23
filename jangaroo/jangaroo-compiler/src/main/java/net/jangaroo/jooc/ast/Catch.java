@@ -72,7 +72,7 @@ public class Catch extends KeywordStatement {
       out.writeSymbol(errorVar, !hasCondition);
       if (!hasCondition && typeRelation != null) {
         // can only be ": *", add as comment:
-        typeRelation.generateCode(out, false);
+        typeRelation.generateJsCode(out);
       }
       out.writeSymbol(rParen, !hasCondition);
       if (hasCondition || !isLast) {
@@ -99,7 +99,7 @@ public class Catch extends KeywordStatement {
     if (!localErrorVar.getText().equals(errorVar.getText())) {
       block.addBlockStartCodeGenerator(new VarCodeGenerator(localErrorVar, errorVar));
     }
-    block.generateCode(out, false);
+    block.generateJsCode(out);
     if (isLast) {
       if (hasCondition) {
         out.writeToken("else throw");
@@ -160,7 +160,8 @@ public class Catch extends KeywordStatement {
       this.errorVar = errorVar;
     }
 
-    public void generateCode(JsWriter out, boolean generateApi) throws IOException {
+    @Override
+    public void generateJsCode(JsWriter out) throws IOException {
       out.writeToken("var");
       out.writeSymbolToken(localErrorVar);
       out.writeToken("=");
@@ -169,13 +170,12 @@ public class Catch extends KeywordStatement {
     }
 
     @Override
-    public void generateJsCode(JsWriter out) throws IOException {
-      generateCode(out, false);
-    }
-
-    @Override
     public void generateAsApiCode(JsWriter out) throws IOException {
-      generateCode(out, true);
+      out.writeToken("var");
+      out.writeSymbolToken(localErrorVar);
+      out.writeToken("=");
+      out.writeSymbolToken(errorVar);
+      out.writeToken(";");
     }
   }
 }

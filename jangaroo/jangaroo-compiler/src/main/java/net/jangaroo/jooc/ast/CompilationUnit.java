@@ -122,29 +122,20 @@ public class CompilationUnit extends NodeImplBase {
   }
 
   @Override
-  public void generateCode(final JsWriter out, boolean generateApi) throws IOException {
-    if (generateApi) {
-      generateAsApiCode(out);
-    } else {
-      generateJsCode(out);
-    }
-  }
-
-  @Override
   public void generateAsApiCode(final JsWriter out) throws IOException {
-    packageDeclaration.generateCode(out, true);
+    packageDeclaration.generateAsApiCode(out);
     out.writeSymbol(lBrace);
-    primaryDeclaration.generateCode(out, true);
+    primaryDeclaration.generateAsApiCode(out);
     out.writeSymbol(rBrace);
   }
 
   public void generateJsCode(JsWriter out) throws IOException {
     out.write(Jooc.CLASS_LOADER_FULLY_QUALIFIED_NAME + ".prepare(");
-    packageDeclaration.generateCode(out, false);
+    packageDeclaration.generateJsCode(out);
     out.beginComment();
     out.writeSymbol(lBrace);
     out.endComment();
-    primaryDeclaration.generateCode(out, false);
+    primaryDeclaration.generateJsCode(out);
     out.write(",[");
     boolean first = true;
     for (String qname : dependencies) {

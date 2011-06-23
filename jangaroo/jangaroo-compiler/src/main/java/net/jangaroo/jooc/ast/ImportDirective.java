@@ -75,7 +75,7 @@ public class ImportDirective extends Directive {
   public void generateAsApiCode(final JsWriter out) throws IOException {
     if (explicit) {
       out.writeSymbol(getImportKeyword());
-      getIde().generateCode(out, true);
+      getIde().generateAsApiCode(out);
       out.writeSymbol(getSymSemicolon());
     }
     // else skip it
@@ -86,7 +86,7 @@ public class ImportDirective extends Directive {
     if (explicit) {
       out.beginComment();
       out.writeSymbol(getImportKeyword());
-      getIde().generateCode(out, false);
+      getIde().generateJsCode(out);
       out.writeSymbol(getSymSemicolon());
       out.endComment();
     }

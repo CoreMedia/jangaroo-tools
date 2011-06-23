@@ -50,7 +50,7 @@ public class PackageDeclaration extends IdeDeclaration {
   public void generateAsApiCode(JsWriter out) throws IOException {
     out.writeSymbol(getSymPackage());
     if (getIde() !=null) {
-      getIde().generateCode(out, true);
+      getIde().generateAsApiCode(out);
     }
   }
 
@@ -58,7 +58,7 @@ public class PackageDeclaration extends IdeDeclaration {
     out.beginString();
     out.writeSymbol(getSymPackage());
     if (getIde() !=null) {
-      getIde().generateCode(out, false);
+      getIde().generateJsCode(out);
     }
     out.endString();
     out.write(",");

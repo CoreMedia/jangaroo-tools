@@ -81,11 +81,11 @@ public class Parameter extends IdeDeclaration {
     if (getOptSymConstOrRest() != null) {
       out.writeSymbol(getOptSymConstOrRest());
     }
-    getIde().generateCode(out, true);
+    getIde().generateAsApiCode(out);
     if (getOptTypeRelation() !=null)
-      getOptTypeRelation().generateCode(out, true);
+      getOptTypeRelation().generateAsApiCode(out);
     if (getOptInitializer() != null) {
-      getOptInitializer().generateCode(out, true);
+      getOptInitializer().generateAsApiCode(out);
     }
   }
 
@@ -95,19 +95,19 @@ public class Parameter extends IdeDeclaration {
     if (getOptSymConstOrRest() != null) {
       out.beginCommentWriteSymbol(getOptSymConstOrRest());
       if (isRest) {
-        getIde().generateCode(out, false);
+        getIde().generateJsCode(out);
       }
       out.endComment();
     }
     if (!isRest) {
-      getIde().generateCode(out, false);
+      getIde().generateJsCode(out);
     }
     if (getOptTypeRelation() !=null)
-      getOptTypeRelation().generateCode(out, false);
+      getOptTypeRelation().generateJsCode(out);
     // in the method signature, comment out initializer code.
     if (getOptInitializer() != null) {
       out.beginComment();
-      getOptInitializer().generateCode(out, false);
+      getOptInitializer().generateJsCode(out);
       out.endComment();
     }
   }
@@ -119,9 +119,9 @@ public class Parameter extends IdeDeclaration {
         !((IdeExpr) getOptInitializer().getValue()).getIde().getName().equals("undefined"));
   }
 
-  void generateBodyInitializerCode(JsWriter out, boolean generateApi) throws IOException {
+  void generateBodyInitializerCode(JsWriter out) throws IOException {
     out.writeToken(getName());
-    getOptInitializer().generateCode(out, generateApi);
+    getOptInitializer().generateJsCode(out);
     out.write(";");
   }
 

@@ -55,9 +55,9 @@ public class ObjectField extends NodeImplBase {
   }
 
   public void generateJsCode(JsWriter out) throws IOException {
-    getLabel().generateCode(out, false);
+    getLabel().generateJsCode(out);
     out.writeSymbol(getSymColon());
-    getValue().generateCode(out, false);
+    getValue().generateJsCode(out);
   }
 
   public JooSymbol getSymbol() {

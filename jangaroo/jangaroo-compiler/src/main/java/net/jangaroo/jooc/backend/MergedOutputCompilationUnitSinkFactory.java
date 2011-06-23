@@ -1,6 +1,7 @@
 package net.jangaroo.jooc.backend;
 
 import net.jangaroo.jooc.*;
+import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.ast.IdeDeclaration;
 import net.jangaroo.jooc.ast.PackageDeclaration;
 import net.jangaroo.jooc.config.JoocOptions;
@@ -29,14 +30,14 @@ public class MergedOutputCompilationUnitSinkFactory extends AbstractCompilationU
 
     sink = new CompilationUnitSink() {
 
-      public void writeOutput(CodeGenerator codeGenerator) {
+      public void writeOutput(CompilationUnit compilationUnit) {
 
         try {
           JsWriter out = new JsWriter(new OutputStreamWriter(new FileOutputStream(outputFile, true), "UTF-8"));
           try {
             try {
               out.setOptions(getOptions());
-              codeGenerator.generateCode(out, false);
+              compilationUnit.generateJsCode(out);
             } finally {
               out.close();
             }

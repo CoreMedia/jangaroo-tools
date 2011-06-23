@@ -53,7 +53,7 @@ public class AssignmentOpExpr extends BinaryOpExpr {
       options.setDebugLines(debugLines);
       out.writeToken(getOp().sym == sym.ANDANDEQ ? "&&" : "||");
       out.writeToken("(");
-      getArg2().generateCode(out, false);
+      getArg2().generateJsCode(out);
       out.writeToken(")");
     } else {
       super.generateJsCode(out);

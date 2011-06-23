@@ -35,9 +35,11 @@ public abstract class AbstractBlock extends Statement {
   public void generateJsCode(JsWriter out) throws IOException {
     out.writeSymbol(getLBrace());
     for (CodeGenerator codeGenerator : getBlockStartCodeGenerators()) {
-      codeGenerator.generateCode(out, false);
+      codeGenerator.generateJsCode(out);
     }
-    generateCode(getDirectives(), out, false);
+    for (AstNode node : getDirectives()) {
+      node.generateJsCode(out);
+    }
     out.writeSymbol(getRBrace());
   }
 

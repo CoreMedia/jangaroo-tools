@@ -67,7 +67,7 @@ public class DotExpr extends PostfixOpExpr {
 
   @Override
   public void generateJsCode(final JsWriter out) throws IOException {
-    getArg().generateCode(out, false);
+    getArg().generateJsCode(out);
     Ide.writeMemberAccess(Ide.resolveMember(getArg().getType(), getIde()), getOp(), getIde(), true, out);
   }
 

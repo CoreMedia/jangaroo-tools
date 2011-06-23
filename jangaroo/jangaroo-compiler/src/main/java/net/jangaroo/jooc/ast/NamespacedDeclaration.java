@@ -56,7 +56,7 @@ public class NamespacedDeclaration extends IdeDeclaration {
   public void generateAsApiCode(JsWriter out) throws IOException {
     writeModifiers(out);
     out.writeSymbol(symNamespace);
-    getIde().generateCode(out, true);
+    getIde().generateAsApiCode(out);
     if (optInitializer != null) {
       out.writeSymbol(optInitializer.getSymEq());
       optInitializer.getValue().generateAsApiCode(out);
@@ -73,11 +73,11 @@ public class NamespacedDeclaration extends IdeDeclaration {
     out.beginString();
     writeModifiers(out);
     out.writeSymbol(symNamespace);
-    getIde().generateCode(out, false);
+    getIde().generateJsCode(out);
     out.endString();
     out.writeSymbolWhitespace(optInitializer.getSymEq());
     out.writeToken(",");
-    optInitializer.getValue().generateCode(out, false);
+    optInitializer.getValue().generateJsCode(out);
     if (optSymSemicolon != null) {
       out.writeSymbolWhitespace(optSymSemicolon);
     }

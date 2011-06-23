@@ -53,7 +53,7 @@ public class CaseStatement extends KeywordStatement {
 
   public void generateJsCode(JsWriter out) throws IOException {
     super.generateJsCode(out);
-    getExpr().generateCode(out, false);
+    getExpr().generateJsCode(out);
     out.writeSymbol(getSymColon());
   }
 

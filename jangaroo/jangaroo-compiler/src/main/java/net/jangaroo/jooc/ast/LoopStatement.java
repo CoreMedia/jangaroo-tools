@@ -37,7 +37,7 @@ public abstract class LoopStatement extends KeywordStatement {
   public void generateJsCode(JsWriter out) throws IOException {
     super.generateJsCode(out);
     generateLoopHeaderCode(out);
-    getBody().generateCode(out, false);
+    getBody().generateJsCode(out);
     generateLoopFooterCode(out);
   }
 

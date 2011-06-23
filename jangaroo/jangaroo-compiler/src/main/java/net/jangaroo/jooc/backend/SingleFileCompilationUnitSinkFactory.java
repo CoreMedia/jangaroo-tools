@@ -1,6 +1,6 @@
 package net.jangaroo.jooc.backend;
 
-import net.jangaroo.jooc.CodeGenerator;
+import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.ast.IdeDeclaration;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.JsWriter;
@@ -68,7 +68,7 @@ public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUni
     createOutputDirs(outFile);
 
     return new CompilationUnitSink() {
-      public void writeOutput(CodeGenerator codeGenerator) {
+      public void writeOutput(CompilationUnit compilationUnit) {
         if (verbose)
           System.out.println("writing file: '" + outFile.getAbsolutePath() + "'");
 
@@ -77,7 +77,11 @@ public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUni
           try {
             try {
               out.setOptions(getOptions());
-              codeGenerator.generateCode(out, generateApi);
+              if (generateApi) {
+                compilationUnit.generateAsApiCode(out);
+              } else {
+                compilationUnit.generateJsCode(out);
+              }
             } finally {
               out.close();
             }

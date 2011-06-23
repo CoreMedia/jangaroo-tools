@@ -176,21 +176,32 @@ public class FunctionExpr extends Expr {
       // inject into body for generating initializers later:
       getBody().addBlockStartCodeGenerator(params.getParameterInitializerCodeGenerator());
     }
-    generateSignatureCode(out, false);
+    generateSignatureJsCode(out);
     if (hasBody()) {
-      getBody().generateCode(out, false);
+      getBody().generateJsCode(out);
     }
 
   }
 
-  public void generateSignatureCode(JsWriter out, boolean generateApi) throws IOException {
+  public void generateSignatureJsCode(JsWriter out) throws IOException {
     out.writeSymbol(lParen);
     if (params != null) {
-      params.generateCode(out, generateApi);
+      params.generateJsCode(out);
     }
     out.writeSymbol(rParen);
     if (optTypeRelation != null) {
-      optTypeRelation.generateCode(out, generateApi);
+      optTypeRelation.generateJsCode(out);
+    }
+  }
+
+  public void generateSignatureAsApiCode(JsWriter out) throws IOException {
+    out.writeSymbol(lParen);
+    if (params != null) {
+      params.generateAsApiCode(out);
+    }
+    out.writeSymbol(rParen);
+    if (optTypeRelation != null) {
+      optTypeRelation.generateAsApiCode(out);
     }
   }
 
@@ -214,9 +225,6 @@ public class FunctionExpr extends Expr {
         thisUsed = true;
         ((BlockStatement)methodDeclaration.getBody()).addBlockStartCodeGenerator(new CodeGenerator() {
           @Override
-          public void generateCode(JsWriter out, boolean generateApi) throws IOException {
-            out.write("var this$=this;");
-          }
           public void generateJsCode(final JsWriter out) throws IOException {
             out.write("var this$=this;");
           }

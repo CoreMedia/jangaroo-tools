@@ -28,22 +28,6 @@ import java.util.List;
  * @author Andreas Gawecki
  */
 public abstract class NodeImplBase implements AstNode {
-
-  public void generateCode(Collection<? extends AstNode> nodes, JsWriter out, boolean generateApi) throws IOException {
-    for (AstNode node : nodes) {
-      node.generateCode(out, generateApi);
-    }
-  }
-
-  @Override
-  public void generateCode(final JsWriter out, boolean generateApi) throws IOException {
-    if (generateApi) {
-      generateAsApiCode(out);
-    } else {
-      generateJsCode(out);
-    }
-  }
-
   public abstract void generateJsCode(final JsWriter out) throws IOException;
 
   /**

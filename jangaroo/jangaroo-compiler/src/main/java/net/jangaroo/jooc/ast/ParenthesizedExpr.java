@@ -57,7 +57,7 @@ public class ParenthesizedExpr<E extends Expr> extends Expr {
 
   private void generateExprCode(JsWriter out) throws IOException {
     if (getExpr() !=null) {
-      getExpr().generateCode(out, false);
+      getExpr().generateJsCode(out);
     }
   }
 

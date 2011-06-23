@@ -32,18 +32,18 @@ public class InfixOpExpr extends BinaryOpExpr {
 
   @Override
   public void generateAsApiCode(JsWriter out) throws IOException {
-    getArg1().generateCode(out, true);
+    getArg1().generateAsApiCode(out);
     out.writeSymbol(getOp());
-    getArg2().generateCode(out, true);
+    getArg2().generateAsApiCode(out);
   }
 
   public void generateJsCode(JsWriter out) throws IOException {
     out.writeSymbolToken(getOp());
     out.write('(');
-    getArg1().generateCode(out, false);
+    getArg1().generateJsCode(out);
     out.write(',');
     out.writeSymbolWhitespace(getOp());
-    getArg2().generateCode(out, false);
+    getArg2().generateJsCode(out);
     out.write(')');
   }
 }

@@ -60,9 +60,9 @@ public class NewExpr extends Expr {
 
   public void generateJsCode(JsWriter out) throws IOException {
     out.writeSymbol(getSymNew());
-    getApplyConstructor().generateCode(out, false);
+    getApplyConstructor().generateJsCode(out);
     if (getArgs() != null)
-      getArgs().generateCode(out, false);
+      getArgs().generateJsCode(out);
   }
 
   public JooSymbol getSymbol() {

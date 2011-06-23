@@ -35,7 +35,7 @@ public class PostfixOpExpr extends UnaryOpExpr {
   }
 
   public void generateJsCode(JsWriter out) throws IOException {
-    getArg().generateCode(out, false);
+    getArg().generateJsCode(out);
     out.writeSymbol(getOp());
   }
 

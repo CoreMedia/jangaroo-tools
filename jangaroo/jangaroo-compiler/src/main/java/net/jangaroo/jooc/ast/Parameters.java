@@ -55,7 +55,8 @@ public class Parameters extends CommaSeparatedList<Parameter> {
 
   public CodeGenerator getParameterInitializerCodeGenerator() {
     return new CodeGenerator() {
-      public void generateCode(JsWriter out, boolean generateApi) throws IOException {
+      @Override
+      public void generateJsCode(JsWriter out) throws IOException {
         // first pass: generate conditionals and count parameters.
         int cnt = 0;
         StringBuilder code = new StringBuilder();
@@ -78,20 +79,15 @@ public class Parameters extends CommaSeparatedList<Parameter> {
             break;
           }
           if (param.hasInitializer()) {
-            param.generateBodyInitializerCode(out, generateApi);
+            param.generateBodyInitializerCode(out);
             out.write("}");
           }
         }
       }
 
       @Override
-      public void generateJsCode(JsWriter out) throws IOException {
-        generateCode(out, false);
-      }
-
-      @Override
       public void generateAsApiCode(JsWriter out) throws IOException {
-        generateCode(out, true);
+        throw new UnsupportedOperationException();
       }
     };
   }

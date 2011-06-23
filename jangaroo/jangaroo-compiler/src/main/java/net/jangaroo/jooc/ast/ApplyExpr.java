@@ -69,7 +69,7 @@ public class ApplyExpr extends Expr {
       if (isAssert) {
         JooSymbol symKeyword = getFun().getSymbol();
         out.writeSymbol(getArgs().getlParen());
-        getArgs().getExpr().generateCode(out, false);
+        getArgs().getExpr().generateJsCode(out);
         out.writeToken(", ");
         out.writeString(symKeyword.getFileName());
         out.writeToken(", ");
@@ -78,7 +78,7 @@ public class ApplyExpr extends Expr {
         out.writeInt(symKeyword.getColumn());
         out.writeSymbol(getArgs().getrParen());
       } else {
-        getArgs().generateCode(out, false);
+        getArgs().generateJsCode(out);
       }
     }
   }
@@ -88,10 +88,10 @@ public class ApplyExpr extends Expr {
     // these old-style type casts are soo ugly....
     if (isTypeCast()) {
       out.beginComment();
-      getFun().generateCode(out, false);
+      getFun().generateJsCode(out);
       out.endComment();
     } else {
-      getFun().generateCode(out, false);
+      getFun().generateJsCode(out);
     }
   }
 

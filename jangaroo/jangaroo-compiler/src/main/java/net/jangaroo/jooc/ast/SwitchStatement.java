@@ -61,8 +61,8 @@ public class SwitchStatement extends KeywordStatement {
 
   public void generateJsCode(JsWriter out) throws IOException {
     super.generateJsCode(out);
-    getCond().generateCode(out, false);
-    getBlock().generateCode(out, false);
+    getCond().generateJsCode(out);
+    getBlock().generateJsCode(out);
   }
 
   public ParenthesizedExpr getCond() {

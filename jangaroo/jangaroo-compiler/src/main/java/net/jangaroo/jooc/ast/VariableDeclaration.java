@@ -189,7 +189,7 @@ public class VariableDeclaration extends TypedIdeDeclaration {
       if (mustEvaluateAtRuntime) {
         out.writeToken("function(){return(");
       }
-      getOptInitializer().getValue().generateCode(out, false);
+      getOptInitializer().getValue().generateJsCode(out);
       if (mustEvaluateAtRuntime) {
         out.writeToken(");}");
       }
@@ -242,7 +242,7 @@ public class VariableDeclaration extends TypedIdeDeclaration {
 
   private void generateVarInitializerCode(JsWriter out) throws IOException {
     if (getOptInitializer() != null) {
-      getOptInitializer().generateCode(out, false);
+      getOptInitializer().generateJsCode(out);
     }
   }
 
@@ -266,13 +266,13 @@ public class VariableDeclaration extends TypedIdeDeclaration {
     } else {
       generateStartCode(out);
     }
-    getIde().generateCode(out, false);
+    getIde().generateJsCode(out);
     if (getOptTypeRelation() != null) {
-      getOptTypeRelation().generateCode(out, false);
+      getOptTypeRelation().generateJsCode(out);
     }
     generateInitializerCode(out);
     if (getOptNextVariableDeclaration() != null) {
-      getOptNextVariableDeclaration().generateCode(out, false);
+      getOptNextVariableDeclaration().generateJsCode(out);
     }
     generateEndCode(out);
   }
@@ -292,15 +292,15 @@ public class VariableDeclaration extends TypedIdeDeclaration {
     if (!isPrivate()) {
       writeModifiers(out);
       out.writeSymbol(getOptSymConstOrVar());
-      getIde().generateCode(out, true);
+      getIde().generateAsApiCode(out);
       if (getOptTypeRelation() != null) {
-        getOptTypeRelation().generateCode(out, true);
+        getOptTypeRelation().generateAsApiCode(out);
       }
       if (getOptInitializer() != null) {
         getOptInitializer().generateAsApiCode(out);
       }
       if (getOptNextVariableDeclaration() != null) {
-        getOptNextVariableDeclaration().generateCode(out, true);
+        getOptNextVariableDeclaration().generateAsApiCode(out);
       }
       if (getOptSymSemicolon() != null) {
         out.writeSymbol(getOptSymSemicolon());

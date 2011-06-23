@@ -57,7 +57,7 @@ public abstract class LabelRefStatement extends KeywordExprStatement {
   protected void generateStatementCode(final JsWriter out) throws IOException {
     super.generateStatementCode(out);
     if (getOptLabel() != null)
-      getOptLabel().generateCode(out, false);
+      getOptLabel().generateJsCode(out);
   }
 
   public Ide getOptLabel() {

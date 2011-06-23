@@ -203,8 +203,8 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
       if (symGetOrSet != null) {
         out.writeSymbol(symGetOrSet);
       }
-      getIde().generateCode(out, true);
-      fun.generateSignatureCode(out, true);
+      getIde().generateAsApiCode(out);
+      fun.generateSignatureAsApiCode(out);
       if (isConstructor() && !isNative()) {
         // ASDoc does not allow a native constructor if the super class constructor needs parameters!
         out.writeToken("{super(");
@@ -246,7 +246,7 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
         out.beginComment();
         writeModifiers(out);
         out.writeSymbol(fun.getFunSymbol());
-        getIde().generateCode(out, false);
+        getIde().generateJsCode(out);
       } else {
         out.beginString();
         writeModifiers(out);
@@ -254,7 +254,7 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
         if (isGetterOrSetter()) {
           out.writeSymbol(symGetOrSet);
         }
-        getIde().generateCode(out, false);
+        getIde().generateJsCode(out);
         out.endString();
         if (isNative()) {
           out.beginComment();

@@ -84,16 +84,16 @@ public class ForInStatement extends LoopStatement {
     }
     out.writeSymbol(lParen);
     if (symEach != null) {
-      new VariableDeclaration(SYM_VAR, auxIde, null, null).generateCode(out, false);
+      new VariableDeclaration(SYM_VAR, auxIde, null, null).generateJsCode(out);
     } else {
       if (decl != null) {
-        decl.generateCode(out, false);
+        decl.generateJsCode(out);
       } else {
-        ide.generateCode(out, false);
+        ide.generateJsCode(out);
       }
     }
     out.writeSymbol(symIn);
-    expr.generateCode(out, false);
+    expr.generateJsCode(out);
     out.writeSymbol(rParen);
     if (symEach != null) {
       // synthesize assigning the correct index to the variable given in the original for each statement:

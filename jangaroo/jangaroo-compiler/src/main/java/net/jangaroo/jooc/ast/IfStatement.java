@@ -67,11 +67,11 @@ public class IfStatement extends KeywordStatement {
 
   public void generateJsCode(JsWriter out) throws IOException {
     super.generateJsCode(out);
-    getCond().generateCode(out, false);
-    getIfTrue().generateCode(out, false);
+    getCond().generateJsCode(out);
+    getIfTrue().generateJsCode(out);
     if (getSymElse() != null) {
       out.writeSymbol(getSymElse());
-      getIfFalse().generateCode(out, false);
+      getIfFalse().generateJsCode(out);
     }
   }
 

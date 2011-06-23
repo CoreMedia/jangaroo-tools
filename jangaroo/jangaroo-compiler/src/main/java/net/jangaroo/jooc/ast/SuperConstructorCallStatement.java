@@ -91,7 +91,7 @@ public class SuperConstructorCallStatement extends Statement {
 
   private void generateArgsCode(JsWriter out) throws IOException {
     if (getArgs() != null)
-      getArgs().generateCode(out, false);
+      getArgs().generateJsCode(out);
   }
 
   public JooSymbol getSymbol() {
