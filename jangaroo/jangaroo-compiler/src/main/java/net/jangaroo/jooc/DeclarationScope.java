@@ -15,12 +15,24 @@
 
 package net.jangaroo.jooc;
 
+import net.jangaroo.jooc.ast.AstNode;
+import net.jangaroo.jooc.ast.ClassDeclaration;
+import net.jangaroo.jooc.ast.CompilationUnit;
+import net.jangaroo.jooc.ast.FunctionDeclaration;
+import net.jangaroo.jooc.ast.FunctionExpr;
+import net.jangaroo.jooc.ast.Ide;
+import net.jangaroo.jooc.ast.IdeDeclaration;
+import net.jangaroo.jooc.ast.ImportDirective;
+import net.jangaroo.jooc.ast.PackageDeclaration;
+import net.jangaroo.jooc.ast.QualifiedIde;
+import net.jangaroo.jooc.ast.VariableDeclaration;
+
 import java.util.*;
 
 /**
  * @author Andreas Gawecki
  */
-class DeclarationScope extends ScopeImplBase implements Scope {
+public class DeclarationScope extends ScopeImplBase implements Scope {
 
   protected AstNode definingNode;
   private Set<String> packages = new HashSet<String>();
@@ -45,7 +57,7 @@ class DeclarationScope extends ScopeImplBase implements Scope {
 
   @Override
   public void addImport(final ImportDirective importDirective) {
-    Ide ide = importDirective.ide;
+    Ide ide = importDirective.getIde();
     String name = ide.getName();
     Ide packageIde = ide.getQualifier();
     String packageName = "";
@@ -74,7 +86,7 @@ class DeclarationScope extends ScopeImplBase implements Scope {
       }
       if (ides.containsKey(name)) {
         // name clash with value ide - error according to adobe
-        throw new Jooc.CompilerError(importDirective.ide.getSymbol(), "attempt to redefine identifier " + name + " by import");
+        throw new Jooc.CompilerError(importDirective.getIde().getSymbol(), "attempt to redefine identifier " + name + " by import");
       }
       // define the fully qualified name if not (might be the same string for top level imports):
       final String qualifiedName = ide.getQualifiedNameStr();

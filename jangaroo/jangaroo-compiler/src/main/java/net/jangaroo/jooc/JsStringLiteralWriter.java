@@ -21,7 +21,7 @@ import java.io.Writer;
 /**
  * @author Andreas Gawecki
  */
-class JsStringLiteralWriter extends SubstitutingWriter {
+public class JsStringLiteralWriter extends SubstitutingWriter {
 
   protected boolean insideScriptTag;
 

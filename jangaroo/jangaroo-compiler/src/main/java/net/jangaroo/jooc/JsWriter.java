@@ -15,6 +15,7 @@
 
 package net.jangaroo.jooc;
 
+import net.jangaroo.jooc.ast.IdeDeclaration;
 import net.jangaroo.jooc.config.JoocOptions;
 
 import java.io.FilterWriter;

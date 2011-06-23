@@ -25,6 +25,7 @@ import net.jangaroo.jooc.config.JoocOptions;
 import java_cup.runtime.*;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
+import net.jangaroo.jooc.ast.*;
 
 parser code  {:
 
@@ -476,7 +477,7 @@ directive ::=
   | LBRACK:lb ide:ide LPAREN:lb2 annotationParameters:ap RPAREN:rb2 RBRACK:rb
     {: RESULT = new Annotation(lb, ide, lb2, ap, rb2, rb); :}
   | USE:u ide:n qualifiedIde:namespace SEMICOLON:s
-    {: RESULT = new UseNamespaceDirective(u, n.ide, namespace, s); :}
+    {: RESULT = new UseNamespaceDirective(u, n.getIde(), namespace, s); :}
   ;
 
 nonEmptyAnnotationParameters ::=
@@ -717,7 +718,7 @@ modifier ::=
     {: RESULT = s; :}
   /* syntactic keyword modifier or a namespace: */
   | ide:ide
-    {: RESULT = ide.ide; :}
+    {: RESULT = ide.getIde(); :}
   ;
 
 modifiers ::=
@@ -845,7 +846,7 @@ qualifiedIde ::=
   | IDE:ide DOTLT:dotlt type:t GT:gt
     {: RESULT = new IdeWithTypeParam(ide, dotlt, t, gt); :}
   | qualifiedIde:prefix DOT:d namespacedIde:ide
-    {: RESULT = new QualifiedIde(prefix, d, ide.ide); :}
+    {: RESULT = new QualifiedIde(prefix, d, ide.getIde()); :}
   ;
 
 statement ::=

@@ -16,6 +16,13 @@
 package net.jangaroo.jooc;
 
 import java_cup.runtime.Symbol;
+import net.jangaroo.jooc.ast.AstNode;
+import net.jangaroo.jooc.ast.CompilationUnit;
+import net.jangaroo.jooc.ast.Ide;
+import net.jangaroo.jooc.ast.IdeDeclaration;
+import net.jangaroo.jooc.ast.ImportDirective;
+import net.jangaroo.jooc.ast.PredefinedTypeDeclaration;
+import net.jangaroo.jooc.ast.VariableDeclaration;
 import net.jangaroo.jooc.backend.CompilationUnitSinkFactory;
 import net.jangaroo.jooc.backend.MergedOutputCompilationUnitSinkFactory;
 import net.jangaroo.jooc.backend.SingleFileCompilationUnitSinkFactory;
@@ -193,18 +200,18 @@ public class Jooc {
     return joocProperties.getString(RUNTIME_VERSION_KEY);
   }
 
-  static class CompilerError extends RuntimeException {
+  public static class CompilerError extends RuntimeException {
     private JooSymbol symbol = null;
 
-    CompilerError(String msg) {
+    public CompilerError(String msg) {
       super(msg);
     }
 
-    CompilerError(String msg, Throwable rootCause) {
+    public CompilerError(String msg, Throwable rootCause) {
       super(msg, rootCause);
     }
 
-    CompilerError(JooSymbol symbol, String msg) {
+    public CompilerError(JooSymbol symbol, String msg) {
       super(msg);
       this.symbol = symbol;
     }
@@ -231,7 +238,7 @@ public class Jooc {
     return new CompilerError(msg);
   }
 
-  static CompilerError error(JooSymbol symbol, String msg) {
+  public static CompilerError error(JooSymbol symbol, String msg) {
     return new CompilerError(symbol, msg);
   }
 
