@@ -24,4 +24,9 @@ class WhileStatement extends ConditionalLoopStatement {
     super(symWhile, cond, body);
   }
 
+  @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitWhileStatement(this);
+  }
+
 }

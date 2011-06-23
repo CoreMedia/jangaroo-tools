@@ -31,6 +31,11 @@ public class Extends extends NodeImplBase {
   }
 
   @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitExtends(this);
+  }
+
+  @Override
   public void scope(final Scope scope) {
     superClass.scope(scope);
   }

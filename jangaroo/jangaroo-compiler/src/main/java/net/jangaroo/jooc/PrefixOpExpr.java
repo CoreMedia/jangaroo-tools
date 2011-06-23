@@ -26,6 +26,11 @@ class PrefixOpExpr extends UnaryOpExpr {
     super(op, arg);
   }
 
+  @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitPrefixOpExpr(this);
+  }
+
   protected void generateJsCode(JsWriter out) throws IOException {
     out.writeSymbol(op);
     arg.generateCode(out);

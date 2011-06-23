@@ -31,6 +31,11 @@ class DefaultStatement extends Statement {
   }
 
   @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitDefaultStatement(this);
+  }
+
+  @Override
   public void scope(final Scope scope) {
   }
 

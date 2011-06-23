@@ -29,6 +29,11 @@ class LiteralExpr extends Expr {
   }
 
   @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitLiteralExpr(this);
+  }
+
+  @Override
   public void scope(final Scope scope) {
   }
 

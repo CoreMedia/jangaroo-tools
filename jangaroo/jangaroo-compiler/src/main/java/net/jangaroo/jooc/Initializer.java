@@ -31,6 +31,11 @@ class Initializer extends NodeImplBase {
   }
 
   @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitInitializer(this);
+  }
+
+  @Override
   public void scope(final Scope scope) {
     value.scope(scope);
   }

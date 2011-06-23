@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AbstractBlock extends Statement {
+public abstract class AbstractBlock extends Statement {
 
   JooSymbol lBrace;
   List<Directive> directives;

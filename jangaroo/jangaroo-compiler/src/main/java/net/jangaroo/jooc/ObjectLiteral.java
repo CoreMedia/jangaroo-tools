@@ -38,6 +38,11 @@ class ObjectLiteral extends Expr {
     this.rBrace = rBrace;
   }
  
+  @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitObjectLiteral(this);
+  }
+
   protected void generateJsCode(JsWriter out) throws IOException {
     out.writeSymbol(lBrace);
     if (fields != null)

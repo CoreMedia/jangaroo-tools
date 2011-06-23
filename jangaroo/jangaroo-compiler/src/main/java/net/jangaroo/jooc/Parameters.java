@@ -34,6 +34,11 @@ public class Parameters extends CommaSeparatedList<Parameter> {
     this(param, null, null);
   }
 
+  @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitParameters(this);
+  }
+
   protected void generateTailCode(JsWriter out) throws IOException {
     if (out.isWriteActionScriptApi() || !tail.head.isRest()) {
       super.generateTailCode(out);

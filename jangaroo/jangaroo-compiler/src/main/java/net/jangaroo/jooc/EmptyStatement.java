@@ -26,6 +26,11 @@ class EmptyStatement extends SemicolonTerminatedStatement {
   }
 
   @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitEmptyStatement(this);
+  }
+
+  @Override
   public void analyze(final AstNode parentNode, final AnalyzeContext context) {
     // this is an empty statement.  Check conformance to ECMA-262 7.9.1:
     //   'a semicolon is never inserted automatically if the semicolon would then be parsed as an empty statement'

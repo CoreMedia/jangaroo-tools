@@ -41,6 +41,11 @@ public class TypeRelation extends NodeImplBase {
   }
 
   @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitTypeRelation(this);
+  }
+
+  @Override
   public void scope(final Scope scope) {
     type.scope(scope);
   }

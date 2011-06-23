@@ -31,6 +31,11 @@ public class ClassBody extends AbstractBlock {
     }
   }
 
+  @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitClassBody(this);
+  }
+
   public void scope(Scope staticScope, Scope instanceScope) {
     for (Directive directive : directives) {
       directive.scope(directive.isStatic() ? staticScope : instanceScope);

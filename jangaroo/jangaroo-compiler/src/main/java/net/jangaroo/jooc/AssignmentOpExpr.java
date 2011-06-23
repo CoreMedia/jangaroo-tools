@@ -30,6 +30,11 @@ class AssignmentOpExpr extends BinaryOpExpr {
   }
 
   @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitAssignmentOpExpr(this);
+  }
+
+  @Override
   protected void generateJsCode(JsWriter out) throws IOException {
     if (op.sym == sym.ANDANDEQ || op.sym == sym.OROREQ) {
       arg1.generateJsCode(out);

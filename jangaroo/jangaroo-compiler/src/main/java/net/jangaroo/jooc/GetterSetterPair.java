@@ -16,6 +16,11 @@ public class GetterSetterPair extends IdeDeclaration {
     this.setter = setter;
   }
 
+  @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitGetterSetterPair(this);
+  }
+
   public JooSymbol getSymbol() {
     return getter.getSymbol();
   }

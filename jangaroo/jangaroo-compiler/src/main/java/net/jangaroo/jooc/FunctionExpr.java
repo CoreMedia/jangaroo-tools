@@ -58,6 +58,11 @@ public class FunctionExpr extends Expr {
     implicitParams.add(new Parameter(null, ARGUMENTS_IDE, null, null));
   }
 
+  @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitFunctionExpr(this);
+  }
+
   public FunctionDeclaration getFunctionDeclaration() {
     return functionDeclaration;
   }

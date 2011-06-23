@@ -35,6 +35,11 @@ class SuperConstructorCallStatement extends Statement {
   }
 
   @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitSuperConstructorCallStatement(this);
+  }
+
+  @Override
   public void scope(final Scope scope) {
     FunctionDeclaration method = scope.getMethodDeclaration();
     if (method == null || !method.isConstructor()) {

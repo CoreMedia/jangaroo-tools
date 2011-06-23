@@ -37,6 +37,11 @@ public class IdeType extends Type {
   }
 
   @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitIdeType(this);
+  }
+
+  @Override
   public void scope(final Scope scope) {
     ide.scope(scope);
   }

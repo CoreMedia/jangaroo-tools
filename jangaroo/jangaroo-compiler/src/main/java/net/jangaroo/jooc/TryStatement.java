@@ -41,6 +41,11 @@ class TryStatement extends KeywordStatement {
   }
 
   @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitTryStatement(this);
+  }
+
+    @Override
   public void scope(final Scope scope) {
     block.scope(scope);
     scope(catches, scope);

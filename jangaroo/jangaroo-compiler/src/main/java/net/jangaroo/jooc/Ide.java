@@ -57,6 +57,10 @@ public class Ide extends NodeImplBase {
     return ide;
   }
 
+  @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitIde(this);
+  }
 
   public Ide(JooSymbol ide) {
     this.ide = ide;

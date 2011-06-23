@@ -37,6 +37,11 @@ class ConditionalExpr extends Expr {
   }
 
   @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitConditionalExpr(this);
+  }
+
+  @Override
   public void scope(final Scope scope) {
     cond.scope(scope);
     ifTrue.scope(scope);

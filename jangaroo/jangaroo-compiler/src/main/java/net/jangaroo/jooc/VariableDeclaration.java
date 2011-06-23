@@ -52,6 +52,11 @@ public class VariableDeclaration extends TypedIdeDeclaration {
     }
   }
 
+  @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitVariableDeclaration(this);
+  }
+
   protected int getAllowedModifiers() {
     return MODIFIERS_SCOPE | MODIFIER_STATIC;
   }

@@ -63,6 +63,11 @@ class ForInStatement extends LoopStatement {
     this.rParen = rParen;
   }
 
+  @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitForInStatement(this);
+  }
+
   protected void generateLoopHeaderCode(JsWriter out) throws IOException {
     if (symEach != null) {
       out.beginComment();

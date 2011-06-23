@@ -39,23 +39,7 @@ public class ClassDeclaration extends IdeDeclaration {
   private Set<String> usedBuiltIns = new LinkedHashSet<String>();
   private int inheritanceLevel = -1;
 
-  public Extends getOptExtends() {
-    return optExtends;
-  }
-
   protected Implements optImplements;
-
-  public ClassBody getBody() {
-    return body;
-  }
-
-  public FunctionDeclaration getConstructor() {
-    return constructor;
-  }
-
-  public FunctionDeclaration getConstructorDeclaration() {
-    return constructor;
-  }
 
   public ClassDeclaration(List<AstNode> directives, JooSymbol[] modifiers, JooSymbol cls, Ide ide, Extends ext, Implements impl, ClassBody body) {
     super(modifiers, ide);
@@ -64,6 +48,15 @@ public class ClassDeclaration extends IdeDeclaration {
     this.optExtends = ext;
     this.optImplements = impl;
     this.body = body;
+  }
+
+  public FunctionDeclaration getConstructor() {
+    return constructor;
+  }
+
+  @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitClassDeclaration(this);
   }
 
   @Override

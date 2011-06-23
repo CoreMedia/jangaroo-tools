@@ -31,6 +31,11 @@ public class PackageDeclaration extends IdeDeclaration  {
   }
 
   @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitPackageDeclaration(this);
+  }
+
+  @Override
   public void scope(Scope scope) {
     Ide oldIde = ide;
     ide = null;

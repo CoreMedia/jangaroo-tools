@@ -33,6 +33,11 @@ class SwitchStatement extends KeywordStatement {
   }
 
   @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitSwitchStatement(this);
+  }
+
+  @Override
   public void scope(final Scope scope) {
     withNewLabelScope(this, scope, new Scoped() {
       @Override

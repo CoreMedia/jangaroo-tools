@@ -28,6 +28,11 @@ public class IdeWithTypeParam extends Ide {
   }
 
   @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitIdeWithTypeParam(this);
+  }
+
+  @Override
   protected void generateJsCode(JsWriter out) throws IOException {
     super.generateJsCode(out);
     writeTypeParamAsComment(out);

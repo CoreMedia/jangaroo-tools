@@ -33,6 +33,11 @@ class LabeledStatement extends Statement {
   }
 
   @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitLabeledStatement(this);
+  }
+
+  @Override
   public void scope(final Scope scope) {
     ide.scope(scope);
     withNewLabelScope(this, scope, new Scoped() {

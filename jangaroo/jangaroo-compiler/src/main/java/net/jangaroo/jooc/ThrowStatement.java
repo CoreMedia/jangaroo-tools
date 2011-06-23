@@ -23,4 +23,10 @@ class ThrowStatement extends KeywordExprStatement {
   public ThrowStatement(JooSymbol symThrow, Expr expr, JooSymbol symSemicolon) {
     super(symThrow, expr, symSemicolon);
   }
+
+  @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitThrowStatement(this);
+  }
+
 }

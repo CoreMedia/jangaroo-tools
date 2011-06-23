@@ -30,6 +30,11 @@ class DotExpr extends PostfixOpExpr {
     this.ide = ide;
   }
 
+  @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitDotExpr(this);
+  }
+
   public Ide getIde() {
     return ide;
   }

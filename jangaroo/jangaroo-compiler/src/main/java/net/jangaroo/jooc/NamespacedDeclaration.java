@@ -39,6 +39,11 @@ public class NamespacedDeclaration extends IdeDeclaration {
   }
 
   @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitNamespacedDeclaration(this);
+  }
+
+  @Override
   protected int getAllowedModifiers() {
     return MODIFIER_PUBLIC | MODIFIER_INTERNAL;
   }

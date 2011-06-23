@@ -30,6 +30,11 @@ class Implements extends NodeImplBase {
   }
 
   @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitImplements(this);
+  }
+
+  @Override
   public void scope(final Scope scope) {
     superTypes.scope(scope);
   }

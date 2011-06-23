@@ -34,6 +34,11 @@ class ForInitializer extends NodeImplBase {
   }
 
   @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitForInitializer(this);
+  }
+
+  @Override
   public void scope(final Scope scope) {
     if (decl!=null)
       decl.scope(scope);

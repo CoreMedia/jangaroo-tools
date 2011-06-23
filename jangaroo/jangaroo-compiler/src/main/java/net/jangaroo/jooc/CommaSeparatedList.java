@@ -36,6 +36,11 @@ class CommaSeparatedList<NodeType extends AstNode> extends Expr {
   }
 
   @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitCommaSeparatedList(this);
+  }
+
+  @Override
   public void scope(final Scope scope) {
     if (head != null) {
         head.scope(scope);

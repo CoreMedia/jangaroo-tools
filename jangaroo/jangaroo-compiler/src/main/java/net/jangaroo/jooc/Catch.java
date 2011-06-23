@@ -38,6 +38,11 @@ class Catch extends KeywordStatement {
     this.block = block;
   }
 
+  @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitCatch(this);
+  }
+
   protected void generateJsCode(JsWriter out) throws IOException {
     List<Catch> catches = getParentTryStatement().catches;
     Catch firstCatch = catches.get(0);

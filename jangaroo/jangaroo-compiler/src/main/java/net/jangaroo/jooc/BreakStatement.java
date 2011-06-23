@@ -26,6 +26,11 @@ class BreakStatement extends LabelRefStatement {
   }
 
   @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitBreakStatement(this);
+  }
+
+  @Override
   protected void checkValidLabeledStatement(final LabeledStatement labelDeclaration) {
     // break may exit any statement
   }

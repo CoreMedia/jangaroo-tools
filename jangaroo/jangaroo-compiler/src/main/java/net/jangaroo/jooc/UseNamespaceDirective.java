@@ -36,6 +36,11 @@ public class UseNamespaceDirective extends Directive {
   }
 
   @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitUseNamespaceDirective(this);
+  }
+
+  @Override
   public void scope(final Scope scope) {
     namespace.scope(scope);
   }

@@ -33,6 +33,11 @@ class ParenthesizedExpr<E extends Expr> extends Expr {
   }
 
   @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitParenthesizedExpr(this);
+  }
+
+  @Override
   public void scope(final Scope scope) {
     if (expr!=null) {
       expr.scope(scope);

@@ -24,4 +24,9 @@ class ArrayLiteral extends ParenthesizedExpr {
     super(lBracket, fields, rBracket);
   }
 
+  @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitArrayLiteral(this);
+  }
+
 }

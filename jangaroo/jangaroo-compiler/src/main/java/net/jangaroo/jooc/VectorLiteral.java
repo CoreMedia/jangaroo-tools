@@ -22,6 +22,11 @@ public class VectorLiteral extends Expr {
   }
 
   @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitVectorLiteral(this);
+  }
+
+  @Override
   protected void generateJsCode(JsWriter out) throws IOException {
     out.beginComment();
     out.writeSymbol(symNew);

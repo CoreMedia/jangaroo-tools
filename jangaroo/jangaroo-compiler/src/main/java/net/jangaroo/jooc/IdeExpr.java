@@ -37,6 +37,11 @@ class IdeExpr extends Expr {
   }
 
   @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitIdeExpression(this);
+  }
+
+  @Override
   public void scope(final Scope scope) {
     ide.scope(scope);
   }

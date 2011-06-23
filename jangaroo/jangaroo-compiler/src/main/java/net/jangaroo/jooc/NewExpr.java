@@ -35,6 +35,11 @@ class NewExpr extends Expr {
   }
 
   @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitNewExpr(this);
+  }
+
+  @Override
   public void scope(final Scope scope) {
     applyConstructor.scope(scope);
     if (args != null)

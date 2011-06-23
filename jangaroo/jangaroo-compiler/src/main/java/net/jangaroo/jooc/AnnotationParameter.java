@@ -34,6 +34,11 @@ class AnnotationParameter extends NodeImplBase {
     this.value = value;
   }
 
+  @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitAnnotationParameter(this);
+  }
+
   public Annotation getParentAnnotation() {
     return parentAnnotation;
   }

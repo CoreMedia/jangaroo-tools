@@ -47,6 +47,11 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
     }
   }
 
+  @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitFunctionDeclaration(this);
+  }
+
   public boolean overrides() {
     return (getModifiers() & MODIFIER_OVERRIDE) != 0;
   }

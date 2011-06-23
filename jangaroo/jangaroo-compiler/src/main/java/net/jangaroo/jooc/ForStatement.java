@@ -40,6 +40,11 @@ class ForStatement extends ConditionalLoopStatement {
     this.rParen = rParen;
   }
 
+  @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitForStatement(this);
+  }
+
   protected void generateLoopHeaderCode(JsWriter out) throws IOException {
     out.writeSymbol(lParen);
     if (forInit != null) {

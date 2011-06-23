@@ -43,6 +43,11 @@ class SemicolonTerminatedStatement extends Statement {
   }
 
   @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitSemicolonTerminatedStatement(this);
+  }
+
+  @Override
   public void scope(final Scope scope) {
     classDeclaration = scope.getClassDeclaration();
     if (optStatement != null) {

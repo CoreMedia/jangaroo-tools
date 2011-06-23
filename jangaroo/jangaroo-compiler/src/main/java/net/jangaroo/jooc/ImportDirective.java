@@ -36,10 +36,6 @@ public class ImportDirective extends Directive {
 
   private final boolean explicit;
 
-  private static Ide createIde(Ide prefix, JooSymbol symIde) {
-    return prefix == null ? new Ide(symIde) : new QualifiedIde(prefix, DOT_SYMBOL, symIde);
-  }
-
   public ImportDirective(Ide packageIde, String typeName) {
     this(IMPORT_SYMBOL, createIde(packageIde, new JooSymbol(typeName)), false);
   }
@@ -53,6 +49,15 @@ public class ImportDirective extends Directive {
     this.importKeyword = importKeyword;
     this.ide = ide;
     this.explicit = explicit;
+  }
+
+  private static Ide createIde(Ide prefix, JooSymbol symIde) {
+    return prefix == null ? new Ide(symIde) : new QualifiedIde(prefix, DOT_SYMBOL, symIde);
+  }
+
+  @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitImportDirective(this);
   }
 
   public void scope(final Scope scope) {

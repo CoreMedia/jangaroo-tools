@@ -32,6 +32,11 @@ class BinaryOpExpr extends OpExpr {
   }
 
   @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitBinaryOpExpr(this);
+  }
+
+  @Override
   public void scope(final Scope scope) {
     arg1.scope(scope);
     arg2.scope(scope);

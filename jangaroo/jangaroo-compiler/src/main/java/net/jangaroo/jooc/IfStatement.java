@@ -40,6 +40,11 @@ class IfStatement extends KeywordStatement {
   }
 
   @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitIfStatement(this);
+  }
+
+  @Override
   public void scope(final Scope scope) {
     cond.scope(scope);
     ifTrue.scope(scope);

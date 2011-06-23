@@ -32,6 +32,11 @@ class ArrayIndexExpr extends Expr {
   }
 
   @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitArrayIndexExpr(this);
+  }
+
+  @Override
   public void scope(final Scope scope) {
     array.scope(scope);
     indexExpr.scope(scope);

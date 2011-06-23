@@ -37,6 +37,11 @@ class ApplyExpr extends Expr {
     this.args = new ParenthesizedExpr<CommaSeparatedList<Expr>>(lParen, args, rParen);
   }
 
+  @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitApplyExpr(this);
+  }
+
   public boolean isInsideNewExpr() {
     return insideNewExpr;
   }

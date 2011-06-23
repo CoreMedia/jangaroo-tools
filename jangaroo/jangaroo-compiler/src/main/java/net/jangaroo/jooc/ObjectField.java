@@ -33,6 +33,11 @@ class ObjectField extends NodeImplBase {
   }
 
   @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitObjectField(this);
+  }
+
+  @Override
   public void scope(final Scope scope) {
     label.scope(scope);
     value.scope(scope);

@@ -15,6 +15,11 @@ public class EmptyDeclaration extends Declaration {
   }
 
   @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitEmptyDeclaration(this);
+  }
+
+  @Override
   public void scope(final Scope scope) {
   }
 

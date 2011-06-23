@@ -24,4 +24,9 @@ class AsExpr extends InfixOpExpr {
     super(e1, symIs, e2);
   }
 
+  @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitAsExpr(this);
+  }
+
 }

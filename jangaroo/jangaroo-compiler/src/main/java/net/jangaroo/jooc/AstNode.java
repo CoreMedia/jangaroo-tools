@@ -26,4 +26,5 @@ interface AstNode extends CodeGenerator {
 
   void analyze(AstNode parentNode, AnalyzeContext context);
 
+  void visit(AstVisitor visitor);
 }

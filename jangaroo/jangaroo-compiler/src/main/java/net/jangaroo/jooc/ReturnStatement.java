@@ -23,4 +23,9 @@ class ReturnStatement extends KeywordExprStatement {
   public ReturnStatement(JooSymbol symReturn, Expr optExpr, JooSymbol symSemicolon) {
     super(symReturn, optExpr, symSemicolon);
   }
+
+  @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitReturnStatement(this);
+  }
 }

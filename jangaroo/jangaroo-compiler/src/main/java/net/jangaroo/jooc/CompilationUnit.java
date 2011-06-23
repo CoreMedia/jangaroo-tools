@@ -56,6 +56,11 @@ public class CompilationUnit extends NodeImplBase implements CodeGenerator {
   }
 
   @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitCompilationUnit(this);
+  }
+
+  @Override
   public void scope(final Scope scope) {
     withNewDeclarationScope(this, scope, new Scoped() {
       @Override

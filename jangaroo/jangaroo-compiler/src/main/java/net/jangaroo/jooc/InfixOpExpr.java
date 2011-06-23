@@ -13,6 +13,11 @@ public class InfixOpExpr extends BinaryOpExpr {
   }
 
   @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitInfixOpExpr(this);
+  }
+
+  @Override
   public void scope(Scope scope) {
     super.scope(scope);
     ClassDeclaration classDeclaration = scope.getClassDeclaration();

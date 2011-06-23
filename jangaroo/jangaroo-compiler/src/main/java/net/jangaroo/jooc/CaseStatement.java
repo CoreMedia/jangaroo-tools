@@ -32,6 +32,11 @@ class CaseStatement extends KeywordStatement {
   }
 
   @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitCaseStatement(this);
+  }
+
+  @Override
   public void scope(final Scope scope) {
     expr.scope(scope);
   }

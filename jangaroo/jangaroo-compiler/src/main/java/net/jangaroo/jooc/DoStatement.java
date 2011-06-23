@@ -30,6 +30,11 @@ class DoStatement extends ConditionalLoopStatement {
     this.symSemicolon = symSemicolon;
   }
 
+  @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitDoStatement(this);
+  }
+
   protected void analyzeLoopHeader(AnalyzeContext context) {
   }
 

@@ -35,6 +35,11 @@ public class Parameter extends IdeDeclaration {
   }
 
   @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitParameter(this);
+  }
+
+  @Override
   public void scope(final Scope scope) {
     super.scope(scope);
     if (optTypeRelation != null) {

@@ -26,6 +26,11 @@ class BlockStatement extends AbstractBlock {
     super(rBrace, directives, lBrace);
   }
 
+  @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitBlockStatement(this);
+  }
+
   // TODO: Check when analyzing the super call
   public void checkSuperConstructorCall() {
     for (AstNode o : directives) {

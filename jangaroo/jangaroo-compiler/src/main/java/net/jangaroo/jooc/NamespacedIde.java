@@ -28,10 +28,12 @@ public class NamespacedIde extends Ide {
   public NamespacedIde(JooSymbol namespace, JooSymbol symNamespaceSep, JooSymbol symIde) {
     super(symIde);
     this.namespace = namespace;
+    this.symNamespaceSep = symNamespaceSep;
   }
 
-  void warnUndefinedNamespace(Scope scope, Ide namespace) {
-
+  @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitNamespacedIde(this);
   }
 
   @Override

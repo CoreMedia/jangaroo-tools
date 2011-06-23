@@ -29,6 +29,11 @@ public class PredefinedTypeDeclaration extends IdeDeclaration {
   }
 
   @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitPredefinedTypeDeclaration(this);
+  }
+
+  @Override
   protected int getAllowedModifiers() {
     return MODIFIER_PUBLIC;
   }

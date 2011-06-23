@@ -48,6 +48,11 @@ public class Annotation extends Directive {
   }
 
   @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitAnnotation(this);
+  }
+
+  @Override
   public void scope(final Scope scope) {
     ide.scope(scope);
     if (optAnnotationParameters != null) {

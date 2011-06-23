@@ -33,6 +33,11 @@ public class QualifiedIde extends Ide {
   }
 
   @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitQualifiedIde(this);
+  }
+
+  @Override
   protected Ide getQualifier() {
     return qualifier;
   }

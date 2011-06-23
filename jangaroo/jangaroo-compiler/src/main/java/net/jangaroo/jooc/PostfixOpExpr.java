@@ -26,6 +26,11 @@ class PostfixOpExpr extends UnaryOpExpr {
     super(op, arg);
   }
 
+  @Override
+  public void visit(AstVisitor visitor) {
+    visitor.visitPostfixOpExpr(this);
+  }
+
   protected void generateJsCode(JsWriter out) throws IOException {
     arg.generateCode(out);
     out.writeSymbol(op);
