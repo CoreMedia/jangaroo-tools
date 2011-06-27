@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>properties-compiler</artifactId>
+  <groupId>net.jangaroo</groupId>
+  <artifactId>exml-cfg-2-as</artifactId>
+  <version>0.8.5-SNAPSHOT</version>
   <packaging>jar</packaging>
   <dependencies>
     <dependency>
@@ -15,14 +17,13 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>commons-configuration</groupId>
-      <artifactId>commons-configuration</artifactId>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
       <groupId>org.freemarker</groupId>
       <artifactId>freemarker</artifactId>
       <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>jtidy</groupId>
+      <artifactId>jtidy</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.maven.shared</groupId>
@@ -39,7 +40,6 @@
     <version>0.8.5-SNAPSHOT</version>
     <relativePath>../../jangaroo-parent/pom.xml</relativePath>
   </parent>
-  <name>properties files to ActionScript3 transformer</name>
-  <description>A transformer that provides i18n support for jangaroo</description>
+  <description>parses an EXML and generates an AS config class</description>
 </project>
 

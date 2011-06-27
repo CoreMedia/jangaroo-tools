@@ -1,27 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>net.jangaroo</groupId>
   <artifactId>jangaroo-compiler</artifactId>
-  <packaging>jar</packaging>
   <version>0.8.5-SNAPSHOT</version>
-  <name>Joo Compiler</name>
-
+  <packaging>jar</packaging>
+  <dependencies>
+    <dependency>
+      <groupId>net.jangaroo</groupId>
+      <artifactId>jangaroo-utils</artifactId>
+      <version>0.8.5-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>edu.princeton.cup</groupId>
+      <artifactId>java-cup</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>commons-cli</groupId>
+      <artifactId>commons-cli</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>ant</groupId>
+      <artifactId>ant</artifactId>
+      <scope>compile</scope>
+    </dependency>
+  </dependencies>
   <parent>
-    <artifactId>jangaroo-parent</artifactId>
     <groupId>net.jangaroo</groupId>
+    <artifactId>jangaroo-parent</artifactId>
     <version>0.8.5-SNAPSHOT</version>
     <relativePath>../../jangaroo-parent/pom.xml</relativePath>
   </parent>
-
-
+  <properties>
+    <generated.cup.sources.dir>${project.build.directory}/generated-sources/cup</generated.cup.sources.dir>
+    <cup.sources.dir>${basedir}/src/main/cup</cup.sources.dir>
+    <!-- the runtime API version the current jooc version relies on, included into the generated *.js files: -->
+    <jangaroo.runtime-api.version>0.8.0</jangaroo.runtime-api.version>
+  </properties>
   <build>
     <resources>
       <resource>
-        <directory>src/main/resources</directory>
         <filtering>true</filtering>
+        <directory>src/main/resources</directory>
       </resource>
     </resources>
-
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -31,7 +53,6 @@
           <target>1.6</target>
         </configuration>
       </plugin>
-
       <plugin>
         <groupId>de.jflex</groupId>
         <artifactId>maven-jflex-plugin</artifactId>
@@ -46,51 +67,10 @@
           </execution>
         </executions>
       </plugin>
-
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-antrun-plugin</artifactId>
         <version>1.4</version>
-        <executions>
-          <execution>
-            <id>generate-parser</id>
-            <phase>generate-sources</phase>
-            <configuration>
-              <tasks>
-
-                <property name="cup.input.filename" value="joo.cup" />
-                <property name="cup.files.reldir" value="net/jangaroo/jooc" />
-                <property name="cup.output.dir" value="${generated.cup.sources.dir}/${cup.files.reldir}" />
-                <property name="cup.parser.classname" value="parser" />
-                <property name="cup.output.filename" value="${cup.output.dir}/${cup.parser.classname}.java" />
-
-                <mkdir dir="${cup.output.dir}" />
-
-                <!-- forked java process may hang otherwise?! -->
-                <delete file="${cup.output.filename}" />
-
-                <java classname="java_cup.Main" fork="true" dir="${cup.output.dir}" failonerror="true">
-                  <!-- arg value="-dump_states" /> -->
-                  <arg value="-interface" />
-                  <arg value="-expect" />
-                  <arg value="1" />
-                  <!--arg value="-dump"/-->
-                  <arg value="${cup.sources.dir}/${cup.files.reldir}/${cup.input.filename}" />
-                  <classpath>
-                    <path refid="maven.plugin.classpath" />
-                  </classpath>
-                </java>
-
-              </tasks>
-              <sourceRoot>
-                ${generated.cup.sources.dir}
-              </sourceRoot>
-            </configuration>
-            <goals>
-              <goal>run</goal>
-            </goals>
-          </execution>
-        </executions>
         <dependencies>
           <dependency>
             <groupId>edu.princeton.cup</groupId>
@@ -98,8 +78,40 @@
             <version>10k</version>
           </dependency>
         </dependencies>
+        <executions>
+          <execution>
+            <id>generate-parser</id>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <phase>generate-sources</phase>
+            <configuration>
+              <tasks>
+                <property name="cup.input.filename" value="joo.cup"></property>
+                <property name="cup.files.reldir" value="net/jangaroo/jooc"></property>
+                <property name="cup.output.dir" value="${generated.cup.sources.dir}/${cup.files.reldir}"></property>
+                <property name="cup.parser.classname" value="parser"></property>
+                <property name="cup.output.filename" value="${cup.output.dir}/${cup.parser.classname}.java"></property>
+                <mkdir dir="${cup.output.dir}"></mkdir>
+                <!-- forked java process may hang otherwise?! -->
+                <delete file="${cup.output.filename}"></delete>
+                <java classname="java_cup.Main" dir="${cup.output.dir}" failonerror="true" fork="true">
+                  <!-- arg value="-dump_states" /> -->
+                  <arg value="-interface"></arg>
+                  <arg value="-expect"></arg>
+                  <arg value="1"></arg>
+                  <!--arg value="-dump"/-->
+                  <arg value="${cup.sources.dir}/${cup.files.reldir}/${cup.input.filename}"></arg>
+                  <classpath>
+                    <path refid="maven.plugin.classpath"></path>
+                  </classpath>
+                </java>
+              </tasks>
+              <sourceRoot>${generated.cup.sources.dir}</sourceRoot>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
-
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
@@ -119,30 +131,12 @@
           </systemProperties>
         </configuration>
       </plugin>
-
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
       </plugin>
-
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>create-archives</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-            <configuration>
-              <appendAssemblyId>false</appendAssemblyId>
-              <attach>true</attach>
-              <descriptors>
-                <descriptor>src/main/assembly/examples.xml</descriptor>
-              </descriptors>
-            </configuration>
-          </execution>
-        </executions>
         <configuration>
           <descriptorRefs>
             <descriptorRef>jar-with-dependencies</descriptorRef>
@@ -154,18 +148,33 @@
             </manifest>
           </archive>
         </configuration>
+        <executions>
+          <execution>
+            <id>create-archives</id>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <phase>package</phase>
+            <configuration>
+              <appendAssemblyId>false</appendAssemblyId>
+              <attach>true</attach>
+              <descriptors>
+                <descriptor>src/main/assembly/examples.xml</descriptor>
+              </descriptors>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
-
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>retrotranslator-maven-plugin</artifactId>
         <version>1.0-alpha-4</version>
         <executions>
           <execution>
-            <phase>process-classes</phase>
             <goals>
               <goal>translate</goal>
             </goals>
+            <phase>process-classes</phase>
             <configuration>
               <filesets>
                 <fileset>
@@ -180,39 +189,7 @@
         </executions>
       </plugin>
     </plugins>
-
   </build>
-
-  <properties>
-    <generated.cup.sources.dir>${project.build.directory}/generated-sources/cup</generated.cup.sources.dir>
-    <cup.sources.dir>${basedir}/src/main/cup</cup.sources.dir>
-    <!-- the runtime API version the current jooc version relies on, included into the generated *.js files: -->
-    <jangaroo.runtime-api.version>0.8.0</jangaroo.runtime-api.version>
-  </properties>
-
-  <dependencies>
-    <dependency>
-      <groupId>net.jangaroo</groupId>
-      <artifactId>jangaroo-utils</artifactId>
-      <version>0.8.5-SNAPSHOT</version>
-    </dependency>
-
-    <dependency>
-      <groupId>edu.princeton.cup</groupId>
-      <artifactId>java-cup</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>commons-cli</groupId>
-      <artifactId>commons-cli</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>ant</groupId>
-      <artifactId>ant</artifactId>
-      <scope>compile</scope>
-    </dependency>
-
-  </dependencies>
-
+  <name>Joo Compiler</name>
 </project>
+

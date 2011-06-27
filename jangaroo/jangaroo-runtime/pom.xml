@@ -3,21 +3,24 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>net.jangaroo</groupId>
   <artifactId>jangaroo-runtime</artifactId>
-  <packaging>pom</packaging>
-  <!-- Do not use jangaroo plugin here since you can't use AND create a plugin in one multi module project! -->
-  <name>Joo Runtime</name>
   <version>0.8.5-SNAPSHOT</version>
-
+  <packaging>pom</packaging>
+  <dependencies>
+    <dependency>
+      <groupId>net.jangaroo</groupId>
+      <artifactId>jangaroo-compiler</artifactId>
+      <version>0.8.5-SNAPSHOT</version>
+      <scope>provided</scope>
+      <optional>true</optional>
+    </dependency>
+  </dependencies>
   <parent>
-    <artifactId>jangaroo-parent</artifactId>
     <groupId>net.jangaroo</groupId>
+    <artifactId>jangaroo-parent</artifactId>
     <version>0.8.5-SNAPSHOT</version>
     <relativePath>../../jangaroo-parent/pom.xml</relativePath>
   </parent>
-
   <build>
-    <sourceDirectory>src/main/joo</sourceDirectory>
-    <testSourceDirectory>src/test/joo</testSourceDirectory>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -26,76 +29,68 @@
         <executions>
           <execution>
             <id>compile-joo-runtime</id>
-            <phase>compile</phase>
-            <configuration>
-              <tasks>
-                <property name="runtime.classpath" refid="maven.compile.classpath" />
-                <taskdef name="jooc" classname="net.jangaroo.jooc.ant.JoocTask" classpath="target/classes;${runtime.classpath}" />
-
-                <mkdir dir="target/temp/runtime/debug/joo/classes" />
-                <mkdir dir="target/temp/runtime/debug/META-INF/joo-api" />
-                <jooc destdir="target/temp/runtime/debug/joo/classes" apidestdir="target/temp/runtime/debug/META-INF/joo-api" failonerror="true" debug="true" debuglevel="source" verbose="true" enableassertions="true" classpath="${basedir}/src/main/joo-api">
-                  <include name="**/*.as" />
-                  <src path="src/main/joo" />
-                </jooc>
-
-                <mkdir dir="target/temp/runtime/deploy" />
-                <jooc destdir="target/temp/runtime/deploy" failonerror="true" debug="false" verbose="true" enableassertions="false" classpath="${basedir}/src/main/joo-api">
-                  <include name="**/*.as" />
-                  <src path="src/main/joo" />
-                </jooc>
-
-                <concat destfile="target/joo/net.jangaroo.jangaroo-runtime.classes.js">
-                  <filelist dir="src/main/joo-js/joo/classes">
-                    <file name="int.js" />
-                    <file name="uint.js" />
-                    <file name="Vector.js" />
-                    <file name="joo/BootstrapClassLoader.js" />
-                    <file name="joo/assert.js" />
-                    <file name="joo/Class.js" />
-                    <file name="joo/trace.js" />
-                  </filelist>
-                  <filelist dir="target/temp/runtime/deploy/">
-                    <file name="joo/MemberDeclaration.js" />
-                    <file name="joo/NativeClassDeclaration.js" />
-                    <file name="joo/JooClassDeclaration.js" />
-                    <file name="joo/SystemClassLoader.js" />
-                    <file name="ArgumentError.js" />
-                    <file name="DefinitionError.js" />
-                    <file name="SecurityError.js" />
-                    <file name="Array.js" />
-                    <file name="Date.js" />
-                    <file name="joo/StandardClassLoader.js" />
-                    <file name="joo/DynamicClassLoader.js" />
-                    <file name="joo/ResourceBundleAwareClassLoader.js" />
-                  </filelist>
-                  <filelist dir="src/main/joo-js/joo/classes">
-                    <file name="joo/_createClassLoader.js" />
-                  </filelist>
-                </concat>
-
-                <zip destfile="target/jangaroo-runtime-${project.version}.jar">
-                  <fileset dir="target" includes="joo/*jangaroo-runtime*.js" />
-                  <fileset dir="src/main/joo-js" />
-                  <fileset dir="target/temp/runtime/debug" />
-                  <zipfileset dir="src/main/joo-api" includes="**/*.as" prefix="META-INF/joo-api" />
-
-                </zip>
-
-                <zip destfile="target/jangaroo-runtime-sources-${project.version}.jar">
-                  <fileset dir="src/main/joo" includes="**/*.as" />
-                  <fileset dir="src/main/joo-api" includes="**/*.as" />
-                </zip>
-
-              </tasks>
-            </configuration>
             <goals>
               <goal>run</goal>
             </goals>
+            <phase>compile</phase>
+            <configuration>
+              <tasks>
+                <property name="runtime.classpath" refid="maven.compile.classpath"></property>
+                <taskdef classname="net.jangaroo.jooc.ant.JoocTask" classpath="target/classes;${runtime.classpath}" name="jooc"></taskdef>
+                <mkdir dir="target/temp/runtime/debug/joo/classes"></mkdir>
+                <mkdir dir="target/temp/runtime/debug/META-INF/joo-api"></mkdir>
+                <jooc apidestdir="target/temp/runtime/debug/META-INF/joo-api" classpath="${basedir}/src/main/joo-api" debug="true" debuglevel="source" destdir="target/temp/runtime/debug/joo/classes" enableassertions="true" failonerror="true" verbose="true">
+                  <include name="**/*.as"></include>
+                  <src path="src/main/joo"></src>
+                </jooc>
+                <mkdir dir="target/temp/runtime/deploy"></mkdir>
+                <jooc classpath="${basedir}/src/main/joo-api" debug="false" destdir="target/temp/runtime/deploy" enableassertions="false" failonerror="true" verbose="true">
+                  <include name="**/*.as"></include>
+                  <src path="src/main/joo"></src>
+                </jooc>
+                <concat destfile="target/joo/net.jangaroo.jangaroo-runtime.classes.js">
+                  <filelist dir="src/main/joo-js/joo/classes">
+                    <file name="int.js"></file>
+                    <file name="uint.js"></file>
+                    <file name="Vector.js"></file>
+                    <file name="joo/BootstrapClassLoader.js"></file>
+                    <file name="joo/assert.js"></file>
+                    <file name="joo/Class.js"></file>
+                    <file name="joo/trace.js"></file>
+                  </filelist>
+                  <filelist dir="target/temp/runtime/deploy/">
+                    <file name="joo/MemberDeclaration.js"></file>
+                    <file name="joo/NativeClassDeclaration.js"></file>
+                    <file name="joo/JooClassDeclaration.js"></file>
+                    <file name="joo/SystemClassLoader.js"></file>
+                    <file name="ArgumentError.js"></file>
+                    <file name="DefinitionError.js"></file>
+                    <file name="SecurityError.js"></file>
+                    <file name="Array.js"></file>
+                    <file name="Date.js"></file>
+                    <file name="joo/StandardClassLoader.js"></file>
+                    <file name="joo/DynamicClassLoader.js"></file>
+                    <file name="joo/ResourceBundleAwareClassLoader.js"></file>
+                  </filelist>
+                  <filelist dir="src/main/joo-js/joo/classes">
+                    <file name="joo/_createClassLoader.js"></file>
+                  </filelist>
+                </concat>
+                <zip destfile="target/jangaroo-runtime-${project.version}.jar">
+                  <fileset dir="target" includes="joo/*jangaroo-runtime*.js"></fileset>
+                  <fileset dir="src/main/joo-js"></fileset>
+                  <fileset dir="target/temp/runtime/debug"></fileset>
+                  <zipfileset dir="src/main/joo-api" includes="**/*.as" prefix="META-INF/joo-api"></zipfileset>
+                </zip>
+                <zip destfile="target/jangaroo-runtime-sources-${project.version}.jar">
+                  <fileset dir="src/main/joo" includes="**/*.as"></fileset>
+                  <fileset dir="src/main/joo-api" includes="**/*.as"></fileset>
+                </zip>
+              </tasks>
+            </configuration>
           </execution>
         </executions>
       </plugin>
-
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
@@ -103,10 +98,10 @@
         <executions>
           <execution>
             <id>attach-artifacts</id>
-            <phase>package</phase>
             <goals>
               <goal>attach-artifact</goal>
             </goals>
+            <phase>package</phase>
             <configuration>
               <artifacts>
                 <artifact>
@@ -118,24 +113,16 @@
                   <type>jar</type>
                   <classifier>sources</classifier>
                 </artifact>
-
               </artifacts>
             </configuration>
           </execution>
         </executions>
       </plugin>
-
-
     </plugins>
+    <sourceDirectory>src/main/joo</sourceDirectory>
+    <testSourceDirectory>src/test/joo</testSourceDirectory>
   </build>
-  <dependencies>
-    <dependency>
-      <groupId>net.jangaroo</groupId>
-      <artifactId>jangaroo-compiler</artifactId>
-      <version>0.8.5-SNAPSHOT</version>
-      <scope>provided</scope>
-      <optional>true</optional>
-    </dependency>
-
-  </dependencies>
+  <!-- Do not use jangaroo plugin here since you can't use AND create a plugin in one multi module project! -->
+  <name>Joo Runtime</name>
 </project>
+

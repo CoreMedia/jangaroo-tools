@@ -4,15 +4,13 @@
   <groupId>net.jangaroo</groupId>
   <artifactId>jangaroo-utils</artifactId>
   <packaging>jar</packaging>
-
-  <name>Joo utils</name>
-  <description>Contains several utils for the core modules</description>
-
   <parent>
-    <artifactId>jangaroo-parent</artifactId>
     <groupId>net.jangaroo</groupId>
+    <artifactId>jangaroo-parent</artifactId>
     <version>0.8.5-SNAPSHOT</version>
     <relativePath>../jangaroo-parent/pom.xml</relativePath>
   </parent>
-
+  <name>Joo utils</name>
+  <description>Contains several utils for the core modules</description>
 </project>
+

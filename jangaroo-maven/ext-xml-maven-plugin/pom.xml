@@ -1,21 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-
   <groupId>net.jangaroo</groupId>
   <artifactId>ext-xml-maven-plugin</artifactId>
-  <packaging>maven-plugin</packaging>
   <version>0.8.5-SNAPSHOT</version>
-
-  <name>Maven Plugin: Ext-XML to AS3</name>
-  <description>This plugin generates ActionScript</description>
-
+  <packaging>maven-plugin</packaging>
+  <dependencies>
+    <dependency>
+      <groupId>net.jangaroo</groupId>
+      <artifactId>ext-xml</artifactId>
+      <version>0.8.5-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>net.jangaroo</groupId>
+      <artifactId>jangaroo-utils</artifactId>
+      <version>0.8.5-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-project</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-plugin-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-artifact</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.plugin-testing</groupId>
+      <artifactId>maven-plugin-testing-harness</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
   <parent>
-    <artifactId>jangaroo-parent</artifactId>
     <groupId>net.jangaroo</groupId>
+    <artifactId>jangaroo-parent</artifactId>
     <version>0.8.5-SNAPSHOT</version>
     <relativePath>../../jangaroo-parent/pom.xml</relativePath>
   </parent>
-
   <build>
     <plugins>
       <plugin>
@@ -24,7 +48,6 @@
           <goalPrefix>ext-xml</goalPrefix>
         </configuration>
       </plugin>
-
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-invoker-plugin</artifactId>
@@ -32,7 +55,6 @@
       </plugin>
     </plugins>
   </build>
-
   <reporting>
     <plugins>
       <plugin>
@@ -55,44 +77,10 @@
             </reports>
           </reportSet>
         </reportSets>
-      </plugin>      
+      </plugin>
     </plugins>
   </reporting>
-
-  <dependencies>
-    <dependency>
-      <groupId>net.jangaroo</groupId>
-      <artifactId>ext-xml</artifactId>
-      <version>0.8.5-SNAPSHOT</version>
-    </dependency>
-
-    <dependency>
-      <groupId>net.jangaroo</groupId>
-      <artifactId>jangaroo-utils</artifactId>
-      <version>0.8.5-SNAPSHOT</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.apache.maven</groupId>
-      <artifactId>maven-project</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.apache.maven</groupId>
-      <artifactId>maven-plugin-api</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.apache.maven</groupId>
-      <artifactId>maven-artifact</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.apache.maven.plugin-testing</groupId>
-      <artifactId>maven-plugin-testing-harness</artifactId>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
-
-
+  <name>Maven Plugin: Ext-XML to AS3</name>
+  <description>This plugin generates ActionScript</description>
 </project>
+

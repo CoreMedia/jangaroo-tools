@@ -1,26 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-
   <groupId>net.jangaroo</groupId>
   <artifactId>jangaroo-maven</artifactId>
   <version>0.8.5-SNAPSHOT</version>
   <packaging>pom</packaging>
-  <name>Jangaroo Maven Integration</name>
-  <url>http://repo.jangaroo.net/site/jangaroo-maven</url>
-
   <parent>
-    <artifactId>jangaroo-parent</artifactId>
     <groupId>net.jangaroo</groupId>
+    <artifactId>jangaroo-parent</artifactId>
     <version>0.8.5-SNAPSHOT</version>
     <relativePath>../jangaroo-parent/pom.xml</relativePath>
   </parent>
-
   <modules>
     <module>ext-xml-maven-plugin</module>
     <module>jangaroo-maven-plugin</module>
   </modules>
-
   <build>
     <plugins>
       <plugin>
@@ -31,4 +25,7 @@
       </plugin>
     </plugins>
   </build>
+  <name>Jangaroo Maven Integration</name>
+  <url>http://repo.jangaroo.net/site/jangaroo-maven</url>
 </project>
+
