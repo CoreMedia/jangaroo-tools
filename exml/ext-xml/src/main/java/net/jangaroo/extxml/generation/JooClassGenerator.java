@@ -8,8 +8,8 @@ import freemarker.core.Environment;
 import net.jangaroo.extxml.model.ComponentClass;
 import net.jangaroo.extxml.model.ComponentSuite;
 import net.jangaroo.extxml.model.ComponentType;
-import net.jangaroo.extxml.xml.ContentHandlerUtils;
 import net.jangaroo.extxml.xml.ExmlToJsonHandler;
+import net.jangaroo.utils.ContentHandlerUtils;
 import net.jangaroo.utils.log.Log;
 import org.apache.maven.shared.model.fileset.mappers.FileNameMapper;
 import org.apache.maven.shared.model.fileset.mappers.GlobPatternMapper;
@@ -91,7 +91,7 @@ public final class JooClassGenerator {
 
   public File generateClass(ComponentClass componentClass) {
     ExmlToJsonHandler handler = new ExmlToJsonHandler(componentSuite);
-    if (ContentHandlerUtils.parseExmlWithHandler(componentClass, handler)) {
+    if (ContentHandlerUtils.parseFileWithHandler(componentClass.getSrcFile(), handler)) {
       componentClass.setImports(handler.getImports());
       componentClass.setJson(handler.getJson());
       File outputFile = new File(componentSuite.getAs3OutputDir(), XML_TO_JS_MAPPER.mapFileName(componentClass.getRelativeSrcFilePath()));

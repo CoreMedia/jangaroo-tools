@@ -30,7 +30,7 @@ public class ExmlToComponentMetadataHandler extends CharacterRecordingHandler {
         expectsOptionalComponentDescription = true;
       } else if ("cfg".equals(localName)) {
         //handle config elements
-        cfgs.add(new ConfigAttribute(atts.getValue("name"), atts.getValue("config")));
+        cfgs.add(new ConfigAttribute(atts.getValue("name"), atts.getValue("type")));
         expectsOptionalConfigDescription = true;
       } else if ("description".equals(localName)) {
         if (expectsOptionalConfigDescription || expectsOptionalComponentDescription) {

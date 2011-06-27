@@ -7,7 +7,7 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * The EXML plugin's global configuration.
- * Adds *.exml file config to be treated as XML.
+ * Adds *.exml file type to be treated as XML.
  */
 public class ExmlApplicationComponent implements ApplicationComponent {
 

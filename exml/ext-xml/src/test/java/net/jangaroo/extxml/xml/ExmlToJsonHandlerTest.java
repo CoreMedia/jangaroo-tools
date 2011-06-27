@@ -113,7 +113,7 @@ public class ExmlToJsonHandlerTest {
     Json border = (Json) layoutConfig.get("border");
     assertNotNull(border);
     assertNull(border.get("xtype"));
-    assertEquals("solid", border.get("config"));
+    assertEquals("solid", border.get("type"));
 
     Json itemsArray = (Json) json.get("items");
     assertNotNull(itemsArray);
