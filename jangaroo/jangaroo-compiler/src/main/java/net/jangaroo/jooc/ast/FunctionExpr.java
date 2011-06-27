@@ -35,7 +35,7 @@ public class FunctionExpr extends Expr {
   public static final Ide ARGUMENTS_IDE = new Ide(new JooSymbol("arguments"));
 
   //todo unify predefined type definitions, they are scattered all over
-  public static final IdeType ANY_TYPE = new IdeType(new JooSymbol(sym.MUL, "", -1, -1, "", "*"));
+  public static final Type ANY_TYPE = new Type(new JooSymbol(sym.MUL, "", -1, -1, "", "*"));
 
   private JooSymbol symFunction;
   private Ide ide;
@@ -66,7 +66,7 @@ public class FunctionExpr extends Expr {
   }
 
   @Override
-  public void visit(AstVisitor visitor) {
+  public void visit(AstVisitor visitor) throws IOException {
     visitor.visitFunctionExpr(this);
   }
 
@@ -131,7 +131,7 @@ public class FunctionExpr extends Expr {
     });
   }
 
-  private String getFunctionNameAsIde(JsWriter out) {
+  public String getFunctionNameAsIde(JsWriter out) {
     IdeDeclaration classDeclaration = getClassDeclaration();
     String classNameAsIde = "";
     if (classDeclaration != null) {
@@ -143,13 +143,7 @@ public class FunctionExpr extends Expr {
 
   @Override
   public void generateJsCode(JsWriter out) throws IOException {
-    out.writeSymbol(symFunction);
-    if (getIde() != null) {
-      out.writeToken(getIde().getName());
-    } else if (out.getKeepSource()) {
-      out.writeToken(getFunctionNameAsIde(out));
-    }
-    generateFunTailCode(out);
+    throw new UnsupportedOperationException();
   }
 
 
@@ -170,30 +164,6 @@ public class FunctionExpr extends Expr {
     implicitParams.add(parameter);
     thisDefined = thisDefined || parameter.getIde().getName().equals("this");
   }
-
-  public void generateFunTailCode(JsWriter out) throws IOException {
-    if (params != null && hasBody()) {
-      // inject into body for generating initializers later:
-      getBody().addBlockStartCodeGenerator(params.getParameterInitializerCodeGenerator());
-    }
-    generateSignatureJsCode(out);
-    if (hasBody()) {
-      getBody().generateJsCode(out);
-    }
-
-  }
-
-  public void generateSignatureJsCode(JsWriter out) throws IOException {
-    out.writeSymbol(lParen);
-    if (params != null) {
-      params.generateJsCode(out);
-    }
-    out.writeSymbol(rParen);
-    if (optTypeRelation != null) {
-      optTypeRelation.generateJsCode(out);
-    }
-  }
-
   public void generateSignatureAsApiCode(JsWriter out) throws IOException {
     out.writeSymbol(lParen);
     if (params != null) {
@@ -213,6 +183,30 @@ public class FunctionExpr extends Expr {
     return ide;
   }
 
+  public JooSymbol getSymFunction() {
+    return symFunction;
+  }
+
+  public JooSymbol getlParen() {
+    return lParen;
+  }
+
+  public TypeRelation getOptTypeRelation() {
+    return optTypeRelation;
+  }
+
+  public JooSymbol getrParen() {
+    return rParen;
+  }
+
+  public BlockStatement getOptBody() {
+    return optBody;
+  }
+
+  public List<Parameter> getImplicitParams() {
+    return implicitParams;
+  }
+
   public JooSymbol getFunSymbol() {
     return symFunction;
   }
@@ -226,6 +220,10 @@ public class FunctionExpr extends Expr {
         ((BlockStatement)methodDeclaration.getBody()).addBlockStartCodeGenerator(new CodeGenerator() {
           @Override
           public void generateJsCode(final JsWriter out) throws IOException {
+            generate(out);
+          }
+          @Override
+          public void generate(final JsWriter out) throws IOException {
             out.write("var this$=this;");
           }
           public void generateAsApiCode(JsWriter out) throws IOException {

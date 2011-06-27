@@ -47,12 +47,6 @@ public abstract class ConditionalLoopStatement extends LoopStatement {
       getOptCond().analyze(this, context);
   }
 
-  protected void generateLoopHeaderCode(JsWriter out) throws IOException {
-    if (getOptCond() != null)
-      getOptCond().generateJsCode(out);
-  }
-
-
   public Expr getOptCond() {
     return optCond;
   }

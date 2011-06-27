@@ -16,9 +16,8 @@
 package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.JooSymbol;
-import net.jangaroo.jooc.ast.AstVisitor;
-import net.jangaroo.jooc.ast.Expr;
-import net.jangaroo.jooc.ast.InfixOpExpr;
+
+import java.io.IOException;
 
 /**
  * @author Frank Wienberg
@@ -30,7 +29,7 @@ public class AsExpr extends InfixOpExpr {
   }
 
   @Override
-  public void visit(AstVisitor visitor) {
+  public void visit(AstVisitor visitor) throws IOException {
     visitor.visitAsExpr(this);
   }
 

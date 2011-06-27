@@ -16,15 +16,12 @@
 package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.AnalyzeContext;
-import net.jangaroo.jooc.CodeGenerator;
 import net.jangaroo.jooc.JooSymbol;
-import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.sym;
 
 import java.io.IOException;
-import java.util.List;
 
 /**
  * @author Andreas Gawecki
@@ -47,77 +44,35 @@ public class Catch extends KeywordStatement {
   }
 
   @Override
-  public void visit(AstVisitor visitor) {
+  public void visit(AstVisitor visitor) throws IOException {
     visitor.visitCatch(this);
   }
 
   public void generateJsCode(JsWriter out) throws IOException {
-    List<Catch> catches = getParentTryStatement().getCatches();
-    Catch firstCatch = catches.get(0);
-    boolean isFirst = equals(firstCatch);
-    boolean isLast = equals(catches.get(catches.size() - 1));
-    TypeRelation typeRelation = param.getOptTypeRelation();
-    boolean hasCondition = hasCondition();
-    if (!hasCondition && !isLast) {
-      throw Jooc.error(rParen, "Only last catch clause may be untyped.");
-    }
-    final JooSymbol errorVar = firstCatch.param.getIde().getIde();
-    final JooSymbol localErrorVar = param.getIde().getIde();
-    // in the following, always take care to write whitespace only once!
-    out.writeSymbolWhitespace(getSymKeyword());
-    if (isFirst) {
-      out.writeSymbolToken(getSymKeyword()); // "catch"
-      // "(localErrorVar)":
-      out.writeSymbol(lParen, !hasCondition);
-      out.writeSymbol(errorVar, !hasCondition);
-      if (!hasCondition && typeRelation != null) {
-        // can only be ": *", add as comment:
-        typeRelation.generateJsCode(out);
-      }
-      out.writeSymbol(rParen, !hasCondition);
-      if (hasCondition || !isLast) {
-        // a catch block always needs a brace, so generate one for conditions:
-        out.writeToken("{");
-      }
-    } else {
-      // transform catch(ide:Type){...} into else if is(e,Type)){var ide=e;...}
-      out.writeToken("else");
-    }
-    if (hasCondition) {
-      out.writeToken("if(is");
-      out.writeSymbol(lParen);
-      out.writeSymbolWhitespace(localErrorVar);
-      out.writeSymbolToken(errorVar);
-      out.writeSymbolWhitespace(typeRelation.getSymRelation());
-      out.writeToken(",");
-      Ide typeIde = ((IdeType)typeRelation.getType()).getIde();
-      out.writeSymbolWhitespace(typeIde.getIde());
-      out.writeToken(typeIde.getDeclaration().getQualifiedNameStr());
-      out.writeSymbol(rParen);
-      out.writeToken(")");
-    }
-    if (!localErrorVar.getText().equals(errorVar.getText())) {
-      block.addBlockStartCodeGenerator(new VarCodeGenerator(localErrorVar, errorVar));
-    }
-    block.generateJsCode(out);
-    if (isLast) {
-      if (hasCondition) {
-        out.writeToken("else throw");
-        out.writeSymbolToken(errorVar);
-        out.writeToken(";");
-      }
-      if (!(isFirst && !hasCondition)) {
-        // last catch clause closes the JS catch block:
-        out.writeToken("}");
-      }
-    }
+    throw new UnsupportedOperationException();
   }
 
-  private TryStatement getParentTryStatement() {
+  public TryStatement getParentTryStatement() {
     return parentNode;
   }
 
-  private boolean hasCondition() {
+  public JooSymbol getLParen() {
+    return lParen;
+  }
+
+  public Parameter getParam() {
+    return param;
+  }
+
+  public JooSymbol getRParen() {
+    return rParen;
+  }
+
+  public BlockStatement getBlock() {
+    return block;
+  }
+
+  public boolean hasCondition() {
     TypeRelation typeRelation = param.getOptTypeRelation();
     return typeRelation != null && typeRelation.getType().getSymbol().sym != sym.MUL;
   }
@@ -143,39 +98,8 @@ public class Catch extends KeywordStatement {
     TypeRelation typeRelation = param.getOptTypeRelation();
     if (typeRelation != null) {
       Type type = typeRelation.getType();
-      if (type instanceof IdeType) {
-        IdeType ideType = (IdeType) type;
-        ideType.getIde().addExternalUsage(); // init will be done by is()!
-      }
+      type.getIde().addExternalUsage(); // init will be done by is()!
     }
     block.analyze(this, context);
-  }
-
-  private static class VarCodeGenerator implements CodeGenerator {
-    private final JooSymbol localErrorVar;
-    private final JooSymbol errorVar;
-
-    public VarCodeGenerator(JooSymbol localErrorVar, JooSymbol errorVar) {
-      this.localErrorVar = localErrorVar;
-      this.errorVar = errorVar;
-    }
-
-    @Override
-    public void generateJsCode(JsWriter out) throws IOException {
-      out.writeToken("var");
-      out.writeSymbolToken(localErrorVar);
-      out.writeToken("=");
-      out.writeSymbolToken(errorVar);
-      out.writeToken(";");
-    }
-
-    @Override
-    public void generateAsApiCode(JsWriter out) throws IOException {
-      out.writeToken("var");
-      out.writeSymbolToken(localErrorVar);
-      out.writeToken("=");
-      out.writeSymbolToken(errorVar);
-      out.writeToken(";");
-    }
   }
 }

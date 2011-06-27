@@ -1,0 +1,1312 @@
+package net.jangaroo.jooc.backend;
+
+import net.jangaroo.jooc.CodeGenerator;
+import net.jangaroo.jooc.Debug;
+import net.jangaroo.jooc.JooSymbol;
+import net.jangaroo.jooc.Jooc;
+import net.jangaroo.jooc.JsWriter;
+import net.jangaroo.jooc.SyntacticKeywords;
+import net.jangaroo.jooc.ast.AbstractBlock;
+import net.jangaroo.jooc.ast.Annotation;
+import net.jangaroo.jooc.ast.AnnotationParameter;
+import net.jangaroo.jooc.ast.ApplyExpr;
+import net.jangaroo.jooc.ast.ArrayIndexExpr;
+import net.jangaroo.jooc.ast.ArrayLiteral;
+import net.jangaroo.jooc.ast.AsExpr;
+import net.jangaroo.jooc.ast.AssignmentOpExpr;
+import net.jangaroo.jooc.ast.AstNode;
+import net.jangaroo.jooc.ast.AstVisitor;
+import net.jangaroo.jooc.ast.BinaryOpExpr;
+import net.jangaroo.jooc.ast.BlockStatement;
+import net.jangaroo.jooc.ast.BreakStatement;
+import net.jangaroo.jooc.ast.CaseStatement;
+import net.jangaroo.jooc.ast.Catch;
+import net.jangaroo.jooc.ast.ClassBody;
+import net.jangaroo.jooc.ast.ClassDeclaration;
+import net.jangaroo.jooc.ast.CommaSeparatedList;
+import net.jangaroo.jooc.ast.CompilationUnit;
+import net.jangaroo.jooc.ast.ConditionalExpr;
+import net.jangaroo.jooc.ast.ContinueStatement;
+import net.jangaroo.jooc.ast.Declaration;
+import net.jangaroo.jooc.ast.DefaultStatement;
+import net.jangaroo.jooc.ast.Directive;
+import net.jangaroo.jooc.ast.DoStatement;
+import net.jangaroo.jooc.ast.DotExpr;
+import net.jangaroo.jooc.ast.EmptyDeclaration;
+import net.jangaroo.jooc.ast.EmptyStatement;
+import net.jangaroo.jooc.ast.Expr;
+import net.jangaroo.jooc.ast.Extends;
+import net.jangaroo.jooc.ast.ForInStatement;
+import net.jangaroo.jooc.ast.ForInitializer;
+import net.jangaroo.jooc.ast.ForStatement;
+import net.jangaroo.jooc.ast.FunctionDeclaration;
+import net.jangaroo.jooc.ast.FunctionExpr;
+import net.jangaroo.jooc.ast.GetterSetterPair;
+import net.jangaroo.jooc.ast.Ide;
+import net.jangaroo.jooc.ast.IdeDeclaration;
+import net.jangaroo.jooc.ast.IdeExpr;
+import net.jangaroo.jooc.ast.IdeWithTypeParam;
+import net.jangaroo.jooc.ast.IfStatement;
+import net.jangaroo.jooc.ast.Implements;
+import net.jangaroo.jooc.ast.ImportDirective;
+import net.jangaroo.jooc.ast.InfixOpExpr;
+import net.jangaroo.jooc.ast.Initializer;
+import net.jangaroo.jooc.ast.IsExpr;
+import net.jangaroo.jooc.ast.LabeledStatement;
+import net.jangaroo.jooc.ast.LiteralExpr;
+import net.jangaroo.jooc.ast.NamespacedDeclaration;
+import net.jangaroo.jooc.ast.NamespacedIde;
+import net.jangaroo.jooc.ast.NewExpr;
+import net.jangaroo.jooc.ast.ObjectField;
+import net.jangaroo.jooc.ast.ObjectLiteral;
+import net.jangaroo.jooc.ast.PackageDeclaration;
+import net.jangaroo.jooc.ast.Parameter;
+import net.jangaroo.jooc.ast.Parameters;
+import net.jangaroo.jooc.ast.ParenthesizedExpr;
+import net.jangaroo.jooc.ast.PostfixOpExpr;
+import net.jangaroo.jooc.ast.PredefinedTypeDeclaration;
+import net.jangaroo.jooc.ast.PrefixOpExpr;
+import net.jangaroo.jooc.ast.QualifiedIde;
+import net.jangaroo.jooc.ast.ReturnStatement;
+import net.jangaroo.jooc.ast.SemicolonTerminatedStatement;
+import net.jangaroo.jooc.ast.Statement;
+import net.jangaroo.jooc.ast.SuperConstructorCallStatement;
+import net.jangaroo.jooc.ast.SwitchStatement;
+import net.jangaroo.jooc.ast.ThrowStatement;
+import net.jangaroo.jooc.ast.TryStatement;
+import net.jangaroo.jooc.ast.Type;
+import net.jangaroo.jooc.ast.TypeRelation;
+import net.jangaroo.jooc.ast.TypedIdeDeclaration;
+import net.jangaroo.jooc.ast.UseNamespaceDirective;
+import net.jangaroo.jooc.ast.VariableDeclaration;
+import net.jangaroo.jooc.ast.VectorLiteral;
+import net.jangaroo.jooc.ast.WhileStatement;
+import net.jangaroo.jooc.config.JoocConfiguration;
+import net.jangaroo.jooc.sym;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+
+/**
+ * A visitor of the AST that generates executable JavaScript code on
+ * a {@link net.jangaroo.jooc.JsWriter}.
+ */
+public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
+  private static final JooSymbol SYM_VAR = new JooSymbol(sym.VAR, "var");
+  private static final JooSymbol SYM_EQ = new JooSymbol(sym.EQ, "=");
+  private static final JooSymbol SYM_SEMICOLON = new JooSymbol(sym.SEMICOLON, ";");
+  private static final JooSymbol SYM_LBRACE = new JooSymbol(sym.LBRACE, "{");
+  private static final JooSymbol SYM_RBRACE = new JooSymbol(sym.RBRACE, "}");
+  private static final JooSymbol SYM_LBRACK = new JooSymbol(sym.LBRACK, "[");
+  private static final JooSymbol SYM_RBRACK = new JooSymbol(sym.RBRACK, "]");
+
+  private final JsWriter out;
+
+  /**
+   * Whether the start (but not the end) of an artifical comment has been generated.
+   */
+  private boolean inArtificialComment = false;
+
+  public JsCodeGenerator(JsWriter out) {
+    this.out = out;
+  }
+
+  @Override
+  public void visitTypeRelation(TypeRelation typeRelation) throws IOException {
+    out.beginCommentWriteSymbol(typeRelation.getSymRelation());
+    typeRelation.getType().generateAsApiCode(out);
+    out.endComment();
+  }
+
+  @Override
+  public void visitAnnotationParameter(AnnotationParameter annotationParameter) throws IOException {
+    if (annotationParameter.getOptName() != null && annotationParameter.getOptSymEq() != null) {
+      annotationParameter.getOptName().visit(this);
+      out.writeSymbolWhitespace(annotationParameter.getOptSymEq());
+    } else {
+      out.writeToken("$value");
+    }
+    out.writeToken(":");
+    annotationParameter.getValue().visit(this);
+  }
+
+  @Override
+  public void visitExtends(Extends anExtends) throws IOException {
+    out.writeSymbol(anExtends.getSymExtends());
+    anExtends.getSuperClass().generateCodeAsExpr(out);
+  }
+
+  @Override
+  public void visitInitializer(Initializer initializer) throws IOException {
+    out.writeSymbol(initializer.getSymEq());
+    initializer.getValue().visit(this);
+  }
+
+  @Override
+  public void visitObjectField(ObjectField objectField) throws IOException {
+    objectField.getLabel().visit(this);
+    out.writeSymbol(objectField.getSymColon());
+    objectField.getValue().visit(this);
+  }
+
+  @Override
+  public void visitForInitializer(ForInitializer forInitializer) throws IOException {
+    if (forInitializer.getDecl() != null)
+      forInitializer.getDecl().visit(this);
+    else if (forInitializer.getExpr() != null)
+      forInitializer.getExpr().visit(this);
+  }
+
+  @Override
+  public void visitCompilationUnit(CompilationUnit compilationUnit) throws IOException {
+    out.write(Jooc.CLASS_LOADER_FULLY_QUALIFIED_NAME + ".prepare(");
+    compilationUnit.getPackageDeclaration().visit(this);
+    out.beginComment();
+    out.writeSymbol(compilationUnit.getLBrace());
+    out.endComment();
+    compilationUnit.getPrimaryDeclaration().visit(this);
+    out.write(",[");
+    boolean first = true;
+    for (String qname : compilationUnit.getDependencies()) {
+      if (first) {
+        first = false;
+      } else {
+        out.write(",");
+      }
+      out.write('"' + qname + '"');
+    }
+    out.write("]");
+    out.write(", \"" + compilationUnit.getCompiler().getRuntimeVersion() + "\"");
+    out.write(", \"" + compilationUnit.getCompiler().getVersion() + "\"");
+    out.writeSymbolWhitespace(compilationUnit.getRBrace());
+    out.write(");");
+  }
+
+  @Override
+  public void visitIde(Ide ide) throws IOException {
+    out.writeSymbolWhitespace(ide.getIde());
+    writeIde(out, ide);
+  }
+
+  @Override
+  public void visitQualifiedIde(QualifiedIde qualifiedIde) throws IOException {
+    qualifiedIde.getQualifier().visit(this);
+    out.writeSymbol(qualifiedIde.getSymDot());
+    visitIde(qualifiedIde);
+  }
+
+  @Override
+  public void visitIdeWithTypeParam(IdeWithTypeParam ideWithTypeParam) throws IOException {
+    visitIde(ideWithTypeParam);
+    writeTypeParamAsComment(ideWithTypeParam);
+  }
+
+  private void writeTypeParamAsComment(IdeWithTypeParam ideWithTypeParam) throws IOException {
+    boolean startArtificalComment = !inArtificialComment;
+    if (startArtificalComment) {
+      out.beginComment();
+      inArtificialComment = true;
+    }
+    writeTypeParam(ideWithTypeParam);
+    if (startArtificalComment) {
+      inArtificialComment = false;
+      out.endComment();
+    }
+  }
+
+  protected void writeTypeParam(IdeWithTypeParam ideWithTypeParam) throws IOException {
+    out.writeSymbol(ideWithTypeParam.getSymDotLt());
+    ideWithTypeParam.getType().visit(this);
+    out.writeSymbol(ideWithTypeParam.getSymGt());
+  }
+
+  @Override
+  public void visitNamespacedIde(NamespacedIde namespacedIde) throws IOException {
+    // so far, namespaces are only comments:
+    out.beginComment();
+    out.writeSymbol(namespacedIde.getNamespace());
+    out.writeSymbol(namespacedIde.getSymNamespaceSep());
+    out.endComment();
+    visitIde(namespacedIde);
+  }
+
+  @Override
+  public void visitImplements(Implements anImplements) throws IOException {
+    out.writeSymbol(anImplements.getSymImplements());
+    generateImplements(anImplements.getSuperTypes());
+  }
+
+  private void generateImplements(CommaSeparatedList<Ide> superTypes) throws IOException {
+    superTypes.getHead().generateCodeAsExpr(out);
+    if (superTypes.getSymComma() != null) {
+      out.writeSymbol(superTypes.getSymComma());
+      generateImplements(superTypes.getTail());
+    }
+  }
+
+  @Override
+  public void visitType(Type type) throws IOException {
+    type.getIde().visit(this);
+  }
+
+  @Override
+  public void visitObjectLiteral(ObjectLiteral objectLiteral) throws IOException {
+    out.writeSymbol(objectLiteral.getLBrace());
+    if (objectLiteral.getFields() != null)
+      objectLiteral.getFields().visit(this);
+    if (objectLiteral.getOptComma() != null)
+      out.writeSymbol(objectLiteral.getOptComma());
+    out.writeSymbol(objectLiteral.getRBrace());
+  }
+
+  @Override
+  public void visitIdeExpression(IdeExpr ideExpr) throws IOException {
+    ideExpr.getIde().generateCodeAsExpr(out);
+  }
+
+  @Override
+  public <T extends Expr> void visitParenthesizedExpr(ParenthesizedExpr<T> parenthesizedExpr) throws IOException {
+    out.writeSymbol(parenthesizedExpr.getLParen());
+    generateExprCode(parenthesizedExpr);
+    out.writeSymbol(parenthesizedExpr.getRParen());
+  }
+
+  private void generateExprCode(ParenthesizedExpr<?> parenthesizedExpr) throws IOException {
+    if (parenthesizedExpr.getExpr() !=null) {
+      parenthesizedExpr.getExpr().visit(this);
+    }
+  }
+
+  @Override
+  public void visitArrayLiteral(ArrayLiteral arrayLiteral) throws IOException {
+    visitParenthesizedExpr(arrayLiteral);
+  }
+
+  @Override
+  public void visitLiteralExpr(LiteralExpr literalExpr) throws IOException {
+    out.writeSymbol(literalExpr.getValue());
+  }
+
+  @Override
+  public void visitPostfixOpExpr(PostfixOpExpr postfixOpExpr) throws IOException {
+    postfixOpExpr.getArg().visit(this);
+    out.writeSymbol(postfixOpExpr.getOp());
+  }
+
+  @Override
+  public void visitDotExpr(DotExpr dotExpr) throws IOException {
+    dotExpr.getArg().visit(this);
+    Ide.writeMemberAccess(Ide.resolveMember(dotExpr.getArg().getType(), dotExpr.getIde()), dotExpr.getOp(), dotExpr.getIde(), true, out);
+  }
+
+  @Override
+  public void visitPrefixOpExpr(PrefixOpExpr prefixOpExpr) throws IOException {
+    out.writeSymbol(prefixOpExpr.getOp());
+    prefixOpExpr.getArg().visit(this);
+  }
+
+  @Override
+  public void visitBinaryOpExpr(BinaryOpExpr binaryOpExpr) throws IOException {
+    binaryOpExpr.getArg1().visit(this);
+    out.writeSymbol(binaryOpExpr.getOp());
+    binaryOpExpr.getArg2().visit(this);
+  }
+
+  @Override
+  public void visitAssignmentOpExpr(AssignmentOpExpr assignmentOpExpr) throws IOException {
+    if (assignmentOpExpr.getOp().sym == sym.ANDANDEQ || assignmentOpExpr.getOp().sym == sym.OROREQ) {
+      assignmentOpExpr.getArg1().visit(this);
+      out.writeSymbolWhitespace(assignmentOpExpr.getOp());
+      out.writeToken("=");
+      // TODO: refactor for a simpler way to switch off white-space temporarily:
+      JoocConfiguration options = (JoocConfiguration)out.getOptions();
+      boolean debug = options.isDebug();
+      boolean debugLines = options.isDebugLines();
+      options.setDebug(false);
+      options.setDebugLines(false);
+      assignmentOpExpr.getArg1().visit(this);
+      options.setDebug(debug);
+      options.setDebugLines(debugLines);
+      out.writeToken(assignmentOpExpr.getOp().sym == sym.ANDANDEQ ? "&&" : "||");
+      out.writeToken("(");
+      assignmentOpExpr.getArg2().visit(this);
+      out.writeToken(")");
+    } else {
+      visitBinaryOpExpr(assignmentOpExpr);
+    }
+  }
+
+  @Override
+  public void visitInfixOpExpr(InfixOpExpr infixOpExpr) throws IOException {
+    out.writeSymbolToken(infixOpExpr.getOp());
+    out.write('(');
+    infixOpExpr.getArg1().visit(this);
+    out.write(',');
+    out.writeSymbolWhitespace(infixOpExpr.getOp());
+    infixOpExpr.getArg2().visit(this);
+    out.write(')');
+  }
+
+  @Override
+  public void visitAsExpr(AsExpr asExpr) throws IOException {
+    visitInfixOpExpr(asExpr);
+  }
+
+  @Override
+  public void visitIsExpr(IsExpr isExpr) throws IOException {
+    visitInfixOpExpr(isExpr);
+  }
+
+  @Override
+  public void visitConditionalExpr(ConditionalExpr conditionalExpr) throws IOException {
+    conditionalExpr.getCond().visit(this);
+    out.writeSymbol(conditionalExpr.getSymQuestion());
+    conditionalExpr.getIfTrue().visit(this);
+    out.writeSymbol(conditionalExpr.getSymColon());
+    conditionalExpr.getIfFalse().visit(this);
+  }
+
+  @Override
+  public void visitArrayIndexExpr(ArrayIndexExpr arrayIndexExpr) throws IOException {
+    arrayIndexExpr.getArray().visit(this);
+    arrayIndexExpr.getIndexExpr().visit(this);
+  }
+
+  @Override
+  public <T extends AstNode> void visitCommaSeparatedList(CommaSeparatedList<T> commaSeparatedList) throws IOException {
+    if (commaSeparatedList.getHead() != null) {
+      commaSeparatedList.getHead().visit(this);
+    }
+    if (commaSeparatedList.getSymComma() != null) {
+      out.writeSymbol(commaSeparatedList.getSymComma());
+      if (commaSeparatedList.getTail() != null) {
+        commaSeparatedList.getTail().visit(this);
+      }
+    }
+  }
+
+  @Override
+  public void visitParameters(Parameters parameters) throws IOException {
+    if (parameters.getHead() != null) {
+      parameters.getHead().visit(this);
+    }
+    if (parameters.getSymComma() != null) {
+      if (parameters.getTail().getHead().isRest()) {
+        out.beginCommentWriteSymbol(parameters.getSymComma());
+        parameters.getTail().visit(this);
+        out.endComment();
+      } else {
+        out.writeSymbol(parameters.getSymComma());
+        parameters.getTail().visit(this);
+      }
+    }
+  }
+
+  @Override
+  public void visitFunctionExpr(FunctionExpr functionExpr) throws IOException {
+    out.writeSymbol(functionExpr.getSymFunction());
+    if (functionExpr.getIde() != null) {
+      out.writeToken(functionExpr.getIde().getName());
+    } else if (out.getKeepSource()) {
+      out.writeToken(functionExpr.getFunctionNameAsIde(out));
+    }
+    generateFunTailCode(functionExpr);
+  }
+
+
+  public void generateFunTailCode(FunctionExpr functionExpr) throws IOException {
+    Parameters params = functionExpr.getParams();
+    if (params != null && functionExpr.hasBody()) {
+      // inject into body for generating initializers later:
+      functionExpr.getBody().addBlockStartCodeGenerator(getParameterInitializerCodeGenerator(params));
+    }
+    generateSignatureJsCode(functionExpr);
+    if (functionExpr.hasBody()) {
+      functionExpr.getBody().visit(this);
+    }
+  }
+
+  public CodeGenerator getParameterInitializerCodeGenerator(final Parameters params) {
+    return new CodeGenerator() {
+      @Override
+      public void generateJsCode(JsWriter out) throws IOException {
+        generate(out);
+      }
+
+      @Override
+      public void generate(JsWriter out) throws IOException {
+        // first pass: generate conditionals and count parameters.
+        int cnt = 0;
+        StringBuilder code = new StringBuilder();
+        for (Parameters parameters = params; parameters!=null; parameters = parameters.getTail()) {
+          Parameter param = parameters.getHead();
+          if (param.isRest()) {
+            break;
+          }
+          if (param.hasInitializer()) {
+            code.insert(0,"if(arguments.length<"+(cnt+1)+"){");
+          }
+          ++cnt;
+        }
+        out.write(code.toString());
+        // second pass: generate initializers and rest param code.
+        for (Parameters parameters = params; parameters!=null; parameters = parameters.getTail()) {
+          Parameter param = parameters.getHead();
+          if (param.isRest()) {
+            param.generateRestParamCode(out, cnt);
+            break;
+          }
+          if (param.hasInitializer()) {
+            generateBodyInitializerCode(param);
+            out.write("}");
+          }
+        }
+      }
+
+      @Override
+      public void generateAsApiCode(JsWriter out) throws IOException {
+        throw new UnsupportedOperationException();
+      }
+    };
+  }
+
+  public void generateBodyInitializerCode(Parameter param) throws IOException {
+    out.writeToken(param.getName());
+    out.writeSymbol(param.getOptInitializer().getSymEq());
+    param.getOptInitializer().getValue().visit(this);
+    out.write(";");
+  }
+
+  public void generateSignatureJsCode(FunctionExpr functionExpr) throws IOException {
+    out.writeSymbol(functionExpr.getlParen());
+    if (functionExpr.getParams() != null) {
+      functionExpr.getParams().visit(this);
+    }
+    out.writeSymbol(functionExpr.getrParen());
+    if (functionExpr.getOptTypeRelation() != null) {
+      functionExpr.getOptTypeRelation().visit(this);
+    }
+  }
+
+  @Override
+  public void visitVectorLiteral(VectorLiteral vectorLiteral) throws IOException {
+    out.beginComment();
+    out.writeSymbol(vectorLiteral.getSymNew());
+    out.writeSymbol(vectorLiteral.getSymLt());
+    vectorLiteral.getVectorType().visit(this);
+    out.writeSymbol(vectorLiteral.getSymGt());
+    out.endComment();
+    vectorLiteral.getArrayLiteral().visit(this);
+  }
+
+  @Override
+  public void visitApplyExpr(ApplyExpr applyExpr) throws IOException {
+    generateFunJsCode(applyExpr);
+    if (applyExpr.getArgs() != null) {
+      boolean isAssert = applyExpr.getFun() instanceof IdeExpr && SyntacticKeywords.ASSERT.equals(applyExpr.getFun().getSymbol().getText());
+      if (isAssert) {
+        JooSymbol symKeyword = applyExpr.getFun().getSymbol();
+        out.writeSymbol(applyExpr.getArgs().getLParen());
+        applyExpr.getArgs().getExpr().visit(this);
+        out.writeToken(", ");
+        out.writeString(symKeyword.getFileName());
+        out.writeToken(", ");
+        out.writeInt(symKeyword.getLine());
+        out.write(", ");
+        out.writeInt(symKeyword.getColumn());
+        out.writeSymbol(applyExpr.getArgs().getRParen());
+      } else {
+        applyExpr.getArgs().visit(this);
+      }
+    }
+  }
+
+  private void generateFunJsCode(ApplyExpr applyExpr) throws IOException {
+    // leave out constructor function if called as type cast function!
+    // these old-style type casts are soo ugly....
+    if (applyExpr.isTypeCast()) {
+      out.beginComment();
+      applyExpr.getFun().visit(this);
+      out.endComment();
+    } else {
+      applyExpr.getFun().visit(this);
+    }
+  }
+
+  @Override
+  public void visitNewExpr(NewExpr newExpr) throws IOException {
+    out.writeSymbol(newExpr.getSymNew());
+    newExpr.getApplyConstructor().visit(this);
+    if (newExpr.getArgs() != null)
+      newExpr.getArgs().visit(this);
+  }
+
+  @Override
+  public void visitClassBody(ClassBody classBody) throws IOException {
+    out.writeSymbolWhitespace(classBody.getLBrace());
+    boolean inStaticInitializerBlock = false;
+    for (Directive directive : classBody.getDirectives()) {
+      final boolean isStaticInitializer = directive instanceof Statement && !(directive instanceof Declaration);
+      if (isStaticInitializer) {
+        inStaticInitializerBlock = beginStaticInitializer(out, inStaticInitializerBlock);
+      } else {
+        inStaticInitializerBlock = endStaticInitializer(out, inStaticInitializerBlock);
+      }
+      directive.visit(this);
+    }
+    endStaticInitializer(out, inStaticInitializerBlock);
+    out.writeSymbolWhitespace(classBody.getRBrace());
+  }
+
+  private boolean beginStaticInitializer(JsWriter out, boolean inStaticInitializerBlock) throws IOException {
+    if (!inStaticInitializerBlock) {
+      out.writeToken("function(){");
+    }
+    return true;
+  }
+
+  private boolean endStaticInitializer(JsWriter out, boolean inStaticInitializerBlock) throws IOException {
+    if (inStaticInitializerBlock) {
+      out.writeToken("},");
+    }
+    return false;
+  }
+
+  @Override
+  public void visitBlockStatement(BlockStatement blockStatement) throws IOException {
+    handleBlock(blockStatement);
+  }
+
+  private void handleBlock(AbstractBlock abstractBlock) throws IOException {
+    out.writeSymbol(abstractBlock.getLBrace());
+    for (CodeGenerator codeGenerator : abstractBlock.getBlockStartCodeGenerators()) {
+      codeGenerator.generate(out);
+    }
+    for (AstNode node : abstractBlock.getDirectives()) {
+      node.visit(this);
+    }
+    out.writeSymbol(abstractBlock.getRBrace());
+  }
+
+  @Override
+  public void visitDefaultStatement(DefaultStatement defaultStatement) throws IOException {
+    out.writeSymbol(defaultStatement.getSymDefault());
+    out.writeSymbol(defaultStatement.getSymColon());
+  }
+
+  @Override
+  public void visitLabeledStatement(LabeledStatement labeledStatement) throws IOException {
+    labeledStatement.getIde().visit(this);
+    out.writeSymbol(labeledStatement.getSymColon());
+    labeledStatement.getStatement().visit(this);
+  }
+
+  @Override
+  public void visitIfStatement(IfStatement ifStatement) throws IOException {
+    out.writeSymbol(ifStatement.getSymKeyword());
+    ifStatement.getCond().visit(this);
+    ifStatement.getIfTrue().visit(this);
+    if (ifStatement.getSymElse() != null) {
+      out.writeSymbol(ifStatement.getSymElse());
+      ifStatement.getIfFalse().visit(this);
+    }
+  }
+
+  @Override
+  public void visitCaseStatement(CaseStatement caseStatement) throws IOException {
+    out.writeSymbol(caseStatement.getSymKeyword());
+    caseStatement.getExpr().visit(this);
+    out.writeSymbol(caseStatement.getSymColon());
+  }
+
+  @Override
+  public void visitTryStatement(TryStatement tryStatement) throws IOException {
+    out.writeSymbol(tryStatement.getSymKeyword());
+    tryStatement.getBlock().visit(this);
+    for (AstNode node : tryStatement.getCatches()) {
+      node.visit(this);
+    }
+    if (tryStatement.getSymFinally() != null) {
+      out.writeSymbol(tryStatement.getSymFinally());
+      tryStatement.getFinallyBlock().visit(this);
+    }
+    //To change body of implemented methods use File | Settings | File Templates.
+  }
+
+  @Override
+  public void visitCatch(Catch aCatch) throws IOException {
+    List<Catch> catches = aCatch.getParentTryStatement().getCatches();
+    Catch firstCatch = catches.get(0);
+    boolean isFirst = aCatch.equals(firstCatch);
+    boolean isLast = aCatch.equals(catches.get(catches.size() - 1));
+    TypeRelation typeRelation = aCatch.getParam().getOptTypeRelation();
+    boolean hasCondition = aCatch.hasCondition();
+    if (!hasCondition && !isLast) {
+      throw Jooc.error(aCatch.getRParen(), "Only last catch clause may be untyped.");
+    }
+    final JooSymbol errorVar = firstCatch.getParam().getIde().getIde();
+    final JooSymbol localErrorVar = aCatch.getParam().getIde().getIde();
+    // in the following, always take care to write whitespace only once!
+    out.writeSymbolWhitespace(aCatch.getSymKeyword());
+    if (isFirst) {
+      out.writeSymbolToken(aCatch.getSymKeyword()); // "catch"
+      // "(localErrorVar)":
+      out.writeSymbol(aCatch.getLParen(), !hasCondition);
+      out.writeSymbol(errorVar, !hasCondition);
+      if (!hasCondition && typeRelation != null) {
+        // can only be ": *", add as comment:
+        typeRelation.visit(this);
+      }
+      out.writeSymbol(aCatch.getRParen(), !hasCondition);
+      if (hasCondition || !isLast) {
+        // a catch block always needs a brace, so generate one for conditions:
+        out.writeToken("{");
+      }
+    } else {
+      // transform catch(ide:Type){...} into else if is(e,Type)){var ide=e;...}
+      out.writeToken("else");
+    }
+    if (hasCondition) {
+      out.writeToken("if(is");
+      out.writeSymbol(aCatch.getLParen());
+      out.writeSymbolWhitespace(localErrorVar);
+      out.writeSymbolToken(errorVar);
+      out.writeSymbolWhitespace(typeRelation.getSymRelation());
+      out.writeToken(",");
+      Ide typeIde = typeRelation.getType().getIde();
+      out.writeSymbolWhitespace(typeIde.getIde());
+      out.writeToken(typeIde.getDeclaration().getQualifiedNameStr());
+      out.writeSymbol(aCatch.getRParen());
+      out.writeToken(")");
+    }
+    if (!localErrorVar.getText().equals(errorVar.getText())) {
+      aCatch.getBlock().addBlockStartCodeGenerator(new VarCodeGenerator(localErrorVar, errorVar));
+    }
+    aCatch.getBlock().visit(this);
+    if (isLast) {
+      if (hasCondition) {
+        out.writeToken("else throw");
+        out.writeSymbolToken(errorVar);
+        out.writeToken(";");
+      }
+      if (!(isFirst && !hasCondition)) {
+        // last catch clause closes the JS catch block:
+        out.writeToken("}");
+      }
+    }
+  }
+
+  private static class VarCodeGenerator implements CodeGenerator {
+    private final JooSymbol localErrorVar;
+    private final JooSymbol errorVar;
+
+    public VarCodeGenerator(JooSymbol localErrorVar, JooSymbol errorVar) {
+      this.localErrorVar = localErrorVar;
+      this.errorVar = errorVar;
+    }
+
+    @Override
+    public void generateJsCode(JsWriter out) throws IOException {
+      generate(out);
+    }
+
+    @Override
+    public void generate(JsWriter out) throws IOException {
+      out.writeToken("var");
+      out.writeSymbolToken(localErrorVar);
+      out.writeToken("=");
+      out.writeSymbolToken(errorVar);
+      out.writeToken(";");
+    }
+
+    @Override
+    public void generateAsApiCode(JsWriter out) throws IOException {
+      out.writeToken("var");
+      out.writeSymbolToken(localErrorVar);
+      out.writeToken("=");
+      out.writeSymbolToken(errorVar);
+      out.writeToken(";");
+    }
+  }
+
+  @Override
+  public void visitForInStatement(ForInStatement forInStatement) throws IOException {
+    out.writeSymbol(forInStatement.getSymKeyword());
+    if (forInStatement.getSymEach() != null) {
+      out.beginComment();
+      out.writeSymbol(forInStatement.getSymEach());
+      out.endComment();
+    }
+    out.writeSymbol(forInStatement.getLParen());
+    if (forInStatement.getSymEach() != null) {
+      new VariableDeclaration(SYM_VAR, forInStatement.getAuxIde(), null, null).visit(this);
+    } else {
+      if (forInStatement.getDecl() != null) {
+        forInStatement.getDecl().visit(this);
+      } else {
+        forInStatement.getIde().visit(this);
+      }
+    }
+    out.writeSymbol(forInStatement.getSymIn());
+    forInStatement.getExpr().visit(this);
+    out.writeSymbol(forInStatement.getRParen());
+    if (forInStatement.getSymEach() != null) {
+      // synthesize assigning the correct index to the variable given in the original for each statement:
+      ArrayIndexExpr indexExpr = new ArrayIndexExpr(forInStatement.getExpr(), SYM_LBRACK,
+          new CommaSeparatedList<IdeExpr>(new IdeExpr(forInStatement.getAuxIde())),
+          SYM_RBRACK);
+      Statement assignment = new SemicolonTerminatedStatement(forInStatement.getDecl() != null
+          ? new VariableDeclaration(SYM_VAR, forInStatement.getDecl().getIde(), forInStatement.getDecl().getOptTypeRelation(), new Initializer(SYM_EQ, indexExpr))
+          : new AssignmentOpExpr(new IdeExpr(forInStatement.getIde()), SYM_EQ, indexExpr),
+          SYM_SEMICOLON);
+      // inject synthesized statement into loop body:
+      if (forInStatement.getBody() instanceof BlockStatement) {
+        ((BlockStatement) forInStatement.getBody()).getDirectives().add(0, assignment);
+      } else {
+        forInStatement.setBody(new BlockStatement(SYM_LBRACE, Arrays.<Directive>asList(assignment, forInStatement.getBody()), SYM_RBRACE));
+      }
+    }
+    forInStatement.getBody().visit(this);
+  }
+
+  @Override
+  public void visitWhileStatement(WhileStatement whileStatement) throws IOException {
+    out.writeSymbol(whileStatement.getSymKeyword());
+    if (whileStatement.getOptCond() != null)
+      whileStatement.getOptCond().visit(this);
+    whileStatement.getBody().visit(this);
+  }
+
+  @Override
+  public void visitForStatement(ForStatement forStatement) throws IOException {
+    out.writeSymbol(forStatement.getSymKeyword());
+    out.writeSymbol(forStatement.getLParen());
+    if (forStatement.getForInit() != null) {
+      forStatement.getForInit().visit(this);
+    }
+    out.writeSymbol(forStatement.getSymSemicolon1());
+    if (forStatement.getOptCond() != null)
+      forStatement.getOptCond().visit(this);
+    out.writeSymbol(forStatement.getSymSemicolon2());
+    if (forStatement.getOptStep() != null) {
+      forStatement.getOptStep().visit(this);
+    }
+    out.writeSymbol(forStatement.getRParen());
+    forStatement.getBody().visit(this);
+  }
+
+  @Override
+  public void visitDoStatement(DoStatement doStatement) throws IOException {
+    out.writeSymbol(doStatement.getSymKeyword());
+    doStatement.getBody().visit(this);
+    out.writeSymbol(doStatement.getSymWhile());
+    doStatement.getOptCond().visit(this);
+    out.writeSymbol(doStatement.getSymSemicolon());
+  }
+
+  @Override
+  public void visitSwitchStatement(SwitchStatement switchStatement) throws IOException {
+    out.writeSymbol(switchStatement.getSymKeyword());
+    switchStatement.getCond().visit(this);
+    switchStatement.getBlock().visit(this);
+    //To change body of implemented methods use File | Settings | File Templates.
+  }
+
+  @Override
+  public void visitSemicolonTerminatedStatement(SemicolonTerminatedStatement semicolonTerminatedStatement) throws IOException {
+    if (semicolonTerminatedStatement.getOptStatement() !=null) {
+      semicolonTerminatedStatement.getOptStatement().visit(this);
+    }
+    if (semicolonTerminatedStatement.getOptSymSemicolon() != null) {
+      out.writeSymbol(semicolonTerminatedStatement.getOptSymSemicolon());
+    }
+  }
+
+  @Override
+  public void visitContinueStatement(ContinueStatement continueStatement) throws IOException {
+    out.writeSymbol(continueStatement.getSymKeyword());
+    if (continueStatement.getOptStatement() !=null) {
+      continueStatement.getOptStatement().visit(this);
+    }
+    if (continueStatement.getOptLabel() != null) {
+      continueStatement.getOptLabel().visit(this);
+    }
+    if (continueStatement.getOptSymSemicolon() != null) {
+      out.writeSymbol(continueStatement.getOptSymSemicolon());
+    }
+  }
+
+  @Override
+  public void visitBreakStatement(BreakStatement breakStatement) throws IOException {
+    out.writeSymbol(breakStatement.getSymKeyword());
+    if (breakStatement.getOptStatement() !=null) {
+      breakStatement.getOptStatement().visit(this);
+    }
+    if (breakStatement.getOptLabel() != null) {
+      breakStatement.getOptLabel().visit(this);
+    }
+    if (breakStatement.getOptSymSemicolon() != null) {
+      out.writeSymbol(breakStatement.getOptSymSemicolon());
+    }
+  }
+
+  @Override
+  public void visitThrowStatement(ThrowStatement throwStatement) throws IOException {
+    out.writeSymbol(throwStatement.getSymKeyword());
+    if (throwStatement.getOptStatement() !=null) {
+      throwStatement.getOptStatement().visit(this);
+    }
+    if (throwStatement.getOptSymSemicolon() != null) {
+      out.writeSymbol(throwStatement.getOptSymSemicolon());
+    }
+  }
+
+  @Override
+  public void visitReturnStatement(ReturnStatement returnStatement) throws IOException {
+    out.writeSymbol(returnStatement.getSymKeyword());
+    if (returnStatement.getOptStatement() !=null) {
+      returnStatement.getOptStatement().visit(this);
+    }
+    if (returnStatement.getOptSymSemicolon() != null) {
+      out.writeSymbol(returnStatement.getOptSymSemicolon());
+    }
+  }
+
+  @Override
+  public void visitEmptyStatement(EmptyStatement emptyStatement) throws IOException {
+    visitSemicolonTerminatedStatement(emptyStatement);
+  }
+
+  @Override
+  public void visitEmptyDeclaration(EmptyDeclaration emptyDeclaration) throws IOException {
+    out.writeSymbolWhitespace(emptyDeclaration.getSymSemicolon());
+  }
+
+  @Override
+  public void visitParameter(Parameter parameter) throws IOException {
+    Debug.assertTrue(parameter.getModifiers() == 0, "Parameters must not have any modifiers");
+    boolean isRest = parameter.isRest();
+    if (parameter.getOptSymConstOrRest() != null) {
+      out.beginCommentWriteSymbol(parameter.getOptSymConstOrRest());
+      if (isRest) {
+        parameter.getIde().visit(this);
+      }
+      out.endComment();
+    }
+    if (!isRest) {
+      parameter.getIde().visit(this);
+    }
+    if (parameter.getOptTypeRelation() !=null)
+      parameter.getOptTypeRelation().visit(this);
+    // in the method signature, comment out initializer code.
+    if (parameter.getOptInitializer() != null) {
+      out.beginComment();
+      parameter.getOptInitializer().visit(this);
+      out.endComment();
+    }
+  }
+
+  @Override
+  public void visitGetterSetterPair(GetterSetterPair getterSetterPair) throws IOException {
+    throw new IllegalStateException("GetterSetterPair#generateCode() should never be called!");
+  }
+
+  @Override
+  public void visitVariableDeclaration(VariableDeclaration variableDeclaration) throws IOException {
+    if (variableDeclaration.hasPreviousVariableDeclaration()) {
+      Debug.assertTrue(variableDeclaration.getOptSymConstOrVar() != null && variableDeclaration.getOptSymConstOrVar().sym == sym.COMMA, "Additional variable declarations must start with a COMMA.");
+      out.writeSymbol(variableDeclaration.getOptSymConstOrVar());
+    } else {
+      generateVariableDeclarationStartCode(variableDeclaration);
+    }
+    variableDeclaration.getIde().visit(this);
+    if (variableDeclaration.getOptTypeRelation() != null) {
+      variableDeclaration.getOptTypeRelation().visit(this);
+    }
+    generateVariableDeclarationInitializerCode(variableDeclaration);
+    if (variableDeclaration.getOptNextVariableDeclaration() != null) {
+      variableDeclaration.getOptNextVariableDeclaration().visit(this);
+    }
+    generateVariableDeclarationEndCode(variableDeclaration);
+  }
+
+  protected void generateVariableDeclarationStartCode(VariableDeclaration variableDeclaration) throws IOException {
+    if (variableDeclaration.isClassMember()) {
+      generateFieldStartCode(variableDeclaration);
+    } else {
+      generateVarStartCode(variableDeclaration);
+    }
+  }
+
+  protected void generateVarStartCode(VariableDeclaration variableDeclaration) throws IOException {
+    out.beginComment();
+    writeModifiers(out, variableDeclaration);
+    out.endComment();
+    if (variableDeclaration.getOptSymConstOrVar() != null) {
+      if (variableDeclaration.isConst()) {
+        out.beginCommentWriteSymbol(variableDeclaration.getOptSymConstOrVar());
+        out.endComment();
+        out.writeToken("var");
+      } else {
+        out.writeSymbol(variableDeclaration.getOptSymConstOrVar());
+      }
+    }
+  }
+
+  protected void generateFieldStartCode(VariableDeclaration variableDeclaration) throws IOException {
+    out.beginString();
+    writeModifiers(out, variableDeclaration);
+    if (variableDeclaration.getOptSymConstOrVar() !=null)
+      out.writeSymbol(variableDeclaration.getOptSymConstOrVar());
+    out.endString();
+    out.write(",{");
+  }
+
+  protected void generateVariableDeclarationInitializerCode(VariableDeclaration variableDeclaration) throws IOException {
+    if (variableDeclaration.isClassMember()) {
+      generateFieldInitializerCode(variableDeclaration);
+    } else {
+      generateVarInitializerCode(variableDeclaration);
+    }
+  }
+
+  protected void generateFieldInitializerCode(VariableDeclaration variableDeclaration) throws IOException {
+    if (variableDeclaration.getOptInitializer() != null) {
+      out.writeSymbolWhitespace(variableDeclaration.getOptInitializer().getSymEq());
+      out.write(':');
+      boolean mustEvaluateAtRuntime = !variableDeclaration.getOptInitializer().getValue().isCompileTimeConstant();
+      if (mustEvaluateAtRuntime) {
+        out.writeToken("function(){return(");
+      }
+      variableDeclaration.getOptInitializer().getValue().visit(this);
+      if (mustEvaluateAtRuntime) {
+        out.writeToken(");}");
+      }
+    } else {
+      TypeRelation typeRelation = variableDeclaration.getOptTypeRelation();
+      String emptyValue = VariableDeclaration.getDefaultValue(typeRelation);
+      out.write(":" + emptyValue);
+    }
+  }
+
+  private void generateVarInitializerCode(VariableDeclaration variableDeclaration) throws IOException {
+    if (variableDeclaration.getOptInitializer() != null) {
+      variableDeclaration.getOptInitializer().visit(this);
+    }
+  }
+
+  protected void generateVariableDeclarationEndCode(VariableDeclaration variableDeclaration) throws IOException {
+    if (variableDeclaration.isClassMember()) {
+      generateFieldEndCode(variableDeclaration);
+    } else {
+      generateVarEndCode(variableDeclaration);
+    }
+  }
+
+  protected void generateFieldEndCode(VariableDeclaration variableDeclaration) throws IOException {
+    if (!variableDeclaration.hasPreviousVariableDeclaration()) {
+      out.write('}');
+      Debug.assertTrue(variableDeclaration.getOptSymSemicolon() != null, "optSymSemicolon != null");
+      out.writeSymbolWhitespace(variableDeclaration.getOptSymSemicolon());
+      out.writeToken(",");
+    }
+  }
+
+  protected void generateVarEndCode(VariableDeclaration variableDeclaration) throws IOException {
+    if (variableDeclaration.getOptSymSemicolon() != null) {
+      out.writeSymbol(variableDeclaration.getOptSymSemicolon());
+    }
+  }
+
+  @Override
+  public void visitFunctionDeclaration(FunctionDeclaration functionDeclaration) throws IOException {
+    assert functionDeclaration.isClassMember() || (!functionDeclaration.isNative() && !functionDeclaration.isAbstract());
+    if (functionDeclaration.isConstructor() && !functionDeclaration.containsSuperConstructorCall() && functionDeclaration.hasBody()) {
+      addSuperCallCodeGenerator(functionDeclaration.getClassDeclaration(), functionDeclaration.getBody());
+    }
+    if (!functionDeclaration.isClassMember()) {
+      functionDeclaration.getFun().visit(this);
+    } else {
+      if (functionDeclaration.isAbstract()) {
+        out.beginComment();
+        writeModifiers(out, functionDeclaration);
+        out.writeSymbol(functionDeclaration.getFun().getFunSymbol());
+        functionDeclaration.getIde().visit(this);
+      } else {
+        out.beginString();
+        writeModifiers(out, functionDeclaration);
+        out.writeSymbol(functionDeclaration.getFun().getFunSymbol());
+        if (functionDeclaration.isGetterOrSetter()) {
+          out.writeSymbol(functionDeclaration.getSymGetOrSet());
+        }
+        functionDeclaration.getIde().visit(this);
+        out.endString();
+        if (functionDeclaration.isNative()) {
+          out.beginComment();
+        } else {
+          out.write(",");
+          out.writeToken("function");
+          if (out.getKeepSource()) {
+            String functionName = functionDeclaration.getIde().getName();
+            if (functionDeclaration.isConstructor()) {
+              // do not name the constructor initializer function like the class, or it will be called
+              // instead of the constructor function generated by the runtime! So we prefix it with a "$".
+              // The name is for debugging purposes only, anyway.
+              out.writeToken(functionName + "$");
+            } else if (functionDeclaration.getSymGetOrSet() != null) {
+              out.writeToken(functionName + "$" + functionDeclaration.getSymGetOrSet().getText());
+            } else {
+              out.writeToken(functionName);
+            }
+          }
+        }
+      }
+      generateFunTailCode(functionDeclaration.getFun());
+      if (functionDeclaration.isClassMember()) {
+        if (functionDeclaration.isAbstract() || functionDeclaration.isNative()) {
+          out.endComment();
+        }
+        out.write(',');
+      }
+    }
+  }
+
+  @Override
+  public void visitClassDeclaration(ClassDeclaration classDeclaration) throws IOException {
+    for (AstNode node : classDeclaration.getDirectives()) {
+      node.visit(this);
+    }
+    out.beginString();
+    writeModifiers(out, classDeclaration);
+    out.writeSymbol(classDeclaration.getSymClass());
+    classDeclaration.getIde().visit(this);
+    if (classDeclaration.getOptExtends() != null) {
+      classDeclaration.getOptExtends().visit(this);
+    }
+    if (classDeclaration.getOptImplements() != null) {
+      classDeclaration.getOptImplements().visit(this);
+    }
+    out.endString();
+    out.write(",");
+    out.write(classDeclaration.getInheritanceLevel() + ",");
+    out.write("function($$private){");
+    writeBuiltInAliases(classDeclaration);
+    out.write("return[");
+    generateClassInits(classDeclaration);
+    classDeclaration.getBody().visit(this);
+    if (classDeclaration.getConstructor() == null && !classDeclaration.getFieldsWithInitializer().isEmpty()) {
+      // generate default constructor that calls field initializers:
+      out.write("\"public function " + classDeclaration.getName() + "\",function " + classDeclaration.getName() + "$(){");
+      new SuperCallCodeGenerator(classDeclaration).generate(out);
+      out.write("}");
+    }
+
+    for (IdeDeclaration secondaryDeclaration : classDeclaration.getSecondaryDeclarations()) {
+      secondaryDeclaration.visit(this);
+      out.writeToken(",");
+    }
+
+    out.write("];},");
+    generateStaticMethodList(classDeclaration);
+  }
+
+  public void addSuperCallCodeGenerator(ClassDeclaration classDeclaration, BlockStatement body) {
+    body.addBlockStartCodeGenerator(new SuperCallCodeGenerator(classDeclaration));
+  }
+
+
+  public void generateFieldInitCode(ClassDeclaration classDeclaration, boolean startWithSemicolon, boolean endWithSemicolon) throws IOException {
+    Iterator<VariableDeclaration> iterator = classDeclaration.getFieldsWithInitializer().iterator();
+    if (iterator.hasNext()) {
+      if (startWithSemicolon) {
+        out.write(";");
+      }
+      do {
+        VariableDeclaration field = iterator.next();
+        field.generateInitCode(out, endWithSemicolon || iterator.hasNext());
+      } while (iterator.hasNext());
+    }
+  }
+
+  private class SuperCallCodeGenerator implements CodeGenerator {
+    private ClassDeclaration classDeclaration;
+
+    public SuperCallCodeGenerator(ClassDeclaration classDeclaration) {
+      this.classDeclaration = classDeclaration;
+    }
+
+    @Override
+    public void generateJsCode(JsWriter out) throws IOException {
+      generate(out);
+    }
+
+    @Override
+    public void generate(JsWriter out) throws IOException {
+      int inheritanceLevel = classDeclaration.getInheritanceLevel();
+      if (inheritanceLevel > 1) { // suppress for classes extending Object
+        out.writeToken("this.super$" + inheritanceLevel + "();");
+      }
+      generateFieldInitCode(classDeclaration, false, true);
+    }
+
+    @Override
+    public void generateAsApiCode(JsWriter out) throws IOException {
+      throw new UnsupportedOperationException();
+    }
+  }
+
+  private void generateStaticMethodList(ClassDeclaration classDeclaration) throws IOException {
+    out.write("[");
+    boolean isFirst = true;
+    for (TypedIdeDeclaration memberDeclaration : classDeclaration.getStaticMembers().values()) {
+      if (memberDeclaration.isMethod() && !memberDeclaration.isPrivate() && !memberDeclaration.isProtected() && memberDeclaration.isStatic() && !memberDeclaration.isNative()) {
+        if (isFirst) {
+          isFirst = false;
+        } else {
+          out.write(",");
+        }
+        out.write('"');
+        out.write(memberDeclaration.getName());
+        out.write('"');
+      }
+    }
+    out.write("]");
+  }
+
+  private void writeBuiltInAliases(ClassDeclaration classDeclaration) throws IOException {
+    boolean first = true;
+    for (String builtIn : classDeclaration.getUsedBuiltIns()) {
+      String sourceName = "joo." + ("$$bound".equals(builtIn) ? "boundMethod" : builtIn);
+      if (first) {
+        out.writeToken("var");
+        first = false;
+      } else {
+        out.writeToken(",");
+      }
+      out.writeToken(builtIn);
+      out.writeToken("=");
+      out.writeToken(sourceName);
+    }
+    out.writeToken(";");
+  }
+
+  private void generateClassInits(ClassDeclaration classDeclaration) throws IOException {
+    boolean first = true;
+    for (String qualifiedNameStr : classDeclaration.getClassInit()) {
+      if (first) {
+        first = false;
+        out.write("function(){" + Jooc.CLASS_LOADER_FULLY_QUALIFIED_NAME + ".init(");
+      } else {
+        out.write(",");
+      }
+      out.write(qualifiedNameStr);
+    }
+    if (!first) {
+      out.write(");},");
+    }
+  }
+
+  @Override
+  public void visitPredefinedTypeDeclaration(PredefinedTypeDeclaration predefinedTypeDeclaration) throws IOException {
+    throw new UnsupportedOperationException("there should be no code generation for predefined types");
+  }
+
+  @Override
+  public void visitNamespacedDeclaration(NamespacedDeclaration namespacedDeclaration) throws IOException {
+    out.beginString();
+    writeModifiers(out, namespacedDeclaration);
+    out.writeSymbol(namespacedDeclaration.getSymNamespace());
+    namespacedDeclaration.getIde().visit(this);
+    out.endString();
+    out.writeSymbolWhitespace(namespacedDeclaration.getOptInitializer().getSymEq());
+    out.writeToken(",");
+    namespacedDeclaration.getOptInitializer().getValue().visit(this);
+    if (namespacedDeclaration.getOptSymSemicolon() != null) {
+      out.writeSymbolWhitespace(namespacedDeclaration.getOptSymSemicolon());
+    }
+    out.writeToken(",[]");
+  }
+
+  @Override
+  public void visitPackageDeclaration(PackageDeclaration packageDeclaration) throws IOException {
+    out.beginString();
+    out.writeSymbol(packageDeclaration.getSymPackage());
+    if (packageDeclaration.getIde() !=null) {
+      packageDeclaration.getIde().visit(this);
+    }
+    out.endString();
+    out.write(",");
+  }
+
+  @Override
+  public void visitSuperConstructorCallStatement(SuperConstructorCallStatement superConstructorCallStatement) throws IOException {
+    if (superConstructorCallStatement.getClassDeclaration().getInheritanceLevel() > 1) {
+      generateFunCode(superConstructorCallStatement);
+      generateArgsCode(superConstructorCallStatement);
+      generateFieldInitCode(superConstructorCallStatement.getClassDeclaration(), true, false);
+    } else { // suppress for classes extending Object
+      // Object super call does nothing anyway:
+      out.beginComment();
+      out.writeSymbol(superConstructorCallStatement.getSymbol());
+      generateArgsCode(superConstructorCallStatement);
+      out.endComment();
+      generateFieldInitCode(superConstructorCallStatement.getClassDeclaration(), false, false);
+    }
+    out.writeSymbol(superConstructorCallStatement.getSymSemicolon());
+  }
+
+  private void generateFunCode(SuperConstructorCallStatement superConstructorCallStatement) throws IOException {
+    out.writeSymbolWhitespace(superConstructorCallStatement.getSymbol());
+    out.writeToken("this.super$" + superConstructorCallStatement.getClassDeclaration().getInheritanceLevel());
+  }
+
+  private void generateArgsCode(SuperConstructorCallStatement superConstructorCallStatement) throws IOException {
+    if (superConstructorCallStatement.getArgs() != null) {
+      superConstructorCallStatement.getArgs().visit(this);
+    }
+  }
+
+  @Override
+  public void visitAnnotation(Annotation annotation) throws IOException {
+    out.writeSymbolWhitespace(annotation.getLeftBracket());
+    out.writeToken("{");
+    annotation.getIde().visit(this);
+    out.writeToken(":");
+    if (annotation.getOptLeftParen() != null) {
+      out.writeSymbolWhitespace(annotation.getOptLeftParen());
+    }
+    out.writeToken("{");
+    if (annotation.getOptAnnotationParameters() != null) {
+      annotation.getOptAnnotationParameters().visit(this);
+    }
+    if (annotation.getOptRightParen() != null) {
+      out.writeSymbolWhitespace(annotation.getOptRightParen());
+    }
+    out.writeToken("}");
+    out.writeSymbolWhitespace(annotation.getRightBracket());
+    out.writeToken("},");
+  }
+
+  @Override
+  public void visitUseNamespaceDirective(UseNamespaceDirective useNamespaceDirective) throws IOException {
+    out.beginComment();
+    out.writeSymbol(useNamespaceDirective.getUseKeyword());
+    out.writeSymbol(useNamespaceDirective.getNamespaceKeyword());
+    useNamespaceDirective.getNamespace().visit(this);
+    out.writeSymbol(useNamespaceDirective.getSymSemicolon());
+    out.endComment();
+  }
+
+  @Override
+  public void visitImportDirective(ImportDirective importDirective) throws IOException {
+    if (importDirective.isExplicit()) {
+      out.beginComment();
+      out.writeSymbol(importDirective.getImportKeyword());
+      importDirective.getIde().visit(this);
+      out.writeSymbol(importDirective.getSymSemicolon());
+      out.endComment();
+    }
+  }
+}

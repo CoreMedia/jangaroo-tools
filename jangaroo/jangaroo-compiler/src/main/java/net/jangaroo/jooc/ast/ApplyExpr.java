@@ -19,7 +19,6 @@ import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
-import net.jangaroo.jooc.SyntacticKeywords;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -44,7 +43,7 @@ public class ApplyExpr extends Expr {
   }
 
   @Override
-  public void visit(AstVisitor visitor) {
+  public void visit(AstVisitor visitor) throws IOException {
     visitor.visitApplyExpr(this);
   }
 
@@ -63,39 +62,10 @@ public class ApplyExpr extends Expr {
   }
 
   public void generateJsCode(JsWriter out) throws IOException {
-    generateFunJsCode(out);
-    if (getArgs() != null) {
-      boolean isAssert = getFun() instanceof IdeExpr && SyntacticKeywords.ASSERT.equals(getFun().getSymbol().getText());
-      if (isAssert) {
-        JooSymbol symKeyword = getFun().getSymbol();
-        out.writeSymbol(getArgs().getlParen());
-        getArgs().getExpr().generateJsCode(out);
-        out.writeToken(", ");
-        out.writeString(symKeyword.getFileName());
-        out.writeToken(", ");
-        out.writeInt(symKeyword.getLine());
-        out.write(", ");
-        out.writeInt(symKeyword.getColumn());
-        out.writeSymbol(getArgs().getrParen());
-      } else {
-        getArgs().generateJsCode(out);
-      }
-    }
+    throw new UnsupportedOperationException();
   }
 
-  private void generateFunJsCode(JsWriter out) throws IOException {
-    // leave out constructor function if called as type cast function!
-    // these old-style type casts are soo ugly....
-    if (isTypeCast()) {
-      out.beginComment();
-      getFun().generateJsCode(out);
-      out.endComment();
-    } else {
-      getFun().generateJsCode(out);
-    }
-  }
-
-  private boolean isTypeCast() {
+  public boolean isTypeCast() {
     return getFun() instanceof IdeExpr && !isInsideNewExpr() && isNonCoercingType((IdeExpr) getFun());
   }
 

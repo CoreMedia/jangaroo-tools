@@ -18,6 +18,8 @@ package net.jangaroo.jooc.ast;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 
+import java.io.IOException;
+
 /**
  * @author Andreas Gawecki
  */
@@ -28,7 +30,7 @@ public class ContinueStatement extends LabelRefStatement {
   }
 
   @Override
-  public void visit(AstVisitor visitor) {
+  public void visit(AstVisitor visitor) throws IOException {
     visitor.visitContinueStatement(this);
   }
 

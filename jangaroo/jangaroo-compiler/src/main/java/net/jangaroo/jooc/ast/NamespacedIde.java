@@ -39,7 +39,7 @@ public class NamespacedIde extends Ide {
   }
 
   @Override
-  public void visit(AstVisitor visitor) {
+  public void visit(AstVisitor visitor) throws IOException {
     visitor.visitNamespacedIde(this);
   }
 
@@ -57,12 +57,7 @@ public class NamespacedIde extends Ide {
   }
 
   public void generateJsCode(JsWriter out) throws IOException {
-    // so far, namespaces are only comments:
-    out.beginComment();
-    out.writeSymbol(namespace);
-    out.writeSymbol(symNamespaceSep);
-    out.endComment();
-    super.generateJsCode(out);
+    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -92,6 +87,14 @@ public class NamespacedIde extends Ide {
 
   public JooSymbol getSymbol() {
     return namespace;
+  }
+
+  public JooSymbol getNamespace() {
+    return namespace;
+  }
+
+  public JooSymbol getSymNamespaceSep() {
+    return symNamespaceSep;
   }
 
   @Override

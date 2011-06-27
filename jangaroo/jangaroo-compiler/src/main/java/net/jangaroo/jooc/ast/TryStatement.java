@@ -46,7 +46,7 @@ public class TryStatement extends KeywordStatement {
   }
 
   @Override
-  public void visit(AstVisitor visitor) {
+  public void visit(AstVisitor visitor) throws IOException {
     visitor.visitTryStatement(this);
   }
 
@@ -67,16 +67,8 @@ public class TryStatement extends KeywordStatement {
   }
 
   public void generateJsCode(JsWriter out) throws IOException {
-    super.generateJsCode(out);
-    getBlock().generateJsCode(out);
-    for (AstNode node : getCatches()) {
-      node.generateJsCode(out);
-    }
-    if (getSymFinally() != null) {
-      out.writeSymbol(getSymFinally());
-      getFinallyBlock().generateJsCode(out);
-    }
-   }
+    throw new UnsupportedOperationException();
+  }
 
   public BlockStatement getBlock() {
     return block;

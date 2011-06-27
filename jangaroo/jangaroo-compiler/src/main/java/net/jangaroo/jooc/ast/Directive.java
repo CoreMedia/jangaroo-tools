@@ -15,8 +15,6 @@
 
 package net.jangaroo.jooc.ast;
 
-import net.jangaroo.jooc.ast.NodeImplBase;
-
 /**
  * Directives are language elements that can have an effect at compile time, load time or runtime.
  *

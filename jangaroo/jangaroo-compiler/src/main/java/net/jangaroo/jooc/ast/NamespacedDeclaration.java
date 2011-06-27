@@ -43,8 +43,20 @@ public class NamespacedDeclaration extends IdeDeclaration {
   }
 
   @Override
-  public void visit(AstVisitor visitor) {
+  public void visit(AstVisitor visitor) throws IOException {
     visitor.visitNamespacedDeclaration(this);
+  }
+
+  public Initializer getOptInitializer() {
+    return optInitializer;
+  }
+
+  public JooSymbol getSymNamespace() {
+    return symNamespace;
+  }
+
+  public JooSymbol getOptSymSemicolon() {
+    return optSymSemicolon;
   }
 
   @Override
@@ -70,18 +82,7 @@ public class NamespacedDeclaration extends IdeDeclaration {
 
   @Override
   public void generateJsCode(JsWriter out) throws IOException {
-    out.beginString();
-    writeModifiers(out);
-    out.writeSymbol(symNamespace);
-    getIde().generateJsCode(out);
-    out.endString();
-    out.writeSymbolWhitespace(optInitializer.getSymEq());
-    out.writeToken(",");
-    optInitializer.getValue().generateJsCode(out);
-    if (optSymSemicolon != null) {
-      out.writeSymbolWhitespace(optSymSemicolon);
-    }
-    out.writeToken(",[]");
+    throw new UnsupportedOperationException();
   }
 
 }

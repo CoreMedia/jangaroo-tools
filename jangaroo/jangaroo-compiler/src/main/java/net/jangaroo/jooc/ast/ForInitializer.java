@@ -39,7 +39,7 @@ public class ForInitializer extends NodeImplBase {
   }
 
   @Override
-  public void visit(AstVisitor visitor) {
+  public void visit(AstVisitor visitor) throws IOException {
     visitor.visitForInitializer(this);
   }
 
@@ -60,10 +60,7 @@ public class ForInitializer extends NodeImplBase {
   }
 
   public void generateJsCode(JsWriter out) throws IOException {
-    if (getDecl() != null)
-      getDecl().generateJsCode(out);
-    else if (getExpr() != null)
-      getExpr().generateJsCode(out);
+    throw new UnsupportedOperationException();
   }
 
   public JooSymbol getSymbol() {

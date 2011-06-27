@@ -38,7 +38,7 @@ public class ObjectField extends NodeImplBase {
   }
 
   @Override
-  public void visit(AstVisitor visitor) {
+  public void visit(AstVisitor visitor) throws IOException {
     visitor.visitObjectField(this);
   }
 
@@ -55,9 +55,7 @@ public class ObjectField extends NodeImplBase {
   }
 
   public void generateJsCode(JsWriter out) throws IOException {
-    getLabel().generateJsCode(out);
-    out.writeSymbol(getSymColon());
-    getValue().generateJsCode(out);
+    throw new UnsupportedOperationException();
   }
 
   public JooSymbol getSymbol() {

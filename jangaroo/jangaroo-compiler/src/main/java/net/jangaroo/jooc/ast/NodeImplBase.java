@@ -21,7 +21,6 @@ import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -30,11 +29,12 @@ import java.util.List;
 public abstract class NodeImplBase implements AstNode {
   public abstract void generateJsCode(final JsWriter out) throws IOException;
 
-  /**
-   * Default implementation generates same code as JS. Overwritten where this must differ.
-   */
   public void generateAsApiCode(final JsWriter out) throws IOException {
-    generateJsCode(out);
+    throw new UnsupportedOperationException("please override in non-abstract subclass "+getClass());
+  }
+
+  public void generate(final JsWriter out) throws IOException {
+    throw new UnsupportedOperationException();
   }
 
   public void analyze(AstNode parentNode, AnalyzeContext context) {

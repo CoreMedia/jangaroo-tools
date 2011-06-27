@@ -16,7 +16,6 @@
 package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.AnalyzeContext;
-import net.jangaroo.jooc.CodeGenerator;
 import net.jangaroo.jooc.DeclarationScope;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
@@ -24,7 +23,15 @@ import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Andreas Gawecki
@@ -40,8 +47,8 @@ public class ClassDeclaration extends IdeDeclaration {
   private Set<String> classInit = new HashSet<String>();
   private ClassBody body;
   private FunctionDeclaration constructor = null;
-  private IdeType thisType;
-  private IdeType superType;
+  private Type thisType;
+  private Type superType;
   private List<VariableDeclaration> fieldsWithInitializer = new ArrayList<VariableDeclaration>();
   private List<IdeDeclaration> secondaryDeclarations = Collections.emptyList();
   private Set<String> usedBuiltIns = new LinkedHashSet<String>();
@@ -63,7 +70,7 @@ public class ClassDeclaration extends IdeDeclaration {
   }
 
   @Override
-  public void visit(AstVisitor visitor) {
+  public void visit(AstVisitor visitor) throws IOException {
     visitor.visitClassDeclaration(this);
   }
 
@@ -124,45 +131,7 @@ public class ClassDeclaration extends IdeDeclaration {
   }
 
   public void generateJsCode(JsWriter out) throws IOException {
-    for (AstNode node : directives) {
-      node.generateJsCode(out);
-    }
-    out.beginString();
-    writeModifiers(out);
-    out.writeSymbol(getSymClass());
-    getIde().generateJsCode(out);
-    if (getOptExtends() != null) {
-      getOptExtends().generateJsCode(out);
-    }
-    if (getOptImplements() != null) {
-      getOptImplements().generateJsCode(out);
-    }
-    out.endString();
-    out.write(",");
-    out.write(getInheritanceLevel() + ",");
-    out.write("function($$private){");
-    writeBuiltInAliases(out);
-    out.write("return[");
-    generateClassInits(out);
-    body.generateJsCode(out);
-    if (constructor == null && !fieldsWithInitializer.isEmpty()) {
-      // generate default constructor that calls field initializers:
-      out.write("\"public function " + getName() + "\",function " + getName() + "$(){");
-      new SuperCallCodeGenerator().generateJsCode(out);
-      out.write("}");
-    }
-
-    for (IdeDeclaration secondaryDeclaration : secondaryDeclarations) {
-      secondaryDeclaration.generateJsCode(out);
-      out.writeToken(",");
-    }
-
-    out.write("];},");
-    generateStaticMethodList(out);
-  }
-
-  public void addSuperCallCodeGenerator(BlockStatement body) {
-    body.addBlockStartCodeGenerator(new SuperCallCodeGenerator());
+    throw new UnsupportedOperationException();
   }
 
   public JooSymbol getSymClass() {
@@ -189,71 +158,32 @@ public class ClassDeclaration extends IdeDeclaration {
     this.optImplements = optImplements;
   }
 
-  private class SuperCallCodeGenerator implements CodeGenerator {
-    @Override
-    public void generateJsCode(JsWriter out) throws IOException {
-      int inheritanceLevel = getInheritanceLevel();
-      if (inheritanceLevel > 1) { // suppress for classes extending Object
-        out.writeToken("this.super$" + inheritanceLevel + "();");
-      }
-      generateFieldInitCode(out, false, true);
-    }
-
-    @Override
-    public void generateAsApiCode(JsWriter out) throws IOException {
-      throw new UnsupportedOperationException();
-    }
+  public List<VariableDeclaration> getFieldsWithInitializer() {
+    return fieldsWithInitializer;
   }
 
-  private void writeBuiltInAliases(JsWriter out) throws IOException {
-    boolean first = true;
-    for (String builtIn : usedBuiltIns) {
-      String sourceName = "joo." + ("$$bound".equals(builtIn) ? "boundMethod" : builtIn);
-      if (first) {
-        out.writeToken("var");
-        first = false;
-      } else {
-        out.writeToken(",");
-      }
-      out.writeToken(builtIn);
-      out.writeToken("=");
-      out.writeToken(sourceName);
-    }
-    out.writeToken(";");
+  public ClassBody getBody() {
+    return body;
   }
 
-  private void generateClassInits(JsWriter out) throws IOException {
-    boolean first = true;
-    for (String qualifiedNameStr : classInit) {
-      if (first) {
-        first = false;
-        out.write("function(){" + Jooc.CLASS_LOADER_FULLY_QUALIFIED_NAME + ".init(");
-      } else {
-        out.write(",");
-      }
-      out.write(qualifiedNameStr);
-    }
-    if (!first) {
-      out.write(");},");
-    }
+  public List<IdeDeclaration> getSecondaryDeclarations() {
+    return secondaryDeclarations;
   }
 
-  private void generateStaticMethodList(JsWriter out) throws IOException {
-    out.write("[");
-    boolean isFirst = true;
-    for (TypedIdeDeclaration memberDeclaration : staticMembers.values()) {
-      if (memberDeclaration.isMethod() && !memberDeclaration.isPrivate() && !memberDeclaration.isProtected() && memberDeclaration.isStatic() && !memberDeclaration.isNative()) {
-        if (isFirst) {
-          isFirst = false;
-        } else {
-          out.write(",");
-        }
-        out.write('"');
-        out.write(memberDeclaration.getName());
-        out.write('"');
-      }
-    }
-    out.write("]");
+  public Map<String, TypedIdeDeclaration> getStaticMembers() {
+    return staticMembers;
+  }
+
+  public Set<String> getClassInit() {
+    return classInit;
+  }
+
+  public Set<String> getUsedBuiltIns() {
+    return usedBuiltIns;
+  }
+
+  public List<AstNode> getDirectives() {
+    return directives;
   }
 
   void scopeDirectives(Scope scope, Ide packageIde) {
@@ -270,9 +200,9 @@ public class ClassDeclaration extends IdeDeclaration {
     super.scope(scope);
 
     // define these here so they get the right scope:
-    thisType = new IdeType(new Ide(getIde().getSymbol()));
+    thisType = new Type(new Ide(getIde().getSymbol()));
     superType = "Object".equals(getQualifiedNameStr()) ? null
-      : new IdeType(getOptExtends() == null ? new Ide("Object") : getOptExtends().getSuperClass());
+      : new Type(getOptExtends() == null ? new Ide("Object") : getOptExtends().getSuperClass());
 
     thisType.scope(scope);
     if (superType != null) {
@@ -451,18 +381,5 @@ public class ClassDeclaration extends IdeDeclaration {
 
   public void addFieldWithInitializer(VariableDeclaration fieldDeclaration) {
     fieldsWithInitializer.add(fieldDeclaration);
-  }
-
-  public void generateFieldInitCode(JsWriter out, boolean startWithSemicolon, boolean endWithSemicolon) throws IOException {
-    Iterator<VariableDeclaration> iterator = fieldsWithInitializer.iterator();
-    if (iterator.hasNext()) {
-      if (startWithSemicolon) {
-        out.write(";");
-      }
-      do {
-        VariableDeclaration field = iterator.next();
-        field.generateInitCode(out, endWithSemicolon || iterator.hasNext());
-      } while (iterator.hasNext());
-    }
   }
 }

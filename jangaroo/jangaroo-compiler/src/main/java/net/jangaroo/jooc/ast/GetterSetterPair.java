@@ -21,7 +21,7 @@ public class GetterSetterPair extends IdeDeclaration {
   }
 
   @Override
-  public void visit(AstVisitor visitor) {
+  public void visit(AstVisitor visitor) throws IOException {
     visitor.visitGetterSetterPair(this);
   }
 

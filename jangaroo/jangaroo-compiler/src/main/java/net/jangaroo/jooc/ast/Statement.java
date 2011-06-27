@@ -16,7 +16,6 @@
 package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.JsWriter;
-import net.jangaroo.jooc.ast.Directive;
 
 import java.io.IOException;
 

@@ -50,7 +50,7 @@ public class SemicolonTerminatedStatement extends Statement {
   }
 
   @Override
-  public void visit(AstVisitor visitor) {
+  public void visit(AstVisitor visitor) throws IOException {
     visitor.visitSemicolonTerminatedStatement(this);
   }
 
@@ -62,15 +62,8 @@ public class SemicolonTerminatedStatement extends Statement {
     }
   }
 
-  protected void generateStatementCode(JsWriter out) throws IOException {
-    if (getOptStatement() !=null)
-      getOptStatement().generateJsCode(out);
-  }
-  
   public void generateJsCode(JsWriter out) throws IOException {
-    generateStatementCode(out);
-    if (getOptSymSemicolon() != null)
-      out.writeSymbol(getOptSymSemicolon());
+    throw new UnsupportedOperationException();
   }
 
   public void analyze(AstNode parentNode, AnalyzeContext context) {

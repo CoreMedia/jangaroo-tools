@@ -33,14 +33,7 @@ public abstract class AbstractBlock extends Statement {
   }
 
   public void generateJsCode(JsWriter out) throws IOException {
-    out.writeSymbol(getLBrace());
-    for (CodeGenerator codeGenerator : getBlockStartCodeGenerators()) {
-      codeGenerator.generateJsCode(out);
-    }
-    for (AstNode node : getDirectives()) {
-      node.generateJsCode(out);
-    }
-    out.writeSymbol(getRBrace());
+    throw new UnsupportedOperationException();
   }
 
   public void analyze(AstNode parentNode, AnalyzeContext context) {
@@ -78,9 +71,5 @@ public abstract class AbstractBlock extends Statement {
 
   public List<CodeGenerator> getBlockStartCodeGenerators() {
     return blockStartCodeGenerators;
-  }
-
-  public void setBlockStartCodeGenerators(List<CodeGenerator> blockStartCodeGenerators) {
-    this.blockStartCodeGenerators = blockStartCodeGenerators;
   }
 }

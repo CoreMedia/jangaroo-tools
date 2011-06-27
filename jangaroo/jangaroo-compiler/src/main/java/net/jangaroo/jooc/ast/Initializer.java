@@ -36,7 +36,7 @@ public class Initializer extends NodeImplBase {
   }
 
   @Override
-  public void visit(AstVisitor visitor) {
+  public void visit(AstVisitor visitor) throws IOException {
     visitor.visitInitializer(this);
   }
 
@@ -51,15 +51,16 @@ public class Initializer extends NodeImplBase {
   }
 
   public void generateJsCode(JsWriter out) throws IOException {
-    out.writeSymbol(getSymEq());
-    getValue().generateJsCode(out);
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public void generateAsApiCode(JsWriter out) throws IOException {
     //todo clarify whether initializers are part of public API
     if (getValue() instanceof LiteralExpr) {
-      super.generateAsApiCode(out);
+      out.writeSymbol(getSymEq());
+      LiteralExpr literalExpr = (LiteralExpr) getValue();
+      out.writeSymbol(literalExpr.getValue());
     }
   }
 

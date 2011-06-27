@@ -58,7 +58,7 @@ public class ImportDirective extends Directive {
   }
 
   @Override
-  public void visit(AstVisitor visitor) {
+  public void visit(AstVisitor visitor) throws IOException {
     visitor.visitImportDirective(this);
   }
 
@@ -73,7 +73,7 @@ public class ImportDirective extends Directive {
 
   @Override
   public void generateAsApiCode(final JsWriter out) throws IOException {
-    if (explicit) {
+    if (isExplicit()) {
       out.writeSymbol(getImportKeyword());
       getIde().generateAsApiCode(out);
       out.writeSymbol(getSymSemicolon());
@@ -83,13 +83,7 @@ public class ImportDirective extends Directive {
 
 
   public void generateJsCode(JsWriter out) throws IOException {
-    if (explicit) {
-      out.beginComment();
-      out.writeSymbol(getImportKeyword());
-      getIde().generateJsCode(out);
-      out.writeSymbol(getSymSemicolon());
-      out.endComment();
-    }
+    throw new UnsupportedOperationException();
   }
 
   public JooSymbol getSymbol() {
@@ -103,7 +97,7 @@ public class ImportDirective extends Directive {
 
     final ImportDirective that = (ImportDirective) o;
 
-    if (explicit != that.explicit) return false;
+    if (isExplicit() != that.isExplicit()) return false;
     if (getIde() != null ? !getIde().equals(that.getIde()) : that.getIde() != null) return false;
 
     return true;
@@ -112,7 +106,7 @@ public class ImportDirective extends Directive {
   @Override
   public int hashCode() {
     int result = getIde() != null ? getIde().hashCode() : 0;
-    result = 31 * result + (explicit ? 1 : 0);
+    result = 31 * result + (isExplicit() ? 1 : 0);
     return result;
   }
 
@@ -141,5 +135,9 @@ public class ImportDirective extends Directive {
 
   public void setSymSemicolon(JooSymbol symSemicolon) {
     this.symSemicolon = symSemicolon;
+  }
+
+  public boolean isExplicit() {
+    return explicit;
   }
 }

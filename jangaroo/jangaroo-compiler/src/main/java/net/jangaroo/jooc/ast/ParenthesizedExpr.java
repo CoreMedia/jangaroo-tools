@@ -38,7 +38,7 @@ public class ParenthesizedExpr<E extends Expr> extends Expr {
   }
 
   @Override
-  public void visit(AstVisitor visitor) {
+  public void visit(AstVisitor visitor) throws IOException {
     visitor.visitParenthesizedExpr(this);
   }
 
@@ -55,23 +55,15 @@ public class ParenthesizedExpr<E extends Expr> extends Expr {
       getExpr().analyze(this, context);
   }
 
-  private void generateExprCode(JsWriter out) throws IOException {
-    if (getExpr() !=null) {
-      getExpr().generateJsCode(out);
-    }
-  }
-
   public void generateJsCode(JsWriter out) throws IOException {
-    out.writeSymbol(getlParen());
-    generateExprCode(out);
-    out.writeSymbol(getrParen());
+    throw new UnsupportedOperationException();
   }
 
   public JooSymbol getSymbol() {
-    return getlParen();
+    return getLParen();
   }
 
-  public JooSymbol getlParen() {
+  public JooSymbol getLParen() {
     return lParen;
   }
 
@@ -87,7 +79,7 @@ public class ParenthesizedExpr<E extends Expr> extends Expr {
     this.expr = expr;
   }
 
-  public JooSymbol getrParen() {
+  public JooSymbol getRParen() {
     return rParen;
   }
 

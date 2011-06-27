@@ -16,11 +16,6 @@
 package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.JooSymbol;
-import net.jangaroo.jooc.JsWriter;
-import net.jangaroo.jooc.ast.Expr;
-import net.jangaroo.jooc.ast.SemicolonTerminatedStatement;
-
-import java.io.IOException;
 
 /**
  * @author Andreas Gawecki
@@ -32,12 +27,6 @@ public abstract class KeywordExprStatement extends SemicolonTerminatedStatement 
   protected KeywordExprStatement(JooSymbol symKeyword, Expr optExpr, JooSymbol symSemicolon) {
     super(optExpr, symSemicolon);
     this.setSymKeyword(symKeyword);
-  }
-
-  @Override
-  protected void generateStatementCode(final JsWriter out) throws IOException {
-    out.writeSymbol(getSymKeyword());
-    super.generateStatementCode(out);
   }
 
   public JooSymbol getSymbol() {

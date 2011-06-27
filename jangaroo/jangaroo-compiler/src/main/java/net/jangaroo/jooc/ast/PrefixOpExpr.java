@@ -30,13 +30,12 @@ public class PrefixOpExpr extends UnaryOpExpr {
   }
 
   @Override
-  public void visit(AstVisitor visitor) {
+  public void visit(AstVisitor visitor) throws IOException {
     visitor.visitPrefixOpExpr(this);
   }
 
   public void generateJsCode(JsWriter out) throws IOException {
-    out.writeSymbol(getOp());
-    getArg().generateJsCode(out);
+    throw new UnsupportedOperationException();
   }
 
   public JooSymbol getSymbol() {

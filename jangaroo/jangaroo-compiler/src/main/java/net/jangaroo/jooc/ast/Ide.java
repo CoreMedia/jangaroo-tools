@@ -66,7 +66,7 @@ public class Ide extends NodeImplBase {
   }
 
   @Override
-  public void visit(AstVisitor visitor) {
+  public void visit(AstVisitor visitor) throws IOException {
     visitor.visitIde(this);
   }
 
@@ -117,7 +117,7 @@ public class Ide extends NodeImplBase {
     out.writeSymbol(getIde());
   }
 
-  private void writeIde(JsWriter out) throws IOException {
+  public void writeIde(JsWriter out) throws IOException {
     // take care of reserved words called as functions (Rhino does not like):
     if (SyntacticKeywords.RESERVED_WORDS.contains(getIde().getText())) {
       out.writeToken("$$" + getIde().getText());
@@ -421,7 +421,7 @@ public class Ide extends NodeImplBase {
       || memberDeclaration.isPrivate();
   }
 
-  protected static IdeDeclaration resolveMember(final IdeDeclaration type, final Ide memberIde) {
+  public static IdeDeclaration resolveMember(final IdeDeclaration type, final Ide memberIde) {
     IdeDeclaration declaration = null;
     if (type != null) {
       declaration = type.resolvePropertyDeclaration(memberIde.getName());

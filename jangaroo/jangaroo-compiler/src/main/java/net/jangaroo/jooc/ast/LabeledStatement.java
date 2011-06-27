@@ -38,7 +38,7 @@ public class LabeledStatement extends Statement {
   }
 
   @Override
-  public void visit(AstVisitor visitor) {
+  public void visit(AstVisitor visitor) throws IOException {
     visitor.visitLabeledStatement(this);
   }
 
@@ -59,9 +59,7 @@ public class LabeledStatement extends Statement {
   }
 
   public void generateJsCode(JsWriter out) throws IOException {
-    getIde().generateJsCode(out);
-    out.writeSymbol(getSymColon());
-    getStatement().generateJsCode(out);
+    throw new UnsupportedOperationException();
   }
 
   public JooSymbol getSymbol() {

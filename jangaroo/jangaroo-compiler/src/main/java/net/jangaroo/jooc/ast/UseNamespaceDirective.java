@@ -43,7 +43,7 @@ public class UseNamespaceDirective extends Directive {
   }
 
   @Override
-  public void visit(AstVisitor visitor) {
+  public void visit(AstVisitor visitor) throws IOException {
     visitor.visitUseNamespaceDirective(this);
   }
 
@@ -65,12 +65,7 @@ public class UseNamespaceDirective extends Directive {
   }
 
   public void generateJsCode(JsWriter out) throws IOException {
-    out.beginComment();
-    out.writeSymbol(getUseKeyword());
-    out.writeSymbol(getNamespaceKeyword());
-    getNamespace().generateJsCode(out);
-    out.writeSymbol(getSymSemicolon());
-    out.endComment();
+    throw new UnsupportedOperationException();
   }
 
   public JooSymbol getSymbol() {

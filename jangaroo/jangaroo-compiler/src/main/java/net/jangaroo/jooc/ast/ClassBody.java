@@ -36,7 +36,7 @@ public class ClassBody extends AbstractBlock {
   }
 
   @Override
-  public void visit(AstVisitor visitor) {
+  public void visit(AstVisitor visitor) throws IOException {
     visitor.visitClassBody(this);
   }
 
@@ -56,33 +56,7 @@ public class ClassBody extends AbstractBlock {
   }
 
   public void generateJsCode(JsWriter out) throws IOException {
-    out.writeSymbolWhitespace(getLBrace());
-    boolean inStaticInitializerBlock = false;
-    for (Directive directive : getDirectives()) {
-      final boolean isStaticInitializer = directive instanceof Statement && !(directive instanceof Declaration);
-      if (isStaticInitializer) {
-        inStaticInitializerBlock = beginStaticInitializer(out, inStaticInitializerBlock);
-      } else {
-        inStaticInitializerBlock = endStaticInitializer(out, inStaticInitializerBlock);
-      }
-      directive.generateJsCode(out);
-    }
-    endStaticInitializer(out, inStaticInitializerBlock);
-    out.writeSymbolWhitespace(getRBrace());
-  }
-
-  private boolean beginStaticInitializer(JsWriter out, boolean inStaticInitializerBlock) throws IOException {
-    if (!inStaticInitializerBlock) {
-      out.writeToken("function(){");
-    }
-    return true;
-  }
-
-  private boolean endStaticInitializer(JsWriter out, boolean inStaticInitializerBlock) throws IOException {
-    if (inStaticInitializerBlock) {
-      out.writeToken("},");
-    }
-    return false;
+    throw new UnsupportedOperationException();
   }
 
 }

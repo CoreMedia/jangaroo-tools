@@ -40,7 +40,7 @@ public class NewExpr extends Expr {
   }
 
   @Override
-  public void visit(AstVisitor visitor) {
+  public void visit(AstVisitor visitor) throws IOException {
     visitor.visitNewExpr(this);
   }
 
@@ -59,10 +59,7 @@ public class NewExpr extends Expr {
   }
 
   public void generateJsCode(JsWriter out) throws IOException {
-    out.writeSymbol(getSymNew());
-    getApplyConstructor().generateJsCode(out);
-    if (getArgs() != null)
-      getArgs().generateJsCode(out);
+    throw new UnsupportedOperationException();
   }
 
   public JooSymbol getSymbol() {

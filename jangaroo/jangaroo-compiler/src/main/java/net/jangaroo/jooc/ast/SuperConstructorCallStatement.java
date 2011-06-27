@@ -41,7 +41,7 @@ public class SuperConstructorCallStatement extends Statement {
   }
 
   @Override
-  public void visit(AstVisitor visitor) {
+  public void visit(AstVisitor visitor) throws IOException {
     visitor.visitSuperConstructorCallStatement(this);
   }
 
@@ -58,7 +58,7 @@ public class SuperConstructorCallStatement extends Statement {
     getFun().scope(scope);
     if (getArgs() != null)
       getArgs().scope(scope);
-    classDeclaration = scope.getClassDeclaration();
+    setClassDeclaration(scope.getClassDeclaration());
   }
 
   public void analyze(AstNode parentNode, AnalyzeContext context) {
@@ -69,29 +69,7 @@ public class SuperConstructorCallStatement extends Statement {
   }
 
   public void generateJsCode(JsWriter out) throws IOException {
-    if (classDeclaration.getInheritanceLevel() > 1) {
-      generateFunCode(out);
-      generateArgsCode(out);
-      classDeclaration.generateFieldInitCode(out, true, false);
-    } else { // suppress for classes extending Object
-      // Object super call does nothing anyway:
-      out.beginComment();
-      out.writeSymbol(getSymbol());
-      generateArgsCode(out);
-      out.endComment();
-      classDeclaration.generateFieldInitCode(out, false, false);
-    }
-    out.writeSymbol(getSymSemicolon());
-  }
-
-  private void generateFunCode(JsWriter out) throws IOException {
-    out.writeSymbolWhitespace(getSymbol());
-    out.writeToken("this.super$" + classDeclaration.getInheritanceLevel());
-  }
-
-  private void generateArgsCode(JsWriter out) throws IOException {
-    if (getArgs() != null)
-      getArgs().generateJsCode(out);
+    throw new UnsupportedOperationException();
   }
 
   public JooSymbol getSymbol() {
@@ -120,5 +98,13 @@ public class SuperConstructorCallStatement extends Statement {
 
   public void setSymSemicolon(JooSymbol symSemicolon) {
     this.symSemicolon = symSemicolon;
+  }
+
+  public ClassDeclaration getClassDeclaration() {
+    return classDeclaration;
+  }
+
+  public void setClassDeclaration(ClassDeclaration classDeclaration) {
+    this.classDeclaration = classDeclaration;
   }
 }

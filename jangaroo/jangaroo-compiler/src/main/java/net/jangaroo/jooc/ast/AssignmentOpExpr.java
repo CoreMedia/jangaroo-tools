@@ -17,8 +17,6 @@ package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.JsWriter;
-import net.jangaroo.jooc.config.JoocConfiguration;
-import net.jangaroo.jooc.sym;
 
 import java.io.IOException;
 
@@ -32,31 +30,12 @@ public class AssignmentOpExpr extends BinaryOpExpr {
   }
 
   @Override
-  public void visit(AstVisitor visitor) {
+  public void visit(AstVisitor visitor) throws IOException {
     visitor.visitAssignmentOpExpr(this);
   }
 
   @Override
   public void generateJsCode(JsWriter out) throws IOException {
-    if (getOp().sym == sym.ANDANDEQ || getOp().sym == sym.OROREQ) {
-      getArg1().generateJsCode(out);
-      out.writeSymbolWhitespace(getOp());
-      out.writeToken("=");
-      // TODO: refactor for a simpler way to switch of white-space temporarily:
-      JoocConfiguration options = (JoocConfiguration)out.getOptions();
-      boolean debug = options.isDebug();
-      boolean debugLines = options.isDebugLines();
-      options.setDebug(false);
-      options.setDebugLines(false);
-      getArg1().generateJsCode(out);
-      options.setDebug(debug);
-      options.setDebugLines(debugLines);
-      out.writeToken(getOp().sym == sym.ANDANDEQ ? "&&" : "||");
-      out.writeToken("(");
-      getArg2().generateJsCode(out);
-      out.writeToken(")");
-    } else {
-      super.generateJsCode(out);
-    }
+    throw new UnsupportedOperationException();
   }
 }

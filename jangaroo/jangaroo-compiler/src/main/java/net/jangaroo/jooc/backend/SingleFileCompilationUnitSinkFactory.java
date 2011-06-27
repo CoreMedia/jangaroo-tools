@@ -80,7 +80,7 @@ public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUni
               if (generateApi) {
                 compilationUnit.generateAsApiCode(out);
               } else {
-                compilationUnit.generateJsCode(out);
+                compilationUnit.visit(new JsCodeGenerator(out));
               }
             } finally {
               out.close();

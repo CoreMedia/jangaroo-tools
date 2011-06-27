@@ -35,7 +35,7 @@ public class PackageDeclaration extends IdeDeclaration {
   }
 
   @Override
-  public void visit(AstVisitor visitor) {
+  public void visit(AstVisitor visitor) throws IOException {
     visitor.visitPackageDeclaration(this);
   }
 
@@ -55,13 +55,7 @@ public class PackageDeclaration extends IdeDeclaration {
   }
 
   public void generateJsCode(JsWriter out) throws IOException {
-    out.beginString();
-    out.writeSymbol(getSymPackage());
-    if (getIde() !=null) {
-      getIde().generateJsCode(out);
-    }
-    out.endString();
-    out.write(",");
+    throw new UnsupportedOperationException();
   }
 
   public JooSymbol getSymbol() {

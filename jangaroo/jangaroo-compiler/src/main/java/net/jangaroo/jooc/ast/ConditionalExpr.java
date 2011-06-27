@@ -42,7 +42,7 @@ public class ConditionalExpr extends Expr {
   }
 
   @Override
-  public void visit(AstVisitor visitor) {
+  public void visit(AstVisitor visitor) throws IOException {
     visitor.visitConditionalExpr(this);
   }
 
@@ -54,11 +54,7 @@ public class ConditionalExpr extends Expr {
   }
 
   public void generateJsCode(JsWriter out) throws IOException {
-    getCond().generateJsCode(out);
-    out.writeSymbol(getSymQuestion());
-    getIfTrue().generateJsCode(out);
-    out.writeSymbol(getSymColon());
-    getIfFalse().generateJsCode(out);
+    throw new UnsupportedOperationException();
   }
 
   public void analyze(AstNode parentNode, AnalyzeContext context) {

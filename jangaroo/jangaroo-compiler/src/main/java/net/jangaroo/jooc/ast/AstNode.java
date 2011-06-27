@@ -20,6 +20,8 @@ import net.jangaroo.jooc.CodeGenerator;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 
+import java.io.IOException;
+
 /**
  * @author Andreas Gawecki
  */
@@ -31,5 +33,5 @@ public interface AstNode extends CodeGenerator {
 
   void analyze(AstNode parentNode, AnalyzeContext context);
 
-  void visit(AstVisitor visitor);
+  void visit(AstVisitor visitor) throws IOException;
 }

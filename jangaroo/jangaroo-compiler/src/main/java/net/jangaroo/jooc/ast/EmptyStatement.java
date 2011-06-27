@@ -19,9 +19,8 @@ package net.jangaroo.jooc.ast;
 import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
-import net.jangaroo.jooc.ast.AstNode;
-import net.jangaroo.jooc.ast.AstVisitor;
-import net.jangaroo.jooc.ast.SemicolonTerminatedStatement;
+
+import java.io.IOException;
 
 /**
  * @author Andreas Gawecki
@@ -33,7 +32,7 @@ public class EmptyStatement extends SemicolonTerminatedStatement {
   }
 
   @Override
-  public void visit(AstVisitor visitor) {
+  public void visit(AstVisitor visitor) throws IOException {
     visitor.visitEmptyStatement(this);
   }
 

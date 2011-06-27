@@ -15,18 +15,67 @@
 
 package net.jangaroo.jooc.ast;
 
-import net.jangaroo.jooc.ast.IdeDeclaration;
-import net.jangaroo.jooc.ast.NodeImplBase;
+import net.jangaroo.jooc.AnalyzeContext;
+import net.jangaroo.jooc.JooSymbol;
+import net.jangaroo.jooc.JsWriter;
+import net.jangaroo.jooc.Scope;
+
+import java.io.IOException;
 
 /**
  * @author Andreas Gawecki
  */
-public abstract class Type extends NodeImplBase {
+public class Type extends NodeImplBase {
 
-  /**
-   * Resolve this type to the underlying Class or PredefinedType declaration
-   */
+  private Ide ide;
+
+  public Type(Ide ide) {
+    this.setIde(ide);
+  }
+
+  public Type(JooSymbol symIde) {
+    this(new Ide(symIde));
+  }
+
+  public Ide getIde() {
+    return ide;
+  }
+
+  @Override
+  public void visit(AstVisitor visitor) throws IOException {
+    visitor.visitType(this);
+  }
+
+  @Override
+  public void scope(final Scope scope) {
+    getIde().scope(scope);
+  }
+
+  @Override
+  public void analyze(AstNode parentNode, AnalyzeContext context) {
+    super.analyze(parentNode, context);
+    getIde().analyze(this, context);
+  }
+
+  public void generateJsCode(JsWriter out) throws IOException {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void generateAsApiCode(JsWriter out) throws IOException {
+    getIde().generateAsApiCode(out);
+  }
+
+  public JooSymbol getSymbol() {
+    return getIde().getSymbol();
+  }
+
   public IdeDeclaration resolveDeclaration() {
-    return null;
+    final IdeDeclaration ideDeclaration = getIde().getDeclaration(false);
+    return ideDeclaration == null ? null : ideDeclaration.resolveDeclaration();
+  }
+
+  public void setIde(Ide ide) {
+    this.ide = ide;
   }
 }

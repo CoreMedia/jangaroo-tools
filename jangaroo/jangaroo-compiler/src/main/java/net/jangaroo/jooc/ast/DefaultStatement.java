@@ -18,8 +18,6 @@ package net.jangaroo.jooc.ast;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
-import net.jangaroo.jooc.ast.AstVisitor;
-import net.jangaroo.jooc.ast.Statement;
 
 import java.io.IOException;
 
@@ -37,7 +35,7 @@ public class DefaultStatement extends Statement {
   }
 
   @Override
-  public void visit(AstVisitor visitor) {
+  public void visit(AstVisitor visitor) throws IOException {
     visitor.visitDefaultStatement(this);
   }
 
@@ -46,8 +44,7 @@ public class DefaultStatement extends Statement {
   }
 
   public void generateJsCode(JsWriter out) throws IOException {
-    out.writeSymbol(getSymDefault());
-    out.writeSymbol(getSymColon());
+    throw new UnsupportedOperationException();
   }
 
   public JooSymbol getSymbol() {

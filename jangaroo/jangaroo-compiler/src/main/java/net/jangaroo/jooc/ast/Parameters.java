@@ -39,57 +39,12 @@ public class Parameters extends CommaSeparatedList<Parameter> {
   }
 
   @Override
-  public void visit(AstVisitor visitor) {
+  public void visit(AstVisitor visitor) throws IOException {
     visitor.visitParameters(this);
   }
-
-  protected void generateTailAsJsCode(JsWriter out) throws IOException {
-    if (!super.getTail().getHead().isRest()) {
-      super.generateTailAsJsCode(out);
-    } else {
-      out.beginCommentWriteSymbol(getSymComma());
-      super.getTail().generateJsCode(out);
-      out.endComment();
-    }
-  }
-
-  public CodeGenerator getParameterInitializerCodeGenerator() {
-    return new CodeGenerator() {
-      @Override
-      public void generateJsCode(JsWriter out) throws IOException {
-        // first pass: generate conditionals and count parameters.
-        int cnt = 0;
-        StringBuilder code = new StringBuilder();
-        for (Parameters parameters = Parameters.this; parameters!=null; parameters = parameters.getTail()) {
-          Parameter param = parameters.getHead();
-          if (param.isRest()) {
-            break;
-          }
-          if (param.hasInitializer()) {
-            code.insert(0,"if(arguments.length<"+(cnt+1)+"){");
-          }
-          ++cnt;
-        }
-        out.write(code.toString());
-        // second pass: generate initializers and rest param code.
-        for (Parameters parameters = Parameters.this; parameters!=null; parameters = parameters.getTail()) {
-          Parameter param = parameters.getHead();
-          if (param.isRest()) {
-            param.generateRestParamCode(out, cnt);
-            break;
-          }
-          if (param.hasInitializer()) {
-            param.generateBodyInitializerCode(out);
-            out.write("}");
-          }
-        }
-      }
-
-      @Override
-      public void generateAsApiCode(JsWriter out) throws IOException {
-        throw new UnsupportedOperationException();
-      }
-    };
+  @Override
+  public void generateJsCode(final JsWriter out) throws IOException {
+    throw new UnsupportedOperationException();
   }
 
   public String getRestParamName() {

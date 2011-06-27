@@ -16,7 +16,6 @@
 package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.AnalyzeContext;
-import net.jangaroo.jooc.CodeGenerator;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.JsWriter;
@@ -62,7 +61,7 @@ public class CompilationUnit extends NodeImplBase {
   }
 
   @Override
-  public void visit(AstVisitor visitor) {
+  public void visit(AstVisitor visitor) throws IOException {
     visitor.visitCompilationUnit(this);
   }
 
@@ -90,6 +89,18 @@ public class CompilationUnit extends NodeImplBase {
 
   public IdeDeclaration getPrimaryDeclaration() {
     return primaryDeclaration;
+  }
+
+  public JooSymbol getLBrace() {
+    return lBrace;
+  }
+
+  public JooSymbol getRBrace() {
+    return rBrace;
+  }
+
+  public Set<String> getDependencies() {
+    return dependencies;
   }
 
   public Jooc getCompiler() {
@@ -130,27 +141,7 @@ public class CompilationUnit extends NodeImplBase {
   }
 
   public void generateJsCode(JsWriter out) throws IOException {
-    out.write(Jooc.CLASS_LOADER_FULLY_QUALIFIED_NAME + ".prepare(");
-    packageDeclaration.generateJsCode(out);
-    out.beginComment();
-    out.writeSymbol(lBrace);
-    out.endComment();
-    primaryDeclaration.generateJsCode(out);
-    out.write(",[");
-    boolean first = true;
-    for (String qname : dependencies) {
-      if (first) {
-        first = false;
-      } else {
-        out.write(",");
-      }
-      out.write('"' + qname + '"');
-    }
-    out.write("]");
-    out.write(", \"" + compiler.getRuntimeVersion() + "\"");
-    out.write(", \"" + compiler.getVersion() + "\"");
-    out.writeSymbolWhitespace(rBrace);
-    out.write(");");
+    throw new UnsupportedOperationException();
   }
 
   public void analyze(AstNode parentNode, AnalyzeContext context) {

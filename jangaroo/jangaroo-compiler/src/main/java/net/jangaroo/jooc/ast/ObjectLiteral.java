@@ -37,24 +37,19 @@ public class ObjectLiteral extends Expr {
    * @param optComma null for the time beeing, Flex compc does not accept a trailing comma, contrary to array literals...
    */
   public ObjectLiteral(JooSymbol lBrace, CommaSeparatedList<ObjectField> fields, JooSymbol optComma, JooSymbol rBrace) {
-    this.setlBrace(lBrace);
-    this.setFields(fields);
-    this.setOptComma(optComma);
-    this.setrBrace(rBrace);
+    this.lBrace = lBrace;
+    this.fields = fields;
+    this.optComma = optComma;
+    this.rBrace = rBrace;
   }
  
   @Override
-  public void visit(AstVisitor visitor) {
+  public void visit(AstVisitor visitor) throws IOException {
     visitor.visitObjectLiteral(this);
   }
 
   public void generateJsCode(JsWriter out) throws IOException {
-    out.writeSymbol(getlBrace());
-    if (getFields() != null)
-      getFields().generateJsCode(out);
-    if (getOptComma() != null)
-      out.writeSymbol(getOptComma());
-    out.writeSymbol(getrBrace());
+    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -71,39 +66,22 @@ public class ObjectLiteral extends Expr {
   }
 
   public JooSymbol getSymbol() {
-    return getlBrace();
+    return getLBrace();
   }
 
-
-  public JooSymbol getlBrace() {
+  public JooSymbol getLBrace() {
     return lBrace;
-  }
-
-  public void setlBrace(JooSymbol lBrace) {
-    this.lBrace = lBrace;
   }
 
   public CommaSeparatedList<ObjectField> getFields() {
     return fields;
   }
 
-  public void setFields(CommaSeparatedList<ObjectField> fields) {
-    this.fields = fields;
-  }
-
   public JooSymbol getOptComma() {
     return optComma;
   }
 
-  public void setOptComma(JooSymbol optComma) {
-    this.optComma = optComma;
-  }
-
-  public JooSymbol getrBrace() {
+  public JooSymbol getRBrace() {
     return rBrace;
-  }
-
-  public void setrBrace(JooSymbol rBrace) {
-    this.rBrace = rBrace;
   }
 }

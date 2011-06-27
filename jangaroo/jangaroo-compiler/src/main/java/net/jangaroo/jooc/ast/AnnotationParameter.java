@@ -40,7 +40,7 @@ public class AnnotationParameter extends NodeImplBase {
   }
 
   @Override
-  public void visit(AstVisitor visitor) {
+  public void visit(AstVisitor visitor) throws IOException {
     visitor.visitAnnotationParameter(this);
   }
 
@@ -90,14 +90,7 @@ public class AnnotationParameter extends NodeImplBase {
   }
 
   public void generateJsCode(JsWriter out) throws IOException {
-    if (getOptName() != null && getOptSymEq() != null) {
-      getOptName().generateJsCode(out);
-      out.writeSymbolWhitespace(getOptSymEq());
-    } else {
-      out.writeToken("$value");
-    }
-    out.writeToken(":");
-    getValue().generateJsCode(out);
+    throw new UnsupportedOperationException();
   }
 
   public JooSymbol getSymbol() {

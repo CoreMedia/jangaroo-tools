@@ -39,13 +39,17 @@ public class QualifiedIde extends Ide {
   }
 
   @Override
-  public void visit(AstVisitor visitor) {
+  public void visit(AstVisitor visitor) throws IOException {
     visitor.visitQualifiedIde(this);
   }
 
   @Override
   public Ide getQualifier() {
     return qualifier;
+  }
+
+  public JooSymbol getSymDot() {
+    return symDot;
   }
 
   public String[] getQualifiedName() {
@@ -104,9 +108,7 @@ public class QualifiedIde extends Ide {
   }
 
   public void generateJsCode(JsWriter out) throws IOException {
-    qualifier.generateJsCode(out);
-    out.writeSymbol(symDot);
-    super.generateJsCode(out);
+    throw new UnsupportedOperationException();
   }
 
   @Override

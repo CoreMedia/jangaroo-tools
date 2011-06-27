@@ -16,7 +16,6 @@
 package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.AnalyzeContext;
-import net.jangaroo.jooc.Debug;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.JsWriter;
@@ -61,7 +60,7 @@ public class VariableDeclaration extends TypedIdeDeclaration {
   }
 
   @Override
-  public void visit(AstVisitor visitor) {
+  public void visit(AstVisitor visitor) throws IOException {
     visitor.visitVariableDeclaration(this);
   }
 
@@ -140,38 +139,6 @@ public class VariableDeclaration extends TypedIdeDeclaration {
     }
   }
 
-  protected void generateStartCode(JsWriter out) throws IOException {
-    if (isClassMember()) {
-      generateFieldStartCode(out);
-    } else {
-      generateVarStartCode(out);
-    }
-  }
-
-  protected void generateVarStartCode(JsWriter out) throws IOException {
-    out.beginComment();
-    writeModifiers(out);
-    out.endComment();
-    if (getOptSymConstOrVar() != null) {
-      if (isConst()) {
-        out.beginCommentWriteSymbol(getOptSymConstOrVar());
-        out.endComment();
-        out.writeToken("var");
-      } else {
-        out.writeSymbol(getOptSymConstOrVar());
-      }
-    }
-  }
-
-  protected void generateFieldStartCode(JsWriter out) throws IOException {
-    out.beginString();
-    writeModifiers(out);
-    if (getOptSymConstOrVar() !=null)
-      out.writeSymbol(getOptSymConstOrVar());
-    out.endString();
-    out.write(",{");
-  }
-
   private static final Map<String,String> DEFAULT_VALUE_BY_TYPE = new HashMap<String,String>(10);
   static {
     DEFAULT_VALUE_BY_TYPE.put("Boolean", "false");
@@ -181,25 +148,6 @@ public class VariableDeclaration extends TypedIdeDeclaration {
     DEFAULT_VALUE_BY_TYPE.put("*", "undefined");
   }
 
-  protected void generateFieldInitializerCode(JsWriter out) throws IOException {
-    if (getOptInitializer() != null) {
-      out.writeSymbolWhitespace(getOptInitializer().getSymEq());
-      out.write(':');
-      boolean mustEvaluateAtRuntime = !getOptInitializer().getValue().isCompileTimeConstant();
-      if (mustEvaluateAtRuntime) {
-        out.writeToken("function(){return(");
-      }
-      getOptInitializer().getValue().generateJsCode(out);
-      if (mustEvaluateAtRuntime) {
-        out.writeToken(");}");
-      }
-    } else {
-      TypeRelation typeRelation = this.getOptTypeRelation();
-      String emptyValue = getDefaultValue(typeRelation);
-      out.write(":" + emptyValue);
-    }
-  }
-
   public static String getDefaultValue(TypeRelation typeRelation) {
     String typeName = typeRelation == null ? "*" : typeRelation.getType().getSymbol().getText();
     String emptyValue = DEFAULT_VALUE_BY_TYPE.get(typeName);
@@ -207,43 +155,6 @@ public class VariableDeclaration extends TypedIdeDeclaration {
       emptyValue = "null";
     }
     return emptyValue;
-  }
-
-  protected void generateFieldEndCode(JsWriter out) throws IOException {
-    if (!hasPreviousVariableDeclaration()) {
-      out.write('}');
-      Debug.assertTrue(getOptSymSemicolon() != null, "optSymSemicolon != null");
-      out.writeSymbolWhitespace(getOptSymSemicolon());
-      out.writeToken(",");
-    }
-  }
-
-  protected void generateVarEndCode(JsWriter out) throws IOException {
-    if (getOptSymSemicolon() != null) {
-      out.writeSymbol(getOptSymSemicolon());
-    }
-  }
-
-  protected void generateEndCode(JsWriter out) throws IOException {
-    if (isClassMember()) {
-      generateFieldEndCode(out);
-    } else {
-      generateVarEndCode(out);
-    }
-  }
-
-  protected void generateInitializerCode(JsWriter out) throws IOException {
-    if (isClassMember()) {
-      generateFieldInitializerCode(out);
-    } else {
-      generateVarInitializerCode(out);
-    }
-  }
-
-  private void generateVarInitializerCode(JsWriter out) throws IOException {
-    if (getOptInitializer() != null) {
-      getOptInitializer().generateJsCode(out);
-    }
   }
 
   public void generateInitCode(JsWriter out, boolean endWithSemicolon) throws IOException {
@@ -260,21 +171,7 @@ public class VariableDeclaration extends TypedIdeDeclaration {
   }
 
   public void generateJsCode(JsWriter out) throws IOException {
-    if (hasPreviousVariableDeclaration()) {
-      Debug.assertTrue(getOptSymConstOrVar() != null && getOptSymConstOrVar().sym == sym.COMMA, "Additional variable declarations must start with a COMMA.");
-      out.writeSymbol(getOptSymConstOrVar());
-    } else {
-      generateStartCode(out);
-    }
-    getIde().generateJsCode(out);
-    if (getOptTypeRelation() != null) {
-      getOptTypeRelation().generateJsCode(out);
-    }
-    generateInitializerCode(out);
-    if (getOptNextVariableDeclaration() != null) {
-      getOptNextVariableDeclaration().generateJsCode(out);
-    }
-    generateEndCode(out);
+    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -308,7 +205,7 @@ public class VariableDeclaration extends TypedIdeDeclaration {
     }
   }
 
-  protected boolean hasPreviousVariableDeclaration() {
+  public boolean hasPreviousVariableDeclaration() {
     return previousVariableDeclaration != null;
   }
 
@@ -325,7 +222,7 @@ public class VariableDeclaration extends TypedIdeDeclaration {
   }
 
   @Override
-  protected int getModifiers() {
+  public int getModifiers() {
     return hasPreviousVariableDeclaration()
         ? getFirstVariableDeclaration().getModifiers()
         : super.getModifiers();

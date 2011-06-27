@@ -53,7 +53,7 @@ public class Annotation extends Directive {
   }
 
   @Override
-  public void visit(AstVisitor visitor) {
+  public void visit(AstVisitor visitor) throws IOException {
     visitor.visitAnnotation(this);
   }
 
@@ -78,23 +78,7 @@ public class Annotation extends Directive {
   }
 
   public void generateJsCode(JsWriter out) throws IOException {
-    out.writeSymbolWhitespace(getLeftBracket());
-    out.writeToken("{");
-    getIde().generateJsCode(out);
-    out.writeToken(":");
-    if (getOptLeftParen() != null) {
-      out.writeSymbolWhitespace(getOptLeftParen());
-    }
-    out.writeToken("{");
-    if (getOptAnnotationParameters() != null) {
-      getOptAnnotationParameters().generateJsCode(out);
-    }
-    if (getOptRightParen() != null) {
-      out.writeSymbolWhitespace(getOptRightParen());
-    }
-    out.writeToken("}");
-    out.writeSymbolWhitespace(getRightBracket());
-    out.writeToken("},");
+    throw new UnsupportedOperationException();
   }
 
   @Override

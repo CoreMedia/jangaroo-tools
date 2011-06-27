@@ -16,22 +16,20 @@
 package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.JooSymbol;
-import net.jangaroo.jooc.ast.AstVisitor;
-import net.jangaroo.jooc.ast.CommaSeparatedList;
-import net.jangaroo.jooc.ast.Expr;
-import net.jangaroo.jooc.ast.ParenthesizedExpr;
+
+import java.io.IOException;
 
 /**
  * @author Andreas Gawecki
  */
-public class ArrayLiteral extends ParenthesizedExpr {
+public class ArrayLiteral extends ParenthesizedExpr<CommaSeparatedList<Expr>> {
 
   public ArrayLiteral(JooSymbol lBracket, CommaSeparatedList<Expr> fields, JooSymbol rBracket) {
     super(lBracket, fields, rBracket);
   }
 
   @Override
-  public void visit(AstVisitor visitor) {
+  public void visit(AstVisitor visitor) throws IOException {
     visitor.visitArrayLiteral(this);
   }
 

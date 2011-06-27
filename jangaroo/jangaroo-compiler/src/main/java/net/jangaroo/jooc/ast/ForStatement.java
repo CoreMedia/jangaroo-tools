@@ -38,55 +38,45 @@ public class ForStatement extends ConditionalLoopStatement {
 
   public ForStatement(JooSymbol symFor, JooSymbol lParen, ForInitializer forInit, JooSymbol symSemicolon1, Expr optCond, JooSymbol symSemicolon2, Expr optStep, JooSymbol rParen, Statement body) {
     super(symFor, optCond, body);
-    this.lParen = lParen;
-    this.forInit = forInit;
-    this.symSemicolon1 = symSemicolon1;
-    this.symSemicolon2 = symSemicolon2;
-    this.optStep = optStep;
-    this.rParen = rParen;
+    this.setlParen(lParen);
+    this.setForInit(forInit);
+    this.setSymSemicolon1(symSemicolon1);
+    this.setSymSemicolon2(symSemicolon2);
+    this.setOptStep(optStep);
+    this.setrParen(rParen);
   }
 
   @Override
-  public void visit(AstVisitor visitor) {
+  public void visit(AstVisitor visitor) throws IOException {
     visitor.visitForStatement(this);
   }
 
-  protected void generateLoopHeaderCode(JsWriter out) throws IOException {
-    out.writeSymbol(lParen);
-    if (forInit != null) {
-      forInit.generateJsCode(out);
-    }
-    out.writeSymbol(symSemicolon1);
-    super.generateLoopHeaderCode(out);
-    out.writeSymbol(symSemicolon2);
-    if (optStep != null) {
-      optStep.generateJsCode(out);
-    }
-    out.writeSymbol(rParen);
+  public void generateJsCode(JsWriter out) throws IOException {
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public void scope(final Scope scope) {
-    if (forInit != null) {
-      forInit.scope(scope);
+    if (getForInit() != null) {
+      getForInit().scope(scope);
     }
     super.scope(scope);
-    if (optStep != null) {
-      optStep.scope(scope);
+    if (getOptStep() != null) {
+      getOptStep().scope(scope);
     }
   }
 
   protected void analyzeLoopHeader(AnalyzeContext context) {
     // check conformance to ECMA-262 7.9.1: a semicolon is never inserted automatically if
     // that semicolon would become one of the two semicolons in the header of a for statement
-    checkNonVirtualSemicolon(symSemicolon1);
-    checkNonVirtualSemicolon(symSemicolon2);
-    if (forInit != null) {
-      forInit.analyze(this, context);
+    checkNonVirtualSemicolon(getSymSemicolon1());
+    checkNonVirtualSemicolon(getSymSemicolon2());
+    if (getForInit() != null) {
+      getForInit().analyze(this, context);
     }
     super.analyzeLoopHeader(context);
-    if (optStep != null) {
-      optStep.analyze(this, context);
+    if (getOptStep() != null) {
+      getOptStep().analyze(this, context);
     }
   }
 
@@ -97,4 +87,59 @@ public class ForStatement extends ConditionalLoopStatement {
     }
   }
 
+  public JooSymbol getLParen() {
+    return lParen;
+  }
+
+  public void setlParen(JooSymbol lParen) {
+    this.lParen = lParen;
+  }
+
+  public ForInitializer getForInit() {
+    return forInit;
+  }
+
+  public void setForInit(ForInitializer forInit) {
+    this.forInit = forInit;
+  }
+
+  public JooSymbol getSymSemicolon1() {
+    return symSemicolon1;
+  }
+
+  public void setSymSemicolon1(JooSymbol symSemicolon1) {
+    this.symSemicolon1 = symSemicolon1;
+  }
+
+  public Expr getOptCond() {
+    return optCond;
+  }
+
+  public void setOptCond(Expr optCond) {
+    this.optCond = optCond;
+  }
+
+  public JooSymbol getSymSemicolon2() {
+    return symSemicolon2;
+  }
+
+  public void setSymSemicolon2(JooSymbol symSemicolon2) {
+    this.symSemicolon2 = symSemicolon2;
+  }
+
+  public Expr getOptStep() {
+    return optStep;
+  }
+
+  public void setOptStep(Expr optStep) {
+    this.optStep = optStep;
+  }
+
+  public JooSymbol getRParen() {
+    return rParen;
+  }
+
+  public void setrParen(JooSymbol rParen) {
+    this.rParen = rParen;
+  }
 }

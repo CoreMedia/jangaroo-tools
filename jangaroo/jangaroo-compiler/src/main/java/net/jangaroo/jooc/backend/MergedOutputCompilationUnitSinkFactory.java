@@ -37,7 +37,7 @@ public class MergedOutputCompilationUnitSinkFactory extends AbstractCompilationU
           try {
             try {
               out.setOptions(getOptions());
-              compilationUnit.generateJsCode(out);
+              compilationUnit.visit(new JsCodeGenerator(out));
             } finally {
               out.close();
             }

@@ -18,8 +18,6 @@ package net.jangaroo.jooc.ast;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
-import net.jangaroo.jooc.ast.AstVisitor;
-import net.jangaroo.jooc.ast.Expr;
 
 import java.io.IOException;
 
@@ -35,7 +33,7 @@ public class LiteralExpr extends Expr {
   }
 
   @Override
-  public void visit(AstVisitor visitor) {
+  public void visit(AstVisitor visitor) throws IOException {
     visitor.visitLiteralExpr(this);
   }
 
@@ -43,8 +41,13 @@ public class LiteralExpr extends Expr {
   public void scope(final Scope scope) {
   }
 
-  public void generateJsCode(JsWriter out) throws IOException {
+  @Override
+  public void generateAsApiCode(JsWriter out) throws IOException {
     out.writeSymbol(getValue());
+  }
+
+  public void generateJsCode(JsWriter out) throws IOException {
+    throw new UnsupportedOperationException();
   }
 
   public JooSymbol getSymbol() {

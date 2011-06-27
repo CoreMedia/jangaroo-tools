@@ -3,8 +3,6 @@ package net.jangaroo.jooc.ast;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
-import net.jangaroo.jooc.ast.AstVisitor;
-import net.jangaroo.jooc.ast.Declaration;
 
 import java.io.IOException;
 
@@ -21,7 +19,7 @@ public class EmptyDeclaration extends Declaration {
   }
 
   @Override
-  public void visit(AstVisitor visitor) {
+  public void visit(AstVisitor visitor) throws IOException {
     visitor.visitEmptyDeclaration(this);
   }
 
@@ -39,6 +37,10 @@ public class EmptyDeclaration extends Declaration {
   }
 
   public void generateJsCode(JsWriter out) throws IOException {
-    out.writeSymbolWhitespace(symSemicolon);
+    throw new UnsupportedOperationException();
+  }
+
+  public JooSymbol getSymSemicolon() {
+    return symSemicolon;
   }
 }

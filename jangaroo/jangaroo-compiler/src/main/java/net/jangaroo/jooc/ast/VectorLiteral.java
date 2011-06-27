@@ -26,24 +26,38 @@ public class VectorLiteral extends Expr {
   }
 
   @Override
-  public void visit(AstVisitor visitor) {
+  public void visit(AstVisitor visitor) throws IOException {
     visitor.visitVectorLiteral(this);
   }
 
   @Override
   public void generateJsCode(JsWriter out) throws IOException {
-    out.beginComment();
-    out.writeSymbol(symNew);
-    out.writeSymbol(symLt);
-    type.generateJsCode(out);
-    out.writeSymbol(symGt);
-    out.endComment();
-    arrayLiteral.generateJsCode(out);
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public JooSymbol getSymbol() {
     return symNew;
+  }
+
+  public JooSymbol getSymNew() {
+    return symNew;
+  }
+
+  public JooSymbol getSymLt() {
+    return symLt;
+  }
+
+  public Type getVectorType() {
+    return type;
+  }
+
+  public JooSymbol getSymGt() {
+    return symGt;
+  }
+
+  public ArrayLiteral getArrayLiteral() {
+    return arrayLiteral;
   }
 
   @Override

@@ -37,7 +37,7 @@ public class ArrayIndexExpr extends Expr {
   }
 
   @Override
-  public void visit(AstVisitor visitor) {
+  public void visit(AstVisitor visitor) throws IOException {
     visitor.visitArrayIndexExpr(this);
   }
 
@@ -51,6 +51,14 @@ public class ArrayIndexExpr extends Expr {
     return array.getSymbol();
   }
 
+  public Expr getArray() {
+    return array;
+  }
+
+  public ParenthesizedExpr getIndexExpr() {
+    return indexExpr;
+  }
+
   @Override
   public void analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
@@ -59,7 +67,6 @@ public class ArrayIndexExpr extends Expr {
   }
 
   public void generateJsCode(JsWriter out) throws IOException {
-    array.generateJsCode(out);
-    indexExpr.generateJsCode(out);
+    throw new UnsupportedOperationException();
   }
 }

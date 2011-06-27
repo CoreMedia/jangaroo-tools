@@ -42,7 +42,7 @@ public class IdeExpr extends Expr {
   }
 
   @Override
-  public void visit(AstVisitor visitor) {
+  public void visit(AstVisitor visitor) throws IOException {
     visitor.visitIdeExpression(this);
   }
 
@@ -60,7 +60,7 @@ public class IdeExpr extends Expr {
   }
 
   public void generateJsCode(JsWriter out) throws IOException {
-    getIde().generateCodeAsExpr(out);
+    throw new UnsupportedOperationException();
   }
 
   @Override

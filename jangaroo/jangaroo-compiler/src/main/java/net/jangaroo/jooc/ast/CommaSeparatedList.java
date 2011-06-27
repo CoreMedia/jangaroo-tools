@@ -41,7 +41,7 @@ public class CommaSeparatedList<T extends AstNode> extends Expr {
   }
 
   @Override
-  public void visit(AstVisitor visitor) {
+  public void visit(AstVisitor visitor) throws IOException {
     visitor.visitCommaSeparatedList(this);
   }
 
@@ -70,21 +70,8 @@ public class CommaSeparatedList<T extends AstNode> extends Expr {
 
   @Override
   public void generateJsCode(final JsWriter out) throws IOException {
-    if (getHead() != null) {
-      getHead().generateJsCode(out);
-    }
-    if (getSymComma() != null) {
-      generateTailAsJsCode(out);
-    }
+    throw new UnsupportedOperationException();
   }
-
-  protected void generateTailAsJsCode(JsWriter out) throws IOException {
-    out.writeSymbol(getSymComma());
-    if (getTail() != null) {
-      getTail().generateJsCode(out);
-    }
-  }
-
 
   public void analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);

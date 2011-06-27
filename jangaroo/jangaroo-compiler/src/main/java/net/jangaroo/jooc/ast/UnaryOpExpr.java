@@ -19,9 +19,6 @@ package net.jangaroo.jooc.ast;
 import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
-import net.jangaroo.jooc.ast.AstNode;
-import net.jangaroo.jooc.ast.Expr;
-import net.jangaroo.jooc.ast.OpExpr;
 
 /**
  * @author Andreas Gawecki

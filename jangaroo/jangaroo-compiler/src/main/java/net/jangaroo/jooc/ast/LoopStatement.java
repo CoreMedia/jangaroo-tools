@@ -34,15 +34,6 @@ public abstract class LoopStatement extends KeywordStatement {
     this.setBody(body);
   }
 
-  public void generateJsCode(JsWriter out) throws IOException {
-    super.generateJsCode(out);
-    generateLoopHeaderCode(out);
-    getBody().generateJsCode(out);
-    generateLoopFooterCode(out);
-  }
-
-  protected abstract void generateLoopHeaderCode(JsWriter out) throws IOException;
-
   protected void generateLoopFooterCode(JsWriter out) throws IOException {
   }
 

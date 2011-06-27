@@ -21,10 +21,8 @@ import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.SyntacticKeywords;
-import net.jangaroo.jooc.sym;
 
 import java.io.IOException;
-import java.util.Arrays;
 
 /**
  * @author Andreas Gawecki
@@ -40,14 +38,6 @@ public class ForInStatement extends LoopStatement {
   private Expr expr;
   private JooSymbol rParen;
   private Ide auxIde; // generated for each loop auxiliary variable
-
-  private static final JooSymbol SYM_VAR = new JooSymbol(sym.VAR, "var");
-  private static final JooSymbol SYM_EQ = new JooSymbol(sym.EQ, "=");
-  private static final JooSymbol SYM_SEMICOLON = new JooSymbol(sym.SEMICOLON, ";");
-  private static final JooSymbol SYM_LBRACE = new JooSymbol(sym.LBRACE, "{");
-  private static final JooSymbol SYM_RBRACE = new JooSymbol(sym.RBRACE, "}");
-  private static final JooSymbol SYM_LBRACK = new JooSymbol(sym.LBRACK, "[");
-  private static final JooSymbol SYM_RBRACK = new JooSymbol(sym.RBRACK, "]");
 
   public ForInStatement(JooSymbol symFor, JooSymbol symEach, JooSymbol lParen, VariableDeclaration decl, JooSymbol symIn, Expr expr, JooSymbol rParen, Statement body) {
     this(symFor, symEach, lParen, decl, null, symIn, expr, rParen, body);
@@ -71,51 +61,45 @@ public class ForInStatement extends LoopStatement {
     this.rParen = rParen;
   }
 
+  public JooSymbol getSymEach() {
+    return symEach;
+  }
+
+  public JooSymbol getLParen() {
+    return lParen;
+  }
+
+  public VariableDeclaration getDecl() {
+    return decl;
+  }
+
+  public Ide getIde() {
+    return ide;
+  }
+
+  public JooSymbol getSymIn() {
+    return symIn;
+  }
+
+  public Expr getExpr() {
+    return expr;
+  }
+
+  public JooSymbol getRParen() {
+    return rParen;
+  }
+
+  public Ide getAuxIde() {
+    return auxIde;
+  }
+
   @Override
-  public void visit(AstVisitor visitor) {
+  public void visit(AstVisitor visitor) throws IOException {
     visitor.visitForInStatement(this);
   }
 
-  protected void generateLoopHeaderCode(JsWriter out) throws IOException {
-    if (symEach != null) {
-      out.beginComment();
-      out.writeSymbol(symEach);
-      out.endComment();
-    }
-    out.writeSymbol(lParen);
-    if (symEach != null) {
-      new VariableDeclaration(SYM_VAR, auxIde, null, null).generateJsCode(out);
-    } else {
-      if (decl != null) {
-        decl.generateJsCode(out);
-      } else {
-        ide.generateJsCode(out);
-      }
-    }
-    out.writeSymbol(symIn);
-    expr.generateJsCode(out);
-    out.writeSymbol(rParen);
-    if (symEach != null) {
-      // synthesize assigning the correct index to the variable given in the original for each statement:
-      ArrayIndexExpr indexExpr = new ArrayIndexExpr(expr, SYM_LBRACK,
-          new CommaSeparatedList<IdeExpr>(new IdeExpr(auxIde)),
-          SYM_RBRACK);
-      Statement assignment = new SemicolonTerminatedStatement(decl != null
-          ? new VariableDeclaration(SYM_VAR, decl.getIde(), decl.getOptTypeRelation(), new Initializer(SYM_EQ, indexExpr))
-          : new AssignmentOpExpr(new IdeExpr(ide), SYM_EQ, indexExpr),
-          SYM_SEMICOLON);
-      // inject synthesized statement into loop body:
-      if (getBody() instanceof BlockStatement) {
-        ((BlockStatement) getBody()).getDirectives().add(0, assignment);
-      } else {
-        setBody(new BlockStatement(SYM_LBRACE, Arrays.<Directive>asList(assignment, getBody()), SYM_RBRACE));
-      }
-    }
-  }
-
-  @Override
-  protected void generateLoopFooterCode(JsWriter out) throws IOException {
-    super.generateLoopFooterCode(out);    //To change body of overridden methods use File | Settings | File Templates.
+  public void generateJsCode(JsWriter out) throws IOException {
+    throw new UnsupportedOperationException();
   }
 
   @Override

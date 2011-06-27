@@ -45,7 +45,7 @@ public class IfStatement extends KeywordStatement {
   }
 
   @Override
-  public void visit(AstVisitor visitor) {
+  public void visit(AstVisitor visitor) throws IOException {
     visitor.visitIfStatement(this);
   }
 
@@ -66,13 +66,7 @@ public class IfStatement extends KeywordStatement {
   }
 
   public void generateJsCode(JsWriter out) throws IOException {
-    super.generateJsCode(out);
-    getCond().generateJsCode(out);
-    getIfTrue().generateJsCode(out);
-    if (getSymElse() != null) {
-      out.writeSymbol(getSymElse());
-      getIfFalse().generateJsCode(out);
-    }
+    throw new UnsupportedOperationException();
   }
 
   public Expr getCond() {

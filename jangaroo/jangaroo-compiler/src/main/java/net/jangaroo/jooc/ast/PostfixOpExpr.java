@@ -30,13 +30,12 @@ public class PostfixOpExpr extends UnaryOpExpr {
   }
 
   @Override
-  public void visit(AstVisitor visitor) {
+  public void visit(AstVisitor visitor) throws IOException {
     visitor.visitPostfixOpExpr(this);
   }
 
   public void generateJsCode(JsWriter out) throws IOException {
-    getArg().generateJsCode(out);
-    out.writeSymbol(getOp());
+    throw new UnsupportedOperationException();
   }
 
   public JooSymbol getSymbol() {

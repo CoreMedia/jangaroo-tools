@@ -17,7 +17,7 @@ public class InfixOpExpr extends BinaryOpExpr {
   }
 
   @Override
-  public void visit(AstVisitor visitor) {
+  public void visit(AstVisitor visitor) throws IOException {
     visitor.visitInfixOpExpr(this);
   }
 
@@ -38,12 +38,6 @@ public class InfixOpExpr extends BinaryOpExpr {
   }
 
   public void generateJsCode(JsWriter out) throws IOException {
-    out.writeSymbolToken(getOp());
-    out.write('(');
-    getArg1().generateJsCode(out);
-    out.write(',');
-    out.writeSymbolWhitespace(getOp());
-    getArg2().generateJsCode(out);
-    out.write(')');
+    throw new UnsupportedOperationException();
   }
 }

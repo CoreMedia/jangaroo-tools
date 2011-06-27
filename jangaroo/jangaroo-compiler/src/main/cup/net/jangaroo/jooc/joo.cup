@@ -322,7 +322,7 @@ nonterminal Statement statementInSwitch;
 nonterminal ArrayList statementsInSwitch;
 nonterminal TypeRelation typeRelation;
 nonterminal Type type;
-nonterminal IdeType ideType;
+nonterminal Type ideType;
 nonterminal CommaSeparatedList ideList;
 nonterminal VariableDeclaration variableDeclaration;
 nonterminal VariableDeclaration forVariableDeclaration;
@@ -933,14 +933,14 @@ type ::=
     ideType:it
     {: RESULT = it; :}
   | MUL:any
-    {: RESULT = new IdeType(any); :}
+    {: RESULT = new Type(any); :}
   | VOID:v
-    {: RESULT = new IdeType(v); :}
+    {: RESULT = new Type(v); :}
   ;
 
 ideType ::=
     qualifiedIde:ide
-    {: RESULT = new IdeType(ide); :}
+    {: RESULT = new Type(ide); :}
   ;
 
 ideList ::=

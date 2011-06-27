@@ -17,10 +17,7 @@ package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
-import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
-
-import java.io.IOException;
 
 /**
  * A LabelRefStatement is either a break or continue statement
@@ -52,13 +49,6 @@ public abstract class LabelRefStatement extends KeywordExprStatement {
   }
 
   protected abstract void checkValidLabeledStatement(final LabeledStatement labelDeclaration);
-
-  @Override
-  protected void generateStatementCode(final JsWriter out) throws IOException {
-    super.generateStatementCode(out);
-    if (getOptLabel() != null)
-      getOptLabel().generateJsCode(out);
-  }
 
   public Ide getOptLabel() {
     return optLabel;

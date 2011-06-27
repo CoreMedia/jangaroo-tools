@@ -2,11 +2,6 @@ package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.ScopeImplBase;
-import net.jangaroo.jooc.ast.Ide;
-import net.jangaroo.jooc.ast.LabeledStatement;
-import net.jangaroo.jooc.ast.LoopStatement;
-import net.jangaroo.jooc.ast.Statement;
-import net.jangaroo.jooc.ast.SwitchStatement;
 
 public class LabelScope extends ScopeImplBase {
 

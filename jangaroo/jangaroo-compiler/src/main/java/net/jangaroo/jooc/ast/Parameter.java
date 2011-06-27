@@ -16,7 +16,6 @@
 package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.AnalyzeContext;
-import net.jangaroo.jooc.Debug;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.JsWriter;
@@ -43,7 +42,7 @@ public class Parameter extends IdeDeclaration {
   }
 
   @Override
-  public void visit(AstVisitor visitor) {
+  public void visit(AstVisitor visitor) throws IOException {
     visitor.visitParameter(this);
   }
 
@@ -90,26 +89,7 @@ public class Parameter extends IdeDeclaration {
   }
 
   public void generateJsCode(JsWriter out) throws IOException {
-    Debug.assertTrue(getModifiers() == 0, "Parameters must not have any modifiers");
-    boolean isRest = isRest();
-    if (getOptSymConstOrRest() != null) {
-      out.beginCommentWriteSymbol(getOptSymConstOrRest());
-      if (isRest) {
-        getIde().generateJsCode(out);
-      }
-      out.endComment();
-    }
-    if (!isRest) {
-      getIde().generateJsCode(out);
-    }
-    if (getOptTypeRelation() !=null)
-      getOptTypeRelation().generateJsCode(out);
-    // in the method signature, comment out initializer code.
-    if (getOptInitializer() != null) {
-      out.beginComment();
-      getOptInitializer().generateJsCode(out);
-      out.endComment();
-    }
+    throw new UnsupportedOperationException();
   }
 
   public boolean hasInitializer() {
@@ -119,13 +99,7 @@ public class Parameter extends IdeDeclaration {
         !((IdeExpr) getOptInitializer().getValue()).getIde().getName().equals("undefined"));
   }
 
-  void generateBodyInitializerCode(JsWriter out) throws IOException {
-    out.writeToken(getName());
-    getOptInitializer().generateJsCode(out);
-    out.write(";");
-  }
-
-  void generateRestParamCode(JsWriter out, int paramIndex) throws IOException {
+  public void generateRestParamCode(JsWriter out, int paramIndex) throws IOException {
     String paramName = getName();
     if (paramName != null && !(paramName.equals("arguments") && paramIndex==0)) {
       out.write("var " + paramName + "=Array.prototype.slice.call(arguments" + (paramIndex == 0 ? "" : "," + paramIndex) + ");");

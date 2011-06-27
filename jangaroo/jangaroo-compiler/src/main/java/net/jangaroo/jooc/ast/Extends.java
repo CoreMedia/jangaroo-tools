@@ -20,11 +20,6 @@ import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
-import net.jangaroo.jooc.ast.AstNode;
-import net.jangaroo.jooc.ast.AstVisitor;
-import net.jangaroo.jooc.ast.ClassDeclaration;
-import net.jangaroo.jooc.ast.Ide;
-import net.jangaroo.jooc.ast.NodeImplBase;
 
 import java.io.IOException;
 
@@ -42,7 +37,7 @@ public class Extends extends NodeImplBase {
   }
 
   @Override
-  public void visit(AstVisitor visitor) {
+  public void visit(AstVisitor visitor) throws IOException {
     visitor.visitExtends(this);
   }
 
@@ -61,9 +56,13 @@ public class Extends extends NodeImplBase {
     getSuperClass().addExternalUsage();
   }
 
-  public void generateJsCode(JsWriter out) throws IOException {
+  @Override
+  public void generateAsApiCode(JsWriter out) throws IOException {
     out.writeSymbol(getSymExtends());
-    getSuperClass().generateCodeAsExpr(out);
+    getSuperClass().generateCodeAsExpr(out);  }
+
+  public void generateJsCode(JsWriter out) throws IOException {
+    throw new UnsupportedOperationException();
   }
 
   public JooSymbol getSymbol() {

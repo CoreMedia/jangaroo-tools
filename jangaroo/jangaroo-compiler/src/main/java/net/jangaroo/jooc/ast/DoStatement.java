@@ -35,7 +35,7 @@ public class DoStatement extends ConditionalLoopStatement {
   }
 
   @Override
-  public void visit(AstVisitor visitor) {
+  public void visit(AstVisitor visitor) throws IOException {
     visitor.visitDoStatement(this);
   }
 
@@ -46,13 +46,8 @@ public class DoStatement extends ConditionalLoopStatement {
     getOptCond().analyze(this, context);
   }
 
-  protected void generateLoopHeaderCode(JsWriter out) throws IOException {
-  }
-
-  protected void generateLoopFooterCode(JsWriter out) throws IOException {
-    out.writeSymbol(getSymWhile());
-    getOptCond().generateJsCode(out);
-    out.writeSymbol(getSymSemicolon());
+  public void generateJsCode(JsWriter out) throws IOException {
+    throw new UnsupportedOperationException();
   }
 
   public JooSymbol getSymWhile() {

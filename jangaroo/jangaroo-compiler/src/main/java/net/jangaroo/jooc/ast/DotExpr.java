@@ -37,7 +37,7 @@ public class DotExpr extends PostfixOpExpr {
   }
 
   @Override
-  public void visit(AstVisitor visitor) {
+  public void visit(AstVisitor visitor) throws IOException {
     visitor.visitDotExpr(this);
   }
 
@@ -67,8 +67,7 @@ public class DotExpr extends PostfixOpExpr {
 
   @Override
   public void generateJsCode(final JsWriter out) throws IOException {
-    getArg().generateJsCode(out);
-    Ide.writeMemberAccess(Ide.resolveMember(getArg().getType(), getIde()), getOp(), getIde(), true, out);
+    throw new UnsupportedOperationException();
   }
 
   public void setIde(Ide ide) {

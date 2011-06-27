@@ -37,7 +37,7 @@ public class BinaryOpExpr extends OpExpr {
   }
 
   @Override
-  public void visit(AstVisitor visitor) {
+  public void visit(AstVisitor visitor) throws IOException {
     visitor.visitBinaryOpExpr(this);
   }
 
@@ -48,9 +48,7 @@ public class BinaryOpExpr extends OpExpr {
   }
 
   public void generateJsCode(JsWriter out) throws IOException {
-    getArg1().generateJsCode(out);
-    out.writeSymbol(getOp());
-    getArg2().generateJsCode(out);
+    throw new UnsupportedOperationException();
   }
 
   public void analyze(AstNode parentNode, AnalyzeContext context) {

@@ -146,7 +146,7 @@ public abstract class Declaration extends Statement {
     throw Jooc.error(modifier, "internal compiler error: invalid modifier '" + modifier.getText() + "'");
   }
 
-  protected int getModifiers() {
+  public int getModifiers() {
     return modifiers;
   }
 

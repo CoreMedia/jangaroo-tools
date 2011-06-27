@@ -37,7 +37,7 @@ public class CaseStatement extends KeywordStatement {
   }
 
   @Override
-  public void visit(AstVisitor visitor) {
+  public void visit(AstVisitor visitor) throws IOException {
     visitor.visitCaseStatement(this);
   }
 
@@ -52,9 +52,7 @@ public class CaseStatement extends KeywordStatement {
   }
 
   public void generateJsCode(JsWriter out) throws IOException {
-    super.generateJsCode(out);
-    getExpr().generateJsCode(out);
-    out.writeSymbol(getSymColon());
+    throw new UnsupportedOperationException();
   }
 
   public Expr getExpr() {

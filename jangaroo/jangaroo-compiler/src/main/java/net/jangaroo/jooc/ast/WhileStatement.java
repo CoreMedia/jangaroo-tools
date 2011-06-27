@@ -16,6 +16,9 @@
 package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.JooSymbol;
+import net.jangaroo.jooc.JsWriter;
+
+import java.io.IOException;
 
 /**
  * @author Andreas Gawecki
@@ -27,8 +30,11 @@ public class WhileStatement extends ConditionalLoopStatement {
   }
 
   @Override
-  public void visit(AstVisitor visitor) {
+  public void visit(AstVisitor visitor) throws IOException {
     visitor.visitWhileStatement(this);
   }
 
+  public void generateJsCode(JsWriter out) throws IOException {
+    throw new UnsupportedOperationException();
+  }
 }
