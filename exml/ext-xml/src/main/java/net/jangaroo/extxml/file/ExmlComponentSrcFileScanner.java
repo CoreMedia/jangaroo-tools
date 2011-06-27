@@ -6,7 +6,7 @@ package net.jangaroo.extxml.file;
 import net.jangaroo.extxml.model.ComponentClass;
 import net.jangaroo.extxml.model.ComponentSuite;
 import net.jangaroo.extxml.model.ComponentType;
-import net.jangaroo.extxml.xml.ContentHandlerUtils;
+import net.jangaroo.utils.ContentHandlerUtils;
 import net.jangaroo.extxml.xml.ExmlToComponentMetadataHandler;
 import org.codehaus.plexus.util.FileUtils;
 
@@ -32,7 +32,7 @@ public class ExmlComponentSrcFileScanner {
     clazz.setType(ComponentType.EXML);
     //parse EXML file for meta data
     ExmlToComponentMetadataHandler metadataHandler= new ExmlToComponentMetadataHandler();
-    if (ContentHandlerUtils.parseExmlWithHandler(clazz, metadataHandler)) {
+    if (ContentHandlerUtils.parseFileWithHandler(clazz.getSrcFile(), metadataHandler)) {
       clazz.setSuperClassLocalName(metadataHandler.getSuperClassLocalName());
       clazz.setSuperClassNamespaceUri(metadataHandler.getSuperClassUri());
       clazz.setDescription(metadataHandler.getComponentDescription());

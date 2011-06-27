@@ -9,6 +9,7 @@ import net.jangaroo.extxml.json.JsonObject;
 import net.jangaroo.extxml.file.ExmlComponentSrcFileScanner;
 import net.jangaroo.extxml.model.ComponentSuite;
 import net.jangaroo.extxml.model.ComponentClass;
+import net.jangaroo.utils.CharacterRecordingHandler;
 import net.jangaroo.utils.log.Log;
 import org.xml.sax.Attributes;
 import org.xml.sax.Locator;
@@ -92,7 +93,7 @@ public final class ExmlToJsonHandler extends CharacterRecordingHandler {
           if (attribute.equals("plugins")) {
             jsonObject.setTypePropertyName("ptype");
           } else if (attribute.equals("layout")) {
-            jsonObject.setTypePropertyName("type");
+            jsonObject.setTypePropertyName("config");
           } else if (attribute.equals("baseAction")) {
             jsonObject.setTypePropertyName("atype");
           }

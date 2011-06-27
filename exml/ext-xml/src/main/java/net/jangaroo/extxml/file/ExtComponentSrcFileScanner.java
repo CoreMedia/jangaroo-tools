@@ -44,7 +44,7 @@ public final class ExtComponentSrcFileScanner {
 
   // Rules used in both scanners:
 
-  private static final Rule<State> TYPE_RULE = new Rule<State>("@[apx]type\\s+([\\p{Alpha}$_.][\\p{Alnum}$_.]*)") {
+  private static final Rule<State> TYPE_RULE = new Rule<State>("@[apx]config\\s+([\\p{Alpha}$_.][\\p{Alnum}$_.]*)") {
     public void matched(State state, List<String> groups) {
       if (state.insideComment) {
         state.setXtype(groups.get(0), state.cc.getFullClassName());
@@ -54,7 +54,7 @@ public final class ExtComponentSrcFileScanner {
   private static final Rule<State> CFG_RULE = new Rule<State>("@cfg\\s+[{]?([\\p{Alnum}$_./|]+)[}]?\\s+([\\p{Alnum}$_]+)(.*)$") {
     public void matched(State state, List<String> groups) {
       if (state.insideComment) {
-        // use List#remove(0) to skip optional type if missing:
+        // use List#remove(0) to skip optional config if missing:
         state.addCfg(groups.size() == 3 ? groups.remove(0) : "*", groups.remove(0), groups.remove(0));
       }
     }
@@ -106,7 +106,7 @@ public final class ExtComponentSrcFileScanner {
           }
         }
       })
-      .add(new Rule<State>("(?:public\\s+static|static\\s+public)\\s+const\\s+[apx]type\\s*:\\s*String\\s*=\\s*['\"]([^'\"]+)['\"]") {
+      .add(new Rule<State>("(?:public\\s+static|static\\s+public)\\s+const\\s+[apx]config\\s*:\\s*String\\s*=\\s*['\"]([^'\"]+)['\"]") {
         public void matched(State state, List<String> groups) {
           if (!state.insideComment) {
             state.setXtype(groups.get(0), state.cc.getFullClassName());
@@ -157,7 +157,7 @@ public final class ExtComponentSrcFileScanner {
       .add(new Rule<State>("\\bExt\\.Container\\.LAYOUTS\\['([\\p{Alnum}$_.]+)'\\]\\s*=\\s*([\\p{Alnum}$_.]+);") {
         public void matched(State state, List<String> groups) {
           if (!state.insideComment) {
-            // layout type registration using LAYOUTS['type']:
+            // layout config registration using LAYOUTS['config']:
             state.setXtype(groups.get(0) + "layout", groups.get(1));
           }
         }
@@ -165,7 +165,7 @@ public final class ExtComponentSrcFileScanner {
       .add(new Rule<State>("\\bExt\\.Container\\.LAYOUTS\\.([\\p{Alnum}$_.]+)\\s*=\\s*([\\p{Alnum}$_.]+);") {
         public void matched(State state, List<String> groups) {
           if (!state.insideComment) {
-            // layout type registration using LAYOUTS.type:
+            // layout config registration using LAYOUTS.config:
             state.setXtype(groups.get(0) + "layout", groups.get(1));
           }
         }

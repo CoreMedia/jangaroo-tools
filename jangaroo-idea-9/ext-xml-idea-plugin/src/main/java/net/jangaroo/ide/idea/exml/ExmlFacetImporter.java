@@ -29,7 +29,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 /**
- * A Facet-from-Maven Importer for the EXML Facet type.
+ * A Facet-from-Maven Importer for the EXML Facet config.
  */
 public class ExmlFacetImporter extends FacetImporter<ExmlFacet, ExmlFacetConfiguration, ExmlFacetType> {
   // TODO: share these constants with Jangaroo Language plugin:

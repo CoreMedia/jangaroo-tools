@@ -1,36 +1,35 @@
-package net.jangaroo.extxml.xml;
+package net.jangaroo.exml.config.xml;
 
-import net.jangaroo.extxml.file.ExmlComponentSrcFileScanner;
-import net.jangaroo.extxml.model.ConfigAttribute;
+import net.jangaroo.exml.config.model.ConfigAttribute;
+import net.jangaroo.exml.config.model.ConfigClass;
 import net.jangaroo.utils.CharacterRecordingHandler;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Generates an internal representation of all metadata of the component described by the given EXML.
  */
-public class ExmlToComponentMetadataHandler extends CharacterRecordingHandler {
+public class ExmlMetadataHandler extends CharacterRecordingHandler {
 
+  public static final String EXML_NAMESPACE_URI = "http://net.jangaroo.com/extxml/0.1";
+  public static final String EXT_NAMESPACE_URI = "http://extjs.com/ext3";
 
-  private String componentDescription = "";
-  private List<ConfigAttribute> cfgs = new ArrayList<ConfigAttribute>();
-  private String superClassLocalName;
-  private String superClassNamespaceUri;
+  private ConfigClass configClass;
   private boolean expectsOptionalConfigDescription = false;
   private boolean expectsOptionalComponentDescription = false;
 
+  public ExmlMetadataHandler(ConfigClass configClass) {
+    this.configClass = configClass;
+  }
 
   public void startElement(String uri, String localName, String qName, Attributes atts) throws SAXException {
-    if (ExmlComponentSrcFileScanner.EXML_NAMESPACE_URI.equals(uri)) {
+    if (EXML_NAMESPACE_URI.equals(uri)) {
       if ("component".equals(localName)) {
         //prepare characterStack for optional component description
         expectsOptionalComponentDescription = true;
       } else if ("cfg".equals(localName)) {
         //handle config elements
-        cfgs.add(new ConfigAttribute(atts.getValue("name"), atts.getValue("config")));
+        configClass.addCfg(new ConfigAttribute(atts.getValue("name"), atts.getValue("type")));
         expectsOptionalConfigDescription = true;
       } else if ("description".equals(localName)) {
         if (expectsOptionalConfigDescription || expectsOptionalComponentDescription) {
@@ -38,9 +37,13 @@ public class ExmlToComponentMetadataHandler extends CharacterRecordingHandler {
           startRecordingCharacters();
         }
       }
-    } else if (superClassLocalName == null && superClassNamespaceUri == null) {
-      superClassLocalName = localName;
-      superClassNamespaceUri = uri;
+    } else if (configClass.getSuperClassName() == null && configClass.getSuperClassPackage() == null) {
+      configClass.setSuperClassName(localName);
+      if(EXT_NAMESPACE_URI.equals(uri)) {
+        configClass.setSuperClassPackage("ext.type");
+      } else {
+        configClass.setSuperClassPackage(uri);
+      }
       //throw new SAXParseException(String.format("Base component class with element name '%s' not found in component suite '%s'", localName, uri), locator);
 
     }
@@ -48,36 +51,19 @@ public class ExmlToComponentMetadataHandler extends CharacterRecordingHandler {
 
   @Override
   public void endElement(String uri, String localName, String qName) throws SAXException {
-    if (ExmlComponentSrcFileScanner.EXML_NAMESPACE_URI.equals(uri)) {
+    if (EXML_NAMESPACE_URI.equals(uri)) {
       if ("description".equals(localName)) {
         String characters = popRecordedCharacters();
         if (characters != null) {
           if (expectsOptionalConfigDescription) {
-            cfgs.get(cfgs.size() - 1).setDescription(characters.trim());
+            configClass.getCfgs().get(configClass.getCfgs().size() - 1).setDescription(characters.trim());
             expectsOptionalConfigDescription = false;
           } else if (expectsOptionalComponentDescription) {
-            componentDescription = characters.trim();
+            configClass.setDescription(characters.trim());
             expectsOptionalComponentDescription = false;
           }
         }
       }
     }
-  }
-
-  public String getSuperClassLocalName() {
-    return superClassLocalName;
-  }
-
-  public String getSuperClassUri() {
-    return superClassNamespaceUri;
-  }
-
-
-  public List<ConfigAttribute> getCfgs() {
-    return cfgs;
-  }
-
-  public String getComponentDescription() {
-    return componentDescription;
   }
 }
