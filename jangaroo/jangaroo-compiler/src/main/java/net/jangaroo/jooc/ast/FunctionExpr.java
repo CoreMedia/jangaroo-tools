@@ -141,12 +141,6 @@ public class FunctionExpr extends Expr {
     return classNameAsIde + "$" + sym.getLine() + "_" + sym.getColumn();
   }
 
-  @Override
-  public void generateJsCode(JsWriter out) throws IOException {
-    throw new UnsupportedOperationException();
-  }
-
-
   public void analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     if (params != null) {
@@ -217,15 +211,12 @@ public class FunctionExpr extends Expr {
       // if "this" is used inside non-static method, remember that:
       if (methodDeclaration != null && !methodDeclaration.isStatic()) {
         thisUsed = true;
-        ((BlockStatement)methodDeclaration.getBody()).addBlockStartCodeGenerator(new CodeGenerator() {
-          @Override
-          public void generateJsCode(final JsWriter out) throws IOException {
-            generate(out);
-          }
+        methodDeclaration.getBody().addBlockStartCodeGenerator(new CodeGenerator() {
           @Override
           public void generate(final JsWriter out) throws IOException {
             out.write("var this$=this;");
           }
+
           public void generateAsApiCode(JsWriter out) throws IOException {
             throw new UnsupportedOperationException();
           }

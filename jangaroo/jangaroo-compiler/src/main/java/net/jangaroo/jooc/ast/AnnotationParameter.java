@@ -89,10 +89,6 @@ public class AnnotationParameter extends NodeImplBase {
     getValue().generateAsApiCode(out);
   }
 
-  public void generateJsCode(JsWriter out) throws IOException {
-    throw new UnsupportedOperationException();
-  }
-
   public JooSymbol getSymbol() {
     return getOptName() == null ? getValue().getSymbol() : getOptName().getSymbol();
   }

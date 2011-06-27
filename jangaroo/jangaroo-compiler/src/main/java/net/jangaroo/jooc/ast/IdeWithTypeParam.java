@@ -52,11 +52,6 @@ public class IdeWithTypeParam extends Ide {
   }
 
   @Override
-  public void generateJsCode(JsWriter out) throws IOException {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
   public void generateCodeAsExpr(JsWriter out) throws IOException {
     super.generateCodeAsExpr(out);
     writeTypeParamAsComment(out);

@@ -34,10 +34,6 @@ public class PrefixOpExpr extends UnaryOpExpr {
     visitor.visitPrefixOpExpr(this);
   }
 
-  public void generateJsCode(JsWriter out) throws IOException {
-    throw new UnsupportedOperationException();
-  }
-
   public JooSymbol getSymbol() {
     return getOp();
   }

@@ -63,10 +63,6 @@ public class TypeRelation extends NodeImplBase {
     getType().getIde().generateAsApiCode(out);
   }
 
-  public void generateJsCode(JsWriter out) throws IOException {
-    throw new UnsupportedOperationException();
-   }
-
   public JooSymbol getSymbol() {
     return getSymRelation();
   }

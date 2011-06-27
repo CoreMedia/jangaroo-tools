@@ -58,12 +58,8 @@ public class NewExpr extends Expr {
       getArgs().analyze(this, context);
   }
 
-  public void generateJsCode(JsWriter out) throws IOException {
-    throw new UnsupportedOperationException();
-  }
-
   public JooSymbol getSymbol() {
-      return getSymNew();
+    return getSymNew();
   }
 
   public JooSymbol getSymNew() {

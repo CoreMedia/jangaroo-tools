@@ -431,11 +431,6 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
   public CodeGenerator getParameterInitializerCodeGenerator(final Parameters params) {
     return new CodeGenerator() {
       @Override
-      public void generateJsCode(JsWriter out) throws IOException {
-        generate(out);
-      }
-
-      @Override
       public void generate(JsWriter out) throws IOException {
         // first pass: generate conditionals and count parameters.
         int cnt = 0;
@@ -705,11 +700,6 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
     public VarCodeGenerator(JooSymbol localErrorVar, JooSymbol errorVar) {
       this.localErrorVar = localErrorVar;
       this.errorVar = errorVar;
-    }
-
-    @Override
-    public void generateJsCode(JsWriter out) throws IOException {
-      generate(out);
     }
 
     @Override
@@ -1135,11 +1125,6 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
 
     public SuperCallCodeGenerator(ClassDeclaration classDeclaration) {
       this.classDeclaration = classDeclaration;
-    }
-
-    @Override
-    public void generateJsCode(JsWriter out) throws IOException {
-      generate(out);
     }
 
     @Override

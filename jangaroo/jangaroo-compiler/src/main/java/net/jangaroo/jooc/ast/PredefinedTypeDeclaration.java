@@ -40,10 +40,4 @@ public class PredefinedTypeDeclaration extends IdeDeclaration {
   protected int getAllowedModifiers() {
     return MODIFIER_PUBLIC;
   }
-
-  @Override
-  public void generateJsCode(final JsWriter out) throws IOException {
-    throw new UnsupportedOperationException("there should be no code generation for predefined types");
-  }
-
 }

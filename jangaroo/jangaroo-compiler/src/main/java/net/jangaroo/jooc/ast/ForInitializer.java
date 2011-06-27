@@ -59,10 +59,6 @@ public class ForInitializer extends NodeImplBase {
       getExpr().analyze(this, context);
   }
 
-  public void generateJsCode(JsWriter out) throws IOException {
-    throw new UnsupportedOperationException();
-  }
-
   public JooSymbol getSymbol() {
      return getDecl() != null ? getDecl().getSymbol() : getExpr().getSymbol();
   }

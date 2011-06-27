@@ -130,10 +130,6 @@ public class ClassDeclaration extends IdeDeclaration {
     usedBuiltIns.add(builtIn);
   }
 
-  public void generateJsCode(JsWriter out) throws IOException {
-    throw new UnsupportedOperationException();
-  }
-
   public JooSymbol getSymClass() {
     return symClass;
   }

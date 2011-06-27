@@ -64,10 +64,6 @@ public class UseNamespaceDirective extends Directive {
     // no API code generated!
   }
 
-  public void generateJsCode(JsWriter out) throws IOException {
-    throw new UnsupportedOperationException();
-  }
-
   public JooSymbol getSymbol() {
       return getUseKeyword();
   }

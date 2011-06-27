@@ -68,11 +68,6 @@ public class CommaSeparatedList<T extends AstNode> extends Expr {
     }
   }
 
-  @Override
-  public void generateJsCode(final JsWriter out) throws IOException {
-    throw new UnsupportedOperationException();
-  }
-
   public void analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     if (getHead() != null) {

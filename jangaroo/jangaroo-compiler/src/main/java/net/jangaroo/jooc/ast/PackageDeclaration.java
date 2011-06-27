@@ -54,10 +54,6 @@ public class PackageDeclaration extends IdeDeclaration {
     }
   }
 
-  public void generateJsCode(JsWriter out) throws IOException {
-    throw new UnsupportedOperationException();
-  }
-
   public JooSymbol getSymbol() {
     return getSymPackage();
   }

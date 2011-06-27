@@ -32,10 +32,6 @@ public abstract class KeywordStatement extends Statement {
     this.setSymKeyword(symKeyword);
   }
 
-  public void generateJsCode(JsWriter out) throws IOException {
-    out.writeSymbol(getSymKeyword());
-  }
-
   public JooSymbol getSymbol() {
     return getSymKeyword();
   }

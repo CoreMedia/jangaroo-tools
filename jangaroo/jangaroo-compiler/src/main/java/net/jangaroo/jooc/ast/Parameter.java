@@ -88,10 +88,6 @@ public class Parameter extends IdeDeclaration {
     }
   }
 
-  public void generateJsCode(JsWriter out) throws IOException {
-    throw new UnsupportedOperationException();
-  }
-
   public boolean hasInitializer() {
     return getOptInitializer() !=null &&
       // ignore initializers that assign undefined. Parameters are already undefined if not present.

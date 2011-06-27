@@ -53,10 +53,6 @@ public class ConditionalExpr extends Expr {
     getIfFalse().scope(scope);
   }
 
-  public void generateJsCode(JsWriter out) throws IOException {
-    throw new UnsupportedOperationException();
-  }
-
   public void analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     getCond().analyze(this, context);

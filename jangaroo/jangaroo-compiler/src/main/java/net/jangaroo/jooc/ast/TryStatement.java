@@ -66,10 +66,6 @@ public class TryStatement extends KeywordStatement {
       getFinallyBlock().analyze(this, context);
   }
 
-  public void generateJsCode(JsWriter out) throws IOException {
-    throw new UnsupportedOperationException();
-  }
-
   public BlockStatement getBlock() {
     return block;
   }

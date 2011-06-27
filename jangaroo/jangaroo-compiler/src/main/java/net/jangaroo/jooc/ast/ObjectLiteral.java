@@ -48,10 +48,6 @@ public class ObjectLiteral extends Expr {
     visitor.visitObjectLiteral(this);
   }
 
-  public void generateJsCode(JsWriter out) throws IOException {
-    throw new UnsupportedOperationException();
-  }
-
   @Override
   public void scope(final Scope scope) {
     if (getFields() != null) {

@@ -48,10 +48,6 @@ public class Catch extends KeywordStatement {
     visitor.visitCatch(this);
   }
 
-  public void generateJsCode(JsWriter out) throws IOException {
-    throw new UnsupportedOperationException();
-  }
-
   public TryStatement getParentTryStatement() {
     return parentNode;
   }

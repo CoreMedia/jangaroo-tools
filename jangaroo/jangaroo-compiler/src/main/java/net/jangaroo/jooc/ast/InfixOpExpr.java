@@ -36,8 +36,4 @@ public class InfixOpExpr extends BinaryOpExpr {
     out.writeSymbol(getOp());
     getArg2().generateAsApiCode(out);
   }
-
-  public void generateJsCode(JsWriter out) throws IOException {
-    throw new UnsupportedOperationException();
-  }
 }

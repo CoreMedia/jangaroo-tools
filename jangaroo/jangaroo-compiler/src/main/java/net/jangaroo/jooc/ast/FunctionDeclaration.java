@@ -250,10 +250,6 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
     }
   }
 
-  public void generateJsCode(JsWriter out) throws IOException {
-    throw new UnsupportedOperationException();
-  }
-
   @Override
   public JooSymbol getSymbol() {
     return fun.getSymbol();

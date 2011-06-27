@@ -40,8 +40,4 @@ public class GetterSetterPair extends IdeDeclaration {
   @Override
   public void scope(final Scope scope) {
   }
-
-  public void generateJsCode(JsWriter out) throws IOException {
-    throw new IllegalStateException("GetterSetterPair#generateCode() should never be called!");
-  }
 }

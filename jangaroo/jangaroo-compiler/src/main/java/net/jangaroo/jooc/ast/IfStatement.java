@@ -65,10 +65,6 @@ public class IfStatement extends KeywordStatement {
       getIfFalse().analyze(this, context);
   }
 
-  public void generateJsCode(JsWriter out) throws IOException {
-    throw new UnsupportedOperationException();
-  }
-
   public Expr getCond() {
     return cond;
   }

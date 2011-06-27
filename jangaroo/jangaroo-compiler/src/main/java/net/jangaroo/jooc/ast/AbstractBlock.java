@@ -32,10 +32,6 @@ public abstract class AbstractBlock extends Statement {
     getBlockStartCodeGenerators().add(blockStartCodeGenerator);
   }
 
-  public void generateJsCode(JsWriter out) throws IOException {
-    throw new UnsupportedOperationException();
-  }
-
   public void analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     analyze(this, getDirectives(), context);

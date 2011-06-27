@@ -42,10 +42,6 @@ public class Parameters extends CommaSeparatedList<Parameter> {
   public void visit(AstVisitor visitor) throws IOException {
     visitor.visitParameters(this);
   }
-  @Override
-  public void generateJsCode(final JsWriter out) throws IOException {
-    throw new UnsupportedOperationException();
-  }
 
   public String getRestParamName() {
     if (getHead().isRest()) {

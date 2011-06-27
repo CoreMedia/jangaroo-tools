@@ -82,10 +82,6 @@ public class ImportDirective extends Directive {
   }
 
 
-  public void generateJsCode(JsWriter out) throws IOException {
-    throw new UnsupportedOperationException();
-  }
-
   public JooSymbol getSymbol() {
     return getImportKeyword();
   }

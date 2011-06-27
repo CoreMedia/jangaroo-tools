@@ -59,10 +59,6 @@ public class SwitchStatement extends KeywordStatement {
     getBlock().analyze(this, context);
   }
 
-  public void generateJsCode(JsWriter out) throws IOException {
-    throw new UnsupportedOperationException();
-  }
-
   public ParenthesizedExpr getCond() {
     return cond;
   }

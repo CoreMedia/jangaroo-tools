@@ -54,9 +54,4 @@ public class ClassBody extends AbstractBlock {
     }
     out.writeSymbol(getRBrace());
   }
-
-  public void generateJsCode(JsWriter out) throws IOException {
-    throw new UnsupportedOperationException();
-  }
-
 }

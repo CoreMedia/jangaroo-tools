@@ -55,10 +55,6 @@ public class ParenthesizedExpr<E extends Expr> extends Expr {
       getExpr().analyze(this, context);
   }
 
-  public void generateJsCode(JsWriter out) throws IOException {
-    throw new UnsupportedOperationException();
-  }
-
   public JooSymbol getSymbol() {
     return getLParen();
   }

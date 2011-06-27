@@ -107,11 +107,6 @@ public class Ide extends NodeImplBase {
     }
   }
 
-  public void generateJsCode(JsWriter out) throws IOException {
-    out.writeSymbolWhitespace(getIde());
-    writeIde(out);
-  }
-
   @Override
   public void generateAsApiCode(JsWriter out) throws IOException {
     out.writeSymbol(getIde());

@@ -68,10 +68,6 @@ public class SuperConstructorCallStatement extends Statement {
       getArgs().analyze(this, context);
   }
 
-  public void generateJsCode(JsWriter out) throws IOException {
-    throw new UnsupportedOperationException();
-  }
-
   public JooSymbol getSymbol() {
     return getFun().getSymbol();
   }

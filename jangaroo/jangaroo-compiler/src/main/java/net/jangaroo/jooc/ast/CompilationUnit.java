@@ -140,10 +140,6 @@ public class CompilationUnit extends NodeImplBase {
     out.writeSymbol(rBrace);
   }
 
-  public void generateJsCode(JsWriter out) throws IOException {
-    throw new UnsupportedOperationException();
-  }
-
   public void analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     packageDeclaration.analyze(this, context);

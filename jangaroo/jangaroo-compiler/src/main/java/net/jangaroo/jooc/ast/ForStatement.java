@@ -51,10 +51,6 @@ public class ForStatement extends ConditionalLoopStatement {
     visitor.visitForStatement(this);
   }
 
-  public void generateJsCode(JsWriter out) throws IOException {
-    throw new UnsupportedOperationException();
-  }
-
   @Override
   public void scope(final Scope scope) {
     if (getForInit() != null) {

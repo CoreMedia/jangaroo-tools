@@ -27,8 +27,6 @@ import java.util.List;
  * @author Andreas Gawecki
  */
 public abstract class NodeImplBase implements AstNode {
-  public abstract void generateJsCode(final JsWriter out) throws IOException;
-
   public void generateAsApiCode(final JsWriter out) throws IOException {
     throw new UnsupportedOperationException("please override in non-abstract subclass "+getClass());
   }

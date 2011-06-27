@@ -65,8 +65,4 @@ public class ArrayIndexExpr extends Expr {
     array.analyze(this, context);
     indexExpr.analyze(this, context);
   }
-
-  public void generateJsCode(JsWriter out) throws IOException {
-    throw new UnsupportedOperationException();
-  }
 }

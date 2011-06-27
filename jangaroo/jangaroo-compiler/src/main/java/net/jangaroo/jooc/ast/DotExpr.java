@@ -65,11 +65,6 @@ public class DotExpr extends PostfixOpExpr {
 
   }
 
-  @Override
-  public void generateJsCode(final JsWriter out) throws IOException {
-    throw new UnsupportedOperationException();
-  }
-
   public void setIde(Ide ide) {
     this.ide = ide;
   }

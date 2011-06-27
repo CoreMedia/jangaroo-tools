@@ -50,10 +50,6 @@ public class Initializer extends NodeImplBase {
     getValue().analyze(this, context);
   }
 
-  public void generateJsCode(JsWriter out) throws IOException {
-    throw new UnsupportedOperationException();
-  }
-
   @Override
   public void generateAsApiCode(JsWriter out) throws IOException {
     //todo clarify whether initializers are part of public API

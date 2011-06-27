@@ -33,8 +33,4 @@ public class WhileStatement extends ConditionalLoopStatement {
   public void visit(AstVisitor visitor) throws IOException {
     visitor.visitWhileStatement(this);
   }
-
-  public void generateJsCode(JsWriter out) throws IOException {
-    throw new UnsupportedOperationException();
-  }
 }

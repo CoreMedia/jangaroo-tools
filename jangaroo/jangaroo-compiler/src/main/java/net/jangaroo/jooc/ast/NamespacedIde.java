@@ -56,10 +56,6 @@ public class NamespacedIde extends Ide {
     super.analyze(parentNode, context);
   }
 
-  public void generateJsCode(JsWriter out) throws IOException {
-    throw new UnsupportedOperationException();
-  }
-
   @Override
   public void generateAsApiCode(JsWriter out) throws IOException {
     out.writeSymbol(namespace);

@@ -170,10 +170,6 @@ public class VariableDeclaration extends TypedIdeDeclaration {
     return !isClassMember();
   }
 
-  public void generateJsCode(JsWriter out) throws IOException {
-    throw new UnsupportedOperationException();
-  }
-
   @Override
   public void scope(final Scope scope) {
     super.scope(scope);

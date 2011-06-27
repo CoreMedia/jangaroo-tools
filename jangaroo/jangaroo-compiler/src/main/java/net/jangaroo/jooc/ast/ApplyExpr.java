@@ -61,10 +61,6 @@ public class ApplyExpr extends Expr {
     getArgs().scope(scope);
   }
 
-  public void generateJsCode(JsWriter out) throws IOException {
-    throw new UnsupportedOperationException();
-  }
-
   public boolean isTypeCast() {
     return getFun() instanceof IdeExpr && !isInsideNewExpr() && isNonCoercingType((IdeExpr) getFun());
   }

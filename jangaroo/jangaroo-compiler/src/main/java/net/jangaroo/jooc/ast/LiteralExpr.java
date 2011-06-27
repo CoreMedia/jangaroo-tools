@@ -46,10 +46,6 @@ public class LiteralExpr extends Expr {
     out.writeSymbol(getValue());
   }
 
-  public void generateJsCode(JsWriter out) throws IOException {
-    throw new UnsupportedOperationException();
-  }
-
   public JooSymbol getSymbol() {
     return getValue();
   }

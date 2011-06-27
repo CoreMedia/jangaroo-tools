@@ -36,10 +36,6 @@ public class EmptyDeclaration extends Declaration {
     out.writeSymbol(symSemicolon);
   }
 
-  public void generateJsCode(JsWriter out) throws IOException {
-    throw new UnsupportedOperationException();
-  }
-
   public JooSymbol getSymSemicolon() {
     return symSemicolon;
   }

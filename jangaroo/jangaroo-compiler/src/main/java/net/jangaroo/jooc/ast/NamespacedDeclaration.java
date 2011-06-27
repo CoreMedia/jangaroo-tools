@@ -79,10 +79,4 @@ public class NamespacedDeclaration extends IdeDeclaration {
       out.writeToken(";");
     }
   }
-
-  @Override
-  public void generateJsCode(JsWriter out) throws IOException {
-    throw new UnsupportedOperationException();
-  }
-
 }

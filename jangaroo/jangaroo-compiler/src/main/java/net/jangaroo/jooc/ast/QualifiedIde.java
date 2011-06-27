@@ -107,10 +107,6 @@ public class QualifiedIde extends Ide {
     super.analyze(parentNode, context);
   }
 
-  public void generateJsCode(JsWriter out) throws IOException {
-    throw new UnsupportedOperationException();
-  }
-
   @Override
   public void generateAsApiCode(JsWriter out) throws IOException {
     qualifier.generateAsApiCode(out);

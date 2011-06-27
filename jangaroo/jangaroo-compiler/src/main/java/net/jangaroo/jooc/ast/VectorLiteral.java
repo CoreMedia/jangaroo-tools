@@ -31,11 +31,6 @@ public class VectorLiteral extends Expr {
   }
 
   @Override
-  public void generateJsCode(JsWriter out) throws IOException {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
   public JooSymbol getSymbol() {
     return symNew;
   }

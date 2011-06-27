@@ -61,10 +61,6 @@ public class Extends extends NodeImplBase {
     out.writeSymbol(getSymExtends());
     getSuperClass().generateCodeAsExpr(out);  }
 
-  public void generateJsCode(JsWriter out) throws IOException {
-    throw new UnsupportedOperationException();
-  }
-
   public JooSymbol getSymbol() {
     return getSymExtends();
   }

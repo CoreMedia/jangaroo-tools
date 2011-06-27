@@ -34,10 +34,6 @@ public class PostfixOpExpr extends UnaryOpExpr {
     visitor.visitPostfixOpExpr(this);
   }
 
-  public void generateJsCode(JsWriter out) throws IOException {
-    throw new UnsupportedOperationException();
-  }
-
   public JooSymbol getSymbol() {
      return getArg().getSymbol();
   }

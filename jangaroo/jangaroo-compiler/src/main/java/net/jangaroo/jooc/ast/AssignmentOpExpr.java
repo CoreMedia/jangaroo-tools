@@ -34,8 +34,4 @@ public class AssignmentOpExpr extends BinaryOpExpr {
     visitor.visitAssignmentOpExpr(this);
   }
 
-  @Override
-  public void generateJsCode(JsWriter out) throws IOException {
-    throw new UnsupportedOperationException();
-  }
 }

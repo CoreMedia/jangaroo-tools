@@ -54,10 +54,6 @@ public class ObjectField extends NodeImplBase {
     getValue().analyze(this, context);
   }
 
-  public void generateJsCode(JsWriter out) throws IOException {
-    throw new UnsupportedOperationException();
-  }
-
   public JooSymbol getSymbol() {
     return getLabel().getSymbol();
   }
