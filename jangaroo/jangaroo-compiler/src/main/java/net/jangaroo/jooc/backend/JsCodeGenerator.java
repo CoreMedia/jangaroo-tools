@@ -16,7 +16,6 @@ import net.jangaroo.jooc.ast.AsExpr;
 import net.jangaroo.jooc.ast.AssignmentOpExpr;
 import net.jangaroo.jooc.ast.AstNode;
 import net.jangaroo.jooc.ast.AstVisitor;
-import net.jangaroo.jooc.ast.BinaryOpExpr;
 import net.jangaroo.jooc.ast.BlockStatement;
 import net.jangaroo.jooc.ast.BreakStatement;
 import net.jangaroo.jooc.ast.CaseStatement;
@@ -25,13 +24,11 @@ import net.jangaroo.jooc.ast.ClassBody;
 import net.jangaroo.jooc.ast.ClassDeclaration;
 import net.jangaroo.jooc.ast.CommaSeparatedList;
 import net.jangaroo.jooc.ast.CompilationUnit;
-import net.jangaroo.jooc.ast.ConditionalExpr;
 import net.jangaroo.jooc.ast.ContinueStatement;
 import net.jangaroo.jooc.ast.Declaration;
 import net.jangaroo.jooc.ast.DefaultStatement;
 import net.jangaroo.jooc.ast.Directive;
 import net.jangaroo.jooc.ast.DoStatement;
-import net.jangaroo.jooc.ast.DotExpr;
 import net.jangaroo.jooc.ast.EmptyDeclaration;
 import net.jangaroo.jooc.ast.EmptyStatement;
 import net.jangaroo.jooc.ast.Expr;
@@ -41,7 +38,6 @@ import net.jangaroo.jooc.ast.ForInitializer;
 import net.jangaroo.jooc.ast.ForStatement;
 import net.jangaroo.jooc.ast.FunctionDeclaration;
 import net.jangaroo.jooc.ast.FunctionExpr;
-import net.jangaroo.jooc.ast.GetterSetterPair;
 import net.jangaroo.jooc.ast.Ide;
 import net.jangaroo.jooc.ast.IdeDeclaration;
 import net.jangaroo.jooc.ast.IdeExpr;
@@ -51,9 +47,7 @@ import net.jangaroo.jooc.ast.Implements;
 import net.jangaroo.jooc.ast.ImportDirective;
 import net.jangaroo.jooc.ast.InfixOpExpr;
 import net.jangaroo.jooc.ast.Initializer;
-import net.jangaroo.jooc.ast.IsExpr;
 import net.jangaroo.jooc.ast.LabeledStatement;
-import net.jangaroo.jooc.ast.LiteralExpr;
 import net.jangaroo.jooc.ast.NamespacedDeclaration;
 import net.jangaroo.jooc.ast.NamespacedIde;
 import net.jangaroo.jooc.ast.NewExpr;
@@ -63,9 +57,6 @@ import net.jangaroo.jooc.ast.PackageDeclaration;
 import net.jangaroo.jooc.ast.Parameter;
 import net.jangaroo.jooc.ast.Parameters;
 import net.jangaroo.jooc.ast.ParenthesizedExpr;
-import net.jangaroo.jooc.ast.PostfixOpExpr;
-import net.jangaroo.jooc.ast.PredefinedTypeDeclaration;
-import net.jangaroo.jooc.ast.PrefixOpExpr;
 import net.jangaroo.jooc.ast.QualifiedIde;
 import net.jangaroo.jooc.ast.ReturnStatement;
 import net.jangaroo.jooc.ast.SemicolonTerminatedStatement;
@@ -110,13 +101,14 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
   private boolean inArtificialComment = false;
 
   public JsCodeGenerator(JsWriter out) {
+    super(out);
     this.out = out;
   }
 
   @Override
   public void visitTypeRelation(TypeRelation typeRelation) throws IOException {
     out.beginCommentWriteSymbol(typeRelation.getSymRelation());
-    typeRelation.getType().generateAsApiCode(out);
+    out.writeSymbol(typeRelation.getType().getIde().getIde());
     out.endComment();
   }
 
@@ -285,36 +277,6 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
   }
 
   @Override
-  public void visitLiteralExpr(LiteralExpr literalExpr) throws IOException {
-    out.writeSymbol(literalExpr.getValue());
-  }
-
-  @Override
-  public void visitPostfixOpExpr(PostfixOpExpr postfixOpExpr) throws IOException {
-    postfixOpExpr.getArg().visit(this);
-    out.writeSymbol(postfixOpExpr.getOp());
-  }
-
-  @Override
-  public void visitDotExpr(DotExpr dotExpr) throws IOException {
-    dotExpr.getArg().visit(this);
-    Ide.writeMemberAccess(Ide.resolveMember(dotExpr.getArg().getType(), dotExpr.getIde()), dotExpr.getOp(), dotExpr.getIde(), true, out);
-  }
-
-  @Override
-  public void visitPrefixOpExpr(PrefixOpExpr prefixOpExpr) throws IOException {
-    out.writeSymbol(prefixOpExpr.getOp());
-    prefixOpExpr.getArg().visit(this);
-  }
-
-  @Override
-  public void visitBinaryOpExpr(BinaryOpExpr binaryOpExpr) throws IOException {
-    binaryOpExpr.getArg1().visit(this);
-    out.writeSymbol(binaryOpExpr.getOp());
-    binaryOpExpr.getArg2().visit(this);
-  }
-
-  @Override
   public void visitAssignmentOpExpr(AssignmentOpExpr assignmentOpExpr) throws IOException {
     if (assignmentOpExpr.getOp().sym == sym.ANDANDEQ || assignmentOpExpr.getOp().sym == sym.OROREQ) {
       assignmentOpExpr.getArg1().visit(this);
@@ -355,36 +317,9 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
   }
 
   @Override
-  public void visitIsExpr(IsExpr isExpr) throws IOException {
-    visitInfixOpExpr(isExpr);
-  }
-
-  @Override
-  public void visitConditionalExpr(ConditionalExpr conditionalExpr) throws IOException {
-    conditionalExpr.getCond().visit(this);
-    out.writeSymbol(conditionalExpr.getSymQuestion());
-    conditionalExpr.getIfTrue().visit(this);
-    out.writeSymbol(conditionalExpr.getSymColon());
-    conditionalExpr.getIfFalse().visit(this);
-  }
-
-  @Override
   public void visitArrayIndexExpr(ArrayIndexExpr arrayIndexExpr) throws IOException {
     arrayIndexExpr.getArray().visit(this);
     arrayIndexExpr.getIndexExpr().visit(this);
-  }
-
-  @Override
-  public <T extends AstNode> void visitCommaSeparatedList(CommaSeparatedList<T> commaSeparatedList) throws IOException {
-    if (commaSeparatedList.getHead() != null) {
-      commaSeparatedList.getHead().visit(this);
-    }
-    if (commaSeparatedList.getSymComma() != null) {
-      out.writeSymbol(commaSeparatedList.getSymComma());
-      if (commaSeparatedList.getTail() != null) {
-        commaSeparatedList.getTail().visit(this);
-      }
-    }
   }
 
   @Override
@@ -459,11 +394,6 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
           }
         }
       }
-
-      @Override
-      public void generateAsApiCode(JsWriter out) throws IOException {
-        throw new UnsupportedOperationException();
-      }
     };
   }
 
@@ -475,11 +405,11 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
   }
 
   public void generateSignatureJsCode(FunctionExpr functionExpr) throws IOException {
-    out.writeSymbol(functionExpr.getlParen());
+    out.writeSymbol(functionExpr.getLParen());
     if (functionExpr.getParams() != null) {
       functionExpr.getParams().visit(this);
     }
-    out.writeSymbol(functionExpr.getrParen());
+    out.writeSymbol(functionExpr.getRParen());
     if (functionExpr.getOptTypeRelation() != null) {
       functionExpr.getOptTypeRelation().visit(this);
     }
@@ -710,15 +640,6 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
       out.writeSymbolToken(errorVar);
       out.writeToken(";");
     }
-
-    @Override
-    public void generateAsApiCode(JsWriter out) throws IOException {
-      out.writeToken("var");
-      out.writeSymbolToken(localErrorVar);
-      out.writeToken("=");
-      out.writeSymbolToken(errorVar);
-      out.writeToken(";");
-    }
   }
 
   @Override
@@ -896,11 +817,6 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
       parameter.getOptInitializer().visit(this);
       out.endComment();
     }
-  }
-
-  @Override
-  public void visitGetterSetterPair(GetterSetterPair getterSetterPair) throws IOException {
-    throw new IllegalStateException("GetterSetterPair#generateCode() should never be called!");
   }
 
   @Override
@@ -1135,11 +1051,6 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
       }
       generateFieldInitCode(classDeclaration, false, true);
     }
-
-    @Override
-    public void generateAsApiCode(JsWriter out) throws IOException {
-      throw new UnsupportedOperationException();
-    }
   }
 
   private void generateStaticMethodList(ClassDeclaration classDeclaration) throws IOException {
@@ -1191,11 +1102,6 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
     if (!first) {
       out.write(");},");
     }
-  }
-
-  @Override
-  public void visitPredefinedTypeDeclaration(PredefinedTypeDeclaration predefinedTypeDeclaration) throws IOException {
-    throw new UnsupportedOperationException("there should be no code generation for predefined types");
   }
 
   @Override

@@ -41,11 +41,6 @@ public class LiteralExpr extends Expr {
   public void scope(final Scope scope) {
   }
 
-  @Override
-  public void generateAsApiCode(JsWriter out) throws IOException {
-    out.writeSymbol(getValue());
-  }
-
   public JooSymbol getSymbol() {
     return getValue();
   }

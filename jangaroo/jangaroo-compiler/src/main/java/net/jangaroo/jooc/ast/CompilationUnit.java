@@ -132,14 +132,6 @@ public class CompilationUnit extends NodeImplBase {
     sink.writeOutput(this);
   }
 
-  @Override
-  public void generateAsApiCode(final JsWriter out) throws IOException {
-    packageDeclaration.generateAsApiCode(out);
-    out.writeSymbol(lBrace);
-    primaryDeclaration.generateAsApiCode(out);
-    out.writeSymbol(rBrace);
-  }
-
   public void analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     packageDeclaration.analyze(this, context);

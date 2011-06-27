@@ -181,26 +181,6 @@ public class VariableDeclaration extends TypedIdeDeclaration {
     }
   }
 
-  public void generateAsApiCode(JsWriter out) throws IOException {
-    if (!isPrivate()) {
-      writeModifiers(out);
-      out.writeSymbol(getOptSymConstOrVar());
-      getIde().generateAsApiCode(out);
-      if (getOptTypeRelation() != null) {
-        getOptTypeRelation().generateAsApiCode(out);
-      }
-      if (getOptInitializer() != null) {
-        getOptInitializer().generateAsApiCode(out);
-      }
-      if (getOptNextVariableDeclaration() != null) {
-        getOptNextVariableDeclaration().generateAsApiCode(out);
-      }
-      if (getOptSymSemicolon() != null) {
-        out.writeSymbol(getOptSymSemicolon());
-      }
-    }
-  }
-
   public boolean hasPreviousVariableDeclaration() {
     return previousVariableDeclaration != null;
   }

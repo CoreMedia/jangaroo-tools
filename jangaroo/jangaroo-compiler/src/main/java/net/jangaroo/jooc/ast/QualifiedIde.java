@@ -108,13 +108,6 @@ public class QualifiedIde extends Ide {
   }
 
   @Override
-  public void generateAsApiCode(JsWriter out) throws IOException {
-    qualifier.generateAsApiCode(out);
-    out.writeSymbol(symDot);
-    super.generateAsApiCode(out);
-  }
-
-  @Override
   public void analyzeAsExpr(final AstNode exprParent, final Expr parentExpr, final AnalyzeContext context) {
     qualifier.analyzeAsExpr(exprParent, parentExpr, context);
     super.analyzeAsExpr(exprParent, parentExpr, context);

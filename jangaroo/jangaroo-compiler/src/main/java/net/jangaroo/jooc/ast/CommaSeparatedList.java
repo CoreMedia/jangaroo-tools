@@ -55,19 +55,6 @@ public class CommaSeparatedList<T extends AstNode> extends Expr {
     }
   }
 
-  @Override
-  public void generateAsApiCode(JsWriter out) throws IOException {
-    if (getHead() != null) {
-      getHead().generateAsApiCode(out);
-    }
-    if (getSymComma() != null) {
-      out.writeSymbol(getSymComma());
-      if (getTail() != null) {
-        getTail().generateAsApiCode(out);
-      }
-    }
-  }
-
   public void analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     if (getHead() != null) {

@@ -110,22 +110,6 @@ public class ClassDeclaration extends IdeDeclaration {
     constructor = methodDeclaration;
   }
 
-  public void generateAsApiCode(JsWriter out) throws IOException {
-    for (AstNode node : directives) {
-      node.generateAsApiCode(out);
-    }
-    writeModifiers(out);
-    out.writeSymbol(getSymClass());
-    getIde().generateAsApiCode(out);
-    if (getOptExtends() != null) {
-      getOptExtends().generateAsApiCode(out);
-    }
-    if (getOptImplements() != null) {
-      getOptImplements().generateAsApiCode(out);
-    }
-    body.generateAsApiCode(out);
-  }
-
   public void addBuiltInUsage(String builtIn) {
     usedBuiltIns.add(builtIn);
   }

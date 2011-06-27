@@ -29,11 +29,4 @@ public class InfixOpExpr extends BinaryOpExpr {
       classDeclaration.addBuiltInUsage(getOp().getText());
     }
   }
-
-  @Override
-  public void generateAsApiCode(JsWriter out) throws IOException {
-    getArg1().generateAsApiCode(out);
-    out.writeSymbol(getOp());
-    getArg2().generateAsApiCode(out);
-  }
 }

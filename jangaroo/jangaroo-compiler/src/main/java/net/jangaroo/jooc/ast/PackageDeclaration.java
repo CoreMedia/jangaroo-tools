@@ -47,13 +47,6 @@ public class PackageDeclaration extends IdeDeclaration {
     setIde(oldIde);
   }
 
-  public void generateAsApiCode(JsWriter out) throws IOException {
-    out.writeSymbol(getSymPackage());
-    if (getIde() !=null) {
-      getIde().generateAsApiCode(out);
-    }
-  }
-
   public JooSymbol getSymbol() {
     return getSymPackage();
   }

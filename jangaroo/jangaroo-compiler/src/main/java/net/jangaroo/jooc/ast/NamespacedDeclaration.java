@@ -63,20 +63,4 @@ public class NamespacedDeclaration extends IdeDeclaration {
   protected int getAllowedModifiers() {
     return MODIFIER_PUBLIC | MODIFIER_INTERNAL;
   }
-
-  @Override
-  public void generateAsApiCode(JsWriter out) throws IOException {
-    writeModifiers(out);
-    out.writeSymbol(symNamespace);
-    getIde().generateAsApiCode(out);
-    if (optInitializer != null) {
-      out.writeSymbol(optInitializer.getSymEq());
-      optInitializer.getValue().generateAsApiCode(out);
-    }
-    if (optSymSemicolon != null) {
-      out.writeSymbol(optSymSemicolon);
-    } else {
-      out.writeToken(";");
-    }
-  }
 }

@@ -77,22 +77,6 @@ public class Annotation extends Directive {
     return getIde().getSymbol();
   }
 
-  @Override
-  public void generateAsApiCode(JsWriter out) throws IOException {
-    out.writeSymbol(getLeftBracket());
-    getIde().generateAsApiCode(out);
-    if (getOptLeftParen() != null) {
-      out.writeSymbol(getOptLeftParen());
-    }
-    if (getOptAnnotationParameters() != null) {
-      getOptAnnotationParameters().generateAsApiCode(out);
-    }
-    if (getOptRightParen() != null) {
-      out.writeSymbol(getOptRightParen());
-    }
-    out.writeSymbol(getRightBracket());
-  }
-
   public String getMetaName() {
     return getSymbol().getText();
   }

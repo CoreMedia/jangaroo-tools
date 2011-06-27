@@ -46,10 +46,10 @@ import java.util.*;
  */
 public class Jooc {
 
-  private final static String COMPILER_VERSION_KEY = "jooc.compiler.version";
-  private final String RUNTIME_VERSION_KEY = "jooc.runtime.version";
+  private static final String COMPILER_VERSION_KEY = "jooc.compiler.version";
+  private static final String RUNTIME_VERSION_KEY = "jooc.runtime.version";
 
-  final static String JOO_API_IN_JAR_DIRECTORY_PREFIX = "META-INF/joo-api/";
+  private static final String JOO_API_IN_JAR_DIRECTORY_PREFIX = "META-INF/joo-api/";
 
   public static final int RESULT_CODE_OK = 0;
   public static final int RESULT_CODE_COMPILATION_FAILED = 1;
@@ -79,9 +79,10 @@ public class Jooc {
   private InputSource sourcePathInputSource;
   private InputSource classPathInputSource;
 
-  private final Scope globalScope = new DeclarationScope(null, null);
-  private final IdeDeclaration voidDeclaration = declareType(globalScope, "void");
-  private final IdeDeclaration anyDeclaration = declareType(globalScope, "*");
+  private final Scope globalScope = new DeclarationScope(null, null); {
+    declareType(globalScope, "void");
+    declareType(globalScope, "*");
+  }
   private ResourceBundle joocProperties;
 
   public Jooc() {
@@ -92,14 +93,6 @@ public class Jooc {
     this.log = log;
     joocProperties = ResourceBundle.getBundle ("net.jangaroo.jooc.jooc");
     assert joocProperties != null;
-  }
-
-  public IdeDeclaration getAnyDeclaration() {
-    return anyDeclaration;
-  }
-
-  public IdeDeclaration getVoidDeclaration() {
-    return voidDeclaration;
   }
 
   public int run(JoocConfiguration config) {
@@ -163,10 +156,9 @@ public class Jooc {
       "this"});
   }
 
-  private static IdeDeclaration declareType(Scope scope, String identifier) {
+  private static void declareType(Scope scope, String identifier) {
     IdeDeclaration decl = new PredefinedTypeDeclaration(identifier);
     decl.scope(scope);
-    return decl;
   }
 
   private static void declareValues(Scope scope, String[] identifiers) {

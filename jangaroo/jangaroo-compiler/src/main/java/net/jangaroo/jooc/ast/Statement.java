@@ -25,10 +25,4 @@ import java.io.IOException;
  * @author Andreas Gawecki
  */
 public abstract class Statement extends Directive {
-
-  @Override
-  public void generateAsApiCode(final JsWriter out) throws IOException {
-    //skip it
-  }
-
 }

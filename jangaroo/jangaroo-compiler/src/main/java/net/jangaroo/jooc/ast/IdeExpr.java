@@ -59,11 +59,6 @@ public class IdeExpr extends Expr {
     setType(getIde().resolveDeclaration());
   }
 
-  @Override
-  public void generateAsApiCode(JsWriter out) throws IOException {
-    getIde().generateAsApiCode(out);
-  }
-
   public JooSymbol getSymbol() {
      return getIde().getSymbol();
   }

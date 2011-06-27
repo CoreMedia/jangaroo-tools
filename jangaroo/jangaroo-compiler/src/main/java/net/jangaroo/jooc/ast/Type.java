@@ -57,11 +57,6 @@ public class Type extends NodeImplBase {
     getIde().analyze(this, context);
   }
 
-  @Override
-  public void generateAsApiCode(JsWriter out) throws IOException {
-    getIde().generateAsApiCode(out);
-  }
-
   public JooSymbol getSymbol() {
     return getIde().getSymbol();
   }

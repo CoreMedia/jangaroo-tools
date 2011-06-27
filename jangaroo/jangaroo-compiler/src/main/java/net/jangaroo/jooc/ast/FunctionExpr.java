@@ -158,16 +158,6 @@ public class FunctionExpr extends Expr {
     implicitParams.add(parameter);
     thisDefined = thisDefined || parameter.getIde().getName().equals("this");
   }
-  public void generateSignatureAsApiCode(JsWriter out) throws IOException {
-    out.writeSymbol(lParen);
-    if (params != null) {
-      params.generateAsApiCode(out);
-    }
-    out.writeSymbol(rParen);
-    if (optTypeRelation != null) {
-      optTypeRelation.generateAsApiCode(out);
-    }
-  }
 
   public boolean hasBody() {
     return getBody() != null;
@@ -181,7 +171,7 @@ public class FunctionExpr extends Expr {
     return symFunction;
   }
 
-  public JooSymbol getlParen() {
+  public JooSymbol getLParen() {
     return lParen;
   }
 
@@ -189,7 +179,7 @@ public class FunctionExpr extends Expr {
     return optTypeRelation;
   }
 
-  public JooSymbol getrParen() {
+  public JooSymbol getRParen() {
     return rParen;
   }
 
@@ -216,19 +206,10 @@ public class FunctionExpr extends Expr {
           public void generate(final JsWriter out) throws IOException {
             out.write("var this$=this;");
           }
-
-          public void generateAsApiCode(JsWriter out) throws IOException {
-            throw new UnsupportedOperationException();
-          }
         });
         return true;
       }
     }
     return thisUsed;
   }
-
-  public boolean isCompileTimeConstant() {
-    return false;
-  }
-
 }

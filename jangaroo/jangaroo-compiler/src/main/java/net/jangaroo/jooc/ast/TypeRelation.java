@@ -57,12 +57,6 @@ public class TypeRelation extends NodeImplBase {
     getType().analyze(this, context);
   }
 
-  @Override
-  public void generateAsApiCode(final JsWriter out) throws IOException {
-    out.writeSymbol(getSymRelation());
-    getType().getIde().generateAsApiCode(out);
-  }
-
   public JooSymbol getSymbol() {
     return getSymRelation();
   }

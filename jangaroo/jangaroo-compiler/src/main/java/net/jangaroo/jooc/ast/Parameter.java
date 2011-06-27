@@ -76,18 +76,6 @@ public class Parameter extends IdeDeclaration {
     return getOptSymConstOrRest() !=null && getOptSymConstOrRest().sym== sym.REST;
   }
 
-  public void generateAsApiCode(JsWriter out) throws IOException {
-    if (getOptSymConstOrRest() != null) {
-      out.writeSymbol(getOptSymConstOrRest());
-    }
-    getIde().generateAsApiCode(out);
-    if (getOptTypeRelation() !=null)
-      getOptTypeRelation().generateAsApiCode(out);
-    if (getOptInitializer() != null) {
-      getOptInitializer().generateAsApiCode(out);
-    }
-  }
-
   public boolean hasInitializer() {
     return getOptInitializer() !=null &&
       // ignore initializers that assign undefined. Parameters are already undefined if not present.

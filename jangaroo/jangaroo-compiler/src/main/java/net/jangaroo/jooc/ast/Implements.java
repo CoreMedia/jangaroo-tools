@@ -56,22 +56,8 @@ public class Implements extends NodeImplBase {
     }
   }
 
-  @Override
-  public void generateAsApiCode(JsWriter out) throws IOException {
-     out.writeSymbol(getSymImplements());
-     generateImplements(getSuperTypes(), out);
-  }
-
-  private void generateImplements(CommaSeparatedList<Ide> superTypes, JsWriter out) throws IOException {
-    superTypes.getHead().generateCodeAsExpr(out);
-    if (superTypes.getSymComma() != null) {
-      out.writeSymbol(superTypes.getSymComma());
-      generateImplements(superTypes.getTail(), out);
-    }
-  }
-
   public JooSymbol getSymbol() {
-      return getSymImplements();
+    return getSymImplements();
   }
 
   public JooSymbol getSymImplements() {

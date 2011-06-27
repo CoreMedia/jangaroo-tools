@@ -56,13 +56,6 @@ public class NamespacedIde extends Ide {
     super.analyze(parentNode, context);
   }
 
-  @Override
-  public void generateAsApiCode(JsWriter out) throws IOException {
-    out.writeSymbol(namespace);
-    out.writeSymbol(symNamespaceSep);
-    super.generateAsApiCode(out);
-  }
-
   static String getNamespacePrefix(JooSymbol namespace) {
     return ""; // TODO: namespace==null || namespace.sym!=sym.IDE ? "" : namespace.getText()+"::";
   }

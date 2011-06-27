@@ -56,11 +56,6 @@ public class Extends extends NodeImplBase {
     getSuperClass().addExternalUsage();
   }
 
-  @Override
-  public void generateAsApiCode(JsWriter out) throws IOException {
-    out.writeSymbol(getSymExtends());
-    getSuperClass().generateCodeAsExpr(out);  }
-
   public JooSymbol getSymbol() {
     return getSymExtends();
   }

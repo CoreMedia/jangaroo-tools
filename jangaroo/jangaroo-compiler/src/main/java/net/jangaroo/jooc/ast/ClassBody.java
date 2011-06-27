@@ -45,13 +45,4 @@ public class ClassBody extends AbstractBlock {
       directive.scope(directive.isStatic() ? staticScope : instanceScope);
     }
   }
-
-  @Override
-  public void generateAsApiCode(JsWriter out) throws IOException {
-    out.writeSymbol(getLBrace());
-    for (Directive directive : getDirectives()) {
-      directive.generateAsApiCode(out);
-    }
-    out.writeSymbol(getRBrace());
-  }
 }

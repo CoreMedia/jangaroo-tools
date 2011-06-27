@@ -38,7 +38,7 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
   private boolean isConstructor = false;
   private boolean containsSuperConstructorCall = false;
 
-  private static final int defaultAllowedMethodModifers =
+  private static final int DEFAULT_ALLOWED_METHOD_MODIFIERS =
     MODIFIER_OVERRIDE | MODIFIER_ABSTRACT | MODIFIER_VIRTUAL | MODIFIER_FINAL | MODIFIERS_SCOPE | MODIFIER_STATIC | MODIFIER_NATIVE;
 
   public FunctionDeclaration(List<JooSymbol> modifiers, JooSymbol symFunction, JooSymbol symGetOrSet, Ide ide, JooSymbol lParen,
@@ -94,10 +94,6 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
 
   public JooSymbol getOptSymSemicolon() {
     return optSymSemicolon;
-  }
-
-  public static int getDefaultAllowedMethodModifers() {
-    return defaultAllowedMethodModifers;
   }
 
   public boolean containsSuperConstructorCall() {
@@ -185,7 +181,7 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
 
   @Override
   protected int getAllowedModifiers() {
-    return isConstructor() ? MODIFIERS_SCOPE | MODIFIER_NATIVE : defaultAllowedMethodModifers;
+    return isConstructor() ? MODIFIERS_SCOPE | MODIFIER_NATIVE : DEFAULT_ALLOWED_METHOD_MODIFIERS;
   }
 
   @Override
@@ -204,50 +200,6 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
       }
     }
     super.handleDuplicateDeclaration(scope, oldNode);
-  }
-
-  public void generateAsApiCode(JsWriter out) throws IOException {
-    if (!isPrivate()) {
-      writeModifiers(out);
-      if (!isNative() && !isAbstract() && !isConstructor()) {
-        out.writeSymbolWhitespace(fun.getFunSymbol());
-        out.writeToken(SyntacticKeywords.NATIVE);
-        out.writeSymbol(fun.getFunSymbol(), false);
-      } else {
-        out.writeSymbol(fun.getFunSymbol());
-      }
-      if (symGetOrSet != null) {
-        out.writeSymbol(symGetOrSet);
-      }
-      getIde().generateAsApiCode(out);
-      fun.generateSignatureAsApiCode(out);
-      if (isConstructor() && !isNative()) {
-        // ASDoc does not allow a native constructor if the super class constructor needs parameters!
-        out.writeToken("{super(");
-        if (getClassDeclaration() != null) {
-          ClassDeclaration superType = getClassDeclaration().getSuperTypeDeclaration();
-          if (superType != null) {
-            FunctionDeclaration superConstructor = superType.getConstructor();
-            if (superConstructor != null) {
-              Parameters superParameters = superConstructor.getParams();
-              boolean first = true;
-              while (superParameters != null && superParameters.getHead().getOptInitializer() == null) {
-                if (first) {
-                  first = false;
-                } else {
-                  out.writeToken(",");
-                }
-                out.write(VariableDeclaration.getDefaultValue(superParameters.getHead().getOptTypeRelation()));
-                superParameters = superParameters.getTail();
-              }
-            }
-          }
-        }
-        out.writeToken(");}");
-      } else {
-        out.writeToken(";");
-      }
-    }
   }
 
   @Override

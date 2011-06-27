@@ -33,8 +33,7 @@ public class ObjectLiteral extends Expr {
   private JooSymbol rBrace;
 
   /**
-   *
-   * @param optComma null for the time beeing, Flex compc does not accept a trailing comma, contrary to array literals...
+   * @param optComma null for the time being, Flex compc does not accept a trailing comma, contrary to array literals...
    */
   public ObjectLiteral(JooSymbol lBrace, CommaSeparatedList<ObjectField> fields, JooSymbol optComma, JooSymbol rBrace) {
     this.lBrace = lBrace;

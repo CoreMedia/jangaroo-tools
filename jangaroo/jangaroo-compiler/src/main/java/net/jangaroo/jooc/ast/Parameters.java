@@ -42,19 +42,4 @@ public class Parameters extends CommaSeparatedList<Parameter> {
   public void visit(AstVisitor visitor) throws IOException {
     visitor.visitParameters(this);
   }
-
-  public String getRestParamName() {
-    if (getHead().isRest()) {
-      return getHead().getName();
-    }
-    return super.getTail() ==null ? null : getTail().getRestParamName();
-  }
-
-  public int getOtherParamCount() {
-    if (getHead().isRest()) {
-      return 0;
-    }
-    int tailOtherParamCount = super.getTail() ==null ? -1 : getTail().getOtherParamCount();
-    return tailOtherParamCount==-1 ? tailOtherParamCount : 1+tailOtherParamCount;
-  }
 }

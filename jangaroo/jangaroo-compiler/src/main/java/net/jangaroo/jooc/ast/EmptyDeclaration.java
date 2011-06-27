@@ -31,11 +31,6 @@ public class EmptyDeclaration extends Declaration {
     return symSemicolon;
   }
 
-  @Override
-  public void generateAsApiCode(final JsWriter out) throws IOException {
-    out.writeSymbol(symSemicolon);
-  }
-
   public JooSymbol getSymSemicolon() {
     return symSemicolon;
   }

@@ -50,18 +50,8 @@ public class Initializer extends NodeImplBase {
     getValue().analyze(this, context);
   }
 
-  @Override
-  public void generateAsApiCode(JsWriter out) throws IOException {
-    //todo clarify whether initializers are part of public API
-    if (getValue() instanceof LiteralExpr) {
-      out.writeSymbol(getSymEq());
-      LiteralExpr literalExpr = (LiteralExpr) getValue();
-      out.writeSymbol(literalExpr.getValue());
-    }
-  }
-
   public JooSymbol getSymbol() {
-      return getSymEq();
+    return getSymEq();
   }
 
   public JooSymbol getSymEq() {

@@ -78,7 +78,7 @@ public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUni
             try {
               out.setOptions(getOptions());
               if (generateApi) {
-                compilationUnit.generateAsApiCode(out);
+                compilationUnit.visit(new ApiCodeGenerator(out));
               } else {
                 compilationUnit.visit(new JsCodeGenerator(out));
               }

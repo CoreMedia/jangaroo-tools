@@ -71,17 +71,6 @@ public class ImportDirective extends Directive {
     return getIde().getQualifiedNameStr();
   }
 
-  @Override
-  public void generateAsApiCode(final JsWriter out) throws IOException {
-    if (isExplicit()) {
-      out.writeSymbol(getImportKeyword());
-      getIde().generateAsApiCode(out);
-      out.writeSymbol(getSymSemicolon());
-    }
-    // else skip it
-  }
-
-
   public JooSymbol getSymbol() {
     return getImportKeyword();
   }

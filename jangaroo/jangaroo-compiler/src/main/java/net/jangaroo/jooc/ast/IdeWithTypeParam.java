@@ -54,25 +54,10 @@ public class IdeWithTypeParam extends Ide {
   @Override
   public void generateCodeAsExpr(JsWriter out) throws IOException {
     super.generateCodeAsExpr(out);
-    writeTypeParamAsComment(out);
-  }
-
-  @Override
-  public void generateAsApiCode(JsWriter out) throws IOException {
-    out.writeSymbol(originalIde);
-    writeTypeParam(out);
-  }
-
-  private void writeTypeParamAsComment(JsWriter out) throws IOException {
     out.beginComment();
-    writeTypeParam(out);
+    out.writeSymbol(symDotLt);
+    out.writeSymbol(type.getIde().getIde());
+    out.writeSymbol(symGt);
     out.endComment();
   }
-
-  private void writeTypeParam(JsWriter out) throws IOException {
-    out.writeSymbol(symDotLt);
-    type.generateAsApiCode(out);
-    out.writeSymbol(symGt);
-  }
-
 }

@@ -7,5 +7,4 @@ import java.io.IOException;
  */
 public interface CodeGenerator {
   void generate(final JsWriter out) throws IOException;
-  void generateAsApiCode(JsWriter out) throws IOException;
 }

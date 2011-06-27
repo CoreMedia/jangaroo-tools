@@ -59,11 +59,6 @@ public class UseNamespaceDirective extends Directive {
     super.analyze(parentNode, context);
   }
 
-  @Override
-  public void generateAsApiCode(JsWriter out) throws IOException {
-    // no API code generated!
-  }
-
   public JooSymbol getSymbol() {
       return getUseKeyword();
   }

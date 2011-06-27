@@ -80,19 +80,9 @@ public class AnnotationParameter extends NodeImplBase {
     }
   }
 
-  @Override
-  public void generateAsApiCode(JsWriter out) throws IOException {
-    if (getOptName() != null && getOptSymEq() != null) {
-      getOptName().generateAsApiCode(out);
-      out.writeSymbol(getOptSymEq());
-    }
-    getValue().generateAsApiCode(out);
-  }
-
   public JooSymbol getSymbol() {
     return getOptName() == null ? getValue().getSymbol() : getOptName().getSymbol();
   }
-
 
   public Ide getOptName() {
     return optName;
