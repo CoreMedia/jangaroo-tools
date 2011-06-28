@@ -17,7 +17,6 @@ package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
-import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
@@ -33,8 +32,8 @@ public class SwitchStatement extends KeywordStatement {
 
   public SwitchStatement(JooSymbol symSwitch, ParenthesizedExpr cond, JooSymbol lBrace, List<Directive> directives, JooSymbol rBrace) {
     super(symSwitch);
-    this.setCond(cond);
-    this.setBlock(new BlockStatement(lBrace, directives, rBrace));
+    this.cond = cond;
+    this.block = new BlockStatement(lBrace, directives, rBrace);
   }
 
   @Override
@@ -63,15 +62,8 @@ public class SwitchStatement extends KeywordStatement {
     return cond;
   }
 
-  public void setCond(ParenthesizedExpr cond) {
-    this.cond = cond;
-  }
-
   public BlockStatement getBlock() {
     return block;
   }
 
-  public void setBlock(BlockStatement block) {
-    this.block = block;
-  }
 }

@@ -17,7 +17,6 @@ package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
-import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
@@ -32,9 +31,9 @@ public class LabeledStatement extends Statement {
   private Statement statement;
 
   public LabeledStatement(Ide ide, JooSymbol symColon, Statement statement) {
-    this.setIde(ide);
-    this.setSymColon(symColon);
-    this.setStatement(statement);
+    this.ide = ide;
+    this.symColon = symColon;
+    this.statement = statement;
   }
 
   @Override
@@ -67,23 +66,12 @@ public class LabeledStatement extends Statement {
     return ide;
   }
 
-  public void setIde(Ide ide) {
-    this.ide = ide;
-  }
-
   public JooSymbol getSymColon() {
     return symColon;
-  }
-
-  public void setSymColon(JooSymbol symColon) {
-    this.symColon = symColon;
   }
 
   public Statement getStatement() {
     return statement;
   }
 
-  public void setStatement(Statement statement) {
-    this.statement = statement;
-  }
 }

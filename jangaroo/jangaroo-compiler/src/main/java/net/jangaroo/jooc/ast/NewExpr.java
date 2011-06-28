@@ -17,7 +17,6 @@ package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
-import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
@@ -32,8 +31,8 @@ public class NewExpr extends Expr {
   private ParenthesizedExpr<CommaSeparatedList<Expr>> args;
 
   public NewExpr(JooSymbol symNew, Expr applyConstructor) {
-    this.setSymNew(symNew);
-    this.setApplyConstructor(applyConstructor);
+    this.symNew = symNew;
+    this.applyConstructor = applyConstructor;
     if (applyConstructor instanceof ApplyExpr) {
       ((ApplyExpr)applyConstructor).setInsideNewExpr(true);
     }
@@ -66,16 +65,8 @@ public class NewExpr extends Expr {
     return symNew;
   }
 
-  public void setSymNew(JooSymbol symNew) {
-    this.symNew = symNew;
-  }
-
   public Expr getApplyConstructor() {
     return applyConstructor;
-  }
-
-  public void setApplyConstructor(Expr applyConstructor) {
-    this.applyConstructor = applyConstructor;
   }
 
   public ParenthesizedExpr<CommaSeparatedList<Expr>> getArgs() {

@@ -123,6 +123,7 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
   @Override
   public void scope(Scope scope) {
     final ClassDeclaration classDeclaration = scope.getClassDeclaration();
+    // todo: temporarily resetting the ide field looks weird
     Ide oldIde = getIde();
     if (classDeclaration != null && getIde().getName().equals(classDeclaration.getName())) {
       setConstructor(true);

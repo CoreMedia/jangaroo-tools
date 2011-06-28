@@ -28,7 +28,7 @@ public abstract class LabelRefStatement extends KeywordExprStatement {
 
   LabelRefStatement(JooSymbol symStatement, Ide optLabel, JooSymbol symSemicolon) {
     super(symStatement, null, symSemicolon);
-    this.setOptLabel(optLabel);
+    this.optLabel = optLabel;
   }
 
   private Ide optLabel;
@@ -52,10 +52,6 @@ public abstract class LabelRefStatement extends KeywordExprStatement {
 
   public Ide getOptLabel() {
     return optLabel;
-  }
-
-  public void setOptLabel(Ide optLabel) {
-    this.optLabel = optLabel;
   }
 
   public LabeledStatement getLabelDeclaration() {

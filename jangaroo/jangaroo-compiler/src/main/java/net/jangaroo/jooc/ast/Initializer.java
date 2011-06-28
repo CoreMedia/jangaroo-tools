@@ -17,7 +17,6 @@ package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
-import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
@@ -31,8 +30,8 @@ public class Initializer extends NodeImplBase {
   private Expr value;
 
   public Initializer(JooSymbol symEq, Expr value) {
-    this.setSymEq(symEq);
-    this.setValue(value);
+    this.symEq = symEq;
+    this.value = value;
   }
 
   @Override
@@ -58,15 +57,8 @@ public class Initializer extends NodeImplBase {
     return symEq;
   }
 
-  public void setSymEq(JooSymbol symEq) {
-    this.symEq = symEq;
-  }
-
   public Expr getValue() {
     return value;
   }
 
-  public void setValue(Expr value) {
-    this.value = value;
-  }
 }

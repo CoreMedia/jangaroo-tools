@@ -24,14 +24,10 @@ public abstract class OpExpr extends Expr {
   private JooSymbol op;
 
   protected OpExpr(JooSymbol op) {
-    this.setOp(op);
+    this.op = op;
   }
 
   public JooSymbol getOp() {
     return op;
-  }
-
-  public void setOp(JooSymbol op) {
-    this.op = op;
   }
 }

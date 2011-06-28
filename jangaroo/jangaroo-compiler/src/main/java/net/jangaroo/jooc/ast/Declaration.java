@@ -34,19 +34,6 @@ import java.io.IOException;
  * @author Andreas Gawecki
  */
 public abstract class Declaration extends Statement {
-
-  public JooSymbol[] getSymModifiers() {
-    return symModifiers;
-  }
-
-  private JooSymbol[] symModifiers;
-  private JooSymbol[] symInheritedModifiers = new JooSymbol[0];
-
-  private AstNode parentDeclaration = null;
-  private ClassDeclaration classDeclaration = null;
-
-  private int modifiers = -1;
-
   protected static final int MODIFIER_PUBLIC = 1;
   protected static final int MODIFIER_PROTECTED = 2;
   protected static final int MODIFIER_PRIVATE = 2 * MODIFIER_PROTECTED;
@@ -63,8 +50,16 @@ public abstract class Declaration extends Statement {
   protected static final int MODIFIERS_SCOPE =
       MODIFIER_PRIVATE | MODIFIER_PROTECTED | MODIFIER_PUBLIC | MODIFIER_INTERNAL | MODIFIER_NAMESPACE;
 
+  private JooSymbol[] symModifiers;
+  private JooSymbol[] symInheritedModifiers = new JooSymbol[0];
+
+  private AstNode parentDeclaration = null;
+  private ClassDeclaration classDeclaration = null;
+
+  private int modifiers = -1;
+
   protected Declaration(JooSymbol[] modifiers) {
-    this.setSymModifiers(modifiers.clone());
+    this.symModifiers = modifiers.clone();
     computeModifiers();
   }
 
@@ -192,15 +187,10 @@ public abstract class Declaration extends Statement {
     }
   }
 
-
   @Override
   public void scope(final Scope scope) {
     setParentDeclaration(scope.getDefiningNode());
     setClassDeclaration(scope.getClassDeclaration());
-  }
-
-  public void setSymModifiers(JooSymbol[] symModifiers) {
-    this.symModifiers = symModifiers;
   }
 
   public JooSymbol[] getSymInheritedModifiers() {
@@ -217,5 +207,9 @@ public abstract class Declaration extends Statement {
 
   public void setClassDeclaration(ClassDeclaration classDeclaration) {
     this.classDeclaration = classDeclaration;
+  }
+
+  public JooSymbol[] getSymModifiers() {
+    return symModifiers;
   }
 }

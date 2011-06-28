@@ -16,7 +16,6 @@
 package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.JooSymbol;
-import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
@@ -31,7 +30,7 @@ public class PackageDeclaration extends IdeDeclaration {
 
   public PackageDeclaration(JooSymbol symPackage, Ide ide) {
     super(ide);
-    this.setSymPackage(symPackage);
+    this.symPackage = symPackage;
   }
 
   @Override
@@ -59,7 +58,4 @@ public class PackageDeclaration extends IdeDeclaration {
     return symPackage;
   }
 
-  public void setSymPackage(JooSymbol symPackage) {
-    this.symPackage = symPackage;
-  }
 }

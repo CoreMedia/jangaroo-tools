@@ -18,7 +18,6 @@ package net.jangaroo.jooc.ast;
 import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
-import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
@@ -35,9 +34,9 @@ public class SuperConstructorCallStatement extends Statement {
   private ClassDeclaration classDeclaration;
 
   public SuperConstructorCallStatement(JooSymbol symSuper, JooSymbol lParen, CommaSeparatedList<Expr> args, JooSymbol rParen, JooSymbol symSemicolon) {
-    this.setFun(new IdeExpr(symSuper));
-    this.setArgs(new ParenthesizedExpr<CommaSeparatedList<Expr>>(lParen, args, rParen));
-    this.setSymSemicolon(symSemicolon);
+    this.fun = new IdeExpr(symSuper);
+    this.args = new ParenthesizedExpr<CommaSeparatedList<Expr>>(lParen, args, rParen);
+    this.symSemicolon = symSemicolon;
   }
 
   @Override
@@ -76,24 +75,12 @@ public class SuperConstructorCallStatement extends Statement {
     return fun;
   }
 
-  public void setFun(Expr fun) {
-    this.fun = fun;
-  }
-
   public ParenthesizedExpr<CommaSeparatedList<Expr>> getArgs() {
     return args;
   }
 
-  public void setArgs(ParenthesizedExpr<CommaSeparatedList<Expr>> args) {
-    this.args = args;
-  }
-
   public JooSymbol getSymSemicolon() {
     return symSemicolon;
-  }
-
-  public void setSymSemicolon(JooSymbol symSemicolon) {
-    this.symSemicolon = symSemicolon;
   }
 
   public ClassDeclaration getClassDeclaration() {

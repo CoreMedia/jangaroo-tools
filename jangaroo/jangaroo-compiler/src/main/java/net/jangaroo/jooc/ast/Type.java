@@ -17,7 +17,6 @@ package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
-import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
@@ -30,7 +29,7 @@ public class Type extends NodeImplBase {
   private Ide ide;
 
   public Type(Ide ide) {
-    this.setIde(ide);
+    this.ide = ide;
   }
 
   public Type(JooSymbol symIde) {
@@ -66,7 +65,4 @@ public class Type extends NodeImplBase {
     return ideDeclaration == null ? null : ideDeclaration.resolveDeclaration();
   }
 
-  public void setIde(Ide ide) {
-    this.ide = ide;
-  }
 }

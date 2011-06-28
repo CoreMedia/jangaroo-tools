@@ -17,10 +17,7 @@ package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
-import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
-
-import java.io.IOException;
 
 /**
  * @author Andreas Gawecki
@@ -31,7 +28,7 @@ public abstract class ConditionalLoopStatement extends LoopStatement {
 
   public ConditionalLoopStatement(JooSymbol symLoop, Expr optCond, Statement body) {
     super(symLoop, body);
-    this.setOptCond(optCond);
+    this.optCond = optCond;
   }
 
   @Override
@@ -51,7 +48,4 @@ public abstract class ConditionalLoopStatement extends LoopStatement {
     return optCond;
   }
 
-  public void setOptCond(Expr optCond) {
-    this.optCond = optCond;
-  }
 }

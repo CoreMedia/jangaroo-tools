@@ -18,7 +18,6 @@ package net.jangaroo.jooc.ast;
 import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
-import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
@@ -31,19 +30,18 @@ public class ForStatement extends ConditionalLoopStatement {
   private JooSymbol lParen;
   private ForInitializer forInit;
   private JooSymbol symSemicolon1;
-  private Expr optCond;
   private JooSymbol symSemicolon2;
   private Expr optStep;
   private JooSymbol rParen;
 
   public ForStatement(JooSymbol symFor, JooSymbol lParen, ForInitializer forInit, JooSymbol symSemicolon1, Expr optCond, JooSymbol symSemicolon2, Expr optStep, JooSymbol rParen, Statement body) {
     super(symFor, optCond, body);
-    this.setlParen(lParen);
-    this.setForInit(forInit);
-    this.setSymSemicolon1(symSemicolon1);
-    this.setSymSemicolon2(symSemicolon2);
-    this.setOptStep(optStep);
-    this.setrParen(rParen);
+    this.lParen = lParen;
+    this.forInit = forInit;
+    this.symSemicolon1 = symSemicolon1;
+    this.symSemicolon2 = symSemicolon2;
+    this.optStep = optStep;
+    this.rParen = rParen;
   }
 
   @Override
@@ -87,55 +85,24 @@ public class ForStatement extends ConditionalLoopStatement {
     return lParen;
   }
 
-  public void setlParen(JooSymbol lParen) {
-    this.lParen = lParen;
-  }
-
   public ForInitializer getForInit() {
     return forInit;
-  }
-
-  public void setForInit(ForInitializer forInit) {
-    this.forInit = forInit;
   }
 
   public JooSymbol getSymSemicolon1() {
     return symSemicolon1;
   }
 
-  public void setSymSemicolon1(JooSymbol symSemicolon1) {
-    this.symSemicolon1 = symSemicolon1;
-  }
-
-  public Expr getOptCond() {
-    return optCond;
-  }
-
-  public void setOptCond(Expr optCond) {
-    this.optCond = optCond;
-  }
-
   public JooSymbol getSymSemicolon2() {
     return symSemicolon2;
-  }
-
-  public void setSymSemicolon2(JooSymbol symSemicolon2) {
-    this.symSemicolon2 = symSemicolon2;
   }
 
   public Expr getOptStep() {
     return optStep;
   }
 
-  public void setOptStep(Expr optStep) {
-    this.optStep = optStep;
-  }
-
   public JooSymbol getRParen() {
     return rParen;
   }
 
-  public void setrParen(JooSymbol rParen) {
-    this.rParen = rParen;
-  }
 }

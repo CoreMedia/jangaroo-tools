@@ -29,7 +29,7 @@ public abstract class UnaryOpExpr extends OpExpr {
 
   public UnaryOpExpr(JooSymbol op, Expr arg) {
     super(op);
-    this.setArg(arg);
+    this.arg = arg;
   }
 
   @Override
@@ -50,7 +50,4 @@ public abstract class UnaryOpExpr extends OpExpr {
     return arg;
   }
 
-  public void setArg(Expr arg) {
-    this.arg = arg;
-  }
 }

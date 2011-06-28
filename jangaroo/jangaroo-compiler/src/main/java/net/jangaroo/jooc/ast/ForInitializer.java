@@ -17,7 +17,6 @@ package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
-import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
@@ -31,11 +30,11 @@ public class ForInitializer extends NodeImplBase {
   private Expr expr = null;
 
   public ForInitializer(Declaration decl) {
-    this.setDecl(decl);
+    this.decl = decl;
   }
 
   public ForInitializer(Expr expr) {
-    this.setExpr(expr);
+    this.expr = expr;
   }
 
   @Override
@@ -67,15 +66,8 @@ public class ForInitializer extends NodeImplBase {
     return decl;
   }
 
-  public void setDecl(Declaration decl) {
-    this.decl = decl;
-  }
-
   public Expr getExpr() {
     return expr;
   }
 
-  public void setExpr(Expr expr) {
-    this.expr = expr;
-  }
 }

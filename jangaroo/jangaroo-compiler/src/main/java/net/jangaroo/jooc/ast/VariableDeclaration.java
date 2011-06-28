@@ -47,10 +47,10 @@ public class VariableDeclaration extends TypedIdeDeclaration {
                              JooSymbol optSymSemicolon  ) {
     // inherit modifiers of first declaration to those following this declaration
     super(modifiers, ide, optTypeRelation);
-    this.setOptSymConstOrVar(optSymConstOrVar);
-    this.setOptInitializer(optInitializer);
-    this.setOptNextVariableDeclaration(optNextVariableDeclaration);
-    this.setOptSymSemicolon(optSymSemicolon);
+    this.optSymConstOrVar = optSymConstOrVar;
+    this.optInitializer = optInitializer;
+    this.optNextVariableDeclaration = optNextVariableDeclaration;
+    this.optSymSemicolon = optSymSemicolon;
     if (optNextVariableDeclaration != null) {
       optNextVariableDeclaration.previousVariableDeclaration = this;
       if (optSymSemicolon != null) {
@@ -218,31 +218,16 @@ public class VariableDeclaration extends TypedIdeDeclaration {
     return optSymConstOrVar;
   }
 
-  public void setOptSymConstOrVar(JooSymbol optSymConstOrVar) {
-    this.optSymConstOrVar = optSymConstOrVar;
-  }
-
   public Initializer getOptInitializer() {
     return optInitializer;
-  }
-
-  public void setOptInitializer(Initializer optInitializer) {
-    this.optInitializer = optInitializer;
   }
 
   public VariableDeclaration getOptNextVariableDeclaration() {
     return optNextVariableDeclaration;
   }
 
-  public void setOptNextVariableDeclaration(VariableDeclaration optNextVariableDeclaration) {
-    this.optNextVariableDeclaration = optNextVariableDeclaration;
-  }
-
   public JooSymbol getOptSymSemicolon() {
     return optSymSemicolon;
   }
 
-  public void setOptSymSemicolon(JooSymbol optSymSemicolon) {
-    this.optSymSemicolon = optSymSemicolon;
-  }
 }

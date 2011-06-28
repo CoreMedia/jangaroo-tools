@@ -17,7 +17,6 @@ package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
-import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
@@ -34,9 +33,9 @@ public class AnnotationParameter extends NodeImplBase {
   private Annotation parentAnnotation;
 
   public AnnotationParameter(Ide optName, JooSymbol optSymEq, LiteralExpr value) {
-    this.setOptName(optName);
-    this.setOptSymEq(optSymEq);
-    this.setValue(value);
+    this.optName = optName;
+    this.optSymEq = optSymEq;
+    this.value = value;
   }
 
   @Override
@@ -88,23 +87,12 @@ public class AnnotationParameter extends NodeImplBase {
     return optName;
   }
 
-  public void setOptName(Ide optName) {
-    this.optName = optName;
-  }
-
   public JooSymbol getOptSymEq() {
     return optSymEq;
-  }
-
-  public void setOptSymEq(JooSymbol optSymEq) {
-    this.optSymEq = optSymEq;
   }
 
   public LiteralExpr getValue() {
     return value;
   }
 
-  public void setValue(LiteralExpr value) {
-    this.value = value;
-  }
 }

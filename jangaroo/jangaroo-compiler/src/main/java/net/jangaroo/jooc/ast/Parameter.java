@@ -36,9 +36,9 @@ public class Parameter extends IdeDeclaration {
 
   public Parameter(JooSymbol optSymConst, Ide ide, TypeRelation optTypeRelation, Initializer optInitializer) {
     super(ide);
-    this.setOptSymConstOrRest(optSymConst);
-    this.setOptTypeRelation(optTypeRelation);
-    this.setOptInitializer(optInitializer);
+    this.optSymConstOrRest = optSymConst;
+    this.optTypeRelation = optTypeRelation;
+    this.optInitializer = optInitializer;
   }
 
   @Override
@@ -100,23 +100,12 @@ public class Parameter extends IdeDeclaration {
     return optSymConstOrRest;
   }
 
-  public void setOptSymConstOrRest(JooSymbol optSymConstOrRest) {
-    this.optSymConstOrRest = optSymConstOrRest;
-  }
-
   public TypeRelation getOptTypeRelation() {
     return optTypeRelation;
-  }
-
-  public void setOptTypeRelation(TypeRelation optTypeRelation) {
-    this.optTypeRelation = optTypeRelation;
   }
 
   public Initializer getOptInitializer() {
     return optInitializer;
   }
 
-  public void setOptInitializer(Initializer optInitializer) {
-    this.optInitializer = optInitializer;
-  }
 }

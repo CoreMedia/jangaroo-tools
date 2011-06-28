@@ -19,7 +19,6 @@ import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.DeclarationScope;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
-import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
@@ -59,9 +58,9 @@ public class ClassDeclaration extends IdeDeclaration {
   public ClassDeclaration(List<AstNode> directives, JooSymbol[] modifiers, JooSymbol cls, Ide ide, Extends ext, Implements impl, ClassBody body) {
     super(modifiers, ide);
     this.directives = directives;
-    this.setSymClass(cls);
-    this.setOptExtends(ext);
-    this.setOptImplements(impl);
+    this.symClass = cls;
+    this.optExtends = ext;
+    this.optImplements = impl;
     this.body = body;
   }
 
@@ -118,24 +117,12 @@ public class ClassDeclaration extends IdeDeclaration {
     return symClass;
   }
 
-  public void setSymClass(JooSymbol symClass) {
-    this.symClass = symClass;
-  }
-
   public Extends getOptExtends() {
     return optExtends;
   }
 
-  public void setOptExtends(Extends optExtends) {
-    this.optExtends = optExtends;
-  }
-
   public Implements getOptImplements() {
     return optImplements;
-  }
-
-  public void setOptImplements(Implements optImplements) {
-    this.optImplements = optImplements;
   }
 
   public List<VariableDeclaration> getFieldsWithInitializer() {

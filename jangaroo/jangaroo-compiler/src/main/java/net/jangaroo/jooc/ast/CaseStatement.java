@@ -17,7 +17,6 @@ package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
-import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
@@ -32,8 +31,8 @@ public class CaseStatement extends KeywordStatement {
 
   public CaseStatement(JooSymbol symCase, Expr expr, JooSymbol symColon) {
     super(symCase);
-    this.setExpr(expr);
-    this.setSymColon(symColon);
+    this.expr = expr;
+    this.symColon = symColon;
   }
 
   @Override
@@ -55,15 +54,8 @@ public class CaseStatement extends KeywordStatement {
     return expr;
   }
 
-  public void setExpr(Expr expr) {
-    this.expr = expr;
-  }
-
   public JooSymbol getSymColon() {
     return symColon;
   }
 
-  public void setSymColon(JooSymbol symColon) {
-    this.symColon = symColon;
-  }
 }

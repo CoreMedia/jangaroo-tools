@@ -16,7 +16,6 @@
 package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.JooSymbol;
-import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.sym;
 
@@ -44,12 +43,12 @@ public class ImportDirective extends Directive {
 
   public ImportDirective(JooSymbol importKeyword, Ide ide, JooSymbol symSemicolon) {
     this(importKeyword, ide, true);
-    this.setSymSemicolon(symSemicolon);
+    this.symSemicolon = symSemicolon;
   }
 
   private ImportDirective(JooSymbol importKeyword, Ide ide, boolean explicit) {
-    this.setImportKeyword(importKeyword);
-    this.setIde(ide);
+    this.importKeyword = importKeyword;
+    this.ide = ide;
     this.explicit = explicit;
   }
 
@@ -99,16 +98,8 @@ public class ImportDirective extends Directive {
     return importKeyword;
   }
 
-  public void setImportKeyword(JooSymbol importKeyword) {
-    this.importKeyword = importKeyword;
-  }
-
   public Ide getIde() {
     return ide;
-  }
-
-  public void setIde(Ide ide) {
-    this.ide = ide;
   }
 
   /**
@@ -116,10 +107,6 @@ public class ImportDirective extends Directive {
    */
   public JooSymbol getSymSemicolon() {
     return symSemicolon;
-  }
-
-  public void setSymSemicolon(JooSymbol symSemicolon) {
-    this.symSemicolon = symSemicolon;
   }
 
   public boolean isExplicit() {

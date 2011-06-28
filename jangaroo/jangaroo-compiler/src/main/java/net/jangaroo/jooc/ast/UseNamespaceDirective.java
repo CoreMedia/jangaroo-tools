@@ -18,7 +18,6 @@ package net.jangaroo.jooc.ast;
 import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
-import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.SyntacticKeywords;
 
@@ -35,11 +34,11 @@ public class UseNamespaceDirective extends Directive {
   private JooSymbol symSemicolon;
 
   public UseNamespaceDirective(JooSymbol useKeyword, JooSymbol namespaceKeyword, Ide namespace, JooSymbol symSemicolon) {
-    this.setUseKeyword(useKeyword);
+    this.useKeyword = useKeyword;
     assert SyntacticKeywords.NAMESPACE.equals(namespaceKeyword.getText());
-    this.setNamespaceKeyword(namespaceKeyword);
-    this.setNamespace(namespace);
-    this.setSymSemicolon(symSemicolon);
+    this.namespaceKeyword = namespaceKeyword;
+    this.namespace = namespace;
+    this.symSemicolon = symSemicolon;
   }
 
   @Override
@@ -67,31 +66,16 @@ public class UseNamespaceDirective extends Directive {
     return useKeyword;
   }
 
-  public void setUseKeyword(JooSymbol useKeyword) {
-    this.useKeyword = useKeyword;
-  }
-
   public JooSymbol getNamespaceKeyword() {
     return namespaceKeyword;
-  }
-
-  public void setNamespaceKeyword(JooSymbol namespaceKeyword) {
-    this.namespaceKeyword = namespaceKeyword;
   }
 
   public Ide getNamespace() {
     return namespace;
   }
 
-  public void setNamespace(Ide namespace) {
-    this.namespace = namespace;
-  }
-
   public JooSymbol getSymSemicolon() {
     return symSemicolon;
   }
 
-  public void setSymSemicolon(JooSymbol symSemicolon) {
-    this.symSemicolon = symSemicolon;
-  }
 }

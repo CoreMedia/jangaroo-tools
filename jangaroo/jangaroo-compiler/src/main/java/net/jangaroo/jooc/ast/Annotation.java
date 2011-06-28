@@ -16,7 +16,6 @@ package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
-import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
@@ -40,15 +39,14 @@ public class Annotation extends Directive {
   }
 
   public Annotation(JooSymbol leftBracket, Ide ide, JooSymbol optLeftParen, CommaSeparatedList<AnnotationParameter> optAnnotationParameters, JooSymbol optRightParen, JooSymbol optRightBracket) {
-    this.setLeftBracket(leftBracket);
-    this.setIde(ide);
-    this.setOptLeftParen(optLeftParen);
-    this.setOptRightParen(optRightParen);
-    this.setOptAnnotationParameters(optAnnotationParameters);
-    this.setRightBracket(optRightBracket);
+    this.leftBracket = leftBracket;
+    this.ide = ide;
+    this.optLeftParen = optLeftParen;
+    this.optRightParen = optRightParen;
+    this.optAnnotationParameters = optAnnotationParameters;
+    this.rightBracket = optRightBracket;
     for (CommaSeparatedList<AnnotationParameter> params = optAnnotationParameters; params != null; params = params.getTail()) {
       params.getHead().setParentAnnotation(this);
-
     }
   }
 
@@ -85,47 +83,24 @@ public class Annotation extends Directive {
     return leftBracket;
   }
 
-  public void setLeftBracket(JooSymbol leftBracket) {
-    this.leftBracket = leftBracket;
-  }
-
   public Ide getIde() {
     return ide;
-  }
-
-  public void setIde(Ide ide) {
-    this.ide = ide;
   }
 
   public JooSymbol getOptLeftParen() {
     return optLeftParen;
   }
 
-  public void setOptLeftParen(JooSymbol optLeftParen) {
-    this.optLeftParen = optLeftParen;
-  }
-
   public CommaSeparatedList<AnnotationParameter> getOptAnnotationParameters() {
     return optAnnotationParameters;
-  }
-
-  public void setOptAnnotationParameters(CommaSeparatedList<AnnotationParameter> optAnnotationParameters) {
-    this.optAnnotationParameters = optAnnotationParameters;
   }
 
   public JooSymbol getOptRightParen() {
     return optRightParen;
   }
 
-  public void setOptRightParen(JooSymbol optRightParen) {
-    this.optRightParen = optRightParen;
-  }
-
   public JooSymbol getRightBracket() {
     return rightBracket;
   }
 
-  public void setRightBracket(JooSymbol rightBracket) {
-    this.rightBracket = rightBracket;
-  }
 }

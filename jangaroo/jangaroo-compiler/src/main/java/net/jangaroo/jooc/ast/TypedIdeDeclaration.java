@@ -29,7 +29,7 @@ public abstract class TypedIdeDeclaration extends IdeDeclaration {
   public TypedIdeDeclaration(JooSymbol[] modifiers, Ide ide, TypeRelation optTypeRelation) {
     super(modifiers, ide);
     this.namespace = findNamespace(modifiers);
-    this.setOptTypeRelation(optTypeRelation);
+    this.optTypeRelation = optTypeRelation;
   }
 
   private JooSymbol findNamespace(JooSymbol[] modifiers) {
@@ -75,7 +75,4 @@ public abstract class TypedIdeDeclaration extends IdeDeclaration {
     return optTypeRelation;
   }
 
-  public void setOptTypeRelation(TypeRelation optTypeRelation) {
-    this.optTypeRelation = optTypeRelation;
-  }
 }

@@ -3,10 +3,8 @@ package net.jangaroo.jooc.ast;
 import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.CodeGenerator;
 import net.jangaroo.jooc.JooSymbol;
-import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,9 +16,9 @@ public abstract class AbstractBlock extends Statement {
   private List<CodeGenerator> blockStartCodeGenerators = new ArrayList<CodeGenerator>(3);
 
   public AbstractBlock(JooSymbol rBrace, List<Directive> directives, JooSymbol lBrace) {
-    this.setRBrace(rBrace);
-    this.setDirectives(directives);
-    this.setLBrace(lBrace);
+    this.rBrace = rBrace;
+    this.directives = directives;
+    this.lBrace = lBrace;
   }
 
   @Override
@@ -45,24 +43,12 @@ public abstract class AbstractBlock extends Statement {
     return lBrace;
   }
 
-  public void setLBrace(JooSymbol lBrace) {
-    this.lBrace = lBrace;
-  }
-
   public List<Directive> getDirectives() {
     return directives;
   }
 
-  public void setDirectives(List<Directive> directives) {
-    this.directives = directives;
-  }
-
   public JooSymbol getRBrace() {
     return rBrace;
-  }
-
-  public void setRBrace(JooSymbol rBrace) {
-    this.rBrace = rBrace;
   }
 
   public List<CodeGenerator> getBlockStartCodeGenerators() {

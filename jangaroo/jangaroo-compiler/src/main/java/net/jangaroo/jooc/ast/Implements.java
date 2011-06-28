@@ -17,7 +17,6 @@ package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
-import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
@@ -30,8 +29,8 @@ public class Implements extends NodeImplBase {
   private CommaSeparatedList<Ide> superTypes;
 
   public Implements(JooSymbol symImplements, CommaSeparatedList<Ide> superTypes) {
-    this.setSymImplements(symImplements);
-    this.setSuperTypes(superTypes);
+    this.symImplements = symImplements;
+    this.superTypes = superTypes;
   }
 
   @Override
@@ -64,15 +63,8 @@ public class Implements extends NodeImplBase {
     return symImplements;
   }
 
-  public void setSymImplements(JooSymbol symImplements) {
-    this.symImplements = symImplements;
-  }
-
   public CommaSeparatedList<Ide> getSuperTypes() {
     return superTypes;
   }
 
-  public void setSuperTypes(CommaSeparatedList<Ide> superTypes) {
-    this.superTypes = superTypes;
-  }
 }

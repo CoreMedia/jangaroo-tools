@@ -17,7 +17,6 @@ package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
-import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
@@ -39,10 +38,10 @@ public class TryStatement extends KeywordStatement {
 
   public TryStatement(JooSymbol symTry, BlockStatement block, List<Catch> catches, JooSymbol symFinally, BlockStatement finallyBlock) {
     super(symTry);
-    this.setBlock(block);
-    this.setCatches(catches);
-    this.setSymFinally(symFinally);
-    this.setFinallyBlock(finallyBlock);
+    this.block = block;
+    this.catches = catches;
+    this.symFinally = symFinally;
+    this.finallyBlock = finallyBlock;
   }
 
   @Override
@@ -70,31 +69,16 @@ public class TryStatement extends KeywordStatement {
     return block;
   }
 
-  public void setBlock(BlockStatement block) {
-    this.block = block;
-  }
-
   public List<Catch> getCatches() {
     return catches;
-  }
-
-  public void setCatches(List<Catch> catches) {
-    this.catches = catches;
   }
 
   public JooSymbol getSymFinally() {
     return symFinally;
   }
 
-  public void setSymFinally(JooSymbol symFinally) {
-    this.symFinally = symFinally;
-  }
-
   public BlockStatement getFinallyBlock() {
     return finallyBlock;
   }
 
-  public void setFinallyBlock(BlockStatement finallyBlock) {
-    this.finallyBlock = finallyBlock;
-  }
 }

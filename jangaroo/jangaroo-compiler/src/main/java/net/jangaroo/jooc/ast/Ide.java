@@ -44,27 +44,6 @@ public class Ide extends NodeImplBase {
     this(new JooSymbol(ide));
   }
 
-  public static Ide fromQName(JooSymbol qnameSymbol) {
-    Ide ide = null;
-    int i = 0, j = 0;
-    String qname = qnameSymbol.getText();
-    String ws = qnameSymbol.getWhitespace();
-    do {
-      i = qname.indexOf('.', j);
-      if (i < 0) {
-        i = qname.length();
-      }
-      assert i > 0;
-      String segment = qname.substring(j, i - 1);
-      JooSymbol symSegment = new JooSymbol(sym.IDE, qnameSymbol.getFileName(), qnameSymbol.getLine(), qnameSymbol.getColumn() + j, ws, segment);
-      ws = "";
-      JooSymbol symDot = new JooSymbol(sym.DOT, qnameSymbol.getFileName(), qnameSymbol.getLine(), qnameSymbol.getColumn() + i, "", ".");
-      j = i + 1;
-      ide = ide == null ? new Ide(symSegment) : new QualifiedIde(ide, symDot, symSegment);
-    } while (j < qname.length());
-    return ide;
-  }
-
   @Override
   public void visit(AstVisitor visitor) throws IOException {
     visitor.visitIde(this);
@@ -158,10 +137,6 @@ public class Ide extends NodeImplBase {
 
   public boolean isQualifiedBySuper() {
     return getQualifier() != null && getQualifier().isSuper();
-  }
-
-  protected boolean isThisAccess() {
-    return getQualifier() == null || getQualifier().isThis();
   }
 
   public boolean addExternalUsage() {

@@ -17,7 +17,6 @@ package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
-import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.sym;
 
@@ -38,8 +37,8 @@ public class TypeRelation extends NodeImplBase {
   }
 
   public TypeRelation(JooSymbol symRelation, Type type) {
-    this.setSymRelation(symRelation);
-    this.setType(type);
+    this.symRelation = symRelation;
+    this.type = type;
   }
 
   @Override
@@ -63,14 +62,6 @@ public class TypeRelation extends NodeImplBase {
 
   public JooSymbol getSymRelation() {
     return symRelation;
-  }
-
-  public void setSymRelation(JooSymbol symRelation) {
-    this.symRelation = symRelation;
-  }
-
-  public void setType(Type type) {
-    this.type = type;
   }
 
   public Type getType() {

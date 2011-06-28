@@ -18,7 +18,6 @@ package net.jangaroo.jooc.ast;
 import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
-import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
@@ -33,7 +32,7 @@ public class DotExpr extends PostfixOpExpr {
 
   public DotExpr(Expr expr, JooSymbol symDot, Ide ide) {
     super(symDot, expr);
-    this.setIde(ide);
+    this.ide = ide;
   }
 
   @Override
@@ -65,7 +64,4 @@ public class DotExpr extends PostfixOpExpr {
 
   }
 
-  public void setIde(Ide ide) {
-    this.ide = ide;
-  }
 }

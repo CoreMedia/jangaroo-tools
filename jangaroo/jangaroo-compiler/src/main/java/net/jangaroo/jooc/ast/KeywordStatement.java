@@ -16,9 +16,6 @@
 package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.JooSymbol;
-import net.jangaroo.jooc.JsWriter;
-
-import java.io.IOException;
 
 /**
  * @author Andreas Gawecki
@@ -29,7 +26,7 @@ public abstract class KeywordStatement extends Statement {
 
   protected KeywordStatement(JooSymbol symKeyword) {
     super();
-    this.setSymKeyword(symKeyword);
+    this.symKeyword = symKeyword;
   }
 
   public JooSymbol getSymbol() {
@@ -40,7 +37,4 @@ public abstract class KeywordStatement extends Statement {
     return symKeyword;
   }
 
-  public void setSymKeyword(JooSymbol symKeyword) {
-    this.symKeyword = symKeyword;
-  }
 }

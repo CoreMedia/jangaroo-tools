@@ -17,7 +17,6 @@ package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
-import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
@@ -32,9 +31,9 @@ public class ObjectField extends NodeImplBase {
   private Expr value;
 
   public ObjectField(AstNode node, JooSymbol symColon, Expr value) {
-    this.setLabel(node);
-    this.setSymColon(symColon);
-    this.setValue(value);
+    this.label = node;
+    this.symColon = symColon;
+    this.value = value;
   }
 
   @Override
@@ -63,23 +62,12 @@ public class ObjectField extends NodeImplBase {
     return label;
   }
 
-  public void setLabel(AstNode label) {
-    this.label = label;
-  }
-
   public JooSymbol getSymColon() {
     return symColon;
-  }
-
-  public void setSymColon(JooSymbol symColon) {
-    this.symColon = symColon;
   }
 
   public Expr getValue() {
     return value;
   }
 
-  public void setValue(Expr value) {
-    this.value = value;
-  }
 }

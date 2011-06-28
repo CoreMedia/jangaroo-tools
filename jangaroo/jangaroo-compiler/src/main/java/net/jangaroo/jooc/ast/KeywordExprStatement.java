@@ -26,7 +26,7 @@ public abstract class KeywordExprStatement extends SemicolonTerminatedStatement 
 
   protected KeywordExprStatement(JooSymbol symKeyword, Expr optExpr, JooSymbol symSemicolon) {
     super(optExpr, symSemicolon);
-    this.setSymKeyword(symKeyword);
+    this.symKeyword = symKeyword;
   }
 
   public JooSymbol getSymbol() {
@@ -37,7 +37,4 @@ public abstract class KeywordExprStatement extends SemicolonTerminatedStatement 
     return symKeyword;
   }
 
-  public void setSymKeyword(JooSymbol symKeyword) {
-    this.symKeyword = symKeyword;
-  }
 }

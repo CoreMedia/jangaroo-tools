@@ -666,6 +666,7 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
           : new AssignmentOpExpr(new IdeExpr(forInStatement.getIde()), SYM_EQ, indexExpr),
           SYM_SEMICOLON);
       // inject synthesized statement into loop body:
+      // todo: maybe we should correct the AST earlier, not during code generation?
       if (forInStatement.getBody() instanceof BlockStatement) {
         ((BlockStatement) forInStatement.getBody()).getDirectives().add(0, assignment);
       } else {

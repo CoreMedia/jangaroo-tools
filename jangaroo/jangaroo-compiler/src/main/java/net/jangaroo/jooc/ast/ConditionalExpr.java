@@ -17,7 +17,6 @@ package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
-import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
@@ -34,11 +33,11 @@ public class ConditionalExpr extends Expr {
   private Expr ifFalse;
 
   public ConditionalExpr(Expr cond, JooSymbol symQuestion, Expr ifTrue, JooSymbol symColon, Expr ifFalse) {
-    this.setCond(cond);
-    this.setSymQuestion(symQuestion);
-    this.setIfTrue(ifTrue);
-    this.setSymColon(symColon);
-    this.setIfFalse(ifFalse);
+    this.cond = cond;
+    this.symQuestion = symQuestion;
+    this.ifTrue = ifTrue;
+    this.symColon = symColon;
+    this.ifFalse = ifFalse;
   }
 
   @Override
@@ -72,39 +71,20 @@ public class ConditionalExpr extends Expr {
     return cond;
   }
 
-  public void setCond(Expr cond) {
-    this.cond = cond;
-  }
-
   public JooSymbol getSymQuestion() {
     return symQuestion;
-  }
-
-  public void setSymQuestion(JooSymbol symQuestion) {
-    this.symQuestion = symQuestion;
   }
 
   public Expr getIfTrue() {
     return ifTrue;
   }
 
-  public void setIfTrue(Expr ifTrue) {
-    this.ifTrue = ifTrue;
-  }
-
   public JooSymbol getSymColon() {
     return symColon;
-  }
-
-  public void setSymColon(JooSymbol symColon) {
-    this.symColon = symColon;
   }
 
   public Expr getIfFalse() {
     return ifFalse;
   }
 
-  public void setIfFalse(Expr ifFalse) {
-    this.ifFalse = ifFalse;
-  }
 }

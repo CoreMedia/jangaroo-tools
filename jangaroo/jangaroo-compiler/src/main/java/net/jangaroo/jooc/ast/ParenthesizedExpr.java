@@ -17,7 +17,6 @@ package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
-import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
@@ -32,9 +31,9 @@ public class ParenthesizedExpr<E extends Expr> extends Expr {
   private JooSymbol rParen;
 
   public ParenthesizedExpr(JooSymbol lParen, E expr, JooSymbol rParen) {
-    this.setlParen(lParen);
-    this.setExpr(expr);
-    this.setrParen(rParen);
+    this.lParen = lParen;
+    this.expr = expr;
+    this.rParen = rParen;
   }
 
   @Override
@@ -63,23 +62,12 @@ public class ParenthesizedExpr<E extends Expr> extends Expr {
     return lParen;
   }
 
-  public void setlParen(JooSymbol lParen) {
-    this.lParen = lParen;
-  }
-
   public E getExpr() {
     return expr;
-  }
-
-  public void setExpr(E expr) {
-    this.expr = expr;
   }
 
   public JooSymbol getRParen() {
     return rParen;
   }
 
-  public void setrParen(JooSymbol rParen) {
-    this.rParen = rParen;
-  }
 }

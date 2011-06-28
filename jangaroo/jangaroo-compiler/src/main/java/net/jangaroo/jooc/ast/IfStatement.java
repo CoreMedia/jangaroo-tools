@@ -17,7 +17,6 @@ package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
-import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
@@ -38,10 +37,10 @@ public class IfStatement extends KeywordStatement {
 
   public IfStatement(JooSymbol symIf, Expr cond, Statement ifTrue, JooSymbol symElse, Statement ifFalse) {
     super(symIf);
-    this.setCond(cond);
-    this.setIfTrue(ifTrue);
-    this.setSymElse(symElse);
-    this.setIfFalse(ifFalse);
+    this.cond = cond;
+    this.ifTrue = ifTrue;
+    this.symElse = symElse;
+    this.ifFalse = ifFalse;
   }
 
   @Override
@@ -69,31 +68,16 @@ public class IfStatement extends KeywordStatement {
     return cond;
   }
 
-  public void setCond(Expr cond) {
-    this.cond = cond;
-  }
-
   public Statement getIfTrue() {
     return ifTrue;
-  }
-
-  public void setIfTrue(Statement ifTrue) {
-    this.ifTrue = ifTrue;
   }
 
   public JooSymbol getSymElse() {
     return symElse;
   }
 
-  public void setSymElse(JooSymbol symElse) {
-    this.symElse = symElse;
-  }
-
   public Statement getIfFalse() {
     return ifFalse;
   }
 
-  public void setIfFalse(Statement ifFalse) {
-    this.ifFalse = ifFalse;
-  }
 }

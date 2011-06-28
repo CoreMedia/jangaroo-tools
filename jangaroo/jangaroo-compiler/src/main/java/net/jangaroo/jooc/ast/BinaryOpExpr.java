@@ -17,7 +17,6 @@ package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
-import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
@@ -32,8 +31,8 @@ public class BinaryOpExpr extends OpExpr {
 
   public BinaryOpExpr(Expr arg1, JooSymbol op, Expr arg2) {
     super(op);
-    this.setArg1(arg1);
-    this.setArg2(arg2);
+    this.arg1 = arg1;
+    this.arg2 = arg2;
   }
 
   @Override
@@ -65,15 +64,8 @@ public class BinaryOpExpr extends OpExpr {
     return arg1;
   }
 
-  public void setArg1(Expr arg1) {
-    this.arg1 = arg1;
-  }
-
   public Expr getArg2() {
     return arg2;
   }
 
-  public void setArg2(Expr arg2) {
-    this.arg2 = arg2;
-  }
 }

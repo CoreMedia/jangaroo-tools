@@ -18,7 +18,6 @@ package net.jangaroo.jooc.ast;
 import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
-import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
@@ -32,8 +31,8 @@ public class Extends extends NodeImplBase {
   private Ide superClass;
 
   public Extends(JooSymbol extds, Ide superClass) {
-    this.setSymExtends(extds);
-    this.setSuperClass(superClass);
+    this.symExtends = extds;
+    this.superClass = superClass;
   }
 
   @Override
@@ -64,15 +63,8 @@ public class Extends extends NodeImplBase {
     return symExtends;
   }
 
-  public void setSymExtends(JooSymbol symExtends) {
-    this.symExtends = symExtends;
-  }
-
   public Ide getSuperClass() {
     return superClass;
   }
 
-  public void setSuperClass(Ide superClass) {
-    this.superClass = superClass;
-  }
 }

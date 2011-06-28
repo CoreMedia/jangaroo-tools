@@ -17,7 +17,6 @@ package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
-import net.jangaroo.jooc.JsWriter;
 
 import java.io.IOException;
 
@@ -30,8 +29,8 @@ public class DoStatement extends ConditionalLoopStatement {
 
   public DoStatement(JooSymbol symDo, Statement statement, JooSymbol symWhile, ParenthesizedExpr cond, JooSymbol symSemicolon) {
     super(symDo, cond, statement);
-    this.setSymWhile(symWhile);
-    this.setSymSemicolon(symSemicolon);
+    this.symWhile = symWhile;
+    this.symSemicolon = symSemicolon;
   }
 
   @Override
@@ -50,15 +49,8 @@ public class DoStatement extends ConditionalLoopStatement {
     return symWhile;
   }
 
-  public void setSymWhile(JooSymbol symWhile) {
-    this.symWhile = symWhile;
-  }
-
   public JooSymbol getSymSemicolon() {
     return symSemicolon;
   }
 
-  public void setSymSemicolon(JooSymbol symSemicolon) {
-    this.symSemicolon = symSemicolon;
-  }
 }

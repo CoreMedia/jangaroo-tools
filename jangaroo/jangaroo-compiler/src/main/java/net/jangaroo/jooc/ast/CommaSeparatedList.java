@@ -17,7 +17,6 @@ package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
-import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
@@ -35,9 +34,9 @@ public class CommaSeparatedList<T extends AstNode> extends Expr {
   }
 
   public CommaSeparatedList(T head, JooSymbol comma, CommaSeparatedList<T> tail) {
-    this.setHead(head);
-    this.setSymComma(comma);
-    this.setTail(tail);
+    this.head = head;
+    this.symComma = comma;
+    this.tail = tail;
   }
 
   @Override
@@ -72,23 +71,12 @@ public class CommaSeparatedList<T extends AstNode> extends Expr {
     return head;
   }
 
-  public void setHead(T head) {
-    this.head = head;
-  }
-
   public JooSymbol getSymComma() {
     return symComma;
-  }
-
-  public void setSymComma(JooSymbol symComma) {
-    this.symComma = symComma;
   }
 
   public CommaSeparatedList<T> getTail() {
     return tail;
   }
 
-  public void setTail(CommaSeparatedList<T> tail) {
-    this.tail = tail;
-  }
 }

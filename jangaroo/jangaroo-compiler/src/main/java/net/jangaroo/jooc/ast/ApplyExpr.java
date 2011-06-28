@@ -17,7 +17,6 @@ package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
-import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
@@ -38,8 +37,8 @@ public class ApplyExpr extends Expr {
   private static final Set<String> COERCE_FUNCTION_NAMES = new HashSet<String>(Arrays.asList("Number", "String", "Boolean", "int", "uint", "Date", "Array", "RegExp"));
 
   public ApplyExpr(Expr fun, JooSymbol lParen, CommaSeparatedList<Expr> args, JooSymbol rParen) {
-    this.setFun(fun);
-    this.setArgs(new ParenthesizedExpr<CommaSeparatedList<Expr>>(lParen, args, rParen));
+    this.fun = fun;
+    this.args = new ParenthesizedExpr<CommaSeparatedList<Expr>>(lParen, args, rParen);
   }
 
   @Override
@@ -90,15 +89,8 @@ public class ApplyExpr extends Expr {
     return fun;
   }
 
-  public void setFun(Expr fun) {
-    this.fun = fun;
-  }
-
   public ParenthesizedExpr<CommaSeparatedList<Expr>> getArgs() {
     return args;
   }
 
-  public void setArgs(ParenthesizedExpr<CommaSeparatedList<Expr>> args) {
-    this.args = args;
-  }
 }
