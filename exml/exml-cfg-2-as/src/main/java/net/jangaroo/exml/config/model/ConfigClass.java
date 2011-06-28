@@ -19,14 +19,12 @@ public class ConfigClass extends DescriptionHolder {
   private String superClassPackage;
 
   private final File sourceFile;
-  private final File outputFile;
 
-  private final File rootFolder;
+  private String fullQualifiedName;
 
-  public ConfigClass(File source, File outputFile, File rootFolder) {
+  public ConfigClass(File source, String fullQualifiedName) {
     this.sourceFile = source;
-    this.outputFile = outputFile;
-    this.rootFolder = rootFolder;
+    this.fullQualifiedName = fullQualifiedName;
   }
 
   public void addCfg(ConfigAttribute cfg) {
@@ -35,10 +33,6 @@ public class ConfigClass extends DescriptionHolder {
 
   public List<ConfigAttribute> getCfgs() {
     return cfgs;
-  }
-
-  public File getOutputFile() {
-    return outputFile;
   }
 
   public String getName() {
@@ -69,9 +63,7 @@ public class ConfigClass extends DescriptionHolder {
     this.superClassPackage = superClassPackage;
   }
 
-  public String getComponentFullQualifiedName() {
-    int rootDirPathLength = rootFolder.getPath().length()+1;
-    String subpath = FilenameUtils.removeExtension(sourceFile.getPath().substring(rootDirPathLength));
-    return subpath.replaceAll(File.separator,".");
+  public String getFullQualifiedName() {
+    return fullQualifiedName;
   }
 }

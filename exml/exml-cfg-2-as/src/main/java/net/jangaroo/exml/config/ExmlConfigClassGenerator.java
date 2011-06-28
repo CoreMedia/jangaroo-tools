@@ -31,10 +31,10 @@ public final class ExmlConfigClassGenerator {
     env.process();
   }
 
-  public static void generateClass(final ConfigClass configClass) {
+  public static void generateClass(final ConfigClass configClass, File result) {
     Writer writer = null;
       try {
-        writer = new OutputStreamWriter(new FileOutputStream(configClass.getOutputFile()), outputCharset);
+        writer = new OutputStreamWriter(new FileOutputStream(result), outputCharset);
         generateClass(configClass, writer);
       } catch (IOException e) {
         Log.e("Exception while creating class", e);

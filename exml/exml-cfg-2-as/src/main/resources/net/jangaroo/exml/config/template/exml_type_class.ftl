@@ -3,22 +3,22 @@ package ${packageName} {
 
 import ext.ComponentMgr;
 import ${superClassPackage}.${superClassName};
-import ${componentFullQualifiedName};
+import ${fullQualifiedName};
 
 /**
  * ${description!}
  *
  * <b>Do not edit. This is an auto-generated class.</b>
  *
- * @see ${componentFullQualifiedName}
+ * @see ${fullQualifiedName}
  */
-[ExtConfig(target=${componentFullQualifiedName})]
+[ExtConfig(target=${fullQualifiedName})]
 public class ${name} extends ${superClassName} {
 
-  ComponentMgr.registerType("${componentFullQualifiedName}", ${componentFullQualifiedName});
+  ComponentMgr.registerType("${fullQualifiedName}", ${fullQualifiedName});
 
   /**
-   * @see ${componentFullQualifiedName}
+   * @see ${fullQualifiedName}
    */
   public function ${name}(config:Object = null) {
     super(config || {});
