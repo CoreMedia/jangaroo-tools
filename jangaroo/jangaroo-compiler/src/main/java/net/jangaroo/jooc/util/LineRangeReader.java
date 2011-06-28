@@ -1,6 +1,8 @@
 package net.jangaroo.jooc.util;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.Reader;
 
 /**
  * A LineRangeReader that reads a line subrange of a given Reader.

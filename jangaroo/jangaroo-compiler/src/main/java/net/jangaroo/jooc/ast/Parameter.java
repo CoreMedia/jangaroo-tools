@@ -18,7 +18,6 @@ package net.jangaroo.jooc.ast;
 import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
-import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.sym;
 
@@ -81,13 +80,6 @@ public class Parameter extends IdeDeclaration {
       // ignore initializers that assign undefined. Parameters are already undefined if not present.
       (!(getOptInitializer().getValue() instanceof IdeExpr) ||
         !((IdeExpr) getOptInitializer().getValue()).getIde().getName().equals("undefined"));
-  }
-
-  public void generateRestParamCode(JsWriter out, int paramIndex) throws IOException {
-    String paramName = getName();
-    if (paramName != null && !(paramName.equals("arguments") && paramIndex==0)) {
-      out.write("var " + paramName + "=Array.prototype.slice.call(arguments" + (paramIndex == 0 ? "" : "," + paramIndex) + ");");
-    }
   }
 
   @Override

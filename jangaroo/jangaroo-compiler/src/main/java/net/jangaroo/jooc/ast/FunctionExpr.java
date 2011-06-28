@@ -131,16 +131,6 @@ public class FunctionExpr extends Expr {
     });
   }
 
-  public String getFunctionNameAsIde(JsWriter out) {
-    IdeDeclaration classDeclaration = getClassDeclaration();
-    String classNameAsIde = "";
-    if (classDeclaration != null) {
-      classNameAsIde = out.getQualifiedNameAsIde(classDeclaration);
-    }
-    JooSymbol sym = getSymbol();
-    return classNameAsIde + "$" + sym.getLine() + "_" + sym.getColumn();
-  }
-
   public void analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     if (params != null) {

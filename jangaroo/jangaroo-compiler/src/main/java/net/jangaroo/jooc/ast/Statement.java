@@ -15,10 +15,6 @@
 
 package net.jangaroo.jooc.ast;
 
-import net.jangaroo.jooc.JsWriter;
-
-import java.io.IOException;
-
 /**
  * Statements are language elements that perform or specify an action at runtime.
  *

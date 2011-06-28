@@ -1,6 +1,5 @@
 package net.jangaroo.jooc.backend;
 
-import net.jangaroo.jooc.CodeGenerator;
 import net.jangaroo.jooc.ast.CompilationUnit;
 
 /**

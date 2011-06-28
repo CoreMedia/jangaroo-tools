@@ -16,7 +16,6 @@
 package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.JooSymbol;
-import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.SyntacticKeywords;
 
 import java.io.IOException;

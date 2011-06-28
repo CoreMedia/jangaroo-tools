@@ -2,7 +2,12 @@ package net.jangaroo.jooc.util;
 
 import net.jangaroo.jooc.input.InputSource;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 

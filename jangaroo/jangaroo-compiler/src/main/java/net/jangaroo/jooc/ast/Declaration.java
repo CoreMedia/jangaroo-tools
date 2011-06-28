@@ -18,12 +18,9 @@ package net.jangaroo.jooc.ast;
 import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
-import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.SyntacticKeywords;
 import net.jangaroo.jooc.sym;
-
-import java.io.IOException;
 
 /**
  * Declarations are statements used to define entities such as variables, functions, classes,
@@ -179,12 +176,6 @@ public abstract class Declaration extends Statement {
 
   public boolean isNative() {
     return (getModifiers() & MODIFIER_NATIVE) != 0;
-  }
-
-  protected void writeModifiers(JsWriter out) throws IOException {
-    for (JooSymbol modifier : getSymModifiers()) {
-      out.writeSymbol(modifier);
-    }
   }
 
   @Override

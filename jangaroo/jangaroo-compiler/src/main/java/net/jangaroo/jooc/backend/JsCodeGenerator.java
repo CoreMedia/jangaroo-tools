@@ -338,11 +338,20 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
     if (functionExpr.getIde() != null) {
       out.writeToken(functionExpr.getIde().getName());
     } else if (out.getKeepSource()) {
-      out.writeToken(functionExpr.getFunctionNameAsIde(out));
+      out.writeToken(getFunctionNameAsIde(functionExpr));
     }
     generateFunTailCode(functionExpr);
   }
 
+  public String getFunctionNameAsIde(FunctionExpr functionExpr) {
+    IdeDeclaration classDeclaration = functionExpr.getClassDeclaration();
+    String classNameAsIde = "";
+    if (classDeclaration != null) {
+      classNameAsIde = out.getQualifiedNameAsIde(classDeclaration);
+    }
+    JooSymbol sym = functionExpr.getSymbol();
+    return classNameAsIde + "$" + sym.getLine() + "_" + sym.getColumn();
+  }
 
   public void generateFunTailCode(FunctionExpr functionExpr) throws IOException {
     Parameters params = functionExpr.getParams();
@@ -378,7 +387,7 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
         for (Parameters parameters = params; parameters!=null; parameters = parameters.getTail()) {
           Parameter param = parameters.getHead();
           if (param.isRest()) {
-            param.generateRestParamCode(out, cnt);
+            generateRestParamCode(param, cnt);
             break;
           }
           if (param.hasInitializer()) {
@@ -388,6 +397,13 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
         }
       }
     };
+  }
+
+  public void generateRestParamCode(Parameter param, int paramIndex) throws IOException {
+    String paramName = param.getName();
+    if (paramName != null && !(paramName.equals("arguments") && paramIndex==0)) {
+      out.write("var " + paramName + "=Array.prototype.slice.call(arguments" + (paramIndex == 0 ? "" : "," + paramIndex) + ");");
+    }
   }
 
   public void generateBodyInitializerCode(Parameter param) throws IOException {
@@ -1026,8 +1042,16 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
       }
       do {
         VariableDeclaration field = iterator.next();
-        field.generateInitCode(out, endWithSemicolon || iterator.hasNext());
+        generateInitCode(field, endWithSemicolon || iterator.hasNext());
       } while (iterator.hasNext());
+    }
+  }
+
+  public void generateInitCode(VariableDeclaration field, boolean endWithSemicolon) throws IOException {
+    String accessCode = "this." + field.getName() + (field.isPrivate() ? "$" + field.getClassDeclaration().getInheritanceLevel() : "");
+    out.write(accessCode + "=" + accessCode + "()");
+    if (endWithSemicolon) {
+      out.write(";");
     }
   }
 

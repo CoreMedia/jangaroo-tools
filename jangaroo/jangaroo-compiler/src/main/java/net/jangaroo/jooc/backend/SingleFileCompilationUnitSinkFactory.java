@@ -1,16 +1,16 @@
 package net.jangaroo.jooc.backend;
 
-import net.jangaroo.jooc.ast.CompilationUnit;
-import net.jangaroo.jooc.ast.IdeDeclaration;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.JsWriter;
+import net.jangaroo.jooc.ast.CompilationUnit;
+import net.jangaroo.jooc.ast.IdeDeclaration;
 import net.jangaroo.jooc.ast.PackageDeclaration;
 import net.jangaroo.jooc.config.JoocOptions;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.io.FileOutputStream;
 
 /**
  * Compilation unit sink factory for one compilation unit per output file.

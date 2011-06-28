@@ -18,7 +18,6 @@ package net.jangaroo.jooc.ast;
 import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
-import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.sym;
 
@@ -155,14 +154,6 @@ public class VariableDeclaration extends TypedIdeDeclaration {
       emptyValue = "null";
     }
     return emptyValue;
-  }
-
-  public void generateInitCode(JsWriter out, boolean endWithSemicolon) throws IOException {
-    String accessCode = "this." + getName() + (isPrivate() ? "$" + getClassDeclaration().getInheritanceLevel() : "");
-    out.write(accessCode + "=" + accessCode + "()");
-    if (endWithSemicolon) {
-      out.write(";");
-    }
   }
 
   boolean allowDuplicates(Scope scope) {

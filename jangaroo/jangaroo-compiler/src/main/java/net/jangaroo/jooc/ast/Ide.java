@@ -21,7 +21,6 @@ import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.SyntacticKeywords;
-import net.jangaroo.jooc.sym;
 
 import java.io.IOException;
 
@@ -83,15 +82,6 @@ public class Ide extends NodeImplBase {
     // scope is "single assignment", allow further assignments to facilitate tree sharing
     if (this.scope == null) {
       this.scope = scope;
-    }
-  }
-
-  public void writeIde(JsWriter out) throws IOException {
-    // take care of reserved words called as functions (Rhino does not like):
-    if (SyntacticKeywords.RESERVED_WORDS.contains(getIde().getText())) {
-      out.writeToken("$$" + getIde().getText());
-    } else {
-      out.writeSymbol(getIde(), false);
     }
   }
 
@@ -327,6 +317,15 @@ public class Ide extends NodeImplBase {
       }
     }
     writeIde(out);
+  }
+
+  public void writeIde(JsWriter out) throws IOException {
+    // take care of reserved words called as functions (Rhino does not like):
+    if (SyntacticKeywords.RESERVED_WORDS.contains(getIde().getText())) {
+      out.writeToken("$$" + getIde().getText());
+    } else {
+      out.writeSymbol(getIde(), false);
+    }
   }
 
   private void writeThis(JsWriter out) throws IOException {

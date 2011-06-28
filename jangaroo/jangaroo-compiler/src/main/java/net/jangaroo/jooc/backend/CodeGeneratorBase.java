@@ -2,7 +2,6 @@ package net.jangaroo.jooc.backend;
 
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.JsWriter;
-import net.jangaroo.jooc.SyntacticKeywords;
 import net.jangaroo.jooc.ast.AstNode;
 import net.jangaroo.jooc.ast.AstVisitor;
 import net.jangaroo.jooc.ast.BinaryOpExpr;
@@ -12,7 +11,6 @@ import net.jangaroo.jooc.ast.Declaration;
 import net.jangaroo.jooc.ast.DotExpr;
 import net.jangaroo.jooc.ast.GetterSetterPair;
 import net.jangaroo.jooc.ast.Ide;
-import net.jangaroo.jooc.ast.IdeExpr;
 import net.jangaroo.jooc.ast.IsExpr;
 import net.jangaroo.jooc.ast.LiteralExpr;
 import net.jangaroo.jooc.ast.PostfixOpExpr;
