@@ -95,11 +95,6 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
 
   private final JsWriter out;
 
-  /**
-   * Whether the start (but not the end) of an artifical comment has been generated.
-   */
-  private boolean inArtificialComment = false;
-
   public JsCodeGenerator(JsWriter out) {
     super(out);
     this.out = out;
@@ -108,7 +103,7 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
   @Override
   public void visitTypeRelation(TypeRelation typeRelation) throws IOException {
     out.beginCommentWriteSymbol(typeRelation.getSymRelation());
-    out.writeSymbol(typeRelation.getType().getIde().getIde());
+    typeRelation.getType().getIde().visit(this);
     out.endComment();
   }
 
@@ -179,7 +174,12 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
   @Override
   public void visitIde(Ide ide) throws IOException {
     out.writeSymbolWhitespace(ide.getIde());
-    writeIde(out, ide);
+    // take care of reserved words called as functions (Rhino does not like):
+    if (!out.isWritingComment() && SyntacticKeywords.RESERVED_WORDS.contains(ide.getIde().getText())) {
+      out.writeToken("$$" + ide.getIde().getText());
+    } else {
+      out.writeSymbol(ide.getIde(), false);
+    }
   }
 
   @Override
@@ -196,16 +196,9 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
   }
 
   private void writeTypeParamAsComment(IdeWithTypeParam ideWithTypeParam) throws IOException {
-    boolean startArtificalComment = !inArtificialComment;
-    if (startArtificalComment) {
-      out.beginComment();
-      inArtificialComment = true;
-    }
+    out.beginComment();
     writeTypeParam(ideWithTypeParam);
-    if (startArtificalComment) {
-      inArtificialComment = false;
-      out.endComment();
-    }
+    out.endComment();
   }
 
   protected void writeTypeParam(IdeWithTypeParam ideWithTypeParam) throws IOException {
@@ -809,8 +802,9 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
     if (!isRest) {
       parameter.getIde().visit(this);
     }
-    if (parameter.getOptTypeRelation() !=null)
+    if (parameter.getOptTypeRelation() !=null) {
       parameter.getOptTypeRelation().visit(this);
+    }
     // in the method signature, comment out initializer code.
     if (parameter.getOptInitializer() != null) {
       out.beginComment();

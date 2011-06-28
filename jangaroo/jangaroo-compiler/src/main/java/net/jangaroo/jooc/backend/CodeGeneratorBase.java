@@ -32,15 +32,6 @@ public abstract class CodeGeneratorBase implements AstVisitor {
     return out;
   }
 
-  public void writeIde(JsWriter out, Ide ide) throws IOException {
-    // take care of reserved words called as functions (Rhino does not like):
-    if (SyntacticKeywords.RESERVED_WORDS.contains(ide.getIde().getText())) {
-      out.writeToken("$$" + ide.getIde().getText());
-    } else {
-      out.writeSymbol(ide.getIde(), false);
-    }
-  }
-
   protected void writeModifiers(JsWriter out, Declaration declaration) throws IOException {
     for (JooSymbol modifier : declaration.getSymModifiers()) {
       out.writeSymbol(modifier);
@@ -48,42 +39,42 @@ public abstract class CodeGeneratorBase implements AstVisitor {
   }
 
   @Override
-  public void visitLiteralExpr(LiteralExpr literalExpr) throws IOException {
+  public final void visitLiteralExpr(LiteralExpr literalExpr) throws IOException {
     out.writeSymbol(literalExpr.getValue());
   }
 
   @Override
-  public void visitPostfixOpExpr(PostfixOpExpr postfixOpExpr) throws IOException {
+  public final void visitPostfixOpExpr(PostfixOpExpr postfixOpExpr) throws IOException {
     postfixOpExpr.getArg().visit(this);
     out.writeSymbol(postfixOpExpr.getOp());
   }
 
   @Override
-  public void visitDotExpr(DotExpr dotExpr) throws IOException {
+  public final void visitDotExpr(DotExpr dotExpr) throws IOException {
     dotExpr.getArg().visit(this);
     Ide.writeMemberAccess(Ide.resolveMember(dotExpr.getArg().getType(), dotExpr.getIde()), dotExpr.getOp(), dotExpr.getIde(), true, out);
   }
 
   @Override
-  public void visitPrefixOpExpr(PrefixOpExpr prefixOpExpr) throws IOException {
+  public final void visitPrefixOpExpr(PrefixOpExpr prefixOpExpr) throws IOException {
     out.writeSymbol(prefixOpExpr.getOp());
     prefixOpExpr.getArg().visit(this);
   }
 
   @Override
-  public void visitBinaryOpExpr(BinaryOpExpr binaryOpExpr) throws IOException {
+  public final void visitBinaryOpExpr(BinaryOpExpr binaryOpExpr) throws IOException {
     binaryOpExpr.getArg1().visit(this);
     out.writeSymbol(binaryOpExpr.getOp());
     binaryOpExpr.getArg2().visit(this);
   }
 
   @Override
-  public void visitIsExpr(IsExpr isExpr) throws IOException {
+  public final void visitIsExpr(IsExpr isExpr) throws IOException {
     visitInfixOpExpr(isExpr);
   }
 
   @Override
-  public void visitConditionalExpr(ConditionalExpr conditionalExpr) throws IOException {
+  public final void visitConditionalExpr(ConditionalExpr conditionalExpr) throws IOException {
     conditionalExpr.getCond().visit(this);
     out.writeSymbol(conditionalExpr.getSymQuestion());
     conditionalExpr.getIfTrue().visit(this);
@@ -92,7 +83,7 @@ public abstract class CodeGeneratorBase implements AstVisitor {
   }
 
   @Override
-  public <T extends AstNode> void visitCommaSeparatedList(CommaSeparatedList<T> commaSeparatedList) throws IOException {
+  public final <T extends AstNode> void visitCommaSeparatedList(CommaSeparatedList<T> commaSeparatedList) throws IOException {
     if (commaSeparatedList.getHead() != null) {
       commaSeparatedList.getHead().visit(this);
     }
@@ -105,12 +96,12 @@ public abstract class CodeGeneratorBase implements AstVisitor {
   }
 
   @Override
-  public void visitGetterSetterPair(GetterSetterPair getterSetterPair) throws IOException {
+  public final void visitGetterSetterPair(GetterSetterPair getterSetterPair) throws IOException {
     throw new IllegalStateException("GetterSetterPair#generateCode() should never be called!");
   }
 
   @Override
-  public void visitPredefinedTypeDeclaration(PredefinedTypeDeclaration predefinedTypeDeclaration) throws IOException {
+  public final void visitPredefinedTypeDeclaration(PredefinedTypeDeclaration predefinedTypeDeclaration) throws IOException {
     throw new IllegalStateException("there should be no code generation for predefined types");
   }
 }

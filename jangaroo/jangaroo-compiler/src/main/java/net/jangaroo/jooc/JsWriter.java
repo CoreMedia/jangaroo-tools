@@ -31,7 +31,7 @@ public final class JsWriter extends FilterWriter {
 
   private JsStringLiteralWriter stringLiteralWriter;
   private JoocOptions options;
-  private boolean inComment = false;
+  private boolean commentStartWritten = false;
   private int nOpenBeginComments = 0;
   private char lastChar = ' ';
   private boolean inString = false;
@@ -153,14 +153,14 @@ public final class JsWriter extends FilterWriter {
   private boolean shouldWrite() throws IOException {
     boolean result = getKeepSource() || nOpenBeginComments == 0;
     if (result) {
-      if (nOpenBeginComments > 0 && !inComment) {
+      if (nOpenBeginComments > 0 && !commentStartWritten) {
         out.write("/*");
         lastChar = '*';
-        inComment = true;
-      } else if (nOpenBeginComments == 0 && inComment) {
+        commentStartWritten = true;
+      } else if (nOpenBeginComments == 0 && commentStartWritten) {
         out.write("*/");
         lastChar = '/';
-        inComment = false;
+        commentStartWritten = false;
       }
     }
     return result;
@@ -325,7 +325,7 @@ public final class JsWriter extends FilterWriter {
   public void write(char cbuf[], int off, int len) throws IOException {
     if (len > 0) {
       if (shouldWrite()) {
-        if (inComment) {
+        if (commentStartWritten) {
           for (int i = 0; i < len; i++) {
             char c = cbuf[off + i];
             write(c);
@@ -349,7 +349,7 @@ public final class JsWriter extends FilterWriter {
   public void write(String str, int off, int len) throws IOException {
     if (len > 0) {
       if (shouldWrite()) {
-        if (inComment) {
+        if (commentStartWritten) {
           for (int i = 0; i < len; i++) {
             char c = str.charAt(off + i);
             write(c);
@@ -383,5 +383,9 @@ public final class JsWriter extends FilterWriter {
     shouldWrite(); // will close comments
     Debug.assertTrue(nOpenBeginComments == 0, "" + nOpenBeginComments + " endComment() missing");
     super.close();
+  }
+
+  public boolean isWritingComment() {
+    return nOpenBeginComments > 0;
   }
 }
