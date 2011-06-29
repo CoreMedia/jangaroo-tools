@@ -1,7 +1,7 @@
-package net.jangaroo.exml.config.xml;
+package net.jangaroo.exml.xml;
 
-import net.jangaroo.exml.config.model.ConfigAttribute;
-import net.jangaroo.exml.config.model.ConfigClass;
+import net.jangaroo.exml.model.ConfigAttribute;
+import net.jangaroo.exml.model.ConfigClass;
 import net.jangaroo.utils.CharacterRecordingHandler;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;

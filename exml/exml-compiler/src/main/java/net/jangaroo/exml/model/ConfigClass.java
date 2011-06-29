@@ -1,7 +1,6 @@
-package net.jangaroo.exml.config.model;
+package net.jangaroo.exml.model;
 
 import net.jangaroo.jooc.input.InputSource;
-import org.apache.commons.io.FilenameUtils;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,4 +1,4 @@
-package net.jangaroo.exml.config.model;
+package net.jangaroo.exml.model;
 
 /**
  * A meta model of an Ext JS component configuration attribute.

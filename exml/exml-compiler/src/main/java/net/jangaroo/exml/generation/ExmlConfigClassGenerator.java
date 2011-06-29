@@ -1,11 +1,11 @@
-package net.jangaroo.exml.config;
+package net.jangaroo.exml.generation;
 
 import freemarker.core.Environment;
 import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapper;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
-import net.jangaroo.exml.config.model.ConfigClass;
+import net.jangaroo.exml.model.ConfigClass;
 import net.jangaroo.utils.log.Log;
 
 import java.io.File;
@@ -25,7 +25,7 @@ public final class ExmlConfigClassGenerator {
     Configuration cfg = new Configuration();
     cfg.setClassForTemplateLoading(ConfigClass.class, "/");
     cfg.setObjectWrapper(new DefaultObjectWrapper());
-    Template template = cfg.getTemplate("/net/jangaroo/exml/config/template/exml_type_class.ftl");
+    Template template = cfg.getTemplate("/net/jangaroo/exml/templates/exml_type_class.ftl");
     Environment env = template.createProcessingEnvironment(configClass, output);
     env.setOutputEncoding(outputCharset);
     env.process();

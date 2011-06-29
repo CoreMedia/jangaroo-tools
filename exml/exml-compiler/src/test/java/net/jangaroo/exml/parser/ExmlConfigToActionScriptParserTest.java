@@ -1,4 +1,4 @@
-package net.jangaroo.exml.config;
+package net.jangaroo.exml.parser;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Rule;
@@ -20,7 +20,7 @@ public class ExmlConfigToActionScriptParserTest {
 
   @Test
   public void testParse() throws Exception {
-    File result = ExmlConfigToActionScriptParser.parseExmlFile(getFile("/"), outputFolder.getRoot(), getFile("/testPackage/TestComponent.exml"),"testNamespace.config");
+    File result = ExmlConfigToActionScriptParser.parseExmlFile(getFile("/"), outputFolder.getRoot(), getFile("/testPackage/TestComponent.exml"), "testNamespace.config");
     assertNotNull("Exml config file is null",result);
     assertEquals("The files differ!", FileUtils.readFileToString(getFile("/testNamespace/config/TestComponent.as")),FileUtils.readFileToString(result));
   }

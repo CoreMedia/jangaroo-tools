@@ -1,4 +1,4 @@
-<#-- @ftlvariable name="" type="net.jangaroo.exml.config.model.ConfigClass" -->
+<#-- @ftlvariable name="" type="net.jangaroo.exml.model.ConfigClass" -->
 package ${packageName} {
 
 import ext.ComponentMgr;

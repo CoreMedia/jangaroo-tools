@@ -1,7 +1,7 @@
-package net.jangaroo.exml.config.as;
+package net.jangaroo.exml.as;
 
-import net.jangaroo.exml.config.model.ConfigAttribute;
-import net.jangaroo.exml.config.model.ConfigClass;
+import net.jangaroo.exml.model.ConfigAttribute;
+import net.jangaroo.exml.model.ConfigClass;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.input.FileInputSource;
 import net.jangaroo.jooc.input.InputSource;

@@ -1,7 +1,8 @@
-package net.jangaroo.exml.config;
+package net.jangaroo.exml.parser;
 
-import net.jangaroo.exml.config.model.ConfigClass;
-import net.jangaroo.exml.config.xml.ExmlMetadataHandler;
+import net.jangaroo.exml.generation.ExmlConfigClassGenerator;
+import net.jangaroo.exml.model.ConfigClass;
+import net.jangaroo.exml.xml.ExmlMetadataHandler;
 import net.jangaroo.jooc.input.FileInputSource;
 import net.jangaroo.utils.ContentHandlerUtils;
 import org.apache.commons.io.FilenameUtils;

@@ -1,7 +1,7 @@
-package net.jangaroo.exml.config.as;
+package net.jangaroo.exml.as;
 
-import net.jangaroo.exml.config.model.ConfigAttribute;
-import net.jangaroo.exml.config.model.ConfigClass;
+import net.jangaroo.exml.model.ConfigAttribute;
+import net.jangaroo.exml.model.ConfigClass;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.StdOutCompileLog;
@@ -13,7 +13,6 @@ import net.jangaroo.jooc.ast.ClassBody;
 import net.jangaroo.jooc.ast.ClassDeclaration;
 import net.jangaroo.jooc.ast.CommaSeparatedList;
 import net.jangaroo.jooc.ast.CompilationUnit;
-import net.jangaroo.jooc.ast.Declaration;
 import net.jangaroo.jooc.ast.FunctionDeclaration;
 import net.jangaroo.jooc.ast.Ide;
 import net.jangaroo.jooc.ast.PackageDeclaration;
@@ -23,7 +22,6 @@ import net.jangaroo.jooc.input.InputSource;
 import net.jangaroo.jooc.sym;
 
 import java.io.IOException;
-import java.util.regex.Pattern;
 
 public class ConfigClassBuilder extends AstVisitorBase {
   private static final String EXT_CONFIG_META_NAME = "ExtConfig";
