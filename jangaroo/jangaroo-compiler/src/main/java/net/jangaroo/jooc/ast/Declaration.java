@@ -69,7 +69,7 @@ public abstract class Declaration extends Statement {
   }
 
   protected void setInheritedModifiers(final JooSymbol[] modifiers) {
-    setSymInheritedModifiers(modifiers.clone());
+    setSymInheritedModifiers(modifiers);
     computeModifiers();
   }
 
@@ -189,7 +189,7 @@ public abstract class Declaration extends Statement {
   }
 
   public void setSymInheritedModifiers(JooSymbol[] symInheritedModifiers) {
-    this.symInheritedModifiers = symInheritedModifiers;
+    this.symInheritedModifiers = symInheritedModifiers.clone();
   }
 
   public void setParentDeclaration(AstNode parentDeclaration) {
