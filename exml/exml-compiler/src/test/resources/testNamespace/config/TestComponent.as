@@ -11,11 +11,8 @@ import testPackage.TestComponent;
  *
  * @see testPackage.TestComponent
  */
-[ExtConfig(target=testPackage.TestComponent)]
+[ExtConfig(target="testPackage.TestComponent")]
 public class TestComponent extends panel {
-
-  ComponentMgr.registerType("testPackage.TestComponent", testPackage.TestComponent);
-
   /**
    * @see testPackage.TestComponent
    */

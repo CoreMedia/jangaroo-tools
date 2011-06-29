@@ -36,15 +36,11 @@ import java.util.Set;
  * @author Frank Wienberg
  */
 public class CompilationUnit extends NodeImplBase {
-
-  public PackageDeclaration getPackageDeclaration() {
-    return packageDeclaration;
-  }
-
   private PackageDeclaration packageDeclaration;
   private JooSymbol lBrace;
   private IdeDeclaration primaryDeclaration;
   private JooSymbol rBrace;
+
   private Set<String> dependencies = new LinkedHashSet<String>();
   private InputSource source;
   private Jooc compiler;
@@ -86,6 +82,10 @@ public class CompilationUnit extends NodeImplBase {
     });
   }
 
+  public PackageDeclaration getPackageDeclaration() {
+    return packageDeclaration;
+  }
+
   public IdeDeclaration getPrimaryDeclaration() {
     return primaryDeclaration;
   }
@@ -121,14 +121,8 @@ public class CompilationUnit extends NodeImplBase {
     this.source = source;
   }
 
-  public void writeOutput(CompilationUnitSinkFactory writerFactory,
-                          boolean verbose) throws Jooc.CompilerError {
-    File sourceFile = ((FileInputSource) this.source).getFile();
-    CompilationUnitSink sink = writerFactory.createSink(
-      packageDeclaration, primaryDeclaration,
-      sourceFile, verbose);
-
-    sink.writeOutput(this);
+  public InputSource getSource() {
+    return source;
   }
 
   public void analyze(AstNode parentNode, AnalyzeContext context) {

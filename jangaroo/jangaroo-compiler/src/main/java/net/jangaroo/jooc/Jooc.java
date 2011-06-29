@@ -23,15 +23,18 @@ import net.jangaroo.jooc.ast.IdeDeclaration;
 import net.jangaroo.jooc.ast.ImportDirective;
 import net.jangaroo.jooc.ast.PredefinedTypeDeclaration;
 import net.jangaroo.jooc.ast.VariableDeclaration;
+import net.jangaroo.jooc.backend.CompilationUnitSink;
 import net.jangaroo.jooc.backend.CompilationUnitSinkFactory;
 import net.jangaroo.jooc.backend.MergedOutputCompilationUnitSinkFactory;
 import net.jangaroo.jooc.backend.SingleFileCompilationUnitSinkFactory;
 import net.jangaroo.jooc.config.JoocCommandLineParser;
 import net.jangaroo.jooc.config.JoocConfiguration;
+import net.jangaroo.jooc.config.JoocOptions;
 import net.jangaroo.jooc.input.FileInputSource;
 import net.jangaroo.jooc.input.InputSource;
 import net.jangaroo.jooc.input.PathInputSource;
 import net.jangaroo.utils.BOMStripperInputStream;
+import org.omg.CORBA.PUBLIC_MEMBER;
 
 import java.io.File;
 import java.io.IOException;
@@ -141,9 +144,9 @@ public class Jooc {
       }
       for (CompilationUnit unit : compileQueue) {
         unit.analyze(null, new AnalyzeContext(config));
-        unit.writeOutput(codeSinkFactory, config.isVerbose());
+        writeOutput(unit, codeSinkFactory, config.isVerbose());
         if (config.isGenerateApi()) {
-          unit.writeOutput(apiSinkFactory, config.isVerbose());
+          writeOutput(unit, apiSinkFactory, config.isVerbose());
         }
       }
     } catch (IOException e) {
@@ -152,6 +155,17 @@ public class Jooc {
     int result = log.hasErrors() ? 1 : 0;
     logHolder.remove();
     return result;
+  }
+
+  public void writeOutput(CompilationUnit compilationUnit,
+                          CompilationUnitSinkFactory writerFactory,
+                          boolean verbose) throws Jooc.CompilerError {
+    File sourceFile = ((FileInputSource) compilationUnit.getSource()).getFile();
+    CompilationUnitSink sink = writerFactory.createSink(
+      compilationUnit.getPackageDeclaration(), compilationUnit.getPrimaryDeclaration(),
+      sourceFile, verbose);
+
+    sink.writeOutput(compilationUnit);
   }
 
   private void buildGlobalScope() {
@@ -384,7 +398,6 @@ public class Jooc {
   }
 
   protected CompilationUnit parse(InputSource in) {
-
     if (!in.getName().endsWith(AS_SUFFIX)) {
       throw error("Input file must end with '" + AS_SUFFIX + "': " + in.getName());
     }
@@ -392,6 +405,14 @@ public class Jooc {
     if (config.isVerbose()) {
       System.out.println("Parsing " + in.getPath());
     }
+    CompilationUnit unit = doParse(in, log, config.getSemicolonInsertionMode());
+    unit.setCompiler(this);
+    unit.setSource(in);
+    return unit;
+  }
+
+  public static CompilationUnit doParse(InputSource in, CompileLog log, JoocOptions.SemicolonInsertionMode semicolonInsertionMode) {
+    Scanner s;
     try {
       s = new Scanner(new InputStreamReader(new BOMStripperInputStream(in.getInputStream()), "UTF-8"));
     } catch (IOException e) {
@@ -400,12 +421,10 @@ public class Jooc {
     s.setInputSource(in);
     parser p = new parser(s);
     p.setCompileLog(log);
-    p.setSemicolonInsertionMode(config.getSemicolonInsertionMode());
+    p.setSemicolonInsertionMode(semicolonInsertionMode);
     try {
       Symbol tree = p.parse();
       CompilationUnit unit = (CompilationUnit) tree.value;
-      unit.setCompiler(this);
-      unit.setSource(in);
       return unit;
     } catch (Scanner.ScanError se) {
       log.error(se.sym, se.getMessage());

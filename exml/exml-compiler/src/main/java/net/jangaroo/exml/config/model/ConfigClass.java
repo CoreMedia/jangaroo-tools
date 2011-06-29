@@ -1,8 +1,8 @@
 package net.jangaroo.exml.config.model;
 
+import net.jangaroo.jooc.input.InputSource;
 import org.apache.commons.io.FilenameUtils;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,18 +13,18 @@ public class ConfigClass extends DescriptionHolder {
 
   private List<ConfigAttribute> cfgs = new ArrayList<ConfigAttribute>();
 
+  private String name;
   private String packageName;
 
   private String superClassName;
   private String superClassPackage;
 
-  private final File sourceFile;
+  private final InputSource inputSource;
 
-  private String fullQualifiedName;
+  private String componentName;
 
-  public ConfigClass(File source, String fullQualifiedName) {
-    this.sourceFile = source;
-    this.fullQualifiedName = fullQualifiedName;
+  public ConfigClass(InputSource source) {
+    this.inputSource = source;
   }
 
   public void addCfg(ConfigAttribute cfg) {
@@ -35,12 +35,20 @@ public class ConfigClass extends DescriptionHolder {
     return cfgs;
   }
 
+  public void setName(String name) {
+    this.name = name;
+  }
+
   public String getName() {
-    return FilenameUtils.getBaseName(sourceFile.getName());
+    return name;
   }
 
   public String getPackageName() {
     return packageName;
+  }
+
+  public void setComponentName(String componentName) {
+    this.componentName = componentName;
   }
 
   public void setPackageName(String packageName) {
@@ -63,7 +71,7 @@ public class ConfigClass extends DescriptionHolder {
     this.superClassPackage = superClassPackage;
   }
 
-  public String getFullQualifiedName() {
-    return fullQualifiedName;
+  public String getComponentName() {
+    return componentName;
   }
 }

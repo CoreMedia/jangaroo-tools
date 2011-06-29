@@ -29,6 +29,11 @@
       <groupId>jtidy</groupId>
       <artifactId>jtidy</artifactId>
     </dependency>
+    <dependency>
+      <groupId>net.jangaroo</groupId>
+      <artifactId>jangaroo-compiler</artifactId>
+      <version>0.8.5-SNAPSHOT</version>
+    </dependency>
   </dependencies>
   <parent>
     <groupId>net.jangaroo</groupId>

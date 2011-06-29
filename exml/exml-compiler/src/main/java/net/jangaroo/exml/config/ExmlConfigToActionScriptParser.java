@@ -2,6 +2,7 @@ package net.jangaroo.exml.config;
 
 import net.jangaroo.exml.config.model.ConfigClass;
 import net.jangaroo.exml.config.xml.ExmlMetadataHandler;
+import net.jangaroo.jooc.input.FileInputSource;
 import net.jangaroo.utils.ContentHandlerUtils;
 import org.apache.commons.io.FilenameUtils;
 
@@ -14,8 +15,10 @@ public class ExmlConfigToActionScriptParser {
     File result = new File(outputFolder, typeNamespace.replaceAll(".", File.separator) + FilenameUtils.getBaseName(source.getName()) + ".as");
 
     String fullQualifiedName = computeComponentFullQualifiedName(rootFolder, source);
-    ConfigClass configClass = new ConfigClass(source, fullQualifiedName);
+    ConfigClass configClass = new ConfigClass(new FileInputSource(source));
+    configClass.setComponentName(fullQualifiedName);
     configClass.setPackageName(typeNamespace);
+    configClass.setName(FilenameUtils.getBaseName(result.getName()));
 
     //read exml data and write it into the config class
     ExmlMetadataHandler metadataHandler = new ExmlMetadataHandler(configClass);

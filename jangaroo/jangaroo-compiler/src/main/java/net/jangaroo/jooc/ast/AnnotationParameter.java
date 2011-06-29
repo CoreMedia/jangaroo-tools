@@ -17,7 +17,9 @@ package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
+import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
+import net.jangaroo.jooc.sym;
 
 import java.io.IOException;
 
@@ -67,6 +69,9 @@ public class AnnotationParameter extends NodeImplBase {
       String metaName = parentAnnotation.getMetaName();
       if ("Embed".equals(metaName) && getOptName() != null && "source".equals(getOptName().getName())) {
         JooSymbol valueSymbol = getValue().getSymbol();
+        if (valueSymbol.sym != sym.STRING_LITERAL) {
+          throw new Jooc.CompilerError(valueSymbol, "The source parameter of an [Embed] annotation must be a string literal");
+        }
         String text = valueSymbol.getText();
         String quote = text.substring(0, 1);
         String source = (String)valueSymbol.getJooValue();
