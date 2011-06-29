@@ -406,8 +406,10 @@ public class Jooc {
       System.out.println("Parsing " + in.getPath());
     }
     CompilationUnit unit = doParse(in, log, config.getSemicolonInsertionMode());
-    unit.setCompiler(this);
-    unit.setSource(in);
+    if (unit != null) {
+      unit.setCompiler(this);
+      unit.setSource(in);
+    }
     return unit;
   }
 
@@ -424,8 +426,7 @@ public class Jooc {
     p.setSemicolonInsertionMode(semicolonInsertionMode);
     try {
       Symbol tree = p.parse();
-      CompilationUnit unit = (CompilationUnit) tree.value;
-      return unit;
+      return (CompilationUnit) tree.value;
     } catch (Scanner.ScanError se) {
       log.error(se.sym, se.getMessage());
       return null;
