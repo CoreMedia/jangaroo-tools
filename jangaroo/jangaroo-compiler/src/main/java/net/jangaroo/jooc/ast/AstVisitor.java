@@ -116,8 +116,6 @@ public interface AstVisitor {
 
   void visitParameter(Parameter parameter) throws IOException;
 
-  void visitGetterSetterPair(GetterSetterPair getterSetterPair) throws IOException;
-
   void visitVariableDeclaration(VariableDeclaration variableDeclaration) throws IOException;
 
   void visitFunctionDeclaration(FunctionDeclaration functionDeclaration) throws IOException;

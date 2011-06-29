@@ -224,10 +224,6 @@ public class AstVisitorBase implements AstVisitor {
   }
 
   @Override
-  public void visitGetterSetterPair(GetterSetterPair getterSetterPair) throws IOException {
-  }
-
-  @Override
   public void visitVariableDeclaration(VariableDeclaration variableDeclaration) throws IOException {
   }
 

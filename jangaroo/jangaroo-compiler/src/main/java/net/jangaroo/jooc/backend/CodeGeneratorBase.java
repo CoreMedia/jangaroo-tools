@@ -9,7 +9,6 @@ import net.jangaroo.jooc.ast.CommaSeparatedList;
 import net.jangaroo.jooc.ast.ConditionalExpr;
 import net.jangaroo.jooc.ast.Declaration;
 import net.jangaroo.jooc.ast.DotExpr;
-import net.jangaroo.jooc.ast.GetterSetterPair;
 import net.jangaroo.jooc.ast.Ide;
 import net.jangaroo.jooc.ast.IsExpr;
 import net.jangaroo.jooc.ast.LiteralExpr;
@@ -91,11 +90,6 @@ public abstract class CodeGeneratorBase implements AstVisitor {
         commaSeparatedList.getTail().visit(this);
       }
     }
-  }
-
-  @Override
-  public final void visitGetterSetterPair(GetterSetterPair getterSetterPair) throws IOException {
-    throw new IllegalStateException("GetterSetterPair#generateCode() should never be called!");
   }
 
   @Override

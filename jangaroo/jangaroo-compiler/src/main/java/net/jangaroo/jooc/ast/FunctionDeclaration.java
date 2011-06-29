@@ -190,12 +190,7 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
       FunctionDeclaration other = (FunctionDeclaration) oldNode;
       if (other.isGetterOrSetter() && isGetter() != other.isGetter()) {
         // found counterpart for this getter or setter:
-        // replace declaration by a combination of both:
-        final GetterSetterPair setterPair = new GetterSetterPair(
-          isGetter() ? this : other,
-          isSetter() ? this : other);
-        setterPair.scope(scope);
-        // ...and do not trigger warning or error!
+        // do not trigger warning or error!
         return;
       }
     }
