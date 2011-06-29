@@ -66,6 +66,6 @@ public class ExmlConfigToActionScriptParser {
   public static String computeComponentFullQualifiedName(File rootFolder, File sourceFile) {
     int rootDirPathLength = rootFolder.getPath().length()+1;
     String subpath = FilenameUtils.removeExtension(sourceFile.getPath().substring(rootDirPathLength));
-    return subpath.replaceAll(File.separator,".");
+    return subpath.replaceAll(File.separator, "\\.");
   }
 }
