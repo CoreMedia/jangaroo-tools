@@ -53,7 +53,7 @@ public class ConfigClassBuilder extends AstVisitorBase {
 
   @Override
   public void visitCompilationUnit(CompilationUnit compilationUnit) throws IOException {
-    configClass = new ConfigClass(inputSource);
+    configClass = new ConfigClass();
     compilationUnit.getPackageDeclaration().visit(this);
     compilationUnit.getPrimaryDeclaration().visit(this);
   }

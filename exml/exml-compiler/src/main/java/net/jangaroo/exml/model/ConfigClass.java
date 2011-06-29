@@ -1,7 +1,5 @@
 package net.jangaroo.exml.model;
 
-import net.jangaroo.jooc.input.InputSource;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,13 +16,8 @@ public class ConfigClass extends DescriptionHolder {
   private String superClassName;
   private String superClassPackage;
 
-  private final InputSource inputSource;
-
   private String componentName;
 
-  public ConfigClass(InputSource source) {
-    this.inputSource = source;
-  }
 
   public void addCfg(ConfigAttribute cfg) {
     cfgs.add(cfg);
@@ -44,6 +37,10 @@ public class ConfigClass extends DescriptionHolder {
 
   public String getPackageName() {
     return packageName;
+  }
+
+  public String getFullName() {
+    return packageName + "." + name;
   }
 
   public void setComponentName(String componentName) {

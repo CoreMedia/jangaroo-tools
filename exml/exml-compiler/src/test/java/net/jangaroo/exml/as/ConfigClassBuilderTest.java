@@ -57,7 +57,7 @@ public class ConfigClassBuilderTest {
 
   private ConfigClass buildConfigClass(String resourceName) throws URISyntaxException {
     File sourceFile = new File(getClass().getResource(resourceName).toURI());
-    InputSource inputSource = new FileInputSource(null, sourceFile);
+    InputSource inputSource = new FileInputSource(sourceFile);
     ConfigClassBuilder configClassBuilder = new ConfigClassBuilder(inputSource);
     return configClassBuilder.buildConfigClass();
   }

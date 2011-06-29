@@ -21,8 +21,8 @@ public class FileInputSource extends DirectoryInputSource {
     this.file = file;
   }
 
-  public FileInputSource(final File sourceDir) {
-    this(sourceDir, null);
+  public FileInputSource(final File file) {
+    this(file, file);
   }
 
   @Override

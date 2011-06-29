@@ -6,6 +6,10 @@ import java.util.List;
 
 public interface InputSource {
 
+  /**
+   * The file name, i.e. test.as
+   * @return the file name
+   */
   String getName();
   String getPath();
   String getRelativePath();
