@@ -59,6 +59,10 @@ public class FileInputSource extends DirectoryInputSource {
     return file;
   }
 
+  public File getSourceDir() {
+    return sourceDir;
+  }
+
   @Override
   public char getFileSeparatorChar() {
     return File.separatorChar;
@@ -90,7 +94,7 @@ public class FileInputSource extends DirectoryInputSource {
   }
 
   @Override
-  public InputSource getChild(final String path) {
+  public FileInputSource getChild(final String path) {
     File sourceFile = new File(file, path);
     return sourceFile.exists()
       ? new FileInputSource(sourceDir, sourceFile)

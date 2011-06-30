@@ -23,8 +23,6 @@ public class ConfigClassRegistryTest {
 
     ConfigClassRegistry registry = new ConfigClassRegistry(sourcePathInputSource, classpathInputSource, "testNamespace.config", outputFolder.getRoot());
 
-    registry.setupConfigClassRegistry();
-
     ConfigClass configClass = registry.getConfigClassByName("testNamespace.config.TestLabel");
     Assert.assertNotNull(configClass);
     Assert.assertEquals("testNamespace.config", configClass.getPackageName());

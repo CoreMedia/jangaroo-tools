@@ -15,7 +15,7 @@ public interface InputSource {
   String getRelativePath();
 
   boolean isDirectory();
-  List<InputSource> list() ;
+  List<? extends InputSource> list() ;
   InputSource getChild(String path);
 
   InputStream getInputStream() throws IOException;

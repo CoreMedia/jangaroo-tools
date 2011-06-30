@@ -16,18 +16,18 @@ import java.io.InputStream;
 public class ExmlConfigToActionScriptParser {
 
 
-  public static ConfigClass generateConfigClass(File source, File sourceRootDir, File outputRootDir, String typeNamespace) {
+  public static ConfigClass generateConfigClass(File source, File sourceRootDir, File outputRootDir, String configClassPackage) {
     String fullQualifiedName = computeComponentFullQualifiedName(sourceRootDir, source);
     ConfigClass configClass = new ConfigClass();
     configClass.setComponentName(fullQualifiedName);
-    configClass.setPackageName(typeNamespace);
+    configClass.setPackageName(configClassPackage);
     configClass.setName(FilenameUtils.getBaseName(source.getName()));
 
     //read exml data and write it into the config class
     ExmlMetadataHandler metadataHandler = new ExmlMetadataHandler(configClass);
     parseFileWithHandler(source, metadataHandler);
 
-    File targetPackageFolder = new File(outputRootDir, typeNamespace.replaceAll("\\.", File.separator));
+    File targetPackageFolder = new File(outputRootDir, configClassPackage.replaceAll("\\.", File.separator));
     if(!targetPackageFolder.exists()) {
       targetPackageFolder.mkdirs();
     }

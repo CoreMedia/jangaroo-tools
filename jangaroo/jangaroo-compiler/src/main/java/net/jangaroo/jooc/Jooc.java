@@ -34,7 +34,6 @@ import net.jangaroo.jooc.input.FileInputSource;
 import net.jangaroo.jooc.input.InputSource;
 import net.jangaroo.jooc.input.PathInputSource;
 import net.jangaroo.utils.BOMStripperInputStream;
-import org.omg.CORBA.PUBLIC_MEMBER;
 
 import java.io.File;
 import java.io.IOException;
@@ -377,8 +376,7 @@ public class Jooc {
 
   private void addPackageFolderSymbols(final InputSource folder, List<String> list) {
     if (folder != null) {
-      final List<InputSource> childList = folder.list();
-      for (InputSource child : childList) {
+      for (InputSource child : folder.list()) {
         if (!child.isDirectory() && child.getName().endsWith(AS_SUFFIX)) {
           list.add(nameWithoutExtension(child));
         }

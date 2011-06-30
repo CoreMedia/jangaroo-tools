@@ -6,7 +6,7 @@ import java.util.List;
 /**
  *
  */
-public class ConfigClass extends DescriptionHolder {
+public final class ConfigClass extends DescriptionHolder {
 
   private List<ConfigAttribute> cfgs = new ArrayList<ConfigAttribute>();
 
@@ -69,5 +69,34 @@ public class ConfigClass extends DescriptionHolder {
 
   public String getComponentName() {
     return componentName;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    ConfigClass that = (ConfigClass) o;
+    return cfgs.equals(that.cfgs) &&
+            componentName.equals(that.componentName) &&
+            name.equals(that.name) &&
+            packageName.equals(that.packageName) &&
+            superClassName.equals(that.superClassName) &&
+            superClassPackage.equals(that.superClassPackage);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = cfgs.hashCode();
+    result = 31 * result + name.hashCode();
+    result = 31 * result + packageName.hashCode();
+    result = 31 * result + superClassName.hashCode();
+    result = 31 * result + superClassPackage.hashCode();
+    result = 31 * result + componentName.hashCode();
+    return result;
   }
 }
