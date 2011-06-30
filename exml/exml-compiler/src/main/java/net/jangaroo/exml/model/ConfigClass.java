@@ -1,7 +1,9 @@
 package net.jangaroo.exml.model;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -9,6 +11,7 @@ import java.util.List;
 public final class ConfigClass extends DescriptionHolder {
 
   private List<ConfigAttribute> cfgs = new ArrayList<ConfigAttribute>();
+  private Map<String,ConfigAttribute> cfgsByName = new HashMap<String, ConfigAttribute>();
 
   private String name;
   private String packageName;
@@ -18,13 +21,17 @@ public final class ConfigClass extends DescriptionHolder {
 
   private String componentName;
 
-
   public void addCfg(ConfigAttribute cfg) {
     cfgs.add(cfg);
+    cfgsByName.put(cfg.getName(), cfg);
   }
 
   public List<ConfigAttribute> getCfgs() {
     return cfgs;
+  }
+
+  public ConfigAttribute getCfgByName(String name) {
+    return cfgsByName.get(name);
   }
 
   public void setName(String name) {

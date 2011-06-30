@@ -1,10 +1,15 @@
 package net.jangaroo.exml.json;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class JsonArray implements Json {
   private List<Object> items = new ArrayList<Object>();
+
+  public JsonArray(Object ... items) {
+    this.items = new ArrayList<Object>(Arrays.asList(items));
+  }
 
   public String toString() {
     return items.toString();

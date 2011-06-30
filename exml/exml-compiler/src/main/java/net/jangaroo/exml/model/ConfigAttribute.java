@@ -13,10 +13,6 @@ public final class ConfigAttribute extends DescriptionHolder {
     this.type = type;
   }
 
-  public ConfigAttribute(String name, String type) {
-    this(name, type, null);
-  }
-
   public String getName() {
     return name;
   }

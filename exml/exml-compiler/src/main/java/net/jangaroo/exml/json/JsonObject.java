@@ -1,5 +1,6 @@
 package net.jangaroo.exml.json;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -7,22 +8,29 @@ import java.util.Set;
 
 public class JsonObject implements Json {
   private Map<String, Object> properties = new LinkedHashMap<String, Object>();
-  private String typePropertyName;
+  private String wrapperClass;
 
-  public String getTypePropertyName() {
-    return typePropertyName;
+  public JsonObject(Object ... namesAndValues) {
+    if (namesAndValues.length % 2 != 0) {
+      throw new IllegalArgumentException("argument vector must be of even length, but is " + Arrays.asList(namesAndValues));
+    }
+    for (int i = 0; i < namesAndValues.length; i += 2) {
+      Object name = namesAndValues[i];
+      if (!(name instanceof String)) {
+        throw new IllegalArgumentException("property names must be strings, found '" + name + "'");
+      }
+      Object value = namesAndValues[i + 1];
+      properties.put((String)name, value);
+    }
   }
 
-  public void setTypePropertyName(String typePropertyName) {
-    this.typePropertyName = typePropertyName;
+  public String getWrapperClass() {
+    return wrapperClass;
   }
 
-  public String getType() {
-    return (String)get(getTypePropertyName());
-  }
-
-  public void setType(String type) {
-    set(getTypePropertyName(), type);
+  public JsonObject settingWrapperClass(String wrapperClass) {
+    this.wrapperClass = wrapperClass;
+    return this;
   }
 
   public boolean isEmpty() {
@@ -169,7 +177,11 @@ public class JsonObject implements Json {
   public String toString(int indentFactor, int indent) {
     Set<String> keySet = this.properties.keySet();
 
-    StringBuilder sb = new StringBuilder("{");
+    StringBuilder sb = new StringBuilder();
+    if (wrapperClass != null) {
+      sb.append("new ").append(wrapperClass).append('(');
+    }
+    sb.append("{");
     int newindent = indent + indentFactor;
     int n = keySet.size();
     Iterator<String> keys = keySet.iterator();
@@ -188,6 +200,9 @@ public class JsonObject implements Json {
       }
     }
     sb.append('}');
+    if (wrapperClass != null) {
+      sb.append(')');
+    }
     return sb.toString();
   }
 

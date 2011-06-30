@@ -1,5 +1,6 @@
 package net.jangaroo.exml.xml;
 
+import net.jangaroo.exml.ExmlConstants;
 import net.jangaroo.exml.model.ConfigAttribute;
 import net.jangaroo.exml.model.ConfigClass;
 import net.jangaroo.utils.CharacterRecordingHandler;
@@ -10,10 +11,6 @@ import org.xml.sax.SAXException;
  * Generates an internal representation of all metadata of the component described by the given EXML.
  */
 public class ExmlMetadataHandler extends CharacterRecordingHandler {
-
-  public static final String EXML_NAMESPACE_URI = "http://net.jangaroo.com/extxml/0.1";
-  public static final String EXT_NAMESPACE_URI = "http://extjs.com/ext3";
-
   private ConfigClass configClass;
   private boolean expectsOptionalConfigDescription = false;
   private boolean expectsOptionalComponentDescription = false;
@@ -23,13 +20,13 @@ public class ExmlMetadataHandler extends CharacterRecordingHandler {
   }
 
   public void startElement(String uri, String localName, String qName, Attributes atts) throws SAXException {
-    if (EXML_NAMESPACE_URI.equals(uri)) {
+    if (ExmlConstants.EXML_NAMESPACE_URI.equals(uri)) {
       if ("component".equals(localName)) {
         //prepare characterStack for optional component description
         expectsOptionalComponentDescription = true;
       } else if ("cfg".equals(localName)) {
         //handle config elements
-        configClass.addCfg(new ConfigAttribute(atts.getValue("name"), atts.getValue("type")));
+        configClass.addCfg(new ConfigAttribute(atts.getValue("name"), atts.getValue("type"), null));
         expectsOptionalConfigDescription = true;
       } else if ("description".equals(localName)) {
         if (expectsOptionalConfigDescription || expectsOptionalComponentDescription) {
@@ -39,19 +36,17 @@ public class ExmlMetadataHandler extends CharacterRecordingHandler {
       }
     } else if (configClass.getSuperClassName() == null && configClass.getSuperClassPackage() == null) {
       configClass.setSuperClassName(localName);
-      if(EXT_NAMESPACE_URI.equals(uri)) {
-        configClass.setSuperClassPackage("ext.type");
-      } else {
-        configClass.setSuperClassPackage(uri);
+      String thePackage = ExmlConstants.parsePackageFromNamespace(uri);
+      if (thePackage == null) {
+        throw new RuntimeException("namespace '" + uri + "' of superclass element in EXML file does not denote a config package");
       }
-      //throw new SAXParseException(String.format("Base component class with element name '%s' not found in component suite '%s'", localName, uri), locator);
-
+      configClass.setSuperClassPackage(thePackage);
     }
   }
 
   @Override
   public void endElement(String uri, String localName, String qName) throws SAXException {
-    if (EXML_NAMESPACE_URI.equals(uri)) {
+    if (ExmlConstants.EXML_NAMESPACE_URI.equals(uri)) {
       if ("description".equals(localName)) {
         String characters = popRecordedCharacters();
         if (characters != null) {
