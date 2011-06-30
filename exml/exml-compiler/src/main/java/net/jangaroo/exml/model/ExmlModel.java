@@ -22,16 +22,12 @@ public class ExmlModel {
     return jsonObject;
   }
 
-  private String formatClassName(String packageName, String className) {
-    return packageName + "." +className;
-  }
-
-  public void setParentClassName(String packageName, String className) {
-    this.parentClassName = formatClassName(packageName, className);
-    addImport(packageName, className);
+  public void setParentClassName(String parentClassName) {
+    this.parentClassName = parentClassName;
+    addImport(parentClassName);
   }
   
-  public void addImport(String packageName, String className) {
-    imports.add(formatClassName(packageName, className));
+  public void addImport(String parentClassName) {
+    imports.add(parentClassName);
   }
 }

@@ -11,5 +11,14 @@ public class panel {
    * @private
    */
   public native function set items(value:Array):void;
+
+   /**
+   * List of child items
+   */
+  public native function get menu():Array;
+  /**
+   * @private
+   */
+  public native function set menu(value:Array):void;
 }
 }

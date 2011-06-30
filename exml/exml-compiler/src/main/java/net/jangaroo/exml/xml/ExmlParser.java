@@ -17,14 +17,14 @@ import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.LinkedHashSet;
-import java.util.Set;
 
 public final class ExmlParser {
+
   private final ConfigClassRegistry registry;
-  private Set<String> imports = new LinkedHashSet<String>();
 
   ExmlModel model;
 
@@ -61,26 +61,30 @@ public final class ExmlParser {
       throw new RuntimeException("root node of EXML did not contain a component definition");
     }
 
-    String name = componentNode.getLocalName();
-    String uri = componentNode.getNamespaceURI();
-    String packageName = ExmlConstants.parsePackageFromNamespace(uri);
-    if (packageName == null) {
-      throw new RuntimeException("namespace '" + uri + "' of superclass element in EXML file does not denote a config package");
-    }
-    model.setParentClassName(packageName, name);
-    fillModelAttributes(model.getJsonObject(), componentNode, packageName, name);
+    String className = createFullClassNameFromNode(componentNode);
+    model.setParentClassName(className);
+    model.addImport(className);
+    fillModelAttributes(model.getJsonObject(), componentNode, className);
 
     return model;
   }
 
-  private void fillModelAttributes(JsonObject jsonObject, Node componentNode, String packageName, String name) {
+  private String createFullClassNameFromNode(Node componentNode) {
+    String name = componentNode.getLocalName();
+    String uri = componentNode.getNamespaceURI();
+    String packageName = ExmlConstants.parsePackageFromNamespace(uri);
+    if (packageName == null) {
+      String lineNumber = (String) componentNode.getUserData(PreserveLineNumberHandler.LINE_NUMBER_KEY_NAME);
+      throw new RuntimeException("Line: " +lineNumber + ": namespace '" + uri + "' of element '"+ name +"' in EXML file does not denote a config package");
+    }
+    return packageName + "." + name;
+  }
 
-    model.addImport(packageName, name);
-
-    String fullClassName = packageName + "." + name;
-    ConfigClass configClass = registry.getConfigClassByName(fullClassName);
+  private void fillModelAttributes(JsonObject jsonObject, Node componentNode, String className) {
+    ConfigClass configClass = registry.getConfigClassByName(className);
     if (configClass == null) {
-      throw new RuntimeException("unknown type '" + fullClassName + "'");
+      String lineNumber = (String) componentNode.getUserData(PreserveLineNumberHandler.LINE_NUMBER_KEY_NAME);
+      throw new RuntimeException("Line: " +lineNumber + ":unknown type '" + className + "'");
     }
     NamedNodeMap attributes = componentNode.getAttributes();
     for (int i = 0; i < attributes.getLength(); i++) {
@@ -119,34 +123,98 @@ public final class ExmlParser {
         String elementName = element.getLocalName();
         ConfigAttribute configAttribute = configClass.getCfgByName(elementName);
         if (configAttribute == null) {
+          //Okay, so we have to guess the type
+          if(element.hasChildNodes() ) {
+            if(element.hasAttributes()) {
+              //its a complex property with attributes and sub-properties
+              JsonObject property = parseAttributes(jsonObject, element);
+              //and ad the sub-properties to it
+              NodeList propertyChildNotes = element.getChildNodes();
+              for (int j = 0; j < propertyChildNotes.getLength(); j++) {
+                Node propertyNode = propertyChildNotes.item(j);
+                if (propertyNode.getNodeType() == Node.ELEMENT_NODE) {
+                  parseAttributes(property, propertyNode);
+                }
+              }
+            } else {
+              //it seems to be an array
+              parseArray(jsonObject, element);
+            }
+          } else {
+            //its a simple property
+            parseAttributes(jsonObject, element);
+          }
 
         } else if ("Array".equals(configAttribute.getType())) {
-
           // Array explicitly specified.
-          JsonArray jsonArray = new JsonArray();
-          jsonObject.set(elementName, jsonArray);
-          NodeList arrayChildNodes = element.getChildNodes();
+          parseArray(jsonObject, element);
 
-          for (int j = 0; j < arrayChildNodes.getLength(); j++) {
-            Node arrayItemNode = arrayChildNodes.item(j);
-            if (arrayItemNode.getNodeType() == Node.ELEMENT_NODE) {
-              JsonObject arrayJsonObject = new JsonObject();
-              String localName = arrayItemNode.getLocalName();
-              String arrayItemPackageName = ExmlConstants.parsePackageFromNamespace(arrayItemNode.getNamespaceURI());
-              if (arrayItemPackageName == null) {
-                throw new RuntimeException("namespace '" + arrayItemNode.getNamespaceURI() + "' of superclass element in EXML file does not denote a config package");
-              }
-
-              jsonArray.push(arrayJsonObject.settingWrapperClass(arrayItemPackageName + "." + localName));
-              fillModelAttributes(arrayJsonObject, arrayItemNode, arrayItemPackageName, localName);
-            }
-          }
         } else {
-
+          //TODO: What here? also guessing? Or Error?
         }
       }
     }
   }
+
+  private JsonObject parseAttributes(JsonObject jsonObject, Node node) {
+    JsonObject simpleProperty = new JsonObject();
+    NamedNodeMap attributes = node.getAttributes();
+    for (int i = 0; i < attributes.getLength(); i++) {
+      Attr attribute = (Attr) attributes.item(i);
+      String attributeName = attribute.getLocalName();
+      String attributeValue = attribute.getValue();
+      setStarTypedAttribute(simpleProperty,attributeName, attributeValue);
+    }
+    jsonObject.set(node.getLocalName(), simpleProperty);
+    return simpleProperty;
+  }
+
+  private void parseArray(JsonObject jsonObject, Element element) {
+    JsonArray jsonArray = new JsonArray();
+    jsonObject.set(element.getLocalName(), jsonArray);
+    NodeList arrayChildNodes = element.getChildNodes();
+
+    for (int j = 0; j < arrayChildNodes.getLength(); j++) {
+      Node arrayItemNode = arrayChildNodes.item(j);
+      if (arrayItemNode.getNodeType() == Node.ELEMENT_NODE) {
+        JsonObject arrayJsonObject;
+        if(ExmlConstants.EXML_NAMESPACE_URI.equals(arrayItemNode.getNamespaceURI()) && ExmlConstants.EXML_OBJECT_NODE_NAME.equals(arrayItemNode.getLocalName())) {
+          Object value = parseExmlObjectNode(arrayItemNode);
+          if(value != null) {
+            jsonArray.push(value);
+          } //otherwise just ignore the empty exml:object element
+        } else {
+          arrayJsonObject = new JsonObject();
+          String arrayItemClassName = createFullClassNameFromNode(arrayItemNode);
+          jsonArray.push(arrayJsonObject.settingWrapperClass(arrayItemClassName));
+          model.addImport(arrayItemClassName);
+
+          fillModelAttributes(arrayJsonObject, arrayItemNode, arrayItemClassName);
+        }
+      }
+    }
+  }
+
+  private Object parseExmlObjectNode(Node exmlObjectNode) {
+    String textContent = exmlObjectNode.getTextContent();
+    if(textContent != null && textContent.length() > 0) {
+      return "{" + textContent.trim() + "}";
+    } else {
+      if(!exmlObjectNode.hasAttributes()) {
+        return null;
+      }
+      JsonObject object = new JsonObject();
+      NamedNodeMap attributes = exmlObjectNode.getAttributes();
+      for (int i = 0; i < attributes.getLength(); i++) {
+        Attr attribute = (Attr) attributes.item(i);
+        String attributeName = attribute.getLocalName();
+        String attributeValue = attribute.getValue();
+        setStarTypedAttribute(object, attributeName, attributeValue);
+      }
+      return object;
+    }
+  }
+
 
   private void setStarTypedAttribute(JsonObject jsonObject, String attributeName, String attributeValue) {
     try {
@@ -173,23 +241,29 @@ public final class ExmlParser {
   }
 
   private void validateRootNode(Node root) {
+    String lineNumber = (String) root.getUserData(PreserveLineNumberHandler.LINE_NUMBER_KEY_NAME);
     if (!ExmlConstants.EXML_NAMESPACE_URI.equals(root.getNamespaceURI())) {
-      throw new RuntimeException("root node of EXML file must belong to namespace '" + ExmlConstants.EXML_NAMESPACE_URI + "', but was '" + root.getNamespaceURI() +"'");
+      throw new RuntimeException("Line: " +lineNumber + " root node of EXML file must belong to namespace '" + ExmlConstants.EXML_NAMESPACE_URI + "', but was '" + root.getNamespaceURI() +"'");
     }
     if (!ExmlConstants.EXML_COMPONENT_NODE_NAME.equals(root.getLocalName())) {
-      throw new RuntimeException("root node of EXML file must be a <" + ExmlConstants.EXML_COMPONENT_NODE_NAME + ">, but was <" + root.getLocalName() +">");
+      throw new RuntimeException("Line: " +lineNumber + " root node of EXML file must be a <" + ExmlConstants.EXML_COMPONENT_NODE_NAME + ">, but was <" + root.getLocalName() +">");
     }
   }
 
   private Document buildDom(InputStream inputStream) throws SAXException, IOException {
+    SAXParser parser;
+    final Document doc;
     try {
+      final SAXParserFactory saxFactory = SAXParserFactory.newInstance();
+      saxFactory.setNamespaceAware(true);
+      parser = saxFactory.newSAXParser();
       DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-      factory.setNamespaceAware(true);
-      factory.setIgnoringComments(true);
-      factory.setIgnoringElementContentWhitespace(true);
-      return factory.newDocumentBuilder().parse(inputStream);
+      doc =  factory.newDocumentBuilder().newDocument();
     } catch (ParserConfigurationException e) {
       throw new IllegalStateException("a default dom builder should be provided", e);
     }
+    PreserveLineNumberHandler handler = new PreserveLineNumberHandler(doc);
+    parser.parse(inputStream, handler);
+    return doc;
   }
 }

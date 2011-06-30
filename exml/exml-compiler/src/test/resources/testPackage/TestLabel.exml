@@ -7,5 +7,5 @@
 
   <exml:description>This is a label.</exml:description>
 
-  <label text="${config.propertyOne}"/>
+  <label text="{config.propertyOne}"/>
 </exml:component>

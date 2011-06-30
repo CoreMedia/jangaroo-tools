@@ -23,7 +23,7 @@ public class ${name} extends ${superClassName} {
 
   <#list cfgs as cfg>
   /**
-   * ${cfg.description}
+   * ${cfg.description!}
    */
   public native function get ${cfg.name}():${cfg.type};
   /**

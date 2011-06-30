@@ -20,24 +20,49 @@ public class ExmlParserTest {
   public TemporaryFolder outputFolder = new TemporaryFolder();
 
   @Test
-  public void testParseTestComponent() throws Exception{
+  public void testParseAllElements() throws Exception{
     FileInputSource sourcePathInputSource = new FileInputSource(new File(getClass().getResource("/").toURI()));
     FileInputSource classpathInputSource = new FileInputSource(new File(getClass().getResource("/").toURI()));
-    ConfigClassRegistry registry = new ConfigClassRegistry(sourcePathInputSource, classpathInputSource, "testNamespace.config", outputFolder.getRoot());
+    ConfigClassRegistry registry = new ConfigClassRegistry(sourcePathInputSource, classpathInputSource, "exmlparser.config", outputFolder.getRoot());
     ExmlParser exmlParser = new ExmlParser(registry);
 
-    InputStream inputStream = getClass().getResourceAsStream("/testPackage/TestComponent.exml");
+    InputStream inputStream = getClass().getResourceAsStream("/exmlparser/AllElements.exml");
     ExmlModel model = exmlParser.parse(inputStream);
-    Assert.assertEquals(new HashSet<String>(Arrays.asList("ext.config.panel", "ext.config.label")),
+    Assert.assertEquals(new HashSet<String>(Arrays.asList("ext.config.panel", "ext.config.button", "ext.config.menuitem")),
             model.getImports());
     Assert.assertEquals("ext.config.panel", model.getParentClassName());
 
     JsonObject expectedJsonObject = new JsonObject(
-            "title", "I am inside a package!",
+            "layout", "{config.myLayout}",
+            "title", "I am a panel",
+            "defaults", new JsonObject("layout","border"),
+            "layoutConfig", new JsonObject(
+                    "bla", "blub",
+                    "anchor", new JsonObject("style", "test"),
+                    "border", new JsonObject("type", "solid")
+            ),
             "items", new JsonArray(
                     new JsonObject(
-                            "text", "bla"
-                    ).settingWrapperClass("ext.config.label")
+                            "text", "Save"
+                    ).settingWrapperClass("ext.config.button"),
+                    "{{xtype: \"editortreepanel\"}}"
+            ),
+            "menu", new JsonArray(
+                    new JsonObject(
+                            "text", "juhu1"
+                    ).settingWrapperClass("ext.config.menuitem"),
+                    new JsonObject(
+                            "text", "juhu2"
+                    ).settingWrapperClass("ext.config.menuitem"),
+                    new JsonObject(
+                            "text", "juhu3"
+                    ).settingWrapperClass("ext.config.menuitem")
+            ),
+            "tools", new JsonArray(
+                     new JsonObject(
+                         "handler", "{function(x){return ''+x;}}",
+                         "id", "gear"
+                     )
             )
     );
     Assert.assertEquals(expectedJsonObject.toString(2), model.getJsonObject().toString(2));
