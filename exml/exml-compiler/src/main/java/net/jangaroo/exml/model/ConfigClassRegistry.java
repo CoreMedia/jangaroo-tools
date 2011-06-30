@@ -47,6 +47,7 @@ public final class ConfigClassRegistry {
     Collection<File> files = FileUtils.listFiles(sourceRootDir, new SuffixFileFilter(EXML_SUFFIX), TrueFileFilter.INSTANCE);
     for (File exmlFile : files) {
       if (!scannedExmlFiles.contains(exmlFile)) {
+        scannedExmlFiles.add(exmlFile);
         ConfigClass configClass = ExmlConfigToActionScriptParser.generateConfigClass(exmlFile, sourceRootDir, outputRootDir, configClassPackage);
         addConfigClassByName(configClass.getFullName(), configClass);
       }
@@ -55,10 +56,18 @@ public final class ConfigClassRegistry {
 
   public ConfigClass getConfigClassByName(String name) {
     ConfigClass configClass = configClassesByName.get(name);
-    if(configClass == null) {
-      configClass = findConfigClass(name);
-      addConfigClassByName(name, configClass);
+    if (configClass != null) {
+      return configClass;
     }
+    // The config class has not been registered so far.
+    tryGenerateFromExml(name);
+    configClass = configClassesByName.get(name);
+    if (configClass != null) {
+      return configClass;
+    }
+    // The given name does not denote a config class of an EXML component in the source tree.
+    configClass = findActionScriptConfigClass(name);
+    addConfigClassByName(name, configClass);
     return configClass;
   }
 
@@ -74,7 +83,7 @@ public final class ConfigClassRegistry {
     }
   }
 
-  private ConfigClass findConfigClass(String name) {
+  private void tryGenerateFromExml(String name) {
     if (name.startsWith(configClassPackage + ".")) {
       // The config class might originate from one of of this module's EXML files.
       FileInputSource outputDirInputSource = new FileInputSource(outputRootDir, outputRootDir);
@@ -93,36 +102,33 @@ public final class ConfigClassRegistry {
           FileInputSource exmlInputSource = sourcePathInputSource.getChild(getInputSourceFileName(componentName, sourcePathInputSource, EXML_SUFFIX));
           if (exmlInputSource != null) {
             scannedExmlFiles.add(exmlInputSource.getFile());
-            return ExmlConfigToActionScriptParser.generateConfigClass(exmlInputSource.getFile(), sourcePathInputSource.getSourceDir(), outputRootDir, configClassPackage);
+            ConfigClass configClass = ExmlConfigToActionScriptParser.generateConfigClass(exmlInputSource.getFile(), sourcePathInputSource.getSourceDir(), outputRootDir, configClassPackage);
+            addConfigClassByName(name, configClass);
+            return;
           }
         }
-        // We do not consider this class to be responsible to deleting outdated
-        // config files.
+        // The AS file should not exist. However, we do not consider this class
+        // to be responsible to deleting outdated config files.
       }
-
       // The EXML was not found. Scan all EXML files to be sure the right one will be found.
       scanAllExmlFiles();
-      if (configClassesByName.containsKey(name)) {
-        return configClassesByName.get(name);
-      }
     }
-    // The given name does not denote a config class of an EXML component in the source tree.
+  }
 
-    InputSource inputSource = findSource(name);
+  private ConfigClass findActionScriptConfigClass(String name) {
+    InputSource inputSource = findActionScriptSource(name);
     ConfigClass configClass = null;
-    if(inputSource != null ) {
-      if(inputSource.getName().endsWith(AS_SUFFIX)) {
-        ConfigClassBuilder configClassBuilder = new ConfigClassBuilder(inputSource);
-        configClass = configClassBuilder.buildConfigClass();
-      }
+    if (inputSource != null) {
+      ConfigClassBuilder configClassBuilder = new ConfigClassBuilder(inputSource);
+      configClass = configClassBuilder.buildConfigClass();
     }
-    if(configClass == null) {
+    if (configClass == null) {
       throw new RuntimeException("No config class '" + name + "' found.");
     }
     return configClass;
   }
 
-   private InputSource findSource(final String name) {
+   private InputSource findActionScriptSource(final String name) {
     // scan sourcepath
     InputSource result = sourcePathInputSource.getChild(getInputSourceFileName(name, sourcePathInputSource, AS_SUFFIX));
     if (result == null) {
