@@ -11,10 +11,12 @@ import org.xml.sax.helpers.DefaultHandler;
 import java.util.Stack;
 
 /**
- *
+ * SAX Handler that fills a DOM document with the XML nodes and
+ * ads line numbers to the element user data
  */
 public class PreserveLineNumberHandler extends DefaultHandler {
   public final static String LINE_NUMBER_KEY_NAME = "lineNumber";
+
   final Stack<Element> elementStack = new Stack<Element>();
   final StringBuilder textBuffer = new StringBuilder();
 
@@ -23,10 +25,6 @@ public class PreserveLineNumberHandler extends DefaultHandler {
 
   public PreserveLineNumberHandler(Document doc) {
     this.doc = doc;
-  }
-
-  public Document getDoc() {
-    return doc;
   }
 
   @Override

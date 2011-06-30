@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<exml:component xmlns:exml="http://net.jangaroo.com/extxml/0.1"
+                xmlns="exml:ext.config">
+  <panel>
+        <items>
+          <panel id="foo" x="100"/>
+          <panel id="foo" x="1.5"/>
+          <panel id="foo" x="1."/>
+          <panel id="foo" x="-1.5"/>
+          <panel id="foo" x="3d"/>
+          <!--panel id="foo" x="200xyz"/-->
+        </items>
+    </panel>
+</exml:component>

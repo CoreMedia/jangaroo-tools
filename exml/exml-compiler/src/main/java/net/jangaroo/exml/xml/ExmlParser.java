@@ -111,6 +111,7 @@ public final class ExmlParser {
         } else if ("*".equals(type)) {
           setStarTypedAttribute(jsonObject, attributeName, attributeValue);
         } else { // Object or specific type. We don't care (for now).
+          //TODO: Warning here?
           jsonObject.set(attributeName, attributeValue);
         }
       }
