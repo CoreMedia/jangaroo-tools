@@ -2,13 +2,14 @@ package ext.config {
 
 [ExtConfig(target="Ext.Panel")]
 public class panel {
+
   /**
-   * Some Boolean property
+   * List of child items
    */
-  public native function get propertyOne():Boolean;
+  public native function get items():Array;
   /**
    * @private
    */
-  public native function set propertyOne(value:Boolean):void;
+  public native function set items(value:Array):void;
 }
 }

@@ -40,6 +40,6 @@ public class ExmlParserTest {
                     ).settingWrapperClass("ext.config.label")
             )
     );
-    Assert.assertEquals(expectedJsonObject.toString(), model.getJsonObject().toString());
+    Assert.assertEquals(expectedJsonObject.toString(2), model.getJsonObject().toString(2));
   }
 }

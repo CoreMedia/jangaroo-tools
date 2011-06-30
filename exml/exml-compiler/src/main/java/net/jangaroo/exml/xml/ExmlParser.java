@@ -22,7 +22,7 @@ import java.io.InputStream;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class ExmlParser {
+public final class ExmlParser {
   private final ConfigClassRegistry registry;
   private Set<String> imports = new LinkedHashSet<String>();
 
@@ -74,6 +74,9 @@ public class ExmlParser {
   }
 
   private void fillModelAttributes(JsonObject jsonObject, Node componentNode, String packageName, String name) {
+
+    model.addImport(packageName, name);
+
     String fullClassName = packageName + "." + name;
     ConfigClass configClass = registry.getConfigClassByName(fullClassName);
     if (configClass == null) {
@@ -118,8 +121,26 @@ public class ExmlParser {
         if (configAttribute == null) {
 
         } else if ("Array".equals(configAttribute.getType())) {
-          // Array explicitly specified.
 
+          // Array explicitly specified.
+          JsonArray jsonArray = new JsonArray();
+          jsonObject.set(elementName, jsonArray);
+          NodeList arrayChildNodes = element.getChildNodes();
+
+          for (int j = 0; j < arrayChildNodes.getLength(); j++) {
+            Node arrayItemNode = arrayChildNodes.item(j);
+            if (arrayItemNode.getNodeType() == Node.ELEMENT_NODE) {
+              JsonObject arrayJsonObject = new JsonObject();
+              String localName = arrayItemNode.getLocalName();
+              String arrayItemPackageName = ExmlConstants.parsePackageFromNamespace(arrayItemNode.getNamespaceURI());
+              if (arrayItemPackageName == null) {
+                throw new RuntimeException("namespace '" + arrayItemNode.getNamespaceURI() + "' of superclass element in EXML file does not denote a config package");
+              }
+
+              jsonArray.push(arrayJsonObject.settingWrapperClass(arrayItemPackageName + "." + localName));
+              fillModelAttributes(arrayJsonObject, arrayItemNode, arrayItemPackageName, localName);
+            }
+          }
         } else {
 
         }
