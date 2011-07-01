@@ -4,7 +4,7 @@
   <!-- add an extra import statement to the class -->
   <exml:import class="ext.MessageBox"/>
 
-  <!-- descripte the config properties of this compontent -->
+  <!-- describe the config properties of this component -->
   <exml:cfg name="myProperty" type="String"/>
   <exml:cfg name="myPropertyWithDescription" type="Boolean">
     <exml:description>
@@ -28,7 +28,7 @@
       <border type="solid"/>
     </layoutConfig>
 
-    <!-- array with compontent
+    <!-- array with component
     items:{xtype:"testAll", ...}
     -->
     <items>

@@ -28,7 +28,7 @@ public class ExmlParserTest {
 
     InputStream inputStream = getClass().getResourceAsStream("/exmlparser/AllElements.exml");
     ExmlModel model = exmlParser.parse(inputStream);
-    Assert.assertEquals(new HashSet<String>(Arrays.asList("ext.config.panel", "ext.config.button", "ext.config.menuitem")),
+    Assert.assertEquals(new HashSet<String>(Arrays.asList("ext.config.panel", "ext.config.button", "ext.config.menuitem", "ext.MessageBox")),
             model.getImports());
     Assert.assertEquals("ext.config.panel", model.getParentClassName());
 

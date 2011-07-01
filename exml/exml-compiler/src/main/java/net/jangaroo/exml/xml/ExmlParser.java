@@ -51,12 +51,23 @@ public final class ExmlParser {
     Node componentNode = null;
     for (int i = 0; i < childNodes.getLength(); i++) {
       Node node = childNodes.item(i);
-      if (node.getNodeType() == Node.ELEMENT_NODE && !ExmlConstants.EXML_NAMESPACE_URI.equals(node.getNamespaceURI())) {
-        if (componentNode != null) {
-          int lineNumber = getLineNumber(componentNode);
-          throw new ExmlParseException("root node of EXML contained more than one component definition", lineNumber);
+      if (node.getNodeType() == Node.ELEMENT_NODE) {
+        if (ExmlConstants.EXML_NAMESPACE_URI.equals(node.getNamespaceURI())) {
+          if (ExmlConstants.EXML_IMPORT_NODE_NAME.equals(node.getLocalName())) {
+            String importedClassName = ((Element) node).getAttribute(ExmlConstants.EXML_IMPORT_CLASS_ATTRIBUTE);
+            if (importedClassName == null || importedClassName.equals("")) {
+              int lineNumber = getLineNumber(componentNode);
+              throw new ExmlParseException("<exml:import> element must contain a non-empty class attribute", lineNumber);
+            }
+            model.addImport(importedClassName);
+          }
+        } else {
+          if (componentNode != null) {
+            int lineNumber = getLineNumber(componentNode);
+            throw new ExmlParseException("root node of EXML contained more than one component definition", lineNumber);
+          }
+          componentNode = node;
         }
-        componentNode = node;
       }
     }
     if (componentNode == null) {
