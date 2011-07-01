@@ -3,8 +3,11 @@ package net.jangaroo.jooc;
 import java_cup.runtime.Symbol;
 import net.jangaroo.jooc.ast.AstNode;
 import net.jangaroo.jooc.ast.CompilationUnit;
+import net.jangaroo.jooc.ast.Ide;
 import net.jangaroo.jooc.ast.IdeDeclaration;
 import net.jangaroo.jooc.ast.ImportDirective;
+import net.jangaroo.jooc.ast.PredefinedTypeDeclaration;
+import net.jangaroo.jooc.ast.VariableDeclaration;
 import net.jangaroo.jooc.config.JoocConfiguration;
 import net.jangaroo.jooc.config.JoocOptions;
 import net.jangaroo.jooc.input.InputSource;
@@ -29,7 +32,12 @@ public class AbstractJooc {
   protected JoocConfiguration config;
   protected CompileLog log;
   private Map<String, CompilationUnit> compilationUnitsByQName = new LinkedHashMap<String, CompilationUnit>();
+
   protected final Scope globalScope = new DeclarationScope(null, null);
+  {
+    declareType(globalScope, "void");
+    declareType(globalScope, "*");
+  }
 
   public AbstractJooc(CompileLog log) {
     this.log = log;
@@ -88,6 +96,19 @@ public class AbstractJooc {
     String name = input.getName();
     int lastDot = name.lastIndexOf('.');
     return lastDot >= 0 ? name.substring(0, lastDot) : name;
+  }
+
+  private static void declareType(Scope scope, String identifier) {
+    IdeDeclaration decl = new PredefinedTypeDeclaration(identifier);
+    decl.scope(scope);
+  }
+
+  protected static void declareValues(Scope scope, String[] identifiers) {
+    for (String identifier : identifiers) {
+      Ide ide = new Ide(new JooSymbol(identifier));
+      IdeDeclaration decl = new VariableDeclaration(new JooSymbol("var"), ide, null, null);
+      decl.scope(scope);
+    }
   }
 
   protected File findSourceDir(final File file) throws IOException {

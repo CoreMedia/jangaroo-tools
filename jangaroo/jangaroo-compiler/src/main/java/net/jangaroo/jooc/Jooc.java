@@ -16,10 +16,6 @@
 package net.jangaroo.jooc;
 
 import net.jangaroo.jooc.ast.CompilationUnit;
-import net.jangaroo.jooc.ast.Ide;
-import net.jangaroo.jooc.ast.IdeDeclaration;
-import net.jangaroo.jooc.ast.PredefinedTypeDeclaration;
-import net.jangaroo.jooc.ast.VariableDeclaration;
 import net.jangaroo.jooc.backend.CompilationUnitSink;
 import net.jangaroo.jooc.backend.CompilationUnitSinkFactory;
 import net.jangaroo.jooc.backend.MergedOutputCompilationUnitSinkFactory;
@@ -27,14 +23,12 @@ import net.jangaroo.jooc.backend.SingleFileCompilationUnitSinkFactory;
 import net.jangaroo.jooc.config.JoocCommandLineParser;
 import net.jangaroo.jooc.config.JoocConfiguration;
 import net.jangaroo.jooc.input.FileInputSource;
-import net.jangaroo.jooc.input.InputSource;
 import net.jangaroo.jooc.input.PathInputSource;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.ResourceBundle;
 
 /**
  * The Jangaroo AS3-to-JS Compiler's main class.
@@ -59,11 +53,6 @@ public class Jooc extends AbstractJooc {
   public static final String CLASS_LOADER_FULLY_QUALIFIED_NAME = CLASS_LOADER_PACKAGE_NAME + "." + CLASS_LOADER_NAME;
 
   private List<CompilationUnit> compileQueue = new ArrayList<CompilationUnit>();
-
-  {
-    declareType(globalScope, "void");
-    declareType(globalScope, "*");
-  }
 
   public Jooc() {
     this(new StdOutCompileLog());
@@ -143,19 +132,6 @@ public class Jooc extends AbstractJooc {
     //todo declare this depending on context
     declareValues(globalScope, new String[]{
       "this"});
-  }
-
-  private static void declareType(Scope scope, String identifier) {
-    IdeDeclaration decl = new PredefinedTypeDeclaration(identifier);
-    decl.scope(scope);
-  }
-
-  private static void declareValues(Scope scope, String[] identifiers) {
-    for (String identifier : identifiers) {
-      Ide ide = new Ide(new JooSymbol(identifier));
-      IdeDeclaration decl = new VariableDeclaration(new JooSymbol("var"), ide, null, null);
-      decl.scope(scope);
-    }
   }
 
   private CompilationUnitSinkFactory createSinkFactory(JoocConfiguration config, final boolean generateActionScriptApi) {
