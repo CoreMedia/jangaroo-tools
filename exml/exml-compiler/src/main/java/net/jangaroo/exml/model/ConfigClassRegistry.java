@@ -1,5 +1,6 @@
 package net.jangaroo.exml.model;
 
+import net.jangaroo.exml.ExmlParseException;
 import net.jangaroo.exml.as.ConfigClassBuilder;
 import net.jangaroo.exml.parser.ExmlConfigToActionScriptParser;
 import net.jangaroo.jooc.input.FileInputSource;
@@ -76,7 +77,7 @@ public final class ConfigClassRegistry {
     if (existingConfigClass != null) {
       if (!existingConfigClass.equals(configClass)) {
         // todo: Keep track of source.
-        throw new RuntimeException("config class " + name + " declared in " + configClass.getComponentName() + " and " + existingConfigClass.getComponentName());
+        throw new ExmlParseException("config class " + name + " declared in " + configClass.getComponentName() + " and " + existingConfigClass.getComponentName());
       }
     } else {
       configClassesByName.put(name, configClass);
@@ -123,7 +124,7 @@ public final class ConfigClassRegistry {
       configClass = configClassBuilder.buildConfigClass();
     }
     if (configClass == null) {
-      throw new RuntimeException("No config class '" + name + "' found.");
+      throw new ExmlParseException("No config class '" + name + "' found.");
     }
     return configClass;
   }

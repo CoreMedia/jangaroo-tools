@@ -1,5 +1,6 @@
 package net.jangaroo.exml.parser;
 
+import net.jangaroo.exml.ExmlParseException;
 import net.jangaroo.exml.generation.ExmlConfigClassGenerator;
 import net.jangaroo.exml.model.ConfigClass;
 import net.jangaroo.exml.xml.ExmlMetadataHandler;
@@ -50,8 +51,12 @@ public class ExmlConfigToActionScriptParser {
       XMLReader xr = XMLReaderFactory.createXMLReader();
       xr.setContentHandler(handler);
       xr.parse(new org.xml.sax.InputSource(inputStream));
+    } catch (ExmlParseException e) {
+      // Simply pass our own exceptions.
+      e.setSource(source);
+      throw e;
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      throw new ExmlParseException("could not parse EXML file", source, e);
     } finally {
       try {
         if (inputStream != null) {

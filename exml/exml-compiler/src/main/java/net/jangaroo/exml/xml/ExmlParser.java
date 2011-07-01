@@ -1,6 +1,7 @@
 package net.jangaroo.exml.xml;
 
 import net.jangaroo.exml.ExmlConstants;
+import net.jangaroo.exml.ExmlParseException;
 import net.jangaroo.exml.json.JsonArray;
 import net.jangaroo.exml.json.JsonObject;
 import net.jangaroo.exml.model.ConfigAttribute;
@@ -52,13 +53,15 @@ public final class ExmlParser {
       Node node = childNodes.item(i);
       if (node.getNodeType() == Node.ELEMENT_NODE && !ExmlConstants.EXML_NAMESPACE_URI.equals(node.getNamespaceURI())) {
         if (componentNode != null) {
-          throw new RuntimeException("root node of EXML contained more than one component definition");
+          int lineNumber = getLineNumber(componentNode);
+          throw new ExmlParseException("root node of EXML contained more than one component definition", lineNumber);
         }
         componentNode = node;
       }
     }
     if (componentNode == null) {
-      throw new RuntimeException("root node of EXML did not contain a component definition");
+      int lineNumber = getLineNumber(root);
+      throw new ExmlParseException("root node of EXML did not contain a component definition", lineNumber);
     }
 
     String className = createFullClassNameFromNode(componentNode);
@@ -74,8 +77,8 @@ public final class ExmlParser {
     String uri = componentNode.getNamespaceURI();
     String packageName = ExmlConstants.parsePackageFromNamespace(uri);
     if (packageName == null) {
-      String lineNumber = (String) componentNode.getUserData(PreserveLineNumberHandler.LINE_NUMBER_KEY_NAME);
-      throw new RuntimeException("Line: " +lineNumber + ": namespace '" + uri + "' of element '"+ name +"' in EXML file does not denote a config package");
+      int lineNumber = getLineNumber(componentNode);
+      throw new ExmlParseException("namespace '" + uri + "' of element '"+ name +"' in EXML file does not denote a config package", lineNumber);
     }
     return packageName + "." + name;
   }
@@ -83,8 +86,8 @@ public final class ExmlParser {
   private void fillModelAttributes(JsonObject jsonObject, Node componentNode, String className) {
     ConfigClass configClass = registry.getConfigClassByName(className);
     if (configClass == null) {
-      String lineNumber = (String) componentNode.getUserData(PreserveLineNumberHandler.LINE_NUMBER_KEY_NAME);
-      throw new RuntimeException("Line: " +lineNumber + ":unknown type '" + className + "'");
+      int lineNumber = getLineNumber(componentNode);
+      throw new ExmlParseException("unknown type '" + className + "'", lineNumber);
     }
     NamedNodeMap attributes = componentNode.getAttributes();
     for (int i = 0; i < attributes.getLength(); i++) {
@@ -242,13 +245,17 @@ public final class ExmlParser {
   }
 
   private void validateRootNode(Node root) {
-    String lineNumber = (String) root.getUserData(PreserveLineNumberHandler.LINE_NUMBER_KEY_NAME);
+    int lineNumber = getLineNumber(root);
     if (!ExmlConstants.EXML_NAMESPACE_URI.equals(root.getNamespaceURI())) {
-      throw new RuntimeException("Line: " +lineNumber + " root node of EXML file must belong to namespace '" + ExmlConstants.EXML_NAMESPACE_URI + "', but was '" + root.getNamespaceURI() +"'");
+      throw new ExmlParseException("root node of EXML file must belong to namespace '" + ExmlConstants.EXML_NAMESPACE_URI + "', but was '" + root.getNamespaceURI() +"'", lineNumber);
     }
     if (!ExmlConstants.EXML_COMPONENT_NODE_NAME.equals(root.getLocalName())) {
-      throw new RuntimeException("Line: " +lineNumber + " root node of EXML file must be a <" + ExmlConstants.EXML_COMPONENT_NODE_NAME + ">, but was <" + root.getLocalName() +">");
+      throw new ExmlParseException("root node of EXML file must be a <" + ExmlConstants.EXML_COMPONENT_NODE_NAME + ">, but was <" + root.getLocalName() +">", lineNumber);
     }
+  }
+
+  private int getLineNumber(Node node) {
+    return Integer.parseInt((String) node.getUserData(PreserveLineNumberHandler.LINE_NUMBER_KEY_NAME));
   }
 
   private Document buildDom(InputStream inputStream) throws SAXException, IOException {

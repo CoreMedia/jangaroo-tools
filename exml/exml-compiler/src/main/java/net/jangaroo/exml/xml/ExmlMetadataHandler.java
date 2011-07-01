@@ -1,6 +1,7 @@
 package net.jangaroo.exml.xml;
 
 import net.jangaroo.exml.ExmlConstants;
+import net.jangaroo.exml.ExmlParseException;
 import net.jangaroo.exml.model.ConfigAttribute;
 import net.jangaroo.exml.model.ConfigClass;
 import net.jangaroo.utils.CharacterRecordingHandler;
@@ -38,7 +39,7 @@ public class ExmlMetadataHandler extends CharacterRecordingHandler {
       configClass.setSuperClassName(localName);
       String thePackage = ExmlConstants.parsePackageFromNamespace(uri);
       if (thePackage == null) {
-        throw new RuntimeException("namespace '" + uri + "' of superclass element in EXML file does not denote a config package");
+        throw new ExmlParseException("namespace '" + uri + "' of superclass element in EXML file does not denote a config package");
       }
       configClass.setSuperClassPackage(thePackage);
     }
