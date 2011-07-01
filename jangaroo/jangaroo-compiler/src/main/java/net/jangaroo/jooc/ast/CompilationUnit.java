@@ -15,6 +15,7 @@
 
 package net.jangaroo.jooc.ast;
 
+import net.jangaroo.jooc.AbstractJooc;
 import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
@@ -43,7 +44,7 @@ public class CompilationUnit extends NodeImplBase {
 
   private Set<String> dependencies = new LinkedHashSet<String>();
   private InputSource source;
-  private Jooc compiler;
+  private AbstractJooc compiler;
 
   public CompilationUnit(PackageDeclaration packageDeclaration, JooSymbol lBrace, IdeDeclaration primaryDeclaration, JooSymbol rBrace, List<IdeDeclaration> secondaryDeclarations) {
     this.packageDeclaration = packageDeclaration;
@@ -102,11 +103,11 @@ public class CompilationUnit extends NodeImplBase {
     return dependencies;
   }
 
-  public Jooc getCompiler() {
+  public AbstractJooc getCompiler() {
     return compiler;
   }
 
-  public void setCompiler(final Jooc compiler) {
+  public void setCompiler(final AbstractJooc compiler) {
     this.compiler = compiler;
   }
 

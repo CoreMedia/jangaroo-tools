@@ -4,6 +4,7 @@ import net.jangaroo.jooc.CodeGenerator;
 import net.jangaroo.jooc.Debug;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
+import net.jangaroo.jooc.JoocProperties;
 import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.SyntacticKeywords;
 import net.jangaroo.jooc.ast.AbstractBlock;
@@ -165,8 +166,8 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
       out.write('"' + qname + '"');
     }
     out.write("]");
-    out.write(", \"" + compilationUnit.getCompiler().getRuntimeVersion() + "\"");
-    out.write(", \"" + compilationUnit.getCompiler().getVersion() + "\"");
+    out.write(", \"" + JoocProperties.getRuntimeVersion() + "\"");
+    out.write(", \"" + JoocProperties.getVersion() + "\"");
     out.writeSymbolWhitespace(compilationUnit.getRBrace());
     out.write(");");
   }

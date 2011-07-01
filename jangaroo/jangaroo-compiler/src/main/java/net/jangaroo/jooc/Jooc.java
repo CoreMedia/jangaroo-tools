@@ -15,12 +15,9 @@
 
 package net.jangaroo.jooc;
 
-import java_cup.runtime.Symbol;
-import net.jangaroo.jooc.ast.AstNode;
 import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.ast.Ide;
 import net.jangaroo.jooc.ast.IdeDeclaration;
-import net.jangaroo.jooc.ast.ImportDirective;
 import net.jangaroo.jooc.ast.PredefinedTypeDeclaration;
 import net.jangaroo.jooc.ast.VariableDeclaration;
 import net.jangaroo.jooc.backend.CompilationUnitSink;
@@ -29,19 +26,14 @@ import net.jangaroo.jooc.backend.MergedOutputCompilationUnitSinkFactory;
 import net.jangaroo.jooc.backend.SingleFileCompilationUnitSinkFactory;
 import net.jangaroo.jooc.config.JoocCommandLineParser;
 import net.jangaroo.jooc.config.JoocConfiguration;
-import net.jangaroo.jooc.config.JoocOptions;
 import net.jangaroo.jooc.input.FileInputSource;
 import net.jangaroo.jooc.input.InputSource;
 import net.jangaroo.jooc.input.PathInputSource;
-import net.jangaroo.utils.BOMStripperInputStream;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.ResourceBundle;
 
 /**
@@ -50,11 +42,7 @@ import java.util.ResourceBundle;
  * @author Andreas Gawecki
  * @author Frank Wienberg
  */
-public class Jooc {
-
-  private static final String COMPILER_VERSION_KEY = "jooc.compiler.version";
-  private static final String RUNTIME_VERSION_KEY = "jooc.runtime.version";
-
+public class Jooc extends AbstractJooc {
   private static final String JOO_API_IN_JAR_DIRECTORY_PREFIX = "META-INF/joo-api/";
 
   public static final int RESULT_CODE_OK = 0;
@@ -63,8 +51,6 @@ public class Jooc {
   public static final int RESULT_CODE_UNRECOGNIZED_OPTION = 3;
   public static final int RESULT_CODE_MISSING_OPTION_ARGUMENT = 4;
 
-  public static final String AS_SUFFIX_NO_DOT = "as";
-  public static final String AS_SUFFIX = "." + AS_SUFFIX_NO_DOT;
   public static final String INPUT_FILE_SUFFIX = AS_SUFFIX;
   public static final String OUTPUT_FILE_SUFFIX = ".js";
 
@@ -72,41 +58,27 @@ public class Jooc {
   public static final String CLASS_LOADER_PACKAGE_NAME = "joo";
   public static final String CLASS_LOADER_FULLY_QUALIFIED_NAME = CLASS_LOADER_PACKAGE_NAME + "." + CLASS_LOADER_NAME;
 
-  private JoocConfiguration config;
-  // a hack to always be able to access the current log:
-  private static ThreadLocal<CompileLog> logHolder = new ThreadLocal<CompileLog>();
-  private CompileLog log;
-
-  private List<File> canoncicalSourcePath = new ArrayList<File>();
   private List<CompilationUnit> compileQueue = new ArrayList<CompilationUnit>();
 
-  private Map<String, CompilationUnit> compilationUnitsByQName = new LinkedHashMap<String, CompilationUnit>();
-
-  private InputSource sourcePathInputSource;
-  private InputSource classPathInputSource;
-
-  private final Scope globalScope = new DeclarationScope(null, null); {
+  {
     declareType(globalScope, "void");
     declareType(globalScope, "*");
   }
-  private ResourceBundle joocProperties;
 
   public Jooc() {
     this(new StdOutCompileLog());
   }
 
   public Jooc(CompileLog log) {
-    this.log = log;
-    joocProperties = ResourceBundle.getBundle ("net.jangaroo.jooc.jooc");
-    assert joocProperties != null;
+    super(log);
   }
 
   public int run(JoocConfiguration config) {
     try {
       return run1(config);
     } catch (CompilerError e) {
-      if (e.symbol != null) {
-        log.error(e.symbol, e.getMessage());
+      if (e.getSymbol() != null) {
+        log.error(e.getSymbol(), e.getMessage());
       } else {
         log.error(e.getMessage());
       }
@@ -158,7 +130,7 @@ public class Jooc {
 
   public void writeOutput(CompilationUnit compilationUnit,
                           CompilationUnitSinkFactory writerFactory,
-                          boolean verbose) throws Jooc.CompilerError {
+                          boolean verbose) throws CompilerError {
     File sourceFile = ((FileInputSource) compilationUnit.getSource()).getFile();
     CompilationUnitSink sink = writerFactory.createSink(
       compilationUnit.getPackageDeclaration(), compilationUnit.getPrimaryDeclaration(),
@@ -201,31 +173,6 @@ public class Jooc {
     return codeSinkFactory;
   }
 
-  public String getVersion() {
-    return joocProperties.getString(COMPILER_VERSION_KEY);
-  }
-
-  public String getRuntimeVersion() {
-    return joocProperties.getString(RUNTIME_VERSION_KEY);
-  }
-
-  public static class CompilerError extends RuntimeException {
-    private JooSymbol symbol = null;
-
-    public CompilerError(String msg) {
-      super(msg);
-    }
-
-    public CompilerError(String msg, Throwable rootCause) {
-      super(msg, rootCause);
-    }
-
-    public CompilerError(JooSymbol symbol, String msg) {
-      super(msg);
-      this.symbol = symbol;
-    }
-  }
-
   public static String getResultCodeDescription(int resultCode) {
     switch (resultCode) {
       case RESULT_CODE_OK:
@@ -243,70 +190,6 @@ public class Jooc {
     }
   }
 
-  public static CompilerError error(String msg) {
-    return new CompilerError(msg);
-  }
-
-  public static CompilerError error(JooSymbol symbol, String msg) {
-    return new CompilerError(symbol, msg);
-  }
-
-  public static CompilerError error(AstNode node, String msg) {
-    return error(node.getSymbol(), msg);
-  }
-
-  public static CompilerError error(String msg, Throwable t) {
-    return new CompilerError(msg, t);
-  }
-
-  public static void warning(JooSymbol symbol, String msg) {
-    logHolder.get().warning(symbol, msg);
-  }
-
-  public static void warning(String msg) {
-    logHolder.get().warning(msg);
-  }
-
-  protected CompilationUnit importSource(InputSource source) {
-    CompilationUnit unit = parse(source);
-    if (unit != null) {
-      unit.scope(globalScope);
-      String prefix = unit.getPackageDeclaration().getQualifiedNameStr();
-      if (!prefix.isEmpty()) {
-        prefix += ".";
-      }
-      String qname = prefix + unit.getPrimaryDeclaration().getIde().getName();
-      checkValidFileName(qname, unit, source);
-      compilationUnitsByQName.put(qname, unit);
-    }
-    return unit;
-  }
-
-  private String buildSourceFileName(final InputSource inputSource, final String qname) {
-    return qname.replace('.', inputSource.getFileSeparatorChar()) + AS_SUFFIX;
-  }
-
-  private File findSourceDir(final File file) throws IOException {
-    File canonicalFile = file.getCanonicalFile();
-    for (File sourceDir : canoncicalSourcePath) {
-      if (isParent(sourceDir, canonicalFile)) {
-        return sourceDir;
-      }
-    }
-    return null;
-  }
-
-  private boolean isParent(File dir, File file) throws IOException {
-    File parent = file.getParentFile();
-    while (parent != null) {
-      if (parent.equals(dir)) {
-        return true;
-      }
-      parent = parent.getParentFile();
-    }
-    return false;
-  }
-
   protected void processSource(File file) throws IOException {
     if (file.isDirectory()) {
       throw error("Input file is a directory: " + file.getAbsolutePath());
@@ -314,125 +197,6 @@ public class Jooc {
     CompilationUnit unit = importSource(new FileInputSource(findSourceDir(file), file));
     if (unit != null) {
       compileQueue.add(unit);
-    }
-  }
-
-  public IdeDeclaration resolveImport(final ImportDirective importDirective) {
-    String qname = importDirective.getQualifiedName();
-    CompilationUnit compilationUnit = compilationUnitsByQName.get(qname);
-    if (compilationUnit == null) {
-      InputSource source = findSource(qname);
-      if (source == null) {
-        throw error(importDirective.getSymbol(), "cannot find source for " + qname);
-      }
-      compilationUnit = importSource(source);
-    }
-    if (compilationUnit == null) {
-      throw error("unable to resolve import of " + qname);
-    }
-    return compilationUnit.getPrimaryDeclaration();
-  }
-
-  private InputSource findSource(final String qname) {
-    // scan sourcepath
-    InputSource result = sourcePathInputSource.getChild(getInputSourceFileName(qname, sourcePathInputSource, AS_SUFFIX));
-    if (result == null) {
-      // scan classpath
-      result = classPathInputSource.getChild(getInputSourceFileName(qname, classPathInputSource, AS_SUFFIX));
-    }
-    return result;
-  }
-
-  private String getInputSourceFileName(final String qname, InputSource is, String extension) {
-    return qname.replace('.', is.getFileSeparatorChar()) + extension;
-  }
-
-  private void checkValidFileName(final String qname, final CompilationUnit unit, final InputSource source) {
-    // check valid file name for qname
-    String path = source.getRelativePath();
-    if (path != null) {
-      String expectedPath = buildSourceFileName(source, qname);
-      if (!expectedPath.equals(path)) {
-        warning(unit.getSymbol(),
-          String.format("expected '%s' as the file name for %s, found: '%s'. -sourcepath not set (correctly)?",
-            expectedPath,
-            qname,
-            path));
-      }
-    }
-  }
-
-  public List<String> getPackageIdes(String packageName) {
-    List<String> result = new ArrayList<String>(10);
-    addPackageFolderSymbols(result, packageName, sourcePathInputSource);
-    addPackageFolderSymbols(result, packageName, classPathInputSource);
-    return result;
-  }
-
-  private void addPackageFolderSymbols(final List<String> result, final String packageName, final InputSource path) {
-    addPackageFolderSymbols(path.getChild(getInputSourceFileName(packageName, path, "")),
-      result);
-  }
-
-  private void addPackageFolderSymbols(final InputSource folder, List<String> list) {
-    if (folder != null) {
-      for (InputSource child : folder.list()) {
-        if (!child.isDirectory() && child.getName().endsWith(AS_SUFFIX)) {
-          list.add(nameWithoutExtension(child));
-        }
-      }
-    }
-  }
-
-  private static String nameWithoutExtension(InputSource input) {
-    String name = input.getName();
-    int lastDot = name.lastIndexOf('.');
-    return lastDot >= 0 ? name.substring(0, lastDot) : name;
-  }
-
-
-  public JoocConfiguration getConfig() {
-    return config;
-  }
-
-  protected CompilationUnit parse(InputSource in) {
-    if (!in.getName().endsWith(AS_SUFFIX)) {
-      throw error("Input file must end with '" + AS_SUFFIX + "': " + in.getName());
-    }
-    Scanner s;
-    if (config.isVerbose()) {
-      System.out.println("Parsing " + in.getPath());
-    }
-    CompilationUnit unit = doParse(in, log, config.getSemicolonInsertionMode());
-    if (unit != null) {
-      unit.setCompiler(this);
-      unit.setSource(in);
-    }
-    return unit;
-  }
-
-  public static CompilationUnit doParse(InputSource in, CompileLog log, JoocOptions.SemicolonInsertionMode semicolonInsertionMode) {
-    Scanner s;
-    try {
-      s = new Scanner(new InputStreamReader(new BOMStripperInputStream(in.getInputStream()), "UTF-8"));
-    } catch (IOException e) {
-      throw new CompilerError("Cannot read input file: " + in.getPath());
-    }
-    s.setInputSource(in);
-    parser p = new parser(s);
-    p.setCompileLog(log);
-    p.setSemicolonInsertionMode(semicolonInsertionMode);
-    try {
-      Symbol tree = p.parse();
-      return (CompilationUnit) tree.value;
-    } catch (Scanner.ScanError se) {
-      log.error(se.sym, se.getMessage());
-      return null;
-    } catch (parser.FatalSyntaxError e) {
-      // message already logged in parser
-      return null;
-    } catch (Exception e) {
-      throw new RuntimeException(e);
     }
   }
 

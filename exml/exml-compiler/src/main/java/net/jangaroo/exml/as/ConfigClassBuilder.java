@@ -2,6 +2,7 @@ package net.jangaroo.exml.as;
 
 import net.jangaroo.exml.model.ConfigAttribute;
 import net.jangaroo.exml.model.ConfigClass;
+import net.jangaroo.jooc.CompilerError;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.StdOutCompileLog;
@@ -110,7 +111,7 @@ public class ConfigClassBuilder extends AstVisitorBase {
     private void detectExtConfigAnnotation(Annotation annotation) {
       if (EXT_CONFIG_META_NAME.equals(annotation.getMetaName())) {
         if (configClass.getComponentName() != null) {
-          throw new Jooc.CompilerError(annotation.getSymbol(), "Only one [" + EXT_CONFIG_META_NAME + "] annotation may be given.");
+          throw new CompilerError(annotation.getSymbol(), "Only one [" + EXT_CONFIG_META_NAME + "] annotation may be given.");
         }
 
         CommaSeparatedList<AnnotationParameter> annotationParameters = annotation.getOptAnnotationParameters();
@@ -121,7 +122,7 @@ public class ConfigClassBuilder extends AstVisitorBase {
           if (optName != null && TARGET_ANNOTATION_PARAMETER_NAME.equals(optName.getName())) {
             JooSymbol symbol = annotationParameter.getValue().getSymbol();
             if (symbol.sym != sym.STRING_LITERAL) {
-              throw new Jooc.CompilerError(symbol, "The " + TARGET_ANNOTATION_PARAMETER_NAME + " parameter of an [" + EXT_CONFIG_META_NAME + "] annotation must be a string literal.");
+              throw new CompilerError(symbol, "The " + TARGET_ANNOTATION_PARAMETER_NAME + " parameter of an [" + EXT_CONFIG_META_NAME + "] annotation must be a string literal.");
             }
             target = (String) symbol.getJooValue();
             break;
@@ -129,7 +130,7 @@ public class ConfigClassBuilder extends AstVisitorBase {
           annotationParameters = annotationParameters.getTail();
         }
         if (target == null) {
-          throw new Jooc.CompilerError(annotation.getSymbol(), "A " + TARGET_ANNOTATION_PARAMETER_NAME + " parameter must be provided for an [" + EXT_CONFIG_META_NAME + "] annotation.");
+          throw new CompilerError(annotation.getSymbol(), "A " + TARGET_ANNOTATION_PARAMETER_NAME + " parameter must be provided for an [" + EXT_CONFIG_META_NAME + "] annotation.");
         }
         configClass.setComponentName(target);
       }

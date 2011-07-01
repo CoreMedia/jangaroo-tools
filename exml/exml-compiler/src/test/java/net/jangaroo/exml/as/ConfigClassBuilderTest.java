@@ -2,7 +2,7 @@ package net.jangaroo.exml.as;
 
 import net.jangaroo.exml.model.ConfigAttribute;
 import net.jangaroo.exml.model.ConfigClass;
-import net.jangaroo.jooc.Jooc;
+import net.jangaroo.jooc.CompilerError;
 import net.jangaroo.jooc.input.FileInputSource;
 import net.jangaroo.jooc.input.InputSource;
 import org.junit.Assert;
@@ -45,12 +45,12 @@ public class ConfigClassBuilderTest {
     Assert.assertNull(configClass);
   }
 
-  @Test(expected = Jooc.CompilerError.class)
+  @Test(expected = CompilerError.class)
   public void testBadAnnotationParameter() throws Exception {
     buildConfigClass("/testNamespace/config/BadConfig1.as");
   }
 
-  @Test(expected = Jooc.CompilerError.class)
+  @Test(expected = CompilerError.class)
   public void testMissingAnnotationParameter() throws Exception {
     buildConfigClass("/testNamespace/config/BadConfig2.as");
   }

@@ -16,8 +16,8 @@
 package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.AnalyzeContext;
+import net.jangaroo.jooc.CompilerError;
 import net.jangaroo.jooc.JooSymbol;
-import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
@@ -49,7 +49,7 @@ public class Extends extends NodeImplBase {
   public void analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     if (!(getSuperClass().getDeclaration() instanceof ClassDeclaration)) {
-      throw new Jooc.CompilerError(getSuperClass().getSymbol(), "identifier in extends clause must denote a class");
+      throw new CompilerError(getSuperClass().getSymbol(), "identifier in extends clause must denote a class");
     }
     getSuperClass().analyze(this, context);
     getSuperClass().addExternalUsage();

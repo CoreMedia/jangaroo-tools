@@ -16,6 +16,7 @@
 package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.AnalyzeContext;
+import net.jangaroo.jooc.CompilerError;
 import net.jangaroo.jooc.DeclarationScope;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
@@ -281,7 +282,7 @@ public class ClassDeclaration extends IdeDeclaration {
   private IdeDeclaration resolvePropertyDeclaration1(String ide, ClassDeclaration classDecl, Set<ClassDeclaration> visited, LinkedList<ClassDeclaration> chain) {
     if (visited.contains(classDecl)) {
       if (chain.contains(classDecl)) {
-        throw new Jooc.CompilerError(classDecl.getSymbol(), "cyclic superclass chain");
+        throw new CompilerError(classDecl.getSymbol(), "cyclic superclass chain");
       }
       return null;
     }
@@ -315,7 +316,7 @@ public class ClassDeclaration extends IdeDeclaration {
     IdeDeclaration superClassDecl = superIde.getDeclaration();
     if (superClassDecl != null)
       if (!(superClassDecl instanceof ClassDeclaration)) {
-        throw new Jooc.CompilerError(classDecl.getOptExtends().getSuperClass().getSymbol(), "expected class identifier");
+        throw new CompilerError(classDecl.getOptExtends().getSuperClass().getSymbol(), "expected class identifier");
       }
     return resolvePropertyDeclaration1(ide, (ClassDeclaration) superClassDecl, visited, chain);
   }
@@ -336,7 +337,7 @@ public class ClassDeclaration extends IdeDeclaration {
     }
     IdeDeclaration superClassDecl = superType.getIde().getDeclaration();
     if (!(superClassDecl instanceof ClassDeclaration)) {
-      throw new Jooc.CompilerError(getOptExtends().getSuperClass().getSymbol(), "expected class identifier");
+      throw new CompilerError(getOptExtends().getSuperClass().getSymbol(), "expected class identifier");
     }
     return 1 + ((ClassDeclaration)superClassDecl).getInheritanceLevel();
   }

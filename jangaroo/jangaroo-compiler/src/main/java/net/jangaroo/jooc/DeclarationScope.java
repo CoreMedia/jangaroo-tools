@@ -92,7 +92,7 @@ public class DeclarationScope extends ScopeImplBase implements Scope {
       }
       if (ides.containsKey(name)) {
         // name clash with value ide - error according to adobe
-        throw new Jooc.CompilerError(importDirective.getIde().getSymbol(), "attempt to redefine identifier " + name + " by import");
+        throw new CompilerError(importDirective.getIde().getSymbol(), "attempt to redefine identifier " + name + " by import");
       }
       // define the fully qualified name if not (might be the same string for top level imports):
       final String qualifiedName = ide.getQualifiedNameStr();
@@ -114,7 +114,7 @@ public class DeclarationScope extends ScopeImplBase implements Scope {
     final Ide ide = decl.getIde();
     final String name = ide.getName();
     if (importsByName.containsKey(name)) {
-      throw new Jooc.CompilerError(ide.getSymbol(), "attempt to redefine an imported identifier " + name);
+      throw new CompilerError(ide.getSymbol(), "attempt to redefine an imported identifier " + name);
     }
     return ides.put(name, decl);
   }
@@ -171,7 +171,7 @@ public class DeclarationScope extends ScopeImplBase implements Scope {
       msg.append("(").append(importedIdeSymbol.getFileName()).append(":").append(importedIdeSymbol.getLine()).append(",").append(importedIdeSymbol.getColumn());
     }
     msg.append(" are available.");
-    throw new Jooc.CompilerError(ide.getSymbol(), msg.toString());
+    throw new CompilerError(ide.getSymbol(), msg.toString());
   }
 
   public boolean isDeclared(Ide ide) {

@@ -16,6 +16,7 @@
 package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.AnalyzeContext;
+import net.jangaroo.jooc.CompilerError;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.JsWriter;
@@ -153,7 +154,7 @@ public class Ide extends NodeImplBase {
   /**
    * callable after scoping phase
    *
-   * @throws net.jangaroo.jooc.Jooc.CompilerError if undeclared
+   * @throws net.jangaroo.jooc.CompilerError if undeclared
    */
   public IdeDeclaration getDeclaration() {
     return getDeclaration(true);
@@ -169,10 +170,10 @@ public class Ide extends NodeImplBase {
         declaration = NULL_DECL; // prevent multiple lookups when called with !errorIfUndeclared multiple times
       } else if (declaration.getClassDeclaration() != getScope().getClassDeclaration()) {
         if (declaration.isPrivate()) {
-          throw new Jooc.CompilerError(this.getSymbol(), "private member access");
+          throw new CompilerError(this.getSymbol(), "private member access");
         }
         if (declaration.isProtected() && !getScope().getClassDeclaration().isSubclassOf(declaration.getClassDeclaration())) {
-          throw new Jooc.CompilerError(this.getSymbol(), "protected member access of non-superclass");
+          throw new CompilerError(this.getSymbol(), "protected member access of non-superclass");
         }
       }
     }
