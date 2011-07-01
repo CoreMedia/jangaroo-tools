@@ -245,7 +245,7 @@ public class JangarooParser {
             "this"});
   }
 
-  protected void setUp(JoocConfiguration config) {
+  protected void setUp(ParserOptions config) {
     defaultLog.set(log);
     this.config = config;
     buildGlobalScope();
