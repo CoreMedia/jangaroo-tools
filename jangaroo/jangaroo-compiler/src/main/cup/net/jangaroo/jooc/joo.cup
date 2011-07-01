@@ -22,6 +22,7 @@
 package net.jangaroo.jooc;
 
 import net.jangaroo.jooc.config.JoocOptions;
+import net.jangaroo.jooc.config.SemicolonInsertionMode;
 import java_cup.runtime.*;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
@@ -35,7 +36,7 @@ parser code  {:
     }
   }
 
-  private JoocOptions.SemicolonInsertionMode semicolonInsertionMode;
+  private SemicolonInsertionMode semicolonInsertionMode;
   private CompileLog log;
   private boolean eofSeen = false;
 
@@ -46,7 +47,7 @@ parser code  {:
     this.log = log;
   }
 
-  public void setSemicolonInsertionMode(JoocOptions.SemicolonInsertionMode semicolonInsertionMode) {
+  public void setSemicolonInsertionMode(SemicolonInsertionMode semicolonInsertionMode) {
     this.semicolonInsertionMode = semicolonInsertionMode;
   }
 

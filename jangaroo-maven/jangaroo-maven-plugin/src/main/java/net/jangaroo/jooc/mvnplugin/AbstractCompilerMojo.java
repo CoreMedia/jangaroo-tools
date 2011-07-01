@@ -2,7 +2,7 @@ package net.jangaroo.jooc.mvnplugin;
 
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.config.JoocConfiguration;
-import net.jangaroo.jooc.config.JoocOptions;
+import net.jangaroo.jooc.config.SemicolonInsertionMode;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -172,11 +172,11 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
 
     if (StringUtils.isNotEmpty(autoSemicolon)) {
       if (autoSemicolon.equalsIgnoreCase("error")) {
-        configuration.setSemicolonInsertionMode(JoocOptions.SemicolonInsertionMode.ERROR);
+        configuration.setSemicolonInsertionMode(SemicolonInsertionMode.ERROR);
       } else if (autoSemicolon.equalsIgnoreCase("warn")) {
-        configuration.setSemicolonInsertionMode(JoocOptions.SemicolonInsertionMode.WARN);
+        configuration.setSemicolonInsertionMode(SemicolonInsertionMode.WARN);
       } else if (autoSemicolon.equalsIgnoreCase("quirks")) {
-        configuration.setSemicolonInsertionMode(JoocOptions.SemicolonInsertionMode.QUIRKS);
+        configuration.setSemicolonInsertionMode(SemicolonInsertionMode.QUIRKS);
       } else {
         throw new IllegalArgumentException("The specified semicolon insertion mode: '" + autoSemicolon
           + "' is unsupported. " + "Legal values are 'error', 'warn', and 'quirks'.");

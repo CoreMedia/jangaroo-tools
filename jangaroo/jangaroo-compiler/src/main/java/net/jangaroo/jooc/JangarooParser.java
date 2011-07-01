@@ -9,8 +9,10 @@ import net.jangaroo.jooc.ast.ImportDirective;
 import net.jangaroo.jooc.ast.PredefinedTypeDeclaration;
 import net.jangaroo.jooc.ast.VariableDeclaration;
 import net.jangaroo.jooc.config.JoocConfiguration;
-import net.jangaroo.jooc.config.JoocOptions;
+import net.jangaroo.jooc.config.ParserOptions;
+import net.jangaroo.jooc.config.SemicolonInsertionMode;
 import net.jangaroo.jooc.input.InputSource;
+import net.jangaroo.jooc.input.PathInputSource;
 import net.jangaroo.utils.BOMStripperInputStream;
 
 import java.io.File;
@@ -21,16 +23,20 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public class AbstractJooc {
+public class JangarooParser {
+  public static final String JOO_API_IN_JAR_DIRECTORY_PREFIX = "META-INF/joo-api/";
+
   public static final String AS_SUFFIX_NO_DOT = "as";
   public static final String AS_SUFFIX = "." + AS_SUFFIX_NO_DOT;
-  // a hack to always be able to access the current log:
-  protected static ThreadLocal<CompileLog> logHolder = new ThreadLocal<CompileLog>();
-  protected List<File> canoncicalSourcePath = new ArrayList<File>();
-  protected InputSource sourcePathInputSource;
-  protected InputSource classPathInputSource;
-  protected JoocConfiguration config;
+
   protected CompileLog log;
+  // a hack to always be able to access the current log:
+  private static ThreadLocal<CompileLog> defaultLog = new ThreadLocal<CompileLog>();
+
+  private List<File> canoncicalSourcePath = new ArrayList<File>();
+  private InputSource sourcePathInputSource;
+  private InputSource classPathInputSource;
+  private ParserOptions config;
   private Map<String, CompilationUnit> compilationUnitsByQName = new LinkedHashMap<String, CompilationUnit>();
 
   protected final Scope globalScope = new DeclarationScope(null, null);
@@ -39,7 +45,7 @@ public class AbstractJooc {
     declareType(globalScope, "*");
   }
 
-  public AbstractJooc(CompileLog log) {
+  public JangarooParser(CompileLog log) {
     this.log = log;
   }
 
@@ -60,14 +66,14 @@ public class AbstractJooc {
   }
 
   public static void warning(JooSymbol symbol, String msg) {
-    logHolder.get().warning(symbol, msg);
+    defaultLog.get().warning(symbol, msg);
   }
 
   public static void warning(String msg) {
-    logHolder.get().warning(msg);
+    defaultLog.get().warning(msg);
   }
 
-  public static CompilationUnit doParse(InputSource in, CompileLog log, JoocOptions.SemicolonInsertionMode semicolonInsertionMode) {
+  public static CompilationUnit doParse(InputSource in, CompileLog log, SemicolonInsertionMode semicolonInsertionMode) {
     Scanner s;
     try {
       s = new Scanner(new InputStreamReader(new BOMStripperInputStream(in.getInputStream()), "UTF-8"));
@@ -211,10 +217,6 @@ public class AbstractJooc {
     return unit;
   }
 
-  public JoocConfiguration getConfig() {
-    return config;
-  }
-
   public List<String> getPackageIdes(String packageName) {
     List<String> result = new ArrayList<String>(10);
     addPackageFolderSymbols(result, packageName, sourcePathInputSource);
@@ -235,5 +237,35 @@ public class AbstractJooc {
         }
       }
     }
+  }
+
+  private void buildGlobalScope() {
+    //todo declare this depending on context
+    declareValues(globalScope, new String[]{
+            "this"});
+  }
+
+  protected void setUp(JoocConfiguration config) {
+    defaultLog.set(log);
+    this.config = config;
+    buildGlobalScope();
+    for (File sourceDir : config.getSourcePath()) {
+      try {
+        canoncicalSourcePath.add(sourceDir.getCanonicalFile());
+      } catch (IOException e) {
+        throw new CompilerError("Cannot canonicalize source path dir: " + sourceDir.getAbsolutePath());
+      }
+    }
+
+    try {
+      sourcePathInputSource = PathInputSource.fromFiles(canoncicalSourcePath, new String[]{""});
+      classPathInputSource = PathInputSource.fromFiles(config.getClassPath(), new String[]{"", JOO_API_IN_JAR_DIRECTORY_PREFIX});
+    } catch (IOException e) {
+      throw new CompilerError("IO Exception occurred", e);
+    }
+  }
+
+  protected void tearDown() {
+    defaultLog.remove();
   }
 }

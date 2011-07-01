@@ -8,7 +8,7 @@ import java.util.List;
 /**
  * Jangaroo compiler configuration
  */
-public class JoocConfiguration implements JoocOptions {
+public class JoocConfiguration implements JoocOptions, ParserOptions {
 
   private SemicolonInsertionMode semicolonInsertionMode = SemicolonInsertionMode.WARN;
 

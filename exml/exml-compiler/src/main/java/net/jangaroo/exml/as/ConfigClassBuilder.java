@@ -19,7 +19,7 @@ import net.jangaroo.jooc.ast.FunctionDeclaration;
 import net.jangaroo.jooc.ast.Ide;
 import net.jangaroo.jooc.ast.PackageDeclaration;
 import net.jangaroo.jooc.ast.TypeRelation;
-import net.jangaroo.jooc.config.JoocOptions;
+import net.jangaroo.jooc.config.SemicolonInsertionMode;
 import net.jangaroo.jooc.input.InputSource;
 import net.jangaroo.jooc.sym;
 
@@ -44,7 +44,7 @@ public class ConfigClassBuilder extends AstVisitorBase {
   }
 
   public ConfigClass buildConfigClass() {
-    CompilationUnit compilationUnit = Jooc.doParse(inputSource, new StdOutCompileLog(), JoocOptions.SemicolonInsertionMode.QUIRKS);
+    CompilationUnit compilationUnit = Jooc.doParse(inputSource, new StdOutCompileLog(), SemicolonInsertionMode.QUIRKS);
     try {
       compilationUnit.visit(this);
     } catch (IOException e) {

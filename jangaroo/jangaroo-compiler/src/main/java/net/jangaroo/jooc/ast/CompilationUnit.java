@@ -15,19 +15,14 @@
 
 package net.jangaroo.jooc.ast;
 
-import net.jangaroo.jooc.AbstractJooc;
+import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
-import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
-import net.jangaroo.jooc.backend.CompilationUnitSink;
-import net.jangaroo.jooc.backend.CompilationUnitSinkFactory;
-import net.jangaroo.jooc.input.FileInputSource;
 import net.jangaroo.jooc.input.InputSource;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -44,7 +39,7 @@ public class CompilationUnit extends NodeImplBase {
 
   private Set<String> dependencies = new LinkedHashSet<String>();
   private InputSource source;
-  private AbstractJooc compiler;
+  private JangarooParser compiler;
 
   public CompilationUnit(PackageDeclaration packageDeclaration, JooSymbol lBrace, IdeDeclaration primaryDeclaration, JooSymbol rBrace, List<IdeDeclaration> secondaryDeclarations) {
     this.packageDeclaration = packageDeclaration;
@@ -103,16 +98,12 @@ public class CompilationUnit extends NodeImplBase {
     return dependencies;
   }
 
-  public AbstractJooc getCompiler() {
+  public JangarooParser getCompiler() {
     return compiler;
   }
 
-  public void setCompiler(final AbstractJooc compiler) {
+  public void setCompiler(final JangarooParser compiler) {
     this.compiler = compiler;
-  }
-
-  public Collection<File> getSourcePath() {
-    return getCompiler().getConfig().getSourcePath();
   }
 
   /**

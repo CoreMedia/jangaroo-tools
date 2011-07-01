@@ -144,11 +144,11 @@ public class JoocCommandLineParser {
     if (line.hasOption(autoSemicolonOption.getOpt())) {
       String value = line.getOptionValue(autoSemicolonOption.getOpt());
       if (value.equals("error")) {
-        config.setSemicolonInsertionMode(JoocOptions.SemicolonInsertionMode.ERROR);
+        config.setSemicolonInsertionMode(SemicolonInsertionMode.ERROR);
       } else if (value.equals("warn")) {
-        config.setSemicolonInsertionMode(JoocOptions.SemicolonInsertionMode.WARN);
+        config.setSemicolonInsertionMode(SemicolonInsertionMode.WARN);
       } else if (value.equals("quirks")) {
-        config.setSemicolonInsertionMode(JoocOptions.SemicolonInsertionMode.QUIRKS);
+        config.setSemicolonInsertionMode(SemicolonInsertionMode.QUIRKS);
       } else {
         throw new IllegalArgumentException("unknown -autosemicolon argument: " + value);
       }

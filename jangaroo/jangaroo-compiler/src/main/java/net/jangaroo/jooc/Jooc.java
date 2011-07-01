@@ -23,7 +23,6 @@ import net.jangaroo.jooc.backend.SingleFileCompilationUnitSinkFactory;
 import net.jangaroo.jooc.config.JoocCommandLineParser;
 import net.jangaroo.jooc.config.JoocConfiguration;
 import net.jangaroo.jooc.input.FileInputSource;
-import net.jangaroo.jooc.input.PathInputSource;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,8 +35,7 @@ import java.util.List;
  * @author Andreas Gawecki
  * @author Frank Wienberg
  */
-public class Jooc extends AbstractJooc {
-  private static final String JOO_API_IN_JAR_DIRECTORY_PREFIX = "META-INF/joo-api/";
+public class Jooc extends JangarooParser {
 
   public static final int RESULT_CODE_OK = 0;
   public static final int RESULT_CODE_COMPILATION_FAILED = 1;
@@ -79,20 +77,9 @@ public class Jooc extends AbstractJooc {
   }
 
   private int run1(JoocConfiguration config) {
-    logHolder.set(log);
-    this.config = config;
-    buildGlobalScope();
-    for (File sourceDir : config.getSourcePath()) {
-      try {
-        canoncicalSourcePath.add(sourceDir.getCanonicalFile());
-      } catch (IOException e) {
-        throw new CompilerError("Cannot canonicalize source path dir: " + sourceDir.getAbsolutePath());
-      }
-    }
+    setUp(config);
 
     try {
-      sourcePathInputSource = PathInputSource.fromFiles(canoncicalSourcePath, new String[]{""});
-      classPathInputSource = PathInputSource.fromFiles(config.getClassPath(), new String[]{"", JOO_API_IN_JAR_DIRECTORY_PREFIX});
       for (File sourceFile : config.getSourceFiles()) {
         processSource(sourceFile);
       }
@@ -113,7 +100,7 @@ public class Jooc extends AbstractJooc {
       throw new CompilerError("IO Exception occurred", e);
     }
     int result = log.hasErrors() ? 1 : 0;
-    logHolder.remove();
+    tearDown();
     return result;
   }
 
@@ -126,12 +113,6 @@ public class Jooc extends AbstractJooc {
       sourceFile, verbose);
 
     sink.writeOutput(compilationUnit);
-  }
-
-  private void buildGlobalScope() {
-    //todo declare this depending on context
-    declareValues(globalScope, new String[]{
-      "this"});
   }
 
   private CompilationUnitSinkFactory createSinkFactory(JoocConfiguration config, final boolean generateActionScriptApi) {
@@ -196,7 +177,7 @@ public class Jooc extends AbstractJooc {
   public int run(String[] argv) {
     try {
       JoocCommandLineParser commandLineParser = new JoocCommandLineParser();
-      config = commandLineParser.parse(argv);
+      JoocConfiguration config = commandLineParser.parse(argv);
       if (config != null) {
         if (config.isVersion()) {
           printVersion();
