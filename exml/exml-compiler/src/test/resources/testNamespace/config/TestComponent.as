@@ -12,7 +12,7 @@ import testPackage.TestComponent;
  * @see testPackage.TestComponent
  */
 [ExtConfig(target="testPackage.TestComponent")]
-public class TestComponent extends panel {
+public class TestComponent extends ext.config.panel {
   /**
    * @see testPackage.TestComponent
    */
@@ -36,5 +36,13 @@ public class TestComponent extends panel {
    * @private
    */
   public native function set propertyTwo(value:Number):void;
+  /**
+   * Some String property
+   */
+  public native function get propertyThree():String;
+  /**
+   * @private
+   */
+  public native function set propertyThree(value:String):void;
 }
 }

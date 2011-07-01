@@ -6,6 +6,7 @@ import net.jangaroo.exml.model.ConfigClassRegistry;
 import net.jangaroo.exml.model.ExmlModel;
 import net.jangaroo.jooc.input.FileInputSource;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -16,14 +17,26 @@ import java.util.Arrays;
 import java.util.HashSet;
 
 public class ExmlParserTest {
+  private FileInputSource sourcePathInputSource;
+  private FileInputSource classpathInputSource;
+  private ConfigClassRegistry registry;
+
   @Rule
   public TemporaryFolder outputFolder = new TemporaryFolder();
 
+  @Before
+  public void setUp() throws Exception {
+  }
+
+  private void setUp(String configClassPackage) throws Exception {
+    sourcePathInputSource = new FileInputSource(new File(getClass().getResource("/").toURI()));
+    classpathInputSource = new FileInputSource(new File(getClass().getResource("/").toURI()));
+    registry = new ConfigClassRegistry(sourcePathInputSource, classpathInputSource, configClassPackage, outputFolder.getRoot());
+  }
+
   @Test
-  public void testParseAllElements() throws Exception{
-    FileInputSource sourcePathInputSource = new FileInputSource(new File(getClass().getResource("/").toURI()));
-    FileInputSource classpathInputSource = new FileInputSource(new File(getClass().getResource("/").toURI()));
-    ConfigClassRegistry registry = new ConfigClassRegistry(sourcePathInputSource, classpathInputSource, "exmlparser.config", outputFolder.getRoot());
+  public void testParseAllElements() throws Exception {
+    setUp("exmlparser.config");
     ExmlParser exmlParser = new ExmlParser(registry);
 
     InputStream inputStream = getClass().getResourceAsStream("/exmlparser/AllElements.exml");
@@ -71,9 +84,7 @@ public class ExmlParserTest {
 
   @Test
   public void testParseTestNumber() throws Exception{
-    FileInputSource sourcePathInputSource = new FileInputSource(new File(getClass().getResource("/").toURI()));
-    FileInputSource classpathInputSource = new FileInputSource(new File(getClass().getResource("/").toURI()));
-    ConfigClassRegistry registry = new ConfigClassRegistry(sourcePathInputSource, classpathInputSource, "exmlparser.config", outputFolder.getRoot());
+    setUp("exmlparser.config");
     ExmlParser exmlParser = new ExmlParser(registry);
 
     InputStream inputStream = getClass().getResourceAsStream("/exmlparser/TestNumber.exml");
@@ -110,9 +121,7 @@ public class ExmlParserTest {
 
   @Test
   public void testParseTestTrueFalse() throws Exception{
-    FileInputSource sourcePathInputSource = new FileInputSource(new File(getClass().getResource("/").toURI()));
-    FileInputSource classpathInputSource = new FileInputSource(new File(getClass().getResource("/").toURI()));
-    ConfigClassRegistry registry = new ConfigClassRegistry(sourcePathInputSource, classpathInputSource, "exmlparser.config", outputFolder.getRoot());
+    setUp("exmlparser.config");
     ExmlParser exmlParser = new ExmlParser(registry);
 
     InputStream inputStream = getClass().getResourceAsStream("/exmlparser/TestTrueFalse.exml");
@@ -137,6 +146,26 @@ public class ExmlParserTest {
                             "id", "foo",
                             "visible", false
                     ).settingWrapperClass("ext.config.panel")
+            )
+    );
+    System.out.println(model.getJsonObject().toString(2));
+    Assert.assertEquals(expectedJsonObject.toString(2), model.getJsonObject().toString(2));
+  }
+
+  @Test
+  public void testInheritProperties() throws Exception{
+    setUp("testNamespace.config");
+    ExmlParser exmlParser = new ExmlParser(registry);
+
+    InputStream inputStream = getClass().getResourceAsStream("/testPackage/TestComponent2.exml");
+    ExmlModel model = exmlParser.parse(inputStream);
+    Assert.assertEquals("testNamespace.config.TestComponent", model.getParentClassName());
+
+    JsonObject expectedJsonObject = new JsonObject(
+            "items", new JsonArray(
+                    new JsonObject(
+                            "propertyThree", "3"
+                    ).settingWrapperClass("testNamespace.config.TestComponent2")
             )
     );
     System.out.println(model.getJsonObject().toString(2));

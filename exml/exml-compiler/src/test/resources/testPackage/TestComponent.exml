@@ -9,6 +9,10 @@
     <exml:description>Some Number property</exml:description>
   </exml:cfg>
 
+  <exml:cfg name="propertyThree" type="String">
+    <exml:description>Some String property</exml:description>
+  </exml:cfg>
+
   <exml:description>This is a TestComponent with panel as baseclass.</exml:description>
 
   <panel title="I am inside a package!">

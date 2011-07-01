@@ -15,10 +15,7 @@ public final class ConfigClass extends DescriptionHolder {
 
   private String name;
   private String packageName;
-
   private String superClassName;
-  private String superClassPackage;
-
   private String componentName;
 
   public void addCfg(ConfigAttribute cfg) {
@@ -42,6 +39,10 @@ public final class ConfigClass extends DescriptionHolder {
     return name;
   }
 
+  public void setPackageName(String packageName) {
+    this.packageName = packageName;
+  }
+
   public String getPackageName() {
     return packageName;
   }
@@ -54,28 +55,16 @@ public final class ConfigClass extends DescriptionHolder {
     this.componentName = componentName;
   }
 
-  public void setPackageName(String packageName) {
-    this.packageName = packageName;
-  }
-
-  public String getSuperClassName() {
-    return superClassName;
+  public String getComponentName() {
+    return componentName;
   }
 
   public void setSuperClassName(String superClassName) {
     this.superClassName = superClassName;
   }
 
-  public String getSuperClassPackage() {
-    return superClassPackage;
-  }
-
-  public void setSuperClassPackage(String superClassPackage) {
-    this.superClassPackage = superClassPackage;
-  }
-
-  public String getComponentName() {
-    return componentName;
+  public String getSuperClassName() {
+    return superClassName;
   }
 
   @Override
@@ -92,8 +81,7 @@ public final class ConfigClass extends DescriptionHolder {
             componentName.equals(that.componentName) &&
             name.equals(that.name) &&
             packageName.equals(that.packageName) &&
-            superClassName.equals(that.superClassName) &&
-            superClassPackage.equals(that.superClassPackage);
+            superClassName.equals(that.superClassName);
   }
 
   @Override
@@ -102,7 +90,6 @@ public final class ConfigClass extends DescriptionHolder {
     result = 31 * result + name.hashCode();
     result = 31 * result + packageName.hashCode();
     result = 31 * result + superClassName.hashCode();
-    result = 31 * result + superClassPackage.hashCode();
     result = 31 * result + componentName.hashCode();
     return result;
   }

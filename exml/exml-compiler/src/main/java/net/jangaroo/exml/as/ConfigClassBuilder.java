@@ -13,6 +13,7 @@ import net.jangaroo.jooc.ast.ClassBody;
 import net.jangaroo.jooc.ast.ClassDeclaration;
 import net.jangaroo.jooc.ast.CommaSeparatedList;
 import net.jangaroo.jooc.ast.CompilationUnit;
+import net.jangaroo.jooc.ast.Extends;
 import net.jangaroo.jooc.ast.FunctionDeclaration;
 import net.jangaroo.jooc.ast.Ide;
 import net.jangaroo.jooc.ast.PackageDeclaration;
@@ -70,10 +71,19 @@ public class ConfigClassBuilder extends AstVisitorBase {
     configClass.setName(className);
     String description = parseDescription(classDeclaration.getSymClass(), classDeclaration.getSymModifiers());
     configClass.setDescription(description);
+    if (classDeclaration.getOptExtends() != null) {
+      classDeclaration.getOptExtends().visit(this);
+    }
     for (AstNode node : classDeclaration.getDirectives()) {
       node.visit(new ClassAnnotationsVisitor());
     }
     classDeclaration.getBody().visit(this);
+  }
+
+  @Override
+  public void visitExtends(Extends anExtends) throws IOException {
+    String superClassName = anExtends.getSuperClass().getQualifiedNameStr();
+    configClass.setSuperClassName(superClassName);
   }
 
   @Override

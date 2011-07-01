@@ -69,7 +69,7 @@ public class ConfigClassRegistryTest {
     Assert.assertNotNull(configClass);
     Assert.assertEquals("testNamespace.config", configClass.getPackageName());
     Assert.assertEquals("testPackage.TestComponent", configClass.getComponentName());
-    Assert.assertEquals(2, configClass.getCfgs().size());
+    Assert.assertEquals(3, configClass.getCfgs().size());
 
     // 2nd try should return the same object
     Assert.assertEquals(configClass, registry.getConfigClassByName("testNamespace.config.TestComponent"));
@@ -86,7 +86,7 @@ public class ConfigClassRegistryTest {
     Assert.assertNotNull(configClass);
     Assert.assertEquals("testNamespace.config", configClass.getPackageName());
     Assert.assertEquals("testPackage.TestComponent", configClass.getComponentName());
-    Assert.assertEquals(2, configClass.getCfgs().size());
+    Assert.assertEquals(3, configClass.getCfgs().size());
   }
 
   @Test
@@ -100,7 +100,7 @@ public class ConfigClassRegistryTest {
     Assert.assertNotNull(configClass);
     Assert.assertEquals("testNamespace.config", configClass.getPackageName());
     Assert.assertEquals("testPackage.TestComponent", configClass.getComponentName());
-    Assert.assertEquals(2, configClass.getCfgs().size());
+    Assert.assertEquals(3, configClass.getCfgs().size());
   }
 
   @Test(expected = Exception.class)

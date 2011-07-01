@@ -2,7 +2,7 @@
 package ${packageName} {
 
 import ext.ComponentMgr;
-import ${superClassPackage}.${superClassName};
+import ${superClassName};
 import ${componentName};
 
 /**

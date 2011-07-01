@@ -105,9 +105,9 @@ public final class ExmlParser {
       Attr attribute = (Attr) attributes.item(i);
       String attributeName = attribute.getLocalName();
       String attributeValue = attribute.getValue();
-      ConfigAttribute configAttribute = configClass.getCfgByName(attributeName);
+      ConfigAttribute configAttribute = getCfgByName(configClass, attributeName);
       if (configAttribute == null) {
-        jsonObject.set(attributeName, attributeValue);
+        setStarTypedAttribute(jsonObject, attributeName, attributeValue);
       } else {
         String type = configAttribute.getType();
         if ("Boolean".equals(type)) {
@@ -136,14 +136,14 @@ public final class ExmlParser {
       if (node.getNodeType() == Node.ELEMENT_NODE) {
         Element element = (Element) node;
         String elementName = element.getLocalName();
-        ConfigAttribute configAttribute = configClass.getCfgByName(elementName);
+        ConfigAttribute configAttribute = getCfgByName(configClass, elementName);
         if (configAttribute == null) {
-          //Okay, so we have to guess the type
+          // Okay, so we have to guess the type
           if(element.hasChildNodes() ) {
             if(element.hasAttributes()) {
-              //its a complex property with attributes and sub-properties
+              // its a complex property with attributes and sub-properties
               JsonObject property = parseAttributes(jsonObject, element);
-              //and ad the sub-properties to it
+              // and add the sub-properties to it
               NodeList propertyChildNotes = element.getChildNodes();
               for (int j = 0; j < propertyChildNotes.getLength(); j++) {
                 Node propertyNode = propertyChildNotes.item(j);
@@ -152,11 +152,11 @@ public final class ExmlParser {
                 }
               }
             } else {
-              //it seems to be an array
+              // it seems to be an array
               parseArray(jsonObject, element);
             }
           } else {
-            //its a simple property
+            // its a simple property
             parseAttributes(jsonObject, element);
           }
 
@@ -165,10 +165,26 @@ public final class ExmlParser {
           parseArray(jsonObject, element);
 
         } else {
-          //TODO: What here? also guessing? Or Error?
+          // TODO: What here? also guessing? Or Error?
         }
       }
     }
+  }
+
+  private ConfigAttribute getCfgByName(ConfigClass configClass, String attributeName) {
+    ConfigClass current = configClass;
+    while (current != null) {
+      ConfigAttribute configAttribute = current.getCfgByName(attributeName);
+      if (configAttribute != null) {
+        return configAttribute;
+      }
+      String superClassName = configClass.getSuperClassName();
+      if (superClassName == null) {
+        break;
+      }
+      current = registry.getConfigClassByName(superClassName);
+    }
+    return null;
   }
 
   private JsonObject parseAttributes(JsonObject jsonObject, Node node) {

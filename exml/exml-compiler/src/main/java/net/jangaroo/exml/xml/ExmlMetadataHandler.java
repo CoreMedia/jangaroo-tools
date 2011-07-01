@@ -8,55 +8,69 @@ import net.jangaroo.utils.CharacterRecordingHandler;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
+import javax.xml.namespace.QName;
+import java.util.Deque;
+import java.util.LinkedList;
+
 /**
  * Generates an internal representation of all metadata of the component described by the given EXML.
  */
 public class ExmlMetadataHandler extends CharacterRecordingHandler {
   private ConfigClass configClass;
-  private boolean expectsOptionalConfigDescription = false;
-  private boolean expectsOptionalComponentDescription = false;
+
+  private Deque<QName> elementPath = new LinkedList<QName>();
 
   public ExmlMetadataHandler(ConfigClass configClass) {
     this.configClass = configClass;
   }
 
   public void startElement(String uri, String localName, String qName, Attributes atts) throws SAXException {
-    if (ExmlConstants.EXML_NAMESPACE_URI.equals(uri)) {
-      if ("component".equals(localName)) {
-        //prepare characterStack for optional component description
-        expectsOptionalComponentDescription = true;
-      } else if ("cfg".equals(localName)) {
+    if (ExmlConstants.isExmlNamespace(uri)) {
+      if (ExmlConstants.EXML_CFG_NODE_NAME.equals(localName)) {
         //handle config elements
-        configClass.addCfg(new ConfigAttribute(atts.getValue("name"), atts.getValue("type"), null));
-        expectsOptionalConfigDescription = true;
-      } else if ("description".equals(localName)) {
-        if (expectsOptionalConfigDescription || expectsOptionalComponentDescription) {
+        configClass.addCfg(new ConfigAttribute(atts.getValue(ExmlConstants.EXML_CFG_NAME_ATTRIBUTE), atts.getValue(ExmlConstants.EXML_CFG_TYPE_ATTRIBUTE), null));
+      } else if (ExmlConstants.EXML_DESCRIPTION_NODE_NAME.equals(localName)) {
+        if (isLastInPathComponent() || isLastInPathConfig()) {
           // start recording characters of the description:
           startRecordingCharacters();
         }
       }
-    } else if (configClass.getSuperClassName() == null && configClass.getSuperClassPackage() == null) {
-      configClass.setSuperClassName(localName);
+    } else if (elementPath.size() == 1) {
+      if (configClass.getSuperClassName() != null) {
+        // todo: line number
+        throw new ExmlParseException("root node of EXML contained more than one component definition");
+      }
+
       String thePackage = ExmlConstants.parsePackageFromNamespace(uri);
       if (thePackage == null) {
         throw new ExmlParseException("namespace '" + uri + "' of superclass element in EXML file does not denote a config package");
       }
-      configClass.setSuperClassPackage(thePackage);
+      configClass.setSuperClassName(thePackage + "." + localName);
     }
+    elementPath.push(new QName(uri, localName));
+  }
+
+  private boolean isLastInPathComponent() {
+    QName parent = elementPath.peek();
+    return ExmlConstants.isExmlNamespace(parent.getNamespaceURI()) && ExmlConstants.EXML_COMPONENT_NODE_NAME.equals(parent.getLocalPart());
+  }
+
+  private boolean isLastInPathConfig() {
+    QName parent = elementPath.peek();
+    return ExmlConstants.isExmlNamespace(parent.getNamespaceURI()) && ExmlConstants.EXML_CFG_NODE_NAME.equals(parent.getLocalPart());
   }
 
   @Override
   public void endElement(String uri, String localName, String qName) throws SAXException {
-    if (ExmlConstants.EXML_NAMESPACE_URI.equals(uri)) {
-      if ("description".equals(localName)) {
+    if (ExmlConstants.isExmlNamespace(uri)) {
+      elementPath.pop();
+      if (ExmlConstants.EXML_DESCRIPTION_NODE_NAME.equals(localName)) {
         String characters = popRecordedCharacters();
         if (characters != null) {
-          if (expectsOptionalConfigDescription) {
+          if (isLastInPathConfig()) {
             configClass.getCfgs().get(configClass.getCfgs().size() - 1).setDescription(characters.trim());
-            expectsOptionalConfigDescription = false;
-          } else if (expectsOptionalComponentDescription) {
+          } else if (isLastInPathComponent()) {
             configClass.setDescription(characters.trim());
-            expectsOptionalComponentDescription = false;
           }
         }
       }
