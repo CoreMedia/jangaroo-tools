@@ -8,14 +8,11 @@ import net.jangaroo.jooc.ast.IdeDeclaration;
 import net.jangaroo.jooc.ast.ImportDirective;
 import net.jangaroo.jooc.ast.PredefinedTypeDeclaration;
 import net.jangaroo.jooc.ast.VariableDeclaration;
-import net.jangaroo.jooc.config.JoocConfiguration;
 import net.jangaroo.jooc.config.ParserOptions;
 import net.jangaroo.jooc.config.SemicolonInsertionMode;
 import net.jangaroo.jooc.input.InputSource;
-import net.jangaroo.jooc.input.PathInputSource;
 import net.jangaroo.utils.BOMStripperInputStream;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -33,7 +30,6 @@ public class JangarooParser {
   // a hack to always be able to access the current log:
   private static ThreadLocal<CompileLog> defaultLog = new ThreadLocal<CompileLog>();
 
-  private List<File> canoncicalSourcePath = new ArrayList<File>();
   private InputSource sourcePathInputSource;
   private InputSource classPathInputSource;
   private ParserOptions config;
@@ -117,27 +113,6 @@ public class JangarooParser {
     }
   }
 
-  protected File findSourceDir(final File file) throws IOException {
-    File canonicalFile = file.getCanonicalFile();
-    for (File sourceDir : canoncicalSourcePath) {
-      if (isParent(sourceDir, canonicalFile)) {
-        return sourceDir;
-      }
-    }
-    return null;
-  }
-
-  private boolean isParent(File dir, File file) throws IOException {
-    File parent = file.getParentFile();
-    while (parent != null) {
-      if (parent.equals(dir)) {
-        return true;
-      }
-      parent = parent.getParentFile();
-    }
-    return false;
-  }
-
   protected InputSource findSource(final String qname) {
     // scan sourcepath
     InputSource result = sourcePathInputSource.getChild(getInputSourceFileName(qname, sourcePathInputSource, AS_SUFFIX));
@@ -152,7 +127,7 @@ public class JangarooParser {
     return qname.replace('.', is.getFileSeparatorChar()) + extension;
   }
 
-  protected CompilationUnit importSource(InputSource source) {
+  public CompilationUnit importSource(InputSource source) {
     CompilationUnit unit = parse(source);
     if (unit != null) {
       unit.scope(globalScope);
@@ -173,18 +148,23 @@ public class JangarooParser {
 
   public IdeDeclaration resolveImport(final ImportDirective importDirective) {
     String qname = importDirective.getQualifiedName();
+    CompilationUnit compilationUnit = getCompilationsUnit(qname);
+    if (compilationUnit == null) {
+      throw error(importDirective.getSymbol(), "unable to resolve import of " + qname);
+    }
+    return compilationUnit.getPrimaryDeclaration();
+  }
+
+  public CompilationUnit getCompilationsUnit(String qname) {
     CompilationUnit compilationUnit = compilationUnitsByQName.get(qname);
     if (compilationUnit == null) {
       InputSource source = findSource(qname);
       if (source == null) {
-        throw error(importDirective.getSymbol(), "cannot find source for " + qname);
+        return null;
       }
       compilationUnit = importSource(source);
     }
-    if (compilationUnit == null) {
-      throw error("unable to resolve import of " + qname);
-    }
-    return compilationUnit.getPrimaryDeclaration();
+    return compilationUnit;
   }
 
   private void checkValidFileName(final String qname, final CompilationUnit unit, final InputSource source) {
@@ -245,27 +225,16 @@ public class JangarooParser {
             "this"});
   }
 
-  protected void setUp(ParserOptions config) {
+  public void setUp(ParserOptions config, InputSource sourcePathInputSource, InputSource classPathInputSource) {
     defaultLog.set(log);
     this.config = config;
-    buildGlobalScope();
-    for (File sourceDir : config.getSourcePath()) {
-      try {
-        canoncicalSourcePath.add(sourceDir.getCanonicalFile());
-      } catch (IOException e) {
-        throw new CompilerError("Cannot canonicalize source path dir: " + sourceDir.getAbsolutePath());
-      }
-    }
+    this.sourcePathInputSource = sourcePathInputSource;
+    this.classPathInputSource = classPathInputSource;
 
-    try {
-      sourcePathInputSource = PathInputSource.fromFiles(canoncicalSourcePath, new String[]{""});
-      classPathInputSource = PathInputSource.fromFiles(config.getClassPath(), new String[]{"", JOO_API_IN_JAR_DIRECTORY_PREFIX});
-    } catch (IOException e) {
-      throw new CompilerError("IO Exception occurred", e);
-    }
+    buildGlobalScope();
   }
 
-  protected void tearDown() {
+  public void tearDown() {
     defaultLog.remove();
   }
 }

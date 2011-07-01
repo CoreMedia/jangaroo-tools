@@ -3,6 +3,14 @@ package net.jangaroo.exml.model;
 import net.jangaroo.exml.ExmlParseException;
 import net.jangaroo.exml.as.ConfigClassBuilder;
 import net.jangaroo.exml.parser.ExmlConfigToActionScriptParser;
+import net.jangaroo.jooc.CompileLog;
+import net.jangaroo.jooc.JangarooParser;
+import net.jangaroo.jooc.JooSymbol;
+import net.jangaroo.jooc.Jooc;
+import net.jangaroo.jooc.StdOutCompileLog;
+import net.jangaroo.jooc.ast.CompilationUnit;
+import net.jangaroo.jooc.config.ParserOptions;
+import net.jangaroo.jooc.config.SemicolonInsertionMode;
 import net.jangaroo.jooc.input.FileInputSource;
 import net.jangaroo.jooc.input.InputSource;
 import org.apache.commons.io.FileUtils;
@@ -11,8 +19,10 @@ import org.apache.commons.io.filefilter.TrueFileFilter;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -28,6 +38,8 @@ public final class ConfigClassRegistry {
   private InputSource classPathInputSource;
   private String configClassPackage;
 
+  private JangarooParser jangarooParser;
+
   private static final String AS_SUFFIX = ".as";
   private static final String EXML_SUFFIX = ".exml";
 
@@ -36,6 +48,19 @@ public final class ConfigClassRegistry {
     this.classPathInputSource = classPathInputSource;
     this.configClassPackage = configClassPackage;
     this.outputRootDir = outputRootDir;
+
+    jangarooParser = new JangarooParser(new StdOutCompileLog());
+    jangarooParser.setUp(new ParserOptions() {
+      @Override
+      public SemicolonInsertionMode getSemicolonInsertionMode() {
+        return SemicolonInsertionMode.QUIRKS;
+      }
+
+      @Override
+      public boolean isVerbose() {
+        return false;
+      }
+    }, sourcePathInputSource, classPathInputSource);
   }
 
   /**
@@ -91,7 +116,8 @@ public final class ConfigClassRegistry {
       InputSource generatedConfigAsFile = outputDirInputSource.getChild(getInputSourceFileName(name, outputDirInputSource, AS_SUFFIX));
       if (generatedConfigAsFile != null) {
         // A candidate AS config class has already been generated.
-        ConfigClassBuilder configClassBuilder = new ConfigClassBuilder(generatedConfigAsFile);
+        CompilationUnit compilationUnit = Jooc.doParse(generatedConfigAsFile, new StdOutCompileLog(), SemicolonInsertionMode.QUIRKS);
+        ConfigClassBuilder configClassBuilder = new ConfigClassBuilder(compilationUnit);
         ConfigClass generatedAsConfigClass = configClassBuilder.buildConfigClass();
         if (generatedAsConfigClass != null) {
           // It is really a generated config class.
@@ -117,11 +143,10 @@ public final class ConfigClassRegistry {
   }
 
   private ConfigClass findActionScriptConfigClass(String name) {
-    InputSource inputSource = findActionScriptSource(name);
+    CompilationUnit compilationsUnit = jangarooParser.getCompilationsUnit(name);
     ConfigClass configClass = null;
-    if (inputSource != null) {
-      ConfigClassBuilder configClassBuilder = new ConfigClassBuilder(inputSource);
-      configClass = configClassBuilder.buildConfigClass();
+    if (compilationsUnit != null) {
+      configClass = buildConfigClass(compilationsUnit);
     }
     if (configClass == null) {
       throw new ExmlParseException("No config class '" + name + "' found.");
@@ -129,7 +154,12 @@ public final class ConfigClassRegistry {
     return configClass;
   }
 
-   private InputSource findActionScriptSource(final String name) {
+  private ConfigClass buildConfigClass(CompilationUnit compilationsUnit) {
+    ConfigClassBuilder configClassBuilder = new ConfigClassBuilder(compilationsUnit);
+    return configClassBuilder.buildConfigClass();
+  }
+
+  private InputSource findActionScriptSource(final String name) {
     // scan sourcepath
     InputSource result = sourcePathInputSource.getChild(getInputSourceFileName(name, sourcePathInputSource, AS_SUFFIX));
     if (result == null) {

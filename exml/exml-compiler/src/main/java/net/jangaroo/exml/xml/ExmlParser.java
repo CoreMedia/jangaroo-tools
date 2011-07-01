@@ -178,8 +178,8 @@ public final class ExmlParser {
       if (configAttribute != null) {
         return configAttribute;
       }
-      String superClassName = configClass.getSuperClassName();
-      if (superClassName == null) {
+      String superClassName = current.getSuperClassName();
+      if (superClassName == null || superClassName.equals("Object")) {
         break;
       }
       current = registry.getConfigClassByName(superClassName);

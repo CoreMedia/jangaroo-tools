@@ -23,6 +23,8 @@ import net.jangaroo.jooc.backend.SingleFileCompilationUnitSinkFactory;
 import net.jangaroo.jooc.config.JoocCommandLineParser;
 import net.jangaroo.jooc.config.JoocConfiguration;
 import net.jangaroo.jooc.input.FileInputSource;
+import net.jangaroo.jooc.input.InputSource;
+import net.jangaroo.jooc.input.PathInputSource;
 
 import java.io.File;
 import java.io.IOException;
@@ -76,8 +78,47 @@ public class Jooc extends JangarooParser {
     }
   }
 
+  private List<File> canoncicalSourcePath = new ArrayList<File>();
+
+  private boolean isParent(File dir, File file) throws IOException {
+    File parent = file.getParentFile();
+    while (parent != null) {
+      if (parent.equals(dir)) {
+        return true;
+      }
+      parent = parent.getParentFile();
+    }
+    return false;
+  }
+
+  protected File findSourceDir(final File file) throws IOException {
+    File canonicalFile = file.getCanonicalFile();
+    for (File sourceDir : canoncicalSourcePath) {
+      if (isParent(sourceDir, canonicalFile)) {
+        return sourceDir;
+      }
+    }
+    return null;
+  }
+
   private int run1(JoocConfiguration config) {
-    setUp(config);
+    for (File sourceDir : config.getSourcePath()) {
+      try {
+        canoncicalSourcePath.add(sourceDir.getCanonicalFile());
+      } catch (IOException e) {
+        throw new CompilerError("Cannot canonicalize source path dir: " + sourceDir.getAbsolutePath());
+      }
+    }
+    InputSource sourcePathInputSource;
+    InputSource classPathInputSource;
+    try {
+      sourcePathInputSource = PathInputSource.fromFiles(canoncicalSourcePath, new String[]{""});
+      classPathInputSource = PathInputSource.fromFiles(config.getClassPath(), new String[]{"", JOO_API_IN_JAR_DIRECTORY_PREFIX});
+    } catch (IOException e) {
+      throw new CompilerError("IO Exception occurred", e);
+    }
+
+    setUp(config, sourcePathInputSource, classPathInputSource);
 
     try {
       for (File sourceFile : config.getSourceFiles()) {

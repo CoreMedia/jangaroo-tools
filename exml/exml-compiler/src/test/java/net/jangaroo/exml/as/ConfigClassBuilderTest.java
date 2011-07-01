@@ -3,6 +3,10 @@ package net.jangaroo.exml.as;
 import net.jangaroo.exml.model.ConfigAttribute;
 import net.jangaroo.exml.model.ConfigClass;
 import net.jangaroo.jooc.CompilerError;
+import net.jangaroo.jooc.Jooc;
+import net.jangaroo.jooc.StdOutCompileLog;
+import net.jangaroo.jooc.ast.CompilationUnit;
+import net.jangaroo.jooc.config.SemicolonInsertionMode;
 import net.jangaroo.jooc.input.FileInputSource;
 import net.jangaroo.jooc.input.InputSource;
 import org.junit.Assert;
@@ -58,7 +62,8 @@ public class ConfigClassBuilderTest {
   private ConfigClass buildConfigClass(String resourceName) throws URISyntaxException {
     File sourceFile = new File(getClass().getResource(resourceName).toURI());
     InputSource inputSource = new FileInputSource(sourceFile);
-    ConfigClassBuilder configClassBuilder = new ConfigClassBuilder(inputSource);
+    CompilationUnit compilationUnit = Jooc.doParse(inputSource, new StdOutCompileLog(), SemicolonInsertionMode.QUIRKS);
+    ConfigClassBuilder configClassBuilder = new ConfigClassBuilder(compilationUnit);
     return configClassBuilder.buildConfigClass();
   }
 

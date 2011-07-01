@@ -36,15 +36,14 @@ public class ConfigClassBuilder extends AstVisitorBase {
   private static final String ASDOC_COMMENT_START = "/**";
 
 
-  private InputSource inputSource;
   private ConfigClass configClass;
+  private CompilationUnit compilationUnit;
 
-  public ConfigClassBuilder(InputSource inputSource) {
-    this.inputSource = inputSource;
+  public ConfigClassBuilder(CompilationUnit compilationUnit) {
+    this.compilationUnit = compilationUnit;
   }
 
   public ConfigClass buildConfigClass() {
-    CompilationUnit compilationUnit = Jooc.doParse(inputSource, new StdOutCompileLog(), SemicolonInsertionMode.QUIRKS);
     try {
       compilationUnit.visit(this);
     } catch (IOException e) {
@@ -68,23 +67,17 @@ public class ConfigClassBuilder extends AstVisitorBase {
 
   @Override
   public void visitClassDeclaration(ClassDeclaration classDeclaration) throws IOException {
-    String className = classDeclaration.getName();
-    configClass.setName(className);
+    String name = classDeclaration.getName();
+    configClass.setName(name);
+    ClassDeclaration superTypeDeclaration = classDeclaration.getSuperTypeDeclaration();
+    String superClassName = superTypeDeclaration == null ? null : superTypeDeclaration.getQualifiedNameStr();
+    configClass.setSuperClassName(superClassName);
     String description = parseDescription(classDeclaration.getSymClass(), classDeclaration.getSymModifiers());
     configClass.setDescription(description);
-    if (classDeclaration.getOptExtends() != null) {
-      classDeclaration.getOptExtends().visit(this);
-    }
     for (AstNode node : classDeclaration.getDirectives()) {
       node.visit(new ClassAnnotationsVisitor());
     }
     classDeclaration.getBody().visit(this);
-  }
-
-  @Override
-  public void visitExtends(Extends anExtends) throws IOException {
-    String superClassName = anExtends.getSuperClass().getQualifiedNameStr();
-    configClass.setSuperClassName(superClassName);
   }
 
   @Override

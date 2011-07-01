@@ -7,8 +7,4 @@ public interface ParserOptions {
   SemicolonInsertionMode getSemicolonInsertionMode();
 
   boolean isVerbose();
-
-  List<File> getSourcePath();
-
-  List<File> getClassPath();
 }

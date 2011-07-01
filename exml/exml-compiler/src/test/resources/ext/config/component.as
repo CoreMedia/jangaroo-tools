@@ -1,7 +1,7 @@
 package ext.config {
 
 [ExtConfig(target="Ext.Component")]
-public class component extends component{
+public class component {
 
   /**
    * Id of the component
