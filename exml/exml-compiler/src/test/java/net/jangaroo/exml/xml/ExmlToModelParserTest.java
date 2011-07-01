@@ -4,6 +4,7 @@ import net.jangaroo.exml.json.JsonArray;
 import net.jangaroo.exml.json.JsonObject;
 import net.jangaroo.exml.model.ConfigClassRegistry;
 import net.jangaroo.exml.model.ExmlModel;
+import net.jangaroo.exml.parser.ExmlToModelParser;
 import net.jangaroo.jooc.input.FileInputSource;
 import org.junit.Assert;
 import org.junit.Before;
@@ -16,7 +17,7 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.HashSet;
 
-public class ExmlParserTest {
+public class ExmlToModelParserTest {
   private FileInputSource sourcePathInputSource;
   private FileInputSource classpathInputSource;
   private ConfigClassRegistry registry;
@@ -37,10 +38,10 @@ public class ExmlParserTest {
   @Test
   public void testParseAllElements() throws Exception {
     setUp("exmlparser.config");
-    ExmlParser exmlParser = new ExmlParser(registry);
+    ExmlToModelParser exmlToModelParser = new ExmlToModelParser(registry);
 
     InputStream inputStream = getClass().getResourceAsStream("/exmlparser/AllElements.exml");
-    ExmlModel model = exmlParser.parse(inputStream);
+    ExmlModel model = exmlToModelParser.parse(inputStream);
     Assert.assertEquals(new HashSet<String>(Arrays.asList("ext.config.panel", "ext.config.button", "ext.config.menuitem", "ext.MessageBox")),
             model.getImports());
     Assert.assertEquals("ext.config.panel", model.getParentClassName());
@@ -85,10 +86,10 @@ public class ExmlParserTest {
   @Test
   public void testParseTestNumber() throws Exception{
     setUp("exmlparser.config");
-    ExmlParser exmlParser = new ExmlParser(registry);
+    ExmlToModelParser exmlToModelParser = new ExmlToModelParser(registry);
 
     InputStream inputStream = getClass().getResourceAsStream("/exmlparser/TestNumber.exml");
-    ExmlModel model = exmlParser.parse(inputStream);
+    ExmlModel model = exmlToModelParser.parse(inputStream);
     Assert.assertEquals("ext.config.panel", model.getParentClassName());
 
     JsonObject expectedJsonObject = new JsonObject(
@@ -122,10 +123,10 @@ public class ExmlParserTest {
   @Test
   public void testParseTestTrueFalse() throws Exception{
     setUp("exmlparser.config");
-    ExmlParser exmlParser = new ExmlParser(registry);
+    ExmlToModelParser exmlToModelParser = new ExmlToModelParser(registry);
 
     InputStream inputStream = getClass().getResourceAsStream("/exmlparser/TestTrueFalse.exml");
-    ExmlModel model = exmlParser.parse(inputStream);
+    ExmlModel model = exmlToModelParser.parse(inputStream);
     Assert.assertEquals("ext.config.panel", model.getParentClassName());
 
     JsonObject expectedJsonObject = new JsonObject(
@@ -155,10 +156,10 @@ public class ExmlParserTest {
   @Test
   public void testInheritProperties() throws Exception{
     setUp("testNamespace.config");
-    ExmlParser exmlParser = new ExmlParser(registry);
+    ExmlToModelParser exmlToModelParser = new ExmlToModelParser(registry);
 
     InputStream inputStream = getClass().getResourceAsStream("/testPackage/TestComponent2.exml");
-    ExmlModel model = exmlParser.parse(inputStream);
+    ExmlModel model = exmlToModelParser.parse(inputStream);
     Assert.assertEquals("testNamespace.config.TestComponent", model.getParentClassName());
 
     JsonObject expectedJsonObject = new JsonObject(

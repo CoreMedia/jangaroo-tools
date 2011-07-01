@@ -1,4 +1,4 @@
-package net.jangaroo.exml.xml;
+package net.jangaroo.exml.parser;
 
 import net.jangaroo.exml.ExmlConstants;
 import net.jangaroo.exml.ExmlParseException;
@@ -8,6 +8,7 @@ import net.jangaroo.exml.model.ConfigAttribute;
 import net.jangaroo.exml.model.ConfigClass;
 import net.jangaroo.exml.model.ConfigClassRegistry;
 import net.jangaroo.exml.model.ExmlModel;
+import net.jangaroo.exml.xml.PreserveLineNumberHandler;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -23,13 +24,13 @@ import javax.xml.parsers.SAXParserFactory;
 import java.io.IOException;
 import java.io.InputStream;
 
-public final class ExmlParser {
+public final class ExmlToModelParser {
 
   private final ConfigClassRegistry registry;
 
   ExmlModel model;
 
-  public ExmlParser(ConfigClassRegistry registry) {
+  public ExmlToModelParser(ConfigClassRegistry registry) {
     this.registry = registry;
   }
 

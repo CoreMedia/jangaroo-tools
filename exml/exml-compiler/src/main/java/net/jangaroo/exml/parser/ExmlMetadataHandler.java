@@ -1,4 +1,4 @@
-package net.jangaroo.exml.xml;
+package net.jangaroo.exml.parser;
 
 import net.jangaroo.exml.ExmlConstants;
 import net.jangaroo.exml.ExmlParseException;

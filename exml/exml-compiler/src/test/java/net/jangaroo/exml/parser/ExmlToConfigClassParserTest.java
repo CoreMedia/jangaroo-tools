@@ -14,7 +14,7 @@ import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 
-public class ExmlConfigToActionScriptParserTest {
+public class ExmlToConfigClassParserTest {
 
   @Rule
   public TemporaryFolder outputFolder = new TemporaryFolder();
@@ -25,7 +25,7 @@ public class ExmlConfigToActionScriptParserTest {
     File source = getFile("/testPackage/TestComponent.exml");
     File sourceRoot = getFile("/");
 
-    ConfigClass configClass = ExmlConfigToActionScriptParser.generateConfigClass(source, sourceRoot, outputFolder.getRoot(), "testNamespace.config");
+    ConfigClass configClass = ExmlToConfigClassParser.generateConfigClass(source, sourceRoot, outputFolder.getRoot(), "testNamespace.config");
 
     assertNotNull(configClass);
     assertTrue("Exml config file does not exist", result.exists());
@@ -43,7 +43,7 @@ public class ExmlConfigToActionScriptParserTest {
     File source = getFile("/testPackage/TestComponent.exml");
     File sourceRoot = getFile("/");
 
-    ExmlConfigToActionScriptParser.generateConfigClass(source, sourceRoot, outputFolder.getRoot(), "testNamespace.config");
+    ExmlToConfigClassParser.generateConfigClass(source, sourceRoot, outputFolder.getRoot(), "testNamespace.config");
 
     assertFalse("The files should differ because it was not written!", FileUtils.readFileToString(getFile("/testNamespace/config/TestComponent.as")).equals(FileUtils.readFileToString(result)));
   }
@@ -62,12 +62,12 @@ public class ExmlConfigToActionScriptParserTest {
     //change modification date to 'old'
     result.setLastModified(source.lastModified()-1000);
 
-    ExmlConfigToActionScriptParser.generateConfigClass(source, sourceRoot, outputFolder.getRoot(), "testNamespace.config");
+    ExmlToConfigClassParser.generateConfigClass(source, sourceRoot, outputFolder.getRoot(), "testNamespace.config");
 
     assertEquals("The files differ!", FileUtils.readFileToString(getFile("/testNamespace/config/TestComponent.as")), FileUtils.readFileToString(result));
   }
 
   private File getFile(String path) throws URISyntaxException {
-    return new File(ExmlConfigToActionScriptParserTest.class.getResource(path).toURI());
+    return new File(ExmlToConfigClassParserTest.class.getResource(path).toURI());
   }
 }

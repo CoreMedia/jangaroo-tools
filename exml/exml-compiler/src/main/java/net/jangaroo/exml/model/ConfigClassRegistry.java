@@ -2,10 +2,8 @@ package net.jangaroo.exml.model;
 
 import net.jangaroo.exml.ExmlParseException;
 import net.jangaroo.exml.as.ConfigClassBuilder;
-import net.jangaroo.exml.parser.ExmlConfigToActionScriptParser;
-import net.jangaroo.jooc.CompileLog;
+import net.jangaroo.exml.parser.ExmlToConfigClassParser;
 import net.jangaroo.jooc.JangarooParser;
-import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.StdOutCompileLog;
 import net.jangaroo.jooc.ast.CompilationUnit;
@@ -19,10 +17,8 @@ import org.apache.commons.io.filefilter.TrueFileFilter;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -74,7 +70,7 @@ public final class ConfigClassRegistry {
     for (File exmlFile : files) {
       if (!scannedExmlFiles.contains(exmlFile)) {
         scannedExmlFiles.add(exmlFile);
-        ConfigClass configClass = ExmlConfigToActionScriptParser.generateConfigClass(exmlFile, sourceRootDir, outputRootDir, configClassPackage);
+        ConfigClass configClass = ExmlToConfigClassParser.generateConfigClass(exmlFile, sourceRootDir, outputRootDir, configClassPackage);
         addConfigClassByName(configClass.getFullName(), configClass);
       }
     }
@@ -129,7 +125,7 @@ public final class ConfigClassRegistry {
           FileInputSource exmlInputSource = sourcePathInputSource.getChild(getInputSourceFileName(componentName, sourcePathInputSource, EXML_SUFFIX));
           if (exmlInputSource != null) {
             scannedExmlFiles.add(exmlInputSource.getFile());
-            ConfigClass configClass = ExmlConfigToActionScriptParser.generateConfigClass(exmlInputSource.getFile(), sourcePathInputSource.getSourceDir(), outputRootDir, configClassPackage);
+            ConfigClass configClass = ExmlToConfigClassParser.generateConfigClass(exmlInputSource.getFile(), sourcePathInputSource.getSourceDir(), outputRootDir, configClassPackage);
             addConfigClassByName(name, configClass);
             return;
           }

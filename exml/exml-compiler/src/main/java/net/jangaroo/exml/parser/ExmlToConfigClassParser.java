@@ -3,7 +3,6 @@ package net.jangaroo.exml.parser;
 import net.jangaroo.exml.ExmlParseException;
 import net.jangaroo.exml.generation.ExmlConfigClassGenerator;
 import net.jangaroo.exml.model.ConfigClass;
-import net.jangaroo.exml.xml.ExmlMetadataHandler;
 import org.apache.commons.io.FilenameUtils;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.XMLReader;
@@ -14,7 +13,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-public class ExmlConfigToActionScriptParser {
+public class ExmlToConfigClassParser {
 
 
   public static ConfigClass generateConfigClass(File source, File sourceRootDir, File outputRootDir, String configClassPackage) {
