@@ -21,7 +21,7 @@ public class ExmlToConfigClassParserTest extends AbstractExmlTest {
     File result = new File(outputFolder.getRoot(), "testNamespace/config/TestComponent.as");
     File source = getFile("/testPackage/TestComponent.exml");
 
-    ExmlConfigClassGenerator exmlConfigClassGenerator = new ExmlConfigClassGenerator(registry.getLocations(), registry.getConfigClassPackage());
+    ExmlConfigClassGenerator exmlConfigClassGenerator = new ExmlConfigClassGenerator(registry.getConfig());
     ConfigClass configClass = exmlConfigClassGenerator.generateConfigClass(source);
 
     assertNotNull(configClass);
@@ -40,7 +40,7 @@ public class ExmlToConfigClassParserTest extends AbstractExmlTest {
 
     File source = getFile("/testPackage/TestComponent.exml");
 
-    ExmlConfigClassGenerator exmlConfigClassGenerator = new ExmlConfigClassGenerator(registry.getLocations(), "testNamespace.config");
+    ExmlConfigClassGenerator exmlConfigClassGenerator = new ExmlConfigClassGenerator(registry.getConfig());
     exmlConfigClassGenerator.generateConfigClass(source);
 
     assertFalse("The files should differ because it was not written!", FileUtils.readFileToString(getFile("/testNamespace/config/TestComponent.as")).equals(FileUtils.readFileToString(result)));
@@ -60,7 +60,7 @@ public class ExmlToConfigClassParserTest extends AbstractExmlTest {
     //change modification date to 'old'
     result.setLastModified(source.lastModified()-1000);
 
-    ExmlConfigClassGenerator exmlConfigClassGenerator = new ExmlConfigClassGenerator(registry.getLocations(), "testNamespace.config");
+    ExmlConfigClassGenerator exmlConfigClassGenerator = new ExmlConfigClassGenerator(registry.getConfig());
     exmlConfigClassGenerator.generateConfigClass(source);
 
     assertEquals("The files differ!", FileUtils.readFileToString(getFile("/testNamespace/config/TestComponent.as")), FileUtils.readFileToString(result));

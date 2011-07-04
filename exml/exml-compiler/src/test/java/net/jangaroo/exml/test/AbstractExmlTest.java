@@ -1,13 +1,12 @@
 package net.jangaroo.exml.test;
 
+import net.jangaroo.exml.config.ExmlConfiguration;
 import net.jangaroo.exml.model.ConfigClassRegistry;
-import net.jangaroo.jooc.config.FileLocations;
 import net.jangaroo.jooc.input.FileInputSource;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
-import java.net.URISyntaxException;
 import java.util.Arrays;
 
 public abstract class AbstractExmlTest {
@@ -28,10 +27,11 @@ public abstract class AbstractExmlTest {
     File classPathFile = new File(getClass().getResource(classPathFileName).toURI());
     classpathInputSource = new FileInputSource(classPathFile);
 
-    FileLocations fileLocations = new FileLocations();
-    fileLocations.setSourcePath(Arrays.asList(sourcePathFile));
-    fileLocations.setClassPath(Arrays.asList(classPathFile));
-    fileLocations.setOutputDirectory(outputFolder.getRoot());
-    registry = new ConfigClassRegistry(fileLocations, sourcePathInputSource, classpathInputSource, configClassPackage);
+    ExmlConfiguration config = new ExmlConfiguration();
+    config.setSourcePath(Arrays.asList(sourcePathFile));
+    config.setClassPath(Arrays.asList(classPathFile));
+    config.setOutputDirectory(outputFolder.getRoot());
+    config.setConfigClassPackage(configClassPackage);
+    registry = new ConfigClassRegistry(config, sourcePathInputSource, classpathInputSource);
   }
 }

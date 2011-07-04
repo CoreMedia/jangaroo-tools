@@ -1,6 +1,7 @@
 package net.jangaroo.exml.parser;
 
 import net.jangaroo.exml.ExmlParseException;
+import net.jangaroo.exml.config.ExmlConfiguration;
 import net.jangaroo.exml.model.ConfigClass;
 import net.jangaroo.jooc.config.FileLocations;
 import org.apache.commons.io.FilenameUtils;
@@ -14,19 +15,17 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public class ExmlToConfigClassParser {
-  private FileLocations locations;
-  private String configClassPackage;
+  private ExmlConfiguration config;
 
-  public ExmlToConfigClassParser(FileLocations locations, String configClassPackage) {
-    this.locations = locations;
-    this.configClassPackage = configClassPackage;
+  public ExmlToConfigClassParser(ExmlConfiguration config) {
+    this.config = config;
   }
 
   public ConfigClass parseExmlToConfigClass(File source) throws IOException {
-    String fullQualifiedName = computeComponentFullQualifiedName(locations, source);
+    String fullQualifiedName = computeComponentFullQualifiedName(config, source);
     ConfigClass configClass = new ConfigClass();
     configClass.setComponentName(fullQualifiedName);
-    configClass.setPackageName(configClassPackage);
+    configClass.setPackageName(config.getConfigClassPackage());
     configClass.setName(FilenameUtils.getBaseName(source.getName()));
 
     //read exml data and write it into the config class

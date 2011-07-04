@@ -2,12 +2,12 @@ package net.jangaroo.exml.model;
 
 import net.jangaroo.exml.ExmlParseException;
 import net.jangaroo.exml.as.ConfigClassBuilder;
+import net.jangaroo.exml.config.ExmlConfiguration;
 import net.jangaroo.exml.generator.ExmlConfigClassGenerator;
 import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.StdOutCompileLog;
 import net.jangaroo.jooc.ast.CompilationUnit;
-import net.jangaroo.jooc.config.FileLocations;
 import net.jangaroo.jooc.config.ParserOptions;
 import net.jangaroo.jooc.config.SemicolonInsertionMode;
 import net.jangaroo.jooc.input.FileInputSource;
@@ -31,19 +31,17 @@ public final class ConfigClassRegistry {
   private Map<String, ConfigClass> configClassesByName = new HashMap<String, ConfigClass>();
   private Set<File> scannedExmlFiles = new HashSet<File>();
 
-  private FileLocations locations;
+  private ExmlConfiguration config;
   private FileInputSource sourcePathInputSource;
-  private String configClassPackage;
 
   private JangarooParser jangarooParser;
 
   private static final String AS_SUFFIX = ".as";
   private static final String EXML_SUFFIX = ".exml";
 
-  public ConfigClassRegistry(FileLocations locations, FileInputSource sourcePathInputSource, InputSource classPathInputSource, String configClassPackage) {
-    this.locations = locations;
+  public ConfigClassRegistry(ExmlConfiguration config, FileInputSource sourcePathInputSource, InputSource classPathInputSource) {
+    this.config = config;
     this.sourcePathInputSource = sourcePathInputSource;
-    this.configClassPackage = configClassPackage;
 
     ParserOptions parserOptions = new ParserOptions() {
       @Override
@@ -60,12 +58,8 @@ public final class ConfigClassRegistry {
     jangarooParser.setUp(sourcePathInputSource, classPathInputSource);
   }
 
-  public FileLocations getLocations() {
-    return locations;
-  }
-
-  public String getConfigClassPackage() {
-    return configClassPackage;
+  public ExmlConfiguration getConfig() {
+    return config;
   }
 
   /**
@@ -81,7 +75,7 @@ public final class ConfigClassRegistry {
         scannedExmlFiles.add(exmlFile);
         ConfigClass configClass = null;
         try {
-          configClass = new ExmlConfigClassGenerator(locations, configClassPackage).generateConfigClass(exmlFile);
+          configClass = new ExmlConfigClassGenerator(config).generateConfigClass(exmlFile);
           addConfigClassByName(configClass.getFullName(), configClass);
         } catch (IOException e) {
           // TODO Log and continue
@@ -121,9 +115,9 @@ public final class ConfigClassRegistry {
   }
 
   private void tryGenerateFromExml(String name) {
-    if (name.startsWith(configClassPackage + ".")) {
+    if (name.startsWith(config.getConfigClassPackage() + ".")) {
       // The config class might originate from one of of this module's EXML files.
-      FileInputSource outputDirInputSource = new FileInputSource(locations.getOutputDirectory(), locations.getOutputDirectory());
+      FileInputSource outputDirInputSource = new FileInputSource(config.getOutputDirectory(), config.getOutputDirectory());
       InputSource generatedConfigAsFile = outputDirInputSource.getChild(getInputSourceFileName(name, outputDirInputSource, AS_SUFFIX));
       if (generatedConfigAsFile != null) {
         // A candidate AS config class has already been generated.
@@ -142,7 +136,7 @@ public final class ConfigClassRegistry {
             scannedExmlFiles.add(exmlInputSource.getFile());
             ConfigClass configClass = null;
             try {
-              configClass = new ExmlConfigClassGenerator(locations, configClassPackage).generateConfigClass(exmlInputSource.getFile());
+              configClass = new ExmlConfigClassGenerator(config).generateConfigClass(exmlInputSource.getFile());
             } catch (IOException e) {
               // TODO log
               throw new IllegalStateException(e);

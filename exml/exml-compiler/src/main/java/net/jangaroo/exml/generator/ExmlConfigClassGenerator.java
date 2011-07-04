@@ -5,9 +5,9 @@ import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapper;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
+import net.jangaroo.exml.config.ExmlConfiguration;
 import net.jangaroo.exml.model.ConfigClass;
 import net.jangaroo.exml.parser.ExmlToConfigClassParser;
-import net.jangaroo.jooc.config.FileLocations;
 import net.jangaroo.utils.log.Log;
 
 import java.io.File;
@@ -22,21 +22,19 @@ import java.io.Writer;
 public final class ExmlConfigClassGenerator {
   private final static String OUTPUT_CHARSET = "UTF-8";
 
-  private FileLocations locations;
-  private String configClassPackage;
+  private ExmlConfiguration config;
   private ExmlToConfigClassParser exmlToConfigClassParser;
 
-  public ExmlConfigClassGenerator(FileLocations locations, String configClassPackage) {
-    this.locations = locations;
-    this.configClassPackage = configClassPackage;
+  public ExmlConfigClassGenerator(ExmlConfiguration config) {
+    this.config = config;
 
-    exmlToConfigClassParser = new ExmlToConfigClassParser(this.locations, this.configClassPackage);
+    exmlToConfigClassParser = new ExmlToConfigClassParser(config);
   }
 
   public ConfigClass generateConfigClass(File source) throws IOException {
     ConfigClass configClass = exmlToConfigClassParser.parseExmlToConfigClass(source);
 
-    File targetFile = computeConfigClassTargetPath(locations, configClass, configClassPackage);
+    File targetFile = computeConfigClassTargetPath(config, configClass);
 
     // only recreate file if result file is older than the source file
     if(mustGenerateConfigClass(source, targetFile)) {
@@ -87,8 +85,8 @@ public final class ExmlConfigClassGenerator {
     return !targetFile.exists() || targetFile.lastModified() < source.lastModified();
   }
 
-  private static File computeConfigClassTargetPath(FileLocations locations, ConfigClass configClass, String configClassPackage) {
-    File targetPackageFolder = new File(locations.getOutputDirectory(), configClassPackage.replaceAll("\\.", File.separator));
+  private static File computeConfigClassTargetPath(ExmlConfiguration config, ConfigClass configClass) {
+    File targetPackageFolder = new File(config.getOutputDirectory(), config.getConfigClassPackage().replaceAll("\\.", File.separator));
     return new File(targetPackageFolder, configClass.getName() + ".as");
   }
 }
