@@ -17,24 +17,7 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.HashSet;
 
-public class ExmlToModelParserTest {
-  private FileInputSource sourcePathInputSource;
-  private FileInputSource classpathInputSource;
-  private ConfigClassRegistry registry;
-
-  @Rule
-  public TemporaryFolder outputFolder = new TemporaryFolder();
-
-  @Before
-  public void setUp() throws Exception {
-  }
-
-  private void setUp(String configClassPackage) throws Exception {
-    sourcePathInputSource = new FileInputSource(new File(getClass().getResource("/").toURI()));
-    classpathInputSource = new FileInputSource(new File(getClass().getResource("/").toURI()));
-    registry = new ConfigClassRegistry(sourcePathInputSource, classpathInputSource, configClassPackage, outputFolder.getRoot());
-  }
-
+public class ExmlToModelParserTest extends AbstractExmlParserTest {
   @Test
   public void testParseAllElements() throws Exception {
     setUp("exmlparser.config");

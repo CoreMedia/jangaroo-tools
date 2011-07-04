@@ -17,6 +17,25 @@ public class ExmlToConfigClassParser {
 
 
   public static ConfigClass generateConfigClass(File source, File sourceRootDir, File outputRootDir, String configClassPackage) {
+    ConfigClass configClass = parseExmlToConfigClass(source, sourceRootDir, configClassPackage);
+
+    File targetPackageFolder = new File(outputRootDir, configClassPackage.replaceAll("\\.", File.separator));
+    if(!targetPackageFolder.exists()) {
+      targetPackageFolder.mkdirs();
+    }
+
+    File targetFile = new File(targetPackageFolder, configClass.getName() + ".as");
+
+    // only recreate file if result file is older than the source file
+    if(!targetFile.exists() || targetFile.lastModified() < source.lastModified()) {
+      // generate the new config class ActionScript file
+      ExmlConfigClassGenerator.generateClass(configClass, targetFile);
+    }
+
+    return configClass;
+  }
+
+  private static ConfigClass parseExmlToConfigClass(File source, File sourceRootDir, String configClassPackage) {
     String fullQualifiedName = computeComponentFullQualifiedName(sourceRootDir, source);
     ConfigClass configClass = new ConfigClass();
     configClass.setComponentName(fullQualifiedName);
@@ -26,20 +45,6 @@ public class ExmlToConfigClassParser {
     //read exml data and write it into the config class
     ExmlMetadataHandler metadataHandler = new ExmlMetadataHandler(configClass);
     parseFileWithHandler(source, metadataHandler);
-
-    File targetPackageFolder = new File(outputRootDir, configClassPackage.replaceAll("\\.", File.separator));
-    if(!targetPackageFolder.exists()) {
-      targetPackageFolder.mkdirs();
-    }
-
-    File targetFile = new File(targetPackageFolder, FilenameUtils.getBaseName(source.getName()) + ".as");
-
-    //only recreate file if result file is older than the source file
-    if(!targetFile.exists() || targetFile.lastModified() < source.lastModified()) {
-      //generate the new config class ActionScript file
-      ExmlConfigClassGenerator.generateClass(configClass, targetFile);
-    }
-
     return configClass;
   }
 

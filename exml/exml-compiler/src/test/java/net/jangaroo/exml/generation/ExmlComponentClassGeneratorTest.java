@@ -1,0 +1,33 @@
+package net.jangaroo.exml.generation;
+
+import net.jangaroo.exml.model.ExmlModel;
+import net.jangaroo.exml.parser.ExmlToModelParser;
+import net.jangaroo.exml.xml.AbstractExmlParserTest;
+import org.apache.commons.io.FileUtils;
+import org.junit.Assert;
+import org.junit.Test;
+
+import java.io.File;
+import java.io.InputStream;
+import java.io.StringWriter;
+import java.net.URISyntaxException;
+
+public class ExmlComponentClassGeneratorTest extends AbstractExmlParserTest {
+  @Test
+  public void testGenerateClass() throws Exception {
+    setUp("exmlparser.config");
+    String expected = FileUtils.readFileToString(new File(getClass().getResource("/exmlparser/AllElements.as").toURI()));
+    InputStream inputStream = getClass().getResourceAsStream("/exmlparser/AllElements.exml");
+    ExmlToModelParser exmlToModelParser = new ExmlToModelParser(registry);
+    ExmlModel model = exmlToModelParser.parse(inputStream);
+    model.setName("AllElements");
+
+    StringWriter output = new StringWriter();
+    ExmlComponentClassGenerator.generateClass(model, "exmlparser", output);
+    Assert.assertEquals(expected, output.toString());
+  }
+
+  private File getFile(String path) throws URISyntaxException {
+    return new File(ExmlComponentClassGeneratorTest.class.getResource(path).toURI());
+  }
+}
