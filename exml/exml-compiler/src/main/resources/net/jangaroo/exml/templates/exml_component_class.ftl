@@ -1,8 +1,7 @@
 <#-- @ftlvariable name="" type="net.jangaroo.exml.generation.RenderableExmlComponent" -->
 package ${packageName} {
 
-import ext.ComponentMgr;
-<#list model.imports as import>
+<#list allImports as import>
 import ${import};
 </#list>
 
@@ -11,7 +10,7 @@ import ${import};
  */
 public class ${model.name} extends ${model.parentClassName} {
   public function ${model.name}(config:Object = null) {
-    super(Ext.apply(${formattedConfig!}, config);
+    super(ext.Ext.apply(${formattedConfig!}, config));
   }
 }
 }

@@ -1,5 +1,6 @@
 package exmlparser {
 
+import ext.Ext;
 import ext.ComponentMgr;
 import ext.MessageBox;
 import ext.config.panel;
@@ -11,7 +12,7 @@ import ext.config.menuitem;
  */
 public class AllElements extends ext.config.panel {
   public function AllElements(config:Object = null) {
-    super(Ext.apply({
+    super(ext.Ext.apply({
       layout: config.myLayout,
       title: "I am a panel",
       defaults: {layout: "border"},
@@ -33,7 +34,7 @@ public class AllElements extends ext.config.panel {
         handler: function(x){return ''+x;},
         id: "gear"
       }]
-    }, config);
+    }, config));
   }
 }
 }

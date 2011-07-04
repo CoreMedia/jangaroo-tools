@@ -15,7 +15,7 @@ import java.net.URISyntaxException;
  * Time: 09:37
  * To change this template use File | Settings | File Templates.
  */
-public class AbstractExmlParserTest {
+public abstract class AbstractExmlParserTest {
   private FileInputSource sourcePathInputSource;
   private FileInputSource classpathInputSource;
   protected ConfigClassRegistry registry;
