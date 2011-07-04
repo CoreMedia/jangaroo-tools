@@ -14,7 +14,15 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public class ExmlToConfigClassParser {
-  public static ConfigClass parseExmlToConfigClass(File source, FileLocations locations, String configClassPackage) throws IOException {
+  private FileLocations locations;
+  private String configClassPackage;
+
+  public ExmlToConfigClassParser(FileLocations locations, String configClassPackage) {
+    this.locations = locations;
+    this.configClassPackage = configClassPackage;
+  }
+
+  public ConfigClass parseExmlToConfigClass(File source) throws IOException {
     String fullQualifiedName = computeComponentFullQualifiedName(locations, source);
     ConfigClass configClass = new ConfigClass();
     configClass.setComponentName(fullQualifiedName);

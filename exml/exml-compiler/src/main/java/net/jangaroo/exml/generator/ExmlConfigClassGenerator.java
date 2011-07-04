@@ -24,15 +24,17 @@ public final class ExmlConfigClassGenerator {
 
   private FileLocations locations;
   private String configClassPackage;
+  private ExmlToConfigClassParser exmlToConfigClassParser;
 
   public ExmlConfigClassGenerator(FileLocations locations, String configClassPackage) {
     this.locations = locations;
-
     this.configClassPackage = configClassPackage;
+
+    exmlToConfigClassParser = new ExmlToConfigClassParser(this.locations, this.configClassPackage);
   }
 
   public ConfigClass generateConfigClass(File source) throws IOException {
-    ConfigClass configClass = ExmlToConfigClassParser.parseExmlToConfigClass(source, locations, configClassPackage);
+    ConfigClass configClass = exmlToConfigClassParser.parseExmlToConfigClass(source);
 
     File targetFile = computeConfigClassTargetPath(locations, configClass, configClassPackage);
 
