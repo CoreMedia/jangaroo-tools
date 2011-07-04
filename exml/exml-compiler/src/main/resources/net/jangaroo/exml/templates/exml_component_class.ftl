@@ -10,7 +10,7 @@ import ${import};
  */
 public class ${model.name} extends ${model.parentClassName} {
   public function ${model.name}(config:Object = null) {
-    super(ext.Ext.apply(${formattedConfig!}, config));
+    super(ext.Ext.apply(${formattedConfig}, config));
   }
 }
 }

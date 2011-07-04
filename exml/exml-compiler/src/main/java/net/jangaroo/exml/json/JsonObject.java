@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class JsonObject implements Json {
+  static final String LINE_SEPARATOR = System.getProperty("line.separator");
   private Map<String, Object> properties = new LinkedHashMap<String, Object>();
   private String wrapperClass;
 
@@ -207,7 +208,7 @@ public class JsonObject implements Json {
   }
 
   private void newlineAndIndent(StringBuilder sb, int indent) {
-    sb.append('\n');
+    sb.append(LINE_SEPARATOR);
     for (int i = 0; i < indent; i++) {
       sb.append(' ');
     }

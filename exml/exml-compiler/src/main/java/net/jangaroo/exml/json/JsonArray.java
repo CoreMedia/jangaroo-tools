@@ -36,17 +36,17 @@ public class JsonArray implements Json {
       sb.append(JsonObject.valueToString(null, this.items.get(0), indentFactor, indent));
     } else {
       int newindent = indent + indentFactor;
-      sb.append('\n');
+      sb.append(JsonObject.LINE_SEPARATOR);
       for (i = 0; i < len; i += 1) {
         if (i > 0) {
-          sb.append(",\n");
+          sb.append(",").append(JsonObject.LINE_SEPARATOR);
         }
         for (int j = 0; j < newindent; j += 1) {
           sb.append(' ');
         }
         sb.append(JsonObject.valueToString(null, this.items.get(i),indentFactor, newindent));
       }
-      sb.append('\n');
+      sb.append(JsonObject.LINE_SEPARATOR);
       for (i = 0; i < indent; i += 1) {
         sb.append(' ');
       }

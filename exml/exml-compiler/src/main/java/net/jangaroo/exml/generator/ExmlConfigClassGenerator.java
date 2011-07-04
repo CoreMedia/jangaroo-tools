@@ -15,12 +15,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.regex.Matcher;
 
 /**
  *
  */
 public final class ExmlConfigClassGenerator {
   private final static String OUTPUT_CHARSET = "UTF-8";
+  private static final String QUOTED_FILE_SEPARATOR = Matcher.quoteReplacement(File.separator);
 
   private ExmlConfiguration config;
   private ExmlToConfigClassParser exmlToConfigClassParser;
@@ -86,7 +88,7 @@ public final class ExmlConfigClassGenerator {
   }
 
   private static File computeConfigClassTargetPath(ExmlConfiguration config, ConfigClass configClass) {
-    File targetPackageFolder = new File(config.getOutputDirectory(), config.getConfigClassPackage().replaceAll("\\.", File.separator));
+    File targetPackageFolder = new File(config.getOutputDirectory(), config.getConfigClassPackage().replaceAll("\\.", QUOTED_FILE_SEPARATOR));
     return new File(targetPackageFolder, configClass.getName() + ".as");
   }
 }
