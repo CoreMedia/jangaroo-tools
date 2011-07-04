@@ -1,6 +1,6 @@
 package net.jangaroo.exml.test;
 
-import net.jangaroo.exml.generation.ExmlConfigClassGenerator;
+import net.jangaroo.exml.generator.ExmlConfigClassGenerator;
 import net.jangaroo.exml.model.ConfigClass;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;

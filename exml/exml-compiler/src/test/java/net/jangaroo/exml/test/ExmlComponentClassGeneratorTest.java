@@ -1,6 +1,6 @@
 package net.jangaroo.exml.test;
 
-import net.jangaroo.exml.generation.ExmlComponentClassGenerator;
+import net.jangaroo.exml.generator.ExmlComponentClassGenerator;
 import net.jangaroo.exml.model.ExmlModel;
 import net.jangaroo.exml.parser.ExmlToModelParser;
 import org.apache.commons.io.FileUtils;

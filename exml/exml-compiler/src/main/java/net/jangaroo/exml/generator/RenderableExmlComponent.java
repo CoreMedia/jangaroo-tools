@@ -1,4 +1,4 @@
-package net.jangaroo.exml.generation;
+package net.jangaroo.exml.generator;
 
 import net.jangaroo.exml.model.ExmlModel;
 

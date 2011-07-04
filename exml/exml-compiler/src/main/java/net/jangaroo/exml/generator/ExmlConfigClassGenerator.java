@@ -1,4 +1,4 @@
-package net.jangaroo.exml.generation;
+package net.jangaroo.exml.generator;
 
 import freemarker.core.Environment;
 import freemarker.template.Configuration;

@@ -1,7 +1,6 @@
 package net.jangaroo.exml.parser;
 
 import net.jangaroo.exml.ExmlParseException;
-import net.jangaroo.exml.generation.ExmlConfigClassGenerator;
 import net.jangaroo.exml.model.ConfigClass;
 import net.jangaroo.jooc.config.FileLocations;
 import org.apache.commons.io.FilenameUtils;

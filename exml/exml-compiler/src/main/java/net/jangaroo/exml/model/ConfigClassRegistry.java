@@ -2,7 +2,7 @@ package net.jangaroo.exml.model;
 
 import net.jangaroo.exml.ExmlParseException;
 import net.jangaroo.exml.as.ConfigClassBuilder;
-import net.jangaroo.exml.generation.ExmlConfigClassGenerator;
+import net.jangaroo.exml.generator.ExmlConfigClassGenerator;
 import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.StdOutCompileLog;
