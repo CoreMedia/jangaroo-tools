@@ -1,10 +1,8 @@
 package net.jangaroo.extxml.mojo;
 
-import net.jangaroo.extxml.file.SrcFileScanner;
-import net.jangaroo.extxml.generation.JooClassGenerator;
-import net.jangaroo.extxml.generation.XsdGenerator;
-import net.jangaroo.extxml.model.ComponentSuite;
-import net.jangaroo.extxml.xml.XsdScanner;
+import net.jangaroo.exml.config.ExmlConfiguration;
+import net.jangaroo.exml.model.ConfigClassRegistry;
+import net.jangaroo.jooc.mvnplugin.util.MavenPluginHelper;
 import net.jangaroo.utils.log.Log;
 import net.jangaroo.utils.log.LogHandler;
 import org.apache.maven.artifact.Artifact;
@@ -24,7 +22,9 @@ import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -41,6 +41,12 @@ public abstract class AbstractExtXmlMojo extends AbstractMojo {
    * @readonly
    */
   private MavenProject project;
+  /**
+   * The package into which config classes of EXML components are generated.
+   *
+   * @parameter
+   */
+  private String configClassPackage;
   /**
    * The XSD Schema that will be generated for this component suite
    *
@@ -80,6 +86,10 @@ public abstract class AbstractExtXmlMojo extends AbstractMojo {
     return importedXsds;
   }
 
+  protected List<File> getActionScriptClassPath() {
+    return new MavenPluginHelper(project, getLog()).getActionScriptClassPath();
+  }
+
   public void execute() throws MojoExecutionException, MojoFailureException {
 
     File generatedSourcesDirectory = getGeneratedSourcesDirectory();
@@ -96,6 +106,19 @@ public abstract class AbstractExtXmlMojo extends AbstractMojo {
 
     MavenLogHandler errorHandler = new MavenLogHandler();
     Log.setLogHandler(errorHandler);
+    ExmlConfiguration exmlConfiguration = new ExmlConfiguration();
+    exmlConfiguration.setConfigClassPackage(configClassPackage);
+    exmlConfiguration.setClassPath(getActionScriptClassPath());
+    exmlConfiguration.setOutputDirectory(getGeneratedSourcesDirectory());
+    exmlConfiguration.setSourceFiles();
+    try {
+      exmlConfiguration.setSourcePath(Collections.singletonList(getSourceDirectory()));
+    } catch (IOException e) {
+      throw new MojoExecutionException("could not determine source directory", e);
+    }
+
+
+    ConfigClassRegistry registry = new ConfigClassRegistry()
     ComponentSuite suite = new ComponentSuite(getNamespace(), getNamespacePrefix(), getSourceDirectory(), generatedSourcesDirectory);
     XsdScanner xsdScanner = new XsdScanner();
 

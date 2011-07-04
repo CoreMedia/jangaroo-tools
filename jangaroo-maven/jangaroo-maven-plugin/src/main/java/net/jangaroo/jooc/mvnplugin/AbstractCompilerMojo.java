@@ -4,6 +4,7 @@ import net.jangaroo.jooc.AbstractCompileLog;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.config.JoocConfiguration;
 import net.jangaroo.jooc.config.SemicolonInsertionMode;
+import net.jangaroo.jooc.mvnplugin.util.MavenPluginHelper;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -260,20 +261,8 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
   }
 
   protected List<File> getActionScriptClassPath() {
-    List<File> classPath = new ArrayList<File>();
-    classPath.add(new File(project.getBasedir(), "src/main/joo-api"));
-    Collection<Artifact> dependencies = getArtifacts();
-    for (Artifact dependency : dependencies) {
-      if (getLog().isDebugEnabled()) {
-        getLog().debug("Dependency: " + dependency.getGroupId() + ":" + dependency.getArtifactId() + "type: " + dependency.getType());
-      }
-      if (!dependency.isOptional() && Types.JANGAROO_TYPE.equals(dependency.getType())) {
-        if (getLog().isDebugEnabled()) {
-          getLog().debug("adding to classpath: jangaroo dependency [" + dependency.toString() + "]");
-        }
-        classPath.add(dependency.getFile());
-      }
-    }
+    List<File> classPath = new ArrayList<File>(new MavenPluginHelper(project, log).getActionScriptClassPath());
+    classPath.add(0, new File(project.getBasedir(), "src/main/joo-api"));
     return classPath;
   }
 
@@ -351,13 +340,20 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
 
 
     File outputDirectory = getClassesOutputDirectory();
+    List<File> compileSourceRoots = getCompileSourceRoots();
 
 
+    Set<File> staleSources = computeStaleSources(scanner, outputDirectory, compileSourceRoots);
+
+    return staleSources;
+  }
+
+  public static Set<File> computeStaleSources(SourceInclusionScanner scanner, File outputDirectory, List<File> compileSourceRoots) throws MojoExecutionException {
     scanner.addSourceMapping(new SuffixMapping(Jooc.INPUT_FILE_SUFFIX, Jooc.OUTPUT_FILE_SUFFIX));
     getLog().debug("Searching for");
     Set<File> staleSources = new HashSet<File>();
 
-    for (File rootFile : getCompileSourceRoots()) {
+    for (File rootFile : compileSourceRoots) {
       if (!rootFile.isDirectory()) {
         continue;
       }
@@ -372,7 +368,6 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
           "Error scanning source root: \'" + rootFile.getAbsolutePath() + "\' " + "for stale files to recompile.", e);
       }
     }
-
     return staleSources;
   }
 

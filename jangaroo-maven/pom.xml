@@ -12,7 +12,6 @@
     <relativePath>../jangaroo-parent/pom.xml</relativePath>
   </parent>
   <modules>
-    <module>ext-xml-maven-plugin</module>
     <module>jangaroo-maven-plugin</module>
   </modules>
   <build>

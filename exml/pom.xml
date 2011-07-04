@@ -14,6 +14,7 @@
   <modules>
     <module>exml-compiler</module>
     <module>ext-xml</module>
+    <module>exml-maven-plugin</module>
     <module>properties-compiler</module>
   </modules>
   <build>

@@ -8,7 +8,12 @@
   <dependencies>
     <dependency>
       <groupId>net.jangaroo</groupId>
-      <artifactId>ext-xml</artifactId>
+      <artifactId>exml-compiler</artifactId>
+      <version>0.8.5-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>net.jangaroo</groupId>
+      <artifactId>jangaroo-maven-plugin</artifactId>
       <version>0.8.5-SNAPSHOT</version>
     </dependency>
     <dependency>
