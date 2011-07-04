@@ -15,30 +15,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public class ExmlToConfigClassParser {
-  public static ConfigClass generateConfigClass(File source, FileLocations locations, String configClassPackage) throws IOException {
-    ConfigClass configClass = parseExmlToConfigClass(source, locations, configClassPackage);
-
-    File targetPackageFolder = new File(locations.getOutputDirectory(), configClassPackage.replaceAll("\\.", File.separator));
-    if(!targetPackageFolder.exists()) {
-      targetPackageFolder.mkdirs();
-    }
-
-    File targetFile = getConfigClassOutputFileName(configClass, targetPackageFolder);
-
-    // only recreate file if result file is older than the source file
-    if(!targetFile.exists() || targetFile.lastModified() < source.lastModified()) {
-      // generate the new config class ActionScript file
-      ExmlConfigClassGenerator.generateClass(configClass, targetFile);
-    }
-
-    return configClass;
-  }
-
-  public static File getConfigClassOutputFileName(ConfigClass configClass, File targetPackageFolder) {
-    return new File(targetPackageFolder, configClass.getName() + ".as");
-  }
-
-  private static ConfigClass parseExmlToConfigClass(File source, FileLocations locations, String configClassPackage) throws IOException {
+  public static ConfigClass parseExmlToConfigClass(File source, FileLocations locations, String configClassPackage) throws IOException {
     String fullQualifiedName = computeComponentFullQualifiedName(locations, source);
     ConfigClass configClass = new ConfigClass();
     configClass.setComponentName(fullQualifiedName);

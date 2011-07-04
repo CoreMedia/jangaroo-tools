@@ -2,7 +2,7 @@ package net.jangaroo.exml.model;
 
 import net.jangaroo.exml.ExmlParseException;
 import net.jangaroo.exml.as.ConfigClassBuilder;
-import net.jangaroo.exml.parser.ExmlToConfigClassParser;
+import net.jangaroo.exml.generation.ExmlConfigClassGenerator;
 import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.StdOutCompileLog;
@@ -81,7 +81,7 @@ public final class ConfigClassRegistry {
         scannedExmlFiles.add(exmlFile);
         ConfigClass configClass = null;
         try {
-          configClass = ExmlToConfigClassParser.generateConfigClass(exmlFile, locations, configClassPackage);
+          configClass = new ExmlConfigClassGenerator(locations, configClassPackage).generateConfigClass(exmlFile);
           addConfigClassByName(configClass.getFullName(), configClass);
         } catch (IOException e) {
           // TODO Log and continue
@@ -142,7 +142,7 @@ public final class ConfigClassRegistry {
             scannedExmlFiles.add(exmlInputSource.getFile());
             ConfigClass configClass = null;
             try {
-              configClass = ExmlToConfigClassParser.generateConfigClass(exmlInputSource.getFile(), locations, configClassPackage);
+              configClass = new ExmlConfigClassGenerator(locations, configClassPackage).generateConfigClass(exmlInputSource.getFile());
             } catch (IOException e) {
               // TODO log
               throw new IllegalStateException(e);

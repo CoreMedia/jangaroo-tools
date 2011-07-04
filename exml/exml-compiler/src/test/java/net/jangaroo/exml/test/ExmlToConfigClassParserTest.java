@@ -1,11 +1,9 @@
 package net.jangaroo.exml.test;
 
+import net.jangaroo.exml.generation.ExmlConfigClassGenerator;
 import net.jangaroo.exml.model.ConfigClass;
-import net.jangaroo.exml.parser.ExmlToConfigClassParser;
 import org.apache.commons.io.FileUtils;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.net.URISyntaxException;
@@ -23,7 +21,8 @@ public class ExmlToConfigClassParserTest extends AbstractExmlTest {
     File result = new File(outputFolder.getRoot(), "testNamespace/config/TestComponent.as");
     File source = getFile("/testPackage/TestComponent.exml");
 
-    ConfigClass configClass = ExmlToConfigClassParser.generateConfigClass(source, registry.getLocations(), registry.getConfigClassPackage());
+    ExmlConfigClassGenerator exmlConfigClassGenerator = new ExmlConfigClassGenerator(registry.getLocations(), registry.getConfigClassPackage());
+    ConfigClass configClass = exmlConfigClassGenerator.generateConfigClass(source);
 
     assertNotNull(configClass);
     assertTrue("Exml config file does not exist", result.exists());
@@ -41,7 +40,8 @@ public class ExmlToConfigClassParserTest extends AbstractExmlTest {
 
     File source = getFile("/testPackage/TestComponent.exml");
 
-    ExmlToConfigClassParser.generateConfigClass(source, registry.getLocations(), "testNamespace.config");
+    ExmlConfigClassGenerator exmlConfigClassGenerator = new ExmlConfigClassGenerator(registry.getLocations(), "testNamespace.config");
+    exmlConfigClassGenerator.generateConfigClass(source);
 
     assertFalse("The files should differ because it was not written!", FileUtils.readFileToString(getFile("/testNamespace/config/TestComponent.as")).equals(FileUtils.readFileToString(result)));
   }
@@ -60,7 +60,8 @@ public class ExmlToConfigClassParserTest extends AbstractExmlTest {
     //change modification date to 'old'
     result.setLastModified(source.lastModified()-1000);
 
-    ExmlToConfigClassParser.generateConfigClass(source, registry.getLocations(), "testNamespace.config");
+    ExmlConfigClassGenerator exmlConfigClassGenerator = new ExmlConfigClassGenerator(registry.getLocations(), "testNamespace.config");
+    exmlConfigClassGenerator.generateConfigClass(source);
 
     assertEquals("The files differ!", FileUtils.readFileToString(getFile("/testNamespace/config/TestComponent.as")), FileUtils.readFileToString(result));
   }
