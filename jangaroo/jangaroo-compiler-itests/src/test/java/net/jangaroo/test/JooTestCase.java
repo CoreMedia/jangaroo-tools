@@ -17,6 +17,7 @@ package net.jangaroo.test;
 
 import net.jangaroo.jooc.Jooc;
 import junit.framework.TestCase;
+import net.jangaroo.jooc.StdOutCompileLog;
 
 import java.io.File;
 
@@ -92,9 +93,8 @@ public abstract class JooTestCase extends TestCase {
     if (ea) args = concat("-ea", args);
     if (destinationDir != null) args = concat(new String[]{"-d", destinationDir}, args);
     if (sourcePath != null) args = concat(new String[]{"-sourcepath", sourcePath}, args);
-    Jooc compiler = new Jooc();
     System.out.println("jooc " + toString(args));
-    return compiler.run(args);
+    return Jooc.run(args, new StdOutCompileLog());
   }
 
   protected int runJooc(String filename) {

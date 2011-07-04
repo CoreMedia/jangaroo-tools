@@ -7,6 +7,7 @@ import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.StdOutCompileLog;
 import net.jangaroo.jooc.ast.CompilationUnit;
+import net.jangaroo.jooc.config.FileLocations;
 import net.jangaroo.jooc.config.ParserOptions;
 import net.jangaroo.jooc.config.SemicolonInsertionMode;
 import net.jangaroo.jooc.input.FileInputSource;
@@ -16,6 +17,7 @@ import org.apache.commons.io.filefilter.SuffixFileFilter;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -29,9 +31,8 @@ public final class ConfigClassRegistry {
   private Map<String, ConfigClass> configClassesByName = new HashMap<String, ConfigClass>();
   private Set<File> scannedExmlFiles = new HashSet<File>();
 
-  private File outputRootDir;
+  private FileLocations locations;
   private FileInputSource sourcePathInputSource;
-  private InputSource classPathInputSource;
   private String configClassPackage;
 
   private JangarooParser jangarooParser;
@@ -39,14 +40,12 @@ public final class ConfigClassRegistry {
   private static final String AS_SUFFIX = ".as";
   private static final String EXML_SUFFIX = ".exml";
 
-  public ConfigClassRegistry(FileInputSource sourcePathInputSource, InputSource classPathInputSource, String configClassPackage, File outputRootDir) {
+  public ConfigClassRegistry(FileLocations locations, FileInputSource sourcePathInputSource, InputSource classPathInputSource, String configClassPackage) {
+    this.locations = locations;
     this.sourcePathInputSource = sourcePathInputSource;
-    this.classPathInputSource = classPathInputSource;
     this.configClassPackage = configClassPackage;
-    this.outputRootDir = outputRootDir;
 
-    jangarooParser = new JangarooParser(new StdOutCompileLog());
-    jangarooParser.setUp(new ParserOptions() {
+    ParserOptions parserOptions = new ParserOptions() {
       @Override
       public SemicolonInsertionMode getSemicolonInsertionMode() {
         return SemicolonInsertionMode.QUIRKS;
@@ -56,7 +55,17 @@ public final class ConfigClassRegistry {
       public boolean isVerbose() {
         return false;
       }
-    }, sourcePathInputSource, classPathInputSource);
+    };
+    jangarooParser = new JangarooParser(parserOptions, new StdOutCompileLog());
+    jangarooParser.setUp(sourcePathInputSource, classPathInputSource);
+  }
+
+  public FileLocations getLocations() {
+    return locations;
+  }
+
+  public String getConfigClassPackage() {
+    return configClassPackage;
   }
 
   /**
@@ -70,8 +79,14 @@ public final class ConfigClassRegistry {
     for (File exmlFile : files) {
       if (!scannedExmlFiles.contains(exmlFile)) {
         scannedExmlFiles.add(exmlFile);
-        ConfigClass configClass = ExmlToConfigClassParser.generateConfigClass(exmlFile, sourceRootDir, outputRootDir, configClassPackage);
-        addConfigClassByName(configClass.getFullName(), configClass);
+        ConfigClass configClass = null;
+        try {
+          configClass = ExmlToConfigClassParser.generateConfigClass(exmlFile, locations, configClassPackage);
+          addConfigClassByName(configClass.getFullName(), configClass);
+        } catch (IOException e) {
+          // TODO Log and continue
+          throw new IllegalStateException(e);
+        }
       }
     }
   }
@@ -108,7 +123,7 @@ public final class ConfigClassRegistry {
   private void tryGenerateFromExml(String name) {
     if (name.startsWith(configClassPackage + ".")) {
       // The config class might originate from one of of this module's EXML files.
-      FileInputSource outputDirInputSource = new FileInputSource(outputRootDir, outputRootDir);
+      FileInputSource outputDirInputSource = new FileInputSource(locations.getOutputDirectory(), locations.getOutputDirectory());
       InputSource generatedConfigAsFile = outputDirInputSource.getChild(getInputSourceFileName(name, outputDirInputSource, AS_SUFFIX));
       if (generatedConfigAsFile != null) {
         // A candidate AS config class has already been generated.
@@ -125,7 +140,13 @@ public final class ConfigClassRegistry {
           FileInputSource exmlInputSource = sourcePathInputSource.getChild(getInputSourceFileName(componentName, sourcePathInputSource, EXML_SUFFIX));
           if (exmlInputSource != null) {
             scannedExmlFiles.add(exmlInputSource.getFile());
-            ConfigClass configClass = ExmlToConfigClassParser.generateConfigClass(exmlInputSource.getFile(), sourcePathInputSource.getSourceDir(), outputRootDir, configClassPackage);
+            ConfigClass configClass = null;
+            try {
+              configClass = ExmlToConfigClassParser.generateConfigClass(exmlInputSource.getFile(), locations, configClassPackage);
+            } catch (IOException e) {
+              // TODO log
+              throw new IllegalStateException(e);
+            }
             addConfigClassByName(name, configClass);
             return;
           }
@@ -153,16 +174,6 @@ public final class ConfigClassRegistry {
   private ConfigClass buildConfigClass(CompilationUnit compilationsUnit) {
     ConfigClassBuilder configClassBuilder = new ConfigClassBuilder(compilationsUnit);
     return configClassBuilder.buildConfigClass();
-  }
-
-  private InputSource findActionScriptSource(final String name) {
-    // scan sourcepath
-    InputSource result = sourcePathInputSource.getChild(getInputSourceFileName(name, sourcePathInputSource, AS_SUFFIX));
-    if (result == null) {
-      // scan classpath
-      result = classPathInputSource.getChild(getInputSourceFileName(name, classPathInputSource, AS_SUFFIX));
-    }
-    return result;
   }
 
   private String getInputSourceFileName(final String qname, InputSource is, String extension) {

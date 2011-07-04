@@ -41,7 +41,8 @@ public class JangarooParser {
     declareType(globalScope, "*");
   }
 
-  public JangarooParser(CompileLog log) {
+  public JangarooParser(ParserOptions config, CompileLog log) {
+    this.config = config;
     this.log = log;
   }
 
@@ -67,6 +68,10 @@ public class JangarooParser {
 
   public static void warning(String msg) {
     defaultLog.get().warning(msg);
+  }
+
+  public ParserOptions getConfig() {
+    return config;
   }
 
   public static CompilationUnit doParse(InputSource in, CompileLog log, SemicolonInsertionMode semicolonInsertionMode) {
@@ -225,7 +230,7 @@ public class JangarooParser {
             "this"});
   }
 
-  public void setUp(ParserOptions config, InputSource sourcePathInputSource, InputSource classPathInputSource) {
+  public void setUp(InputSource sourcePathInputSource, InputSource classPathInputSource) {
     defaultLog.set(log);
     this.config = config;
     this.sourcePathInputSource = sourcePathInputSource;

@@ -1,5 +1,7 @@
-package net.jangaroo.exml.model;
+package net.jangaroo.exml.test;
 
+import net.jangaroo.exml.model.ConfigClass;
+import net.jangaroo.exml.model.ConfigClassRegistry;
 import net.jangaroo.jooc.input.FileInputSource;
 import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
@@ -12,17 +14,10 @@ import java.io.File;
 /**
  *
  */
-public class ConfigClassRegistryTest {
-
-  @Rule
-  public TemporaryFolder outputFolder = new TemporaryFolder();
-
+public class ConfigClassRegistryTest extends AbstractExmlTest {
   @Test
   public void testScanInitially() throws Exception {
-    FileInputSource sourcePathInputSource = new FileInputSource(new File(getClass().getResource("/").toURI()));
-    FileInputSource classpathInputSource = new FileInputSource(new File(getClass().getResource("/").toURI()));
-
-    ConfigClassRegistry registry = new ConfigClassRegistry(sourcePathInputSource, classpathInputSource, "testNamespace.config", outputFolder.getRoot());
+    setUp("testNamespace.config");
     registry.scanAllExmlFiles();
 
     ConfigClass configClass = registry.getConfigClassByName("testNamespace.config.TestLabel");
@@ -34,10 +29,7 @@ public class ConfigClassRegistryTest {
 
   @Test
   public void testGenerateFromExml() throws Exception {
-    FileInputSource sourcePathInputSource = new FileInputSource(new File(getClass().getResource("/").toURI()));
-    FileInputSource classpathInputSource = new FileInputSource(new File(getClass().getResource("/").toURI()));
-
-    ConfigClassRegistry registry = new ConfigClassRegistry(sourcePathInputSource, classpathInputSource, "testNamespace.config", outputFolder.getRoot());
+    setUp("testNamespace.config");
 
     ConfigClass configClass = registry.getConfigClassByName("testNamespace.config.TestLabel");
     Assert.assertNotNull(configClass);
@@ -55,15 +47,12 @@ public class ConfigClassRegistryTest {
 
   @Test
   public void testGenerateFromExmlWithPregeneratedActionScript() throws Exception {
-    FileInputSource sourcePathInputSource = new FileInputSource(new File(getClass().getResource("/").toURI()));
-    FileInputSource classpathInputSource = new FileInputSource(new File(getClass().getResource("/").toURI()));
+    setUp("testNamespace.config");
 
     File destDir = new File(outputFolder.getRoot(), "testNamespace/config");
     destDir.mkdirs();
     FileUtils.copyFileToDirectory(sourcePathInputSource.getChild("testNamespace/config/TestComponent.as").getFile(),
             destDir);
-
-    ConfigClassRegistry registry = new ConfigClassRegistry(sourcePathInputSource, classpathInputSource, "testNamespace.config", outputFolder.getRoot());
 
     ConfigClass configClass = registry.getConfigClassByName("testNamespace.config.TestComponent");
     Assert.assertNotNull(configClass);
@@ -77,10 +66,7 @@ public class ConfigClassRegistryTest {
 
   @Test
   public void testGenerateFromLocalActionScript() throws Exception {
-    FileInputSource sourcePathInputSource = new FileInputSource(new File(getClass().getResource("/").toURI()));
-    FileInputSource classpathInputSource = new FileInputSource(new File(getClass().getResource("/almostEmptyPackage").toURI()));
-
-    ConfigClassRegistry registry = new ConfigClassRegistry(sourcePathInputSource, classpathInputSource, "somewhere.else.config", outputFolder.getRoot());
+    setUp("somewhere.else.config", "/", "/almostEmptyPackage");
 
     ConfigClass configClass = registry.getConfigClassByName("testNamespace.config.TestComponent");
     Assert.assertNotNull(configClass);
@@ -91,10 +77,7 @@ public class ConfigClassRegistryTest {
 
   @Test
   public void testGenerateFromClassPathActionScript() throws Exception {
-    FileInputSource sourcePathInputSource = new FileInputSource(new File(getClass().getResource("/almostEmptyPackage").toURI()));
-    FileInputSource classpathInputSource = new FileInputSource(new File(getClass().getResource("/").toURI()));
-
-    ConfigClassRegistry registry = new ConfigClassRegistry(sourcePathInputSource, classpathInputSource, "somewhere.else.config", outputFolder.getRoot());
+    setUp("somewhere.else.config", "/almostEmptyPackage", "/");
 
     ConfigClass configClass = registry.getConfigClassByName("testNamespace.config.TestComponent");
     Assert.assertNotNull(configClass);
@@ -105,9 +88,7 @@ public class ConfigClassRegistryTest {
 
   @Test(expected = Exception.class)
   public void testDoesNotExist() throws Exception {
-    FileInputSource sourcePathInputSource = new FileInputSource(new File(getClass().getResource("/").toURI()));
-    FileInputSource classpathInputSource = new FileInputSource(new File(getClass().getResource("/").toURI()));
-    ConfigClassRegistry registry = new ConfigClassRegistry(sourcePathInputSource, classpathInputSource, "testNamespace.config", outputFolder.getRoot());
+    setUp("testNamespace.config");
     registry.getConfigClassByName("does.not.Exist");
   }
 }

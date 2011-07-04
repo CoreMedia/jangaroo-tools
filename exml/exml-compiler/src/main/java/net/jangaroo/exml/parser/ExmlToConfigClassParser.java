@@ -3,6 +3,7 @@ package net.jangaroo.exml.parser;
 import net.jangaroo.exml.ExmlParseException;
 import net.jangaroo.exml.generation.ExmlConfigClassGenerator;
 import net.jangaroo.exml.model.ConfigClass;
+import net.jangaroo.jooc.config.FileLocations;
 import org.apache.commons.io.FilenameUtils;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.XMLReader;
@@ -14,17 +15,15 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public class ExmlToConfigClassParser {
+  public static ConfigClass generateConfigClass(File source, FileLocations locations, String configClassPackage) throws IOException {
+    ConfigClass configClass = parseExmlToConfigClass(source, locations, configClassPackage);
 
-
-  public static ConfigClass generateConfigClass(File source, File sourceRootDir, File outputRootDir, String configClassPackage) {
-    ConfigClass configClass = parseExmlToConfigClass(source, sourceRootDir, configClassPackage);
-
-    File targetPackageFolder = new File(outputRootDir, configClassPackage.replaceAll("\\.", File.separator));
+    File targetPackageFolder = new File(locations.getOutputDirectory(), configClassPackage.replaceAll("\\.", File.separator));
     if(!targetPackageFolder.exists()) {
       targetPackageFolder.mkdirs();
     }
 
-    File targetFile = new File(targetPackageFolder, configClass.getName() + ".as");
+    File targetFile = getConfigClassOutputFileName(configClass, targetPackageFolder);
 
     // only recreate file if result file is older than the source file
     if(!targetFile.exists() || targetFile.lastModified() < source.lastModified()) {
@@ -35,8 +34,12 @@ public class ExmlToConfigClassParser {
     return configClass;
   }
 
-  private static ConfigClass parseExmlToConfigClass(File source, File sourceRootDir, String configClassPackage) {
-    String fullQualifiedName = computeComponentFullQualifiedName(sourceRootDir, source);
+  public static File getConfigClassOutputFileName(ConfigClass configClass, File targetPackageFolder) {
+    return new File(targetPackageFolder, configClass.getName() + ".as");
+  }
+
+  private static ConfigClass parseExmlToConfigClass(File source, FileLocations locations, String configClassPackage) throws IOException {
+    String fullQualifiedName = computeComponentFullQualifiedName(locations, source);
     ConfigClass configClass = new ConfigClass();
     configClass.setComponentName(fullQualifiedName);
     configClass.setPackageName(configClassPackage);
@@ -72,8 +75,9 @@ public class ExmlToConfigClassParser {
     }
   }
 
-  private static String computeComponentFullQualifiedName(File rootFolder, File sourceFile) {
-    int rootDirPathLength = rootFolder.getPath().length()+1;
+  private static String computeComponentFullQualifiedName(FileLocations locations, File sourceFile) throws IOException {
+    File sourceDir = locations.findSourceDir(sourceFile);
+    int rootDirPathLength = sourceDir.getPath().length()+1;
     String subpath = FilenameUtils.removeExtension(sourceFile.getPath().substring(rootDirPathLength));
     return subpath.replaceAll("\\" + File.separator, "\\.");
   }

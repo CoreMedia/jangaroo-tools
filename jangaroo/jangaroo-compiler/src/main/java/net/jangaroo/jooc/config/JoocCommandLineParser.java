@@ -13,6 +13,7 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.UnrecognizedOptionException;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -122,8 +123,12 @@ public class JoocCommandLineParser {
     List<File> cp = parsePath(line, classPath);
 
    if (sp != null) {
-      config.setSourcePath(sp);
-    }
+     try {
+       config.setSourcePath(sp);
+     } catch (IOException e) {
+       throw new CommandLineParseException("could not canonicalize source path: " + sp, Jooc.RESULT_CODE_ILLEGAL_OPTION_VALUE);
+     }
+   }
     if (cp != null) {
       config.setClassPath(cp);
     }

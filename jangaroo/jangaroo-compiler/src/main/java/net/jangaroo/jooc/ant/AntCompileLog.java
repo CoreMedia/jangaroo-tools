@@ -1,10 +1,11 @@
 package net.jangaroo.jooc.ant;
 
+import net.jangaroo.jooc.AbstractCompileLog;
 import net.jangaroo.jooc.CompileLog;
 import net.jangaroo.jooc.StdOutCompileLog;
 import org.apache.tools.ant.Project;
 
-public class AntCompileLog extends StdOutCompileLog implements CompileLog {
+public class AntCompileLog extends AbstractCompileLog {
 
   private Project project;
 
@@ -24,15 +25,13 @@ public class AntCompileLog extends StdOutCompileLog implements CompileLog {
   }
 
   @Override
-  public void error(final String msg) {
+  protected void doLogError(String msg) {
     getProject().log(msg, Project.MSG_ERR);
-    errors = true;
   }
 
   @Override
   public void warning(final String msg) {
     // MSG_WARN does not appear in the output when run with maven-antrun-plugin
     getProject().log(msg, Project.MSG_ERR);
-    warnings = true;
   }
 }

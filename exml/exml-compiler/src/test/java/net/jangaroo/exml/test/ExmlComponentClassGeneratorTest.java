@@ -1,8 +1,8 @@
-package net.jangaroo.exml.generation;
+package net.jangaroo.exml.test;
 
+import net.jangaroo.exml.generation.ExmlComponentClassGenerator;
 import net.jangaroo.exml.model.ExmlModel;
 import net.jangaroo.exml.parser.ExmlToModelParser;
-import net.jangaroo.exml.xml.AbstractExmlParserTest;
 import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
 import org.junit.Test;
@@ -12,7 +12,7 @@ import java.io.InputStream;
 import java.io.StringWriter;
 import java.net.URISyntaxException;
 
-public class ExmlComponentClassGeneratorTest extends AbstractExmlParserTest {
+public class ExmlComponentClassGeneratorTest extends AbstractExmlTest {
   @Test
   public void testGenerateClass() throws Exception {
     setUp("exmlparser.config");

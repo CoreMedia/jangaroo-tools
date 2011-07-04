@@ -1,6 +1,7 @@
-package net.jangaroo.exml.parser;
+package net.jangaroo.exml.test;
 
 import net.jangaroo.exml.model.ConfigClass;
+import net.jangaroo.exml.parser.ExmlToConfigClassParser;
 import org.apache.commons.io.FileUtils;
 import org.junit.Rule;
 import org.junit.Test;
@@ -14,18 +15,15 @@ import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 
-public class ExmlToConfigClassParserTest {
-
-  @Rule
-  public TemporaryFolder outputFolder = new TemporaryFolder();
+public class ExmlToConfigClassParserTest extends AbstractExmlTest {
 
   @Test
   public void testGenerateConfig() throws Exception {
+    setUp("testNamespace.config");
     File result = new File(outputFolder.getRoot(), "testNamespace/config/TestComponent.as");
     File source = getFile("/testPackage/TestComponent.exml");
-    File sourceRoot = getFile("/");
 
-    ConfigClass configClass = ExmlToConfigClassParser.generateConfigClass(source, sourceRoot, outputFolder.getRoot(), "testNamespace.config");
+    ConfigClass configClass = ExmlToConfigClassParser.generateConfigClass(source, registry.getLocations(), registry.getConfigClassPackage());
 
     assertNotNull(configClass);
     assertTrue("Exml config file does not exist", result.exists());
@@ -34,6 +32,7 @@ public class ExmlToConfigClassParserTest {
 
   @Test
   public void testGenerateWithExisitingNewOutputFile() throws Exception {
+    setUp("testNamespace.config");
     File packageFolder = new File(outputFolder.getRoot(), "testNamespace/config/");
     packageFolder.mkdirs();
 
@@ -41,15 +40,15 @@ public class ExmlToConfigClassParserTest {
     result.createNewFile();
 
     File source = getFile("/testPackage/TestComponent.exml");
-    File sourceRoot = getFile("/");
 
-    ExmlToConfigClassParser.generateConfigClass(source, sourceRoot, outputFolder.getRoot(), "testNamespace.config");
+    ExmlToConfigClassParser.generateConfigClass(source, registry.getLocations(), "testNamespace.config");
 
     assertFalse("The files should differ because it was not written!", FileUtils.readFileToString(getFile("/testNamespace/config/TestComponent.as")).equals(FileUtils.readFileToString(result)));
   }
 
   @Test
   public void testGenerateWithExisitingOldOutputFile() throws Exception {
+    setUp("testNamespace.config");
     File packageFolder = new File(outputFolder.getRoot(), "testNamespace/config/");
     packageFolder.mkdirs();
 
@@ -57,12 +56,11 @@ public class ExmlToConfigClassParserTest {
     result.createNewFile();
 
     File source = getFile("/testPackage/TestComponent.exml");
-    File sourceRoot = getFile("/");
 
     //change modification date to 'old'
     result.setLastModified(source.lastModified()-1000);
 
-    ExmlToConfigClassParser.generateConfigClass(source, sourceRoot, outputFolder.getRoot(), "testNamespace.config");
+    ExmlToConfigClassParser.generateConfigClass(source, registry.getLocations(), "testNamespace.config");
 
     assertEquals("The files differ!", FileUtils.readFileToString(getFile("/testNamespace/config/TestComponent.as")), FileUtils.readFileToString(result));
   }

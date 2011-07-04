@@ -311,7 +311,6 @@ public class JoocTask extends MatchingTask {
           + (destDir != null ? " to " + destDir : ""));
 
       String[] joocArgs = getJoocArgs();
-      Jooc jooc = new Jooc(new AntCompileLog(getProject()));
       log("configured AntCompileLog");
       if (verbose) {
         StringBuffer cmdLine = new StringBuffer(100);
@@ -322,7 +321,7 @@ public class JoocTask extends MatchingTask {
         }
         getProject().log(cmdLine.toString());
       }
-      if (jooc.run(joocArgs) != 0) {
+      if (Jooc.run(joocArgs, new AntCompileLog(getProject())) != 0) {
         if (failOnError) {
           throw new BuildException(FAIL_MSG, getLocation());
         } else {

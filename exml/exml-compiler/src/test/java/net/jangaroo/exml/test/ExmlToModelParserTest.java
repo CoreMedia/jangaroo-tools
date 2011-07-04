@@ -1,23 +1,18 @@
-package net.jangaroo.exml.xml;
+package net.jangaroo.exml.test;
 
+import net.jangaroo.exml.test.AbstractExmlTest;
 import net.jangaroo.exml.json.JsonArray;
 import net.jangaroo.exml.json.JsonObject;
-import net.jangaroo.exml.model.ConfigClassRegistry;
 import net.jangaroo.exml.model.ExmlModel;
 import net.jangaroo.exml.parser.ExmlToModelParser;
-import net.jangaroo.jooc.input.FileInputSource;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
-import java.io.File;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.HashSet;
 
-public class ExmlToModelParserTest extends AbstractExmlParserTest {
+public class ExmlToModelParserTest extends AbstractExmlTest {
   @Test
   public void testParseAllElements() throws Exception {
     setUp("exmlparser.config");

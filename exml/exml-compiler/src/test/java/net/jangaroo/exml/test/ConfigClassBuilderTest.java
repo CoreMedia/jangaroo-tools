@@ -1,5 +1,6 @@
-package net.jangaroo.exml.as;
+package net.jangaroo.exml.test;
 
+import net.jangaroo.exml.as.ConfigClassBuilder;
 import net.jangaroo.exml.model.ConfigAttribute;
 import net.jangaroo.exml.model.ConfigClass;
 import net.jangaroo.jooc.CompilerError;

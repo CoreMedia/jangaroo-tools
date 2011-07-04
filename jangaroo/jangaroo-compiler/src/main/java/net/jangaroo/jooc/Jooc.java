@@ -44,6 +44,7 @@ public class Jooc extends JangarooParser {
   public static final int RESULT_CODE_INTERNAL_COMPILER_ERROR = 2;
   public static final int RESULT_CODE_UNRECOGNIZED_OPTION = 3;
   public static final int RESULT_CODE_MISSING_OPTION_ARGUMENT = 4;
+  public static final int RESULT_CODE_ILLEGAL_OPTION_VALUE = 5;
 
   public static final String INPUT_FILE_SUFFIX = AS_SUFFIX;
   public static final String OUTPUT_FILE_SUFFIX = ".js";
@@ -54,17 +55,21 @@ public class Jooc extends JangarooParser {
 
   private List<CompilationUnit> compileQueue = new ArrayList<CompilationUnit>();
 
-  public Jooc() {
-    this(new StdOutCompileLog());
+  public Jooc(JoocConfiguration config) {
+    this(config, new StdOutCompileLog());
   }
 
-  public Jooc(CompileLog log) {
-    super(log);
+  public Jooc(JoocConfiguration config, CompileLog log) {
+    super(config, log);
   }
 
-  public int run(JoocConfiguration config) {
+  public JoocConfiguration getConfig() {
+    return (JoocConfiguration) super.getConfig();
+  }
+
+  public int run() {
     try {
-      return run1(config);
+      return run1();
     } catch (CompilerError e) {
       if (e.getSymbol() != null) {
         log.error(e.getSymbol(), e.getMessage());
@@ -78,63 +83,33 @@ public class Jooc extends JangarooParser {
     }
   }
 
-  private List<File> canoncicalSourcePath = new ArrayList<File>();
-
-  private boolean isParent(File dir, File file) throws IOException {
-    File parent = file.getParentFile();
-    while (parent != null) {
-      if (parent.equals(dir)) {
-        return true;
-      }
-      parent = parent.getParentFile();
-    }
-    return false;
-  }
-
-  protected File findSourceDir(final File file) throws IOException {
-    File canonicalFile = file.getCanonicalFile();
-    for (File sourceDir : canoncicalSourcePath) {
-      if (isParent(sourceDir, canonicalFile)) {
-        return sourceDir;
-      }
-    }
-    return null;
-  }
-
-  private int run1(JoocConfiguration config) {
-    for (File sourceDir : config.getSourcePath()) {
-      try {
-        canoncicalSourcePath.add(sourceDir.getCanonicalFile());
-      } catch (IOException e) {
-        throw new CompilerError("Cannot canonicalize source path dir: " + sourceDir.getAbsolutePath());
-      }
-    }
+  private int run1() {
     InputSource sourcePathInputSource;
     InputSource classPathInputSource;
     try {
-      sourcePathInputSource = PathInputSource.fromFiles(canoncicalSourcePath, new String[]{""});
-      classPathInputSource = PathInputSource.fromFiles(config.getClassPath(), new String[]{"", JOO_API_IN_JAR_DIRECTORY_PREFIX});
+      sourcePathInputSource = PathInputSource.fromFiles(getConfig().getSourcePath(), new String[]{""});
+      classPathInputSource = PathInputSource.fromFiles(getConfig().getClassPath(), new String[]{"", JOO_API_IN_JAR_DIRECTORY_PREFIX});
     } catch (IOException e) {
       throw new CompilerError("IO Exception occurred", e);
     }
 
-    setUp(config, sourcePathInputSource, classPathInputSource);
+    setUp(sourcePathInputSource, classPathInputSource);
 
     try {
-      for (File sourceFile : config.getSourceFiles()) {
+      for (File sourceFile : getConfig().getSourceFiles()) {
         processSource(sourceFile);
       }
 
-      CompilationUnitSinkFactory codeSinkFactory = createSinkFactory(config, false);
+      CompilationUnitSinkFactory codeSinkFactory = createSinkFactory(getConfig(), false);
       CompilationUnitSinkFactory apiSinkFactory = null;
-      if (config.isGenerateApi()) {
-        apiSinkFactory = createSinkFactory(config, true);
+      if (getConfig().isGenerateApi()) {
+        apiSinkFactory = createSinkFactory(getConfig(), true);
       }
       for (CompilationUnit unit : compileQueue) {
-        unit.analyze(null, new AnalyzeContext(config));
-        writeOutput(unit, codeSinkFactory, config.isVerbose());
-        if (config.isGenerateApi()) {
-          writeOutput(unit, apiSinkFactory, config.isVerbose());
+        unit.analyze(null, new AnalyzeContext(getConfig()));
+        writeOutput(unit, codeSinkFactory, getConfig().isVerbose());
+        if (getConfig().isGenerateApi()) {
+          writeOutput(unit, apiSinkFactory, getConfig().isVerbose());
         }
       }
     } catch (IOException e) {
@@ -183,6 +158,8 @@ public class Jooc extends JangarooParser {
         return "unrecognized option";
       case RESULT_CODE_MISSING_OPTION_ARGUMENT:
         return "missing option argument";
+      case RESULT_CODE_ILLEGAL_OPTION_VALUE:
+        return "illegal option value";
       default:
         return "unknown result code";
     }
@@ -192,13 +169,13 @@ public class Jooc extends JangarooParser {
     if (file.isDirectory()) {
       throw error("Input file is a directory: " + file.getAbsolutePath());
     }
-    CompilationUnit unit = importSource(new FileInputSource(findSourceDir(file), file));
+    CompilationUnit unit = importSource(new FileInputSource(getConfig().findSourceDir(file), file));
     if (unit != null) {
       compileQueue.add(unit);
     }
   }
 
-  protected void printVersion() {
+  protected static void printVersion() {
     String pkgName = "net.jangaroo.jooc";
     Package pkg = Package.getPackage(pkgName);
     String specTitle = pkg.getSpecificationTitle();
@@ -215,7 +192,7 @@ public class Jooc extends JangarooParser {
     System.out.println(specVendor);
   }
 
-  public int run(String[] argv) {
+  public static int run(String[] argv, CompileLog log) {
     try {
       JoocCommandLineParser commandLineParser = new JoocCommandLineParser();
       JoocConfiguration config = commandLineParser.parse(argv);
@@ -223,7 +200,7 @@ public class Jooc extends JangarooParser {
         if (config.isVersion()) {
           printVersion();
         } else {
-          return run(config);
+          return new Jooc(config, log).run();
         }
       }
     } catch (JoocCommandLineParser.CommandLineParseException e) {
@@ -234,11 +211,9 @@ public class Jooc extends JangarooParser {
   }
 
   public static void main(String[] argv) {
-    Jooc compiler = new Jooc();
-    int result = compiler.run(argv);
+    int result = run(argv, new StdOutCompileLog());
     if (result != 0) {
       System.exit(result);
     }
   }
-
 }

@@ -18,42 +18,13 @@ package net.jangaroo.jooc;
 /**
  * @author Andreas Gawecki
  */
-public class StdOutCompileLog implements CompileLog {
-
-  protected boolean errors = false;
-  protected boolean warnings = false;
-
-  public void error(JooSymbol sym, String msg) {
-    error(formatError(sym.getFileName(), sym.getLine(), sym.getColumn(), "Error", msg));
-  }
-
-  public void error(String msg) {
+public class StdOutCompileLog extends AbstractCompileLog {
+  @Override
+  protected void doLogError(String msg) {
     System.out.println(msg);
-    errors = true;
-  }
-
-  public void warning(JooSymbol sym, String msg) {
-    warning(formatError(sym.getFileName(), sym.getLine(), sym.getColumn(), "Warning", msg));
   }
 
   public void warning(String msg) {
     System.out.println(msg);
-    warnings = true;
   }
-
-  public boolean hasErrors() {
-    return errors;
-  }
-
-  String formatError(String fileName, int line, int column, String debugLevel, String message) {
-    StringBuffer m = new StringBuffer();
-    m.append(fileName + "(" + line + "): ");
-    m.append(debugLevel);
-    m.append(": ");
-    m.append("in column " + column + ": ");
-    m.append(message);
-    return m.toString();
-  }
-
-
 }

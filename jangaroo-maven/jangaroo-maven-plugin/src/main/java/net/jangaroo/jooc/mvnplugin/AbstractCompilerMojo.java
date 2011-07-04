@@ -1,5 +1,6 @@
 package net.jangaroo.jooc.mvnplugin;
 
+import net.jangaroo.jooc.AbstractCompileLog;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.config.JoocConfiguration;
 import net.jangaroo.jooc.config.SemicolonInsertionMode;
@@ -19,8 +20,18 @@ import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.StringUtils;
 
-import java.io.*;
-import java.util.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Super class for mojos compiling Jangaroo sources.
@@ -191,7 +202,11 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
       return;
     }
     configuration.setSourceFiles(new ArrayList<File>(sources));
-    configuration.setSourcePath(getCompileSourceRoots());
+    try {
+      configuration.setSourcePath(getCompileSourceRoots());
+    } catch (IOException e) {
+      throw new MojoFailureException("could not canonicalize source paths: " + getCompileSourceRoots(), e);
+    }
     configuration.setClassPath(getActionScriptClassPath());
     configuration.setOutputDirectory(getClassesOutputDirectory());
     configuration.setApiOutputDirectory(getApiOutputDirectory());
@@ -318,8 +333,18 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
       + (sources.size() == 1 ? "" : "s")
       + " to " + outputDirectory);
 
-    Jooc jooc = new Jooc();
-    return jooc.run(config);
+    Jooc jooc = new Jooc(config, new AbstractCompileLog() {
+      @Override
+      protected void doLogError(String msg) {
+        log.error(msg);
+      }
+
+      @Override
+      public void warning(String msg) {
+        log.warn(msg);
+      }
+    });
+    return jooc.run();
   }
 
   private Set<File> computeStaleSources(SourceInclusionScanner scanner) throws MojoExecutionException {
