@@ -8,12 +8,12 @@ import java.util.Set;
 /**
  * An EXML component to be rendered using Freemarker.
  */
-public class RenderableExmlComponent {
+public class ExmlComponentClassModel {
   private String packageName;
   private String formattedConfig;
   private ExmlModel model;
 
-  public RenderableExmlComponent(String packageName, String formattedConfig, ExmlModel model) {
+  public ExmlComponentClassModel(String packageName, String formattedConfig, ExmlModel model) {
     this.packageName = packageName;
     this.formattedConfig = formattedConfig;
     this.model = model;

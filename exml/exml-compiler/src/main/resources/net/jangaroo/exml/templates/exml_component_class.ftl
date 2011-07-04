@@ -1,4 +1,4 @@
-<#-- @ftlvariable name="" type="net.jangaroo.exml.generator.RenderableExmlComponent" -->
+<#-- @ftlvariable name="" type="net.jangaroo.exml.generator.ExmlComponentClassModel" -->
 package ${packageName} {
 
 <#list allImports as import>

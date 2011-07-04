@@ -23,11 +23,11 @@ public final class ExmlComponentClassGenerator {
 
   public static void generateClass(final ExmlModel model, String packageName, final Writer output) throws IOException, TemplateException {
     Configuration cfg = new Configuration();
-    cfg.setClassForTemplateLoading(RenderableExmlComponent.class, "/");
+    cfg.setClassForTemplateLoading(ExmlComponentClassModel.class, "/");
     cfg.setObjectWrapper(new DefaultObjectWrapper());
     Template template = cfg.getTemplate("/net/jangaroo/exml/templates/exml_component_class.ftl");
-    RenderableExmlComponent renderableExmlComponent = new RenderableExmlComponent(packageName, model.getJsonObject().toString(2, 4).trim(), model);
-    Environment env = template.createProcessingEnvironment(renderableExmlComponent, output);
+    ExmlComponentClassModel exmlComponentClassModel = new ExmlComponentClassModel(packageName, model.getJsonObject().toString(2, 4).trim(), model);
+    Environment env = template.createProcessingEnvironment(exmlComponentClassModel, output);
     env.setOutputEncoding(outputCharset);
     env.process();
   }
