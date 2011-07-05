@@ -44,7 +44,7 @@ public class ConfigClassBuilder extends AstVisitorBase {
     } catch (IOException e) {
       throw new IllegalStateException("should not happen, because the ConfigClassBuilder does not do I/O", e);
     }
-    return configClass.getComponentName() == null ? null : configClass;
+    return configClass.getComponentClassName() == null ? null : configClass;
   }
 
   @Override
@@ -98,7 +98,7 @@ public class ConfigClassBuilder extends AstVisitorBase {
 
     private void detectExtConfigAnnotation(Annotation annotation) {
       if (EXT_CONFIG_META_NAME.equals(annotation.getMetaName())) {
-        if (configClass.getComponentName() != null) {
+        if (configClass.getComponentClassName() != null) {
           throw new CompilerError(annotation.getSymbol(), "Only one [" + EXT_CONFIG_META_NAME + "] annotation may be given.");
         }
 
@@ -120,7 +120,7 @@ public class ConfigClassBuilder extends AstVisitorBase {
         if (target == null) {
           throw new CompilerError(annotation.getSymbol(), "A " + TARGET_ANNOTATION_PARAMETER_NAME + " parameter must be provided for an [" + EXT_CONFIG_META_NAME + "] annotation.");
         }
-        configClass.setComponentName(target);
+        configClass.setComponentClassName(target);
       }
     }
   }

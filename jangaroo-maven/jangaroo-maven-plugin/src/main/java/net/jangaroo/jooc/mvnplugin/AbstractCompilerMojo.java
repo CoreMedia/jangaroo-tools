@@ -4,9 +4,6 @@ import net.jangaroo.jooc.AbstractCompileLog;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.config.JoocConfiguration;
 import net.jangaroo.jooc.config.SemicolonInsertionMode;
-import net.jangaroo.jooc.mvnplugin.util.MavenPluginHelper;
-import org.apache.maven.artifact.Artifact;
-import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
@@ -32,7 +29,7 @@ import java.util.Set;
  * Super class for mojos compiling Jangaroo sources.
  */
 @SuppressWarnings({"UnusedDeclaration", "UnusedPrivateField"})
-public abstract class AbstractCompilerMojo extends AbstractMojo {
+public abstract class AbstractCompilerMojo extends JangarooMojo {
   private Log log = getLog();
 
   /**
@@ -114,12 +111,10 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
    * @parameter expression="${project.build.directory}/generated-sources/joo"
    */
   private File generatedSourcesDirectory;
-  private MavenPluginHelper mavenPluginHelper;
 
   @Override
-  public void setLog(Log log) {
-    super.setLog(log);
-    mavenPluginHelper = new MavenPluginHelper(project, log);
+  protected MavenProject getProject() {
+    return project;
   }
 
   public abstract String getModuleClassesJsFileName();
@@ -262,8 +257,8 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
   }
 
   protected List<File> getActionScriptClassPath() {
-    List<File> classPath = new ArrayList<File>(mavenPluginHelper.getActionScriptClassPath());
-    classPath.add(0, new File(project.getBasedir(), "src/main/joo-api"));
+    List<File> classPath = new ArrayList<File>(getMavenPluginHelper().getActionScriptClassPath());
+    classPath.add(0, new File(getProject().getBasedir(), "src/main/joo-api"));
     return classPath;
   }
 
@@ -342,19 +337,14 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
     List<File> compileSourceRoots = getCompileSourceRoots();
 
 
-    return mavenPluginHelper.computeStaleSources(compileSourceRoots, getIncludes(), getExcludes(), outputDirectory, Jooc.INPUT_FILE_SUFFIX, staleMillis);
+    return getMavenPluginHelper().computeStaleSources(compileSourceRoots, getIncludes(), getExcludes(), outputDirectory, Jooc.INPUT_FILE_SUFFIX, Jooc.OUTPUT_FILE_SUFFIX, staleMillis);
   }
 
   protected abstract Set<String> getIncludes();
 
   protected abstract Set<String> getExcludes();
 
-  @SuppressWarnings({"unchecked"})
-  private Set<Artifact> getArtifacts() {
-    return (Set<Artifact>) project.getArtifacts();
-  }
-
   protected boolean isJangarooPackaging() {
-    return Types.JANGAROO_TYPE.equals(project.getPackaging());
+    return Types.JANGAROO_TYPE.equals(getProject().getPackaging());
   }
 }

@@ -8,7 +8,7 @@ import java.util.Set;
 public class ExmlModel {
   private String packageName;
   private String className;
-  private String parentClassName;
+  private String superClassName;
   private Set<String> imports = new LinkedHashSet<String>();
   private JsonObject jsonObject = new JsonObject();
 
@@ -20,8 +20,8 @@ public class ExmlModel {
     return className;
   }
 
-  public String getParentClassName() {
-    return parentClassName;
+  public String getSuperClassName() {
+    return superClassName;
   }
 
   public Set<String> getImports() {
@@ -40,9 +40,9 @@ public class ExmlModel {
     this.className = className;
   }
 
-  public void setParentClassName(String parentClassName) {
-    this.parentClassName = parentClassName;
-    addImport(parentClassName);
+  public void setSuperClassName(String superClassName) {
+    this.superClassName = superClassName;
+    addImport(superClassName);
   }
 
   public void addImport(String parentClassName) {

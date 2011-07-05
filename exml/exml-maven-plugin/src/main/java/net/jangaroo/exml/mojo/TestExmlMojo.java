@@ -1,18 +1,18 @@
 /*
  * Copyright (c) 2009, CoreMedia AG, Hamburg. All rights reserved.
  */
-package net.jangaroo.extxml.mojo;
+package net.jangaroo.exml.mojo;
 
 import java.io.File;
 
 /**
  * A Mojo to compile test EXML sources to test AS3 sources into target/generated-test-sources/joo in phase generate-test-sources.
  *
- * @goal test-extxml
+ * @goal test-exml
  * @phase generate-test-sources
  * @requiresDependencyResolution
  */
-public class TestExtXmlMojo extends AbstractExtXmlMojo {
+public class TestExmlMojo extends AbstractExmlMojo {
 
   /**
    * Source directory to scan for test files to compile.

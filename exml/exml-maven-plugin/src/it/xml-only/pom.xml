@@ -31,17 +31,15 @@ under the License.
     <plugins>
       <plugin>
         <groupId>net.jangaroo</groupId>
-        <artifactId>ext-xml-maven-plugin</artifactId>
+        <artifactId>exml-maven-plugin</artifactId>
         <version>@project.version@</version>
         <configuration>
-          <importedXsds>
-            <importedXsd>ext3.xsd</importedXsd>
-          </importedXsds>
+          <configClassPackage>testPackage.config</configClassPackage>
         </configuration>
         <executions>
           <execution>
             <goals>
-              <goal>extxml</goal>
+              <goal>exml</goal>
             </goals>
             <phase>generate-sources</phase>
           </execution>

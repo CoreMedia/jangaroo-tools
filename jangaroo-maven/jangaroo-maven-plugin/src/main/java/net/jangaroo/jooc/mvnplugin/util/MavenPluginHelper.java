@@ -28,9 +28,9 @@ public class MavenPluginHelper {
     this.log = log;
   }
 
-  public List<File> computeStaleSources(List<File> compileSourceRoots, Set<String> includes, Set<String> excludes, File outputDirectory, String inputFileSuffix, int staleMillis) throws MojoExecutionException {
+  public List<File> computeStaleSources(List<File> compileSourceRoots, Set<String> includes, Set<String> excludes, File outputDirectory, String inputFileSuffix, String outputFileSuffix, int staleMillis) throws MojoExecutionException {
     SourceInclusionScanner scanner = createSourceInclusionScanner(includes, excludes, inputFileSuffix, staleMillis);
-    scanner.addSourceMapping(new SuffixMapping(Jooc.INPUT_FILE_SUFFIX, Jooc.OUTPUT_FILE_SUFFIX));
+    scanner.addSourceMapping(new SuffixMapping(inputFileSuffix, outputFileSuffix));
     log.debug("Searching for");
     Set<File> staleSources = new LinkedHashSet<File>();
 

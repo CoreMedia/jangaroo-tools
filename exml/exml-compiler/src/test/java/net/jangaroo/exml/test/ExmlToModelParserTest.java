@@ -19,9 +19,9 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
 
     InputStream inputStream = getClass().getResourceAsStream("/exmlparser/AllElements.exml");
     ExmlModel model = exmlToModelParser.parse(inputStream);
-    Assert.assertEquals(new HashSet<String>(Arrays.asList("ext.config.panel", "ext.config.button", "ext.config.menuitem", "ext.MessageBox")),
+    Assert.assertEquals(new HashSet<String>(Arrays.asList("ext.Panel", "ext.config.button", "ext.config.menuitem", "ext.MessageBox")),
             model.getImports());
-    Assert.assertEquals("ext.config.panel", model.getParentClassName());
+    Assert.assertEquals("ext.Panel", model.getSuperClassName());
 
     JsonObject expectedJsonObject = new JsonObject(
             "layout", "{config.myLayout}",
@@ -67,7 +67,7 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
 
     InputStream inputStream = getClass().getResourceAsStream("/exmlparser/TestNumber.exml");
     ExmlModel model = exmlToModelParser.parse(inputStream);
-    Assert.assertEquals("ext.config.panel", model.getParentClassName());
+    Assert.assertEquals("ext.Panel", model.getSuperClassName());
 
     JsonObject expectedJsonObject = new JsonObject(
             "items", new JsonArray(
@@ -104,7 +104,7 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
 
     InputStream inputStream = getClass().getResourceAsStream("/exmlparser/TestTrueFalse.exml");
     ExmlModel model = exmlToModelParser.parse(inputStream);
-    Assert.assertEquals("ext.config.panel", model.getParentClassName());
+    Assert.assertEquals("ext.Panel", model.getSuperClassName());
 
     JsonObject expectedJsonObject = new JsonObject(
             "items", new JsonArray(
@@ -137,7 +137,7 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
 
     InputStream inputStream = getClass().getResourceAsStream("/testPackage/TestComponent2.exml");
     ExmlModel model = exmlToModelParser.parse(inputStream);
-    Assert.assertEquals("testNamespace.config.TestComponent", model.getParentClassName());
+    Assert.assertEquals("testPackage.TestComponent", model.getSuperClassName());
 
     JsonObject expectedJsonObject = new JsonObject(
             "items", new JsonArray(

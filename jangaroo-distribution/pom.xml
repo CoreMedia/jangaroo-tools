@@ -38,7 +38,7 @@
 
     <dependency>
       <groupId>net.jangaroo</groupId>
-      <artifactId>ext-xml</artifactId>
+      <artifactId>exml</artifactId>
       <version>${jangaroo.version}</version>
     </dependency>
 

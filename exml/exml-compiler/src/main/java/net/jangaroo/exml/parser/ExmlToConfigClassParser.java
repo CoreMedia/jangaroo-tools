@@ -24,7 +24,7 @@ public class ExmlToConfigClassParser {
   public ConfigClass parseExmlToConfigClass(File source) throws IOException {
     String fullQualifiedName = computeComponentFullQualifiedName(config, source);
     ConfigClass configClass = new ConfigClass();
-    configClass.setComponentName(fullQualifiedName);
+    configClass.setComponentClassName(fullQualifiedName);
     configClass.setPackageName(config.getConfigClassPackage());
     configClass.setName(FilenameUtils.getBaseName(source.getName()));
 

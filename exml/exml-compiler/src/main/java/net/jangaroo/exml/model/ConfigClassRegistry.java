@@ -112,7 +112,7 @@ public final class ConfigClassRegistry {
     if (existingConfigClass != null) {
       if (!existingConfigClass.equals(configClass)) {
         // todo: Keep track of source.
-        throw new ExmlcException("config class " + name + " declared in " + configClass.getComponentName() + " and " + existingConfigClass.getComponentName());
+        throw new ExmlcException("config class " + name + " declared in " + configClass.getComponentClassName() + " and " + existingConfigClass.getComponentClassName());
       }
     } else {
       configClassesByName.put(name, configClass);
@@ -133,7 +133,7 @@ public final class ConfigClassRegistry {
           // It is really a generated config class.
           // We can determine the name of the EXML component class
           // that was last used to create this config file.
-          String componentName = generatedAsConfigClass.getComponentName();
+          String componentName = generatedAsConfigClass.getComponentClassName();
           // We must parse the EXMl file again, because the parent class (and hence the
           // parent config class) might have changed.
           FileInputSource exmlInputSource = (FileInputSource)sourcePathInputSource.getChild(JangarooParser.getInputSourceFileName(componentName, sourcePathInputSource, EXML_SUFFIX));

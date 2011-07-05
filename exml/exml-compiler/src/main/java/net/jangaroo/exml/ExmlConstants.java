@@ -3,7 +3,7 @@ package net.jangaroo.exml;
 import java.io.File;
 
 public final class ExmlConstants {
-  public static final String EXML_NAMESPACE_URI = "http://net.jangaroo.com/extxml/0.1";
+  public static final String EXML_NAMESPACE_URI = "http://www.jangaroo.net/exml/0.8";
 
   public static final String EXML_CONFIG_URI_PREFIX = "exml:";
 

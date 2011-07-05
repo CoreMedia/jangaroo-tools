@@ -3,14 +3,14 @@ package exmlparser {
 import ext.Ext;
 import ext.ComponentMgr;
 import ext.MessageBox;
-import ext.config.panel;
+import ext.Panel;
 import ext.config.button;
 import ext.config.menuitem;
 
 /**
  * <b>Do not edit. This is an auto-generated class.</b>
  */
-public class AllElements extends ext.config.panel {
+public class AllElements extends ext.Panel {
   public function AllElements(config:Object = null) {
     super(ext.Ext.apply({
       layout: config.myLayout,

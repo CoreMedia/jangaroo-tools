@@ -1,7 +1,7 @@
 #! /bin/sh
 
 bindir=`dirname "$0"`
-JAVA_ARGS="-cp $bindir/ext-xml-${jangaroo.version}.jar:$bindir/jangaroo-utils-${jangaroo.version}.jar:$bindir/file-management-1.2.1.jar:$bindir/freemarker-2.3.15.jar:$bindir/jtidy-4aug2000r7-dev.jar:$bindir/maven-shared-io-1.1.jar:$bindir/plexus-utils-2.0.1.jar net.jangaroo.extxml.ExtXml"
+JAVA_ARGS="-cp $bindir/exml-${jangaroo.version}.jar:$bindir/jangaroo-utils-${jangaroo.version}.jar:$bindir/file-management-1.2.1.jar:$bindir/freemarker-2.3.15.jar:$bindir/jtidy-4aug2000r7-dev.jar:$bindir/maven-shared-io-1.1.jar:$bindir/plexus-utils-2.0.1.jar net.jangaroo.exml.Exml"
 
 if [ -n "$JAVA_HOME"  ] ; then
   "$JAVA_HOME/bin/java" $JAVA_ARGS $@

@@ -8,7 +8,7 @@ import ${import};
 /**
  * <b>Do not edit. This is an auto-generated class.</b>
  */
-public class ${model.className} extends ${model.parentClassName} {
+public class ${model.className} extends ${model.superClassName} {
   public function ${model.className}(config:Object = null) {
     super(ext.Ext.apply(${formattedConfig}, config));
   }

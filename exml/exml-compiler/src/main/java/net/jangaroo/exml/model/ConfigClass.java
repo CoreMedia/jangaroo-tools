@@ -16,7 +16,7 @@ public final class ConfigClass extends DescriptionHolder {
   private String name;
   private String packageName;
   private String superClassName;
-  private String componentName;
+  private String componentClassName;
 
   public void addCfg(ConfigAttribute cfg) {
     cfgs.add(cfg);
@@ -51,12 +51,12 @@ public final class ConfigClass extends DescriptionHolder {
     return packageName + "." + name;
   }
 
-  public void setComponentName(String componentName) {
-    this.componentName = componentName;
+  public void setComponentClassName(String componentClassName) {
+    this.componentClassName = componentClassName;
   }
 
-  public String getComponentName() {
-    return componentName;
+  public String getComponentClassName() {
+    return componentClassName;
   }
 
   public void setSuperClassName(String superClassName) {
@@ -78,7 +78,7 @@ public final class ConfigClass extends DescriptionHolder {
 
     ConfigClass that = (ConfigClass) o;
     return cfgs.equals(that.cfgs) &&
-            componentName.equals(that.componentName) &&
+            componentClassName.equals(that.componentClassName) &&
             name.equals(that.name) &&
             packageName.equals(that.packageName) &&
             superClassName.equals(that.superClassName);
@@ -90,7 +90,7 @@ public final class ConfigClass extends DescriptionHolder {
     result = 31 * result + name.hashCode();
     result = 31 * result + packageName.hashCode();
     result = 31 * result + superClassName.hashCode();
-    result = 31 * result + componentName.hashCode();
+    result = 31 * result + componentClassName.hashCode();
     return result;
   }
 }

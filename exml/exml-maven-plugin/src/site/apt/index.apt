@@ -25,14 +25,14 @@
 
 Ext XML Maven Plugin
 
- The extxml plugin compiles the declarative language exml to ActionScript3.
+ The exml plugin compiles the declarative language exml to ActionScript3.
 
 * Goals Overview
 
- * {{{war-compile-mojo.html}ext-xml:extxml}} compiles exml to ActionScript3. It is typically bound to the generate-sources phase.
+ * {{{war-compile-mojo.html}exml:exml}} compiles exml to ActionScript3. It is typically bound to the generate-sources phase.
 
 
 
 * Usage
 
-  Instructions on how to use the extxml Maven Plugin can be found {{{usage.html}here}}.
+  Instructions on how to use the exml Maven Plugin can be found {{{usage.html}here}}.

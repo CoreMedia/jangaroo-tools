@@ -29,7 +29,7 @@ It should not be used manually to create Jangaroo libraries - therefore one shou
 with packagingType <<<jangaroo>>>. The Jangaroo packaging type is defined in the 
 {{{../jangaroo-maven-plugin/index.html}Jangaroo Maven Plugin}}.
 
- A typical configuration can been seen below. The <<<ext-xml-maven-plugin:extxml>>> goal is used to transform
+ A typical configuration can been seen below. The <<<exml-maven-plugin:exml>>> goal is used to transform
 <<<EXML>>> UI descriptions to AS3 code in the <<<generate-sources>>> phase. The <<<jangaroo-maven-plugin:war-compile>>> 
 goal compiles the generated (or hand-written) AS3 sources to JavaScript. The last Jangaroo specific goal is the
 <<<jangaroo-maven-plugin:war-package>>> goal that extracts all dependent Jangaroo artifacts into the webapp's joo 
@@ -42,12 +42,12 @@ directory.
       <plugins>
         <plugin>
           <groupId>net.jangaroo</groupId>
-          <artifactId>ext-xml-maven-plugin</artifactId>
+          <artifactId>exml-maven-plugin</artifactId>
           <version>${jangaroo_version}</version>
           <executions>
             <execution>
               <goals>
-                <goal>extxml</goal>
+                <goal>exml</goal>
               </goals>
             </execution>
           </executions>

@@ -2,7 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>net.jangaroo</groupId>
-  <artifactId>ext-xml-maven-plugin</artifactId>
+  <artifactId>exml-maven-plugin</artifactId>
   <version>0.8.5-SNAPSHOT</version>
   <packaging>maven-plugin</packaging>
   <dependencies>
@@ -50,7 +50,7 @@
       <plugin>
         <artifactId>maven-plugin-plugin</artifactId>
         <configuration>
-          <goalPrefix>ext-xml</goalPrefix>
+          <goalPrefix>exml</goalPrefix>
         </configuration>
       </plugin>
       <plugin>
@@ -65,7 +65,7 @@
       <plugin>
         <artifactId>maven-plugin-plugin</artifactId>
         <configuration>
-          <goalPrefix>ext-xml</goalPrefix>
+          <goalPrefix>exml</goalPrefix>
         </configuration>
       </plugin>
       <plugin>
@@ -85,7 +85,7 @@
       </plugin>
     </plugins>
   </reporting>
-  <name>Maven Plugin: Ext-XML to AS3</name>
+  <name>Maven Plugin: EXML to AS3</name>
   <description>This plugin generates ActionScript</description>
 </project>
 

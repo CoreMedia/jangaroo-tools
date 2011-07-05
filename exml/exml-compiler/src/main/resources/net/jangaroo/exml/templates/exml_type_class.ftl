@@ -3,19 +3,19 @@ package ${packageName} {
 
 import ext.ComponentMgr;
 import ${superClassName};
-import ${componentName};
+import ${componentClassName};
 
 /**
  * ${description!}
  *
  * <b>Do not edit. This is an auto-generated class.</b>
  *
- * @see ${componentName}
+ * @see ${componentClassName}
  */
-[ExtConfig(target="${componentName}")]
+[ExtConfig(target="${componentClassName}")]
 public class ${name} extends ${superClassName} {
   /**
-   * @see ${componentName}
+   * @see ${componentClassName}
    */
   public function ${name}(config:Object = null) {
     super(config || {});

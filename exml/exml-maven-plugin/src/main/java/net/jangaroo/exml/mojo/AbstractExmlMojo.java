@@ -1,44 +1,35 @@
-package net.jangaroo.extxml.mojo;
+package net.jangaroo.exml.mojo;
 
+import net.jangaroo.exml.ExmlConstants;
+import net.jangaroo.exml.ExmlcException;
+import net.jangaroo.exml.compiler.Exmlc;
 import net.jangaroo.exml.config.ExmlConfiguration;
-import net.jangaroo.exml.model.ConfigClassRegistry;
+import net.jangaroo.jooc.JangarooParser;
+import net.jangaroo.jooc.mvnplugin.JangarooMojo;
 import net.jangaroo.jooc.mvnplugin.util.MavenPluginHelper;
 import net.jangaroo.utils.log.Log;
 import net.jangaroo.utils.log.LogHandler;
-import org.apache.maven.artifact.Artifact;
-import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 /**
  * A Mojo to invoke the EXML compiler.
  */
-public abstract class AbstractExtXmlMojo extends AbstractMojo {
+public abstract class AbstractExmlMojo extends JangarooMojo {
   /**
-   * The maven project.
+   * The Maven project object
    *
    * @parameter expression="${project}"
-   * @required
-   * @readonly
    */
   private MavenProject project;
   /**
@@ -69,6 +60,30 @@ public abstract class AbstractExtXmlMojo extends AbstractMojo {
    * @parameter expression="${project.build.directory}/generated-resources"
    */
   protected File generatedResourcesDirectory;
+  /**
+   * A list of inclusion filters for the compiler.
+   *
+   * @parameter
+   */
+  private Set<String> includes = new HashSet<String>();
+  /**
+   * A list of exclusion filters for the compiler.
+   *
+   * @parameter
+   */
+  private Set<String> excludes = new HashSet<String>();
+  /**
+   * Sets the granularity in milliseconds of the last modification
+   * date for testing whether a source needs recompilation.
+   *
+   * @parameter expression="${lastModGranularityMs}" default-value="0"
+   */
+  private int staleMillis;
+
+  @Override
+  protected MavenProject getProject() {
+    return project;
+  }
 
   public abstract String getNamespace();
 
@@ -84,10 +99,6 @@ public abstract class AbstractExtXmlMojo extends AbstractMojo {
 
   public File[] getImportedXsds() {
     return importedXsds;
-  }
-
-  protected List<File> getActionScriptClassPath() {
-    return new MavenPluginHelper(project, getLog()).getActionScriptClassPath();
   }
 
   public void execute() throws MojoExecutionException, MojoFailureException {
@@ -108,70 +119,28 @@ public abstract class AbstractExtXmlMojo extends AbstractMojo {
     Log.setLogHandler(errorHandler);
     ExmlConfiguration exmlConfiguration = new ExmlConfiguration();
     exmlConfiguration.setConfigClassPackage(configClassPackage);
-    exmlConfiguration.setClassPath(getActionScriptClassPath());
-    exmlConfiguration.setOutputDirectory(getGeneratedSourcesDirectory());
-    exmlConfiguration.setSourceFiles();
+    MavenPluginHelper mavenPluginHelper = new MavenPluginHelper(getProject(), getLog());
+    exmlConfiguration.setClassPath(mavenPluginHelper.getActionScriptClassPath());
+    exmlConfiguration.setOutputDirectory(generatedSourcesDirectory);
+    List<File> sourceRoots = Collections.singletonList(getSourceDirectory());
     try {
-      exmlConfiguration.setSourcePath(Collections.singletonList(getSourceDirectory()));
+      exmlConfiguration.setSourcePath(sourceRoots);
     } catch (IOException e) {
       throw new MojoExecutionException("could not determine source directory", e);
     }
+    exmlConfiguration.setSourceFiles(mavenPluginHelper.computeStaleSources(sourceRoots, includes, excludes, generatedSourcesDirectory, ExmlConstants.EXML_SUFFIX, JangarooParser.AS_SUFFIX, staleMillis));
 
 
-    ConfigClassRegistry registry = new ConfigClassRegistry()
-    ComponentSuite suite = new ComponentSuite(getNamespace(), getNamespacePrefix(), getSourceDirectory(), generatedSourcesDirectory);
-    XsdScanner xsdScanner = new XsdScanner();
-
-    if (getImportedXsds() != null) {
-      for (File importedXsd : getImportedXsds()) {
-        try {
-          suite.addImportedComponentSuite(xsdScanner.scan(new FileInputStream(importedXsd)));
-        } catch (IOException e) {
-          throw new MojoExecutionException("Error while xsd scanning", e);
-        }
-      }
-    }
-
-    Set<Artifact> dependencies = project.getDependencyArtifacts();
-
-    for (Artifact dependency : dependencies) {
-      if (!dependency.isOptional() && "jangaroo".equals(dependency.getType()) && dependency.getFile() != null && dependency.getFile().getName().endsWith(".jar")) {
-        ZipFile zipArtifact = null;
-        try {
-          try {
-            zipArtifact = new ZipFile(dependency.getFile(), ZipFile.OPEN_READ);
-            Enumeration<? extends ZipEntry> entries = zipArtifact.entries();
-            while (entries.hasMoreElements()) {
-              ZipEntry zipEntry = entries.nextElement();
-              if (!zipEntry.isDirectory() && zipEntry.getName().endsWith(".xsd")) {
-                getLog().info(String.format("Loading %s from %s", zipEntry.getName(), dependency.getFile().getAbsolutePath()));
-                InputStream stream = new BufferedInputStream(zipArtifact.getInputStream(zipEntry));
-                suite.addImportedComponentSuite(xsdScanner.scan(stream));
-              }
-            }
-          } finally {
-            if (zipArtifact != null) {
-              zipArtifact.close();
-            }
-          }
-        } catch (IOException e) {
-          throw new MojoExecutionException("Error while xsd scanning", e);
-        }
-      }
-    }
-
-
-    SrcFileScanner fileScanner = new SrcFileScanner(suite);
+    Exmlc exmlc;
     try {
-      fileScanner.scan();
-    } catch (IOException e) {
-      throw new MojoExecutionException("Error while file scanning", e);
+      exmlc = new Exmlc(exmlConfiguration);
+      // Generate all config classes from EXML files:
+      exmlc.generateAllConfigClasses();
+      exmlc.generateAllComponentClasses();
+      // exmlc.generateXsd();
+    } catch (ExmlcException e) {
+      throw new MojoExecutionException(e.getMessage(), e);
     }
-
-    //Generate JSON out of the xml compontents, complete the data in those ComponentClasses
-
-    JooClassGenerator generator = new JooClassGenerator(suite);
-    generator.generateClasses();
 
     if (errorHandler.lastException != null) {
       throw new MojoExecutionException(errorHandler.exceptionMsg, errorHandler.lastException);
@@ -194,27 +163,27 @@ public abstract class AbstractExtXmlMojo extends AbstractMojo {
 
 
     //generate the XSD for that
-    if (!suite.getComponentClasses().isEmpty()) {
-      Writer out = null;
-      try {
-        try {
-          //generate the XSD for that
-          File xsdFile = new File(generatedResourcesDirectory, getXsd());
-          out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(xsdFile), "UTF-8"));
-          new XsdGenerator(suite).generateXsd(out);
-          out.close();
-          projectHelper.attachArtifact(project, "xsd", xsdFile );
-        } finally {
-          if (out != null) {
-            out.close();
-          }
-        }
-      } catch (IOException e) {
-        throw new MojoExecutionException("Error while generating XML schema", e);
-      }
-    }
+//    if (!suite.getComponentClasses().isEmpty()) {
+//      Writer out = null;
+//      try {
+//        try {
+//          //generate the XSD for that
+//          File xsdFile = new File(generatedResourcesDirectory, getXsd());
+//          out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(xsdFile), "UTF-8"));
+//          new XsdGenerator(suite).generateXsd(out);
+//          out.close();
+//          projectHelper.attachArtifact(project, "xsd", xsdFile );
+//        } finally {
+//          if (out != null) {
+//            out.close();
+//          }
+//        }
+//      } catch (IOException e) {
+//        throw new MojoExecutionException("Error while generating XML schema", e);
+//      }
+//    }
 
-    project.addCompileSourceRoot(generatedSourcesDirectory.getPath());
+    getProject().addCompileSourceRoot(generatedSourcesDirectory.getPath());
   }
 
   class MavenLogHandler implements LogHandler {

@@ -12,5 +12,13 @@
   </parent>
   <name>Joo utils</name>
   <description>Contains several utils for the core modules</description>
+
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
 </project>
 

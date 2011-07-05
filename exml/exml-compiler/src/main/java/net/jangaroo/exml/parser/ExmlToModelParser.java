@@ -86,15 +86,16 @@ public final class ExmlToModelParser {
       throw new ExmlcException("root node of EXML did not contain a component definition", lineNumber);
     }
 
-    String className = createFullClassNameFromNode(componentNode);
-    model.setParentClassName(className);
-    model.addImport(className);
+    String className = createFullConfigClassNameFromNode(componentNode);
+    String componentClassName = registry.getConfigClassByName(className).getComponentClassName();
+    model.setSuperClassName(componentClassName);
+    model.addImport(componentClassName);
     fillModelAttributes(model, model.getJsonObject(), componentNode, className);
 
     return model;
   }
 
-  private String createFullClassNameFromNode(Node componentNode) {
+  private String createFullConfigClassNameFromNode(Node componentNode) {
     String name = componentNode.getLocalName();
     String uri = componentNode.getNamespaceURI();
     String packageName = ExmlConstants.parsePackageFromNamespace(uri);
@@ -227,7 +228,7 @@ public final class ExmlToModelParser {
           } //otherwise just ignore the empty exml:object element
         } else {
           arrayJsonObject = new JsonObject();
-          String arrayItemClassName = createFullClassNameFromNode(arrayItemNode);
+          String arrayItemClassName = createFullConfigClassNameFromNode(arrayItemNode);
           jsonArray.push(arrayJsonObject.settingWrapperClass(arrayItemClassName));
           model.addImport(arrayItemClassName);
 
