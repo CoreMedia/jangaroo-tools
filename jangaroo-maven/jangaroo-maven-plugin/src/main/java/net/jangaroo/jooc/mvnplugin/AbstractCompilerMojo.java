@@ -12,11 +12,6 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.compiler.CompilerError;
-import org.codehaus.plexus.compiler.util.scan.InclusionScanException;
-import org.codehaus.plexus.compiler.util.scan.SimpleSourceInclusionScanner;
-import org.codehaus.plexus.compiler.util.scan.SourceInclusionScanner;
-import org.codehaus.plexus.compiler.util.scan.StaleSourceScanner;
-import org.codehaus.plexus.compiler.util.scan.mapping.SuffixMapping;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.StringUtils;
@@ -28,7 +23,6 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -120,6 +114,13 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
    * @parameter expression="${project.build.directory}/generated-sources/joo"
    */
   private File generatedSourcesDirectory;
+  private MavenPluginHelper mavenPluginHelper;
+
+  @Override
+  public void setLog(Log log) {
+    super.setLog(log);
+    mavenPluginHelper = new MavenPluginHelper(project, log);
+  }
 
   public abstract String getModuleClassesJsFileName();
 
@@ -197,7 +198,7 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
 
     HashSet<File> sources = new HashSet<File>();
     getLog().debug("starting source inclusion scanner");
-    sources.addAll(computeStaleSources(getSourceInclusionScanner(staleMillis)));
+    sources.addAll(computeStaleSources(staleMillis));
     if (sources.isEmpty()) {
       getLog().info("Nothing to compile - all classes are up to date");
       return;
@@ -236,7 +237,7 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
         buildOutputFile(getTempClassesOutputDirectory(), getModuleClassesJsFile());
       }
 
-      compilationError &= (result != Jooc.RESULT_CODE_OK);
+      compilationError = (result != Jooc.RESULT_CODE_OK);
     }
 
     List<CompilerError> messages = Collections.emptyList();
@@ -261,7 +262,7 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
   }
 
   protected List<File> getActionScriptClassPath() {
-    List<File> classPath = new ArrayList<File>(new MavenPluginHelper(project, log).getActionScriptClassPath());
+    List<File> classPath = new ArrayList<File>(mavenPluginHelper.getActionScriptClassPath());
     classPath.add(0, new File(project.getBasedir(), "src/main/joo-api"));
     return classPath;
   }
@@ -336,73 +337,17 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
     return jooc.run();
   }
 
-  private Set<File> computeStaleSources(SourceInclusionScanner scanner) throws MojoExecutionException {
-
-
+  private List<File> computeStaleSources(int staleMillis) throws MojoExecutionException {
     File outputDirectory = getClassesOutputDirectory();
     List<File> compileSourceRoots = getCompileSourceRoots();
 
 
-    Set<File> staleSources = computeStaleSources(scanner, outputDirectory, compileSourceRoots);
-
-    return staleSources;
+    return mavenPluginHelper.computeStaleSources(compileSourceRoots, getIncludes(), getExcludes(), outputDirectory, Jooc.INPUT_FILE_SUFFIX, staleMillis);
   }
 
-  public static Set<File> computeStaleSources(SourceInclusionScanner scanner, File outputDirectory, List<File> compileSourceRoots) throws MojoExecutionException {
-    scanner.addSourceMapping(new SuffixMapping(Jooc.INPUT_FILE_SUFFIX, Jooc.OUTPUT_FILE_SUFFIX));
-    getLog().debug("Searching for");
-    Set<File> staleSources = new HashSet<File>();
+  protected abstract Set<String> getIncludes();
 
-    for (File rootFile : compileSourceRoots) {
-      if (!rootFile.isDirectory()) {
-        continue;
-      }
-
-      try {
-        getLog().debug("scanner.getIncludedSources(" + rootFile + ", " + outputDirectory + ")");
-        //noinspection unchecked
-        staleSources.addAll(scanner.getIncludedSources(rootFile, outputDirectory));
-      }
-      catch (InclusionScanException e) {
-        throw new MojoExecutionException(
-          "Error scanning source root: \'" + rootFile.getAbsolutePath() + "\' " + "for stale files to recompile.", e);
-      }
-    }
-    return staleSources;
-  }
-
-  protected abstract SourceInclusionScanner getSourceInclusionScanner(int staleMillis);
-
-  protected SourceInclusionScanner getSourceInclusionScanner(Set<String> includes, Set<String> excludes, int staleMillis) {
-    SourceInclusionScanner scanner;
-
-    if (includes.isEmpty() && excludes.isEmpty()) {
-      scanner = new StaleSourceScanner(staleMillis);
-    } else {
-      if (includes.isEmpty()) {
-        includes.add("**/*" + Jooc.INPUT_FILE_SUFFIX);
-      }
-      scanner = new StaleSourceScanner(staleMillis, includes, excludes);
-    }
-
-    return scanner;
-  }
-
-  protected SourceInclusionScanner getSourceInclusionScanner(Set<String> includes, Set<String> excludes, String inputFileEnding) {
-    SourceInclusionScanner scanner;
-
-    if (includes.isEmpty() && excludes.isEmpty()) {
-      includes = Collections.singleton("**/*." + inputFileEnding);
-      scanner = new SimpleSourceInclusionScanner(includes, Collections.EMPTY_SET);
-    } else {
-      if (includes.isEmpty()) {
-        includes.add("**/*." + inputFileEnding);
-      }
-      scanner = new SimpleSourceInclusionScanner(includes, excludes);
-    }
-
-    return scanner;
-  }
+  protected abstract Set<String> getExcludes();
 
   @SuppressWarnings({"unchecked"})
   private Set<Artifact> getArtifacts() {

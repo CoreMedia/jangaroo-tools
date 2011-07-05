@@ -1,7 +1,5 @@
 package net.jangaroo.jooc.mvnplugin;
 
-import org.codehaus.plexus.compiler.util.scan.SourceInclusionScanner;
-
 import java.io.File;
 import java.util.*;
 
@@ -106,10 +104,15 @@ public class TestCompilerMojo extends AbstractCompilerMojo {
     return tempTestClassesOutputDirectory;
   }
 
-  protected SourceInclusionScanner getSourceInclusionScanner(int staleMillis) {
-    return getSourceInclusionScanner(testIncludes, testExcludes, staleMillis);
+  @Override
+  protected Set<String> getIncludes() {
+    return testIncludes;
   }
 
+  @Override
+  protected Set<String> getExcludes() {
+    return testExcludes;
+  }
 
   public String getModuleClassesJsFileName() {
     return moduleTestClassesJsFile;

@@ -1,13 +1,21 @@
 package net.jangaroo.jooc.mvnplugin.util;
 
+import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.mvnplugin.Types;
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.compiler.util.scan.InclusionScanException;
+import org.codehaus.plexus.compiler.util.scan.SourceInclusionScanner;
+import org.codehaus.plexus.compiler.util.scan.StaleSourceScanner;
+import org.codehaus.plexus.compiler.util.scan.mapping.SuffixMapping;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -18,6 +26,45 @@ public class MavenPluginHelper {
   public MavenPluginHelper(MavenProject project, Log log) {
     this.project = project;
     this.log = log;
+  }
+
+  public List<File> computeStaleSources(List<File> compileSourceRoots, Set<String> includes, Set<String> excludes, File outputDirectory, String inputFileSuffix, int staleMillis) throws MojoExecutionException {
+    SourceInclusionScanner scanner = createSourceInclusionScanner(includes, excludes, inputFileSuffix, staleMillis);
+    scanner.addSourceMapping(new SuffixMapping(Jooc.INPUT_FILE_SUFFIX, Jooc.OUTPUT_FILE_SUFFIX));
+    log.debug("Searching for");
+    Set<File> staleSources = new LinkedHashSet<File>();
+
+    for (File rootFile : compileSourceRoots) {
+      if (!rootFile.isDirectory()) {
+        continue;
+      }
+
+      try {
+        log.debug("scanner.getIncludedSources(" + rootFile + ", " + outputDirectory + ")");
+        //noinspection unchecked
+        staleSources.addAll(scanner.getIncludedSources(rootFile, outputDirectory));
+      }
+      catch (InclusionScanException e) {
+        throw new MojoExecutionException(
+          "Error scanning source root: \'" + rootFile.getAbsolutePath() + "\' " + "for stale files to recompile.", e);
+      }
+    }
+    return Collections.unmodifiableList(new ArrayList<File>(staleSources));
+  }
+
+  private static SourceInclusionScanner createSourceInclusionScanner(Set<String> includes, Set<String> excludes, String inputFileSuffix, int staleMillis) {
+    SourceInclusionScanner scanner;
+
+    if (includes.isEmpty() && excludes.isEmpty()) {
+      scanner = new StaleSourceScanner(staleMillis);
+    } else {
+      if (includes.isEmpty()) {
+        includes.add("**/*" + inputFileSuffix);
+      }
+      scanner = new StaleSourceScanner(staleMillis, includes, excludes);
+    }
+
+    return scanner;
   }
 
   public List<File> getActionScriptClassPath() {
