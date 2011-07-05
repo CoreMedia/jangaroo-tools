@@ -5,24 +5,24 @@ import java.io.File;
 /**
  * An exception that occurs while parsing EXML files.
  */
-public class ExmlParseException extends RuntimeException {
+public class ExmlcException extends RuntimeException {
   private File source;
   private int line;
 
-  public ExmlParseException(String message) {
+  public ExmlcException(String message) {
     super(message);
   }
 
-  public ExmlParseException(String message, int line) {
+  public ExmlcException(String message, int line) {
     super(message);
     setLine(line);
   }
 
-  public ExmlParseException(String message, Throwable t) {
+  public ExmlcException(String message, Throwable t) {
     super(message, t);
   }
 
-  public ExmlParseException(String message, File source, Exception e) {
+  public ExmlcException(String message, File source, Exception e) {
     this(message, e);
     setSource(source);
   }

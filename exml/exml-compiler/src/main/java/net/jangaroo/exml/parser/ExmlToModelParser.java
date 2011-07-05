@@ -1,7 +1,7 @@
 package net.jangaroo.exml.parser;
 
 import net.jangaroo.exml.ExmlConstants;
-import net.jangaroo.exml.ExmlParseException;
+import net.jangaroo.exml.ExmlcException;
 import net.jangaroo.exml.json.JsonArray;
 import net.jangaroo.exml.json.JsonObject;
 import net.jangaroo.exml.model.ConfigAttribute;
@@ -9,6 +9,7 @@ import net.jangaroo.exml.model.ConfigClass;
 import net.jangaroo.exml.model.ConfigClassRegistry;
 import net.jangaroo.exml.model.ExmlModel;
 import net.jangaroo.exml.xml.PreserveLineNumberHandler;
+import net.jangaroo.utils.CompilerUtils;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -21,6 +22,9 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -28,10 +32,16 @@ public final class ExmlToModelParser {
 
   private final ConfigClassRegistry registry;
 
-  ExmlModel model;
-
   public ExmlToModelParser(ConfigClassRegistry registry) {
     this.registry = registry;
+  }
+
+  public ExmlModel parse(File file) throws IOException, SAXException {
+    ExmlModel model = parse(new BufferedInputStream(new FileInputStream(file)));
+    String qName = CompilerUtils.qNameFromFile(registry.getConfig().findSourceDir(file), file);
+    model.setClassName(CompilerUtils.className(qName));
+    model.setPackageName(CompilerUtils.packageName(qName));
+    return model;
   }
 
   /**
@@ -43,7 +53,7 @@ public final class ExmlToModelParser {
    * @throws SAXException if the XML was not well-formed
    */
   public ExmlModel parse(InputStream inputStream) throws IOException, SAXException {
-    model = new ExmlModel();
+    ExmlModel model = new ExmlModel();
     Document document = buildDom(inputStream);
     Node root = document.getFirstChild();
     validateRootNode(root);
@@ -58,14 +68,14 @@ public final class ExmlToModelParser {
             String importedClassName = ((Element) node).getAttribute(ExmlConstants.EXML_IMPORT_CLASS_ATTRIBUTE);
             if (importedClassName == null || importedClassName.equals("")) {
               int lineNumber = getLineNumber(componentNode);
-              throw new ExmlParseException("<exml:import> element must contain a non-empty class attribute", lineNumber);
+              throw new ExmlcException("<exml:import> element must contain a non-empty class attribute", lineNumber);
             }
             model.addImport(importedClassName);
           }
         } else {
           if (componentNode != null) {
             int lineNumber = getLineNumber(componentNode);
-            throw new ExmlParseException("root node of EXML contained more than one component definition", lineNumber);
+            throw new ExmlcException("root node of EXML contained more than one component definition", lineNumber);
           }
           componentNode = node;
         }
@@ -73,13 +83,13 @@ public final class ExmlToModelParser {
     }
     if (componentNode == null) {
       int lineNumber = getLineNumber(root);
-      throw new ExmlParseException("root node of EXML did not contain a component definition", lineNumber);
+      throw new ExmlcException("root node of EXML did not contain a component definition", lineNumber);
     }
 
     String className = createFullClassNameFromNode(componentNode);
     model.setParentClassName(className);
     model.addImport(className);
-    fillModelAttributes(model.getJsonObject(), componentNode, className);
+    fillModelAttributes(model, model.getJsonObject(), componentNode, className);
 
     return model;
   }
@@ -90,16 +100,16 @@ public final class ExmlToModelParser {
     String packageName = ExmlConstants.parsePackageFromNamespace(uri);
     if (packageName == null) {
       int lineNumber = getLineNumber(componentNode);
-      throw new ExmlParseException("namespace '" + uri + "' of element '"+ name +"' in EXML file does not denote a config package", lineNumber);
+      throw new ExmlcException("namespace '" + uri + "' of element '"+ name +"' in EXML file does not denote a config package", lineNumber);
     }
     return packageName + "." + name;
   }
 
-  private void fillModelAttributes(JsonObject jsonObject, Node componentNode, String className) {
+  private void fillModelAttributes(ExmlModel model, JsonObject jsonObject, Node componentNode, String className) {
     ConfigClass configClass = registry.getConfigClassByName(className);
     if (configClass == null) {
       int lineNumber = getLineNumber(componentNode);
-      throw new ExmlParseException("unknown type '" + className + "'", lineNumber);
+      throw new ExmlcException("unknown type '" + className + "'", lineNumber);
     }
     NamedNodeMap attributes = componentNode.getAttributes();
     for (int i = 0; i < attributes.getLength(); i++) {
@@ -154,7 +164,7 @@ public final class ExmlToModelParser {
               }
             } else {
               // it seems to be an array
-              parseArray(jsonObject, element);
+              parseArray(model, jsonObject, element);
             }
           } else {
             // its a simple property
@@ -163,7 +173,7 @@ public final class ExmlToModelParser {
 
         } else if ("Array".equals(configAttribute.getType())) {
           // Array explicitly specified.
-          parseArray(jsonObject, element);
+          parseArray(model, jsonObject, element);
 
         } else {
           // TODO: What here? also guessing? Or Error?
@@ -201,7 +211,7 @@ public final class ExmlToModelParser {
     return simpleProperty;
   }
 
-  private void parseArray(JsonObject jsonObject, Element element) {
+  private void parseArray(ExmlModel model, JsonObject jsonObject, Element element) {
     JsonArray jsonArray = new JsonArray();
     jsonObject.set(element.getLocalName(), jsonArray);
     NodeList arrayChildNodes = element.getChildNodes();
@@ -221,7 +231,7 @@ public final class ExmlToModelParser {
           jsonArray.push(arrayJsonObject.settingWrapperClass(arrayItemClassName));
           model.addImport(arrayItemClassName);
 
-          fillModelAttributes(arrayJsonObject, arrayItemNode, arrayItemClassName);
+          fillModelAttributes(model, arrayJsonObject, arrayItemNode, arrayItemClassName);
         }
       }
     }
@@ -275,10 +285,10 @@ public final class ExmlToModelParser {
   private void validateRootNode(Node root) {
     int lineNumber = getLineNumber(root);
     if (!ExmlConstants.EXML_NAMESPACE_URI.equals(root.getNamespaceURI())) {
-      throw new ExmlParseException("root node of EXML file must belong to namespace '" + ExmlConstants.EXML_NAMESPACE_URI + "', but was '" + root.getNamespaceURI() +"'", lineNumber);
+      throw new ExmlcException("root node of EXML file must belong to namespace '" + ExmlConstants.EXML_NAMESPACE_URI + "', but was '" + root.getNamespaceURI() +"'", lineNumber);
     }
     if (!ExmlConstants.EXML_COMPONENT_NODE_NAME.equals(root.getLocalName())) {
-      throw new ExmlParseException("root node of EXML file must be a <" + ExmlConstants.EXML_COMPONENT_NODE_NAME + ">, but was <" + root.getLocalName() +">", lineNumber);
+      throw new ExmlcException("root node of EXML file must be a <" + ExmlConstants.EXML_COMPONENT_NODE_NAME + ">, but was <" + root.getLocalName() +">", lineNumber);
     }
   }
 

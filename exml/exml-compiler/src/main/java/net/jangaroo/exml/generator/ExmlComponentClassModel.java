@@ -9,18 +9,12 @@ import java.util.Set;
  * An EXML component to be rendered using Freemarker.
  */
 public class ExmlComponentClassModel {
-  private String packageName;
   private String formattedConfig;
   private ExmlModel model;
 
-  public ExmlComponentClassModel(String packageName, String formattedConfig, ExmlModel model) {
-    this.packageName = packageName;
-    this.formattedConfig = formattedConfig;
+  public ExmlComponentClassModel(ExmlModel model) {
+    this.formattedConfig = model.getJsonObject().toString(2, 4).trim();
     this.model = model;
-  }
-
-  public String getPackageName() {
-    return packageName;
   }
 
   public String getFormattedConfig() {

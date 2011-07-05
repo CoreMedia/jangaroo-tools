@@ -12,6 +12,7 @@ import net.jangaroo.jooc.config.ParserOptions;
 import net.jangaroo.jooc.config.SemicolonInsertionMode;
 import net.jangaroo.jooc.input.InputSource;
 import net.jangaroo.utils.BOMStripperInputStream;
+import net.jangaroo.utils.CompilerUtils;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -128,8 +129,8 @@ public class JangarooParser {
     return result;
   }
 
-  protected String getInputSourceFileName(final String qname, InputSource is, String extension) {
-    return qname.replace('.', is.getFileSeparatorChar()) + extension;
+  public static String getInputSourceFileName(final String qname, InputSource is, String extension) {
+    return CompilerUtils.fileNameFromQName(qname, is.getFileSeparatorChar(), extension);
   }
 
   public CompilationUnit importSource(InputSource source) {
@@ -137,18 +138,11 @@ public class JangarooParser {
     if (unit != null) {
       unit.scope(globalScope);
       String prefix = unit.getPackageDeclaration().getQualifiedNameStr();
-      if (!prefix.isEmpty()) {
-        prefix += ".";
-      }
-      String qname = prefix + unit.getPrimaryDeclaration().getIde().getName();
+      String qname = CompilerUtils.qName(prefix, unit.getPrimaryDeclaration().getIde().getName());
       checkValidFileName(qname, unit, source);
       compilationUnitsByQName.put(qname, unit);
     }
     return unit;
-  }
-
-  private String buildSourceFileName(final InputSource inputSource, final String qname) {
-    return qname.replace('.', inputSource.getFileSeparatorChar()) + AS_SUFFIX;
   }
 
   public IdeDeclaration resolveImport(final ImportDirective importDirective) {
@@ -176,7 +170,7 @@ public class JangarooParser {
     // check valid file name for qname
     String path = source.getRelativePath();
     if (path != null) {
-      String expectedPath = buildSourceFileName(source, qname);
+      String expectedPath = getInputSourceFileName(qname, source, AS_SUFFIX);
       if (!expectedPath.equals(path)) {
         warning(unit.getSymbol(),
                 String.format("expected '%s' as the file name for %s, found: '%s'. -sourcepath not set (correctly)?",

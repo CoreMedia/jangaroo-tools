@@ -6,13 +6,18 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class ExmlModel {
-  private String name;
+  private String packageName;
+  private String className;
   private String parentClassName;
   private Set<String> imports = new LinkedHashSet<String>();
   private JsonObject jsonObject = new JsonObject();
 
-  public String getName() {
-    return name;
+  public String getPackageName() {
+    return packageName;
+  }
+
+  public String getClassName() {
+    return className;
   }
 
   public String getParentClassName() {
@@ -27,8 +32,12 @@ public class ExmlModel {
     return jsonObject;
   }
 
-  public void setName(String name) {
-    this.name = name;
+  public void setPackageName(String packageName) {
+    this.packageName = packageName;
+  }
+
+  public void setClassName(String className) {
+    this.className = className;
   }
 
   public void setParentClassName(String parentClassName) {

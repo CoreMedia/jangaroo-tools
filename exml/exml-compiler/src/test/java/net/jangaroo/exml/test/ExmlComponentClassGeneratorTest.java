@@ -18,12 +18,13 @@ public class ExmlComponentClassGeneratorTest extends AbstractExmlTest {
     setUp("exmlparser.config");
     String expected = FileUtils.readFileToString(new File(getClass().getResource("/exmlparser/AllElements.as").toURI()));
     InputStream inputStream = getClass().getResourceAsStream("/exmlparser/AllElements.exml");
-    ExmlToModelParser exmlToModelParser = new ExmlToModelParser(registry);
+    ExmlToModelParser exmlToModelParser = new ExmlToModelParser(getConfigClassRegistry());
     ExmlModel model = exmlToModelParser.parse(inputStream);
-    model.setName("AllElements");
+    model.setClassName("AllElements");
+    model.setPackageName("exmlparser");
 
     StringWriter output = new StringWriter();
-    ExmlComponentClassGenerator.generateClass(model, "exmlparser", output);
+    getExmlc().getExmlComponentClassGenerator().generateClass(model, output);
     Assert.assertEquals(expected, output.toString());
   }
 

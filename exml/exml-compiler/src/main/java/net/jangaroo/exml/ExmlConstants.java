@@ -1,5 +1,7 @@
 package net.jangaroo.exml;
 
+import java.io.File;
+
 public final class ExmlConstants {
   public static final String EXML_NAMESPACE_URI = "http://net.jangaroo.com/extxml/0.1";
 
@@ -17,15 +19,14 @@ public final class ExmlConstants {
   public static final String EXML_CFG_NODE_NAME = "cfg";
   public static final String EXML_CFG_NAME_ATTRIBUTE = "name";
   public static final String EXML_CFG_TYPE_ATTRIBUTE = "type";
+  public static final String EXML_SUFFIX = ".exml";
 
   public static String parsePackageFromNamespace(String uri) {
-    if (!uri.startsWith(ExmlConstants.EXML_CONFIG_URI_PREFIX)) {
-      return null;
-    }
-    return uri.substring(ExmlConstants.EXML_CONFIG_URI_PREFIX.length());
+    return uri.startsWith(EXML_CONFIG_URI_PREFIX) ? uri.substring(EXML_CONFIG_URI_PREFIX.length()) : null;
   }
 
   public static boolean isExmlNamespace(String uri) {
     return EXML_NAMESPACE_URI.equals(uri);
   }
+
 }

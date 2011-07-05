@@ -1,6 +1,5 @@
 package net.jangaroo.exml.test;
 
-import net.jangaroo.exml.test.AbstractExmlTest;
 import net.jangaroo.exml.json.JsonArray;
 import net.jangaroo.exml.json.JsonObject;
 import net.jangaroo.exml.model.ExmlModel;
@@ -16,7 +15,7 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
   @Test
   public void testParseAllElements() throws Exception {
     setUp("exmlparser.config");
-    ExmlToModelParser exmlToModelParser = new ExmlToModelParser(registry);
+    ExmlToModelParser exmlToModelParser = new ExmlToModelParser(getConfigClassRegistry());
 
     InputStream inputStream = getClass().getResourceAsStream("/exmlparser/AllElements.exml");
     ExmlModel model = exmlToModelParser.parse(inputStream);
@@ -64,7 +63,7 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
   @Test
   public void testParseTestNumber() throws Exception{
     setUp("exmlparser.config");
-    ExmlToModelParser exmlToModelParser = new ExmlToModelParser(registry);
+    ExmlToModelParser exmlToModelParser = new ExmlToModelParser(getConfigClassRegistry());
 
     InputStream inputStream = getClass().getResourceAsStream("/exmlparser/TestNumber.exml");
     ExmlModel model = exmlToModelParser.parse(inputStream);
@@ -101,7 +100,7 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
   @Test
   public void testParseTestTrueFalse() throws Exception{
     setUp("exmlparser.config");
-    ExmlToModelParser exmlToModelParser = new ExmlToModelParser(registry);
+    ExmlToModelParser exmlToModelParser = new ExmlToModelParser(getConfigClassRegistry());
 
     InputStream inputStream = getClass().getResourceAsStream("/exmlparser/TestTrueFalse.exml");
     ExmlModel model = exmlToModelParser.parse(inputStream);
@@ -134,7 +133,7 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
   @Test
   public void testInheritProperties() throws Exception{
     setUp("testNamespace.config");
-    ExmlToModelParser exmlToModelParser = new ExmlToModelParser(registry);
+    ExmlToModelParser exmlToModelParser = new ExmlToModelParser(getConfigClassRegistry());
 
     InputStream inputStream = getClass().getResourceAsStream("/testPackage/TestComponent2.exml");
     ExmlModel model = exmlToModelParser.parse(inputStream);

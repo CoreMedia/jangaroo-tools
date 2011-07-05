@@ -1,7 +1,7 @@
 package net.jangaroo.exml.parser;
 
 import net.jangaroo.exml.ExmlConstants;
-import net.jangaroo.exml.ExmlParseException;
+import net.jangaroo.exml.ExmlcException;
 import net.jangaroo.exml.model.ConfigAttribute;
 import net.jangaroo.exml.model.ConfigClass;
 import net.jangaroo.utils.CharacterRecordingHandler;
@@ -38,12 +38,12 @@ public class ExmlMetadataHandler extends CharacterRecordingHandler {
     } else if (elementPath.size() == 1) {
       if (configClass.getSuperClassName() != null) {
         // todo: line number
-        throw new ExmlParseException("root node of EXML contained more than one component definition");
+        throw new ExmlcException("root node of EXML contained more than one component definition");
       }
 
       String thePackage = ExmlConstants.parsePackageFromNamespace(uri);
       if (thePackage == null) {
-        throw new ExmlParseException("namespace '" + uri + "' of superclass element in EXML file does not denote a config package");
+        throw new ExmlcException("namespace '" + uri + "' of superclass element in EXML file does not denote a config package");
       }
       configClass.setSuperClassName(thePackage + "." + localName);
     }

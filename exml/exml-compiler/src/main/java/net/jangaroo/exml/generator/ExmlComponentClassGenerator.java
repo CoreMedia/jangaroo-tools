@@ -5,8 +5,10 @@ import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapper;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
+import net.jangaroo.exml.config.ExmlConfiguration;
 import net.jangaroo.exml.model.ExmlModel;
-import net.jangaroo.utils.log.Log;
+import net.jangaroo.jooc.JangarooParser;
+import net.jangaroo.utils.CompilerUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -21,35 +23,43 @@ public final class ExmlComponentClassGenerator {
 
   private final static String outputCharset = "UTF-8";
 
-  public static void generateClass(final ExmlModel model, String packageName, final Writer output) throws IOException, TemplateException {
+  private ExmlConfiguration config;
+
+  public ExmlComponentClassGenerator(ExmlConfiguration config) {
+    this.config = config;
+  }
+
+  public File computeComponentClassTarget(ExmlModel model) {
+    return CompilerUtils.fileFromQName(model.getPackageName(), model.getClassName(), config.getOutputDirectory(), JangarooParser.AS_SUFFIX);
+  }
+
+  public void generateClass(final ExmlModel model, final Writer output) throws IOException, TemplateException {
     Configuration cfg = new Configuration();
     cfg.setClassForTemplateLoading(ExmlComponentClassModel.class, "/");
     cfg.setObjectWrapper(new DefaultObjectWrapper());
     Template template = cfg.getTemplate("/net/jangaroo/exml/templates/exml_component_class.ftl");
-    ExmlComponentClassModel exmlComponentClassModel = new ExmlComponentClassModel(packageName, model.getJsonObject().toString(2, 4).trim(), model);
+    ExmlComponentClassModel exmlComponentClassModel = new ExmlComponentClassModel(model);
     Environment env = template.createProcessingEnvironment(exmlComponentClassModel, output);
     env.setOutputEncoding(outputCharset);
     env.process();
   }
 
-  public static void generateClass(final ExmlModel model, String packageName, File result) {
+  public File generateClass(final ExmlModel model) throws IOException, TemplateException {
+    File result = computeComponentClassTarget(model);
     Writer writer = null;
+    try {
+      writer = new OutputStreamWriter(new FileOutputStream(result), outputCharset);
+      generateClass(model, writer);
+      return result;
+    } finally {
       try {
-        writer = new OutputStreamWriter(new FileOutputStream(result), outputCharset);
-        generateClass(model, packageName, writer);
-      } catch (IOException e) {
-        Log.e("Exception while creating class", e);
-      } catch (TemplateException e) {
-        Log.e("Exception while creating class", e);
-      } finally {
-        try {
-          if (writer != null) {
-            writer.close();
-          }
-        } catch (IOException e) {
-          //never happen
+        if (writer != null) {
+          writer.close();
         }
+      } catch (IOException e) {
+        //never happen
       }
+    }
   }
 
 }

@@ -1,6 +1,6 @@
 package net.jangaroo.jooc.config;
 
-import net.jangaroo.utils.FileUtils;
+import net.jangaroo.utils.CompilerUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,7 +24,7 @@ public class FileLocations {
   public File findSourceDir(final File file) throws IOException {
     File canonicalFile = file.getCanonicalFile();
     for (File sourceDir : getSourcePath()) {
-      if (FileUtils.isParent(sourceDir, canonicalFile)) {
+      if (CompilerUtils.qNameFromFile(sourceDir, canonicalFile) != null) {
         return sourceDir;
       }
     }
