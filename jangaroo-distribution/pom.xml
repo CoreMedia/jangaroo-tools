@@ -34,7 +34,7 @@
 
     <dependency>
       <groupId>net.jangaroo</groupId>
-      <artifactId>exml</artifactId>
+      <artifactId>exml-compiler</artifactId>
       <version>${project.version}</version>
     </dependency>
 

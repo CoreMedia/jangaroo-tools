@@ -12,6 +12,7 @@
     <module>exml</module>
     <module>jangaroo-maven</module>
     <module>jangaroo-hudson-plugin</module>
+    <module>jangaroo-distribution</module>
   </modules>
   <build>
     <plugins>
