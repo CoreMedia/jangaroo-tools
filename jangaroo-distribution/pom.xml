@@ -3,7 +3,7 @@
   <parent>
     <artifactId>jangaroo-parent</artifactId>
     <groupId>net.jangaroo</groupId>
-    <version>0.8.4</version>
+    <version>0.8.5-SNAPSHOT</version>
     <relativePath>../jangaroo-parent/pom.xml</relativePath>
   </parent>
   <packaging>pom</packaging>
@@ -25,27 +25,23 @@
     <developerConnection>scm:git:git@github.com:CoreMedia/jangaroo-tools.git</developerConnection>
   </scm>
 
-  <properties>
-    <jangaroo.version>0.8.4</jangaroo.version>
-  </properties>
-
   <dependencies>
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-compiler</artifactId>
-      <version>${jangaroo.version}</version>
+      <version>${project.version}</version>
     </dependency>
 
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>exml</artifactId>
-      <version>${jangaroo.version}</version>
+      <version>${project.version}</version>
     </dependency>
 
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>properties-compiler</artifactId>
-      <version>${jangaroo.version}</version>
+      <version>${project.version}</version>
     </dependency>
 
     <dependency>
@@ -97,7 +93,7 @@
         <groupId>net.jangaroo</groupId>
         <artifactId>jangaroo-maven-plugin</artifactId>
         <extensions>true</extensions>
-        <version>${jangaroo.version}</version>
+        <version>${project.version}</version>
       </plugin>
       <plugin>
         <artifactId>maven-dependency-plugin</artifactId>
