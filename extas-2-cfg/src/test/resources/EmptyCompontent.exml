@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<component xmlns="http://net.jangaroo.com/extxml/0.1" xmlns:ext="http://extjs.com/ext3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <ext:panel anchor="100%"
+               frame="true"
+               collapsible="true"
+               draggable="true"
+               cls="x-portlet"/>
+</component>

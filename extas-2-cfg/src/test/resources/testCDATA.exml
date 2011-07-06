@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<exml:component xmlns:exml="http://net.jangaroo.com/extxml/0.1"
+                xmlns="http://extjs.com/ext3">
+  <exml:cfg name="prop1" type="Boolean">
+    <exml:description><![CDATA[This is my <b>descripion</b>]]></exml:description>
+  </exml:cfg>
+
+  <exml:cfg name="prop2" type="Boolean">
+    <exml:description>
+      <![CDATA[This is my <b>descripion</b>]]>
+    </exml:description>
+  </exml:cfg>
+
+  <panel>
+    <items>
+      <exml:object><![CDATA[{xtype: "editortreepanel"}]]></exml:object>
+      <exml:object>
+        <![CDATA[
+        {xtype: "editortreepanel"}
+        ]]>
+      </exml:object>
+    </items>
+    <!-- to be fixed -->
+    <tbl>
+      <exml:object>
+        
+        <![CDATA[
+           {xtype: "editortreepanel"}
+         ]]>
+      </exml:object>
+    </tbl>
+  </panel>
+</exml:component>
