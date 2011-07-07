@@ -7,8 +7,6 @@ import ${componentClass.fullClassName};
 /**
  * ${componentClass.description!}
  *
- * <b>Do not edit. This is an auto-generated class.</b>
- *
  * @see ${componentClass.fullClassName}
  */
 [ExtConfig(target="${componentClass.fullClassName}")]

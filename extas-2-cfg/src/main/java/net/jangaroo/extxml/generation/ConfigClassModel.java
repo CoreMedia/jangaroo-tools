@@ -28,6 +28,9 @@ public class ConfigClassModel {
 
   public String getParentConfigClassName() {
     ComponentClass superComponentClass = componentSuite.findComponentClassByFullClassName(componentClass.getSuperClassName());
+    if (superComponentClass == null) {
+      return "TODO";
+    }
     return superComponentClass.getSuite().getConfigClassPackage() + "." + superComponentClass.getClassName().toLowerCase();
   }
 }
