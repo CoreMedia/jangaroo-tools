@@ -20,20 +20,16 @@ public class ExtXmlTest {
     File rootDir = TestUtils.getRootDir(getClass());
     File extXsd = TestUtils.getFile("/schemas/ext3.xsd", getClass());
 
-    String[] args = {"test",
-        "test",
-        outputDir.getPath() + "/test.xsd",
-        rootDir.getPath() + "/testComponentSuite/",
-        outputDir.getPath(),
-        extXsd.getAbsolutePath()};
+    String[] args = {
+            rootDir.getPath() + "/testComponentSuite/",
+            outputDir.getPath(),
+            "testComponentSuite.config",
+            extXsd.getAbsolutePath(), "ext.config"};
     ExtXml.main(args);
 
-    File resultXSD = new File(outputDir, "test.xsd");
-    assertTrue(resultXSD.exists());
-
-    File asFile = new File(outputDir, "MyLayout.as");
-    assertTrue(asFile.exists());
-    assertTrue(asFile.length() > 100);
+    File configFile = new File(outputDir, "testComponentSuite/config/mypanel.as");
+    assertTrue(configFile.exists());
+    assertTrue(configFile.length() > 100);
 
   }
 

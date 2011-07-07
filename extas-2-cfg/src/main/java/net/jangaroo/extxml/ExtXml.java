@@ -1,18 +1,13 @@
 package net.jangaroo.extxml;
 
 import net.jangaroo.extxml.file.SrcFileScanner;
-import net.jangaroo.extxml.generation.JooClassGenerator;
-import net.jangaroo.extxml.generation.XsdGenerator;
+import net.jangaroo.extxml.generation.ConfigClassGenerator;
 import net.jangaroo.extxml.model.ComponentSuite;
 import net.jangaroo.extxml.xml.XsdScanner;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 
 /**
  * A tool to define Ext JS Component suites in JavaScript, ActionScript, or XML (files with exml ending).
@@ -25,11 +20,11 @@ import java.io.Writer;
  * </ul>
  * <p>All used or extended components from other component suites must be imported. This is done
  * by enumeration their XML Schema file locations.
- * <p>All ActionScipt files have to comply with the following structure:
+ * <p>All ActionScript files have to comply with the following structure:
  * <ul>
  * <li>extend an ExtXml Component, i.e. ext.Panel</li>
  * <li>define a public static const xtype, i.e. <i>public static const xtype:String = "myComponent";</i>
- * <li>register the compontent in a static code block as Ext component, i.e
+ * <li>register the component in a static code block as Ext component, i.e
  * <code>
  * { ext.ComponentMgr.registerType(xtype, MyComponent); }
  * </code>
@@ -45,12 +40,7 @@ import java.io.Writer;
  * <p>Furthermore, both JavaScript and ActionScript source files may define an arbitrary number
  * of <em>configuration parameters</em>, using the following documentation annotation syntax:
  * <p><code>&#064;cfg {<i>type</i>} <i>name description</i></code>
- * <p>The tool generates
- * <ul>
- * <li>ActionScript files for all XML files,
- * <li>an XML Schema (*.xsd, given as xsd-output-file) describing the whole component suite, i.e.
- * an element, type and super type for each component, and an attribute for each configuration parameter.
- * </ul>
+ * <p>The tool generates ActionScript config class files for all AS files.
  */
 public final class ExtXml {
 
@@ -58,34 +48,37 @@ public final class ExtXml {
 
   }
 
+  /**
+   * Command line arguments:
+   * <ol>
+   *   <li>source root dir</li>
+   *   <li>target root dir</li>
+   *   <li>config package name</li>
+   *   <li>any number of XSD files for import</li>
+   * </ol>
+   * @param args command line arguments
+   * @throws IOException
+   */
   public static void main(String[] args) throws IOException {
-
     //Scan the directory for xml, as or javascript components and collect the data in ComponentClass, import all provided XSDs
     ComponentSuiteRegistry componentSuiteRegistry = ComponentSuiteRegistry.getInstance();
 
     XsdScanner scanner = new XsdScanner();
 
-    for (int i = 5; i < args.length; i++) {
-      componentSuiteRegistry.add(scanner.scan(new FileInputStream(new File(args[i]))));
+    for (int i = 3; i < args.length;) {
+      ComponentSuite componentSuite = scanner.scan(new FileInputStream(new File(args[i++])));
+      componentSuite.setConfigClassPackage(args[i++]);
+
+      componentSuiteRegistry.add(componentSuite);
     }
 
-    ComponentSuite suite = new ComponentSuite(args[0], args[1], new File(args[3]), new File(args[4]));
+    ComponentSuite suite = new ComponentSuite("ignored", "ignored", new File(args[0]), new File(args[1]), args[2]);
     
     SrcFileScanner fileScanner = new SrcFileScanner(suite);
     fileScanner.scan();
 
-    //Generate JSON out of the xml components, complete the data in those ComponentClasses
-    JooClassGenerator generator = new JooClassGenerator(suite);
+    //Generate config classes out of the AS components
+    ConfigClassGenerator generator = new ConfigClassGenerator(suite);
     generator.generateClasses();
-
-    System.out.println(suite);
-
-    //generate the XSD for that
-    Writer out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File(args[2])), "UTF-8"));
-    try {
-      new XsdGenerator(suite).generateXsd(out);
-    } finally {
-      out.close();
-    }
   }
 }

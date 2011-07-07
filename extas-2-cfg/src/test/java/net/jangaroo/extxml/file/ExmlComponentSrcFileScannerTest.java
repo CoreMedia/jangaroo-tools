@@ -14,7 +14,7 @@ import utils.TestUtils;
 public class ExmlComponentSrcFileScannerTest {
   @Test
   public void testXMLComponent() throws Exception {
-    ComponentSuite suite = new ComponentSuite("local", "", TestUtils.getRootDir(getClass()), null);
+    ComponentSuite suite = new ComponentSuite("local", "", TestUtils.getRootDir(getClass()), null, null);
 
     ExmlComponentSrcFileScanner.scan(suite, TestUtils.getFile("/testpackage/testPackage.exml", getClass()), ComponentType.EXML);
     ComponentClass cc = suite.getComponentClassByFullClassName("testpackage.testPackage");

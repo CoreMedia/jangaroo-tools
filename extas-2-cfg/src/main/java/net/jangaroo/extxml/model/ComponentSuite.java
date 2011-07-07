@@ -33,17 +33,19 @@ public final class ComponentSuite {
       return cc1.getElementName().compareTo(cc2.getElementName());
     }
   };
+  private String configClassPackage;
 
   public ComponentSuite() {
-    this(null, null, null, null);
+    this(null, null, null, null, null);
   }
 
 
-  public ComponentSuite(String namespace, String namespacePrefix, File rootDir, File as3OutputDir) {
+  public ComponentSuite(String namespace, String namespacePrefix, File rootDir, File as3OutputDir, String configClassPackage) {
     this.namespace = namespace;
     this.ns = namespacePrefix;
     this.rootDir = rootDir;
     this.as3OutputDir = as3OutputDir;
+    this.configClassPackage = configClassPackage;
     ComponentSuiteRegistry.getInstance().add(this);
     usedComponentSuites = new LinkedHashMap<String, ComponentSuite>();
   }
@@ -216,4 +218,11 @@ public final class ComponentSuite {
     return builder.toString();
   }
 
+  public String getConfigClassPackage() {
+    return configClassPackage;
+  }
+
+  public void setConfigClassPackage(String configClassPackage) {
+    this.configClassPackage = configClassPackage;
+  }
 }

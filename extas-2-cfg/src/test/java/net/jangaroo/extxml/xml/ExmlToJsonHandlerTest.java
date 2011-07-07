@@ -210,7 +210,7 @@ public class ExmlToJsonHandlerTest {
   }
 
   private ComponentSuite createExt3Suite() {
-    ComponentSuite ext3Suite = new ComponentSuite("http://extjs.com/ext3", "ext", null, null);
+    ComponentSuite ext3Suite = new ComponentSuite("http://extjs.com/ext3", "ext", null, null, null);
     ext3Suite.addComponentClass(new ComponentClass("panel", "ext.Panel"));
     ext3Suite.addComponentClass(new ComponentClass("button", "ext.Button"));
     ext3Suite.addComponentClass(new ComponentClass("menuitem", "ext.MenuItem"));
@@ -219,7 +219,7 @@ public class ExmlToJsonHandlerTest {
   }
 
   private void parseExml(String path) throws SAXException, IOException, URISyntaxException {
-    ComponentSuite dummyComponentSuite = new ComponentSuite("test", "test", null, null);
+    ComponentSuite dummyComponentSuite = new ComponentSuite("test", "test", null, null, null);
 
     dummyComponentSuite.addImportedComponentSuite(createExt3Suite());
     jsonHandler = new ExmlToJsonHandler(dummyComponentSuite);

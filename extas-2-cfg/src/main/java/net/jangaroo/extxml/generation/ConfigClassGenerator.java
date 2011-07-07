@@ -11,8 +11,6 @@ import net.jangaroo.extxml.model.ComponentType;
 import net.jangaroo.extxml.xml.ContentHandlerUtils;
 import net.jangaroo.extxml.xml.ExmlToJsonHandler;
 import net.jangaroo.utils.log.Log;
-import org.apache.maven.shared.model.fileset.mappers.FileNameMapper;
-import org.apache.maven.shared.model.fileset.mappers.GlobPatternMapper;
 import org.codehaus.plexus.util.StringUtils;
 
 import java.io.File;
@@ -22,21 +20,15 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 
 /**
- * Generates ActionScriptClasses out of xml components.
+ * Generates new style config classes out of old style annotated AS components.
  */
-public final class JooClassGenerator {
+public final class ConfigClassGenerator {
 
-  private static final FileNameMapper XML_TO_JS_MAPPER = new GlobPatternMapper();
   private final static String outputCharset = "UTF-8";
-
-  static {
-    XML_TO_JS_MAPPER.setFrom("*." + ComponentType.EXML.getExtension());
-    XML_TO_JS_MAPPER.setTo("*." + ComponentType.ActionScript.getExtension());
-  }
 
   private ComponentSuite componentSuite;
 
-  public JooClassGenerator(ComponentSuite componentSuite) {
+  public ConfigClassGenerator(ComponentSuite componentSuite) {
     this.componentSuite = componentSuite;
   }
 
@@ -48,8 +40,8 @@ public final class JooClassGenerator {
       if (jooClass.getJson() != null) {
         cfg.setSharedVariable("jsonForTemplate", jooClass.getJson().toString(2, 4));
       }
-      Template template = cfg.getTemplate("/net/jangaroo/extxml/templates/jangaroo_class.ftl");
-      Environment env = template.createProcessingEnvironment(jooClass, output);
+      Template template = cfg.getTemplate("/net/jangaroo/extxml/templates/config_class.ftl");
+      Environment env = template.createProcessingEnvironment(new ConfigClassModel(jooClass, componentSuite, jooClass.getClassName().toLowerCase()), output);
       env.setOutputEncoding(outputCharset);
       env.process();
     }
@@ -84,17 +76,15 @@ public final class JooClassGenerator {
   }
 
   public void generateClasses() {
-    for (ComponentClass cc : componentSuite.getComponentClassesByType(ComponentType.EXML)) {
+    for (ComponentClass cc : componentSuite.getComponentClassesByType(ComponentType.ActionScript)) {
       generateClass(cc);
     }
   }
 
   public File generateClass(ComponentClass componentClass) {
-    ExmlToJsonHandler handler = new ExmlToJsonHandler(componentSuite);
-    if (ContentHandlerUtils.parseExmlWithHandler(componentClass, handler)) {
-      componentClass.setImports(handler.getImports());
-      componentClass.setJson(handler.getJson());
-      File outputFile = new File(componentSuite.getAs3OutputDir(), XML_TO_JS_MAPPER.mapFileName(componentClass.getRelativeSrcFilePath()));
+    if (true) {
+      File configClassDir = new File(componentSuite.getAs3OutputDir(), componentSuite.getConfigClassPackage().replace('.', File.separatorChar));
+      File outputFile = new File(configClassDir, componentClass.getClassName().toLowerCase() + ".as");
 
       if(!outputFile.getParentFile().exists()) {
         if (outputFile.getParentFile().mkdirs()) {

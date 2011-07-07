@@ -44,7 +44,7 @@ public class XsdScanner {
   private ComponentSuite createComponentSuite() {
     String targetNS = parser.getAttributeValue(null, "targetNamespace");
     String nsPrefix = parser.getNamespaceContext().getPrefix(targetNS);
-    return new ComponentSuite(targetNS, nsPrefix, null, null);
+    return new ComponentSuite(targetNS, nsPrefix, null, null, null);
   }
 
   private ComponentClass createComponentClass() {
