@@ -225,6 +225,12 @@ public class Ide extends NodeImplBase {
   }
 
   public void usageInExpr(final AstNode exprParent) {
+    if (isThis()) {
+      FunctionExpr funExpr = getScope().getFunctionExpr();
+       if (funExpr != null && funExpr.getFunctionDeclaration() != getScope().getMethodDeclaration()) {
+         Jooc.warning(getSymbol(), "'this' may be unbound and is untyped inside functions. Consider removing 'this.' (members are in scope) or refactoring function to method.");
+       }
+    }
     addExternalUsage();
     //todo handle references to static super members
     // check access to another class or a constant of another class; other class then must be initialized:
