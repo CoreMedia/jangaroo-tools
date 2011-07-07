@@ -3,6 +3,7 @@ package ${componentSuite.configClassPackage} {
 
 import ext.ComponentMgr;
 import ${componentClass.fullClassName};
+${importSuperClassPhrase}
 
 /**
  * ${componentClass.description!}

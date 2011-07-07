@@ -31,6 +31,14 @@ public class ConfigClassModel {
     if (superComponentClass == null) {
       return "";
     }
-    return " extends " + superComponentClass.getSuite().getConfigClassPackage() + "." + superComponentClass.getLastXtypeComponent().toLowerCase();
+    return " extends " + superComponentClass.getSuite().getConfigClassPackage() + "." + superComponentClass.getLastXtypeComponent();
+  }
+
+  public String getImportSuperClassPhrase() {
+    ComponentClass superComponentClass = componentSuite.findComponentClassByFullClassName(componentClass.getSuperClassName());
+    if (superComponentClass == null) {
+      return "";
+    }
+    return "import " + superComponentClass.getSuite().getConfigClassPackage() + "." + superComponentClass.getLastXtypeComponent() + ";";
   }
 }
