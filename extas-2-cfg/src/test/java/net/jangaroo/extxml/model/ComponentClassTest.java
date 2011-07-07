@@ -4,13 +4,15 @@
 package net.jangaroo.extxml.model;
 
 import static org.junit.Assert.assertTrue;
+
+import net.jangaroo.extxml.ComponentSuiteRegistry;
 import org.junit.Test;
 
 public class ComponentClassTest {
 
   @Test
   public void testGetAllCfgs() {
-    ComponentSuite suite = new ComponentSuite("test", "ts", null, null, null);
+    ComponentSuite suite = new ComponentSuite(new ComponentSuiteRegistry(), "test", "ts", null, null, null);
 
     ComponentClass cc = new ComponentClass("cc","TestClass");
     suite.addComponentClass(cc);

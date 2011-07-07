@@ -11,7 +11,6 @@ import java.util.Map;
  * A registry for ComponentSuites, which returns a ComponentSuite given its namespace URI.
  * Is the ComponentSuite is not yet registered, it uses a ComponentSuiteResolver to construct it and
  * caches it for later access.
- * This class, more precise method {@link #getComponentSuite}, is not thread-safe!
  */
 public final class ComponentSuiteRegistry {
 
@@ -19,7 +18,7 @@ public final class ComponentSuiteRegistry {
 
   private final Map<String, ComponentSuite> componentSuitesByNamespaceUri = new LinkedHashMap<String, ComponentSuite>(10);
 
-  private ComponentSuiteRegistry() {
+  public ComponentSuiteRegistry() {
   }
 
   public static ComponentSuiteRegistry getInstance() {
@@ -28,6 +27,7 @@ public final class ComponentSuiteRegistry {
 
   public void add(ComponentSuite componentSuite) {
     componentSuitesByNamespaceUri.put(componentSuite.getNamespace(), componentSuite);
+    componentSuite.setRegistry(this);
   }
 
   public ComponentSuite getComponentSuite(String namespaceUri) {
@@ -39,7 +39,7 @@ public final class ComponentSuiteRegistry {
   }
 
   public ComponentClass getComponentClass(String namespaceUri, String localName) {
-    ComponentSuite componentSuite = getInstance().getComponentSuite(namespaceUri);
+    ComponentSuite componentSuite = getComponentSuite(namespaceUri);
     return componentSuite != null ? componentSuite.getComponentClassByLocalName(localName) : null;
   }
 

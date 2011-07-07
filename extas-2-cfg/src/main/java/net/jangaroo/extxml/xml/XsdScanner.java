@@ -3,6 +3,7 @@
  */
 package net.jangaroo.extxml.xml;
 
+import net.jangaroo.extxml.ComponentSuiteRegistry;
 import net.jangaroo.utils.log.Log;
 import net.jangaroo.extxml.model.ComponentClass;
 import net.jangaroo.extxml.model.ComponentSuite;
@@ -44,7 +45,7 @@ public class XsdScanner {
   private ComponentSuite createComponentSuite() {
     String targetNS = parser.getAttributeValue(null, "targetNamespace");
     String nsPrefix = parser.getNamespaceContext().getPrefix(targetNS);
-    return new ComponentSuite(targetNS, nsPrefix, null, null, null);
+    return new ComponentSuite(new ComponentSuiteRegistry(), targetNS, nsPrefix, null, null, null);
   }
 
   private ComponentClass createComponentClass() {

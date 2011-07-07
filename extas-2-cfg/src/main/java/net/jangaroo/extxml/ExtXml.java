@@ -61,7 +61,7 @@ public final class ExtXml {
    */
   public static void main(String ... args) throws IOException {
     //Scan the directory for xml, as or javascript components and collect the data in ComponentClass, import all provided XSDs
-    ComponentSuiteRegistry componentSuiteRegistry = ComponentSuiteRegistry.getInstance();
+    ComponentSuiteRegistry componentSuiteRegistry = new ComponentSuiteRegistry();
 
     XsdScanner scanner = new XsdScanner();
 
@@ -72,8 +72,8 @@ public final class ExtXml {
       componentSuiteRegistry.add(componentSuite);
     }
 
-    ComponentSuite suite = new ComponentSuite("ignored", "ignored", new File(args[0]), new File(args[1]), args[2]);
-    
+    ComponentSuite suite = new ComponentSuite(componentSuiteRegistry, "ignored", "ignored", new File(args[0]), new File(args[1]), args[2]);
+
     SrcFileScanner fileScanner = new SrcFileScanner(suite);
     fileScanner.scan();
 
