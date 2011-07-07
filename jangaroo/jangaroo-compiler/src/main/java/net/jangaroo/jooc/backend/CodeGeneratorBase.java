@@ -19,14 +19,10 @@ import net.jangaroo.jooc.ast.PrefixOpExpr;
 import java.io.IOException;
 
 public abstract class CodeGeneratorBase implements AstVisitor {
-  private final JsWriter out;
+  protected final JsWriter out;
 
   public CodeGeneratorBase(JsWriter out) {
     this.out = out;
-  }
-
-  public JsWriter getOut() {
-    return out;
   }
 
   protected void writeModifiers(JsWriter out, Declaration declaration) throws IOException {
@@ -81,14 +77,10 @@ public abstract class CodeGeneratorBase implements AstVisitor {
 
   @Override
   public final <T extends AstNode> void visitCommaSeparatedList(CommaSeparatedList<T> commaSeparatedList) throws IOException {
-    if (commaSeparatedList.getHead() != null) {
-      commaSeparatedList.getHead().visit(this);
-    }
+    visitIfNotNull(commaSeparatedList.getHead());
     if (commaSeparatedList.getSymComma() != null) {
       out.writeSymbol(commaSeparatedList.getSymComma());
-      if (commaSeparatedList.getTail() != null) {
-        commaSeparatedList.getTail().visit(this);
-      }
+      visitIfNotNull(commaSeparatedList.getTail());
     }
   }
 
@@ -96,4 +88,31 @@ public abstract class CodeGeneratorBase implements AstVisitor {
   public final void visitPredefinedTypeDeclaration(PredefinedTypeDeclaration predefinedTypeDeclaration) throws IOException {
     throw new IllegalStateException("there should be no code generation for predefined types");
   }
+
+  protected void writeOptSymbol(JooSymbol symbol) throws IOException {
+    if (symbol != null) {
+      out.writeSymbol(symbol);
+    }
+  }
+
+  protected void writeOptSymbol(JooSymbol optSymbol, String defaultToken) throws IOException {
+    if (optSymbol != null) {
+      out.writeSymbol(optSymbol);
+    } else {
+      out.writeToken(defaultToken);
+    }
+  }
+
+  protected void visitIfNotNull(AstNode args) throws IOException {
+    if (args != null) {
+      args.visit(this);
+    }
+  }
+
+  protected void visitAll(Iterable<? extends AstNode> nodes) throws IOException {
+    for (AstNode node : nodes) {
+      node.visit(this);
+    }
+  }
+
 }

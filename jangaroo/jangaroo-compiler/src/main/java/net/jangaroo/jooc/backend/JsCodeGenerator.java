@@ -7,7 +7,6 @@ import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.JoocProperties;
 import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.SyntacticKeywords;
-import net.jangaroo.jooc.ast.AbstractBlock;
 import net.jangaroo.jooc.ast.Annotation;
 import net.jangaroo.jooc.ast.AnnotationParameter;
 import net.jangaroo.jooc.ast.ApplyExpr;
@@ -15,7 +14,6 @@ import net.jangaroo.jooc.ast.ArrayIndexExpr;
 import net.jangaroo.jooc.ast.ArrayLiteral;
 import net.jangaroo.jooc.ast.AsExpr;
 import net.jangaroo.jooc.ast.AssignmentOpExpr;
-import net.jangaroo.jooc.ast.AstNode;
 import net.jangaroo.jooc.ast.AstVisitor;
 import net.jangaroo.jooc.ast.BlockStatement;
 import net.jangaroo.jooc.ast.BreakStatement;
@@ -94,11 +92,8 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
   private static final JooSymbol SYM_LBRACK = new JooSymbol(sym.LBRACK, "[");
   private static final JooSymbol SYM_RBRACK = new JooSymbol(sym.RBRACK, "]");
 
-  private final JsWriter out;
-
   public JsCodeGenerator(JsWriter out) {
     super(out);
-    this.out = out;
   }
 
   @Override
@@ -141,10 +136,11 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
 
   @Override
   public void visitForInitializer(ForInitializer forInitializer) throws IOException {
-    if (forInitializer.getDecl() != null)
+    if (forInitializer.getDecl() != null) {
       forInitializer.getDecl().visit(this);
-    else if (forInitializer.getExpr() != null)
-      forInitializer.getExpr().visit(this);
+    } else {
+      visitIfNotNull(forInitializer.getExpr());
+    }
   }
 
   @Override
@@ -240,10 +236,8 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
   @Override
   public void visitObjectLiteral(ObjectLiteral objectLiteral) throws IOException {
     out.writeSymbol(objectLiteral.getLBrace());
-    if (objectLiteral.getFields() != null)
-      objectLiteral.getFields().visit(this);
-    if (objectLiteral.getOptComma() != null)
-      out.writeSymbol(objectLiteral.getOptComma());
+    visitIfNotNull(objectLiteral.getFields());
+    writeOptSymbol(objectLiteral.getOptComma());
     out.writeSymbol(objectLiteral.getRBrace());
   }
 
@@ -255,14 +249,8 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
   @Override
   public <T extends Expr> void visitParenthesizedExpr(ParenthesizedExpr<T> parenthesizedExpr) throws IOException {
     out.writeSymbol(parenthesizedExpr.getLParen());
-    generateExprCode(parenthesizedExpr);
+    visitIfNotNull(parenthesizedExpr.getExpr());
     out.writeSymbol(parenthesizedExpr.getRParen());
-  }
-
-  private void generateExprCode(ParenthesizedExpr<?> parenthesizedExpr) throws IOException {
-    if (parenthesizedExpr.getExpr() !=null) {
-      parenthesizedExpr.getExpr().visit(this);
-    }
   }
 
   @Override
@@ -318,9 +306,7 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
 
   @Override
   public void visitParameters(Parameters parameters) throws IOException {
-    if (parameters.getHead() != null) {
-      parameters.getHead().visit(this);
-    }
+    visitIfNotNull(parameters.getHead());
     if (parameters.getSymComma() != null) {
       if (parameters.getTail().getHead().isRest()) {
         out.beginCommentWriteSymbol(parameters.getSymComma());
@@ -416,13 +402,9 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
 
   public void generateSignatureJsCode(FunctionExpr functionExpr) throws IOException {
     out.writeSymbol(functionExpr.getLParen());
-    if (functionExpr.getParams() != null) {
-      functionExpr.getParams().visit(this);
-    }
+    visitIfNotNull(functionExpr.getParams());
     out.writeSymbol(functionExpr.getRParen());
-    if (functionExpr.getOptTypeRelation() != null) {
-      functionExpr.getOptTypeRelation().visit(this);
-    }
+    visitIfNotNull(functionExpr.getOptTypeRelation());
   }
 
   @Override
@@ -474,8 +456,7 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
   public void visitNewExpr(NewExpr newExpr) throws IOException {
     out.writeSymbol(newExpr.getSymNew());
     newExpr.getApplyConstructor().visit(this);
-    if (newExpr.getArgs() != null)
-      newExpr.getArgs().visit(this);
+    visitIfNotNull(newExpr.getArgs());
   }
 
   @Override
@@ -511,18 +492,12 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
 
   @Override
   public void visitBlockStatement(BlockStatement blockStatement) throws IOException {
-    handleBlock(blockStatement);
-  }
-
-  private void handleBlock(AbstractBlock abstractBlock) throws IOException {
-    out.writeSymbol(abstractBlock.getLBrace());
-    for (CodeGenerator codeGenerator : abstractBlock.getBlockStartCodeGenerators()) {
+    out.writeSymbol(blockStatement.getLBrace());
+    for (CodeGenerator codeGenerator : blockStatement.getBlockStartCodeGenerators()) {
       codeGenerator.generate(out);
     }
-    for (AstNode node : abstractBlock.getDirectives()) {
-      node.visit(this);
-    }
-    out.writeSymbol(abstractBlock.getRBrace());
+    visitAll(blockStatement.getDirectives());
+    out.writeSymbol(blockStatement.getRBrace());
   }
 
   @Override
@@ -560,9 +535,7 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
   public void visitTryStatement(TryStatement tryStatement) throws IOException {
     out.writeSymbol(tryStatement.getSymKeyword());
     tryStatement.getBlock().visit(this);
-    for (AstNode node : tryStatement.getCatches()) {
-      node.visit(this);
-    }
+    visitAll(tryStatement.getCatches());
     if (tryStatement.getSymFinally() != null) {
       out.writeSymbol(tryStatement.getSymFinally());
       tryStatement.getFinallyBlock().visit(this);
@@ -696,8 +669,7 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
   @Override
   public void visitWhileStatement(WhileStatement whileStatement) throws IOException {
     out.writeSymbol(whileStatement.getSymKeyword());
-    if (whileStatement.getOptCond() != null)
-      whileStatement.getOptCond().visit(this);
+    visitIfNotNull(whileStatement.getOptCond());
     whileStatement.getBody().visit(this);
   }
 
@@ -705,16 +677,11 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
   public void visitForStatement(ForStatement forStatement) throws IOException {
     out.writeSymbol(forStatement.getSymKeyword());
     out.writeSymbol(forStatement.getLParen());
-    if (forStatement.getForInit() != null) {
-      forStatement.getForInit().visit(this);
-    }
+    visitIfNotNull(forStatement.getForInit());
     out.writeSymbol(forStatement.getSymSemicolon1());
-    if (forStatement.getOptCond() != null)
-      forStatement.getOptCond().visit(this);
+    visitIfNotNull(forStatement.getOptCond());
     out.writeSymbol(forStatement.getSymSemicolon2());
-    if (forStatement.getOptStep() != null) {
-      forStatement.getOptStep().visit(this);
-    }
+    visitIfNotNull(forStatement.getOptStep());
     out.writeSymbol(forStatement.getRParen());
     forStatement.getBody().visit(this);
   }
@@ -738,62 +705,38 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
 
   @Override
   public void visitSemicolonTerminatedStatement(SemicolonTerminatedStatement semicolonTerminatedStatement) throws IOException {
-    if (semicolonTerminatedStatement.getOptStatement() !=null) {
-      semicolonTerminatedStatement.getOptStatement().visit(this);
-    }
-    if (semicolonTerminatedStatement.getOptSymSemicolon() != null) {
-      out.writeSymbol(semicolonTerminatedStatement.getOptSymSemicolon());
-    }
+    visitIfNotNull(semicolonTerminatedStatement.getOptStatement());
+    writeOptSymbol(semicolonTerminatedStatement.getOptSymSemicolon());
   }
 
   @Override
   public void visitContinueStatement(ContinueStatement continueStatement) throws IOException {
     out.writeSymbol(continueStatement.getSymKeyword());
-    if (continueStatement.getOptStatement() !=null) {
-      continueStatement.getOptStatement().visit(this);
-    }
-    if (continueStatement.getOptLabel() != null) {
-      continueStatement.getOptLabel().visit(this);
-    }
-    if (continueStatement.getOptSymSemicolon() != null) {
-      out.writeSymbol(continueStatement.getOptSymSemicolon());
-    }
+    visitIfNotNull(continueStatement.getOptStatement());
+    visitIfNotNull(continueStatement.getOptLabel());
+    writeOptSymbol(continueStatement.getOptSymSemicolon());
   }
 
   @Override
   public void visitBreakStatement(BreakStatement breakStatement) throws IOException {
     out.writeSymbol(breakStatement.getSymKeyword());
-    if (breakStatement.getOptStatement() !=null) {
-      breakStatement.getOptStatement().visit(this);
-    }
-    if (breakStatement.getOptLabel() != null) {
-      breakStatement.getOptLabel().visit(this);
-    }
-    if (breakStatement.getOptSymSemicolon() != null) {
-      out.writeSymbol(breakStatement.getOptSymSemicolon());
-    }
+    visitIfNotNull(breakStatement.getOptStatement());
+    visitIfNotNull(breakStatement.getOptLabel());
+    writeOptSymbol(breakStatement.getOptSymSemicolon());
   }
 
   @Override
   public void visitThrowStatement(ThrowStatement throwStatement) throws IOException {
     out.writeSymbol(throwStatement.getSymKeyword());
-    if (throwStatement.getOptStatement() !=null) {
-      throwStatement.getOptStatement().visit(this);
-    }
-    if (throwStatement.getOptSymSemicolon() != null) {
-      out.writeSymbol(throwStatement.getOptSymSemicolon());
-    }
+    visitIfNotNull(throwStatement.getOptStatement());
+    writeOptSymbol(throwStatement.getOptSymSemicolon());
   }
 
   @Override
   public void visitReturnStatement(ReturnStatement returnStatement) throws IOException {
     out.writeSymbol(returnStatement.getSymKeyword());
-    if (returnStatement.getOptStatement() !=null) {
-      returnStatement.getOptStatement().visit(this);
-    }
-    if (returnStatement.getOptSymSemicolon() != null) {
-      out.writeSymbol(returnStatement.getOptSymSemicolon());
-    }
+    visitIfNotNull(returnStatement.getOptStatement());
+    writeOptSymbol(returnStatement.getOptSymSemicolon());
   }
 
   @Override
@@ -820,9 +763,7 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
     if (!isRest) {
       parameter.getIde().visit(this);
     }
-    if (parameter.getOptTypeRelation() !=null) {
-      parameter.getOptTypeRelation().visit(this);
-    }
+    visitIfNotNull(parameter.getOptTypeRelation());
     // in the method signature, comment out initializer code.
     if (parameter.getOptInitializer() != null) {
       out.beginComment();
@@ -840,13 +781,9 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
       generateVariableDeclarationStartCode(variableDeclaration);
     }
     variableDeclaration.getIde().visit(this);
-    if (variableDeclaration.getOptTypeRelation() != null) {
-      variableDeclaration.getOptTypeRelation().visit(this);
-    }
+    visitIfNotNull(variableDeclaration.getOptTypeRelation());
     generateVariableDeclarationInitializerCode(variableDeclaration);
-    if (variableDeclaration.getOptNextVariableDeclaration() != null) {
-      variableDeclaration.getOptNextVariableDeclaration().visit(this);
-    }
+    visitIfNotNull(variableDeclaration.getOptNextVariableDeclaration());
     generateVariableDeclarationEndCode(variableDeclaration);
   }
 
@@ -876,8 +813,7 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
   protected void generateFieldStartCode(VariableDeclaration variableDeclaration) throws IOException {
     out.beginString();
     writeModifiers(out, variableDeclaration);
-    if (variableDeclaration.getOptSymConstOrVar() !=null)
-      out.writeSymbol(variableDeclaration.getOptSymConstOrVar());
+    writeOptSymbol(variableDeclaration.getOptSymConstOrVar());
     out.endString();
     out.write(",{");
   }
@@ -886,7 +822,7 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
     if (variableDeclaration.isClassMember()) {
       generateFieldInitializerCode(variableDeclaration);
     } else {
-      generateVarInitializerCode(variableDeclaration);
+      visitIfNotNull(variableDeclaration.getOptInitializer());
     }
   }
 
@@ -909,17 +845,11 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
     }
   }
 
-  private void generateVarInitializerCode(VariableDeclaration variableDeclaration) throws IOException {
-    if (variableDeclaration.getOptInitializer() != null) {
-      variableDeclaration.getOptInitializer().visit(this);
-    }
-  }
-
   protected void generateVariableDeclarationEndCode(VariableDeclaration variableDeclaration) throws IOException {
     if (variableDeclaration.isClassMember()) {
       generateFieldEndCode(variableDeclaration);
     } else {
-      generateVarEndCode(variableDeclaration);
+      writeOptSymbol(variableDeclaration.getOptSymSemicolon());
     }
   }
 
@@ -932,17 +862,11 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
     }
   }
 
-  protected void generateVarEndCode(VariableDeclaration variableDeclaration) throws IOException {
-    if (variableDeclaration.getOptSymSemicolon() != null) {
-      out.writeSymbol(variableDeclaration.getOptSymSemicolon());
-    }
-  }
-
   @Override
   public void visitFunctionDeclaration(FunctionDeclaration functionDeclaration) throws IOException {
     assert functionDeclaration.isClassMember() || (!functionDeclaration.isNative() && !functionDeclaration.isAbstract());
     if (functionDeclaration.isConstructor() && !functionDeclaration.containsSuperConstructorCall() && functionDeclaration.hasBody()) {
-      addSuperCallCodeGenerator(functionDeclaration.getClassDeclaration(), functionDeclaration.getBody());
+      functionDeclaration.getBody().addBlockStartCodeGenerator(new SuperCallCodeGenerator(functionDeclaration.getClassDeclaration()));
     }
     if (!functionDeclaration.isClassMember()) {
       functionDeclaration.getFun().visit(this);
@@ -993,19 +917,13 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
 
   @Override
   public void visitClassDeclaration(ClassDeclaration classDeclaration) throws IOException {
-    for (AstNode node : classDeclaration.getDirectives()) {
-      node.visit(this);
-    }
+    visitAll(classDeclaration.getDirectives());
     out.beginString();
     writeModifiers(out, classDeclaration);
     out.writeSymbol(classDeclaration.getSymClass());
     classDeclaration.getIde().visit(this);
-    if (classDeclaration.getOptExtends() != null) {
-      classDeclaration.getOptExtends().visit(this);
-    }
-    if (classDeclaration.getOptImplements() != null) {
-      classDeclaration.getOptImplements().visit(this);
-    }
+    visitIfNotNull(classDeclaration.getOptExtends());
+    visitIfNotNull(classDeclaration.getOptImplements());
     out.endString();
     out.write(",");
     out.write(classDeclaration.getInheritanceLevel() + ",");
@@ -1029,11 +947,6 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
     out.write("];},");
     generateStaticMethodList(classDeclaration);
   }
-
-  public void addSuperCallCodeGenerator(ClassDeclaration classDeclaration, BlockStatement body) {
-    body.addBlockStartCodeGenerator(new SuperCallCodeGenerator(classDeclaration));
-  }
-
 
   public void generateFieldInitCode(ClassDeclaration classDeclaration, boolean startWithSemicolon, boolean endWithSemicolon) throws IOException {
     Iterator<VariableDeclaration> iterator = classDeclaration.getFieldsWithInitializer().iterator();
@@ -1144,9 +1057,7 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
   public void visitPackageDeclaration(PackageDeclaration packageDeclaration) throws IOException {
     out.beginString();
     out.writeSymbol(packageDeclaration.getSymPackage());
-    if (packageDeclaration.getIde() !=null) {
-      packageDeclaration.getIde().visit(this);
-    }
+    visitIfNotNull(packageDeclaration.getIde());
     out.endString();
     out.write(",");
   }
@@ -1155,13 +1066,13 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
   public void visitSuperConstructorCallStatement(SuperConstructorCallStatement superConstructorCallStatement) throws IOException {
     if (superConstructorCallStatement.getClassDeclaration().getInheritanceLevel() > 1) {
       generateFunCode(superConstructorCallStatement);
-      generateArgsCode(superConstructorCallStatement);
+      visitIfNotNull(superConstructorCallStatement.getArgs());
       generateFieldInitCode(superConstructorCallStatement.getClassDeclaration(), true, false);
     } else { // suppress for classes extending Object
       // Object super call does nothing anyway:
       out.beginComment();
       out.writeSymbol(superConstructorCallStatement.getSymbol());
-      generateArgsCode(superConstructorCallStatement);
+      visitIfNotNull(superConstructorCallStatement.getArgs());
       out.endComment();
       generateFieldInitCode(superConstructorCallStatement.getClassDeclaration(), false, false);
     }
@@ -1171,12 +1082,6 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
   private void generateFunCode(SuperConstructorCallStatement superConstructorCallStatement) throws IOException {
     out.writeSymbolWhitespace(superConstructorCallStatement.getSymbol());
     out.writeToken("this.super$" + superConstructorCallStatement.getClassDeclaration().getInheritanceLevel());
-  }
-
-  private void generateArgsCode(SuperConstructorCallStatement superConstructorCallStatement) throws IOException {
-    if (superConstructorCallStatement.getArgs() != null) {
-      superConstructorCallStatement.getArgs().visit(this);
-    }
   }
 
   @Override
@@ -1189,9 +1094,7 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
       out.writeSymbolWhitespace(annotation.getOptLeftParen());
     }
     out.writeToken("{");
-    if (annotation.getOptAnnotationParameters() != null) {
-      annotation.getOptAnnotationParameters().visit(this);
-    }
+    visitIfNotNull(annotation.getOptAnnotationParameters());
     if (annotation.getOptRightParen() != null) {
       out.writeSymbolWhitespace(annotation.getOptRightParen());
     }

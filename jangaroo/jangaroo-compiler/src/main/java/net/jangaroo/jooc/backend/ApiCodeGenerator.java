@@ -9,7 +9,6 @@ import net.jangaroo.jooc.ast.ArrayIndexExpr;
 import net.jangaroo.jooc.ast.ArrayLiteral;
 import net.jangaroo.jooc.ast.AsExpr;
 import net.jangaroo.jooc.ast.AssignmentOpExpr;
-import net.jangaroo.jooc.ast.AstNode;
 import net.jangaroo.jooc.ast.AstVisitor;
 import net.jangaroo.jooc.ast.BlockStatement;
 import net.jangaroo.jooc.ast.BreakStatement;
@@ -73,11 +72,9 @@ import java.io.IOException;
  * the asdoc tool.
  */
 public class ApiCodeGenerator extends CodeGeneratorBase implements AstVisitor {
-  private final JsWriter out;
 
   public ApiCodeGenerator(JsWriter out) {
     super(out);
-    this.out = out;
   }
 
   @Override
@@ -218,9 +215,7 @@ public class ApiCodeGenerator extends CodeGeneratorBase implements AstVisitor {
 
   @Override
   public void visitParameters(Parameters parameters) throws IOException {
-    if (parameters.getHead() != null) {
-      parameters.getHead().visit(this);
-    }
+    visitIfNotNull(parameters.getHead());
     if (parameters.getSymComma() != null) {
       out.writeSymbol(parameters.getSymComma());
       parameters.getTail().visit(this);
@@ -353,15 +348,10 @@ public class ApiCodeGenerator extends CodeGeneratorBase implements AstVisitor {
 
   @Override
   public void visitParameter(Parameter parameter) throws IOException {
-    if (parameter.getOptSymConstOrRest() != null) {
-      out.writeSymbol(parameter.getOptSymConstOrRest());
-    }
+    writeOptSymbol(parameter.getOptSymConstOrRest());
     parameter.getIde().visit(this);
-    if (parameter.getOptTypeRelation() !=null)
-      parameter.getOptTypeRelation().visit(this);
-    if (parameter.getOptInitializer() != null) {
-      parameter.getOptInitializer().visit(this);
-    }
+    visitIfNotNull(parameter.getOptTypeRelation());
+    visitIfNotNull(parameter.getOptInitializer());
   }
 
   @Override
@@ -370,18 +360,10 @@ public class ApiCodeGenerator extends CodeGeneratorBase implements AstVisitor {
       writeModifiers(out, variableDeclaration);
       out.writeSymbol(variableDeclaration.getOptSymConstOrVar());
       variableDeclaration.getIde().visit(this);
-      if (variableDeclaration.getOptTypeRelation() != null) {
-        variableDeclaration.getOptTypeRelation().visit(this);
-      }
-      if (variableDeclaration.getOptInitializer() != null) {
-        variableDeclaration.getOptInitializer().visit(this);
-      }
-      if (variableDeclaration.getOptNextVariableDeclaration() != null) {
-        variableDeclaration.getOptNextVariableDeclaration().visit(this);
-      }
-      if (variableDeclaration.getOptSymSemicolon() != null) {
-        out.writeSymbol(variableDeclaration.getOptSymSemicolon());
-      }
+      visitIfNotNull(variableDeclaration.getOptTypeRelation());
+      visitIfNotNull(variableDeclaration.getOptInitializer());
+      visitIfNotNull(variableDeclaration.getOptNextVariableDeclaration());
+      writeOptSymbol(variableDeclaration.getOptSymSemicolon());
     }
   }
 
@@ -396,9 +378,7 @@ public class ApiCodeGenerator extends CodeGeneratorBase implements AstVisitor {
       } else {
         out.writeSymbol(functionDeclaration.getFun().getFunSymbol());
       }
-      if (functionDeclaration.getSymGetOrSet() != null) {
-        out.writeSymbol(functionDeclaration.getSymGetOrSet());
-      }
+      writeOptSymbol(functionDeclaration.getSymGetOrSet());
       functionDeclaration.getIde().visit(this);
       generateSignatureAsApiCode(out, functionDeclaration.getFun());
       if (functionDeclaration.isConstructor() && !functionDeclaration.isNative()) {
@@ -432,29 +412,19 @@ public class ApiCodeGenerator extends CodeGeneratorBase implements AstVisitor {
 
   public void generateSignatureAsApiCode(JsWriter out, FunctionExpr fun) throws IOException {
     out.writeSymbol(fun.getLParen());
-    if (fun.getParams() != null) {
-      fun.getParams().visit(this);
-    }
+    visitIfNotNull(fun.getParams());
     out.writeSymbol(fun.getRParen());
-    if (fun.getOptTypeRelation() != null) {
-      fun.getOptTypeRelation().visit(this);
-    }
+    visitIfNotNull(fun.getOptTypeRelation());
   }
 
   @Override
   public void visitClassDeclaration(ClassDeclaration classDeclaration) throws IOException {
-    for (AstNode node : classDeclaration.getDirectives()) {
-      node.visit(this);
-    }
+    visitAll(classDeclaration.getDirectives());
     writeModifiers(out, classDeclaration);
     out.writeSymbol(classDeclaration.getSymClass());
     classDeclaration.getIde().visit(this);
-    if (classDeclaration.getOptExtends() != null) {
-      classDeclaration.getOptExtends().visit(this);
-    }
-    if (classDeclaration.getOptImplements() != null) {
-      classDeclaration.getOptImplements().visit(this);
-    }
+    visitIfNotNull(classDeclaration.getOptExtends());
+    visitIfNotNull(classDeclaration.getOptImplements());
     classDeclaration.getBody().visit(this);
   }
 
@@ -467,19 +437,13 @@ public class ApiCodeGenerator extends CodeGeneratorBase implements AstVisitor {
       out.writeSymbol(namespacedDeclaration.getOptInitializer().getSymEq());
       namespacedDeclaration.getOptInitializer().getValue().visit(this);
     }
-    if (namespacedDeclaration.getOptSymSemicolon() != null) {
-      out.writeSymbol(namespacedDeclaration.getOptSymSemicolon());
-    } else {
-      out.writeToken(";");
-    }
+    writeOptSymbol(namespacedDeclaration.getOptSymSemicolon(), ";");
   }
 
   @Override
   public void visitPackageDeclaration(PackageDeclaration packageDeclaration) throws IOException {
     out.writeSymbol(packageDeclaration.getSymPackage());
-    if (packageDeclaration.getIde() !=null) {
-      packageDeclaration.getIde().visit(this);
-    }
+    visitIfNotNull(packageDeclaration.getIde());
   }
 
   @Override
@@ -491,15 +455,9 @@ public class ApiCodeGenerator extends CodeGeneratorBase implements AstVisitor {
   public void visitAnnotation(Annotation annotation) throws IOException {
     out.writeSymbol(annotation.getLeftBracket());
     annotation.getIde().visit(this);
-    if (annotation.getOptLeftParen() != null) {
-      out.writeSymbol(annotation.getOptLeftParen());
-    }
-    if (annotation.getOptAnnotationParameters() != null) {
-      annotation.getOptAnnotationParameters().visit(this);
-    }
-    if (annotation.getOptRightParen() != null) {
-      out.writeSymbol(annotation.getOptRightParen());
-    }
+    writeOptSymbol(annotation.getOptLeftParen());
+    visitIfNotNull(annotation.getOptAnnotationParameters());
+    writeOptSymbol(annotation.getOptRightParen());
     out.writeSymbol(annotation.getRightBracket());
   }
 
