@@ -36,7 +36,7 @@ public final class ConfigClassGenerator {
       cfg.setClassForTemplateLoading(ComponentClass.class, "/");
       cfg.setObjectWrapper(new DefaultObjectWrapper());
       Template template = cfg.getTemplate("/net/jangaroo/extxml/templates/config_class.ftl");
-      Environment env = template.createProcessingEnvironment(new ConfigClassModel(jooClass, componentSuite, jooClass.getClassName().toLowerCase()), output);
+      Environment env = template.createProcessingEnvironment(new ConfigClassModel(jooClass, componentSuite, jooClass.getLastXtypeComponent()), output);
       env.setOutputEncoding(outputCharset);
       env.process();
     }
@@ -52,11 +52,6 @@ public final class ConfigClassGenerator {
 
     if (StringUtils.isEmpty(jooClass.getClassName())) {
       Log.e(String.format("Class name of component '%s' is undefined!", jooClass.getFullClassName()));
-      isValid = false;
-    }
-
-    if (StringUtils.isEmpty(jooClass.getSuperClassName())) {
-      Log.e(String.format("Super class of component '%s' is undefined!", jooClass.getFullClassName()));
       isValid = false;
     }
 
@@ -79,7 +74,7 @@ public final class ConfigClassGenerator {
   public File generateClass(ComponentClass componentClass) {
     if (true) {
       File configClassDir = new File(componentSuite.getAs3OutputDir(), componentSuite.getConfigClassPackage().replace('.', File.separatorChar));
-      File outputFile = new File(configClassDir, componentClass.getClassName().toLowerCase() + ".as");
+      File outputFile = new File(configClassDir, componentClass.getLastXtypeComponent() + ".as");
 
       if(!outputFile.getParentFile().exists()) {
         if (outputFile.getParentFile().mkdirs()) {

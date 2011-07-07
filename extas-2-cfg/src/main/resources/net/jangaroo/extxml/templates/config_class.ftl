@@ -10,7 +10,7 @@ import ${componentClass.fullClassName};
  * @see ${componentClass.fullClassName}
  */
 [ExtConfig(target="${componentClass.fullClassName}")]
-public class ${className} extends ${parentConfigClassName} {
+public class ${className}${extendsPhrase} {
   /**
    * @see ${componentClass.fullClassName}
    */

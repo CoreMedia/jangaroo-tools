@@ -26,11 +26,11 @@ public class ConfigClassModel {
     return className;
   }
 
-  public String getParentConfigClassName() {
+  public String getExtendsPhrase() {
     ComponentClass superComponentClass = componentSuite.findComponentClassByFullClassName(componentClass.getSuperClassName());
     if (superComponentClass == null) {
-      return "TODO";
+      return "";
     }
-    return superComponentClass.getSuite().getConfigClassPackage() + "." + superComponentClass.getClassName().toLowerCase();
+    return " extends " + superComponentClass.getSuite().getConfigClassPackage() + "." + superComponentClass.getLastXtypeComponent().toLowerCase();
   }
 }

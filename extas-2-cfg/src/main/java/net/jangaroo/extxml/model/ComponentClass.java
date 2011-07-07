@@ -72,6 +72,11 @@ public final class ComponentClass extends DescriptionHolder {
     return xtype;
   }
 
+  public String getLastXtypeComponent() {
+    int lastDot = xtype.lastIndexOf('.');
+    return xtype.substring(lastDot + 1);
+  }
+
   /**
    * Returns the XML element name, this is either just the xtype or, if the xtype is
    * the full qualified class name, the class name (without packages)
