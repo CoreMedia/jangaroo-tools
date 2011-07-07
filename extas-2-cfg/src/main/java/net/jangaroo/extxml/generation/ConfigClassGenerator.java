@@ -1,15 +1,13 @@
 package net.jangaroo.extxml.generation;
 
+import freemarker.core.Environment;
 import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapper;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
-import freemarker.core.Environment;
 import net.jangaroo.extxml.model.ComponentClass;
 import net.jangaroo.extxml.model.ComponentSuite;
 import net.jangaroo.extxml.model.ComponentType;
-import net.jangaroo.extxml.xml.ContentHandlerUtils;
-import net.jangaroo.extxml.xml.ExmlToJsonHandler;
 import net.jangaroo.utils.log.Log;
 import org.codehaus.plexus.util.StringUtils;
 
@@ -37,9 +35,6 @@ public final class ConfigClassGenerator {
       Configuration cfg = new Configuration();
       cfg.setClassForTemplateLoading(ComponentClass.class, "/");
       cfg.setObjectWrapper(new DefaultObjectWrapper());
-      if (jooClass.getJson() != null) {
-        cfg.setSharedVariable("jsonForTemplate", jooClass.getJson().toString(2, 4));
-      }
       Template template = cfg.getTemplate("/net/jangaroo/extxml/templates/config_class.ftl");
       Environment env = template.createProcessingEnvironment(new ConfigClassModel(jooClass, componentSuite, jooClass.getClassName().toLowerCase()), output);
       env.setOutputEncoding(outputCharset);

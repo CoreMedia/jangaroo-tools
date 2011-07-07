@@ -59,7 +59,7 @@ public final class ExtXml {
    * @param args command line arguments
    * @throws IOException
    */
-  public static void main(String[] args) throws IOException {
+  public static void main(String ... args) throws IOException {
     //Scan the directory for xml, as or javascript components and collect the data in ComponentClass, import all provided XSDs
     ComponentSuiteRegistry componentSuiteRegistry = ComponentSuiteRegistry.getInstance();
 
