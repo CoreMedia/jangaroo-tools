@@ -14,15 +14,9 @@ import java.util.Map;
  */
 public final class ComponentSuiteRegistry {
 
-  private static final ComponentSuiteRegistry INSTANCE = new ComponentSuiteRegistry();
-
   private final Map<String, ComponentSuite> componentSuitesByNamespaceUri = new LinkedHashMap<String, ComponentSuite>(10);
 
   public ComponentSuiteRegistry() {
-  }
-
-  public static ComponentSuiteRegistry getInstance() {
-    return INSTANCE;
   }
 
   public void add(ComponentSuite componentSuite) {
