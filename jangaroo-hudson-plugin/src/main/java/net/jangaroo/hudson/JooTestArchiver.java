@@ -125,7 +125,7 @@ public class JooTestArchiver extends MavenReporter {
       // if surefire plugin is going to kill maven because of a test failure,
       // intercept that (or otherwise build will be marked as failure)
       if (failCount > 0 && error instanceof MojoFailureException) {
-        MavenBuilder.markAsSuccess = true;
+        MavenBuilder.markAsSuccess = true; // NOSONAR
       }
     }
 
