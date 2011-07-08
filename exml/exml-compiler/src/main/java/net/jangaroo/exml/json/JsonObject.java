@@ -189,8 +189,11 @@ public class JsonObject implements Json {
     if (n == 1) {
       writeKeyValue(keys.next(), indentFactor, indent, sb);
     } else if (n > 1) {
+      boolean isFirstAttribute = true;
       while (keys.hasNext()) {
-        if (sb.length() > 1) {
+        if (isFirstAttribute) {
+          isFirstAttribute = false;
+        } else {
           sb.append(",");
         }
         newlineAndIndent(sb, newindent);
