@@ -35,6 +35,7 @@ public final class ConfigClassRegistry {
   private InputSource sourcePathInputSource;
 
   private JangarooParser jangarooParser;
+  private ExmlToConfigClassParser exmlToConfigClassParser;
 
   public ConfigClassRegistry(final ExmlConfiguration config) throws IOException {
     this.config = config;
@@ -74,6 +75,7 @@ public final class ConfigClassRegistry {
     List<File> fullSourcePath = new ArrayList<File>(config.getSourcePath());
     fullSourcePath.add(config.getOutputDirectory());
     jangarooParser.setUp(PathInputSource.fromFiles(fullSourcePath, new String[0]), classPathInputSource);
+    exmlToConfigClassParser = new ExmlToConfigClassParser(config);
   }
 
   public ExmlConfiguration getConfig() {
@@ -85,20 +87,28 @@ public final class ConfigClassRegistry {
    * This has to be called before you use the registry once.
    */
   public void scanAllExmlFiles() {
-    ExmlToConfigClassParser exmlToConfigClassParser = new ExmlToConfigClassParser(config);
-    for (InputSource source : sourcePathInputSource.list()) {
+    scanExmlFiles(sourcePathInputSource);
+  }
+
+  private void scanExmlFiles(InputSource inputSource) {
+    for (InputSource source : inputSource.list()) {
       File exmlFile = ((FileInputSource) source).getFile();
-      if (exmlFile.isFile() && exmlFile.getName().endsWith(ExmlConstants.EXML_SUFFIX)) {
-        if (!scannedExmlFiles.contains(exmlFile)) {
-          scannedExmlFiles.add(exmlFile);
-          try {
-            ConfigClass configClass = exmlToConfigClassParser.parseExmlToConfigClass(exmlFile);
-            addConfigClass(configClass);
-          } catch (IOException e) {
-            // TODO Log and continue?
-            throw new ExmlcException("could not read EXML file", e);
+      if (exmlFile.isFile()) {
+        if (exmlFile.getName().endsWith(ExmlConstants.EXML_SUFFIX)) {
+          if (!scannedExmlFiles.contains(exmlFile)) {
+            scannedExmlFiles.add(exmlFile);
+            try {
+              ConfigClass configClass = exmlToConfigClassParser.parseExmlToConfigClass(exmlFile);
+              addConfigClass(configClass);
+            } catch (IOException e) {
+              // TODO Log and continue?
+              throw new ExmlcException("could not read EXML file", e);
+            }
           }
         }
+      } else {
+        // Recurse into the tree.
+        scanExmlFiles(source);
       }
     }
   }
