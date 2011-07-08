@@ -4,6 +4,9 @@
 package net.jangaroo.exml.mojo;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * A Mojo to compile test EXML sources to test AS3 sources into target/generated-test-sources/joo in phase generate-test-sources.
@@ -72,18 +75,16 @@ public class TestExmlMojo extends AbstractExmlMojo {
   }
 
   @Override
-  public File getSourceDirectory() {
-    return testSourceDirectory;
-  }
-
-  @Override
-  public File getGeneratedSourcesDirectory() {
-    return generatedTestSourcesDirectory;
-  }
-
-  @Override
   public File getGeneratedResourcesDirectory() {
     return generatedTestResourcesDirectory;
+  }
+
+  @Override
+  protected List<File> getActionScriptClassPath() {
+    final List<File> classPath = new ArrayList<File>(super.getActionScriptClassPath());
+    classPath.add(0, getSourceDirectory());
+    classPath.add(0, getGeneratedSourcesDirectory());
+    return classPath;
   }
 
   @Override
@@ -102,5 +103,9 @@ public class TestExmlMojo extends AbstractExmlMojo {
     }
     importedXsds[importedXsds.length-1] = xsd;
     return importedXsds;
+  }
+
+  protected List<File> getSourcePath() {
+    return Collections.singletonList(testSourceDirectory);
   }
 }

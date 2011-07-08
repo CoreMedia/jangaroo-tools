@@ -178,23 +178,6 @@ public final class ExtComponentSrcFileScanner {
 
   private static class State {
 
-    private final static String[] SPECIAL_EXT_CLASS_TO_XTYPE = {
-      "Ext.grid.Column",         "gridcolumn",
-      "Ext.grid.BooleanColumn",  "booleancolumn",
-      "Ext.grid.NumberColumn",   "numbercolumn",
-      "Ext.grid.DateColumn",     "datecolumn",
-      "Ext.grid.TemplateColumn", "templatecolumn",
-      "Ext.util.Observable",     "observable",
-      "Ext.data.Field",          "datafield",
-      // "abstract" layouts:
-      "Ext.layout.ContainerLayout", "containerlayout",
-      "Ext.layout.BoxLayout",       "boxlayout",
-      // Ext.layout.Container.LAYOUTS setting comes too late for this class, so we have to assign it manually:
-      "Ext.layout.BorderLayout",    "borderlayout",
-      // Ext's built-in Action class: use upper-case xtype so it does not clash with the attribute "action"!
-      "Ext.Action",                 "Action"
-    };
-
     private ComponentSuite componentSuite;
     private File srcFile;
     private ComponentClass cc;
@@ -212,14 +195,6 @@ public final class ExtComponentSrcFileScanner {
       cc = new ComponentClass(srcFile);
       cc.setFullClassName(jsType2asType(className));
       setDescriptionHolder(cc);
-      // special cases: xtypes for certain Ext classes that have implicit xtypes
-      // or provide config attributes for subclasses, or are added as EXML elements:
-      for (int i = 0; i < SPECIAL_EXT_CLASS_TO_XTYPE.length; i+=2) {
-        if (SPECIAL_EXT_CLASS_TO_XTYPE[i].equals(className)) {
-          cc.setXtype(SPECIAL_EXT_CLASS_TO_XTYPE[i+1]);
-          break;
-        }
-      }
     }
 
     private void addImport(String className) {

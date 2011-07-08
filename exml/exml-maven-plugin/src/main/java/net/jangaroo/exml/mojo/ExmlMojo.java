@@ -4,6 +4,8 @@
 package net.jangaroo.exml.mojo;
 
 import java.io.File;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * A Mojo to compile EXML sources to AS3 sources into target/generated-sources/joo in phase generate-sources.
@@ -13,13 +15,6 @@ import java.io.File;
  * @requiresDependencyResolution
  */
 public class ExmlMojo extends AbstractExmlMojo {
-
-  /**
-   * Source directory to scan for files to compile.
-   *
-   * @parameter expression="${basedir}/src/main/joo"
-   */
-  private File sourceDirectory;
 
   /**
    * The namespace of the component suite
@@ -34,13 +29,6 @@ public class ExmlMojo extends AbstractExmlMojo {
    * @parameter expression="${project.artifactId}"
    */
   private String namespacePrefix;
-
-  /**
-   * Output directory for all ActionScript3 files generated out of exml components
-   *
-   * @parameter expression="${project.build.directory}/generated-sources/joo"
-   */
-  private File generatedSourcesDirectory;
 
   @Override
   public String getNamespace() {
@@ -58,18 +46,11 @@ public class ExmlMojo extends AbstractExmlMojo {
   }
 
   @Override
-  public File getSourceDirectory() {
-    return sourceDirectory;
-  }
-
-  @Override
-  public File getGeneratedSourcesDirectory() {
-    return generatedSourcesDirectory;
-  }
-
-  @Override
   public File getGeneratedResourcesDirectory() {
     return generatedResourcesDirectory;
   }
 
+  protected List<File> getSourcePath() {
+    return Collections.singletonList(getSourceDirectory());
+  }
 }

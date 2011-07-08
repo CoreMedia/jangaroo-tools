@@ -11,6 +11,9 @@ import ext.config.menuitem;
  * <b>Do not edit. This is an auto-generated class.</b>
  */
 public class AllElements extends ext.Panel {
+  public static const xtype:String = "exmlparser.config.AllElements";
+  ext.ComponentMgr.registerType(xtype, AllElements);
+
   public function AllElements(config:Object = null) {
     super(ext.Ext.apply({
       layout: config.myLayout,

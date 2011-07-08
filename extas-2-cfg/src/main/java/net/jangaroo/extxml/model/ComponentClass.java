@@ -23,12 +23,6 @@ public final class ComponentClass extends DescriptionHolder {
   private List<ConfigAttribute> cfgs = new ArrayList<ConfigAttribute>();
   private ComponentType type;
 
-  public ComponentClass(List<String> imports, String fullClassName, String superClassName, Object json) {
-    this(fullClassName, fullClassName);
-    this.imports = imports;
-    this.superClassName = superClassName;
-  }
-
   public ComponentClass(String xtype, String fullClassName) {
     this.xtype = xtype;
     this.fullClassName = fullClassName;

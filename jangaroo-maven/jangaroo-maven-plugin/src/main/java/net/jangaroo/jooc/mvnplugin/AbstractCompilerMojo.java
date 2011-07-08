@@ -257,9 +257,7 @@ public abstract class AbstractCompilerMojo extends JangarooMojo {
   }
 
   protected List<File> getActionScriptClassPath() {
-    List<File> classPath = new ArrayList<File>(getMavenPluginHelper().getActionScriptClassPath());
-    classPath.add(0, new File(getProject().getBasedir(), "src/main/joo-api"));
-    return classPath;
+    return getMavenPluginHelper().getActionScriptClassPath();
   }
 
   private void buildOutputFile(File tempOutputDir, File outputFile) throws MojoExecutionException {

@@ -61,7 +61,12 @@ public class XsdScanner {
     if (xtype == null) {
       xtype = parser.getAttributeValue(null, "name");
     }
+
     String typeName = afterColon(parser.getAttributeValue(null, "type"));
+    if (typeName.startsWith("ext.")) {
+      xtype = xtype.toLowerCase();
+    }
+
     ComponentClass componentClass = ccStack.lastElement();
     assert typeName.equals(componentClass.getFullClassName());
     componentClass.setXtype(xtype);

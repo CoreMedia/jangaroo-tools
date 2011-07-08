@@ -81,6 +81,7 @@ public class MavenPluginHelper {
         classPath.add(dependency.getFile());
       }
     }
+    classPath.add(0, new File(project.getBasedir(), "src/main/joo-api"));
     return classPath;
   }
 

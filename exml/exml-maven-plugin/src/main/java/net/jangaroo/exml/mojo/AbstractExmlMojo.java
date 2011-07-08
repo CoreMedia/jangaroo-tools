@@ -6,7 +6,6 @@ import net.jangaroo.exml.compiler.Exmlc;
 import net.jangaroo.exml.config.ExmlConfiguration;
 import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.mvnplugin.JangarooMojo;
-import net.jangaroo.jooc.mvnplugin.util.MavenPluginHelper;
 import net.jangaroo.utils.log.Log;
 import net.jangaroo.utils.log.LogHandler;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -17,7 +16,6 @@ import org.apache.maven.project.MavenProjectHelper;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -32,6 +30,20 @@ public abstract class AbstractExmlMojo extends JangarooMojo {
    * @parameter expression="${project}"
    */
   private MavenProject project;
+  /**
+   * Source directory to scan for files to compile.
+   *
+   * @parameter expression="${basedir}/src/main/joo"
+   */
+  private File sourceDirectory;
+
+  /**
+   * Output directory for all ActionScript3 files generated out of exml components
+   *
+   * @parameter expression="${project.build.directory}/generated-sources/joo"
+   */
+  private File generatedSourcesDirectory;
+
   /**
    * The package into which config classes of EXML components are generated.
    *
@@ -91,9 +103,13 @@ public abstract class AbstractExmlMojo extends JangarooMojo {
 
   public abstract String getXsd();
 
-  public abstract File getSourceDirectory();
+  public File getSourceDirectory() {
+    return sourceDirectory;
+  }
 
-  public abstract File getGeneratedSourcesDirectory();
+  public File getGeneratedSourcesDirectory() {
+    return generatedSourcesDirectory;
+  }
 
   public abstract File getGeneratedResourcesDirectory();
 
@@ -119,16 +135,15 @@ public abstract class AbstractExmlMojo extends JangarooMojo {
     Log.setLogHandler(errorHandler);
     ExmlConfiguration exmlConfiguration = new ExmlConfiguration();
     exmlConfiguration.setConfigClassPackage(configClassPackage);
-    MavenPluginHelper mavenPluginHelper = new MavenPluginHelper(getProject(), getLog());
-    exmlConfiguration.setClassPath(mavenPluginHelper.getActionScriptClassPath());
+    exmlConfiguration.setClassPath(getActionScriptClassPath());
     exmlConfiguration.setOutputDirectory(generatedSourcesDirectory);
-    List<File> sourceRoots = Collections.singletonList(getSourceDirectory());
+    List<File> sourcePath = getSourcePath();
     try {
-      exmlConfiguration.setSourcePath(sourceRoots);
+      exmlConfiguration.setSourcePath(sourcePath);
     } catch (IOException e) {
       throw new MojoExecutionException("could not determine source directory", e);
     }
-    exmlConfiguration.setSourceFiles(mavenPluginHelper.computeStaleSources(sourceRoots, includes, excludes, generatedSourcesDirectory, ExmlConstants.EXML_SUFFIX, JangarooParser.AS_SUFFIX, staleMillis));
+    exmlConfiguration.setSourceFiles(getMavenPluginHelper().computeStaleSources(sourcePath, includes, excludes, generatedSourcesDirectory, ExmlConstants.EXML_SUFFIX, JangarooParser.AS_SUFFIX, staleMillis));
 
 
     Exmlc exmlc;
@@ -184,6 +199,12 @@ public abstract class AbstractExmlMojo extends JangarooMojo {
 //    }
 
     getProject().addCompileSourceRoot(generatedSourcesDirectory.getPath());
+  }
+
+  protected abstract List<File> getSourcePath();
+
+  protected List<File> getActionScriptClassPath() {
+    return getMavenPluginHelper().getActionScriptClassPath();
   }
 
   class MavenLogHandler implements LogHandler {
