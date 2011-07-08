@@ -115,6 +115,14 @@ public final class ExtComponentSrcFileScanner {
       })
       .add(CFG_RULE)
       .add(COMMENT_END_RULE)
+      .add(new Rule<State>("\\s@[a-z]") {
+        public void matched(State state, List<String> groups) {
+          if (state.isInConfig()) {
+            // stop config comment when encountering an @-tag
+            state.setDescriptionHolder(null);
+          }
+        }
+      })
       .add(new Rule<State>("^?\\s*/\\*\\*?(.*)$") {
         public void matched(State state, List<String> groups) {
           if (!state.insideComment) {
@@ -210,6 +218,7 @@ public final class ExtComponentSrcFileScanner {
           }
         }
         cc.setSuperClassName(fullClassName);
+        setDescriptionHolder(null);
       } else if (cc != null) {
         cc.setSuperClassName(jsType2asType(superClassName));
       }
@@ -292,6 +301,10 @@ public final class ExtComponentSrcFileScanner {
 
     private boolean isActionScript() {
       return srcFile.getName().lastIndexOf(".as") != -1;
+    }
+
+    public boolean isInConfig() {
+      return descriptionHolder instanceof ConfigAttribute;
     }
   }
 }
