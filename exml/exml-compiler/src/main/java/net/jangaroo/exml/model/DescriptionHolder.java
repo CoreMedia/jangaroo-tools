@@ -17,4 +17,21 @@ public class DescriptionHolder {
   public void setDescription(String description) {
     this.description = description;
   }
+
+  public String getEscapedDescription() {
+    if (description == null) {
+      return null;
+    }
+    StringBuilder builder = new StringBuilder();
+    for (int i = 0; i < description.length(); i++) {
+      char c = description.charAt(i);
+      switch (c) {
+        case '*': builder.append("&#42;"); break;
+        case '/': builder.append("&#47;"); break;
+        case '@': builder.append("&#64;"); break;
+        default: builder.append(c);
+      }
+    }
+    return builder.toString();
+  }
 }

@@ -6,7 +6,7 @@ import ${superClassName};
 import ${componentClassName};
 
 /**
- * ${description!}
+ * ${escapedDescription!}
  *
  * <b>Do not edit. This is an auto-generated class.</b>
  *
@@ -23,7 +23,7 @@ public class ${name} extends ${superClassName} {
 
   <#list cfgs as cfg>
   /**
-   * ${cfg.description!}
+   * ${cfg.escapedDescription!}
    */
   public native function get ${cfg.name}():${cfg.type};
   /**
