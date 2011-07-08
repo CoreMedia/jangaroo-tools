@@ -226,7 +226,6 @@ public class JangarooParser {
 
   public void setUp(InputSource sourcePathInputSource, InputSource classPathInputSource) {
     defaultLog.set(log);
-    this.config = config;
     this.sourcePathInputSource = sourcePathInputSource;
     this.classPathInputSource = classPathInputSource;
 
