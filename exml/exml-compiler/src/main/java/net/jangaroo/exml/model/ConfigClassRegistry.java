@@ -1,5 +1,6 @@
 package net.jangaroo.exml.model;
 
+import net.jangaroo.exml.ExmlConstants;
 import net.jangaroo.exml.ExmlcException;
 import net.jangaroo.exml.as.ConfigClassBuilder;
 import net.jangaroo.exml.config.ExmlConfiguration;
@@ -13,14 +14,10 @@ import net.jangaroo.jooc.config.SemicolonInsertionMode;
 import net.jangaroo.jooc.input.FileInputSource;
 import net.jangaroo.jooc.input.InputSource;
 import net.jangaroo.jooc.input.PathInputSource;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.filefilter.SuffixFileFilter;
-import org.apache.commons.io.filefilter.TrueFileFilter;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -39,15 +36,10 @@ public final class ConfigClassRegistry {
 
   private JangarooParser jangarooParser;
 
-  private static final String AS_SUFFIX = ".as";
-  private static final String EXML_SUFFIX = ".exml";
-
   public ConfigClassRegistry(final ExmlConfiguration config) throws IOException {
     this.config = config;
 
-    List<File> fullSourcePath = new ArrayList<File>(config.getSourcePath());
-    fullSourcePath.add(config.getOutputDirectory());
-    sourcePathInputSource = PathInputSource.fromFiles(fullSourcePath, new String[0]);
+    sourcePathInputSource = PathInputSource.fromFiles(config.getSourcePath(), new String[0]);
     InputSource classPathInputSource = PathInputSource.fromFiles(config.getClassPath(),
       new String[]{"", JangarooParser.JOO_API_IN_JAR_DIRECTORY_PREFIX});
 
@@ -79,7 +71,9 @@ public final class ConfigClassRegistry {
         return super.findSource(qname);
       }
     };
-    jangarooParser.setUp(sourcePathInputSource, classPathInputSource);
+    List<File> fullSourcePath = new ArrayList<File>(config.getSourcePath());
+    fullSourcePath.add(config.getOutputDirectory());
+    jangarooParser.setUp(PathInputSource.fromFiles(fullSourcePath, new String[0]), classPathInputSource);
   }
 
   public ExmlConfiguration getConfig() {
@@ -91,19 +85,19 @@ public final class ConfigClassRegistry {
    * This has to be called before you use the registry once.
    */
   public void scanAllExmlFiles() {
-    File sourceRootDir = new File(sourcePathInputSource.getPath());
-
-    Collection<File> files = FileUtils.listFiles(sourceRootDir, new SuffixFileFilter(EXML_SUFFIX), TrueFileFilter.INSTANCE);
     ExmlToConfigClassParser exmlToConfigClassParser = new ExmlToConfigClassParser(config);
-    for (File exmlFile : files) {
-      if (!scannedExmlFiles.contains(exmlFile)) {
-        scannedExmlFiles.add(exmlFile);
-        try {
-          ConfigClass configClass = exmlToConfigClassParser.parseExmlToConfigClass(exmlFile);
-          addConfigClass(configClass);
-        } catch (IOException e) {
-          // TODO Log and continue?
-          throw new ExmlcException("could not read EXML file", e);
+    for (InputSource source : sourcePathInputSource.list()) {
+      File exmlFile = ((FileInputSource) source).getFile();
+      if (exmlFile.isFile() && exmlFile.getName().endsWith(ExmlConstants.EXML_SUFFIX)) {
+        if (!scannedExmlFiles.contains(exmlFile)) {
+          scannedExmlFiles.add(exmlFile);
+          try {
+            ConfigClass configClass = exmlToConfigClassParser.parseExmlToConfigClass(exmlFile);
+            addConfigClass(configClass);
+          } catch (IOException e) {
+            // TODO Log and continue?
+            throw new ExmlcException("could not read EXML file", e);
+          }
         }
       }
     }
@@ -143,7 +137,7 @@ public final class ConfigClassRegistry {
     if (name.startsWith(config.getConfigClassPackage() + ".")) {
       // The config class might originate from one of of this module's EXML files.
       FileInputSource outputDirInputSource = new FileInputSource(config.getOutputDirectory(), config.getOutputDirectory());
-      InputSource generatedConfigAsFile = outputDirInputSource.getChild(JangarooParser.getInputSourceFileName(name, outputDirInputSource, AS_SUFFIX));
+      InputSource generatedConfigAsFile = outputDirInputSource.getChild(JangarooParser.getInputSourceFileName(name, outputDirInputSource, JangarooParser.AS_SUFFIX));
       if (generatedConfigAsFile != null) {
         // A candidate AS config class has already been generated.
         CompilationUnit compilationUnit = Jooc.doParse(generatedConfigAsFile, new StdOutCompileLog(), SemicolonInsertionMode.QUIRKS);
@@ -156,7 +150,7 @@ public final class ConfigClassRegistry {
           String componentName = generatedAsConfigClass.getComponentClassName();
           // We must parse the EXMl file again, because the parent class (and hence the
           // parent config class) might have changed.
-          FileInputSource exmlInputSource = (FileInputSource)sourcePathInputSource.getChild(JangarooParser.getInputSourceFileName(componentName, sourcePathInputSource, EXML_SUFFIX));
+          FileInputSource exmlInputSource = (FileInputSource)sourcePathInputSource.getChild(JangarooParser.getInputSourceFileName(componentName, sourcePathInputSource, ExmlConstants.EXML_SUFFIX));
           if (exmlInputSource != null) {
             scannedExmlFiles.add(exmlInputSource.getFile());
             ConfigClass configClass;
