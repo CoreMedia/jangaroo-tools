@@ -19,9 +19,11 @@ import org.apache.commons.io.filefilter.TrueFileFilter;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -40,10 +42,12 @@ public final class ConfigClassRegistry {
   private static final String AS_SUFFIX = ".as";
   private static final String EXML_SUFFIX = ".exml";
 
-  public ConfigClassRegistry(ExmlConfiguration config) throws IOException {
+  public ConfigClassRegistry(final ExmlConfiguration config) throws IOException {
     this.config = config;
 
-    sourcePathInputSource = PathInputSource.fromFiles(config.getSourcePath(), new String[0]);
+    List<File> fullSourcePath = new ArrayList<File>(config.getSourcePath());
+    fullSourcePath.add(config.getOutputDirectory());
+    sourcePathInputSource = PathInputSource.fromFiles(fullSourcePath, new String[0]);
     InputSource classPathInputSource = PathInputSource.fromFiles(config.getClassPath(),
       new String[]{"", JangarooParser.JOO_API_IN_JAR_DIRECTORY_PREFIX});
 
@@ -58,7 +62,23 @@ public final class ConfigClassRegistry {
         return false;
       }
     };
-    jangarooParser = new JangarooParser(parserOptions, new StdOutCompileLog());
+    jangarooParser = new JangarooParser(parserOptions, new StdOutCompileLog()) {
+      @Override
+      protected InputSource findSource(String qname) {
+        InputSource inputSource = super.findSource(qname);
+        if (inputSource != null && inputSource instanceof FileInputSource && !((FileInputSource)inputSource).getSourceDir().equals(config.getOutputDirectory())) {
+          // A regular source file (not a generated file) has been found. Use it.
+          return inputSource;
+        }
+        // Just in case the requested class is a config class
+        // that is generated from an EXML file, regenerate the config file before
+        // it is too late. This will only affect files in the config package
+        // and only generated files, so it is pretty safe.
+        tryBuildConfigClassFromExml(qname);
+        // Just in case the source was not found on the first attempt, fetch it again.
+        return super.findSource(qname);
+      }
+    };
     jangarooParser.setUp(sourcePathInputSource, classPathInputSource);
   }
 
@@ -162,7 +182,11 @@ public final class ConfigClassRegistry {
     CompilationUnit compilationsUnit = jangarooParser.getCompilationsUnit(name);
     ConfigClass configClass = null;
     if (compilationsUnit != null) {
-      configClass = buildConfigClass(compilationsUnit);
+      try {
+        configClass = buildConfigClass(compilationsUnit);
+      } catch (RuntimeException e) {
+        throw new ExmlcException("while building config class " + name + ": " + e.getMessage(), e);
+      }
     }
     if (configClass == null) {
       throw new ExmlcException("No config class '" + name + "' found.");
