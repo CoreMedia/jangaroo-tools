@@ -980,7 +980,8 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
     public void generate(JsWriter out) throws IOException {
       int inheritanceLevel = classDeclaration.getInheritanceLevel();
       if (inheritanceLevel > 1) { // suppress for classes extending Object
-        out.writeToken("this.super$" + inheritanceLevel + "();");
+        generateSuperConstructorCallCode(classDeclaration, null);
+        out.writeToken(";");
       }
       generateFieldInitCode(classDeclaration, false, true);
     }
@@ -1065,8 +1066,7 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
   @Override
   public void visitSuperConstructorCallStatement(SuperConstructorCallStatement superConstructorCallStatement) throws IOException {
     if (superConstructorCallStatement.getClassDeclaration().getInheritanceLevel() > 1) {
-      generateFunCode(superConstructorCallStatement);
-      visitIfNotNull(superConstructorCallStatement.getArgs());
+      generateSuperConstructorCallCode(superConstructorCallStatement);
       generateFieldInitCode(superConstructorCallStatement.getClassDeclaration(), true, false);
     } else { // suppress for classes extending Object
       // Object super call does nothing anyway:
@@ -1079,9 +1079,27 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
     out.writeSymbol(superConstructorCallStatement.getSymSemicolon());
   }
 
-  private void generateFunCode(SuperConstructorCallStatement superConstructorCallStatement) throws IOException {
+  private void generateSuperConstructorCallCode(SuperConstructorCallStatement superConstructorCallStatement) throws IOException {
     out.writeSymbolWhitespace(superConstructorCallStatement.getSymbol());
-    out.writeToken("this.super$" + superConstructorCallStatement.getClassDeclaration().getInheritanceLevel());
+    generateSuperConstructorCallCode(superConstructorCallStatement.getClassDeclaration(), superConstructorCallStatement.getArgs());
+  }
+
+  private void generateSuperConstructorCallCode(ClassDeclaration classDeclaration, ParenthesizedExpr<CommaSeparatedList<Expr>> args) throws IOException {
+    out.writeToken(classDeclaration.getSuperTypeDeclaration().getQualifiedNameStr() + ".call");
+    if (args == null) {
+      out.writeToken("(this)");
+    } else {
+      out.writeSymbol(args.getLParen());
+      out.writeToken("this");
+      CommaSeparatedList<Expr> arguments = args.getExpr();
+      if (arguments != null) {
+        if (arguments.getHead() != null) {
+          out.writeToken(",");
+        }
+        arguments.visit(this);
+      }
+      out.writeSymbol(args.getRParen());
+    }
   }
 
   @Override
