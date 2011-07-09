@@ -307,7 +307,6 @@ nonterminal ArrayList optCatches;
 nonterminal Expr optCommaExpr;
 nonterminal JooSymbol optConst;
 nonterminal Expr optExpr;
-nonterminal Ide optGetOrSet;
 nonterminal Ide optIde;
 nonterminal Initializer optInitializer;
 nonterminal TypeRelation optTypeRelation;
