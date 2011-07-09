@@ -46,7 +46,7 @@ public class FunctionExpr extends Expr {
   private BlockStatement optBody;
 
   private List<Parameter> implicitParams = new LinkedList<Parameter>();
-  private FunctionDeclaration functionDeclaration; // nul for function expressions
+  private FunctionDeclaration functionDeclaration; // null for function expressions
   private boolean thisDefined = false;
   private IdeDeclaration classDeclaration;
   private boolean thisUsed;
