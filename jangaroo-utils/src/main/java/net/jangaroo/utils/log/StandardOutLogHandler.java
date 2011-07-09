@@ -8,21 +8,11 @@ import java.io.File;
 /**
  *
  */
-public class StandardOutLogHandler implements LogHandler {
-
-  private File currentFile;
-
-  public void setCurrentFile(File file) {
-    this.currentFile = file;
-  }
-
-  public void error(String message, int lineNumber, int columnNumber) {
-    System.err.println(String.format("ERROR in %s, line %s, column %s: %s", currentFile, lineNumber, columnNumber, message));
-  }
+public class StandardOutLogHandler extends AbstractLogHandler {
 
   public void error(String message, Exception exception) {
-    System.err.println(message);
-    System.err.println(exception);
+    error(message);
+    exception.printStackTrace();
   }
 
   public void error(String message) {
@@ -31,10 +21,6 @@ public class StandardOutLogHandler implements LogHandler {
 
   public void warning(String message) {
     System.err.println(message);
-  }
-
-  public void warning(String message, int lineNumber, int columnNumber) {
-   System.err.println(String.format("WARNING in %s, line %s, column %s: %s", currentFile, lineNumber, columnNumber, message));
   }
 
   public void info(String message) {
