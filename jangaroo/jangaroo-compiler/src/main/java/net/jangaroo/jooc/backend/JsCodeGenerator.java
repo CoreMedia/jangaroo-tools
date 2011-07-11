@@ -1085,7 +1085,12 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
   }
 
   private void generateSuperConstructorCallCode(ClassDeclaration classDeclaration, ParenthesizedExpr<CommaSeparatedList<Expr>> args) throws IOException {
-    out.writeToken(classDeclaration.getSuperTypeDeclaration().getQualifiedNameStr() + ".call");
+    String superClassQName = classDeclaration.getSuperTypeDeclaration().getQualifiedNameStr();
+    if ("Error".equals(superClassQName)) {
+  // built-in Error constructor called as function unfortunately always creates a new Error object, so we have to use emulation provided by Jangaroo Runtime:
+      superClassQName = "joo.Error";
+    }
+    out.writeToken(superClassQName + ".call");
     if (args == null) {
       out.writeToken("(this)");
     } else {

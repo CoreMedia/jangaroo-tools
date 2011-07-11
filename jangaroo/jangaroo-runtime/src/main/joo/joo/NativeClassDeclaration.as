@@ -67,23 +67,9 @@ public class NativeClassDeclaration {
     return this;
   }
 
-  // built-in Error constructor called as function unfortunately always creates a new Error object, so we have to emulate it:
-  private static var ERROR_CONSTRUCTOR:Function;
-  {
-    // Bootstrap class loader cannot handle how function valued static field initializers are compiled now, so we have to initialize it separately:
-    ERROR_CONSTRUCTOR = function(message:String):void {
-      this.message = message || "";
-    };
-  }
-
   internal function doComplete() : void {
     interfaces = [];
-    if (Class(publicConstructor) !== Error) {
-      constructor_ = publicConstructor;
-    } else {
-      constructor_ = ERROR_CONSTRUCTOR;
-      constructor_.prototype = publicConstructor.prototype;
-    }
+    constructor_ = Class(publicConstructor) === Error ? getQualifiedObject("joo.Error") : publicConstructor;
     Public = createEmptyConstructor(publicConstructor.prototype);
     initTypes();
   }

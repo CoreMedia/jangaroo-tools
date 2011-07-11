@@ -45,6 +45,12 @@
   }
   joo.getOrCreatePackage = createGetQualified(true);
   joo.getQualifiedObject = createGetQualified(false);
+  // built-in Error constructor called as function unfortunately always creates a new Error object, so we have to emulate it:
+  joo.Error = function(message/*String*/, id/*:int*/) {
+    this.message = message || "";
+    this.id = id || 0;
+  };
+  joo.Error.prototype = Error.prototype;
 
   joo.is = function(object, type) {
       if (!type || object===undefined || object===null) {

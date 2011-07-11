@@ -660,6 +660,15 @@ public class JooTest extends JooRuntimeTestCase {
     expectString("foo|bar", "package1.TestVector.testForEach('foo', 'bar')");
   }
 
+  public void testExtendError() throws Exception {
+    import_("package1.TestExtendError");
+    complete();
+    eval("e = new package1.TestExtendError('foo', 12, {x:3})");
+    expectString("foo", "e.message");
+    expectNumber(12, "e.id");
+    expectNumber(3, "e.getData().x");
+  }
+
   public static void main(String args[]) {
     junit.textui.TestRunner.run(JooTest.class);
   }
