@@ -18,7 +18,7 @@ public class ${model.className} extends ${model.superClassName} {
   ext.ComponentMgr.registerType(xtype, ${model.className});
 
   /**
-   * @param config <p>The configuration options. See the config class for details.</p>
+   * @param config The configuration options. See the config class for details.
    *
    * @see ${configClassPackage}.${model.className}
    */
