@@ -7,13 +7,23 @@ import ext.Panel;
 import ext.config.button;
 import ext.config.menuitem;
 
+//Do not edit. This is an auto-generated class.
+
 /**
- * <b>Do not edit. This is an auto-generated class.</b>
+ * <p>This component is created by the xtype 'exmlparser.config.AllElements' / the EXML element &lt;exmlparser.config:AllElements>.</p>
+ * <p>See the config class for details.</p>
+ *
+ * @see exmlparser.config.AllElements
  */
 public class AllElements extends ext.Panel {
   public static const xtype:String = "exmlparser.config.AllElements";
   ext.ComponentMgr.registerType(xtype, AllElements);
 
+  /**
+   * @param config <p>The configuration options. See the config class for details.</p>
+   *
+   * @see exmlparser.config.AllElements
+   */
   public function AllElements(config:Object = null) {
     super(ext.Ext.apply({
       layout: config.myLayout,

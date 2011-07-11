@@ -5,13 +5,23 @@ package ${model.packageName} {
 import ${import};
 </#list>
 
+//Do not edit. This is an auto-generated class.
+
 /**
- * <b>Do not edit. This is an auto-generated class.</b>
+ * <p>This component is created by the xtype '${configClassPackage}.${model.className}' / the EXML element &lt;${configClassPackage}:${model.className}>.</p>
+ * <p>See the config class for details.</p>
+ *
+ * @see ${configClassPackage}.${model.className}
  */
 public class ${model.className} extends ${model.superClassName} {
   public static const xtype:String = "${configClassPackage}.${model.className}";
   ext.ComponentMgr.registerType(xtype, ${model.className});
 
+  /**
+   * @param config <p>The configuration options. See the config class for details.</p>
+   *
+   * @see ${configClassPackage}.${model.className}
+   */
   public function ${model.className}(config:Object = null) {
     super(ext.Ext.apply(${formattedConfig}, config));
   }

@@ -26,9 +26,7 @@ public class ConfigClassBuilderTest {
     Assert.assertEquals("testNamespace.config", configClass.getPackageName());
     Assert.assertEquals("TestComponent", configClass.getName());
     Assert.assertEquals("testPackage.TestComponent", configClass.getComponentClassName());
-    Assert.assertEquals("This is a TestComponent with panel as baseclass. " +
-            "<b>Do not edit. This is an auto-generated class.</b> " +
-            "@see testPackage.TestComponent", configClass.getDescription());
+    Assert.assertEquals("This is a TestComponent with panel as baseclass. This class serves as a typed config object for constructor of class testPackage.TestComponent. @see testPackage.TestComponent", configClass.getDescription());
     Set<String> attributeNames = new HashSet<String>();
     for (ConfigAttribute configAttribute : configClass.getCfgs()) {
       attributeNames.add(configAttribute.getName());

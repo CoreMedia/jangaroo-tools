@@ -4,10 +4,12 @@ import ext.ComponentMgr;
 import ext.config.panel;
 import testPackage.TestComponent;
 
+//Do not edit. This is an auto-generated class.
+
 /**
  * This is a TestComponent with panel as baseclass.
  *
- * <b>Do not edit. This is an auto-generated class.</b>
+ * This class serves as a typed config object for constructor of class testPackage.TestComponent.
  *
  * @see testPackage.TestComponent
  */

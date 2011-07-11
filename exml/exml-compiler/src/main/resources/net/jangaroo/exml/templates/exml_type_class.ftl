@@ -5,10 +5,12 @@ import ext.ComponentMgr;
 import ${superClassName};
 import ${componentClassName};
 
+//Do not edit. This is an auto-generated class.
+
 /**
  * ${escapedDescription!}
  *
- * <b>Do not edit. This is an auto-generated class.</b>
+ * This class serves as a typed config object for constructor of class ${componentClassName}.
  *
  * @see ${componentClassName}
  */
