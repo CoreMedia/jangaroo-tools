@@ -8,14 +8,23 @@ ${importSuperClassPhrase}
 /**
  * ${componentClass.description!}
  *
+ * <p>
+ * Do not instantiate this class! Instead, instantiate the associated
+ * component class ${componentClass.className} directly.
+ * This class is only provided to document the config attributes
+ * to use when building instances of the component class.
+ * </p>
+ *
  * @see ${componentClass.fullClassName}
  */
 [ExtConfig(target="${componentClass.fullClassName}")]
 public class ${className}${extendsPhrase} {
   /**
-   * @see ${componentClass.fullClassName}
+   * @private
    */
   public function ${className}(config:Object = null) {
+    throw new Error("do not instantiate the config class ${componentSuite.configClassPackage}.${className}; " +
+      "instantiate the component class ${componentClass.fullClassName} instead");
     super(config || {});
   }
 
