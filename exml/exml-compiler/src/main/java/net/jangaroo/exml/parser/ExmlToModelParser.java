@@ -153,22 +153,14 @@ public final class ExmlToModelParser {
           // Okay, so we have to guess the type
           if(element.hasChildNodes() ) {
             if(element.hasAttributes()) {
-              // its a complex property with attributes and sub-properties
-              JsonObject property = parseAttributes(jsonObject, element);
-              // and add the sub-properties to it
-              NodeList propertyChildNotes = element.getChildNodes();
-              for (int j = 0; j < propertyChildNotes.getLength(); j++) {
-                Node propertyNode = propertyChildNotes.item(j);
-                if (propertyNode.getNodeType() == Node.ELEMENT_NODE) {
-                  parseAttributes(property, propertyNode);
-                }
-              }
+              // it's a complex property with attributes and sub-properties
+              parseJavaScriptObject(jsonObject, element);
             } else {
               // it seems to be an array
               parseArray(model, jsonObject, element);
             }
           } else {
-            // its a simple property
+            // it's a simple property
             parseAttributes(jsonObject, element);
           }
 
@@ -177,8 +169,22 @@ public final class ExmlToModelParser {
           parseArray(model, jsonObject, element);
 
         } else {
-          // TODO: What here? also guessing? Or Error?
+          // This is not an array. There are no component valued properties
+          // in EXML (at the moment, at least). It has to a be plain JavaScript object.
+          parseJavaScriptObject(jsonObject, element);
         }
+      }
+    }
+  }
+
+  private void parseJavaScriptObject(JsonObject jsonObject, Element element) {
+    JsonObject property = parseAttributes(jsonObject, element);
+    // and add the sub-properties to it
+    NodeList propertyChildNotes = element.getChildNodes();
+    for (int j = 0; j < propertyChildNotes.getLength(); j++) {
+      Node propertyNode = propertyChildNotes.item(j);
+      if (propertyNode.getNodeType() == Node.ELEMENT_NODE) {
+        parseAttributes(property, propertyNode);
       }
     }
   }
