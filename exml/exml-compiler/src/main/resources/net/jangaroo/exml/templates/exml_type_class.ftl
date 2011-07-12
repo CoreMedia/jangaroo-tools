@@ -5,21 +5,28 @@ import ext.ComponentMgr;
 import ${superClassName};
 import ${componentClassName};
 
-//Do not edit. This is an auto-generated class.
+// Do not edit. This is an auto-generated class.
 
 /**
  * ${escapedDescription!}
  *
- * This class serves as a typed config object for constructor of class ${componentClassName}.
+ * <p>
+ * Do not instantiate this class! Instead, instantiate the associated
+ * component class ${componentClassName} directly.
+ * This class is only provided to document the config attributes
+ * to use when building instances of the component class.
+ * </p>
  *
  * @see ${componentClassName}
  */
 [ExtConfig(target="${componentClassName}")]
 public class ${name} extends ${superClassName} {
   /**
-   * @see ${componentClassName}
+   * @private
    */
   public function ${name}(config:Object = null) {
+    throw new Error("do not instantiate the config class ${fullName}; " +
+      "instantiate the component class ${componentClassName} instead");
     super(config || {});
   }
 
