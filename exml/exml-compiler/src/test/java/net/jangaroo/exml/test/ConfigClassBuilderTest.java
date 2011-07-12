@@ -26,7 +26,7 @@ public class ConfigClassBuilderTest {
     Assert.assertEquals("testNamespace.config", configClass.getPackageName());
     Assert.assertEquals("TestComponent", configClass.getName());
     Assert.assertEquals("testPackage.TestComponent", configClass.getComponentClassName());
-    Assert.assertEquals("This is a TestComponent with panel as baseclass. This class serves as a typed config object for constructor of class testPackage.TestComponent. @see testPackage.TestComponent", configClass.getDescription());
+    Assert.assertEquals("This is a TestComponent with panel as baseclass. <p> Do not instantiate this class! Instead, instantiate the associated component class testPackage.TestComponent directly. This class is only provided to document the config attributes to use when building instances of the component class. </p> @see testPackage.TestComponent", configClass.getDescription());
     Set<String> attributeNames = new HashSet<String>();
     for (ConfigAttribute configAttribute : configClass.getCfgs()) {
       attributeNames.add(configAttribute.getName());
