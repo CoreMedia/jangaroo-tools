@@ -34,20 +34,24 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
             ),
             "items", new JsonArray(
                     new JsonObject(
+                            "xtype", "ext.config.button",
                             "text", "Save"
-                    ).settingWrapperClass("ext.config.button"),
+                    ),
                     "{{xtype: \"editortreepanel\"}}"
             ),
             "menu", new JsonArray(
                     new JsonObject(
+                            "xtype", "ext.config.menuitem",
                             "text", "juhu1"
-                    ).settingWrapperClass("ext.config.menuitem"),
+                    ),
                     new JsonObject(
+                            "xtype", "ext.config.menuitem",
                             "text", "juhu2"
-                    ).settingWrapperClass("ext.config.menuitem"),
+                    ),
                     new JsonObject(
+                            "xtype", "ext.config.menuitem",
                             "text", "juhu3"
-                    ).settingWrapperClass("ext.config.menuitem")
+                    )
             ),
             "tools", new JsonArray(
                      new JsonObject(
@@ -72,25 +76,30 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
     JsonObject expectedJsonObject = new JsonObject(
             "items", new JsonArray(
                     new JsonObject(
+                            "xtype", "ext.config.panel",
                             "id", "foo",
                              "x", 100
-                    ).settingWrapperClass("ext.config.panel"),
+                    ),
                     new JsonObject(
+                            "xtype", "ext.config.panel",
                             "id", "foo",
                             "x", 1.5
-                    ).settingWrapperClass("ext.config.panel"),
+                    ),
                     new JsonObject(
+                            "xtype", "ext.config.panel",
                             "id", "foo",
                             "x", 1.0
-                    ).settingWrapperClass("ext.config.panel"),
+                    ),
                     new JsonObject(
+                            "xtype", "ext.config.panel",
                             "id", "foo",
                             "x", -1.5
-                    ).settingWrapperClass("ext.config.panel"),
+                    ),
                     new JsonObject(
+                            "xtype", "ext.config.panel",
                             "id", "foo",
                             "x", 3.0
-                    ).settingWrapperClass("ext.config.panel")
+                    )
             )
     );
     System.out.println(model.getJsonObject().toString(2));
@@ -109,21 +118,25 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
     JsonObject expectedJsonObject = new JsonObject(
             "items", new JsonArray(
                     new JsonObject(
+                            "xtype", "ext.config.panel",
                             "id", "foo",
                              "visible", true
-                    ).settingWrapperClass("ext.config.panel"),
+                    ),
                     new JsonObject(
+                            "xtype", "ext.config.panel",
                             "id", "foo",
                             "visible", false
-                    ).settingWrapperClass("ext.config.panel"),
+                    ),
                     new JsonObject(
+                            "xtype", "ext.config.panel",
                             "id", "foo",
                             "visible", true
-                    ).settingWrapperClass("ext.config.panel"),
+                    ),
                     new JsonObject(
+                            "xtype", "ext.config.panel",
                             "id", "foo",
                             "visible", false
-                    ).settingWrapperClass("ext.config.panel")
+                    )
             )
     );
     System.out.println(model.getJsonObject().toString(2));
@@ -142,8 +155,9 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
     JsonObject expectedJsonObject = new JsonObject(
             "items", new JsonArray(
                     new JsonObject(
+                            "xtype", "testNamespace.config.TestComponent2",
                             "propertyThree", "3"
-                    ).settingWrapperClass("testNamespace.config.TestComponent2")
+                    )
             )
     );
     System.out.println(model.getJsonObject().toString(2));

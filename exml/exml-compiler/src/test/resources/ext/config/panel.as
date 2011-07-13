@@ -12,6 +12,15 @@ public class panel extends component{
    */
   public native function set items(value:Array):void;
 
+  /**
+   * List of tools
+   */
+  public native function get tools():Array;
+  /**
+   * @private
+   */
+  public native function set tools(value:Array):void;
+
    /**
    * List of child items
    */

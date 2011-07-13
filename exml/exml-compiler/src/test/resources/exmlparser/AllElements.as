@@ -35,13 +35,25 @@ public class AllElements extends ext.Panel {
         border: {type: "solid"}
       },
       items: [
-        new ext.config.button({text: "Save"}),
+        {
+          xtype: "ext.config.button",
+          text: "Save"
+        },
         {xtype: "editortreepanel"}
       ],
       menu: [
-        new ext.config.menuitem({text: "juhu1"}),
-        new ext.config.menuitem({text: "juhu2"}),
-        new ext.config.menuitem({text: "juhu3"})
+        {
+          xtype: "ext.config.menuitem",
+          text: "juhu1"
+        },
+        {
+          xtype: "ext.config.menuitem",
+          text: "juhu2"
+        },
+        {
+          xtype: "ext.config.menuitem",
+          text: "juhu3"
+        }
       ],
       tools: [{
         handler: function(x){return ''+x;},

@@ -27,6 +27,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 public final class ExmlToModelParser {
 
@@ -90,6 +92,7 @@ public final class ExmlToModelParser {
     String componentClassName = registry.getConfigClassByName(className).getComponentClassName();
     model.setSuperClassName(componentClassName);
     model.addImport(componentClassName);
+
     fillModelAttributes(model, model.getJsonObject(), componentNode, className);
 
     return model;
@@ -119,7 +122,7 @@ public final class ExmlToModelParser {
       String attributeValue = attribute.getValue();
       ConfigAttribute configAttribute = getCfgByName(configClass, attributeName);
       if (configAttribute == null) {
-        setStarTypedAttribute(jsonObject, attributeName, attributeValue);
+        setUntypedAttribute(jsonObject, attributeName, attributeValue);
       } else {
         String type = configAttribute.getType();
         if ("Boolean".equals(type)) {
@@ -135,7 +138,7 @@ public final class ExmlToModelParser {
         } else if ("Array".equals(type)) {
           jsonObject.set(attributeName, new JsonArray(attributeValue));
         } else if ("*".equals(type)) {
-          setStarTypedAttribute(jsonObject, attributeName, attributeValue);
+          setUntypedAttribute(jsonObject, attributeName, attributeValue);
         } else { // Object or specific type. We don't care (for now).
           //TODO: Warning here?
           jsonObject.set(attributeName, attributeValue);
@@ -148,45 +151,50 @@ public final class ExmlToModelParser {
       if (node.getNodeType() == Node.ELEMENT_NODE) {
         Element element = (Element) node;
         String elementName = element.getLocalName();
-        ConfigAttribute configAttribute = getCfgByName(configClass, elementName);
-        if (configAttribute == null) {
-          // Okay, so we have to guess the type
-          if(element.hasChildNodes() ) {
-            if(element.hasAttributes()) {
-              // it's a complex property with attributes and sub-properties
-              parseJavaScriptObject(jsonObject, element);
-            } else {
-              // it seems to be an array
-              parseArray(model, jsonObject, element);
-            }
-          } else {
-            // it's a simple property
-            parseAttributes(jsonObject, element);
-          }
-
-        } else if ("Array".equals(configAttribute.getType())) {
-          // Array explicitly specified.
-          parseArray(model, jsonObject, element);
-
+        if(element.hasAttributes()) {
+          // it's a complex object with attributes and sub-properties
+          parseJavaScriptObjectProperty(jsonObject, element);
         } else {
-          // This is not an array. There are no component valued properties
-          // in EXML (at the moment, at least). It has to a be plain JavaScript object.
-          parseJavaScriptObject(jsonObject, element);
+          // it seems to be an array or an object
+          List<Object> childObjects = parseChildObjects(model, element);
+          ConfigAttribute configAttribute = getCfgByName(configClass, elementName);
+          if (childObjects.size() != 1 || configAttribute != null && "Array".equals(configAttribute.getType())) {
+            // TODO: Check for type violation
+            // We must write an array.
+            JsonArray jsonArray = new JsonArray(childObjects.toArray());
+            jsonObject.set(element.getLocalName(), jsonArray);
+          } else {
+            // The property is either unspecified, untyped, or object-typed
+            // and it contains a single child element. Use that element as the
+            // property value.
+            jsonObject.set(element.getLocalName(), childObjects.get(0));
+          }
         }
       }
     }
   }
 
-  private void parseJavaScriptObject(JsonObject jsonObject, Element element) {
-    JsonObject property = parseAttributes(jsonObject, element);
-    // and add the sub-properties to it
+  private void parseJavaScriptObjectProperty(JsonObject jsonObject, Element propertyElement) {
+    JsonObject propertyObject = new JsonObject();
+
+    setUntypedAttributes(propertyElement, propertyObject);
+    for (Element child : getChildElements(propertyElement)) {
+      parseJavaScriptObjectProperty(propertyObject, child);
+    }
+
+    jsonObject.set(propertyElement.getLocalName(), propertyObject);
+  }
+
+  private List<Element> getChildElements(Element element) {
+    List<Element> result = new ArrayList<Element>();
     NodeList propertyChildNotes = element.getChildNodes();
     for (int j = 0; j < propertyChildNotes.getLength(); j++) {
-      Node propertyNode = propertyChildNotes.item(j);
-      if (propertyNode.getNodeType() == Node.ELEMENT_NODE) {
-        parseAttributes(property, propertyNode);
+      Node childNode = propertyChildNotes.item(j);
+      if (childNode.getNodeType() == Node.ELEMENT_NODE) {
+        result.add((Element)childNode);
       }
     }
+    return result;
   }
 
   private ConfigAttribute getCfgByName(ConfigClass configClass, String attributeName) {
@@ -205,43 +213,25 @@ public final class ExmlToModelParser {
     return null;
   }
 
-  private JsonObject parseAttributes(JsonObject jsonObject, Node node) {
-    JsonObject simpleProperty = new JsonObject();
-    NamedNodeMap attributes = node.getAttributes();
-    for (int i = 0; i < attributes.getLength(); i++) {
-      Attr attribute = (Attr) attributes.item(i);
-      String attributeName = attribute.getLocalName();
-      String attributeValue = attribute.getValue();
-      setStarTypedAttribute(simpleProperty,attributeName, attributeValue);
-    }
-    jsonObject.set(node.getLocalName(), simpleProperty);
-    return simpleProperty;
-  }
-
-  private void parseArray(ExmlModel model, JsonObject jsonObject, Element element) {
-    JsonArray jsonArray = new JsonArray();
-    jsonObject.set(element.getLocalName(), jsonArray);
-    NodeList arrayChildNodes = element.getChildNodes();
-
-    for (int j = 0; j < arrayChildNodes.getLength(); j++) {
-      Node arrayItemNode = arrayChildNodes.item(j);
-      if (arrayItemNode.getNodeType() == Node.ELEMENT_NODE) {
-        JsonObject arrayJsonObject;
-        if(ExmlConstants.EXML_NAMESPACE_URI.equals(arrayItemNode.getNamespaceURI()) && ExmlConstants.EXML_OBJECT_NODE_NAME.equals(arrayItemNode.getLocalName())) {
-          Object value = parseExmlObjectNode(arrayItemNode);
-          if(value != null) {
-            jsonArray.push(value);
-          } //otherwise just ignore the empty exml:object element
-        } else {
-          arrayJsonObject = new JsonObject();
-          String arrayItemClassName = createFullConfigClassNameFromNode(arrayItemNode);
-          jsonArray.push(arrayJsonObject.settingWrapperClass(arrayItemClassName));
-          model.addImport(arrayItemClassName);
-
-          fillModelAttributes(model, arrayJsonObject, arrayItemNode, arrayItemClassName);
-        }
+  private List<Object> parseChildObjects(ExmlModel model, Element element) {
+    List<Object> childObjects = new ArrayList<Object>();
+    for (Element arrayItemNode : getChildElements(element)) {
+      Object value;
+      if(ExmlConstants.EXML_NAMESPACE_URI.equals(arrayItemNode.getNamespaceURI()) && ExmlConstants.EXML_OBJECT_NODE_NAME.equals(arrayItemNode.getLocalName())) {
+        value = parseExmlObjectNode(arrayItemNode);
+      } else {
+        String arrayItemClassName = createFullConfigClassNameFromNode(arrayItemNode);
+        JsonObject arrayItemJsonObject = new JsonObject();
+        arrayItemJsonObject.set("xtype", arrayItemClassName);
+        model.addImport(arrayItemClassName);
+        fillModelAttributes(model, arrayItemJsonObject, arrayItemNode, arrayItemClassName);
+        value = arrayItemJsonObject;
+      }
+      if(value != null) {
+        childObjects.add(value);
       }
     }
+    return childObjects;
   }
 
   private Object parseExmlObjectNode(Node exmlObjectNode) {
@@ -253,19 +243,23 @@ public final class ExmlToModelParser {
         return null;
       }
       JsonObject object = new JsonObject();
-      NamedNodeMap attributes = exmlObjectNode.getAttributes();
-      for (int i = 0; i < attributes.getLength(); i++) {
-        Attr attribute = (Attr) attributes.item(i);
-        String attributeName = attribute.getLocalName();
-        String attributeValue = attribute.getValue();
-        setStarTypedAttribute(object, attributeName, attributeValue);
-      }
+      setUntypedAttributes(exmlObjectNode, object);
       return object;
     }
   }
 
+  private void setUntypedAttributes(Node exmlObjectNode, JsonObject object) {
+    NamedNodeMap attributes = exmlObjectNode.getAttributes();
+    for (int i = 0; i < attributes.getLength(); i++) {
+      Attr attribute = (Attr) attributes.item(i);
+      String attributeName = attribute.getLocalName();
+      String attributeValue = attribute.getValue();
+      setUntypedAttribute(object, attributeName, attributeValue);
+    }
+  }
 
-  private void setStarTypedAttribute(JsonObject jsonObject, String attributeName, String attributeValue) {
+
+  private void setUntypedAttribute(JsonObject jsonObject, String attributeName, String attributeValue) {
     try {
       jsonObject.set(attributeName, Long.parseLong(attributeValue));
       return;
