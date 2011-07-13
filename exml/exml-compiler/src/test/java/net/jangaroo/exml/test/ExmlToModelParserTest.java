@@ -54,10 +54,18 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
                     )
             ),
             "tools", new JsonArray(
-                     new JsonObject(
-                         "handler", "{function(x){return ''+x;}}",
-                         "id", "gear"
-                     )
+                    new JsonObject(
+                            "handler", "{function(x){return ''+x;}}",
+                            "id", "gear"
+                    )
+            ),
+            "plugins", new JsonArray(
+                    new JsonObject(
+                            "ptype", "aplugin"
+                    ),
+                    new JsonObject(
+                            "ptype", "aplugin"
+                    )
             )
     );
     System.out.println(model.getJsonObject().toString(2));

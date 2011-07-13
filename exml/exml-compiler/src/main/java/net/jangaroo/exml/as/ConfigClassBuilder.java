@@ -2,6 +2,7 @@ package net.jangaroo.exml.as;
 
 import net.jangaroo.exml.model.ConfigAttribute;
 import net.jangaroo.exml.model.ConfigClass;
+import net.jangaroo.exml.model.ConfigClassType;
 import net.jangaroo.jooc.CompilerError;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.ast.Annotation;
@@ -19,10 +20,12 @@ import net.jangaroo.jooc.ast.TypeRelation;
 import net.jangaroo.jooc.sym;
 
 import java.io.IOException;
+import java.util.Locale;
 
 public class ConfigClassBuilder extends AstVisitorBase {
   private static final String EXT_CONFIG_META_NAME = "ExtConfig";
   private static final String TARGET_ANNOTATION_PARAMETER_NAME = "target";
+  private static final String TYPE_ANNOTATION_PARAMETER_NAME = "type";
   private static final String AS3_ANY_TYPE = "*";
 
   private static final String COMMENT_START = "/*";
@@ -104,16 +107,29 @@ public class ConfigClassBuilder extends AstVisitorBase {
 
         CommaSeparatedList<AnnotationParameter> annotationParameters = annotation.getOptAnnotationParameters();
         String target = null;
+        ConfigClassType type = ConfigClassType.COMPONENT; // default to component
         while (annotationParameters != null) {
           AnnotationParameter annotationParameter = annotationParameters.getHead();
           Ide optName = annotationParameter.getOptName();
-          if (optName != null && TARGET_ANNOTATION_PARAMETER_NAME.equals(optName.getName())) {
-            JooSymbol symbol = annotationParameter.getValue().getSymbol();
-            if (symbol.sym != sym.STRING_LITERAL) {
-              throw new CompilerError(symbol, "The " + TARGET_ANNOTATION_PARAMETER_NAME + " parameter of an [" + EXT_CONFIG_META_NAME + "] annotation must be a string literal.");
+          if (optName != null) {
+            if (TARGET_ANNOTATION_PARAMETER_NAME.equals(optName.getName())) {
+              JooSymbol symbol = annotationParameter.getValue().getSymbol();
+              if (symbol.sym != sym.STRING_LITERAL) {
+                throw new CompilerError(symbol, "The " + TARGET_ANNOTATION_PARAMETER_NAME + " parameter of an [" + EXT_CONFIG_META_NAME + "] annotation must be a string literal.");
+              }
+              target = (String) symbol.getJooValue();
+            } else if (TYPE_ANNOTATION_PARAMETER_NAME.equals(optName.getName())) {
+              JooSymbol symbol = annotationParameter.getValue().getSymbol();
+              if (symbol.sym != sym.STRING_LITERAL) {
+                throw new CompilerError(symbol, "The " + TYPE_ANNOTATION_PARAMETER_NAME + " parameter of an [" + EXT_CONFIG_META_NAME + "] annotation must be a string literal.");
+              }
+              String typeString = ((String) symbol.getJooValue()).toUpperCase(Locale.ROOT);
+              try {
+                type = ConfigClassType.valueOf(typeString);
+              } catch (IllegalArgumentException e) {
+                throw new CompilerError(symbol, "The " + TYPE_ANNOTATION_PARAMETER_NAME + " parameter of an [" + EXT_CONFIG_META_NAME + "] annotation must be a valid type ('component', 'plugin', 'action'), but is '" + typeString + "'.");
+              }
             }
-            target = (String) symbol.getJooValue();
-            break;
           }
           annotationParameters = annotationParameters.getTail();
         }
@@ -121,6 +137,7 @@ public class ConfigClassBuilder extends AstVisitorBase {
           throw new CompilerError(annotation.getSymbol(), "A " + TARGET_ANNOTATION_PARAMETER_NAME + " parameter must be provided for an [" + EXT_CONFIG_META_NAME + "] annotation.");
         }
         configClass.setComponentClassName(target);
+        configClass.setType(type);
       }
     }
   }

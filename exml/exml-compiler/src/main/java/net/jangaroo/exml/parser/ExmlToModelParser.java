@@ -32,7 +32,9 @@ import java.util.List;
 
 public final class ExmlToModelParser {
   private static final String XTYPE_ATTRIBUTE = "xtype";
+  private static final String PTYPE_ATTRIBUTE = "ptype";
   private static final String EXT_CONFIG_PREFIX = "ext.config.";
+  private static final String EXT_PLUGIN_INTERFACE = "ext.Plugin";
 
   private final ConfigClassRegistry registry;
 
@@ -91,11 +93,12 @@ public final class ExmlToModelParser {
     }
 
     String className = createFullConfigClassNameFromNode(componentNode);
-    String componentClassName = registry.getConfigClassByName(className).getComponentClassName();
+    ConfigClass configClass = getConfigClassByName(className, componentNode);
+    String componentClassName = configClass.getComponentClassName();
     model.setSuperClassName(componentClassName);
     model.addImport(componentClassName);
 
-    fillModelAttributes(model, model.getJsonObject(), componentNode, className);
+    fillModelAttributes(model, model.getJsonObject(), componentNode, configClass);
 
     return model;
   }
@@ -111,12 +114,7 @@ public final class ExmlToModelParser {
     return packageName + "." + name;
   }
 
-  private void fillModelAttributes(ExmlModel model, JsonObject jsonObject, Node componentNode, String className) {
-    ConfigClass configClass = registry.getConfigClassByName(className);
-    if (configClass == null) {
-      int lineNumber = getLineNumber(componentNode);
-      throw new ExmlcException("unknown type '" + className + "'", lineNumber);
-    }
+  private void fillModelAttributes(ExmlModel model, JsonObject jsonObject, Node componentNode, ConfigClass configClass) {
     NamedNodeMap attributes = componentNode.getAttributes();
     for (int i = 0; i < attributes.getLength(); i++) {
       Attr attribute = (Attr) attributes.item(i);
@@ -176,6 +174,15 @@ public final class ExmlToModelParser {
     }
   }
 
+  private ConfigClass getConfigClassByName(String className, Node errorNode) {
+    ConfigClass configClass = registry.getConfigClassByName(className);
+    if (configClass == null) {
+      int lineNumber = getLineNumber(errorNode);
+      throw new ExmlcException("unknown type '" + className + "'", lineNumber);
+    }
+    return configClass;
+  }
+
   private void parseJavaScriptObjectProperty(JsonObject jsonObject, Element propertyElement) {
     JsonObject propertyObject = new JsonObject();
 
@@ -223,10 +230,11 @@ public final class ExmlToModelParser {
         value = parseExmlObjectNode(arrayItemNode);
       } else {
         String arrayItemClassName = createFullConfigClassNameFromNode(arrayItemNode);
-        String xtype = arrayItemClassName.startsWith(EXT_CONFIG_PREFIX) ? arrayItemClassName.substring(EXT_CONFIG_PREFIX.length()) : arrayItemClassName;
+        ConfigClass configClass = getConfigClassByName(arrayItemClassName, arrayItemNode);
+        String typeString = arrayItemClassName.startsWith(EXT_CONFIG_PREFIX) ? arrayItemClassName.substring(EXT_CONFIG_PREFIX.length()) : arrayItemClassName;
         JsonObject arrayItemJsonObject = new JsonObject();
-        arrayItemJsonObject.set(XTYPE_ATTRIBUTE, xtype);
-        fillModelAttributes(model, arrayItemJsonObject, arrayItemNode, arrayItemClassName);
+        arrayItemJsonObject.set(configClass.getType().extTypeAttribute, typeString);
+        fillModelAttributes(model, arrayItemJsonObject, arrayItemNode, configClass);
         value = arrayItemJsonObject;
       }
       if(value != null) {

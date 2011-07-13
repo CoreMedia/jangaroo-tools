@@ -56,7 +56,11 @@ public class AllElements extends ext.Panel {
       tools: [{
         handler: function(x){return ''+x;},
         id: "gear"
-      }]
+      }],
+      plugins: [
+        {ptype: "aplugin"},
+        {ptype: "aplugin"}
+      ]
     }, config));
   }
 }

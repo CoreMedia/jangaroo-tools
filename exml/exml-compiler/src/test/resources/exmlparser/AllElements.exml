@@ -61,5 +61,10 @@
       -->
       <exml:object id="gear" handler="{function(x){return ''+x;}}"/>
     </tools>
+
+    <plugins>
+      <aplugin/>
+      <aplugin/>
+    </plugins>
   </panel>
 </exml:component>

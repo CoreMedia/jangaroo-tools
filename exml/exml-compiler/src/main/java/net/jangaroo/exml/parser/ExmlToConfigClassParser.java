@@ -3,6 +3,7 @@ package net.jangaroo.exml.parser;
 import net.jangaroo.exml.ExmlcException;
 import net.jangaroo.exml.config.ExmlConfiguration;
 import net.jangaroo.exml.model.ConfigClass;
+import net.jangaroo.exml.model.ConfigClassType;
 import net.jangaroo.jooc.config.FileLocations;
 import org.apache.commons.io.FilenameUtils;
 import org.xml.sax.ContentHandler;
@@ -27,6 +28,8 @@ public class ExmlToConfigClassParser {
     configClass.setComponentClassName(fullQualifiedName);
     configClass.setPackageName(config.getConfigClassPackage());
     configClass.setName(FilenameUtils.getBaseName(source.getName()));
+    // Only components are encoded in EXML.
+    configClass.setType(ConfigClassType.COMPONENT);
 
     //read exml data and write it into the config class
     ExmlMetadataHandler metadataHandler = new ExmlMetadataHandler(configClass);
