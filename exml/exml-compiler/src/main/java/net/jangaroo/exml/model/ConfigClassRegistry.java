@@ -151,8 +151,7 @@ public final class ConfigClassRegistry {
       if (generatedConfigAsFile != null) {
         // A candidate AS config class has already been generated.
         CompilationUnit compilationUnit = Jooc.doParse(generatedConfigAsFile, new StdOutCompileLog(), SemicolonInsertionMode.QUIRKS);
-        ConfigClassBuilder configClassBuilder = new ConfigClassBuilder(compilationUnit);
-        ConfigClass generatedAsConfigClass = configClassBuilder.buildConfigClass();
+        ConfigClass generatedAsConfigClass = buildConfigClass(compilationUnit);
         if (generatedAsConfigClass != null) {
           // It is really a generated config class.
           // We can determine the name of the EXML component class
@@ -198,9 +197,8 @@ public final class ConfigClassRegistry {
     return configClass;
   }
 
-  private ConfigClass buildConfigClass(CompilationUnit compilationsUnit) {
-    ConfigClassBuilder configClassBuilder = new ConfigClassBuilder(compilationsUnit);
+  private ConfigClass buildConfigClass(CompilationUnit compilationUnit) {
+    ConfigClassBuilder configClassBuilder = new ConfigClassBuilder(compilationUnit);
     return configClassBuilder.buildConfigClass();
   }
-
 }
