@@ -31,6 +31,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class ExmlToModelParser {
+  private static final String XTYPE_ATTRIBUTE = "xtype";
+  private static final String EXT_CONFIG_PREFIX = "ext.config.";
 
   private final ConfigClassRegistry registry;
 
@@ -221,9 +223,9 @@ public final class ExmlToModelParser {
         value = parseExmlObjectNode(arrayItemNode);
       } else {
         String arrayItemClassName = createFullConfigClassNameFromNode(arrayItemNode);
+        String xtype = arrayItemClassName.startsWith(EXT_CONFIG_PREFIX) ? arrayItemClassName.substring(EXT_CONFIG_PREFIX.length()) : arrayItemClassName;
         JsonObject arrayItemJsonObject = new JsonObject();
-        arrayItemJsonObject.set("xtype", arrayItemClassName);
-        model.addImport(arrayItemClassName);
+        arrayItemJsonObject.set(XTYPE_ATTRIBUTE, xtype);
         fillModelAttributes(model, arrayItemJsonObject, arrayItemNode, arrayItemClassName);
         value = arrayItemJsonObject;
       }

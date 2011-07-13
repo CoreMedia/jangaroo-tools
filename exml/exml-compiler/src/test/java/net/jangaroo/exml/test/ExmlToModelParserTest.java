@@ -19,7 +19,7 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
 
     InputStream inputStream = getClass().getResourceAsStream("/exmlparser/AllElements.exml");
     ExmlModel model = exmlToModelParser.parse(inputStream);
-    Assert.assertEquals(new HashSet<String>(Arrays.asList("ext.Panel", "ext.config.button", "ext.config.menuitem", "ext.MessageBox")),
+    Assert.assertEquals(new HashSet<String>(Arrays.asList("ext.Panel", "ext.MessageBox")),
             model.getImports());
     Assert.assertEquals("ext.Panel", model.getSuperClassName());
 
@@ -34,22 +34,22 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
             ),
             "items", new JsonArray(
                     new JsonObject(
-                            "xtype", "ext.config.button",
+                            "xtype", "button",
                             "text", "Save"
                     ),
                     "{{xtype: \"editortreepanel\"}}"
             ),
             "menu", new JsonArray(
                     new JsonObject(
-                            "xtype", "ext.config.menuitem",
+                            "xtype", "menuitem",
                             "text", "juhu1"
                     ),
                     new JsonObject(
-                            "xtype", "ext.config.menuitem",
+                            "xtype", "menuitem",
                             "text", "juhu2"
                     ),
                     new JsonObject(
-                            "xtype", "ext.config.menuitem",
+                            "xtype", "menuitem",
                             "text", "juhu3"
                     )
             ),
@@ -76,27 +76,27 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
     JsonObject expectedJsonObject = new JsonObject(
             "items", new JsonArray(
                     new JsonObject(
-                            "xtype", "ext.config.panel",
+                            "xtype", "panel",
                             "id", "foo",
                              "x", 100
                     ),
                     new JsonObject(
-                            "xtype", "ext.config.panel",
+                            "xtype", "panel",
                             "id", "foo",
                             "x", 1.5
                     ),
                     new JsonObject(
-                            "xtype", "ext.config.panel",
+                            "xtype", "panel",
                             "id", "foo",
                             "x", 1.0
                     ),
                     new JsonObject(
-                            "xtype", "ext.config.panel",
+                            "xtype", "panel",
                             "id", "foo",
                             "x", -1.5
                     ),
                     new JsonObject(
-                            "xtype", "ext.config.panel",
+                            "xtype", "panel",
                             "id", "foo",
                             "x", 3.0
                     )
@@ -118,22 +118,22 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
     JsonObject expectedJsonObject = new JsonObject(
             "items", new JsonArray(
                     new JsonObject(
-                            "xtype", "ext.config.panel",
+                            "xtype", "panel",
                             "id", "foo",
                              "visible", true
                     ),
                     new JsonObject(
-                            "xtype", "ext.config.panel",
+                            "xtype", "panel",
                             "id", "foo",
                             "visible", false
                     ),
                     new JsonObject(
-                            "xtype", "ext.config.panel",
+                            "xtype", "panel",
                             "id", "foo",
                             "visible", true
                     ),
                     new JsonObject(
-                            "xtype", "ext.config.panel",
+                            "xtype", "panel",
                             "id", "foo",
                             "visible", false
                     )

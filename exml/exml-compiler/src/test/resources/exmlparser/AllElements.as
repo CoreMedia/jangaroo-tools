@@ -4,8 +4,6 @@ import ext.Ext;
 import ext.ComponentMgr;
 import ext.MessageBox;
 import ext.Panel;
-import ext.config.button;
-import ext.config.menuitem;
 
 //Do not edit. This is an auto-generated class.
 
@@ -36,22 +34,22 @@ public class AllElements extends ext.Panel {
       },
       items: [
         {
-          xtype: "ext.config.button",
+          xtype: "button",
           text: "Save"
         },
         {xtype: "editortreepanel"}
       ],
       menu: [
         {
-          xtype: "ext.config.menuitem",
+          xtype: "menuitem",
           text: "juhu1"
         },
         {
-          xtype: "ext.config.menuitem",
+          xtype: "menuitem",
           text: "juhu2"
         },
         {
-          xtype: "ext.config.menuitem",
+          xtype: "menuitem",
           text: "juhu3"
         }
       ],
