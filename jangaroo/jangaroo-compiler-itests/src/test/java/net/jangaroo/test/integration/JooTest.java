@@ -87,7 +87,7 @@ public class JooTest extends JooRuntimeTestCase {
     } else {
       int line = 30;
       int column = 9;
-      String expectedErrorMsgTail = asFileName + "(" + line + ":" + column + "): assertion failed";
+      String expectedErrorMsgTail = new File(asFileName).getName() + "(" + line + ":" + column + "): assertion failed";
       expectSubstring(expectedErrorMsgTail, qualifiedName + ".testAssert()");
     }
   }
