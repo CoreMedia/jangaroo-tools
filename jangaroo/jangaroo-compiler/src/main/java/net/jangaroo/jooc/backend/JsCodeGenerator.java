@@ -74,6 +74,7 @@ import net.jangaroo.jooc.ast.WhileStatement;
 import net.jangaroo.jooc.config.JoocConfiguration;
 import net.jangaroo.jooc.sym;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -428,7 +429,7 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
         out.writeSymbol(applyExpr.getArgs().getLParen());
         applyExpr.getArgs().getExpr().visit(this);
         out.writeToken(", ");
-        out.writeString(symKeyword.getFileName());
+        out.writeString(new File(symKeyword.getFileName()).getName());
         out.writeToken(", ");
         out.writeInt(symKeyword.getLine());
         out.write(", ");
