@@ -31,10 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class ExmlToModelParser {
-  private static final String XTYPE_ATTRIBUTE = "xtype";
-  private static final String PTYPE_ATTRIBUTE = "ptype";
   private static final String EXT_CONFIG_PREFIX = "ext.config.";
-  private static final String EXT_PLUGIN_INTERFACE = "ext.Plugin";
 
   private final ConfigClassRegistry registry;
 
@@ -231,7 +228,19 @@ public final class ExmlToModelParser {
       } else {
         String arrayItemClassName = createFullConfigClassNameFromNode(arrayItemNode);
         ConfigClass configClass = getConfigClassByName(arrayItemClassName, arrayItemNode);
-        String typeString = arrayItemClassName.startsWith(EXT_CONFIG_PREFIX) ? arrayItemClassName.substring(EXT_CONFIG_PREFIX.length()) : arrayItemClassName;
+        String componentClassName = configClass.getComponentClassName();
+
+        String typeString;
+        if (arrayItemClassName.startsWith(EXT_CONFIG_PREFIX)) {
+          // Ext classes are always loaded. We can use the type string directly.
+          typeString = arrayItemClassName.substring(EXT_CONFIG_PREFIX.length());
+        } else {
+          // Access the type through the component class, so that the component class gets initialized.
+          // The braces cause the inner content to be output unquoted.
+          model.addImport(componentClassName);
+          typeString = "{" + componentClassName + "." + configClass.getType().extTypeAttribute + "}";
+        }
+
         JsonObject arrayItemJsonObject = new JsonObject();
         arrayItemJsonObject.set(configClass.getType().extTypeAttribute, typeString);
         fillModelAttributes(model, arrayItemJsonObject, arrayItemNode, configClass);

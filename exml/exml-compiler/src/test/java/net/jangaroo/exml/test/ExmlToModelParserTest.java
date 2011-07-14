@@ -163,7 +163,7 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
     JsonObject expectedJsonObject = new JsonObject(
             "items", new JsonArray(
                     new JsonObject(
-                            "xtype", "testNamespace.config.TestComponent2",
+                            "xtype", "{testPackage.TestComponent2.xtype}",
                             "propertyThree", "3"
                     )
             )
