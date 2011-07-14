@@ -232,23 +232,30 @@ public final class ExmlToModelParser {
         ConfigClass configClass = getConfigClassByName(arrayItemClassName, arrayItemNode);
         String componentClassName = configClass.getComponentClassName();
 
-        String typeString;
-        if (arrayItemClassName.startsWith(EXT_CONFIG_PREFIX)) {
-          // Ext classes are always loaded. We can use the type string directly.
-          typeString = arrayItemClassName.substring(EXT_CONFIG_PREFIX.length());
-        } else {
-          // Access the type through the component class, so that the component class gets initialized.
-          // The braces cause the inner content to be output unquoted.
+        JsonObject arrayItemJsonObject = new JsonObject();
+        if (configClass.getType() == ConfigClassType.ACTION) {
+          // Actions must be created immediately.
+          arrayItemJsonObject.settingWrapperClass(componentClassName);
           model.addImport(componentClassName);
-          typeString = "{" + componentClassName + "." + configClass.getType().extTypeAttribute + "}";
-        }
-        // By convention an optional "layout" suffix of layout types is cut off.
-        if (configClass.getType() == ConfigClassType.LAYOUT && typeString.endsWith(LAYOUT_SUFFIX)) {
-          typeString = typeString.substring(0, typeString.lastIndexOf(LAYOUT_SUFFIX));
+        } else {
+          String typeString;
+          if (arrayItemClassName.startsWith(EXT_CONFIG_PREFIX)) {
+            // Ext classes are always loaded. We can use the type string directly.
+            typeString = arrayItemClassName.substring(EXT_CONFIG_PREFIX.length());
+          } else {
+            // Access the type through the component class, so that the component class gets initialized.
+            // The braces cause the inner content to be output unquoted.
+            model.addImport(componentClassName);
+            typeString = "{" + componentClassName + "." + configClass.getType().extTypeAttribute + "}";
+          }
+          // By convention an optional "layout" suffix of layout types is cut off.
+          if (configClass.getType() == ConfigClassType.LAYOUT && typeString.endsWith(LAYOUT_SUFFIX)) {
+            typeString = typeString.substring(0, typeString.lastIndexOf(LAYOUT_SUFFIX));
+          }
+
+          arrayItemJsonObject.set(configClass.getType().extTypeAttribute, typeString);
         }
 
-        JsonObject arrayItemJsonObject = new JsonObject();
-        arrayItemJsonObject.set(configClass.getType().extTypeAttribute, typeString);
         fillModelAttributes(model, arrayItemJsonObject, arrayItemNode, configClass);
         value = arrayItemJsonObject;
       }
