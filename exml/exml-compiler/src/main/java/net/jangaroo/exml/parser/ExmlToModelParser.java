@@ -157,17 +157,18 @@ public final class ExmlToModelParser {
           // it seems to be an array or an object
           List<Object> childObjects = parseChildObjects(model, element);
           ConfigAttribute configAttribute = getCfgByName(configClass, elementName);
-          if (childObjects.size() != 1 || configAttribute != null && "Array".equals(configAttribute.getType())) {
+          if (childObjects.size() > 1 || configAttribute != null && "Array".equals(configAttribute.getType())) {
             // TODO: Check for type violation
             // We must write an array.
             JsonArray jsonArray = new JsonArray(childObjects.toArray());
             jsonObject.set(element.getLocalName(), jsonArray);
-          } else {
+          } else if (childObjects.size() == 1) {
             // The property is either unspecified, untyped, or object-typed
             // and it contains a single child element. Use that element as the
             // property value.
             jsonObject.set(element.getLocalName(), childObjects.get(0));
           }
+          // empty properties are omitted if the type is not fixed to Array
         }
       }
     }
