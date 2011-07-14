@@ -5,7 +5,7 @@ import net.jangaroo.exml.json.JsonObject;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class ExmlModel {
+public class ExmlModel extends DescriptionHolder {
   private String packageName;
   private String className;
   private String superClassName;

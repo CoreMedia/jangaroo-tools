@@ -10,7 +10,7 @@ import testPackage.TestComponent;
  * This is a TestComponent with panel as baseclass.
  *
  * <p>
- * Do not instantiate this class! Instead, instantiate the associated
+ * <b>Do not instantiate this class!</b> Instead, instantiate the associated
  * component class testPackage.TestComponent directly.
  * This class is only provided to document the config attributes
  * to use when building instances of the component class.

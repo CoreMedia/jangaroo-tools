@@ -76,6 +76,8 @@ public final class ExmlToModelParser {
               throw new ExmlcException("<exml:import> element must contain a non-empty class attribute", lineNumber);
             }
             model.addImport(importedClassName);
+          } else if (ExmlConstants.EXML_DESCRIPTION_NODE_NAME.equals(node.getLocalName())) {
+            model.setDescription(node.getTextContent().trim());
           }
         } else {
           if (componentNode != null) {

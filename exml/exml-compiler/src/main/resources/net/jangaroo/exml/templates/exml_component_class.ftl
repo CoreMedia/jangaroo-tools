@@ -5,9 +5,11 @@ package ${model.packageName} {
 import ${import};
 </#list>
 
-//Do not edit. This is an auto-generated class.
+// Do not edit. This is an auto-generated class.
 
 /**
+ * ${model.description!}
+ *
  * <p>This component is created by the xtype '${configClassPackage}.${model.className}' / the EXML element &lt;${configClassPackage}:${model.className}>.</p>
  * <p>See the config class for details.</p>
  *

@@ -5,9 +5,11 @@ import ext.ComponentMgr;
 import ext.MessageBox;
 import ext.Panel;
 
-//Do not edit. This is an auto-generated class.
+// Do not edit. This is an auto-generated class.
 
 /**
+ * This is my <b>TestCompoent</b>
+ *
  * <p>This component is created by the xtype 'exmlparser.config.AllElements' / the EXML element &lt;exmlparser.config:AllElements>.</p>
  * <p>See the config class for details.</p>
  *
