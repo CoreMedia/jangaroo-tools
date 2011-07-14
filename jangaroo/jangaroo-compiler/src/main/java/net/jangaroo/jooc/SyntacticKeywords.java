@@ -40,19 +40,19 @@ import java.util.Set;
  */
 public interface SyntacticKeywords {
 
-  static final String ASSERT = "assert";
-  static final String DYNAMIC = "dynamic";
-  static final String EACH = "each";
-  static final String FINAL = "final";
-  static final String GET = "get";
-  static final String INCLUDE = "include";
-  static final String NAMESPACE = "namespace";
-  static final String NATIVE = "native";
-  static final String OVERRIDE = "override";
-  static final String SET = "set";
-  static final String STATIC = "static";
-  static final String VIRTUAL = "virtual";
+  String ASSERT = "assert";
+  String DYNAMIC = "dynamic";
+  String EACH = "each";
+  String FINAL = "final";
+  String GET = "get";
+  String INCLUDE = "include";
+  String NAMESPACE = "namespace";
+  String NATIVE = "native";
+  String OVERRIDE = "override";
+  String SET = "set";
+  String STATIC = "static";
+  String VIRTUAL = "virtual";
 
-  static final Set<String> RESERVED_WORDS = new HashSet<String>(Arrays.asList("int", "uint"));
+  Set<String> RESERVED_WORDS = new HashSet<String>(Arrays.asList("int", "uint"));
 
 }

@@ -36,13 +36,13 @@ package net.jangaroo.jooc;
  */
 public final class Debug {
 
-  public static boolean enabled = true;
+  public static final boolean enabled = true;
 
   private Debug() {
     //hide public constructor
   }
 
-  public static final void assertTrue(boolean b, String s) {
+  public static void assertTrue(boolean b, String s) {
     if (enabled && !b) {
       throw new RuntimeException("Assertion failed: " + s);
     }
@@ -101,7 +101,7 @@ public final class Debug {
   /**
    * Print a String, and then finish the line.
    */
-  public static final void println(String x) {
+  public static void println(String x) {
     if (enabled) {
       System.out.println(x);
     }
@@ -110,7 +110,7 @@ public final class Debug {
   /**
    * Print an Object, and then finish the line.
    */
-  public static final void println(Object x) {
+  public static void println(Object x) {
     if (enabled) {
       System.out.println(x);
     }
@@ -119,7 +119,7 @@ public final class Debug {
   /**
    * Print an Array.
    */
-  public static final void printArray(Object[] x) {
+  public static void printArray(Object[] x) {
     if (enabled) {
       System.out.print(printArrayToString(x));
     }
@@ -128,7 +128,7 @@ public final class Debug {
   /**
    * Print an Object Array to a String.
    */
-  public static final String printArrayToString(Object[] x) {
+  public static String printArrayToString(Object[] x) {
     if (x == null) {
       return "null";
     }
@@ -148,7 +148,7 @@ public final class Debug {
   /**
    * Print an int Array to a String.
    */
-  public static final String printArrayToString(int[] x) {
+  public static String printArrayToString(int[] x) {
     StringBuffer buffer = new StringBuffer();
     buffer.append('{');
     for (int i = 0; i < x.length; i++) {
@@ -164,7 +164,7 @@ public final class Debug {
   /**
    * Print an Array.
    */
-  public static final void printArray(int[] x) {
+  public static void printArray(int[] x) {
     if (enabled) {
       System.out.print('{');
       for (int i = 0; i < x.length; i++) {
