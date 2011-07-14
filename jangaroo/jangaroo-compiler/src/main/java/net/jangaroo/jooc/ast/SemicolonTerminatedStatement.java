@@ -15,7 +15,6 @@
 
 package net.jangaroo.jooc.ast;
 
-import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.Debug;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
@@ -64,7 +63,7 @@ public class SemicolonTerminatedStatement extends Statement {
     }
   }
 
-  public void analyze(AstNode parentNode, AnalyzeContext context) {
+  public void analyze(AstNode parentNode) {
     // check for special case "assert statement":
     if (getOptStatement() instanceof ApplyExpr && getOptSymSemicolon() != null) {
       ApplyExpr applyExpr = (ApplyExpr) getOptStatement();
@@ -74,9 +73,9 @@ public class SemicolonTerminatedStatement extends Statement {
         classDeclaration.addBuiltInUsage(functionName);
       }
     }
-    super.analyze(parentNode, context);
+    super.analyze(parentNode);
     if (getOptStatement() != null) {
-      getOptStatement().analyze(this, context);
+      getOptStatement().analyze(this);
     }
   }
 

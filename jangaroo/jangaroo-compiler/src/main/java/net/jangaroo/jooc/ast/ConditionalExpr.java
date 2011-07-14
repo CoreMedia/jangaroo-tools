@@ -15,7 +15,6 @@
 
 package net.jangaroo.jooc.ast;
 
-import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 
@@ -52,11 +51,11 @@ public class ConditionalExpr extends Expr {
     getIfFalse().scope(scope);
   }
 
-  public void analyze(AstNode parentNode, AnalyzeContext context) {
-    super.analyze(parentNode, context);
-    getCond().analyze(this, context);
-    getIfTrue().analyze(this, context);
-    getIfFalse().analyze(this, context);
+  public void analyze(AstNode parentNode) {
+    super.analyze(parentNode);
+    getCond().analyze(this);
+    getIfTrue().analyze(this);
+    getIfFalse().analyze(this);
   }
 
   public JooSymbol getSymbol() {

@@ -15,7 +15,6 @@
 
 package net.jangaroo.jooc.ast;
 
-import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 
@@ -44,9 +43,9 @@ public class Implements extends NodeImplBase {
   }
 
   @Override
-  public void analyze(AstNode parentNode, AnalyzeContext context) {
-    super.analyze(parentNode, context);
-    getSuperTypes().analyze(this, context);
+  public void analyze(AstNode parentNode) {
+    super.analyze(parentNode);
+    getSuperTypes().analyze(this);
     CommaSeparatedList<Ide> superTypes = this.getSuperTypes();
     while (superTypes != null) {
       Ide superType = superTypes.getHead();

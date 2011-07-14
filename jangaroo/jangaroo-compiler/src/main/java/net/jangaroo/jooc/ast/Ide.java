@@ -15,7 +15,6 @@
 
 package net.jangaroo.jooc.ast;
 
-import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.CompilerError;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
@@ -191,7 +190,7 @@ public class Ide extends NodeImplBase {
     return new QualifiedIde(new Ide(symQualifier), symDot, getIde());
   }
 
-  public void analyzeAsExpr(AstNode exprParent, Expr parentExpr, final AnalyzeContext context) {
+  public void analyzeAsExpr(AstNode exprParent, Expr parentExpr) {
     if (needsThisAtRuntime()) {
       FunctionExpr funExpr = scope.getFunctionExpr();
       if (funExpr != null) {

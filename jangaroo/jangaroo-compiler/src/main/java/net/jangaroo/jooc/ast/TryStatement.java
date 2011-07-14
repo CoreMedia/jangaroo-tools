@@ -15,7 +15,6 @@
 
 package net.jangaroo.jooc.ast;
 
-import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 
@@ -58,12 +57,12 @@ public class TryStatement extends KeywordStatement {
     }
   }
 
-  public void analyze(AstNode parentNode, AnalyzeContext context) {
-    super.analyze(parentNode, context);
-    getBlock().analyze(this, context);
-    analyze(this, getCatches(), context);
+  public void analyze(AstNode parentNode) {
+    super.analyze(parentNode);
+    getBlock().analyze(this);
+    analyze(this, getCatches());
     if (getFinallyBlock() != null) {
-      getFinallyBlock().analyze(this, context);
+      getFinallyBlock().analyze(this);
     }
   }
 

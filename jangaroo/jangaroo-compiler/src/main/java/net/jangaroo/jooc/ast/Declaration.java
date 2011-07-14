@@ -15,7 +15,6 @@
 
 package net.jangaroo.jooc.ast;
 
-import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
@@ -109,8 +108,8 @@ public abstract class Declaration extends Statement {
   }
 
   @Override
-  public void analyze(AstNode parentNode, AnalyzeContext context) {
-    super.analyze(parentNode, context);
+  public void analyze(AstNode parentNode) {
+    super.analyze(parentNode);
     checkAllowedModifiers();
   }
 

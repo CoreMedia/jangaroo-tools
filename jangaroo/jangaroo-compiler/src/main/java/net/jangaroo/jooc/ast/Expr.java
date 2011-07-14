@@ -15,8 +15,6 @@
 
 package net.jangaroo.jooc.ast;
 
-import net.jangaroo.jooc.AnalyzeContext;
-
 /**
  * @author Andreas Gawecki
  */
@@ -33,8 +31,8 @@ public abstract class Expr extends NodeImplBase {
   }
 
   @Override
-  public void analyze(AstNode parentNode, AnalyzeContext context) {
-    super.analyze(parentNode, context);
+  public void analyze(AstNode parentNode) {
+    super.analyze(parentNode);
   }
 
   public boolean isCompileTimeConstant() {

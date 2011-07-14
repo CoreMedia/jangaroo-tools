@@ -15,7 +15,6 @@
 
 package net.jangaroo.jooc.ast;
 
-import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.DeclarationScope;
 import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
@@ -31,7 +30,7 @@ public abstract class NodeImplBase implements AstNode {
     throw new UnsupportedOperationException();
   }
 
-  public void analyze(AstNode parentNode, AnalyzeContext context) {
+  public void analyze(AstNode parentNode) {
   }
 
   public <N extends AstNode> void scope(List<N> nodes, Scope scope) {
@@ -40,9 +39,9 @@ public abstract class NodeImplBase implements AstNode {
     }
   }
 
-  public <N extends AstNode> void analyze(AstNode parent, List<N> nodes, AnalyzeContext context) {
+  public <N extends AstNode> void analyze(AstNode parent, List<N> nodes) {
     for (AstNode node : nodes) {
-      node.analyze(parent, context);
+      node.analyze(parent);
     }
   }
 

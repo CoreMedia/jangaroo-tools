@@ -15,7 +15,6 @@
 
 package net.jangaroo.jooc.ast;
 
-import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 
@@ -54,13 +53,13 @@ public class CommaSeparatedList<T extends AstNode> extends Expr {
     }
   }
 
-  public void analyze(AstNode parentNode, AnalyzeContext context) {
-    super.analyze(parentNode, context);
+  public void analyze(AstNode parentNode) {
+    super.analyze(parentNode);
     if (getHead() != null) {
-      getHead().analyze(this, context);
+      getHead().analyze(this);
     }
     if (getTail() != null) {
-      getTail().analyze(this, context);
+      getTail().analyze(this);
     }
   }
 

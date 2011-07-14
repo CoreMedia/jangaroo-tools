@@ -25,10 +25,6 @@ public class JsStringLiteralWriter extends SubstitutingWriter {
 
   protected boolean insideScriptTag;
 
-  public JsStringLiteralWriter(Writer out) {
-    this(out, true);
-  }
-
   public JsStringLiteralWriter(Writer out, boolean insideScriptTag) {
     super(out);
     this.insideScriptTag = insideScriptTag;

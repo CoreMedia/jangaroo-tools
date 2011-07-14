@@ -1,6 +1,5 @@
 package net.jangaroo.jooc.ast;
 
-import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.CodeGenerator;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
@@ -30,9 +29,9 @@ public abstract class AbstractBlock extends Statement {
     getBlockStartCodeGenerators().add(blockStartCodeGenerator);
   }
 
-  public void analyze(AstNode parentNode, AnalyzeContext context) {
-    super.analyze(parentNode, context);
-    analyze(this, getDirectives(), context);
+  public void analyze(AstNode parentNode) {
+    super.analyze(parentNode);
+    analyze(this, getDirectives());
   }
 
   public JooSymbol getSymbol() {

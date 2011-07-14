@@ -15,7 +15,6 @@
 
 package net.jangaroo.jooc.ast;
 
-import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.sym;
@@ -86,15 +85,15 @@ public class Catch extends KeywordStatement {
     });
   }
 
-  public void analyze(AstNode parentNode, AnalyzeContext context) {
-    super.analyze(parentNode, context);
+  public void analyze(AstNode parentNode) {
+    super.analyze(parentNode);
     this.parentNode = (TryStatement) parentNode;
-    param.analyze(this, context);
+    param.analyze(this);
     TypeRelation typeRelation = param.getOptTypeRelation();
     if (typeRelation != null) {
       Type type = typeRelation.getType();
       type.getIde().addExternalUsage(); // init will be done by is()!
     }
-    block.analyze(this, context);
+    block.analyze(this);
   }
 }

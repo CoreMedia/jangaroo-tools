@@ -15,7 +15,6 @@
 
 package net.jangaroo.jooc.ast;
 
-import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 
@@ -52,13 +51,13 @@ public class ForInitializer extends NodeImplBase {
     }
   }
 
-  public void analyze(AstNode parentNode, AnalyzeContext context) {
-    super.analyze(parentNode, context);
+  public void analyze(AstNode parentNode) {
+    super.analyze(parentNode);
     if (getDecl() != null) {
-      getDecl().analyze(this, context);
+      getDecl().analyze(this);
     }
     if (getExpr() != null) {
-      getExpr().analyze(this, context);
+      getExpr().analyze(this);
     }
   }
 

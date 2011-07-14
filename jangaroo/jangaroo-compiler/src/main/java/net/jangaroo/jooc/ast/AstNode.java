@@ -15,7 +15,6 @@
 
 package net.jangaroo.jooc.ast;
 
-import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.CodeGenerator;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
@@ -31,7 +30,7 @@ public interface AstNode extends CodeGenerator {
 
   void scope(Scope scope);
 
-  void analyze(AstNode parentNode, AnalyzeContext context);
+  void analyze(AstNode parentNode);
 
   void visit(AstVisitor visitor) throws IOException;
 }

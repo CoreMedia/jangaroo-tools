@@ -106,7 +106,7 @@ public class Jooc extends JangarooParser {
         apiSinkFactory = createSinkFactory(getConfig(), true);
       }
       for (CompilationUnit unit : compileQueue) {
-        unit.analyze(null, new AnalyzeContext(getConfig()));
+        unit.analyze(null);
         writeOutput(unit, codeSinkFactory, getConfig().isVerbose());
         if (getConfig().isGenerateApi()) {
           writeOutput(unit, apiSinkFactory, getConfig().isVerbose());

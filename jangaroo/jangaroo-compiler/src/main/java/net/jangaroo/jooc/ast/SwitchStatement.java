@@ -15,7 +15,6 @@
 
 package net.jangaroo.jooc.ast;
 
-import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 
@@ -52,10 +51,10 @@ public class SwitchStatement extends KeywordStatement {
     });
   }
 
-  public void analyze(AstNode parentNode, AnalyzeContext context) {
-    super.analyze(parentNode, context);
-    getCond().analyze(this, context);
-    getBlock().analyze(this, context);
+  public void analyze(AstNode parentNode) {
+    super.analyze(parentNode);
+    getCond().analyze(this);
+    getBlock().analyze(this);
   }
 
   public ParenthesizedExpr getCond() {

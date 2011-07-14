@@ -15,7 +15,6 @@
 
 package net.jangaroo.jooc.ast;
 
-import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.JsWriter;
@@ -100,15 +99,15 @@ public class QualifiedIde extends Ide {
   }
 
   @Override
-  public void analyze(final AstNode parentNode, final AnalyzeContext context) {
-    qualifier.analyze(this, context);
-    super.analyze(parentNode, context);
+  public void analyze(final AstNode parentNode) {
+    qualifier.analyze(this);
+    super.analyze(parentNode);
   }
 
   @Override
-  public void analyzeAsExpr(final AstNode exprParent, final Expr parentExpr, final AnalyzeContext context) {
-    qualifier.analyzeAsExpr(exprParent, parentExpr, context);
-    super.analyzeAsExpr(exprParent, parentExpr, context);
+  public void analyzeAsExpr(final AstNode exprParent, final Expr parentExpr) {
+    qualifier.analyzeAsExpr(exprParent, parentExpr);
+    super.analyzeAsExpr(exprParent, parentExpr);
     final IdeDeclaration qualifierDeclaration = qualifier.getDeclaration(false);
     if (qualifierDeclaration != null) {
       if (qualifierDeclaration instanceof ClassDeclaration) {

@@ -16,7 +16,6 @@
 package net.jangaroo.jooc.ast;
 
 
-import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 
@@ -37,9 +36,9 @@ public abstract class UnaryOpExpr extends OpExpr {
     getArg().scope(scope);
   }
 
-  public void analyze(AstNode parentNode, AnalyzeContext context) {
-    super.analyze(parentNode, context);
-    getArg().analyze(this, context);
+  public void analyze(AstNode parentNode) {
+    super.analyze(parentNode);
+    getArg().analyze(this);
   }
 
   public boolean isCompileTimeConstant() {

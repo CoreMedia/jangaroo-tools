@@ -15,7 +15,6 @@
 
 package net.jangaroo.jooc.ast;
 
-import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.CodeGenerator;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.JsWriter;
@@ -131,16 +130,16 @@ public class FunctionExpr extends Expr {
     });
   }
 
-  public void analyze(AstNode parentNode, AnalyzeContext context) {
-    super.analyze(parentNode, context);
+  public void analyze(AstNode parentNode) {
+    super.analyze(parentNode);
     if (params != null) {
-      params.analyze(this, context);
+      params.analyze(this);
     }
     if (optTypeRelation != null) {
-      optTypeRelation.analyze(this, context);
+      optTypeRelation.analyze(this);
     }
     if (optBody != null) {
-      optBody.analyze(this, context);
+      optBody.analyze(this);
     }
   }
 

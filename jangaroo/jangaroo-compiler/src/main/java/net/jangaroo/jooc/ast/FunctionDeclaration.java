@@ -15,7 +15,6 @@
 
 package net.jangaroo.jooc.ast;
 
-import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
@@ -174,9 +173,9 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
     }
   }
 
-  public void analyze(AstNode parentNode, AnalyzeContext context) {
-    super.analyze(parentNode, context); // computes modifiers
-    fun.analyze(this, context);
+  public void analyze(AstNode parentNode) {
+    super.analyze(parentNode); // computes modifiers
+    fun.analyze(this);
   }
 
   @Override

@@ -15,7 +15,6 @@
 
 package net.jangaroo.jooc.ast;
 
-import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 
@@ -39,9 +38,9 @@ public abstract class ConditionalLoopStatement extends LoopStatement {
     }
   }
 
-  protected void analyzeLoopHeader(AnalyzeContext context) {
+  protected void analyzeLoopHeader() {
     if (getOptCond() != null) {
-      getOptCond().analyze(this, context);
+      getOptCond().analyze(this);
     }
   }
 

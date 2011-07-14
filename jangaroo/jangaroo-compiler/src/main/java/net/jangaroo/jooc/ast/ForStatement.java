@@ -15,7 +15,6 @@
 
 package net.jangaroo.jooc.ast;
 
-import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
@@ -60,17 +59,17 @@ public class ForStatement extends ConditionalLoopStatement {
     }
   }
 
-  protected void analyzeLoopHeader(AnalyzeContext context) {
+  protected void analyzeLoopHeader() {
     // check conformance to ECMA-262 7.9.1: a semicolon is never inserted automatically if
     // that semicolon would become one of the two semicolons in the header of a for statement
     checkNonVirtualSemicolon(getSymSemicolon1());
     checkNonVirtualSemicolon(getSymSemicolon2());
     if (getForInit() != null) {
-      getForInit().analyze(this, context);
+      getForInit().analyze(this);
     }
-    super.analyzeLoopHeader(context);
+    super.analyzeLoopHeader();
     if (getOptStep() != null) {
-      getOptStep().analyze(this, context);
+      getOptStep().analyze(this);
     }
   }
 

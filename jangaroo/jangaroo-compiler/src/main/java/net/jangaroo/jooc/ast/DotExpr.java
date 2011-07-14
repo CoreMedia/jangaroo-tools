@@ -15,7 +15,6 @@
 
 package net.jangaroo.jooc.ast;
 
-import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
@@ -51,8 +50,8 @@ public class DotExpr extends PostfixOpExpr {
   }
 
   @Override
-  public void analyze(final AstNode parentNode, final AnalyzeContext context) {
-    super.analyze(parentNode, context);
+  public void analyze(final AstNode parentNode) {
+    super.analyze(parentNode);
     IdeDeclaration qualiferType = getArg().getType();
     if (qualiferType != null) {
       IdeDeclaration memberDeclaration = getArg().getType().resolvePropertyDeclaration(getIde().getName());

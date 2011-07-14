@@ -15,7 +15,6 @@
 
 package net.jangaroo.jooc.ast;
 
-import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
@@ -61,11 +60,11 @@ public class SuperConstructorCallStatement extends Statement {
     setClassDeclaration(scope.getClassDeclaration());
   }
 
-  public void analyze(AstNode parentNode, AnalyzeContext context) {
-    super.analyze(parentNode, context);
-    getFun().analyze(this, context);
+  public void analyze(AstNode parentNode) {
+    super.analyze(parentNode);
+    getFun().analyze(this);
     if (getArgs() != null) {
-      getArgs().analyze(this, context);
+      getArgs().analyze(this);
     }
   }
 

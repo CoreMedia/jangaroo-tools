@@ -15,7 +15,6 @@
 
 package net.jangaroo.jooc.ast;
 
-import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 
@@ -51,10 +50,10 @@ public class IdeExpr extends Expr {
   }
 
   @Override
-  public void analyze(AstNode parentNode, AnalyzeContext context) {
-    super.analyze(parentNode, context);
-    getIde().analyze(this, context);
-    getIde().analyzeAsExpr(parentNode, this, context);
+  public void analyze(AstNode parentNode) {
+    super.analyze(parentNode);
+    getIde().analyze(this);
+    getIde().analyzeAsExpr(parentNode, this);
     setType(getIde().resolveDeclaration());
   }
 

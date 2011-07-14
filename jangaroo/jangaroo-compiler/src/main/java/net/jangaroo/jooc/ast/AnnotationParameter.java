@@ -15,7 +15,6 @@
 
 package net.jangaroo.jooc.ast;
 
-import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.CompilerError;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
@@ -62,10 +61,10 @@ public class AnnotationParameter extends NodeImplBase {
     }
   }
 
-  public void analyze(AstNode parentNode, AnalyzeContext context) {
-    super.analyze(parentNode, context);
+  public void analyze(AstNode parentNode) {
+    super.analyze(parentNode);
     if (getValue() != null) {
-      getValue().analyze(this, context);
+      getValue().analyze(this);
       String metaName = parentAnnotation.getMetaName();
       if ("Embed".equals(metaName) && getOptName() != null && "source".equals(getOptName().getName())) {
         JooSymbol valueSymbol = getValue().getSymbol();

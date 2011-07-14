@@ -15,7 +15,6 @@
 
 package net.jangaroo.jooc.ast;
 
-import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
@@ -124,16 +123,16 @@ public class VariableDeclaration extends TypedIdeDeclaration {
     return isConst() && (getOptInitializer() == null || getOptInitializer().getValue().isCompileTimeConstant());
   }
 
-  public void analyze(AstNode parentNode, AnalyzeContext context) {
-    super.analyze(parentNode, context);
+  public void analyze(AstNode parentNode) {
+    super.analyze(parentNode);
     if (getOptInitializer() == null && isConst()) {
       throw Jooc.error(getOptSymConstOrVar(), "constant must be initialized");
     }
     if (getOptInitializer() != null) {
-      getOptInitializer().analyze(this, context);
+      getOptInitializer().analyze(this);
     }
     if (getOptNextVariableDeclaration() != null) {
-      getOptNextVariableDeclaration().analyze(this, context);
+      getOptNextVariableDeclaration().analyze(this);
     }
     if (isClassMember() && !isStatic() && getOptInitializer() != null && !getOptInitializer().getValue().isCompileTimeConstant()) {
       getClassDeclaration().addFieldWithInitializer(this);

@@ -15,7 +15,6 @@
 
 package net.jangaroo.jooc.ast;
 
-import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
 
 import java.io.IOException;
@@ -38,11 +37,11 @@ public class DoStatement extends ConditionalLoopStatement {
     visitor.visitDoStatement(this);
   }
 
-  protected void analyzeLoopHeader(AnalyzeContext context) {
+  protected void analyzeLoopHeader() {
   }
 
-  protected void analyzeLoopFooter(AnalyzeContext context) {
-    getOptCond().analyze(this, context);
+  protected void analyzeLoopFooter() {
+    getOptCond().analyze(this);
   }
 
   public JooSymbol getSymWhile() {

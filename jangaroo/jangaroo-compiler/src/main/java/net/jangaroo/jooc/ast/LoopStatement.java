@@ -15,7 +15,6 @@
 
 package net.jangaroo.jooc.ast;
 
-import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 
@@ -42,16 +41,16 @@ public abstract class LoopStatement extends KeywordStatement {
     });
   }
 
-  public void analyze(AstNode parentNode, AnalyzeContext context) {
-    super.analyze(parentNode, context);
-    analyzeLoopHeader(context);
-    getBody().analyze(this, context);
-    analyzeLoopFooter(context);
+  public void analyze(AstNode parentNode) {
+    super.analyze(parentNode);
+    analyzeLoopHeader();
+    getBody().analyze(this);
+    analyzeLoopFooter();
   }
 
-  protected abstract void analyzeLoopHeader(AnalyzeContext context);
+  protected abstract void analyzeLoopHeader();
 
-  protected void analyzeLoopFooter(AnalyzeContext context) {
+  protected void analyzeLoopFooter() {
   }
 
   public Statement getBody() {

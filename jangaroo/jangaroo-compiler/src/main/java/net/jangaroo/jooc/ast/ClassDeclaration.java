@@ -15,7 +15,6 @@
 
 package net.jangaroo.jooc.ast;
 
-import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.CompilerError;
 import net.jangaroo.jooc.DeclarationScope;
 import net.jangaroo.jooc.JooSymbol;
@@ -214,18 +213,18 @@ public class ClassDeclaration extends IdeDeclaration {
     directives.add(0, importDirective);
   }
 
-  public void analyze(AstNode parentNode, AnalyzeContext context) {
-    analyze(this, directives, context);
-    super.analyze(parentNode, context);
+  public void analyze(AstNode parentNode) {
+    analyze(this, directives);
+    super.analyze(parentNode);
     if (getOptExtends() != null) {
-      getOptExtends().analyze(this, context);
+      getOptExtends().analyze(this);
     }
     if (getOptImplements() != null) {
-      getOptImplements().analyze(this, context);
+      getOptImplements().analyze(this);
     }
-    body.analyze(this, context);
+    body.analyze(this);
     for (IdeDeclaration secondaryDeclaration : secondaryDeclarations) {
-      secondaryDeclaration.analyze(this, context);
+      secondaryDeclaration.analyze(this);
     }
   }
 

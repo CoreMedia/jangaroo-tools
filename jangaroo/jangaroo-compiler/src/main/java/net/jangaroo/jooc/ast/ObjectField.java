@@ -15,7 +15,6 @@
 
 package net.jangaroo.jooc.ast;
 
-import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 
@@ -47,10 +46,10 @@ public class ObjectField extends NodeImplBase {
     getValue().scope(scope);
   }
 
-  public void analyze(AstNode parentNode, AnalyzeContext context) {
-    super.analyze(parentNode, context);
-    getLabel().analyze(this, context);
-    getValue().analyze(this, context);
+  public void analyze(AstNode parentNode) {
+    super.analyze(parentNode);
+    getLabel().analyze(this);
+    getValue().analyze(this);
   }
 
   public JooSymbol getSymbol() {

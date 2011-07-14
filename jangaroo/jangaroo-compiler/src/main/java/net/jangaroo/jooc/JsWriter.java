@@ -58,10 +58,6 @@ public final class JsWriter extends FilterWriter {
     return options.isDebug() && options.isDebugLines();
   }
 
-  public boolean getEnableAssertions() {
-    return options.isEnableAssertions();
-  }
-
   public void writeInt(int value) throws IOException {
     if (shouldWrite()) {
       write(String.valueOf(value));
@@ -295,18 +291,6 @@ public final class JsWriter extends FilterWriter {
     writeSymbolToken(symbol);
   }
 
-  /**
-   * Variant of writeSymbol() to use if you want to transform the symbol text with a prefix and/or postfix string
-   *
-   * @param symbol  the symbol to write
-   * @param prefix  a (possibly empty) string to write before the symbol token string
-   * @param postfix a (possibly empty) string to write after the symbol token string
-   * @throws java.io.IOException if an IO error occurs
-   */
-  public void writeSymbol(JooSymbol symbol, String prefix, String postfix) throws IOException {
-    writeSymbolWhitespace(symbol);
-    writeToken(prefix + symbol.getText() + postfix);
-  }
 
   public void writeSymbolToken(JooSymbol symbol) throws IOException {
     writeToken(symbol.getText());
@@ -365,7 +349,7 @@ public final class JsWriter extends FilterWriter {
   }
 
   private static String qualifiedNameToIde(String[] qn) {
-    StringBuffer result = new StringBuffer(20);
+    StringBuilder result = new StringBuilder(20);
     for (int i = 0; i < qn.length; i++) {
       if (i > 0) {
         result.append('$');

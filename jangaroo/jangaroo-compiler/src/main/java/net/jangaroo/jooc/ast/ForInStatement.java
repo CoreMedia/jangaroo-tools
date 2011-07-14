@@ -15,7 +15,6 @@
 
 package net.jangaroo.jooc.ast;
 
-import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
@@ -112,13 +111,13 @@ public class ForInStatement extends LoopStatement {
     expr.scope(scope);
   }
 
-  protected void analyzeLoopHeader(AnalyzeContext context) {
+  protected void analyzeLoopHeader() {
     if (decl != null) {
-      decl.analyze(this, context);
+      decl.analyze(this);
     } else {
-      ide.analyze(this, context);
+      ide.analyze(this);
     }
-    expr.analyze(this, context);
+    expr.analyze(this);
   }
 
 }

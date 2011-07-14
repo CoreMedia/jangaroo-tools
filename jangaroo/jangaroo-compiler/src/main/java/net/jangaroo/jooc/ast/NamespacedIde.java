@@ -15,7 +15,6 @@
 
 package net.jangaroo.jooc.ast;
 
-import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
@@ -48,11 +47,11 @@ public class NamespacedIde extends Ide {
   }
 
   @Override
-  public void analyze(AstNode parentNode, AnalyzeContext context) {
+  public void analyze(AstNode parentNode) {
     if (namespace.sym == sym.IDE) { // all other symbols should be predefined namespaces like "public" etc.
       Jooc.warning(namespace, "namespaces are not yet implemented, ignoring namespace " + namespace.getText());
     }
-    super.analyze(parentNode, context);
+    super.analyze(parentNode);
   }
 
   static String getNamespacePrefix(JooSymbol namespace) {

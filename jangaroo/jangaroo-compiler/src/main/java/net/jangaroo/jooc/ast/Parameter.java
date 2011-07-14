@@ -15,7 +15,6 @@
 
 package net.jangaroo.jooc.ast;
 
-import net.jangaroo.jooc.AnalyzeContext;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
@@ -57,17 +56,17 @@ public class Parameter extends IdeDeclaration {
   }
 
   @Override
-  public void analyze(AstNode parentNode, AnalyzeContext context) {
-    super.analyze(parentNode, context);
+  public void analyze(AstNode parentNode) {
+    super.analyze(parentNode);
     if (getOptTypeRelation() != null) {
-      getOptTypeRelation().analyze(this, context);
+      getOptTypeRelation().analyze(this);
       if (isRest() && !"Array".equals(getOptTypeRelation().getType().getSymbol().getText())) {
         //todo replace that condition with real Array definition lookup
         throw Jooc.error(getOptTypeRelation().getSymbol(), "Rest parameter must have Array type.");
       }
     }
     if (getOptInitializer() != null) {
-      getOptInitializer().analyze(this, context);
+      getOptInitializer().analyze(this);
     }
   }
 
