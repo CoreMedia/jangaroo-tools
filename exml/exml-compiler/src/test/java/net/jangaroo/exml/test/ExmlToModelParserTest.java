@@ -66,6 +66,9 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
                     new JsonObject(
                             "ptype", "aplugin"
                     )
+            ),
+            "layout2", new JsonObject(
+                    "type", "a"
             )
     );
     System.out.println(model.getJsonObject().toString(2));

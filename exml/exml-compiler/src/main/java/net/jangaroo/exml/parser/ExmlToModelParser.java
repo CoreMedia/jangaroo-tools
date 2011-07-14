@@ -7,6 +7,7 @@ import net.jangaroo.exml.json.JsonObject;
 import net.jangaroo.exml.model.ConfigAttribute;
 import net.jangaroo.exml.model.ConfigClass;
 import net.jangaroo.exml.model.ConfigClassRegistry;
+import net.jangaroo.exml.model.ConfigClassType;
 import net.jangaroo.exml.model.ExmlModel;
 import net.jangaroo.exml.xml.PreserveLineNumberHandler;
 import net.jangaroo.utils.CompilerUtils;
@@ -32,6 +33,7 @@ import java.util.List;
 
 public final class ExmlToModelParser {
   private static final String EXT_CONFIG_PREFIX = "ext.config.";
+  private static final String LAYOUT_SUFFIX = "layout";
 
   private final ConfigClassRegistry registry;
 
@@ -239,6 +241,10 @@ public final class ExmlToModelParser {
           // The braces cause the inner content to be output unquoted.
           model.addImport(componentClassName);
           typeString = "{" + componentClassName + "." + configClass.getType().extTypeAttribute + "}";
+        }
+        // By convention an optional "layout" suffix of layout types is cut off.
+        if (configClass.getType() == ConfigClassType.LAYOUT && typeString.endsWith(LAYOUT_SUFFIX)) {
+          typeString = typeString.substring(0, typeString.lastIndexOf(LAYOUT_SUFFIX));
         }
 
         JsonObject arrayItemJsonObject = new JsonObject();

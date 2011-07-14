@@ -66,5 +66,9 @@
       <aplugin/>
       <aplugin/>
     </plugins>
+
+    <layout2>
+      <alayout/>
+    </layout2>
   </panel>
 </exml:component>

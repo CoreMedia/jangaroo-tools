@@ -60,7 +60,8 @@ public class AllElements extends ext.Panel {
       plugins: [
         {ptype: "aplugin"},
         {ptype: "aplugin"}
-      ]
+      ],
+      layout2: {type: "a"}
     }, config));
   }
 }
