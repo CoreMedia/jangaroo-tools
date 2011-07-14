@@ -68,17 +68,18 @@ public class ApplyExpr extends Expr {
     final Ide ide = fun.getIde();
     IdeDeclaration declaration = ide.getDeclaration(false);
     return declaration != null &&
-      (declaration instanceof ClassDeclaration || declaration instanceof PredefinedTypeDeclaration ||
-        (declaration instanceof FunctionDeclaration && declaration.isConstructor()))
-      && (declaration.isClassMember() || !COERCE_FUNCTION_NAMES.contains(declaration.getQualifiedNameStr())
-      );
+            (declaration instanceof ClassDeclaration || declaration instanceof PredefinedTypeDeclaration ||
+                    (declaration instanceof FunctionDeclaration && declaration.isConstructor()))
+            && (declaration.isClassMember() || !COERCE_FUNCTION_NAMES.contains(declaration.getQualifiedNameStr())
+    );
   }
 
   public void analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     getFun().analyze(this, context);
-    if (getArgs() != null)
+    if (getArgs() != null) {
       getArgs().analyze(this, context);
+    }
   }
 
   public JooSymbol getSymbol() {

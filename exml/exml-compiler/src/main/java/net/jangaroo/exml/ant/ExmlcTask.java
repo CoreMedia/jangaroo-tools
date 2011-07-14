@@ -51,6 +51,7 @@ public class ExmlcTask extends MatchingTask {
   /**
    * Indicates whether the build will continue
    * even if there are compilation errors; defaults to true.
+   * @param fail whether the build will fail on error or not
    */
   public void setFailonerror(boolean fail) {
     failOnError = fail;
@@ -58,6 +59,7 @@ public class ExmlcTask extends MatchingTask {
 
   /**
    * Gets the failonerror flag.
+   * @return whether the build will fail on error or not
    */
   public boolean getFailonerror() {
     return failOnError;
@@ -99,6 +101,7 @@ public class ExmlcTask extends MatchingTask {
 
   /**
    * Set the source directories to find the source EXML files.
+   * @param srcDir the source directories
    */
   public void setSrcdir(Path srcDir) {
     if (src == null) {
@@ -110,6 +113,7 @@ public class ExmlcTask extends MatchingTask {
 
   /**
    * Get the source dirs to find the source java files.
+   * @return the source directories
    */
   public Path getSrcdir() {
     return src;
@@ -125,6 +129,7 @@ public class ExmlcTask extends MatchingTask {
 
   /**
    * If true, asks the compiler for verbose output.
+   * @param verbose the verbose status
    */
   public void setVerbose(boolean verbose) {
     this.verbose = verbose;
@@ -132,6 +137,7 @@ public class ExmlcTask extends MatchingTask {
 
   /**
    * Gets the verbose flag.
+   * @return the verbose status
    */
   public boolean getVerbose() {
     return verbose;
@@ -147,6 +153,7 @@ public class ExmlcTask extends MatchingTask {
 
   /**
    * Check that all required attributes have been set and nothing silly has been entered.
+   * @throws org.apache.tools.ant.BuildException if a build error occurred
    */
   protected void checkParameters() throws BuildException {
     if (src == null) {

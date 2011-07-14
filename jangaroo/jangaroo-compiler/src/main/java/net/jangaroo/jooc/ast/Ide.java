@@ -66,7 +66,9 @@ public class Ide extends NodeImplBase {
   }
 
   private boolean needsThisAtRuntime() {
-    if (isSuper()) return true;
+    if (isSuper()) {
+      return true;
+    }
     if (!isQualified() && isDeclared()) {
       IdeDeclaration decl = getDeclaration();
       return decl.isClassMember() && !decl.isStatic();
@@ -154,7 +156,8 @@ public class Ide extends NodeImplBase {
   /**
    * callable after scoping phase
    *
-   * @throws net.jangaroo.jooc.CompilerError if undeclared
+   * @throws net.jangaroo.jooc.CompilerError
+   *          if undeclared
    */
   public IdeDeclaration getDeclaration() {
     return getDeclaration(true);
@@ -213,7 +216,7 @@ public class Ide extends NodeImplBase {
     if (isBoundMethodCandidate(exprParent, parentExpr)) {
       IdeDeclaration memberDeclaration = getMemberDeclaration();
       // check candidates for instance methods, accessed as function:
-      if (memberDeclaration != null && memberDeclaration.isMethod() && !((FunctionDeclaration)memberDeclaration).isGetterOrSetter() && !memberDeclaration.isStatic()) {
+      if (memberDeclaration != null && memberDeclaration.isMethod() && !((FunctionDeclaration) memberDeclaration).isGetterOrSetter() && !memberDeclaration.isStatic()) {
         // check and handle instance methods declared in same file, accessed as function:
         getScope().getClassDeclaration().addBuiltInUsage("$$bound");
         setBound(true);
@@ -264,7 +267,7 @@ public class Ide extends NodeImplBase {
 
   private void checkDefinedAccessChain() {
     if (!isQualified() && //this method is called for every node of a qualified ide tree, so we rely on the call on the root ide
-      !isDeclared() && !isValidPackageAccessChain()) {
+            !isDeclared() && !isValidPackageAccessChain()) {
       throw Jooc.error(getIde(), "undeclared identifier '" + getName() + "'");
     }
   }
@@ -283,13 +286,13 @@ public class Ide extends NodeImplBase {
 
   private boolean isBoundMethodCandidate(final AstNode exprParent, final Expr parentExpr) {
     return exprParent instanceof ParenthesizedExpr ||
-        exprParent instanceof CommaSeparatedList ||
-        exprParent instanceof Initializer ||
-        exprParent instanceof AsExpr ||
-        exprParent.getClass().equals(BinaryOpExpr.class) ||
-        exprParent instanceof ObjectField ||
-        exprParent instanceof ReturnStatement ||
-        (exprParent instanceof AssignmentOpExpr && ((AssignmentOpExpr) exprParent).getArg2() == parentExpr);
+            exprParent instanceof CommaSeparatedList ||
+            exprParent instanceof Initializer ||
+            exprParent instanceof AsExpr ||
+            exprParent.getClass().equals(BinaryOpExpr.class) ||
+            exprParent instanceof ObjectField ||
+            exprParent instanceof ReturnStatement ||
+            (exprParent instanceof AssignmentOpExpr && ((AssignmentOpExpr) exprParent).getArg2() == parentExpr);
   }
 
   public void generateCodeAsExpr(final JsWriter out) throws IOException {
@@ -391,8 +394,8 @@ public class Ide extends NodeImplBase {
 
   private boolean usePrivateMemberName(IdeDeclaration memberDeclaration) {
     return isQualifiedBySuper()
-      && scope.getClassDeclaration().getMemberDeclaration(getName()) != null
-      || memberDeclaration.isPrivate();
+            && scope.getClassDeclaration().getMemberDeclaration(getName()) != null
+            || memberDeclaration.isPrivate();
   }
 
   public static IdeDeclaration resolveMember(final IdeDeclaration type, final Ide memberIde) {
@@ -433,8 +436,12 @@ public class Ide extends NodeImplBase {
 
   @Override
   public boolean equals(final Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     final Ide ide1 = (Ide) o;
 

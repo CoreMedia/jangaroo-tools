@@ -44,8 +44,8 @@ public class FileInputSource extends DirectoryInputSource {
   public String getRelativePath() {
     try {
       return sourceDir == null ? file.getCanonicalPath() :
-        sourceDir.equals(file) ? "" :
-        file.getCanonicalPath().substring(sourceDir.getCanonicalPath().length() + 1);
+              sourceDir.equals(file) ? "" :
+                      file.getCanonicalPath().substring(sourceDir.getCanonicalPath().length() + 1);
     } catch (IOException e) {
       return null;
     }
@@ -97,8 +97,8 @@ public class FileInputSource extends DirectoryInputSource {
   public FileInputSource getChild(final String path) {
     File sourceFile = new File(file, path);
     return sourceFile.exists()
-      ? new FileInputSource(sourceDir, sourceFile)
-      : null;
+            ? new FileInputSource(sourceDir, sourceFile)
+            : null;
   }
 
 }

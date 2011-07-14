@@ -103,8 +103,9 @@ public class DeclarationScope extends ScopeImplBase implements Scope {
   private boolean isImportAlreadyAdded(final List<ImportDirective> directiveList, final ImportDirective importDirective) {
     final String qname = importDirective.getQualifiedName();
     for (ImportDirective directive : directiveList) {
-      if (directive.getQualifiedName().equals(qname))
+      if (directive.getQualifiedName().equals(qname)) {
         return true;
+      }
     }
     return false;
   }
@@ -124,8 +125,9 @@ public class DeclarationScope extends ScopeImplBase implements Scope {
     IdeDeclaration decl = null;
     if (ide instanceof QualifiedIde) {
       String qname = ide.getQualifiedNameStr();
-      if (importsByQualifiedName.containsKey(qname))
+      if (importsByQualifiedName.containsKey(qname)) {
         return resolveImport(importsByQualifiedName.get(qname));
+      }
       if (ide.isQualifiedByThis()) {
         return getClassDeclaration().resolvePropertyDeclaration(ide.getName());
       }
@@ -163,10 +165,11 @@ public class DeclarationScope extends ScopeImplBase implements Scope {
     StringBuffer msg = new StringBuffer();
     msg.append("Can not resolve a multiname reference unambiguously: ");
     for (ImportDirective importDirective : importsOfThisIde) {
-      if (!isFirst)
+      if (!isFirst) {
         msg.append(" and ");
+      }
       isFirst = false;
-     msg.append(importDirective.getQualifiedName());
+      msg.append(importDirective.getQualifiedName());
       JooSymbol importedIdeSymbol = resolveImport(importDirective).getSymbol();
       msg.append("(").append(importedIdeSymbol.getFileName()).append(":").append(importedIdeSymbol.getLine()).append(",").append(importedIdeSymbol.getColumn());
     }

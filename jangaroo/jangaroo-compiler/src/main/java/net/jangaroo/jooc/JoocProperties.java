@@ -6,7 +6,7 @@ public class JoocProperties {
   private static final String COMPILER_VERSION_KEY = "jooc.compiler.version";
   private static final String RUNTIME_VERSION_KEY = "jooc.runtime.version";
 
-  private static ResourceBundle joocProperties = ResourceBundle.getBundle ("net.jangaroo.jooc.jooc");
+  private static ResourceBundle joocProperties = ResourceBundle.getBundle("net.jangaroo.jooc.jooc");
 
   public static String getVersion() {
     return joocProperties.getString(COMPILER_VERSION_KEY);

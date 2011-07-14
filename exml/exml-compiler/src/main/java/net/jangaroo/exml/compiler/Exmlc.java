@@ -40,18 +40,6 @@ public class Exmlc {
     exmlComponentClassGenerator = new ExmlComponentClassGenerator(config);
   }
 
-  public ExmlToConfigClassParser getExmlToConfigClassParser() {
-    return exmlToConfigClassParser;
-  }
-
-  public ExmlConfigClassGenerator getExmlConfigClassGenerator() {
-    return exmlConfigClassGenerator;
-  }
-
-  public ExmlToModelParser getExmlToModelParser() {
-    return exmlToModelParser;
-  }
-
   public ExmlComponentClassGenerator getExmlComponentClassGenerator() {
     return exmlComponentClassGenerator;
   }

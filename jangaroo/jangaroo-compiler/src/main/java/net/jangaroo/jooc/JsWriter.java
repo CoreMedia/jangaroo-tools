@@ -271,8 +271,8 @@ public final class JsWriter extends FilterWriter {
     if (shouldWrite()) {
       char firstSymbolChar = token.charAt(0);
       if ((isIdeChar(lastChar) && isIdeChar(firstSymbolChar)) ||
-          (lastChar == firstSymbolChar && "=><!&|+-*/&|^%".indexOf(lastChar) >= 0) ||
-          (firstSymbolChar == '=' && "=><!&|+-*/&|^%".indexOf(lastChar) >= 0)) {
+              (lastChar == firstSymbolChar && "=><!&|+-*/&|^%".indexOf(lastChar) >= 0) ||
+              (firstSymbolChar == '=' && "=><!&|+-*/&|^%".indexOf(lastChar) >= 0)) {
         write(' ');
       }
       checkOpenString();

@@ -1,15 +1,15 @@
 /*
  * Copyright 2008 CoreMedia AG
- * 
- * Licensed under the Apache License, Version 2.0 (the "License"); 
- * you may not use this file except in compliance with the License. 
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0 
- * 
- * Unless required by applicable law or agreed to in writing, 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an "AS
- * IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
- * express or implied. See the License for the specific language 
+ * IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
 
@@ -28,13 +28,12 @@ public class NewExpr extends Expr {
 
   private JooSymbol symNew;
   private Expr applyConstructor;
-  private ParenthesizedExpr<CommaSeparatedList<Expr>> args;
 
   public NewExpr(JooSymbol symNew, Expr applyConstructor) {
     this.symNew = symNew;
     this.applyConstructor = applyConstructor;
     if (applyConstructor instanceof ApplyExpr) {
-      ((ApplyExpr)applyConstructor).setInsideNewExpr(true);
+      ((ApplyExpr) applyConstructor).setInsideNewExpr(true);
     }
   }
 
@@ -46,15 +45,11 @@ public class NewExpr extends Expr {
   @Override
   public void scope(final Scope scope) {
     getApplyConstructor().scope(scope);
-    if (getArgs() != null)
-      getArgs().scope(scope);
   }
 
   public void analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     getApplyConstructor().analyze(this, context);
-    if (getArgs() != null)
-      getArgs().analyze(this, context);
   }
 
   public JooSymbol getSymbol() {
@@ -69,11 +64,4 @@ public class NewExpr extends Expr {
     return applyConstructor;
   }
 
-  public ParenthesizedExpr<CommaSeparatedList<Expr>> getArgs() {
-    return args;
-  }
-
-  public void setArgs(ParenthesizedExpr<CommaSeparatedList<Expr>> args) {
-    this.args = args;
-  }
 }

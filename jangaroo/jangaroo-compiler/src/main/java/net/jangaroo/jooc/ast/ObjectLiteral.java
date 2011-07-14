@@ -32,7 +32,10 @@ public class ObjectLiteral extends Expr {
   private JooSymbol rBrace;
 
   /**
+   * @param lBrace the left brace
+   * @param fields the object fields
    * @param optComma null for the time being, Flex compc does not accept a trailing comma, contrary to array literals...
+   * @param rBrace the right brace
    */
   public ObjectLiteral(JooSymbol lBrace, CommaSeparatedList<ObjectField> fields, JooSymbol optComma, JooSymbol rBrace) {
     this.lBrace = lBrace;
@@ -40,7 +43,7 @@ public class ObjectLiteral extends Expr {
     this.optComma = optComma;
     this.rBrace = rBrace;
   }
- 
+
   @Override
   public void visit(AstVisitor visitor) throws IOException {
     visitor.visitObjectLiteral(this);
@@ -55,8 +58,9 @@ public class ObjectLiteral extends Expr {
 
   public void analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
-    if (getFields() != null)
+    if (getFields() != null) {
       getFields().analyze(this, context);
+    }
   }
 
   public JooSymbol getSymbol() {

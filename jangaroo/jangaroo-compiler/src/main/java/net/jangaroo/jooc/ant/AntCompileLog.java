@@ -1,8 +1,6 @@
 package net.jangaroo.jooc.ant;
 
 import net.jangaroo.jooc.AbstractCompileLog;
-import net.jangaroo.jooc.CompileLog;
-import net.jangaroo.jooc.StdOutCompileLog;
 import org.apache.tools.ant.Project;
 
 public class AntCompileLog extends AbstractCompileLog {

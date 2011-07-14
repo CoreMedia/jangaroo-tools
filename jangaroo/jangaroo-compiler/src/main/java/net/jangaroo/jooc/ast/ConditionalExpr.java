@@ -60,7 +60,7 @@ public class ConditionalExpr extends Expr {
   }
 
   public JooSymbol getSymbol() {
-     return getCond().getSymbol();
+    return getCond().getSymbol();
   }
 
   public boolean isCompileTimeConstant() {

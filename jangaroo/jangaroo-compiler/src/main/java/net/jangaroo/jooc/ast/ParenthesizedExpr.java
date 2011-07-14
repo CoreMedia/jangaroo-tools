@@ -43,15 +43,16 @@ public class ParenthesizedExpr<E extends Expr> extends Expr {
 
   @Override
   public void scope(final Scope scope) {
-    if (getExpr() !=null) {
+    if (getExpr() != null) {
       getExpr().scope(scope);
     }
   }
 
   public void analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
-    if (getExpr() !=null)
+    if (getExpr() != null) {
       getExpr().analyze(this, context);
+    }
   }
 
   public JooSymbol getSymbol() {

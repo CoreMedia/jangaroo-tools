@@ -36,7 +36,8 @@ public class ContinueStatement extends LabelRefStatement {
 
   @Override
   protected void checkValidLabeledStatement(final LabeledStatement labelDeclaration) {
-    if (!(labelDeclaration.getStatement() instanceof LoopStatement))
+    if (!(labelDeclaration.getStatement() instanceof LoopStatement)) {
       throw Jooc.error(this, "label '" + getOptLabel().getName() + "' does not reference a loop statement");
+    }
   }
 }

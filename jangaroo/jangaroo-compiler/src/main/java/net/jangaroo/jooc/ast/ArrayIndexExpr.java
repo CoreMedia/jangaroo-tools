@@ -28,11 +28,11 @@ import java.io.IOException;
 public class ArrayIndexExpr extends Expr {
 
   private Expr array;
-  private ParenthesizedExpr indexExpr;
+  private ParenthesizedExpr<Expr> indexExpr;
 
   public ArrayIndexExpr(Expr array, JooSymbol lBrac, Expr index, JooSymbol rBrac) {
     this.array = array;
-    this.indexExpr = new ParenthesizedExpr(lBrac, index, rBrac);
+    this.indexExpr = new ParenthesizedExpr<Expr>(lBrac, index, rBrac);
   }
 
   @Override
@@ -54,7 +54,7 @@ public class ArrayIndexExpr extends Expr {
     return array;
   }
 
-  public ParenthesizedExpr getIndexExpr() {
+  public ParenthesizedExpr<Expr> getIndexExpr() {
     return indexExpr;
   }
 

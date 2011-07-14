@@ -75,8 +75,9 @@ public class QualifiedIde extends Ide {
   public static String constructQualifiedNameStr(String[] qualifiedName, String separator) {
     StringBuilder sb = new StringBuilder();
     for (int i = 0; i < qualifiedName.length; i++) {
-      if (i > 0)
+      if (i > 0) {
         sb.append(separator);
+      }
       sb.append(qualifiedName[i]);
     }
     return sb.toString();
@@ -89,10 +90,7 @@ public class QualifiedIde extends Ide {
 
   @Override
   public boolean addExternalUsage() {
-    if (qualifier.addExternalUsage()) {
-      return true;
-    }
-    return super.addExternalUsage();
+    return qualifier.addExternalUsage() || super.addExternalUsage();
   }
 
   @Override
@@ -140,8 +138,8 @@ public class QualifiedIde extends Ide {
   public IdeDeclaration resolveDeclaration() {
     IdeDeclaration result = super.resolveDeclaration();
     return result == null
-      ? resolveQualifiedIdeDeclaration()
-      : result;
+            ? resolveQualifiedIdeDeclaration()
+            : result;
   }
 
   @Override
@@ -152,8 +150,8 @@ public class QualifiedIde extends Ide {
   private IdeDeclaration resolveQualifiedIdeDeclaration() {
     IdeDeclaration prefixDeclaration = getQualifier().resolveDeclaration();
     return prefixDeclaration != null
-      ? prefixDeclaration.resolvePropertyDeclaration(this.getName())
-      : null;
+            ? prefixDeclaration.resolvePropertyDeclaration(this.getName())
+            : null;
   }
 
   @Override
@@ -165,8 +163,8 @@ public class QualifiedIde extends Ide {
       qualifierDeclaration = qualifierDeclaration.getClassDeclaration();
     }
     if (qualifierDeclaration != null && qualifierDeclaration.equals(getScope().getClassDeclaration())) {
-      memberDeclaration  = ((ClassDeclaration)qualifierDeclaration).getStaticMemberDeclaration(this.getName());
-      commentOutQualifierCode = memberDeclaration  != null && memberDeclaration.isPrivateStatic();
+      memberDeclaration = ((ClassDeclaration) qualifierDeclaration).getStaticMemberDeclaration(this.getName());
+      commentOutQualifierCode = memberDeclaration != null && memberDeclaration.isPrivateStatic();
     }
     if (memberDeclaration == null) {
       final IdeDeclaration type = qualifier.resolveDeclaration();
@@ -189,15 +187,19 @@ public class QualifiedIde extends Ide {
 
   @Override
   public boolean equals(final Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-    if (!super.equals(o)) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    if (!super.equals(o)) {
+      return false;
+    }
 
     final QualifiedIde that = (QualifiedIde) o;
 
-    if (qualifier != null ? !qualifier.equals(that.qualifier) : that.qualifier != null) return false;
-
-    return true;
+    return qualifier == null ? that.qualifier == null : qualifier.equals(that.qualifier);
   }
 
   @Override

@@ -39,6 +39,7 @@ public abstract class SubstitutingWriter extends java.io.FilterWriter {
    * What should be printed instead of character <code>c</code>?
    * This method is always called synchronized on <code>out</code>.
    * Changes to the substitution function should therefore also be synchronized on <code>out</code>.
+   *
    * @return the string to be printed, or null for "no change", i.e. just <code>c</code>
    */
   protected abstract String substitute(char c);
@@ -50,16 +51,16 @@ public abstract class SubstitutingWriter extends java.io.FilterWriter {
   /**
    * Write a single character, applying the substitution.
    *
-   * @exception  java.io.IOException  If an I/O error occurs
+   * @throws java.io.IOException If an I/O error occurs
    */
   public void write(int c) throws IOException {
-    synchronized(out) {
+    synchronized (out) {
       char ch = (char) c;
       String replacement = substitute(ch);
       if (replacement == null) {
-	out.write(c);
+        out.write(c);
       } else {
-	writeReplacement(replacement);
+        writeReplacement(replacement);
       }
     }
   }
@@ -67,28 +68,27 @@ public abstract class SubstitutingWriter extends java.io.FilterWriter {
   /**
    * Write a portion of an array of characters, applying the substitution.
    *
-   * @param  cbuf  Buffer of characters to be written
-   * @param  off   Offset from which to start reading characters
-   * @param  len   Number of characters to be written
-   *
-   * @exception  java.io.IOException  If an I/O error occurs
+   * @param cbuf Buffer of characters to be written
+   * @param off  Offset from which to start reading characters
+   * @param len  Number of characters to be written
+   * @throws java.io.IOException If an I/O error occurs
    */
   public void write(char cbuf[], int off, int len) throws IOException {
-    synchronized(out) {
+    synchronized (out) {
       int nextToWrite = off;
-      int guard = off+len;
-      for( ; off < guard; ++off) {
-	String replacement = substitute(cbuf[off]);
-	if(replacement != null) {
-	  if (nextToWrite < off) {
-	    out.write(cbuf, nextToWrite, off-nextToWrite);
-	  }
-	  writeReplacement(replacement);
-	  nextToWrite = off+1;
-	}
+      int guard = off + len;
+      for (; off < guard; ++off) {
+        String replacement = substitute(cbuf[off]);
+        if (replacement != null) {
+          if (nextToWrite < off) {
+            out.write(cbuf, nextToWrite, off - nextToWrite);
+          }
+          writeReplacement(replacement);
+          nextToWrite = off + 1;
+        }
       }
       if (nextToWrite < off) {
-	out.write(cbuf, nextToWrite, off-nextToWrite);
+        out.write(cbuf, nextToWrite, off - nextToWrite);
       }
     }
   }
@@ -96,28 +96,27 @@ public abstract class SubstitutingWriter extends java.io.FilterWriter {
   /**
    * Write a portion of a string, applying the substitution.
    *
-   * @param  str  String to be written
-   * @param  off  Offset from which to start reading characters
-   * @param  len  Number of characters to be written
-   *
-   * @exception  java.io.IOException  If an I/O error occurs
+   * @param str String to be written
+   * @param off Offset from which to start reading characters
+   * @param len Number of characters to be written
+   * @throws java.io.IOException If an I/O error occurs
    */
   public void write(String str, int off, int len) throws IOException {
-    synchronized(out) {
+    synchronized (out) {
       int nextToWrite = off;
-      int guard = off+len;
-      for( ; off < guard; ++off) {
-	String replacement = substitute(str.charAt(off));
-	if(replacement != null) {
-	  if (nextToWrite < off) {
-	    out.write(str, nextToWrite, off-nextToWrite);
-	  }
-	  writeReplacement(replacement);
-	  nextToWrite = off+1;
-	}
+      int guard = off + len;
+      for (; off < guard; ++off) {
+        String replacement = substitute(str.charAt(off));
+        if (replacement != null) {
+          if (nextToWrite < off) {
+            out.write(str, nextToWrite, off - nextToWrite);
+          }
+          writeReplacement(replacement);
+          nextToWrite = off + 1;
+        }
       }
       if (nextToWrite < off) {
-	out.write(str, nextToWrite, off-nextToWrite);
+        out.write(str, nextToWrite, off - nextToWrite);
       }
     }
   }

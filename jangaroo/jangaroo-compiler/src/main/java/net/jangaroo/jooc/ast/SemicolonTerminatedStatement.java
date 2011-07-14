@@ -34,6 +34,7 @@ public class SemicolonTerminatedStatement extends Statement {
 
   /**
    * Empty statement.
+   * @param optSymSemicolon the semicolon symbol
    */
   public SemicolonTerminatedStatement(JooSymbol optSymSemicolon) {
     this(null, optSymSemicolon);
@@ -41,6 +42,8 @@ public class SemicolonTerminatedStatement extends Statement {
 
   /**
    * Optional statement with optional semicolon, but at least one must be specified (non-null).
+   * @param optStatement the statement
+   * @param optSymSemicolon the semicolon symbol
    */
   public SemicolonTerminatedStatement(AstNode optStatement, JooSymbol optSymSemicolon) {
     Debug.assertTrue(optStatement != null || optSymSemicolon != null, "Both statement and semicolon not specified in SemicolonTerminatedStatement.");
@@ -63,7 +66,7 @@ public class SemicolonTerminatedStatement extends Statement {
 
   public void analyze(AstNode parentNode, AnalyzeContext context) {
     // check for special case "assert statement":
-    if (getOptStatement() instanceof ApplyExpr && getOptSymSemicolon() !=null) {
+    if (getOptStatement() instanceof ApplyExpr && getOptSymSemicolon() != null) {
       ApplyExpr applyExpr = (ApplyExpr) getOptStatement();
       JooSymbol funSymbol = applyExpr.getFun().getSymbol();
       String functionName = funSymbol.getText();
@@ -72,13 +75,13 @@ public class SemicolonTerminatedStatement extends Statement {
       }
     }
     super.analyze(parentNode, context);
-    if (getOptStatement() !=null) {
+    if (getOptStatement() != null) {
       getOptStatement().analyze(this, context);
     }
   }
 
   public JooSymbol getSymbol() {
-     return getOptSymSemicolon() ==null ? getOptStatement().getSymbol() : getOptSymSemicolon();
+    return getOptSymSemicolon() == null ? getOptStatement().getSymbol() : getOptSymSemicolon();
   }
 
   public AstNode getOptStatement() {

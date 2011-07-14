@@ -15,8 +15,8 @@
 
 package net.jangaroo.jooc.ast;
 
-import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.AnalyzeContext;
+import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.input.InputSource;
@@ -46,7 +46,7 @@ public class CompilationUnit extends NodeImplBase {
     this.lBrace = lBrace;
     this.primaryDeclaration = primaryDeclaration;
     if (primaryDeclaration instanceof ClassDeclaration) {
-      ((ClassDeclaration)primaryDeclaration).setSecondaryDeclarations(secondaryDeclarations);
+      ((ClassDeclaration) primaryDeclaration).setSecondaryDeclarations(secondaryDeclarations);
     }
     this.rBrace = rBrace;
   }
@@ -65,7 +65,7 @@ public class CompilationUnit extends NodeImplBase {
 
         Ide packageIde = packageDeclaration.getIde();
         if (primaryDeclaration instanceof ClassDeclaration) {
-          ((ClassDeclaration)primaryDeclaration).scopeDirectives(scope, packageIde);
+          ((ClassDeclaration) primaryDeclaration).scopeDirectives(scope, packageIde);
         }
         packageDeclaration.scope(scope);
         withNewDeclarationScope(packageDeclaration, scope, new Scoped() {
@@ -141,13 +141,14 @@ public class CompilationUnit extends NodeImplBase {
 
   /**
    * Add a dependency to a resource at the given path, which is relative to this compilation unit's file.
+   *
    * @param relativePath relative path of the dependency
    * @return the path relative to the source directory
    */
   public String addResourceDependency(String relativePath) {
     String path = relativePath.startsWith("/") || relativePath.startsWith("\\")
-      ? relativePath
-      : new File(source.getParent().getRelativePath(), relativePath).getPath().replace('\\', '/');
+            ? relativePath
+            : new File(source.getParent().getRelativePath(), relativePath).getPath().replace('\\', '/');
     if (path.startsWith("/")) {
       path = path.substring(1);
     }

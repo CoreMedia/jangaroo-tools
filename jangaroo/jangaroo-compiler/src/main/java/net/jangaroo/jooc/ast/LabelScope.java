@@ -12,15 +12,11 @@ public class LabelScope extends ScopeImplBase {
     this.statement = statement;
   }
 
-  public Statement getStatement() {
-    return statement;
-  }
-
   @Override
   public LabeledStatement lookupLabel(Ide ide) {
     if (statement instanceof LabeledStatement) {
-     LabeledStatement ls = (LabeledStatement) statement;
-     if (ls.getIde().getName().equals(ide.getName())) {
+      LabeledStatement ls = (LabeledStatement) statement;
+      if (ls.getIde().getName().equals(ide.getName())) {
         return ls;
       }
     }
@@ -30,22 +26,27 @@ public class LabelScope extends ScopeImplBase {
   @Override
   public LoopStatement getCurrentLoop() {
     Statement s = statement;
-    if (s instanceof LabeledStatement)
+    if (s instanceof LabeledStatement) {
       s = ((LabeledStatement) s).getStatement();
-    if (s instanceof LoopStatement)
+    }
+    if (s instanceof LoopStatement) {
       return (LoopStatement) s;
+    }
     return super.getCurrentLoop();
   }
 
   @Override
   public Statement getCurrentLoopOrSwitch() {
     Statement s = statement;
-    if (s instanceof LabeledStatement)
+    if (s instanceof LabeledStatement) {
       s = ((LabeledStatement) s).getStatement();
-    if (s instanceof LoopStatement)
-      return (LoopStatement) s;
-    if (s instanceof SwitchStatement)
-      return (SwitchStatement) s;
+    }
+    if (s instanceof LoopStatement) {
+      return s;
+    }
+    if (s instanceof SwitchStatement) {
+      return s;
+    }
     return super.getCurrentLoopOrSwitch();
   }
 

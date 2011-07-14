@@ -7,10 +7,8 @@ import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import net.jangaroo.exml.config.ExmlConfiguration;
 import net.jangaroo.exml.model.ConfigClass;
-import net.jangaroo.exml.parser.ExmlToConfigClassParser;
 import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.utils.CompilerUtils;
-import net.jangaroo.utils.log.Log;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -34,7 +32,7 @@ public final class ExmlConfigClassGenerator {
     // Maybe even the directory does not exist.
     File targetPackageFolder = result.getAbsoluteFile().getParentFile();
     if(!targetPackageFolder.exists()) {
-      targetPackageFolder.mkdirs();
+      targetPackageFolder.mkdirs(); // nosonar
     }
 
     Writer writer = null;

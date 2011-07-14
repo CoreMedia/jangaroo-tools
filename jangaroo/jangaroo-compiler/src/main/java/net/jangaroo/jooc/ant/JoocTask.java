@@ -33,7 +33,7 @@ import java.util.Vector;
 public class JoocTask extends MatchingTask {
 
   private static final String FAIL_MSG
-      = "Compile failed; see the compiler error output for details.";
+          = "Compile failed; see the compiler error output for details.";
 
   private Path src;
   private String classpath;
@@ -89,6 +89,8 @@ public class JoocTask extends MatchingTask {
 
   /**
    * Set the source directories to find the source joo files.
+   *
+   * @param srcDir the source directories
    */
   public void setSrcdir(Path srcDir) {
     if (src == null) {
@@ -100,6 +102,8 @@ public class JoocTask extends MatchingTask {
 
   /**
    * Get the source dirs to find the source java files.
+   *
+   * @return the source directories
    */
   public Path getSrcdir() {
     return src;
@@ -107,14 +111,17 @@ public class JoocTask extends MatchingTask {
 
   /**
    * Set the classpath to find the joo library files.
+   *
+   * @param classpath the classpath
    */
-
   public void setClasspath(final String classpath) {
     this.classpath = classpath;
   }
 
   /**
    * Get the classpath to find joo library files.
+   *
+   * @return the classpath
    */
   public String getClasspath() {
     return classpath;
@@ -123,6 +130,8 @@ public class JoocTask extends MatchingTask {
   /**
    * Set the destination directory into which the Java source
    * files should be compiled.
+   *
+   * @param destDir the destination directory
    */
   public void setDestdir(File destDir) {
     this.destDir = destDir;
@@ -131,6 +140,8 @@ public class JoocTask extends MatchingTask {
   /**
    * Get the destination directory into which the java source files
    * should be compiled.
+   *
+   * @return the destination directory
    */
   public File getDestdir() {
     return destDir;
@@ -139,6 +150,8 @@ public class JoocTask extends MatchingTask {
   /**
    * Indicates whether the build will continue
    * even if there are compilation errors; defaults to true.
+   *
+   * @param fail whether to fail on errors
    */
   public void setFailonerror(boolean fail) {
     failOnError = fail;
@@ -146,6 +159,8 @@ public class JoocTask extends MatchingTask {
 
   /**
    * Gets the failonerror flag.
+   *
+   * @return whether to fail on errors
    */
   public boolean getFailonerror() {
     return failOnError;
@@ -153,6 +168,8 @@ public class JoocTask extends MatchingTask {
 
   /**
    * Gets the allowduplicatelocalvariables flag.
+   *
+   * @return the allowduplicatelocalvariables flag
    */
   public boolean isAllowduplicatelocalvariables() {
     return allowduplicatelocalvariables;
@@ -160,6 +177,8 @@ public class JoocTask extends MatchingTask {
 
   /**
    * Sets the allowduplicatelocalvariables flag.
+   *
+   * @param allowduplicatelocalvariables the allowduplicatelocalvariables flag
    */
   public void setAllowduplicatelocalvariables(final boolean allowduplicatelocalvariables) {
     this.allowduplicatelocalvariables = allowduplicatelocalvariables;
@@ -168,6 +187,8 @@ public class JoocTask extends MatchingTask {
   /**
    * Indicates whether source should be compiled
    * with debug information; defaults to off.
+   *
+   * @param debug enable/disable debug
    */
   public void setDebug(boolean debug) {
     this.debug = debug;
@@ -175,6 +196,8 @@ public class JoocTask extends MatchingTask {
 
   /**
    * Gets the debug flag.
+   *
+   * @return the debug flag
    */
   public boolean getDebug() {
     return debug;
@@ -224,8 +247,8 @@ public class JoocTask extends MatchingTask {
       File srcDir = getProject().resolveFile(aList);
       if (!srcDir.exists()) {
         throw new BuildException("srcdir \""
-            + srcDir.getPath()
-            + "\" does not exist!", getLocation());
+                + srcDir.getPath()
+                + "\" does not exist!", getLocation());
       }
       if (!sourcepath.isEmpty()) {
         sourcepath += File.pathSeparator;
@@ -248,6 +271,10 @@ public class JoocTask extends MatchingTask {
   /**
    * Scans the directory looking for source files to be compiled.
    * The results are returned in the class variable compileList
+   *
+   * @param srcDir  the source directory
+   * @param destDir the destination directory
+   * @param files   the files to scan
    */
   protected void scanDir(File srcDir, File destDir, String[] files) {
     GlobPatternMapper m = new GlobPatternMapper();
@@ -258,17 +285,19 @@ public class JoocTask extends MatchingTask {
 
     if (newFiles.length > 0) {
       File[] newCompileList = new File[compileList.length +
-          newFiles.length];
+              newFiles.length];
       System.arraycopy(compileList, 0, newCompileList, 0,
-          compileList.length);
+              compileList.length);
       System.arraycopy(newFiles, 0, newCompileList,
-          compileList.length, newFiles.length);
+              compileList.length, newFiles.length);
       compileList = newCompileList;
     }
   }
 
   /**
    * Gets the list of files to be compiled.
+   *
+   * @return the list of files to be compiled
    */
   public File[] getFileList() {
     return compileList;
@@ -278,23 +307,25 @@ public class JoocTask extends MatchingTask {
    * Check that all required attributes have been set and nothing
    * silly has been entered.
    *
+   * @throws org.apache.tools.ant.BuildException
+   *          when a build error occurred
    * @since Ant 1.5
    */
   protected void checkParameters() throws BuildException {
     if (src == null) {
       throw new BuildException("srcdir attribute must be set!",
-          getLocation());
+              getLocation());
     }
     if (src.size() == 0) {
       throw new BuildException("srcdir attribute must be set!",
-          getLocation());
+              getLocation());
     }
 
     if (destDir != null && !destDir.isDirectory()) {
       throw new BuildException("destination directory \""
-          + destDir
-          + "\" does not exist "
-          + "or is not a directory", getLocation());
+              + destDir
+              + "\" does not exist "
+              + "or is not a directory", getLocation());
     }
   }
 
@@ -306,14 +337,14 @@ public class JoocTask extends MatchingTask {
   protected void compile() {
     if (compileList.length > 0) {
       log("Compiling " + compileList.length +
-          " joo source file"
-          + (compileList.length == 1 ? "" : "s")
-          + (destDir != null ? " to " + destDir : ""));
+              " joo source file"
+              + (compileList.length == 1 ? "" : "s")
+              + (destDir != null ? " to " + destDir : ""));
 
       String[] joocArgs = getJoocArgs();
       log("configured AntCompileLog");
       if (verbose) {
-        StringBuffer cmdLine = new StringBuffer(100);
+        StringBuilder cmdLine = new StringBuilder(100);
         cmdLine.append("jooc ");
         for (String joocArg : joocArgs) {
           cmdLine.append(" ");

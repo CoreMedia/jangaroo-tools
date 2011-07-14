@@ -30,11 +30,11 @@ public class JooSymbol extends java_cup.runtime.Symbol {
   private boolean semicolonInsertedBefore;
 
   public JooSymbol(String text) {
-    this(net.jangaroo.jooc.sym.IDE,  text);
+    this(net.jangaroo.jooc.sym.IDE, text);
   }
 
   public JooSymbol(int sym, String text) {
-    this(sym,  "", -1, -1, "", text);
+    this(sym, "", -1, -1, "", text);
   }
 
   public JooSymbol(int sym, String fileName, int line, int column, String whitespace, String text) {
@@ -53,7 +53,7 @@ public class JooSymbol extends java_cup.runtime.Symbol {
   }
 
   public String toString() {
-    return "line "+line+", column "+column+": '" + whitespace + "', '" + text + "'" + " file " + fileName;
+    return "line " + line + ", column " + column + ": '" + whitespace + "', '" + text + "'" + " file " + fileName;
   }
 
   public String getText() {

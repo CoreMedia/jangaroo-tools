@@ -266,7 +266,7 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
       out.writeSymbolWhitespace(assignmentOpExpr.getOp());
       out.writeToken("=");
       // TODO: refactor for a simpler way to switch off white-space temporarily:
-      JoocConfiguration options = (JoocConfiguration)out.getOptions();
+      JoocConfiguration options = (JoocConfiguration) out.getOptions();
       boolean debug = options.isDebug();
       boolean debugLines = options.isDebugLines();
       options.setDebug(false);
@@ -360,19 +360,19 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
         // first pass: generate conditionals and count parameters.
         int cnt = 0;
         StringBuilder code = new StringBuilder();
-        for (Parameters parameters = params; parameters!=null; parameters = parameters.getTail()) {
+        for (Parameters parameters = params; parameters != null; parameters = parameters.getTail()) {
           Parameter param = parameters.getHead();
           if (param.isRest()) {
             break;
           }
           if (param.hasInitializer()) {
-            code.insert(0,"if(arguments.length<"+(cnt+1)+"){");
+            code.insert(0, "if(arguments.length<" + (cnt + 1) + "){");
           }
           ++cnt;
         }
         out.write(code.toString());
         // second pass: generate initializers and rest param code.
-        for (Parameters parameters = params; parameters!=null; parameters = parameters.getTail()) {
+        for (Parameters parameters = params; parameters != null; parameters = parameters.getTail()) {
           Parameter param = parameters.getHead();
           if (param.isRest()) {
             generateRestParamCode(param, cnt);
@@ -389,7 +389,7 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
 
   public void generateRestParamCode(Parameter param, int paramIndex) throws IOException {
     String paramName = param.getName();
-    if (paramName != null && !(paramName.equals("arguments") && paramIndex==0)) {
+    if (paramName != null && !(paramName.equals("arguments") && paramIndex == 0)) {
       out.write("var " + paramName + "=Array.prototype.slice.call(arguments" + (paramIndex == 0 ? "" : "," + paramIndex) + ");");
     }
   }
@@ -457,7 +457,6 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
   public void visitNewExpr(NewExpr newExpr) throws IOException {
     out.writeSymbol(newExpr.getSymNew());
     newExpr.getApplyConstructor().visit(this);
-    visitIfNotNull(newExpr.getArgs());
   }
 
   @Override
@@ -650,12 +649,12 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
     if (forInStatement.getSymEach() != null) {
       // synthesize assigning the correct index to the variable given in the original for each statement:
       ArrayIndexExpr indexExpr = new ArrayIndexExpr(forInStatement.getExpr(), SYM_LBRACK,
-          new CommaSeparatedList<IdeExpr>(new IdeExpr(forInStatement.getAuxIde())),
-          SYM_RBRACK);
+              new CommaSeparatedList<IdeExpr>(new IdeExpr(forInStatement.getAuxIde())),
+              SYM_RBRACK);
       Statement assignment = new SemicolonTerminatedStatement(forInStatement.getDecl() != null
-          ? new VariableDeclaration(SYM_VAR, forInStatement.getDecl().getIde(), forInStatement.getDecl().getOptTypeRelation(), new Initializer(SYM_EQ, indexExpr))
-          : new AssignmentOpExpr(new IdeExpr(forInStatement.getIde()), SYM_EQ, indexExpr),
-          SYM_SEMICOLON);
+              ? new VariableDeclaration(SYM_VAR, forInStatement.getDecl().getIde(), forInStatement.getDecl().getOptTypeRelation(), new Initializer(SYM_EQ, indexExpr))
+              : new AssignmentOpExpr(new IdeExpr(forInStatement.getIde()), SYM_EQ, indexExpr),
+              SYM_SEMICOLON);
       // inject synthesized statement into loop body:
       // todo: maybe we should correct the AST earlier, not during code generation?
       if (forInStatement.getBody() instanceof BlockStatement) {
@@ -1088,7 +1087,7 @@ public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
   private void generateSuperConstructorCallCode(ClassDeclaration classDeclaration, ParenthesizedExpr<CommaSeparatedList<Expr>> args) throws IOException {
     String superClassQName = classDeclaration.getSuperTypeDeclaration().getQualifiedNameStr();
     if ("Error".equals(superClassQName)) {
-  // built-in Error constructor called as function unfortunately always creates a new Error object, so we have to use emulation provided by Jangaroo Runtime:
+      // built-in Error constructor called as function unfortunately always creates a new Error object, so we have to use emulation provided by Jangaroo Runtime:
       superClassQName = "joo.Error";
     }
     out.writeToken(superClassQName + ".call");

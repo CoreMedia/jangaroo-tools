@@ -34,6 +34,6 @@ public class PostfixOpExpr extends UnaryOpExpr {
   }
 
   public JooSymbol getSymbol() {
-     return getArg().getSymbol();
+    return getArg().getSymbol();
   }
 }

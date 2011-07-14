@@ -34,7 +34,7 @@ public class NamespacedDeclaration extends IdeDeclaration {
                                Ide ide,
                                Initializer optInitializer,
                                JooSymbol optSymSemicolon) {
-    super(modifiers,ide);
+    super(modifiers, ide);
     assert SyntacticKeywords.NAMESPACE.equals(symNamespace.getText());
     this.symNamespace = symNamespace;
     this.optInitializer = optInitializer;

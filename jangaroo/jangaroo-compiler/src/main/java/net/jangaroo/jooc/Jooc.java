@@ -125,8 +125,8 @@ public class Jooc extends JangarooParser {
                           boolean verbose) throws CompilerError {
     File sourceFile = ((FileInputSource) compilationUnit.getSource()).getFile();
     CompilationUnitSink sink = writerFactory.createSink(
-      compilationUnit.getPackageDeclaration(), compilationUnit.getPrimaryDeclaration(),
-      sourceFile, verbose);
+            compilationUnit.getPackageDeclaration(), compilationUnit.getPrimaryDeclaration(),
+            sourceFile, verbose);
 
     sink.writeOutput(compilationUnit);
   }
@@ -136,7 +136,7 @@ public class Jooc extends JangarooParser {
 
     if (!generateActionScriptApi && config.isMergeOutput()) {
       codeSinkFactory = new MergedOutputCompilationUnitSinkFactory(
-        config, config.getOutputFile()
+              config, config.getOutputFile()
       );
     } else {
       File outputDirectory = generateActionScriptApi ? config.getApiOutputDirectory() : config.getOutputDirectory();

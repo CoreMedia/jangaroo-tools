@@ -26,8 +26,11 @@ public class MergedOutputCompilationUnitSinkFactory extends AbstractCompilationU
 
     createOutputDirs(outputFile);
 
-    if (outputFile.exists())
-      outputFile.delete();
+    if (outputFile.exists()) {
+      if(!outputFile.delete()) {
+        throw Jooc.error("error deleting file: '" + outputFile.getAbsolutePath() + "'");
+      }
+    }
 
     sink = new CompilationUnitSink() {
 
@@ -43,7 +46,8 @@ public class MergedOutputCompilationUnitSinkFactory extends AbstractCompilationU
               out.close();
             }
           } catch (IOException e) {
-            outputFile.delete();
+            //noinspection ResultOfMethodCallIgnored
+            outputFile.delete(); // nosonar
             throw Jooc.error("error writing file: '" + outputFile.getAbsolutePath() + "'", e);
           }
         } catch (IOException e) {
@@ -57,8 +61,9 @@ public class MergedOutputCompilationUnitSinkFactory extends AbstractCompilationU
   public CompilationUnitSink createSink(PackageDeclaration packageDeclaration,
                                         IdeDeclaration primaryDeclaration, File sourceFile,
                                         final boolean verbose) {
-    if (verbose)
+    if (verbose) {
       System.out.println("writing " + primaryDeclaration.getName() + " to file: '" + outputFile.getAbsolutePath() + "'");
+    }
 
     return sink;
   }

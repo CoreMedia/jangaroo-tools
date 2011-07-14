@@ -108,8 +108,8 @@ public class ZipFileInputSource extends DirectoryInputSource {
       for (String root : rootDirs) {
         String p = root + relativePath;
         if (p2.startsWith(p) &&
-          p2.length() > p.length() &&
-          p2.lastIndexOf('/') == (p.isEmpty() ? -1 : p.length())) {
+                p2.length() > p.length() &&
+                p2.lastIndexOf('/') == (p.isEmpty() ? -1 : p.length())) {
           result.add(entry.getValue());
           break;
         }

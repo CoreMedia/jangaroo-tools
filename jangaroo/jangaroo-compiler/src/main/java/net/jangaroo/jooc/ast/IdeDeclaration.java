@@ -131,9 +131,9 @@ public abstract class IdeDeclaration extends Declaration {
 
   public boolean isPrimaryDeclaration() {
     return getIde() != null &&
-      getIde().getScope() != null &&
-      getIde().getScope().getCompilationUnit() != null &&
-      this == getIde().getScope().getCompilationUnit().getPrimaryDeclaration();
+            getIde().getScope() != null &&
+            getIde().getScope().getCompilationUnit() != null &&
+            this == getIde().getScope().getCompilationUnit().getPrimaryDeclaration();
   }
 
   public void setIde(Ide ide) {

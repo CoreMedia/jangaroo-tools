@@ -49,20 +49,22 @@ public class TryStatement extends KeywordStatement {
     visitor.visitTryStatement(this);
   }
 
-    @Override
+  @Override
   public void scope(final Scope scope) {
     getBlock().scope(scope);
     scope(getCatches(), scope);
-    if (getFinallyBlock() != null)
+    if (getFinallyBlock() != null) {
       getFinallyBlock().scope(scope);
+    }
   }
 
   public void analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     getBlock().analyze(this, context);
     analyze(this, getCatches(), context);
-    if (getFinallyBlock() != null)
+    if (getFinallyBlock() != null) {
       getFinallyBlock().analyze(this, context);
+    }
   }
 
   public BlockStatement getBlock() {

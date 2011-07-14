@@ -38,7 +38,9 @@ public class BlockStatement extends AbstractBlock {
   // TODO: Check when analyzing the super call
   public void checkSuperConstructorCall() {
     for (AstNode o : getDirectives()) {
-      if (o instanceof SuperConstructorCallStatement) return;
+      if (o instanceof SuperConstructorCallStatement) {
+        return;
+      }
     }
     throw Jooc.error(getLBrace(), "super constructor must be called directly in method block");
   }

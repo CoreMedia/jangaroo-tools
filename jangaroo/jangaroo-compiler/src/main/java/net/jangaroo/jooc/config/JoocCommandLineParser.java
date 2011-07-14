@@ -41,42 +41,42 @@ public class JoocCommandLineParser {
 
     Option help = new Option("help", "print this message");
     Option version = OptionBuilder
-        .withDescription("print version information and exit")
-        .create("version");
+            .withDescription("print version information and exit")
+            .create("version");
     Option verboseOption = OptionBuilder.withLongOpt("verbose")
-        .withDescription("be extra verbose")
-        .create("v");
+            .withDescription("be extra verbose")
+            .create("v");
     Option debugOption = OptionBuilder.withDescription("generate debuggable output " +
-          "(possible modes: source, lines, none)")
-        .hasOptionalArgs()
-        .withArgName("mode")
-        .create("g");
+            "(possible modes: source, lines, none)")
+            .hasOptionalArgs()
+            .withArgName("mode")
+            .create("g");
     Option autoSemicolonOption = OptionBuilder.withDescription("automatic semicolon insertion mode, " +
-          "possible modes: error, warn (default), quirk (no warnings)")
-        .hasArg()
-        .create("autosemicolon");
+            "possible modes: error, warn (default), quirk (no warnings)")
+            .hasArg()
+            .create("autosemicolon");
     Option destinationDir = OptionBuilder.withArgName("dir")
-        .hasArg()
-        .withDescription("destination directory for generated JavaScript files")
-        .create("d");
+            .hasArg()
+            .withDescription("destination directory for generated JavaScript files")
+            .create("d");
     Option sourcePath = OptionBuilder.withArgName("path")
-        .hasArg()
-        .withDescription("source root directories, separated by the system dependant path separator character (e.g. ':' on Unix systems, ';' on Windows")
-        .create("sourcepath");
+            .hasArg()
+            .withDescription("source root directories, separated by the system dependant path separator character (e.g. ':' on Unix systems, ';' on Windows")
+            .create("sourcepath");
     Option classPath = OptionBuilder.withArgName("path")
-        .hasArg()
-        .withDescription("source root directories or jangaroo jars of dependent classes, separated by the system dependent path separator character (e.g. ':' on Unix systems, ';' on Windows")
-        .create("classpath");
+            .hasArg()
+            .withDescription("source root directories or jangaroo jars of dependent classes, separated by the system dependent path separator character (e.g. ':' on Unix systems, ';' on Windows")
+            .create("classpath");
     Option enableAssertionsOption = OptionBuilder.withLongOpt("enableassertions")
-        .withDescription("enable assertions")
-        .create("ea");
+            .withDescription("enable assertions")
+            .create("ea");
     Option apiDestinationDir = OptionBuilder.withLongOpt("apiDir")
-        .withDescription("destination directory where to generate ActionScript API stubs")
-        .hasArg()
-        .create("api");
+            .withDescription("destination directory where to generate ActionScript API stubs")
+            .hasArg()
+            .create("api");
     Option allowDuplicateLocalVariablesOption = OptionBuilder.withLongOpt("allowduplicatelocalvariables")
-        .withDescription("allow multiple declarations of local variables")
-        .create("ad");
+            .withDescription("allow multiple declarations of local variables")
+            .create("ad");
     Options options = new Options();
     options.addOption(help);
     options.addOption(version);
@@ -122,13 +122,13 @@ public class JoocCommandLineParser {
     List<File> sp = parsePath(line, sourcePath);
     List<File> cp = parsePath(line, classPath);
 
-   if (sp != null) {
-     try {
-       config.setSourcePath(sp);
-     } catch (IOException e) {
-       throw new CommandLineParseException("could not canonicalize source path: " + sp, Jooc.RESULT_CODE_ILLEGAL_OPTION_VALUE);
-     }
-   }
+    if (sp != null) {
+      try {
+        config.setSourcePath(sp);
+      } catch (IOException e) {
+        throw new CommandLineParseException("could not canonicalize source path: " + sp, Jooc.RESULT_CODE_ILLEGAL_OPTION_VALUE);
+      }
+    }
     if (cp != null) {
       config.setClassPath(cp);
     }

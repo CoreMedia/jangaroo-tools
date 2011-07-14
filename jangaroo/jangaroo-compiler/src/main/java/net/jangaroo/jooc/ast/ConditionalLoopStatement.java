@@ -40,8 +40,9 @@ public abstract class ConditionalLoopStatement extends LoopStatement {
   }
 
   protected void analyzeLoopHeader(AnalyzeContext context) {
-    if (getOptCond() != null)
+    if (getOptCond() != null) {
       getOptCond().analyze(this, context);
+    }
   }
 
   public Expr getOptCond() {

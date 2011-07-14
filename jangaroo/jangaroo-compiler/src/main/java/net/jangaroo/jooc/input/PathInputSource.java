@@ -10,16 +10,16 @@ public class PathInputSource extends DirectoryInputSource {
   private String name;
   private List<InputSource> entries;
 
-  public static PathInputSource fromFiles(List<File> files, String[] rootDirs)  throws IOException {
+  public static PathInputSource fromFiles(List<File> files, String[] rootDirs) throws IOException {
     List<InputSource> entries = new ArrayList<InputSource>();
-    StringBuffer name = new StringBuffer();
-    for (File file :files) {
+    StringBuilder name = new StringBuilder();
+    for (File file : files) {
       if (file.isDirectory()) {
         entries.add(new FileInputSource(file, file));
       } else if (file.getName().endsWith(".jar") || file.getName().endsWith(".zip")) {
         entries.add(new ZipFileInputSource(file, rootDirs));
       }
-      if (! (name.length()==0)) {
+      if (!(name.length() == 0)) {
         name.append(File.pathSeparatorChar);
       }
       name.append(file.getAbsolutePath());
@@ -49,7 +49,7 @@ public class PathInputSource extends DirectoryInputSource {
   }
 
   @Override
-  public List<InputSource> list()  {
+  public List<InputSource> list() {
     List<InputSource> result = new ArrayList<InputSource>();
     for (InputSource entry : entries) {
       result.addAll(entry.list());
@@ -58,7 +58,7 @@ public class PathInputSource extends DirectoryInputSource {
   }
 
   @Override
-  public InputSource getChild(final String path)  {
+  public InputSource getChild(final String path) {
     List<InputSource> result = null;
     for (InputSource entry : entries) {
       final InputSource child = entry.getChild(path);

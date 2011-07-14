@@ -16,7 +16,7 @@ public class LineRangeReader extends Reader {
 
   public LineRangeReader(Reader delegate, int startLine, int endLine) throws IOException {
     this.delegate = new BufferedReader(delegate);
-    for (int i=1; i<startLine; ++i) {
+    for (int i = 1; i < startLine; ++i) {
       this.delegate.readLine();
     }
     this.endLine = endLine;
@@ -24,7 +24,7 @@ public class LineRangeReader extends Reader {
   }
 
   public int read(char[] cbuf, int off, int len) throws IOException {
-    if (currentLine>=endLine) {
+    if (currentLine >= endLine) {
       return -1;
     }
     int read = delegate.read(cbuf, off, len);
@@ -35,12 +35,12 @@ public class LineRangeReader extends Reader {
        * of a line feed ('\n'), a carriage return ('\r'), or a carriage return
        * followed immediately by a linefeed.
        */
-      if (c=='\n' || c=='\r') {
+      if (c == '\n' || c == '\r') {
         ++currentLine;
-        if (c=='\r' && i+1<cbuf.length && cbuf[i+1]=='\n') {
+        if (c == '\r' && i + 1 < cbuf.length && cbuf[i + 1] == '\n') {
           ++i;
         }
-        if (currentLine>=endLine) {
+        if (currentLine >= endLine) {
           return i;
         }
       }

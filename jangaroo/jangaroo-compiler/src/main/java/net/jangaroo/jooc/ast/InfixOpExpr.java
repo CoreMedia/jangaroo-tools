@@ -8,6 +8,7 @@ import java.io.IOException;
 /**
  * A BinaryOpExpr for AS3 infix operators that are not supported directly in JS.
  * For JS, the operand is generated as a function receiving the two arguments.
+ *
  * @author Frank Wienberg
  */
 public class InfixOpExpr extends BinaryOpExpr {

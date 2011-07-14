@@ -42,8 +42,8 @@ public class IdeWithTypeParam extends Ide {
 
   private static JooSymbol withTypeParam(JooSymbol ide, Type type) {
     return new JooSymbol(ide.sym, ide.getFileName(), ide.getLine(), ide.getColumn(), ide.getWhitespace(),
-      ide.getText() + "$object", // TODO: depending on type, use the right suffix
-      ide.getJooValue());
+            ide.getText() + "$object", // TODO: depending on type, use the right suffix
+            ide.getJooValue());
   }
 
   @Override

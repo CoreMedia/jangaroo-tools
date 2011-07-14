@@ -35,6 +35,6 @@ public abstract class AbstractCompilationUnitSinkFactory implements CompilationU
   }
 
   public abstract CompilationUnitSink createSink(PackageDeclaration packageDeclaration,
-                               IdeDeclaration primaryDeclaration, File sourceFile,
-                               boolean verbose);
+                                                 IdeDeclaration primaryDeclaration, File sourceFile,
+                                                 boolean verbose);
 }

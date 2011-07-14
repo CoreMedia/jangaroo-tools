@@ -4,11 +4,16 @@ public abstract class AbstractCompileLog implements CompileLog {
   protected boolean errors = false;
 
   String formatError(String fileName, int line, int column, String debugLevel, String message) {
-    StringBuffer m = new StringBuffer();
-    m.append(fileName + "(" + line + "): ");
+    StringBuilder m = new StringBuilder();
+    m.append(fileName);
+    m.append("(");
+    m.append(line);
+    m.append("): ");
     m.append(debugLevel);
     m.append(": ");
-    m.append("in column " + column + ": ");
+    m.append("in column ");
+    m.append(column);
+    m.append(": ");
     m.append(message);
     return m.toString();
   }

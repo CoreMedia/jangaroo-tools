@@ -37,6 +37,7 @@ public class JangarooParser {
   private Map<String, CompilationUnit> compilationUnitsByQName = new LinkedHashMap<String, CompilationUnit>();
 
   protected final Scope globalScope = new DeclarationScope(null, null);
+
   {
     declareType(globalScope, "void");
     declareType(globalScope, "*");
@@ -205,7 +206,7 @@ public class JangarooParser {
 
   private void addPackageFolderSymbols(final List<String> result, final String packageName, final InputSource path) {
     addPackageFolderSymbols(path.getChild(getInputSourceFileName(packageName, path, "")),
-      result);
+            result);
   }
 
   private void addPackageFolderSymbols(final InputSource folder, List<String> list) {

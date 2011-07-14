@@ -43,7 +43,7 @@ public class DefaultStatement extends Statement {
   }
 
   public JooSymbol getSymbol() {
-     return getSymDefault();
+    return getSymDefault();
   }
 
 

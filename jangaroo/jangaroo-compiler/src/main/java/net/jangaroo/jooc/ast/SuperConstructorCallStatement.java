@@ -55,16 +55,18 @@ public class SuperConstructorCallStatement extends Statement {
     }
     method.setContainsSuperConstructorCall(true);
     getFun().scope(scope);
-    if (getArgs() != null)
+    if (getArgs() != null) {
       getArgs().scope(scope);
+    }
     setClassDeclaration(scope.getClassDeclaration());
   }
 
   public void analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     getFun().analyze(this, context);
-    if (getArgs() != null)
+    if (getArgs() != null) {
       getArgs().analyze(this, context);
+    }
   }
 
   public JooSymbol getSymbol() {

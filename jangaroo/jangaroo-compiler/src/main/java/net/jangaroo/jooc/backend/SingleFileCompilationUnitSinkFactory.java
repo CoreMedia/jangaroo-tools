@@ -36,7 +36,7 @@ public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUni
       result = sourceFile.getAbsoluteFile().getParentFile().getAbsolutePath();
     } else {
       result = getOutputDir().getAbsolutePath();
-      StringBuffer buffy = new StringBuffer(result);
+      StringBuilder buffy = new StringBuilder(result);
       for (String aPackageName : packageName) {
         buffy.append(File.separator);
         buffy.append(aPackageName);
@@ -63,14 +63,15 @@ public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUni
     String className = primaryDeclaration.getName();
     if (!classPart.equals(className)) {
       Jooc.warning(primaryDeclaration.getSymbol(),
-          "class name should be equal to file name: expected " + classPart + ", found " + className);
+              "class name should be equal to file name: expected " + classPart + ", found " + className);
     }
     createOutputDirs(outFile);
 
     return new CompilationUnitSink() {
       public void writeOutput(CompilationUnit compilationUnit) {
-        if (verbose)
+        if (verbose) {
           System.out.println("writing file: '" + outFile.getAbsolutePath() + "'");
+        }
 
         try {
           JsWriter out = new JsWriter(new OutputStreamWriter(new FileOutputStream(outFile), "UTF-8"));
@@ -86,7 +87,8 @@ public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUni
               out.close();
             }
           } catch (IOException e) {
-            outFile.delete();
+            //noinspection ResultOfMethodCallIgnored
+            outFile.delete(); // nosonar
             throw Jooc.error("error writing file: '" + outFile.getAbsolutePath() + "'", e);
           }
         } catch (IOException e) {

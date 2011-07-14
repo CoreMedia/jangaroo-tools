@@ -47,7 +47,7 @@ public class CommaSeparatedList<T extends AstNode> extends Expr {
   @Override
   public void scope(final Scope scope) {
     if (getHead() != null) {
-        getHead().scope(scope);
+      getHead().scope(scope);
     }
     if (getTail() != null) {
       getTail().scope(scope);
@@ -59,8 +59,9 @@ public class CommaSeparatedList<T extends AstNode> extends Expr {
     if (getHead() != null) {
       getHead().analyze(this, context);
     }
-    if (getTail() != null)
+    if (getTail() != null) {
       getTail().analyze(this, context);
+    }
   }
 
   public JooSymbol getSymbol() {

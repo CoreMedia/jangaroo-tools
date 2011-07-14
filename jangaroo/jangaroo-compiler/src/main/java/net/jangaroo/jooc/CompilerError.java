@@ -1,12 +1,12 @@
 package net.jangaroo.jooc;
 
 /**
-* Created by IntelliJ IDEA.
-* User: okummer
-* Date: 01.07.11
-* Time: 15:07
-* To change this template use File | Settings | File Templates.
-*/
+ * Created by IntelliJ IDEA.
+ * User: okummer
+ * Date: 01.07.11
+ * Time: 15:07
+ * To change this template use File | Settings | File Templates.
+ */
 public class CompilerError extends RuntimeException {
   private JooSymbol symbol = null;
 

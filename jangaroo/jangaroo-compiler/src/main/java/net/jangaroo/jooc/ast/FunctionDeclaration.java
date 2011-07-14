@@ -38,7 +38,7 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
   private boolean containsSuperConstructorCall = false;
 
   private static final int DEFAULT_ALLOWED_METHOD_MODIFIERS =
-    MODIFIER_OVERRIDE | MODIFIER_ABSTRACT | MODIFIER_VIRTUAL | MODIFIER_FINAL | MODIFIERS_SCOPE | MODIFIER_STATIC | MODIFIER_NATIVE;
+          MODIFIER_OVERRIDE | MODIFIER_ABSTRACT | MODIFIER_VIRTUAL | MODIFIER_FINAL | MODIFIERS_SCOPE | MODIFIER_STATIC | MODIFIER_NATIVE;
 
   public FunctionDeclaration(List<JooSymbol> modifiers, JooSymbol symFunction, JooSymbol symGetOrSet, Ide ide, JooSymbol lParen,
                              Parameters params, JooSymbol rParen, TypeRelation optTypeRelation,
@@ -169,7 +169,7 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
     fun.scope(scope);
     if (containsSuperConstructorCall()) {
       // must be contained at top level
-      BlockStatement block = (BlockStatement) getBody();
+      BlockStatement block = getBody();
       block.checkSuperConstructorCall();
     }
   }

@@ -76,13 +76,21 @@ public class ImportDirective extends Directive {
 
   @Override
   public boolean equals(final Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     final ImportDirective that = (ImportDirective) o;
 
-    if (isExplicit() != that.isExplicit()) return false;
-    if (getIde() != null ? !getIde().equals(that.getIde()) : that.getIde() != null) return false;
+    if (isExplicit() != that.isExplicit()) {
+      return false;
+    }
+    if (getIde() != null ? !getIde().equals(that.getIde()) : that.getIde() != null) {
+      return false;
+    }
 
     return true;
   }
@@ -104,6 +112,7 @@ public class ImportDirective extends Directive {
 
   /**
    * null if not explicit
+   * @return the semicolon symbol
    */
   public JooSymbol getSymSemicolon() {
     return symSemicolon;

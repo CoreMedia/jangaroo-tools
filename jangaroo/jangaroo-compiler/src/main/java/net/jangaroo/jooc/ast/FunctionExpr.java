@@ -52,7 +52,7 @@ public class FunctionExpr extends Expr {
   private boolean thisUsed;
 
   public FunctionExpr(FunctionDeclaration functionDeclaration, JooSymbol symFunction, Ide ide, JooSymbol lParen,
-                  Parameters params, JooSymbol rParen, TypeRelation optTypeRelation, BlockStatement optBody) {
+                      Parameters params, JooSymbol rParen, TypeRelation optTypeRelation, BlockStatement optBody) {
     this.functionDeclaration = functionDeclaration;
     this.ide = ide;
     this.optTypeRelation = optTypeRelation;
@@ -171,14 +171,6 @@ public class FunctionExpr extends Expr {
 
   public JooSymbol getRParen() {
     return rParen;
-  }
-
-  public BlockStatement getOptBody() {
-    return optBody;
-  }
-
-  public List<Parameter> getImplicitParams() {
-    return implicitParams;
   }
 
   public JooSymbol getFunSymbol() {

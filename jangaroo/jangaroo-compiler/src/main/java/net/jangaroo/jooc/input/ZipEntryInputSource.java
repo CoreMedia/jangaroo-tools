@@ -20,7 +20,7 @@ public class ZipEntryInputSource implements InputSource {
     name = zipEntry.getName();
     int lastSlash = name.lastIndexOf('/');
     if (lastSlash >= 0) {
-      name = name.substring(lastSlash+1);
+      name = name.substring(lastSlash + 1);
     }
   }
 

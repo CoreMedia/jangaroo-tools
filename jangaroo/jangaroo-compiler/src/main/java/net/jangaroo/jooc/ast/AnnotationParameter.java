@@ -74,12 +74,12 @@ public class AnnotationParameter extends NodeImplBase {
         }
         String text = valueSymbol.getText();
         String quote = text.substring(0, 1);
-        String source = (String)valueSymbol.getJooValue();
+        String source = (String) valueSymbol.getJooValue();
         String absoluteSource = compilationUnit.addResourceDependency(source);
         getValue().setValue(new JooSymbol(valueSymbol.sym, valueSymbol.getFileName(),
-          valueSymbol.getLine(), valueSymbol.getColumn(), valueSymbol.getWhitespace(),
-          quote + absoluteSource + quote,
-          absoluteSource));
+                valueSymbol.getLine(), valueSymbol.getColumn(), valueSymbol.getWhitespace(),
+                quote + absoluteSource + quote,
+                absoluteSource));
       }
     }
   }

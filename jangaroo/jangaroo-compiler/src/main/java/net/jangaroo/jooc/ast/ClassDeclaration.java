@@ -155,8 +155,9 @@ public class ClassDeclaration extends IdeDeclaration {
   }
 
   void scopeDirectives(Scope scope, Ide packageIde) {
-    if (packageIde != null)
+    if (packageIde != null) {
       addStarImport(packageIde);
+    }
     // add implicit toplevel package import
     addStarImport(null);
     scope(directives, scope);
@@ -170,7 +171,7 @@ public class ClassDeclaration extends IdeDeclaration {
     // define these here so they get the right scope:
     thisType = new Type(new Ide(getIde().getSymbol()));
     superType = "Object".equals(getQualifiedNameStr()) ? null
-      : new Type(getOptExtends() == null ? new Ide("Object") : getOptExtends().getSuperClass());
+            : new Type(getOptExtends() == null ? new Ide("Object") : getOptExtends().getSuperClass());
 
     thisType.scope(scope);
     if (superType != null) {
@@ -189,7 +190,7 @@ public class ClassDeclaration extends IdeDeclaration {
           @Override
           public void run(final Scope instanceScope) {
             //todo ugly, maybe we should define ClassScope implements Scope to lookup inherited members
-            ((DeclarationScope)instanceScope).setIsInstanceScope(true);
+            ((DeclarationScope) instanceScope).setIsInstanceScope(true);
             body.scope(staticScope, instanceScope);
           }
         });
@@ -250,7 +251,7 @@ public class ClassDeclaration extends IdeDeclaration {
   public boolean isSubclassOf(final ClassDeclaration classDeclaration) {
     ClassDeclaration superTypeDeclaration = getSuperTypeDeclaration();
     return superTypeDeclaration != null &&
-      (superTypeDeclaration == classDeclaration || superTypeDeclaration.isSubclassOf(classDeclaration));
+            (superTypeDeclaration == classDeclaration || superTypeDeclaration.isSubclassOf(classDeclaration));
   }
 
   public Type getThisType() {
@@ -272,6 +273,7 @@ public class ClassDeclaration extends IdeDeclaration {
 
   /**
    * Lookup a non-static member of the given name
+   *
    * @param ide the member name
    * @return a non-static member if found, null otherwise
    */
@@ -309,15 +311,16 @@ public class ClassDeclaration extends IdeDeclaration {
   }
 
   private IdeDeclaration resolvePropertyInSuper(final String ide,
-                                              final ClassDeclaration classDecl,
-                                              final Set<ClassDeclaration> visited,
-                                              final LinkedList<ClassDeclaration> chain,
-                                              final Ide superIde) {
+                                                final ClassDeclaration classDecl,
+                                                final Set<ClassDeclaration> visited,
+                                                final LinkedList<ClassDeclaration> chain,
+                                                final Ide superIde) {
     IdeDeclaration superClassDecl = superIde.getDeclaration();
-    if (superClassDecl != null)
+    if (superClassDecl != null) {
       if (!(superClassDecl instanceof ClassDeclaration)) {
         throw new CompilerError(classDecl.getOptExtends().getSuperClass().getSymbol(), "expected class identifier");
       }
+    }
     return resolvePropertyDeclaration1(ide, (ClassDeclaration) superClassDecl, visited, chain);
   }
 
@@ -329,7 +332,7 @@ public class ClassDeclaration extends IdeDeclaration {
   }
 
   private int computeInheritanceLevel() {
-    if (superType == null)  {
+    if (superType == null) {
       return 0;
     }
     if ("Object".equals(superType.getIde().getQualifiedNameStr())) {
@@ -339,7 +342,7 @@ public class ClassDeclaration extends IdeDeclaration {
     if (!(superClassDecl instanceof ClassDeclaration)) {
       throw new CompilerError(getOptExtends().getSuperClass().getSymbol(), "expected class identifier");
     }
-    return 1 + ((ClassDeclaration)superClassDecl).getInheritanceLevel();
+    return 1 + ((ClassDeclaration) superClassDecl).getInheritanceLevel();
   }
 
 

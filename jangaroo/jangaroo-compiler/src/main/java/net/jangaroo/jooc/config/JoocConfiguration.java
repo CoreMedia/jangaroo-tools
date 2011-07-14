@@ -1,9 +1,6 @@
 package net.jangaroo.jooc.config;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Jangaroo compiler configuration

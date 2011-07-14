@@ -61,7 +61,7 @@ public class NamespacedIde extends Ide {
 
   @Override
   public String getName() {
-    return getNamespacePrefix(namespace)+super.getName();
+    return getNamespacePrefix(namespace) + super.getName();
   }
 
   public String[] getQualifiedName() {
@@ -87,9 +87,15 @@ public class NamespacedIde extends Ide {
 
   @Override
   public boolean equals(final Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-    if (!super.equals(o)) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    if (!super.equals(o)) {
+      return false;
+    }
 
     final NamespacedIde that = (NamespacedIde) o;
     return namespace.getText().equals(that.namespace.getText());

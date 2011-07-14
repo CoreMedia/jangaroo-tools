@@ -44,22 +44,26 @@ public class ForInitializer extends NodeImplBase {
 
   @Override
   public void scope(final Scope scope) {
-    if (getDecl() !=null)
+    if (getDecl() != null) {
       getDecl().scope(scope);
-    if (getExpr() !=null)
+    }
+    if (getExpr() != null) {
       getExpr().scope(scope);
+    }
   }
 
   public void analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
-    if (getDecl() !=null)
+    if (getDecl() != null) {
       getDecl().analyze(this, context);
-    if (getExpr() !=null)
+    }
+    if (getExpr() != null) {
       getExpr().analyze(this, context);
+    }
   }
 
   public JooSymbol getSymbol() {
-     return getDecl() != null ? getDecl().getSymbol() : getExpr().getSymbol();
+    return getDecl() != null ? getDecl().getSymbol() : getExpr().getSymbol();
   }
 
   public Declaration getDecl() {

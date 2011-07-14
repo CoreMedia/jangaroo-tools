@@ -59,7 +59,7 @@ public class UseNamespaceDirective extends Directive {
   }
 
   public JooSymbol getSymbol() {
-      return getUseKeyword();
+    return getUseKeyword();
   }
 
   public JooSymbol getUseKeyword() {

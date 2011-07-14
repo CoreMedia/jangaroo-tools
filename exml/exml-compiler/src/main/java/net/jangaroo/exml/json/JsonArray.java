@@ -31,7 +31,7 @@ public class JsonArray implements Json {
       return "[]";
     }
     int i;
-    StringBuffer sb = new StringBuffer("[");
+    StringBuilder sb = new StringBuilder("[");
     if (len == 1) {
       sb.append(JsonObject.valueToString(null, this.items.get(0), indentFactor, indent));
     } else {
@@ -62,9 +62,5 @@ public class JsonArray implements Json {
 
   public void set(String property, Object value) {
     items.set(Integer.parseInt(property), value);
-  }
-
-  public void push(Object value) {
-    this.items.add(value);
   }
 }

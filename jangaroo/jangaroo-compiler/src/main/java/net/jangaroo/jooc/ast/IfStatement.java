@@ -52,16 +52,18 @@ public class IfStatement extends KeywordStatement {
   public void scope(final Scope scope) {
     getCond().scope(scope);
     getIfTrue().scope(scope);
-    if (getIfFalse() != null)
+    if (getIfFalse() != null) {
       getIfFalse().scope(scope);
+    }
   }
 
   public void analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
     getCond().analyze(this, context);
     getIfTrue().analyze(this, context);
-    if (getIfFalse() != null)
+    if (getIfFalse() != null) {
       getIfFalse().analyze(this, context);
+    }
   }
 
   public Expr getCond() {

@@ -30,11 +30,13 @@ import java.util.Map;
  * @author Frank Wienberg
  */
 public class VariableDeclaration extends TypedIdeDeclaration {
+  private static final Map<String, String> DEFAULT_VALUE_BY_TYPE = new HashMap<String, String>(10);
 
   private JooSymbol optSymConstOrVar;
   private Initializer optInitializer;
   private VariableDeclaration optNextVariableDeclaration;
   private JooSymbol optSymSemicolon;
+
   private VariableDeclaration previousVariableDeclaration;
 
   public VariableDeclaration(JooSymbol[] modifiers,
@@ -43,7 +45,7 @@ public class VariableDeclaration extends TypedIdeDeclaration {
                              TypeRelation optTypeRelation,
                              Initializer optInitializer,
                              VariableDeclaration optNextVariableDeclaration,
-                             JooSymbol optSymSemicolon  ) {
+                             JooSymbol optSymSemicolon) {
     // inherit modifiers of first declaration to those following this declaration
     super(modifiers, ide, optTypeRelation);
     this.optSymConstOrVar = optSymConstOrVar;
@@ -138,7 +140,6 @@ public class VariableDeclaration extends TypedIdeDeclaration {
     }
   }
 
-  private static final Map<String,String> DEFAULT_VALUE_BY_TYPE = new HashMap<String,String>(10);
   static {
     DEFAULT_VALUE_BY_TYPE.put("Boolean", "false");
     DEFAULT_VALUE_BY_TYPE.put("int", "0");
@@ -191,8 +192,8 @@ public class VariableDeclaration extends TypedIdeDeclaration {
   @Override
   public int getModifiers() {
     return hasPreviousVariableDeclaration()
-        ? getFirstVariableDeclaration().getModifiers()
-        : super.getModifiers();
+            ? getFirstVariableDeclaration().getModifiers()
+            : super.getModifiers();
   }
 
   public boolean isConst() {

@@ -48,7 +48,7 @@ public final class ExmlComponentClassGenerator {
     File result = computeComponentClassTarget(model);
     Writer writer = null;
     try {
-      result.getParentFile().mkdirs();
+      result.getParentFile().mkdirs();  // nosonar
       writer = new OutputStreamWriter(new FileOutputStream(result), outputCharset);
       generateClass(model, writer);
       return result;

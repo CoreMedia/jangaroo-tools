@@ -59,7 +59,7 @@ public class IdeExpr extends Expr {
   }
 
   public JooSymbol getSymbol() {
-     return getIde().getSymbol();
+    return getIde().getSymbol();
   }
 
   @Override
@@ -67,7 +67,7 @@ public class IdeExpr extends Expr {
     IdeDeclaration ideDeclaration = getIde().getDeclaration(false);
     // accept constant fields, not being defined in the current class (because these have to be initialized first):
     return ideDeclaration instanceof VariableDeclaration &&
-            ((VariableDeclaration)ideDeclaration).isCompileTimeConstant() &&
+            ((VariableDeclaration) ideDeclaration).isCompileTimeConstant() &&
             ideDeclaration.getClassDeclaration() != getIde().getScope().getClassDeclaration();
   }
 

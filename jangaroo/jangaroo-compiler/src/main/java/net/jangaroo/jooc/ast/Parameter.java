@@ -59,27 +59,27 @@ public class Parameter extends IdeDeclaration {
   @Override
   public void analyze(AstNode parentNode, AnalyzeContext context) {
     super.analyze(parentNode, context);
-    if (getOptTypeRelation() !=null) {
+    if (getOptTypeRelation() != null) {
       getOptTypeRelation().analyze(this, context);
       if (isRest() && !"Array".equals(getOptTypeRelation().getType().getSymbol().getText())) {
         //todo replace that condition with real Array definition lookup
         throw Jooc.error(getOptTypeRelation().getSymbol(), "Rest parameter must have Array type.");
       }
     }
-    if (getOptInitializer() !=null) {
+    if (getOptInitializer() != null) {
       getOptInitializer().analyze(this, context);
     }
   }
 
   public boolean isRest() {
-    return getOptSymConstOrRest() !=null && getOptSymConstOrRest().sym== sym.REST;
+    return getOptSymConstOrRest() != null && getOptSymConstOrRest().sym == sym.REST;
   }
 
   public boolean hasInitializer() {
-    return getOptInitializer() !=null &&
-      // ignore initializers that assign undefined. Parameters are already undefined if not present.
-      (!(getOptInitializer().getValue() instanceof IdeExpr) ||
-        !((IdeExpr) getOptInitializer().getValue()).getIde().getName().equals("undefined"));
+    return getOptInitializer() != null &&
+            // ignore initializers that assign undefined. Parameters are already undefined if not present.
+            (!(getOptInitializer().getValue() instanceof IdeExpr) ||
+                    !((IdeExpr) getOptInitializer().getValue()).getIde().getName().equals("undefined"));
   }
 
   @Override

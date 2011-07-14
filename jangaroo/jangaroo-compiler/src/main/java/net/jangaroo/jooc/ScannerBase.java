@@ -32,6 +32,7 @@ public abstract class ScannerBase implements sym {
 
   /**
    * Pushback the current token so that it will be read again the next time next_token() is called
+   *
    * @param token the token
    */
   public void pushback(JooSymbol token) {
@@ -64,7 +65,7 @@ public abstract class ScannerBase implements sym {
   }
 
   // error reporting:
-  static protected HashMap<Integer,String> symbolMap = new java.util.HashMap<Integer, String>(50);
+  static protected HashMap<Integer, String> symbolMap = new java.util.HashMap<Integer, String>(50);
 
   static protected void defsym(String abbrev, int sym) {
     symbolMap.put(sym, abbrev);
@@ -72,8 +73,9 @@ public abstract class ScannerBase implements sym {
 
   public String getSymbolAbbreviation(int sym) {
     String value = symbolMap.get(new Integer(sym));
-    if (value != null)
+    if (value != null) {
       return "'" + value + "'";
+    }
     switch (sym) {
       case INT_LITERAL:
         return "integer literal";

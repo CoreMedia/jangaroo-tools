@@ -49,7 +49,9 @@ public abstract class ScopeImplBase implements Scope {
 
   @Override
   public AstNode getDefiningNode() {
-    if (parent == null) return null;
+    if (parent == null) {
+      return null;
+    }
     return parent.getDefiningNode();
   }
 
@@ -60,14 +62,15 @@ public abstract class ScopeImplBase implements Scope {
   }
 
   private void mustBeInsideValueScope() {
-    if (parent == null)
+    if (parent == null) {
       throw new UnsupportedOperationException("this scope must be wrapped by a ValueScope");
+    }
   }
 
   @Override
   public LabeledStatement lookupLabel(final Ide ide) {
     if (parent == null) {
-        throw Jooc.error(ide, "undeclared label '" + ide.getName() + "'");
+      throw Jooc.error(ide, "undeclared label '" + ide.getName() + "'");
     }
     return parent.lookupLabel(ide);
   }
@@ -89,13 +92,17 @@ public abstract class ScopeImplBase implements Scope {
 
   @Override
   public LoopStatement getCurrentLoop() {
-    if (parent == null) return null;
+    if (parent == null) {
+      return null;
+    }
     return parent.getCurrentLoop();
   }
 
   @Override
   public Statement getCurrentLoopOrSwitch() {
-    if (parent == null) return null;
+    if (parent == null) {
+      return null;
+    }
     return parent.getCurrentLoopOrSwitch();
   }
 

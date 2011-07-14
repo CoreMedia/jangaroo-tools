@@ -29,7 +29,7 @@ public class ClassBody extends AbstractBlock {
 
   public ClassBody(JooSymbol lBrace, List<Directive> directives, JooSymbol rBrace) {
     super(rBrace, directives, lBrace);
-    for (Directive directive :directives) {
+    for (Directive directive : directives) {
       directive.setClassMember(true);
     }
   }

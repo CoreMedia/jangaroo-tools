@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="ISO-8859-1"?>
-<exml:component xmlns="http://extjs.com/ext3" xmlns:exml="http://net.jangaroo.com/extxml/0.1"  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-    <panel>
-      <items exml:type="Array">
-        <panel/>
-      </items>
-    </panel>
-</exml:component>

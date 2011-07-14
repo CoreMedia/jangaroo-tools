@@ -40,8 +40,9 @@ public abstract class LabelRefStatement extends KeywordExprStatement {
     super.scope(scope);
     if (getOptLabel() == null) {
       Statement loopOrSwitchStatement = scope.getCurrentLoopOrSwitch();
-      if (loopOrSwitchStatement == null)
+      if (loopOrSwitchStatement == null) {
         throw Jooc.error(this, "not inside loop or switch");
+      }
     } else {
       setLabelDeclaration(scope.lookupLabel(getOptLabel()));
       checkValidLabeledStatement(getLabelDeclaration());

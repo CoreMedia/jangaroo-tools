@@ -25,7 +25,7 @@ import net.jangaroo.jooc.sym;
 /**
  * Declarations are statements used to define entities such as variables, functions, classes,
  * and interfaces.
- *
+ * <p/>
  * todo rename to Definition (ECMAScript/Adobe speak)
  *
  * @author Andreas Gawecki
@@ -45,7 +45,7 @@ public abstract class Declaration extends Statement {
   protected static final int MODIFIER_VIRTUAL = 2 * MODIFIER_NATIVE;
 
   protected static final int MODIFIERS_SCOPE =
-      MODIFIER_PRIVATE | MODIFIER_PROTECTED | MODIFIER_PUBLIC | MODIFIER_INTERNAL | MODIFIER_NAMESPACE;
+          MODIFIER_PRIVATE | MODIFIER_PROTECTED | MODIFIER_PUBLIC | MODIFIER_INTERNAL | MODIFIER_NAMESPACE;
 
   private JooSymbol[] symModifiers;
   private JooSymbol[] symInheritedModifiers = new JooSymbol[0];
@@ -126,13 +126,13 @@ public abstract class Declaration extends Statement {
         return MODIFIER_INTERNAL;
       case sym.IDE:
         return
-            modifier.getText().equals(SyntacticKeywords.DYNAMIC) ? MODIFIER_DYNAMIC
-                : modifier.getText().equals(SyntacticKeywords.STATIC) ? MODIFIER_STATIC
-                : modifier.getText().equals(SyntacticKeywords.FINAL) ? MODIFIER_FINAL
-                : modifier.getText().equals(SyntacticKeywords.NATIVE) ? MODIFIER_NATIVE
-                : modifier.getText().equals(SyntacticKeywords.OVERRIDE) ? MODIFIER_OVERRIDE
-                : modifier.getText().equals(SyntacticKeywords.VIRTUAL) ? MODIFIER_VIRTUAL
-                : MODIFIER_NAMESPACE;
+                modifier.getText().equals(SyntacticKeywords.DYNAMIC) ? MODIFIER_DYNAMIC
+                        : modifier.getText().equals(SyntacticKeywords.STATIC) ? MODIFIER_STATIC
+                        : modifier.getText().equals(SyntacticKeywords.FINAL) ? MODIFIER_FINAL
+                        : modifier.getText().equals(SyntacticKeywords.NATIVE) ? MODIFIER_NATIVE
+                        : modifier.getText().equals(SyntacticKeywords.OVERRIDE) ? MODIFIER_OVERRIDE
+                        : modifier.getText().equals(SyntacticKeywords.VIRTUAL) ? MODIFIER_VIRTUAL
+                        : MODIFIER_NAMESPACE;
 
     }
     throw Jooc.error(modifier, "internal compiler error: invalid modifier '" + modifier.getText() + "'");

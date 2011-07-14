@@ -8,18 +8,25 @@ public interface InputSource {
 
   /**
    * The file name, i.e. test.as
+   *
    * @return the file name
    */
   String getName();
+
   String getPath();
+
   String getRelativePath();
 
   boolean isDirectory();
-  List<? extends InputSource> list() ;
+
+  List<? extends InputSource> list();
+
   InputSource getChild(String path);
 
   InputStream getInputStream() throws IOException;
+
   void close() throws IOException;
+
   char getFileSeparatorChar();
 
   InputSource getParent();
