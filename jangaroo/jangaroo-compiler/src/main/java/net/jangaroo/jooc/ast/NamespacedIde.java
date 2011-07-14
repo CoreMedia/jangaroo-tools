@@ -42,11 +42,6 @@ public class NamespacedIde extends Ide {
   }
 
   @Override
-  public void scope(final Scope scope) {
-    super.scope(scope);
-  }
-
-  @Override
   public void analyze(AstNode parentNode) {
     if (namespace.sym == sym.IDE) { // all other symbols should be predefined namespaces like "public" etc.
       Jooc.warning(namespace, "namespaces are not yet implemented, ignoring namespace " + namespace.getText());

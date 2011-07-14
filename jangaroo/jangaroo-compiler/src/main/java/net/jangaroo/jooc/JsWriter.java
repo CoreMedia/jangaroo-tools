@@ -249,7 +249,11 @@ public final class JsWriter extends FilterWriter {
 
   protected void writeLines(String s, int off, int len) throws IOException {
     int pos = off;
-    while ((pos = s.indexOf('\n', pos) + 1) > 0 && pos < off + len + 1) {
+    while (true) {
+      pos = s.indexOf('\n', pos) + 1;
+      if (pos <= 0 || pos >= off + len + 1) {
+        break;
+      }
       writeNewline();
     }
   }

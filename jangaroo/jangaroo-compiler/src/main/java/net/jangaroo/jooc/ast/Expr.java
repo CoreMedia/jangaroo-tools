@@ -30,17 +30,8 @@ public abstract class Expr extends NodeImplBase {
     this.type = type;
   }
 
-  @Override
-  public void analyze(AstNode parentNode) {
-    super.analyze(parentNode);
-  }
-
   public boolean isCompileTimeConstant() {
     return false;
-  }
-
-  public Ide asQualifiedIde() {
-    return null;
   }
 
 }

@@ -21,7 +21,8 @@ public abstract class ScannerBase implements sym {
   public abstract java_cup.runtime.Symbol scan() throws java.io.IOException;
 
   // the scan routine called by CUP
-  public java_cup.runtime.Symbol next_token() throws java.io.IOException {
+  @SuppressWarnings({"UnusedDeclaration"})
+  public java_cup.runtime.Symbol next_token() throws java.io.IOException { // nosonar required by CUP
     if (pushedBackToken != null) {
       JooSymbol result = pushedBackToken;
       pushedBackToken = null;
@@ -72,7 +73,7 @@ public abstract class ScannerBase implements sym {
   }
 
   public String getSymbolAbbreviation(int sym) {
-    String value = symbolMap.get(new Integer(sym));
+    String value = symbolMap.get(Integer.valueOf(sym));
     if (value != null) {
       return "'" + value + "'";
     }

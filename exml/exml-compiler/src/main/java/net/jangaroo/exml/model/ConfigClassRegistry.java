@@ -113,6 +113,11 @@ public final class ConfigClassRegistry {
     }
   }
 
+  /**
+   * Get a ConfigClass for the given name. Returns null if no class was found
+   * @param name the name of the class
+   * @return the configClass or null if none was found
+   */
   public ConfigClass getConfigClassByName(String name) {
     ConfigClass configClass = configClassesByName.get(name);
     if (configClass != null) {
@@ -131,15 +136,17 @@ public final class ConfigClassRegistry {
   }
 
   private void addConfigClass(ConfigClass configClass) {
-    String name = configClass.getFullName();
-    ConfigClass existingConfigClass = configClassesByName.get(name);
-    if (existingConfigClass != null) {
-      if (!existingConfigClass.equals(configClass)) {
-        // todo: Keep track of source.
-        throw new ExmlcException("config class " + name + " declared in " + configClass.getComponentClassName() + " and " + existingConfigClass.getComponentClassName());
+    if(configClass != null) {
+      String name = configClass.getFullName();
+      ConfigClass existingConfigClass = configClassesByName.get(name);
+      if (existingConfigClass != null) {
+        if (!existingConfigClass.equals(configClass)) {
+          // todo: Keep track of source.
+          throw new ExmlcException("config class " + name + " declared in " + configClass.getComponentClassName() + " and " + existingConfigClass.getComponentClassName());
+        }
+      } else {
+        configClassesByName.put(name, configClass);
       }
-    } else {
-      configClassesByName.put(name, configClass);
     }
   }
 
@@ -190,9 +197,6 @@ public final class ConfigClassRegistry {
       } catch (RuntimeException e) {
         throw new ExmlcException("while building config class " + name + ": " + e.getMessage(), e);
       }
-    }
-    if (configClass == null) {
-      throw new ExmlcException("No config class '" + name + "' found.");
     }
     return configClass;
   }

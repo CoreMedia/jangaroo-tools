@@ -3,8 +3,6 @@
  */
 package net.jangaroo.utils.log;
 
-import java.io.File;
-
 /**
  *
  */

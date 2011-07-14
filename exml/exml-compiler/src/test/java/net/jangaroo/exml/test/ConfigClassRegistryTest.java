@@ -7,6 +7,8 @@ import org.junit.Test;
 
 import java.io.File;
 
+import static org.junit.Assert.assertNull;
+
 /**
  *
  */
@@ -82,9 +84,9 @@ public class ConfigClassRegistryTest extends AbstractExmlTest {
     Assert.assertEquals(3, configClass.getCfgs().size());
   }
 
-  @Test(expected = Exception.class)
+  @Test
   public void testDoesNotExist() throws Exception {
     setUp("testNamespace.config");
-    getConfigClassRegistry().getConfigClassByName("does.not.Exist");
+    assertNull(getConfigClassRegistry().getConfigClassByName("does.not.Exist"));
   }
 }

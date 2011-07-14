@@ -114,11 +114,6 @@ public class VariableDeclaration extends TypedIdeDeclaration {
     }
   }
 
-  @Override
-  public boolean isField() {
-    return isClassMember();
-  }
-
   public boolean isCompileTimeConstant() {
     return isConst() && (getOptInitializer() == null || getOptInitializer().getValue().isCompileTimeConstant());
   }

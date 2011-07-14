@@ -27,7 +27,7 @@ import java.util.regex.Pattern;
  */
 public abstract class IdeDeclaration extends Declaration {
 
-  private static Pattern PRIVATE_MEMBER_NAME = Pattern.compile("[^$]\\$[0-9]+$");
+  private static final Pattern PRIVATE_MEMBER_NAME = Pattern.compile("[^$]\\$[0-9]+$");
 
   private Ide ide;
 
@@ -97,10 +97,6 @@ public abstract class IdeDeclaration extends Declaration {
     return false;
   }
 
-  public boolean isField() {
-    return false;
-  }
-
   public boolean isMethod() {
     return false;
   }
@@ -109,12 +105,9 @@ public abstract class IdeDeclaration extends Declaration {
     return false;
   }
 
-  public boolean isPrivateStaticMethod() {
-    return isPrivate() && isStatic() && isMethod();
-  }
-
   /**
    * Resolve this declaration to the underlying Class or PredefinedType declaration
+   * @return the declaration
    */
   public IdeDeclaration resolveDeclaration() {
     return null;

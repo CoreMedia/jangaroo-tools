@@ -25,7 +25,8 @@ import org.apache.tools.ant.util.GlobPatternMapper;
 import org.apache.tools.ant.util.SourceFileScanner;
 
 import java.io.File;
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Andreas Gawecki
@@ -213,6 +214,7 @@ public class JoocTask extends MatchingTask {
 
   /**
    * If true, asks the compiler for verbose output.
+   * @param verbose the verbose state
    */
   public void setVerbose(boolean verbose) {
     this.verbose = verbose;
@@ -220,6 +222,7 @@ public class JoocTask extends MatchingTask {
 
   /**
    * Gets the verbose flag.
+   * @return the verbose state
    */
   public boolean getVerbose() {
     return verbose;
@@ -365,7 +368,7 @@ public class JoocTask extends MatchingTask {
   }
 
   protected String[] getJoocArgs() {
-    Vector<String> args = new Vector<String>(compileList.length + 10);
+    List<String> args = new ArrayList<String>(compileList.length + 10);
     if (debug) {
       args.add("-g");
       if (debugLevel != null) {
