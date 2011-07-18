@@ -129,7 +129,7 @@ public class PackageMojo extends AbstractMojo {
       archiver.setDestFile(jsarchive);
       archiver.createArchive();
       archiver.reset();
-    } catch (Exception e) { // nosonar
+    } catch (Exception e) { // NOSONAR
       throw new MojoExecutionException("Failed to create the javascript archive", e);
     }
     project.getArtifact().setFile(jsarchive);

@@ -32,7 +32,7 @@ public final class ExmlConfigClassGenerator {
     // Maybe even the directory does not exist.
     File targetPackageFolder = result.getAbsoluteFile().getParentFile();
     if(!targetPackageFolder.exists()) {
-      targetPackageFolder.mkdirs(); // nosonar
+      targetPackageFolder.mkdirs(); // NOSONAR
     }
 
     Writer writer = null;

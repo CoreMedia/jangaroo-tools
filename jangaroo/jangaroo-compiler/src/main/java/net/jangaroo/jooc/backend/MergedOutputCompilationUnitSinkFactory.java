@@ -47,7 +47,7 @@ public class MergedOutputCompilationUnitSinkFactory extends AbstractCompilationU
             }
           } catch (IOException e) {
             //noinspection ResultOfMethodCallIgnored
-            outputFile.delete(); // nosonar
+            outputFile.delete(); // NOSONAR
             throw Jooc.error("error writing file: '" + outputFile.getAbsolutePath() + "'", e);
           }
         } catch (IOException e) {

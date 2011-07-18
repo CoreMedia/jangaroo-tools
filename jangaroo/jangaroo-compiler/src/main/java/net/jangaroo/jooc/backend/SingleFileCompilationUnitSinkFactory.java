@@ -88,7 +88,7 @@ public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUni
             }
           } catch (IOException e) {
             //noinspection ResultOfMethodCallIgnored
-            outFile.delete(); // nosonar
+            outFile.delete(); // NOSONAR
             throw Jooc.error("error writing file: '" + outFile.getAbsolutePath() + "'", e);
           }
         } catch (IOException e) {
