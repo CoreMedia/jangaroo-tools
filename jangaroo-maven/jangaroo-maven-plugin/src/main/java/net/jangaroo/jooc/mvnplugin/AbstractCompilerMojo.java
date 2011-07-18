@@ -174,7 +174,7 @@ public abstract class AbstractCompilerMojo extends JangarooMojo {
         configuration.setDebugSource(true);
       } else if (!debuglevel.equalsIgnoreCase("none")) {
         throw new IllegalArgumentException("The specified debug level: '" + debuglevel
-          + "' is unsupported. " + "Legal values are 'none', 'lines', and 'source'.");
+                + "' is unsupported. " + "Legal values are 'none', 'lines', and 'source'.");
       }
     }
 
@@ -187,7 +187,7 @@ public abstract class AbstractCompilerMojo extends JangarooMojo {
         configuration.setSemicolonInsertionMode(SemicolonInsertionMode.QUIRKS);
       } else {
         throw new IllegalArgumentException("The specified semicolon insertion mode: '" + autoSemicolon
-          + "' is unsupported. " + "Legal values are 'error', 'warn', and 'quirks'.");
+                + "' is unsupported. " + "Legal values are 'error', 'warn', and 'quirks'.");
       }
     }
 
@@ -277,7 +277,7 @@ public abstract class AbstractCompilerMojo extends JangarooMojo {
 
       @SuppressWarnings({"unchecked"})
       // resource bundle classes should always be loaded dynamically:
-      List<File> files = FileUtils.getFiles(tempOutputDir, "**/*.js", "**/*_properties_*.js");
+              List<File> files = FileUtils.getFiles(tempOutputDir, "**/*.js", "**/*_properties_*.js");
       // We should now have all the files we want to concat so let's do it.
       Writer fos = new OutputStreamWriter(new FileOutputStream(outputFile), "UTF-8");
       int tempOutputDirPathLength = tempOutputDir.getAbsolutePath().length() + 1;
@@ -299,22 +299,26 @@ public abstract class AbstractCompilerMojo extends JangarooMojo {
     File outputDirectory = config.getOutputDirectory();
 
     // create output directory if it does not exist
-    if (!outputDirectory.exists())
-      if (!outputDirectory.mkdirs())
+    if (!outputDirectory.exists()) {
+      if (!outputDirectory.mkdirs()) {
         throw new MojoExecutionException("Failed to create output directory " + outputDirectory.getAbsolutePath());
+      }
+    }
 
     // create api output directory if it does not exist
     File apiOutputDirectory = getApiOutputDirectory();
-    if (apiOutputDirectory != null && !apiOutputDirectory.exists())
-      if (!apiOutputDirectory.mkdirs())
+    if (apiOutputDirectory != null && !apiOutputDirectory.exists()) {
+      if (!apiOutputDirectory.mkdirs()) {
         throw new MojoExecutionException("Failed to create api output directory " + apiOutputDirectory.getAbsolutePath());
+      }
+    }
 
     final List<File> sources = config.getSourceFiles();
 
     log.info("Compiling " + sources.size() +
-      " joo source file"
-      + (sources.size() == 1 ? "" : "s")
-      + " to " + outputDirectory);
+            " joo source file"
+            + (sources.size() == 1 ? "" : "s")
+            + " to " + outputDirectory);
 
     Jooc jooc = new Jooc(config, new AbstractCompileLog() {
       @Override
