@@ -8,14 +8,20 @@ import java.io.File;
 public class ExmlcException extends RuntimeException {
   private File source;
   private int line;
+  private int column;
 
   public ExmlcException(String message) {
     super(message);
   }
 
   public ExmlcException(String message, int line) {
+    this(message, line, -1);
+  }
+
+  public ExmlcException(String message, int line, int column) {
     super(message);
     setLine(line);
+    setColumn(column);
   }
 
   public ExmlcException(String message, Throwable t) {
@@ -35,6 +41,10 @@ public class ExmlcException extends RuntimeException {
     this.line = line;
   }
 
+  public void setColumn(int column) {
+    this.column = column;
+  }
+
   @Override
   public String toString() {
     StringBuilder builder = new StringBuilder();
@@ -45,7 +55,12 @@ public class ExmlcException extends RuntimeException {
         // Only show line number if the source is given. (They would be pretty useless otherwise.)
         builder.append(":");
         builder.append(line);
+        if(column != -1) {
+          builder.append(";");
+          builder.append(column);
+        }
       }
+
       builder.append("] ");
     }
     builder.append(super.toString());

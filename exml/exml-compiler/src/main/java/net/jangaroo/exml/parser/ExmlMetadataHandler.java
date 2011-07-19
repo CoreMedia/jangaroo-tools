@@ -6,6 +6,7 @@ import net.jangaroo.exml.model.ConfigAttribute;
 import net.jangaroo.exml.model.ConfigClass;
 import net.jangaroo.utils.CharacterRecordingHandler;
 import org.xml.sax.Attributes;
+import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
 
 import javax.xml.namespace.QName;
@@ -17,11 +18,17 @@ import java.util.LinkedList;
  */
 public class ExmlMetadataHandler extends CharacterRecordingHandler {
   private ConfigClass configClass;
+  private Locator locator;
 
   private Deque<QName> elementPath = new LinkedList<QName>();
 
   public ExmlMetadataHandler(ConfigClass configClass) {
     this.configClass = configClass;
+  }
+
+  @Override
+  public void setDocumentLocator(Locator locator) {
+    this.locator = locator;
   }
 
   public void startElement(String uri, String localName, String qName, Attributes atts) throws SAXException {
@@ -37,13 +44,12 @@ public class ExmlMetadataHandler extends CharacterRecordingHandler {
       }
     } else if (elementPath.size() == 1) {
       if (configClass.getSuperClassName() != null) {
-        // todo: line number
-        throw new ExmlcException("root node of EXML contained more than one component definition");
+        throw new ExmlcException("root node of EXML contained more than one component definition", locator.getLineNumber(), locator.getColumnNumber());
       }
 
       String thePackage = ExmlConstants.parsePackageFromNamespace(uri);
       if (thePackage == null) {
-        throw new ExmlcException("namespace '" + uri + "' of superclass element in EXML file does not denote a config package");
+        throw new ExmlcException("namespace '" + uri + "' of superclass element in EXML file does not denote a config package", locator.getLineNumber(), locator.getColumnNumber());
       }
       configClass.setSuperClassName(thePackage + "." + localName);
     }
