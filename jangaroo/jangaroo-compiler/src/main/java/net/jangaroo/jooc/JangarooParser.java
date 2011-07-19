@@ -97,7 +97,7 @@ public class JangarooParser {
       // message already logged in parser
       return null;
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      throw new IllegalArgumentException("could not parse Jangaroo source", e);
     }
   }
 

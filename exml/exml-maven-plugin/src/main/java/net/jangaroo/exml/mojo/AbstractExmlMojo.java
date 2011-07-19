@@ -114,7 +114,7 @@ public abstract class AbstractExmlMojo extends JangarooMojo {
   public abstract File getGeneratedResourcesDirectory();
 
   public File[] getImportedXsds() {
-    return importedXsds;
+    return importedXsds.clone();
   }
 
   public void execute() throws MojoExecutionException, MojoFailureException {

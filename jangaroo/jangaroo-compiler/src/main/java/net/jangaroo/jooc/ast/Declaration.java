@@ -184,7 +184,7 @@ public abstract class Declaration extends Statement {
   }
 
   public JooSymbol[] getSymInheritedModifiers() {
-    return symInheritedModifiers;
+    return symInheritedModifiers.clone();
   }
 
   public void setSymInheritedModifiers(JooSymbol[] symInheritedModifiers) {
@@ -200,6 +200,6 @@ public abstract class Declaration extends Statement {
   }
 
   public JooSymbol[] getSymModifiers() {
-    return symModifiers;
+    return symModifiers.clone();
   }
 }

@@ -7,7 +7,10 @@ import java.io.IOException;
  * Created by IntelliJ IDEA. User: fwienber Date: 05.07.11 Time: 09:24 To change this template use File | Settings |
  * File Templates.
  */
-public class CompilerUtils {
+public final class CompilerUtils {
+  // utility class, do not instantiate
+  private CompilerUtils() {}
+
   public static String qName(String packageName, String className) {
     return packageName.length() == 0 ? className : packageName + "." + className;
   }
@@ -49,7 +52,7 @@ public class CompilerUtils {
       }
       return null;
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      throw new IllegalArgumentException("could not determine qualified name from file; the strange file is called " + file + " in " + baseDirectory ,e);
     }
   }
 }

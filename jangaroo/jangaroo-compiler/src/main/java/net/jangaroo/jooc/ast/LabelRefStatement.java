@@ -39,7 +39,7 @@ public abstract class LabelRefStatement extends KeywordExprStatement {
   public void scope(final Scope scope) {
     super.scope(scope);
     if (getOptLabel() == null) {
-      Statement loopOrSwitchStatement = scope.getCurrentLoopOrSwitch();
+      Statement loopOrSwitchStatement = scope.getCurrentLoopOrSwitch(); // NOSONAR no, this is not a JDBC statement that must be closed ...
       if (loopOrSwitchStatement == null) {
         throw Jooc.error(this, "not inside loop or switch");
       }

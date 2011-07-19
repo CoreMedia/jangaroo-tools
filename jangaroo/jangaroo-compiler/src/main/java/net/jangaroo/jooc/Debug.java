@@ -44,7 +44,7 @@ public final class Debug {
 
   public static void assertTrue(boolean b, String s) {
     if (enabled && !b) {
-      throw new RuntimeException("Assertion failed: " + s);
+      throw new AssertionError("Assertion failed: " + s);
     }
   }
 
@@ -174,17 +174,6 @@ public final class Debug {
         System.out.print(x[i]);
       }
       System.out.println('}');
-    }
-  }
-
-  /**
-   * prints stack trace where you are
-   */
-  public static void printStackTrace() {
-    try {
-      throw new Exception();
-    } catch (Exception e) {
-      e.printStackTrace();
     }
   }
 }

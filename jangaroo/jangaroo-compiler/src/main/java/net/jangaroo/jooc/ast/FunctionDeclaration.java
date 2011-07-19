@@ -36,7 +36,7 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
   private boolean isConstructor = false;
   private boolean containsSuperConstructorCall = false;
 
-  private static final int DEFAULT_ALLOWED_METHOD_MODIFIERS =
+  private static final int DEFAULT_ALLOWED_METHOD_MODIFIERS = // NOSONAR there is no simpler way to tell it; we need all these flags
           MODIFIER_OVERRIDE | MODIFIER_ABSTRACT | MODIFIER_VIRTUAL | MODIFIER_FINAL | MODIFIERS_SCOPE | MODIFIER_STATIC | MODIFIER_NATIVE;
 
   public FunctionDeclaration(List<JooSymbol> modifiers, JooSymbol symFunction, JooSymbol symGetOrSet, Ide ide, JooSymbol lParen,

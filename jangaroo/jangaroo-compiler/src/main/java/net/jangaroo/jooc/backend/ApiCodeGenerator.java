@@ -173,7 +173,11 @@ public class ApiCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitObjectLiteral(ObjectLiteral objectLiteral) throws IOException {
-    throw new IllegalStateException("should only be called for compile time constants");
+    throw shouldOnlyBeCalledForCompileTimeConstants();
+  }
+
+  private IllegalStateException shouldOnlyBeCalledForCompileTimeConstants() {
+    return new IllegalStateException("should only be called for compile time constants");
   }
 
   @Override
@@ -183,17 +187,17 @@ public class ApiCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public <T extends Expr> void visitParenthesizedExpr(ParenthesizedExpr<T> parenthesizedExpr) throws IOException {
-    throw new IllegalStateException("should only be called for compile time constants");
+    throw shouldOnlyBeCalledForCompileTimeConstants();
   }
 
   @Override
   public void visitArrayLiteral(ArrayLiteral arrayLiteral) throws IOException {
-    throw new IllegalStateException("should only be called for compile time constants");
+    throw shouldOnlyBeCalledForCompileTimeConstants();
   }
 
   @Override
   public void visitAssignmentOpExpr(AssignmentOpExpr assignmentOpExpr) throws IOException {
-    throw new IllegalStateException("should only be called for compile time constants");
+    throw shouldOnlyBeCalledForCompileTimeConstants();
   }
 
   @Override
@@ -210,7 +214,7 @@ public class ApiCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitArrayIndexExpr(ArrayIndexExpr arrayIndexExpr) throws IOException {
-    throw new IllegalStateException("should only be called for compile time constants");
+    throw shouldOnlyBeCalledForCompileTimeConstants();
   }
 
   @Override
@@ -224,22 +228,22 @@ public class ApiCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitFunctionExpr(FunctionExpr functionExpr) throws IOException {
-    throw new IllegalStateException("should only be called for compile time constants");
+    throw shouldOnlyBeCalledForCompileTimeConstants();
   }
 
   @Override
   public void visitVectorLiteral(VectorLiteral vectorLiteral) throws IOException {
-    throw new IllegalStateException("should only be called for compile time constants");
+    throw shouldOnlyBeCalledForCompileTimeConstants();
   }
 
   @Override
   public void visitApplyExpr(ApplyExpr applyExpr) throws IOException {
-    throw new IllegalStateException("should only be called for compile time constants");
+    throw shouldOnlyBeCalledForCompileTimeConstants();
   }
 
   @Override
   public void visitNewExpr(NewExpr newExpr) throws IOException {
-    throw new IllegalStateException("should only be called for compile time constants");
+    throw shouldOnlyBeCalledForCompileTimeConstants();
   }
 
   @Override

@@ -47,6 +47,7 @@ import java.util.Random;
  */
 @SuppressWarnings({"UnusedDeclaration", "FieldCanBeLocal", "ResultOfMethodCallIgnored", "UnusedPrivateField"})
 public class JooTestMojo extends AbstractMojo {
+  private static final int MAX_JETTY_START_ATTEMPTS = 3;
 
   /**
    * The maven project.
@@ -56,13 +57,6 @@ public class JooTestMojo extends AbstractMojo {
    * @readonly
    */
   protected MavenProject project;
-  /**
-   * Location of Jangaroo resources of this module (including compiler output, usually under "joo/") to be added
-   * to the webapp. Defaults to ${project.build.outputDirectory}
-   *
-   * @parameter expression="${project.build.outputDirectory}"
-   */
-  private File outputDirectory;
   /**
    * Output directory for the jangaroo artifact unarchiver. All jangaroo dependencies will be unpacked into this
    * directory.
@@ -103,16 +97,6 @@ public class JooTestMojo extends AbstractMojo {
    * @parameter expression="${skipTests}"
    */
   protected boolean skipTests;
-
-  /**
-   * This is the list of projects currently slated to be built by Maven.
-   *
-   * @parameter expression="${reactorProjects}"
-   * @required
-   * @readonly
-   */
-  private List<MavenProject> projects;
-
 
   /**
    * Output directory for test results.
@@ -277,71 +261,50 @@ public class JooTestMojo extends AbstractMojo {
     }
   }
 
-
   private Server startJetty(Handler handler) throws MojoExecutionException {
-    Server server;
     if (jooUnitJettyPortUpperBound != jooUnitJettyPortLowerBound) {
+      int count = 0;
+
       Random r = new Random(System.currentTimeMillis());
-      int jooUnitJettyPort = r.nextInt(jooUnitJettyPortUpperBound - jooUnitJettyPortLowerBound) + jooUnitJettyPortLowerBound;
-
-      server = new Server(jooUnitJettyPort);
-      try {
-        server.setHandler(handler);
-        server.start();
-      } catch (Exception e) {
-        getLog().info("Failed starting Jetty on port " + jooUnitJettyPort + " failed. Retrying ...");
-        try {
-          server.stop();
-        } catch (Exception e1) {
-          getLog().error("Stopping Jetty failed. Never mind.");
-        }
-        jooUnitJettyPort = r.nextInt(jooUnitJettyPortUpperBound - jooUnitJettyPortLowerBound) + jooUnitJettyPortLowerBound;
-
-        server = new Server(jooUnitJettyPort);
+      while (true) {
+        int jooUnitJettyPort = r.nextInt(jooUnitJettyPortUpperBound - jooUnitJettyPortLowerBound) + jooUnitJettyPortLowerBound;
+        Server server = new Server(jooUnitJettyPort);
         try {
           server.setHandler(handler);
           server.start();
-        } catch (Exception e1) {
-          getLog().info("Failed starting Jetty on port " + jooUnitJettyPort + " failed. Retrying ...");
-          try {
-            server.stop();
-          } catch (Exception e2) {
-            getLog().error("Stopping Jetty failed. Never mind.");
+          return server;
+        } catch (Exception e) {
+          boolean retry = ++count < MAX_JETTY_START_ATTEMPTS;
+          if (retry) {
+            getLog().info(String.format("Failed starting Jetty on port %d failed. Retrying ...", jooUnitJettyPort));
+          } else {
+            getLog().error(String.format("Failed starting Jetty on port %d failed. Stop retrying!!", jooUnitJettyPort));
           }
-          jooUnitJettyPort = r.nextInt(jooUnitJettyPortUpperBound - jooUnitJettyPortLowerBound) + jooUnitJettyPortLowerBound;
-
-          server = new Server(jooUnitJettyPort);
-          try {
-            server.setHandler(handler);
-            server.start();
-          } catch (Exception e2) {
-            getLog().error("Failed starting Jetty on port " + jooUnitJettyPort + " failed. Stop retrying!!");
-            try {
-              server.stop();
-            } catch (Exception e3) {
-              getLog().error("Stopping Jetty failed. Never mind.");
-            }
+          stopServerIgnoreException(server);
+          if (!retry) {
             throw new MojoExecutionException("Cannot start jetty server");
           }
         }
       }
-
-
     } else {
-      server = new Server(jooUnitJettyPortLowerBound);
+      Server server = new Server(jooUnitJettyPortLowerBound);
       try {
         server.setHandler(handler);
         server.start();
       } catch (Exception e) {
         getLog().error("Failed starting Jetty on port " + jooUnitJettyPortLowerBound + " failed.");
-        try {
-          server.stop();
-        } catch (Exception e1) {
-          getLog().error("Stopping Jetty failed. Never mind.");
-        }
+        stopServerIgnoreException(server);
         throw new MojoExecutionException("Cannot start jetty server on port " + jooUnitJettyPortLowerBound);
       }
+      return server;
     }
-    return server;
+  }
+
+  private void stopServerIgnoreException(Server server) {
+    try {
+      server.stop();
+    } catch (Exception e1) {
+      getLog().error("Stopping Jetty failed. Never mind.");
+    }
   }
 }

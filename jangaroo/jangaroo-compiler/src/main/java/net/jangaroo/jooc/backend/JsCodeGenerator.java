@@ -85,7 +85,7 @@ import java.util.List;
  * a {@link net.jangaroo.jooc.JsWriter}.
  */
 public class JsCodeGenerator extends CodeGeneratorBase {
-  private static final JooSymbol SYM_VAR = new JooSymbol(sym.VAR, "var");
+  private static final JooSymbol SYM_VAR = new JooSymbol(sym.VAR, "var"); // NOSONAR introducing a constant for "var" would obscure the generated output
   private static final JooSymbol SYM_EQ = new JooSymbol(sym.EQ, "=");
   private static final JooSymbol SYM_SEMICOLON = new JooSymbol(sym.SEMICOLON, ";");
   private static final JooSymbol SYM_LBRACE = new JooSymbol(sym.LBRACE, "{");
@@ -651,10 +651,11 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       ArrayIndexExpr indexExpr = new ArrayIndexExpr(forInStatement.getExpr(), SYM_LBRACK,
               new CommaSeparatedList<IdeExpr>(new IdeExpr(forInStatement.getAuxIde())),
               SYM_RBRACK);
-      Statement assignment = new SemicolonTerminatedStatement(forInStatement.getDecl() != null
-              ? new VariableDeclaration(SYM_VAR, forInStatement.getDecl().getIde(), forInStatement.getDecl().getOptTypeRelation(), new Initializer(SYM_EQ, indexExpr))
-              : new AssignmentOpExpr(new IdeExpr(forInStatement.getIde()), SYM_EQ, indexExpr),
-              SYM_SEMICOLON);
+      Statement assignment = // NOSONAR no, this is not a JDBC statement that must be closed ...
+              new SemicolonTerminatedStatement(forInStatement.getDecl() != null
+                      ? new VariableDeclaration(SYM_VAR, forInStatement.getDecl().getIde(), forInStatement.getDecl().getOptTypeRelation(), new Initializer(SYM_EQ, indexExpr))
+                      : new AssignmentOpExpr(new IdeExpr(forInStatement.getIde()), SYM_EQ, indexExpr),
+                      SYM_SEMICOLON);
       // inject synthesized statement into loop body:
       // todo: maybe we should correct the AST earlier, not during code generation?
       if (forInStatement.getBody() instanceof BlockStatement) {

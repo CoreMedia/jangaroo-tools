@@ -19,6 +19,9 @@ public final class ExmlConstants {
   public static final String EXML_CFG_TYPE_ATTRIBUTE = "type";
   public static final String EXML_SUFFIX = ".exml";
 
+  // utility class, do not instantiate
+  private ExmlConstants() {}
+
   public static String parsePackageFromNamespace(String uri) {
     return uri.startsWith(EXML_CONFIG_URI_PREFIX) ? uri.substring(EXML_CONFIG_URI_PREFIX.length()) : null;
   }

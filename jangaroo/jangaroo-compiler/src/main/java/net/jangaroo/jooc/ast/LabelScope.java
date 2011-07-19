@@ -25,7 +25,7 @@ public class LabelScope extends ScopeImplBase {
 
   @Override
   public LoopStatement getCurrentLoop() {
-    Statement s = statement;
+    Statement s = statement; // NOSONAR no, this is not a JDBC statement that must be closed ...
     if (s instanceof LabeledStatement) {
       s = ((LabeledStatement) s).getStatement();
     }
@@ -37,7 +37,7 @@ public class LabelScope extends ScopeImplBase {
 
   @Override
   public Statement getCurrentLoopOrSwitch() {
-    Statement s = statement;
+    Statement s = statement; // NOSONAR no, this is not a JDBC statement that must be closed ...
     if (s instanceof LabeledStatement) {
       s = ((LabeledStatement) s).getStatement();
     }

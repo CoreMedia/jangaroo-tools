@@ -16,10 +16,13 @@ import java.util.regex.Pattern;
  * and returns a Reader for the included file.
  * It can handle relative paths and line ranges.
  */
-public class IncludeEvaluator {
+public final class IncludeEvaluator {
 
   private static final int BEGIN_INDEX = "include \"".length();
   private static final Pattern FILENAME_WITH_LINE_RANGE_PATTERN = Pattern.compile("^(.*):([0-9]+),([0-9]+)$");
+
+  // utility class, do not instantiate
+  private IncludeEvaluator() {}
 
   public static Reader createReader(String includeDirective, InputSource source) throws IOException {
     String filename = includeDirective.substring(BEGIN_INDEX, includeDirective.length() - 1);

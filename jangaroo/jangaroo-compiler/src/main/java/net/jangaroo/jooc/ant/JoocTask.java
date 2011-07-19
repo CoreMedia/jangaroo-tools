@@ -303,7 +303,7 @@ public class JoocTask extends MatchingTask {
    * @return the list of files to be compiled
    */
   public File[] getFileList() {
-    return compileList;
+    return compileList.clone();
   }
 
   /**
