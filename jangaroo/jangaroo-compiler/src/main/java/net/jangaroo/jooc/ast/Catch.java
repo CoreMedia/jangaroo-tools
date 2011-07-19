@@ -87,6 +87,9 @@ public class Catch extends KeywordStatement {
 
   public void analyze(AstNode parentNode) {
     super.analyze(parentNode);
+    if (!(parentNode instanceof TryStatement)) {
+      throw new IllegalArgumentException("the parent node of a catch block must be a try statement, but is " + parentNode);
+    }
     this.parentNode = (TryStatement) parentNode;
     param.analyze(this);
     TypeRelation typeRelation = param.getOptTypeRelation();

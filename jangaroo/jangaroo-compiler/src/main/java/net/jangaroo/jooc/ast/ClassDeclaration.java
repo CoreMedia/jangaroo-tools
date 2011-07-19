@@ -242,7 +242,7 @@ public class ClassDeclaration extends IdeDeclaration {
 
   public void addInitIfClass(Ide ide) {
     final IdeDeclaration decl = ide.getDeclaration(false);
-    if (decl != null && decl != this && decl instanceof ClassDeclaration) {
+    if (decl instanceof ClassDeclaration) {
       classInit.add(decl.getQualifiedNameStr());
     }
   }

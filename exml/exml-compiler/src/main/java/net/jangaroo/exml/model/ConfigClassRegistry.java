@@ -44,22 +44,12 @@ public final class ConfigClassRegistry {
     InputSource classPathInputSource = PathInputSource.fromFiles(config.getClassPath(),
       new String[]{"", JangarooParser.JOO_API_IN_JAR_DIRECTORY_PREFIX});
 
-    ParserOptions parserOptions = new ParserOptions() {
-      @Override
-      public SemicolonInsertionMode getSemicolonInsertionMode() {
-        return SemicolonInsertionMode.QUIRKS;
-      }
-
-      @Override
-      public boolean isVerbose() {
-        return false;
-      }
-    };
+    ParserOptions parserOptions = new CCRParserOptions();
     jangarooParser = new JangarooParser(parserOptions, new StdOutCompileLog()) {
       @Override
       protected InputSource findSource(String qname) {
         InputSource inputSource = super.findSource(qname);
-        if (inputSource != null && inputSource instanceof FileInputSource && !((FileInputSource)inputSource).getSourceDir().equals(config.getOutputDirectory())) {
+        if (inputSource instanceof FileInputSource && !((FileInputSource)inputSource).getSourceDir().equals(config.getOutputDirectory())) {
           // A regular source file (not a generated file) has been found. Use it.
           return inputSource;
         }
@@ -204,5 +194,17 @@ public final class ConfigClassRegistry {
   private ConfigClass buildConfigClass(CompilationUnit compilationUnit) {
     ConfigClassBuilder configClassBuilder = new ConfigClassBuilder(compilationUnit);
     return configClassBuilder.buildConfigClass();
+  }
+
+  private static class CCRParserOptions implements ParserOptions {
+    @Override
+    public SemicolonInsertionMode getSemicolonInsertionMode() {
+      return SemicolonInsertionMode.QUIRKS;
+    }
+
+    @Override
+    public boolean isVerbose() {
+      return false;
+    }
   }
 }

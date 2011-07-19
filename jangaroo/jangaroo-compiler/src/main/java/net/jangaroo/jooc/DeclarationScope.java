@@ -38,7 +38,7 @@ import java.util.Set;
 /**
  * @author Andreas Gawecki
  */
-public class DeclarationScope extends ScopeImplBase implements Scope {
+public class DeclarationScope extends ScopeImplBase {
 
   protected AstNode definingNode;
   private Set<String> packages = new HashSet<String>();

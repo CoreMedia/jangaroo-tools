@@ -84,7 +84,7 @@ import java.util.List;
  * A visitor of the AST that generates executable JavaScript code on
  * a {@link net.jangaroo.jooc.JsWriter}.
  */
-public class JsCodeGenerator extends CodeGeneratorBase implements AstVisitor {
+public class JsCodeGenerator extends CodeGeneratorBase {
   private static final JooSymbol SYM_VAR = new JooSymbol(sym.VAR, "var");
   private static final JooSymbol SYM_EQ = new JooSymbol(sym.EQ, "=");
   private static final JooSymbol SYM_SEMICOLON = new JooSymbol(sym.SEMICOLON, ";");

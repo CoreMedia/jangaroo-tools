@@ -182,15 +182,17 @@ public class FunctionExpr extends Expr {
       // if "this" is used inside non-static method, remember that:
       if (methodDeclaration != null && !methodDeclaration.isStatic()) {
         thisUsed = true;
-        methodDeclaration.getBody().addBlockStartCodeGenerator(new CodeGenerator() {
-          @Override
-          public void generate(final JsWriter out) throws IOException {
-            out.write("var this$=this;");
-          }
-        });
+        methodDeclaration.getBody().addBlockStartCodeGenerator(new DeclareThisDollarCodeGenerator());
         return true;
       }
     }
     return thisUsed;
+  }
+
+  private static class DeclareThisDollarCodeGenerator implements CodeGenerator {
+    @Override
+    public void generate(final JsWriter out) throws IOException {
+      out.write("var this$=this;");
+    }
   }
 }

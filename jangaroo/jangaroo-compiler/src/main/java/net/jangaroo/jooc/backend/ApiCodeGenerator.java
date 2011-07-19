@@ -71,7 +71,7 @@ import java.io.IOException;
  * a {@link net.jangaroo.jooc.JsWriter}. The reduced code can then be run through
  * the asdoc tool.
  */
-public class ApiCodeGenerator extends CodeGeneratorBase implements AstVisitor {
+public class ApiCodeGenerator extends CodeGeneratorBase {
 
   public ApiCodeGenerator(JsWriter out) {
     super(out);
