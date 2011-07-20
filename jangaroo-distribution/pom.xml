@@ -90,12 +90,6 @@
   <build>
     <plugins>
       <plugin>
-        <groupId>net.jangaroo</groupId>
-        <artifactId>jangaroo-maven-plugin</artifactId>
-        <extensions>true</extensions>
-        <version>${project.version}</version>
-      </plugin>
-      <plugin>
         <artifactId>maven-dependency-plugin</artifactId>
         <version>2.1</version>
         <executions>
