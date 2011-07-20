@@ -10,7 +10,7 @@ public class StandardOutLogHandler extends AbstractLogHandler {
 
   public void error(String message, Exception exception) {
     error(message);
-    exception.printStackTrace();
+    exception.printStackTrace(System.err); // NOSONAR dear Sonar, this *is* a log, we did not forget to use a log
   }
 
   public void error(String message) {

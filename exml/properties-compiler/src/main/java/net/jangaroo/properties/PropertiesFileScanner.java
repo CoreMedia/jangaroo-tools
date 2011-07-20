@@ -6,6 +6,7 @@ package net.jangaroo.properties;
 import net.jangaroo.properties.model.LocalizationSuite;
 import net.jangaroo.properties.model.PropertiesClass;
 import net.jangaroo.properties.model.ResourceBundleClass;
+import net.jangaroo.utils.log.Log;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.maven.shared.model.fileset.util.FileSetManager;
@@ -18,7 +19,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.Locale;
-import java.util.Properties;
 
 public final class PropertiesFileScanner {
 
@@ -40,14 +40,14 @@ public final class PropertiesFileScanner {
       String className = FileUtils.removeExtension(srcFile.getName());
 
       Locale locale;
-      if (className.indexOf("_") != -1) {
-        String localeString = className.substring(className.indexOf("_") + 1, className.length());
-        if(localeString.indexOf("_") != -1) {
-          String lang = localeString.substring(0, localeString.indexOf("_"));
+      if (className.indexOf('_') != -1) {
+        String localeString = className.substring(className.indexOf('_') + 1, className.length());
+        if(localeString.indexOf('_') != -1) {
+          String lang = localeString.substring(0, localeString.indexOf('_'));
           String countr = localeString.substring(lang.length()+1, localeString.length());
-          if(countr.indexOf("_") != -1) {
-            String var = countr.substring(countr.indexOf("_") + 1, countr.length());
-            countr = countr.substring(0, countr.indexOf("_"));
+          if(countr.indexOf('_') != -1) {
+            String var = countr.substring(countr.indexOf('_') + 1, countr.length());
+            countr = countr.substring(0, countr.indexOf('_'));
             locale = new Locale(lang, countr, var);
           } else {
             locale = new Locale(lang,countr);
@@ -55,7 +55,7 @@ public final class PropertiesFileScanner {
         } else {
           locale = new Locale(localeString);
         }
-        className = className.substring(0, className.indexOf("_"));
+        className = className.substring(0, className.indexOf('_'));
       } else {
         locale = null;
       }
@@ -80,7 +80,7 @@ public final class PropertiesFileScanner {
       try {
         p.load(r);
       } catch (ConfigurationException e) {
-        e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        Log.e("error while reading " + srcFile, e);
       } finally {
         r.close();
       }

@@ -81,7 +81,7 @@ public class JangarooParser {
     try {
       s = new Scanner(new InputStreamReader(new BOMStripperInputStream(in.getInputStream()), "UTF-8"));
     } catch (IOException e) {
-      throw new CompilerError("Cannot read input file: " + in.getPath());
+      throw new CompilerError("Cannot read input file: " + in.getPath(), e);
     }
     s.setInputSource(in);
     parser p = new parser(s);

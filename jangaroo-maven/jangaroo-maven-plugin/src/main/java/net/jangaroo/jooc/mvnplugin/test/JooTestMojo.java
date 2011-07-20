@@ -217,7 +217,9 @@ public class JooTestMojo extends AbstractMojo {
           evalTestOutput(testResultXml);
           File result = new File(testResultOutputDirectory, "TEST-" + project.getArtifactId() + ".xml");
           FileUtils.writeStringToFile(result, testResultXml);
-          result.setLastModified(System.currentTimeMillis());
+          if (!result.setLastModified(System.currentTimeMillis())) {
+            getLog().warn("could not set modification time of file " + result);
+          }
         } catch (IOException e) {
           throw new MojoExecutionException("Cannot write test results to file", e);
         } catch (ParserConfigurationException e) {
@@ -282,7 +284,7 @@ public class JooTestMojo extends AbstractMojo {
           }
           stopServerIgnoreException(server);
           if (!retry) {
-            throw new MojoExecutionException("Cannot start jetty server");
+            throw new MojoExecutionException("Cannot start jetty server", e);
           }
         }
       }
@@ -294,7 +296,7 @@ public class JooTestMojo extends AbstractMojo {
       } catch (Exception e) {
         getLog().error("Failed starting Jetty on port " + jooUnitJettyPortLowerBound + " failed.");
         stopServerIgnoreException(server);
-        throw new MojoExecutionException("Cannot start jetty server on port " + jooUnitJettyPortLowerBound);
+        throw new MojoExecutionException("Cannot start jetty server on port " + jooUnitJettyPortLowerBound, e);
       }
       return server;
     }

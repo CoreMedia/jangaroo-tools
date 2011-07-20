@@ -127,7 +127,7 @@ public class ConfigClassBuilder extends AstVisitorBase {
               try {
                 type = ConfigClassType.valueOf(typeString);
               } catch (IllegalArgumentException e) {
-                throw new CompilerError(symbol, "The " + TYPE_ANNOTATION_PARAMETER_NAME + " parameter of an [" + EXT_CONFIG_META_NAME + "] annotation must be a valid type ('component', 'plugin', 'action'), but is '" + typeString + "'.");
+                throw new CompilerError(symbol, "The " + TYPE_ANNOTATION_PARAMETER_NAME + " parameter of an [" + EXT_CONFIG_META_NAME + "] annotation must be a valid type ('component', 'plugin', 'action'), but is '" + typeString + "'.", e);
               }
             }
           }

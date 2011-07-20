@@ -272,7 +272,9 @@ public abstract class AbstractCompilerMojo extends JangarooMojo {
 
       if (!outputFileDirectory.exists()) {
         //noinspection ResultOfMethodCallIgnored
-        outputFileDirectory.mkdirs();
+        if (outputFileDirectory.mkdirs()) {
+          log.debug("created output directory " + outputFileDirectory);
+        }
       }
 
       @SuppressWarnings({"unchecked"})
@@ -291,7 +293,7 @@ public abstract class AbstractCompilerMojo extends JangarooMojo {
       }
       fos.close();
     } catch (IOException e) {
-      throw new MojoExecutionException(e.toString());
+      throw new MojoExecutionException("could not build output file " + outputFile + ": " + e.toString(), e);
     }
   }
 

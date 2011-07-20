@@ -208,8 +208,8 @@ public abstract class AbstractExmlMojo extends JangarooMojo {
   }
 
   class MavenLogHandler implements LogHandler {
-    ArrayList<String> errors = new ArrayList<String>();
-    ArrayList<String> warnings = new ArrayList<String>();
+    List<String> errors = new ArrayList<String>();
+    List<String> warnings = new ArrayList<String>();
     Exception lastException;
     String exceptionMsg;
     File currentFile;

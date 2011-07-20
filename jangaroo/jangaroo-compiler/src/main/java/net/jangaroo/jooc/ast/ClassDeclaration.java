@@ -24,6 +24,7 @@ import net.jangaroo.jooc.Scope;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -280,7 +281,7 @@ public class ClassDeclaration extends IdeDeclaration {
     return resolvePropertyDeclaration1(ide, this, new HashSet<ClassDeclaration>(), new LinkedList<ClassDeclaration>());
   }
 
-  private IdeDeclaration resolvePropertyDeclaration1(String ide, ClassDeclaration classDecl, Set<ClassDeclaration> visited, LinkedList<ClassDeclaration> chain) {
+  private IdeDeclaration resolvePropertyDeclaration1(String ide, ClassDeclaration classDecl, Set<ClassDeclaration> visited, Deque<ClassDeclaration> chain) {
     if (visited.contains(classDecl)) {
       if (chain.contains(classDecl)) {
         throw new CompilerError(classDecl.getSymbol(), "cyclic superclass chain");
@@ -312,7 +313,7 @@ public class ClassDeclaration extends IdeDeclaration {
   private IdeDeclaration resolvePropertyInSuper(final String ide,
                                                 final ClassDeclaration classDecl,
                                                 final Set<ClassDeclaration> visited,
-                                                final LinkedList<ClassDeclaration> chain,
+                                                final Deque<ClassDeclaration> chain,
                                                 final Ide superIde) {
     IdeDeclaration superClassDecl = superIde.getDeclaration();
     if (superClassDecl != null) {

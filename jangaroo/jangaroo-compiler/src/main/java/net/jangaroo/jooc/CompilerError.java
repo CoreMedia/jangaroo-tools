@@ -1,11 +1,8 @@
 package net.jangaroo.jooc;
 
 /**
- * Created by IntelliJ IDEA.
- * User: okummer
- * Date: 01.07.11
- * Time: 15:07
- * To change this template use File | Settings | File Templates.
+ * An error that occurred during the compilation of Jangaroo sources.
+ * If appropriate, a parser symbol is provided to indicate where the error was detected.
  */
 public class CompilerError extends RuntimeException {
   private JooSymbol symbol = null;
@@ -20,6 +17,11 @@ public class CompilerError extends RuntimeException {
 
   public CompilerError(JooSymbol symbol, String msg) {
     super(msg);
+    this.symbol = symbol;
+  }
+
+  public CompilerError(JooSymbol symbol, String msg, Throwable rootCause) {
+    super(msg, rootCause);
     this.symbol = symbol;
   }
 

@@ -89,7 +89,9 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
    * @throws org.apache.maven.plugin.MojoExecutionException if anything goes wrong
    */
   protected void createWebapp(File webappDirectory) throws MojoExecutionException {
-    webappDirectory.mkdirs();
+    if (webappDirectory.mkdirs()) {
+      getLog().debug("created webapp directory " + webappDirectory);
+    }
 
     try {
       unpack(webappDirectory);
@@ -126,7 +128,9 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
   public void unpack(Artifact artifact, File target)
       throws ArchiverException {
     unarchiver.setSourceFile(artifact.getFile());
-    target.mkdirs();
+    if (target.mkdirs()) {
+      getLog().debug("created unarchiver target directory " + target);
+    }
     unarchiver.setDestDirectory(target);
     unarchiver.setOverwrite(false);
     try {
@@ -229,7 +233,9 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
 
   private Writer createJangarooModulesFile(File scriptDirectory) throws IOException {
     //noinspection ResultOfMethodCallIgnored
-    scriptDirectory.mkdirs();
+    if (scriptDirectory.mkdirs()) {
+      getLog().debug("created script output directory " + scriptDirectory);
+    }
     File f = new File(scriptDirectory, "jangaroo-application.js");
     getLog().info("Creating Jangaroo application script '" + f.getAbsolutePath() + "'.");
     return new OutputStreamWriter(new FileOutputStream(f), "UTF-8");

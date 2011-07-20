@@ -6,6 +6,7 @@ import net.jangaroo.jooc.util.IncludeEvaluator;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.HashMap;
+import java.util.Map;
 
 public abstract class ScannerBase implements sym {
 
@@ -17,7 +18,7 @@ public abstract class ScannerBase implements sym {
   protected JooSymbol pushedBackToken;
 
   // error reporting:
-  protected final static HashMap<Integer, String> symbolMap = new java.util.HashMap<Integer, String>(50);
+  protected final static Map<Integer, String> symbolMap = new HashMap<Integer, String>(50);
 
   protected int vectorNestingLevel = 0;
 
@@ -74,7 +75,7 @@ public abstract class ScannerBase implements sym {
   }
 
   public String getSymbolAbbreviation(int sym) {
-    String value = symbolMap.get(Integer.valueOf(sym));
+    String value = symbolMap.get(sym);
     if (value != null) {
       return "'" + value + "'";
     }

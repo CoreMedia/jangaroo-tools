@@ -15,11 +15,11 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
 import org.apache.maven.shared.model.fileset.FileSet;
-import org.apache.maven.shared.model.fileset.util.FileSetManager;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Mojo to compile properties files to ActionScript3 files
@@ -107,8 +107,8 @@ public class PropertiesMojo extends AbstractMojo {
 
   }
   class MavenLogHandler implements LogHandler {
-    ArrayList<String> errors = new ArrayList<String>();
-    ArrayList<String> warnings = new ArrayList<String>();
+    List<String> errors = new ArrayList<String>();
+    List<String> warnings = new ArrayList<String>();
     Exception lastException;
     String exceptionMsg;
     File currentFile;

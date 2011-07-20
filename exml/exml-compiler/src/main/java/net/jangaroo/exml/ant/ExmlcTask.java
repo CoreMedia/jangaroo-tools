@@ -201,7 +201,7 @@ public class ExmlcTask extends MatchingTask {
         log(e.getMessage(), Project.MSG_ERR);
         throw new BuildException(FAIL_MSG, e, getLocation());
       } else {
-        e.printStackTrace();
+        e.printStackTrace(); // NOSONAR sorry, this is Ant, we do not have a proper log
         log(FAIL_MSG + " Exception: " + e, Project.MSG_ERR);
       }
     }

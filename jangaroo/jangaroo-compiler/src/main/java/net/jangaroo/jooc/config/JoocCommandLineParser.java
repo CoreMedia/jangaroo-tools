@@ -30,6 +30,11 @@ public class JoocCommandLineParser {
       this.exitCode = exitCode;
     }
 
+    public CommandLineParseException(String message, int exitCode, Throwable cause) {
+      super(message, cause);
+      this.exitCode = exitCode;
+    }
+
     public int getExitCode() {
       return exitCode;
     }
@@ -95,11 +100,11 @@ public class JoocCommandLineParser {
     try {
       line = parser.parse(options, argv);
     } catch (UnrecognizedOptionException e) {
-      throw new CommandLineParseException(e.getMessage(), Jooc.RESULT_CODE_UNRECOGNIZED_OPTION);
+      throw new CommandLineParseException(e.getMessage(), Jooc.RESULT_CODE_UNRECOGNIZED_OPTION, e);
     } catch (MissingArgumentException e) {
-      throw new CommandLineParseException(e.getMessage(), Jooc.RESULT_CODE_MISSING_OPTION_ARGUMENT);
+      throw new CommandLineParseException(e.getMessage(), Jooc.RESULT_CODE_MISSING_OPTION_ARGUMENT, e);
     } catch (ParseException e) {
-      throw new CommandLineParseException(e.getMessage(), Jooc.RESULT_CODE_UNRECOGNIZED_OPTION);
+      throw new CommandLineParseException(e.getMessage(), Jooc.RESULT_CODE_UNRECOGNIZED_OPTION, e);
     }
 
     if (line.hasOption("help")) {
@@ -126,7 +131,7 @@ public class JoocCommandLineParser {
       try {
         config.setSourcePath(sp);
       } catch (IOException e) {
-        throw new CommandLineParseException("could not canonicalize source path: " + sp, Jooc.RESULT_CODE_ILLEGAL_OPTION_VALUE);
+        throw new CommandLineParseException("could not canonicalize source path: " + sp, Jooc.RESULT_CODE_ILLEGAL_OPTION_VALUE, e);
       }
     }
     if (cp != null) {

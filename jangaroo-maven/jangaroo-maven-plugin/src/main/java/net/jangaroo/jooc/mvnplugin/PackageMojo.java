@@ -144,7 +144,9 @@ public class PackageMojo extends AbstractMojo {
     File moduleJsFile = getModuleJsFile();
     File moduleJsDir = moduleJsFile.getParentFile();
     if (moduleJsDir != null) {
-      moduleJsDir.mkdirs();
+      if (moduleJsDir.mkdirs()) {
+        getLog().debug("created module output directory " + moduleJsDir);
+      }
     }
     getLog().info("Creating Jangaroo module classes loader script '" + moduleJsFile.getAbsolutePath() + "'.");
     OutputStreamWriter writer = null;
