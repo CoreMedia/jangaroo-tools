@@ -121,7 +121,6 @@ public class JooClassDeclaration extends NativeClassDeclaration {
       this.publicConstructor["superclass"] = Super.prototype; // Ext Core compatibility!
     }
     this.Public = NativeClassDeclaration.createEmptyConstructor(this.publicConstructor.prototype);
-    initTypes();
   }
 
   internal function initMembers() : void {
@@ -289,6 +288,7 @@ public class JooClassDeclaration extends NativeClassDeclaration {
     for (var j:int = 0; j < interfaces.length; j++) {
       interfaces[j] = classLoader.getRequiredClassDeclaration(interfaces[j]).init();
     }
+    initTypes();
     this.initMembers();
     for (var i:int=0; i<this.staticInitializers.length; ++i) {
       var staticInitializer : * = this.staticInitializers[i];

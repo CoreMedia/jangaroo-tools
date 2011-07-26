@@ -484,8 +484,11 @@ public class JooTest extends JooRuntimeTestCase {
 
   public void testIs() throws Exception {
     import_("package1.TestIs");
+    import_("package1.TestImplementsSubInterface");
     complete();
     expectBoolean(true, "package1.TestIs.testIs(new package1.TestIs(), package1.TestIs)");
+    expectBoolean(true, "package1.TestIs.testIs(new package1.TestImplementsSubInterface(), package1.TestSubInterface)");
+    expectBoolean(true, "package1.TestIs.testIs(new package1.TestImplementsSubInterface(), package1.TestInterface)");
     expectBoolean(false, "package1.TestIs.testIs(new package1.TestIs(), String)");
     expectBoolean(true, "package1.TestIs.testIs('foo', String)");
     expectBoolean(true, "package1.TestIs.testIs(new String('foo'), String)");

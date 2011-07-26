@@ -76,12 +76,17 @@ public class NativeClassDeclaration {
 
   protected function initTypes():void {
     var types:Object = superClassDeclaration ? new superClassDeclaration.Types() : {};
-    types[fullClassName] = true;
-    for (var i:int = 0; i < interfaces.length; i++) {
-      types[interfaces[i]] = true;
-    }
+    initInterfaceTypes(types);
     Types = Class(function():void {});
     Types.prototype = types;
+  }
+
+  internal function initInterfaceTypes(types:Object):void {
+    types[fullClassName] = true;
+    for (var i:int = 0; i < interfaces.length; i++) {
+      var interface_:NativeClassDeclaration = interfaces[i];
+      interface_.initInterfaceTypes(types);
+    }
   }
 
   private static var initializationDepth:String = "";
