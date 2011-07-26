@@ -76,7 +76,7 @@
       var classDeclaration = object.constructor["$class"];
       var typeDeclaration = type["$class"];
       if (classDeclaration && typeDeclaration) {
-        return !!classDeclaration.Types.prototype[typeDeclaration.fullClassName];
+        return typeDeclaration.fullClassName in classDeclaration.Types.prototype;
       }
       return false;
     };
