@@ -312,25 +312,15 @@ public class JooClassDeclaration extends NativeClassDeclaration {
     return this.dependencies;
   }
 
-  private static const DELEGATING_CONSTRUCTOR_BY_ARITY:Object = {};
-
-  private static function getDelegatingConstructor(arity:int):Function {
-    var delegatingConstructor:Function = DELEGATING_CONSTRUCTOR_BY_ARITY[arity];
-    if (!delegatingConstructor) {
-      var argExprs:Array = new Array(arity);
-      for (var i:int = 0; i < arity; i++) {
-        argExprs[i] = "args[" + i + "]";
-      }
-      DELEGATING_CONSTRUCTOR_BY_ARITY[arity] = delegatingConstructor = new Function("type,args", "return new type(" + argExprs.join(",") + ");");
-    }
-    return delegatingConstructor;
-  }
-
   private static function createInitializingConstructor(classDeclaration : JooClassDeclaration) : Function {
     return function() : Object {
       classDeclaration.init();
+      // create an uninitialized Object with the correct prototype chain:
+      var instance:Object = new classDeclaration.Public();
+      // now, apply the constructor to that Object.
       // classDeclaration.constructor_ must have been set, at least to a default constructor:
-      return getDelegatingConstructor(arguments.length)(classDeclaration.constructor_, arguments);
+      classDeclaration.constructor_.apply(instance, arguments);
+      return instance;
     };
   }
 
