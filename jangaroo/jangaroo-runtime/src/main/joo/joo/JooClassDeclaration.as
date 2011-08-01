@@ -114,13 +114,8 @@ public class JooClassDeclaration extends NativeClassDeclaration {
   internal override function doComplete() : void {
     this.superClassDeclaration = classLoader.getRequiredClassDeclaration(this.extends_);
     this.superClassDeclaration.complete();
-    var Super : Function = this.superClassDeclaration.Public;
-    if (!this.native_) {
-      this.publicConstructor.prototype = new Super();
-      this.publicConstructor.prototype['constructor'] = this.publicConstructor;
-      this.publicConstructor["superclass"] = Super.prototype; // Ext Core compatibility!
-    }
-    this.Public = NativeClassDeclaration.createEmptyConstructor(this.publicConstructor.prototype);
+    var proto:Object = this.native_ ? null : new (this.superClassDeclaration.Public)();
+    this.Public = NativeClassDeclaration.createEmptyConstructor(proto);
   }
 
   internal function initMembers() : void {
@@ -178,11 +173,12 @@ public class JooClassDeclaration extends NativeClassDeclaration {
       if (!superClassDeclaration.constructor_) {
         throw new Error("Class " + fullClassName + " extends " + superClassDeclaration.fullClassName + " whose constructor is not defined!");
       }
+      // TODO: only add "super$..." for backwards compatibility!
       Public.prototype["super$" + level] = superClassDeclaration.constructor_;
       if (!this.constructor_) {
         // no explicit constructor found
         // generate constructor invoking super() and initialize it from the "collecting" constructor:
-        _setConstructor(createSuperConstructor(level));
+        _setConstructor(createSuperConstructor(this));
       }
     }
   }
@@ -200,14 +196,15 @@ public class JooClassDeclaration extends NativeClassDeclaration {
       constructor_['superclass'] = superClassDeclaration.Public.prototype; // Ext Core compatibility!
     }
     constructor_.prototype = Public.prototype;
+    // TODO: overwrite 'constructor' explicitly only if not inheriting from "JavaScriptObject"!
     constructor_.prototype['constructor'] = constructor_;
     // replace initializing constructor by the real one:
     package_[className] = this.constructor_ = constructor_;
   }
 
-  private static function createSuperConstructor(level:int):Function {
+  private static function createSuperConstructor(classDeclaration:JooClassDeclaration):Function {
     return function generatedConstructor$():void {
-      this['super$' + level]();
+      classDeclaration.superClassDeclaration.constructor_.call(this);
     };
   }
 
@@ -315,11 +312,25 @@ public class JooClassDeclaration extends NativeClassDeclaration {
     return this.dependencies;
   }
 
+  private static const DELEGATING_CONSTRUCTOR_BY_ARITY:Object = {};
+
+  private static function getDelegatingConstructor(arity:int):Function {
+    var delegatingConstructor:Function = DELEGATING_CONSTRUCTOR_BY_ARITY[arity];
+    if (!delegatingConstructor) {
+      var argExprs:Array = new Array(arity);
+      for (var i:int = 0; i < arity; i++) {
+        argExprs[i] = "args[" + i + "]";
+      }
+      DELEGATING_CONSTRUCTOR_BY_ARITY[arity] = delegatingConstructor = new Function("type,args", "return new type(" + argExprs.join(",") + ");");
+    }
+    return delegatingConstructor;
+  }
+
   private static function createInitializingConstructor(classDeclaration : JooClassDeclaration) : Function {
-    return function() : void {
+    return function() : Object {
       classDeclaration.init();
       // classDeclaration.constructor_ must have been set, at least to a default constructor:
-      classDeclaration.constructor_.apply(this, arguments);
+      return getDelegatingConstructor(arguments.length)(classDeclaration.constructor_, arguments);
     };
   }
 

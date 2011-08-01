@@ -22,7 +22,9 @@ public class NativeClassDeclaration {
 
   internal static function createEmptyConstructor(prototype_ : Object) : Function {
     var emptyConstructor : Function = function() : void {};
-    emptyConstructor.prototype =  prototype_;
+    if (prototype_) {
+      emptyConstructor.prototype = prototype_;
+    }
     return emptyConstructor;
   }
 

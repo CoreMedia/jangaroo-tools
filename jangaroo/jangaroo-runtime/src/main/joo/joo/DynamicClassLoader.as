@@ -74,7 +74,7 @@ public class DynamicClassLoader extends StandardClassLoader {
     this.onCompleteCallbacks = [];
     // "invoke later":
     getQualifiedObject("setTimeout")(function() : void {
-      completeAll();
+      initNativeClasses();
       internalDoCompleteCallbacks(onCompleteCallbacks);
     }, 0);
   }

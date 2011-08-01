@@ -95,16 +95,15 @@ public class StandardClassLoader extends SystemClassLoader {
    * @return void
    */
   public function complete(onCompleteCallback : Function = undefined) : void {
-    this.completeAll();
+    this.initNativeClasses();
     if (onCompleteCallback) {
       this.doCompleteCallbacks([onCompleteCallback]);
     }
   }
 
-  protected function completeAll() : void {
+  protected function initNativeClasses() : void {
     for (var i:int = 0; i < classDeclarations.length; i++) {
       var classDeclaration:JooClassDeclaration = classDeclarations[i];
-      classDeclaration.complete();
       // init native class patches immediately:
       if (classDeclaration.isNative()) {
         classDeclaration.init();
