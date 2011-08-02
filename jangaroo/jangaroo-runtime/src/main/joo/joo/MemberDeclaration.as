@@ -194,9 +194,9 @@ public class MemberDeclaration {
       return target.hasOwnProperty(this.slot);
     }
     var value : * = this.retrieveMember(target);
-    if (value!==undefined && target.constructor) {
+    if (value!==undefined && target) {
       // is it really target's own member? Retrieve super's value:
-      var superTarget : Object = target.constructor.prototype;
+      var superTarget : Object = Object.getPrototypeOf(target);
       var superValue : * = this.retrieveMember(superTarget);
       if (value!==superValue) {
         return true;
@@ -236,7 +236,7 @@ public class MemberDeclaration {
         return propertyDescriptor;
       }
       var oldTarget:Object = target;
-      target = target.constructor ? target.constructor['superclass'] || target.constructor.prototype : null;
+      target = Object.getPrototypeOf(target);
     } while (target && target !== oldTarget);
     return undefined;
   }
@@ -259,7 +259,7 @@ public class MemberDeclaration {
           var oppositeMethodType:* = this.getterOrSetter==METHOD_TYPE_GET ? METHOD_TYPE_SET : METHOD_TYPE_GET;
           var counterpart : Function = target[LOOKUP_METHOD[oppositeMethodType]](slot);
           // if counterpart is defined, check that it is not overridden (differs from prototype's counterpart):
-          if (counterpart && counterpart===target.constructor.prototype[LOOKUP_METHOD[oppositeMethodType]](slot)) {
+          if (counterpart && counterpart===Object.getPrototypeOf(target)[LOOKUP_METHOD[oppositeMethodType]](slot)) {
             // set the counterpart directly on target. This may be redundant, but we cannot find out.
             target[DEFINE_METHOD[oppositeMethodType]](slot, counterpart);
           }

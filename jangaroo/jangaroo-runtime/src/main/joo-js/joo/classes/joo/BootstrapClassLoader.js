@@ -1,6 +1,15 @@
 (function(theGlobalObject){
   // define alias "js" for the top-level package, so that name-clashes in AS3 can be resolved:
   theGlobalObject.js = theGlobalObject;
+  // define Object.getPrototypeOf() if not already defined:
+  if (!Object.getPrototypeOf) {
+    Object.getPrototypeOf = function getPrototypeOf(object) {
+      if (!object || typeof object !== "object") {
+        throw new TypeError();
+      }
+      return object.__proto__ || target.constructor['superclass'] || object.constructor.prototype; // this is the best we can do...
+    }
+  }
   // defined here to avoid global name space pollution and unnecessary closures:
   function clone(object) {
     var empty = function(){ };
@@ -56,13 +65,13 @@
       if (!type || object===undefined || object===null) {
         return false;
       }
-      // constructor or instanceof may return false negatives:
-      if (object.constructor === type || object instanceof type) {
-        return true;
-      }
       // special case meta-class Class:
       if (type === Class) {
         return !!object["$class"];
+      }
+      // constructor or instanceof may return false negatives:
+      if (object instanceof type || object.constructor === type) {
+        return true;
       }
       // special case int and uint:
       if (type === $$int || type === $$uint) {
@@ -72,11 +81,13 @@
         }
         return false;
       }
-      // all other Jangaroo classes:
-      var classDeclaration = object.constructor["$class"];
+      // Jangaroo interface:
       var typeDeclaration = type["$class"];
-      if (classDeclaration && typeDeclaration) {
-        return typeDeclaration.fullClassName in classDeclaration.Types.prototype;
+      if (typeDeclaration && typeDeclaration.isInterface()) {
+        var classDeclaration = object.constructor["$class"];
+        if (classDeclaration) {
+          return typeDeclaration.fullClassName in classDeclaration.Types.prototype;
+        }
       }
       return false;
     };

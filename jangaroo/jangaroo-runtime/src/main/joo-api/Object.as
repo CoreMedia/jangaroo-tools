@@ -161,5 +161,6 @@ public dynamic class Object {
 
   //public native function watch(prop:String, handler:Object):void;
 
+  public static native function getPrototypeOf(value:Object):Object;
 }
 }
