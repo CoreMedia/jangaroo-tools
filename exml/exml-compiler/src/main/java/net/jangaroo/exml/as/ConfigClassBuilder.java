@@ -107,7 +107,7 @@ public class ConfigClassBuilder extends AstVisitorBase {
 
         CommaSeparatedList<AnnotationParameter> annotationParameters = annotation.getOptAnnotationParameters();
         String target = null;
-        ConfigClassType type = ConfigClassType.COMPONENT; // default to component
+        ConfigClassType type = null;
         while (annotationParameters != null) {
           AnnotationParameter annotationParameter = annotationParameters.getHead();
           Ide optName = annotationParameter.getOptName();
@@ -135,6 +135,11 @@ public class ConfigClassBuilder extends AstVisitorBase {
         }
         if (target == null) {
           throw new CompilerError(annotation.getSymbol(), "A " + TARGET_ANNOTATION_PARAMETER_NAME + " parameter must be provided for an [" + EXT_CONFIG_META_NAME + "] annotation.");
+        }
+        if (type == null) {
+          type = configClass.getName().endsWith("layout") || target.endsWith("Layout") // heuristic: everything ending with "layout"...
+          ? ConfigClassType.LAYOUT     // ...is a layout config class
+          : ConfigClassType.COMPONENT; // else, default to component
         }
         configClass.setComponentClassName(target);
         configClass.setType(type);
