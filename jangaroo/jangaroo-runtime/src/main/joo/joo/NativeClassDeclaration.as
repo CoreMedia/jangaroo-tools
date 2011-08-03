@@ -75,7 +75,7 @@ public class NativeClassDeclaration {
   }
 
   public function isInstance(obj:Object):Boolean {
-    return obj instanceof Public;
+    return obj instanceof publicConstructor;
   }
 
   private static var initializationDepth:String = "";

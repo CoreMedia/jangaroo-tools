@@ -137,9 +137,10 @@ public class JooClassDeclaration extends NativeClassDeclaration {
   }
 
   override public function isInstance(obj:Object):Boolean {
-    return isInterface() ? implementingClasses.some(function(implementingClass:Function):Boolean {
+    return Public ? isInterface() ? implementingClasses.some(function(implementingClass:Function):Boolean {
       return obj instanceof implementingClass;
-    }) : obj instanceof Public; // cannot invoke super, since BootstrapClassLoader does not support super calls!
+    }) : obj instanceof Public // cannot invoke super, since BootstrapClassLoader does not support super calls!
+    : false; // class not even completed, cannot have instances!
   }
 
   public function isNamespace() : Boolean {
