@@ -5,6 +5,7 @@ import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapper;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
+import net.jangaroo.exml.ExmlConstants;
 import net.jangaroo.exml.config.ExmlConfiguration;
 import net.jangaroo.exml.model.ExmlModel;
 import net.jangaroo.jooc.JangarooParser;
@@ -20,8 +21,6 @@ import java.io.Writer;
  *
  */
 public final class ExmlComponentClassGenerator {
-
-  private final static String outputCharset = "UTF-8";
 
   private ExmlConfiguration config;
 
@@ -40,7 +39,7 @@ public final class ExmlComponentClassGenerator {
     Template template = cfg.getTemplate("/net/jangaroo/exml/templates/exml_component_class.ftl");
     ExmlComponentClassModel exmlComponentClassModel = new ExmlComponentClassModel(model, config.getConfigClassPackage());
     Environment env = template.createProcessingEnvironment(exmlComponentClassModel, output);
-    env.setOutputEncoding(outputCharset);
+    env.setOutputEncoding(ExmlConstants.OUTPUT_CHARSET);
     env.process();
   }
 
@@ -49,7 +48,7 @@ public final class ExmlComponentClassGenerator {
     Writer writer = null;
     try {
       result.getParentFile().mkdirs();  // NOSONAR
-      writer = new OutputStreamWriter(new FileOutputStream(result), outputCharset);
+      writer = new OutputStreamWriter(new FileOutputStream(result), ExmlConstants.OUTPUT_CHARSET);
       generateClass(model, writer);
       return result;
     } finally {

@@ -19,6 +19,8 @@ public final class ExmlConstants {
   public static final String EXML_CFG_TYPE_ATTRIBUTE = "type";
   public static final String EXML_SUFFIX = ".exml";
 
+  public static final String OUTPUT_CHARSET = "UTF-8";
+
   // utility class, do not instantiate
   private ExmlConstants() {}
 
