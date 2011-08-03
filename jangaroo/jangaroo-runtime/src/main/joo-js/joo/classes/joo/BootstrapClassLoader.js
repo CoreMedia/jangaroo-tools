@@ -61,6 +61,8 @@
   };
   joo.Error.prototype = Error.prototype;
 
+  joo.JavaScriptObject = function() {};
+
   joo.is = function(object, type) {
       if (!type || object===undefined || object===null) {
         return false;
@@ -81,12 +83,11 @@
         }
         return false;
       }
-      // Jangaroo interface:
-      var typeDeclaration = type["$class"];
-      if (typeDeclaration && typeDeclaration.isInterface()) {
-        var classDeclaration = object.constructor["$class"];
-        if (classDeclaration) {
-          return typeDeclaration.fullClassName in classDeclaration.Types.prototype;
+      if (typeof object === 'object') {
+        // only Objects may implement a Jangaroo interface:
+        var typeDeclaration = type["$class"];
+        if (typeDeclaration) {
+          return typeDeclaration.isInstance(object);
         }
       }
       return false;

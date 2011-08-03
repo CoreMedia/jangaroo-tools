@@ -32,6 +32,7 @@ public class JooClassDeclaration extends NativeClassDeclaration {
           memberDeclarationsByQualifiedName : Object,
           staticInitializers : Array/*<MemberDeclaration|Function>*/,
           publicStaticMethodNames : Array,
+          implementingClasses: Array/*Class*/,
           dependencies : Array;
   /**
    * The metadata (annotations) associated with this class.
@@ -101,6 +102,44 @@ public class JooClassDeclaration extends NativeClassDeclaration {
 
   public function isInterface() : Boolean {
     return this.type === MemberDeclaration.MEMBER_TYPE_INTERFACE;
+  }
+
+  internal function addToInterfaces(clazz:Function):void {
+    var scd:JooClassDeclaration = superClassDeclaration as JooClassDeclaration;
+    if (scd) {
+      scd.addToInterfaces(clazz);
+    }
+    for (var i:int = 0; i < interfaces.length; i++) {
+      JooClassDeclaration(interfaces[i]).addImplementingClass(clazz);
+    }
+  }
+
+  internal function addImplementingClass(clazz:Function):void {
+    //trace("#### adding " + clazz + " to interface " + fullClassName + ":");
+    var implementingClasses:Array = [];
+    //trace("####   before: " + this.implementingClasses.join(", "));
+    for (var i:int = 0; i < this.implementingClasses.length; i++) {
+      var implementingClass:Function = this.implementingClasses[i];
+      // do not add new clazz if it or a superclass is already in the set:
+      if (clazz === implementingClass || clazz.prototype instanceof implementingClass) {
+        //trace("####   " + implementingClass + " already present, nothing changed.");
+        return; // class or superclass already added!
+      }
+      // remove all subclasses from the set (keep only non-subclasses):
+      if (!(implementingClass.prototype instanceof clazz)) {
+        implementingClasses.push(implementingClass);
+      }
+    }
+    implementingClasses.push(clazz);
+    this.implementingClasses = implementingClasses;
+    //trace("####   after: " + this.implementingClasses.join(", "));
+    addToInterfaces(clazz);
+  }
+
+  override public function isInstance(obj:Object):Boolean {
+    return isInterface() ? implementingClasses.some(function(implementingClass:Function):Boolean {
+      return obj instanceof implementingClass;
+    }) : obj instanceof Public; // cannot invoke super, since BootstrapClassLoader does not support super calls!
   }
 
   public function isNamespace() : Boolean {
@@ -173,8 +212,10 @@ public class JooClassDeclaration extends NativeClassDeclaration {
       if (!superClassDeclaration.constructor_) {
         throw new Error("Class " + fullClassName + " extends " + superClassDeclaration.fullClassName + " whose constructor is not defined!");
       }
-      // TODO: only add "super$..." for backwards compatibility!
-      Public.prototype["super$" + level] = superClassDeclaration.constructor_;
+      // only add "super$..." for backwards compatibility, and never if we are a JavaScriptObject:
+      if (!(Public.prototype instanceof JavaScriptObject)) {
+        Public.prototype["super$" + level] = superClassDeclaration.constructor_;
+      }
       if (!this.constructor_) {
         // no explicit constructor found
         // generate constructor invoking super() and initialize it from the "collecting" constructor:
@@ -182,6 +223,12 @@ public class JooClassDeclaration extends NativeClassDeclaration {
       }
     }
   }
+
+  //noinspection JSFieldCanBeLocalInspection
+  private static var jooClasstoString:Function;
+  jooClasstoString = function():String {
+    return "[class " + this.$class.className + "]";
+  };
 
   internal function _setConstructor(constructor_:Function):void {
     // replay all non-private static members collected so far for new constructor_ function:
@@ -196,8 +243,11 @@ public class JooClassDeclaration extends NativeClassDeclaration {
       constructor_['superclass'] = superClassDeclaration.Public.prototype; // Ext Core compatibility!
     }
     constructor_.prototype = Public.prototype;
-    // TODO: overwrite 'constructor' explicitly only if not inheriting from "JavaScriptObject"!
-    constructor_.prototype['constructor'] = constructor_;
+    // do not overwrite 'constructor' explicitly if this class is marked as a simple JavaScript object by inheriting from joo.JavaScriptObject!
+    if (!(Public.prototype instanceof JavaScriptObject)) {
+      Public.prototype['constructor'] = constructor_;
+    }
+    constructor_.toString = jooClasstoString;
     // replace initializing constructor by the real one:
     package_[className] = this.constructor_ = constructor_;
   }
@@ -285,8 +335,12 @@ public class JooClassDeclaration extends NativeClassDeclaration {
     for (var j:int = 0; j < interfaces.length; j++) {
       interfaces[j] = classLoader.getRequiredClassDeclaration(interfaces[j]).init();
     }
-    initTypes();
     this.initMembers();
+    if (isInterface()) {
+      implementingClasses = [];
+    } else {
+      addToInterfaces(constructor_);
+    }
     for (var i:int=0; i<this.staticInitializers.length; ++i) {
       var staticInitializer : * = this.staticInitializers[i];
       if (typeof staticInitializer=="function") {

@@ -41,7 +41,6 @@ public class NativeClassDeclaration {
           state  : int = STATE_LOADED,
           Public : Function,
           superClassDeclaration : NativeClassDeclaration,
-          Types: Class,
           interfaces : Array;
 
   public function NativeClassDeclaration() {
@@ -73,22 +72,10 @@ public class NativeClassDeclaration {
     interfaces = [];
     constructor_ = Class(publicConstructor) === Error ? getQualifiedObject("joo.Error") : publicConstructor;
     Public = createEmptyConstructor(publicConstructor.prototype);
-    initTypes();
   }
 
-  protected function initTypes():void {
-    var types:Object = superClassDeclaration ? new superClassDeclaration.Types() : {};
-    initInterfaceTypes(types);
-    Types = Class(function():void {});
-    Types.prototype = types;
-  }
-
-  internal function initInterfaceTypes(types:Object):void {
-    types[fullClassName] = true;
-    for (var i:int = 0; i < interfaces.length; i++) {
-      var interface_:NativeClassDeclaration = interfaces[i];
-      interface_.initInterfaceTypes(types);
-    }
+  public function isInstance(obj:Object):Boolean {
+    return obj instanceof Public;
   }
 
   private static var initializationDepth:String = "";

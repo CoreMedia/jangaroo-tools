@@ -672,6 +672,20 @@ public class JooTest extends JooRuntimeTestCase {
     expectNumber(3, "e.getData().x");
   }
 
+  public void testJavaScriptObject() throws Exception {
+    import_("package1.TestIs");
+    import_("package2.TestInheritingJavaScriptObject");
+    complete();
+    eval("var o = new package2.TestInheritingJavaScriptObject()");
+    expectString("allProperties,bar,foo", "o.allProperties()");
+    // test that while "constructor" is not set, "is" still works:
+    expectBoolean(true, "package1.TestIs.testIs(o, package2.TestInheritingJavaScriptObject)");
+    expectBoolean(true, "package1.TestIs.testIs(o, package2.TestJavaScriptObject)");
+    expectBoolean(true, "package1.TestIs.testIs(o, joo.JavaScriptObject)");
+    expectBoolean(true, "package1.TestIs.testIs(o, Object)");
+    expectBoolean(false, "package1.TestIs.testIs(o, String)");
+  }
+
   public static void main(String args[]) {
     junit.textui.TestRunner.run(JooTest.class);
   }

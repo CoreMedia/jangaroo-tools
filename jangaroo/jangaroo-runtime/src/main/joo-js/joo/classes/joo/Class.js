@@ -1,5 +1,2 @@
-// simulate ActionScript's meta class "Class": at least provide placeholder and empty init function.
+// simulate ActionScript's meta class "Class": at least provide placeholder that "casts" by returning the argument itself.
 Class = function joo$Class(c){return c;};
-Class.$class = {
-  init: function(){}
-};
