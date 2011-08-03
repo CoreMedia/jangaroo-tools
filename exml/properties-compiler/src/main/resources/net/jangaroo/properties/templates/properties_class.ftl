@@ -2,6 +2,7 @@
 package ${resourceBundle.packageName} {
 <#if !locale??>
 import joo.ResourceBundleAwareClassLoader;
+import joo.JavaScriptObject;
 </#if>
 
 <#if comment??>
@@ -13,7 +14,7 @@ import joo.ResourceBundleAwareClassLoader;
  * @see ${resourceBundle.className}_properties#INSTANCE
  */
 [ResourceBundle('${resourceBundle.className}<#if locale??>_${locale}</#if>')]
-public class ${resourceBundle.className}_properties<#if locale??>_${locale} extends ${resourceBundle.className}_properties</#if> {
+public class ${resourceBundle.className}_properties<#if locale??>_${locale} extends ${resourceBundle.className}_properties<#else> extends joo.JavaScriptObject</#if> {
 
 <#if !locale??>
 /**
