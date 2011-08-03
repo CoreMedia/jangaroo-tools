@@ -54,7 +54,7 @@ public final class ExmlConfigClassGenerator {
     Configuration cfg = new Configuration();
     cfg.setClassForTemplateLoading(ConfigClass.class, "/");
     cfg.setObjectWrapper(new DefaultObjectWrapper());
-    Template template = cfg.getTemplate("/net/jangaroo/exml/templates/exml_type_class.ftl");
+    Template template = cfg.getTemplate("/net/jangaroo/exml/templates/exml_config_class.ftl");
     Environment env = template.createProcessingEnvironment(configClass, output);
     env.setOutputEncoding(OUTPUT_CHARSET);
     env.process();
