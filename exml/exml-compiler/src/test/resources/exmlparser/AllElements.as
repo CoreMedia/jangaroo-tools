@@ -20,8 +20,10 @@ public class AllElements extends ext.Panel {
   ext.ComponentMgr.registerType(xtype, AllElements);
 
   /**
+   * Create a AllElements.
    * @param config The configuration options. See the config class for details.
    *
+   * @see exmlparser.AllElements
    * @see exmlparser.config.AllElements
    */
   public function AllElements(config:Object = null) {
@@ -65,6 +67,17 @@ public class AllElements extends ext.Panel {
       ],
       layout2: {type: "a"}
     }, config));
+  }
+
+  /**
+   * Create a AllElements.
+   * @param config The configuration options. See the config class for details.
+   *
+   * @see exmlparser.AllElements
+   * @see exmlparser.config.AllElements
+   */
+  public static function main(config:Object = null) {
+    new exmlparser.AllElements(config);
   }
 }
 }

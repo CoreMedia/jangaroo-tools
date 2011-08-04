@@ -20,12 +20,25 @@ public class ${model.className} extends ${model.superClassName} {
   ext.ComponentMgr.registerType(xtype, ${model.className});
 
   /**
+   * Create a ${model.className}.
    * @param config The configuration options. See the config class for details.
    *
+   * @see ${model.fullClassName}
    * @see ${configClassPackage}.${model.className}
    */
   public function ${model.className}(config:Object = null) {
     super(ext.Ext.apply(${formattedConfig}, config));
+  }
+
+  /**
+   * Create a ${model.className}.
+   * @param config The configuration options. See the config class for details.
+   *
+   * @see ${model.fullClassName}
+   * @see ${configClassPackage}.${model.className}
+   */
+  public static function main(config:Object = null) {
+    new ${model.fullClassName}(config);
   }
 }
 }

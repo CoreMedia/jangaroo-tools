@@ -20,6 +20,10 @@ public class ExmlModel extends DescriptionHolder {
     return className;
   }
 
+  public String getFullClassName() {
+    return packageName.length() > 0 ? packageName + "." + className : className;
+  }
+
   public String getSuperClassName() {
     return superClassName;
   }
