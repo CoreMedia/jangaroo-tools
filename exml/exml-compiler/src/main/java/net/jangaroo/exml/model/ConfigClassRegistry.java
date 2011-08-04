@@ -239,7 +239,7 @@ public final class ConfigClassRegistry {
     if(configClass != null && configClass.getSuperClassName() != null) {
       ConfigClass superClass = findActionScriptConfigClass(configClass.getSuperClassName());
       if(superClass == null) {
-        throw new ExmlcException(String.format("Superclass '%s' of class '%s' not found!", configClass.getSuperClassName(), superClass.getFullName()));
+        throw new ExmlcException(String.format("Superclass '%s' of class '%s' not found!", configClass.getSuperClassName(), configClass.getFullName()));
       }
       configClass.setSuperClass(superClass);
       evaluateSuperClass(superClass);
