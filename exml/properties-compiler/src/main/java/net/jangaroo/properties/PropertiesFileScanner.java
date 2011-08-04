@@ -76,6 +76,7 @@ public final class PropertiesFileScanner {
       }
 
       PropertiesConfiguration p = new PropertiesConfiguration();
+      p.setDelimiterParsingDisabled(true);
       Reader r = new BufferedReader(new InputStreamReader(new FileInputStream(srcFile), "UTF-8"));
       try {
         p.load(r);
