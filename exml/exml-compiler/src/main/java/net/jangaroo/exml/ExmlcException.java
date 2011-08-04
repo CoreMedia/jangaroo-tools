@@ -5,7 +5,7 @@ import java.io.File;
 /**
  * An exception that occurs while parsing EXML files.
  */
-public class ExmlcException extends RuntimeException {
+public final class ExmlcException extends RuntimeException {
   private File source;
   private int line;
   private int column;
