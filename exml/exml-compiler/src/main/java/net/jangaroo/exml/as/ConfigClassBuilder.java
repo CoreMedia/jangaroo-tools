@@ -68,7 +68,8 @@ public class ConfigClassBuilder extends AstVisitorBase {
     String name = classDeclaration.getName();
     configClass.setName(name);
     ClassDeclaration superTypeDeclaration = classDeclaration.getSuperTypeDeclaration();
-    String superClassName = superTypeDeclaration == null ? null : superTypeDeclaration.getQualifiedNameStr();
+    //Ignore superclass if its object or null
+    String superClassName = superTypeDeclaration == null ? null : "Object".equals(superTypeDeclaration.getQualifiedNameStr()) ? null : superTypeDeclaration.getQualifiedNameStr();
     configClass.setSuperClassName(superClassName);
     String description = parseDescription(classDeclaration.getSymClass(), classDeclaration.getSymModifiers());
     configClass.setDescription(description);
@@ -162,7 +163,7 @@ public class ConfigClassBuilder extends AstVisitorBase {
       TypeRelation optTypeRelation = functionDeclaration.getFun().getOptTypeRelation();
       String type;
       if (optTypeRelation != null) {
-        type = (String) optTypeRelation.getType().getSymbol().getJooValue();
+        type = optTypeRelation.getType().getSymbol().getText();
       } else {
         type = AS3_ANY_TYPE;
       }
