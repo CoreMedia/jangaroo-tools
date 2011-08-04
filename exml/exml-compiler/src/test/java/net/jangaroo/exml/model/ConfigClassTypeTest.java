@@ -12,6 +12,6 @@ public class ConfigClassTypeTest {
     public void testPlugin() {
      ConfigClassType plugin = ConfigClassType.valueOf("PLUGIN");
      assertEquals(ConfigClassType.PLUGIN, plugin);
-     assertEquals("ptype", plugin.extTypeAttribute);
+     assertEquals("ptype", plugin.getExtTypeAttribute());
    }
 }

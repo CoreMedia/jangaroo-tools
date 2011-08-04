@@ -6,6 +6,8 @@ package net.jangaroo.exml.model;
 public enum ConfigClassType {
   COMPONENT("xtype"), PLUGIN("ptype"), ACTION("atype"), LAYOUT("type");
 
+  private String extTypeAttribute;
+
   ConfigClassType(String extTypeAttribute) {
     this.extTypeAttribute = extTypeAttribute;
   }
@@ -13,6 +15,9 @@ public enum ConfigClassType {
   /**
    * The name of the attribute in a JSON object description that determines the object type:
    * xtype, ptype, atype.
+   * @return the type
    */
-  public String extTypeAttribute;
+  public String getExtTypeAttribute() {
+    return extTypeAttribute;
+  }
 }

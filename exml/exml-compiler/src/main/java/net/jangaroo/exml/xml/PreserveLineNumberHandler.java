@@ -17,8 +17,8 @@ import java.util.Stack;
 public class PreserveLineNumberHandler extends DefaultHandler {
   public final static String LINE_NUMBER_KEY_NAME = "lineNumber";
 
-  final Stack<Element> elementStack = new Stack<Element>();
-  final StringBuilder textBuffer = new StringBuilder();
+  private final Stack<Element> elementStack = new Stack<Element>();
+  private final StringBuilder textBuffer = new StringBuilder();
 
   private Document doc;
   private Locator locator;

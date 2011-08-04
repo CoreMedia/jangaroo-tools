@@ -249,14 +249,14 @@ public final class ExmlToModelParser {
             // Access the type through the component class, so that the component class gets initialized.
             // The braces cause the inner content to be output unquoted.
             model.addImport(componentClassName);
-            typeString = "{" + componentClassName + "." + configClass.getType().extTypeAttribute + "}";
+            typeString = "{" + componentClassName + "." + configClass.getType().getExtTypeAttribute() + "}";
           }
           // By convention an optional "layout" suffix of layout types is cut off.
           if (configClass.getType() == ConfigClassType.LAYOUT && typeString.endsWith(LAYOUT_SUFFIX)) {
             typeString = typeString.substring(0, typeString.lastIndexOf(LAYOUT_SUFFIX));
           }
 
-          arrayItemJsonObject.set(configClass.getType().extTypeAttribute, typeString);
+          arrayItemJsonObject.set(configClass.getType().getExtTypeAttribute(), typeString);
         }
 
         fillModelAttributes(model, arrayItemJsonObject, arrayItemNode, configClass);
