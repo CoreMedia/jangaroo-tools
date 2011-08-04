@@ -7,7 +7,7 @@ import testPackage.TestComponent;
 /**
  * An ActionScript class that is not a config class.
  */
-public class NonConfig extends panel {
+public class NonConfig {
   /**
    * @see testPackage.TestComponent
    */

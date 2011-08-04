@@ -56,7 +56,7 @@ public class ConfigClassRegistryTest extends AbstractExmlTest {
     Assert.assertNotNull(configClass);
     Assert.assertEquals("testNamespace.config", configClass.getPackageName());
     Assert.assertEquals("testPackage.TestComponent", configClass.getComponentClassName());
-    Assert.assertEquals(3, configClass.getCfgs().size());
+    Assert.assertEquals(4, configClass.getCfgs().size());
 
     // 2nd try should return the same object
     Assert.assertEquals(configClass, getConfigClassRegistry().getConfigClassByName("testNamespace.config.TestComponent"));
@@ -70,7 +70,7 @@ public class ConfigClassRegistryTest extends AbstractExmlTest {
     Assert.assertNotNull(configClass);
     Assert.assertEquals("testNamespace.config", configClass.getPackageName());
     Assert.assertEquals("testPackage.TestComponent", configClass.getComponentClassName());
-    Assert.assertEquals(3, configClass.getCfgs().size());
+    Assert.assertEquals(4, configClass.getCfgs().size());
   }
 
   @Test
@@ -81,7 +81,7 @@ public class ConfigClassRegistryTest extends AbstractExmlTest {
     Assert.assertNotNull(configClass);
     Assert.assertEquals("testNamespace.config", configClass.getPackageName());
     Assert.assertEquals("testPackage.TestComponent", configClass.getComponentClassName());
-    Assert.assertEquals(3, configClass.getCfgs().size());
+    Assert.assertEquals(4, configClass.getCfgs().size());
   }
 
   @Test

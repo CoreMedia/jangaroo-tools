@@ -16,6 +16,7 @@ public final class ConfigClass extends DescriptionHolder {
   private String name;
   private String packageName;
   private String superClassName;
+  private ConfigClass superClass;
   private String componentClassName;
   private ConfigClassType type;
 
@@ -24,7 +25,34 @@ public final class ConfigClass extends DescriptionHolder {
     cfgsByName.put(cfg.getName(), cfg);
   }
 
+  public ConfigClass getSuperClass() {
+    return superClass;
+  }
+
+  public void setSuperClass(ConfigClass superClass) {
+    this.superClass = superClass;
+  }
+
   public List<ConfigAttribute> getCfgs() {
+    return cfgs;
+  }
+
+  /**
+   * Returns only the ConfigAttributes that are not already defined in the super class
+   *
+   * @return the list of ConfigAttributes
+   */
+  public List<ConfigAttribute> getDirectCfgs() {
+    ConfigClass cc = getSuperClass();
+    if (cc != null) {
+      ArrayList<ConfigAttribute> directCfgs = new ArrayList<ConfigAttribute>(cfgs);
+      do {
+        directCfgs.removeAll(cc.getCfgs());
+        cc = cc.getSuperClass();
+      } while (cc != null);
+      //System.out.println("Removed "+(cfgs.size()-directCfgs.size())+" inherited configs.");
+      return directCfgs;
+    }
     return cfgs;
   }
 
@@ -56,6 +84,15 @@ public final class ConfigClass extends DescriptionHolder {
     return packageName;
   }
 
+  public String getNs() {
+    String[] parts = packageName.split("\\.");
+    StringBuilder ns = new StringBuilder();
+    for (String part : parts) {
+      ns.append(part.charAt(0));
+    }
+    return ns.toString();
+  }
+
   public String getFullName() {
     return packageName + "." + name;
   }
@@ -76,6 +113,7 @@ public final class ConfigClass extends DescriptionHolder {
     return superClassName;
   }
 
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -86,20 +124,38 @@ public final class ConfigClass extends DescriptionHolder {
     }
 
     ConfigClass that = (ConfigClass) o;
-    return cfgs.equals(that.cfgs) &&
-            componentClassName.equals(that.componentClassName) &&
-            name.equals(that.name) &&
-            packageName.equals(that.packageName) &&
-            superClassName.equals(that.superClassName);
+
+    if (cfgs != null ? !cfgs.equals(that.cfgs) : that.cfgs != null) {
+      return false;
+    }
+    if (componentClassName != null ? !componentClassName.equals(that.componentClassName) : that.componentClassName != null) {
+      return false;
+    }
+    if (name != null ? !name.equals(that.name) : that.name != null) {
+      return false;
+    }
+    if (packageName != null ? !packageName.equals(that.packageName) : that.packageName != null) {
+      return false;
+    }
+    if (superClassName != null ? !superClassName.equals(that.superClassName) : that.superClassName != null) {
+      return false;
+    }
+    if (type != that.type) {
+      return false;
+    }
+
+    return true;
   }
 
   @Override
   public int hashCode() {
-    int result = cfgs.hashCode();
-    result = 31 * result + name.hashCode();
-    result = 31 * result + packageName.hashCode();
-    result = 31 * result + superClassName.hashCode();
-    result = 31 * result + componentClassName.hashCode();
+    int result = cfgs != null ? cfgs.hashCode() : 0;
+    result = 31 * result + (cfgsByName != null ? cfgsByName.hashCode() : 0);
+    result = 31 * result + (name != null ? name.hashCode() : 0);
+    result = 31 * result + (packageName != null ? packageName.hashCode() : 0);
+    result = 31 * result + (superClassName != null ? superClassName.hashCode() : 0);
+    result = 31 * result + (componentClassName != null ? componentClassName.hashCode() : 0);
+    result = 31 * result + (type != null ? type.hashCode() : 0);
     return result;
   }
 }

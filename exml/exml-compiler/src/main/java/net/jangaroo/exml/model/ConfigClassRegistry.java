@@ -14,10 +14,12 @@ import net.jangaroo.jooc.config.SemicolonInsertionMode;
 import net.jangaroo.jooc.input.FileInputSource;
 import net.jangaroo.jooc.input.InputSource;
 import net.jangaroo.jooc.input.PathInputSource;
+import net.jangaroo.utils.CompilerUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -70,6 +72,46 @@ public final class ConfigClassRegistry {
 
   public ExmlConfiguration getConfig() {
     return config;
+  }
+
+  /**
+   * Returns the list of registered Config classes
+   * @return list of registered Config classes
+   */
+  public Collection<ConfigClass> getRegisteredConfigClasses() {
+    return configClassesByName.values();
+  }
+
+  /**
+   * Scans all AS files the in the config class package
+   */
+  public void scanAllAsFiles() {
+    InputSource configPackage = sourcePathInputSource.getChild(config.getConfigClassPackage().replace('.', File.separatorChar));
+    if(configPackage != null) {
+      scanAsFiles(configPackage);
+    }
+  }
+
+  private void scanAsFiles(InputSource inputSource) {
+    for (InputSource source : inputSource.list()) {
+      File file = ((FileInputSource) source).getFile();
+      if(file.isFile()) {
+        if(file.getName().endsWith(JangarooParser.AS_SUFFIX)) {
+          String qName;
+          try {
+            qName = CompilerUtils.qNameFromFile(getConfig().findSourceDir(file), file);
+          } catch (IOException e) {
+            throw new ExmlcException("could not read AS file", e);
+          }
+          final ConfigClass configClass = findActionScriptConfigClass(qName);
+          addConfigClass(configClass);
+        }
+
+      } else {
+        // Recurse into the tree.
+        scanAsFiles(source);
+      }
+    }
   }
 
   /**
@@ -162,6 +204,7 @@ public final class ConfigClassRegistry {
             ConfigClass configClass;
             try {
               configClass = new ExmlToConfigClassParser(config).parseExmlToConfigClass(exmlInputSource.getFile());
+              evaluateSuperClass(configClass);
             } catch (IOException e) {
               // TODO log
               throw new IllegalStateException(e);
@@ -184,11 +227,23 @@ public final class ConfigClassRegistry {
     if (compilationsUnit != null) {
       try {
         configClass = buildConfigClass(compilationsUnit);
+        evaluateSuperClass(configClass);
       } catch (RuntimeException e) {
-        throw new ExmlcException("while building config class " + name + ": " + e.getMessage(), e);
+        throw new ExmlcException("while building config class '" + name + "': " + e.getMessage(), e);
       }
     }
     return configClass;
+  }
+
+  private void evaluateSuperClass(ConfigClass configClass) {
+    if(configClass != null && configClass.getSuperClassName() != null) {
+      ConfigClass superClass = findActionScriptConfigClass(configClass.getSuperClassName());
+      if(superClass == null) {
+        throw new ExmlcException(String.format("Superclass '%s' of class '%s' not found!", configClass.getSuperClassName(), superClass.getFullName()));
+      }
+      configClass.setSuperClass(superClass);
+      evaluateSuperClass(superClass);
+    }
   }
 
   private ConfigClass buildConfigClass(CompilationUnit compilationUnit) {

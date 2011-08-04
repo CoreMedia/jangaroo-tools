@@ -4,6 +4,7 @@ import net.jangaroo.exml.ExmlConstants;
 import net.jangaroo.exml.ExmlcException;
 import net.jangaroo.exml.config.ExmlConfiguration;
 import net.jangaroo.exml.generator.ExmlComponentClassGenerator;
+import net.jangaroo.exml.generator.ExmlConfigPackageXsdGenerator;
 import net.jangaroo.exml.generator.ExmlConfigClassGenerator;
 import net.jangaroo.exml.model.ConfigClass;
 import net.jangaroo.exml.model.ConfigClassRegistry;
@@ -25,6 +26,8 @@ public class Exmlc {
   private final ExmlConfigClassGenerator exmlConfigClassGenerator;
   private ExmlToModelParser exmlToModelParser;
   private ExmlComponentClassGenerator exmlComponentClassGenerator;
+  private ExmlConfigPackageXsdGenerator exmlConfigPackageXsdGenerator;
+
 
   public Exmlc(ExmlConfiguration config) throws ExmlcException {
     try {
@@ -38,6 +41,12 @@ public class Exmlc {
 
     exmlToModelParser = new ExmlToModelParser(configClassRegistry);
     exmlComponentClassGenerator = new ExmlComponentClassGenerator(config);
+
+    exmlConfigPackageXsdGenerator = new ExmlConfigPackageXsdGenerator(config);
+  }
+
+  public ExmlConfigPackageXsdGenerator getExmlConfigPackageXsdGenerator() {
+    return exmlConfigPackageXsdGenerator;
   }
 
   public ExmlComponentClassGenerator getExmlComponentClassGenerator() {
@@ -94,6 +103,14 @@ public class Exmlc {
       if (sourceFile.getName().endsWith(ExmlConstants.EXML_SUFFIX)) {
         generateComponentClass(sourceFile);
       }
+    }
+  }
+
+  public void generateXsd(File target) {
+    try {
+      exmlConfigPackageXsdGenerator.generateXsdFile(configClassRegistry, target);
+    } catch (Exception e) {
+      throw new ExmlcException("unable to generate xsd file: " + e.getMessage(), target, e);
     }
   }
 }

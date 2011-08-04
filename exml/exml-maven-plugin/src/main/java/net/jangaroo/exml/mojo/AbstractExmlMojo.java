@@ -13,8 +13,12 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -152,7 +156,10 @@ public abstract class AbstractExmlMojo extends JangarooMojo {
       // Generate all config classes from EXML files:
       exmlc.generateAllConfigClasses();
       exmlc.generateAllComponentClasses();
-      // exmlc.generateXsd();
+      //generate the XSD for that
+      File xsdFile = new File(generatedResourcesDirectory, getXsd());
+      exmlc.generateXsd(xsdFile);
+      projectHelper.attachArtifact(project, "xsd", xsdFile );
     } catch (ExmlcException e) {
       throw new MojoExecutionException(e.getMessage(), e);
     }
