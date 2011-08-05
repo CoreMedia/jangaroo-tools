@@ -27,9 +27,8 @@ public class StandardClassLoader extends SystemClassLoader {
     imports = [];
   }
 
-  override protected function createClassDeclaration(packageDef : String, classDef : String, inheritanceLevel : int, memberFactory : Function,
-                                                  publicStaticMethodNames : Array, dependencies : Array):JooClassDeclaration {
-    var cd : JooClassDeclaration = new JooClassDeclaration(packageDef, classDef, inheritanceLevel, memberFactory, publicStaticMethodNames, dependencies);
+  override protected function createClassDeclaration(packageDef:String, metadata:Object, classDef:String, inheritanceLevel:int, memberFactory:Function, publicStaticMethodNames:Array, dependencies:Array):JooClassDeclaration {
+    var cd : JooClassDeclaration = new JooClassDeclaration(packageDef, metadata, classDef, inheritanceLevel, memberFactory, publicStaticMethodNames, dependencies);
     classDeclarations.push(cd); // remember all created classes for later initialization.
     return cd;
   }

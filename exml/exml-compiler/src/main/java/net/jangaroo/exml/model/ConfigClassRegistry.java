@@ -236,7 +236,7 @@ public final class ConfigClassRegistry {
   }
 
   private void evaluateSuperClass(ConfigClass configClass) {
-    if(configClass != null && configClass.getSuperClassName() != null) {
+    if(configClass != null && configClass.getSuperClassName() != null && !"joo.JavaScriptObject".equals(configClass.getSuperClassName())) {
       ConfigClass superClass = findActionScriptConfigClass(configClass.getSuperClassName());
       if(superClass == null) {
         throw new ExmlcException(String.format("Superclass '%s' of class '%s' not found!", configClass.getSuperClassName(), configClass.getFullName()));

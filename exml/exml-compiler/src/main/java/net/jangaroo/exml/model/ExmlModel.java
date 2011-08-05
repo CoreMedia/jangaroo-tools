@@ -49,7 +49,7 @@ public class ExmlModel extends DescriptionHolder {
     addImport(superClassName);
   }
 
-  public void addImport(String parentClassName) {
-    imports.add(parentClassName);
+  public void addImport(String importedClassName) {
+    imports.add(importedClassName);
   }
 }

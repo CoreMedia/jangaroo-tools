@@ -241,22 +241,19 @@ public final class ExmlToModelParser {
           arrayItemJsonObject.settingWrapperClass(componentClassName);
           model.addImport(componentClassName);
         } else {
-          String typeString;
           if (arrayItemClassName.startsWith(EXT_CONFIG_PREFIX)) {
             // Ext classes are always loaded. We can use the type string directly.
-            typeString = arrayItemClassName.substring(EXT_CONFIG_PREFIX.length());
-          } else {
-            // Access the type through the component class, so that the component class gets initialized.
-            // The braces cause the inner content to be output unquoted.
-            model.addImport(componentClassName);
-            typeString = "{" + componentClassName + "." + configClass.getType().getExtTypeAttribute() + "}";
-          }
-          // By convention an optional "layout" suffix of layout types is cut off.
-          if (configClass.getType() == ConfigClassType.LAYOUT && typeString.endsWith(LAYOUT_SUFFIX)) {
-            typeString = typeString.substring(0, typeString.lastIndexOf(LAYOUT_SUFFIX));
-          }
+            String typeString = arrayItemClassName.substring(EXT_CONFIG_PREFIX.length());
+            // By convention an optional "layout" suffix of layout types is cut off.
+            if (configClass.getType() == ConfigClassType.LAYOUT && typeString.endsWith(LAYOUT_SUFFIX)) {
+              typeString = typeString.substring(0, typeString.lastIndexOf(LAYOUT_SUFFIX));
+            }
 
-          arrayItemJsonObject.set(configClass.getType().getExtTypeAttribute(), typeString);
+            arrayItemJsonObject.set(configClass.getType().getExtTypeAttribute(), typeString);
+          } else {
+            arrayItemJsonObject.settingWrapperClass(configClass.getFullName());
+            model.addImport(configClass.getFullName());
+          }
         }
 
         fillModelAttributes(model, arrayItemJsonObject, arrayItemNode, configClass);

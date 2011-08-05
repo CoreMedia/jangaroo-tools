@@ -18,13 +18,11 @@ ${importSuperClassPhrase}
  * @see ${componentClass.fullClassName}
  */
 [ExtConfig(target="${componentClass.fullClassName}")]
-public class ${className}${extendsPhrase} {
+public dynamic class ${className}${extendsPhrase} {
   /**
    * @private
    */
   public function ${className}(config:Object = null) {
-    throw new Error("do not instantiate the config class ${componentSuite.configClassPackage}.${className}; " +
-      "instantiate the component class ${componentClass.fullClassName} instead");
     super(config || {});
   }
 

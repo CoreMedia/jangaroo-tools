@@ -166,9 +166,8 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
     JsonObject expectedJsonObject = new JsonObject(
             "items", new JsonArray(
                     new JsonObject(
-                            "xtype", "{testPackage.TestComponent2.xtype}",
                             "propertyThree", "3"
-                    )
+                    ).settingWrapperClass("testNamespace.config.TestComponent2")
             )
     );
     System.out.println(model.getJsonObject().toString(2));

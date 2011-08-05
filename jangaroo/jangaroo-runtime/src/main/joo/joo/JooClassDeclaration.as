@@ -19,7 +19,7 @@ package joo {
 
 public class JooClassDeclaration extends NativeClassDeclaration {
 
-  protected var
+  internal var
           package_ : Object,
           type : String = MemberDeclaration.MEMBER_TYPE_CLASS,
           namespace_ : String = MemberDeclaration.NAMESPACE_INTERNAL,
@@ -37,7 +37,7 @@ public class JooClassDeclaration extends NativeClassDeclaration {
   /**
    * The metadata (annotations) associated with this class.
    */
-  public var metadata : Object = {};
+  internal var metadata : Object;
 
   private static const DECLARATION_PATTERN_CLASS:RegExp =
     /^\s*((public|internal|final|dynamic)\s+)*class\s+([A-Za-z][a-zA-Z$_0-9]*)(\s+extends\s+([a-zA-Z$_0-9.]+))?(\s+implements\s+([a-zA-Z$_0-9.,\s]+))?\s*$/;
@@ -46,8 +46,8 @@ public class JooClassDeclaration extends NativeClassDeclaration {
   private static const DECLARATION_PATTERN_NAMESPACE:RegExp =
     /^\s*((public|internal)\s+)?namespace\s+([A-Za-z][a-zA-Z$_0-9]*)\s*$/;
 
-  public function JooClassDeclaration(packageDef : String, classDef : String, inheritanceLevel : int, memberDeclarations : Function,
-          publicStaticMethodNames : Array, dependencies : Array) {
+  public function JooClassDeclaration(packageDef:String, metadata:Object, classDef:String, inheritanceLevel:int, memberDeclarations:Function, publicStaticMethodNames:Array, dependencies:Array) {
+    this.metadata = metadata;
     var packageName : String = packageDef.split(/\s+/)[1] || "";
     this.package_ = getOrCreatePackage(packageName);
     var classMatch : Array = classDef.match(DECLARATION_PATTERN_CLASS);
@@ -94,6 +94,7 @@ public class JooClassDeclaration extends NativeClassDeclaration {
       }
     }
     this.create(fullClassName, publicConstructor);
+    this._processMetadata(); // for early annotation processing like adding dependencies
   }
 
   public function isClass() : Boolean {
@@ -319,13 +320,15 @@ public class JooClassDeclaration extends NativeClassDeclaration {
     // if constructor_ is not yet set, static non-private members will be added later by _setConstructor().
   }
 
-  internal function _processMetadata(memberDeclaration : MemberDeclaration):void {
-    var metadata:Object = memberDeclaration.metadata;
-    if (metadata) {
-      for (var metaFunctionName:String in metadata) {
-        var metaFunction:Function = getQualifiedObject("joo.meta." + metaFunctionName);
-        if (metaFunction) {
-          metaFunction(this, memberDeclaration, metadata[metaFunctionName]);
+  internal function _processMetadata(memberDeclaration : MemberDeclaration = null):void {
+    var metaPackage:* = getQualifiedObject("joo.meta");
+    if (metaPackage) {
+      var metadata:Object = memberDeclaration ? memberDeclaration.metadata : this.metadata;
+      if (metadata) {
+        for (var metaFunctionName:String in metadata) {
+          if (metaFunctionName in metaPackage) {
+            metaPackage[metaFunctionName](this, memberDeclaration, metadata[metaFunctionName]);
+          }
         }
       }
     }
@@ -342,6 +345,7 @@ public class JooClassDeclaration extends NativeClassDeclaration {
     } else {
       addToInterfaces(constructor_);
     }
+    this._processMetadata();
     for (var i:int=0; i<this.staticInitializers.length; ++i) {
       var staticInitializer : * = this.staticInitializers[i];
       if (typeof staticInitializer=="function") {

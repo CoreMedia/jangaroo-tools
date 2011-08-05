@@ -49,8 +49,7 @@ public class SystemClassLoader {
     var dependencies : Array = params[i++];
     var runtimeApiVersion:String = params[i++];
     var compilerVersion:String = params[i++];
-    var cd : JooClassDeclaration = this.createClassDeclaration(packageDef, classDef, inheritanceLevel, memberFactory, publicStaticMethodNames, dependencies);
-    cd.metadata = metadata;
+    var cd : JooClassDeclaration = this.createClassDeclaration(packageDef, metadata, classDef, inheritanceLevel, memberFactory, publicStaticMethodNames, dependencies);
     if (!isRuntimeCompatible(runtimeApiVersion, compilerVersion)) {
       throw new Error("Runtime version " + joo.runtimeApiVersion + "/" + joo.compilerVersion +
         " and class version " + runtimeApiVersion + "/" + compilerVersion +
@@ -104,9 +103,8 @@ public class SystemClassLoader {
     }
   }
 
-  protected function createClassDeclaration(packageDef : String, classDef : String, inheritanceLevel : int, memberFactory : Function,
-                          publicStaticMethodNames : Array, dependencies : Array) : JooClassDeclaration {
-    return JooClassDeclaration(new JooClassDeclaration(packageDef, classDef, inheritanceLevel, memberFactory, publicStaticMethodNames, dependencies).init());
+  protected function createClassDeclaration(packageDef:String, metadata:Object, classDef:String, inheritanceLevel:int, memberFactory:Function, publicStaticMethodNames:Array, dependencies:Array) : JooClassDeclaration {
+    return JooClassDeclaration(new JooClassDeclaration(packageDef, metadata, classDef, inheritanceLevel, memberFactory, publicStaticMethodNames, dependencies).init());
   }
 
   public function getClassDeclaration(fullClassName : String) : NativeClassDeclaration {

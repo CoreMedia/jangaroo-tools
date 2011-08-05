@@ -20,13 +20,11 @@ import ${componentClassName};
  * @see ${componentClassName}
  */
 [ExtConfig(target="${componentClassName}")]
-public class ${name} extends ${superClassName} {
+public dynamic class ${name} extends ${superClassName} {
   /**
    * @private
    */
   public function ${name}(config:Object = null) {
-    throw new Error("do not instantiate the config class ${fullName}; " +
-      "instantiate the component class ${componentClassName} instead");
     super(config || {});
   }
 

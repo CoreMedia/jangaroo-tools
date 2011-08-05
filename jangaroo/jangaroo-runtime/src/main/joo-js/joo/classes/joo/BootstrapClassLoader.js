@@ -61,7 +61,13 @@
   };
   joo.Error.prototype = Error.prototype;
 
-  joo.JavaScriptObject = function() {};
+  joo.JavaScriptObject = function(config) {
+    if (config) {
+      for (var m in config) {
+        this[m] = config[m];
+      }
+    }
+  };
 
   joo.is = function(object, type) {
       if (!type || object===undefined || object===null) {

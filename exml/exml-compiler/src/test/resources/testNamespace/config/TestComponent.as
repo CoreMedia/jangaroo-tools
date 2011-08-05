@@ -24,8 +24,6 @@ public class TestComponent extends ext.config.panel {
    * @private
    */
   public function TestComponent(config:Object = null) {
-    throw new Error("do not instantiate the config class testNamespace.config.TestComponent; " +
-      "instantiate the component class testPackage.TestComponent instead");
     super(config || {});
   }
 
