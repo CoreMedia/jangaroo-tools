@@ -155,7 +155,7 @@ public class JooClassDeclaration extends NativeClassDeclaration {
   internal override function doComplete() : void {
     this.superClassDeclaration = classLoader.getRequiredClassDeclaration(this.extends_);
     this.superClassDeclaration.complete();
-    var proto:Object = this.native_ ? null : new (this.superClassDeclaration.Public)();
+    var proto:Object = this.native_ ? publicConstructor.prototype : new (this.superClassDeclaration.Public)();
     this.Public = NativeClassDeclaration.createEmptyConstructor(proto);
   }
 
