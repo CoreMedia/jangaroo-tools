@@ -19,7 +19,7 @@ import testPackage.TestComponent;
  * @see testPackage.TestComponent
  */
 [ExtConfig(target="testPackage.TestComponent")]
-public class TestComponent extends ext.config.panel {
+public dynamic class TestComponent extends ext.config.panel {
   /**
    * @private
    */
