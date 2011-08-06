@@ -73,9 +73,9 @@ public class StandardClassLoader extends SystemClassLoader {
   public override function init(... classes) : Function {
     var clazz : Function;
     for (var i:int=0; i<classes.length; ++i) {
-      if ("$class" in classes[i]) {
-        clazz = classes[i];
-        NativeClassDeclaration(clazz["$class"]).init(); // cannot use "as NativeClassDeclaration", because Class.js only simulates that class :-(
+      clazz = classes[i];
+      if ("$class" in clazz) {
+        clazz = NativeClassDeclaration(clazz["$class"]).init().constructor_;
       }
     }
     return clazz;
