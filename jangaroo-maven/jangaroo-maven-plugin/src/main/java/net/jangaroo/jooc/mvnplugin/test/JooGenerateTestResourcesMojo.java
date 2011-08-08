@@ -56,7 +56,13 @@ public class JooGenerateTestResourcesMojo extends PackageApplicationMojo {
    * @parameter expression="${maven.test.skip}"
    */
   protected boolean skip;
-
+  /**
+   * Set this to 'true' to skip running tests, but still compile them. Its use is NOT RECOMMENDED, but quite
+   * convenient on occasion.
+   *
+   * @parameter expression="${skipTests}"
+   */
+  protected boolean skipTests;
   /**
    * the tests.html file relative to the test resources folder
    *
@@ -73,7 +79,7 @@ public class JooGenerateTestResourcesMojo extends PackageApplicationMojo {
   }
 
   public void execute() throws MojoExecutionException {
-    if (!skip) {
+    if (!skip && !skipTests) {
       try {
         if (isTestAvailable()) {
           getLog().info("Unpacking jangaroo dependencies to " + testOutputDirectory);
