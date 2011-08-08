@@ -44,6 +44,7 @@
           </#if>
         </xs:attribute>
         </#list>
+        <xs:anyAttribute namespace="exml:untyped" processContents="skip"/>
     <#if configClass.superClass??>
       </xs:extension>
     </xs:complexContent>
