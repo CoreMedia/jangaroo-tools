@@ -27,13 +27,4 @@ public class ExmlConfigPackageXsdGeneratorTest extends AbstractExmlTest{
     
     Assert.assertEquals(expected, output.toString());
   }
-
-  @Test(expected = ExmlcException.class)
-  public void testGenerateXsdFileWithErrors() throws Exception {
-    setUp("testNamespace.config");
-
-    StringWriter output = new StringWriter();
-    getExmlc().getExmlConfigPackageXsdGenerator().generateXsdFile(getConfigClassRegistry(), output);
-    System.out.println(output.toString());
-  }
 }
