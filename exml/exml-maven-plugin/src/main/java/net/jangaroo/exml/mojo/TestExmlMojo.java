@@ -25,20 +25,6 @@ public class TestExmlMojo extends AbstractExmlMojo {
   private File testSourceDirectory;
 
   /**
-   * The namespace of the test component suite
-   *
-   * @parameter expression="${project.artifactId}-test"
-   */
-  private String testNamespace;
-
-  /**
-   * The default namespace prefix of the test component suite
-   *
-   * @parameter expression="${project.artifactId}Test"
-   */
-  private String testNamespacePrefix;
-
-  /**
    * Output directory for all test ActionScript3 files generated out of exml components
    *
    * @parameter expression="${project.build.directory}/generated-test-sources/joo"
@@ -60,16 +46,6 @@ public class TestExmlMojo extends AbstractExmlMojo {
   private File generatedTestResourcesDirectory;
 
   @Override
-  public String getNamespace() {
-    return testNamespace;
-  }
-
-  @Override
-  public String getNamespacePrefix() {
-    return testNamespacePrefix;
-  }
-
-  @Override
   public String getXsd() {
     return testXsd;
   }
@@ -80,29 +56,16 @@ public class TestExmlMojo extends AbstractExmlMojo {
   }
 
   @Override
+  public File getGeneratedSourcesDirectory() {
+    return generatedTestSourcesDirectory;
+  }
+
+  @Override
   protected List<File> getActionScriptClassPath() {
     final List<File> classPath = new ArrayList<File>(super.getActionScriptClassPath());
     classPath.add(0, getSourceDirectory());
     classPath.add(0, getGeneratedSourcesDirectory());
     return classPath;
-  }
-
-  @Override
-  public File[] getImportedXsds() {
-    File xsd = new File(generatedResourcesDirectory, this.xsd);
-    File[] superImportedXsds = super.getImportedXsds();
-    if (!xsd.exists()) {
-      return superImportedXsds;
-    }
-    File[] importedXsds;
-    if (superImportedXsds != null) {
-      importedXsds = new File[superImportedXsds.length + 1];
-      System.arraycopy(superImportedXsds, 0, importedXsds, 0, superImportedXsds.length);
-    } else {
-      importedXsds = new File[1];
-    }
-    importedXsds[importedXsds.length-1] = xsd;
-    return importedXsds;
   }
 
   protected List<File> getSourcePath() {

@@ -45,6 +45,10 @@ public final class ExmlcException extends RuntimeException {
     this.column = column;
   }
 
+  public File getSource() {
+    return source;
+  }
+
   @Override
   public String toString() {
     StringBuilder builder = new StringBuilder();

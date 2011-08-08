@@ -16,30 +16,6 @@ import java.util.List;
  */
 public class ExmlMojo extends AbstractExmlMojo {
 
-  /**
-   * The namespace of the component suite
-   *
-   * @parameter expression="${project.artifactId}"
-   */
-  private String namespace;
-
-  /**
-   * The default namespace prefix of the component suite
-   *
-   * @parameter expression="${project.artifactId}"
-   */
-  private String namespacePrefix;
-
-  @Override
-  public String getNamespace() {
-    return namespace;
-  }
-
-  @Override
-  public String getNamespacePrefix() {
-    return namespacePrefix;
-  }
-
   @Override
   public String getXsd() {
     return xsd;

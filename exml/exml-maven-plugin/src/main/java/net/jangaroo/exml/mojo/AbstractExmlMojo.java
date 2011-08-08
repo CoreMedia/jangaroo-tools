@@ -54,12 +54,7 @@ public abstract class AbstractExmlMojo extends JangarooMojo {
    * @parameter
    */
   private String configClassPackage;
-  /**
-   * The XSD Schema that will be generated for this component suite
-   *
-   * @parameter
-   */
-  private File[] importedXsds;
+
   /**
    * @component
    */
@@ -101,10 +96,6 @@ public abstract class AbstractExmlMojo extends JangarooMojo {
     return project;
   }
 
-  public abstract String getNamespace();
-
-  public abstract String getNamespacePrefix();
-
   public abstract String getXsd();
 
   public File getSourceDirectory() {
@@ -116,10 +107,6 @@ public abstract class AbstractExmlMojo extends JangarooMojo {
   }
 
   public abstract File getGeneratedResourcesDirectory();
-
-  public File[] getImportedXsds() {
-    return importedXsds.clone();
-  }
 
   public void execute() throws MojoExecutionException, MojoFailureException {
 
@@ -161,7 +148,7 @@ public abstract class AbstractExmlMojo extends JangarooMojo {
       exmlc.generateXsd(xsdFile);
       projectHelper.attachArtifact(project, "xsd", xsdFile );
     } catch (ExmlcException e) {
-      throw new MojoExecutionException(e.getMessage(), e);
+      throw new MojoFailureException(e.toString(), e);
     }
 
     if (errorHandler.lastException != null) {
@@ -182,28 +169,6 @@ public abstract class AbstractExmlMojo extends JangarooMojo {
     for (String msg : errorHandler.warnings) {
       getLog().warn(msg);
     }
-
-
-    //generate the XSD for that
-//    if (!suite.getComponentClasses().isEmpty()) {
-//      Writer out = null;
-//      try {
-//        try {
-//          //generate the XSD for that
-//          File xsdFile = new File(generatedResourcesDirectory, getXsd());
-//          out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(xsdFile), "UTF-8"));
-//          new XsdGenerator(suite).generateXsd(out);
-//          out.close();
-//          projectHelper.attachArtifact(project, "xsd", xsdFile );
-//        } finally {
-//          if (out != null) {
-//            out.close();
-//          }
-//        }
-//      } catch (IOException e) {
-//        throw new MojoExecutionException("Error while generating XML schema", e);
-//      }
-//    }
 
     getProject().addCompileSourceRoot(generatedSourcesDirectory.getPath());
   }

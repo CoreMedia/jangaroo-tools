@@ -94,7 +94,7 @@ public class Exmlc {
       ExmlModel exmlModel = exmlToModelParser.parse(exmlSourceFile);
       return exmlComponentClassGenerator.generateClass(exmlModel);
     } catch (Exception e) {
-      throw new ExmlcException("unable to generate config class: " + e.getMessage(), exmlSourceFile, e);
+      throw new ExmlcException("unable to generate component class: " + e.getMessage(), exmlSourceFile, e);
     }
   }
 
