@@ -28,6 +28,19 @@
   </xs:element>
   <xs:complexType name='ext.config.component'>
         <xs:sequence>
+            <xs:element name='baseAction' minOccurs="0" maxOccurs="1">
+              <xs:annotation>
+                <xs:documentation>
+                  The action @see Action
+                </xs:documentation>
+              </xs:annotation>
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+                </xs:sequence>
+                <xs:anyAttribute processContents="skip"/>
+              </xs:complexType>
+            </xs:element>
         </xs:sequence>
         <xs:attribute type='exml:String' name='id'>
           <xs:annotation>
@@ -40,6 +53,13 @@
           <xs:annotation>
             <xs:documentation>
               the x value
+            </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+        <xs:attribute type='exml:String' name='baseAction'>
+          <xs:annotation>
+            <xs:documentation>
+              The action @see Action
             </xs:documentation>
           </xs:annotation>
         </xs:attribute>

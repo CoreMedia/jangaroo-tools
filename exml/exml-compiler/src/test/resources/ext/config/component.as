@@ -20,5 +20,17 @@ public class component {
    * @private
    */
   public native function set x(value:Number):void;
+
+  /**
+   * The action
+   * 
+   * @see Action
+   */
+  public native function get baseAction():Action;
+
+  /**
+   * @private
+   */
+  public native function set baseAction(value:Action):void;
 }
 }
