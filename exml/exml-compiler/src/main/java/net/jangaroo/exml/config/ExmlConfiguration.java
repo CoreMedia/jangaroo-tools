@@ -12,4 +12,11 @@ public class ExmlConfiguration extends FileLocations {
   public void setConfigClassPackage(String configClassPackage) {
     this.configClassPackage = configClassPackage;
   }
+
+  @Override
+  public String toString() {
+    return "ExmlConfiguration{" +
+            "configClassPackage='" + configClassPackage + '\'' +
+            '}' + super.toString();
+  }
 }

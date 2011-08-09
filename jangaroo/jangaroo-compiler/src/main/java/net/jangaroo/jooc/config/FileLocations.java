@@ -79,4 +79,14 @@ public class FileLocations {
   public void addSourceFile(String sourcepath) {
     addSourceFile(new File(sourcepath));
   }
+
+  @Override
+  public String toString() {
+    return "FileLocations{" +
+            "sourcePath=" + sourcePath +
+            ", sourceFiles=" + sourceFiles +
+            ", classPath=" + classPath +
+            ", outputDirectory=" + outputDirectory +
+            '}';
+  }
 }

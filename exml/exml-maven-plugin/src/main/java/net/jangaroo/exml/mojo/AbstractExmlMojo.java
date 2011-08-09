@@ -139,6 +139,7 @@ public abstract class AbstractExmlMojo extends JangarooMojo {
 
     Exmlc exmlc;
     try {
+      getLog().info("Exmlc configuration: " + exmlConfiguration);
       exmlc = new Exmlc(exmlConfiguration);
       // Generate all config classes from EXML files:
       exmlc.generateAllConfigClasses();

@@ -1,0 +1,44 @@
+import java.io.*;
+
+import org.codehaus.plexus.util.*;
+
+boolean result = true;
+
+try
+{
+    File target = new File( basedir, "target" );
+    if ( !target.exists() || !target.isDirectory() )
+    {
+        System.err.println( "target file is missing or a directory." );
+        return false;
+    }
+
+    File generatedSources = new File ( target, "generated-sources"+File.separator+"joo" );
+    if ( !generatedSources.exists() || !generatedSources.isDirectory() )
+    {
+        System.err.println( generatedSources + " directory is missing or not a directory." );
+        return false;
+    }
+
+    File generatedAS = new File ( generatedSources, "MyComponent.as" );
+    if ( !generatedAS.exists() || !generatedAS.isFile() )
+    {
+        System.err.println( "MyComponent.as output file is missing or not a file." );
+        return false;
+    }
+
+    File xsd = new File ( target, "generated-resources"+File.separator+"xml-only.xsd" );
+    if ( !xsd.exists() || !xsd.isFile() )
+    {
+        System.err.println( "exml-with-tests-1.0-SNAPSHOT.xsd output file is missing or not a file." );
+        //return false; TODO: KNOWN MISSING FEATURE!
+    }
+
+}
+catch( IOException e )
+{
+    e.printStackTrace();
+    result = false;
+}
+
+return result;

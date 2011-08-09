@@ -20,17 +20,17 @@ try
         return false;
     }
 
-    File generatedAS = new File ( generatedSources, "MyLayout.as" );
+    File generatedAS = new File ( generatedSources, "MyComponent.as" );
     if ( !generatedAS.exists() || !generatedAS.isFile() )
     {
-        System.err.println( "MyLayout.as output file is missing or not a file." );
+        System.err.println( "MyComponent.as output file is missing or not a file." );
         return false;
     }
 
     File xsd = new File ( target, "generated-resources"+File.separator+"xml-only.xsd" );
     if ( !xsd.exists() || !xsd.isFile() )
     {
-        System.err.println( "xml-only-1.0-SNAPSHOT.xsd output file is missing or not a file." );
+        System.err.println( "exml-only-1.0-SNAPSHOT.xsd output file is missing or not a file." );
         //return false; TODO: KNOWN MISSING FEATURE!
     }
 

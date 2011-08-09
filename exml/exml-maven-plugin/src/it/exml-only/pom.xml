@@ -22,7 +22,7 @@ under the License.
          xmlns='http://maven.apache.org/POM/4.0.0'>
   <modelVersion>4.0.0</modelVersion>
   <groupId>testextxml</groupId>
-  <artifactId>xml-only</artifactId>
+  <artifactId>exml-only</artifactId>
   <packaging>pom</packaging>
   <version>1.0-SNAPSHOT</version>
   <name>xml-only</name>
@@ -33,6 +33,7 @@ under the License.
         <groupId>net.jangaroo</groupId>
         <artifactId>exml-maven-plugin</artifactId>
         <version>@project.version@</version>
+        <extensions>true</extensions>
         <configuration>
           <configClassPackage>testPackage.config</configClassPackage>
         </configuration>
