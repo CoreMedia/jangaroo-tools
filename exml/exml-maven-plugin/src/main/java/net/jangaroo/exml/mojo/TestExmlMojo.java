@@ -29,7 +29,7 @@ public class TestExmlMojo extends AbstractExmlMojo {
   /**
    * Output directory for all test ActionScript3 files generated out of exml components
    *
-   * @parameter expression="${project.build.directory}/generated-test-sources/joo"
+   * @parameter default-value="${project.build.directory}/generated-test-sources/joo"
    */
   private File generatedTestSourcesDirectory;
 
@@ -40,7 +40,7 @@ public class TestExmlMojo extends AbstractExmlMojo {
    *
    * @parameter expression="${maven.test.skip}"
    */
-  protected boolean skip;
+  private boolean skip;
 
 
   @Override

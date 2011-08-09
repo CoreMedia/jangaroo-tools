@@ -1,6 +1,7 @@
 package net.jangaroo.exml.mojo;
 
 import net.jangaroo.exml.compiler.Exmlc;
+import org.apache.maven.project.MavenProjectHelper;
 
 import java.io.File;
 
@@ -16,16 +17,20 @@ public class ExmlXsdMojo extends ExmlMojo {
   /**
    * The XSD Schema that will be generated for this component suite
    *
-   * @parameter expression="${project.artifactId}.xsd"
+   * @parameter default-value="${project.artifactId}.xsd"
    */
-  protected String xsd;
+  private String xsd;
   /**
    * The folder where the XSD Schema for this component suite will be generated
    *
-   * @parameter expression="${project.build.directory}/generated-resources"
+   * @parameter default-value="${project.build.directory}/generated-resources"
    */
-  protected File generatedResourcesDirectory;
+  private File generatedResourcesDirectory;
 
+  /**
+   * @component
+   */
+  private MavenProjectHelper projectHelper;
 
   @Override
   protected void executeExmlc(Exmlc exmlc) {
@@ -37,7 +42,7 @@ public class ExmlXsdMojo extends ExmlMojo {
     //generate the XSD for that
     File xsdFile = new File(generatedResourcesDirectory, xsd);
     exmlc.generateXsd(xsdFile);
-    projectHelper.attachArtifact(project, "xsd", xsdFile);
+    projectHelper.attachArtifact(getProject(), "xsd", xsdFile);
     getLog().info("Xsd '" + xsdFile + "' generated.");
   }
 
