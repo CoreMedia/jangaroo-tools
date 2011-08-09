@@ -46,7 +46,7 @@ public abstract class AbstractExmlMojo extends JangarooMojo {
    *
    * @parameter expression="${project.build.directory}/generated-sources/joo"
    */
-  private File generatedSourcesDirectory;
+  protected File generatedSourcesDirectory;
 
   /**
    * The package into which config classes of EXML components are generated.

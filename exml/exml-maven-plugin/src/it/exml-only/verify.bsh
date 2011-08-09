@@ -23,15 +23,22 @@ try
     File generatedAS = new File ( generatedSources, "MyComponent.as" );
     if ( !generatedAS.exists() || !generatedAS.isFile() )
     {
-        System.err.println( "MyComponent.as output file is missing or not a file." );
+        System.err.println( generatedAS + " output file is missing or not a file." );
         return false;
     }
 
-    File xsd = new File ( target, "generated-resources"+File.separator+"xml-only.xsd" );
+    File generatedConfigAS = new File ( generatedSources, "testPackage"+File.separator+"config"+File.separator+"MyComponent.as" );
+    if ( !generatedConfigAS.exists() || !generatedConfigAS.isFile() )
+    {
+        System.err.println( generatedConfigAS.getName() + " output file is missing or not a file." );
+        return false;
+    }
+
+    File xsd = new File ( target, "generated-resources"+File.separator+"exml-only.xsd" );
     if ( !xsd.exists() || !xsd.isFile() )
     {
-        System.err.println( "exml-only-1.0-SNAPSHOT.xsd output file is missing or not a file." );
-        //return false; TODO: KNOWN MISSING FEATURE!
+        System.err.println( xsd.getName() + " output file is missing or not a file." );
+        return false;
     }
 
 }

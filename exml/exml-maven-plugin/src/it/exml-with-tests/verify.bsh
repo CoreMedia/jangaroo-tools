@@ -9,7 +9,7 @@ try
     File target = new File( basedir, "target" );
     if ( !target.exists() || !target.isDirectory() )
     {
-        System.err.println( "target file is missing or a directory." );
+        System.err.println( target + "directory is missing or not a directory." );
         return false;
     }
 
@@ -23,16 +23,45 @@ try
     File generatedAS = new File ( generatedSources, "MyComponent.as" );
     if ( !generatedAS.exists() || !generatedAS.isFile() )
     {
-        System.err.println( "MyComponent.as output file is missing or not a file." );
+        System.err.println( generatedAS + " output file is missing or not a file." );
         return false;
     }
 
-    File xsd = new File ( target, "generated-resources"+File.separator+"xml-only.xsd" );
+    File generatedConfigAS = new File ( generatedSources, "testPackage"+File.separator+"config"+File.separator+"MyComponent.as" );
+    if ( !generatedConfigAS.exists() || !generatedConfigAS.isFile() )
+    {
+        System.err.println( generatedConfigAS + " output file is missing or not a file." );
+        return false;
+    }
+
+    File xsd = new File ( target, "generated-resources"+File.separator+"exml-with-tests.xsd" );
     if ( !xsd.exists() || !xsd.isFile() )
     {
-        System.err.println( "exml-with-tests-1.0-SNAPSHOT.xsd output file is missing or not a file." );
-        //return false; TODO: KNOWN MISSING FEATURE!
+        System.err.println( xsd + " output file is missing or not a file." );
+        return false;
     }
+
+    //tests
+   File generatedTestSources = new File ( target, "generated-test-sources"+File.separator+"joo" );
+    if ( !generatedTestSources.exists() || !generatedTestSources.isDirectory() )
+    {
+        System.err.println( generatedTestSources + " directory is missing or not a directory." );
+        return false;
+    }
+    File generatedTestAS = new File ( generatedTestSources, "MyComponentTest.as" );
+    if ( !generatedTestAS.exists() || !generatedTestAS.isFile() )
+    {
+        System.err.println( generatedTestAS + " output file is missing or not a file." );
+        return false;
+    }
+
+    File generatedConfigTestAS = new File ( generatedTestSources, "testPackage"+File.separator+"config"+File.separator+"MyComponentTest.as" );
+    if ( !generatedConfigTestAS.exists() || !generatedConfigTestAS.isFile() )
+    {
+        System.err.println( generatedConfigTestAS + " output file is missing or not a file." );
+        return false;
+    }
+
 
 }
 catch( IOException e )
