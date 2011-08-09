@@ -31,6 +31,7 @@
           <generate-sources>net.jangaroo:jangaroo-maven-plugin:${pom.version}:properties,
             net.jangaroo:exml-maven-plugin:${pom.version}:exml
           </generate-sources>
+          <generate-resources>net.jangaroo:exml-maven-plugin:${pom.version}:exml-xsd</generate-resources>
           <process-resources>org.apache.maven.plugins:maven-resources-plugin:resources</process-resources>
           <compile>net.jangaroo:jangaroo-maven-plugin:${pom.version}:compile</compile>
           <generate-test-sources>net.jangaroo:exml-maven-plugin:${pom.version}:test-exml</generate-test-sources>

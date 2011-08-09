@@ -13,12 +13,8 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -33,7 +29,7 @@ public abstract class AbstractExmlMojo extends JangarooMojo {
    *
    * @parameter expression="${project}"
    */
-  private MavenProject project;
+  protected MavenProject project;
   /**
    * Source directory to scan for files to compile.
    *
@@ -59,18 +55,7 @@ public abstract class AbstractExmlMojo extends JangarooMojo {
    * @component
    */
   MavenProjectHelper projectHelper;
-  /**
-   * The XSD Schema that will be generated for this component suite
-   *
-   * @parameter expression="${project.artifactId}.xsd"
-   */
-  protected String xsd;
-  /**
-   * The folder where the XSD Schema for this component suite will be generated
-   *
-   * @parameter expression="${project.build.directory}/generated-resources"
-   */
-  protected File generatedResourcesDirectory;
+
   /**
    * A list of inclusion filters for the compiler.
    *
@@ -96,8 +81,6 @@ public abstract class AbstractExmlMojo extends JangarooMojo {
     return project;
   }
 
-  public abstract String getXsd();
-
   public File getSourceDirectory() {
     return sourceDirectory;
   }
@@ -106,19 +89,12 @@ public abstract class AbstractExmlMojo extends JangarooMojo {
     return generatedSourcesDirectory;
   }
 
-  public abstract File getGeneratedResourcesDirectory();
-
   public void execute() throws MojoExecutionException, MojoFailureException {
 
     File generatedSourcesDirectory = getGeneratedSourcesDirectory();
     if (!generatedSourcesDirectory.exists()) {
       getLog().info("generating sources into: " + generatedSourcesDirectory.getPath());
       getLog().debug("created " + generatedSourcesDirectory.mkdirs());
-    }
-    File generatedResourcesDirectory = getGeneratedResourcesDirectory();
-    if (!generatedResourcesDirectory.exists()) {
-      getLog().info("generating resources into: " + generatedResourcesDirectory.getPath());
-      getLog().debug("created " + generatedResourcesDirectory.mkdirs());
     }
 
 
@@ -139,15 +115,11 @@ public abstract class AbstractExmlMojo extends JangarooMojo {
 
     Exmlc exmlc;
     try {
-      getLog().info("Exmlc configuration: " + exmlConfiguration);
+      getLog().debug("Exmlc configuration: " + exmlConfiguration);
       exmlc = new Exmlc(exmlConfiguration);
-      // Generate all config classes from EXML files:
-      exmlc.generateAllConfigClasses();
-      exmlc.generateAllComponentClasses();
-      //generate the XSD for that
-      File xsdFile = new File(generatedResourcesDirectory, getXsd());
-      exmlc.generateXsd(xsdFile);
-      projectHelper.attachArtifact(project, "xsd", xsdFile );
+
+      executeExmlc(exmlc);
+
     } catch (ExmlcException e) {
       throw new MojoFailureException(e.toString(), e);
     }
@@ -173,6 +145,8 @@ public abstract class AbstractExmlMojo extends JangarooMojo {
 
     getProject().addCompileSourceRoot(generatedSourcesDirectory.getPath());
   }
+
+  protected abstract void executeExmlc(Exmlc exmlc);
 
   protected abstract List<File> getSourcePath();
 

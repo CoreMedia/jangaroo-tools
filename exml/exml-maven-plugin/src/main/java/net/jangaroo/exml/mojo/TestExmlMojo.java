@@ -3,6 +3,8 @@
  */
 package net.jangaroo.exml.mojo;
 
+import net.jangaroo.exml.compiler.Exmlc;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -32,27 +34,22 @@ public class TestExmlMojo extends AbstractExmlMojo {
   private File generatedTestSourcesDirectory;
 
   /**
-   * The XSD Schema that will be generated for this test component suite
+   * Set this to 'true' to bypass unit tests entirely. Its use is NOT RECOMMENDED, especially if you
+   * enable it using the "maven.test.skip" property, because maven.test.skip disables both running the
+   * tests and compiling the tests. Consider using the skipTests parameter instead.
    *
-   * @parameter expression="${project.artifactId}-test.xsd"
+   * @parameter expression="${maven.test.skip}"
    */
-  private String testXsd;
+  protected boolean skip;
 
-  /**
-   * The folder where the XSD Schema for this test component suite will be generated
-   *
-   * @parameter expression="${project.build.directory}/generated-test-resources"
-   */
-  private File generatedTestResourcesDirectory;
 
   @Override
-  public String getXsd() {
-    return testXsd;
-  }
-
-  @Override
-  public File getGeneratedResourcesDirectory() {
-    return generatedTestResourcesDirectory;
+  protected void executeExmlc(Exmlc exmlc) {
+    if(!skip) {
+      // Generate all config classes from EXML files:
+      exmlc.generateAllConfigClasses();
+      exmlc.generateAllComponentClasses();
+    }
   }
 
   @Override

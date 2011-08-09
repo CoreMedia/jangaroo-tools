@@ -3,6 +3,8 @@
  */
 package net.jangaroo.exml.mojo;
 
+import net.jangaroo.exml.compiler.Exmlc;
+
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
@@ -17,13 +19,10 @@ import java.util.List;
 public class ExmlMojo extends AbstractExmlMojo {
 
   @Override
-  public String getXsd() {
-    return xsd;
-  }
-
-  @Override
-  public File getGeneratedResourcesDirectory() {
-    return generatedResourcesDirectory;
+  protected void executeExmlc(Exmlc exmlc) {
+    // Generate all config classes from EXML files:
+    exmlc.generateAllConfigClasses();
+    exmlc.generateAllComponentClasses();
   }
 
   protected List<File> getSourcePath() {

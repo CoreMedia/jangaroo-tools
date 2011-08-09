@@ -1,5 +1,8 @@
 package net.jangaroo.jooc.mvnplugin;
 
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
+
 import java.io.File;
 import java.util.*;
 
@@ -83,6 +86,15 @@ public class TestCompilerMojo extends AbstractCompilerMojo {
   private String moduleTestClassesJsFile;
 
   /**
+   * Set this to 'true' to bypass unit tests entirely. Its use is NOT RECOMMENDED, especially if you
+   * enable it using the "maven.test.skip" property, because maven.test.skip disables both running the
+   * tests and compiling the tests. Consider using the skipTests parameter instead.
+   *
+   * @parameter expression="${maven.test.skip}"
+   */
+  protected boolean skip;
+
+  /**
    * 
    * @return null as API stub generation does not make sense for test sources
    */
@@ -124,5 +136,12 @@ public class TestCompilerMojo extends AbstractCompilerMojo {
     classPath.add(0, sourceDirectory);
     classPath.add(0, getGeneratedSourcesDirectory());
     return classPath;
+  }
+
+  @Override
+  public void execute() throws MojoExecutionException, MojoFailureException {
+    if(!skip) {
+      super.execute();
+    }
   }
 }

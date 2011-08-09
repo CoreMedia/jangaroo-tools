@@ -39,10 +39,18 @@ under the License.
         </configuration>
         <executions>
           <execution>
+            <id>compile</id>
             <goals>
               <goal>exml</goal>
             </goals>
             <phase>generate-sources</phase>
+          </execution>
+          <execution>
+            <id>generateXsd</id>
+            <goals>
+              <goal>exml-xsd</goal>
+            </goals>
+            <phase>generate-resources</phase>
           </execution>
         </executions>
       </plugin>

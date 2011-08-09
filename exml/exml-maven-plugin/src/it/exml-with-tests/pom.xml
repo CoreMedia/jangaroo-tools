@@ -46,6 +46,13 @@ under the License.
             <phase>generate-sources</phase>
           </execution>
           <execution>
+            <id>generateXsd</id>
+            <goals>
+              <goal>exml-xsd</goal>
+            </goals>
+            <phase>generate-resources</phase>
+          </execution>
+          <execution>
             <id>generateTestCmp</id>
             <goals>
               <goal>test-exml</goal>
