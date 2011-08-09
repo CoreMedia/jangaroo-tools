@@ -1,6 +1,6 @@
 package ext.config {
 
-[ExtConfig(target="ext.Panel")]
+[ExtConfig(target="ext.Panel", xtype="panel")]
 public class panel extends component{
 
   /**

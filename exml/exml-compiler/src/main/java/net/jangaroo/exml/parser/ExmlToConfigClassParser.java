@@ -29,7 +29,7 @@ public class ExmlToConfigClassParser {
     configClass.setPackageName(config.getConfigClassPackage());
     configClass.setName(FilenameUtils.getBaseName(source.getName()));
     // Only components are encoded in EXML.
-    configClass.setType(ConfigClassType.COMPONENT);
+    configClass.setType(ConfigClassType.XTYPE);
 
     //read exml data and write it into the config class
     ExmlMetadataHandler metadataHandler = new ExmlMetadataHandler(configClass);

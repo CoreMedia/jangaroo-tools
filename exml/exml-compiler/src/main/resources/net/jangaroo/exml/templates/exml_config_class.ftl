@@ -19,8 +19,11 @@ import ${componentClassName};
  *
  * @see ${componentClassName}
  */
-[ExtConfig(target="${componentClassName}")]
+[ExtConfig(target="${componentClassName}", xtype)]
 public dynamic class ${name} extends ${superClassName} {
+
+  public static native function get xtype():String;
+
   /**
    * @private
    */

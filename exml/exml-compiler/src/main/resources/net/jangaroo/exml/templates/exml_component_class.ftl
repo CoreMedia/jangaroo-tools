@@ -16,8 +16,6 @@ import ${import};
  * @see ${configClassPackage}.${model.className}
  */
 public class ${model.className} extends ${model.superClassName} {
-  public static const xtype:String = "${configClassPackage}.${model.className}";
-  ext.ComponentMgr.registerType(xtype, ${model.className});
 
   /**
    * Create a ${model.className}.

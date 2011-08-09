@@ -1,15 +1,19 @@
 package net.jangaroo.exml.model;
 
+import java.util.Locale;
+
 /**
  * An enumeration of the types of ExtJS objects: components, plugins, and actions.
  */
 public enum ConfigClassType {
-  COMPONENT("xtype"), PLUGIN("ptype"), ACTION("atype"), LAYOUT("type");
+  XTYPE,
+  PTYPE,
+  @SuppressWarnings({"UnusedDeclaration"})
+  TYPE;
 
-  private String extTypeAttribute;
-
-  ConfigClassType(String extTypeAttribute) {
-    this.extTypeAttribute = extTypeAttribute;
+  public static ConfigClassType fromExtTypeAttribute(String parameterName) throws IllegalArgumentException {
+    String enumValue = parameterName.toUpperCase(Locale.ROOT);
+    return ConfigClassType.valueOf(enumValue);
   }
 
   /**
@@ -18,6 +22,6 @@ public enum ConfigClassType {
    * @return the type
    */
   public String getExtTypeAttribute() {
-    return extTypeAttribute;
+    return toString().toLowerCase(Locale.ROOT);
   }
 }

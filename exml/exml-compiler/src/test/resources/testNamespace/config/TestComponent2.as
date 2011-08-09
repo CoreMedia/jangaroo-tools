@@ -11,7 +11,7 @@ import testPackage.TestComponent;
  *
  * @see testPackage.TestComponent
  */
-[ExtConfig(target="testPackage.TestComponent2")]
+[ExtConfig(target="testPackage.TestComponent2", xtype)]
 public class TestComponent2 extends TestComponent {
   /**
    * @see testPackage.TestComponent2

@@ -1,6 +1,6 @@
 package ext.config {
 
-[ExtConfig(target="ext.Button")]
+[ExtConfig(target="ext.Button", xtype="button")]
 public class button {
 
   /**

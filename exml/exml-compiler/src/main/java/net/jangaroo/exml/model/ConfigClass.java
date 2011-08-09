@@ -19,6 +19,7 @@ public final class ConfigClass extends DescriptionHolder {
   private ConfigClass superClass;
   private String componentClassName;
   private ConfigClassType type;
+  private String typeValue;
 
   public void addCfg(ConfigAttribute cfg) {
     cfgs.add(cfg);
@@ -74,6 +75,14 @@ public final class ConfigClass extends DescriptionHolder {
 
   public void setType(ConfigClassType type) {
     this.type = type;
+  }
+
+  public String getTypeValue() {
+    return typeValue;
+  }
+
+  public void setTypeValue(String typeValue) {
+    this.typeValue = typeValue;
   }
 
   public void setPackageName(String packageName) {

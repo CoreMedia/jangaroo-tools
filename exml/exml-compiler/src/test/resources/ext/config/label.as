@@ -1,6 +1,6 @@
 package ext.config {
 
-[ExtConfig(target="ext.Label")]
+[ExtConfig(target="ext.Label", xtype="label")]
 public class label {
 
   /**

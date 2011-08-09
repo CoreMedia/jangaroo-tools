@@ -18,8 +18,11 @@ import testPackage.TestComponent;
  *
  * @see testPackage.TestComponent
  */
-[ExtConfig(target="testPackage.TestComponent")]
+[ExtConfig(target="testPackage.TestComponent", xtype)]
 public dynamic class TestComponent extends ext.config.panel {
+
+  public static native function get xtype():String;
+
   /**
    * @private
    */

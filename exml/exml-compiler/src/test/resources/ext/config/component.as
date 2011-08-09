@@ -1,6 +1,6 @@
 package ext.config {
 
-[ExtConfig(target="ext.Component")]
+[ExtConfig(target="ext.Component", xtype="component")]
 public class component {
 
   /**

@@ -1,6 +1,6 @@
 package ext.config {
 
-[ExtConfig(target="ext.MenuItem")]
+[ExtConfig(target="ext.MenuItem", xtype="menuitem")]
 public class menuitem {
 
   /**

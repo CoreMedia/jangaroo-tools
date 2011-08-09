@@ -16,8 +16,6 @@ import ext.Panel;
  * @see exmlparser.config.AllElements
  */
 public class AllElements extends ext.Panel {
-  public static const xtype:String = "exmlparser.config.AllElements";
-  ext.ComponentMgr.registerType(xtype, AllElements);
 
   /**
    * Create a AllElements.

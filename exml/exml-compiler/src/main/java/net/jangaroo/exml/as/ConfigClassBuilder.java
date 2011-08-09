@@ -15,17 +15,16 @@ import net.jangaroo.jooc.ast.CommaSeparatedList;
 import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.ast.FunctionDeclaration;
 import net.jangaroo.jooc.ast.Ide;
+import net.jangaroo.jooc.ast.LiteralExpr;
 import net.jangaroo.jooc.ast.PackageDeclaration;
 import net.jangaroo.jooc.ast.TypeRelation;
 import net.jangaroo.jooc.sym;
 
 import java.io.IOException;
-import java.util.Locale;
 
 public class ConfigClassBuilder extends AstVisitorBase {
   private static final String EXT_CONFIG_META_NAME = "ExtConfig";
   private static final String TARGET_ANNOTATION_PARAMETER_NAME = "target";
-  private static final String TYPE_ANNOTATION_PARAMETER_NAME = "type";
   private static final String AS3_ANY_TYPE = "*";
 
   private static final String COMMENT_START = "/*";
@@ -107,43 +106,43 @@ public class ConfigClassBuilder extends AstVisitorBase {
         }
 
         CommaSeparatedList<AnnotationParameter> annotationParameters = annotation.getOptAnnotationParameters();
-        String target = null;
-        ConfigClassType type = null;
         while (annotationParameters != null) {
           AnnotationParameter annotationParameter = annotationParameters.getHead();
-          Ide optName = annotationParameter.getOptName();
-          if (optName != null) {
-            if (TARGET_ANNOTATION_PARAMETER_NAME.equals(optName.getName())) {
-              JooSymbol symbol = annotationParameter.getValue().getSymbol();
+          Ide optNameIde = annotationParameter.getOptName();
+          if (optNameIde != null) {
+            String parameterName = optNameIde.getName();
+            LiteralExpr annotationParameterValue = annotationParameter.getValue();
+            String parameterValue = null;
+            if (annotationParameterValue != null) {
+              JooSymbol symbol = annotationParameterValue.getSymbol();
               if (symbol.sym != sym.STRING_LITERAL) {
-                throw new CompilerError(symbol, "The " + TARGET_ANNOTATION_PARAMETER_NAME + " parameter of an [" + EXT_CONFIG_META_NAME + "] annotation must be a string literal.");
+                throw new CompilerError(symbol, "The " + parameterName + " parameter of an [" + EXT_CONFIG_META_NAME + "] annotation must be a string literal.");
               }
-              target = (String) symbol.getJooValue();
-            } else if (TYPE_ANNOTATION_PARAMETER_NAME.equals(optName.getName())) {
-              JooSymbol symbol = annotationParameter.getValue().getSymbol();
-              if (symbol.sym != sym.STRING_LITERAL) {
-                throw new CompilerError(symbol, "The " + TYPE_ANNOTATION_PARAMETER_NAME + " parameter of an [" + EXT_CONFIG_META_NAME + "] annotation must be a string literal.");
+              parameterValue = (String) symbol.getJooValue();
+            }
+            if (TARGET_ANNOTATION_PARAMETER_NAME.equals(parameterName)) {
+              if (parameterValue == null) {
+                throw new CompilerError(optNameIde.getSymbol(), "The " + parameterName + " parameter of an [" + EXT_CONFIG_META_NAME + "] annotation must have a value.");
               }
-              String typeString = ((String) symbol.getJooValue()).toUpperCase(Locale.ROOT);
+              configClass.setComponentClassName(parameterValue);
+            } else {
               try {
-                type = ConfigClassType.valueOf(typeString);
+                configClass.setType(ConfigClassType.fromExtTypeAttribute(parameterName));
               } catch (IllegalArgumentException e) {
-                throw new CompilerError(symbol, "The " + TYPE_ANNOTATION_PARAMETER_NAME + " parameter of an [" + EXT_CONFIG_META_NAME + "] annotation must be a valid type ('component', 'plugin', 'action', 'layout'), but is '" + typeString + "'.", e);
+                throw new CompilerError(optNameIde.getSymbol(), "'" + parameterName + "' is not a valid parameter of an [" + EXT_CONFIG_META_NAME + "] annotation (only 'xtype', 'ptype', 'type' are allowed).", e);
               }
+              if (parameterValue == null) {
+                // default: use fully qualified config class name as the xtype/ptype/type
+                parameterValue = configClass.getFullName();
+              }
+              configClass.setTypeValue(parameterValue);
             }
           }
           annotationParameters = annotationParameters.getTail();
         }
-        if (target == null) {
+        if (configClass.getComponentClassName() == null) {
           throw new CompilerError(annotation.getSymbol(), "A " + TARGET_ANNOTATION_PARAMETER_NAME + " parameter must be provided for an [" + EXT_CONFIG_META_NAME + "] annotation.");
         }
-        if (type == null) {
-          type = configClass.getName().endsWith("layout") || target.endsWith("Layout") // heuristic: everything ending with "layout"...
-          ? ConfigClassType.LAYOUT     // ...is a layout config class
-          : ConfigClassType.COMPONENT; // else, default to component
-        }
-        configClass.setComponentClassName(target);
-        configClass.setType(type);
       }
     }
   }
@@ -151,7 +150,7 @@ public class ConfigClassBuilder extends AstVisitorBase {
   private class ClassBodyVisitor extends AstVisitorBase {
     @Override
     public void visitFunctionDeclaration(FunctionDeclaration functionDeclaration) throws IOException {
-      if (functionDeclaration.isGetter()) {
+      if (functionDeclaration.isGetter() && !functionDeclaration.isStatic()) {
         String name = functionDeclaration.getName();
         String type = parseTypeDeclaration(functionDeclaration);
         String description = parseDescription(functionDeclaration.getSymbol(), functionDeclaration.getSymModifiers());
