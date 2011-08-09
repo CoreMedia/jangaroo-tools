@@ -59,10 +59,6 @@ public class NativeClassDeclaration {
     return this;
   }
 
-  public function isComplete():Boolean {
-    return state >= STATE_COMPLETED;
-  }
-
   public function complete() : NativeClassDeclaration {
     if (state < STATE_COMPLETING ) {
       state = STATE_COMPLETING;

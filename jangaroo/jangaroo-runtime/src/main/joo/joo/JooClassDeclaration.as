@@ -19,6 +19,11 @@ package joo {
 
 public class JooClassDeclaration extends NativeClassDeclaration {
 
+  public static const STATE_EVENT_AFTER_INIT_MEMBERS:String = 'afterInitMembers';
+  private static const STATE_BY_EVENT:Object = {
+    'afterInitMembers': STATE_INITIALIZED
+  };
+
   internal var
           package_ : Object,
           type : String = MemberDeclaration.MEMBER_TYPE_CLASS,
@@ -33,7 +38,8 @@ public class JooClassDeclaration extends NativeClassDeclaration {
           staticInitializers : Array/*<MemberDeclaration|Function>*/,
           publicStaticMethodNames : Array,
           implementingClasses: Array/*Class*/,
-          dependencies : Array;
+          dependencies : Array,
+          stateListeners: Object;
   /**
    * The metadata (annotations) associated with this class.
    */
@@ -47,6 +53,7 @@ public class JooClassDeclaration extends NativeClassDeclaration {
     /^\s*((public|internal)\s+)?namespace\s+([A-Za-z][a-zA-Z$_0-9]*)\s*$/;
 
   public function JooClassDeclaration(packageDef:String, metadata:Object, classDef:String, inheritanceLevel:int, memberDeclarations:Function, publicStaticMethodNames:Array, dependencies:Array) {
+    this.stateListeners = {};
     this.metadata = metadata;
     var packageName : String = packageDef.split(/\s+/)[1] || "";
     this.package_ = getOrCreatePackage(packageName);
@@ -95,6 +102,28 @@ public class JooClassDeclaration extends NativeClassDeclaration {
     }
     this.create(fullClassName, publicConstructor);
     this._processMetadata(); // for early annotation processing like adding dependencies
+  }
+
+  public function addStateListener(state:String, listener:Function):void {
+    if (state >= STATE_BY_EVENT[state]) {
+      listener(this);
+    } else {
+      var stateListeners:Array = this.stateListeners[state];
+      if (!stateListeners) {
+        this.stateListeners[state] = stateListeners = [];
+      }
+      stateListeners.push(listener);
+    }
+  }
+
+  public function removeStateListener(state:String, listener:Function):void {
+    var stateListeners:Array = this.stateListeners[state];
+    if (stateListeners) {
+      var pos:int = stateListeners.indexOf(listener);
+      if (pos !== -1) {
+        stateListeners.splice(pos, 1);
+      }
+    }
   }
 
   public function isClass() : Boolean {
@@ -345,7 +374,7 @@ public class JooClassDeclaration extends NativeClassDeclaration {
     } else {
       addToInterfaces(constructor_);
     }
-    this._processMetadata();
+    fireStateEvent(STATE_EVENT_AFTER_INIT_MEMBERS);
     for (var i:int=0; i<this.staticInitializers.length; ++i) {
       var staticInitializer : * = this.staticInitializers[i];
       if (typeof staticInitializer=="function") {
@@ -356,6 +385,16 @@ public class JooClassDeclaration extends NativeClassDeclaration {
         var target : Object = staticInitializer.isPrivate() ? this.privateStatics : this.constructor_;
         target[staticInitializer.slot] = target[staticInitializer.slot]();
       }
+    }
+  }
+
+  internal function fireStateEvent(event:String):void {
+    var stateListeners:Array = this.stateListeners[event];
+    if (stateListeners) {
+      stateListeners.forEach(function(stateListener:Function):void {
+        stateListener(this);
+      });
+      delete this.stateListeners[event];
     }
   }
 
