@@ -28,7 +28,7 @@ public class TestAnnotations {
     return state;
   }
 
-  [Serializable(transitive=false)]
+  [Serializable(transitive=false, flag)]
   private var state : String;
 
   [Embed(source="jooley.png")]

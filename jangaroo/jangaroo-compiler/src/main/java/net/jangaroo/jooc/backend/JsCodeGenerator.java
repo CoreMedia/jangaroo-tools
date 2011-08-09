@@ -14,7 +14,6 @@ import net.jangaroo.jooc.ast.ArrayIndexExpr;
 import net.jangaroo.jooc.ast.ArrayLiteral;
 import net.jangaroo.jooc.ast.AsExpr;
 import net.jangaroo.jooc.ast.AssignmentOpExpr;
-import net.jangaroo.jooc.ast.AstVisitor;
 import net.jangaroo.jooc.ast.BlockStatement;
 import net.jangaroo.jooc.ast.BreakStatement;
 import net.jangaroo.jooc.ast.CaseStatement;
@@ -106,14 +105,9 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitAnnotationParameter(AnnotationParameter annotationParameter) throws IOException {
-    if (annotationParameter.getOptName() != null && annotationParameter.getOptSymEq() != null) {
-      annotationParameter.getOptName().visit(this);
-      out.writeSymbolWhitespace(annotationParameter.getOptSymEq());
-    } else {
-      out.writeToken("$value");
-    }
-    out.writeToken(":");
-    annotationParameter.getValue().visit(this);
+    visitIfNotNull(annotationParameter.getOptName(), "$value");
+    writeSymbolReplacement(annotationParameter.getOptSymEq(), ":");
+    visitIfNotNull(annotationParameter.getValue(), "null");
   }
 
   @Override
@@ -1049,10 +1043,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     out.writeSymbolWhitespace(namespacedDeclaration.getOptInitializer().getSymEq());
     out.writeToken(",");
     namespacedDeclaration.getOptInitializer().getValue().visit(this);
-    if (namespacedDeclaration.getOptSymSemicolon() != null) {
-      out.writeSymbolWhitespace(namespacedDeclaration.getOptSymSemicolon());
-    }
-    out.writeToken(",[]");
+    writeSymbolReplacement(namespacedDeclaration.getOptSymSemicolon(), ",[]");
   }
 
   @Override
@@ -1114,15 +1105,9 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     out.writeToken("{");
     annotation.getIde().visit(this);
     out.writeToken(":");
-    if (annotation.getOptLeftParen() != null) {
-      out.writeSymbolWhitespace(annotation.getOptLeftParen());
-    }
-    out.writeToken("{");
+    writeSymbolReplacement(annotation.getOptLeftParen(), "{");
     visitIfNotNull(annotation.getOptAnnotationParameters());
-    if (annotation.getOptRightParen() != null) {
-      out.writeSymbolWhitespace(annotation.getOptRightParen());
-    }
-    out.writeToken("}");
+    writeSymbolReplacement(annotation.getOptRightParen(), "}");
     out.writeSymbolWhitespace(annotation.getRightBracket());
     out.writeToken("},");
   }

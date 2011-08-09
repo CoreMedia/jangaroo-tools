@@ -492,6 +492,8 @@ annotationParameter ::=
     {: RESULT = new AnnotationParameter(name,eq,value); :}
   | literalExpr:value
     {: RESULT = new AnnotationParameter(null,null,value); :}
+  | ide:name
+    {: RESULT = new AnnotationParameter(name,null,null); :}
   ;
 
 annotationParameters ::=

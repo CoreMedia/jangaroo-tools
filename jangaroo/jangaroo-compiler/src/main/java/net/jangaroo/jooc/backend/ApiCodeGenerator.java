@@ -85,11 +85,9 @@ public class ApiCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitAnnotationParameter(AnnotationParameter annotationParameter) throws IOException {
-    if (annotationParameter.getOptName() != null && annotationParameter.getOptSymEq() != null) {
-      annotationParameter.getOptName().visit(this);
-      out.writeSymbol(annotationParameter.getOptSymEq());
-    }
-    annotationParameter.getValue().visit(this);
+    visitIfNotNull(annotationParameter.getOptName());
+    writeOptSymbol(annotationParameter.getOptSymEq());
+    visitIfNotNull(annotationParameter.getValue());
   }
 
   @Override
