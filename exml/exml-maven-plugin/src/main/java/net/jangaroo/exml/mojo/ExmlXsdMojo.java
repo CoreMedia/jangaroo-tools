@@ -15,12 +15,6 @@ import java.io.File;
 public class ExmlXsdMojo extends ExmlMojo {
 
   /**
-   * The XSD Schema that will be generated for this component suite
-   *
-   * @parameter default-value="${project.artifactId}.xsd"
-   */
-  private String xsd;
-  /**
    * The folder where the XSD Schema for this component suite will be generated
    *
    * @parameter default-value="${project.build.directory}/generated-resources"
@@ -40,10 +34,10 @@ public class ExmlXsdMojo extends ExmlMojo {
     }
 
     //generate the XSD for that
-    File xsdFile = new File(generatedResourcesDirectory, xsd);
+    File xsdFile = new File(generatedResourcesDirectory, exmlc.getConfig().getConfigClassPackage().replace('.', '_') + ".xsd");
     exmlc.generateXsd(xsdFile);
     projectHelper.attachArtifact(getProject(), "xsd", xsdFile);
-    getLog().info("Xsd '" + xsdFile + "' generated.");
+    getLog().info("xsd-file '" + xsdFile + "' generated.");
   }
 
 
