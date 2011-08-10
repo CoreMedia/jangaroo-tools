@@ -6,15 +6,12 @@ import net.jangaroo.exml.compiler.Exmlc;
 import net.jangaroo.exml.config.ExmlConfiguration;
 import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.mvnplugin.JangarooMojo;
-import net.jangaroo.utils.log.Log;
-import net.jangaroo.utils.log.LogHandler;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -42,7 +39,7 @@ public abstract class AbstractExmlMojo extends JangarooMojo {
    *
    * @parameter default-value="${project.build.directory}/generated-sources/joo"
    */
-  protected File generatedSourcesDirectory;
+  private File generatedSourcesDirectory;
 
   /**
    * The package into which config classes of EXML components are generated.
@@ -93,8 +90,6 @@ public abstract class AbstractExmlMojo extends JangarooMojo {
       getLog().debug("created " + gSourcesDirectory.mkdirs());
     }
 
-    MavenLogHandler errorHandler = new MavenLogHandler();
-    Log.setLogHandler(errorHandler);
     ExmlConfiguration exmlConfiguration = new ExmlConfiguration();
     exmlConfiguration.setConfigClassPackage(configClassPackage);
     exmlConfiguration.setClassPath(getActionScriptClassPath());
@@ -107,7 +102,6 @@ public abstract class AbstractExmlMojo extends JangarooMojo {
     }
     exmlConfiguration.setSourceFiles(getMavenPluginHelper().computeStaleSources(sourcePath, includes, excludes, gSourcesDirectory, ExmlConstants.EXML_SUFFIX, JangarooParser.AS_SUFFIX, staleMillis));
 
-
     Exmlc exmlc;
     try {
       getLog().debug("Exmlc configuration: " + exmlConfiguration);
@@ -119,77 +113,18 @@ public abstract class AbstractExmlMojo extends JangarooMojo {
       throw new MojoFailureException(e.toString(), e);
     }
 
-    if (errorHandler.lastException != null) {
-      throw new MojoExecutionException(errorHandler.exceptionMsg, errorHandler.lastException);
-    }
-
-    StringBuffer errorsMsgs = new StringBuffer();
-    for (String msg : errorHandler.errors) {
-      errorsMsgs.append(msg);
-      errorsMsgs.append("\n");
-    }
-
-    if (errorsMsgs.length() != 0) {
-      throw new MojoFailureException(errorsMsgs.toString());
-    }
-
-
-    for (String msg : errorHandler.warnings) {
-      getLog().warn(msg);
-    }
-
     getProject().addCompileSourceRoot(gSourcesDirectory.getPath());
   }
 
+  /**
+   * Execute the exmlc parts that are needed by the concret mojo
+   * @param exmlc the configured exmlc
+   */
   protected abstract void executeExmlc(Exmlc exmlc);
 
   protected abstract List<File> getSourcePath();
 
   protected List<File> getActionScriptClassPath() {
     return getMavenPluginHelper().getActionScriptClassPath();
-  }
-
-  class MavenLogHandler implements LogHandler {
-    List<String> errors = new ArrayList<String>();
-    List<String> warnings = new ArrayList<String>();
-    Exception lastException;
-    String exceptionMsg;
-    File currentFile;
-
-    public void setCurrentFile(File file) {
-      this.currentFile = file;
-    }
-
-    public void error(String message, int lineNumber, int columnNumber) {
-      errors.add(String.format("ERROR in %s, line %s, column %s: %s", currentFile, lineNumber, columnNumber, message));
-    }
-
-    public void error(String message, Exception exception) {
-      this.exceptionMsg = message;
-      if (currentFile != null) {
-        this.exceptionMsg += String.format(" in file: %s", currentFile);
-      }
-      this.lastException = exception;
-    }
-
-    public void error(String message) {
-      errors.add(message);
-    }
-
-    public void warning(String message) {
-      warnings.add(message);
-    }
-
-    public void warning(String message, int lineNumber, int columnNumber) {
-      warnings.add(String.format("WARNING in %s, line %s, column %s: %s", currentFile, lineNumber, columnNumber, message));
-    }
-
-    public void info(String message) {
-      getLog().info(message);
-    }
-
-    public void debug(String message) {
-      getLog().debug(message);
-    }
   }
 }
