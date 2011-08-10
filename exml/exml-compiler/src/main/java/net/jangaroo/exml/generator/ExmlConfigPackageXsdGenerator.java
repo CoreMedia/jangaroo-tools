@@ -28,12 +28,15 @@ public class ExmlConfigPackageXsdGenerator {
     this.config = config;
   }
 
-  public void generateXsdFile(final ConfigClassRegistry registry, File result) throws IOException, TemplateException {
+  public File generateXsdFile(final ConfigClassRegistry registry) throws IOException, TemplateException {
+
     // Maybe even the directory does not exist.
-    File targetPackageFolder = result.getAbsoluteFile().getParentFile();
+    File targetPackageFolder = config.getResourceOutputDirectory();
     if(!targetPackageFolder.exists()) {
       targetPackageFolder.mkdirs(); // NOSONAR
     }
+
+    File result = new File(targetPackageFolder, config.getConfigClassPackage().replace('.','_') + ".xsd");
 
     Writer writer = null;
     try {
@@ -48,6 +51,7 @@ public class ExmlConfigPackageXsdGenerator {
         //never happen
       }
     }
+    return result;
   }
 
   public void generateXsdFile(final ConfigClassRegistry registry, final Writer output) throws IOException, TemplateException {

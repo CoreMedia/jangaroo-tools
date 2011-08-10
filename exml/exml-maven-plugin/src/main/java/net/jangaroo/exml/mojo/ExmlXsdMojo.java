@@ -15,30 +15,15 @@ import java.io.File;
 public class ExmlXsdMojo extends ExmlMojo {
 
   /**
-   * The folder where the XSD Schema for this component suite will be generated
-   *
-   * @parameter default-value="${project.build.directory}/generated-resources"
-   */
-  private File generatedResourcesDirectory;
-
-  /**
    * @component
    */
   private MavenProjectHelper projectHelper;
 
   @Override
   protected void executeExmlc(Exmlc exmlc) {
-    if (!generatedResourcesDirectory.exists()) {
-      getLog().info("generating resources into: " + generatedResourcesDirectory.getPath());
-      getLog().debug("created " + generatedResourcesDirectory.mkdirs());
-    }
-
     //generate the XSD for that
-    File xsdFile = new File(generatedResourcesDirectory, exmlc.getConfig().getConfigClassPackage().replace('.', '_') + ".xsd");
-    exmlc.generateXsd(xsdFile);
+    File xsdFile = exmlc.generateXsd();
     projectHelper.attachArtifact(getProject(), "xsd", xsdFile);
     getLog().info("xsd-file '" + xsdFile + "' generated.");
   }
-
-
 }

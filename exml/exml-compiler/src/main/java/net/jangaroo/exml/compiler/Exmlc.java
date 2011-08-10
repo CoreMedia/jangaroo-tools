@@ -106,11 +106,11 @@ public class Exmlc {
     }
   }
 
-  public void generateXsd(File target) {
+  public File generateXsd() {
     try {
-      exmlConfigPackageXsdGenerator.generateXsdFile(configClassRegistry, target);
+      return exmlConfigPackageXsdGenerator.generateXsdFile(configClassRegistry);
     } catch (Exception e) {
-      throw new ExmlcException("unable to generate xsd file: " + e.getMessage(), target, e);
+      throw new ExmlcException("unable to generate xsd file: " + e.getMessage(), e);
     }
   }
 }

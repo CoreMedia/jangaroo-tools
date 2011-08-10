@@ -42,6 +42,13 @@ public abstract class AbstractExmlMojo extends JangarooMojo {
   private File generatedSourcesDirectory;
 
   /**
+   * The folder where the XSD Schema for this component suite will be generated
+   *
+   * @parameter default-value="${project.build.directory}/generated-resources"
+   */
+  private File generatedResourcesDirectory;
+
+  /**
    * The package into which config classes of EXML components are generated.
    *
    * @parameter
@@ -90,10 +97,16 @@ public abstract class AbstractExmlMojo extends JangarooMojo {
       getLog().debug("created " + gSourcesDirectory.mkdirs());
     }
 
+    if (!generatedResourcesDirectory.exists()) {
+      getLog().info("generating resources into: " + generatedResourcesDirectory.getPath());
+      getLog().debug("created " + generatedResourcesDirectory.mkdirs());
+    }
+
     ExmlConfiguration exmlConfiguration = new ExmlConfiguration();
     exmlConfiguration.setConfigClassPackage(configClassPackage);
     exmlConfiguration.setClassPath(getActionScriptClassPath());
     exmlConfiguration.setOutputDirectory(gSourcesDirectory);
+    exmlConfiguration.setResourceOutputDirectory(generatedResourcesDirectory);
     List<File> sourcePath = getSourcePath();
     try {
       exmlConfiguration.setSourcePath(sourcePath);
