@@ -2,6 +2,7 @@ package net.jangaroo.extxml.generation;
 
 import net.jangaroo.extxml.model.ComponentClass;
 import net.jangaroo.extxml.model.ComponentSuite;
+import org.codehaus.plexus.util.StringUtils;
 
 public class ConfigClassModel {
   private ComponentSuite componentSuite;
@@ -31,7 +32,7 @@ public class ConfigClassModel {
     if (superComponentClass == null) {
       return " extends joo.JavaScriptObject";
     }
-    return " extends " + superComponentClass.getSuite().getConfigClassPackage() + "." + superComponentClass.getLastXtypeComponent();
+    return " extends " + superComponentClass.getSuite().getConfigClassPackage() + "." + StringUtils.uncapitalise(superComponentClass.getLastXtypeComponent());
   }
 
   public String getImportSuperClassPhrase() {
@@ -39,6 +40,6 @@ public class ConfigClassModel {
     if (superComponentClass == null) {
       return "import joo.JavaScriptObject;";
     }
-    return "import " + superComponentClass.getSuite().getConfigClassPackage() + "." + superComponentClass.getLastXtypeComponent() + ";";
+    return "import " + superComponentClass.getSuite().getConfigClassPackage() + "." + StringUtils.uncapitalise(superComponentClass.getLastXtypeComponent()) + ";";
   }
 }
