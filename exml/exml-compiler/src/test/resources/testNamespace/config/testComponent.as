@@ -9,7 +9,7 @@ import testPackage.TestComponent;
 /**
  * This is a TestComponent with panel as baseclass.
  *
- * <p>This class serves as a typed config object for constructor of the component class <code>testPackage.TestComponent</code>.
+ * <p>This class serves as a typed config object for the constructor of the component class <code>testPackage.TestComponent</code>.
  * Instantiating this class for the first time also registers the corresponding component class under the xtype
  * "testNamespace.config.testComponent" with ExtJS.</p>
  *

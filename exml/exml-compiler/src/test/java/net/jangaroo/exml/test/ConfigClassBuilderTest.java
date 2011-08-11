@@ -26,7 +26,7 @@ public class ConfigClassBuilderTest {
     Assert.assertEquals("testNamespace.config", configClass.getPackageName());
     Assert.assertEquals("testComponent", configClass.getName());
     Assert.assertEquals("testPackage.TestComponent", configClass.getComponentClassName());
-    Assert.assertEquals("This is a TestComponent with panel as baseclass. <p>This class serves as a typed config object for constructor of the component class <code>testPackage.TestComponent</code>. Instantiating this class for the first time also registers the corresponding component class under the xtype \"testNamespace.config.testComponent\" with ExtJS.</p> @see testPackage.TestComponent", configClass.getDescription());
+    Assert.assertEquals("This is a TestComponent with panel as baseclass. <p>This class serves as a typed config object for the constructor of the component class <code>testPackage.TestComponent</code>. Instantiating this class for the first time also registers the corresponding component class under the xtype \"testNamespace.config.testComponent\" with ExtJS.</p> @see testPackage.TestComponent", configClass.getDescription());
     Set<String> attributeNames = new HashSet<String>();
     for (ConfigAttribute configAttribute : configClass.getCfgs()) {
       attributeNames.add(configAttribute.getName());
