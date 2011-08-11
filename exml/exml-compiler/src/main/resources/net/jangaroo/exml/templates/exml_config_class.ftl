@@ -10,7 +10,7 @@ import ${componentClassName};
 /**
  * ${escapedDescription!}
  *
- * <p>This class serves as a typed config object for constructor of the component class <code>${componentClassName}</code>.
+ * <p>This class serves as a typed config object for the constructor of the component class <code>${componentClassName}</code>.
  * Instantiating this class for the first time also registers the corresponding component class under the xtype
  * "${packageName}.${name}" with ExtJS.</p>
  *
