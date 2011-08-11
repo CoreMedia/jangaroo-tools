@@ -42,7 +42,9 @@ public final class ExmlToModelParser {
   public ExmlModel parse(File file) throws IOException, SAXException {
     ExmlModel model = parse(new BufferedInputStream(new FileInputStream(file)));
     String qName = CompilerUtils.qNameFromFile(registry.getConfig().findSourceDir(file), file);
-    model.setClassName(CompilerUtils.className(qName));
+    String className = CompilerUtils.className(qName);
+    model.setClassName(className);
+    model.setConfigClassName(ConfigClass.createNewName(className));
     model.setPackageName(CompilerUtils.packageName(qName));
     return model;
   }

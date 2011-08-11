@@ -27,7 +27,7 @@ try
         return false;
     }
 
-    File generatedConfigAS = new File ( generatedSources, "testPackage"+File.separator+"config"+File.separator+"MyComponent.as" );
+    File generatedConfigAS = new File ( generatedSources, "testPackage"+File.separator+"config"+File.separator+"myComponent.as" );
     if ( !generatedConfigAS.exists() || !generatedConfigAS.isFile() )
     {
         System.err.println( generatedConfigAS.getName() + " output file is missing or not a file." );

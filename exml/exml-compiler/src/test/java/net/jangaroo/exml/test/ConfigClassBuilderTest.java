@@ -22,11 +22,11 @@ import java.util.Set;
 public class ConfigClassBuilderTest {
   @Test
   public void testBuildConfigClass() throws Exception {
-    ConfigClass configClass = buildConfigClass("/testNamespace/config/TestComponent.as");
+    ConfigClass configClass = buildConfigClass("/testNamespace/config/testComponent.as");
     Assert.assertEquals("testNamespace.config", configClass.getPackageName());
-    Assert.assertEquals("TestComponent", configClass.getName());
+    Assert.assertEquals("testComponent", configClass.getName());
     Assert.assertEquals("testPackage.TestComponent", configClass.getComponentClassName());
-    Assert.assertEquals("This is a TestComponent with panel as baseclass. <p>This class serves as a typed config object for constructor of the component class <code>testPackage.TestComponent</code>. Instantiating this class for the first time also registers the corresponding component class under the xtype \"testNamespace.config.TestComponent\" with ExtJS.</p> @see testPackage.TestComponent", configClass.getDescription());
+    Assert.assertEquals("This is a TestComponent with panel as baseclass. <p>This class serves as a typed config object for constructor of the component class <code>testPackage.TestComponent</code>. Instantiating this class for the first time also registers the corresponding component class under the xtype \"testNamespace.config.testComponent\" with ExtJS.</p> @see testPackage.TestComponent", configClass.getDescription());
     Set<String> attributeNames = new HashSet<String>();
     for (ConfigAttribute configAttribute : configClass.getCfgs()) {
       attributeNames.add(configAttribute.getName());
@@ -50,12 +50,12 @@ public class ConfigClassBuilderTest {
 
   @Test(expected = CompilerError.class)
   public void testBadAnnotationParameter() throws Exception {
-    buildConfigClass("/testNamespace/config/BadConfig1.as");
+    buildConfigClass("/testNamespace/config/badConfig1.as");
   }
 
   @Test(expected = CompilerError.class)
   public void testMissingAnnotationParameter() throws Exception {
-    buildConfigClass("/testNamespace/config/BadConfig2.as");
+    buildConfigClass("/testNamespace/config/badConfig2.as");
   }
 
   private ConfigClass buildConfigClass(String resourceName) throws URISyntaxException {

@@ -4,17 +4,17 @@ import ext.Ext;
 import ext.ComponentMgr;
 import ext.MessageBox;
 import ext.Panel;
-import exmlparser.config.AllElements;
+import exmlparser.config.allElements;
 
 // Do not edit. This is an auto-generated class.
 
 /**
  * This is my <b>TestCompoent</b>
  *
- * <p>This component is created by the xtype 'exmlparser.config.AllElements' / the EXML element &lt;exmlparser.config:AllElements>.</p>
+ * <p>This component is created by the xtype 'exmlparser.config.allElements' / the EXML element &lt;exmlparser.config:allElements>.</p>
  * <p>See the config class for details.</p>
  *
- * @see exmlparser.config.AllElements
+ * @see exmlparser.config.allElements
  */
 public class AllElements extends ext.Panel {
 
@@ -23,10 +23,10 @@ public class AllElements extends ext.Panel {
    * @param config The configuration options. See the config class for details.
    *
    * @see exmlparser.AllElements
-   * @see exmlparser.config.AllElements
+   * @see exmlparser.config.allElements
    */
-  public function AllElements(config:exmlparser.config.AllElements = null) {
-    super(exmlparser.config.AllElements(ext.Ext.apply({
+  public function AllElements(config:exmlparser.config.allElements = null) {
+    super(exmlparser.config.allElements(ext.Ext.apply({
       layout: config.myLayout,
       title: "I am a panel",
       defaults: {layout: "border"},
@@ -73,9 +73,9 @@ public class AllElements extends ext.Panel {
    * @param config The configuration options. See the config class for details.
    *
    * @see exmlparser.AllElements
-   * @see exmlparser.config.AllElements
+   * @see exmlparser.config.allElements
    */
-  public static function main(config:exmlparser.config.AllElements = null):void {
+  public static function main(config:exmlparser.config.allElements = null):void {
     new exmlparser.AllElements(config);
   }
 }

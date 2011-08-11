@@ -12,11 +12,11 @@ import testPackage.TestComponent;
  * @see testPackage.TestComponent
  */
 [ExtConfig(target="testPackage.TestComponent2", xtype)]
-public class TestComponent2 extends TestComponent {
+public class testComponent2 extends testComponent {
   /**
    * @see testPackage.TestComponent2
    */
-  public function TestComponent(config:Object = null) {
+  public function testComponent2(config:Object = null) {
     super(config || {});
   }
 

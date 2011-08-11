@@ -167,7 +167,7 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
             "items", new JsonArray(
                     new JsonObject(
                             "propertyThree", "3"
-                    ).settingWrapperClass("testNamespace.config.TestComponent2")
+                    ).settingWrapperClass("testNamespace.config.testComponent2")
             )
     );
     System.out.println(model.getJsonObject().toString(2));

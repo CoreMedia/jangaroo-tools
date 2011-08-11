@@ -11,12 +11,12 @@ import testPackage.TestComponent;
  *
  * <p>This class serves as a typed config object for constructor of the component class <code>testPackage.TestComponent</code>.
  * Instantiating this class for the first time also registers the corresponding component class under the xtype
- * "testNamespace.config.TestComponent" with ExtJS.</p>
+ * "testNamespace.config.testComponent" with ExtJS.</p>
  *
  * @see testPackage.TestComponent
  */
 [ExtConfig(target="testPackage.TestComponent", xtype)]
-public dynamic class TestComponent extends ext.config.panel {
+public dynamic class testComponent extends ext.config.panel {
 
   public static native function get xtype():String;
 
@@ -26,7 +26,7 @@ public dynamic class TestComponent extends ext.config.panel {
    *
    * @see testPackage.TestComponent
    */
-  public function TestComponent(config:Object = null) {
+  public function testComponent(config:Object = null) {
     super(config || {});
   }
 

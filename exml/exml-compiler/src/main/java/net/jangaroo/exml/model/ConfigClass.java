@@ -61,6 +61,22 @@ public final class ConfigClass extends DescriptionHolder {
     return cfgsByName.get(name);
   }
 
+  /**
+   * Create a new Name from the given name. By convention all ConfigClass names are uncapitalized.
+   * @param name the name
+   * @return return the new config-class name, matching the conventions.
+   */
+  public static String createNewName(String name) {
+    int strLen;
+      if (name == null || (strLen = name.length()) == 0) {
+          return name;
+      }
+      return new StringBuilder(strLen)
+          .append(Character.toLowerCase(name.charAt(0)))
+          .append(name.substring(1))
+          .toString();
+  }
+
   public void setName(String name) {
     this.name = name;
   }

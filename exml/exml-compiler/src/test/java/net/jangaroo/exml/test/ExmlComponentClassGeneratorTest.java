@@ -21,6 +21,7 @@ public class ExmlComponentClassGeneratorTest extends AbstractExmlTest {
     ExmlToModelParser exmlToModelParser = new ExmlToModelParser(getConfigClassRegistry());
     ExmlModel model = exmlToModelParser.parse(inputStream);
     model.setClassName("AllElements");
+    model.setConfigClassName("allElements");
     model.setPackageName("exmlparser");
 
     StringWriter output = new StringWriter();

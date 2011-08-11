@@ -11,12 +11,12 @@ import testPackage.TestComponent;
  *
  * @see testPackage.TestComponent
  */
-[ExtConfig]
-public class BadConfig2 extends panel {
+[ExtConfig(target=1)]
+public class badConfig1 extends panel {
   /**
    * @see testPackage.TestComponent
    */
-  public function BadConfig2(config:Object = null) {
+  public function badConfig1(config:Object = null) {
     super(config || {});
   }
 }

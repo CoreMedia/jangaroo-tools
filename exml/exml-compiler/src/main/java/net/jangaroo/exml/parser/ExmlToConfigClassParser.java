@@ -27,7 +27,7 @@ public class ExmlToConfigClassParser {
     ConfigClass configClass = new ConfigClass();
     configClass.setComponentClassName(fullQualifiedName);
     configClass.setPackageName(config.getConfigClassPackage());
-    configClass.setName(FilenameUtils.getBaseName(source.getName()));
+    configClass.setName(ConfigClass.createNewName(FilenameUtils.getBaseName(source.getName())));
     // Only components are encoded in EXML.
     configClass.setType(ConfigClassType.XTYPE);
 
