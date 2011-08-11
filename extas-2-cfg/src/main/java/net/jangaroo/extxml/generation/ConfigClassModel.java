@@ -29,7 +29,7 @@ public class ConfigClassModel {
   public String getExtendsPhrase() {
     ComponentClass superComponentClass = componentSuite.findComponentClassByFullClassName(componentClass.getSuperClassName());
     if (superComponentClass == null) {
-      return "";
+      return " extends joo.JavaScriptObject";
     }
     return " extends " + superComponentClass.getSuite().getConfigClassPackage() + "." + superComponentClass.getLastXtypeComponent();
   }
@@ -37,7 +37,7 @@ public class ConfigClassModel {
   public String getImportSuperClassPhrase() {
     ComponentClass superComponentClass = componentSuite.findComponentClassByFullClassName(componentClass.getSuperClassName());
     if (superComponentClass == null) {
-      return "";
+      return "import joo.JavaScriptObject;";
     }
     return "import " + superComponentClass.getSuite().getConfigClassPackage() + "." + superComponentClass.getLastXtypeComponent() + ";";
   }
