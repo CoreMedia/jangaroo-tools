@@ -1,8 +1,6 @@
 <#-- @ftlvariable name="" type="net.jangaroo.extxml.generation.ConfigClassModel" -->
 package ${componentSuite.configClassPackage} {
 
-import ext.ComponentMgr;
-import ${componentClass.fullClassName};
 ${importSuperClassPhrase}
 
 /**
