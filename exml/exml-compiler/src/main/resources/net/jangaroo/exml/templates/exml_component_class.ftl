@@ -35,7 +35,7 @@ public class ${model.className} extends ${model.superClassName} {
    * @see ${model.fullClassName}
    * @see ${configClassPackage}.${model.className}
    */
-  public static function main(config:${configClassPackage}.${model.className} = null) {
+  public static function main(config:${configClassPackage}.${model.className} = null):void {
     new ${model.fullClassName}(config);
   }
 }
