@@ -9,12 +9,9 @@ import testPackage.TestComponent;
 /**
  * This is a TestComponent with panel as baseclass.
  *
- * <p>
- * <b>Do not instantiate this class!</b> Instead, instantiate the associated
- * component class testPackage.TestComponent directly.
- * This class is only provided to document the config attributes
- * to use when building instances of the component class.
- * </p>
+ * <p>This class serves as a typed config object for constructor of the component class <code>testPackage.TestComponent</code>.
+ * Instantiating this class for the first time also registers the corresponding component class under the xtype
+ * "testNamespace.config.TestComponent" with ExtJS.</p>
  *
  * @see testPackage.TestComponent
  */
@@ -24,7 +21,10 @@ public dynamic class TestComponent extends ext.config.panel {
   public static native function get xtype():String;
 
   /**
-   * @private
+   * <p>Use this constructor to create a typed config object for the constructor of the component class
+   * <code>testPackage.TestComponent</code> and register the component with ExtJS.</p>
+   *
+   * @see testPackage.TestComponent
    */
   public function TestComponent(config:Object = null) {
     super(config || {});
