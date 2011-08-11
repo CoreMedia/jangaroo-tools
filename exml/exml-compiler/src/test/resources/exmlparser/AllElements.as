@@ -4,6 +4,7 @@ import ext.Ext;
 import ext.ComponentMgr;
 import ext.MessageBox;
 import ext.Panel;
+import exmlparser.config.AllElements;
 
 // Do not edit. This is an auto-generated class.
 
@@ -24,8 +25,8 @@ public class AllElements extends ext.Panel {
    * @see exmlparser.AllElements
    * @see exmlparser.config.AllElements
    */
-  public function AllElements(config:Object = null) {
-    super(ext.Ext.apply({
+  public function AllElements(config:exmlparser.config.AllElements = null) {
+    super(exmlparser.config.AllElements(ext.Ext.apply({
       layout: config.myLayout,
       title: "I am a panel",
       defaults: {layout: "border"},
@@ -64,7 +65,7 @@ public class AllElements extends ext.Panel {
         {ptype: "aplugin"}
       ],
       layout2: {type: "a"}
-    }, config));
+    }, config)));
   }
 
   /**
@@ -74,7 +75,7 @@ public class AllElements extends ext.Panel {
    * @see exmlparser.AllElements
    * @see exmlparser.config.AllElements
    */
-  public static function main(config:Object = null) {
+  public static function main(config:exmlparser.config.AllElements = null) {
     new exmlparser.AllElements(config);
   }
 }

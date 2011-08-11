@@ -24,8 +24,8 @@ public class ${model.className} extends ${model.superClassName} {
    * @see ${model.fullClassName}
    * @see ${configClassPackage}.${model.className}
    */
-  public function ${model.className}(config:Object = null) {
-    super(ext.Ext.apply(${formattedConfig}, config));
+  public function ${model.className}(config:${configClassPackage}.${model.className} = null) {
+    super(${configClassPackage}.${model.className}(ext.Ext.apply(${formattedConfig}, config)));
   }
 
   /**
@@ -35,7 +35,7 @@ public class ${model.className} extends ${model.superClassName} {
    * @see ${model.fullClassName}
    * @see ${configClassPackage}.${model.className}
    */
-  public static function main(config:Object = null) {
+  public static function main(config:${configClassPackage}.${model.className} = null) {
     new ${model.fullClassName}(config);
   }
 }
