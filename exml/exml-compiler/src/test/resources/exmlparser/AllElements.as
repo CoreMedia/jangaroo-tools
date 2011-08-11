@@ -75,7 +75,7 @@ public class AllElements extends ext.Panel {
    * @see exmlparser.AllElements
    * @see exmlparser.config.AllElements
    */
-  public static function main(config:exmlparser.config.AllElements = null) {
+  public static function main(config:exmlparser.config.AllElements = null):void {
     new exmlparser.AllElements(config);
   }
 }
