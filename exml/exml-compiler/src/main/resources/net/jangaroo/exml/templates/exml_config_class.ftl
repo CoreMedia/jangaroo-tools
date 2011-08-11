@@ -10,12 +10,9 @@ import ${componentClassName};
 /**
  * ${escapedDescription!}
  *
- * <p>
- * <b>Do not instantiate this class!</b> Instead, instantiate the associated
- * component class ${componentClassName} directly.
- * This class is only provided to document the config attributes
- * to use when building instances of the component class.
- * </p>
+ * <p>This class serves as a typed config object for constructor of the component class <code>${componentClassName}</code>.
+ * Instantiating this class for the first time also registers the corresponding component class under the xtype
+ * "${packageName}.${name}" with ExtJS.</p>
  *
  * @see ${componentClassName}
  */
@@ -25,7 +22,10 @@ public dynamic class ${name} extends ${superClassName} {
   public static native function get xtype():String;
 
   /**
-   * @private
+   * <p>Use this constructor to create a typed config object for the constructor of the component class
+   * <code>${componentClassName}</code> and register the component with ExtJS.</p>
+   *
+   * @see ${componentClassName}
    */
   public function ${name}(config:Object = null) {
     super(config || {});
