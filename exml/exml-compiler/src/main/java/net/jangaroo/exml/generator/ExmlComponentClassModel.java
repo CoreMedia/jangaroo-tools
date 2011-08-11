@@ -36,6 +36,7 @@ public class ExmlComponentClassModel {
     result.add("ext.Ext");
     result.add("ext.ComponentMgr");
     result.addAll(model.getImports());
+    result.add(configClassPackage + "." + model.getClassName());
     return result;
   }
 }
