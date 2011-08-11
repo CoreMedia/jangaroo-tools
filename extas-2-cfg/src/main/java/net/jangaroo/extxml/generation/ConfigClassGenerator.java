@@ -30,13 +30,13 @@ public final class ConfigClassGenerator {
     this.componentSuite = componentSuite;
   }
 
-  public void generateJangarooClass(ComponentClass jooClass, Writer output) throws IOException, TemplateException {
+  public void generateJangarooClass(ComponentClass jooClass, String configClassName, Writer output) throws IOException, TemplateException {
     if (validateComponentClass(jooClass)) {
       Configuration cfg = new Configuration();
       cfg.setClassForTemplateLoading(ComponentClass.class, "/");
       cfg.setObjectWrapper(new DefaultObjectWrapper());
       Template template = cfg.getTemplate("/net/jangaroo/extxml/templates/config_class.ftl");
-      Environment env = template.createProcessingEnvironment(new ConfigClassModel(jooClass, componentSuite, jooClass.getLastXtypeComponent()), output);
+      Environment env = template.createProcessingEnvironment(new ConfigClassModel(jooClass, componentSuite, configClassName), output);
       env.setOutputEncoding(outputCharset);
       env.process();
     }
@@ -74,7 +74,8 @@ public final class ConfigClassGenerator {
   public File generateClass(ComponentClass componentClass) {
     if (true) {
       File configClassDir = new File(componentSuite.getAs3OutputDir(), componentSuite.getConfigClassPackage().replace('.', File.separatorChar));
-      File outputFile = new File(configClassDir, componentClass.getLastXtypeComponent() + ".as");
+      String configClassName = StringUtils.uncapitalise(componentClass.getLastXtypeComponent());
+      File outputFile = new File(configClassDir, configClassName + ".as");
 
       if(!outputFile.getParentFile().exists()) {
         if (outputFile.getParentFile().mkdirs()) {
@@ -85,7 +86,7 @@ public final class ConfigClassGenerator {
      Writer writer = null;
       try {
         writer = new OutputStreamWriter(new FileOutputStream(outputFile), outputCharset);
-        generateJangarooClass(componentClass, writer);
+        generateJangarooClass(componentClass, configClassName, writer);
       } catch (IOException e) {
         Log.e("Exception while creating class", e);
       } catch (TemplateException e) {
