@@ -11,7 +11,7 @@ import java.util.Map;
 public final class ConfigClass extends DescriptionHolder {
 
   private List<ConfigAttribute> cfgs = new ArrayList<ConfigAttribute>();
-  private Map<String,ConfigAttribute> cfgsByName = new HashMap<String, ConfigAttribute>();
+  private Map<String, ConfigAttribute> cfgsByName = new HashMap<String, ConfigAttribute>();
 
   private String name;
   private String packageName;
@@ -63,18 +63,18 @@ public final class ConfigClass extends DescriptionHolder {
 
   /**
    * Create a new Name from the given name. By convention all ConfigClass names are uncapitalized.
+   *
    * @param name the name
    * @return return the new config-class name, matching the conventions.
    */
   public static String createNewName(String name) {
-    int strLen;
-      if (name == null || (strLen = name.length()) == 0) {
-          return name;
-      }
-      return new StringBuilder(strLen)
-          .append(Character.toLowerCase(name.charAt(0)))
-          .append(name.substring(1))
-          .toString();
+    if (name == null || name.length() == 0) {
+      return name;
+    }
+    return new StringBuilder(name.length())
+            .append(Character.toLowerCase(name.charAt(0)))
+            .append(name.substring(1))
+            .toString();
   }
 
   public void setName(String name) {
@@ -165,11 +165,8 @@ public final class ConfigClass extends DescriptionHolder {
     if (superClassName != null ? !superClassName.equals(that.superClassName) : that.superClassName != null) {
       return false;
     }
-    if (type != that.type) {
-      return false;
-    }
+    return type == that.type;
 
-    return true;
   }
 
   @Override

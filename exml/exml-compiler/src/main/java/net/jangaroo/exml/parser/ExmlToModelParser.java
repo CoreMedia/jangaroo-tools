@@ -122,30 +122,38 @@ public final class ExmlToModelParser {
       String attributeName = attribute.getLocalName();
       String attributeValue = attribute.getValue();
       ConfigAttribute configAttribute = getCfgByName(configClass, attributeName);
-      if (configAttribute == null) {
-        setUntypedAttribute(jsonObject, attributeName, attributeValue);
-      } else {
-        String type = configAttribute.getType();
-        if ("Boolean".equals(type)) {
-          jsonObject.set(attributeName, Boolean.parseBoolean(attributeValue));
-        } else if ("Number".equals(type)) {
-          try {
-            jsonObject.set(attributeName, Long.parseLong(attributeValue));
-          } catch (NumberFormatException e) {
-            jsonObject.set(attributeName, Double.parseDouble(attributeValue));
-          }
-        } else if ("String".equals(type)) {
-          jsonObject.set(attributeName, attributeValue);
-        } else if ("Array".equals(type)) {
-          jsonObject.set(attributeName, new JsonArray(attributeValue));
-        } else if ("*".equals(type)) {
-          setUntypedAttribute(jsonObject, attributeName, attributeValue);
-        } else { // Object or specific type. We don't care (for now).
-          //TODO: Warning here?
-          jsonObject.set(attributeName, attributeValue);
+      setAttribute(jsonObject, attributeName, attributeValue, configAttribute);
+    }
+    fillModelAttributesFromSubelements(model, jsonObject, componentNode, configClass);
+  }
+
+  private void setAttribute(JsonObject jsonObject, String attributeName, String attributeValue, ConfigAttribute configAttribute) {
+    if (configAttribute == null) {
+      setUntypedAttribute(jsonObject, attributeName, attributeValue);
+    } else {
+      String type = configAttribute.getType();
+      if ("Boolean".equals(type)) {
+        jsonObject.set(attributeName, Boolean.parseBoolean(attributeValue));
+      } else if ("Number".equals(type)) {
+        try {
+          jsonObject.set(attributeName, Long.parseLong(attributeValue));
+        } catch (NumberFormatException e) {
+          jsonObject.set(attributeName, Double.parseDouble(attributeValue));
         }
+      } else if ("String".equals(type)) {
+        jsonObject.set(attributeName, attributeValue);
+      } else if ("Array".equals(type)) {
+        jsonObject.set(attributeName, new JsonArray(attributeValue));
+      } else if ("*".equals(type)) {
+        setUntypedAttribute(jsonObject, attributeName, attributeValue);
+      } else { // Object or specific type. We don't care (for now).
+        //TODO: Warning here?
+        jsonObject.set(attributeName, attributeValue);
       }
     }
+  }
+
+  private void fillModelAttributesFromSubelements(ExmlModel model, JsonObject jsonObject, Node componentNode, ConfigClass configClass) {
     NodeList childNodes = componentNode.getChildNodes();
     for (int i = 0; i < childNodes.getLength(); i++) {
       Node node = childNodes.item(i);
