@@ -3,23 +3,23 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>net.jangaroo</groupId>
   <artifactId>exml-maven-plugin</artifactId>
-  <version>0.8.5-SNAPSHOT</version>
+  <version>0.8.5</version>
   <packaging>maven-plugin</packaging>
   <dependencies>
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>exml-compiler</artifactId>
-      <version>0.8.5-SNAPSHOT</version>
+      <version>0.8.5</version>
     </dependency>
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-maven-plugin</artifactId>
-      <version>0.8.5-SNAPSHOT</version>
+      <version>0.8.5</version>
     </dependency>
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-utils</artifactId>
-      <version>0.8.5-SNAPSHOT</version>
+      <version>0.8.5</version>
     </dependency>
     <dependency>
       <groupId>org.apache.maven</groupId>
@@ -42,7 +42,7 @@
   <parent>
     <groupId>net.jangaroo</groupId>
     <artifactId>jangaroo-parent</artifactId>
-    <version>0.8.5-SNAPSHOT</version>
+    <version>0.8.5</version>
     <relativePath>../../jangaroo-parent/pom.xml</relativePath>
   </parent>
   <build>

@@ -3,13 +3,13 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>net.jangaroo</groupId>
   <artifactId>jangaroo-compiler</artifactId>
-  <version>0.8.5-SNAPSHOT</version>
+  <version>0.8.5</version>
   <packaging>jar</packaging>
   <dependencies>
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-utils</artifactId>
-      <version>0.8.5-SNAPSHOT</version>
+      <version>0.8.5</version>
     </dependency>
     <dependency>
       <groupId>edu.princeton.cup</groupId>
@@ -28,7 +28,7 @@
   <parent>
     <groupId>net.jangaroo</groupId>
     <artifactId>jangaroo-parent</artifactId>
-    <version>0.8.5-SNAPSHOT</version>
+    <version>0.8.5</version>
     <relativePath>../../jangaroo-parent/pom.xml</relativePath>
   </parent>
   <properties>
@@ -87,23 +87,23 @@
             <phase>generate-sources</phase>
             <configuration>
               <tasks>
-                <property name="cup.input.filename" value="joo.cup"></property>
-                <property name="cup.files.reldir" value="net/jangaroo/jooc"></property>
-                <property name="cup.output.dir" value="${generated.cup.sources.dir}/${cup.files.reldir}"></property>
-                <property name="cup.parser.classname" value="parser"></property>
-                <property name="cup.output.filename" value="${cup.output.dir}/${cup.parser.classname}.java"></property>
-                <mkdir dir="${cup.output.dir}"></mkdir>
+                <property name="cup.input.filename" value="joo.cup" />
+                <property name="cup.files.reldir" value="net/jangaroo/jooc" />
+                <property name="cup.output.dir" value="${generated.cup.sources.dir}/${cup.files.reldir}" />
+                <property name="cup.parser.classname" value="parser" />
+                <property name="cup.output.filename" value="${cup.output.dir}/${cup.parser.classname}.java" />
+                <mkdir dir="${cup.output.dir}" />
                 <!-- forked java process may hang otherwise?! -->
-                <delete file="${cup.output.filename}"></delete>
+                <delete file="${cup.output.filename}" />
                 <java classname="java_cup.Main" dir="${cup.output.dir}" failonerror="true" fork="true">
                   <!-- arg value="-dump_states" /> -->
-                  <arg value="-interface"></arg>
-                  <arg value="-expect"></arg>
-                  <arg value="1"></arg>
+                  <arg value="-interface" />
+                  <arg value="-expect" />
+                  <arg value="1" />
                   <!--arg value="-dump"/-->
-                  <arg value="${cup.sources.dir}/${cup.files.reldir}/${cup.input.filename}"></arg>
+                  <arg value="${cup.sources.dir}/${cup.files.reldir}/${cup.input.filename}" />
                   <classpath>
-                    <path refid="maven.plugin.classpath"></path>
+                    <path refid="maven.plugin.classpath" />
                   </classpath>
                 </java>
               </tasks>
