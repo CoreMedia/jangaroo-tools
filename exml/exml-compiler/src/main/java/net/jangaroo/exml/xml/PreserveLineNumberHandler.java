@@ -15,7 +15,7 @@ import java.util.Stack;
  * ads line numbers to the element user data
  */
 public class PreserveLineNumberHandler extends DefaultHandler {
-  public final static String LINE_NUMBER_KEY_NAME = "lineNumber";
+  public static final String LINE_NUMBER_KEY_NAME = "lineNumber";
 
   private final Stack<Element> elementStack = new Stack<Element>();
   private final StringBuilder textBuffer = new StringBuilder();

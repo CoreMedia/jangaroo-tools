@@ -11,7 +11,7 @@ public enum ConfigClassType {
   @SuppressWarnings({"UnusedDeclaration"})
   TYPE;
 
-  public static ConfigClassType fromExtTypeAttribute(String parameterName) throws IllegalArgumentException {
+  public static ConfigClassType fromExtTypeAttribute(String parameterName) {
     String enumValue = parameterName.toUpperCase(Locale.ROOT);
     return ConfigClassType.valueOf(enumValue);
   }

@@ -23,7 +23,7 @@ import java.io.Writer;
 public class PropertyClassGenerator {
   private static Configuration cfg = new Configuration();
 
-  private final static String outputCharset = "UTF-8";
+  private static final String OUTPUT_CHARSET = "UTF-8";
 
   static {
     /* Create and adjust freemarker configuration */
@@ -42,7 +42,7 @@ public class PropertyClassGenerator {
   public void generatePropertiesClass(PropertiesClass propertiesClass, Writer out) throws IOException, TemplateException {
     Template template = cfg.getTemplate("properties_class.ftl");
     Environment env = template.createProcessingEnvironment(propertiesClass, out);
-    env.setOutputEncoding(outputCharset);
+    env.setOutputEncoding(OUTPUT_CHARSET);
     env.process();
   }
 
@@ -68,7 +68,7 @@ public class PropertyClassGenerator {
 
       Writer writer = null;
       try {
-        writer = new OutputStreamWriter(new FileOutputStream(outputFile), outputCharset);
+        writer = new OutputStreamWriter(new FileOutputStream(outputFile), OUTPUT_CHARSET);
         generatePropertiesClass(pl, writer);
       } catch (IOException e) {
         Log.e("error while generating class", e);

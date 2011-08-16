@@ -29,7 +29,7 @@ public class Exmlc {
   private ExmlConfigPackageXsdGenerator exmlConfigPackageXsdGenerator;
 
 
-  public Exmlc(ExmlConfiguration config) throws ExmlcException {
+  public Exmlc(ExmlConfiguration config) {
     try {
       this.configClassRegistry = new ConfigClassRegistry(config);
     } catch (IOException e) {
@@ -61,13 +61,13 @@ public class Exmlc {
     return configClassRegistry.getConfig();
   }
 
-  public void generateAllConfigClasses() throws ExmlcException {
+  public void generateAllConfigClasses() {
     for (File sourceFile : getConfig().getSourceFiles()) {
       generateConfigClass(sourceFile);
     }
   }
 
-  public File generateConfigClass(File source) throws ExmlcException {
+  public File generateConfigClass(File source) {
     ConfigClass configClass;
     try {
       configClass = exmlToConfigClassParser.parseExmlToConfigClass(source);
@@ -89,7 +89,7 @@ public class Exmlc {
     return targetFile;
   }
 
-  public File generateComponentClass(File exmlSourceFile) throws ExmlcException {
+  public File generateComponentClass(File exmlSourceFile) {
     try {
       ExmlModel exmlModel = exmlToModelParser.parse(exmlSourceFile);
       return exmlComponentClassGenerator.generateClass(exmlModel);
@@ -98,7 +98,7 @@ public class Exmlc {
     }
   }
 
-  public void generateAllComponentClasses() throws ExmlcException {
+  public void generateAllComponentClasses() {
     for (File sourceFile : getConfig().getSourceFiles()) {
       if (sourceFile.getName().endsWith(ExmlConstants.EXML_SUFFIX)) {
         generateComponentClass(sourceFile);

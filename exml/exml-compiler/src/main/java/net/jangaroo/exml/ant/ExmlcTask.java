@@ -155,7 +155,7 @@ public class ExmlcTask extends MatchingTask {
    * Check that all required attributes have been set and nothing silly has been entered.
    * @throws org.apache.tools.ant.BuildException if a build error occurred
    */
-  protected void checkParameters() throws BuildException {
+  protected void checkParameters() {
     if (src == null) {
       throw new BuildException("srcdir attribute must be set!",
         getLocation());

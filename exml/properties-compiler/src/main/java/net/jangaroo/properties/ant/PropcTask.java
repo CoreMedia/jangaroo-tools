@@ -80,7 +80,7 @@ public class PropcTask extends MatchingTask {
   /**
    * Check that all required attributes have been set and nothing silly has been entered.
    */
-  protected void checkParameters() throws BuildException {
+  protected void checkParameters() {
     if (srcDir == null || !srcDir.isDirectory()) {
       throw new BuildException("source directory \""
         + srcDir
