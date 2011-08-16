@@ -3,7 +3,6 @@ package net.jangaroo.exml.generator;
 import net.jangaroo.exml.model.ConfigClass;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;

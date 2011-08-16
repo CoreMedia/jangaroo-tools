@@ -7,7 +7,7 @@ import net.jangaroo.properties.PropertiesFileScanner;
 import net.jangaroo.properties.PropertyClassGenerator;
 import net.jangaroo.properties.model.LocalizationSuite;
 import org.apache.maven.shared.model.fileset.FileSet;
-import org.apache.maven.shared.model.fileset.util.FileSetManager;
+import org.apache.maven.shared.model.fileset.FileSet;
 
 import java.io.File;
 import java.io.IOException;

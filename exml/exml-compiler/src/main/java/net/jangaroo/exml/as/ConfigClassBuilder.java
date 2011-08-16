@@ -217,10 +217,9 @@ public class ConfigClassBuilder extends AstVisitorBase {
   }
 
   public static String parseAsDocComment(String comment) {
-    String lastAsDocComment;
-    comment = comment.replaceAll("\\s*[\\r\\n]\\s*\\*[ \\t\u000B\\f]*", " ");
-    comment = comment.replaceAll("\\s+", " ");
-    lastAsDocComment = comment.trim();
+    String lastAsDocComment = comment.replaceAll("\\s*[\\r\\n]\\s*\\*[ \\t\u000B\\f]*", " ");
+    lastAsDocComment = lastAsDocComment.replaceAll("\\s+", " ");
+    lastAsDocComment = lastAsDocComment.trim();
     return lastAsDocComment;
   }
 }
