@@ -72,7 +72,7 @@ public class PropertiesMojo extends AbstractMojo {
   /**
    * @component
    */
-  MavenProjectHelper projectHelper;
+  private MavenProjectHelper projectHelper;
 
   public void execute() throws MojoExecutionException, MojoFailureException {
     if (!generatedSourcesDirectory.exists()) {

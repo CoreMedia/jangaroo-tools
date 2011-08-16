@@ -190,7 +190,9 @@ public class ClassDeclaration extends IdeDeclaration {
           @Override
           public void run(final Scope instanceScope) {
             //todo ugly, maybe we should define ClassScope implements Scope to lookup inherited members
-            ((DeclarationScope) instanceScope).setIsInstanceScope(true);
+            if(instanceScope instanceof  DeclarationScope) {
+              ((DeclarationScope) instanceScope).setIsInstanceScope(true);
+            }
             body.scope(staticScope, instanceScope);
           }
         });
@@ -251,7 +253,7 @@ public class ClassDeclaration extends IdeDeclaration {
   public boolean isSubclassOf(final ClassDeclaration classDeclaration) {
     ClassDeclaration superTypeDeclaration = getSuperTypeDeclaration();
     return superTypeDeclaration != null &&
-            (superTypeDeclaration == classDeclaration || superTypeDeclaration.isSubclassOf(classDeclaration));
+            (superTypeDeclaration == classDeclaration || superTypeDeclaration.isSubclassOf(classDeclaration)); // NOSONAR no equals here
   }
 
   public Type getThisType() {

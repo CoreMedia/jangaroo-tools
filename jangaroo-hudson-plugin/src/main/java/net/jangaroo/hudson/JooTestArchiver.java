@@ -106,7 +106,7 @@ public class JooTestArchiver extends MavenReporter {
       }
       result.parse(System.currentTimeMillis() - build.getMilliSecsSinceBuildStart(), ds);
 
-      int failCount = build.execute(new BuildCallable<Integer, IOException>() {
+      int failCount = build.execute(new BuildCallable<Integer, IOException>() { // NOSONAR this is ok for hudson
         public Integer call(MavenBuild build) throws IOException, InterruptedException {
           JooTestReport sr = build.getAction(JooTestReport.class);
           if (sr == null) {

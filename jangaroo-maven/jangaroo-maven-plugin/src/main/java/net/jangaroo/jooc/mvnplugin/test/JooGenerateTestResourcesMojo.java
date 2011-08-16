@@ -46,7 +46,7 @@ public class JooGenerateTestResourcesMojo extends PackageApplicationMojo {
    *
    * @parameter expression="${project.build.testOutputDirectory}"  default-value="${project.build.testOutputDirectory}"
    */
-  protected File testOutputDirectory;
+  private File testOutputDirectory;
 
   /**
    * Set this to 'true' to bypass unit tests entirely. Its use is NOT RECOMMENDED, especially if you enable it using the
@@ -55,20 +55,20 @@ public class JooGenerateTestResourcesMojo extends PackageApplicationMojo {
    *
    * @parameter expression="${maven.test.skip}"
    */
-  protected boolean skip;
+  private boolean skip;
   /**
    * Set this to 'true' to skip running tests, but still compile them. Its use is NOT RECOMMENDED, but quite
    * convenient on occasion.
    *
    * @parameter expression="${skipTests}"
    */
-  protected boolean skipTests;
+  private boolean skipTests;
   /**
    * the tests.html file relative to the test resources folder
    *
    * @parameter expression="${project.testResources}"
    */
-  protected List<Resource> testResources;
+  private List<Resource> testResources;
 
   public File getPackageSourceDirectory() {
     return Types.JANGAROO_TYPE.equals(project.getPackaging()) ? outputDirectory : testPackageSourceDirectory;

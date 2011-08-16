@@ -10,15 +10,15 @@ import java.util.Map;
 
 public abstract class ScannerBase implements sym {
 
-  protected String whitespace = "";
-  protected String multiStateText = "";
-  protected StringBuffer string = new StringBuffer();
-  protected String fileName = "";
-  protected InputSource inputSource;
-  protected JooSymbol pushedBackToken;
+  protected String whitespace = ""; // NOSONAR required by CUP
+  protected String multiStateText = ""; // NOSONAR required by CUP
+  protected StringBuilder string = new StringBuilder(); // NOSONAR required by CUP
+  protected String fileName = ""; // NOSONAR required by CUP
+  private InputSource inputSource;
+  private JooSymbol pushedBackToken;
 
   // error reporting:
-  protected final static Map<Integer, String> symbolMap = new HashMap<Integer, String>(50);
+  private final static Map<Integer, String> symbolMap = new HashMap<Integer, String>(50);
 
   protected int vectorNestingLevel = 0;
 

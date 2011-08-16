@@ -9,7 +9,6 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
-
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.ResourceHandler;
@@ -29,6 +28,7 @@ import java.io.StringReader;
 import java.net.InetAddress;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -56,32 +56,32 @@ public class JooTestMojo extends AbstractMojo {
    * @required
    * @readonly
    */
-  protected MavenProject project;
+  private MavenProject project;
   /**
    * Output directory for the jangaroo artifact unarchiver. All jangaroo dependencies will be unpacked into this
    * directory.
    *
    * @parameter expression="${project.build.testOutputDirectory}"  default-value="${project.build.testOutputDirectory}"
    */
-  protected File testOutputDirectory;
+  private File testOutputDirectory;
   /**
    * Source directory to scan for files to compile.
    *
    * @parameter expression="${project.build.testSourceDirectory}"
    */
-  protected File testSourceDirectory;
+  private File testSourceDirectory;
   /**
    * the tests.html file relative to the test resources folder
    *
-   * @parameter expression="tests.html"
+   * @parameter default-value="tests.html"
    */
-  protected String testsHtml;
+  private String testsHtml;
   /**
-  * the tests.html file relative to the test resources folder
-  *
-  * @parameter expression="${project.testResources}"
-  */
- protected List<Resource> testResources;
+   * the tests.html file relative to the test resources folder
+   *
+   * @parameter expression="${project.testResources}"
+   */
+  private List<Resource> testResources;
   /**
    * Set this to 'true' to bypass unit tests entirely. Its use is NOT RECOMMENDED, especially if you
    * enable it using the "maven.test.skip" property, because maven.test.skip disables both running the
@@ -89,14 +89,14 @@ public class JooTestMojo extends AbstractMojo {
    *
    * @parameter expression="${maven.test.skip}"
    */
-  protected boolean skip;
+  private boolean skip;
   /**
    * Set this to 'true' to skip running tests, but still compile them. Its use is NOT RECOMMENDED, but quite
    * convenient on occasion.
    *
    * @parameter expression="${skipTests}"
    */
-  protected boolean skipTests;
+  private boolean skipTests;
 
   /**
    * Output directory for test results.
@@ -157,12 +157,12 @@ public class JooTestMojo extends AbstractMojo {
    *
    * @parameter expression="${maven.test.failure.ignore}"
    */
-  protected boolean testFailureIgnore;
+  private boolean testFailureIgnore;
 
   protected boolean isTestAvailable() {
-   for(Resource r : testResources) {
+    for (Resource r : testResources) {
       File testFile = new File(r.getDirectory(), testsHtml);
-      if(testFile.exists()) {
+      if (testFile.exists()) {
         return true;
       }
     }
@@ -180,8 +180,8 @@ public class JooTestMojo extends AbstractMojo {
           InetAddress.getAllByName(jooUnitSeleniumRCHost);
         } catch (UnknownHostException e) {
           throw new MojoExecutionException("Cannot resolve host " + jooUnitSeleniumRCHost +
-              ". Please specify a host running the selenium remote control or skip tests" +
-              " by -DskipTests", e);
+                  ". Please specify a host running the selenium remote control or skip tests" +
+                  " by -DskipTests", e);
         }
         getLog().info("JooTest report directory:" + testResultOutputDirectory.getAbsolutePath());
         ResourceHandler handler = new ResourceHandler();
@@ -308,5 +308,25 @@ public class JooTestMojo extends AbstractMojo {
     } catch (Exception e1) {
       getLog().error("Stopping Jetty failed. Never mind.");
     }
+  }
+
+  public void setSkip(boolean b) {
+    this.skip = b;
+  }
+
+  public void setSkipTests(boolean b) {
+    this.skipTests = b;
+  }
+
+  public void setTestSourceDirectory(File f) {
+    this.testSourceDirectory = f;
+  }
+
+  public void setTestResources(ArrayList<Resource> resources) {
+    this.testResources = resources;
+  }
+
+  public void setTestFailureIgnore(boolean b) {
+    this.testFailureIgnore = b;
   }
 }

@@ -179,7 +179,7 @@ public class Ide extends NodeImplBase {
         }
       }
     }
-    final IdeDeclaration result = declaration == NULL_DECL ? null : declaration;
+    final IdeDeclaration result = declaration == NULL_DECL ? null : declaration; // NOSONAR no equals here
     if (result == null && errorIfUndeclared) {
       throw Jooc.error(getIde(), "undeclared identifier '" + getName() + "'");
     }

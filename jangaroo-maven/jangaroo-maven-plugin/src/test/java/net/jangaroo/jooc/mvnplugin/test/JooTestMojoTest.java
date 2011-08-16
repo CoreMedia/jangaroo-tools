@@ -25,13 +25,13 @@ public class JooTestMojoTest extends TestCase {
   }
 
   public void testSkip() throws MojoExecutionException, MojoFailureException {
-    jooTestMojo.skip = true;
+    jooTestMojo.setSkip(true);
     // skip skips everything so no error expected
     jooTestMojo.execute();
   }
 
   public void testSkipTests() throws MojoExecutionException, MojoFailureException {
-    jooTestMojo.skipTests = true;
+    jooTestMojo.setSkipTests(true);
     // skip skips everything so no error expected
     jooTestMojo.execute();
   }
@@ -41,8 +41,8 @@ public class JooTestMojoTest extends TestCase {
     Assert.assertTrue(f.delete());
     Assert.assertTrue(f.mkdirs());
 
-    jooTestMojo.testSourceDirectory = f;
-    jooTestMojo.testResources = new ArrayList<Resource>();
+    jooTestMojo.setTestSourceDirectory(f);
+    jooTestMojo.setTestResources(new ArrayList<Resource>());
     jooTestMojo.execute();
     Assert.assertTrue(f.delete());
   }
@@ -68,7 +68,7 @@ public class JooTestMojoTest extends TestCase {
     String testResult = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\" ?>\n" +
             "<testsuite errors=\"0\" failures=\"1\" name=\"com.coremedia.ui.data::BeanImplTest\" tests=\"21\" time=\"2814\"></testsuite>";
     try {
-      jooTestMojo.testFailureIgnore = true;
+      jooTestMojo.setTestFailureIgnore(true);
       jooTestMojo.evalTestOutput(testResult);
     } catch (MojoFailureException e) {
       fail("Shouldn't fail since testFailureIgnore=true");
