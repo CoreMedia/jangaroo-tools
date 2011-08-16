@@ -50,7 +50,7 @@ public class PackageMojo extends AbstractMojo {
   /**
    * @component
    */
-  MavenProjectHelper projectHelper;
+  private MavenProjectHelper projectHelper;
 
   /**
    * List of files to exclude. Specified as fileset patterns.
@@ -141,17 +141,17 @@ public class PackageMojo extends AbstractMojo {
   }
 
   private void createDefaultModuleJsFile() throws IOException {
-    File moduleJsFile = getModuleJsFile();
-    File moduleJsDir = moduleJsFile.getParentFile();
+    File jsFile = getModuleJsFile();
+    File moduleJsDir = jsFile.getParentFile();
     if (moduleJsDir != null) {
       if (moduleJsDir.mkdirs()) {
         getLog().debug("created module output directory " + moduleJsDir);
       }
     }
-    getLog().info("Creating Jangaroo module classes loader script '" + moduleJsFile.getAbsolutePath() + "'.");
+    getLog().info("Creating Jangaroo module classes loader script '" + jsFile.getAbsolutePath() + "'.");
     OutputStreamWriter writer = null;
     try {
-      writer = new OutputStreamWriter(new FileOutputStream(moduleJsFile), "UTF-8");
+      writer = new OutputStreamWriter(new FileOutputStream(jsFile), "UTF-8");
       writer.write("joo.loadModule(\"" + project.getGroupId() + "\",\"" + project.getArtifactId() + "\");\n");
     } finally {
       if (writer != null) {

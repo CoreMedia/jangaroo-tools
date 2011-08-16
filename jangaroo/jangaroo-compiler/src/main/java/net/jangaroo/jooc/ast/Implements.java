@@ -46,7 +46,6 @@ public class Implements extends NodeImplBase {
   public void analyze(AstNode parentNode) {
     super.analyze(parentNode);
     getSuperTypes().analyze(this);
-    CommaSeparatedList<Ide> superTypes = this.getSuperTypes();
     while (superTypes != null) {
       Ide superType = superTypes.getHead();
       superType.addExternalUsage();

@@ -257,11 +257,11 @@ public class Ide extends NodeImplBase {
   }
 
   public IdeDeclaration getMemberDeclaration() {
-    IdeDeclaration declaration = getDeclaration(false);
-    if (declaration != null && declaration.isClassMember()) {
-      return declaration;
+    IdeDeclaration ideDeclaration = getDeclaration(false);
+    if (ideDeclaration != null && ideDeclaration.isClassMember()) {
+      return ideDeclaration;
     }
-    return declaration;
+    return ideDeclaration;
   }
 
   private void checkDefinedAccessChain() {
@@ -273,8 +273,8 @@ public class Ide extends NodeImplBase {
 
   private boolean isValidPackageAccessChain() {
     if (isQualifier()) {
-      final Ide qualified = getQualified();
-      return qualified.isDeclared() || qualified.isValidPackageAccessChain();
+      final Ide qualifiedIde = getQualified();
+      return qualifiedIde.isDeclared() || qualifiedIde.isValidPackageAccessChain();
     }
     return false;
   }

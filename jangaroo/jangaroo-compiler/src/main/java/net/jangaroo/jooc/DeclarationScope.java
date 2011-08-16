@@ -73,8 +73,8 @@ public class DeclarationScope extends ScopeImplBase {
       packages.add(packageName);
     }
     if ("*".equals(name)) {
-      final List<String> ides = compilationUnit.getCompiler().getPackageIdes(packageName);
-      for (String typeToImport : ides) {
+      final List<String> packageIdes = compilationUnit.getCompiler().getPackageIdes(packageName);
+      for (String typeToImport : packageIdes) {
         ImportDirective implicitImport = new ImportDirective(packageIde, typeToImport);
         implicitImport.scope(this);
       }
@@ -162,7 +162,7 @@ public class DeclarationScope extends ScopeImplBase {
 
   private void ambigousImport(Ide ide, Collection<ImportDirective> importsOfThisIde) {
     boolean isFirst = true;
-    StringBuffer msg = new StringBuffer();
+    StringBuilder msg = new StringBuilder();
     msg.append("Can not resolve a multiname reference unambiguously: ");
     for (ImportDirective importDirective : importsOfThisIde) {
       if (!isFirst) {
