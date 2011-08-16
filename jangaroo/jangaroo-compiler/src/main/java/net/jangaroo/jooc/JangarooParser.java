@@ -91,7 +91,7 @@ public class JangarooParser {
       Symbol tree = p.parse();
       return (CompilationUnit) tree.value;
     } catch (Scanner.ScanError se) {
-      log.error(se.sym, se.getMessage());
+      log.error(se.getSym(), se.getMessage());
       return null;
     } catch (parser.FatalSyntaxError e) {
       // message already logged in parser

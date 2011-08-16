@@ -40,9 +40,9 @@ import java.util.Set;
  */
 public class DeclarationScope extends ScopeImplBase {
 
-  protected AstNode definingNode;
+  private AstNode definingNode;
   private Set<String> packages = new HashSet<String>();
-  protected Map<String, IdeDeclaration> ides = new HashMap<String, IdeDeclaration>();
+  private Map<String, IdeDeclaration> ides = new HashMap<String, IdeDeclaration>();
   private Map<String, List<ImportDirective>> importsByName = new HashMap<String, List<ImportDirective>>();
   private Map<String, ImportDirective> importsByQualifiedName = new HashMap<String, ImportDirective>();
   private boolean isInstanceScope = false;
