@@ -15,6 +15,7 @@
     <module>exml-compiler</module>
     <module>exml-maven-plugin</module>
     <module>properties-compiler</module>
+    <module>extas-2-cfg</module>
   </modules>
   <build>
     <plugins>

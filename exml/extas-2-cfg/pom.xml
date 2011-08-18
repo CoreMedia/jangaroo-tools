@@ -4,7 +4,7 @@
   <groupId>net.jangaroo</groupId>
   <artifactId>extas-2-cfg</artifactId>
   <packaging>jar</packaging>
-  <version>0.8.5-SNAPSHOT</version>
+  <version>0.8.6-SNAPSHOT</version>
 
   <name>Ext AS to config class transformer</name>
   <description>Allows to generate config classes from ExtJS components written in old style AS</description>
@@ -12,15 +12,15 @@
   <parent>
     <artifactId>jangaroo-parent</artifactId>
     <groupId>net.jangaroo</groupId>
-    <version>0.8.5-SNAPSHOT</version>
-    <relativePath>../jangaroo-parent/pom.xml</relativePath>
+    <version>0.8.6-SNAPSHOT</version>
+    <relativePath>../../jangaroo-parent/pom.xml</relativePath>
   </parent>
 
   <dependencies>
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-utils</artifactId>
-      <version>0.8.5-SNAPSHOT</version>
+       <version>0.8.6-SNAPSHOT</version>
     </dependency>
     
     <dependency>
@@ -32,26 +32,22 @@
     <dependency>
       <groupId>org.freemarker</groupId>
       <artifactId>freemarker</artifactId>
-      <version>2.3.15</version>
       <scope>compile</scope>
     </dependency>
 
     <dependency>
       <groupId>jtidy</groupId>
       <artifactId>jtidy</artifactId>
-      <version>4aug2000r7-dev</version>
     </dependency>
 
     <dependency>
       <groupId>org.apache.maven.shared</groupId>
       <artifactId>file-management</artifactId>
-      <version>1.2.1</version>
     </dependency>
 
     <dependency>
       <groupId>org.codehaus.plexus</groupId>
       <artifactId>plexus-utils</artifactId>
-      <version>2.0.1</version>
     </dependency>
 
   </dependencies>
