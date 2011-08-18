@@ -25,7 +25,7 @@ public class ExtXmlTest {
             outputDir.getPath(),
             "testComponentSuite.config",
             extXsd.getAbsolutePath(), "ext.config"};
-    ExtXml.main(args);
+    ExtAsToConfigClassConverter.main(args);
 
     File configFile = new File(outputDir, "testComponentSuite/config/mypanel.as");
     assertTrue(configFile.exists());
