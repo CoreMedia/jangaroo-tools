@@ -30,6 +30,8 @@
           </execution>
         </executions>
         <configuration>
+          <appendAssemblyId>false</appendAssemblyId>
+          <attach>true</attach>
           <archive>
             <manifest>
               <mainClass>net.jangaroo.extxml.ExtAsToConfigClassConverter</mainClass>

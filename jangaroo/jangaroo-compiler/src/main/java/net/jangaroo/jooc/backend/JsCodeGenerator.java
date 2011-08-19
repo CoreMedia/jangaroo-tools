@@ -70,6 +70,7 @@ import net.jangaroo.jooc.ast.UseNamespaceDirective;
 import net.jangaroo.jooc.ast.VariableDeclaration;
 import net.jangaroo.jooc.ast.VectorLiteral;
 import net.jangaroo.jooc.ast.WhileStatement;
+import net.jangaroo.jooc.config.DebugMode;
 import net.jangaroo.jooc.config.JoocConfiguration;
 import net.jangaroo.jooc.sym;
 
@@ -261,13 +262,10 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       out.writeToken("=");
       // TODO: refactor for a simpler way to switch off white-space temporarily:
       JoocConfiguration options = (JoocConfiguration) out.getOptions();
-      boolean debug = options.isDebug();
-      boolean debugLines = options.isDebugLines();
-      options.setDebug(false);
-      options.setDebugLines(false);
+      DebugMode mode = options.getDebugMode();
+      options.setDebugMode(null);
       assignmentOpExpr.getArg1().visit(this);
-      options.setDebug(debug);
-      options.setDebugLines(debugLines);
+      options.setDebugMode(mode);
       out.writeToken(assignmentOpExpr.getOp().sym == sym.ANDANDEQ ? "&&" : "||");
       out.writeToken("(");
       assignmentOpExpr.getArg2().visit(this);

@@ -39,12 +39,12 @@
                 <taskdef classname="net.jangaroo.jooc.ant.JoocTask" classpath="target/classes;${runtime.classpath}" name="jooc" />
                 <mkdir dir="target/temp/runtime/debug/joo/classes" />
                 <mkdir dir="target/temp/runtime/debug/META-INF/joo-api" />
-                <jooc apidestdir="target/temp/runtime/debug/META-INF/joo-api" classpath="${basedir}/src/main/joo-api" debug="true" debuglevel="source" destdir="target/temp/runtime/debug/joo/classes" enableassertions="true" failonerror="true" verbose="true">
+                <jooc apidestdir="target/temp/runtime/debug/META-INF/joo-api" classpath="${basedir}/src/main/joo-api" debuglevel="source" destdir="target/temp/runtime/debug/joo/classes" enableassertions="true" failonerror="true" verbose="true">
                   <include name="**/*.as" />
                   <src path="src/main/joo" />
                 </jooc>
                 <mkdir dir="target/temp/runtime/deploy" />
-                <jooc classpath="${basedir}/src/main/joo-api" debug="false" destdir="target/temp/runtime/deploy" enableassertions="false" failonerror="true" verbose="true">
+                <jooc classpath="${basedir}/src/main/joo-api" destdir="target/temp/runtime/deploy" enableassertions="false" failonerror="true" verbose="true">
                   <include name="**/*.as" />
                   <src path="src/main/joo" />
                 </jooc>

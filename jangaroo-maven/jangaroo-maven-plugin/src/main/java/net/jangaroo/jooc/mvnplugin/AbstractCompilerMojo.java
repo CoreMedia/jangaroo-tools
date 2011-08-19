@@ -2,6 +2,7 @@ package net.jangaroo.jooc.mvnplugin;
 
 import net.jangaroo.jooc.AbstractCompileLog;
 import net.jangaroo.jooc.Jooc;
+import net.jangaroo.jooc.config.DebugMode;
 import net.jangaroo.jooc.config.JoocConfiguration;
 import net.jangaroo.jooc.config.SemicolonInsertionMode;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -45,13 +46,6 @@ public abstract class AbstractCompilerMojo extends JangarooMojo {
    * @parameter expression="${maven.compiler.failOnError}" default-value="true"
    */
   private boolean failOnError = true;
-
-  /**
-   * Set "debug" to "true" in order to create debuggable output. See "debuglevel" parameter.
-   *
-   * @parameter expression="${maven.compile.debug}" default-value="true"
-   */
-  private boolean debug;
 
   /**
    * Set "enableAssertions" to "true" in order to generate runtime checks for assert statements.
@@ -161,17 +155,16 @@ public abstract class AbstractCompilerMojo extends JangarooMojo {
 
     JoocConfiguration configuration = new JoocConfiguration();
 
-    configuration.setDebug(debug);
     configuration.setEnableAssertions(enableAssertions);
     configuration.setAllowDuplicateLocalVariables(allowDuplicateLocalVariables);
     configuration.setVerbose(verbose);
 
-    if (debug && StringUtils.isNotEmpty(debuglevel)) {
+    if (StringUtils.isNotEmpty(debuglevel)) {
       if (debuglevel.equalsIgnoreCase("lines")) {
-        configuration.setDebugLines(true);
+        configuration.setDebugMode(DebugMode.LINES);
       } else if (debuglevel.equalsIgnoreCase("source")) {
-        configuration.setDebugLines(true);
-        configuration.setDebugSource(true);
+        configuration.setDebugMode(DebugMode.LINES);
+        configuration.setDebugMode(DebugMode.SOURCE);
       } else if (!debuglevel.equalsIgnoreCase("none")) {
         throw new IllegalArgumentException("The specified debug level: '" + debuglevel
                 + "' is unsupported. " + "Legal values are 'none', 'lines', and 'source'.");
@@ -222,9 +215,7 @@ public abstract class AbstractCompilerMojo extends JangarooMojo {
 
     if (!compilationError) {
       // for now, always set debug mode to "false" for concatenated file:
-      configuration.setDebug(false);
-      configuration.setDebugLines(false);
-      configuration.setDebugSource(false);
+      configuration.setDebugMode(null);
       configuration.setOutputDirectory(getTempClassesOutputDirectory());
       configuration.setApiOutputDirectory(null);
       result = compile(configuration);

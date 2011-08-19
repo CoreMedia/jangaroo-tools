@@ -1,5 +1,7 @@
 package net.jangaroo.jooc.config;
 
+import org.kohsuke.args4j.Option;
+
 import java.io.File;
 
 /**
@@ -9,8 +11,7 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
 
   private SemicolonInsertionMode semicolonInsertionMode = SemicolonInsertionMode.WARN;
 
-  private boolean debug;
-  private boolean debugLines, debugSource;
+  private DebugMode debugMode;
 
   private boolean help, version, verbose, enableAssertions;
 
@@ -25,6 +26,7 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
     return semicolonInsertionMode;
   }
 
+  @Option(name = "-autosemicolon", usage = "automatic semicolon insertion mode, possible modes: error, warn (default), quirk (no warnings)")
   public void setSemicolonInsertionMode(final SemicolonInsertionMode semicolonInsertionMode) {
     this.semicolonInsertionMode = semicolonInsertionMode;
   }
@@ -49,34 +51,20 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
     return new File(outputFileName);
   }
 
-  public boolean isDebug() {
-    return debug;
+  public DebugMode getDebugMode() {
+    return debugMode;
   }
 
-  public void setDebug(boolean debug) {
-    this.debug = debug;
-  }
-
-  public void setDebugLines(boolean debugLines) {
-    this.debugLines = debugLines;
-  }
-
-  public boolean isDebugLines() {
-    return debug && debugLines;
-  }
-
-  public boolean isDebugSource() {
-    return debug && debugSource;
-  }
-
-  public void setDebugSource(boolean debugSource) {
-    this.debugSource = debugSource;
+  @Option(name="-g", usage ="generate debuggable output (possible modes: source, lines, none)")
+  public void setDebugMode(DebugMode debugMode) {
+    this.debugMode = debugMode;
   }
 
   public boolean isVerbose() {
     return verbose;
   }
 
+  @Option(name="-v", aliases = "--verbose", usage="be extra verbose")
   public void setVerbose(boolean verbose) {
     this.verbose = verbose;
   }
@@ -90,6 +78,7 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
     return help;
   }
 
+  @Option(name="-h", aliases = "--help", usage = "print this message")
   public void setHelp(boolean help) {
     this.help = help;
   }
@@ -98,6 +87,7 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
     return version;
   }
 
+  @Option(name="-version", usage = "print version information and exit")
   public void setVersion(boolean version) {
     this.version = version;
   }
@@ -105,7 +95,8 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
   public boolean isEnableAssertions() {
     return enableAssertions;
   }
-
+  
+  @Option(name="-ea", aliases = "--enableassertions", usage = "enable assertions")
   public void setEnableAssertions(boolean enableAssertions) {
     this.enableAssertions = enableAssertions;
   }
@@ -114,6 +105,7 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
     return allowDuplicateLocalVariables;
   }
 
+  @Option(name="-ad", aliases = "--allowduplicatelocalvariables", usage = "allow multiple declarations of local variables")
   public void setAllowDuplicateLocalVariables(boolean allowDuplicateLocalVariables) {
     this.allowDuplicateLocalVariables = allowDuplicateLocalVariables;
   }
@@ -122,6 +114,7 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
     return apiOutputDirectory;
   }
 
+  @Option(name="-api", aliases = "--apiDir", usage = "destination directory where to generate ActionScript API stubs")
   public void setApiOutputDirectory(final File apiOutputDirectory) {
     this.apiOutputDirectory = apiOutputDirectory;
   }

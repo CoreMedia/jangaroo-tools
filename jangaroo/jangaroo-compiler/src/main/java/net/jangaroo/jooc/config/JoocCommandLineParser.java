@@ -1,21 +1,11 @@
 package net.jangaroo.jooc.config;
 
-import net.jangaroo.jooc.Jooc;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.GnuParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.MissingArgumentException;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.OptionBuilder;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
-import org.apache.commons.cli.UnrecognizedOptionException;
+import org.kohsuke.args4j.CmdLineException;
+import org.kohsuke.args4j.CmdLineParser;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.StringWriter;
+
+import static org.kohsuke.args4j.ExampleMode.REQUIRED;
 
 /**
  * Parses the jooc command line to produce a {@link JoocConfiguration}.
@@ -41,152 +31,44 @@ public class JoocCommandLineParser {
   }
 
   @SuppressWarnings({"AccessStaticViaInstance"})
-  public JoocConfiguration parse(String[] argv) throws CommandLineParseException {
+  public JoocConfiguration parse(String[] args) throws CommandLineParseException {
+
     JoocConfiguration config = new JoocConfiguration();
 
-    Option help = new Option("help", "print this message");
-    Option version = OptionBuilder
-            .withDescription("print version information and exit")
-            .create("version");
-    Option verboseOption = OptionBuilder.withLongOpt("verbose")
-            .withDescription("be extra verbose")
-            .create("v");
-    Option debugOption = OptionBuilder.withDescription("generate debuggable output " +
-            "(possible modes: source, lines, none)")
-            .hasOptionalArgs()
-            .withArgName("mode")
-            .create("g");
-    Option autoSemicolonOption = OptionBuilder.withDescription("automatic semicolon insertion mode, " +
-            "possible modes: error, warn (default), quirk (no warnings)")
-            .hasArg()
-            .create("autosemicolon");
-    Option destinationDir = OptionBuilder.withArgName("dir")
-            .hasArg()
-            .withDescription("destination directory for generated JavaScript files")
-            .create("d");
-    Option sourcePath = OptionBuilder.withArgName("path")
-            .hasArg()
-            .withDescription("source root directories, separated by the system dependant path separator character (e.g. ':' on Unix systems, ';' on Windows")
-            .create("sourcepath");
-    Option classPath = OptionBuilder.withArgName("path")
-            .hasArg()
-            .withDescription("source root directories or jangaroo jars of dependent classes, separated by the system dependent path separator character (e.g. ':' on Unix systems, ';' on Windows")
-            .create("classpath");
-    Option enableAssertionsOption = OptionBuilder.withLongOpt("enableassertions")
-            .withDescription("enable assertions")
-            .create("ea");
-    Option apiDestinationDir = OptionBuilder.withLongOpt("apiDir")
-            .withDescription("destination directory where to generate ActionScript API stubs")
-            .hasArg()
-            .create("api");
-    Option allowDuplicateLocalVariablesOption = OptionBuilder.withLongOpt("allowduplicatelocalvariables")
-            .withDescription("allow multiple declarations of local variables")
-            .create("ad");
-    Options options = new Options();
-    options.addOption(help);
-    options.addOption(version);
-    options.addOption(verboseOption);
-    options.addOption(debugOption);
-    options.addOption(autoSemicolonOption);
-    options.addOption(destinationDir);
-    options.addOption(sourcePath);
-    options.addOption(classPath);
-    options.addOption(enableAssertionsOption);
-    options.addOption(apiDestinationDir);
-    options.addOption(allowDuplicateLocalVariablesOption);
-    CommandLineParser parser = new GnuParser();
-    CommandLine line;
-
+    CmdLineParser parser = new CmdLineParser(config);
     try {
-      line = parser.parse(options, argv);
-    } catch (UnrecognizedOptionException e) {
-      throw new CommandLineParseException(e.getMessage(), Jooc.RESULT_CODE_UNRECOGNIZED_OPTION, e);
-    } catch (MissingArgumentException e) {
-      throw new CommandLineParseException(e.getMessage(), Jooc.RESULT_CODE_MISSING_OPTION_ARGUMENT, e);
-    } catch (ParseException e) {
-      throw new CommandLineParseException(e.getMessage(), Jooc.RESULT_CODE_UNRECOGNIZED_OPTION, e);
+      // parse the arguments.
+      parser.parseArgument(args);
+    } catch (CmdLineException e) {
+      StringBuilder msg = new StringBuilder();
+      // if there's a problem in the command line,
+      // you'll get this exception. this will report
+      // an error message.
+      msg.append(e.getMessage());
+      msg.append("\n");
+      msg.append("java Jooc [options...] arguments...\n");
+      // print the list of available options
+      StringWriter writer = new StringWriter();
+      parser.printUsage(writer, null);
+      msg.append(writer.getBuffer());
+      msg.append("\n");
+      // print option sample. This is useful some time
+      msg.append("  Example: java Jooc").append(parser.printExample(REQUIRED));
+      msg.append("\n");
+      throw new CommandLineParseException(msg.toString(), -1);
     }
 
-    if (line.hasOption("help")) {
-      printHelp(options);
+    if (config.isHelp()) {
+      parser.printUsage(System.out);
       return null;
     }
 
-    config.setVersion(line.hasOption("version"));
-    config.setVerbose(line.hasOption(verboseOption.getOpt()));
-
-    if (line.hasOption(destinationDir.getOpt())) {
-      String destinationDirName = line.getOptionValue(destinationDir.getOpt()).trim();
-      File destDir = new File(destinationDirName);
-      if (!destDir.exists()) {
-        throw new IllegalArgumentException("destination directory does not exist: " + destDir.getAbsolutePath());
-      }
-      config.setOutputDirectory(destDir);
+    if (!config.getOutputDirectory().exists()) {
+      throw new IllegalArgumentException("destination directory does not exist: " + config.getOutputDirectory().getAbsolutePath());
     }
 
-    List<File> sp = parsePath(line, sourcePath);
-    List<File> cp = parsePath(line, classPath);
-
-    if (sp != null) {
-      try {
-        config.setSourcePath(sp);
-      } catch (IOException e) {
-        throw new CommandLineParseException("could not canonicalize source path: " + sp, Jooc.RESULT_CODE_ILLEGAL_OPTION_VALUE, e);
-      }
-    }
-    if (cp != null) {
-      config.setClassPath(cp);
-    }
-    if (line.hasOption(enableAssertionsOption.getOpt())) {
-      config.setEnableAssertions(true);
-    }
-    if (line.hasOption(apiDestinationDir.getOpt())) {
-      String destinationDirName = line.getOptionValue(apiDestinationDir.getOpt()).trim();
-      File destDir = new File(destinationDirName);
-      if (!destDir.exists()) {
-        throw new IllegalArgumentException("destination directory for API stubs does not exist: " + destDir.getAbsolutePath());
-      }
-      config.setApiOutputDirectory(destDir);
-    }
-    if (line.hasOption(allowDuplicateLocalVariablesOption.getOpt())) {
-      config.setAllowDuplicateLocalVariables(true);
-    }
-    if (line.hasOption(autoSemicolonOption.getOpt())) {
-      String value = line.getOptionValue(autoSemicolonOption.getOpt());
-      if (value.equals("error")) {
-        config.setSemicolonInsertionMode(SemicolonInsertionMode.ERROR);
-      } else if (value.equals("warn")) {
-        config.setSemicolonInsertionMode(SemicolonInsertionMode.WARN);
-      } else if (value.equals("quirks")) {
-        config.setSemicolonInsertionMode(SemicolonInsertionMode.QUIRKS);
-      } else {
-        throw new IllegalArgumentException("unknown -autosemicolon argument: " + value);
-      }
-    }
-    if (line.hasOption(debugOption.getOpt())) {
-      String[] values = line.getOptionValues(debugOption.getOpt());
-      config.setDebug(true);
-      if (values == null || values.length == 0) {
-        config.setDebugLines(true);
-        config.setDebugSource(true);
-      } else {
-        for (String value : values) {
-          if (value.equals("source")) {
-            config.setDebugSource(true);
-          } else if (value.equals("lines")) {
-            config.setDebugLines(true);
-          } else if (value.equals("none")) {
-            config.setDebug(false);
-            config.setDebugSource(false);
-            config.setDebugLines(false);
-          } else {
-            throw new IllegalArgumentException("unknown -g argument: " + value);
-          }
-        }
-      }
-    } else {
-      config.setDebugSource(false);
-      config.setDebugLines(true);
+    if (config.getApiOutputDirectory() != null &&!config.getApiOutputDirectory().exists()) {
+        throw new IllegalArgumentException("destination directory for API stubs does not exist: " + config.getApiOutputDirectory().getAbsolutePath());
     }
     if (config.isVerbose()) {
       /*
@@ -194,47 +76,9 @@ public class JoocCommandLineParser {
       */
       System.out.println("-genarateapi: " + config.isGenerateApi());
       System.out.println("-g option values:");
-      System.out.println("source=" + config.isDebugSource());
-      System.out.println("lines=" + config.isDebugLines());
-    }
-
-    String[] fileNames = line.getArgs();
-    if (fileNames.length == 0) {
-      printHelp(options);
-      return null;
-    }
-
-    for (String fileName : fileNames) {
-      config.addSourceFile(fileName);
+      System.out.println("debugMode=" + config.getDebugMode());
     }
 
     return config;
   }
-
-  private List<File> parsePath(final CommandLine line, final Option opt) {
-    if (line.hasOption(opt.getOpt())) {
-      String sourcePathString = line.getOptionValue(opt.getOpt()).trim();
-      if (!sourcePathString.isEmpty()) {
-        final String[] sourceDirs = sourcePathString.split("\\Q" + File.pathSeparatorChar + "\\E");
-        final List<File> sourcePathFiles = new ArrayList<File>(sourceDirs.length);
-        for (String sourceDirPath : sourceDirs) {
-          // be tolerant, accept also '/' as file separator
-          File sourceDir = new File(sourceDirPath.replace('/', File.separatorChar));
-          if (!sourceDir.exists()) {
-            throw new IllegalArgumentException("directory or file does not exist: " + sourceDir.getAbsolutePath());
-          }
-          sourcePathFiles.add(sourceDir);
-        }
-        return sourcePathFiles;
-      }
-    }
-    return new ArrayList<File>();
-  }
-
-
-  protected void printHelp(Options options) {
-    HelpFormatter formatter = new HelpFormatter();
-    formatter.printHelp("jooc [options] <file> ...", options);
-  }
-
 }

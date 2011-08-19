@@ -101,7 +101,7 @@
                   <metainf dir="${basedir}/src/test" includes="joo-api/**" />
                 </jar>
                 <!-- make API classes available to runtime: -->
-                <jooc debug="true" destdir="target/temp/joo/classes" enableassertions="true" failonerror="true" verbose="true">
+                <jooc debugLevel="source" destdir="target/temp/joo/classes" enableassertions="true" failonerror="true" verbose="true">
                   <include name="**/TestClassInJar.as" />
                   <src path="${basedir}/src/test/joo-api" />
                 </jooc>
@@ -109,7 +109,7 @@
                 <property name="destdir" value="target/temp/joo" />
                 <mkdir dir="${destdir}/META-INF/joo-api" />
                 <echo message="jangaroo-runtime.jar path is ${jangaroo-runtime.jar}" />
-                <jooc apidestdir="${destdir}/META-INF/joo-api" classpath="${jangaroo-runtime.jar}${path.separator}${joo-api.jar}" debug="true" destdir="${destdir}/classes" enableassertions="true" failonerror="true" verbose="true">
+                <jooc apidestdir="${destdir}/META-INF/joo-api" classpath="${jangaroo-runtime.jar}${path.separator}${joo-api.jar}" debugLevel="source" destdir="${destdir}/classes" enableassertions="true" failonerror="true" verbose="true">
                   <include name="**/*.as" />
                   <exclude name="error/**/*.as" />
                   <exclude name="**/*_fragment.as" />
@@ -120,7 +120,7 @@
                 <jar destfile="${compiler-itests.jar}" duplicate="fail">
                   <fileset dir="${destdir}" includes="**" />
                 </jar>
-                <jooc classpath="${compiler-itests.jar}${path.separator}${joo-api.jar}" debug="true" destdir="${destdir}/classes" enableassertions="true" failonerror="true" verbose="true">
+                <jooc classpath="${compiler-itests.jar}${path.separator}${joo-api.jar}" debugLevel="source" destdir="${destdir}/classes" enableassertions="true" failonerror="true" verbose="true">
                   <include name="**/*.as" />
                   <src path="${basedir}/src/test/joo3" />
                 </jooc>

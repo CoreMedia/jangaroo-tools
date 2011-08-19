@@ -185,25 +185,6 @@ public class JoocTask extends MatchingTask {
     this.allowduplicatelocalvariables = allowduplicatelocalvariables;
   }
 
-  /**
-   * Indicates whether source should be compiled
-   * with debug information; defaults to off.
-   *
-   * @param debug enable/disable debug
-   */
-  public void setDebug(boolean debug) {
-    this.debug = debug;
-  }
-
-  /**
-   * Gets the debug flag.
-   *
-   * @return the debug flag
-   */
-  public boolean getDebug() {
-    return debug;
-  }
-
   public String getDebugLevel() {
     return debugLevel;
   }

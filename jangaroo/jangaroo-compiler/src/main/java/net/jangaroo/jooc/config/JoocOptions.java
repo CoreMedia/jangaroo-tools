@@ -4,11 +4,7 @@ public interface JoocOptions {
 
   SemicolonInsertionMode getSemicolonInsertionMode();
 
-  boolean isDebug();
-
-  boolean isDebugLines();
-
-  boolean isDebugSource();
+  DebugMode getDebugMode();
 
   boolean isEnableAssertions();
 

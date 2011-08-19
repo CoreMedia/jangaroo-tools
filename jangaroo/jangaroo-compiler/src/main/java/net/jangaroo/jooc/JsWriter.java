@@ -16,6 +16,7 @@
 package net.jangaroo.jooc;
 
 import net.jangaroo.jooc.ast.IdeDeclaration;
+import net.jangaroo.jooc.config.DebugMode;
 import net.jangaroo.jooc.config.JoocOptions;
 
 import java.io.FilterWriter;
@@ -51,11 +52,11 @@ public final class JsWriter extends FilterWriter {
   }
 
   public boolean getKeepSource() {
-    return options.isDebug() && options.isDebugSource();
+    return options.getDebugMode() != null && DebugMode.SOURCE.equals(options.getDebugMode());
   }
 
   public boolean getKeepLines() {
-    return options.isDebug() && options.isDebugLines();
+    return options.getDebugMode() != null && DebugMode.LINES.equals(options.getDebugMode());
   }
 
   public void writeInt(int value) throws IOException {
