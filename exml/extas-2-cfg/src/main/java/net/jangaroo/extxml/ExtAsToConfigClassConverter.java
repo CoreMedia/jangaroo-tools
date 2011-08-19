@@ -96,11 +96,18 @@ public final class ExtAsToConfigClassConverter {
       System.exit(-2);
     }
 
-    FileInputStream stream = new FileInputStream(mappingPropertiesFile);
-    Properties mappings = new Properties();
-    mappings.load(stream);
-    mappings.put("ext3", "ext.config");
-    stream.close();
+    FileInputStream stream = null;
+    Properties mappings;
+    try {
+      stream = new FileInputStream(mappingPropertiesFile);
+      mappings = new Properties();
+      mappings.load(stream);
+      mappings.put("ext3", "ext.config");
+    } finally {
+      if(stream != null) {
+        stream.close();
+      }
+    }
 
     String configClassPackage = getConfigPackageName(moduleName, mappings);
     

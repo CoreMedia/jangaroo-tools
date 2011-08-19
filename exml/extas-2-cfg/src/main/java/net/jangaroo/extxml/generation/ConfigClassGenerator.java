@@ -74,36 +74,33 @@ public final class ConfigClassGenerator {
   }
 
   public File generateClass(ComponentClass componentClass) {
-    if (true) {
-      File configClassDir = new File(componentSuite.getAs3OutputDir(), componentSuite.getConfigClassPackage().replace('.', File.separatorChar));
-      String configClassName = StringUtils.uncapitalise(componentClass.getLastXtypeComponent());
-      File outputFile = new File(configClassDir, configClassName + ".as");
+    File configClassDir = new File(componentSuite.getAs3OutputDir(), componentSuite.getConfigClassPackage().replace('.', File.separatorChar));
+    String configClassName = StringUtils.uncapitalise(componentClass.getLastXtypeComponent());
+    File outputFile = new File(configClassDir, configClassName + ".as");
 
-      if(!outputFile.getParentFile().exists()) {
-        if (outputFile.getParentFile().mkdirs()) {
-          Log.d("Folder '"+outputFile.getParentFile().getAbsolutePath() + "' created.");
-        }
+    if(!outputFile.getParentFile().exists()) {
+      if (outputFile.getParentFile().mkdirs()) {
+        Log.d("Folder '"+outputFile.getParentFile().getAbsolutePath() + "' created.");
       }
-
-     Writer writer = null;
-      try {
-        writer = new OutputStreamWriter(new FileOutputStream(outputFile), outputCharset);
-        generateJangarooClass(componentClass, configClassName, writer);
-      } catch (IOException e) {
-        Log.e("Exception while creating class", e);
-      } catch (TemplateException e) {
-        Log.e("Exception while creating class", e);
-      } finally {
-        try {
-          if (writer != null) {
-            writer.close();
-          }
-        } catch (IOException e) {
-          //never happen
-        }
-      }
-      return outputFile;
     }
-    return null;
+
+    Writer writer = null;
+    try {
+      writer = new OutputStreamWriter(new FileOutputStream(outputFile), outputCharset);
+      generateJangarooClass(componentClass, configClassName, writer);
+    } catch (IOException e) {
+      Log.e("Exception while creating class", e);
+    } catch (TemplateException e) {
+      Log.e("Exception while creating class", e);
+    } finally {
+      try {
+        if (writer != null) {
+          writer.close();
+        }
+      } catch (IOException e) {
+        //never happen
+      }
+    }
+    return outputFile;
   }
 }
