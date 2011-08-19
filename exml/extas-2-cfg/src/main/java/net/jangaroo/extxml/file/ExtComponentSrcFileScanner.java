@@ -30,7 +30,6 @@ public final class ExtComponentSrcFileScanner {
       String className = FileUtils.removeExtension(srcFile.getName());
       state.addClass(className);
       state.cc.setType(ComponentType.ActionScript);
-      Log.d(String.format("Parsing AS3 class '%s'", className));
       EXT_COMPONENT_AS_FILE_SCANNER.scan(srcFile, state);
     } else if (ComponentType.JavaScript.equals(type)) {
       EXT_COMPONENT_SRC_FILE_SCANNER.scan(srcFile, state);
@@ -281,9 +280,7 @@ public final class ExtComponentSrcFileScanner {
         if (cc.getXtype() != null) {
           validateComponentClass(cc);
           componentSuite.addComponentClass(cc);
-          Log.i(String.format("Component class '%s' with xtype '%s' parsed.", cc.getFullClassName(), cc.getXtype()));
         } else {
-          Log.d(String.format("Class '%s' has no xtype - skipped.", cc.getFullClassName()));
         }
       }
     }

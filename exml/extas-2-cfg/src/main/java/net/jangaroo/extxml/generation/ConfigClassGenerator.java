@@ -36,7 +36,9 @@ public final class ConfigClassGenerator {
       cfg.setClassForTemplateLoading(ComponentClass.class, "/");
       cfg.setObjectWrapper(new DefaultObjectWrapper());
       Template template = cfg.getTemplate("/net/jangaroo/extxml/templates/config_class.ftl");
-      Environment env = template.createProcessingEnvironment(new ConfigClassModel(jooClass, componentSuite, configClassName), output);
+      ConfigClassModel configClassModel = new ConfigClassModel(jooClass, componentSuite, configClassName);
+      Log.i("Generate config class '" + configClassModel.getComponentSuite().getConfigClassPackage()+"."+ configClassModel.getClassName() + "' for component class '" + jooClass.getFullClassName()+"'");
+      Environment env = template.createProcessingEnvironment(configClassModel, output);
       env.setOutputEncoding(outputCharset);
       env.process();
     }
@@ -79,7 +81,7 @@ public final class ConfigClassGenerator {
 
       if(!outputFile.getParentFile().exists()) {
         if (outputFile.getParentFile().mkdirs()) {
-          Log.d("Created parent output folder for " + outputFile.getAbsolutePath());
+          Log.d("Folder '"+outputFile.getParentFile().getAbsolutePath() + "' created.");
         }
       }
 
