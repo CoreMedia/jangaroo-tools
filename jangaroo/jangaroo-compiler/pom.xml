@@ -70,7 +70,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-antrun-plugin</artifactId>
-        <version>1.4</version>
         <dependencies>
           <dependency>
             <groupId>edu.princeton.cup</groupId>
@@ -157,25 +156,6 @@
               </archive>
             </configuration>
           </execution>
-          <execution>
-            <id>create-1.4-archive</id>
-            <goals>
-              <goal>single</goal>
-            </goals>
-            <phase>package</phase>
-            <configuration>
-              <attach>true</attach>
-              <descriptors>
-                <descriptor>src/assemble/retro.xml</descriptor>
-              </descriptors>
-              <archive>
-                <manifest>
-                  <mainClass>net.jangaroo.jooc.Jooc</mainClass>
-                  <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
-                </manifest>
-              </archive>
-            </configuration>
-          </execution>
         </executions>
       </plugin>
       <plugin>
@@ -187,17 +167,41 @@
             <goals>
               <goal>translate</goal>
             </goals>
-            <phase>process-classes</phase>
+            <phase>package</phase>
             <configuration>
-              <destdir>${project.build.directory}/classes-1.4</destdir>
-              <filesets>
-                <fileset>
-                  <directory>${project.build.outputDirectory}</directory>
+              <jarfilesets>
+                <jarfileset>
+                  <directory>${project.build.directory}</directory>
                   <includes>
-                    <include>**/*.class</include>
+                    <include>${project.artifactId}-${project.version}-jar-with-dependencies.jar</include>
                   </includes>
-                </fileset>
-              </filesets>
+                </jarfileset>
+              </jarfilesets>
+              <destjar>
+                ${project.build.directory}/${project.artifactId}-${project.version}-jar-with-dependencies-jdk14.jar
+              </destjar>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>attach-artifacts</id>
+            <phase>package</phase>
+            <goals>
+              <goal>attach-artifact</goal>
+            </goals>
+            <configuration>
+              <artifacts>
+                <artifact>
+                  <file>${project.build.directory}/${project.artifactId}-${project.version}-jar-with-dependencies-jdk14.jar</file>
+                  <type>jar</type>
+                  <classifier>jdk14</classifier>
+                </artifact>
+              </artifacts>
             </configuration>
           </execution>
         </executions>
