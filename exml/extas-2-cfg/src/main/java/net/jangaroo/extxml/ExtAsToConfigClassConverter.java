@@ -61,7 +61,7 @@ public final class ExtAsToConfigClassConverter {
       // you'll get this exception. this will report
       // an error message.
       System.err.println(e.getMessage());
-      System.err.println("java ExtAsToConfigClassConverter [options...] arguments...");
+      System.err.println("java ExtAsToConfigClassConverter [options...]");
       // print the list of available options
       parser.printUsage(System.err);
       System.err.println();
@@ -93,6 +93,10 @@ public final class ExtAsToConfigClassConverter {
     stream.close();
 
     String configClassPackage = mappings.getProperty(moduleName);
+    if(configClassPackage == null) {
+      System.err.println("No configClassPackage name for module '"+moduleName+"' defined! That should be in the mappings file!");
+      System.exit(-2);
+    }
     File moduleSourceRoot = new File(moduleRoot, "src" + File.separator + "main" + File.separator + "joo" + File.separator);
     if (!moduleSourceRoot.exists()) {
       System.err.println("Source folder '" + moduleSourceRoot.getAbsolutePath() + "' does not exist.");
@@ -135,5 +139,11 @@ public final class ExtAsToConfigClassConverter {
     //Generate config classes out of the AS components
     ConfigClassGenerator generator = new ConfigClassGenerator(suite);
     generator.generateClasses();
+    
+    System.out.println("\n******************");
+    System.out.println("Warning:");
+    System.out.println("If you have any actions or plugins that also have been converted, ");
+    System.out.println("you have to change the annotation value 'xtype' manually!");
+    System.out.println("******************");
   }
 }

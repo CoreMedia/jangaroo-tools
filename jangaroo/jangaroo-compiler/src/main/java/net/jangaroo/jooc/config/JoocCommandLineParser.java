@@ -46,7 +46,7 @@ public class JoocCommandLineParser {
       // an error message.
       msg.append(e.getMessage());
       msg.append("\n");
-      msg.append("java Jooc [options...] arguments...\n");
+      msg.append("java Jooc [options...] source files...\n");
       // print the list of available options
       StringWriter writer = new StringWriter();
       parser.printUsage(writer, null);
