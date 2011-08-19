@@ -12,7 +12,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Properties;
+import java.util.ResourceBundle;
 
+import static org.kohsuke.args4j.ExampleMode.ALL;
 import static org.kohsuke.args4j.ExampleMode.REQUIRED;
 
 /**
@@ -23,13 +25,26 @@ import static org.kohsuke.args4j.ExampleMode.REQUIRED;
  */
 public final class ExtAsToConfigClassConverter {
 
-  @Option(name = "-m", aliases = {"-module"}, usage = "Maven module root folder that should be converted", required = true)
+  @Option(name = "-m",
+          aliases = {"-module"},
+          usage = "Maven module root folder that should be converted",
+          metaVar = "MODULE_DIRECTORY",
+          required = true)
   private File moduleRoot;
 
-  @Option(name = "-p", aliases = {"-mapping"}, usage = "properties file with mapping of maven module name to config class package", required = true)
+  @Option(name = "-p",
+          aliases = {"-mapping"},
+          usage = "properties file with mapping of maven module name to config class package. " +
+          "Every dependency that provides some Exml components should be added to this file. " +
+          "Example: ext3=ext.config",
+          metaVar = "MAPPING_FILE",
+          required = true)
   private File mappingPropertiesFile;
 
-  @Option(name = "-o", usage = "the output directory for the generated config classes, default is the source folder of the Maven module", required = false)
+  @Option(name = "-o",
+          usage = "the output directory for the generated config classes. " +
+                  "OUTPUT_DIRECTORY defaults to the source folder of the Maven module (src/main/joo)",
+          metaVar = "OUTPUT_DIRECTORY")
   private File outputDir;
 
 
@@ -61,14 +76,9 @@ public final class ExtAsToConfigClassConverter {
       // you'll get this exception. this will report
       // an error message.
       System.err.println(e.getMessage());
-      System.err.println("java ExtAsToConfigClassConverter [options...]");
-      // print the list of available options
-      parser.printUsage(System.err);
       System.err.println();
-      // print option sample. This is useful some time
-      System.err.println("  Example: java ExtAsToConfigClassConverter" + parser.printExample(REQUIRED));
-
-      return;
+      printUsage(parser);
+      System.exit(-2);
     }
 
     if (!moduleRoot.exists()) {
@@ -92,11 +102,8 @@ public final class ExtAsToConfigClassConverter {
     mappings.put("ext3", "ext.config");
     stream.close();
 
-    String configClassPackage = mappings.getProperty(moduleName);
-    if(configClassPackage == null) {
-      System.err.println("No configClassPackage name for module '"+moduleName+"' defined! That should be in the mappings file!");
-      System.exit(-2);
-    }
+    String configClassPackage = getConfigPackageName(moduleName, mappings);
+    
     File moduleSourceRoot = new File(moduleRoot, "src" + File.separator + "main" + File.separator + "joo" + File.separator);
     if (!moduleSourceRoot.exists()) {
       System.err.println("Source folder '" + moduleSourceRoot.getAbsolutePath() + "' does not exist.");
@@ -126,7 +133,8 @@ public final class ExtAsToConfigClassConverter {
       File xsd = new File(moduleJangarooTestOutputDir, module + ".xsd");
       if (xsd.exists()) {
         ComponentSuite componentSuite = scanner.scan(new FileInputStream(xsd));
-        componentSuite.setConfigClassPackage(mappings.getProperty(module));
+        String property = getConfigPackageName(module, mappings);
+        componentSuite.setConfigClassPackage(property);
         componentSuiteRegistry.add(componentSuite);
       }
     }
@@ -145,5 +153,27 @@ public final class ExtAsToConfigClassConverter {
     System.out.println("If you have any actions or plugins that also have been converted, ");
     System.out.println("you have to change the annotation value 'xtype' manually!");
     System.out.println("******************");
+  }
+
+  private String getConfigPackageName(String moduleName, Properties mappings) {
+    String configClassPackage = mappings.getProperty(moduleName);
+    if(configClassPackage == null || configClassPackage.length() == 0) {
+      System.err.println("No config class package for module '"+moduleName+"' defined!");
+      System.err.println("Please add some package name for the module '"+moduleName+"' to the mapping file " + mappingPropertiesFile);
+      System.exit(-2);
+    }
+    return configClassPackage;
+  }
+
+  private void printUsage(CmdLineParser parser) {
+    System.err.println("Usage: java -jar extas-2-cfg.jar [options...]");
+    System.err.println("Ext AS to config class converter.");
+    System.err.println("Allows to generate config classes from ExtJS components written in old style AS.");
+    System.err.println();
+    // print the list of available options
+    parser.printUsage(System.err);
+    System.err.println();
+    // print option sample. This is useful some time
+    System.err.println("  Example: java -jar extas-2-cfg.jar" + parser.printExample(REQUIRED));
   }
 }
