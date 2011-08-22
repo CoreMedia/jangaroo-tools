@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2009, CoreMedia AG, Hamburg. All rights reserved.
  */
-package net.jangaroo.exml.xml;
+package net.jangaroo.exml.configconverter.xml;
 
-import net.jangaroo.exml.ComponentSuiteRegistry;
-import net.jangaroo.exml.model.ComponentClass;
-import net.jangaroo.exml.model.ComponentSuite;
-import net.jangaroo.exml.model.ConfigAttribute;
+import net.jangaroo.exml.configconverter.ComponentSuiteRegistry;
+import net.jangaroo.exml.configconverter.model.ComponentClass;
+import net.jangaroo.exml.configconverter.model.ComponentSuite;
+import net.jangaroo.exml.configconverter.model.ConfigAttribute;
 import net.jangaroo.utils.log.Log;
 
 import javax.xml.stream.XMLInputFactory;

@@ -1,4 +1,4 @@
-package net.jangaroo.exml.xml;
+package net.jangaroo.exml.configconverter.xml;
 
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;

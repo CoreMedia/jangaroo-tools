@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2009, CoreMedia AG, Hamburg. All rights reserved.
  */
-package net.jangaroo.exml.xml;
+package net.jangaroo.exml.configconverter.xml;
 
-import net.jangaroo.exml.model.ComponentClass;
+import net.jangaroo.exml.configconverter.model.ComponentClass;
 import net.jangaroo.utils.log.Log;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.InputSource;

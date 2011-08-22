@@ -1,7 +1,7 @@
-package net.jangaroo.exml.xml;
+package net.jangaroo.exml.configconverter.xml;
 
-import net.jangaroo.exml.file.ExmlComponentSrcFileScanner;
-import net.jangaroo.exml.model.ConfigAttribute;
+import net.jangaroo.exml.configconverter.file.ExmlComponentSrcFileScanner;
+import net.jangaroo.exml.configconverter.model.ConfigAttribute;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 

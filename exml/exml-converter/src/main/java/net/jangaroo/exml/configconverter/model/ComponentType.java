@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2009, CoreMedia AG, Hamburg. All rights reserved.
  */
-package net.jangaroo.exml.model;
+package net.jangaroo.exml.configconverter.model;
 
 import java.util.HashMap;
 import java.util.Map;

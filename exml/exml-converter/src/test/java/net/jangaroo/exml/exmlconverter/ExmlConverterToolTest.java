@@ -34,6 +34,7 @@ public class ExmlConverterToolTest {
     }
   }
 
+  @Test
   public void testConvertMalformedFile() throws Exception {
     File sourceFile = File.createTempFile("FileConverterTest.source", ".exml");
     File backupFile = new File(sourceFile.getPath() + ".bak");

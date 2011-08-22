@@ -1,7 +1,7 @@
-package net.jangaroo.exml.generation;
+package net.jangaroo.exml.configconverter.generation;
 
-import net.jangaroo.exml.model.ComponentClass;
-import net.jangaroo.exml.model.ComponentSuite;
+import net.jangaroo.exml.configconverter.model.ComponentClass;
+import net.jangaroo.exml.configconverter.model.ComponentSuite;
 import org.codehaus.plexus.util.StringUtils;
 
 public class ConfigClassModel {

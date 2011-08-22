@@ -1,6 +1,6 @@
-package net.jangaroo.exml.model;
+package net.jangaroo.exml.configconverter.model;
 
-import net.jangaroo.exml.ComponentSuiteRegistry;
+import net.jangaroo.exml.configconverter.ComponentSuiteRegistry;
 import net.jangaroo.utils.log.Log;
 
 import java.io.File;

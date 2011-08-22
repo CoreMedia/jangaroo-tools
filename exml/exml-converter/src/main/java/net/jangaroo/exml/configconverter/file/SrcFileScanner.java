@@ -1,7 +1,7 @@
-package net.jangaroo.exml.file;
+package net.jangaroo.exml.configconverter.file;
 
-import net.jangaroo.exml.model.ComponentSuite;
-import net.jangaroo.exml.model.ComponentType;
+import net.jangaroo.exml.configconverter.model.ComponentSuite;
+import net.jangaroo.exml.configconverter.model.ComponentType;
 import net.jangaroo.utils.log.Log;
 import org.apache.maven.shared.model.fileset.FileSet;
 import org.apache.maven.shared.model.fileset.util.FileSetManager;
@@ -12,7 +12,7 @@ import java.io.IOException;
 
 /**
  * The FileScanner scans a directory for all *.as, *.js and *.exml files that contain Ext annotations and builds a
- * {@link net.jangaroo.exml.model.ComponentSuite} from all Ext JS component classes.
+ * {@link net.jangaroo.exml.configconverter.model.ComponentSuite} from all Ext JS component classes.
  */
 public final class SrcFileScanner {
 

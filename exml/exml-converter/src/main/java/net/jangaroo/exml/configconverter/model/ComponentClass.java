@@ -1,4 +1,4 @@
-package net.jangaroo.exml.model;
+package net.jangaroo.exml.configconverter.model;
 
 import java.io.File;
 import java.util.ArrayList;

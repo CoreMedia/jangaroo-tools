@@ -1,7 +1,7 @@
-package net.jangaroo.exml;
+package net.jangaroo.exml.configconverter;
 
-import net.jangaroo.exml.model.ComponentClass;
-import net.jangaroo.exml.model.ComponentSuite;
+import net.jangaroo.exml.configconverter.model.ComponentClass;
+import net.jangaroo.exml.configconverter.model.ComponentSuite;
 import net.jangaroo.utils.log.Log;
 
 import java.util.LinkedHashMap;

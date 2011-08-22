@@ -1,13 +1,13 @@
-package net.jangaroo.exml.file;
+package net.jangaroo.exml.configconverter.file;
 
-import net.jangaroo.exml.model.ComponentClass;
-import net.jangaroo.exml.model.ComponentSuite;
-import net.jangaroo.exml.model.ComponentType;
-import net.jangaroo.exml.model.ConfigAttribute;
-import net.jangaroo.exml.model.DescriptionHolder;
-import net.jangaroo.exml.util.FileScanner;
-import net.jangaroo.exml.util.Rule;
-import net.jangaroo.exml.util.TidyComment;
+import net.jangaroo.exml.configconverter.model.ComponentClass;
+import net.jangaroo.exml.configconverter.model.ComponentSuite;
+import net.jangaroo.exml.configconverter.model.ComponentType;
+import net.jangaroo.exml.configconverter.model.ConfigAttribute;
+import net.jangaroo.exml.configconverter.model.DescriptionHolder;
+import net.jangaroo.exml.configconverter.util.FileScanner;
+import net.jangaroo.exml.configconverter.util.Rule;
+import net.jangaroo.exml.configconverter.util.TidyComment;
 import net.jangaroo.utils.log.Log;
 import org.codehaus.plexus.util.FileUtils;
 
@@ -16,7 +16,7 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- * A FileScanner to read Ext JS component classes (JavaScript or ActionScript) into a {@link net.jangaroo.exml.model.ComponentSuite}.
+ * A FileScanner to read Ext JS component classes (JavaScript or ActionScript) into a {@link net.jangaroo.exml.configconverter.model.ComponentSuite}.
  */
 public final class ExtComponentSrcFileScanner {
 

@@ -1,13 +1,13 @@
-package net.jangaroo.exml.generation;
+package net.jangaroo.exml.configconverter.generation;
 
 import freemarker.core.Environment;
 import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapper;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
-import net.jangaroo.exml.model.ComponentClass;
-import net.jangaroo.exml.model.ComponentSuite;
-import net.jangaroo.exml.model.ComponentType;
+import net.jangaroo.exml.configconverter.model.ComponentClass;
+import net.jangaroo.exml.configconverter.model.ComponentSuite;
+import net.jangaroo.exml.configconverter.model.ComponentType;
 import net.jangaroo.utils.log.Log;
 import org.codehaus.plexus.util.StringUtils;
 

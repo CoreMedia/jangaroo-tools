@@ -1,4 +1,4 @@
-package net.jangaroo.exml.util;
+package net.jangaroo.exml.configconverter.util;
 
 import java.util.List;
 import java.util.regex.Matcher;

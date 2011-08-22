@@ -1,10 +1,7 @@
 package net.jangaroo.exml;
 
+import net.jangaroo.exml.configconverter.ConfigConverterTool;
 import net.jangaroo.exml.exmlconverter.ExmlConverterTool;
-import net.jangaroo.exml.file.SrcFileScanner;
-import net.jangaroo.exml.generation.ConfigClassGenerator;
-import net.jangaroo.exml.model.ComponentSuite;
-import net.jangaroo.exml.xml.XsdScanner;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
@@ -53,7 +50,7 @@ public class ExmlConverter {
           metaVar = "OUTPUT_DIRECTORY")
   private File outputDir;
 
-  @Option(name="-t", aliases = "-test-output", metaVar = "JANGAROO_TEST_OUTPUT_DIR", usage = "the Jangaroo testoutput directory. " +
+  @Option(name="-t", aliases = "-test-output", metaVar = "TEST_OUTPUT_DIR", usage = "the Jangaroo test output directory. " +
           "This is typically <module-root>/target/jangaroo-output-test or <module-root>/target/test-classes which will also " +
           "be used if not specified. You have to provide this parameter if you have changed the value of <testOutputDirectory>target/jangaroo-output-test</testOutputDirectory> " +
           "in your module pom.xml.")
@@ -84,13 +81,12 @@ public class ExmlConverter {
     }
 
     if (!moduleRoot.exists()) {
-      System.err.println("The maven module root directory '" + args[0] + "' does not exist.");
+      System.err.println("The maven module root directory '" + moduleRoot.getAbsolutePath() + "' does not exist.");
       System.err.println("Please specify an existing path.");
       exit(-2);
     }
 
     String moduleName = moduleRoot.getName();
-
 
     if (!mappingPropertiesFile.exists()) {
       System.err.println("The mapping file '" + args[1] + "' does not exist.");
@@ -144,28 +140,15 @@ public class ExmlConverter {
 
     System.out.println("Converting Maven module: " + moduleName);
 
-    //Scan the directory for xml, as or javascript components and collect the data in ComponentClass, import all provided XSDs
-    ComponentSuiteRegistry componentSuiteRegistry = new ComponentSuiteRegistry();
-    XsdScanner scanner = new XsdScanner();
+    ConfigConverterTool configConverter = new ConfigConverterTool(moduleSourceRoot, outputDir, configClassPackage);
 
     for (String module : mappings.stringPropertyNames()) {
       File xsd = new File(moduleJangarooTestOutputDir, module + ".xsd");
       if (xsd.exists()) {
-        ComponentSuite componentSuite = scanner.scan(new FileInputStream(xsd));
-        String property = getConfigPackageName(module, mappings);
-        componentSuite.setConfigClassPackage(property);
-        componentSuiteRegistry.add(componentSuite);
+        configConverter.addModule(xsd, getConfigPackageName(module, mappings));
       }
     }
-
-    ComponentSuite suite = new ComponentSuite(componentSuiteRegistry, "ignored", "ignored", moduleSourceRoot, outputDir, configClassPackage);
-
-    SrcFileScanner fileScanner = new SrcFileScanner(suite);
-    fileScanner.scan();
-
-    //Generate config classes out of the AS components
-    ConfigClassGenerator generator = new ConfigClassGenerator(suite);
-    generator.generateClasses();
+    configConverter.convertAll();
 
     System.out.println("\n******************");
     System.out.println("Warning:");

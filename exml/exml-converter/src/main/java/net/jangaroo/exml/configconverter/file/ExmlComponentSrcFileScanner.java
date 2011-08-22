@@ -1,13 +1,13 @@
 /*
  * Copyright (c) 2009, CoreMedia AG, Hamburg. All rights reserved.
  */
-package net.jangaroo.exml.file;
+package net.jangaroo.exml.configconverter.file;
 
-import net.jangaroo.exml.model.ComponentClass;
-import net.jangaroo.exml.model.ComponentSuite;
-import net.jangaroo.exml.model.ComponentType;
-import net.jangaroo.exml.xml.ContentHandlerUtils;
-import net.jangaroo.exml.xml.ExmlToComponentMetadataHandler;
+import net.jangaroo.exml.configconverter.model.ComponentClass;
+import net.jangaroo.exml.configconverter.model.ComponentSuite;
+import net.jangaroo.exml.configconverter.model.ComponentType;
+import net.jangaroo.exml.configconverter.xml.ContentHandlerUtils;
+import net.jangaroo.exml.configconverter.xml.ExmlToComponentMetadataHandler;
 import org.codehaus.plexus.util.FileUtils;
 
 import java.io.File;

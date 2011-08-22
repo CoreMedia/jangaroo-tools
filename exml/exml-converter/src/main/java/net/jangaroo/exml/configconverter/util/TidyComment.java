@@ -1,4 +1,4 @@
-package net.jangaroo.exml.util;
+package net.jangaroo.exml.configconverter.util;
 
 import org.w3c.dom.Document;
 import org.w3c.tidy.Tidy;
