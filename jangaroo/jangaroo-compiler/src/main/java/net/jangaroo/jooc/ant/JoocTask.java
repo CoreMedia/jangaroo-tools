@@ -41,7 +41,6 @@ public class JoocTask extends MatchingTask {
   private File destDir;
   private String sourcepath;
   private File apiDestDir;
-  private boolean debug = false;
   private String debugLevel = null;
   private boolean enableAssertions = false;
   private boolean verbose = false;
@@ -195,6 +194,7 @@ public class JoocTask extends MatchingTask {
 
   /**
    * If true, asks the compiler for verbose output.
+   *
    * @param verbose the verbose state
    */
   public void setVerbose(boolean verbose) {
@@ -203,6 +203,7 @@ public class JoocTask extends MatchingTask {
 
   /**
    * Gets the verbose flag.
+   *
    * @return the verbose state
    */
   public boolean getVerbose() {
@@ -350,11 +351,9 @@ public class JoocTask extends MatchingTask {
 
   protected String[] getJoocArgs() {
     List<String> args = new ArrayList<String>(compileList.length + 10);
-    if (debug) {
+    if (debugLevel != null) {
       args.add("-g");
-      if (debugLevel != null) {
-        args.add(debugLevel);
-      }
+      args.add(debugLevel);
     }
     if (autoSemicolon != null) {
       args.add("-autosemicolon");

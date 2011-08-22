@@ -5,8 +5,8 @@ import net.jangaroo.exml.ExmlcException;
 import net.jangaroo.exml.config.ExmlConfiguration;
 import net.jangaroo.exml.config.ExmlcCommandLineParser;
 import net.jangaroo.exml.generator.ExmlComponentClassGenerator;
-import net.jangaroo.exml.generator.ExmlConfigPackageXsdGenerator;
 import net.jangaroo.exml.generator.ExmlConfigClassGenerator;
+import net.jangaroo.exml.generator.ExmlConfigPackageXsdGenerator;
 import net.jangaroo.exml.model.ConfigClass;
 import net.jangaroo.exml.model.ConfigClassRegistry;
 import net.jangaroo.exml.model.ExmlModel;
@@ -18,16 +18,16 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- * 
+ *
  */
 public final class Exmlc {
 
   private final ConfigClassRegistry configClassRegistry;
   private final ExmlToConfigClassParser exmlToConfigClassParser;
   private final ExmlConfigClassGenerator exmlConfigClassGenerator;
-  private ExmlToModelParser exmlToModelParser;
-  private ExmlComponentClassGenerator exmlComponentClassGenerator;
-  private ExmlConfigPackageXsdGenerator exmlConfigPackageXsdGenerator;
+  private final ExmlToModelParser exmlToModelParser;
+  private final ExmlComponentClassGenerator exmlComponentClassGenerator;
+  private final ExmlConfigPackageXsdGenerator exmlConfigPackageXsdGenerator;
 
 
   public Exmlc(ExmlConfiguration config) {
@@ -115,13 +115,29 @@ public final class Exmlc {
     }
   }
 
-  public static void main(String[] argv) {
+  public static int run(String[] argv) {
     ExmlcCommandLineParser parser = new ExmlcCommandLineParser();
+    ExmlConfiguration exmlConfiguration = null;
     try {
-      parser.parse(argv);
+      exmlConfiguration = parser.parse(argv);
     } catch (CommandLineParseException e) {
       System.err.println(e.getMessage());
-      System.exit(e.getExitCode());
+      return e.getExitCode();
+    }
+
+    if (exmlConfiguration != null) {
+      Exmlc exmlc = new Exmlc(exmlConfiguration);
+      exmlc.generateAllConfigClasses();
+      exmlc.generateAllComponentClasses();
+      exmlc.generateXsd();
+    }
+    return 0;
+  }
+
+  public static void main(String[] argv) {
+    int result = run(argv);
+    if (result != 0) {
+      System.exit(result);
     }
   }
 }
