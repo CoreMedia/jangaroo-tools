@@ -178,7 +178,7 @@ public class ExmlConverter {
     System.err.println("Usage: java -jar exml-converter.jar [options...]");
     System.err.println("Exml Converter that converts Exml Maven modules to the new Exml compiler.");
     System.err.println("Generates config classes from ExtJS components written in old style AS and converts all exml files.");
-    System.err.println("Details can be found here: https://github.com/CoreMedia/jangaroo-tools/wiki/Ext-AS-to-config-class-converter");
+    System.err.println("Details can be found here: https://github.com/CoreMedia/jangaroo-tools/wiki/Exml-converter");
     System.err.println();
     // print the list of available options
     parser.printUsage(System.err);
