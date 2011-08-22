@@ -145,6 +145,7 @@
             <phase>package</phase>
             <configuration>
               <attach>true</attach>
+              <classifier>jar-with-dependencies</classifier>
               <descriptorRefs>
                 <descriptorRef>jar-with-dependencies</descriptorRef>
               </descriptorRefs>

@@ -6,12 +6,6 @@
     <format>zip</format>
   </formats>
   <baseDirectory>/</baseDirectory>
-  <fileSets>
-    <fileSet>
-      <directory>target/work</directory>
-      <outputDirectory>/</outputDirectory>
-    </fileSet>
-  </fileSets>
   <files>
     <file>
       <source>src/bin/jooc.bat</source>
@@ -49,4 +43,13 @@
       <fileMode>0755</fileMode>
     </file>
   </files>
+  <dependencySets>
+    <dependencySet>
+      <outputDirectory>/</outputDirectory>
+      <useProjectArtifact>false</useProjectArtifact>
+      <unpack>false</unpack>
+      <scope>runtime</scope>
+      <useTransitiveDependencies>false</useTransitiveDependencies>
+    </dependencySet>
+  </dependencySets>
 </assembly>

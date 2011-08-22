@@ -16,10 +16,9 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- * Created by IntelliJ IDEA. User: fwienber Date: 05.07.11 Time: 11:01 To change this template use File | Settings |
- * File Templates.
+ * 
  */
-public class Exmlc {
+public final class Exmlc {
 
   private final ConfigClassRegistry configClassRegistry;
   private final ExmlToConfigClassParser exmlToConfigClassParser;
@@ -112,5 +111,9 @@ public class Exmlc {
     } catch (Exception e) {
       throw new ExmlcException("unable to generate xsd file: " + e.getMessage(), e);
     }
+  }
+
+  public static void main(String[] argv) {
+    
   }
 }

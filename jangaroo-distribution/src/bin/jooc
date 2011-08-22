@@ -1,7 +1,7 @@
 #! /bin/sh
 
 bindir=`dirname "$0"`
-JAVA_ARGS="-jar $bindir/jangaroo-compiler-${jangaroo.version}.jar"
+JAVA_ARGS="-jar $bindir/jangaroo-compiler-${jangaroo.version}-jar-with-dependencies.jar"
 
 if [ -n "$JAVA_HOME"  ] ; then
   "$JAVA_HOME/bin/java" $JAVA_ARGS $@

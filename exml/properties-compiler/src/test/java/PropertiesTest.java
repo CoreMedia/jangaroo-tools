@@ -2,6 +2,7 @@
  * Copyright (c) 2009, CoreMedia AG, Hamburg. All rights reserved.
  */
 
+import net.jangaroo.properties.compiler.PropertiesCompiler;
 import org.junit.Test;
 import static org.junit.Assert.assertTrue;
 
@@ -24,7 +25,7 @@ public class PropertiesTest {
   public void testMain() throws Exception {
     File out = computeTestDataRoot(getClass());
     File root = new File(getClass().getResource("/").toURI());
-    Properties.main(new String[] {root.getAbsolutePath(), out.getAbsolutePath()});
+    PropertiesCompiler.main(new String[]{root.getAbsolutePath(), out.getAbsolutePath()});
 
     File defaultProp = new File(out,"testPackage/PropertiesTest_properties.as");
     assertTrue(defaultProp.exists());

@@ -1,4 +1,4 @@
-/*
+package net.jangaroo.properties.compiler;/*
  * Copyright (c) 2009, CoreMedia AG, Hamburg. All rights reserved.
  */
 
@@ -12,8 +12,8 @@ import org.apache.maven.shared.model.fileset.FileSet;
 import java.io.File;
 import java.io.IOException;
 
-public final class Properties {
-  private Properties() {
+public final class PropertiesCompiler {
+  private PropertiesCompiler() {
 
   }
 

@@ -30,18 +30,24 @@
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-compiler</artifactId>
       <version>${project.version}</version>
+      <classifier>jar-with-dependencies</classifier>
+      <scope>runtime</scope>
     </dependency>
 
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>exml-compiler</artifactId>
       <version>${project.version}</version>
+      <classifier>jar-with-dependencies</classifier>
+      <scope>runtime</scope>
     </dependency>
 
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>properties-compiler</artifactId>
       <version>${project.version}</version>
+      <classifier>jar-with-dependencies</classifier>
+      <scope>runtime</scope>
     </dependency>
 
     <dependency>
@@ -49,72 +55,14 @@
       <artifactId>ant</artifactId>
       <scope>provided</scope>
     </dependency>
-
-    <!-- EXML excludes -->
-    <dependency>
-      <groupId>org.apache.maven</groupId>
-      <artifactId>maven-plugin-api</artifactId>
-      <version>2.0.6</version>
-      <scope>provided</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.apache.maven</groupId>
-      <artifactId>maven-artifact</artifactId>
-      <version>2.0.2</version>
-      <scope>provided</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.apache.maven</groupId>
-      <artifactId>maven-artifact-manager</artifactId>
-      <version>2.0.2</version>
-      <scope>provided</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.apache.maven.wagon</groupId>
-      <artifactId>wagon-provider-api</artifactId>
-      <version>1.0-alpha-6</version>
-      <scope>provided</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.codehaus.plexus</groupId>
-      <artifactId>plexus-container-default</artifactId>
-      <version>1.0-alpha-9</version>
-      <scope>provided</scope>
-    </dependency>
   </dependencies>
 
+  <properties>
+    <jangaroo.version>${project.version}</jangaroo.version>
+  </properties>
+  
   <build>
     <plugins>
-      <plugin>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <version>2.1</version>
-        <executions>
-          <execution>
-            <id>copy-jangaroo-tools</id>
-            <phase>package</phase>
-            <goals>
-              <goal>copy-dependencies</goal>
-            </goals>
-            <configuration>
-              <outputDirectory>${project.build.directory}/work</outputDirectory>
-              <stripVersion>false</stripVersion>
-              <includeTypes>jar</includeTypes>
-              <includeScope>runtime</includeScope>
-            </configuration>
-          </execution>
-        </executions>
-        <configuration>
-          <stripVersion>false</stripVersion>
-          <overWriteReleases>false</overWriteReleases>
-          <overWriteSnapshots>false</overWriteSnapshots>
-          <overWriteIfNewer>true</overWriteIfNewer>
-          <artifactItems />
-        </configuration>
-      </plugin>
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
         <version>2.2-beta-5</version>  <!-- do NOT use 2.2 because of http://jira.codehaus.org/browse/MRESOURCES-104 -->
