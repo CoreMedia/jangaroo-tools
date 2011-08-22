@@ -81,6 +81,11 @@
       <artifactId>plexus-utils</artifactId>
     </dependency>
 
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+    </dependency>
+
   </dependencies>
 
 </project>
