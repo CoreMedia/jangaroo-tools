@@ -28,7 +28,19 @@ public class ExmlConverterTest {
 
   @Test(expected = ExitError.class)
   public void testUsageNoArgs() throws Exception {
-    new TestTool().main(new String[0]);
+    new TestTool().run(new String[0]);
+  }
+
+  @Test(expected = ExitError.class)
+  public void testUsageTooManyArgs() throws Exception {
+    new TestTool().run(new String[]{"a", "b", "c"});
+  }
+
+  @Test(expected = ExitError.class)
+  public void testFileDoesNotExist() throws Exception {
+    String[] args = {"-m", "/no/such/file/exists/on/any/test/system", "-p", "/no/such/file/exists/on/any/test/system", "-o" ,"/no/such/file/exists/on/any/test/system"};
+
+    new TestTool().run(args);
   }
 
   @Test

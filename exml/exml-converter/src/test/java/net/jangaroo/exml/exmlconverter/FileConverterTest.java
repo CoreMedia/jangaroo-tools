@@ -1,4 +1,4 @@
-package com.coremedia.studio.tools.exmlconverter;
+package net.jangaroo.exml.exmlconverter;
 
 import net.jangaroo.exml.exmlconverter.FileConverter;
 import org.apache.commons.io.FileUtils;

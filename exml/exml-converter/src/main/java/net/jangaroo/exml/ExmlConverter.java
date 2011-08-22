@@ -65,10 +65,10 @@ public class ExmlConverter {
   }
 
   public static void main(String[] args) throws IOException {
-    new ExmlConverter().doMain(args);
+    new ExmlConverter().run(args);
   }
 
-  private void doMain(String[] args) throws IOException {
+  void run(String[] args) throws IOException {
     CmdLineParser parser = new CmdLineParser(this);
     try {
       // parse the arguments.

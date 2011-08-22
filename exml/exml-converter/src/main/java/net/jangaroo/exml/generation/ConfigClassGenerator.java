@@ -35,7 +35,7 @@ public final class ConfigClassGenerator {
       Configuration cfg = new Configuration();
       cfg.setClassForTemplateLoading(ComponentClass.class, "/");
       cfg.setObjectWrapper(new DefaultObjectWrapper());
-      Template template = cfg.getTemplate("/net/jangaroo/extxml/templates/config_class.ftl");
+      Template template = cfg.getTemplate("/net/jangaroo/exml/templates/config_class.ftl");
       ConfigClassModel configClassModel = new ConfigClassModel(jooClass, componentSuite, configClassName);
       Log.i("Generate config class '" + configClassModel.getComponentSuite().getConfigClassPackage()+"."+ configClassModel.getClassName() + "' for component class '" + jooClass.getFullClassName()+"'");
       Environment env = template.createProcessingEnvironment(configClassModel, output);
