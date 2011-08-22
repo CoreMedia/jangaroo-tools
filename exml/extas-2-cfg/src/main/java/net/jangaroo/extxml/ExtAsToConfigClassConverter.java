@@ -176,6 +176,7 @@ public final class ExtAsToConfigClassConverter {
     System.err.println("Usage: java -jar extas-2-cfg.jar [options...]");
     System.err.println("Ext AS to config class converter.");
     System.err.println("Allows to generate config classes from ExtJS components written in old style AS.");
+    System.err.println("Details can be found here: https://github.com/CoreMedia/jangaroo-tools/wiki/Ext-AS-to-config-class-converter");
     System.err.println();
     // print the list of available options
     parser.printUsage(System.err);

@@ -8,7 +8,7 @@
   <version>0.8.6-SNAPSHOT</version>
 
   <name>Ext AS to config class transformer</name>
-  <description>Allows to generate config classes from ExtJS components written in old style AS</description>
+  <description>Allows to generate config classes from ExtJS components written in old style AS. Details: https://github.com/CoreMedia/jangaroo-tools/wiki/Ext-AS-to-config-class-converter</description>
 
   <parent>
     <artifactId>jangaroo-parent</artifactId>
