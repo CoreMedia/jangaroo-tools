@@ -174,8 +174,8 @@ public class ExmlConverter {
     System.out.println("******************");
 
     ExmlConverterTool exmlConverter = new ExmlConverterTool(encoding, moduleSourceRoot);
-    boolean anyErrors = exmlConverter.convertAll();
-    if(anyErrors) {
+    boolean ok = exmlConverter.convertAll();
+    if(!ok) {
       System.err.println("Some files could not be processed due to errors.");
       exit(-3);
     }

@@ -6,7 +6,7 @@ import java.io.File;
 import java.util.Iterator;
 
 /**
- * The main class of a converter for EXML files.
+ * A converter for EXML files.
  * Used for adapting EXML files created for Studio 1.1.8 and earlier
  * to the new component naming conventions introduced later on.
  */
@@ -25,7 +25,7 @@ public class ExmlConverterTool {
     for (Iterator<File> i = FileUtils.iterateFiles(directory, new String[]{"exml"}, true); i.hasNext();) {
       convert(i.next());
     }
-    return anyErrors;
+    return !anyErrors;
   }
 
   private void convert(File file) {
