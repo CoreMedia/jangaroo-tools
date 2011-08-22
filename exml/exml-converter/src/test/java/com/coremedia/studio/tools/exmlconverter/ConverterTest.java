@@ -1,5 +1,7 @@
 package com.coremedia.studio.tools.exmlconverter;
 
+import net.jangaroo.exml.exmlconverter.Converter;
+import net.jangaroo.exml.exmlconverter.ParseException;
 import org.apache.commons.io.output.StringBuilderWriter;
 import org.junit.Assert;
 import org.junit.Test;

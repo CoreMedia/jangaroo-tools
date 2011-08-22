@@ -17,7 +17,7 @@ import com.intellij.xml.XmlElementDescriptor;
 import com.intellij.xml.XmlNSDescriptor;
 import com.intellij.xml.impl.schema.XmlElementDescriptorImpl;
 import com.intellij.xml.util.XmlUtil;
-import net.jangaroo.extxml.model.ComponentType;
+import net.jangaroo.exml.model.ComponentType;
 import org.jetbrains.annotations.NotNull;
 
 /**

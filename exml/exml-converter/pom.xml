@@ -32,7 +32,7 @@
           <attach>true</attach>
           <archive>
             <manifest>
-              <mainClass>net.jangaroo.extxml.ExtAsToConfigClassConverter</mainClass>
+              <mainClass>net.jangaroo.exml.ExtAsToConfigClassConverter</mainClass>
             </manifest>
           </archive>
           <descriptorRefs>

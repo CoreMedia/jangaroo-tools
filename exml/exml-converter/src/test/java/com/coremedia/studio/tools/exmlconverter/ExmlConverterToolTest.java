@@ -1,5 +1,6 @@
 package com.coremedia.studio.tools.exmlconverter;
 
+import net.jangaroo.exml.exmlconverter.ExmlConverterTool;
 import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
 import org.junit.Test;

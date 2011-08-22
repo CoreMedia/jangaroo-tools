@@ -1,5 +1,6 @@
 package net.jangaroo.exml;
 
+import net.jangaroo.exml.exmlconverter.ExmlConverterTool;
 import net.jangaroo.exml.file.SrcFileScanner;
 import net.jangaroo.exml.generation.ConfigClassGenerator;
 import net.jangaroo.exml.model.ComponentSuite;
@@ -21,14 +22,18 @@ import static org.kohsuke.args4j.ExampleMode.REQUIRED;
  * To run the tool, the module, you try to convert has to compile and fully work with Jangaroo 0.8.4. The tool does not rewrite
  * your classes but generates new one.
  */
-public final class ExtAsToConfigClassConverter {
+public class ExmlConverter {
 
   @Option(name = "-m",
           aliases = {"-module"},
           usage = "Maven module root folder that should be converted",
           metaVar = "MODULE_DIRECTORY",
           required = true)
-  private File moduleRoot;
+  private File moduleRoot = null;
+
+  @Option(name = "-e", usage = "the optional character encoding of the EXML files; " +
+          "defaults to UTF-8", metaVar = "ENCODING")
+  private String encoding = "UTF-8";
 
   @Option(name = "-p",
           aliases = {"-mapping"},
@@ -37,7 +42,10 @@ public final class ExtAsToConfigClassConverter {
           "Example: ext3=ext.config",
           metaVar = "MAPPING_FILE",
           required = true)
-  private File mappingPropertiesFile;
+  private File mappingPropertiesFile = null;
+
+  @Option(name = "-s", usage = "the source path, relative to MODULE_DIRECTORY; defaults to src/main/joo")
+  private String sourcePath = "src" + File.separator + "main" + File.separator + "joo" + File.separator;
 
   @Option(name = "-o",
           usage = "the output directory for the generated config classes. " +
@@ -52,24 +60,14 @@ public final class ExtAsToConfigClassConverter {
   private File moduleJangarooTestOutputDir;
 
 
-  private ExtAsToConfigClassConverter() {
-
+  void exit(int status) {
+    System.exit(status);
   }
 
   public static void main(String[] args) throws IOException {
-    new ExtAsToConfigClassConverter().doMain(args);
+    new ExmlConverter().doMain(args);
   }
 
-  /**
-   * Command line arguments:
-   * <ol>
-   * <li>maven module root</li>
-   * <li>maven module name to config class package mapping file</li>
-   * </ol>
-   *
-   * @param args command line arguments
-   * @throws IOException
-   */
   private void doMain(String[] args) throws IOException {
     CmdLineParser parser = new CmdLineParser(this);
     try {
@@ -82,13 +80,13 @@ public final class ExtAsToConfigClassConverter {
       System.err.println(e.getMessage());
       System.err.println();
       printUsage(parser);
-      System.exit(-2);
+      exit(-3);
     }
 
     if (!moduleRoot.exists()) {
       System.err.println("The maven module root directory '" + args[0] + "' does not exist.");
       System.err.println("Please specify an existing path.");
-      System.exit(-2);
+      exit(-2);
     }
 
     String moduleName = moduleRoot.getName();
@@ -97,7 +95,7 @@ public final class ExtAsToConfigClassConverter {
     if (!mappingPropertiesFile.exists()) {
       System.err.println("The mapping file '" + args[1] + "' does not exist.");
       System.err.println("Please specify an existing path.");
-      System.exit(-2);
+      exit(-2);
     }
 
     FileInputStream stream = null;
@@ -115,11 +113,11 @@ public final class ExtAsToConfigClassConverter {
 
     String configClassPackage = getConfigPackageName(moduleName, mappings);
     
-    File moduleSourceRoot = new File(moduleRoot, "src" + File.separator + "main" + File.separator + "joo" + File.separator);
+    File moduleSourceRoot = new File(moduleRoot, sourcePath);
     if (!moduleSourceRoot.exists()) {
       System.err.println("Source folder '" + moduleSourceRoot.getAbsolutePath() + "' does not exist.");
       System.err.println("Is this really a Maven module?");
-      System.exit(-2);
+      exit(-2);
     }
 
     if (outputDir == null) {
@@ -133,7 +131,7 @@ public final class ExtAsToConfigClassConverter {
         if (!moduleJangarooTestOutputDir.exists()) {
           System.err.println("JANGAROO_TEST_OUTPUT_DIR '" + moduleJangarooTestOutputDir.getAbsolutePath() + "' does not exist.");
           System.err.println("Is this really a Maven module or have you not called mvn install yet?");
-          System.exit(-2);
+          exit(-2);
         }
       }
     }
@@ -141,14 +139,13 @@ public final class ExtAsToConfigClassConverter {
     if (!moduleJangarooTestOutputDir.exists()) {
       System.err.println("JANGAROO_TEST_OUTPUT_DIR '" + moduleJangarooTestOutputDir.getAbsolutePath() + "' does not exist.");
       System.err.println("Is this really a Maven module or have you not called mvn install yet?");
-      System.exit(-2);
+      exit(-2);
     }
 
     System.out.println("Converting Maven module: " + moduleName);
 
     //Scan the directory for xml, as or javascript components and collect the data in ComponentClass, import all provided XSDs
     ComponentSuiteRegistry componentSuiteRegistry = new ComponentSuiteRegistry();
-
     XsdScanner scanner = new XsdScanner();
 
     for (String module : mappings.stringPropertyNames()) {
@@ -169,12 +166,19 @@ public final class ExtAsToConfigClassConverter {
     //Generate config classes out of the AS components
     ConfigClassGenerator generator = new ConfigClassGenerator(suite);
     generator.generateClasses();
-    
+
     System.out.println("\n******************");
     System.out.println("Warning:");
     System.out.println("If you have any actions or plugins that also have been converted, ");
     System.out.println("you have to change the annotation value 'xtype' manually!");
     System.out.println("******************");
+
+    ExmlConverterTool exmlConverter = new ExmlConverterTool(encoding, moduleSourceRoot);
+    boolean anyErrors = exmlConverter.convertAll();
+    if(anyErrors) {
+      System.err.println("Some files could not be processed due to errors.");
+      exit(-3);
+    }
   }
 
   private String getConfigPackageName(String moduleName, Properties mappings) {
@@ -182,21 +186,21 @@ public final class ExtAsToConfigClassConverter {
     if(configClassPackage == null || configClassPackage.length() == 0) {
       System.err.println("No config class package for module '"+moduleName+"' defined!");
       System.err.println("Please add some package name for the module '"+moduleName+"' to the mapping file " + mappingPropertiesFile);
-      System.exit(-2);
+      exit(-2);
     }
     return configClassPackage;
   }
 
   private void printUsage(CmdLineParser parser) {
-    System.err.println("Usage: java -jar extas-2-cfg.jar [options...]");
-    System.err.println("Ext AS to config class converter.");
-    System.err.println("Allows to generate config classes from ExtJS components written in old style AS.");
+    System.err.println("Usage: java -jar exml-converter.jar [options...]");
+    System.err.println("Exml Converter that converts Exml Maven modules to the new Exml compiler.");
+    System.err.println("Generates config classes from ExtJS components written in old style AS and converts all exml files.");
     System.err.println("Details can be found here: https://github.com/CoreMedia/jangaroo-tools/wiki/Ext-AS-to-config-class-converter");
     System.err.println();
     // print the list of available options
     parser.printUsage(System.err);
     System.err.println();
     // print option sample. This is useful some time
-    System.err.println("  Example: java -jar extas-2-cfg.jar" + parser.printExample(REQUIRED));
+    System.err.println("  Example: java -jar exml-converter.jar" + parser.printExample(REQUIRED));
   }
 }

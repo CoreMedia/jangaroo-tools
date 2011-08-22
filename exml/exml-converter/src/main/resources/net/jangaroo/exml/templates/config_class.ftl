@@ -1,4 +1,4 @@
-<#-- @ftlvariable name="" type="net.jangaroo.extxml.generation.ConfigClassModel" -->
+<#-- @ftlvariable name="" type="net.jangaroo.exml.generation.ConfigClassModel" -->
 package ${componentSuite.configClassPackage} {
 
 ${importSuperClassPhrase}

@@ -1,4 +1,4 @@
-package com.coremedia.studio.tools.exmlconverter;
+package net.jangaroo.exml.exmlconverter;
 
 import java.io.File;
 import java.io.FileInputStream;

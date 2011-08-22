@@ -16,7 +16,7 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- * A FileScanner to read Ext JS component classes (JavaScript or ActionScript) into a {@link net.jangaroo.extxml.model.ComponentSuite}.
+ * A FileScanner to read Ext JS component classes (JavaScript or ActionScript) into a {@link net.jangaroo.exml.model.ComponentSuite}.
  */
 public final class ExtComponentSrcFileScanner {
 
