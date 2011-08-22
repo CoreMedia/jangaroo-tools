@@ -20,6 +20,7 @@ import net.jangaroo.jooc.backend.CompilationUnitSink;
 import net.jangaroo.jooc.backend.CompilationUnitSinkFactory;
 import net.jangaroo.jooc.backend.MergedOutputCompilationUnitSinkFactory;
 import net.jangaroo.jooc.backend.SingleFileCompilationUnitSinkFactory;
+import net.jangaroo.jooc.config.CommandLineParseException;
 import net.jangaroo.jooc.config.JoocCommandLineParser;
 import net.jangaroo.jooc.config.JoocConfiguration;
 import net.jangaroo.jooc.input.FileInputSource;
@@ -203,7 +204,7 @@ public class Jooc extends JangarooParser {
           return new Jooc(config, log).run();
         }
       }
-    } catch (JoocCommandLineParser.CommandLineParseException e) {
+    } catch (CommandLineParseException e) {
       System.out.println(e.getMessage());
       return e.getExitCode();
     }

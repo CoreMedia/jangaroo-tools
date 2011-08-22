@@ -1,5 +1,7 @@
-package net.jangaroo.jooc.config;
+package net.jangaroo.exml.config;
 
+
+import net.jangaroo.jooc.config.CommandLineParseException;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 
@@ -8,14 +10,12 @@ import java.io.StringWriter;
 import static org.kohsuke.args4j.ExampleMode.REQUIRED;
 
 /**
- * Parses the jooc command line to produce a {@link JoocConfiguration}.
+ *
  */
-public class JoocCommandLineParser {
-
-  @SuppressWarnings({"AccessStaticViaInstance"})
-  public JoocConfiguration parse(String[] args) throws CommandLineParseException {
-
-    JoocConfiguration config = new JoocConfiguration();
+public class ExmlcCommandLineParser {
+  
+  public ExmlConfiguration parse(String[] args) throws CommandLineParseException {
+    ExmlConfiguration config = new ExmlConfiguration();
 
     CmdLineParser parser = new CmdLineParser(config);
     try {
@@ -28,37 +28,24 @@ public class JoocCommandLineParser {
       // an error message.
       msg.append(e.getMessage());
       msg.append("\n");
-      msg.append("java Jooc [options...] source files...\n");
+      msg.append("java Exmlc [options...] source files...\n");
       // print the list of available options
       StringWriter writer = new StringWriter();
       parser.printUsage(writer, null);
       msg.append(writer.getBuffer());
       msg.append("\n");
       // print option sample. This is useful some time
-      msg.append("  Example: java Jooc").append(parser.printExample(REQUIRED));
+      msg.append("  Example: java Exmlc").append(parser.printExample(REQUIRED));
       msg.append("\n");
       throw new CommandLineParseException(msg.toString(), -1);
-    }
-
-    if (config.isHelp()) {
-      parser.printUsage(System.out);
-      return null;
     }
 
     if (!config.getOutputDirectory().exists()) {
       throw new IllegalArgumentException("destination directory does not exist: " + config.getOutputDirectory().getAbsolutePath());
     }
 
-    if (config.getApiOutputDirectory() != null &&!config.getApiOutputDirectory().exists()) {
-        throw new IllegalArgumentException("destination directory for API stubs does not exist: " + config.getApiOutputDirectory().getAbsolutePath());
-    }
-    if (config.isVerbose()) {
-      /*
-      System.out.println("enableassertions=" +  enableAssertions);
-      */
-      System.out.println("-genarateapi: " + config.isGenerateApi());
-      System.out.println("-g option values:");
-      System.out.println("debugMode=" + config.getDebugMode());
+    if(config.getResourceOutputDirectory() == null) {
+      config.setResourceOutputDirectory(config.getOutputDirectory());
     }
 
     return config;

@@ -3,6 +3,7 @@ package net.jangaroo.exml.compiler;
 import net.jangaroo.exml.ExmlConstants;
 import net.jangaroo.exml.ExmlcException;
 import net.jangaroo.exml.config.ExmlConfiguration;
+import net.jangaroo.exml.config.ExmlcCommandLineParser;
 import net.jangaroo.exml.generator.ExmlComponentClassGenerator;
 import net.jangaroo.exml.generator.ExmlConfigPackageXsdGenerator;
 import net.jangaroo.exml.generator.ExmlConfigClassGenerator;
@@ -11,6 +12,7 @@ import net.jangaroo.exml.model.ConfigClassRegistry;
 import net.jangaroo.exml.model.ExmlModel;
 import net.jangaroo.exml.parser.ExmlToConfigClassParser;
 import net.jangaroo.exml.parser.ExmlToModelParser;
+import net.jangaroo.jooc.config.CommandLineParseException;
 
 import java.io.File;
 import java.io.IOException;
@@ -114,6 +116,12 @@ public final class Exmlc {
   }
 
   public static void main(String[] argv) {
-    
+    ExmlcCommandLineParser parser = new ExmlcCommandLineParser();
+    try {
+      parser.parse(argv);
+    } catch (CommandLineParseException e) {
+      System.err.println(e.getMessage());
+      System.exit(e.getExitCode());
+    }
   }
 }

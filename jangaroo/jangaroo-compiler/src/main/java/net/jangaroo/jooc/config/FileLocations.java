@@ -39,7 +39,7 @@ public class FileLocations {
     return outputDirectory;
   }
 
-  @Option(name="-d", usage = "destination directory for generated files", required = true)
+  @Option(name="-d", metaVar = "DEST_DIR", usage = "destination directory for generated files", required = true)
   public void setOutputDirectory(File outputDirectory) {
     this.outputDirectory = outputDirectory;
   }
