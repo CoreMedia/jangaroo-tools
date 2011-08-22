@@ -47,6 +47,12 @@ public final class ExtAsToConfigClassConverter {
           metaVar = "OUTPUT_DIRECTORY")
   private File outputDir;
 
+  @Option(name="-t", aliases = "-test-output", metaVar = "JANGAROO_TEST_OUTPUT_DIR", usage = "the Jangaroo testoutput directory. " +
+          "This is typically <module-root>/target/jangaroo-output-test or <module-root>/target/test-classes which will also " +
+          "be used if not specified. You have to provide this parameter if you have changed the value of <testOutputDirectory>target/jangaroo-output-test</testOutputDirectory> " +
+          "in your module pom.xml.")
+  private File moduleJangarooTestOutputDir;
+
 
   private ExtAsToConfigClassConverter() {
 
@@ -121,16 +127,23 @@ public final class ExtAsToConfigClassConverter {
     if (outputDir == null) {
       outputDir = moduleSourceRoot;
     }
-
-    File moduleJangarooTestOutputDir = new File(moduleRoot, "target" + File.separator + "jangaroo-output-test" + File.separator);
-    if (!moduleJangarooTestOutputDir.exists()) {
-      //try the default maven testoutput
-      moduleJangarooTestOutputDir = new File(moduleRoot, "target" + File.separator + "test-classes" + File.separator);
+    if(moduleJangarooTestOutputDir == null ){
+      moduleJangarooTestOutputDir = new File(moduleRoot, "target" + File.separator + "jangaroo-output-test" + File.separator);
       if (!moduleJangarooTestOutputDir.exists()) {
-        System.err.println("Target folder '" + moduleJangarooTestOutputDir.getAbsolutePath() + "' does not exist.");
-        System.err.println("Is this really a Maven module or have you not called mvn install yet?");
-        System.exit(-2);
+        //try the default maven testoutput
+        moduleJangarooTestOutputDir = new File(moduleRoot, "target" + File.separator + "test-classes" + File.separator);
+        if (!moduleJangarooTestOutputDir.exists()) {
+          System.err.println("JANGAROO_TEST_OUTPUT_DIR '" + moduleJangarooTestOutputDir.getAbsolutePath() + "' does not exist.");
+          System.err.println("Is this really a Maven module or have you not called mvn install yet?");
+          System.exit(-2);
+        }
       }
+    }
+
+    if (!moduleJangarooTestOutputDir.exists()) {
+      System.err.println("JANGAROO_TEST_OUTPUT_DIR '" + moduleJangarooTestOutputDir.getAbsolutePath() + "' does not exist.");
+      System.err.println("Is this really a Maven module or have you not called mvn install yet?");
+      System.exit(-2);
     }
 
     System.out.println("Converting Maven module: " + moduleName);
