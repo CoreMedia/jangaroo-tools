@@ -124,9 +124,13 @@ public final class ExtAsToConfigClassConverter {
 
     File moduleJangarooTestOutputDir = new File(moduleRoot, "target" + File.separator + "jangaroo-output-test" + File.separator);
     if (!moduleJangarooTestOutputDir.exists()) {
-      System.err.println("Target folder '" + moduleJangarooTestOutputDir.getAbsolutePath() + "' does not exist.");
-      System.err.println("Is this really a Maven module or have you not called mvn install yet?");
-      System.exit(-2);
+      //try the default maven testoutput
+      moduleJangarooTestOutputDir = new File(moduleRoot, "target" + File.separator + "test-classes" + File.separator);
+      if (!moduleJangarooTestOutputDir.exists()) {
+        System.err.println("Target folder '" + moduleJangarooTestOutputDir.getAbsolutePath() + "' does not exist.");
+        System.err.println("Is this really a Maven module or have you not called mvn install yet?");
+        System.exit(-2);
+      }
     }
 
     System.out.println("Converting Maven module: " + moduleName);
