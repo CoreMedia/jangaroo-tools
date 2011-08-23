@@ -19,9 +19,11 @@ import net.jangaroo.utils.CompilerUtils;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -222,12 +224,20 @@ public final class ConfigClassRegistry {
   }
 
   private ConfigClass findActionScriptConfigClass(String name) {
+    return findActionScriptConfigClass(name, new LinkedHashSet<String>());
+  }
+
+  private ConfigClass findActionScriptConfigClass(String name, Set<String> visited) {
+    if (visited.contains(name)) {
+      throw new ExmlcException("cyclic inheritance: " + Arrays.toString(visited.toArray()));
+    }
+    visited.add(name);
     CompilationUnit compilationsUnit = jangarooParser.getCompilationsUnit(name);
     ConfigClass configClass = null;
     if (compilationsUnit != null) {
       try {
         configClass = buildConfigClass(compilationsUnit);
-        evaluateSuperClass(configClass);
+        evaluateSuperClass(configClass, visited);
       } catch (RuntimeException e) {
         throw new ExmlcException("while building config class '" + name + "': " + e.getMessage(), e);
       }
@@ -236,13 +246,16 @@ public final class ConfigClassRegistry {
   }
 
   private void evaluateSuperClass(ConfigClass configClass) {
+    evaluateSuperClass(configClass, new LinkedHashSet<String>());
+  }
+
+  private void evaluateSuperClass(ConfigClass configClass, Set<String> visited) {
     if(configClass != null && configClass.getSuperClassName() != null && !"joo.JavaScriptObject".equals(configClass.getSuperClassName())) {
-      ConfigClass superClass = findActionScriptConfigClass(configClass.getSuperClassName());
+      ConfigClass superClass = findActionScriptConfigClass(configClass.getSuperClassName(), visited);
       if(superClass == null) {
         throw new ExmlcException(String.format("Superclass '%s' of class '%s' not found!", configClass.getSuperClassName(), configClass.getFullName()));
       }
       configClass.setSuperClass(superClass);
-      evaluateSuperClass(superClass);
     }
   }
 
