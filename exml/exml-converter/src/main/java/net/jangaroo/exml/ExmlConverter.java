@@ -26,7 +26,7 @@ public class ExmlConverter {
           usage = "Maven module root folder that should be converted",
           metaVar = "MODULE_DIRECTORY",
           required = true)
-  private File moduleRoot = null;
+  private File moduleRoot;
 
   @Option(name = "-e", usage = "the optional character encoding of the EXML files; " +
           "defaults to UTF-8", metaVar = "ENCODING")
@@ -39,7 +39,7 @@ public class ExmlConverter {
           "Example: ext3=ext.config",
           metaVar = "MAPPING_FILE",
           required = true)
-  private File mappingPropertiesFile = null;
+  private File mappingPropertiesFile;
 
   @Option(name = "-s", usage = "the source path, relative to MODULE_DIRECTORY; defaults to src/main/joo")
   private String sourcePath = "src" + File.separator + "main" + File.separator + "joo" + File.separator;

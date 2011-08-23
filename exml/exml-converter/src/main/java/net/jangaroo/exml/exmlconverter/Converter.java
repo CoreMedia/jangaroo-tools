@@ -6,6 +6,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
@@ -25,10 +26,20 @@ public abstract class Converter {
 
   private static HashMap<String, String> readProperties(String resourceName) {
     Properties properties = new Properties();
+    InputStream resourceAsStream = null;
     try {
-      properties.load(Converter.class.getResourceAsStream(resourceName));
+      resourceAsStream = Converter.class.getResourceAsStream(resourceName);
+      properties.load(resourceAsStream);
     } catch (IOException e) {
       throw new IllegalStateException(resourceName + " must be packaged with the Converter class");
+    } finally {
+      if(resourceAsStream != null) {
+        try {
+          resourceAsStream.close();
+        } catch (IOException e) {
+          //will never hapen
+        }
+      }
     }
     //noinspection unchecked
     return new HashMap(properties); // NOSONAR I know that this is a map from strings to strings.
