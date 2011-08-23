@@ -128,7 +128,7 @@ public final class ExmlToModelParser {
   }
 
   private void setAttribute(JsonObject jsonObject, String attributeName, String attributeValue, ConfigAttribute configAttribute) {
-    if (configAttribute == null) {
+    if (configAttribute == null || isCodeExpression(attributeValue)) {
       setUntypedAttribute(jsonObject, attributeName, attributeValue);
     } else {
       String type = configAttribute.getType();
@@ -143,13 +143,7 @@ public final class ExmlToModelParser {
       } else if ("String".equals(type)) {
         jsonObject.set(attributeName, attributeValue);
       } else if ("Array".equals(type)) {
-        if(attributeValue.startsWith("{") && attributeValue.endsWith("}")) {
-          //take the action script expression as is
-          jsonObject.set(attributeName, attributeValue);
-        } else {
-          //create a simple array
-          jsonObject.set(attributeName, new JsonArray(attributeValue));
-        }
+        jsonObject.set(attributeName, new JsonArray(attributeValue));
       } else if ("*".equals(type)) {
         setUntypedAttribute(jsonObject, attributeName, attributeValue);
       } else { // Object or specific type. We don't care (for now).
@@ -157,6 +151,10 @@ public final class ExmlToModelParser {
         jsonObject.set(attributeName, attributeValue);
       }
     }
+  }
+
+  private boolean isCodeExpression(String attributeValue) {
+    return attributeValue.startsWith("{") && attributeValue.endsWith("}");
   }
 
   private void fillModelAttributesFromSubelements(ExmlModel model, JsonObject jsonObject, Node componentNode, ConfigClass configClass) {
