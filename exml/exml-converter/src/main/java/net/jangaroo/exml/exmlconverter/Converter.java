@@ -36,7 +36,7 @@ public abstract class Converter {
         try {
           resourceAsStream.close();
         } catch (IOException e) {
-          //will never hapen
+          //will never happen
         }
       }
     }
