@@ -81,7 +81,7 @@ public class ConverterTest {
   @Test
   public void testSpecialComponents() throws Exception {
     checkConversion("<exml:component><prefix:binddisable/></exml:component>",
-            "<exml:component><prefix:bindDisable/></exml:component>");
+            "<exml:component><prefix:bindDisablePlugin/></exml:component>");
   }
 
   @Test
