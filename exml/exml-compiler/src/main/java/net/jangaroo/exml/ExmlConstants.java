@@ -3,7 +3,16 @@ package net.jangaroo.exml;
 public final class ExmlConstants {
   public static final String EXML_NAMESPACE_URI = "http://www.jangaroo.net/exml/0.8";
 
+  @SuppressWarnings({"UnusedDeclaration"}) // used by IDEA plugin!
+  public static final String EXML_SCHEMA_LOCATION = "/net/jangaroo/exml/schemas/exml.xsd";
+
   public static final String EXML_CONFIG_URI_PREFIX = "exml:";
+
+  @SuppressWarnings({"UnusedDeclaration"}) // used by IDEA plugin!
+  public static final String EXML_UNTYPED_NAMESPACE_URI = EXML_CONFIG_URI_PREFIX + "untyped";
+
+  @SuppressWarnings({"UnusedDeclaration"}) // used by IDEA plugin!
+  public static final String EXML_UNTYPED_SCHEMA_LOCATION = "/net/jangaroo/exml/schemas/untyped.xsd";
 
   public static final String EXML_COMPONENT_NODE_NAME = "component";
 
