@@ -32,7 +32,7 @@ public class ExmlConverterTool {
   }
 
   private void convert(File file) {
-    System.out.println("Processing " + file + "...");
+    System.out.println("Processing " + file + "..."); // NOSONAR this is a commandline tool
     File tempFile = null;
     try {
       tempFile = File.createTempFile(file.getName() + ".", ".temp", file.getParentFile());
@@ -45,30 +45,30 @@ public class ExmlConverterTool {
         return;
       }
     } catch (ParseException e) {
-      System.err.println("... failed due to parse error: " + e.getMessage());
+      System.err.println("... failed due to parse error: " + e.getMessage()); // NOSONAR this is a commandline tool
       anyErrors = true;
       return;
     } catch (Exception e) {
-      System.err.println("... failed due to internal error!");
+      System.err.println("... failed due to internal error!"); // NOSONAR this is a commandline tool
       e.printStackTrace();
       anyErrors = true;
       return;
     } finally {
       FileUtils.deleteQuietly(tempFile);
     }
-    System.out.println("... done.");
+    System.out.println("... done."); // NOSONAR this is a commandline tool
   }
 
   private boolean moveFilesAfterConversion(File file, File tempFile, File bakFile) {
     FileUtils.deleteQuietly(bakFile);
     if (!file.renameTo(bakFile)) {
-      System.err.println("... failed! Could not create backup file " + bakFile + ".");
+      System.err.println("... failed! Could not create backup file " + bakFile + "."); // NOSONAR this is a commandline tool
       return true;
     }
     if (!tempFile.renameTo(file)) {
-      System.err.println("... failed! Could not create updated file " + file + ".");
+      System.err.println("... failed! Could not create updated file " + file + "."); // NOSONAR this is a commandline tool
       if (!bakFile.renameTo(file)) {
-        System.err.println("(And could not create restore backup file " + bakFile + " to " + file + ".");
+        System.err.println("(And could not create restore backup file " + bakFile + " to " + file + "."); // NOSONAR this is a commandline tool
       }
       return true;
     }

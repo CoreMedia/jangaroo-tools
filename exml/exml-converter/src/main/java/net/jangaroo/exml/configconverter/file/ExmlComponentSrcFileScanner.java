@@ -13,7 +13,7 @@ import org.codehaus.plexus.util.FileUtils;
 import java.io.File;
 import java.io.IOException;
 
-public class ExmlComponentSrcFileScanner {
+public final class ExmlComponentSrcFileScanner {
 
   public static final String EXML_NAMESPACE_URI = "http://net.jangaroo.com/extxml/0.1";
 

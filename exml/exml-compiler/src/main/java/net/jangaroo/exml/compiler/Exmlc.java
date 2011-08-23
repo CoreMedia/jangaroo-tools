@@ -121,7 +121,7 @@ public final class Exmlc {
     try {
       exmlConfiguration = parser.parse(argv);
     } catch (CommandLineParseException e) {
-      System.err.println(e.getMessage());
+      System.err.println(e.getMessage()); // NOSONAR this is a commandline tool
       return e.getExitCode();
     }
 

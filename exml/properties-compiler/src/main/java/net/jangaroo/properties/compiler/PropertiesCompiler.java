@@ -43,7 +43,7 @@ public final class PropertiesCompiler {
       // print option sample. This is useful some time
       msg.append("  Example: java -jar properties-compiler.jar").append(parser.printExample(REQUIRED));
       msg.append("\n");
-      System.err.println(msg);
+      System.err.println(msg); // NOSONAR this is a commandline tool
       return -1;
     }
 

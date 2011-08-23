@@ -14,18 +14,18 @@ public class StandardOutLogHandler extends AbstractLogHandler {
   }
 
   public void error(String message) {
-    System.err.println(message);
+    System.err.println(message); // NOSONAR this is a commandline tool
   }
 
   public void warning(String message) {
-    System.err.println(message);
+    System.err.println(message); // NOSONAR this is a commandline tool
   }
 
   public void info(String message) {
-    System.out.println(message);
+    System.out.println(message); // NOSONAR this is a commandline tool
   }
 
   public void debug(String message) {
-    System.out.println(message);
+    System.out.println(message); // NOSONAR this is a commandline tool
   }
 }
