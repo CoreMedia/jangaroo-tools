@@ -128,7 +128,9 @@ public final class ExmlToModelParser {
   }
 
   private void setAttribute(JsonObject jsonObject, String attributeName, String attributeValue, ConfigAttribute configAttribute) {
-    if (configAttribute == null || isCodeExpression(attributeValue)) {
+    if (isCodeExpression(attributeValue)) {
+      jsonObject.set(attributeName, attributeValue);
+    } else if (configAttribute == null) {
       setUntypedAttribute(jsonObject, attributeName, attributeValue);
     } else {
       String type = configAttribute.getType();
