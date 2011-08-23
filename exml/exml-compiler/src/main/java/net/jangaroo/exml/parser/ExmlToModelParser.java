@@ -143,7 +143,13 @@ public final class ExmlToModelParser {
       } else if ("String".equals(type)) {
         jsonObject.set(attributeName, attributeValue);
       } else if ("Array".equals(type)) {
-        jsonObject.set(attributeName, new JsonArray(attributeValue));
+        if(attributeValue.startsWith("{") && attributeValue.endsWith("}")) {
+          //take the action script expression as is
+          jsonObject.set(attributeName, attributeValue);
+        } else {
+          //create a simple array
+          jsonObject.set(attributeName, new JsonArray(attributeValue));
+        }
       } else if ("*".equals(type)) {
         setUntypedAttribute(jsonObject, attributeName, attributeValue);
       } else { // Object or specific type. We don't care (for now).
