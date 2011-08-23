@@ -150,12 +150,6 @@ public class ExmlConverter {
     }
     configConverter.convertAll();
 
-    System.out.println("\n******************");
-    System.out.println("Warning:");
-    System.out.println("If you have any actions or plugins that also have been converted, ");
-    System.out.println("you have to change the annotation value 'xtype' manually!");
-    System.out.println("******************");
-
     ExmlConverterTool exmlConverter = new ExmlConverterTool(encoding, moduleSourceRoot, mappings);
     boolean ok = exmlConverter.convertAll();
     if(!ok) {
