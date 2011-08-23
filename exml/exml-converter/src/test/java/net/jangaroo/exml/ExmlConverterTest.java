@@ -47,6 +47,7 @@ public class ExmlConverterTest {
   public void testMain() throws Exception {
     File mappingProps = new File(getClass().getResource("/mapping.properties").toURI());
     File moduleRoot = new File(getClass().getResource("/testModule").toURI());
+    new File(moduleRoot, "target/test-classes").mkdirs();
 
     String[] args = {"-m", moduleRoot.getAbsolutePath(), "-p", mappingProps.getAbsolutePath(), "-o" ,outputFolder.getRoot().getAbsolutePath()};
     ExmlConverter.main(args);
