@@ -4,8 +4,8 @@ import net.jangaroo.exml.ExmlcException;
 import net.jangaroo.exml.config.ExmlConfiguration;
 import net.jangaroo.exml.model.ConfigClass;
 import net.jangaroo.exml.model.ConfigClassType;
+import net.jangaroo.utils.CompilerUtils;
 import net.jangaroo.utils.FileLocations;
-import org.apache.commons.io.FilenameUtils;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.XMLReaderFactory;
@@ -27,7 +27,7 @@ public class ExmlToConfigClassParser {
     ConfigClass configClass = new ConfigClass();
     configClass.setComponentClassName(fullQualifiedName);
     configClass.setPackageName(config.getConfigClassPackage());
-    configClass.setName(ConfigClass.createNewName(FilenameUtils.getBaseName(source.getName())));
+    configClass.setName(ConfigClass.createNewName(CompilerUtils.removeExtension(source.getName())));
     // Only components are encoded in EXML.
     configClass.setType(ConfigClassType.XTYPE);
 
@@ -64,7 +64,7 @@ public class ExmlToConfigClassParser {
   private static String computeComponentFullQualifiedName(FileLocations locations, File sourceFile) throws IOException {
     File sourceDir = locations.findSourceDir(sourceFile);
     int rootDirPathLength = sourceDir.getPath().length()+1;
-    String subpath = FilenameUtils.removeExtension(sourceFile.getPath().substring(rootDirPathLength));
+    String subpath = CompilerUtils.removeExtension(sourceFile.getPath().substring(rootDirPathLength));
     return subpath.replaceAll("\\" + File.separator, "\\.");
   }
 }

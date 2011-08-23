@@ -85,19 +85,6 @@
       <groupId>org.seleniumhq.selenium.client-drivers</groupId>
       <artifactId>selenium-java-client-driver</artifactId>
     </dependency>
-    <dependency>
-      <groupId>org.freemarker</groupId>
-      <artifactId>freemarker</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>jtidy</groupId>
-      <artifactId>jtidy</artifactId>
-      <scope>runtime</scope>
-    </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-    </dependency>
   </dependencies>
   <parent>
     <groupId>net.jangaroo</groupId>
