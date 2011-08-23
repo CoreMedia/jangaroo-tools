@@ -27,12 +27,18 @@ public class XsdScanner {
   private ConfigAttribute currentAttr = null;
   private boolean isInsideComplexType = false;
   private boolean isInsideCfg = false;
+  private ComponentSuiteRegistry componentSuiteRegistry;
+
   private static final String SCHEMA = "schema";
   private static final String COMPLEX_TYPE = "complexType";
   private static final String ELEMENT = "element";
   private static final String ATTRIBUTE = "attribute";
   private static final String EXTENSION = "extension";
   private static final String DOCUMENTATION = "documentation";
+
+  public XsdScanner(ComponentSuiteRegistry componentSuiteRegistry) {
+    this.componentSuiteRegistry = componentSuiteRegistry;
+  }
 
   public ComponentSuite getComponentSuite() {
     return componentSuite;
@@ -45,7 +51,7 @@ public class XsdScanner {
   private ComponentSuite createComponentSuite() {
     String targetNS = parser.getAttributeValue(null, "targetNamespace");
     String nsPrefix = parser.getNamespaceContext().getPrefix(targetNS);
-    return new ComponentSuite(new ComponentSuiteRegistry(), targetNS, nsPrefix, null, null, null);
+    return new ComponentSuite(componentSuiteRegistry, targetNS, nsPrefix, null, null, null);
   }
 
   private ComponentClass createComponentClass() {

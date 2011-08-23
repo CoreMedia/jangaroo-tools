@@ -16,6 +16,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.Locale;
 
 /**
  * Generates new style config classes out of old style annotated AS components.
@@ -36,12 +37,33 @@ public final class ConfigClassGenerator {
       cfg.setClassForTemplateLoading(ComponentClass.class, "/");
       cfg.setObjectWrapper(new DefaultObjectWrapper());
       Template template = cfg.getTemplate("/net/jangaroo/exml/templates/config_class.ftl");
-      ConfigClassModel configClassModel = new ConfigClassModel(jooClass, componentSuite, configClassName);
+      String type = computeType(jooClass);
+      ConfigClassModel configClassModel = new ConfigClassModel(jooClass, componentSuite, configClassName, type);
       Log.i("Generate config class '" + configClassModel.getComponentSuite().getConfigClassPackage()+"."+ configClassModel.getClassName() + "' for component class '" + jooClass.getFullClassName()+"'");
       Environment env = template.createProcessingEnvironment(configClassModel, output);
       env.setOutputEncoding(outputCharset);
       env.process();
     }
+  }
+
+  private String computeType(ComponentClass jooClass) {
+    // Try to guess the type of the component. Generally, actions inherit from
+    // ext.Action and plugins are named ...Plugin or inherit from such a class.
+    // At least, this is a good approximation.
+    String type = "xtype";
+    ComponentClass currentClass = jooClass;
+    while (currentClass != null) {
+      if (currentClass.getFullClassName().equals("ext.Action")) {
+        type = "";
+        break;
+      }
+      if (currentClass.getClassName().toLowerCase(Locale.ROOT).endsWith("plugin")) {
+        type = "ptype";
+        break;
+      }
+      currentClass = currentClass.getSuperClass();
+    }
+    return type;
   }
 
   private boolean validateComponentClass(ComponentClass jooClass) {

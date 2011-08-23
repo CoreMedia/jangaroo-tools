@@ -129,6 +129,7 @@ public final class ComponentClass extends DescriptionHolder {
     return cfgs;
   }
 
+  // used in FTL file
   public Collection<ConfigAttribute> getDirectCfgs() {
     ComponentClass cc = getSuperClass();
     if (cc != null) {
@@ -141,21 +142,6 @@ public final class ComponentClass extends DescriptionHolder {
       return directCfgs;
     }
     return cfgs;
-  }
-
-  public Collection<ConfigAttribute> getAllCfgs() {
-    ComponentClass cc = getSuperClass();
-    if (cc != null) {
-     Set<ConfigAttribute> allCfgs = new HashSet<ConfigAttribute>();
-     allCfgs.addAll(cfgs);
-      do {
-        allCfgs.addAll(cc.getCfgs());
-        cc = cc.getSuperClass();
-      } while (cc != null);
-      //System.out.println("Removed "+(cfgs.size()-allCfgs.size())+" inherited configs.");
-      return allCfgs;
-    }
-    return new HashSet<ConfigAttribute>(cfgs);
   }
 
   public void addCfg(ConfigAttribute cfg) {

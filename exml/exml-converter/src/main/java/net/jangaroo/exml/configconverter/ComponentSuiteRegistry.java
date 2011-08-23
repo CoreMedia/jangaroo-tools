@@ -16,9 +16,6 @@ public final class ComponentSuiteRegistry {
 
   private final Map<String, ComponentSuite> componentSuitesByNamespaceUri = new LinkedHashMap<String, ComponentSuite>(10);
 
-  public ComponentSuiteRegistry() {
-  }
-
   public void add(ComponentSuite componentSuite) {
     componentSuitesByNamespaceUri.put(componentSuite.getNamespace(), componentSuite);
     componentSuite.setRegistry(this);

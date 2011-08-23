@@ -37,18 +37,6 @@ public final class ComponentSuite {
   };
   private String configClassPackage;
 
-  public ComponentSuite() {
-    this(new ComponentSuiteRegistry(), null, null, null, null, null);
-  }
-
-  public ComponentSuiteRegistry getRegistry() {
-    return registry;
-  }
-
-  public void setRegistry(ComponentSuiteRegistry registry) {
-    this.registry = registry;
-  }
-
   public ComponentSuite(ComponentSuiteRegistry registry, String namespace, String namespacePrefix, File rootDir, File as3OutputDir, String configClassPackage) {
     this.namespace = namespace;
     this.ns = namespacePrefix;
@@ -59,32 +47,12 @@ public final class ComponentSuite {
     usedComponentSuites = new LinkedHashMap<String, ComponentSuite>();
   }
 
-
-  public void addImportedComponentSuite(ComponentSuite importedSuite) {
-    if(importedSuite != null) {
-      registry.add(importedSuite);
-    }
+  public ComponentSuiteRegistry getRegistry() {
+    return registry;
   }
 
-  public Map<String, ComponentSuite> getUsedComponentSuitesByNs() {
-    return usedComponentSuites;
-  }
-
-  public Collection<ComponentSuite> getUsedComponentSuites() {
-    return usedComponentSuites.values();
-  }
-
-  public String getUsedComponentSuiteNamespaces() {
-    StringBuilder builder = new StringBuilder();
-    for (Map.Entry<String, ComponentSuite> usedComponentSuiteEntry : usedComponentSuites.entrySet()) {
-      builder
-          .append(" xmlns:")
-          .append(usedComponentSuiteEntry.getKey())
-          .append("='")
-          .append(usedComponentSuiteEntry.getValue().getNamespace())
-          .append("'");
-    }
-    return builder.toString();
+  public void setRegistry(ComponentSuiteRegistry registry) {
+    this.registry = registry;
   }
 
   public void setNamespace(String namespace) {
@@ -202,7 +170,7 @@ public final class ComponentSuite {
   public void resolveSuperClasses() {
     for (ComponentClass cc : getComponentClasses()) {
       if (cc.getSuperClass() == null && cc.getSuperClassName() != null) {
-        Log.w("Super component class '" + cc.getSuperClassName() + "' not found.");
+        Log.w("Super component class '" + cc.getSuperClassName() + "' of class '" + cc.getFullClassName() + "' not found.");
       } else if (cc.getSuperClassName() == null && cc.getSuperClassNamespaceUri() != null && cc.getSuperClassLocalName() != null)  {
         ComponentClass supercl = this.getComponentClassByNamespaceAndLocalName(cc.getSuperClassNamespaceUri(), cc.getSuperClassLocalName());
         if(supercl != null) {

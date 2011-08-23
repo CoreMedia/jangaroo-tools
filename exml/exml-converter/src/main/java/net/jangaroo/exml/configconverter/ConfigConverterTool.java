@@ -29,7 +29,7 @@ public class ConfigConverterTool {
 
     //Scan the directory for xml, as or javascript components and collect the data in ComponentClass, import all provided XSDs
     componentSuiteRegistry = new ComponentSuiteRegistry();
-    scanner = new XsdScanner();
+    scanner = new XsdScanner(componentSuiteRegistry);
   }
 
   public void addModule(File xsd, String packageName) throws IOException {
@@ -41,9 +41,6 @@ public class ConfigConverterTool {
 
   public void convertAll() throws IOException {
     //Scan the directory for xml, as or javascript components and collect the data in ComponentClass, import all provided XSDs
-    ComponentSuiteRegistry componentSuiteRegistry = new ComponentSuiteRegistry();
-    XsdScanner scanner = new XsdScanner();
-
     ComponentSuite suite = new ComponentSuite(componentSuiteRegistry, "ignored", "ignored", sourceRoot, outputDir, newConfigPackage);
 
     SrcFileScanner fileScanner = new SrcFileScanner(suite);

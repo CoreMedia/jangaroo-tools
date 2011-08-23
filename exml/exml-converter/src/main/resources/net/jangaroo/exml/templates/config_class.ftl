@@ -6,20 +6,28 @@ ${importSuperClassPhrase}
 /**
  * ${componentClass.description!}
  *
- * <p>This class serves as a typed config object for the constructor of the component class <code>${componentClass.className}</code>.
+ * <p>This class serves as a typed config object for the constructor of the <#if type == 'xtype'>component<#elseif type == 'ptype'>plugin<#else>action</#if> class <code>${componentClass.className}</code>.
+<#if type == 'xtype'>
  * Instantiating this class for the first time also registers the corresponding component class under the xtype
- * "${componentSuite.configClassPackage}.${className}" with ExtJS.</p>
+ * "${componentSuite.configClassPackage}.${className}" with ExtJS.
+<#elseif type == 'ptype'>
+ * Instantiating this class for the first time also registers the corresponding plugin class under the ptype
+ * "${componentSuite.configClassPackage}.${className}" with ExtJS.
+</#if> * </p>
  *
  * @see ${componentClass.fullClassName}
  */
-[ExtConfig(target="${componentClass.fullClassName}", xtype)]
+[ExtConfig(target="${componentClass.fullClassName}"<#if type != ''>, ${type}</#if>)]
 public dynamic class ${className}${extendsPhrase} {
 
+<#if type == 'xtype'>
   public static native function get xtype():String;
-
+<#elseif type == 'ptype'>
+  public static native function get ptype():String;
+</#if>
   /**
-   * <p>Use this constructor to create a typed config object for the constructor of the component class
-   * <code>${componentClass.className}</code> and register the component with ExtJS.</p>
+   * <p>Use this constructor to create a typed config object for the constructor of the <#if type == 'xtype'>component<#elseif type == 'ptype'>plugin<#else>action</#if> class
+   * <code>${componentClass.className}</code><#if type == 'xtype'> and to register the component with ExtJS<#elseif type == 'ptype'> and to register the plugin with ExtJS</#if>.</p>
    *
    * @see ${componentClass.fullClassName}
    */

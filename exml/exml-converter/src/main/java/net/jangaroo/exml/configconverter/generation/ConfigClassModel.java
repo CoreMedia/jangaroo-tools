@@ -8,11 +8,13 @@ public class ConfigClassModel {
   private ComponentSuite componentSuite;
   private String className;
   private ComponentClass componentClass;
+  private String type;
 
-  public ConfigClassModel(ComponentClass componentClass, ComponentSuite componentSuite, String className) {
+  public ConfigClassModel(ComponentClass componentClass, ComponentSuite componentSuite, String className, String type) {
     this.componentSuite = componentSuite;
     this.className = className;
     this.componentClass = componentClass;
+    this.type = type;
   }
 
   public ComponentClass getComponentClass() {
@@ -25,6 +27,10 @@ public class ConfigClassModel {
 
   public String getClassName() {
     return className;
+  }
+
+  public String getType() {
+    return type;
   }
 
   public String getExtendsPhrase() {
