@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- *
+ * Parses file arguments, separated by the system dependant path separator character (e.g. ':' on Unix systems, ';' on Windows)
  */
 public class PathHandler extends OptionHandler<List<File>> {
 
@@ -31,7 +31,7 @@ public class PathHandler extends OptionHandler<List<File>> {
         // be tolerant, accept also '/' as file separator
         File sourceDir = new File(sourceDirPath.replace('/', File.separatorChar));
         if (!sourceDir.exists()) {
-          throw new IllegalArgumentException("directory or file does not exist: " + sourceDir.getAbsolutePath());
+          throw new CmdLineException(owner, "directory or file does not exist: " + sourceDir.getAbsolutePath());
         }
         sourcePathFiles.add(sourceDir);
       }

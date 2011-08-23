@@ -49,7 +49,7 @@ public class FileLocations {
     return sourcePath;
   }
 
-  @Option(name="-sourcepath", handler = PathHandler.class, usage = "source root directories, separated by the system dependant path separator character (e.g. ':' on Unix systems, ';' on Windows", required = true)
+  @Option(name="-sourcepath", handler = PathHandler.class, usage = "source root directories, separated by the system dependant path separator character (e.g. ':' on Unix systems, ';' on Windows)", required = true)
   public void setSourcePath(final List<File> sourcePath) throws IOException {
     ArrayList<File> canonicalizedSourcePath = new ArrayList<File>();
     for (File file : sourcePath) {
@@ -62,7 +62,7 @@ public class FileLocations {
     return classPath;
   }
 
-  @Option(name="-classpath", handler = PathHandler.class, usage = "source root directories or jangaroo jars of dependent classes, separated by the system dependent path separator character (e.g. ':' on Unix systems, ';' on Windows")
+  @Option(name="-classpath", handler = PathHandler.class, usage = "source root directories or jangaroo jars of dependent classes, separated by the system dependent path separator character (e.g. ':' on Unix systems, ';' on Windows)")
   public void setClassPath(final List<File> classPath) {
     assert classPath != null;
     this.classPath = Collections.unmodifiableList(classPath);

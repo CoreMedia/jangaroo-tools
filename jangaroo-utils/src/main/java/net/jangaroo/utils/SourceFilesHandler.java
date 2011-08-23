@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- *
+ * Parses file arguments
  */
 public class SourceFilesHandler extends OptionHandler<List<File>> {
 
@@ -28,7 +28,7 @@ public class SourceFilesHandler extends OptionHandler<List<File>> {
        // be tolerant, accept also '/' as file separator
         File sourceFile = new File(sourcePath.replace('/', File.separatorChar));
         if (!sourceFile.exists()) {
-          throw new IllegalArgumentException("Source file does not exist: " + sourceFile.getAbsolutePath());
+          throw new CmdLineException(owner, "Source file does not exist: " + sourceFile.getAbsolutePath());
         }
       sourceFiles.add(sourceFile);
 
