@@ -47,4 +47,16 @@ public class CompilerUtilsTest {
     Assert.assertEquals("irgend.wo.Was", CompilerUtils.qNameFromFile(dir, new File(dir, "irgend/wo/Was.as")));
     Assert.assertEquals("Was", CompilerUtils.qNameFromFile(dir, new File(dir, "Was.as")));
   }
+
+  @Test
+  public void testDirname() {
+    Assert.assertEquals("this/is/my",CompilerUtils.dirname("this/is/my/file.bla"));
+  }
+
+  @Test
+  public void testRemoveExtension() {
+    Assert.assertEquals("this/is/my/file",CompilerUtils.removeExtension("this/is/my/file.bla"));
+    Assert.assertEquals("file",CompilerUtils.removeExtension("file.bla"));
+    Assert.assertEquals("file",CompilerUtils.removeExtension("file"));
+  }
 }
