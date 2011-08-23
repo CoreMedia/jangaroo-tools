@@ -10,6 +10,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
+import java.util.Properties;
 
 /**
  * Test that the EXML converter does the right thing.
@@ -19,7 +20,8 @@ public class ConverterTest {
     private String input;
     private StringBuilder output = new StringBuilder();
 
-    private TestConverter(String input) {
+    private TestConverter(String input, Properties mappings) {
+      super(mappings);
       this.input = input;
     }
 
@@ -39,10 +41,17 @@ public class ConverterTest {
   }
 
   private void checkConversion(String input, String expected) throws IOException, ParseException {
-    TestConverter converter = new TestConverter(input);
+    TestConverter converter = makeTestConverter(input);
     converter.execute();
     String output = converter.getOutput();
     Assert.assertEquals(expected, output);
+  }
+
+  private TestConverter makeTestConverter(String input) {
+    Properties mappings = new Properties();
+    mappings.setProperty("ui-components", "com.coremedia.ui.config");
+    mappings.setProperty("editor-components", "com.coremedia.cms.editor.sdk.config");
+    return new TestConverter(input, mappings);
   }
 
   @Test
@@ -55,6 +64,12 @@ public class ConverterTest {
   public void testExmlNamespaceWithSingleQuotes() throws Exception {
     checkConversion("<exml:component xmlns:exml='http://net.jangaroo.com/extxml/0.1'/>",
             "<exml:component xmlns:exml='http://www.jangaroo.net/exml/0.8'/>");
+  }
+
+  @Test
+  public void testComponentNamespace() throws Exception {
+    checkConversion("<ui:component xmlns:ui='ui-components'/>",
+            "<ui:component xmlns:ui='exml:com.coremedia.ui.config'/>");
   }
 
   @Test
@@ -125,7 +140,7 @@ public class ConverterTest {
 
   private void expectParseException(String input) throws Exception {
     try {
-      TestConverter converter = new TestConverter(input);
+      TestConverter converter = makeTestConverter(input);
       converter.execute();
       Assert.fail("expected parse exception");
     } catch (ParseException e) {

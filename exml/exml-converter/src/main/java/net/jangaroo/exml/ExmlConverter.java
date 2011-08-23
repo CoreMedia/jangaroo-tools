@@ -156,7 +156,7 @@ public class ExmlConverter {
     System.out.println("you have to change the annotation value 'xtype' manually!");
     System.out.println("******************");
 
-    ExmlConverterTool exmlConverter = new ExmlConverterTool(encoding, moduleSourceRoot);
+    ExmlConverterTool exmlConverter = new ExmlConverterTool(encoding, moduleSourceRoot, mappings);
     boolean ok = exmlConverter.convertAll();
     if(!ok) {
       System.err.println("Some files could not be processed due to errors.");

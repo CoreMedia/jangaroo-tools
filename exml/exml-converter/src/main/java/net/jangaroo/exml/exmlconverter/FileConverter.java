@@ -9,6 +9,7 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
+import java.util.Properties;
 
 /**
  * Converts a single EXML file.
@@ -18,7 +19,8 @@ public class FileConverter extends Converter {
   private File target;
   private String encoding;
 
-  public FileConverter(File source, File target, String encoding) {
+  public FileConverter(File source, File target, String encoding, Properties mappings) {
+    super(mappings);
     this.source = source;
     this.target = target;
     this.encoding = encoding;

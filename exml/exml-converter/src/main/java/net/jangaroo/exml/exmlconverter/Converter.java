@@ -22,7 +22,6 @@ import java.util.Properties;
  */
 public abstract class Converter {
   private static Map<String,String> CLASS_TO_CLASS = readProperties("class.properties");
-  private static Map<String,String> NAMESPACE_TO_NAMESPACE = readProperties("namespace.properties");
 
   private static HashMap<String, String> readProperties(String resourceName) {
     Properties properties = new Properties();
@@ -49,8 +48,13 @@ public abstract class Converter {
 
   private BufferedReader reader;
   private int lookAhead = NOTHING;
-
   private BufferedWriter writer;
+  private Properties mappings;
+
+  public Converter(Properties mappings) {
+
+    this.mappings = mappings;
+  }
 
   protected abstract Writer createWriter() throws UnsupportedEncodingException, FileNotFoundException;
 
@@ -270,12 +274,20 @@ public abstract class Converter {
       throw new ParseException("A quotation mark was expected, but the character '" + c + "' was found.");
     }
     String attributeValue = readAttributeValue(c);
-    if (NAMESPACE_TO_NAMESPACE.containsKey(attributeValue)) {
-      attributeValue = NAMESPACE_TO_NAMESPACE.get(attributeValue);
+    write(c);
+    write(convertAttributeValue(attributeValue));
+    write(c);
+  }
+
+  private String convertAttributeValue(String attributeValue) {
+    if ("http://net.jangaroo.com/extxml/0.1".equals(attributeValue)) {
+      return "http://www.jangaroo.net/exml/0.8";
+    } else if ("http://extjs.com/ext3".equals(attributeValue)) {
+      return "exml:ext.config";
+    } else if (mappings.containsKey(attributeValue)) {
+      return "exml:" + mappings.getProperty(attributeValue);
     }
-    write(c);
-    write(attributeValue);
-    write(c);
+    return attributeValue;
   }
 
   private String readAttributeValue(char delimiter) throws IOException, ParseException {

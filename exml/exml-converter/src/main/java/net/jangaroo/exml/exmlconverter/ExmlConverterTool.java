@@ -4,6 +4,7 @@ import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.util.Iterator;
+import java.util.Properties;
 
 /**
  * A converter for EXML files.
@@ -15,10 +16,12 @@ public class ExmlConverterTool {
   private boolean anyErrors = false;
 
   private File directory;
+  private Properties mappings;
 
-  public ExmlConverterTool(String encoding, File directory) {
+  public ExmlConverterTool(String encoding, File directory, Properties mappings) {
     this.encoding = encoding;
     this.directory = directory;
+    this.mappings = mappings;
   }
 
   public boolean convertAll() {
@@ -35,7 +38,7 @@ public class ExmlConverterTool {
       tempFile = File.createTempFile(file.getName() + ".", ".temp", file.getParentFile());
       File bakFile = new File(file.getPath() + ".bak");
 
-      new FileConverter(file, tempFile, encoding).execute();
+      new FileConverter(file, tempFile, encoding, mappings).execute();
 
       if (moveFilesAfterConversion(file, tempFile, bakFile)) {
         anyErrors = true;
