@@ -8,17 +8,22 @@ import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapper;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
-import net.jangaroo.properties.model.LocalizationSuite;
 import net.jangaroo.properties.model.PropertiesClass;
 import net.jangaroo.properties.model.ResourceBundleClass;
-import net.jangaroo.utils.log.Log;
-import org.codehaus.plexus.util.FileUtils;
+import net.jangaroo.utils.CompilerUtils;
+import net.jangaroo.utils.FileLocations;
+import org.apache.commons.configuration.PropertiesConfiguration;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.Reader;
 import java.io.Writer;
+import java.util.Locale;
 
 public class PropertyClassGenerator {
   private static Configuration cfg = new Configuration();
@@ -32,11 +37,11 @@ public class PropertyClassGenerator {
     cfg.setOutputEncoding("UTF-8");
   }
 
-  private LocalizationSuite suite;
+  private FileLocations locations;
 
 
-  public PropertyClassGenerator(LocalizationSuite suite) {
-    this.suite = suite;
+  public PropertyClassGenerator(FileLocations locations) {
+    this.locations = locations;
   }
 
   public void generatePropertiesClass(PropertiesClass propertiesClass, Writer out) throws IOException, TemplateException {
@@ -46,50 +51,102 @@ public class PropertyClassGenerator {
     env.process();
   }
 
-  public void generateJangarooClasses(ResourceBundleClass rbc) throws IOException, TemplateException {
+  public void generateJangarooClasses(ResourceBundleClass rbc) {
 
     for (PropertiesClass pl : rbc.getPropertiesClasses()) {
-      String rel = pl.getSrcFile().getPath().substring(suite.getRootDir().getPath().length());
 
-      String convertedName = FileUtils.dirname(rel) + "/" + rbc.getClassName() + "_properties";
+      File sourceDir = null;
+      try {
+        sourceDir = locations.findSourceDir(pl.getSrcFile());
+      } catch (IOException e) {
+        throw new PropcException(e);
+      }
+
+      String rel = pl.getSrcFile().getPath().substring(sourceDir.getPath().length());
+
+      String convertedName = CompilerUtils.dirname(rel) + "/" + rbc.getClassName() + "_properties";
 
       if (pl.getLocale() != null) {
         convertedName += "_" + pl.getLocale();
       }
       convertedName += ".as";
 
-      File outputFile = new File(suite.getOutputDir(), convertedName);
-
-      if (!outputFile.getParentFile().exists()) {
-        if (outputFile.getParentFile().mkdirs()) {
-          Log.e("Could not create output folder");
-        }
-      }
+      File outputFile = new File(locations.getOutputDirectory(), convertedName);
+      outputFile.getParentFile().mkdirs(); // NOSONAR
 
       Writer writer = null;
       try {
         writer = new OutputStreamWriter(new FileOutputStream(outputFile), OUTPUT_CHARSET);
         generatePropertiesClass(pl, writer);
-      } catch (IOException e) {
-        Log.e("error while generating class", e);
-      } catch (TemplateException e) {
-        Log.e("error while generating class", e);
+      } catch (Exception e) {
+        throw new PropcException(e);
       } finally {
         try {
           if (writer != null) {
             writer.close();
           }
         } catch (IOException e) {
-          //never happen
+          //
         }
       }
     }
 
   }
 
-  public void generate() throws IOException, TemplateException {
-    for (ResourceBundleClass rbc : suite.getResourceBundles()) {
-      generateJangarooClasses(rbc);
+  public void generate() {
+    for (File srcFile : locations.getSourceFiles()) {
+
+      String className = null;
+      try {
+        className = CompilerUtils.qNameFromFile(locations.findSourceDir(srcFile), srcFile);
+      } catch (IOException e) {
+        throw new PropcException(e);
+      }
+      String packageName = CompilerUtils.packageName(className);
+
+      Locale locale;
+      if (className.indexOf('_') != -1) {
+        String localeString = className.substring(className.indexOf('_') + 1, className.length());
+        if (localeString.indexOf('_') != -1) {
+          String lang = localeString.substring(0, localeString.indexOf('_'));
+          String countr = localeString.substring(lang.length() + 1, localeString.length());
+          if (countr.indexOf('_') != -1) {
+            String var = countr.substring(countr.indexOf('_') + 1, countr.length());
+            countr = countr.substring(0, countr.indexOf('_'));
+            locale = new Locale(lang, countr, var);
+          } else {
+            locale = new Locale(lang, countr);
+          }
+        } else {
+          locale = new Locale(localeString);
+        }
+        className = className.substring(0, className.indexOf('_'));
+      } else {
+        locale = null;
+      }
+
+      ResourceBundleClass bundle = new ResourceBundleClass(className);
+
+      PropertiesConfiguration p = new PropertiesConfiguration();
+      p.setDelimiterParsingDisabled(true);
+      Reader r = null;
+      try {
+        r = new BufferedReader(new InputStreamReader(new FileInputStream(srcFile), "UTF-8"));
+        p.load(r);
+      } catch (Exception e) {
+        throw new PropcException("Error while parsing properties file", srcFile, e);
+      } finally {
+        try {
+          if (r != null) {
+            r.close();
+          }
+        } catch (IOException e) {
+          //not really
+        }
+      }
+      // Create properties class, which registers itself with the bundle.
+      new PropertiesClass(bundle, locale, p, srcFile);
+      generateJangarooClasses(bundle);
     }
   }
 }

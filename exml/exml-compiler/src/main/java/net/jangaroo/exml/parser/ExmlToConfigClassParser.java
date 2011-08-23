@@ -4,7 +4,7 @@ import net.jangaroo.exml.ExmlcException;
 import net.jangaroo.exml.config.ExmlConfiguration;
 import net.jangaroo.exml.model.ConfigClass;
 import net.jangaroo.exml.model.ConfigClassType;
-import net.jangaroo.jooc.config.FileLocations;
+import net.jangaroo.utils.FileLocations;
 import org.apache.commons.io.FilenameUtils;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.XMLReader;

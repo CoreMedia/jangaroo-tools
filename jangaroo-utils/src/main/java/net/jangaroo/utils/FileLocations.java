@@ -1,8 +1,9 @@
-package net.jangaroo.jooc.config;
+package net.jangaroo.utils;
 
 import net.jangaroo.utils.CompilerUtils;
+import net.jangaroo.utils.PathHandler;
+import net.jangaroo.utils.SourceFilesHandler;
 import org.kohsuke.args4j.Argument;
-import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
 
 import java.io.File;

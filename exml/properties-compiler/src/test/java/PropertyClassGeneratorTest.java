@@ -3,15 +3,17 @@
  */
 
 import net.jangaroo.properties.PropertyClassGenerator;
-import net.jangaroo.properties.model.LocalizationSuite;
 import net.jangaroo.properties.model.PropertiesClass;
 import net.jangaroo.properties.model.ResourceBundleClass;
+import net.jangaroo.utils.FileLocations;
 import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.maven.shared.model.fileset.FileSet;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
+import java.io.File;
 import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 public class PropertyClassGeneratorTest {
@@ -19,13 +21,20 @@ public class PropertyClassGeneratorTest {
 
   @Test
   public void testSimplePropertySet() throws Exception {
-    FileSet properties = new FileSet();
-    properties.setDirectory(getClass().getResource("/").getPath());
-    properties.addInclude("**/*.properties");
 
-    LocalizationSuite suite = new LocalizationSuite(properties, null);
+    FileLocations locations = new FileLocations();
 
-    PropertyClassGenerator generator =  new PropertyClassGenerator(suite);
+    List<File> sourcePath = new ArrayList<File>();
+    sourcePath.add(new File(getClass().getResource("/").toURI()));
+    locations.setSourcePath(sourcePath);
+
+    locations.addSourceFile("testPackage/subPackage/Properties.properties");
+    locations.addSourceFile("testPackage/PropertiesTest.properties");
+    locations.addSourceFile("testPackage/PropertiesTest_de.properties");
+    locations.addSourceFile("testPackage/PropertiesTest_es_ES.properties");
+    locations.addSourceFile("testPackage/PropertiesTest_it_VA_WIN.properties");
+
+    PropertyClassGenerator generator =  new PropertyClassGenerator(locations);
 
     StringWriter writer  = new StringWriter();
 
@@ -34,6 +43,7 @@ public class PropertyClassGeneratorTest {
     p.setProperty("key", "Die Platte \"{1}\" enthält {0}.");
     p.setProperty("key2", "Die Platte \"{1}\" enthält {0}.");
     PropertiesClass pc = new PropertiesClass(rbc, Locale.ENGLISH,p, null);
+
     generator.generatePropertiesClass(pc, writer);
     assertEquals(("package testPackage {\n" +
         "\n" +

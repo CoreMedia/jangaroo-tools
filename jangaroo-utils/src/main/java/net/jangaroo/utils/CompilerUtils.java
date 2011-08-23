@@ -9,7 +9,8 @@ import java.io.IOException;
  */
 public final class CompilerUtils {
   // utility class, do not instantiate
-  private CompilerUtils() {}
+  private CompilerUtils() {
+  }
 
   public static String qName(String packageName, String className) {
     return packageName.length() == 0 ? className : packageName + "." + className;
@@ -43,7 +44,7 @@ public final class CompilerUtils {
       String canonicalBasePath = baseDirectory.getCanonicalPath() + File.separator;
       String canonicalPath = file.getCanonicalPath();
       if (canonicalPath.length() > canonicalBasePath.length() &&
-        canonicalPath.startsWith(canonicalBasePath)) {
+              canonicalPath.startsWith(canonicalBasePath)) {
         String relativePath = canonicalPath.substring(canonicalBasePath.length());
         int lastDotPos = relativePath.lastIndexOf('.');
         if (lastDotPos != -1 && lastDotPos > relativePath.lastIndexOf(File.separatorChar)) {
@@ -52,7 +53,70 @@ public final class CompilerUtils {
       }
       return null;
     } catch (IOException e) {
-      throw new IllegalArgumentException("could not determine qualified name from file; the strange file is called " + file + " in " + baseDirectory ,e);
+      throw new IllegalArgumentException("could not determine qualified name from file; the strange file is called " + file + " in " + baseDirectory, e);
     }
+  }
+
+  /**
+   * Returns the directory path portion of a file specification string.
+   * Matches the equally named unix command.
+   *
+   * @param filename the file path
+   * @return The directory portion excluding the ending file separator.
+   */
+  public static String dirname(String filename) {
+    int i = filename.lastIndexOf(File.separator);
+    return (i >= 0 ? filename.substring(0, i) : "");
+  }
+
+  /**
+   * Remove extension from filename.
+   * ie
+   * <pre>
+   * foo.txt --> foo
+   * a\b\c.jpg --> a\b\c
+   * a\b\c --> a\b\c
+   * </pre>
+   *
+   * @param filename the path of the file
+   * @return the filename minus extension
+   */
+  public static String removeExtension(final String filename) {
+    String ext = extension(filename);
+
+    if ("".equals(ext)) {
+      return filename;
+    }
+
+    final int index = filename.lastIndexOf(ext) - 1;
+    return filename.substring(0, index);
+  }
+
+  /**
+   * Returns the extension portion of a file specification string.
+   * This everything after the last dot '.' in the filename (NOT including
+   * the dot).
+   *
+   * @param filename the file path
+   * @return the extension of the file
+   */
+  public static String extension(String filename) {
+    // Ensure the last dot is after the last file separator
+    int lastSep = filename.lastIndexOf(File.separatorChar);
+    int lastDot;
+    if (lastSep < 0) {
+      lastDot = filename.lastIndexOf('.');
+    } else {
+      lastDot = filename.substring(lastSep + 1).lastIndexOf('.');
+      if (lastDot >= 0) {
+        lastDot += lastSep + 1;
+      }
+    }
+
+    if (lastDot >= 0 && lastDot > lastSep) {
+      return filename.substring(lastDot + 1);
+    }
+
+    return "";
   }
 }

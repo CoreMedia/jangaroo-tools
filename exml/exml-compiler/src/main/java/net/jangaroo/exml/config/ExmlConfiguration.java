@@ -1,6 +1,6 @@
 package net.jangaroo.exml.config;
 
-import net.jangaroo.jooc.config.FileLocations;
+import net.jangaroo.utils.FileLocations;
 import org.kohsuke.args4j.Option;
 
 import java.io.File;

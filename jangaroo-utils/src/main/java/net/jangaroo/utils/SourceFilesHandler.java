@@ -1,4 +1,4 @@
-package net.jangaroo.jooc.config;
+package net.jangaroo.utils;
 
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;

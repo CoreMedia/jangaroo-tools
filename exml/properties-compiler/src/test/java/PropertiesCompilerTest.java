@@ -3,29 +3,43 @@
  */
 
 import net.jangaroo.properties.compiler.PropertiesCompiler;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
-public class PropertiesTest {
-
-   public static File computeTestDataRoot(Class anyTestClass) {
-    final String clsUri = anyTestClass.getName().replace('.','/') + ".class";
-    final URL url = anyTestClass.getClassLoader().getResource(clsUri);
-    final String clsPath = url.getPath();
-    final File root = new File(clsPath.substring(0, clsPath.length() - clsUri.length()));
-    final File result = new File(root.getParentFile(), "test-data");
-    result.mkdir();
-    return result;
-  }
+public class PropertiesCompilerTest {
+  
+  @Rule
+  public TemporaryFolder outputFolder = new TemporaryFolder();
   
   @Test
   public void testMain() throws Exception {
-    File out = computeTestDataRoot(getClass());
     File root = new File(getClass().getResource("/").toURI());
-    PropertiesCompiler.main(new String[]{root.getAbsolutePath(), out.getAbsolutePath()});
+    File out = outputFolder.getRoot();
+
+    List<String> args = new ArrayList<String>();
+    args.add("-d");
+    args.add(outputFolder.getRoot().getAbsolutePath());
+    args.add("-sourcepath");
+    args.add(root.getAbsolutePath());
+    args.add(getFile("/testPackage/subPackage/Proberties.properties").getAbsolutePath());
+    args.add(getFile("/testPackage/PropertiesTest.properties").getAbsolutePath());
+    args.add(getFile("/testPackage/PropertiesTest_de.properties").getAbsolutePath());
+    args.add(getFile("/testPackage/PropertiesTest_es_ES.properties").getAbsolutePath());
+    args.add(getFile("/testPackage/PropertiesTest_it_VA_WIN.properties").getAbsolutePath());
+
+
+    PropertiesCompiler.main(args.toArray(new String[args.size()]));
 
     File defaultProp = new File(out,"testPackage/PropertiesTest_properties.as");
     assertTrue(defaultProp.exists());
@@ -48,5 +62,9 @@ public class PropertiesTest {
     File subPackageProp = new File(out, "testPackage/subPackage/Proberties_properties.as");
     assertTrue(subPackageProp.exists());
     assertTrue(subPackageProp.length() > 100);
+  }
+
+  private File getFile(String path) throws URISyntaxException {
+    return new File(getClass().getResource(path).toURI());
   }
 }
