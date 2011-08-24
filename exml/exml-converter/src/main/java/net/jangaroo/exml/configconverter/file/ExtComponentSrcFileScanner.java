@@ -8,8 +8,9 @@ import net.jangaroo.exml.configconverter.model.DescriptionHolder;
 import net.jangaroo.exml.configconverter.util.FileScanner;
 import net.jangaroo.exml.configconverter.util.Rule;
 import net.jangaroo.exml.configconverter.util.TidyComment;
-import net.jangaroo.utils.log.Log;
 import org.codehaus.plexus.util.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,6 +20,8 @@ import java.util.List;
  * A FileScanner to read Ext JS component classes (JavaScript or ActionScript) into a {@link net.jangaroo.exml.configconverter.model.ComponentSuite}.
  */
 public final class ExtComponentSrcFileScanner {
+
+  private static final Logger log = LoggerFactory.getLogger(ExtComponentSrcFileScanner.class);
 
   private ExtComponentSrcFileScanner() {
     //hide the constructor  
@@ -82,106 +85,106 @@ public final class ExtComponentSrcFileScanner {
   };
 
   private final static FileScanner<State> EXT_COMPONENT_AS_FILE_SCANNER = new FileScanner<State>()
-      .add(new Rule<State>("^\\s*package\\s+([\\p{Alnum}$_.]+)") {
-        public void matched(State state, List<String> groups) {
-          if (!state.insideComment) {
-            state.cc.setFullClassName(groups.get(0) + "." + state.cc.getClassName());
-            // Next comment following the package declaration is the class comment:
-            state.setDescriptionHolder(state.cc);
-          }
-        }
-      })
-      .add(new Rule<State>("^\\s*import\\s+([\\p{Alnum}$_.]+);") {
-        public void matched(State state, List<String> groups) {
-          if (!state.insideComment) {
-            state.addImport(groups.get(0));
-          }
-        }
-      })
-      .add(new Rule<State>("\\bextends\\s+([\\p{Alnum}$_.]+)") {
-        public void matched(State state, List<String> groups) {
-          if (!state.insideComment) {
-            state.setExtends(groups.get(0));
-          }
-        }
-      })
-      .add(new Rule<State>("(?:public\\s+static|static\\s+public)\\s+const\\s+[apx]type\\s*:\\s*String\\s*=\\s*['\"]([^'\"]+)['\"]") {
-        public void matched(State state, List<String> groups) {
-          if (!state.insideComment) {
-            state.setXtype(groups.get(0), state.cc.getFullClassName());
-          }
-        }
-      })
-      .add(CFG_RULE)
-      .add(COMMENT_END_RULE)
-      .add(new Rule<State>("\\s@[a-z]") {
-        public void matched(State state, List<String> groups) {
-          if (state.isInConfig()) {
-            // stop config comment when encountering an @-tag
-            state.setDescriptionHolder(null);
-          }
-        }
-      })
-      .add(new Rule<State>("^?\\s*/\\*\\*?(.*)$") {
-        public void matched(State state, List<String> groups) {
-          if (!state.insideComment) {
-            state.startComment(groups.get(0));
-          }
-        }
-      })
-      .add(COMMENT_RULE);
+          .add(new Rule<State>("^\\s*package\\s+([\\p{Alnum}$_.]+)") {
+            public void matched(State state, List<String> groups) {
+              if (!state.insideComment) {
+                state.cc.setFullClassName(groups.get(0) + "." + state.cc.getClassName());
+                // Next comment following the package declaration is the class comment:
+                state.setDescriptionHolder(state.cc);
+              }
+            }
+          })
+          .add(new Rule<State>("^\\s*import\\s+([\\p{Alnum}$_.]+);") {
+            public void matched(State state, List<String> groups) {
+              if (!state.insideComment) {
+                state.addImport(groups.get(0));
+              }
+            }
+          })
+          .add(new Rule<State>("\\bextends\\s+([\\p{Alnum}$_.]+)") {
+            public void matched(State state, List<String> groups) {
+              if (!state.insideComment) {
+                state.setExtends(groups.get(0));
+              }
+            }
+          })
+          .add(new Rule<State>("(?:public\\s+static|static\\s+public)\\s+const\\s+[apx]type\\s*:\\s*String\\s*=\\s*['\"]([^'\"]+)['\"]") {
+            public void matched(State state, List<String> groups) {
+              if (!state.insideComment) {
+                state.setXtype(groups.get(0), state.cc.getFullClassName());
+              }
+            }
+          })
+          .add(CFG_RULE)
+          .add(COMMENT_END_RULE)
+          .add(new Rule<State>("\\s@[a-z]") {
+            public void matched(State state, List<String> groups) {
+              if (state.isInConfig()) {
+                // stop config comment when encountering an @-tag
+                state.setDescriptionHolder(null);
+              }
+            }
+          })
+          .add(new Rule<State>("^?\\s*/\\*\\*?(.*)$") {
+            public void matched(State state, List<String> groups) {
+              if (!state.insideComment) {
+                state.startComment(groups.get(0));
+              }
+            }
+          })
+          .add(COMMENT_RULE);
 
   private final static FileScanner<State> EXT_COMPONENT_SRC_FILE_SCANNER = new FileScanner<State>()
-      .add(new Rule<State>("@class\\s+([\\p{Alnum}$_.]+)") {
-        public void matched(State state, List<String> groups) {
-          if (state.insideComment) {
-            state.addClass(groups.get(0));
-          }
-        }
-      })
-      .add(new Rule<State>("@extends\\s+([\\p{Alnum}$_.]+)") {
-        public void matched(State state, List<String> groups) {
-          if (state.insideComment) {
-            state.setExtends(groups.get(0));
-          }
-        }
-      })
-      .add(new Rule<State>("@constructor") {
-        public void matched(State state, List<String> groups) {
-          if (state.insideComment) {
-            state.setDescriptionHolder(null); // assign collected description to class
-          }
-        }
-      })
-      .add(new Rule<State>("\\bExt\\.reg\\('([\\p{Alnum}$_.]+)',\\s*([\\p{Alnum}$_.]+)\\);") {
-        public void matched(State state, List<String> groups) {
-          if (!state.insideComment) {
-            // old-style xtype registration, still used e.g. in Ext.Component.js:
-            state.setXtype(groups.get(0), groups.get(1));
-          }
-        }
-      })
-      .add(new Rule<State>("\\bExt\\.Container\\.LAYOUTS\\['([\\p{Alnum}$_.]+)'\\]\\s*=\\s*([\\p{Alnum}$_.]+);") {
-        public void matched(State state, List<String> groups) {
-          if (!state.insideComment) {
-            // layout type registration using LAYOUTS['type']:
-            state.setXtype(groups.get(0) + "layout", groups.get(1));
-          }
-        }
-      })
-      .add(new Rule<State>("\\bExt\\.Container\\.LAYOUTS\\.([\\p{Alnum}$_.]+)\\s*=\\s*([\\p{Alnum}$_.]+);") {
-        public void matched(State state, List<String> groups) {
-          if (!state.insideComment) {
-            // layout type registration using LAYOUTS.type:
-            state.setXtype(groups.get(0) + "layout", groups.get(1));
-          }
-        }
-      })
-      .add(TYPE_RULE)
-      .add(CFG_RULE)
-      .add(COMMENT_END_RULE)
-      .add(COMMENT_START_RULE)
-      .add(COMMENT_RULE);
+          .add(new Rule<State>("@class\\s+([\\p{Alnum}$_.]+)") {
+            public void matched(State state, List<String> groups) {
+              if (state.insideComment) {
+                state.addClass(groups.get(0));
+              }
+            }
+          })
+          .add(new Rule<State>("@extends\\s+([\\p{Alnum}$_.]+)") {
+            public void matched(State state, List<String> groups) {
+              if (state.insideComment) {
+                state.setExtends(groups.get(0));
+              }
+            }
+          })
+          .add(new Rule<State>("@constructor") {
+            public void matched(State state, List<String> groups) {
+              if (state.insideComment) {
+                state.setDescriptionHolder(null); // assign collected description to class
+              }
+            }
+          })
+          .add(new Rule<State>("\\bExt\\.reg\\('([\\p{Alnum}$_.]+)',\\s*([\\p{Alnum}$_.]+)\\);") {
+            public void matched(State state, List<String> groups) {
+              if (!state.insideComment) {
+                // old-style xtype registration, still used e.g. in Ext.Component.js:
+                state.setXtype(groups.get(0), groups.get(1));
+              }
+            }
+          })
+          .add(new Rule<State>("\\bExt\\.Container\\.LAYOUTS\\['([\\p{Alnum}$_.]+)'\\]\\s*=\\s*([\\p{Alnum}$_.]+);") {
+            public void matched(State state, List<String> groups) {
+              if (!state.insideComment) {
+                // layout type registration using LAYOUTS['type']:
+                state.setXtype(groups.get(0) + "layout", groups.get(1));
+              }
+            }
+          })
+          .add(new Rule<State>("\\bExt\\.Container\\.LAYOUTS\\.([\\p{Alnum}$_.]+)\\s*=\\s*([\\p{Alnum}$_.]+);") {
+            public void matched(State state, List<String> groups) {
+              if (!state.insideComment) {
+                // layout type registration using LAYOUTS.type:
+                state.setXtype(groups.get(0) + "layout", groups.get(1));
+              }
+            }
+          })
+          .add(TYPE_RULE)
+          .add(CFG_RULE)
+          .add(COMMENT_END_RULE)
+          .add(COMMENT_START_RULE)
+          .add(COMMENT_RULE);
 
   private static class State {
 
@@ -258,7 +261,7 @@ public final class ExtComponentSrcFileScanner {
     void validateComponentClass(ComponentClass cc) {
       if (cc != null) {
         if (cc.getImports().isEmpty()) {
-          Log.w("No imports in Compontent class");
+          log.warn("No imports in Compontent class");
         }
       }
     }
@@ -271,8 +274,8 @@ public final class ExtComponentSrcFileScanner {
     private String jsType2asType(String jsType) {
       int lastDotPos = jsType.lastIndexOf('.');
       return lastDotPos == -1
-          ? jsType
-          : jsType.substring(0, lastDotPos).toLowerCase() + jsType.substring(lastDotPos);
+              ? jsType
+              : jsType.substring(0, lastDotPos).toLowerCase() + jsType.substring(lastDotPos);
     }
 
     private void addIfHasXtype(ComponentClass cc) {
@@ -280,7 +283,7 @@ public final class ExtComponentSrcFileScanner {
         if (cc.getXtype() != null) {
           validateComponentClass(cc);
           componentSuite.addComponentClass(cc);
-        } 
+        }
       }
     }
 

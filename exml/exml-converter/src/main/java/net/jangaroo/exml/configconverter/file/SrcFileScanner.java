@@ -2,10 +2,11 @@ package net.jangaroo.exml.configconverter.file;
 
 import net.jangaroo.exml.configconverter.model.ComponentSuite;
 import net.jangaroo.exml.configconverter.model.ComponentType;
-import net.jangaroo.utils.log.Log;
 import org.apache.maven.shared.model.fileset.FileSet;
 import org.apache.maven.shared.model.fileset.util.FileSetManager;
 import org.codehaus.plexus.util.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,6 +16,7 @@ import java.io.IOException;
  * {@link net.jangaroo.exml.configconverter.model.ComponentSuite} from all Ext JS component classes.
  */
 public final class SrcFileScanner {
+  private static final Logger log = LoggerFactory.getLogger(SrcFileScanner.class);
 
   private ComponentSuite componentSuite;
 
@@ -30,7 +32,7 @@ public final class SrcFileScanner {
     scan(componentSuite.getRootDir());
 
     //resolving all super classes
-   componentSuite.resolveSuperClasses();
+    componentSuite.resolveSuperClasses();
   }
 
   private void scan(final File dir) throws IOException {
@@ -42,8 +44,7 @@ public final class SrcFileScanner {
     srcFiles.addInclude("**/*." + ComponentType.EXML.getExtension());
     for (String srcFileRelativePath : new FileSetManager().getIncludedFiles(srcFiles)) {
       File srcFile = new File(dir, srcFileRelativePath);
-      Log.setCurrentFile(srcFile);
-      
+
       ComponentType type = ComponentType.from(FileUtils.extension(srcFile.getName()));
 
       if (ComponentType.EXML.equals(type)) {

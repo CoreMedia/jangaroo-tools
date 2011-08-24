@@ -1,7 +1,8 @@
 package net.jangaroo.exml.configconverter.model;
 
 import net.jangaroo.exml.configconverter.ComponentSuiteRegistry;
-import net.jangaroo.utils.log.Log;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -18,6 +19,8 @@ import java.util.Map;
  * An XML schema can be defined that contains element definition for all component classes.
  */
 public final class ComponentSuite {
+
+  private static final Logger log = LoggerFactory.getLogger(ComponentSuite.class);
 
   private String ns;
   private String namespace;
@@ -153,7 +156,7 @@ public final class ComponentSuite {
       return;
     }
     ComponentSuite importedComponentSuite = componentClass.getSuite();
-    if (importedComponentSuite!=this && !usedComponentSuites.containsValue(importedComponentSuite)) {
+    if (importedComponentSuite != this && !usedComponentSuites.containsValue(importedComponentSuite)) {
       String suiteNs = importedComponentSuite.getNs();
       if (suiteNs == null || suiteNs.length() == 0 || usedComponentSuites.containsKey(suiteNs)) {
         // create a new unique prefix:
@@ -170,13 +173,13 @@ public final class ComponentSuite {
   public void resolveSuperClasses() {
     for (ComponentClass cc : getComponentClasses()) {
       if (cc.getSuperClass() == null && cc.getSuperClassName() != null) {
-        Log.w("Super component class '" + cc.getSuperClassName() + "' of class '" + cc.getFullClassName() + "' not found.");
-      } else if (cc.getSuperClassName() == null && cc.getSuperClassNamespaceUri() != null && cc.getSuperClassLocalName() != null)  {
+        log.warn("Super component class '" + cc.getSuperClassName() + "' of class '" + cc.getFullClassName() + "' not found.");
+      } else if (cc.getSuperClassName() == null && cc.getSuperClassNamespaceUri() != null && cc.getSuperClassLocalName() != null) {
         ComponentClass supercl = this.getComponentClassByNamespaceAndLocalName(cc.getSuperClassNamespaceUri(), cc.getSuperClassLocalName());
-        if(supercl != null) {
+        if (supercl != null) {
           cc.setSuperClassName(supercl.getFullClassName());
         } else {
-          Log.e(String.format("Super component class with element name '%s' not found in component suite '%s'", cc.getSuperClassLocalName(), cc.getSuperClassNamespaceUri()));
+          log.error(String.format("Super component class with element name '%s' not found in component suite '%s'", cc.getSuperClassLocalName(), cc.getSuperClassNamespaceUri()));
         }
       }
     }
@@ -186,8 +189,8 @@ public final class ComponentSuite {
   public String toString() {
     StringBuilder builder = new StringBuilder();
     builder
-        .append("namespace: ").append(namespace).append("\n")
-        .append("src root:  ").append(rootDir).append("\n\n");
+            .append("namespace: ").append(namespace).append("\n")
+            .append("src root:  ").append(rootDir).append("\n\n");
     for (ComponentClass cc : getComponentClasses()) {
       builder.append(cc).append("\n\n");
       //builder.append(cc.getXtype()).append(": ").append(cc.getClassName()).append("\n");

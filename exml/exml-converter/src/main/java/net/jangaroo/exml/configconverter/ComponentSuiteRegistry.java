@@ -2,7 +2,8 @@ package net.jangaroo.exml.configconverter;
 
 import net.jangaroo.exml.configconverter.model.ComponentClass;
 import net.jangaroo.exml.configconverter.model.ComponentSuite;
-import net.jangaroo.utils.log.Log;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -14,6 +15,8 @@ import java.util.Map;
  */
 public final class ComponentSuiteRegistry {
 
+  private static final Logger log = LoggerFactory.getLogger(ComponentSuiteRegistry.class);
+
   private final Map<String, ComponentSuite> componentSuitesByNamespaceUri = new LinkedHashMap<String, ComponentSuite>(10);
 
   public void add(ComponentSuite componentSuite) {
@@ -24,7 +27,7 @@ public final class ComponentSuiteRegistry {
   public ComponentSuite getComponentSuite(String namespaceUri) {
     ComponentSuite componentSuite = componentSuitesByNamespaceUri.get(namespaceUri);
     if (componentSuite == null) {
-      Log.i("Component suite for namespace URI "+namespaceUri+" not found in registry.");
+      log.info("Component suite for namespace URI "+namespaceUri+" not found in registry.");
     }
     return componentSuite;
   }

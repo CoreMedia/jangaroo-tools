@@ -8,8 +8,9 @@ import freemarker.template.TemplateException;
 import net.jangaroo.exml.configconverter.model.ComponentClass;
 import net.jangaroo.exml.configconverter.model.ComponentSuite;
 import net.jangaroo.exml.configconverter.model.ComponentType;
-import net.jangaroo.utils.log.Log;
 import org.codehaus.plexus.util.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -22,6 +23,9 @@ import java.util.Locale;
  * Generates new style config classes out of old style annotated AS components.
  */
 public final class ConfigClassGenerator {
+
+  private static final Logger log = LoggerFactory.getLogger(ConfigClassGenerator.class);
+
 
   private final static String outputCharset = "UTF-8";
 
@@ -39,7 +43,7 @@ public final class ConfigClassGenerator {
       Template template = cfg.getTemplate("/net/jangaroo/exml/templates/config_class.ftl");
       String type = computeType(jooClass);
       ConfigClassModel configClassModel = new ConfigClassModel(jooClass, componentSuite, configClassName, type);
-      Log.i("Generate config class '" + configClassModel.getComponentSuite().getConfigClassPackage()+"."+ configClassModel.getClassName() + "' for component class '" + jooClass.getFullClassName()+"'");
+      log.info("Generate config class '" + configClassModel.getComponentSuite().getConfigClassPackage() + "." + configClassModel.getClassName() + "' for component class '" + jooClass.getFullClassName() + "'");
       Environment env = template.createProcessingEnvironment(configClassModel, output);
       env.setOutputEncoding(outputCharset);
       env.process();
@@ -70,18 +74,18 @@ public final class ConfigClassGenerator {
     boolean isValid = true;
 
     if (StringUtils.isEmpty(jooClass.getXtype())) {
-      Log.e(String.format("Xtype of component '%s' is undefined!", jooClass.getFullClassName()));
+      log.error(String.format("Xtype of component '%s' is undefined!", jooClass.getFullClassName()));
       isValid = false;
     }
 
     if (StringUtils.isEmpty(jooClass.getClassName())) {
-      Log.e(String.format("Class name of component '%s' is undefined!", jooClass.getFullClassName()));
+      log.error(String.format("Class name of component '%s' is undefined!", jooClass.getFullClassName()));
       isValid = false;
     }
 
     for (String importStr : jooClass.getImports()) {
       if (StringUtils.isEmpty(importStr)) {
-        Log.e(String.format("An empty import found. Something is wrong in your class %s", jooClass.getFullClassName()));
+        log.error(String.format("An empty import found. Something is wrong in your class %s", jooClass.getFullClassName()));
         isValid = false;
       }
     }
@@ -100,9 +104,9 @@ public final class ConfigClassGenerator {
     String configClassName = StringUtils.uncapitalise(componentClass.getLastXtypeComponent());
     File outputFile = new File(configClassDir, configClassName + ".as");
 
-    if(!outputFile.getParentFile().exists()) {
+    if (!outputFile.getParentFile().exists()) {
       if (outputFile.getParentFile().mkdirs()) {
-        Log.d("Folder '"+outputFile.getParentFile().getAbsolutePath() + "' created.");
+        log.debug("Folder '" + outputFile.getParentFile().getAbsolutePath() + "' created.");
       }
     }
 
@@ -111,9 +115,9 @@ public final class ConfigClassGenerator {
       writer = new OutputStreamWriter(new FileOutputStream(outputFile), outputCharset);
       generateJangarooClass(componentClass, configClassName, writer);
     } catch (IOException e) {
-      Log.e("Exception while creating class", e);
+      log.error("Exception while creating class", e);
     } catch (TemplateException e) {
-      Log.e("Exception while creating class", e);
+      log.error("Exception while creating class", e);
     } finally {
       try {
         if (writer != null) {

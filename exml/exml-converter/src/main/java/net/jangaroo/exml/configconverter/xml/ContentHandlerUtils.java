@@ -4,7 +4,8 @@
 package net.jangaroo.exml.configconverter.xml;
 
 import net.jangaroo.exml.configconverter.model.ComponentClass;
-import net.jangaroo.utils.log.Log;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -18,12 +19,13 @@ import java.io.IOException;
 
 public final class ContentHandlerUtils {
 
+  private static final Logger log = LoggerFactory.getLogger(ContentHandlerUtils.class);
+
   private ContentHandlerUtils() {
     
   }
   public static boolean parseExmlWithHandler(ComponentClass cc, ContentHandler handler) {
     FileInputStream inputStream = null;
-    Log.setCurrentFile(cc.getSrcFile());
     try {
       XMLReader xr = XMLReaderFactory.createXMLReader();
       xr.setContentHandler(handler);
@@ -31,13 +33,13 @@ public final class ContentHandlerUtils {
       xr.parse(new InputSource(inputStream));
       return true;
     } catch (FileNotFoundException e) {
-      Log.e("Exception while parsing", e);
+      log.error("Exception while parsing", e);
     } catch (IOException e) {
-      Log.e("Exception while parsing", e);
+      log.error("Exception while parsing", e);
     } catch (SAXParseException e) {
-      Log.e(e.getMessage(), e.getLineNumber(), e.getColumnNumber());
+      log.error(e.getMessage(), e.getLineNumber(), e.getColumnNumber());
     } catch (SAXException e) {
-      Log.e("Exception while parsing", e);
+      log.error("Exception while parsing", e);
     } finally {
       try {
         if (inputStream != null) {

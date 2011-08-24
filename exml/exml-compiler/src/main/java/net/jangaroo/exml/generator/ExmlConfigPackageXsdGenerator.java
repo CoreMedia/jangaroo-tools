@@ -36,7 +36,7 @@ public class ExmlConfigPackageXsdGenerator {
       targetPackageFolder.mkdirs(); // NOSONAR
     }
 
-    File result = new File(targetPackageFolder, config.getConfigClassPackage().replace('.','_') + ".xsd");
+    File result = new File(targetPackageFolder, config.getConfigClassPackage() + ".xsd");
 
     Writer writer = null;
     try {

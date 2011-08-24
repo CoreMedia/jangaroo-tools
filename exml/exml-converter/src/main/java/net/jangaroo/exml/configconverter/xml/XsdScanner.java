@@ -7,7 +7,8 @@ import net.jangaroo.exml.configconverter.ComponentSuiteRegistry;
 import net.jangaroo.exml.configconverter.model.ComponentClass;
 import net.jangaroo.exml.configconverter.model.ComponentSuite;
 import net.jangaroo.exml.configconverter.model.ConfigAttribute;
-import net.jangaroo.utils.log.Log;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
@@ -20,6 +21,7 @@ import java.util.Stack;
 public class XsdScanner {
 
   private static final String XML_SCHEMA_URL = "http://www.w3.org/2001/XMLSchema";
+  private static final Logger log = LoggerFactory.getLogger(XsdScanner.class);
 
   private ComponentSuite componentSuite;
   private XMLStreamReader parser = null;
@@ -138,14 +140,14 @@ public class XsdScanner {
         }
       }
     } catch (XMLStreamException e) {
-      Log.e("Error while parsing XSD", e);
+      log.error("Error while parsing XSD", e);
     } finally {
       try {
         if (parser != null) {
           parser.close();
         }
       } catch (XMLStreamException e) {
-        Log.e("Error while parsing XSD", e);
+        log.error("Error while parsing XSD", e);
       }
     }
     return componentSuite;
