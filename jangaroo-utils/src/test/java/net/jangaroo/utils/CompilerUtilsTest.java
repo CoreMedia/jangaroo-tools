@@ -50,7 +50,8 @@ public class CompilerUtilsTest {
 
   @Test
   public void testDirname() {
-    Assert.assertEquals("this/is/my",CompilerUtils.dirname("this/is/my/file.bla"));
+    Assert.assertEquals(new File("this/is/my").getPath(),
+      CompilerUtils.dirname(new File("this/is/my/file.bla").getPath()));
   }
 
   @Test

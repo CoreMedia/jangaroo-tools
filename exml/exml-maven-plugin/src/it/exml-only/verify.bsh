@@ -34,7 +34,7 @@ try
         return false;
     }
 
-    File xsd = new File ( target, "generated-resources"+File.separator+"testPackage_config.xsd" );
+    File xsd = new File ( target, "generated-resources"+File.separator+"testPackage.config.xsd" );
     if ( !xsd.exists() || !xsd.isFile() )
     {
         System.err.println( xsd.getName() + " output file is missing or not a file." );
