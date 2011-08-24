@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.util.Properties;
 
 import static org.kohsuke.args4j.ExampleMode.REQUIRED;
@@ -39,8 +40,8 @@ public class ExmlConverter {
   @Option(name = "-p",
           aliases = {"-mapping"},
           usage = "properties file with mapping of maven module name to config class package. " +
-          "Every dependency that provides some Exml components should be added to this file. " +
-          "Example: ext3=ext.config",
+                  "Every dependency that provides some Exml components should be added to this file. " +
+                  "Example: ext3=ext.config",
           metaVar = "MAPPING_FILE",
           required = true)
   private File mappingPropertiesFile;
@@ -54,7 +55,7 @@ public class ExmlConverter {
           metaVar = "OUTPUT_DIRECTORY")
   private File outputDir;
 
-  @Option(name="-t", aliases = "-test-output", metaVar = "TEST_OUTPUT_DIR", usage = "the Jangaroo test output directory. " +
+  @Option(name = "-t", aliases = "-test-output", metaVar = "TEST_OUTPUT_DIR", usage = "the Jangaroo test output directory. " +
           "This is typically <module-root>/target/jangaroo-output-test or <module-root>/target/test-classes which will also " +
           "be used if not specified. You have to provide this parameter if you have changed the value of <testOutputDirectory>target/jangaroo-output-test</testOutputDirectory> " +
           "in your module pom.xml.")
@@ -69,12 +70,9 @@ public class ExmlConverter {
     new ExmlConverter().run(args);
   }
 
-  private void error(String error) {
-    log.error(error);
-  }
-
   void run(String[] args) throws IOException {
     CmdLineParser parser = new CmdLineParser(this);
+    parser.setUsageWidth(80);
     try {
       // parse the arguments.
       parser.parseArgument(args);
@@ -88,16 +86,16 @@ public class ExmlConverter {
     }
 
     if (!moduleRoot.exists()) {
-      error("The maven module root directory '" + moduleRoot.getAbsolutePath() + "' does not exist.");
-      error("Please specify an existing path.");
+      log.error("The maven module root directory %s does not exist.", moduleRoot.getAbsolutePath());
+      log.error("Please specify an existing path.");
       exit(-2);
     }
 
     String moduleName = moduleRoot.getName();
 
     if (!mappingPropertiesFile.exists()) {
-      error("The mapping file '" + args[1] + "' does not exist.");
-      error("Please specify an existing path.");
+      log.error("Mapping file %s does not exist.", mappingPropertiesFile.getAbsolutePath());
+      log.error("Please specify an existing path.");
       exit(-2);
     }
 
@@ -109,39 +107,39 @@ public class ExmlConverter {
       mappings.load(stream);
       mappings.put("ext3", "ext.config");
     } finally {
-      if(stream != null) {
+      if (stream != null) {
         stream.close();
       }
     }
 
     String configClassPackage = getConfigPackageName(moduleName, mappings);
-    
+
     File moduleSourceRoot = new File(moduleRoot, sourcePath);
     if (!moduleSourceRoot.exists()) {
-      error("Source folder '" + moduleSourceRoot.getAbsolutePath() + "' does not exist.");
-      error("Is this really a Maven module?");
+      log.error("Source folder %s does not exist.", moduleSourceRoot.getAbsolutePath());
+      log.error("Is this really a Maven module?");
       exit(-2);
     }
 
     if (outputDir == null) {
       outputDir = moduleSourceRoot;
     }
-    if(moduleJangarooTestOutputDir == null ){
+    if (moduleJangarooTestOutputDir == null) {
       moduleJangarooTestOutputDir = new File(moduleRoot, "target" + File.separator + "jangaroo-output-test" + File.separator);
       if (!moduleJangarooTestOutputDir.exists()) {
         //try the default maven testoutput
         moduleJangarooTestOutputDir = new File(moduleRoot, "target" + File.separator + "test-classes" + File.separator);
         if (!moduleJangarooTestOutputDir.exists()) {
-          error("JANGAROO_TEST_OUTPUT_DIR '" + moduleJangarooTestOutputDir.getAbsolutePath() + "' does not exist.");
-          error("Is this really a Maven module or have you not called mvn install yet?");
+          log.error("JANGAROO_TEST_OUTPUT_DIR %s does not exist.", moduleJangarooTestOutputDir.getAbsolutePath());
+          log.error("Is this really a Maven module or have you not called mvn install yet?");
           exit(-2);
         }
       }
     }
 
     if (!moduleJangarooTestOutputDir.exists()) {
-      error("JANGAROO_TEST_OUTPUT_DIR '" + moduleJangarooTestOutputDir.getAbsolutePath() + "' does not exist.");
-      error("Is this really a Maven module or have you not called mvn install yet?");
+      log.error("JANGAROO_TEST_OUTPUT_DIR %s does not exist.", moduleJangarooTestOutputDir.getAbsolutePath());
+      log.error("Is this really a Maven module or have you not called mvn install yet?");
       exit(-2);
     }
 
@@ -157,32 +155,34 @@ public class ExmlConverter {
 
     ExmlConverterTool exmlConverter = new ExmlConverterTool(encoding, moduleSourceRoot, mappings);
     boolean ok = exmlConverter.convertAll();
-    if(!ok) {
-      error("Some files could not be processed due to errors.");
+    if (!ok) {
+      log.error("Some files could not be processed due to errors.");
       exit(-3);
     }
   }
 
   private String getConfigPackageName(String moduleName, Properties mappings) {
     String configClassPackage = mappings.getProperty(moduleName);
-    if(configClassPackage == null || configClassPackage.length() == 0) {
-      error("No config class package for module '"+moduleName+"' defined!");
-      error("Please add some package name for the module '"+moduleName+"' to the mapping file " + mappingPropertiesFile);
+    if (configClassPackage == null || configClassPackage.length() == 0) {
+      log.error("No config class package for module '" + moduleName + "' defined!");
+      log.error("Please add some package name for the module '" + moduleName + "' to the mapping file " + mappingPropertiesFile);
       exit(-2);
     }
     return configClassPackage;
   }
 
   private void printUsage(CmdLineParser parser) {
-    error("Usage: java -jar exml-converter.jar [options...]");
-    error("Exml Converter that converts Exml Maven modules to the new Exml compiler.");
-    error("Generates config classes from ExtJS components written in old style AS and converts all exml files.");
-    error("Details can be found here: https://github.com/CoreMedia/jangaroo-tools/wiki/Exml-converter");
-    error("");
+    log.error("Usage: java -jar exml-converter.jar [options...]");
+    log.error("Exml Converter that converts Exml Maven modules to the new Exml compiler.");
+    log.error("Generates config classes from ExtJS components written in old style AS and converts all exml files.");
+    log.error("Details can be found here: https://github.com/CoreMedia/jangaroo-tools/wiki/Exml-converter");
+    log.error("");
     // print the list of available options
-    parser.printUsage(System.err);
-    error("");
+    StringWriter writer = new StringWriter();
+    parser.printUsage(writer, null);
+    log.error(writer.toString());
+    log.error("");
     // print option sample. This is useful some time
-    error("  Example: java -jar exml-converter.jar" + parser.printExample(REQUIRED));
+    log.error("  Example: java -jar exml-converter.jar" + parser.printExample(REQUIRED));
   }
 }
