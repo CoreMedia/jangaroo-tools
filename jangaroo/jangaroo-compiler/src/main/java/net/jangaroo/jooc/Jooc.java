@@ -79,7 +79,7 @@ public class Jooc extends JangarooParser {
       }
       return RESULT_CODE_COMPILATION_FAILED;
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.getMessage());
       return RESULT_CODE_INTERNAL_COMPILER_ERROR;
     }
   }
@@ -181,7 +181,7 @@ public class Jooc extends JangarooParser {
     Package pkg = Package.getPackage(pkgName);
     String specTitle = pkg.getSpecificationTitle();
     if (specTitle == null) {
-      System.out.println("cannot retrieve package version information for " + pkgName);
+      System.out.println("cannot retrieve package version information for " + pkgName); // NOSONAR this is a commandline tool
       return;
     }
     String specVendor = pkg.getSpecificationVendor();
@@ -205,7 +205,7 @@ public class Jooc extends JangarooParser {
         }
       }
     } catch (CommandLineParseException e) {
-      System.out.println(e.getMessage());
+      System.out.println(e.getMessage()); // NOSONAR this is a commandline tool
       return e.getExitCode();
     }
     return RESULT_CODE_OK;

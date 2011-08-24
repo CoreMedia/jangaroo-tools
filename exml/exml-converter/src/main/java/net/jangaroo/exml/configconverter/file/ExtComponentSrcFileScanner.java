@@ -280,8 +280,7 @@ public final class ExtComponentSrcFileScanner {
         if (cc.getXtype() != null) {
           validateComponentClass(cc);
           componentSuite.addComponentClass(cc);
-        } else {
-        }
+        } 
       }
     }
 

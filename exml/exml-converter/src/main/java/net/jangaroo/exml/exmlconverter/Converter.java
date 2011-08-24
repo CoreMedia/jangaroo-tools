@@ -21,7 +21,7 @@ import java.util.Properties;
  * which are much easier to write if they don't have to deal with files.
  */
 public abstract class Converter {
-  private static Map<String,String> CLASS_TO_CLASS = readProperties("class.properties");
+  private final static Map<String,String> CLASS_TO_CLASS = readProperties("class.properties");
 
   private static HashMap<String, String> readProperties(String resourceName) {
     Properties properties = new Properties();
@@ -336,13 +336,17 @@ public abstract class Converter {
     }
     char c = (char) read;
     write(c);
-    if (c == '-') {
-      copyComment();
-    } else if (c == '[') {
-      copyCDATA();
-    } else {
-      // A DOCTYPE definition or a similarly unlikely object. Just transfer this to the output.
-      copyUntil(">", "A '<' character was not matched with a '>' character before the end of the file.");
+    switch (c) {
+      case '-':
+        copyComment();
+        break;
+      case '[':
+        copyCDATA();
+        break;
+      default:
+        // A DOCTYPE definition or a similarly unlikely object. Just transfer this to the output.
+        copyUntil(">", "A '<' character was not matched with a '>' character before the end of the file.");
+        break;
     }
   }
 

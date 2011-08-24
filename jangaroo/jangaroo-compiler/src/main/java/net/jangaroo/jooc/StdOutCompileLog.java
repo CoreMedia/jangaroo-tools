@@ -21,10 +21,10 @@ package net.jangaroo.jooc;
 public class StdOutCompileLog extends AbstractCompileLog {
   @Override
   protected void doLogError(String msg) {
-    System.out.println(msg);
+    System.out.println(msg); // NOSONAR this is a cmd line tool
   }
 
   public void warning(String msg) {
-    System.out.println(msg);
+    System.out.println(msg); // NOSONAR this is a cmd line tool
   }
 }

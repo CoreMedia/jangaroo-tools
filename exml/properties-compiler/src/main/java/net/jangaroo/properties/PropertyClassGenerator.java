@@ -12,6 +12,7 @@ import net.jangaroo.properties.model.PropertiesClass;
 import net.jangaroo.properties.model.ResourceBundleClass;
 import net.jangaroo.utils.CompilerUtils;
 import net.jangaroo.utils.FileLocations;
+import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 
 import java.io.BufferedReader;
@@ -102,7 +103,6 @@ public class PropertyClassGenerator {
       } catch (IOException e) {
         throw new PropcException(e);
       }
-      String packageName = CompilerUtils.packageName(className);
 
       Locale locale;
       if (className.indexOf('_') != -1) {
@@ -133,7 +133,9 @@ public class PropertyClassGenerator {
       try {
         r = new BufferedReader(new InputStreamReader(new FileInputStream(srcFile), "UTF-8"));
         p.load(r);
-      } catch (Exception e) {
+      } catch (IOException e) {
+        throw new PropcException("Error while parsing properties file", srcFile, e);
+      } catch (ConfigurationException e) {
         throw new PropcException("Error while parsing properties file", srcFile, e);
       } finally {
         try {

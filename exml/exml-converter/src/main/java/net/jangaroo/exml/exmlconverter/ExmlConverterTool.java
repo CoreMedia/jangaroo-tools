@@ -50,7 +50,7 @@ public class ExmlConverterTool {
       return;
     } catch (Exception e) {
       System.err.println("... failed due to internal error!"); // NOSONAR this is a commandline tool
-      e.printStackTrace();
+      e.printStackTrace(); // NOSONAR this is a commandline tool
       anyErrors = true;
       return;
     } finally {
