@@ -50,6 +50,8 @@ public final class Debug {
 
   /**
    * Method to use to assert that an array is sorted
+   * @param array the array
+   * @return true/false
    */
   public static boolean isSorted(int[] array) {
     for (int i = 1; i < array.length; i++) {
@@ -63,10 +65,13 @@ public final class Debug {
   /**
    * Method to use to assert that an array contains an object.
    * Uses ==
+   * @param array the array
+   * @param find the Object to find
+   * @return true/false
    */
   public static boolean isInArray(Object[] array, Object find) {
-    for (int i = 0; i < array.length; i++) {
-      if (array[i] == find) {
+    for (Object anArray : array) {
+      if (anArray == find) {
         return true;
       }
     }
@@ -76,10 +81,13 @@ public final class Debug {
   /**
    * Method to use to assert that an array contains a String.
    * Uses equals.
+   * @param array the array
+   * @param find the string to find
+   * @return if the array contains the string or not
    */
   public static boolean isInArray(String[] array, String find) {
-    for (int i = 0; i < array.length; i++) {
-      if (array[i].equals(find)) {
+    for (String anArray : array) {
+      if (anArray.equals(find)) {
         return true;
       }
     }
@@ -88,10 +96,13 @@ public final class Debug {
 
   /**
    * Method to use to assert that an array contains an int.
+   * @param array the array
+   * @param find the int to find in the array
+   * @return if the array contains the int or not
    */
   public static boolean isInArray(int[] array, int find) {
-    for (int i = 0; i < array.length; i++) {
-      if (array[i] == find) {
+    for (int anArray : array) {
+      if (anArray == find) {
         return true;
       }
     }
@@ -100,40 +111,45 @@ public final class Debug {
 
   /**
    * Print a String, and then finish the line.
+   * @param x the string
    */
   public static void println(String x) {
     if (enabled) {
-      System.out.println(x);
+      System.out.println(x); // NOSONAR this is a cmd line tool
     }
   }
 
   /**
    * Print an Object, and then finish the line.
+   * @param x the object
    */
   public static void println(Object x) {
     if (enabled) {
-      System.out.println(x);
+      System.out.println(x); // NOSONAR this is a cmd line tool
     }
   }
 
   /**
    * Print an Array.
+   * @param x the array
    */
   public static void printArray(Object[] x) {
     if (enabled) {
-      System.out.print(printArrayToString(x));
+      System.out.print(printArrayToString(x)); // NOSONAR this is a cmd line tool
     }
   }
 
   /**
    * Print an Object Array to a String.
+   * @param x the array
+   * @return the string
    */
   public static String printArrayToString(Object[] x) {
     if (x == null) {
       return "null";
     }
 
-    StringBuffer buffer = new StringBuffer();
+    StringBuilder buffer = new StringBuilder();
     buffer.append('{');
     for (int i = 0; i < x.length; i++) {
       if (i > 0) {
@@ -147,9 +163,11 @@ public final class Debug {
 
   /**
    * Print an int Array to a String.
+   * @param x the array
+   * @return the string
    */
   public static String printArrayToString(int[] x) {
-    StringBuffer buffer = new StringBuffer();
+    StringBuilder buffer = new StringBuilder();
     buffer.append('{');
     for (int i = 0; i < x.length; i++) {
       if (i > 0) {
@@ -163,17 +181,18 @@ public final class Debug {
 
   /**
    * Print an Array.
+   * @param x the array
    */
   public static void printArray(int[] x) {
     if (enabled) {
-      System.out.print('{');
+      System.out.print('{'); // NOSONAR this is a cmd line tool
       for (int i = 0; i < x.length; i++) {
         if (i > 0) {
           System.out.print(',');
         }
-        System.out.print(x[i]);
+        System.out.print(x[i]); // NOSONAR this is a cmd line tool
       }
-      System.out.println('}');
+      System.out.println('}'); // NOSONAR this is a cmd line tool
     }
   }
 }

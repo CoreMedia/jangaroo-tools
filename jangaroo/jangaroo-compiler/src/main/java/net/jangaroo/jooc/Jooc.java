@@ -188,9 +188,9 @@ public class Jooc extends JangarooParser {
     String specVersion = pkg.getSpecificationVersion();
     String implTitle = pkg.getImplementationTitle();
     String implVersion = pkg.getImplementationVersion();
-    System.out.println(specTitle + " version " + specVersion);
-    System.out.println(implTitle + " (build " + implVersion + ")");
-    System.out.println(specVendor);
+    System.out.println(specTitle + " version " + specVersion); // NOSONAR this is a cmd line tool
+    System.out.println(implTitle + " (build " + implVersion + ")"); // NOSONAR this is a cmd line tool
+    System.out.println(specVendor); // NOSONAR this is a cmd line tool
   }
 
   public static int run(String[] argv, CompileLog log) {

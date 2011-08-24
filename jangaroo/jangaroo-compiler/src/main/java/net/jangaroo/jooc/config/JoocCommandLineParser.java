@@ -56,9 +56,9 @@ public class JoocCommandLineParser {
       /*
       System.out.println("enableassertions=" +  enableAssertions);
       */
-      System.out.println("-genarateapi: " + config.isGenerateApi());
-      System.out.println("-g option values:");
-      System.out.println("debugMode=" + config.getDebugMode());
+      System.out.println("-genarateapi: " + config.isGenerateApi()); // NOSONAR this is a cmd line tool
+      System.out.println("-g option values:"); // NOSONAR this is a cmd line tool
+      System.out.println("debugMode=" + config.getDebugMode()); // NOSONAR this is a cmd line tool
     }
 
     return config;

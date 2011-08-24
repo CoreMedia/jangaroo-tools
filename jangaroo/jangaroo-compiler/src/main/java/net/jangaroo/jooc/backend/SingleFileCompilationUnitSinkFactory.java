@@ -70,7 +70,7 @@ public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUni
     return new CompilationUnitSink() {
       public void writeOutput(CompilationUnit compilationUnit) {
         if (verbose) {
-          System.out.println("writing file: '" + outFile.getAbsolutePath() + "'");
+          System.out.println("writing file: '" + outFile.getAbsolutePath() + "'"); // NOSONAR this is a cmd line tool
         }
 
         try {

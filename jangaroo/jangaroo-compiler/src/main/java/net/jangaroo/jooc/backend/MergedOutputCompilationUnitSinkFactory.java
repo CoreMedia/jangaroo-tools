@@ -62,7 +62,7 @@ public class MergedOutputCompilationUnitSinkFactory extends AbstractCompilationU
                                         IdeDeclaration primaryDeclaration, File sourceFile,
                                         final boolean verbose) {
     if (verbose) {
-      System.out.println("writing " + primaryDeclaration.getName() + " to file: '" + outputFile.getAbsolutePath() + "'");
+      System.out.println("writing " + primaryDeclaration.getName() + " to file: '" + outputFile.getAbsolutePath() + "'"); // NOSONAR this is a cmd line tool
     }
 
     return sink;
