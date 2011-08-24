@@ -24,7 +24,11 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 public class PropertyClassGenerator {
   private static Configuration cfg = new Configuration();
@@ -52,52 +56,50 @@ public class PropertyClassGenerator {
     env.process();
   }
 
-  public void generateJangarooClasses(ResourceBundleClass rbc) {
+  public File generateJangarooClass(PropertiesClass pl) {
 
-    for (PropertiesClass pl : rbc.getPropertiesClasses()) {
-
-      File sourceDir = null;
-      try {
-        sourceDir = locations.findSourceDir(pl.getSrcFile());
-      } catch (IOException e) {
-        throw new PropcException(e);
-      }
-
-      String rel = pl.getSrcFile().getPath().substring(sourceDir.getPath().length());
-
-      String convertedName = CompilerUtils.dirname(rel) + "/" + rbc.getClassName() + "_properties";
-
-      if (pl.getLocale() != null) {
-        convertedName += "_" + pl.getLocale();
-      }
-      convertedName += ".as";
-
-      File outputFile = new File(locations.getOutputDirectory(), convertedName);
-      outputFile.getParentFile().mkdirs(); // NOSONAR
-
-      Writer writer = null;
-      try {
-        writer = new OutputStreamWriter(new FileOutputStream(outputFile), OUTPUT_CHARSET);
-        generatePropertiesClass(pl, writer);
-      } catch (Exception e) {
-        throw new PropcException(e);
-      } finally {
-        try {
-          if (writer != null) {
-            writer.close();
-          }
-        } catch (IOException e) {
-          //
-        }
-      }
+    File sourceDir;
+    try {
+      sourceDir = locations.findSourceDir(pl.getSrcFile());
+    } catch (IOException e) {
+      throw new PropcException(e);
     }
 
+    String rel = pl.getSrcFile().getPath().substring(sourceDir.getPath().length());
+
+    String convertedName = CompilerUtils.dirname(rel) + "/" + pl.getResourceBundle().getClassName() + "_properties";
+
+    if (pl.getLocale() != null) {
+      convertedName += "_" + pl.getLocale();
+    }
+    convertedName += ".as";
+
+    File outputFile = new File(locations.getOutputDirectory(), convertedName);
+    //noinspection ResultOfMethodCallIgnored
+    outputFile.getParentFile().mkdirs(); // NOSONAR
+
+    Writer writer = null;
+    try {
+      writer = new OutputStreamWriter(new FileOutputStream(outputFile), OUTPUT_CHARSET);
+      generatePropertiesClass(pl, writer);
+    } catch (Exception e) {
+      throw new PropcException(e);
+    } finally {
+      try {
+        if (writer != null) {
+          writer.close();
+        }
+      } catch (IOException e) {
+        //
+      }
+    }
+    return outputFile;
   }
 
-  public void generate() {
+  public Map<File,Set<File>> generate() {
+    Map<File,Set<File>> outputFileMap = new LinkedHashMap<File, Set<File>>();
     for (File srcFile : locations.getSourceFiles()) {
-
-      String className = null;
+      String className;
       try {
         className = CompilerUtils.qNameFromFile(locations.findSourceDir(srcFile), srcFile);
       } catch (IOException e) {
@@ -147,8 +149,9 @@ public class PropertyClassGenerator {
         }
       }
       // Create properties class, which registers itself with the bundle.
-      new PropertiesClass(bundle, locale, p, srcFile);
-      generateJangarooClasses(bundle);
+      File outputFile = generateJangarooClass(new PropertiesClass(bundle, locale, p, srcFile));
+      outputFileMap.put(srcFile, Collections.singleton(outputFile));
     }
+    return outputFileMap;
   }
 }

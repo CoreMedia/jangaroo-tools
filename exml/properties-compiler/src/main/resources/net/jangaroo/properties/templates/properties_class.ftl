@@ -22,7 +22,6 @@ public class ${resourceBundle.className}_properties<#if locale??>_${locale} exte
  * @see ${resourceBundle.className}_properties
  */
 public static const INSTANCE:${resourceBundle.className}_properties = ResourceBundleAwareClassLoader.INSTANCE.createSingleton(${resourceBundle.className}_properties) as ${resourceBundle.className}_properties;
-</#if>
 
 <#list props as property>
 <#if property.comment??>
@@ -30,8 +29,14 @@ public static const INSTANCE:${resourceBundle.className}_properties = ResourceBu
  */
 </#if>
 [Resource(key='${property.key}',bundle='${resourceBundle.className}<#if locale??>_${locale}</#if>')]
-public const ${property.key}:String = "${property.value?js_string}";
+public native function get ${property.key}():String;
 </#list>
+</#if>
 
+public function ${resourceBundle.className}_properties<#if locale??>_${locale}</#if>() {
+<#list props as property>
+  this["${property.key}"] = "${property.value?js_string}";
+</#list>
+}
 }
 }
