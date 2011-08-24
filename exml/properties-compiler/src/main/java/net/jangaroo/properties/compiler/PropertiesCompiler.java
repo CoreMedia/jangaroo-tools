@@ -2,14 +2,11 @@ package net.jangaroo.properties.compiler;/*
  * Copyright (c) 2009, CoreMedia AG, Hamburg. All rights reserved.
  */
 
-import freemarker.template.TemplateException;
 import net.jangaroo.properties.PropertyClassGenerator;
 import net.jangaroo.utils.FileLocations;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 
-import java.io.File;
-import java.io.IOException;
 import java.io.StringWriter;
 
 import static org.kohsuke.args4j.ExampleMode.REQUIRED;
