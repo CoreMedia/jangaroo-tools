@@ -10,6 +10,7 @@ public class JsonObject implements Json {
   static final String LINE_SEPARATOR = System.getProperty("line.separator");
   private Map<String, Object> properties = new LinkedHashMap<String, Object>();
   private String wrapperClass;
+  private String wrapperClassConstructorCast;
 
   public JsonObject(Object ... namesAndValues) {
     if (namesAndValues.length % 2 != 0) {
@@ -181,6 +182,9 @@ public class JsonObject implements Json {
     StringBuilder sb = new StringBuilder();
     if (wrapperClass != null) {
       sb.append("new ").append(wrapperClass).append('(');
+      if(wrapperClassConstructorCast != null) {
+        sb.append(wrapperClassConstructorCast).append('(');
+      }
     }
     sb.append("{");
     int newindent = indent + indentFactor;
@@ -205,6 +209,9 @@ public class JsonObject implements Json {
     }
     sb.append('}');
     if (wrapperClass != null) {
+      if(wrapperClassConstructorCast != null) {
+        sb.append(')');
+      }
       sb.append(')');
     }
     return sb.toString();
@@ -233,5 +240,9 @@ public class JsonObject implements Json {
 
   public Object remove(String property) {
     return this.properties.remove(property);
+  }
+
+  public void settingWrapperClassConstructorCast(String fullName) {
+    this.wrapperClassConstructorCast = fullName;
   }
 }

@@ -1,6 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="exml:ext.config" xmlns:ec="exml:ext.config" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:exml="http://www.jangaroo.net/exml/0.8" >
   <xs:import namespace="http://www.jangaroo.net/exml/0.8"/>
+  <xs:complexType name='ext.config.action'>
+        <xs:sequence>
+        </xs:sequence>
+        <xs:attribute type='exml:Boolean' name='disabled'>
+          <xs:annotation>
+            <xs:documentation>
+              True to disable all components using this action, false to enable them (defaults to false).
+            </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+        <xs:anyAttribute namespace="exml:untyped" processContents="skip"/>
+  </xs:complexType>
+  <xs:element id='ext.config.action' name='action' type='ec:ext.config.action'>
+  </xs:element>
   <xs:complexType name='ext.config.alayout'>
         <xs:sequence>
         </xs:sequence>

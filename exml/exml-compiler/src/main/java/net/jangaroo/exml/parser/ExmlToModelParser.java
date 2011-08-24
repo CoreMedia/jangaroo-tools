@@ -251,8 +251,11 @@ public final class ExmlToModelParser {
 
         JsonObject arrayItemJsonObject = new JsonObject();
         if (configClass.getType() == null) {
-          // Everything not a component, plugin or layout must be created immediately.
-          arrayItemJsonObject.settingWrapperClass(componentClassName);
+          // Everything not a component, plugin or layout must be created immediately and its configClass
+          //should be used as cast for the constructor config
+          arrayItemJsonObject.settingWrapperClass(configClass.getComponentClassName());
+          arrayItemJsonObject.settingWrapperClassConstructorCast(configClass.getFullName());
+          model.addImport(configClass.getFullName());
           model.addImport(componentClassName);
         } else {
           if (arrayItemClassName.startsWith(EXT_CONFIG_PREFIX)) {

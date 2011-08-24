@@ -155,6 +155,89 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
   }
 
   @Test
+  public void testParseArrayAttribute() throws Exception{
+    setUp("exmlparser.config");
+    ExmlToModelParser exmlToModelParser = new ExmlToModelParser(getConfigClassRegistry());
+
+    InputStream inputStream = getClass().getResourceAsStream("/exmlparser/TestArrayAttribute.exml");
+    ExmlModel model = exmlToModelParser.parse(inputStream);
+    Assert.assertEquals("ext.Panel", model.getSuperClassName());
+
+    JsonObject expectedJsonObject = new JsonObject(
+            "items", "{config.myItems}",
+            "tools", new JsonArray("tools")
+    );
+    System.out.println(model.getJsonObject().toString(2));
+    Assert.assertEquals(expectedJsonObject.toString(2), model.getJsonObject().toString(2));
+  }
+
+  @Test
+  public void testParseActions() throws Exception{
+    setUp("exmlparser.config");
+    ExmlToModelParser exmlToModelParser = new ExmlToModelParser(getConfigClassRegistry());
+
+    InputStream inputStream = getClass().getResourceAsStream("/exmlparser/TestActions.exml");
+    ExmlModel model = exmlToModelParser.parse(inputStream);
+    Assert.assertEquals("ext.Panel", model.getSuperClassName());
+
+    JsonObject expectedJsonObject = new JsonObject(
+            "baseAction", "{new ext.Action(ext.config.action({disabled: false}))}"
+    );
+    System.out.println(model.getJsonObject().toString(2));
+    Assert.assertEquals(expectedJsonObject.toString(2), model.getJsonObject().toString(2));
+  }
+
+  @Test
+  public void testParseUntyped() throws Exception{
+    setUp("exmlparser.config");
+    ExmlToModelParser exmlToModelParser = new ExmlToModelParser(getConfigClassRegistry());
+
+    InputStream inputStream = getClass().getResourceAsStream("/exmlparser/TestUntyped.exml");
+    ExmlModel model = exmlToModelParser.parse(inputStream);
+    Assert.assertEquals("ext.Panel", model.getSuperClassName());
+
+    JsonObject expectedJsonObject = new JsonObject(
+            "items", new JsonArray(
+                    new JsonObject(
+                            "xtype", "panel",
+                             "untyped", "text"
+                    ),
+                    new JsonObject(
+                            "xtype", "panel",
+                            "untyped", true
+                    ),
+                    new JsonObject(
+                            "xtype", "panel",
+                            "untyped", false
+                    ),
+                    new JsonObject(
+                            "xtype", "panel",
+                            "untyped", 1.0
+                    ),
+                    new JsonObject(
+                            "xtype", "panel",
+                            "untyped", -1.5
+                    ),
+                    new JsonObject(
+                            "xtype", "panel",
+                            "untyped", 3.0
+                    ),
+                    new JsonObject(
+                            "xtype", "panel",
+                            "untyped", "3L"
+                    ),
+                    new JsonObject(
+                            "xtype", "panel",
+                            "untyped", "42x"
+                    )
+
+            )
+    );
+    System.out.println(model.getJsonObject().toString(2));
+    Assert.assertEquals(expectedJsonObject.toString(2), model.getJsonObject().toString(2));
+  }
+
+  @Test
   public void testInheritProperties() throws Exception{
     setUp("testNamespace.config");
     ExmlToModelParser exmlToModelParser = new ExmlToModelParser(getConfigClassRegistry());
