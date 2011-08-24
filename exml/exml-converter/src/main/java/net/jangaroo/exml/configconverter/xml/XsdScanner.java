@@ -21,7 +21,7 @@ import java.util.Stack;
 public class XsdScanner {
 
   private static final String XML_SCHEMA_URL = "http://www.w3.org/2001/XMLSchema";
-  private static final Logger log = LoggerFactory.getLogger(XsdScanner.class);
+  private final Logger log = LoggerFactory.getLogger(XsdScanner.class);
 
   private ComponentSuite componentSuite;
   private XMLStreamReader parser = null;

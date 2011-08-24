@@ -16,7 +16,7 @@ import java.io.IOException;
  * {@link net.jangaroo.exml.configconverter.model.ComponentSuite} from all Ext JS component classes.
  */
 public final class SrcFileScanner {
-  private static final Logger log = LoggerFactory.getLogger(SrcFileScanner.class);
+  private final Logger log = LoggerFactory.getLogger(SrcFileScanner.class);
 
   private ComponentSuite componentSuite;
 

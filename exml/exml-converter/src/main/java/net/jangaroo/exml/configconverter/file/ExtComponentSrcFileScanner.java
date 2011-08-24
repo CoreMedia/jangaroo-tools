@@ -21,7 +21,7 @@ import java.util.List;
  */
 public final class ExtComponentSrcFileScanner {
 
-  private static final Logger log = LoggerFactory.getLogger(ExtComponentSrcFileScanner.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ExtComponentSrcFileScanner.class);
 
   private ExtComponentSrcFileScanner() {
     //hide the constructor  
@@ -261,7 +261,7 @@ public final class ExtComponentSrcFileScanner {
     void validateComponentClass(ComponentClass cc) {
       if (cc != null) {
         if (cc.getImports().isEmpty()) {
-          log.warn("No imports in Compontent class");
+          LOG.warn("No imports in Compontent class");
         }
       }
     }

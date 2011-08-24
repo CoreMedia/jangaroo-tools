@@ -15,7 +15,7 @@ import java.util.Map;
  */
 public final class ComponentSuiteRegistry {
 
-  private static final Logger log = LoggerFactory.getLogger(ComponentSuiteRegistry.class);
+  private final Logger log = LoggerFactory.getLogger(ComponentSuiteRegistry.class);
 
   private final Map<String, ComponentSuite> componentSuitesByNamespaceUri = new LinkedHashMap<String, ComponentSuite>(10);
 

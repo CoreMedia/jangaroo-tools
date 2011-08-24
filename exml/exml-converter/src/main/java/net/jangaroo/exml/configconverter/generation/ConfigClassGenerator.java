@@ -24,8 +24,7 @@ import java.util.Locale;
  */
 public final class ConfigClassGenerator {
 
-  private static final Logger log = LoggerFactory.getLogger(ConfigClassGenerator.class);
-
+  private final Logger log = LoggerFactory.getLogger(ConfigClassGenerator.class);
 
   private final static String outputCharset = "UTF-8";
 

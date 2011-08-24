@@ -1,6 +1,9 @@
 package net.jangaroo.exml.exmlconverter;
 
+import net.jangaroo.exml.ExmlConverter;
 import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.Iterator;
@@ -12,6 +15,8 @@ import java.util.Properties;
  * to the new component naming conventions introduced later on.
  */
 public class ExmlConverterTool {
+  private final Logger log = LoggerFactory.getLogger(ExmlConverterTool.class);
+  
   private String encoding;
   private boolean anyErrors = false;
 
@@ -32,7 +37,7 @@ public class ExmlConverterTool {
   }
 
   private void convert(File file) {
-    System.out.println("Processing " + file + "..."); // NOSONAR this is a commandline tool
+    log.info("Processing " + file + "...");
     File tempFile = null;
     try {
       tempFile = File.createTempFile(file.getName() + ".", ".temp", file.getParentFile());
@@ -45,30 +50,29 @@ public class ExmlConverterTool {
         return;
       }
     } catch (ParseException e) {
-      System.err.println("... failed due to parse error: " + e.getMessage()); // NOSONAR this is a commandline tool
+      log.error("... failed due to parse error: " + e.getMessage());
       anyErrors = true;
       return;
     } catch (Exception e) {
-      System.err.println("... failed due to internal error!"); // NOSONAR this is a commandline tool
-      e.printStackTrace(); // NOSONAR this is a commandline tool
+      log.error("... failed due to internal error!", e); 
       anyErrors = true;
       return;
     } finally {
       FileUtils.deleteQuietly(tempFile);
     }
-    System.out.println("... done."); // NOSONAR this is a commandline tool
+    log.info("... done.");
   }
 
   private boolean moveFilesAfterConversion(File file, File tempFile, File bakFile) {
     FileUtils.deleteQuietly(bakFile);
     if (!file.renameTo(bakFile)) {
-      System.err.println("... failed! Could not create backup file " + bakFile + "."); // NOSONAR this is a commandline tool
+      log.error("... failed! Could not create backup file " + bakFile + ".");
       return true;
     }
     if (!tempFile.renameTo(file)) {
-      System.err.println("... failed! Could not create updated file " + file + "."); // NOSONAR this is a commandline tool
+      log.error("... failed! Could not create updated file " + file + ".");
       if (!bakFile.renameTo(file)) {
-        System.err.println("(And could not create restore backup file " + bakFile + " to " + file + "."); // NOSONAR this is a commandline tool
+        log.error("(And could not create restore backup file " + bakFile + " to " + file + ".");
       }
       return true;
     }

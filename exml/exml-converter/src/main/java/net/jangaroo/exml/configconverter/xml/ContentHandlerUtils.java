@@ -19,7 +19,7 @@ import java.io.IOException;
 
 public final class ContentHandlerUtils {
 
-  private static final Logger log = LoggerFactory.getLogger(ContentHandlerUtils.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ContentHandlerUtils.class);
 
   private ContentHandlerUtils() {
     
@@ -33,13 +33,13 @@ public final class ContentHandlerUtils {
       xr.parse(new InputSource(inputStream));
       return true;
     } catch (FileNotFoundException e) {
-      log.error("Exception while parsing", e);
+      LOG.error("Exception while parsing", e);
     } catch (IOException e) {
-      log.error("Exception while parsing", e);
+      LOG.error("Exception while parsing", e);
     } catch (SAXParseException e) {
-      log.error(e.getMessage(), e.getLineNumber(), e.getColumnNumber());
+      LOG.error(e.getMessage(), e.getLineNumber(), e.getColumnNumber());
     } catch (SAXException e) {
-      log.error("Exception while parsing", e);
+      LOG.error("Exception while parsing", e);
     } finally {
       try {
         if (inputStream != null) {

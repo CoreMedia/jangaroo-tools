@@ -20,7 +20,7 @@ import java.util.Map;
  */
 public final class ComponentSuite {
 
-  private static final Logger log = LoggerFactory.getLogger(ComponentSuite.class);
+  private final Logger log = LoggerFactory.getLogger(ComponentSuite.class);
 
   private String ns;
   private String namespace;

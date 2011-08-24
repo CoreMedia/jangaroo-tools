@@ -5,6 +5,8 @@ import net.jangaroo.exml.exmlconverter.ExmlConverterTool;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -20,6 +22,8 @@ import static org.kohsuke.args4j.ExampleMode.REQUIRED;
  * your classes but generates new one.
  */
 public class ExmlConverter {
+
+  private final Logger log = LoggerFactory.getLogger(ExmlConverter.class);
 
   @Option(name = "-m",
           aliases = {"-module"},
@@ -66,7 +70,7 @@ public class ExmlConverter {
   }
 
   private void error(String error) {
-    System.err.println(error); // NOSONAR this is a commandline tool
+    log.error(error);
   }
 
   void run(String[] args) throws IOException {
@@ -78,8 +82,7 @@ public class ExmlConverter {
       // if there's a problem in the command line,
       // you'll get this exception. this will report
       // an error message.
-      error(e.getMessage());
-      error("");
+      log.error(e.getMessage());
       printUsage(parser);
       exit(-3);
     }
