@@ -49,6 +49,14 @@ public final class ExmlcException extends RuntimeException {
     return source;
   }
 
+  public int getLine() {
+    return line;
+  }
+
+  public int getColumn() {
+    return column;
+  }
+
   @Override
   public String toString() {
     StringBuilder builder = new StringBuilder();
