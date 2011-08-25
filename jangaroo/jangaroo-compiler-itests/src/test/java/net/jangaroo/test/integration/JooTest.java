@@ -686,6 +686,12 @@ public class JooTest extends JooRuntimeTestCase {
     expectBoolean(false, "package1.TestIs.testIs(o, String)");
   }
 
+  public void testRecursiveFunction() throws Exception {
+    import_("package1.TestRecursiveFunction");
+    complete();
+    expectNumber(13, "new package1.TestRecursiveFunction().testFib(7)");
+  }
+
   public static void main(String args[]) {
     junit.textui.TestRunner.run(JooTest.class);
   }

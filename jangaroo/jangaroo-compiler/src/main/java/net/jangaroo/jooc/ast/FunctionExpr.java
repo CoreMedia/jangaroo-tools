@@ -107,7 +107,7 @@ public class FunctionExpr extends Expr {
     withNewDeclarationScope(functionDeclaration == null ? this : functionDeclaration, scope, new Scoped() {
       public void run(final Scope scope) {
         //declare ide inside Function if not already scoped:
-        if (ide != null && ide.getScope() == null) {
+        if ((functionDeclaration == null || !functionDeclaration.isMethod()) && ide != null && ide.getScope() == null) {
           IdeDeclaration decl = new VariableDeclaration(null, ide, null, null);
           decl.scope(scope);
         }

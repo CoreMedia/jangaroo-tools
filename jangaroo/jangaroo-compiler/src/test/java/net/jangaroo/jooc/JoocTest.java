@@ -1,5 +1,6 @@
 package net.jangaroo.jooc;
 
+import net.jangaroo.jooc.config.DebugMode;
 import net.jangaroo.jooc.config.JoocConfiguration;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
@@ -12,6 +13,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -76,7 +78,7 @@ public class JoocTest {
     List<File> sourcepath = new ArrayList<File>();
     sourcepath.add(sourceDir);
     config.setSourcePath(sourcepath);
-
+    config.setDebugMode(DebugMode.SOURCE);
     config.setOutputDirectory(outputFolder.getRoot());
     testLog.reset();
     jooc = new Jooc(config, testLog);
@@ -88,12 +90,20 @@ public class JoocTest {
     config.addSourceFile(sourcefile);
     jooc.run();
     assertTrue("Expected error not occured", testLog.hasError("Type was not found or was not a compile-time constant: SomeClass"));
+  }
 
-   /* File destFile = new File(outputFolder.getRoot(),"package1/SomeClass.js");
+  @Test
+  public void testStaticReference() throws Exception {
+    File sourcefile = getFile("/package1/WithStaticReference.as");
+    config.addSourceFile(sourcefile);
+    jooc.run();
+
+    File destFile = new File(outputFolder.getRoot(),"package1/WithStaticReference.js");
     assertTrue(destFile.exists());
 
     String result = FileUtils.readFileToString(destFile);
-    System.out.println(result);*/
+    String expected = FileUtils.readFileToString(getFile("/expected/package1/WithStaticReference.js"));
+    assertEquals("Result file not equal", expected, result);
   }
 
   private File getFile(String absolutePath) throws URISyntaxException {

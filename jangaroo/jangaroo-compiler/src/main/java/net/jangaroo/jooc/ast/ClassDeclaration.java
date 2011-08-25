@@ -232,7 +232,10 @@ public class ClassDeclaration extends IdeDeclaration {
   }
 
   public void registerMember(TypedIdeDeclaration memberDeclaration) {
-    (memberDeclaration.isStatic() ? staticMembers : members).put(memberDeclaration.getName(), memberDeclaration);
+    String name = memberDeclaration.getName();
+    if (name.length() != 0) {
+      (memberDeclaration.isStatic() ? staticMembers : members).put(name, memberDeclaration);
+    }
   }
 
   public TypedIdeDeclaration getMemberDeclaration(String memberName) {
