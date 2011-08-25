@@ -195,11 +195,6 @@ public class VariableDeclaration extends TypedIdeDeclaration {
     return firstVariableDeclaration.getOptSymConstOrVar() != null && firstVariableDeclaration.getOptSymConstOrVar().sym == sym.CONST;
   }
 
-  @Override
-  public IdeDeclaration resolveDeclaration() {
-    return getOptTypeRelation() == null ? null : getOptTypeRelation().getType().resolveDeclaration();
-  }
-
   public JooSymbol getOptSymConstOrVar() {
     return optSymConstOrVar;
   }

@@ -16,6 +16,7 @@
 package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.JooSymbol;
+import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
 
 /**
@@ -68,7 +69,15 @@ public abstract class TypedIdeDeclaration extends IdeDeclaration {
 
   @Override
   public IdeDeclaration resolveDeclaration() {
-    return getOptTypeRelation() == null ? null : getOptTypeRelation().getType().resolveDeclaration();
+    if (getOptTypeRelation() == null) {
+      return null;
+    } else {
+      if (getOptTypeRelation().getType().getIde().equals(getIde())) {
+        throw Jooc.error(getSymbol(), "Type was not found or was not a compile-time constant: " + getIde().getSymbol().getText());
+      } else {
+        return getOptTypeRelation().getType().resolveDeclaration();
+      }
+    }
   }
 
   public TypeRelation getOptTypeRelation() {

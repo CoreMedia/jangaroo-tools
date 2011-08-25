@@ -3,7 +3,8 @@ public class SomeClass {
   public function SomeClass() {
   }
   public static function make():void {
-    var SomeClass:SomeClass = new SomeClass();
+    var x:SomeClass = new SomeClass();
+    var SomeClass:SomeClass = null;
   }
 }
 }

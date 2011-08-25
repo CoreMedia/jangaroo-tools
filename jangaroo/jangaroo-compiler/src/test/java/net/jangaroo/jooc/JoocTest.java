@@ -1,6 +1,7 @@
 package net.jangaroo.jooc;
 
 import net.jangaroo.jooc.config.JoocConfiguration;
+import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -24,19 +25,24 @@ public class JoocTest {
   private Jooc jooc;
   private JoocConfiguration config;
 
+  private TestLog testLog = new TestLog();
+
   private class TestLog implements CompileLog {
 
     private boolean hasErrors = false;
+    private List<String> errors = new ArrayList<String>();
+
     @Override
     public void error(JooSymbol sym, String msg) {
       hasErrors = true;
-      fail(msg);
+      errors.add(msg);
+      System.out.println(sym.getLine() + ";" + sym.getColumn() + ": '" + msg);
     }
 
     @Override
     public void error(String msg) {
       hasErrors = true;
-      fail(msg);
+      errors.add(msg);
     }
 
     @Override
@@ -53,6 +59,14 @@ public class JoocTest {
     public boolean hasErrors() {
       return hasErrors;
     }
+
+    public boolean hasError(String expected) {
+      return errors.contains(expected);
+    }
+
+    public void reset() {
+      errors.clear();
+    }
   }
 
   @Before
@@ -64,7 +78,8 @@ public class JoocTest {
     config.setSourcePath(sourcepath);
 
     config.setOutputDirectory(outputFolder.getRoot());
-    jooc = new Jooc(config, new TestLog());
+    testLog.reset();
+    jooc = new Jooc(config, testLog);
   }
 
   @Test
@@ -72,9 +87,13 @@ public class JoocTest {
     File sourcefile = getFile("/package1/SomeClass.as");
     config.addSourceFile(sourcefile);
     jooc.run();
+    assertTrue("Expected error not occured", testLog.hasError("Type was not found or was not a compile-time constant: SomeClass"));
 
-    File destFile = new File(outputFolder.getRoot(),"package1/SomeClass.js");
+   /* File destFile = new File(outputFolder.getRoot(),"package1/SomeClass.js");
     assertTrue(destFile.exists());
+
+    String result = FileUtils.readFileToString(destFile);
+    System.out.println(result);*/
   }
 
   private File getFile(String absolutePath) throws URISyntaxException {
