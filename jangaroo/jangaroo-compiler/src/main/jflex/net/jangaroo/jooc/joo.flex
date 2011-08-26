@@ -139,7 +139,7 @@ IdentifierStart = [:letter:]|[$_@]
 Identifier = {IdentifierStart}({IdentifierStart}|[:digit:])*
 
 DecIntegerLiteral = 0 | [1-9][0-9]*
-HexIntegerLiteral = 0x{HexDigit}+
+HexIntegerLiteral = 0[xX]{HexDigit}+
 
 DoubleLiteral = ({FLit1}|{FLit2}|{FLit3}) {Exponent}?
 
