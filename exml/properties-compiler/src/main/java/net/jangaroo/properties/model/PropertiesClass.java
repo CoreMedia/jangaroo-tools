@@ -11,9 +11,11 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.regex.Pattern;
 
 public class PropertiesClass {
 
+  private static final Pattern AS3_IDENTIFIER_PATTERN = Pattern.compile("(\\p{Alpha}|[$_])(\\p{Alnum}|[$_])*");
   private ResourceBundleClass resourceBundle;
   private Locale locale;
   private PropertiesConfiguration properties;
@@ -46,13 +48,17 @@ public class PropertiesClass {
     Iterator keys = properties.getKeys();
     while (keys.hasNext()) {
       String key = (String)keys.next();
-      props.add(new Property(adjustComment(layout.getCanonicalComment(key, true)), key, properties.getString(key)));
+      props.add(new Property(adjustComment(layout.getCanonicalComment(key, true)), key, isIdentifier(key), properties.getString(key)));
     }
     return props;
   }
 
   private String adjustComment(String canonicalComment) {
     return canonicalComment == null ? null : canonicalComment.replaceAll("(^|\\n)#", "\n *");
+  }
+
+  private static boolean isIdentifier(String str) {
+    return AS3_IDENTIFIER_PATTERN.matcher(str).matches();
   }
 
   public File getSrcFile() {
