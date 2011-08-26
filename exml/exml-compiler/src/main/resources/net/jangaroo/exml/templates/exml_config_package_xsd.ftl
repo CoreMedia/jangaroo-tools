@@ -51,9 +51,9 @@
     </#if>
   </xs:complexType>
   <#if configClass.superClass??>
-  <xs:element id='${configClass.fullName}' name='${configClass.name}' type='${configClass.ns}:${configClass.fullName}' substitutionGroup='${configClass.superClass.ns}:${configClass.superClass.name}'>
+  <xs:element id='${configClass.componentClassName}' name='${configClass.name}' type='${configClass.ns}:${configClass.fullName}' substitutionGroup='${configClass.superClass.ns}:${configClass.superClass.name}'>
   <#else>
-  <xs:element id='${configClass.fullName}' name='${configClass.name}' type='${configClass.ns}:${configClass.fullName}'>
+  <xs:element id='${configClass.componentClassName}' name='${configClass.name}' type='${configClass.ns}:${configClass.fullName}'>
   </#if>
     <#if configClass.description??>
     <xs:annotation>

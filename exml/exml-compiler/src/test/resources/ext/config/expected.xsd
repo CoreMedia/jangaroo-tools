@@ -13,21 +13,21 @@
         </xs:attribute>
         <xs:anyAttribute namespace="exml:untyped" processContents="skip"/>
   </xs:complexType>
-  <xs:element id='ext.config.action' name='action' type='ec:ext.config.action'>
+  <xs:element id='ext.Action' name='action' type='ec:ext.config.action'>
   </xs:element>
   <xs:complexType name='ext.config.alayout'>
         <xs:sequence>
         </xs:sequence>
         <xs:anyAttribute namespace="exml:untyped" processContents="skip"/>
   </xs:complexType>
-  <xs:element id='ext.config.alayout' name='alayout' type='ec:ext.config.alayout'>
+  <xs:element id='ext.ALayout' name='alayout' type='ec:ext.config.alayout'>
   </xs:element>
   <xs:complexType name='ext.config.aplugin'>
         <xs:sequence>
         </xs:sequence>
         <xs:anyAttribute namespace="exml:untyped" processContents="skip"/>
   </xs:complexType>
-  <xs:element id='ext.config.aplugin' name='aplugin' type='ec:ext.config.aplugin'>
+  <xs:element id='ext.APlugin' name='aplugin' type='ec:ext.config.aplugin'>
   </xs:element>
   <xs:complexType name='ext.config.button'>
         <xs:sequence>
@@ -41,7 +41,7 @@
         </xs:attribute>
         <xs:anyAttribute namespace="exml:untyped" processContents="skip"/>
   </xs:complexType>
-  <xs:element id='ext.config.button' name='button' type='ec:ext.config.button'>
+  <xs:element id='ext.Button' name='button' type='ec:ext.config.button'>
   </xs:element>
   <xs:complexType name='ext.config.component'>
         <xs:sequence>
@@ -82,7 +82,7 @@
         </xs:attribute>
         <xs:anyAttribute namespace="exml:untyped" processContents="skip"/>
   </xs:complexType>
-  <xs:element id='ext.config.component' name='component' type='ec:ext.config.component'>
+  <xs:element id='ext.Component' name='component' type='ec:ext.config.component'>
   </xs:element>
   <xs:complexType name='ext.config.label'>
         <xs:sequence>
@@ -96,7 +96,7 @@
         </xs:attribute>
         <xs:anyAttribute namespace="exml:untyped" processContents="skip"/>
   </xs:complexType>
-  <xs:element id='ext.config.label' name='label' type='ec:ext.config.label'>
+  <xs:element id='ext.Label' name='label' type='ec:ext.config.label'>
   </xs:element>
   <xs:complexType name='ext.config.menuitem'>
         <xs:sequence>
@@ -110,7 +110,7 @@
         </xs:attribute>
         <xs:anyAttribute namespace="exml:untyped" processContents="skip"/>
   </xs:complexType>
-  <xs:element id='ext.config.menuitem' name='menuitem' type='ec:ext.config.menuitem'>
+  <xs:element id='ext.MenuItem' name='menuitem' type='ec:ext.config.menuitem'>
   </xs:element>
   <xs:complexType name='ext.config.panel'>
     <xs:complexContent>
@@ -188,6 +188,6 @@
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
-  <xs:element id='ext.config.panel' name='panel' type='ec:ext.config.panel' substitutionGroup='ec:component'>
+  <xs:element id='ext.Panel' name='panel' type='ec:ext.config.panel' substitutionGroup='ec:component'>
   </xs:element>
 </xs:schema>
