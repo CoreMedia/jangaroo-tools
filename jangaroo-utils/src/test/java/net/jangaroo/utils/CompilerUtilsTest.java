@@ -60,4 +60,17 @@ public class CompilerUtilsTest {
     Assert.assertEquals("file",CompilerUtils.removeExtension("file.bla"));
     Assert.assertEquals("file",CompilerUtils.removeExtension("file"));
   }
+
+  @Test
+  public void testUncapitalize() {
+    Assert.assertEquals(null, CompilerUtils.uncapitalize(null));
+    Assert.assertEquals("", CompilerUtils.uncapitalize(""));
+    Assert.assertEquals("a", CompilerUtils.uncapitalize("a"));
+    Assert.assertEquals("a", CompilerUtils.uncapitalize("A"));
+    Assert.assertEquals("aB", CompilerUtils.uncapitalize("aB"));
+    Assert.assertEquals("ab", CompilerUtils.uncapitalize("Ab"));
+    Assert.assertEquals("ab", CompilerUtils.uncapitalize("ab"));
+    Assert.assertEquals("ab", CompilerUtils.uncapitalize("AB"));
+    Assert.assertEquals("aBc", CompilerUtils.uncapitalize("ABc"));
+  }
 }

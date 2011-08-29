@@ -1,5 +1,7 @@
 package net.jangaroo.exml.model;
 
+import net.jangaroo.utils.CompilerUtils;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -68,13 +70,7 @@ public final class ConfigClass extends DescriptionHolder {
    * @return return the new config-class name, matching the conventions.
    */
   public static String createConfigClassName(String name) {
-    if (name == null || name.length() == 0) {
-      return name;
-    }
-    return new StringBuilder(name.length())
-            .append(Character.toLowerCase(name.charAt(0)))
-            .append(name.substring(1))
-            .toString();
+    return CompilerUtils.uncapitalize(name);
   }
 
   public void setName(String name) {

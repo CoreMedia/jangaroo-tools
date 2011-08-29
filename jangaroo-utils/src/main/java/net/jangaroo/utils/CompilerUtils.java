@@ -2,6 +2,7 @@ package net.jangaroo.utils;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Locale;
 
 /**
  * Created by IntelliJ IDEA. User: fwienber Date: 05.07.11 Time: 09:24 To change this template use File | Settings |
@@ -19,6 +20,23 @@ public final class CompilerUtils {
   public static String packageName(String qName) {
     int lastDotPos = qName.lastIndexOf('.');
     return lastDotPos == -1 ? "" : qName.substring(0, lastDotPos);
+  }
+
+  public static String uncapitalize(String name) {
+    if (name == null) {
+      return name;
+    }
+    int capitalCount = 0;
+    while (capitalCount < name.length() && Character.isUpperCase(name.charAt(capitalCount))) {
+      capitalCount++;
+    }
+    int toLowerCount = capitalCount <= 1 || capitalCount == name.length() ?
+            capitalCount :
+            capitalCount - 1;
+    return new StringBuilder(name.length())
+            .append(name.substring(0, toLowerCount).toLowerCase(Locale.ROOT))
+            .append(name.substring(toLowerCount))
+            .toString();
   }
 
   public static String className(String qName) {

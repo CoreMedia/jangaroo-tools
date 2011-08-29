@@ -1,5 +1,6 @@
 package net.jangaroo.exml.exmlconverter;
 
+import net.jangaroo.utils.CompilerUtils;
 import org.apache.commons.io.IOUtils;
 
 import java.io.BufferedReader;
@@ -86,10 +87,7 @@ public abstract class Converter {
     if (translated != null) {
       return translated;
     }
-    if (localName.length() < 2) {
-      return localName.toLowerCase(Locale.ROOT);
-    }
-    return localName.substring(0, 1).toLowerCase(Locale.ROOT) + localName.substring(1);
+    return CompilerUtils.uncapitalize(localName);
   }
 
   // basic I/O
