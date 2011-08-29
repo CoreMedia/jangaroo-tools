@@ -135,6 +135,5 @@
 
   <xs:element name="component" type="exml:component"/>
   <xs:element name="object" type="exml:object"/>
-  <xs:attribute name="type" type="exml:jsType"/>
 
 </xs:schema>
