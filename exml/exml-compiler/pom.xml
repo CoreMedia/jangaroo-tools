@@ -3,13 +3,13 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>net.jangaroo</groupId>
   <artifactId>exml-compiler</artifactId>
-  <version>0.8.6-SNAPSHOT</version>
+  <version>0.8.6</version>
   <packaging>jar</packaging>
   <dependencies>
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-utils</artifactId>
-      <version>0.8.6-SNAPSHOT</version>
+      <version>0.8.6</version>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
@@ -42,13 +42,13 @@
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-compiler</artifactId>
-      <version>0.8.6-SNAPSHOT</version>
+      <version>0.8.6</version>
     </dependency>
   </dependencies>
   <parent>
     <groupId>net.jangaroo</groupId>
     <artifactId>jangaroo-parent</artifactId>
-    <version>0.8.6-SNAPSHOT</version>
+    <version>0.8.6</version>
     <relativePath>../../jangaroo-parent/pom.xml</relativePath>
   </parent>
   <build>

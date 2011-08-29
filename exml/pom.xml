@@ -3,12 +3,12 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>net.jangaroo</groupId>
   <artifactId>exml</artifactId>
-  <version>0.8.6-SNAPSHOT</version>
+  <version>0.8.6</version>
   <packaging>pom</packaging>
   <parent>
     <groupId>net.jangaroo</groupId>
     <artifactId>jangaroo-parent</artifactId>
-    <version>0.8.6-SNAPSHOT</version>
+    <version>0.8.6</version>
     <relativePath>../jangaroo-parent/pom.xml</relativePath>
   </parent>
   <modules>
