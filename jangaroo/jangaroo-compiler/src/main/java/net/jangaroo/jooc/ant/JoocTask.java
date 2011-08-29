@@ -44,16 +44,16 @@ public class JoocTask extends MatchingTask {
   private String debugLevel = null;
   private boolean enableAssertions = false;
   private boolean verbose = false;
-  protected boolean failOnError = true;
+  private boolean failOnError = true;
   private boolean allowduplicatelocalvariables;
-  protected File[] compileList = new File[0];
+  private File[] compileList = new File[0];
   private String autoSemicolon = null;
 
-  public boolean getEnableassertions() {
+  public boolean getEnableAssertions() {
     return enableAssertions;
   }
 
-  public void setEnableassertions(boolean enableAssertions) {
+  public void setEnableAssertions(boolean enableAssertions) {
     this.enableAssertions = enableAssertions;
   }
 
@@ -82,7 +82,7 @@ public class JoocTask extends MatchingTask {
    *
    * @return a nested src element.
    */
-  protected Path recreateSrc() {
+  public Path recreateSrc() {
     src = null;
     return createSrc();
   }
@@ -249,7 +249,7 @@ public class JoocTask extends MatchingTask {
   /**
    * Clear the list of files to be compiled and copied..
    */
-  protected void resetFileLists() {
+  private void resetFileLists() {
     compileList = new File[0];
   }
 
@@ -349,7 +349,7 @@ public class JoocTask extends MatchingTask {
     }
   }
 
-  protected String[] getJoocArgs() {
+  private String[] getJoocArgs() {
     List<String> args = new ArrayList<String>(compileList.length + 10);
     if (debugLevel != null) {
       args.add("-g");

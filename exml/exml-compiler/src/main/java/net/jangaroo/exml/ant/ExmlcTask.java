@@ -42,8 +42,8 @@ public class ExmlcTask extends MatchingTask {
   private String configClassPackage;
   private File destDir;
   private String sourcepath;
-  protected boolean failOnError = true;
-  protected File[] compileList = new File[0];
+  private boolean failOnError = true;
+  private File[] compileList = new File[0];
 
   /**
    * Get the config class package name

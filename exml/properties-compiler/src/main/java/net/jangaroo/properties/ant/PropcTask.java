@@ -39,8 +39,8 @@ public class PropcTask extends MatchingTask {
   private File destDir;
   private String sourcepath;
   private boolean verbose = false;
-  protected boolean failOnError = true;
-  protected File[] compileList = new File[0];
+  private boolean failOnError = true;
+  private File[] compileList = new File[0];
 
   /**
    * Adds a path for source compilation.
