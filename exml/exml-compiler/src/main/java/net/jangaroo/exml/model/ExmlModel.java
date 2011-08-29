@@ -61,4 +61,20 @@ public class ExmlModel extends DescriptionHolder {
   public void setConfigClassName(String configClassName) {
     this.configClassName = configClassName;
   }
+
+  /**
+   * Create a ComponentClass name from the given name. By convention all ComponentClass names are capitalized.
+   *
+   * @param name the name
+   * @return return the new config-class name, matching the conventions.
+   */
+  public static String createComponentClassName(String name) {
+    if (name == null || name.length() == 0) {
+      return name;
+    }
+    return new StringBuilder(name.length())
+            .append(Character.toUpperCase(name.charAt(0)))
+            .append(name.substring(1))
+            .toString();
+  }
 }

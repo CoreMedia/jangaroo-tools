@@ -1,6 +1,5 @@
 package net.jangaroo.exml.test;
 
-import net.jangaroo.exml.generator.ExmlComponentClassGenerator;
 import net.jangaroo.exml.model.ExmlModel;
 import net.jangaroo.exml.parser.ExmlToModelParser;
 import org.apache.commons.io.FileUtils;
@@ -18,8 +17,10 @@ public class ExmlComponentClassGeneratorTest extends AbstractExmlTest {
     setUp("exmlparser.config");
     String expected = FileUtils.readFileToString(new File(getClass().getResource("/exmlparser/AllElements.as").toURI()));
     InputStream inputStream = getClass().getResourceAsStream("/exmlparser/AllElements.exml");
+
     ExmlToModelParser exmlToModelParser = new ExmlToModelParser(getConfigClassRegistry());
     ExmlModel model = exmlToModelParser.parse(inputStream);
+
     model.setClassName("AllElements");
     model.setConfigClassName("allElements");
     model.setPackageName("exmlparser");
@@ -27,6 +28,32 @@ public class ExmlComponentClassGeneratorTest extends AbstractExmlTest {
     StringWriter output = new StringWriter();
     getExmlc().getExmlComponentClassGenerator().generateClass(model, output);
     Assert.assertEquals(expected, output.toString());
+  }
+
+  @Test
+  public void testGenerateClassWithLowerCaseFileName() throws Exception {
+    setUp("exmlparser.config");
+    File sourceFile = getFile("/exmlparser/testLowerCase.exml");
+
+    ExmlToModelParser exmlToModelParser = new ExmlToModelParser(getConfigClassRegistry());
+    ExmlModel model = exmlToModelParser.parse(sourceFile);
+
+    Assert.assertEquals("TestLowerCase", model.getClassName());
+    Assert.assertEquals("testLowerCase", model.getConfigClassName());
+    Assert.assertEquals("exmlparser", model.getPackageName());
+  }
+
+  @Test
+  public void testGenerateClassWithUpperCaseFileName() throws Exception {
+    setUp("exmlparser.config");
+    File sourceFile = getFile("/exmlparser/AllElements.exml");
+
+    ExmlToModelParser exmlToModelParser = new ExmlToModelParser(getConfigClassRegistry());
+    ExmlModel model = exmlToModelParser.parse(sourceFile);
+
+    Assert.assertEquals("AllElements", model.getClassName());
+    Assert.assertEquals("allElements", model.getConfigClassName());
+    Assert.assertEquals("exmlparser", model.getPackageName());
   }
 
   private File getFile(String path) throws URISyntaxException {

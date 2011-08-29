@@ -4,8 +4,8 @@ import net.jangaroo.exml.ExmlcException;
 import net.jangaroo.exml.config.ExmlConfiguration;
 import net.jangaroo.exml.model.ConfigClass;
 import net.jangaroo.exml.model.ConfigClassType;
+import net.jangaroo.exml.model.ExmlModel;
 import net.jangaroo.utils.CompilerUtils;
-import net.jangaroo.utils.FileLocations;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.XMLReaderFactory;
@@ -23,11 +23,16 @@ public class ExmlToConfigClassParser {
   }
 
   public ConfigClass parseExmlToConfigClass(File source) throws IOException {
-    String fullQualifiedName = computeComponentFullQualifiedName(config, source);
+    String fullQualifiedName = CompilerUtils.qNameFromFile(config.findSourceDir(source), source);
     ConfigClass configClass = new ConfigClass();
-    configClass.setComponentClassName(fullQualifiedName);
+
+    String componentPackageName = CompilerUtils.packageName(fullQualifiedName);
+    String componentClassName = ExmlModel.createComponentClassName(CompilerUtils.className(fullQualifiedName));
+
+    configClass.setComponentClassName(componentPackageName.equals("") ? componentClassName : componentPackageName + "." + componentClassName);
+    
     configClass.setPackageName(config.getConfigClassPackage());
-    configClass.setName(ConfigClass.createNewName(CompilerUtils.removeExtension(source.getName())));
+    configClass.setName(ConfigClass.createConfigClassName(CompilerUtils.removeExtension(source.getName())));
     // Only components are encoded in EXML.
     configClass.setType(ConfigClassType.XTYPE);
 
@@ -61,10 +66,4 @@ public class ExmlToConfigClassParser {
     }
   }
 
-  private static String computeComponentFullQualifiedName(FileLocations locations, File sourceFile) throws IOException {
-    File sourceDir = locations.findSourceDir(sourceFile);
-    int rootDirPathLength = sourceDir.getPath().length()+1;
-    String subpath = CompilerUtils.removeExtension(sourceFile.getPath().substring(rootDirPathLength));
-    return subpath.replaceAll("\\" + File.separator, "\\.");
-  }
 }

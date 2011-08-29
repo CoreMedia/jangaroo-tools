@@ -43,8 +43,8 @@ public final class ExmlToModelParser {
     ExmlModel model = parse(new BufferedInputStream(new FileInputStream(file)));
     String qName = CompilerUtils.qNameFromFile(registry.getConfig().findSourceDir(file), file);
     String className = CompilerUtils.className(qName);
-    model.setClassName(className);
-    model.setConfigClassName(ConfigClass.createNewName(className));
+    model.setClassName(ExmlModel.createComponentClassName(className));
+    model.setConfigClassName(ConfigClass.createConfigClassName(className));
     model.setPackageName(CompilerUtils.packageName(qName));
     return model;
   }
