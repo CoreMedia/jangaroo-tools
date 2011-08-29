@@ -103,6 +103,8 @@ public class JoocTest {
 
     String result = FileUtils.readFileToString(destFile);
     String expected = FileUtils.readFileToString(getFile("/expected/package1/WithStaticReference.js"));
+    expected = expected.replace("@runtimeVersion", JoocProperties.getRuntimeVersion());
+    expected = expected.replace("@version", JoocProperties.getVersion());
     assertEquals("Result file not equal", expected, result);
   }
 
