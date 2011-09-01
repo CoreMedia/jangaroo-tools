@@ -57,24 +57,8 @@ public class PropertyClassGenerator {
   }
 
   public File generateJangarooClass(PropertiesClass pl) {
-
-    File sourceDir;
-    try {
-      sourceDir = locations.findSourceDir(pl.getSrcFile());
-    } catch (IOException e) {
-      throw new PropcException(e);
-    }
-
-    String rel = pl.getSrcFile().getPath().substring(sourceDir.getPath().length());
-
-    String convertedName = CompilerUtils.dirname(rel) + "/" + pl.getResourceBundle().getClassName() + "_properties";
-
-    if (pl.getLocale() != null) {
-      convertedName += "_" + pl.getLocale();
-    }
-    convertedName += ".as";
-
-    File outputFile = new File(locations.getOutputDirectory(), convertedName);
+    File outputFile = computeGeneratedPropertiesClassFile(pl.getResourceBundle().getFullClassName(), pl.getLocale());
+    
     //noinspection ResultOfMethodCallIgnored
     outputFile.getParentFile().mkdirs(); // NOSONAR
 
@@ -82,6 +66,7 @@ public class PropertyClassGenerator {
     try {
       writer = new OutputStreamWriter(new FileOutputStream(outputFile), OUTPUT_CHARSET);
       generatePropertiesClass(pl, writer);
+      return outputFile;
     } catch (Exception e) {
       throw new PropcException(e);
     } finally {
@@ -93,65 +78,80 @@ public class PropertyClassGenerator {
         //
       }
     }
-    return outputFile;
   }
 
   public Map<File,Set<File>> generate() {
     Map<File,Set<File>> outputFileMap = new LinkedHashMap<File, Set<File>>();
     for (File srcFile : locations.getSourceFiles()) {
-      String className;
-      try {
-        className = CompilerUtils.qNameFromFile(locations.findSourceDir(srcFile), srcFile);
-      } catch (IOException e) {
-        throw new PropcException(e);
-      }
-
-      Locale locale;
-      if (className.indexOf('_') != -1) {
-        String localeString = className.substring(className.indexOf('_') + 1, className.length());
-        if (localeString.indexOf('_') != -1) {
-          String lang = localeString.substring(0, localeString.indexOf('_'));
-          String countr = localeString.substring(lang.length() + 1, localeString.length());
-          if (countr.indexOf('_') != -1) {
-            String var = countr.substring(countr.indexOf('_') + 1, countr.length());
-            countr = countr.substring(0, countr.indexOf('_'));
-            locale = new Locale(lang, countr, var);
-          } else {
-            locale = new Locale(lang, countr);
-          }
-        } else {
-          locale = new Locale(localeString);
-        }
-        className = className.substring(0, className.indexOf('_'));
-      } else {
-        locale = null;
-      }
-
-      ResourceBundleClass bundle = new ResourceBundleClass(className);
-
-      PropertiesConfiguration p = new PropertiesConfiguration();
-      p.setDelimiterParsingDisabled(true);
-      Reader r = null;
-      try {
-        r = new BufferedReader(new InputStreamReader(new FileInputStream(srcFile), "UTF-8"));
-        p.load(r);
-      } catch (IOException e) {
-        throw new PropcException("Error while parsing properties file", srcFile, e);
-      } catch (ConfigurationException e) {
-        throw new PropcException("Error while parsing properties file", srcFile, e);
-      } finally {
-        try {
-          if (r != null) {
-            r.close();
-          }
-        } catch (IOException e) {
-          //not really
-        }
-      }
-      // Create properties class, which registers itself with the bundle.
-      File outputFile = generateJangarooClass(new PropertiesClass(bundle, locale, p, srcFile));
+      File outputFile = generate(srcFile);
       outputFileMap.put(srcFile, Collections.singleton(outputFile));
     }
     return outputFileMap;
+  }
+
+  public File generate(File propertiesFile) {
+    PropertiesConfiguration p = new PropertiesConfiguration();
+    p.setDelimiterParsingDisabled(true);
+    Reader r = null;
+    try {
+      r = new BufferedReader(new InputStreamReader(new FileInputStream(propertiesFile), "UTF-8"));
+      p.load(r);
+    } catch (IOException e) {
+      throw new PropcException("Error while parsing properties file", propertiesFile, e);
+    } catch (ConfigurationException e) {
+      throw new PropcException("Error while parsing properties file", propertiesFile, e);
+    } finally {
+      try {
+        if (r != null) {
+          r.close();
+        }
+      } catch (IOException e) {
+        //not really
+      }
+    }
+
+    ResourceBundleClass bundle = new ResourceBundleClass(computeBaseClassName(propertiesFile));
+
+    // Create properties class, which registers itself with the bundle.
+    return generateJangarooClass(new PropertiesClass(bundle, computeLocale(propertiesFile), p, propertiesFile));
+  }
+
+  public File computeGeneratedPropertiesClassFile(File propertiesFile) {
+    return computeGeneratedPropertiesClassFile(computeBaseClassName(propertiesFile), computeLocale(propertiesFile));
+  }
+
+  private File computeGeneratedPropertiesClassFile(String className, Locale locale) {
+    StringBuilder suffix = new StringBuilder("_properties");
+    if (locale != null) {
+      suffix.append("_").append(locale);
+    }
+    suffix.append(".as");
+    String generatedPropertiesClassFileName = CompilerUtils.fileNameFromQName(className, '/', suffix.toString());
+    return new File(locations.getOutputDirectory(), generatedPropertiesClassFileName); 
+  }
+
+  private String computeBaseClassName(File srcFile) {
+    String className;
+    try {
+      className = CompilerUtils.qNameFromFile(locations.findSourceDir(srcFile), srcFile);
+    } catch (IOException e) {
+      throw new PropcException(e);
+    }
+    int underscorePos = className.indexOf('_');
+    if (underscorePos != -1) {
+      className = className.substring(0, underscorePos);
+    }
+    return className;
+  }
+
+  private static Locale computeLocale(File propertiesFile) {
+    String propertiesFileName = CompilerUtils.removeExtension(propertiesFile.getName());
+    String[] parts = propertiesFileName.split("_", 4);
+    switch (parts.length) {
+      case 4: return new Locale(parts[1], parts[2], parts[3]);
+      case 3: return new Locale(parts[1], parts[2]);
+      case 2: return new Locale(parts[1]);
+    }
+    return null;
   }
 }

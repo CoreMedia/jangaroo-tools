@@ -58,21 +58,29 @@ public final class CompilerUtils {
   }
 
   public static String qNameFromFile(File baseDirectory, File file) {
+    String relativePath = getRelativePath(baseDirectory, file);
+    if (relativePath != null) {
+      int lastDotPos = relativePath.lastIndexOf('.');
+      if (lastDotPos != -1 && lastDotPos > relativePath.lastIndexOf(File.separatorChar)) {
+        return relativePath.substring(0, lastDotPos).replace(File.separatorChar, '.');
+      }
+    }
+    return null;
+  }
+
+  public static String getRelativePath(File baseDirectory, File file) {
+    String relativePath = null;
     try {
       String canonicalBasePath = baseDirectory.getCanonicalPath() + File.separator;
       String canonicalPath = file.getCanonicalPath();
       if (canonicalPath.length() > canonicalBasePath.length() &&
               canonicalPath.startsWith(canonicalBasePath)) {
-        String relativePath = canonicalPath.substring(canonicalBasePath.length());
-        int lastDotPos = relativePath.lastIndexOf('.');
-        if (lastDotPos != -1 && lastDotPos > relativePath.lastIndexOf(File.separatorChar)) {
-          return relativePath.substring(0, lastDotPos).replace(File.separatorChar, '.');
-        }
+        relativePath = canonicalPath.substring(canonicalBasePath.length());
       }
-      return null;
     } catch (IOException e) {
       throw new IllegalArgumentException("could not determine qualified name from file; the strange file is called " + file + " in " + baseDirectory, e);
     }
+    return relativePath;
   }
 
   /**
