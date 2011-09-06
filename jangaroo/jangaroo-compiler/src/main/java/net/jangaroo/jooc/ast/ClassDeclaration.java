@@ -249,7 +249,10 @@ public class ClassDeclaration extends IdeDeclaration {
   public void addInitIfClass(Ide ide) {
     final IdeDeclaration decl = ide.getDeclaration(false);
     if (decl instanceof ClassDeclaration) {
-      classInit.add(decl.getQualifiedNameStr());
+      // Classes should not try to init themselves. It does not help and it produces strange warnings.
+      if (decl != this) {
+        classInit.add(decl.getQualifiedNameStr());
+      }
     }
   }
 
