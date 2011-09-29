@@ -28,32 +28,6 @@
      </xs:restriction>
   </xs:simpleType>
 
-  <xs:simpleType name="jsType">
-    <xs:annotation>
-      <xs:documentation>
-        The type of an javascript property.
-        <ul>
-          <li>String</li>
-          <li>Number</li>
-          <li>Boolean</li>
-          <li>Float</li>
-          <li>Date</li>
-          <li>Object</li>
-          <li>Array</li>
-        </ul>
-      </xs:documentation>
-    </xs:annotation>
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="String"/>
-      <xs:enumeration value="Number"/>
-      <xs:enumeration value="Boolean"/>
-      <xs:enumeration value="Float"/>
-      <xs:enumeration value="Date"/>
-      <xs:enumeration value="Object"/>
-      <xs:enumeration value="Array"/>
-    </xs:restriction>
-  </xs:simpleType>
-
   <xs:complexType name="cfg">
     <xs:annotation>
       <xs:documentation>
@@ -77,7 +51,7 @@
         </xs:documentation>
       </xs:annotation>
     </xs:attribute>
-    <xs:attribute name="type" type="exml:jsType" use="required">
+    <xs:attribute name="type" type="xs:string" use="required">
       <xs:annotation>
         <xs:documentation>
           The type of the config property.
