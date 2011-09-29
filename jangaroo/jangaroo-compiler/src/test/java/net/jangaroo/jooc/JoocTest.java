@@ -15,7 +15,6 @@ import java.util.List;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 /**
  *
@@ -23,7 +22,9 @@ import static org.junit.Assert.fail;
 public class JoocTest {
 
   @Rule
-  public TemporaryFolder outputFolder = new TemporaryFolder();
+  public TemporaryFolder tmpFolder = new TemporaryFolder();
+  public File outputFolder = tmpFolder.newFolder("jangaroo-output");
+  public File apiOutputFolder = tmpFolder.newFolder("joo-api");
   private Jooc jooc;
   private JoocConfiguration config;
 
@@ -79,7 +80,9 @@ public class JoocTest {
     sourcepath.add(sourceDir);
     config.setSourcePath(sourcepath);
     config.setDebugMode(DebugMode.SOURCE);
-    config.setOutputDirectory(outputFolder.getRoot());
+    config.setOutputDirectory(outputFolder);
+    //noinspection ResultOfMethodCallIgnored
+    config.setApiOutputDirectory(apiOutputFolder);
     testLog.reset();
     jooc = new Jooc(config, testLog);
   }
@@ -98,13 +101,28 @@ public class JoocTest {
     config.addSourceFile(sourcefile);
     jooc.run();
 
-    File destFile = new File(outputFolder.getRoot(),"package1/WithStaticReference.js");
+    File destFile = new File(outputFolder,"package1/WithStaticReference.js");
     assertTrue(destFile.exists());
 
     String result = FileUtils.readFileToString(destFile);
     String expected = FileUtils.readFileToString(getFile("/expected/package1/WithStaticReference.js"));
     expected = expected.replace("@runtimeVersion", JoocProperties.getRuntimeVersion());
     expected = expected.replace("@version", JoocProperties.getVersion());
+    assertEquals("Result file not equal", expected, result);
+  }
+
+  @Test
+  public void testParameterInitializers() throws Exception {
+    File sourcefile = getFile("/package1/ParameterInitializers.as");
+    config.addSourceFile(sourcefile);
+    apiOutputFolder.mkdirs(); // NOSONAR
+    jooc.run();
+
+    File destFile = new File(apiOutputFolder,"package1/ParameterInitializers.as");
+    assertTrue(destFile.exists());
+
+    String result = FileUtils.readFileToString(destFile);
+    String expected = FileUtils.readFileToString(getFile("/expectedApi/package1/ParameterInitializers.as"));
     assertEquals("Result file not equal", expected, result);
   }
 

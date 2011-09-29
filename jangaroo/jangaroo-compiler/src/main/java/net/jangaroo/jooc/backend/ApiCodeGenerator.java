@@ -9,7 +9,6 @@ import net.jangaroo.jooc.ast.ArrayIndexExpr;
 import net.jangaroo.jooc.ast.ArrayLiteral;
 import net.jangaroo.jooc.ast.AsExpr;
 import net.jangaroo.jooc.ast.AssignmentOpExpr;
-import net.jangaroo.jooc.ast.AstVisitor;
 import net.jangaroo.jooc.ast.BlockStatement;
 import net.jangaroo.jooc.ast.BreakStatement;
 import net.jangaroo.jooc.ast.CaseStatement;
@@ -40,7 +39,6 @@ import net.jangaroo.jooc.ast.ImportDirective;
 import net.jangaroo.jooc.ast.InfixOpExpr;
 import net.jangaroo.jooc.ast.Initializer;
 import net.jangaroo.jooc.ast.LabeledStatement;
-import net.jangaroo.jooc.ast.LiteralExpr;
 import net.jangaroo.jooc.ast.NamespacedDeclaration;
 import net.jangaroo.jooc.ast.NamespacedIde;
 import net.jangaroo.jooc.ast.NewExpr;
@@ -98,10 +96,9 @@ public class ApiCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitInitializer(Initializer initializer) throws IOException {
-    if (initializer.getValue() instanceof LiteralExpr) {
+    if (initializer.getValue().isCompileTimeConstant()) {
       out.writeSymbol(initializer.getSymEq());
-      LiteralExpr literalExpr = (LiteralExpr) initializer.getValue();
-      out.writeSymbol(literalExpr.getValue());
+      initializer.getValue().visit(this);
     }
   }
 

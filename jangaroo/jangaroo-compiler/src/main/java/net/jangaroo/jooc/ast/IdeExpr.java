@@ -64,6 +64,15 @@ public class IdeExpr extends Expr {
   @Override
   public boolean isCompileTimeConstant() {
     IdeDeclaration ideDeclaration = getIde().getDeclaration(false);
+    // accept top-level get functions:
+    if (ideDeclaration instanceof FunctionDeclaration &&
+      ((FunctionDeclaration)ideDeclaration).isGetter()) {
+      AstNode parentDeclaration = ideDeclaration.getParentDeclaration();
+      if (parentDeclaration instanceof PackageDeclaration &&
+        "".equals(((PackageDeclaration)parentDeclaration).getName())) {
+        return true;
+      }
+    }
     // accept constant fields, not being defined in the current class (because these have to be initialized first):
     return ideDeclaration instanceof VariableDeclaration &&
             ((VariableDeclaration) ideDeclaration).isCompileTimeConstant() &&
