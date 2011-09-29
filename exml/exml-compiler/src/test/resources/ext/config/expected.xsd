@@ -15,6 +15,13 @@
   </xs:complexType>
   <xs:element id='ext.Action' name='action' type='ec:ext.config.action'>
   </xs:element>
+  <xs:complexType name='ext.config.agridcolumn'>
+        <xs:sequence>
+        </xs:sequence>
+        <xs:anyAttribute namespace="exml:untyped" processContents="skip"/>
+  </xs:complexType>
+  <xs:element id='ext.AGridColumn' name='agridcolumn' type='ec:ext.config.agridcolumn'>
+  </xs:element>
   <xs:complexType name='ext.config.alayout'>
         <xs:sequence>
         </xs:sequence>

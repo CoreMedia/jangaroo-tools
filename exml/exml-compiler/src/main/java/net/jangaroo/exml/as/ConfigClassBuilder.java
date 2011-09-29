@@ -127,9 +127,9 @@ public class ConfigClassBuilder extends AstVisitorBase {
               configClass.setComponentClassName(parameterValue);
             } else {
               try {
-                configClass.setType(ConfigClassType.fromExtTypeAttribute(parameterName));
+                configClass.setType(ConfigClassType.fromExtConfigAttribute(parameterName));
               } catch (IllegalArgumentException e) {
-                throw new CompilerError(optNameIde.getSymbol(), "'" + parameterName + "' is not a valid parameter of an [" + EXT_CONFIG_META_NAME + "] annotation (only 'xtype', 'ptype', 'type' are allowed).", e);
+                throw new CompilerError(optNameIde.getSymbol(), "'" + parameterName + "' is not a valid parameter of an [" + EXT_CONFIG_META_NAME + "] annotation (only 'xtype', 'ptype', 'type', 'gctype' are allowed).", e);
               }
               if (parameterValue == null) {
                 // default: use fully qualified config class name as the xtype/ptype/type

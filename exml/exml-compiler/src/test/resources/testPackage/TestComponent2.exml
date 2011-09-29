@@ -6,5 +6,8 @@
     <items>
       <test:testComponent2 propertyThree="3"/>
     </items>
+    <columns>
+      <agridcolumn/>
+    </columns>
   </test:testComponent>
 </exml:component>

@@ -10,7 +10,7 @@ import static org.junit.Assert.assertEquals;
 public class ConfigClassTypeTest {
    @Test
     public void testPlugin() {
-     ConfigClassType plugin = ConfigClassType.fromExtTypeAttribute("ptype");
+     ConfigClassType plugin = ConfigClassType.fromExtConfigAttribute("ptype");
      assertEquals(ConfigClassType.PTYPE, plugin);
      assertEquals("ptype", plugin.getExtTypeAttribute());
    }
