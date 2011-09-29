@@ -135,11 +135,11 @@
         prototype["super$" + inheritanceLevel] = superConstructor;
         var privateStatics = {};
         var members = memberFactory(privateStatics);
-        var staticInitializer;
+        var staticInitializers = [];
         for (var i = 0; i < members.length; ++i) {
           var memberDeclaration = members[i];
           switch (typeof memberDeclaration) {
-            case "function": staticInitializer = memberDeclaration; break;
+            case "function": staticInitializers.push(memberDeclaration); break;
             case "string":
               var isStatic = memberDeclaration.match(/\bstatic\b/);
               var isPrivate = memberDeclaration.match(/\bprivate\b/);
@@ -160,8 +160,8 @@
               }
           }
         }
-        if (staticInitializer) {
-          staticInitializer();
+        for (var s = 0; s < staticInitializers.length; s++) {
+          staticInitializers[s]();
         }
       },
       init: function() {

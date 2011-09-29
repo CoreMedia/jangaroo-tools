@@ -20,7 +20,8 @@ package joo {
 public class JooClassDeclaration extends NativeClassDeclaration {
 
   public static const STATE_EVENT_AFTER_INIT_MEMBERS:String = 'afterInitMembers';
-  private static const STATE_BY_EVENT:Object = {
+  private static var STATE_BY_EVENT:Object;
+  STATE_BY_EVENT = {
     'afterInitMembers': STATE_INITIALIZED
   };
 
