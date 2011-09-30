@@ -3,19 +3,19 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>net.jangaroo</groupId>
   <artifactId>jangaroo-compiler-itests</artifactId>
-  <version>0.8.7-SNAPSHOT</version>
+  <version>0.8.7</version>
   <packaging>jar</packaging>
   <dependencies>
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-runtime</artifactId>
-      <version>0.8.7-SNAPSHOT</version>
+      <version>0.8.7</version>
       <type>jar</type>
     </dependency>
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-compiler</artifactId>
-      <version>0.8.7-SNAPSHOT</version>
+      <version>0.8.7</version>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
@@ -30,7 +30,7 @@
   <parent>
     <groupId>net.jangaroo</groupId>
     <artifactId>jangaroo-parent</artifactId>
-    <version>0.8.7-SNAPSHOT</version>
+    <version>0.8.7</version>
     <relativePath>../../jangaroo-parent/pom.xml</relativePath>
   </parent>
   <build>
