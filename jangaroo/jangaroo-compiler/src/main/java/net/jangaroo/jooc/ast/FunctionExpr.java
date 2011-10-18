@@ -48,7 +48,6 @@ public class FunctionExpr extends Expr {
   private FunctionDeclaration functionDeclaration; // null for function expressions
   private boolean thisDefined = false;
   private IdeDeclaration classDeclaration;
-  private boolean thisUsed;
 
   public FunctionExpr(FunctionDeclaration functionDeclaration, JooSymbol symFunction, Ide ide, JooSymbol lParen,
                       Parameters params, JooSymbol rParen, TypeRelation optTypeRelation, BlockStatement optBody) {
@@ -176,23 +175,16 @@ public class FunctionExpr extends Expr {
     return symFunction;
   }
 
-  public boolean notifyThisUsed(Scope scope) {
-    if (!thisUsed && (functionDeclaration == null || !functionDeclaration.isClassMember())) {
+  boolean notifyThisUsed(Scope scope) {
+    if (functionDeclaration == null || !functionDeclaration.isClassMember()) {
       FunctionDeclaration methodDeclaration = scope.getMethodDeclaration();
       // if "this" is used inside non-static method, remember that:
       if (methodDeclaration != null && !methodDeclaration.isStatic()) {
-        thisUsed = true;
-        methodDeclaration.getBody().addBlockStartCodeGenerator(new DeclareThisDollarCodeGenerator());
+        methodDeclaration.aliasThis();
         return true;
       }
     }
-    return thisUsed;
+    return false;
   }
 
-  private static class DeclareThisDollarCodeGenerator implements CodeGenerator {
-    @Override
-    public void generate(final JsWriter out) throws IOException {
-      out.write("var this$=this;");
-    }
-  }
 }

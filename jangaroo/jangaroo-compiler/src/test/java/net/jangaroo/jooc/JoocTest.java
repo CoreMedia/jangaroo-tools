@@ -9,6 +9,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
@@ -97,15 +98,24 @@ public class JoocTest {
 
   @Test
   public void testStaticReference() throws Exception {
-    File sourcefile = getFile("/package1/WithStaticReference.as");
+    assertCompilationResult("package1/WithStaticReference");
+  }
+
+  @Test
+  public void testNoMultipleThisAliases() throws Exception {
+    assertCompilationResult("package1/NoMultipleThisAliases");
+  }
+
+  private void assertCompilationResult(String relativeClassFileName) throws URISyntaxException, IOException {
+    File sourcefile = getFile("/" + relativeClassFileName + ".as");
     config.addSourceFile(sourcefile);
     jooc.run();
 
-    File destFile = new File(outputFolder,"package1/WithStaticReference.js");
+    File destFile = new File(outputFolder, relativeClassFileName + ".js");
     assertTrue(destFile.exists());
 
     String result = FileUtils.readFileToString(destFile);
-    String expected = FileUtils.readFileToString(getFile("/expected/package1/WithStaticReference.js"));
+    String expected = FileUtils.readFileToString(getFile("/expected/" + relativeClassFileName + ".js"));
     expected = expected.replace("@runtimeVersion", JoocProperties.getRuntimeVersion());
     expected = expected.replace("@version", JoocProperties.getVersion());
     assertEquals("Result file not equal", expected, result);

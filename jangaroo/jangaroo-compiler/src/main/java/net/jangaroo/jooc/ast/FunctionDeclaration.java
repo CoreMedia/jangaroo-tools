@@ -15,8 +15,10 @@
 
 package net.jangaroo.jooc.ast;
 
+import net.jangaroo.jooc.CodeGenerator;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
+import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.SyntacticKeywords;
 
@@ -35,6 +37,7 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
 
   private boolean isConstructor = false;
   private boolean containsSuperConstructorCall = false;
+  private boolean thisAliased;
 
   private static final int DEFAULT_ALLOWED_METHOD_MODIFIERS = // NOSONAR there is no simpler way to tell it; we need all these flags
           MODIFIER_OVERRIDE | MODIFIER_ABSTRACT | MODIFIER_VIRTUAL | MODIFIER_FINAL | MODIFIERS_SCOPE | MODIFIER_STATIC | MODIFIER_NATIVE;
@@ -177,6 +180,20 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
     super.analyze(parentNode); // computes modifiers
     fun.analyze(this);
   }
+
+  void aliasThis() {
+    if (!thisAliased) {
+      thisAliased = true;
+      getBody().addBlockStartCodeGenerator(ALIAS_THIS_CODE_GENERATOR);
+    }
+  }
+
+  private static final CodeGenerator ALIAS_THIS_CODE_GENERATOR = new CodeGenerator() {
+    @Override
+    public void generate(JsWriter out) throws IOException {
+      out.write("var this$=this;");
+    }
+  };
 
   @Override
   protected int getAllowedModifiers() {
