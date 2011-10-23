@@ -6,6 +6,7 @@ import net.jangaroo.utils.CompilerUtils;
 import org.kohsuke.args4j.Option;
 
 import java.io.File;
+import java.io.IOException;
 
 public class ExmlConfiguration extends FileLocations {
   private String configClassPackage;
@@ -33,7 +34,18 @@ public class ExmlConfiguration extends FileLocations {
   public File computeConfigClassTarget(String configClassName) {
     return CompilerUtils.fileFromQName(getConfigClassPackage(), configClassName, getOutputDirectory(), Jooc.AS_SUFFIX);
   }
-  
+
+  @SuppressWarnings({"UnusedDeclaration" })
+  public File computeGeneratedConfigClassFile(File exmlFile) {
+    return computeConfigClassTarget(CompilerUtils.uncapitalize(CompilerUtils.removeExtension(exmlFile.getName())));
+  }
+
+  @SuppressWarnings({"UnusedDeclaration" })
+  public File computeGeneratedComponentClassFile(File exmlFile) throws IOException {
+    String qName = CompilerUtils.qNameFromFile(findSourceDir(exmlFile), exmlFile);
+    return CompilerUtils.fileFromQName(qName, getOutputDirectory(), Jooc.AS_SUFFIX);
+  }
+
   @Override
   public String toString() {
     return "ExmlConfiguration{" +
