@@ -1,12 +1,9 @@
 package net.jangaroo.exml.generator;
 
-import net.jangaroo.exml.ExmlcException;
 import net.jangaroo.exml.test.AbstractExmlTest;
-import net.jangaroo.jooc.CompilerError;
 import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.experimental.categories.Categories;
 
 import java.io.File;
 import java.io.StringWriter;

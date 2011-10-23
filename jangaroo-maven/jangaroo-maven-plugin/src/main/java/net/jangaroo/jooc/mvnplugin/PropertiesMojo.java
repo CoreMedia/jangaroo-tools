@@ -3,9 +3,9 @@
  */
 package net.jangaroo.jooc.mvnplugin;
 
-import net.jangaroo.properties.PropcException;
-import net.jangaroo.properties.PropertyClassGenerator;
 import net.jangaroo.utils.FileLocations;
+import net.jangaroo.properties.api.PropcException;
+import net.jangaroo.properties.PropertyClassGenerator;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;

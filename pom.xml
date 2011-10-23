@@ -3,11 +3,11 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>net.jangaroo</groupId>
   <artifactId>jangaroo-tools</artifactId>
-  <version>0.8.8-SNAPSHOT</version>
+  <version>0.9.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <modules>
     <module>jangaroo-parent</module>
-    <module>jangaroo-utils</module>
+    <module>jangaroo-tools-api</module>
     <module>jangaroo</module>
     <module>exml</module>
     <module>jangaroo-maven</module>

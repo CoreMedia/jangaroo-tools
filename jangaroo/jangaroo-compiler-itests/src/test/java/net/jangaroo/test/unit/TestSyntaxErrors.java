@@ -15,7 +15,7 @@
 
 package net.jangaroo.test.unit;
 
-import net.jangaroo.jooc.Jooc;
+import net.jangaroo.jooc.api.Jooc;
 import net.jangaroo.test.JooTestCase;
 
 import java.io.File;

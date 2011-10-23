@@ -1,6 +1,8 @@
 package net.jangaroo.jooc;
 
+import net.jangaroo.jooc.api.CompileLog;
 import net.jangaroo.jooc.config.DebugMode;
+import net.jangaroo.jooc.api.FilePosition;
 import net.jangaroo.jooc.config.JoocConfiguration;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
@@ -37,10 +39,10 @@ public class JoocTest {
     private List<String> errors = new ArrayList<String>();
 
     @Override
-    public void error(JooSymbol sym, String msg) {
+    public void error(FilePosition position, String msg) {
       hasErrors = true;
       errors.add(msg);
-      System.out.println(sym.getLine() + ";" + sym.getColumn() + ": '" + msg);
+      System.out.println(position.getLine() + ";" + position.getColumn() + ": '" + msg);
     }
 
     @Override
@@ -50,7 +52,7 @@ public class JoocTest {
     }
 
     @Override
-    public void warning(JooSymbol sym, String msg) {
+    public void warning(FilePosition position, String msg) {
       System.out.println(msg);
     }
 
@@ -125,6 +127,7 @@ public class JoocTest {
   public void testParameterInitializers() throws Exception {
     File sourcefile = getFile("/package1/ParameterInitializers.as");
     config.addSourceFile(sourcefile);
+    //noinspection ResultOfMethodCallIgnored
     apiOutputFolder.mkdirs(); // NOSONAR
     jooc.run();
 

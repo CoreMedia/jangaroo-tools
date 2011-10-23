@@ -15,13 +15,14 @@
 
 package net.jangaroo.jooc;
 
+import net.jangaroo.jooc.api.CompileLog;
 import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.backend.CompilationUnitSink;
 import net.jangaroo.jooc.backend.CompilationUnitSinkFactory;
 import net.jangaroo.jooc.backend.MergedOutputCompilationUnitSinkFactory;
 import net.jangaroo.jooc.backend.SingleFileCompilationUnitSinkFactory;
-import net.jangaroo.jooc.config.CommandLineParseException;
-import net.jangaroo.jooc.config.JoocCommandLineParser;
+import net.jangaroo.jooc.cli.CommandLineParseException;
+import net.jangaroo.jooc.cli.JoocCommandLineParser;
 import net.jangaroo.jooc.config.JoocConfiguration;
 import net.jangaroo.jooc.input.FileInputSource;
 import net.jangaroo.jooc.input.InputSource;
@@ -38,23 +39,16 @@ import java.util.List;
  * @author Andreas Gawecki
  * @author Frank Wienberg
  */
-public class Jooc extends JangarooParser {
-
-  public static final int RESULT_CODE_OK = 0;
-  public static final int RESULT_CODE_COMPILATION_FAILED = 1;
-  public static final int RESULT_CODE_INTERNAL_COMPILER_ERROR = 2;
-  public static final int RESULT_CODE_UNRECOGNIZED_OPTION = 3;
-  public static final int RESULT_CODE_MISSING_OPTION_ARGUMENT = 4;
-  public static final int RESULT_CODE_ILLEGAL_OPTION_VALUE = 5;
-
-  public static final String INPUT_FILE_SUFFIX = AS_SUFFIX;
-  public static final String OUTPUT_FILE_SUFFIX = ".js";
+public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
 
   public static final String CLASS_LOADER_NAME = "classLoader";
   public static final String CLASS_LOADER_PACKAGE_NAME = "joo";
   public static final String CLASS_LOADER_FULLY_QUALIFIED_NAME = CLASS_LOADER_PACKAGE_NAME + "." + CLASS_LOADER_NAME;
 
   private List<CompilationUnit> compileQueue = new ArrayList<CompilationUnit>();
+
+  public Jooc() {
+  }
 
   public Jooc(JoocConfiguration config) {
     this(config, new StdOutCompileLog());
@@ -68,6 +62,12 @@ public class Jooc extends JangarooParser {
     return (JoocConfiguration) super.getConfig();
   }
 
+  @Override
+  public void setConfig(JoocConfiguration config) {
+    super.setConfig(config);
+  }
+
+  @Override
   public int run() {
     try {
       return run1();
