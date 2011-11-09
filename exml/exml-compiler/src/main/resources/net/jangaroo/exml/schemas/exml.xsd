@@ -110,4 +110,12 @@
   <xs:element name="component" type="exml:component"/>
   <xs:element name="object" type="exml:object"/>
 
+  <xs:attribute name="baseClass" type="xs:string">
+    <xs:annotation>
+      <xs:documentation>
+        The name of the base class of this component. The base class has to have the same superclass as this component.
+      </xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
+
 </xs:schema>

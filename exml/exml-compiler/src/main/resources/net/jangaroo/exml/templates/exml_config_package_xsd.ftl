@@ -44,7 +44,7 @@
           </#if>
         </xs:attribute>
         </#list>
-        <xs:anyAttribute namespace="exml:untyped" processContents="skip"/>
+        <xs:anyAttribute namespace="http://www.jangaroo.net/exml/0.8 exml:untyped" processContents="skip"/>
     <#if configClass.superClass??>
       </xs:extension>
     </xs:complexContent>
