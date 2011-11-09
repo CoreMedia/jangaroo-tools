@@ -1,7 +1,7 @@
 package net.jangaroo.exml.parser;
 
-import net.jangaroo.exml.ExmlConstants;
-import net.jangaroo.exml.ExmlcException;
+import net.jangaroo.exml.api.ExmlcException;
+import net.jangaroo.exml.compiler.Exmlc;
 import net.jangaroo.exml.model.ConfigAttribute;
 import net.jangaroo.exml.model.ConfigClass;
 import net.jangaroo.utils.CharacterRecordingHandler;
@@ -32,11 +32,11 @@ public class ExmlMetadataHandler extends CharacterRecordingHandler {
   }
 
   public void startElement(String uri, String localName, String qName, Attributes atts) throws SAXException {
-    if (ExmlConstants.isExmlNamespace(uri)) {
-      if (ExmlConstants.EXML_CFG_NODE_NAME.equals(localName)) {
+    if (Exmlc.isExmlNamespace(uri)) {
+      if (Exmlc.EXML_CFG_NODE_NAME.equals(localName)) {
         //handle config elements
-        configClass.addCfg(new ConfigAttribute(atts.getValue(ExmlConstants.EXML_CFG_NAME_ATTRIBUTE), atts.getValue(ExmlConstants.EXML_CFG_TYPE_ATTRIBUTE), null));
-      } else if (ExmlConstants.EXML_DESCRIPTION_NODE_NAME.equals(localName)) {
+        configClass.addCfg(new ConfigAttribute(atts.getValue(Exmlc.EXML_CFG_NAME_ATTRIBUTE), atts.getValue(Exmlc.EXML_CFG_TYPE_ATTRIBUTE), null));
+      } else if (Exmlc.EXML_DESCRIPTION_NODE_NAME.equals(localName)) {
         if (isLastInPathComponent() || isLastInPathConfig()) {
           // start recording characters of the description:
           startRecordingCharacters();
@@ -47,7 +47,7 @@ public class ExmlMetadataHandler extends CharacterRecordingHandler {
         throw new ExmlcException("root node of EXML contained more than one component definition", locator.getLineNumber(), locator.getColumnNumber());
       }
 
-      String thePackage = ExmlConstants.parsePackageFromNamespace(uri);
+      String thePackage = Exmlc.parsePackageFromNamespace(uri);
       if (thePackage == null) {
         throw new ExmlcException("namespace '" + uri + "' of superclass element in EXML file does not denote a config package", locator.getLineNumber(), locator.getColumnNumber());
       }
@@ -58,19 +58,19 @@ public class ExmlMetadataHandler extends CharacterRecordingHandler {
 
   private boolean isLastInPathComponent() {
     QName parent = elementPath.peek();
-    return ExmlConstants.isExmlNamespace(parent.getNamespaceURI()) && ExmlConstants.EXML_COMPONENT_NODE_NAME.equals(parent.getLocalPart());
+    return Exmlc.isExmlNamespace(parent.getNamespaceURI()) && Exmlc.EXML_COMPONENT_NODE_NAME.equals(parent.getLocalPart());
   }
 
   private boolean isLastInPathConfig() {
     QName parent = elementPath.peek();
-    return ExmlConstants.isExmlNamespace(parent.getNamespaceURI()) && ExmlConstants.EXML_CFG_NODE_NAME.equals(parent.getLocalPart());
+    return Exmlc.isExmlNamespace(parent.getNamespaceURI()) && Exmlc.EXML_CFG_NODE_NAME.equals(parent.getLocalPart());
   }
 
   @Override
   public void endElement(String uri, String localName, String qName) throws SAXException {
-    if (ExmlConstants.isExmlNamespace(uri)) {
+    if (Exmlc.isExmlNamespace(uri)) {
       elementPath.pop();
-      if (ExmlConstants.EXML_DESCRIPTION_NODE_NAME.equals(localName)) {
+      if (Exmlc.EXML_DESCRIPTION_NODE_NAME.equals(localName)) {
         String characters = popRecordedCharacters();
         if (characters != null) {
           if (isLastInPathConfig()) {

@@ -1,6 +1,5 @@
 package net.jangaroo.jooc.mvnplugin.util;
 
-import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.mvnplugin.Types;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.MojoExecutionException;

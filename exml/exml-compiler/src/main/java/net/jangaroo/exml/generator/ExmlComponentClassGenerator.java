@@ -5,10 +5,10 @@ import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapper;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
-import net.jangaroo.exml.ExmlConstants;
 import net.jangaroo.exml.config.ExmlConfiguration;
+import net.jangaroo.exml.api.Exmlc;
 import net.jangaroo.exml.model.ExmlModel;
-import net.jangaroo.jooc.JangarooParser;
+import net.jangaroo.jooc.api.Jooc;
 import net.jangaroo.utils.CompilerUtils;
 
 import java.io.File;
@@ -29,7 +29,7 @@ public final class ExmlComponentClassGenerator {
   }
 
   public File computeComponentClassTarget(ExmlModel model) {
-    return CompilerUtils.fileFromQName(model.getPackageName(), model.getClassName(), config.getOutputDirectory(), JangarooParser.AS_SUFFIX);
+    return CompilerUtils.fileFromQName(model.getPackageName(), model.getClassName(), config.getOutputDirectory(), Jooc.AS_SUFFIX);
   }
 
   public void generateClass(final ExmlModel model, final Writer output) throws IOException, TemplateException {
@@ -39,7 +39,7 @@ public final class ExmlComponentClassGenerator {
     Template template = cfg.getTemplate("/net/jangaroo/exml/templates/exml_component_class.ftl");
     ExmlComponentClassModel exmlComponentClassModel = new ExmlComponentClassModel(model, config.getConfigClassPackage());
     Environment env = template.createProcessingEnvironment(exmlComponentClassModel, output);
-    env.setOutputEncoding(ExmlConstants.OUTPUT_CHARSET);
+    env.setOutputEncoding(Exmlc.OUTPUT_CHARSET);
     env.process();
   }
 
@@ -48,7 +48,7 @@ public final class ExmlComponentClassGenerator {
     Writer writer = null;
     try {
       result.getParentFile().mkdirs();  // NOSONAR
-      writer = new OutputStreamWriter(new FileOutputStream(result), ExmlConstants.OUTPUT_CHARSET);
+      writer = new OutputStreamWriter(new FileOutputStream(result), Exmlc.OUTPUT_CHARSET);
       generateClass(model, writer);
       return result;
     } finally {

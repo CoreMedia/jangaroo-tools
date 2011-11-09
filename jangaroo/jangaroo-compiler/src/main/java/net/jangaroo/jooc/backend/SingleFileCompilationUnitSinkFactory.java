@@ -68,7 +68,7 @@ public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUni
     createOutputDirs(outFile);
 
     return new CompilationUnitSink() {
-      public void writeOutput(CompilationUnit compilationUnit) {
+      public File writeOutput(CompilationUnit compilationUnit) {
         if (verbose) {
           System.out.println("writing file: '" + outFile.getAbsolutePath() + "'"); // NOSONAR this is a cmd line tool
         }
@@ -89,12 +89,13 @@ public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUni
           } catch (IOException e) {
             //noinspection ResultOfMethodCallIgnored
             outFile.delete(); // NOSONAR
-            throw Jooc.error("error writing file: '" + outFile.getAbsolutePath() + "'", e);
+            throw Jooc.error("error writing file: '" + outFile.getAbsolutePath() + "'", outFile, e);
           }
         } catch (IOException e) {
-          throw Jooc.error("cannot open output file for writing: '" + outFile.getAbsolutePath() + "'", e);
+          throw Jooc.error("cannot open output file for writing: '" + outFile.getAbsolutePath() + "'", outFile, e);
         }
 
+        return outFile;
       }
     };
   }

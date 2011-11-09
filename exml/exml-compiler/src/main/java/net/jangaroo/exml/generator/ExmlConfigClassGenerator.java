@@ -5,11 +5,8 @@ import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapper;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
-import net.jangaroo.exml.ExmlConstants;
-import net.jangaroo.exml.config.ExmlConfiguration;
+import net.jangaroo.exml.api.Exmlc;
 import net.jangaroo.exml.model.ConfigClass;
-import net.jangaroo.jooc.JangarooParser;
-import net.jangaroo.utils.CompilerUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -22,22 +19,20 @@ import java.io.Writer;
  */
 public final class ExmlConfigClassGenerator {
 
-  private ExmlConfiguration config;
-
-  public ExmlConfigClassGenerator(ExmlConfiguration config) {
-    this.config = config;
+  public ExmlConfigClassGenerator() {
   }
 
   public void generateClass(final ConfigClass configClass, File result) throws IOException, TemplateException {
     // Maybe even the directory does not exist.
     File targetPackageFolder = result.getAbsoluteFile().getParentFile();
     if(!targetPackageFolder.exists()) {
+      //noinspection ResultOfMethodCallIgnored
       targetPackageFolder.mkdirs(); // NOSONAR
     }
 
     Writer writer = null;
     try {
-      writer = new OutputStreamWriter(new FileOutputStream(result), ExmlConstants.OUTPUT_CHARSET);
+      writer = new OutputStreamWriter(new FileOutputStream(result), Exmlc.OUTPUT_CHARSET);
       generateClass(configClass, writer);
     } finally {
       try {
@@ -56,16 +51,12 @@ public final class ExmlConfigClassGenerator {
     cfg.setObjectWrapper(new DefaultObjectWrapper());
     Template template = cfg.getTemplate("/net/jangaroo/exml/templates/exml_config_class.ftl");
     Environment env = template.createProcessingEnvironment(configClass, output);
-    env.setOutputEncoding(ExmlConstants.OUTPUT_CHARSET);
+    env.setOutputEncoding(Exmlc.OUTPUT_CHARSET);
     env.process();
   }
 
   public boolean mustGenerateConfigClass(File source, File targetFile) {
     return !targetFile.exists() || targetFile.lastModified() < source.lastModified();
-  }
-
-  public File computeConfigClassTarget(String configClassName) {
-    return CompilerUtils.fileFromQName(config.getConfigClassPackage(), configClassName, config.getOutputDirectory(), JangarooParser.AS_SUFFIX);
   }
 
 }

@@ -1,10 +1,9 @@
 package net.jangaroo.exml.mojo;
 
-import net.jangaroo.exml.ExmlConstants;
-import net.jangaroo.exml.ExmlcException;
-import net.jangaroo.exml.compiler.Exmlc;
+import net.jangaroo.exml.api.ExmlcException;
 import net.jangaroo.exml.config.ExmlConfiguration;
-import net.jangaroo.jooc.JangarooParser;
+import net.jangaroo.exml.compiler.Exmlc;
+import net.jangaroo.jooc.api.Jooc;
 import net.jangaroo.jooc.mvnplugin.JangarooMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -113,7 +112,7 @@ public abstract class AbstractExmlMojo extends JangarooMojo {
     } catch (IOException e) {
       throw new MojoExecutionException("could not determine source directory", e);
     }
-    exmlConfiguration.setSourceFiles(getMavenPluginHelper().computeStaleSources(sourcePath, includes, excludes, gSourcesDirectory, ExmlConstants.EXML_SUFFIX, JangarooParser.AS_SUFFIX, staleMillis));
+    exmlConfiguration.setSourceFiles(getMavenPluginHelper().computeStaleSources(sourcePath, includes, excludes, gSourcesDirectory, Exmlc.EXML_SUFFIX, Jooc.AS_SUFFIX, staleMillis));
 
     Exmlc exmlc;
     try {

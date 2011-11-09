@@ -2,6 +2,7 @@ package net.jangaroo.jooc.mvnplugin;
 
 import net.jangaroo.jooc.AbstractCompileLog;
 import net.jangaroo.jooc.Jooc;
+import net.jangaroo.jooc.api.CompilationResult;
 import net.jangaroo.jooc.config.DebugMode;
 import net.jangaroo.jooc.config.JoocConfiguration;
 import net.jangaroo.jooc.config.SemicolonInsertionMode;
@@ -211,7 +212,7 @@ public abstract class AbstractCompilerMojo extends JangarooMojo {
     }
 
     int result = compile(configuration);
-    boolean compilationError = (result != Jooc.RESULT_CODE_OK);
+    boolean compilationError = (result != CompilationResult.RESULT_CODE_OK);
 
     if (!compilationError) {
       // for now, always set debug mode to "false" for concatenated file:
@@ -219,11 +220,11 @@ public abstract class AbstractCompilerMojo extends JangarooMojo {
       configuration.setOutputDirectory(getTempClassesOutputDirectory());
       configuration.setApiOutputDirectory(null);
       result = compile(configuration);
-      if (result == Jooc.RESULT_CODE_OK) {
+      if (result == CompilationResult.RESULT_CODE_OK) {
         buildOutputFile(getTempClassesOutputDirectory(), getModuleClassesJsFile());
       }
 
-      compilationError = (result != Jooc.RESULT_CODE_OK);
+      compilationError = (result != CompilationResult.RESULT_CODE_OK);
     }
 
     List<CompilerError> messages = Collections.emptyList();
@@ -324,7 +325,7 @@ public abstract class AbstractCompilerMojo extends JangarooMojo {
         log.warn(msg);
       }
     });
-    return jooc.run();
+    return jooc.run().getResultCode();
   }
 
   private List<File> computeStaleSources(int staleMillis) throws MojoExecutionException {

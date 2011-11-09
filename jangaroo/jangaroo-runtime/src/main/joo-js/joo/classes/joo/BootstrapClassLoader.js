@@ -7,7 +7,7 @@
       if (!object || typeof object !== "object") {
         throw new TypeError();
       }
-      return object.__proto__ || target.constructor['superclass'] || object.constructor.prototype; // this is the best we can do...
+      return object.__proto__ || object.constructor['superclass'] || object.constructor.prototype; // this is the best we can do...
     }
   }
   // defined here to avoid global name space pollution and unnecessary closures:

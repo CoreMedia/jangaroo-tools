@@ -15,13 +15,15 @@
 
 package net.jangaroo.jooc;
 
+import net.jangaroo.jooc.api.CompilationResult;
+import net.jangaroo.jooc.api.CompileLog;
 import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.backend.CompilationUnitSink;
 import net.jangaroo.jooc.backend.CompilationUnitSinkFactory;
 import net.jangaroo.jooc.backend.MergedOutputCompilationUnitSinkFactory;
 import net.jangaroo.jooc.backend.SingleFileCompilationUnitSinkFactory;
-import net.jangaroo.jooc.config.CommandLineParseException;
-import net.jangaroo.jooc.config.JoocCommandLineParser;
+import net.jangaroo.jooc.cli.CommandLineParseException;
+import net.jangaroo.jooc.cli.JoocCommandLineParser;
 import net.jangaroo.jooc.config.JoocConfiguration;
 import net.jangaroo.jooc.input.FileInputSource;
 import net.jangaroo.jooc.input.InputSource;
@@ -30,6 +32,7 @@ import net.jangaroo.jooc.input.PathInputSource;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -38,23 +41,16 @@ import java.util.List;
  * @author Andreas Gawecki
  * @author Frank Wienberg
  */
-public class Jooc extends JangarooParser {
-
-  public static final int RESULT_CODE_OK = 0;
-  public static final int RESULT_CODE_COMPILATION_FAILED = 1;
-  public static final int RESULT_CODE_INTERNAL_COMPILER_ERROR = 2;
-  public static final int RESULT_CODE_UNRECOGNIZED_OPTION = 3;
-  public static final int RESULT_CODE_MISSING_OPTION_ARGUMENT = 4;
-  public static final int RESULT_CODE_ILLEGAL_OPTION_VALUE = 5;
-
-  public static final String INPUT_FILE_SUFFIX = AS_SUFFIX;
-  public static final String OUTPUT_FILE_SUFFIX = ".js";
+public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
 
   public static final String CLASS_LOADER_NAME = "classLoader";
   public static final String CLASS_LOADER_PACKAGE_NAME = "joo";
   public static final String CLASS_LOADER_FULLY_QUALIFIED_NAME = CLASS_LOADER_PACKAGE_NAME + "." + CLASS_LOADER_NAME;
 
   private List<CompilationUnit> compileQueue = new ArrayList<CompilationUnit>();
+
+  public Jooc() {
+  }
 
   public Jooc(JoocConfiguration config) {
     this(config, new StdOutCompileLog());
@@ -68,7 +64,13 @@ public class Jooc extends JangarooParser {
     return (JoocConfiguration) super.getConfig();
   }
 
-  public int run() {
+  @Override
+  public void setConfig(JoocConfiguration config) {
+    super.setConfig(config);
+  }
+
+  @Override
+  public CompilationResult run() {
     try {
       return run1();
     } catch (CompilerError e) {
@@ -77,14 +79,14 @@ public class Jooc extends JangarooParser {
       } else {
         log.error(e.getMessage());
       }
-      return RESULT_CODE_COMPILATION_FAILED;
+      return new CompilationResultImpl(CompilationResult.RESULT_CODE_COMPILATION_FAILED);
     } catch (Exception e) {
       log.error(e.getMessage());
-      return RESULT_CODE_INTERNAL_COMPILER_ERROR;
+      return new CompilationResultImpl(CompilationResult.RESULT_CODE_INTERNAL_COMPILER_ERROR);
     }
   }
 
-  private int run1() {
+  private CompilationResult run1() {
     InputSource sourcePathInputSource;
     InputSource classPathInputSource;
     try {
@@ -96,6 +98,7 @@ public class Jooc extends JangarooParser {
 
     setUp(sourcePathInputSource, classPathInputSource);
 
+    HashMap<File, File> outputFileMap = new HashMap<File, File>();
     try {
       for (File sourceFile : getConfig().getSourceFiles()) {
         processSource(sourceFile);
@@ -108,28 +111,31 @@ public class Jooc extends JangarooParser {
       }
       for (CompilationUnit unit : compileQueue) {
         unit.analyze(null);
-        writeOutput(unit, codeSinkFactory, getConfig().isVerbose());
+        File sourceFile = ((FileInputSource)unit.getSource()).getFile();
+        File outputFile = writeOutput(sourceFile, unit, codeSinkFactory, getConfig().isVerbose());
+        outputFileMap.put(sourceFile, outputFile);
         if (getConfig().isGenerateApi()) {
-          writeOutput(unit, apiSinkFactory, getConfig().isVerbose());
+          writeOutput(sourceFile, unit, apiSinkFactory, getConfig().isVerbose());
         }
       }
+      int result = log.hasErrors() ? CompilationResult.RESULT_CODE_COMPILATION_FAILED : CompilationResult.RESULT_CODE_OK;
+      return new CompilationResultImpl(result, outputFileMap);
     } catch (IOException e) {
       throw new CompilerError("IO Exception occurred", e);
+    } finally {
+      tearDown();
     }
-    int result = log.hasErrors() ? 1 : 0;
-    tearDown();
-    return result;
   }
 
-  public void writeOutput(CompilationUnit compilationUnit,
+  public File writeOutput(File sourceFile,
+                          CompilationUnit compilationUnit,
                           CompilationUnitSinkFactory writerFactory,
                           boolean verbose) throws CompilerError {
-    File sourceFile = ((FileInputSource) compilationUnit.getSource()).getFile();
     CompilationUnitSink sink = writerFactory.createSink(
             compilationUnit.getPackageDeclaration(), compilationUnit.getPrimaryDeclaration(),
             sourceFile, verbose);
 
-    sink.writeOutput(compilationUnit);
+    return sink.writeOutput(compilationUnit);
   }
 
   private CompilationUnitSinkFactory createSinkFactory(JoocConfiguration config, final boolean generateActionScriptApi) {
@@ -149,17 +155,17 @@ public class Jooc extends JangarooParser {
 
   public static String getResultCodeDescription(int resultCode) {
     switch (resultCode) {
-      case RESULT_CODE_OK:
+      case CompilationResult.RESULT_CODE_OK:
         return "ok";
-      case RESULT_CODE_COMPILATION_FAILED:
+      case CompilationResult.RESULT_CODE_COMPILATION_FAILED:
         return "compilation failed";
-      case RESULT_CODE_INTERNAL_COMPILER_ERROR:
+      case CompilationResult.RESULT_CODE_INTERNAL_COMPILER_ERROR:
         return "internal compiler error";
-      case RESULT_CODE_UNRECOGNIZED_OPTION:
+      case CompilationResult.RESULT_CODE_UNRECOGNIZED_OPTION:
         return "unrecognized option";
-      case RESULT_CODE_MISSING_OPTION_ARGUMENT:
+      case CompilationResult.RESULT_CODE_MISSING_OPTION_ARGUMENT:
         return "missing option argument";
-      case RESULT_CODE_ILLEGAL_OPTION_VALUE:
+      case CompilationResult.RESULT_CODE_ILLEGAL_OPTION_VALUE:
         return "illegal option value";
       default:
         return "unknown result code";
@@ -168,7 +174,7 @@ public class Jooc extends JangarooParser {
 
   protected void processSource(File file) throws IOException {
     if (file.isDirectory()) {
-      throw error("Input file is a directory: " + file.getAbsolutePath());
+      throw error("Input file is a directory.", file);
     }
     CompilationUnit unit = importSource(new FileInputSource(getConfig().findSourceDir(file), file));
     if (unit != null) {
@@ -201,14 +207,14 @@ public class Jooc extends JangarooParser {
         if (config.isVersion()) {
           printVersion();
         } else {
-          return new Jooc(config, log).run();
+          return new Jooc(config, log).run().getResultCode();
         }
       }
     } catch (CommandLineParseException e) {
       System.out.println(e.getMessage()); // NOSONAR this is a commandline tool
       return e.getExitCode();
     }
-    return RESULT_CODE_OK;
+    return CompilationResult.RESULT_CODE_OK;
   }
 
   public static void main(String[] argv) {
