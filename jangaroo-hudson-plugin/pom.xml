@@ -99,23 +99,5 @@
   <name>JooTest Hudson Plugin</name>
   <description>This plug-in provides an integration of Hudson and JooTest.</description>
   <url>http://repo.jangaroo.net/site/jangaroo-hudson-plugin</url>
-  <repositories>
-    <repository>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-      <id>java-net</id>
-      <url>http://download.java.net/maven/2</url>
-    </repository>
-  </repositories>
-  <pluginRepositories>
-    <pluginRepository>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-      <id>java-net</id>
-      <url>http://download.java.net/maven/2</url>
-    </pluginRepository>
-  </pluginRepositories>
 </project>
 
