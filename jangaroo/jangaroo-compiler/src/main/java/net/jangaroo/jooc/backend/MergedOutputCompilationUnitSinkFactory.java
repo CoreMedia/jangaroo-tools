@@ -34,7 +34,7 @@ public class MergedOutputCompilationUnitSinkFactory extends AbstractCompilationU
 
     sink = new CompilationUnitSink() {
 
-      public void writeOutput(CompilationUnit compilationUnit) {
+      public File writeOutput(CompilationUnit compilationUnit) {
 
         try {
           JsWriter out = new JsWriter(new OutputStreamWriter(new FileOutputStream(outputFile, true), "UTF-8"));
@@ -54,6 +54,7 @@ public class MergedOutputCompilationUnitSinkFactory extends AbstractCompilationU
           throw Jooc.error("cannot open output file for writing: '" + outputFile.getAbsolutePath() + "'", e);
         }
 
+        return outputFile;
       }
     };
   }

@@ -2,9 +2,11 @@ package net.jangaroo.jooc.backend;
 
 import net.jangaroo.jooc.ast.CompilationUnit;
 
+import java.io.File;
+
 /**
  * Code generation unit sink for a compilation unit.
  */
 public interface CompilationUnitSink {
-  void writeOutput(CompilationUnit compilationUnit);
+  File writeOutput(CompilationUnit compilationUnit);
 }

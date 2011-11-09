@@ -68,7 +68,7 @@ public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUni
     createOutputDirs(outFile);
 
     return new CompilationUnitSink() {
-      public void writeOutput(CompilationUnit compilationUnit) {
+      public File writeOutput(CompilationUnit compilationUnit) {
         if (verbose) {
           System.out.println("writing file: '" + outFile.getAbsolutePath() + "'"); // NOSONAR this is a cmd line tool
         }
@@ -95,6 +95,7 @@ public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUni
           throw Jooc.error("cannot open output file for writing: '" + outFile.getAbsolutePath() + "'", e);
         }
 
+        return outFile;
       }
     };
   }
