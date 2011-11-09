@@ -113,7 +113,7 @@
   <xs:attribute name="baseClass" type="xs:string">
     <xs:annotation>
       <xs:documentation>
-        <p>The name of the base class of this component. <b>The base class has to have the same superclass as this component.</b></p>
+        <p>The name of the base class of this component. <b>The base class should be of the same type as this component.</b></p>
         <p>If the name is not full qualified, either the class has to be imported or the class is assumed to be in the same
         package.</p>
       </xs:documentation>
