@@ -7,7 +7,8 @@ import net.jangaroo.exml.parser.ExmlToModelParser;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.InputStream;
+import java.io.File;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.HashSet;
 
@@ -17,8 +18,7 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
     setUp("exmlparser.config");
     ExmlToModelParser exmlToModelParser = new ExmlToModelParser(getConfigClassRegistry());
 
-    InputStream inputStream = getClass().getResourceAsStream("/exmlparser/AllElements.exml");
-    ExmlModel model = exmlToModelParser.parse(inputStream);
+    ExmlModel model = exmlToModelParser.parse(getFile("/exmlparser/AllElements.exml"));
     Assert.assertEquals(new HashSet<String>(Arrays.asList("ext.Panel", "ext.MessageBox")),
             model.getImports());
     Assert.assertEquals("ext.Panel", model.getSuperClassName());
@@ -80,8 +80,7 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
     setUp("exmlparser.config");
     ExmlToModelParser exmlToModelParser = new ExmlToModelParser(getConfigClassRegistry());
 
-    InputStream inputStream = getClass().getResourceAsStream("/exmlparser/TestNumber.exml");
-    ExmlModel model = exmlToModelParser.parse(inputStream);
+    ExmlModel model = exmlToModelParser.parse(getFile("/exmlparser/TestNumber.exml"));
     Assert.assertEquals("ext.Panel", model.getSuperClassName());
 
     JsonObject expectedJsonObject = new JsonObject(
@@ -122,8 +121,7 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
     setUp("exmlparser.config");
     ExmlToModelParser exmlToModelParser = new ExmlToModelParser(getConfigClassRegistry());
 
-    InputStream inputStream = getClass().getResourceAsStream("/exmlparser/TestTrueFalse.exml");
-    ExmlModel model = exmlToModelParser.parse(inputStream);
+    ExmlModel model = exmlToModelParser.parse(getFile("/exmlparser/TestTrueFalse.exml"));
     Assert.assertEquals("ext.Panel", model.getSuperClassName());
 
     JsonObject expectedJsonObject = new JsonObject(
@@ -159,8 +157,7 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
     setUp("exmlparser.config");
     ExmlToModelParser exmlToModelParser = new ExmlToModelParser(getConfigClassRegistry());
 
-    InputStream inputStream = getClass().getResourceAsStream("/exmlparser/TestArrayAttribute.exml");
-    ExmlModel model = exmlToModelParser.parse(inputStream);
+    ExmlModel model = exmlToModelParser.parse(getFile("/exmlparser/TestArrayAttribute.exml"));
     Assert.assertEquals("ext.Panel", model.getSuperClassName());
 
     JsonObject expectedJsonObject = new JsonObject(
@@ -176,8 +173,7 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
     setUp("exmlparser.config");
     ExmlToModelParser exmlToModelParser = new ExmlToModelParser(getConfigClassRegistry());
 
-    InputStream inputStream = getClass().getResourceAsStream("/exmlparser/TestActions.exml");
-    ExmlModel model = exmlToModelParser.parse(inputStream);
+    ExmlModel model = exmlToModelParser.parse(getFile("/exmlparser/TestActions.exml"));
     Assert.assertEquals("ext.Panel", model.getSuperClassName());
 
     JsonObject expectedJsonObject = new JsonObject(
@@ -192,8 +188,7 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
     setUp("exmlparser.config");
     ExmlToModelParser exmlToModelParser = new ExmlToModelParser(getConfigClassRegistry());
 
-    InputStream inputStream = getClass().getResourceAsStream("/exmlparser/TestUntyped.exml");
-    ExmlModel model = exmlToModelParser.parse(inputStream);
+    ExmlModel model = exmlToModelParser.parse(getFile("/exmlparser/TestUntyped.exml"));
     Assert.assertEquals("ext.Panel", model.getSuperClassName());
 
     JsonObject expectedJsonObject = new JsonObject(
@@ -242,8 +237,7 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
     setUp("testNamespace.config");
     ExmlToModelParser exmlToModelParser = new ExmlToModelParser(getConfigClassRegistry());
 
-    InputStream inputStream = getClass().getResourceAsStream("/testPackage/TestComponent2.exml");
-    ExmlModel model = exmlToModelParser.parse(inputStream);
+    ExmlModel model = exmlToModelParser.parse(getFile("/testPackage/TestComponent2.exml"));
     Assert.assertEquals("testPackage.TestComponent", model.getSuperClassName());
 
     JsonObject expectedJsonObject = new JsonObject(
@@ -256,5 +250,21 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
     );
     System.out.println(model.getJsonObject().toString(2));
     Assert.assertEquals(expectedJsonObject.toString(2), model.getJsonObject().toString(2));
+  }
+
+  @Test
+  public void testBaseClass() throws Exception {
+    setUp("exmlparser.config");
+    ExmlToModelParser exmlToModelParser = new ExmlToModelParser(getConfigClassRegistry());
+
+    ExmlModel model = exmlToModelParser.parse(getFile("/exmlparser/TestBaseClassUnqualified.exml"));
+    Assert.assertEquals("BaseClass", model.getSuperClassName());
+
+    model = exmlToModelParser.parse(getFile("/exmlparser/TestBaseClass.exml"));
+    Assert.assertEquals("someOtherPackage.base.BaseClass", model.getSuperClassName());
+  }
+
+  private File getFile(String path) throws URISyntaxException {
+    return new File(ExmlToModelParserTest.class.getResource(path).toURI());
   }
 }

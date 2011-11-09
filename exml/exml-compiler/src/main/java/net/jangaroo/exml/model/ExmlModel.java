@@ -47,7 +47,6 @@ public class ExmlModel extends DescriptionHolder {
 
   public void setSuperClassName(String superClassName) {
     this.superClassName = superClassName;
-    addImport(superClassName);
   }
 
   public void addImport(String importedClassName) {

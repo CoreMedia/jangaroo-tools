@@ -32,6 +32,7 @@ import java.util.List;
 
 public final class ExmlToModelParser {
   private static final String EXT_CONFIG_PREFIX = "ext.config.";
+  private static final String EXML_BASE_CLASS_ATTR = "baseClass";
 
   private final ConfigClassRegistry registry;
 
@@ -40,12 +41,23 @@ public final class ExmlToModelParser {
   }
 
   public ExmlModel parse(File file) throws IOException, SAXException {
-    ExmlModel model = parse(new BufferedInputStream(new FileInputStream(file)));
+    ExmlModel model = new ExmlModel();
     String qName = CompilerUtils.qNameFromFile(registry.getConfig().findSourceDir(file), file);
     String className = CompilerUtils.className(qName);
     model.setClassName(ExmlModel.createComponentClassName(className));
     model.setConfigClassName(ConfigClass.createConfigClassName(className));
     model.setPackageName(CompilerUtils.packageName(qName));
+
+    BufferedInputStream inputStream = null;
+    try {
+      inputStream = new BufferedInputStream(new FileInputStream(file));
+      parse(inputStream, model);
+    } finally {
+      if (inputStream != null) {
+        inputStream.close();
+      }
+    }
+
     return model;
   }
 
@@ -53,12 +65,10 @@ public final class ExmlToModelParser {
    * Parse the input stream content into a model.
    * Close the input stream after reading.
    * @param inputStream the input stream
-   * @return the model
    * @throws IOException if the input stream could not be read
    * @throws SAXException if the XML was not well-formed
    */
-  public ExmlModel parse(InputStream inputStream) throws IOException, SAXException {
-    ExmlModel model = new ExmlModel();
+  private void parse(InputStream inputStream, ExmlModel model) throws IOException, SAXException {
     Document document = buildDom(inputStream);
     Node root = document.getFirstChild();
     validateRootNode(root);
@@ -96,12 +106,11 @@ public final class ExmlToModelParser {
     String className = createFullConfigClassNameFromNode(componentNode);
     ConfigClass configClass = getConfigClassByName(className, componentNode);
     String componentClassName = configClass.getComponentClassName();
+    //set superclass name to the component name. This may change later when parsing the attributes.
     model.setSuperClassName(componentClassName);
     model.addImport(componentClassName);
 
     fillModelAttributes(model, model.getJsonObject(), componentNode, configClass);
-
-    return model;
   }
 
   private String createFullConfigClassNameFromNode(Node componentNode) {
@@ -119,10 +128,19 @@ public final class ExmlToModelParser {
     NamedNodeMap attributes = componentNode.getAttributes();
     for (int i = 0; i < attributes.getLength(); i++) {
       Attr attribute = (Attr) attributes.item(i);
-      String attributeName = attribute.getLocalName();
-      String attributeValue = attribute.getValue();
-      ConfigAttribute configAttribute = getCfgByName(configClass, attributeName);
-      setAttribute(jsonObject, attributeName, attributeValue, configAttribute);
+      //check for special exml attributes
+      if(Exmlc.isExmlNamespace(attribute.getNamespaceURI())) {
+        //exml:baseClass attribute has been specified, so the super class of the component is actually that
+        if(EXML_BASE_CLASS_ATTR.equals(attribute.getLocalName())) {
+          String baseClassName = attribute.getValue();
+          model.setSuperClassName(baseClassName);
+        }
+      } else {
+        String attributeName = attribute.getLocalName();
+        String attributeValue = attribute.getValue();
+        ConfigAttribute configAttribute = getCfgByName(configClass, attributeName);
+        setAttribute(jsonObject, attributeName, attributeValue, configAttribute);
+      }
     }
     fillModelAttributesFromSubelements(model, jsonObject, componentNode, configClass);
   }

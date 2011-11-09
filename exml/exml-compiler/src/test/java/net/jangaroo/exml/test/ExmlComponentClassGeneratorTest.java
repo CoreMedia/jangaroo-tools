@@ -16,10 +16,9 @@ public class ExmlComponentClassGeneratorTest extends AbstractExmlTest {
   public void testGenerateClass() throws Exception {
     setUp("exmlparser.config");
     String expected = FileUtils.readFileToString(new File(getClass().getResource("/exmlparser/AllElements.as").toURI()));
-    InputStream inputStream = getClass().getResourceAsStream("/exmlparser/AllElements.exml");
 
     ExmlToModelParser exmlToModelParser = new ExmlToModelParser(getConfigClassRegistry());
-    ExmlModel model = exmlToModelParser.parse(inputStream);
+    ExmlModel model = exmlToModelParser.parse(getFile("/exmlparser/AllElements.exml"));
 
     model.setClassName("AllElements");
     model.setConfigClassName("allElements");
