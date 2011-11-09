@@ -26,8 +26,8 @@ public class JoocTest {
 
   @Rule
   public TemporaryFolder tmpFolder = new TemporaryFolder();
-  public File outputFolder = tmpFolder.newFolder("jangaroo-output");
-  public File apiOutputFolder = tmpFolder.newFolder("joo-api");
+  public File outputFolder;
+  public File apiOutputFolder;
   private Jooc jooc;
   private JoocConfiguration config;
 
@@ -77,6 +77,8 @@ public class JoocTest {
 
   @Before
   public void setup() throws Exception{
+    outputFolder = tmpFolder.newFolder("jangaroo-output");
+    apiOutputFolder = tmpFolder.newFolder("joo-api");
     config = new JoocConfiguration();
     File sourceDir = getFile("/");
     List<File> sourcepath = new ArrayList<File>();
