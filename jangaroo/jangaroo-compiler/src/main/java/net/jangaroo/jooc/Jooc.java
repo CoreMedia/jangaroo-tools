@@ -118,12 +118,13 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
           writeOutput(sourceFile, unit, apiSinkFactory, getConfig().isVerbose());
         }
       }
+      int result = log.hasErrors() ? CompilationResult.RESULT_CODE_OK : CompilationResult.RESULT_CODE_COMPILATION_FAILED;
+      return new CompilationResultImpl(result, outputFileMap);
     } catch (IOException e) {
       throw new CompilerError("IO Exception occurred", e);
+    } finally {
+      tearDown();
     }
-    int result = log.hasErrors() ? 1 : 0;
-    tearDown();
-    return new CompilationResultImpl(result, outputFileMap);
   }
 
   public File writeOutput(File sourceFile,
@@ -173,7 +174,7 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
 
   protected void processSource(File file) throws IOException {
     if (file.isDirectory()) {
-      throw error("Input file is a directory: " + file.getAbsolutePath());
+      throw error("Input file is a directory.", file);
     }
     CompilationUnit unit = importSource(new FileInputSource(getConfig().findSourceDir(file), file));
     if (unit != null) {

@@ -28,7 +28,7 @@ public class MergedOutputCompilationUnitSinkFactory extends AbstractCompilationU
 
     if (outputFile.exists()) {
       if(!outputFile.delete()) {
-        throw Jooc.error("error deleting file: '" + outputFile.getAbsolutePath() + "'");
+        throw Jooc.error("error deleting file: '" + outputFile.getAbsolutePath() + "'", outputFile);
       }
     }
 
@@ -48,10 +48,10 @@ public class MergedOutputCompilationUnitSinkFactory extends AbstractCompilationU
           } catch (IOException e) {
             //noinspection ResultOfMethodCallIgnored
             outputFile.delete(); // NOSONAR
-            throw Jooc.error("error writing file: '" + outputFile.getAbsolutePath() + "'", e);
+            throw Jooc.error("error writing file: '" + outputFile.getAbsolutePath() + "'", outputFile, e);
           }
         } catch (IOException e) {
-          throw Jooc.error("cannot open output file for writing: '" + outputFile.getAbsolutePath() + "'", e);
+          throw Jooc.error("cannot open output file for writing: '" + outputFile.getAbsolutePath() + "'", outputFile, e);
         }
 
         return outputFile;

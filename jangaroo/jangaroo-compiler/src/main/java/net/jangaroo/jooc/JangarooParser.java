@@ -2,6 +2,7 @@ package net.jangaroo.jooc;
 
 import java_cup.runtime.Symbol;
 import net.jangaroo.jooc.api.CompileLog;
+import net.jangaroo.jooc.api.FilePosition;
 import net.jangaroo.jooc.api.Jooc;
 import net.jangaroo.jooc.ast.AstNode;
 import net.jangaroo.jooc.ast.CompilationUnit;
@@ -16,6 +17,7 @@ import net.jangaroo.jooc.input.InputSource;
 import net.jangaroo.utils.BOMStripperInputStream;
 import net.jangaroo.utils.CompilerUtils;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -54,7 +56,11 @@ public class JangarooParser {
     return new CompilerError(msg);
   }
 
-  public static CompilerError error(JooSymbol symbol, String msg) {
+  public static CompilerError error(String msg, final File file) {
+    return new CompilerError(new FilePositionImpl(file), msg);
+  }
+
+  public static CompilerError error(FilePosition symbol, String msg) {
     return new CompilerError(symbol, msg);
   }
 
@@ -62,11 +68,11 @@ public class JangarooParser {
     return error(node.getSymbol(), msg);
   }
 
-  public static CompilerError error(String msg, Throwable t) {
-    return new CompilerError(msg, t);
+  public static CompilerError error(String msg, File file, Throwable t) {
+    return new CompilerError(new FilePositionImpl(file), msg, t);
   }
 
-  public static void warning(JooSymbol symbol, String msg) {
+  public static void warning(FilePosition symbol, String msg) {
     defaultLog.get().warning(symbol, msg);
   }
 
@@ -249,5 +255,28 @@ public class JangarooParser {
 
   public void tearDown() {
     defaultLog.remove();
+  }
+
+  private static class FilePositionImpl implements FilePosition {
+    private final File file;
+
+    public FilePositionImpl(File file) {
+      this.file = file;
+    }
+
+    @Override
+    public String getFileName() {
+      return file.getAbsolutePath();
+    }
+
+    @Override
+    public int getLine() {
+      return -1;
+    }
+
+    @Override
+    public int getColumn() {
+      return -1;
+    }
   }
 }
