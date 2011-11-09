@@ -1,6 +1,9 @@
 package net.jangaroo.jooc;
 
 import java_cup.runtime.Symbol;
+import net.jangaroo.jooc.api.CompileLog;
+import net.jangaroo.jooc.api.FilePosition;
+import net.jangaroo.jooc.api.Jooc;
 import net.jangaroo.jooc.ast.AstNode;
 import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.ast.Ide;
@@ -14,6 +17,7 @@ import net.jangaroo.jooc.input.InputSource;
 import net.jangaroo.utils.BOMStripperInputStream;
 import net.jangaroo.utils.CompilerUtils;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -23,9 +27,6 @@ import java.util.Map;
 
 public class JangarooParser {
   public static final String JOO_API_IN_JAR_DIRECTORY_PREFIX = "META-INF/joo-api/";
-
-  public static final String AS_SUFFIX_NO_DOT = "as";
-  public static final String AS_SUFFIX = "." + AS_SUFFIX_NO_DOT;
 
   protected CompileLog log;
   // a hack to always be able to access the current log:
@@ -43,6 +44,9 @@ public class JangarooParser {
     declareType(globalScope, "*");
   }
 
+  public JangarooParser() {
+  }
+
   public JangarooParser(ParserOptions config, CompileLog log) {
     this.config = config;
     this.log = log;
@@ -52,7 +56,11 @@ public class JangarooParser {
     return new CompilerError(msg);
   }
 
-  public static CompilerError error(JooSymbol symbol, String msg) {
+  public static CompilerError error(String msg, final File file) {
+    return new CompilerError(new FilePositionImpl(file), msg);
+  }
+
+  public static CompilerError error(FilePosition symbol, String msg) {
     return new CompilerError(symbol, msg);
   }
 
@@ -60,11 +68,11 @@ public class JangarooParser {
     return error(node.getSymbol(), msg);
   }
 
-  public static CompilerError error(String msg, Throwable t) {
-    return new CompilerError(msg, t);
+  public static CompilerError error(String msg, File file, Throwable t) {
+    return new CompilerError(new FilePositionImpl(file), msg, t);
   }
 
-  public static void warning(JooSymbol symbol, String msg) {
+  public static void warning(FilePosition symbol, String msg) {
     defaultLog.get().warning(symbol, msg);
   }
 
@@ -74,6 +82,18 @@ public class JangarooParser {
 
   public ParserOptions getConfig() {
     return config;
+  }
+
+  public void setConfig(ParserOptions config) {
+    this.config = config;
+  }
+
+  public CompileLog getLog() {
+    return log;
+  }
+
+  public void setLog(CompileLog log) {
+    this.log = log;
   }
 
   public static CompilationUnit doParse(InputSource in, CompileLog log, SemicolonInsertionMode semicolonInsertionMode) {
@@ -122,10 +142,10 @@ public class JangarooParser {
 
   protected InputSource findSource(final String qname) {
     // scan sourcepath
-    InputSource result = sourcePathInputSource.getChild(getInputSourceFileName(qname, sourcePathInputSource, AS_SUFFIX));
+    InputSource result = sourcePathInputSource.getChild(getInputSourceFileName(qname, sourcePathInputSource, Jooc.AS_SUFFIX));
     if (result == null) {
       // scan classpath
-      result = classPathInputSource.getChild(getInputSourceFileName(qname, classPathInputSource, AS_SUFFIX));
+      result = classPathInputSource.getChild(getInputSourceFileName(qname, classPathInputSource, Jooc.AS_SUFFIX));
     }
     return result;
   }
@@ -171,7 +191,7 @@ public class JangarooParser {
     // check valid file name for qname
     String path = source.getRelativePath();
     if (path != null) {
-      String expectedPath = getInputSourceFileName(qname, source, AS_SUFFIX);
+      String expectedPath = getInputSourceFileName(qname, source, Jooc.AS_SUFFIX);
       if (!expectedPath.equals(path)) {
         warning(unit.getSymbol(),
                 String.format("expected '%s' as the file name for %s, found: '%s'. -sourcepath not set (correctly)?",
@@ -183,8 +203,8 @@ public class JangarooParser {
   }
 
   protected CompilationUnit parse(InputSource in) {
-    if (!in.getName().endsWith(AS_SUFFIX)) {
-      throw error("Input file must end with '" + AS_SUFFIX + "': " + in.getName());
+    if (!in.getName().endsWith(Jooc.AS_SUFFIX)) {
+      throw error("Input file must end with '" + Jooc.AS_SUFFIX + "': " + in.getName());
     }
     if (config.isVerbose()) {
       System.out.println("Parsing " + in.getPath()); // NOSONAR this is a cmd line tool
@@ -212,7 +232,7 @@ public class JangarooParser {
   private void addPackageFolderSymbols(final InputSource folder, List<String> list) {
     if (folder != null) {
       for (InputSource child : folder.list()) {
-        if (!child.isDirectory() && child.getName().endsWith(AS_SUFFIX)) {
+        if (!child.isDirectory() && child.getName().endsWith(Jooc.AS_SUFFIX)) {
           list.add(nameWithoutExtension(child));
         }
       }
@@ -235,5 +255,28 @@ public class JangarooParser {
 
   public void tearDown() {
     defaultLog.remove();
+  }
+
+  private static class FilePositionImpl implements FilePosition {
+    private final File file;
+
+    public FilePositionImpl(File file) {
+      this.file = file;
+    }
+
+    @Override
+    public String getFileName() {
+      return file.getAbsolutePath();
+    }
+
+    @Override
+    public int getLine() {
+      return -1;
+    }
+
+    @Override
+    public int getColumn() {
+      return -1;
+    }
   }
 }

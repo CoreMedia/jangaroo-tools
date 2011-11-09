@@ -15,7 +15,7 @@
 
 package net.jangaroo.test.unit;
 
-import net.jangaroo.jooc.Jooc;
+import net.jangaroo.jooc.api.CompilationResult;
 import net.jangaroo.test.JooTestCase;
 
 import java.io.File;
@@ -55,7 +55,7 @@ public class TestSyntaxErrors extends JooTestCase {
         checkAllErrorClasses(file, baseDirName + "/" + file.getName());
       } else if (file.getName().startsWith("Test") && file.getName().endsWith(".as")) {
         int resultCode = runJooc(baseDirName + "/" + file.getName());
-        if (resultCode == Jooc.RESULT_CODE_COMPILATION_FAILED) {
+        if (resultCode == CompilationResult.RESULT_CODE_COMPILATION_FAILED) {
           total++;
         } else {
           passed.add(file);

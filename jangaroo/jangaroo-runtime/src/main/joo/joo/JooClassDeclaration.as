@@ -392,9 +392,9 @@ public class JooClassDeclaration extends NativeClassDeclaration {
   internal function fireStateEvent(event:String):void {
     var stateListeners:Array = this.stateListeners[event];
     if (stateListeners) {
-      stateListeners.forEach(function(stateListener:Function):void {
-        stateListener(this);
-      });
+      for (var i:int = 0; i < stateListeners.length; i++) {
+        stateListeners[i](this);
+      }
       delete this.stateListeners[event];
     }
   }

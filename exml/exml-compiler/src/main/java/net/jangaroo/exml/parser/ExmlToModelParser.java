@@ -1,7 +1,7 @@
 package net.jangaroo.exml.parser;
 
-import net.jangaroo.exml.ExmlConstants;
-import net.jangaroo.exml.ExmlcException;
+import net.jangaroo.exml.api.ExmlcException;
+import net.jangaroo.exml.compiler.Exmlc;
 import net.jangaroo.exml.json.JsonArray;
 import net.jangaroo.exml.json.JsonObject;
 import net.jangaroo.exml.model.ConfigAttribute;
@@ -68,15 +68,15 @@ public final class ExmlToModelParser {
     for (int i = 0; i < childNodes.getLength(); i++) {
       Node node = childNodes.item(i);
       if (node.getNodeType() == Node.ELEMENT_NODE) {
-        if (ExmlConstants.EXML_NAMESPACE_URI.equals(node.getNamespaceURI())) {
-          if (ExmlConstants.EXML_IMPORT_NODE_NAME.equals(node.getLocalName())) {
-            String importedClassName = ((Element) node).getAttribute(ExmlConstants.EXML_IMPORT_CLASS_ATTRIBUTE);
+        if (Exmlc.isExmlNamespace(node.getNamespaceURI())) {
+          if (Exmlc.EXML_IMPORT_NODE_NAME.equals(node.getLocalName())) {
+            String importedClassName = ((Element) node).getAttribute(Exmlc.EXML_IMPORT_CLASS_ATTRIBUTE);
             if (importedClassName == null || importedClassName.equals("")) {
               int lineNumber = getLineNumber(componentNode);
               throw new ExmlcException("<exml:import> element must contain a non-empty class attribute", lineNumber);
             }
             model.addImport(importedClassName);
-          } else if (ExmlConstants.EXML_DESCRIPTION_NODE_NAME.equals(node.getLocalName())) {
+          } else if (Exmlc.EXML_DESCRIPTION_NODE_NAME.equals(node.getLocalName())) {
             model.setDescription(node.getTextContent().trim());
           }
         } else {
@@ -107,7 +107,7 @@ public final class ExmlToModelParser {
   private String createFullConfigClassNameFromNode(Node componentNode) {
     String name = componentNode.getLocalName();
     String uri = componentNode.getNamespaceURI();
-    String packageName = ExmlConstants.parsePackageFromNamespace(uri);
+    String packageName = Exmlc.parsePackageFromNamespace(uri);
     if (packageName == null) {
       int lineNumber = getLineNumber(componentNode);
       throw new ExmlcException("namespace '" + uri + "' of element '"+ name +"' in EXML file does not denote a config package", lineNumber);
@@ -242,7 +242,7 @@ public final class ExmlToModelParser {
     List<Object> childObjects = new ArrayList<Object>();
     for (Element arrayItemNode : getChildElements(element)) {
       Object value;
-      if(ExmlConstants.EXML_NAMESPACE_URI.equals(arrayItemNode.getNamespaceURI()) && ExmlConstants.EXML_OBJECT_NODE_NAME.equals(arrayItemNode.getLocalName())) {
+      if(Exmlc.isExmlNamespace(arrayItemNode.getNamespaceURI()) && Exmlc.EXML_OBJECT_NODE_NAME.equals(arrayItemNode.getLocalName())) {
         value = parseExmlObjectNode(arrayItemNode);
       } else {
         String arrayItemClassName = createFullConfigClassNameFromNode(arrayItemNode);
@@ -328,11 +328,11 @@ public final class ExmlToModelParser {
 
   private void validateRootNode(Node root) {
     int lineNumber = getLineNumber(root);
-    if (!ExmlConstants.EXML_NAMESPACE_URI.equals(root.getNamespaceURI())) {
-      throw new ExmlcException("root node of EXML file must belong to namespace '" + ExmlConstants.EXML_NAMESPACE_URI + "', but was '" + root.getNamespaceURI() +"'", lineNumber);
+    if (!Exmlc.isExmlNamespace(root.getNamespaceURI())) {
+      throw new ExmlcException("root node of EXML file must belong to namespace '" + Exmlc.EXML_NAMESPACE_URI + "', but was '" + root.getNamespaceURI() +"'", lineNumber);
     }
-    if (!ExmlConstants.EXML_COMPONENT_NODE_NAME.equals(root.getLocalName())) {
-      throw new ExmlcException("root node of EXML file must be a <" + ExmlConstants.EXML_COMPONENT_NODE_NAME + ">, but was <" + root.getLocalName() +">", lineNumber);
+    if (!Exmlc.EXML_COMPONENT_NODE_NAME.equals(root.getLocalName())) {
+      throw new ExmlcException("root node of EXML file must be a <" + Exmlc.EXML_COMPONENT_NODE_NAME + ">, but was <" + root.getLocalName() +">", lineNumber);
     }
   }
 

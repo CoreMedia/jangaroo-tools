@@ -1,5 +1,8 @@
 package net.jangaroo.jooc;
 
+import net.jangaroo.jooc.api.CompileLog;
+import net.jangaroo.jooc.api.FilePosition;
+
 public abstract class AbstractCompileLog implements CompileLog {
   protected boolean errors = false;
 
@@ -18,12 +21,12 @@ public abstract class AbstractCompileLog implements CompileLog {
     return m.toString();
   }
 
-  public void error(JooSymbol sym, String msg) {
-    error(formatError(sym.getFileName(), sym.getLine(), sym.getColumn(), "Error", msg));
+  public void error(FilePosition position, String msg) {
+    error(formatError(position.getFileName(), position.getLine(), position.getColumn(), "Error", msg));
   }
 
-  public void warning(JooSymbol sym, String msg) {
-    warning(formatError(sym.getFileName(), sym.getLine(), sym.getColumn(), "Warning", msg));
+  public void warning(FilePosition position, String msg) {
+    warning(formatError(position.getFileName(), position.getLine(), position.getColumn(), "Warning", msg));
   }
 
   public boolean hasErrors() {

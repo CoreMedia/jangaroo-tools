@@ -18,6 +18,7 @@ package net.jangaroo.test;
 import net.jangaroo.jooc.Jooc;
 import junit.framework.TestCase;
 import net.jangaroo.jooc.StdOutCompileLog;
+import net.jangaroo.jooc.api.CompilationResult;
 
 import java.io.File;
 
@@ -114,7 +115,7 @@ public abstract class JooTestCase extends TestCase {
   }
 
   protected void compile(String[] fileNames) {
-    expectCompileResult(Jooc.RESULT_CODE_OK, fileNames);
+    expectCompileResult(CompilationResult.RESULT_CODE_OK, fileNames);
   }
 
   protected void compile(String fileName) {

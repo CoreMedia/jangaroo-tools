@@ -1,6 +1,6 @@
 package net.jangaroo.exml.parser;
 
-import net.jangaroo.exml.ExmlcException;
+import net.jangaroo.exml.api.ExmlcException;
 import net.jangaroo.exml.config.ExmlConfiguration;
 import net.jangaroo.exml.model.ConfigClass;
 import net.jangaroo.exml.model.ConfigClassType;
@@ -51,7 +51,7 @@ public class ExmlToConfigClassParser {
       xr.parse(new org.xml.sax.InputSource(inputStream));
     } catch (ExmlcException e) {
       // Simply pass our own exceptions.
-      e.setSource(source);
+      e.setFile(source);
       throw e;
     } catch (Exception e) {
       throw new ExmlcException("could not parse EXML file", source, e);

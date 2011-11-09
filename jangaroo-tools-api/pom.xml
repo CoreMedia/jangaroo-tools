@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>net.jangaroo</groupId>
+  <artifactId>jangaroo-tools-api</artifactId>
+  <version>0.9.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+  <modules>
+    <module>jangaroo-utils</module>
+    <module>jangaroo-compiler-api</module>
+    <module>properties-compiler-api</module>
+    <module>exml-compiler-api</module>
+  </modules>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-deploy-plugin</artifactId>
+        <version>2.5</version>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-release-plugin</artifactId>
+        <version>2.1</version>
+        <dependencies>
+          <dependency>
+            <groupId>org.apache.maven.scm</groupId>
+            <artifactId>maven-scm-provider-gitexe</artifactId>
+            <version>1.3</version>
+          </dependency>
+        </dependencies>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>2.4.3</version>
+      </plugin>
+    </plugins>
+  </build>
+  <name>Jangaroo Tools APIs</name>
+  <url>http://repo.jangaroo.net/site/jangaroo-api</url>
+  <scm>
+    <connection>scm:git:git://github.com/CoreMedia/jangaroo-api.git</connection>
+    <developerConnection>scm:git:git@github.com:CoreMedia/jangaroo-api.git</developerConnection>
+    <url>http://github.com/CoreMedia/jangaroo-api</url>
+  </scm>
+</project>
+

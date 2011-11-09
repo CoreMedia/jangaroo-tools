@@ -5,8 +5,8 @@ import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapper;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
-import net.jangaroo.exml.ExmlConstants;
 import net.jangaroo.exml.config.ExmlConfiguration;
+import net.jangaroo.exml.api.Exmlc;
 import net.jangaroo.exml.model.ConfigClass;
 import net.jangaroo.exml.model.ConfigClassRegistry;
 
@@ -40,7 +40,7 @@ public class ExmlConfigPackageXsdGenerator {
 
     Writer writer = null;
     try {
-      writer = new OutputStreamWriter(new FileOutputStream(result), ExmlConstants.OUTPUT_CHARSET);
+      writer = new OutputStreamWriter(new FileOutputStream(result), Exmlc.OUTPUT_CHARSET);
       generateXsdFile(registry, writer);
     } finally {
       try {
@@ -64,7 +64,7 @@ public class ExmlConfigPackageXsdGenerator {
     cfg.setObjectWrapper(new DefaultObjectWrapper());
     Template template = cfg.getTemplate("/net/jangaroo/exml/templates/exml_config_package_xsd.ftl");
     Environment env = template.createProcessingEnvironment(suite, output);
-    env.setOutputEncoding(ExmlConstants.OUTPUT_CHARSET);
+    env.setOutputEncoding(Exmlc.OUTPUT_CHARSET);
     env.process();
   }
 

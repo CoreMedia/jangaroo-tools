@@ -15,10 +15,12 @@
 
 package net.jangaroo.jooc;
 
+import net.jangaroo.jooc.api.FilePosition;
+
 /**
  * @author Andreas Gawecki
  */
-public class JooSymbol extends java_cup.runtime.Symbol {
+public class JooSymbol extends java_cup.runtime.Symbol implements FilePosition {
 
   private int line;
   private int column;
@@ -68,14 +70,17 @@ public class JooSymbol extends java_cup.runtime.Symbol {
     return jooValue;
   }
 
+  @Override
   public String getFileName() {
     return fileName;
   }
 
+  @Override
   public int getLine() {
     return line;
   }
 
+  @Override
   public int getColumn() {
     return column;
   }
