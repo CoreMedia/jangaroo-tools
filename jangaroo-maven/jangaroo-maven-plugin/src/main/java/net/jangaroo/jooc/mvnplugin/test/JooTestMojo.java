@@ -9,6 +9,7 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.util.cli.CommandLineException;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.ResourceHandler;
@@ -159,6 +160,31 @@ public class JooTestMojo extends AbstractMojo {
    */
   private boolean testFailureIgnore;
 
+  /**
+   * The phantomjs executable.
+   * @parameter expression="${phantomjs.bin}" default-value="/usr/local/bin/phantomjs"
+   */
+  private File phantomBin;
+
+  /**
+   * The script to run in phantomjs launching the tests
+   * @parameter expression="${phantomjs.runner}" default-value="joo/phantomjs-joounit-runner.js"
+   */
+  private String phantomTestRunner;
+
+  /**
+   * The test suite to run be run with phantomjs
+   * @parameter expression="${phantomjs.suite}"
+   * @required
+   */
+  private String phantomTestSuite;
+
+  /**
+   * Additional arguments to be passed to phantomjs
+   * @parameter expression="${phantomjs.args}"
+   */
+  private String phantomArgs;
+
   protected boolean isTestAvailable() {
     for (Resource r : testResources) {
       File testFile = new File(r.getDirectory(), testsHtml);
@@ -172,75 +198,89 @@ public class JooTestMojo extends AbstractMojo {
 
   public void execute() throws MojoExecutionException, MojoFailureException {
     if (!skip && !skipTests) {
-      if (isTestAvailable()) {
-        jooUnitSeleniumRCHost = System.getProperty("SELENIUM_RC_HOST", jooUnitSeleniumRCHost);
+      final PhantomJsTestRunner phantomJsTestRunner = new PhantomJsTestRunner(phantomBin, testOutputDirectory, phantomTestRunner, phantomTestSuite, phantomArgs, getLog());
+      getLog().info("trying to run phantomjs first: "+phantomJsTestRunner.toString());
+      if(phantomJsTestRunner.isTestAvailable() && phantomJsTestRunner.canRun()) {
         try {
-          //check wether the host is reachable
-          //noinspection ResultOfMethodCallIgnored
-          InetAddress.getAllByName(jooUnitSeleniumRCHost);
-        } catch (UnknownHostException e) {
-          throw new MojoExecutionException("Cannot resolve host " + jooUnitSeleniumRCHost +
-                  ". Please specify a host running the selenium remote control or skip tests" +
-                  " by -DskipTests", e);
-        }
-        getLog().info("JooTest report directory:" + testResultOutputDirectory.getAbsolutePath());
-        ResourceHandler handler = new ResourceHandler();
-        try {
-          handler.setBaseResource(new FileResource(testOutputDirectory.toURI().toURL()));
-        } catch (IOException e) {
-          throw new MojoExecutionException(e.toString(), e);
-        } catch (URISyntaxException e) {
-          throw new MojoExecutionException(e.toString(), e);
-        }
-        Server server = startJetty(handler);
-        Selenium selenium;
-        String url;
-        try {
-          url = "http://" + InetAddress.getLocalHost().getCanonicalHostName() + ":" + server.getConnectors()[0].getPort();
-        } catch (UnknownHostException e) {
-          throw new MojoExecutionException("I just don't know my own hostname ... ", e);
-        }
-        selenium = new DefaultSelenium(jooUnitSeleniumRCHost, jooUnitSeleniumRCPort, jooUnitSeleniumBrowserStartCommand, url);
-        try {
-          selenium.start();
-          final String testsHtmlUrl = url + "/" + testsHtml.replace(File.separatorChar, '/');
-          getLog().debug("Opening " + testsHtmlUrl);
-          selenium.open(testsHtmlUrl);
-          getLog().debug("Waiting for test results for " + jooUnitTestExecutionTimeout + "ms ...");
-          selenium.waitForCondition("selenium.browserbot.getCurrentWindow().result != null || selenium.browserbot.getCurrentWindow().classLoadingError != null", "" + jooUnitTestExecutionTimeout);
-          String classLoadingError = selenium.getEval("selenium.browserbot.getCurrentWindow().classLoadingError");
-          if (classLoadingError != null && !classLoadingError.equals("null")) {
-            throw new MojoExecutionException(classLoadingError);
+          if(!phantomJsTestRunner.execute()){
+            signalFailure();
           }
+        } catch (CommandLineException e) {
+          throw new MojoExecutionException(e.toString(),e);
+        }
+      } else if (isTestAvailable()) {
+        executeSelenium();
+      }
+    }
+  }
 
-          String testResultXml = selenium.getEval("selenium.browserbot.getCurrentWindow().result");
-          evalTestOutput(testResultXml);
-          File result = new File(testResultOutputDirectory, "TEST-" + project.getArtifactId() + ".xml");
-          FileUtils.writeStringToFile(result, testResultXml);
-          if (!result.setLastModified(System.currentTimeMillis())) {
-            getLog().warn("could not set modification time of file " + result);
-          }
-        } catch (IOException e) {
-          throw new MojoExecutionException("Cannot write test results to file", e);
-        } catch (ParserConfigurationException e) {
-          throw new MojoExecutionException("Cannot create a simple XML Builder", e);
-        } catch (SAXException e) {
-          throw new MojoExecutionException("Cannot parse test result", e);
-        } catch (SeleniumException e) {
-          if (!testFailureIgnore) {
-            throw new MojoExecutionException("Selenium setup failure", e);
-          } else {
-            getLog().warn("Selenium setup failure", e);
-          }
-        } finally {
-          selenium.stop();
-          try {
-            server.stop();
-          } catch (Exception e) {
-            getLog().error(e);
-            // never mind we just couldn't step the selenium server.
-          }
-        }
+  void executeSelenium() throws MojoExecutionException, MojoFailureException {
+    jooUnitSeleniumRCHost = System.getProperty("SELENIUM_RC_HOST", jooUnitSeleniumRCHost);
+    try {
+      //check wether the host is reachable
+      //noinspection ResultOfMethodCallIgnored
+      InetAddress.getAllByName(jooUnitSeleniumRCHost);
+    } catch (UnknownHostException e) {
+      throw new MojoExecutionException("Cannot resolve host " + jooUnitSeleniumRCHost +
+              ". Please specify a host running the selenium remote control or skip tests" +
+              " by -DskipTests", e);
+    }
+    getLog().info("JooTest report directory:" + testResultOutputDirectory.getAbsolutePath());
+    ResourceHandler handler = new ResourceHandler();
+    try {
+      handler.setBaseResource(new FileResource(testOutputDirectory.toURI().toURL()));
+    } catch (IOException e) {
+      throw new MojoExecutionException(e.toString(), e);
+    } catch (URISyntaxException e) {
+      throw new MojoExecutionException(e.toString(), e);
+    }
+    Server server = startJetty(handler);
+    Selenium selenium;
+    String url;
+    try {
+      url = "http://" + InetAddress.getLocalHost().getCanonicalHostName() + ":" + server.getConnectors()[0].getPort();
+    } catch (UnknownHostException e) {
+      throw new MojoExecutionException("I just don't know my own hostname ... ", e);
+    }
+    selenium = new DefaultSelenium(jooUnitSeleniumRCHost, jooUnitSeleniumRCPort, jooUnitSeleniumBrowserStartCommand, url);
+    try {
+      selenium.start();
+      final String testsHtmlUrl = url + "/" + testsHtml.replace(File.separatorChar, '/');
+      getLog().debug("Opening " + testsHtmlUrl);
+      selenium.open(testsHtmlUrl);
+      getLog().debug("Waiting for test results for " + jooUnitTestExecutionTimeout + "ms ...");
+      selenium.waitForCondition("selenium.browserbot.getCurrentWindow().result != null || selenium.browserbot.getCurrentWindow().classLoadingError != null", "" + jooUnitTestExecutionTimeout);
+      String classLoadingError = selenium.getEval("selenium.browserbot.getCurrentWindow().classLoadingError");
+      if (classLoadingError != null && !classLoadingError.equals("null")) {
+        throw new MojoExecutionException(classLoadingError);
+      }
+
+      String testResultXml = selenium.getEval("selenium.browserbot.getCurrentWindow().result");
+      evalTestOutput(testResultXml);
+      File result = new File(testResultOutputDirectory, "TEST-" + project.getArtifactId() + ".xml");
+      FileUtils.writeStringToFile(result, testResultXml);
+      if (!result.setLastModified(System.currentTimeMillis())) {
+        getLog().warn("could not set modification time of file " + result);
+      }
+    } catch (IOException e) {
+      throw new MojoExecutionException("Cannot write test results to file", e);
+    } catch (ParserConfigurationException e) {
+      throw new MojoExecutionException("Cannot create a simple XML Builder", e);
+    } catch (SAXException e) {
+      throw new MojoExecutionException("Cannot parse test result", e);
+    } catch (SeleniumException e) {
+      if (!testFailureIgnore) {
+        throw new MojoExecutionException("Selenium setup failure", e);
+      } else {
+        getLog().warn("Selenium setup failure", e);
+      }
+    } finally {
+      selenium.stop();
+      try {
+        server.stop();
+      } catch (Exception e) {
+        getLog().error(e);
+        // never mind we just couldn't step the selenium server.
       }
     }
   }
@@ -258,7 +298,13 @@ public class JooTestMojo extends AbstractMojo {
     String tests = namedNodeMap.getNamedItem("tests").getNodeValue();
     //String skipped = namedNodeMap.getNamedItem("skipped").getNodeValue();
     getLog().info("Tests run: " + tests + ", Failures: " + failures + ", Errors: " + errors + ", Skipped: 0" /*+ skipped*/);
-    if (!testFailureIgnore && (Integer.parseInt(errors) > 0 || Integer.parseInt(failures) > 0)) {
+    if(Integer.parseInt(errors) > 0 || Integer.parseInt(failures) > 0){
+      signalFailure();
+    }
+  }
+
+  private void signalFailure() throws MojoFailureException {
+    if (!testFailureIgnore) {
       throw new MojoFailureException("There are test failures");
     }
   }
@@ -328,5 +374,9 @@ public class JooTestMojo extends AbstractMojo {
 
   public void setTestFailureIgnore(boolean b) {
     this.testFailureIgnore = b;
+  }
+
+  public void setTestOutputDirectory(File testOutputDirectory) {
+    this.testOutputDirectory = testOutputDirectory;
   }
 }
