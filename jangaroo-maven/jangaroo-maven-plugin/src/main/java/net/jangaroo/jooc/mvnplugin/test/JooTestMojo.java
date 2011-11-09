@@ -175,7 +175,6 @@ public class JooTestMojo extends AbstractMojo {
   /**
    * The test suite to run be run with phantomjs
    * @parameter expression="${phantomjs.suite}"
-   * @required
    */
   private String phantomTestSuite;
 
