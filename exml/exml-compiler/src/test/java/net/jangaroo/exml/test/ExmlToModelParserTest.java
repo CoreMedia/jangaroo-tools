@@ -1,5 +1,6 @@
 package net.jangaroo.exml.test;
 
+import net.jangaroo.exml.api.ExmlcException;
 import net.jangaroo.exml.json.JsonArray;
 import net.jangaroo.exml.json.JsonObject;
 import net.jangaroo.exml.model.Constant;
@@ -7,8 +8,10 @@ import net.jangaroo.exml.model.ExmlModel;
 import net.jangaroo.exml.parser.ExmlToModelParser;
 import org.junit.Assert;
 import org.junit.Test;
+import org.xml.sax.SAXException;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.HashSet;

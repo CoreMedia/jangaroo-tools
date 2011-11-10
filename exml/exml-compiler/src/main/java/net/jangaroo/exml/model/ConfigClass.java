@@ -31,6 +31,10 @@ public final class ConfigClass extends DescriptionHolder {
     cfgsByName.put(cfg.getName(), cfg);
   }
 
+  public boolean contains(ConfigAttribute cfg) {
+    return cfgsByName.containsKey(cfg.getName());
+  }
+
   public ConfigClass getSuperClass() {
     return superClass;
   }

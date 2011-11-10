@@ -93,7 +93,8 @@
     <xs:attribute name="name" type="exml:constant_name" use="required">
       <xs:annotation>
         <xs:documentation>
-          The name of the constant.
+          <p>The name of the constant.</p>
+          <p>Only capital letters, numbers and '_' are allowed (Pattern: [A-Z][A-Z0-9]*(_[A-Z0-9]+)*).</p>
         </xs:documentation>
       </xs:annotation>
     </xs:attribute>
@@ -142,6 +143,7 @@
       Thus, we stick to the default value, which the specs says is 1.
       -->
       <xs:any maxOccurs="1" namespace="##other" processContents="lax"/>
+
     </xs:sequence>
     <xs:attribute name="baseClass" type="xs:string">
       <xs:annotation>
@@ -154,7 +156,18 @@
     </xs:attribute>
   </xs:complexType>
 
-  <xs:element name="component" type="exml:component"/>
+  <xs:element name="component" type="exml:component">
+    <!-- make constant names unique -->
+    <xs:unique name="constant_name">
+      <xs:selector xpath="exml:constant" />
+      <xs:field    xpath="@name" />
+    </xs:unique>
+    <!-- make config names unique -->
+    <xs:unique name="cfg_name">
+      <xs:selector xpath="exml:cfg" />
+      <xs:field    xpath="@name" />
+    </xs:unique>
+  </xs:element>
   <xs:element name="object" type="exml:object"/>
 
 </xs:schema>

@@ -36,14 +36,24 @@ public class ExmlMetadataHandler extends CharacterRecordingHandler {
     if (Exmlc.isExmlNamespace(uri)) {
       if (Exmlc.EXML_CFG_NODE_NAME.equals(localName)) {
         //handle config elements
-        configClass.addCfg(new ConfigAttribute(atts.getValue(Exmlc.EXML_CFG_NAME_ATTRIBUTE), atts.getValue(Exmlc.EXML_CFG_TYPE_ATTRIBUTE), null));
+        ConfigAttribute cfg = new ConfigAttribute(atts.getValue(Exmlc.EXML_CFG_NAME_ATTRIBUTE), atts.getValue(Exmlc.EXML_CFG_TYPE_ATTRIBUTE), null);
+        if(!configClass.contains(cfg)) {
+          configClass.addCfg(cfg);
+        } else {
+          throw new ExmlcException("Config '" + cfg.getName() + "' already defined.", locator.getLineNumber(), locator.getColumnNumber());
+        }
       } else if (Exmlc.EXML_DESCRIPTION_NODE_NAME.equals(localName)) {
         if (isLastInPathComponent() || isLastInPathConfig() || isLastInPathConstant()) {
           // start recording characters of the description:
           startRecordingCharacters();
         }
       } else if (Exmlc.EXML_CONSTANT_NODE_NAME.equals(localName)) {
-        configClass.addConstant(new Constant(atts.getValue(Exmlc.EXML_CONSTANT_NAME_ATTRIBUTE), atts.getValue(Exmlc.EXML_CONSTANT_VALUE_ATTRIBUTE)));
+        Constant constant = new Constant(atts.getValue(Exmlc.EXML_CONSTANT_NAME_ATTRIBUTE), atts.getValue(Exmlc.EXML_CONSTANT_VALUE_ATTRIBUTE));
+        if(!configClass.getConstants().contains(constant)) {
+          configClass.addConstant(constant);
+        } else {
+          throw new ExmlcException("Constant '" + constant.getName() + "' already defined.", locator.getLineNumber(), locator.getColumnNumber());
+        }
       }
     } else if (elementPath.size() == 1) {
       if (configClass.getSuperClassName() != null) {
