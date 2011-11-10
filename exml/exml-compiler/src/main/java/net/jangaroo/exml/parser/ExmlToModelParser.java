@@ -32,7 +32,6 @@ import java.util.List;
 
 public final class ExmlToModelParser {
   private static final String EXT_CONFIG_PREFIX = "ext.config.";
-  private static final String EXML_BASE_CLASS_ATTR = "baseClass";
 
   private final ConfigClassRegistry registry;
 
@@ -40,6 +39,13 @@ public final class ExmlToModelParser {
     this.registry = registry;
   }
 
+  /**
+   * Parses the exml file into an ExmlModel
+   * @param file the file to parse
+   * @return the parsed model
+   * @throws IOException if the input stream could not be read
+   * @throws SAXException if the XML was not well-formed
+   */
   public ExmlModel parse(File file) throws IOException, SAXException {
     ExmlModel model = new ExmlModel();
     String qName = CompilerUtils.qNameFromFile(registry.getConfig().findSourceDir(file), file);
@@ -64,14 +70,25 @@ public final class ExmlToModelParser {
   /**
    * Parse the input stream content into a model.
    * Close the input stream after reading.
+   *
    * @param inputStream the input stream
-   * @throws IOException if the input stream could not be read
+   * @param model the model
+   * @throws IOException  if the input stream could not be read
    * @throws SAXException if the XML was not well-formed
    */
   private void parse(InputStream inputStream, ExmlModel model) throws IOException, SAXException {
     Document document = buildDom(inputStream);
     Node root = document.getFirstChild();
     validateRootNode(root);
+
+    NamedNodeMap attributes = root.getAttributes();
+    for (int j = 0; j < attributes.getLength(); j++) {
+      Attr attribute = (Attr) attributes.item(j);
+      //baseClass attribute has been specified, so the super class of the component is actually that
+      if (Exmlc.EXML_BASE_CLASS_ATTRIBUTE.equals(attribute.getLocalName())) {
+        model.setSuperClassName(attribute.getValue());
+      }
+    }
 
     NodeList childNodes = root.getChildNodes();
     Node componentNode = null;
@@ -106,8 +123,10 @@ public final class ExmlToModelParser {
     String className = createFullConfigClassNameFromNode(componentNode);
     ConfigClass configClass = getConfigClassByName(className, componentNode);
     String componentClassName = configClass.getComponentClassName();
-    //set superclass name to the component name. This may change later when parsing the attributes.
-    model.setSuperClassName(componentClassName);
+    if (model.getSuperClassName() == null) {
+      model.setSuperClassName(componentClassName);
+    }
+    //but we still need the import
     model.addImport(componentClassName);
 
     fillModelAttributes(model, model.getJsonObject(), componentNode, configClass);
@@ -119,7 +138,7 @@ public final class ExmlToModelParser {
     String packageName = Exmlc.parsePackageFromNamespace(uri);
     if (packageName == null) {
       int lineNumber = getLineNumber(componentNode);
-      throw new ExmlcException("namespace '" + uri + "' of element '"+ name +"' in EXML file does not denote a config package", lineNumber);
+      throw new ExmlcException("namespace '" + uri + "' of element '" + name + "' in EXML file does not denote a config package", lineNumber);
     }
     return packageName + "." + name;
   }
@@ -128,19 +147,10 @@ public final class ExmlToModelParser {
     NamedNodeMap attributes = componentNode.getAttributes();
     for (int i = 0; i < attributes.getLength(); i++) {
       Attr attribute = (Attr) attributes.item(i);
-      //check for special exml attributes
-      if(Exmlc.isExmlNamespace(attribute.getNamespaceURI())) {
-        //exml:baseClass attribute has been specified, so the super class of the component is actually that
-        if(EXML_BASE_CLASS_ATTR.equals(attribute.getLocalName())) {
-          String baseClassName = attribute.getValue();
-          model.setSuperClassName(baseClassName);
-        }
-      } else {
-        String attributeName = attribute.getLocalName();
-        String attributeValue = attribute.getValue();
-        ConfigAttribute configAttribute = getCfgByName(configClass, attributeName);
-        setAttribute(jsonObject, attributeName, attributeValue, configAttribute);
-      }
+      String attributeName = attribute.getLocalName();
+      String attributeValue = attribute.getValue();
+      ConfigAttribute configAttribute = getCfgByName(configClass, attributeName);
+      setAttribute(jsonObject, attributeName, attributeValue, configAttribute);
     }
     fillModelAttributesFromSubelements(model, jsonObject, componentNode, configClass);
   }
@@ -184,7 +194,7 @@ public final class ExmlToModelParser {
       if (node.getNodeType() == Node.ELEMENT_NODE) {
         Element element = (Element) node;
         String elementName = element.getLocalName();
-        if(element.hasAttributes()) {
+        if (element.hasAttributes()) {
           // it's a complex object with attributes and sub-properties
           parseJavaScriptObjectProperty(jsonObject, element);
         } else {
@@ -234,7 +244,7 @@ public final class ExmlToModelParser {
     for (int j = 0; j < propertyChildNotes.getLength(); j++) {
       Node childNode = propertyChildNotes.item(j);
       if (childNode.getNodeType() == Node.ELEMENT_NODE) {
-        result.add((Element)childNode);
+        result.add((Element) childNode);
       }
     }
     return result;
@@ -260,7 +270,7 @@ public final class ExmlToModelParser {
     List<Object> childObjects = new ArrayList<Object>();
     for (Element arrayItemNode : getChildElements(element)) {
       Object value;
-      if(Exmlc.isExmlNamespace(arrayItemNode.getNamespaceURI()) && Exmlc.EXML_OBJECT_NODE_NAME.equals(arrayItemNode.getLocalName())) {
+      if (Exmlc.isExmlNamespace(arrayItemNode.getNamespaceURI()) && Exmlc.EXML_OBJECT_NODE_NAME.equals(arrayItemNode.getLocalName())) {
         value = parseExmlObjectNode(arrayItemNode);
       } else {
         String arrayItemClassName = createFullConfigClassNameFromNode(arrayItemNode);
@@ -288,7 +298,7 @@ public final class ExmlToModelParser {
         fillModelAttributes(model, arrayItemJsonObject, arrayItemNode, configClass);
         value = arrayItemJsonObject;
       }
-      if(value != null) {
+      if (value != null) {
         childObjects.add(value);
       }
     }
@@ -297,10 +307,10 @@ public final class ExmlToModelParser {
 
   private Object parseExmlObjectNode(Node exmlObjectNode) {
     String textContent = exmlObjectNode.getTextContent();
-    if(textContent != null && textContent.length() > 0) {
+    if (textContent != null && textContent.length() > 0) {
       return "{" + textContent.trim() + "}";
     } else {
-      if(!exmlObjectNode.hasAttributes()) {
+      if (!exmlObjectNode.hasAttributes()) {
         return null;
       }
       JsonObject object = new JsonObject();
@@ -347,10 +357,10 @@ public final class ExmlToModelParser {
   private void validateRootNode(Node root) {
     int lineNumber = getLineNumber(root);
     if (!Exmlc.isExmlNamespace(root.getNamespaceURI())) {
-      throw new ExmlcException("root node of EXML file must belong to namespace '" + Exmlc.EXML_NAMESPACE_URI + "', but was '" + root.getNamespaceURI() +"'", lineNumber);
+      throw new ExmlcException("root node of EXML file must belong to namespace '" + Exmlc.EXML_NAMESPACE_URI + "', but was '" + root.getNamespaceURI() + "'", lineNumber);
     }
     if (!Exmlc.EXML_COMPONENT_NODE_NAME.equals(root.getLocalName())) {
-      throw new ExmlcException("root node of EXML file must be a <" + Exmlc.EXML_COMPONENT_NODE_NAME + ">, but was <" + root.getLocalName() +">", lineNumber);
+      throw new ExmlcException("root node of EXML file must be a <" + Exmlc.EXML_COMPONENT_NODE_NAME + ">, but was <" + root.getLocalName() + ">", lineNumber);
     }
   }
 
@@ -366,7 +376,7 @@ public final class ExmlToModelParser {
       saxFactory.setNamespaceAware(true);
       parser = saxFactory.newSAXParser();
       DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-      doc =  factory.newDocumentBuilder().newDocument();
+      doc = factory.newDocumentBuilder().newDocument();
     } catch (ParserConfigurationException e) {
       throw new IllegalStateException("a default dom builder should be provided", e);
     }
