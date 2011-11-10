@@ -18,6 +18,12 @@ import ${componentClassName};
  */
 [ExtConfig(target="${componentClassName}", xtype)]
 public dynamic class ${name} extends ${superClassName} {
+<#list constants as constant>
+  /**
+   * ${constant.escapedDescription!}
+   */
+  public static const ${constant.name}:String = "${constant.value}";
+</#list>
 
   public static native function get xtype():String;
 

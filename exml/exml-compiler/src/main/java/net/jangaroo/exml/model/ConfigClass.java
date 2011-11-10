@@ -4,8 +4,10 @@ import net.jangaroo.utils.CompilerUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  *
@@ -14,6 +16,7 @@ public final class ConfigClass extends DescriptionHolder {
 
   private List<ConfigAttribute> cfgs = new ArrayList<ConfigAttribute>();
   private Map<String, ConfigAttribute> cfgsByName = new HashMap<String, ConfigAttribute>();
+  private List<Constant> constants = new ArrayList<Constant>();
 
   private String name;
   private String packageName;
@@ -40,6 +43,10 @@ public final class ConfigClass extends DescriptionHolder {
     return cfgs;
   }
 
+  public List<Constant> getConstants() {
+    return constants;
+  }
+
   /**
    * Returns only the ConfigAttributes that are not already defined in the super class
    *
@@ -63,6 +70,10 @@ public final class ConfigClass extends DescriptionHolder {
     return cfgsByName.get(name);
   }
 
+  public void addConstant(Constant constant) {
+    constants.add(constant);
+  }
+
   /**
    * Create a ConfigClass name from the given name. By convention all ConfigClass names are uncapitalized.
    *
@@ -77,6 +88,10 @@ public final class ConfigClass extends DescriptionHolder {
     this.name = name;
   }
 
+  /**
+   * the name
+   * @return the name
+   */
   public String getName() {
     return name;
   }
@@ -114,6 +129,10 @@ public final class ConfigClass extends DescriptionHolder {
     return ns.toString();
   }
 
+  /**
+   * The full qualified name
+   * @return the fqn
+   */
   public String getFullName() {
     return packageName + "." + name;
   }

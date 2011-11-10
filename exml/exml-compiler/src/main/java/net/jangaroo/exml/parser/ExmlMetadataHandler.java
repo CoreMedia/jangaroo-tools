@@ -4,6 +4,7 @@ import net.jangaroo.exml.api.ExmlcException;
 import net.jangaroo.exml.compiler.Exmlc;
 import net.jangaroo.exml.model.ConfigAttribute;
 import net.jangaroo.exml.model.ConfigClass;
+import net.jangaroo.exml.model.Constant;
 import net.jangaroo.utils.CharacterRecordingHandler;
 import org.xml.sax.Attributes;
 import org.xml.sax.Locator;
@@ -37,10 +38,12 @@ public class ExmlMetadataHandler extends CharacterRecordingHandler {
         //handle config elements
         configClass.addCfg(new ConfigAttribute(atts.getValue(Exmlc.EXML_CFG_NAME_ATTRIBUTE), atts.getValue(Exmlc.EXML_CFG_TYPE_ATTRIBUTE), null));
       } else if (Exmlc.EXML_DESCRIPTION_NODE_NAME.equals(localName)) {
-        if (isLastInPathComponent() || isLastInPathConfig()) {
+        if (isLastInPathComponent() || isLastInPathConfig() || isLastInPathConstant()) {
           // start recording characters of the description:
           startRecordingCharacters();
         }
+      } else if (Exmlc.EXML_CONSTANT_NODE_NAME.equals(localName)) {
+        configClass.addConstant(new Constant(atts.getValue(Exmlc.EXML_CONSTANT_NAME_ATTRIBUTE), atts.getValue(Exmlc.EXML_CONSTANT_VALUE_ATTRIBUTE)));
       }
     } else if (elementPath.size() == 1) {
       if (configClass.getSuperClassName() != null) {
@@ -66,6 +69,11 @@ public class ExmlMetadataHandler extends CharacterRecordingHandler {
     return Exmlc.isExmlNamespace(parent.getNamespaceURI()) && Exmlc.EXML_CFG_NODE_NAME.equals(parent.getLocalPart());
   }
 
+  private boolean isLastInPathConstant() {
+    QName parent = elementPath.peek();
+    return Exmlc.isExmlNamespace(parent.getNamespaceURI()) && Exmlc.EXML_CONSTANT_NODE_NAME.equals(parent.getLocalPart());
+  }
+
   @Override
   public void endElement(String uri, String localName, String qName) throws SAXException {
     if (Exmlc.isExmlNamespace(uri)) {
@@ -77,6 +85,8 @@ public class ExmlMetadataHandler extends CharacterRecordingHandler {
             configClass.getCfgs().get(configClass.getCfgs().size() - 1).setDescription(characters.trim());
           } else if (isLastInPathComponent()) {
             configClass.setDescription(characters.trim());
+          } else if (isLastInPathConstant()) {
+            configClass.getConstants().get(configClass.getConstants().size() - 1).setDescription(characters.trim());
           }
         }
       }

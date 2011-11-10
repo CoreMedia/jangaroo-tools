@@ -2,6 +2,7 @@ package net.jangaroo.exml.test;
 
 import net.jangaroo.exml.json.JsonArray;
 import net.jangaroo.exml.json.JsonObject;
+import net.jangaroo.exml.model.Constant;
 import net.jangaroo.exml.model.ExmlModel;
 import net.jangaroo.exml.parser.ExmlToModelParser;
 import org.junit.Assert;
@@ -19,7 +20,7 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
     ExmlToModelParser exmlToModelParser = new ExmlToModelParser(getConfigClassRegistry());
 
     ExmlModel model = exmlToModelParser.parse(getFile("/exmlparser/AllElements.exml"));
-    Assert.assertEquals(new HashSet<String>(Arrays.asList("ext.Panel", "ext.MessageBox")),
+    Assert.assertEquals(new HashSet<String>(Arrays.asList("exmlparser.config.allElements", "ext.Panel", "ext.MessageBox")),
             model.getImports());
     Assert.assertEquals("ext.Panel", model.getSuperClassName());
 
@@ -262,6 +263,23 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
 
     model = exmlToModelParser.parse(getFile("/exmlparser/TestBaseClass.exml"));
     Assert.assertEquals("someOtherPackage.base.BaseClass", model.getSuperClassName());
+  }
+
+  @Test
+  public void testConstants() throws Exception {
+    setUp("exmlparser.config");
+    ExmlToModelParser exmlToModelParser = new ExmlToModelParser(getConfigClassRegistry());
+
+    ExmlModel model = exmlToModelParser.parse(getFile("/exmlparser/TestConstants.exml"));
+    Constant aConstant = model.getConfigClass().getConstants().get(0);
+    Assert.assertEquals("A_CONSTANT", aConstant.getName());
+    Assert.assertEquals("123", aConstant.getValue());
+    Assert.assertEquals("This is some constant", aConstant.getDescription());
+
+    Constant bConstant = model.getConfigClass().getConstants().get(1);
+    Assert.assertEquals("B_CONSTANT", bConstant.getName());
+    Assert.assertEquals("456", bConstant.getValue());
+    Assert.assertNull(bConstant.getDescription());
   }
 
   private File getFile(String path) throws URISyntaxException {

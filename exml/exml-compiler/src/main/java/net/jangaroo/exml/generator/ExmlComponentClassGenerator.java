@@ -37,7 +37,7 @@ public final class ExmlComponentClassGenerator {
     cfg.setClassForTemplateLoading(ExmlComponentClassModel.class, "/");
     cfg.setObjectWrapper(new DefaultObjectWrapper());
     Template template = cfg.getTemplate("/net/jangaroo/exml/templates/exml_component_class.ftl");
-    ExmlComponentClassModel exmlComponentClassModel = new ExmlComponentClassModel(model, config.getConfigClassPackage());
+    ExmlComponentClassModel exmlComponentClassModel = new ExmlComponentClassModel(model);
     Environment env = template.createProcessingEnvironment(exmlComponentClassModel, output);
     env.setOutputEncoding(Exmlc.OUTPUT_CHARSET);
     env.process();

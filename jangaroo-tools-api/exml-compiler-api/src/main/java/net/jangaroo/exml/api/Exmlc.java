@@ -18,6 +18,10 @@ public interface Exmlc {
   @SuppressWarnings({"UnusedDeclaration"}) // used by IDEA plugin!
     String EXML_UNTYPED_SCHEMA_LOCATION = "/net/jangaroo/exml/schemas/untyped.xsd";
   String EXML_COMPONENT_NODE_NAME = "component";
+  String EXML_CONSTANT_NODE_NAME = "constant";
+  String EXML_CONSTANT_NAME_ATTRIBUTE = "name";
+  String EXML_CONSTANT_TYPE_ATTRIBUTE = "type";
+  String EXML_CONSTANT_VALUE_ATTRIBUTE = "value";
   String EXML_BASE_CLASS_ATTRIBUTE = "baseClass";
   String EXML_OBJECT_NODE_NAME = "object";
   String EXML_IMPORT_NODE_NAME = "import";

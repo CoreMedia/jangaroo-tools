@@ -51,7 +51,8 @@ public final class ExmlToModelParser {
     String qName = CompilerUtils.qNameFromFile(registry.getConfig().findSourceDir(file), file);
     String className = CompilerUtils.className(qName);
     model.setClassName(ExmlModel.createComponentClassName(className));
-    model.setConfigClassName(ConfigClass.createConfigClassName(className));
+    ConfigClass configClassByName = registry.getConfigClassByName(registry.getConfig().getConfigClassPackage() + "." + ConfigClass.createConfigClassName(className));
+    model.setConfigClass(configClassByName);
     model.setPackageName(CompilerUtils.packageName(qName));
 
     BufferedInputStream inputStream = null;
@@ -82,8 +83,8 @@ public final class ExmlToModelParser {
     validateRootNode(root);
 
     NamedNodeMap attributes = root.getAttributes();
-    for (int j = 0; j < attributes.getLength(); j++) {
-      Attr attribute = (Attr) attributes.item(j);
+    for (int i = 0; i < attributes.getLength(); i++) {
+      Attr attribute = (Attr) attributes.item(i);
       //baseClass attribute has been specified, so the super class of the component is actually that
       if (Exmlc.EXML_BASE_CLASS_ATTRIBUTE.equals(attribute.getLocalName())) {
         model.setSuperClassName(attribute.getValue());

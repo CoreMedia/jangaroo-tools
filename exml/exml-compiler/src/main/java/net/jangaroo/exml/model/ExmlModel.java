@@ -11,7 +11,7 @@ public class ExmlModel extends DescriptionHolder {
   private String superClassName;
   private Set<String> imports = new LinkedHashSet<String>();
   private JsonObject jsonObject = new JsonObject();
-  private String configClassName;
+  private ConfigClass configClass;
 
   public String getPackageName() {
     return packageName;
@@ -53,12 +53,13 @@ public class ExmlModel extends DescriptionHolder {
     imports.add(importedClassName);
   }
 
-  public String getConfigClassName() {
-    return configClassName;
+  public ConfigClass getConfigClass() {
+    return configClass;
   }
 
-  public void setConfigClassName(String configClassName) {
-    this.configClassName = configClassName;
+  public void setConfigClass(ConfigClass configClass) {
+    this.configClass = configClass;
+    addImport(configClass.getFullName());
   }
 
   /**

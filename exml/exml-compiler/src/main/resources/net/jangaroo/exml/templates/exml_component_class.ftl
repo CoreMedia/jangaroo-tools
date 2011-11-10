@@ -10,22 +10,28 @@ import ${import};
 /**
  * ${model.description!}
  *
- * <p>This component is created by the xtype '${configClassPackage}.${model.configClassName}' / the EXML element &lt;${configClassPackage}:${model.configClassName}>.</p>
+ * <p>This component is created by the xtype '${model.configClass.fullName}' / the EXML element &lt;${model.configClass.packageName}:${model.configClass.name}>.</p>
  * <p>See the config class for details.</p>
  *
- * @see ${configClassPackage}.${model.configClassName}
+ * @see ${model.configClass.fullName}
  */
 public class ${model.className} extends ${model.superClassName} {
+<#list model.configClass.constants as constant>
+  /**
+   * ${constant.description!}
+   */
+  public static const ${constant.name}:String = ${model.configClass.fullName}.${constant.name};
+</#list>
 
   /**
    * Create a ${model.className}.
    * @param config The configuration options. See the config class for details.
    *
    * @see ${model.fullClassName}
-   * @see ${configClassPackage}.${model.configClassName}
+   * @see ${model.configClass.fullName}
    */
-  public function ${model.className}(config:${configClassPackage}.${model.configClassName} = null) {
-    super(${configClassPackage}.${model.configClassName}(ext.Ext.apply(${formattedConfig}, config)));
+  public function ${model.className}(config:${model.configClass.fullName} = null) {
+    super(${model.configClass.fullName}(ext.Ext.apply(${formattedConfig}, config)));
   }
 
   /**
@@ -33,9 +39,9 @@ public class ${model.className} extends ${model.superClassName} {
    * @param config The configuration options. See the config class for details.
    *
    * @see ${model.fullClassName}
-   * @see ${configClassPackage}.${model.configClassName}
+   * @see ${model.configClass.fullName}
    */
-  public static function main(config:${configClassPackage}.${model.configClassName} = null):void {
+  public static function main(config:${model.configClass.fullName} = null):void {
     new ${model.fullClassName}(config);
   }
 }

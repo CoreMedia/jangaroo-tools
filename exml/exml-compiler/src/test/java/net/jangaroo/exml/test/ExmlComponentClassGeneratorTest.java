@@ -1,5 +1,6 @@
 package net.jangaroo.exml.test;
 
+import net.jangaroo.exml.model.ConfigClass;
 import net.jangaroo.exml.model.ExmlModel;
 import net.jangaroo.exml.parser.ExmlToModelParser;
 import org.apache.commons.io.FileUtils;
@@ -20,10 +21,6 @@ public class ExmlComponentClassGeneratorTest extends AbstractExmlTest {
     ExmlToModelParser exmlToModelParser = new ExmlToModelParser(getConfigClassRegistry());
     ExmlModel model = exmlToModelParser.parse(getFile("/exmlparser/AllElements.exml"));
 
-    model.setClassName("AllElements");
-    model.setConfigClassName("allElements");
-    model.setPackageName("exmlparser");
-
     StringWriter output = new StringWriter();
     getExmlc().getExmlComponentClassGenerator().generateClass(model, output);
     Assert.assertEquals(expected, output.toString());
@@ -38,7 +35,7 @@ public class ExmlComponentClassGeneratorTest extends AbstractExmlTest {
     ExmlModel model = exmlToModelParser.parse(sourceFile);
 
     Assert.assertEquals("TestLowerCase", model.getClassName());
-    Assert.assertEquals("testLowerCase", model.getConfigClassName());
+    Assert.assertEquals("testLowerCase", model.getConfigClass().getName());
     Assert.assertEquals("exmlparser", model.getPackageName());
   }
 
@@ -51,7 +48,7 @@ public class ExmlComponentClassGeneratorTest extends AbstractExmlTest {
     ExmlModel model = exmlToModelParser.parse(sourceFile);
 
     Assert.assertEquals("AllElements", model.getClassName());
-    Assert.assertEquals("allElements", model.getConfigClassName());
+    Assert.assertEquals("allElements", model.getConfigClass().getName());
     Assert.assertEquals("exmlparser", model.getPackageName());
   }
 

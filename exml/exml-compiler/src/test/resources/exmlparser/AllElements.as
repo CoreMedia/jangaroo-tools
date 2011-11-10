@@ -2,9 +2,9 @@ package exmlparser {
 
 import ext.Ext;
 import ext.ComponentMgr;
+import exmlparser.config.allElements;
 import ext.MessageBox;
 import ext.Panel;
-import exmlparser.config.allElements;
 
 // Do not edit. This is an auto-generated class.
 
@@ -17,6 +17,10 @@ import exmlparser.config.allElements;
  * @see exmlparser.config.allElements
  */
 public class AllElements extends ext.Panel {
+  /**
+   * This is my <b>constant</b>
+   */
+  public static const SOME_CONSTANT:String = exmlparser.config.allElements.SOME_CONSTANT;
 
   /**
    * Create a AllElements.

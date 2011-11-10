@@ -11,12 +11,10 @@ import java.util.Set;
 public class ExmlComponentClassModel {
   private ExmlModel model;
   private String formattedConfig;
-  private String configClassPackage;
 
-  public ExmlComponentClassModel(ExmlModel model, String configClassPackage) {
+  public ExmlComponentClassModel(ExmlModel model) {
     this.model = model;
     this.formattedConfig = model.getJsonObject().toString(2, 4).trim();
-    this.configClassPackage = configClassPackage;
   }
 
   public ExmlModel getModel() {
@@ -27,16 +25,11 @@ public class ExmlComponentClassModel {
     return formattedConfig;
   }
 
-  public String getConfigClassPackage() {
-    return configClassPackage;
-  }
-
   public Set<String> getAllImports() {
     LinkedHashSet<String> result = new LinkedHashSet<String>();
     result.add("ext.Ext");
     result.add("ext.ComponentMgr");
     result.addAll(model.getImports());
-    result.add(configClassPackage + "." + model.getConfigClassName());
     return result;
   }
 }
