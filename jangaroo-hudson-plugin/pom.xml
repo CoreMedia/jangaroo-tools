@@ -51,7 +51,6 @@
       <plugin>
         <groupId>org.jvnet.hudson.tools</groupId>
         <artifactId>maven-hpi-plugin</artifactId>
-        <version>1.57</version>
         <extensions>true</extensions>
         <configuration>
           <disabledTestInjection>true</disabledTestInjection>
@@ -61,18 +60,15 @@
       <plugin>
         <groupId>org.kohsuke</groupId>
         <artifactId>access-modifier-checker</artifactId>
-        <version>1.0</version>
       </plugin>
       <plugin>
         <groupId>org.kohsuke.stapler</groupId>
         <artifactId>maven-stapler-plugin</artifactId>
-        <version>1.15</version>
         <extensions>true</extensions>
       </plugin>
       <plugin>
         <groupId>org.jvnet.localizer</groupId>
         <artifactId>maven-localizer-plugin</artifactId>
-        <version>1.8</version>
         <executions>
           <execution>
             <goals>
