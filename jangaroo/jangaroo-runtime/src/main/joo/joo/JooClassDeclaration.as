@@ -106,7 +106,8 @@ public class JooClassDeclaration extends NativeClassDeclaration {
   }
 
   public function addStateListener(state:String, listener:Function):void {
-    if (state >= STATE_BY_EVENT[state]) {
+    if (this.state >= STATE_BY_EVENT[state]) {
+      // when already past this state, call back immediately:
       listener(this);
     } else {
       var stateListeners:Array = this.stateListeners[state];
