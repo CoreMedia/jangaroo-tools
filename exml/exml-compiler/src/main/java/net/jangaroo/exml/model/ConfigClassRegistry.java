@@ -251,6 +251,9 @@ public final class ConfigClassRegistry {
 
   private void evaluateSuperClass(ConfigClass configClass, Set<String> visited) {
     if(configClass != null && configClass.getSuperClassName() != null && !"joo.JavaScriptObject".equals(configClass.getSuperClassName())) {
+      if(configClass.getFullName().equals(configClass.getSuperClassName())) {
+        throw new ExmlcException(String.format("Cyclic inheritance error: superclass '%s' of config class '%s' are the same!", configClass.getSuperClassName(), configClass.getFullName()));
+      }
       ConfigClass superClass = findActionScriptConfigClass(configClass.getSuperClassName(), visited);
       if(superClass == null) {
         throw new ExmlcException(String.format("Superclass '%s' of class '%s' not found!", configClass.getSuperClassName(), configClass.getFullName()));

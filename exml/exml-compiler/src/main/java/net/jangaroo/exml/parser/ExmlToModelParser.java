@@ -122,16 +122,20 @@ public final class ExmlToModelParser {
       throw new ExmlcException("root node of EXML did not contain a component definition", lineNumber);
     }
 
-    String className = createFullConfigClassNameFromNode(componentNode);
-    ConfigClass configClass = getConfigClassByName(className, componentNode);
-    String componentClassName = configClass.getComponentClassName();
+    String superFullClassName = createFullConfigClassNameFromNode(componentNode);
+    if(superFullClassName.equals(model.getConfigClass().getFullName())) {
+      int lineNumber = getLineNumber(componentNode);
+      throw  new ExmlcException("Cyclic inheritance error: super class and this component are the same!. There is something wrong!", lineNumber);
+    }
+    ConfigClass supberConfigClass = getConfigClassByName(superFullClassName, componentNode);
+    String superComponentClassName = supberConfigClass.getComponentClassName();
     if (model.getSuperClassName() == null) {
-      model.setSuperClassName(componentClassName);
+      model.setSuperClassName(superComponentClassName);
     }
     //but we still need the import
-    model.addImport(componentClassName);
+    model.addImport(superComponentClassName);
 
-    fillModelAttributes(model, model.getJsonObject(), componentNode, configClass);
+    fillModelAttributes(model, model.getJsonObject(), componentNode, supberConfigClass);
   }
 
   private String createFullConfigClassNameFromNode(Node componentNode) {
