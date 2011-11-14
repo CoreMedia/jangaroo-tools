@@ -10,8 +10,7 @@ public enum ConfigClassType {
   PTYPE("ptype"),
   @SuppressWarnings({"UnusedDeclaration"})
   TYPE("type"),
-  @SuppressWarnings({"UnusedDeclaration"})
-  GCTYPE("xtype");
+  GCTYPE("gctype");
 
   public static ConfigClassType fromExtConfigAttribute(String parameterName) {
     String enumValue = parameterName.toUpperCase(Locale.ROOT);
@@ -32,4 +31,6 @@ public enum ConfigClassType {
   public String getExtTypeAttribute() {
     return extTypeAttribute;
   }
+
+
 }
