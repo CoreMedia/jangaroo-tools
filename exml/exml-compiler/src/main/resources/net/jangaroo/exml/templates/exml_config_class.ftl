@@ -10,13 +10,15 @@ import ${componentClassName};
 /**
  * ${escapedDescription!}
  *
- * <p>This class serves as a typed config object for the constructor of the component class <code>${componentClassName}</code>.
- * Instantiating this class for the first time also registers the corresponding component class under the xtype
- * "${packageName}.${name}" with ExtJS.</p>
+ * <p>This class serves as a typed config object for the constructor of the class <code>${componentClassName}</code>.
+<#if type??>
+ * Using this config class also takes care of registering the target class under the ${type.extTypeAttribute}
+ * "${packageName}.${name}" with Ext JS.</p>
+</#if>
  *
  * @see ${componentClassName}
  */
-[ExtConfig(target="${componentClassName}", xtype)]
+[ExtConfig(target="${componentClassName}"<#if type??>, ${type.extTypeAttribute}</#if>)]
 public dynamic class ${name} extends ${superClassName} {
 <#list constants as constant>
   /**
@@ -25,11 +27,18 @@ public dynamic class ${name} extends ${superClassName} {
   public static const ${constant.name}:String = "${constant.value}";
 </#list>
 
-  public static native function get xtype():String;
+<#if type??>
+  public static native function get ${type.extTypeAttribute}():String;
 
+</#if>
   /**
-   * <p>Use this constructor to create a typed config object for the constructor of the component class
-   * <code>${componentClassName}</code> and register the component with ExtJS.</p>
+   * <p>Use this constructor to create a typed config object for the constructor of the class
+   * <code>${componentClassName}</code>.
+<#if type??>
+   * Using this config class also takes care of registering the target class under the ${type.extTypeAttribute}
+   * "${packageName}.${name}" with Ext JS.</p>
+</#if>
+   * </p>
    *
    * @see ${componentClassName}
    */

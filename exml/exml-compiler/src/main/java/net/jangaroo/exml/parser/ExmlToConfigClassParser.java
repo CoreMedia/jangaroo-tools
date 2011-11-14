@@ -29,12 +29,10 @@ public class ExmlToConfigClassParser {
     String componentPackageName = CompilerUtils.packageName(fullQualifiedName);
     String componentClassName = ExmlModel.createComponentClassName(CompilerUtils.className(fullQualifiedName));
 
-    configClass.setComponentClassName(componentPackageName.equals("") ? componentClassName : componentPackageName + "." + componentClassName);
+    configClass.setComponentClassName(CompilerUtils.qName(componentPackageName, componentClassName));
     
     configClass.setPackageName(config.getConfigClassPackage());
     configClass.setName(ConfigClass.createConfigClassName(CompilerUtils.removeExtension(source.getName())));
-    // Only components are encoded in EXML.
-    configClass.setType(ConfigClassType.XTYPE);
 
     //read exml data and write it into the config class
     ExmlMetadataHandler metadataHandler = new ExmlMetadataHandler(configClass);

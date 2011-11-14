@@ -4,6 +4,7 @@ import net.jangaroo.exml.api.ExmlcException;
 import net.jangaroo.exml.compiler.Exmlc;
 import net.jangaroo.exml.model.ConfigAttribute;
 import net.jangaroo.exml.model.ConfigClass;
+import net.jangaroo.exml.model.ConfigClassType;
 import net.jangaroo.exml.model.Constant;
 import net.jangaroo.utils.CharacterRecordingHandler;
 import org.xml.sax.Attributes;
@@ -11,13 +12,26 @@ import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
 
 import javax.xml.namespace.QName;
+import java.util.Collections;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
 
 /**
  * Generates an internal representation of all metadata of the component described by the given EXML.
  */
 public class ExmlMetadataHandler extends CharacterRecordingHandler {
+  private static final Map<String,ConfigClassType> EXML_ROOT_NODE_TO_CONFIG_CLASS_TYPE
+    = Collections.unmodifiableMap(new HashMap<String, ConfigClassType>() {
+    {
+      put(Exmlc.EXML_COMPONENT_NODE_NAME, ConfigClassType.XTYPE);
+      put(Exmlc.EXML_PLUGIN_NODE_NAME, ConfigClassType.PTYPE);
+      put(Exmlc.EXML_LAYOUT_NODE_NAME, ConfigClassType.TYPE);
+      put(Exmlc.EXML_GRID_COLUMN_NODE_NAME, ConfigClassType.GCTYPE);
+    }
+  });
+
   private ConfigClass configClass;
   private Locator locator;
 
@@ -34,7 +48,9 @@ public class ExmlMetadataHandler extends CharacterRecordingHandler {
 
   public void startElement(String uri, String localName, String qName, Attributes atts) throws SAXException {
     if (Exmlc.isExmlNamespace(uri)) {
-      if (Exmlc.EXML_CFG_NODE_NAME.equals(localName)) {
+      if (Exmlc.EXML_ROOT_NODE_NAMES.contains(localName)) {
+        configClass.setType(EXML_ROOT_NODE_TO_CONFIG_CLASS_TYPE.get(localName));
+      } else if (Exmlc.EXML_CFG_NODE_NAME.equals(localName)) {
         //handle config elements
         ConfigAttribute cfg = new ConfigAttribute(atts.getValue(Exmlc.EXML_CFG_NAME_ATTRIBUTE), atts.getValue(Exmlc.EXML_CFG_TYPE_ATTRIBUTE), null);
         if(!configClass.contains(cfg)) {
@@ -43,7 +59,7 @@ public class ExmlMetadataHandler extends CharacterRecordingHandler {
           throw new ExmlcException("Config '" + cfg.getName() + "' already defined.", locator.getLineNumber(), locator.getColumnNumber());
         }
       } else if (Exmlc.EXML_DESCRIPTION_NODE_NAME.equals(localName)) {
-        if (isLastInPathComponent() || isLastInPathConfig() || isLastInPathConstant()) {
+        if (isLastInPathExmlClass() || isLastInPathConfig() || isLastInPathConstant()) {
           // start recording characters of the description:
           startRecordingCharacters();
         }
@@ -69,9 +85,9 @@ public class ExmlMetadataHandler extends CharacterRecordingHandler {
     elementPath.push(new QName(uri, localName));
   }
 
-  private boolean isLastInPathComponent() {
+  private boolean isLastInPathExmlClass() {
     QName parent = elementPath.peek();
-    return Exmlc.isExmlNamespace(parent.getNamespaceURI()) && Exmlc.EXML_COMPONENT_NODE_NAME.equals(parent.getLocalPart());
+    return Exmlc.isExmlNamespace(parent.getNamespaceURI()) && Exmlc.EXML_ROOT_NODE_NAMES.contains(parent.getLocalPart());
   }
 
   private boolean isLastInPathConfig() {
@@ -93,7 +109,7 @@ public class ExmlMetadataHandler extends CharacterRecordingHandler {
         if (characters != null) {
           if (isLastInPathConfig()) {
             configClass.getCfgs().get(configClass.getCfgs().size() - 1).setDescription(characters.trim());
-          } else if (isLastInPathComponent()) {
+          } else if (isLastInPathExmlClass()) {
             configClass.setDescription(characters.trim());
           } else if (isLastInPathConstant()) {
             configClass.getConstants().get(configClass.getConstants().size() - 1).setDescription(characters.trim());

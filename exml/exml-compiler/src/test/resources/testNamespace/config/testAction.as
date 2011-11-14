@@ -1,0 +1,39 @@
+package testNamespace.config {
+
+import ext.ComponentMgr;
+import ext.config.action;
+import testPackage.TestAction;
+
+// Do not edit. This is an auto-generated class.
+
+/**
+ * This is a test action (not a component!).
+ *
+ * <p>This class serves as a typed config object for the constructor of the class <code>testPackage.TestAction</code>.
+ *
+ * @see testPackage.TestAction
+ */
+[ExtConfig(target="testPackage.TestAction")]
+public dynamic class testAction extends ext.config.action {
+
+  /**
+   * <p>Use this constructor to create a typed config object for the constructor of the class
+   * <code>testPackage.TestAction</code>.
+   * </p>
+   *
+   * @see testPackage.TestAction
+   */
+  public function testAction(config:Object = null) {
+    super(config || {});
+  }
+
+  /**
+   * Some flag for the action.
+   */
+  public native function get active():Boolean;
+  /**
+   * @private
+   */
+  public native function set active(value:Boolean):void;
+}
+}

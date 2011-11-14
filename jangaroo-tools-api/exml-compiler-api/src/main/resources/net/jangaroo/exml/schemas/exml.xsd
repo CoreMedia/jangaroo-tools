@@ -120,13 +120,7 @@
     </xs:simpleContent>
   </xs:complexType>
 
-  <xs:complexType name="component">
-    <xs:annotation>
-      <xs:documentation>
-        An Ext XML Component consiting of optional cfg elements and one
-        component element that is the parent component.
-      </xs:documentation>
-    </xs:annotation>
+  <xs:complexType name="class">
     <xs:sequence>
       <xs:element name="import" type="exml:import" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element name="constant" type="exml:constant" minOccurs="0" maxOccurs="unbounded"/>
@@ -168,6 +162,59 @@
       <xs:field    xpath="@name" />
     </xs:unique>
   </xs:element>
+
+  <xs:element name="plugin" type="exml:class">
+    <!-- make constant names unique -->
+    <xs:unique name="constant_name">
+      <xs:selector xpath="exml:constant" />
+      <xs:field    xpath="@name" />
+    </xs:unique>
+    <!-- make config names unique -->
+    <xs:unique name="cfg_name">
+      <xs:selector xpath="exml:cfg" />
+      <xs:field    xpath="@name" />
+    </xs:unique>
+  </xs:element>
+
+  <xs:element name="layout" type="exml:class">
+    <!-- make constant names unique -->
+    <xs:unique name="constant_name">
+      <xs:selector xpath="exml:constant" />
+      <xs:field    xpath="@name" />
+    </xs:unique>
+    <!-- make config names unique -->
+    <xs:unique name="cfg_name">
+      <xs:selector xpath="exml:cfg" />
+      <xs:field    xpath="@name" />
+    </xs:unique>
+  </xs:element>
+
+  <xs:element name="gridColumn" type="exml:class">
+    <!-- make constant names unique -->
+    <xs:unique name="constant_name">
+      <xs:selector xpath="exml:constant" />
+      <xs:field    xpath="@name" />
+    </xs:unique>
+    <!-- make config names unique -->
+    <xs:unique name="cfg_name">
+      <xs:selector xpath="exml:cfg" />
+      <xs:field    xpath="@name" />
+    </xs:unique>
+  </xs:element>
+
+  <xs:element name="class" type="exml:class">
+    <!-- make constant names unique -->
+    <xs:unique name="constant_name">
+      <xs:selector xpath="exml:constant" />
+      <xs:field    xpath="@name" />
+    </xs:unique>
+    <!-- make config names unique -->
+    <xs:unique name="cfg_name">
+      <xs:selector xpath="exml:cfg" />
+      <xs:field    xpath="@name" />
+    </xs:unique>
+  </xs:element>
+
   <xs:element name="object" type="exml:object"/>
 
 </xs:schema>

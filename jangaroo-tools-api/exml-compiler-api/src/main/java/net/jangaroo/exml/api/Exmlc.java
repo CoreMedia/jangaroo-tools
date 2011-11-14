@@ -3,6 +3,9 @@ package net.jangaroo.exml.api;
 import net.jangaroo.exml.config.ExmlConfiguration;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Interface for EXML compiler, used by universal Jangaroo IDEA Plugin.
@@ -18,6 +21,18 @@ public interface Exmlc {
   @SuppressWarnings({"UnusedDeclaration"}) // used by IDEA plugin!
     String EXML_UNTYPED_SCHEMA_LOCATION = "/net/jangaroo/exml/schemas/untyped.xsd";
   String EXML_COMPONENT_NODE_NAME = "component";
+  String EXML_PLUGIN_NODE_NAME = "plugin";
+  String EXML_LAYOUT_NODE_NAME = "layout";
+  String EXML_GRID_COLUMN_NODE_NAME = "gridColumn";
+  String EXML_CLASS_NODE_NAME = "class";
+  Set<String> EXML_ROOT_NODE_NAMES = new HashSet<String>(Arrays.asList(
+    EXML_COMPONENT_NODE_NAME,
+    EXML_PLUGIN_NODE_NAME,
+    EXML_LAYOUT_NODE_NAME,
+    EXML_GRID_COLUMN_NODE_NAME,
+    EXML_CLASS_NODE_NAME
+  ));
+
   String EXML_CONSTANT_NODE_NAME = "constant";
   String EXML_CONSTANT_NAME_ATTRIBUTE = "name";
   String EXML_CONSTANT_TYPE_ATTRIBUTE = "type";

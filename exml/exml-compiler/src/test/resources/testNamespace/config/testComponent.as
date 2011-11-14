@@ -9,9 +9,9 @@ import testPackage.TestComponent;
 /**
  * This is a TestComponent with panel as baseclass.
  *
- * <p>This class serves as a typed config object for the constructor of the component class <code>testPackage.TestComponent</code>.
- * Instantiating this class for the first time also registers the corresponding component class under the xtype
- * "testNamespace.config.testComponent" with ExtJS.</p>
+ * <p>This class serves as a typed config object for the constructor of the class <code>testPackage.TestComponent</code>.
+ * Using this config class also takes care of registering the target class under the xtype
+ * "testNamespace.config.testComponent" with Ext JS.</p>
  *
  * @see testPackage.TestComponent
  */
@@ -21,8 +21,11 @@ public dynamic class testComponent extends ext.config.panel {
   public static native function get xtype():String;
 
   /**
-   * <p>Use this constructor to create a typed config object for the constructor of the component class
-   * <code>testPackage.TestComponent</code> and register the component with ExtJS.</p>
+   * <p>Use this constructor to create a typed config object for the constructor of the class
+   * <code>testPackage.TestComponent</code>.
+   * Using this config class also takes care of registering the target class under the xtype
+   * "testNamespace.config.testComponent" with Ext JS.</p>
+   * </p>
    *
    * @see testPackage.TestComponent
    */

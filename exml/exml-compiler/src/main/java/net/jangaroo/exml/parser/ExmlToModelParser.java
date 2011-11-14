@@ -28,6 +28,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public final class ExmlToModelParser {
@@ -360,8 +361,8 @@ public final class ExmlToModelParser {
     if (!Exmlc.isExmlNamespace(root.getNamespaceURI())) {
       throw new ExmlcException("root node of EXML file must belong to namespace '" + Exmlc.EXML_NAMESPACE_URI + "', but was '" + root.getNamespaceURI() + "'", lineNumber);
     }
-    if (!Exmlc.EXML_COMPONENT_NODE_NAME.equals(root.getLocalName())) {
-      throw new ExmlcException("root node of EXML file must be a <" + Exmlc.EXML_COMPONENT_NODE_NAME + ">, but was <" + root.getLocalName() + ">", lineNumber);
+    if (!Exmlc.EXML_ROOT_NODE_NAMES.contains(root.getLocalName())) {
+      throw new ExmlcException("Root node of EXML file must be one of " + Arrays.toString(Exmlc.EXML_ROOT_NODE_NAMES.toArray()) + ", but was " + root.getLocalName() + ".", lineNumber);
     }
   }
 

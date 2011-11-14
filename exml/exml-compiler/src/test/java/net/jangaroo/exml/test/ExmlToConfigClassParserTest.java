@@ -61,6 +61,32 @@ public class ExmlToConfigClassParserTest extends AbstractExmlTest {
     assertEquals("The files differ!", FileUtils.readFileToString(getFile("/testNamespace/config/testComponent.as")), FileUtils.readFileToString(result));
   }
 
+  @Test
+  public void testGenerateActionConfig() throws Exception {
+    setUp("testNamespace.config");
+    File result = new File(outputFolder.getRoot(), "testNamespace/config/testAction.as");
+    File source = getFile("/testPackage/TestAction.exml");
+
+    File outputFile = getExmlc().generateConfigClass(source);
+
+    assertNotNull(outputFile);
+    assertTrue("Exml config file does not exist", result.exists());
+    assertEquals("The files differ!", FileUtils.readFileToString(getFile("/testNamespace/config/testAction.as")), FileUtils.readFileToString(result));
+  }
+
+  @Test
+  public void testGeneratePluginConfig() throws Exception {
+    setUp("testNamespace.config");
+    File result = new File(outputFolder.getRoot(), "testNamespace/config/testPlugin.as");
+    File source = getFile("/testPackage/TestPlugin.exml");
+
+    File outputFile = getExmlc().generateConfigClass(source);
+
+    assertNotNull(outputFile);
+    assertTrue("Exml config file does not exist", result.exists());
+    assertEquals("The files differ!", FileUtils.readFileToString(getFile("/testNamespace/config/testPlugin.as")), FileUtils.readFileToString(result));
+  }
+
   private File getFile(String path) throws URISyntaxException {
     return new File(ExmlToConfigClassParserTest.class.getResource(path).toURI());
   }
