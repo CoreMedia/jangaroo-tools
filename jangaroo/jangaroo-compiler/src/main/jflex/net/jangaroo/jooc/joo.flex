@@ -128,7 +128,7 @@ package net.jangaroo.jooc;
 
 LineTerminator = [\n\r\u2028\u2029]
 InputCharacter = [^\r\n]
-WhiteSpace = {LineTerminator} | [ \t\f]
+WhiteSpace = {LineTerminator} | [  \t\f]
 
 Comment = {TraditionalComment} | {EndOfLineComment} 
 
@@ -296,6 +296,7 @@ Include           = "include \"" ~"\""
   {Comment}                       { whitespace += yytext(); }
   {WhiteSpace}                    { whitespace += yytext(); }
   {Identifier}                    { return symbol(IDE, yytext()); }
+  "*"                             { return symbol(MUL); }
   "."                             { return symbol(DOT); }
   ".<"                            { ++vectorNestingLevel; return symbol(DOTLT); }
   ">"                             { if (--vectorNestingLevel == 0) { yybegin(YYINITIAL); } return symbol(GT); }
