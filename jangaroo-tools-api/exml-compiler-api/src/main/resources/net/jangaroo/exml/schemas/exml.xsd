@@ -120,7 +120,7 @@
     </xs:simpleContent>
   </xs:complexType>
 
-  <xs:complexType name="class">
+  <xs:complexType name="component">
     <xs:sequence>
       <xs:element name="import" type="exml:import" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element name="constant" type="exml:constant" minOccurs="0" maxOccurs="unbounded"/>
@@ -163,53 +163,53 @@
     </xs:unique>
   </xs:element>
 
-  <xs:element name="plugin" type="exml:class">
+  <xs:element name="plugin" type="exml:component">
     <!-- make constant names unique -->
-    <xs:unique name="constant_name">
+    <xs:unique name="constant_name_plugin">
       <xs:selector xpath="exml:constant" />
       <xs:field    xpath="@name" />
     </xs:unique>
     <!-- make config names unique -->
-    <xs:unique name="cfg_name">
+    <xs:unique name="cfg_name_plugin">
       <xs:selector xpath="exml:cfg" />
       <xs:field    xpath="@name" />
     </xs:unique>
   </xs:element>
 
-  <xs:element name="layout" type="exml:class">
+  <xs:element name="layout" type="exml:component">
     <!-- make constant names unique -->
-    <xs:unique name="constant_name">
+    <xs:unique name="constant_name_layout">
       <xs:selector xpath="exml:constant" />
       <xs:field    xpath="@name" />
     </xs:unique>
     <!-- make config names unique -->
-    <xs:unique name="cfg_name">
+    <xs:unique name="cfg_name_layout">
       <xs:selector xpath="exml:cfg" />
       <xs:field    xpath="@name" />
     </xs:unique>
   </xs:element>
 
-  <xs:element name="gridColumn" type="exml:class">
+  <xs:element name="gridColumn" type="exml:component">
     <!-- make constant names unique -->
-    <xs:unique name="constant_name">
+    <xs:unique name="constant_name_gridColumn">
       <xs:selector xpath="exml:constant" />
       <xs:field    xpath="@name" />
     </xs:unique>
     <!-- make config names unique -->
-    <xs:unique name="cfg_name">
+    <xs:unique name="cfg_name_gridColumn">
       <xs:selector xpath="exml:cfg" />
       <xs:field    xpath="@name" />
     </xs:unique>
   </xs:element>
 
-  <xs:element name="class" type="exml:class">
+  <xs:element name="class" type="exml:component">
     <!-- make constant names unique -->
-    <xs:unique name="constant_name">
+    <xs:unique name="constant_name_class">
       <xs:selector xpath="exml:constant" />
       <xs:field    xpath="@name" />
     </xs:unique>
     <!-- make config names unique -->
-    <xs:unique name="cfg_name">
+    <xs:unique name="cfg_name_class">
       <xs:selector xpath="exml:cfg" />
       <xs:field    xpath="@name" />
     </xs:unique>
