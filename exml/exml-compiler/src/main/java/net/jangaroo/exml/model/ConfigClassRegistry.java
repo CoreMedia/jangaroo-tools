@@ -176,7 +176,7 @@ public final class ConfigClassRegistry {
       if (existingConfigClass != null) {
         if (!existingConfigClass.equals(configClass)) {
           // todo: Keep track of source.
-          throw new ExmlcException("config class " + name + " declared in " + configClass.getComponentClassName() + " and " + existingConfigClass.getComponentClassName());
+          throw new ExmlcException(String.format("config class '%s' declared in '%s' and '%s'.", name, configClass.getComponentClassName(), existingConfigClass.getComponentClassName()));
         }
       } else {
         configClassesByName.put(name, configClass);
