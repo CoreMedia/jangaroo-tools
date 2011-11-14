@@ -37,7 +37,7 @@
   <xs:complexType name="cfg">
     <xs:annotation>
       <xs:documentation>
-        An additional config property of this component. The newly created property can
+        An additional config property of this EXML class. The newly created property can
         be used with binding in other properties of components, e.g. <i><b>{config.&lt;name of the property>}</b></i>
       </xs:documentation>
     </xs:annotation>
@@ -69,7 +69,7 @@
   <xs:complexType name="import">
     <xs:annotation>
       <xs:documentation>
-        Imports the specified class into the component. This is necessary when using third-party classes inside code blocks like event handlers. 
+        Imports the specified class into the EXML class. This is necessary when using third-party classes inside code blocks like event handlers. 
       </xs:documentation>
     </xs:annotation>
     <xs:attribute name="class" type="xs:string" use="required"/>
@@ -120,7 +120,7 @@
     </xs:simpleContent>
   </xs:complexType>
 
-  <xs:complexType name="component">
+  <xs:complexType name="rootElement">
     <xs:sequence>
       <xs:element name="import" type="exml:import" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element name="constant" type="exml:constant" minOccurs="0" maxOccurs="unbounded"/>
@@ -128,7 +128,7 @@
       <xs:element name="description" type="xs:string" minOccurs="0" maxOccurs="1">
         <xs:annotation>
           <xs:documentation>
-            The description of the new component class. optional.
+            The description of the new EXML class. optional.
           </xs:documentation>
         </xs:annotation>
       </xs:element>
@@ -142,7 +142,7 @@
     <xs:attribute name="baseClass" type="xs:string">
       <xs:annotation>
         <xs:documentation>
-          <p>The name of the base class of this component. <b>The base class should be of the same type as this component.</b></p>
+          <p>The name of the base class of this EXML class. <b>The base class must be compatible with the config class of this EXML class.</b></p>
           <p>If the name is not full qualified, either the class has to be imported or the class is assumed to be in the same
           package.</p>
         </xs:documentation>
@@ -150,7 +150,7 @@
     </xs:attribute>
   </xs:complexType>
 
-  <xs:element name="component" type="exml:component">
+  <xs:element name="component" type="exml:rootElement">
     <!-- make constant names unique -->
     <xs:unique name="constant_name">
       <xs:selector xpath="exml:constant" />
@@ -163,7 +163,7 @@
     </xs:unique>
   </xs:element>
 
-  <xs:element name="plugin" type="exml:component">
+  <xs:element name="plugin" type="exml:rootElement">
     <!-- make constant names unique -->
     <xs:unique name="constant_name_plugin">
       <xs:selector xpath="exml:constant" />
@@ -176,7 +176,7 @@
     </xs:unique>
   </xs:element>
 
-  <xs:element name="layout" type="exml:component">
+  <xs:element name="layout" type="exml:rootElement">
     <!-- make constant names unique -->
     <xs:unique name="constant_name_layout">
       <xs:selector xpath="exml:constant" />
@@ -189,7 +189,7 @@
     </xs:unique>
   </xs:element>
 
-  <xs:element name="gridColumn" type="exml:component">
+  <xs:element name="gridColumn" type="exml:rootElement">
     <!-- make constant names unique -->
     <xs:unique name="constant_name_gridColumn">
       <xs:selector xpath="exml:constant" />
@@ -202,7 +202,7 @@
     </xs:unique>
   </xs:element>
 
-  <xs:element name="class" type="exml:component">
+  <xs:element name="class" type="exml:rootElement">
     <!-- make constant names unique -->
     <xs:unique name="constant_name_class">
       <xs:selector xpath="exml:constant" />
