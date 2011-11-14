@@ -11,7 +11,7 @@ import net.jangaroo.exml.model.ConfigClassRegistry;
 import net.jangaroo.exml.model.ExmlModel;
 import net.jangaroo.exml.parser.ExmlToConfigClassParser;
 import net.jangaroo.exml.parser.ExmlToModelParser;
-import net.jangaroo.jooc.cli.CommandLineParseException;
+import net.jangaroo.utils.CommandLineParseException;
 
 import java.io.File;
 import java.io.IOException;

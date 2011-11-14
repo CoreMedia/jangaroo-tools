@@ -1,48 +1,56 @@
 package net.jangaroo.jooc.cli;
 
 import net.jangaroo.jooc.config.JoocConfiguration;
-import org.kohsuke.args4j.CmdLineException;
+import net.jangaroo.utils.AbstractCommandLineParser;
 import org.kohsuke.args4j.CmdLineParser;
-
-import java.io.StringWriter;
-
-import static org.kohsuke.args4j.ExampleMode.REQUIRED;
 
 /**
  * Parses the jooc command line to produce a {@link JoocConfiguration}.
  */
-public class JoocCommandLineParser {
+public class JoocCommandLineParser extends AbstractCommandLineParser<JoocConfiguration> {
 
-  @SuppressWarnings({"AccessStaticViaInstance"})
-  public JoocConfiguration parse(String[] args) throws CommandLineParseException {
 
-    JoocConfiguration config = new JoocConfiguration();
+  private void printVersion() {
+    String pkgName = "net.jangaroo.jooc";
+    Package pkg = Package.getPackage(pkgName);
+    String specTitle = pkg.getSpecificationTitle();
+    if (specTitle == null) {
+      System.out.println("cannot retrieve package version information for " + pkgName); // NOSONAR this is a commandline tool
+      return;
+    }
+    String specVendor = pkg.getSpecificationVendor();
+    String specVersion = pkg.getSpecificationVersion();
+    String implTitle = pkg.getImplementationTitle();
+    String implVersion = pkg.getImplementationVersion();
+    System.out.println(specTitle + " version " + specVersion); // NOSONAR this is a cmd line tool
+    System.out.println(implTitle + " (build " + implVersion + ")"); // NOSONAR this is a cmd line tool
+    System.out.println(specVendor); // NOSONAR this is a cmd line tool
+  }
 
-    CmdLineParser parser = new CmdLineParser(config);
-    try {
-      // parse the arguments.
-      parser.parseArgument(args);
-    } catch (CmdLineException e) {
-      StringBuilder msg = new StringBuilder();
-      // if there's a problem in the command line,
-      // you'll get this exception. this will report
-      // an error message.
-      msg.append(e.getMessage());
-      msg.append("\n");
-      msg.append("java Jooc [options...] source files...\n");
-      // print the list of available options
-      StringWriter writer = new StringWriter();
-      parser.printUsage(writer, null);
-      msg.append(writer.getBuffer());
-      msg.append("\n");
-      // print option sample. This is useful some time
-      msg.append("  Example: java Jooc").append(parser.printExample(REQUIRED));
-      msg.append("\n");
-      throw new CommandLineParseException(msg.toString(), -1);
+  @Override
+  public String getMain() {
+    return "Jooc";
+  }
+
+  @Override
+  public JoocConfiguration newT() {
+    return new JoocConfiguration();  //To change body of implemented methods use File | Settings | File Templates.
+  }
+
+  @Override
+  public JoocConfiguration parseConfig(CmdLineParser parser, JoocConfiguration config) {
+    if (config.isHelp()) {
+      System.out.println(extendedUsage(parser, null)); // NOSONAR this is a cmd line tool
+      return null;
     }
 
-    if (config.isHelp()) {
-      parser.printUsage(System.out);
+    if (config.isVersion()) {
+      printVersion();
+      return null;
+    }
+
+    if (config.getOutputDirectory() == null) {
+      System.out.println(extendedUsage(parser, null));  // NOSONAR this is a cmd line tool
       return null;
     }
 
@@ -50,9 +58,10 @@ public class JoocCommandLineParser {
       throw new IllegalArgumentException("destination directory does not exist: " + config.getOutputDirectory().getAbsolutePath());
     }
 
-    if (config.getApiOutputDirectory() != null &&!config.getApiOutputDirectory().exists()) {
-        throw new IllegalArgumentException("destination directory for API stubs does not exist: " + config.getApiOutputDirectory().getAbsolutePath());
+    if (config.getApiOutputDirectory() != null && !config.getApiOutputDirectory().exists()) {
+      throw new IllegalArgumentException("destination directory for API stubs does not exist: " + config.getApiOutputDirectory().getAbsolutePath());
     }
+
     if (config.isVerbose()) {
       /*
       System.out.println("enableassertions=" +  enableAssertions);

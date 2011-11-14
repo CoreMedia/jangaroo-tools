@@ -1,4 +1,4 @@
-package net.jangaroo.jooc.cli;
+package net.jangaroo.utils;
 
 /**
  *

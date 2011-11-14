@@ -22,7 +22,7 @@ import net.jangaroo.jooc.backend.CompilationUnitSink;
 import net.jangaroo.jooc.backend.CompilationUnitSinkFactory;
 import net.jangaroo.jooc.backend.MergedOutputCompilationUnitSinkFactory;
 import net.jangaroo.jooc.backend.SingleFileCompilationUnitSinkFactory;
-import net.jangaroo.jooc.cli.CommandLineParseException;
+import net.jangaroo.utils.CommandLineParseException;
 import net.jangaroo.jooc.cli.JoocCommandLineParser;
 import net.jangaroo.jooc.config.JoocConfiguration;
 import net.jangaroo.jooc.input.FileInputSource;
@@ -182,33 +182,14 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
     }
   }
 
-  protected static void printVersion() {
-    String pkgName = "net.jangaroo.jooc";
-    Package pkg = Package.getPackage(pkgName);
-    String specTitle = pkg.getSpecificationTitle();
-    if (specTitle == null) {
-      System.out.println("cannot retrieve package version information for " + pkgName); // NOSONAR this is a commandline tool
-      return;
-    }
-    String specVendor = pkg.getSpecificationVendor();
-    String specVersion = pkg.getSpecificationVersion();
-    String implTitle = pkg.getImplementationTitle();
-    String implVersion = pkg.getImplementationVersion();
-    System.out.println(specTitle + " version " + specVersion); // NOSONAR this is a cmd line tool
-    System.out.println(implTitle + " (build " + implVersion + ")"); // NOSONAR this is a cmd line tool
-    System.out.println(specVendor); // NOSONAR this is a cmd line tool
-  }
+
 
   public static int run(String[] argv, CompileLog log) {
     try {
       JoocCommandLineParser commandLineParser = new JoocCommandLineParser();
       JoocConfiguration config = commandLineParser.parse(argv);
       if (config != null) {
-        if (config.isVersion()) {
-          printVersion();
-        } else {
-          return new Jooc(config, log).run().getResultCode();
-        }
+        return new Jooc(config, log).run().getResultCode();
       }
     } catch (CommandLineParseException e) {
       System.out.println(e.getMessage()); // NOSONAR this is a commandline tool

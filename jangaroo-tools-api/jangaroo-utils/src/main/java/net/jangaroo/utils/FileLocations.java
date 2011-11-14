@@ -37,7 +37,7 @@ public class FileLocations {
     return outputDirectory;
   }
 
-  @Option(name="-d", metaVar = "DEST_DIR", usage = "destination directory for generated files", required = true)
+  @Option(name="-d", metaVar = "DEST_DIR", usage = "destination directory for generated files")
   public void setOutputDirectory(File outputDirectory) {
     this.outputDirectory = outputDirectory;
   }
@@ -46,7 +46,7 @@ public class FileLocations {
     return sourcePath;
   }
 
-  @Option(name="-sourcepath", handler = PathHandler.class, usage = "source root directories, separated by the system dependant path separator character (e.g. ':' on Unix systems, ';' on Windows)", required = true)
+  @Option(name="-sourcepath", handler = PathHandler.class, usage = "source root directories, separated by the system dependant path separator character (e.g. ':' on Unix systems, ';' on Windows)")
   public void setSourcePath(final List<File> sourcePath) throws IOException {
     ArrayList<File> canonicalizedSourcePath = new ArrayList<File>();
     for (File file : sourcePath) {
@@ -69,7 +69,7 @@ public class FileLocations {
     return Collections.unmodifiableList(sourceFiles);
   }
 
-  @Argument(metaVar = "SOURCE_FILES", usage = "source files that should be compiled", handler = SourceFilesHandler.class, multiValued = true, required = true)
+  @Argument(metaVar = "SOURCE_FILES", usage = "source files that should be compiled", handler = SourceFilesHandler.class, multiValued = true)
   public void setSourceFiles(List<File> sourceFiles) {
     if (sourceFiles == null) {
       throw new IllegalArgumentException("sourceFiles == null");
