@@ -303,8 +303,8 @@ public class ClassDeclaration extends IdeDeclaration {
     if (declaration == null) {
       declaration = classDecl.getStaticMemberDeclaration(ide);
     }
-    if (declaration == null && classDecl.getOptExtends() != null) {
-      declaration = resolvePropertyInSuper(ide, classDecl, visited, chain, classDecl.getOptExtends().getSuperClass());
+    if (declaration == null && classDecl.getSuperType() != null) {
+      declaration = resolvePropertyInSuper(ide, classDecl, visited, chain, classDecl.getSuperType().getIde());
     }
     if (declaration == null && classDecl.getOptImplements() != null) {
       CommaSeparatedList<Ide> implemented = classDecl.getOptImplements().getSuperTypes();
@@ -323,13 +323,14 @@ public class ClassDeclaration extends IdeDeclaration {
                                                 final Set<ClassDeclaration> visited,
                                                 final Deque<ClassDeclaration> chain,
                                                 final Ide superIde) {
-    IdeDeclaration superClassDecl = superIde.getDeclaration();
+    IdeDeclaration superClassDecl = superIde.getDeclaration(false);
     if (superClassDecl != null) {
       if (!(superClassDecl instanceof ClassDeclaration)) {
         throw new CompilerError(classDecl.getOptExtends().getSuperClass().getSymbol(), "expected class identifier");
       }
+      return resolvePropertyDeclaration1(ide, (ClassDeclaration) superClassDecl, visited, chain);
     }
-    return resolvePropertyDeclaration1(ide, (ClassDeclaration) superClassDecl, visited, chain);
+    return null;
   }
 
   public int getInheritanceLevel() {
