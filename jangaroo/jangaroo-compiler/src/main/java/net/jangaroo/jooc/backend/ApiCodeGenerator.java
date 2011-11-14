@@ -163,7 +163,7 @@ public class ApiCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitType(Type type) throws IOException {
-    out.writeSymbol(type.getIde().getIde());
+    type.getIde().visit(this);
   }
 
   @Override
