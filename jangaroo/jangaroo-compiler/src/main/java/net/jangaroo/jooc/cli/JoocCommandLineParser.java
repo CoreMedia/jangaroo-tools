@@ -28,8 +28,8 @@ public class JoocCommandLineParser extends AbstractCommandLineParser<JoocConfigu
   }
 
   @Override
-  public String getMain() {
-    return "Jooc";
+  public String getShellScriptName() {
+    return "jooc";
   }
 
   @Override

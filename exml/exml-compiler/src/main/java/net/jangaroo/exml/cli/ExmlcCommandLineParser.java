@@ -11,8 +11,8 @@ import org.kohsuke.args4j.CmdLineParser;
 public class ExmlcCommandLineParser extends AbstractCommandLineParser<ExmlConfiguration> {
 
   @Override
-  public String getMain() {
-    return "Exmlc";
+  public String getShellScriptName() {
+    return "exmlc";
   }
 
   @Override
