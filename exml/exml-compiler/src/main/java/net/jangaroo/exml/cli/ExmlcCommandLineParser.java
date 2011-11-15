@@ -2,25 +2,21 @@ package net.jangaroo.exml.cli;
 
 
 import net.jangaroo.exml.config.ExmlConfiguration;
+import net.jangaroo.jooc.cli.CommandLineParseException;
 import net.jangaroo.utils.AbstractCommandLineParser;
+import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 
 /**
  *
  */
-public class ExmlcCommandLineParser extends AbstractCommandLineParser<ExmlConfiguration> {
+public class ExmlcCommandLineParser extends AbstractCommandLineParser {
 
   @Override
   public String getShellScriptName() {
     return "exmlc";
   }
 
-  @Override
-  public ExmlConfiguration newT() {
-    return new ExmlConfiguration();
-  }
-
-  @Override
   public ExmlConfiguration parseConfig(CmdLineParser parser, ExmlConfiguration config) {
     if (config.getOutputDirectory() == null) {
       System.out.println(extendedUsage(parser, null)); // NOSONAR this is a cmd line tool
@@ -35,5 +31,19 @@ public class ExmlcCommandLineParser extends AbstractCommandLineParser<ExmlConfig
       config.setResourceOutputDirectory(config.getOutputDirectory());
     }
     return config;
+  }
+
+  public ExmlConfiguration parse(String[] args) throws CommandLineParseException {
+    ExmlConfiguration config = new ExmlConfiguration();
+
+    CmdLineParser parser = new CmdLineParser(config);
+    try {
+      // parse the arguments.
+      parser.parseArgument(args);
+    } catch (CmdLineException e) {
+      StringBuilder msg = extendedUsage(parser, e);
+      throw new CommandLineParseException(msg.toString(), -1);
+    }
+    return parseConfig(parser, config);
   }
 }

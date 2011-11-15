@@ -2,12 +2,13 @@ package net.jangaroo.jooc.cli;
 
 import net.jangaroo.jooc.config.JoocConfiguration;
 import net.jangaroo.utils.AbstractCommandLineParser;
+import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 
 /**
  * Parses the jooc command line to produce a {@link JoocConfiguration}.
  */
-public class JoocCommandLineParser extends AbstractCommandLineParser<JoocConfiguration> {
+public class JoocCommandLineParser extends AbstractCommandLineParser {
 
 
   private void printVersion() {
@@ -32,12 +33,6 @@ public class JoocCommandLineParser extends AbstractCommandLineParser<JoocConfigu
     return "jooc";
   }
 
-  @Override
-  public JoocConfiguration newT() {
-    return new JoocConfiguration();  //To change body of implemented methods use File | Settings | File Templates.
-  }
-
-  @Override
   public JoocConfiguration parseConfig(CmdLineParser parser, JoocConfiguration config) {
     if (config.isHelp()) {
       System.out.println(extendedUsage(parser, null)); // NOSONAR this is a cmd line tool
@@ -72,5 +67,19 @@ public class JoocCommandLineParser extends AbstractCommandLineParser<JoocConfigu
     }
 
     return config;
+  }
+
+  public JoocConfiguration parse(String[] args) throws CommandLineParseException {
+    JoocConfiguration config = new JoocConfiguration();
+
+    CmdLineParser parser = new CmdLineParser(config);
+    try {
+      // parse the arguments.
+      parser.parseArgument(args);
+    } catch (CmdLineException e) {
+      StringBuilder msg = extendedUsage(parser, e);
+      throw new CommandLineParseException(msg.toString(), -1);
+    }
+    return parseConfig(parser, config);
   }
 }

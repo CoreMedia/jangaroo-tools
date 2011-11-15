@@ -7,13 +7,9 @@ import java.io.StringWriter;
 
 import static org.kohsuke.args4j.ExampleMode.ALL;
 
-public abstract class AbstractCommandLineParser<T extends FileLocations> {
+public abstract class AbstractCommandLineParser {
 
   public abstract String getShellScriptName();
-
-  public abstract T newT();
-
-  public abstract T parseConfig(CmdLineParser parser, T config);
 
   public StringBuilder extendedUsage(CmdLineParser parser, CmdLineException e) {
     StringBuilder msg = new StringBuilder();
@@ -35,19 +31,4 @@ public abstract class AbstractCommandLineParser<T extends FileLocations> {
     msg.append("\n");
     return msg;
   }
-
-  public T parse(String[] args) throws CommandLineParseException {
-    T config = newT();
-
-    CmdLineParser parser = new CmdLineParser(config);
-    try {
-      // parse the arguments.
-      parser.parseArgument(args);
-    } catch (CmdLineException e) {
-      StringBuilder msg = extendedUsage(parser, e);
-      throw new CommandLineParseException(msg.toString(), -1);
-    }
-    return parseConfig(parser, config);
-  }
-
 }
