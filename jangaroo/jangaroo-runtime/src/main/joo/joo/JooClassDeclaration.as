@@ -44,7 +44,7 @@ public class JooClassDeclaration extends NativeClassDeclaration {
   /**
    * The metadata (annotations) associated with this class.
    */
-  internal var metadata : Object;
+  public var metadata : Object;
 
   private static const DECLARATION_PATTERN_CLASS:RegExp =
     /^\s*((public|internal|final|dynamic)\s+)*class\s+([A-Za-z][a-zA-Z$_0-9]*)(\s+extends\s+([a-zA-Z$_0-9.]+))?(\s+implements\s+([a-zA-Z$_0-9.,\s]+))?\s*$/;
