@@ -44,7 +44,7 @@ public final class Number {
    * trace(num.toExponential(2)); // 3.15e+5
    * </listing>
    */
-  public native function toExponential(fractionDigits:uint):String;
+  public native function toExponential(fractionDigits:uint = 0):String;
 
   /**
    * Returns a string representation of the number in fixed-point notation. Fixed-point notation means that the string will contain a specific number of digits after the decimal point, as specified in the <code>fractionDigits</code> parameter. The valid range for the <code>fractionDigits</code> parameter is from 0 to 20. Specifying a value outside this range throws an exception.
@@ -65,7 +65,7 @@ public final class Number {
    * trace(num.toFixed(2)); // 4.00
    * </listing></div>
    */
-  public native function toFixed(fractionDigits:uint):String;
+  public native function toFixed(fractionDigits:uint = 0):String;
 
   /**
    * Returns a string representation of the number either in exponential notation or in fixed-point notation. The string will contain the number of digits specified in the <code>precision</code> parameter.
@@ -86,7 +86,7 @@ public final class Number {
    * trace(num.toPrecision(3)); // 4.00e+3
    * </listing></div>
    */
-  public native function toPrecision(precision:uint):String;
+  public native function toPrecision(precision:uint = 0):String;
 
   /**
    * Returns the string representation of the specified Number object (<code><i>myNumber</i></code>). If the value of the Number object is a decimal number without a leading zero (such as <code>.4</code>), <code>Number.toString()</code> adds a leading zero (<code>0.4</code>).
