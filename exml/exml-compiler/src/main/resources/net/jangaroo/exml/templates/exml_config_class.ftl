@@ -1,9 +1,9 @@
 <#-- @ftlvariable name="" type="net.jangaroo.exml.model.ConfigClass" -->
 package ${packageName} {
 
-import ext.ComponentMgr;
-import ${superClassName};
-import ${componentClassName};
+<#list imports as import>
+import ${import};
+</#list>
 
 // Do not edit. This is an auto-generated class.
 

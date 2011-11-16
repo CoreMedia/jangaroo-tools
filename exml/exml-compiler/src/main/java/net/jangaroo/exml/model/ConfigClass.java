@@ -3,8 +3,9 @@ package net.jangaroo.exml.model;
 import net.jangaroo.utils.CompilerUtils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -157,46 +158,31 @@ public final class ConfigClass extends DescriptionHolder {
     return superClassName;
   }
 
+  public List<String> getImports() {
+    Set<String> imports = new HashSet<String>();
+    imports.add(getSuperClassName());
+    imports.add(getComponentClassName());
+    for (ConfigAttribute cfg : cfgs) {
+      if (cfg.getType().contains(".")) {
+        imports.add(cfg.getType());
+      }
+    }
+    ArrayList<String> results = new ArrayList<String>(imports);
+    Collections.sort(results);
+    return results;
+  }
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-
-    ConfigClass that = (ConfigClass) o;
-
-    if (cfgs != null ? !cfgs.equals(that.cfgs) : that.cfgs != null) {
-      return false;
-    }
-    if (componentClassName != null ? !componentClassName.equals(that.componentClassName) : that.componentClassName != null) {
-      return false;
-    }
-    if (name != null ? !name.equals(that.name) : that.name != null) {
-      return false;
-    }
-    if (packageName != null ? !packageName.equals(that.packageName) : that.packageName != null) {
-      return false;
-    }
-    if (superClassName != null ? !superClassName.equals(that.superClassName) : that.superClassName != null) {
-      return false;
-    }
-    return type == that.type;
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    ConfigClass that = (ConfigClass)o;
+    return name.equals(that.name) && packageName.equals(that.packageName);
 
   }
 
   @Override
   public int hashCode() {
-    int result = cfgs != null ? cfgs.hashCode() : 0;
-    result = 31 * result + (cfgsByName != null ? cfgsByName.hashCode() : 0);
-    result = 31 * result + (name != null ? name.hashCode() : 0);
-    result = 31 * result + (packageName != null ? packageName.hashCode() : 0);
-    result = 31 * result + (superClassName != null ? superClassName.hashCode() : 0);
-    result = 31 * result + (componentClassName != null ? componentClassName.hashCode() : 0);
-    result = 31 * result + (type != null ? type.hashCode() : 0);
-    return result;
+    return 31 * name.hashCode() + packageName.hashCode();
   }
 }

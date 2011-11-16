@@ -1,6 +1,5 @@
 package testNamespace.config {
 
-import ext.ComponentMgr;
 import ext.type.panel;
 import testPackage.TestComponent;
 
