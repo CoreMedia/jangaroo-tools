@@ -2,8 +2,8 @@ package net.jangaroo.exml.cli;
 
 
 import net.jangaroo.exml.config.ExmlConfiguration;
+import net.jangaroo.jooc.cli.AbstractCommandLineParser;
 import net.jangaroo.jooc.cli.CommandLineParseException;
-import net.jangaroo.utils.AbstractCommandLineParser;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 

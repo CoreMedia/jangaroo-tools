@@ -1,7 +1,6 @@
 package net.jangaroo.jooc.cli;
 
 import net.jangaroo.jooc.config.JoocConfiguration;
-import net.jangaroo.utils.AbstractCommandLineParser;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 
