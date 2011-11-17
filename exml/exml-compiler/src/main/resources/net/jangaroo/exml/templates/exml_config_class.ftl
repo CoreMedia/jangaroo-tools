@@ -12,13 +12,13 @@ import ${import};
  *
  * <p>This class serves as a typed config object for the constructor of the class <code>${componentClassName}</code>.
 <#if type??>
- * Using this config class also takes care of registering the target class under the ${type.extTypeAttribute}
+ * Using this config class also takes care of registering the target class under the ${type.type}
  * "${packageName}.${name}" with Ext JS.</p>
 </#if>
  *
  * @see ${componentClassName}
  */
-[ExtConfig(target="${componentClassName}"<#if type??>, ${type.extTypeAttribute}</#if>)]
+[ExtConfig(target="${componentClassName}"<#if type??>, ${type.type}</#if>)]
 public dynamic class ${name} extends ${superClassName} {
 <#list constants as constant>
   /**
@@ -28,14 +28,14 @@ public dynamic class ${name} extends ${superClassName} {
 </#list>
 
 <#if type??>
-  public static native function get ${type.extTypeAttribute}():String;
+  public static native function get ${type.type}():String;
 
 </#if>
   /**
    * <p>Use this constructor to create a typed config object for the constructor of the class
    * <code>${componentClassName}</code>.
 <#if type??>
-   * Using this config class also takes care of registering the target class under the ${type.extTypeAttribute}
+   * Using this config class also takes care of registering the target class under the ${type.type}
    * "${packageName}.${name}" with Ext JS.</p>
 </#if>
    * </p>

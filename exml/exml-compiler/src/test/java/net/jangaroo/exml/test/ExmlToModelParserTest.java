@@ -250,7 +250,7 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
                             "propertyThree", "3"
                     ).settingWrapperClass("testNamespace.config.testComponent2")
             ),
-            "columns", new JsonObject("gctype", "agridcolumn")
+            "columns", new JsonObject("xtype", "agridcolumn")
     );
     System.out.println(model.getJsonObject().toString(2));
     Assert.assertEquals(expectedJsonObject.toString(2), model.getJsonObject().toString(2));
