@@ -36,7 +36,7 @@ public dynamic class ${name} extends ${superClassName} {
    * <code>${componentClassName}</code>.
 <#if type??>
    * Using this config class also takes care of registering the target class under the ${type.type}
-   * "${packageName}.${name}" with Ext JS.</p>
+   * "${packageName}.${name}" with Ext JS.
 </#if>
    * </p>
    *

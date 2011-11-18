@@ -23,7 +23,7 @@ public dynamic class testPlugin extends ext.config.plugin {
    * <p>Use this constructor to create a typed config object for the constructor of the class
    * <code>testPackage.TestPlugin</code>.
    * Using this config class also takes care of registering the target class under the ptype
-   * "testNamespace.config.testPlugin" with Ext JS.</p>
+   * "testNamespace.config.testPlugin" with Ext JS.
    * </p>
    *
    * @see testPackage.TestPlugin

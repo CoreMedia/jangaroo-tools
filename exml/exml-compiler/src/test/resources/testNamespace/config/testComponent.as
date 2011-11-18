@@ -23,7 +23,7 @@ public dynamic class testComponent extends ext.config.panel {
    * <p>Use this constructor to create a typed config object for the constructor of the class
    * <code>testPackage.TestComponent</code>.
    * Using this config class also takes care of registering the target class under the xtype
-   * "testNamespace.config.testComponent" with Ext JS.</p>
+   * "testNamespace.config.testComponent" with Ext JS.
    * </p>
    *
    * @see testPackage.TestComponent
