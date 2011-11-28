@@ -77,8 +77,10 @@ import net.jangaroo.jooc.sym;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 /**
  * A visitor of the AST that generates executable JavaScript code on
@@ -92,6 +94,13 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   private static final JooSymbol SYM_RBRACE = new JooSymbol(sym.RBRACE, "}");
   private static final JooSymbol SYM_LBRACK = new JooSymbol(sym.LBRACK, "[");
   private static final JooSymbol SYM_RBRACK = new JooSymbol(sym.RBRACK, "]");
+  private static final Set<String> PRIMITIVES = new HashSet<String>(4);
+  static {
+    PRIMITIVES.add("Boolean");
+    PRIMITIVES.add("String");
+    PRIMITIVES.add("Number");
+    PRIMITIVES.add("int");
+  }
 
   public JsCodeGenerator(JsWriter out) {
     super(out);
@@ -1017,14 +1026,17 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
   private void generateClassInits(ClassDeclaration classDeclaration) throws IOException {
     boolean first = true;
-    for (String qualifiedNameStr : classDeclaration.getClassInit()) {
-      if (first) {
-        first = false;
-        out.write("function(){" + Jooc.CLASS_LOADER_FULLY_QUALIFIED_NAME + ".init(");
-      } else {
-        out.write(",");
+    Set<String> classInit = classDeclaration.getClassInit();
+    for (String qualifiedNameStr : classInit) {
+      if (!PRIMITIVES.contains(qualifiedNameStr)) {
+        if (first) {
+          first = false;
+          out.write("function(){" + Jooc.CLASS_LOADER_FULLY_QUALIFIED_NAME + ".init(");
+        } else {
+          out.write(",");
+        }
+        out.write(qualifiedNameStr);
       }
-      out.write(qualifiedNameStr);
     }
     if (!first) {
       out.write(");},");

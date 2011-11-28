@@ -110,19 +110,9 @@ public class JoocTest {
     assertCompilationResult("package1/NoMultipleThisAliases");
   }
 
-  private void assertCompilationResult(String relativeClassFileName) throws URISyntaxException, IOException {
-    File sourcefile = getFile("/" + relativeClassFileName + ".as");
-    config.addSourceFile(sourcefile);
-    jooc.run();
-
-    File destFile = new File(outputFolder, relativeClassFileName + ".js");
-    assertTrue(destFile.exists());
-
-    String result = FileUtils.readFileToString(destFile);
-    String expected = FileUtils.readFileToString(getFile("/expected/" + relativeClassFileName + ".js"));
-    expected = expected.replace("@runtimeVersion", JoocProperties.getRuntimeVersion());
-    expected = expected.replace("@version", JoocProperties.getVersion());
-    assertEquals("Result file not equal", expected, result);
+@Test
+  public void testNoPrimitiveInit() throws Exception {
+    assertCompilationResult("package1/NoPrimitiveInit");
   }
 
   @Test
@@ -138,6 +128,22 @@ public class JoocTest {
 
     String result = FileUtils.readFileToString(destFile);
     String expected = FileUtils.readFileToString(getFile("/expectedApi/package1/ParameterInitializers.as"));
+    assertEquals("Result file not equal", expected, result);
+  }
+
+
+  private void assertCompilationResult(String relativeClassFileName) throws URISyntaxException, IOException {
+    File sourcefile = getFile("/" + relativeClassFileName + ".as");
+    config.addSourceFile(sourcefile);
+    jooc.run();
+
+    File destFile = new File(outputFolder, relativeClassFileName + ".js");
+    assertTrue(destFile.exists());
+
+    String result = FileUtils.readFileToString(destFile);
+    String expected = FileUtils.readFileToString(getFile("/expected/" + relativeClassFileName + ".js"));
+    expected = expected.replace("@runtimeVersion", JoocProperties.getRuntimeVersion());
+    expected = expected.replace("@version", JoocProperties.getVersion());
     assertEquals("Result file not equal", expected, result);
   }
 
