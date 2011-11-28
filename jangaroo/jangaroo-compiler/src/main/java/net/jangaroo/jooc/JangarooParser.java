@@ -40,8 +40,8 @@ public class JangarooParser {
   protected final Scope globalScope = new DeclarationScope(null, null);
 
   {
-    declareType(globalScope, "void");
-    declareType(globalScope, "*");
+    declareType(globalScope, AS3Type.VOID.toString());
+    declareType(globalScope, AS3Type.ANY.toString());
   }
 
   public JangarooParser() {

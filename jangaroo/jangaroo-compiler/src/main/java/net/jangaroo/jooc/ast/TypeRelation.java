@@ -15,6 +15,7 @@
 
 package net.jangaroo.jooc.ast;
 
+import net.jangaroo.jooc.AS3Type;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.sym;
@@ -32,7 +33,7 @@ public class TypeRelation extends NodeImplBase {
 
   public TypeRelation(JooSymbol symAnyType) {
     this(new JooSymbol(sym.COLON, symAnyType.getFileName(), symAnyType.getLine(), symAnyType.getColumn(), symAnyType.getWhitespace(), ":"),
-            new Type(new JooSymbol(sym.MUL, symAnyType.getFileName(), symAnyType.getLine(), symAnyType.getColumn() + 1, "", "*")));
+            new Type(new JooSymbol(sym.MUL, symAnyType.getFileName(), symAnyType.getLine(), symAnyType.getColumn() + 1, "", AS3Type.ANY.toString())));
   }
 
   public TypeRelation(JooSymbol symRelation, Type type) {

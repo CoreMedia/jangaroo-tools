@@ -15,6 +15,7 @@
 
 package net.jangaroo.jooc.ast;
 
+import net.jangaroo.jooc.AS3Type;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.sym;
@@ -32,7 +33,7 @@ public class FunctionExpr extends Expr {
   public static final Ide ARGUMENTS_IDE = new Ide(new JooSymbol("arguments"));
 
   //todo unify predefined type definitions, they are scattered all over
-  public static final Type ANY_TYPE = new Type(new JooSymbol(sym.MUL, "", -1, -1, "", "*"));
+  public static final Type ANY_TYPE = new Type(new JooSymbol(sym.MUL, "", -1, -1, "", AS3Type.ANY.toString()));
 
   private JooSymbol symFunction;
   private Ide ide;

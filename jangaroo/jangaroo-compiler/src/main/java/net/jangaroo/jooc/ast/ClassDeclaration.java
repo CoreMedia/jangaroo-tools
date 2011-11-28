@@ -15,6 +15,7 @@
 
 package net.jangaroo.jooc.ast;
 
+import net.jangaroo.jooc.AS3Type;
 import net.jangaroo.jooc.CompilerError;
 import net.jangaroo.jooc.DeclarationScope;
 import net.jangaroo.jooc.JooSymbol;
@@ -212,7 +213,7 @@ public class ClassDeclaration extends IdeDeclaration {
   }
 
   void addStarImport(final Ide packageIde) {
-    ImportDirective importDirective = new ImportDirective(packageIde, "*");
+    ImportDirective importDirective = new ImportDirective(packageIde, AS3Type.ANY.toString());
     directives.add(0, importDirective);
   }
 

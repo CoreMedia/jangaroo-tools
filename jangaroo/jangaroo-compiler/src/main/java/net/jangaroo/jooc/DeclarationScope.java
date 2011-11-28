@@ -72,7 +72,7 @@ public class DeclarationScope extends ScopeImplBase {
       packageName = packageIde.getQualifiedNameStr();
       packages.add(packageName);
     }
-    if ("*".equals(name)) {
+    if (AS3Type.ANY.toString().equals(name)) {
       final List<String> packageIdes = compilationUnit.getCompiler().getPackageIdes(packageName);
       for (String typeToImport : packageIdes) {
         ImportDirective implicitImport = new ImportDirective(packageIde, typeToImport);

@@ -15,6 +15,7 @@
 
 package net.jangaroo.jooc.ast;
 
+import net.jangaroo.jooc.AS3Type;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
@@ -29,7 +30,7 @@ import java.util.Map;
  * @author Frank Wienberg
  */
 public class VariableDeclaration extends TypedIdeDeclaration {
-  private static final Map<String, String> DEFAULT_VALUE_BY_TYPE = new HashMap<String, String>(10);
+  private static final Map<AS3Type, String> DEFAULT_VALUE_BY_TYPE = new HashMap<AS3Type, String>(10);
 
   private JooSymbol optSymConstOrVar;
   private Initializer optInitializer;
@@ -135,16 +136,16 @@ public class VariableDeclaration extends TypedIdeDeclaration {
   }
 
   static {
-    DEFAULT_VALUE_BY_TYPE.put("Boolean", "false");
-    DEFAULT_VALUE_BY_TYPE.put("int", "0");
-    DEFAULT_VALUE_BY_TYPE.put("Number", "NaN");
-    DEFAULT_VALUE_BY_TYPE.put("uint", "0");
-    DEFAULT_VALUE_BY_TYPE.put("*", "undefined");
+    DEFAULT_VALUE_BY_TYPE.put(AS3Type.BOOLEAN, "false");
+    DEFAULT_VALUE_BY_TYPE.put(AS3Type.INT, "0");
+    DEFAULT_VALUE_BY_TYPE.put(AS3Type.NUMBER, "NaN");
+    DEFAULT_VALUE_BY_TYPE.put(AS3Type.UINT, "0");
+    DEFAULT_VALUE_BY_TYPE.put(AS3Type.ANY, "undefined");
   }
 
   public static String getDefaultValue(TypeRelation typeRelation) {
-    String typeName = typeRelation == null ? "*" : typeRelation.getType().getSymbol().getText();
-    String emptyValue = DEFAULT_VALUE_BY_TYPE.get(typeName);
+    AS3Type type = typeRelation == null ? AS3Type.ANY : AS3Type.typeByName(typeRelation.getType().getSymbol().getText());
+    String emptyValue = DEFAULT_VALUE_BY_TYPE.get(type);
     if (emptyValue == null) {
       emptyValue = "null";
     }
