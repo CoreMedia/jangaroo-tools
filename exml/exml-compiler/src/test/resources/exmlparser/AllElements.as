@@ -1,7 +1,6 @@
 package exmlparser {
 
 import ext.Ext;
-import ext.ComponentMgr;
 import exmlparser.config.allElements;
 import ext.MessageBox;
 import ext.Panel;
