@@ -20,7 +20,7 @@ public class ${model.className} extends ${model.superClassName} {
   /**
    * ${constant.description!}
    */
-  public static const ${constant.name}:String = ${model.configClass.fullName}.${constant.name};
+  public static const ${constant.name}:${constant.type} = ${model.configClass.fullName}.${constant.name};
 </#list>
 
   /**

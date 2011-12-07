@@ -37,14 +37,6 @@ public final class Exmlc implements net.jangaroo.exml.api.Exmlc {
     setConfig(config);
   }
 
-  public static String parsePackageFromNamespace(String uri) {
-    return uri.startsWith(EXML_CONFIG_URI_PREFIX) ? uri.substring(EXML_CONFIG_URI_PREFIX.length()) : null;
-  }
-
-  public static boolean isExmlNamespace(String uri) {
-    return EXML_NAMESPACE_URI.equals(uri);
-  }
-
   @Override
   public void setConfig(ExmlConfiguration config) {
     try {

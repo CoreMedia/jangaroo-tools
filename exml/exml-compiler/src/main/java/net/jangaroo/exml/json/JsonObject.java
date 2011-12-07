@@ -1,5 +1,8 @@
 package net.jangaroo.exml.json;
 
+import net.jangaroo.exml.utils.ExmlUtils;
+import net.jangaroo.utils.CompilerUtils;
+
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -62,78 +65,11 @@ public class JsonObject implements Json {
 
 
   /**
-   * Produce a string in double quotes with backslash sequences in all the
-   * right places. A backslash will be inserted within </, allowing JSON
-   * text to be delivered in HTML. In JSON text, a string cannot contain a
-   * control character or an unescaped quote or backslash.
-   *
-   * @param string A String
-   * @return A String correctly formatted for insertion in a JSON text.
-   */
-  public static String quote(String string) {
-    if (string == null || string.length() == 0) {
-      return "\"\"";
-    }
-
-    char b;
-    char c = 0;
-    int i;
-    int len = string.length();
-    StringBuilder sb = new StringBuilder(len + 4);
-    String t;
-
-    sb.append('"');
-    for (i = 0; i < len; i += 1) {
-      b = c;
-      c = string.charAt(i);
-      switch (c) {
-        case '\\':
-        case '"':
-          sb.append('\\');
-          sb.append(c);
-          break;
-        case '/':
-          if (b == '<') {
-            sb.append('\\');
-          }
-          sb.append(c);
-          break;
-        case '\b':
-          sb.append("\\b");
-          break;
-        case '\t':
-          sb.append("\\t");
-          break;
-        case '\n':
-          sb.append("\\n");
-          break;
-        case '\f':
-          sb.append("\\f");
-          break;
-        case '\r':
-          sb.append("\\r");
-          break;
-        default:
-          if (c < ' ' || (c >= '\u0080' && c < '\u00a0') ||
-              (c >= '\u2000' && c < '\u2100')) {
-            t = "000" + Integer.toHexString(c);
-            sb.append("\\u").append(t.substring(t.length() - 4));
-          } else {
-            sb.append(c);
-          }
-      }
-    }
-    sb.append('"');
-    return sb.toString();
-  }
-
-  
-  /**
    * Make a prettyprinted JSON text of an object value.
    * <p/>
    * Warning: This method assumes that the data structure is acyclic.
    *
-   * @param key          The key of the value.
+   *
    * @param value        The value to be serialized.
    * @param indentFactor The number of spaces to add to each level of
    *                     indentation.
@@ -143,22 +79,21 @@ public class JsonObject implements Json {
    *         with <code>{</code>&nbsp;<small>(left brace)</small> and ending
    *         with <code>}</code>&nbsp;<small>(right brace)</small>.
    */
-  static String valueToString(String key, Object value, int indentFactor, int indent) {
+  public static String valueToString(Object value, int indentFactor, int indent) {
     if (value == null) {
       return "null";
     }
     if (value instanceof Number
         || value instanceof Boolean) {
-      return (value.toString());
+      return value.toString();
     } else if (value instanceof JsonObject) {
-      JsonObject jsonObject = (JsonObject)value;
-      return jsonObject.toString(indentFactor, indent);
+      return ((JsonObject)value).toString(indentFactor, indent);
     } else if (value instanceof JsonArray) {
       return ((JsonArray) value).toString(indentFactor, indent);
-    } else if (((String) value).startsWith("{") && ((String) value).endsWith("}")) {
-      return (((String) value).substring(1, ((String) value).lastIndexOf("}")));
+    } else if (ExmlUtils.isCodeExpression(value.toString())) {
+      return ExmlUtils.getCodeExpression(value.toString());
     }
-    return quote(value.toString());
+    return CompilerUtils.quote(value.toString());
 
   }
 
@@ -227,7 +162,7 @@ public class JsonObject implements Json {
   private void writeKeyValue(String key, int indentFactor, int indent, StringBuilder sb) {
     sb.append(key);
     sb.append(": ");
-    sb.append(valueToString(key, this.properties.get(key), indentFactor, indent));
+    sb.append(valueToString(this.properties.get(key), indentFactor, indent));
   }
 
   public Object get(String property) {

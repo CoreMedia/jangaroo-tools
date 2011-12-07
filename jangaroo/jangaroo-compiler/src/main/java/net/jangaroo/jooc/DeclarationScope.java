@@ -15,6 +15,7 @@
 
 package net.jangaroo.jooc;
 
+import net.jangaroo.utils.AS3Type;
 import net.jangaroo.jooc.ast.AstNode;
 import net.jangaroo.jooc.ast.ClassDeclaration;
 import net.jangaroo.jooc.ast.CompilationUnit;

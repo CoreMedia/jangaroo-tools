@@ -105,6 +105,15 @@
         </xs:documentation>
       </xs:annotation>
     </xs:attribute>
+    <xs:attribute name="type" type="xs:string" use="optional">
+      <xs:annotation>
+        <xs:documentation>
+          The type of the constant. If no type is given, like for untyped config properties,
+          it will be guessed from the value. If it cannot be guessed (e.g. because the
+          value is an expression), '*' will be used.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
   </xs:complexType>
 
   <xs:complexType name="object">

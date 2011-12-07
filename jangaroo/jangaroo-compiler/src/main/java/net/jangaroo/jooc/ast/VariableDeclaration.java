@@ -15,7 +15,7 @@
 
 package net.jangaroo.jooc.ast;
 
-import net.jangaroo.jooc.AS3Type;
+import net.jangaroo.utils.AS3Type;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;

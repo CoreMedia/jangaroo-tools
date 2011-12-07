@@ -3,6 +3,7 @@ package net.jangaroo.exml.as;
 import net.jangaroo.exml.model.ConfigAttribute;
 import net.jangaroo.exml.model.ConfigClass;
 import net.jangaroo.exml.model.ConfigClassType;
+import net.jangaroo.utils.AS3Type;
 import net.jangaroo.jooc.CompilerError;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.ast.Annotation;
@@ -25,7 +26,6 @@ import java.io.IOException;
 public class ConfigClassBuilder extends AstVisitorBase {
   private static final String EXT_CONFIG_META_NAME = "ExtConfig";
   private static final String TARGET_ANNOTATION_PARAMETER_NAME = "target";
-  private static final String AS3_ANY_TYPE = "*";
 
   private static final String COMMENT_START = "/*";
   private static final String COMMENT_END = "*/";
@@ -164,7 +164,7 @@ public class ConfigClassBuilder extends AstVisitorBase {
       if (optTypeRelation != null) {
         type = optTypeRelation.getType().getSymbol().getText();
       } else {
-        type = AS3_ANY_TYPE;
+        type = AS3Type.ANY.toString();
       }
       return type;
     }

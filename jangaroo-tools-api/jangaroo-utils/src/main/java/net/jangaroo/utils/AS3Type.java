@@ -1,4 +1,4 @@
-package net.jangaroo.jooc;
+package net.jangaroo.utils;
 
 /**
  * All built-in ActionScript 3 types.

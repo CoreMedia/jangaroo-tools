@@ -24,7 +24,7 @@ public dynamic class ${name} extends ${superClassName} {
   /**
    * ${constant.escapedDescription!}
    */
-  public static const ${constant.name}:String = "${constant.value}";
+  public static const ${constant.name}:${constant.type} = ${constant.value};
 </#list>
 
 <#if type??>

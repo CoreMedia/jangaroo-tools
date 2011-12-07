@@ -19,7 +19,7 @@ public class AllElements extends ext.Panel {
   /**
    * This is my <b>constant</b>
    */
-  public static const SOME_CONSTANT:String = exmlparser.config.allElements.SOME_CONSTANT;
+  public static const SOME_CONSTANT:uint = exmlparser.config.allElements.SOME_CONSTANT;
 
   /**
    * Create a AllElements.

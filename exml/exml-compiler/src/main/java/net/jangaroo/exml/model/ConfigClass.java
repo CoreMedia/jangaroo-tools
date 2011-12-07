@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -26,6 +27,10 @@ public final class ConfigClass extends DescriptionHolder {
   private String componentClassName;
   private ConfigClassType type;
   private String typeValue;
+  private Set<String> imports = new LinkedHashSet<String>();
+
+  public ConfigClass() {
+  }
 
   public void addCfg(ConfigAttribute cfg) {
     cfgs.add(cfg);
@@ -158,15 +163,24 @@ public final class ConfigClass extends DescriptionHolder {
     return superClassName;
   }
 
+  public void addImport(String importedClassName) {
+    if (importedClassName.contains(".")) { // do not import top-level classes!
+      imports.add(importedClassName);
+    }
+  }
+
   public List<String> getImports() {
     Set<String> imports = new HashSet<String>();
     imports.add(getSuperClassName());
     imports.add(getComponentClassName());
     for (ConfigAttribute cfg : cfgs) {
-      if (cfg.getType().contains(".")) {
-        imports.add(cfg.getType());
-      }
+      ExmlModel.addImport(imports, cfg.getType());
     }
+    for (Constant constant : constants) {
+      ExmlModel.addImport(imports, constant.getType());
+      // TODO: what about imports used in the constant value's expression?!
+    }
+    imports.addAll(this.imports);
     ArrayList<String> results = new ArrayList<String>(imports);
     Collections.sort(results);
     return results;

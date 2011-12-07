@@ -1,5 +1,7 @@
 package net.jangaroo.exml.model;
 
+import net.jangaroo.utils.AS3Type;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -8,36 +10,27 @@ import java.util.Set;
 /**
  * A meta model of an Ext JS component configuration attribute.
  */
-public final class ConfigAttribute extends DescriptionHolder {
+public final class ConfigAttribute extends TypedField {
   private static final Set<String> SIMPLE_TYPES = new HashSet<String>(Arrays.asList(
-      "Boolean",
-      "Number",
-      "Date",
-      "String"
+      AS3Type.BOOLEAN.toString(),
+      AS3Type.NUMBER.toString(),
+      AS3Type.INT.toString(),
+      AS3Type.UINT.toString(),
+      AS3Type.DATE.toString(),
+      AS3Type.STRING.toString()
     ));
 
-  private static final Collection<String> SEQUENCE_TYPES = new HashSet<String>(Arrays.asList("Array", "MixedCollection", "Mixed"));
+  private static final Collection<String> SEQUENCE_TYPES = new HashSet<String>(Arrays.asList(
+    AS3Type.ARRAY.toString(),
+    "MixedCollection",
+    "Mixed"));
 
-
-  private String name;
-  private String type;
 
   public ConfigAttribute(String name, String type, String description) {
-    super(description);
+    super(name, type, description);
     if(type == null) {
       throw new IllegalArgumentException("The type should not be null for config attribute: '" + name + "'");
     }
-    this.name = name;
-    this.type = type;
-
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public String getType() {
-    return type;
   }
 
   /**
@@ -45,44 +38,24 @@ public final class ConfigAttribute extends DescriptionHolder {
    * @return the xs type
    */
   public String getXsType() {
-    return isSimple() ? type : "String";
+    return isSimple() ? getType() : "String";
   }
 
   public boolean isSimple() {
-    return SIMPLE_TYPES.contains(type);
+    return SIMPLE_TYPES.contains(getType());
   }
 
   public boolean isSequence() {
-    return SEQUENCE_TYPES.contains(type);
+    return SEQUENCE_TYPES.contains(getType());
   }
 
   public boolean isObject() {
-    return !SIMPLE_TYPES.contains(type) && !SEQUENCE_TYPES.contains(type);
+    return !SIMPLE_TYPES.contains(getType()) && !SEQUENCE_TYPES.contains(getType());
   }
 
   @Override
   public String toString() {
-    return name + " : " + type;
+    return getName() + " : " + getType();
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-
-    ConfigAttribute that = (ConfigAttribute) o;
-    return name.equals(that.name) &&
-            type.equals(that.type);
-  }
-
-  @Override
-  public int hashCode() {
-    int result = name.hashCode();
-    result = 31 * result + type.hashCode();
-    return result;
-  }
 }

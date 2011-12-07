@@ -50,7 +50,13 @@ public class ExmlModel extends DescriptionHolder {
   }
 
   public void addImport(String importedClassName) {
-    imports.add(importedClassName);
+    addImport(imports, importedClassName);
+  }
+
+  public static void addImport(Set<String> imports, String importedClassName) {
+    if (importedClassName.contains(".")) { // do not import top-level classes!
+      imports.add(importedClassName);
+    }
   }
 
   public ConfigClass getConfigClass() {

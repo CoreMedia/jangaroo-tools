@@ -6,6 +6,7 @@ import net.jangaroo.exml.model.ConfigAttribute;
 import net.jangaroo.exml.model.ConfigClass;
 import net.jangaroo.exml.model.ConfigClassType;
 import net.jangaroo.exml.model.Constant;
+import net.jangaroo.exml.utils.ExmlUtils;
 import net.jangaroo.utils.CharacterRecordingHandler;
 import org.xml.sax.Attributes;
 import org.xml.sax.Locator;
@@ -47,7 +48,7 @@ public class ExmlMetadataHandler extends CharacterRecordingHandler {
   }
 
   public void startElement(String uri, String localName, String qName, Attributes atts) throws SAXException {
-    if (Exmlc.isExmlNamespace(uri)) {
+    if (ExmlUtils.isExmlNamespace(uri)) {
       if (Exmlc.EXML_ROOT_NODE_NAMES.contains(localName)) {
         configClass.setType(EXML_ROOT_NODE_TO_CONFIG_CLASS_TYPE.get(localName));
       } else if (Exmlc.EXML_CFG_NODE_NAME.equals(localName)) {
@@ -64,11 +65,17 @@ public class ExmlMetadataHandler extends CharacterRecordingHandler {
           startRecordingCharacters();
         }
       } else if (Exmlc.EXML_CONSTANT_NODE_NAME.equals(localName)) {
-        Constant constant = new Constant(atts.getValue(Exmlc.EXML_CONSTANT_NAME_ATTRIBUTE), atts.getValue(Exmlc.EXML_CONSTANT_VALUE_ATTRIBUTE));
+        Constant constant = new Constant(atts.getValue(Exmlc.EXML_CONSTANT_NAME_ATTRIBUTE), atts.getValue(Exmlc.EXML_CONSTANT_VALUE_ATTRIBUTE), atts.getValue(Exmlc.EXML_CONSTANT_TYPE_ATTRIBUTE));
         if(!configClass.getConstants().contains(constant)) {
           configClass.addConstant(constant);
         } else {
           throw new ExmlcException("Constant '" + constant.getName() + "' already defined.", locator.getLineNumber(), locator.getColumnNumber());
+        }
+      } else if (Exmlc.EXML_IMPORT_NODE_NAME.equals(localName)) {
+        String importedClassName = atts.getValue(Exmlc.EXML_IMPORT_CLASS_ATTRIBUTE);
+        if (importedClassName != null) {
+          // TODO: check illegal values? Throw error when null?
+          configClass.addImport(importedClassName);
         }
       }
     } else if (elementPath.size() == 1) {
@@ -76,7 +83,7 @@ public class ExmlMetadataHandler extends CharacterRecordingHandler {
         throw new ExmlcException("root node of EXML contained more than one component definition", locator.getLineNumber(), locator.getColumnNumber());
       }
 
-      String thePackage = Exmlc.parsePackageFromNamespace(uri);
+      String thePackage = ExmlUtils.parsePackageFromNamespace(uri);
       if (thePackage == null) {
         throw new ExmlcException("namespace '" + uri + "' of superclass element in EXML file does not denote a config package", locator.getLineNumber(), locator.getColumnNumber());
       }
@@ -87,22 +94,22 @@ public class ExmlMetadataHandler extends CharacterRecordingHandler {
 
   private boolean isLastInPathExmlClass() {
     QName parent = elementPath.peek();
-    return Exmlc.isExmlNamespace(parent.getNamespaceURI()) && Exmlc.EXML_ROOT_NODE_NAMES.contains(parent.getLocalPart());
+    return ExmlUtils.isExmlNamespace(parent.getNamespaceURI()) && Exmlc.EXML_ROOT_NODE_NAMES.contains(parent.getLocalPart());
   }
 
   private boolean isLastInPathConfig() {
     QName parent = elementPath.peek();
-    return Exmlc.isExmlNamespace(parent.getNamespaceURI()) && Exmlc.EXML_CFG_NODE_NAME.equals(parent.getLocalPart());
+    return ExmlUtils.isExmlNamespace(parent.getNamespaceURI()) && Exmlc.EXML_CFG_NODE_NAME.equals(parent.getLocalPart());
   }
 
   private boolean isLastInPathConstant() {
     QName parent = elementPath.peek();
-    return Exmlc.isExmlNamespace(parent.getNamespaceURI()) && Exmlc.EXML_CONSTANT_NODE_NAME.equals(parent.getLocalPart());
+    return ExmlUtils.isExmlNamespace(parent.getNamespaceURI()) && Exmlc.EXML_CONSTANT_NODE_NAME.equals(parent.getLocalPart());
   }
 
   @Override
   public void endElement(String uri, String localName, String qName) throws SAXException {
-    if (Exmlc.isExmlNamespace(uri)) {
+    if (ExmlUtils.isExmlNamespace(uri)) {
       elementPath.pop();
       if (Exmlc.EXML_DESCRIPTION_NODE_NAME.equals(localName)) {
         String characters = popRecordedCharacters();

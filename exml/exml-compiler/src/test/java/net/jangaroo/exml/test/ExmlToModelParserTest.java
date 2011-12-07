@@ -1,6 +1,5 @@
 package net.jangaroo.exml.test;
 
-import net.jangaroo.exml.api.ExmlcException;
 import net.jangaroo.exml.json.JsonArray;
 import net.jangaroo.exml.json.JsonObject;
 import net.jangaroo.exml.model.Constant;
@@ -8,10 +7,8 @@ import net.jangaroo.exml.model.ExmlModel;
 import net.jangaroo.exml.parser.ExmlToModelParser;
 import org.junit.Assert;
 import org.junit.Test;
-import org.xml.sax.SAXException;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -92,7 +89,7 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
                     new JsonObject(
                             "xtype", "panel",
                             "id", "foo",
-                             "x", 100
+                             "x", 100.0
                     ),
                     new JsonObject(
                             "xtype", "panel",
@@ -276,13 +273,36 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
     ExmlModel model = exmlToModelParser.parse(getFile("/exmlparser/TestConstants.exml"));
     Constant aConstant = model.getConfigClass().getConstants().get(0);
     Assert.assertEquals("A_CONSTANT", aConstant.getName());
-    Assert.assertEquals("123", aConstant.getValue());
+    Assert.assertEquals("\"One two three\"", aConstant.getValue());
+    Assert.assertEquals("String", aConstant.getType());
     Assert.assertEquals("This is some constant", aConstant.getDescription());
 
     Constant bConstant = model.getConfigClass().getConstants().get(1);
     Assert.assertEquals("B_CONSTANT", bConstant.getName());
     Assert.assertEquals("456", bConstant.getValue());
+    Assert.assertEquals("uint", bConstant.getType());
     Assert.assertNull(bConstant.getDescription());
+
+    Constant cConstant = model.getConfigClass().getConstants().get(2);
+    Assert.assertEquals("C_CONSTANT", cConstant.getName());
+    Assert.assertEquals("new Object()", cConstant.getValue());
+    Assert.assertEquals("Object", cConstant.getType());
+    Assert.assertNull(cConstant.getDescription());
+
+    Constant dConstant = model.getConfigClass().getConstants().get(3);
+    Assert.assertEquals("D_CONSTANT", dConstant.getName());
+    Assert.assertEquals("new button()", dConstant.getValue());
+    Assert.assertEquals("ext.config.button", dConstant.getType());
+    Assert.assertTrue(model.getImports().contains("ext.config.button"));
+    Assert.assertNull(dConstant.getDescription());
+
+    Constant eConstant = model.getConfigClass().getConstants().get(4);
+    Assert.assertEquals("E_CONSTANT", eConstant.getName());
+    Assert.assertEquals("new Container()", eConstant.getValue());
+    Assert.assertEquals("ext.Component", eConstant.getType());
+    Assert.assertTrue(model.getImports().contains("ext.Component"));
+    Assert.assertTrue(model.getImports().contains("ext.Container"));
+    Assert.assertNull(eConstant.getDescription());
   }
 
   private File getFile(String path) throws URISyntaxException {

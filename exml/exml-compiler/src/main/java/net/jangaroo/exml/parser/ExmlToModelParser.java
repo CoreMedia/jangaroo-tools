@@ -8,7 +8,9 @@ import net.jangaroo.exml.model.ConfigAttribute;
 import net.jangaroo.exml.model.ConfigClass;
 import net.jangaroo.exml.model.ConfigClassRegistry;
 import net.jangaroo.exml.model.ExmlModel;
+import net.jangaroo.exml.utils.ExmlUtils;
 import net.jangaroo.exml.xml.PreserveLineNumberHandler;
+import net.jangaroo.utils.AS3Type;
 import net.jangaroo.utils.CompilerUtils;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
@@ -97,7 +99,7 @@ public final class ExmlToModelParser {
     for (int i = 0; i < childNodes.getLength(); i++) {
       Node node = childNodes.item(i);
       if (node.getNodeType() == Node.ELEMENT_NODE) {
-        if (Exmlc.isExmlNamespace(node.getNamespaceURI())) {
+        if (ExmlUtils.isExmlNamespace(node.getNamespaceURI())) {
           if (Exmlc.EXML_IMPORT_NODE_NAME.equals(node.getLocalName())) {
             String importedClassName = ((Element) node).getAttribute(Exmlc.EXML_IMPORT_CLASS_ATTRIBUTE);
             if (importedClassName == null || importedClassName.equals("")) {
@@ -105,6 +107,11 @@ public final class ExmlToModelParser {
               throw new ExmlcException("<exml:import> element must contain a non-empty class attribute", lineNumber);
             }
             model.addImport(importedClassName);
+          } else if (Exmlc.EXML_CONSTANT_NODE_NAME.equals(node.getLocalName())) {
+            String importedClassName = ((Element) node).getAttribute(Exmlc.EXML_CONSTANT_TYPE_ATTRIBUTE);
+            if (importedClassName != null) {
+              model.addImport(importedClassName);
+            }
           } else if (Exmlc.EXML_DESCRIPTION_NODE_NAME.equals(node.getLocalName())) {
             model.setDescription(node.getTextContent().trim());
           }
@@ -127,21 +134,21 @@ public final class ExmlToModelParser {
       int lineNumber = getLineNumber(componentNode);
       throw  new ExmlcException("Cyclic inheritance error: super class and this component are the same!. There is something wrong!", lineNumber);
     }
-    ConfigClass supberConfigClass = getConfigClassByName(superFullClassName, componentNode);
-    String superComponentClassName = supberConfigClass.getComponentClassName();
+    ConfigClass superConfigClass = getConfigClassByName(superFullClassName, componentNode);
+    String superComponentClassName = superConfigClass.getComponentClassName();
     if (model.getSuperClassName() == null) {
       model.setSuperClassName(superComponentClassName);
     }
     //but we still need the import
     model.addImport(superComponentClassName);
 
-    fillModelAttributes(model, model.getJsonObject(), componentNode, supberConfigClass);
+    fillModelAttributes(model, model.getJsonObject(), componentNode, superConfigClass);
   }
 
   private String createFullConfigClassNameFromNode(Node componentNode) {
     String name = componentNode.getLocalName();
     String uri = componentNode.getNamespaceURI();
-    String packageName = Exmlc.parsePackageFromNamespace(uri);
+    String packageName = ExmlUtils.parsePackageFromNamespace(uri);
     if (packageName == null) {
       int lineNumber = getLineNumber(componentNode);
       throw new ExmlcException("namespace '" + uri + "' of element '" + name + "' in EXML file does not denote a config package", lineNumber);
@@ -156,44 +163,38 @@ public final class ExmlToModelParser {
       String attributeName = attribute.getLocalName();
       String attributeValue = attribute.getValue();
       ConfigAttribute configAttribute = getCfgByName(configClass, attributeName);
-      setAttribute(jsonObject, attributeName, attributeValue, configAttribute);
+      jsonObject.set(attributeName, getAttributeValue(attributeValue, configAttribute == null ? null : configAttribute.getType()));
     }
-    fillModelAttributesFromSubelements(model, jsonObject, componentNode, configClass);
+    fillModelAttributesFromSubElements(model, jsonObject, componentNode, configClass);
   }
 
-  private void setAttribute(JsonObject jsonObject, String attributeName, String attributeValue, ConfigAttribute configAttribute) {
-    if (isCodeExpression(attributeValue)) {
-      jsonObject.set(attributeName, attributeValue);
-    } else if (configAttribute == null) {
-      setUntypedAttribute(jsonObject, attributeName, attributeValue);
-    } else {
-      String type = configAttribute.getType();
-      if ("Boolean".equals(type)) {
-        jsonObject.set(attributeName, Boolean.parseBoolean(attributeValue));
-      } else if ("Number".equals(type)) {
-        try {
-          jsonObject.set(attributeName, Long.parseLong(attributeValue));
-        } catch (NumberFormatException e) {
-          jsonObject.set(attributeName, Double.parseDouble(attributeValue));
-        }
-      } else if ("String".equals(type)) {
-        jsonObject.set(attributeName, attributeValue);
-      } else if ("Array".equals(type)) {
-        jsonObject.set(attributeName, new JsonArray(attributeValue));
-      } else if ("*".equals(type)) {
-        setUntypedAttribute(jsonObject, attributeName, attributeValue);
-      } else { // Object or specific type. We don't care (for now).
-        //TODO: Warning here?
-        jsonObject.set(attributeName, attributeValue);
+  public static Object getAttributeValue(String attributeValue, String type) {
+    if (ExmlUtils.isCodeExpression(attributeValue)) {
+      return attributeValue;
+    }
+    AS3Type as3Type = AS3Type.typeByName(type);
+    if (as3Type == null || AS3Type.ANY.equals(as3Type)) {
+      as3Type = CompilerUtils.guessType(attributeValue);
+      if (as3Type == null) { // cannot guess
+        return attributeValue;
       }
     }
+    switch (as3Type) {
+      case BOOLEAN:
+        return Boolean.parseBoolean(attributeValue);
+      case NUMBER:
+        return Double.parseDouble(attributeValue);
+      case UINT:
+      case INT:
+        return Long.parseLong(attributeValue);
+      case ARRAY:
+        return new JsonArray(attributeValue);
+      default:  // Object or specific type. We don't care (for now).
+        return attributeValue;
+    }
   }
 
-  private boolean isCodeExpression(String attributeValue) {
-    return attributeValue.startsWith("{") && attributeValue.endsWith("}");
-  }
-
-  private void fillModelAttributesFromSubelements(ExmlModel model, JsonObject jsonObject, Node componentNode, ConfigClass configClass) {
+  private void fillModelAttributesFromSubElements(ExmlModel model, JsonObject jsonObject, Node componentNode, ConfigClass configClass) {
     NodeList childNodes = componentNode.getChildNodes();
     for (int i = 0; i < childNodes.getLength(); i++) {
       Node node = childNodes.item(i);
@@ -276,7 +277,7 @@ public final class ExmlToModelParser {
     List<Object> childObjects = new ArrayList<Object>();
     for (Element arrayItemNode : getChildElements(element)) {
       Object value;
-      if (Exmlc.isExmlNamespace(arrayItemNode.getNamespaceURI()) && Exmlc.EXML_OBJECT_NODE_NAME.equals(arrayItemNode.getLocalName())) {
+      if (ExmlUtils.isExmlNamespace(arrayItemNode.getNamespaceURI()) && Exmlc.EXML_OBJECT_NODE_NAME.equals(arrayItemNode.getLocalName())) {
         value = parseExmlObjectNode(arrayItemNode);
       } else {
         String arrayItemClassName = createFullConfigClassNameFromNode(arrayItemNode);
@@ -331,38 +332,13 @@ public final class ExmlToModelParser {
       Attr attribute = (Attr) attributes.item(i);
       String attributeName = attribute.getLocalName();
       String attributeValue = attribute.getValue();
-      setUntypedAttribute(object, attributeName, attributeValue);
+      object.set(attributeName, getAttributeValue(attributeValue, null));
     }
-  }
-
-
-  private void setUntypedAttribute(JsonObject jsonObject, String attributeName, String attributeValue) {
-    try {
-      jsonObject.set(attributeName, Long.parseLong(attributeValue));
-      return;
-    } catch (NumberFormatException e) {
-      // Try again.
-    }
-    try {
-      jsonObject.set(attributeName, Double.parseDouble(attributeValue));
-      return;
-    } catch (NumberFormatException e) {
-      // Try again.
-    }
-    if ("false".equalsIgnoreCase(attributeValue)) {
-      jsonObject.set(attributeName, Boolean.FALSE);
-      return;
-    }
-    if ("true".equalsIgnoreCase(attributeValue)) {
-      jsonObject.set(attributeName, Boolean.TRUE);
-      return;
-    }
-    jsonObject.set(attributeName, attributeValue);
   }
 
   private void validateRootNode(Node root) {
     int lineNumber = getLineNumber(root);
-    if (!Exmlc.isExmlNamespace(root.getNamespaceURI())) {
+    if (!ExmlUtils.isExmlNamespace(root.getNamespaceURI())) {
       throw new ExmlcException("root node of EXML file must belong to namespace '" + Exmlc.EXML_NAMESPACE_URI + "', but was '" + root.getNamespaceURI() + "'", lineNumber);
     }
     if (!Exmlc.EXML_ROOT_NODE_NAMES.contains(root.getLocalName())) {

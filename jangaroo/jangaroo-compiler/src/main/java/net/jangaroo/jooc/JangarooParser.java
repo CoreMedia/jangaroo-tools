@@ -1,6 +1,7 @@
 package net.jangaroo.jooc;
 
 import java_cup.runtime.Symbol;
+import net.jangaroo.utils.AS3Type;
 import net.jangaroo.jooc.api.CompileLog;
 import net.jangaroo.jooc.api.FilePosition;
 import net.jangaroo.jooc.api.Jooc;

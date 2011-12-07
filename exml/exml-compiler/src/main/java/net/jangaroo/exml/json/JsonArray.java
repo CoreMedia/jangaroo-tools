@@ -33,7 +33,7 @@ public class JsonArray implements Json {
     int i;
     StringBuilder sb = new StringBuilder("[");
     if (len == 1) {
-      sb.append(JsonObject.valueToString(null, this.items.get(0), indentFactor, indent));
+      sb.append(JsonObject.valueToString(this.items.get(0), indentFactor, indent));
     } else {
       int newindent = indent + indentFactor;
       sb.append(JsonObject.LINE_SEPARATOR);
@@ -44,7 +44,7 @@ public class JsonArray implements Json {
         for (int j = 0; j < newindent; j += 1) {
           sb.append(' ');
         }
-        sb.append(JsonObject.valueToString(null, this.items.get(i),indentFactor, newindent));
+        sb.append(JsonObject.valueToString(this.items.get(i),indentFactor, newindent));
       }
       sb.append(JsonObject.LINE_SEPARATOR);
       for (i = 0; i < indent; i += 1) {
