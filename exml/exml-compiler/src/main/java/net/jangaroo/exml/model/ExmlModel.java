@@ -1,8 +1,11 @@
 package net.jangaroo.exml.model;
 
 import net.jangaroo.exml.json.JsonObject;
+import net.jangaroo.exml.utils.ExmlUtils;
 
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 public class ExmlModel extends DescriptionHolder {
@@ -10,6 +13,7 @@ public class ExmlModel extends DescriptionHolder {
   private String className;
   private String superClassName;
   private Set<String> imports = new LinkedHashSet<String>();
+  private List<Declaration> vars = new ArrayList<Declaration>();
   private JsonObject jsonObject = new JsonObject();
   private ConfigClass configClass;
 
@@ -33,6 +37,14 @@ public class ExmlModel extends DescriptionHolder {
     return imports;
   }
 
+  public List<Declaration> getVars() {
+    return vars;
+  }
+
+  public void addVar(Declaration var) {
+    vars.add(var);
+  }
+
   public JsonObject getJsonObject() {
     return jsonObject;
   }
@@ -50,13 +62,7 @@ public class ExmlModel extends DescriptionHolder {
   }
 
   public void addImport(String importedClassName) {
-    addImport(imports, importedClassName);
-  }
-
-  public static void addImport(Set<String> imports, String importedClassName) {
-    if (importedClassName.contains(".")) { // do not import top-level classes!
-      imports.add(importedClassName);
-    }
+    ExmlUtils.addImport(imports, importedClassName);
   }
 
   public ConfigClass getConfigClass() {
@@ -68,19 +74,4 @@ public class ExmlModel extends DescriptionHolder {
     addImport(configClass.getFullName());
   }
 
-  /**
-   * Create a ComponentClass name from the given name. By convention all ComponentClass names are capitalized.
-   *
-   * @param name the name
-   * @return return the new config-class name, matching the conventions.
-   */
-  public static String createComponentClassName(String name) {
-    if (name == null || name.length() == 0) {
-      return name;
-    }
-    return new StringBuilder(name.length())
-            .append(Character.toUpperCase(name.charAt(0)))
-            .append(name.substring(1))
-            .toString();
-  }
 }

@@ -8,7 +8,7 @@ import ${import};
 // Do not edit. This is an auto-generated class.
 
 /**
- * ${model.description!}
+ * ${model.escapedDescription!}
  *
  * <p>This component is created by the xtype '${model.configClass.fullName}' / the EXML element &lt;${model.configClass.packageName}:${model.configClass.name}>.</p>
  * <p>See the config class for details.</p>
@@ -18,7 +18,7 @@ import ${import};
 public class ${model.className} extends ${model.superClassName} {
 <#list model.configClass.constants as constant>
   /**
-   * ${constant.description!}
+   * ${constant.escapedDescription!}
    */
   public static const ${constant.name}:${constant.type} = ${model.configClass.fullName}.${constant.name};
 </#list>
@@ -31,6 +31,9 @@ public class ${model.className} extends ${model.superClassName} {
    * @see ${model.configClass.fullName}
    */
   public function ${model.className}(config:${model.configClass.fullName} = null) {
+<#list model.vars as var>
+    var ${var.name}:${var.type} = ${var.value};
+</#list>
     super(${model.configClass.fullName}(ext.Ext.apply(${formattedConfig}, config)));
   }
 

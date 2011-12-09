@@ -8,6 +8,7 @@ import net.jangaroo.exml.model.ConfigAttribute;
 import net.jangaroo.exml.model.ConfigClass;
 import net.jangaroo.exml.model.ConfigClassRegistry;
 import net.jangaroo.exml.model.ExmlModel;
+import net.jangaroo.exml.model.Declaration;
 import net.jangaroo.exml.utils.ExmlUtils;
 import net.jangaroo.exml.xml.PreserveLineNumberHandler;
 import net.jangaroo.utils.AS3Type;
@@ -53,7 +54,7 @@ public final class ExmlToModelParser {
     ExmlModel model = new ExmlModel();
     String qName = CompilerUtils.qNameFromFile(registry.getConfig().findSourceDir(file), file);
     String className = CompilerUtils.className(qName);
-    model.setClassName(ExmlModel.createComponentClassName(className));
+    model.setClassName(ExmlUtils.createComponentClassName(className));
     ConfigClass configClassByName = registry.getConfigClassByName(registry.getConfig().getConfigClassPackage() + "." + ConfigClass.createConfigClassName(className));
     model.setConfigClass(configClassByName);
     model.setPackageName(CompilerUtils.packageName(qName));
@@ -100,20 +101,26 @@ public final class ExmlToModelParser {
       Node node = childNodes.item(i);
       if (node.getNodeType() == Node.ELEMENT_NODE) {
         if (ExmlUtils.isExmlNamespace(node.getNamespaceURI())) {
+          Element element = (Element)node;
           if (Exmlc.EXML_IMPORT_NODE_NAME.equals(node.getLocalName())) {
-            String importedClassName = ((Element) node).getAttribute(Exmlc.EXML_IMPORT_CLASS_ATTRIBUTE);
+            String importedClassName = element.getAttribute(Exmlc.EXML_IMPORT_CLASS_ATTRIBUTE);
             if (importedClassName == null || importedClassName.equals("")) {
               int lineNumber = getLineNumber(componentNode);
               throw new ExmlcException("<exml:import> element must contain a non-empty class attribute", lineNumber);
             }
             model.addImport(importedClassName);
           } else if (Exmlc.EXML_CONSTANT_NODE_NAME.equals(node.getLocalName())) {
-            String importedClassName = ((Element) node).getAttribute(Exmlc.EXML_CONSTANT_TYPE_ATTRIBUTE);
-            if (importedClassName != null) {
-              model.addImport(importedClassName);
-            }
+            String constantTypeName = element.getAttribute(Exmlc.EXML_DECLARATION_TYPE_ATTRIBUTE);
+            model.addImport(constantTypeName);
           } else if (Exmlc.EXML_DESCRIPTION_NODE_NAME.equals(node.getLocalName())) {
-            model.setDescription(node.getTextContent().trim());
+            model.setDescription(node.getTextContent());
+          } else if (Exmlc.EXML_VAR_NODE_NAME.equals(node.getLocalName())) {
+            Declaration var = new Declaration(element.getAttribute(Exmlc.EXML_DECLARATION_NAME_ATTRIBUTE),
+              element.getAttribute(Exmlc.EXML_DECLARATION_VALUE_ATTRIBUTE),
+              element.getAttribute(Exmlc.EXML_DECLARATION_TYPE_ATTRIBUTE));
+            if (!model.getVars().contains(var)) {
+              model.addVar(var);
+            }
           }
         } else {
           if (componentNode != null) {
@@ -130,7 +137,7 @@ public final class ExmlToModelParser {
     }
 
     String superFullClassName = createFullConfigClassNameFromNode(componentNode);
-    if(superFullClassName.equals(model.getConfigClass().getFullName())) {
+    if (superFullClassName.equals(model.getConfigClass().getFullName())) {
       int lineNumber = getLineNumber(componentNode);
       throw  new ExmlcException("Cyclic inheritance error: super class and this component are the same!. There is something wrong!", lineNumber);
     }

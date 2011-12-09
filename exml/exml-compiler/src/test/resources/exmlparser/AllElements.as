@@ -8,7 +8,7 @@ import ext.Panel;
 // Do not edit. This is an auto-generated class.
 
 /**
- * This is my <b>TestCompoent</b>
+ * This is my <b>TestComponent</b>
  *
  * <p>This component is created by the xtype 'exmlparser.config.allElements' / the EXML element &lt;exmlparser.config:allElements>.</p>
  * <p>See the config class for details.</p>
@@ -29,6 +29,7 @@ public class AllElements extends ext.Panel {
    * @see exmlparser.config.allElements
    */
   public function AllElements(config:exmlparser.config.allElements = null) {
+    var myVar:String = config.myProperty + '_suffix';
     super(exmlparser.config.allElements(ext.Ext.apply({
       layout: config.myLayout,
       title: "I am a panel",

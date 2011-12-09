@@ -3,8 +3,7 @@ package net.jangaroo.exml.parser;
 import net.jangaroo.exml.api.ExmlcException;
 import net.jangaroo.exml.config.ExmlConfiguration;
 import net.jangaroo.exml.model.ConfigClass;
-import net.jangaroo.exml.model.ConfigClassType;
-import net.jangaroo.exml.model.ExmlModel;
+import net.jangaroo.exml.utils.ExmlUtils;
 import net.jangaroo.utils.CompilerUtils;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.XMLReader;
@@ -27,7 +26,7 @@ public class ExmlToConfigClassParser {
     ConfigClass configClass = new ConfigClass();
 
     String componentPackageName = CompilerUtils.packageName(fullQualifiedName);
-    String componentClassName = ExmlModel.createComponentClassName(CompilerUtils.className(fullQualifiedName));
+    String componentClassName = ExmlUtils.createComponentClassName(CompilerUtils.className(fullQualifiedName));
 
     configClass.setComponentClassName(CompilerUtils.qName(componentPackageName, componentClassName));
     

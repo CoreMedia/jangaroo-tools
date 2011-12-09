@@ -15,13 +15,16 @@
   <exml:cfg name="myProperty" type="String"/>
   <exml:cfg name="myPropertyWithDescription" type="Boolean">
     <exml:description>
-      <![CDATA[This is my <b>descripion</b>]]>
+      <![CDATA[This is my <b>description</b>]]>
     </exml:description>
   </exml:cfg>
 
   <exml:description>
-    <![CDATA[This is my <b>TestCompoent</b>]]>
+    <![CDATA[This is my <b>TestComponent</b>]]>
   </exml:description>
+
+  <exml:var name="myVar" type="String" value="{config.myProperty + '_suffix'}"/>
+
   <!-- superclass of the the component with attributes-->
   <panel title="I am a panel" layout="{config.myLayout}">
     <!-- attribute with sub-attributes

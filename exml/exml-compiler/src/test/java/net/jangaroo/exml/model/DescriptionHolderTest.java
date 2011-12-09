@@ -16,7 +16,7 @@ public class DescriptionHolderTest {
     dh.setDescription("No escaping needed");
     assertEquals("No escaping needed", dh.getEscapedDescription());
 
-    dh.setDescription("escape /* and @ please");
-    assertEquals("escape &#47;&#42; and &#64; please", dh.getEscapedDescription());
+    dh.setDescription("escape * please");
+    assertEquals("escape &#42; please", dh.getEscapedDescription());
   }
 }

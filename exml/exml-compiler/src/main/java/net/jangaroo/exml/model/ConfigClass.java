@@ -1,5 +1,6 @@
 package net.jangaroo.exml.model;
 
+import net.jangaroo.exml.utils.ExmlUtils;
 import net.jangaroo.utils.CompilerUtils;
 
 import java.util.ArrayList;
@@ -18,7 +19,7 @@ public final class ConfigClass extends DescriptionHolder {
 
   private List<ConfigAttribute> cfgs = new ArrayList<ConfigAttribute>();
   private Map<String, ConfigAttribute> cfgsByName = new HashMap<String, ConfigAttribute>();
-  private List<Constant> constants = new ArrayList<Constant>();
+  private List<Declaration> constants = new ArrayList<Declaration>();
 
   private String name;
   private String packageName;
@@ -53,7 +54,7 @@ public final class ConfigClass extends DescriptionHolder {
     return cfgs;
   }
 
-  public List<Constant> getConstants() {
+  public List<Declaration> getConstants() {
     return constants;
   }
 
@@ -80,7 +81,7 @@ public final class ConfigClass extends DescriptionHolder {
     return cfgsByName.get(name);
   }
 
-  public void addConstant(Constant constant) {
+  public void addConstant(Declaration constant) {
     constants.add(constant);
   }
 
@@ -171,14 +172,13 @@ public final class ConfigClass extends DescriptionHolder {
 
   public List<String> getImports() {
     Set<String> imports = new HashSet<String>();
-    imports.add(getSuperClassName());
-    imports.add(getComponentClassName());
+    ExmlUtils.addImport(imports, getSuperClassName());
+    ExmlUtils.addImport(imports, getComponentClassName());
     for (ConfigAttribute cfg : cfgs) {
-      ExmlModel.addImport(imports, cfg.getType());
+      ExmlUtils.addImport(imports, cfg.getType());
     }
-    for (Constant constant : constants) {
-      ExmlModel.addImport(imports, constant.getType());
-      // TODO: what about imports used in the constant value's expression?!
+    for (Declaration constant : constants) {
+      ExmlUtils.addImport(imports, constant.getType());
     }
     imports.addAll(this.imports);
     ArrayList<String> results = new ArrayList<String>(imports);

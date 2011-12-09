@@ -5,7 +5,8 @@ import net.jangaroo.exml.compiler.Exmlc;
 import net.jangaroo.exml.model.ConfigAttribute;
 import net.jangaroo.exml.model.ConfigClass;
 import net.jangaroo.exml.model.ConfigClassType;
-import net.jangaroo.exml.model.Constant;
+import net.jangaroo.exml.model.DescriptionHolder;
+import net.jangaroo.exml.model.Declaration;
 import net.jangaroo.exml.utils.ExmlUtils;
 import net.jangaroo.utils.CharacterRecordingHandler;
 import org.xml.sax.Attributes;
@@ -65,7 +66,7 @@ public class ExmlMetadataHandler extends CharacterRecordingHandler {
           startRecordingCharacters();
         }
       } else if (Exmlc.EXML_CONSTANT_NODE_NAME.equals(localName)) {
-        Constant constant = new Constant(atts.getValue(Exmlc.EXML_CONSTANT_NAME_ATTRIBUTE), atts.getValue(Exmlc.EXML_CONSTANT_VALUE_ATTRIBUTE), atts.getValue(Exmlc.EXML_CONSTANT_TYPE_ATTRIBUTE));
+        Declaration constant = new Declaration(atts.getValue(Exmlc.EXML_DECLARATION_NAME_ATTRIBUTE), atts.getValue(Exmlc.EXML_DECLARATION_VALUE_ATTRIBUTE), atts.getValue(Exmlc.EXML_DECLARATION_TYPE_ATTRIBUTE));
         if(!configClass.getConstants().contains(constant)) {
           configClass.addConstant(constant);
         } else {
@@ -114,12 +115,13 @@ public class ExmlMetadataHandler extends CharacterRecordingHandler {
       if (Exmlc.EXML_DESCRIPTION_NODE_NAME.equals(localName)) {
         String characters = popRecordedCharacters();
         if (characters != null) {
-          if (isLastInPathConfig()) {
-            configClass.getCfgs().get(configClass.getCfgs().size() - 1).setDescription(characters.trim());
-          } else if (isLastInPathExmlClass()) {
-            configClass.setDescription(characters.trim());
-          } else if (isLastInPathConstant()) {
-            configClass.getConstants().get(configClass.getConstants().size() - 1).setDescription(characters.trim());
+          DescriptionHolder descriptionHolder =
+            isLastInPathConfig() ? configClass.getCfgs().get(configClass.getCfgs().size() - 1)
+              : isLastInPathExmlClass() ? configClass
+              : isLastInPathConstant() ? configClass.getConstants().get(configClass.getConstants().size() - 1)
+              : null;
+          if (descriptionHolder != null) {
+            descriptionHolder.setDescription(characters);
           }
         }
       }

@@ -2,7 +2,7 @@ package net.jangaroo.exml.test;
 
 import net.jangaroo.exml.json.JsonArray;
 import net.jangaroo.exml.json.JsonObject;
-import net.jangaroo.exml.model.Constant;
+import net.jangaroo.exml.model.Declaration;
 import net.jangaroo.exml.model.ExmlModel;
 import net.jangaroo.exml.parser.ExmlToModelParser;
 import org.junit.Assert;
@@ -271,32 +271,32 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
     ExmlToModelParser exmlToModelParser = new ExmlToModelParser(getConfigClassRegistry());
 
     ExmlModel model = exmlToModelParser.parse(getFile("/exmlparser/TestConstants.exml"));
-    Constant aConstant = model.getConfigClass().getConstants().get(0);
+    Declaration aConstant = model.getConfigClass().getConstants().get(0);
     Assert.assertEquals("A_CONSTANT", aConstant.getName());
     Assert.assertEquals("\"One two three\"", aConstant.getValue());
     Assert.assertEquals("String", aConstant.getType());
     Assert.assertEquals("This is some constant", aConstant.getDescription());
 
-    Constant bConstant = model.getConfigClass().getConstants().get(1);
+    Declaration bConstant = model.getConfigClass().getConstants().get(1);
     Assert.assertEquals("B_CONSTANT", bConstant.getName());
     Assert.assertEquals("456", bConstant.getValue());
     Assert.assertEquals("uint", bConstant.getType());
     Assert.assertNull(bConstant.getDescription());
 
-    Constant cConstant = model.getConfigClass().getConstants().get(2);
+    Declaration cConstant = model.getConfigClass().getConstants().get(2);
     Assert.assertEquals("C_CONSTANT", cConstant.getName());
     Assert.assertEquals("new Object()", cConstant.getValue());
     Assert.assertEquals("Object", cConstant.getType());
     Assert.assertNull(cConstant.getDescription());
 
-    Constant dConstant = model.getConfigClass().getConstants().get(3);
+    Declaration dConstant = model.getConfigClass().getConstants().get(3);
     Assert.assertEquals("D_CONSTANT", dConstant.getName());
     Assert.assertEquals("new button()", dConstant.getValue());
     Assert.assertEquals("ext.config.button", dConstant.getType());
     Assert.assertTrue(model.getImports().contains("ext.config.button"));
     Assert.assertNull(dConstant.getDescription());
 
-    Constant eConstant = model.getConfigClass().getConstants().get(4);
+    Declaration eConstant = model.getConfigClass().getConstants().get(4);
     Assert.assertEquals("E_CONSTANT", eConstant.getName());
     Assert.assertEquals("new Container()", eConstant.getValue());
     Assert.assertEquals("ext.Component", eConstant.getType());

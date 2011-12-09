@@ -2,6 +2,8 @@ package net.jangaroo.exml.utils;
 
 import net.jangaroo.exml.api.Exmlc;
 
+import java.util.Set;
+
 /**
  * Some useful utility functions for EXML handling.
  */
@@ -21,5 +23,27 @@ public class ExmlUtils {
 
   public static String getCodeExpression(String attributeValue) {
     return attributeValue.substring(1, attributeValue.length() - 1);
+  }
+
+  public static void addImport(Set<String> imports, String importedClassName) {
+    if (importedClassName != null && importedClassName.contains(".")) { // do not import top-level classes!
+      imports.add(importedClassName);
+    }
+  }
+
+  /**
+   * Create a ComponentClass name from the given name. By convention all ComponentClass names are capitalized.
+   *
+   * @param name the name
+   * @return return the new config-class name, matching the conventions.
+   */
+  public static String createComponentClassName(String name) {
+    if (name == null || name.length() == 0) {
+      return name;
+    }
+    return new StringBuilder(name.length())
+            .append(Character.toUpperCase(name.charAt(0)))
+            .append(name.substring(1))
+            .toString();
   }
 }

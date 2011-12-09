@@ -28,9 +28,9 @@
      </xs:restriction>
   </xs:simpleType>
 
-  <xs:simpleType name="constant_name">
+  <xs:simpleType name="identifier">
      <xs:restriction base="xs:string">
-        <xs:pattern value="[A-Z][A-Z0-9]*(_[A-Z0-9]+)*"/>
+        <xs:pattern value="[a-zA-Z][a-zA-Z0-9]*(_[a-zA-Z0-9]+)*"/>
      </xs:restriction>
   </xs:simpleType>
 
@@ -75,40 +75,35 @@
     <xs:attribute name="class" type="xs:string" use="required"/>
   </xs:complexType>
 
-  <xs:complexType name="constant">
-    <xs:annotation>
-      <xs:documentation>
-        Defines a constant that can be used for itemIds.
-      </xs:documentation>
-    </xs:annotation>
+  <xs:complexType name="declaration">
     <xs:sequence>
       <xs:element name="description" type="xs:string" minOccurs="0" maxOccurs="1">
         <xs:annotation>
           <xs:documentation>
-            The description of the constant. optional.
+            The description of the constant or variable (optional).
           </xs:documentation>
         </xs:annotation>
       </xs:element>
     </xs:sequence>
-    <xs:attribute name="name" type="exml:constant_name" use="required">
+    <xs:attribute name="name" type="exml:identifier" use="required">
       <xs:annotation>
         <xs:documentation>
-          <p>The name of the constant.</p>
-          <p>Only capital letters, numbers and '_' are allowed (Pattern: [A-Z][A-Z0-9]*(_[A-Z0-9]+)*).</p>
+          <p>The name of the constant or variable.</p>
+          <p>Only letters, numbers and '_' are allowed (Pattern: [a-zA-Z][a-zA-Z0-9]*(_[a-zA-Z0-9]+)*).</p>
         </xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="value" type="xs:string" use="required">
       <xs:annotation>
         <xs:documentation>
-          The value of the constant.
+          The value of the constant or variable.
         </xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="type" type="xs:string" use="optional">
       <xs:annotation>
         <xs:documentation>
-          The type of the constant. If no type is given, like for untyped config properties,
+          The type of the constant or variable. If no type is given, like for untyped config properties,
           it will be guessed from the value. If it cannot be guessed (e.g. because the
           value is an expression), '*' will be used.
         </xs:documentation>
@@ -132,12 +127,25 @@
   <xs:complexType name="rootElement">
     <xs:sequence>
       <xs:element name="import" type="exml:import" minOccurs="0" maxOccurs="unbounded"/>
-      <xs:element name="constant" type="exml:constant" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="constant" type="exml:declaration" minOccurs="0" maxOccurs="unbounded">
+        <xs:annotation>
+          <xs:documentation>
+            Defines a static constant that can e.g. be used for itemIds.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
       <xs:element name="cfg" type="exml:cfg" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element name="description" type="xs:string" minOccurs="0" maxOccurs="1">
         <xs:annotation>
           <xs:documentation>
-            The description of the new EXML class. optional.
+            The description of the new EXML class (optional).
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="var" type="exml:declaration" minOccurs="0" maxOccurs="unbounded">
+        <xs:annotation>
+          <xs:documentation>
+            Defines a local variable that can be used to refactor expressions that occur multiple times.
           </xs:documentation>
         </xs:annotation>
       </xs:element>
@@ -170,6 +178,11 @@
       <xs:selector xpath="exml:cfg" />
       <xs:field    xpath="@name" />
     </xs:unique>
+    <!-- make var names unique -->
+    <xs:unique name="var_name">
+      <xs:selector xpath="exml:var" />
+      <xs:field    xpath="@name" />
+    </xs:unique>
   </xs:element>
 
   <xs:element name="plugin" type="exml:rootElement">
@@ -181,6 +194,11 @@
     <!-- make config names unique -->
     <xs:unique name="cfg_name_plugin">
       <xs:selector xpath="exml:cfg" />
+      <xs:field    xpath="@name" />
+    </xs:unique>
+    <!-- make var names unique -->
+    <xs:unique name="var_name_plugin">
+      <xs:selector xpath="exml:var" />
       <xs:field    xpath="@name" />
     </xs:unique>
   </xs:element>
@@ -196,6 +214,11 @@
       <xs:selector xpath="exml:cfg" />
       <xs:field    xpath="@name" />
     </xs:unique>
+    <!-- make var names unique -->
+    <xs:unique name="var_name_layout">
+      <xs:selector xpath="exml:var" />
+      <xs:field    xpath="@name" />
+    </xs:unique>
   </xs:element>
 
   <xs:element name="gridColumn" type="exml:rootElement">
@@ -209,6 +232,11 @@
       <xs:selector xpath="exml:cfg" />
       <xs:field    xpath="@name" />
     </xs:unique>
+    <!-- make var names unique -->
+    <xs:unique name="var_name_gridColumn">
+      <xs:selector xpath="exml:var" />
+      <xs:field    xpath="@name" />
+    </xs:unique>
   </xs:element>
 
   <xs:element name="class" type="exml:rootElement">
@@ -220,6 +248,11 @@
     <!-- make config names unique -->
     <xs:unique name="cfg_name_class">
       <xs:selector xpath="exml:cfg" />
+      <xs:field    xpath="@name" />
+    </xs:unique>
+    <!-- make var names unique -->
+    <xs:unique name="var_name_class">
+      <xs:selector xpath="exml:var" />
       <xs:field    xpath="@name" />
     </xs:unique>
   </xs:element>

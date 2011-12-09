@@ -6,11 +6,11 @@ import net.jangaroo.exml.parser.ExmlToModelParser;
 import net.jangaroo.utils.AS3Type;
 import net.jangaroo.utils.CompilerUtils;
 
-public class Constant extends TypedField {
+public class Declaration extends TypedField {
   private String value;
 
-  public Constant(String name, String value, String type) {
-    super(name, type == null ? guessType(value) : type);
+  public Declaration(String name, String value, String type) {
+    super(name, type == null || type.length() == 0 ? guessType(value) : type);
     this.value = value;
   }
 

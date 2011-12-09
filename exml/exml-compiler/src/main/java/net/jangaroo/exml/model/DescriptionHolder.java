@@ -15,6 +15,12 @@ public class DescriptionHolder {
   }
 
   public void setDescription(String description) {
+    if (description != null) {
+      description = description.trim();
+      if (description.length() == 0) {
+        description = null; // suppress empty descriptions
+      }
+    }
     this.description = description;
   }
 
@@ -27,8 +33,6 @@ public class DescriptionHolder {
       char c = description.charAt(i);
       switch (c) {
         case '*': builder.append("&#42;"); break;
-        case '/': builder.append("&#47;"); break;
-        case '@': builder.append("&#64;"); break;
         default: builder.append(c);
       }
     }
