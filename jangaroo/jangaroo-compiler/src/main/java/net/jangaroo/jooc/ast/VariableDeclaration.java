@@ -122,7 +122,7 @@ public class VariableDeclaration extends TypedIdeDeclaration {
   public void analyze(AstNode parentNode) {
     super.analyze(parentNode);
     if (getOptInitializer() == null && isConst()) {
-      throw Jooc.error(getOptSymConstOrVar(), "constant must be initialized");
+      Jooc.warning(getOptSymConstOrVar(), "constant should be initialized");
     }
     if (getOptInitializer() != null) {
       getOptInitializer().analyze(this);
