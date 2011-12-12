@@ -10,11 +10,13 @@ import ${import};
 /**
  * ${escapedDescription!}
  *
- * <p>This class serves as a typed config object for the constructor of the class <code>${componentClassName}</code>.
+ * <p>This class serves as a typed config object for the constructor of the class
+ * <code>${componentClassName}</code>.
 <#if type??>
  * Using this config class also takes care of registering the target class under the ${type.type}
- * "${packageName}.${name}" with Ext JS.</p>
+ * "${packageName}.${name}" with Ext JS.
 </#if>
+ * </p>
  *
  * @see ${componentClassName}
  */
