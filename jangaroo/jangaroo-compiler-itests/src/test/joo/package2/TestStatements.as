@@ -37,6 +37,14 @@ public class TestStatements {
     return result;
   }
 
+  public function testFor2(n:int):int {
+    var result = 0;
+    var i:Number, j:int, k:uint;
+    for (i = 0, j = 1, k = 2; i < n; i++)
+      result += i;
+    return result;
+  }
+
   public function testForIn(o:Object):String {
     var result = [];
     for (var slot:String in o)

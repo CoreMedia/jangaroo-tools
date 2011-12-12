@@ -246,6 +246,7 @@ public class JooTest extends JooRuntimeTestCase {
     expectNumber(300, "obj.testIfThenElse(false, 200, 300)");
     expectNumber(15, "obj.testWhile(5)");
     expectNumber(10, "obj.testFor(5)");
+    expectNumber(10, "obj.testFor2(5)");
     expectNumber(15, "obj.testDoWhile(5)");
     expectNumber(3, "obj.testBreakDo()");
     expectNumber(3, "obj.testBreakWhile()");

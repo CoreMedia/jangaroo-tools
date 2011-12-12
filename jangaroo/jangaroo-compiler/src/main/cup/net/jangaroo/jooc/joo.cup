@@ -433,7 +433,7 @@ classDeclaration ::=
 commaExpr ::=
     expr:e
     {: RESULT = e; :}
-  | expr:e1 COMMA:op expr:e2
+  | expr:e1 COMMA:op commaExpr:e2
     {: RESULT = new BinaryOpExpr(e1,op,e2); :}
   ;
 
