@@ -8,7 +8,7 @@ import testPackage.TestAction;
 /**
  * This is a test action (not a component!).
  *
- * <p>This class serves as a typed config object for the constructor of the class <code>testPackage.TestAction</code>.
+ * <p>This class serves as a typed config object for the constructor of the class <code>testPackage.TestAction</code>.</p>
  *
  * @see testPackage.TestAction
  */
