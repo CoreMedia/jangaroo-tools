@@ -938,7 +938,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       // generate default constructor that calls field initializers:
       out.write("\"public function " + classDeclaration.getName() + "\",function " + classDeclaration.getName() + "$(){");
       new SuperCallCodeGenerator(classDeclaration).generate(out);
-      out.write("}");
+      out.write("},");
     }
 
     for (IdeDeclaration secondaryDeclaration : classDeclaration.getSecondaryDeclarations()) {
@@ -946,7 +946,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       out.writeToken(",");
     }
 
-    out.write("];},");
+    out.write("undefined];},");
     generateStaticMethodList(classDeclaration);
   }
 

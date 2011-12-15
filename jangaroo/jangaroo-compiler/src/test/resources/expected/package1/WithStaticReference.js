@@ -16,5 +16,5 @@ joo.classLoader.prepare("package package1",/*{*/
     bla,  package1.WithStaticReference);
     new package1.WithStaticReference();
   },
-];},["make"],[], "@runtimeVersion", "@version"
+undefined];},["make"],[], "@runtimeVersion", "@version"
 );

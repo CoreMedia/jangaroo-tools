@@ -8,5 +8,5 @@ import package1.someOtherPackage.SomeOtherClass;*/
   "private function method",function method(i/*:int*/)/*:int*/ {
     return package1.someOtherPackage.SomeOtherClass.BLA + $$int.MAX_VALUE;
   },
-];},[],["package1.someOtherPackage.SomeOtherClass","int"], "@runtimeVersion", "@version"
+undefined];},[],["package1.someOtherPackage.SomeOtherClass","int"], "@runtimeVersion", "@version"
 );

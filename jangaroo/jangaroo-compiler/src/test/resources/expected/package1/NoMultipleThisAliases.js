@@ -10,5 +10,5 @@ joo.classLoader.prepare("package package1",/*{*/
   },
 
   "private function method",function method()/*:void*/ {},
-];},[],[], "@runtimeVersion", "@version"
+undefined];},[],[], "@runtimeVersion", "@version"
 );
