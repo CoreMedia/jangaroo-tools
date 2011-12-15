@@ -68,6 +68,7 @@ public class JooGenerateTestResourcesMojo extends PackageApplicationMojo {
    *
    * @parameter expression="${project.testResources}"
    */
+  @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
   private List<Resource> testResources;
 
   public File getPackageSourceDirectory() {
@@ -100,8 +101,9 @@ public class JooGenerateTestResourcesMojo extends PackageApplicationMojo {
   }
 
   @Override
-  protected void writeThisJangarooModuleScript(File scriptDirectory, Writer fw) throws IOException {
-    super.writeThisJangarooModuleScript(scriptDirectory, fw);
-    fw.write("joo.loadModule(\"" + project.getGroupId() + "\",\"" + project.getArtifactId() + "-test\");\n");
+  protected void writeThisJangarooModuleScript(File scriptDirectory, Writer jangarooApplicationWriter, Writer jangarooApplicationAllWriter) throws IOException {
+    super.writeThisJangarooModuleScript(scriptDirectory, jangarooApplicationWriter, jangarooApplicationAllWriter);
+    writeModule(scriptDirectory, project.getGroupId(), project.getArtifactId() + "-test", project.getVersion(),
+      jangarooApplicationWriter, jangarooApplicationAllWriter);
   }
 }
