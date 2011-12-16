@@ -221,7 +221,7 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
           includeJangarooModuleScript(scriptDirectory, artifact, jangarooApplicationWriter, jangarooApplicationAllWriter);
         }
       }
-      writeThisJangarooModuleScript(scriptDirectory, jangarooApplicationAllWriter, jangarooApplicationAllWriter);
+      writeThisJangarooModuleScript(scriptDirectory, jangarooApplicationWriter, jangarooApplicationAllWriter);
     } finally {
       try {
         jangarooApplicationAllWriter.close();
