@@ -1,5 +1,6 @@
 package net.jangaroo.jooc.mvnplugin;
 
+import net.jangaroo.utils.BOMStripperInputStream;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.model.Dependency;
@@ -20,7 +21,6 @@ import org.codehaus.plexus.util.IOUtil;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -224,6 +224,7 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
       writeThisJangarooModuleScript(scriptDirectory, jangarooApplicationWriter, jangarooApplicationAllWriter);
     } finally {
       try {
+        jangarooApplicationWriter.close();
         jangarooApplicationAllWriter.close();
       } catch (IOException e) {
         getLog().warn("IOException on close ignored.", e);
@@ -290,12 +291,12 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
         String groupId = loadModuleMatcher.group(1);
         String artifactId = loadModuleMatcher.group(2);
         scriptFilename = "joo/" + groupId + "." + artifactId + ".classes.js";
-        getLog().info(" found loadModule: " + groupId + " / " + artifactId);
+        getLog().debug(" found loadModule: " + groupId + " / " + artifactId);
       } else {
         Matcher loadScriptMatcher = LOAD_SCRIPT_CODE_PATTERN.matcher(line);
         if (loadScriptMatcher.matches()) {
           scriptFilename = loadScriptMatcher.group(1);
-          getLog().info(" found loadScript: " + scriptFilename);
+          getLog().debug(" found loadScript: " + scriptFilename);
         }
       }
       if (scriptFilename == null) {
@@ -319,11 +320,13 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
       getLog().debug("Creating joo.loadModule(...) code for / appending .classes.js of" + fullArtifactName + ".");
       jangarooApplicationWriter.write("joo.loadModule(\"" + groupId + "\",\"" + artifactId + "\");\n");
       appendFile(jangarooApplicationAllWriter, classesJsFile);
+    } else {
+      getLog().debug("No file " + classesJsFile.getAbsolutePath() + " in module " + fullArtifactName +".");
     }
   }
 
   private void appendFile(Writer writer, File file) throws IOException {
-    appendFromInputStream(writer, new FileInputStream(file));
+    appendFromInputStream(writer, new BOMStripperInputStream(new FileInputStream(file)));
   }
 
   private void appendFromInputStream(Writer writer, InputStream inputStream) throws IOException {
@@ -388,8 +391,8 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
     }
 
     @Override
-    public InputStream getInputStream() throws FileNotFoundException {
-      return new FileInputStream(file);
+    public InputStream getInputStream() throws IOException {
+      return new BOMStripperInputStream(new FileInputStream(file));
     }
   }
 
@@ -404,7 +407,7 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
 
     @Override
     public InputStream getInputStream() throws IOException {
-      return zipFile.getInputStream(zipEntry);
+      return new BOMStripperInputStream(zipFile.getInputStream(zipEntry));
     }
   }
   private static class WarPackageArchiveFilter implements ArchiveFileFilter {
