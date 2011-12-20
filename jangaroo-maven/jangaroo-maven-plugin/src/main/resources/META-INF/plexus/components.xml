@@ -32,10 +32,9 @@
           </generate-sources>
           <process-resources>org.apache.maven.plugins:maven-resources-plugin:resources</process-resources>
           <compile>net.jangaroo:jangaroo-maven-plugin:${pom.version}:compile</compile>
-          <generate-test-resources>net.jangaroo:jangaroo-maven-plugin:${pom.version}:unpack-jangaroo-test-dependencies
-          </generate-test-resources>
           <process-test-resources>org.apache.maven.plugins:maven-resources-plugin:testResources</process-test-resources>
-          <test-compile>net.jangaroo:jangaroo-maven-plugin:${pom.version}:testCompile</test-compile>
+          <test-compile>net.jangaroo:jangaroo-maven-plugin:${pom.version}:testCompile,
+            net.jangaroo:jangaroo-maven-plugin:${pom.version}:unpack-jangaroo-test-dependencies</test-compile>
           <test>net.jangaroo:jangaroo-maven-plugin:${pom.version}:test</test>
           <package>net.jangaroo:jangaroo-maven-plugin:${pom.version}:package</package>
           <verify>org.apache.maven.plugins:maven-source-plugin:jar</verify>

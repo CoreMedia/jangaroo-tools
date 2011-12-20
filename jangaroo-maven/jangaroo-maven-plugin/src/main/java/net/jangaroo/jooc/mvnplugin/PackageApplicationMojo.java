@@ -317,7 +317,7 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
     String fullArtifactName = groupId + ":" + artifactId + ":" + version;
     File classesJsFile = new File(scriptDirectory, groupId + "." + artifactId + ".classes.js");
     if (classesJsFile.exists()) {
-      getLog().debug("Creating joo.loadModule(...) code for / appending .classes.js of" + fullArtifactName + ".");
+      getLog().debug("Creating joo.loadModule(...) code for / appending .classes.js of " + fullArtifactName + ".");
       jangarooApplicationWriter.write("joo.loadModule(\"" + groupId + "\",\"" + artifactId + "\");\n");
       appendFile(jangarooApplicationAllWriter, classesJsFile);
     } else {
