@@ -122,11 +122,11 @@ public class JooTestMojo extends AbstractMojo {
   private int jooUnitJettyPortLowerBound = 10100;
 
   /**
-   * Specifies the time in milliseconds to wait for the test results in the browser. Default is 3000ms.
+   * Specifies the time in milliseconds to wait for the test results in the browser. Default is 30000ms.
    *
    * @parameter
    */
-  private int jooUnitTestExecutionTimeout = 3000;
+  private int jooUnitTestExecutionTimeout = 30000;
 
 
   /**
@@ -168,7 +168,7 @@ public class JooTestMojo extends AbstractMojo {
 
   /**
    * The script to run in phantomjs launching the tests
-   * @parameter expression="${phantomjs.runner}" default-value="joo/phantomjs-joounit-page-runner.js"
+   * @parameter expression="${phantomjs.runner}" default-value="joo/phantomjs-joounit-runner.js"
    */
   private String phantomTestRunner;
 
@@ -197,7 +197,7 @@ public class JooTestMojo extends AbstractMojo {
 
   public void execute() throws MojoExecutionException, MojoFailureException {
     if (!skip && !skipTests) {
-      final PhantomJsTestRunner phantomJsTestRunner = new PhantomJsTestRunner(phantomBin, testOutputDirectory, phantomTestRunner, phantomTestSuite, phantomArgs, getLog());
+      final PhantomJsTestRunner phantomJsTestRunner = new PhantomJsTestRunner(phantomBin, testOutputDirectory, phantomTestRunner, phantomTestSuite, phantomArgs, jooUnitTestExecutionTimeout, getLog());
       getLog().info("trying to run phantomjs first: "+phantomJsTestRunner.toString());
       if(phantomJsTestRunner.isTestAvailable() && phantomJsTestRunner.canRun()) {
         try {

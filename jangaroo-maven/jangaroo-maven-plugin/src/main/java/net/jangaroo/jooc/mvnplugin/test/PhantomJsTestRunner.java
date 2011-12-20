@@ -1,6 +1,5 @@
 package net.jangaroo.jooc.mvnplugin.test;
 
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.maven.plugin.logging.Log;
 import org.codehaus.plexus.util.cli.CommandLineException;
 import org.codehaus.plexus.util.cli.CommandLineUtils;
@@ -18,26 +17,45 @@ public class PhantomJsTestRunner  {
   private final File phantomjs;
   private final Log log;
   private final String testRunner;
+  private final int timeout;
 
-  public PhantomJsTestRunner(File phantomjs, File testOutputDirectory, String testRunner, String testSuite, String args, Log log) {
+  /**
+   * @param phantomjs the binary to execute
+   * @param testOutputDirectory the directory containing the classes to test
+   * @param testRunner the test runner script to be loaded in phantomjs
+   * @param testSuite the test suite class to run
+   * @param args additional arguments to be passed to the phantomjs runner script
+   * @param timeout timeout in seconds
+   * @param log
+   */
+  public PhantomJsTestRunner(File phantomjs, File testOutputDirectory, String testRunner, String testSuite, String args, int timeout, Log log) {
     this.phantomjs = phantomjs;
     this.testOutputDirectory = testOutputDirectory;
     this.testRunner = testRunner;
     this.testSuite = testSuite;
     this.log = log;
+    this.timeout = timeout;
     this.args = args;
   }
 
   public boolean execute() throws CommandLineException {
-    Commandline cmd = new Commandline();
+    final Commandline cmd = new Commandline();
     cmd.setExecutable(phantomjs.getAbsolutePath());
     cmd.setWorkingDirectory(testOutputDirectory);
-    ArrayList<String> arguments = new ArrayList<String>();
+    final ArrayList<String> arguments = new ArrayList<String>();
     arguments.add(testRunner);
-    arguments.add("test="+testSuite);
+    final StringBuffer argString = new StringBuffer("(function(c){")
+            .append("c['testSuiteName'] = '").append(testSuite).append("';")
+            .append("c['timeout'] = ").append(timeout).append(';')
+            .append("return c;})").append('(');
     if(args != null){
-      arguments.add(args);
+      argString.append(args.replace('\n',' ')); // phantomjs doesn't like new lines in config object argument
+    } else {
+      argString.append("{}");
     }
+    argString.append(')');
+
+    arguments.add(argString.toString());
     cmd.addArguments(arguments.toArray(new String[arguments.size()]));
 
     final StreamConsumer consumer = new StreamConsumer() {
@@ -46,7 +64,8 @@ public class PhantomJsTestRunner  {
         log.info(line);
       }
     };
-    return 0 == CommandLineUtils.executeCommandLine(cmd, consumer, consumer);
+    log.info("executing phantomjs cmd: "+cmd.toString());
+    return 0 == CommandLineUtils.executeCommandLine(cmd, consumer, consumer, timeout);
   }
 
   public boolean isTestAvailable() {
