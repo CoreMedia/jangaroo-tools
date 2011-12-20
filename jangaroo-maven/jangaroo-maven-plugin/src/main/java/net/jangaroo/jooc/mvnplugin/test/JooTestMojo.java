@@ -168,7 +168,7 @@ public class JooTestMojo extends AbstractMojo {
 
   /**
    * The script to run in phantomjs launching the tests
-   * @parameter expression="${phantomjs.runner}" default-value="joo/phantomjs-joounit-runner.js"
+   * @parameter expression="${phantomjs.runner}" default-value="joo/phantomjs-joounit-page-runner.js"
    */
   private String phantomTestRunner;
 
