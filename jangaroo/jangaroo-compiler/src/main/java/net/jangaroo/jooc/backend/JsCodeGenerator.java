@@ -959,10 +959,12 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       if (startWithSemicolon) {
         out.write(";");
       }
+      out.writeToken("if(0===0){"); // THANK YOU, Firefox 9: https://bugzilla.mozilla.org/show_bug.cgi?id=706808#c27
       do {
         VariableDeclaration field = iterator.next();
-        generateInitCode(field, endWithSemicolon || iterator.hasNext());
+        generateInitCode(field, true);
       } while (iterator.hasNext());
+      out.write("}");
     }
   }
 
