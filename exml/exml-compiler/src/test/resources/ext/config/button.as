@@ -10,6 +10,6 @@ public class button {
   /**
    * @private
    */
-  public native function set items(text:String):void;
+  public native function set text(value:String):void;
 }
 }
