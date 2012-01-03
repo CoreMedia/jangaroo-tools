@@ -32,5 +32,12 @@ public class component {
    * @private
    */
   public native function set baseAction(value:Action):void;
+
+  public native function get margins():Object;
+
+  /**
+   * @private
+   */
+  public native function set margins(value:Object):void;
 }
 }

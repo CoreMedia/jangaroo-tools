@@ -176,29 +176,27 @@ public final class ExmlToModelParser {
   }
 
   public static Object getAttributeValue(String attributeValue, String type) {
-    if (ExmlUtils.isCodeExpression(attributeValue)) {
-      return attributeValue;
-    }
-    AS3Type as3Type = AS3Type.typeByName(type);
-    if (as3Type == null || AS3Type.ANY.equals(as3Type)) {
-      as3Type = CompilerUtils.guessType(attributeValue);
-      if (as3Type == null) { // cannot guess
-        return attributeValue;
+    if (!ExmlUtils.isCodeExpression(attributeValue)) {
+      AS3Type as3Type = type == null ? AS3Type.ANY : AS3Type.typeByName(type);
+      if (AS3Type.ANY.equals(as3Type)) {
+        as3Type = CompilerUtils.guessType(attributeValue);
+      }
+      if (as3Type != null) {
+        switch (as3Type) {
+          case BOOLEAN:
+            return Boolean.parseBoolean(attributeValue);
+          case NUMBER:
+            return Double.parseDouble(attributeValue);
+          case UINT:
+          case INT:
+            return Long.parseLong(attributeValue);
+          case ARRAY:
+            return new JsonArray(attributeValue);
+        }
       }
     }
-    switch (as3Type) {
-      case BOOLEAN:
-        return Boolean.parseBoolean(attributeValue);
-      case NUMBER:
-        return Double.parseDouble(attributeValue);
-      case UINT:
-      case INT:
-        return Long.parseLong(attributeValue);
-      case ARRAY:
-        return new JsonArray(attributeValue);
-      default:  // Object or specific type. We don't care (for now).
-        return attributeValue;
-    }
+    // code expression, Object or specific type. We don't care (for now).
+    return attributeValue;
   }
 
   private void fillModelAttributesFromSubElements(ExmlModel model, JsonObject jsonObject, Node componentNode, ConfigClass configClass) {

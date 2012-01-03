@@ -234,6 +234,31 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
   }
 
   @Test
+  public void testParseTyped() throws Exception{
+    setUp("exmlparser.config");
+    ExmlToModelParser exmlToModelParser = new ExmlToModelParser(getConfigClassRegistry());
+
+    ExmlModel model = exmlToModelParser.parse(getFile("/exmlparser/TestTyped.exml"));
+    Assert.assertEquals("ext.Panel", model.getSuperClassName());
+
+    JsonObject expectedJsonObject = new JsonObject(
+            "items", new JsonArray(
+                    new JsonObject(
+                            "xtype", "component",
+                            "margins", "5" // not the number 5!
+                    ),
+                    new JsonObject(
+                            "xtype", "component",
+                            "id", "false"  // not the boolean false!
+                    )
+
+            )
+    );
+    System.out.println(model.getJsonObject().toString(2));
+    Assert.assertEquals(expectedJsonObject.toString(2), model.getJsonObject().toString(2));
+  }
+
+  @Test
   public void testInheritProperties() throws Exception{
     setUp("testNamespace.config");
     ExmlToModelParser exmlToModelParser = new ExmlToModelParser(getConfigClassRegistry());
