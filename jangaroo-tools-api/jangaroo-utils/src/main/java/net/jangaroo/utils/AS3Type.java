@@ -22,9 +22,11 @@ public enum AS3Type {
   }
 
   public static AS3Type typeByName(String name) {
-    for (AS3Type value : values()) {
-      if (value.toString().equals(name)) {
-        return value;
+    if (name != null) {
+      for (AS3Type value : values()) {
+        if (value.toString().equals(name)) {
+          return value;
+        }
       }
     }
     return null;
