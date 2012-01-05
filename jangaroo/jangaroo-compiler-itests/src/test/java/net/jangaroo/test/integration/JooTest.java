@@ -262,6 +262,9 @@ public class JooTest extends JooRuntimeTestCase {
     expectString("1, 2, 3", "obj.testForEach({ y: 2, x :1, z: 3})");
     expectString("1, 2, 3", "obj.testForEach2({ y: 2, x :1, z: 3})");
     expectString("1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3", "obj.testForEach3({ y: 2, x :1, z: 3})");
+    // from http://pastebin.com/1MDyFVJA
+    expectString("x, y, z", "obj.testForWithLValue({ y: 2, x :1, z: 3})");
+    expectString("1, 2, 3", "obj.testForEachWithLValue({ y: 2, x :1, z: 3})");
     expectNumber(11, "obj.testSwitch(1,1,11,2,22,33)");
     expectNumber(22, "obj.testSwitch(2,1,11,2,22,33)");
     expectNumber(33, "obj.testSwitch(3,1,11,2,22,33)");

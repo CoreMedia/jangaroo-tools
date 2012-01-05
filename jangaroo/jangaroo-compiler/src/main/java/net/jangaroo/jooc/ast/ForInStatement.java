@@ -31,7 +31,7 @@ public class ForInStatement extends LoopStatement {
   private JooSymbol symEach;
   private JooSymbol lParen;
   private VariableDeclaration decl;
-  private Ide ide; // only as alternative to decl
+  private Expr lValue; // only as alternative to decl
   private JooSymbol symIn;
   private Expr expr;
   private JooSymbol rParen;
@@ -41,11 +41,11 @@ public class ForInStatement extends LoopStatement {
     this(symFor, symEach, lParen, decl, null, symIn, expr, rParen, body);
   }
 
-  public ForInStatement(JooSymbol symFor, JooSymbol symEach, JooSymbol lParen, Ide ide, JooSymbol symIn, Expr expr, JooSymbol rParen, Statement body) {
-    this(symFor, symEach, lParen, null, ide, symIn, expr, rParen, body);
+  public ForInStatement(JooSymbol symFor, JooSymbol symEach, JooSymbol lParen, Expr lValue, JooSymbol symIn, Expr expr, JooSymbol rParen, Statement body) {
+    this(symFor, symEach, lParen, null, lValue, symIn, expr, rParen, body);
   }
 
-  private ForInStatement(JooSymbol symFor, JooSymbol symEach, JooSymbol lParen, VariableDeclaration decl, Ide ide, JooSymbol symIn, Expr expr, JooSymbol rParen, Statement body) {
+  private ForInStatement(JooSymbol symFor, JooSymbol symEach, JooSymbol lParen, VariableDeclaration decl, Expr lValue, JooSymbol symIn, Expr expr, JooSymbol rParen, Statement body) {
     super(symFor, body);
     if (!(symEach == null || SyntacticKeywords.EACH.equals(symEach.getText()))) {
       throw Jooc.error(symEach, "'for' must be followed by '(' or 'each'.");
@@ -53,7 +53,7 @@ public class ForInStatement extends LoopStatement {
     this.symEach = symEach;
     this.lParen = lParen;
     this.decl = decl;
-    this.ide = ide;
+    this.lValue = lValue;
     this.symIn = symIn;
     this.expr = expr;
     this.rParen = rParen;
@@ -71,8 +71,8 @@ public class ForInStatement extends LoopStatement {
     return decl;
   }
 
-  public Ide getIde() {
-    return ide;
+  public Expr getLValue() {
+    return lValue;
   }
 
   public JooSymbol getSymIn() {
@@ -106,7 +106,7 @@ public class ForInStatement extends LoopStatement {
     if (decl != null) {
       decl.scope(scope);
     } else {
-      ide.scope(scope);
+      lValue.scope(scope);
     }
     expr.scope(scope);
   }
@@ -115,7 +115,7 @@ public class ForInStatement extends LoopStatement {
     if (decl != null) {
       decl.analyze(this);
     } else {
-      ide.analyze(this);
+      lValue.analyze(this);
     }
     expr.analyze(this);
   }

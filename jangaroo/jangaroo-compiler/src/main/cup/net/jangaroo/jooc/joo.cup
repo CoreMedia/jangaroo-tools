@@ -893,12 +893,12 @@ statement ::=
     {: RESULT = new ForStatement(f,lp,new ForInitializer(e),s1,e1,s2,e2,rp,s); :}
   | FOR:f LPAREN:lp forVariableDeclaration:vd SEMICOLON:s1 optCommaExpr:e1 SEMICOLON:s2 optCommaExpr:e2 RPAREN:rp statement:s
     {: RESULT = new ForStatement(f,lp,new ForInitializer(vd),s1,e1,s2,e2,rp,s); :}
-  | FOR:f LPAREN:lp ide:ide IN:in expr:e RPAREN:rp statement:s
-    {: RESULT = new ForInStatement(f,null,lp,ide,in,e,rp,s); :}
+  | FOR:f LPAREN:lp lvalue:lv IN:in expr:e RPAREN:rp statement:s
+    {: RESULT = new ForInStatement(f,null,lp,lv,in,e,rp,s); :}
   | FOR:f LPAREN:lp VAR:var ide:ide optTypeRelation:t IN:in expr:e RPAREN:rp statement:s
     {: RESULT = new ForInStatement(f,null,lp,new VariableDeclaration(var,ide,t,null),in,e,rp,s); :}
-  | FOR:f IDE:each LPAREN:lp ide:ide IN:in expr:e RPAREN:rp statement:s
-    {: RESULT = new ForInStatement(f,each,lp,ide,in,e,rp,s); :}
+  | FOR:f IDE:each LPAREN:lp lvalue:lv IN:in expr:e RPAREN:rp statement:s
+    {: RESULT = new ForInStatement(f,each,lp,lv,in,e,rp,s); :}
   | FOR:f IDE:ea LPAREN:lp VAR:var ide:ide optTypeRelation:t IN:in expr:e RPAREN:rp statement:s
     {: RESULT = new ForInStatement(f,ea,lp,new VariableDeclaration(var,ide,t,null),in,e,rp,s); :}
   | TRY:t block:b catches:c

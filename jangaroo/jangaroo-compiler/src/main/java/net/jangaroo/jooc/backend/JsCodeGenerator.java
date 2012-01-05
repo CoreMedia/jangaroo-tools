@@ -649,7 +649,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       if (forInStatement.getDecl() != null) {
         forInStatement.getDecl().visit(this);
       } else {
-        forInStatement.getIde().visit(this);
+        forInStatement.getLValue().visit(this);
       }
     }
     out.writeSymbol(forInStatement.getSymIn());
@@ -663,7 +663,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       Statement assignment = // NOSONAR no, this is not a JDBC statement that must be closed ...
               new SemicolonTerminatedStatement(forInStatement.getDecl() != null
                       ? new VariableDeclaration(SYM_VAR, forInStatement.getDecl().getIde(), forInStatement.getDecl().getOptTypeRelation(), new Initializer(SYM_EQ, indexExpr))
-                      : new AssignmentOpExpr(new IdeExpr(forInStatement.getIde()), SYM_EQ, indexExpr),
+                      : new AssignmentOpExpr(forInStatement.getLValue(), SYM_EQ, indexExpr),
                       SYM_SEMICOLON);
       // inject synthesized statement into loop body:
       // todo: maybe we should correct the AST earlier, not during code generation?

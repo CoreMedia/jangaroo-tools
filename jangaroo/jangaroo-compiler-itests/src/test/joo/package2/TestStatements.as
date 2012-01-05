@@ -93,6 +93,24 @@ public class TestStatements {
     return result.join(", ");
   }
 
+  // from http://pastebin.com/1MDyFVJA
+  public function testForWithLValue(o:Object):String {
+    var result:Array = [];
+    for (result[result.length] in o)
+      ;
+    result.sort();
+    return result.join(", ");
+  }
+
+
+  // from http://pastebin.com/1MDyFVJA
+  public function testForEachWithLValue(o:Object):String {
+    var result:Array = [];
+    for each (result[result.length] in o)
+      ;
+    result.sort();
+    return result.join(", ");
+  }
   public function testDoWhile(n:int):int {
     var result = 0;
     var i = n;
