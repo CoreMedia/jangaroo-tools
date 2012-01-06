@@ -108,6 +108,11 @@ public class JooTestMojo extends AbstractMojo {
   private File testResultOutputDirectory;
 
   /**
+   *  @parameter
+   */
+  private String testResultFileName;
+
+  /**
    * The jetty port is selected randomly within an range of <code>[jooUnitJettyPortLowerBound:jooUnitJettyPortUpperBound]</code>.
    *
    * @parameter
@@ -201,11 +206,15 @@ public class JooTestMojo extends AbstractMojo {
       getLog().info("trying to run phantomjs first: "+phantomJsTestRunner.toString());
       if(phantomJsTestRunner.isTestAvailable() && phantomJsTestRunner.canRun()) {
         try {
-          if(!phantomJsTestRunner.execute()){
+          final boolean testResult = phantomJsTestRunner.execute();
+          writeResultToFile(phantomJsTestRunner.getTestResult());
+          if(!testResult){
             signalFailure();
           }
         } catch (CommandLineException e) {
-          throw new MojoExecutionException(e.toString(),e);
+          rethrow(e);
+        } catch (IOException e) {
+          rethrow(e);
         }
       } else if (isTestAvailable()) {
         executeSelenium();
@@ -229,9 +238,9 @@ public class JooTestMojo extends AbstractMojo {
     try {
       handler.setBaseResource(new FileResource(testOutputDirectory.toURI().toURL()));
     } catch (IOException e) {
-      throw new MojoExecutionException(e.toString(), e);
+      rethrow(e);
     } catch (URISyntaxException e) {
-      throw new MojoExecutionException(e.toString(), e);
+      rethrow(e);
     }
     Server server = startJetty(handler);
     Selenium selenium;
@@ -255,12 +264,8 @@ public class JooTestMojo extends AbstractMojo {
       }
 
       String testResultXml = selenium.getEval("selenium.browserbot.getCurrentWindow().result");
+      writeResultToFile(testResultXml);
       evalTestOutput(testResultXml);
-      File result = new File(testResultOutputDirectory, "TEST-" + project.getArtifactId() + ".xml");
-      FileUtils.writeStringToFile(result, testResultXml);
-      if (!result.setLastModified(System.currentTimeMillis())) {
-        getLog().warn("could not set modification time of file " + result);
-      }
     } catch (IOException e) {
       throw new MojoExecutionException("Cannot write test results to file", e);
     } catch (ParserConfigurationException e) {
@@ -284,6 +289,27 @@ public class JooTestMojo extends AbstractMojo {
     }
   }
 
+  void writeResultToFile(java.lang.String testResultXml) throws IOException {
+    File result = new File(testResultOutputDirectory, getTestResultFileName());
+    FileUtils.writeStringToFile(result, testResultXml);
+    if (!result.setLastModified(System.currentTimeMillis())) {
+      getLog().warn("could not set modification time of file " + result);
+    }
+  }
+
+  private String getTestResultFileName() {
+    if (this.testResultFileName != null) {
+      return this.testResultFileName;
+    } else {
+      final String result = this.phantomTestSuite != null ? this.phantomTestSuite : "TEST-" + project.getArtifactId();
+      return result + ".xml";
+    }
+  }
+
+  private void rethrow(Exception e) throws MojoExecutionException {
+    throw new MojoExecutionException(e.toString(), e);
+  }
+
   void evalTestOutput(String testResultXml) throws ParserConfigurationException, IOException, SAXException, MojoFailureException {
     DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
     DocumentBuilder dBuilder = documentBuilderFactory.newDocumentBuilder();
@@ -292,11 +318,12 @@ public class JooTestMojo extends AbstractMojo {
     Document d = dBuilder.parse(inSource);
     NodeList nl = d.getChildNodes();
     NamedNodeMap namedNodeMap = nl.item(0).getAttributes();
-    String failures = namedNodeMap.getNamedItem("failures").getNodeValue();
-    String errors = namedNodeMap.getNamedItem("errors").getNodeValue();
-    String tests = namedNodeMap.getNamedItem("tests").getNodeValue();
-    //String skipped = namedNodeMap.getNamedItem("skipped").getNodeValue();
-    getLog().info("Tests run: " + tests + ", Failures: " + failures + ", Errors: " + errors + ", Skipped: 0" /*+ skipped*/);
+    final String failures = namedNodeMap.getNamedItem("failures").getNodeValue();
+    final String errors = namedNodeMap.getNamedItem("errors").getNodeValue();
+    final String tests = namedNodeMap.getNamedItem("tests").getNodeValue();
+    final String time = namedNodeMap.getNamedItem("time").getNodeValue();
+    final String name = namedNodeMap.getNamedItem("name").getNodeValue();
+    getLog().info(name + " tests run: " + tests + ", Failures: " + failures + ", Errors: " + errors + ", time: " +time+ " ms");
     if(Integer.parseInt(errors) > 0 || Integer.parseInt(failures) > 0){
       signalFailure();
     }

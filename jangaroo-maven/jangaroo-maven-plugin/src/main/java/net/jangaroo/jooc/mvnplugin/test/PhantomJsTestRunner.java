@@ -11,6 +11,7 @@ import java.util.ArrayList;
 
 public class PhantomJsTestRunner  {
 
+  private static final String JANGAROO_MAVEN_PLUGIN = "jangaroo-maven-plugin";
   private final String testSuite;
   private final String args;
   private final File testOutputDirectory;
@@ -19,23 +20,25 @@ public class PhantomJsTestRunner  {
   private final String testRunner;
   private final int timeout;
 
+  private final StringBuffer result = new StringBuffer();
+
   /**
    * @param phantomjs the binary to execute
    * @param testOutputDirectory the directory containing the classes to test
    * @param testRunner the test runner script to be loaded in phantomjs
    * @param testSuite the test suite class to run
-   * @param args additional arguments to be passed to the phantomjs runner script
+   * @param phantomArgs additional arguments to be passed to the phantomjs runner script
    * @param timeout timeout in seconds
    * @param log
    */
-  public PhantomJsTestRunner(File phantomjs, File testOutputDirectory, String testRunner, String testSuite, String args, int timeout, Log log) {
+  public PhantomJsTestRunner(File phantomjs, File testOutputDirectory, String testRunner, String testSuite, String phantomArgs, int timeout, Log log) {
     this.phantomjs = phantomjs;
     this.testOutputDirectory = testOutputDirectory;
     this.testRunner = testRunner;
     this.testSuite = testSuite;
-    this.log = log;
+    this.args = phantomArgs;
     this.timeout = timeout;
-    this.args = args;
+    this.log = log;
   }
 
   public boolean execute() throws CommandLineException {
@@ -44,9 +47,15 @@ public class PhantomJsTestRunner  {
     cmd.setWorkingDirectory(testOutputDirectory);
     final ArrayList<String> arguments = new ArrayList<String>();
     arguments.add(testRunner);
+    final String startString = '<'+JANGAROO_MAVEN_PLUGIN+'>';
+    final String endString = "</"+JANGAROO_MAVEN_PLUGIN+'>';
     final StringBuffer argString = new StringBuffer("(function(c){")
-            .append("c['testSuiteName'] = '").append(testSuite).append("';")
-            .append("c['timeout'] = ").append(timeout).append(';')
+            .append("if(!c['testSuiteName']){ c['testSuiteName'] = '").append(testSuite).append("';}")
+            .append("if(!c['timeout']){ c['timeout'] = ").append(timeout).append(";}")
+            .append("if(!c['outputTestResult']){ c['outputTestResult'] = function(s){")
+            .append(" if(!joo._outputTestResult){ joo._outputTestResult = function(s){console.error(s)};}")
+            .append(" joo._outputTestResult('").append(startString).append("'+s+'").append(endString).append("');}")
+            .append("};")
             .append("return c;})").append('(');
     if(args != null){
       argString.append(args.replace('\n',' ')); // phantomjs doesn't like new lines in config object argument
@@ -59,33 +68,66 @@ public class PhantomJsTestRunner  {
     cmd.addArguments(arguments.toArray(new String[arguments.size()]));
 
     final StreamConsumer consumer = new StreamConsumer() {
+      int state = 0;
       @Override
       public void consumeLine(String line) {
-        log.info(line);
+        if(state == 0){ // not started
+          final int index = line.indexOf(startString);
+          if(index > -1){
+            result.append(line.substring(index + startString.length())).append('\n');
+            state++;
+          } else {
+            log.info(line);
+          }
+        } else if(state == 1){
+          final int index = line.indexOf(endString);
+          if(index > -1){
+            result.append(line.substring(0,index));
+            state++;
+          } else {
+            result.append(line);
+          }
+          result.append('\n');
+        } else {
+          log.info(line);
+        }
       }
     };
     log.info("executing phantomjs cmd: "+cmd.toString());
-    return 0 == CommandLineUtils.executeCommandLine(cmd, consumer, consumer, timeout);
+    return 0 == CommandLineUtils.executeCommandLine(cmd, consumer, consumer, timeout) && result.length() > 0;
   }
 
   public boolean isTestAvailable() {
-    if(testOutputDirectory != null && testSuite != null){
+    return testOutputDirectory != null && (testSuiteExists() || testsHtmlExists());
+  }
+
+  private boolean testsHtmlExists() {
+    final File file = new File(testOutputDirectory, "tests.html");
+    final boolean exists = file.exists();
+    if(!exists){
+      log.warn("cannot find " + file.getAbsolutePath());
+    }
+    return exists;
+  }
+
+  private boolean testSuiteExists() {
+    boolean exists = false;
+    if(testSuite != null){
       final String fileName = testSuite.replace(".", "/");
       final File file = new File(testOutputDirectory, "/joo/classes/" + fileName + ".js");
-      final boolean exists = file.exists();
+      exists = file.exists();
       if(!exists){
         log.warn("cannot find test suite: "+ file.getAbsolutePath());
       }
-      return exists;
     }
-    return false;
+    return exists;
   }
 
   public boolean canRun() {
     return
             testOutputDirectory != null && testOutputDirectory.exists() &&
             phantomjs != null && phantomjs.canExecute() &&
-            testRunner != null && testSuite != null;
+            testRunner != null;
   }
 
   @Override
@@ -97,5 +139,9 @@ public class PhantomJsTestRunner  {
             ", args='" + args + '\'' +
             ", testOutputDirectory=" + testOutputDirectory +
             '}';
+  }
+
+  public String getTestResult() {
+    return result.toString();
   }
 }
