@@ -1,6 +1,7 @@
 package net.jangaroo.jooc.mvnplugin.test;
 
 import org.apache.maven.plugin.logging.Log;
+import org.codehaus.plexus.util.Os;
 import org.codehaus.plexus.util.cli.CommandLineException;
 import org.codehaus.plexus.util.cli.CommandLineUtils;
 import org.codehaus.plexus.util.cli.Commandline;
@@ -29,7 +30,7 @@ public class PhantomJsTestRunner  {
    * @param testSuite the test suite class to run
    * @param phantomArgs additional arguments to be passed to the phantomjs runner script
    * @param timeout timeout in seconds
-   * @param log
+   * @param log the maven log
    */
   public PhantomJsTestRunner(File phantomjs, File testOutputDirectory, String testRunner, String testSuite, String phantomArgs, int timeout, Log log) {
     this.phantomjs = phantomjs;
@@ -49,7 +50,7 @@ public class PhantomJsTestRunner  {
     arguments.add(testRunner);
     final String startString = '<'+JANGAROO_MAVEN_PLUGIN+'>';
     final String endString = "</"+JANGAROO_MAVEN_PLUGIN+'>';
-    final StringBuffer argString = new StringBuffer("(function(c){")
+    final StringBuilder argString = new StringBuilder("(function(c){")
             .append("if(!c['testSuiteName']){ c['testSuiteName'] = '").append(testSuite).append("';}")
             .append("if(!c['timeout']){ c['timeout'] = ").append(timeout).append(";}")
             .append("if(!c['outputTestResult']){ c['outputTestResult'] = function(s){")
@@ -64,7 +65,15 @@ public class PhantomJsTestRunner  {
     }
     argString.append(')');
 
-    arguments.add(argString.toString());
+    //TODO:this is very ugly, we should rethink this javascript cmdline stuff.
+    String argsFormated;
+    if(Os.isFamily(Os.FAMILY_UNIX)) {
+      argsFormated = argString.toString().replace("'","\"");
+    } else {
+      argsFormated = argString.toString();
+    }
+
+    arguments.add(argsFormated);
     cmd.addArguments(arguments.toArray(new String[arguments.size()]));
 
     final StreamConsumer consumer = new StreamConsumer() {
