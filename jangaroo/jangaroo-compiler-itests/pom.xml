@@ -8,6 +8,7 @@
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-runtime</artifactId>
       <version>${project.version}</version>
+      <scope>runtime</scope>
       <type>jar</type>
     </dependency>
     <dependency>

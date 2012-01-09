@@ -5,6 +5,10 @@
   <packaging>maven-plugin</packaging>
   <dependencies>
     <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+    </dependency>
+    <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-utils</artifactId>
       <version>${project.version}</version>
@@ -16,7 +20,17 @@
     </dependency>
     <dependency>
       <groupId>net.jangaroo</groupId>
+      <artifactId>properties-compiler-api</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-compiler</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>net.jangaroo</groupId>
+      <artifactId>jangaroo-compiler-api</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -122,6 +136,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-project-info-reports-plugin</artifactId>
+        <version>2.4</version>
         <reportSets>
           <reportSet>
             <reports>
