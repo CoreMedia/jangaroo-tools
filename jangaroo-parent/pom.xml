@@ -257,6 +257,27 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-site-plugin</artifactId>
           <version>3.0</version>
+          <configuration>
+            <reportPlugins>
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-project-info-reports-plugin</artifactId>
+              <version>2.4</version>
+              <reportSets>
+                <reportSet>
+                  <reports>
+                    <report>index</report>
+                    <report>summary</report>
+                    <report>project-team</report>
+                    <report>issue-tracking</report>
+                    <report>license</report>
+                    <report>scm</report>
+                  </reports>
+                </reportSet>
+              </reportSets>
+            </plugin>
+            </reportPlugins>
+          </configuration>
         </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
@@ -382,16 +403,8 @@
       </extension>
     </extensions>
   </build>
-  <reporting>
-    <plugins>
-      <plugin>
-        <artifactId>maven-plugin-plugin</artifactId>
-        <version>2.6</version>
-      </plugin>
-    </plugins>
-  </reporting>
   <name>Jangaroo Parent</name>
-  <url>http://repo.jangaroo.net/site/jangaroo-parent</url>
+  <url>http://www.jangaroo.net/</url>
   <inceptionYear>2002</inceptionYear>
   <licenses>
     <license>
@@ -505,6 +518,10 @@
   <prerequisites>
     <maven>${maven.version}</maven>
   </prerequisites>
+  <issueManagement>
+    <system>YouTrack</system>
+    <url>http://jangaroo.myjetbrains.com/</url>
+  </issueManagement>
   <distributionManagement>
     <site>
       <id>jangaroo</id>

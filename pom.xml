@@ -43,8 +43,26 @@
       </plugin>
     </plugins>
   </build>
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-project-info-reports-plugin</artifactId>
+        <version>2.4</version>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <report>summary</report>
+              <report>license</report>
+              <report>project-team</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+    </plugins>
+  </reporting>
   <name>Jangaroo Tools</name>
-  <url>http://repo.jangaroo.net/site/jangaroo-tools</url>
+  <url>http://www.jangaroo.net/</url>
   <scm>
     <connection>scm:git:git://github.com/CoreMedia/jangaroo-tools.git</connection>
     <developerConnection>scm:git:git@github.com:CoreMedia/jangaroo-tools.git</developerConnection>

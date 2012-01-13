@@ -141,15 +141,14 @@
           <reportSet>
             <reports>
               <report>summary</report>
-              <report>dependencies</report>
-              <report>license</report>
-              <report>project-team</report>
             </reports>
           </reportSet>
         </reportSets>
       </plugin>
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-plugin-plugin</artifactId>
+        <version>2.9</version>
         <configuration>
           <goalPrefix>jangaroo</goalPrefix>
         </configuration>
