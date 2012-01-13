@@ -166,8 +166,8 @@ public class JooTestMojo extends AbstractMojo {
   private boolean testFailureIgnore;
 
   /**
-   * The phantomjs executable.
-   * @parameter expression="${phantomjs.bin}" default-value="/usr/local/bin/phantomjs"
+   * The phantomjs executable. If not specified, it expects the phantomjs binary in the PATH.
+   * @parameter expression="${phantomjs.bin}" default-value="phantomjs"
    */
   private File phantomBin;
 
@@ -184,7 +184,10 @@ public class JooTestMojo extends AbstractMojo {
   private String phantomTestSuite;
 
   /**
-   * Additional arguments to be passed to phantomjs
+   * Additional arguments to be passed to phantomjs. Expected to be a JSON object, i.e.
+   * <code>
+   *   {timeout:30000,loglevel:'all'}
+   * </code>
    * @parameter expression="${phantomjs.args}"
    */
   private String phantomArgs;
