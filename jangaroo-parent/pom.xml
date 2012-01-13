@@ -395,13 +395,6 @@
         </plugin>
       </plugins>
     </pluginManagement>
-    <extensions>
-      <extension>
-        <groupId>org.apache.maven.wagon</groupId>
-        <artifactId>wagon-ssh</artifactId>
-        <version>2.0</version>
-      </extension>
-    </extensions>
   </build>
   <name>Jangaroo Parent</name>
   <url>http://www.jangaroo.net/</url>
@@ -522,12 +515,6 @@
     <system>YouTrack</system>
     <url>http://jangaroo.myjetbrains.com/</url>
   </issueManagement>
-  <distributionManagement>
-    <site>
-      <id>jangaroo</id>
-      <url>scp://repo.jangaroo.net/home/jangaroo/maven2/site/</url>
-    </site>
-  </distributionManagement>
   <profiles>
     <profile>
       <id>release-signing</id>
