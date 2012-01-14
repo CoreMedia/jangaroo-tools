@@ -1026,7 +1026,9 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       out.writeToken("=");
       out.writeToken(sourceName);
     }
-    out.writeToken(";");
+    if (!first) {
+      out.writeToken(";");
+    }
   }
 
   private void generateClassInits(ClassDeclaration classDeclaration) throws IOException {
