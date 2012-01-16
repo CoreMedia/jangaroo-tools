@@ -169,7 +169,7 @@ public class JooTestMojo extends AbstractMojo {
    * The phantomjs executable. If not specified, it expects the phantomjs binary in the PATH.
    * @parameter expression="${phantomjs.bin}" default-value="phantomjs"
    */
-  private File phantomBin;
+  private String phantomBin;
 
   /**
    * The script to run in phantomjs launching the tests
@@ -236,7 +236,7 @@ public class JooTestMojo extends AbstractMojo {
               ". Please specify a host running the selenium remote control or skip tests" +
               " by -DskipTests", e);
     }
-    getLog().info("JooTest report directory:" + testResultOutputDirectory.getAbsolutePath());
+    getLog().info("JooTest report directory: " + testResultOutputDirectory.getAbsolutePath());
     ResourceHandler handler = new ResourceHandler();
     try {
       handler.setBaseResource(new FileResource(testOutputDirectory.toURI().toURL()));

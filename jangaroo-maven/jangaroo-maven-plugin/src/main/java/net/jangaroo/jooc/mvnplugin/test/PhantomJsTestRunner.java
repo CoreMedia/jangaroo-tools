@@ -16,7 +16,7 @@ public class PhantomJsTestRunner  {
   private final String testSuite;
   private final String args;
   private final File testOutputDirectory;
-  private final File phantomjs;
+  private final String phantomjs;
   private final Log log;
   private final String testRunner;
   private final int timeout;
@@ -32,7 +32,7 @@ public class PhantomJsTestRunner  {
    * @param timeout timeout in seconds
    * @param log the maven log
    */
-  public PhantomJsTestRunner(File phantomjs, File testOutputDirectory, String testRunner, String testSuite, String phantomArgs, int timeout, Log log) {
+  public PhantomJsTestRunner(String phantomjs, File testOutputDirectory, String testRunner, String testSuite, String phantomArgs, int timeout, Log log) {
     this.phantomjs = phantomjs;
     this.testOutputDirectory = testOutputDirectory;
     this.testRunner = testRunner;
@@ -43,9 +43,7 @@ public class PhantomJsTestRunner  {
   }
 
   public boolean execute() throws CommandLineException {
-    final Commandline cmd = new Commandline();
-    cmd.setExecutable(phantomjs.getAbsolutePath());
-    cmd.setWorkingDirectory(testOutputDirectory);
+    final Commandline cmd = createCommandLine();
     final ArrayList<String> arguments = new ArrayList<String>();
     arguments.add(testRunner);
     final String startString = '<'+JANGAROO_MAVEN_PLUGIN+'>';
@@ -135,8 +133,41 @@ public class PhantomJsTestRunner  {
   public boolean canRun() {
     return
             testOutputDirectory != null && testOutputDirectory.exists() &&
-            phantomjs != null && phantomjs.canExecute() &&
-            testRunner != null;
+                    testRunner != null &&
+                    phantomjs != null &&
+                    (new File(phantomjs).canExecute() || canExecutePhantomJs()) ;
+  }
+  
+  private boolean canExecutePhantomJs() {
+    final Commandline commandline = createCommandLine();
+    commandline.addArguments(new String[]{"--version"});
+    final StringBuilder buffer = new StringBuilder();
+    final StreamConsumer consumer = new StreamConsumer() {
+      @Override
+      public void consumeLine(String line) {
+        buffer.append(line);
+
+      }
+    };
+    boolean canExecute = false;
+    try {
+      canExecute = CommandLineUtils.executeCommandLine(commandline,consumer, consumer,1) == 0;
+      if(canExecute) {
+        log.info("Found phantomjs version: " + buffer.toString());
+      } else {
+        log.info("Cannot determine phantomjs version: "+ buffer.toString());
+      }
+    } catch (CommandLineException e) {
+      log.error("cannot execute phantomjs",e);
+    }
+    return canExecute;
+  }
+
+  private Commandline createCommandLine() {
+    final Commandline commandline = new Commandline();
+    commandline.setExecutable(phantomjs);
+    commandline.setWorkingDirectory(testOutputDirectory);
+    return commandline;
   }
 
   @Override
