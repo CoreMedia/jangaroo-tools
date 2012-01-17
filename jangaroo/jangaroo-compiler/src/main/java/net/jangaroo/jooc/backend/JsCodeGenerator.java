@@ -73,6 +73,7 @@ import net.jangaroo.jooc.ast.WhileStatement;
 import net.jangaroo.jooc.config.DebugMode;
 import net.jangaroo.jooc.config.JoocConfiguration;
 import net.jangaroo.jooc.sym;
+import net.jangaroo.utils.CompilerUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -80,6 +81,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -131,7 +133,13 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   @Override
   public void visitExtends(Extends anExtends) throws IOException {
     out.writeSymbol(anExtends.getSymExtends());
-    anExtends.getSuperClass().generateCodeAsExpr(out);
+    writeQName(anExtends.getSuperClass());
+  }
+
+  private void writeQName(Ide classIde) throws IOException {
+    out.writeSymbolWhitespace(classIde.getSymbol());
+    String classQName = classIde.getDeclaration().getQualifiedNameStr();
+    out.writeToken(classQName);
   }
 
   @Override
@@ -234,7 +242,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   }
 
   private void generateImplements(CommaSeparatedList<Ide> superTypes) throws IOException {
-    superTypes.getHead().generateCodeAsExpr(out);
+    writeQName(superTypes.getHead());
     if (superTypes.getSymComma() != null) {
       out.writeSymbol(superTypes.getSymComma());
       generateImplements(superTypes.getTail());
@@ -933,7 +941,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     out.write(",");
     out.write(classDeclaration.getInheritanceLevel() + ",");
     out.write("function($$private){");
-    writeBuiltInAliases(classDeclaration);
+    writeAliases(classDeclaration);
     out.write("return[");
     generateClassInits(classDeclaration);
     classDeclaration.getBody().visit(this);
@@ -1012,19 +1020,18 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     out.write("]");
   }
 
-  private void writeBuiltInAliases(ClassDeclaration classDeclaration) throws IOException {
+  private void writeAliases(ClassDeclaration classDeclaration) throws IOException {
     boolean first = true;
-    for (String builtIn : classDeclaration.getUsedBuiltIns()) {
-      String sourceName = "joo." + ("$$bound".equals(builtIn) ? "boundMethod" : builtIn);
+    for (Map.Entry<String,String> entry : classDeclaration.getAuxVarDeclarations().entrySet()) {
       if (first) {
         out.writeToken("var");
         first = false;
       } else {
         out.writeToken(",");
       }
-      out.writeToken(builtIn);
+      out.writeToken(entry.getKey());
       out.writeToken("=");
-      out.writeToken(sourceName);
+      out.writeToken(entry.getValue());
     }
     if (!first) {
       out.writeToken(";");
@@ -1097,9 +1104,20 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     String superClassQName = classDeclaration.getSuperTypeDeclaration().getQualifiedNameStr();
     if ("Error".equals(superClassQName)) {
       // built-in Error constructor called as function unfortunately always creates a new Error object, so we have to use emulation provided by Jangaroo Runtime:
-      superClassQName = "joo.Error";
+      out.write("joo.Error");
+    } else {
+      Ide superClassIde = classDeclaration.getSuperType().getIde();
+      out.writeSymbolWhitespace(superClassIde.getSymbol());
+      IdeDeclaration superClassDeclaration = superClassIde.getDeclaration();
+      String packageName = superClassDeclaration.getPackageDeclaration().getQualifiedNameStr();
+      String qName = superClassDeclaration.getName();
+      if (packageName.length() > 0) {
+        String packageAuxVar = classDeclaration.getAuxVarForPackage(packageName);
+        qName = CompilerUtils.qName(packageAuxVar, qName);
+      }
+      out.write(qName);
     }
-    out.writeToken(superClassQName + ".call");
+    out.writeToken(".call");
     if (args == null) {
       out.writeToken("(this)");
     } else {

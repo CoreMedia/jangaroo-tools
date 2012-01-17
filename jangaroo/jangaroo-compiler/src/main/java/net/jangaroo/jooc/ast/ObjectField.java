@@ -48,7 +48,7 @@ public class ObjectField extends NodeImplBase {
 
   public void analyze(AstNode parentNode) {
     super.analyze(parentNode);
-    getLabel().analyze(this);
+    // do not analyze label, it is only a string, not a real identifier and might be misinterpreted!
     getValue().analyze(this);
   }
 

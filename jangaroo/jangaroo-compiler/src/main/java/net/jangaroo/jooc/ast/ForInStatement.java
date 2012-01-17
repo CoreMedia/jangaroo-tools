@@ -100,7 +100,7 @@ public class ForInStatement extends LoopStatement {
   public void scope(final Scope scope) {
     super.scope(scope);
     if (symEach != null) {
-      auxIde = scope.createAuxVar();
+      auxIde = scope.createAuxVar(scope);
       auxIde.scope(scope);
     }
     if (decl != null) {

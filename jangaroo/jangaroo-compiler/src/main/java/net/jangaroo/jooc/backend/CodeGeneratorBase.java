@@ -12,6 +12,7 @@ import net.jangaroo.jooc.ast.DotExpr;
 import net.jangaroo.jooc.ast.Ide;
 import net.jangaroo.jooc.ast.IsExpr;
 import net.jangaroo.jooc.ast.LiteralExpr;
+import net.jangaroo.jooc.ast.Parameters;
 import net.jangaroo.jooc.ast.PostfixOpExpr;
 import net.jangaroo.jooc.ast.PredefinedTypeDeclaration;
 import net.jangaroo.jooc.ast.PrefixOpExpr;
@@ -82,6 +83,11 @@ public abstract class CodeGeneratorBase implements AstVisitor {
       out.writeSymbol(commaSeparatedList.getSymComma());
       visitIfNotNull(commaSeparatedList.getTail());
     }
+  }
+
+  @Override
+  public void visitParameters(Parameters parameters) throws IOException {
+    visitCommaSeparatedList(parameters);
   }
 
   @Override

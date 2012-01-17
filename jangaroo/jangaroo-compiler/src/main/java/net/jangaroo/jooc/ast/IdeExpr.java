@@ -67,9 +67,8 @@ public class IdeExpr extends Expr {
     // accept top-level get functions:
     if (ideDeclaration instanceof FunctionDeclaration &&
       ((FunctionDeclaration)ideDeclaration).isGetter()) {
-      AstNode parentDeclaration = ideDeclaration.getParentDeclaration();
-      if (parentDeclaration instanceof PackageDeclaration &&
-        "".equals(((PackageDeclaration)parentDeclaration).getName())) {
+      PackageDeclaration packageDeclaration = ideDeclaration.getPackageDeclaration();
+      if (packageDeclaration != null && "".equals(packageDeclaration.getName())) {
         return true;
       }
     }

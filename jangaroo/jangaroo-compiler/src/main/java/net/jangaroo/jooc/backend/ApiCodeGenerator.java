@@ -91,7 +91,7 @@ public class ApiCodeGenerator extends CodeGeneratorBase {
   @Override
   public void visitExtends(Extends anExtends) throws IOException {
     out.writeSymbol(anExtends.getSymExtends());
-    anExtends.getSuperClass().generateCodeAsExpr(out);
+    anExtends.getSuperClass().visit(this);
   }
 
   @Override
@@ -150,15 +150,7 @@ public class ApiCodeGenerator extends CodeGeneratorBase {
   @Override
   public void visitImplements(Implements anImplements) throws IOException {
     out.writeSymbol(anImplements.getSymImplements());
-    generateImplements(anImplements.getSuperTypes());
-  }
-
-  private void generateImplements(CommaSeparatedList<Ide> superTypes) throws IOException {
-    superTypes.getHead().generateCodeAsExpr(out);
-    if (superTypes.getSymComma() != null) {
-      out.writeSymbol(superTypes.getSymComma());
-      generateImplements(superTypes.getTail());
-    }
+    anImplements.getSuperTypes().visit(this);
   }
 
   @Override
@@ -210,15 +202,6 @@ public class ApiCodeGenerator extends CodeGeneratorBase {
   @Override
   public void visitArrayIndexExpr(ArrayIndexExpr arrayIndexExpr) throws IOException {
     throw shouldOnlyBeCalledForCompileTimeConstants();
-  }
-
-  @Override
-  public void visitParameters(Parameters parameters) throws IOException {
-    visitIfNotNull(parameters.getHead());
-    if (parameters.getSymComma() != null) {
-      out.writeSymbol(parameters.getSymComma());
-      parameters.getTail().visit(this);
-    }
   }
 
   @Override

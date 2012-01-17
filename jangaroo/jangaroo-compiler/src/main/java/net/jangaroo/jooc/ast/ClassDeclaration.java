@@ -53,9 +53,12 @@ public class ClassDeclaration extends IdeDeclaration {
   private List<VariableDeclaration> fieldsWithInitializer = new ArrayList<VariableDeclaration>();
   private List<IdeDeclaration> secondaryDeclarations = Collections.emptyList();
   private Set<String> usedBuiltIns = new LinkedHashSet<String>();
+  private Map<String, String> auxVarsByPackage = new LinkedHashMap<String, String>();
   private int inheritanceLevel = -1;
 
   private Implements optImplements;
+  private Scope scope;
+  private boolean auxVarsRendered;
 
   public ClassDeclaration(List<AstNode> directives, JooSymbol[] modifiers, JooSymbol cls, Ide ide, Extends ext, Implements impl, ClassBody body) {
     super(modifiers, ide);
@@ -147,8 +150,33 @@ public class ClassDeclaration extends IdeDeclaration {
     return classInit;
   }
 
-  public Set<String> getUsedBuiltIns() {
-    return usedBuiltIns;
+  public String getAuxVarForPackage(String packageQName) {
+    return auxVarsByPackage.get(packageQName);
+  }
+
+  public String getAuxVarForPackage(Scope lookupScope, String packageQName) {
+    if (auxVarsRendered) {
+      throw new IllegalStateException("aux vars already rendered!");
+    }
+    String auxVar = getAuxVarForPackage(packageQName);
+    if (auxVar == null) {
+      auxVar = scope.createAuxVar(lookupScope).getName();
+      auxVarsByPackage.put(packageQName, auxVar);
+    }
+    return auxVar;
+  }
+
+  public Map<String, String> getAuxVarDeclarations() {
+    auxVarsRendered = true;
+    LinkedHashMap<String, String> result = new LinkedHashMap<String, String>();
+    for (String builtIn : usedBuiltIns) {
+      String value = "joo." + ("$$bound".equals(builtIn) ? "boundMethod" : builtIn);
+      result.put(builtIn, value);
+    }
+    for (Map.Entry<String,String> entry : auxVarsByPackage.entrySet()) {
+      result.put(entry.getValue(), entry.getKey());
+    }
+    return result;
   }
 
   public List<AstNode> getDirectives() {
@@ -166,6 +194,7 @@ public class ClassDeclaration extends IdeDeclaration {
 
   @Override
   public void scope(final Scope scope) {
+    this.scope = scope;
     // this declares this class's ide:
     super.scope(scope);
 
@@ -222,6 +251,10 @@ public class ClassDeclaration extends IdeDeclaration {
     super.analyze(parentNode);
     if (getOptExtends() != null) {
       getOptExtends().analyze(this);
+      String packageName = getOptExtends().getSuperClass().getDeclaration().getPackageDeclaration().getQualifiedNameStr();
+      if (packageName.length() > 0) {
+        getAuxVarForPackage(scope, packageName);
+      }
     }
     if (getOptImplements() != null) {
       getOptImplements().analyze(this);

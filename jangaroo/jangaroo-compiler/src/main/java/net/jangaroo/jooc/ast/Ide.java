@@ -36,6 +36,7 @@ public class Ide extends NodeImplBase {
   private Ide qualified;
   private boolean bound;
   private boolean rewriteThis;
+  private String packagePrefix = "";
 
   private static final IdeDeclaration NULL_DECL = new VariableDeclaration(null, null, null, null);
 
@@ -223,6 +224,22 @@ public class Ide extends NodeImplBase {
     }
     if (scope != null) {
       usageInExpr(exprParent);
+      if (!isThis() && !isQualified()) {
+        IdeDeclaration decl = getDeclaration(false);
+        // add package prefix if it is not a local
+        if (decl != null) {
+          if (!decl.isClassMember() && decl.getParentDeclaration() instanceof PackageDeclaration) {
+            String qName = decl.getPackageDeclaration().getQualifiedNameStr();
+            if (qName.length() > 0) {
+              ClassDeclaration classDeclaration = scope.getClassDeclaration();
+              if (classDeclaration != null) {
+                String auxVarForPackage = classDeclaration.getAuxVarForPackage(scope, qName);
+                packagePrefix = auxVarForPackage + ".";
+              }
+            }
+          }
+        }
+      }
     }
   }
 
@@ -318,13 +335,8 @@ public class Ide extends NodeImplBase {
           writeMemberAccess(decl, null, this, false, out);
           return;
         }
-        // add package prefix if it is not a local
-        if (!decl.isClassMember() && decl.getParentDeclaration() instanceof PackageDeclaration) {
-          String qname = ((PackageDeclaration) decl.getParentDeclaration()).getQualifiedNameStr();
-          if (!qname.isEmpty()) {
-            out.writeToken(qname);
-            out.writeToken(".");
-          }
+        if (packagePrefix.length() > 0) {
+          out.writeToken(packagePrefix);
         }
       }
     }

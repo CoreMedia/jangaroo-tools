@@ -34,6 +34,11 @@ public class PackageDeclaration extends IdeDeclaration {
   }
 
   @Override
+  public PackageDeclaration getPackageDeclaration() {
+    return this;
+  }
+
+  @Override
   public void visit(AstVisitor visitor) throws IOException {
     visitor.visitPackageDeclaration(this);
   }

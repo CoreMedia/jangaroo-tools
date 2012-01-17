@@ -51,6 +51,7 @@ public class Extends extends NodeImplBase {
       throw new CompilerError(getSuperClass().getSymbol(), "identifier in extends clause must denote a class");
     }
     getSuperClass().analyze(this);
+    getSuperClass().analyzeAsExpr(this, null);
     getSuperClass().addExternalUsage();
   }
 

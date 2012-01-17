@@ -30,6 +30,7 @@ public class TestImport extends TestMethodCall {
 
   public function TestImport() {
     //var xxxHelloWorld = function() { return {greet:function(){}}; };
+    var package1:String = "foo"; // test that local vars do not hide (implicit!) packages
     var ti :TestImplements = new TestImplements();
     var i :int = ti.implementMe("abc");
     assert(i == 3);

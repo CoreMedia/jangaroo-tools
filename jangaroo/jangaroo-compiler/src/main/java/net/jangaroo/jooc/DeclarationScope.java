@@ -183,17 +183,23 @@ public class DeclarationScope extends ScopeImplBase {
   }
 
   @Override
-  public Ide createAuxVar() {
+  public Ide findFreeAuxVar() {
     int i = 1;
     while (true) {
       String auxVarName = "$" + i;
       Ide auxVar = new Ide(new JooSymbol(auxVarName));
       if (!isDeclared(auxVar)) {
-        new VariableDeclaration(new JooSymbol("var"), auxVar, null, null).scope(this);
         return auxVar;
       }
       ++i;
     }
+  }
+
+  @Override
+  public Ide createAuxVar(Scope lookupScope) {
+    Ide auxVar = findFreeAuxVar();
+    new VariableDeclaration(new JooSymbol("var"), auxVar, null, null).scope(this);
+    return auxVar;
   }
 
   @Override

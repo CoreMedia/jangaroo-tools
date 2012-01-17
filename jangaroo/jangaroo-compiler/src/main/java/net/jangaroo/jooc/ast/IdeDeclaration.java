@@ -132,4 +132,9 @@ public abstract class IdeDeclaration extends Declaration {
   public void setIde(Ide ide) {
     this.ide = ide;
   }
+
+  public PackageDeclaration getPackageDeclaration() {
+    AstNode parentDeclaration = getParentDeclaration();
+    return parentDeclaration instanceof IdeDeclaration ? ((IdeDeclaration)parentDeclaration).getPackageDeclaration() : null;
+  }
 }

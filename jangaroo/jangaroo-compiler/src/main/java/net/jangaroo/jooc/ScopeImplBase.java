@@ -86,8 +86,13 @@ public abstract class ScopeImplBase implements Scope {
   }
 
   @Override
-  public Ide createAuxVar() {
-    return parent.createAuxVar();
+  public Ide findFreeAuxVar() {
+    return parent == null ? null : parent.findFreeAuxVar();
+  }
+
+  @Override
+  public Ide createAuxVar(Scope lookupScope) {
+    return parent.createAuxVar(lookupScope);
   }
 
   @Override

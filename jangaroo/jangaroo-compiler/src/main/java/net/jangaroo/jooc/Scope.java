@@ -44,7 +44,7 @@ public interface Scope {
 
   boolean isDeclared(Ide ide);
 
-  Ide createAuxVar();
+  Ide createAuxVar(Scope lookupScope);
 
   LoopStatement getCurrentLoop();
 
@@ -62,4 +62,5 @@ public interface Scope {
 
   boolean isPackage(String fullyQualifiedName);
 
+  Ide findFreeAuxVar();
 }
