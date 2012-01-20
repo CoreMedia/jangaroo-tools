@@ -190,7 +190,7 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
 
   private static final CodeGenerator ALIAS_THIS_CODE_GENERATOR = new CodeGenerator() {
     @Override
-    public void generate(JsWriter out) throws IOException {
+    public void generate(JsWriter out, boolean first) throws IOException {
       out.write("var this$=this;");
     }
   };

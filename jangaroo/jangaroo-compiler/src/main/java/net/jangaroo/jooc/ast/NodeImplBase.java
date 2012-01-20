@@ -26,7 +26,7 @@ import java.util.List;
  * @author Andreas Gawecki
  */
 public abstract class NodeImplBase implements AstNode {
-  public void generate(final JsWriter out) throws IOException {
+  public void generate(final JsWriter out, boolean first) throws IOException {
     throw new UnsupportedOperationException();
   }
 
