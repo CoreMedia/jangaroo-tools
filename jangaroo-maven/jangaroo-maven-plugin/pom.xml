@@ -94,8 +94,8 @@
       <artifactId>jetty-util</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.seleniumhq.selenium.client-drivers</groupId>
-      <artifactId>selenium-java-client-driver</artifactId>
+      <groupId>org.seleniumhq.selenium</groupId>
+      <artifactId>selenium-java</artifactId>
     </dependency>
   </dependencies>
   <parent>

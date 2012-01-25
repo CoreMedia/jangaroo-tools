@@ -195,9 +195,9 @@
         <version>7.0.2.v20100331</version>
       </dependency>
       <dependency>
-        <groupId>org.seleniumhq.selenium.client-drivers</groupId>
-        <artifactId>selenium-java-client-driver</artifactId>
-        <version>1.0.2</version>
+        <groupId>org.seleniumhq.selenium</groupId>
+        <artifactId>selenium-java</artifactId>
+        <version>2.17.0</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
