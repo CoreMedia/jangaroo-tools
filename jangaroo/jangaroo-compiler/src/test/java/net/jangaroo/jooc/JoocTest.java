@@ -144,6 +144,10 @@ public class JoocTest {
     String expected = FileUtils.readFileToString(getFile("/expected/" + relativeClassFileName + ".js"));
     expected = expected.replace("@runtimeVersion", JoocProperties.getRuntimeVersion());
     expected = expected.replace("@version", JoocProperties.getVersion());
+    String lineSeparator = System.getProperty("line.separator");
+    if (!"\n".equals(lineSeparator)) { // Windows...
+      expected = expected.replace("\n", lineSeparator);
+    }
     assertEquals("Result file not equal", expected, result);
   }
 
