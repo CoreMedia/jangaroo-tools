@@ -312,6 +312,10 @@ public class Ide extends NodeImplBase {
   }
 
   public void generateCodeAsExpr(final JsWriter out) throws IOException {
+    if (out.isWritingComment()) {
+      out.writeSymbol(ide);
+      return;
+    }
     out.writeSymbolWhitespace(getIde());
     if (isSuper()) {
       writeThis(out);
