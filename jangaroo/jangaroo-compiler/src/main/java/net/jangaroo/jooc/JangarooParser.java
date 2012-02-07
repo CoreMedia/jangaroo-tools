@@ -77,6 +77,10 @@ public class JangarooParser {
     defaultLog.get().warning(symbol, msg);
   }
 
+  public static void warning(String msg, File file) {
+    defaultLog.get().warning(new FilePositionImpl(file), msg);
+  }
+
   public static void warning(String msg) {
     defaultLog.get().warning(msg);
   }

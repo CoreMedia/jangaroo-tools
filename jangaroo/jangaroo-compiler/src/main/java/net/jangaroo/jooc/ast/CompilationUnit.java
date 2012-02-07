@@ -37,6 +37,7 @@ public class CompilationUnit extends NodeImplBase {
   private JooSymbol rBrace;
 
   private Set<String> dependencies = new LinkedHashSet<String>();
+  private Set<CompilationUnit> dependenciesAsCompilationUnits = new LinkedHashSet<CompilationUnit>();
   private InputSource source;
   private JangarooParser compiler;
 
@@ -97,6 +98,10 @@ public class CompilationUnit extends NodeImplBase {
     return dependencies;
   }
 
+  public Set<CompilationUnit> getDependenciesAsCompilationUnits() {
+    return dependenciesAsCompilationUnits;
+  }
+
   public JangarooParser getCompiler() {
     return compiler;
   }
@@ -122,6 +127,19 @@ public class CompilationUnit extends NodeImplBase {
     primaryDeclaration.analyze(this);
   }
 
+  public Annotation getAnnotation(String name) {
+    List<AstNode> directives = ((ClassDeclaration)getPrimaryDeclaration()).getDirectives();
+    for (AstNode directive : directives) {
+      if (directive instanceof Annotation) {
+        Annotation annotation = (Annotation)directive;
+        if (name.equals(annotation.getMetaName())) {
+          return annotation;
+        }
+      }
+    }
+    return null;
+  }
+  
   public JooSymbol getSymbol() {
     return packageDeclaration.getSymbol();
   }
@@ -134,6 +152,7 @@ public class CompilationUnit extends NodeImplBase {
       if (otherUnitPrimaryDeclaration instanceof ClassDeclaration && !otherUnitPrimaryDeclaration.isNative()) {
         String qname = otherUnitPrimaryDeclaration.getQualifiedNameStr();
         dependencies.add(qname);
+        dependenciesAsCompilationUnits.add(otherUnit);
       }
     }
   }

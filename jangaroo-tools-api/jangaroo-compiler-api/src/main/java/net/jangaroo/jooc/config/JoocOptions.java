@@ -9,4 +9,6 @@ public interface JoocOptions {
   boolean isEnableAssertions();
 
   boolean isGenerateApi();
+
+  PublicApiViolationsMode getPublicApiViolationsMode();
 }

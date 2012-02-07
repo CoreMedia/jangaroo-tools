@@ -5,6 +5,7 @@ import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.api.CompilationResult;
 import net.jangaroo.jooc.config.DebugMode;
 import net.jangaroo.jooc.config.JoocConfiguration;
+import net.jangaroo.jooc.config.PublicApiViolationsMode;
 import net.jangaroo.jooc.config.SemicolonInsertionMode;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -62,6 +63,16 @@ public abstract class AbstractCompilerMojo extends JangarooMojo {
    * @parameter default-value="false"
    */
   private boolean allowDuplicateLocalVariables;
+
+  /**
+   * "publicApiViolations" controls how the compiler reacts on usage of non-public API classes,
+   * i.e. classes annotated with <code>[ExcludeClass]</code>.
+   * It can take the values "warn" to log a warning whenever such a class is used, "allow" to suppress such warnings,
+   * and "error" to stop the build with an error.
+   *
+   * @parameter default-value="warn"
+   */
+  private String publicApiViolations;
 
   /**
    * If set to "true", the compiler will generate more detailed progress information.
@@ -161,27 +172,29 @@ public abstract class AbstractCompilerMojo extends JangarooMojo {
     configuration.setVerbose(verbose);
 
     if (StringUtils.isNotEmpty(debuglevel)) {
-      if (debuglevel.equalsIgnoreCase("lines")) {
-        configuration.setDebugMode(DebugMode.LINES);
-      } else if (debuglevel.equalsIgnoreCase("source")) {
-        configuration.setDebugMode(DebugMode.LINES);
-        configuration.setDebugMode(DebugMode.SOURCE);
-      } else if (!debuglevel.equalsIgnoreCase("none")) {
+      try {
+        configuration.setDebugMode(DebugMode.valueOf(debuglevel.toUpperCase()));
+      } catch (IllegalArgumentException e) {
         throw new IllegalArgumentException("The specified debug level: '" + debuglevel
                 + "' is unsupported. " + "Legal values are 'none', 'lines', and 'source'.");
       }
     }
 
     if (StringUtils.isNotEmpty(autoSemicolon)) {
-      if (autoSemicolon.equalsIgnoreCase("error")) {
-        configuration.setSemicolonInsertionMode(SemicolonInsertionMode.ERROR);
-      } else if (autoSemicolon.equalsIgnoreCase("warn")) {
-        configuration.setSemicolonInsertionMode(SemicolonInsertionMode.WARN);
-      } else if (autoSemicolon.equalsIgnoreCase("quirks")) {
-        configuration.setSemicolonInsertionMode(SemicolonInsertionMode.QUIRKS);
-      } else {
+      try {
+        configuration.setSemicolonInsertionMode(SemicolonInsertionMode.valueOf(autoSemicolon.toUpperCase()));
+      } catch (IllegalArgumentException e) {
         throw new IllegalArgumentException("The specified semicolon insertion mode: '" + autoSemicolon
                 + "' is unsupported. " + "Legal values are 'error', 'warn', and 'quirks'.");
+      }
+    }
+
+    if (StringUtils.isNotEmpty(publicApiViolations)) {
+      try {
+        configuration.setPublicApiViolationsMode(PublicApiViolationsMode.valueOf(publicApiViolations.toUpperCase()));
+      } catch (IllegalArgumentException e) {
+        throw new IllegalArgumentException("The specified public API violations mode: '" + publicApiViolations
+                + "' is unsupported. " + "Legal values are 'error', 'warn', and 'allow'.");
       }
     }
 

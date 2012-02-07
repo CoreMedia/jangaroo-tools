@@ -25,9 +25,11 @@ import net.jangaroo.jooc.backend.SingleFileCompilationUnitSinkFactory;
 import net.jangaroo.jooc.cli.CommandLineParseException;
 import net.jangaroo.jooc.cli.JoocCommandLineParser;
 import net.jangaroo.jooc.config.JoocConfiguration;
+import net.jangaroo.jooc.config.PublicApiViolationsMode;
 import net.jangaroo.jooc.input.FileInputSource;
 import net.jangaroo.jooc.input.InputSource;
 import net.jangaroo.jooc.input.PathInputSource;
+import net.jangaroo.jooc.input.ZipEntryInputSource;
 
 import java.io.File;
 import java.io.IOException;
@@ -46,6 +48,7 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
   public static final String CLASS_LOADER_NAME = "classLoader";
   public static final String CLASS_LOADER_PACKAGE_NAME = "joo";
   public static final String CLASS_LOADER_FULLY_QUALIFIED_NAME = CLASS_LOADER_PACKAGE_NAME + "." + CLASS_LOADER_NAME;
+  public static final String PUBLIC_API_EXCLUSION_ANNOTATION_NAME = "ExcludeClass";
 
   private List<CompilationUnit> compileQueue = new ArrayList<CompilationUnit>();
 
@@ -111,6 +114,9 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
       }
       for (CompilationUnit unit : compileQueue) {
         unit.analyze(null);
+        if (getConfig().getPublicApiViolationsMode() != PublicApiViolationsMode.ALLOW) {
+          reportPublicApiViolations(unit);
+        }
         File sourceFile = ((FileInputSource)unit.getSource()).getFile();
         File outputFile = writeOutput(sourceFile, unit, codeSinkFactory, getConfig().isVerbose());
         outputFileMap.put(sourceFile, outputFile);
@@ -124,6 +130,21 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
       throw new CompilerError("IO Exception occurred", e);
     } finally {
       tearDown();
+    }
+  }
+
+  private void reportPublicApiViolations(CompilationUnit unit) {
+    for (CompilationUnit compilationUnit : unit.getDependenciesAsCompilationUnits()) {
+      if (compilationUnit.getSource() instanceof ZipEntryInputSource
+        && compilationUnit.getAnnotation(PUBLIC_API_EXCLUSION_ANNOTATION_NAME) != null) {
+        String msg = "PUBLIC API VIOLATION: " + compilationUnit.getPrimaryDeclaration().getQualifiedNameStr();
+        File sourceFile = new File(unit.getSymbol().getFileName());
+        if (getConfig().getPublicApiViolationsMode() == PublicApiViolationsMode.WARN) {
+          JangarooParser.warning(msg, sourceFile);
+        } else {
+          throw JangarooParser.error(msg, sourceFile);
+        }
+      }
     }
   }
 

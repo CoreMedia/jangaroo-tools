@@ -15,6 +15,7 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
   private DebugMode debugMode;
 
   private boolean help, version, verbose, enableAssertions;
+  private PublicApiViolationsMode publicApiViolationsMode = PublicApiViolationsMode.WARN;
 
   private boolean allowDuplicateLocalVariables;
 
@@ -73,6 +74,16 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
   @Override
   public boolean isGenerateApi() {
     return apiOutputDirectory != null;
+  }
+
+  @Override
+  public PublicApiViolationsMode getPublicApiViolationsMode() {
+    return publicApiViolationsMode;
+  }
+
+  @Option(name="-pav", aliases = "--publicApiViolations", usage = "Severity of public API violations, i.e. using classes that are annotated with [ExcludeClass]: error, warn, allow")
+  public void setPublicApiViolationsMode(PublicApiViolationsMode warnPublicApiViolations) {
+    this.publicApiViolationsMode = warnPublicApiViolations;
   }
 
   public boolean isHelp() {
