@@ -8,7 +8,8 @@ import testPackage.TestAction;
 /**
  * This is a test action (not a component!).
  *
- * <p>This class serves as a typed config object for the constructor of the class <code>testPackage.TestAction</code>.</p>
+ * <p>This class serves as a typed config object for the constructor of the class <code>testPackage.TestAction</code>.
+ * It defines the EXML element <code>&lt;tc:testAction></code> with <code>xmlns:tc="exml:testNamespace.config"</code>.</p>
  *
  * @see testPackage.TestAction
  */

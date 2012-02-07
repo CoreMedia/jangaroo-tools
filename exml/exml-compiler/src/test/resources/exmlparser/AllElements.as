@@ -10,11 +10,13 @@ import ext.Panel;
 /**
  * This is my <b>TestComponent</b>
  *
- * <p>This component is created by the xtype 'exmlparser.config.allElements' / the EXML element &lt;exmlparser.config:allElements>.</p>
+ * <p>This component is created by the xtype <code>'exmlparser.config.allElements'</code> / the EXML element <code>&lt;ec:allElements></code>
+ * with <code>xmlns:ec="exml:exmlparser.config"</code>.</p>
  * <p>See the config class for details.</p>
  *
  * @see exmlparser.config.allElements
  */
+[ExcludeClass]
 public class AllElements extends ext.Panel {
   /**
    * This is my <b>constant</b>

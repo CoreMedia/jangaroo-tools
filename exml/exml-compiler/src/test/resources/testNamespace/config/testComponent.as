@@ -9,8 +9,9 @@ import testPackage.TestComponent;
  * This is a TestComponent with panel as baseclass.
  *
  * <p>This class serves as a typed config object for the constructor of the class <code>testPackage.TestComponent</code>.
- * Using this config class also takes care of registering the target class under the xtype
- * "testNamespace.config.testComponent" with Ext JS.</p>
+ * It defines the EXML element <code>&lt;tc:testComponent></code> with <code>xmlns:tc="exml:testNamespace.config"</code>.</p>
+ * <p>Using this config class also takes care of registering the target class under the xtype
+ * <code>"testNamespace.config.testComponent"</code> with Ext JS.</p>
  *
  * @see testPackage.TestComponent
  */

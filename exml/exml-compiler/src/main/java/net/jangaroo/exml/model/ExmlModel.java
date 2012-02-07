@@ -16,6 +16,7 @@ public class ExmlModel extends DescriptionHolder {
   private List<Declaration> vars = new ArrayList<Declaration>();
   private JsonObject jsonObject = new JsonObject();
   private ConfigClass configClass;
+  private boolean excluded;
 
   public String getPackageName() {
     return packageName;
@@ -74,4 +75,12 @@ public class ExmlModel extends DescriptionHolder {
     addImport(configClass.getFullName());
   }
 
+  public boolean isExcluded() {
+    return excluded;
+  }
+
+  public void setExcludeClassMode(ExcludeClassMode excludeClassMode) {
+    excluded = excludeClassMode != ExcludeClassMode.FALSE;
+    configClass.setExcluded(excludeClassMode == ExcludeClassMode.TRUE);
+  }
 }

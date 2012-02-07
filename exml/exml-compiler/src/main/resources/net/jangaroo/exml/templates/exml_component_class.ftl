@@ -10,11 +10,15 @@ import ${import};
 /**
  * ${model.escapedDescription!}
  *
- * <p>This component is created by the xtype '${model.configClass.fullName}' / the EXML element &lt;${model.configClass.packageName}:${model.configClass.name}>.</p>
+ * <p>This component is created by <#if model.configClass.type??>the ${model.configClass.type.type} <code>'${model.configClass.fullName}'</code> /</#if> the EXML element <code>&lt;${model.configClass.ns}:${model.configClass.name}></code>
+ * with <code>xmlns:${model.configClass.ns}="exml:${model.configClass.packageName}"</code>.</p>
  * <p>See the config class for details.</p>
  *
  * @see ${model.configClass.fullName}
  */
+<#if model.excluded>
+[ExcludeClass]
+</#if>
 public class ${model.className} extends ${model.superClassName} {
 <#list model.configClass.constants as constant>
   /**
