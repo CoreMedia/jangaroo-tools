@@ -37,6 +37,7 @@ public final class JsWriter extends FilterWriter {
   private char lastChar = ' ';
   private boolean inString = false;
   private int nOpenStrings = 0;
+  private boolean suppressWhitespace = false;
 
   public JsWriter(Writer target) {
     super(target);
@@ -223,7 +224,14 @@ public final class JsWriter extends FilterWriter {
     }
   }
 
+  public void setSuppressWhitespace(boolean suppressWhitespace) {
+    this.suppressWhitespace = suppressWhitespace;
+  }
+
   public void writeSymbolWhitespace(JooSymbol symbol) throws IOException {
+    if (suppressWhitespace) {
+      return;
+    }
     String ws = symbol.getWhitespace();
     if (getKeepSource()) {
       if (inString) {

@@ -412,10 +412,15 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   }
 
   public void generateBodyInitializerCode(Parameter param) throws IOException {
-    out.writeToken(param.getName());
-    out.writeSymbol(param.getOptInitializer().getSymEq());
-    param.getOptInitializer().getValue().visit(this);
-    out.write(";");
+    out.setSuppressWhitespace(true); // do not output whitespace twice!
+    try {
+      out.writeToken(param.getName());
+      out.writeSymbol(param.getOptInitializer().getSymEq());
+      param.getOptInitializer().getValue().visit(this);
+      out.write(";");
+    } finally {
+      out.setSuppressWhitespace(false);
+    }
   }
 
   public void generateSignatureJsCode(FunctionExpr functionExpr) throws IOException {
