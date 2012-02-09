@@ -77,7 +77,9 @@ import net.jangaroo.utils.CompilerUtils;
 
 import java.io.File;
 import java.io.IOException;
+import net.jangaroo.jooc.util.MessageFormat;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -374,40 +376,70 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     return new CodeGenerator() {
       @Override
       public void generate(JsWriter out, boolean first) throws IOException {
-        // first pass: generate conditionals and count parameters.
-        int cnt = 0;
-        StringBuilder code = new StringBuilder();
-        for (Parameters parameters = params; parameters != null; parameters = parameters.getTail()) {
+        // collect the ... (rest) parameter and all optional parameters with their position index:
+        int restParamIndex = -1;
+        Parameter restParam = null;
+        Map<Integer,Parameter> paramByIndex = new HashMap<Integer, Parameter>();
+        Parameters parameters = params;
+        for (int paramIndex = 0; parameters != null; parameters = parameters.getTail()) {
           Parameter param = parameters.getHead();
           if (param.isRest()) {
+            restParamIndex = paramIndex;
+            restParam = param;
             break;
           }
           if (param.hasInitializer()) {
-            code.insert(0, "if(arguments.length<" + (cnt + 1) + "){");
+            paramByIndex.put(paramIndex, param);
           }
-          ++cnt;
+          ++paramIndex;
         }
-        out.write(code.toString());
-        // second pass: generate initializers and rest param code.
-        for (Parameters parameters = params; parameters != null; parameters = parameters.getTail()) {
-          Parameter param = parameters.getHead();
-          if (param.isRest()) {
-            generateRestParamCode(param, cnt);
-            break;
-          }
-          if (param.hasInitializer()) {
-            generateBodyInitializerCode(param);
-            out.write("}");
-          }
+        generateParameterInitializers(out, paramByIndex);
+        if (restParam != null) {
+          generateRestParamCode(restParam, restParamIndex);
         }
       }
+
     };
   }
+
+  private static final MessageFormat IF_ARGUMENT_LENGTH_LTE_$N = new MessageFormat("if(arguments.length<={0})");
+  private static final MessageFormat SWITCH_$INDEX = new MessageFormat("switch({0,choice,0#arguments.length|0<Math.max(arguments.length,{0})})");
+  private static final MessageFormat CASE_$N = new MessageFormat("case {0}:");
+
+  private void generateParameterInitializers(JsWriter out, Map<Integer, Parameter> paramByIndex) throws IOException {
+    Iterator<Map.Entry<Integer, Parameter>> paramByIndexIterator = paramByIndex.entrySet().iterator();
+    if (paramByIndexIterator.hasNext()) {
+      Map.Entry<Integer, Parameter> indexAndParam = paramByIndexIterator.next();
+      Integer firstParamIndex = indexAndParam.getKey();
+      if (!paramByIndexIterator.hasNext()) {
+        // only one parameter initializer: use "if"
+        out.write(IF_ARGUMENT_LENGTH_LTE_$N.format(firstParamIndex));
+        generateBodyInitializerCode(indexAndParam.getValue());
+      } else {
+        // more than one parameter initializer: use "switch"
+        out.write(SWITCH_$INDEX.format(firstParamIndex));
+        out.write("{");
+
+        while (true) {
+          out.write(CASE_$N.format(indexAndParam.getKey()));
+          generateBodyInitializerCode(indexAndParam.getValue());
+          if (!paramByIndexIterator.hasNext()) {
+            break;
+          }
+          indexAndParam = paramByIndexIterator.next();
+        }
+
+        out.write("}");
+      }
+    }
+  }
+
+  private static final MessageFormat VAR_$NAME_EQUALS_ARGUMENTS_SLICE_$INDEX = new MessageFormat("var {0}=Array.prototype.slice.call(arguments{1,choice,0#|0<,{1}});");
 
   public void generateRestParamCode(Parameter param, int paramIndex) throws IOException {
     String paramName = param.getName();
     if (paramName != null && !(paramName.equals("arguments") && paramIndex == 0)) {
-      out.write("var " + paramName + "=Array.prototype.slice.call(arguments" + (paramIndex == 0 ? "" : "," + paramIndex) + ");");
+      out.write(VAR_$NAME_EQUALS_ARGUMENTS_SLICE_$INDEX.format(paramName, paramIndex));
     }
   }
 
