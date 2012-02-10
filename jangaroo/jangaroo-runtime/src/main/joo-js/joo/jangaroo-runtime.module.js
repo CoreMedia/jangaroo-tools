@@ -26,10 +26,13 @@ if (typeof joo.baseUrl !== "string") {
     return baseUrl;
   })();
 }
+joo.resolveUrl = function resolveUrl(url/*:String*/) {
+  return !joo.baseUrl || url.match(/^(https?:\/\/|\/)/) ? url : joo.baseUrl + url
+}
 joo.loadScript = function loadScript(standardSrc/*:String*/, debugSrc/*:String = undefined*/) {
   var url = arguments.length > 1 && joo.debug ? debugSrc : standardSrc;
   if (url) {
-    joo._loadScript(joo.baseUrl + url);
+    joo._loadScript(joo.resolveUrl(url));
   }
 };
 joo.loadDebugScript = function loadDebugScript(debugSrc/*:String*/) {
@@ -40,7 +43,7 @@ if (typeof joo.loadScriptAsync !== "function") {
     var script = document.createElement("script");
     script.type = "text/javascript";
     document.getElementsByTagName("HEAD")[0].appendChild(script);
-    script.src = joo.baseUrl + url;
+    script.src = joo.resolveUrl(url);
     return script;
   };
 }
@@ -51,7 +54,7 @@ joo.loadModule = function loadModule(groupId/*:String*/, artifactId/*:String*/) 
   joo.loadScript("joo/" + groupId + "." + artifactId + ".classes.js", null);
 };
 joo.loadStyleSheet = function(href) {
-  document.write('<link rel="stylesheet" type="text/css" href="' + joo.baseUrl + href + '" />');
+  document.write('<link rel="stylesheet" type="text/css" href="' + joo.resolveUrl(href) + '" />');
 };
 if (!joo.debug) {
   joo.loadModule("net.jangaroo", "jangaroo-runtime");

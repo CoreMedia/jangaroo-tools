@@ -17,15 +17,18 @@ package joo {
 /**
  * Jangaroo's base URL to use for loading resources like scripts and classes.
  * Must be set before loading jangaroo-application.js.
+ * This URL is usually not used directly, but rather <code>resolveUrl()</code> is used to
+ * resolve a relative URL against the base URL.
  * <p>If not set, it is determined by finding the first script element with a jangaroo-* src URL
  * and using its base URL minus the "joo" path.</p>
  * <p>If this fails, the base URL defaults to the empty string, so the "joo" path is relative to
  * the current request URL.</p>
  *
- * @see joo.loadScript
- * @see joo.loadScriptAsync
- * @see joo.loadModule
- * @see joo.loadDebugScript
+ * @see joo.resolveUrl()
+ * @see joo.loadScript()
+ * @see joo.loadScriptAsync()
+ * @see joo.loadModule()
+ * @see joo.loadDebugScript()
  */
 public var baseUrl:String;
 

@@ -168,7 +168,7 @@ public class DynamicClassLoader extends StandardClassLoader {
       if (resourceType) {
         if (resourceType === RESOURCE_TYPE_STRING) {
           var xhr:Object = new (getQualifiedObject('XMLHttpRequest'))();
-          xhr.open('GET', baseUrl + "joo/classes/" + path);
+          xhr.open('GET', resolveUrl("joo/classes/" + path));
           xhr.onreadystatechange = function():void {
             if (xhr.readyState === 4) {
               delete xhr.onreadystatechange; // only fire once!
@@ -203,7 +203,7 @@ public class DynamicClassLoader extends StandardClassLoader {
             }
             resource.preload = "auto"; // Embed -> load early, but don't wait for load like with images.
           }
-          resource.src = baseUrl + "joo/classes/" + path;
+          resource.src = resolveUrl("joo/classes/" + path);
         } else {
           trace("[WARN]", "Resource type " + resourceType + " not supported by client, ignoring resource " + path);
         }

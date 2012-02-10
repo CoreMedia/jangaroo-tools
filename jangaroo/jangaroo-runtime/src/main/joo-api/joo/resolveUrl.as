@@ -1,0 +1,26 @@
+/*
+ * Copyright 2009 CoreMedia AG
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); 
+ * you may not use this file except in compliance with the License. 
+ * You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0 
+ *
+ * Unless required by applicable law or agreed to in writing, 
+ * software distributed under the License is distributed on an "AS
+ * IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the License for the specific language 
+ * governing permissions and limitations under the License.
+ */
+package joo {
+
+/**
+ * A utility to resolve a given URL against Jangaroo's base URL.
+ * If the given URL is absolute, it is used as-is, if it is relative, it is appended to
+ * the base URL.
+ *
+ * @see joo.baseUrl
+ */
+public native function resolveUrl(url:String):String;
+
+}
