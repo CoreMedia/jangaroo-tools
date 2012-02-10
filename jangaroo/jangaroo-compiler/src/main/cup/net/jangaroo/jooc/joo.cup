@@ -21,12 +21,7 @@
 
 package net.jangaroo.jooc;
 
-import net.jangaroo.jooc.config.JoocOptions;
-import net.jangaroo.jooc.config.SemicolonInsertionMode;
-import net.jangaroo.jooc.api.CompileLog;
-import java_cup.runtime.*;
 import java.util.ArrayList;
-import java.util.regex.Pattern;
 import net.jangaroo.jooc.ast.*;
 
 terminal JooSymbol AS;
