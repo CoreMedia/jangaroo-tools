@@ -109,7 +109,7 @@ public class JangarooParser {
       throw new CompilerError("Cannot read input file: " + in.getPath(), e);
     }
     s.setInputSource(in);
-    parser p = new parser(s);
+    JooParser p = new JooParser(s);
     p.setCompileLog(log);
     p.setSemicolonInsertionMode(semicolonInsertionMode);
     try {
@@ -118,7 +118,7 @@ public class JangarooParser {
     } catch (Scanner.ScanError se) {
       log.error(se.getSym(), se.getMessage());
       return null;
-    } catch (parser.FatalSyntaxError e) {
+    } catch (JooParser.FatalSyntaxError e) {
       // message already logged in parser
       return null;
     } catch (Exception e) {
