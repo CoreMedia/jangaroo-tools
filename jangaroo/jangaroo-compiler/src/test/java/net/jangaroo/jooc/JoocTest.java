@@ -196,7 +196,9 @@ public class JoocTest {
     expected = expected.replace("@version", JoocProperties.getVersion());
     String lineSeparator = System.getProperty("line.separator");
     if (!"\n".equals(lineSeparator)) { // Windows...
-      expected = expected.replace("\n", lineSeparator);
+      // normalize line separators:
+      expected = expected.replace(lineSeparator, "\n");
+      result = result.replace(lineSeparator, "\n");
     }
     assertEquals("Result file not equal", expected, result);
   }
