@@ -21,8 +21,16 @@
 
 package net.jangaroo.jooc;
 
+import java.util.List;
 import java.util.ArrayList;
 import net.jangaroo.jooc.ast.*;
+
+parser code {:
+
+  static JooSymbol[] toSymbolArray(List symbols) {
+    return (JooSymbol[])symbols.toArray(new JooSymbol[symbols.size()]);
+  }
+:}
 
 terminal JooSymbol AS;
 terminal JooSymbol BREAK;
@@ -242,9 +250,9 @@ classBodyDirective ::=
 
 classDeclaration ::=
     optDirectives:ds modifiers:m CLASS:c ide:ide extends:e implements:i classBody:b
-    {: RESULT = new ClassDeclaration(ds, (JooSymbol[])m.toArray(new JooSymbol[0]),c,ide,e,i,b); :}
+    {: RESULT = new ClassDeclaration(ds, parser.toSymbolArray(m),c,ide,e,i,b); :}
   | optDirectives:ds modifiers:m INTERFACE:i ide:ide interfaceExtends:ie classBody:b
-    {: RESULT = new ClassDeclaration(ds, (JooSymbol[])m.toArray(new JooSymbol[0]),i,ide,null,ie,b); :}
+    {: RESULT = new ClassDeclaration(ds, parser.toSymbolArray(m),i,ide,null,ie,b); :}
   ;
 
 commaExpr ::=
@@ -479,7 +487,7 @@ interfaceExtends ::=
 
 namespacedDeclaration ::=
     modifiers:m EQ:eq STRING_LITERAL:l SEMICOLON:s
-    {: RESULT = new NamespacedDeclaration((JooSymbol[])m.subList(0, m.size()-2).toArray(new JooSymbol[m.size()-2]),
+    {: RESULT = new NamespacedDeclaration(parser.toSymbolArray(m.subList(0, m.size()-2)),
                                          (JooSymbol)m.get(m.size()-2), new Ide((JooSymbol)m.get(m.size()-1)),
                                          new Initializer(eq, new LiteralExpr(l)), s);
     :}
@@ -784,7 +792,7 @@ forVariableDeclaration ::=
 
 variableDeclaration ::=
   modifiers:m constOrVar:cov ide:ide optTypeRelation:t optInitializer:init optNextVariableDeclaration:nf SEMICOLON:s
-    {: RESULT = new VariableDeclaration((JooSymbol[])m.toArray(new JooSymbol[m.size()]), cov, ide, t, init, nf, s); :}
+    {: RESULT = new VariableDeclaration(parser.toSymbolArray(m), cov, ide, t, init, nf, s); :}
   ;
 
 optNextVariableDeclaration ::=
