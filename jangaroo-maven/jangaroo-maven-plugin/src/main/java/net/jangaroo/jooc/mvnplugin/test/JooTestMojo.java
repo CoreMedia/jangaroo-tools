@@ -108,7 +108,7 @@ public class JooTestMojo extends AbstractMojo {
   private File testResultOutputDirectory;
 
   /**
-   *  @parameter
+   * @parameter
    */
   private String testResultFileName;
 
@@ -167,18 +167,21 @@ public class JooTestMojo extends AbstractMojo {
 
   /**
    * The phantomjs executable. If not specified, it expects the phantomjs binary in the PATH.
+   *
    * @parameter expression="${phantomjs.bin}" default-value="phantomjs"
    */
   private String phantomBin;
 
   /**
    * The script to run in phantomjs launching the tests
+   *
    * @parameter expression="${phantomjs.runner}" default-value="joo/phantomjs-joounit-runner.js"
    */
   private String phantomTestRunner;
 
   /**
    * The test suite to run be run with phantomjs
+   *
    * @parameter expression="${phantomjs.suite}"
    */
   private String phantomTestSuite;
@@ -186,8 +189,9 @@ public class JooTestMojo extends AbstractMojo {
   /**
    * Additional arguments to be passed to phantomjs. Expected to be a JSON object, i.e.
    * <code>
-   *   {timeout:30000,loglevel:'all'}
+   * {timeout:30000,loglevel:'all'}
    * </code>
+   *
    * @parameter expression="${phantomjs.args}"
    */
   private String phantomArgs;
@@ -206,17 +210,23 @@ public class JooTestMojo extends AbstractMojo {
   public void execute() throws MojoExecutionException, MojoFailureException {
     if (!skip && !skipTests && phantomTestSuite != null) {
       final PhantomJsTestRunner phantomJsTestRunner = new PhantomJsTestRunner(phantomBin, testOutputDirectory, phantomTestRunner, phantomTestSuite, phantomArgs, jooUnitTestExecutionTimeout, getLog());
-      getLog().info("trying to run phantomjs first: "+phantomJsTestRunner.toString());
-      if(phantomJsTestRunner.isTestAvailable() && phantomJsTestRunner.canRun()) {
+      getLog().info("trying to run phantomjs first: " + phantomJsTestRunner.toString());
+      if (phantomJsTestRunner.isTestAvailable() && phantomJsTestRunner.canRun()) {
         try {
-          final boolean testResult = phantomJsTestRunner.execute();
-          writeResultToFile(phantomJsTestRunner.getTestResult());
-          if(!testResult){
+          final boolean exitCode = phantomJsTestRunner.execute();
+          String testResultXml = phantomJsTestRunner.getTestResult();
+          writeResultToFile(testResultXml);
+          evalTestOutput(testResultXml);
+          if (!exitCode) {
             signalFailure();
           }
         } catch (CommandLineException e) {
           rethrow(e);
         } catch (IOException e) {
+          rethrow(e);
+        } catch (ParserConfigurationException e) {
+          rethrow(e);
+        } catch (SAXException e) {
           rethrow(e);
         }
       } else if (isTestAvailable()) {
@@ -326,8 +336,9 @@ public class JooTestMojo extends AbstractMojo {
     final String tests = namedNodeMap.getNamedItem("tests").getNodeValue();
     final String time = namedNodeMap.getNamedItem("time").getNodeValue();
     final String name = namedNodeMap.getNamedItem("name").getNodeValue();
-    getLog().info(name + " tests run: " + tests + ", Failures: " + failures + ", Errors: " + errors + ", time: " +time+ " ms");
-    if(Integer.parseInt(errors) > 0 || Integer.parseInt(failures) > 0){
+    getLog().info(name + " tests run: " + tests + ", Failures: " + failures + ", Errors: " + errors + ", time: " + time + " ms");
+    if (Integer.parseInt(errors) > 0 || Integer.parseInt(failures) > 0) {
+      getLog().info(testResultXml);
       signalFailure();
     }
   }
