@@ -1,7 +1,6 @@
 package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.JooSymbol;
-import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
@@ -63,16 +62,6 @@ public class IdeWithTypeParam extends Ide {
   @Override
   public void visit(AstVisitor visitor) throws IOException {
     visitor.visitIdeWithTypeParam(this);
-  }
-
-  @Override
-  public void generateCodeAsExpr(JsWriter out) throws IOException {
-    super.generateCodeAsExpr(out);
-    out.beginComment();
-    out.writeSymbol(symDotLt);
-    out.writeSymbol(type.getIde().getIde());
-    out.writeSymbol(symGt);
-    out.endComment();
   }
 
   public void addPublicApiDependency() {

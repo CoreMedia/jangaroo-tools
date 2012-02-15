@@ -17,7 +17,6 @@ package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
-import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
@@ -157,37 +156,6 @@ public class QualifiedIde extends Ide {
     return prefixDeclaration != null
             ? prefixDeclaration.resolvePropertyDeclaration(this.getName())
             : null;
-  }
-
-  @Override
-  public void generateCodeAsExpr(final JsWriter out) throws IOException {
-    boolean commentOutQualifierCode = false;
-    IdeDeclaration memberDeclaration = null;
-    IdeDeclaration qualifierDeclaration = qualifier.getDeclaration(false);
-    if (qualifierDeclaration != null && qualifierDeclaration.isConstructor()) {
-      qualifierDeclaration = qualifierDeclaration.getClassDeclaration();
-    }
-    if (qualifierDeclaration != null && qualifierDeclaration.equals(getScope().getClassDeclaration())) {
-      memberDeclaration = ((ClassDeclaration) qualifierDeclaration).getStaticMemberDeclaration(this.getName());
-      commentOutQualifierCode = memberDeclaration != null && memberDeclaration.isPrivateStatic();
-    }
-    if (memberDeclaration == null) {
-      final IdeDeclaration type = qualifier.resolveDeclaration();
-      memberDeclaration = Ide.resolveMember(type, this);
-    }
-    if (isBound()) {
-      writeBoundMethodAccess(out, qualifier, symDot, memberDeclaration);
-      return;
-    }
-    if (commentOutQualifierCode) {
-      // we will generate another qualifier in writeMemberAccess
-      out.beginComment();
-    }
-    qualifier.generateCodeAsExpr(out);
-    if (commentOutQualifierCode) {
-      out.endComment();
-    }
-    writeMemberAccess(memberDeclaration, symDot, this, true, out);
   }
 
   @Override

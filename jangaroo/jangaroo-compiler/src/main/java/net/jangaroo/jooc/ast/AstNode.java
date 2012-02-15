@@ -15,7 +15,6 @@
 
 package net.jangaroo.jooc.ast;
 
-import net.jangaroo.jooc.CodeGenerator;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 
@@ -25,7 +24,7 @@ import java.util.List;
 /**
  * @author Andreas Gawecki
  */
-public interface AstNode extends CodeGenerator {
+public interface AstNode {
 
   JooSymbol getSymbol();
 

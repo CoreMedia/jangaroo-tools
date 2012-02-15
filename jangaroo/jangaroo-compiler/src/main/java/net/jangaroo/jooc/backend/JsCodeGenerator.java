@@ -27,6 +27,7 @@ import net.jangaroo.jooc.ast.Declaration;
 import net.jangaroo.jooc.ast.DefaultStatement;
 import net.jangaroo.jooc.ast.Directive;
 import net.jangaroo.jooc.ast.DoStatement;
+import net.jangaroo.jooc.ast.DotExpr;
 import net.jangaroo.jooc.ast.EmptyDeclaration;
 import net.jangaroo.jooc.ast.EmptyStatement;
 import net.jangaroo.jooc.ast.Expr;
@@ -114,8 +115,132 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     PRIMITIVES.add("Class");
   }
 
+  private boolean expressionMode = false;
+
   public JsCodeGenerator(JsWriter out) {
     super(out);
+  }
+
+  private void writeThis(Ide ide) throws IOException {
+    out.writeToken(ide.isRewriteThis() ? "this$" : "this");
+  }
+
+  private void generateIdeCodeAsExpr(Ide ide) throws IOException {
+    if (out.isWritingComment()) {
+      out.writeSymbol(ide.getIde());
+      return;
+    }
+    out.writeSymbolWhitespace(ide.getIde());
+    if (ide.isSuper()) {
+      writeThis(ide);
+      return;
+    }
+    if (!ide.isThis()) {
+      IdeDeclaration decl = ide.getDeclaration(false);
+      if (decl != null) {
+        if (decl.isClassMember()) {
+          if (!decl.isPrivateStatic()) {
+            if (decl.isStatic()) {
+              out.writeToken(decl.getClassDeclaration().getQualifiedNameStr());
+            } else {
+              if (ide.isBound()) {
+                writeBoundMethodAccess(ide, null, null, decl);
+                return;
+              }
+              writeThis(ide);
+            }
+          }
+          writeMemberAccess(decl, null, ide, false);
+          return;
+        }
+        if (ide.getPackagePrefix().length() > 0) {
+          out.writeToken(ide.getPackagePrefix());
+        }
+      }
+    }
+    // take care of reserved words called as functions (Rhino does not like):
+    if (SyntacticKeywords.RESERVED_WORDS.contains(ide.getIde().getText())) {
+      out.writeToken("$$" + ide.getIde().getText());
+    } else {
+      out.writeSymbol(ide.getIde(), false);
+    }
+  }
+
+
+  public void writeBoundMethodAccess(Ide ide, Ide optIde, JooSymbol optSymDot, IdeDeclaration decl) throws IOException {
+    out.writeToken("$$bound(");
+    if (optIde != null) {
+      generateIdeCodeAsExpr(optIde);
+    } else {
+      writeThis(ide);
+    }
+    if (optSymDot != null) {
+      out.writeSymbolWhitespace(optSymDot);
+    }
+    out.writeToken(",");
+    out.beginString();
+    if (ide.usePrivateMemberName(decl)) {
+      out.writeToken(ide.getName() + "$" + ide.getScope().getClassDeclaration().getInheritanceLevel());
+    } else {
+      out.writeToken(ide.getName());
+    }
+    out.endString();
+    out.writeToken(")");
+  }
+
+  @Override
+  public void visitDotExpr(DotExpr dotExpr) throws IOException {
+    dotExpr.getArg().visit(this);
+    writeMemberAccess(Ide.resolveMember(dotExpr.getArg().getType(), dotExpr.getIde()), dotExpr.getOp(), dotExpr.getIde(), true);
+  }
+
+  private void writeMemberAccess(IdeDeclaration memberDeclaration, JooSymbol optSymDot, Ide memberIde, boolean writeMemberWhitespace) throws IOException {
+    if (memberDeclaration != null) {
+      if (memberIde.usePrivateMemberName(memberDeclaration)) {
+        writePrivateMemberAccess(optSymDot, memberIde, writeMemberWhitespace, memberDeclaration.isStatic());
+        return;
+      }
+    }
+    if (optSymDot == null && memberDeclaration != null && !memberDeclaration.isConstructor()) {
+      optSymDot = new JooSymbol(".");
+    }
+    boolean quote = false;
+    if (optSymDot != null) {
+      if (memberIde.getIde().getText().startsWith("@")) {
+        quote = true;
+        out.writeSymbolWhitespace(optSymDot);
+        out.writeToken("['");
+      } else {
+        out.writeSymbol(optSymDot);
+      }
+    }
+    out.writeSymbol(memberIde.getIde(), writeMemberWhitespace);
+    if (quote) {
+      out.writeToken("']");
+    }
+  }
+
+  private void writePrivateMemberAccess(final JooSymbol optSymDot, Ide memberIde, boolean writeMemberWhitespace, boolean isStatic) throws IOException {
+    if (writeMemberWhitespace) {
+      out.writeSymbolWhitespace(memberIde.getIde());
+    }
+    if (isStatic) {
+      out.writeToken("$$private");
+      if (optSymDot != null) {
+        out.writeSymbol(optSymDot);
+      } else {
+        out.writeToken(".");
+      }
+      out.writeSymbol(memberIde.getIde(), false);
+    } else {
+      if (optSymDot != null) {
+        out.writeSymbol(optSymDot);
+      } else {
+        out.writeToken(".");
+      }
+      // awkward, but we have to be careful if we add characters to tokens:
+      out.writeToken(memberIde.getName() + "$" + memberIde.getScope().getClassDeclaration().getInheritanceLevel());
+    }
   }
 
   @Override
@@ -193,6 +318,10 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitIde(Ide ide) throws IOException {
+    if (expressionMode) {
+      generateIdeCodeAsExpr(ide);
+      return;
+    }
     out.writeSymbolWhitespace(ide.getIde());
     // take care of reserved words called as functions (Rhino does not like):
     if (!out.isWritingComment() && SyntacticKeywords.RESERVED_WORDS.contains(ide.getIde().getText())) {
@@ -202,15 +331,62 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     }
   }
 
+  private void generateQualifiedIdeCodeAsExpr(QualifiedIde qualifiedIde) throws IOException {
+    boolean commentOutQualifierCode = false;
+    IdeDeclaration memberDeclaration = null;
+    IdeDeclaration qualifierDeclaration = qualifiedIde.getQualifier().getDeclaration(false);
+    if (qualifierDeclaration != null && qualifierDeclaration.isConstructor()) {
+      qualifierDeclaration = qualifierDeclaration.getClassDeclaration();
+    }
+    if (qualifierDeclaration != null && qualifierDeclaration.equals(qualifiedIde.getScope().getClassDeclaration())) {
+      memberDeclaration = ((ClassDeclaration) qualifierDeclaration).getStaticMemberDeclaration(qualifiedIde.getName());
+      commentOutQualifierCode = memberDeclaration != null && memberDeclaration.isPrivateStatic();
+    }
+    if (memberDeclaration == null) {
+      final IdeDeclaration type = qualifiedIde.getQualifier().resolveDeclaration();
+      memberDeclaration = Ide.resolveMember(type, qualifiedIde);
+    }
+    if (qualifiedIde.isBound()) {
+      writeBoundMethodAccess(qualifiedIde, qualifiedIde.getQualifier(), qualifiedIde.getSymDot(), memberDeclaration);
+      return;
+    }
+    if (commentOutQualifierCode) {
+      // we will generate another qualifier in writeMemberAccess
+      out.beginComment();
+    }
+    qualifiedIde.getQualifier().visit(this);
+    if (commentOutQualifierCode) {
+      out.endComment();
+    }
+    writeMemberAccess(memberDeclaration, qualifiedIde.getSymDot(), qualifiedIde, true);
+  }
+
   @Override
   public void visitQualifiedIde(QualifiedIde qualifiedIde) throws IOException {
+    if (expressionMode) {
+      generateQualifiedIdeCodeAsExpr(qualifiedIde);
+      return;
+    }
     qualifiedIde.getQualifier().visit(this);
     out.writeSymbol(qualifiedIde.getSymDot());
     visitIde(qualifiedIde);
   }
 
+  private void generateIdeWithTypeParamCodeAsExpr(IdeWithTypeParam ideWithTypeParam) throws IOException {
+    generateIdeCodeAsExpr(ideWithTypeParam);
+    out.beginComment();
+    out.writeSymbol(ideWithTypeParam.getSymDotLt());
+    out.writeSymbol(ideWithTypeParam.getType().getIde().getIde());
+    out.writeSymbol(ideWithTypeParam.getSymGt());
+    out.endComment();
+  }
+
   @Override
   public void visitIdeWithTypeParam(IdeWithTypeParam ideWithTypeParam) throws IOException {
+    if (expressionMode) {
+      generateIdeWithTypeParamCodeAsExpr(ideWithTypeParam);
+      return;
+    }
     visitIde(ideWithTypeParam);
     writeTypeParamAsComment(ideWithTypeParam);
   }
@@ -266,7 +442,12 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitIdeExpression(IdeExpr ideExpr) throws IOException {
-    ideExpr.getIde().generateCodeAsExpr(out);
+    expressionMode = true;
+    try {
+      ideExpr.getIde().visit(this);
+    } finally {
+      expressionMode = false;
+    }
   }
 
   @Override
@@ -1010,7 +1191,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     generateStaticMethodList(classDeclaration);
   }
 
-  public void generateFieldInitCode(ClassDeclaration classDeclaration, boolean startWithSemicolon, boolean endWithSemicolon, boolean preventFirefox9Bug) throws IOException {
+  private void generateFieldInitCode(ClassDeclaration classDeclaration, boolean startWithSemicolon, boolean preventFirefox9Bug) throws IOException {
     Iterator<VariableDeclaration> iterator = classDeclaration.getFieldsWithInitializer().iterator();
     if (iterator.hasNext()) {
       if (startWithSemicolon) {
@@ -1052,7 +1233,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
         out.writeToken(";");
         first = false;
       }
-      generateFieldInitCode(classDeclaration, false, true, first);
+      generateFieldInitCode(classDeclaration, false, first);
     }
   }
 
@@ -1137,14 +1318,14 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   public void visitSuperConstructorCallStatement(SuperConstructorCallStatement superConstructorCallStatement) throws IOException {
     if (superConstructorCallStatement.getClassDeclaration().getInheritanceLevel() > 1) {
       generateSuperConstructorCallCode(superConstructorCallStatement);
-      generateFieldInitCode(superConstructorCallStatement.getClassDeclaration(), true, false, false);
+      generateFieldInitCode(superConstructorCallStatement.getClassDeclaration(), true, false);
     } else { // suppress for classes extending Object
       // Object super call does nothing anyway:
       out.beginComment();
       out.writeSymbol(superConstructorCallStatement.getSymbol());
       visitIfNotNull(superConstructorCallStatement.getArgs());
       out.endComment();
-      generateFieldInitCode(superConstructorCallStatement.getClassDeclaration(), false, false, true);
+      generateFieldInitCode(superConstructorCallStatement.getClassDeclaration(), false, true);
     }
     out.writeSymbol(superConstructorCallStatement.getSymSemicolon());
   }

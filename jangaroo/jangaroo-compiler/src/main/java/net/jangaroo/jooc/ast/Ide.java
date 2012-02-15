@@ -18,9 +18,7 @@ package net.jangaroo.jooc.ast;
 import net.jangaroo.jooc.CompilerError;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
-import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
-import net.jangaroo.jooc.SyntacticKeywords;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -63,7 +61,11 @@ public class Ide extends NodeImplBase {
     return ide;
   }
 
-  private boolean isThis() {
+  public String getPackagePrefix() {
+    return packagePrefix;
+  }
+
+  public boolean isThis() {
     return "this".equals(getIde().getText());
   }
 
@@ -78,7 +80,7 @@ public class Ide extends NodeImplBase {
     return false;
   }
 
-  private boolean isSuper() {
+  public boolean isSuper() {
     return "super".equals(getIde().getText());
   }
 
@@ -257,7 +259,7 @@ public class Ide extends NodeImplBase {
     }
   }
 
-  public void usageInExpr(final AstNode exprParent) {
+  private void usageInExpr(final AstNode exprParent) {
     if (isThis()) {
       FunctionExpr funExpr = getScope().getFunctionExpr();
       if (funExpr != null && funExpr.getFunctionDeclaration() == null) {
@@ -325,103 +327,7 @@ public class Ide extends NodeImplBase {
             (exprParent instanceof AssignmentOpExpr && ((AssignmentOpExpr) exprParent).getArg2() == parentExpr);
   }
 
-  public void generateCodeAsExpr(final JsWriter out) throws IOException {
-    if (out.isWritingComment()) {
-      out.writeSymbol(ide);
-      return;
-    }
-    out.writeSymbolWhitespace(getIde());
-    if (isSuper()) {
-      writeThis(out);
-      return;
-    }
-    if (!isThis()) {
-      IdeDeclaration decl = getDeclaration(false);
-      if (decl != null) {
-        if (decl.isClassMember()) {
-          if (!decl.isPrivateStatic()) {
-            if (decl.isStatic()) {
-              out.writeToken(decl.getClassDeclaration().getQualifiedNameStr());
-            } else {
-              if (isBound()) {
-                writeBoundMethodAccess(out, null, null, decl);
-                return;
-              }
-              writeThis(out);
-            }
-          }
-          writeMemberAccess(decl, null, this, false, out);
-          return;
-        }
-        if (packagePrefix.length() > 0) {
-          out.writeToken(packagePrefix);
-        }
-      }
-    }
-    writeIde(out);
-  }
-
-  public void writeIde(JsWriter out) throws IOException {
-    // take care of reserved words called as functions (Rhino does not like):
-    if (SyntacticKeywords.RESERVED_WORDS.contains(getIde().getText())) {
-      out.writeToken("$$" + getIde().getText());
-    } else {
-      out.writeSymbol(getIde(), false);
-    }
-  }
-
-  private void writeThis(JsWriter out) throws IOException {
-    out.writeToken(isRewriteThis() ? "this$" : "this");
-  }
-
-  protected void writeBoundMethodAccess(JsWriter out, Ide optIde, JooSymbol optSymDot, IdeDeclaration decl) throws IOException {
-    out.writeToken("$$bound(");
-    if (optIde != null) {
-      optIde.generateCodeAsExpr(out);
-    } else {
-      writeThis(out);
-    }
-    if (optSymDot != null) {
-      out.writeSymbolWhitespace(optSymDot);
-    }
-    out.writeToken(",");
-    out.beginString();
-    if (usePrivateMemberName(decl)) {
-      out.writeToken(getName() + "$" + scope.getClassDeclaration().getInheritanceLevel());
-    } else {
-      out.writeToken(getName());
-    }
-    out.endString();
-    out.writeToken(")");
-  }
-
-  public static void writeMemberAccess(IdeDeclaration memberDeclaration, JooSymbol optSymDot, Ide memberIde, boolean writeMemberWhitespace, final JsWriter out) throws IOException {
-    if (memberDeclaration != null) {
-      if (memberIde.usePrivateMemberName(memberDeclaration)) {
-        writePrivateMemberAccess(optSymDot, memberIde, writeMemberWhitespace, memberDeclaration.isStatic(), out);
-        return;
-      }
-    }
-    if (optSymDot == null && memberDeclaration != null && !memberDeclaration.isConstructor()) {
-      optSymDot = new JooSymbol(".");
-    }
-    boolean quote = false;
-    if (optSymDot != null) {
-      if (memberIde.getIde().getText().startsWith("@")) {
-        quote = true;
-        out.writeSymbolWhitespace(optSymDot);
-        out.writeToken("['");
-      } else {
-        out.writeSymbol(optSymDot);
-      }
-    }
-    out.writeSymbol(memberIde.getIde(), writeMemberWhitespace);
-    if (quote) {
-      out.writeToken("']");
-    }
-  }
-
-  private boolean usePrivateMemberName(IdeDeclaration memberDeclaration) {
+  public boolean usePrivateMemberName(IdeDeclaration memberDeclaration) {
     return isQualifiedBySuper()
             && scope.getClassDeclaration().getMemberDeclaration(getName()) != null
             || memberDeclaration.isPrivate();
@@ -433,29 +339,6 @@ public class Ide extends NodeImplBase {
       declaration = type.resolvePropertyDeclaration(memberIde.getName());
     }
     return declaration;
-  }
-
-  static void writePrivateMemberAccess(final JooSymbol optSymDot, Ide memberIde, boolean writeMemberWhitespace, boolean isStatic, final JsWriter out) throws IOException {
-    if (writeMemberWhitespace) {
-      out.writeSymbolWhitespace(memberIde.getIde());
-    }
-    if (isStatic) {
-      out.writeToken("$$private");
-      if (optSymDot != null) {
-        out.writeSymbol(optSymDot);
-      } else {
-        out.writeToken(".");
-      }
-      out.writeSymbol(memberIde.getIde(), false);
-    } else {
-      if (optSymDot != null) {
-        out.writeSymbol(optSymDot);
-      } else {
-        out.writeToken(".");
-      }
-      // awkward, but we have to be careful if we add characters to tokens:
-      out.writeToken(memberIde.getName() + "$" + memberIde.scope.getClassDeclaration().getInheritanceLevel());
-    }
   }
 
   @Override

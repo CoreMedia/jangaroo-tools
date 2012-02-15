@@ -16,10 +16,8 @@
 package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.DeclarationScope;
-import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -29,9 +27,6 @@ import java.util.List;
  * @author Andreas Gawecki
  */
 public abstract class NodeImplBase implements AstNode {
-  public void generate(final JsWriter out, boolean first) throws IOException {
-    throw new UnsupportedOperationException();
-  }
 
   public List<? extends AstNode> getChildren() {
     return Collections.emptyList();

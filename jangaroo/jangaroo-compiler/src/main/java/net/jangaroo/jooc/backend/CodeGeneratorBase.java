@@ -44,9 +44,9 @@ public abstract class CodeGeneratorBase implements AstVisitor {
   }
 
   @Override
-  public final void visitDotExpr(DotExpr dotExpr) throws IOException {
-    dotExpr.getArg().visit(this);
-    Ide.writeMemberAccess(Ide.resolveMember(dotExpr.getArg().getType(), dotExpr.getIde()), dotExpr.getOp(), dotExpr.getIde(), true, out);
+  public void visitDotExpr(DotExpr dotExpr) throws IOException {
+    visitPostfixOpExpr(dotExpr);
+    dotExpr.getIde().visit(this);
   }
 
   @Override
