@@ -167,10 +167,10 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   }
 
 
-  public void writeBoundMethodAccess(Ide ide, Ide optIde, JooSymbol optSymDot, IdeDeclaration decl) throws IOException {
+  private void writeBoundMethodAccess(Ide ide, Ide optIde, JooSymbol optSymDot, IdeDeclaration decl) throws IOException {
     out.writeToken("$$bound(");
     if (optIde != null) {
-      generateIdeCodeAsExpr(optIde);
+      optIde.visit(this);
     } else {
       writeThis(ide);
     }
@@ -372,35 +372,14 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     visitIde(qualifiedIde);
   }
 
-  private void generateIdeWithTypeParamCodeAsExpr(IdeWithTypeParam ideWithTypeParam) throws IOException {
-    generateIdeCodeAsExpr(ideWithTypeParam);
-    out.beginComment();
-    out.writeSymbol(ideWithTypeParam.getSymDotLt());
-    out.writeSymbol(ideWithTypeParam.getType().getIde().getIde());
-    out.writeSymbol(ideWithTypeParam.getSymGt());
-    out.endComment();
-  }
-
   @Override
   public void visitIdeWithTypeParam(IdeWithTypeParam ideWithTypeParam) throws IOException {
-    if (expressionMode) {
-      generateIdeWithTypeParamCodeAsExpr(ideWithTypeParam);
-      return;
-    }
     visitIde(ideWithTypeParam);
-    writeTypeParamAsComment(ideWithTypeParam);
-  }
-
-  private void writeTypeParamAsComment(IdeWithTypeParam ideWithTypeParam) throws IOException {
     out.beginComment();
-    writeTypeParam(ideWithTypeParam);
-    out.endComment();
-  }
-
-  protected void writeTypeParam(IdeWithTypeParam ideWithTypeParam) throws IOException {
     out.writeSymbol(ideWithTypeParam.getSymDotLt());
     ideWithTypeParam.getType().visit(this);
     out.writeSymbol(ideWithTypeParam.getSymGt());
+    out.endComment();
   }
 
   @Override
