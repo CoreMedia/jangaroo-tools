@@ -214,16 +214,12 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
   void aliasThis() {
     if (!thisAliased) {
       thisAliased = true;
-      getBody().addBlockStartCodeGenerator(ALIAS_THIS_CODE_GENERATOR);
     }
   }
 
-  private static final CodeGenerator ALIAS_THIS_CODE_GENERATOR = new CodeGenerator() {
-    @Override
-    public void generate(JsWriter out, boolean first) throws IOException {
-      out.write("var this$=this;");
-    }
-  };
+  public boolean isThisAliased() {
+    return thisAliased;
+  }
 
   @Override
   protected int getAllowedModifiers() {

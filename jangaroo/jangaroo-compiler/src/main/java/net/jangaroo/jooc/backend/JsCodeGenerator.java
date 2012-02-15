@@ -919,9 +919,19 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     }
   }
 
+  private static final CodeGenerator ALIAS_THIS_CODE_GENERATOR = new CodeGenerator() {
+    @Override
+    public void generate(JsWriter out, boolean first) throws IOException {
+      out.write("var this$=this;");
+    }
+  };
+
   @Override
   public void visitFunctionDeclaration(FunctionDeclaration functionDeclaration) throws IOException {
     assert functionDeclaration.isClassMember() || (!functionDeclaration.isNative() && !functionDeclaration.isAbstract());
+    if (functionDeclaration.isThisAliased()) {
+      functionDeclaration.getBody().addBlockStartCodeGenerator(ALIAS_THIS_CODE_GENERATOR);
+    }
     if (functionDeclaration.isConstructor() && !functionDeclaration.containsSuperConstructorCall() && functionDeclaration.hasBody()) {
       functionDeclaration.getBody().addBlockStartCodeGenerator(new SuperCallCodeGenerator(functionDeclaration.getClassDeclaration()));
     }
