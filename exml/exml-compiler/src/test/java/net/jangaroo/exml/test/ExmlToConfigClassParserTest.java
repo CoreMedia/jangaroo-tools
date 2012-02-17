@@ -27,6 +27,19 @@ public class ExmlToConfigClassParserTest extends AbstractExmlTest {
   }
 
   @Test
+  public void testGenerateConfigExcludeClassTrue() throws Exception {
+    setUp("testNamespace.config");
+    File result = new File(outputFolder.getRoot(), "testNamespace/config/testComponentExcludeClassTrue.as");
+    File source = getFile("/testPackage/TestComponentExcludeClassTrue.exml");
+
+    File outputFile = getExmlc().generateConfigClass(source);
+
+    assertNotNull(outputFile);
+    assertTrue("Exml config file does not exist", result.exists());
+    assertEquals("The files differ!", FileUtils.readFileToString(getFile("/testNamespace/config/testComponentExcludeClassTrue.as")), FileUtils.readFileToString(result));
+  }
+
+  @Test
   public void testGenerateWithExisitingNewOutputFile() throws Exception {
     setUp("testNamespace.config");
     File packageFolder = new File(outputFolder.getRoot(), "testNamespace/config/");

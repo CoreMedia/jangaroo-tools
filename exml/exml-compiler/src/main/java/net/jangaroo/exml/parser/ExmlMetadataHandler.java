@@ -7,8 +7,10 @@ import net.jangaroo.exml.model.ConfigClass;
 import net.jangaroo.exml.model.ConfigClassType;
 import net.jangaroo.exml.model.DescriptionHolder;
 import net.jangaroo.exml.model.Declaration;
+import net.jangaroo.exml.model.ExcludeClassMode;
 import net.jangaroo.exml.utils.ExmlUtils;
 import net.jangaroo.utils.CharacterRecordingHandler;
+import org.w3c.dom.Attr;
 import org.xml.sax.Attributes;
 import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
@@ -52,6 +54,18 @@ public class ExmlMetadataHandler extends CharacterRecordingHandler {
     if (ExmlUtils.isExmlNamespace(uri)) {
       if (Exmlc.EXML_ROOT_NODE_NAMES.contains(localName)) {
         configClass.setType(EXML_ROOT_NODE_TO_CONFIG_CLASS_TYPE.get(localName));
+
+        for (int i = 0; i < atts.getLength(); i++) {
+          //baseClass attribute has been specified, so the super class of the component is actually that
+          if (Exmlc.EXML_EXCLUDE_CLASS_ATTRIBUTE.equals(atts.getLocalName(i))) {
+            try {
+              configClass.setExcluded(ExcludeClassMode.valueOf(atts.getValue(i).toUpperCase()) == ExcludeClassMode.TRUE);
+            } catch (IllegalArgumentException e) {
+              throw new ExmlcException("EXML attribute '" + Exmlc.EXML_EXCLUDE_CLASS_ATTRIBUTE +
+                      "' must have one the values 'false', 'target', or 'true'.");
+            }
+          }
+        }
       } else if (Exmlc.EXML_CFG_NODE_NAME.equals(localName)) {
         //handle config elements
         ConfigAttribute cfg = new ConfigAttribute(atts.getValue(Exmlc.EXML_CFG_NAME_ATTRIBUTE), atts.getValue(Exmlc.EXML_CFG_TYPE_ATTRIBUTE), null);
