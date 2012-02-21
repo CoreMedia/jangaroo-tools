@@ -67,6 +67,9 @@ public class Parameter extends IdeDeclaration {
     }
     if (getOptInitializer() != null) {
       getOptInitializer().analyze(this);
+      if (!getOptInitializer().getValue().isCompileTimeConstant()) {
+        throw Jooc.error(getOptInitializer().getSymbol(), "Parameter initializer must be compile-time constant.");
+      }
     }
   }
 

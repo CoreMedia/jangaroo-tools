@@ -61,6 +61,19 @@ public abstract class TypedIdeDeclaration extends IdeDeclaration {
     }
   }
 
+  protected void addPublicApiDependencyOn(TypeRelation optTypeRelation) {
+    if (optTypeRelation != null) {
+      optTypeRelation.getType().getIde().addPublicApiDependency();
+    }
+  }
+
+  public void analyze(AstNode parentNode) {
+    super.analyze(parentNode); // computes modifiers
+    if (isPublicApi()) {
+      addPublicApiDependencyOn(optTypeRelation);
+    }
+  }
+
   @Override
   boolean allowDuplicates(Scope scope) {
     // allow package members to clash with imports:

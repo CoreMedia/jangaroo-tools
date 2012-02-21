@@ -157,6 +157,10 @@ public abstract class Declaration extends Statement {
     return (getModifiers() & MODIFIER_OVERRIDE) != 0;
   }
 
+  public boolean isPublicApi() {
+    return isPublic() || isProtected();
+  }
+
   public boolean isPrivateStatic() {
     return isPrivate() && isStatic();
   }

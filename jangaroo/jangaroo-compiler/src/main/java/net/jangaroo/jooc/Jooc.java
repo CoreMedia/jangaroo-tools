@@ -84,6 +84,7 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
       }
       return new CompilationResultImpl(CompilationResult.RESULT_CODE_COMPILATION_FAILED);
     } catch (Exception e) {
+      e.printStackTrace(); // NOSONAR something serious happened and we cannot get it into the ordinary log
       log.error(e.getMessage());
       return new CompilationResultImpl(CompilationResult.RESULT_CODE_INTERNAL_COMPILER_ERROR);
     }

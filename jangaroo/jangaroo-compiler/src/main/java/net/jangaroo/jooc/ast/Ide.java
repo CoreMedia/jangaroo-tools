@@ -138,8 +138,19 @@ public class Ide extends NodeImplBase {
       return false;
     }
     CompilationUnit currentUnit = getScope().getCompilationUnit();
-    currentUnit.addDependency(decl.getIde().getScope().getCompilationUnit());
+    CompilationUnit compilationUnit = decl.getIde().getScope().getCompilationUnit();
+    currentUnit.addDependency(compilationUnit);
     return true;
+  }
+
+  public void addPublicApiDependency() {
+    IdeDeclaration decl = getDeclaration(false);
+    if (decl != null && decl.isPrimaryDeclaration()) {
+      CompilationUnit currentUnit = getScope().getCompilationUnit();
+      CompilationUnit compilationUnit = decl.getIde().getScope().getCompilationUnit();
+      currentUnit.addDependency(compilationUnit);
+      currentUnit.addPublicApiDependency(compilationUnit);
+    }
   }
 
   /**

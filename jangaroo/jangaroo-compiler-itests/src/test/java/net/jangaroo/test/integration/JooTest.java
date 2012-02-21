@@ -445,19 +445,14 @@ public class JooTest extends JooRuntimeTestCase {
     expectString("foo/bar", "obj.initParams1('foo','bar')");
     expectString("foo/1", "obj.initParams1('foo')");
 
-    expectString("foo/bar/baz", "obj.initParams2('foo','bar','baz')");
-    expectString("foo/bar/3", "obj.initParams2('foo','bar')");
-    expectString("foo/b/3", "obj.initParams2('foo')");
-    expectString("bar/b/3", "obj.initParams2()");
+    expectString("foo/bar/3", "obj.initParams2('foo','bar','a',2,true)");
+    expectString("foo/bar/0", "obj.initParams2('foo','bar')");
+    expectString("foo/foo/0", "obj.initParams2('foo')");
 
-    expectString("foo/bar/3", "obj.initParams3('foo','bar','a',2,true)");
-    expectString("foo/bar/0", "obj.initParams3('foo','bar')");
-    expectString("foo/foo/0", "obj.initParams3('foo')");
-
-    expectString("foo/bar/baz/3", "obj.initParams4('foo','bar','baz', 'a',2,true)");
-    expectString("foo/bar/undefined/0", "obj.initParams4('foo','bar')");
-    expectString("foo/foo/undefined/0", "obj.initParams4('foo')");
-    expectString("undefined/foo/undefined/0", "obj.initParams4()");
+    expectString("foo/bar/baz/3", "obj.initParams3('foo','bar','baz', 'a',2,true)");
+    expectString("foo/bar/undefined/0", "obj.initParams3('foo','bar')");
+    expectString("foo/foo/undefined/0", "obj.initParams3('foo')");
+    expectString("undefined/foo/undefined/0", "obj.initParams3()");
 
     expectNumber(5*99, "obj.testParamWithAnyTypeWithoutWhitespaceSyntax()");
     expectNumber(6*88, "obj.testParamWithAnyTypeWithoutWhitespaceSyntax2()");

@@ -27,17 +27,11 @@ public class TestParamInitializers /* blub ber *//*extends Object*/ {
     return a + "/" + b;
   }
 
-  public static const DEFAULT_FOR_C : Number = 3;
-
-  public function initParams2( a : String = "bar", b : String = "b", c = DEFAULT_FOR_C) : String { //todo reset to b = a? flex compc complains unknown initializer
-    return a + "/" + b + "/" + c;
-  }
-
-  public function initParams3( a : String, b : String = "foo", ...rest) : String {
+  public function initParams2( a : String, b : String = "foo", ...rest) : String {
     return a + "/" + b + "/" + rest.length;
   }
 
-  public function initParams4( a : String = undefined, b : String = "foo", c : String = undefined, ...rest) : String {
+  public function initParams3( a : String = undefined, b : String = "foo", c : String = undefined, ...rest) : String {
     return a + "/" + b + "/" + c + "/" + rest.length;
   }
 

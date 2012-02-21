@@ -2,6 +2,7 @@ package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.JsWriter;
+import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
 
@@ -48,6 +49,12 @@ public class IdeWithTypeParam extends Ide {
   }
 
   @Override
+  public void scope(Scope scope) {
+    super.scope(scope);
+    type.scope(scope);
+  }
+
+  @Override
   public void visit(AstVisitor visitor) throws IOException {
     visitor.visitIdeWithTypeParam(this);
   }
@@ -60,5 +67,10 @@ public class IdeWithTypeParam extends Ide {
     out.writeSymbol(type.getIde().getIde());
     out.writeSymbol(symGt);
     out.endComment();
+  }
+
+  public void addPublicApiDependency() {
+    super.addPublicApiDependency();
+    type.getIde().addPublicApiDependency();
   }
 }

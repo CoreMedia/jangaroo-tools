@@ -53,6 +53,7 @@ public class Extends extends NodeImplBase {
     getSuperClass().analyze(this);
     getSuperClass().analyzeAsExpr(this, null);
     getSuperClass().addExternalUsage();
+    getSuperClass().addPublicApiDependency();
   }
 
   public JooSymbol getSymbol() {

@@ -179,6 +179,18 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
   public void analyze(AstNode parentNode) {
     super.analyze(parentNode); // computes modifiers
     fun.analyze(this);
+
+    if (isPublicApi()) {
+      // This method will be rendered into the public API stubs.
+      Parameters params = fun.getParams();
+      while (params != null) {
+        Parameter parameter = params.getHead();
+        addPublicApiDependencyOn(parameter.getOptTypeRelation());
+        params = params.getTail();
+      }
+
+      addPublicApiDependencyOn(fun.getOptTypeRelation());
+    }
   }
 
   void aliasThis() {

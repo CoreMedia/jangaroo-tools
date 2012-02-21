@@ -50,6 +50,7 @@ public class Implements extends NodeImplBase {
     while (localSuperTypes != null) {
       Ide superType = localSuperTypes.getHead();
       superType.addExternalUsage();
+      superType.addPublicApiDependency();
       localSuperTypes = localSuperTypes.getTail();
     }
   }

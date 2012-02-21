@@ -1,5 +1,6 @@
 package net.jangaroo.jooc.backend;
 
+import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.SyntacticKeywords;
 import net.jangaroo.jooc.ast.Annotation;
@@ -15,7 +16,6 @@ import net.jangaroo.jooc.ast.CaseStatement;
 import net.jangaroo.jooc.ast.Catch;
 import net.jangaroo.jooc.ast.ClassBody;
 import net.jangaroo.jooc.ast.ClassDeclaration;
-import net.jangaroo.jooc.ast.CommaSeparatedList;
 import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.ast.ContinueStatement;
 import net.jangaroo.jooc.ast.DefaultStatement;
@@ -61,8 +61,10 @@ import net.jangaroo.jooc.ast.UseNamespaceDirective;
 import net.jangaroo.jooc.ast.VariableDeclaration;
 import net.jangaroo.jooc.ast.VectorLiteral;
 import net.jangaroo.jooc.ast.WhileStatement;
+import net.jangaroo.jooc.sym;
 
 import java.io.IOException;
+import java.util.TreeSet;
 
 /**
  * A visitor of the AST that generates executable reduced ActionScript code on
@@ -116,6 +118,11 @@ public class ApiCodeGenerator extends CodeGeneratorBase {
   public void visitCompilationUnit(CompilationUnit compilationUnit) throws IOException {
     compilationUnit.getPackageDeclaration().visit(this);
     out.writeSymbol(compilationUnit.getLBrace());
+    for (String publicApiDependency : new TreeSet<String>(compilationUnit.getPublicApiDependencies())) {
+      out.write("\nimport ");
+      out.write(publicApiDependency);
+      out.write(";");
+    }
     compilationUnit.getPrimaryDeclaration().visit(this);
     out.writeSymbol(compilationUnit.getRBrace());
   }
@@ -338,12 +345,22 @@ public class ApiCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitVariableDeclaration(VariableDeclaration variableDeclaration) throws IOException {
-    if (!variableDeclaration.isPrivate()) {
+    if (variableDeclaration.isPublicApi()) {
       writeModifiers(out, variableDeclaration);
-      out.writeSymbol(variableDeclaration.getOptSymConstOrVar());
+      JooSymbol optSymConstOrVar = variableDeclaration.getOptSymConstOrVar();
+      out.writeSymbol(optSymConstOrVar);
       variableDeclaration.getIde().visit(this);
-      visitIfNotNull(variableDeclaration.getOptTypeRelation());
-      visitIfNotNull(variableDeclaration.getOptInitializer());
+      TypeRelation optTypeRelation = variableDeclaration.getOptTypeRelation();
+      visitIfNotNull(optTypeRelation);
+      if (optSymConstOrVar.sym == sym.CONST) {
+        Initializer optInitializer = variableDeclaration.getOptInitializer();
+        if (optInitializer != null && optInitializer.getValue().isCompileTimeConstant()) {
+          visitIfNotNull(optInitializer);
+        } else {
+          // An expression that is not a compile-time constant and that is guaranteed to by type compliant.
+          out.write(" = {}[0]");
+        }
+      }
       visitIfNotNull(variableDeclaration.getOptNextVariableDeclaration());
       writeOptSymbol(variableDeclaration.getOptSymSemicolon());
     }
@@ -351,7 +368,7 @@ public class ApiCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitFunctionDeclaration(FunctionDeclaration functionDeclaration) throws IOException {
-    if (!functionDeclaration.isPrivate()) {
+    if (functionDeclaration.isPublicApi()) {
       writeModifiers(out, functionDeclaration);
       if (!functionDeclaration.isNative() && !functionDeclaration.isAbstract() && !functionDeclaration.isConstructor()) {
         out.writeSymbolWhitespace(functionDeclaration.getFun().getFunSymbol());
@@ -450,11 +467,6 @@ public class ApiCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitImportDirective(ImportDirective importDirective) throws IOException {
-    if (importDirective.isExplicit()) {
-      out.writeSymbol(importDirective.getImportKeyword());
-      importDirective.getIde().visit(this);
-      out.writeSymbol(importDirective.getSymSemicolon());
-    }
-    // else skip it
+    // no api code generated directly; imports are synthesized from the used identifiers
   }
 }

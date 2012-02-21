@@ -22,6 +22,7 @@ import net.jangaroo.jooc.input.InputSource;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -38,6 +39,7 @@ public class CompilationUnit extends NodeImplBase {
 
   private Set<String> dependencies = new LinkedHashSet<String>();
   private Set<CompilationUnit> dependenciesAsCompilationUnits = new LinkedHashSet<CompilationUnit>();
+  private Set<String> publicApiDependencies = new HashSet<String>();
   private InputSource source;
   private JangarooParser compiler;
 
@@ -98,6 +100,10 @@ public class CompilationUnit extends NodeImplBase {
     return dependencies;
   }
 
+  public Set<String> getPublicApiDependencies() {
+    return publicApiDependencies;
+  }
+
   public Set<CompilationUnit> getDependenciesAsCompilationUnits() {
     return dependenciesAsCompilationUnits;
   }
@@ -153,6 +159,22 @@ public class CompilationUnit extends NodeImplBase {
         String qname = otherUnitPrimaryDeclaration.getQualifiedNameStr();
         dependencies.add(qname);
         dependenciesAsCompilationUnits.add(otherUnit);
+      }
+    }
+  }
+
+  public void addPublicApiDependency(CompilationUnit otherUnit) {
+    // predefined ides have a null unit
+    if (otherUnit != null && otherUnit != this) {
+      //todo extend runtime to load units with primary decls other than classes
+      final IdeDeclaration otherUnitPrimaryDeclaration = otherUnit.getPrimaryDeclaration();
+      if (otherUnitPrimaryDeclaration instanceof ClassDeclaration) {
+        // It is a class ...
+        String qname = otherUnitPrimaryDeclaration.getQualifiedNameStr();
+        if (qname.indexOf('.') != -1) {
+          // ... outside of the root package.
+          publicApiDependencies.add(qname);
+        }
       }
     }
   }

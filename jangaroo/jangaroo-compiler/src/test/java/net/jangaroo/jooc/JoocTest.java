@@ -97,7 +97,17 @@ public class JoocTest {
     File sourcefile = getFile("/package1/SomeClass.as");
     config.addSourceFile(sourcefile);
     jooc.run();
-    assertTrue("Expected error not occured", testLog.hasError("Type was not found or was not a compile-time constant: SomeClass"));
+    assertTrue("Expected error (type not a compile-time constant) did not occur",
+            testLog.hasError("Type was not found or was not a compile-time constant: SomeClass"));
+  }
+
+  @Test
+  public void testNonConstantInitializer() throws Exception {
+    File sourcefile = getFile("/package1/NonConstantInitializer.as");
+    config.addSourceFile(sourcefile);
+    jooc.run();
+    assertTrue("Expected error (initializer not a compile-time constant) did not occur",
+            testLog.hasError("Parameter initializer must be compile-time constant."));
   }
 
   @Test
@@ -117,24 +127,33 @@ public class JoocTest {
 
   @Test
   public void testParameterInitializers() throws Exception {
-    File sourcefile = getFile("/package1/ParameterInitializers.as");
+    doTestClassCompilation("package1/ParameterInitializers");
+  }
+
+  @Test
+  public void testImportReduction() throws Exception {
+    doTestClassCompilation("package1/ImportReduction");
+  }
+
+  private void doTestClassCompilation(String path) throws URISyntaxException, IOException {
+    File sourcefile = getFile("/" + path + ".as");
     config.addSourceFile(sourcefile);
     //noinspection ResultOfMethodCallIgnored
     apiOutputFolder.mkdirs(); // NOSONAR
     jooc.run();
 
-    File destFile = new File(apiOutputFolder,"package1/ParameterInitializers.as");
+    File destFile = new File(apiOutputFolder, path + ".as");
     assertTrue(destFile.exists());
 
     String result = FileUtils.readFileToString(destFile);
-    String expected = FileUtils.readFileToString(getFile("/expectedApi/package1/ParameterInitializers.as"));
+    String expected = FileUtils.readFileToString(getFile("/expectedApi/" + path + ".as"));
     assertEquals("Result file not equal", expected, result);
   }
 
 
   private void assertCompilationResult(String relativeClassFileName) throws URISyntaxException, IOException {
-    File sourcefile = getFile("/" + relativeClassFileName + ".as");
-    config.addSourceFile(sourcefile);
+    File sourceFile = getFile("/" + relativeClassFileName + ".as");
+    config.addSourceFile(sourceFile);
     jooc.run();
 
     File destFile = new File(outputFolder, relativeClassFileName + ".js");
