@@ -10,6 +10,7 @@ import net.jangaroo.jooc.ast.ArrayIndexExpr;
 import net.jangaroo.jooc.ast.ArrayLiteral;
 import net.jangaroo.jooc.ast.AsExpr;
 import net.jangaroo.jooc.ast.AssignmentOpExpr;
+import net.jangaroo.jooc.ast.AstNode;
 import net.jangaroo.jooc.ast.BlockStatement;
 import net.jangaroo.jooc.ast.BreakStatement;
 import net.jangaroo.jooc.ast.CaseStatement;
@@ -419,6 +420,22 @@ public class ApiCodeGenerator extends CodeGeneratorBase {
   @Override
   public void visitClassDeclaration(ClassDeclaration classDeclaration) throws IOException {
     visitAll(classDeclaration.getDirectives());
+    if (out.getOptions().isExcludeClassByDefault()) {
+      // Add an [ExcludeClass] annotation, unless
+      boolean needsExcludeClassAnnotation = true;
+      for (AstNode node : classDeclaration.getDirectives()) {
+        if (node instanceof Annotation) {
+          String metaName = ((Annotation) node).getMetaName();
+          // ... an [IncludeClass] or [ExcludeClass] annotation is already present.
+          needsExcludeClassAnnotation = needsExcludeClassAnnotation &&
+                  !"IncludeClass".equals(metaName) &&
+                  !"ExcludeClass".equals(metaName);
+        }
+      }
+      if (needsExcludeClassAnnotation) {
+        out.write("\n[ExcludeClass]");
+      }
+    }
     writeModifiers(out, classDeclaration);
     out.writeSymbol(classDeclaration.getSymClass());
     classDeclaration.getIde().visit(this);

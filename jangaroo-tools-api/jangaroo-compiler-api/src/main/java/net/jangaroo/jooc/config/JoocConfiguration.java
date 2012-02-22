@@ -16,6 +16,7 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
 
   private boolean help, version, verbose, enableAssertions;
   private PublicApiViolationsMode publicApiViolationsMode = PublicApiViolationsMode.WARN;
+  private boolean excludeClassByDefault = false;
 
   private boolean allowDuplicateLocalVariables;
 
@@ -84,6 +85,15 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
   @Option(name="-pav", aliases = "--publicApiViolations", usage = "Severity of public API violations, i.e. using classes that are annotated with [ExcludeClass]: error, warn, allow")
   public void setPublicApiViolationsMode(PublicApiViolationsMode warnPublicApiViolations) {
     this.publicApiViolationsMode = warnPublicApiViolations;
+  }
+
+  public boolean isExcludeClassByDefault() {
+    return excludeClassByDefault;
+  }
+
+  @Option(name="-ec", aliases = "--excludeClassByDefault", usage = "Whether to add an [ExcludeClass] annotation to a class whenever no [IncludeClass] annotation is present; defaults to false")
+  public void setExcludeClassByDefault(boolean excludeClassByDefault) {
+    this.excludeClassByDefault = excludeClassByDefault;
   }
 
   public boolean isHelp() {

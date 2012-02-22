@@ -75,6 +75,15 @@ public abstract class AbstractCompilerMojo extends JangarooMojo {
   private String publicApiViolations;
 
   /**
+   * If set to "true", the compiler will add an [ExcludeClass] annotation to any
+   * API stub whose source class contains neither an [IncludeClass] nor an [ExcludeClass]
+   * annotation.
+   *
+   * @parameter expression="${maven.compiler.excludeClassByDefault}" default-value="false"
+   */
+  private boolean excludeClassByDefault;
+
+  /**
    * If set to "true", the compiler will generate more detailed progress information.
    *
    * @parameter expression="${maven.compiler.verbose}" default-value="false"
@@ -170,6 +179,7 @@ public abstract class AbstractCompilerMojo extends JangarooMojo {
     configuration.setEnableAssertions(enableAssertions);
     configuration.setAllowDuplicateLocalVariables(allowDuplicateLocalVariables);
     configuration.setVerbose(verbose);
+    configuration.setExcludeClassByDefault(excludeClassByDefault);
 
     if (StringUtils.isNotEmpty(debuglevel)) {
       try {

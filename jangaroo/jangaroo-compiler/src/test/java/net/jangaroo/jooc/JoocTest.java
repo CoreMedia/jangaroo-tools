@@ -135,7 +135,17 @@ public class JoocTest {
     doTestClassCompilation("package1/ImportReduction");
   }
 
+  @Test
+  public void testImportReductionExcludeClass() throws Exception {
+    config.setExcludeClassByDefault(true);
+    doTestClassCompilation("package1/ImportReduction", "withExclude/");
+  }
+
   private void doTestClassCompilation(String path) throws URISyntaxException, IOException {
+    doTestClassCompilation(path, "");
+  }
+  
+  private void doTestClassCompilation(String path, String expectPath) throws URISyntaxException, IOException {
     File sourcefile = getFile("/" + path + ".as");
     config.addSourceFile(sourcefile);
     //noinspection ResultOfMethodCallIgnored
@@ -146,7 +156,7 @@ public class JoocTest {
     assertTrue(destFile.exists());
 
     String result = FileUtils.readFileToString(destFile);
-    String expected = FileUtils.readFileToString(getFile("/expectedApi/" + path + ".as"));
+    String expected = FileUtils.readFileToString(getFile("/expectedApi/" + expectPath + path + ".as"));
     assertEquals("Result file not equal", expected, result);
   }
 
