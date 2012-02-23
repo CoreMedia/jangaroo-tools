@@ -7,7 +7,7 @@ import net.jangaroo.exml.json.JsonObject;
 import net.jangaroo.exml.model.ConfigAttribute;
 import net.jangaroo.exml.model.ConfigClass;
 import net.jangaroo.exml.model.ConfigClassRegistry;
-import net.jangaroo.exml.model.ExcludeClassMode;
+import net.jangaroo.exml.model.IncludeClassMode;
 import net.jangaroo.exml.model.ExmlModel;
 import net.jangaroo.exml.model.Declaration;
 import net.jangaroo.exml.utils.ExmlUtils;
@@ -93,12 +93,12 @@ public final class ExmlToModelParser {
       //baseClass attribute has been specified, so the super class of the component is actually that
       if (Exmlc.EXML_BASE_CLASS_ATTRIBUTE.equals(attribute.getLocalName())) {
         model.setSuperClassName(attribute.getValue());
-      } else if (Exmlc.EXML_EXCLUDE_CLASS_ATTRIBUTE.equals(attribute.getLocalName())) {
+      } else if (Exmlc.EXML_INCLUDE_CLASS_ATTRIBUTE.equals(attribute.getLocalName())) {
         try {
-          model.setExcludeClassMode(ExcludeClassMode.valueOf(attribute.getValue().toUpperCase()));
+          model.setIncludeClassMode(IncludeClassMode.valueOf(attribute.getValue().toUpperCase()));
         } catch (IllegalArgumentException e) {
-          throw new ExmlcException("EXML attribute '" + Exmlc.EXML_EXCLUDE_CLASS_ATTRIBUTE + 
-             "' must have one the values 'false', 'target', or 'true'.");
+          throw new ExmlcException("EXML attribute '" + Exmlc.EXML_INCLUDE_CLASS_ATTRIBUTE +
+             "' must have one the values 'false', 'config', or 'true'.");
         }
       }
     }

@@ -7,7 +7,7 @@ import net.jangaroo.exml.model.ConfigClass;
 import net.jangaroo.exml.model.ConfigClassType;
 import net.jangaroo.exml.model.DescriptionHolder;
 import net.jangaroo.exml.model.Declaration;
-import net.jangaroo.exml.model.ExcludeClassMode;
+import net.jangaroo.exml.model.IncludeClassMode;
 import net.jangaroo.exml.utils.ExmlUtils;
 import net.jangaroo.utils.CharacterRecordingHandler;
 import org.w3c.dom.Attr;
@@ -57,12 +57,12 @@ public class ExmlMetadataHandler extends CharacterRecordingHandler {
 
         for (int i = 0; i < atts.getLength(); i++) {
           //baseClass attribute has been specified, so the super class of the component is actually that
-          if (Exmlc.EXML_EXCLUDE_CLASS_ATTRIBUTE.equals(atts.getLocalName(i))) {
+          if (Exmlc.EXML_INCLUDE_CLASS_ATTRIBUTE.equals(atts.getLocalName(i))) {
             try {
-              configClass.setExcluded(ExcludeClassMode.valueOf(atts.getValue(i).toUpperCase()) == ExcludeClassMode.TRUE);
+              configClass.setIncluded(IncludeClassMode.valueOf(atts.getValue(i).toUpperCase()) != IncludeClassMode.FALSE);
             } catch (IllegalArgumentException e) {
-              throw new ExmlcException("EXML attribute '" + Exmlc.EXML_EXCLUDE_CLASS_ATTRIBUTE +
-                      "' must have one the values 'false', 'target', or 'true'.");
+              throw new ExmlcException("EXML attribute '" + Exmlc.EXML_INCLUDE_CLASS_ATTRIBUTE +
+                      "' must have one the values 'false', 'config', or 'true'.");
             }
           }
         }

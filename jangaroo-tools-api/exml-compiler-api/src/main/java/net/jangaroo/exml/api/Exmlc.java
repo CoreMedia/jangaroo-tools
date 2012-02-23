@@ -66,7 +66,7 @@ public interface Exmlc {
    */
   String EXML_DECLARATION_VALUE_ATTRIBUTE = "value";
   String EXML_BASE_CLASS_ATTRIBUTE = "baseClass";
-  String EXML_EXCLUDE_CLASS_ATTRIBUTE = "excludeClass";
+  String EXML_INCLUDE_CLASS_ATTRIBUTE = "includeClass";
   String EXML_OBJECT_NODE_NAME = "object";
   String EXML_IMPORT_NODE_NAME = "import";
   String EXML_IMPORT_CLASS_ATTRIBUTE = "class";

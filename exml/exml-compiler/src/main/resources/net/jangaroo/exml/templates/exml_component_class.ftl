@@ -16,8 +16,8 @@ import ${import};
  *
  * @see ${model.configClass.fullName}
  */
-<#if model.excluded>
-[ExcludeClass]
+<#if model.included>
+[IncludeClass]
 </#if>
 public class ${model.className} extends ${model.superClassName} {
 <#list model.configClass.constants as constant>

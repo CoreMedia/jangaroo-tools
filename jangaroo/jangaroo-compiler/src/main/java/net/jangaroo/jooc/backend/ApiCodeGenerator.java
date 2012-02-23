@@ -1,6 +1,7 @@
 package net.jangaroo.jooc.backend;
 
 import net.jangaroo.jooc.JooSymbol;
+import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.SyntacticKeywords;
 import net.jangaroo.jooc.ast.Annotation;
@@ -420,7 +421,7 @@ public class ApiCodeGenerator extends CodeGeneratorBase {
   @Override
   public void visitClassDeclaration(ClassDeclaration classDeclaration) throws IOException {
     visitAll(classDeclaration.getDirectives());
-    if (out.getOptions().isExcludeClassByDefault()) {
+    if (isExcludeClassByDefault()) {
       // Add an [ExcludeClass] annotation, unless
       boolean needsExcludeClassAnnotation = true;
       for (AstNode node : classDeclaration.getDirectives()) {
@@ -428,12 +429,12 @@ public class ApiCodeGenerator extends CodeGeneratorBase {
           String metaName = ((Annotation) node).getMetaName();
           // ... an [IncludeClass] or [ExcludeClass] annotation is already present.
           needsExcludeClassAnnotation = needsExcludeClassAnnotation &&
-                  !"IncludeClass".equals(metaName) &&
-                  !"ExcludeClass".equals(metaName);
+                  !Jooc.PUBLIC_API_INCLUSION_ANNOTATION_NAME.equals(metaName) &&
+                  !Jooc.PUBLIC_API_EXCLUSION_ANNOTATION_NAME.equals(metaName);
         }
       }
       if (needsExcludeClassAnnotation) {
-        out.write("\n[ExcludeClass]");
+        out.write("\n[" + Jooc.PUBLIC_API_EXCLUSION_ANNOTATION_NAME + "]");
       }
     }
     writeModifiers(out, classDeclaration);
@@ -442,6 +443,15 @@ public class ApiCodeGenerator extends CodeGeneratorBase {
     visitIfNotNull(classDeclaration.getOptExtends());
     visitIfNotNull(classDeclaration.getOptImplements());
     classDeclaration.getBody().visit(this);
+  }
+
+  private boolean isExcludeClassByDefault() {
+    try {
+      return out.getOptions().isExcludeClassByDefault();
+    } catch (IncompatibleClassChangeError e) {
+      // ignore, old front ends did not know that you can exclude classes by default
+      return false;
+    }
   }
 
   @Override

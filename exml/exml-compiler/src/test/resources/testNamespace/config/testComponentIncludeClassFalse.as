@@ -1,36 +1,35 @@
 package testNamespace.config {
 
 import ext.config.panel;
-import testPackage.TestComponentExcludeClassTrue;
+import testPackage.TestComponentIncludeClassFalse;
 
 // Do not edit. This is an auto-generated class.
 
 /**
- * This is a TestComponent with excludeClass.
+ * This is a TestComponent with includeClass.
  *
- * <p>This class serves as a typed config object for the constructor of the class <code>testPackage.TestComponentExcludeClassTrue</code>.
- * It defines the EXML element <code>&lt;tc:testComponentExcludeClassTrue></code> with <code>xmlns:tc="exml:testNamespace.config"</code>.</p>
+ * <p>This class serves as a typed config object for the constructor of the class <code>testPackage.TestComponentIncludeClassFalse</code>.
+ * It defines the EXML element <code>&lt;tc:testComponentIncludeClassFalse></code> with <code>xmlns:tc="exml:testNamespace.config"</code>.</p>
  * <p>Using this config class also takes care of registering the target class under the xtype
- * <code>"testNamespace.config.testComponentExcludeClassTrue"</code> with Ext JS.</p>
+ * <code>"testNamespace.config.testComponentIncludeClassFalse"</code> with Ext JS.</p>
  *
- * @see testPackage.TestComponentExcludeClassTrue
+ * @see testPackage.TestComponentIncludeClassFalse
  */
-[ExtConfig(target="testPackage.TestComponentExcludeClassTrue", xtype)]
-[ExcludeClass]
-public dynamic class testComponentExcludeClassTrue extends ext.config.panel {
+[ExtConfig(target="testPackage.TestComponentIncludeClassFalse", xtype)]
+public dynamic class testComponentIncludeClassFalse extends ext.config.panel {
 
   public static native function get xtype():String;
 
   /**
    * <p>Use this constructor to create a typed config object for the constructor of the class
-   * <code>testPackage.TestComponentExcludeClassTrue</code>.
+   * <code>testPackage.TestComponentIncludeClassFalse</code>.
    * Using this config class also takes care of registering the target class under the xtype
-   * "testNamespace.config.testComponentExcludeClassTrue" with Ext JS.
+   * "testNamespace.config.testComponentIncludeClassFalse" with Ext JS.
    * </p>
    *
-   * @see testPackage.TestComponentExcludeClassTrue
+   * @see testPackage.TestComponentIncludeClassFalse
    */
-  public function testComponentExcludeClassTrue(config:Object = null) {
+  public function testComponentIncludeClassFalse(config:Object = null) {
     super(config || {});
   }
 

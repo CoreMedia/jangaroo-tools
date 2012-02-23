@@ -49,6 +49,7 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
   public static final String CLASS_LOADER_PACKAGE_NAME = "joo";
   public static final String CLASS_LOADER_FULLY_QUALIFIED_NAME = CLASS_LOADER_PACKAGE_NAME + "." + CLASS_LOADER_NAME;
   public static final String PUBLIC_API_EXCLUSION_ANNOTATION_NAME = "ExcludeClass";
+  public static final String PUBLIC_API_INCLUSION_ANNOTATION_NAME = "ExcludeClass";
 
   private List<CompilationUnit> compileQueue = new ArrayList<CompilationUnit>();
 

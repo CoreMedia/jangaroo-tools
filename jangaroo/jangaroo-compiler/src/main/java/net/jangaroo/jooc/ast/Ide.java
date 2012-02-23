@@ -148,7 +148,6 @@ public class Ide extends NodeImplBase {
     if (decl != null && decl.isPrimaryDeclaration()) {
       CompilationUnit currentUnit = getScope().getCompilationUnit();
       CompilationUnit compilationUnit = decl.getIde().getScope().getCompilationUnit();
-      currentUnit.addDependency(compilationUnit);
       currentUnit.addPublicApiDependency(compilationUnit);
     }
   }

@@ -20,8 +20,8 @@ import ${import};
  * @see ${componentClassName}
  */
 [ExtConfig(target="${componentClassName}"<#if type??>, ${type.type}</#if>)]
-<#if excluded>
-[ExcludeClass]
+<#if included>
+[IncludeClass]
 </#if>
 public dynamic class ${name} extends ${superClassName} {
 <#list constants as constant>

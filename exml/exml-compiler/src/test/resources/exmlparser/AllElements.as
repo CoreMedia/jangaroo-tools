@@ -16,7 +16,6 @@ import ext.Panel;
  *
  * @see exmlparser.config.allElements
  */
-[ExcludeClass]
 public class AllElements extends ext.Panel {
   /**
    * This is my <b>constant</b>

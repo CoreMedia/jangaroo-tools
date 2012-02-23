@@ -42,10 +42,10 @@
      </xs:restriction>
   </xs:simpleType>
 
-  <xs:simpleType name="excludeClassMode">
+  <xs:simpleType name="includeClassMode">
      <xs:restriction base="xs:string">
         <xs:enumeration value="false"/>
-        <xs:enumeration value="target"/>
+        <xs:enumeration value="config"/>
         <xs:enumeration value="true"/>
      </xs:restriction>
   </xs:simpleType>
@@ -181,12 +181,12 @@
         </xs:documentation>
       </xs:annotation>
     </xs:attribute>
-    <xs:attribute name="excludeClass" type="exml:excludeClassMode">
+    <xs:attribute name="includeClass" type="exml:includeClassMode">
       <xs:annotation>
         <xs:documentation>
-          <p>Defines the public API status of the generated classes. If <code>false</code> (default), both the config
-            class and the target class are public API. If <code>target</code>, the config class is public API, but the
-            target class is excluded. If <code>true</code>, both the config class and the target class are excluded
+          <p>Defines the public API status of the generated classes. If <code>true</code> (default), both the config
+            class and the target class are public API. If <code>config</code>, the config class is public API, but the
+            target class is excluded. If <code>false</code>, both the config class and the target class are excluded
             from public API.</p>
         </xs:documentation>
       </xs:annotation>

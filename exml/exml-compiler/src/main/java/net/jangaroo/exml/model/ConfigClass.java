@@ -28,7 +28,7 @@ public final class ConfigClass extends DescriptionHolder {
   private String componentClassName;
   private ConfigClassType type;
   private String typeValue;
-  private boolean excluded;
+  private boolean included = false;
   private Set<String> imports = new LinkedHashSet<String>();
 
   public ConfigClass() {
@@ -165,12 +165,12 @@ public final class ConfigClass extends DescriptionHolder {
     return superClassName;
   }
 
-  public boolean isExcluded() {
-    return excluded;
+  public boolean isIncluded() {
+    return included;
   }
 
-  public void setExcluded(boolean excluded) {
-    this.excluded = excluded;
+  public void setIncluded(boolean included) {
+    this.included = included;
   }
 
   public void addImport(String importedClassName) {
