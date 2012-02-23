@@ -358,9 +358,6 @@ public class ApiCodeGenerator extends CodeGeneratorBase {
         Initializer optInitializer = variableDeclaration.getOptInitializer();
         if (optInitializer != null && optInitializer.getValue().isCompileTimeConstant()) {
           visitIfNotNull(optInitializer);
-        } else {
-          // An expression that is not a compile-time constant and that is guaranteed to by type compliant.
-          out.write(" = {}[0]");
         }
       }
       visitIfNotNull(variableDeclaration.getOptNextVariableDeclaration());
