@@ -1,35 +1,36 @@
 package testNamespace.config {
 
 import ext.config.panel;
-import testPackage.TestComponentIncludeClassFalse;
+import testPackage.TestComponentPublicApiTrue;
 
 // Do not edit. This is an auto-generated class.
 
 /**
- * This is a TestComponent with includeClass.
+ * This is a TestComponent with publicApi.
  *
- * <p>This class serves as a typed config object for the constructor of the class <code>testPackage.TestComponentIncludeClassFalse</code>.
- * It defines the EXML element <code>&lt;tc:testComponentIncludeClassFalse></code> with <code>xmlns:tc="exml:testNamespace.config"</code>.</p>
+ * <p>This class serves as a typed config object for the constructor of the class <code>testPackage.TestComponentPublicApiTrue</code>.
+ * It defines the EXML element <code>&lt;tc:testComponentPublicApiTrue></code> with <code>xmlns:tc="exml:testNamespace.config"</code>.</p>
  * <p>Using this config class also takes care of registering the target class under the xtype
- * <code>"testNamespace.config.testComponentIncludeClassFalse"</code> with Ext JS.</p>
+ * <code>"testNamespace.config.testComponentPublicApiTrue"</code> with Ext JS.</p>
  *
- * @see testPackage.TestComponentIncludeClassFalse
+ * @see testPackage.TestComponentPublicApiTrue
  */
-[ExtConfig(target="testPackage.TestComponentIncludeClassFalse", xtype)]
-public dynamic class testComponentIncludeClassFalse extends ext.config.panel {
+[ExtConfig(target="testPackage.TestComponentPublicApiTrue", xtype)]
+[PublicApi]
+public dynamic class testComponentPublicApiTrue extends ext.config.panel {
 
   public static native function get xtype():String;
 
   /**
    * <p>Use this constructor to create a typed config object for the constructor of the class
-   * <code>testPackage.TestComponentIncludeClassFalse</code>.
+   * <code>testPackage.TestComponentPublicApiTrue</code>.
    * Using this config class also takes care of registering the target class under the xtype
-   * "testNamespace.config.testComponentIncludeClassFalse" with Ext JS.
+   * "testNamespace.config.testComponentPublicApiTrue" with Ext JS.
    * </p>
    *
-   * @see testPackage.TestComponentIncludeClassFalse
+   * @see testPackage.TestComponentPublicApiTrue
    */
-  public function testComponentIncludeClassFalse(config:Object = null) {
+  public function testComponentPublicApiTrue(config:Object = null) {
     super(config || {});
   }
 

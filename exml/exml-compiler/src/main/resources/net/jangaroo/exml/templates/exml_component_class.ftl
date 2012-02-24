@@ -17,7 +17,7 @@ import ${import};
  * @see ${model.configClass.fullName}
  */
 <#if model.included>
-[IncludeClass]
+[PublicApi]
 </#if>
 public class ${model.className} extends ${model.superClassName} {
 <#list model.configClass.constants as constant>

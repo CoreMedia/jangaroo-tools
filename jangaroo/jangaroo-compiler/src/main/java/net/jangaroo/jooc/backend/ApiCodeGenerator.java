@@ -421,7 +421,7 @@ public class ApiCodeGenerator extends CodeGeneratorBase {
       for (AstNode node : classDeclaration.getDirectives()) {
         if (node instanceof Annotation) {
           String metaName = ((Annotation) node).getMetaName();
-          // ... an [IncludeClass] or [ExcludeClass] annotation is already present.
+          // ... an [PublicApi] or [ExcludeClass] annotation is already present.
           needsExcludeClassAnnotation = needsExcludeClassAnnotation &&
                   !Jooc.PUBLIC_API_INCLUSION_ANNOTATION_NAME.equals(metaName) &&
                   !Jooc.PUBLIC_API_EXCLUSION_ANNOTATION_NAME.equals(metaName);

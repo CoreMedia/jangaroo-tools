@@ -76,7 +76,7 @@ public abstract class AbstractCompilerMojo extends JangarooMojo {
 
   /**
    * If set to "true", the compiler will add an [ExcludeClass] annotation to any
-   * API stub whose source class contains neither an [IncludeClass] nor an [ExcludeClass]
+   * API stub whose source class contains neither an [PublicApi] nor an [ExcludeClass]
    * annotation.
    *
    * @parameter expression="${maven.compiler.excludeClassByDefault}" default-value="false"

@@ -136,7 +136,7 @@ public class JoocTest {
   }
 
   @Test
-  public void testIncludeClassApi() throws Exception {
+  public void testPublicApiApi() throws Exception {
     config.setExcludeClassByDefault(true);
     assertApiCompilationResult("package1/IncludedClass");
   }

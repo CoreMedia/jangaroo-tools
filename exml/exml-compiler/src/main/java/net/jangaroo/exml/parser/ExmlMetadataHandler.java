@@ -7,10 +7,9 @@ import net.jangaroo.exml.model.ConfigClass;
 import net.jangaroo.exml.model.ConfigClassType;
 import net.jangaroo.exml.model.DescriptionHolder;
 import net.jangaroo.exml.model.Declaration;
-import net.jangaroo.exml.model.IncludeClassMode;
+import net.jangaroo.exml.model.PublicApiMode;
 import net.jangaroo.exml.utils.ExmlUtils;
 import net.jangaroo.utils.CharacterRecordingHandler;
-import org.w3c.dom.Attr;
 import org.xml.sax.Attributes;
 import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
@@ -57,11 +56,11 @@ public class ExmlMetadataHandler extends CharacterRecordingHandler {
 
         for (int i = 0; i < atts.getLength(); i++) {
           //baseClass attribute has been specified, so the super class of the component is actually that
-          if (Exmlc.EXML_INCLUDE_CLASS_ATTRIBUTE.equals(atts.getLocalName(i))) {
+          if (Exmlc.EXML_PUBLIC_API_ATTRIBUTE.equals(atts.getLocalName(i))) {
             try {
-              configClass.setIncluded(IncludeClassMode.valueOf(atts.getValue(i).toUpperCase()) != IncludeClassMode.FALSE);
+              configClass.setIncluded(PublicApiMode.valueOf(atts.getValue(i).toUpperCase()) != PublicApiMode.FALSE);
             } catch (IllegalArgumentException e) {
-              throw new ExmlcException("EXML attribute '" + Exmlc.EXML_INCLUDE_CLASS_ATTRIBUTE +
+              throw new ExmlcException("EXML attribute '" + Exmlc.EXML_PUBLIC_API_ATTRIBUTE +
                       "' must have one the values 'false', 'config', or 'true'.");
             }
           }

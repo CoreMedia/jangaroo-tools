@@ -29,27 +29,27 @@ public class ExmlToConfigClassParserTest extends AbstractExmlTest {
   @Test
   public void testGenerateConfigExcludeClassFalse() throws Exception {
     setUp("testNamespace.config");
-    File result = new File(outputFolder.getRoot(), "testNamespace/config/testComponentIncludeClassFalse.as");
-    File source = getFile("/testPackage/TestComponentIncludeClassFalse.exml");
+    File result = new File(outputFolder.getRoot(), "testNamespace/config/testComponentPublicApiFalse.as");
+    File source = getFile("/testPackage/TestComponentPublicApiFalse.exml");
 
     File outputFile = getExmlc().generateConfigClass(source);
 
     assertNotNull(outputFile);
     assertTrue("Exml config file does not exist", result.exists());
-    assertEquals("The files differ!", FileUtils.readFileToString(getFile("/testNamespace/config/testComponentIncludeClassFalse.as")), FileUtils.readFileToString(result));
+    assertEquals("The files differ!", FileUtils.readFileToString(getFile("/testNamespace/config/testComponentPublicApiFalse.as")), FileUtils.readFileToString(result));
   }
 
   @Test
   public void testGenerateConfigExcludeClassTrue() throws Exception {
     setUp("testNamespace.config");
-    File result = new File(outputFolder.getRoot(), "testNamespace/config/testComponentIncludeClassTrue.as");
-    File source = getFile("/testPackage/TestComponentIncludeClassTrue.exml");
+    File result = new File(outputFolder.getRoot(), "testNamespace/config/testComponentPublicApiTrue.as");
+    File source = getFile("/testPackage/TestComponentPublicApiTrue.exml");
 
     File outputFile = getExmlc().generateConfigClass(source);
 
     assertNotNull(outputFile);
     assertTrue("Exml config file does not exist", result.exists());
-    assertEquals("The files differ!", FileUtils.readFileToString(getFile("/testNamespace/config/testComponentIncludeClassTrue.as")), FileUtils.readFileToString(result));
+    assertEquals("The files differ!", FileUtils.readFileToString(getFile("/testNamespace/config/testComponentPublicApiTrue.as")), FileUtils.readFileToString(result));
   }
 
   @Test

@@ -21,7 +21,7 @@ import ${import};
  */
 [ExtConfig(target="${componentClassName}"<#if type??>, ${type.type}</#if>)]
 <#if included>
-[IncludeClass]
+[PublicApi]
 </#if>
 public dynamic class ${name} extends ${superClassName} {
 <#list constants as constant>

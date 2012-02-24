@@ -79,8 +79,8 @@ public class ExmlModel extends DescriptionHolder {
     return included;
   }
 
-  public void setIncludeClassMode(IncludeClassMode includeClassMode) {
-    included = includeClassMode == IncludeClassMode.TRUE;
-    configClass.setIncluded(includeClassMode != IncludeClassMode.FALSE);
+  public void setPublicApiMode(PublicApiMode publicApiMode) {
+    included = publicApiMode == PublicApiMode.TRUE;
+    configClass.setIncluded(publicApiMode != PublicApiMode.FALSE);
   }
 }

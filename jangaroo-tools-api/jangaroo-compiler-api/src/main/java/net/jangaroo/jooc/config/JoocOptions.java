@@ -14,7 +14,7 @@ public interface JoocOptions {
 
   /**
    * If true, the compiler will add an [ExcludeClass] annotation to any
-   * API stub whose source class contains neither an [IncludeClass] nor an [ExcludeClass]
+   * API stub whose source class contains neither an [PublicApi] nor an [ExcludeClass]
    * annotation.
    */
   boolean isExcludeClassByDefault();

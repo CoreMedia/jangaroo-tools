@@ -1,6 +1,6 @@
 package package1 {
 [AnotherAnnotation]
-[IncludeClass]
+[PublicApi]
 public class IncludedClass {
 }
 }

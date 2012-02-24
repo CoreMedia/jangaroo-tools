@@ -91,7 +91,7 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
     return excludeClassByDefault;
   }
 
-  @Option(name="-ec", aliases = "--excludeClassByDefault", usage = "Whether to add an [ExcludeClass] annotation to a class whenever no [IncludeClass] annotation is present; defaults to false")
+  @Option(name="-ec", aliases = "--excludeClassByDefault", usage = "Whether to add an [ExcludeClass] annotation to a class whenever no [PublicApi] annotation is present; defaults to false")
   public void setExcludeClassByDefault(boolean excludeClassByDefault) {
     this.excludeClassByDefault = excludeClassByDefault;
   }
