@@ -19,6 +19,7 @@ import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * @author Andreas Gawecki
@@ -29,10 +30,15 @@ public class ObjectField extends NodeImplBase {
   private JooSymbol symColon;
   private Expr value;
 
-  public ObjectField(AstNode node, JooSymbol symColon, Expr value) {
-    this.label = node;
+  public ObjectField(AstNode label, JooSymbol symColon, Expr value) {
+    this.label = label;
     this.symColon = symColon;
     this.value = value;
+  }
+
+  @Override
+  public List<? extends AstNode> getChildren() {
+    return makeChildren(super.getChildren(), label, value);
   }
 
   @Override

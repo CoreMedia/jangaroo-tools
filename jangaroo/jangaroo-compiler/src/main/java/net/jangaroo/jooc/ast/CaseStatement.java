@@ -19,6 +19,7 @@ import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * @author Andreas Gawecki
@@ -32,6 +33,11 @@ public class CaseStatement extends KeywordStatement {
     super(symCase);
     this.expr = expr;
     this.symColon = symColon;
+  }
+
+  @Override
+  public List<? extends AstNode> getChildren() {
+    return makeChildren(super.getChildren(), expr);
   }
 
   @Override

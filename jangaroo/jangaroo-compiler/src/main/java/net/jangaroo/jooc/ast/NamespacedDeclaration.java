@@ -19,6 +19,7 @@ import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.SyntacticKeywords;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * @author Frank Wienberg
@@ -39,6 +40,11 @@ public class NamespacedDeclaration extends IdeDeclaration {
     this.symNamespace = symNamespace;
     this.optInitializer = optInitializer;
     this.optSymSemicolon = optSymSemicolon;
+  }
+
+  @Override
+  public List<? extends AstNode> getChildren() {
+    return makeChildren(super.getChildren(), optInitializer);
   }
 
   @Override

@@ -20,6 +20,9 @@ import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -30,6 +33,27 @@ public abstract class NodeImplBase implements AstNode {
     throw new UnsupportedOperationException();
   }
 
+  public List<? extends AstNode> getChildren() {
+    return Collections.emptyList();
+  }
+
+  public List<AstNode> makeChildren(Object  ... objects) {
+    List<AstNode> result = new ArrayList<AstNode>();
+    for (Object object : objects) {
+      if (object instanceof AstNode) {
+        result.add((AstNode) object);
+      } else if (object instanceof Collection) {
+        Collection<?> subobjects = (Collection<?>) object;
+        for (Object subobject : subobjects) {
+          if (subobject instanceof AstNode) {
+            result.add((AstNode) subobject);
+          }
+        }
+      }
+    }
+    return result;
+  }
+
   public void analyze(AstNode parentNode) {
   }
 
@@ -38,15 +62,15 @@ public abstract class NodeImplBase implements AstNode {
       node.scope(scope);
     }
   }
-
   public <N extends AstNode> void analyze(AstNode parent, List<N> nodes) {
     for (AstNode node : nodes) {
       node.analyze(parent);
     }
   }
-
   public interface Scoped {
+
     void run(Scope scope);
+
   }
 
   public void withNewDeclarationScope(final AstNode definingNode, final Scope scope, final Scoped scoped) {
@@ -56,5 +80,4 @@ public abstract class NodeImplBase implements AstNode {
   public void withNewLabelScope(final Statement statement, final Scope scope, final Scoped scoped) {
     scoped.run(new LabelScope(statement, scope));
   }
-
 }

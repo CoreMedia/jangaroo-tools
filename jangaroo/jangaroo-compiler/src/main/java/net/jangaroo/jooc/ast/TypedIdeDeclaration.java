@@ -19,6 +19,8 @@ import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
 
+import java.util.List;
+
 /**
  * @author Andreas Gawecki
  */
@@ -40,6 +42,11 @@ public abstract class TypedIdeDeclaration extends IdeDeclaration {
       }
     }
     return null;
+  }
+
+  @Override
+  public List<? extends AstNode> getChildren() {
+    return makeChildren(super.getChildren(), optTypeRelation);
   }
 
   @Override

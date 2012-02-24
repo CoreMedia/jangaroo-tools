@@ -30,6 +30,10 @@ public abstract class Expr extends NodeImplBase {
     this.type = type;
   }
 
+  public boolean isRuntimeConstant() {
+    return false;
+  }
+
   public boolean isCompileTimeConstant() {
     return false;
   }

@@ -19,6 +19,7 @@ import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
+import java.util.List;
 
 
 /**
@@ -32,6 +33,11 @@ public class ArrayIndexExpr extends Expr {
   public ArrayIndexExpr(Expr array, JooSymbol lBrac, Expr index, JooSymbol rBrac) {
     this.array = array;
     this.indexExpr = new ParenthesizedExpr<Expr>(lBrac, index, rBrac);
+  }
+
+  @Override
+  public List<? extends AstNode> getChildren() {
+    return makeChildren(super.getChildren(), array, indexExpr);
   }
 
   @Override

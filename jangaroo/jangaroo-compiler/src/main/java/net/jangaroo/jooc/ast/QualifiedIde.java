@@ -21,6 +21,7 @@ import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * @author Andreas Gawecki
@@ -35,6 +36,11 @@ public class QualifiedIde extends Ide {
     this.qualifier = qualifier;
     this.symDot = symDot;
     qualifier.setQualified(this);
+  }
+
+  @Override
+  public List<? extends AstNode> getChildren() {
+    return makeChildren(super.getChildren(), qualifier);
   }
 
   @Override

@@ -21,6 +21,7 @@ import net.jangaroo.jooc.Scope;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -38,6 +39,11 @@ public class ApplyExpr extends Expr {
   public ApplyExpr(Expr fun, JooSymbol lParen, CommaSeparatedList<Expr> args, JooSymbol rParen) {
     this.fun = fun;
     this.args = new ParenthesizedExpr<CommaSeparatedList<Expr>>(lParen, args, rParen);
+  }
+
+  @Override
+  public List<? extends AstNode> getChildren() {
+    return makeChildren(super.getChildren(), fun, args);
   }
 
   @Override

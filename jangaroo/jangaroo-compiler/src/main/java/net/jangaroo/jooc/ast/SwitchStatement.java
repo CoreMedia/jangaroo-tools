@@ -36,6 +36,11 @@ public class SwitchStatement extends KeywordStatement {
   }
 
   @Override
+  public List<? extends AstNode> getChildren() {
+    return makeChildren(super.getChildren(), cond, block);
+  }
+
+  @Override
   public void visit(AstVisitor visitor) throws IOException {
     visitor.visitSwitchStatement(this);
   }

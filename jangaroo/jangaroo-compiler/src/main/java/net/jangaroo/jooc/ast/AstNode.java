@@ -20,6 +20,7 @@ import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * @author Andreas Gawecki
@@ -27,6 +28,8 @@ import java.io.IOException;
 public interface AstNode extends CodeGenerator {
 
   JooSymbol getSymbol();
+
+  List<? extends AstNode> getChildren();
 
   void scope(Scope scope);
 

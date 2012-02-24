@@ -21,6 +21,7 @@ import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.SyntacticKeywords;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * @author Frank Wienberg
@@ -38,6 +39,11 @@ public class UseNamespaceDirective extends Directive {
     this.namespaceKeyword = namespaceKeyword;
     this.namespace = namespace;
     this.symSemicolon = symSemicolon;
+  }
+
+  @Override
+  public List<? extends AstNode> getChildren() {
+    return makeChildren(super.getChildren(), namespace);
   }
 
   @Override

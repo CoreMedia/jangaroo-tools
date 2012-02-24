@@ -19,6 +19,7 @@ import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * @author Andreas Gawecki
@@ -31,6 +32,11 @@ public class Initializer extends NodeImplBase {
   public Initializer(JooSymbol symEq, Expr value) {
     this.symEq = symEq;
     this.value = value;
+  }
+
+  @Override
+  public List<? extends AstNode> getChildren() {
+    return makeChildren(super.getChildren(), value);
   }
 
   @Override
@@ -60,4 +66,18 @@ public class Initializer extends NodeImplBase {
     return value;
   }
 
+  void addPublicApiDependencies() {
+    if (value.isCompileTimeConstant()) {
+      try {
+        value.visit(new TransitiveAstVisitor(new AstVisitorBase() {
+          @Override
+          public void visitQualifiedIde(QualifiedIde qualifiedIde) throws IOException {
+            qualifiedIde.addPublicApiDependency();
+          }
+        }));
+      } catch (IOException e) {
+        throw new IllegalStateException("should not happen");
+      }
+    }
+  }
 }

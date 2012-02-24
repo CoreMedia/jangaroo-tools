@@ -69,6 +69,11 @@ public class ClassDeclaration extends IdeDeclaration {
     this.body = body;
   }
 
+  @Override
+  public List<? extends AstNode> getChildren() {
+    return makeChildren(super.getChildren(), directives, optExtends, optImplements, body);
+  }
+
   public FunctionDeclaration getConstructor() {
     return constructor;
   }

@@ -18,6 +18,8 @@ package net.jangaroo.jooc.ast;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 
+import java.util.List;
+
 
 /**
  * @author Andreas Gawecki
@@ -29,6 +31,11 @@ public abstract class LoopStatement extends KeywordStatement {
   public LoopStatement(JooSymbol symLoop, Statement body) {
     super(symLoop);
     this.setBody(body);
+  }
+
+  @Override
+  public List<? extends AstNode> getChildren() {
+    return makeChildren(super.getChildren(), body);
   }
 
   @Override

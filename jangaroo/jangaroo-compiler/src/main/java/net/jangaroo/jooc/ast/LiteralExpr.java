@@ -44,6 +44,10 @@ public class LiteralExpr extends Expr {
     return getValue();
   }
 
+  public boolean isRuntimeConstant() {
+    return true;
+  }
+
   public boolean isCompileTimeConstant() {
     return true;
   }

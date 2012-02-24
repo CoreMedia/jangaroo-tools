@@ -18,6 +18,7 @@ import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * An annotation (square bracket meta data).
@@ -47,6 +48,11 @@ public class Annotation extends Directive {
     for (CommaSeparatedList<AnnotationParameter> params = optAnnotationParameters; params != null; params = params.getTail()) {
       params.getHead().setParentAnnotation(this);
     }
+  }
+
+  @Override
+  public List<? extends AstNode> getChildren() {
+    return makeChildren(super.getChildren(), ide, optAnnotationParameters);
   }
 
   @Override

@@ -887,7 +887,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     if (variableDeclaration.getOptInitializer() != null) {
       out.writeSymbolWhitespace(variableDeclaration.getOptInitializer().getSymEq());
       out.write(':');
-      boolean mustEvaluateAtRuntime = !variableDeclaration.getOptInitializer().getValue().isCompileTimeConstant();
+      boolean mustEvaluateAtRuntime = !variableDeclaration.getOptInitializer().getValue().isRuntimeConstant();
       if (mustEvaluateAtRuntime) {
         out.writeToken("function(){return(");
       }

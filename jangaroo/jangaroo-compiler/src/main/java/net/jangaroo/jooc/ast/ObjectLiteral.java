@@ -19,6 +19,7 @@ import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * @author Andreas Gawecki
@@ -41,6 +42,11 @@ public class ObjectLiteral extends Expr {
     this.fields = fields;
     this.optComma = optComma;
     this.rBrace = rBrace;
+  }
+
+  @Override
+  public List<? extends AstNode> getChildren() {
+    return makeChildren(super.getChildren(), fields);
   }
 
   @Override

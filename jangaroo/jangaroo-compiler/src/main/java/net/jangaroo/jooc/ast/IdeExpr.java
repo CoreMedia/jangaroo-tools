@@ -19,6 +19,7 @@ import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * @author Andreas Gawecki
@@ -37,6 +38,11 @@ public class IdeExpr extends Expr {
 
   public static IdeExpr fromPrefix(JooSymbol symPrefix, JooSymbol symDot, Ide ide) {
     return new IdeExpr(ide.qualify(symPrefix, symDot));
+  }
+
+  @Override
+  public List<? extends AstNode> getChildren() {
+    return makeChildren(super.getChildren(), ide);
   }
 
   @Override
@@ -62,12 +68,32 @@ public class IdeExpr extends Expr {
   }
 
   @Override
-  public boolean isCompileTimeConstant() {
-    String qualifiedNameStr = getIde().getQualifiedNameStr();
+  public boolean isRuntimeConstant() {
+    String qualifiedNameStr = ide.getQualifiedNameStr();
     return qualifiedNameStr.equals("undefined") || qualifiedNameStr.equals("NaN");
   }
 
-  public Ide getIde() {
+  @Override
+  public boolean isCompileTimeConstant() {
+    if (isRuntimeConstant()) {
+      return true;
+    }
+
+    IdeDeclaration declaration = ide.getDeclaration(false);
+    if (declaration != null) {
+      return declaration.isDeclaringCompileTimeConstant();
+    } else if (ide.isQualified()) {
+      IdeDeclaration qualifierDeclaration = ide.getQualifier().getDeclaration(false);
+      if (qualifierDeclaration instanceof ClassDeclaration) {
+        ClassDeclaration classDeclaration = (ClassDeclaration) qualifierDeclaration;
+        TypedIdeDeclaration staticMemberDeclaration = classDeclaration.getStaticMemberDeclaration(ide.getName());
+        return staticMemberDeclaration.isDeclaringCompileTimeConstant();
+      }
+    }
+    return false;
+  }
+
+  public final Ide getIde() {
     return ide;
   }
 

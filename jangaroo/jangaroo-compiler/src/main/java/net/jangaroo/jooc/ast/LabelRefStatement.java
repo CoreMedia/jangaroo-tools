@@ -19,6 +19,8 @@ import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
 
+import java.util.List;
+
 /**
  * A LabelRefStatement is either a break or continue statement
  *
@@ -34,6 +36,11 @@ public abstract class LabelRefStatement extends KeywordExprStatement {
   private Ide optLabel;
 
   private LabeledStatement labelDeclaration = null;
+
+  @Override
+  public List<? extends AstNode> getChildren() {
+    return makeChildren(super.getChildren(), optLabel);
+  }
 
   @Override
   public void scope(final Scope scope) {

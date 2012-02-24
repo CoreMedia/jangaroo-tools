@@ -18,6 +18,7 @@ package net.jangaroo.jooc.ast;
 import net.jangaroo.jooc.JooSymbol;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * @author Andreas Gawecki

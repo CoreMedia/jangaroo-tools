@@ -19,6 +19,7 @@ import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * @author Andreas Gawecki
@@ -30,6 +31,11 @@ public class Implements extends NodeImplBase {
   public Implements(JooSymbol symImplements, CommaSeparatedList<Ide> superTypes) {
     this.symImplements = symImplements;
     this.superTypes = superTypes;
+  }
+
+  @Override
+  public List<? extends AstNode> getChildren() {
+    return makeChildren(super.getChildren(), superTypes);
   }
 
   @Override

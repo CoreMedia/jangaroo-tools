@@ -20,6 +20,7 @@ import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.sym;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * @author Andreas Gawecki
@@ -50,6 +51,11 @@ public class ImportDirective extends Directive {
     this.importKeyword = importKeyword;
     this.ide = ide;
     this.explicit = explicit;
+  }
+
+  @Override
+  public List<? extends AstNode> getChildren() {
+    return makeChildren(super.getChildren(), ide);
   }
 
   private static Ide createIde(Ide prefix, JooSymbol symIde) {

@@ -21,6 +21,7 @@ import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.sym;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * @author Andreas Gawecki
@@ -37,6 +38,11 @@ public class Parameter extends IdeDeclaration {
     this.optSymConstOrRest = optSymConst;
     this.optTypeRelation = optTypeRelation;
     this.optInitializer = optInitializer;
+  }
+
+  @Override
+  public List<? extends AstNode> getChildren() {
+    return makeChildren(super.getChildren(), optTypeRelation, optInitializer);
   }
 
   @Override

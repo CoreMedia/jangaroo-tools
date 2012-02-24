@@ -19,6 +19,8 @@ package net.jangaroo.jooc.ast;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 
+import java.util.List;
+
 /**
  * @author Andreas Gawecki
  */
@@ -32,6 +34,11 @@ public abstract class UnaryOpExpr extends OpExpr {
   }
 
   @Override
+  public List<? extends AstNode> getChildren() {
+    return makeChildren(super.getChildren(), arg);
+  }
+
+  @Override
   public void scope(final Scope scope) {
     getArg().scope(scope);
   }
@@ -39,6 +46,10 @@ public abstract class UnaryOpExpr extends OpExpr {
   public void analyze(AstNode parentNode) {
     super.analyze(parentNode);
     getArg().analyze(this);
+  }
+
+  public boolean isRuntimeConstant() {
+    return getArg().isRuntimeConstant();
   }
 
   public boolean isCompileTimeConstant() {

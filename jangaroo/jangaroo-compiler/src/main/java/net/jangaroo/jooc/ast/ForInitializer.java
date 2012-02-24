@@ -19,6 +19,7 @@ import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * @author Andreas Gawecki
@@ -34,6 +35,11 @@ public class ForInitializer extends NodeImplBase {
 
   public ForInitializer(Expr expr) {
     this.expr = expr;
+  }
+
+  @Override
+  public List<? extends AstNode> getChildren() {
+    return makeChildren(super.getChildren(), decl, expr);
   }
 
   @Override

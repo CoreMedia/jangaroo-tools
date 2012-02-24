@@ -44,6 +44,11 @@ public class TryStatement extends KeywordStatement {
   }
 
   @Override
+  public List<? extends AstNode> getChildren() {
+    return makeChildren(super.getChildren(), block, catches, finallyBlock);
+  }
+
+  @Override
   public void visit(AstVisitor visitor) throws IOException {
     visitor.visitTryStatement(this);
   }

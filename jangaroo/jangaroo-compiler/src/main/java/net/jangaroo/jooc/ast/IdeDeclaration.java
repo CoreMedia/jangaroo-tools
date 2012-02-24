@@ -19,6 +19,7 @@ import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
 
+import java.util.List;
 import java.util.regex.Pattern;
 
 
@@ -41,6 +42,11 @@ public abstract class IdeDeclaration extends Declaration {
 
   protected IdeDeclaration(Ide ide) {
     this(new JooSymbol[0], ide);
+  }
+
+  @Override
+  public List<? extends AstNode> getChildren() {
+    return makeChildren(super.getChildren(), ide);
   }
 
   public Ide getIde() {
@@ -127,6 +133,10 @@ public abstract class IdeDeclaration extends Declaration {
             getIde().getScope() != null &&
             getIde().getScope().getCompilationUnit() != null &&
             this == getIde().getScope().getCompilationUnit().getPrimaryDeclaration();
+  }
+
+  public boolean isDeclaringCompileTimeConstant() {
+    return false;
   }
 
   public void setIde(Ide ide) {

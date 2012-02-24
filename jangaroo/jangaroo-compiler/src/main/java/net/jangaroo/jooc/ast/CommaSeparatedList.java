@@ -19,6 +19,7 @@ import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * @author Andreas Gawecki
@@ -36,6 +37,11 @@ public class CommaSeparatedList<T extends AstNode> extends Expr {
     this.head = head;
     this.symComma = comma;
     this.tail = tail;
+  }
+
+  @Override
+  public List<? extends AstNode> getChildren() {
+    return makeChildren(super.getChildren(), head, tail);
   }
 
   @Override

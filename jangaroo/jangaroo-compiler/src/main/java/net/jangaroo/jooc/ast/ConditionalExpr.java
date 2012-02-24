@@ -19,6 +19,7 @@ import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * @author Andreas Gawecki
@@ -37,6 +38,11 @@ public class ConditionalExpr extends Expr {
     this.ifTrue = ifTrue;
     this.symColon = symColon;
     this.ifFalse = ifFalse;
+  }
+
+  @Override
+  public List<? extends AstNode> getChildren() {
+    return makeChildren(super.getChildren(), cond, ifTrue, ifFalse);
   }
 
   @Override
@@ -60,6 +66,10 @@ public class ConditionalExpr extends Expr {
 
   public JooSymbol getSymbol() {
     return getCond().getSymbol();
+  }
+
+  public boolean isRuntimeConstant() {
+    return getCond().isRuntimeConstant() && getIfTrue().isRuntimeConstant() && getIfFalse().isRuntimeConstant();
   }
 
   public boolean isCompileTimeConstant() {

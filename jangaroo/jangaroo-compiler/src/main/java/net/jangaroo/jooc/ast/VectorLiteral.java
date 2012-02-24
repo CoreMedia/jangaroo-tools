@@ -4,6 +4,7 @@ import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * @author fwienber
@@ -22,6 +23,11 @@ public class VectorLiteral extends Expr {
     this.type = type;
     this.symGt = symGt;
     this.arrayLiteral = arrayLiteral;
+  }
+
+  @Override
+  public List<? extends AstNode> getChildren() {
+    return makeChildren(super.getChildren(), type, arrayLiteral);
   }
 
   @Override

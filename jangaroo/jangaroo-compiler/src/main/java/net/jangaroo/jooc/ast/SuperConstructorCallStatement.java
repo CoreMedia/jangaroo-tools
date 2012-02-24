@@ -20,6 +20,7 @@ import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
+import java.util.List;
 
 
 /**
@@ -36,6 +37,11 @@ public class SuperConstructorCallStatement extends Statement {
     this.fun = new IdeExpr(symSuper);
     this.args = new ParenthesizedExpr<CommaSeparatedList<Expr>>(lParen, args, rParen);
     this.symSemicolon = symSemicolon;
+  }
+
+  @Override
+  public List<? extends AstNode> getChildren() {
+    return makeChildren(super.getChildren(), fun, args);
   }
 
   @Override

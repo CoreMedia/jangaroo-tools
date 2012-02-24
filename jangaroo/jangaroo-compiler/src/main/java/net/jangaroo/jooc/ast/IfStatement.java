@@ -19,6 +19,7 @@ import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * @author Andreas Gawecki
@@ -40,6 +41,11 @@ public class IfStatement extends KeywordStatement {
     this.ifTrue = ifTrue;
     this.symElse = symElse;
     this.ifFalse = ifFalse;
+  }
+
+  @Override
+  public List<? extends AstNode> getChildren() {
+    return makeChildren(super.getChildren(), cond, ifTrue, ifFalse);
   }
 
   @Override

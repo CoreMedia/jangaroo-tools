@@ -23,6 +23,7 @@ import net.jangaroo.jooc.sym;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -37,6 +38,9 @@ public class VariableDeclaration extends TypedIdeDeclaration {
   private VariableDeclaration optNextVariableDeclaration;
   private JooSymbol optSymSemicolon;
 
+  // null: not yet computed; false: no constant or currently computing; true: constant
+  private Boolean declaringCompileTimeConstant = null;
+  
   private VariableDeclaration previousVariableDeclaration;
 
   public VariableDeclaration(JooSymbol[] modifiers,
@@ -58,6 +62,11 @@ public class VariableDeclaration extends TypedIdeDeclaration {
         optNextVariableDeclaration.setInheritedModifiers(modifiers);
       }
     }
+  }
+
+  @Override
+  public List<? extends AstNode> getChildren() {
+    return makeChildren(super.getChildren(), optInitializer, optNextVariableDeclaration);
   }
 
   @Override
@@ -115,8 +124,14 @@ public class VariableDeclaration extends TypedIdeDeclaration {
     }
   }
 
-  public boolean isCompileTimeConstant() {
-    return isConst() && (getOptInitializer() == null || getOptInitializer().getValue().isCompileTimeConstant());
+  public boolean isDeclaringCompileTimeConstant() {
+    if (declaringCompileTimeConstant == null) {
+      declaringCompileTimeConstant = false; // avoid infinite recursion if a const is defined using itself
+      if (isConst()) {
+        declaringCompileTimeConstant = getOptInitializer() == null || getOptInitializer().getValue().isCompileTimeConstant();
+      }
+    }
+    return declaringCompileTimeConstant;
   }
 
   public void analyze(AstNode parentNode) {
@@ -130,8 +145,11 @@ public class VariableDeclaration extends TypedIdeDeclaration {
     if (getOptNextVariableDeclaration() != null) {
       getOptNextVariableDeclaration().analyze(this);
     }
-    if (isClassMember() && !isStatic() && getOptInitializer() != null && !getOptInitializer().getValue().isCompileTimeConstant()) {
+    if (isClassMember() && !isStatic() && getOptInitializer() != null && !getOptInitializer().getValue().isRuntimeConstant()) {
       getClassDeclaration().addFieldWithInitializer(this);
+    }
+    if (isClassMember() && isConst() && isPublicApi() && getOptInitializer() != null && getOptInitializer().getValue().isCompileTimeConstant()) {
+      getOptInitializer().addPublicApiDependencies();
     }
   }
 

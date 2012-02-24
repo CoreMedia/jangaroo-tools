@@ -5,6 +5,7 @@ import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * Created by IntelliJ IDEA. User: fwienber Date: 27.02.11 Time: 17:08 To change this template use File | Settings |
@@ -23,6 +24,11 @@ public class IdeWithTypeParam extends Ide {
     this.symDotLt = symDotLt;
     this.type = type;
     this.symGt = symGt;
+  }
+
+  @Override
+  public List<? extends AstNode> getChildren() {
+    return makeChildren(super.getChildren(), type);
   }
 
   public JooSymbol getOriginalIde() {

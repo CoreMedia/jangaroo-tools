@@ -21,6 +21,7 @@ import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.sym;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * @author Frank Wienberg
@@ -37,6 +38,11 @@ public class AnnotationParameter extends NodeImplBase {
     this.optName = optName;
     this.optSymEq = optSymEq;
     this.value = value;
+  }
+
+  @Override
+  public List<? extends AstNode> getChildren() {
+    return makeChildren(super.getChildren(), optName, value);
   }
 
   @Override

@@ -20,6 +20,7 @@ import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * @author Andreas Gawecki
@@ -32,6 +33,11 @@ public class DotExpr extends PostfixOpExpr {
   public DotExpr(Expr expr, JooSymbol symDot, Ide ide) {
     super(symDot, expr);
     this.ide = ide;
+  }
+
+  @Override
+  public List<? extends AstNode> getChildren() {
+    return makeChildren(super.getChildren(), ide);
   }
 
   @Override

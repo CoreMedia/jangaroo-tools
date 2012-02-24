@@ -21,6 +21,7 @@ import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.SyntacticKeywords;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * @author Andreas Gawecki
@@ -48,6 +49,11 @@ public class SemicolonTerminatedStatement extends Statement {
     Debug.assertTrue(optStatement != null || optSymSemicolon != null, "Both statement and semicolon not specified in SemicolonTerminatedStatement.");
     this.setOptStatement(optStatement);
     this.setOptSymSemicolon(optSymSemicolon);
+  }
+
+  @Override
+  public List<? extends AstNode> getChildren() {
+    return makeChildren(super.getChildren(), optStatement);
   }
 
   @Override

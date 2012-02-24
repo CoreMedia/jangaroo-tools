@@ -178,7 +178,7 @@ public class ApiCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitIdeExpression(IdeExpr ideExpr) throws IOException {
-    visitIde(ideExpr.getIde());
+    ideExpr.getIde().visit(this);
   }
 
   @Override
@@ -355,10 +355,7 @@ public class ApiCodeGenerator extends CodeGeneratorBase {
       TypeRelation optTypeRelation = variableDeclaration.getOptTypeRelation();
       visitIfNotNull(optTypeRelation);
       if (optSymConstOrVar.sym == sym.CONST) {
-        Initializer optInitializer = variableDeclaration.getOptInitializer();
-        if (optInitializer != null && optInitializer.getValue().isCompileTimeConstant()) {
-          visitIfNotNull(optInitializer);
-        }
+        visitIfNotNull(variableDeclaration.getOptInitializer());
       }
       visitIfNotNull(variableDeclaration.getOptNextVariableDeclaration());
       writeOptSymbol(variableDeclaration.getOptSymSemicolon());

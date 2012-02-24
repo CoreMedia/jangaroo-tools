@@ -19,6 +19,7 @@ import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * @author Andreas Gawecki
@@ -32,6 +33,11 @@ public class BinaryOpExpr extends OpExpr {
     super(op);
     this.arg1 = arg1;
     this.arg2 = arg2;
+  }
+
+  @Override
+  public List<? extends AstNode> getChildren() {
+    return makeChildren(super.getChildren(), arg1, arg2);
   }
 
   @Override
@@ -53,6 +59,10 @@ public class BinaryOpExpr extends OpExpr {
 
   public JooSymbol getSymbol() {
     return getArg1().getSymbol();
+  }
+
+  public boolean isRuntimeConstant() {
+    return getArg1().isRuntimeConstant() && getArg2().isRuntimeConstant();
   }
 
   public boolean isCompileTimeConstant() {

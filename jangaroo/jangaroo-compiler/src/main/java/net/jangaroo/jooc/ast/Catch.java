@@ -20,6 +20,7 @@ import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.sym;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * @author Andreas Gawecki
@@ -39,6 +40,11 @@ public class Catch extends KeywordStatement {
     this.param = param;
     this.rParen = rParen;
     this.block = block;
+  }
+
+  @Override
+  public List<? extends AstNode> getChildren() {
+    return makeChildren(super.getChildren(), param, block);
   }
 
   @Override

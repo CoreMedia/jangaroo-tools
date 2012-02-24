@@ -20,6 +20,7 @@ import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * @author Andreas Gawecki
@@ -41,6 +42,11 @@ public class ForStatement extends ConditionalLoopStatement {
     this.symSemicolon2 = symSemicolon2;
     this.optStep = optStep;
     this.rParen = rParen;
+  }
+
+  @Override
+  public List<? extends AstNode> getChildren() {
+    return makeChildren(super.getChildren(), forInit, optStep);
   }
 
   @Override

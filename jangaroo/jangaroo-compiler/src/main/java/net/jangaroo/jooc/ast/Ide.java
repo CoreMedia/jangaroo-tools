@@ -23,6 +23,8 @@ import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.SyntacticKeywords;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Andreas Gawecki
@@ -149,6 +151,8 @@ public class Ide extends NodeImplBase {
       CompilationUnit currentUnit = getScope().getCompilationUnit();
       CompilationUnit compilationUnit = decl.getIde().getScope().getCompilationUnit();
       currentUnit.addPublicApiDependency(compilationUnit);
+    } else if (isQualified()) {
+      getQualifier().addPublicApiDependency();
     }
   }
 

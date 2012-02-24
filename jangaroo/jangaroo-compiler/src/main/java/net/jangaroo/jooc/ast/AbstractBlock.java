@@ -21,6 +21,11 @@ public abstract class AbstractBlock extends Statement {
   }
 
   @Override
+  public List<? extends AstNode> getChildren() {
+    return makeChildren(super.getChildren(), directives);
+  }
+
+  @Override
   public void scope(final Scope scope) {
     scope(getDirectives(), scope);
   }

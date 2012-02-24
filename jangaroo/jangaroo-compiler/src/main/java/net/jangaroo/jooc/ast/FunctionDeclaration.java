@@ -36,6 +36,7 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
   private JooSymbol optSymSemicolon;
 
   private boolean isConstructor = false;
+  private boolean isDeclaredInInterface = false;
   private boolean containsSuperConstructorCall = false;
   private boolean thisAliased;
 
@@ -56,8 +57,21 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
   }
 
   @Override
+  public List<? extends AstNode> getChildren() {
+    return makeChildren(super.getChildren(), fun);
+  }
+
+  @Override
   public void visit(AstVisitor visitor) throws IOException {
     visitor.visitFunctionDeclaration(this);
+  }
+
+  public int getModifiers() {
+    int modifiers = super.getModifiers();
+    if (isDeclaredInInterface) {
+      modifiers |= MODIFIER_PUBLIC;
+    }
+    return modifiers;
   }
 
   public boolean overrides() {
@@ -131,6 +145,7 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
       classDeclaration.setConstructor(this);
       setIde(null); // do NOT declare constructor ide in scope, as it would override the class, is not inherited, etc.!
     }
+    isDeclaredInInterface = classDeclaration != null && classDeclaration.isInterface();
     super.scope(scope);
     setIde(oldIde);
     //todo check correct override usage
@@ -185,6 +200,9 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
       Parameters params = fun.getParams();
       while (params != null) {
         Parameter parameter = params.getHead();
+        if (isClassMember() && isPublicApi() && parameter.getOptInitializer() != null) {
+          parameter.getOptInitializer().addPublicApiDependencies();
+        }
         addPublicApiDependencyOn(parameter.getOptTypeRelation());
         params = params.getTail();
       }

@@ -120,32 +120,53 @@ public class JoocTest {
     assertCompilationResult("package1/NoMultipleThisAliases");
   }
 
-@Test
+  @Test
   public void testNoPrimitiveInit() throws Exception {
     assertCompilationResult("package1/NoPrimitiveInit");
   }
 
   @Test
+  public void testChainedConstants() throws Exception {
+    assertCompilationResult("package1/ChainedConstants");
+  }
+
+  @Test
+  public void testChainedConstantsApi() throws Exception {
+    assertApiCompilationResult("package1/ChainedConstants");
+  }
+
+  @Test
+  public void testIncludeClassApi() throws Exception {
+    config.setExcludeClassByDefault(true);
+    assertApiCompilationResult("package1/IncludedClass");
+  }
+
+  @Test
+  public void testInterfaceApi() throws Exception {
+    assertApiCompilationResult("package1/Interface");
+  }
+
+  @Test
   public void testParameterInitializers() throws Exception {
-    doTestClassCompilation("package1/ParameterInitializers");
+    assertApiCompilationResult("package1/ParameterInitializers");
   }
 
   @Test
   public void testImportReduction() throws Exception {
-    doTestClassCompilation("package1/ImportReduction");
+    assertApiCompilationResult("package1/ImportReduction");
   }
 
   @Test
   public void testImportReductionExcludeClass() throws Exception {
     config.setExcludeClassByDefault(true);
-    doTestClassCompilation("package1/ImportReduction", "withExclude/");
+    assertApiCompilationResult("package1/ImportReduction", "withExclude/");
   }
 
-  private void doTestClassCompilation(String path) throws URISyntaxException, IOException {
-    doTestClassCompilation(path, "");
+  private void assertApiCompilationResult(String path) throws URISyntaxException, IOException {
+    assertApiCompilationResult(path, "");
   }
   
-  private void doTestClassCompilation(String path, String expectPath) throws URISyntaxException, IOException {
+  private void assertApiCompilationResult(String path, String expectPath) throws URISyntaxException, IOException {
     File sourcefile = getFile("/" + path + ".as");
     config.addSourceFile(sourcefile);
     //noinspection ResultOfMethodCallIgnored
@@ -167,7 +188,7 @@ public class JoocTest {
     jooc.run();
 
     File destFile = new File(outputFolder, relativeClassFileName + ".js");
-    assertTrue(destFile.exists());
+    assertTrue("the output file " + destFile + " should exist, but doesn't", destFile.exists());
 
     String result = FileUtils.readFileToString(destFile);
     String expected = FileUtils.readFileToString(getFile("/expected/" + relativeClassFileName + ".js"));

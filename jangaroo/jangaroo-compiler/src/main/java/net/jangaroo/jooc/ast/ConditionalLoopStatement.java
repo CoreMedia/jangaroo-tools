@@ -18,6 +18,8 @@ package net.jangaroo.jooc.ast;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 
+import java.util.List;
+
 /**
  * @author Andreas Gawecki
  */
@@ -28,6 +30,11 @@ public abstract class ConditionalLoopStatement extends LoopStatement {
   public ConditionalLoopStatement(JooSymbol symLoop, Expr optCond, Statement body) {
     super(symLoop, body);
     this.optCond = optCond;
+  }
+
+  @Override
+  public List<? extends AstNode> getChildren() {
+    return makeChildren(super.getChildren(), optCond);
   }
 
   @Override

@@ -22,6 +22,7 @@ import net.jangaroo.jooc.input.InputSource;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -51,6 +52,15 @@ public class CompilationUnit extends NodeImplBase {
       ((ClassDeclaration) primaryDeclaration).setSecondaryDeclarations(secondaryDeclarations);
     }
     this.rBrace = rBrace;
+  }
+
+  @Override
+  public List<? extends AstNode> getChildren() {
+    List<AstNode> result = new ArrayList<AstNode>(makeChildren(super.getChildren(), packageDeclaration, primaryDeclaration));
+    if (primaryDeclaration instanceof ClassDeclaration) {
+      result.addAll(((ClassDeclaration) primaryDeclaration).getSecondaryDeclarations());
+    }
+    return result;
   }
 
   @Override
