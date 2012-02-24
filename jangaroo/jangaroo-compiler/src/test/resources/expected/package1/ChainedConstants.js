@@ -12,5 +12,5 @@ import package1.someOtherPackage.SomeOtherClass;*/
   "public static const",{ ANOTHER_METHOD_TYPE/* : String*/ :function(){return( package1.ChainedConstants.METHOD_TYPE_GET.substr(0));}},
 
   "public static const",{ THE_BLA/* : String*/ :function(){return( $2.SomeOtherClass.BLA);}},
-undefined];},[],["package1.someOtherPackage.SomeOtherClass"], "0.8.0", "0.9.11-SNAPSHOT"
+undefined];},[],["package1.someOtherPackage.SomeOtherClass"], "@runtimeVersion", "@version"
 );
