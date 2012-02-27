@@ -64,7 +64,7 @@ public class FunctionExpr extends Expr {
 
   @Override
   public List<? extends AstNode> getChildren() {
-    return makeChildren(super.getChildren(), functionDeclaration, ide, params, optTypeRelation, optBody);
+    return makeChildren(super.getChildren(), ide, params, optTypeRelation, optBody);
   }
 
   @Override
