@@ -56,7 +56,7 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
 
   @Override
   public List<? extends AstNode> getChildren() {
-    return makeChildren(super.getChildren(), fun);
+    return makeChildren(fun); // do not call super.getChildren(), as fun already contains ide!
   }
 
   @Override
