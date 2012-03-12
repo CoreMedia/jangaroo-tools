@@ -44,6 +44,7 @@ public class ExmlModel extends DescriptionHolder {
 
   public void addVar(Declaration var) {
     vars.add(var);
+    addImport(var.getType());
   }
 
   public JsonObject getJsonObject() {
