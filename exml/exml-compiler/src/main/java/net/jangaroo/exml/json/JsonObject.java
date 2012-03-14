@@ -11,9 +11,10 @@ import java.util.Set;
 
 public class JsonObject implements Json {
   static final String LINE_SEPARATOR = System.getProperty("line.separator");
+  public static final String NET_JANGAROO_EXT_CREATE = "net.jangaroo.ext.create";
   private Map<String, Object> properties = new LinkedHashMap<String, Object>();
   private String wrapperClass;
-  private String wrapperClassConstructorCast;
+  private String configClass;
 
   public JsonObject(Object ... namesAndValues) {
     if (namesAndValues.length % 2 != 0) {
@@ -117,9 +118,8 @@ public class JsonObject implements Json {
     StringBuilder sb = new StringBuilder();
     if (wrapperClass != null) {
       sb.append("new ").append(wrapperClass).append('(');
-      if(wrapperClassConstructorCast != null) {
-        sb.append(wrapperClassConstructorCast).append('(');
-      }
+    } else if(configClass != null) {
+      sb.append(NET_JANGAROO_EXT_CREATE).append('(').append(configClass).append(',');
     }
     sb.append("{");
     int newindent = indent + indentFactor;
@@ -143,10 +143,7 @@ public class JsonObject implements Json {
       }
     }
     sb.append('}');
-    if (wrapperClass != null) {
-      if(wrapperClassConstructorCast != null) {
-        sb.append(')');
-      }
+    if (wrapperClass != null || configClass != null) {
       sb.append(')');
     }
     return sb.toString();
@@ -177,7 +174,7 @@ public class JsonObject implements Json {
     return this.properties.remove(property);
   }
 
-  public void settingWrapperClassConstructorCast(String fullName) {
-    this.wrapperClassConstructorCast = fullName;
+  public void settingConfigClass(String fullName) {
+    this.configClass = fullName;
   }
 }

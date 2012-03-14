@@ -178,7 +178,7 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
     Assert.assertEquals("ext.Panel", model.getSuperClassName());
 
     JsonObject expectedJsonObject = new JsonObject(
-            "baseAction", "{new ext.Action(ext.config.action({disabled: false}))}"
+            "baseAction", "{net.jangaroo.ext.create(ext.config.action,{disabled: false})}"
     );
     System.out.println(model.getJsonObject().toString(2));
     Assert.assertEquals(expectedJsonObject.toString(2), model.getJsonObject().toString(2));

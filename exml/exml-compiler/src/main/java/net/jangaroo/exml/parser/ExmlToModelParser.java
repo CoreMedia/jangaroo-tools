@@ -294,16 +294,14 @@ public final class ExmlToModelParser {
       } else {
         String arrayItemClassName = createFullConfigClassNameFromNode(arrayItemNode);
         ConfigClass configClass = getConfigClassByName(arrayItemClassName, arrayItemNode);
-        String componentClassName = configClass.getComponentClassName();
 
         JsonObject arrayItemJsonObject = new JsonObject();
         if (configClass.getType() == null) {
-          // Everything not a component, plugin or layout must be created immediately and its configClass
-          //should be used as cast for the constructor config
-          arrayItemJsonObject.settingWrapperClass(configClass.getComponentClassName());
-          arrayItemJsonObject.settingWrapperClassConstructorCast(configClass.getFullName());
+          // Everything not a component, plugin or layout must be created immediately
+          // by using net.jangaroo.ext.create() with its configClass and the config:
+          arrayItemJsonObject.settingConfigClass(configClass.getFullName());
           model.addImport(configClass.getFullName());
-          model.addImport(componentClassName);
+          model.addImport(JsonObject.NET_JANGAROO_EXT_CREATE);
         } else {
           if (arrayItemClassName.startsWith(EXT_CONFIG_PREFIX)) {
             // Ext classes are always loaded. We can use the type string directly.
