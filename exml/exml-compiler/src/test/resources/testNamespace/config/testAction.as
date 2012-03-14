@@ -1,7 +1,6 @@
 package testNamespace.config {
 
 import ext.config.action;
-import testPackage.TestAction;
 
 // Do not edit. This is an auto-generated class.
 

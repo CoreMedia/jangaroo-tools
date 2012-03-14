@@ -1,7 +1,6 @@
 package testNamespace.config {
 
 import ext.config.plugin;
-import testPackage.TestPlugin;
 
 // Do not edit. This is an auto-generated class.
 

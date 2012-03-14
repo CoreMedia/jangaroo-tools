@@ -11,7 +11,9 @@ import net.jangaroo.exml.model.ConfigClassRegistry;
 import net.jangaroo.exml.model.ExmlModel;
 import net.jangaroo.exml.parser.ExmlToConfigClassParser;
 import net.jangaroo.exml.parser.ExmlToModelParser;
+import net.jangaroo.jooc.api.Jooc;
 import net.jangaroo.jooc.cli.CommandLineParseException;
+import net.jangaroo.utils.CompilerUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -105,7 +107,10 @@ public final class Exmlc implements net.jangaroo.exml.api.Exmlc {
   public File generateComponentClass(File exmlSourceFile) {
     try {
       ExmlModel exmlModel = exmlToModelParser.parse(exmlSourceFile);
-      return exmlComponentClassGenerator.generateClass(exmlModel);
+      // compute potential file location of component class in source directory:
+      File classFile = CompilerUtils.fileFromQName(exmlModel.getPackageName(), exmlModel.getClassName(), getConfig().findSourceDir(exmlSourceFile), Jooc.AS_SUFFIX);
+      // only generate component class if it is not already present as source:
+      return classFile.exists() ? null : exmlComponentClassGenerator.generateClass(exmlModel);
     } catch (Exception e) {
       throw new ExmlcException("unable to generate component class: " + e.getMessage(), exmlSourceFile, e);
     }

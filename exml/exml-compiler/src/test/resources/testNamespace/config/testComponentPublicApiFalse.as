@@ -1,7 +1,6 @@
 package testNamespace.config {
 
 import ext.config.panel;
-import testPackage.TestComponentPublicApiFalse;
 
 // Do not edit. This is an auto-generated class.
 

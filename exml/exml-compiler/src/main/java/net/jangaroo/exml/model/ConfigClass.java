@@ -182,7 +182,6 @@ public final class ConfigClass extends DescriptionHolder {
   public List<String> getImports() {
     Set<String> imports = new HashSet<String>();
     ExmlUtils.addImport(imports, getSuperClassName());
-    ExmlUtils.addImport(imports, getComponentClassName());
     for (ConfigAttribute cfg : cfgs) {
       ExmlUtils.addImport(imports, cfg.getType());
     }

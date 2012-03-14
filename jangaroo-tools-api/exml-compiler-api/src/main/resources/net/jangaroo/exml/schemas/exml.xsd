@@ -165,11 +165,7 @@
           </xs:documentation>
         </xs:annotation>
       </xs:element>
-      <!--
-      We want minOccurs to be 1, but IDEA reports validation error if we explicitly say so.
-      Thus, we stick to the default value, which the specs says is 1.
-      -->
-      <xs:any maxOccurs="1" namespace="##other" processContents="strict"/>
+      <xs:any minOccurs="0" maxOccurs="1" namespace="##other" processContents="strict"/>
 
     </xs:sequence>
     <xs:attribute name="baseClass" type="xs:string">

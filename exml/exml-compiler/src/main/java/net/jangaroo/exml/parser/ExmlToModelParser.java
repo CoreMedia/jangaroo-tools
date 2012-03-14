@@ -140,8 +140,7 @@ public final class ExmlToModelParser {
       }
     }
     if (componentNode == null) {
-      int lineNumber = getLineNumber(root);
-      throw new ExmlcException("root node of EXML did not contain a component definition", lineNumber);
+      return;
     }
 
     String superFullClassName = createFullConfigClassNameFromNode(componentNode);
