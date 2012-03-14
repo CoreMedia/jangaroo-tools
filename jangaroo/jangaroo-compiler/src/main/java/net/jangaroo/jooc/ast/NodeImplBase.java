@@ -28,6 +28,8 @@ import java.util.List;
  */
 public abstract class NodeImplBase implements AstNode {
 
+  private AstNode parentNode;
+
   public List<? extends AstNode> getChildren() {
     return Collections.emptyList();
   }
@@ -50,6 +52,11 @@ public abstract class NodeImplBase implements AstNode {
   }
 
   public void analyze(AstNode parentNode) {
+    this.parentNode = parentNode;
+  }
+
+  public AstNode getParentNode() {
+    return parentNode;
   }
 
   public <N extends AstNode> void scope(List<N> nodes, Scope scope) {

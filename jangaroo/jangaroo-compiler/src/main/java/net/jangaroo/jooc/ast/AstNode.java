@@ -34,5 +34,7 @@ public interface AstNode {
 
   void analyze(AstNode parentNode);
 
+  AstNode getParentNode();
+
   void visit(AstVisitor visitor) throws IOException;
 }

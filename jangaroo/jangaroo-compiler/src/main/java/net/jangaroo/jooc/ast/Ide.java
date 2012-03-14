@@ -21,8 +21,6 @@ import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author Andreas Gawecki
@@ -264,7 +262,7 @@ public class Ide extends NodeImplBase {
       FunctionExpr funExpr = getScope().getFunctionExpr();
       if (funExpr != null && funExpr.getFunctionDeclaration() == null) {
         FunctionDeclaration methodDeclaration = getScope().getMethodDeclaration();
-        if (methodDeclaration != null && !methodDeclaration.isStatic()) {
+        if (methodDeclaration != null && !methodDeclaration.isStatic() && !isArgumentOfTypeCast(exprParent)) {
           Jooc.warning(getSymbol(), "'this' may be unbound and is untyped in functions, even inside methods. Consider removing 'this.' (members are in scope!) or refactoring inner function to method.");
         }
       }
@@ -287,6 +285,19 @@ public class Ide extends NodeImplBase {
         }
       }
     }
+  }
+
+  private boolean isArgumentOfTypeCast(AstNode parentNode) {
+    if (parentNode instanceof CommaSeparatedList) {
+      AstNode argumentsCandidate = parentNode.getParentNode();
+      if (argumentsCandidate instanceof ParenthesizedExpr) {
+        AstNode typeCastCandidate = argumentsCandidate.getParentNode();
+        return typeCastCandidate instanceof ApplyExpr && ((ApplyExpr)typeCastCandidate).isTypeCast();
+      }
+    } else if (parentNode instanceof AsExpr) {
+      return ((AsExpr)parentNode).getArg1() == getParentNode();
+    }
+    return false;
   }
 
   public IdeDeclaration getMemberDeclaration() {
