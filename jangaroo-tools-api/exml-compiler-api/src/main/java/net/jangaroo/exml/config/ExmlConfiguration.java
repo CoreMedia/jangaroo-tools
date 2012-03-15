@@ -1,5 +1,6 @@
 package net.jangaroo.exml.config;
 
+import net.jangaroo.exml.utils.ExmlUtils;
 import net.jangaroo.utils.FileLocations;
 import net.jangaroo.jooc.api.Jooc;
 import net.jangaroo.utils.CompilerUtils;
@@ -42,8 +43,16 @@ public class ExmlConfiguration extends FileLocations {
 
   @SuppressWarnings({"UnusedDeclaration" })
   public File computeGeneratedComponentClassFile(File exmlFile) throws IOException {
-    String qName = CompilerUtils.qNameFromFile(findSourceDir(exmlFile), exmlFile);
-    return CompilerUtils.fileFromQName(qName, getOutputDirectory(), Jooc.AS_SUFFIX);
+    File sourceDir = findSourceDir(exmlFile);
+    String qName = CompilerUtils.qNameFromFile(sourceDir, exmlFile);
+    String className = ExmlUtils.createComponentClassName(CompilerUtils.className(qName));
+    String packageName = CompilerUtils.packageName(qName);
+    // compute potential file location of component class in source directory:
+    File classFile = CompilerUtils.fileFromQName(packageName, className, sourceDir, Jooc.AS_SUFFIX);
+    // component class is only generated if it is not already present as source:
+    return classFile.exists()
+      ? null
+      : CompilerUtils.fileFromQName(packageName, className, getOutputDirectory(), Jooc.AS_SUFFIX);
   }
 
   @Override
