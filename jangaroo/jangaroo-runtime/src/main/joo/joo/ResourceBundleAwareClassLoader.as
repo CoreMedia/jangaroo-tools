@@ -188,17 +188,16 @@ public class ResourceBundleAwareClassLoader extends DynamicClassLoader {
     return null;
   }
 
-  private static function readLocaleFromNavigator():String {
-    var locale:String = null;
+  private function readLocaleFromNavigator():String {
     var navigator:* = getQualifiedObject("navigator");
     if (navigator) {
-      locale = navigator['language'] || navigator['browserLanguage']
+      var locale:String = navigator['language'] || navigator['browserLanguage']
         || navigator['systemLanguage'] || navigator['userLanguage'];
       if (locale) {
-        locale = locale.replace(/-/g, "_");
+        return findSupportedLocale(locale.replace(/-/g, "_"));
       }
     }
-    return locale;
+    return null;
   }
 
   /**
