@@ -176,8 +176,8 @@ public class JoocTest {
     File destFile = new File(apiOutputFolder, path + ".as");
     assertTrue(destFile.exists());
 
-    String result = FileUtils.readFileToString(destFile);
-    String expected = FileUtils.readFileToString(getFile("/expectedApi/" + expectPath + path + ".as"));
+    String result = readFileToString(destFile);
+    String expected = readFileToString(getFile("/expectedApi/" + expectPath + path + ".as"));
     assertEquals("Result file not equal", expected, result);
   }
 
@@ -190,17 +190,22 @@ public class JoocTest {
     File destFile = new File(outputFolder, relativeClassFileName + ".js");
     assertTrue("the output file " + destFile + " should exist, but doesn't", destFile.exists());
 
-    String result = FileUtils.readFileToString(destFile);
-    String expected = FileUtils.readFileToString(getFile("/expected/" + relativeClassFileName + ".js"));
+    String result = readFileToString(destFile);
+    String expected = readFileToString(getFile("/expected/" + relativeClassFileName + ".js"));
     expected = expected.replace("@runtimeVersion", JoocProperties.getRuntimeVersion());
     expected = expected.replace("@version", JoocProperties.getVersion());
-    String lineSeparator = System.getProperty("line.separator");
-    if (!"\n".equals(lineSeparator)) { // Windows...
-      // normalize line separators:
-      expected = expected.replace(lineSeparator, "\n");
-      result = result.replace(lineSeparator, "\n");
-    }
     assertEquals("Result file not equal", expected, result);
+  }
+
+  private static final String LINE_SEPARATOR = System.getProperty("line.separator");
+
+  private static String readFileToString(File file) throws IOException {
+    String result = FileUtils.readFileToString(file);
+    if (!"\n".equals(LINE_SEPARATOR)) { // Windows...
+      // normalize line separators:
+      return result.replace(LINE_SEPARATOR, "\n");
+    }
+    return result;
   }
 
   private File getFile(String absolutePath) throws URISyntaxException {
