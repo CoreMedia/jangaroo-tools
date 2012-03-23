@@ -5,7 +5,7 @@ import ext.config.panel;
 // Do not edit. This is an auto-generated class.
 
 /**
- * This is a TestComponent with publicApi.
+ * This is a TestComponent without PublicApi.
  *
  * <p>This class serves as a typed config object for the constructor of the class <code>testPackage.TestComponentPublicApiFalse</code>.
  * It defines the EXML element <code>&lt;tc:testComponentPublicApiFalse></code> with <code>xmlns:tc="exml:testNamespace.config"</code>.</p>

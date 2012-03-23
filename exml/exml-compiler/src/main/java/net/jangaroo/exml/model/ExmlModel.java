@@ -13,10 +13,10 @@ public class ExmlModel extends DescriptionHolder {
   private String className;
   private String superClassName;
   private Set<String> imports = new LinkedHashSet<String>();
+  private List<String> annotations = new ArrayList<String>();
   private List<Declaration> vars = new ArrayList<Declaration>();
   private JsonObject jsonObject = new JsonObject();
   private ConfigClass configClass;
-  private boolean included = false;
 
   public String getPackageName() {
     return packageName;
@@ -36,6 +36,10 @@ public class ExmlModel extends DescriptionHolder {
 
   public Set<String> getImports() {
     return imports;
+  }
+
+  public List<String> getAnnotations() {
+    return annotations;
   }
 
   public List<Declaration> getVars() {
@@ -67,6 +71,10 @@ public class ExmlModel extends DescriptionHolder {
     ExmlUtils.addImport(imports, importedClassName);
   }
 
+  public void addAnnotation(String annotation) {
+    annotations.add(annotation);
+  }
+
   public ConfigClass getConfigClass() {
     return configClass;
   }
@@ -76,12 +84,4 @@ public class ExmlModel extends DescriptionHolder {
     addImport(configClass.getFullName());
   }
 
-  public boolean isIncluded() {
-    return included;
-  }
-
-  public void setPublicApiMode(PublicApiMode publicApiMode) {
-    included = publicApiMode == PublicApiMode.TRUE;
-    configClass.setIncluded(publicApiMode != PublicApiMode.FALSE);
-  }
 }

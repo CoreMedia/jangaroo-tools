@@ -4,6 +4,7 @@ import net.jangaroo.exml.api.ExmlcException;
 import net.jangaroo.exml.compiler.Exmlc;
 import net.jangaroo.exml.json.JsonArray;
 import net.jangaroo.exml.json.JsonObject;
+import net.jangaroo.exml.model.AnnotationAt;
 import net.jangaroo.exml.model.ConfigAttribute;
 import net.jangaroo.exml.model.ConfigClass;
 import net.jangaroo.exml.model.ConfigClassRegistry;
@@ -94,11 +95,11 @@ public final class ExmlToModelParser {
       if (Exmlc.EXML_BASE_CLASS_ATTRIBUTE.equals(attribute.getLocalName())) {
         model.setSuperClassName(attribute.getValue());
       } else if (Exmlc.EXML_PUBLIC_API_ATTRIBUTE.equals(attribute.getLocalName())) {
-        try {
-          model.setPublicApiMode(PublicApiMode.valueOf(attribute.getValue().toUpperCase()));
-        } catch (IllegalArgumentException e) {
-          throw new ExmlcException("EXML attribute '" + Exmlc.EXML_PUBLIC_API_ATTRIBUTE +
-             "' must have one the values 'false', 'config', or 'true'.");
+        PublicApiMode publicApiMode = Exmlc.parsePublicApiMode(attribute.getValue());
+        switch (publicApiMode) {
+          case TRUE:   model.addAnnotation("PublicApi");
+                       // fall through!
+          case CONFIG: model.getConfigClass().addAnnotation("PublicApi");
         }
       }
     }
@@ -117,6 +118,11 @@ public final class ExmlToModelParser {
               throw new ExmlcException("<exml:import> element must contain a non-empty class attribute", lineNumber);
             }
             model.addImport(importedClassName);
+          } else if (Exmlc.EXML_ANNOTATION_NODE_NAME.equals(node.getLocalName())) {
+            AnnotationAt annotationAt = Exmlc.parseAnnotationAtValue(element.getAttribute(Exmlc.EXML_ANNOTATION_AT_ATTRIBUTE));
+            if (annotationAt != AnnotationAt.CONFIG) {
+              model.addAnnotation(element.getTextContent());
+            }
           } else if (Exmlc.EXML_CONSTANT_NODE_NAME.equals(node.getLocalName())) {
             String constantTypeName = element.getAttribute(Exmlc.EXML_DECLARATION_TYPE_ATTRIBUTE);
             model.addImport(constantTypeName);

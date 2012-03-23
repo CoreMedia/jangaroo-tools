@@ -20,6 +20,7 @@ public final class ConfigClass extends DescriptionHolder {
   private List<ConfigAttribute> cfgs = new ArrayList<ConfigAttribute>();
   private Map<String, ConfigAttribute> cfgsByName = new HashMap<String, ConfigAttribute>();
   private List<Declaration> constants = new ArrayList<Declaration>();
+  private List<String> annotations = new ArrayList<String>();
 
   private String name;
   private String packageName;
@@ -28,7 +29,6 @@ public final class ConfigClass extends DescriptionHolder {
   private String componentClassName;
   private ConfigClassType type;
   private String typeValue;
-  private boolean included = false;
   private Set<String> imports = new LinkedHashSet<String>();
 
   public ConfigClass() {
@@ -59,6 +59,10 @@ public final class ConfigClass extends DescriptionHolder {
     return constants;
   }
 
+  public List<String> getAnnotations() {
+    return annotations;
+  }
+
   /**
    * Returns only the ConfigAttributes that are not already defined in the super class
    *
@@ -84,6 +88,10 @@ public final class ConfigClass extends DescriptionHolder {
 
   public void addConstant(Declaration constant) {
     constants.add(constant);
+  }
+
+  public void addAnnotation(String annotation) {
+    annotations.add(annotation);
   }
 
   /**
@@ -163,14 +171,6 @@ public final class ConfigClass extends DescriptionHolder {
 
   public String getSuperClassName() {
     return superClassName;
-  }
-
-  public boolean isIncluded() {
-    return included;
-  }
-
-  public void setIncluded(boolean included) {
-    this.included = included;
   }
 
   public void addImport(String importedClassName) {

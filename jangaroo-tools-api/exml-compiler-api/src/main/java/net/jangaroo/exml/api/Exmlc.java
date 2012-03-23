@@ -69,6 +69,8 @@ public interface Exmlc {
   String EXML_PUBLIC_API_ATTRIBUTE = "publicApi";
   String EXML_OBJECT_NODE_NAME = "object";
   String EXML_IMPORT_NODE_NAME = "import";
+  String EXML_ANNOTATION_NODE_NAME = "annotation";
+  String EXML_ANNOTATION_AT_ATTRIBUTE = "at";
   String EXML_IMPORT_CLASS_ATTRIBUTE = "class";
   String EXML_DESCRIPTION_NODE_NAME = "description";
   String EXML_CFG_NODE_NAME = "cfg";

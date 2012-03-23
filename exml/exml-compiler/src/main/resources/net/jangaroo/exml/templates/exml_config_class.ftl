@@ -23,9 +23,9 @@ import ${import};
 </#if>
  */
 [ExtConfig(target="${componentClassName}"<#if type??>, ${type.type}</#if>)]
-<#if included>
-[PublicApi]
-</#if>
+<#list annotations as annotation>
+[${annotation}]
+</#list>
 public dynamic class ${name} extends ${superClassName} {
 <#list constants as constant>
   /**

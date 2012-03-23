@@ -6,9 +6,11 @@ import net.jangaroo.exml.cli.ExmlcCommandLineParser;
 import net.jangaroo.exml.generator.ExmlComponentClassGenerator;
 import net.jangaroo.exml.generator.ExmlConfigClassGenerator;
 import net.jangaroo.exml.generator.ExmlConfigPackageXsdGenerator;
+import net.jangaroo.exml.model.AnnotationAt;
 import net.jangaroo.exml.model.ConfigClass;
 import net.jangaroo.exml.model.ConfigClassRegistry;
 import net.jangaroo.exml.model.ExmlModel;
+import net.jangaroo.exml.model.PublicApiMode;
 import net.jangaroo.exml.parser.ExmlToConfigClassParser;
 import net.jangaroo.exml.parser.ExmlToModelParser;
 import net.jangaroo.jooc.api.Jooc;
@@ -37,6 +39,26 @@ public final class Exmlc implements net.jangaroo.exml.api.Exmlc {
 
   public Exmlc(ExmlConfiguration config) {
     setConfig(config);
+  }
+
+  public static AnnotationAt parseAnnotationAtValue(String value) {
+    AnnotationAt annotationAt;
+    try {
+      annotationAt = AnnotationAt.valueOf(value.toUpperCase());
+    } catch (IllegalArgumentException e) {
+      throw new ExmlcException("EXML attribute '" + EXML_ANNOTATION_AT_ATTRIBUTE +
+              "' must have one the values 'config', 'target', or 'both'.");
+    }
+    return annotationAt;
+  }
+
+  public static PublicApiMode parsePublicApiMode(String publicApiMode) {
+    try {
+      return PublicApiMode.valueOf(publicApiMode.toUpperCase());
+    } catch (IllegalArgumentException e) {
+      throw new ExmlcException("EXML attribute '" + EXML_PUBLIC_API_ATTRIBUTE +
+              "' must have one the values 'false', 'config', or 'true'.");
+    }
   }
 
   @Override

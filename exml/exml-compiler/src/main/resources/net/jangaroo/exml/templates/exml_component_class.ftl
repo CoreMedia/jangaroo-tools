@@ -19,9 +19,9 @@ import ${import};
  * ${model.escapedDescriptionAts}
 </#if>
  */
-<#if model.included>
-[PublicApi]
-</#if>
+<#list model.annotations as annotation>
+[${annotation}]
+</#list>
 public class ${model.className} extends ${model.superClassName} {
 <#list model.configClass.constants as constant>
   /**

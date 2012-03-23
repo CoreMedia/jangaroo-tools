@@ -51,6 +51,14 @@
      </xs:restriction>
   </xs:simpleType>
 
+  <xs:simpleType name="annotationAt">
+    <xs:restriction base="xs:string">
+       <xs:enumeration value="config"/>
+       <xs:enumeration value="target"/>
+       <xs:enumeration value="both"/>
+    </xs:restriction>
+  </xs:simpleType>
+
   <xs:complexType name="cfg">
     <xs:annotation>
       <xs:documentation>
@@ -90,6 +98,22 @@
       </xs:documentation>
     </xs:annotation>
     <xs:attribute name="class" type="xs:string" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="annotation">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute name="at" type="exml:annotationAt">
+          <xs:annotation>
+            <xs:documentation>
+              <p>Defines in which of the two generated classes the given annotation will be included.
+                Possible values are <code>config</code>, <code>target</code>, or <code>both</code>, where
+                <code>both</code> is the default if no <code>at</code> attribute is given.</p>
+            </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+      </xs:extension>
+    </xs:simpleContent>
   </xs:complexType>
 
   <xs:complexType name="declaration">
@@ -144,11 +168,23 @@
   <xs:complexType name="rootElement">
     <xs:sequence>
       <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element name="annotation" type="exml:annotation">
+          <xs:annotation>
+            <xs:documentation>
+              Defines an annotation used for the generated config class, target class, or both.
+              The text content of this element is surrounded by square brackets.
+              Example: <code>&lt;exml:annotation at="target">Deprecated&lt;exml:annotation></code>
+              would add the annotation <code>[Deprecated]</code> to the target class only.
+            </xs:documentation>
+          </xs:annotation>
+        </xs:element>
         <xs:element name="import" type="exml:import"/>
         <xs:element name="constant" type="exml:declaration">
           <xs:annotation>
             <xs:documentation>
               Defines a static constant that can e.g. be used for itemIds.
+              The constant is defined in the generated config class and (as an alias for direct access
+              in the target class code) in the generated target class.
             </xs:documentation>
           </xs:annotation>
         </xs:element>
@@ -157,6 +193,9 @@
           <xs:annotation>
             <xs:documentation>
               The description of the new EXML class (optional).
+              The description is complemented by text referring from the config class to the target class
+              and vice versa. If the description contains <code>@see</code> or other ASDoc tags, these
+              are added after the auto-generated documentation.
             </xs:documentation>
           </xs:annotation>
         </xs:element>

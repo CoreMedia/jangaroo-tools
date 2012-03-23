@@ -2,6 +2,7 @@ package net.jangaroo.exml.parser;
 
 import net.jangaroo.exml.api.ExmlcException;
 import net.jangaroo.exml.compiler.Exmlc;
+import net.jangaroo.exml.model.AnnotationAt;
 import net.jangaroo.exml.model.ConfigAttribute;
 import net.jangaroo.exml.model.ConfigClass;
 import net.jangaroo.exml.model.ConfigClassType;
@@ -57,13 +58,23 @@ public class ExmlMetadataHandler extends CharacterRecordingHandler {
         for (int i = 0; i < atts.getLength(); i++) {
           //baseClass attribute has been specified, so the super class of the component is actually that
           if (Exmlc.EXML_PUBLIC_API_ATTRIBUTE.equals(atts.getLocalName(i))) {
-            try {
-              configClass.setIncluded(PublicApiMode.valueOf(atts.getValue(i).toUpperCase()) != PublicApiMode.FALSE);
-            } catch (IllegalArgumentException e) {
-              throw new ExmlcException("EXML attribute '" + Exmlc.EXML_PUBLIC_API_ATTRIBUTE +
-                      "' must have one the values 'false', 'config', or 'true'.");
+            PublicApiMode publicApiMode = Exmlc.parsePublicApiMode(atts.getValue(i));
+            if (publicApiMode != PublicApiMode.FALSE) {
+              configClass.addAnnotation("PublicApi");
             }
           }
+        }
+      } else if (Exmlc.EXML_ANNOTATION_NODE_NAME.equals(localName)) {
+        AnnotationAt annotationAt = AnnotationAt.BOTH; // default for "at" is "both"
+        for (int i = 0; i < atts.getLength(); i++) {
+          if (Exmlc.EXML_ANNOTATION_AT_ATTRIBUTE.equals(atts.getLocalName(i))) {
+            // found "at" attribute: parse it (might throw ExmlcException)
+            annotationAt = Exmlc.parseAnnotationAtValue(atts.getValue(i));
+            break;
+          }
+        }
+        if (annotationAt != AnnotationAt.TARGET) {
+          startRecordingCharacters();
         }
       } else if (Exmlc.EXML_CFG_NODE_NAME.equals(localName)) {
         //handle config elements
@@ -136,6 +147,11 @@ public class ExmlMetadataHandler extends CharacterRecordingHandler {
           if (descriptionHolder != null) {
             descriptionHolder.setDescription(characters);
           }
+        }
+      } else if (Exmlc.EXML_ANNOTATION_NODE_NAME.equals(localName)) {
+        String characters = popRecordedCharacters();
+        if (characters != null) {
+          configClass.addAnnotation(characters);
         }
       }
       if (elementPath.isEmpty() && configClass.getSuperClassName() == null) {
