@@ -41,23 +41,27 @@ public final class Exmlc implements net.jangaroo.exml.api.Exmlc {
     setConfig(config);
   }
 
-  public static AnnotationAt parseAnnotationAtValue(String value) {
-    AnnotationAt annotationAt;
+  public static AnnotationAt parseAnnotationAtValue(String annotationAt) {
+    if (annotationAt == null || annotationAt.length() == 0) {
+      return null;
+    }
     try {
-      annotationAt = AnnotationAt.valueOf(value.toUpperCase());
+      return AnnotationAt.valueOf(annotationAt.toUpperCase());
     } catch (IllegalArgumentException e) {
       throw new ExmlcException("EXML attribute '" + EXML_ANNOTATION_AT_ATTRIBUTE +
-              "' must have one the values 'config', 'target', or 'both'.");
+              "' must have one the values 'config', 'target', or 'both', not '" + annotationAt + "'.");
     }
-    return annotationAt;
   }
 
   public static PublicApiMode parsePublicApiMode(String publicApiMode) {
+    if (publicApiMode == null || publicApiMode.length() == 0) {
+      return null;
+    }
     try {
       return PublicApiMode.valueOf(publicApiMode.toUpperCase());
     } catch (IllegalArgumentException e) {
       throw new ExmlcException("EXML attribute '" + EXML_PUBLIC_API_ATTRIBUTE +
-              "' must have one the values 'false', 'config', or 'true'.");
+              "' must have one the values 'false', 'config', or 'true', not '" + publicApiMode + "'.");
     }
   }
 
