@@ -8,7 +8,7 @@
   </exml:description>
 
   <exml:cfg name="propertyOne" type="Boolean">
-    <exml:description>Some Boolean property</exml:description>
+    <exml:description>Some Boolean property @see Boolean</exml:description>
   </exml:cfg>
 
   <exml:cfg name="propertyTwo" type="Number">

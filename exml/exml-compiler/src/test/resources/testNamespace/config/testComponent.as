@@ -34,7 +34,7 @@ public dynamic class testComponent extends ext.config.panel {
   }
 
   /**
-   * Some Boolean property
+   * Some Boolean property @see Boolean
    */
   public native function get propertyOne():Boolean;
   /**

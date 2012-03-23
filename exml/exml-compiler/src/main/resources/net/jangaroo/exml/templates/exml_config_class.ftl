@@ -8,7 +8,7 @@ import ${import};
 // Do not edit. This is an auto-generated class.
 
 /**
- * ${escapedDescription!}
+ * ${escapedDescriptionWithoutAts!}
  *
  * <p>This class serves as a typed config object for the constructor of the class <code>${componentClassName}</code>.
  * It defines the EXML element <code>&lt;${ns}:${name}></code> with <code>xmlns:${ns}="exml:${packageName}"</code>.</p>

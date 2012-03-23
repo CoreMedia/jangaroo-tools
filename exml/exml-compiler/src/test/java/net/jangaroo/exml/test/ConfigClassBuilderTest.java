@@ -32,7 +32,7 @@ public class ConfigClassBuilderTest {
       attributeNames.add(configAttribute.getName());
       if ("propertyOne".equals(configAttribute.getName())) {
         Assert.assertEquals("Boolean", configAttribute.getType());
-        Assert.assertEquals("Some Boolean property", configAttribute.getDescription());
+        Assert.assertEquals("Some Boolean property @see Boolean", configAttribute.getDescription());
       }
       if ("propertyTwo".equals(configAttribute.getName())) {
         Assert.assertEquals("Number", configAttribute.getType());
