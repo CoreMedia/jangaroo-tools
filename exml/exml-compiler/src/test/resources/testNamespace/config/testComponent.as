@@ -13,6 +13,7 @@ import ext.config.panel;
  * <code>"testNamespace.config.testComponent"</code> with Ext JS.</p>
  *
  * @see testPackage.TestComponent
+ * @see ext.Panel
  */
 [ExtConfig(target="testPackage.TestComponent", xtype)]
 public dynamic class testComponent extends ext.config.panel {

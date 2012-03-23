@@ -18,6 +18,9 @@ import ${import};
 </#if>
  *
  * @see ${componentClassName}
+<#if escapedDescriptionAts??>
+ * ${escapedDescriptionAts}
+</#if>
  */
 [ExtConfig(target="${componentClassName}"<#if type??>, ${type.type}</#if>)]
 <#if included>

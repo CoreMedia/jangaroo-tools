@@ -19,4 +19,13 @@ public class DescriptionHolderTest {
     dh.setDescription("escape * please");
     assertEquals("escape &#42; please", dh.getEscapedDescription());
   }
+
+  @Test
+  public void testSplitAtAt() {
+    DescriptionHolder dh = new DescriptionHolder();
+
+    dh.setDescription("Some description containing an @see this.and.that");
+    assertEquals("Some description containing an", dh.getEscapedDescription());
+    assertEquals("@see this.and.that", dh.getEscapedDescriptionAts());
+  }
 }

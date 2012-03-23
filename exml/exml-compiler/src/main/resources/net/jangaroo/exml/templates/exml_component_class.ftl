@@ -15,6 +15,9 @@ import ${import};
  * <p>See the config class for details.</p>
  *
  * @see ${model.configClass.fullName}
+<#if model.escapedDescriptionAts??>
+ * ${model.escapedDescriptionAts}
+</#if>
  */
 <#if model.included>
 [PublicApi]
