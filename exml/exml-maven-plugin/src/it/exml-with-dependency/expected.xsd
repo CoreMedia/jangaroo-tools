@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="exml:net.jangaroo.example.config" xmlns:njec="exml:net.jangaroo.example.config" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:exml="http://www.jangaroo.net/exml/0.8" xmlns:ec="exml:ext.config" >
+  <xs:import namespace="http://www.jangaroo.net/exml/0.8"/>
+  <xs:import namespace="exml:ext.config"/>
+  <xs:complexType name='net.jangaroo.example.config.testContainer'>
+    <xs:complexContent>
+      <xs:extension base='ec:ext.config.container'>
+        <xs:sequence>
+        </xs:sequence>
+        <xs:attribute type='exml:String' name='test'>
+        </xs:attribute>
+        <xs:anyAttribute namespace="http://www.jangaroo.net/exml/0.8 exml:untyped" processContents="skip"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element id='net.jangaroo.example.TestContainer' name='testContainer' type='njec:net.jangaroo.example.config.testContainer' substitutionGroup='ec:container'>
+  </xs:element>
+</xs:schema>
