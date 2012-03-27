@@ -17,7 +17,8 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import java.io.*; // <%@page import="java.io.*" %>
+import java.io.*;
+import org.apache.commons.io.FileUtils;
 
 //<%! public boolean test(File basedir) {
 boolean result = true;
@@ -50,6 +51,13 @@ try
     if ( !xsd.exists() || !xsd.isFile() )
     {
         System.err.println( "xsd file is missing or not a file." );
+        return false;
+    }
+
+    File expectedXsd = new File(basedir, "expected.xsd");
+    boolean xsdEqual = FileUtils.contentEquals(expectedXsd, xsd);
+    if (!xsdEqual) {
+        System.err.println( "generated xsd does not match expected xsd." );
         return false;
     }
 
