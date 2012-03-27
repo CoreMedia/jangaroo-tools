@@ -2,6 +2,25 @@
 <xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="exml:net.jangaroo.example.config" xmlns:njec="exml:net.jangaroo.example.config" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:exml="http://www.jangaroo.net/exml/0.8" xmlns:ec="exml:ext.config" >
   <xs:import namespace="http://www.jangaroo.net/exml/0.8"/>
   <xs:import namespace="exml:ext.config"/>
+  <xs:complexType name='net.jangaroo.example.config.testClass'>
+        <xs:sequence>
+        </xs:sequence>
+        <xs:attribute type='exml:String' name='test'>
+          <xs:annotation>
+            <xs:documentation>
+              some property
+            </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+        <xs:anyAttribute namespace="http://www.jangaroo.net/exml/0.8 exml:untyped" processContents="skip"/>
+  </xs:complexType>
+  <xs:element id='net.jangaroo.example.TestClass' name='testClass' type='njec:net.jangaroo.example.config.testClass'>
+    <xs:annotation>
+      <xs:documentation>
+        some description
+      </xs:documentation>
+    </xs:annotation>
+  </xs:element>
   <xs:complexType name='net.jangaroo.example.config.testContainer'>
     <xs:complexContent>
       <xs:extension base='ec:ext.config.container'>
