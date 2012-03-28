@@ -201,6 +201,12 @@ public final class ConfigClassRegistry {
           // We must parse the EXMl file again, because the parent class (and hence the
           // parent config class) might have changed.
           FileInputSource exmlInputSource = (FileInputSource)sourcePathInputSource.getChild(JangarooParser.getInputSourceFileName(componentName, sourcePathInputSource, Exmlc.EXML_SUFFIX));
+          if (exmlInputSource == null) {
+            // try again with lower-case component name:
+            String lowerCaseComponentClassName = CompilerUtils.qName(CompilerUtils.packageName(componentName),
+              CompilerUtils.uncapitalize(CompilerUtils.className(componentName)));
+            exmlInputSource = (FileInputSource)sourcePathInputSource.getChild(JangarooParser.getInputSourceFileName(lowerCaseComponentClassName, sourcePathInputSource, Exmlc.EXML_SUFFIX));
+          }
           if (exmlInputSource != null) {
             scannedExmlFiles.add(exmlInputSource.getFile());
             ConfigClass configClass;
