@@ -70,19 +70,30 @@ public final class CompilerUtils {
   }
 
   public static String getRelativePath(File baseDirectory, File file) {
+    return getRelativePath(baseDirectory, file, true);
+  }
+
+  public static String getRelativePath(File baseDirectory, File file,
+                                       boolean onlyBelowBaseDirectory) {
     try {
-      return getRelativePath(baseDirectory.getCanonicalPath() + File.separator, file.getCanonicalPath(), File.separator);
+      return getRelativePath(baseDirectory.getCanonicalPath() + File.separator, file.getCanonicalPath(), File.separator, onlyBelowBaseDirectory);
     } catch (IOException e) {
       throw new IllegalArgumentException("could not determine qualified name from file; the strange file is called " + file + " in " + baseDirectory, e);
     }
   }
 
-  static String getRelativePath(String canonicalBasePath, String canonicalPath, String fileSeparator) {
-    String relativePath;
+  static String getRelativePathBelow(String canonicalBasePath, String canonicalPath) {
     if (canonicalPath.length() > canonicalBasePath.length() &&
       canonicalPath.startsWith(canonicalBasePath)) {
-      relativePath = canonicalPath.substring(canonicalBasePath.length());
-    } else {
+      return canonicalPath.substring(canonicalBasePath.length());
+    }
+    return null;
+  }
+
+  static String getRelativePath(String canonicalBasePath, String canonicalPath, String fileSeparator,
+                                  boolean onlyBelowBaseDirectory) {
+    String relativePath = getRelativePathBelow(canonicalBasePath, canonicalPath);
+    if (relativePath == null && !onlyBelowBaseDirectory) {
       // construct with "..":
       String fileSeparatorAsRegExp = Pattern.quote(fileSeparator);
       String[] basePathParts = canonicalBasePath.split(fileSeparatorAsRegExp);

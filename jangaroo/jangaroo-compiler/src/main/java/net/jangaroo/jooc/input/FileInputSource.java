@@ -101,7 +101,7 @@ public class FileInputSource extends DirectoryInputSource {
     }
     File sourceFile = new File(file, path);
     if (sourceFile.exists()) {
-      String realPath = file == null ? sourceFile.getPath() : CompilerUtils.getRelativePath(file, sourceFile);
+      String realPath = file == null ? sourceFile.getPath() : CompilerUtils.getRelativePath(file, sourceFile, false);
       if (File.separatorChar != '/') {
         path = path.replace(File.separatorChar, '/');
         realPath = realPath.replace(File.separatorChar, '/');

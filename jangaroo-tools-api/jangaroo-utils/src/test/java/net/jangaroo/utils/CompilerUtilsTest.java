@@ -75,20 +75,25 @@ public class CompilerUtilsTest {
   }
 
   @Test
-  public void testRelativePath() {
-    Assert.assertEquals("bar", CompilerUtils.getRelativePath("foo/", "foo/bar", "/"));
-    Assert.assertEquals("bar/baz", CompilerUtils.getRelativePath("foo/", "foo/bar/baz", "/"));
-    Assert.assertEquals("bar/baz/", CompilerUtils.getRelativePath("foo/", "foo/bar/baz/", "/"));
-    Assert.assertEquals("../bar", CompilerUtils.getRelativePath("foo/", "bar", "/"));
-    Assert.assertEquals("../bar/baz", CompilerUtils.getRelativePath("foo/", "bar/baz", "/"));
-    Assert.assertEquals("../bar/", CompilerUtils.getRelativePath("foo/", "bar/", "/"));
-    Assert.assertEquals("../bar", CompilerUtils.getRelativePath("faz/foo/", "faz/bar", "/"));
-    Assert.assertEquals("../bar/baz", CompilerUtils.getRelativePath("faz/foo/", "faz/bar/baz", "/"));
-    Assert.assertEquals("../bar/", CompilerUtils.getRelativePath("faz/foo/", "faz/bar/", "/"));
+  public void testRelativePathBelow() {
+    Assert.assertEquals("bar", CompilerUtils.getRelativePathBelow("foo/", "foo/bar"));
+    Assert.assertEquals("bar/baz", CompilerUtils.getRelativePathBelow("foo/", "foo/bar/baz"));
+    Assert.assertEquals("bar/baz/", CompilerUtils.getRelativePathBelow("foo/", "foo/bar/baz/"));
+    Assert.assertNull(CompilerUtils.getRelativePathBelow("foo/", "bar"));
+  }
+
+  @Test
+  public void testRelativePath() {  
+    Assert.assertEquals("../bar", CompilerUtils.getRelativePath("foo/", "bar", "/", false));
+    Assert.assertEquals("../bar/baz", CompilerUtils.getRelativePath("foo/", "bar/baz", "/", false));
+    Assert.assertEquals("../bar/", CompilerUtils.getRelativePath("foo/", "bar/", "/", false));
+    Assert.assertEquals("../bar", CompilerUtils.getRelativePath("faz/foo/", "faz/bar", "/", false));
+    Assert.assertEquals("../bar/baz", CompilerUtils.getRelativePath("faz/foo/", "faz/bar/baz", "/", false));
+    Assert.assertEquals("../bar/", CompilerUtils.getRelativePath("faz/foo/", "faz/bar/", "/", false));
     Assert.assertEquals("..\\package1\\TestInclude_fragment.as",
       CompilerUtils.getRelativePath(
         "C:\\workspace\\git\\jangaroo-tools\\jangaroo\\jangaroo-compiler-itests\\src\\test\\joo\\package2\\",
         "C:\\workspace\\git\\jangaroo-tools\\jangaroo\\jangaroo-compiler-itests\\src\\test\\joo\\package1\\TestInclude_fragment.as",
-        "\\"));
+        "\\", false));
   }
 }
