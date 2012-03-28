@@ -33,6 +33,7 @@ public class ExmlConfigPackageXsdGenerator {
     // Maybe even the directory does not exist.
     File targetPackageFolder = config.getResourceOutputDirectory();
     if(!targetPackageFolder.exists()) {
+      //noinspection ResultOfMethodCallIgnored
       targetPackageFolder.mkdirs(); // NOSONAR
     }
 
