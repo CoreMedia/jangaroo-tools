@@ -108,8 +108,6 @@ public class FileInputSource extends DirectoryInputSource {
       }
       if (path.equals(realPath)) {
         return new FileInputSource(sourceDir, sourceFile);
-      } else {
-        System.err.printf("[WARN] found child '%s', but returned file's name '%s' does not match.%n", path, realPath);
       }
     }
     return null;
