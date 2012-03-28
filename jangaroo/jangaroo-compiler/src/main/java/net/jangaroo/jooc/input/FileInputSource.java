@@ -1,6 +1,7 @@
 package net.jangaroo.jooc.input;
 
 import net.jangaroo.utils.BOMStripperInputStream;
+import net.jangaroo.utils.CompilerUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -94,11 +95,24 @@ public class FileInputSource extends DirectoryInputSource {
   }
 
   @Override
-  public FileInputSource getChild(final String path) {
+  public FileInputSource getChild(String path) {
+    if (path.length() == 0) {
+      return this;
+    }
     File sourceFile = new File(file, path);
-    return sourceFile.exists()
-            ? new FileInputSource(sourceDir, sourceFile)
-            : null;
+    if (sourceFile.exists()) {
+      String realPath = file == null ? sourceFile.getPath() : CompilerUtils.getRelativePath(file, sourceFile);
+      if (File.separatorChar != '/') {
+        path = path.replace(File.separatorChar, '/');
+        realPath = realPath.replace(File.separatorChar, '/');
+      }
+      if (path.equals(realPath)) {
+        return new FileInputSource(sourceDir, sourceFile);
+      } else {
+        System.err.printf("[WARN] found child '%s', but returned file's name '%s' does not match.%n", path, realPath);
+      }
+    }
+    return null;
   }
 
 }

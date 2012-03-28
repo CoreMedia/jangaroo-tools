@@ -3,6 +3,7 @@ package net.jangaroo.utils;
 import java.io.File;
 import java.io.IOException;
 import java.util.Locale;
+import java.util.regex.Pattern;
 
 /**
  * Created by IntelliJ IDEA. User: fwienber Date: 05.07.11 Time: 09:24 To change this template use File | Settings |
@@ -69,16 +70,41 @@ public final class CompilerUtils {
   }
 
   public static String getRelativePath(File baseDirectory, File file) {
-    String relativePath = null;
     try {
-      String canonicalBasePath = baseDirectory.getCanonicalPath() + File.separator;
-      String canonicalPath = file.getCanonicalPath();
-      if (canonicalPath.length() > canonicalBasePath.length() &&
-              canonicalPath.startsWith(canonicalBasePath)) {
-        relativePath = canonicalPath.substring(canonicalBasePath.length());
-      }
+      return getRelativePath(baseDirectory.getCanonicalPath() + File.separator, file.getCanonicalPath(), File.separator);
     } catch (IOException e) {
       throw new IllegalArgumentException("could not determine qualified name from file; the strange file is called " + file + " in " + baseDirectory, e);
+    }
+  }
+
+  static String getRelativePath(String canonicalBasePath, String canonicalPath, String fileSeparator) {
+    String relativePath;
+    if (canonicalPath.length() > canonicalBasePath.length() &&
+      canonicalPath.startsWith(canonicalBasePath)) {
+      relativePath = canonicalPath.substring(canonicalBasePath.length());
+    } else {
+      // construct with "..":
+      String fileSeparatorAsRegExp = Pattern.quote(fileSeparator);
+      String[] basePathParts = canonicalBasePath.split(fileSeparatorAsRegExp);
+      String[] pathParts = canonicalPath.split(fileSeparatorAsRegExp, -1);
+      int samePartCount = basePathParts.length;
+      for (int i = 0; i < basePathParts.length; i++) {
+        if (!basePathParts[i].equals(pathParts[i])) {
+          samePartCount = i;
+          break;
+        }
+      }
+      StringBuilder builder = new StringBuilder();
+      for (int i = samePartCount; i < basePathParts.length; i++) {
+        builder.append("..").append(fileSeparator);
+      }
+      for (int i = samePartCount; i < pathParts.length; i++) {
+        builder.append(pathParts[i]);
+        if (i < pathParts.length - 1) {
+          builder.append(fileSeparator);
+        }
+      }
+      relativePath = builder.toString();
     }
     return relativePath;
   }

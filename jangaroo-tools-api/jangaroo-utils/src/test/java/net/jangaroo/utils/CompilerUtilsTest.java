@@ -73,4 +73,22 @@ public class CompilerUtilsTest {
     Assert.assertEquals("ab", CompilerUtils.uncapitalize("AB"));
     Assert.assertEquals("aBc", CompilerUtils.uncapitalize("ABc"));
   }
+
+  @Test
+  public void testRelativePath() {
+    Assert.assertEquals("bar", CompilerUtils.getRelativePath("foo/", "foo/bar", "/"));
+    Assert.assertEquals("bar/baz", CompilerUtils.getRelativePath("foo/", "foo/bar/baz", "/"));
+    Assert.assertEquals("bar/baz/", CompilerUtils.getRelativePath("foo/", "foo/bar/baz/", "/"));
+    Assert.assertEquals("../bar", CompilerUtils.getRelativePath("foo/", "bar", "/"));
+    Assert.assertEquals("../bar/baz", CompilerUtils.getRelativePath("foo/", "bar/baz", "/"));
+    Assert.assertEquals("../bar/", CompilerUtils.getRelativePath("foo/", "bar/", "/"));
+    Assert.assertEquals("../bar", CompilerUtils.getRelativePath("faz/foo/", "faz/bar", "/"));
+    Assert.assertEquals("../bar/baz", CompilerUtils.getRelativePath("faz/foo/", "faz/bar/baz", "/"));
+    Assert.assertEquals("../bar/", CompilerUtils.getRelativePath("faz/foo/", "faz/bar/", "/"));
+    Assert.assertEquals("..\\package1\\TestInclude_fragment.as",
+      CompilerUtils.getRelativePath(
+        "C:\\workspace\\git\\jangaroo-tools\\jangaroo\\jangaroo-compiler-itests\\src\\test\\joo\\package2\\",
+        "C:\\workspace\\git\\jangaroo-tools\\jangaroo\\jangaroo-compiler-itests\\src\\test\\joo\\package1\\TestInclude_fragment.as",
+        "\\"));
+  }
 }
