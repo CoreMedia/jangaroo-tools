@@ -22,6 +22,10 @@ public class ConfigClassRegistryTest extends AbstractExmlTest {
     Assert.assertNotNull(configClass);
     Assert.assertEquals("testNamespace.config", configClass.getPackageName());
     Assert.assertEquals("testPackage.TestLabel", configClass.getComponentClassName());
+    ConfigClass labelConfigClass = getConfigClassRegistry().getConfigClassByName("ext.config.label");
+    Assert.assertNotNull(labelConfigClass);
+    Assert.assertEquals("ext.config.label", labelConfigClass.getFullName());
+    Assert.assertEquals(labelConfigClass, configClass.getSuperClass());
     Assert.assertEquals(1, configClass.getCfgs().size());
   }
 

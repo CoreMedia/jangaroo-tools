@@ -121,10 +121,14 @@ public final class ConfigClassRegistry {
    * This has to be called before you use the registry once.
    */
   public void scanAllExmlFiles() {
-    scanExmlFiles(sourcePathInputSource);
+    Set<ConfigClass> addedConfigClasses = new HashSet<ConfigClass>();
+    scanExmlFiles(sourcePathInputSource, addedConfigClasses);
+    for (ConfigClass configClass : addedConfigClasses) {
+      evaluateSuperClass(configClass);
+    }
   }
 
-  private void scanExmlFiles(InputSource inputSource) {
+  private void scanExmlFiles(InputSource inputSource, Set<ConfigClass> addedConfigClasses) {
     for (InputSource source : inputSource.list()) {
       File exmlFile = ((FileInputSource) source).getFile();
       if (exmlFile.isFile()) {
@@ -134,6 +138,7 @@ public final class ConfigClassRegistry {
             try {
               ConfigClass configClass = exmlToConfigClassParser.parseExmlToConfigClass(exmlFile);
               addConfigClass(configClass);
+              addedConfigClasses.add(configClass);
             } catch (IOException e) {
               // TODO Log and continue?
               throw new ExmlcException("could not read EXML file", e);
@@ -142,7 +147,7 @@ public final class ConfigClassRegistry {
         }
       } else {
         // Recurse into the tree.
-        scanExmlFiles(source);
+        scanExmlFiles(source, addedConfigClasses);
       }
     }
   }
