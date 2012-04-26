@@ -127,6 +127,11 @@ public abstract class ScopeImplBase implements Scope {
   }
 
   @Override
+  public DeclarationScope getPackageDeclarationScope() {
+    return parent == null ? null : parent.getPackageDeclarationScope();
+  }
+
+  @Override
   public FunctionDeclaration getMethodDeclaration() {
     return parent == null ? null : parent.getMethodDeclaration();
   }

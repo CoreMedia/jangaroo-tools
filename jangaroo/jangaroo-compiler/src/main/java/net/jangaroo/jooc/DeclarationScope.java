@@ -35,11 +35,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 /**
  * @author Andreas Gawecki
  */
 public class DeclarationScope extends ScopeImplBase {
+
+  private static final Pattern AUX_VAR_NAME_PATTERN = Pattern.compile("\\$([0-9]+)");
 
   private AstNode definingNode;
   private Set<String> packages = new HashSet<String>();
@@ -118,6 +121,13 @@ public class DeclarationScope extends ScopeImplBase {
     if (importsByName.containsKey(name)) {
       throw new CompilerError(ide.getSymbol(), "attempt to redefine an imported identifier " + name);
     }
+    if (AUX_VAR_NAME_PATTERN.matcher(name).matches()) {
+      DeclarationScope packageDeclarationScope = getPackageDeclarationScope();
+      if (packageDeclarationScope != null && packageDeclarationScope != this) {
+        // also declare local auxiliary vars in package scope to reserve them so they are not used for package names:
+        new VariableDeclaration(null, new Ide(name), null).scope(packageDeclarationScope);
+      }
+    }
     return ides.put(name, decl);
   }
 
@@ -188,7 +198,7 @@ public class DeclarationScope extends ScopeImplBase {
     while (true) {
       String auxVarName = "$" + i;
       Ide auxVar = new Ide(new JooSymbol(auxVarName));
-      if (!isDeclared(auxVar)) {
+      if (lookupDeclaration(auxVar) == null) {
         return auxVar;
       }
       ++i;
@@ -198,7 +208,7 @@ public class DeclarationScope extends ScopeImplBase {
   @Override
   public Ide createAuxVar(Scope lookupScope) {
     Ide auxVar = findFreeAuxVar();
-    new VariableDeclaration(new JooSymbol("var"), auxVar, null, null).scope(this);
+    new VariableDeclaration(null, auxVar, null).scope(this);
     return auxVar;
   }
 
@@ -224,6 +234,11 @@ public class DeclarationScope extends ScopeImplBase {
       return (ClassDeclaration) definingNode;
     }
     return super.getClassDeclaration();
+  }
+
+  @Override
+  public DeclarationScope getPackageDeclarationScope() {
+    return definingNode instanceof PackageDeclaration ? this : super.getPackageDeclarationScope();
   }
 
   @Override

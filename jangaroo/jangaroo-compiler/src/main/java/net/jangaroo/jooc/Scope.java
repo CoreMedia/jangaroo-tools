@@ -63,4 +63,6 @@ public interface Scope {
   boolean isPackage(String fullyQualifiedName);
 
   Ide findFreeAuxVar();
+
+  DeclarationScope getPackageDeclarationScope();
 }

@@ -162,6 +162,11 @@ public class JoocTest {
     assertApiCompilationResult("package1/ImportReduction", "withExclude/");
   }
 
+  @Test
+  public void testAuxVarConfusion() throws Exception {
+    assertCompilationResult("package1/AuxVarConfusion");
+  }
+
   private void assertApiCompilationResult(String path) throws URISyntaxException, IOException {
     assertApiCompilationResult(path, "");
   }
