@@ -30,4 +30,6 @@ public interface InputSource {
   char getFileSeparatorChar();
 
   InputSource getParent();
+
+  boolean isInSourcePath();
 }

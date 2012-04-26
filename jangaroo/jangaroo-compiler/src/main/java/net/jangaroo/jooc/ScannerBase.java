@@ -10,13 +10,13 @@ import java.util.Map;
 
 public abstract class ScannerBase implements sym {
 
-  protected String whitespace = ""; // NOSONAR required by CUP
-  protected String multiStateText = ""; // NOSONAR required by CUP
-  protected StringBuilder string = new StringBuilder(); // NOSONAR required by CUP
-  protected String fileName = ""; // NOSONAR required by CUP
-  protected int vectorNestingLevel = 0; // NOSONAR required by CUP
+  private StringBuilder whitespace = new StringBuilder();
+  private StringBuilder multiStateText = new StringBuilder();
+  private StringBuilder string = new StringBuilder();
+  private String fileName = "";
+  private int vectorNestingLevel = 0;
 
-  private InputSource inputSource;
+  protected InputSource inputSource;
 
   private JooSymbol pushedBackToken;
 
@@ -60,12 +60,86 @@ public abstract class ScannerBase implements sym {
     return IncludeEvaluator.createReader(include, getInputSource());
   }
 
-  protected abstract JooSymbol symbol(int type);
+  protected abstract void yypushback(int number);
+  protected abstract void yybeginRegExpStart();
 
-  protected abstract JooSymbol symbol(int type, Object value);
+  protected void startRegexp(JooSymbol regexpStart) {
+    setMultiStateText("");
+    clearString();
+    popWhitespace();
+    pushWhitespace(regexpStart.getWhitespace());
+    assert(regexpStart.sym == sym.DIV || regexpStart.sym == sym.DIVEQ);
+    yypushback(regexpStart.getText().length()); // scan it again as part of the regexp
+    yybeginRegExpStart();
+  }
 
+  protected void startType(JooSymbol typeStart) {
+    assert(typeStart.sym == sym.MULTEQ);
+    JooSymbol mul = new JooSymbol(sym.MUL, typeStart.getFileName(), typeStart.getLine(), typeStart.getColumn(), "", "*");
+    pushback(mul);
+    yypushback(1); // the "="
+  }
 
-  protected abstract JooSymbol multiStateSymbol(int type, Object value);
+  protected void pushWhitespace(String whitespace) {
+    if (inputSource.isInSourcePath()) {
+      this.whitespace.append(whitespace);
+    }
+  }
+
+  protected String popWhitespace() {
+    String result = whitespace.toString();
+    whitespace.setLength(0);
+    return result;
+  }
+
+  protected void pushString(String string) {
+    this.string.append(string);
+  }
+
+  protected void pushString(char chr) {
+    this.string.append(chr);
+  }
+
+  protected void setMultiStateText(String multiStateText) {
+    this.multiStateText.setLength(0);
+    pushMultiStateText(multiStateText);
+  }
+
+  protected void pushMultiStateText(String multiStateText) {
+    this.multiStateText.append(multiStateText);
+  }
+
+  protected void increaseVectorNestingLevel() {
+    ++vectorNestingLevel;
+  }
+
+  protected boolean decreaseVectorNestingLevel() {
+    return --vectorNestingLevel == 0;
+  }
+
+  protected void clearString() {
+    string.setLength(0);
+  }
+
+  protected String getString() {
+    return string.toString();
+  }
+
+  protected abstract int getLine();
+  protected abstract int getColumn();
+  protected abstract String yytext();
+
+  protected JooSymbol symbol(int sym) {
+    return new JooSymbol(sym, fileName, getLine(), getColumn(), popWhitespace(), yytext());
+  }
+
+  protected JooSymbol symbol(int sym, Object value) {
+    return new JooSymbol(sym, fileName, getLine(), getColumn(), popWhitespace(), yytext(), value);
+  }
+
+  protected JooSymbol multiStateSymbol(int sym, Object value) {
+    return new JooSymbol(sym, fileName, getLine(), getColumn(), popWhitespace(), multiStateText.toString(), value);
+  }
 
   protected void error(String msg) throws ScanError {
     throw new ScanError(msg, symbol(SCAN_ERROR));

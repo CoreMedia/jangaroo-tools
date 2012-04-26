@@ -9,13 +9,14 @@ public class PathInputSource extends DirectoryInputSource {
 
   private String name;
   private List<InputSource> entries;
+  private boolean inSourcePath;
 
-  public static PathInputSource fromFiles(List<File> files, String[] rootDirs) throws IOException {
+  public static PathInputSource fromFiles(List<File> files, String[] rootDirs, boolean inSourcePath) throws IOException {
     List<InputSource> entries = new ArrayList<InputSource>();
     StringBuilder name = new StringBuilder();
     for (File file : files) {
       if (file.isDirectory()) {
-        entries.add(new FileInputSource(file, file));
+        entries.add(new FileInputSource(file, file, inSourcePath));
       } else if (file.getName().endsWith(".jar") || file.getName().endsWith(".zip")) {
         entries.add(new ZipFileInputSource(file, rootDirs));
       }
@@ -24,13 +25,14 @@ public class PathInputSource extends DirectoryInputSource {
       }
       name.append(file.getAbsolutePath());
     }
-    return new PathInputSource(name.toString(), entries);
+    return new PathInputSource(name.toString(), entries, inSourcePath);
   }
 
-  public PathInputSource(final String name, final List<InputSource> entries) {
+  public PathInputSource(final String name, final List<InputSource> entries, boolean inSourcePath) {
     super();
     this.name = name;
     this.entries = entries;
+    this.inSourcePath = inSourcePath;
   }
 
   @Override
@@ -46,6 +48,11 @@ public class PathInputSource extends DirectoryInputSource {
   @Override
   public String getRelativePath() {
     return "";
+  }
+
+  @Override
+  public boolean isInSourcePath() {
+    return inSourcePath;
   }
 
   @Override
@@ -72,7 +79,7 @@ public class PathInputSource extends DirectoryInputSource {
         result.add(child);
       }
     }
-    return result == null ? null : new PathInputSource("(" + getName() + ")" + path, result);
+    return result == null ? null : new PathInputSource("(" + getName() + ")" + path, result, inSourcePath);
   }
 
   @Override

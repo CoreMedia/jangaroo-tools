@@ -71,6 +71,11 @@ public class ZipFileInputSource extends DirectoryInputSource {
   }
 
   @Override
+  public boolean isInSourcePath() {
+    return false; // ZIP files are never in source path
+  }
+
+  @Override
   public List<InputSource> list() {
     return list("");
   }

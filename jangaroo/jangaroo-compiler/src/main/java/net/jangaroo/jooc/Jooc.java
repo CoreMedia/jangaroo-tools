@@ -95,8 +95,8 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
     InputSource sourcePathInputSource;
     InputSource classPathInputSource;
     try {
-      sourcePathInputSource = PathInputSource.fromFiles(getConfig().getSourcePath(), new String[]{""});
-      classPathInputSource = PathInputSource.fromFiles(getConfig().getClassPath(), new String[]{"", JOO_API_IN_JAR_DIRECTORY_PREFIX});
+      sourcePathInputSource = PathInputSource.fromFiles(getConfig().getSourcePath(), new String[]{""}, true);
+      classPathInputSource = PathInputSource.fromFiles(getConfig().getClassPath(), new String[]{"", JOO_API_IN_JAR_DIRECTORY_PREFIX}, false);
     } catch (IOException e) {
       throw new CompilerError("IO Exception occurred", e);
     }
@@ -199,7 +199,7 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
     if (file.isDirectory()) {
       throw error("Input file is a directory.", file);
     }
-    CompilationUnit unit = importSource(new FileInputSource(getConfig().findSourceDir(file), file));
+    CompilationUnit unit = importSource(new FileInputSource(getConfig().findSourceDir(file), file, true));
     if (unit != null) {
       compileQueue.add(unit);
     }

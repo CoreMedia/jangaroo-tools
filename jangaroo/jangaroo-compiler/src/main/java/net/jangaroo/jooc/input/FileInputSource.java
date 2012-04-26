@@ -14,16 +14,18 @@ public class FileInputSource extends DirectoryInputSource {
 
   private File sourceDir;
   private File file;
+  private boolean inSourcePath;
   private List<InputSource> children;
 
-  public FileInputSource(final File sourceDir, final File file) {
+  public FileInputSource(final File sourceDir, final File file, boolean inSourcePath) {
     super();
     this.sourceDir = sourceDir;
     this.file = file;
+    this.inSourcePath = inSourcePath;
   }
 
-  public FileInputSource(final File file) {
-    this(file, file);
+  public FileInputSource(final File file, boolean inSourcePath) {
+    this(file, file, inSourcePath);
   }
 
   @Override
@@ -53,6 +55,11 @@ public class FileInputSource extends DirectoryInputSource {
   }
 
   @Override
+  public boolean isInSourcePath() {
+    return inSourcePath;
+  }
+
+  @Override
   public void close() {
   }
 
@@ -71,7 +78,7 @@ public class FileInputSource extends DirectoryInputSource {
 
   @Override
   public InputSource getParent() {
-    return new FileInputSource(sourceDir, file.getParentFile());
+    return new FileInputSource(sourceDir, file.getParentFile(), inSourcePath);
   }
 
   @Override
@@ -87,8 +94,9 @@ public class FileInputSource extends DirectoryInputSource {
     if (children == null) {
       children = new ArrayList<InputSource>();
       File[] childFiles = file.listFiles();
+      assert childFiles != null; // since we made sure it is a directory!
       for (File childFile : childFiles) {
-        children.add(new FileInputSource(sourceDir, childFile));
+        children.add(new FileInputSource(sourceDir, childFile, inSourcePath));
       }
     }
     return children;
@@ -107,7 +115,7 @@ public class FileInputSource extends DirectoryInputSource {
         realPath = realPath.replace(File.separatorChar, '/');
       }
       if (path.equals(realPath)) {
-        return new FileInputSource(sourceDir, sourceFile);
+        return new FileInputSource(sourceDir, sourceFile, inSourcePath);
       }
     }
     return null;

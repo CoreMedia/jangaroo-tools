@@ -60,7 +60,7 @@ public class ConfigClassBuilderTest {
 
   private ConfigClass buildConfigClass(String resourceName) throws URISyntaxException {
     File sourceFile = new File(getClass().getResource(resourceName).toURI());
-    InputSource inputSource = new FileInputSource(sourceFile);
+    InputSource inputSource = new FileInputSource(sourceFile, true);
     CompilationUnit compilationUnit = Jooc.doParse(inputSource, new StdOutCompileLog(), SemicolonInsertionMode.QUIRKS);
     ConfigClassBuilder configClassBuilder = new ConfigClassBuilder(compilationUnit);
     return configClassBuilder.buildConfigClass();

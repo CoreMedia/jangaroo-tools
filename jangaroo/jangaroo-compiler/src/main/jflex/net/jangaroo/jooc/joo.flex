@@ -90,38 +90,16 @@ package net.jangaroo.jooc;
 
 %{
 
-  protected JooSymbol symbol(int sym) {
-    JooSymbol result = new JooSymbol(sym, fileName, yyline + 1, yycolumn + 1, whitespace, yytext());
-    whitespace = "";
-    return result;
+  protected int getColumn() {
+    return yycolumn + 1;
   }
 
-  protected JooSymbol symbol(int sym, Object value) {
-    JooSymbol result = new JooSymbol(sym, fileName, yyline + 1, yycolumn + 1, whitespace, yytext(), value);
-    whitespace = "";
-    return result;
+  protected int getLine() {
+    return yyline + 1;
   }
 
-  protected JooSymbol multiStateSymbol(int sym, Object value) {
-    JooSymbol result = new JooSymbol(sym, fileName, yyline + 1, yycolumn + 1, whitespace, multiStateText, value);
-    whitespace = "";
-    return result;
-  }
-
-  protected void startRegexp(JooSymbol regexpStart) {
-    multiStateText = "";
-    string.setLength(0);
-    whitespace = regexpStart.getWhitespace();
-    assert(regexpStart.sym == sym.DIV || regexpStart.sym == sym.DIVEQ);
-    yypushback(regexpStart.getText().length()); // scan it again as part of the regexp
+  protected void yybeginRegExpStart() {
     yybegin(REGEXP_START);
-  }
-
-  protected void startType(JooSymbol typeStart) {
-    assert(typeStart.sym == sym.MULTEQ);
-    JooSymbol mul = new JooSymbol(sym.MUL, typeStart.getFileName(), typeStart.getLine(), typeStart.getColumn(), "", "*");
-    pushback(mul);
-    yypushback(1); // the "="
   }
 
 %}
@@ -179,8 +157,8 @@ Include           = "include \"" ~"\""
 
 <YYINITIAL> {
 
-  {Comment}                       { whitespace += yytext(); }
-  {WhiteSpace}                    { whitespace += yytext(); }
+  {Comment}                       { pushWhitespace(yytext()); }
+  {WhiteSpace}                    { pushWhitespace(yytext()); }
   {Include}                       { yypushStream(createIncludeReader(yytext())); }
 
   "as"                            { return symbol(AS); }
@@ -282,10 +260,10 @@ Include           = "include \"" ~"\""
   "::"                            { return symbol(NAMESPACESEP); }
   "/"                             { return symbol(DIV); }
   "/="                            { return symbol(DIVEQ); }
-  ".<"                            { ++vectorNestingLevel; yybegin(VECTOR_TYPE); return symbol(DOTLT); }
+  ".<"                            { increaseVectorNestingLevel(); yybegin(VECTOR_TYPE); return symbol(DOTLT); }
 
-  \"                              { multiStateText = yytext(); yybegin(STRING_DQ); string.setLength(0); }
-  \'                              { multiStateText = yytext(); yybegin(STRING_SQ); string.setLength(0); }
+  \"                              { setMultiStateText(yytext()); yybegin(STRING_DQ); clearString(); }
+  \'                              { setMultiStateText(yytext()); yybegin(STRING_SQ); clearString(); }
 
   {DecIntegerLiteral}             { return symbol(INT_LITERAL, new Long(yytext())); }
   {HexIntegerLiteral}             { return symbol(INT_LITERAL, Long.parseLong(yytext().substring(2),16)); }
@@ -293,67 +271,67 @@ Include           = "include \"" ~"\""
 }
 
 <VECTOR_TYPE> {
-  {Comment}                       { whitespace += yytext(); }
-  {WhiteSpace}                    { whitespace += yytext(); }
+  {Comment}                       { pushWhitespace(yytext()); }
+  {WhiteSpace}                    { pushWhitespace(yytext()); }
   {Identifier}                    { return symbol(IDE, yytext()); }
   "*"                             { return symbol(MUL); }
   "."                             { return symbol(DOT); }
-  ".<"                            { ++vectorNestingLevel; return symbol(DOTLT); }
-  ">"                             { if (--vectorNestingLevel == 0) { yybegin(YYINITIAL); } return symbol(GT); }
+  ".<"                            { increaseVectorNestingLevel(); return symbol(DOTLT); }
+  ">"                             { if (decreaseVectorNestingLevel()) { yybegin(YYINITIAL); } return symbol(GT); }
 }
 
 <STRING_DQ> {
-  \"                              { multiStateText += yytext(); yybegin(YYINITIAL);
-                                    return multiStateSymbol(STRING_LITERAL, string.toString()); }
-  [^\r\n\"\\]+                    { multiStateText += yytext(); string.append( yytext() ); }
-  "\\b"                           { multiStateText += yytext(); string.append( '\b' ); }
-  "\\t"                           { multiStateText += yytext(); string.append( '\t' ); }
-  "\\n"                           { multiStateText += yytext(); string.append( '\n' ); }
-  "\\f"                           { multiStateText += yytext(); string.append( '\f' ); }
-  "\\r"                           { multiStateText += yytext(); string.append( '\r' ); }
-  "\\\""                          { multiStateText += yytext(); string.append( '\"' ); }
-  "\\\'"                          { multiStateText += yytext(); string.append( '\'' ); }
-  "\\\\"                          { multiStateText += yytext(); string.append( '\\' ); }
-\\(u{HexDigit}{4}|x{HexDigit}{2}) { multiStateText += yytext();
+  \"                              { pushMultiStateText(yytext()); yybegin(YYINITIAL);
+                                    return multiStateSymbol(STRING_LITERAL, getString()); }
+  [^\r\n\"\\]+                    { pushMultiStateText(yytext()); pushString( yytext() ); }
+  "\\b"                           { pushMultiStateText(yytext()); pushString( '\b' ); }
+  "\\t"                           { pushMultiStateText(yytext()); pushString( '\t' ); }
+  "\\n"                           { pushMultiStateText(yytext()); pushString( '\n' ); }
+  "\\f"                           { pushMultiStateText(yytext()); pushString( '\f' ); }
+  "\\r"                           { pushMultiStateText(yytext()); pushString( '\r' ); }
+  "\\\""                          { pushMultiStateText(yytext()); pushString( '\"' ); }
+  "\\\'"                          { pushMultiStateText(yytext()); pushString( '\'' ); }
+  "\\\\"                          { pushMultiStateText(yytext()); pushString( '\\' ); }
+\\(u{HexDigit}{4}|x{HexDigit}{2}) { pushMultiStateText(yytext());
                                    char val = (char) Integer.parseInt(yytext().substring(2),16);
-                        	   string.append(val); }
-  \\.                             { multiStateText += yytext(); string.append(yytext().substring(1)); }
+                        	   pushString(val); }
+  \\.                             { pushMultiStateText(yytext()); pushString(yytext().substring(1)); }
   {LineTerminator}                { error("Unterminated string at end of line"); }
 }
 
 <STRING_SQ> {
-  \'                              { multiStateText += yytext(); yybegin(YYINITIAL); return multiStateSymbol(STRING_LITERAL, string.toString()); }
-  [^\r\n'\\]+                     { multiStateText += yytext(); string.append( yytext() ); }
-  "\\b"                           { multiStateText += yytext(); string.append( '\b' ); }
-  "\\t"                           { multiStateText += yytext(); string.append( '\t' ); }
-  "\\n"                           { multiStateText += yytext(); string.append( '\n' ); }
-  "\\f"                           { multiStateText += yytext(); string.append( '\f' ); }
-  "\\r"                           { multiStateText += yytext(); string.append( '\r' ); }
-  "\\\""                          { multiStateText += yytext(); string.append( '\"' ); }
-  "\\\'"                          { multiStateText += yytext(); string.append( '\'' ); }
-  "\\\\"                          { multiStateText += yytext(); string.append( '\\' ); }
-\\(u{HexDigit}{4}|x{HexDigit}{2}) { multiStateText += yytext();
+  \'                              { pushMultiStateText(yytext()); yybegin(YYINITIAL); return multiStateSymbol(STRING_LITERAL, getString()); }
+  [^\r\n'\\]+                     { pushMultiStateText(yytext()); pushString( yytext() ); }
+  "\\b"                           { pushMultiStateText(yytext()); pushString( '\b' ); }
+  "\\t"                           { pushMultiStateText(yytext()); pushString( '\t' ); }
+  "\\n"                           { pushMultiStateText(yytext()); pushString( '\n' ); }
+  "\\f"                           { pushMultiStateText(yytext()); pushString( '\f' ); }
+  "\\r"                           { pushMultiStateText(yytext()); pushString( '\r' ); }
+  "\\\""                          { pushMultiStateText(yytext()); pushString( '\"' ); }
+  "\\\'"                          { pushMultiStateText(yytext()); pushString( '\'' ); }
+  "\\\\"                          { pushMultiStateText(yytext()); pushString( '\\' ); }
+\\(u{HexDigit}{4}|x{HexDigit}{2}) { pushMultiStateText(yytext());
                                    char val = (char) Integer.parseInt(yytext().substring(2),16);
-                        	   string.append(val); }
-  \\.                             { multiStateText += yytext(); string.append(yytext().substring(1)); }
+                        	   pushString(val); }
+  \\.                             { pushMultiStateText(yytext()); pushString(yytext().substring(1)); }
   {LineTerminator}                { error("Unterminated string at end of line"); }
 }
 
 
 <REGEXP_START> {
-  "/"                             { multiStateText += yytext(); string.append(yytext()); yybegin(REGEXP_FIRST); }
+  "/"                             { pushMultiStateText(yytext()); pushString(yytext()); yybegin(REGEXP_FIRST); }
 }
 
 <REGEXP_FIRST> {
-  {RegularExpressionFirstChar}    { multiStateText += yytext(); string.append(yytext()); yybegin(REGEXP_REST); }
+  {RegularExpressionFirstChar}    { pushMultiStateText(yytext()); pushString(yytext()); yybegin(REGEXP_REST); }
   {LineTerminator}                { error("unterminated regular expression at end of line"); }
 }
 
 <REGEXP_REST> {
-  {RegexpRest}                    { multiStateText += yytext();
-                                    string.append(yytext());
+  {RegexpRest}                    { pushMultiStateText(yytext());
+                                    pushString(yytext());
                                     yybegin(YYINITIAL);
-                                    return multiStateSymbol(REGEXP_LITERAL, string.toString());
+                                    return multiStateSymbol(REGEXP_LITERAL, getString());
                                   }
   {LineTerminator}                { error("unterminated regular expression at end of line"); }
 }

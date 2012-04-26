@@ -212,7 +212,7 @@ public class JangarooParser {
       throw error("Input file must end with '" + Jooc.AS_SUFFIX + "': " + in.getName());
     }
     if (config.isVerbose()) {
-      System.out.println("Parsing " + in.getPath()); // NOSONAR this is a cmd line tool
+      System.out.println("Parsing " + in.getPath() + " (" + (in.isInSourcePath() ? "source" : "class") + "path)"); // NOSONAR this is a cmd line tool
     }
     CompilationUnit unit = doParse(in, log, config.getSemicolonInsertionMode());
     if (unit != null) {
