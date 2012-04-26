@@ -3,7 +3,7 @@
   <parent>
     <artifactId>jangaroo-parent</artifactId>
     <groupId>net.jangaroo</groupId>
-    <version>0.9.15-SNAPSHOT</version>
+    <version>0.9.15</version>
     <relativePath>../jangaroo-parent/pom.xml</relativePath>
   </parent>
   <packaging>pom</packaging>
