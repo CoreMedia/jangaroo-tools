@@ -843,6 +843,10 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitForInStatement(ForInStatement forInStatement) throws IOException {
+    Ide exprAuxIde = forInStatement.getExprAuxIde();
+    if (exprAuxIde != null) {
+      new SemicolonTerminatedStatement(new VariableDeclaration(SYM_VAR, exprAuxIde, null, null), SYM_SEMICOLON).visit(this);
+    }
     out.writeSymbol(forInStatement.getSymKeyword());
     if (forInStatement.getSymEach() != null) {
       out.beginComment();
@@ -860,11 +864,17 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       }
     }
     out.writeSymbol(forInStatement.getSymIn());
+    if (exprAuxIde != null) {
+      // assign the expression value to the auxiliary expression value variable once:
+      out.writeToken(exprAuxIde.getName());
+      out.writeToken("=");
+    }
     forInStatement.getExpr().visit(this);
     out.writeSymbol(forInStatement.getRParen());
     if (forInStatement.getSymEach() != null) {
       // synthesize assigning the correct index to the variable given in the original for each statement:
-      ArrayIndexExpr indexExpr = new ArrayIndexExpr(forInStatement.getExpr(), SYM_LBRACK,
+      Expr expr = exprAuxIde == null ? forInStatement.getExpr() : new IdeExpr(exprAuxIde);
+      ArrayIndexExpr indexExpr = new ArrayIndexExpr(expr, SYM_LBRACK,
               new CommaSeparatedList<IdeExpr>(new IdeExpr(forInStatement.getAuxIde())),
               SYM_RBRACK);
       Statement assignment = // NOSONAR no, this is not a JDBC statement that must be closed ...

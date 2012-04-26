@@ -15,11 +15,14 @@
 
 package package2 {
 
+import package1.ClassToImport;
+
 public class TestStatements {
 
   public static var s:*;
 
   public function TestStatements() {
+    new ClassToImport();
   }
 
   public function testWhile(n:int):int {
@@ -91,6 +94,17 @@ public class TestStatements {
     }
     result.sort();
     return result.join(", ");
+  }
+
+  public function testForEach4():int {
+    var num:int = 0;
+    var compute:Function = function():Object {
+      num++; // side-effect!
+      return {x:1, y:2, z:3};
+    };
+    for each (var slot:String in compute()) {
+    }
+    return num; // must return 1, not 3!
   }
 
   // from http://pastebin.com/1MDyFVJA

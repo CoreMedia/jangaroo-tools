@@ -36,7 +36,8 @@ public class ForInStatement extends LoopStatement {
   private JooSymbol symIn;
   private Expr expr;
   private JooSymbol rParen;
-  private Ide auxIde; // generated for each loop auxiliary variable
+  private Ide auxIde; // generated for each loop auxiliary loop variable
+  private Ide exprAuxIde; // generated for each loop auxiliary expression value variable
 
   public ForInStatement(JooSymbol symFor, JooSymbol symEach, JooSymbol lParen, VariableDeclaration decl, JooSymbol symIn, Expr expr, JooSymbol rParen, Statement body) {
     this(symFor, symEach, lParen, decl, null, symIn, expr, rParen, body);
@@ -97,6 +98,10 @@ public class ForInStatement extends LoopStatement {
     return auxIde;
   }
 
+  public Ide getExprAuxIde() {
+    return exprAuxIde;
+  }
+
   @Override
   public void visit(AstVisitor visitor) throws IOException {
     visitor.visitForInStatement(this);
@@ -108,6 +113,10 @@ public class ForInStatement extends LoopStatement {
     if (symEach != null) {
       auxIde = scope.createAuxVar(scope);
       auxIde.scope(scope);
+      if (!(getExpr() instanceof IdeExpr)) {
+        exprAuxIde = scope.createAuxVar(scope);
+        exprAuxIde.scope(scope);
+      }
     }
     if (decl != null) {
       decl.scope(scope);

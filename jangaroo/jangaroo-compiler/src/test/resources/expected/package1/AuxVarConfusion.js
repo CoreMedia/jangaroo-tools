@@ -1,10 +1,10 @@
 joo.classLoader.prepare("package package1",/* {*/
 
-"public class AuxVarConfusion",1,function($$private){var $2=package1;return[ 
+"public class AuxVarConfusion",1,function($$private){var $3=package1;return[ 
 
-  "public function doSomething",function doSomething()/*:void*/ {
-    for/* each*/ (var $1 in {foo:true}) {var i= {foo:true}[$1];
-      new $2.AuxVarConfusion();
+  "public function doSomething",function doSomething()/*:void*/ {var $2;
+    for/* each*/ (var $1 in $2= {foo:true}) {var i=$2[$1];
+      new $3.AuxVarConfusion();
     }
   },
 
