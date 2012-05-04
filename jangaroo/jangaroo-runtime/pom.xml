@@ -2,7 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <artifactId>jangaroo-runtime</artifactId>
-  <packaging>pom</packaging>
+  <packaging>jar</packaging>
   <dependencies>
     <dependency>
       <groupId>net.jangaroo</groupId>
@@ -34,18 +34,18 @@
               <tasks>
                 <property name="runtime.classpath" refid="maven.compile.classpath" />
                 <taskdef classname="net.jangaroo.jooc.ant.JoocTask" classpath="target/classes;${runtime.classpath}" name="jooc" />
-                <mkdir dir="target/temp/runtime/debug/joo/classes" />
-                <mkdir dir="target/temp/runtime/debug/META-INF/joo-api" />
-                <jooc apidestdir="target/temp/runtime/debug/META-INF/joo-api" classpath="${basedir}/src/main/joo-api" debuglevel="source" destdir="target/temp/runtime/debug/joo/classes" enableassertions="true" failonerror="true" verbose="true">
+                <mkdir dir="target/classes/META-INF/resources/joo/classes" />
+                <mkdir dir="target/classes/META-INF/joo-api" />
+                <jooc apidestdir="target/classes/META-INF/joo-api" classpath="${basedir}/src/main/joo-api" debuglevel="source" destdir="target/classes/META-INF/resources/joo/classes" enableassertions="true" failonerror="true" verbose="true">
                   <include name="**/*.as" />
                   <src path="src/main/joo" />
                 </jooc>
-                <mkdir dir="target/temp/runtime/deploy" />
-                <jooc classpath="${basedir}/src/main/joo-api" destdir="target/temp/runtime/deploy" enableassertions="false" failonerror="true" verbose="true">
+                <mkdir dir="target/temp" />
+                <jooc classpath="${basedir}/src/main/joo-api" destdir="target/temp" enableassertions="false" failonerror="true" verbose="true">
                   <include name="**/*.as" />
                   <src path="src/main/joo" />
                 </jooc>
-                <concat destfile="target/joo/net.jangaroo.jangaroo-runtime.classes.js">
+                <concat destfile="target/classes/META-INF/resources/joo/net.jangaroo.jangaroo-runtime.classes.js">
                   <filelist dir="src/main/joo-js/joo/classes">
                     <file name="int.js" />
                     <file name="uint.js" />
@@ -55,7 +55,7 @@
                     <file name="joo/Class.js" />
                     <file name="joo/trace.js" />
                   </filelist>
-                  <filelist dir="target/temp/runtime/deploy/">
+                  <filelist dir="target/temp/">
                     <file name="joo/MemberDeclaration.js" />
                     <file name="joo/NativeClassDeclaration.js" />
                     <file name="joo/JooClassDeclaration.js" />
@@ -73,12 +73,12 @@
                     <file name="joo/_createClassLoader.js" />
                   </filelist>
                 </concat>
-                <zip destfile="target/jangaroo-runtime-${project.version}.jar">
-                  <fileset dir="target" includes="joo/*jangaroo-runtime*.js" />
-                  <fileset dir="src/main/joo-js" />
-                  <fileset dir="target/temp/runtime/debug" />
-                  <zipfileset dir="src/main/joo-api" includes="**/*.as" prefix="META-INF/joo-api" />
-                </zip>
+                <copy todir="target/classes/META-INF/resources">
+                  <fileset dir="src/main/joo-js"/>
+                </copy>
+                <copy todir="target/classes/META-INF/joo-api">
+                  <fileset dir="src/main/joo-api"/>
+                </copy>
                 <zip destfile="target/jangaroo-runtime-sources-${project.version}.jar">
                   <fileset dir="src/main/joo" includes="**/*.as" />
                   <fileset dir="src/main/joo-api" includes="**/*.as" />
@@ -100,10 +100,6 @@
             <phase>package</phase>
             <configuration>
               <artifacts>
-                <artifact>
-                  <file>${basedir}/target/jangaroo-runtime-${project.version}.jar</file>
-                  <type>jar</type>
-                </artifact>
                 <artifact>
                   <file>${basedir}/target/jangaroo-runtime-sources-${project.version}.jar</file>
                   <type>jar</type>

@@ -66,16 +66,16 @@ public class MavenPluginHelper {
     return scanner;
   }
 
-  public List<File> getActionScriptClassPath() {
+  public List<File> getActionScriptClassPath(boolean includeTestScope) {
     List<File> classPath = new ArrayList<File>();
     Collection<Artifact> dependencies = getArtifacts();
     for (Artifact dependency : dependencies) {
       if (log.isDebugEnabled()) {
-        log.debug("Dependency: " + dependency.getGroupId() + ":" + dependency.getArtifactId() + "type: " + dependency.getType());
+        log.debug("Dependency: " + dependency.getGroupId() + ":" + dependency.getArtifactId() + " type: " + dependency.getType());
       }
-      if (!dependency.isOptional() && Types.JANGAROO_TYPE.equals(dependency.getType())) {
+      if (!dependency.isOptional() && ("compile".equals(dependency.getScope()) || includeTestScope && "test".equals(dependency.getScope())) && "jar".equals(dependency.getType())) {
         if (log.isDebugEnabled()) {
-          log.debug("adding to classpath: jangaroo dependency [" + dependency.toString() + "]");
+          log.debug("adding to classpath: compile dependency [" + dependency.toString() + "]");
         }
         classPath.add(dependency.getFile());
       }

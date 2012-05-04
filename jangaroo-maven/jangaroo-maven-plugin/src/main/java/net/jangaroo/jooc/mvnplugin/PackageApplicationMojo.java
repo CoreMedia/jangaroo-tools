@@ -11,10 +11,8 @@ import org.apache.maven.project.MavenProjectBuilder;
 import org.apache.maven.project.ProjectBuildingException;
 import org.codehaus.plexus.archiver.ArchiveFileFilter;
 import org.codehaus.plexus.archiver.ArchiveFilterException;
-import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.zip.ZipEntry;
 import org.codehaus.plexus.archiver.zip.ZipFile;
-import org.codehaus.plexus.archiver.zip.ZipUnArchiver;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
 
@@ -28,7 +26,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -78,14 +75,6 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
    */
   private List remoteRepositories;
 
-  /**
-   * Plexus archiver.
-   *
-   * @component role="org.codehaus.plexus.archiver.UnArchiver" role-hint="zip"
-   * @required
-   */
-  private ZipUnArchiver unarchiver;
-
   public abstract File getPackageSourceDirectory();
 
   /**
@@ -99,54 +88,14 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
     }
 
     try {
-      unpack(webappDirectory);
       copyJangarooOutput(webappDirectory);
       concatModuleScripts(new File(webappDirectory, "joo"));
-    }
-    catch (ArchiverException e) {
-      throw new MojoExecutionException("Failed to unpack javascript dependencies", e);
     } catch (IOException e) {
       throw new MojoExecutionException("Failed to create jangaroo-application[-all].js", e);
     } catch (ProjectBuildingException e) {
       throw new MojoExecutionException("Failed to create jangaroo-application[-all].js", e);
     }
   }
-
-  public void unpack(File target)
-      throws ArchiverException {
-
-    unarchiver.setOverwrite(false);
-    unarchiver.setArchiveFilters(Collections.singletonList(new WarPackageArchiveFilter()));
-    Set<Artifact> dependencies = getArtifacts();
-
-    for (Artifact dependency : dependencies) {
-      getLog().debug("Dependency: " + dependency.getGroupId() + ":" + dependency.getArtifactId() + "type: " + dependency.getType());
-      if (!dependency.isOptional() && Types.JANGAROO_TYPE.equals(dependency.getType())) {
-        getLog().debug("Unpacking jangaroo dependency [" + dependency.toString() + "]");
-        unarchiver.setSourceFile(dependency.getFile());
-
-        unpack(dependency, target);
-      }
-    }
-  }
-
-  public void unpack(Artifact artifact, File target)
-      throws ArchiverException {
-    unarchiver.setSourceFile(artifact.getFile());
-    if (target.mkdirs()) {
-      getLog().debug("created unarchiver target directory " + target);
-    }
-    unarchiver.setDestDirectory(target);
-    unarchiver.setOverwrite(false);
-    try {
-      unarchiver.extract();
-    }
-    catch (Exception e) {
-      throw new ArchiverException("Failed to extract javascript artifact to " + target, e);
-    }
-
-  }
-
 
   /**
    * Linearizes the acyclic, directed graph represented by <code>artifact2directDependencies</code> to a list

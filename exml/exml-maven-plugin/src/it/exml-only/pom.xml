@@ -33,7 +33,6 @@ under the License.
         <groupId>net.jangaroo</groupId>
         <artifactId>exml-maven-plugin</artifactId>
         <version>@project.version@</version>
-        <extensions>true</extensions>
         <configuration>
           <configClassPackage>testPackage.config</configClassPackage>
         </configuration>

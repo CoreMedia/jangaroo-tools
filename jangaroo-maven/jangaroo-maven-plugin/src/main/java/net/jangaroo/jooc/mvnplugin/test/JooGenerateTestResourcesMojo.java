@@ -41,8 +41,7 @@ public class JooGenerateTestResourcesMojo extends PackageApplicationMojo {
   private File testPackageSourceDirectory;
 
   /**
-   * Output directory for the jangaroo artifact unarchiver. All jangaroo dependencies will be unpacked into this
-   * directory.
+   * Output directory to assemble the test Web-app.
    *
    * @parameter expression="${project.build.testOutputDirectory}"  default-value="${project.build.testOutputDirectory}"
    */
