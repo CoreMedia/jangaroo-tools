@@ -146,7 +146,7 @@ public final class uint {
    * uint.MAX_VALUE = 4294967295
    * </pre>
    */
-  public static native function get MAX_VALUE():uint;
+  public static const MAX_VALUE:uint = 4294967295;
   /**
    * The smallest representable unsigned integer, which is <code>0</code>.
    * @example <a href="http://www.adobe.com/go/learn_as3_usingexamples_en">How to use this example</a>The following ActionScript displays the largest and smallest representable <code>uint</code> values:
@@ -160,6 +160,6 @@ public final class uint {
    * uint.MAX_VALUE = 4294967295
    * </pre>
    */
-  public static native function get MIN_VALUE():uint;
+  public static const MIN_VALUE:uint = 0;
 }
 }

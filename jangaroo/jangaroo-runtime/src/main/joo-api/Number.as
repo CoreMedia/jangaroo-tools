@@ -107,31 +107,31 @@ public final class Number {
   /**
    * The largest representable number (double-precision IEEE-754). This number is approximately 1.79e+308.
    */
-  public static native function get MAX_VALUE():Number;
+  public static const MAX_VALUE:Number = 1.7976931348623157e+308;
 
   /**
    * The smallest representable non-negative, non-zero, number (double-precision IEEE-754). This number is approximately 5e-324. The smallest representable number overall is actually <code>-Number.MAX_VALUE</code>.
    */
-  public static native function get MIN_VALUE():Number;
+  public static const MIN_VALUE:Number = 5e-324;
 
   /**
    * The IEEE-754 value representing Not a Number (<code>NaN</code>).
    * @see #isNaN()
    *
    */
-  public static native function get NaN():Number;
+  public static const NaN:Number = NaN;
 
   /**
    * Specifies the IEEE-754 value representing negative infinity. The value of this property is the same as that of the constant <code>-Infinity</code>.
    * <p>Negative infinity is a special numeric value that is returned when a mathematical operation or function returns a negative value larger than can be represented.</p>
    */
-  public static native function get NEGATIVE_INFINITY():Number;
+  public static const NEGATIVE_INFINITY:Number = -Infinity;
 
   /**
    * Specifies the IEEE-754 value representing positive infinity. The value of this property is the same as that of the constant <code>Infinity</code>.
    * <p>Positive infinity is a special numeric value that is returned when a mathematical operation or function returns a value larger than can be represented.</p>
    */
-  public static native function get POSITIVE_INFINITY():Number;
+  public static const POSITIVE_INFINITY:Number = Infinity;
 
 }
 }
