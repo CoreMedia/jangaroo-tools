@@ -34,7 +34,7 @@ public class ApplyExpr extends Expr {
   private ParenthesizedExpr<CommaSeparatedList<Expr>> args;
 
   private boolean insideNewExpr = false;
-  private static final Set<String> COERCE_FUNCTION_NAMES = new HashSet<String>(Arrays.asList("Number", "String", "Boolean", "int", "uint", "Date", "Array", "RegExp"));
+  private static final Set<String> COERCE_FUNCTION_NAMES = new HashSet<String>(Arrays.asList("Number", "String", "Boolean", "int", "uint", "Date", "Array", "RegExp", "XML"));
 
   public ApplyExpr(Expr fun, JooSymbol lParen, CommaSeparatedList<Expr> args, JooSymbol rParen) {
     this.fun = fun;
