@@ -22,17 +22,13 @@ import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.sym;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author Andreas Gawecki
  * @author Frank Wienberg
  */
 public class VariableDeclaration extends TypedIdeDeclaration {
-  private static final Map<AS3Type, String> DEFAULT_VALUE_BY_TYPE = new HashMap<AS3Type, String>(10);
-
   private JooSymbol optSymConstOrVar;
   private Initializer optInitializer;
   private VariableDeclaration optNextVariableDeclaration;
@@ -153,21 +149,8 @@ public class VariableDeclaration extends TypedIdeDeclaration {
     }
   }
 
-  static {
-    DEFAULT_VALUE_BY_TYPE.put(AS3Type.BOOLEAN, "false");
-    DEFAULT_VALUE_BY_TYPE.put(AS3Type.INT, "0");
-    DEFAULT_VALUE_BY_TYPE.put(AS3Type.NUMBER, "NaN");
-    DEFAULT_VALUE_BY_TYPE.put(AS3Type.UINT, "0");
-    DEFAULT_VALUE_BY_TYPE.put(AS3Type.ANY, "undefined");
-  }
-
   public static String getDefaultValue(TypeRelation typeRelation) {
-    AS3Type type = typeRelation == null ? AS3Type.ANY : AS3Type.typeByName(typeRelation.getType().getSymbol().getText());
-    String emptyValue = DEFAULT_VALUE_BY_TYPE.get(type);
-    if (emptyValue == null) {
-      emptyValue = "null";
-    }
-    return emptyValue;
+    return AS3Type.getDefaultValue(typeRelation == null ? null : typeRelation.getType().getSymbol().getText());
   }
 
   boolean allowDuplicates(Scope scope) {

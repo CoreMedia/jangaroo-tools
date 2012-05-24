@@ -74,17 +74,20 @@ public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUni
         }
 
         try {
-          JsWriter out = new JsWriter(new OutputStreamWriter(new FileOutputStream(outFile), "UTF-8"));
+          OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(outFile), "UTF-8");
           try {
-            try {
-              out.setOptions(getOptions());
-              if (generateApi) {
-                compilationUnit.visit(new ApiCodeGenerator(out));
-              } else {
+            if (generateApi) {
+              ApiModelGenerator apiModelGenerator = new ApiModelGenerator(isExcludeClassByDefault(getOptions()));
+              compilationUnit.visit(apiModelGenerator);
+              apiModelGenerator.getCompilationUnit().visit(new ActionScriptCodeGeneratingModelVisitor(writer));
+            } else {
+              JsWriter out = new JsWriter(writer);
+              try {
+                out.setOptions(getOptions());
                 compilationUnit.visit(new JsCodeGenerator(out));
+              } finally {
+                out.close();
               }
-            } finally {
-              out.close();
             }
           } catch (IOException e) {
             //noinspection ResultOfMethodCallIgnored
@@ -98,5 +101,15 @@ public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUni
         return outFile;
       }
     };
+  }
+
+  private static boolean isExcludeClassByDefault(JoocOptions options) {
+    try {
+      return options.isExcludeClassByDefault();
+    } catch (IncompatibleClassChangeError e) {
+      // ignore, old front ends did not know that you can exclude classes by default
+      return false;
+    }
+    
   }
 }
