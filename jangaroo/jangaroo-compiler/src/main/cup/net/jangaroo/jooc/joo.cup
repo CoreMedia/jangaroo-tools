@@ -131,7 +131,6 @@ nonterminal CommaSeparatedList annotationParameters;
 nonterminal ObjectLiteral objectLiteral;
 nonterminal ArrayList optCatches;
 nonterminal Expr optCommaExpr;
-nonterminal JooSymbol optConst;
 nonterminal Expr optExpr;
 nonterminal Ide optIde;
 nonterminal Initializer optInitializer;
@@ -617,10 +616,6 @@ optCommaExpr ::=
     {: RESULT = e; :}
   ;
 
-optConst ::=
-  | CONST
-  ;
-
 optExpr ::=
     {: RESULT = null; :}
   | expr:e
@@ -653,8 +648,8 @@ packageDeclaration ::=
   ;
 
 parameter ::=
-    optConst:oc ide:ide optTypeRelation:t optInitializer:init
-    {: RESULT = new Parameter(oc,ide,t,init); :}
+    ide:ide optTypeRelation:t optInitializer:init
+    {: RESULT = new Parameter(null,ide,t,init); :}
   ;
 
 parameters ::=
