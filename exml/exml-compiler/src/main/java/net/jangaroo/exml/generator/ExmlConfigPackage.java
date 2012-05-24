@@ -1,6 +1,9 @@
 package net.jangaroo.exml.generator;
 
 import net.jangaroo.exml.model.ConfigClass;
+import net.jangaroo.exml.model.ConfigClassToNewExmlElementAdapter;
+import net.jangaroo.exml.model.ConfigClassToOldExmlElementAdapter;
+import net.jangaroo.exml.model.ExmlElement;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -15,53 +18,91 @@ import java.util.Map;
  */
 public class ExmlConfigPackage {
 
-  private static final Comparator<ConfigClass> CONFIG_CLASS_BY_NAME_COMPARATOR = new Comparator<ConfigClass>() {
+  private static final Comparator<ExmlElement> EXML_ELEMENT_BY_NAME_COMPARATOR = new Comparator<ExmlElement>() {
     @Override
-    public int compare(ConfigClass cc1, ConfigClass cc2) {
-      return cc1.getName().compareTo(cc2.getName());
+    public int compare(ExmlElement ee1, ExmlElement ee2) {
+      return ee1.getName().compareTo(ee2.getName());
     }
   };
 
-  private List<ConfigClass> configClasses;
+  private List<ExmlElement> exmlElements;
   private Map<String,String> usedNamespaces;
   private String packageName;
+  private String ns;
 
   public ExmlConfigPackage(Collection<ConfigClass> cl, String packageName) {
     this.packageName = packageName;
-    this.configClasses = new ArrayList<ConfigClass>(cl);
-    Collections.sort(configClasses, CONFIG_CLASS_BY_NAME_COMPARATOR);
-    this.usedNamespaces = findDistinctPackageNames(configClasses);
+    ns = calcNsFromPackageName(packageName, 1);
+    exmlElements = new ArrayList<ExmlElement>(cl.size());
+    boolean useTargetClassNames = !packageName.endsWith(".config");
+    for (ConfigClass configClass : cl) {
+      exmlElements.add(useTargetClassNames
+        ? new ConfigClassToNewExmlElementAdapter(configClass)
+        : new ConfigClassToOldExmlElementAdapter(configClass));
+    }
+    computeShortNamespaces();
+    Collections.sort(exmlElements, EXML_ELEMENT_BY_NAME_COMPARATOR);
   }
 
-  private Map<String,String> findDistinctPackageNames(Collection<ConfigClass> configClasses) {
-    Map<String,String> names = new HashMap<String,String>();
-    for(ConfigClass cl : configClasses) {
-      if(cl.getSuperClass() != null && !packageName.equals(cl.getSuperClass().getPackageName()) && !names.containsValue(cl.getSuperClass().getPackageName())) {
-        names.put(calcNsFromPackage(cl.getSuperClass().getPackageName()), cl.getSuperClass().getPackageName());
+  private void computeShortNamespaces() {
+    usedNamespaces = new HashMap<String,String>();
+    for (ExmlElement ee : exmlElements) {
+      calcNsFromPackage(ee);
+      ExmlElement superElement = ee.getSuperElement();
+      if (superElement != null) {
+        calcNsFromPackage(superElement);
       }
     }
-    return names;
   }
 
-  private String calcNsFromPackage(String theName) {
-    String[] parts = theName.split("\\.");
+  private void calcNsFromPackage(ExmlElement exmlElement) {
+    String packageName = exmlElement.getPackage();
+    String shortNamespace;
+    if (this.packageName.equals(packageName)) {
+      shortNamespace = ns; // do not add to usedNamespaces, as freemarker template cares about this separately!
+    } else {
+      shortNamespace = usedNamespaces.get(packageName);
+      if (shortNamespace == null) {
+        if (packageName.length() == 0) {
+          shortNamespace = "top"; // should only occur in tests or demo code!
+        } else {
+          for (int n = 1; ; n++) {
+            shortNamespace = calcNsFromPackageName(packageName, n);
+            if (!usedNamespaces.values().contains(shortNamespace)) {
+              break;
+            }
+          }
+        }
+        usedNamespaces.put(packageName, shortNamespace);
+      }
+    }
+    exmlElement.setNs(shortNamespace);
+  }
+
+  private String calcNsFromPackageName(String packageName, int n) {
+    if (packageName.length() == 0) {
+      return "t";
+    }
+    String shortNamespace;
+    String[] parts = packageName.split("\\.");
     StringBuilder ns = new StringBuilder();
     for (String part : parts) {
-      ns.append(part.charAt(0));
+      ns.append(part.substring(0, n));
     }
-    return ns.toString();
+    shortNamespace = ns.toString();
+    return shortNamespace;
   }
 
   public String getNs() {
-    return calcNsFromPackage(packageName);
+    return ns;
   }
 
   public String getPackageName() {
     return packageName;
   }
 
-  public List<ConfigClass> getConfigClasses() {
-    return configClasses;
+  public List<ExmlElement> getExmlElements() {
+    return exmlElements;
   }
 
   public Map<String,String> getUsedNamespaces() {

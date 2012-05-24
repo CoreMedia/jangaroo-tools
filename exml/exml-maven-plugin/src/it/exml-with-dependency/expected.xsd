@@ -14,7 +14,7 @@
         </xs:attribute>
         <xs:anyAttribute namespace="http://www.jangaroo.net/exml/0.8 exml:untyped" processContents="skip"/>
   </xs:complexType>
-  <xs:element id='net.jangaroo.example.TestClass' name='testClass' type='njec:net.jangaroo.example.config.testClass'>
+  <xs:element name='testClass' type='njec:net.jangaroo.example.config.testClass'>
     <xs:annotation>
       <xs:documentation>
         some description
@@ -32,6 +32,6 @@
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
-  <xs:element id='net.jangaroo.example.TestContainer' name='testContainer' type='njec:net.jangaroo.example.config.testContainer' substitutionGroup='ec:container'>
+  <xs:element name='testContainer' type='njec:net.jangaroo.example.config.testContainer' substitutionGroup='ec:container'>
   </xs:element>
 </xs:schema>

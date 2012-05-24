@@ -31,6 +31,11 @@ public final class ConfigClass extends DescriptionHolder {
   private String typeValue;
   private Set<String> imports = new LinkedHashSet<String>();
 
+  public ConfigClass(String fullName) {
+    name = CompilerUtils.className(fullName);
+    packageName = CompilerUtils.packageName(fullName);
+  }
+
   public ConfigClass() {
   }
 
@@ -140,7 +145,19 @@ public final class ConfigClass extends DescriptionHolder {
     return packageName;
   }
 
+  public String getTargetClassPackage() {
+    return CompilerUtils.packageName(getComponentClassName());
+  }
+
   public String getNs() {
+    return computeShortNamespace(packageName);
+  }
+
+  public String getTargetNs() {
+    return computeShortNamespace(getTargetClassPackage());
+  }
+
+  private static String computeShortNamespace(String packageName) {
     String[] parts = packageName.split("\\.");
     StringBuilder ns = new StringBuilder();
     for (String part : parts) {
@@ -163,6 +180,10 @@ public final class ConfigClass extends DescriptionHolder {
 
   public String getComponentClassName() {
     return componentClassName;
+  }
+
+  public String getTargetClassShortName() {
+    return CompilerUtils.className(getComponentClassName());
   }
 
   public void setSuperClassName(String superClassName) {
