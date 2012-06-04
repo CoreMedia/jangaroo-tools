@@ -111,6 +111,7 @@ public final class Exmlc implements net.jangaroo.exml.api.Exmlc {
     ConfigClass configClass;
     try {
       configClass = exmlToConfigClassParser.parseExmlToConfigClass(source);
+      configClassRegistry.evaluateSuperClass(configClass);
     } catch (IOException e) {
       throw new ExmlcException("unable to parse EXML classes: " + e.getMessage(), source, e);
     }

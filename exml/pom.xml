@@ -10,10 +10,10 @@
     <relativePath>../jangaroo-parent/pom.xml</relativePath>
   </parent>
   <modules>
+    <module>ext-as-api-generator</module>
     <module>exml-compiler</module>
     <module>exml-maven-plugin</module>
     <module>properties-compiler</module>
-    <module>exml-converter</module>
   </modules>
   <build>
     <plugins>

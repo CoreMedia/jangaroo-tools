@@ -152,7 +152,7 @@ public final class int {
    * int.MAX_VALUE = 2147483647
    * </pre>
    */
-  public static native function get MAX_VALUE():uint;
+  public static const MAX_VALUE:uint = 2147483647;
 
   /**
    * The smallest representable 32-bit signed integer, which is -2,147,483,648.
@@ -167,6 +167,6 @@ public final class int {
    * int.MAX_VALUE = 2147483647
    * </pre>
    */
-  public static native function get MIN_VALUE():uint;
+  public static const MIN_VALUE:uint = -2147483648;
 }
 }

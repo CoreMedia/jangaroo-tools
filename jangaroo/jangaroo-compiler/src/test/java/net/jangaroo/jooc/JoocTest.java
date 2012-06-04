@@ -147,19 +147,29 @@ public class JoocTest {
   }
 
   @Test
+  public void testImplementInterface() throws Exception {
+    assertApiCompilationResult("package1/ImplementsInterface");
+  }
+
+  @Test
   public void testParameterInitializers() throws Exception {
     assertApiCompilationResult("package1/ParameterInitializers");
   }
 
   @Test
+  public void testSuperCallParameters() throws Exception {
+    assertApiCompilationResult("package1/SuperCallParameters");
+  }
+
+  @Test
   public void testImportReduction() throws Exception {
-    assertApiCompilationResult("package1/ImportReduction");
+    assertApiCompilationResult("package1/someOtherPackage/ImportReduction");
   }
 
   @Test
   public void testImportReductionExcludeClass() throws Exception {
     config.setExcludeClassByDefault(true);
-    assertApiCompilationResult("package1/ImportReduction", "withExclude/");
+    assertApiCompilationResult("package1/someOtherPackage/ImportReduction", "withExclude/");
   }
 
   @Test

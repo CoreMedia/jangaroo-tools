@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.Collection;
+import java.util.Map;
 
 /**
  *
@@ -29,20 +30,31 @@ public class ExmlConfigPackageXsdGenerator {
   }
 
   public File generateXsdFile(final ConfigClassRegistry registry) throws IOException, TemplateException {
+    registry.scanAllAsFiles();
+    Map<String,Collection<ConfigClass>> configClassesByTargetClassPackage =
+      registry.getRegisteredConfigClassesByTargetClassPackage();
+    for (Map.Entry<String, Collection<ConfigClass>> entry : configClassesByTargetClassPackage.entrySet()) {
+      ExmlConfigPackage suite = new ExmlConfigPackage(entry.getValue(), entry.getKey());
+      generateXsdFile(suite);
+    }
+    Collection<ConfigClass> configClasses = registry.getRegisteredConfigClasses();
+    String packageName = config.getConfigClassPackage();
+    return generateXsdFile(new ExmlConfigPackage(configClasses, packageName));
+  }
 
+  private File generateXsdFile(ExmlConfigPackage suite) throws IOException, TemplateException {
     // Maybe even the directory does not exist.
     File targetPackageFolder = config.getResourceOutputDirectory();
     if(!targetPackageFolder.exists()) {
       //noinspection ResultOfMethodCallIgnored
       targetPackageFolder.mkdirs(); // NOSONAR
     }
-
-    File result = new File(targetPackageFolder, config.getConfigClassPackage() + ".xsd");
+    File result = new File(targetPackageFolder, suite.getPackageName() + ".xsd");
 
     Writer writer = null;
     try {
       writer = new OutputStreamWriter(new FileOutputStream(result), Exmlc.OUTPUT_CHARSET);
-      generateXsdFile(registry, writer);
+      generateXsdFile(suite, writer);
     } finally {
       try {
         if (writer != null) {
@@ -57,9 +69,11 @@ public class ExmlConfigPackageXsdGenerator {
 
   public void generateXsdFile(final ConfigClassRegistry registry, final Writer output) throws IOException, TemplateException {
     registry.scanAllAsFiles();
-    Collection<ConfigClass> configClasses = registry.getRegisteredConfigClasses();
-    ExmlConfigPackage suite = new ExmlConfigPackage(configClasses, config.getConfigClassPackage());
+    generateXsdFile(new ExmlConfigPackage(registry.getRegisteredConfigClasses(), config.getConfigClassPackage()),
+      output);
+  }
 
+  private void generateXsdFile(ExmlConfigPackage suite, Writer output) throws IOException, TemplateException {
     Configuration cfg = new Configuration();
     cfg.setClassForTemplateLoading(ExmlConfigPackage.class, "/");
     cfg.setObjectWrapper(new DefaultObjectWrapper());
@@ -68,7 +82,5 @@ public class ExmlConfigPackageXsdGenerator {
     env.setOutputEncoding(Exmlc.OUTPUT_CHARSET);
     env.process();
   }
-
-  
 
 }

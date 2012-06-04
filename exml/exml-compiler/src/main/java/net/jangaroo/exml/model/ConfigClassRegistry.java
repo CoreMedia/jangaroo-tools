@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -82,6 +83,24 @@ public final class ConfigClassRegistry {
    */
   public Collection<ConfigClass> getRegisteredConfigClasses() {
     return configClassesByName.values();
+  }
+
+  /**
+   * Returns the list of registered Config classes
+   * @return list of registered Config classes
+   */
+  public Map<String, Collection<ConfigClass>> getRegisteredConfigClassesByTargetClassPackage() {
+    Map<String, Collection<ConfigClass>> result = new HashMap<String, Collection<ConfigClass>>();
+    for (ConfigClass configClass : configClassesByName.values()) {
+      String packageName = CompilerUtils.packageName(configClass.getComponentClassName());
+      Collection<ConfigClass> configClasses = result.get(packageName);
+      if (configClasses == null) {
+        configClasses = new HashSet<ConfigClass>();
+        result.put(packageName, configClasses);
+      }
+      configClasses.add(configClass);
+    }
+    return Collections.unmodifiableMap(result);
   }
 
   /**
@@ -153,6 +172,10 @@ public final class ConfigClassRegistry {
    * @return the configClass or null if none was found
    */
   public ConfigClass getConfigClassByName(String name) {
+    return getConfigClassByName(name, new HashSet<String>());
+  }
+
+  private ConfigClass getConfigClassByName(String name, Set<String> visited) {
     ConfigClass configClass = configClassesByName.get(name);
     if (configClass != null) {
       return configClass;
@@ -184,7 +207,11 @@ public final class ConfigClassRegistry {
     }
   }
 
-  private void tryBuildConfigClassFromExml(String name) {
+  private ConfigClass tryBuildConfigClassFromExml(String name) {
+    FileInputSource exmlInputSource = (FileInputSource)sourcePathInputSource.getChild(JangarooParser.getInputSourceFileName(name, sourcePathInputSource, Exmlc.EXML_SUFFIX));
+    if (exmlInputSource != null) {
+      return buildFromExml(exmlInputSource);
+    }
     if (name.startsWith(config.getConfigClassPackage() + ".")) {
       // The config class might originate from one of of this module's EXML files.
       FileInputSource outputDirInputSource = new FileInputSource(config.getOutputDirectory(), true);
@@ -200,7 +227,7 @@ public final class ConfigClassRegistry {
           String componentName = generatedAsConfigClass.getComponentClassName();
           // We must parse the EXMl file again, because the parent class (and hence the
           // parent config class) might have changed.
-          FileInputSource exmlInputSource = (FileInputSource)sourcePathInputSource.getChild(JangarooParser.getInputSourceFileName(componentName, sourcePathInputSource, Exmlc.EXML_SUFFIX));
+          exmlInputSource = (FileInputSource)sourcePathInputSource.getChild(JangarooParser.getInputSourceFileName(componentName, sourcePathInputSource, Exmlc.EXML_SUFFIX));
           if (exmlInputSource == null) {
             // try again with lower-case component name:
             String lowerCaseComponentClassName = CompilerUtils.qName(CompilerUtils.packageName(componentName),
@@ -208,17 +235,7 @@ public final class ConfigClassRegistry {
             exmlInputSource = (FileInputSource)sourcePathInputSource.getChild(JangarooParser.getInputSourceFileName(lowerCaseComponentClassName, sourcePathInputSource, Exmlc.EXML_SUFFIX));
           }
           if (exmlInputSource != null) {
-            scannedExmlFiles.add(exmlInputSource.getFile());
-            ConfigClass configClass;
-            try {
-              configClass = new ExmlToConfigClassParser(config).parseExmlToConfigClass(exmlInputSource.getFile());
-              evaluateSuperClass(configClass);
-            } catch (IOException e) {
-              // TODO log
-              throw new IllegalStateException(e);
-            }
-            addConfigClass(configClass);
-            return;
+            return buildFromExml(exmlInputSource);
           }
         }
         // The AS file should not exist. However, we do not consider this class
@@ -226,7 +243,23 @@ public final class ConfigClassRegistry {
       }
       // The EXML was not found. Scan all EXML files to be sure the right one will be found.
       scanAllExmlFiles();
+      return configClassesByName.get(name);
     }
+    return null;
+  }
+
+  private ConfigClass buildFromExml(FileInputSource exmlInputSource) {
+    scannedExmlFiles.add(exmlInputSource.getFile());
+    ConfigClass configClass;
+    try {
+      configClass = new ExmlToConfigClassParser(config).parseExmlToConfigClass(exmlInputSource.getFile());
+      evaluateSuperClass(configClass);
+    } catch (IOException e) {
+      // TODO log
+      throw new IllegalStateException(e);
+    }
+    addConfigClass(configClass);
+    return configClass;
   }
 
   private ConfigClass findActionScriptConfigClass(String name) {
@@ -243,6 +276,10 @@ public final class ConfigClassRegistry {
     if (compilationsUnit != null) {
       try {
         configClass = buildConfigClass(compilationsUnit);
+        if (configClass != null && configClass.getComponentClassName() == null) {
+          // it was actually a target class! try again with the resolved config class:
+          return findActionScriptConfigClass(configClass.getFullName(), visited);
+        }
         evaluateSuperClass(configClass, visited);
       } catch (RuntimeException e) {
         throw new ExmlcException("while building config class '" + name + "': " + e.getMessage(), e);
@@ -251,21 +288,44 @@ public final class ConfigClassRegistry {
     return configClass;
   }
 
-  private void evaluateSuperClass(ConfigClass configClass) {
+  public void evaluateSuperClass(ConfigClass configClass) {
     evaluateSuperClass(configClass, new LinkedHashSet<String>());
   }
 
   private void evaluateSuperClass(ConfigClass configClass, Set<String> visited) {
-    if(configClass != null && configClass.getSuperClassName() != null && !"joo.JavaScriptObject".equals(configClass.getSuperClassName())) {
-      if(configClass.getFullName().equals(configClass.getSuperClassName())) {
-        throw new ExmlcException(String.format("Cyclic inheritance error: superclass '%s' of config class '%s' are the same!", configClass.getSuperClassName(), configClass.getFullName()));
+    if(configClass != null) {
+      String superClassName = configClass.getSuperClassName();
+      if(superClassName != null && !"joo.JavaScriptObject".equals(superClassName)) {
+        ConfigClass configClassOfTargetClass = findConfigClassOfTargetClass(superClassName);
+        if (configClassOfTargetClass != null) {
+          superClassName = configClassOfTargetClass.getFullName();
+        }
+        if(configClass.getFullName().equals(superClassName)) {
+          throw new ExmlcException(String.format("Cyclic inheritance error: superclass '%s' of config class '%s' are the same!", superClassName, configClass.getFullName()));
+        }
+        ConfigClass superClass = findActionScriptConfigClass(superClassName, visited);
+        if(superClass == null) {
+          // might be a not-yet-compiled EXML:
+          superClass = tryBuildConfigClassFromExml(superClassName);
+          if (superClass == null) {
+            throw new ExmlcException(String.format("Superclass '%s' of class '%s' not found!", superClassName, configClass.getFullName()));
+          }
+        }
+        if (!configClass.getSuperClassName().equals(superClass.getFullName())) {
+          configClass.setSuperClassName(superClass.getFullName()); // needed for target classes that have been mapped to their config class!
+        }
+        configClass.setSuperClass(superClass);
       }
-      ConfigClass superClass = findActionScriptConfigClass(configClass.getSuperClassName(), visited);
-      if(superClass == null) {
-        throw new ExmlcException(String.format("Superclass '%s' of class '%s' not found!", configClass.getSuperClassName(), configClass.getFullName()));
-      }
-      configClass.setSuperClass(superClass);
     }
+  }
+
+  private ConfigClass findConfigClassOfTargetClass(String targetClassName) {
+    for (ConfigClass configClass : configClassesByName.values()) {
+      if (targetClassName.equals(configClass.getComponentClassName())) {
+        return configClass;
+      }
+    }
+    return null;
   }
 
   private ConfigClass buildConfigClass(CompilationUnit compilationUnit) {

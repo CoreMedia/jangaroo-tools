@@ -99,7 +99,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   private static final JooSymbol SYM_RBRACE = new JooSymbol(sym.RBRACE, "}");
   private static final JooSymbol SYM_LBRACK = new JooSymbol(sym.LBRACK, "[");
   private static final JooSymbol SYM_RBRACK = new JooSymbol(sym.RBRACK, "]");
-  private static final Set<String> PRIMITIVES = new HashSet<String>(4);
+  public static final Set<String> PRIMITIVES = new HashSet<String>(4);
   static {
     PRIMITIVES.add("Boolean");
     PRIMITIVES.add("String");
@@ -113,6 +113,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     PRIMITIVES.add("Error");
     PRIMITIVES.add("Vector");
     PRIMITIVES.add("Class");
+    PRIMITIVES.add("XML");
   }
 
   private boolean expressionMode = false;
