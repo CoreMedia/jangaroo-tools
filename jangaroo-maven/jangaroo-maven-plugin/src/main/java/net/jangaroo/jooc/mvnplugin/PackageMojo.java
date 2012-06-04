@@ -200,7 +200,7 @@ public class PackageMojo extends AbstractMojo {
     StringBuilder sb = new StringBuilder();
     Set<Artifact> dependencyArtifacts = project.getDependencyArtifacts();
     for (Artifact artifact : dependencyArtifacts) {
-      if (Types.JANGAROO_TYPE.equals(artifact.getType())) {
+      if ("jar".equals(artifact.getType())) {
         sb.append(artifact.getArtifactId()).append("-").append(artifact.getVersion()).append(".jar ");
       }
     }

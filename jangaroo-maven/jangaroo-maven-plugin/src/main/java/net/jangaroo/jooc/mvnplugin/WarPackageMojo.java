@@ -46,14 +46,6 @@ import java.util.Set;
 public class WarPackageMojo extends PackageApplicationMojo {
 
   /**
-   * The directory where the webapp is built. Default is <code>${project.build.directory}/${project.build.finalName}</code>
-   * exactly as the default of the maven-war-plugin.
-   *
-   * @parameter expression="${project.build.directory}/${project.build.finalName}"
-   * @required
-   */
-  private File webappDirectory;
-  /**
    * Location of Jangaroo resources of this module (including compiler output, usually under "joo/") to be added
    * to the webapp. Defaults to ${project.build.directory}/jangaroo-output/
    *
@@ -72,63 +64,7 @@ public class WarPackageMojo extends PackageApplicationMojo {
    */
   public void execute()
       throws MojoExecutionException, MojoFailureException {
-
-    excludeFromWarPackaging();
-    createWebapp(webappDirectory);
+    createWebapp(packageSourceDirectory);
   }
 
-  /**
-   * Exclude all artifacts that have been depended with type 'jangaroo'. Since IntelliJ IDEA cannot
-   * import jangaroo artifacts we need to import them twice. (a) with type jangaroo and (b) with no type
-   * (defaulting to jar). Everything is fine except that these dependencies are included into WEB-INF/lib.
-   * By manipulating the configuration of the war plugin we add these artifacts to the packagingExclude
-   * property. !!! BAD BAD HACK !!!
-   */
-  private void excludeFromWarPackaging() {
-    getLog().info("excludeFromWarPackaging");
-    String pluginGroupId = "org.apache.maven.plugins";
-    String pluginArtifactId = "maven-war-plugin";
-    if (project.getBuildPlugins() != null) {
-      for (Object o : project.getBuildPlugins()) {
-        Plugin plugin = (Plugin) o;
-
-        if (pluginGroupId.equals(plugin.getGroupId()) && pluginArtifactId.equals(plugin.getArtifactId())) {
-          Xpp3Dom dom = (Xpp3Dom) plugin.getConfiguration();
-          if (dom == null) {
-            dom = new Xpp3Dom("configuration");
-            plugin.setConfiguration(dom);
-          }
-          Xpp3Dom excludes = dom.getChild("packagingExcludes");
-          if (excludes == null) {
-            excludes = new Xpp3Dom("packagingExcludes");
-            dom.addChild(excludes);
-            excludes.setValue("");
-          } else if (excludes.getValue().trim().length() > 0) {
-            excludes.setValue(excludes.getValue() + ",");
-          }
-
-          Set<Artifact> dependencies = getArtifacts();
-          getLog().debug("Size of getArtifacts: " + dependencies.size());
-          String additionalExcludes = "";
-          for (Artifact dependency : dependencies) {
-            getLog().debug("Dependency: " + dependency.getGroupId() + ":" + dependency.getArtifactId() + "type: " + dependency.getType());
-            if (!dependency.isOptional() && Types.JANGAROO_TYPE.equals(dependency.getType())) {
-              getLog().debug("Excluding jangaroo dependency form war plugin [" + dependency.toString() + "]");
-              // Add two excludes. The first one is effective when no name clash occurs
-              additionalExcludes += "WEB-INF" + File.separator + "lib" + File.separator + dependency.getArtifactId() + "-" + dependency.getVersion() + ".jar,";
-              // the second when a name clash occurs (artifact will hav groupId prepended before copying it into the lib dir)
-              additionalExcludes += "WEB-INF" + File.separator + "lib" + File.separator + dependency.getGroupId() + "-" + dependency.getArtifactId() + "-" + dependency.getVersion() + ".jar,";
-            }
-          }
-          excludes.setValue(excludes.getValue() + additionalExcludes);
-        }
-      }
-    }
-  }
-
-  private static class WarPackageArchiveFilter implements ArchiveFileFilter {
-    public boolean include(InputStream dataStream, String entryName) throws ArchiveFilterException {
-      return !entryName.startsWith("META-INF");
-    }
-  }
 }

@@ -9,11 +9,8 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectBuilder;
 import org.apache.maven.project.ProjectBuildingException;
-import org.codehaus.plexus.archiver.ArchiveFileFilter;
-import org.codehaus.plexus.archiver.ArchiveFilterException;
 import org.codehaus.plexus.archiver.zip.ZipEntry;
 import org.codehaus.plexus.archiver.zip.ZipFile;
-import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
 
 import java.io.BufferedReader;
@@ -45,7 +42,7 @@ import java.util.regex.Pattern;
  *
  * @requiresDependencyResolution runtime
  */
-@SuppressWarnings({"UnusedDeclaration", "ResultOfMethodCallIgnored"})
+ @SuppressWarnings({"ResultOfMethodCallIgnored"})
 public abstract class PackageApplicationMojo extends AbstractMojo {
 
   /**
@@ -61,18 +58,21 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
   /**
    * @component
    */
+  @SuppressWarnings("UnusedDeclaration")
   private MavenProjectBuilder mavenProjectBuilder;
 
   /**
    * @parameter expression="${localRepository}"
    * @required
    */
+  @SuppressWarnings("UnusedDeclaration")
   private ArtifactRepository localRepository;
 
   /**
    * @parameter expression="${project.remoteArtifactRepositories}"
    * @required
    */
+  @SuppressWarnings("UnusedDeclaration")
   private List remoteRepositories;
 
   public abstract File getPackageSourceDirectory();
@@ -88,7 +88,6 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
     }
 
     try {
-      copyJangarooOutput(webappDirectory);
       concatModuleScripts(new File(webappDirectory, "joo"));
     } catch (IOException e) {
       throw new MojoExecutionException("Failed to create jangaroo-application[-all].js", e);
@@ -138,16 +137,6 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
     return art.getGroupId() + ":" + art.getArtifactId();
   }
 
-  private void copyJangarooOutput(File target) throws IOException {
-    File packageSourceDirectory = getPackageSourceDirectory();
-    if (!packageSourceDirectory.exists()) {
-      getLog().debug("No Jangaroo compiler output directory " + packageSourceDirectory.getAbsolutePath() + ", skipping copy Jangaroo output.");
-    } else {
-      getLog().info("Copying Jangaroo output from " + packageSourceDirectory + " to " + target);
-      FileUtils.copyDirectoryStructureIfModified(packageSourceDirectory, target);
-    }
-  }
-
   private void concatModuleScripts(File scriptDirectory) throws IOException, ProjectBuildingException {
     List<Artifact> jooArtifacts = getJangarooDependencies();
 
@@ -189,7 +178,7 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
   }
 
   private static String computeModuleJsFileName(String artifactId) {
-    return "joo/" + artifactId + ".module.js";
+    return "META-INF/resources/joo/" + artifactId + ".module.js";
   }
 
   private Writer createJangarooModulesFile(File scriptDirectory, String fileName) throws IOException {
@@ -248,10 +237,16 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
           getLog().debug(" found loadScript: " + scriptFilename);
         }
       }
-      if (scriptFilename == null) {
+      File scriptFile = null;
+      if (scriptFilename != null) {
+        scriptFile = new File(scriptDirectory.getParent(), scriptFilename);
+        if (!scriptFile.exists()) {
+          scriptFile = null;
+        }
+      }
+      if (scriptFile == null) {
         jangarooApplicationAllWriter.write(line + '\n');
       } else {
-        File scriptFile = new File(scriptDirectory.getParent(), scriptFilename);
         appendFile(jangarooApplicationAllWriter, scriptFile);
       }
     }
@@ -295,7 +290,7 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
   private List<Artifact> getJangarooDependencies() {
     List<Artifact> jooArtifacts = new ArrayList<Artifact>();
     for (Artifact dependency : getArtifacts()) {
-      if (Types.JANGAROO_TYPE.equals(dependency.getType())) {
+      if ("jar".equals(dependency.getType())) {
         jooArtifacts.add(dependency);
       }
     }
@@ -308,7 +303,7 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
       MavenProject mp = mavenProjectBuilder.buildFromRepository(artifact, remoteRepositories, localRepository, true);
       List<String> deps = new LinkedList<String>();
       for (Dependency dep : getDependencies(mp)) {
-        if (Types.JANGAROO_TYPE.equals(dep.getType())) {
+        if ("jar".equals(dep.getType())) {
           deps.add(getInternalId(dep));
         }
       }
@@ -357,11 +352,6 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
     @Override
     public InputStream getInputStream() throws IOException {
       return new BOMStripperInputStream(zipFile.getInputStream(zipEntry));
-    }
-  }
-  private static class WarPackageArchiveFilter implements ArchiveFileFilter {
-    public boolean include(InputStream dataStream, String entryName) throws ArchiveFilterException {
-      return !entryName.startsWith("META-INF");
     }
   }
 }
