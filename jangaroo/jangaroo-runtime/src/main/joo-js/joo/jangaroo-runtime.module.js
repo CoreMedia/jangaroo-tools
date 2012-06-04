@@ -28,7 +28,7 @@ if (typeof joo.baseUrl !== "string") {
 }
 joo.resolveUrl = function resolveUrl(url/*:String*/) {
   return !joo.baseUrl || url.match(/^(https?:\/\/|\/)/) ? url : joo.baseUrl + url
-}
+};
 joo.loadScript = function loadScript(standardSrc/*:String*/, debugSrc/*:String = undefined*/) {
   var url = arguments.length > 1 && joo.debug ? debugSrc : standardSrc;
   if (url) {
