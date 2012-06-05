@@ -182,7 +182,13 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
     if (!annotationModel.getProperties().isEmpty()) {
       output.print("(");
       List<AnnotationPropertyModel> properties = annotationModel.getProperties();
+      boolean first = true;
       for (AnnotationPropertyModel property : properties) {
+        if (first) {
+          first = false;
+        } else {
+          output.write(", ");
+        }
         property.visit(this);
       }
       output.print(")");
