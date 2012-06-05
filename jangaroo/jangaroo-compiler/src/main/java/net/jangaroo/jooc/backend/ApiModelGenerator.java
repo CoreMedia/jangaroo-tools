@@ -408,6 +408,7 @@ public class ApiModelGenerator implements AstVisitor {
   @Override
   public void visitParameter(Parameter parameter) throws IOException {
     ParamModel paramModel = new ParamModel();
+    paramModel.setRest(parameter.isRest());
     modelStack.push(paramModel);
     parameter.getIde().visit(this);
     visitIfNotNull(parameter.getOptTypeRelation());
@@ -573,9 +574,7 @@ public class ApiModelGenerator implements AstVisitor {
     generateMemberModifiers(namespacedDeclaration);
     // TODO fieldModel.setNamespace(namespacedDeclaration.getSymNamespace().getText());
     namespacedDeclaration.getIde().visit(this);
-    if (namespacedDeclaration.getOptInitializer() != null) {
-      namespacedDeclaration.getOptInitializer().getValue().visit(this);
-    }
+    visitIfNotNull(namespacedDeclaration.getOptInitializer());
     popMember();
   }
 
