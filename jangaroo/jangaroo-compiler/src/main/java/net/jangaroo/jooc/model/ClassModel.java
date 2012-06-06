@@ -74,6 +74,13 @@ public class ClassModel extends DocumentedModel implements ModelWithVisibility {
   }
 
   public void addMember(MemberModel member) {
+    MemberModel oldMember = getMember(member.isStatic(), member.getName());
+    if (oldMember != null) {
+      if (oldMember.equals(member)) {
+        return;
+      }
+      throw new IllegalArgumentException("Someone tried to add a different " + (member.isStatic() ? "static " : "") + "member called " + member.getName() + ": " + oldMember + " -> " + member);
+    }
     members.add(member);
   }
 
@@ -99,6 +106,10 @@ public class ClassModel extends DocumentedModel implements ModelWithVisibility {
     return null;
   }
 
+  public boolean removeMember(MemberModel memberModel) {
+    return members.remove(memberModel);
+  }
+  
   public MethodModel getConstructor() {
     return getMethod(getName());
   }
