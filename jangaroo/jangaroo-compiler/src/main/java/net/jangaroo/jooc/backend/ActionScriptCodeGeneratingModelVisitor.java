@@ -200,6 +200,8 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
   public void visitAnnotationProperty(AnnotationPropertyModel annotationPropertyModel) {
     if (isEmpty(annotationPropertyModel.getName())) {
       output.print(annotationPropertyModel.getValue());
+    } else if (isEmpty(annotationPropertyModel.getValue())) {
+      output.print(annotationPropertyModel.getName());
     } else {
       output.printf("%s = %s", annotationPropertyModel.getName(), annotationPropertyModel.getValue());
     }
