@@ -14,10 +14,10 @@ import java.util.*;
 public class CompilerMojo extends AbstractCompilerMojo {
 
   /**
-   * Output directory into whose joo/classes sub-directory compiled classes are generated.
+   * Output directory into whose META-INF/resources/joo/classes sub-directory compiled classes are generated.
    * This property is used for <code>jangaroo</code> packaging type as {@link #getOutputDirectory}.
    *
-   * @parameter expression="${project.build.outputDirectory}/META-INF/resources"
+   * @parameter expression="${project.build.outputDirectory}"
    */
   private File outputDirectory;
 
@@ -80,7 +80,7 @@ public class CompilerMojo extends AbstractCompilerMojo {
   }
 
   protected File getOutputDirectory() {
-    return isJangarooPackaging() ? outputDirectory : packageSourceDirectory;
+    return isJangarooPackaging() ? new File(outputDirectory, "META-INF/resources") : packageSourceDirectory;
   }
 
   protected File getTempClassesOutputDirectory() {

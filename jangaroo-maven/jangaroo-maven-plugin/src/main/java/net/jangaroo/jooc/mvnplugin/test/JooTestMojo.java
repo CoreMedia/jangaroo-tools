@@ -4,7 +4,7 @@ import com.thoughtworks.selenium.DefaultSelenium;
 import com.thoughtworks.selenium.Selenium;
 import com.thoughtworks.selenium.SeleniumException;
 import org.apache.commons.io.FileUtils;
-import org.apache.maven.model.Resource;
+import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -12,8 +12,9 @@ import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.cli.CommandLineException;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.handler.ResourceHandler;
-import org.eclipse.jetty.util.resource.FileResource;
+import org.eclipse.jetty.util.resource.Resource;
+import org.eclipse.jetty.util.resource.ResourceCollection;
+import org.mortbay.jetty.plugin.JettyWebAppContext;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.NodeList;
@@ -27,7 +28,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.InetAddress;
-import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,8 +45,8 @@ import java.util.Random;
  *
  * @goal test
  * @phase test
+ * @requiresDependencyResolution test
  */
-@SuppressWarnings({"UnusedDeclaration", "FieldCanBeLocal", "ResultOfMethodCallIgnored", "UnusedPrivateField"})
 public class JooTestMojo extends AbstractMojo {
   private static final int MAX_JETTY_START_ATTEMPTS = 3;
 
@@ -57,10 +57,17 @@ public class JooTestMojo extends AbstractMojo {
    * @required
    * @readonly
    */
+  @SuppressWarnings({"UnusedDeclaration"})
   private MavenProject project;
   /**
-   * Output directory for the jangaroo artifact unarchiver. All jangaroo dependencies will be unpacked into this
-   * directory.
+   * Directory whose META-INF/RESOURCES/joo/classes sub-directory contains compiled classes.
+   *
+   * @parameter expression="${project.build.outputDirectory}"
+   */
+  @SuppressWarnings({"UnusedDeclaration", "FieldCanBeLocal"})
+  private File outputDirectory;
+  /**
+   * Directory whose joo/classes sub-directory contains compiled test classes.
    *
    * @parameter expression="${project.build.testOutputDirectory}"  default-value="${project.build.testOutputDirectory}"
    */
@@ -70,19 +77,21 @@ public class JooTestMojo extends AbstractMojo {
    *
    * @parameter expression="${project.build.testSourceDirectory}"
    */
+  @SuppressWarnings({"UnusedDeclaration", "FieldCanBeLocal"})
   private File testSourceDirectory;
   /**
    * the tests.html file relative to the test resources folder
    *
    * @parameter default-value="tests.html"
    */
+  @SuppressWarnings({"UnusedDeclaration"})
   private String testsHtml;
   /**
    * the tests.html file relative to the test resources folder
    *
    * @parameter expression="${project.testResources}"
    */
-  private List<Resource> testResources;
+  private List<org.apache.maven.model.Resource> testResources;
   /**
    * Set this to 'true' to bypass unit tests entirely. Its use is NOT RECOMMENDED, especially if you
    * enable it using the "maven.test.skip" property, because maven.test.skip disables both running the
@@ -105,11 +114,13 @@ public class JooTestMojo extends AbstractMojo {
    * @parameter expression="${project.build.directory}/surefire-reports/"  default-value="${project.build.directory}/surefire-reports/"
    * @required
    */
+  @SuppressWarnings({"UnusedDeclaration"})
   private File testResultOutputDirectory;
 
   /**
    * @parameter
    */
+  @SuppressWarnings({"UnusedDeclaration"})
   private String testResultFileName;
 
   /**
@@ -117,6 +128,7 @@ public class JooTestMojo extends AbstractMojo {
    *
    * @parameter
    */
+  @SuppressWarnings({"UnusedDeclaration", "FieldCanBeLocal"})
   private int jooUnitJettyPortUpperBound = 10200;
 
   /**
@@ -124,6 +136,7 @@ public class JooTestMojo extends AbstractMojo {
    *
    * @parameter
    */
+  @SuppressWarnings({"UnusedDeclaration", "FieldCanBeLocal"})
   private int jooUnitJettyPortLowerBound = 10100;
 
   /**
@@ -148,6 +161,7 @@ public class JooTestMojo extends AbstractMojo {
    *
    * @parameter
    */
+  @SuppressWarnings({"UnusedDeclaration", "FieldCanBeLocal"})
   private int jooUnitSeleniumRCPort = 4444;
 
   /**
@@ -155,6 +169,7 @@ public class JooTestMojo extends AbstractMojo {
    *
    * @parameter
    */
+  @SuppressWarnings({"UnusedDeclaration", "FieldCanBeLocal"})
   private String jooUnitSeleniumBrowserStartCommand = "*firefox";
 
   /**
@@ -170,6 +185,7 @@ public class JooTestMojo extends AbstractMojo {
    *
    * @parameter expression="${phantomjs.bin}" default-value="phantomjs"
    */
+  @SuppressWarnings({"UnusedDeclaration", "FieldCanBeLocal"})
   private String phantomBin;
 
   /**
@@ -177,6 +193,7 @@ public class JooTestMojo extends AbstractMojo {
    *
    * @parameter expression="${phantomjs.runner}" default-value="joo/phantomjs-joounit-runner.js"
    */
+  @SuppressWarnings({"UnusedDeclaration", "FieldCanBeLocal"})
   private String phantomTestRunner;
 
   /**
@@ -184,6 +201,7 @@ public class JooTestMojo extends AbstractMojo {
    *
    * @parameter expression="${phantomjs.suite}"
    */
+  @SuppressWarnings({"UnusedDeclaration", "FieldCanBeLocal"})
   private String phantomTestSuite;
 
   /**
@@ -194,10 +212,11 @@ public class JooTestMojo extends AbstractMojo {
    *
    * @parameter expression="${phantomjs.args}"
    */
+  @SuppressWarnings({"UnusedDeclaration", "FieldCanBeLocal"})
   private String phantomArgs;
 
   protected boolean isTestAvailable() {
-    for (Resource r : testResources) {
+    for (org.apache.maven.model.Resource r : testResources) {
       File testFile = new File(r.getDirectory(), testsHtml);
       if (testFile.exists()) {
         return true;
@@ -221,13 +240,13 @@ public class JooTestMojo extends AbstractMojo {
             signalFailure();
           }
         } catch (CommandLineException e) {
-          rethrow(e);
+          throw wrap(e);
         } catch (IOException e) {
-          rethrow(e);
+          throw wrap(e);
         } catch (ParserConfigurationException e) {
-          rethrow(e);
+          throw wrap(e);
         } catch (SAXException e) {
-          rethrow(e);
+          throw wrap(e);
         }
       } else if (isTestAvailable()) {
         executeSelenium();
@@ -247,13 +266,17 @@ public class JooTestMojo extends AbstractMojo {
               " by -DskipTests", e);
     }
     getLog().info("JooTest report directory: " + testResultOutputDirectory.getAbsolutePath());
-    ResourceHandler handler = new ResourceHandler();
+    JettyWebAppContext handler;
     try {
-      handler.setBaseResource(new FileResource(testOutputDirectory.toURI().toURL()));
-    } catch (IOException e) {
-      rethrow(e);
-    } catch (URISyntaxException e) {
-      rethrow(e);
+      handler = new JettyWebAppContext();
+      handler.setWebInfLib(findJars());
+      getLog().info("Using base resource " + testOutputDirectory.getAbsolutePath());
+      handler.setBaseResource(new ResourceCollection(
+        toResource(new File(outputDirectory, "META-INF/resources")),
+        toResource(testOutputDirectory)
+      ));
+    } catch (Exception e) {
+      throw wrap(e);
     }
     Server server = startJetty(handler);
     Selenium selenium;
@@ -302,6 +325,28 @@ public class JooTestMojo extends AbstractMojo {
     }
   }
 
+  protected List<File> findJars() throws DependencyResolutionRequiredException {
+    List<File> jars = new ArrayList<File>();
+    for (Object jarUrl : project.getTestClasspathElements()) {
+      File file = new File((String)jarUrl);
+      if (file.isFile()) { // should be a jar--don't add folders!
+        jars.add(file);
+        getLog().info("Test classpath: " + jarUrl);
+      } else {
+        getLog().info("Ignoring test classpath: " + jarUrl);
+      }
+    }
+    return jars;
+  }
+
+  private Resource toResource(File file) throws MojoExecutionException {
+    try {
+      return Resource.newResource(file);
+    } catch (IOException e) {
+      throw wrap(e);
+    }
+  }
+
   void writeResultToFile(java.lang.String testResultXml) throws IOException {
     File result = new File(testResultOutputDirectory, getTestResultFileName());
     FileUtils.writeStringToFile(result, testResultXml);
@@ -319,8 +364,8 @@ public class JooTestMojo extends AbstractMojo {
     }
   }
 
-  private void rethrow(Exception e) throws MojoExecutionException {
-    throw new MojoExecutionException(e.toString(), e);
+  private MojoExecutionException wrap(Exception e) {
+    return new MojoExecutionException(e.toString(), e);
   }
 
   void evalTestOutput(String testResultXml) throws ParserConfigurationException, IOException, SAXException, MojoFailureException {
@@ -408,7 +453,7 @@ public class JooTestMojo extends AbstractMojo {
     this.testSourceDirectory = f;
   }
 
-  public void setTestResources(ArrayList<Resource> resources) {
+  public void setTestResources(ArrayList<org.apache.maven.model.Resource> resources) {
     this.testResources = resources;
   }
 

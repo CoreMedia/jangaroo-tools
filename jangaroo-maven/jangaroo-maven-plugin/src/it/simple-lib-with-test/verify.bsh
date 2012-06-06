@@ -76,7 +76,7 @@ try
     }
 
 
-    File testJsDir = new File ( target, "jangaroo-output-test/META-INF/resources/joo" );
+    File testJsDir = new File ( target, "jangaroo-output-test/joo" );
     if ( !testJsDir.exists() || !testJsDir.isDirectory() )
     {
         System.err.println( "jangaroo-output-test/joo directory is missing or not a directory." );

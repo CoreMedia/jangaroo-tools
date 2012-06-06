@@ -27,7 +27,7 @@ public class TestCompilerMojo extends AbstractCompilerMojo {
   /**
    * Test output directory into whose joo/classes sub-directory compiled classes are generated.
    *
-   * @parameter expression="${project.build.testOutputDirectory}/META-INF/resources"
+   * @parameter expression="${project.build.testOutputDirectory}"
    */
   private File testOutputDirectory;
 
