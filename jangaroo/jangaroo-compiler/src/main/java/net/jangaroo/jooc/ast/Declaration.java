@@ -177,6 +177,10 @@ public abstract class Declaration extends Statement {
     return (getModifiers() & MODIFIER_FINAL) != 0;
   }
 
+  public boolean isDynamic() {
+    return (getModifiers() & MODIFIER_DYNAMIC) != 0;
+  }
+
   public boolean isNative() {
     return (getModifiers() & MODIFIER_NATIVE) != 0;
   }
