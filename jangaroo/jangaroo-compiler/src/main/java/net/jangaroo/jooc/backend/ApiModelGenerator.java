@@ -77,9 +77,11 @@ import net.jangaroo.jooc.model.AnnotationModel;
 import net.jangaroo.jooc.model.AnnotationPropertyModel;
 import net.jangaroo.jooc.model.ClassModel;
 import net.jangaroo.jooc.model.CompilationUnitModel;
+import net.jangaroo.jooc.model.DocumentedModel;
 import net.jangaroo.jooc.model.FieldModel;
 import net.jangaroo.jooc.model.MemberModel;
 import net.jangaroo.jooc.model.MethodModel;
+import net.jangaroo.jooc.model.MethodType;
 import net.jangaroo.jooc.model.ModelWithVisibility;
 import net.jangaroo.jooc.model.NamedModel;
 import net.jangaroo.jooc.model.ParamModel;
@@ -103,6 +105,7 @@ public class ApiModelGenerator implements AstVisitor {
   private boolean excludeClassByDefault = false;
   private Deque<ActionScriptModel> modelStack;
   private StringBuilder code;
+  private StringBuilder asdoc = new StringBuilder();
 
   public ApiModelGenerator(boolean excludeClassByDefault) {
     this.excludeClassByDefault = excludeClassByDefault;
@@ -247,6 +250,46 @@ public class ApiModelGenerator implements AstVisitor {
   @Override
   public void visitInfixOpExpr(InfixOpExpr infixOpExpr) throws IOException {
     visitBinaryOpExpr(infixOpExpr);
+  }
+
+  private static String trimAsdoc(String asdoc) {
+    int oldLength;
+    do {
+      oldLength = asdoc.length();
+      asdoc = asdoc.trim();
+      if (asdoc.startsWith("*")) {
+        asdoc = asdoc.substring(1);
+      }
+      if (asdoc.endsWith("*")) {
+        asdoc = asdoc.substring(0, asdoc.length() - 1);
+      }
+    } while (asdoc.length() < oldLength);
+    return asdoc;
+  }
+
+  private void recordAsdoc(JooSymbol symbol) {
+    if (symbol != null) {
+      String whitespace = symbol.getWhitespace();
+      int startPos = whitespace.indexOf("/**");
+      if (startPos != -1) {
+        int endPos = whitespace.indexOf("*/", startPos);
+        if (asdoc.length() > 0) {
+          asdoc.append('\n'); // avoid missing white-space between two ASDoc sections
+        }
+        asdoc.append(whitespace.substring(startPos + 2, endPos - 1));
+      }
+    }
+  }
+
+  private void recordAsdoc(Declaration declaration) {
+    for (JooSymbol symbol : declaration.getSymModifiers()) {
+      recordAsdoc(symbol);
+    }
+  }
+
+  private void consumeRecordedAsdoc() {
+    getCurrentDocumentedModel().setAsdoc(trimAsdoc(asdoc.toString()));
+    asdoc.setLength(0);
   }
 
   private void startRecordingCode() {
@@ -441,6 +484,8 @@ public class ApiModelGenerator implements AstVisitor {
     if (variableDeclaration.isPublicApi()) {
       FieldModel fieldModel = new FieldModel();
       modelStack.push(fieldModel);
+      recordAsdoc(variableDeclaration);
+      recordAsdoc(variableDeclaration.getOptSymConstOrVar());
       generateMemberModifiers(variableDeclaration);
       fieldModel.setConst(variableDeclaration.isConst());
       variableDeclaration.getIde().visit(this);
@@ -459,63 +504,45 @@ public class ApiModelGenerator implements AstVisitor {
   @Override
   public void visitFunctionDeclaration(FunctionDeclaration functionDeclaration) throws IOException {
     if (functionDeclaration.isPublicApi()) {
-      modelStack.push(functionDeclaration.isGetterOrSetter() ? new PropertyModel() : new MethodModel());
+      MethodModel methodModel = new MethodModel();
+      modelStack.push(methodModel);
+      recordAsdoc(functionDeclaration);
+      recordAsdoc(functionDeclaration.getSymbol());
+      consumeRecordedAsdoc();
       generateMemberModifiers(functionDeclaration);
+      methodModel.setMethodType(functionDeclaration.isGetter() ? MethodType.GET
+        : functionDeclaration.isSetter() ? MethodType.SET
+        : null);
       functionDeclaration.getIde().visit(this);
-      if (!functionDeclaration.isGetterOrSetter()) {
-        generateSignatureAsApiCode(functionDeclaration.getFun());
-        
-        if (functionDeclaration.isConstructor() && !functionDeclaration.isNative()) {
-          // ASDoc does not allow a native constructor if the super class constructor needs parameters!
-          StringBuilder superCallCode = new StringBuilder();
-          superCallCode.append("super(");
-          if (functionDeclaration.getClassDeclaration() != null) {
-            ClassDeclaration superType = functionDeclaration.getClassDeclaration().getSuperTypeDeclaration();
-            if (superType != null) {
-              FunctionDeclaration superConstructor = superType.getConstructor();
-              if (superConstructor != null) {
-                Parameters superParameters = superConstructor.getParams();
-                boolean first = true;
-                while (superParameters != null && superParameters.getHead().getOptInitializer() == null) {
-                  if (first) {
-                    first = false;
-                  } else {
-                    superCallCode.append(", ");
-                  }
-                  superCallCode.append(VariableDeclaration.getDefaultValue(superParameters.getHead().getOptTypeRelation()));
-                  superParameters = superParameters.getTail();
+      generateSignatureAsApiCode(functionDeclaration.getFun());
+
+      if (functionDeclaration.isConstructor() && !functionDeclaration.isNative()) {
+        // ASDoc does not allow a native constructor if the super class constructor needs parameters!
+        StringBuilder superCallCode = new StringBuilder();
+        superCallCode.append("super(");
+        if (functionDeclaration.getClassDeclaration() != null) {
+          ClassDeclaration superType = functionDeclaration.getClassDeclaration().getSuperTypeDeclaration();
+          if (superType != null) {
+            FunctionDeclaration superConstructor = superType.getConstructor();
+            if (superConstructor != null) {
+              Parameters superParameters = superConstructor.getParams();
+              boolean first = true;
+              while (superParameters != null && superParameters.getHead().getOptInitializer() == null) {
+                if (first) {
+                  first = false;
+                } else {
+                  superCallCode.append(", ");
                 }
+                superCallCode.append(VariableDeclaration.getDefaultValue(superParameters.getHead().getOptTypeRelation()));
+                superParameters = superParameters.getTail();
               }
             }
           }
-          superCallCode.append(");");
-          getCurrentMethodModel().setBody(superCallCode.toString());
         }
-      } else {
-        generatePropertyModel(functionDeclaration);
+        superCallCode.append(");");
+        getCurrentMethodModel().setBody(superCallCode.toString());
       }
       popMember();
-    }
-  }
-
-  private void generatePropertyModel(FunctionDeclaration functionDeclaration) throws IOException {
-    PropertyModel propertyModel = getCurrentPropertyModel();
-    PropertyModel existingPropertyModel = getClassModel().getProperty(propertyModel.isStatic(), propertyModel.getName());
-    if (existingPropertyModel != null) {
-      // replace current property model on stack by the one with the same name retrieved from the class:
-      propertyModel = existingPropertyModel;
-      modelStack.pop();
-      modelStack.push(propertyModel);
-    }
-    if (functionDeclaration.isGetter()) {
-      visitIfNotNull(functionDeclaration.getOptTypeRelation());
-      propertyModel.addGetter();
-    } else {
-      if (functionDeclaration.getParams() != null &&
-        functionDeclaration.getParams().getHead() != null) {
-        visitIfNotNull(functionDeclaration.getParams().getHead().getOptTypeRelation());
-      }
-      propertyModel.addSetter();
     }
   }
 
@@ -526,7 +553,6 @@ public class ApiModelGenerator implements AstVisitor {
   public void generateSignatureAsApiCode(FunctionExpr fun) throws IOException {
     visitIfNotNull(fun.getParams());
     visitIfNotNull(fun.getOptTypeRelation());
-
   }
 
   protected void visitAll(Iterable<? extends AstNode> nodes) throws IOException {
@@ -537,6 +563,9 @@ public class ApiModelGenerator implements AstVisitor {
 
   @Override
   public void visitClassDeclaration(ClassDeclaration classDeclaration) throws IOException {
+    recordAsdoc(classDeclaration);
+    recordAsdoc(classDeclaration.getSymClass());
+    consumeRecordedAsdoc();
     generateVisibility(classDeclaration);
     visitAll(classDeclaration.getDirectives());
     if (isExcludeClassByDefault()) {
@@ -571,6 +600,9 @@ public class ApiModelGenerator implements AstVisitor {
   public void visitNamespacedDeclaration(NamespacedDeclaration namespacedDeclaration) throws IOException {
     FieldModel fieldModel = new FieldModel();
     modelStack.push(fieldModel);
+    recordAsdoc(namespacedDeclaration);
+    recordAsdoc(namespacedDeclaration.getSymNamespace());
+    consumeRecordedAsdoc();
     generateMemberModifiers(namespacedDeclaration);
     // TODO fieldModel.setNamespace(namespacedDeclaration.getSymNamespace().getText());
     namespacedDeclaration.getIde().visit(this);
@@ -594,6 +626,8 @@ public class ApiModelGenerator implements AstVisitor {
   @Override
   public void visitAnnotation(Annotation annotation) throws IOException {
     modelStack.push(new AnnotationModel());
+    recordAsdoc(annotation.getLeftBracket());
+    consumeRecordedAsdoc();
     annotation.getIde().visit(this);
     visitIfNotNull(annotation.getOptAnnotationParameters());
     getClassModel().addAnnotation((AnnotationModel)modelStack.pop());
@@ -682,6 +716,10 @@ public class ApiModelGenerator implements AstVisitor {
 
   private ValuedModel getCurrentValuedModel() {
     return (ValuedModel)modelStack.peek();
+  }
+
+  private DocumentedModel getCurrentDocumentedModel() {
+    return (DocumentedModel)modelStack.peek();
   }
 
   private AnnotationModel getCurrentAnnotationModel() {

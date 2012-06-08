@@ -29,6 +29,7 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
   private final PrintWriter output;
   private CompilationUnitModel compilationUnitModel;
   private boolean skipAsDoc;
+  private String indent;
 
   public ActionScriptCodeGeneratingModelVisitor(Writer writer) {
     output = writer instanceof PrintWriter ? (PrintWriter)writer : new PrintWriter(writer);
@@ -47,18 +48,20 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
   public void visitCompilationUnit(CompilationUnitModel compilationUnitModel) {
     setCompilationUnitModel(compilationUnitModel);
     output.printf("package %s {%n", compilationUnitModel.getPackage());
+    indent = "";
     for (String anImport : compilationUnitModel.getImports()) {
       output.printf("import %s;%n", anImport);
     }
     output.println();
     compilationUnitModel.getPrimaryDeclaration().visit(this);
+    indent = "";
     output.print("}");
     output.close();
   }
 
   @Override
   public void visitClass(ClassModel classModel) {
-    printAsdoc(classModel.getAsdoc(), "");
+    printAsdoc(classModel.getAsdoc());
     for (AnnotationModel annotation : classModel.getAnnotations()) {
       annotation.visit(this);
     }
@@ -72,11 +75,17 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
       separator = ", ";
     }
     output.print(" {");
+    indent = "  ";
     for (MemberModel member : classModel.getMembers()) {
       output.println();
       member.visit(this);
     }
+    indent = "";
     output.println("}");
+  }
+
+  private void indent() {
+    output.print(indent);
   }
 
   public void flush() {
@@ -85,8 +94,8 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
 
   @Override
   public void visitField(FieldModel fieldModel) {
-    printAsdoc(fieldModel.getAsdoc(), "  ");
-    output.print("  ");
+    printAsdoc(fieldModel.getAsdoc());
+    indent();
     generateVisibility(fieldModel);
     generateStatic(fieldModel);
     output.printf("%s %s", fieldModel.isConst() ? "const" : "var", fieldModel.getName());
@@ -128,8 +137,8 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
         asdoc.append("\n  @return ").append(returnAsDoc);
       }
     }
-    printAsdoc(asdoc.toString(), "  ");
-    output.print("  ");
+    printAsdoc(asdoc.toString());
+    indent();
     generateOverride(methodModel.isOverride());
     generateVisibility(methodModel);
     generateStatic(methodModel);
@@ -178,6 +187,7 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
 
   @Override
   public void visitAnnotation(AnnotationModel annotationModel) {
+    printAsdoc(annotationModel.getAsdoc());
     output.print("[" + annotationModel.getName());
     if (!annotationModel.getProperties().isEmpty()) {
       output.print("(");
@@ -207,11 +217,11 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
     }
   }
 
-  private void printAsdoc(String asdoc, String indent) {
+  private void printAsdoc(String asdoc) {
     if (!skipAsDoc && asdoc != null && asdoc.trim().length() > 0) {
-      output.println(indent + "/**");
-      output.println(indent + " * " + asdoc);
-      output.println(indent + " */");
+      indent(); output.println("/**");
+      indent(); output.println(" * " + asdoc);
+      indent(); output.println(" */");
     }
   }
 

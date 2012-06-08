@@ -76,12 +76,34 @@ public class ClassModel extends DocumentedModel implements ModelWithVisibility {
   public void addMember(MemberModel member) {
     MemberModel oldMember = getMember(member.isStatic(), member.getName());
     if (oldMember != null) {
-      if (oldMember.equals(member)) {
-        return;
+      if (oldMember.isProperty()) {
+        PropertyModel oldPropertyModel = (PropertyModel)oldMember;
+        if (member.isGetter()) {
+          oldMember = oldPropertyModel.getGetter();
+        } else if (member.isSetter()) {
+          oldMember = oldPropertyModel.getSetter();
+        }
       }
-      throw new IllegalArgumentException("Someone tried to add a different " + (member.isStatic() ? "static " : "") + "member called " + member.getName() + ": " + oldMember + " -> " + member);
+      if (oldMember != null) {
+        if (oldMember.equals(member)) {
+          return;
+        }
+        throw new IllegalArgumentException("Someone tried to add a different " + (member.isStatic() ? "static " : "") + "member called " + member.getName() + ": " + oldMember + " -> " + member);
+      }
     }
-    members.add(member);
+    if (member.isProperty()) {
+      PropertyModel propertyModel = (PropertyModel)member;
+      addIfNotNull(propertyModel.getGetter());
+      addIfNotNull(propertyModel.getSetter());
+    } else {
+      members.add(member);
+    }
+  }
+
+  private void addIfNotNull(MethodModel method) {
+    if (method != null) {
+      members.add(method);
+    }
   }
 
   public PropertyModel getProperty(boolean isStatic, String name) {
@@ -98,6 +120,15 @@ public class ClassModel extends DocumentedModel implements ModelWithVisibility {
   }
 
   private MemberModel getMember(boolean isStatic, String name) {
+    MemberModel member = getMethodOrField(isStatic, name);
+    if (member != null && member.isAccessor()) {
+      MethodModel counterpart = getMethod(isStatic, member.isGetter() ? MethodType.SET : MethodType.GET, name);
+      return new PropertyModel((MethodModel)member, counterpart);
+    }
+    return member;
+  }
+
+  private MemberModel getMethodOrField(boolean isStatic, String name) {
     for (MemberModel memberModel : members) {
       if (memberModel.isStatic() == isStatic && name.equals(memberModel.getName())) {
         return memberModel;
@@ -135,7 +166,7 @@ public class ClassModel extends DocumentedModel implements ModelWithVisibility {
   }
 
   private MethodModel getMethod(boolean isStatic, MethodType methodType, String name) {
-    MemberModel member = getMember(isStatic, name);
+    MemberModel member = getMethodOrField(isStatic, name);
     if (member != null) {
       if (methodType == null) {
         if (member.isMethod()) {

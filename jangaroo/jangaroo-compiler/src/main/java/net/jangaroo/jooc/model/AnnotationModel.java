@@ -8,9 +8,8 @@ import java.util.List;
 /**
  * A model of a field of an ActionScript class.
  */
-public class AnnotationModel extends NamedModel {
+public class AnnotationModel extends DocumentedModel {
 
-  private String value = null;
   private List<AnnotationPropertyModel> properties = new ArrayList<AnnotationPropertyModel>();
 
   public AnnotationModel() {
@@ -20,18 +19,9 @@ public class AnnotationModel extends NamedModel {
     super(name);
   }
 
-  public AnnotationModel(String name, String value) {
-    super(name);
-    this.value = value;
-  }
-
   public AnnotationModel(String name, AnnotationPropertyModel... properties) {
     super(name);
     this.properties = Arrays.asList(properties);
-  }
-
-  public void setValue(String value) {
-    this.value = value;
   }
 
   public List<AnnotationPropertyModel> getProperties() {
