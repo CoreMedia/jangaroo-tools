@@ -1,6 +1,6 @@
 package package1{
 
-public class ImplementsInterface implements Interface {
+public final class ImplementsInterface implements Interface {
 
   public function ImplementsInterface() {
     // nothing really

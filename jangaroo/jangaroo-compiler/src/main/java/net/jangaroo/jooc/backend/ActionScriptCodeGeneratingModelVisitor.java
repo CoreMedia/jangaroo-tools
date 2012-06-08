@@ -65,7 +65,7 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
     for (AnnotationModel annotation : classModel.getAnnotations()) {
       annotation.visit(this);
     }
-    output.printf("%s %s %s", classModel.getVisibility(), classModel.isInterface() ? "interface" : "class", classModel.getName());
+    output.printf("%s%s %s %s", classModel.getVisibility(), classModel.isFinal() ? " final" : "", classModel.isInterface() ? "interface" : "class", classModel.getName());
     if (!classModel.isInterface() && !isEmpty(classModel.getSuperclass())) {
       output.printf(" extends %s", classModel.getSuperclass());
     }
