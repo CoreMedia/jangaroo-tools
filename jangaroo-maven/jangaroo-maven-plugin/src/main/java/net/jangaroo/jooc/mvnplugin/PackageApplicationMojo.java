@@ -201,17 +201,33 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
   private static final Pattern LOAD_SCRIPT_CODE_PATTERN = Pattern.compile("\\s*joo\\.loadScript\\(['\"]([^'\"]+)['\"]\\s*[,)].*");
   private static final Pattern LOAD_MODULE_CODE_PATTERN = Pattern.compile("\\s*joo\\.loadModule\\(['\"]([^'\"]+)['\"]\\s*,\\s*['\"]([^'\"]+)['\"].*");
 
+  private static String fromArtifactMessage(Artifact artifact) {
+    return fromArtifactMessage(artifact.getGroupId(), artifact.getArtifactId(), artifact.getVersion());
+  }
+
+  private static String fromArtifactMessage(String groupId, String artifactId, String version) {
+    return "// FROM " + fullArtifactName(groupId, artifactId, version) + ":\n";
+  }
+
+  private static String fullArtifactName(Artifact artifact) {
+    return fullArtifactName(artifact.getGroupId(), artifact.getArtifactId(), artifact.getVersion());
+  }
+
+  private static String fullArtifactName(String groupId, String artifactId, String version) {
+    return String.format("%s:%s:%s", groupId, artifactId, version);
+  }
+
   private void writeJangarooModuleScript(File scriptDirectory, Artifact artifact, ModuleSource jooModuleSource, Writer jangarooApplicationWriter, Writer jangarooApplicationAllWriter) throws IOException {
-    String fullArtifactName = artifact.getGroupId() + ":" + artifact.getArtifactId() + ":" + artifact.getVersion();
-    String fromMessage = "// FROM " + fullArtifactName + ":\n";
-    jangarooApplicationWriter.write(fromMessage);
-    jangarooApplicationAllWriter.write(fromMessage);
+    String fullArtifactName = fullArtifactName(artifact);
     if (jooModuleSource == null) {
       getLog().debug("No " + artifact.getArtifactId() + ".module.js in " + fullArtifactName + ".");
       writeModule(scriptDirectory, artifact, jangarooApplicationWriter, jangarooApplicationAllWriter);
     } else {
       getLog().info("Appending " + artifact.getArtifactId() + ".module.js from " + fullArtifactName);
+      String fromMessage = fromArtifactMessage(artifact);
+      jangarooApplicationWriter.write(fromMessage);
       appendFromInputStream(jangarooApplicationWriter, jooModuleSource.getInputStream());
+      jangarooApplicationAllWriter.write(fromMessage);
       writeModuleWithInlineScripts(scriptDirectory, jooModuleSource, jangarooApplicationAllWriter);
     }
   }
@@ -258,14 +274,15 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
   }
 
   protected void writeModule(File scriptDirectory, String groupId, String artifactId, String version, Writer jangarooApplicationWriter, Writer jangarooApplicationAllWriter) throws IOException {
-    String fullArtifactName = groupId + ":" + artifactId + ":" + version;
     File classesJsFile = new File(scriptDirectory, groupId + "." + artifactId + ".classes.js");
     if (classesJsFile.exists()) {
-      getLog().debug("Creating joo.loadModule(...) code for / appending .classes.js of " + fullArtifactName + ".");
+      getLog().debug("Creating joo.loadModule(...) code for / appending .classes.js of " + fullArtifactName(groupId, artifactId, version) + ".");
+      jangarooApplicationWriter.write(fromArtifactMessage(groupId, artifactId, version));
       jangarooApplicationWriter.write("joo.loadModule(\"" + groupId + "\",\"" + artifactId + "\");\n");
+      jangarooApplicationAllWriter.write(fromArtifactMessage(groupId, artifactId, version));
       appendFile(jangarooApplicationAllWriter, classesJsFile);
     } else {
-      getLog().debug("No file " + classesJsFile.getAbsolutePath() + " in module " + fullArtifactName +".");
+      getLog().debug("No file " + classesJsFile.getAbsolutePath() + " in module " + fullArtifactName(groupId, artifactId, version) +".");
     }
   }
 
