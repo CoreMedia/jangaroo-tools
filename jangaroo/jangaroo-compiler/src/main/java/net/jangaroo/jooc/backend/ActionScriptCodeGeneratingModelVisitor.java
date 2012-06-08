@@ -1,5 +1,6 @@
 package net.jangaroo.jooc.backend;
 
+import net.jangaroo.jooc.model.ActionScriptModel;
 import net.jangaroo.jooc.model.AnnotationModel;
 import net.jangaroo.jooc.model.AnnotationPropertyModel;
 import net.jangaroo.jooc.model.ClassModel;
@@ -61,20 +62,29 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
 
   @Override
   public void visitClass(ClassModel classModel) {
-    printAsdoc(classModel.getAsdoc());
     for (AnnotationModel annotation : classModel.getAnnotations()) {
       annotation.visit(this);
     }
-    output.printf("%s%s %s %s", classModel.getVisibility(), classModel.isFinal() ? " final" : "", classModel.isInterface() ? "interface" : "class", classModel.getName());
+    printAsdoc(classModel.getAsdoc());
+    printToken(classModel.getVisibility().toString());
+    printTokenIf(classModel.isFinal(), "final");
+    printTokenIf(classModel.isDynamic(), "dynamic");
+    printToken(classModel.isInterface(), "interface", "class");
+    printToken(classModel.getName());
     if (!classModel.isInterface() && !isEmpty(classModel.getSuperclass())) {
-      output.printf(" extends %s", classModel.getSuperclass());
+      output.printf("extends %s ", classModel.getSuperclass());
     }
-    String separator = classModel.isInterface() ? " extends" : " implements";
-    for (String anInterface : classModel.getInterfaces()) {
-      output.printf("%s %s", separator, anInterface);
-      separator = ", ";
+    if (!classModel.getInterfaces().isEmpty()) {
+      printToken(classModel.isInterface(), "extends", "implements");
+      List<String> tokens = classModel.getInterfaces();
+      output.print(tokens.get(0));
+      for (String token : tokens.subList(1, tokens.size())) {
+        output.print(", ");
+        output.print(token);
+      }
+      output.print(" ");
     }
-    output.print(" {");
+    output.print("{");
     indent = "  ";
     for (MemberModel member : classModel.getMembers()) {
       output.println();
@@ -82,6 +92,42 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
     }
     indent = "";
     output.println("}");
+  }
+
+  private void printParameterList(List<? extends ActionScriptModel> models) {
+    output.print("(");
+    boolean first = true;
+    for (ActionScriptModel model : models) {
+      if (first) {
+        first = false;
+      } else {
+        output.print(", ");
+      }
+      model.visit(this);
+    }
+    output.print(")");
+  }
+
+  private void printCommaSeparatedList(List<String> tokens) {
+    output.print(tokens.get(0));
+    for (String token : tokens.subList(1, tokens.size())) {
+      output.print(", ");
+      output.print(token);
+    }
+  }
+
+  private void printTokenIf(boolean flag, String token) {
+    if (flag) {
+      printToken(token);
+    }
+  }
+
+  private void printToken(boolean flag, String trueToken, String falseToken) {
+    printToken(flag ? trueToken : falseToken);
+  }
+
+  private void printToken(String token) {
+    output.printf("%s ", token);
   }
 
   private void indent() {
@@ -96,9 +142,9 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
   public void visitField(FieldModel fieldModel) {
     printAsdoc(fieldModel.getAsdoc());
     indent();
-    generateVisibility(fieldModel);
-    generateStatic(fieldModel);
-    output.printf("%s %s", fieldModel.isConst() ? "const" : "var", fieldModel.getName());
+    generateModifiers(fieldModel);
+    printToken(fieldModel.isConst(), "const", "var");
+    output.print(fieldModel.getName());
     generateType(fieldModel);
     generateValue(fieldModel);
     output.println(";");
@@ -106,16 +152,7 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
 
   @Override
   public void visitProperty(PropertyModel propertyModel) {
-    if (propertyModel.isReadable()) {
-      visitMethod(propertyModel.getGetter());
-    }
-    if (propertyModel.isWritable()) {
-      if (propertyModel.isReadable()) {
-        // an empty line between getter and setter:
-        output.println();
-      }
-      visitMethod(propertyModel.getSetter());
-    }
+    throw new IllegalStateException("PropertyModel should not be visited by code generator.");
   }
 
   private static List<String> PARAM_SUPPRESSING_ASDOC_TAGS = Arrays.asList("@inheritDoc", "@private");
@@ -139,32 +176,19 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
     }
     printAsdoc(asdoc.toString());
     indent();
-    generateOverride(methodModel.isOverride());
-    generateVisibility(methodModel);
-    generateStatic(methodModel);
-    output.print("function ");
+    printTokenIf(methodModel.isOverride(), "override");
+    generateModifiers(methodModel);
+    printToken("function");
     if (methodModel.getMethodType() != null) {
-      output.printf("%s ", methodModel.getMethodType());
+      printToken(methodModel.getMethodType().toString());
     }
-    output.printf("%s(", methodModel.getName());
-    String separator = "";
-    for (ParamModel paramModel : methodModel.getParams()) {
-      output.print(separator);
-      visitParam(paramModel);
-      separator = ", ";
-    }
-    output.print(")");
+    output.print(methodModel.getName());
+    printParameterList(methodModel.getParams());
     methodModel.getReturnModel().visit(this);
     if (hasBody(methodModel)) {
       output.printf(" {%n    %s%n  }%n", methodModel.getBody());
     } else {
       output.println(";");
-    }
-  }
-
-  private void generateOverride(boolean override) {
-    if (override) {
-      output.print("override ");
     }
   }
 
@@ -190,18 +214,7 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
     printAsdoc(annotationModel.getAsdoc());
     output.print("[" + annotationModel.getName());
     if (!annotationModel.getProperties().isEmpty()) {
-      output.print("(");
-      List<AnnotationPropertyModel> properties = annotationModel.getProperties();
-      boolean first = true;
-      for (AnnotationPropertyModel property : properties) {
-        if (first) {
-          first = false;
-        } else {
-          output.write(", ");
-        }
-        property.visit(this);
-      }
-      output.print(")");
+      printParameterList(annotationModel.getProperties());
     }
     output.println("]");
   }
@@ -225,19 +238,12 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
     }
   }
 
-  private void generateStatic(MemberModel memberModel) {
-    if (memberModel.isStatic()) {
-      output.print("static ");
-    }
-  }
-
-  private void generateVisibility(MemberModel memberModel) {
+  private void generateModifiers(MemberModel memberModel) {
     if (!(compilationUnitModel.getPrimaryDeclaration() instanceof ClassModel
       && ((ClassModel)compilationUnitModel.getPrimaryDeclaration()).isInterface())) {
-      output.print(memberModel.getVisibility() + " ");
-      if (!memberModel.isField() && !hasBody(memberModel)) {
-        output.print("native ");
-      }
+      printToken(memberModel.getVisibility().toString());
+      printTokenIf(memberModel.isStatic(), "static");
+      printTokenIf(!memberModel.isField() && !hasBody(memberModel), "native");
     }
   }
 
@@ -262,6 +268,7 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
   }
 
   public static void main(String[] args) {
+    // TODO: move to unit test!
     ClassModel classModel = new ClassModel("com.acme.Foo");
     classModel.setAsdoc("This is the Foo class.");
 

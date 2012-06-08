@@ -511,6 +511,7 @@ public class ApiModelGenerator implements AstVisitor {
       recordAsdoc(functionDeclaration.getSymbol());
       consumeRecordedAsdoc();
       generateMemberModifiers(functionDeclaration);
+      methodModel.setOverride(functionDeclaration.isOverride());
       methodModel.setMethodType(functionDeclaration.isGetter() ? MethodType.GET
         : functionDeclaration.isSetter() ? MethodType.SET
         : null);
@@ -568,6 +569,7 @@ public class ApiModelGenerator implements AstVisitor {
     recordAsdoc(classDeclaration.getSymClass());
     consumeRecordedAsdoc();
     getClassModel().setFinal(classDeclaration.isFinal());
+    getClassModel().setDynamic(classDeclaration.isDynamic());
     generateVisibility(classDeclaration);
     visitAll(classDeclaration.getDirectives());
     if (isExcludeClassByDefault()) {
