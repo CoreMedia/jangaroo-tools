@@ -486,6 +486,7 @@ public class ApiModelGenerator implements AstVisitor {
       modelStack.push(fieldModel);
       recordAsdoc(variableDeclaration);
       recordAsdoc(variableDeclaration.getOptSymConstOrVar());
+      consumeRecordedAsdoc();
       generateMemberModifiers(variableDeclaration);
       fieldModel.setConst(variableDeclaration.isConst());
       variableDeclaration.getIde().visit(this);
