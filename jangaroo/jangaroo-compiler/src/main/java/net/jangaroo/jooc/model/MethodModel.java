@@ -56,6 +56,21 @@ public class MethodModel extends MemberModel {
     return true;
   }
 
+  @Override
+  public boolean isAccessor() {
+    return methodType != null;
+  }
+
+  @Override
+  public boolean isGetter() {
+    return methodType == MethodType.GET;
+  }
+
+  @Override
+  public boolean isSetter() {
+    return methodType == MethodType.SET;
+  }
+
   public boolean isOverride() {
     return override;
   }

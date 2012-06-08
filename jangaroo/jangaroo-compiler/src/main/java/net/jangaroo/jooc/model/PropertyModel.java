@@ -15,6 +15,12 @@ public class PropertyModel extends MemberModel {
     super(name, type);
   }
 
+  PropertyModel(MethodModel accessor, MethodModel counterpart) {
+    super(accessor.getName(), accessor.isGetter() ? accessor.getType() : accessor.getParams().get(0).getType());
+    this.getter = accessor.isGetter() ? accessor : counterpart;
+    this.setter = accessor.isSetter() ? accessor : counterpart;
+  }
+
   @Override
   public boolean isProperty() {
     return true;

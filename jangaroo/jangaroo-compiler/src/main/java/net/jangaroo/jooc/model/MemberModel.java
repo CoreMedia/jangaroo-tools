@@ -53,6 +53,18 @@ public abstract class MemberModel extends AbstractTypedModel implements ModelWit
     return false;
   }
 
+  public boolean isAccessor() {
+   return false;
+  }
+
+  public boolean isGetter() {
+    return false;
+  }
+
+  public boolean isSetter() {
+    return false;
+  }
+
   public boolean isField() {
     return false;
   }
