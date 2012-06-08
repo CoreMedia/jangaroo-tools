@@ -11,6 +11,7 @@ import java.util.List;
  */
 public class ClassModel extends DocumentedModel implements ModelWithVisibility {
   private boolean isInterface = false;
+  private boolean isFinal = false;
   private Visibility visibility = Visibility.PUBLIC;
   private String superclass = null;
   private List<String> interfaces = new ArrayList<String>();
@@ -35,6 +36,14 @@ public class ClassModel extends DocumentedModel implements ModelWithVisibility {
 
   public void setVisibility(Visibility visibility) {
     this.visibility = visibility;
+  }
+
+  public boolean isFinal() {
+    return isFinal;
+  }
+
+  public void setFinal(boolean aFinal) {
+    isFinal = aFinal;
   }
 
   public boolean isInterface() {

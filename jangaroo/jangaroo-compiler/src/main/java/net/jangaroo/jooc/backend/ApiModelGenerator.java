@@ -566,6 +566,7 @@ public class ApiModelGenerator implements AstVisitor {
     recordAsdoc(classDeclaration);
     recordAsdoc(classDeclaration.getSymClass());
     consumeRecordedAsdoc();
+    getClassModel().setFinal(classDeclaration.isFinal());
     generateVisibility(classDeclaration);
     visitAll(classDeclaration.getDirectives());
     if (isExcludeClassByDefault()) {
