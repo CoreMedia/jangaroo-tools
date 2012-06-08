@@ -45,35 +45,6 @@
     <version>0.9.16-SNAPSHOT</version>
     <relativePath>../../jangaroo-parent/pom.xml</relativePath>
   </parent>
-  <build>
-    <plugins>
-      <plugin>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>create-archives</id>
-            <goals>
-              <goal>single</goal>
-            </goals>
-            <phase>package</phase>
-            <configuration>
-              <attach>true</attach>
-              <classifier>jar-with-dependencies</classifier>
-              <descriptorRefs>
-                <descriptorRef>jar-with-dependencies</descriptorRef>
-              </descriptorRefs>
-              <archive>
-                <manifest>
-                  <mainClass>net.jangaroo.properties.compiler.PropertiesCompiler</mainClass>
-                  <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
-                </manifest>
-              </archive>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
   <name>properties files to ActionScript3 transformer</name>
   <description>A transformer that provides i18n support for jangaroo</description>
   <build>
