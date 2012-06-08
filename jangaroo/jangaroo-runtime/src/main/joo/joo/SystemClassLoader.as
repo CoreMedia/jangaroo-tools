@@ -61,9 +61,12 @@ public class SystemClassLoader {
   }
 
   private static function toVersionParts(version:String):Array/*int*/ {
-    var parts:Array = (version || "").split(".");
+    var parts:Array = (version || "").split(/\.|-preview/);
     for (var i:uint = 0; i < parts.length; ++i) {
       parts[i] = parseInt(parts[i], 10);
+      if (parts[i] < 0) {
+        parts[i] = int.MIN_VALUE - parts[i];
+      }
     }
     return parts;
   }
