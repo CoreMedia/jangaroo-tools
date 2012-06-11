@@ -470,8 +470,8 @@ public class ApiModelGenerator {
       JooSymbol namespace = ((TypedIdeDeclaration)declaration).getNamespace();
       if (namespace != null) {
         namespacedModel.setNamespace(namespace.getText());
+        return;
       }
-      return;
     }
     namespacedModel.setNamespace(declaration.isProtected() ? NamespacedModel.PROTECTED : NamespacedModel.PUBLIC);
   }
