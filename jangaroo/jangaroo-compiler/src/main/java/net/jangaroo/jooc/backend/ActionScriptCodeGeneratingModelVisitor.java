@@ -66,7 +66,7 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
   public void visitClass(ClassModel classModel) {
     visitAnnotations(classModel);
     printAsdoc(classModel.getAsdoc());
-    printToken(classModel.getNamespace().toString());
+    printToken(classModel.getNamespace());
     printTokenIf(classModel.isFinal(), "final");
     printTokenIf(classModel.isDynamic(), "dynamic");
     printToken(classModel.isInterface(), "interface", "class");
@@ -98,7 +98,7 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
   public void visitNamespace(NamespaceModel namespaceModel) {
     visitAnnotations(namespaceModel);
     printAsdoc(namespaceModel.getAsdoc());
-    printToken(namespaceModel.getNamespace().toString());
+    printToken(namespaceModel.getNamespace());
     printToken("namespace");
     output.print(namespaceModel.getName());
     generateValue(namespaceModel);
@@ -260,7 +260,7 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
   private void generateModifiers(MemberModel memberModel) {
     if (!(compilationUnitModel.getPrimaryDeclaration() instanceof ClassModel
       && ((ClassModel)compilationUnitModel.getPrimaryDeclaration()).isInterface())) {
-      printToken(memberModel.getNamespace().toString());
+      printToken(memberModel.getNamespace());
       printTokenIf(memberModel.isStatic(), "static");
       printTokenIf(!memberModel.isField() && !hasBody(memberModel), "native");
     }
