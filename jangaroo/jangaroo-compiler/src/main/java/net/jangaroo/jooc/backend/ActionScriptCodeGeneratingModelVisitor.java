@@ -11,12 +11,12 @@ import net.jangaroo.jooc.model.MemberModel;
 import net.jangaroo.jooc.model.MethodModel;
 import net.jangaroo.jooc.model.ModelVisitor;
 import net.jangaroo.jooc.model.NamespaceModel;
+import net.jangaroo.jooc.model.NamespacedModel;
 import net.jangaroo.jooc.model.ParamModel;
 import net.jangaroo.jooc.model.PropertyModel;
 import net.jangaroo.jooc.model.ReturnModel;
 import net.jangaroo.jooc.model.TypedModel;
 import net.jangaroo.jooc.model.ValuedModel;
-import net.jangaroo.jooc.model.Visibility;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -66,7 +66,7 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
   public void visitClass(ClassModel classModel) {
     visitAnnotations(classModel);
     printAsdoc(classModel.getAsdoc());
-    printToken(classModel.getVisibility().toString());
+    printToken(classModel.getNamespace().toString());
     printTokenIf(classModel.isFinal(), "final");
     printTokenIf(classModel.isDynamic(), "dynamic");
     printToken(classModel.isInterface(), "interface", "class");
@@ -98,7 +98,7 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
   public void visitNamespace(NamespaceModel namespaceModel) {
     visitAnnotations(namespaceModel);
     printAsdoc(namespaceModel.getAsdoc());
-    printToken(namespaceModel.getVisibility().toString());
+    printToken(namespaceModel.getNamespace().toString());
     printToken("namespace");
     output.print(namespaceModel.getName());
     generateValue(namespaceModel);
@@ -260,7 +260,7 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
   private void generateModifiers(MemberModel memberModel) {
     if (!(compilationUnitModel.getPrimaryDeclaration() instanceof ClassModel
       && ((ClassModel)compilationUnitModel.getPrimaryDeclaration()).isInterface())) {
-      printToken(memberModel.getVisibility().toString());
+      printToken(memberModel.getNamespace().toString());
       printTokenIf(memberModel.isStatic(), "static");
       printTokenIf(!memberModel.isField() && !hasBody(memberModel), "native");
     }
@@ -299,7 +299,7 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
     field.setType("String");
     field.setConst(true);
     field.setStatic(true);
-    field.setVisibility(Visibility.PRIVATE);
+    field.setNamespace(NamespacedModel.PRIVATE);
     field.setAsdoc("A constant for foo bar.");
     field.setValue("'foo bar baz'");
     classModel.addMember(field);

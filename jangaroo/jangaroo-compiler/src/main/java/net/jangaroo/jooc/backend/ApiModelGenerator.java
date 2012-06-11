@@ -68,6 +68,7 @@ import net.jangaroo.jooc.ast.ThrowStatement;
 import net.jangaroo.jooc.ast.TryStatement;
 import net.jangaroo.jooc.ast.Type;
 import net.jangaroo.jooc.ast.TypeRelation;
+import net.jangaroo.jooc.ast.TypedIdeDeclaration;
 import net.jangaroo.jooc.ast.UseNamespaceDirective;
 import net.jangaroo.jooc.ast.VariableDeclaration;
 import net.jangaroo.jooc.ast.VectorLiteral;
@@ -83,13 +84,12 @@ import net.jangaroo.jooc.model.FieldModel;
 import net.jangaroo.jooc.model.MemberModel;
 import net.jangaroo.jooc.model.MethodModel;
 import net.jangaroo.jooc.model.MethodType;
-import net.jangaroo.jooc.model.ModelWithVisibility;
+import net.jangaroo.jooc.model.NamespacedModel;
 import net.jangaroo.jooc.model.NamedModel;
 import net.jangaroo.jooc.model.NamespaceModel;
 import net.jangaroo.jooc.model.ParamModel;
 import net.jangaroo.jooc.model.TypedModel;
 import net.jangaroo.jooc.model.ValuedModel;
-import net.jangaroo.jooc.model.Visibility;
 
 import java.io.IOException;
 import java.util.ArrayDeque;
@@ -461,12 +461,19 @@ public class ApiModelGenerator {
   }
 
   private void generateVisibility(Declaration declaration) {
-    ModelWithVisibility modelWithVisibility = (ModelWithVisibility)modelStack.peek();
-    // Public API only, thus either "protected" or "public":
-    modelWithVisibility.setVisibility(declaration.isProtected() ? Visibility.PROTECTED : Visibility.PUBLIC);
-    if (modelWithVisibility instanceof MemberModel) {
-      ((MemberModel)modelWithVisibility).setStatic(declaration.isStatic());
+    NamespacedModel namespacedModel = (NamespacedModel)modelStack.peek();
+    if (namespacedModel instanceof MemberModel) {
+      ((MemberModel)namespacedModel).setStatic(declaration.isStatic());
     }
+    // Public API only, thus either "protected", "public", or custom namespace:
+    if (declaration instanceof TypedIdeDeclaration) {
+      JooSymbol namespace = ((TypedIdeDeclaration)declaration).getNamespace();
+      if (namespace != null) {
+        namespacedModel.setNamespace(namespace.getText());
+      }
+      return;
+    }
+    namespacedModel.setNamespace(declaration.isProtected() ? NamespacedModel.PROTECTED : NamespacedModel.PUBLIC);
   }
 
   private void generateStaticFlag(Declaration declaration) {

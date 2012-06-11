@@ -3,9 +3,9 @@ package net.jangaroo.jooc.model;
 /**
  * A model of an ActionScript namespace declaration.
  */
-public class NamespaceModel extends AbstractAnnotatedModel implements ModelWithVisibility, ValuedModel {
+public class NamespaceModel extends AbstractAnnotatedModel implements NamespacedModel, ValuedModel {
 
-  private Visibility visibility = Visibility.PUBLIC;
+  private String namespace = PUBLIC;
   private String value = null;
 
   public NamespaceModel() {
@@ -20,12 +20,12 @@ public class NamespaceModel extends AbstractAnnotatedModel implements ModelWithV
     this.value = value;
   }
 
-  public Visibility getVisibility() {
-    return visibility;
+  public String getNamespace() {
+    return namespace;
   }
 
-  public void setVisibility(Visibility visibility) {
-    this.visibility = visibility;
+  public void setNamespace(String namespace) {
+    this.namespace = namespace;
   }
 
   public String getValue() {
