@@ -204,9 +204,9 @@ public class ApiModelGenerator {
   public void visitIdeWithTypeParam(IdeWithTypeParam ideWithTypeParam) throws IOException {
     recordCode(
       ideWithTypeParam.getOriginalIde().getText()
-        + ideWithTypeParam.getSymDotLt().getText()
-        + ideWithTypeParam.getType().getIde().getQualifiedNameStr()
-        + ideWithTypeParam.getSymGt().getText());
+        + ideWithTypeParam.getSymDotLt().getText());
+    ideWithTypeParam.getType().visit(this);
+    recordCode(ideWithTypeParam.getSymGt().getText());
   }
 
   @Override

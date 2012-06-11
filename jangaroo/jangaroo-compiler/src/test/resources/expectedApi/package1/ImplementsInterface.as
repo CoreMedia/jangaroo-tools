@@ -10,7 +10,7 @@ public final class ImplementsInterface implements Interface {
    * Annotated field with ASDoc.
    */
   [Bar]
-  public var bar;
+  public var bar:Vector.<Vector.<String>>;
 
   public function ImplementsInterface() {
     super();
