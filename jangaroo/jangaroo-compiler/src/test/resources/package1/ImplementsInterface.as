@@ -7,6 +7,12 @@ public final class ImplementsInterface implements Interface {
    */
   public var foo;
   
+  /**
+   * Annotated field with ASDoc.
+   */
+  [Bar]
+  public var bar:Vector.<Vector.<String>>;
+
   public function ImplementsInterface() {
     // nothing really
   }

@@ -7,6 +7,8 @@ public interface ModelVisitor {
 
   void visitClass(ClassModel classModel);
 
+  void visitNamespace(NamespaceModel namespaceModel);
+
   void visitField(FieldModel fieldModel);
 
   void visitProperty(PropertyModel propertyModel);

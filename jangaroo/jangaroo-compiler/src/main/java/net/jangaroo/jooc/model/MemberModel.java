@@ -3,11 +3,11 @@ package net.jangaroo.jooc.model;
 /**
  * An abstract base class for members of an ActionScript class or interface.
  */
-public abstract class MemberModel extends AbstractTypedModel implements ModelWithVisibility {
+public abstract class MemberModel extends AbstractAnnotatedModel implements NamespacedModel, TypedModel {
 
   private boolean isStatic = false;
   private String type = null;
-  private Visibility visibility = Visibility.PUBLIC;
+  private String namespace = PUBLIC;
 
   protected MemberModel() {
   }
@@ -30,13 +30,13 @@ public abstract class MemberModel extends AbstractTypedModel implements ModelWit
   }
 
   @Override
-  public Visibility getVisibility() {
-    return visibility;
+  public String getNamespace() {
+    return namespace;
   }
 
   @Override
-  public void setVisibility(Visibility visibility) {
-    this.visibility = visibility;
+  public void setNamespace(String namespace) {
+    this.namespace = namespace;
   }
 
   @Override
@@ -82,7 +82,7 @@ public abstract class MemberModel extends AbstractTypedModel implements ModelWit
     MemberModel that = (MemberModel)o;
     return isStatic == that.isStatic &&
       !(type != null ? !type.equals(that.type) : that.type != null) &&
-      visibility == that.visibility;
+      namespace.equals(that.namespace);
   }
 
   @Override
@@ -90,7 +90,7 @@ public abstract class MemberModel extends AbstractTypedModel implements ModelWit
     int result = super.hashCode();
     result = 31 * result + (isStatic ? 1 : 0);
     result = 31 * result + (type != null ? type.hashCode() : 0);
-    result = 31 * result + visibility.hashCode();
+    result = 31 * result + namespace.hashCode();
     return result;
   }
 }

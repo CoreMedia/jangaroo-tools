@@ -177,6 +177,11 @@ public class JoocTest {
     assertCompilationResult("package1/AuxVarConfusion");
   }
 
+  @Test
+  public void testNamespaceDeclarationApi() throws Exception {
+    assertApiCompilationResult("package1/testNamespace");
+  }
+
   private void assertApiCompilationResult(String path) throws URISyntaxException, IOException {
     assertApiCompilationResult(path, "");
   }

@@ -1,7 +1,5 @@
 package net.jangaroo.jooc.model;
 
-import net.jangaroo.utils.CompilerUtils;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -9,15 +7,14 @@ import java.util.List;
 /**
  * A model of an ActionScript class or interface.
  */
-public class ClassModel extends DocumentedModel implements ModelWithVisibility {
+public class ClassModel extends AbstractAnnotatedModel implements NamespacedModel {
   private boolean isInterface = false;
   private boolean isFinal = false;
   private boolean isDynamic = false;
-  private Visibility visibility = Visibility.PUBLIC;
+  private String namespace = PUBLIC;
   private String superclass = null;
   private List<String> interfaces = new ArrayList<String>();
   private List<MemberModel> members = new ArrayList<MemberModel>();
-  private List<AnnotationModel> annotations = new ArrayList<AnnotationModel>();
 
   public ClassModel() {
   }
@@ -31,12 +28,12 @@ public class ClassModel extends DocumentedModel implements ModelWithVisibility {
     this.superclass = superclass;
   }
 
-  public Visibility getVisibility() {
-    return visibility;
+  public String getNamespace() {
+    return namespace;
   }
 
-  public void setVisibility(Visibility visibility) {
-    this.visibility = visibility;
+  public void setNamespace(String namespace) {
+    this.namespace = namespace;
   }
 
   public boolean isFinal() {
@@ -199,18 +196,6 @@ public class ClassModel extends DocumentedModel implements ModelWithVisibility {
       }
     }
     return null;
-  }
-
-  public List<AnnotationModel> getAnnotations() {
-    return Collections.unmodifiableList(annotations);
-  }
-
-  public void setAnnotations(List<AnnotationModel> annotations) {
-    this.annotations = annotations;
-  }
-
-  public void addAnnotation(AnnotationModel annotation) {
-    annotations.add(annotation);
   }
 
   public MethodModel createConstructor() {

@@ -1,6 +1,7 @@
 package net.jangaroo.jooc.backend;
 
 import net.jangaroo.jooc.model.ActionScriptModel;
+import net.jangaroo.jooc.model.AnnotatedModel;
 import net.jangaroo.jooc.model.AnnotationModel;
 import net.jangaroo.jooc.model.AnnotationPropertyModel;
 import net.jangaroo.jooc.model.ClassModel;
@@ -9,12 +10,13 @@ import net.jangaroo.jooc.model.FieldModel;
 import net.jangaroo.jooc.model.MemberModel;
 import net.jangaroo.jooc.model.MethodModel;
 import net.jangaroo.jooc.model.ModelVisitor;
+import net.jangaroo.jooc.model.NamespaceModel;
+import net.jangaroo.jooc.model.NamespacedModel;
 import net.jangaroo.jooc.model.ParamModel;
 import net.jangaroo.jooc.model.PropertyModel;
 import net.jangaroo.jooc.model.ReturnModel;
 import net.jangaroo.jooc.model.TypedModel;
 import net.jangaroo.jooc.model.ValuedModel;
-import net.jangaroo.jooc.model.Visibility;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -62,11 +64,9 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
 
   @Override
   public void visitClass(ClassModel classModel) {
-    for (AnnotationModel annotation : classModel.getAnnotations()) {
-      annotation.visit(this);
-    }
+    visitAnnotations(classModel);
     printAsdoc(classModel.getAsdoc());
-    printToken(classModel.getVisibility().toString());
+    printToken(classModel.getNamespace());
     printTokenIf(classModel.isFinal(), "final");
     printTokenIf(classModel.isDynamic(), "dynamic");
     printToken(classModel.isInterface(), "interface", "class");
@@ -92,6 +92,23 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
     }
     indent = "";
     output.println("}");
+  }
+
+  @Override
+  public void visitNamespace(NamespaceModel namespaceModel) {
+    visitAnnotations(namespaceModel);
+    printAsdoc(namespaceModel.getAsdoc());
+    printToken(namespaceModel.getNamespace());
+    printToken("namespace");
+    output.print(namespaceModel.getName());
+    generateValue(namespaceModel);
+    output.println(";");
+  }
+
+  private void visitAnnotations(AnnotatedModel annotatedModel) {
+    for (AnnotationModel annotation : annotatedModel.getAnnotations()) {
+      annotation.visit(this);
+    }
   }
 
   private void printParameterList(List<? extends ActionScriptModel> models) {
@@ -140,9 +157,11 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
 
   @Override
   public void visitField(FieldModel fieldModel) {
+    visitAnnotations(fieldModel);
     printAsdoc(fieldModel.getAsdoc());
     indent();
-    generateModifiers(fieldModel);
+    printToken(fieldModel.getNamespace());
+    printTokenIf(fieldModel.isStatic(), "static");
     printToken(fieldModel.isConst(), "const", "var");
     output.print(fieldModel.getName());
     generateType(fieldModel);
@@ -159,6 +178,7 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
 
   @Override
   public void visitMethod(MethodModel methodModel) {
+    visitAnnotations(methodModel);
     StringBuilder asdoc = new StringBuilder();
     if (methodModel.getAsdoc() != null) {
       asdoc.append(methodModel.getAsdoc());
@@ -177,7 +197,13 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
     printAsdoc(asdoc.toString());
     indent();
     printTokenIf(methodModel.isOverride(), "override");
-    generateModifiers(methodModel);
+    String methodBody = methodModel.getBody();
+    if (!isPrimaryDeclarationAnInterface()) {
+      printToken(methodModel.getNamespace());
+      printTokenIf(methodModel.isStatic(), "static");
+      printTokenIf(methodModel.isFinal(), "final");
+      printTokenIf(methodBody == null, "native");
+    }
     printToken("function");
     if (methodModel.getMethodType() != null) {
       printToken(methodModel.getMethodType().toString());
@@ -185,7 +211,7 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
     output.print(methodModel.getName());
     printParameterList(methodModel.getParams());
     methodModel.getReturnModel().visit(this);
-    if (hasBody(methodModel)) {
+    if (methodBody != null) {
       output.printf(" {%n    %s%n  }%n", methodModel.getBody());
     } else {
       output.println(";");
@@ -212,7 +238,7 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
   @Override
   public void visitAnnotation(AnnotationModel annotationModel) {
     printAsdoc(annotationModel.getAsdoc());
-    output.print("[" + annotationModel.getName());
+    indent(); output.print("[" + annotationModel.getName());
     if (!annotationModel.getProperties().isEmpty()) {
       printParameterList(annotationModel.getProperties());
     }
@@ -238,17 +264,9 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
     }
   }
 
-  private void generateModifiers(MemberModel memberModel) {
-    if (!(compilationUnitModel.getPrimaryDeclaration() instanceof ClassModel
-      && ((ClassModel)compilationUnitModel.getPrimaryDeclaration()).isInterface())) {
-      printToken(memberModel.getVisibility().toString());
-      printTokenIf(memberModel.isStatic(), "static");
-      printTokenIf(!memberModel.isField() && !hasBody(memberModel), "native");
-    }
-  }
-
-  private boolean hasBody(MemberModel memberModel) {
-    return memberModel.isMethod() && ((MethodModel)memberModel).getBody() != null;
+  private boolean isPrimaryDeclarationAnInterface() {
+    return compilationUnitModel.getPrimaryDeclaration() instanceof ClassModel
+      && ((ClassModel)compilationUnitModel.getPrimaryDeclaration()).isInterface();
   }
 
   private void generateType(TypedModel typedModel) {
@@ -280,7 +298,7 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
     field.setType("String");
     field.setConst(true);
     field.setStatic(true);
-    field.setVisibility(Visibility.PRIVATE);
+    field.setNamespace(NamespacedModel.PRIVATE);
     field.setAsdoc("A constant for foo bar.");
     field.setValue("'foo bar baz'");
     classModel.addMember(field);

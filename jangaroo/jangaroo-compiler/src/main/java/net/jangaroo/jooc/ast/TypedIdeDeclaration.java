@@ -44,6 +44,15 @@ public abstract class TypedIdeDeclaration extends IdeDeclaration {
     return null;
   }
 
+  public JooSymbol getNamespace() {
+    return namespace;
+  }
+
+  @Override
+  public boolean isPublicApi() {
+    return super.isPublicApi() || getNamespace() != null;
+  }
+
   @Override
   public List<? extends AstNode> getChildren() {
     return makeChildren(super.getChildren(), optTypeRelation);

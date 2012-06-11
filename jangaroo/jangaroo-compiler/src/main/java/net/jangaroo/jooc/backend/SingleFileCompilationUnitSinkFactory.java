@@ -78,8 +78,7 @@ public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUni
           try {
             if (generateApi) {
               ApiModelGenerator apiModelGenerator = new ApiModelGenerator(isExcludeClassByDefault(getOptions()));
-              compilationUnit.visit(apiModelGenerator);
-              apiModelGenerator.getCompilationUnit().visit(new ActionScriptCodeGeneratingModelVisitor(writer));
+              apiModelGenerator.generateModel(compilationUnit).visit(new ActionScriptCodeGeneratingModelVisitor(writer));
             } else {
               JsWriter out = new JsWriter(writer);
               try {
