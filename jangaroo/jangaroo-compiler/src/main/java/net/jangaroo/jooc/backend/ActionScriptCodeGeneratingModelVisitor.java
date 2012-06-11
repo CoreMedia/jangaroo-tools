@@ -10,6 +10,7 @@ import net.jangaroo.jooc.model.FieldModel;
 import net.jangaroo.jooc.model.MemberModel;
 import net.jangaroo.jooc.model.MethodModel;
 import net.jangaroo.jooc.model.ModelVisitor;
+import net.jangaroo.jooc.model.NamespaceModel;
 import net.jangaroo.jooc.model.ParamModel;
 import net.jangaroo.jooc.model.PropertyModel;
 import net.jangaroo.jooc.model.ReturnModel;
@@ -91,6 +92,17 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
     }
     indent = "";
     output.println("}");
+  }
+
+  @Override
+  public void visitNamespace(NamespaceModel namespaceModel) {
+    visitAnnotations(namespaceModel);
+    printAsdoc(namespaceModel.getAsdoc());
+    printToken(namespaceModel.getVisibility().toString());
+    printToken("namespace");
+    output.print(namespaceModel.getName());
+    generateValue(namespaceModel);
+    output.println(";");
   }
 
   private void visitAnnotations(AnnotatedModel annotatedModel) {

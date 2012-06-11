@@ -85,6 +85,7 @@ import net.jangaroo.jooc.model.MethodModel;
 import net.jangaroo.jooc.model.MethodType;
 import net.jangaroo.jooc.model.ModelWithVisibility;
 import net.jangaroo.jooc.model.NamedModel;
+import net.jangaroo.jooc.model.NamespaceModel;
 import net.jangaroo.jooc.model.ParamModel;
 import net.jangaroo.jooc.model.TypedModel;
 import net.jangaroo.jooc.model.ValuedModel;
@@ -605,17 +606,17 @@ public class ApiModelGenerator {
 
   @Override
   public void visitNamespacedDeclaration(NamespacedDeclaration namespacedDeclaration) throws IOException {
-    FieldModel fieldModel = new FieldModel();
-    modelStack.push(fieldModel);
+    NamespaceModel namespaceModel = new NamespaceModel();
+    modelStack.push(namespaceModel);
     consumeRecordedAnnotations();
     recordAsdoc(namespacedDeclaration);
     recordAsdoc(namespacedDeclaration.getSymNamespace());
     consumeRecordedAsdoc();
-    generateMemberModifiers(namespacedDeclaration);
-    // TODO fieldModel.setNamespace(namespacedDeclaration.getSymNamespace().getText());
+    generateVisibility(namespacedDeclaration);
     namespacedDeclaration.getIde().visit(this);
     visitIfNotNull(namespacedDeclaration.getOptInitializer());
-    popMember();
+    modelStack.pop();
+    getCurrent(CompilationUnitModel.class).setPrimaryDeclaration(namespaceModel);
   }
 
   @Override

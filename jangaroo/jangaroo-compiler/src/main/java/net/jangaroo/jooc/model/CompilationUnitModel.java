@@ -109,6 +109,10 @@ public class CompilationUnitModel implements ActionScriptModel {
       }
 
       @Override
+      public void visitNamespace(NamespaceModel namespaceModel) {
+      }
+
+      @Override
       public void visitAnnotation(AnnotationModel annotationModel) {
       }
 
