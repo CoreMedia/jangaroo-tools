@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * A model of an ActionScript class or interface.
  */
-public class ClassModel extends DocumentedModel implements ModelWithVisibility {
+public class ClassModel extends AbstractAnnotatedModel implements ModelWithVisibility {
   private boolean isInterface = false;
   private boolean isFinal = false;
   private boolean isDynamic = false;
@@ -17,7 +17,6 @@ public class ClassModel extends DocumentedModel implements ModelWithVisibility {
   private String superclass = null;
   private List<String> interfaces = new ArrayList<String>();
   private List<MemberModel> members = new ArrayList<MemberModel>();
-  private List<AnnotationModel> annotations = new ArrayList<AnnotationModel>();
 
   public ClassModel() {
   }
@@ -199,18 +198,6 @@ public class ClassModel extends DocumentedModel implements ModelWithVisibility {
       }
     }
     return null;
-  }
-
-  public List<AnnotationModel> getAnnotations() {
-    return Collections.unmodifiableList(annotations);
-  }
-
-  public void setAnnotations(List<AnnotationModel> annotations) {
-    this.annotations = annotations;
-  }
-
-  public void addAnnotation(AnnotationModel annotation) {
-    annotations.add(annotation);
   }
 
   public MethodModel createConstructor() {

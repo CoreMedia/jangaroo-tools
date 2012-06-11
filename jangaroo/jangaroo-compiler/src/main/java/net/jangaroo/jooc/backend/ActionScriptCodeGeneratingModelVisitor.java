@@ -1,6 +1,7 @@
 package net.jangaroo.jooc.backend;
 
 import net.jangaroo.jooc.model.ActionScriptModel;
+import net.jangaroo.jooc.model.AnnotatedModel;
 import net.jangaroo.jooc.model.AnnotationModel;
 import net.jangaroo.jooc.model.AnnotationPropertyModel;
 import net.jangaroo.jooc.model.ClassModel;
@@ -62,9 +63,7 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
 
   @Override
   public void visitClass(ClassModel classModel) {
-    for (AnnotationModel annotation : classModel.getAnnotations()) {
-      annotation.visit(this);
-    }
+    visitAnnotations(classModel);
     printAsdoc(classModel.getAsdoc());
     printToken(classModel.getVisibility().toString());
     printTokenIf(classModel.isFinal(), "final");
@@ -92,6 +91,12 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
     }
     indent = "";
     output.println("}");
+  }
+
+  private void visitAnnotations(AnnotatedModel annotatedModel) {
+    for (AnnotationModel annotation : annotatedModel.getAnnotations()) {
+      annotation.visit(this);
+    }
   }
 
   private void printParameterList(List<? extends ActionScriptModel> models) {
@@ -140,6 +145,7 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
 
   @Override
   public void visitField(FieldModel fieldModel) {
+    visitAnnotations(fieldModel);
     printAsdoc(fieldModel.getAsdoc());
     indent();
     generateModifiers(fieldModel);
@@ -159,6 +165,7 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
 
   @Override
   public void visitMethod(MethodModel methodModel) {
+    visitAnnotations(methodModel);
     StringBuilder asdoc = new StringBuilder();
     if (methodModel.getAsdoc() != null) {
       asdoc.append(methodModel.getAsdoc());
@@ -212,7 +219,7 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
   @Override
   public void visitAnnotation(AnnotationModel annotationModel) {
     printAsdoc(annotationModel.getAsdoc());
-    output.print("[" + annotationModel.getName());
+    indent(); output.print("[" + annotationModel.getName());
     if (!annotationModel.getProperties().isEmpty()) {
       printParameterList(annotationModel.getProperties());
     }

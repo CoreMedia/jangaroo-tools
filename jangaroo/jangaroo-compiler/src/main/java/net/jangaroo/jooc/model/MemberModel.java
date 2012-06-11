@@ -3,7 +3,7 @@ package net.jangaroo.jooc.model;
 /**
  * An abstract base class for members of an ActionScript class or interface.
  */
-public abstract class MemberModel extends AbstractTypedModel implements ModelWithVisibility {
+public abstract class MemberModel extends AbstractAnnotatedModel implements ModelWithVisibility, TypedModel {
 
   private boolean isStatic = false;
   private String type = null;

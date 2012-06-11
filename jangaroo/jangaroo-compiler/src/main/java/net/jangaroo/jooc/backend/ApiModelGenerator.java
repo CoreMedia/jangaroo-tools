@@ -73,6 +73,7 @@ import net.jangaroo.jooc.ast.VariableDeclaration;
 import net.jangaroo.jooc.ast.VectorLiteral;
 import net.jangaroo.jooc.ast.WhileStatement;
 import net.jangaroo.jooc.model.ActionScriptModel;
+import net.jangaroo.jooc.model.AnnotatedModel;
 import net.jangaroo.jooc.model.AnnotationModel;
 import net.jangaroo.jooc.model.AnnotationPropertyModel;
 import net.jangaroo.jooc.model.ClassModel;
@@ -85,45 +86,54 @@ import net.jangaroo.jooc.model.MethodType;
 import net.jangaroo.jooc.model.ModelWithVisibility;
 import net.jangaroo.jooc.model.NamedModel;
 import net.jangaroo.jooc.model.ParamModel;
-import net.jangaroo.jooc.model.PropertyModel;
 import net.jangaroo.jooc.model.TypedModel;
 import net.jangaroo.jooc.model.ValuedModel;
 import net.jangaroo.jooc.model.Visibility;
 
 import java.io.IOException;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
+import java.util.List;
 import java.util.TreeSet;
 
 /**
- * A visitor of the AST that generates executable reduced ActionScript code on
- * a <code>Writer</code>. The reduced code is used as reference during compilation
+ * Generates a model of the given compilation unit AST.
+ * Feeding this model to an {@link ActionScriptCodeGeneratingModelVisitor} generates reduced ActionScript source code.
+ * The reduced code is used as reference during compilation
  * and can be run through the asdoc tool.
  */
-public class ApiModelGenerator implements AstVisitor {
+public class ApiModelGenerator {
 
   private boolean excludeClassByDefault = false;
-  private Deque<ActionScriptModel> modelStack;
-  private StringBuilder code;
-  private StringBuilder asdoc = new StringBuilder();
 
   public ApiModelGenerator(boolean excludeClassByDefault) {
     this.excludeClassByDefault = excludeClassByDefault;
   }
 
-  public CompilationUnitModel getCompilationUnit() {
-    return (CompilationUnitModel)modelStack.getLast();
+  public boolean isExcludeClassByDefault() {
+    return excludeClassByDefault;
   }
 
-  private ClassModel getClassModel() {
-    return ((ClassModel)getCompilationUnit().getPrimaryDeclaration());
+  public CompilationUnitModel generateModel(CompilationUnit compilationUnit) throws IOException {
+    ApiModelGeneratingAstVisitor visitor = new ApiModelGeneratingAstVisitor();
+    compilationUnit.visit(visitor);
+    return visitor.getCurrent(CompilationUnitModel.class);
   }
+
+  
+  private class ApiModelGeneratingAstVisitor implements AstVisitor {
+
+  private Deque<ActionScriptModel> modelStack;
+  private StringBuilder code;
+  private StringBuilder asdoc = new StringBuilder();
+  private List<AnnotationModel> annotationModels = new ArrayList<AnnotationModel>();
 
   @Override
   public void visitTypeRelation(TypeRelation typeRelation) throws IOException {
     startRecordingCode();
     typeRelation.getType().visit(this);
-    getCurrentTypeModel().setType(consumeRecordedCode());
+    ((TypedModel)modelStack.peek()).setType(consumeRecordedCode());
   }
 
   @Override
@@ -135,12 +145,12 @@ public class ApiModelGenerator implements AstVisitor {
     visitIfNotNull(annotationParameter.getValue());
     annotationPropertyModel.setValue(consumeRecordedCode());
     modelStack.pop();
-    getCurrentAnnotationModel().addProperty(annotationPropertyModel);
+    ((AnnotationModel)modelStack.peek()).addProperty(annotationPropertyModel);
   }
 
   @Override
   public void visitExtends(Extends anExtends) throws IOException {
-    getClassModel().setSuperclass(anExtends.getSuperClass().getQualifiedNameStr());
+    getCurrent(ClassModel.class).setSuperclass(anExtends.getSuperClass().getQualifiedNameStr());
   }
 
   @Override
@@ -148,7 +158,7 @@ public class ApiModelGenerator implements AstVisitor {
     if (initializer.getValue().isCompileTimeConstant()) {
       startRecordingCode();
       initializer.getValue().visit(this);
-      getCurrentValuedModel().setValue(consumeRecordedCode());
+      ((ValuedModel)modelStack.peek()).setValue(consumeRecordedCode());
     }
   }
 
@@ -166,12 +176,11 @@ public class ApiModelGenerator implements AstVisitor {
   public void visitCompilationUnit(CompilationUnit compilationUnit) throws IOException {
     modelStack = new ArrayDeque<ActionScriptModel>();
     code = null;
-    ClassModel classModel = new ClassModel();
-    modelStack.push(new CompilationUnitModel("", classModel));
-    modelStack.push(classModel);
+    CompilationUnitModel compilationUnitModel = new CompilationUnitModel("");
+    modelStack.push(compilationUnitModel);
     compilationUnit.getPackageDeclaration().visit(this);
     for (String publicApiDependency : new TreeSet<String>(compilationUnit.getPublicApiDependencies())) {
-      getCompilationUnit().addImport(publicApiDependency);
+      compilationUnitModel.addImport(publicApiDependency);
     }
     compilationUnit.getPrimaryDeclaration().visit(this);
   }
@@ -181,7 +190,7 @@ public class ApiModelGenerator implements AstVisitor {
     if (code != null) {
       recordCode(ide.getQualifiedNameStr());
     } else {
-      getCurrentNamedModel().setName(ide.getQualifiedNameStr());
+      ((NamedModel)modelStack.peek()).setName(ide.getQualifiedNameStr());
     }
   }
 
@@ -208,7 +217,7 @@ public class ApiModelGenerator implements AstVisitor {
   public void visitImplements(Implements anImplements) throws IOException {
     CommaSeparatedList<Ide> superTypes = anImplements.getSuperTypes();
     while (superTypes != null) {
-      getClassModel().addInterface(superTypes.getHead().getQualifiedNameStr());
+      getCurrent(ClassModel.class).addInterface(superTypes.getHead().getQualifiedNameStr());
       superTypes = superTypes.getTail();
     }
   }
@@ -252,19 +261,9 @@ public class ApiModelGenerator implements AstVisitor {
     visitBinaryOpExpr(infixOpExpr);
   }
 
-  private static String trimAsdoc(String asdoc) {
-    int oldLength;
-    do {
-      oldLength = asdoc.length();
-      asdoc = asdoc.trim();
-      if (asdoc.startsWith("*")) {
-        asdoc = asdoc.substring(1);
-      }
-      if (asdoc.endsWith("*")) {
-        asdoc = asdoc.substring(0, asdoc.length() - 1);
-      }
-    } while (asdoc.length() < oldLength);
-    return asdoc;
+  private void consumeRecordedAnnotations() {
+    getCurrent(AnnotatedModel.class).setAnnotations(annotationModels);
+    annotationModels = new ArrayList<AnnotationModel>();
   }
 
   private void recordAsdoc(JooSymbol symbol) {
@@ -288,7 +287,7 @@ public class ApiModelGenerator implements AstVisitor {
   }
 
   private void consumeRecordedAsdoc() {
-    getCurrentDocumentedModel().setAsdoc(trimAsdoc(asdoc.toString()));
+    ((DocumentedModel)modelStack.peek()).setAsdoc(trimAsdoc(asdoc.toString()));
     asdoc.setLength(0);
   }
 
@@ -457,7 +456,7 @@ public class ApiModelGenerator implements AstVisitor {
     visitIfNotNull(parameter.getOptTypeRelation());
     visitIfNotNull(parameter.getOptInitializer());
     modelStack.pop();
-    getCurrentMethodModel().addParam(paramModel);
+    ((MethodModel)modelStack.peek()).addParam(paramModel);
   }
 
   private void generateVisibility(Declaration declaration) {
@@ -484,6 +483,7 @@ public class ApiModelGenerator implements AstVisitor {
     if (variableDeclaration.isPublicApi()) {
       FieldModel fieldModel = new FieldModel();
       modelStack.push(fieldModel);
+      consumeRecordedAnnotations();
       recordAsdoc(variableDeclaration);
       recordAsdoc(variableDeclaration.getOptSymConstOrVar());
       consumeRecordedAsdoc();
@@ -507,6 +507,7 @@ public class ApiModelGenerator implements AstVisitor {
     if (functionDeclaration.isPublicApi()) {
       MethodModel methodModel = new MethodModel();
       modelStack.push(methodModel);
+      consumeRecordedAnnotations();
       recordAsdoc(functionDeclaration);
       recordAsdoc(functionDeclaration.getSymbol());
       consumeRecordedAsdoc();
@@ -542,14 +543,15 @@ public class ApiModelGenerator implements AstVisitor {
           }
         }
         superCallCode.append(");");
-        getCurrentMethodModel().setBody(superCallCode.toString());
+        ((MethodModel)modelStack.peek()).setBody(superCallCode.toString());
       }
       popMember();
     }
   }
 
   private void popMember() {
-    getClassModel().addMember((MemberModel)modelStack.pop());
+    MemberModel member = (MemberModel)modelStack.pop();
+    getCurrent(ClassModel.class).addMember(member);
   }
 
   public void generateSignatureAsApiCode(FunctionExpr fun) throws IOException {
@@ -565,13 +567,17 @@ public class ApiModelGenerator implements AstVisitor {
 
   @Override
   public void visitClassDeclaration(ClassDeclaration classDeclaration) throws IOException {
+    ClassModel classModel = new ClassModel();
+    getCurrent(CompilationUnitModel.class).setPrimaryDeclaration(classModel);
+    modelStack.push(classModel);
     recordAsdoc(classDeclaration);
     recordAsdoc(classDeclaration.getSymClass());
     consumeRecordedAsdoc();
-    getClassModel().setFinal(classDeclaration.isFinal());
-    getClassModel().setDynamic(classDeclaration.isDynamic());
+    classModel.setFinal(classDeclaration.isFinal());
+    classModel.setDynamic(classDeclaration.isDynamic());
     generateVisibility(classDeclaration);
     visitAll(classDeclaration.getDirectives());
+    consumeRecordedAnnotations();
     if (isExcludeClassByDefault()) {
       // Add an [ExcludeClass] annotation, unless
       boolean needsExcludeClassAnnotation = true;
@@ -585,25 +591,23 @@ public class ApiModelGenerator implements AstVisitor {
         }
       }
       if (needsExcludeClassAnnotation) {
-        getClassModel().addAnnotation(new AnnotationModel(Jooc.PUBLIC_API_EXCLUSION_ANNOTATION_NAME));
+        classModel.addAnnotation(new AnnotationModel(Jooc.PUBLIC_API_EXCLUSION_ANNOTATION_NAME));
       }
     }
     // applyModifiers(classModel, classDeclaration); // TODO: are there protected class in AS3? I don't think so.
     classDeclaration.getIde().visit(this);
-    getClassModel().setInterface(classDeclaration.isInterface());
+    classModel.setInterface(classDeclaration.isInterface());
     visitIfNotNull(classDeclaration.getOptExtends());
     visitIfNotNull(classDeclaration.getOptImplements());
     classDeclaration.getBody().visit(this);
-  }
-
-  private boolean isExcludeClassByDefault() {
-    return excludeClassByDefault;
+    modelStack.pop();
   }
 
   @Override
   public void visitNamespacedDeclaration(NamespacedDeclaration namespacedDeclaration) throws IOException {
     FieldModel fieldModel = new FieldModel();
     modelStack.push(fieldModel);
+    consumeRecordedAnnotations();
     recordAsdoc(namespacedDeclaration);
     recordAsdoc(namespacedDeclaration.getSymNamespace());
     consumeRecordedAsdoc();
@@ -618,7 +622,7 @@ public class ApiModelGenerator implements AstVisitor {
   public void visitPackageDeclaration(PackageDeclaration packageDeclaration) throws IOException {
     Ide packageIde = packageDeclaration.getIde();
     if (packageIde != null) {
-      getCompilationUnit().setPackage(packageIde.getQualifiedNameStr());
+      getCurrent(CompilationUnitModel.class).setPackage(packageIde.getQualifiedNameStr());
     }
   }
 
@@ -629,12 +633,14 @@ public class ApiModelGenerator implements AstVisitor {
 
   @Override
   public void visitAnnotation(Annotation annotation) throws IOException {
-    modelStack.push(new AnnotationModel());
+    AnnotationModel annotationModel = new AnnotationModel();
+    modelStack.push(annotationModel);
     recordAsdoc(annotation.getLeftBracket());
     consumeRecordedAsdoc();
     annotation.getIde().visit(this);
     visitIfNotNull(annotation.getOptAnnotationParameters());
-    getClassModel().addAnnotation((AnnotationModel)modelStack.pop());
+    modelStack.pop();
+    annotationModels.add(annotationModel);
   }
 
   @Override
@@ -710,32 +716,25 @@ public class ApiModelGenerator implements AstVisitor {
     throw new IllegalStateException("there should be no code generation for predefined types");
   }
 
-  private NamedModel getCurrentNamedModel() {
-    return (NamedModel)modelStack.peek();
+  private <T extends ActionScriptModel> T getCurrent(Class<T> targetClass) {
+    return targetClass.cast(modelStack.peek());
   }
+  
+}
 
-  private TypedModel getCurrentTypeModel() {
-    return (TypedModel)modelStack.peek();
-  }
-
-  private ValuedModel getCurrentValuedModel() {
-    return (ValuedModel)modelStack.peek();
-  }
-
-  private DocumentedModel getCurrentDocumentedModel() {
-    return (DocumentedModel)modelStack.peek();
-  }
-
-  private AnnotationModel getCurrentAnnotationModel() {
-    return (AnnotationModel)modelStack.peek();
-  }
-
-  public MethodModel getCurrentMethodModel() {
-    return (MethodModel)modelStack.peek();
-  }
-
-  private PropertyModel getCurrentPropertyModel() {
-    return (PropertyModel)modelStack.peek();
+  private static String trimAsdoc(String asdoc) {
+    int oldLength;
+    do {
+      oldLength = asdoc.length();
+      asdoc = asdoc.trim();
+      if (asdoc.startsWith("*")) {
+        asdoc = asdoc.substring(1);
+      }
+      if (asdoc.endsWith("*")) {
+        asdoc = asdoc.substring(0, asdoc.length() - 1);
+      }
+    } while (asdoc.length() < oldLength);
+    return asdoc;
   }
 
 }
