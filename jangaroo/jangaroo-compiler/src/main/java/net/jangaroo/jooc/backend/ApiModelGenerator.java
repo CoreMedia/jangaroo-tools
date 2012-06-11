@@ -521,6 +521,7 @@ public class ApiModelGenerator {
       consumeRecordedAsdoc();
       generateMemberModifiers(functionDeclaration);
       methodModel.setOverride(functionDeclaration.isOverride());
+      methodModel.setFinal(functionDeclaration.isFinal());
       methodModel.setMethodType(functionDeclaration.isGetter() ? MethodType.GET
         : functionDeclaration.isSetter() ? MethodType.SET
         : null);

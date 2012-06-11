@@ -16,6 +16,7 @@ public class MethodModel extends MemberModel {
 
   private ReturnModel returnModel;
   private List<ParamModel> params;
+  private boolean isFinal = false;
   private boolean override = false;
   private MethodType methodType = null;
   private String body = null;
@@ -77,6 +78,14 @@ public class MethodModel extends MemberModel {
 
   public void setOverride(boolean override) {
     this.override = override;
+  }
+
+  public boolean isFinal() {
+    return isFinal;
+  }
+
+  public void setFinal(boolean aFinal) {
+    isFinal = aFinal;
   }
 
   public MethodType getMethodType() {

@@ -5,6 +5,7 @@ package net.jangaroo.jooc.model;
  */
 public class PropertyModel extends MemberModel {
 
+  private boolean isFinal = false;
   private MethodModel getter = null;
   private MethodModel setter = null;
 
@@ -17,8 +18,24 @@ public class PropertyModel extends MemberModel {
 
   PropertyModel(MethodModel accessor, MethodModel counterpart) {
     super(accessor.getName(), accessor.isGetter() ? accessor.getType() : accessor.getParams().get(0).getType());
+    this.isFinal = accessor.isFinal();
+    this.setStatic(accessor.isStatic());
     this.getter = accessor.isGetter() ? accessor : counterpart;
     this.setter = accessor.isSetter() ? accessor : counterpart;
+  }
+
+  public boolean isFinal() {
+    return isFinal;
+  }
+
+  public void setFinal(boolean isFinal) {
+    this.isFinal = isFinal;
+    if (getter != null) {
+      getter.setFinal(isFinal);
+    }
+    if (setter != null) {
+      setter.setFinal(isFinal);
+    }
   }
 
   @Override
@@ -67,6 +84,17 @@ public class PropertyModel extends MemberModel {
     }
     if (setter != null) {
       setter.getParams().get(0).setType(type);
+    }
+  }
+
+  @Override
+  public void setStatic(boolean isStatic) {
+    super.setStatic(isStatic);
+    if (getter != null) {
+      getter.setStatic(isStatic);
+    }
+    if (setter != null) {
+      setter.setStatic(isStatic);
     }
   }
 

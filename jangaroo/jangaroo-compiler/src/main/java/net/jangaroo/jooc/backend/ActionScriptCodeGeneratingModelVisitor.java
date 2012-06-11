@@ -197,6 +197,7 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
     indent();
     printTokenIf(methodModel.isOverride(), "override");
     generateModifiers(methodModel);
+    printTokenIf(methodModel.isFinal(), "final");
     printToken("function");
     if (methodModel.getMethodType() != null) {
       printToken(methodModel.getMethodType().toString());
