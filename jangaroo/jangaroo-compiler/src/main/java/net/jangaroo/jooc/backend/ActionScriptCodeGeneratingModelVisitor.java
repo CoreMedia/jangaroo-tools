@@ -160,7 +160,8 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
     visitAnnotations(fieldModel);
     printAsdoc(fieldModel.getAsdoc());
     indent();
-    generateModifiers(fieldModel);
+    printToken(fieldModel.getNamespace());
+    printTokenIf(fieldModel.isStatic(), "static");
     printToken(fieldModel.isConst(), "const", "var");
     output.print(fieldModel.getName());
     generateType(fieldModel);
@@ -196,8 +197,13 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
     printAsdoc(asdoc.toString());
     indent();
     printTokenIf(methodModel.isOverride(), "override");
-    generateModifiers(methodModel);
-    printTokenIf(methodModel.isFinal(), "final");
+    String methodBody = methodModel.getBody();
+    if (!isPrimaryDeclarationAnInterface()) {
+      printToken(methodModel.getNamespace());
+      printTokenIf(methodModel.isStatic(), "static");
+      printTokenIf(methodModel.isFinal(), "final");
+      printTokenIf(methodBody == null, "native");
+    }
     printToken("function");
     if (methodModel.getMethodType() != null) {
       printToken(methodModel.getMethodType().toString());
@@ -205,7 +211,7 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
     output.print(methodModel.getName());
     printParameterList(methodModel.getParams());
     methodModel.getReturnModel().visit(this);
-    if (hasBody(methodModel)) {
+    if (methodBody != null) {
       output.printf(" {%n    %s%n  }%n", methodModel.getBody());
     } else {
       output.println(";");
@@ -258,17 +264,9 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
     }
   }
 
-  private void generateModifiers(MemberModel memberModel) {
-    if (!(compilationUnitModel.getPrimaryDeclaration() instanceof ClassModel
-      && ((ClassModel)compilationUnitModel.getPrimaryDeclaration()).isInterface())) {
-      printToken(memberModel.getNamespace());
-      printTokenIf(memberModel.isStatic(), "static");
-      printTokenIf(!memberModel.isField() && !hasBody(memberModel), "native");
-    }
-  }
-
-  private boolean hasBody(MemberModel memberModel) {
-    return memberModel.isMethod() && ((MethodModel)memberModel).getBody() != null;
+  private boolean isPrimaryDeclarationAnInterface() {
+    return compilationUnitModel.getPrimaryDeclaration() instanceof ClassModel
+      && ((ClassModel)compilationUnitModel.getPrimaryDeclaration()).isInterface();
   }
 
   private void generateType(TypedModel typedModel) {
