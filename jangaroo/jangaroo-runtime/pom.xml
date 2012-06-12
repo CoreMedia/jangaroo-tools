@@ -15,7 +15,7 @@
   <parent>
     <groupId>net.jangaroo</groupId>
     <artifactId>jangaroo-parent</artifactId>
-    <version>2.0-preview-1-SNAPSHOT</version>
+    <version>2.0-preview-1</version>
     <relativePath>../../jangaroo-parent/pom.xml</relativePath>
   </parent>
   <build>
@@ -74,10 +74,10 @@
                   </filelist>
                 </concat>
                 <copy todir="target/classes/META-INF/resources">
-                  <fileset dir="src/main/joo-js"/>
+                  <fileset dir="src/main/joo-js" />
                 </copy>
                 <copy todir="target/classes/META-INF/joo-api">
-                  <fileset dir="src/main/joo-api"/>
+                  <fileset dir="src/main/joo-api" />
                 </copy>
               </tasks>
             </configuration>
