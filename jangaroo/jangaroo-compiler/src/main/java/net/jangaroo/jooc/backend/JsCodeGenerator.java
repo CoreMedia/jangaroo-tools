@@ -299,6 +299,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     out.beginComment();
     out.writeSymbol(compilationUnit.getLBrace());
     out.endComment();
+    visitAll(compilationUnit.getDirectives());
     compilationUnit.getPrimaryDeclaration().visit(this);
     out.write(",[");
     boolean first = true;
@@ -1150,7 +1151,6 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitClassDeclaration(ClassDeclaration classDeclaration) throws IOException {
-    visitAll(classDeclaration.getDirectives());
     out.beginString();
     writeModifiers(out, classDeclaration);
     out.writeSymbol(classDeclaration.getSymClass());

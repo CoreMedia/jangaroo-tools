@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertTrue;
 
 /**
@@ -182,6 +183,20 @@ public class JoocTest {
     assertApiCompilationResult("package1/testNamespace");
   }
 
+  @Test
+  public void testPackageGlobalVar() throws Exception {
+    File compileResult = compile("package1/somePackageGlobal");
+    assertFalse("Package-global variables must not have compile output.", compileResult.exists());
+    assertApiCompilationResult("package1/somePackageGlobal");
+  }
+  
+  @Test
+  public void testNativeApi() throws Exception {
+    File compileResult = compile("package1/SomeNativeClass");
+    assertFalse("[Native] classes must not have compile output.", compileResult.exists());
+    assertApiCompilationResult("package1/SomeNativeClass");
+  }
+  
   private void assertApiCompilationResult(String path) throws URISyntaxException, IOException {
     assertApiCompilationResult(path, "");
   }
@@ -203,11 +218,7 @@ public class JoocTest {
 
 
   private void assertCompilationResult(String relativeClassFileName) throws URISyntaxException, IOException {
-    File sourceFile = getFile("/" + relativeClassFileName + ".as");
-    config.addSourceFile(sourceFile);
-    jooc.run();
-
-    File destFile = new File(outputFolder, relativeClassFileName + ".js");
+    File destFile = compile(relativeClassFileName);
     assertTrue("the output file " + destFile + " should exist, but doesn't", destFile.exists());
 
     String result = readFileToString(destFile);
@@ -215,6 +226,13 @@ public class JoocTest {
     expected = expected.replace("@runtimeVersion", JoocProperties.getRuntimeVersion());
     expected = expected.replace("@version", JoocProperties.getVersion());
     assertEquals("Result file not equal", expected, result);
+  }
+
+  private File compile(String relativeClassFileName) throws URISyntaxException {
+    File sourceFile = getFile("/" + relativeClassFileName + ".as");
+    config.addSourceFile(sourceFile);
+    jooc.run();
+    return new File(outputFolder, relativeClassFileName + ".js");
   }
 
   private static final String LINE_SEPARATOR = System.getProperty("line.separator");

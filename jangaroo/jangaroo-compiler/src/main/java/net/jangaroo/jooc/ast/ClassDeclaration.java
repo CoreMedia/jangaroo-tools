@@ -15,7 +15,6 @@
 
 package net.jangaroo.jooc.ast;
 
-import net.jangaroo.utils.AS3Type;
 import net.jangaroo.jooc.CompilerError;
 import net.jangaroo.jooc.DeclarationScope;
 import net.jangaroo.jooc.JooSymbol;
@@ -40,7 +39,6 @@ import java.util.Set;
  */
 public class ClassDeclaration extends IdeDeclaration {
 
-  private List<AstNode> directives;
   private JooSymbol symClass;
   private Extends optExtends;
   private Map<String, TypedIdeDeclaration> members = new LinkedHashMap<String, TypedIdeDeclaration>();
@@ -60,9 +58,8 @@ public class ClassDeclaration extends IdeDeclaration {
   private Scope scope;
   private boolean auxVarsRendered;
 
-  public ClassDeclaration(List<AstNode> directives, JooSymbol[] modifiers, JooSymbol cls, Ide ide, Extends ext, Implements impl, ClassBody body) {
+  public ClassDeclaration(JooSymbol[] modifiers, JooSymbol cls, Ide ide, Extends ext, Implements impl, ClassBody body) {
     super(modifiers, ide);
-    this.directives = directives;
     this.symClass = cls;
     this.optExtends = ext;
     this.optImplements = impl;
@@ -71,7 +68,7 @@ public class ClassDeclaration extends IdeDeclaration {
 
   @Override
   public List<? extends AstNode> getChildren() {
-    return makeChildren(super.getChildren(), directives, optExtends, optImplements, body);
+    return makeChildren(super.getChildren(), optExtends, optImplements, body);
   }
 
   public FunctionDeclaration getConstructor() {
@@ -184,19 +181,6 @@ public class ClassDeclaration extends IdeDeclaration {
     return result;
   }
 
-  public List<AstNode> getDirectives() {
-    return directives;
-  }
-
-  void scopeDirectives(Scope scope, Ide packageIde) {
-    if (packageIde != null) {
-      addStarImport(packageIde);
-    }
-    // add implicit toplevel package import
-    addStarImport(null);
-    scope(directives, scope);
-  }
-
   @Override
   public void scope(final Scope scope) {
     this.scope = scope;
@@ -246,13 +230,7 @@ public class ClassDeclaration extends IdeDeclaration {
     }
   }
 
-  void addStarImport(final Ide packageIde) {
-    ImportDirective importDirective = new ImportDirective(packageIde, AS3Type.ANY.toString());
-    directives.add(0, importDirective);
-  }
-
   public void analyze(AstNode parentNode) {
-    analyze(this, directives);
     super.analyze(parentNode);
     if (getOptExtends() != null) {
       getOptExtends().analyze(this);

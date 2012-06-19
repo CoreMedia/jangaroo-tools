@@ -183,6 +183,7 @@ public class ApiModelGenerator {
     for (String publicApiDependency : new TreeSet<String>(compilationUnit.getPublicApiDependencies())) {
       compilationUnitModel.addImport(publicApiDependency);
     }
+    visitAll(compilationUnit.getDirectives());
     compilationUnit.getPrimaryDeclaration().visit(this);
   }
 
@@ -560,7 +561,14 @@ public class ApiModelGenerator {
 
   private void popMember() {
     MemberModel member = (MemberModel)modelStack.pop();
-    getCurrent(ClassModel.class).addMember(member);
+    ActionScriptModel current = modelStack.peek();
+    if (current instanceof ClassModel) {
+      ((ClassModel)current).addMember(member);
+    } else if (current instanceof CompilationUnitModel) {
+      ((CompilationUnitModel)current).setPrimaryDeclaration(member);
+    } else {
+      throw new IllegalArgumentException("Members outside class or package not allowed.");
+    }
   }
 
   public void generateSignatureAsApiCode(FunctionExpr fun) throws IOException {
@@ -585,25 +593,21 @@ public class ApiModelGenerator {
     classModel.setFinal(classDeclaration.isFinal());
     classModel.setDynamic(classDeclaration.isDynamic());
     generateVisibility(classDeclaration);
-    visitAll(classDeclaration.getDirectives());
     consumeRecordedAnnotations();
     if (isExcludeClassByDefault()) {
       // Add an [ExcludeClass] annotation, unless
       boolean needsExcludeClassAnnotation = true;
-      for (AstNode node : classDeclaration.getDirectives()) {
-        if (node instanceof Annotation) {
-          String metaName = ((Annotation) node).getMetaName();
-          // ... an [PublicApi] or [ExcludeClass] annotation is already present.
-          needsExcludeClassAnnotation = needsExcludeClassAnnotation &&
-                  !Jooc.PUBLIC_API_INCLUSION_ANNOTATION_NAME.equals(metaName) &&
-                  !Jooc.PUBLIC_API_EXCLUSION_ANNOTATION_NAME.equals(metaName);
-        }
+      for (AnnotationModel annotationModel : classModel.getAnnotations()) {
+        String metaName = annotationModel.getName();
+        // ... an [PublicApi] or [ExcludeClass] annotation is already present.
+        needsExcludeClassAnnotation = needsExcludeClassAnnotation &&
+          !Jooc.PUBLIC_API_INCLUSION_ANNOTATION_NAME.equals(metaName) &&
+          !Jooc.PUBLIC_API_EXCLUSION_ANNOTATION_NAME.equals(metaName);
       }
       if (needsExcludeClassAnnotation) {
         classModel.addAnnotation(new AnnotationModel(Jooc.PUBLIC_API_EXCLUSION_ANNOTATION_NAME));
       }
     }
-    // applyModifiers(classModel, classDeclaration); // TODO: are there protected class in AS3? I don't think so.
     classDeclaration.getIde().visit(this);
     classModel.setInterface(classDeclaration.isInterface());
     visitIfNotNull(classDeclaration.getOptExtends());
