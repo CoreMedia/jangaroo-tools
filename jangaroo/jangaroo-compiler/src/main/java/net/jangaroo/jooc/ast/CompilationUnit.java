@@ -25,8 +25,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -43,6 +45,11 @@ public class CompilationUnit extends NodeImplBase {
   private Set<String> dependencies = new LinkedHashSet<String>();
   private Set<CompilationUnit> dependenciesAsCompilationUnits = new LinkedHashSet<CompilationUnit>();
   private Set<String> publicApiDependencies = new HashSet<String>();
+  private Set<String> usedBuiltIns = new LinkedHashSet<String>();
+  private Scope scope;
+  private Map<String, String> auxVarsByPackage = new LinkedHashMap<String, String>();
+  private boolean auxVarsRendered;
+
   private InputSource source;
   private JangarooParser compiler;
 
@@ -68,6 +75,39 @@ public class CompilationUnit extends NodeImplBase {
 
   public List<AstNode> getDirectives() {
     return directives;
+  }
+
+  public void addBuiltInUsage(String builtIn) {
+    usedBuiltIns.add(builtIn);
+  }
+
+  public String getAuxVarForPackage(String packageQName) {
+    return auxVarsByPackage.get(packageQName);
+  }
+
+  public String getAuxVarForPackage(Scope lookupScope, String packageQName) {
+    if (auxVarsRendered) {
+      throw new IllegalStateException("aux vars already rendered!");
+    }
+    String auxVar = getAuxVarForPackage(packageQName);
+    if (auxVar == null) {
+      auxVar = scope.createAuxVar(lookupScope).getName();
+      auxVarsByPackage.put(packageQName, auxVar);
+    }
+    return auxVar;
+  }
+
+  public Map<String, String> getAuxVarDeclarations() {
+    auxVarsRendered = true;
+    LinkedHashMap<String, String> result = new LinkedHashMap<String, String>();
+    for (String builtIn : usedBuiltIns) {
+      String value = "joo." + ("$$bound".equals(builtIn) ? "boundMethod" : builtIn);
+      result.put(builtIn, value);
+    }
+    for (Map.Entry<String,String> entry : auxVarsByPackage.entrySet()) {
+      result.put(entry.getValue(), entry.getKey());
+    }
+    return result;
   }
 
   @Override
@@ -99,6 +139,7 @@ public class CompilationUnit extends NodeImplBase {
         withNewDeclarationScope(packageDeclaration, scope, new Scoped() {
           @Override
           public void run(final Scope scope) {
+            CompilationUnit.this.scope = scope;
             primaryDeclaration.scope(scope);
           }
         });

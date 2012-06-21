@@ -24,9 +24,6 @@ public class InfixOpExpr extends BinaryOpExpr {
   @Override
   public void scope(Scope scope) {
     super.scope(scope);
-    ClassDeclaration classDeclaration = scope.getClassDeclaration();
-    if (classDeclaration != null) {
-      classDeclaration.addBuiltInUsage(getOp().getText());
-    }
+    scope.getCompilationUnit().addBuiltInUsage(getOp().getText());
   }
 }

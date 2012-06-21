@@ -117,6 +117,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   }
 
   private boolean expressionMode = false;
+  private CompilationUnit compilationUnit;
 
   public JsCodeGenerator(JsWriter out) {
     super(out);
@@ -294,6 +295,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitCompilationUnit(CompilationUnit compilationUnit) throws IOException {
+    this.compilationUnit = compilationUnit;
     out.write(Jooc.CLASS_LOADER_FULLY_QUALIFIED_NAME + ".prepare(");
     compilationUnit.getPackageDeclaration().visit(this);
     out.beginComment();
@@ -1003,6 +1005,10 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitVariableDeclaration(VariableDeclaration variableDeclaration) throws IOException {
+    if (variableDeclaration.equals(compilationUnit.getPrimaryDeclaration())) {
+      generatePrimaryVarDeclaration(variableDeclaration);
+      return;
+    }
     if (variableDeclaration.hasPreviousVariableDeclaration()) {
       Debug.assertTrue(variableDeclaration.getOptSymConstOrVar() != null && variableDeclaration.getOptSymConstOrVar().sym == sym.COMMA, "Additional variable declarations must start with a COMMA.");
       out.writeSymbol(variableDeclaration.getOptSymConstOrVar());
@@ -1016,8 +1022,32 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     generateVariableDeclarationEndCode(variableDeclaration);
   }
 
+  private void generatePrimaryVarDeclaration(VariableDeclaration variableDeclaration) throws IOException {
+    out.beginString();
+    writeModifiers(out, variableDeclaration);
+    out.writeSymbol(variableDeclaration.getOptSymConstOrVar());
+    variableDeclaration.getIde().visit(this);
+    out.endString();
+    visitIfNotNull(variableDeclaration.getOptTypeRelation());
+    out.writeToken(",0,");  // place-holder for inheritance level
+    if (variableDeclaration.getOptInitializer() != null) {
+      out.write("function(){");
+      writeAliases();
+      out.writeSymbolWhitespace(variableDeclaration.getOptInitializer().getSymEq());
+      out.writeToken("return");
+      variableDeclaration.getOptInitializer().getValue().visit(this);
+      out.write(";");
+    } else {
+      out.writeToken("null");
+    }
+    out.write("\n},[]");
+  }
+
   protected void generateVariableDeclarationStartCode(VariableDeclaration variableDeclaration) throws IOException {
-    if (variableDeclaration.isClassMember()) {
+    
+    if (variableDeclaration.equals(compilationUnit.getPrimaryDeclaration())) {
+      generatePrimaryVarDeclaration(variableDeclaration);
+    } else if (variableDeclaration.isClassMember()) {
       generateFieldStartCode(variableDeclaration);
     } else {
       generateVarStartCode(variableDeclaration);
@@ -1100,6 +1130,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitFunctionDeclaration(FunctionDeclaration functionDeclaration) throws IOException {
+    boolean isPrimaryDeclaration = functionDeclaration.equals(compilationUnit.getPrimaryDeclaration());
     assert functionDeclaration.isClassMember() || (!functionDeclaration.isNative() && !functionDeclaration.isAbstract());
     if (functionDeclaration.isThisAliased()) {
       functionDeclaration.getBody().addBlockStartCodeGenerator(ALIAS_THIS_CODE_GENERATOR);
@@ -1107,7 +1138,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     if (functionDeclaration.isConstructor() && !functionDeclaration.containsSuperConstructorCall() && functionDeclaration.hasBody()) {
       functionDeclaration.getBody().addBlockStartCodeGenerator(new SuperCallCodeGenerator(functionDeclaration.getClassDeclaration()));
     }
-    if (!functionDeclaration.isClassMember()) {
+    if (!functionDeclaration.isClassMember() && !isPrimaryDeclaration) {
       functionDeclaration.getFun().visit(this);
     } else {
       if (functionDeclaration.isAbstract()) {
@@ -1128,6 +1159,12 @@ public class JsCodeGenerator extends CodeGeneratorBase {
           out.beginComment();
         } else {
           out.writeToken(",");
+          if (isPrimaryDeclaration) {
+            out.write("0,"); // place-holder for inheritance level
+            out.write("function(){");
+            writeAliases();
+            out.writeToken("return");
+          }
           out.writeToken("function");
           if (out.getKeepSource()) {
             String functionName = functionDeclaration.getIde().getName();
@@ -1145,6 +1182,8 @@ public class JsCodeGenerator extends CodeGeneratorBase {
           out.endComment();
         }
         out.write(',');
+      } else if (isPrimaryDeclaration) {
+        out.write("\n;},[]"); // end initializer function and place-holder for static method names
       }
     }
   }
@@ -1161,7 +1200,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     out.write(",");
     out.write(classDeclaration.getInheritanceLevel() + ",");
     out.write("function($$private){");
-    writeAliases(classDeclaration);
+    writeAliases();
     out.write("return[");
     generateClassInits(classDeclaration);
     classDeclaration.getBody().visit(this);
@@ -1245,9 +1284,9 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     out.write("]");
   }
 
-  private void writeAliases(ClassDeclaration classDeclaration) throws IOException {
+  private void writeAliases() throws IOException {
     boolean first = true;
-    for (Map.Entry<String,String> entry : classDeclaration.getAuxVarDeclarations().entrySet()) {
+    for (Map.Entry<String,String> entry : compilationUnit.getAuxVarDeclarations().entrySet()) {
       if (first) {
         out.writeToken("var");
         first = false;
@@ -1337,7 +1376,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       String packageName = superClassDeclaration.getPackageDeclaration().getQualifiedNameStr();
       String qName = superClassDeclaration.getName();
       if (packageName.length() > 0) {
-        String packageAuxVar = classDeclaration.getAuxVarForPackage(packageName);
+        String packageAuxVar = compilationUnit.getAuxVarForPackage(packageName);
         qName = CompilerUtils.qName(packageAuxVar, qName);
       }
       out.write(qName);

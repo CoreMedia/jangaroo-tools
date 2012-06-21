@@ -6,7 +6,8 @@ import package1.someOtherPackage.SomeOtherClass;
 /**
  * Some package-global documentation;
  */
-public var somePackageGlobal:SomeOtherClass
-  = new SomeOtherClass();
+public function somePackageGlobalFun(flag:Boolean):SomeOtherClass {
+  return new SomeOtherClass();
+}
 
 }

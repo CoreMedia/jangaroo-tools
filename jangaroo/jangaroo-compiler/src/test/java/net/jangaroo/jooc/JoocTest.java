@@ -185,9 +185,22 @@ public class JoocTest {
 
   @Test
   public void testPackageGlobalVar() throws Exception {
-    File compileResult = compile("package1/somePackageGlobal");
-    assertFalse("Package-global variables must not have compile output.", compileResult.exists());
+    assertCompilationResult("package1/somePackageGlobal");
+  }
+  
+  @Test
+  public void testPackageGlobalFun() throws Exception {
+    assertCompilationResult("package1/somePackageGlobalFun");
+  }
+  
+  @Test
+  public void testPackageGlobalVarApi() throws Exception {
     assertApiCompilationResult("package1/somePackageGlobal");
+  }
+  
+  @Test
+  public void testPackageGlobalFunApi() throws Exception {
+    assertApiCompilationResult("package1/somePackageGlobalFun");
   }
   
   @Test

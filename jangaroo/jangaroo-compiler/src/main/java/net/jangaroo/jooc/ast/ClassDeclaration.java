@@ -27,7 +27,6 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -50,13 +49,10 @@ public class ClassDeclaration extends IdeDeclaration {
   private Type superType;
   private List<VariableDeclaration> fieldsWithInitializer = new ArrayList<VariableDeclaration>();
   private List<IdeDeclaration> secondaryDeclarations = Collections.emptyList();
-  private Set<String> usedBuiltIns = new LinkedHashSet<String>();
-  private Map<String, String> auxVarsByPackage = new LinkedHashMap<String, String>();
   private int inheritanceLevel = -1;
 
   private Implements optImplements;
   private Scope scope;
-  private boolean auxVarsRendered;
 
   public ClassDeclaration(JooSymbol[] modifiers, JooSymbol cls, Ide ide, Extends ext, Implements impl, ClassBody body) {
     super(modifiers, ide);
@@ -116,10 +112,6 @@ public class ClassDeclaration extends IdeDeclaration {
     constructor = methodDeclaration;
   }
 
-  public void addBuiltInUsage(String builtIn) {
-    usedBuiltIns.add(builtIn);
-  }
-
   public JooSymbol getSymClass() {
     return symClass;
   }
@@ -150,35 +142,6 @@ public class ClassDeclaration extends IdeDeclaration {
 
   public Set<String> getClassInit() {
     return classInit;
-  }
-
-  public String getAuxVarForPackage(String packageQName) {
-    return auxVarsByPackage.get(packageQName);
-  }
-
-  public String getAuxVarForPackage(Scope lookupScope, String packageQName) {
-    if (auxVarsRendered) {
-      throw new IllegalStateException("aux vars already rendered!");
-    }
-    String auxVar = getAuxVarForPackage(packageQName);
-    if (auxVar == null) {
-      auxVar = scope.createAuxVar(lookupScope).getName();
-      auxVarsByPackage.put(packageQName, auxVar);
-    }
-    return auxVar;
-  }
-
-  public Map<String, String> getAuxVarDeclarations() {
-    auxVarsRendered = true;
-    LinkedHashMap<String, String> result = new LinkedHashMap<String, String>();
-    for (String builtIn : usedBuiltIns) {
-      String value = "joo." + ("$$bound".equals(builtIn) ? "boundMethod" : builtIn);
-      result.put(builtIn, value);
-    }
-    for (Map.Entry<String,String> entry : auxVarsByPackage.entrySet()) {
-      result.put(entry.getValue(), entry.getKey());
-    }
-    return result;
   }
 
   @Override
@@ -236,7 +199,7 @@ public class ClassDeclaration extends IdeDeclaration {
       getOptExtends().analyze(this);
       String packageName = getOptExtends().getSuperClass().getDeclaration().getPackageDeclaration().getQualifiedNameStr();
       if (packageName.length() > 0) {
-        getAuxVarForPackage(scope, packageName);
+        ((CompilationUnit)parentNode).getAuxVarForPackage(scope, packageName);
       }
     }
     if (getOptImplements() != null) {

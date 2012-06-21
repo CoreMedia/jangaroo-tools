@@ -50,8 +50,8 @@ public class JooClassDeclaration extends NativeClassDeclaration {
     /^\s*((public|internal|final|dynamic)\s+)*class\s+([A-Za-z][a-zA-Z$_0-9]*)(\s+extends\s+([a-zA-Z$_0-9.]+))?(\s+implements\s+([a-zA-Z$_0-9.,\s]+))?\s*$/;
   private static const DECLARATION_PATTERN_INTERFACE:RegExp =
     /^\s*((public|internal)\s+)?interface\s+([A-Za-z][a-zA-Z$_0-9]*)(\s+extends\s+([a-zA-Z$_0-9.,\s]+))?\s*$/;
-  private static const DECLARATION_PATTERN_NAMESPACE:RegExp =
-    /^\s*((public|internal)\s+)?namespace\s+([A-Za-z][a-zA-Z$_0-9]*)\s*$/;
+  private static const DECLARATION_PATTERN_OTHER:RegExp =
+    /^\s*((public|internal)\s+)?(const|var|function|namespace)\s+([A-Za-z][a-zA-Z$_0-9]*)\s*$/;
 
   public function JooClassDeclaration(packageDef:String, metadata:Object, classDef:String, inheritanceLevel:int, memberDeclarations:Function, publicStaticMethodNames:Array, dependencies:Array) {
     this.stateListeners = {};
@@ -61,6 +61,7 @@ public class JooClassDeclaration extends NativeClassDeclaration {
     var classMatch : Array = classDef.match(DECLARATION_PATTERN_CLASS);
     var interfaces : String;
     if (classMatch) {
+      this.className = classMatch[3];
       if (classMatch[5]) {
         this.extends_ = classMatch[5];
       }
@@ -68,12 +69,14 @@ public class JooClassDeclaration extends NativeClassDeclaration {
     } else {
       classMatch = classDef.match(DECLARATION_PATTERN_INTERFACE);
       if (classMatch) {
+        this.className = classMatch[3];
         this.type = MemberDeclaration.MEMBER_TYPE_INTERFACE;
         interfaces = classMatch[5];
       } else {
-        classMatch = classDef.match(DECLARATION_PATTERN_NAMESPACE);
+        classMatch = classDef.match(DECLARATION_PATTERN_OTHER);
         if (classMatch) {
-          this.type = MemberDeclaration.MEMBER_TYPE_NAMESPACE;
+          this.className = classMatch[4];
+          this.type = classMatch[3];
         }
       }
     }
@@ -82,7 +85,6 @@ public class JooClassDeclaration extends NativeClassDeclaration {
     }
     this.level = inheritanceLevel;
     this.namespace_ = classMatch[2];
-    this.className    = classMatch[3];
     var fullClassName : String = this.className;
     if (packageName) {
       fullClassName = packageName+"."+this.className;
@@ -95,7 +97,7 @@ public class JooClassDeclaration extends NativeClassDeclaration {
     this.publicConstructor = getQualifiedObject(fullClassName);
     if (publicConstructor) {
       this.native_ = true;
-    } else {
+    } else if (isClass() || isInterface()) {
       this.package_[this.className] = this.publicConstructor = createInitializingConstructor(this);
       for (var i:int = 0; i < publicStaticMethodNames.length; i++) {
         createInitializingStaticMethod(publicStaticMethodNames[i]);
@@ -366,6 +368,10 @@ public class JooClassDeclaration extends NativeClassDeclaration {
   }
 
   internal override function doInit() : void {
+    if (!isClass() && !isInterface()) {
+      this.package_[this.className] = this.memberDeclarations();
+      return;
+    }
     this.superClassDeclaration.init();
     for (var j:int = 0; j < interfaces.length; j++) {
       interfaces[j] = classLoader.getRequiredClassDeclaration(interfaces[j]).init();

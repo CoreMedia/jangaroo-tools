@@ -28,7 +28,7 @@ import java.util.List;
  */
 public class SemicolonTerminatedStatement extends Statement {
 
-  private ClassDeclaration classDeclaration;
+  private CompilationUnit compilationUnit;
   private AstNode optStatement;
   private JooSymbol optSymSemicolon;
 
@@ -63,7 +63,7 @@ public class SemicolonTerminatedStatement extends Statement {
 
   @Override
   public void scope(final Scope scope) {
-    classDeclaration = scope.getClassDeclaration();
+    compilationUnit = scope.getCompilationUnit();
     if (getOptStatement() != null) {
       getOptStatement().scope(scope);
     }
@@ -76,7 +76,7 @@ public class SemicolonTerminatedStatement extends Statement {
       JooSymbol funSymbol = applyExpr.getFun().getSymbol();
       String functionName = funSymbol.getText();
       if ("trace".equals(functionName) || SyntacticKeywords.ASSERT.equals(functionName)) {
-        classDeclaration.addBuiltInUsage(functionName);
+        compilationUnit.addBuiltInUsage(functionName);
       }
     }
     super.analyze(parentNode);
