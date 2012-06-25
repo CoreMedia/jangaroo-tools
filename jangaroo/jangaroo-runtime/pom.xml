@@ -36,12 +36,12 @@
                 <taskdef classname="net.jangaroo.jooc.ant.JoocTask" classpath="target/classes;${runtime.classpath}" name="jooc" />
                 <mkdir dir="target/temp/runtime/debug/joo/classes" />
                 <mkdir dir="target/temp/runtime/debug/META-INF/joo-api" />
-                <jooc apidestdir="target/temp/runtime/debug/META-INF/joo-api" classpath="${basedir}/src/main/joo-api" debuglevel="source" destdir="target/temp/runtime/debug/joo/classes" enableassertions="true" failonerror="true" verbose="true">
+                <jooc apidestdir="target/temp/runtime/debug/META-INF/joo-api" debuglevel="source" destdir="target/temp/runtime/debug/joo/classes" enableassertions="true" failonerror="true" verbose="true">
                   <include name="**/*.as" />
                   <src path="src/main/joo" />
                 </jooc>
                 <mkdir dir="target/temp/runtime/deploy" />
-                <jooc classpath="${basedir}/src/main/joo-api" destdir="target/temp/runtime/deploy" enableassertions="false" failonerror="true" verbose="true">
+                <jooc destdir="target/temp/runtime/deploy" enableassertions="false" failonerror="true" verbose="true">
                   <include name="**/*.as" />
                   <src path="src/main/joo" />
                 </jooc>
@@ -77,11 +77,9 @@
                   <fileset dir="target" includes="joo/*jangaroo-runtime*.js" />
                   <fileset dir="src/main/joo-js" />
                   <fileset dir="target/temp/runtime/debug" />
-                  <zipfileset dir="src/main/joo-api" includes="**/*.as" prefix="META-INF/joo-api" />
                 </zip>
                 <zip destfile="target/jangaroo-runtime-sources-${project.version}.jar">
                   <fileset dir="src/main/joo" includes="**/*.as" />
-                  <fileset dir="src/main/joo-api" includes="**/*.as" />
                 </zip>
               </tasks>
             </configuration>
