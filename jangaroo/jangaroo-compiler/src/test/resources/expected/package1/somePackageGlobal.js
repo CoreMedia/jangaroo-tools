@@ -8,6 +8,6 @@ import package1.someOtherPackage.SomeOtherClass;*/
  */
 "public var somePackageGlobal"/*:SomeOtherClass*/,0,function(){var $1=package1.someOtherPackage;
   return new $1.SomeOtherClass();
-},[],["package1.someOtherPackage.SomeOtherClass"], "0.8.0", "0.9.16-SNAPSHOT"
+},[],["package1.someOtherPackage.SomeOtherClass"], "@runtimeVersion", "@version"
 
 );
