@@ -232,7 +232,7 @@ public class Ide extends NodeImplBase {
       // check candidates for instance methods, accessed as function:
       if (memberDeclaration != null && memberDeclaration.isMethod() && !((FunctionDeclaration) memberDeclaration).isGetterOrSetter() && !memberDeclaration.isStatic()) {
         // check and handle instance methods declared in same file, accessed as function:
-        getScope().getClassDeclaration().addBuiltInUsage("$$bound");
+        getScope().getCompilationUnit().addBuiltInUsage("$$bound");
         setBound(true);
       }
     }
@@ -245,11 +245,8 @@ public class Ide extends NodeImplBase {
           if (!decl.isClassMember() && decl.getParentDeclaration() instanceof PackageDeclaration) {
             String qName = decl.getPackageDeclaration().getQualifiedNameStr();
             if (qName.length() > 0) {
-              ClassDeclaration classDeclaration = scope.getClassDeclaration();
-              if (classDeclaration != null) {
-                String auxVarForPackage = classDeclaration.getAuxVarForPackage(scope, qName);
-                packagePrefix = auxVarForPackage + ".";
-              }
+              String auxVarForPackage = scope.getCompilationUnit().getAuxVarForPackage(scope, qName);
+              packagePrefix = auxVarForPackage + ".";
             }
           }
         }

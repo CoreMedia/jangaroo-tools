@@ -17,6 +17,7 @@ package net.jangaroo.jooc;
 
 import net.jangaroo.jooc.api.CompilationResult;
 import net.jangaroo.jooc.api.CompileLog;
+import net.jangaroo.jooc.ast.ClassDeclaration;
 import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.backend.CompilationUnitSink;
 import net.jangaroo.jooc.backend.CompilationUnitSinkFactory;
@@ -50,6 +51,7 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
   public static final String CLASS_LOADER_FULLY_QUALIFIED_NAME = CLASS_LOADER_PACKAGE_NAME + "." + CLASS_LOADER_NAME;
   public static final String PUBLIC_API_EXCLUSION_ANNOTATION_NAME = "ExcludeClass";
   public static final String PUBLIC_API_INCLUSION_ANNOTATION_NAME = "PublicApi";
+  public static final String NATIVE_ANNOTATION_NAME = "Native";
 
   private List<CompilationUnit> compileQueue = new ArrayList<CompilationUnit>();
 
@@ -120,8 +122,11 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
           reportPublicApiViolations(unit);
         }
         File sourceFile = ((FileInputSource)unit.getSource()).getFile();
-        File outputFile = writeOutput(sourceFile, unit, codeSinkFactory, getConfig().isVerbose());
-        outputFileMap.put(sourceFile, outputFile);
+        // only generate JavaScript if [Native] annotation and 'native' modifier on primary declaration are not present:
+        if (unit.getAnnotation(NATIVE_ANNOTATION_NAME) == null && !unit.getPrimaryDeclaration().isNative()) {
+          File outputFile = writeOutput(sourceFile, unit, codeSinkFactory, getConfig().isVerbose());
+          outputFileMap.put(sourceFile, outputFile);
+        }
         if (getConfig().isGenerateApi()) {
           writeOutput(sourceFile, unit, apiSinkFactory, getConfig().isVerbose());
         }

@@ -248,10 +248,10 @@ classBodyDirective ::=
   ;
 
 classDeclaration ::=
-    optDirectives:ds modifiers:m CLASS:c ide:ide extends:e implements:i classBody:b
-    {: RESULT = new ClassDeclaration(ds, parser.toSymbolArray(m),c,ide,e,i,b); :}
-  | optDirectives:ds modifiers:m INTERFACE:i ide:ide interfaceExtends:ie classBody:b
-    {: RESULT = new ClassDeclaration(ds, parser.toSymbolArray(m),i,ide,null,ie,b); :}
+    modifiers:m CLASS:c ide:ide extends:e implements:i classBody:b
+    {: RESULT = new ClassDeclaration(parser.toSymbolArray(m),c,ide,e,i,b); :}
+  | modifiers:m INTERFACE:i ide:ide interfaceExtends:ie classBody:b
+    {: RESULT = new ClassDeclaration(parser.toSymbolArray(m),i,ide,null,ie,b); :}
   ;
 
 commaExpr ::=
@@ -262,8 +262,8 @@ commaExpr ::=
   ;
 
 compilationUnit ::=
-    packageDeclaration:p LBRACE:lb compilationUnitDeclaration:c RBRACE:rb optClassDeclarations:cds
-    {: RESULT = new CompilationUnit(p,lb,c,rb, cds); :}
+    packageDeclaration:p LBRACE:lb optDirectives:ds compilationUnitDeclaration:c RBRACE:rb optClassDeclarations:cds
+    {: RESULT = new CompilationUnit(p,lb,ds,c,rb, cds); :}
   ;
 
 compilationUnitDeclaration ::=
@@ -271,17 +271,17 @@ compilationUnitDeclaration ::=
     {: RESULT = cd; :}
   | classDeclaration:cd
     {: RESULT = cd; :}
-  | optDirectives:ds variableDeclaration:decl
+  | variableDeclaration:decl
     {: RESULT = decl; :}
-  | optDirectives:ds functionDeclaration:decl
+  | functionDeclaration:decl
     {: RESULT = decl; :}
-  | optDirectives:ds namespacedDeclaration:decl
+  | namespacedDeclaration:decl
     {: RESULT = decl; :}
   ;
 
 optClassDeclarations ::=
     {: RESULT = new ArrayList(); :}
-  | classDeclaration:cd optClassDeclarations:cds
+  | optDirectives:ds classDeclaration:cd optClassDeclarations:cds
     {: RESULT = cds; RESULT.add(0,cd); :}
   ;
 

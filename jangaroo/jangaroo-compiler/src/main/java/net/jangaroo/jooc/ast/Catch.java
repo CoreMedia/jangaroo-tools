@@ -80,7 +80,7 @@ public class Catch extends KeywordStatement {
   @Override
   public void scope(final Scope scope) {
     if (hasCondition()) {
-      scope.getClassDeclaration().addBuiltInUsage("is");
+      scope.getCompilationUnit().addBuiltInUsage("is");
     }
     withNewDeclarationScope(this, scope, new Scoped() {
       @Override

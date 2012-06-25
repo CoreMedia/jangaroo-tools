@@ -58,6 +58,9 @@ public class ConfigClassBuilder extends AstVisitorBase {
   public void visitCompilationUnit(CompilationUnit compilationUnit) throws IOException {
     configClass = new ConfigClass();
     compilationUnit.getPackageDeclaration().visit(this);
+    for (AstNode node : compilationUnit.getDirectives()) {
+      node.visit(new ClassAnnotationsVisitor());
+    }
     compilationUnit.getPrimaryDeclaration().visit(this);
   }
 
@@ -76,9 +79,8 @@ public class ConfigClassBuilder extends AstVisitorBase {
     String superClassName = superTypeDeclaration == null ? null : "Object".equals(superTypeDeclaration.getQualifiedNameStr()) ? null : superTypeDeclaration.getQualifiedNameStr();
     configClass.setSuperClassName(superClassName);
     String description = parseDescription(classDeclaration.getSymClass(), classDeclaration.getSymModifiers());
-    configClass.setDescription(description);
-    for (AstNode node : classDeclaration.getDirectives()) {
-      node.visit(new ClassAnnotationsVisitor());
+    if (description != null && description.trim().length() > 0) {
+      configClass.setDescription(description);
     }
     classDeclaration.getBody().visit(this);
   }

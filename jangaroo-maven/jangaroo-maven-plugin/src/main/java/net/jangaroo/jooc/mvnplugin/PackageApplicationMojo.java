@@ -24,6 +24,7 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -42,7 +43,6 @@ import java.util.regex.Pattern;
  *
  * @requiresDependencyResolution runtime
  */
- @SuppressWarnings({"ResultOfMethodCallIgnored"})
 public abstract class PackageApplicationMojo extends AbstractMojo {
 
   /**
@@ -97,35 +97,40 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
   }
 
   /**
-   * Linearizes the acyclic, directed graph represented by <code>artifact2directDependencies</code> to a list
-   * where every item just needs items that are contained in the list before itself.
+   * Linearizes the acyclic, directed graph of all dependent artifacts to a list
+   * where every item just depends on items that are contained in the list before itself.
    *
-   * @param artifact2directDependencies acyclic, directed dependency graph
-   * @return linearized dependency list
+   * @return linearized dependency list of artifacts
    */
-  public static List<String> sort(Map<String, List<String>> artifact2directDependencies) {
+  private List<Artifact> getLinearizedDependencies() throws ProjectBuildingException {
+    final Map<String, Artifact> internalId2Artifact = artifactByInternalId();
 
-    List<String> alreadyOut = new LinkedList<String>();
-    while (!artifact2directDependencies.isEmpty()) {
-      String currentDep = goDeep(artifact2directDependencies.keySet().iterator().next(), artifact2directDependencies);
-      removeAll(currentDep, artifact2directDependencies);
-      alreadyOut.add(currentDep);
+    List<String> depthFirstArtifactIds = new ArrayList<String>();
+    Set<String> openArtifacts = new HashSet<String>(internalId2Artifact.keySet());
+    while (!openArtifacts.isEmpty()) {
+      depthFirst(internalId2Artifact, depthFirstArtifactIds, openArtifacts, openArtifacts.iterator().next());
     }
-    return alreadyOut;
+
+    getLog().debug("linearized dependencies: " + depthFirstArtifactIds);
+
+    // back from internal IDs to Artifacts:
+    List<Artifact> depthFirstArtifacts = new ArrayList<Artifact>(depthFirstArtifactIds.size());
+    for (String depthFirstArtifactId : depthFirstArtifactIds) {
+      depthFirstArtifacts.add(internalId2Artifact.get(depthFirstArtifactId));
+    }
+    return depthFirstArtifacts;
   }
 
-  private static String goDeep(String start, Map<String, List<String>> artifact2directDependencies) {
-    while (artifact2directDependencies.get(start) != null && !artifact2directDependencies.get(start).isEmpty()) {
-      start = artifact2directDependencies.get(start).iterator().next();
-    }
-    return start;
-  }
-
-  private static void removeAll(String toBeRemoved, Map<String, List<String>> artifact2directDependencies) {
-    artifact2directDependencies.remove(toBeRemoved);
-
-    for (List<String> strings : artifact2directDependencies.values()) {
-      strings.remove(toBeRemoved);
+  private void depthFirst(Map<String, Artifact> internalId2Artifact, List<String> depthFirstArtifactIds,
+                          Set<String> openArtifacts, String artifactId) throws ProjectBuildingException {
+    if (openArtifacts.remove(artifactId)) {
+      // first, my dependencies:
+      List<String> dependencies = getDependencies(internalId2Artifact.get(artifactId));
+      for (String dependency : dependencies) {
+        depthFirst(internalId2Artifact, depthFirstArtifactIds, openArtifacts, dependency);
+      }
+      // then, my artifact
+      depthFirstArtifactIds.add(artifactId);
     }
   }
 
@@ -138,26 +143,14 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
   }
 
   private void concatModuleScripts(File scriptDirectory) throws IOException, ProjectBuildingException {
-    List<Artifact> jooArtifacts = getJangarooDependencies();
-
-    final Map<String, List<String>> artifact2Project = computeDependencyGraph(jooArtifacts);
-    getLog().debug("artifact2Project : " + artifact2Project);
-
-    List<String> depsLineralized = sort(artifact2Project);
-    getLog().debug("depsLineralized  : " + depsLineralized);
-
     Writer jangarooApplicationWriter = createJangarooModulesFile(scriptDirectory, "jangaroo-application.js");
     Writer jangarooApplicationAllWriter = createJangarooModulesFile(scriptDirectory, "jangaroo-application-all.js");
     try {
       jangarooApplicationWriter.write("// This file loads all collected JavaScript code from dependent Jangaroo modules.\n\n");
       jangarooApplicationAllWriter.write("// This file contains all collected JavaScript code from dependent Jangaroo modules.\n\n");
 
-      final Map<String, Artifact> internalId2Artifact = artifactByInternalId(jooArtifacts);
-      for (String dependency : depsLineralized) {
-        Artifact artifact = internalId2Artifact.get(dependency);
-        if (artifact != null) { // may be a scope="test" or other kind of dependency not included in getDependencies()
-          includeJangarooModuleScript(scriptDirectory, artifact, jangarooApplicationWriter, jangarooApplicationAllWriter);
-        }
+      for (Artifact artifact : getLinearizedDependencies()) {
+        includeJangarooModuleScript(scriptDirectory, artifact, jangarooApplicationWriter, jangarooApplicationAllWriter);
       }
       writeThisJangarooModuleScript(scriptDirectory, jangarooApplicationWriter, jangarooApplicationAllWriter);
     } finally {
@@ -295,39 +288,27 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
     writer.write('\n'); // file might not end with new-line, better insert one
   }
 
-  private Map<String, Artifact> artifactByInternalId(List<Artifact> jooArtifacts) {
+  private Map<String, Artifact> artifactByInternalId() {
     final Map<String, Artifact> internalId2Artifact = new HashMap<String, Artifact>();
-    for (Artifact artifact : jooArtifacts) {
-      String internalId = getInternalId(artifact);
-      internalId2Artifact.put(internalId, artifact);
+    for (Artifact artifact : getArtifacts()) {
+      if ("jar".equals(artifact.getType())) {
+        String internalId = getInternalId(artifact);
+        internalId2Artifact.put(internalId, artifact);
+      }
     }
     return internalId2Artifact;
   }
 
-  private List<Artifact> getJangarooDependencies() {
-    List<Artifact> jooArtifacts = new ArrayList<Artifact>();
-    for (Artifact dependency : getArtifacts()) {
-      if ("jar".equals(dependency.getType())) {
-        jooArtifacts.add(dependency);
+  private List<String> getDependencies(Artifact artifact) throws ProjectBuildingException {
+    MavenProject mp = mavenProjectBuilder.buildFromRepository(artifact, remoteRepositories, localRepository, true);
+    List<String> deps = new LinkedList<String>();
+    for (Dependency dep : getDependencies(mp)) {
+      if ("jar".equals(dep.getType()) &&
+        (dep.getScope().equals("compile") || dep.getScope().equals("runtime"))) {
+        deps.add(getInternalId(dep));
       }
     }
-    return jooArtifacts;
-  }
-
-  private Map<String, List<String>> computeDependencyGraph(List<Artifact> artifacts) throws ProjectBuildingException {
-    final Map<String, List<String>> artifact2Project = new HashMap<String, List<String>>();
-    for (Artifact artifact : artifacts) {
-      MavenProject mp = mavenProjectBuilder.buildFromRepository(artifact, remoteRepositories, localRepository, true);
-      List<String> deps = new LinkedList<String>();
-      for (Dependency dep : getDependencies(mp)) {
-        if ("jar".equals(dep.getType())) {
-          deps.add(getInternalId(dep));
-        }
-      }
-      String internalId = getInternalId(artifact);
-      artifact2Project.put(internalId, deps);
-    }
-    return artifact2Project;
+    return deps;
   }
 
   @SuppressWarnings({ "unchecked" })

@@ -15,7 +15,6 @@
 
 package net.jangaroo.jooc.ast;
 
-import net.jangaroo.utils.AS3Type;
 import net.jangaroo.jooc.CompilerError;
 import net.jangaroo.jooc.DeclarationScope;
 import net.jangaroo.jooc.JooSymbol;
@@ -28,7 +27,6 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -40,7 +38,6 @@ import java.util.Set;
  */
 public class ClassDeclaration extends IdeDeclaration {
 
-  private List<AstNode> directives;
   private JooSymbol symClass;
   private Extends optExtends;
   private Map<String, TypedIdeDeclaration> members = new LinkedHashMap<String, TypedIdeDeclaration>();
@@ -52,17 +49,13 @@ public class ClassDeclaration extends IdeDeclaration {
   private Type superType;
   private List<VariableDeclaration> fieldsWithInitializer = new ArrayList<VariableDeclaration>();
   private List<IdeDeclaration> secondaryDeclarations = Collections.emptyList();
-  private Set<String> usedBuiltIns = new LinkedHashSet<String>();
-  private Map<String, String> auxVarsByPackage = new LinkedHashMap<String, String>();
   private int inheritanceLevel = -1;
 
   private Implements optImplements;
   private Scope scope;
-  private boolean auxVarsRendered;
 
-  public ClassDeclaration(List<AstNode> directives, JooSymbol[] modifiers, JooSymbol cls, Ide ide, Extends ext, Implements impl, ClassBody body) {
+  public ClassDeclaration(JooSymbol[] modifiers, JooSymbol cls, Ide ide, Extends ext, Implements impl, ClassBody body) {
     super(modifiers, ide);
-    this.directives = directives;
     this.symClass = cls;
     this.optExtends = ext;
     this.optImplements = impl;
@@ -71,7 +64,7 @@ public class ClassDeclaration extends IdeDeclaration {
 
   @Override
   public List<? extends AstNode> getChildren() {
-    return makeChildren(super.getChildren(), directives, optExtends, optImplements, body);
+    return makeChildren(super.getChildren(), optExtends, optImplements, body);
   }
 
   public FunctionDeclaration getConstructor() {
@@ -119,10 +112,6 @@ public class ClassDeclaration extends IdeDeclaration {
     constructor = methodDeclaration;
   }
 
-  public void addBuiltInUsage(String builtIn) {
-    usedBuiltIns.add(builtIn);
-  }
-
   public JooSymbol getSymClass() {
     return symClass;
   }
@@ -153,48 +142,6 @@ public class ClassDeclaration extends IdeDeclaration {
 
   public Set<String> getClassInit() {
     return classInit;
-  }
-
-  public String getAuxVarForPackage(String packageQName) {
-    return auxVarsByPackage.get(packageQName);
-  }
-
-  public String getAuxVarForPackage(Scope lookupScope, String packageQName) {
-    if (auxVarsRendered) {
-      throw new IllegalStateException("aux vars already rendered!");
-    }
-    String auxVar = getAuxVarForPackage(packageQName);
-    if (auxVar == null) {
-      auxVar = scope.createAuxVar(lookupScope).getName();
-      auxVarsByPackage.put(packageQName, auxVar);
-    }
-    return auxVar;
-  }
-
-  public Map<String, String> getAuxVarDeclarations() {
-    auxVarsRendered = true;
-    LinkedHashMap<String, String> result = new LinkedHashMap<String, String>();
-    for (String builtIn : usedBuiltIns) {
-      String value = "joo." + ("$$bound".equals(builtIn) ? "boundMethod" : builtIn);
-      result.put(builtIn, value);
-    }
-    for (Map.Entry<String,String> entry : auxVarsByPackage.entrySet()) {
-      result.put(entry.getValue(), entry.getKey());
-    }
-    return result;
-  }
-
-  public List<AstNode> getDirectives() {
-    return directives;
-  }
-
-  void scopeDirectives(Scope scope, Ide packageIde) {
-    if (packageIde != null) {
-      addStarImport(packageIde);
-    }
-    // add implicit toplevel package import
-    addStarImport(null);
-    scope(directives, scope);
   }
 
   @Override
@@ -246,19 +193,13 @@ public class ClassDeclaration extends IdeDeclaration {
     }
   }
 
-  void addStarImport(final Ide packageIde) {
-    ImportDirective importDirective = new ImportDirective(packageIde, AS3Type.ANY.toString());
-    directives.add(0, importDirective);
-  }
-
   public void analyze(AstNode parentNode) {
-    analyze(this, directives);
     super.analyze(parentNode);
     if (getOptExtends() != null) {
       getOptExtends().analyze(this);
       String packageName = getOptExtends().getSuperClass().getDeclaration().getPackageDeclaration().getQualifiedNameStr();
       if (packageName.length() > 0) {
-        getAuxVarForPackage(scope, packageName);
+        ((CompilationUnit)parentNode).getAuxVarForPackage(scope, packageName);
       }
     }
     if (getOptImplements() != null) {
