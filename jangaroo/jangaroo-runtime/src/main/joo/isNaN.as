@@ -39,6 +39,7 @@ package {
  * @return Returns <code>true</code> if the value is <code>NaN</code>(not a number) and <code>false</code> otherwise.
  *
  */
+[Native]
 public native function isNaN(num : *) : Boolean;
 
 }

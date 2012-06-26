@@ -25,6 +25,7 @@ package joo {
  * @see joo.loadScript
  * @see joo.DynamicClassLoader
  */
+[Native]
 public native function loadModule(groupId:String, artifactId:String):void;
 
 }

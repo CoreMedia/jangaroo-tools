@@ -23,6 +23,7 @@ package joo {
  *
  * @see joo.baseUrl
  */
+[Native]
 public native function loadScriptAsync(url : String) : Object;
 
 }

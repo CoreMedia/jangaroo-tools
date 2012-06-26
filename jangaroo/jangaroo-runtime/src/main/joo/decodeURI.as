@@ -68,6 +68,7 @@ package {
  * }
  * </pre>
  */
+[Native]
 public native function decodeURI(uri : String) : String;
 
 }

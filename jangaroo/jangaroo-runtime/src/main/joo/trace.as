@@ -22,6 +22,7 @@ package {
  * }
  * </listing>
  */
+[Native]
 public native function trace(...msgs) : void;
 
 }

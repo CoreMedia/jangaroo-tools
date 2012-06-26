@@ -8,6 +8,7 @@ package {
  * @return A string decoded from a URL-encoded parameter.
  *
  */
+[Native]
 public native function unescape(str:String):String;
 
 }

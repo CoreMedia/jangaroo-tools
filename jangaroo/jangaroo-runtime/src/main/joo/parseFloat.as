@@ -11,6 +11,7 @@ package {
  * @return A number or <code>NaN</code> (not a number).
  *
  */
+[Native]
 public native function parseFloat(str:String):Number;
 
 }

@@ -51,6 +51,7 @@ package joo {
  * @return Function the bound method
  * @see Function
  */
+[Native]
 public native function boundMethod(object:Object, methodName:String):Function;
 
 

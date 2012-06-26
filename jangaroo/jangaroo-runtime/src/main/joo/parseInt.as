@@ -12,6 +12,7 @@ package {
  * @return A number or <code>NaN</code> (not a number).
  *
  */
+[Native]
 public native function parseInt(str:String, radix:uint = 0):Number;
 
 }

@@ -21,6 +21,7 @@ package joo {
  *
  * @see joo.baseUrl
  */
+[Native]
 public native function resolveUrl(url:String):String;
 
 }

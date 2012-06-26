@@ -1430,6 +1430,7 @@ public native static function settings():Object;
  * trace(xml.text()[1]); // text2
  * </listing>
  */
+[Native]
 public native function text():XMLList;
 
 /**
@@ -1465,6 +1466,7 @@ public native function text():XMLList;
  *   // &lt;/type>
  * </listing></div>
  */
+[Native]
 public native function toString():String;
 
 /**
@@ -1483,6 +1485,7 @@ public native function toString():String;
  * trace(xml.toXMLString()); // &lt;p>hello&lt;/p>
  * </listing>
  */
+[Native]
 public native function toXMLString():String;
 
 /**
@@ -1497,6 +1500,7 @@ public native function toXMLString():String;
  * trace(xml.valueOf() === xml); // true
  * </listing>
  */
+[Native]
 public native function valueOf():XML;
 }
 }

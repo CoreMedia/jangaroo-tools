@@ -21,6 +21,7 @@ package joo {
  * @return Any object found under the qualified name or undefined.
  * @see joo.getOrCreatePackage
  */
+[Native]
 public native function getQualifiedObject(qualifiedName : String) : *;
 
 

@@ -45,6 +45,7 @@ package {
  * }
  * </pre>
  */
+[Native]
 public native function encodeURI(uri : String) : String;
 
 }

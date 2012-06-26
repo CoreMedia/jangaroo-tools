@@ -22,6 +22,7 @@ package {
  * @see #encodeURIComponent()
  *
  */
+[Native]
 public native function escape(str:String):String;
 
 }

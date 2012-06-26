@@ -21,6 +21,7 @@ package joo {
  * @return * the package object retrieved or created.
  * @see joo.getQualifiedObject()
  */
+[Native]
 public native function getOrCreatePackage(packageName : String) : *;
 
 

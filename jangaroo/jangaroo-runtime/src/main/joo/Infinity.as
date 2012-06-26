@@ -14,5 +14,6 @@ package {
  * trace(-7 / 0); // -Infinity
  * </listing>
  */
+[Native]
 public native function get Infinity() : Number;
 }

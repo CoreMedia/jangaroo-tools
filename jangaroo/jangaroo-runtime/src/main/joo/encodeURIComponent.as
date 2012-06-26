@@ -22,6 +22,7 @@ package {
  * @see #encodeURI()
  *
  */
+[Native]
 public native function encodeURIComponent(uri : String) : String;
 
 }

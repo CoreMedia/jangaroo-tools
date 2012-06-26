@@ -23,6 +23,7 @@ package joo {
  * @see joo.baseUrl
  * @see joo.debug
  */
+[Native]
 public native function loadScript(url:String, debugUrl:String):void;
 
 }

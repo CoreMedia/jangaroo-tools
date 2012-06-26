@@ -19,5 +19,6 @@ package {
  * @see Number#NaN
  *
  */
+[Native]
 public native function get NaN():Number;
 }

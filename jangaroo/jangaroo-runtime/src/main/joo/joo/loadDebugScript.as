@@ -24,6 +24,7 @@ package joo {
  * @see joo.baseUrl
  * @see joo.debug
  */
+[Native]
 public native function loadDebugScript(debugUrl:String):void;
 
 }

@@ -22,6 +22,7 @@ package joo {
  * @return  the <code>baseUrl</code>-relative URL of the given qualified class, interface, or function
  * @see joo.baseUrl
  */
+[Native]
 public native function getRelativeClassUrl(qualifiedName:String):String;
 
 

@@ -382,7 +382,7 @@ public class JooTest extends JooRuntimeTestCase {
     expectNumber(1, "obj.getSlot3().nolabel");
     expectNumber(2, "obj.getSlot3().alsonolabel");
     expectBoolean(true, "obj.getSlot3()===obj.getSlot3()");
-    eval("obj2 = new "+className+"();");
+    eval("obj2 = new " + className + "();");
     expectBoolean(false, "obj.getSlot3()===obj2.getSlot3()");
   }
 
@@ -455,8 +455,8 @@ public class JooTest extends JooRuntimeTestCase {
     expectString("foo/foo/undefined/0", "obj.initParams3('foo')");
     expectString("undefined/foo/undefined/0", "obj.initParams3()");
 
-    expectNumber(5*99, "obj.testParamWithAnyTypeWithoutWhitespaceSyntax()");
-    expectNumber(6*88, "obj.testParamWithAnyTypeWithoutWhitespaceSyntax2()");
+    expectNumber(5 * 99, "obj.testParamWithAnyTypeWithoutWhitespaceSyntax()");
+    expectNumber(6 * 88, "obj.testParamWithAnyTypeWithoutWhitespaceSyntax2()");
   }
 
   public void testRestParams() throws Exception {
@@ -692,16 +692,16 @@ public class JooTest extends JooRuntimeTestCase {
     expectNumber(13, "new package1.TestRecursiveFunction().testFib(7)");
   }
 
-  public void testGlobalVariable() throws Exception {
-    import_("package1.testVariable");
-    complete();
-    expectNumber(1, "package1.testVariable.getSlot1()");
-  }
-
   public void testGlobalFunction() throws Exception {
     import_("package1.testFunction");
     complete();
     expectNumber(1, "package1.testFunction().getSlot1()");
+  }
+
+  public void testClassUsingGlobalFunction() throws Exception {
+    import_("package1.TestTestFunction");
+    complete();
+    expectNumber(1, "package1.TestTestFunction.invokeTestFunction().getSlot1()");
   }
 
   public static void main(String args[]) {
