@@ -36,6 +36,6 @@ package {
  * </listing></div>
  */
 [Native]
-public const undefined: *;
+public const undefined: * = {}['']; // prevent compiler warning
 
 }
