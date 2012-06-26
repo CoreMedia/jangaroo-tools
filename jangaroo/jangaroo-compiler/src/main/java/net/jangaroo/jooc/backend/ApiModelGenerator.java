@@ -513,7 +513,7 @@ public class ApiModelGenerator {
 
   @Override
   public void visitFunctionDeclaration(FunctionDeclaration functionDeclaration) throws IOException {
-    if (functionDeclaration.isPublicApi()) {
+    if (functionDeclaration.isPublicApi() || modelStack.peek() instanceof CompilationUnitModel) {
       MethodModel methodModel = new MethodModel();
       modelStack.push(methodModel);
       consumeRecordedAnnotations();
