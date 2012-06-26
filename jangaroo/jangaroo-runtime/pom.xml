@@ -49,6 +49,7 @@
                   <filelist dir="src/main/joo-js/joo/classes">
                     <file name="int.js" />
                     <file name="uint.js" />
+                    <file name="E4X.js" />
                     <file name="Vector.js" />
                     <file name="joo/BootstrapClassLoader.js" />
                     <file name="joo/assert.js" />
