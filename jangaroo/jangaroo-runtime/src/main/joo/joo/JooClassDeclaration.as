@@ -102,6 +102,8 @@ public class JooClassDeclaration extends NativeClassDeclaration {
       for (var i:int = 0; i < publicStaticMethodNames.length; i++) {
         createInitializingStaticMethod(publicStaticMethodNames[i]);
       }
+    } else if (isFunction()) {
+      this.package_[this.className] = createInitializingPackageMethod(this);
     }
     this.create(fullClassName, publicConstructor);
     this._processMetadata(); // for early annotation processing like adding dependencies
@@ -136,6 +138,10 @@ public class JooClassDeclaration extends NativeClassDeclaration {
 
   public function isInterface() : Boolean {
     return this.type === MemberDeclaration.MEMBER_TYPE_INTERFACE;
+  }
+
+  public function isFunction() : Boolean {
+    return this.type === MemberDeclaration.MEMBER_TYPE_FUNCTION;
   }
 
   internal function addToInterfaces(clazz:Function):void {
@@ -369,7 +375,6 @@ public class JooClassDeclaration extends NativeClassDeclaration {
 
   internal override function doInit() : void {
     if (!isClass() && !isInterface()) {
-      this.package_[this.className] = this.memberDeclarations();
       return;
     }
     this.superClassDeclaration.init();
@@ -427,6 +432,13 @@ public class JooClassDeclaration extends NativeClassDeclaration {
       // classDeclaration.constructor_ must have been set, at least to a default constructor:
       classDeclaration.constructor_.apply(instance, arguments);
       return instance;
+    };
+  }
+
+  private static function createInitializingPackageMethod(classDeclaration : JooClassDeclaration) : Function {
+    return function() : * {
+        var fun:Function = classDeclaration.package_[classDeclaration.className] = classDeclaration.memberDeclarations();
+        return fun.apply(null, arguments);
     };
   }
 
