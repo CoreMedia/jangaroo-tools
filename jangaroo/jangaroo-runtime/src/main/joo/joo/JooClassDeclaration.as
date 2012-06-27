@@ -105,7 +105,8 @@ public class JooClassDeclaration extends NativeClassDeclaration {
     } else if (isFunction()) {
       this.package_[this.className] = createInitializingPackageMethod(this);
     } else if (isConst() || isVar()) {
-      this.package_[this.className] = createInitializingPackageField(this);
+      this.package_[this.className] = typeof this.memberDeclarations === "function" ?
+        createInitializingPackageField(this) : this.memberDeclarations;
     }
     this.create(fullClassName, publicConstructor);
     this._processMetadata(); // for early annotation processing like adding dependencies
