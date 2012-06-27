@@ -63,6 +63,7 @@ if (!joo.debug) {
     var SYSTEM_CLASSES = [
       "int",
       "uint",
+      "E4X",
       "joo.BootstrapClassLoader",
       "joo.assert",
       "joo.Class",

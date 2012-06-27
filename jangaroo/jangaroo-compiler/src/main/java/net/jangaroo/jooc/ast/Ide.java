@@ -274,11 +274,11 @@ public class Ide extends NodeImplBase {
           // access to constant of other class?
           // TODO: If the static member is a method, we should not add a class init.
           //       Unfortunately, declaration information seems not to be available at this point in time.
-          classDeclaration.addInitIfClass(getQualifier());
+          classDeclaration.addInitIfClassOrGlobalVar(getQualifier());
         }
         // access to other class?
         if (!isQualifier()) {
-          classDeclaration.addInitIfClass(this);
+          classDeclaration.addInitIfClassOrGlobalVar(this);
         }
       }
     }

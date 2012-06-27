@@ -226,11 +226,13 @@ public class ClassDeclaration extends IdeDeclaration {
     return staticMembers.get(memberName);
   }
 
-  public void addInitIfClass(Ide ide) {
+  public void addInitIfClassOrGlobalVar(Ide ide) {
     final IdeDeclaration decl = ide.getDeclaration(false);
-    if (decl instanceof ClassDeclaration) {
-      // Classes should not try to init themselves. It does not help and it produces strange warnings.
-      if (decl != this) {
+    if (decl != this      // Classes should not try to init themselves. It does not help and it produces strange warnings.
+      && (decl instanceof ClassDeclaration || decl instanceof VariableDeclaration) // no init necessary for package-scope functions!
+      && decl.isPrimaryDeclaration()) {
+      CompilationUnit compilationUnit = decl.getIde().getScope().getCompilationUnit();
+      if (compilationUnit.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME) == null) {
         classInit.add(decl.getQualifiedNameStr());
       }
     }

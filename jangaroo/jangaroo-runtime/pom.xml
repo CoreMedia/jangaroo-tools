@@ -36,12 +36,12 @@
                 <taskdef classname="net.jangaroo.jooc.ant.JoocTask" classpath="target/classes;${runtime.classpath}" name="jooc" />
                 <mkdir dir="target/classes/META-INF/resources/joo/classes" />
                 <mkdir dir="target/classes/META-INF/joo-api" />
-                <jooc apidestdir="target/classes/META-INF/joo-api" classpath="${basedir}/src/main/joo-api" debuglevel="source" destdir="target/classes/META-INF/resources/joo/classes" enableassertions="true" failonerror="true" verbose="true">
+                <jooc apidestdir="target/classes/META-INF/joo-api" debuglevel="source" destdir="target/classes/META-INF/resources/joo/classes" enableassertions="true" failonerror="true" verbose="true">
                   <include name="**/*.as" />
                   <src path="src/main/joo" />
                 </jooc>
                 <mkdir dir="target/temp" />
-                <jooc classpath="${basedir}/src/main/joo-api" destdir="target/temp" enableassertions="false" failonerror="true" verbose="true">
+                <jooc destdir="target/temp" enableassertions="false" failonerror="true" verbose="true">
                   <include name="**/*.as" />
                   <src path="src/main/joo" />
                 </jooc>
@@ -49,6 +49,7 @@
                   <filelist dir="src/main/joo-js/joo/classes">
                     <file name="int.js" />
                     <file name="uint.js" />
+                    <file name="E4X.js" />
                     <file name="Vector.js" />
                     <file name="joo/BootstrapClassLoader.js" />
                     <file name="joo/assert.js" />
@@ -75,9 +76,6 @@
                 </concat>
                 <copy todir="target/classes/META-INF/resources">
                   <fileset dir="src/main/joo-js" />
-                </copy>
-                <copy todir="target/classes/META-INF/joo-api">
-                  <fileset dir="src/main/joo-api" />
                 </copy>
               </tasks>
             </configuration>
