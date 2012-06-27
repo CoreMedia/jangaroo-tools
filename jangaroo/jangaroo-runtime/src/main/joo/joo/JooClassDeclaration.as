@@ -104,6 +104,8 @@ public class JooClassDeclaration extends NativeClassDeclaration {
       }
     } else if (isFunction()) {
       this.package_[this.className] = createInitializingPackageMethod(this);
+    } else if (isConst() || isVar()) {
+      this.package_[this.className] = createInitializingPackageField(this);
     }
     this.create(fullClassName, publicConstructor);
     this._processMetadata(); // for early annotation processing like adding dependencies
@@ -142,6 +144,14 @@ public class JooClassDeclaration extends NativeClassDeclaration {
 
   public function isFunction() : Boolean {
     return this.type === MemberDeclaration.MEMBER_TYPE_FUNCTION;
+  }
+
+  public function isConst() : Boolean {
+    return this.type === MemberDeclaration.MEMBER_TYPE_CONST;
+  }
+
+  public function isVar() : Boolean {
+    return this.type === MemberDeclaration.MEMBER_TYPE_VAR;
   }
 
   internal function addToInterfaces(clazz:Function):void {
@@ -439,6 +449,20 @@ public class JooClassDeclaration extends NativeClassDeclaration {
     return function() : * {
         var fun:Function = classDeclaration.package_[classDeclaration.className] = classDeclaration.memberDeclarations();
         return fun.apply(null, arguments);
+    };
+  }
+
+  private static function createInitializingPackageField(classDeclaration:JooClassDeclaration):Object {
+    return {
+      $class: {
+        init: function():* {
+          trace("[WARN]", "*** init() called for " + classDeclaration.fullClassName);
+          var value:* = classDeclaration.package_[classDeclaration.className] = classDeclaration.memberDeclarations();
+          return {
+            constructor_: value
+          };
+        }
+      }
     };
   }
 

@@ -220,15 +220,10 @@ public class CompilationUnit extends NodeImplBase {
 
   public void addDependency(CompilationUnit otherUnit) {
     // predefined ides have a null unit
-    if (otherUnit != null && otherUnit != this) {
-      //todo extend runtime to load units with primary decls other than classes or functions
-      final IdeDeclaration otherUnitPrimaryDeclaration = otherUnit.getPrimaryDeclaration();
-      if ((otherUnitPrimaryDeclaration instanceof ClassDeclaration || otherUnitPrimaryDeclaration instanceof FunctionDeclaration)
-        && otherUnit.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME) == null) {
-        String qname = otherUnitPrimaryDeclaration.getQualifiedNameStr();
-        dependencies.add(qname);
-        dependenciesAsCompilationUnits.add(otherUnit);
-      }
+    if (otherUnit != null && otherUnit != this && otherUnit.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME) == null) {
+      String qname = otherUnit.getPrimaryDeclaration().getQualifiedNameStr();
+      dependencies.add(qname);
+      dependenciesAsCompilationUnits.add(otherUnit);
     }
   }
 

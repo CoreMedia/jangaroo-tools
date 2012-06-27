@@ -74,7 +74,7 @@ public class StandardClassLoader extends SystemClassLoader {
     var clazz : Function;
     for (var i:int=0; i<classes.length; ++i) {
       clazz = classes[i];
-      if ("$class" in clazz) {
+      if (clazz && clazz["$class"]) {
         clazz = NativeClassDeclaration(clazz["$class"]).init().constructor_;
       }
     }

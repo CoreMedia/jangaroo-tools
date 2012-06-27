@@ -692,6 +692,19 @@ public class JooTest extends JooRuntimeTestCase {
     expectNumber(13, "new package1.TestRecursiveFunction().testFib(7)");
   }
 
+  public void testGlobalVariable() throws Exception {
+    import_("package1.testVariable");
+    complete();
+    initClass("package1.testVariable");
+    expectNumber(1, "package1.testVariable.getSlot1()");
+  }
+
+  public void testClassUsingGlobalVariable() throws Exception {
+    import_("package1.TestTestVariable");
+    complete();
+    expectNumber(1, "package1.TestTestVariable.getTestVariable().getSlot1()");
+  }
+
   public void testGlobalFunction() throws Exception {
     import_("package1.testFunction");
     complete();
