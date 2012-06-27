@@ -1,4 +1,5 @@
 # IDEA
+.idea/
 *.iml
 *.ipr
 *.iws
