@@ -1036,11 +1036,11 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       out.writeSymbolWhitespace(variableDeclaration.getOptInitializer().getSymEq());
       out.writeToken("return");
       variableDeclaration.getOptInitializer().getValue().visit(this);
-      out.write(";");
+      out.write(";\n}");
     } else {
       out.writeToken("null");
     }
-    out.write("\n},[]");
+    out.write(",[]");
   }
 
   protected void generateVariableDeclarationStartCode(VariableDeclaration variableDeclaration) throws IOException {
