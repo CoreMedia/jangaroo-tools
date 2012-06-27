@@ -228,7 +228,7 @@ public class JooTestMojo extends AbstractMojo {
 
   public void execute() throws MojoExecutionException, MojoFailureException {
     if (!skip && !skipTests) {
-      final PhantomJsTestRunner phantomJsTestRunner = new PhantomJsTestRunner(phantomBin, testOutputDirectory, phantomTestRunner, phantomTestSuite, phantomArgs, jooUnitTestExecutionTimeout, getLog());
+      final PhantomJsTestRunner phantomJsTestRunner = new PhantomJsTestRunner(phantomBin, new File(testOutputDirectory, "META-INF/resources"), phantomTestRunner, phantomTestSuite, phantomArgs, jooUnitTestExecutionTimeout, getLog());
       getLog().info("trying to run phantomjs first: " + phantomJsTestRunner.toString());
       if (phantomTestSuite != null && phantomJsTestRunner.isTestAvailable() && phantomJsTestRunner.canRun()) {
         try {

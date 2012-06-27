@@ -1,15 +1,23 @@
 package net.jangaroo.jooc.mvnplugin.test;
 
 import net.jangaroo.jooc.mvnplugin.PackageApplicationMojo;
+import net.jangaroo.jooc.mvnplugin.Types;
+import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
-import net.jangaroo.jooc.mvnplugin.Types;
+import org.codehaus.plexus.archiver.ArchiveFileFilter;
+import org.codehaus.plexus.archiver.ArchiveFilterException;
+import org.codehaus.plexus.archiver.ArchiverException;
+import org.codehaus.plexus.archiver.zip.ZipUnArchiver;
 import org.codehaus.plexus.util.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Writer;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Prepares the Javascript Testenvironment including generation of the HTML page and decompression of jangaroo
@@ -63,12 +71,19 @@ public class JooGenerateTestResourcesMojo extends PackageApplicationMojo {
    */
   private boolean skipTests;
   /**
-   * the tests.html file relative to the test resources folder
-   *
    * @parameter expression="${project.testResources}"
    */
   @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
   private List<Resource> testResources;
+
+  /**
+   * Hexus Plexus archiver.
+   *
+   * @component role="org.codehaus.plexus.archiver.UnArchiver" role-hint="zip"
+   * @required
+   */
+  private ZipUnArchiver unarchiver;
+
 
   public File getPackageSourceDirectory() {
     return Types.JANGAROO_TYPE.equals(project.getPackaging()) ? outputDirectory : testPackageSourceDirectory;
@@ -78,21 +93,63 @@ public class JooGenerateTestResourcesMojo extends PackageApplicationMojo {
     return true; // TODO
   }
 
+  public void unpack(File target)
+    throws ArchiverException {
+
+    unarchiver.setOverwrite(false);
+    unarchiver.setArchiveFilters(Collections.singletonList(new MetaInfResourcesArchiveFilter()));
+    Set<Artifact> dependencies = getArtifacts();
+
+    for (Artifact dependency : dependencies) {
+      getLog().debug("Dependency: " + dependency.getGroupId() + ":" + dependency.getArtifactId() + "type: " + dependency.getType());
+      if (!dependency.isOptional() && "jar".equals(dependency.getType())) {
+        getLog().debug("Unpacking jangaroo dependency [" + dependency.toString() + "]");
+        unarchiver.setSourceFile(dependency.getFile());
+
+        unpack(dependency, target);
+      }
+    }
+  }
+
+  public void unpack(Artifact artifact, File target)
+    throws ArchiverException {
+    unarchiver.setSourceFile(artifact.getFile());
+    if (target.mkdirs()) {
+      getLog().debug("created unarchiver target directory " + target);
+    }
+    unarchiver.setDestDirectory(target);
+    unarchiver.setOverwrite(false);
+    try {
+      unarchiver.extract();
+    }
+    catch (Exception e) {
+      throw new ArchiverException("Failed to extract javascript artifact to " + target, e);
+    }
+
+  }
+
   public void execute() throws MojoExecutionException {
     if (!skip && !skipTests) {
       try {
         if (isTestAvailable()) {
           getLog().info("Unpacking jangaroo dependencies to " + testOutputDirectory);
-          createWebapp(testOutputDirectory);
+          unpack(testOutputDirectory);
+          File webappDirectory = new File(testOutputDirectory, "META-INF/resources");
+          createWebapp(webappDirectory);
+          getLog().info("Copying output from " + outputDirectory.getAbsolutePath() + " to " + testOutputDirectory.getAbsolutePath() + "...");
+          FileUtils.copyDirectoryStructureIfModified(outputDirectory, testOutputDirectory);
           for (Resource r : testResources) {
             File testResourceDirectory = new File(r.getDirectory());
             if (testResourceDirectory.exists()) {
-              FileUtils.copyDirectoryStructureIfModified(testResourceDirectory, testOutputDirectory);
+              getLog().info("Copying resources from " + r.getDirectory() + " to " + webappDirectory.getAbsolutePath() + "...");
+              FileUtils.copyDirectoryStructureIfModified(testResourceDirectory, webappDirectory);
             }
           }
         }
+      } catch (ArchiverException e) {
+        throw new MojoExecutionException("Cannot unpack jangaroo dependencies", e);
       } catch (IOException e) {
-        throw new MojoExecutionException("Cannot unpack jangaroo dependencies/generate html test page", e);
+        throw new MojoExecutionException("Cannot copy jangaroo files/ generate html test page", e);
       }
     } else {
       getLog().info("Skipping generation of test resources");
@@ -104,5 +161,11 @@ public class JooGenerateTestResourcesMojo extends PackageApplicationMojo {
     super.writeThisJangarooModuleScript(scriptDirectory, jangarooApplicationWriter, jangarooApplicationAllWriter);
     writeModule(scriptDirectory, project.getGroupId(), project.getArtifactId() + "-test", project.getVersion(),
       jangarooApplicationWriter, jangarooApplicationAllWriter);
+  }
+
+  private static class MetaInfResourcesArchiveFilter implements ArchiveFileFilter {
+    public boolean include(InputStream dataStream, String entryName) throws ArchiveFilterException {
+      return entryName.startsWith("META-INF/resources");
+    }
   }
 }
