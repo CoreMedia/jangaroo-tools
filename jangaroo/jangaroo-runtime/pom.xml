@@ -31,7 +31,7 @@
             </goals>
             <phase>compile</phase>
             <configuration>
-              <tasks>
+              <target>
                 <property name="runtime.classpath" refid="maven.compile.classpath" />
                 <taskdef classname="net.jangaroo.jooc.ant.JoocTask" classpath="target/classes;${runtime.classpath}" name="jooc" />
                 <mkdir dir="target/classes/META-INF/resources/joo/classes" />
@@ -77,7 +77,7 @@
                 <copy todir="target/classes/META-INF/resources">
                   <fileset dir="src/main/joo-js" />
                 </copy>
-              </tasks>
+              </target>
             </configuration>
           </execution>
         </executions>

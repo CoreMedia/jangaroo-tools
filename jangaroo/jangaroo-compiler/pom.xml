@@ -98,7 +98,7 @@
             </goals>
             <phase>generate-sources</phase>
             <configuration>
-              <tasks>
+              <target>
                 <property name="cup.input.filename" value="joo.cup" />
                 <property name="cup.files.reldir" value="net/jangaroo/jooc" />
                 <property name="cup.output.dir" value="${generated.cup.sources.dir}/${cup.files.reldir}" />
@@ -118,7 +118,7 @@
                     <path refid="maven.plugin.classpath" />
                   </classpath>
                 </java>
-              </tasks>
+              </target>
               <sourceRoot>${generated.cup.sources.dir}</sourceRoot>
             </configuration>
           </execution>

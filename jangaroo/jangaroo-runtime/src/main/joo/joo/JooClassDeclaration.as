@@ -457,7 +457,6 @@ public class JooClassDeclaration extends NativeClassDeclaration {
     return {
       $class: {
         init: function():* {
-          trace("[WARN]", "*** init() called for " + classDeclaration.fullClassName);
           var value:* = classDeclaration.package_[classDeclaration.className] = classDeclaration.memberDeclarations();
           return {
             constructor_: value
