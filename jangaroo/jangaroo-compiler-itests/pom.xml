@@ -88,7 +88,7 @@
             </goals>
             <phase>process-test-resources</phase>
             <configuration>
-              <tasks>
+              <target>
                 <unzip dest="${basedir}/target/temp" src="${basedir}/target/jangaroo-runtime-${project.version}.jar" />
                 <property name="runtime.classpath" refid="maven.runtime.classpath" />
                 <taskdef classname="net.jangaroo.jooc.ant.JoocTask" classpath="target/classes;${runtime.classpath}" name="jooc" />
@@ -122,7 +122,7 @@
                   <include name="**/*.as" />
                   <src path="${basedir}/src/test/joo3" />
                 </jooc>
-              </tasks>
+              </target>
             </configuration>
           </execution>
         </executions>

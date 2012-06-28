@@ -31,7 +31,7 @@
             </goals>
             <phase>compile</phase>
             <configuration>
-              <tasks>
+              <target>
                 <property name="runtime.classpath" refid="maven.compile.classpath" />
                 <taskdef classname="net.jangaroo.jooc.ant.JoocTask" classpath="target/classes;${runtime.classpath}" name="jooc" />
                 <mkdir dir="target/temp/runtime/debug/joo/classes" />
@@ -82,7 +82,7 @@
                 <zip destfile="target/jangaroo-runtime-sources-${project.version}.jar">
                   <fileset dir="src/main/joo" includes="**/*.as" />
                 </zip>
-              </tasks>
+              </target>
             </configuration>
           </execution>
         </executions>
