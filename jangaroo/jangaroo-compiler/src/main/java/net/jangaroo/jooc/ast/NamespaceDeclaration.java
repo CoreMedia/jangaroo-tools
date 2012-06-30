@@ -24,17 +24,17 @@ import java.util.List;
 /**
  * @author Frank Wienberg
  */
-public class NamespacedDeclaration extends IdeDeclaration {
+public class NamespaceDeclaration extends IdeDeclaration {
 
   private Initializer optInitializer;
   private JooSymbol symNamespace;
   private JooSymbol optSymSemicolon;
 
-  public NamespacedDeclaration(JooSymbol[] modifiers,
-                               JooSymbol symNamespace,
-                               Ide ide,
-                               Initializer optInitializer,
-                               JooSymbol optSymSemicolon) {
+  public NamespaceDeclaration(JooSymbol[] modifiers,
+                              JooSymbol symNamespace,
+                              Ide ide,
+                              Initializer optInitializer,
+                              JooSymbol optSymSemicolon) {
     super(modifiers, ide);
     assert SyntacticKeywords.NAMESPACE.equals(symNamespace.getText());
     this.symNamespace = symNamespace;
@@ -49,7 +49,7 @@ public class NamespacedDeclaration extends IdeDeclaration {
 
   @Override
   public void visit(AstVisitor visitor) throws IOException {
-    visitor.visitNamespacedDeclaration(this);
+    visitor.visitNamespaceDeclaration(this);
   }
 
   public Initializer getOptInitializer() {

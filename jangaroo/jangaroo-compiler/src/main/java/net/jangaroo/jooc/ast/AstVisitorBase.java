@@ -240,7 +240,7 @@ public class AstVisitorBase implements AstVisitor {
   }
 
   @Override
-  public void visitNamespacedDeclaration(NamespacedDeclaration namespacedDeclaration) throws IOException {
+  public void visitNamespaceDeclaration(NamespaceDeclaration namespaceDeclaration) throws IOException {
   }
 
   @Override

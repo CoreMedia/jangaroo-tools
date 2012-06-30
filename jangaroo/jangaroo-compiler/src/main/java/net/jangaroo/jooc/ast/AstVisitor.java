@@ -124,7 +124,7 @@ public interface AstVisitor {
 
   void visitPredefinedTypeDeclaration(PredefinedTypeDeclaration predefinedTypeDeclaration) throws IOException;
 
-  void visitNamespacedDeclaration(NamespacedDeclaration namespacedDeclaration) throws IOException;
+  void visitNamespaceDeclaration(NamespaceDeclaration namespaceDeclaration) throws IOException;
 
   void visitPackageDeclaration(PackageDeclaration packageDeclaration) throws IOException;
 
