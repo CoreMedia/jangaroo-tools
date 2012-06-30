@@ -468,9 +468,9 @@ public class ApiModelGenerator {
     }
     // Public API only, thus either "protected", "public", or custom namespace:
     if (declaration instanceof TypedIdeDeclaration) {
-      JooSymbol namespace = ((TypedIdeDeclaration)declaration).getNamespace();
+      Ide namespace = ((TypedIdeDeclaration)declaration).getNamespace();
       if (namespace != null) {
-        namespacedModel.setNamespace(namespace.getText());
+        namespacedModel.setNamespace(namespace.getQualifiedNameStr());
         return;
       }
     }

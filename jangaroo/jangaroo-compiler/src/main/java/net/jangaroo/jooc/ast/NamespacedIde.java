@@ -26,12 +26,12 @@ import java.io.IOException;
  */
 public class NamespacedIde extends Ide {
 
-  private JooSymbol namespace;
+  private Ide namespace;
   private JooSymbol symNamespaceSep;
 
   public NamespacedIde(JooSymbol namespace, JooSymbol symNamespaceSep, JooSymbol symIde) {
     super(symIde);
-    this.namespace = namespace;
+    this.namespace = new Ide(namespace);
     this.symNamespaceSep = symNamespaceSep;
   }
 
@@ -42,13 +42,13 @@ public class NamespacedIde extends Ide {
 
   @Override
   public void analyze(AstNode parentNode) {
-    if (namespace.sym == sym.IDE) { // all other symbols should be predefined namespaces like "public" etc.
-      Jooc.warning(namespace, "namespaces are not yet implemented, ignoring namespace " + namespace.getText());
+    if (namespace.getIde().sym == sym.IDE) { // all other symbols should be predefined namespaces like "public" etc.
+      Jooc.warning(namespace.getSymbol(), "namespaces are not yet implemented, ignoring namespace " + namespace.getQualifiedNameStr());
     }
     super.analyze(parentNode);
   }
 
-  static String getNamespacePrefix(JooSymbol namespace) {
+  static String getNamespacePrefix(Ide namespace) {
     return ""; // TODO: namespace==null || namespace.sym!=sym.IDE ? "" : namespace.getText()+"::";
   }
 
@@ -58,7 +58,7 @@ public class NamespacedIde extends Ide {
   }
 
   public String[] getQualifiedName() {
-    return new String[]{namespace.getText(), getIde().getText()};
+    return new String[]{namespace.getQualifiedNameStr(), getIde().getText()};
   }
 
   @Override
@@ -67,10 +67,10 @@ public class NamespacedIde extends Ide {
   }
 
   public JooSymbol getSymbol() {
-    return namespace;
+    return namespace.getSymbol();
   }
 
-  public JooSymbol getNamespace() {
+  public Ide getNamespace() {
     return namespace;
   }
 
@@ -91,14 +91,14 @@ public class NamespacedIde extends Ide {
     }
 
     final NamespacedIde that = (NamespacedIde) o;
-    return namespace.getText().equals(that.namespace.getText());
+    return namespace.getQualifiedNameStr().equals(that.namespace.getQualifiedNameStr());
 
   }
 
   @Override
   public int hashCode() {
     int result = super.hashCode();
-    result = 31 * result + namespace.getText().hashCode();
+    result = 31 * result + namespace.getQualifiedNameStr().hashCode();
     return result;
   }
 }

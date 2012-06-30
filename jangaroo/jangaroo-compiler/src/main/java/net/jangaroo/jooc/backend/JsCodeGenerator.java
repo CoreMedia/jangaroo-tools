@@ -390,7 +390,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   public void visitNamespacedIde(NamespacedIde namespacedIde) throws IOException {
     // so far, namespaces are only comments:
     out.beginComment();
-    out.writeSymbol(namespacedIde.getNamespace());
+    out.writeSymbol(namespacedIde.getNamespace().getSymbol());
     out.writeSymbol(namespacedIde.getSymNamespaceSep());
     out.endComment();
     visitIde(namespacedIde);
