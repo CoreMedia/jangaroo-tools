@@ -109,7 +109,7 @@ nonterminal JooSymbol constOrVar;
 nonterminal LiteralExpr literalExpr;
 nonterminal Expr expr;
 nonterminal Extends extends;
-nonterminal NamespacedDeclaration namespacedDeclaration;
+nonterminal NamespaceDeclaration namespaceDeclaration;
 nonterminal FunctionExpr functionExpr;
 nonterminal Ide ide;
 nonterminal Implements implements;
@@ -275,7 +275,7 @@ compilationUnitDeclaration ::=
     {: RESULT = decl; :}
   | functionDeclaration:decl
     {: RESULT = decl; :}
-  | namespacedDeclaration:decl
+  | namespaceDeclaration:decl
     {: RESULT = decl; :}
   ;
 
@@ -484,9 +484,9 @@ interfaceExtends ::=
     {: RESULT = new Implements(i,l); :}
   ;
 
-namespacedDeclaration ::=
+namespaceDeclaration ::=
     modifiers:m EQ:eq STRING_LITERAL:l SEMICOLON:s
-    {: RESULT = new NamespacedDeclaration(parser.toSymbolArray(m.subList(0, m.size()-2)),
+    {: RESULT = new NamespaceDeclaration(parser.toSymbolArray(m.subList(0, m.size()-2)),
                                          (JooSymbol)m.get(m.size()-2), new Ide((JooSymbol)m.get(m.size()-1)),
                                          new Initializer(eq, new LiteralExpr(l)), s);
     :}

@@ -71,6 +71,7 @@ public class CompilationUnitModel implements ActionScriptModel {
 
       @Override
       public void visitClass(ClassModel classModel) {
+        addImport(classModel.getNamespace());
         addImport(classModel.getSuperclass());
         for (String anInterface : classModel.getInterfaces()) {
           addImport(anInterface);
@@ -82,16 +83,19 @@ public class CompilationUnitModel implements ActionScriptModel {
 
       @Override
       public void visitField(FieldModel fieldModel) {
+        addImport(fieldModel.getNamespace());
         addImport(fieldModel.getType());
       }
 
       @Override
       public void visitProperty(PropertyModel propertyModel) {
+        addImport(propertyModel.getNamespace());
         addImport(propertyModel.getType());
       }
 
       @Override
       public void visitMethod(MethodModel methodModel) {
+        addImport(methodModel.getNamespace());
         for (ParamModel paramModel : methodModel.getParams()) {
           paramModel.visit(this);
         }

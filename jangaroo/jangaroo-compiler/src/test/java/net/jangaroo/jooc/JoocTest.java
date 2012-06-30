@@ -214,7 +214,12 @@ public class JoocTest {
     assertFalse("[Native] classes must not have compile output.", compileResult.exists());
     assertApiCompilationResult("package1/SomeNativeClass");
   }
-  
+
+  @Test
+  public void testClassWithNamespacedMembers() throws Exception {
+    assertApiCompilationResult("package1/someOtherPackage/NamespacedMembers");
+  }
+
   private void assertApiCompilationResult(String path) throws URISyntaxException, IOException {
     assertApiCompilationResult(path, "");
   }

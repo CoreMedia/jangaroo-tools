@@ -47,7 +47,7 @@ import net.jangaroo.jooc.ast.ImportDirective;
 import net.jangaroo.jooc.ast.InfixOpExpr;
 import net.jangaroo.jooc.ast.Initializer;
 import net.jangaroo.jooc.ast.LabeledStatement;
-import net.jangaroo.jooc.ast.NamespacedDeclaration;
+import net.jangaroo.jooc.ast.NamespaceDeclaration;
 import net.jangaroo.jooc.ast.NamespacedIde;
 import net.jangaroo.jooc.ast.NewExpr;
 import net.jangaroo.jooc.ast.ObjectField;
@@ -390,7 +390,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   public void visitNamespacedIde(NamespacedIde namespacedIde) throws IOException {
     // so far, namespaces are only comments:
     out.beginComment();
-    out.writeSymbol(namespacedIde.getNamespace());
+    out.writeSymbol(namespacedIde.getNamespace().getSymbol());
     out.writeSymbol(namespacedIde.getSymNamespaceSep());
     out.endComment();
     visitIde(namespacedIde);
@@ -1322,16 +1322,16 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   }
 
   @Override
-  public void visitNamespacedDeclaration(NamespacedDeclaration namespacedDeclaration) throws IOException {
+  public void visitNamespaceDeclaration(NamespaceDeclaration namespaceDeclaration) throws IOException {
     out.beginString();
-    writeModifiers(out, namespacedDeclaration);
-    out.writeSymbol(namespacedDeclaration.getSymNamespace());
-    namespacedDeclaration.getIde().visit(this);
+    writeModifiers(out, namespaceDeclaration);
+    out.writeSymbol(namespaceDeclaration.getSymNamespace());
+    namespaceDeclaration.getIde().visit(this);
     out.endString();
-    out.writeSymbolWhitespace(namespacedDeclaration.getOptInitializer().getSymEq());
+    out.writeSymbolWhitespace(namespaceDeclaration.getOptInitializer().getSymEq());
     out.writeToken(",");
-    namespacedDeclaration.getOptInitializer().getValue().visit(this);
-    writeSymbolReplacement(namespacedDeclaration.getOptSymSemicolon(), ",[]");
+    namespaceDeclaration.getOptInitializer().getValue().visit(this);
+    writeSymbolReplacement(namespaceDeclaration.getOptSymSemicolon(), ",[]");
   }
 
   @Override

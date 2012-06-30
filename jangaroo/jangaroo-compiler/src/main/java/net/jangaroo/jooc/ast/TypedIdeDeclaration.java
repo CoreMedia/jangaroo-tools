@@ -26,7 +26,7 @@ import java.util.List;
  */
 public abstract class TypedIdeDeclaration extends IdeDeclaration {
 
-  private JooSymbol namespace;
+  private Ide namespace;
   private TypeRelation optTypeRelation;
 
   public TypedIdeDeclaration(JooSymbol[] modifiers, Ide ide, TypeRelation optTypeRelation) {
@@ -35,16 +35,16 @@ public abstract class TypedIdeDeclaration extends IdeDeclaration {
     this.optTypeRelation = optTypeRelation;
   }
 
-  private JooSymbol findNamespace(JooSymbol[] modifiers) {
+  private Ide findNamespace(JooSymbol[] modifiers) {
     for (JooSymbol modifier : modifiers) {
       if (getModifierFlag(modifier) == MODIFIER_NAMESPACE) {
-        return modifier;
+        return new Ide(modifier);
       }
     }
     return null;
   }
 
-  public JooSymbol getNamespace() {
+  public Ide getNamespace() {
     return namespace;
   }
 
@@ -65,6 +65,9 @@ public abstract class TypedIdeDeclaration extends IdeDeclaration {
 
   @Override
   public void scope(Scope scope) {
+    if (namespace != null) {
+      namespace.scope(scope);
+    }
     if (getOptTypeRelation() != null) {
       getOptTypeRelation().scope(scope);
     }
@@ -85,7 +88,13 @@ public abstract class TypedIdeDeclaration extends IdeDeclaration {
 
   public void analyze(AstNode parentNode) {
     super.analyze(parentNode); // computes modifiers
+    if (namespace != null) {
+      namespace.analyze(parentNode);
+    }
     if (isPublicApi()) {
+      if (namespace != null) {
+        namespace.addPublicApiDependency();
+      }
       addPublicApiDependencyOn(optTypeRelation);
     }
   }

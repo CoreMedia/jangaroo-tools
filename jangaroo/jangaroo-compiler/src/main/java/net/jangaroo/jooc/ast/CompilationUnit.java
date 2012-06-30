@@ -232,7 +232,8 @@ public class CompilationUnit extends NodeImplBase {
     if (otherUnit != null && otherUnit != this) {
       //todo extend runtime to load units with primary decls other than classes
       final IdeDeclaration otherUnitPrimaryDeclaration = otherUnit.getPrimaryDeclaration();
-      if (otherUnitPrimaryDeclaration instanceof ClassDeclaration) {
+      if (otherUnitPrimaryDeclaration instanceof ClassDeclaration
+        || otherUnitPrimaryDeclaration instanceof NamespaceDeclaration) {
         // It is a class ...
         String qname = otherUnitPrimaryDeclaration.getQualifiedNameStr();
         if (qname.indexOf('.') != -1) {

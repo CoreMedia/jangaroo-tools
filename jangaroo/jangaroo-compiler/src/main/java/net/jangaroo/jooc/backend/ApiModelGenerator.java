@@ -47,7 +47,7 @@ import net.jangaroo.jooc.ast.Initializer;
 import net.jangaroo.jooc.ast.IsExpr;
 import net.jangaroo.jooc.ast.LabeledStatement;
 import net.jangaroo.jooc.ast.LiteralExpr;
-import net.jangaroo.jooc.ast.NamespacedDeclaration;
+import net.jangaroo.jooc.ast.NamespaceDeclaration;
 import net.jangaroo.jooc.ast.NamespacedIde;
 import net.jangaroo.jooc.ast.NewExpr;
 import net.jangaroo.jooc.ast.ObjectField;
@@ -468,9 +468,9 @@ public class ApiModelGenerator {
     }
     // Public API only, thus either "protected", "public", or custom namespace:
     if (declaration instanceof TypedIdeDeclaration) {
-      JooSymbol namespace = ((TypedIdeDeclaration)declaration).getNamespace();
+      Ide namespace = ((TypedIdeDeclaration)declaration).getNamespace();
       if (namespace != null) {
-        namespacedModel.setNamespace(namespace.getText());
+        namespacedModel.setNamespace(namespace.getQualifiedNameStr());
         return;
       }
     }
@@ -617,16 +617,16 @@ public class ApiModelGenerator {
   }
 
   @Override
-  public void visitNamespacedDeclaration(NamespacedDeclaration namespacedDeclaration) throws IOException {
+  public void visitNamespaceDeclaration(NamespaceDeclaration namespaceDeclaration) throws IOException {
     NamespaceModel namespaceModel = new NamespaceModel();
     modelStack.push(namespaceModel);
     consumeRecordedAnnotations();
-    recordAsdoc(namespacedDeclaration);
-    recordAsdoc(namespacedDeclaration.getSymNamespace());
+    recordAsdoc(namespaceDeclaration);
+    recordAsdoc(namespaceDeclaration.getSymNamespace());
     consumeRecordedAsdoc();
-    generateVisibility(namespacedDeclaration);
-    namespacedDeclaration.getIde().visit(this);
-    visitIfNotNull(namespacedDeclaration.getOptInitializer());
+    generateVisibility(namespaceDeclaration);
+    namespaceDeclaration.getIde().visit(this);
+    visitIfNotNull(namespaceDeclaration.getOptInitializer());
     modelStack.pop();
     getCurrent(CompilationUnitModel.class).setPrimaryDeclaration(namespaceModel);
   }

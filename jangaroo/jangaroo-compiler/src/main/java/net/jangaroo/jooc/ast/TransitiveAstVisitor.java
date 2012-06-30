@@ -314,9 +314,9 @@ public class TransitiveAstVisitor implements AstVisitor {
     delegate.visitPredefinedTypeDeclaration(predefinedTypeDeclaration);
   }
 
-  public void visitNamespacedDeclaration(NamespacedDeclaration namespacedDeclaration) throws IOException {
-    visitChildren(namespacedDeclaration.getChildren());
-    delegate.visitNamespacedDeclaration(namespacedDeclaration);
+  public void visitNamespaceDeclaration(NamespaceDeclaration namespaceDeclaration) throws IOException {
+    visitChildren(namespaceDeclaration.getChildren());
+    delegate.visitNamespaceDeclaration(namespaceDeclaration);
   }
 
   public void visitPackageDeclaration(PackageDeclaration packageDeclaration) throws IOException {
