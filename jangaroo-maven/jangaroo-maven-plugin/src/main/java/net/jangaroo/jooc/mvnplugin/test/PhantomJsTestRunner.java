@@ -25,16 +25,16 @@ public class PhantomJsTestRunner {
 
   /**
    * @param phantomjs           the binary to execute
-   * @param testSourceDirectory the directory containing the classes to test
+   * @param testOutputDirectory the directory containing the classes to test
    * @param testRunner          the test runner script to be loaded in phantomjs
    * @param testSuite           the test suite class to run
    * @param phantomArgs         additional arguments to be passed to the phantomjs runner script
    * @param timeout             timeout in seconds
    * @param log                 the maven log
    */
-  public PhantomJsTestRunner(String phantomjs, File testSourceDirectory, String testRunner, String testSuite, String phantomArgs, int timeout, Log log) {
+  public PhantomJsTestRunner(String phantomjs, File testOutputDirectory, String testRunner, String testSuite, String phantomArgs, int timeout, Log log) {
     this.phantomjs = phantomjs;
-    this.testOutputDirectory = testSourceDirectory;
+    this.testOutputDirectory = testOutputDirectory;
     this.testRunner = testRunner;
     this.testSuite = testSuite;
     this.args = phantomArgs;

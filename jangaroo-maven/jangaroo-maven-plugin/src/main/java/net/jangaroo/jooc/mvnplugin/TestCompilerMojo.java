@@ -108,7 +108,7 @@ public class TestCompilerMojo extends AbstractCompilerMojo {
   }
 
   protected File getOutputDirectory() {
-    return isJangarooPackaging() ? new File(testOutputDirectory, "META-INF/resources") : testPackageSourceDirectory;
+    return isJangarooPackaging() ? testOutputDirectory : testPackageSourceDirectory;
   }
 
 
