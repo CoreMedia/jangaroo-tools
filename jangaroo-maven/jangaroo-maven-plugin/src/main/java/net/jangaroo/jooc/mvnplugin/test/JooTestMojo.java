@@ -13,6 +13,8 @@ import org.codehaus.plexus.util.cli.CommandLineException;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.util.resource.Resource;
+import org.eclipse.jetty.util.resource.ResourceCollection;
+import org.mortbay.jetty.plugin.JettyWebAppContext;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.NodeList;
@@ -26,7 +28,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.InetAddress;
-import java.net.MalformedURLException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
@@ -265,14 +266,25 @@ public class JooTestMojo extends AbstractMojo {
               " by -DskipTests", e);
     }
     getLog().info("JooTest report directory: " + testResultOutputDirectory.getAbsolutePath());
-    File testWebAppDirectory = new File(testOutputDirectory, "META-INF/resources");
-    getLog().info("Using base directory " + testWebAppDirectory.getAbsolutePath());
+    JettyWebAppContext handler;
+    try {
+      handler = new JettyWebAppContext();
+      handler.setWebInfLib(findJars());
+      getLog().info("Using base resource " + testOutputDirectory.getAbsolutePath());
+      handler.setBaseResource(new ResourceCollection(
+        toResource(new File(outputDirectory, "META-INF/resources")),
+        toResource(testOutputDirectory)
+      ));
+    } catch (Exception e) {
+      throw wrap(e);
+    }
+    Server server = startJetty(handler);
     Selenium selenium;
     String url;
     try {
-      url = testWebAppDirectory.toURI().toURL().toString();
-    } catch (MalformedURLException e) {
-      throw new MojoExecutionException("should not happen: could not build test base directory file URL!");
+      url = "http://" + InetAddress.getLocalHost().getCanonicalHostName() + ":" + server.getConnectors()[0].getPort();
+    } catch (UnknownHostException e) {
+      throw new MojoExecutionException("I just don't know my own hostname ... ", e);
     }
     selenium = new DefaultSelenium(jooUnitSeleniumRCHost, jooUnitSeleniumRCPort, jooUnitSeleniumBrowserStartCommand, url);
     try {
@@ -304,6 +316,12 @@ public class JooTestMojo extends AbstractMojo {
       }
     } finally {
       selenium.stop();
+      try {
+        server.stop();
+      } catch (Exception e) {
+        getLog().error(e);
+        // never mind we just couldn't step the selenium server.
+      }
     }
   }
 

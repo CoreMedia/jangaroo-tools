@@ -105,6 +105,11 @@
       <groupId>xml-apis</groupId>
       <artifactId>xml-apis</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.mortbay.jetty</groupId>
+      <artifactId>jetty-maven-plugin</artifactId>
+      <version>${jetty.version}</version>
+    </dependency>
   </dependencies>
   <parent>
     <groupId>net.jangaroo</groupId>
