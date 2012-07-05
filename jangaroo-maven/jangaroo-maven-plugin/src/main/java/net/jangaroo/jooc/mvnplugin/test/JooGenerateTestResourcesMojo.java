@@ -101,7 +101,7 @@ public class JooGenerateTestResourcesMojo extends PackageApplicationMojo {
 
   @Override
   protected void writeThisJangarooModuleScript(File scriptDirectory, Writer jangarooApplicationWriter, Writer jangarooApplicationAllWriter) throws IOException {
-    super.writeThisJangarooModuleScript(scriptDirectory, jangarooApplicationWriter, jangarooApplicationAllWriter);
+    super.writeThisJangarooModuleScript(new File(outputDirectory, "META-INF/resources/joo"), jangarooApplicationWriter, jangarooApplicationAllWriter);
     writeModule(scriptDirectory, project.getGroupId(), project.getArtifactId() + "-test", project.getVersion(),
       jangarooApplicationWriter, jangarooApplicationAllWriter);
   }
