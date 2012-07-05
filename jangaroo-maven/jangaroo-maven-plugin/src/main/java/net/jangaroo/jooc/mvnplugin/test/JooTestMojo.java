@@ -47,31 +47,8 @@ import java.util.Random;
  * @phase test
  * @requiresDependencyResolution test
  */
-public class JooTestMojo extends AbstractMojo {
-  private static final int MAX_JETTY_START_ATTEMPTS = 3;
+public class JooTestMojo extends JooTestMojoBase {
 
-  /**
-   * The maven project.
-   *
-   * @parameter expression="${project}"
-   * @required
-   * @readonly
-   */
-  @SuppressWarnings({"UnusedDeclaration"})
-  private MavenProject project;
-  /**
-   * Directory whose META-INF/RESOURCES/joo/classes sub-directory contains compiled classes.
-   *
-   * @parameter expression="${project.build.outputDirectory}"
-   */
-  @SuppressWarnings({"UnusedDeclaration", "FieldCanBeLocal"})
-  private File outputDirectory;
-  /**
-   * Directory whose joo/classes sub-directory contains compiled test classes.
-   *
-   * @parameter expression="${project.build.testOutputDirectory}"  default-value="${project.build.testOutputDirectory}"
-   */
-  private File testOutputDirectory;
   /**
    * Source directory to scan for files to compile.
    *
@@ -79,19 +56,6 @@ public class JooTestMojo extends AbstractMojo {
    */
   @SuppressWarnings({"UnusedDeclaration", "FieldCanBeLocal"})
   private File testSourceDirectory;
-  /**
-   * the tests.html file relative to the test resources folder
-   *
-   * @parameter default-value="tests.html"
-   */
-  @SuppressWarnings({"UnusedDeclaration"})
-  private String testsHtml;
-  /**
-   * the tests.html file relative to the test resources folder
-   *
-   * @parameter expression="${project.testResources}"
-   */
-  private List<org.apache.maven.model.Resource> testResources;
   /**
    * Set this to 'true' to bypass unit tests entirely. Its use is NOT RECOMMENDED, especially if you
    * enable it using the "maven.test.skip" property, because maven.test.skip disables both running the
@@ -124,26 +88,11 @@ public class JooTestMojo extends AbstractMojo {
   private String testResultFileName;
 
   /**
-   * The jetty port is selected randomly within an range of <code>[jooUnitJettyPortLowerBound:jooUnitJettyPortUpperBound]</code>.
-   *
-   * @parameter
-   */
-  @SuppressWarnings({"UnusedDeclaration", "FieldCanBeLocal"})
-  private int jooUnitJettyPortUpperBound = 10200;
-
-  /**
-   * The jetty port is selected randomly within an range of <code>[jooUnitJettyPortLowerBound:jooUnitJettyPortUpperBound]</code>.
-   *
-   * @parameter
-   */
-  @SuppressWarnings({"UnusedDeclaration", "FieldCanBeLocal"})
-  private int jooUnitJettyPortLowerBound = 10100;
-
-  /**
    * Specifies the time in milliseconds to wait for the test results in the browser. Default is 30000ms.
    *
    * @parameter
    */
+  @SuppressWarnings("FieldCanBeLocal")
   private int jooUnitTestExecutionTimeout = 30000;
 
 
@@ -215,40 +164,30 @@ public class JooTestMojo extends AbstractMojo {
   @SuppressWarnings({"UnusedDeclaration", "FieldCanBeLocal"})
   private String phantomArgs;
 
-  protected boolean isTestAvailable() {
-    for (org.apache.maven.model.Resource r : testResources) {
-      File testFile = new File(r.getDirectory(), testsHtml);
-      if (testFile.exists()) {
-        return true;
-      }
-    }
-    getLog().info("The tests.html file '" + testsHtml + "' could not be found. Skipping.");
-    return false;
-  }
-
   public void execute() throws MojoExecutionException, MojoFailureException {
     if (!skip && !skipTests) {
-      final PhantomJsTestRunner phantomJsTestRunner = new PhantomJsTestRunner(phantomBin, testOutputDirectory, phantomTestRunner, phantomTestSuite, phantomArgs, jooUnitTestExecutionTimeout, getLog());
-      getLog().info("trying to run phantomjs first: " + phantomJsTestRunner.toString());
-      if (phantomTestSuite != null && phantomJsTestRunner.isTestAvailable() && phantomJsTestRunner.canRun()) {
-        try {
-          final boolean exitCode = phantomJsTestRunner.execute();
-          String testResultXml = phantomJsTestRunner.getTestResult();
-          writeResultToFile(testResultXml);
-          evalTestOutput(testResultXml);
-          if (!exitCode) {
-            signalFailure();
-          }
-        } catch (CommandLineException e) {
-          throw wrap(e);
-        } catch (IOException e) {
-          throw wrap(e);
-        } catch (ParserConfigurationException e) {
-          throw wrap(e);
-        } catch (SAXException e) {
-          throw wrap(e);
-        }
-      } else if (isTestAvailable()) {
+//      final PhantomJsTestRunner phantomJsTestRunner = new PhantomJsTestRunner(phantomBin, testOutputDirectory, phantomTestRunner, phantomTestSuite, phantomArgs, jooUnitTestExecutionTimeout, getLog());
+//      getLog().info("trying to run phantomjs first: " + phantomJsTestRunner.toString());
+//      if (phantomTestSuite != null && phantomJsTestRunner.isTestAvailable() && phantomJsTestRunner.canRun()) {
+//        try {
+//          final boolean exitCode = phantomJsTestRunner.execute();
+//          String testResultXml = phantomJsTestRunner.getTestResult();
+//          writeResultToFile(testResultXml);
+//          evalTestOutput(testResultXml);
+//          if (!exitCode) {
+//            signalFailure();
+//          }
+//        } catch (CommandLineException e) {
+//          throw wrap(e);
+//        } catch (IOException e) {
+//          throw wrap(e);
+//        } catch (ParserConfigurationException e) {
+//          throw wrap(e);
+//        } catch (SAXException e) {
+//          throw wrap(e);
+//        }
+//      } else
+      if (isTestAvailable()) {
         executeSelenium();
       }
     }
@@ -266,27 +205,9 @@ public class JooTestMojo extends AbstractMojo {
               " by -DskipTests", e);
     }
     getLog().info("JooTest report directory: " + testResultOutputDirectory.getAbsolutePath());
-    JettyWebAppContext handler;
-    try {
-      handler = new JettyWebAppContext();
-      handler.setWebInfLib(findJars());
-      getLog().info("Using base resource " + testOutputDirectory.getAbsolutePath());
-      handler.setBaseResource(new ResourceCollection(
-        toResource(new File(outputDirectory, "META-INF/resources")),
-        toResource(testOutputDirectory)
-      ));
-    } catch (Exception e) {
-      throw wrap(e);
-    }
-    Server server = startJetty(handler);
-    Selenium selenium;
-    String url;
-    try {
-      url = "http://" + InetAddress.getLocalHost().getCanonicalHostName() + ":" + server.getConnectors()[0].getPort();
-    } catch (UnknownHostException e) {
-      throw new MojoExecutionException("I just don't know my own hostname ... ", e);
-    }
-    selenium = new DefaultSelenium(jooUnitSeleniumRCHost, jooUnitSeleniumRCPort, jooUnitSeleniumBrowserStartCommand, url);
+    Server server = jettyRunTest(true);
+    String url = getJettyUrl(server);
+    Selenium selenium = new DefaultSelenium(jooUnitSeleniumRCHost, jooUnitSeleniumRCPort, jooUnitSeleniumBrowserStartCommand, url);
     try {
       selenium.start();
       final String testsHtmlUrl = url + "/" + testsHtml.replace(File.separatorChar, '/');
@@ -325,28 +246,6 @@ public class JooTestMojo extends AbstractMojo {
     }
   }
 
-  protected List<File> findJars() throws DependencyResolutionRequiredException {
-    List<File> jars = new ArrayList<File>();
-    for (Object jarUrl : project.getTestClasspathElements()) {
-      File file = new File((String)jarUrl);
-      if (file.isFile()) { // should be a jar--don't add folders!
-        jars.add(file);
-        getLog().info("Test classpath: " + jarUrl);
-      } else {
-        getLog().info("Ignoring test classpath: " + jarUrl);
-      }
-    }
-    return jars;
-  }
-
-  private Resource toResource(File file) throws MojoExecutionException {
-    try {
-      return Resource.newResource(file);
-    } catch (IOException e) {
-      throw wrap(e);
-    }
-  }
-
   void writeResultToFile(java.lang.String testResultXml) throws IOException {
     File result = new File(testResultOutputDirectory, getTestResultFileName());
     FileUtils.writeStringToFile(result, testResultXml);
@@ -362,10 +261,6 @@ public class JooTestMojo extends AbstractMojo {
       final String result = this.phantomTestSuite != null ? this.phantomTestSuite : "TEST-" + project.getArtifactId();
       return result + ".xml";
     }
-  }
-
-  private MojoExecutionException wrap(Exception e) {
-    return new MojoExecutionException(e.toString(), e);
   }
 
   void evalTestOutput(String testResultXml) throws ParserConfigurationException, IOException, SAXException, MojoFailureException {
@@ -391,53 +286,6 @@ public class JooTestMojo extends AbstractMojo {
   private void signalFailure() throws MojoFailureException {
     if (!testFailureIgnore) {
       throw new MojoFailureException("There are test failures");
-    }
-  }
-
-  private Server startJetty(Handler handler) throws MojoExecutionException {
-    if (jooUnitJettyPortUpperBound != jooUnitJettyPortLowerBound) {
-      int count = 0;
-
-      Random r = new Random(System.currentTimeMillis());
-      while (true) {
-        int jooUnitJettyPort = r.nextInt(jooUnitJettyPortUpperBound - jooUnitJettyPortLowerBound) + jooUnitJettyPortLowerBound;
-        Server server = new Server(jooUnitJettyPort);
-        try {
-          server.setHandler(handler);
-          server.start();
-          return server;
-        } catch (Exception e) {
-          boolean retry = ++count < MAX_JETTY_START_ATTEMPTS;
-          if (retry) {
-            getLog().info(String.format("Failed starting Jetty on port %d failed. Retrying ...", jooUnitJettyPort));
-          } else {
-            getLog().error(String.format("Failed starting Jetty on port %d failed. Stop retrying!!", jooUnitJettyPort));
-          }
-          stopServerIgnoreException(server);
-          if (!retry) {
-            throw new MojoExecutionException("Cannot start jetty server", e);
-          }
-        }
-      }
-    } else {
-      Server server = new Server(jooUnitJettyPortLowerBound);
-      try {
-        server.setHandler(handler);
-        server.start();
-      } catch (Exception e) {
-        getLog().error("Failed starting Jetty on port " + jooUnitJettyPortLowerBound + " failed.");
-        stopServerIgnoreException(server);
-        throw new MojoExecutionException("Cannot start jetty server on port " + jooUnitJettyPortLowerBound, e);
-      }
-      return server;
-    }
-  }
-
-  private void stopServerIgnoreException(Server server) {
-    try {
-      server.stop();
-    } catch (Exception e1) {
-      getLog().error("Stopping Jetty failed. Never mind.");
     }
   }
 
