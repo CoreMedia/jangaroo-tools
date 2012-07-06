@@ -1,16 +1,12 @@
 package net.jangaroo.jooc.mvnplugin;
 
-import org.apache.maven.artifact.Artifact;
-import org.apache.maven.model.Plugin;
+import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.codehaus.plexus.archiver.ArchiveFileFilter;
-import org.codehaus.plexus.archiver.ArchiveFilterException;
-import org.codehaus.plexus.util.xml.Xpp3Dom;
+import org.apache.maven.project.MavenProject;
 
 import java.io.File;
-import java.io.InputStream;
-import java.util.Set;
+import java.util.List;
 
 /**
  * The <code>war-package</code> goal extracts all dependent jangaroo artifacts into
@@ -53,8 +49,14 @@ public class WarPackageMojo extends PackageApplicationMojo {
    */
   private File packageSourceDirectory;
 
+  /**
+   * @parameter expression="${project.resources}"
+   */
+  @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
+  private List<Resource> resources;
+  
   public File getPackageSourceDirectory() {
-    return packageSourceDirectory;
+    return resources.isEmpty() ? null : new File(resources.get(0).getDirectory());
   }
 
   /**
