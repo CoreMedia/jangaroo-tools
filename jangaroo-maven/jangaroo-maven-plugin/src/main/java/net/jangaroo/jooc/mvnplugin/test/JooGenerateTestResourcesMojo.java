@@ -1,15 +1,12 @@
 package net.jangaroo.jooc.mvnplugin.test;
 
 import net.jangaroo.jooc.mvnplugin.PackageApplicationMojo;
-import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 import net.jangaroo.jooc.mvnplugin.Types;
-import org.codehaus.plexus.util.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
-import java.util.List;
 
 /**
  * Prepares the Javascript Testenvironment including generation of the HTML page and decompression of jangaroo
@@ -62,13 +59,6 @@ public class JooGenerateTestResourcesMojo extends PackageApplicationMojo {
    * @parameter expression="${skipTests}"
    */
   private boolean skipTests;
-  /**
-   * the tests.html file relative to the test resources folder
-   *
-   * @parameter expression="${project.testResources}"
-   */
-  @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
-  private List<Resource> testResources;
 
   public File getPackageSourceDirectory() {
     return Types.JANGAROO_TYPE.equals(project.getPackaging()) ? outputDirectory : testPackageSourceDirectory;
@@ -80,22 +70,12 @@ public class JooGenerateTestResourcesMojo extends PackageApplicationMojo {
 
   public void execute() throws MojoExecutionException {
     if (!skip && !skipTests) {
-      try {
-        if (isTestAvailable()) {
-          getLog().info("Unpacking jangaroo dependencies to " + testOutputDirectory);
-          createWebapp(testOutputDirectory);
-          for (Resource r : testResources) {
-            File testResourceDirectory = new File(r.getDirectory());
-            if (testResourceDirectory.exists()) {
-              FileUtils.copyDirectoryStructureIfModified(testResourceDirectory, testOutputDirectory);
-            }
-          }
-        }
-      } catch (IOException e) {
-        throw new MojoExecutionException("Cannot unpack jangaroo dependencies/generate html test page", e);
+      if (isTestAvailable()) {
+        getLog().info("Creating test jangaroo-application.js below " + testOutputDirectory);
+        createWebapp(testOutputDirectory);
       }
     } else {
-      getLog().info("Skipping generation of test resources");
+      getLog().info("Skipping generation of test jangaroo-application.js");
     }
   }
 

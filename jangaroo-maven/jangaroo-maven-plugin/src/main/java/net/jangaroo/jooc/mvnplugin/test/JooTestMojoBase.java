@@ -109,11 +109,17 @@ public abstract class JooTestMojoBase extends AbstractMojo {
       handler = new JettyWebAppContext();
       handler.setWebInfLib(findJars());
       handler.setInitParameter("org.eclipse.jetty.servlet.Default.useFileMappedBuffer", "false");
-      getLog().info("Using base resource " + testOutputDirectory.getAbsolutePath());
-      handler.setBaseResource(new ResourceCollection(
-        toResource(new File(outputDirectory, "META-INF/resources")),
-        toResource(testOutputDirectory)
-      ));
+      List<Resource> baseResources = new ArrayList<Resource>();
+      baseResources.add(toResource(new File(outputDirectory, "META-INF/resources")));
+      baseResources.add(toResource(testOutputDirectory));
+      for (org.apache.maven.model.Resource r : testResources) {
+        File testResourceDirectory = new File(r.getDirectory());
+        if (testResourceDirectory.exists()) {
+           baseResources.add(toResource(testResourceDirectory));
+        }
+      }
+      handler.setBaseResource(new ResourceCollection(baseResources.toArray(new Resource[baseResources.size()])));
+      getLog().info("Using base resources " + baseResources);
     } catch (Exception e) {
       throw wrap(e);
     }
