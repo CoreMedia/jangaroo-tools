@@ -15,15 +15,21 @@
 
 package net.jangaroo.jooc;
 
+import com.google.debugging.sourcemap.FilePosition;
 import net.jangaroo.jooc.ast.IdeDeclaration;
 import net.jangaroo.jooc.config.DebugMode;
 import net.jangaroo.jooc.config.JoocOptions;
+import net.jangaroo.jooc.util.PositionTrackingWriter;
+import net.jangaroo.jooc.util.PrettyPrintFilePosition;
 
 import java.io.FilterWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author Andreas Gawecki
@@ -38,10 +44,11 @@ public final class JsWriter extends FilterWriter {
   private boolean inString = false;
   private int nOpenStrings = 0;
   private boolean suppressWhitespace = false;
+  private List<SymbolToOutputFilePosition> sourceMappings = new ArrayList<SymbolToOutputFilePosition>();
 
   public JsWriter(Writer target) {
-    super(target);
-    stringLiteralWriter = new JsStringLiteralWriter(target, false);
+    super(new PositionTrackingWriter(target));
+    stringLiteralWriter = new JsStringLiteralWriter(out, false);
   }
 
   public void setOptions(JoocOptions options) {
@@ -297,6 +304,12 @@ public final class JsWriter extends FilterWriter {
     writeSymbol(symbol, true);
   }
 
+  private FilePosition getCurrentOutputFilePosition() {
+    return new PrettyPrintFilePosition(
+      ((PositionTrackingWriter)out).getLine() - 1,
+      ((PositionTrackingWriter)out).getColumn() - 1);
+  }
+
   public void writeSymbol(JooSymbol symbol, boolean withWhitespace) throws IOException {
     if (withWhitespace) {
       writeSymbolWhitespace(symbol);
@@ -306,7 +319,25 @@ public final class JsWriter extends FilterWriter {
 
 
   public void writeSymbolToken(JooSymbol symbol) throws IOException {
+    FilePosition outputStartPosition = getCurrentOutputFilePosition();
     writeToken(symbol.getText());
+    if (!isWritingComment() && !inString) {
+      FilePosition outputFileEndPosition = getCurrentOutputFilePosition();
+      if (symbol.getLine() > 0 && symbol.getColumn() > 0) {
+        if (!sourceMappings.isEmpty()) {
+          SymbolToOutputFilePosition previousMapping = sourceMappings.get(sourceMappings.size() - 1);
+          if (previousMapping.symbol.getLine() == symbol.getLine()) {
+            previousMapping.setOutputFileEndPosition(outputFileEndPosition);
+            System.out.println("*#*#*# found another symbol, updated mapping " + previousMapping);
+            return;
+          }
+        }
+        SymbolToOutputFilePosition symbolToOutputFilePosition =
+                new SymbolToOutputFilePosition(symbol, outputStartPosition, outputFileEndPosition);
+        sourceMappings.add(symbolToOutputFilePosition);
+        System.out.println("*#*#*# map source: " + symbolToOutputFilePosition);
+      }
+    }
   }
 
   public void write(int c) throws IOException {
@@ -377,12 +408,59 @@ public final class JsWriter extends FilterWriter {
   }
 
   public void close() throws IOException {
+    close("");
+  }
+
+  public void close(String suffix) throws IOException {
     shouldWrite(); // will close comments
+    Debug.assertTrue(nOpenBeginComments == 0, "" + nOpenBeginComments + " endComment() missing");
+    write(suffix);
     super.close();
     Debug.assertTrue(nOpenBeginComments == 0, "" + nOpenBeginComments + " endComment() missing");
   }
 
+  public List<SymbolToOutputFilePosition> getSourceMappings() {
+    return Collections.unmodifiableList(sourceMappings);
+  }
+
   public boolean isWritingComment() {
     return nOpenBeginComments > 0;
+  }
+
+  public static class SymbolToOutputFilePosition {
+    private JooSymbol symbol;
+    private FilePosition outputFileStartPosition;
+    private FilePosition outputFileEndPosition;
+
+    SymbolToOutputFilePosition(JooSymbol symbol, FilePosition outputFileStartPosition, FilePosition outputFileEndPosition) {
+      this.symbol = symbol;
+      this.outputFileStartPosition = new PrettyPrintFilePosition(outputFileStartPosition.getLine(), 0);
+      this.outputFileEndPosition = outputFileEndPosition;
+    }
+
+    public JooSymbol getSymbol() {
+      return symbol;
+    }
+
+    public FilePosition getSourceFilePosition() {
+      return new PrettyPrintFilePosition(symbol.getLine() - 1, 0 /*symbol.getColumn() - 1*/);
+    }
+
+    public FilePosition getOutputFileStartPosition() {
+      return outputFileStartPosition;
+    }
+
+    public FilePosition getOutputFileEndPosition() {
+      return outputFileEndPosition;
+    }
+
+    public void setOutputFileEndPosition(FilePosition outputFileEndPosition) {
+      this.outputFileEndPosition = outputFileEndPosition;
+    }
+
+    @Override
+    public String toString() {
+      return symbol.getFileName() + ":" + getSourceFilePosition() + " to " + outputFileStartPosition + " -> " + outputFileEndPosition;
+    }
   }
 }

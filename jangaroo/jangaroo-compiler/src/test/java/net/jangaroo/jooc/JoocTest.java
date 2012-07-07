@@ -265,6 +265,10 @@ public class JoocTest {
     assertTrue("the output file " + destFile + " should exist, but doesn't", destFile.exists());
 
     String result = readFileToString(destFile);
+    int sourceMappingUrlPos = result.lastIndexOf("//@ sourceMappingURL=");
+    if (sourceMappingUrlPos != -1) {
+      result = result.substring(0, sourceMappingUrlPos);
+    }
     String expected = readFileToString(getFile("/expected/" + relativeClassFileName + ".js"));
     expected = expected.replace("@runtimeVersion", JoocProperties.getRuntimeVersion());
     expected = expected.replace("@version", JoocProperties.getVersion());
