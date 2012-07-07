@@ -397,11 +397,6 @@
           <version>2.3.1</version>
         </plugin>
         <plugin>
-          <groupId>org.codehaus.mojo</groupId>
-          <artifactId>build-helper-maven-plugin</artifactId>
-          <version>1.7</version>
-        </plugin>
-        <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-antrun-plugin</artifactId>
           <version>1.7</version>
@@ -430,11 +425,6 @@
           <groupId>org.jvnet.localizer</groupId>
           <artifactId>maven-localizer-plugin</artifactId>
           <version>1.8</version>
-        </plugin>
-        <plugin>
-          <groupId>org.codehaus.mojo</groupId>
-          <artifactId>retrotranslator-maven-plugin</artifactId>
-          <version>1.0-alpha-4</version>
         </plugin>
       </plugins>
     </pluginManagement>
