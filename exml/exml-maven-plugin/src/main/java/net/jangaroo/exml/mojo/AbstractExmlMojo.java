@@ -88,6 +88,10 @@ public abstract class AbstractExmlMojo extends JangarooMojo {
     return generatedSourcesDirectory;
   }
 
+  public File getGeneratedResourcesDirectory() {
+    return generatedResourcesDirectory;
+  }
+
   public void execute() throws MojoExecutionException, MojoFailureException {
 
     File gSourcesDirectory = getGeneratedSourcesDirectory();

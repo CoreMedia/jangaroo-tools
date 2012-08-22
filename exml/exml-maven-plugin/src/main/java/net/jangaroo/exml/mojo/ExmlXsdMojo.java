@@ -1,6 +1,7 @@
 package net.jangaroo.exml.mojo;
 
 import net.jangaroo.exml.compiler.Exmlc;
+import org.apache.maven.model.Resource;
 import org.apache.maven.project.MavenProjectHelper;
 
 import java.io.File;
@@ -35,5 +36,11 @@ public class ExmlXsdMojo extends ExmlMojo {
     File xsdFile = exmlc.generateXsd();
     projectHelper.attachArtifact(getProject(), "xsd", xsdFile);
     getLog().info("xsd-file '" + xsdFile + "' generated.");
+
+    // add target/generated-resources to project's resources so XSDs are always packaged:
+    Resource generatedResources = new Resource();
+    generatedResources.setDirectory(getGeneratedResourcesDirectory().getPath());
+    getProject().addResource(generatedResources);
+    getLog().info("added project resource '" + generatedResources + ".");
   }
 }
