@@ -57,13 +57,13 @@ under the License.
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-runtime</artifactId>
-      <version>0.9.12</version>
+      <version>@project.version@</version>
       <type>jangaroo</type>
     </dependency>
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>ext-as</artifactId>
-      <version>0.9.12</version>
+      <version>0.9.16</version>
       <type>jangaroo</type>
     </dependency>
   </dependencies>
