@@ -32,7 +32,8 @@ public class NativeClassDeclaration {
   internal static const STATE_COMPLETING : int = 1;
   internal static const STATE_COMPLETED : int = 2;
   internal static const STATE_INITIALIZING : int = 3;
-  internal static const STATE_INITIALIZED : int = 4;
+  internal static const STATE_MEMBERS_INITIALIZED : int = 4;
+  internal static const STATE_INITIALIZED : int = 5;
 
   public var
           fullClassName : String,
@@ -93,7 +94,7 @@ public class NativeClassDeclaration {
         initializationDepth = initializationDepth.substr(0, initializationDepth.length - 2);
       }
       state = STATE_INITIALIZED;
-    } else if (state === STATE_INITIALIZING && !fullClassName.match(RESOURCE_BUNDLE_PATTERN)) {
+    } else if (state < STATE_INITIALIZED && !fullClassName.match(RESOURCE_BUNDLE_PATTERN)) {
       trace("[WARN] Jangaroo Runtime: cyclic static initializer dependency in " + fullClassName);
     }
     return this;
