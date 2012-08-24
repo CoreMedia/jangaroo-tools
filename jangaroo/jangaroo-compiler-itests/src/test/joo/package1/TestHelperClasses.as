@@ -9,6 +9,9 @@ public class TestHelperClasses {
     return f();
   }
 
+  public static function getConstantFromHelperClass():String {
+    return Helper.CONST;
+  }
 }
 }
 
@@ -16,6 +19,7 @@ import package1.TestHelperClasses;
 
 class Helper {
 
+  internal static const CONST:String = "FOO";
   private var text:String = TestHelperClasses.TEXT;
 
   public function Helper(text:String) {

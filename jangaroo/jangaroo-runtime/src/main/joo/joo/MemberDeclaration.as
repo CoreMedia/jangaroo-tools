@@ -274,7 +274,8 @@ public class MemberDeclaration {
   }
 
   public function hasInitializer() : Boolean {
-    return memberType!=MEMBER_TYPE_FUNCTION && memberType!=MEMBER_TYPE_CLASS && typeof value=="function" && value.constructor!==RegExp;
+    return memberType === MEMBER_TYPE_CLASS ||
+      memberType !== MEMBER_TYPE_FUNCTION && typeof value === 'function' && value.constructor !== RegExp;
   }
 
   public function _getCloneFactory() : Function {

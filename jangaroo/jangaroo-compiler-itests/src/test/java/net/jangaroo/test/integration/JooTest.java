@@ -628,6 +628,7 @@ public class JooTest extends JooRuntimeTestCase {
   public void testHelperClasses() throws Exception {
     import_("package1.TestHelperClasses");
     complete();
+    expectString("FOO", "package1.TestHelperClasses.getConstantFromHelperClass()");
     expectString("foo", "package1.TestHelperClasses.getText()");
   }
 
