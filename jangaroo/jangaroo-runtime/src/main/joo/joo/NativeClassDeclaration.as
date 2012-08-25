@@ -104,8 +104,9 @@ public class NativeClassDeclaration {
   }
 
   public function getQualifiedName() : String {
-    // AS uses namespace notation (::) to separate package and class name:
-    return this.fullClassName.replace(/\.([^\.]+)^/, "::");
+    // AS uses namespace notation (::) to separate package and class name,
+    // so replace the last dot ('.') by a double-colon ('::'):
+    return this.fullClassName.replace(/\.([^.]+)$/, "::$1");
   }
 
   public function toString() : String {

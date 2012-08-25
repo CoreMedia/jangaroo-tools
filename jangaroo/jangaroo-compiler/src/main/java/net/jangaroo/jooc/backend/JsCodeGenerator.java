@@ -118,6 +118,19 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
   private boolean expressionMode = false;
   private CompilationUnit compilationUnit;
+  private static final MessageFormat VAR_$NAME_EQUALS_ARGUMENTS_SLICE_$INDEX =
+    new MessageFormat("var {0}=Array.prototype.slice.call(arguments{1,choice,0#|0<,{1}});");
+
+  private static void generateToArrayCode(JsWriter out, String paramName, int paramIndex) throws IOException {
+    out.write(VAR_$NAME_EQUALS_ARGUMENTS_SLICE_$INDEX.format(paramName, paramIndex));
+  }
+
+  private static CodeGenerator ARGUMENT_TO_ARRAY_CODE_GENERATOR = new CodeGenerator() {
+    @Override
+    public void generate(JsWriter out, boolean first) throws IOException {
+      generateToArrayCode(out, FunctionExpr.ARGUMENTS, 0);
+    }
+  };
 
   public JsCodeGenerator(JsWriter out) {
     super(out);
@@ -526,9 +539,14 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
   public void generateFunTailCode(FunctionExpr functionExpr) throws IOException {
     Parameters params = functionExpr.getParams();
-    if (params != null && functionExpr.hasBody()) {
-      // inject into body for generating initializers later:
-      functionExpr.getBody().addBlockStartCodeGenerator(getParameterInitializerCodeGenerator(params));
+    if (functionExpr.hasBody()) {
+      if (functionExpr.isArgumentsUsedAsArray()) {
+        functionExpr.getBody().addBlockStartCodeGenerator(ARGUMENT_TO_ARRAY_CODE_GENERATOR);
+      }
+      if (params != null) {
+        // inject into body for generating initializers later:
+        functionExpr.getBody().addBlockStartCodeGenerator(getParameterInitializerCodeGenerator(params));
+      }
     }
     generateSignatureJsCode(functionExpr);
     if (functionExpr.hasBody()) {
@@ -598,12 +616,10 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     }
   }
 
-  private static final MessageFormat VAR_$NAME_EQUALS_ARGUMENTS_SLICE_$INDEX = new MessageFormat("var {0}=Array.prototype.slice.call(arguments{1,choice,0#|0<,{1}});");
-
   public void generateRestParamCode(Parameter param, int paramIndex) throws IOException {
     String paramName = param.getName();
-    if (paramName != null && !(paramName.equals("arguments") && paramIndex == 0)) {
-      out.write(VAR_$NAME_EQUALS_ARGUMENTS_SLICE_$INDEX.format(paramName, paramIndex));
+    if (paramName != null && !(paramName.equals(FunctionExpr.ARGUMENTS) && paramIndex == 0)) {
+      generateToArrayCode(out, paramName, paramIndex);
     }
   }
 

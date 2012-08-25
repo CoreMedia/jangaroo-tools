@@ -468,6 +468,21 @@ public class JooTest extends JooRuntimeTestCase {
     expectNumber(42, "obj.xAndAnyParams(40,2,3);");
   }
 
+  public void testArguments() throws Exception {
+    import_("package1.TestArguments");
+    complete();
+    eval("obj = new package1.TestArguments();");
+
+    expectString("a,2,III", "obj.joinArguments('a',2,'III')");
+    expectString("a,2,III", "obj.joinArgumentsClassic('a',2,'III')");
+    expectString("a,2,III", "obj.joinArgumentsAuxVar('a',2,'III')");
+    expectString("a,2,III", "obj.joinRest('a',2,'III')");
+    expectString("a,2,III", "obj.joinExplicitArguments('a',2,'III')");
+    expectString("a/2/III", "obj.joinRestWithSeparator('/', 'a',2,'III')");
+    expectString("a/2/III", "obj.testArguments('a',2,'III').join('/')");
+    expectString("foo", "obj.testParameterShadesArguments('foo')");
+  }
+
   public void testGetterSetter() throws Exception {
     import_("package1.TestGetterSetter");
     import_("package1.TestSetterOverride");
@@ -628,6 +643,7 @@ public class JooTest extends JooRuntimeTestCase {
   public void testHelperClasses() throws Exception {
     import_("package1.TestHelperClasses");
     complete();
+    expectString("FOO", "package1.TestHelperClasses.getConstantFromHelperClass()");
     expectString("foo", "package1.TestHelperClasses.getText()");
   }
 

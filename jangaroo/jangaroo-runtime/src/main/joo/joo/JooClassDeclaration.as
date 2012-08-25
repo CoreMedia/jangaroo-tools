@@ -245,9 +245,14 @@ public class JooClassDeclaration extends NativeClassDeclaration {
                 var secondaryClass:NativeClassDeclaration = classLoader.prepare("package " + this.fullClassName, item,
                   helperInheritanceLevel, helperMemberDeclarations,
                   helperStatics, [], runtimeApiVersion, compilerVersion).complete();
+
+                // revert that the class has already set itself as a static member, because it considers the primary class its package.
+                // otherwise, the static initializer that inits the secondary class may not be set by _storeMember()!
+                delete getQualifiedObject(fullClassName)[memberDeclaration.memberName];
+
                 memberDeclaration._static = true;
                 memberDeclaration.initSlot(level);
-                this._storeMember(memberDeclaration, secondaryClass.publicConstructor);
+                this._storeMember(memberDeclaration, createSecondaryClassInitializer(secondaryClass.publicConstructor));
                 break;
               default:
                 for (var memberName:String in member) {
@@ -274,6 +279,13 @@ public class JooClassDeclaration extends NativeClassDeclaration {
         _setConstructor(createSuperConstructor(this));
       }
     }
+  }
+
+  private static function createSecondaryClassInitializer(secondaryClass:Function):Function {
+    return function():Function {
+      // init secondary class together with primary class:
+      return classLoader.init(secondaryClass);
+    };
   }
 
   //noinspection JSFieldCanBeLocalInspection
@@ -406,9 +418,11 @@ public class JooClassDeclaration extends NativeClassDeclaration {
         // static statements
         staticInitializer();
       } else {
+        //noinspection UnnecessaryLocalVariableJS
+        var memberDeclaration:MemberDeclaration = staticInitializer;
         // static variable initializer expression
-        var target : Object = staticInitializer.isPrivate() ? this.privateStatics : this.constructor_;
-        target[staticInitializer.slot] = target[staticInitializer.slot]();
+        var target : Object = memberDeclaration.isPrivate() ? this.privateStatics : this.constructor_;
+        target[memberDeclaration.slot] = target[memberDeclaration.slot]();
       }
     }
   }
