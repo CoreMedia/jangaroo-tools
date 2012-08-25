@@ -198,7 +198,7 @@ public class ClassDeclaration extends IdeDeclaration {
     if (getOptExtends() != null) {
       getOptExtends().analyze(this);
       String packageName = getOptExtends().getSuperClass().getDeclaration().getPackageDeclaration().getQualifiedNameStr();
-      if (packageName.length() > 0) {
+      if (packageName.length() > 0 && parentNode instanceof CompilationUnit) {
         ((CompilationUnit)parentNode).getAuxVarForPackage(scope, packageName);
       }
     }

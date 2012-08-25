@@ -1,5 +1,5 @@
 /**
- * API and documentation by Adobe®.
+ * API and documentation by Adobeï¿½.
  * Licensed under http://creativecommons.org/licenses/by-nc-sa/3.0/
  */
 package {
@@ -14,7 +14,7 @@ package {
  * <p>To calculate degrees from radians, use the following formula:</p>
  * <pre> degrees = radians * 180/Math.PI
  </pre>
- * <p>The following is an example of passing the equation as a parameter to calculate the sine of a 45° angle:</p>
+ * <p>The following is an example of passing the equation as a parameter to calculate the sine of a 45ï¿½ angle:</p>
  * <p><code>Math.sin(45 * Math.PI/180)</code> is the same as <code>Math.sin(.7854)</code></p>
  * <p><b>Note:</b> The Math functions acos, asin, atan, atan2, cos, exp, log, pow, sin, and sqrt may result in slightly different values depending on the algorithms used by the CPU or operating system. Flash runtimes call on the CPU (or operating system if the CPU doesn't support floating point calculations) when performing the calculations for the listed functions, and results have shown slight variations depending upon the CPU or operating system in use.</p>
  */
@@ -163,7 +163,7 @@ public final class Math {
   public static native function pow(base : Number, pow : Number) : Number;
 
   /**
-   * Returns a pseudo-random number n, where 0 <= n < 1. The number returned is calculated in an undisclosed manner, and is "pseudo-random" because the calculation inevitably contains some element of non-randomness.
+   * Returns a pseudo-random number n, where 0 &lt;= n &lt; 1. The number returned is calculated in an undisclosed manner, and is "pseudo-random" because the calculation inevitably contains some element of non-randomness.
    * @return A pseudo-random number.
    *
    */

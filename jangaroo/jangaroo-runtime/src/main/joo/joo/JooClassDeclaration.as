@@ -22,7 +22,7 @@ public class JooClassDeclaration extends NativeClassDeclaration {
   public static const STATE_EVENT_AFTER_INIT_MEMBERS:String = 'afterInitMembers';
   private static var STATE_BY_EVENT:Object;
   STATE_BY_EVENT = {
-    'afterInitMembers': STATE_INITIALIZED
+    'afterInitMembers': STATE_MEMBERS_INITIALIZED
   };
 
   internal var
@@ -398,6 +398,7 @@ public class JooClassDeclaration extends NativeClassDeclaration {
     } else {
       addToInterfaces(constructor_);
     }
+    this.state = STATE_MEMBERS_INITIALIZED;
     fireStateEvent(STATE_EVENT_AFTER_INIT_MEMBERS);
     for (var i:int=0; i<this.staticInitializers.length; ++i) {
       var staticInitializer : * = this.staticInitializers[i];

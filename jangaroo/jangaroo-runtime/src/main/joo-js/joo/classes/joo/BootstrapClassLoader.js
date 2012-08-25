@@ -83,11 +83,13 @@
       }
       // special case int and uint:
       if (type === $$int || type === $$uint) {
-        if ((typeof object === 'number' || object instanceof Number) && !isNaN(object)) {
-          var intValue = Math.floor(object);
-          return intValue == object && (type !== $$uint || intValue >= 0);
+        if (object instanceof Number) {
+          object = object.valueOf();
+        } else if (typeof object !== 'number') {
+          return false;
         }
-        return false;
+        // thanks http://stackoverflow.com/questions/3885817/how-to-check-if-a-number-is-float-or-integer
+        return (type === $$uint ? object >>> 0 : object | 0) === object;
       }
       if (typeof object === 'object') {
         // only Objects may implement a Jangaroo interface:
