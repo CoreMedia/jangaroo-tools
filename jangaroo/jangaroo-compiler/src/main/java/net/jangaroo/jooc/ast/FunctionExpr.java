@@ -30,7 +30,8 @@ import java.util.List;
  */
 public class FunctionExpr extends Expr {
 
-  public static final Ide ARGUMENTS_IDE = new Ide(new JooSymbol("arguments"));
+  public static final String ARGUMENTS = "arguments";
+  public static final Ide ARGUMENTS_IDE = new Ide(new JooSymbol(ARGUMENTS));
 
   //todo unify predefined type definitions, they are scattered all over
   public static final Type ANY_TYPE = new Type(new JooSymbol(sym.MUL, "", -1, -1, "", AS3Type.ANY.toString()));
@@ -46,6 +47,8 @@ public class FunctionExpr extends Expr {
   private List<Parameter> implicitParams = new LinkedList<Parameter>();
   private FunctionDeclaration functionDeclaration; // null for function expressions
   private boolean thisDefined = false;
+  private final Parameter argumentsParameter;
+  private boolean argumentsUsedAsArray = false;
   private IdeDeclaration classDeclaration;
 
   public FunctionExpr(FunctionDeclaration functionDeclaration, JooSymbol symFunction, Ide ide, JooSymbol lParen,
@@ -58,8 +61,15 @@ public class FunctionExpr extends Expr {
     this.params = params;
     this.rParen = rParen;
     this.optBody = optBody;
-    // 'arguments' is always defined inside a function!
-    implicitParams.add(new Parameter(null, ARGUMENTS_IDE, null, null));
+    // is there an single rest parameter called 'arguments'?
+    if (params != null && params.getHead() != null && params.getTail() == null && params.getHead().isRest()
+      && ARGUMENTS.equals(params.getHead().getName())) {
+      argumentsParameter = params.getHead();
+    } else {
+      // 'arguments' is implicitly defined inside a function!
+      argumentsParameter = new Parameter(null, ARGUMENTS_IDE, null, null);
+      implicitParams.add(argumentsParameter);
+    }
   }
 
   @Override
@@ -189,6 +199,16 @@ public class FunctionExpr extends Expr {
       }
     }
     return false;
+  }
+
+  void notifyArgumentsUsed(IdeDeclaration argumentsIdeDeclaration) {
+    if (argumentsIdeDeclaration == argumentsParameter) {
+      argumentsUsedAsArray = true;
+    }
+  }
+
+  public boolean isArgumentsUsedAsArray() {
+    return argumentsUsedAsArray;
   }
 
 }

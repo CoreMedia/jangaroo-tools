@@ -248,6 +248,12 @@ public class Ide extends NodeImplBase {
               String auxVarForPackage = scope.getCompilationUnit().getAuxVarForPackage(scope, qName);
               packagePrefix = auxVarForPackage + ".";
             }
+          } else if ((!isQualifier() || exprParent instanceof ApplyExpr)
+            && !(exprParent instanceof ArrayIndexExpr) && (decl instanceof Parameter)) {
+            FunctionExpr currentFunction = scope.getFunctionExpr();
+            if (currentFunction != null) {
+              currentFunction.notifyArgumentsUsed(decl);
+            }
           }
         }
       }
