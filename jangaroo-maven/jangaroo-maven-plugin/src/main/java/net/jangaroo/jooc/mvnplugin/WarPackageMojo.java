@@ -37,6 +37,7 @@ import java.util.List;
  * @goal war-package
  * @requiresDependencyResolution runtime
  * @phase prepare-package
+ * @threadSafe
  */
 @SuppressWarnings({"ResultOfMethodCallIgnored", "UnusedDeclaration", "UnusedPrivateField"})
 public class WarPackageMojo extends PackageApplicationMojo {

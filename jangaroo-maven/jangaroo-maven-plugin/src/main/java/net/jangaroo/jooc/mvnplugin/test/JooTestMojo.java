@@ -46,6 +46,7 @@ import java.util.Random;
  * @goal test
  * @phase test
  * @requiresDependencyResolution test
+ * @threadSafe
  */
 public class JooTestMojo extends JooTestMojoBase {
 

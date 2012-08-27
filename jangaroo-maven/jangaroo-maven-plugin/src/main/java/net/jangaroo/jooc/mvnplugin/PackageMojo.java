@@ -27,6 +27,7 @@ import java.util.Set;
  *
  * @goal package
  * @phase package
+ * @threadSafe
  */
 @SuppressWarnings({"ResultOfMethodCallIgnored", "UnusedDeclaration", "UnusedPrivateField"})
 public class PackageMojo extends AbstractMojo {

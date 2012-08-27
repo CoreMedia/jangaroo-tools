@@ -15,6 +15,7 @@ import java.util.List;
  * @goal exml-xsd
  * @phase generate-resources
  * @requiresDependencyResolution
+ * @threadSafe
  */
 public class ExmlXsdMojo extends ExmlMojo {
 

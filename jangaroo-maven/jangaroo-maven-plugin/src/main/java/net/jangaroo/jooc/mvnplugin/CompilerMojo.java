@@ -9,6 +9,7 @@ import java.util.*;
  * @goal compile
  * @phase compile
  * @requiresDependencyResolution compile
+ * @threadSafe
  */
 @SuppressWarnings({"UnusedDeclaration", "UnusedPrivateField"})
 public class CompilerMojo extends AbstractCompilerMojo {

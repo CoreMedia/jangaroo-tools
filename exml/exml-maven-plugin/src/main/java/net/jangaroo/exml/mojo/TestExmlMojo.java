@@ -16,6 +16,7 @@ import java.util.List;
  * @goal test-exml
  * @phase generate-test-sources
  * @requiresDependencyResolution
+ * @threadSafe
  */
 public class TestExmlMojo extends AbstractExmlMojo {
 
