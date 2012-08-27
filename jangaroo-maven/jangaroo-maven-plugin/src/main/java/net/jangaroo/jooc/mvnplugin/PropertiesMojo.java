@@ -24,6 +24,7 @@ import java.util.Arrays;
  * @goal properties
  * @phase generate-sources
  * @requiresDependencyResolution
+ * @threadSafe
  */
 @SuppressWarnings({"ResultOfMethodCallIgnored", "UnusedDeclaration", "UnusedPrivateField"})
 public class PropertiesMojo extends AbstractMojo {

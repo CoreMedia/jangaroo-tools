@@ -12,7 +12,7 @@ import java.util.*;
  * @goal testCompile
  * @phase test-compile
  * @requiresDependencyResolution test
- *
+ * @threadSafe
  */
 @SuppressWarnings({"UnusedDeclaration", "UnusedPrivateField"})
 public class TestCompilerMojo extends AbstractCompilerMojo {

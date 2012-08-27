@@ -118,17 +118,17 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
   private boolean expressionMode = false;
   private CompilationUnit compilationUnit;
-  private static final MessageFormat VAR_$NAME_EQUALS_ARGUMENTS_SLICE_$INDEX =
+  private final MessageFormat VAR_$NAME_EQUALS_ARGUMENTS_SLICE_$INDEX =
     new MessageFormat("var {0}=Array.prototype.slice.call(arguments{1,choice,0#|0<,{1}});");
 
-  private static void generateToArrayCode(JsWriter out, String paramName, int paramIndex) throws IOException {
+  private void generateToArrayCode(String paramName, int paramIndex) throws IOException {
     out.write(VAR_$NAME_EQUALS_ARGUMENTS_SLICE_$INDEX.format(paramName, paramIndex));
   }
 
-  private static CodeGenerator ARGUMENT_TO_ARRAY_CODE_GENERATOR = new CodeGenerator() {
+  private final CodeGenerator ARGUMENT_TO_ARRAY_CODE_GENERATOR = new CodeGenerator() {
     @Override
     public void generate(JsWriter out, boolean first) throws IOException {
-      generateToArrayCode(out, FunctionExpr.ARGUMENTS, 0);
+      generateToArrayCode(FunctionExpr.ARGUMENTS, 0);
     }
   };
 
@@ -584,9 +584,9 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     };
   }
 
-  private static final MessageFormat IF_ARGUMENT_LENGTH_LTE_$N = new MessageFormat("if(arguments.length<={0})");
-  private static final MessageFormat SWITCH_$INDEX = new MessageFormat("switch({0,choice,0#arguments.length|0<Math.max(arguments.length,{0})})");
-  private static final MessageFormat CASE_$N = new MessageFormat("case {0}:");
+  private final MessageFormat IF_ARGUMENT_LENGTH_LTE_$N = new MessageFormat("if(arguments.length<={0})");
+  private final MessageFormat SWITCH_$INDEX = new MessageFormat("switch({0,choice,0#arguments.length|0<Math.max(arguments.length,{0})})");
+  private final MessageFormat CASE_$N = new MessageFormat("case {0}:");
 
   private void generateParameterInitializers(JsWriter out, Map<Integer, Parameter> paramByIndex) throws IOException {
     Iterator<Map.Entry<Integer, Parameter>> paramByIndexIterator = paramByIndex.entrySet().iterator();
@@ -619,7 +619,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   public void generateRestParamCode(Parameter param, int paramIndex) throws IOException {
     String paramName = param.getName();
     if (paramName != null && !(paramName.equals(FunctionExpr.ARGUMENTS) && paramIndex == 0)) {
-      generateToArrayCode(out, paramName, paramIndex);
+      generateToArrayCode(paramName, paramIndex);
     }
   }
 

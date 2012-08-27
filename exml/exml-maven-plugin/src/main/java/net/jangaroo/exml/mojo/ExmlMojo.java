@@ -15,6 +15,7 @@ import java.util.List;
  * @goal exml
  * @phase generate-sources
  * @requiresDependencyResolution
+ * @threadSafe
  */
 public class ExmlMojo extends AbstractExmlMojo {
 

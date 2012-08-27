@@ -45,6 +45,7 @@ import java.util.Random;
  *
  * @goal test
  * @phase test
+ * @threadSafe
  */
 @SuppressWarnings({"UnusedDeclaration", "FieldCanBeLocal", "ResultOfMethodCallIgnored", "UnusedPrivateField"})
 public class JooTestMojo extends AbstractMojo {

@@ -18,6 +18,7 @@ import java.util.List;
  * @requiresDependencyResolution test
  * @goal unpack-jangaroo-test-dependencies
  * @phase test-compile
+ * @threadSafe
  */
 @SuppressWarnings({"UnusedDeclaration"})
 public class JooGenerateTestResourcesMojo extends PackageApplicationMojo {
