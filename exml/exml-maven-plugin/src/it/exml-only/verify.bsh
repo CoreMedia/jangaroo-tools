@@ -20,7 +20,7 @@ try
         return false;
     }
 
-    File generatedAS = new File ( generatedSources, "MyComponent.as" );
+    File generatedAS = new File ( generatedSources, "testPackage"+File.separator+"MyComponent.as" );
     if ( !generatedAS.exists() || !generatedAS.isFile() )
     {
         System.err.println( generatedAS + " output file is missing or not a file." );
