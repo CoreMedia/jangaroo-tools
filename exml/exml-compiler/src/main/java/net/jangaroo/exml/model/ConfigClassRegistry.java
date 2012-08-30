@@ -192,6 +192,15 @@ public final class ConfigClassRegistry {
     return configClass;
   }
 
+  public ConfigClass getConfigClassOfTargetClass(String targetClassName) {
+    for (ConfigClass configClass : configClassesByName.values()) {
+      if (targetClassName.equals(configClass.getComponentClassName())) {
+        return configClass;
+      }
+    }
+    return null;
+  }
+
   private void addConfigClass(ConfigClass configClass) {
     if(configClass != null) {
       String name = configClass.getFullName();

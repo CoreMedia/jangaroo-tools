@@ -246,6 +246,10 @@ public final class ExmlToModelParser {
   private ConfigClass getConfigClassByName(String className, Node errorNode) {
     ConfigClass configClass = registry.getConfigClassByName(className);
     if (configClass == null) {
+      // maybe it is a target class?
+      configClass = registry.getConfigClassOfTargetClass(className);
+    }
+    if (configClass == null) {
       int lineNumber = getLineNumber(errorNode);
       throw new ExmlcException("unknown type '" + className + "'", lineNumber);
     }
