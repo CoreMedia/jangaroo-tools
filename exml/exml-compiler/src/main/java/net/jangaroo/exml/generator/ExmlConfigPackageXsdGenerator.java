@@ -34,12 +34,12 @@ public class ExmlConfigPackageXsdGenerator {
     Map<String,Collection<ConfigClass>> configClassesByTargetClassPackage =
       registry.getRegisteredConfigClassesByTargetClassPackage();
     for (Map.Entry<String, Collection<ConfigClass>> entry : configClassesByTargetClassPackage.entrySet()) {
-      ExmlConfigPackage suite = new ExmlConfigPackage(entry.getValue(), entry.getKey());
+      ExmlConfigPackage suite = new ExmlConfigPackage(entry.getValue(), entry.getKey(), true);
       generateXsdFile(suite);
     }
     Collection<ConfigClass> configClasses = registry.getRegisteredConfigClasses();
     String packageName = config.getConfigClassPackage();
-    return generateXsdFile(new ExmlConfigPackage(configClasses, packageName));
+    return generateXsdFile(new ExmlConfigPackage(configClasses, packageName, false));
   }
 
   private File generateXsdFile(ExmlConfigPackage suite) throws IOException, TemplateException {
@@ -69,7 +69,7 @@ public class ExmlConfigPackageXsdGenerator {
 
   public void generateXsdFile(final ConfigClassRegistry registry, final Writer output) throws IOException, TemplateException {
     registry.scanAllAsFiles();
-    generateXsdFile(new ExmlConfigPackage(registry.getRegisteredConfigClasses(), config.getConfigClassPackage()),
+    generateXsdFile(new ExmlConfigPackage(registry.getRegisteredConfigClasses(), config.getConfigClassPackage(), false),
       output);
   }
 

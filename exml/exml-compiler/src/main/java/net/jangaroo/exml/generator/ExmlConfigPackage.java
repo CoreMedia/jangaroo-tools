@@ -30,11 +30,10 @@ public class ExmlConfigPackage {
   private String packageName;
   private String ns;
 
-  public ExmlConfigPackage(Collection<ConfigClass> cl, String packageName) {
+  public ExmlConfigPackage(Collection<ConfigClass> cl, String packageName, boolean useTargetClassNames) {
     this.packageName = packageName;
     ns = calcNsFromPackageName(packageName, 1);
     exmlElements = new ArrayList<ExmlElement>(cl.size());
-    boolean useTargetClassNames = !packageName.endsWith(".config");
     for (ConfigClass configClass : cl) {
       exmlElements.add(useTargetClassNames
         ? new ConfigClassToNewExmlElementAdapter(configClass)
