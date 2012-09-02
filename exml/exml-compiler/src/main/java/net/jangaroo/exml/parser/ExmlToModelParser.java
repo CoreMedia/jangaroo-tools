@@ -248,7 +248,7 @@ public final class ExmlToModelParser {
     if (configClass == null) {
       // maybe it is a target class?
       configClass = registry.getConfigClassOfTargetClass(className);
-    }
+      }
     if (configClass == null) {
       int lineNumber = getLineNumber(errorNode);
       throw new ExmlcException("unknown type '" + className + "'", lineNumber);
@@ -311,6 +311,7 @@ public final class ExmlToModelParser {
           // by using net.jangaroo.ext.create() with its configClass and the config:
           arrayItemJsonObject.settingConfigClass(configClass.getFullName());
           model.addImport(configClass.getFullName());
+          model.addImport(configClass.getComponentClassName());
           model.addImport(JsonObject.NET_JANGAROO_EXT_CREATE);
         } else {
           if (arrayItemClassName.startsWith(EXT_CONFIG_PREFIX)) {
@@ -319,6 +320,7 @@ public final class ExmlToModelParser {
           } else {
             arrayItemJsonObject.settingWrapperClass(configClass.getFullName());
             model.addImport(configClass.getFullName());
+            model.addImport(configClass.getComponentClassName());
           }
         }
 
