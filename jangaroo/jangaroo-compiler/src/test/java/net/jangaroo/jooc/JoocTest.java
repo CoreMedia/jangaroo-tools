@@ -200,6 +200,7 @@ public class JoocTest {
   
   @Test
   public void testPackageGlobalVarApi() throws Exception {
+    config.setExcludeClassByDefault(true);
     assertApiCompilationResult("package1/somePackageGlobal");
   }
   
