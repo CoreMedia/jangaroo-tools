@@ -489,10 +489,14 @@ public class ApiModelGenerator {
 
   @Override
   public void visitVariableDeclaration(VariableDeclaration variableDeclaration) throws IOException {
-    if (variableDeclaration.isPublicApi()) {
+    boolean isTopLevelDeclaration = modelStack.peek() instanceof CompilationUnitModel;
+    if (variableDeclaration.isPublicApi() || isTopLevelDeclaration) {
       FieldModel fieldModel = new FieldModel();
       modelStack.push(fieldModel);
       consumeRecordedAnnotations();
+      if (isTopLevelDeclaration) {
+        handleExcludeClassByDefault(fieldModel);
+      }
       recordAsdoc(variableDeclaration);
       recordAsdoc(variableDeclaration.getOptSymConstOrVar());
       consumeRecordedAsdoc();
@@ -513,10 +517,14 @@ public class ApiModelGenerator {
 
   @Override
   public void visitFunctionDeclaration(FunctionDeclaration functionDeclaration) throws IOException {
-    if (functionDeclaration.isPublicApi() || modelStack.peek() instanceof CompilationUnitModel) {
+    boolean isTopLevelDeclaration = modelStack.peek() instanceof CompilationUnitModel;
+    if (functionDeclaration.isPublicApi() || isTopLevelDeclaration) {
       MethodModel methodModel = new MethodModel();
       modelStack.push(methodModel);
       consumeRecordedAnnotations();
+      if (isTopLevelDeclaration) {
+        handleExcludeClassByDefault(methodModel);
+      }
       recordAsdoc(functionDeclaration);
       recordAsdoc(functionDeclaration.getSymbol());
       consumeRecordedAsdoc();
@@ -594,20 +602,7 @@ public class ApiModelGenerator {
     classModel.setDynamic(classDeclaration.isDynamic());
     generateVisibility(classDeclaration);
     consumeRecordedAnnotations();
-    if (isExcludeClassByDefault()) {
-      // Add an [ExcludeClass] annotation, unless
-      boolean needsExcludeClassAnnotation = true;
-      for (AnnotationModel annotationModel : classModel.getAnnotations()) {
-        String metaName = annotationModel.getName();
-        // ... an [PublicApi] or [ExcludeClass] annotation is already present.
-        needsExcludeClassAnnotation = needsExcludeClassAnnotation &&
-          !Jooc.PUBLIC_API_INCLUSION_ANNOTATION_NAME.equals(metaName) &&
-          !Jooc.PUBLIC_API_EXCLUSION_ANNOTATION_NAME.equals(metaName);
-      }
-      if (needsExcludeClassAnnotation) {
-        classModel.addAnnotation(new AnnotationModel(Jooc.PUBLIC_API_EXCLUSION_ANNOTATION_NAME));
-      }
-    }
+    handleExcludeClassByDefault(classModel);
     classDeclaration.getIde().visit(this);
     classModel.setInterface(classDeclaration.isInterface());
     visitIfNotNull(classDeclaration.getOptExtends());
@@ -616,11 +611,29 @@ public class ApiModelGenerator {
     modelStack.pop();
   }
 
+  private void handleExcludeClassByDefault(AnnotatedModel annotatedModel) {
+    if (isExcludeClassByDefault()) {
+      // Add an [ExcludeClass] annotation, unless
+      boolean needsExcludeClassAnnotation = true;
+      for (AnnotationModel annotationModel : annotatedModel.getAnnotations()) {
+        String metaName = annotationModel.getName();
+        // ... an [PublicApi] or [ExcludeClass] annotation is already present.
+        needsExcludeClassAnnotation = needsExcludeClassAnnotation &&
+                !Jooc.PUBLIC_API_INCLUSION_ANNOTATION_NAME.equals(metaName) &&
+                !Jooc.PUBLIC_API_EXCLUSION_ANNOTATION_NAME.equals(metaName);
+      }
+      if (needsExcludeClassAnnotation) {
+        annotatedModel.addAnnotation(new AnnotationModel(Jooc.PUBLIC_API_EXCLUSION_ANNOTATION_NAME));
+      }
+    }
+  }
+
   @Override
   public void visitNamespaceDeclaration(NamespaceDeclaration namespaceDeclaration) throws IOException {
     NamespaceModel namespaceModel = new NamespaceModel();
     modelStack.push(namespaceModel);
     consumeRecordedAnnotations();
+    handleExcludeClassByDefault(namespaceModel);
     recordAsdoc(namespaceDeclaration);
     recordAsdoc(namespaceDeclaration.getSymNamespace());
     consumeRecordedAsdoc();
