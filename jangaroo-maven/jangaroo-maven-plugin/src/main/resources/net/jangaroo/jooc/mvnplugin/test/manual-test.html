@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Unit Tests</title>
+  <meta charset="ISO-8859-1">
+  <script type="text/javascript" src="joo/jangaroo-application.js"></script>
+  <script type="text/javascript">
+
+    // --- handles the test result (formatted as xml): Writes the raw content into the page.
+    // TODO implement this more properly
+    var handleResult = function(resultObject, resultXml) {
+
+      var testElement = document.getElementById('test');
+      // remove all current child element (=text message)
+      while (testElement.hasChildNodes()) {
+        testElement.removeChild(testElement.lastChild);
+      }
+      var resultElement = document.createElement("pre");
+      resultElement.appendChild(document.createTextNode(resultXml));
+
+      testElement.appendChild(resultElement);
+    };
+
+    // ---- execute the tests
+    var executeTests = function() {
+      joo.classLoader.run("net.jangaroo.joounit.runner.BrowserRunner", {
+        // test fully qualified class name of the test (suite).
+        // Pitfall: If this test doesn't exist then nothing happens at all
+        "testSuiteName": "this.is.a.pseudo.TestSuite",
+        // callback that receives the test result
+        "onComplete": handleResult
+      });
+    }
+  </script>
+</head>
+<body onload="executeTests()">
+<div id="test">
+  Executing unit tests ...
+</div>
+</body>
+</html>

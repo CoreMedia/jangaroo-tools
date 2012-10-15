@@ -69,16 +69,6 @@ public class PhantomJsTestMojo extends TestMojoBase {
 
 
   /**
-   * The (actionscript) test's class name to run, e.g. com.mycompany.MyTestSuite. Needs to be an implementation of
-   * flexunit.framework.Test (e.g. flexunit.framework.TestSuite)
-   *
-   *
-   * @parameter
-   * @required
-   */
-  private String test;
-
-  /**
    * Time in milliseconds to wait for the test to finish. Default is 30000ms.
    *
    * @parameter
@@ -140,13 +130,13 @@ public class PhantomJsTestMojo extends TestMojoBase {
 
     String bootstrapScript = mode == Mode.direct ? "joo/phantomjs-joounit-runner.js" : "joo/phantomjs-joounit-page-runner.js";
 
-    PhantomJsTestRunner runner = new PhantomJsTestRunner(executable, testOutputDirectory, bootstrapScript, test, args, timeout, getLog());
+    PhantomJsTestRunner runner = new PhantomJsTestRunner(executable, testOutputDirectory, bootstrapScript, getTestClassName(), args, timeout, getLog());
     getLog().info("trying to run phantomjs first: " + runner.toString());
     if (runner.canRun()) {
 
       boolean exitCode = runner.execute();
       String testResultXml = runner.getTestResult();
-      writeResultToFile(test, testResultXml);
+      writeResultToFile(getTestClassName(), testResultXml);
       evalTestOutput(testResultXml);
       if (!exitCode) {
         throw new MojoFailureException("There are test failures");

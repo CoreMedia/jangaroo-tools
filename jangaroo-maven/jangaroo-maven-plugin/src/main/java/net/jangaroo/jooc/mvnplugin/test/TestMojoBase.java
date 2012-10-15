@@ -82,6 +82,14 @@ public abstract class TestMojoBase extends AbstractMojo {
   protected File outputDirectory;
 
 
+  /**
+   * The (actionscript) test's class name to run, e.g. com.mycompany.MyTestSuite. Needs to be an implementation of
+   * flexunit.framework.Test (e.g. flexunit.framework.TestSuite)
+   *
+   * @parameter
+   * @required
+   */
+  private String testClass;
 
   // ====================
 
@@ -133,6 +141,22 @@ public abstract class TestMojoBase extends AbstractMojo {
         getLog().warn("Error extracting resources from " + file.getAbsolutePath(), e1);
       }
     }
+  }
+
+  /**
+   *
+   * @return The name of the test class
+   */
+  protected String getTestClassName() {
+    return testClass;
+  }
+
+  protected File getTestOutputDirectory() {
+    return testOutputDirectory;
+  }
+
+  protected File getOutputDirectory() {
+    return outputDirectory;
   }
 
   // ============
