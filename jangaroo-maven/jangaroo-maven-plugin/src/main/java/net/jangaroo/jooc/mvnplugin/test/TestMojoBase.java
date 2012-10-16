@@ -17,10 +17,12 @@ import org.sonatype.aether.util.artifact.DefaultArtifact;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 
 /**
@@ -189,6 +191,33 @@ public abstract class TestMojoBase extends AbstractMojo {
       getLog().warn("Error resolving artifact "+artifact, e);
       return null;
     }
+  }
+
+
+  /**
+   * Copies a text resource (encoded as UTF-8) to a file and replaces certain tokens
+   */
+  protected void copyAndReplace(InputStream source, File target, Properties tokens) throws IOException{
+
+    // -- 1. read in source
+    StringBuilder sourceBuilder = new StringBuilder();
+
+    InputStreamReader reader = new InputStreamReader(source, "UTF-8");
+    char[] buffer = new char[1024];
+    int length;
+    while( (length = reader.read(buffer)) > -1 ) {
+      sourceBuilder.append(buffer, 0, length);
+    }
+    source.close();
+    String sourceString = sourceBuilder.toString();
+
+    // -- 2. replace tokens
+    for( String name : tokens.stringPropertyNames() ) {
+      sourceString = sourceString.replace(name, tokens.getProperty(name));
+    }
+
+    // -- 3. write template
+    FileUtils.write(target, sourceString);
   }
 
 

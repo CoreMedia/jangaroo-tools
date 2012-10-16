@@ -27,13 +27,8 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.Properties;
 
 /**
  * Executes unit tests using PhantomJS
@@ -44,11 +39,8 @@ import java.util.Set;
  */
 public class PhantomJsTestMojo extends TestMojoBase {
 
-  public static enum Mode {
-    direct,
-    html
-  }
-
+  private static final String INVOKER_JS    = "phantomjs-page-invoker.js";
+  private static final String INVOKER_HTML  = "phantomjs-page.html";
 
 
   /**
@@ -93,12 +85,6 @@ public class PhantomJsTestMojo extends TestMojoBase {
   private String args;
 
 
-  /**
-   * The execution mode: Either directly ("direct") or embedded into a html page ("html")
-   * @parameter default-value="direct"
-   */
-  private Mode mode;
-
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
@@ -128,10 +114,14 @@ public class PhantomJsTestMojo extends TestMojoBase {
       return;
     }
 
-    String bootstrapScript = mode == Mode.direct ? "joo/phantomjs-joounit-runner.js" : "joo/phantomjs-joounit-page-runner.js";
 
-    PhantomJsTestRunner runner = new PhantomJsTestRunner(executable, testOutputDirectory, bootstrapScript, getTestClassName(), args, timeout, getLog());
-    getLog().info("trying to run phantomjs first: " + runner.toString());
+    Properties tokens = new Properties();
+    tokens.setProperty("TESTCLASSNAME_PLACEHOLDER", getTestClassName()) ;
+
+    copyAndReplace(getClass().getResourceAsStream(INVOKER_JS), new File(testOutputDirectory, INVOKER_JS), tokens);
+    copyAndReplace(getClass().getResourceAsStream(INVOKER_HTML), new File(testOutputDirectory, INVOKER_HTML), tokens);
+
+    PhantomJsTestRunner runner = new PhantomJsTestRunner(executable, testOutputDirectory, new File(testOutputDirectory, INVOKER_JS).getAbsolutePath(), getTestClassName(), args, timeout, getLog());
     if (runner.canRun()) {
 
       boolean exitCode = runner.execute();

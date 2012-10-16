@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Unit Tests</title>
+  <meta charset="UTF-8">
+  <script type="text/javascript" src="joo/jangaroo-application.js"></script>
+  <script type="text/javascript">
+    var executeTests = function() {
+      joo.classLoader.run("net.jangaroo.joounit.runner.BrowserRunner", {
+        // test fully qualified class name of the test (suite).
+        // Pitfall: If this test doesn't exist then nothing happens at all
+        "testSuiteName": "TESTCLASSNAME_PLACEHOLDER"
+      });
+    }
+  </script>
+</head>
+<body onload="executeTests()">
+
+</body>
+</html>
