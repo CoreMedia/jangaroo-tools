@@ -75,15 +75,21 @@ public class PhantomJsTestMojo extends TestMojoBase {
   private String executable;
 
   /**
-   * Additional arguments to be passed to phantomjs. Expected to be a JSON object, i.e.
+   * Additional javascript to be invoked prior to invoking the tests. Can be used for setting up additional
+   * infrastructure. Example
    * <code>
-   * {loglevel:'all'}
+   * console.log('Setting up tests');
    * </code>
    *
-   * @parameter expression="${phantomjs.args}" default-value="{loglevel:'all'}"
+   * @parameter default-value=""
    */
-  private String args;
+  private String setUpScript;
 
+  /**
+   * If set to true, then additional messages will be logged. For debugging purposes.
+   * @parameter default-value="false"
+   */
+  private boolean verbose;
 
 
   @Override
@@ -114,14 +120,16 @@ public class PhantomJsTestMojo extends TestMojoBase {
       return;
     }
 
-
     Properties tokens = new Properties();
-    tokens.setProperty("TESTCLASSNAME_PLACEHOLDER", getTestClassName()) ;
+    tokens.setProperty("TEST_CLASSNAME_PLACEHOLDER", getTestClassName());
+    tokens.setProperty("TIMEOUT_PLACEHOLDER", Integer.toString(timeout));
+    tokens.setProperty("SETUP_SCRIPT_PLACEHOLDER", setUpScript != null ? setUpScript : "");
+    tokens.setProperty("VERBOSE_PLACEHOLDER", Boolean.toString(verbose));
 
     copyAndReplace(getClass().getResourceAsStream(INVOKER_JS), new File(testOutputDirectory, INVOKER_JS), tokens);
     copyAndReplace(getClass().getResourceAsStream(INVOKER_HTML), new File(testOutputDirectory, INVOKER_HTML), tokens);
 
-    PhantomJsTestRunner runner = new PhantomJsTestRunner(executable, testOutputDirectory, new File(testOutputDirectory, INVOKER_JS).getAbsolutePath(), getTestClassName(), args, timeout, getLog());
+    PhantomJsTestRunner runner = new PhantomJsTestRunner(executable, testOutputDirectory, new File(testOutputDirectory, INVOKER_JS).getAbsolutePath(), getTestClassName(), "", timeout, getLog());
     if (runner.canRun()) {
 
       boolean exitCode = runner.execute();

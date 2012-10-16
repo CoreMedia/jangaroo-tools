@@ -7,6 +7,16 @@ var fs = require('fs');
 var page = require('webpage').create();
 var pageUrl = "file:///"+ fs.workingDirectory+ "/phantomjs-page.html";
 
+// handler for capturing console events that occur in the page.
+// Since this might cause lots of (jangaroo) output, this is enabled for "verbose" mode only
+if( VERBOSE_PLACEHOLDER ) {
+  page.onConsoleMessage = function(msg, lineNum, sourceId) {
+    console.log("phantomjs page>: " + msg+")");
+  };
+}
+
+
+// open the page
 console.log('phantomjs> Opening '+pageUrl+' ...');
 page.open('phantomjs-page.html', function (status) {
 
@@ -22,7 +32,7 @@ page.open('phantomjs-page.html', function (status) {
   // ---- extract test result xml from page output
   // this is done by polling the availability of a certain object in the DOM
   var interval = 1000;
-  var timeOut = 30000;
+  var timeOut = TIMEOUT_PLACEHOLDER;
   var begin = new Date().time;
   var pollResult = function() {
 
@@ -34,7 +44,7 @@ page.open('phantomjs-page.html', function (status) {
         // Retrieve the result of the test suite
         var resultXml = page.evaluate(function(){return window["result"];});
 
-        // print the result. enclose it in <jangaroo-maven-plugin></jangaroo-maven-plugin> so that the
+        // print the result. enclose it in <jangaroo-maven-plugin>test result</jangaroo-maven-plugin> so that the
         // the maven plugin is able to extract the result.
         console.info("phantomjs> Result: \n<jangaroo-maven-plugin>"+resultXml+"\n</jangaroo-maven-plugin>");
 
@@ -52,6 +62,7 @@ page.open('phantomjs-page.html', function (status) {
       window.setTimeout(pollResult, interval);
     }
     else {
+      // timeout has been exceeded. leaving without a result
       console.log("phantomjs> Timeout has been exceeded. No test result is available.");
       phantom.exit();
     }

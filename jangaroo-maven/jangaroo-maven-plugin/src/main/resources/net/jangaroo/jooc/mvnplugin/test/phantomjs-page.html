@@ -9,12 +9,22 @@
       joo.classLoader.run("net.jangaroo.joounit.runner.BrowserRunner", {
         // test fully qualified class name of the test (suite).
         // Pitfall: If this test doesn't exist then nothing happens at all
-        "testSuiteName": "TESTCLASSNAME_PLACEHOLDER"
+        "testSuiteName": "TEST_CLASSNAME_PLACEHOLDER"
       });
+    };
+
+    var setUpTests = function() {
+      SETUP_SCRIPT_PLACEHOLDER
+    };
+
+    var run = function() {
+
+      setUpTests();
+      executeTests();
     }
   </script>
 </head>
-<body onload="executeTests()">
+<body onload="run()">
 
 </body>
 </html>

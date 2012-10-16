@@ -29,7 +29,7 @@ public class ManualTestMojo extends TestMojoBase {
 
       // prepare test.html
       Properties tokens = new Properties();
-      tokens.setProperty("TESTCLASSNAME_PLACEHOLDER", getTestClassName()) ;
+      tokens.setProperty("TEST_CLASSNAME_PLACEHOLDER", getTestClassName());
       copyAndReplace(getClass().getResourceAsStream("manual-test.html"), new File(getTestOutputDirectory(), "test.html"), tokens);
 
     }
