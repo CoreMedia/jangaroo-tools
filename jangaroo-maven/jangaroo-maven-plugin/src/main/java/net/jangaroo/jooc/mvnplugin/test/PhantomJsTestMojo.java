@@ -102,7 +102,7 @@ public class PhantomJsTestMojo extends TestMojoBase {
   // ===========================================
 
   @Override
-  protected Properties createPlaceholders() {
+  protected Properties createPlaceholders() throws Exception {
     Properties properties = super.createPlaceholders();
     properties.setProperty("_phantom_timeout", Integer.toString(timeout));
     properties.setProperty("_phantom_setup", setUpScript != null ? setUpScript : "");

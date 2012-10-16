@@ -30,7 +30,7 @@ public class ManualTestMojo extends TestMojoBase {
       writeTemplate(getClass().getResourceAsStream("manual-test.html"), new File(getTestOutputDirectory(), "test.html"), placeholders, overwrite);
 
     }
-    catch (IOException e) {
+    catch (Exception e) {
       throw new MojoFailureException("error unpacking resources", e);
     }
   }

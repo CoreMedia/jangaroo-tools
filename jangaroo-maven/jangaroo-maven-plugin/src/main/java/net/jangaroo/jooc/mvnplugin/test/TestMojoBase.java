@@ -8,6 +8,7 @@ import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.zip.ZipUnArchiver;
 import org.codehaus.plexus.util.FileUtils;
+import org.codehaus.plexus.util.StringUtils;
 import org.sonatype.aether.RepositorySystem;
 import org.sonatype.aether.RepositorySystemSession;
 import org.sonatype.aether.resolution.ArtifactRequest;
@@ -94,10 +95,10 @@ public abstract class TestMojoBase extends AbstractMojo {
 
   /**
    * The (actionscript) test's class name to run, e.g. com.mycompany.MyTestSuite. Needs to be an implementation of
-   * flexunit.framework.Test (e.g. flexunit.framework.TestSuite)
+   * flexunit.framework.Test (e.g. flexunit.framework.TestSuite) or needs to provide a static method 'suite' that
+   * returns a test suite. If not set, then the test source folder is scanned for tests
    *
    * @parameter
-   * @required
    */
   private String testClass;
 
@@ -173,13 +174,17 @@ public abstract class TestMojoBase extends AbstractMojo {
   /**
    * Creates placeholder replacements that will be applied to automatically provided test files
    */
-  protected Properties createPlaceholders() {
+  protected Properties createPlaceholders() throws Exception {
+
+    String testClassNames =  getTestClassName() != null ?
+            "[\""+getTestClassName()+"\"]" : // explicit test name
+            "[\""+ StringUtils.join(lookupTestClasses().toArray(new String[0]),"\",\"")+"\"]"; // scan for tests
 
     Properties properties = new Properties();
     properties.setProperty("_module_artifact_id", project.getArtifactId());
     properties.setProperty("_module_group_id", project.getGroupId());
     properties.setProperty("_module_version", project.getVersion());
-    properties.setProperty("_test_classname", getTestClassName());
+    properties.setProperty("_test_classnames", testClassNames);
 
     return properties;
   }
@@ -257,7 +262,7 @@ public abstract class TestMojoBase extends AbstractMojo {
 
   /**
    * Looks up all test classes that resists in this module
-   * @return The class names
+   * @return The fully qualified class names
    */
   protected List<String> lookupTestClasses() throws IOException {
 
@@ -266,13 +271,11 @@ public abstract class TestMojoBase extends AbstractMojo {
     for( String fileName : fileNames ) {
 
       // cut off ".as" and replace "/" by "."
-      String className = fileName.substring(0, fileName.length()-3).replace(File.pathSeparatorChar, '.');
+      String className = fileName.substring(0, fileName.length()-3).replace(File.separatorChar, '.');
       classNames.add(className);
     }
-    getLog().info("Found test classes: "+classNames);
 
-    return fileNames;
-
+    return classNames;
   }
 
   // =======

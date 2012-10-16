@@ -5,18 +5,30 @@
   <meta charset="UTF-8">
   <script type="text/javascript" src="joo/jangaroo-application.js"></script>
   <script type="text/javascript">
+
+    // --- test result
+    var testExecutionFinished = function(testSuite, testResult, testResultXml) {
+      // storing test result in DOM
+      window['result'] = testResultXml;
+      // storing test result in document
+      document.getElementById('result').appendChild(document.createTextNode(testResultXml));
+    };
+
+    // --- test executor
     var executeTests = function() {
-      joo.classLoader.run("net.jangaroo.joounit.runner.BrowserRunner", {
-        // test fully qualified class name of the test (suite).
-        // Pitfall: If this test doesn't exist then nothing happens at all
-        "testSuiteName": "_test_classname"
+      joo.classLoader.run("net.jangaroo.joounit.runner.DefaultJooTestRunner", {
+        // test fully qualified class names of the tests
+        "tests": _test_classnames,
+        "onComplete": testExecutionFinished
       });
     };
 
+    // --- additional setup hook
     var setUpTests = function() {
       _phantom_setup;
     };
 
+    // --- test runner
     var run = function() {
 
       setUpTests();
@@ -25,6 +37,6 @@
   </script>
 </head>
 <body onload="run()">
-
+  <div id="result"></div>
 </body>
 </html>

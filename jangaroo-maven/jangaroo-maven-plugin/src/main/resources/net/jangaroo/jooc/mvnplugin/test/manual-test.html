@@ -8,7 +8,7 @@
 
     // --- handles the test result (formatted as xml): Writes the raw content into the page.
     // TODO implement this more properly, e.g. by providing a better formatting and/or a "traffic light" (e.g. red background on failure)
-    var handleResult = function(resultObject, resultXml) {
+    var handleResult = function(testSuite, testResult, testResultXml) {
 
       var testElement = document.getElementById('test');
       // remove all current child element (=text message)
@@ -16,17 +16,17 @@
         testElement.removeChild(testElement.lastChild);
       }
       var resultElement = document.createElement("pre");
-      resultElement.appendChild(document.createTextNode(resultXml));
+      resultElement.appendChild(document.createTextNode(testResultXml));
 
       testElement.appendChild(resultElement);
     };
 
     // ---- execute the tests
     var executeTests = function() {
-      joo.classLoader.run("net.jangaroo.joounit.runner.BrowserRunner", {
+      joo.classLoader.run("net.jangaroo.joounit.runner.DefaultJooTestRunner", {
         // test fully qualified class name of the test (suite).
         // Pitfall: If this test doesn't exist then nothing happens at all
-        "testSuiteName": "_test_classname",
+        "tests": _test_classnames,
         // callback that receives the test result
         "onComplete": handleResult
       });
