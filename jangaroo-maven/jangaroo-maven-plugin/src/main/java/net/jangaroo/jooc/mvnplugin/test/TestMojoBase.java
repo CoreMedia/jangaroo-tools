@@ -209,9 +209,10 @@ public abstract class TestMojoBase extends AbstractMojo {
 
 
   /**
-   * Copies a text resource (encoded as UTF-8) to a file and replaces certain tokens
+   * Copies a template (encoded as UTF-8) to a file and replaces certain tokens
+   * @param source The template stream. will be closed by this method
    */
-  protected void copyAndReplace(InputStream source, File target, Properties tokens) throws IOException{
+  protected void writeTemplate(InputStream source, File target, Properties tokens, boolean overwrite) throws IOException{
 
     // -- 1. read in source
     StringBuilder sourceBuilder = new StringBuilder();
@@ -231,7 +232,18 @@ public abstract class TestMojoBase extends AbstractMojo {
     }
 
     // -- 3. write template
-    FileUtils.write(target, sourceString);
+
+    if( overwrite && target.exists() ) {
+      target.delete();
+    }
+    if( !target.exists() ) {
+      getLog().info("Writing "+target+" ...");
+      FileUtils.write(target, sourceString);
+    }
+    else {
+      // Users might add a file to src/test/resources that has precedence
+      getLog().info("File "+target+" already exists. Skipping.");
+    }
   }
 
 

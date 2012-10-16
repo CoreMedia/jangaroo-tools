@@ -2,20 +2,8 @@ package net.jangaroo.jooc.mvnplugin.test;
 
 
 import org.apache.commons.io.FileUtils;
-import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugin.logging.Log;
-import org.apache.maven.project.MavenProject;
-import org.codehaus.plexus.archiver.ArchiverException;
-import org.codehaus.plexus.archiver.zip.ZipUnArchiver;
-import org.sonatype.aether.RepositorySystem;
-import org.sonatype.aether.RepositorySystemSession;
-import org.sonatype.aether.artifact.Artifact;
-import org.sonatype.aether.resolution.ArtifactRequest;
-import org.sonatype.aether.resolution.ArtifactResolutionException;
-import org.sonatype.aether.resolution.ArtifactResult;
-import org.sonatype.aether.util.artifact.DefaultArtifact;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.NodeList;
@@ -134,8 +122,11 @@ public class PhantomJsTestMojo extends TestMojoBase {
 
     Properties placeholders = createPlaceholders();
 
-    copyAndReplace(getClass().getResourceAsStream(INVOKER_JS), new File(testOutputDirectory, INVOKER_JS), placeholders);
-    copyAndReplace(getClass().getResourceAsStream(INVOKER_HTML), new File(testOutputDirectory, INVOKER_HTML), placeholders);
+    // if there already is a a file src/test/resources/test.html provided by the user then this file is used
+    boolean overwrite = false;
+
+    writeTemplate(getClass().getResourceAsStream(INVOKER_JS), new File(testOutputDirectory, INVOKER_JS), placeholders, overwrite);
+    writeTemplate(getClass().getResourceAsStream(INVOKER_HTML), new File(testOutputDirectory, INVOKER_HTML), placeholders, overwrite);
 
     PhantomJsTestRunner runner = new PhantomJsTestRunner(executable, testOutputDirectory, new File(testOutputDirectory, INVOKER_JS).getAbsolutePath(), getTestClassName(), "", timeout, getLog());
     if (runner.canRun()) {

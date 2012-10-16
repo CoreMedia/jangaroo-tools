@@ -22,9 +22,12 @@ public class ManualTestMojo extends TestMojoBase {
 
       unpackResources();
 
+      // if there already is a a file src/test/resources/test.html provided by the user then this file is used
+      boolean overwrite = false;
+
       // prepare test.html
       Properties placeholders = createPlaceholders();
-      copyAndReplace(getClass().getResourceAsStream("manual-test.html"), new File(getTestOutputDirectory(), "test.html"), placeholders);
+      writeTemplate(getClass().getResourceAsStream("manual-test.html"), new File(getTestOutputDirectory(), "test.html"), placeholders, overwrite);
 
     }
     catch (IOException e) {
