@@ -33,7 +33,7 @@ page.open('phantomjs-page.html', function (status) {
   // this is done by polling the availability of a certain object in the DOM
   var interval = 1000;
   var timeOut = _phantom_timeout;
-  var begin = new Date().time;
+  var begin = new Date().getTime();
   var pollResult = function() {
 
     console.log("phantomjs> Running ...");
@@ -57,7 +57,7 @@ page.open('phantomjs-page.html', function (status) {
         phantom.exit();
       }
     }
-    else if (begin + timeOut > new Date().time){
+    else if (begin + timeOut > new Date().getTime()){
       // do another recursion as long as timeout isn't reached
       window.setTimeout(pollResult, interval);
     }
