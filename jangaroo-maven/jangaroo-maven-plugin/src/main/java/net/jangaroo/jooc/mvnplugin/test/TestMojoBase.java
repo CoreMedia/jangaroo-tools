@@ -1,12 +1,13 @@
 package net.jangaroo.jooc.mvnplugin.test;
 
-import org.apache.commons.io.FileUtils;
+
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.zip.ZipUnArchiver;
+import org.codehaus.plexus.util.FileUtils;
 import org.sonatype.aether.RepositorySystem;
 import org.sonatype.aether.RepositorySystemSession;
 import org.sonatype.aether.resolution.ArtifactRequest;
@@ -77,6 +78,13 @@ public abstract class TestMojoBase extends AbstractMojo {
   protected File testOutputDirectory;
 
   /**
+   * Source directory to scan for test files to compile.
+   *
+   * @parameter expression="${project.build.testSourceDirectory}"
+   */
+  private File testSourceDirectory;
+
+  /**
    * Directory where compiles classes (of this module) are placed
    *
    * @parameter expression="${project.build.outputDirectory}"  default-value="${project.build.outputDirectory}"
@@ -119,9 +127,10 @@ public abstract class TestMojoBase extends AbstractMojo {
       }
     }
 
-    // 2.) extract all resources from this module
+    // 2.) copies all resources from this module
     testOutputDirectory.mkdirs();
-    FileUtils.copyDirectory(new File(outputDirectory, RESOURCE_DIRECTORY), testOutputDirectory);
+    // note: plexus' FileUtils.copyDirectory flattens the directory. Thus, commons-io version is used here.
+    org.apache.commons.io.FileUtils.copyDirectory(new File(outputDirectory, RESOURCE_DIRECTORY), testOutputDirectory);
 
 
     // 3.) extract all resources from all dependencies (represented by the files)
@@ -237,15 +246,34 @@ public abstract class TestMojoBase extends AbstractMojo {
       target.delete();
     }
     if( !target.exists() ) {
-      getLog().info("Writing "+target+" ...");
-      FileUtils.write(target, sourceString);
+      getLog().info("Writing " + target + " ...");
+      FileUtils.fileWrite(target.getAbsolutePath(), sourceString);
     }
     else {
       // Users might add a file to src/test/resources that has precedence
-      getLog().info("File "+target+" already exists. Skipping.");
+      getLog().info("File " + target + " already exists. Skipping.");
     }
   }
 
+  /**
+   * Looks up all test classes that resists in this module
+   * @return The class names
+   */
+  protected List<String> lookupTestClasses() throws IOException {
+
+    List<String> classNames = new ArrayList<String>();
+    List<String> fileNames = FileUtils.getFileNames(testSourceDirectory, "**/*Test.as", null, false);
+    for( String fileName : fileNames ) {
+
+      // cut off ".as" and replace "/" by "."
+      String className = fileName.substring(0, fileName.length()-3).replace(File.pathSeparatorChar, '.');
+      classNames.add(className);
+    }
+    getLog().info("Found test classes: "+classNames);
+
+    return fileNames;
+
+  }
 
   // =======
 
