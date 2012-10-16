@@ -131,14 +131,21 @@ public class PhantomJsTestMojo extends TestMojoBase {
     PhantomJsTestRunner runner = new PhantomJsTestRunner(executable, testOutputDirectory, new File(testOutputDirectory, INVOKER_JS).getAbsolutePath(), getTestClassName(), "", timeout, getLog());
     if (runner.canRun()) {
 
-      boolean exitCode = runner.execute();
+      runner.execute();
       String testResultXml = runner.getTestResult();
-      writeResultToFile(getTestClassName(), testResultXml);
-      evalTestOutput(testResultXml);
-      if (!exitCode) {
-        throw new MojoFailureException("There are test failures");
+      writeResultToFile(getProject().getArtifactId(), testResultXml);
+
+      TestResult testResult = parseTestResult(testResultXml);
+      if( testResult.getTests() == 0 ) {
+        throw new MojoFailureException("No tests found");
       }
-    }
+      else if( testResult.getFailures() + testResult.getErrors() > 0 ) {
+        throw new MojoFailureException("Error running tests: "+testResult.getFailures()+" failures and "+testResult.getErrors()+" of "+testResult.getTests()+" tests");
+      }
+      else {
+        getLog().info("Successfully executed "+testResult.getTests()+" tests in "+testResult.getTime()+" ms");
+      }
+     }
     else {
       getLog().error("Couldn't execute PhantomJS");
       throw new MojoFailureException("Couldn't execute ");
@@ -150,7 +157,11 @@ public class PhantomJsTestMojo extends TestMojoBase {
     FileUtils.writeStringToFile(result, testResultXml);
   }
 
-  private void evalTestOutput(String testResultXml) throws ParserConfigurationException, IOException, SAXException, MojoFailureException {
+  /**
+   * Parses the test result from xml into an object
+   */
+  private TestResult parseTestResult(String testResultXml) throws ParserConfigurationException, IOException, SAXException {
+
     DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
     DocumentBuilder dBuilder = documentBuilderFactory.newDocumentBuilder();
     StringReader inStream = new StringReader(testResultXml);
@@ -158,15 +169,68 @@ public class PhantomJsTestMojo extends TestMojoBase {
     Document d = dBuilder.parse(inSource);
     NodeList nl = d.getChildNodes();
     NamedNodeMap namedNodeMap = nl.item(0).getAttributes();
-    final String failures = namedNodeMap.getNamedItem("failures").getNodeValue();
-    final String errors = namedNodeMap.getNamedItem("errors").getNodeValue();
-    final String tests = namedNodeMap.getNamedItem("tests").getNodeValue();
-    final String time = namedNodeMap.getNamedItem("time").getNodeValue();
-    final String name = namedNodeMap.getNamedItem("name").getNodeValue();
-    getLog().info(name + " tests run: " + tests + ", Failures: " + failures + ", Errors: " + errors + ", time: " + time + " ms");
-    if (Integer.parseInt(errors) > 0 || Integer.parseInt(failures) > 0) {
-      getLog().info(testResultXml);
-      throw new MojoFailureException("There are test failures");
+
+
+    TestResult result = new TestResult();
+    result.setFailures(Integer.parseInt(namedNodeMap.getNamedItem("failures").getNodeValue()));
+    result.setErrors(Integer.parseInt(namedNodeMap.getNamedItem("errors").getNodeValue()));
+    result.setTests(Integer.parseInt(namedNodeMap.getNamedItem("tests").getNodeValue()));
+    result.setTime(Integer.parseInt(namedNodeMap.getNamedItem("time").getNodeValue()));
+    result.setName(namedNodeMap.getNamedItem("name").getNodeValue());
+
+    return result;
+
+  }
+
+  // ====================
+
+  private static class TestResult {
+
+    private String name;
+    private int failures;
+    private int errors;
+    private int tests;
+    private int time;
+
+    public String getName() {
+      return name;
+    }
+
+    public void setName(String name) {
+      this.name = name;
+    }
+
+    public int getFailures() {
+      return failures;
+    }
+
+    public void setFailures(int failures) {
+      this.failures = failures;
+    }
+
+    public int getErrors() {
+      return errors;
+    }
+
+    public void setErrors(int errors) {
+      this.errors = errors;
+    }
+
+    public int getTests() {
+      return tests;
+    }
+
+    public void setTests(int tests) {
+      this.tests = tests;
+    }
+
+    public int getTime() {
+      return time;
+    }
+
+    public void setTime(int time) {
+      this.time = time;
     }
   }
+
 }

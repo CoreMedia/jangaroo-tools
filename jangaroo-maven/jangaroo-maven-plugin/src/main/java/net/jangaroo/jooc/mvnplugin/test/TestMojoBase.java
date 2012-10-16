@@ -171,6 +171,10 @@ public abstract class TestMojoBase extends AbstractMojo {
     return outputDirectory;
   }
 
+  protected MavenProject getProject() {
+    return project;
+  }
+
   /**
    * Creates placeholder replacements that will be applied to automatically provided test files
    */
