@@ -26,7 +26,7 @@ page.open('phantomjs-page.html', function (status) {
     phantom.exit();
   }
   else{
-    console.log("phantomjs> Successfully opened "+pageUrl);
+    //console.log("phantomjs> Successfully opened "+pageUrl);
   }
 
   // ---- extract test result xml from page output
@@ -45,15 +45,19 @@ page.open('phantomjs-page.html', function (status) {
         var resultXml = page.evaluate(function(){return window["result"];});
 
         // print the result. enclose it in <jangaroo-maven-plugin>test result</jangaroo-maven-plugin> so that the
-        // the maven plugin is able to extract the result.
-        console.info("phantomjs> Result: \n<jangaroo-maven-plugin>"+resultXml+"\n</jangaroo-maven-plugin>");
+        // the maven plugin is able to extract the result. Note, that the encloses result snippet isn't delegated to
+        // maven log but will internally swallowed.
+        console.log("<jangaroo-maven-plugin>"+resultXml+"</jangaroo-maven-plugin>");
+
+        // for the maven log
+        console.log("phantomjs> Result:"+resultXml);
 
         // ---- done
         console.log("phantomjs> Done");
         phantom.exit();
       }
       catch(e){
-        console.info("phantomjs> Error while extracting result: "+e);
+        console.log("phantomjs> Error while extracting result: "+e);
         phantom.exit();
       }
     }
