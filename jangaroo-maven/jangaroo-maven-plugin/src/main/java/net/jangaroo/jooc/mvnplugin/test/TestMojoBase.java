@@ -161,6 +161,20 @@ public abstract class TestMojoBase extends AbstractMojo {
     return outputDirectory;
   }
 
+  /**
+   * Creates placeholder replacements that will be applied to automatically provided test files
+   */
+  protected Properties createPlaceholders() {
+
+    Properties properties = new Properties();
+    properties.setProperty("_module_artifact_id", project.getArtifactId());
+    properties.setProperty("_module_group_id", project.getGroupId());
+    properties.setProperty("_module_version", project.getVersion());
+    properties.setProperty("_test_classname", getTestClassName());
+
+    return properties;
+  }
+
   // ============
 
   /**

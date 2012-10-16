@@ -113,6 +113,18 @@ public class PhantomJsTestMojo extends TestMojoBase {
 
   // ===========================================
 
+  @Override
+  protected Properties createPlaceholders() {
+    Properties properties = super.createPlaceholders();
+    properties.setProperty("_phantom_timeout", Integer.toString(timeout));
+    properties.setProperty("_phantom_setup", setUpScript != null ? setUpScript : "");
+    properties.setProperty("_phantom_verbose", Boolean.toString(verbose));
+    return properties;
+  }
+
+
+  // ===========================================
+
   private void runTests() throws Exception {
 
     if( skipTests ) {
@@ -120,14 +132,10 @@ public class PhantomJsTestMojo extends TestMojoBase {
       return;
     }
 
-    Properties tokens = new Properties();
-    tokens.setProperty("TEST_CLASSNAME_PLACEHOLDER", getTestClassName());
-    tokens.setProperty("TIMEOUT_PLACEHOLDER", Integer.toString(timeout));
-    tokens.setProperty("SETUP_SCRIPT_PLACEHOLDER", setUpScript != null ? setUpScript : "");
-    tokens.setProperty("VERBOSE_PLACEHOLDER", Boolean.toString(verbose));
+    Properties placeholders = createPlaceholders();
 
-    copyAndReplace(getClass().getResourceAsStream(INVOKER_JS), new File(testOutputDirectory, INVOKER_JS), tokens);
-    copyAndReplace(getClass().getResourceAsStream(INVOKER_HTML), new File(testOutputDirectory, INVOKER_HTML), tokens);
+    copyAndReplace(getClass().getResourceAsStream(INVOKER_JS), new File(testOutputDirectory, INVOKER_JS), placeholders);
+    copyAndReplace(getClass().getResourceAsStream(INVOKER_HTML), new File(testOutputDirectory, INVOKER_HTML), placeholders);
 
     PhantomJsTestRunner runner = new PhantomJsTestRunner(executable, testOutputDirectory, new File(testOutputDirectory, INVOKER_JS).getAbsolutePath(), getTestClassName(), "", timeout, getLog());
     if (runner.canRun()) {

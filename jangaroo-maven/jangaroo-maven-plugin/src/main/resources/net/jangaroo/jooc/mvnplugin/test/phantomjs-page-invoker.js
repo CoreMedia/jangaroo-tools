@@ -9,7 +9,7 @@ var pageUrl = "file:///"+ fs.workingDirectory+ "/phantomjs-page.html";
 
 // handler for capturing console events that occur in the page.
 // Since this might cause lots of (jangaroo) output, this is enabled for "verbose" mode only
-if( VERBOSE_PLACEHOLDER ) {
+if( _phantom_verbose ) {
   page.onConsoleMessage = function(msg, lineNum, sourceId) {
     console.log("phantomjs page>: " + msg+")");
   };
@@ -32,7 +32,7 @@ page.open('phantomjs-page.html', function (status) {
   // ---- extract test result xml from page output
   // this is done by polling the availability of a certain object in the DOM
   var interval = 1000;
-  var timeOut = TIMEOUT_PLACEHOLDER;
+  var timeOut = _phantom_timeout;
   var begin = new Date().time;
   var pollResult = function() {
 
