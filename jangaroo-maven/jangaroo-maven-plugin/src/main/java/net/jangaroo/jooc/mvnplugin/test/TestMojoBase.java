@@ -15,11 +15,20 @@ import org.sonatype.aether.resolution.ArtifactRequest;
 import org.sonatype.aether.resolution.ArtifactResolutionException;
 import org.sonatype.aether.resolution.ArtifactResult;
 import org.sonatype.aether.util.artifact.DefaultArtifact;
+import org.w3c.dom.Document;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -33,8 +42,6 @@ import java.util.Set;
 public abstract class TestMojoBase extends AbstractMojo {
 
   private static final String RESOURCE_DIRECTORY = "META-INF/resources/";
-
-
 
   /**
    * @parameter default-value="${project}"
@@ -62,6 +69,7 @@ public abstract class TestMojoBase extends AbstractMojo {
    * @parameter default-value="${repositorySystemSession}"
    * @readonly
    */
+  @SuppressWarnings({"UnusedDeclaration"})
   private RepositorySystemSession repoSession;
 
   /**
@@ -76,13 +84,15 @@ public abstract class TestMojoBase extends AbstractMojo {
    *
    * @parameter expression="${project.build.testOutputDirectory}"  default-value="${project.build.testOutputDirectory}"
    */
-  protected File testOutputDirectory;
+  @SuppressWarnings({"UnusedDeclaration"})
+  private File testOutputDirectory;
 
   /**
    * Source directory to scan for test files to compile.
    *
    * @parameter expression="${project.build.testSourceDirectory}"
    */
+  @SuppressWarnings({"UnusedDeclaration"})
   private File testSourceDirectory;
 
   /**
@@ -90,7 +100,8 @@ public abstract class TestMojoBase extends AbstractMojo {
    *
    * @parameter expression="${project.build.outputDirectory}"  default-value="${project.build.outputDirectory}"
    */
-  protected File outputDirectory;
+  @SuppressWarnings({"UnusedDeclaration"})
+  private File outputDirectory;
 
 
   /**
@@ -100,7 +111,27 @@ public abstract class TestMojoBase extends AbstractMojo {
    *
    * @parameter
    */
+  @SuppressWarnings({"UnusedDeclaration"})
   private String testClass;
+
+  /**
+   * Output directory for test results.
+   *
+   * @parameter expression="${project.build.directory}/surefire-reports/"  default-value="${project.build.directory}/surefire-reports/"
+   * @required
+   */
+  @SuppressWarnings({"UnusedDeclaration"})
+  private File testResultOutputDirectory;
+
+  /**
+   * Set this to 'true' to skip running tests, but still compile them. Its use is NOT RECOMMENDED, but quite
+   * convenient on occasion.
+   *
+   * @parameter expression="${skipTests}"
+   */
+  @SuppressWarnings({"UnusedDeclaration"})
+  private boolean skipTests;
+
 
   // ====================
 
@@ -157,16 +188,22 @@ public abstract class TestMojoBase extends AbstractMojo {
 
   /**
    *
-   * @return The name of the test class
+   * @return The name of the configured test class
    */
-  protected String getTestClassName() {
+  protected String getConfiguredTestClassName() {
     return testClass;
   }
 
+  /**
+   * @return The directory where all test classes of this module are stored
+   */
   protected File getTestOutputDirectory() {
     return testOutputDirectory;
   }
 
+  /**
+   * @return The directory where classes of this module are stored
+   */
   protected File getOutputDirectory() {
     return outputDirectory;
   }
@@ -175,56 +212,39 @@ public abstract class TestMojoBase extends AbstractMojo {
     return project;
   }
 
+  protected File getTestResultOutputDirectory() {
+    return testResultOutputDirectory;
+  }
+
+  protected boolean isSkipTests() {
+    return skipTests;
+  }
+
+
+
   /**
    * Creates placeholder replacements that will be applied to automatically provided test files
    */
   protected Properties createPlaceholders() throws Exception {
 
-    String testClassNames =  getTestClassName() != null ?
-            "[\""+getTestClassName()+"\"]" : // explicit test name
-            "[\""+ StringUtils.join(lookupTestClasses().toArray(new String[0]),"\",\"")+"\"]"; // scan for tests
+    String testClassNamesJSON = "[\""+ StringUtils.join(getTestClassNames().toArray(new String[0]),"\",\"")+"\"]";
 
     Properties properties = new Properties();
     properties.setProperty("_module_artifact_id", project.getArtifactId());
     properties.setProperty("_module_group_id", project.getGroupId());
     properties.setProperty("_module_version", project.getVersion());
-    properties.setProperty("_test_classnames", testClassNames);
+    properties.setProperty("_test_classnames", testClassNamesJSON);
 
     return properties;
   }
 
-  // ============
 
   /**
-   * Resolves an dependency and provides the dependency artifact's file
-   * @param artifact The dependency
-   * @return The file or null
+   * @return The fully qualified actionscript class names of all test classes
    */
-  private File resolve(org.sonatype.aether.artifact.Artifact artifact) {
-
-    ArtifactRequest request = new ArtifactRequest(artifact, null, null);
-    try {
-
-      final List<ArtifactResult> ars = repoSystem.resolveArtifacts(repoSession, Collections.singletonList(request));
-      if( ars.size() != 1 ) {
-        getLog().warn("Error resolving artifact "+artifact+": "+ars);
-        return null;
-      }
-      else {
-
-        org.sonatype.aether.artifact.Artifact downloadedArtifact = ars.get(0).getArtifact();
-        File file = downloadedArtifact.getFile();
-        getLog().debug("Resolved artifact " + artifact + " to " + file.getAbsolutePath());
-
-        return file;
-      }
-    }
-    catch(ArtifactResolutionException e) {
-      getLog().warn("Error resolving artifact "+artifact, e);
-      return null;
-    }
+  protected List<String> getTestClassNames() throws IOException {
+    return  getConfiguredTestClassName() != null ? Collections.singletonList(getConfiguredTestClassName()) : lookupTestClasses();
   }
-
 
   /**
    * Copies a template (encoded as UTF-8) to a file and replaces certain tokens
@@ -264,11 +284,52 @@ public abstract class TestMojoBase extends AbstractMojo {
     }
   }
 
+
+  /**
+   * Writes the test result to the file system
+   * @param testResultXml The test result xml
+   * @throws IOException
+   */
+  protected void writeTestResult(String testName, String testResultXml) throws IOException {
+    File result = new File(getTestResultOutputDirectory(), "TEST-"+testName+".xml");
+    org.apache.commons.io.FileUtils.writeStringToFile(result, testResultXml);
+  }
+
+  /**
+   * Parses the test result from xml into an object
+   */
+  protected TestResult parseTestResult(String testResultXml) throws ParserConfigurationException, IOException, SAXException {
+
+    DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+    DocumentBuilder dBuilder = documentBuilderFactory.newDocumentBuilder();
+    StringReader inStream = new StringReader(testResultXml);
+    InputSource inSource = new InputSource(inStream);
+    Document d = dBuilder.parse(inSource);
+    NodeList nl = d.getChildNodes();
+    NamedNodeMap namedNodeMap = nl.item(0).getAttributes();
+
+
+    TestResult result = new TestResult();
+    result.setFailures(Integer.parseInt(namedNodeMap.getNamedItem("failures").getNodeValue()));
+    result.setErrors(Integer.parseInt(namedNodeMap.getNamedItem("errors").getNodeValue()));
+    result.setTests(Integer.parseInt(namedNodeMap.getNamedItem("tests").getNodeValue()));
+    result.setTime(Integer.parseInt(namedNodeMap.getNamedItem("time").getNodeValue()));
+    result.setName(namedNodeMap.getNamedItem("name").getNodeValue());
+
+    // TODO parse children as well
+
+    return result;
+
+  }
+
+
+  // ==========================
+
   /**
    * Looks up all test classes that resists in this module
    * @return The fully qualified class names
    */
-  protected List<String> lookupTestClasses() throws IOException {
+  private List<String> lookupTestClasses() throws IOException {
 
     List<String> classNames = new ArrayList<String>();
     List<String> fileNames = FileUtils.getFileNames(testSourceDirectory, "**/*Test.as", null, false);
@@ -282,7 +343,99 @@ public abstract class TestMojoBase extends AbstractMojo {
     return classNames;
   }
 
-  // =======
+  /**
+   * Resolves an dependency and provides the dependency artifact's file
+   * @param artifact The dependency
+   * @return The file or null
+   */
+  private File resolve(org.sonatype.aether.artifact.Artifact artifact) {
+
+    ArtifactRequest request = new ArtifactRequest(artifact, null, null);
+    try {
+
+      final List<ArtifactResult> ars = repoSystem.resolveArtifacts(repoSession, Collections.singletonList(request));
+      if( ars.size() != 1 ) {
+        getLog().warn("Error resolving artifact "+artifact+": "+ars);
+        return null;
+      }
+      else {
+
+        org.sonatype.aether.artifact.Artifact downloadedArtifact = ars.get(0).getArtifact();
+        File file = downloadedArtifact.getFile();
+        getLog().debug("Resolved artifact " + artifact + " to " + file.getAbsolutePath());
+
+        return file;
+      }
+    }
+    catch(ArtifactResolutionException e) {
+      getLog().warn("Error resolving artifact "+artifact, e);
+      return null;
+    }
+  }
+
+
+  // ====================
+
+  /**
+   * A test result representation
+   */
+  protected static class TestResult {
+
+    private String name;
+    private int failures;
+    private int errors;
+    private int tests;
+    private int time;
+
+    public String getName() {
+      return name;
+    }
+
+    public void setName(String name) {
+      this.name = name;
+    }
+
+    public int getFailures() {
+      return failures;
+    }
+
+    public void setFailures(int failures) {
+      this.failures = failures;
+    }
+
+    public int getErrors() {
+      return errors;
+    }
+
+    public void setErrors(int errors) {
+      this.errors = errors;
+    }
+
+    public int getTests() {
+      return tests;
+    }
+
+    public void setTests(int tests) {
+      this.tests = tests;
+    }
+
+    public int getTime() {
+      return time;
+    }
+
+    public void setTime(int time) {
+      this.time = time;
+    }
+  }
+
+
+
+
+
+
+
+
+
 
   /**
    * An extension of the ZipUnArchiver that removes a prefix from the path of the files to be extracted. It

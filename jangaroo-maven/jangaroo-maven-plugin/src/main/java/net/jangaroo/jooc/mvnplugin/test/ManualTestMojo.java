@@ -27,7 +27,10 @@ public class ManualTestMojo extends TestMojoBase {
 
       // prepare test.html
       Properties placeholders = createPlaceholders();
-      writeTemplate(getClass().getResourceAsStream("manual-test.html"), new File(getTestOutputDirectory(), "test.html"), placeholders, overwrite);
+      File targetFile = new File(getTestOutputDirectory(), "test.html");
+      writeTemplate(getClass().getResourceAsStream("manual-test.html"), targetFile, placeholders, overwrite);
+
+      getLog().info("File "+targetFile+" can be opened in a web browser in order to execute the tests");
 
     }
     catch (Exception e) {
