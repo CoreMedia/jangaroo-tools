@@ -20,7 +20,6 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
-
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -35,6 +34,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
+import java.util.StringTokenizer;
 
 /**
  * Base implementation for a mojo that executes jangaroo based unit tests
@@ -105,14 +105,16 @@ public abstract class TestMojoBase extends AbstractMojo {
 
 
   /**
-   * The (actionscript) test's class name to run, e.g. com.mycompany.MyTestSuite. Needs to be an implementation of
-   * flexunit.framework.Test (e.g. flexunit.framework.TestSuite) or needs to provide a static method 'suite' that
-   * returns a test suite. If not set, then the test source folder is scanned for tests
+   * A comma separated list of (actionscript) test classes to execute, e.g. com.mycompany.MyTestSuite. Every
+   * test class needs to be either an implementation of
+   * flexunit.framework.Test (e.g. flexunit.framework.TestSuite) or needs to provide a static method 'suite' returning
+   * a test suite instance.
+   * If not set, then the test source folder is scanned for tests
    *
    * @parameter
    */
   @SuppressWarnings({"UnusedDeclaration"})
-  private String testClass;
+  private String testClassNames;
 
   /**
    * Output directory for test results.
@@ -187,14 +189,6 @@ public abstract class TestMojoBase extends AbstractMojo {
   }
 
   /**
-   *
-   * @return The name of the configured test class
-   */
-  protected String getConfiguredTestClassName() {
-    return testClass;
-  }
-
-  /**
    * @return The directory where all test classes of this module are stored
    */
   protected File getTestOutputDirectory() {
@@ -243,7 +237,22 @@ public abstract class TestMojoBase extends AbstractMojo {
    * @return The fully qualified actionscript class names of all test classes
    */
   protected List<String> getTestClassNames() throws IOException {
-    return  getConfiguredTestClassName() != null ? Collections.singletonList(getConfiguredTestClassName()) : lookupTestClasses();
+
+    if( testClassNames != null ) {
+
+      // test classes have been explicitly configured
+      List<String> result = new ArrayList<String>();
+      StringTokenizer tok = new StringTokenizer(testClassNames, ",");
+      while( tok.hasMoreTokens() ) {
+        result.add(tok.nextToken().trim());
+      }
+      return result;
+    }
+    else {
+
+      // not configured. perform a lookup
+      return lookupTestClasses();
+    }
   }
 
   /**
