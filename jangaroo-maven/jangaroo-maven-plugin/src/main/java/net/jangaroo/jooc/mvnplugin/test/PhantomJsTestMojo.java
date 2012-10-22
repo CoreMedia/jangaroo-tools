@@ -102,7 +102,7 @@ public class PhantomJsTestMojo extends TestMojoBase {
                                               executable,
                                               getTestOutputDirectory(),
                                               new File(getTestOutputDirectory(), INVOKER_JS).getAbsolutePath(),
-                                              getConfiguredTestClassName(),
+                                              "",
                                               "",
                                               timeout,
                                               getLog());
@@ -117,7 +117,7 @@ public class PhantomJsTestMojo extends TestMojoBase {
         throw new MojoFailureException("No tests found");
       }
       else if( testResult.getFailures() + testResult.getErrors() > 0 ) {
-        throw new MojoFailureException("Error running tests: "+testResult.getFailures()+" failures and "+testResult.getErrors()+" of "+testResult.getTests()+" tests");
+        throw new MojoFailureException("Error running tests: "+testResult.getFailures()+" failure(s) and "+testResult.getErrors()+" error(s) of "+testResult.getTests()+" test(s)");
       }
       else {
         getLog().info("Successfully executed "+testResult.getTests()+" tests in "+testResult.getTime()+" ms");
