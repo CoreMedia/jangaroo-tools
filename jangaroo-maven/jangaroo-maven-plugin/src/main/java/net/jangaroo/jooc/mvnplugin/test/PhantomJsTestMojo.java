@@ -110,22 +110,11 @@ public class PhantomJsTestMojo extends TestMojoBase {
 
       runner.execute();
       String testResultXml = runner.getTestResult();
-      writeTestResult(getProject().getArtifactId(), testResultXml);
-
-      TestResult testResult = parseTestResult(testResultXml);
-      if( testResult.getTests() == 0 ) {
-        throw new MojoFailureException("No tests found");
-      }
-      else if( testResult.getFailures() + testResult.getErrors() > 0 ) {
-        throw new MojoFailureException("Error running tests: "+testResult.getFailures()+" failure(s) and "+testResult.getErrors()+" error(s) of "+testResult.getTests()+" test(s)");
-      }
-      else {
-        getLog().info("Successfully executed "+testResult.getTests()+" tests in "+testResult.getTime()+" ms");
-      }
-     }
+      handleResult(testResultXml);
+    }
     else {
       getLog().error("Couldn't execute PhantomJS");
-      throw new MojoFailureException("Couldn't execute ");
+      throw new MojoFailureException("Couldn't execute PhantomJS");
     }
   }
 

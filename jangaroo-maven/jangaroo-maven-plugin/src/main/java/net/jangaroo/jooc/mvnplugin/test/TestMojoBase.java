@@ -3,6 +3,8 @@ package net.jangaroo.jooc.mvnplugin.test;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.archiver.ArchiverException;
@@ -221,13 +223,11 @@ public abstract class TestMojoBase extends AbstractMojo {
    */
   protected Properties createPlaceholders() throws Exception {
 
-    String testClassNamesJSON = "[\""+ StringUtils.join(getTestClassNames().toArray(new String[0]),"\",\"")+"\"]";
-
     Properties properties = new Properties();
     properties.setProperty("_module_artifact_id", project.getArtifactId());
     properties.setProperty("_module_group_id", project.getGroupId());
     properties.setProperty("_module_version", project.getVersion());
-    properties.setProperty("_test_classnames", testClassNamesJSON);
+    properties.setProperty("_test_classnames", getTestClassNamesJSON());
 
     return properties;
   }
@@ -252,6 +252,43 @@ public abstract class TestMojoBase extends AbstractMojo {
 
       // not configured. perform a lookup
       return lookupTestClasses();
+    }
+  }
+
+  /**
+   * @return Provides the test class names as a JSON array
+   * @see #getTestClassNames()
+   */
+  protected String getTestClassNamesJSON() throws IOException {
+    return "[\""+ StringUtils.join(getTestClassNames().toArray(new String[0]),"\",\"")+"\"]";
+  }
+
+  /**
+   * Handles the test result: Writes it to the file system and provides a adequate log message and throws
+   * an exception in failure
+   * @param testXml The test result XML
+   * @throws MojoFailureException
+   */
+  protected void handleResult(String testXml) throws MojoFailureException, MojoExecutionException {
+
+    try {
+      writeTestResult(getProject().getArtifactId(), testXml);
+    }
+    catch (IOException e) {
+      throw new MojoExecutionException("Error writing test result", e);
+    }
+
+    TestResult testResult = null;
+    try {
+      testResult = parseTestResult(testXml);
+    }
+    catch (Exception e) {
+      throw new MojoExecutionException("Error analyzing test result", e);
+    }
+    getLog().info("Tests run: "+testResult.getTests()+", Failures: "+testResult.getFailures()+", Errors: "+testResult.getErrors()+", Skipped: 0, Time elapsed: "+testResult.getTime()+" ms");
+
+    if( testResult.getErrors()+testResult.getFailures() > 0 ) {
+      throw new MojoFailureException("Test execution has failed with errors/failures");
     }
   }
 
