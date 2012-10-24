@@ -115,13 +115,13 @@ public class RhinoJsTestRunner extends TestMojoBase {
     // TODO: Make this configurable/exchangeable?
     importer.importScript("classpath:/net/jangaroo/jooc/mvnplugin/test/rhino-window-minimal.js", false);
 
+    // -----  importing jangaroo
+    importer.importScript("joo/jangaroo-application.js", false);
+
     // ----- invoke custom setup script
     if( setUpScript != null ) {
       engine.eval(setUpScript);
     }
-
-    // -----  importing jangaroo
-    importer.importScript("joo/jangaroo-application.js", false);
 
     // -----  defining invoker (other scripts will be imported dynamically)
     String testClassesJson =  getTestClassNamesJSON();
