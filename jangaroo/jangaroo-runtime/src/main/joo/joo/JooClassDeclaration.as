@@ -47,11 +47,11 @@ public class JooClassDeclaration extends NativeClassDeclaration {
   public var metadata : Object;
 
   private static const DECLARATION_PATTERN_CLASS:RegExp =
-    /^\s*((public|internal|final|dynamic)\s+)*class\s+([A-Za-z][a-zA-Z$_0-9]*)(\s+extends\s+([a-zA-Z$_0-9.]+))?(\s+implements\s+([a-zA-Z$_0-9.,\s]+))?\s*$/;
+    /^\s*((public|internal|final|dynamic)\s+)*class\s+([a-zA-Z$_0-9]+)(\s+extends\s+([a-zA-Z$_0-9.]+))?(\s+implements\s+([a-zA-Z$_0-9.,\s]+))?\s*$/;
   private static const DECLARATION_PATTERN_INTERFACE:RegExp =
-    /^\s*((public|internal)\s+)?interface\s+([A-Za-z][a-zA-Z$_0-9]*)(\s+extends\s+([a-zA-Z$_0-9.,\s]+))?\s*$/;
+    /^\s*((public|internal)\s+)?interface\s+([a-zA-Z$_0-9]+)(\s+extends\s+([a-zA-Z$_0-9.,\s]+))?\s*$/;
   private static const DECLARATION_PATTERN_OTHER:RegExp =
-    /^\s*((public|internal)\s+)?(const|var|function|namespace)\s+([A-Za-z][a-zA-Z$_0-9]*)\s*$/;
+    /^\s*((public|internal)\s+)?(const|var|function|namespace)\s+([a-zA-Z$_0-9]+)\s*$/;
 
   public function JooClassDeclaration(packageDef:String, metadata:Object, classDef:String, inheritanceLevel:int, memberDeclarations:Function, publicStaticMethodNames:Array, dependencies:Array) {
     this.stateListeners = {};
