@@ -4,17 +4,10 @@ import com.thoughtworks.selenium.DefaultSelenium;
 import com.thoughtworks.selenium.Selenium;
 import com.thoughtworks.selenium.SeleniumException;
 import org.apache.commons.io.FileUtils;
-import org.apache.maven.artifact.DependencyResolutionRequiredException;
-import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.cli.CommandLineException;
-import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.util.resource.Resource;
-import org.eclipse.jetty.util.resource.ResourceCollection;
-import org.mortbay.jetty.plugin.JettyWebAppContext;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.NodeList;
@@ -25,13 +18,12 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
-import java.io.StringReader;
+import java.io.Reader;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
 
 /**
  * Executes JooUnit tests.
@@ -138,63 +130,51 @@ public class JooTestMojo extends JooTestMojoBase {
   @SuppressWarnings({"UnusedDeclaration", "FieldCanBeLocal"})
   private String phantomBin;
 
-  /**
-   * The script to run in phantomjs launching the tests
-   *
-   * @parameter expression="${phantomjs.runner}" default-value="joo/phantomjs-joounit-runner.js"
-   */
-  @SuppressWarnings({"UnusedDeclaration", "FieldCanBeLocal"})
-  private String phantomTestRunner;
-
-  /**
-   * The test suite to run be run with phantomjs
-   *
-   * @parameter expression="${phantomjs.suite}"
-   */
-  @SuppressWarnings({"UnusedDeclaration", "FieldCanBeLocal"})
-  private String phantomTestSuite;
-
-  /**
-   * Additional arguments to be passed to phantomjs. Expected to be a JSON object, i.e.
-   * <code>
-   * {timeout:30000,loglevel:'all'}
-   * </code>
-   *
-   * @parameter expression="${phantomjs.args}"
-   */
-  @SuppressWarnings({"UnusedDeclaration", "FieldCanBeLocal"})
-  private String phantomArgs;
-
   public void execute() throws MojoExecutionException, MojoFailureException {
-    if (!skip && !skipTests) {
-//      final PhantomJsTestRunner phantomJsTestRunner = new PhantomJsTestRunner(phantomBin, testOutputDirectory, phantomTestRunner, phantomTestSuite, phantomArgs, jooUnitTestExecutionTimeout, getLog());
-//      getLog().info("trying to run phantomjs first: " + phantomJsTestRunner.toString());
-//      if (phantomTestSuite != null && phantomJsTestRunner.isTestAvailable() && phantomJsTestRunner.canRun()) {
-//        try {
-//          final boolean exitCode = phantomJsTestRunner.execute();
-//          String testResultXml = phantomJsTestRunner.getTestResult();
-//          writeResultToFile(testResultXml);
-//          evalTestOutput(testResultXml);
-//          if (!exitCode) {
-//            signalFailure();
-//          }
-//        } catch (CommandLineException e) {
-//          throw wrap(e);
-//        } catch (IOException e) {
-//          throw wrap(e);
-//        } catch (ParserConfigurationException e) {
-//          throw wrap(e);
-//        } catch (SAXException e) {
-//          throw wrap(e);
-//        }
-//      } else
-      if (isTestAvailable()) {
-        executeSelenium();
+    if (!skip && !skipTests && isTestAvailable()) {
+      Server server = jettyRunTest(true);
+      String url = getJettyUrl(server) + "/" + testsHtml.replace(File.separatorChar, '/');
+
+      try {
+        File testResultOutputFile = new File(testResultOutputDirectory, getTestResultFileName());
+        File phantomTestRunner = new File(testResultOutputDirectory, "phantomjs-joounit-page-runner.js");
+        FileUtils.copyInputStreamToFile(getClass().getResourceAsStream("/net/jangaroo/jooc/mvnplugin/phantomjs-joounit-page-runner.js"), phantomTestRunner);
+        final PhantomJsTestRunner phantomJsTestRunner = new PhantomJsTestRunner(phantomBin, url, testResultOutputFile.getPath(), phantomTestRunner.getPath(), jooUnitTestExecutionTimeout, getLog());
+        if (phantomJsTestRunner.canRun()) {
+          getLog().info("running phantomjs: " + phantomJsTestRunner.toString());
+          try {
+            final boolean exitCode = phantomJsTestRunner.execute();
+            if (exitCode) {
+              evalTestOutput(testResultOutputFile);
+            } else {
+              signalFailure();
+            }
+          } catch (CommandLineException e) {
+            throw wrap(e);
+          } catch (IOException e) {
+            throw wrap(e);
+          } catch (ParserConfigurationException e) {
+            throw wrap(e);
+          } catch (SAXException e) {
+            throw wrap(e);
+          }
+        } else {
+          executeSelenium(url);
+        }
+      } catch (IOException e) {
+        throw new MojoExecutionException("Cannot create local copy of phantomjs-joounit-page-runner.js", e);
+      } finally {
+        try {
+          server.stop();
+        } catch (Exception e) {
+          // never mind we just couldn't step the selenium server.
+          getLog().error("Could not stop test Jetty.", e);
+        }
       }
     }
   }
 
-  void executeSelenium() throws MojoExecutionException, MojoFailureException {
+  void executeSelenium(String testsHtmlUrl) throws MojoExecutionException, MojoFailureException {
     jooUnitSeleniumRCHost = System.getProperty("SELENIUM_RC_HOST", jooUnitSeleniumRCHost);
     try {
       //check wether the host is reachable
@@ -206,12 +186,9 @@ public class JooTestMojo extends JooTestMojoBase {
               " by -DskipTests", e);
     }
     getLog().info("JooTest report directory: " + testResultOutputDirectory.getAbsolutePath());
-    Server server = jettyRunTest(true);
-    String url = getJettyUrl(server);
-    Selenium selenium = new DefaultSelenium(jooUnitSeleniumRCHost, jooUnitSeleniumRCPort, jooUnitSeleniumBrowserStartCommand, url);
+    Selenium selenium = new DefaultSelenium(jooUnitSeleniumRCHost, jooUnitSeleniumRCPort, jooUnitSeleniumBrowserStartCommand, testsHtmlUrl);
     try {
       selenium.start();
-      final String testsHtmlUrl = url + "/" + testsHtml.replace(File.separatorChar, '/');
       getLog().debug("Opening " + testsHtmlUrl);
       selenium.open(testsHtmlUrl);
       getLog().debug("Waiting for test results for " + jooUnitTestExecutionTimeout + "ms ...");
@@ -222,8 +199,7 @@ public class JooTestMojo extends JooTestMojoBase {
       }
 
       String testResultXml = selenium.getEval("selenium.browserbot.getCurrentWindow().result");
-      writeResultToFile(testResultXml);
-      evalTestOutput(testResultXml);
+      evalTestOutput(writeResultToFile(testResultXml));
     } catch (IOException e) {
       throw new MojoExecutionException("Cannot write test results to file", e);
     } catch (ParserConfigurationException e) {
@@ -238,36 +214,26 @@ public class JooTestMojo extends JooTestMojoBase {
       }
     } finally {
       selenium.stop();
-      try {
-        server.stop();
-      } catch (Exception e) {
-        getLog().error(e);
-        // never mind we just couldn't step the selenium server.
-      }
     }
   }
 
-  void writeResultToFile(java.lang.String testResultXml) throws IOException {
+  File writeResultToFile(java.lang.String testResultXml) throws IOException {
     File result = new File(testResultOutputDirectory, getTestResultFileName());
     FileUtils.writeStringToFile(result, testResultXml);
     if (!result.setLastModified(System.currentTimeMillis())) {
       getLog().warn("could not set modification time of file " + result);
     }
+    return result;
   }
 
   private String getTestResultFileName() {
-    if (this.testResultFileName != null) {
-      return this.testResultFileName;
-    } else {
-      final String result = this.phantomTestSuite != null ? this.phantomTestSuite : "TEST-" + project.getArtifactId();
-      return result + ".xml";
-    }
+    return testResultFileName != null ? testResultFileName : "TEST-" + project.getArtifactId() + ".xml";
   }
 
-  void evalTestOutput(String testResultXml) throws ParserConfigurationException, IOException, SAXException, MojoFailureException {
+  void evalTestOutput(File testResultXmlFile) throws ParserConfigurationException, IOException, SAXException, MojoFailureException {
     DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
     DocumentBuilder dBuilder = documentBuilderFactory.newDocumentBuilder();
-    StringReader inStream = new StringReader(testResultXml);
+    Reader inStream = new FileReader(testResultXmlFile);
     InputSource inSource = new InputSource(inStream);
     Document d = dBuilder.parse(inSource);
     NodeList nl = d.getChildNodes();
@@ -279,7 +245,6 @@ public class JooTestMojo extends JooTestMojoBase {
     final String name = namedNodeMap.getNamedItem("name").getNodeValue();
     getLog().info(name + " tests run: " + tests + ", Failures: " + failures + ", Errors: " + errors + ", time: " + time + " ms");
     if (Integer.parseInt(errors) > 0 || Integer.parseInt(failures) > 0) {
-      getLog().info(testResultXml);
       signalFailure();
     }
   }
