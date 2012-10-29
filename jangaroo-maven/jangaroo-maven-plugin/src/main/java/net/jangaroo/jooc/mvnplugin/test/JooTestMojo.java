@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
+import java.io.StringReader;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -145,7 +146,7 @@ public class JooTestMojo extends JooTestMojoBase {
           try {
             final boolean exitCode = phantomJsTestRunner.execute();
             if (exitCode) {
-              evalTestOutput(testResultOutputFile);
+              evalTestOutput(new FileReader(testResultOutputFile));
             } else {
               signalFailure();
             }
@@ -199,7 +200,8 @@ public class JooTestMojo extends JooTestMojoBase {
       }
 
       String testResultXml = selenium.getEval("selenium.browserbot.getCurrentWindow().result");
-      evalTestOutput(writeResultToFile(testResultXml));
+      writeResultToFile(testResultXml);
+      evalTestOutput(new StringReader(testResultXml));
     } catch (IOException e) {
       throw new MojoExecutionException("Cannot write test results to file", e);
     } catch (ParserConfigurationException e) {
@@ -230,10 +232,9 @@ public class JooTestMojo extends JooTestMojoBase {
     return testResultFileName != null ? testResultFileName : "TEST-" + project.getArtifactId() + ".xml";
   }
 
-  void evalTestOutput(File testResultXmlFile) throws ParserConfigurationException, IOException, SAXException, MojoFailureException {
+  void evalTestOutput(Reader inStream) throws ParserConfigurationException, IOException, SAXException, MojoFailureException {
     DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
     DocumentBuilder dBuilder = documentBuilderFactory.newDocumentBuilder();
-    Reader inStream = new FileReader(testResultXmlFile);
     InputSource inSource = new InputSource(inStream);
     Document d = dBuilder.parse(inSource);
     NodeList nl = d.getChildNodes();
