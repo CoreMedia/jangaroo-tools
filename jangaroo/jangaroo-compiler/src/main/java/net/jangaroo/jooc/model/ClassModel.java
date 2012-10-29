@@ -103,7 +103,7 @@ public class ClassModel extends AbstractAnnotatedModel implements NamespacedMode
         if (oldMember.equals(member)) {
           return;
         }
-        throw new IllegalArgumentException("Someone tried to add a different " + (member.isStatic() ? "static " : "") + "member called " + member.getName() + ": " + oldMember + " -> " + member);
+        throw new IllegalArgumentException("Someone tried to add a different " + (member.isStatic() ? "static " : "") + "member called " + member.getName() + " to class " + getName());
       }
     }
     if (member.isProperty()) {
@@ -181,18 +181,10 @@ public class ClassModel extends AbstractAnnotatedModel implements NamespacedMode
   }
 
   private MethodModel getMethod(boolean isStatic, MethodType methodType, String name) {
-    MemberModel member = getMethodOrField(isStatic, name);
-    if (member != null) {
-      if (methodType == null) {
-        if (member.isMethod()) {
-          return (MethodModel)member;
-        }
-      } else {
-        if (member.isProperty()) {
-          return methodType == MethodType.GET
-            ? ((PropertyModel)member).getGetter()
-            : ((PropertyModel)member).getSetter();
-        }
+    for (MemberModel memberModel : members) {
+      if (memberModel.isMethod() && ((MethodModel)memberModel).getMethodType() == methodType
+              && memberModel.isStatic() == isStatic && name.equals(memberModel.getName())) {
+        return (MethodModel)memberModel;
       }
     }
     return null;

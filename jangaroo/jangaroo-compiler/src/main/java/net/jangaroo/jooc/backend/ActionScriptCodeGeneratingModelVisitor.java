@@ -9,6 +9,7 @@ import net.jangaroo.jooc.model.CompilationUnitModel;
 import net.jangaroo.jooc.model.FieldModel;
 import net.jangaroo.jooc.model.MemberModel;
 import net.jangaroo.jooc.model.MethodModel;
+import net.jangaroo.jooc.model.MethodType;
 import net.jangaroo.jooc.model.ModelVisitor;
 import net.jangaroo.jooc.model.NamespaceModel;
 import net.jangaroo.jooc.model.NamespacedModel;
@@ -32,7 +33,7 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
   private final PrintWriter output;
   private CompilationUnitModel compilationUnitModel;
   private boolean skipAsDoc;
-  private String indent;
+  private String indent = "";
 
   public ActionScriptCodeGeneratingModelVisitor(Writer writer) {
     output = writer instanceof PrintWriter ? (PrintWriter)writer : new PrintWriter(writer);

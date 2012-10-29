@@ -33,12 +33,16 @@ public class ExmlConfigPackageXsdGenerator {
     registry.scanAllAsFiles();
     Map<String,Collection<ConfigClass>> configClassesByTargetClassPackage =
       registry.getRegisteredConfigClassesByTargetClassPackage();
+    String packageName = config.getConfigClassPackage();
     for (Map.Entry<String, Collection<ConfigClass>> entry : configClassesByTargetClassPackage.entrySet()) {
-      ExmlConfigPackage suite = new ExmlConfigPackage(entry.getValue(), entry.getKey(), true);
-      generateXsdFile(suite);
+      Collection<ConfigClass> configClasses = entry.getValue();
+      // the map contains *all* target classes, so filter by those having their config class in the config's package:
+      if (!configClasses.isEmpty() && packageName.equals(configClasses.iterator().next().getPackageName())) {
+        ExmlConfigPackage suite = new ExmlConfigPackage(configClasses, entry.getKey(), true);
+        generateXsdFile(suite);
+      }
     }
     Collection<ConfigClass> configClasses = registry.getRegisteredConfigClasses();
-    String packageName = config.getConfigClassPackage();
     return generateXsdFile(new ExmlConfigPackage(configClasses, packageName, false));
   }
 

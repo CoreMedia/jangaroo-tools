@@ -24,10 +24,12 @@ public class PropertyModel extends MemberModel {
     this.setter = accessor.isSetter() ? accessor : counterpart;
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   public boolean isFinal() {
     return isFinal;
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   public void setFinal(boolean isFinal) {
     this.isFinal = isFinal;
     if (getter != null) {
@@ -101,5 +103,33 @@ public class PropertyModel extends MemberModel {
   @Override
   public void visit(ModelVisitor visitor) {
     visitor.visitProperty(this);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    if (!super.equals(o)) {
+      return false;
+    }
+
+    PropertyModel that = (PropertyModel) o;
+
+    return isFinal == that.isFinal
+            && !(getter != null ? !getter.equals(that.getter) : that.getter != null)
+            && !(setter != null ? !setter.equals(that.setter) : that.setter != null);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = super.hashCode();
+    result = 31 * result + (isFinal ? 1 : 0);
+    result = 31 * result + (getter != null ? getter.hashCode() : 0);
+    result = 31 * result + (setter != null ? setter.hashCode() : 0);
+    return result;
   }
 }
