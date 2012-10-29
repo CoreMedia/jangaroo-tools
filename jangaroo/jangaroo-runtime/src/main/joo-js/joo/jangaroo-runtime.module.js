@@ -1,6 +1,7 @@
 if (typeof joo !== "object") {
   joo = {};
 }
+joo.startTime = new Date().getTime();
 if (typeof joo.debug !== "boolean") {
   joo.debug = typeof location === "object" &&
     typeof location.hash === "string" &&
