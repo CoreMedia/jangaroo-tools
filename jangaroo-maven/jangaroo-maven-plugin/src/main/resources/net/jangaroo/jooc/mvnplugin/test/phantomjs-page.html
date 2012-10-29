@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>_module_group_id:_module_artifact_id (Tests)</title>
+  <meta charset="UTF-8">
+  <script type="text/javascript" src="joo/jangaroo-application.js"></script>
+  <script type="text/javascript">
+
+    // --- test result
+    var testExecutionFinished = function(testSuite, testResult, testResultXml) {
+      // storing test result in DOM
+      window['result'] = testResultXml;
+      // storing test result in document
+      document.getElementById('result').appendChild(document.createTextNode(testResultXml));
+    };
+
+    // --- test executor
+    var executeTests = function() {
+      joo.classLoader.run("net.jangaroo.joounit.runner.DefaultJooTestRunner", {
+        // test fully qualified class names of the tests
+        "tests": _test_classnames,
+        "onComplete": testExecutionFinished
+      });
+    };
+
+    // --- additional setup hook
+    var setUpTests = function() {
+      _phantom_setup;
+    };
+
+    // --- test runner
+    var run = function() {
+
+      setUpTests();
+      executeTests();
+    }
+  </script>
+</head>
+<body onload="run()">
+  <div id="result"></div>
+</body>
+</html>

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>_module_group_id:_module_artifact_id (Tests)</title>
+  <meta charset="UTF-8">
+  <style type="text/css">
+
+    .success {
+      background-color: #d8ff43;
+    }
+
+    .error {
+      background-color: #ffd3cd;
+    }
+
+  </style>
+  <script type="text/javascript" src="joo/jangaroo-application.js"></script>
+  <script type="text/javascript">
+
+    // --- handles the test result (formatted as xml): Writes the raw content into the page.
+    var handleResult = function(testSuite, testResult, testResultXml) {
+
+      var testElement = document.getElementById('test');
+      // remove all current child element (=text message)
+      while (testElement.hasChildNodes()) {
+        testElement.removeChild(testElement.lastChild);
+      }
+      var resultElement = document.createElement("pre");
+      resultElement.appendChild(document.createTextNode(testResultXml));
+
+      testElement.appendChild(resultElement);
+      if( testResult.errorCount()+testResult.failureCount() === 0 ) {
+        // green background on success
+        testElement.setAttribute("class", "success");
+      }
+      else {
+        // red background on failure
+        testElement.setAttribute("class", "error");
+      }
+    };
+
+    // ---- execute the tests
+    var executeTests = function() {
+      joo.classLoader.run("net.jangaroo.joounit.runner.DefaultJooTestRunner", {
+        // test fully qualified class name of the test (suite).
+        // Pitfall: If this test doesn't exist then nothing happens at all
+        "tests": _test_classnames,
+        // callback that receives the test result
+        "onComplete": handleResult
+      });
+    }
+  </script>
+</head>
+<body onload="executeTests()">
+<div id="test">
+  Executing unit tests ...
+</div>
+</body>
+</html>
