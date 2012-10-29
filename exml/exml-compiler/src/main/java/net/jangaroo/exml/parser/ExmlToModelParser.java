@@ -168,7 +168,7 @@ public final class ExmlToModelParser {
   private String createFullConfigClassNameFromNode(Node componentNode) {
     String name = componentNode.getLocalName();
     String uri = componentNode.getNamespaceURI();
-    String packageName = ExmlUtils.parsePackageFromNamespace(uri);
+    String packageName = uri == null ? null : ExmlUtils.parsePackageFromNamespace(uri);
     if (packageName == null) {
       int lineNumber = getLineNumber(componentNode);
       throw new ExmlcException("namespace '" + uri + "' of element '" + name + "' in EXML file does not denote a config package", lineNumber);
