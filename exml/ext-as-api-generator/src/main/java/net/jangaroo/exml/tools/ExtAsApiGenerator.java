@@ -7,12 +7,15 @@ import net.jangaroo.exml.utils.ExmlUtils;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.backend.ActionScriptCodeGeneratingModelVisitor;
 import net.jangaroo.jooc.backend.JsCodeGenerator;
+import net.jangaroo.jooc.model.AnnotationModel;
+import net.jangaroo.jooc.model.AnnotationPropertyModel;
 import net.jangaroo.jooc.model.ClassModel;
 import net.jangaroo.jooc.model.CompilationUnitModelRegistry;
 import net.jangaroo.jooc.model.CompilationUnitModel;
 import net.jangaroo.jooc.model.FieldModel;
 import net.jangaroo.jooc.model.MemberModel;
 import net.jangaroo.jooc.model.MethodModel;
+import net.jangaroo.jooc.model.MethodType;
 import net.jangaroo.jooc.model.ParamModel;
 import net.jangaroo.jooc.model.PropertyModel;
 import net.jangaroo.utils.AS3Type;
@@ -21,6 +24,7 @@ import net.jangaroo.utils.CompilerUtils;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -124,7 +128,7 @@ public class ExtAsApiGenerator {
       CompilationUnitModel singletonUnit = new CompilationUnitModel(extAsClassUnit.getPackage(), singleton);
       compilationUnitModelRegistry.register(singletonUnit);
 
-      extAsClass.setAsdoc(String.format("%s\n<p>Type of singleton %s.</p>\n@see %s %s",
+      extAsClass.setAsdoc(String.format("%s\n<p>Type of singleton %s.</p>\n * @see %s %s",
         extAsClass.getAsdoc(),
         singleton.getName(),
         CompilerUtils.qName(extAsClassUnit.getPackage(), "#" + singleton.getName()),
@@ -143,14 +147,14 @@ public class ExtAsApiGenerator {
     }
 
     if (extAsInterfaceUnit != null) {
-      addNonStaticMembers(extClass, extAsInterfaceUnit.getClassModel());
+      addNonStaticMembers(extClass, extAsInterfaceUnit);
     }
 
     if (!extAsClass.isInterface()) {
       addFields(extAsClass, filterByOwner(false, extClass, extClass.statics.property));
       addMethods(extAsClass, filterByOwner(false, extClass, extClass.statics.method));
     }
-    addNonStaticMembers(extClass, extAsClass);
+    addNonStaticMembers(extClass, extAsClassUnit);
   }
 
   private static void addInterfaceForSuperclass(ExtClass extClass, ClassModel extAsInterface) {
@@ -166,10 +170,12 @@ public class ExtAsApiGenerator {
     return compilationUnitModel;
   }
 
-  private static void addNonStaticMembers(ExtClass extClass, ClassModel extAsClass) {
-    //addProperties(extAsClass, filterByOwner(extClass, extClass.members.cfg));
+  private static void addNonStaticMembers(ExtClass extClass, CompilationUnitModel extAsClassUnit) {
+    addEvents(extAsClassUnit, filterByOwner(false, extClass, extClass.members.event));
+    ClassModel extAsClass = extAsClassUnit.getClassModel();
     addProperties(extAsClass, filterByOwner(extAsClass.isInterface(), extClass, extClass.members.property));
     addMethods(extAsClass, filterByOwner(extAsClass.isInterface(), extClass, extClass.members.method));
+    addProperties(extAsClass, filterByOwner(extAsClass.isInterface(), extClass, extClass.members.cfg));
   }
 
   private static void generateActionScriptCode(CompilationUnitModel extAsClass, File outputDir) throws IOException {
@@ -199,46 +205,103 @@ public class ExtAsApiGenerator {
     return member.meta.readonly || (member.name.equals(member.name.toUpperCase()) && member.default_ != null);
   }
 
-  private static void addFields(ClassModel configClass, List<? extends Member> fields) {
+  private static void addEvents(CompilationUnitModel compilationUnitModel, List<Event> events) {
+    for (Event event : events) {
+      ClassModel classModel = compilationUnitModel.getClassModel();
+      String eventTypeQName = generateEventClass(compilationUnitModel, event);
+      AnnotationModel annotationModel = new AnnotationModel("Event",
+              new AnnotationPropertyModel("name", "'" + event.name + "'"),
+              new AnnotationPropertyModel("type", "'" + eventTypeQName + "'"));
+      annotationModel.setAsdoc(toAsDoc(event.doc) + String.format("\n * @eventType %s.NAME", eventTypeQName));
+      classModel.addAnnotation(annotationModel);
+      System.err.println("*** adding event " + event.name + " to class " + classModel.getName());
+    }
+  }
+
+  public static String capitalize(String name) {
+    return name == null || name.length() == 0 ? name : Character.toUpperCase(name.charAt(0)) + name.substring(1);
+  }
+
+  private static String generateEventClass(CompilationUnitModel compilationUnitModel, Event event) {
+    ClassModel classModel = compilationUnitModel.getClassModel();
+    String eventTypeQName = CompilerUtils.qName(compilationUnitModel.getPackage(),
+            "events." + classModel.getName() + capitalize(event.name) + "Event");
+    CompilationUnitModel extAsClassUnit = createClassModel(eventTypeQName);
+    ClassModel extAsClass = (ClassModel)extAsClassUnit.getPrimaryDeclaration();
+    extAsClass.setAsdoc(toAsDoc(event.doc) + "\n * @see " + compilationUnitModel.getQName());
+
+    FieldModel eventNameConstant = new FieldModel("NAME", "String", CompilerUtils.quote(event.name));
+    eventNameConstant.setStatic(true);
+    eventNameConstant.setAsdoc(MessageFormat.format("This constant defines the value of the <code>type</code> property of the event object\nfor a <code>{0}</code> event.\n   * @eventType {0}", event.name));
+    extAsClass.addMember(eventNameConstant);
+
+    MethodModel constructorModel = extAsClass.createConstructor();
+    constructorModel.addParam(new ParamModel("arguments", "Array"));
+    StringBuilder propertyAssignments = new StringBuilder();
+    for (int i = 0; i < event.params.size(); i++) {
+      Param param = event.params.get(i);
+
+      // add assignment to constructor body:
+      if (i > 0) {
+        propertyAssignments.append("\n    ");
+      }
+      propertyAssignments.append(String.format("this['%s'] = arguments[%d];", convertName(param.name), i));
+
+      // add getter method:
+      MethodModel property = new MethodModel(MethodType.GET, convertName(param.name), convertType(param.type));
+      property.setAsdoc(toAsDoc(param.doc));
+      extAsClass.addMember(property);
+    }
+
+    constructorModel.setBody(propertyAssignments.toString());
+
+    return eventTypeQName;
+  }
+
+  private static void addFields(ClassModel classModel, List<? extends Member> fields) {
     for (Member member : fields) {
       FieldModel fieldModel = new FieldModel(convertName(member.name), convertType(member.type), member.default_);
       fieldModel.setAsdoc(toAsDoc(member.doc));
       setStatic(fieldModel, member);
       fieldModel.setConst(isConst(member));
-      configClass.addMember(fieldModel);
+      classModel.addMember(fieldModel);
     }
   }
 
   private static void addProperties(ClassModel classModel, List<? extends Member> properties) {
     for (Member member : properties) {
-      PropertyModel propertyModel = new PropertyModel(convertName(member.name), convertType(member.type));
-      propertyModel.setAsdoc(toAsDoc(member.doc));
-      setStatic(propertyModel, member);
-      propertyModel.addGetter();
-      if (!member.meta.readonly) {
-        propertyModel.addSetter();
+      if (classModel.getMember(member.name) == null) {
+        PropertyModel propertyModel = new PropertyModel(convertName(member.name), convertType(member.type));
+        propertyModel.setAsdoc(toAsDoc(member.doc));
+        setStatic(propertyModel, member);
+        propertyModel.addGetter();
+        if (!member.meta.readonly) {
+          propertyModel.addSetter();
+        }
+        classModel.addMember(propertyModel);
       }
-      classModel.addMember(propertyModel);
     }
   }
 
   private static void addMethods(ClassModel classModel, List<Method> methods) {
     for (Method method : methods) {
-      boolean isConstructor = method.name.equals("constructor");
-      MethodModel methodModel = isConstructor
-        ? new MethodModel(classModel.getName(), null)
-        : new MethodModel(convertName(method.name), convertType(method.return_.type));
-      methodModel.setAsdoc(toAsDoc(method.doc));
-      methodModel.getReturnModel().setAsdoc(toAsDoc(method.return_.doc));
-      setStatic(methodModel, method);
-      for (Param param : method.params) {
-        ParamModel paramModel = new ParamModel(convertName(param.name), convertType(param.type));
-        paramModel.setAsdoc(toAsDoc(param.doc));
-        setDefaultValue(paramModel, param);
-        paramModel.setRest(param == method.params.get(method.params.size() - 1) && param.type.endsWith("..."));
-        methodModel.addParam(paramModel);
+      if (classModel.getMember(method.name) == null) {
+        boolean isConstructor = method.name.equals("constructor");
+        MethodModel methodModel = isConstructor
+                ? new MethodModel(classModel.getName(), null)
+                : new MethodModel(convertName(method.name), convertType(method.return_.type));
+        methodModel.setAsdoc(toAsDoc(method.doc));
+        methodModel.getReturnModel().setAsdoc(toAsDoc(method.return_.doc));
+        setStatic(methodModel, method);
+        for (Param param : method.params) {
+          ParamModel paramModel = new ParamModel(convertName(param.name), convertType(param.type));
+          paramModel.setAsdoc(toAsDoc(param.doc));
+          setDefaultValue(paramModel, param);
+          paramModel.setRest(param == method.params.get(method.params.size() - 1) && param.type.endsWith("..."));
+          methodModel.addParam(paramModel);
+        }
+        classModel.addMember(methodModel);
       }
-      classModel.addMember(methodModel);
     }
   }
 
@@ -278,12 +341,19 @@ public class ExtAsApiGenerator {
   }
 
   private static String convertName(String name) {
-    return "is".equals(name) ? "matches" : "class".equals(name) ? "cls" : name;
+    return "is".equals(name) ? "matches" :
+            "class".equals(name) ? "cls" :
+                    "this".equals(name) ? "source" :
+                            "new".equals(name) ? "new_" :
+                            name;
   }
 
   private static String convertToInterface(String mixin) {
     String packageName = CompilerUtils.packageName(mixin).toLowerCase();
     String className = "I" + CompilerUtils.className(mixin);
+    if (packageName.startsWith("ext")) {
+      packageName = "ext4" + packageName.substring(3);
+    }
     return CompilerUtils.qName(packageName, className);
   }
 
@@ -293,6 +363,9 @@ public class ExtAsApiGenerator {
     }
     if ("undefined".equals(extType)) {
       return "void";
+    }
+    if ("HTMLElement".equals(extType) || "Event".equals(extType)) {
+      return "js." + extType;
     }
     if (extType.endsWith("...")) {
       return "Array";
@@ -331,6 +404,9 @@ public class ExtAsApiGenerator {
     } else if ("is".equals(className)) {
       // special case lower-case "is" class:
       className = "Is";
+    }
+    if (packageName.startsWith("ext")) {
+      packageName = "ext4" + packageName.substring(3);
     }
     return CompilerUtils.qName(packageName, className);
   }

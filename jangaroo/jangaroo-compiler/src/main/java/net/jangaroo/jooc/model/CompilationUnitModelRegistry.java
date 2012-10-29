@@ -48,10 +48,6 @@ public class CompilationUnitModelRegistry {
     return resolveMethod(classModel, null, null);
   }
 
-  private CompilationUnitModel resolveDefiningType(CompilationUnitModel classModel, String methodName) {
-    return resolveDefiningType(classModel, null, methodName);
-  }
-
   private CompilationUnitModel resolveDefiningType(CompilationUnitModel classModel, MethodType methodType, String name) {
     CompilationUnitModel definingType = null;
     if (classModel != null) {
@@ -99,10 +95,6 @@ public class CompilationUnitModelRegistry {
       currentCompilationUnit = getSuperclassCompilationUnit(classModel);
     }
     return definingClass;
-  }
-
-  public MethodModel resolveMethod(ClassModel classModel, String methodName) {
-    return resolveMethod(classModel, null, methodName);
   }
 
   public MethodModel resolveMethod(ClassModel classModel, MethodType methodType, String methodName) {
@@ -226,14 +218,17 @@ public class CompilationUnitModelRegistry {
 
   private void complementOverridingMethod(CompilationUnitModel compilationUnitModel, MethodModel methodModel) {
     ClassModel classModel = compilationUnitModel.getClassModel();
+    if (classModel == null) {
+      return;
+    }
     String methodName = methodModel.getName();
-    MethodModel superclassMethod = resolveMethod(getSuperclass(classModel), methodName);
+    MethodModel superclassMethod = resolveMethod(getSuperclass(classModel), methodModel.getMethodType(), methodName);
     if (superclassMethod != null) {
       methodModel.setOverride(true);
     }
-    CompilationUnitModel definingType = resolveDefiningType(compilationUnitModel, methodName);
+    CompilationUnitModel definingType = resolveDefiningType(compilationUnitModel, methodModel.getMethodType(), methodName);
     if (!definingType.equals(compilationUnitModel)) {
-      MethodModel methodSignature = definingType.getClassModel().getMethod(methodName);
+      MethodModel methodSignature = definingType.getClassModel().getMethod(methodModel.getMethodType(), methodName);
       if (!methodSignature.equals(methodModel)) {
         // correct method signature:
         logMethodSignatureCorrection(definingType, methodSignature, compilationUnitModel, methodModel);
