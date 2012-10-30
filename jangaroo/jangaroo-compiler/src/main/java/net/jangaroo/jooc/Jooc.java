@@ -122,11 +122,12 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
           reportPublicApiViolations(unit);
         }
         File sourceFile = ((FileInputSource)unit.getSource()).getFile();
+        File outputFile = null;
         // only generate JavaScript if [Native] annotation and 'native' modifier on primary declaration are not present:
         if (unit.getAnnotation(NATIVE_ANNOTATION_NAME) == null && !unit.getPrimaryDeclaration().isNative()) {
-          File outputFile = writeOutput(sourceFile, unit, codeSinkFactory, getConfig().isVerbose());
-          outputFileMap.put(sourceFile, outputFile);
+          outputFile = writeOutput(sourceFile, unit, codeSinkFactory, getConfig().isVerbose());
         }
+        outputFileMap.put(sourceFile, outputFile); // always map source file, even if output file is null!
         if (getConfig().isGenerateApi()) {
           writeOutput(sourceFile, unit, apiSinkFactory, getConfig().isVerbose());
         }
