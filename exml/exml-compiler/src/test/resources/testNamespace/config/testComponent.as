@@ -65,5 +65,13 @@ public dynamic class testComponent extends ext.config.panel {
    * @private
    */
   public native function set propertyFour(value:*):void;
+  /**
+   * Some Array property
+   */
+  public native function get propertyFive():Array;
+  /**
+   * @private
+   */
+  public native function set propertyFive(value:Array):void;
 }
 }

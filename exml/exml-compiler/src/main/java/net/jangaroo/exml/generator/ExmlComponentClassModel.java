@@ -28,6 +28,7 @@ public class ExmlComponentClassModel {
   public Set<String> getAllImports() {
     LinkedHashSet<String> result = new LinkedHashSet<String>();
     result.add("ext.Ext");
+    result.add("net.jangaroo.ext.Exml");
     result.addAll(model.getImports());
     return result;
   }

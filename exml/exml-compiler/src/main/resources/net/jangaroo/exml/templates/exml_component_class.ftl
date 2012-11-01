@@ -41,7 +41,7 @@ public class ${model.className} extends ${model.superClassName} {
 <#list model.vars as var>
     var ${var.name}:${var.type} = ${var.value};
 </#list>
-    super(${model.configClass.fullName}(ext.Ext.apply(${formattedConfig}, config)));
+    super(${model.configClass.fullName}(net.jangaroo.ext.Exml.apply(${formattedConfig}, config)));
   }
 
   /**

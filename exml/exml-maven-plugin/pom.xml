@@ -85,7 +85,7 @@
       </plugin>
     </plugins>
   </reporting>
-  <name>Maven Plugin: EXML to AS3</name>
+  <name>exml-maven-plugin</name>
   <description>This plugin generates ActionScript</description>
 </project>
 
