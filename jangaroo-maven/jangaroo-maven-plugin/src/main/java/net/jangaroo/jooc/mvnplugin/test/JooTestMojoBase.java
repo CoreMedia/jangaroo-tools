@@ -6,6 +6,8 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.servlet.DefaultServlet;
+import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.util.resource.ResourceCollection;
 import org.mortbay.jetty.plugin.JettyWebAppContext;
@@ -120,6 +122,10 @@ public abstract class JooTestMojoBase extends AbstractMojo {
       }
       handler.setBaseResource(new ResourceCollection(baseResources.toArray(new Resource[baseResources.size()])));
       getLog().info("Using base resources " + baseResources);
+      ServletHolder servletHolder = new ServletHolder("default", DefaultServlet.class);
+      servletHolder.setInitParameter("cacheControl", "no-store, no-cache, must-revalidate, max-age=0");
+      handler.addServlet(servletHolder, "/");
+      getLog().info("Set servlet cache control to 'do not cache'.");
     } catch (Exception e) {
       throw wrap(e);
     }
