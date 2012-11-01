@@ -34,10 +34,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public final class ExmlToModelParser {
   private static final String EXT_CONFIG_PREFIX = "ext.config.";
+  public static final String CONFIG_MODE_AT_SUFFIX = "$at";
+  public static final String CONFIG_MODE_ATTRIBUTE_NAME = "mode";
 
   private final ConfigClassRegistry registry;
 
@@ -212,6 +216,11 @@ public final class ExmlToModelParser {
     return attributeValue;
   }
 
+  private static final Map<String, String> CONFIG_MODE_TO_AT_VALUE = new HashMap<String, String>(); static {
+    CONFIG_MODE_TO_AT_VALUE.put("append",  "{net.jangaroo.ext.Exml.APPEND}");
+    CONFIG_MODE_TO_AT_VALUE.put("prepend", "{net.jangaroo.ext.Exml.PREPEND}");
+  }
+
   private void fillModelAttributesFromSubElements(ExmlModel model, JsonObject jsonObject, Node componentNode, ConfigClass configClass) {
     NodeList childNodes = componentNode.getChildNodes();
     for (int i = 0; i < childNodes.getLength(); i++) {
@@ -219,14 +228,25 @@ public final class ExmlToModelParser {
       if (node.getNodeType() == Node.ELEMENT_NODE) {
         Element element = (Element) node;
         String elementName = element.getLocalName();
-        if (element.hasAttributes()) {
-          // it's a complex object with attributes and sub-properties
+        ConfigAttribute configAttribute = getCfgByName(configClass, elementName);
+        boolean isConfigTypeArray = configAttribute != null && "Array".equals(configAttribute.getType());
+        String configMode = isConfigTypeArray ? element.getAttribute(CONFIG_MODE_ATTRIBUTE_NAME) : "";
+        // Special case: if an EXML element representing a config property has attributes, it is treated as
+        // having an untyped object value. Exception: it is an Array-typed property and the sole attribute is "mode".
+        int attributeCount = element.getAttributes().getLength();
+        if (attributeCount > 1 || attributeCount == 1 && configMode.length() == 0) {
+          // it's an untyped complex object with attributes and sub-properties
           parseJavaScriptObjectProperty(jsonObject, element);
         } else {
           // it seems to be an array or an object
           List<Object> childObjects = parseChildObjects(model, element);
-          ConfigAttribute configAttribute = getCfgByName(configClass, elementName);
-          if (childObjects.size() > 1 || configAttribute != null && "Array".equals(configAttribute.getType())) {
+          // derive the corresponding "at" value from the specified config mode (if any):
+          String atValue = CONFIG_MODE_TO_AT_VALUE.get(configMode);
+          if (atValue != null && !configClass.isExmlGenerated()) {
+            throw new ExmlcException("Non-EXML class " + configClass.getComponentClassName() +
+                    " does not support config modes.", getLineNumber(node));
+          }
+          if (atValue != null || childObjects.size() > 1 || isConfigTypeArray) {
             // TODO: Check for type violation
             // We must write an array.
             JsonArray jsonArray = new JsonArray(childObjects.toArray());
@@ -236,6 +256,10 @@ public final class ExmlToModelParser {
             // and it contains a single child element. Use that element as the
             // property value.
             jsonObject.set(element.getLocalName(), childObjects.get(0));
+          }
+          // if any "at" value is specified, set the extra mode attribute (...$at):
+          if (atValue != null) {
+            jsonObject.set(element.getLocalName() + CONFIG_MODE_AT_SUFFIX, atValue);
           }
           // empty properties are omitted if the type is not fixed to Array
         }

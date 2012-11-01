@@ -228,4 +228,9 @@ public final class ConfigClass extends DescriptionHolder {
   public int hashCode() {
     return 31 * name.hashCode() + packageName.hashCode();
   }
+
+  public boolean isExmlGenerated() {
+    // heuristic: corresponding property / class does not support config modes iff xtype != config class qname
+    return getTypeValue() == null || getTypeValue().equals(getFullName());
+  }
 }

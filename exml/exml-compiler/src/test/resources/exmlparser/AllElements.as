@@ -1,6 +1,7 @@
 package exmlparser {
 
 import ext.Ext;
+import net.jangaroo.ext.Exml;
 import exmlparser.config.allElements;
 import ext.MessageBox;
 import ext.Panel;
@@ -31,7 +32,7 @@ public class AllElements extends ext.Panel {
    */
   public function AllElements(config:exmlparser.config.allElements = null) {
     var myVar:String = config.myProperty + '_suffix';
-    super(exmlparser.config.allElements(ext.Ext.apply({
+    super(exmlparser.config.allElements(net.jangaroo.ext.Exml.apply({
       layout: config.myLayout,
       title: "I am a panel",
       defaults: {layout: "border"},

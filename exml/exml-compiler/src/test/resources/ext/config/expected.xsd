@@ -62,7 +62,6 @@
                 <xs:sequence>
                   <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
                 </xs:sequence>
-                <xs:anyAttribute processContents="skip"/>
               </xs:complexType>
             </xs:element>
             <xs:element name='margins' minOccurs="0" maxOccurs="1">
@@ -70,7 +69,6 @@
                 <xs:sequence>
                   <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
                 </xs:sequence>
-                <xs:anyAttribute processContents="skip"/>
               </xs:complexType>
             </xs:element>
         </xs:sequence>
@@ -143,7 +141,7 @@
                 <xs:sequence>
                   <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
                 </xs:sequence>
-                <xs:anyAttribute processContents="skip"/>
+                <xs:attribute name="mode" type="exml:configMode"/>
               </xs:complexType>
             </xs:element>
             <xs:element name='tools' minOccurs="0" maxOccurs="1">
@@ -156,7 +154,7 @@
                 <xs:sequence>
                   <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
                 </xs:sequence>
-                <xs:anyAttribute processContents="skip"/>
+                <xs:attribute name="mode" type="exml:configMode"/>
               </xs:complexType>
             </xs:element>
             <xs:element name='menu' minOccurs="0" maxOccurs="1">
@@ -169,7 +167,7 @@
                 <xs:sequence>
                   <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
                 </xs:sequence>
-                <xs:anyAttribute processContents="skip"/>
+                <xs:attribute name="mode" type="exml:configMode"/>
               </xs:complexType>
             </xs:element>
         </xs:sequence>

@@ -279,6 +279,31 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
   }
 
   @Test
+  public void testConfigModes() throws Exception{
+    setUp("testNamespace.config");
+    ExmlToModelParser exmlToModelParser = new ExmlToModelParser(getConfigClassRegistry());
+
+    ExmlModel model = exmlToModelParser.parse(getFile("/testPackage/TestComponentWithConfigModes.exml"));
+    Assert.assertEquals("testPackage.TestComponent", model.getSuperClassName());
+
+    JsonObject expectedJsonObject = new JsonObject(
+            "items", new JsonArray(
+                    new JsonObject(
+                            "propertyThree", "3"
+                    ).settingWrapperClass("testNamespace.config.testComponent2")
+            ),
+            "items$at", "{net.jangaroo.ext.Exml.APPEND}",
+            "propertyFive", new JsonArray(new JsonObject("xtype", "agridcolumn")),
+            "propertyFive$at", "{net.jangaroo.ext.Exml.PREPEND}",
+            "layoutConfig", new JsonObject(
+                    "mode", "foo"
+            )
+    );
+    System.out.println(model.getJsonObject().toString(2));
+    Assert.assertEquals(expectedJsonObject.toString(2), model.getJsonObject().toString(2));
+  }
+
+  @Test
   public void testBaseClass() throws Exception {
     setUp("exmlparser.config");
     ExmlToModelParser exmlToModelParser = new ExmlToModelParser(getConfigClassRegistry());

@@ -28,7 +28,9 @@
                 <xs:sequence>
                   <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
                 </xs:sequence>
-                <xs:anyAttribute processContents="skip"/>
+                <#if cfg.sequence>
+                <xs:attribute name="mode" type="exml:configMode"/>
+                </#if>
               </xs:complexType>
             </xs:element>
           </#if>

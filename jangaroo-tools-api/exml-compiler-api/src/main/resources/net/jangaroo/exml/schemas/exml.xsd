@@ -323,4 +323,20 @@
 
   <xs:element name="object" type="exml:object"/>
 
+  <xs:simpleType name="configMode">
+    <xs:annotation>
+      <xs:documentation>
+        Defines the mode how to apply the given config property value to the
+        default value. Applicable values are <code>replace</code> (default)
+        to completely replace the default value, <code>append</code> to concatenate
+        the default value with the given list or element, and <code>prepend</code>
+        to concatenate the given list or element with the default value.
+      </xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+       <xs:enumeration value="replace"/>
+       <xs:enumeration value="append"/>
+       <xs:enumeration value="prepend"/>
+    </xs:restriction>
+  </xs:simpleType>
 </xs:schema>
