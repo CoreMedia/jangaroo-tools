@@ -9,30 +9,36 @@ import java.io.File;
  */
 public final class ExmlcException extends RuntimeException implements FilePosition {
   private File file;
-  private int line;
-  private int column;
+  private int line = 0;
+  private int column = -1;
 
   public ExmlcException(String message) {
     super(message);
   }
 
   public ExmlcException(String message, int line) {
-    this(message, line, -1);
+    this(message);
+    this.line = line;
   }
 
   public ExmlcException(String message, int line, int column) {
-    super(message);
-    setLine(line);
-    setColumn(column);
+    this(message, line);
+    this.column = column;
   }
 
   public ExmlcException(String message, Throwable t) {
     super(message, t);
+    if (t instanceof ExmlcException) {
+      ExmlcException exmlcException = (ExmlcException) t;
+      this.file = exmlcException.getFile();
+      this.line = exmlcException.getLine();
+      this.column = exmlcException.getColumn();
+    }
   }
 
   public ExmlcException(String message, File file, Exception e) {
     this(message, e);
-    setFile(file);
+    this.file = file;
   }
 
   public void setFile(File file) {
