@@ -36,15 +36,15 @@ try
     File xsd = new File( target, "generated-resources"+File.separator+"net.jangaroo.example.config.xsd" );
     if ( !xsd.exists() || !xsd.isFile() )
     {
-        System.err.println( "xsd file is missing or not a file." );
-        //return false;
+        System.err.println( "xsd file is missing or not a file: " + xsd.getPath() );
+        return false;
     }
 
     File expectedXsd = new File(basedir, "expected.xsd");
     boolean xsdEqual = FileUtils.contentEquals(expectedXsd, xsd);
     if (!xsdEqual) {
-        System.err.println( "generated xsd does not match expected xsd." );
-        //return false;
+        System.err.println( "generated xsd " + xsd.getPath() + " does not match expected xsd " + expectedXsd.getPath() + ".");
+        return false;
     }
 
     File jarFile = new File( target, "exml-with-dependency-1.0-SNAPSHOT.jar" );
