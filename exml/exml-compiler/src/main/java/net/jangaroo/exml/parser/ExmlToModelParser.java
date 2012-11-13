@@ -38,6 +38,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static net.jangaroo.exml.xml.PreserveLineNumberHandler.getLineNumber;
+
 public final class ExmlToModelParser {
   private static final String EXT_CONFIG_PREFIX = "ext.config.";
   public static final String CONFIG_MODE_AT_SUFFIX = "$at";
@@ -390,10 +392,6 @@ public final class ExmlToModelParser {
     if (!Exmlc.EXML_ROOT_NODE_NAMES.contains(root.getLocalName())) {
       throw new ExmlcException("Root node of EXML file must be one of " + Arrays.toString(Exmlc.EXML_ROOT_NODE_NAMES.toArray()) + ", but was " + root.getLocalName() + ".", lineNumber);
     }
-  }
-
-  private int getLineNumber(Node node) {
-    return Integer.parseInt((String) node.getUserData(PreserveLineNumberHandler.LINE_NUMBER_KEY_NAME));
   }
 
   private Document buildDom(InputStream inputStream) throws SAXException, IOException {

@@ -15,13 +15,18 @@ import java.util.Stack;
  * ads line numbers to the element user data
  */
 public class PreserveLineNumberHandler extends DefaultHandler {
-  public static final String LINE_NUMBER_KEY_NAME = "lineNumber";
+  private static final String LINE_NUMBER_KEY_NAME = "lineNumber";
 
   private final Stack<Element> elementStack = new Stack<Element>();
   private final StringBuilder textBuffer = new StringBuilder();
 
   private Document doc;
   private Locator locator;
+
+  public static int getLineNumber(Node node) {
+    String lineStr = (String) node.getUserData(PreserveLineNumberHandler.LINE_NUMBER_KEY_NAME);
+    return lineStr == null ? -1 : Integer.parseInt(lineStr);
+  }
 
   public PreserveLineNumberHandler(Document doc) {
     this.doc = doc;
