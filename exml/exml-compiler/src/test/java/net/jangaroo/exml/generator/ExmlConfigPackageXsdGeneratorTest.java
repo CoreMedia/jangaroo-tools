@@ -16,7 +16,7 @@ public class ExmlConfigPackageXsdGeneratorTest extends AbstractExmlTest{
   public void testGenerateXsdFile() throws Exception {
     setUp("ext.config");
 
-    String expected = FileUtils.readFileToString(new File(getClass().getResource("/ext/config/expected.xsd").toURI()));
+    String expected = FileUtils.readFileToString(new File(getClass().getResource("/ext.config.xsd").toURI()));
 
     StringWriter output = new StringWriter();
     getExmlc().getExmlConfigPackageXsdGenerator().generateXsdFile(getConfigClassRegistry(), output);
