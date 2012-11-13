@@ -1,9 +1,9 @@
-package {
+package ext {
 
-import ext.config.container;
+import testPackage.config.container;
 
 public class Container {
-  public function Container(config:ext.config.container) {
+  public function Container(config:testPackage.config.container) {
   }
 }
 }
