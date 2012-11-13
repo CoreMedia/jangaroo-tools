@@ -42,6 +42,7 @@ under the License.
         <extensions>true</extensions>
         <configuration>
           <configClassPackage>testPackage.config</configClassPackage>
+          <validationMode>error</validationMode>
         </configuration>
       </plugin>
     </plugins>

@@ -1,7 +1,10 @@
 package net.jangaroo.exml.mojo;
 
 import net.jangaroo.exml.compiler.Exmlc;
+import net.jangaroo.exml.config.ValidationMode;
 import org.apache.maven.model.Resource;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProjectHelper;
 
 import java.io.File;
@@ -24,6 +27,10 @@ public class ExmlXsdMojo extends ExmlMojo {
    */
   private MavenProjectHelper projectHelper;
 
+  public ExmlXsdMojo() {
+    super();
+  }
+
   @Override
   protected List<File> getSourcePath() {
     List<File> sourcePath = new ArrayList<File>(super.getSourcePath());
@@ -32,7 +39,17 @@ public class ExmlXsdMojo extends ExmlMojo {
   }
 
   @Override
+  public void execute() throws MojoExecutionException, MojoFailureException {
+    useAllSources(); // as this goal is executed *after* the EXML compiler, there are no stale sources anymore!
+    super.execute();
+  }
+
+  @Override
   protected void executeExmlc(Exmlc exmlc) {
+    if (exmlc.getConfig().getValidationMode() != ValidationMode.OFF) {
+      getLog().info("validating " + exmlc.getConfig().getSourceFiles().size() + " EXML files...");
+    }
+
     //generate the XSD for that
     File xsdFile = exmlc.generateXsd();
     projectHelper.attachArtifact(getProject(), "xsd", xsdFile);

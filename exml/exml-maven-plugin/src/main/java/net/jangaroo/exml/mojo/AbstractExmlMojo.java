@@ -3,11 +3,15 @@ package net.jangaroo.exml.mojo;
 import net.jangaroo.exml.api.ExmlcException;
 import net.jangaroo.exml.config.ExmlConfiguration;
 import net.jangaroo.exml.compiler.Exmlc;
+import net.jangaroo.exml.config.ValidationMode;
+import net.jangaroo.jooc.api.CompileLog;
+import net.jangaroo.jooc.api.FilePosition;
 import net.jangaroo.jooc.api.Jooc;
 import net.jangaroo.jooc.mvnplugin.JangarooMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.util.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -56,6 +60,15 @@ public abstract class AbstractExmlMojo extends JangarooMojo {
   private String configClassPackage;
 
   /**
+   * A switch to control EXML validation against EXML schema and generated component suite schemas.
+   * It can take the values "off" to skip validation (default), "warn" to log a warning whenever a validation
+   * error occurs, and "error" to stop the build with an error whenever validation errors occur.
+   *
+   * @parameter default-value="off"
+   */
+  private String validationMode;
+
+  /**
    * A list of inclusion filters for the compiler.
    *
    * @parameter
@@ -74,6 +87,10 @@ public abstract class AbstractExmlMojo extends JangarooMojo {
    * @parameter expression="${lastModGranularityMs}" default-value="0"
    */
   private int staleMillis;
+
+  protected void useAllSources() {
+    staleMillis = -1;
+  }
 
   @Override
   protected MavenProject getProject() {
@@ -117,6 +134,16 @@ public abstract class AbstractExmlMojo extends JangarooMojo {
       throw new MojoExecutionException("could not determine source directory", e);
     }
     exmlConfiguration.setSourceFiles(getMavenPluginHelper().computeStaleSources(sourcePath, includes, excludes, gSourcesDirectory, Exmlc.EXML_SUFFIX, Jooc.AS_SUFFIX, staleMillis));
+    if (StringUtils.isNotEmpty(validationMode)) {
+      try {
+        exmlConfiguration.setValidationMode(ValidationMode.valueOf(validationMode.toUpperCase()));
+      } catch (IllegalArgumentException e) {
+        throw new MojoFailureException("The specified EXML validation mode '" + validationMode + "' is unsupported. " +
+                "Legal values are 'error', 'warn', and 'off'.");
+      }
+    }
+    CompileLog compileLog = new MavenCompileLog();
+    exmlConfiguration.setLog(compileLog);
 
     Exmlc exmlc;
     try {
@@ -129,7 +156,41 @@ public abstract class AbstractExmlMojo extends JangarooMojo {
       throw new MojoFailureException(e.toString(), e);
     }
 
+    if (compileLog.hasErrors()) {
+      throw new MojoFailureException("There were EXML compiler errors, see log for details.");
+    }
+
     getProject().addCompileSourceRoot(gSourcesDirectory.getPath());
+  }
+
+  private class MavenCompileLog implements CompileLog {
+    private boolean hasErrors = false;
+
+    @Override
+    public void error(FilePosition position, String msg) {
+      error(String.format("%s (%d): %s", position.getFileName(), position.getLine(), msg));
+    }
+
+    @Override
+    public void error(String msg) {
+      hasErrors = true;
+      getLog().error(msg);
+    }
+
+    @Override
+    public void warning(FilePosition position, String msg) {
+      warning(String.format("%s (%d): %s", position.getFileName(), position.getLine(), msg));
+    }
+
+    @Override
+    public void warning(String msg) {
+      getLog().warn(msg);
+    }
+
+    @Override
+    public boolean hasErrors() {
+      return hasErrors;
+    }
   }
 
   /**

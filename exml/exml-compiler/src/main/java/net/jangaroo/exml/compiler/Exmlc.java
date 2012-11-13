@@ -3,6 +3,7 @@ package net.jangaroo.exml.compiler;
 import net.jangaroo.exml.api.ExmlcException;
 import net.jangaroo.exml.config.ExmlConfiguration;
 import net.jangaroo.exml.cli.ExmlcCommandLineParser;
+import net.jangaroo.exml.config.ValidationMode;
 import net.jangaroo.exml.generator.ExmlComponentClassGenerator;
 import net.jangaroo.exml.generator.ExmlConfigClassGenerator;
 import net.jangaroo.exml.generator.ExmlConfigPackageXsdGenerator;
@@ -13,6 +14,7 @@ import net.jangaroo.exml.model.ExmlModel;
 import net.jangaroo.exml.model.PublicApiMode;
 import net.jangaroo.exml.parser.ExmlToConfigClassParser;
 import net.jangaroo.exml.parser.ExmlToModelParser;
+import net.jangaroo.exml.parser.ExmlValidator;
 import net.jangaroo.jooc.api.Jooc;
 import net.jangaroo.jooc.cli.CommandLineParseException;
 import net.jangaroo.utils.CompilerUtils;
@@ -154,11 +156,20 @@ public final class Exmlc implements net.jangaroo.exml.api.Exmlc {
 
   @Override
   public File generateXsd() {
+    File xsdFile;
     try {
-      return exmlConfigPackageXsdGenerator.generateXsdFile(configClassRegistry);
+      xsdFile = exmlConfigPackageXsdGenerator.generateXsdFile(configClassRegistry);
     } catch (Exception e) {
       throw new ExmlcException("unable to generate xsd file: " + e.getMessage(), e);
     }
+    if (getConfig().getValidationMode() != ValidationMode.OFF) {
+      try {
+        new ExmlValidator(getConfig()).validateAllExmlFiles();
+      } catch (Exception e) {
+        throw new ExmlcException("unable to start validation", e);
+      }
+    }
+    return xsdFile;
   }
 
   public static int run(String[] argv) {
