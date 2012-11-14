@@ -228,6 +228,9 @@ public final class ConfigClassRegistry {
       if (generatedConfigAsFile != null) {
         // A candidate AS config class has already been generated.
         CompilationUnit compilationUnit = Jooc.doParse(generatedConfigAsFile, new StdOutCompileLog(), SemicolonInsertionMode.QUIRKS);
+        if (compilationUnit == null) {
+          return null;
+        }
         ConfigClass generatedAsConfigClass = buildConfigClass(compilationUnit);
         if (generatedAsConfigClass != null) {
           // It is really a generated config class.
