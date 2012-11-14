@@ -134,8 +134,8 @@ public class ExmlMetadataHandler extends CharacterRecordingHandler {
 
   @Override
   public void endElement(String uri, String localName, String qName) throws SAXException {
+    elementPath.pop();
     if (ExmlUtils.isExmlNamespace(uri)) {
-      elementPath.pop();
       if (Exmlc.EXML_DESCRIPTION_NODE_NAME.equals(localName)) {
         String characters = popRecordedCharacters();
         if (characters != null) {
