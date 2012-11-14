@@ -6,6 +6,7 @@ import freemarker.template.DefaultObjectWrapper;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import net.jangaroo.exml.api.Exmlc;
+import net.jangaroo.exml.api.ExmlcException;
 import net.jangaroo.exml.model.ConfigClass;
 
 import java.io.File;
@@ -46,6 +47,9 @@ public final class ExmlConfigClassGenerator {
   }
 
   private static void generateClass(final ConfigClass configClass, final Writer output) throws IOException, TemplateException {
+    if (configClass.getSuperClassName() == null) {
+      throw new ExmlcException("Config class " + configClass.getFullName() + "'s super class name is null!");
+    }
     Configuration cfg = new Configuration();
     cfg.setClassForTemplateLoading(ConfigClass.class, "/");
     cfg.setObjectWrapper(new DefaultObjectWrapper());
