@@ -13,6 +13,7 @@ import net.jangaroo.exml.model.ExmlModel;
 import net.jangaroo.exml.model.Declaration;
 import net.jangaroo.exml.utils.ExmlUtils;
 import net.jangaroo.exml.xml.PreserveLineNumberHandler;
+import net.jangaroo.jooc.Jooc;
 import net.jangaroo.utils.AS3Type;
 import net.jangaroo.utils.CompilerUtils;
 import org.w3c.dom.Attr;
@@ -104,9 +105,9 @@ public final class ExmlToModelParser {
       } else if (Exmlc.EXML_PUBLIC_API_ATTRIBUTE.equals(attribute.getLocalName())) {
         PublicApiMode publicApiMode = Exmlc.parsePublicApiMode(attribute.getValue());
         switch (publicApiMode) {
-          case TRUE:   model.addAnnotation("PublicApi");
+          case TRUE:   model.addAnnotation(Jooc.PUBLIC_API_INCLUSION_ANNOTATION_NAME);
                        // fall through!
-          case CONFIG: model.getConfigClass().addAnnotation("PublicApi");
+          case CONFIG: model.getConfigClass().addAnnotation(Jooc.PUBLIC_API_INCLUSION_ANNOTATION_NAME);
         }
       }
     }

@@ -10,6 +10,7 @@ import net.jangaroo.exml.model.DescriptionHolder;
 import net.jangaroo.exml.model.Declaration;
 import net.jangaroo.exml.model.PublicApiMode;
 import net.jangaroo.exml.utils.ExmlUtils;
+import net.jangaroo.jooc.Jooc;
 import net.jangaroo.utils.CharacterRecordingHandler;
 import org.xml.sax.Attributes;
 import org.xml.sax.Locator;
@@ -60,7 +61,7 @@ public class ExmlMetadataHandler extends CharacterRecordingHandler {
           if (Exmlc.EXML_PUBLIC_API_ATTRIBUTE.equals(atts.getLocalName(i))) {
             PublicApiMode publicApiMode = Exmlc.parsePublicApiMode(atts.getValue(i));
             if (publicApiMode != PublicApiMode.FALSE) {
-              configClass.addAnnotation("PublicApi");
+              configClass.addAnnotation(Jooc.PUBLIC_API_INCLUSION_ANNOTATION_NAME);
             }
           }
         }
