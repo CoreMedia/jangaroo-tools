@@ -8,6 +8,7 @@ import net.jangaroo.exml.model.AnnotationAt;
 import net.jangaroo.exml.model.ConfigAttribute;
 import net.jangaroo.exml.model.ConfigClass;
 import net.jangaroo.exml.model.ConfigClassRegistry;
+import net.jangaroo.exml.model.ConfigClassType;
 import net.jangaroo.exml.model.PublicApiMode;
 import net.jangaroo.exml.model.ExmlModel;
 import net.jangaroo.exml.model.Declaration;
@@ -44,8 +45,11 @@ import static net.jangaroo.exml.xml.PreserveLineNumberHandler.getLineNumber;
 
 public final class ExmlToModelParser {
   private static final String EXT_CONFIG_PREFIX = "ext.config.";
-  public static final String CONFIG_MODE_AT_SUFFIX = "$at";
-  public static final String CONFIG_MODE_ATTRIBUTE_NAME = "mode";
+  private static final String CONFIG_MODE_AT_SUFFIX = "$at";
+  private static final String CONFIG_MODE_ATTRIBUTE_NAME = "mode";
+  private static final String EXT_CONTAINER_CONFIG_QNAME = "ext.config.container";
+  private static final String EXT_CONTAINER_DEFAULTS_PROPERTY = "defaults";
+  private static final String EXT_CONTAINER_DEFAULT_TYPE_PROPERTY = "defaultType";
 
   private final ConfigClassRegistry registry;
 
@@ -272,6 +276,8 @@ public final class ExmlToModelParser {
         }
         // it seems to be an array or an object
         fillJsonObjectProperty(model, jsonObject, elementName, isConfigTypeArray, getChildElements(element));
+        ifContainerDefaultsThenExtractXtype(jsonObject, configClass, elementName);
+
         // if any "at" value is specified, set the extra mode attribute (...$at):
         if (atValue != null) {
           jsonObject.set(elementName + CONFIG_MODE_AT_SUFFIX, atValue);
@@ -279,6 +285,34 @@ public final class ExmlToModelParser {
         // empty properties are omitted if the type is not fixed to Array
       }
     }
+  }
+
+  private void ifContainerDefaultsThenExtractXtype(JsonObject jsonObject, ConfigClass configClass, String elementName) {
+    // special case: extract xtype from <defaults> as <defaultType>!
+    if (EXT_CONTAINER_DEFAULTS_PROPERTY.equals(elementName) && isContainerConfig(configClass)) {
+      Object value = jsonObject.get(elementName);
+      if (value instanceof JsonObject) {
+        JsonObject jsonObjectValue = (JsonObject) value;
+        // there are two ways an xtype can be specified:
+        // a) as an EXML config class wrapping the JSON object:
+        String xtype = jsonObjectValue.getWrapperClass();
+        if (xtype != null) {
+          jsonObjectValue.settingWrapperClass(null);
+        } else {
+          // b) as an "xtype" attribute:
+          xtype = (String) jsonObjectValue.remove(ConfigClassType.XTYPE.getType());
+        }
+        if (xtype != null) {
+          jsonObject.set(EXT_CONTAINER_DEFAULT_TYPE_PROPERTY, xtype);
+        }
+      }
+    }
+  }
+
+  private boolean isContainerConfig(ConfigClass configClass) {
+    return configClass != null &&
+            (EXT_CONTAINER_CONFIG_QNAME.equals(configClass.getFullName()) ||
+                    isContainerConfig(configClass.getSuperClass()));
   }
 
   private boolean isConfigTypeArray(ConfigClass configClass, String propertyName) {

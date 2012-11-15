@@ -320,6 +320,29 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
   }
 
   @Test
+  public void testContainerDefaults() throws Exception {
+    setUp("testNamespace.config");
+    ExmlToModelParser exmlToModelParser = new ExmlToModelParser(getConfigClassRegistry());
+
+    ExmlModel model = exmlToModelParser.parse(getFile("/testPackage/TestContainerDefaults.exml"));
+    JsonObject expectedJsonObject = new JsonObject(
+            "defaults", new JsonObject(
+              "text", "it works!"
+            ),
+            "defaultType", "button",
+            "items", new JsonArray(new JsonObject(
+              "xtype", "container",
+              "defaults", new JsonObject(
+                "propertyOne", true
+              ),
+              "defaultType", "testNamespace.config.testComponent"
+            ))
+    );
+    System.out.println(model.getJsonObject().toString(2));
+    Assert.assertEquals(expectedJsonObject.toString(2), model.getJsonObject().toString(2));
+  }
+
+  @Test
   public void testConfigModes() throws Exception{
     setUp("testNamespace.config");
     ExmlToModelParser exmlToModelParser = new ExmlToModelParser(getConfigClassRegistry());
