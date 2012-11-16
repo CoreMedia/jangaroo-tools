@@ -6,6 +6,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.compiler.util.scan.InclusionScanException;
+import org.codehaus.plexus.compiler.util.scan.SimpleSourceInclusionScanner;
 import org.codehaus.plexus.compiler.util.scan.SourceInclusionScanner;
 import org.codehaus.plexus.compiler.util.scan.StaleSourceScanner;
 import org.codehaus.plexus.compiler.util.scan.mapping.SuffixMapping;
@@ -51,18 +52,20 @@ public class MavenPluginHelper {
     return Collections.unmodifiableList(new ArrayList<File>(staleSources));
   }
 
-  private static SourceInclusionScanner createSourceInclusionScanner(Set<String> includes, Set<String> excludes, String inputFileSuffix, int staleMillis) {
+  private SourceInclusionScanner createSourceInclusionScanner(Set<String> includes, Set<String> excludes, String inputFileSuffix, int staleMillis) {
     SourceInclusionScanner scanner;
 
-    if (includes.isEmpty() && excludes.isEmpty()) {
+    if (staleMillis >= 0 && includes.isEmpty() && excludes.isEmpty()) {
       scanner = new StaleSourceScanner(staleMillis);
     } else {
       if (includes.isEmpty()) {
         includes.add("**/*" + inputFileSuffix);
       }
-      scanner = new StaleSourceScanner(staleMillis, includes, excludes);
+      scanner = staleMillis >= 0 ? new StaleSourceScanner(staleMillis, includes, excludes)
+              : new SimpleSourceInclusionScanner(includes, excludes);
     }
 
+    log.debug("Using source inclusion scanner " + scanner);
     return scanner;
   }
 

@@ -8,11 +8,13 @@ import net.jangaroo.exml.model.AnnotationAt;
 import net.jangaroo.exml.model.ConfigAttribute;
 import net.jangaroo.exml.model.ConfigClass;
 import net.jangaroo.exml.model.ConfigClassRegistry;
+import net.jangaroo.exml.model.ConfigClassType;
 import net.jangaroo.exml.model.PublicApiMode;
 import net.jangaroo.exml.model.ExmlModel;
 import net.jangaroo.exml.model.Declaration;
 import net.jangaroo.exml.utils.ExmlUtils;
 import net.jangaroo.exml.xml.PreserveLineNumberHandler;
+import net.jangaroo.jooc.Jooc;
 import net.jangaroo.utils.AS3Type;
 import net.jangaroo.utils.CompilerUtils;
 import org.w3c.dom.Attr;
@@ -35,13 +37,19 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import static net.jangaroo.exml.xml.PreserveLineNumberHandler.getLineNumber;
+
 public final class ExmlToModelParser {
   private static final String EXT_CONFIG_PREFIX = "ext.config.";
-  public static final String CONFIG_MODE_AT_SUFFIX = "$at";
-  public static final String CONFIG_MODE_ATTRIBUTE_NAME = "mode";
+  private static final String CONFIG_MODE_AT_SUFFIX = "$at";
+  private static final String CONFIG_MODE_ATTRIBUTE_NAME = "mode";
+  private static final String EXT_CONTAINER_CONFIG_QNAME = "ext.config.container";
+  private static final String EXT_CONTAINER_DEFAULTS_PROPERTY = "defaults";
+  private static final String EXT_CONTAINER_DEFAULT_TYPE_PROPERTY = "defaultType";
 
   private final ConfigClassRegistry registry;
 
@@ -101,15 +109,16 @@ public final class ExmlToModelParser {
       } else if (Exmlc.EXML_PUBLIC_API_ATTRIBUTE.equals(attribute.getLocalName())) {
         PublicApiMode publicApiMode = Exmlc.parsePublicApiMode(attribute.getValue());
         switch (publicApiMode) {
-          case TRUE:   model.addAnnotation("PublicApi");
+          case TRUE:   model.addAnnotation(Jooc.PUBLIC_API_INCLUSION_ANNOTATION_NAME);
                        // fall through!
-          case CONFIG: model.getConfigClass().addAnnotation("PublicApi");
+          case CONFIG: model.getConfigClass().addAnnotation(Jooc.PUBLIC_API_INCLUSION_ANNOTATION_NAME);
         }
       }
     }
 
     NodeList childNodes = root.getChildNodes();
-    Node componentNode = null;
+    Element componentNode = null;
+    Map<String, List<Element>> defaultValues = new LinkedHashMap<String, List<Element>>();
     for (int i = 0; i < childNodes.getLength(); i++) {
       Node node = childNodes.item(i);
       if (node.getNodeType() == Node.ELEMENT_NODE) {
@@ -139,13 +148,28 @@ public final class ExmlToModelParser {
             if (!model.getVars().contains(var)) {
               model.addVar(var);
             }
+          } else if (Exmlc.EXML_CFG_NODE_NAME.equals(node.getLocalName())) {
+            String cfgName = element.getAttribute(Exmlc.EXML_CFG_NAME_ATTRIBUTE);
+            String cfgDefault = element.getAttribute(Exmlc.EXML_CFG_DEFAULT_ATTRIBUTE);
+            Element defaultValueElement = findChildElement(element,
+                    Exmlc.EXML_NAMESPACE_URI, Exmlc.EXML_CFG_DEFAULT_NODE_NAME);
+            if (cfgDefault.length() != 0 && defaultValueElement != null) {
+              throw new ExmlcException("<exml:cfg> default value must be specified as either an attribute or a sub-element, not both for config '" + cfgName + "'.", getLineNumber(element));
+            }
+            if (cfgDefault.length() > 0) {
+              model.getJsonObject().set(cfgName, cfgDefault);
+              String cfgType = element.getAttribute(Exmlc.EXML_CFG_TYPE_ATTRIBUTE);
+              model.addImport(cfgType);
+            } else if (defaultValueElement != null) {
+              defaultValues.put(cfgName, getChildElements(defaultValueElement));
+            }
           }
         } else {
           if (componentNode != null) {
             int lineNumber = getLineNumber(componentNode);
             throw new ExmlcException("root node of EXML contained more than one component definition", lineNumber);
           }
-          componentNode = node;
+          componentNode = (Element)node;
         }
       }
     }
@@ -166,6 +190,11 @@ public final class ExmlToModelParser {
     //but we still need the import
     model.addImport(superComponentClassName);
 
+    for (Map.Entry<String,List<Element>> entry : defaultValues.entrySet()) {
+      String propertyName = entry.getKey();
+      fillJsonObjectProperty(model, model.getJsonObject(), propertyName,
+              isConfigTypeArray(superConfigClass, propertyName), entry.getValue());
+    }
     fillModelAttributes(model, model.getJsonObject(), componentNode, superConfigClass);
   }
 
@@ -180,7 +209,8 @@ public final class ExmlToModelParser {
     return packageName + "." + name;
   }
 
-  private void fillModelAttributes(ExmlModel model, JsonObject jsonObject, Node componentNode, ConfigClass configClass) {
+  private void fillModelAttributes(ExmlModel model, JsonObject jsonObject, Element componentNode,
+                                   ConfigClass configClass) {
     NamedNodeMap attributes = componentNode.getAttributes();
     for (int i = 0; i < attributes.getLength(); i++) {
       Attr attribute = (Attr) attributes.item(i);
@@ -221,49 +251,87 @@ public final class ExmlToModelParser {
     CONFIG_MODE_TO_AT_VALUE.put("prepend", "{net.jangaroo.ext.Exml.PREPEND}");
   }
 
-  private void fillModelAttributesFromSubElements(ExmlModel model, JsonObject jsonObject, Node componentNode, ConfigClass configClass) {
-    NodeList childNodes = componentNode.getChildNodes();
-    for (int i = 0; i < childNodes.getLength(); i++) {
-      Node node = childNodes.item(i);
-      if (node.getNodeType() == Node.ELEMENT_NODE) {
-        Element element = (Element) node;
-        String elementName = element.getLocalName();
-        ConfigAttribute configAttribute = getCfgByName(configClass, elementName);
-        boolean isConfigTypeArray = configAttribute != null && "Array".equals(configAttribute.getType());
-        String configMode = isConfigTypeArray ? element.getAttribute(CONFIG_MODE_ATTRIBUTE_NAME) : "";
-        // Special case: if an EXML element representing a config property has attributes, it is treated as
-        // having an untyped object value. Exception: it is an Array-typed property and the sole attribute is "mode".
-        int attributeCount = element.getAttributes().getLength();
-        if (attributeCount > 1 || attributeCount == 1 && configMode.length() == 0) {
-          // it's an untyped complex object with attributes and sub-properties
-          parseJavaScriptObjectProperty(jsonObject, element);
-        } else {
-          // it seems to be an array or an object
-          List<Object> childObjects = parseChildObjects(model, element);
-          // derive the corresponding "at" value from the specified config mode (if any):
-          String atValue = CONFIG_MODE_TO_AT_VALUE.get(configMode);
-          if (atValue != null && !configClass.isExmlGenerated()) {
+  private void fillModelAttributesFromSubElements(ExmlModel model, JsonObject jsonObject, Element componentNode, ConfigClass configClass) {
+    List<Element> childNodes = getChildElements(componentNode);
+    for (Element element : childNodes) {
+      String elementName = element.getLocalName();
+
+      boolean isConfigTypeArray = isConfigTypeArray(configClass, elementName);
+      String configMode = isConfigTypeArray ? element.getAttribute(CONFIG_MODE_ATTRIBUTE_NAME) : "";
+      // Special case: if an EXML element representing a config property has attributes, it is treated as
+      // having an untyped object value. Exception: it is an Array-typed property and the sole attribute is "mode".
+      int attributeCount = element.getAttributes().getLength();
+      if (attributeCount > 1 || attributeCount == 1 && configMode.length() == 0) {
+        // it's an untyped complex object with attributes and sub-properties
+        parseJavaScriptObjectProperty(jsonObject, element);
+      } else {
+        // derive the corresponding "at" value from the specified config mode (if any):
+        String atValue = CONFIG_MODE_TO_AT_VALUE.get(configMode);
+        if (atValue != null) {
+          isConfigTypeArray = true;
+          if (!configClass.isExmlGenerated()) {
             throw new ExmlcException("Non-EXML class " + configClass.getComponentClassName() +
-                    " does not support config modes.", getLineNumber(node));
+                    " does not support config modes.", getLineNumber(element));
           }
-          if (atValue != null || childObjects.size() > 1 || isConfigTypeArray) {
-            // TODO: Check for type violation
-            // We must write an array.
-            JsonArray jsonArray = new JsonArray(childObjects.toArray());
-            jsonObject.set(element.getLocalName(), jsonArray);
-          } else if (childObjects.size() == 1) {
-            // The property is either unspecified, untyped, or object-typed
-            // and it contains a single child element. Use that element as the
-            // property value.
-            jsonObject.set(element.getLocalName(), childObjects.get(0));
-          }
-          // if any "at" value is specified, set the extra mode attribute (...$at):
-          if (atValue != null) {
-            jsonObject.set(element.getLocalName() + CONFIG_MODE_AT_SUFFIX, atValue);
-          }
-          // empty properties are omitted if the type is not fixed to Array
+        }
+        // it seems to be an array or an object
+        fillJsonObjectProperty(model, jsonObject, elementName, isConfigTypeArray, getChildElements(element));
+        ifContainerDefaultsThenExtractXtype(jsonObject, configClass, elementName);
+
+        // if any "at" value is specified, set the extra mode attribute (...$at):
+        if (atValue != null) {
+          jsonObject.set(elementName + CONFIG_MODE_AT_SUFFIX, atValue);
+        }
+        // empty properties are omitted if the type is not fixed to Array
+      }
+    }
+  }
+
+  private void ifContainerDefaultsThenExtractXtype(JsonObject jsonObject, ConfigClass configClass, String elementName) {
+    // special case: extract xtype from <defaults> as <defaultType>!
+    if (EXT_CONTAINER_DEFAULTS_PROPERTY.equals(elementName) && isContainerConfig(configClass)) {
+      Object value = jsonObject.get(elementName);
+      if (value instanceof JsonObject) {
+        JsonObject jsonObjectValue = (JsonObject) value;
+        // there are two ways an xtype can be specified:
+        // a) as an EXML config class wrapping the JSON object:
+        String xtype = jsonObjectValue.getWrapperClass();
+        if (xtype != null) {
+          jsonObjectValue.settingWrapperClass(null);
+        } else {
+          // b) as an "xtype" attribute:
+          xtype = (String) jsonObjectValue.remove(ConfigClassType.XTYPE.getType());
+        }
+        if (xtype != null) {
+          jsonObject.set(EXT_CONTAINER_DEFAULT_TYPE_PROPERTY, xtype);
         }
       }
+    }
+  }
+
+  private boolean isContainerConfig(ConfigClass configClass) {
+    return configClass != null &&
+            (EXT_CONTAINER_CONFIG_QNAME.equals(configClass.getFullName()) ||
+                    isContainerConfig(configClass.getSuperClass()));
+  }
+
+  private boolean isConfigTypeArray(ConfigClass configClass, String propertyName) {
+    ConfigAttribute configAttribute = getCfgByName(configClass, propertyName);
+    return configAttribute != null && "Array".equals(configAttribute.getType());
+  }
+
+  private void fillJsonObjectProperty(ExmlModel model, JsonObject jsonObject, String propertyName, boolean configTypeArray, List<Element> childElements) {
+    List<Object> childObjects = parseChildObjects(model, childElements);
+    if (childObjects.size() > 1 || configTypeArray) {
+      // TODO: Check for type violation
+      // We must write an array.
+      JsonArray jsonArray = new JsonArray(childObjects.toArray());
+      jsonObject.set(propertyName, jsonArray);
+    } else if (childObjects.size() == 1) {
+      // The property is either unspecified, untyped, or object-typed
+      // and it contains a single child element. Use that element as the
+      // property value.
+      jsonObject.set(propertyName, childObjects.get(0));
     }
   }
 
@@ -291,7 +359,16 @@ public final class ExmlToModelParser {
     jsonObject.set(propertyElement.getLocalName(), propertyObject);
   }
 
-  private List<Element> getChildElements(Element element) {
+  private static Element findChildElement(Element element, String namespace, String nodeName) {
+    for (Element child : getChildElements(element)) {
+      if (namespace.equals(child.getNamespaceURI()) && nodeName.equals(child.getLocalName())) {
+        return child;
+      }
+    }
+    return null;
+  }
+
+  private static List<Element> getChildElements(Element element) {
     List<Element> result = new ArrayList<Element>();
     NodeList propertyChildNotes = element.getChildNodes();
     for (int j = 0; j < propertyChildNotes.getLength(); j++) {
@@ -319,9 +396,9 @@ public final class ExmlToModelParser {
     return null;
   }
 
-  private List<Object> parseChildObjects(ExmlModel model, Element element) {
+  private List<Object> parseChildObjects(ExmlModel model, List<Element> elements) {
     List<Object> childObjects = new ArrayList<Object>();
-    for (Element arrayItemNode : getChildElements(element)) {
+    for (Element arrayItemNode : elements) {
       Object value;
       if (ExmlUtils.isExmlNamespace(arrayItemNode.getNamespaceURI()) && Exmlc.EXML_OBJECT_NODE_NAME.equals(arrayItemNode.getLocalName())) {
         value = parseExmlObjectNode(arrayItemNode);
@@ -390,10 +467,6 @@ public final class ExmlToModelParser {
     if (!Exmlc.EXML_ROOT_NODE_NAMES.contains(root.getLocalName())) {
       throw new ExmlcException("Root node of EXML file must be one of " + Arrays.toString(Exmlc.EXML_ROOT_NODE_NAMES.toArray()) + ", but was " + root.getLocalName() + ".", lineNumber);
     }
-  }
-
-  private int getLineNumber(Node node) {
-    return Integer.parseInt((String) node.getUserData(PreserveLineNumberHandler.LINE_NUMBER_KEY_NAME));
   }
 
   private Document buildDom(InputStream inputStream) throws SAXException, IOException {

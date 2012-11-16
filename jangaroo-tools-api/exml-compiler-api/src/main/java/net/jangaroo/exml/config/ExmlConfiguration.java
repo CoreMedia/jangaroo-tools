@@ -1,6 +1,7 @@
 package net.jangaroo.exml.config;
 
 import net.jangaroo.exml.utils.ExmlUtils;
+import net.jangaroo.jooc.api.CompileLog;
 import net.jangaroo.utils.FileLocations;
 import net.jangaroo.jooc.api.Jooc;
 import net.jangaroo.utils.CompilerUtils;
@@ -13,6 +14,8 @@ public class ExmlConfiguration extends FileLocations {
   private String configClassPackage;
   // the directory into which resource (xsds) files are generated
   private File resourceOutputDirectory;
+  private ValidationMode validationMode = ValidationMode.OFF;
+  private CompileLog log;
 
   public String getConfigClassPackage() {
     return configClassPackage;
@@ -30,6 +33,29 @@ public class ExmlConfiguration extends FileLocations {
   @Option(name="-r", metaVar = "RES_DIR", usage = "output directory for generated xsd files, default is DEST_DIR")
   public void setResourceOutputDirectory(File resourceOutputDirectory) {
     this.resourceOutputDirectory = resourceOutputDirectory;
+  }
+
+  public ValidationMode getValidationMode() {
+    return validationMode;
+  }
+
+  @Option(name="-vm", aliases = "--validation-mode", usage = "Severity of EXML validation errors: error, warn, off (no validation)")
+  public void setValidationMode(ValidationMode validationMode) {
+    this.validationMode = validationMode;
+  }
+
+  /**
+   * Set the compile log to be used.
+   * Currently, Exmlc uses it only for validation errors / warning if {@link #setValidationMode validation mode}
+   * is enabled.
+   * @param log the compile log to be used
+   */
+  public void setLog(CompileLog log) {
+    this.log = log;
+  }
+
+  public CompileLog getLog() {
+    return log;
   }
 
   public File computeConfigClassTarget(String configClassName) {

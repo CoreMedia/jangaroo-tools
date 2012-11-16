@@ -2,6 +2,7 @@ package net.jangaroo.exml.test;
 
 import net.jangaroo.exml.json.JsonArray;
 import net.jangaroo.exml.json.JsonObject;
+import net.jangaroo.exml.model.ConfigAttribute;
 import net.jangaroo.exml.model.Declaration;
 import net.jangaroo.exml.model.ExmlModel;
 import net.jangaroo.exml.parser.ExmlToModelParser;
@@ -12,6 +13,7 @@ import java.io.File;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 
 public class ExmlToModelParserTest extends AbstractExmlTest {
   @Test
@@ -273,6 +275,68 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
                     ).settingWrapperClass("testNamespace.config.testComponent2")
             ),
             "columns", new JsonObject("xtype", "agridcolumn")
+    );
+    System.out.println(model.getJsonObject().toString(2));
+    Assert.assertEquals(expectedJsonObject.toString(2), model.getJsonObject().toString(2));
+  }
+
+  @Test
+  public void testConfigDefaultValues() throws Exception {
+    setUp("testNamespace.config");
+    ExmlToModelParser exmlToModelParser = new ExmlToModelParser(getConfigClassRegistry());
+
+    ExmlModel model = exmlToModelParser.parse(getFile("/testPackage/TestComponentWithCfgDefaults.exml"));
+    List<ConfigAttribute> cfgs = model.getConfigClass().getDirectCfgs();
+    Assert.assertEquals(5, cfgs.size());
+
+    JsonObject expectedJsonObject = new JsonObject(
+            "propertyWithLiteralDefault", "foobar",
+            "propertyWithExpressionDefault", "{'foo' + 'bar'}",
+            "propertyWithDefaultElement",
+              new JsonObject(
+                      "xtype", "button",
+                      "text", "click me!"
+              ),
+            "propertyWithDefaultElementUsingConfig",
+              new JsonObject(
+                      "xtype", "button",
+                      "text", "{config.title + '!'}"
+              ),
+            "arrayPropertyWithDefaultElement",
+              new JsonArray(
+                      new JsonObject(
+                              "xtype", "button",
+                              "text", "button1"
+                      ),
+                      new JsonObject(
+                              "xtype", "button",
+                              "text", "button2"
+                      )
+              ),
+            "title", "{config.defaultTitle}"
+    );
+    System.out.println(model.getJsonObject().toString(2));
+    Assert.assertEquals(expectedJsonObject.toString(2), model.getJsonObject().toString(2));
+  }
+
+  @Test
+  public void testContainerDefaults() throws Exception {
+    setUp("testNamespace.config");
+    ExmlToModelParser exmlToModelParser = new ExmlToModelParser(getConfigClassRegistry());
+
+    ExmlModel model = exmlToModelParser.parse(getFile("/testPackage/TestContainerDefaults.exml"));
+    JsonObject expectedJsonObject = new JsonObject(
+            "defaults", new JsonObject(
+              "text", "it works!"
+            ),
+            "defaultType", "button",
+            "items", new JsonArray(new JsonObject(
+              "xtype", "container",
+              "defaults", new JsonObject(
+                "propertyOne", true
+              ),
+              "defaultType", "testNamespace.config.testComponent"
+            ))
     );
     System.out.println(model.getJsonObject().toString(2));
     Assert.assertEquals(expectedJsonObject.toString(2), model.getJsonObject().toString(2));

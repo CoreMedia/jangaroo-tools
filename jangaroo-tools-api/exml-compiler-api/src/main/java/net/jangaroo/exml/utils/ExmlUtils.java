@@ -2,7 +2,12 @@ package net.jangaroo.exml.utils;
 
 import net.jangaroo.exml.api.Exmlc;
 
+import java.io.IOException;
+import java.util.Enumeration;
+import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 /**
  * Some useful utility functions for EXML handling.
@@ -41,9 +46,19 @@ public class ExmlUtils {
     if (name == null || name.length() == 0) {
       return name;
     }
-    return new StringBuilder(name.length())
-            .append(Character.toUpperCase(name.charAt(0)))
-            .append(name.substring(1))
-            .toString();
+    return name.substring(0,1).toUpperCase() + name.substring(1);
+  }
+
+  public static Set<ZipEntry> findXsdJarEntries(ZipFile jarFile) throws IOException {
+    // find all *.xsd in jar's root folder:
+    Enumeration<? extends ZipEntry> enumeration = jarFile.entries();
+    Set<ZipEntry> result = new LinkedHashSet<ZipEntry>();
+    while (enumeration.hasMoreElements()) {
+      ZipEntry zipEntry = enumeration.nextElement();
+      if (!zipEntry.isDirectory() && zipEntry.getName().indexOf('/') == -1 && zipEntry.getName().endsWith(".xsd")) {
+        result.add(zipEntry);
+      }
+    }
+    return result;
   }
 }

@@ -1,5 +1,7 @@
 package net.jangaroo.exml.model;
 
+import net.jangaroo.exml.api.Exmlc;
+
 import java.util.List;
 
 /**
@@ -16,7 +18,7 @@ public abstract class AbstractConfigClassToExmlElementAdapter implements ExmlEle
 
   @Override
   public String getNamespace() {
-    return "exml:" + getPackage();
+    return Exmlc.EXML_CONFIG_URI_PREFIX + getPackage();
   }
 
   @Override

@@ -23,35 +23,26 @@ under the License.
   <modelVersion>4.0.0</modelVersion>
   <groupId>testextxml</groupId>
   <artifactId>exml-only</artifactId>
-  <packaging>pom</packaging>
+  <packaging>jangaroo</packaging>
   <version>1.0-SNAPSHOT</version>
   <name>exml-only</name>
   <url>http://www.jangaroo.net</url>
   <build>
+    <sourceDirectory>src/main/joo</sourceDirectory>
     <plugins>
+      <plugin>
+        <groupId>net.jangaroo</groupId>
+        <artifactId>jangaroo-maven-plugin</artifactId>
+        <version>@project.version@</version>
+      </plugin>
       <plugin>
         <groupId>net.jangaroo</groupId>
         <artifactId>exml-maven-plugin</artifactId>
         <version>@project.version@</version>
         <configuration>
           <configClassPackage>testPackage.config</configClassPackage>
+          <validationMode>error</validationMode>
         </configuration>
-        <executions>
-          <execution>
-            <id>compile</id>
-            <goals>
-              <goal>exml</goal>
-            </goals>
-            <phase>generate-sources</phase>
-          </execution>
-          <execution>
-            <id>generateXsd</id>
-            <goals>
-              <goal>exml-xsd</goal>
-            </goals>
-            <phase>generate-resources</phase>
-          </execution>
-        </executions>
       </plugin>
     </plugins>
   </build>

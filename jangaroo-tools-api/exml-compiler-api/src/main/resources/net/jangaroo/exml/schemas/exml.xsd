@@ -74,6 +74,19 @@
           </xs:documentation>
         </xs:annotation>
       </xs:element>
+      <xs:element name="default" minOccurs="0" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>
+            The optional default value of the config property.
+            Specify either this attribute or a nested &lt;exml:default&gt; element, not both.
+          </xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+          <xs:sequence>
+            <xs:any minOccurs="0" maxOccurs="1" namespace="##other" processContents="strict"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
     </xs:sequence>
     <xs:attribute name="name" type="xs:string" use="required">
       <xs:annotation>
@@ -86,6 +99,14 @@
       <xs:annotation>
         <xs:documentation>
           The type of the config property.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="default" type="xs:string" use="optional">
+      <xs:annotation>
+        <xs:documentation>
+          The optional default value of the config property.
+          Specify either this element or the "default" attribute, not both.
         </xs:documentation>
       </xs:annotation>
     </xs:attribute>

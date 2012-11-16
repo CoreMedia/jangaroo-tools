@@ -99,6 +99,52 @@
   </xs:complexType>
   <xs:element name='component' type='ec:ext.config.component'>
   </xs:element>
+  <xs:complexType name='ext.config.container'>
+        <xs:sequence>
+            <xs:element name='defaults' minOccurs="0" maxOccurs="1">
+              <xs:annotation>
+                <xs:documentation>
+                  defaults for children
+                </xs:documentation>
+              </xs:annotation>
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
+            <xs:element name='items' minOccurs="0" maxOccurs="1">
+              <xs:annotation>
+                <xs:documentation>
+                  this container's children
+                </xs:documentation>
+              </xs:annotation>
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+                </xs:sequence>
+                <xs:attribute name="mode" type="exml:configMode"/>
+              </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+        <xs:attribute type='exml:String' name='defaults'>
+          <xs:annotation>
+            <xs:documentation>
+              defaults for children
+            </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+        <xs:attribute type='exml:String' name='items'>
+          <xs:annotation>
+            <xs:documentation>
+              this container's children
+            </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+        <xs:anyAttribute namespace="http://www.jangaroo.net/exml/0.8 exml:untyped" processContents="skip"/>
+  </xs:complexType>
+  <xs:element name='container' type='ec:ext.config.container'>
+  </xs:element>
   <xs:complexType name='ext.config.label'>
         <xs:sequence>
         </xs:sequence>
