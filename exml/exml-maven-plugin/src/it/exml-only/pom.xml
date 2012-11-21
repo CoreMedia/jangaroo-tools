@@ -23,7 +23,7 @@ under the License.
   <modelVersion>4.0.0</modelVersion>
   <groupId>testextxml</groupId>
   <artifactId>exml-only</artifactId>
-  <packaging>jangaroo</packaging>
+  <packaging>pom</packaging>
   <version>1.0-SNAPSHOT</version>
   <name>exml-only</name>
   <url>http://www.jangaroo.net</url>
@@ -34,11 +34,27 @@ under the License.
         <groupId>net.jangaroo</groupId>
         <artifactId>jangaroo-maven-plugin</artifactId>
         <version>@project.version@</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>compile</goal>
+              <goal>package</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
       <plugin>
         <groupId>net.jangaroo</groupId>
         <artifactId>exml-maven-plugin</artifactId>
         <version>@project.version@</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>exml</goal>
+              <goal>exml-xsd</goal>
+            </goals>
+          </execution>
+        </executions>
         <configuration>
           <configClassPackage>testPackage.config</configClassPackage>
           <validationMode>error</validationMode>
