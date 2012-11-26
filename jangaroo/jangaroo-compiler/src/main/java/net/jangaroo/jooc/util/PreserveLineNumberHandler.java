@@ -1,4 +1,4 @@
-package net.jangaroo.exml.xml;
+package net.jangaroo.jooc.util;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;

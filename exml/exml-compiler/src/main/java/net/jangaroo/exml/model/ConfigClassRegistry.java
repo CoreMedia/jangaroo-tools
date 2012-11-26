@@ -227,7 +227,7 @@ public final class ConfigClassRegistry {
       InputSource generatedConfigAsFile = outputDirInputSource.getChild(JangarooParser.getInputSourceFileName(name, outputDirInputSource, Jooc.AS_SUFFIX));
       if (generatedConfigAsFile != null) {
         // A candidate AS config class has already been generated.
-        CompilationUnit compilationUnit = Jooc.doParse(generatedConfigAsFile, new StdOutCompileLog(), SemicolonInsertionMode.QUIRKS);
+        CompilationUnit compilationUnit = jangarooParser.doParse(generatedConfigAsFile, new StdOutCompileLog(), SemicolonInsertionMode.QUIRKS);
         if (compilationUnit == null) {
           return null;
         }

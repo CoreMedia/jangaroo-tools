@@ -13,16 +13,24 @@ public class ClassModel extends AbstractAnnotatedModel implements NamespacedMode
   private boolean isDynamic = false;
   private String namespace = PUBLIC;
   private String superclass = null;
+  private String code = "";
   private List<String> interfaces = new ArrayList<String>();
   private List<MemberModel> members = new ArrayList<MemberModel>();
 
   public ClassModel() {
   }
 
+  /**
+   * @param name (unqualified) class name
+   */
   public ClassModel(String name) {
     super(name);
   }
 
+  /**
+   * @param name (unqualified) class name
+   * @param superclass fully qualified name of super class
+   */
   public ClassModel(String name, String superclass) {
     super(name);
     this.superclass = superclass;
@@ -78,6 +86,31 @@ public class ClassModel extends AbstractAnnotatedModel implements NamespacedMode
 
   public void addInterface(String interfaceName) {
     interfaces.add(interfaceName);
+  }
+
+  public String getCode() {
+    return code;
+  }
+
+  public void setCode(String code) {
+    this.code = code;
+  }
+
+  public void addCode(String code) {
+    this.code += code;
+  }
+
+  public List<AnnotationModel> getEvents() {
+    return getAnnotations("Event");
+  }
+
+  public AnnotationModel getEvent(String name) {
+    for (AnnotationModel event : getEvents()) {
+      if (name.equals(event.getPropertiesByName().get("name").getStringValue())) {
+        return event;
+      }
+    }
+    return null;
   }
 
   public List<MemberModel> getMembers() {
