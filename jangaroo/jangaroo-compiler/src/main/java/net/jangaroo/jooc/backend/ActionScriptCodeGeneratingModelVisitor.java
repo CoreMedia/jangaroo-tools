@@ -9,7 +9,6 @@ import net.jangaroo.jooc.model.CompilationUnitModel;
 import net.jangaroo.jooc.model.FieldModel;
 import net.jangaroo.jooc.model.MemberModel;
 import net.jangaroo.jooc.model.MethodModel;
-import net.jangaroo.jooc.model.MethodType;
 import net.jangaroo.jooc.model.ModelVisitor;
 import net.jangaroo.jooc.model.NamespaceModel;
 import net.jangaroo.jooc.model.NamespacedModel;
@@ -65,6 +64,7 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
 
   @Override
   public void visitClass(ClassModel classModel) {
+    output.print(classModel.getCode()); // TODO: we currently only use this for imports and Jangaroo only supports imports before class declaration :-(
     visitAnnotations(classModel);
     printAsdoc(classModel.getAsdoc());
     printToken(classModel.getNamespace());
@@ -124,14 +124,6 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
       model.visit(this);
     }
     output.print(")");
-  }
-
-  private void printCommaSeparatedList(List<String> tokens) {
-    output.print(tokens.get(0));
-    for (String token : tokens.subList(1, tokens.size())) {
-      output.print(", ");
-      output.print(token);
-    }
   }
 
   private void printTokenIf(boolean flag, String token) {

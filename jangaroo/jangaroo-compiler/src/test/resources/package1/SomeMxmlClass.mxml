@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<ConfigClass xmlns:fx="http://ns.adobe.com/mxml/2009"
+             xmlns="package1.*"
+             xmlns:top="*"
+             xmlns:other="package1.someOtherPackage.*"
+             foo="bar"
+             click="var result:String = 'gotcha!';">
+  <fx:Declarations>
+    <top:String id="bar">BAR!</top:String>
+    <!---
+     Some number.
+    -->
+    <top:int id="num">123</top:int>
+    <!---
+    Empty declaration.
+    <top:int id="empty"/>
+    -->
+  </fx:Declarations>
+  <items>
+    <other:SomeOtherClass bla="42"/>
+    <other:SomeOtherClass bla="1"/>
+  </items>
+  <number><![CDATA[
+    42
+  ]]></number>
+  <fx:Script>
+    import foo.Bar;
+  </fx:Script>
+</ConfigClass>

@@ -60,6 +60,10 @@ public final class CompilerUtils {
 
   public static String qNameFromFile(File baseDirectory, File file) {
     String relativePath = getRelativePath(baseDirectory, file);
+    return qNameFromRelativPath(relativePath);
+  }
+
+  public static String qNameFromRelativPath(String relativePath) {
     if (relativePath != null) {
       int lastDotPos = relativePath.lastIndexOf('.');
       if (lastDotPos != -1 && lastDotPos > relativePath.lastIndexOf(File.separatorChar)) {
@@ -249,7 +253,17 @@ public final class CompilerUtils {
     return sb.toString();
   }
 
+  public static String unquote(String quotedString) {
+    // TODO: less naive implementation please!
+    return quotedString != null &&
+            (quotedString.startsWith("'") && quotedString.endsWith("'") ||
+            quotedString.startsWith("\"") && quotedString.endsWith("\""))
+            ? quotedString.substring(1, quotedString.length() - 1)
+            : null;
+  }
+
   public static AS3Type guessType(String attributeValue) {
+    attributeValue = attributeValue.trim();
     try {
       long l = Long.parseLong(attributeValue);
       return l >= 0 ? AS3Type.UINT : AS3Type.INT;

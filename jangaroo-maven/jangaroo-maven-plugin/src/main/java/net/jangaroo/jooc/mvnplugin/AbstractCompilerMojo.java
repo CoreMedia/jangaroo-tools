@@ -354,7 +354,10 @@ public abstract class AbstractCompilerMojo extends JangarooMojo {
     List<File> compileSourceRoots = getCompileSourceRoots();
 
 
-    return getMavenPluginHelper().computeStaleSources(compileSourceRoots, getIncludes(), getExcludes(), outputDirectory, Jooc.INPUT_FILE_SUFFIX, Jooc.OUTPUT_FILE_SUFFIX, staleMillis);
+    List<File> staleFiles = new ArrayList<File>();
+    staleFiles.addAll(getMavenPluginHelper().computeStaleSources(compileSourceRoots, getIncludes(), getExcludes(), outputDirectory, Jooc.AS_SUFFIX, Jooc.OUTPUT_FILE_SUFFIX, staleMillis));
+    staleFiles.addAll(getMavenPluginHelper().computeStaleSources(compileSourceRoots, getIncludes(), getExcludes(), outputDirectory, Jooc.MXML_SUFFIX, Jooc.OUTPUT_FILE_SUFFIX, staleMillis));
+    return staleFiles;
   }
 
   protected abstract Set<String> getIncludes();

@@ -1,6 +1,9 @@
 package net.jangaroo.jooc;
 
 import java_cup.runtime.Symbol;
+import net.jangaroo.jooc.backend.ActionScriptCodeGeneratingModelVisitor;
+import net.jangaroo.jooc.model.CompilationUnitModel;
+import net.jangaroo.jooc.mxml.MxmlToModelParser;
 import net.jangaroo.utils.AS3Type;
 import net.jangaroo.jooc.api.CompileLog;
 import net.jangaroo.jooc.api.FilePosition;
@@ -17,10 +20,15 @@ import net.jangaroo.jooc.config.SemicolonInsertionMode;
 import net.jangaroo.jooc.input.InputSource;
 import net.jangaroo.utils.BOMStripperInputStream;
 import net.jangaroo.utils.CompilerUtils;
+import org.xml.sax.SAXException;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.Reader;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -101,13 +109,27 @@ public class JangarooParser {
     this.log = log;
   }
 
-  public static CompilationUnit doParse(InputSource in, CompileLog log, SemicolonInsertionMode semicolonInsertionMode) {
-    Scanner s;
+  public CompilationUnit doParse(InputSource in, CompileLog log, SemicolonInsertionMode semicolonInsertionMode) {
+    Reader reader;
     try {
-      s = new Scanner(new InputStreamReader(new BOMStripperInputStream(in.getInputStream()), "UTF-8"));
+      if (in.getName().endsWith(Jooc.MXML_SUFFIX)) {
+        CompilationUnitModel compilationUnitModel = new MxmlToModelParser(this).parse(in);
+        // From the CompilationUnitModel, we generate AS code, then parse a CompilationUnit again.
+        // TODO: This should be simplified to always using CompilationUnitModels for reference
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        OutputStreamWriter writer = new OutputStreamWriter(outputStream, "UTF-8");
+        compilationUnitModel.visit(new ActionScriptCodeGeneratingModelVisitor(writer));
+        String output = outputStream.toString("UTF-8");
+        reader = new StringReader(output);
+      } else {
+        reader = new InputStreamReader(new BOMStripperInputStream(in.getInputStream()), "UTF-8");
+      }
     } catch (IOException e) {
       throw new CompilerError("Cannot read input file: " + in.getPath(), e);
+    } catch (SAXException e) {
+      throw new CompilerError("Cannot parse MXML input file: " + in.getPath(), e);
     }
+    Scanner s = new Scanner(reader);
     s.setInputSource(in);
     JooParser p = new JooParser(s);
     p.setCompileLog(log);
@@ -148,9 +170,12 @@ public class JangarooParser {
   protected InputSource findSource(final String qname) {
     // scan sourcepath
     InputSource result = sourcePathInputSource.getChild(getInputSourceFileName(qname, sourcePathInputSource, Jooc.AS_SUFFIX));
-    if (result == null) {
-      // scan classpath
-      result = classPathInputSource.getChild(getInputSourceFileName(qname, classPathInputSource, Jooc.AS_SUFFIX));
+      if (result == null) {
+      result = sourcePathInputSource.getChild(getInputSourceFileName(qname, sourcePathInputSource, Jooc.MXML_SUFFIX));
+      if (result == null) {
+        // scan classpath
+        result = classPathInputSource.getChild(getInputSourceFileName(qname, classPathInputSource, Jooc.AS_SUFFIX));
+      }
     }
     return result;
   }
@@ -194,9 +219,9 @@ public class JangarooParser {
 
   private void checkValidFileName(final String qname, final CompilationUnit unit, final InputSource source) {
     // check valid file name for qname
-    String path = source.getRelativePath();
+    String path = CompilerUtils.removeExtension(source.getRelativePath());
     if (path != null) {
-      String expectedPath = getInputSourceFileName(qname, source, Jooc.AS_SUFFIX);
+      String expectedPath = getInputSourceFileName(qname, source, "");
       if (!expectedPath.equals(path)) {
         warning(unit.getSymbol(),
                 String.format("expected '%s' as the file name for %s, found: '%s'. -sourcepath not set (correctly)?",
@@ -208,8 +233,8 @@ public class JangarooParser {
   }
 
   protected CompilationUnit parse(InputSource in) {
-    if (!in.getName().endsWith(Jooc.AS_SUFFIX)) {
-      throw error("Input file must end with '" + Jooc.AS_SUFFIX + "': " + in.getName());
+    if (!in.getName().endsWith(Jooc.AS_SUFFIX) && !in.getName().endsWith(Jooc.MXML_SUFFIX)) {
+      throw error("Input file must end with '" + Jooc.AS_SUFFIX + "' or '" + Jooc.MXML_SUFFIX + "': " + in.getName());
     }
     if (config.isVerbose()) {
       System.out.println("Parsing " + in.getPath() + " (" + (in.isInSourcePath() ? "source" : "class") + "path)"); // NOSONAR this is a cmd line tool
