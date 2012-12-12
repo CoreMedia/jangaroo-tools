@@ -1,6 +1,6 @@
 package package1{
 
-[Event(name="click", type="package1.ConfigClass")]
+[Event(name="click", type="package1.someOtherPackage.SomeEvent")]
 
 public class ConfigClass {
 

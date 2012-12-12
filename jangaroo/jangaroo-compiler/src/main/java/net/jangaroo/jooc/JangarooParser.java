@@ -262,7 +262,8 @@ public class JangarooParser {
   private void addPackageFolderSymbols(final InputSource folder, List<String> list) {
     if (folder != null) {
       for (InputSource child : folder.list()) {
-        if (!child.isDirectory() && child.getName().endsWith(Jooc.AS_SUFFIX)) {
+        if (!child.isDirectory() &&
+                (child.getName().endsWith(Jooc.AS_SUFFIX) || child.getName().endsWith(Jooc.MXML_SUFFIX))) {
           list.add(nameWithoutExtension(child));
         }
       }

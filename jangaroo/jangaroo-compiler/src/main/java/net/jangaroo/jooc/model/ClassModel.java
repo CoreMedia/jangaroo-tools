@@ -13,7 +13,8 @@ public class ClassModel extends AbstractAnnotatedModel implements NamespacedMode
   private boolean isDynamic = false;
   private String namespace = PUBLIC;
   private String superclass = null;
-  private String code = "";
+  private String annotationCode = "";
+  private String bodyCode = "";
   private List<String> interfaces = new ArrayList<String>();
   private List<MemberModel> members = new ArrayList<MemberModel>();
 
@@ -88,16 +89,28 @@ public class ClassModel extends AbstractAnnotatedModel implements NamespacedMode
     interfaces.add(interfaceName);
   }
 
-  public String getCode() {
-    return code;
+  public String getAnnotationCode() {
+    return annotationCode;
   }
 
-  public void setCode(String code) {
-    this.code = code;
+  public void setAnnotationCode(String annotationCode) {
+    this.annotationCode = annotationCode;
   }
 
-  public void addCode(String code) {
-    this.code += code;
+  public void addAnnotationCode(String code) {
+    this.annotationCode += code;
+  }
+
+  public String getBodyCode() {
+    return bodyCode;
+  }
+
+  public void setBodyCode(String bodyCode) {
+    this.bodyCode = bodyCode;
+  }
+
+  public void addBodyCode(String code) {
+    this.bodyCode += code;
   }
 
   public List<AnnotationModel> getEvents() {

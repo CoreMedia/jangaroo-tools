@@ -21,7 +21,8 @@ import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.taskdefs.MatchingTask;
 import org.apache.tools.ant.types.Path;
-import org.apache.tools.ant.util.GlobPatternMapper;
+import org.apache.tools.ant.util.FileNameMapper;
+import org.apache.tools.ant.util.RegexpPatternMapper;
 import org.apache.tools.ant.util.SourceFileScanner;
 
 import java.io.File;
@@ -262,9 +263,9 @@ public class JoocTask extends MatchingTask {
    * @param files   the files to scan
    */
   protected void scanDir(File srcDir, File destDir, String[] files) {
-    GlobPatternMapper m = new GlobPatternMapper();
-    m.setFrom("*" + Jooc.INPUT_FILE_SUFFIX);
-    m.setTo("*.js");
+    FileNameMapper m = new RegexpPatternMapper();
+    m.setFrom("^(.*)\\.(" + Jooc.AS_SUFFIX_NO_DOT + "|" + Jooc.MXML_SUFFIX_NO_DOT + ")$");
+    m.setTo("\\1.js");
     SourceFileScanner sfs = new SourceFileScanner(this);
     File[] newFiles = sfs.restrictAsFiles(files, srcDir, destDir, m);
 

@@ -54,6 +54,16 @@
   }
   joo.getOrCreatePackage = createGetQualified(true);
   joo.getQualifiedObject = createGetQualified(false);
+  // add event listener using Ext JS config object style:
+  joo.addEventListener = function addEventListener(config, eventName, eventType, callback) {
+    if (!config.listeners) {
+      config.listeners = {};
+    }
+    config.listeners[eventName] = function() {
+      callback(new eventType(arguments));
+    }
+  };
+
   // built-in Error constructor called as function unfortunately always creates a new Error object, so we have to emulate it:
   joo.Error = function(message/*String*/, id/*:int*/) {
     this.message = message || "";
