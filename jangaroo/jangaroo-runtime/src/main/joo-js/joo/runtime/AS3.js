@@ -27,6 +27,15 @@ define(function() {
     Error: function(message/*String*/, id/*:int*/) {
       this.message = message || "";
       this.id = id >> 0;
+    },
+    // add event listener using Ext JS config object style:
+    addEventListener: function addEventListener(config, eventName, eventType, callback) {
+      if (!config.listeners) {
+        config.listeners = {};
+      }
+      config.listeners[eventName] = function() {
+        callback(new eventType(arguments));
+      }
     }
   };
   window.joo.Error.prototype = window.Error.prototype;

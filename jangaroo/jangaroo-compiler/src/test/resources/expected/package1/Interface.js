@@ -5,9 +5,9 @@ define(["exports","runtime/AS3","classes/package1/SuperInterface"], function($ex
  * /
 // this comment should vanish in the API!
 public interface Interface extends SuperInterface {
-  function doSomething():String
+  function doSomething():String;
 
-  function property():String
+  function get property():String;
 }
 }
 

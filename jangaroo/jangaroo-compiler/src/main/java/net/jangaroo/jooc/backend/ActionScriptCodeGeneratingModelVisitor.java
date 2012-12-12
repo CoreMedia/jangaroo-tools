@@ -64,8 +64,8 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
 
   @Override
   public void visitClass(ClassModel classModel) {
-    output.print(classModel.getCode()); // TODO: we currently only use this for imports and Jangaroo only supports imports before class declaration :-(
     visitAnnotations(classModel);
+    output.print(classModel.getAnnotationCode());
     printAsdoc(classModel.getAsdoc());
     printToken(classModel.getNamespace());
     printTokenIf(classModel.isFinal(), "final");
@@ -86,6 +86,7 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
       output.print(" ");
     }
     output.print("{");
+    output.print(classModel.getBodyCode());
     indent = "  ";
     for (MemberModel member : classModel.getMembers()) {
       output.println();

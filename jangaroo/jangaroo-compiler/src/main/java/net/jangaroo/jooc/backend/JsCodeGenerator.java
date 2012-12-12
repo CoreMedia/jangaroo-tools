@@ -1356,8 +1356,10 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       writeModifiers(out, functionDeclaration);
       if (functionDeclaration.isAbstract() || functionDeclaration.isNative()) {
         out.writeSymbol(functionDeclaration.getFun().getFunSymbol());
+        writeOptSymbol(functionDeclaration.getSymGetOrSet());
         functionDeclaration.getIde().visit(this);
         generateSignatureJsCode(functionDeclaration.getFun());
+        writeOptSymbol(functionDeclaration.getOptSymSemicolon());
         out.endComment();
       } else {
         out.endComment();

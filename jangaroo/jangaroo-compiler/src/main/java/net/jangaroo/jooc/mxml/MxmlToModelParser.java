@@ -10,7 +10,6 @@ import net.jangaroo.jooc.model.ClassModel;
 import net.jangaroo.jooc.model.CompilationUnitModel;
 import net.jangaroo.jooc.model.MemberModel;
 import net.jangaroo.jooc.model.MethodModel;
-import net.jangaroo.jooc.model.NamespacedModel;
 import net.jangaroo.jooc.model.ParamModel;
 import net.jangaroo.jooc.model.PropertyModel;
 import net.jangaroo.jooc.util.PreserveLineNumberHandler;
@@ -39,6 +38,7 @@ public final class MxmlToModelParser {
 
   public static final String MXML_DECLARATIONS = "Declarations";
   public static final String MXML_SCRIPT = "Script";
+  public static final String MXML_METADATA = "Metadata";
   private final JangarooParser jangarooParser;
   private int methodIndex;
 
@@ -105,7 +105,9 @@ public final class MxmlToModelParser {
             classModel.addMember(fieldModel);
           }
         } else if (MXML_SCRIPT.equals(elementName)) {
-          classModel.addCode(getTextContent(element));
+          classModel.addBodyCode(getTextContent(element));
+        } else if (MXML_METADATA.equals(elementName)) {
+          classModel.addAnnotationCode(getTextContent(element));
         } else {
           jangarooParser.getLog().error("Unknown MXML element: " + elementName);
         }
@@ -115,7 +117,6 @@ public final class MxmlToModelParser {
     MethodModel constructorModel = classModel.createConstructor();
     StringBuilder code = new StringBuilder();
     code.append("super();");
-    createPropertyAssignmentsCode(model, objectNode, "this", code);
 
     for (Element element : MxmlUtils.getChildElements(objectNode)) {
       if (MxmlUtils.isMxmlNamespace(element.getNamespaceURI())) {
@@ -129,6 +130,8 @@ public final class MxmlToModelParser {
         }
       }
     }
+
+    createPropertyAssignmentsCode(model, objectNode, "this", code);
 
     constructorModel.setBody(code.toString());
   }
@@ -184,7 +187,7 @@ public final class MxmlToModelParser {
       return;
     }
 
-    List<String> methodNames = createMethodsForChildObjects(compilationUnitModel, childElements);
+    List<String> methodNames = createAuxVarsForChildObjects(compilationUnitModel, childElements, code);
     code.append("\n    ").append(variable).append(".").append(propertyName).append(" = ");
     if (methodNames.size() > 1 || isPropertyTypeArray) {
       // TODO: Check for type violation
@@ -192,7 +195,7 @@ public final class MxmlToModelParser {
       code.append("[");
       for (Iterator<String> iterator = methodNames.iterator(); iterator.hasNext(); ) {
         String methodName = iterator.next();
-        code.append(methodName).append("()");
+        code.append(methodName);
         if (iterator.hasNext()) {
           code.append(", ");
         }
@@ -202,7 +205,7 @@ public final class MxmlToModelParser {
       // The property is either unspecified, untyped, or object-typed
       // and it contains at least one child element. Use the first element as the
       // property value.
-      code.append(methodNames.get(0)).append("()");
+      code.append(methodNames.get(0));
     } else {
       jangarooParser.getLog().error("Non-array property must not have multiple MXML child elements."); // TODO: MXML file position!
       code.append("undefined");
@@ -223,12 +226,15 @@ public final class MxmlToModelParser {
         AnnotationPropertyModel eventType = event.getPropertiesByName().get("type");
         String eventTypeStr = eventType == null ? "Object" : eventType.getStringValue();
         compilationUnitModel.addImport(eventTypeStr);
-        String eventHandlerName = "_on_" + propertyName + (++methodIndex);
+        String eventHandlerName = "___on_" + propertyName + (++methodIndex);
         MethodModel eventHandler = new MethodModel(eventHandlerName, "void",
                 new ParamModel("event", eventTypeStr));
         eventHandler.setBody(value);
         compilationUnitModel.getClassModel().addMember(eventHandler);
-        code.append("\n    ").append(variable).append(".addEventListener('").append(propertyName).append("', ").append(eventHandlerName).append(");");
+        compilationUnitModel.addImport("joo.addEventListener");
+        code.append("\n    ").append("joo.addEventListener(").append(variable)
+                .append(", '").append(propertyName).append("', ").append(eventTypeStr).append(", ")
+                .append(eventHandlerName).append(");");
         return;
       }
     }
@@ -239,24 +245,18 @@ public final class MxmlToModelParser {
   }
 
 
-  private List<String> createMethodsForChildObjects(CompilationUnitModel model, List<Element> elements) throws IOException {
-    List<String> methodNames = new ArrayList<String>();
+  private List<String> createAuxVarsForChildObjects(CompilationUnitModel model, List<Element> elements, StringBuilder code) throws IOException {
+    List<String> auxVarNames = new ArrayList<String>();
     for (Element arrayItemNode : elements) {
       String arrayItemClassName = createClassNameFromNode(arrayItemNode);
       model.addImport(arrayItemClassName);
-      String methodName = "_create" + (++methodIndex);
-      MethodModel methodModel = new MethodModel(methodName, arrayItemClassName);
-      methodModel.setNamespace(NamespacedModel.PRIVATE);
-      StringBuilder code = new StringBuilder();
-      code.append("var temp:").append(arrayItemClassName).append(" = ")
+      String auxVarName = "$$" + (++methodIndex);
+      code.append("\n    var ").append(auxVarName).append(":").append(arrayItemClassName).append(" = ")
               .append("new ").append(arrayItemClassName).append("();");
-      createPropertyAssignmentsCode(model, arrayItemNode, "temp", code);
-      code.append("\n    return temp;");
-      methodModel.setBody(code.toString());
-      model.getClassModel().addMember(methodModel);
-      methodNames.add(methodName);
+      createPropertyAssignmentsCode(model, arrayItemNode, auxVarName, code);
+      auxVarNames.add(auxVarName);
     }
-    return methodNames;
+    return auxVarNames;
   }
 
   private Document buildDom(InputStream inputStream) throws SAXException, IOException {
