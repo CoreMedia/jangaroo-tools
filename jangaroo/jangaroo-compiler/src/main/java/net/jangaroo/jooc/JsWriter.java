@@ -378,8 +378,8 @@ public final class JsWriter extends FilterWriter {
 
   public void close() throws IOException {
     shouldWrite(); // will close comments
-    Debug.assertTrue(nOpenBeginComments == 0, "" + nOpenBeginComments + " endComment() missing");
     super.close();
+    Debug.assertTrue(nOpenBeginComments == 0, "" + nOpenBeginComments + " endComment() missing");
   }
 
   public boolean isWritingComment() {

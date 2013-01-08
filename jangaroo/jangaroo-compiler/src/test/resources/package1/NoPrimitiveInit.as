@@ -6,7 +6,7 @@ public class NoPrimitiveInit {
   }
 
   private function method(i:int):int {
-    return SomeOtherClass.BLA + int.MAX_VALUE;
+    return package1.someOtherPackage.SomeOtherClass.BLA + int.MAX_VALUE;
   }
 }
 }

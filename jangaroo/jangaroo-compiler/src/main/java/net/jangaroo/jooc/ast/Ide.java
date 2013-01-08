@@ -136,13 +136,13 @@ public class Ide extends NodeImplBase {
 
   public boolean addExternalUsage() {
     IdeDeclaration decl = getDeclaration(false);
-    if (decl == null || !decl.isPrimaryDeclaration()) {
-      return false;
+    if (decl != null && (decl.isPrimaryDeclaration() || decl.isClassMember() && decl.isStatic())) {
+      CompilationUnit currentUnit = getScope().getCompilationUnit();
+      CompilationUnit compilationUnit = decl.getIde().getScope().getCompilationUnit();
+      currentUnit.addDependency(compilationUnit);
+      return true;
     }
-    CompilationUnit currentUnit = getScope().getCompilationUnit();
-    CompilationUnit compilationUnit = decl.getIde().getScope().getCompilationUnit();
-    currentUnit.addDependency(compilationUnit);
-    return true;
+    return false;
   }
 
   public void addPublicApiDependency() {

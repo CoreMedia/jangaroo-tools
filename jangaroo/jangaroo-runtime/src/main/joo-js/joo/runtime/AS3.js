@@ -1,0 +1,174 @@
+define(["./es5-polyfills"], function() {
+  "use strict";
+  // helper variable for flash.utils.getTimer():
+  window.joo = {
+    startTime: new Date().getTime(),
+    // built-in Error constructor called as function unfortunately always creates a new Error object,
+    // so we have to emulate it:
+    Error: function(message/*String*/, id/*:int*/) {
+      this.message = message || "";
+      this.id = id >> 0;
+    }
+  };
+  window.joo.Error.prototype = window.Error.prototype;
+
+  // Vector = Array
+  window.Vector$object = Array;
+
+  // int
+  window['int'] = function int(num) {
+    return num >> 0;
+  };
+  window['int'].MAX_VALUE =  2147483647;
+  window['int'].MIN_VALUE = -2147483648;
+
+  // uint
+  window['uint'] = function int(num) {
+    return num >>> 0;
+  };
+  window['uint'].MAX_VALUE =  4294967295;
+  window['uint'].MIN_VALUE =  0;
+
+  // simulate ActionScript's meta class "Class":
+  // placeholder that "casts" by returning the argument itself:
+  window.Class = function Class(c){return c;};
+  // consider any Function a Class:
+  window.Class.isInstance = function isInstance(o) { return typeof o === "function"; };
+
+  // simulate AS3 trace(): TODO: replace by normal top-level global function, written in AS3!
+  window.trace = function trace() {
+    var msg = Array.prototype.map.call(arguments, String).join(" ");
+    //var logWindow = document.createElement("div");
+    //logWindow.appendChild(document.createTextNode(msg));
+    //document.body.appendChild(logWindow);
+    console.log(msg);
+  };
+  function toString() {
+    return "[Class " + this.name + "]";
+  }
+  function convertShortcuts(propertyDescriptors) {
+    var result = {};
+    if (propertyDescriptors) {
+      for (var name in propertyDescriptors) {
+        var propertyDescriptor = propertyDescriptors[name];
+        result[name] = propertyDescriptor !== null && typeof propertyDescriptor === "object" ? propertyDescriptor
+          // anything *not* an object is a shortcut for a property descriptor with that value (non-writable, non-enumerable, non-configurable):
+                : { value: propertyDescriptor };
+        if (propertyDescriptor.get) {
+          result["get$" + name] = { value: propertyDescriptor.get };
+        }
+        if (propertyDescriptor.set) {
+          result["set$" + name] = { value: propertyDescriptor.set };
+        }
+        result[name].enumerable = true; // TODO: only for debugging!
+      }
+    }
+    return result;
+  }
+  function defineClass(definingCode) {
+    return Object.defineProperty({}, "_", {
+      configurable: true,
+      get: function() {
+        var config = definingCode();
+        var members = convertShortcuts(config.members);
+        var clazz = members.constructor.value;
+        Object.defineProperty(this, "_", { value: clazz });
+        var extends_ = config.extends_ || Object; // super class
+        var implements_ = config.implements_ ? typeof config.implements_ === "function" ? [config.implements_] : config.implements_ : [];
+        // create set of all interfaces implemented by this class
+        var $implements = extends_.$implements ? Object.create(extends_.$implements) : {};
+        implements_.forEach(function(i) { i($implements); });
+        var staticMembers = convertShortcuts(config.staticMembers);
+        // add some meta information under reserved static field "$class":
+        staticMembers.$class = { value: {
+          metadata: config.metadata || {},
+          implements_: $implements,
+          fullClassName: config.package_ ? config.package_ + "." + config.class_ : config.class_,
+          toString: function() { return this.fullClassName; }
+        }};
+        staticMembers.toString = { value: toString }; // add Class#toString()
+        Object.defineProperties(clazz, staticMembers);   // add static members
+        clazz.prototype = Object.create(extends_.prototype, members); // establish inheritance prototype chain and add instance members
+
+        var staticCode = config.staticCode;
+        // execute static initializers and code:
+        staticCode && staticCode.call(clazz);
+        return clazz;
+      }
+    });
+  }
+
+  function defineInterface(fullyQualifiedName, extends_) {
+    function Interface($implements) {
+      extends_.forEach(function(i) { i($implements); });
+      $implements[fullyQualifiedName] = true;
+      return $implements;
+    }
+    Interface.isInstance = function(object) {
+      return object !== null && typeof object === "object" &&
+              !!object.constructor.$class &&
+              fullyQualifiedName in object.constructor.$class.implements_;
+    };
+    Interface.toString = function toString() {
+      return "[Interface " + fullyQualifiedName + "]";
+    };
+    return Interface;
+  }
+
+  function defineGlobal(definingCode) {
+    return Object.defineProperty({}, "_", {
+      configurable: true,
+      enumerable: true, // TODO: for debugging only
+      get: function() {
+        definingCode.call(this);
+        return this._;
+      }
+    });
+  }
+
+  function bind(object, boundMethodName) {
+    if (object.hasOwnProperty(boundMethodName)) {
+      return object[boundMethodName];
+    }
+    var boundMethod = object[boundMethodName].bind(object);
+    Object.defineProperty(object, boundMethodName, {
+      enumerable: true, // TODO: for debugging only
+      value: boundMethod
+    });
+    return boundMethod;
+  }
+
+  function is(object, type) {
+    return !!type && object !== undefined && object !== null &&
+      // instanceof returns false negatives in some browsers, so check constructor property, too:
+      (object instanceof type || object.constructor === type ||
+      // "type" may be an interface:
+      typeof type.isInstance === "function" && type.isInstance(object));
+  }
+
+  function as(object, type) {
+    return is(object, type) ? object : null;
+  }
+
+  function cast(type, object) {
+    if (object === undefined || object === null) {
+      return null;
+    }
+    if (object instanceof type || object.constructor === type ||
+      // "type" may be an interface:
+      typeof type.isInstance === "function" && type.isInstance(object)) {
+      return object;
+    }
+    throw new TypeError("'" + object + "' cannot be cast to " + type + ".");
+  }
+
+  return {
+    class_: defineClass,
+    interface_: defineInterface,
+    global_: defineGlobal,
+    as: as,
+    cast: cast,
+    is: is,
+    bind: bind
+  }
+});

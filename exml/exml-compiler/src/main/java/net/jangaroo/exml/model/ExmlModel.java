@@ -1,6 +1,6 @@
 package net.jangaroo.exml.model;
 
-import net.jangaroo.exml.json.JsonObject;
+import net.jangaroo.jooc.json.JsonObject;
 import net.jangaroo.exml.utils.ExmlUtils;
 
 import java.util.ArrayList;

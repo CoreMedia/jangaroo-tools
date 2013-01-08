@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2009, CoreMedia AG, Hamburg. All rights reserved.
  */
-package net.jangaroo.exml.json;
+package net.jangaroo.jooc.json;
 
 /**
  *

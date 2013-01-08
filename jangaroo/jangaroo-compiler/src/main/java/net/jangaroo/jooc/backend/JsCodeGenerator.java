@@ -4,7 +4,6 @@ import net.jangaroo.jooc.CodeGenerator;
 import net.jangaroo.jooc.Debug;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
-import net.jangaroo.jooc.JoocProperties;
 import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.SyntacticKeywords;
 import net.jangaroo.jooc.ast.Annotation;
@@ -47,6 +46,7 @@ import net.jangaroo.jooc.ast.ImportDirective;
 import net.jangaroo.jooc.ast.InfixOpExpr;
 import net.jangaroo.jooc.ast.Initializer;
 import net.jangaroo.jooc.ast.LabeledStatement;
+import net.jangaroo.jooc.ast.LiteralExpr;
 import net.jangaroo.jooc.ast.NamespaceDeclaration;
 import net.jangaroo.jooc.ast.NamespacedIde;
 import net.jangaroo.jooc.ast.NewExpr;
@@ -66,13 +66,13 @@ import net.jangaroo.jooc.ast.ThrowStatement;
 import net.jangaroo.jooc.ast.TryStatement;
 import net.jangaroo.jooc.ast.Type;
 import net.jangaroo.jooc.ast.TypeRelation;
-import net.jangaroo.jooc.ast.TypedIdeDeclaration;
 import net.jangaroo.jooc.ast.UseNamespaceDirective;
 import net.jangaroo.jooc.ast.VariableDeclaration;
 import net.jangaroo.jooc.ast.VectorLiteral;
 import net.jangaroo.jooc.ast.WhileStatement;
 import net.jangaroo.jooc.config.DebugMode;
 import net.jangaroo.jooc.config.JoocConfiguration;
+import net.jangaroo.jooc.json.JsonObject;
 import net.jangaroo.jooc.sym;
 import net.jangaroo.utils.CompilerUtils;
 
@@ -83,6 +83,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -117,9 +118,14 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   }
 
   private boolean expressionMode = false;
+  private Map<IdeDeclaration,String> imports = new LinkedHashMap<IdeDeclaration,String>();
+  private ClassDefinitionBuilder primaryClassDefinitionBuilder = new ClassDefinitionBuilder();
+  private ClassDefinitionBuilder secondaryClassDefinitionBuilder = new ClassDefinitionBuilder();
   private CompilationUnit compilationUnit;
+  private JsonObject currentMetadata = new JsonObject();
   private final MessageFormat VAR_$NAME_EQUALS_ARGUMENTS_SLICE_$INDEX =
     new MessageFormat("var {0}=Array.prototype.slice.call(arguments{1,choice,0#|0<,{1}});");
+  private final MessageFormat COMPILATION_UNIT_ACCESS_MESSAGE_FORMAT = new MessageFormat("{0}._"); //new MessageFormat("({0}._||{0}.get$_())");
 
   private void generateToArrayCode(String paramName, int paramIndex) throws IOException {
     out.write(VAR_$NAME_EQUALS_ARGUMENTS_SLICE_$INDEX.format(paramName, paramIndex));
@@ -136,6 +142,11 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     super(out);
   }
 
+  private Map<String,PropertyDefinition> membersOrStaticMembers(Declaration memberDeclaration) {
+    ClassDefinitionBuilder classDefinitionBuilder = memberDeclaration.getClassDeclaration() == null || memberDeclaration.getClassDeclaration().isPrimaryDeclaration() ? primaryClassDefinitionBuilder : secondaryClassDefinitionBuilder;
+    return memberDeclaration.isStatic() ? classDefinitionBuilder.staticMembers : classDefinitionBuilder.members;
+  }
+
   private void writeThis(Ide ide) throws IOException {
     out.writeToken(ide.isRewriteThis() ? "this$" : "this");
   }
@@ -150,13 +161,14 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       writeThis(ide);
       return;
     }
+    IdeDeclaration decl = null;
     if (!ide.isThis()) {
-      IdeDeclaration decl = ide.getDeclaration(false);
+      decl = ide.getDeclaration(false);
       if (decl != null) {
         if (decl.isClassMember()) {
           if (!decl.isPrivateStatic()) {
             if (decl.isStatic()) {
-              out.writeToken(decl.getClassDeclaration().getQualifiedNameStr());
+              out.writeToken(compilationUnitAccessCode(decl.getClassDeclaration()));
             } else {
               if (ide.isBound()) {
                 writeBoundMethodAccess(ide, null, null, decl);
@@ -168,22 +180,32 @@ public class JsCodeGenerator extends CodeGeneratorBase {
           writeMemberAccess(decl, null, ide, false);
           return;
         }
-        if (ide.getPackagePrefix().length() > 0) {
-          out.writeToken(ide.getPackagePrefix());
-        }
       }
     }
-    // take care of reserved words called as functions (Rhino does not like):
-    if (SyntacticKeywords.RESERVED_WORDS.contains(ide.getIde().getText())) {
-      out.writeToken("$$" + ide.getIde().getText());
-    } else {
-      out.writeSymbol(ide.getIde(), false);
+    String ideName;
+    ideName = decl != null && decl.isPrimaryDeclaration()
+            ? compilationUnitAccessCode(decl)
+            : convertIdentifier(ide.getIde().getText());
+    out.writeToken(ideName);
+  }
+
+  private String compilationUnitAccessCode(IdeDeclaration primaryDeclaration) {
+    CompilationUnit compilationUnit1 = primaryDeclaration.getCompilationUnit();
+    if (compilationUnit1.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME) == null) {
+      if (primaryDeclaration.equals(compilationUnit.getPrimaryDeclaration())) {
+        return primaryDeclaration.getName();
+      } else {
+        String primaryDeclarationName = imports.get(primaryDeclaration);
+        return COMPILATION_UNIT_ACCESS_MESSAGE_FORMAT.format(primaryDeclarationName);
+      }
     }
+    // [Native] compilation unit: use fully qualified name
+    return primaryDeclaration.getQualifiedNameStr();
   }
 
 
   private void writeBoundMethodAccess(Ide ide, Ide optIde, JooSymbol optSymDot, IdeDeclaration decl) throws IOException {
-    out.writeToken("$$bound(");
+    out.writeToken("AS3.bind(");
     if (optIde != null) {
       optIde.visit(this);
     } else {
@@ -240,11 +262,8 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       out.writeSymbolWhitespace(memberIde.getIde());
     }
     if (isStatic) {
-      out.writeToken("$$private");
       if (optSymDot != null) {
-        out.writeSymbol(optSymDot);
-      } else {
-        out.writeToken(".");
+        out.writeSymbolWhitespace(optSymDot);
       }
       out.writeSymbol(memberIde.getIde(), false);
     } else {
@@ -267,15 +286,22 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitAnnotationParameter(AnnotationParameter annotationParameter) throws IOException {
-    visitIfNotNull(annotationParameter.getOptName(), "$value");
-    writeSymbolReplacement(annotationParameter.getOptSymEq(), ":");
-    visitIfNotNull(annotationParameter.getValue(), "null");
+    Ide optName = annotationParameter.getOptName();
+    visitIfNotNull(optName);
+    writeOptSymbol(annotationParameter.getOptSymEq());
+    LiteralExpr optValue = annotationParameter.getValue();
+    visitIfNotNull(optValue);
+    String name = optName == null ? "$value" : optName.getName();
+    Object value = optValue != null ? optValue.getValue().getJooValue() : null;
+
+    String annotationName = annotationParameter.getParentAnnotation().getIde().getName();
+    ((JsonObject)currentMetadata.get(annotationName)).set(name, value);
   }
 
   @Override
   public void visitExtends(Extends anExtends) throws IOException {
     out.writeSymbol(anExtends.getSymExtends());
-    writeQName(anExtends.getSuperClass());
+    anExtends.getSuperClass().visit(this);
   }
 
   private void writeQName(Ide classIde) throws IOException {
@@ -308,29 +334,102 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitCompilationUnit(CompilationUnit compilationUnit) throws IOException {
-    this.compilationUnit = compilationUnit;
-    out.write(Jooc.CLASS_LOADER_FULLY_QUALIFIED_NAME + ".prepare(");
-    compilationUnit.getPackageDeclaration().visit(this);
-    out.beginComment();
-    out.writeSymbol(compilationUnit.getLBrace());
-    out.endComment();
-    visitAll(compilationUnit.getDirectives());
-    compilationUnit.getPrimaryDeclaration().visit(this);
-    out.write(",[");
-    boolean first = true;
-    for (String qname : compilationUnit.getDependencies()) {
-      if (first) {
-        first = false;
+    out.write("define([\"runtime/AS3\"");
+    Map<String,IdeDeclaration> usedNames = new HashMap<String,IdeDeclaration>();
+    Set<IdeDeclaration> useQName = new HashSet<IdeDeclaration>();
+    for (CompilationUnit dependentCU : compilationUnit.getDependenciesAsCompilationUnits()) {
+      IdeDeclaration dependentDeclaration = dependentCU.getPrimaryDeclaration();
+      out.write(",\"classes/" + CompilerUtils.fileNameFromQName(dependentDeclaration.getQualifiedNameStr(), '/', "") + "\"");
+      String importedName = dependentDeclaration.getName();
+      if (usedNames.containsKey(importedName)) {
+        IdeDeclaration previousDeclaration = usedNames.get(importedName);
+        if (previousDeclaration != null) {
+          useQName.add(previousDeclaration);
+          usedNames.put(importedName, null);
+        }
+        useQName.add(dependentDeclaration);
       } else {
-        out.write(",");
+        usedNames.put(importedName, dependentDeclaration);
       }
-      out.write('"' + qname + '"');
     }
-    out.write("]");
-    out.write(", \"" + JoocProperties.getRuntimeVersion() + "\"");
-    out.write(", \"" + JoocProperties.getVersion() + "\"");
-    out.writeSymbolWhitespace(compilationUnit.getRBrace());
-    out.write(");");
+    out.write("], function(AS3");
+    for (CompilationUnit dependentCU : compilationUnit.getDependenciesAsCompilationUnits()) {
+      IdeDeclaration dependentDeclaration = dependentCU.getPrimaryDeclaration();
+      String importedName = useQName.contains(dependentDeclaration)
+              ? dependentDeclaration.getQualifiedNameStr().replace(".", "$")
+              : dependentDeclaration.getName();
+      importedName = convertIdentifier(importedName);
+      imports.put(dependentDeclaration, importedName);
+      out.write("," + importedName);
+    }
+    out.write(") { \"use strict\";");
+    String primaryDeclarationType = "class";
+    if (!(compilationUnit.getPrimaryDeclaration() instanceof ClassDeclaration)) {
+      primaryDeclarationType = "global";
+    }
+    out.write("return AS3." + primaryDeclarationType + "_(function(){");
+    this.compilationUnit = compilationUnit;
+    out.beginComment();
+    compilationUnit.getPackageDeclaration().visit(this);
+    out.writeSymbol(compilationUnit.getLBrace());
+    visitAll(compilationUnit.getDirectives());
+    out.endComment();
+    compilationUnit.getPrimaryDeclaration().visit(this);
+    out.beginComment();
+    out.writeSymbol(compilationUnit.getRBrace());
+    out.write("\n");
+    out.endComment();
+    if (compilationUnit.getPrimaryDeclaration() instanceof ClassDeclaration) {
+      out.beginComment();
+      out.write("\n============================================== Jangaroo part ==============================================");
+      out.endComment();
+      out.write("\n    return ");
+
+      ClassDefinitionBuilder classDefinitionBuilder = primaryClassDefinitionBuilder;
+      ClassDeclaration classDeclaration = (ClassDeclaration) compilationUnit.getPrimaryDeclaration();
+      JsonObject classDefinition = createClassDefinition(classDeclaration, classDefinitionBuilder);
+      out.write(classDefinition.toString(2, 4));
+      out.write(";");
+    }
+    out.write("\n  });\n");
+    out.write("});\n");
+  }
+
+  private JsonObject createClassDefinition(ClassDeclaration classDeclaration, JsCodeGenerator.ClassDefinitionBuilder classDefinitionBuilder) {
+    JsonObject classDefinition = new JsonObject();
+    String packageName = classDeclaration.getPackageDeclaration().getQualifiedNameStr();
+    if (packageName.length() > 0) {
+      classDefinition.set("package_", packageName);
+    }
+    if (!classDefinitionBuilder.metadata.isEmpty()) {
+      classDefinition.set("metadata", classDefinitionBuilder.metadata);
+    }
+    classDefinition.set("class_", classDeclaration.getName());
+    if (classDeclaration.getSuperType() != null) {
+      ClassDeclaration superTypeDeclaration = classDeclaration.getSuperTypeDeclaration();
+      if (!"Object".equals(superTypeDeclaration.getQualifiedNameStr())) {
+        classDefinition.set("extends_", CompilerUtils.createCodeExpression(compilationUnitAccessCode(superTypeDeclaration)));
+      }
+    }
+    if (!classDefinitionBuilder.members.isEmpty()) {
+      classDefinition.set("members", convertMembers(classDefinitionBuilder.members));
+    }
+    if (!classDefinitionBuilder.staticMembers.isEmpty()) {
+      classDefinition.set("staticMembers", convertMembers(classDefinitionBuilder.staticMembers));
+    }
+    classDefinitionBuilder.staticCode.insert(0, classDefinitionBuilder.staticInitializerCode.toString());
+    if (classDefinitionBuilder.staticCode.length() > 0) {
+      classDefinition.set("staticCode", CompilerUtils.createCodeExpression("function() {\n" + classDefinitionBuilder.staticCode + "      }"));
+    }
+    return classDefinition;
+  }
+
+  private JsonObject convertMembers(Map<String, PropertyDefinition> members) {
+    JsonObject membersDefinition = new JsonObject();
+    for (Map.Entry<String, PropertyDefinition> entry : members.entrySet()) {
+      membersDefinition.set(entry.getKey(), entry.getValue().asAbbreviatedJson());
+    }
+    return membersDefinition;
   }
 
   @Override
@@ -341,14 +440,26 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     }
     out.writeSymbolWhitespace(ide.getIde());
     // take care of reserved words called as functions (Rhino does not like):
-    if (!out.isWritingComment() && SyntacticKeywords.RESERVED_WORDS.contains(ide.getIde().getText())) {
-      out.writeToken("$$" + ide.getIde().getText());
-    } else {
-      out.writeSymbol(ide.getIde(), false);
+    String ideText = ide.getIde().getText();
+    if (!out.isWritingComment()) {
+      ideText = convertIdentifier(ideText);
     }
+    out.writeToken(ideText);
+  }
+
+  // take care of reserved words called as functions (Rhino does not like):
+  private String convertIdentifier(String identifier) {
+    return SyntacticKeywords.RESERVED_WORDS.contains(identifier) ? identifier + "_" : identifier;
   }
 
   private void generateQualifiedIdeCodeAsExpr(QualifiedIde qualifiedIde) throws IOException {
+    IdeDeclaration ideDeclaration = qualifiedIde.getDeclaration(false);
+    if (ideDeclaration != null && ideDeclaration.isPrimaryDeclaration()) {
+      // we assume there is no "inner" white-space in a qualified identifier:
+      out.writeSymbolWhitespace(qualifiedIde.getQualifier().getSymbol());
+      out.write(compilationUnitAccessCode(ideDeclaration));
+      return;
+    }
     boolean commentOutQualifierCode = false;
     IdeDeclaration memberDeclaration = null;
     IdeDeclaration qualifierDeclaration = qualifiedIde.getQualifier().getDeclaration(false);
@@ -481,6 +592,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitInfixOpExpr(InfixOpExpr infixOpExpr) throws IOException {
+    out.writeToken("AS3.");
     out.writeSymbolToken(infixOpExpr.getOp());
     out.write('(');
     infixOpExpr.getArg1().visit(this);
@@ -695,7 +807,9 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitClassBody(ClassBody classBody) throws IOException {
-    out.writeSymbolWhitespace(classBody.getLBrace());
+    out.beginComment();
+    out.writeSymbol(classBody.getLBrace());
+    out.endComment();
     boolean inStaticInitializerBlock = false;
     for (Directive directive : classBody.getDirectives()) {
       final boolean isStaticInitializer = directive instanceof Statement && !(directive instanceof Declaration);
@@ -707,19 +821,22 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       directive.visit(this);
     }
     endStaticInitializer(out, inStaticInitializerBlock);
-    out.writeSymbolWhitespace(classBody.getRBrace());
+    out.beginComment();
+    out.writeSymbol(classBody.getRBrace());
+    out.endComment();
   }
 
   private boolean beginStaticInitializer(JsWriter out, boolean inStaticInitializerBlock) throws IOException {
     if (!inStaticInitializerBlock) {
-      out.writeToken("function(){");
+      out.writeToken("function static$0(){");
+      primaryClassDefinitionBuilder.staticCode.append("        static$0();");
     }
     return true;
   }
 
   private boolean endStaticInitializer(JsWriter out, boolean inStaticInitializerBlock) throws IOException {
     if (inStaticInitializerBlock) {
-      out.writeToken("},");
+      out.writeToken("}");
     }
     return false;
   }
@@ -813,7 +930,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       out.writeToken("else");
     }
     if (hasCondition) {
-      out.writeToken("if(is");
+      out.writeToken("if(AS3.is");
       out.writeSymbol(aCatch.getLParen());
       out.writeSymbolWhitespace(localErrorVar);
       out.writeSymbolToken(errorVar);
@@ -821,7 +938,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       out.writeToken(",");
       Ide typeIde = typeRelation.getType().getIde();
       out.writeSymbolWhitespace(typeIde.getIde());
-      out.writeToken(typeIde.getDeclaration().getQualifiedNameStr());
+      out.writeToken(compilationUnitAccessCode(typeIde.getDeclaration()));
       out.writeSymbol(aCatch.getRParen());
       out.writeToken(")");
     }
@@ -1021,52 +1138,84 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitVariableDeclaration(VariableDeclaration variableDeclaration) throws IOException {
-    if (variableDeclaration.equals(compilationUnit.getPrimaryDeclaration())) {
-      generatePrimaryVarDeclaration(variableDeclaration);
-      return;
-    }
     if (variableDeclaration.hasPreviousVariableDeclaration()) {
       Debug.assertTrue(variableDeclaration.getOptSymConstOrVar() != null && variableDeclaration.getOptSymConstOrVar().sym == sym.COMMA, "Additional variable declarations must start with a COMMA.");
-      out.writeSymbol(variableDeclaration.getOptSymConstOrVar());
-    } else {
-      generateVariableDeclarationStartCode(variableDeclaration);
     }
-    variableDeclaration.getIde().visit(this);
-    visitIfNotNull(variableDeclaration.getOptTypeRelation());
-    generateVariableDeclarationInitializerCode(variableDeclaration);
-    visitIfNotNull(variableDeclaration.getOptNextVariableDeclaration());
-    generateVariableDeclarationEndCode(variableDeclaration);
-  }
-
-  private void generatePrimaryVarDeclaration(VariableDeclaration variableDeclaration) throws IOException {
-    out.beginString();
-    writeModifiers(out, variableDeclaration);
-    out.writeSymbol(variableDeclaration.getOptSymConstOrVar());
-    variableDeclaration.getIde().visit(this);
-    out.endString();
-    visitIfNotNull(variableDeclaration.getOptTypeRelation());
-    out.writeToken(",0,");  // place-holder for inheritance level
-    if (variableDeclaration.getOptInitializer() != null) {
-      out.write("function(){");
-      writeAliases();
-      out.writeSymbolWhitespace(variableDeclaration.getOptInitializer().getSymEq());
-      out.writeToken("return");
-      variableDeclaration.getOptInitializer().getValue().visit(this);
-      out.write(";\n}");
-    } else {
-      out.writeToken("null");
-    }
-    out.write(",[]");
-  }
-
-  protected void generateVariableDeclarationStartCode(VariableDeclaration variableDeclaration) throws IOException {
-    
-    if (variableDeclaration.equals(compilationUnit.getPrimaryDeclaration())) {
-      generatePrimaryVarDeclaration(variableDeclaration);
-    } else if (variableDeclaration.isClassMember()) {
-      generateFieldStartCode(variableDeclaration);
+    if (variableDeclaration.isClassMember() && !variableDeclaration.isPrivateStatic()) {
+      out.beginComment();
+      writeModifiers(out, variableDeclaration);
+      writeOptSymbol(variableDeclaration.getOptSymConstOrVar());
+      variableDeclaration.getIde().visit(this);
+      visitIfNotNull(variableDeclaration.getOptTypeRelation());
+      if (mustInitializeInStaticCode(variableDeclaration)) {
+        out.endComment();
+        generateFieldInitializerCode(variableDeclaration);
+      } else {
+        visitIfNotNull(variableDeclaration.getOptInitializer());
+        out.endComment();
+      }
+      registerField(variableDeclaration);
+      visitIfNotNull(variableDeclaration.getOptNextVariableDeclaration());
+      generateFieldEndCode(variableDeclaration);
     } else {
       generateVarStartCode(variableDeclaration);
+      variableDeclaration.getIde().visit(this);
+      visitIfNotNull(variableDeclaration.getOptTypeRelation());
+      Initializer optInitializer = variableDeclaration.getOptInitializer();
+      if (optInitializer == null) {
+        if (variableDeclaration.isPrimaryDeclaration() || variableDeclaration.isPrivateStatic()) {
+          TypeRelation typeRelation = variableDeclaration.getOptTypeRelation();
+          String value = VariableDeclaration.getDefaultValue(typeRelation);
+          if (value != null) {
+            out.write("=" + value);
+          }
+        }
+      } else {
+        if (variableDeclaration.isPrivateStatic() && mustInitializeInStaticCode(variableDeclaration)) {
+          out.writeToken(";");
+          generateFieldInitializerCode(variableDeclaration);
+          registerField(variableDeclaration);
+        } else {
+          optInitializer.visit(this);
+        }
+      }
+      visitIfNotNull(variableDeclaration.getOptNextVariableDeclaration());
+      writeOptSymbol(variableDeclaration.getOptSymSemicolon());
+      if (variableDeclaration.isPrimaryDeclaration()) {
+        PropertyDefinition propertyDefinition = new PropertyDefinition(variableDeclaration.getName(), !variableDeclaration.isConst());
+        out.write(" Object.defineProperty(this, \"_\", " + propertyDefinition.asJson().toString(-1, -1) + ");");
+      }
+    }
+  }
+
+  private void registerField(VariableDeclaration variableDeclaration) {
+    String variableName = variableDeclaration.getName();
+
+    if (mustInitializeInStaticCode(variableDeclaration)) {
+      if (variableDeclaration.isStatic()) {
+        if (variableDeclaration.isPrivate()) {
+          primaryClassDefinitionBuilder.staticInitializerCode.append("        ").append(variableName).append(" = ")
+                  .append(variableName).append("_();\n");
+        } else {
+          addStaticInitializer(variableName, new PropertyDefinition(
+                  variableName + "_()",
+                  !variableDeclaration.isConst()
+          ));
+        }
+      }
+    } else {
+      String value;
+      if (variableDeclaration.getOptInitializer() != null) {
+        value = ((LiteralExpr) variableDeclaration.getOptInitializer().getValue()).getValue().getText(); // TODO: may be a more complex expression, see above!
+      } else {
+        TypeRelation typeRelation = variableDeclaration.getOptTypeRelation();
+        value = VariableDeclaration.getDefaultValue(typeRelation);
+      }
+      if (variableDeclaration.isPrivate() && !variableDeclaration.isStatic()) {
+        variableName += "$" + ((ClassDeclaration)compilationUnit.getPrimaryDeclaration()).getInheritanceLevel();
+      }
+      membersOrStaticMembers(variableDeclaration).put(variableName,
+              new PropertyDefinition(value, !variableDeclaration.isConst()));
     }
   }
 
@@ -1085,55 +1234,35 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     }
   }
 
-  protected void generateFieldStartCode(VariableDeclaration variableDeclaration) throws IOException {
-    out.beginString();
-    writeModifiers(out, variableDeclaration);
-    writeOptSymbol(variableDeclaration.getOptSymConstOrVar());
-    out.endString();
-    out.write(",{");
-  }
-
-  protected void generateVariableDeclarationInitializerCode(VariableDeclaration variableDeclaration) throws IOException {
-    if (variableDeclaration.isClassMember()) {
-      generateFieldInitializerCode(variableDeclaration);
-    } else {
-      visitIfNotNull(variableDeclaration.getOptInitializer());
-    }
-  }
-
   protected void generateFieldInitializerCode(VariableDeclaration variableDeclaration) throws IOException {
-    if (variableDeclaration.getOptInitializer() != null) {
-      out.writeSymbolWhitespace(variableDeclaration.getOptInitializer().getSymEq());
-      out.write(':');
-      boolean mustEvaluateAtRuntime = !variableDeclaration.getOptInitializer().getValue().isRuntimeConstant();
-      if (mustEvaluateAtRuntime) {
-        out.writeToken("function(){return(");
-      }
-      variableDeclaration.getOptInitializer().getValue().visit(this);
-      if (mustEvaluateAtRuntime) {
-        out.writeToken(");}");
-      }
-    } else {
-      TypeRelation typeRelation = variableDeclaration.getOptTypeRelation();
-      String emptyValue = VariableDeclaration.getDefaultValue(typeRelation);
-      out.write(":" + emptyValue);
-    }
+    Initializer initializer = variableDeclaration.getOptInitializer();
+    out.beginComment();
+    out.writeSymbol(initializer.getSymEq());
+    out.endComment();
+    String variableName = variableDeclaration.getName();
+    out.writeToken("function");
+    out.writeToken(variableName + "_");
+    out.writeToken("(){return(");
+    initializer.getValue().visit(this);
+    out.writeToken(");}");
   }
 
-  protected void generateVariableDeclarationEndCode(VariableDeclaration variableDeclaration) throws IOException {
-    if (variableDeclaration.isClassMember()) {
-      generateFieldEndCode(variableDeclaration);
-    } else {
-      writeOptSymbol(variableDeclaration.getOptSymSemicolon());
-    }
+  private boolean mustInitializeInStaticCode(VariableDeclaration variableDeclaration) {
+    // TODO: allow all runtime constants: !variableDeclaration.getOptInitializer().getValue().isRuntimeConstant();
+    return variableDeclaration.getOptInitializer() != null && !(variableDeclaration.getOptInitializer().getValue() instanceof LiteralExpr);
+  }
+
+  private void addStaticInitializer(String fieldName, PropertyDefinition propertyDefinition) {
+    primaryClassDefinitionBuilder.staticInitializerCode.append("        Object.defineProperty(this, \"").append(fieldName).append("\", ").append(propertyDefinition.asJson().toString(2, 8)).append(");\n");
+    
   }
 
   protected void generateFieldEndCode(VariableDeclaration variableDeclaration) throws IOException {
     if (!variableDeclaration.hasPreviousVariableDeclaration()) {
-      out.write('}');
       Debug.assertTrue(variableDeclaration.getOptSymSemicolon() != null, "optSymSemicolon != null");
-      out.writeSymbolWhitespace(variableDeclaration.getOptSymSemicolon());
-      out.writeToken(",");
+      out.beginComment();
+      out.writeSymbol(variableDeclaration.getOptSymSemicolon());
+      out.endComment();
     }
   }
 
@@ -1157,83 +1286,99 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     if (!functionDeclaration.isClassMember() && !isPrimaryDeclaration) {
       functionDeclaration.getFun().visit(this);
     } else {
-      if (functionDeclaration.isAbstract()) {
-        out.beginComment();
-        writeModifiers(out, functionDeclaration);
+      out.beginComment();
+      writeModifiers(out, functionDeclaration);
+      if (functionDeclaration.isAbstract() || functionDeclaration.isNative()) {
         out.writeSymbol(functionDeclaration.getFun().getFunSymbol());
         functionDeclaration.getIde().visit(this);
+        generateSignatureJsCode(functionDeclaration.getFun());
+        out.endComment();
       } else {
-        out.beginString();
-        writeModifiers(out, functionDeclaration);
+        out.endComment();
         out.writeSymbol(functionDeclaration.getFun().getFunSymbol());
-        if (functionDeclaration.isGetterOrSetter()) {
-          out.writeSymbol(functionDeclaration.getSymGetOrSet());
+        JooSymbol functionSymbol = functionDeclaration.getIde().getSymbol();
+        String functionName = functionSymbol.getText();
+        String methodName = functionName;
+        if (functionDeclaration.isPrivate() && !functionDeclaration.isStatic()) {
+          methodName += "$" + functionDeclaration.getClassDeclaration().getInheritanceLevel();
         }
-        functionDeclaration.getIde().visit(this);
-        out.endString();
-        if (functionDeclaration.isNative()) {
-          out.beginComment();
-        } else {
-          out.writeToken(",");
-          if (isPrimaryDeclaration) {
-            out.write("0,"); // place-holder for inheritance level
-            out.write("function(){");
-            writeAliases();
-            out.writeToken("return");
-          }
-          out.writeToken("function");
-          if (out.getKeepSource()) {
-            String functionName = functionDeclaration.getIde().getName();
-            if (functionDeclaration.getSymGetOrSet() != null) {
-              out.writeToken(functionName + "$" + functionDeclaration.getSymGetOrSet().getText());
+        Map<String, PropertyDefinition> members = membersOrStaticMembers(functionDeclaration);
+        if (functionDeclaration.isGetterOrSetter()) {
+          out.writeSymbolWhitespace(functionDeclaration.getIde().getSymbol());
+          out.writeSymbolWhitespace(functionDeclaration.getSymGetOrSet());
+          String accessorPrefix = functionDeclaration.getSymGetOrSet().getText() + "$";
+          String accessorName = accessorPrefix + methodName;
+          out.writeToken(accessorPrefix + functionName);
+          if (!functionDeclaration.isPrivateStatic()) {
+            PropertyDefinition accessorDefinition;
+            accessorDefinition = members.get(methodName);
+            if (accessorDefinition == null) {
+              accessorDefinition = new PropertyDefinition();
+              members.put(methodName, accessorDefinition);
+            }
+            if (functionDeclaration.isGetter()) {
+              accessorDefinition.get = accessorName;
             } else {
-              out.writeToken(functionName);
+              accessorDefinition.set = accessorName;
+            }
+          }
+        } else {
+          out.writeSymbol(functionSymbol);
+          if (!functionDeclaration.isPrimaryDeclaration() && !functionDeclaration.isPrivateStatic()) {
+            members.put(functionDeclaration.isConstructor() ? "constructor" : methodName,
+                    new PropertyDefinition(functionName));
+            if (functionDeclaration.isOverride()) {
+              members.put(methodName + "$" + functionDeclaration.getClassDeclaration().getInheritanceLevel(),
+                      new PropertyDefinition(compilationUnitAccessCode(functionDeclaration.getClassDeclaration().getSuperTypeDeclaration()) + ".prototype." + methodName));
             }
           }
         }
+        generateFunTailCode(functionDeclaration.getFun());
       }
-      generateFunTailCode(functionDeclaration.getFun());
-      if (functionDeclaration.isClassMember()) {
-        if (functionDeclaration.isAbstract() || functionDeclaration.isNative()) {
-          out.endComment();
-        }
-        out.write(',');
-      } else if (isPrimaryDeclaration) {
-        out.write("\n;},[]"); // end initializer function and place-holder for static method names
+      if (functionDeclaration.isPrimaryDeclaration()) {
+        out.write(String.format(" Object.defineProperty(this, \"_\", { value: %s });", functionDeclaration.getName()));
       }
     }
   }
 
   @Override
   public void visitClassDeclaration(ClassDeclaration classDeclaration) throws IOException {
-    out.beginString();
+    ClassDefinitionBuilder classDefinitionBuilder = classDeclaration.isPrimaryDeclaration()
+            ? primaryClassDefinitionBuilder : secondaryClassDefinitionBuilder;
+    classDefinitionBuilder.metadata = currentMetadata;
+    currentMetadata = new JsonObject();
+    out.beginComment();
     writeModifiers(out, classDeclaration);
     out.writeSymbol(classDeclaration.getSymClass());
     classDeclaration.getIde().visit(this);
     visitIfNotNull(classDeclaration.getOptExtends());
     visitIfNotNull(classDeclaration.getOptImplements());
-    out.endString();
-    out.write(",");
-    out.write(classDeclaration.getInheritanceLevel() + ",");
-    out.write("function($$private){");
-    writeAliases();
-    out.write("return[");
-    generateClassInits(classDeclaration);
+    out.endComment();
     classDeclaration.getBody().visit(this);
-    if (classDeclaration.getConstructor() == null && !classDeclaration.getFieldsWithInitializer().isEmpty()) {
-      // generate default constructor that calls field initializers:
-      out.write("\"public function " + classDeclaration.getName() + "\",function " + classDeclaration.getName() + "$(){");
-      new SuperCallCodeGenerator(classDeclaration).generate(out, true);
-      out.write("},");
-    }
 
     for (IdeDeclaration secondaryDeclaration : classDeclaration.getSecondaryDeclarations()) {
-      secondaryDeclaration.visit(this);
-      out.writeToken(",");
+      String secondaryDeclarationName = secondaryDeclaration.getName();
+      if (secondaryDeclaration instanceof ClassDeclaration) {
+        ClassDeclaration secondaryClassDeclaration = (ClassDeclaration) secondaryDeclaration;
+        out.write(new MessageFormat("var {0};function {0}_()'{").format(secondaryDeclarationName));
+        secondaryClassDeclaration.visit(this);
+        JsonObject secondaryClassDefinition = createClassDefinition(secondaryClassDeclaration, secondaryClassDefinitionBuilder);
+        out.write("return " + secondaryClassDefinition.toString(-1, -1));
+        out.write("}");
+        primaryClassDefinitionBuilder.staticCode.append(new MessageFormat("        {0} = AS3.class_({0}_)._;\n").format(secondaryDeclarationName));
+      } else {
+        // TODO: secondary variable or function declarations?!
+        secondaryDeclaration.visit(this);
+      }
     }
 
-    out.write("undefined];},");
-    generateStaticMethodList(classDeclaration);
+    if (classDeclaration.getConstructor() == null) {
+      // generate default constructor that calls field initializers:
+      out.write("function " + classDeclaration.getName() + "() {");
+      new SuperCallCodeGenerator(classDeclaration).generate(out, true);
+      out.write("}");
+      classDefinitionBuilder.members.put("constructor", new PropertyDefinition(classDeclaration.getName()));
+    }
   }
 
   private void generateFieldInitCode(ClassDeclaration classDeclaration, boolean startWithSemicolon, boolean preventFirefox9Bug) throws IOException {
@@ -1257,7 +1402,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
   public void generateInitCode(VariableDeclaration field, boolean endWithSemicolon) throws IOException {
     String accessCode = "this." + field.getName() + (field.isPrivate() ? "$" + field.getClassDeclaration().getInheritanceLevel() : "");
-    out.write(accessCode + "=" + accessCode + "()");
+    out.write(accessCode + "=" + field.getName() + "_()");
     if (endWithSemicolon) {
       out.write(";");
     }
@@ -1282,24 +1427,6 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     }
   }
 
-  private void generateStaticMethodList(ClassDeclaration classDeclaration) throws IOException {
-    out.write("[");
-    boolean isFirst = true;
-    for (TypedIdeDeclaration memberDeclaration : classDeclaration.getStaticMembers().values()) {
-      if (memberDeclaration.isMethod() && !memberDeclaration.isPrivate() && !memberDeclaration.isProtected() && memberDeclaration.isStatic() && !memberDeclaration.isNative()) {
-        if (isFirst) {
-          isFirst = false;
-        } else {
-          out.write(",");
-        }
-        out.write('"');
-        out.write(memberDeclaration.getName());
-        out.write('"');
-      }
-    }
-    out.write("]");
-  }
-
   private void writeAliases() throws IOException {
     boolean first = true;
     for (Map.Entry<String,String> entry : compilationUnit.getAuxVarDeclarations().entrySet()) {
@@ -1318,25 +1445,6 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     }
   }
 
-  private void generateClassInits(ClassDeclaration classDeclaration) throws IOException {
-    boolean first = true;
-    Set<String> classInit = classDeclaration.getClassInit();
-    for (String qualifiedNameStr : classInit) {
-      if (!PRIMITIVES.contains(qualifiedNameStr)) {
-        if (first) {
-          first = false;
-          out.write("function(){" + Jooc.CLASS_LOADER_FULLY_QUALIFIED_NAME + ".init(");
-        } else {
-          out.write(",");
-        }
-        out.write(qualifiedNameStr);
-      }
-    }
-    if (!first) {
-      out.write(");},");
-    }
-  }
-
   @Override
   public void visitNamespaceDeclaration(NamespaceDeclaration namespaceDeclaration) throws IOException {
     out.beginString();
@@ -1352,11 +1460,10 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitPackageDeclaration(PackageDeclaration packageDeclaration) throws IOException {
-    out.beginString();
+    out.beginComment();
     out.writeSymbol(packageDeclaration.getSymPackage());
     visitIfNotNull(packageDeclaration.getIde());
-    out.endString();
-    out.write(",");
+    out.endComment();
   }
 
   @Override
@@ -1381,21 +1488,15 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   }
 
   private void generateSuperConstructorCallCode(ClassDeclaration classDeclaration, ParenthesizedExpr<CommaSeparatedList<Expr>> args) throws IOException {
-    String superClassQName = classDeclaration.getSuperTypeDeclaration().getQualifiedNameStr();
-    if ("Error".equals(superClassQName)) {
+    String superClassName = classDeclaration.getSuperTypeDeclaration().getQualifiedNameStr();
+    if ("Error".equals(superClassName)) {
       // built-in Error constructor called as function unfortunately always creates a new Error object, so we have to use emulation provided by Jangaroo Runtime:
       out.write("joo.Error");
     } else {
       Ide superClassIde = classDeclaration.getSuperType().getIde();
       out.writeSymbolWhitespace(superClassIde.getSymbol());
       IdeDeclaration superClassDeclaration = superClassIde.getDeclaration();
-      String packageName = superClassDeclaration.getPackageDeclaration().getQualifiedNameStr();
-      String qName = superClassDeclaration.getName();
-      if (packageName.length() > 0) {
-        String packageAuxVar = compilationUnit.getAuxVarForPackage(packageName);
-        qName = CompilerUtils.qName(packageAuxVar, qName);
-      }
-      out.write(qName);
+      out.write(compilationUnitAccessCode(superClassDeclaration));
     }
     out.writeToken(".call");
     if (args == null) {
@@ -1416,15 +1517,15 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitAnnotation(Annotation annotation) throws IOException {
-    out.writeSymbolWhitespace(annotation.getLeftBracket());
-    out.writeToken("{");
+    currentMetadata.set(annotation.getIde().getName(), new JsonObject());
+    out.beginComment();
+    out.writeSymbol(annotation.getLeftBracket());
     annotation.getIde().visit(this);
-    out.writeToken(":");
-    writeSymbolReplacement(annotation.getOptLeftParen(), "{");
+    writeOptSymbol(annotation.getOptLeftParen());
     visitIfNotNull(annotation.getOptAnnotationParameters());
-    writeSymbolReplacement(annotation.getOptRightParen(), "}");
-    out.writeSymbolWhitespace(annotation.getRightBracket());
-    out.writeToken("},");
+    writeOptSymbol(annotation.getOptRightParen());
+    out.writeSymbol(annotation.getRightBracket());
+    out.endComment();
   }
 
   @Override
@@ -1446,5 +1547,60 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       out.writeSymbol(importDirective.getSymSemicolon());
       out.endComment();
     }
+  }
+
+  private static class PropertyDefinition {
+    String value;
+    boolean writable;
+    boolean configurable;
+    String get;
+    String set;
+
+    private PropertyDefinition() {
+    }
+
+    private PropertyDefinition(String value) {
+      this.value = value;
+    }
+
+    private PropertyDefinition(String value, boolean writable) {
+      this.value = value;
+      this.writable = writable;
+    }
+
+    JsonObject asJson() {
+      JsonObject result = new JsonObject();
+      if (value != null) {
+        result.set("value", CompilerUtils.createCodeExpression(value));
+      }
+      if (get != null) {
+        result.set("get", CompilerUtils.createCodeExpression(get));
+      }
+      if (set != null) {
+        result.set("set", CompilerUtils.createCodeExpression(set));
+      }
+      if (writable) {
+        result.set("writable", true);
+      }
+      if (configurable) {
+        result.set("configurable", true);
+      }
+      return result;
+    }
+
+    Object asAbbreviatedJson() {
+      if (!writable && !configurable && get == null && set == null) {
+        return CompilerUtils.createCodeExpression(value);
+      }
+      return asJson();
+    }
+  }
+
+  private static class ClassDefinitionBuilder {
+    JsonObject metadata = new JsonObject();
+    Map<String,PropertyDefinition> members = new LinkedHashMap<String, PropertyDefinition>();
+    Map<String,PropertyDefinition> staticMembers = new LinkedHashMap<String, PropertyDefinition>();
+    StringBuilder staticInitializerCode = new StringBuilder();
+    StringBuilder staticCode = new StringBuilder();
   }
 }

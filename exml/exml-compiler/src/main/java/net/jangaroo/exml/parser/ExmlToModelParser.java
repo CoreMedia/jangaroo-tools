@@ -2,8 +2,8 @@ package net.jangaroo.exml.parser;
 
 import net.jangaroo.exml.api.ExmlcException;
 import net.jangaroo.exml.compiler.Exmlc;
-import net.jangaroo.exml.json.JsonArray;
-import net.jangaroo.exml.json.JsonObject;
+import net.jangaroo.jooc.json.JsonArray;
+import net.jangaroo.jooc.json.JsonObject;
 import net.jangaroo.exml.model.AnnotationAt;
 import net.jangaroo.exml.model.ConfigAttribute;
 import net.jangaroo.exml.model.ConfigClass;
@@ -223,7 +223,7 @@ public final class ExmlToModelParser {
   }
 
   public static Object getAttributeValue(String attributeValue, String type) {
-    if (!ExmlUtils.isCodeExpression(attributeValue)) {
+    if (!CompilerUtils.isCodeExpression(attributeValue)) {
       AS3Type as3Type = type == null ? AS3Type.ANY : AS3Type.typeByName(type);
       if (AS3Type.ANY.equals(as3Type)) {
         as3Type = CompilerUtils.guessType(attributeValue);

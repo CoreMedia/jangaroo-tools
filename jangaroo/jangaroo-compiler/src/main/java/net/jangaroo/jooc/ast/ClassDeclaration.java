@@ -99,6 +99,11 @@ public class ClassDeclaration extends IdeDeclaration {
     return super.isClassMember() || !isPrimaryDeclaration(); // secondary classes are (static) class members!
   }
 
+  @Override
+  public boolean isPrivate() {
+    return super.isPrivate() || !isPrimaryDeclaration(); // secondary classes are considered private statics!
+  }
+
   public String getName() {
     return getIde().getName();
   }

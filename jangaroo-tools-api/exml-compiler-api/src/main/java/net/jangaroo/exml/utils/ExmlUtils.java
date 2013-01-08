@@ -1,6 +1,7 @@
 package net.jangaroo.exml.utils;
 
 import net.jangaroo.exml.api.Exmlc;
+import net.jangaroo.utils.CompilerUtils;
 
 import java.io.IOException;
 import java.util.Enumeration;
@@ -22,12 +23,20 @@ public class ExmlUtils {
     return Exmlc.EXML_NAMESPACE_URI.equals(uri);
   }
 
+  /**
+   * @deprecated 
+   */
+  @SuppressWarnings("UnusedDeclaration")
   public static boolean isCodeExpression(String attributeValue) {
-    return attributeValue.startsWith("{") && attributeValue.endsWith("}");
+    return CompilerUtils.isCodeExpression(attributeValue);
   }
 
+  /**
+   * @deprecated 
+   */
+  @SuppressWarnings("UnusedDeclaration")
   public static String getCodeExpression(String attributeValue) {
-    return attributeValue.substring(1, attributeValue.length() - 1);
+    return CompilerUtils.getCodeExpression(attributeValue);
   }
 
   public static void addImport(Set<String> imports, String importedClassName) {

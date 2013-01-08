@@ -1,6 +1,5 @@
-package net.jangaroo.exml.json;
+package net.jangaroo.jooc.json;
 
-import net.jangaroo.exml.utils.ExmlUtils;
 import net.jangaroo.utils.CompilerUtils;
 
 import java.util.Arrays;
@@ -91,8 +90,8 @@ public class JsonObject implements Json {
       return ((JsonObject)value).toString(indentFactor, indent);
     } else if (value instanceof JsonArray) {
       return ((JsonArray) value).toString(indentFactor, indent);
-    } else if (ExmlUtils.isCodeExpression(value.toString())) {
-      return ExmlUtils.getCodeExpression(value.toString());
+    } else if (CompilerUtils.isCodeExpression(value.toString())) {
+      return CompilerUtils.getCodeExpression(value.toString());
     }
     return CompilerUtils.quote(value.toString());
 
@@ -150,6 +149,9 @@ public class JsonObject implements Json {
   }
 
   private void newlineAndIndent(StringBuilder sb, int indent) {
+    if (indent < 0) {
+      return;
+    }
     sb.append(LINE_SEPARATOR);
     for (int i = 0; i < indent; i++) {
       sb.append(' ');

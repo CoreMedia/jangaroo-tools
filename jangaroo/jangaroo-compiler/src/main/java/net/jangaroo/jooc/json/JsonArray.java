@@ -1,4 +1,4 @@
-package net.jangaroo.exml.json;
+package net.jangaroo.jooc.json;
 
 import java.util.ArrayList;
 import java.util.Arrays;

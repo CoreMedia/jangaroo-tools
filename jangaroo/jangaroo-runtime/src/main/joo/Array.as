@@ -1,5 +1,5 @@
 /**
- * API and documentation by Adobe®.
+ * API and documentation by Adobeï¿½.
  * Licensed under http://creativecommons.org/licenses/by-nc-sa/3.0/
  */
 package {
@@ -25,6 +25,7 @@ package {
  * @see http://help.adobe.com/en_US/as3/learn/WS5b3ccc516d4fbf351e63e3d118a9b90204-7f56.html Function parameters
  *
  */
+[Native]
 public dynamic class Array {
   /**
    * A non-negative integer specifying the number of elements in the array. This property is automatically updated when new elements are added to the array. When you assign a value to an array element (for example, <code>my_array[index] = value</code>), if <code>index</code> is a number, and <code>index+1</code> is greater than the <code>length</code> property, the <code>length</code> property is updated to <code>index+1</code>.

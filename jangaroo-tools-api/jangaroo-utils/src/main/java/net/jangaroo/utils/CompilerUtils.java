@@ -268,4 +268,16 @@ public final class CompilerUtils {
     // TODO: guess /.../ to be a RegExp? Guess date formats? Allow [a, b, ...] for Arrays?
     return null;
   }
+
+  public static boolean isCodeExpression(String attributeValue) {
+    return attributeValue.startsWith("{") && attributeValue.endsWith("}");
+  }
+
+  public static String createCodeExpression(String code) {
+    return String.format("{%s}", code);
+  }
+
+  public static String getCodeExpression(String attributeValue) {
+    return attributeValue.substring(1, attributeValue.length() - 1);
+  }
 }

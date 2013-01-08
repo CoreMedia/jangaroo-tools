@@ -1,12 +1,24 @@
-joo.classLoader.prepare("package package1",/* {
-import package1.someOtherPackage.SomeOtherClass;*/
+define(["runtime/AS3","classes/package1/someOtherPackage/SomeOtherClass","classes/int"], function(AS3,SomeOtherClass,int_) { "use strict";return AS3.class_(function(){/*package package1 {
+import package1.someOtherPackage.SomeOtherClass;
 
-"public class NoPrimitiveInit",1,function($$private){var $1=package1.someOtherPackage;return[function(){joo.classLoader.init(package1.someOtherPackage.SomeOtherClass);}, 
-  "public function NoPrimitiveInit",function NoPrimitiveInit() {
-  },
+public class NoPrimitiveInit {
+  public*/ function NoPrimitiveInit() {
+  }/*
 
-  "private function method",function method(i/*:int*/)/*:int*/ {
-    return $1.SomeOtherClass.BLA + $$int.MAX_VALUE;
-  },
-undefined];},[],["package1.someOtherPackage.SomeOtherClass","int"], "@runtimeVersion", "@version"
-);
+  private*/ function method(i/*:int*/)/*:int*/ {
+    return SomeOtherClass._.BLA + int_._.MAX_VALUE;
+  }/*
+}
+}
+
+============================================== Jangaroo part ==============================================*/
+    return {
+      package_: "package1",
+      class_: "NoPrimitiveInit",
+      members: {
+        constructor: NoPrimitiveInit,
+        method$1: method
+      }
+    };
+  });
+});

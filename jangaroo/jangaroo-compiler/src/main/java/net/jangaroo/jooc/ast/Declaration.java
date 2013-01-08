@@ -51,6 +51,7 @@ public abstract class Declaration extends Statement {
 
   private AstNode parentDeclaration = null;
   private ClassDeclaration classDeclaration = null;
+  private CompilationUnit compilationUnit;
 
   private int modifiers = -1;
 
@@ -189,6 +190,7 @@ public abstract class Declaration extends Statement {
   public void scope(final Scope scope) {
     setParentDeclaration(scope.getDefiningNode());
     setClassDeclaration(scope.getClassDeclaration());
+    compilationUnit = scope.getCompilationUnit();
   }
 
   public JooSymbol[] getSymInheritedModifiers() {
@@ -210,4 +212,9 @@ public abstract class Declaration extends Statement {
   public JooSymbol[] getSymModifiers() {
     return symModifiers.clone();
   }
+
+  public CompilationUnit getCompilationUnit() {
+    return compilationUnit;
+  }
+
 }
