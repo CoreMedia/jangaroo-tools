@@ -190,9 +190,8 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   }
 
   private String compilationUnitAccessCode(IdeDeclaration primaryDeclaration) {
-    CompilationUnit compilationUnit1 = primaryDeclaration.getCompilationUnit();
-    if (compilationUnit1.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME) == null) {
-      if (primaryDeclaration.equals(compilationUnit.getPrimaryDeclaration())) {
+    if (primaryDeclaration.getCompilationUnit().getAnnotation(Jooc.NATIVE_ANNOTATION_NAME) == null) {
+      if (primaryDeclaration.getCompilationUnit() == compilationUnit) {
         return primaryDeclaration.getName();
       } else {
         String primaryDeclarationName = imports.get(primaryDeclaration);
@@ -334,8 +333,9 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitCompilationUnit(CompilationUnit compilationUnit) throws IOException {
-    out.write("define([\"runtime/AS3\"");
+    out.write("define([\"exports\",\"runtime/AS3\"");
     Map<String,IdeDeclaration> usedNames = new HashMap<String,IdeDeclaration>();
+    usedNames.put(compilationUnit.getPrimaryDeclaration().getName(), null); // avoid name-clash of import with class being defined
     Set<IdeDeclaration> useQName = new HashSet<IdeDeclaration>();
     for (CompilationUnit dependentCU : compilationUnit.getDependenciesAsCompilationUnits()) {
       IdeDeclaration dependentDeclaration = dependentCU.getPrimaryDeclaration();
@@ -352,7 +352,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
         usedNames.put(importedName, dependentDeclaration);
       }
     }
-    out.write("], function(AS3");
+    out.write("], function($exports, AS3");
     for (CompilationUnit dependentCU : compilationUnit.getDependenciesAsCompilationUnits()) {
       IdeDeclaration dependentDeclaration = dependentCU.getPrimaryDeclaration();
       String importedName = useQName.contains(dependentDeclaration)
@@ -367,7 +367,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     if (!(compilationUnit.getPrimaryDeclaration() instanceof ClassDeclaration)) {
       primaryDeclarationType = "global";
     }
-    out.write("return AS3." + primaryDeclarationType + "_(function(){");
+    out.write("AS3." + primaryDeclarationType + "_($exports, function(){");
     this.compilationUnit = compilationUnit;
     out.beginComment();
     compilationUnit.getPackageDeclaration().visit(this);
@@ -1318,8 +1318,16 @@ public class JsCodeGenerator extends CodeGeneratorBase {
             }
             if (functionDeclaration.isGetter()) {
               accessorDefinition.get = accessorName;
+              if (functionDeclaration.isOverride() && accessorDefinition.set == null) {
+                // inherit non-overwritten counterpart (may be undefined, and may be overwritten later):
+                accessorDefinition.set = compilationUnitAccessCode(functionDeclaration.getClassDeclaration().getSuperTypeDeclaration()) + ".prototype.__lookupSetter__('" + methodName + "')";
+              }
             } else {
               accessorDefinition.set = accessorName;
+              if (functionDeclaration.isOverride() && accessorDefinition.get == null) {
+                // inherit non-overwritten counterpart (may be undefined, and may be overwritten later):
+                accessorDefinition.get = compilationUnitAccessCode(functionDeclaration.getClassDeclaration().getSuperTypeDeclaration()) + ".prototype.__lookupGetter__('" + methodName + "')";
+              }
             }
           }
         } else {

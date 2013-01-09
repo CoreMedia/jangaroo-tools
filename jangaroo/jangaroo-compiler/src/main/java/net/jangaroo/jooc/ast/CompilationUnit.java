@@ -25,6 +25,7 @@ import net.jangaroo.utils.AS3Type;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -43,8 +44,7 @@ public class CompilationUnit extends NodeImplBase {
   private IdeDeclaration primaryDeclaration;
   private JooSymbol rBrace;
 
-  private Set<String> dependencies = new LinkedHashSet<String>();
-  private Set<CompilationUnit> dependenciesAsCompilationUnits = new LinkedHashSet<CompilationUnit>();
+  private Map<String, CompilationUnit> dependencies = new LinkedHashMap<String, CompilationUnit>();
   private Set<String> publicApiDependencies = new HashSet<String>();
   private Set<String> usedBuiltIns = new LinkedHashSet<String>();
   private Scope scope;
@@ -165,15 +165,15 @@ public class CompilationUnit extends NodeImplBase {
   }
 
   public Set<String> getDependencies() {
-    return dependencies;
+    return dependencies.keySet();
   }
 
   public Set<String> getPublicApiDependencies() {
     return publicApiDependencies;
   }
 
-  public Set<CompilationUnit> getDependenciesAsCompilationUnits() {
-    return dependenciesAsCompilationUnits;
+  public Collection<CompilationUnit> getDependenciesAsCompilationUnits() {
+    return dependencies.values();
   }
 
   public JangarooParser getCompiler() {
@@ -222,8 +222,7 @@ public class CompilationUnit extends NodeImplBase {
     // predefined ides have a null unit
     if (otherUnit != null && otherUnit != this && otherUnit.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME) == null) {
       String qname = otherUnit.getPrimaryDeclaration().getQualifiedNameStr();
-      dependencies.add(qname);
-      dependenciesAsCompilationUnits.add(otherUnit);
+      dependencies.put(qname, otherUnit);
     }
   }
 
@@ -257,7 +256,7 @@ public class CompilationUnit extends NodeImplBase {
     if (path.startsWith("/")) {
       path = path.substring(1);
     }
-    dependencies.add("resource:" + path);
+    // dependencies.put("resource:" + path, null); TODO: replace by RequireJS plugin "text!path"
     return path;
   }
 

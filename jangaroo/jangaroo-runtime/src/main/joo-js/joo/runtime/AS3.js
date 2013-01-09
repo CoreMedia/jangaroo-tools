@@ -1,7 +1,10 @@
 define(["./es5-polyfills"], function() {
   "use strict";
-  // helper variable for flash.utils.getTimer():
+  // alias for global package to avoid name-clashes between top-level classes and JavaScript global identifiers:
+  window.js = window;
+  // Jangaroo namespace
   window.joo = {
+    // helper variable for flash.utils.getTimer():
     startTime: new Date().getTime(),
     // built-in Error constructor called as function unfortunately always creates a new Error object,
     // so we have to emulate it:
@@ -60,13 +63,15 @@ define(["./es5-polyfills"], function() {
         if (propertyDescriptor.set) {
           result["set$" + name] = { value: propertyDescriptor.set };
         }
-        result[name].enumerable = true; // TODO: only for debugging!
+        if (name !== "constructor") {
+          result[name].enumerable = true; // TODO: only for debugging, save describeType data elsewhere!
+        }
       }
     }
     return result;
   }
-  function defineClass(definingCode) {
-    return Object.defineProperty({}, "_", {
+  function defineClass(exports, definingCode) {
+    Object.defineProperty(exports, "_", {
       configurable: true,
       get: function() {
         var config = definingCode();
@@ -115,10 +120,10 @@ define(["./es5-polyfills"], function() {
     return Interface;
   }
 
-  function defineGlobal(definingCode) {
-    return Object.defineProperty({}, "_", {
+  function defineGlobal(exports, definingCode) {
+    Object.defineProperty(exports, "_", {
       configurable: true,
-      enumerable: true, // TODO: for debugging only
+      // enumerable: true, // TODO: for debugging only
       get: function() {
         definingCode.call(this);
         return this._;
@@ -132,7 +137,7 @@ define(["./es5-polyfills"], function() {
     }
     var boundMethod = object[boundMethodName].bind(object);
     Object.defineProperty(object, boundMethodName, {
-      enumerable: true, // TODO: for debugging only
+      // enumerable: true, // TODO: for debugging only
       value: boundMethod
     });
     return boundMethod;

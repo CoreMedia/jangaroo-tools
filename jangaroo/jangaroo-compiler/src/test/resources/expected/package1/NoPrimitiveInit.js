@@ -1,4 +1,4 @@
-define(["runtime/AS3","classes/package1/someOtherPackage/SomeOtherClass","classes/int"], function(AS3,SomeOtherClass,int_) { "use strict";return AS3.class_(function(){/*package package1 {
+define(["exports","runtime/AS3","classes/package1/someOtherPackage/SomeOtherClass","classes/int"], function($exports, AS3,SomeOtherClass,int_) { "use strict";AS3.class_($exports, function(){/*package package1 {
 import package1.someOtherPackage.SomeOtherClass;
 
 public class NoPrimitiveInit {

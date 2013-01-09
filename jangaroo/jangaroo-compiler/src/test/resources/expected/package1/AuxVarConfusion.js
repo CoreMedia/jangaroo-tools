@@ -1,4 +1,4 @@
-define(["runtime/AS3"], function(AS3) { "use strict";return AS3.class_(function(){/*package package1 {
+define(["exports","runtime/AS3"], function($exports, AS3) { "use strict";AS3.class_($exports, function(){/*package package1 {
 
 public class AuxVarConfusion {
 

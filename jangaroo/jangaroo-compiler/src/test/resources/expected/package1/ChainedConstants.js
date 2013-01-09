@@ -1,4 +1,4 @@
-define(["runtime/AS3","classes/package1/someOtherPackage/SomeOtherClass"], function(AS3,SomeOtherClass) { "use strict";return AS3.class_(function(){/*package package1 {
+define(["exports","runtime/AS3","classes/package1/someOtherPackage/SomeOtherClass"], function($exports, AS3,SomeOtherClass) { "use strict";AS3.class_($exports, function(){/*package package1 {
 
 import package1.someOtherPackage.SomeOtherClass;
 
