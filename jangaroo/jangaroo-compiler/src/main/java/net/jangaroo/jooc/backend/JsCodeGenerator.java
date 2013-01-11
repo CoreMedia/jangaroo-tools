@@ -118,7 +118,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   }
 
   private boolean expressionMode = false;
-  private Map<IdeDeclaration,String> imports = new LinkedHashMap<IdeDeclaration,String>();
+  private Map<String,String> imports = new HashMap<String,String>();
   private ClassDefinitionBuilder primaryClassDefinitionBuilder = new ClassDefinitionBuilder();
   private ClassDefinitionBuilder secondaryClassDefinitionBuilder = new ClassDefinitionBuilder();
   private CompilationUnit compilationUnit;
@@ -194,7 +194,8 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       if (primaryDeclaration.getCompilationUnit() == compilationUnit) {
         return primaryDeclaration.getName();
       } else {
-        String primaryDeclarationName = imports.get(primaryDeclaration);
+        String primaryDeclarationName = imports.get(primaryDeclaration.getQualifiedNameStr());
+        Debug.assertTrue(primaryDeclarationName != null, "QName not found in imports: " + primaryDeclaration.getQualifiedNameStr());
         return COMPILATION_UNIT_ACCESS_MESSAGE_FORMAT.format(primaryDeclarationName);
       }
     }
@@ -359,7 +360,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
               ? dependentDeclaration.getQualifiedNameStr().replace(".", "$")
               : dependentDeclaration.getName();
       importedName = convertIdentifier(importedName);
-      imports.put(dependentDeclaration, importedName);
+      imports.put(dependentDeclaration.getQualifiedNameStr(), importedName);
       out.write("," + importedName);
     }
     out.write(") { \"use strict\";");
@@ -383,19 +384,17 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       out.beginComment();
       out.write("\n============================================== Jangaroo part ==============================================");
       out.endComment();
-      out.write("\n    return ");
-
+      
       ClassDefinitionBuilder classDefinitionBuilder = primaryClassDefinitionBuilder;
       ClassDeclaration classDeclaration = (ClassDeclaration) compilationUnit.getPrimaryDeclaration();
       JsonObject classDefinition = createClassDefinition(classDeclaration, classDefinitionBuilder);
-      out.write(classDefinition.toString(2, 4));
-      out.write(";");
+      out.write("\n    return " + classDefinition.toString(2, 4) + ";");
     }
     out.write("\n  });\n");
     out.write("});\n");
   }
 
-  private JsonObject createClassDefinition(ClassDeclaration classDeclaration, JsCodeGenerator.ClassDefinitionBuilder classDefinitionBuilder) {
+  private JsonObject createClassDefinition(ClassDeclaration classDeclaration, JsCodeGenerator.ClassDefinitionBuilder classDefinitionBuilder) throws IOException {
     JsonObject classDefinition = new JsonObject();
     String packageName = classDeclaration.getPackageDeclaration().getQualifiedNameStr();
     if (packageName.length() > 0) {
@@ -405,11 +404,11 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       classDefinition.set("metadata", classDefinitionBuilder.metadata);
     }
     classDefinition.set("class_", classDeclaration.getName());
-    if (classDeclaration.getSuperType() != null) {
+    if (classDeclaration.getInheritanceLevel() > 1) {
       ClassDeclaration superTypeDeclaration = classDeclaration.getSuperTypeDeclaration();
-      if (!"Object".equals(superTypeDeclaration.getQualifiedNameStr())) {
-        classDefinition.set("extends_", CompilerUtils.createCodeExpression(compilationUnitAccessCode(superTypeDeclaration)));
-      }
+      out.write("\n    var Super=" + compilationUnitAccessCode(superTypeDeclaration) + ";");
+      out.write("\n    var super$=Super.prototype;"); // TODO: leave out if there is no overriding method!
+      classDefinition.set("extends_", CompilerUtils.createCodeExpression("Super"));
     }
     if (!classDefinitionBuilder.members.isEmpty()) {
       classDefinition.set("members", convertMembers(classDefinitionBuilder.members));
@@ -1299,8 +1298,15 @@ public class JsCodeGenerator extends CodeGeneratorBase {
         JooSymbol functionSymbol = functionDeclaration.getIde().getSymbol();
         String functionName = functionSymbol.getText();
         String methodName = functionName;
-        if (functionDeclaration.isPrivate() && !functionDeclaration.isStatic()) {
-          methodName += "$" + functionDeclaration.getClassDeclaration().getInheritanceLevel();
+        String overriddenMethodName = null;
+        PropertyDefinition overriddenPropertyDefinition = null;
+        if (functionDeclaration.isOverride() || functionDeclaration.isPrivate() && !functionDeclaration.isStatic()) {
+          String privateMethodName = methodName + "$" + functionDeclaration.getClassDeclaration().getInheritanceLevel();
+          if (functionDeclaration.isOverride()) {
+            overriddenMethodName = privateMethodName;
+          } else {
+            methodName = privateMethodName;
+          }
         }
         Map<String, PropertyDefinition> members = membersOrStaticMembers(functionDeclaration);
         if (functionDeclaration.isGetterOrSetter()) {
@@ -1309,7 +1315,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
           String accessorPrefix = functionDeclaration.getSymGetOrSet().getText() + "$";
           String accessorName = accessorPrefix + methodName;
           out.writeToken(accessorPrefix + functionName);
-          if (!functionDeclaration.isPrivateStatic()) {
+          if (!functionDeclaration.isPrivateStatic()) { // TODO: simulate private static getter when called!
             PropertyDefinition accessorDefinition;
             accessorDefinition = members.get(methodName);
             if (accessorDefinition == null) {
@@ -1320,14 +1326,19 @@ public class JsCodeGenerator extends CodeGeneratorBase {
               accessorDefinition.get = accessorName;
               if (functionDeclaration.isOverride() && accessorDefinition.set == null) {
                 // inherit non-overwritten counterpart (may be undefined, and may be overwritten later):
-                accessorDefinition.set = compilationUnitAccessCode(functionDeclaration.getClassDeclaration().getSuperTypeDeclaration()) + ".prototype.__lookupSetter__('" + methodName + "')";
+                accessorDefinition.set = "super$.__lookupSetter__('" + methodName + "')";
               }
             } else {
               accessorDefinition.set = accessorName;
               if (functionDeclaration.isOverride() && accessorDefinition.get == null) {
                 // inherit non-overwritten counterpart (may be undefined, and may be overwritten later):
-                accessorDefinition.get = compilationUnitAccessCode(functionDeclaration.getClassDeclaration().getSuperTypeDeclaration()) + ".prototype.__lookupGetter__('" + methodName + "')";
+                accessorDefinition.get = "super$.__lookupGetter__('" + methodName + "')";
               }
+            }
+            if (overriddenMethodName != null) {
+              overriddenPropertyDefinition = new PropertyDefinition();
+              overriddenPropertyDefinition.get = "super$.__lookupGetter__('" + methodName + "')";
+              overriddenPropertyDefinition.set = "super$.__lookupSetter__('" + methodName + "')";
             }
           }
         } else {
@@ -1335,11 +1346,13 @@ public class JsCodeGenerator extends CodeGeneratorBase {
           if (!functionDeclaration.isPrimaryDeclaration() && !functionDeclaration.isPrivateStatic()) {
             members.put(functionDeclaration.isConstructor() ? "constructor" : methodName,
                     new PropertyDefinition(functionName));
-            if (functionDeclaration.isOverride()) {
-              members.put(methodName + "$" + functionDeclaration.getClassDeclaration().getInheritanceLevel(),
-                      new PropertyDefinition(compilationUnitAccessCode(functionDeclaration.getClassDeclaration().getSuperTypeDeclaration()) + ".prototype." + methodName));
+            if (overriddenMethodName != null) {
+              overriddenPropertyDefinition = new PropertyDefinition("super$." + methodName);
             }
           }
+        }
+        if (overriddenMethodName != null) {
+          members.put(overriddenMethodName, overriddenPropertyDefinition);
         }
         generateFunTailCode(functionDeclaration.getFun());
       }
@@ -1435,24 +1448,6 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     }
   }
 
-  private void writeAliases() throws IOException {
-    boolean first = true;
-    for (Map.Entry<String,String> entry : compilationUnit.getAuxVarDeclarations().entrySet()) {
-      if (first) {
-        out.writeToken("var");
-        first = false;
-      } else {
-        out.writeToken(",");
-      }
-      out.writeToken(entry.getKey());
-      out.writeToken("=");
-      out.writeToken(entry.getValue());
-    }
-    if (!first) {
-      out.writeToken(";");
-    }
-  }
-
   @Override
   public void visitNamespaceDeclaration(NamespaceDeclaration namespaceDeclaration) throws IOException {
     out.beginString();
@@ -1503,8 +1498,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     } else {
       Ide superClassIde = classDeclaration.getSuperType().getIde();
       out.writeSymbolWhitespace(superClassIde.getSymbol());
-      IdeDeclaration superClassDeclaration = superClassIde.getDeclaration();
-      out.write(compilationUnitAccessCode(superClassDeclaration));
+      out.write("Super");
     }
     out.writeToken(".call");
     if (args == null) {
