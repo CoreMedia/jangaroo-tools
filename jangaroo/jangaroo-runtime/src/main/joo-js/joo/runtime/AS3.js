@@ -11,6 +11,10 @@ define(["./es5-polyfills"], function() {
     Error: function(message/*String*/, id/*:int*/) {
       this.message = message || "";
       this.id = id >> 0;
+    },
+    assert: function assert(cond, file, line, column) {
+      if (!cond)
+        throw new Error(file+"("+line+":"+column+"): assertion failed");
     }
   };
   window.joo.Error.prototype = window.Error.prototype;
@@ -18,34 +22,6 @@ define(["./es5-polyfills"], function() {
   // Vector = Array
   window.Vector$object = Array;
 
-  // int
-  window['int'] = function int(num) {
-    return num >> 0;
-  };
-  window['int'].MAX_VALUE =  2147483647;
-  window['int'].MIN_VALUE = -2147483648;
-
-  // uint
-  window['uint'] = function int(num) {
-    return num >>> 0;
-  };
-  window['uint'].MAX_VALUE =  4294967295;
-  window['uint'].MIN_VALUE =  0;
-
-  // simulate ActionScript's meta class "Class":
-  // placeholder that "casts" by returning the argument itself:
-  window.Class = function Class(c){return c;};
-  // consider any Function a Class:
-  window.Class.isInstance = function isInstance(o) { return typeof o === "function"; };
-
-  // simulate AS3 trace(): TODO: replace by normal top-level global function, written in AS3!
-  window.trace = function trace() {
-    var msg = Array.prototype.map.call(arguments, String).join(" ");
-    //var logWindow = document.createElement("div");
-    //logWindow.appendChild(document.createTextNode(msg));
-    //document.body.appendChild(logWindow);
-    console.log(msg);
-  };
   function toString() {
     return "[Class " + this.name + "]";
   }
@@ -79,6 +55,10 @@ define(["./es5-polyfills"], function() {
         var clazz = members.constructor.value;
         Object.defineProperty(this, "_", { value: clazz });
         var extends_ = config.extends_ || Object; // super class
+        if (extends_ === Object || extends_ === joo.JavaScriptObject) {
+          // do not set "constructor" property, or it will become enumerable in IE8!
+          delete members.constructor;
+        }
         var implements_ = config.implements_ ? typeof config.implements_ === "function" ? [config.implements_] : config.implements_ : [];
         // create set of all interfaces implemented by this class
         var $implements = extends_.$implements ? Object.create(extends_.$implements) : {};

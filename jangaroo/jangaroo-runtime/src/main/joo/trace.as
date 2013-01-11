@@ -1,5 +1,5 @@
 /**
- * API and documentation by Adobe®.
+ * API and documentation by Adobeï¿½.
  * Licensed under http://creativecommons.org/licenses/by-nc-sa/3.0/
  */
 package {
@@ -22,7 +22,6 @@ package {
  * }
  * </listing>
  */
-[Native]
 public native function trace(...msgs) : void;
 
 }
