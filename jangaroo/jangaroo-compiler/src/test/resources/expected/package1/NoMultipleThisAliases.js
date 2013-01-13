@@ -1,4 +1,4 @@
-define(["exports","runtime/AS3"], function($exports, AS3) { "use strict";AS3.class_($exports, function(){/*package package1{
+define(["exports","runtime/AS3"], function($exports,AS3) { "use strict"; AS3.class_($exports, function(){/*package package1{
 public class NoMultipleThisAliases {
   public*/ function NoMultipleThisAliases() {var this$=this;
     function foo1()/*:void*/ {

@@ -72,6 +72,7 @@ import net.jangaroo.jooc.ast.VectorLiteral;
 import net.jangaroo.jooc.ast.WhileStatement;
 import net.jangaroo.jooc.config.DebugMode;
 import net.jangaroo.jooc.config.JoocConfiguration;
+import net.jangaroo.jooc.json.JsonArray;
 import net.jangaroo.jooc.json.JsonObject;
 import net.jangaroo.jooc.sym;
 import net.jangaroo.utils.CompilerUtils;
@@ -79,6 +80,8 @@ import net.jangaroo.utils.CompilerUtils;
 import java.io.File;
 import java.io.IOException;
 import net.jangaroo.jooc.util.MessageFormat;
+
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -143,8 +146,12 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   }
 
   private Map<String,PropertyDefinition> membersOrStaticMembers(Declaration memberDeclaration) {
-    ClassDefinitionBuilder classDefinitionBuilder = memberDeclaration.getClassDeclaration() == null || memberDeclaration.getClassDeclaration().isPrimaryDeclaration() ? primaryClassDefinitionBuilder : secondaryClassDefinitionBuilder;
+    ClassDefinitionBuilder classDefinitionBuilder = getClassDefinitionBuilder(memberDeclaration);
     return memberDeclaration.isStatic() ? classDefinitionBuilder.staticMembers : classDefinitionBuilder.members;
+  }
+
+  private ClassDefinitionBuilder getClassDefinitionBuilder(Declaration memberDeclaration) {
+    return memberDeclaration.getClassDeclaration() == null || memberDeclaration.getClassDeclaration().isPrimaryDeclaration() ? primaryClassDefinitionBuilder : secondaryClassDefinitionBuilder;
   }
 
   private void writeThis(Ide ide) throws IOException {
@@ -196,7 +203,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       } else {
         String primaryDeclarationName = imports.get(primaryDeclaration.getQualifiedNameStr());
         Debug.assertTrue(primaryDeclarationName != null, "QName not found in imports: " + primaryDeclaration.getQualifiedNameStr());
-        return COMPILATION_UNIT_ACCESS_MESSAGE_FORMAT.format(primaryDeclarationName);
+        return primaryDeclarationName;
       }
     }
     // [Native] compilation unit: use fully qualified name
@@ -334,10 +341,95 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitCompilationUnit(CompilationUnit compilationUnit) throws IOException {
+    String primaryDeclarationType;
+    IdeDeclaration primaryDeclaration = compilationUnit.getPrimaryDeclaration();
+    if (primaryDeclaration instanceof ClassDeclaration) {
+      primaryDeclarationType = ((ClassDeclaration) primaryDeclaration).isInterface() ? "interface" : "class";
+    } else {
+      primaryDeclarationType = "global";
+    }
     out.write("define([\"exports\",\"runtime/AS3\"");
+    Set<String> useQName = collectAndWriteDependencies(compilationUnit);
+    out.write("], function($exports,AS3");
+    writeDependencyParameters(compilationUnit, useQName);
+    out.write(") { \"use strict\"; ");
+    out.write("AS3." + primaryDeclarationType + "_($exports, ");
+    if (!"interface".equals(primaryDeclarationType)) {
+      out.write("function(){");
+    }
+    this.compilationUnit = compilationUnit;
+    out.beginComment();
+    compilationUnit.getPackageDeclaration().visit(this);
+    out.writeSymbol(compilationUnit.getLBrace());
+    visitAll(compilationUnit.getDirectives());
+    out.endComment();
+    primaryDeclaration.visit(this);
+    out.beginComment();
+    out.writeSymbol(compilationUnit.getRBrace());
+    out.write("\n");
+    out.endComment();
+    if (primaryDeclaration instanceof ClassDeclaration) {
+      ClassDeclaration classDeclaration = (ClassDeclaration) primaryDeclaration;
+      out.beginComment();
+      out.write("\n============================================== Jangaroo part ==============================================");
+      out.endComment();
+
+      if ("interface".equals(primaryDeclarationType)) {
+        JsonObject interfaceDefinition = createInterfaceDefinition(classDeclaration);
+        out.write("\n" + interfaceDefinition.toString(2, 0) + "\n);});\n");
+        return;
+      } else {
+        ClassDefinitionBuilder classDefinitionBuilder = primaryClassDefinitionBuilder;
+        JsonObject classDefinition = createClassDefinition(classDeclaration, classDefinitionBuilder);
+        out.write("\n    return " + classDefinition.toString(2, 4) + ";");
+      }
+    }
+    out.write("\n  });\n");
+    out.write("});\n");
+  }
+
+  private JsonObject createInterfaceDefinition(ClassDeclaration interfaceDeclaration) {
+    JsonObject interfaceDefinition = new JsonObject();
+    setPackageName(interfaceDeclaration, interfaceDefinition);
+    interfaceDefinition.set("interface_", interfaceDeclaration.getName());
+    addOptImplements(interfaceDeclaration, interfaceDefinition);
+    return interfaceDefinition;
+  }
+
+  private void addOptImplements(ClassDeclaration classDeclaration, JsonObject classDefinition) {
+    Implements optImplements = classDeclaration.getOptImplements();
+    if (optImplements != null) {
+      List<String> superInterfaces = new ArrayList<String>();
+      CommaSeparatedList<Ide> superTypes = optImplements.getSuperTypes();
+      while (superTypes != null) {
+        superInterfaces.add(CompilerUtils.createCodeExpression(compilationUnitAccessCode(superTypes.getHead().resolveDeclaration())));
+        superTypes = superTypes.getTail();
+      }
+      classDefinition.set(classDeclaration.isInterface() ? "extends_" : "implements_", new JsonArray(superInterfaces.toArray()));
+    }
+  }
+
+  private void writeDependencyParameters(CompilationUnit compilationUnit, Set<String> useQName) throws IOException {
+    for (CompilationUnit dependentCU : compilationUnit.getDependenciesAsCompilationUnits()) {
+      IdeDeclaration dependentDeclaration = dependentCU.getPrimaryDeclaration();
+      String dependentDeclarationQName = dependentDeclaration.getQualifiedNameStr();
+      String importedName = useQName.contains(dependentDeclarationQName)
+              ? dependentDeclarationQName.replace(".", "$")
+              : dependentDeclaration.getName();
+      importedName = convertIdentifier(importedName);
+      out.write("," + importedName);
+      if (!(dependentDeclaration instanceof ClassDeclaration && ((ClassDeclaration)dependentDeclaration).isInterface())) {
+        importedName = COMPILATION_UNIT_ACCESS_MESSAGE_FORMAT.format(importedName);
+      }
+      imports.put(dependentDeclarationQName, importedName);
+    }
+  }
+
+  private Set<String> collectAndWriteDependencies(CompilationUnit compilationUnit) throws IOException {
     Map<String,IdeDeclaration> usedNames = new HashMap<String,IdeDeclaration>();
-    usedNames.put(compilationUnit.getPrimaryDeclaration().getName(), null); // avoid name-clash of import with class being defined
-    Set<IdeDeclaration> useQName = new HashSet<IdeDeclaration>();
+    // avoid name-clash of import with class being defined:
+    usedNames.put(compilationUnit.getPrimaryDeclaration().getName(), null);
+    Set<String> useQName = new HashSet<String>();
     for (CompilationUnit dependentCU : compilationUnit.getDependenciesAsCompilationUnits()) {
       IdeDeclaration dependentDeclaration = dependentCU.getPrimaryDeclaration();
       out.write(",\"classes/" + CompilerUtils.fileNameFromQName(dependentDeclaration.getQualifiedNameStr(), '/', "") + "\"");
@@ -345,61 +437,20 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       if (usedNames.containsKey(importedName)) {
         IdeDeclaration previousDeclaration = usedNames.get(importedName);
         if (previousDeclaration != null) {
-          useQName.add(previousDeclaration);
+          useQName.add(previousDeclaration.getQualifiedNameStr());
           usedNames.put(importedName, null);
         }
-        useQName.add(dependentDeclaration);
+        useQName.add(dependentDeclaration.getQualifiedNameStr());
       } else {
         usedNames.put(importedName, dependentDeclaration);
       }
     }
-    out.write("], function($exports, AS3");
-    for (CompilationUnit dependentCU : compilationUnit.getDependenciesAsCompilationUnits()) {
-      IdeDeclaration dependentDeclaration = dependentCU.getPrimaryDeclaration();
-      String importedName = useQName.contains(dependentDeclaration)
-              ? dependentDeclaration.getQualifiedNameStr().replace(".", "$")
-              : dependentDeclaration.getName();
-      importedName = convertIdentifier(importedName);
-      imports.put(dependentDeclaration.getQualifiedNameStr(), importedName);
-      out.write("," + importedName);
-    }
-    out.write(") { \"use strict\";");
-    String primaryDeclarationType = "class";
-    if (!(compilationUnit.getPrimaryDeclaration() instanceof ClassDeclaration)) {
-      primaryDeclarationType = "global";
-    }
-    out.write("AS3." + primaryDeclarationType + "_($exports, function(){");
-    this.compilationUnit = compilationUnit;
-    out.beginComment();
-    compilationUnit.getPackageDeclaration().visit(this);
-    out.writeSymbol(compilationUnit.getLBrace());
-    visitAll(compilationUnit.getDirectives());
-    out.endComment();
-    compilationUnit.getPrimaryDeclaration().visit(this);
-    out.beginComment();
-    out.writeSymbol(compilationUnit.getRBrace());
-    out.write("\n");
-    out.endComment();
-    if (compilationUnit.getPrimaryDeclaration() instanceof ClassDeclaration) {
-      out.beginComment();
-      out.write("\n============================================== Jangaroo part ==============================================");
-      out.endComment();
-      
-      ClassDefinitionBuilder classDefinitionBuilder = primaryClassDefinitionBuilder;
-      ClassDeclaration classDeclaration = (ClassDeclaration) compilationUnit.getPrimaryDeclaration();
-      JsonObject classDefinition = createClassDefinition(classDeclaration, classDefinitionBuilder);
-      out.write("\n    return " + classDefinition.toString(2, 4) + ";");
-    }
-    out.write("\n  });\n");
-    out.write("});\n");
+    return useQName;
   }
 
-  private JsonObject createClassDefinition(ClassDeclaration classDeclaration, JsCodeGenerator.ClassDefinitionBuilder classDefinitionBuilder) throws IOException {
+  private JsonObject createClassDefinition(ClassDeclaration classDeclaration, ClassDefinitionBuilder classDefinitionBuilder) throws IOException {
     JsonObject classDefinition = new JsonObject();
-    String packageName = classDeclaration.getPackageDeclaration().getQualifiedNameStr();
-    if (packageName.length() > 0) {
-      classDefinition.set("package_", packageName);
-    }
+    setPackageName(classDeclaration, classDefinition);
     if (!classDefinitionBuilder.metadata.isEmpty()) {
       classDefinition.set("metadata", classDefinitionBuilder.metadata);
     }
@@ -407,9 +458,12 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     if (classDeclaration.getInheritanceLevel() > 1) {
       ClassDeclaration superTypeDeclaration = classDeclaration.getSuperTypeDeclaration();
       out.write("\n    var Super=" + compilationUnitAccessCode(superTypeDeclaration) + ";");
-      out.write("\n    var super$=Super.prototype;"); // TODO: leave out if there is no overriding method!
+      if (classDefinitionBuilder.super$Used) {
+        out.write("\n    var super$=Super.prototype;");
+      }
       classDefinition.set("extends_", CompilerUtils.createCodeExpression("Super"));
     }
+    addOptImplements(classDeclaration, classDefinition);
     if (!classDefinitionBuilder.members.isEmpty()) {
       classDefinition.set("members", convertMembers(classDefinitionBuilder.members));
     }
@@ -421,6 +475,13 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       classDefinition.set("staticCode", CompilerUtils.createCodeExpression("function() {\n" + classDefinitionBuilder.staticCode + "      }"));
     }
     return classDefinition;
+  }
+
+  private void setPackageName(ClassDeclaration classDeclaration, JsonObject classDefinition) {
+    String packageName = classDeclaration.getPackageDeclaration().getQualifiedNameStr();
+    if (packageName.length() > 0) {
+      classDefinition.set("package_", packageName);
+    }
   }
 
   private JsonObject convertMembers(Map<String, PropertyDefinition> members) {
@@ -526,7 +587,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   }
 
   private void generateImplements(CommaSeparatedList<Ide> superTypes) throws IOException {
-    writeQName(superTypes.getHead());
+    out.writeSymbol(superTypes.getHead().getSymbol());
     if (superTypes.getSymComma() != null) {
       out.writeSymbol(superTypes.getSymComma());
       generateImplements(superTypes.getTail());
@@ -1304,6 +1365,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
           String privateMethodName = methodName + "$" + functionDeclaration.getClassDeclaration().getInheritanceLevel();
           if (functionDeclaration.isOverride()) {
             overriddenMethodName = privateMethodName;
+            getClassDefinitionBuilder(functionDeclaration).super$Used = true;
           } else {
             methodName = privateMethodName;
           }
@@ -1393,7 +1455,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       }
     }
 
-    if (classDeclaration.getConstructor() == null) {
+    if (!classDeclaration.isInterface() && classDeclaration.getConstructor() == null) {
       // generate default constructor that calls field initializers:
       out.write("function " + classDeclaration.getName() + "() {");
       new SuperCallCodeGenerator(classDeclaration).generate(out, true);
@@ -1604,5 +1666,6 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     Map<String,PropertyDefinition> staticMembers = new LinkedHashMap<String, PropertyDefinition>();
     StringBuilder staticInitializerCode = new StringBuilder();
     StringBuilder staticCode = new StringBuilder();
+    boolean super$Used = false;
   }
 }

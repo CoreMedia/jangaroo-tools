@@ -137,6 +137,11 @@ public class JoocTest {
   }
 
   @Test
+  public void testInterface() throws Exception {
+    assertCompilationResult("package1/Interface");
+  }
+
+  @Test
   public void testPublicApiApi() throws Exception {
     config.setExcludeClassByDefault(true);
     assertApiCompilationResult("package1/IncludedClass");

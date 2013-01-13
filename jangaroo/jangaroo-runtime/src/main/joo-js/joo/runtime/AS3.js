@@ -2,6 +2,20 @@ define(["./es5-polyfills"], function() {
   "use strict";
   // alias for global package to avoid name-clashes between top-level classes and JavaScript global identifiers:
   window.js = window;
+
+  // built-ins:
+  window.Class = Function;
+  var int_ = window["int"] = function int_(num) {
+    return num >> 0;
+  };
+  int_.MAX_VALUE =  2147483647;
+  int_.MIN_VALUE = -2147483648;
+  var uint_ = window["uint"] = function uint_(num) {
+    return num >>> 0;
+  };
+  uint_.MAX_VALUE = 4294967295;
+  uint_.MIN_VALUE = 0;
+
   // Jangaroo namespace
   window.joo = {
     // helper variable for flash.utils.getTimer():
@@ -22,8 +36,11 @@ define(["./es5-polyfills"], function() {
   // Vector = Array
   window.Vector$object = Array;
 
+  function metaToString() {
+    return this.qName;
+  }
   function toString() {
-    return "[Class " + this.name + "]";
+    return "[Class " + this.$class.name + "]";
   }
   function convertShortcuts(propertyDescriptors) {
     var result = {};
@@ -59,17 +76,19 @@ define(["./es5-polyfills"], function() {
           // do not set "constructor" property, or it will become enumerable in IE8!
           delete members.constructor;
         }
-        var implements_ = config.implements_ ? typeof config.implements_ === "function" ? [config.implements_] : config.implements_ : [];
+        var implements_ = config.implements_ || [];
         // create set of all interfaces implemented by this class
         var $implements = extends_.$implements ? Object.create(extends_.$implements) : {};
-        implements_.forEach(function(i) { i($implements); });
+        implements_.forEach(function(i) { i.addInterfaces($implements); });
         var staticMembers = convertShortcuts(config.staticMembers);
         // add some meta information under reserved static field "$class":
+        var qName = config.package_ ? config.package_ + "." + config.class_ : config.class_;
         staticMembers.$class = { value: {
           metadata: config.metadata || {},
           implements_: $implements,
-          fullClassName: config.package_ ? config.package_ + "." + config.class_ : config.class_,
-          toString: function() { return this.fullClassName; }
+          name: config.class_,
+          qName: qName,
+          toString: metaToString
         }};
         staticMembers.toString = { value: toString }; // add Class#toString()
         Object.defineProperties(clazz, staticMembers);   // add static members
@@ -83,21 +102,30 @@ define(["./es5-polyfills"], function() {
     });
   }
 
-  function defineInterface(fullyQualifiedName, extends_) {
-    function Interface($implements) {
-      extends_.forEach(function(i) { i($implements); });
-      $implements[fullyQualifiedName] = true;
-      return $implements;
+  function addInterfaces($implements) {
+    for (var interface_ in this.interfaces) {
+      $implements[interface_] = true;
     }
-    Interface.isInstance = function(object) {
-      return object !== null && typeof object === "object" &&
-              !!object.constructor.$class &&
-              fullyQualifiedName in object.constructor.$class.implements_;
-    };
-    Interface.toString = function toString() {
-      return "[Interface " + fullyQualifiedName + "]";
-    };
-    return Interface;
+    return $implements;
+  }
+
+  function defineInterface(exports, config) {
+    var qName = config.package_ ? config.package_ + "." + config.interface_ : config.interface_;
+    var interfaces = {};
+    interfaces[qName] = true;
+    config.extends_ && config.extends_.forEach(function (i) {
+      i.addInterfaces(interfaces);
+    });
+    Object.defineProperties(exports, convertShortcuts({
+      $class: { value: Object.defineProperties({}, convertShortcuts({
+        name: config.interface_,
+        qName: qName,
+        toString: metaToString
+      }))},
+      interfaces: { value: interfaces },
+      addInterfaces: addInterfaces,
+      toString: toString
+    }));
   }
 
   function defineGlobal(exports, definingCode) {
@@ -123,12 +151,36 @@ define(["./es5-polyfills"], function() {
     return boundMethod;
   }
 
+  /**
+   * Internal utility to check whether the non-null/-undefined "object" is an instance of the given type.
+   * Note that ActionScript, in contrast to JavaScript, coerces primitives to objects before doing the check!
+   */
+  function isInstance(type, object) {
+    //noinspection FallthroughInSwitchStatementJS
+    switch (typeof object) {
+      case "boolean":
+      case "number":
+      case "string":
+        object = Object(object);
+        // fall through!
+      case "object":
+      case "function":
+        // "type" may be an interface:
+        if (typeof type === "object") {
+          return !!object.constructor.$class &&
+                  type.$class.qName in object.constructor.$class.implements_;
+        }
+        if (type === int_ || type === uint_) {
+          return object instanceof Number && type(object) === object.valueOf();
+        }
+        // type is a Class: instanceof returns false negatives in some browsers, so check constructor property, too:
+        return object instanceof type || object.constructor === type;
+    }
+    return false;
+  }
+
   function is(object, type) {
-    return !!type && object !== undefined && object !== null &&
-      // instanceof returns false negatives in some browsers, so check constructor property, too:
-      (object instanceof type || object.constructor === type ||
-      // "type" may be an interface:
-      typeof type.isInstance === "function" && type.isInstance(object));
+    return object !== undefined && object !== null && isInstance(type, object);
   }
 
   function as(object, type) {
@@ -139,9 +191,7 @@ define(["./es5-polyfills"], function() {
     if (object === undefined || object === null) {
       return null;
     }
-    if (object instanceof type || object.constructor === type ||
-      // "type" may be an interface:
-      typeof type.isInstance === "function" && type.isInstance(object)) {
+    if (isInstance(type, object)) {
       return object;
     }
     throw new TypeError("'" + object + "' cannot be cast to " + type + ".");

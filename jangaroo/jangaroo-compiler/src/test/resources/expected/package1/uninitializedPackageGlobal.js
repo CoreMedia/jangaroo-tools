@@ -1,4 +1,4 @@
-define(["exports","runtime/AS3"], function($exports, AS3) { "use strict";AS3.global_($exports, function(){/*package package1 {
+define(["exports","runtime/AS3"], function($exports,AS3) { "use strict"; AS3.global_($exports, function(){/*package package1 {
 
 import package1.someOtherPackage.SomeOtherClass;
 
