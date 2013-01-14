@@ -1,4 +1,4 @@
-define(["exports","runtime/AS3","classes/package1/someOtherPackage/SomeOtherClass","classes/int"], function($exports,AS3,SomeOtherClass,int_) { "use strict"; AS3.class_($exports, function(){/*package package1 {
+define(["exports","runtime/AS3","classes/package1/someOtherPackage/SomeOtherClass","classes/int"], function($exports,AS3,SomeOtherClass,int_) { "use strict"; AS3.compilationUnit($exports, function($primaryDeclaration){/*package package1 {
 import package1.someOtherPackage.SomeOtherClass;
 
 public class NoPrimitiveInit {
@@ -12,13 +12,13 @@ public class NoPrimitiveInit {
 }
 
 ============================================== Jangaroo part ==============================================*/
-    return {
+    $primaryDeclaration(AS3.class_({
       package_: "package1",
       class_: "NoPrimitiveInit",
       members: {
         constructor: NoPrimitiveInit,
         method$1: method
       }
-    };
+    }));
   });
 });

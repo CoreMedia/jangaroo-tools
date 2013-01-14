@@ -1,4 +1,4 @@
-define(["exports","runtime/AS3","classes/package1/someOtherPackage/SomeOtherClass"], function($exports,AS3,SomeOtherClass) { "use strict"; AS3.class_($exports, function(){/*package package1 {
+define(["exports","runtime/AS3","classes/package1/someOtherPackage/SomeOtherClass"], function($exports,AS3,SomeOtherClass) { "use strict"; AS3.compilationUnit($exports, function($primaryDeclaration){/*package package1 {
 
 import package1.someOtherPackage.SomeOtherClass;
 
@@ -16,17 +16,15 @@ public class ChainedConstants {
 }
 
 ============================================== Jangaroo part ==============================================*/
-    return {
+    $primaryDeclaration(AS3.class_({
       package_: "package1",
       class_: "ChainedConstants",
       members: {constructor: ChainedConstants},
-      staticMembers: {METHOD_TYPE_GET: "get"},
-      staticCode: function() {
-        Object.defineProperty(this, "DEFAULT_METHOD_TYPE", {value: DEFAULT_METHOD_TYPE_()});
-        Object.defineProperty(this, "THE_METHOD_TYPE", {value: THE_METHOD_TYPE_()});
-        Object.defineProperty(this, "ANOTHER_METHOD_TYPE", {value: ANOTHER_METHOD_TYPE_()});
-        Object.defineProperty(this, "THE_BLA", {value: THE_BLA_()});
-      }
-    };
+      staticMembers: {METHOD_TYPE_GET: "get"}
+    }));
+    Object.defineProperty(ChainedConstants, "DEFAULT_METHOD_TYPE", {value: DEFAULT_METHOD_TYPE_()});
+    Object.defineProperty(ChainedConstants, "THE_METHOD_TYPE", {value: THE_METHOD_TYPE_()});
+    Object.defineProperty(ChainedConstants, "ANOTHER_METHOD_TYPE", {value: ANOTHER_METHOD_TYPE_()});
+    Object.defineProperty(ChainedConstants, "THE_BLA", {value: THE_BLA_()});
   });
 });

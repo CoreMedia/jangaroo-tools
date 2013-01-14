@@ -42,14 +42,17 @@ define(["./es5-polyfills"], function() {
   function toString() {
     return "[Class " + this.$class.name + "]";
   }
+  function convertShortcut(propertyDescriptor) {
+    return propertyDescriptor !== null && typeof propertyDescriptor === "object" ? propertyDescriptor
+      // anything *not* an object is a shortcut for a property descriptor with that value (non-writable, non-enumerable, non-configurable):
+            : { value: propertyDescriptor }
+  }
   function convertShortcuts(propertyDescriptors) {
     var result = {};
     if (propertyDescriptors) {
       for (var name in propertyDescriptors) {
         var propertyDescriptor = propertyDescriptors[name];
-        result[name] = propertyDescriptor !== null && typeof propertyDescriptor === "object" ? propertyDescriptor
-          // anything *not* an object is a shortcut for a property descriptor with that value (non-writable, non-enumerable, non-configurable):
-                : { value: propertyDescriptor };
+        result[name] = convertShortcut(propertyDescriptor);
         if (propertyDescriptor.get) {
           result["get$" + name] = { value: propertyDescriptor.get };
         }
@@ -63,14 +66,23 @@ define(["./es5-polyfills"], function() {
     }
     return result;
   }
-  function defineClass(exports, definingCode) {
+  function compilationUnit(exports, definingCode) {
     Object.defineProperty(exports, "_", {
       configurable: true,
       get: function() {
-        var config = definingCode();
+        var result;
+        definingCode(function(value) {
+          result = convertShortcut(value);
+          Object.defineProperty(exports, "_", result);
+        });
+        return result.value;
+      }
+    });
+  }
+
+  function defineClass(config) {
         var members = convertShortcuts(config.members);
         var clazz = members.constructor.value;
-        Object.defineProperty(this, "_", { value: clazz });
         var extends_ = config.extends_ || Object; // super class
         if (extends_ === Object || extends_ === joo.JavaScriptObject) {
           // do not set "constructor" property, or it will become enumerable in IE8!
@@ -93,13 +105,7 @@ define(["./es5-polyfills"], function() {
         staticMembers.toString = { value: toString }; // add Class#toString()
         Object.defineProperties(clazz, staticMembers);   // add static members
         clazz.prototype = Object.create(extends_.prototype, members); // establish inheritance prototype chain and add instance members
-
-        var staticCode = config.staticCode;
-        // execute static initializers and code:
-        staticCode && staticCode.call(clazz);
         return clazz;
-      }
-    });
   }
 
   function addInterfaces($implements) {
@@ -126,17 +132,6 @@ define(["./es5-polyfills"], function() {
       addInterfaces: addInterfaces,
       toString: toString
     }));
-  }
-
-  function defineGlobal(exports, definingCode) {
-    Object.defineProperty(exports, "_", {
-      configurable: true,
-      // enumerable: true, // TODO: for debugging only
-      get: function() {
-        definingCode.call(this);
-        return this._;
-      }
-    });
   }
 
   function bind(object, boundMethodName) {
@@ -198,9 +193,9 @@ define(["./es5-polyfills"], function() {
   }
 
   return {
+    compilationUnit: compilationUnit,
     class_: defineClass,
     interface_: defineInterface,
-    global_: defineGlobal,
     as: as,
     cast: cast,
     is: is,

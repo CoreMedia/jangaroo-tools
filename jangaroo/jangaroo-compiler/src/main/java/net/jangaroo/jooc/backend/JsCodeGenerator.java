@@ -341,21 +341,20 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitCompilationUnit(CompilationUnit compilationUnit) throws IOException {
-    String primaryDeclarationType;
     IdeDeclaration primaryDeclaration = compilationUnit.getPrimaryDeclaration();
-    if (primaryDeclaration instanceof ClassDeclaration) {
-      primaryDeclarationType = ((ClassDeclaration) primaryDeclaration).isInterface() ? "interface" : "class";
-    } else {
-      primaryDeclarationType = "global";
-    }
+    boolean isInterface = primaryDeclaration instanceof ClassDeclaration
+            && ((ClassDeclaration) primaryDeclaration).isInterface();
     out.write("define([\"exports\",\"runtime/AS3\"");
     Set<String> useQName = collectAndWriteDependencies(compilationUnit);
     out.write("], function($exports,AS3");
     writeDependencyParameters(compilationUnit, useQName);
     out.write(") { \"use strict\"; ");
-    out.write("AS3." + primaryDeclarationType + "_($exports, ");
-    if (!"interface".equals(primaryDeclarationType)) {
-      out.write("function(){");
+    out.write("AS3.");
+    // interface: the only compilation unit without lazy initialization!
+    if (isInterface) {
+      out.write("interface_($exports, ");
+    } else {
+      out.write("compilationUnit($exports, function($primaryDeclaration){");
     }
     this.compilationUnit = compilationUnit;
     out.beginComment();
@@ -374,17 +373,20 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       out.write("\n============================================== Jangaroo part ==============================================");
       out.endComment();
 
-      if ("interface".equals(primaryDeclarationType)) {
+      if (isInterface) {
         JsonObject interfaceDefinition = createInterfaceDefinition(classDeclaration);
         out.write("\n" + interfaceDefinition.toString(2, 0) + "\n);});\n");
         return;
       } else {
         ClassDefinitionBuilder classDefinitionBuilder = primaryClassDefinitionBuilder;
         JsonObject classDefinition = createClassDefinition(classDeclaration, classDefinitionBuilder);
-        out.write("\n    return " + classDefinition.toString(2, 4) + ";");
+        out.write("\n    $primaryDeclaration(AS3.class_(" + classDefinition.toString(2, 4) + "));\n");
+        out.write(classDefinitionBuilder.staticCode.toString());
       }
+    } else {
+      out.write("\n");
     }
-    out.write("\n  });\n");
+    out.write("  });\n");
     out.write("});\n");
   }
 
@@ -471,9 +473,6 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       classDefinition.set("staticMembers", convertMembers(classDefinitionBuilder.staticMembers));
     }
     classDefinitionBuilder.staticCode.insert(0, classDefinitionBuilder.staticInitializerCode.toString());
-    if (classDefinitionBuilder.staticCode.length() > 0) {
-      classDefinition.set("staticCode", CompilerUtils.createCodeExpression("function() {\n" + classDefinitionBuilder.staticCode + "      }"));
-    }
     return classDefinition;
   }
 
@@ -889,7 +888,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   private boolean beginStaticInitializer(JsWriter out, boolean inStaticInitializerBlock) throws IOException {
     if (!inStaticInitializerBlock) {
       out.writeToken("function static$0(){");
-      primaryClassDefinitionBuilder.staticCode.append("        static$0();");
+      primaryClassDefinitionBuilder.staticCode.append("    static$0();\n");
     }
     return true;
   }
@@ -1243,7 +1242,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       writeOptSymbol(variableDeclaration.getOptSymSemicolon());
       if (variableDeclaration.isPrimaryDeclaration()) {
         PropertyDefinition propertyDefinition = new PropertyDefinition(variableDeclaration.getName(), !variableDeclaration.isConst());
-        out.write(" Object.defineProperty(this, \"_\", " + propertyDefinition.asJson().toString(-1, -1) + ");");
+        out.write(" $primaryDeclaration(" + (propertyDefinition.isValueOnly() ? propertyDefinition.value : propertyDefinition.asJson().toString(-1, -1)) + ");");
       }
     }
   }
@@ -1257,10 +1256,13 @@ public class JsCodeGenerator extends CodeGeneratorBase {
           primaryClassDefinitionBuilder.staticInitializerCode.append("        ").append(variableName).append(" = ")
                   .append(variableName).append("_();\n");
         } else {
-          addStaticInitializer(variableName, new PropertyDefinition(
-                  variableName + "_()",
-                  !variableDeclaration.isConst()
-          ));
+          if (variableDeclaration.isConst()) {
+            addStaticConstInitializer(variableDeclaration.getClassDeclaration().getName(),
+                    variableName, new PropertyDefinition(variableName + "_()", false));
+          } else {
+            addStaticInitializer(variableDeclaration.getClassDeclaration().getName(),
+                    variableName, variableName + "_()");
+          }
         }
       }
     } else {
@@ -1312,8 +1314,13 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     return variableDeclaration.getOptInitializer() != null && !(variableDeclaration.getOptInitializer().getValue() instanceof LiteralExpr);
   }
 
-  private void addStaticInitializer(String fieldName, PropertyDefinition propertyDefinition) {
-    primaryClassDefinitionBuilder.staticInitializerCode.append("        Object.defineProperty(this, \"").append(fieldName).append("\", ").append(propertyDefinition.asJson().toString(2, 8)).append(");\n");
+  private void addStaticInitializer(String className, String fieldName, String value) {
+    primaryClassDefinitionBuilder.staticInitializerCode.append("    ").append(className).append(".").append(fieldName).append("= ").append(value).append(";\n");
+    
+  }
+
+  private void addStaticConstInitializer(String className, String fieldName, PropertyDefinition propertyDefinition) {
+    primaryClassDefinitionBuilder.staticInitializerCode.append("    Object.defineProperty(").append(className).append(", \"").append(fieldName).append("\", ").append(propertyDefinition.asJson().toString(2, 8)).append(");\n");
     
   }
 
@@ -1419,7 +1426,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
         generateFunTailCode(functionDeclaration.getFun());
       }
       if (functionDeclaration.isPrimaryDeclaration()) {
-        out.write(String.format(" Object.defineProperty(this, \"_\", { value: %s });", functionDeclaration.getName()));
+        out.write(String.format(" $primaryDeclaration(%s);", functionDeclaration.getName()));
       }
     }
   }
@@ -1443,12 +1450,12 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       String secondaryDeclarationName = secondaryDeclaration.getName();
       if (secondaryDeclaration instanceof ClassDeclaration) {
         ClassDeclaration secondaryClassDeclaration = (ClassDeclaration) secondaryDeclaration;
-        out.write(new MessageFormat("var {0};function {0}_()'{").format(secondaryDeclarationName));
+        out.write(new MessageFormat("function {0}_()'{").format(secondaryDeclarationName));
         secondaryClassDeclaration.visit(this);
         JsonObject secondaryClassDefinition = createClassDefinition(secondaryClassDeclaration, secondaryClassDefinitionBuilder);
-        out.write("return " + secondaryClassDefinition.toString(-1, -1));
+        out.write("return AS3.class_(" + secondaryClassDefinition.toString(-1, -1) + ");");
         out.write("}");
-        primaryClassDefinitionBuilder.staticCode.append(new MessageFormat("        {0} = AS3.class_({0}_)._;\n").format(secondaryDeclarationName));
+        primaryClassDefinitionBuilder.staticCode.append(new MessageFormat("    var {0}={0}_();\n").format(secondaryDeclarationName));
       } else {
         // TODO: secondary variable or function declarations?!
         secondaryDeclaration.visit(this);
@@ -1653,10 +1660,14 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     }
 
     Object asAbbreviatedJson() {
-      if (!writable && !configurable && get == null && set == null) {
+      if (isValueOnly()) {
         return CompilerUtils.createCodeExpression(value);
       }
       return asJson();
+    }
+
+    boolean isValueOnly() {
+      return !writable && !configurable && get == null && set == null;
     }
   }
 
