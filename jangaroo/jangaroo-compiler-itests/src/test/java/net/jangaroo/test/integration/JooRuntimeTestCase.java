@@ -143,7 +143,7 @@ public abstract class JooRuntimeTestCase extends JooTestCase {
     super.setUp();
     global = new Global();
     cx = ContextFactory.getGlobal().enterContext();
-    cx.setOptimizationLevel(-1);
+    cx.setOptimizationLevel(-1); // disable compilation to prevent "out of PermGen space", not really slower, anyway
     cx.setLanguageVersion(Context.VERSION_1_8);
     cx.initStandardObjects(global);
     global.defineFunctionProperties(new String[]{"setTimeout", "load", "print"}, Global.class, ScriptableObject.EMPTY);
