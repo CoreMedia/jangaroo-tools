@@ -1,13 +1,18 @@
 // simulate AS3 trace()
 define(function() {
-  "use strict";
-  
+  var log = (function() {
+    if (this.console && this.console.log) { // most browsers
+      return this.console.log.bind(this.console); // take care to bind, esp. in Chrome!
+    }
+    if (this.print) { // Rhino
+      return this.print;
+    }
+    return null;
+  })();
+
   function trace() {
     var msg = Array.prototype.map.call(arguments, String).join(" ");
-    //var logWindow = document.createElement("div");
-    //logWindow.appendChild(document.createTextNode(msg));
-    //document.body.appendChild(logWindow);
-    console.log(msg);
+    log(msg);
   }
-  return { _: trace };
+  return { _: log ? trace : function() { } };
 });

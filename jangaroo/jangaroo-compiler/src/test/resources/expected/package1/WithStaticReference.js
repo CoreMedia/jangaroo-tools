@@ -1,4 +1,4 @@
-define(["exports","runtime/AS3"], function($exports,AS3) { "use strict"; AS3.compilationUnit($exports, function($primaryDeclaration){/*package package1{
+define(["exports","runtime/AS3"], function($exports,AS3) { AS3.compilationUnit($exports, function($primaryDeclaration){/*package package1{
 public class WithStaticReference {
   public static const BLA = "bla";
   public*/ function WithStaticReference() {
@@ -6,7 +6,7 @@ public class WithStaticReference {
     bla,  WithStaticReference);
     this.make2$1();
   }/*
-  public static*/ function make()/*:void*/ {
+  public static*/ function make$static()/*:void*/ {
     var bla = WithStaticReference.BLA;AS3.is(
     bla,  WithStaticReference);
     new WithStaticReference();
@@ -29,7 +29,7 @@ public class WithStaticReference {
       },
       staticMembers: {
         BLA: "bla",
-        make: make
+        make: make$static
       }
     }));
   });

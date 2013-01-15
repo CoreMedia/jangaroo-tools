@@ -1,5 +1,7 @@
-define(["./es5-polyfills"], function() {
-  "use strict";
+//define(["./es5-polyfills"], function() {
+define(function() {
+  //"use strict"; // sorry, we need context-agnostic access to the global object!
+  var window = (function(){return this})();
   // alias for global package to avoid name-clashes between top-level classes and JavaScript global identifiers:
   window.js = window;
 
@@ -25,13 +27,13 @@ define(["./es5-polyfills"], function() {
     Error: function(message/*String*/, id/*:int*/) {
       this.message = message || "";
       this.id = id >> 0;
-    },
-    assert: function assert(cond, file, line, column) {
-      if (!cond)
-        throw new Error(file+"("+line+":"+column+"): assertion failed");
     }
   };
   window.joo.Error.prototype = window.Error.prototype;
+  function assert(cond, file, line, column) {
+    if (!cond)
+      throw new Error(file+"("+line+":"+column+"): assertion failed");
+  }
 
   // Vector = Array
   window.Vector$object = Array;
@@ -84,13 +86,13 @@ define(["./es5-polyfills"], function() {
         var members = convertShortcuts(config.members);
         var clazz = members.constructor.value;
         var extends_ = config.extends_ || Object; // super class
-        if (extends_ === Object || extends_ === joo.JavaScriptObject) {
+        if (extends_ === joo.JavaScriptObject) {
           // do not set "constructor" property, or it will become enumerable in IE8!
           delete members.constructor;
         }
         var implements_ = config.implements_ || [];
         // create set of all interfaces implemented by this class
-        var $implements = extends_.$implements ? Object.create(extends_.$implements) : {};
+        var $implements = extends_.$class && extends_.$class.implements_ ? Object.create(extends_.$class.implements_ ) : {};
         implements_.forEach(function(i) { i.addInterfaces($implements); });
         var staticMembers = convertShortcuts(config.staticMembers);
         // add some meta information under reserved static field "$class":
@@ -199,6 +201,7 @@ define(["./es5-polyfills"], function() {
     as: as,
     cast: cast,
     is: is,
-    bind: bind
+    bind: bind,
+    assert: assert
   }
 });

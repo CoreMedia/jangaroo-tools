@@ -1,4 +1,4 @@
-define(["exports","runtime/AS3","classes/package1/SuperInterface"], function($exports,AS3,SuperInterface) { "use strict"; AS3.interface_($exports, /*package package1 {
+define(["exports","runtime/AS3","classes/package1/SuperInterface"], function($exports,AS3,SuperInterface) { AS3.interface_($exports, /*package package1 {
 
 /**
  * Some ASDoc.
