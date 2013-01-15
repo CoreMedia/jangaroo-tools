@@ -1383,8 +1383,8 @@ public class JsCodeGenerator extends CodeGeneratorBase {
           out.writeSymbolWhitespace(functionDeclaration.getIde().getSymbol());
           out.writeSymbolWhitespace(functionDeclaration.getSymGetOrSet());
           String accessorPrefix = functionDeclaration.getSymGetOrSet().getText() + "$";
-          String accessorName = accessorPrefix + methodName;
-          out.writeToken(accessorPrefix + functionName);
+          String accessorName = accessorPrefix + functionName;
+          out.writeToken(accessorName);
           if (!functionDeclaration.isPrivateStatic()) { // TODO: simulate private static getter when called!
             PropertyDefinition accessorDefinition;
             accessorDefinition = members.get(methodName);
