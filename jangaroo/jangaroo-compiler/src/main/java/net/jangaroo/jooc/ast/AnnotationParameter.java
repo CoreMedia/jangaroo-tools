@@ -30,11 +30,11 @@ public class AnnotationParameter extends NodeImplBase {
 
   private Ide optName;
   private JooSymbol optSymEq;
-  private LiteralExpr value;
+  private AstNode value;
   private CompilationUnit compilationUnit;
   private Annotation parentAnnotation;
 
-  public AnnotationParameter(Ide optName, JooSymbol optSymEq, LiteralExpr value) {
+  public AnnotationParameter(Ide optName, JooSymbol optSymEq, AstNode value) {
     this.optName = optName;
     this.optSymEq = optSymEq;
     this.value = value;
@@ -69,11 +69,15 @@ public class AnnotationParameter extends NodeImplBase {
 
   public void analyze(AstNode parentNode) {
     super.analyze(parentNode);
-    if (getValue() != null) {
-      getValue().analyze(this);
+    AstNode value = getValue();
+    if (value != null) {
+      value.analyze(this);
+      if (value instanceof Ide) {
+        ((Ide) value).analyzeAsExpr(this, null);
+      }
       String metaName = parentAnnotation.getMetaName();
       if ("Embed".equals(metaName) && getOptName() != null && "source".equals(getOptName().getName())) {
-        JooSymbol valueSymbol = getValue().getSymbol();
+        JooSymbol valueSymbol = value.getSymbol();
         if (valueSymbol.sym != sym.STRING_LITERAL) {
           throw new CompilerError(valueSymbol, "The source parameter of an [Embed] annotation must be a string literal");
         }
@@ -81,7 +85,7 @@ public class AnnotationParameter extends NodeImplBase {
         String quote = text.substring(0, 1);
         String source = (String) valueSymbol.getJooValue();
         String absoluteSource = compilationUnit.addResourceDependency(source);
-        getValue().setValue(new JooSymbol(valueSymbol.sym, valueSymbol.getFileName(),
+        this.value = new LiteralExpr(new JooSymbol(valueSymbol.sym, valueSymbol.getFileName(),
                 valueSymbol.getLine(), valueSymbol.getColumn(), valueSymbol.getWhitespace(),
                 quote + absoluteSource + quote,
                 absoluteSource));
@@ -101,7 +105,7 @@ public class AnnotationParameter extends NodeImplBase {
     return optSymEq;
   }
 
-  public LiteralExpr getValue() {
+  public AstNode getValue() {
     return value;
   }
 

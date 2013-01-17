@@ -198,17 +198,32 @@ public class CompilationUnit extends NodeImplBase {
   public void analyze(AstNode parentNode) {
     super.analyze(parentNode);
     packageDeclaration.analyze(this);
+    analyze(packageDeclaration, directives);
     primaryDeclaration.analyze(this);
   }
 
-  public Annotation getAnnotation(String name) {
-    List<AstNode> directives = getDirectives();
-    for (AstNode directive : directives) {
+  public Set<String> getUsedAnnotations() {
+    Set<String> usedAnnotations = new LinkedHashSet<String>();
+    for (Annotation annotation : getAnnotations()) {
+      usedAnnotations.add(annotation.getMetaName());
+    }
+    return usedAnnotations;
+  }
+
+  public List<Annotation> getAnnotations() {
+    List<Annotation> annotations = new ArrayList<Annotation>();
+    for (AstNode directive : getDirectives()) {
       if (directive instanceof Annotation) {
-        Annotation annotation = (Annotation)directive;
-        if (name.equals(annotation.getMetaName())) {
-          return annotation;
-        }
+        annotations.add((Annotation)directive);
+      }
+    }
+    return annotations;
+  }
+
+  public Annotation getAnnotation(String name) {
+    for (Annotation annotation : getAnnotations()) {
+      if (name.equals(annotation.getMetaName())) {
+        return annotation;
       }
     }
     return null;

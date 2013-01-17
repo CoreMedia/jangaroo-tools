@@ -77,6 +77,27 @@ define(function() {
     }
     return result;
   }
+  var metadataHandlers = {};
+  function registerMetadataHandler(handler) {
+    metadataHandlers[handler.metadata] = handler;
+  }
+  function handleMetadata(value) {
+    if (value.$class) {
+      var metadata = value.$class.metadata;
+      if (metadata) {
+        for (var key in metadata) {
+          var metadataHandler = metadataHandlers[key];
+          if (metadataHandler) {
+            metadataHandler(value, metadata[key]);
+          }
+        }
+      }
+    }
+    return value;
+  }
+  function getModuleName(qName) {
+    return "classes/" + qName.replace(/\./g, "/");
+  }
   function compilationUnit(exports, definingCode) {
     Object.defineProperty(exports, "_", {
       configurable: true,
@@ -86,7 +107,7 @@ define(function() {
           result = convertShortcut(value);
           Object.defineProperty(exports, "_", result);
         });
-        return result.value;
+        return handleMetadata(result.value);
       }
     });
   }
@@ -211,6 +232,8 @@ define(function() {
     cast: cast,
     is: is,
     bind: bind,
-    assert: assert
+    assert: assert,
+    registerMetadataHandler: registerMetadataHandler,
+    getModuleName: getModuleName
   }
 });

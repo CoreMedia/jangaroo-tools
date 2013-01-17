@@ -13,6 +13,7 @@ import net.jangaroo.jooc.ast.ArrayIndexExpr;
 import net.jangaroo.jooc.ast.ArrayLiteral;
 import net.jangaroo.jooc.ast.AsExpr;
 import net.jangaroo.jooc.ast.AssignmentOpExpr;
+import net.jangaroo.jooc.ast.AstNode;
 import net.jangaroo.jooc.ast.BlockStatement;
 import net.jangaroo.jooc.ast.BreakStatement;
 import net.jangaroo.jooc.ast.CaseStatement;
@@ -104,6 +105,8 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   private static final JooSymbol SYM_LBRACK = new JooSymbol(sym.LBRACK, "[");
   private static final JooSymbol SYM_RBRACK = new JooSymbol(sym.RBRACK, "]");
   public static final Set<String> PRIMITIVES = new HashSet<String>(4);
+  public static final List<String> ANNOTATIONS_TO_KEEP_AT_RUNTIME = Arrays.asList("ExtConfig", "SWF"); // TODO: inject / make configurable
+
   static {
     PRIMITIVES.add("Boolean");
     PRIMITIVES.add("String");
@@ -299,10 +302,19 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     Ide optName = annotationParameter.getOptName();
     visitIfNotNull(optName);
     writeOptSymbol(annotationParameter.getOptSymEq());
-    LiteralExpr optValue = annotationParameter.getValue();
+    AstNode optValue = annotationParameter.getValue();
     visitIfNotNull(optValue);
     String name = optName == null ? "$value" : optName.getName();
-    Object value = optValue != null ? optValue.getValue().getJooValue() : null;
+    Object value;
+    if (optValue instanceof LiteralExpr) {
+      value = ((LiteralExpr) optValue).getValue().getJooValue();
+    } else if (optValue instanceof Ide) {
+      IdeDeclaration ideDeclaration = ((Ide) optValue).getDeclaration();
+      compilationUnit.addDependency(ideDeclaration.getCompilationUnit());
+      value = CompilerUtils.createCodeExpression(compilationUnitAccessCode(ideDeclaration));
+    } else {
+      value = null;
+    }
 
     String annotationName = annotationParameter.getParentAnnotation().getIde().getName();
     ((JsonObject)currentMetadata.get(annotationName)).set(name, value);
@@ -343,6 +355,11 @@ public class JsCodeGenerator extends CodeGeneratorBase {
             && ((ClassDeclaration) primaryDeclaration).isInterface();
     out.write("define([\"exports\",\"runtime/AS3\"");
     Set<String> useQName = collectAndWriteDependencies(compilationUnit);
+    for (String annotation : compilationUnit.getUsedAnnotations()) {
+      if (ANNOTATIONS_TO_KEEP_AT_RUNTIME.contains(annotation)) {
+        out.write(",\"metadata/" + annotation + "\"");
+      }
+    }
     out.write("], function($exports,AS3");
     writeDependencyParameters(compilationUnit, useQName);
     out.write(") { ");

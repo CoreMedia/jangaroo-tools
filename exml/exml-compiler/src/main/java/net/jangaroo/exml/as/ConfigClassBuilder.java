@@ -20,7 +20,6 @@ import net.jangaroo.jooc.ast.CommaSeparatedList;
 import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.ast.FunctionDeclaration;
 import net.jangaroo.jooc.ast.Ide;
-import net.jangaroo.jooc.ast.LiteralExpr;
 import net.jangaroo.jooc.ast.PackageDeclaration;
 import net.jangaroo.jooc.ast.TypeRelation;
 import net.jangaroo.jooc.sym;
@@ -118,7 +117,7 @@ public class ConfigClassBuilder extends AstVisitorBase {
           Ide optNameIde = annotationParameter.getOptName();
           if (optNameIde != null) {
             String parameterName = optNameIde.getName();
-            LiteralExpr annotationParameterValue = annotationParameter.getValue();
+            AstNode annotationParameterValue = annotationParameter.getValue();
             String parameterValue = null;
             if (annotationParameterValue != null) {
               JooSymbol symbol = annotationParameterValue.getSymbol();
