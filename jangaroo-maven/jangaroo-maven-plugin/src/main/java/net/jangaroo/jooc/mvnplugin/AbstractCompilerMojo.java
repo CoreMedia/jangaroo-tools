@@ -237,18 +237,18 @@ public abstract class AbstractCompilerMojo extends JangarooMojo {
     int result = compile(configuration);
     boolean compilationError = (result != CompilationResult.RESULT_CODE_OK);
 
-    if (!compilationError) {
-      // for now, always set debug mode to "false" for concatenated file:
-      configuration.setDebugMode(null);
-      configuration.setOutputDirectory(getTempClassesOutputDirectory());
-      configuration.setApiOutputDirectory(null);
-      result = compile(configuration);
-      if (result == CompilationResult.RESULT_CODE_OK) {
-        buildOutputFile(getTempClassesOutputDirectory(), getModuleClassesJsFile());
-      }
-
-      compilationError = (result != CompilationResult.RESULT_CODE_OK);
-    }
+//    if (!compilationError) {
+//      // for now, always set debug mode to "false" for concatenated file:
+//      configuration.setDebugMode(null);
+//      configuration.setOutputDirectory(getTempClassesOutputDirectory());
+//      configuration.setApiOutputDirectory(null);
+//      result = compile(configuration);
+//      if (result == CompilationResult.RESULT_CODE_OK) {
+//        buildOutputFile(getTempClassesOutputDirectory(), getModuleClassesJsFile());
+//      }
+//
+//      compilationError = (result != CompilationResult.RESULT_CODE_OK);
+//    }
 
     List<CompilerError> messages = Collections.emptyList();
 
@@ -260,7 +260,7 @@ public abstract class AbstractCompilerMojo extends JangarooMojo {
         for (CompilerError message : messages) {
           getLog().error(message.toString());
         }
-        getLog().info(messages.size() + ((messages.size() > 1) ? " errors " : "error"));
+        getLog().info(messages.size() + ((messages.size() == 1) ? " error" : " errors"));
         getLog().info("-------------------------------------------------------------");
       }
       throw new MojoFailureException("Compilation failed");

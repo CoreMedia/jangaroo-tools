@@ -105,14 +105,14 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
     try {
       unpack(webappDirectory);
       copyJangarooOutput(webappDirectory);
-      concatModuleScripts(new File(webappDirectory, "joo"));
+//      concatModuleScripts(new File(webappDirectory, "joo"));
     }
     catch (ArchiverException e) {
       throw new MojoExecutionException("Failed to unpack javascript dependencies", e);
     } catch (IOException e) {
       throw new MojoExecutionException("Failed to create jangaroo-application[-all].js", e);
-    } catch (ProjectBuildingException e) {
-      throw new MojoExecutionException("Failed to create jangaroo-application[-all].js", e);
+//    } catch (ProjectBuildingException e) {
+//      throw new MojoExecutionException("Failed to create jangaroo-application[-all].js", e);
     }
   }
 
