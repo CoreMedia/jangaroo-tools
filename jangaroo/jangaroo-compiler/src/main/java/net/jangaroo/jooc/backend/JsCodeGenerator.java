@@ -106,7 +106,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   private static final JooSymbol SYM_LBRACK = new JooSymbol(sym.LBRACK, "[");
   private static final JooSymbol SYM_RBRACK = new JooSymbol(sym.RBRACK, "]");
   public static final Set<String> PRIMITIVES = new HashSet<String>(4);
-  public static final List<String> ANNOTATIONS_TO_KEEP_AT_RUNTIME = Arrays.asList("ExtConfig", "SWF"); // TODO: inject / make configurable
+  public static final List<String> ANNOTATIONS_TO_KEEP_AT_RUNTIME = Arrays.asList("SWF"); // TODO: inject / make configurable
 
   static {
     PRIMITIVES.add("Boolean");
