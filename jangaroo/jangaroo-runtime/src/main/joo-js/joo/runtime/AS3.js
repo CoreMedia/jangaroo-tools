@@ -129,6 +129,7 @@ define(function() {
         var qName = config.package_ ? config.package_ + "." + config.class_ : config.class_;
         staticMembers.$class = { value: {
           metadata: config.metadata || {},
+          extends_: extends_,
           implements_: $implements,
           name: config.class_,
           qName: qName,
