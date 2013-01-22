@@ -4,7 +4,7 @@ import joo.addEventListener;
 import package1.someOtherPackage.SomeOtherClass;
 import mx.resources.ResourceManager;
 
-[ResourceBundle('Foo')]
+[ResourceBundle("Foo")]
 public class SomeMxmlClass extends package1.ConfigClass {
     import foo.Bar;
   
@@ -31,10 +31,12 @@ public class SomeMxmlClass extends package1.ConfigClass {
     addEventListener._(this, 'click', SomeEvent._, AS3.bind(this,"___on_click1"));
     this.foo = "bar";
     var $$2/*:package1.someOtherPackage.SomeOtherClass*/ = new SomeOtherClass._();
-    $$2.bla = ResourceManager._.getInstance().getString('Foo','bar');
+    $$2.bla = ResourceManager._.getInstance().getString("Foo","bar");
     var $$3/*:package1.someOtherPackage.SomeOtherClass*/ = new SomeOtherClass._();
     $$3.bla = 1;
-    this.items = [$$2, $$3];
+    var $$4/*:package1.someOtherPackage.SomeOtherClass*/ = new SomeOtherClass._();
+    $$4.bla = ResourceManager._.getInstance().getString("Foo","baz");
+    this.items = [$$2, $$3, $$4];
     this.number = 42;
   }/*
 

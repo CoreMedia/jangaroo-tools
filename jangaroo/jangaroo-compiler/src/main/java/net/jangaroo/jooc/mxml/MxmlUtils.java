@@ -119,6 +119,6 @@ public class MxmlUtils {
       }
     }
     // not found: add a new annotation
-    classModel.addAnnotation(new AnnotationModel(RESOURCE_BUNDLE_ANNOTATION, new AnnotationPropertyModel("", bundle)));
+    classModel.addAnnotation(new AnnotationModel(RESOURCE_BUNDLE_ANNOTATION, new AnnotationPropertyModel("", CompilerUtils.quote(bundle))));
   }
 }

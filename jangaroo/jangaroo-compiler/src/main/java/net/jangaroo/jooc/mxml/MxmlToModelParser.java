@@ -42,8 +42,8 @@ public final class MxmlToModelParser {
   public static final String MXML_SCRIPT = "Script";
   public static final String MXML_METADATA = "Metadata";
   public static final String RESOURCE_MANAGER_QNAME = "mx.resources.ResourceManager";
-  public static final Pattern AT_RESOURCE_PATTERN = Pattern.compile("^\\s*@Resource\\s*\\(\\s*bundle\\s*=\\s*(['\"][a-zA-Z0-9_$]+['\"])\\s*,\\s*key\\s*=\\s*(['\"][a-zA-Z0-9_$]+['\"])\\s*\\)\\s*$");
-  public static final String RESOURCE_ACCESS_CODE = "{%s.getInstance().getString(%s,%s)}";
+  public static final Pattern AT_RESOURCE_PATTERN = Pattern.compile("^\\s*@Resource\\s*\\(\\s*bundle\\s*=\\s*['\"]([a-zA-Z0-9_$]+)['\"]\\s*,\\s*key\\s*=\\s*['\"]([a-zA-Z0-9_$]+)['\"]\\s*\\)\\s*$");
+  public static final String RESOURCE_ACCESS_CODE = "{%s.getInstance().getString(\"%s\",\"%s\")}";
   private final JangarooParser jangarooParser;
   private int methodIndex;
 

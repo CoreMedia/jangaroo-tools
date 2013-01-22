@@ -19,6 +19,7 @@
   <items>
     <other:SomeOtherClass bla="@Resource(bundle='Foo', key='bar')"/>
     <other:SomeOtherClass bla="1"/>
+    <other:SomeOtherClass bla="@Resource(bundle='Foo', key='baz')"/>
   </items>
   <number><![CDATA[
     42
