@@ -19,6 +19,15 @@
       <artifactId>java-cup</artifactId>
     </dependency>
     <dependency>
+      <groupId>commons-configuration</groupId>
+      <artifactId>commons-configuration</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <!--<dependency>-->
+      <!--<groupId>commons-io</groupId>-->
+      <!--<artifactId>commons-io</artifactId>-->
+    <!--</dependency>-->
+    <dependency>
       <groupId>args4j</groupId>
       <artifactId>args4j</artifactId>
     </dependency>

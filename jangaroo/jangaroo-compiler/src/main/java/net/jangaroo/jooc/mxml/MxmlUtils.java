@@ -1,5 +1,8 @@
 package net.jangaroo.jooc.mxml;
 
+import net.jangaroo.jooc.model.AnnotationModel;
+import net.jangaroo.jooc.model.AnnotationPropertyModel;
+import net.jangaroo.jooc.model.ClassModel;
 import net.jangaroo.utils.AS3Type;
 import net.jangaroo.utils.CompilerUtils;
 import org.w3c.dom.Element;
@@ -16,6 +19,7 @@ import java.util.Set;
 public class MxmlUtils {
 
   private static final String MXML_NAMESPACE_URI = "http://ns.adobe.com/mxml/2009";
+  public static final String RESOURCE_BUNDLE_ANNOTATION = "ResourceBundle";
 
   public static boolean isMxmlNamespace(String uri) {
     return MXML_NAMESPACE_URI.equals(uri);
@@ -104,5 +108,17 @@ public class MxmlUtils {
     return CompilerUtils.quote(value.toString());
 
   }
-  
+
+  public static void addResourceBundleAnnotation(ClassModel classModel, String bundle) {
+    // check if already present:
+    List<AnnotationModel> annotations = classModel.getAnnotations(RESOURCE_BUNDLE_ANNOTATION);
+    for (AnnotationModel annotation : annotations) {
+      AnnotationPropertyModel propertyModel = annotation.getPropertiesByName().get("");
+      if (propertyModel != null && bundle.equals(propertyModel.getStringValue())) {
+        return; // found: bail out
+      }
+    }
+    // not found: add a new annotation
+    classModel.addAnnotation(new AnnotationModel(RESOURCE_BUNDLE_ANNOTATION, new AnnotationPropertyModel("", bundle)));
+  }
 }

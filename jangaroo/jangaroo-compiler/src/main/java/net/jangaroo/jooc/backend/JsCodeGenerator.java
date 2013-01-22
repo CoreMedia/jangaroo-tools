@@ -75,6 +75,7 @@ import net.jangaroo.jooc.config.DebugMode;
 import net.jangaroo.jooc.config.JoocConfiguration;
 import net.jangaroo.jooc.json.JsonArray;
 import net.jangaroo.jooc.json.JsonObject;
+import net.jangaroo.jooc.mxml.MxmlUtils;
 import net.jangaroo.jooc.sym;
 import net.jangaroo.utils.CompilerUtils;
 
@@ -355,6 +356,17 @@ public class JsCodeGenerator extends CodeGeneratorBase {
             && ((ClassDeclaration) primaryDeclaration).isInterface();
     out.write("define([\"exports\",\"runtime/AS3\"");
     Set<String> useQName = collectAndWriteDependencies(compilationUnit);
+    for (Annotation annotation : compilationUnit.getAnnotations()) {
+      if (MxmlUtils.RESOURCE_BUNDLE_ANNOTATION.equals(annotation.getMetaName())) {
+        AstNode bundleNameNode = annotation.getValue();
+        if (bundleNameNode instanceof LiteralExpr) {
+          String bundleName = ((LiteralExpr) bundleNameNode).getValue().getJooValue().toString();
+          out.write(String.format(",\"bundle!%s\"", bundleName));
+        } else {
+          Jooc.warning(annotation.getSymbol(), "[" + MxmlUtils.RESOURCE_BUNDLE_ANNOTATION + "] annotation without value; ignored.");
+        }
+      }
+    }
     for (String annotation : compilationUnit.getUsedAnnotations()) {
       if (ANNOTATIONS_TO_KEEP_AT_RUNTIME.contains(annotation)) {
         out.write(",\"metadata/" + annotation + "\"");

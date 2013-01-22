@@ -11,6 +11,12 @@ public dynamic class JavaScriptObject {
    * @param config the JSON object to copy into this JavaScriptObject. If no JSON object is given, this JavaScriptObject
    *   is initially empty.
    */
-  public native function JavaScriptObject(config:Object = null);
+  public function JavaScriptObject(config:Object = null) {
+    if (config) {
+      for (var m:String in config) {
+        this[m] = config[m];
+      }
+    }
+  }
 }
 }

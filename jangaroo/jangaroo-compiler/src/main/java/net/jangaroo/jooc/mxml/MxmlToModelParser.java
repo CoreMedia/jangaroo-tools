@@ -32,6 +32,8 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 public final class MxmlToModelParser {
@@ -39,6 +41,9 @@ public final class MxmlToModelParser {
   public static final String MXML_DECLARATIONS = "Declarations";
   public static final String MXML_SCRIPT = "Script";
   public static final String MXML_METADATA = "Metadata";
+  public static final String RESOURCE_MANAGER_QNAME = "mx.resources.ResourceManager";
+  public static final Pattern AT_RESOURCE_PATTERN = Pattern.compile("^\\s*@Resource\\s*\\(\\s*bundle\\s*=\\s*(['\"][a-zA-Z0-9_$]+['\"])\\s*,\\s*key\\s*=\\s*(['\"][a-zA-Z0-9_$]+['\"])\\s*\\)\\s*$");
+  public static final String RESOURCE_ACCESS_CODE = "{%s.getInstance().getString(%s,%s)}";
   private final JangarooParser jangarooParser;
   private int methodIndex;
 
@@ -237,6 +242,14 @@ public final class MxmlToModelParser {
                 .append(eventHandlerName).append(");");
         return;
       }
+    }
+    Matcher resourceBundleMatcher = AT_RESOURCE_PATTERN.matcher(value);
+    if (resourceBundleMatcher.matches()) {
+      String bundle = resourceBundleMatcher.group(1);
+      String key = resourceBundleMatcher.group(2);
+      value = String.format(RESOURCE_ACCESS_CODE, RESOURCE_MANAGER_QNAME, bundle, key);
+      compilationUnitModel.addImport(RESOURCE_MANAGER_QNAME);
+      MxmlUtils.addResourceBundleAnnotation(compilationUnitModel.getClassModel(), bundle);
     }
     Object attributeValue = MxmlUtils.getAttributeValue(value,
             propertyModel == null ? null : propertyModel.getType());

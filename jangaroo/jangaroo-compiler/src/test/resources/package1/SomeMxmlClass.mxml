@@ -17,7 +17,7 @@
     -->
   </fx:Declarations>
   <items>
-    <other:SomeOtherClass bla="42"/>
+    <other:SomeOtherClass bla="@Resource(bundle='Foo', key='bar')"/>
     <other:SomeOtherClass bla="1"/>
   </items>
   <number><![CDATA[

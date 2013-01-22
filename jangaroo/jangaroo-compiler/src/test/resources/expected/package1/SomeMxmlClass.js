@@ -1,8 +1,10 @@
-define(["exports","runtime/AS3","classes/package1/ConfigClass","classes/joo/addEventListener","classes/package1/someOtherPackage/SomeEvent","classes/package1/someOtherPackage/SomeOtherClass"], function($exports,AS3,ConfigClass,addEventListener,SomeEvent,SomeOtherClass) { AS3.compilationUnit($exports, function($primaryDeclaration){/*package package1 {
+define(["exports","runtime/AS3","classes/package1/ConfigClass","classes/joo/addEventListener","classes/package1/someOtherPackage/SomeEvent","classes/package1/someOtherPackage/SomeOtherClass","classes/mx/resources/ResourceManager","bundle!Foo"], function($exports,AS3,ConfigClass,addEventListener,SomeEvent,SomeOtherClass,ResourceManager) { AS3.compilationUnit($exports, function($primaryDeclaration){/*package package1 {
 import package1.someOtherPackage.SomeEvent;
 import joo.addEventListener;
 import package1.someOtherPackage.SomeOtherClass;
+import mx.resources.ResourceManager;
 
+[ResourceBundle('Foo')]
 public class SomeMxmlClass extends package1.ConfigClass {
     import foo.Bar;
   
@@ -29,7 +31,7 @@ public class SomeMxmlClass extends package1.ConfigClass {
     addEventListener._(this, 'click', SomeEvent._, AS3.bind(this,"___on_click1"));
     this.foo = "bar";
     var $$2/*:package1.someOtherPackage.SomeOtherClass*/ = new SomeOtherClass._();
-    $$2.bla = 42;
+    $$2.bla = ResourceManager._.getInstance().getString('Foo','bar');
     var $$3/*:package1.someOtherPackage.SomeOtherClass*/ = new SomeOtherClass._();
     $$3.bla = 1;
     this.items = [$$2, $$3];
@@ -46,6 +48,7 @@ public class SomeMxmlClass extends package1.ConfigClass {
     var Super=ConfigClass._;
     $primaryDeclaration(AS3.class_({
       package_: "package1",
+      metadata: {ResourceBundle: {$value: "Foo"}},
       class_: "SomeMxmlClass",
       extends_: Super,
       members: {

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2009, CoreMedia AG, Hamburg. All rights reserved.
  */
-package net.jangaroo.jooc.mvnplugin;
+package net.jangaroo.exml.mojo;
 
 import net.jangaroo.utils.FileLocations;
 import net.jangaroo.properties.api.PropcException;

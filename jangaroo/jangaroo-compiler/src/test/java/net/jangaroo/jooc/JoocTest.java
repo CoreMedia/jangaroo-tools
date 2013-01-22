@@ -235,6 +235,11 @@ public class JoocTest {
     assertCompilationResult("package1/SomeMxmlClass", ".mxml");
   }
 
+  @Test
+  public void testProperties() throws Exception {
+    assertCompilationResult("locale/de_DE/Test", ".properties");
+  }
+
   private void assertApiCompilationResult(String path, String expectPath) throws URISyntaxException, IOException {
     File sourcefile = getFile("/" + path + ".as");
     config.addSourceFile(sourcefile);

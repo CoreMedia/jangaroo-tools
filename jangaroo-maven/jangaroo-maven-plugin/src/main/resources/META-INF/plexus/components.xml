@@ -28,8 +28,6 @@
       <implementation>org.apache.maven.lifecycle.mapping.DefaultLifecycleMapping</implementation>
       <configuration>
         <phases>
-          <generate-sources>net.jangaroo:jangaroo-maven-plugin:${pom.version}:properties
-          </generate-sources>
           <process-resources>org.apache.maven.plugins:maven-resources-plugin:resources</process-resources>
           <compile>net.jangaroo:jangaroo-maven-plugin:${pom.version}:compile</compile>
           <process-test-resources>org.apache.maven.plugins:maven-resources-plugin:testResources</process-test-resources>

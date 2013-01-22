@@ -30,6 +30,7 @@ import net.jangaroo.jooc.input.FileInputSource;
 import net.jangaroo.jooc.input.InputSource;
 import net.jangaroo.jooc.input.PathInputSource;
 import net.jangaroo.jooc.input.ZipEntryInputSource;
+import net.jangaroo.jooc.properties.PropertiesCompiler;
 
 import java.io.File;
 import java.io.IOException;
@@ -45,9 +46,6 @@ import java.util.List;
  */
 public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
 
-  public static final String CLASS_LOADER_NAME = "classLoader";
-  public static final String CLASS_LOADER_PACKAGE_NAME = "joo";
-  public static final String CLASS_LOADER_FULLY_QUALIFIED_NAME = CLASS_LOADER_PACKAGE_NAME + "." + CLASS_LOADER_NAME;
   public static final String PUBLIC_API_EXCLUSION_ANNOTATION_NAME = "ExcludeClass";
   public static final String PUBLIC_API_INCLUSION_ANNOTATION_NAME = "PublicApi";
   public static final String NATIVE_ANNOTATION_NAME = "Native";
@@ -104,10 +102,15 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
 
     setUp(sourcePathInputSource, classPathInputSource);
 
+    PropertiesCompiler propertiesCompiler = new PropertiesCompiler(getConfig());
     HashMap<File, File> outputFileMap = new HashMap<File, File>();
     try {
       for (File sourceFile : getConfig().getSourceFiles()) {
-        processSource(sourceFile);
+        if (sourceFile.getName().endsWith(Jooc.PROPERTIES_SUFFIX)) {
+          outputFileMap.put(sourceFile, propertiesCompiler.generate(sourceFile));
+        } else {
+          processSource(sourceFile);
+        }
       }
 
       CompilationUnitSinkFactory codeSinkFactory = createSinkFactory(getConfig(), false);
