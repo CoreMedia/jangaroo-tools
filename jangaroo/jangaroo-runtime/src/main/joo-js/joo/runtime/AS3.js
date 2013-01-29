@@ -1,7 +1,24 @@
 //define(["./es5-polyfills"], function() {
-define(function() {
+define(["require"], function(require) {
   //"use strict"; // sorry, we need context-agnostic access to the global object!
   var window = (function(){return this})();
+
+  function getNative(qName) {
+    var parts = qName.split(".");
+    var current = window;
+    for (var i = 0; current && i < parts.length; i++) {
+      current = current[parts[i]];
+    }
+    return current;
+  }
+  function retrievePrimaryDeclaration(compilationUnit) {
+    return compilationUnit._;
+  }
+  function getQualifiedObject(qName) {
+    // try native first, then require corresponding module synchronously:
+    return getNative(qName) || retrievePrimaryDeclaration(require(getModuleName(qName)));
+  }
+
   // alias for global package to avoid name-clashes between top-level classes and JavaScript global identifiers:
   window.js = window;
 
@@ -20,6 +37,7 @@ define(function() {
 
   // Jangaroo namespace
   window.joo = {
+    baseUrl: "", // TODO: require.baseUrl - "joo"
     // helper variable for flash.utils.getTimer():
     startTime: new Date().getTime(),
     // built-in Error constructor called as function unfortunately always creates a new Error object,
@@ -27,6 +45,17 @@ define(function() {
     Error: function(message/*String*/, id/*:int*/) {
       this.message = message || "";
       this.id = id >> 0;
+    },
+    getQualifiedObject: getQualifiedObject,
+    loadClass: function loadClass(qName, callback) {
+      require([getModuleName(qName)], function(clazz) {
+        callback(retrievePrimaryDeclaration(clazz));
+      });
+    },
+    loadClasses: function loadClasses(qNames, callback) {
+      require(qNames.map(getModuleName), function() {
+        callback(Array.prototype.map.call(arguments, retrievePrimaryDeclaration));
+      });
     },
     // add event listener using Ext JS config object style:
     addEventListener: function addEventListener(config, eventName, eventType, callback) {
@@ -82,7 +111,7 @@ define(function() {
     metadataHandlers[handler.metadata] = handler;
   }
   function handleMetadata(value) {
-    if (value.$class) {
+    if (value && value.$class) {
       var metadata = value.$class.metadata;
       if (metadata) {
         for (var key in metadata) {
@@ -99,15 +128,20 @@ define(function() {
     return "classes/" + qName.replace(/\./g, "/");
   }
   function compilationUnit(exports, definingCode) {
+    function getter() {
+      var result;
+      definingCode(function(value) {
+        result = convertShortcut(value);
+        Object.defineProperty(exports, "_", result);
+      });
+      return handleMetadata(result.value);
+    }
     Object.defineProperty(exports, "_", {
       configurable: true,
-      get: function() {
-        var result;
-        definingCode(function(value) {
-          result = convertShortcut(value);
-          Object.defineProperty(exports, "_", result);
-        });
-        return handleMetadata(result.value);
+      get: getter,
+      set: function(value) {
+        getter(); // initialize, but ignore resulting value as it is overwritten immediately!
+        exports._ = value;
       }
     });
   }
@@ -235,6 +269,7 @@ define(function() {
     bind: bind,
     assert: assert,
     registerMetadataHandler: registerMetadataHandler,
-    getModuleName: getModuleName
+    getModuleName: getModuleName,
+    getQualifiedObject: getQualifiedObject
   }
 });
