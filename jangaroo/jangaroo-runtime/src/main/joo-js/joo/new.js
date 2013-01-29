@@ -1,7 +1,11 @@
 define(function() {
-  var debug = typeof location === "object" &&
-          typeof location.hash === "string" &&
-          !!location.hash.match(/(^#|&)joo.debug(=true|&|$)/);
+  var debug = "false";
+  if (typeof location === "object" && typeof location.hash === "string") {
+    var match = location.hash.match(/(?:^#|&)joo.debug(?:=(true|false|linked)|&|$)/);
+    if (match) {
+      debug = match[1] || "true";
+    }
+  }
   "use strict";
   return {
     normalize: function (name, normalize) {
@@ -14,10 +18,10 @@ define(function() {
           load(new value._(config.config));
         });
       }
-      if (debug) {
-        loadAndNew();
-      } else {
-        req(["application"], loadAndNew);
+      switch (debug) {
+        case "true":   loadAndNew(); break;
+        case "linked": req(["application"], loadAndNew); break;
+        case "false":  req(["application-min"], loadAndNew); break;
       }
     }
   };
