@@ -46,21 +46,19 @@ public class PropertyClassGeneratorTest {
 
     generator.generatePropertiesClass(pc, writer);
     assertEquals(("package testPackage {\n" +
-      "import joo.ResourceBundleAwareClassLoader;\n" +
       "import joo.JavaScriptObject;\n" +
       "\n" +
       "/**\n" +
       " * Properties class for ResourceBundle \"PropertiesTest\".\n" +
       " * @see PropertiesTest_properties#INSTANCE\n" +
       " */\n" +
-      "[ResourceBundle('PropertiesTest')]\n" +
       "public class PropertiesTest_properties extends joo.JavaScriptObject {\n" +
       "\n" +
       "/**\n" +
       " * Singleton for the current user Locale's instance of ResourceBundle \"PropertiesTest\".\n" +
       " * @see PropertiesTest_properties\n" +
       " */\n" +
-      "public static const INSTANCE:PropertiesTest_properties = ResourceBundleAwareClassLoader.INSTANCE.createSingleton(PropertiesTest_properties) as PropertiesTest_properties;\n" +
+      "public static const INSTANCE:PropertiesTest_properties = new PropertiesTest_properties();\n" +
       "\n" +
       "[Resource(key='key',bundle='PropertiesTest')]\n" +
       "public native function get key():String;\n" +
@@ -84,7 +82,6 @@ public class PropertyClassGeneratorTest {
         " * Properties class for ResourceBundle \"PropertiesTest\" and Locale \"en\".\n" +
         " * @see PropertiesTest_properties#INSTANCE\n" +
         " */\n" +
-        "[ResourceBundle('PropertiesTest_en')]\n" +
         "public class PropertiesTest_properties_en extends PropertiesTest_properties {\n" +
         "\n" +
         "\n" +

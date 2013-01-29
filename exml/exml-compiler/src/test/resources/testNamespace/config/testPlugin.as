@@ -1,6 +1,6 @@
 package testNamespace.config {
 
-import joo.JavaScriptObject;
+import ext.config.plugin;
 
 // Do not edit. This is an auto-generated class.
 
@@ -15,7 +15,7 @@ import joo.JavaScriptObject;
  * @see testPackage.TestPlugin
  */
 [ExtConfig(target="testPackage.TestPlugin", ptype)]
-public dynamic class testPlugin extends joo.JavaScriptObject {
+public dynamic class testPlugin extends ext.config.plugin {
 
   public static native function get ptype():String;
 

@@ -233,6 +233,10 @@ public class CompilationUnit extends NodeImplBase {
     return packageDeclaration.getSymbol();
   }
 
+  public void addDependency(String otherUnitQName) {
+    addDependency(getCompiler().getCompilationsUnit(otherUnitQName));
+  }
+
   public void addDependency(CompilationUnit otherUnit) {
     // predefined ides have a null unit
     if (otherUnit != null && otherUnit != this && otherUnit.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME) == null) {

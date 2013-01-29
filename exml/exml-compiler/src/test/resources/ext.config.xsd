@@ -251,4 +251,11 @@
   </xs:complexType>
   <xs:element name='panel' type='ec:ext.config.panel' substitutionGroup='ec:component'>
   </xs:element>
+  <xs:complexType name='ext.config.plugin'>
+        <xs:sequence>
+        </xs:sequence>
+        <xs:anyAttribute namespace="http://www.jangaroo.net/exml/0.8 exml:untyped" processContents="skip"/>
+  </xs:complexType>
+  <xs:element name='plugin' type='ec:ext.config.plugin'>
+  </xs:element>
 </xs:schema>

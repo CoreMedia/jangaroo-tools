@@ -89,6 +89,12 @@ public class AnnotationParameter extends NodeImplBase {
                 valueSymbol.getLine(), valueSymbol.getColumn(), valueSymbol.getWhitespace(),
                 quote + absoluteSource + quote,
                 absoluteSource));
+      } else if ("ExtConfig".equals(metaName) && optName != null && "target".equals(optName.getName())) {
+        // special case: [ExtConfig(target="...")] must trigger a dependency to the target class!
+        Object targetClassName = value.getSymbol().getJooValue();
+        if (targetClassName instanceof String) {
+          compilationUnit.addDependency((String) targetClassName);
+        }
       }
     }
   }

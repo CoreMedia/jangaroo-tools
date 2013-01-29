@@ -106,7 +106,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   private static final JooSymbol SYM_LBRACK = new JooSymbol(sym.LBRACK, "[");
   private static final JooSymbol SYM_RBRACK = new JooSymbol(sym.RBRACK, "]");
   public static final Set<String> PRIMITIVES = new HashSet<String>(4);
-  public static final List<String> ANNOTATIONS_TO_KEEP_AT_RUNTIME = Arrays.asList("SWF"); // TODO: inject / make configurable
+  public static final List<String> ANNOTATIONS_TO_KEEP_AT_RUNTIME = Arrays.asList("SWF", "ExtConfig"); // TODO: inject / make configurable
 
   static {
     PRIMITIVES.add("Boolean");
@@ -311,7 +311,6 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       value = ((LiteralExpr) optValue).getValue().getJooValue();
     } else if (optValue instanceof Ide) {
       IdeDeclaration ideDeclaration = ((Ide) optValue).getDeclaration();
-      compilationUnit.addDependency(ideDeclaration.getCompilationUnit());
       value = CompilerUtils.createCodeExpression(compilationUnitAccessCode(ideDeclaration));
     } else {
       value = null;
@@ -461,7 +460,8 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     Set<String> useQName = new HashSet<String>();
     for (CompilationUnit dependentCU : compilationUnit.getDependenciesAsCompilationUnits()) {
       IdeDeclaration dependentDeclaration = dependentCU.getPrimaryDeclaration();
-      out.write(",\"classes/" + CompilerUtils.fileNameFromQName(dependentDeclaration.getQualifiedNameStr(), '/', "") + "\"");
+      String qName = dependentDeclaration.getQualifiedNameStr();
+      out.write(",\"classes/" + CompilerUtils.fileNameFromQName(qName, '/', "") + "\"");
       String importedName = dependentDeclaration.getName();
       if (usedNames.containsKey(importedName)) {
         IdeDeclaration previousDeclaration = usedNames.get(importedName);
@@ -469,7 +469,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
           useQName.add(previousDeclaration.getQualifiedNameStr());
           usedNames.put(importedName, null);
         }
-        useQName.add(dependentDeclaration.getQualifiedNameStr());
+        useQName.add(qName);
       } else {
         usedNames.put(importedName, dependentDeclaration);
       }

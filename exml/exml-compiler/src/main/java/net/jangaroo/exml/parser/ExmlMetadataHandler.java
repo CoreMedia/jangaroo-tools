@@ -36,6 +36,16 @@ public class ExmlMetadataHandler extends CharacterRecordingHandler {
       put(Exmlc.EXML_GRID_COLUMN_NODE_NAME, ConfigClassType.GCTYPE);
     }
   });
+  private static final Map<ConfigClassType,String> EXML_CONFIG_CLASS_TYPE_TO_CONFIG_SUPER_CLASS
+    = Collections.unmodifiableMap(new HashMap<ConfigClassType,String>() {
+    {
+      put(ConfigClassType.XTYPE, "ext.config.component");
+      put(ConfigClassType.PTYPE, "ext.config.plugin");
+      put(ConfigClassType.TYPE, "ext.config.containerlayout");
+      put(ConfigClassType.GCTYPE, "ext.config.gridcolumn");
+      put(null, "joo.JavaScriptObject");
+    }
+  });
 
   private ConfigClass configClass;
   private Locator locator;
@@ -156,8 +166,8 @@ public class ExmlMetadataHandler extends CharacterRecordingHandler {
         }
       }
       if (elementPath.isEmpty() && configClass.getSuperClassName() == null) {
-        // if nothing else is specified, extend JavaScriptObject:
-        configClass.setSuperClassName("joo.JavaScriptObject");
+        // if nothing else is specified, extend default top-level config class of type:
+        configClass.setSuperClassName(EXML_CONFIG_CLASS_TYPE_TO_CONFIG_SUPER_CLASS.get(configClass.getType()));
       }
     }
   }
