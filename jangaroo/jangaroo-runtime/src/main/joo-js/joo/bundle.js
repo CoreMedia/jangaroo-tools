@@ -64,7 +64,6 @@
           var maybeLoad = masterConfig.localeChain.map(localeToModuleName);
           for (var i = 0; i < maybeLoad.length; i++) {
             var moduleName = maybeLoad[i];
-            console.log("module name: " + moduleName + " / url " + req.toUrl(moduleName));
             if (require._fileExists(req.toUrl(moduleName))) {
               toLoad.push(moduleName);
             }
