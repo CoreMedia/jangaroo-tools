@@ -107,7 +107,12 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
     try {
       for (File sourceFile : getConfig().getSourceFiles()) {
         if (sourceFile.getName().endsWith(Jooc.PROPERTIES_SUFFIX)) {
-          outputFileMap.put(sourceFile, propertiesCompiler.generate(sourceFile));
+          if (sourceFile.getParentFile() != null &&
+                  sourceFile.getParentFile().getParentFile() != null &&
+                  // TODO: make locale source path configurable!
+                  "locale".equals(sourceFile.getParentFile().getParentFile().getName())) {
+            outputFileMap.put(sourceFile, propertiesCompiler.generate(sourceFile));
+          }
         } else {
           processSource(sourceFile);
         }
