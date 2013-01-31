@@ -439,17 +439,19 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
   private void writeDependencyParameters(CompilationUnit compilationUnit, Set<String> useQName) throws IOException {
     for (CompilationUnit dependentCU : compilationUnit.getDependenciesAsCompilationUnits()) {
-      IdeDeclaration dependentDeclaration = dependentCU.getPrimaryDeclaration();
-      String dependentDeclarationQName = dependentDeclaration.getQualifiedNameStr();
-      String importedName = useQName.contains(dependentDeclarationQName)
-              ? dependentDeclarationQName.replace(".", "$")
-              : dependentDeclaration.getName();
-      importedName = convertIdentifier(importedName);
-      out.write("," + importedName);
-      if (!(dependentDeclaration instanceof ClassDeclaration && ((ClassDeclaration)dependentDeclaration).isInterface())) {
-        importedName = COMPILATION_UNIT_ACCESS_MESSAGE_FORMAT.format(importedName);
+      if (dependentCU.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME) == null) {
+        IdeDeclaration dependentDeclaration = dependentCU.getPrimaryDeclaration();
+        String dependentDeclarationQName = dependentDeclaration.getQualifiedNameStr();
+        String importedName = useQName.contains(dependentDeclarationQName)
+                ? dependentDeclarationQName.replace(".", "$")
+                : dependentDeclaration.getName();
+        importedName = convertIdentifier(importedName);
+        out.write("," + importedName);
+        if (!(dependentDeclaration instanceof ClassDeclaration && ((ClassDeclaration)dependentDeclaration).isInterface())) {
+          importedName = COMPILATION_UNIT_ACCESS_MESSAGE_FORMAT.format(importedName);
+        }
+        imports.put(dependentDeclarationQName, importedName);
       }
-      imports.put(dependentDeclarationQName, importedName);
     }
   }
 
@@ -459,19 +461,34 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     usedNames.put(compilationUnit.getPrimaryDeclaration().getName(), null);
     Set<String> useQName = new HashSet<String>();
     for (CompilationUnit dependentCU : compilationUnit.getDependenciesAsCompilationUnits()) {
-      IdeDeclaration dependentDeclaration = dependentCU.getPrimaryDeclaration();
-      String qName = dependentDeclaration.getQualifiedNameStr();
-      out.write(",\"classes/" + CompilerUtils.fileNameFromQName(qName, '/', "") + "\"");
-      String importedName = dependentDeclaration.getName();
-      if (usedNames.containsKey(importedName)) {
-        IdeDeclaration previousDeclaration = usedNames.get(importedName);
-        if (previousDeclaration != null) {
-          useQName.add(previousDeclaration.getQualifiedNameStr());
-          usedNames.put(importedName, null);
+      if (dependentCU.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME) == null) {
+        IdeDeclaration dependentDeclaration = dependentCU.getPrimaryDeclaration();
+        String qName = dependentDeclaration.getQualifiedNameStr();
+        out.write(",\"classes/" + CompilerUtils.fileNameFromQName(qName, '/', "") + "\"");
+        String importedName = dependentDeclaration.getName();
+        if (usedNames.containsKey(importedName)) {
+          IdeDeclaration previousDeclaration = usedNames.get(importedName);
+          if (previousDeclaration != null) {
+            useQName.add(previousDeclaration.getQualifiedNameStr());
+            usedNames.put(importedName, null);
+          }
+          useQName.add(qName);
+        } else {
+          usedNames.put(importedName, dependentDeclaration);
         }
-        useQName.add(qName);
-      } else {
-        usedNames.put(importedName, dependentDeclaration);
+      }
+    }
+    for (CompilationUnit dependentCU : compilationUnit.getDependenciesAsCompilationUnits()) {
+      Annotation annotation = dependentCU.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME);
+      if (annotation != null) {
+        CommaSeparatedList<AnnotationParameter> annotationParameters = annotation.getOptAnnotationParameters();
+        while (annotationParameters != null) {
+          if (annotationParameters.getHead().getOptName() != null && "amd".equals(annotationParameters.getHead().getOptName().getName())) {
+            out.write(",\"" + annotationParameters.getHead().getValue().getSymbol().getJooValue() + "\"");
+            break;
+          }
+          annotationParameters = annotationParameters.getTail();
+        }
       }
     }
     return useQName;

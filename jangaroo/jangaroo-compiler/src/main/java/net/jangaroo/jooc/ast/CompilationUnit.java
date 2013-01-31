@@ -239,7 +239,7 @@ public class CompilationUnit extends NodeImplBase {
 
   public void addDependency(CompilationUnit otherUnit) {
     // predefined ides have a null unit
-    if (otherUnit != null && otherUnit != this && otherUnit.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME) == null) {
+    if (otherUnit != null && otherUnit != this) {
       String qname = otherUnit.getPrimaryDeclaration().getQualifiedNameStr();
       dependencies.put(qname, otherUnit);
     }

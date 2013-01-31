@@ -3,7 +3,7 @@ package package1 {
 /**
  * This is an example of an API-only class ("native API stub").
  */
-[Native]
+[Native(amd = "acme/native")]
 public class SomeNativeClass {
   /**
    * Some constructor doc.

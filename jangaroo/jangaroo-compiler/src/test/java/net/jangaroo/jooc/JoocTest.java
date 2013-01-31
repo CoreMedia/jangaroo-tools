@@ -222,6 +222,11 @@ public class JoocTest {
   }
 
   @Test
+  public void testUsingNativeClass() throws Exception {
+    assertCompilationResult("package1/UsingSomeNativeClass");
+  }
+
+  @Test
   public void testClassWithNamespacedMembers() throws Exception {
     assertApiCompilationResult("package1/someOtherPackage/NamespacedMembers");
   }
