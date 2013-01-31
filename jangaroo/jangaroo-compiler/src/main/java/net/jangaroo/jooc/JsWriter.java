@@ -328,14 +328,14 @@ public final class JsWriter extends FilterWriter {
           SymbolToOutputFilePosition previousMapping = sourceMappings.get(sourceMappings.size() - 1);
           if (previousMapping.symbol.getLine() == symbol.getLine()) {
             previousMapping.setOutputFileEndPosition(outputFileEndPosition);
-            System.out.println("*#*#*# found another symbol, updated mapping " + previousMapping);
+            //System.out.println("*#*#*# found another symbol, updated mapping " + previousMapping);
             return;
           }
         }
         SymbolToOutputFilePosition symbolToOutputFilePosition =
                 new SymbolToOutputFilePosition(symbol, outputStartPosition, outputFileEndPosition);
         sourceMappings.add(symbolToOutputFilePosition);
-        System.out.println("*#*#*# map source: " + symbolToOutputFilePosition);
+        //System.out.println("*#*#*# map source: " + symbolToOutputFilePosition);
       }
     }
   }
