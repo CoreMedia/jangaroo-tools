@@ -217,11 +217,11 @@ public final class MxmlToModelParser {
     return element.getChildNodes().getLength() == 1 && element.getFirstChild().getNodeType() == Node.TEXT_NODE ? ((Text) element.getFirstChild()).getData() : "";
   }
 
-  private void createPropertyAssigmentCode(CompilationUnitModel compilationUnitModel, StringBuilder code, String variable, CompilationUnitModel type, String propertyName, String value) {
+  private void createPropertyAssigmentCode(CompilationUnitModel compilationUnitModel, StringBuilder code, String variable, CompilationUnitModel type, String propertyName, String value) throws IOException {
     MemberModel propertyModel = type == null ? null : type.getClassModel().getMember(propertyName);
     if (propertyModel == null && type != null) {
       // is it an event?
-      AnnotationModel event = type.getClassModel().getEvent(propertyName);
+      AnnotationModel event = getEvent(type, propertyName);
       if (event != null) {
         AnnotationPropertyModel eventType = event.getPropertiesByName().get("type");
         String eventTypeStr = eventType == null ? "Object" : eventType.getStringValue();
@@ -242,6 +242,16 @@ public final class MxmlToModelParser {
             propertyModel == null ? null : propertyModel.getType());
     code.append("\n    ").append(variable).append(".").append(propertyName).append(" = ")
             .append(MxmlUtils.valueToString(attributeValue)).append(";");
+  }
+
+  private AnnotationModel getEvent(CompilationUnitModel type, String propertyName) throws IOException {
+    ClassModel classModel = type.getClassModel();
+    AnnotationModel event = classModel.getEvent(propertyName);
+    if (event == null && classModel.getSuperclass() != null) {
+      CompilationUnitModel superCUM = getCompilationUnitModel(classModel.getSuperclass());
+      return getEvent(superCUM, propertyName);
+    }
+    return event;
   }
 
 
