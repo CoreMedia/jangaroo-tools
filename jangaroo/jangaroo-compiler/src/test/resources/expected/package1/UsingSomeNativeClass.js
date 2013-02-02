@@ -1,11 +1,11 @@
-define(["exports","runtime/AS3","acme/native"], function($exports,AS3) { AS3.compilationUnit($exports, function($primaryDeclaration){/*package package1 {
+define(["exports","runtime/AS3","native!package1.SomeNativeClass@acme/native"], function($exports,AS3,SomeNativeClass) { AS3.compilationUnit($exports, function($primaryDeclaration){/*package package1 {
 
 /**
  * This is an example of a class using a "native" class.
  * /
 public class UsingSomeNativeClass {
 
-  public var someNative:SomeNativeClass =*/function someNative_(){this.someNative=( new package1.SomeNativeClass());}/*;
+  public var someNative:SomeNativeClass =*/function someNative_(){this.someNative=( new SomeNativeClass());}/*;
 
 }*/function UsingSomeNativeClass() {someNative_.call(this);}/*
 }
