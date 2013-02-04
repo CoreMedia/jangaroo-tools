@@ -227,6 +227,11 @@ public class JoocTest {
   }
 
   @Test
+  public void testUsingEmbed() throws Exception {
+    assertCompilationResult("package1/UsingEmbed");
+  }
+
+  @Test
   public void testClassWithNamespacedMembers() throws Exception {
     assertApiCompilationResult("package1/someOtherPackage/NamespacedMembers");
   }

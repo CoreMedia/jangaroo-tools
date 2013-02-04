@@ -17,7 +17,6 @@ package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
-import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.input.InputSource;
 import net.jangaroo.utils.AS3Type;
@@ -45,6 +44,7 @@ public class CompilationUnit extends NodeImplBase {
   private JooSymbol rBrace;
 
   private Map<String, CompilationUnit> dependencies = new LinkedHashMap<String, CompilationUnit>();
+  private List<String> resourceDependencies = new ArrayList<String>();
   private Set<String> publicApiDependencies = new HashSet<String>();
   private Set<String> usedBuiltIns = new LinkedHashSet<String>();
   private Scope scope;
@@ -168,6 +168,10 @@ public class CompilationUnit extends NodeImplBase {
     return dependencies.keySet();
   }
 
+  public List<String> getResourceDependencies() {
+    return resourceDependencies;
+  }
+
   public Set<String> getPublicApiDependencies() {
     return publicApiDependencies;
   }
@@ -275,7 +279,7 @@ public class CompilationUnit extends NodeImplBase {
     if (path.startsWith("/")) {
       path = path.substring(1);
     }
-    // dependencies.put("resource:" + path, null); TODO: replace by RequireJS plugin "text!path"
+    resourceDependencies.add("text!" + path); // TODO: other resource types need other RequireJS plugins!
     return path;
   }
 

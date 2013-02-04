@@ -351,6 +351,9 @@ public class JsCodeGenerator extends CodeGeneratorBase {
             && ((ClassDeclaration) primaryDeclaration).isInterface();
     out.write("define([\"exports\",\"runtime/AS3\"");
     Set<String> useQName = collectAndWriteDependencies(compilationUnit);
+    for (String resourceDependency : compilationUnit.getResourceDependencies()) {
+      out.write(",\"" + resourceDependency + "\"");
+    }
     for (Annotation annotation : compilationUnit.getAnnotations()) {
       if (MxmlUtils.RESOURCE_BUNDLE_ANNOTATION.equals(annotation.getMetaName())) {
         AstNode bundleNameNode = annotation.getValue();
@@ -369,6 +372,10 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     }
     out.write("], function($exports,AS3");
     writeDependencyParameters(compilationUnit, useQName);
+    int resourceDependencyCount = compilationUnit.getResourceDependencies().size();
+    for (int i = 0; i < resourceDependencyCount; i++) {
+      out.write(",$resource_" + i);
+    }
     out.write(") { ");
     // out.write("\"use strict\"; "); // disallows e.g. "arguments" as parameter name!
     out.write("AS3.");
@@ -1278,8 +1285,15 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       Initializer optInitializer = variableDeclaration.getOptInitializer();
       if (optInitializer == null) {
         if (variableDeclaration.isPrimaryDeclaration() || variableDeclaration.isPrivateStatic()) {
-          TypeRelation typeRelation = variableDeclaration.getOptTypeRelation();
-          String value = VariableDeclaration.getDefaultValue(typeRelation);
+          String value;
+          if (currentMetadata.get("Embed") != null) {
+            String source = (String) ((JsonObject) currentMetadata.get("Embed")).get("source");
+            int index = compilationUnit.getResourceDependencies().indexOf("text!" + source);
+            value = "function(){return $resource_" + index + "}";
+          } else {
+            TypeRelation typeRelation = variableDeclaration.getOptTypeRelation();
+            value = VariableDeclaration.getDefaultValue(typeRelation);
+          }
           if (value != null) {
             out.write("=" + value);
           }
@@ -1317,6 +1331,10 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       String value;
       if (variableDeclaration.getOptInitializer() != null) {
         value = ((LiteralExpr) variableDeclaration.getOptInitializer().getValue()).getValue().getText(); // TODO: may be a more complex expression, see above!
+      } else if (currentMetadata.get("Embed") != null) {
+        String source = (String) ((JsonObject) currentMetadata.get("Embed")).get("source");
+        int index = compilationUnit.getResourceDependencies().indexOf("text!" + source);
+        value = "function(){return $resource_" + index + "}";
       } else {
         TypeRelation typeRelation = variableDeclaration.getOptTypeRelation();
         value = VariableDeclaration.getDefaultValue(typeRelation);
