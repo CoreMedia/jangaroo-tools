@@ -1,5 +1,6 @@
 package {
 
+[Native(amd)]
 /**
  * The uint class provides methods for working with a data type representing a 32-bit unsigned integer. Because an unsigned integer can only be positive, its maximum value is twice that of the int class.
  * <p>The range of values represented by the uint class is 0 to 4,294,967,295 (2^32-1).</p>
@@ -23,7 +24,6 @@ package {
  * @see http://help.adobe.com/en_US/as3/learn/WS5b3ccc516d4fbf351e63e3d118a9b90204-7f87.html Type conversions
  *
  */
-[Native]
 public final class uint {
   /**
    * Creates a new uint object. You can create a variable of uint type and assign it a literal value. The <code>new uint()</code> constructor is primarily used as a placeholder. A uint object is not the same as the <code>uint()</code> function, which converts a parameter to a primitive value.

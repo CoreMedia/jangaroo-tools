@@ -1,4 +1,6 @@
 package joo {
+
+[Native(amd)]
 public function addEventListener(config:Object, eventName:String, eventType:Class, callback:Function, scope:Object = null):void {
   if (!config.listeners) {
     config.listeners = {};

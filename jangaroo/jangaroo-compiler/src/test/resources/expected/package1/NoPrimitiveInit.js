@@ -6,7 +6,7 @@ public class NoPrimitiveInit {
   }/*
 
   private*/ function method(i/*:int*/)/*:int*/ {
-    return SomeOtherClass._.BLA + int_._.MAX_VALUE;
+    return (SomeOtherClass._||SomeOtherClass._$get()).BLA + (int_._||int_._$get()).MAX_VALUE;
   }/*
 }
 }

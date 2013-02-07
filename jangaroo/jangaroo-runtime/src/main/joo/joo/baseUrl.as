@@ -14,6 +14,7 @@
  */
 package joo {
 
+[Native(amd)]
 /**
  * Jangaroo's base URL to use for loading resources like scripts and classes.
  * Must be set before loading jangaroo-application.js.
@@ -30,7 +31,6 @@ package joo {
  * @see joo.loadModule()
  * @see joo.loadDebugScript()
  */
-[Native]
 public var baseUrl:String;
 
 }

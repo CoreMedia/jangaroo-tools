@@ -4,6 +4,7 @@
  */
 package {
 
+[Native(amd)]
 /**
  * A Class object is created for each class definition in a program. Every Class object is an instance of the Class class. The Class object contains the static properties and methods of the class. The class object creates instances of the class when invoked using the <code>new</code> operator.
  * <p>Some methods, such as <code>flash.net.getClassByAlias()</code>, return an object of type Class. Other methods may have a parameter of type Class, such as <code>flash.net.registerClassAlias()</code>.</p>
@@ -66,7 +67,6 @@ package {
  * @see http://help.adobe.com/en_US/as3/learn/WS5b3ccc516d4fbf351e63e3d118a9b90204-7f3f.html Advanced topics
  *
  */
-[Native]
 public dynamic class Class {
 
   /**

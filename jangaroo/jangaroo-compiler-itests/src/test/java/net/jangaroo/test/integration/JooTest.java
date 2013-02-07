@@ -504,6 +504,7 @@ public class JooTest extends JooRuntimeTestCase {
     import_("package1.TestImplementsSubInterface");
     import_("package1.TestInterface");
     import_("package1.TestSubInterface");
+    import_("Class");
     complete();
     expectBoolean(true, "package1.TestIs.testIs(new package1.TestIs(), package1.TestIs)");
     expectBoolean(true, "package1.TestIs.testIs(new package1.TestImplementsSubInterface(), package1.TestSubInterface)");

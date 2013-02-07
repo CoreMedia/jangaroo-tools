@@ -1,0 +1,1 @@
+define(""); // TODO: require.baseUrl - "joo"

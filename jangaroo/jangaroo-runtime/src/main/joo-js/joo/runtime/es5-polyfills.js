@@ -152,14 +152,14 @@ define(function () {
         if (Object.prototype.__defineGetter__) {
           Object.prototype.__defineGetter__.call(o, prop, desc.get);
         } else {
-          o["get$" + prop] = desc.get;
+          o[prop + "$get"] = desc.get;
         }
       }
       if (('set' in desc)) {
         if (Object.prototype.__defineSetter__) {
           Object.prototype.__defineSetter__.call(o, prop, desc.set);
         } else {
-          o["set$" + prop] = desc.set;
+          o[prop + "$set"] = desc.set;
         }
       }
       if ('value' in desc) {

@@ -1,5 +1,6 @@
 package {
 
+[Native(amd)]
 /**
  * The int class lets you work with the data type representing a 32-bit signed integer. The range of values represented by the int class is -2,147,483,648 (-2^31) to 2,147,483,647 (2^31-1).
  * <p>The constant properties of the int class, <code>MAX_VALUE</code> and <code>MIN_VALUE</code>, are static, which means that you don't need an object to use them, so you don't need to use the constructor. The methods, however, are not static, which means that you do need an object to use them. You can create an int object by using the int class constructor or by declaring a variable of type int and assigning the variable a literal value.</p>
@@ -22,7 +23,6 @@ package {
  * @see http://help.adobe.com/en_US/as3/learn/WS5b3ccc516d4fbf351e63e3d118a9b90204-7f87.html Type conversions
  *
  */
-[Native]
 public final class int {
   /**
    * Constructor; creates a new int object. You must use the int constructor when using <code>int.toString()</code> and <code>int.valueOf()</code>. You do not use a constructor when using the properties of an int object. The <code>new int</code> constructor is primarily used as a placeholder. An int object is not the same as the <code>int()</code> function that converts a parameter to a primitive value.

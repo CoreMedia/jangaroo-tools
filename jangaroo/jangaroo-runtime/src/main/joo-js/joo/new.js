@@ -1,4 +1,4 @@
-define(function() {
+define(["runtime/retrievePrimaryDeclaration"], function(retrievePrimaryDeclaration) {
   var debug = "false";
   if (typeof location === "object" && typeof location.hash === "string") {
     var match = location.hash.match(/(?:^#|&)joo.debug(?:=(true|false|linked)|&|$)/);
@@ -15,7 +15,7 @@ define(function() {
     load: function (name, req, load, config) {
       function loadAndNew() {
         req([name], function (value) {
-          load(new value._(config.config));
+          load(new (retrievePrimaryDeclaration(value))(config.config));
         });
       }
       switch (debug) {

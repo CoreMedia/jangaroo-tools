@@ -1,81 +1,5 @@
-//define(["./es5-polyfills"], function() {
-define(["require"], function(require) {
-  //"use strict"; // sorry, we need context-agnostic access to the global object!
-  var window = (function(){return this})();
-
-  function getNative(qName) {
-    var parts = qName.split(".");
-    var current = window;
-    for (var i = 0; current && i < parts.length; i++) {
-      current = current[parts[i]];
-    }
-    return current;
-  }
-  function retrievePrimaryDeclaration(compilationUnit) {
-    return compilationUnit._;
-  }
-  function getQualifiedObject(qName) {
-    // try native first, then require corresponding module synchronously:
-    return getNative(qName) || retrievePrimaryDeclaration(require(getModuleName(qName)));
-  }
-
-  // alias for global package to avoid name-clashes between top-level classes and JavaScript global identifiers:
-  window.js = window;
-
-  // built-ins:
-  window.Class = Function;
-  var int_ = window["int"] = function int_(num) {
-    return num >> 0;
-  };
-  int_.MAX_VALUE =  2147483647;
-  int_.MIN_VALUE = -2147483648;
-  var uint_ = window["uint"] = function uint_(num) {
-    return num >>> 0;
-  };
-  uint_.MAX_VALUE = 4294967295;
-  uint_.MIN_VALUE = 0;
-
-  // Jangaroo namespace
-  window.joo = {
-    baseUrl: "", // TODO: require.baseUrl - "joo"
-    // helper variable for flash.utils.getTimer():
-    startTime: new Date().getTime(),
-    // built-in Error constructor called as function unfortunately always creates a new Error object,
-    // so we have to emulate it:
-    Error: function(message/*String*/, id/*:int*/) {
-      this.message = message || "";
-      this.id = id >> 0;
-    },
-    getQualifiedObject: getQualifiedObject,
-    loadClass: function loadClass(qName, callback) {
-      require([getModuleName(qName)], function(clazz) {
-        callback(retrievePrimaryDeclaration(clazz));
-      });
-    },
-    loadClasses: function loadClasses(qNames, callback) {
-      require(qNames.map(getModuleName), function() {
-        callback(Array.prototype.map.call(arguments, retrievePrimaryDeclaration));
-      });
-    },
-    // add event listener using Ext JS config object style:
-    addEventListener: function addEventListener(config, eventName, eventType, callback) {
-      if (!config.listeners) {
-        config.listeners = {};
-      }
-      config.listeners[eventName] = function() {
-        callback(new eventType(arguments));
-      }
-    }
-  };
-  window.joo.Error.prototype = window.Error.prototype;
-  function assert(cond, file, line, column) {
-    if (!cond)
-      throw new Error(file+"("+line+":"+column+"): assertion failed");
-  }
-
-  // Vector = Array
-  window.Vector$object = Array;
-
+define(["native!Object.defineProperties@./es5-polyfills", "native!Object.create@./es5-polyfills"], function(defineProperties, create) {
+  "use strict";
   function metaToString() {
     return this.qName;
   }
@@ -94,10 +18,10 @@ define(["require"], function(require) {
         var propertyDescriptor = propertyDescriptors[name];
         result[name] = convertShortcut(propertyDescriptor);
         if (propertyDescriptor.get) {
-          result["get$" + name] = { value: propertyDescriptor.get };
+          result[name + "$get"] = { value: propertyDescriptor.get };
         }
         if (propertyDescriptor.set) {
-          result["set$" + name] = { value: propertyDescriptor.set };
+          result[name + "$set"] = { value: propertyDescriptor.set };
         }
         if (name !== "constructor") {
           result[name].enumerable = true; // TODO: only for debugging, save describeType data elsewhere!
@@ -124,9 +48,6 @@ define(["require"], function(require) {
     }
     return value;
   }
-  function getModuleName(qName) {
-    return "classes/" + qName.replace(/\./g, "/");
-  }
   function compilationUnit(exports, definingCode) {
     function getter() {
       var result;
@@ -150,13 +71,9 @@ define(["require"], function(require) {
         var members = convertShortcuts(config.members);
         var clazz = members.constructor.value;
         var extends_ = config.extends_ || Object; // super class
-        if (extends_ === joo.JavaScriptObject) {
-          // do not set "constructor" property, or it will become enumerable in IE8!
-          delete members.constructor;
-        }
         var implements_ = config.implements_ || [];
         // create set of all interfaces implemented by this class
-        var $implements = extends_.$class && extends_.$class.implements_ ? Object.create(extends_.$class.implements_ ) : {};
+        var $implements = extends_.$class && extends_.$class.implements_ ? create(extends_.$class.implements_ ) : {};
         implements_.forEach(function(i) { i.addInterfaces($implements); });
         var staticMembers = convertShortcuts(config.staticMembers);
         // add some meta information under reserved static field "$class":
@@ -170,8 +87,8 @@ define(["require"], function(require) {
           toString: metaToString
         }};
         staticMembers.toString = { value: toString }; // add Class#toString()
-        Object.defineProperties(clazz, staticMembers);   // add static members
-        clazz.prototype = Object.create(extends_.prototype, members); // establish inheritance prototype chain and add instance members
+        defineProperties(clazz, staticMembers);   // add static members
+        clazz.prototype = create(extends_.prototype, members); // establish inheritance prototype chain and add instance members
         return clazz;
   }
 
@@ -189,8 +106,8 @@ define(["require"], function(require) {
     config.extends_ && config.extends_.forEach(function (i) {
       i.addInterfaces(interfaces);
     });
-    Object.defineProperties(exports, convertShortcuts({
-      $class: { value: Object.defineProperties({}, convertShortcuts({
+    defineProperties(exports, convertShortcuts({
+      $class: { value: defineProperties({}, convertShortcuts({
         name: config.interface_,
         qName: qName,
         toString: metaToString
@@ -227,13 +144,16 @@ define(["require"], function(require) {
         // fall through!
       case "object":
       case "function":
-        // "type" may be an interface:
-        if (typeof type === "object") {
-          return !!object.constructor.$class &&
-                  type.$class.qName in object.constructor.$class.implements_;
-        }
-        if (type === int_ || type === uint_) {
-          return object instanceof Number && type(object) === object.valueOf();
+        // is it an AS3 class or interface?
+        if (type.$class) {
+          // "type" may be an interface:
+          if (type.interfaces) {
+            return !!object.constructor.$class &&
+                    type.$class.qName in object.constructor.$class.implements_;
+          }
+          if (typeof type.$class.isInstance === "function") {
+            return type.$class.isInstance(object);
+          }
         }
         // type is a Class: instanceof returns false negatives in some browsers, so check constructor property, too:
         return object instanceof type || object.constructor === type;
@@ -267,9 +187,6 @@ define(["require"], function(require) {
     cast: cast,
     is: is,
     bind: bind,
-    assert: assert,
-    registerMetadataHandler: registerMetadataHandler,
-    getModuleName: getModuleName,
-    getQualifiedObject: getQualifiedObject
+    registerMetadataHandler: registerMetadataHandler
   }
 });

@@ -9,7 +9,7 @@ public class UsingEmbed {
   public var someText:Class;
 
   [Embed(source="package1/Interface.as")]
-  private static*/ var anotherText$static/*:Class*/=function(){return $resource_1};/*
+  private static*/ var anotherText$static/*:Class*/=function(){return new String($resource_1)};/*
 
 }*/function UsingEmbed() {}/*
 }

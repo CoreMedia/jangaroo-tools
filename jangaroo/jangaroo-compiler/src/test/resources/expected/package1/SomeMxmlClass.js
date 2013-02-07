@@ -25,17 +25,17 @@ public class SomeMxmlClass extends package1.ConfigClass {
   public native function set num(value:int):void;
 
   public*/ function SomeMxmlClass() {
-     Super.call(this);
+    Super.call(this);
     this.bar = "BAR!";
     this.num = 123;
-    addEventListener._(this, 'click', SomeEvent._, AS3.bind(this,"___on_click1"));
+    addEventListener(this, 'click', (SomeEvent._||SomeEvent._$get()), AS3.bind(this,"___on_click1"));
     this.foo = "bar";
-    var $$2/*:package1.someOtherPackage.SomeOtherClass*/ = new SomeOtherClass._();
-    $$2.bla = ResourceManager._.getInstance().getString("Foo","bar");
-    var $$3/*:package1.someOtherPackage.SomeOtherClass*/ = new SomeOtherClass._();
+    var $$2/*:package1.someOtherPackage.SomeOtherClass*/ = new (SomeOtherClass._||SomeOtherClass._$get())();
+    $$2.bla = (ResourceManager._||ResourceManager._$get()).getInstance().getString("Foo","bar");
+    var $$3/*:package1.someOtherPackage.SomeOtherClass*/ = new (SomeOtherClass._||SomeOtherClass._$get())();
     $$3.bla = 1;
-    var $$4/*:package1.someOtherPackage.SomeOtherClass*/ = new SomeOtherClass._();
-    $$4.bla = ResourceManager._.getInstance().getString("Foo","baz");
+    var $$4/*:package1.someOtherPackage.SomeOtherClass*/ = new (SomeOtherClass._||SomeOtherClass._$get())();
+    $$4.bla = (ResourceManager._||ResourceManager._$get()).getInstance().getString("Foo","baz");
     this.items = [$$2, $$3, $$4];
     this.number = 42;
   }/*
@@ -47,7 +47,7 @@ public class SomeMxmlClass extends package1.ConfigClass {
 }
 
 ============================================== Jangaroo part ==============================================*/
-    var Super=ConfigClass._;
+    var Super=(ConfigClass._||ConfigClass._$get());
     $primaryDeclaration(AS3.class_({
       package_: "package1",
       metadata: {ResourceBundle: {$value: "Foo"}},

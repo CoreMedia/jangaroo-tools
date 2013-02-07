@@ -1,6 +1,6 @@
 package {
 
-
+[Native(amd)]
 /**
  * The Vector class lets you access and manipulate a vector - an array whose elements all have the same data type. The data type of a Vector's elements is known as the Vector's <i>base type</i>. The base type can be any class, including built in classes and custom classes. The base type is specified when declaring a Vector variable as well as when creating an instance by calling the class constructor.
  * <p>As with an Array, you can use the array access operator (<code>[]</code>) to set or retrieve the value of a Vector element. Several Vector methods also provide mechanisms for setting and retrieving element values. These include <code>push()</code>, <code>pop()</code>, <code>shift()</code>, <code>unshift()</code>, and others. The properties and methods of a Vector object are similar - in most cases identical - to the properties and methods of an Array. In most cases where you would use an Array in which all the elements have the same data type, a Vector instance is preferable. However, Vector instances are dense arrays, meaning it must have a value (or <code>null</code>) in each index. Array instances don't have this same restriction.</p>
@@ -31,7 +31,6 @@ package {
  * @see Array
  *
  */
-[Native]
 public final dynamic class Vector$object {
 
   /**

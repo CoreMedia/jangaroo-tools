@@ -20,76 +20,74 @@
  * This value is also written to the global mx.resources.ResourceManager
  * to be used by cross-compiled Flex classes.
  */
-(function () {
-  'use strict';
+define(["module", "classes/mx/resources/ResourceManager", "runtime/retrievePrimaryDeclaration"], function (module, ResourceManager, retrievePrimaryDeclaration) {
+  "use strict";
+  var masterConfig = module.config();
 
-  define(['module', 'classes/mx/resources/ResourceManager'], function (module, ResourceManager) {
-    var masterConfig = module.config();
-
-    function findLocalesToLoad(master) {
-      var localesToLoad;
-      localesToLoad = [];
-      for (var locale in master) {
-        if (masterConfig.localeChain.indexOf(locale) !== -1) {
-          localesToLoad.push(locale);
-        }
+  function findLocalesToLoad(master) {
+    var localesToLoad;
+    localesToLoad = [];
+    for (var locale in master) {
+      if (masterConfig.localeChain.indexOf(locale) !== -1) {
+        localesToLoad.push(locale);
       }
-      return localesToLoad;
     }
+    return localesToLoad;
+  }
 
-    var LOCALE_MODULES_PATH_PREFIX = "classes/locale/";
+  var LOCALE_MODULES_PATH_PREFIX = "classes/locale/";
 
-    return {
-      version: '0.0.1',
-      /**
-       * Called when a dependency needs to be loaded.
-       */
-      load: function (name, req, onLoad, config) {
-        function localeToModuleName(locale) {
-          return LOCALE_MODULES_PATH_PREFIX + locale + "/" + name;
-        }
-
-        config = config || {};
-
-        if (config.localeChain) {
-          masterConfig.localeChain = config.localeChain;
-        }
-        ResourceManager._.getInstance().setLocaleChain(masterConfig.localeChain);
-
-        var masterName = LOCALE_MODULES_PATH_PREFIX + name;
-        if (config.isBuild) {
-          var toLoad = [masterName];
-          //Check for existence of all locale possible files and
-          //require them if exist.
-          var maybeLoad = masterConfig.localeChain.map(localeToModuleName);
-          for (var i = 0; i < maybeLoad.length; i++) {
-            var moduleName = maybeLoad[i];
-            if (require._fileExists(req.toUrl(moduleName))) {
-              toLoad.push(moduleName);
-            }
-          }
-
-          req(toLoad, onLoad);
-        } else {
-          //First, fetch the master bundle, it knows what locales are available.
-          req([masterName], function (master) {
-            var localesToLoad = findLocalesToLoad(master);
-            var toLoad = localesToLoad.map(localeToModuleName);
-
-            //Load all the parts missing.
-            req(toLoad, function () {
-              var value = {};
-              for (var i = 0; i < localesToLoad.length; i++) {
-                var locale = localesToLoad[i];
-                value[locale] = arguments[i];
-              }
-              //All done, store in resource manager and notify the loader.
-              ResourceManager._.getInstance().addBundle(name, value);
-              onLoad(value);
-            });
-          });
-        }
+  return {
+    version: "0.0.1",
+    /**
+     * Called when a dependency needs to be loaded.
+     */
+    load: function (name, req, onLoad, config) {
+      function localeToModuleName(locale) {
+        return LOCALE_MODULES_PATH_PREFIX + locale + "/" + name;
       }
-    };
-  });
-}());
+
+      config = config || {};
+
+      if (config.localeChain) {
+        masterConfig.localeChain = config.localeChain;
+      }
+      var resourceManager = retrievePrimaryDeclaration(ResourceManager).getInstance();
+      resourceManager.setLocaleChain(masterConfig.localeChain);
+
+      var masterName = LOCALE_MODULES_PATH_PREFIX + name;
+      if (config.isBuild) {
+        var toLoad = [masterName];
+        //Check for existence of all locale possible files and
+        //require them if exist.
+        var maybeLoad = masterConfig.localeChain.map(localeToModuleName);
+        for (var i = 0; i < maybeLoad.length; i++) {
+          var moduleName = maybeLoad[i];
+          if (require._fileExists(req.toUrl(moduleName))) {
+            toLoad.push(moduleName);
+          }
+        }
+
+        req(toLoad, onLoad);
+      } else {
+        //First, fetch the master bundle, it knows what locales are available.
+        req([masterName], function (master) {
+          var localesToLoad = findLocalesToLoad(master);
+          var toLoad = localesToLoad.map(localeToModuleName);
+
+          //Load all the parts missing.
+          req(toLoad, function () {
+            var value = {};
+            for (var i = 0; i < localesToLoad.length; i++) {
+              var locale = localesToLoad[i];
+              value[locale] = arguments[i];
+            }
+            //All done, store in resource manager and notify the loader.
+            resourceManager.addBundle(name, value);
+            onLoad(value);
+          });
+        });
+      }
+    }
+  };
+});

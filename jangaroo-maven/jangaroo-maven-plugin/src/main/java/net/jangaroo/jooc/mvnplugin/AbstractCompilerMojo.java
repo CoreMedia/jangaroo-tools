@@ -352,14 +352,19 @@ public abstract class AbstractCompilerMojo extends JangarooMojo {
   }
 
   private List<File> computeStaleSources(int staleMillis) throws MojoExecutionException {
-    File outputDirectory = getClassesOutputDirectory();
+    File outputDirectory = getApiOutputDirectory();
+    String outputFileSuffix = Jooc.AS_SUFFIX;
+    if (outputDirectory == null) {
+      outputDirectory = getClassesOutputDirectory();
+      outputFileSuffix = Jooc.OUTPUT_FILE_SUFFIX;
+    }
     List<File> compileSourceRoots = getCompileSourceRoots();
 
 
     List<File> staleFiles = new ArrayList<File>();
-    staleFiles.addAll(getMavenPluginHelper().computeStaleSources(compileSourceRoots, getIncludes(), getExcludes(), outputDirectory, Jooc.AS_SUFFIX, Jooc.OUTPUT_FILE_SUFFIX, staleMillis));
-    staleFiles.addAll(getMavenPluginHelper().computeStaleSources(compileSourceRoots, getIncludes(), getExcludes(), outputDirectory, Jooc.MXML_SUFFIX, Jooc.OUTPUT_FILE_SUFFIX, staleMillis));
-    staleFiles.addAll(getMavenPluginHelper().computeStaleSources(compileSourceRoots, getIncludes(), getExcludes(), outputDirectory, Jooc.PROPERTIES_SUFFIX, Jooc.OUTPUT_FILE_SUFFIX, staleMillis));
+    staleFiles.addAll(getMavenPluginHelper().computeStaleSources(compileSourceRoots, getIncludes(), getExcludes(), outputDirectory, Jooc.AS_SUFFIX, outputFileSuffix, staleMillis));
+    staleFiles.addAll(getMavenPluginHelper().computeStaleSources(compileSourceRoots, getIncludes(), getExcludes(), outputDirectory, Jooc.MXML_SUFFIX, outputFileSuffix, staleMillis));
+    staleFiles.addAll(getMavenPluginHelper().computeStaleSources(compileSourceRoots, getIncludes(), getExcludes(), outputDirectory, Jooc.PROPERTIES_SUFFIX, outputFileSuffix, staleMillis));
     return staleFiles;
   }
 

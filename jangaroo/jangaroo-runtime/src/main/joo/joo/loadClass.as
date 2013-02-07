@@ -14,11 +14,11 @@
  */
 package joo {
 
+[Native(amd)]
 /**
  * @param qualifiedName the qualified name for which to load the corresponding class
  * @param callback the function to call with the corresponding class when it is loaded
  */
-[Native]
 public native function loadClass(qualifiedName: String, callback: Function):void;
 
 

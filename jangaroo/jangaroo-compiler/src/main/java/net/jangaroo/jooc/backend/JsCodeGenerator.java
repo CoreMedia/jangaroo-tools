@@ -133,7 +133,8 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   private JsonObject currentMetadata = new JsonObject();
   private final MessageFormat VAR_$NAME_EQUALS_ARGUMENTS_SLICE_$INDEX =
     new MessageFormat("var {0}=Array.prototype.slice.call(arguments{1,choice,0#|0<,{1}});");
-  private final MessageFormat COMPILATION_UNIT_ACCESS_MESSAGE_FORMAT = new MessageFormat("{0}._"); //new MessageFormat("({0}._||{0}.get$_())");
+  // private final MessageFormat COMPILATION_UNIT_ACCESS_MESSAGE_FORMAT = new MessageFormat("{0}._");
+  private final MessageFormat COMPILATION_UNIT_ACCESS_MESSAGE_FORMAT = new MessageFormat("({0}._||{0}._$get())");
 
   private void generateToArrayCode(String paramName, int paramIndex) throws IOException {
     out.write(VAR_$NAME_EQUALS_ARGUMENTS_SLICE_$INDEX.format(paramName, paramIndex));
@@ -465,10 +466,10 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     Set<String> useQName = new HashSet<String>();
     for (CompilationUnit dependentCU : compilationUnit.getDependenciesAsCompilationUnits()) {
       Annotation nativeAnnotation = dependentCU.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME);
+      IdeDeclaration dependentDeclaration = dependentCU.getPrimaryDeclaration();
+      String qName = dependentDeclaration.getQualifiedNameStr();
       if (nativeAnnotation == null) {
-        IdeDeclaration dependentDeclaration = dependentCU.getPrimaryDeclaration();
-        String qName = dependentDeclaration.getQualifiedNameStr();
-        out.write(",\"classes/" + CompilerUtils.fileNameFromQName(qName, '/', "") + "\"");
+        out.write(",\"" + getModuleName(qName) + "\"");
         String importedName = dependentDeclaration.getName();
         if (usedNames.containsKey(importedName)) {
           IdeDeclaration previousDeclaration = usedNames.get(importedName);
@@ -482,30 +483,45 @@ public class JsCodeGenerator extends CodeGeneratorBase {
         }
       } else {
         String amd = null;
-        String global = dependentCU.getPrimaryDeclaration().getQualifiedNameStr();
+        String global = null;
         CommaSeparatedList<AnnotationParameter> annotationParameters = nativeAnnotation.getOptAnnotationParameters();
         while (annotationParameters != null) {
           if (annotationParameters.getHead().getOptName() != null) {
             String parameterName = annotationParameters.getHead().getOptName().getName();
-            Object jooValue = annotationParameters.getHead().getValue().getSymbol().getJooValue();
-            if (jooValue instanceof String) {
+            AstNode valueNode = annotationParameters.getHead().getValue();
               if ("amd".equals(parameterName)) {
-                amd = (String) jooValue;
+                amd = valueNode != null
+                        ? (String) valueNode.getSymbol().getJooValue()
+                        : getModuleName(qName);
               } else if ("global".equals(parameterName)) {
-                global = (String) jooValue;
+                global = valueNode != null
+                        ? (String) valueNode.getSymbol().getJooValue()
+                        : qName;
               }
-            }
           }
           annotationParameters = annotationParameters.getTail();
         }
-        out.write(",\"native!" + global);
+        if (amd == null && global == null) {
+          global = qName;
+        }
+        out.write(",\"");
+        if (global != null) {
+          out.write("native!" + global);
+        }
         if (amd != null) {
-          out.write("@" + amd);
+          if (global != null) {
+            out.write("@");
+          }
+          out.write(amd);
         }
         out.write("\"");
       }
     }
     return useQName;
+  }
+
+  private static String getModuleName(String qName) {
+    return "classes/" + CompilerUtils.fileNameFromQName(qName, '/', "");
   }
 
   private JsonObject createClassDefinition(ClassDeclaration classDeclaration, ClassDefinitionBuilder classDefinitionBuilder) throws IOException {
@@ -886,7 +902,6 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   public void visitApplyExpr(ApplyExpr applyExpr) throws IOException {
     if (applyExpr.getArgs() != null && applyExpr.getFun() instanceof IdeExpr &&
             SyntacticKeywords.ASSERT.equals(applyExpr.getFun().getSymbol().getText())) {
-      out.writeToken("AS3.");
       applyExpr.getFun().visit(this);
       JooSymbol symKeyword = applyExpr.getFun().getSymbol();
       out.writeSymbol(applyExpr.getArgs().getLParen());
@@ -1289,7 +1304,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
           if (currentMetadata.get("Embed") != null) {
             String source = (String) ((JsonObject) currentMetadata.get("Embed")).get("source");
             int index = compilationUnit.getResourceDependencies().indexOf("text!" + source);
-            value = "function(){return $resource_" + index + "}";
+            value = "function(){return new String($resource_" + index + ")}";
           } else {
             TypeRelation typeRelation = variableDeclaration.getOptTypeRelation();
             value = VariableDeclaration.getDefaultValue(typeRelation);
@@ -1455,8 +1470,8 @@ public class JsCodeGenerator extends CodeGeneratorBase {
         if (functionDeclaration.isGetterOrSetter()) {
           out.writeSymbolWhitespace(functionDeclaration.getIde().getSymbol());
           out.writeSymbolWhitespace(functionDeclaration.getSymGetOrSet());
-          String accessorPrefix = functionDeclaration.getSymGetOrSet().getText() + "$";
-          String accessorName = accessorPrefix + functionName;
+          String accessorPostfix = functionDeclaration.getSymGetOrSet().getText() + "$";
+          String accessorName = functionName + accessorPostfix;
           out.writeToken(accessorName);
           if (!functionDeclaration.isPrivateStatic()) { // TODO: simulate private static getter when called!
             PropertyDefinition accessorDefinition;
@@ -1627,16 +1642,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   }
 
   private void generateSuperConstructorCallCode(ClassDeclaration classDeclaration, ParenthesizedExpr<CommaSeparatedList<Expr>> args) throws IOException {
-    String superClassName = classDeclaration.getSuperTypeDeclaration().getQualifiedNameStr();
-    if ("Error".equals(superClassName)) {
-      // built-in Error constructor called as function unfortunately always creates a new Error object, so we have to use emulation provided by Jangaroo Runtime:
-      out.write("joo.Error");
-    } else {
-      Ide superClassIde = classDeclaration.getSuperType().getIde();
-      out.writeSymbolWhitespace(superClassIde.getSymbol());
-      out.write("Super");
-    }
-    out.writeToken(".call");
+    out.write("Super.call");
     if (args == null) {
       out.writeToken("(this)");
     } else {

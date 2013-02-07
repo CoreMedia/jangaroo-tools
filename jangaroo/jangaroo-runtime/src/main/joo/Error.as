@@ -1,9 +1,10 @@
 /**
- * API and documentation by Adobe®.
+ * API and documentation by Adobeï¿½.
  * Licensed under http://creativecommons.org/licenses/by-nc-sa/3.0/
  */
 package {
 
+[Native(amd)]
 /**
  * The Error class contains information about an error that occurred in a script. In developing ActionScript 3.0 applications, when you run your compiled code in the debugger version of a Flash runtime, a dialog box displays exceptions of type Error, or of a subclass, to help you troubleshoot the code. You create an Error object by using the <code>Error</code> constructor function. Typically, you throw a new Error object from within a <code>try</code> code block that is caught by a <code>catch</code> or <code>finally</code> code block.
  * <p>You can also create a subclass of the Error class and throw instances of that subclass.</p>
@@ -13,7 +14,6 @@ package {
  * @see http://help.adobe.com/en_US/as3/dev/WS5b3ccc516d4fbf351e63e3d118a9b90204-7ecf.html Responding to error events and status
  *
  */
-[Native]
 public dynamic class Error {
   /**
    * Contains the reference number associated with the specific error message. For a custom Error object, this number is the value from the <code>id</code> parameter supplied in the constructor.
