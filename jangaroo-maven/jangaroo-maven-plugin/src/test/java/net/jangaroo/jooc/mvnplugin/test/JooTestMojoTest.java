@@ -10,6 +10,7 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
+import java.io.StringReader;
 import java.util.ArrayList;
 
 /**
@@ -50,14 +51,14 @@ public class JooTestMojoTest extends TestCase {
   public void testEvalTestOutputSuccess() throws MojoExecutionException, MojoFailureException, IOException, SAXException, ParserConfigurationException {
     String testResult = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\" ?>\n" +
             "<testsuite errors=\"0\" failures=\"0\" name=\"com.coremedia.ui.data::BeanImplTest\" tests=\"21\" time=\"2814\"></testsuite>";
-    jooTestMojo.evalTestOutput(testResult);
+    jooTestMojo.evalTestOutput(new StringReader(testResult));
   }
 
   public void testEvalTestOutputFailure() throws MojoExecutionException, MojoFailureException, IOException, SAXException, ParserConfigurationException {
     String testResult = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\" ?>\n" +
             "<testsuite errors=\"0\" failures=\"1\" name=\"com.coremedia.ui.data::BeanImplTest\" tests=\"21\" time=\"2814\"></testsuite>";
     try {
-      jooTestMojo.evalTestOutput(testResult);
+      jooTestMojo.evalTestOutput(new StringReader(testResult));
     } catch (MojoFailureException e) {
       return;
     }
@@ -69,7 +70,7 @@ public class JooTestMojoTest extends TestCase {
             "<testsuite errors=\"0\" failures=\"1\" name=\"com.coremedia.ui.data::BeanImplTest\" tests=\"21\" time=\"2814\"></testsuite>";
     try {
       jooTestMojo.setTestFailureIgnore(true);
-      jooTestMojo.evalTestOutput(testResult);
+      jooTestMojo.evalTestOutput(new StringReader(testResult));
     } catch (MojoFailureException e) {
       fail("Shouldn't fail since testFailureIgnore=true");
     }

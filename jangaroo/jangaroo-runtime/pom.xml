@@ -40,9 +40,9 @@
               <target>
                 <property name="runtime.classpath" refid="maven.compile.classpath" />
                 <taskdef classname="net.jangaroo.jooc.ant.JoocTask" classpath="${project.build.outputDirectory};${runtime.classpath}" name="jooc" />
-                <mkdir dir="${project.build.outputDirectory}/joo/classes" />
+                <mkdir dir="${project.build.outputDirectory}/META-INF/resources/joo/classes" />
                 <mkdir dir="${project.build.outputDirectory}/META-INF/joo-api" />
-                <jooc apidestdir="${project.build.outputDirectory}/META-INF/joo-api" debuglevel="source" destdir="${project.build.outputDirectory}/joo/classes" enableassertions="true" failonerror="true" verbose="true">
+                <jooc apidestdir="${project.build.outputDirectory}/META-INF/joo-api" debuglevel="source" destdir="${project.build.outputDirectory}/META-INF/resources/joo/classes" enableassertions="true" failonerror="true" verbose="true">
                   <include name="**/*.as" />
                   <src path="src/main/joo" />
                 </jooc>

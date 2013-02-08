@@ -14,10 +14,5 @@ public class ConfigClassTypeTest {
      assertEquals(ConfigClassType.PTYPE, plugin);
      assertEquals("ptype", plugin.getExtTypeAttribute());
      assertEquals("ptype", plugin.getType());
-
-     plugin = ConfigClassType.fromExtConfigAttribute("gctype");
-     assertEquals(ConfigClassType.GCTYPE, plugin);
-     assertEquals("xtype", plugin.getExtTypeAttribute());
-     assertEquals("gctype", plugin.getType());
    }
 }

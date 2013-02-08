@@ -35,17 +35,21 @@ under the License.
       </resource>
     </resources>
     <sourceDirectory>src/main/joo</sourceDirectory>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>net.jangaroo</groupId>
+          <artifactId>jangaroo-maven-plugin</artifactId>
+          <version>@project.version@</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
     <plugins>
       <plugin>
         <groupId>net.jangaroo</groupId>
-        <artifactId>jangaroo-maven-plugin</artifactId>
-        <version>@project.version@</version>
-      </plugin>
-      <plugin>
-        <groupId>net.jangaroo</groupId>
         <artifactId>exml-maven-plugin</artifactId>
-        <version>@project.version@</version>
         <extensions>true</extensions>
+        <version>@project.version@</version>
         <configuration>
           <configClassPackage>net.jangaroo.example.config</configClassPackage>
         </configuration>
@@ -57,15 +61,12 @@ under the License.
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-runtime</artifactId>
-      <version>0.9.16</version>
-      <type>jangaroo</type>
+      <version>2.0.2</version>
     </dependency>
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>ext-as</artifactId>
-      <version>0.9.16</version>
-      <type>jangaroo</type>
+      <version>2.0.2</version>
     </dependency>
   </dependencies>
-
 </project>

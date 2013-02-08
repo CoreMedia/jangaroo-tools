@@ -60,9 +60,9 @@ public class TestExmlMojo extends AbstractExmlMojo {
 
   @Override
   protected List<File> getActionScriptClassPath() {
-    final List<File> classPath = new ArrayList<File>(super.getActionScriptClassPath());
+    final List<File> classPath = new ArrayList<File>(getMavenPluginHelper().getActionScriptClassPath(true));
     classPath.add(0, getSourceDirectory());
-    //generated sources of compilation run  also needed
+    //generated sources of compilation run also needed
     classPath.add(0, super.getGeneratedSourcesDirectory());
     return classPath;
   }

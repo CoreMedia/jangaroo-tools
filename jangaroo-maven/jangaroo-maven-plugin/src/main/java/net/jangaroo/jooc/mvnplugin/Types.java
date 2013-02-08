@@ -22,12 +22,12 @@ package net.jangaroo.jooc.mvnplugin;
 public interface Types {
 
   /**
-   * type for dependencies handled by the plugin
+   * packaging type handled by the plugin
    */
   String JANGAROO_TYPE = "jangaroo";
 
   /**
-   * extension for dependencies handled by the plugin
+   * extension for packaging handled by the plugin
    */
   String JAVASCRIPT_EXTENSION = "jar";
 

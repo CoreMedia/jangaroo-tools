@@ -36,17 +36,11 @@ under the License.
     </profile>
   </profiles>
 
-  <repositories>
-    <repository>
-      <id>jangaroo</id>
-      <url>http://repo.jangaroo.net/maven2/</url>
-    </repository>
-  </repositories>
-  
   <build>
     <resources>
       <resource>
         <directory>src/main/joo-js</directory>
+        <targetPath>META-INF/resources</targetPath>
       </resource>
     </resources>
     <outputDirectory>target/jangaroo-output</outputDirectory>
@@ -67,16 +61,14 @@ under the License.
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-runtime</artifactId>
-      <version>0.8.1</version>
-      <type>jangaroo</type>
+      <version>0.9.14</version>
     </dependency>
 
-    <dependency>
-      <groupId>net.jangaroo</groupId>
-      <artifactId>joounit</artifactId>
-      <type>jangaroo</type>
-      <scope>test</scope>
-      <version>0.8.2</version>
-    </dependency>
+    <!--<dependency>-->
+      <!--<groupId>net.jangaroo</groupId>-->
+      <!--<artifactId>joounit</artifactId>-->
+      <!--<scope>test</scope>-->
+      <!--<version>0.9.14</version>-->
+    <!--</dependency>-->
   </dependencies>
 </project>

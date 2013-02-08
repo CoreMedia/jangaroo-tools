@@ -202,6 +202,6 @@ public abstract class AbstractExmlMojo extends JangarooMojo {
   protected abstract List<File> getSourcePath();
 
   protected List<File> getActionScriptClassPath() {
-    return getMavenPluginHelper().getActionScriptClassPath();
+    return getMavenPluginHelper().getActionScriptClassPath(false);
   }
 }

@@ -32,21 +32,21 @@ try
     }
 
 
-    File jsDir = new File ( target, "classes"+File.separator+"joo"+File.separator+"classes" );
+    File jsDir = new File ( target, "classes/META-INF/resources/joo/classes" );
     if ( !jsDir.exists() || !jsDir.isDirectory() )
     {
-        System.err.println( "classes/joo/classes directory is missing or not a directory." );
+        System.err.println( "classes/META-INF/resources/joo/classes directory is missing or not a directory." );
         return false;
     }
 
-    File helloWorldJs = new File ( jsDir, "net"+File.separator+"jangaroo"+File.separator+"example"+File.separator+"HelloWorld.js" );
+    File helloWorldJs = new File ( jsDir, "net/jangaroo/example/HelloWorld.js" );
     if ( !helloWorldJs.exists() || !helloWorldJs.isFile() )
     {
         System.err.println( "HelloWorld.js output file is missing or not a file." );
         return false;
     }
 
-    File testClassJs = new File ( jsDir, "net"+File.separator+"jangaroo"+File.separator+"example"+File.separator+"TestClass.js" );
+    File testClassJs = new File ( jsDir, "net/jangaroo/example/TestClass.js" );
     if ( !testClassJs.exists() || !testClassJs.isFile() )
     {
         System.err.println( "TestClass.js output file is missing or not a file." );
