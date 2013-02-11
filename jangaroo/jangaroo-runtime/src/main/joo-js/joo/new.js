@@ -1,4 +1,4 @@
-define(["runtime/retrievePrimaryDeclaration"], function(retrievePrimaryDeclaration) {
+define(function() {
   var debug = "false";
   if (typeof location === "object" && typeof location.hash === "string") {
     var match = location.hash.match(/(?:^#|&)joo.debug(?:=(true|false|linked)|&|$)/);
@@ -15,7 +15,9 @@ define(["runtime/retrievePrimaryDeclaration"], function(retrievePrimaryDeclarati
     load: function (name, req, load, config) {
       function loadAndNew() {
         req([name], function (value) {
-          load(new (retrievePrimaryDeclaration(value))(config.config));
+          // don't use retrievePrimaryDeclaration here, as "new!" is used for bootstrap and we don't want to
+          // load retrievePrimaryDeclaration.js as a separate request.
+          load(new (value._ || value._$get())(config.config));
         });
       }
       switch (debug) {
