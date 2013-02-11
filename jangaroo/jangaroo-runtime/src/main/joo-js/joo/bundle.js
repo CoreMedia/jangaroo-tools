@@ -20,7 +20,7 @@
  * This value is also written to the global mx.resources.ResourceManager
  * to be used by cross-compiled Flex classes.
  */
-define(["module", "classes/mx/resources/ResourceManager", "runtime/retrievePrimaryDeclaration"], function (module, ResourceManager, retrievePrimaryDeclaration) {
+define(["module"], function (module) {
   "use strict";
   var masterConfig = module.config();
 
@@ -52,8 +52,6 @@ define(["module", "classes/mx/resources/ResourceManager", "runtime/retrievePrima
       if (config.localeChain) {
         masterConfig.localeChain = config.localeChain;
       }
-      var resourceManager = retrievePrimaryDeclaration(ResourceManager).getInstance();
-      resourceManager.setLocaleChain(masterConfig.localeChain);
 
       var masterName = LOCALE_MODULES_PATH_PREFIX + name;
       if (config.isBuild) {
@@ -71,10 +69,12 @@ define(["module", "classes/mx/resources/ResourceManager", "runtime/retrievePrima
         req(toLoad, onLoad);
       } else {
         //First, fetch the master bundle, it knows what locales are available.
-        req([masterName], function (master) {
+        req([masterName, "classes/mx/resources/ResourceManager", "runtime/retrievePrimaryDeclaration"], function (master, ResourceManager, retrievePrimaryDeclaration) {
           var localesToLoad = findLocalesToLoad(master);
           var toLoad = localesToLoad.map(localeToModuleName);
 
+          var resourceManager = retrievePrimaryDeclaration(ResourceManager).getInstance();
+          resourceManager.setLocaleChain(masterConfig.localeChain);
           //Load all the parts missing.
           req(toLoad, function () {
             var value = {};
