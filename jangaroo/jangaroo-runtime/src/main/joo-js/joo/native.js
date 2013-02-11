@@ -1,15 +1,18 @@
 define(function() {
-  function global(name) {
-    var ref = this; // global object
-    var props = name.split('.');
-    var pl = props.length;
-    try {
-      for (var i = 0; ref && i < pl; i++) {
-        ref = ref[props[i]];
+  function global(names) {
+    for (var j = 0; j < names.length; ++j) {
+      var name = names[j];
+      var ref = this; // global object
+      var props = name.split('.');
+      var pl = props.length;
+      try {
+        for (var i = 0; ref && i < pl; i++) {
+          ref = ref[props[i]];
+        }
+        return ref;
+      } catch(e) {
+        // ignore
       }
-      return ref;
-    } catch(e) {
-      // ignore
     }
     return undefined;
   }
@@ -17,7 +20,7 @@ define(function() {
     load: function (name, req, load, config) {
       'use strict';
       var parts = name.split('@');
-      var variable = parts[0];
+      var variables = parts[0].split('|');
       var module = parts[1];
       if (config.isBuild) {
         if (!module || config.linkNative === false) {
@@ -27,16 +30,23 @@ define(function() {
           req([module], load);
         }
       } else {
-        var value = global(variable);
+        var value = global(variables);
         if (value !== undefined || !module) {
           load(value);
         } else {
           // load module and try again to resolve global variable:
           req([module], function () {
-            load(global(variable));
+            load(global(variables));
           });
         }
       }
+    },
+    normalize: function (name, normalize) {
+      var parts = name.split('@');
+      var variable = parts[0];
+      var module = parts[1];
+      var normalized = module ? variable + "@" + normalize(module) : variable;
+      return normalized;
     }
   };
 });
