@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>net.jangaroo</groupId>
   <artifactId>jangaroo-parent</artifactId>
-  <version>3.0.0-SNAPSHOT</version>
+  <version>3-preview-1-SNAPSHOT</version>
   <packaging>pom</packaging>
   <parent>
     <groupId>org.sonatype.oss</groupId>

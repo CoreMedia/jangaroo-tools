@@ -39,7 +39,7 @@ public abstract class JooRuntimeTestCase extends JooTestCase {
   protected Global global;
   private Context cx;
 
-  private static final String REQUIRE_JS_FILE_PATH = "requirejs/r.js";
+  private static final String REQUIRE_JS_FILE_PATH = "/requirejs/r.js";
 
   public static String jsFileName(final String qualifiedJooClassName) {
     return qualifiedJooClassName.replace('.', File.separatorChar) + Jooc.OUTPUT_FILE_SUFFIX;

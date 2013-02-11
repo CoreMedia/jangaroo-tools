@@ -18,6 +18,12 @@
       </configuration>
     </component>
 
+    <component>
+      <role>org.codehaus.plexus.archiver.Archiver</role>
+      <role-hint>jar3</role-hint>
+      <implementation>net.jangaroo.jooc.mvnplugin.util.ResourcesUnArchiver</implementation>
+      <instantiation-strategy>per-lookup</instantiation-strategy>
+    </component>
 
     <!--
     A custom lifecycle for javascript packaging
@@ -31,8 +37,7 @@
           <process-resources>org.apache.maven.plugins:maven-resources-plugin:resources</process-resources>
           <compile>net.jangaroo:jangaroo-maven-plugin:${pom.version}:compile</compile>
           <process-test-resources>org.apache.maven.plugins:maven-resources-plugin:testResources</process-test-resources>
-          <test-compile>net.jangaroo:jangaroo-maven-plugin:${pom.version}:testCompile,
-            net.jangaroo:jangaroo-maven-plugin:${pom.version}:unpack-jangaroo-test-dependencies</test-compile>
+          <test-compile>net.jangaroo:jangaroo-maven-plugin:${pom.version}:testCompile</test-compile>
           <test>net.jangaroo:jangaroo-maven-plugin:${pom.version}:test</test>
           <package>net.jangaroo:jangaroo-maven-plugin:${pom.version}:package</package>
           <verify>org.apache.maven.plugins:maven-source-plugin:jar</verify>
