@@ -1,8 +1,5 @@
-define(["native!Object.defineProperties@./es5-polyfills", "native!Object.create@./es5-polyfills"], function(defineProperties, create) {
+define(["native!Object.defineProperties@./es5-polyfills", "native!Object.create@./es5-polyfills", "classes/joo/NativeClassDeclaration", "classes/joo/JooClassDeclaration"], function(defineProperties, create, NativeClassDeclaration, JooClassDeclaration) {
   "use strict";
-  function metaToString() {
-    return this.qName;
-  }
   function toString() {
     return "[Class " + this.$class.name + "]";
   }
@@ -57,14 +54,16 @@ define(["native!Object.defineProperties@./es5-polyfills", "native!Object.create@
       });
       return handleMetadata(result.value);
     }
-    Object.defineProperty(exports, "_", {
-      configurable: true,
-      get: getter,
-      set: function(value) {
-        getter(); // initialize, but ignore resulting value as it is overwritten immediately!
-        exports._ = value;
+    Object.defineProperties(exports, convertShortcuts({
+      "_": {
+        configurable: true,
+        get: getter,
+        set: function(value) {
+          getter(); // initialize, but ignore resulting value as it is overwritten immediately!
+          exports._ = value;
+        }
       }
-    });
+    }));
   }
 
   function defineClass(config) {
@@ -77,15 +76,13 @@ define(["native!Object.defineProperties@./es5-polyfills", "native!Object.create@
         implements_.forEach(function(i) { i.addInterfaces($implements); });
         var staticMembers = convertShortcuts(config.staticMembers);
         // add some meta information under reserved static field "$class":
-        var qName = config.package_ ? config.package_ + "." + config.class_ : config.class_;
-        staticMembers.$class = { value: {
-          metadata: config.metadata || {},
-          extends_: extends_,
-          implements_: $implements,
-          name: config.class_,
-          qName: qName,
-          toString: metaToString
-        }};
+        staticMembers.$class = { value: new JooClassDeclaration(
+                config.class_,
+                config.package_,
+                extends_,
+                $implements,
+                config.metadata
+        )};
         staticMembers.toString = { value: toString }; // add Class#toString()
         defineProperties(clazz, staticMembers);   // add static members
         clazz.prototype = create(extends_.prototype, members); // establish inheritance prototype chain and add instance members
@@ -107,11 +104,10 @@ define(["native!Object.defineProperties@./es5-polyfills", "native!Object.create@
       i.addInterfaces(interfaces);
     });
     defineProperties(exports, convertShortcuts({
-      $class: { value: defineProperties({}, convertShortcuts({
-        name: config.interface_,
-        qName: qName,
-        toString: metaToString
-      }))},
+      $class: { value: new NativeClassDeclaration(
+              config.package_,
+              config.interface_
+      )},
       interfaces: { value: interfaces },
       addInterfaces: addInterfaces,
       toString: toString
