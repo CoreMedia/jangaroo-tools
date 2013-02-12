@@ -16,10 +16,18 @@ package joo {
 
 [Native(amd)]
 /**
+ * Load the ActionScript class corresponding to the given qualified name
+ * and hand the loaded class to the given callback function.
+ * Computes the AMD module name from the qualified name, calls <code>require()</code>,
+ * and retrieves the class from the resulting compilation unit.
+ * If no callback function is given, tries to call synchronous <code>require()</code>,
+ * which fails if the class has not been loaded in advance.
+ *
  * @param qualifiedName the qualified name for which to load the corresponding class
  * @param callback the function to call with the corresponding class when it is loaded
+ * @return null if a callback function is given, or the retrieved class if no callback function is given
  */
-public native function loadClass(qualifiedName: String, callback: Function):void;
+public native function loadClass(qualifiedName: String, callback: Function = null):Class;
 
 
 }
