@@ -227,6 +227,11 @@ public class JoocTest {
   }
 
   @Test
+  public void testUsingPackageGlobal() throws Exception {
+    assertCompilationResult("package1/UsingSomePackageGlobal");
+  }
+
+  @Test
   public void testUsingEmbed() throws Exception {
     assertCompilationResult("package1/UsingEmbed");
   }

@@ -196,10 +196,28 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       }
     }
     String ideName;
-    ideName = decl != null && decl.isPrimaryDeclaration()
-            ? compilationUnitAccessCode(decl)
-            : convertIdentifier(ide.getIde().getText());
+    if (decl != null && decl.isPrimaryDeclaration()) {
+      if (isAssignmentLHS(ide)) {
+        ideName = convertIdentifier(ide.getIde().getText()) + "._";
+      } else {
+        ideName = compilationUnitAccessCode(decl);
+      }
+    } else {
+      ideName = convertIdentifier(ide.getIde().getText());
+    }
     out.writeToken(ideName);
+  }
+
+  private static boolean isAssignmentLHS(Ide ide) {
+    AstNode parentNode = ide.getParentNode();
+    if (parentNode instanceof IdeExpr) {
+      AstNode containingExpr = parentNode.getParentNode();
+      if (containingExpr instanceof AssignmentOpExpr &&
+              ((AssignmentOpExpr) containingExpr).getArg1() == parentNode) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private String compilationUnitAccessCode(IdeDeclaration primaryDeclaration) {
@@ -445,12 +463,15 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     for (CompilationUnit dependentCU : compilationUnit.getDependenciesAsCompilationUnits()) {
       IdeDeclaration dependentDeclaration = dependentCU.getPrimaryDeclaration();
       String dependentDeclarationQName = dependentDeclaration.getQualifiedNameStr();
+      Annotation nativeAnnotation = dependentCU.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME);
       String importedName = useQName.contains(dependentDeclarationQName)
               ? dependentDeclarationQName.replace(".", "$")
               : dependentDeclaration.getName();
       importedName = convertIdentifier(importedName);
-      out.write("," + importedName);
-      if (dependentCU.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME) == null &&
+      if (nativeAnnotation == null || computeAmdName(nativeAnnotation, dependentDeclarationQName) != null) {
+        out.write("," + importedName);
+      }
+      if (nativeAnnotation == null &&
               !(dependentDeclaration instanceof ClassDeclaration &&
                       ((ClassDeclaration)dependentDeclaration).isInterface())) {
         importedName = COMPILATION_UNIT_ACCESS_MESSAGE_FORMAT.format(importedName);
@@ -482,42 +503,54 @@ public class JsCodeGenerator extends CodeGeneratorBase {
           usedNames.put(importedName, dependentDeclaration);
         }
       } else {
-        String amd = null;
-        String global = null;
-        CommaSeparatedList<AnnotationParameter> annotationParameters = nativeAnnotation.getOptAnnotationParameters();
-        while (annotationParameters != null) {
-          if (annotationParameters.getHead().getOptName() != null) {
-            String parameterName = annotationParameters.getHead().getOptName().getName();
-            AstNode valueNode = annotationParameters.getHead().getValue();
-              if ("amd".equals(parameterName)) {
-                amd = valueNode != null
-                        ? (String) valueNode.getSymbol().getJooValue()
-                        : getModuleName(qName);
-              } else if ("global".equals(parameterName)) {
-                global = valueNode != null
-                        ? (String) valueNode.getSymbol().getJooValue()
-                        : qName;
-              }
-          }
-          annotationParameters = annotationParameters.getTail();
+        String amdName = computeAmdName(nativeAnnotation, qName);
+        if (amdName != null) {
+          out.write(",\"" + amdName + "\"");
         }
-        if (amd == null && global == null) {
-          global = qName;
-        }
-        out.write(",\"");
-        if (global != null) {
-          out.write("native!" + global);
-        }
-        if (amd != null) {
-          if (global != null) {
-            out.write("@");
-          }
-          out.write(amd);
-        }
-        out.write("\"");
       }
     }
     return useQName;
+  }
+
+  private static String computeAmdName(Annotation nativeAnnotation, String qName) {
+    String amd = null;
+    String global = null;
+    CommaSeparatedList<AnnotationParameter> annotationParameters = nativeAnnotation.getOptAnnotationParameters();
+    while (annotationParameters != null) {
+      if (annotationParameters.getHead().getOptName() != null) {
+        String parameterName = annotationParameters.getHead().getOptName().getName();
+        AstNode valueNode = annotationParameters.getHead().getValue();
+          if ("amd".equals(parameterName)) {
+            amd = valueNode != null
+                    ? (String) valueNode.getSymbol().getJooValue()
+                    : getModuleName(qName);
+          } else if ("global".equals(parameterName)) {
+            global = valueNode != null
+                    ? (String) valueNode.getSymbol().getJooValue()
+                    : qName;
+          }
+      }
+      annotationParameters = annotationParameters.getTail();
+    }
+    if (amd == null && global == null) {
+      global = qName;
+    }
+    // suppress "native!global" for top-level, non-aliased globals:
+    assert qName != null;
+    if (amd == null && qName.equals(global) && !qName.contains(".")) {
+      return null;
+    }
+    StringBuilder amdNameBuilder = new StringBuilder();
+    if (global != null) {
+      amdNameBuilder.append("native!").append(global);
+    }
+    if (amd != null) {
+      if (global != null) {
+        amdNameBuilder.append("@");
+      }
+      amdNameBuilder.append(amd);
+    }
+    return amdNameBuilder.toString();
   }
 
   private static String getModuleName(String qName) {
@@ -1326,7 +1359,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       writeOptSymbol(variableDeclaration.getOptSymSemicolon());
       if (variableDeclaration.isPrimaryDeclaration()) {
         PropertyDefinition propertyDefinition = new PropertyDefinition(variableDeclaration.getName(), !variableDeclaration.isConst());
-        out.write(" $primaryDeclaration(" + (propertyDefinition.isValueOnly() ? propertyDefinition.value : propertyDefinition.asJson().toString(-1, -1)) + ");");
+        out.write(" $primaryDeclaration(" + propertyDefinition.asJson().toString(-1, -1) + ");");
       }
     }
   }

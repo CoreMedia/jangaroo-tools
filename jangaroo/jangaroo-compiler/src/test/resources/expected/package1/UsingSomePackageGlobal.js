@@ -1,0 +1,25 @@
+define(["exports","runtime/AS3","classes/package1/somePackageGlobal","classes/package1/someOtherPackage/SomeOtherClass"], function($exports,AS3,somePackageGlobal,SomeOtherClass) { AS3.compilationUnit($exports, function($primaryDeclaration){/*package package1 {
+import package1.someOtherPackage.SomeOtherClass;
+
+/**
+ * This is an example of a class using a "package global" variable.
+ * /
+public class UsingSomePackageGlobal {
+
+  public static*/ function main$static()/*:void*/ {
+    somePackageGlobal._ = new (SomeOtherClass._||SomeOtherClass._$get())();
+    var local/*:Object*/ = (somePackageGlobal._||somePackageGlobal._$get()) || {};
+  }/*
+
+}*/function UsingSomePackageGlobal() {}/*
+}
+
+============================================== Jangaroo part ==============================================*/
+    $primaryDeclaration(AS3.class_({
+      package_: "package1",
+      class_: "UsingSomePackageGlobal",
+      members: {constructor: UsingSomePackageGlobal},
+      staticMembers: {main: main$static}
+    }));
+  });
+});
