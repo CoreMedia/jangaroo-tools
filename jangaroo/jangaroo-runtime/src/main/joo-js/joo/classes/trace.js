@@ -2,7 +2,13 @@
 define(["native!Array.prototype.map@runtime/es5-polyfills"], function(map) {
   var log = (function() {
     if (this.console && this.console.log) { // most browsers
-      return this.console.log.bind(this.console); // take care to bind, esp. in Chrome!
+      if (this.console.log.bind) {
+        // take care to bind if possible, esp. in Chrome!
+        return this.console.log.bind(this.console);
+      } else {
+        // in IE, console.log() is not a "real" function and thus cannot be bound:
+        return this.console.log;
+      }
     }
     if (typeof this.print === "function") { // Rhino
       return this.print;
