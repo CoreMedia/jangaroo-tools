@@ -11,10 +11,8 @@ import org.codehaus.plexus.archiver.jar.Manifest;
 import org.codehaus.plexus.archiver.jar.ManifestException;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.util.Set;
 
@@ -89,24 +87,6 @@ public class PackageMojo extends AbstractMojo {
    */
   private File outputDirectory;
 
-  /**
-   * This parameter specifies the path and name of the file containing the JavaScript code to execute when this
-   * module is used, relative to the outputDirectory.
-   * If this file is not created through copying the corresponding resource, and the jsClassesFile exists,
-   * a file containing the code to load the concatenated Jangaroo classes file is created.
-   *
-   * @parameter expression="META-INF/resources/joo/${project.artifactId}.module.js"
-   */
-  private String moduleJsFile;
-
-  /**
-   * This parameter specifies the path and name of the output file containing all
-   * compiled classes, relative to the outputDirectory.
-   *
-   * @parameter expression="META-INF/resources/joo/${project.groupId}.${project.artifactId}.classes.js"
-   */
-  private String moduleClassesJsFile;
-
   public void execute()
       throws MojoExecutionException {
     File jsarchive = new File(targetDir, finalName + "." + Types.JAVASCRIPT_EXTENSION);
@@ -118,9 +98,6 @@ public class PackageMojo extends AbstractMojo {
       }
       if (outputDirectory.exists()) {
         archiver.addDirectory(outputDirectory);
-        if (!getModuleJsFile().exists() && new File(outputDirectory, moduleClassesJsFile).exists()) {
-          createDefaultModuleJsFile();
-        }
       }
 
       String groupId = project.getGroupId();
@@ -135,30 +112,6 @@ public class PackageMojo extends AbstractMojo {
     }
     project.getArtifact().setFile(jsarchive);
 
-  }
-
-  private File getModuleJsFile() {
-    return new File(outputDirectory, moduleJsFile);
-  }
-
-  private void createDefaultModuleJsFile() throws IOException {
-    File jsFile = getModuleJsFile();
-    File moduleJsDir = jsFile.getParentFile();
-    if (moduleJsDir != null) {
-      if (moduleJsDir.mkdirs()) {
-        getLog().debug("created module output directory " + moduleJsDir);
-      }
-    }
-    getLog().info("Creating Jangaroo module classes loader script '" + jsFile.getAbsolutePath() + "'.");
-    OutputStreamWriter writer = null;
-    try {
-      writer = new OutputStreamWriter(new FileOutputStream(jsFile), "UTF-8");
-      writer.write("joo.loadModule(\"" + project.getGroupId() + "\",\"" + project.getArtifactId() + "\");\n");
-    } finally {
-      if (writer != null) {
-        writer.close();
-      }
-    }
   }
 
   private static void createDefaultManifest(MavenProject project, JarArchiver jarArchiver)
