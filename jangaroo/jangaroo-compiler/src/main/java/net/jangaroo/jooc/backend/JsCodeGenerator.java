@@ -368,7 +368,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     IdeDeclaration primaryDeclaration = compilationUnit.getPrimaryDeclaration();
     boolean isInterface = primaryDeclaration instanceof ClassDeclaration
             && ((ClassDeclaration) primaryDeclaration).isInterface();
-    out.write("define([\"exports\",\"runtime/AS3\"");
+    out.write("define([\"exports\",\"as3-rt/AS3\"");
     Set<String> useQName = collectAndWriteDependencies(compilationUnit);
     for (String resourceDependency : compilationUnit.getResourceDependencies()) {
       out.write(",\"" + resourceDependency + "\"");
@@ -554,7 +554,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   }
 
   private static String getModuleName(String qName) {
-    return "classes/" + CompilerUtils.fileNameFromQName(qName, '/', "");
+    return "as3/" + CompilerUtils.fileNameFromQName(qName, '/', "");
   }
 
   private JsonObject createClassDefinition(ClassDeclaration classDeclaration, ClassDefinitionBuilder classDefinitionBuilder) throws IOException {

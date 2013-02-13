@@ -92,22 +92,22 @@
                 <unzip dest="${basedir}/target/temp" src="${basedir}/target/jangaroo-runtime-${project.version}.jar" />
                 <property name="runtime.classpath" refid="maven.runtime.classpath" />
                 <taskdef classname="net.jangaroo.jooc.ant.JoocTask" classpath="target/classes;${runtime.classpath}" name="jooc" />
-                <mkdir dir="${basedir}/target/temp/META-INF/resources/joo/classes" />
+                <mkdir dir="${basedir}/target/temp/META-INF/resources/amd/as3" />
                 <mkdir dir="${basedir}/target/joo-lib" />
                 <property name="joo-api.jar" value="${basedir}/target/joo-lib/joo-api.jar" />
                 <jar destfile="${joo-api.jar}" duplicate="fail">
                   <metainf dir="${basedir}/src/test" includes="joo-api/**" />
                 </jar>
                 <!-- make API classes available to runtime: -->
-                <jooc debugLevel="source" destdir="target/temp/META-INF/resources/joo/classes" enableassertions="true" failonerror="true" verbose="true">
+                <jooc debugLevel="source" destdir="target/temp/META-INF/resources/amd/as3" enableassertions="true" failonerror="true" verbose="true">
                   <include name="**/TestClassInJar.as" />
                   <src path="${basedir}/src/test/joo-api" />
                 </jooc>
                 <property name="jangaroo-runtime.jar" value="${net.jangaroo:jangaroo-runtime:jar}" />
-                <property name="destdir" value="target/temp/META-INF/resources/joo" />
+                <property name="destdir" value="target/temp/META-INF/resources/amd" />
                 <mkdir dir="${destdir}/META-INF/joo-api" />
                 <echo message="jangaroo-runtime.jar path is ${jangaroo-runtime.jar}" />
-                <jooc apidestdir="${destdir}/META-INF/joo-api" classpath="${jangaroo-runtime.jar}${path.separator}${joo-api.jar}" debugLevel="source" destdir="${destdir}/classes" enableassertions="true" failonerror="true" verbose="true">
+                <jooc apidestdir="${destdir}/META-INF/joo-api" classpath="${jangaroo-runtime.jar}${path.separator}${joo-api.jar}" debugLevel="source" destdir="${destdir}/as3" enableassertions="true" failonerror="true" verbose="true">
                   <include name="**/*.as" />
                   <exclude name="error/**/*.as" />
                   <exclude name="**/*_fragment.as" />
@@ -118,7 +118,7 @@
                 <jar destfile="${compiler-itests.jar}" duplicate="fail">
                   <fileset dir="${destdir}" includes="**" />
                 </jar>
-                <jooc classpath="${compiler-itests.jar}${path.separator}${joo-api.jar}" debugLevel="source" destdir="${destdir}/classes" enableassertions="true" failonerror="true" verbose="true">
+                <jooc classpath="${compiler-itests.jar}${path.separator}${joo-api.jar}" debugLevel="source" destdir="${destdir}/as3" enableassertions="true" failonerror="true" verbose="true">
                   <include name="**/*.as" />
                   <src path="${basedir}/src/test/joo3" />
                 </jooc>

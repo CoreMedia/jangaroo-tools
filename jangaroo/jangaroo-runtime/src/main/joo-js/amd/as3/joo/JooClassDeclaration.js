@@ -1,4 +1,4 @@
-define(["native!Object.create@./es5-polyfills", "./NativeClassDeclaration"], function(create, NativeClassDeclaration) {
+define(["native!Object.create@as3-rt/es5-polyfills", "./NativeClassDeclaration"], function(create, NativeClassDeclaration) {
   "use strict";
   function JooClassDeclaration(name, packageName, extends_, implements_, metadata) {
     NativeClassDeclaration.call(this, packageName, name);

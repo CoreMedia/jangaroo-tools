@@ -25,7 +25,7 @@ public class TestCompilerMojo extends AbstractCompilerMojo {
   private File generatedTestSourcesDirectory;
 
   /**
-   * Test output directory into whose joo/classes sub-directory compiled classes are generated.
+   * Test output directory into whose amd/as3 sub-directory compiled classes are generated.
    *
    * @parameter expression="${project.build.testOutputDirectory}"
    */

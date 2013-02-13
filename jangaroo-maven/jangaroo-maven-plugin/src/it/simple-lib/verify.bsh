@@ -32,10 +32,10 @@ try
     }
 
 
-    File jsDir = new File ( target, "classes/META-INF/resources/joo/classes" );
+    File jsDir = new File ( target, "classes/META-INF/resources/amd/as3" );
     if ( !jsDir.exists() || !jsDir.isDirectory() )
     {
-        System.err.println( "classes/META-INF/resources/joo/classes directory is missing or not a directory." );
+        System.err.println( "classes/META-INF/resources/amd/as3 directory is missing or not a directory." );
         return false;
     }
 

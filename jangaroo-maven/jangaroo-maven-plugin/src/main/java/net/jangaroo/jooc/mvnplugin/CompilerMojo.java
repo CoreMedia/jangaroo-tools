@@ -15,7 +15,7 @@ import java.util.*;
 public class CompilerMojo extends AbstractCompilerMojo {
 
   /**
-   * Output directory into whose META-INF/resources/joo/classes sub-directory compiled classes are generated.
+   * Output directory into whose META-INF/resources/amd/as3 sub-directory compiled classes are generated.
    * This property is used for <code>jangaroo</code> packaging type as {@link #getOutputDirectory}.
    *
    * @parameter expression="${project.build.outputDirectory}"

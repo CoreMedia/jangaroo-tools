@@ -1,4 +1,4 @@
-define(["require", "runtime/getModuleName", "runtime/retrievePrimaryDeclaration"], function(require, getModuleName, retrievePrimaryDeclaration) {
+define(["require", "as3-rt/getModuleName", "as3-rt/retrievePrimaryDeclaration"], function(require, getModuleName, retrievePrimaryDeclaration) {
   "use strict";
   return function loadClass(qName, callback) {
     if (!callback) {

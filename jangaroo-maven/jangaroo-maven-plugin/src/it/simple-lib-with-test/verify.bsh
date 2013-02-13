@@ -47,10 +47,10 @@ try
     }
 
 
-    File jsDir = new File ( target, "jangaroo-output/META-INF/resources/joo/classes" );
+    File jsDir = new File ( target, "jangaroo-output/META-INF/resources/amd/as3" );
     if ( !jsDir.exists() || !jsDir.isDirectory() )
     {
-        System.err.println( "jangaroo-output/META-INF/resources/joo/classes directory is missing or not a directory." );
+        System.err.println( "jangaroo-output/META-INF/resources/amd/as3 directory is missing or not a directory." );
         return false;
     }
 
@@ -68,21 +68,21 @@ try
         return false;
     }
 
-    File testJsDir = new File ( target, "jangaroo-output-test/joo" );
+    File testJsDir = new File ( target, "jangaroo-output-test/amd" );
     if ( !testJsDir.exists() || !testJsDir.isDirectory() )
     {
-        System.err.println( "jangaroo-output-test/joo directory is missing or not a directory." );
+        System.err.println( "jangaroo-output-test/amd directory is missing or not a directory." );
         return false;
     }
 
-    testClassJs = new File ( testJsDir, "classes/net/jangaroo/example/HelloWorldTest.js" );
+    testClassJs = new File ( testJsDir, "as3/net/jangaroo/example/HelloWorldTest.js" );
     if ( !testClassJs.exists() || !testClassJs.isFile() )
     {
         System.err.println( testClassJs + " output file is missing or not a file." );
         return false;
     }
 
-    testClassJs = new File ( testJsDir, "classes/suite/TestSuite.js" );
+    testClassJs = new File ( testJsDir, "as3/suite/TestSuite.js" );
     if ( !testClassJs.exists() || !testClassJs.isFile() )
     {
         System.err.println( testClassJs + " output file is missing or not a file." );

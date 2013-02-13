@@ -34,14 +34,14 @@ public abstract class JooTestMojoBase extends AbstractMojo {
   @SuppressWarnings({"UnusedDeclaration"})
   protected MavenProject project;
   /**
-   * Directory whose META-INF/RESOURCES/joo/classes sub-directory contains compiled classes.
+   * Directory whose META-INF/RESOURCES/amd/as3 sub-directory contains compiled classes.
    *
    * @parameter expression="${project.build.outputDirectory}"
    */
   @SuppressWarnings({"UnusedDeclaration", "FieldCanBeLocal"})
   private File outputDirectory;
   /**
-   * Directory whose joo/classes sub-directory contains compiled test classes.
+   * Directory whose amd/as3 sub-directory contains compiled test classes.
    *
    * @parameter expression="${project.build.testOutputDirectory}"  default-value="${project.build.testOutputDirectory}"
    */

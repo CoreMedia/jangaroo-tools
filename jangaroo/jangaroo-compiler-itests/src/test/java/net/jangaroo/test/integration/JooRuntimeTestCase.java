@@ -118,7 +118,7 @@ public abstract class JooRuntimeTestCase extends JooTestCase {
 
     public void import_(Context cx, String qualifiedJooClassName) throws Exception {
       System.out.println("importing class " + qualifiedJooClassName);
-      String moduleQName = "classes/" + qualifiedJooClassName.replace(".", "/");
+      String moduleQName = "as3/" + qualifiedJooClassName.replace(".", "/");
       require_(cx, moduleQName, qualifiedJooClassName);
     }
 
@@ -153,7 +153,7 @@ public abstract class JooRuntimeTestCase extends JooTestCase {
     global.defineProperty("arguments", argsObj, ScriptableObject.DONTENUM);
     global.eval(cx, "function export(qName, value) { var parts=qName.split('.');for (var current=this,i=0;i<parts.length-1;++i)current=(current[parts[i]]=current[parts[i]]||{});if (value._) { value = value._; } else { print('exported interface ' + qName + ' / ' + JSON.stringify(value.interfaces)); } current[parts[parts.length-1]]=value;}");
     load(destinationDir + REQUIRE_JS_FILE_PATH);
-    global.eval(cx, "require.config({ baseUrl: \"" + destinationDir.replace(File.separatorChar, '/') + "/joo\"});");
+    global.eval(cx, "require.config({ baseUrl: \"" + destinationDir.replace(File.separatorChar, '/') + "/amd\"});");
   }
 
   protected void tearDown() throws Exception {

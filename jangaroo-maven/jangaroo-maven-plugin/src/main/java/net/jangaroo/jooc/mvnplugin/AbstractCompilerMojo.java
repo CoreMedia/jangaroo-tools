@@ -152,7 +152,7 @@ public abstract class AbstractCompilerMojo extends JangarooMojo {
   protected abstract File getOutputDirectory();
 
   protected File getClassesOutputDirectory() {
-    return new File(getOutputDirectory(), "joo/classes");
+    return new File(getOutputDirectory(), "amd/as3");
   }
 
   protected abstract File getTempClassesOutputDirectory();

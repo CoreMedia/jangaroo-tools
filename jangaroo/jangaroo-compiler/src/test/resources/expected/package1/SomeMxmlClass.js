@@ -1,4 +1,4 @@
-define(["exports","runtime/AS3","classes/package1/ConfigClass","classes/joo/addEventListener","classes/package1/someOtherPackage/SomeEvent","classes/package1/someOtherPackage/SomeOtherClass","classes/mx/resources/ResourceManager","bundle!Foo"], function($exports,AS3,ConfigClass,addEventListener,SomeEvent,SomeOtherClass,ResourceManager) { AS3.compilationUnit($exports, function($primaryDeclaration){/*package package1 {
+define(["exports","as3-rt/AS3","as3/package1/ConfigClass","as3/joo/addEventListener","as3/package1/someOtherPackage/SomeEvent","as3/package1/someOtherPackage/SomeOtherClass","as3/mx/resources/ResourceManager","bundle!Foo"], function($exports,AS3,ConfigClass,addEventListener,SomeEvent,SomeOtherClass,ResourceManager) { AS3.compilationUnit($exports, function($primaryDeclaration){/*package package1 {
 import package1.someOtherPackage.SomeEvent;
 import joo.addEventListener;
 import package1.someOtherPackage.SomeOtherClass;

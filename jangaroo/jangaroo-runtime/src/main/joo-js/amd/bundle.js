@@ -35,7 +35,7 @@ define(["module"], function (module) {
     return localesToLoad;
   }
 
-  var LOCALE_MODULES_PATH_PREFIX = "classes/locale/";
+  var LOCALE_MODULES_PATH_PREFIX = "as3/locale/";
 
   return {
     version: "0.0.1",
@@ -69,7 +69,7 @@ define(["module"], function (module) {
         req(toLoad, onLoad);
       } else {
         //First, fetch the master bundle, it knows what locales are available.
-        req([masterName, "classes/mx/resources/ResourceManager", "runtime/retrievePrimaryDeclaration"], function (master, ResourceManager, retrievePrimaryDeclaration) {
+        req([masterName, "as3/mx/resources/ResourceManager", "as3-rt/retrievePrimaryDeclaration"], function (master, ResourceManager, retrievePrimaryDeclaration) {
           var localesToLoad = findLocalesToLoad(master);
           var toLoad = localesToLoad.map(localeToModuleName);
 

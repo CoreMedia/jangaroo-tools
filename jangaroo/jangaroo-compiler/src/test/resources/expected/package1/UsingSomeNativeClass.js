@@ -1,4 +1,4 @@
-define(["exports","runtime/AS3","native!package1.SomeNativeClass@acme/native"], function($exports,AS3,SomeNativeClass) { AS3.compilationUnit($exports, function($primaryDeclaration){/*package package1 {
+define(["exports","as3-rt/AS3","native!package1.SomeNativeClass@acme/native"], function($exports,AS3,SomeNativeClass) { AS3.compilationUnit($exports, function($primaryDeclaration){/*package package1 {
 
 /**
  * This is an example of a class using a "native" class.

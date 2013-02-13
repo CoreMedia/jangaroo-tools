@@ -9,7 +9,7 @@ define(function() {
   "use strict";
   return {
     normalize: function (name, normalize) {
-      return name.match(/^classes\//) ? name : "classes/" + name.replace(/\./g, "/");
+      return name.match(/^as3\//) ? name : "as3/" + name.replace(/\./g, "/");
     },
 
     load: function (name, req, load, config) {

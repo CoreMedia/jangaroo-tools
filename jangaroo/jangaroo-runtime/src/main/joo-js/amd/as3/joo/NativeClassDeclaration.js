@@ -1,4 +1,4 @@
-define(["native!Object.defineProperties@./es5-polyfills"], function() {
+define(["native!Object.defineProperties@as3-rt/es5-polyfills"], function() {
   "use strict";
   function NativeClassDeclaration(packageName, name) {
     this.qName = this.fullClassName = packageName ? packageName + "." + name : name;

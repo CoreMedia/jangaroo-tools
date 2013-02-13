@@ -1,4 +1,4 @@
-define(["exports","runtime/AS3","text!package1/UsingEmbed.as","text!package1/Interface.as"], function($exports,AS3,$resource_0,$resource_1) { AS3.compilationUnit($exports, function($primaryDeclaration){/*package package1 {
+define(["exports","as3-rt/AS3","text!package1/UsingEmbed.as","text!package1/Interface.as"], function($exports,AS3,$resource_0,$resource_1) { AS3.compilationUnit($exports, function($primaryDeclaration){/*package package1 {
 
 /**
  * This is an example of a class using an [Embed] annotation.

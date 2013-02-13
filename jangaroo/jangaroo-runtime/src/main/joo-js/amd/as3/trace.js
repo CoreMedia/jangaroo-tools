@@ -1,5 +1,5 @@
 // simulate AS3 trace()
-define(["native!Array.prototype.map@runtime/es5-polyfills"], function(map) {
+define(["native!Array.prototype.map@as3-rt/es5-polyfills"], function(map) {
   var log = (function() {
     if (this.console && this.console.log) { // most browsers
       if (this.console.log.bind) {

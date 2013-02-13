@@ -1,4 +1,4 @@
-define(["native!Object.defineProperties@./es5-polyfills", "native!Object.create@./es5-polyfills", "classes/joo/NativeClassDeclaration", "classes/joo/JooClassDeclaration"], function(defineProperties, create, NativeClassDeclaration, JooClassDeclaration) {
+define(["native!Object.defineProperties@./es5-polyfills", "native!Object.create@./es5-polyfills", "as3/joo/NativeClassDeclaration", "as3/joo/JooClassDeclaration"], function(defineProperties, create, NativeClassDeclaration, JooClassDeclaration) {
   "use strict";
   function toString() {
     return "[Class " + this.$class.name + "]";

@@ -1,4 +1,4 @@
-define(["runtime/getModuleName", "runtime/retrievePrimaryDeclaration"], function(getModuleName, retrievePrimaryDeclaration) {
+define(["as3-rt/getModuleName", "as3-rt/retrievePrimaryDeclaration"], function(getModuleName, retrievePrimaryDeclaration) {
   function getNative(qName) {
     var parts = qName.split(".");
     var current = window;

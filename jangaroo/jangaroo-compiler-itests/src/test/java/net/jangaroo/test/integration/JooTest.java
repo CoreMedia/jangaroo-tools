@@ -556,7 +556,7 @@ public class JooTest extends JooRuntimeTestCase {
     import_("package1.TestInheritImplements");
     import_("package1.TestInterface");
     import_("package1.TestInterface2");
-    require_("runtime/AS3", "joo");
+    require_("as3-rt/AS3", "joo");
     complete();
     eval("obj = new package1.TestImplements();");
     expectNumber(5, "obj.implementMe('house')");
@@ -620,7 +620,7 @@ public class JooTest extends JooRuntimeTestCase {
   }
 
   public void testJavaPackage() throws Exception {
-    require_("classes/net/jangaroo/test/JavaPackageTest", "JavaPackageTest");
+    require_("as3/net/jangaroo/test/JavaPackageTest", "JavaPackageTest");
     complete();
     eval("new JavaPackageTest();");
   }
