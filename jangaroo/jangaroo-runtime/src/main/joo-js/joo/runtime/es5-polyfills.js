@@ -111,6 +111,79 @@ define(function () {
       return A;
     };
   }
+  if (!Array.prototype.filter) {
+    Array.prototype.filter = function filter(callback, thisObject) {
+      var len = this.length;
+      var res = [];
+      var i = 0;
+      var val;
+      if (thisObject) {
+        // for maximum performance, repeat for-loop code with different function invocations:
+        for (; i < len; i++) {
+          if (i in this) {
+            val = this[i];
+            if (callback.call(thisObject, val, i, this)) {
+              res.push(val);
+            }
+          }
+        }
+      } else {
+        for (; i < len; i++) {
+          if (i in this) {
+            val = this[i];
+            if (callback(val, i, this)) {
+              res.push(val);
+            }
+          }
+        }
+      }
+      return res;
+    }
+  }
+  if (!Array.prototype.some) {
+    Array.prototype.some = function some(callback, thisObject) {
+      var i = 0, j = this.length;
+      // for maximum performance, repeat for-loop code with different function invocations:
+      if (thisObject) {
+        for (; i < j; i++) {
+          if (i in this) {
+            if (callback.call(thisObject, this[i], i, this)) {
+              return true;
+            }
+          }
+        }
+      } else {
+        for (; i < j; i++) {
+          if (i in this) {
+            if (callback(this[i], i, this)) {
+              return true;
+            }
+          }
+        }
+      }
+      return false;
+    }
+  }
+  if (!Array.prototype.indexOf) {
+    Array.prototype.indexOf = function indexOf(searchElement, fromIndex) {
+      var len = this.length;
+      for (var i = (fromIndex < 0) ? Math.max(0, len + fromIndex) : fromIndex || 0; i < len; i++) {
+        if (searchElement === this[i])
+          return i;
+      }
+      return -1;
+    }
+  }
+  if (!Array.prototype.lastIndexOf) {
+    Array.prototype.lastIndexOf = function lastIndexOf(searchElement, fromIndex) {
+      var len = this.length;
+      for (var i = ((fromIndex < 0) ? Math.max(len, len - fromIndex) : fromIndex || len) - 1; i >= 0; i--) {
+        if (searchElement === this[i])
+          return i;
+      }
+      return -1;
+    }
+  }
 
   //----------------------------------------------------------------------
   // ES5 15.2 Object Objects
@@ -130,9 +203,11 @@ define(function () {
       if (prototype !== Object(prototype)) { throw new TypeError(); }
       /** @constructor */
       function Ctor() {}
-      Ctor.prototype = prototype;
+      if (prototype !== Object.prototype) { // keep default prototype if the requested one is Object.prototype
+        Ctor.prototype = prototype;
+      }
       var o = new Ctor();
-      o.constructor = Ctor;
+      // o.constructor = Ctor;  // do not set constructor, as this makes it enumerable in IE8!
       if (arguments.length > 1) {
         if (properties !== Object(properties)) { throw new TypeError(); }
         Object.defineProperties(o, properties);
