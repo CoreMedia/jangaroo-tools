@@ -18,4 +18,6 @@ public interface JoocOptions {
    * annotation.
    */
   boolean isExcludeClassByDefault();
- }
+
+  boolean isGenerateSourceMaps();
+}

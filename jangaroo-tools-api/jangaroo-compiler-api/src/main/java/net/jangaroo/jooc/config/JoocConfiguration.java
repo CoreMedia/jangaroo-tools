@@ -24,6 +24,7 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
 
   private boolean mergeOutput = false;
   private String outputFileName;
+  private boolean generateSourceMaps = false;
 
   public SemicolonInsertionMode getSemicolonInsertionMode() {
     return semicolonInsertionMode;
@@ -130,6 +131,16 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
   @Option(name="-ad", aliases = "--allowduplicatelocalvariables", usage = "allow multiple declarations of local variables")
   public void setAllowDuplicateLocalVariables(boolean allowDuplicateLocalVariables) {
     this.allowDuplicateLocalVariables = allowDuplicateLocalVariables;
+  }
+
+  @Option(name="-sm", aliases = "--generatesourcemaps", usage = "generate JavaScript source maps")
+  public void setGenerateSourceMaps(boolean generateSourceMaps) {
+    this.generateSourceMaps = generateSourceMaps;
+  }
+
+  @Override
+  public boolean isGenerateSourceMaps() {
+    return generateSourceMaps;
   }
 
   public File getApiOutputDirectory() {

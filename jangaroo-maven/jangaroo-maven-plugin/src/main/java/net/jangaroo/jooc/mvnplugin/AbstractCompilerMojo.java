@@ -84,6 +84,15 @@ public abstract class AbstractCompilerMojo extends JangarooMojo {
   private boolean excludeClassByDefault;
 
   /**
+   * If set to "true", the compiler will generate JavaScript source maps that allow debuggers
+   * (currently only Google Chrome) to show the original ActionScript source code during
+   * debugging. Experimental feature, default is "false".
+   *
+   * @parameter expression="${maven.compiler.generateSourceMaps}" default-value="false"
+   */
+  private boolean generateSourceMaps;
+
+  /**
    * If set to "true", the compiler will generate more detailed progress information.
    *
    * @parameter expression="${maven.compiler.verbose}" default-value="false"
@@ -180,6 +189,7 @@ public abstract class AbstractCompilerMojo extends JangarooMojo {
     configuration.setAllowDuplicateLocalVariables(allowDuplicateLocalVariables);
     configuration.setVerbose(verbose);
     configuration.setExcludeClassByDefault(excludeClassByDefault);
+    configuration.setGenerateSourceMaps(generateSourceMaps);
 
     if (StringUtils.isNotEmpty(debuglevel)) {
       try {

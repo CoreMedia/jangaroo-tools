@@ -90,34 +90,15 @@ public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUni
               try {
                 out.setOptions(getOptions());
                 compilationUnit.visit(new JsCodeGenerator(out));
-                SourceMapGenerator sourceMapGenerator = SourceMapGeneratorFactory.getInstance(SourceMapFormat.V3);
-                sourceMapGenerator.validate(true);
-                for (JsWriter.SymbolToOutputFilePosition entry : out.getSourceMappings()) {
-                  String sourceFilename = entry.getSymbol().getFileName();
-                  sourceFilename = sourceFilename.substring(sourceFilename.lastIndexOf(File.separatorChar) + 1);
-                  // for debugging:
-//                  System.err.println("*** Created mapping " +
-//                    entry.getSymbol().getFileName() + ":" + entry.getSourceFilePosition() +
-//                    " ->\n   " + outFile.getAbsolutePath() + ":" + entry.getOutputFileStartPosition());
-                  sourceMapGenerator.addMapping(
-                    sourceFilename,
-                    entry.getSymbol().getText(),
-                    entry.getSourceFilePosition(),
-                    entry.getOutputFileStartPosition(), entry.getOutputFileEndPosition());
+                if (options.isGenerateSourceMaps()) {
+                  codeSuffix = generateSourceMap(out, outFile);
                 }
-                String sourceMapFilename = outFile.getAbsolutePath() + ".map.json";
-//                System.out.println("*** Creating source map file " + sourceMapFilename);
-                FileWriter sourceMapWriter = new FileWriter(sourceMapFilename);
-                try {
-                  sourceMapGenerator.appendTo(sourceMapWriter, outFile.getName());
-                } finally {
-                  sourceMapWriter.close();
-                }
-                codeSuffix = "//@ sourceMappingURL=" + outFile.getName() + ".map.json";
               } finally {
                 out.close(codeSuffix);
               }
-              FileUtils.getFileUtils().copyFile(sourceFile, new File(outFile.getParentFile(), sourceFile.getName()));
+              if (options.isGenerateSourceMaps()) {
+                FileUtils.getFileUtils().copyFile(sourceFile, new File(outFile.getParentFile(), sourceFile.getName()));
+              }
             }
           } catch (IOException e) {
             //noinspection ResultOfMethodCallIgnored
@@ -131,6 +112,33 @@ public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUni
         return outFile;
       }
     };
+  }
+
+  private String generateSourceMap(JsWriter out, File outFile) throws IOException {
+    SourceMapGenerator sourceMapGenerator = SourceMapGeneratorFactory.getInstance(SourceMapFormat.V3);
+    sourceMapGenerator.validate(true);
+    for (JsWriter.SymbolToOutputFilePosition entry : out.getSourceMappings()) {
+      String sourceFilename = entry.getSymbol().getFileName();
+      sourceFilename = sourceFilename.substring(sourceFilename.lastIndexOf(File.separatorChar) + 1);
+      // for debugging:
+//                  System.err.println("*** Created mapping " +
+//                    entry.getSymbol().getFileName() + ":" + entry.getSourceFilePosition() +
+//                    " ->\n   " + outFile.getAbsolutePath() + ":" + entry.getOutputFileStartPosition());
+      sourceMapGenerator.addMapping(
+        sourceFilename,
+        entry.getSymbol().getText(),
+        entry.getSourceFilePosition(),
+        entry.getOutputFileStartPosition(), entry.getOutputFileEndPosition());
+    }
+    String sourceMapFilename = outFile.getAbsolutePath() + ".map.json";
+//                System.out.println("*** Creating source map file " + sourceMapFilename);
+    FileWriter sourceMapWriter = new FileWriter(sourceMapFilename);
+    try {
+      sourceMapGenerator.appendTo(sourceMapWriter, outFile.getName());
+    } finally {
+      sourceMapWriter.close();
+    }
+    return "//@ sourceMappingURL=" + outFile.getName() + ".map.json";
   }
 
   private static boolean isExcludeClassByDefault(JoocOptions options) {
