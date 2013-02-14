@@ -429,6 +429,14 @@ public class JsCodeGenerator extends CodeGeneratorBase {
         ClassDefinitionBuilder classDefinitionBuilder = primaryClassDefinitionBuilder;
         JsonObject classDefinition = createClassDefinition(classDeclaration, classDefinitionBuilder);
         out.write("\n    $primaryDeclaration(AS3.class_(" + classDefinition.toString(2, 4) + "));\n");
+        // special hack for Ext 4 and Sencha Touch: do not use the constructor for super calls, but its prototype's constructor:
+        ClassDeclaration superTypeDeclaration = classDeclaration.getSuperTypeDeclaration();
+        if (superTypeDeclaration != null &&
+                superTypeDeclaration.getCompilationUnit().getAnnotation(Jooc.NATIVE_ANNOTATION_NAME) != null &&
+                superTypeDeclaration.getQualifiedNameStr().startsWith("com.sencha.")) {
+          out.write("    Super=Super.prototype.constructor;\n");
+        }
+
         out.write(classDefinitionBuilder.staticCode.toString());
       }
     } else {
