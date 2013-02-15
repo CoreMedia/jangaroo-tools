@@ -69,6 +69,10 @@ public class CompilationUnitModelRegistry {
     // look in current class's interfaces:
     for (String interfaceName : classModel.getInterfaces()) {
       CompilationUnitModel anInterface = resolveCompilationUnit(interfaceName);
+      if (anInterface == null) {
+        System.err.println("CompilationUnitModelRegistry#resolveDefiningInterface: compilation unit for " + interfaceName + " not found.");
+        continue;
+      }
       CompilationUnitModel recursionResult = resolveDefiningInterface(anInterface, methodType, methodName);
       if (recursionResult != null && (definingInterface == null || implementsInterface(definingInterface.getClassModel(), recursionResult.getQName()))) {
         // found more general interface that defines the method:
