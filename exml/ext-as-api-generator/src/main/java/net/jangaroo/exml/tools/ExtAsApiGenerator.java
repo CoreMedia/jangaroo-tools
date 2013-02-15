@@ -41,7 +41,8 @@ public class ExtAsApiGenerator {
   private static Map<String,ExtClass> extClasses;
   private static CompilationUnitModelRegistry compilationUnitModelRegistry;
   private static Set<String> interfaces;
-  public static final List<String> NON_COMPILE_TIME_CONSTANT_INITIALIZERS = Arrays.asList("window", "document", "document.body");
+  public static final List<String> NON_COMPILE_TIME_CONSTANT_INITIALIZERS = Arrays.asList("window", "document", "document.body", "new Date()", "this");
+  public static final String PACKAGE_PREFIX = "com.sencha.touch";
 
   public static void main(String[] args) throws IOException {
     File srcDir = new File(args[0]);
@@ -105,25 +106,26 @@ public class ExtAsApiGenerator {
   }
 
   private static void generateClassModel(ExtClass extClass) {
-    CompilationUnitModel extAsClassUnit = createClassModel(convertType(extClass.name));
+    String extClassName = extClass.name;
+    CompilationUnitModel extAsClassUnit = createClassModel(convertType(extClassName));
     ClassModel extAsClass = (ClassModel)extAsClassUnit.getPrimaryDeclaration();
-    System.out.printf("Generating AS3 API model %s for %s...%n", extAsClassUnit.getQName(), extClass.name);
-    //configClass.setName(extClass.aliases.get("widget").get(0));
-    //configClass.setPackage("ext.config");
+    System.out.printf("Generating AS3 API model %s for %s...%n", extAsClassUnit.getQName(), extClassName);
     extAsClass.setAsdoc(toAsDoc(extClass.doc));
+    extAsClass.addAnnotation(createNativeAnnotation(extClassName));
     CompilationUnitModel extAsInterfaceUnit = null;
-    if (interfaces.contains(extClass.name)) {
-      extAsInterfaceUnit = createClassModel(convertToInterface(extClass.name));
-      System.out.printf("Generating AS3 API model %s for %s...%n", extAsInterfaceUnit.getQName(), extClass.name);
+    if (interfaces.contains(extClassName)) {
+      extAsInterfaceUnit = createClassModel(convertToInterface(extClassName));
+      System.out.printf("Generating AS3 API model %s for %s...%n", extAsInterfaceUnit.getQName(), extClassName);
       ClassModel extAsInterface = (ClassModel)extAsInterfaceUnit.getPrimaryDeclaration();
       extAsInterface.setInterface(true);
       extAsInterface.setAsdoc(toAsDoc(extClass.doc));
       addInterfaceForSuperclass(extClass, extAsInterface);
     }
     if (isSingleton(extClass)) {
-      FieldModel singleton = new FieldModel(CompilerUtils.className(extClass.name), extAsClassUnit.getQName());
+      FieldModel singleton = new FieldModel(CompilerUtils.className(extClassName), extAsClassUnit.getQName());
       singleton.setConst(true);
       singleton.setValue("new " + extAsClassUnit.getQName());
+      singleton.addAnnotation(createNativeAnnotation(extClassName));
       singleton.setAsdoc(extAsClass.getAsdoc());
       CompilationUnitModel singletonUnit = new CompilationUnitModel(extAsClassUnit.getPackage(), singleton);
       compilationUnitModelRegistry.register(singletonUnit);
@@ -155,6 +157,38 @@ public class ExtAsApiGenerator {
       addMethods(extAsClass, filterByOwner(false, extClass, extClass.statics.method));
     }
     addNonStaticMembers(extClass, extAsClassUnit);
+
+    String configClassQName = getConfigClassQName(extClass);
+    if (configClassQName != null) {
+      CompilationUnitModel configClassUnit = createClassModel(configClassQName);
+      ClassModel configClass = (ClassModel)configClassUnit.getPrimaryDeclaration();
+      ExtClass extSuperClass = extClasses.get(extClass.extends_);
+      if (extSuperClass != null) {
+        String superConfigClassQName = getConfigClassQName(extSuperClass);
+        configClass.setSuperclass(superConfigClassQName != null
+                ? superConfigClassQName
+                : "joo.JavaScriptObject");
+      }
+      addEvents(configClass, extAsClassUnit, filterByOwner(false, extClass, extClass.members.event));
+      addProperties(configClass, filterByOwner(false, extClass, extClass.members.cfg));
+    }
+  }
+
+  private static String getConfigClassQName(ExtClass extClass) {
+    if (extClass.aliases.size() > 0) {
+      Map.Entry<String, List<String>> firstEntry = extClass.aliases.entrySet().iterator().next();
+      if (firstEntry.getValue().size() > 0) {
+        String configClassName = convertName(firstEntry.getValue().get(0));
+        String packageName = PACKAGE_PREFIX + ".config." + firstEntry.getKey();
+        return packageName + "." + configClassName;
+      }
+    }
+    return null;
+  }
+  private static AnnotationModel createNativeAnnotation(String nativeName) {
+    return new AnnotationModel(Jooc.NATIVE_ANNOTATION_NAME,
+            new AnnotationPropertyModel("amd", CompilerUtils.quote("sencha-touch-2-flex.module")),
+            new AnnotationPropertyModel("global", CompilerUtils.quote(nativeName)));
   }
 
   private static void addInterfaceForSuperclass(ExtClass extClass, ClassModel extAsInterface) {
@@ -171,7 +205,7 @@ public class ExtAsApiGenerator {
   }
 
   private static void addNonStaticMembers(ExtClass extClass, CompilationUnitModel extAsClassUnit) {
-    addEvents(extAsClassUnit, filterByOwner(false, extClass, extClass.members.event));
+    addEvents(extAsClassUnit.getClassModel(), extAsClassUnit, filterByOwner(false, extClass, extClass.members.event));
     ClassModel extAsClass = extAsClassUnit.getClassModel();
     addProperties(extAsClass, filterByOwner(extAsClass.isInterface(), extClass, extClass.members.property));
     addMethods(extAsClass, filterByOwner(extAsClass.isInterface(), extClass, extClass.members.method));
@@ -205,9 +239,8 @@ public class ExtAsApiGenerator {
     return member.meta.readonly || (member.name.equals(member.name.toUpperCase()) && member.default_ != null);
   }
 
-  private static void addEvents(CompilationUnitModel compilationUnitModel, List<Event> events) {
+  private static void addEvents(ClassModel classModel, CompilationUnitModel compilationUnitModel, List<Event> events) {
     for (Event event : events) {
-      ClassModel classModel = compilationUnitModel.getClassModel();
       String eventTypeQName = generateEventClass(compilationUnitModel, event);
       AnnotationModel annotationModel = new AnnotationModel("Event",
               new AnnotationPropertyModel("name", "'" + event.name + "'"),
@@ -226,35 +259,38 @@ public class ExtAsApiGenerator {
     ClassModel classModel = compilationUnitModel.getClassModel();
     String eventTypeQName = CompilerUtils.qName(compilationUnitModel.getPackage(),
             "events." + classModel.getName() + capitalize(event.name) + "Event");
-    CompilationUnitModel extAsClassUnit = createClassModel(eventTypeQName);
-    ClassModel extAsClass = (ClassModel)extAsClassUnit.getPrimaryDeclaration();
-    extAsClass.setAsdoc(toAsDoc(event.doc) + "\n * @see " + compilationUnitModel.getQName());
+    CompilationUnitModel extAsClassUnit = compilationUnitModelRegistry.resolveCompilationUnit(eventTypeQName);
+    if (extAsClassUnit == null) {
+      extAsClassUnit = createClassModel(eventTypeQName);
+      ClassModel extAsClass = (ClassModel)extAsClassUnit.getPrimaryDeclaration();
+      extAsClass.setAsdoc(toAsDoc(event.doc) + "\n * @see " + compilationUnitModel.getQName());
 
-    FieldModel eventNameConstant = new FieldModel("NAME", "String", CompilerUtils.quote(event.name));
-    eventNameConstant.setStatic(true);
-    eventNameConstant.setAsdoc(MessageFormat.format("This constant defines the value of the <code>type</code> property of the event object\nfor a <code>{0}</code> event.\n   * @eventType {0}", event.name));
-    extAsClass.addMember(eventNameConstant);
+      FieldModel eventNameConstant = new FieldModel("NAME", "String", CompilerUtils.quote(event.name));
+      eventNameConstant.setStatic(true);
+      eventNameConstant.setAsdoc(MessageFormat.format("This constant defines the value of the <code>type</code> property of the event object\nfor a <code>{0}</code> event.\n   * @eventType {0}", event.name));
+      extAsClass.addMember(eventNameConstant);
 
-    MethodModel constructorModel = extAsClass.createConstructor();
-    constructorModel.addParam(new ParamModel("arguments", "Array"));
-    StringBuilder propertyAssignments = new StringBuilder();
-    for (int i = 0; i < event.params.size(); i++) {
-      Param param = event.params.get(i);
+      MethodModel constructorModel = extAsClass.createConstructor();
+      constructorModel.addParam(new ParamModel("arguments", "Array"));
+      StringBuilder propertyAssignments = new StringBuilder();
+      for (int i = 0; i < event.params.size(); i++) {
+        Param param = event.params.get(i);
 
-      // add assignment to constructor body:
-      if (i > 0) {
-        propertyAssignments.append("\n    ");
+        // add assignment to constructor body:
+        if (i > 0) {
+          propertyAssignments.append("\n    ");
+        }
+        propertyAssignments.append(String.format("this['%s'] = arguments[%d];", convertName(param.name), i));
+
+        // add getter method:
+        MethodModel property = new MethodModel(MethodType.GET, convertName(param.name), convertType(param.type));
+        property.setAsdoc(toAsDoc(param.doc));
+        extAsClass.addMember(property);
       }
-      propertyAssignments.append(String.format("this['%s'] = arguments[%d];", convertName(param.name), i));
 
-      // add getter method:
-      MethodModel property = new MethodModel(MethodType.GET, convertName(param.name), convertType(param.type));
-      property.setAsdoc(toAsDoc(param.doc));
-      extAsClass.addMember(property);
+      constructorModel.setBody(propertyAssignments.toString());
+
     }
-
-    constructorModel.setBody(propertyAssignments.toString());
-
     return eventTypeQName;
   }
 
@@ -300,7 +336,11 @@ public class ExtAsApiGenerator {
           paramModel.setRest(param == method.params.get(method.params.size() - 1) && param.type.endsWith("..."));
           methodModel.addParam(paramModel);
         }
-        classModel.addMember(methodModel);
+        try {
+          classModel.addMember(methodModel);
+        } catch (IllegalArgumentException e) {
+          System.err.println("while adding method " + methodModel + ": " + e);
+        }
       }
     }
   }
@@ -337,22 +377,34 @@ public class ExtAsApiGenerator {
     if (defaultValue == null && param.optional) {
       defaultValue = AS3Type.getDefaultValue(paramModel.getType());
     }
+    if (defaultValue != null && "String".equals(param.type) &&
+            !(defaultValue.equals("null") || defaultValue.startsWith("'") || defaultValue.startsWith("\""))) {
+      defaultValue = CompilerUtils.quote(defaultValue);
+    }
     paramModel.setValue(defaultValue);
   }
 
   private static String convertName(String name) {
+    while (true) {
+      int minusPos = name.indexOf('-');
+      if (minusPos == -1) {
+        break;
+      }
+      name = name.substring(0, minusPos) + name.substring(minusPos + 1, minusPos + 2).toUpperCase() + name.substring(minusPos + 2);
+    }
     return "is".equals(name) ? "matches" :
             "class".equals(name) ? "cls" :
                     "this".equals(name) ? "source" :
                             "new".equals(name) ? "new_" :
-                            name;
+                                    "default".equals(name) ? "default_" :
+                                            name;
   }
 
   private static String convertToInterface(String mixin) {
     String packageName = CompilerUtils.packageName(mixin).toLowerCase();
     String className = "I" + CompilerUtils.className(mixin);
     if (packageName.startsWith("ext")) {
-      packageName = "ext4" + packageName.substring(3);
+      packageName = PACKAGE_PREFIX + packageName.substring(3);
     }
     return CompilerUtils.qName(packageName, className);
   }
@@ -361,11 +413,14 @@ public class ExtAsApiGenerator {
     if (extType == null) {
       return null;
     }
-    if ("undefined".equals(extType)) {
+    if ("undefined".equals(extType) || "null".equals(extType)) {
       return "void";
     }
     if ("HTMLElement".equals(extType) || "Event".equals(extType)) {
       return "js." + extType;
+    }
+    if ("google.maps.Map".equals(extType)) {
+      return "Object"; // no AS3 type yet
     }
     if (extType.endsWith("...")) {
       return "Array";
@@ -406,7 +461,7 @@ public class ExtAsApiGenerator {
       className = "Is";
     }
     if (packageName.startsWith("ext")) {
-      packageName = "ext4" + packageName.substring(3);
+      packageName = PACKAGE_PREFIX + packageName.substring(3);
     }
     return CompilerUtils.qName(packageName, className);
   }
@@ -422,7 +477,7 @@ public class ExtAsApiGenerator {
   }
 
   @SuppressWarnings("UnusedDeclaration")
-  @JsonIgnoreProperties({"html_meta", "html_type"})
+  @JsonIgnoreProperties({"html_meta", "html_type", "linenr"})
   public static class Tag {
     public String tagname;
     public String name;
@@ -449,6 +504,7 @@ public class ExtAsApiGenerator {
   }
 
   @SuppressWarnings("UnusedDeclaration")
+  @JsonIgnoreProperties({"html_meta", "html_type", "linenr", "enum", "override"})
   public static class ExtClass extends Tag {
     @JsonProperty("extends")
     public String extends_;
@@ -484,7 +540,7 @@ public class ExtAsApiGenerator {
     public List<Member> css_mixin;
   }
 
-  @JsonIgnoreProperties({"html_type", "html_meta", "properties"})
+  @JsonIgnoreProperties({"html_type", "html_meta", "linenr", "properties"})
   public abstract static class Var extends Tag {
     public String type;
     @JsonProperty("default")
@@ -492,6 +548,7 @@ public class ExtAsApiGenerator {
   }
 
   @SuppressWarnings("UnusedDeclaration")
+  @JsonIgnoreProperties({"html_type", "html_meta", "linenr", "properties", "autodetected"})
   public static class Member extends Var {
     public String owner;
     public String shortDoc;
@@ -529,6 +586,7 @@ public class ExtAsApiGenerator {
     public boolean optional;
   }
 
+  @JsonIgnoreProperties({"html_type", "html_meta", "linenr", "properties", "autodetected", "throws"})
   public static class Method extends Member {
     public List<Param> params;
     @JsonProperty("return")
@@ -541,6 +599,7 @@ public class ExtAsApiGenerator {
   }
 
   @SuppressWarnings("UnusedDeclaration")
+  @JsonIgnoreProperties({"aside", "chainable", "preventable"})
   public static class Meta {
     @JsonProperty("protected")
     public boolean protected_;
