@@ -121,6 +121,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     PRIMITIVES.add("Error");
     PRIMITIVES.add("Vector");
     PRIMITIVES.add("Class");
+    PRIMITIVES.add("Function");
     PRIMITIVES.add("XML");
   }
 
