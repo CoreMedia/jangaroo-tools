@@ -127,6 +127,7 @@ public class JangarooParser {
     } catch (IOException e) {
       throw new CompilerError("Cannot read input file: " + in.getPath(), e);
     } catch (SAXException e) {
+      e.printStackTrace();
       throw new CompilerError("Cannot parse MXML input file: " + in.getPath(), e);
     }
     Scanner s = new Scanner(reader);
