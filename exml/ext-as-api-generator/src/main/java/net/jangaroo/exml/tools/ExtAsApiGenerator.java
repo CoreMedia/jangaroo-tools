@@ -43,6 +43,13 @@ public class ExtAsApiGenerator {
   private static Set<String> interfaces;
   public static final List<String> NON_COMPILE_TIME_CONSTANT_INITIALIZERS = Arrays.asList("window", "document", "document.body", "new Date()", "this");
   public static final String PACKAGE_PREFIX = "com.sencha.touch";
+  private static final Map<String,String> ALIAS_TYPE_TO_PROPERTY = new HashMap<String, String>();
+  static {
+    ALIAS_TYPE_TO_PROPERTY.put("widget", "xtype");
+    ALIAS_TYPE_TO_PROPERTY.put("plugin", "ptype");
+    ALIAS_TYPE_TO_PROPERTY.put("layout", "type");
+    ALIAS_TYPE_TO_PROPERTY.put("proxy", "type");
+  }
 
   public static void main(String[] args) throws IOException {
     File srcDir = new File(args[0]);
@@ -130,7 +137,7 @@ public class ExtAsApiGenerator {
       CompilationUnitModel singletonUnit = new CompilationUnitModel(extAsClassUnit.getPackage(), singleton);
       compilationUnitModelRegistry.register(singletonUnit);
 
-      extAsClass.setAsdoc(String.format("%s\n<p>Type of singleton %s.</p>\n * @see %s %s",
+      extAsClass.setAsdoc(String.format("%s\n<p>Type of singleton %s.</p>\n@see %s %s",
         extAsClass.getAsdoc(),
         singleton.getName(),
         CompilerUtils.qName(extAsClassUnit.getPackage(), "#" + singleton.getName()),
@@ -158,8 +165,9 @@ public class ExtAsApiGenerator {
     }
     addNonStaticMembers(extClass, extAsClassUnit);
 
-    String configClassQName = getConfigClassQName(extClass);
-    if (configClassQName != null) {
+    Map.Entry<String, List<String>> alias = getAlias(extClass);
+    if (alias != null) {
+      String configClassQName = getConfigClassQName(alias, extClass.name);
       CompilationUnitModel configClassUnit = createClassModel(configClassQName);
       ClassModel configClass = (ClassModel)configClassUnit.getPrimaryDeclaration();
       ExtClass extSuperClass = extClasses.get(extClass.extends_);
@@ -169,22 +177,48 @@ public class ExtAsApiGenerator {
                 ? superConfigClassQName
                 : "joo.JavaScriptObject");
       }
+      String typeProperty = ALIAS_TYPE_TO_PROPERTY.get(alias.getKey());
+      if (typeProperty != null) {
+        configClass.addBodyCode("  " + configClassQName + "['prototype']." + typeProperty + " = "
+                + CompilerUtils.quote(alias.getValue().get(0)) + ";\n");
+      }
       addEvents(configClass, extAsClassUnit, filterByOwner(false, extClass, extClass.members.event));
       addProperties(configClass, filterByOwner(false, extClass, extClass.members.cfg));
     }
   }
 
   private static String getConfigClassQName(ExtClass extClass) {
+    Map.Entry<String, List<String>> alias = getAlias(extClass);
+    return alias == null ? null : getConfigClassQName(alias, extClass.name);
+  }
+
+  private static String getConfigClassQName(Map.Entry<String, List<String>> aliases, String targetClassName) {
+    String alias = aliases.getValue().get(0);
+    String configClassName = replaceSeparatorByCamelCase(alias, '-');
+    configClassName = replaceSeparatorByCamelCase(configClassName, '.'); // some aliases contain dots!
+    configClassName = configClassName.substring(0, 1).toUpperCase() + configClassName.substring(1);
+    targetClassName = CompilerUtils.className(targetClassName);
+    int targetClassPos = configClassName.toLowerCase().indexOf(targetClassName.toLowerCase());
+    if (targetClassPos != -1) {
+      configClassName = configClassName.substring(0, targetClassPos) + targetClassName
+              + configClassName.substring(targetClassPos + targetClassName.length());
+    }
+    String packageName = PACKAGE_PREFIX + ".config." + aliases.getKey();
+    String configClassQName = packageName + "." + configClassName;
+    System.err.println("********* derived config class name "  + configClassQName + " from alias " + alias);
+    return configClassQName;
+  }
+
+  private static Map.Entry<String, List<String>> getAlias(ExtClass extClass) {
     if (extClass.aliases.size() > 0) {
       Map.Entry<String, List<String>> firstEntry = extClass.aliases.entrySet().iterator().next();
       if (firstEntry.getValue().size() > 0) {
-        String configClassName = convertName(firstEntry.getValue().get(0));
-        String packageName = PACKAGE_PREFIX + ".config." + firstEntry.getKey();
-        return packageName + "." + configClassName;
+        return firstEntry;
       }
     }
     return null;
   }
+
   private static AnnotationModel createNativeAnnotation(String nativeName) {
     return new AnnotationModel(Jooc.NATIVE_ANNOTATION_NAME,
             new AnnotationPropertyModel("amd", CompilerUtils.quote("sencha-touch-2-flex.module")),
@@ -209,7 +243,7 @@ public class ExtAsApiGenerator {
     ClassModel extAsClass = extAsClassUnit.getClassModel();
     addProperties(extAsClass, filterByOwner(extAsClass.isInterface(), extClass, extClass.members.property));
     addMethods(extAsClass, filterByOwner(extAsClass.isInterface(), extClass, extClass.members.method));
-    addProperties(extAsClass, filterByOwner(extAsClass.isInterface(), extClass, extClass.members.cfg));
+    // addProperties(extAsClass, filterByOwner(extAsClass.isInterface(), extClass, extClass.members.cfg));
   }
 
   private static void generateActionScriptCode(CompilationUnitModel extAsClass, File outputDir) throws IOException {
@@ -243,9 +277,9 @@ public class ExtAsApiGenerator {
     for (Event event : events) {
       String eventTypeQName = generateEventClass(compilationUnitModel, event);
       AnnotationModel annotationModel = new AnnotationModel("Event",
-              new AnnotationPropertyModel("name", "'" + event.name + "'"),
+              new AnnotationPropertyModel("name", "'on" + event.name + "'"),
               new AnnotationPropertyModel("type", "'" + eventTypeQName + "'"));
-      annotationModel.setAsdoc(toAsDoc(event.doc) + String.format("\n * @eventType %s.NAME", eventTypeQName));
+      annotationModel.setAsdoc(toAsDoc(event.doc) + String.format("\n@eventType %s.NAME", eventTypeQName));
       classModel.addAnnotation(annotationModel);
       System.err.println("*** adding event " + event.name + " to class " + classModel.getName());
     }
@@ -263,11 +297,11 @@ public class ExtAsApiGenerator {
     if (extAsClassUnit == null) {
       extAsClassUnit = createClassModel(eventTypeQName);
       ClassModel extAsClass = (ClassModel)extAsClassUnit.getPrimaryDeclaration();
-      extAsClass.setAsdoc(toAsDoc(event.doc) + "\n * @see " + compilationUnitModel.getQName());
+      extAsClass.setAsdoc(toAsDoc(event.doc) + "\n@see " + compilationUnitModel.getQName());
 
-      FieldModel eventNameConstant = new FieldModel("NAME", "String", CompilerUtils.quote(event.name));
+      FieldModel eventNameConstant = new FieldModel("NAME", "String", CompilerUtils.quote("on" + event.name));
       eventNameConstant.setStatic(true);
-      eventNameConstant.setAsdoc(MessageFormat.format("This constant defines the value of the <code>type</code> property of the event object\nfor a <code>{0}</code> event.\n   * @eventType {0}", event.name));
+      eventNameConstant.setAsdoc(MessageFormat.format("This constant defines the value of the <code>type</code> property of the event object\nfor a <code>{0}</code> event.\n@eventType {0}", "on" + event.name));
       extAsClass.addMember(eventNameConstant);
 
       MethodModel constructorModel = extAsClass.createConstructor();
@@ -307,7 +341,18 @@ public class ExtAsApiGenerator {
   private static void addProperties(ClassModel classModel, List<? extends Member> properties) {
     for (Member member : properties) {
       if (classModel.getMember(member.name) == null) {
-        PropertyModel propertyModel = new PropertyModel(convertName(member.name), convertType(member.type));
+        String type = convertType(member.type);
+        if ("*".equals(type) || "Object".equals(type)) {
+          // try to deduce a more specific type from the property name:
+          type = "cls".equals(member.name) ? "String"
+                  : "useBodyElement".equals(member.name) ? "Boolean"
+                  : "items".equals(member.name) || "plugins".equals(member.name) ? "Array"
+                  : type;
+        }
+        PropertyModel propertyModel = new PropertyModel(convertName(member.name), type);
+        if ("items".equals(member.name)) {
+          propertyModel.addAnnotation(new AnnotationModel("DefaultProperty"));
+        }
         propertyModel.setAsdoc(toAsDoc(member.doc));
         setStatic(propertyModel, member);
         propertyModel.addGetter();
@@ -385,19 +430,24 @@ public class ExtAsApiGenerator {
   }
 
   private static String convertName(String name) {
-    while (true) {
-      int minusPos = name.indexOf('-');
-      if (minusPos == -1) {
-        break;
-      }
-      name = name.substring(0, minusPos) + name.substring(minusPos + 1, minusPos + 2).toUpperCase() + name.substring(minusPos + 2);
-    }
+    name = replaceSeparatorByCamelCase(name, '-');
     return "is".equals(name) ? "matches" :
             "class".equals(name) ? "cls" :
                     "this".equals(name) ? "source" :
                             "new".equals(name) ? "new_" :
                                     "default".equals(name) ? "default_" :
                                             name;
+  }
+
+  private static String replaceSeparatorByCamelCase(String string, char separator) {
+    while (true) {
+      int separatorPos = string.indexOf(separator);
+      if (separatorPos == -1) {
+        break;
+      }
+      string = string.substring(0, separatorPos) + string.substring(separatorPos + 1, separatorPos + 2).toUpperCase() + string.substring(separatorPos + 2);
+    }
+    return string;
   }
 
   private static String convertToInterface(String mixin) {
