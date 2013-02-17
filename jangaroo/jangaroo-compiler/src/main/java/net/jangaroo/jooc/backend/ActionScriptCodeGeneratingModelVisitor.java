@@ -180,12 +180,12 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
     if (!PARAM_SUPPRESSING_ASDOC_TAGS.contains(asdoc.toString())) {
       for (ParamModel paramModel : methodModel.getParams()) {
         if (!isEmpty(paramModel.getAsdoc())) {
-          asdoc.append("\n  @param ").append(paramModel.getName()).append(" ").append(paramModel.getAsdoc());
+          asdoc.append("\n@param ").append(paramModel.getName()).append(" ").append(paramModel.getAsdoc());
         }
       }
       String returnAsDoc = methodModel.getReturnModel().getAsdoc();
       if (!isEmpty(returnAsDoc)) {
-        asdoc.append("\n  @return ").append(returnAsDoc);
+        asdoc.append("\n@return ").append(returnAsDoc);
       }
     }
     printAsdoc(asdoc.toString());
@@ -253,7 +253,9 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
   private void printAsdoc(String asdoc) {
     if (!skipAsDoc && asdoc != null && asdoc.trim().length() > 0) {
       indent(); output.println("/**");
-      indent(); output.println(" * " + asdoc);
+      for (String line : asdoc.split("\n")) {
+        indent(); output.println(" * " + line);
+      }
       indent(); output.println(" */");
     }
   }

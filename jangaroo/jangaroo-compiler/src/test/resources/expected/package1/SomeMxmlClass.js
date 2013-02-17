@@ -11,16 +11,14 @@ public class SomeMxmlClass extends package1.ConfigClass {
   public native function get bar():String;
 
   /**
-   * 
-  @param value @private
+   * @private
    * /
   public native function set bar(value:String):void;
 
   public native function get num():int;
 
   /**
-   * 
-  @param value @private
+   * @private
    * /
   public native function set num(value:int):void;
 
