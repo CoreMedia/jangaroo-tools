@@ -105,7 +105,7 @@ public class MxmlUtils {
     } else if (MxmlUtils.isBindingExpression(value.toString())) {
       return MxmlUtils.getBindingExpression(value.toString());
     }
-    return CompilerUtils.quote(value.toString());
+    return CompilerUtils.quote(value.toString().replaceAll("\\\\\\{", "{"));
 
   }
 
