@@ -231,6 +231,9 @@ public final class MxmlToModelParser {
         AnnotationPropertyModel eventType = event.getPropertiesByName().get("type");
         String eventTypeStr = eventType == null ? "Object" : eventType.getStringValue();
         compilationUnitModel.addImport(eventTypeStr);
+        if (propertyName.startsWith("on")) {
+          propertyName = propertyName.substring(2);
+        }
         String eventHandlerName = "___on_" + propertyName + (++methodIndex);
         MethodModel eventHandler = new MethodModel(eventHandlerName, "void",
                 new ParamModel("event", eventTypeStr));
