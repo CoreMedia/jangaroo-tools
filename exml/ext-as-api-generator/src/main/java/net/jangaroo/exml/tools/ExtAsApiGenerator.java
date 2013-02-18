@@ -18,6 +18,7 @@ import net.jangaroo.jooc.model.MethodModel;
 import net.jangaroo.jooc.model.MethodType;
 import net.jangaroo.jooc.model.ParamModel;
 import net.jangaroo.jooc.model.PropertyModel;
+import net.jangaroo.jooc.mxml.MxmlUtils;
 import net.jangaroo.utils.AS3Type;
 import net.jangaroo.utils.CompilerUtils;
 
@@ -196,7 +197,7 @@ public class ExtAsApiGenerator {
     String alias = aliases.getValue().get(0);
     String configClassName = replaceSeparatorByCamelCase(alias, '-');
     configClassName = replaceSeparatorByCamelCase(configClassName, '.'); // some aliases contain dots!
-    configClassName = configClassName.substring(0, 1).toUpperCase() + configClassName.substring(1);
+    configClassName = MxmlUtils.capitalize(configClassName);
     targetClassName = CompilerUtils.className(targetClassName);
     int targetClassPos = configClassName.toLowerCase().indexOf(targetClassName.toLowerCase());
     if (targetClassPos != -1) {
@@ -257,7 +258,8 @@ public class ExtAsApiGenerator {
   private static <T extends Member> List<T> filterByOwner(boolean isInterface, ExtClass owner, List<T> members) {
     List<T> result = new ArrayList<T>();
     for (T member : members) {
-      if (member.owner.equals(owner.name) && (!isInterface || isPublicNonStaticMethod(member))) {
+      if (member.meta.removed == null &&
+              member.owner.equals(owner.name) && (!isInterface || isPublicNonStaticMethod(member))) {
         result.add(member);
       }
     }
@@ -366,11 +368,23 @@ public class ExtAsApiGenerator {
 
   private static void addMethods(ClassModel classModel, List<Method> methods) {
     for (Method method : methods) {
-      if (classModel.getMember(method.name) == null) {
-        boolean isConstructor = method.name.equals("constructor");
+      String methodName = method.name;
+      if (classModel.getMember(methodName) == null) {
+        boolean isConstructor = methodName.equals("constructor");
+        MethodType methodType = methodName.startsWith("get") && method.params.size() == 0 && !"undefined".equals(method.return_.type) ? MethodType.GET
+                : methodName.startsWith("set") && method.params.size() == 1 && "undefined".equals(method.return_.type) ? MethodType.SET
+                : null;
+        if (methodType != null) {
+          methodName = MxmlUtils.uncapitalize(methodName.substring(3));
+        }
         MethodModel methodModel = isConstructor
                 ? new MethodModel(classModel.getName(), null)
-                : new MethodModel(convertName(method.name), convertType(method.return_.type));
+                : new MethodModel(convertName(methodName), convertType(method.return_.type));
+        if (methodType != null) {
+          methodModel.setMethodType(methodType);
+          methodModel.addAnnotation(new AnnotationModel(Jooc.NATIVE_ANNOTATION_NAME,
+                  new AnnotationPropertyModel("accessor", null)));
+        }
         methodModel.setAsdoc(toAsDoc(method.doc));
         methodModel.getReturnModel().setAsdoc(toAsDoc(method.return_.doc));
         setStatic(methodModel, method);

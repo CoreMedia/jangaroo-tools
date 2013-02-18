@@ -67,6 +67,7 @@ import net.jangaroo.jooc.ast.ThrowStatement;
 import net.jangaroo.jooc.ast.TryStatement;
 import net.jangaroo.jooc.ast.Type;
 import net.jangaroo.jooc.ast.TypeRelation;
+import net.jangaroo.jooc.ast.TypedIdeDeclaration;
 import net.jangaroo.jooc.ast.UseNamespaceDirective;
 import net.jangaroo.jooc.ast.VariableDeclaration;
 import net.jangaroo.jooc.ast.VectorLiteral;
@@ -75,6 +76,13 @@ import net.jangaroo.jooc.config.DebugMode;
 import net.jangaroo.jooc.config.JoocConfiguration;
 import net.jangaroo.jooc.json.JsonArray;
 import net.jangaroo.jooc.json.JsonObject;
+import net.jangaroo.jooc.model.AnnotationModel;
+import net.jangaroo.jooc.model.AnnotationPropertyModel;
+import net.jangaroo.jooc.model.CompilationUnitModel;
+import net.jangaroo.jooc.model.MemberModel;
+import net.jangaroo.jooc.model.MethodModel;
+import net.jangaroo.jooc.model.MethodType;
+import net.jangaroo.jooc.model.PropertyModel;
 import net.jangaroo.jooc.mxml.MxmlUtils;
 import net.jangaroo.jooc.sym;
 import net.jangaroo.utils.CompilerUtils;
@@ -434,7 +442,8 @@ public class JsCodeGenerator extends CodeGeneratorBase {
         ClassDeclaration superTypeDeclaration = classDeclaration.getSuperTypeDeclaration();
         if (superTypeDeclaration != null &&
                 superTypeDeclaration.getCompilationUnit().getAnnotation(Jooc.NATIVE_ANNOTATION_NAME) != null &&
-                superTypeDeclaration.getQualifiedNameStr().startsWith("com.sencha.")) {
+                (superTypeDeclaration.getQualifiedNameStr().startsWith("com.sencha.") ||
+                        superTypeDeclaration.getQualifiedNameStr().startsWith("ext."))) {
           out.write("    Super=Super.prototype.constructor;\n");
         }
 
@@ -461,7 +470,12 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       List<String> superInterfaces = new ArrayList<String>();
       CommaSeparatedList<Ide> superTypes = optImplements.getSuperTypes();
       while (superTypes != null) {
-        superInterfaces.add(CompilerUtils.createCodeExpression(compilationUnitAccessCode(superTypes.getHead().resolveDeclaration())));
+        IdeDeclaration superInterface = superTypes.getHead().resolveDeclaration();
+        if (superInterface == null) {
+          System.err.println("ignoring unresolvable interface " + superTypes.getHead().getQualifiedNameStr());
+        } else {
+          superInterfaces.add(CompilerUtils.createCodeExpression(compilationUnitAccessCode(superInterface)));
+        }
         superTypes = superTypes.getTail();
       }
       classDefinition.set(classDeclaration.isInterface() ? "extends_" : "implements_", new JsonArray(superInterfaces.toArray()));
@@ -635,6 +649,14 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       out.write(compilationUnitAccessCode(ideDeclaration));
       return;
     }
+    String getter = resolveAccessor(qualifiedIde, MethodType.GET); // TODO: could this also be a LHS (SET) expression?!
+    if (getter != null) {
+      System.err.println("*#*#*#* found getter " + getter + " in qIde " + qualifiedIde.getQualifiedNameStr());
+      qualifiedIde.getQualifier().visit(this);
+      out.writeSymbol(qualifiedIde.getSymDot());
+      out.writeToken(getter + "()");
+      return;
+    }
     boolean commentOutQualifierCode = false;
     IdeDeclaration memberDeclaration = null;
     IdeDeclaration qualifierDeclaration = qualifiedIde.getQualifier().getDeclaration(false);
@@ -761,8 +783,61 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       assignmentOpExpr.getArg2().visit(this);
       out.writeToken(")");
     } else {
+      if (assignmentOpExpr.getArg1() instanceof IdeExpr && ((IdeExpr)assignmentOpExpr.getArg1()).getIde() instanceof QualifiedIde) {
+        QualifiedIde qIde = (QualifiedIde) ((IdeExpr) assignmentOpExpr.getArg1()).getIde();
+        String setter = resolveAccessor(qIde, MethodType.SET);
+        if (setter != null) {
+          qIde.getQualifier().visit(this);
+          out.writeSymbol(qIde.getSymDot());
+          out.write(setter);
+          writeSymbolReplacement(assignmentOpExpr.getOp(), "(");
+          assignmentOpExpr.getArg2().visit(this);
+          out.writeToken(")");
+          return;
+        }
+      }
+      
       visitBinaryOpExpr(assignmentOpExpr);
     }
+  }
+
+  private static String resolveAccessor(QualifiedIde qIde, MethodType methodType) throws IOException {
+//    System.err.println("*#*#*#* trying to find " + methodType + "ter for qIde " + qIde.getQualifiedNameStr());
+    IdeDeclaration qualifierDeclaration = qIde.getQualifier().getDeclaration(false);
+    if (qualifierDeclaration instanceof TypedIdeDeclaration) {
+      TypeRelation typeRelation = ((TypedIdeDeclaration) qualifierDeclaration).getOptTypeRelation();
+      if (typeRelation != null) {
+        IdeDeclaration typeDeclaration = typeRelation.getType().resolveDeclaration();
+        if (typeDeclaration instanceof ClassDeclaration) {
+          String memberName = qIde.getIde().getText();
+          MemberModel member = lookupMember((ClassDeclaration) typeDeclaration, memberName);
+//          System.err.println("*#*#*#* found member " + member + "for " + typeDeclaration.getQualifiedNameStr() 
+//                  + "#" + memberName + " for qIde " + qIde.getQualifiedNameStr());
+          if (member instanceof PropertyModel) {
+            MethodModel accessor = ((PropertyModel) member).getMethod(methodType);
+            List<AnnotationModel> accessorAnnotations = accessor.getAnnotations(Jooc.NATIVE_ANNOTATION_NAME);
+            if (accessorAnnotations.size() > 0) {
+              AnnotationPropertyModel accessorAnnotation = accessorAnnotations.get(0).getPropertiesByName().get("accessor");
+              return accessorAnnotation == null || accessorAnnotation.getStringValue() == null ? methodType + MxmlUtils.capitalize(memberName) : accessorAnnotation.getStringValue();
+            }
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  private static MemberModel lookupMember(ClassDeclaration classDeclaration, String memberName) throws IOException {
+    CompilationUnitModel compilationUnitModel = new ApiModelGenerator(false).generateModel(classDeclaration.getCompilationUnit()); // TODO: Evil! Must cache models in registry!
+    MemberModel member = compilationUnitModel.getClassModel().getMember(memberName);
+    if (member == null) {
+      Type superType = classDeclaration.getSuperType();
+      if (superType != null) {
+        IdeDeclaration superDeclaration = superType.resolveDeclaration();
+        member = lookupMember((ClassDeclaration) superDeclaration, memberName);
+      }
+    }
+    return member;
   }
 
   @Override

@@ -109,6 +109,20 @@ public class MxmlUtils {
 
   }
 
+  public static String capitalize(String name) {
+    if (name == null || name.length() == 0) {
+      return name;
+    }
+    return name.substring(0,1).toUpperCase() + name.substring(1);
+  }
+  
+  public static String uncapitalize(String name) {
+    if (name == null || name.length() == 0) {
+      return name;
+    }
+    return name.substring(0,1).toLowerCase() + name.substring(1);
+  }
+  
   public static void addResourceBundleAnnotation(ClassModel classModel, String bundle) {
     // check if already present:
     List<AnnotationModel> annotations = classModel.getAnnotations(RESOURCE_BUNDLE_ANNOTATION);
