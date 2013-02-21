@@ -86,7 +86,7 @@ public class NativeClassDeclaration {
       complete();
       state = STATE_INITIALIZING;
       if (classLoader.debug) {
-        trace("[INFO] Jangaroo Runtime: initializing class " + initializationDepth + fullClassName);
+        trace("[DEBUG]", "Jangaroo Runtime: initializing class " + initializationDepth + fullClassName);
         initializationDepth += "  ";
       }
       doInit();
@@ -95,7 +95,7 @@ public class NativeClassDeclaration {
       }
       state = STATE_INITIALIZED;
     } else if (state < STATE_INITIALIZED && !fullClassName.match(RESOURCE_BUNDLE_PATTERN)) {
-      trace("[WARN] Jangaroo Runtime: cyclic static initializer dependency in " + fullClassName);
+      trace("[WARN]", "Jangaroo Runtime: cyclic static initializer dependency in " + fullClassName);
     }
     return this;
   }

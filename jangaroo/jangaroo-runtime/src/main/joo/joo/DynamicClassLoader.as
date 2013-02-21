@@ -91,7 +91,7 @@ public class DynamicClassLoader extends StandardClassLoader {
   }
 
   public function classLoadErrorHandler(fullClassName:String, url:String):void {
-    trace("[ERROR] Jangaroo Runtime: Class "+fullClassName+" not found at URL ["+url+"].");
+    trace("[ERROR]", "Jangaroo Runtime: Class "+fullClassName+" not found at URL ["+url+"].");
   }
 
   /**
@@ -263,7 +263,7 @@ public class DynamicClassLoader extends StandardClassLoader {
   }
 
   private static function defaultOnCompleteCallback() : void {
-    trace("[INFO] Jangaroo Runtime: All classes loaded!");
+    trace("[INFO]", "Jangaroo Runtime: All classes loaded!");
   }
 
   private function loadPendingDependencies():void {
