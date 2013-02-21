@@ -11,9 +11,54 @@ page.onResourceRequested = function(request) {
 page.onResourceReceived = function(response) {
   console.log("Response #" + response.id + " (" + response.stage + "): " + response.url + ": " + response.statusText);
 };
+page.onInitialized = function() {
+  page.evaluate(function() {
+    function wrapLogMethod(logMethodName) {
+      var originalLogMethod = window.console[logMethodName];
+      if (typeof originalLogMethod === "function") {
+        window.console[logMethodName] = function() {
+          var newArgs = Array.prototype.slice.call(arguments);
+          newArgs.splice(0, 0, "[" + logMethodName.toUpperCase() + "]");
+          return originalLogMethod.apply(window.console, newArgs);
+        };
+      }
+    }
+    for (var member in window.console) {
+      wrapLogMethod(member);
+    }
+    window.joo = window.joo || {};
+    window.joo.trace = function trace() {
+      var args = Array.prototype.slice.call(arguments);
+      var logMethod;
+      if (typeof args[0] === "string") {
+        var match = args[0].match(/^\[([A-Z]+)\]$/);
+        if (match) {
+          logMethod = match[1].toLowerCase();
+          args.splice(0, 1);
+        }
+      }
+      if (!logMethod || !window.console[logMethod]) {
+        logMethod = "log";
+      }
+      window.console[logMethod].apply(window.console, arguments);
+    }
+  });
+};
+page.onConsoleMessage = function(msg, line, source) {
+  var output = msg;
+  if (source) {
+    output += " " + source;
+  }
+  if (line) {
+    output += ":" + line;
+  }
+  console.log(output);
+};
 page.onError = function(e, stack) {
-  console.error("ERROR:" + e);
-  console.debug(stack.join("\n"));
+  console.error("[ERROR]", e, "(" + stack.length + " stack frames)");
+  stack.forEach(function(item, i) {
+    console.error("[ERROR]", (stack.length - i) + ".", item.file, ':', item.line);
+  });
   phantom.exit(2);
 };
 page.onCallback = function(result) {
