@@ -47,7 +47,7 @@ public class ExtAsApiGenerator {
   private static final Map<String,String> ALIAS_TYPE_TO_PROPERTY = new HashMap<String, String>();
   static {
     ALIAS_TYPE_TO_PROPERTY.put("widget", "xtype");
-    ALIAS_TYPE_TO_PROPERTY.put("plugin", "ptype");
+    ALIAS_TYPE_TO_PROPERTY.put("plugin", "type");
     ALIAS_TYPE_TO_PROPERTY.put("layout", "type");
     ALIAS_TYPE_TO_PROPERTY.put("proxy", "type");
   }
