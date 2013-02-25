@@ -651,7 +651,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     }
     String getter = resolveAccessor(qualifiedIde, MethodType.GET); // TODO: could this also be a LHS (SET) expression?!
     if (getter != null) {
-      System.err.println("*#*#*#* found getter " + getter + " in qIde " + qualifiedIde.getQualifiedNameStr());
+      // System.err.println("*#*#*#* found getter " + getter + " in qIde " + qualifiedIde.getQualifiedNameStr());
       qualifiedIde.getQualifier().visit(this);
       out.writeSymbol(qualifiedIde.getSymDot());
       out.writeToken(getter + "()");
@@ -815,10 +815,16 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 //                  + "#" + memberName + " for qIde " + qIde.getQualifiedNameStr());
           if (member instanceof PropertyModel) {
             MethodModel accessor = ((PropertyModel) member).getMethod(methodType);
-            List<AnnotationModel> accessorAnnotations = accessor.getAnnotations(Jooc.NATIVE_ANNOTATION_NAME);
-            if (accessorAnnotations.size() > 0) {
-              AnnotationPropertyModel accessorAnnotation = accessorAnnotations.get(0).getPropertiesByName().get("accessor");
-              return accessorAnnotation == null || accessorAnnotation.getStringValue() == null ? methodType + MxmlUtils.capitalize(memberName) : accessorAnnotation.getStringValue();
+            if (accessor != null) {
+              List<AnnotationModel> accessorAnnotations = accessor.getAnnotations(Jooc.NATIVE_ANNOTATION_NAME);
+              if (accessorAnnotations.size() > 0) {
+                AnnotationPropertyModel accessorAnnotation = accessorAnnotations.get(0).getPropertiesByName().get("accessor");
+                if (accessorAnnotation != null) {
+                  return accessorAnnotation.getStringValue() == null
+                          ? methodType + MxmlUtils.capitalize(memberName)
+                          : accessorAnnotation.getStringValue();
+                }
+              }
             }
           }
         }
