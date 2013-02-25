@@ -1,0 +1,15 @@
+<component-set>
+  <components>
+
+    <!--
+       An un-archiver that skips META-INF/resources/ path prefix.
+    -->
+    <component>
+      <role>org.codehaus.plexus.archiver.Archiver</role>
+      <role-hint>jar3</role-hint>
+      <implementation>net.jangaroo.webjars.mvnplugin.util.ResourcesUnArchiver</implementation>
+      <instantiation-strategy>per-lookup</instantiation-strategy>
+    </component>
+
+  </components>
+</component-set>

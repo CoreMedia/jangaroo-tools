@@ -11,6 +11,7 @@
   </parent>
   <modules>
     <module>jangaroo-maven-plugin</module>
+    <module>webjars-maven-plugin</module>
   </modules>
   <build>
     <plugins>
