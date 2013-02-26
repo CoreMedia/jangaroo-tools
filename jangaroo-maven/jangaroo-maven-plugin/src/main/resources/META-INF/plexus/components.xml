@@ -18,13 +18,6 @@
       </configuration>
     </component>
 
-    <component>
-      <role>org.codehaus.plexus.archiver.Archiver</role>
-      <role-hint>jar3</role-hint>
-      <implementation>net.jangaroo.jooc.mvnplugin.util.ResourcesUnArchiver</implementation>
-      <instantiation-strategy>per-lookup</instantiation-strategy>
-    </component>
-
     <!--
     A custom lifecycle for javascript packaging
     -->
