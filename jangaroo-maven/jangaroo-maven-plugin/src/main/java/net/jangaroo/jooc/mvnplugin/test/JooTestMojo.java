@@ -125,6 +125,7 @@ public class JooTestMojo extends JooTestMojoBase {
 
   /**
    * The phantomjs executable. If not specified, it expects the phantomjs binary in the PATH.
+   * If not phantomjs executable (or an outdated one) is found, falls back to Selenium.
    *
    * @parameter expression="${phantomjs.bin}" default-value="phantomjs"
    */
@@ -134,7 +135,7 @@ public class JooTestMojo extends JooTestMojoBase {
   public void execute() throws MojoExecutionException, MojoFailureException {
     if (!skip && !skipTests && isTestAvailable()) {
       Server server = jettyRunTest(true);
-      String url = getJettyUrl(server) + "/" + testsHtml.replace(File.separatorChar, '/');
+      String url = getTestUrl(server);
 
       try {
         File testResultOutputFile = new File(testResultOutputDirectory, getTestResultFileName());

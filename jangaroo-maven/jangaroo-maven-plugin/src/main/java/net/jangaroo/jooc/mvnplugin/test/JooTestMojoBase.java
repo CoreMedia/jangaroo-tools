@@ -54,6 +54,13 @@ public abstract class JooTestMojoBase extends AbstractMojo {
   @SuppressWarnings({"UnusedDeclaration"})
   protected String testsHtml;
   /**
+   * Whether to load the test application in debug mode (#joo.debug).
+   *
+   * @parameter default-value=false
+   */
+  @SuppressWarnings({"UnusedDeclaration"})
+  protected boolean debugTests;
+  /**
    * the project's test resources
    *
    * @parameter expression="${project.testResources}"
@@ -216,5 +223,14 @@ public abstract class JooTestMojoBase extends AbstractMojo {
     } catch (Exception e1) {
       getLog().warn("Stopping Jetty failed. Never mind.");
     }
+  }
+
+  protected String getTestUrl(Server server) throws MojoExecutionException {
+    StringBuilder builder = new StringBuilder(getJettyUrl(server))
+            .append("/").append(testsHtml.replace(File.separatorChar, '/'));
+    if (debugTests) {
+      builder.append("#joo.debug");
+    }
+    return builder.toString();
   }
 }

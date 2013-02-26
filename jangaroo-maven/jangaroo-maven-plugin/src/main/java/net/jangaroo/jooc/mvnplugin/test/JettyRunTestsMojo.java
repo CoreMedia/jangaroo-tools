@@ -19,8 +19,8 @@ public class JettyRunTestsMojo extends JooTestMojoBase {
 
   public void execute() throws MojoExecutionException {
     Server server = jettyRunTest(false);
-    String url = getJettyUrl(server);
-    getLog().info("Test-URL: " + url + "/" + testsHtml.replace(File.separatorChar, '/'));
+    String url = getTestUrl(server);
+    getLog().info("Test-URL: " + url);
     try {
       server.join();
     } catch (InterruptedException e) {

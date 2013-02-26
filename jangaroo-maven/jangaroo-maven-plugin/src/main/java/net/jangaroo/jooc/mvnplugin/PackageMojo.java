@@ -1,10 +1,12 @@
 package net.jangaroo.jooc.mvnplugin;
 
+import org.apache.maven.archiver.MavenArchiver;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
+import org.apache.maven.archiver.MavenArchiveConfiguration;
 import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
 import org.codehaus.plexus.archiver.jar.Manifest;
@@ -75,10 +77,36 @@ public class PackageMojo extends AbstractMojo {
   private JarArchiver archiver;
 
   /**
+   * @deprecated use <code>defaultManifestFile</code>
    * @parameter
    */
   private File manifest;
 
+  /**
+   * The archive configuration to use.
+   * See <a href="http://maven.apache.org/shared/maven-archiver/index.html">Maven Archiver Reference</a>.
+   *
+   * @parameter
+   */
+  private MavenArchiveConfiguration archive = new MavenArchiveConfiguration();
+
+  /**
+   * Path to the default MANIFEST file to use. It will be used if
+   * <code>useDefaultManifestFile</code> is set to <code>true</code>.
+   *
+   * @parameter default-value="${project.build.outputDirectory}/META-INF/MANIFEST.MF"
+   * @required
+   * @readonly
+   */
+  private File defaultManifestFile;
+
+  /**
+   * Set this to <code>true</code> to enable the use of the <code>defaultManifestFile</code>.
+   *
+   * @parameter expression="${jar.useDefaultManifestFile}" default-value="false"
+   */
+  private boolean useDefaultManifestFile;
+  
   /**
    * Location of files to be packaged, which are all files placed in the other goal's outputDirectory.
    * Defaults to ${project.build.outputDirectory}
@@ -89,12 +117,20 @@ public class PackageMojo extends AbstractMojo {
 
   public void execute()
       throws MojoExecutionException {
-    File jsarchive = new File(targetDir, finalName + "." + Types.JAVASCRIPT_EXTENSION);
+    File jarFile = new File(targetDir, finalName + "." + Types.JAVASCRIPT_EXTENSION);
+    MavenArchiver mavenArchiver = new MavenArchiver();
+    mavenArchiver.setArchiver(archiver);
+    mavenArchiver.setOutputFile(jarFile);
     try {
-      if (manifest != null) {
-        archiver.setManifest(manifest);
-      } else {
-        createDefaultManifest(project, archiver);
+      if (archive.getManifestFile() == null) {
+        if (useDefaultManifestFile && defaultManifestFile.exists()) {
+          getLog().info( "Adding existing MANIFEST to archive. Found under: " + defaultManifestFile.getPath() );
+          archive.setManifestFile( defaultManifestFile );
+        } else if (manifest != null) {
+          archive.setManifestFile(manifest);
+        } else {
+          archive.setManifestFile(createDefaultManifest(project));
+        }
       }
       if (outputDirectory.exists()) {
         archiver.addDirectory(outputDirectory);
@@ -102,15 +138,14 @@ public class PackageMojo extends AbstractMojo {
 
       String groupId = project.getGroupId();
       String artifactId = project.getArtifactId();
-      archiver.addFile(project.getFile(), "META-INF/maven/" + groupId + "/" + artifactId
-          + "/pom.xml");
-      archiver.setDestFile(jsarchive);
-      archiver.createArchive();
-      archiver.reset();
+      mavenArchiver.getArchiver().addFile(project.getFile(), "META-INF/maven/" + groupId + "/" + artifactId
+              + "/pom.xml");
+
+      mavenArchiver.createArchive(project, archive);
     } catch (Exception e) { // NOSONAR
       throw new MojoExecutionException("Failed to create the javascript archive", e);
     }
-    project.getArtifact().setFile(jsarchive);
+    project.getArtifact().setFile(jarFile);
 
   }
 
@@ -146,7 +181,7 @@ public class PackageMojo extends AbstractMojo {
         writer.close();
       }
     }
-    jarArchiver.setManifest(mf);
+    return mf;
   }
 
   @SuppressWarnings({"unchecked"})
