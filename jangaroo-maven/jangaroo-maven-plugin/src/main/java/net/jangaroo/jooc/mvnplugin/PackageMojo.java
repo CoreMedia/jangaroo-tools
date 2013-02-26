@@ -149,7 +149,7 @@ public class PackageMojo extends AbstractMojo {
 
   }
 
-  private static void createDefaultManifest(MavenProject project, JarArchiver jarArchiver)
+  private static File createDefaultManifest(MavenProject project)
       throws ManifestException, IOException, ArchiverException {
     Manifest manifest = new Manifest();
     Manifest.Attribute attr = new Manifest.Attribute("Created-By", "Apache Maven");
