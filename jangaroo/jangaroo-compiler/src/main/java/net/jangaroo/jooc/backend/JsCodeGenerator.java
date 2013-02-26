@@ -514,22 +514,22 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       String qName = dependentDeclaration.getQualifiedNameStr();
       if (nativeAnnotation == null) {
         out.write(",\"" + getModuleName(qName) + "\"");
-        String importedName = dependentDeclaration.getName();
-        if (usedNames.containsKey(importedName)) {
-          IdeDeclaration previousDeclaration = usedNames.get(importedName);
-          if (previousDeclaration != null) {
-            useQName.add(previousDeclaration.getQualifiedNameStr());
-            usedNames.put(importedName, null);
-          }
-          useQName.add(qName);
-        } else {
-          usedNames.put(importedName, dependentDeclaration);
-        }
       } else {
         String amdName = computeAmdName(nativeAnnotation, qName);
         if (amdName != null) {
           out.write(",\"" + amdName + "\"");
         }
+      }
+      String importedName = dependentDeclaration.getName();
+      if (usedNames.containsKey(importedName)) {
+        IdeDeclaration previousDeclaration = usedNames.get(importedName);
+        if (previousDeclaration != null) {
+          useQName.add(previousDeclaration.getQualifiedNameStr());
+          usedNames.put(importedName, null);
+        }
+        useQName.add(qName);
+      } else {
+        usedNames.put(importedName, dependentDeclaration);
       }
     }
     return useQName;
