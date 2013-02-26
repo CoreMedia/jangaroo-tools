@@ -746,7 +746,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitIdeExpression(IdeExpr ideExpr) throws IOException {
-    expressionMode = true;
+    expressionMode = !out.isWritingComment();
     try {
       ideExpr.getIde().visit(this);
     } finally {

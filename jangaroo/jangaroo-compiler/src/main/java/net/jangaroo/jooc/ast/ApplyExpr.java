@@ -81,7 +81,9 @@ public class ApplyExpr extends Expr {
 
   public void analyze(AstNode parentNode) {
     super.analyze(parentNode);
-    getFun().analyze(this);
+    if (!isTypeCast()) {
+      getFun().analyze(this);
+    }
     if (getArgs() != null) {
       getArgs().analyze(this);
     }
