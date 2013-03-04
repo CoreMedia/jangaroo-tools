@@ -8,6 +8,7 @@ import net.jangaroo.jooc.model.AnnotationModel;
 import net.jangaroo.jooc.model.AnnotationPropertyModel;
 import net.jangaroo.jooc.model.ClassModel;
 import net.jangaroo.jooc.model.CompilationUnitModel;
+import net.jangaroo.jooc.model.FieldModel;
 import net.jangaroo.jooc.model.MemberModel;
 import net.jangaroo.jooc.model.MethodModel;
 import net.jangaroo.jooc.model.ParamModel;
@@ -41,6 +42,7 @@ public final class MxmlToModelParser {
   public static final String MXML_DECLARATIONS = "Declarations";
   public static final String MXML_SCRIPT = "Script";
   public static final String MXML_METADATA = "Metadata";
+  public static final String MXML_ID_ATTRIBUTE = "id";
   public static final String RESOURCE_MANAGER_QNAME = "mx.resources.ResourceManager";
   public static final Pattern AT_RESOURCE_PATTERN = Pattern.compile("^\\s*@Resource\\s*\\(\\s*bundle\\s*=\\s*['\"]([a-zA-Z0-9_$]+)['\"]\\s*,\\s*key\\s*=\\s*['\"]([a-zA-Z0-9_$]+)['\"]\\s*\\)\\s*$");
   public static final String RESOURCE_ACCESS_CODE = "{%s.getInstance().getString(\"%s\",\"%s\")}";
@@ -102,7 +104,7 @@ public final class MxmlToModelParser {
         String elementName = element.getLocalName();
         if (MXML_DECLARATIONS.equals(elementName)) {
           for (Element declaration : MxmlUtils.getChildElements(element)) {
-            String fieldName = declaration.getAttribute("id");
+            String fieldName = declaration.getAttribute(MXML_ID_ATTRIBUTE);
             String type = createClassNameFromNode(declaration);
             PropertyModel fieldModel = new PropertyModel(fieldName, type);
             fieldModel.addGetter();
@@ -168,7 +170,14 @@ public final class MxmlToModelParser {
     NamedNodeMap attributes = objectNode.getAttributes();
     for (int i = 0; i < attributes.getLength(); i++) {
       Attr attribute = (Attr) attributes.item(i);
-      createPropertyAssigmentCode(compilationUnitModel, code, variable, type, attribute.getLocalName(), attribute.getValue());
+      String propertyName = attribute.getLocalName();
+      if (attribute.getNamespaceURI() != null) {
+        // allow custom namespace URIs like "config" to access sub-properties:
+        propertyName = attribute.getNamespaceURI() + "." + propertyName;
+      }
+      if (!MXML_ID_ATTRIBUTE.equals(propertyName)) {
+        createPropertyAssigmentCode(compilationUnitModel, code, variable, type, propertyName, attribute.getValue());
+      }
     }
 
     List<Element> childNodes = MxmlUtils.getChildElements(objectNode);
@@ -277,7 +286,13 @@ public final class MxmlToModelParser {
       String arrayItemClassName = createClassNameFromNode(arrayItemNode);
       model.addImport(arrayItemClassName);
       String auxVarName = "$$" + (++methodIndex);
-      code.append("\n    var ").append(auxVarName).append(":").append(arrayItemClassName).append(" = ")
+      code.append("\n    var ").append(auxVarName).append(":").append(arrayItemClassName);
+      String id = arrayItemNode.getAttribute(MXML_ID_ATTRIBUTE);
+      if (id.length() > 0) {
+        model.getClassModel().addMember(new FieldModel(id, arrayItemClassName));
+        code.append(" = this.").append(id);
+      }
+      code.append(" = ")
               .append("new ").append(arrayItemClassName).append("();");
       createPropertyAssignmentsCode(model, arrayItemNode, auxVarName, code);
       auxVarNames.add(auxVarName);
