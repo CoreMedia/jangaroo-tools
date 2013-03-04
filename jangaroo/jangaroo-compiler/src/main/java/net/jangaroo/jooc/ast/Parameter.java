@@ -27,7 +27,7 @@ import java.util.List;
  * @author Andreas Gawecki
  * @author Frank Wienberg
  */
-public class Parameter extends IdeDeclaration {
+public class Parameter extends IdeDeclaration implements Typed {
 
   private JooSymbol optSymConstOrRest;
   private TypeRelation optTypeRelation;
@@ -100,6 +100,7 @@ public class Parameter extends IdeDeclaration {
     return optSymConstOrRest;
   }
 
+  @Override
   public TypeRelation getOptTypeRelation() {
     return optTypeRelation;
   }

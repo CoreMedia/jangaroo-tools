@@ -67,7 +67,7 @@ import net.jangaroo.jooc.ast.ThrowStatement;
 import net.jangaroo.jooc.ast.TryStatement;
 import net.jangaroo.jooc.ast.Type;
 import net.jangaroo.jooc.ast.TypeRelation;
-import net.jangaroo.jooc.ast.TypedIdeDeclaration;
+import net.jangaroo.jooc.ast.Typed;
 import net.jangaroo.jooc.ast.UseNamespaceDirective;
 import net.jangaroo.jooc.ast.VariableDeclaration;
 import net.jangaroo.jooc.ast.VectorLiteral;
@@ -268,18 +268,22 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   }
 
   private void writeMemberAccess(IdeDeclaration memberDeclaration, JooSymbol optSymDot, Ide memberIde, boolean writeMemberWhitespace) throws IOException {
+    String accessor = null;
     if (memberDeclaration != null) {
       if (memberIde.usePrivateMemberName(memberDeclaration)) {
         writePrivateMemberAccess(optSymDot, memberIde, writeMemberWhitespace, memberDeclaration.isStatic());
         return;
+      } else {
+        accessor = resolveAccessor(memberIde, MethodType.GET, memberDeclaration.getClassDeclaration());
       }
     }
     if (optSymDot == null && memberDeclaration != null && !memberDeclaration.isConstructor()) {
       optSymDot = new JooSymbol(".");
     }
     boolean quote = false;
+    String memberName = memberIde.getIde().getText();
     if (optSymDot != null) {
-      if (memberIde.getIde().getText().startsWith("@")) {
+      if (memberName.startsWith("@")) {
         quote = true;
         out.writeSymbolWhitespace(optSymDot);
         out.writeToken("['");
@@ -287,9 +291,19 @@ public class JsCodeGenerator extends CodeGeneratorBase {
         out.writeSymbol(optSymDot);
       }
     }
-    out.writeSymbol(memberIde.getIde(), writeMemberWhitespace);
+    if (writeMemberWhitespace) {
+      out.writeSymbolWhitespace(memberIde.getIde());
+    }
+    if (accessor != null) {
+      out.writeToken(accessor);
+    } else {
+      out.writeSymbolToken(memberIde.getIde());
+    }
     if (quote) {
       out.writeToken("']");
+    }
+    if (accessor != null) {
+      out.writeToken("()");
     }
   }
 
@@ -802,30 +816,35 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   }
 
   private static String resolveAccessor(QualifiedIde qIde, MethodType methodType) throws IOException {
-//    System.err.println("*#*#*#* trying to find " + methodType + "ter for qIde " + qIde.getQualifiedNameStr());
+    //System.err.println("*#*#*#* trying to find " + methodType + "ter for qIde " + qIde.getQualifiedNameStr());
     IdeDeclaration qualifierDeclaration = qIde.getQualifier().getDeclaration(false);
-    if (qualifierDeclaration instanceof TypedIdeDeclaration) {
-      TypeRelation typeRelation = ((TypedIdeDeclaration) qualifierDeclaration).getOptTypeRelation();
+    if (qualifierDeclaration instanceof Typed) {
+      TypeRelation typeRelation = ((Typed) qualifierDeclaration).getOptTypeRelation();
       if (typeRelation != null) {
         IdeDeclaration typeDeclaration = typeRelation.getType().resolveDeclaration();
         if (typeDeclaration instanceof ClassDeclaration) {
-          String memberName = qIde.getIde().getText();
-          MemberModel member = lookupMember((ClassDeclaration) typeDeclaration, memberName);
-//          System.err.println("*#*#*#* found member " + member + "for " + typeDeclaration.getQualifiedNameStr() 
-//                  + "#" + memberName + " for qIde " + qIde.getQualifiedNameStr());
-          if (member instanceof PropertyModel) {
-            MethodModel accessor = ((PropertyModel) member).getMethod(methodType);
-            if (accessor != null) {
-              List<AnnotationModel> accessorAnnotations = accessor.getAnnotations(Jooc.NATIVE_ANNOTATION_NAME);
-              if (accessorAnnotations.size() > 0) {
-                AnnotationPropertyModel accessorAnnotation = accessorAnnotations.get(0).getPropertiesByName().get("accessor");
-                if (accessorAnnotation != null) {
-                  return accessorAnnotation.getStringValue() == null
-                          ? methodType + MxmlUtils.capitalize(memberName)
-                          : accessorAnnotation.getStringValue();
-                }
-              }
-            }
+          return resolveAccessor(qIde, methodType, (ClassDeclaration) typeDeclaration);
+        }
+      }
+    }
+    return null;
+  }
+
+  private static String resolveAccessor(Ide qIde, MethodType methodType, ClassDeclaration typeDeclaration) throws IOException {
+    String memberName = qIde.getIde().getText();
+    MemberModel member = lookupMember(typeDeclaration, memberName);
+//      System.err.println("*#*#*#* found member " + member + " for " + typeDeclaration.getQualifiedNameStr()
+//              + "#" + memberName + " for qIde " + qIde.getQualifiedNameStr());
+    if (member instanceof PropertyModel) {
+      MethodModel accessor = ((PropertyModel) member).getMethod(methodType);
+      if (accessor != null) {
+        List<AnnotationModel> accessorAnnotations = accessor.getAnnotations(Jooc.NATIVE_ANNOTATION_NAME);
+        if (accessorAnnotations.size() > 0) {
+          AnnotationPropertyModel accessorAnnotation = accessorAnnotations.get(0).getPropertiesByName().get("accessor");
+          if (accessorAnnotation != null) {
+            return accessorAnnotation.getStringValue() == null
+                    ? methodType + MxmlUtils.capitalize(memberName)
+                    : accessorAnnotation.getStringValue();
           }
         }
       }

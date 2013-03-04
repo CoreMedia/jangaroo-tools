@@ -24,7 +24,7 @@ import java.util.List;
 /**
  * @author Andreas Gawecki
  */
-public abstract class TypedIdeDeclaration extends IdeDeclaration {
+public abstract class TypedIdeDeclaration extends IdeDeclaration implements Typed {
 
   private Ide namespace;
   private TypeRelation optTypeRelation;
