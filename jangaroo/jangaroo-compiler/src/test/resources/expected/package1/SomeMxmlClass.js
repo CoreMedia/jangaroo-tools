@@ -28,7 +28,7 @@ public class SomeMxmlClass extends package1.ConfigClass {
     this.num = 123;
     addEventListener(this, 'click', (SomeEvent._||SomeEvent._$get()), AS3.bind(this,"___on_click1"));
     this.foo = "bar";
-    var $$2/*:package1.someOtherPackage.SomeOtherClass*/ = new (SomeOtherClass._||SomeOtherClass._$get())();
+    var $$2/*:package1.someOtherPackage.SomeOtherClass*/ = new (SomeOtherClass._||SomeOtherClass._$get())({id: "foo"});
     $$2.bla = (ResourceManager._||ResourceManager._$get()).getInstance().getString("Foo","bar");
     var $$3/*:package1.someOtherPackage.SomeOtherClass*/ = new (SomeOtherClass._||SomeOtherClass._$get())();
     $$3.bla = 1;

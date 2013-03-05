@@ -4,6 +4,7 @@ import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.backend.ApiModelGenerator;
 import net.jangaroo.jooc.input.InputSource;
+import net.jangaroo.jooc.json.JsonObject;
 import net.jangaroo.jooc.model.AnnotationModel;
 import net.jangaroo.jooc.model.AnnotationPropertyModel;
 import net.jangaroo.jooc.model.ClassModel;
@@ -39,6 +40,7 @@ import java.util.regex.Pattern;
 
 public final class MxmlToModelParser {
 
+  public static final String MXML_NAMED_CONSTRUCTOR_PARAMETER_NAMESPACE = "mxml:namedConstructorParameter";
   public static final String MXML_DECLARATIONS = "Declarations";
   public static final String MXML_SCRIPT = "Script";
   public static final String MXML_METADATA = "Metadata";
@@ -123,7 +125,9 @@ public final class MxmlToModelParser {
 
     MethodModel constructorModel = classModel.createConstructor();
     StringBuilder code = new StringBuilder();
-    code.append("super();");
+    code.append("super(");
+    createNamedConstructorParameters(model, objectNode, code);
+    code.append(")");
 
     for (Element element : MxmlUtils.getChildElements(objectNode)) {
       if (MxmlUtils.isMxmlNamespace(element.getNamespaceURI())) {
@@ -171,11 +175,7 @@ public final class MxmlToModelParser {
     for (int i = 0; i < attributes.getLength(); i++) {
       Attr attribute = (Attr) attributes.item(i);
       String propertyName = attribute.getLocalName();
-      if (attribute.getNamespaceURI() != null) {
-        // allow custom namespace URIs like "config" to access sub-properties:
-        propertyName = attribute.getNamespaceURI() + "." + propertyName;
-      }
-      if (!MXML_ID_ATTRIBUTE.equals(propertyName)) {
+      if (attribute.getNamespaceURI() == null && !MXML_ID_ATTRIBUTE.equals(propertyName)) {
         createPropertyAssigmentCode(compilationUnitModel, code, variable, type, propertyName, attribute.getValue());
       }
     }
@@ -255,6 +255,12 @@ public final class MxmlToModelParser {
         return;
       }
     }
+    String attributeValueAsString = MxmlUtils.valueToString(getPropertyValue(compilationUnitModel, propertyModel, value));
+    code.append("\n    ").append(variable).append(".").append(propertyName).append(" = ")
+            .append(attributeValueAsString).append(";");
+  }
+
+  private Object getPropertyValue(CompilationUnitModel compilationUnitModel, MemberModel propertyModel, String value) {
     Matcher resourceBundleMatcher = AT_RESOURCE_PATTERN.matcher(value);
     if (resourceBundleMatcher.matches()) {
       String bundle = resourceBundleMatcher.group(1);
@@ -263,10 +269,7 @@ public final class MxmlToModelParser {
       compilationUnitModel.addImport(RESOURCE_MANAGER_QNAME);
       MxmlUtils.addResourceBundleAnnotation(compilationUnitModel.getClassModel(), bundle);
     }
-    Object attributeValue = MxmlUtils.getAttributeValue(value,
-            propertyModel == null ? null : propertyModel.getType());
-    code.append("\n    ").append(variable).append(".").append(propertyName).append(" = ")
-            .append(MxmlUtils.valueToString(attributeValue)).append(";");
+    return MxmlUtils.getAttributeValue(value, propertyModel == null ? null : propertyModel.getType());
   }
 
   private AnnotationModel getEvent(CompilationUnitModel type, String propertyName) throws IOException {
@@ -292,12 +295,32 @@ public final class MxmlToModelParser {
         model.getClassModel().addMember(new FieldModel(id, arrayItemClassName));
         code.append(" = this.").append(id);
       }
-      code.append(" = ")
-              .append("new ").append(arrayItemClassName).append("();");
+      code.append(" = ").append("new ").append(arrayItemClassName).append("(");
+      createNamedConstructorParameters(model, arrayItemNode, code);
+      code.append(");");
       createPropertyAssignmentsCode(model, arrayItemNode, auxVarName, code);
       auxVarNames.add(auxVarName);
     }
     return auxVarNames;
+  }
+
+  private void createNamedConstructorParameters(CompilationUnitModel model, Element element, StringBuilder code) throws IOException {
+    CompilationUnitModel type = getCompilationUnitModel(createClassNameFromNode(element));
+    ClassModel elementClassModel = type == null ? null : type.getClassModel();
+    NamedNodeMap attributes = element.getAttributes();
+    JsonObject namedConstructorParameters = new JsonObject();
+    for (int i = 0; i < attributes.getLength(); i++) {
+      Attr attribute = (Attr) attributes.item(i);
+      if (MXML_NAMED_CONSTRUCTOR_PARAMETER_NAMESPACE.equals(attribute.getNamespaceURI())) {
+        String propertyName = attribute.getLocalName();
+        MemberModel propertyModel = elementClassModel == null ? null : elementClassModel.getMember(propertyName);
+        Object propertyValue = getPropertyValue(model, propertyModel, attribute.getValue());
+        namedConstructorParameters.set(propertyName, propertyValue);
+      }
+    }
+    if (!namedConstructorParameters.isEmpty()) {
+      code.append(namedConstructorParameters.toString(2, 4));
+    }
   }
 
   private Document buildDom(InputStream inputStream) throws SAXException, IOException {

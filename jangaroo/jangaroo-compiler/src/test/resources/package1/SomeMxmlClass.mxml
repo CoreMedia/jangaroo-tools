@@ -3,6 +3,7 @@
              xmlns="package1.*"
              xmlns:top="*"
              xmlns:other="package1.someOtherPackage.*"
+             xmlns:config="mxml:namedConstructorParameter"
              foo="bar"
              click="var result:String = 'gotcha!';">
   <fx:Declarations>
@@ -17,7 +18,7 @@
     -->
   </fx:Declarations>
   <items>
-    <other:SomeOtherClass bla="@Resource(bundle='Foo', key='bar')"/>
+    <other:SomeOtherClass config:id="foo" bla="@Resource(bundle='Foo', key='bar')"/>
     <other:SomeOtherClass bla="1"/>
     <other:SomeOtherClass bla="@Resource(bundle='Foo', key='baz')"/>
   </items>
