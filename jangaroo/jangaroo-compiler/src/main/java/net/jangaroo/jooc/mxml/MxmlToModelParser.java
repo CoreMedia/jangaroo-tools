@@ -182,11 +182,9 @@ public final class MxmlToModelParser {
 
     List<Element> childNodes = MxmlUtils.getChildElements(objectNode);
     for (Element element : childNodes) {
-      if (MxmlUtils.isMxmlNamespace(element.getNamespaceURI())) {
-        // ignore; has been handled before.
-        continue;
+      if (!MxmlUtils.isMxmlNamespace(element.getNamespaceURI())) { // ignore MXML namespace; has been handled before.
+        createPropertyAssigmentCode(compilationUnitModel, code, element, variable, element.getLocalName(), type);
       }
-      createPropertyAssigmentCode(compilationUnitModel, code, element, variable, element.getLocalName(), type);
     }
   }
 
