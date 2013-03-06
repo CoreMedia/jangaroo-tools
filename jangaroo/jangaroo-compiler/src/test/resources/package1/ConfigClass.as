@@ -11,6 +11,7 @@ public class ConfigClass {
 
   public var number:int;
 
+  [DefaultProperty]
   public var items:Array;
 
 }

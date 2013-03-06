@@ -8,6 +8,27 @@ import mx.resources.ResourceManager;
 public class SomeMxmlClass extends package1.ConfigClass {
     import foo.Bar;
   
+  public*/ function SomeMxmlClass() {
+    Super.call(this);
+    this.bar = "BAR!";
+    this.num = 123;
+    addEventListener(this, 'click', (SomeEvent._||SomeEvent._$get()), AS3.bind(this,"___on_click1"));
+    this.foo = "bar";
+    this.number = 42;
+    var $$2/*:package1.someOtherPackage.SomeOtherClass*/ = new (SomeOtherClass._||SomeOtherClass._$get())({id: "foo"});
+    $$2.bla = (ResourceManager._||ResourceManager._$get()).getInstance().getString("Foo","bar");
+    var $$3/*:package1.someOtherPackage.SomeOtherClass*/ = new (SomeOtherClass._||SomeOtherClass._$get())();
+    $$3.bla = 1;
+    var $$4/*:package1.someOtherPackage.SomeOtherClass*/ = new (SomeOtherClass._||SomeOtherClass._$get())();
+    $$4.bla = (ResourceManager._||ResourceManager._$get()).getInstance().getString("Foo","baz");
+    var $$5/*:package1.ConfigClass*/ = new (ConfigClass._||ConfigClass._$get())();
+    $$5.number = 12;
+    var $$6/*:package1.someOtherPackage.SomeOtherClass*/ = new (SomeOtherClass._||SomeOtherClass._$get())();
+    $$6.bla = 2;
+    $$5.items = [$$6];
+    this.items = [$$2, $$3, $$4, $$5];
+  }/*
+
   public native function get bar():String;
 
   /**
@@ -21,22 +42,6 @@ public class SomeMxmlClass extends package1.ConfigClass {
    * @private
    * /
   public native function set num(value:int):void;
-
-  public*/ function SomeMxmlClass() {
-    Super.call(this);
-    this.bar = "BAR!";
-    this.num = 123;
-    addEventListener(this, 'click', (SomeEvent._||SomeEvent._$get()), AS3.bind(this,"___on_click1"));
-    this.foo = "bar";
-    var $$2/*:package1.someOtherPackage.SomeOtherClass*/ = new (SomeOtherClass._||SomeOtherClass._$get())({id: "foo"});
-    $$2.bla = (ResourceManager._||ResourceManager._$get()).getInstance().getString("Foo","bar");
-    var $$3/*:package1.someOtherPackage.SomeOtherClass*/ = new (SomeOtherClass._||SomeOtherClass._$get())();
-    $$3.bla = 1;
-    var $$4/*:package1.someOtherPackage.SomeOtherClass*/ = new (SomeOtherClass._||SomeOtherClass._$get())();
-    $$4.bla = (ResourceManager._||ResourceManager._$get()).getInstance().getString("Foo","baz");
-    this.items = [$$2, $$3, $$4];
-    this.number = 42;
-  }/*
 
   public*/ function ___on_click1(event/*:package1.someOtherPackage.SomeEvent*/)/*:void*/ {
     var result/*:String*/ = 'gotcha!';

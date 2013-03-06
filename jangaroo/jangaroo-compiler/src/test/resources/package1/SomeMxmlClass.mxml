@@ -17,11 +17,13 @@
     <top:int id="empty"/>
     -->
   </fx:Declarations>
-  <items>
     <other:SomeOtherClass config:id="foo" bla="@Resource(bundle='Foo', key='bar')"/>
     <other:SomeOtherClass bla="1"/>
     <other:SomeOtherClass bla="@Resource(bundle='Foo', key='baz')"/>
-  </items>
+    <ConfigClass>
+      <other:SomeOtherClass bla="2"/>
+      <number>12</number>
+    </ConfigClass>
   <number><![CDATA[
     42
   ]]></number>

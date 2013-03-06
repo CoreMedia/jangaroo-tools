@@ -182,11 +182,15 @@ public class ClassModel extends AbstractAnnotatedModel implements NamespacedMode
 
   private MemberModel getMember(boolean isStatic, String name) {
     MemberModel member = getMethodOrField(isStatic, name);
-    if (member != null && member.isAccessor()) {
-      MethodModel counterpart = getMethod(isStatic, member.isGetter() ? MethodType.SET : MethodType.GET, name);
-      return new PropertyModel((MethodModel)member, counterpart);
+    if (member instanceof MethodModel && member.isAccessor()) {
+      return getProperty(isStatic, (MethodModel)member);
     }
     return member;
+  }
+
+  private MemberModel getProperty(boolean isStatic, MethodModel accessor) {
+    MethodModel counterpart = getMethod(isStatic, accessor.isGetter() ? MethodType.SET : MethodType.GET, accessor.getName());
+    return new PropertyModel(accessor, counterpart);
   }
 
   private MemberModel getMethodOrField(boolean isStatic, String name) {
@@ -247,4 +251,17 @@ public class ClassModel extends AbstractAnnotatedModel implements NamespacedMode
     visitor.visitClass(this);
   }
 
+  public MemberModel findPropertyWithAnnotation(boolean isStatic, String annotationName) {
+    for (MemberModel memberModel : members) {
+      if (memberModel.isStatic() == isStatic && !memberModel.getAnnotations(annotationName).isEmpty()) {
+        if (memberModel.isField()) {
+          return memberModel;
+        }
+        if (memberModel.isAccessor()) {
+          return getProperty(isStatic, (MethodModel) memberModel);
+        }
+      }
+    }
+    return null;
+  }
 }

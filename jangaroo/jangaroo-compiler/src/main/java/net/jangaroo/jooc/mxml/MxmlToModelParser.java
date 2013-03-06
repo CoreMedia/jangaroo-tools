@@ -1,9 +1,11 @@
 package net.jangaroo.jooc.mxml;
 
 import net.jangaroo.jooc.JangarooParser;
+import net.jangaroo.jooc.ast.ClassDeclaration;
 import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.backend.ApiModelGenerator;
 import net.jangaroo.jooc.input.InputSource;
+import net.jangaroo.jooc.json.JsonArray;
 import net.jangaroo.jooc.json.JsonObject;
 import net.jangaroo.jooc.model.AnnotationModel;
 import net.jangaroo.jooc.model.AnnotationPropertyModel;
@@ -45,11 +47,15 @@ public final class MxmlToModelParser {
   public static final String MXML_SCRIPT = "Script";
   public static final String MXML_METADATA = "Metadata";
   public static final String MXML_ID_ATTRIBUTE = "id";
+  public static final String MXML_DEFAULT_PROPERTY_ANNOTATION = "DefaultProperty";
   public static final String RESOURCE_MANAGER_QNAME = "mx.resources.ResourceManager";
   public static final Pattern AT_RESOURCE_PATTERN = Pattern.compile("^\\s*@Resource\\s*\\(\\s*bundle\\s*=\\s*['\"]([a-zA-Z0-9_$]+)['\"]\\s*,\\s*key\\s*=\\s*['\"]([a-zA-Z0-9_$]+)['\"]\\s*\\)\\s*$");
   public static final String RESOURCE_ACCESS_CODE = "{%s.getInstance().getString(\"%s\",\"%s\")}";
   private final JangarooParser jangarooParser;
+
+  private CompilationUnitModel compilationUnitModel;
   private int methodIndex;
+  private StringBuilder code;
 
   public MxmlToModelParser(JangarooParser jangarooParser) {
     this.jangarooParser = jangarooParser;
@@ -64,20 +70,22 @@ public final class MxmlToModelParser {
    */
   public CompilationUnitModel parse(InputSource in) throws IOException, SAXException {
     String qName = CompilerUtils.qNameFromRelativPath(in.getRelativePath());
-    CompilationUnitModel model = new CompilationUnitModel(CompilerUtils.packageName(qName),
+    compilationUnitModel = new CompilationUnitModel(CompilerUtils.packageName(qName),
             new ClassModel(CompilerUtils.className(qName)));
+    methodIndex = 0;
+    code = new StringBuilder();
 
     BufferedInputStream inputStream = null;
     try {
       inputStream = new BufferedInputStream(in.getInputStream());
-      parse(inputStream, model);
+      parse(inputStream);
     } finally {
       if (inputStream != null) {
         inputStream.close();
       }
     }
 
-    return model;
+    return compilationUnitModel;
   }
 
   /**
@@ -85,22 +93,55 @@ public final class MxmlToModelParser {
    * Close the input stream after reading.
    *
    * @param inputStream the input stream
-   * @param model the model
    * @throws java.io.IOException  if the input stream could not be read
    * @throws org.xml.sax.SAXException if the XML was not well-formed
    */
-  private void parse(InputStream inputStream, CompilationUnitModel model) throws IOException, SAXException {
+  private void parse(InputStream inputStream) throws IOException, SAXException {
     Document document = buildDom(inputStream);
     Element objectNode = document.getDocumentElement();
     String superClassName = createClassNameFromNode(objectNode);
 
-    if (superClassName.equals(model.getQName())) {
+    if (superClassName.equals(compilationUnitModel.getQName())) {
       jangarooParser.getLog().error("Cyclic inheritance error: super class and this component are the same!. There is something wrong!"); // TODO: MXML file position!
     }
-    ClassModel classModel = model.getClassModel();
+    ClassModel classModel = compilationUnitModel.getClassModel();
     classModel.setSuperclass(superClassName);
-    model.addImport(superClassName);
+    compilationUnitModel.addImport(superClassName);
 
+    MethodModel constructorModel = classModel.createConstructor();
+
+    code.append("super(");
+    createConfigObjectParameter(objectNode);
+    code.append(");");
+
+    createFields(objectNode);
+
+    processAttributesAndChildNodes(objectNode, "this");
+
+    constructorModel.setBody(code.toString());
+  }
+
+  private void createConfigObjectParameter(Element element) throws IOException {
+    CompilationUnitModel type = getCompilationUnitModel(element);
+    ClassModel elementClassModel = type == null ? null : type.getClassModel();
+    NamedNodeMap attributes = element.getAttributes();
+    JsonObject namedConstructorParameters = new JsonObject();
+    for (int i = 0; i < attributes.getLength(); i++) {
+      Attr attribute = (Attr) attributes.item(i);
+      if (MXML_NAMED_CONSTRUCTOR_PARAMETER_NAMESPACE.equals(attribute.getNamespaceURI())) {
+        String propertyName = attribute.getLocalName();
+        MemberModel propertyModel = elementClassModel == null ? null : findPropertyModel(elementClassModel, propertyName);
+        Object propertyValue = getPropertyValue(propertyModel, attribute.getValue());
+        namedConstructorParameters.set(propertyName, propertyValue);
+      }
+    }
+    if (!namedConstructorParameters.isEmpty()) {
+      code.append(namedConstructorParameters.toString(2, 4));
+    }
+  }
+
+  private void createFields(Element objectNode) throws IOException {
+    ClassModel classModel = compilationUnitModel.getClassModel();
     for (Element element : MxmlUtils.getChildElements(objectNode)) {
       if (MxmlUtils.isMxmlNamespace(element.getNamespaceURI())) {
         String elementName = element.getLocalName();
@@ -112,6 +153,7 @@ public final class MxmlToModelParser {
             fieldModel.addGetter();
             fieldModel.addSetter();
             classModel.addMember(fieldModel);
+            createPropertyAssignmentCode(declaration, "this", fieldModel);
           }
         } else if (MXML_SCRIPT.equals(elementName)) {
           classModel.addBodyCode(getTextContent(element));
@@ -122,143 +164,225 @@ public final class MxmlToModelParser {
         }
       }
     }
-
-    MethodModel constructorModel = classModel.createConstructor();
-    StringBuilder code = new StringBuilder();
-    code.append("super(");
-    createNamedConstructorParameters(model, objectNode, code);
-    code.append(")");
-
-    for (Element element : MxmlUtils.getChildElements(objectNode)) {
-      if (MxmlUtils.isMxmlNamespace(element.getNamespaceURI())) {
-        String elementName = element.getLocalName();
-        if (MXML_DECLARATIONS.equals(elementName)) {
-          for (Element declaration : MxmlUtils.getChildElements(element)) {
-            String fieldName = declaration.getAttribute("id");
-            String type = createClassNameFromNode(declaration);
-            createPropertyAssigmentCode(model, code, declaration, "this", fieldName, getCompilationUnitModel(type));
-          }
-        }
-      }
-    }
-
-    createPropertyAssignmentsCode(model, objectNode, "this", code);
-
-    constructorModel.setBody(code.toString());
   }
 
-  private CompilationUnitModel getCompilationUnitModel(String fullClassName) throws IOException {
-    CompilationUnit compilationUnit = jangarooParser.getCompilationsUnit(fullClassName);
-    if (compilationUnit == null) {
-      jangarooParser.getLog().warning("*** not found: " + fullClassName);
-      return null;
-    } else {
-      return new ApiModelGenerator(false).generateModel(compilationUnit); // TODO: cache!
-    }
-  }
-
-  private String createClassNameFromNode(Node objectNode) {
-    String name = objectNode.getLocalName();
-    String uri = objectNode.getNamespaceURI();
-    String packageName = uri == null ? null : MxmlUtils.parsePackageFromNamespace(uri);
-    if (packageName == null) {
-      jangarooParser.getLog().warning("namespace '" + uri + "' of element '" + name + "' in EXML file does not denote a config package, using unqualified name."); // TODO: MXML file position!
-      return name;
-    }
-    return CompilerUtils.qName(packageName, name);
-  }
-
-  private void createPropertyAssignmentsCode(CompilationUnitModel compilationUnitModel, Element objectNode,
-                                             String variable, StringBuilder code) throws IOException {
-    CompilationUnitModel type = getCompilationUnitModel(createClassNameFromNode(objectNode));
+  private ClassModel processAttributes(Element objectNode, CompilationUnitModel type, String variable) throws IOException {
+    ClassModel classModel = type == null ? null : type.getClassModel();
     NamedNodeMap attributes = objectNode.getAttributes();
     for (int i = 0; i < attributes.getLength(); i++) {
       Attr attribute = (Attr) attributes.item(i);
       String propertyName = attribute.getLocalName();
       if (attribute.getNamespaceURI() == null && !MXML_ID_ATTRIBUTE.equals(propertyName)) {
-        createPropertyAssigmentCode(compilationUnitModel, code, variable, type, propertyName, attribute.getValue());
+        String value = attribute.getValue();
+        MemberModel propertyModel = null;
+        if (classModel != null) {
+          propertyModel = findPropertyModel(classModel, propertyName);
+          if (propertyModel == null) {
+            AnnotationModel eventModel = findEvent(classModel, propertyName);
+            if (eventModel != null) {
+              createEventHandlerCode(variable, value, eventModel);
+              continue;
+            }
+          }
+        }
+        if (propertyModel == null) {
+          propertyModel = createDynamicPropertyModel(classModel, propertyName);
+        }
+        createPropertyAssignmentCode(variable, propertyModel, value);
       }
     }
+    return classModel;
+  }
 
+  private void processAttributesAndChildNodes(Element objectNode, String variable) throws IOException {
+    CompilationUnitModel type = getCompilationUnitModel(objectNode);
+    processAttributes(objectNode, type, variable);
+    processChildNodes(objectNode, type, variable);
+  }
+
+  private void processChildNodes(Element objectNode, CompilationUnitModel type, String variable) throws IOException {
+    ClassModel classModel = type == null ? null : type.getClassModel();
     List<Element> childNodes = MxmlUtils.getChildElements(objectNode);
+    MemberModel defaultPropertyModel = findDefaultPropertyModel(classModel);
+    List<Element> defaultPropertyValues = new ArrayList<Element>();
     for (Element element : childNodes) {
       if (!MxmlUtils.isMxmlNamespace(element.getNamespaceURI())) { // ignore MXML namespace; has been handled before.
-        createPropertyAssigmentCode(compilationUnitModel, code, element, variable, element.getLocalName(), type);
+        MemberModel propertyModel = null;
+        if (objectNode.getNamespaceURI().equals(element.getNamespaceURI())) {
+          if (classModel != null) {
+            String name = element.getLocalName();
+            propertyModel = findPropertyModel(classModel, name);
+            if (propertyModel == null) {
+              AnnotationModel eventModel = findEvent(classModel, name);
+              if (eventModel != null) {
+                String value = getTextContent(element);
+                createEventHandlerCode(variable, value, eventModel);
+                continue;
+              }
+            }
+          }
+        }
+        if (propertyModel == null && defaultPropertyModel != null && createClassNameFromNode(element) != null) {
+          // collect item to add it to the default property later:
+          defaultPropertyValues.add(element);
+        } else {
+          if (propertyModel == null) {
+            propertyModel = createDynamicPropertyModel(classModel, element.getLocalName());
+          }
+          List<Element> childElements = MxmlUtils.getChildElements(element);
+          if (childElements.isEmpty()) {
+            createPropertyAssignmentCode(variable, propertyModel, getTextContent(element));
+          } else {
+            createChildElementsPropertyAssignmentCode(childElements, variable, propertyModel);
+          }
+        }
       }
+    }
+    if (!defaultPropertyValues.isEmpty()) {
+      createChildElementsPropertyAssignmentCode(defaultPropertyValues, variable, defaultPropertyModel);
     }
   }
 
-  private void createPropertyAssigmentCode(CompilationUnitModel compilationUnitModel, StringBuilder code,
-                                           Element propertyElement, String variable, String propertyName, CompilationUnitModel objectType) throws IOException {
-    MemberModel propertyModel = objectType == null ? null : objectType.getClassModel().getMember(propertyName);
-    boolean isPropertyTypeArray = propertyModel != null && "Array".equals(propertyModel.getType());
-    // it seems to be an array or an object
-    List<Element> childElements = MxmlUtils.getChildElements(propertyElement);
-    if (childElements.isEmpty()) {
-      createPropertyAssigmentCode(compilationUnitModel, code, variable, objectType, propertyName, getTextContent(propertyElement));
-      return;
-    }
-
-    List<String> methodNames = createAuxVarsForChildObjects(compilationUnitModel, childElements, code);
-    code.append("\n    ").append(variable).append(".").append(propertyName).append(" = ");
-    if (methodNames.size() > 1 || isPropertyTypeArray) {
-      // TODO: Check for type violation
-      // We must write an array.
-      code.append("[");
-      for (Iterator<String> iterator = methodNames.iterator(); iterator.hasNext(); ) {
-        String methodName = iterator.next();
-        code.append(methodName);
-        if (iterator.hasNext()) {
-          code.append(", ");
+  private void createChildElementsPropertyAssignmentCode(List<Element> childElements, String variable,
+                                                         MemberModel propertyModel) throws IOException {
+    List<String> arrayItems = new ArrayList<String>();
+    for (Element arrayItemNode : childElements) {
+      String arrayItemClassName = createClassNameFromNode(arrayItemNode);
+      if (arrayItemClassName != null) {
+        compilationUnitModel.addImport(arrayItemClassName);
+        String auxVarName = "$$" + (++methodIndex);
+        code.append("\n    var ").append(auxVarName).append(":").append(arrayItemClassName);
+        String id = arrayItemNode.getAttribute(MXML_ID_ATTRIBUTE);
+        if (id.length() > 0) {
+          compilationUnitModel.getClassModel().addMember(new FieldModel(id, arrayItemClassName));
+          code.append(" = this.").append(id);
         }
+        code.append(" = ").append("new ").append(arrayItemClassName).append("(");
+        createConfigObjectParameter(arrayItemNode);
+        code.append(");");
+        processAttributesAndChildNodes(arrayItemNode, auxVarName);
+        arrayItems.add(CompilerUtils.createCodeExpression(auxVarName));
       }
-      code.append("]");
-    } else if (methodNames.size() == 1) {
+    }
+    String value;
+    if (arrayItems.size() > 1 || "Array".equals(propertyModel.getType())) {
+      // TODO: Check for type violation
+      // We must create an array.
+      value = CompilerUtils.createCodeExpression(new JsonArray(arrayItems.toArray()).toString());
+    } else if (arrayItems.size() == 1) {
       // The property is either unspecified, untyped, or object-typed
       // and it contains at least one child element. Use the first element as the
       // property value.
-      code.append(methodNames.get(0));
+      value = arrayItems.get(0);
     } else {
       jangarooParser.getLog().error("Non-array property must not have multiple MXML child elements."); // TODO: MXML file position!
-      code.append("undefined");
+      value = CompilerUtils.createCodeExpression("undefined");
     }
-    code.append(";");
+    createPropertyAssignmentCode(variable, propertyModel, value);
   }
 
-  private static String getTextContent(Element element) {
-    return element.getChildNodes().getLength() == 1 && element.getFirstChild().getNodeType() == Node.TEXT_NODE ? ((Text) element.getFirstChild()).getData() : "";
+  private void createEventHandlerCode(String variable, String value, AnnotationModel event) {
+    AnnotationPropertyModel eventType = event.getPropertiesByName().get("type");
+    String eventTypeStr = eventType == null ? "Object" : eventType.getStringValue();
+    compilationUnitModel.addImport(eventTypeStr);
+    String eventName = event.getPropertiesByName().get("name").getStringValue();
+    if (eventName.startsWith("on")) {
+      eventName = eventName.substring(2);
+    }
+    String eventHandlerName = "___on_" + eventName + (++methodIndex);
+    MethodModel eventHandler = new MethodModel(eventHandlerName, "void",
+            new ParamModel("event", eventTypeStr));
+    eventHandler.setBody(value);
+    compilationUnitModel.getClassModel().addMember(eventHandler);
+    compilationUnitModel.addImport("joo.addEventListener");
+    code.append("\n    ").append("joo.addEventListener(").append(variable)
+            .append(", '").append(eventName).append("', ").append(eventTypeStr).append(", ")
+            .append(eventHandlerName).append(");");
   }
 
-  private void createPropertyAssigmentCode(CompilationUnitModel compilationUnitModel, StringBuilder code, String variable, CompilationUnitModel type, String propertyName, String value) throws IOException {
-    MemberModel propertyModel = type == null ? null : type.getClassModel().getMember(propertyName);
-    if (propertyModel == null && type != null) {
-      // is it an event?
-      AnnotationModel event = getEvent(type, propertyName);
-      if (event != null) {
-        AnnotationPropertyModel eventType = event.getPropertiesByName().get("type");
-        String eventTypeStr = eventType == null ? "Object" : eventType.getStringValue();
-        compilationUnitModel.addImport(eventTypeStr);
-        if (propertyName.startsWith("on")) {
-          propertyName = propertyName.substring(2);
-        }
-        String eventHandlerName = "___on_" + propertyName + (++methodIndex);
-        MethodModel eventHandler = new MethodModel(eventHandlerName, "void",
-                new ParamModel("event", eventTypeStr));
-        eventHandler.setBody(value);
-        compilationUnitModel.getClassModel().addMember(eventHandler);
-        compilationUnitModel.addImport("joo.addEventListener");
-        code.append("\n    ").append("joo.addEventListener(").append(variable)
-                .append(", '").append(propertyName).append("', ").append(eventTypeStr).append(", ")
-                .append(eventHandlerName).append(");");
-        return;
-      }
+  private void createPropertyAssignmentCode(Element propertyElement, String variable, MemberModel propertyModel) throws IOException {
+    List<Element> childElements = MxmlUtils.getChildElements(propertyElement);
+    if (childElements.isEmpty()) {
+      createPropertyAssignmentCode(variable, propertyModel, getTextContent(propertyElement));
+    } else {
+      createChildElementsPropertyAssignmentCode(childElements, variable, propertyModel);
     }
-    String attributeValueAsString = MxmlUtils.valueToString(getPropertyValue(compilationUnitModel, propertyModel, value));
-    code.append("\n    ").append(variable).append(".").append(propertyName).append(" = ")
+  }
+
+  private void createPropertyAssignmentCode(String variable, MemberModel propertyModel, String value) {
+    String attributeValueAsString = MxmlUtils.valueToString(getPropertyValue(propertyModel, value));
+    code.append("\n    ").append(variable).append(".").append(propertyModel.getName()).append(" = ")
             .append(attributeValueAsString).append(";");
   }
 
-  private Object getPropertyValue(CompilationUnitModel compilationUnitModel, MemberModel propertyModel, String value) {
+  // ======================================== auxiliary methods ========================================
+
+  private CompilationUnitModel getCompilationUnitModel(String fullClassName) throws IOException {
+    if (fullClassName == null) {
+      return null;
+    }
+    CompilationUnit compilationUnit = jangarooParser.getCompilationsUnit(fullClassName);
+    if (compilationUnit == null) {
+      jangarooParser.getLog().error("Undefined type: " + fullClassName);
+      return null;
+    }
+    return new ApiModelGenerator(false).generateModel(compilationUnit); // TODO: cache!
+  }
+
+  private CompilationUnitModel getCompilationUnitModel(Element element) throws IOException {
+    return getCompilationUnitModel(createClassNameFromNode(element));
+  }
+
+  private MemberModel findPropertyModel(ClassModel classModel, String propertyName) throws IOException {
+    for (ClassModel current = classModel; current != null; current = getSuperClassModel(current)) {
+      MemberModel propertyModel = current.getMember(propertyName);
+      if (propertyModel != null && (propertyModel.isField() || propertyModel.isProperty())) {
+        return propertyModel;
+      }
+    }
+    return null;
+  }
+
+  private AnnotationModel findEvent(ClassModel classModel, String propertyName) throws IOException {
+    for (ClassModel current = classModel; current != null; current = getSuperClassModel(current)) {
+      AnnotationModel eventModel = current.getEvent(propertyName);
+      if (eventModel != null) {
+        return eventModel;
+      }
+    }
+    return null;
+  }
+
+  private MemberModel findDefaultPropertyModel(ClassModel classModel) throws IOException {
+    for (ClassModel current = classModel; current != null; current = getSuperClassModel(current)) {
+      MemberModel defaultPropertyModel = current.findPropertyWithAnnotation(false, MXML_DEFAULT_PROPERTY_ANNOTATION);
+      if (defaultPropertyModel != null) {
+        return defaultPropertyModel;
+      }
+    }
+    return null;
+  }
+
+  private MemberModel createDynamicPropertyModel(ClassModel classModel, String name) {
+    if (classModel != null && !classModel.isDynamic()) {
+      // dynamic property of a non-dynamic class: error!
+      jangarooParser.getLog().error("Unresolved property " + name + " of type " + classModel.getName());
+    }
+    return new FieldModel(name, "*");
+  }
+
+  private ClassModel getSuperClassModel(ClassModel classModel) throws IOException {
+    String superclass = classModel.getSuperclass();
+    if (superclass != null) {
+      CompilationUnitModel superCompilationUnitModel = getCompilationUnitModel(superclass);
+      if (superCompilationUnitModel != null && superCompilationUnitModel.getPrimaryDeclaration() instanceof ClassModel) {
+        return superCompilationUnitModel.getClassModel();
+      }
+    }
+    return null;
+  }
+
+  private Object getPropertyValue(MemberModel propertyModel, String value) {
     Matcher resourceBundleMatcher = AT_RESOURCE_PATTERN.matcher(value);
     if (resourceBundleMatcher.matches()) {
       String bundle = resourceBundleMatcher.group(1);
@@ -270,55 +394,24 @@ public final class MxmlToModelParser {
     return MxmlUtils.getAttributeValue(value, propertyModel == null ? null : propertyModel.getType());
   }
 
-  private AnnotationModel getEvent(CompilationUnitModel type, String propertyName) throws IOException {
-    ClassModel classModel = type.getClassModel();
-    AnnotationModel event = classModel.getEvent(propertyName);
-    if (event == null && classModel.getSuperclass() != null) {
-      CompilationUnitModel superCUM = getCompilationUnitModel(classModel.getSuperclass());
-      return getEvent(superCUM, propertyName);
-    }
-    return event;
-  }
-
-
-  private List<String> createAuxVarsForChildObjects(CompilationUnitModel model, List<Element> elements, StringBuilder code) throws IOException {
-    List<String> auxVarNames = new ArrayList<String>();
-    for (Element arrayItemNode : elements) {
-      String arrayItemClassName = createClassNameFromNode(arrayItemNode);
-      model.addImport(arrayItemClassName);
-      String auxVarName = "$$" + (++methodIndex);
-      code.append("\n    var ").append(auxVarName).append(":").append(arrayItemClassName);
-      String id = arrayItemNode.getAttribute(MXML_ID_ATTRIBUTE);
-      if (id.length() > 0) {
-        model.getClassModel().addMember(new FieldModel(id, arrayItemClassName));
-        code.append(" = this.").append(id);
-      }
-      code.append(" = ").append("new ").append(arrayItemClassName).append("(");
-      createNamedConstructorParameters(model, arrayItemNode, code);
-      code.append(");");
-      createPropertyAssignmentsCode(model, arrayItemNode, auxVarName, code);
-      auxVarNames.add(auxVarName);
-    }
-    return auxVarNames;
-  }
-
-  private void createNamedConstructorParameters(CompilationUnitModel model, Element element, StringBuilder code) throws IOException {
-    CompilationUnitModel type = getCompilationUnitModel(createClassNameFromNode(element));
-    ClassModel elementClassModel = type == null ? null : type.getClassModel();
-    NamedNodeMap attributes = element.getAttributes();
-    JsonObject namedConstructorParameters = new JsonObject();
-    for (int i = 0; i < attributes.getLength(); i++) {
-      Attr attribute = (Attr) attributes.item(i);
-      if (MXML_NAMED_CONSTRUCTOR_PARAMETER_NAMESPACE.equals(attribute.getNamespaceURI())) {
-        String propertyName = attribute.getLocalName();
-        MemberModel propertyModel = elementClassModel == null ? null : elementClassModel.getMember(propertyName);
-        Object propertyValue = getPropertyValue(model, propertyModel, attribute.getValue());
-        namedConstructorParameters.set(propertyName, propertyValue);
+  private String createClassNameFromNode(Node objectNode) {
+    String name = objectNode.getLocalName();
+    String uri = objectNode.getNamespaceURI();
+    if (uri != null) {
+      String packageName = MxmlUtils.parsePackageFromNamespace(uri);
+      if (packageName != null) {
+        String qName = CompilerUtils.qName(packageName, name);
+        CompilationUnit compilationsUnit = jangarooParser.getCompilationsUnit(qName);
+        if (compilationsUnit != null && compilationsUnit.getPrimaryDeclaration() instanceof ClassDeclaration) {
+          return qName;
+        }
       }
     }
-    if (!namedConstructorParameters.isEmpty()) {
-      code.append(namedConstructorParameters.toString(2, 4));
-    }
+    return null;
+  }
+
+  private static String getTextContent(Element element) {
+    return element.getChildNodes().getLength() == 1 && element.getFirstChild().getNodeType() == Node.TEXT_NODE ? ((Text) element.getFirstChild()).getData() : "";
   }
 
   private Document buildDom(InputStream inputStream) throws SAXException, IOException {
