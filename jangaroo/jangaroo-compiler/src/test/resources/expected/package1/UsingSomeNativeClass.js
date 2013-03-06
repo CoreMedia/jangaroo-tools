@@ -10,6 +10,7 @@ public class UsingSomeNativeClass {
 
   public*/ function UsingSomeNativeClass() {someNative_.call(this);
     new (package1$someOtherPackage$SomeNativeClass._||package1$someOtherPackage$SomeNativeClass._$get())();
+    this.someNative.setBaz ( "foo");
   }/*
 }
 }

@@ -58,6 +58,7 @@ public class DotExpr extends PostfixOpExpr {
   @Override
   public void analyze(final AstNode parentNode) {
     super.analyze(parentNode);
+    ide.analyze(this);
     IdeDeclaration qualiferType = getArg().getType();
     if (qualiferType != null) {
       IdeDeclaration memberDeclaration = getArg().getType().resolvePropertyDeclaration(getIde().getName());

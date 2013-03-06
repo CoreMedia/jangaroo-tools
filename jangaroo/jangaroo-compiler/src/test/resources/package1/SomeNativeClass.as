@@ -22,5 +22,10 @@ public class SomeNativeClass {
    * Some method doc.
    */
   public native function bar();
+
+  [Native(accessor)]
+  public native function get baz():String;
+  [Native(accessor)]
+  public native function set baz(value:String):void;
 }
 }

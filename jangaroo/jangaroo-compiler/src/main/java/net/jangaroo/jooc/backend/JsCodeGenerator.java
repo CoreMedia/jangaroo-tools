@@ -219,7 +219,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
   private static boolean isAssignmentLHS(Ide ide) {
     AstNode parentNode = ide.getParentNode();
-    if (parentNode instanceof IdeExpr) {
+    if (parentNode instanceof IdeExpr || (parentNode instanceof DotExpr && ((DotExpr) parentNode).getIde() == ide)) {
       AstNode containingExpr = parentNode.getParentNode();
       if (containingExpr instanceof AssignmentOpExpr &&
               ((AssignmentOpExpr) containingExpr).getArg1() == parentNode) {
@@ -268,13 +268,13 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   }
 
   private void writeMemberAccess(IdeDeclaration memberDeclaration, JooSymbol optSymDot, Ide memberIde, boolean writeMemberWhitespace) throws IOException {
-    String accessor = null;
+    String getter = null;
     if (memberDeclaration != null) {
       if (memberIde.usePrivateMemberName(memberDeclaration)) {
         writePrivateMemberAccess(optSymDot, memberIde, writeMemberWhitespace, memberDeclaration.isStatic());
         return;
-      } else {
-        accessor = resolveAccessor(memberIde, MethodType.GET, memberDeclaration.getClassDeclaration());
+      } else if (!isAssignmentLHS(memberIde)){
+        getter = resolveAccessor(memberIde, MethodType.GET, memberDeclaration.getClassDeclaration());
       }
     }
     if (optSymDot == null && memberDeclaration != null && !memberDeclaration.isConstructor()) {
@@ -294,15 +294,15 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     if (writeMemberWhitespace) {
       out.writeSymbolWhitespace(memberIde.getIde());
     }
-    if (accessor != null) {
-      out.writeToken(accessor);
+    if (getter != null) {
+      out.writeToken(getter);
     } else {
       out.writeSymbolToken(memberIde.getIde());
     }
     if (quote) {
       out.writeToken("']");
     }
-    if (accessor != null) {
+    if (getter != null) {
       out.writeToken("()");
     }
   }
@@ -663,13 +663,15 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       out.write(compilationUnitAccessCode(ideDeclaration));
       return;
     }
-    String getter = resolveAccessor(qualifiedIde, MethodType.GET); // TODO: could this also be a LHS (SET) expression?!
-    if (getter != null) {
-      // System.err.println("*#*#*#* found getter " + getter + " in qIde " + qualifiedIde.getQualifiedNameStr());
-      qualifiedIde.getQualifier().visit(this);
-      out.writeSymbol(qualifiedIde.getSymDot());
-      out.writeToken(getter + "()");
-      return;
+    if (!isAssignmentLHS(qualifiedIde)) {
+      String getter = resolveAccessor(qualifiedIde, MethodType.GET);
+      if (getter != null) {
+        // System.err.println("*#*#*#* found getter " + getter + " in qIde " + qualifiedIde.getQualifiedNameStr());
+        visitInExpressionMode(qualifiedIde.getQualifier());
+        out.writeSymbol(qualifiedIde.getSymDot());
+        out.writeToken(getter + "()");
+        return;
+      }
     }
     boolean commentOutQualifierCode = false;
     IdeDeclaration memberDeclaration = null;
@@ -760,11 +762,16 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitIdeExpression(IdeExpr ideExpr) throws IOException {
+    visitInExpressionMode(ideExpr.getIde());
+  }
+
+  private void visitInExpressionMode(AstNode expr) throws IOException {
+    boolean oldExpressionMode = expressionMode;
     expressionMode = !out.isWritingComment();
     try {
-      ideExpr.getIde().visit(this);
+      expr.visit(this);
     } finally {
-      expressionMode = false;
+      expressionMode = oldExpressionMode;
     }
   }
 
@@ -797,18 +804,31 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       assignmentOpExpr.getArg2().visit(this);
       out.writeToken(")");
     } else {
+      String setter = null;
+      AstNode dotExprArg = null;
+      JooSymbol symDot = null;
       if (assignmentOpExpr.getArg1() instanceof IdeExpr && ((IdeExpr)assignmentOpExpr.getArg1()).getIde() instanceof QualifiedIde) {
         QualifiedIde qIde = (QualifiedIde) ((IdeExpr) assignmentOpExpr.getArg1()).getIde();
-        String setter = resolveAccessor(qIde, MethodType.SET);
-        if (setter != null) {
-          qIde.getQualifier().visit(this);
-          out.writeSymbol(qIde.getSymDot());
-          out.write(setter);
-          writeSymbolReplacement(assignmentOpExpr.getOp(), "(");
-          assignmentOpExpr.getArg2().visit(this);
-          out.writeToken(")");
-          return;
+        setter = resolveAccessor(qIde, MethodType.SET);
+        dotExprArg = qIde.getQualifier();
+        symDot = qIde.getSymDot();
+      } else if (assignmentOpExpr.getArg1() instanceof DotExpr) {
+        DotExpr dotExpr = (DotExpr) assignmentOpExpr.getArg1();
+        IdeDeclaration type = dotExpr.getArg().getType();
+        if (type instanceof ClassDeclaration) {
+          setter = resolveAccessor(dotExpr.getIde(), MethodType.SET, (ClassDeclaration) type);
+          dotExprArg = dotExpr.getArg();
+          symDot = dotExpr.getOp();
         }
+      }
+      if (setter != null && dotExprArg != null) {
+        visitInExpressionMode(dotExprArg);
+        out.writeSymbol(symDot);
+        out.write(setter);
+        writeSymbolReplacement(assignmentOpExpr.getOp(), "(");
+        assignmentOpExpr.getArg2().visit(this);
+        out.writeToken(")");
+        return;
       }
       
       visitBinaryOpExpr(assignmentOpExpr);

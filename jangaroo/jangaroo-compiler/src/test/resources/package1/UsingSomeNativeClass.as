@@ -10,6 +10,7 @@ public class UsingSomeNativeClass {
 
   public function UsingSomeNativeClass() {
     new package1.someOtherPackage.SomeNativeClass();
+    someNative.baz = "foo";
   }
 }
 }
