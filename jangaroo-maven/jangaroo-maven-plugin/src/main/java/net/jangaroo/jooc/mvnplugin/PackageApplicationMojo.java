@@ -208,6 +208,8 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
     }
   }
 
+  private static final String JOO_FLUSH_STYLE_SHEETS = "\njoo.flushStyleSheets();\n";
+
   private void concatModuleScripts(File scriptDirectory) throws IOException, ProjectBuildingException {
     Writer jangarooApplicationWriter = createJangarooModulesFile(scriptDirectory, "jangaroo-application.js");
     Writer jangarooApplicationAllWriter = createJangarooModulesFile(scriptDirectory, "jangaroo-application-all.js");
@@ -219,6 +221,9 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
         includeJangarooModuleScript(scriptDirectory, artifact, jangarooApplicationWriter, jangarooApplicationAllWriter);
       }
       writeThisJangarooModuleScript(scriptDirectory, jangarooApplicationWriter, jangarooApplicationAllWriter);
+
+      jangarooApplicationWriter.write(JOO_FLUSH_STYLE_SHEETS);
+      jangarooApplicationAllWriter.write(JOO_FLUSH_STYLE_SHEETS);
     } finally {
       try {
         jangarooApplicationWriter.close();
