@@ -162,7 +162,7 @@ public class ExtAsApiGenerator {
 
     if (!extAsClass.isInterface()) {
       addFields(extAsClass, filterByOwner(false, extClass, extClass.statics.property));
-      addMethods(extAsClass, filterByOwner(false, extClass, extClass.statics.method));
+      addMethods(extAsClass, filterByOwner(false, extClass, extClass.statics.method), null);
     }
     addNonStaticMembers(extClass, extAsClassUnit);
 
@@ -243,8 +243,7 @@ public class ExtAsApiGenerator {
     addEvents(extAsClassUnit.getClassModel(), extAsClassUnit, filterByOwner(false, extClass, extClass.members.event));
     ClassModel extAsClass = extAsClassUnit.getClassModel();
     addProperties(extAsClass, filterByOwner(extAsClass.isInterface(), extClass, extClass.members.property));
-    addMethods(extAsClass, filterByOwner(extAsClass.isInterface(), extClass, extClass.members.method));
-    // addProperties(extAsClass, filterByOwner(extAsClass.isInterface(), extClass, extClass.members.cfg));
+    addMethods(extAsClass, filterByOwner(extAsClass.isInterface(), extClass, extClass.members.method), extClass.members.cfg);
   }
 
   private static void generateActionScriptCode(CompilationUnitModel extAsClass, File outputDir) throws IOException {
@@ -366,7 +365,7 @@ public class ExtAsApiGenerator {
     }
   }
 
-  private static void addMethods(ClassModel classModel, List<Method> methods) {
+  private static void addMethods(ClassModel classModel, List<Method> methods, List<Member> configs) {
     for (Method method : methods) {
       String methodName = method.name;
       if (classModel.getMember(methodName) == null) {
@@ -380,12 +379,23 @@ public class ExtAsApiGenerator {
         MethodModel methodModel = isConstructor
                 ? new MethodModel(classModel.getName(), null)
                 : new MethodModel(convertName(methodName), convertType(method.return_.type));
+        Member asDocSource = method;
         if (methodType != null) {
           methodModel.setMethodType(methodType);
           methodModel.addAnnotation(new AnnotationModel(Jooc.NATIVE_ANNOTATION_NAME,
                   new AnnotationPropertyModel("accessor", null)));
+          if (configs != null) {
+            for (Member config : configs) {
+              if (config.name.equals(methodName)) {
+                if (config.doc != null && !config.doc.trim().isEmpty()) {
+                  asDocSource = config;
+                }
+                break;
+              }
+            }
+          }
         }
-        methodModel.setAsdoc(toAsDoc(method.doc));
+        methodModel.setAsdoc(toAsDoc(asDocSource.doc));
         methodModel.getReturnModel().setAsdoc(toAsDoc(method.return_.doc));
         setStatic(methodModel, method);
         for (Param param : method.params) {
@@ -394,6 +404,12 @@ public class ExtAsApiGenerator {
           setDefaultValue(paramModel, param);
           paramModel.setRest(param == method.params.get(method.params.size() - 1) && param.type.endsWith("..."));
           methodModel.addParam(paramModel);
+        }
+        if (isConstructor && method.params.size() == 1) {
+          Param theOnlyParam = method.params.get(0);
+          if (!theOnlyParam.optional && "config".equals(theOnlyParam.name)) {
+            methodModel.getParams().get(0).setOptional(true);
+          }
         }
         try {
           classModel.addMember(methodModel);
