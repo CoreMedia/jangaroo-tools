@@ -20,7 +20,7 @@ public class UsingEmbed {
       class_: "UsingEmbed",
       members: {
         someText: {
-          value: function(){return $resource_0},
+          value: function(){return new String($resource_0)},
           writable: true
         },
         constructor: UsingEmbed

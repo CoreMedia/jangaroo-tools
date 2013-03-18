@@ -1462,12 +1462,8 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       Initializer optInitializer = variableDeclaration.getOptInitializer();
       if (optInitializer == null) {
         if (variableDeclaration.isPrimaryDeclaration() || variableDeclaration.isPrivateStatic()) {
-          String value;
-          if (currentMetadata.get("Embed") != null) {
-            String source = (String) ((JsonObject) currentMetadata.get("Embed")).get("source");
-            int index = compilationUnit.getResourceDependencies().indexOf("text!" + source);
-            value = "function(){return new String($resource_" + index + ")}";
-          } else {
+          String value = getValueFromEmbedMetadata();
+          if (value == null) {
             TypeRelation typeRelation = variableDeclaration.getOptTypeRelation();
             value = VariableDeclaration.getDefaultValue(typeRelation);
           }
@@ -1493,6 +1489,15 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     }
   }
 
+  private String getValueFromEmbedMetadata() {
+    if (currentMetadata.get("Embed") != null) {
+      String source = (String) ((JsonObject) currentMetadata.get("Embed")).get("source");
+      int index = compilationUnit.getResourceDependencies().indexOf("text!" + source);
+      return "function(){return new String($resource_" + index + ")}";
+    }
+    return null;
+  }
+
   private void registerField(VariableDeclaration variableDeclaration) {
     String variableName = variableDeclaration.getName();
 
@@ -1508,13 +1513,12 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       String value;
       if (variableDeclaration.getOptInitializer() != null) {
         value = ((LiteralExpr) variableDeclaration.getOptInitializer().getValue()).getValue().getText(); // TODO: may be a more complex expression, see above!
-      } else if (currentMetadata.get("Embed") != null) {
-        String source = (String) ((JsonObject) currentMetadata.get("Embed")).get("source");
-        int index = compilationUnit.getResourceDependencies().indexOf("text!" + source);
-        value = "function(){return $resource_" + index + "}";
       } else {
-        TypeRelation typeRelation = variableDeclaration.getOptTypeRelation();
-        value = VariableDeclaration.getDefaultValue(typeRelation);
+        value = getValueFromEmbedMetadata();
+        if (value == null) {
+          TypeRelation typeRelation = variableDeclaration.getOptTypeRelation();
+          value = VariableDeclaration.getDefaultValue(typeRelation);
+        }
       }
       if (variableDeclaration.isPrivate() && !variableDeclaration.isStatic()) {
         variableName += "$" + ((ClassDeclaration)compilationUnit.getPrimaryDeclaration()).getInheritanceLevel();
