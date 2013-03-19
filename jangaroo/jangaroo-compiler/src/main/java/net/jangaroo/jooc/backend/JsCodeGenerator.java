@@ -1453,7 +1453,11 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       visitIfNotNull(variableDeclaration.getOptNextVariableDeclaration());
       generateFieldEndCode(variableDeclaration);
     } else {
-      generateVarStartCode(variableDeclaration);
+      if (variableDeclaration.hasPreviousVariableDeclaration()) {
+        writeOptSymbol(variableDeclaration.getOptSymConstOrVar());
+      } else {
+        generateVarStartCode(variableDeclaration);
+      }
       variableDeclaration.getIde().visit(this);
       if (variableDeclaration.isClassMember() && variableDeclaration.isStatic()) {
         out.write("$static");
@@ -1492,8 +1496,13 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   private String getValueFromEmbedMetadata() {
     if (currentMetadata.get("Embed") != null) {
       String source = (String) ((JsonObject) currentMetadata.get("Embed")).get("source");
-      int index = compilationUnit.getResourceDependencies().indexOf("text!" + source);
-      return "function(){return new String($resource_" + index + ")}";
+      String assetType = CompilationUnit.guessAssetType(source);
+      int index = compilationUnit.getResourceDependencies().indexOf(assetType + "!" + source);
+      String assetFactory = "new String";
+      if ("image".equals(assetType)) {
+        assetFactory = imports.get("flash.display.Bitmap") + ".fromImg";
+      }
+      return String.format("function(){return %s($resource_%d)}", assetFactory, index);
     }
     return null;
   }
@@ -1636,8 +1645,8 @@ public class JsCodeGenerator extends CodeGeneratorBase {
         if (functionDeclaration.isGetterOrSetter()) {
           out.writeSymbolWhitespace(functionDeclaration.getIde().getSymbol());
           out.writeSymbolWhitespace(functionDeclaration.getSymGetOrSet());
-          String accessorPostfix = functionDeclaration.getSymGetOrSet().getText() + "$";
-          String accessorName = functionName + accessorPostfix;
+          String accessorPrefix = functionDeclaration.getSymGetOrSet().getText() + "$";
+          String accessorName = accessorPrefix + functionName;
           out.writeToken(accessorName);
           if (!functionDeclaration.isPrivateStatic()) { // TODO: simulate private static getter when called!
             PropertyDefinition accessorDefinition;

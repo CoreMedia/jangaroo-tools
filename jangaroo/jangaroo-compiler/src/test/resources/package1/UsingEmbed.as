@@ -11,5 +11,8 @@ public class UsingEmbed {
   [Embed(source="Interface.as")]
   private static var anotherText:Class;
 
+  [Embed(source="jooley.png")]
+  private static var jooley:Class;
+
 }
 }

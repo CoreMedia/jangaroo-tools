@@ -20,10 +20,12 @@ import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.input.InputSource;
 import net.jangaroo.utils.AS3Type;
+import net.jangaroo.utils.CompilerUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -53,6 +55,7 @@ public class CompilationUnit extends NodeImplBase {
 
   private InputSource source;
   private JangarooParser compiler;
+  private static final Collection<String> IMAGE_EXTENSIONS = Arrays.asList("png", "gif", "bmp", "jpg", "jpeg");
 
   public CompilationUnit(PackageDeclaration packageDeclaration, JooSymbol lBrace, List<AstNode> directives, IdeDeclaration primaryDeclaration, JooSymbol rBrace, List<IdeDeclaration> secondaryDeclarations) {
     this.packageDeclaration = packageDeclaration;
@@ -279,8 +282,21 @@ public class CompilationUnit extends NodeImplBase {
     if (path.startsWith("/")) {
       path = path.substring(1);
     }
-    resourceDependencies.add("text!" + path); // TODO: other resource types need other RequireJS plugins!
+    String assetType = guessAssetType(path);
+    resourceDependencies.add(assetType + "!" + path);
+    if ("image".equals(assetType)) {
+      addDependency("flash.display.Bitmap");
+    }
     return path;
+  }
+
+  public static String guessAssetType(String path) {
+    String extension = CompilerUtils.extension(path);
+    String assetType = "text"; // default asset type: text
+    if (IMAGE_EXTENSIONS.contains(extension)) {
+      assetType = "image";
+    }
+    return assetType;
   }
 
   @Override
