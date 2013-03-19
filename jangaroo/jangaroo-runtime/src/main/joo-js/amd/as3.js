@@ -12,18 +12,22 @@ define(function() {
       return name.match(/^as3\//) ? name : "as3/" + name.replace(/\./g, "/");
     },
 
-    load: function (name, req, load) {
+    load: function (name, req, load, config) {
       function loadAndInit() {
         req([name], function (value) {
-          // don't use retrievePrimaryDeclaration here, as "new!" is used for bootstrap and we don't want to
+          // don't use retrievePrimaryDeclaration here, as "as3!" is used for bootstrap and we don't want to
           // load retrievePrimaryDeclaration.js as a separate request.
           load(value._ || value._$get());
         });
       }
-      switch (debug) {
-        case "true":   loadAndInit(); break;
-        case "linked": req(["application"], loadAndInit); break;
-        case "false":  req(["application-min"], loadAndInit); break;
+      if (config.isBuild) {
+        loadAndInit();
+      } else {
+        switch (debug) {
+          case "true":   loadAndInit(); break;
+          case "linked": req(["application"], loadAndInit); break;
+          case "false":  req(["application-min"], loadAndInit); break;
+        }
       }
     }
   };

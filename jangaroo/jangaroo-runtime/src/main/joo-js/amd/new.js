@@ -20,10 +20,14 @@ define(function() {
           load(new (value._ || value._$get())(config.config));
         });
       }
-      switch (debug) {
-        case "true":   loadAndNew(); break;
-        case "linked": req(["application"], loadAndNew); break;
-        case "false":  req(["application-min"], loadAndNew); break;
+      if (config.isBuild) {
+        loadAndNew();
+      } else {
+        switch (debug) {
+          case "true":   loadAndNew(); break;
+          case "linked": req(["application"], loadAndNew); break;
+          case "false":  req(["application-min"], loadAndNew); break;
+        }
       }
     }
   };
