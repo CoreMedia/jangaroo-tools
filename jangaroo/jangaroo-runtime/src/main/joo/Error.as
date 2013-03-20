@@ -28,14 +28,25 @@ public dynamic class Error {
    * @see http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/statements.html#try..catch..finally statements.html#try..catch..finally
    *
    */
-  public var message :String;
+  public native function get message():String;
+
+  /**
+   * @private
+   */
+  public native function set message(value:String):void;
+
   /**
    * Contains the name of the Error object. By default, the value of this property is "<code>Error</code>".
    * @see http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/statements.html#throw statements.html#throw
    * @see http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/statements.html#try..catch..finally statements.html#try..catch..finally
    *
    */
-  public var name:String;
+  public native function get name():String;
+
+  /**
+   * @private
+   */
+  public native function set name(value:String):void;
 
   /**
    * Creates a new Error object. If <code>message</code> is specified, its value is assigned to the object's <code>Error.message</code> property.
