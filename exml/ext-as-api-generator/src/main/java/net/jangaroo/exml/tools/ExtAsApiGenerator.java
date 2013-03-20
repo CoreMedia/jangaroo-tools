@@ -42,8 +42,8 @@ public class ExtAsApiGenerator {
   private static Map<String,ExtClass> extClasses;
   private static CompilationUnitModelRegistry compilationUnitModelRegistry;
   private static Set<String> interfaces;
-  public static final List<String> NON_COMPILE_TIME_CONSTANT_INITIALIZERS = Arrays.asList("window", "document", "document.body", "new Date()", "this");
-  public static final String PACKAGE_PREFIX = "com.sencha.touch";
+  private static final List<String> NON_COMPILE_TIME_CONSTANT_INITIALIZERS = Arrays.asList("window", "document", "document.body", "new Date()", "this");
+  private static String extPackageName;
   private static final Map<String,String> ALIAS_TYPE_TO_PROPERTY = new HashMap<String, String>();
   static {
     ALIAS_TYPE_TO_PROPERTY.put("widget", "xtype");
@@ -55,6 +55,7 @@ public class ExtAsApiGenerator {
   public static void main(String[] args) throws IOException {
     File srcDir = new File(args[0]);
     File outputDir = new File(args[1]);
+    extPackageName = args[2];
     File[] files = srcDir.listFiles();
     if (files != null) {
       extClasses = new HashMap<String, ExtClass>();
@@ -130,7 +131,7 @@ public class ExtAsApiGenerator {
       addInterfaceForSuperclass(extClass, extAsInterface);
     }
     if (isSingleton(extClass)) {
-      FieldModel singleton = new FieldModel(CompilerUtils.className(extClassName), extAsClassUnit.getQName());
+      FieldModel singleton = new FieldModel(CompilerUtils.className(extAsClassUnit.getClassModel().getName().substring(1)), extAsClassUnit.getQName());
       singleton.setConst(true);
       singleton.setValue("new " + extAsClassUnit.getQName());
       singleton.addAnnotation(createNativeAnnotation(extClassName));
@@ -166,21 +167,25 @@ public class ExtAsApiGenerator {
     }
     addNonStaticMembers(extClass, extAsClassUnit);
 
-    Map.Entry<String, List<String>> alias = getAlias(extClass);
-    if (alias != null) {
-      String configClassQName = getConfigClassQName(alias, extClass.name);
+    String configClassQName = getConfigClassQName(extClass);
+    if (configClassQName != null) {
       CompilationUnitModel configClassUnit = createClassModel(configClassQName);
       ClassModel configClass = (ClassModel)configClassUnit.getPrimaryDeclaration();
-      ExtClass extSuperClass = extClasses.get(extClass.extends_);
-      if (extSuperClass != null) {
-        String superConfigClassQName = getConfigClassQName(extSuperClass);
-        configClass.setSuperclass(superConfigClassQName != null
-                ? superConfigClassQName
-                : "joo.JavaScriptObject");
+      String superConfigClassQName = "joo.JavaScriptObject";
+      for (ExtClass extSuperClass = extClasses.get(extClass.extends_);
+           extSuperClass != null;
+           extSuperClass = extClasses.get(extSuperClass.extends_)) {
+        String checkSuperConfigClassQName = getConfigClassQName(extSuperClass);
+        if (checkSuperConfigClassQName != null) {
+          superConfigClassQName = checkSuperConfigClassQName;
+          break;
+        }
       }
-      String typeProperty = ALIAS_TYPE_TO_PROPERTY.get(alias.getKey());
+      configClass.setSuperclass(superConfigClassQName);
+      Map.Entry<String, List<String>> alias = getAlias(extClass);
+      String typeProperty = alias == null ? null : ALIAS_TYPE_TO_PROPERTY.get(alias.getKey());
       if (typeProperty != null) {
-        configClass.addBodyCode("  " + configClassQName + "['prototype']." + typeProperty + " = "
+        configClass.addBodyCode("\n  " + configClassQName + "['prototype']." + typeProperty + " = "
                 + CompilerUtils.quote(alias.getValue().get(0)) + ";\n");
       }
       addEvents(configClass, extAsClassUnit, filterByOwner(false, extClass, extClass.members.event));
@@ -189,22 +194,33 @@ public class ExtAsApiGenerator {
   }
 
   private static String getConfigClassQName(ExtClass extClass) {
-    Map.Entry<String, List<String>> alias = getAlias(extClass);
-    return alias == null ? null : getConfigClassQName(alias, extClass.name);
-  }
-
-  private static String getConfigClassQName(Map.Entry<String, List<String>> aliases, String targetClassName) {
-    String alias = aliases.getValue().get(0);
+    Map.Entry<String, List<String>> aliases = getAlias(extClass);
+    String alias = null;
+    if (aliases == null) {
+      for (Member member : extClass.members.cfg) {
+        if (extClass.name.equals(member.owner)) {
+          // try to make invented alias unique:
+          String rawPackage = CompilerUtils.packageName(extClass.name.startsWith("Ext.") ? extClass.name.substring(4) : extClass.name);
+          alias = CompilerUtils.className(extClass.name).toLowerCase();
+          if (!"dd".equals(rawPackage) && !alias.contains(rawPackage)) {
+            alias = rawPackage + alias;
+          }
+          break;
+        }
+      }
+    } else {
+      alias = aliases.getValue().get(0);
+    }
+    if (alias == null) {
+      return null;
+    }
     String configClassName = replaceSeparatorByCamelCase(alias, '-');
     configClassName = replaceSeparatorByCamelCase(configClassName, '.'); // some aliases contain dots!
-    configClassName = MxmlUtils.capitalize(configClassName);
-    targetClassName = CompilerUtils.className(targetClassName);
-    int targetClassPos = configClassName.toLowerCase().indexOf(targetClassName.toLowerCase());
-    if (targetClassPos != -1) {
-      configClassName = configClassName.substring(0, targetClassPos) + targetClassName
-              + configClassName.substring(targetClassPos + targetClassName.length());
+    configClassName = configClassName.toLowerCase();
+    String packageName = extPackageName + ".config";
+    if (aliases != null && !"widget".equals(aliases.getKey())) {
+      configClassName += aliases.getKey();
     }
-    String packageName = PACKAGE_PREFIX + ".config." + aliases.getKey();
     String configClassQName = packageName + "." + configClassName;
     System.err.println("********* derived config class name "  + configClassQName + " from alias " + alias);
     return configClassQName;
@@ -484,7 +500,7 @@ public class ExtAsApiGenerator {
     String packageName = CompilerUtils.packageName(mixin).toLowerCase();
     String className = "I" + CompilerUtils.className(mixin);
     if (packageName.startsWith("ext")) {
-      packageName = PACKAGE_PREFIX + packageName.substring(3);
+      packageName = extPackageName + packageName.substring(3);
     }
     return CompilerUtils.qName(packageName, className);
   }
@@ -510,8 +526,13 @@ public class ExtAsApiGenerator {
     }
     ExtClass extClass = extClasses.get(extType);
     if (extClass != null) {
-      // normalize:
-      extType = extClass.name;
+      // normalize / use alternate class name except for special cases:
+      if (!"Ext.MessageBox".equals(extClass.name) &&
+              extClass.alternateClassNames != null && !extClass.alternateClassNames.isEmpty()) {
+        extType = extClass.alternateClassNames.get(0);
+      } else {
+        extType = extClass.name;
+      }
     }
     if ("Ext".equals(extType)) {
       // special case: move singleton "Ext" into package "ext":
@@ -541,7 +562,7 @@ public class ExtAsApiGenerator {
       className = "Is";
     }
     if (packageName.startsWith("ext")) {
-      packageName = PACKAGE_PREFIX + packageName.substring(3);
+      packageName = extPackageName + packageName.substring(3);
     }
     return CompilerUtils.qName(packageName, className);
   }
@@ -697,5 +718,6 @@ public class ExtAsApiGenerator {
     public List<String> docauthor;
     public boolean required;
     public Map<String,String> removed;
+    public String since;
   }
 }
