@@ -44,7 +44,9 @@ public class ExtAsApiGenerator {
   private static Set<String> interfaces;
   private static final List<String> NON_COMPILE_TIME_CONSTANT_INITIALIZERS = Arrays.asList("window", "document", "document.body", "new Date()", "this");
   private static String extPackageName;
+  private static String extAmdModuleName;
   private static final Map<String,String> ALIAS_TYPE_TO_PROPERTY = new HashMap<String, String>();
+
   static {
     ALIAS_TYPE_TO_PROPERTY.put("widget", "xtype");
     ALIAS_TYPE_TO_PROPERTY.put("plugin", "type");
@@ -56,6 +58,7 @@ public class ExtAsApiGenerator {
     File srcDir = new File(args[0]);
     File outputDir = new File(args[1]);
     extPackageName = args[2];
+    extAmdModuleName = args[3];
     File[] files = srcDir.listFiles();
     if (files != null) {
       extClasses = new HashMap<String, ExtClass>();
@@ -78,10 +81,37 @@ public class ExtAsApiGenerator {
       for (ExtClass extClass : new HashSet<ExtClass>(extClasses.values())) {
         generateClassModel(extClass);
       }
+      complementMixinConfigClasses();
       compilationUnitModelRegistry.complementOverrides();
       compilationUnitModelRegistry.complementImports();
       for (CompilationUnitModel compilationUnitModel : compilationUnitModelRegistry.getCompilationUnitModels()) {
         generateActionScriptCode(compilationUnitModel, outputDir);
+      }
+    }
+  }
+
+  private static void complementMixinConfigClasses() {
+    for (ExtClass extClass : extClasses.values()) {
+      String configClassQName = getConfigClassQName(extClass);
+      if (configClassQName != null) {
+        ClassModel configClassModel = compilationUnitModelRegistry.resolveCompilationUnit(configClassQName).getClassModel();
+        if (configClassModel != null) {
+          for (String mixin : extClass.mixins) {
+            ExtClass extMixinClass = extClasses.get(mixin);
+            if (extMixinClass != null) {
+              String mixinConfigClassQName = getConfigClassQName(extMixinClass);
+              if (mixinConfigClassQName != null) {
+                // System.err.println("*#*#*# found config mixin in " + extClass.name + ": " + mixinConfigClassQName + " (derived from mixin " + mixin + ")");
+                ClassModel mixinConfigClassModel = compilationUnitModelRegistry.resolveCompilationUnit(convertType(mixinConfigClassQName)).getClassModel();
+                for (MemberModel memberModel : mixinConfigClassModel.getMembers()) {
+                  if (memberModel instanceof MethodModel) {
+                    configClassModel.addMember(((MethodModel) memberModel).duplicate());
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
   }
@@ -171,6 +201,7 @@ public class ExtAsApiGenerator {
     if (configClassQName != null) {
       CompilationUnitModel configClassUnit = createClassModel(configClassQName);
       ClassModel configClass = (ClassModel)configClassUnit.getPrimaryDeclaration();
+      configClassUnit.getClassModel().setAsdoc(extAsClass.getAsdoc());
       String superConfigClassQName = "joo.JavaScriptObject";
       for (ExtClass extSuperClass = extClasses.get(extClass.extends_);
            extSuperClass != null;
@@ -186,7 +217,7 @@ public class ExtAsApiGenerator {
       String typeProperty = alias == null ? null : ALIAS_TYPE_TO_PROPERTY.get(alias.getKey());
       if (typeProperty != null) {
         configClass.addBodyCode("\n  " + configClassQName + "['prototype']." + typeProperty + " = "
-                + CompilerUtils.quote(alias.getValue().get(0)) + ";\n");
+                + CompilerUtils.quote(getPreferredAlias(alias)) + ";\n");
       }
       addEvents(configClass, extAsClassUnit, filterByOwner(false, extClass, extClass.members.event));
       addProperties(configClass, filterByOwner(false, extClass, extClass.members.cfg));
@@ -202,14 +233,14 @@ public class ExtAsApiGenerator {
           // try to make invented alias unique:
           String rawPackage = CompilerUtils.packageName(extClass.name.startsWith("Ext.") ? extClass.name.substring(4) : extClass.name);
           alias = CompilerUtils.className(extClass.name).toLowerCase();
-          if (!"dd".equals(rawPackage) && !alias.contains(rawPackage)) {
+          if (!"dd".equals(rawPackage) && !"util".equals(rawPackage) && !alias.contains(rawPackage)) {
             alias = rawPackage + alias;
           }
           break;
         }
       }
     } else {
-      alias = aliases.getValue().get(0);
+      alias = getPreferredAlias(aliases);
     }
     if (alias == null) {
       return null;
@@ -217,6 +248,10 @@ public class ExtAsApiGenerator {
     String configClassName = replaceSeparatorByCamelCase(alias, '-');
     configClassName = replaceSeparatorByCamelCase(configClassName, '.'); // some aliases contain dots!
     configClassName = configClassName.toLowerCase();
+    // special case "class":
+    if ("class".equals(configClassName)) {
+      configClassName = "extclass";
+    }
     String packageName = extPackageName + ".config";
     if (aliases != null && !"widget".equals(aliases.getKey())) {
       configClassName += aliases.getKey();
@@ -224,6 +259,19 @@ public class ExtAsApiGenerator {
     String configClassQName = packageName + "." + configClassName;
     System.err.println("********* derived config class name "  + configClassQName + " from alias " + alias);
     return configClassQName;
+  }
+
+  private static String getPreferredAlias(Map.Entry<String, List<String>> aliases) {
+    String alias;
+    alias = aliases.getValue().get(aliases.getValue().size() - 1);
+    if (aliases.getValue().size() > 1) {
+      // for the following exceptions, use the first alias:
+      if ("box".equals(alias)) {
+        alias = aliases.getValue().get(0);
+      }
+      System.err.println("***### multiple aliases: " + aliases.getValue() + ", choosing " + alias);
+    }
+    return alias;
   }
 
   private static Map.Entry<String, List<String>> getAlias(ExtClass extClass) {
@@ -238,7 +286,7 @@ public class ExtAsApiGenerator {
 
   private static AnnotationModel createNativeAnnotation(String nativeName) {
     return new AnnotationModel(Jooc.NATIVE_ANNOTATION_NAME,
-            new AnnotationPropertyModel("amd", CompilerUtils.quote("sencha-touch-2-flex.module")),
+            new AnnotationPropertyModel("amd", CompilerUtils.quote(extAmdModuleName)),
             new AnnotationPropertyModel("global", CompilerUtils.quote(nativeName)));
   }
 
@@ -386,12 +434,13 @@ public class ExtAsApiGenerator {
       String methodName = method.name;
       if (classModel.getMember(methodName) == null) {
         boolean isConstructor = methodName.equals("constructor");
-        MethodType methodType = methodName.startsWith("get") && method.params.size() == 0 && !"undefined".equals(method.return_.type) ? MethodType.GET
-                : methodName.startsWith("set") && method.params.size() == 1 && "undefined".equals(method.return_.type) ? MethodType.SET
-                : null;
-        if (methodType != null) {
-          methodName = MxmlUtils.uncapitalize(methodName.substring(3));
-        }
+        MethodType methodType = null;
+//        MethodType methodType = methodName.startsWith("get") && method.params.size() == 0 && !"undefined".equals(method.return_.type) ? MethodType.GET
+//                : methodName.startsWith("set") && method.params.size() == 1 && "undefined".equals(method.return_.type) ? MethodType.SET
+//                : null;
+//        if (methodType != null) {
+//          methodName = MxmlUtils.uncapitalize(methodName.substring(3));
+//        }
         MethodModel methodModel = isConstructor
                 ? new MethodModel(classModel.getName(), null)
                 : new MethodModel(convertName(methodName), convertType(method.return_.type));
