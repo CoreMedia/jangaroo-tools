@@ -1,6 +1,7 @@
 package net.jangaroo.jooc.mxml;
 
 import net.jangaroo.jooc.JangarooParser;
+import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.ast.ClassDeclaration;
 import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.backend.ApiModelGenerator;
@@ -34,7 +35,6 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -42,6 +42,7 @@ import java.util.regex.Pattern;
 
 public final class MxmlToModelParser {
 
+  public static final String MXML_UNTYPED_NAMESPACE = "mxml:untyped";
   public static final String MXML_NAMED_CONSTRUCTOR_PARAMETER_NAMESPACE = "mxml:namedConstructorParameter";
   public static final String MXML_DECLARATIONS = "Declarations";
   public static final String MXML_SCRIPT = "Script";
@@ -102,7 +103,7 @@ public final class MxmlToModelParser {
     String superClassName = createClassNameFromNode(objectNode);
 
     if (superClassName.equals(compilationUnitModel.getQName())) {
-      jangarooParser.getLog().error("Cyclic inheritance error: super class and this component are the same!. There is something wrong!"); // TODO: MXML file position!
+      throw Jooc.error("Cyclic inheritance error: super class and this component are the same!. There is something wrong!");
     }
     ClassModel classModel = compilationUnitModel.getClassModel();
     classModel.setSuperclass(superClassName);
@@ -160,7 +161,7 @@ public final class MxmlToModelParser {
         } else if (MXML_METADATA.equals(elementName)) {
           classModel.addAnnotationCode(getTextContent(element));
         } else {
-          jangarooParser.getLog().error("Unknown MXML element: " + elementName);
+          throw Jooc.error("Unknown MXML element: " + elementName);
         }
       }
     }
@@ -172,7 +173,8 @@ public final class MxmlToModelParser {
     for (int i = 0; i < attributes.getLength(); i++) {
       Attr attribute = (Attr) attributes.item(i);
       String propertyName = attribute.getLocalName();
-      if (attribute.getNamespaceURI() == null && !MXML_ID_ATTRIBUTE.equals(propertyName)) {
+      if (attribute.getNamespaceURI() == null && !MXML_ID_ATTRIBUTE.equals(propertyName) ||
+              MXML_UNTYPED_NAMESPACE.equals(attribute.getNamespaceURI())) {
         String value = attribute.getValue();
         MemberModel propertyModel = null;
         if (classModel != null) {
@@ -186,7 +188,7 @@ public final class MxmlToModelParser {
           }
         }
         if (propertyModel == null) {
-          propertyModel = createDynamicPropertyModel(classModel, propertyName);
+          propertyModel = createDynamicPropertyModel(type, propertyName, MXML_UNTYPED_NAMESPACE.equals(attribute.getNamespaceURI()));
         }
         createPropertyAssignmentCode(variable, propertyModel, value);
       }
@@ -208,12 +210,12 @@ public final class MxmlToModelParser {
     for (Element element : childNodes) {
       if (!MxmlUtils.isMxmlNamespace(element.getNamespaceURI())) { // ignore MXML namespace; has been handled before.
         MemberModel propertyModel = null;
+        String propertyName = element.getLocalName();
         if (objectNode.getNamespaceURI().equals(element.getNamespaceURI())) {
           if (classModel != null) {
-            String name = element.getLocalName();
-            propertyModel = findPropertyModel(classModel, name);
+            propertyModel = findPropertyModel(classModel, propertyName);
             if (propertyModel == null) {
-              AnnotationModel eventModel = findEvent(classModel, name);
+              AnnotationModel eventModel = findEvent(classModel, propertyName);
               if (eventModel != null) {
                 String value = getTextContent(element);
                 createEventHandlerCode(variable, value, eventModel);
@@ -227,7 +229,7 @@ public final class MxmlToModelParser {
           defaultPropertyValues.add(element);
         } else {
           if (propertyModel == null) {
-            propertyModel = createDynamicPropertyModel(classModel, element.getLocalName());
+            propertyModel = createDynamicPropertyModel(type, propertyName, false);
           }
           List<Element> childElements = MxmlUtils.getChildElements(element);
           if (childElements.isEmpty()) {
@@ -275,8 +277,7 @@ public final class MxmlToModelParser {
       // property value.
       value = arrayItems.get(0);
     } else {
-      jangarooParser.getLog().error("Non-array property must not have multiple MXML child elements."); // TODO: MXML file position!
-      value = CompilerUtils.createCodeExpression("undefined");
+      throw Jooc.error("Non-array property must not have multiple MXML child elements."); // TODO: MXML file position!
     }
     createPropertyAssignmentCode(variable, propertyModel, value);
   }
@@ -323,8 +324,7 @@ public final class MxmlToModelParser {
     }
     CompilationUnit compilationUnit = jangarooParser.getCompilationsUnit(fullClassName);
     if (compilationUnit == null) {
-      jangarooParser.getLog().error("Undefined type: " + fullClassName);
-      return null;
+      throw Jooc.error("Undefined type: " + fullClassName);
     }
     return new ApiModelGenerator(false).generateModel(compilationUnit); // TODO: cache!
   }
@@ -363,10 +363,10 @@ public final class MxmlToModelParser {
     return null;
   }
 
-  private MemberModel createDynamicPropertyModel(ClassModel classModel, String name) {
-    if (classModel != null && !classModel.isDynamic()) {
+  private MemberModel createDynamicPropertyModel(CompilationUnitModel compilationUnitModel, String name, boolean allowAnyProperty) {
+    if (!allowAnyProperty && compilationUnitModel != null && compilationUnitModel.getClassModel() != null && !compilationUnitModel.getClassModel().isDynamic()) {
       // dynamic property of a non-dynamic class: error!
-      jangarooParser.getLog().error("Unresolved property " + name + " of type " + classModel.getName());
+      throw Jooc.error("MXML: property " + name + " not found in class " + compilationUnitModel.getQName() + ".");
     }
     return new FieldModel(name, "*");
   }
