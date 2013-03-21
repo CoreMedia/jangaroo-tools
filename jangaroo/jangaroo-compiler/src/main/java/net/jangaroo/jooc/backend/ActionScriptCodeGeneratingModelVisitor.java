@@ -24,11 +24,14 @@ import java.io.Writer;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * A ClassModel visitor that generates ActionScript (API) code.
  */
 public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
+  public static final Pattern LEADING_ASDOC_WHITESPACE_PATTERN = Pattern.compile("\\s*\\* ?(.*)");
   private final PrintWriter output;
   private CompilationUnitModel compilationUnitModel;
   private boolean skipAsDoc;
@@ -254,6 +257,10 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
     if (!skipAsDoc && asdoc != null && asdoc.trim().length() > 0) {
       indent(); output.println("/**");
       for (String line : asdoc.split("\n")) {
+        Matcher matcher = LEADING_ASDOC_WHITESPACE_PATTERN.matcher(line);
+        if (matcher.matches()) {
+          line = matcher.group(1);
+        }
         indent(); output.println(" * " + line);
       }
       indent(); output.println(" */");
