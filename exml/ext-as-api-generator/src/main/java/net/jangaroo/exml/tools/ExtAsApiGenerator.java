@@ -561,10 +561,13 @@ public class ExtAsApiGenerator {
     if ("undefined".equals(extType) || "null".equals(extType)) {
       return "void";
     }
-    if ("HTMLElement".equals(extType) || "Event".equals(extType)) {
+    if ("number".equals(extType) || "boolean".equals(extType)) {
+      return Character.toUpperCase(extType.charAt(0)) + extType.substring(1);
+    }
+    if ("HTMLElement".equals(extType) || "Event".equals(extType) || "XMLHttpRequest".equals(extType)) {
       return "js." + extType;
     }
-    if ("google.maps.Map".equals(extType)) {
+    if ("google.maps.Map".equals(extType) || "CSSStyleSheet".equals(extType) || "CSSStyleRule".equals(extType)) {
       return "Object"; // no AS3 type yet
     }
     if (extType.endsWith("...")) {
