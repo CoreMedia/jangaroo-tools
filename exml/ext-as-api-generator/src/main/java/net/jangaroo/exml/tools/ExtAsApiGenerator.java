@@ -18,7 +18,6 @@ import net.jangaroo.jooc.model.MethodModel;
 import net.jangaroo.jooc.model.MethodType;
 import net.jangaroo.jooc.model.ParamModel;
 import net.jangaroo.jooc.model.PropertyModel;
-import net.jangaroo.jooc.mxml.MxmlUtils;
 import net.jangaroo.utils.AS3Type;
 import net.jangaroo.utils.CompilerUtils;
 
@@ -193,7 +192,7 @@ public class ExtAsApiGenerator {
 
     if (!extAsClass.isInterface()) {
       addFields(extAsClass, filterByOwner(false, extClass, extClass.statics.property));
-      addMethods(extAsClass, filterByOwner(false, extClass, extClass.statics.method), null);
+      addMethods(extAsClass, filterByOwner(false, extClass, extClass.statics.method));
     }
     addNonStaticMembers(extClass, extAsClassUnit);
 
@@ -220,27 +219,35 @@ public class ExtAsApiGenerator {
                 + CompilerUtils.quote(getPreferredAlias(alias)) + ";\n");
       }
       addEvents(configClass, extAsClassUnit, filterByOwner(false, extClass, extClass.members.event));
-      addProperties(configClass, filterByOwner(false, extClass, extClass.members.cfg));
+      List<Member> configProperties = filterByOwner(false, extClass, extClass.members.cfg);
+      addProperties(configClass, configProperties);
+
+      // also add config option properties to target class:
+      addProperties(extAsClass, configProperties);
+      if (extAsInterfaceUnit != null) {
+        addProperties(extAsInterfaceUnit.getClassModel(), configProperties);
+      }
     }
   }
 
   private static String getConfigClassQName(ExtClass extClass) {
     Map.Entry<String, List<String>> aliases = getAlias(extClass);
     String alias = null;
-    if (aliases == null) {
-      for (Member member : extClass.members.cfg) {
-        if (extClass.name.equals(member.owner)) {
-          // try to make invented alias unique:
-          String rawPackage = CompilerUtils.packageName(extClass.name.startsWith("Ext.") ? extClass.name.substring(4) : extClass.name);
-          alias = CompilerUtils.className(extClass.name).toLowerCase();
-          if (!"dd".equals(rawPackage) && !"util".equals(rawPackage) && !alias.contains(rawPackage)) {
-            alias = rawPackage + alias;
-          }
-          break;
+    // An Ext class needs a config class if
+    if (aliases != null) {
+      // a) it has an "alias" (xtype and the like)
+      alias = getPreferredAlias(aliases);
+    } else {
+      // b) it defines some config options (members.cfg)
+      // c) it defines any event
+      if (hasOwnMember(extClass, extClass.members.cfg) || hasOwnMember(extClass, extClass.members.event)) {
+        // try to make invented alias unique:
+        String rawPackage = CompilerUtils.packageName(extClass.name.startsWith("Ext.") ? extClass.name.substring(4) : extClass.name);
+        alias = CompilerUtils.className(extClass.name).toLowerCase();
+        if (!"dd".equals(rawPackage) && !"util".equals(rawPackage) && !alias.contains(rawPackage)) {
+          alias = rawPackage + alias;
         }
       }
-    } else {
-      alias = getPreferredAlias(aliases);
     }
     if (alias == null) {
       return null;
@@ -259,6 +266,17 @@ public class ExtAsApiGenerator {
     String configClassQName = packageName + "." + configClassName;
     System.err.println("********* derived config class name "  + configClassQName + " from alias " + alias);
     return configClassQName;
+  }
+
+  private static boolean hasOwnMember(ExtClass extClass, List<? extends Member> members) {
+    for (Member member : members) {
+      // suppress inherited config options
+      // and config option "listeners", as we handle event listeners through [Event] annotations:
+      if (extClass.name.equals(member.owner) && !"listeners".equals(member.name)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private static String getPreferredAlias(Map.Entry<String, List<String>> aliases) {
@@ -307,7 +325,7 @@ public class ExtAsApiGenerator {
     addEvents(extAsClassUnit.getClassModel(), extAsClassUnit, filterByOwner(false, extClass, extClass.members.event));
     ClassModel extAsClass = extAsClassUnit.getClassModel();
     addProperties(extAsClass, filterByOwner(extAsClass.isInterface(), extClass, extClass.members.property));
-    addMethods(extAsClass, filterByOwner(extAsClass.isInterface(), extClass, extClass.members.method), extClass.members.cfg);
+    addMethods(extAsClass, filterByOwner(extAsClass.isInterface(), extClass, extClass.members.method));
   }
 
   private static void generateActionScriptCode(CompilationUnitModel extAsClass, File outputDir) throws IOException {
@@ -322,6 +340,7 @@ public class ExtAsApiGenerator {
     List<T> result = new ArrayList<T>();
     for (T member : members) {
       if (member.meta.removed == null &&
+              !"listeners".equals(member.name) &&
               member.owner.equals(owner.name) && (!isInterface || isPublicNonStaticMethod(member))) {
         result.add(member);
       }
@@ -429,38 +448,15 @@ public class ExtAsApiGenerator {
     }
   }
 
-  private static void addMethods(ClassModel classModel, List<Method> methods, List<Member> configs) {
+  private static void addMethods(ClassModel classModel, List<Method> methods) {
     for (Method method : methods) {
       String methodName = method.name;
       if (classModel.getMember(methodName) == null) {
         boolean isConstructor = methodName.equals("constructor");
-        MethodType methodType = null;
-//        MethodType methodType = methodName.startsWith("get") && method.params.size() == 0 && !"undefined".equals(method.return_.type) ? MethodType.GET
-//                : methodName.startsWith("set") && method.params.size() == 1 && "undefined".equals(method.return_.type) ? MethodType.SET
-//                : null;
-//        if (methodType != null) {
-//          methodName = MxmlUtils.uncapitalize(methodName.substring(3));
-//        }
         MethodModel methodModel = isConstructor
                 ? new MethodModel(classModel.getName(), null)
                 : new MethodModel(convertName(methodName), convertType(method.return_.type));
-        Member asDocSource = method;
-        if (methodType != null) {
-          methodModel.setMethodType(methodType);
-          methodModel.addAnnotation(new AnnotationModel(Jooc.NATIVE_ANNOTATION_NAME,
-                  new AnnotationPropertyModel("accessor", null)));
-          if (configs != null) {
-            for (Member config : configs) {
-              if (config.name.equals(methodName)) {
-                if (config.doc != null && !config.doc.trim().isEmpty()) {
-                  asDocSource = config;
-                }
-                break;
-              }
-            }
-          }
-        }
-        methodModel.setAsdoc(toAsDoc(asDocSource.doc));
+        methodModel.setAsdoc(toAsDoc(method.doc));
         methodModel.getReturnModel().setAsdoc(toAsDoc(method.return_.doc));
         setStatic(methodModel, method);
         for (Param param : method.params) {
