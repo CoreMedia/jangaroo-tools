@@ -261,7 +261,7 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
         if (matcher.matches()) {
           line = matcher.group(1);
         }
-        indent(); output.println(" * " + line);
+        indent(); output.println(" " + ("* " + line).trim());
       }
       indent(); output.println(" */");
     }
