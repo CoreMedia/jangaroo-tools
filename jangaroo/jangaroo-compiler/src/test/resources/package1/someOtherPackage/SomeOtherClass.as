@@ -4,7 +4,7 @@ public class SomeOtherClass {
 
   public var bla:int = BLA;
 
-  public function SomeOtherClass() {
+  public function SomeOtherClass(config:Object = null) {
   }
 }
 }
