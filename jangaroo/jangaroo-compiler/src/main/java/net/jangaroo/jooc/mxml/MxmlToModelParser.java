@@ -102,6 +102,9 @@ public final class MxmlToModelParser {
     Element objectNode = document.getDocumentElement();
     String superClassName = createClassNameFromNode(objectNode);
 
+    if (superClassName == null) {
+      throw Jooc.error("Could not resolve super class from node " + objectNode.getNamespaceURI() + ":" + objectNode.getLocalName());
+    }
     if (superClassName.equals(compilationUnitModel.getQName())) {
       throw Jooc.error("Cyclic inheritance error: super class and this component are the same!. There is something wrong!");
     }
