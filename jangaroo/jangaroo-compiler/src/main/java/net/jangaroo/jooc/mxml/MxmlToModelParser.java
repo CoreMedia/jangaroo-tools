@@ -33,6 +33,7 @@ import javax.xml.parsers.SAXParserFactory;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -116,11 +117,17 @@ public final class MxmlToModelParser {
     MethodModel constructorModel = classModel.createConstructor();
 
     if (constructorSupportsConfigOptionsParamer(superClassName)) {
+      // also let the generated class support a config constructor parameter:
+      String configVar = createAuxVar();
+      constructorModel.addParam(new ParamModel(configVar, "Object", "null"));
       String superConfigVar = createAuxVar();
       renderConfigAuxVar(superConfigVar);
       createFields(objectNode, superConfigVar);
       processAttributesAndChildNodes(objectNode, superConfigVar);
-      code.append("\n    super(").append(superConfigVar).append(");");
+      String keyVar = createAuxVar();
+      code.append(MessageFormat.format("\n    if ({1}) for (var {0}:String in {1}) {2}[{0}] = {1}[{0}];"
+                                     + "\n    super({2});",
+              keyVar, configVar, superConfigVar));
     } else {
       createFields(objectNode, "this");
       code.append("\n    super();");
