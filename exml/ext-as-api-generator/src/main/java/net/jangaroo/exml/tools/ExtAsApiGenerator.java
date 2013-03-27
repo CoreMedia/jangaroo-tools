@@ -104,7 +104,11 @@ public class ExtAsApiGenerator {
                 ClassModel mixinConfigClassModel = compilationUnitModelRegistry.resolveCompilationUnit(convertType(mixinConfigClassQName)).getClassModel();
                 for (MemberModel memberModel : mixinConfigClassModel.getMembers()) {
                   if (memberModel instanceof MethodModel) {
-                    configClassModel.addMember(((MethodModel) memberModel).duplicate());
+                    if (configClassModel.getMember(memberModel.getName()) != null) {
+                      System.err.println("*** [WARN] ignoring config option " + memberModel.getName() + " of config mixin " + mixinConfigClassQName + " in  config class " + configClassQName);
+                    } else {
+                      configClassModel.addMember(((MethodModel) memberModel).duplicate());
+                    }
                   }
                 }
               }
