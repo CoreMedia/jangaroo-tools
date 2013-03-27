@@ -165,13 +165,7 @@ public final class MxmlToModelParser {
         String elementName = element.getLocalName();
         if (MXML_DECLARATIONS.equals(elementName)) {
           for (Element declaration : MxmlUtils.getChildElements(element)) {
-            String fieldName = declaration.getAttribute(MXML_ID_ATTRIBUTE);
-            String type = createClassNameFromNode(declaration);
-            PropertyModel fieldModel = new PropertyModel(fieldName, type);
-            fieldModel.addGetter();
-            fieldModel.addSetter();
-            classModel.addMember(fieldModel);
-            createPropertyAssignmentCode(declaration, variable, fieldModel);
+            createValueCodeFromElement(declaration);
           }
         } else if (MXML_SCRIPT.equals(elementName)) {
           classModel.addBodyCode(getTextContent(element));
@@ -263,49 +257,96 @@ public final class MxmlToModelParser {
 
   private void createChildElementsPropertyAssignmentCode(List<Element> childElements, String variable,
                                                          MemberModel propertyModel) throws IOException {
+    boolean forceArray = "Array".equals(propertyModel.getType());
+    String value = createArrayCodeFromChildElements(childElements, forceArray);
+    createPropertyAssignmentCode(variable, propertyModel, CompilerUtils.createCodeExpression(value));
+  }
+
+  private String createArrayCodeFromChildElements(List<Element> childElements, boolean forceArray) throws IOException {
     List<String> arrayItems = new ArrayList<String>();
     for (Element arrayItemNode : childElements) {
-      String arrayItemClassName = createClassNameFromNode(arrayItemNode);
-      if (arrayItemClassName != null) {
-        compilationUnitModel.addImport(arrayItemClassName);
-        String auxVarName = createAuxVar();
-        String configVar = null;
-        if (constructorSupportsConfigOptionsParamer(arrayItemClassName)) {
-          configVar = "_" + auxVarName;
-          renderConfigAuxVar(configVar);
-          processAttributesAndChildNodes(arrayItemNode, configVar);
-        }
-        code.append("\n    var ").append(auxVarName).append(":").append(arrayItemClassName);
-        String id = arrayItemNode.getAttribute(MXML_ID_ATTRIBUTE);
-        if (id.length() > 0) {
-          compilationUnitModel.getClassModel().addMember(new FieldModel(id, arrayItemClassName));
-          code.append(" = this.").append(id);
-        }
-        code.append(" = ").append("new ").append(arrayItemClassName).append("(");
-        if (configVar != null) {
-          code.append(configVar);
-        }
-        code.append(");");
-        if (configVar == null) {
-          processAttributesAndChildNodes(arrayItemNode, auxVarName);
-        }
-        arrayItems.add(CompilerUtils.createCodeExpression(auxVarName));
-      }
+      String itemValue = createValueCodeFromElement(arrayItemNode);
+      arrayItems.add(itemValue);
     }
     String value;
-    if (arrayItems.size() > 1 || "Array".equals(propertyModel.getType())) {
-      // TODO: Check for type violation
+    if (arrayItems.size() > 1 || forceArray) {
       // We must create an array.
-      value = CompilerUtils.createCodeExpression(new JsonArray(arrayItems.toArray()).toString());
-    } else if (arrayItems.size() == 1) {
+      value = "[" + join(arrayItems, ", ") + "]";
+    } else {
       // The property is either unspecified, untyped, or object-typed
       // and it contains at least one child element. Use the first element as the
       // property value.
-      value = arrayItems.get(0);
-    } else {
-      throw Jooc.error("Non-array property must not have multiple MXML child elements."); // TODO: MXML file position!
+      value = arrayItems.isEmpty() ? "null" : arrayItems.get(0);
     }
-    createPropertyAssignmentCode(variable, propertyModel, value);
+    return value;
+  }
+
+  private static String join(List<String> array, String separator) {
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < array.size(); ++i) {
+      if (i > 0) {
+        sb.append(separator);
+      }
+      sb.append(array.get(i));
+    }
+    return sb.toString();
+  }
+
+  private String createValueCodeFromElement(Element objectElement) throws IOException {
+    String className = createClassNameFromNode(objectElement);
+    if (className == null) {
+      throw Jooc.error("Could not resolve class from node " + objectElement.getNamespaceURI() + ":" + objectElement.getLocalName());
+    }
+    compilationUnitModel.addImport(className);
+    String varName;
+    String configVar = null;
+    if (constructorSupportsConfigOptionsParamer(className)) {
+      configVar = createAuxVar();
+      renderConfigAuxVar(configVar);
+      processAttributesAndChildNodes(objectElement, configVar);
+    }
+
+    String value;
+    if ("String".equals(className)) {
+      String stringValue = getTextContent(objectElement);
+      value = CompilerUtils.quote(stringValue);
+    } else if ("int".equals(className) || "uint".equals(className) || "Number".equals(className)) {
+      value = getTextContent(objectElement);
+    } else if ("Object".equals(className)) {
+      value = "{}";
+    } else if ("Array".equals(className)) {
+      value = createArrayCodeFromChildElements(MxmlUtils.getChildElements(objectElement), true);
+    } else {
+      StringBuilder valueBuilder = new StringBuilder();
+      valueBuilder.append("new ").append(className).append("(");
+      if (configVar != null) {
+        valueBuilder.append(configVar);
+      }
+      valueBuilder.append(")");
+      value = valueBuilder.toString();
+    }
+    
+    String id = objectElement.getAttribute(MXML_ID_ATTRIBUTE);
+    if (id.length() > 0) {
+      PropertyModel fieldModel = new PropertyModel(id, className);
+      fieldModel.addGetter();
+      fieldModel.addSetter();
+      compilationUnitModel.getClassModel().addMember(fieldModel);
+
+      varName = "this." + id;
+      code.append("\n    ").append(varName);
+    } else if (configVar == null) {
+      varName = createAuxVar();
+      code.append("\n    ").append("var ").append(varName).append(":").append(className);
+    } else {
+      return value; // no aux var neccessary
+    }
+    code.append(" = ").append(value).append(";");
+
+    if (configVar == null) {
+      processAttributesAndChildNodes(objectElement, varName);
+    }
+    return varName;
   }
 
   private String createAuxVar() {

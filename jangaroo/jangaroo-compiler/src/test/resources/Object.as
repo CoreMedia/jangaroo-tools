@@ -1,5 +1,5 @@
 package {
 [Native]
-public class Object {
+public dynamic class Object {
 }
 }

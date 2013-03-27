@@ -1,7 +1,7 @@
-define(["exports","as3-rt/AS3","as3/package1/ConfigClass","as3/joo/addEventListener","as3/package1/someOtherPackage/SomeEvent","as3/mx/resources/ResourceManager","as3/package1/someOtherPackage/SomeOtherClass","bundle!Foo"], function($exports,AS3,ConfigClass,addEventListener,SomeEvent,ResourceManager,SomeOtherClass) { AS3.compilationUnit($exports, function($primaryDeclaration){/*package package1 {
+define(["exports","as3-rt/AS3","as3/package1/ConfigClass","as3/package1/someOtherPackage/SomeOtherClass","as3/joo/addEventListener","as3/package1/someOtherPackage/SomeEvent","as3/mx/resources/ResourceManager","bundle!Foo"], function($exports,AS3,ConfigClass,SomeOtherClass,addEventListener,SomeEvent,ResourceManager) { AS3.compilationUnit($exports, function($primaryDeclaration){/*package package1 {
+import package1.someOtherPackage.SomeOtherClass;
 import package1.someOtherPackage.SomeEvent;
 import joo.addEventListener;
-import package1.someOtherPackage.SomeOtherClass;
 import mx.resources.ResourceManager;
 
 [ResourceBundle("Foo")]
@@ -12,26 +12,32 @@ public class SomeMxmlClass extends package1.ConfigClass {
     
     this.bar = "BAR!";
     this.num = 123;
+    this.blub = {};
+    this.blub.name = "Kuno";
+    var $$1/*:Object*/ = {};
+    $$1.name = "Joe";
+    var $$2/*:Object*/ = {};
+    $$2.name = "Felix";
+    this.list = [$$1, $$2];
+    var $$3/*:Object*/ = {};
+    $$3.bla = 3;
+    this.other = new (SomeOtherClass._||SomeOtherClass._$get())($$3);
     Super.call(this);
     addEventListener(this, 'click', (SomeEvent._||SomeEvent._$get()), AS3.bind(this,"___on_click1"));
     this.foo = "bar";
     this.number = 42;
-    var _$$1/*:Object*/ = {};
-    _$$1.bla = (ResourceManager._||ResourceManager._$get()).getInstance().getString("Foo","bar");
-    var $$1/*:package1.someOtherPackage.SomeOtherClass*/ = new (SomeOtherClass._||SomeOtherClass._$get())(_$$1);
-    var _$$2/*:Object*/ = {};
-    _$$2.bla = 1;
-    var $$2/*:package1.someOtherPackage.SomeOtherClass*/ = new (SomeOtherClass._||SomeOtherClass._$get())(_$$2);
-    var _$$3/*:Object*/ = {};
-    _$$3.bla = (ResourceManager._||ResourceManager._$get()).getInstance().getString("Foo","baz");
-    var $$3/*:package1.someOtherPackage.SomeOtherClass*/ = new (SomeOtherClass._||SomeOtherClass._$get())(_$$3);
-    var $$4/*:package1.ConfigClass*/ = new (ConfigClass._||ConfigClass._$get())();
-    $$4.number = 12;
-    var _$$5/*:Object*/ = {};
-    _$$5.bla = 2;
-    var $$5/*:package1.someOtherPackage.SomeOtherClass*/ = new (SomeOtherClass._||SomeOtherClass._$get())(_$$5);
-    $$4.items = [$$5];
-    this.items = [$$1, $$2, $$3, $$4];
+    var $$4/*:Object*/ = {};
+    $$4.bla = (ResourceManager._||ResourceManager._$get()).getInstance().getString("Foo","bar");
+    var $$5/*:Object*/ = {};
+    $$5.bla = 1;
+    var $$6/*:Object*/ = {};
+    $$6.bla = (ResourceManager._||ResourceManager._$get()).getInstance().getString("Foo","baz");
+    var $$7/*:package1.ConfigClass*/ = new (ConfigClass._||ConfigClass._$get())();
+    $$7.number = 12;
+    var $$8/*:Object*/ = {};
+    $$8.bla = 2;
+    $$7.items = [new (SomeOtherClass._||SomeOtherClass._$get())($$8)];
+    this.items = [new (SomeOtherClass._||SomeOtherClass._$get())($$4), new (SomeOtherClass._||SomeOtherClass._$get())($$5), new (SomeOtherClass._||SomeOtherClass._$get())($$6), $$7];
   }/*
 
   public native function get bar():String;
@@ -47,6 +53,27 @@ public class SomeMxmlClass extends package1.ConfigClass {
    * @private
    * /
   public native function set num(value:int):void;
+
+  public native function get blub():Object;
+
+  /**
+   * @private
+   * /
+  public native function set blub(value:Object):void;
+
+  public native function get list():Array;
+
+  /**
+   * @private
+   * /
+  public native function set list(value:Array):void;
+
+  public native function get other():package1.someOtherPackage.SomeOtherClass;
+
+  /**
+   * @private
+   * /
+  public native function set other(value:package1.someOtherPackage.SomeOtherClass):void;
 
   public*/ function ___on_click1(event/*:package1.someOtherPackage.SomeEvent*/)/*:void*/ {
     var result/*:String*/ = 'gotcha!';
