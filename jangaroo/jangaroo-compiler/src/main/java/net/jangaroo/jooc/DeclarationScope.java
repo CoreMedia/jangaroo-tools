@@ -159,7 +159,7 @@ public class DeclarationScope extends ScopeImplBase {
       if (decl == null && getDefiningNode() != null && getClassDeclaration() == getDefiningNode()) {
         decl = getClassDeclaration().resolvePropertyDeclaration(ide.getName());
         if (decl != null && !isInstanceScope && !decl.isStatic()) {
-          throw Jooc.error(ide, "access to instance property in static context: '" + ide.getName() + "'");
+          decl = null;
         }
       }
     }

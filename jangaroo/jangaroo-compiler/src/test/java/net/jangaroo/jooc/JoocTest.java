@@ -137,6 +137,11 @@ public class JoocTest {
   }
 
   @Test
+  public void testStaticAndNonStatic() throws Exception {
+    assertCompilationResult("package1/StaticAndNonStatic");
+  }
+
+  @Test
   public void testPublicApiApi() throws Exception {
     config.setExcludeClassByDefault(true);
     assertApiCompilationResult("package1/IncludedClass");
@@ -224,7 +229,7 @@ public class JoocTest {
   private void assertApiCompilationResult(String path) throws URISyntaxException, IOException {
     assertApiCompilationResult(path, "");
   }
-  
+
   private void assertApiCompilationResult(String path, String expectPath) throws URISyntaxException, IOException {
     File sourcefile = getFile("/" + path + ".as");
     config.addSourceFile(sourcefile);
