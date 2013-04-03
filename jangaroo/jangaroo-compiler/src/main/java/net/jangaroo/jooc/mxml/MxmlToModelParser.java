@@ -6,7 +6,6 @@ import net.jangaroo.jooc.ast.ClassDeclaration;
 import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.backend.ApiModelGenerator;
 import net.jangaroo.jooc.input.InputSource;
-import net.jangaroo.jooc.json.JsonArray;
 import net.jangaroo.jooc.model.AnnotationModel;
 import net.jangaroo.jooc.model.AnnotationPropertyModel;
 import net.jangaroo.jooc.model.ClassModel;
@@ -122,14 +121,14 @@ public final class MxmlToModelParser {
       constructorModel.addParam(new ParamModel(configVar, "Object", "null"));
       String superConfigVar = createAuxVar();
       renderConfigAuxVar(superConfigVar);
-      createFields(objectNode, superConfigVar);
+      createFields(objectNode);
       processAttributesAndChildNodes(objectNode, superConfigVar);
       String keyVar = createAuxVar();
       code.append(MessageFormat.format("\n    if ({1}) for (var {0}:String in {1}) {2}[{0}] = {1}[{0}];"
                                      + "\n    super({2});",
               keyVar, configVar, superConfigVar));
     } else {
-      createFields(objectNode, "this");
+      createFields(objectNode);
       code.append("\n    super();");
       processAttributesAndChildNodes(objectNode, "this");
     }
@@ -158,7 +157,7 @@ public final class MxmlToModelParser {
     return false;
   }
 
-  private void createFields(Element objectNode, String variable) throws IOException {
+  private void createFields(Element objectNode) throws IOException {
     ClassModel classModel = compilationUnitModel.getClassModel();
     for (Element element : MxmlUtils.getChildElements(objectNode)) {
       if (MxmlUtils.isMxmlNamespace(element.getNamespaceURI())) {
@@ -370,15 +369,6 @@ public final class MxmlToModelParser {
     code.append("\n    ").append("joo.addEventListener(").append(variable)
             .append(", '").append(eventName).append("', ").append(eventTypeStr).append(", ")
             .append(eventHandlerName).append(");");
-  }
-
-  private void createPropertyAssignmentCode(Element propertyElement, String variable, MemberModel propertyModel) throws IOException {
-    List<Element> childElements = MxmlUtils.getChildElements(propertyElement);
-    if (childElements.isEmpty()) {
-      createPropertyAssignmentCode(variable, propertyModel, getTextContent(propertyElement));
-    } else {
-      createChildElementsPropertyAssignmentCode(childElements, variable, propertyModel);
-    }
   }
 
   private void createPropertyAssignmentCode(String variable, MemberModel propertyModel, String value) {
