@@ -11,6 +11,18 @@ public class UsingSomeNativeClass {
   public function UsingSomeNativeClass() {
     new package1.someOtherPackage.SomeNativeClass();
     someNative.baz = "foo";
+    var foo = this.someNativeAccessor;
+    var bar = this.anotherNativeAccessor;
+  }
+
+  [Accessor("getFoobar")]
+  public function get someNativeAccessor():package1.SomeNativeClass {
+    return someNative;
+  }
+
+  [Accessor]
+  public function get anotherNativeAccessor():package1.SomeNativeClass {
+    return someNative;
   }
 }
 }

@@ -11,6 +11,18 @@ public class UsingSomeNativeClass {
   public*/ function UsingSomeNativeClass() {someNative_.call(this);
     new (package1$someOtherPackage$SomeNativeClass._||package1$someOtherPackage$SomeNativeClass._$get())();
     this.someNative.setBaz ( "foo");
+    var foo = this.getFoobar();
+    var bar = this.getAnotherNativeAccessor();
+  }/*
+
+  [Accessor("getFoobar")]
+  public*/ function get$someNativeAccessor()/*:package1.SomeNativeClass*/ {
+    return this.someNative;
+  }/*
+
+  [Accessor]
+  public*/ function get$anotherNativeAccessor()/*:package1.SomeNativeClass*/ {
+    return this.someNative;
   }/*
 }
 }
@@ -19,7 +31,11 @@ public class UsingSomeNativeClass {
     $primaryDeclaration(AS3.class_({
       package_: "package1",
       class_: "UsingSomeNativeClass",
-      members: {constructor: UsingSomeNativeClass}
+      members: {
+        constructor: UsingSomeNativeClass,
+        getFoobar: get$someNativeAccessor,
+        getAnotherNativeAccessor: get$anotherNativeAccessor
+      }
     }));
   });
 });

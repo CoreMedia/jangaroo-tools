@@ -115,6 +115,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   private static final JooSymbol SYM_RBRACK = new JooSymbol(sym.RBRACK, "]");
   public static final Set<String> PRIMITIVES = new HashSet<String>(4);
   public static final List<String> ANNOTATIONS_TO_KEEP_AT_RUNTIME = Arrays.asList("SWF", "ExtConfig"); // TODO: inject / make configurable
+  public static final String DEFAULT_ANNOTATION_PARAMETER_NAME = "$value";
 
   static {
     PRIMITIVES.add("Boolean");
@@ -343,7 +344,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     writeOptSymbol(annotationParameter.getOptSymEq());
     AstNode optValue = annotationParameter.getValue();
     visitIfNotNull(optValue);
-    String name = optName == null ? "$value" : optName.getName();
+    String name = optName == null ? DEFAULT_ANNOTATION_PARAMETER_NAME : optName.getName();
     Object value;
     if (optValue instanceof LiteralExpr) {
       value = ((LiteralExpr) optValue).getValue().getJooValue();
@@ -858,14 +859,12 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     if (member instanceof PropertyModel) {
       MethodModel accessor = ((PropertyModel) member).getMethod(methodType);
       if (accessor != null) {
-        List<AnnotationModel> accessorAnnotations = accessor.getAnnotations(Jooc.NATIVE_ANNOTATION_NAME);
+        List<AnnotationModel> accessorAnnotations = accessor.getAnnotations(Jooc.ACCESSOR_ANNOTATION_NAME);
         if (accessorAnnotations.size() > 0) {
-          AnnotationPropertyModel accessorAnnotation = accessorAnnotations.get(0).getPropertiesByName().get("accessor");
-          if (accessorAnnotation != null) {
-            return accessorAnnotation.getStringValue() == null
-                    ? methodType + MxmlUtils.capitalize(memberName)
-                    : accessorAnnotation.getStringValue();
-          }
+          AnnotationPropertyModel accessorAnnotation = accessorAnnotations.get(0).getPropertiesByName().get(null);
+          return accessorAnnotation == null
+                  ? methodType + MxmlUtils.capitalize(memberName)
+                  : accessorAnnotation.getStringValue();
         }
       }
     }
@@ -1491,6 +1490,13 @@ public class JsCodeGenerator extends CodeGeneratorBase {
         out.write(" $primaryDeclaration(" + propertyDefinition.asJson().toString(-1, -1) + ");");
       }
     }
+    resetCurrentMetadata(variableDeclaration);
+  }
+
+  private void resetCurrentMetadata(IdeDeclaration declaration) {
+    if (declaration.isClassMember() || declaration.isPrimaryDeclaration()) {
+      currentMetadata = new JsonObject();
+    }
   }
 
   private String getValueFromEmbedMetadata() {
@@ -1628,6 +1634,19 @@ public class JsCodeGenerator extends CodeGeneratorBase {
         JooSymbol functionSymbol = functionDeclaration.getIde().getSymbol();
         String functionName = functionSymbol.getText();
         String methodName = functionName;
+
+        boolean isAccessor = functionDeclaration.isGetterOrSetter();
+        if (isAccessor) {
+          Object accessorAnnotation = currentMetadata.get(Jooc.ACCESSOR_ANNOTATION_NAME);
+          if (accessorAnnotation instanceof JsonObject) {
+            String accessorPrefix = functionDeclaration.getSymGetOrSet().getText();
+            String accessorName = (String) ((JsonObject) accessorAnnotation).get(DEFAULT_ANNOTATION_PARAMETER_NAME);
+            methodName = accessorName != null ? accessorName : accessorPrefix + MxmlUtils.capitalize(functionName);
+            functionName = accessorPrefix + "$" + functionName;
+            isAccessor = false;
+          }
+        }
+
         String overriddenMethodName = null;
         PropertyDefinition overriddenPropertyDefinition = null;
         if (functionDeclaration.isOverride() || functionDeclaration.isPrivate() && !functionDeclaration.isStatic()) {
@@ -1642,7 +1661,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
           functionName += "$static";
         }
         Map<String, PropertyDefinition> members = membersOrStaticMembers(functionDeclaration);
-        if (functionDeclaration.isGetterOrSetter()) {
+        if (isAccessor) {
           out.writeSymbolWhitespace(functionDeclaration.getIde().getSymbol());
           out.writeSymbolWhitespace(functionDeclaration.getSymGetOrSet());
           String accessorPrefix = functionDeclaration.getSymGetOrSet().getText() + "$";
@@ -1694,6 +1713,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
         out.write(String.format(" $primaryDeclaration(%s);", functionDeclaration.getName()));
       }
     }
+    resetCurrentMetadata(functionDeclaration);
   }
 
   @Override
