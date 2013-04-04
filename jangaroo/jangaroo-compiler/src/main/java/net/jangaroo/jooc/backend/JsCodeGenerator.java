@@ -234,37 +234,30 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       }
       arg.visit(this);
     }
-    writeMemberAccess(memberDeclaration, dotExpr.getOp(), dotExpr.getIde(), true);
+    writeMemberAccess(memberDeclaration, dotExpr.getOp(), dotExpr.getIde());
   }
 
-  private void writeMemberAccess(IdeDeclaration memberDeclaration, JooSymbol optSymDot, Ide memberIde, boolean writeMemberWhitespace) throws IOException {
+  private void writeMemberAccess(IdeDeclaration memberDeclaration, JooSymbol symDot, Ide memberIde) throws IOException {
     String getter = null;
     if (memberDeclaration != null) {
       if (memberIde.usePrivateMemberName(memberDeclaration)) {
-        writePrivateMemberAccess(optSymDot, memberIde, writeMemberWhitespace, memberDeclaration.isStatic());
+        writePrivateMemberAccess(symDot, memberIde, memberDeclaration.isStatic());
         return;
       }
       if (!isAssignmentLHS(memberIde)){
         getter = resolveAccessor(memberIde, MethodType.GET, memberDeclaration.getClassDeclaration());
       }
     }
-    if (optSymDot == null && memberDeclaration != null && !memberDeclaration.isConstructor()) {
-      optSymDot = new JooSymbol(".");
-    }
     boolean quote = false;
     String memberName = memberIde.getIde().getText();
-    if (optSymDot != null) {
-      if (memberName.startsWith("@")) {
-        quote = true;
-        out.writeSymbolWhitespace(optSymDot);
-        out.writeToken("['");
-      } else {
-        out.writeSymbol(optSymDot);
-      }
+    if (memberName.startsWith("@")) {
+      quote = true;
+      out.writeSymbolWhitespace(symDot);
+      out.writeToken("['");
+    } else {
+      out.writeSymbol(symDot);
     }
-    if (writeMemberWhitespace) {
-      out.writeSymbolWhitespace(memberIde.getIde());
-    }
+    out.writeSymbolWhitespace(memberIde.getIde());
     if (getter != null) {
       out.writeToken(getter);
     } else {
@@ -278,16 +271,14 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     }
   }
 
-  private void writePrivateMemberAccess(final JooSymbol optSymDot, Ide memberIde, boolean writeMemberWhitespace, boolean isStatic) throws IOException {
+  private void writePrivateMemberAccess(final JooSymbol optSymDot, Ide memberIde, boolean isStatic) throws IOException {
     if (isStatic) {
       if (optSymDot != null) {
         out.beginComment();
         out.writeSymbol(optSymDot);
         out.endComment();
       }
-      if (writeMemberWhitespace) {
-        out.writeSymbolWhitespace(memberIde.getIde());
-      }
+      out.writeSymbolWhitespace(memberIde.getIde());
       out.writeToken(memberIde.getIde().getText() + "$static");
     } else {
       if (optSymDot != null) {
@@ -295,9 +286,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       } else {
         out.writeToken(".");
       }
-      if (writeMemberWhitespace) {
-        out.writeSymbolWhitespace(memberIde.getIde());
-      }
+      out.writeSymbolWhitespace(memberIde.getIde());
       // awkward, but we have to be careful if we add characters to tokens:
       out.writeToken(memberIde.getName() + "$" + memberIde.getScope().getClassDeclaration().getInheritanceLevel());
     }
