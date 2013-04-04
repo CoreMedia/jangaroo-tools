@@ -282,6 +282,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       out.endComment();
     } else {
       arg.visit(this);
+      memberDeclaration = Ide.resolveMember(dotExpr.getArg().getType(), dotExpr.getIde());
     }
     writeMemberAccess(memberDeclaration, dotExpr.getOp(), dotExpr.getIde(), true);
   }

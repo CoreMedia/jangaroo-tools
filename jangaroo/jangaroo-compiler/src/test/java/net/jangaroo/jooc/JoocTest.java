@@ -265,6 +265,11 @@ public class JoocTest {
     assertCompilationResult("package2/TestStaticAccess");
   }
 
+  @Test
+  public void testMethodCall() throws Exception {
+    assertCompilationResult("package1/TestMethodCall");
+  }
+
   private void assertApiCompilationResult(String path, String expectPath) throws URISyntaxException, IOException {
     File sourcefile = getFile("/" + path + ".as");
     config.addSourceFile(sourcefile);
