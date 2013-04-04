@@ -24,7 +24,7 @@ class Helper {
   }/*
 
   public*/ function getText()/*:String*/ {
-    var f/*:Function*/ = AS3.bind(this,"text_getter$1");
+    var f/*:Function*/ =AS3.bind( this,"text_getter$1");
     f =AS3.bind( this,"text_getter$1");
     return f();
   }/*

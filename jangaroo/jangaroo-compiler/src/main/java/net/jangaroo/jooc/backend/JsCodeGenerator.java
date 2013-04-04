@@ -170,54 +170,6 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     return memberDeclaration.getClassDeclaration() == null || memberDeclaration.getClassDeclaration().isPrimaryDeclaration() ? primaryClassDefinitionBuilder : secondaryClassDefinitionBuilder;
   }
 
-  private void writeThis(Ide ide) throws IOException {
-    out.writeToken(ide.isRewriteThis() ? "this$" : "this");
-  }
-
-  private void generateIdeCodeAsExpr(Ide ide) throws IOException {
-    if (out.isWritingComment()) {
-      out.writeSymbol(ide.getIde());
-      return;
-    }
-    out.writeSymbolWhitespace(ide.getIde());
-    if (ide.isSuper()) {
-      writeThis(ide);
-      return;
-    }
-    IdeDeclaration decl = null;
-    if (!ide.isThis()) {
-      decl = ide.getDeclaration(false);
-      if (decl != null) {
-        if (decl.isClassMember()) {
-          if (!decl.isPrivateStatic()) {
-            if (decl.isStatic()) {
-              out.writeToken(compilationUnitAccessCode(decl.getClassDeclaration()));
-            } else {
-              if (ide.isBound()) {
-                writeBoundMethodAccess(ide, null, null, decl);
-                return;
-              }
-              writeThis(ide);
-            }
-          }
-          writeMemberAccess(decl, null, ide, false);
-          return;
-        }
-      }
-    }
-    String ideName;
-    if (decl != null && decl.isPrimaryDeclaration()) {
-      if (isAssignmentLHS(ide)) {
-        ideName = convertIdentifier(ide.getIde().getText()) + "._";
-      } else {
-        ideName = compilationUnitAccessCode(decl);
-      }
-    } else {
-      ideName = convertIdentifier(ide.getIde().getText());
-    }
-    out.writeToken(ideName);
-  }
-
   private static boolean isAssignmentLHS(Ide ide) {
     AstNode parentNode = ide.getParentNode();
     if (parentNode instanceof IdeExpr || (parentNode instanceof DotExpr && ((DotExpr) parentNode).getIde() == ide)) {
@@ -241,17 +193,10 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   }
 
 
-  private void writeBoundMethodAccess(Ide ide, AstNode optArg, JooSymbol optSymDot, IdeDeclaration decl) throws IOException {
+  private void writeBoundMethodAccess(Ide ide, AstNode arg, JooSymbol symDot, IdeDeclaration decl) throws IOException {
     out.writeToken("AS3.bind(");
-    if (optArg != null) {
-      optArg.visit(this);
-    } else {
-      writeThis(ide);
-    }
-    if (optSymDot != null) {
-      out.writeSymbolWhitespace(optSymDot);
-    }
-    out.writeToken(",");
+    arg.visit(this);
+    writeSymbolReplacement(symDot, ",");
     out.beginString();
     if (ide.usePrivateMemberName(decl)) {
       out.writeToken(ide.getName() + "$" + ide.getScope().getClassDeclaration().getInheritanceLevel());
@@ -264,27 +209,26 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitDotExpr(DotExpr dotExpr) throws IOException {
-    // comment out explicit reference to class for private static access:
     IdeDeclaration memberDeclaration = null;
     Expr arg = dotExpr.getArg();
     if (arg instanceof IdeExpr) {
-      IdeDeclaration ideDeclaration = ((IdeExpr) arg).getIde().getDeclaration(false);
-      if (ideDeclaration != null) {
-        memberDeclaration = Ide.resolveMember(ideDeclaration, dotExpr.getIde());
-        if (memberDeclaration != null && !memberDeclaration.isPrivateStatic()) {
-          memberDeclaration = null;
-        }
-      }
+      arg = ((IdeExpr)arg).getNormalizedExpr();
     }
-    if (memberDeclaration != null) {
+    IdeDeclaration type = arg.getType();
+    if (type == null && arg instanceof IdeExpr) {
+      type = ((IdeExpr) arg).getIde().getDeclaration(false);
+    }
+    if (type != null) {
+      memberDeclaration = Ide.resolveMember(type, dotExpr.getIde());
+    }
+    if (memberDeclaration != null && memberDeclaration.isPrivateStatic()) {
+      // comment out explicit reference to class for private static access:
       out.beginComment();
       arg.visit(this);
       out.endComment();
     } else {
-      memberDeclaration = Ide.resolveMember(dotExpr.getArg().getType(), dotExpr.getIde());
-      if (memberDeclaration != null && memberDeclaration.isMethod() && !memberDeclaration.isStatic() &&
-              !((FunctionDeclaration) memberDeclaration).isGetterOrSetter() &&
-              !isApplied(dotExpr)) {
+      if (dotExpr.getIde().isBound()) {
+        // found access to a method without applying it immediately: bind!
         writeBoundMethodAccess(dotExpr.getIde(), dotExpr.getArg(), dotExpr.getOp(), memberDeclaration);
         return;
       }
@@ -293,18 +237,14 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     writeMemberAccess(memberDeclaration, dotExpr.getOp(), dotExpr.getIde(), true);
   }
 
-  private static boolean isApplied(DotExpr expr) {
-    AstNode parentNode = expr.getParentNode();
-    return parentNode instanceof ApplyExpr && ((ApplyExpr) parentNode).getFun().equals(expr.getOriginal());
-  }
-
   private void writeMemberAccess(IdeDeclaration memberDeclaration, JooSymbol optSymDot, Ide memberIde, boolean writeMemberWhitespace) throws IOException {
     String getter = null;
     if (memberDeclaration != null) {
       if (memberIde.usePrivateMemberName(memberDeclaration)) {
         writePrivateMemberAccess(optSymDot, memberIde, writeMemberWhitespace, memberDeclaration.isStatic());
         return;
-      } else if (!isAssignmentLHS(memberIde)){
+      }
+      if (!isAssignmentLHS(memberIde)){
         getter = resolveAccessor(memberIde, MethodType.GET, memberDeclaration.getClassDeclaration());
       }
     }
@@ -339,14 +279,14 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   }
 
   private void writePrivateMemberAccess(final JooSymbol optSymDot, Ide memberIde, boolean writeMemberWhitespace, boolean isStatic) throws IOException {
-    if (writeMemberWhitespace) {
-      out.writeSymbolWhitespace(memberIde.getIde());
-    }
     if (isStatic) {
       if (optSymDot != null) {
         out.beginComment();
         out.writeSymbol(optSymDot);
         out.endComment();
+      }
+      if (writeMemberWhitespace) {
+        out.writeSymbolWhitespace(memberIde.getIde());
       }
       out.writeToken(memberIde.getIde().getText() + "$static");
     } else {
@@ -354,6 +294,9 @@ public class JsCodeGenerator extends CodeGeneratorBase {
         out.writeSymbol(optSymDot);
       } else {
         out.writeToken(".");
+      }
+      if (writeMemberWhitespace) {
+        out.writeSymbolWhitespace(memberIde.getIde());
       }
       // awkward, but we have to be careful if we add characters to tokens:
       out.writeToken(memberIde.getName() + "$" + memberIde.getScope().getClassDeclaration().getInheritanceLevel());
@@ -668,15 +611,30 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitIde(Ide ide) throws IOException {
-    if (expressionMode) {
-      generateIdeCodeAsExpr(ide);
-      return;
-    }
     out.writeSymbolWhitespace(ide.getIde());
     // take care of reserved words called as functions (Rhino does not like):
     String ideText = ide.getIde().getText();
-    if (!out.isWritingComment()) {
-      ideText = convertIdentifier(ideText);
+    if (!out.isWritingComment() && expressionMode) {
+      if (ide.isSuper()) {
+        ideText = "this";
+      }
+      if ("this".equals(ideText) && ide.isRewriteThis()) {
+        ideText = "this$";
+      } else {
+        ideText = convertIdentifier(ideText);
+        IdeDeclaration ideDeclaration = ide.getDeclaration(false);
+        if (ideDeclaration != null) {
+          if (ideDeclaration.isPrimaryDeclaration()) {
+            if (isAssignmentLHS(ide)) {
+              ideText = convertIdentifier(ide.getIde().getText()) + "._";
+            } else {
+              ideText = compilationUnitAccessCode(ideDeclaration);
+            }
+          } else if (ideDeclaration.isPrivateStatic()) {
+            ideText += "$static";
+          }
+        }
+      }
     }
     out.writeToken(ideText);
   }
@@ -686,62 +644,20 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     return SyntacticKeywords.RESERVED_WORDS.contains(identifier) ? identifier + "_" : identifier;
   }
 
-  private void generateQualifiedIdeCodeAsExpr(QualifiedIde qualifiedIde) throws IOException {
-    IdeDeclaration ideDeclaration = qualifiedIde.getDeclaration(false);
-    if (ideDeclaration != null && ideDeclaration.isPrimaryDeclaration()) {
-      // we assume there is no "inner" white-space in a qualified identifier:
-      out.writeSymbolWhitespace(qualifiedIde.getQualifier().getSymbol());
-      out.write(compilationUnitAccessCode(ideDeclaration));
-      return;
-    }
-    if (!isAssignmentLHS(qualifiedIde)) {
-      String getter = resolveAccessor(qualifiedIde, MethodType.GET);
-      if (getter != null) {
-        // System.err.println("*#*#*#* found getter " + getter + " in qIde " + qualifiedIde.getQualifiedNameStr());
-        visitInExpressionMode(qualifiedIde.getQualifier());
-        out.writeSymbol(qualifiedIde.getSymDot());
-        out.writeToken(getter + "()");
-        return;
-      }
-    }
-    boolean commentOutQualifierCode = false;
-    IdeDeclaration memberDeclaration = null;
-    IdeDeclaration qualifierDeclaration = qualifiedIde.getQualifier().getDeclaration(false);
-    if (qualifierDeclaration != null && qualifierDeclaration.isConstructor()) {
-      qualifierDeclaration = qualifierDeclaration.getClassDeclaration();
-    }
-    if (qualifierDeclaration != null && qualifierDeclaration.equals(qualifiedIde.getScope().getClassDeclaration())) {
-      memberDeclaration = ((ClassDeclaration) qualifierDeclaration).getStaticMemberDeclaration(qualifiedIde.getName());
-      commentOutQualifierCode = memberDeclaration != null && memberDeclaration.isPrivateStatic();
-    }
-    if (memberDeclaration == null) {
-      final IdeDeclaration type = qualifiedIde.getQualifier().resolveDeclaration();
-      memberDeclaration = Ide.resolveMember(type, qualifiedIde);
-    }
-    if (qualifiedIde.isBound()) {
-      writeBoundMethodAccess(qualifiedIde, qualifiedIde.getQualifier(), qualifiedIde.getSymDot(), memberDeclaration);
-      return;
-    }
-    if (commentOutQualifierCode) {
-      // we will generate another qualifier in writeMemberAccess
-      out.beginComment();
-    }
-    qualifiedIde.getQualifier().visit(this);
-    if (commentOutQualifierCode) {
-      out.endComment();
-    }
-    writeMemberAccess(memberDeclaration, qualifiedIde.getSymDot(), qualifiedIde, true);
-  }
-
   @Override
   public void visitQualifiedIde(QualifiedIde qualifiedIde) throws IOException {
-    if (expressionMode) {
-      generateQualifiedIdeCodeAsExpr(qualifiedIde);
-      return;
+    if (out.isWritingComment()) {
+      qualifiedIde.getQualifier().visit(this);
+      out.writeSymbol(qualifiedIde.getSymDot());
+      visitIde(qualifiedIde);
+    } else {
+//      out.beginComment();
+//      qualifiedIde.getQualifier().visit(this);
+//      out.endComment();
+      out.writeSymbolWhitespace(qualifiedIde.getQualifier().getSymbol());
+      IdeDeclaration ideDeclaration = qualifiedIde.getDeclaration();
+      out.write(compilationUnitAccessCode(ideDeclaration));
     }
-    qualifiedIde.getQualifier().visit(this);
-    out.writeSymbol(qualifiedIde.getSymDot());
-    visitIde(qualifiedIde);
   }
 
   @Override
@@ -820,15 +736,16 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitAssignmentOpExpr(AssignmentOpExpr assignmentOpExpr) throws IOException {
+    Expr leftHandSide = assignmentOpExpr.getArg1();
     if (assignmentOpExpr.getOp().sym == sym.ANDANDEQ || assignmentOpExpr.getOp().sym == sym.OROREQ) {
-      assignmentOpExpr.getArg1().visit(this);
+      leftHandSide.visit(this);
       out.writeSymbolWhitespace(assignmentOpExpr.getOp());
       out.writeToken("=");
       // TODO: refactor for a simpler way to switch off white-space temporarily:
       JoocConfiguration options = (JoocConfiguration) out.getOptions();
       DebugMode mode = options.getDebugMode();
       options.setDebugMode(null);
-      assignmentOpExpr.getArg1().visit(this);
+      leftHandSide.visit(this);
       options.setDebugMode(mode);
       out.writeToken(assignmentOpExpr.getOp().sym == sym.ANDANDEQ ? "&&" : "||");
       out.writeToken("(");
@@ -838,19 +755,14 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       String setter = null;
       AstNode dotExprArg = null;
       JooSymbol symDot = null;
-      if (assignmentOpExpr.getArg1() instanceof IdeExpr && ((IdeExpr)assignmentOpExpr.getArg1()).getIde() instanceof QualifiedIde) {
-        QualifiedIde qIde = (QualifiedIde) ((IdeExpr) assignmentOpExpr.getArg1()).getIde();
-        setter = resolveAccessor(qIde, MethodType.SET);
-        dotExprArg = qIde.getQualifier();
-        symDot = qIde.getSymDot();
-      } else if (assignmentOpExpr.getArg1() instanceof DotExpr) {
-        DotExpr dotExpr = (DotExpr) assignmentOpExpr.getArg1();
-        IdeDeclaration type = dotExpr.getArg().getType();
-        if (type instanceof ClassDeclaration) {
-          setter = resolveAccessor(dotExpr.getIde(), MethodType.SET, (ClassDeclaration) type);
-          dotExprArg = dotExpr.getArg();
-          symDot = dotExpr.getOp();
-        }
+      if (leftHandSide instanceof IdeExpr) {
+        leftHandSide = ((IdeExpr)leftHandSide).getNormalizedExpr();
+      }
+      if (leftHandSide instanceof DotExpr) {
+        DotExpr dotExpr = (DotExpr) leftHandSide;
+        setter = resolveAccessor(dotExpr, MethodType.SET);
+        dotExprArg = dotExpr.getArg();
+        symDot = dotExpr.getOp();
       }
       if (setter != null && dotExprArg != null) {
         visitInExpressionMode(dotExprArg);
@@ -866,15 +778,18 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     }
   }
 
-  private static String resolveAccessor(QualifiedIde qIde, MethodType methodType) throws IOException {
+  private static String resolveAccessor(DotExpr dotExpr, MethodType methodType) throws IOException {
     //System.err.println("*#*#*#* trying to find " + methodType + "ter for qIde " + qIde.getQualifiedNameStr());
-    IdeDeclaration qualifierDeclaration = qIde.getQualifier().getDeclaration(false);
-    if (qualifierDeclaration instanceof Typed) {
-      TypeRelation typeRelation = ((Typed) qualifierDeclaration).getOptTypeRelation();
+    IdeDeclaration lhsType = dotExpr.getArg().getType();
+    if (lhsType instanceof ClassDeclaration) {
+      return resolveAccessor(dotExpr.getIde(), methodType, (ClassDeclaration) lhsType);
+    }
+    if (lhsType instanceof Typed) {
+      TypeRelation typeRelation = ((Typed) lhsType).getOptTypeRelation();
       if (typeRelation != null) {
         IdeDeclaration typeDeclaration = typeRelation.getType().resolveDeclaration();
         if (typeDeclaration instanceof ClassDeclaration) {
-          return resolveAccessor(qIde, methodType, (ClassDeclaration) typeDeclaration);
+          return resolveAccessor(dotExpr.getIde(), methodType, (ClassDeclaration) typeDeclaration);
         }
       }
     }
@@ -1487,10 +1402,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       } else {
         generateVarStartCode(variableDeclaration);
       }
-      variableDeclaration.getIde().visit(this);
-      if (variableDeclaration.isClassMember() && variableDeclaration.isStatic()) {
-        out.write("$static");
-      }
+      visitInExpressionMode(variableDeclaration.getIde());
       visitIfNotNull(variableDeclaration.getOptTypeRelation());
       Initializer optInitializer = variableDeclaration.getOptInitializer();
       if (optInitializer == null) {
@@ -1817,7 +1729,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     public void generate(JsWriter out, boolean first) throws IOException {
       int inheritanceLevel = classDeclaration.getInheritanceLevel();
       if (inheritanceLevel > 1) { // suppress for classes extending Object
-        generateSuperConstructorCallCode(classDeclaration, null);
+        generateSuperConstructorCallCode(null);
         out.writeToken(";");
       }
       generateFieldInitCode(classDeclaration, false);
@@ -1848,7 +1760,8 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   @Override
   public void visitSuperConstructorCallStatement(SuperConstructorCallStatement superConstructorCallStatement) throws IOException {
     if (superConstructorCallStatement.getClassDeclaration().getInheritanceLevel() > 1) {
-      generateSuperConstructorCallCode(superConstructorCallStatement);
+      out.writeSymbolWhitespace(superConstructorCallStatement.getSymbol());
+      generateSuperConstructorCallCode(superConstructorCallStatement.getArgs());
       generateFieldInitCode(superConstructorCallStatement.getClassDeclaration(), true);
     } else { // suppress for classes extending Object
       // Object super call does nothing anyway:
@@ -1861,12 +1774,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     out.writeSymbol(superConstructorCallStatement.getSymSemicolon());
   }
 
-  private void generateSuperConstructorCallCode(SuperConstructorCallStatement superConstructorCallStatement) throws IOException {
-    out.writeSymbolWhitespace(superConstructorCallStatement.getSymbol());
-    generateSuperConstructorCallCode(superConstructorCallStatement.getClassDeclaration(), superConstructorCallStatement.getArgs());
-  }
-
-  private void generateSuperConstructorCallCode(ClassDeclaration classDeclaration, ParenthesizedExpr<CommaSeparatedList<Expr>> args) throws IOException {
+  private void generateSuperConstructorCallCode(ParenthesizedExpr<CommaSeparatedList<Expr>> args) throws IOException {
     out.write("Super.call");
     if (args == null) {
       out.writeToken("(this)");

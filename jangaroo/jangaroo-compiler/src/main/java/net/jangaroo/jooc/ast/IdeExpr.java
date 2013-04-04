@@ -17,6 +17,7 @@ package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
+import net.jangaroo.jooc.sym;
 
 import java.io.IOException;
 import java.util.List;
@@ -27,7 +28,7 @@ import java.util.List;
 public class IdeExpr extends Expr {
 
   private Ide ide;
-  private DotExpr dotExpr;
+  private Expr normalizedExpr;
 
   public IdeExpr(JooSymbol symIde) {
     this(new Ide(symIde));
@@ -48,14 +49,42 @@ public class IdeExpr extends Expr {
 
   @Override
   public void visit(AstVisitor visitor) throws IOException {
-    if (!(ide instanceof QualifiedIde && ide.getDeclaration(false) == null)) {
-      visitor.visitIdeExpression(this);
+    Expr normalizedExpr = getNormalizedExpr();
+    if (normalizedExpr != this) {
+      normalizedExpr.visit(visitor);
     } else {
-      if (dotExpr == null) {
-        dotExpr = new DotExpr(this);
-      }
-      visitor.visitDotExpr(dotExpr);
+      visitor.visitIdeExpression(this);
     }
+  }
+
+  public Expr getNormalizedExpr() {
+    if (normalizedExpr == null) {
+      normalizedExpr = this;
+      IdeDeclaration ideDeclaration = ide.getDeclaration(false);
+      if ((ide instanceof QualifiedIde && ideDeclaration == null) ||  // qualified IDE withouth declaration => DotExpr
+              (ideDeclaration != null && ideDeclaration.isClassMember())) {  // "this." or "<Class>." may have to be synthesized
+        DotExpr dotExpr = null;
+        if (ide instanceof QualifiedIde) {
+          dotExpr = new DotExpr(new IdeExpr(ide.getQualifier()), ((QualifiedIde)ide).getSymDot(), new Ide(ide.getIde()));
+        } else if (!ideDeclaration.isStatic()) {
+          // non-static class member: synthesize "this."
+          JooSymbol ideSymbol = ide.getSymbol();
+          Ide thisIde = new Ide(ideSymbol.replacingSymAndTextAndJooValue(sym.THIS, "this", null));
+          thisIde.setRewriteThis(ide.isRewriteThis());
+          dotExpr = new DotExpr(new IdeExpr(thisIde), new JooSymbol("."), new Ide(ideSymbol.withoutWhitespace()));
+        } else if (!ideDeclaration.isPrivate()) {
+          // non-private static class member: synthesize "<Class>."
+          JooSymbol ideSymbol = ide.getSymbol();
+          Ide classIde = new Ide(ideSymbol.replacingSymAndTextAndJooValue(sym.IDE, ideDeclaration.getClassDeclaration().getName(), null));
+          dotExpr = new DotExpr(new IdeExpr(classIde), new JooSymbol("."), new Ide(ideSymbol.withoutWhitespace()));
+        }
+        if (dotExpr != null) {
+          dotExpr.setOriginal(this);
+          normalizedExpr = dotExpr;
+        }
+      }
+    }
+    return normalizedExpr;
   }
 
   @Override

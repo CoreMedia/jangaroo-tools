@@ -126,12 +126,15 @@ public class Ide extends NodeImplBase {
     return null;
   }
 
-  public boolean isQualifiedByThis() {
-    return getQualifier() != null && getQualifier().isThis();
-  }
-
   public boolean isQualifiedBySuper() {
-    return getQualifier() != null && getQualifier().isSuper();
+    AstNode parentNode = getParentNode();
+    if (parentNode instanceof DotExpr) {
+      DotExpr dotExpr = (DotExpr) parentNode;
+      if (dotExpr.getIde() == this) {
+        return dotExpr.getArg() instanceof IdeExpr && ((IdeExpr) dotExpr.getArg()).getIde().isSuper();
+      }
+    }
+    return false;
   }
 
   public boolean addExternalUsage() {
@@ -226,7 +229,6 @@ public class Ide extends NodeImplBase {
       }
       //todo check whether super method exists and is non-static
     }
-    checkDefinedAccessChain();
     if (isBoundMethodCandidate(exprParent, parentExpr)) {
       IdeDeclaration memberDeclaration = getMemberDeclaration();
       // check candidates for instance methods, accessed as function:
@@ -309,21 +311,6 @@ public class Ide extends NodeImplBase {
       return ideDeclaration;
     }
     return ideDeclaration;
-  }
-
-  private void checkDefinedAccessChain() {
-    if (!isQualified() && //this method is called for every node of a qualified ide tree, so we rely on the call on the root ide
-            !isDeclared() && !isValidPackageAccessChain()) {
-      throw Jooc.error(getIde(), "undeclared identifier '" + getName() + "'");
-    }
-  }
-
-  private boolean isValidPackageAccessChain() {
-    if (isQualifier()) {
-      final Ide qualifiedIde = getQualified();
-      return qualifiedIde.isDeclared() || qualifiedIde.isValidPackageAccessChain();
-    }
-    return false;
   }
 
   private boolean isDeclared() {

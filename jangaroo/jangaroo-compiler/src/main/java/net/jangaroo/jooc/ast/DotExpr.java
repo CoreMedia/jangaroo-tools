@@ -36,8 +36,8 @@ public class DotExpr extends PostfixOpExpr {
     this.ide = ide;
   }
 
-  DotExpr(IdeExpr ideExpr) {
-    this(new IdeExpr(ideExpr.getIde().getQualifier()), ((QualifiedIde)ideExpr.getIde()).getSymDot(), new Ide(ideExpr.getIde().getIde()));
+  void setOriginal(IdeExpr ideExpr) {
+    getIde().setBound(ideExpr.getIde().isBound());
     original = ideExpr;
     scope(ideExpr.getIde().getScope());
     analyze(ideExpr.getParentNode());
@@ -76,6 +76,12 @@ public class DotExpr extends PostfixOpExpr {
       IdeDeclaration memberDeclaration = getArg().getType().resolvePropertyDeclaration(getIde().getName());
       if (memberDeclaration != null && memberDeclaration.isStatic()) {
         throw Jooc.error(getIde().getIde(), "static member used in dynamic context");
+      }
+      if (memberDeclaration instanceof Typed) {
+        TypeRelation typeRelation = ((Typed) memberDeclaration).getOptTypeRelation();
+        if (typeRelation != null) {
+          memberDeclaration = typeRelation.getType().getIde().getDeclaration();
+        }
       }
       setType(memberDeclaration);
     }

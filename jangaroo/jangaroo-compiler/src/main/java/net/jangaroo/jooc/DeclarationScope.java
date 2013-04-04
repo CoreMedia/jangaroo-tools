@@ -139,13 +139,6 @@ public class DeclarationScope extends ScopeImplBase {
       if (importsByQualifiedName.containsKey(qname)) {
         return resolveImport(importsByQualifiedName.get(qname));
       }
-      if (ide.isQualifiedByThis()) {
-        return getClassDeclaration().resolvePropertyDeclaration(ide.getName());
-      }
-      if (ide.isQualifiedBySuper()) {
-        final IdeDeclaration superTypeDeclaration = getClassDeclaration().getSuperTypeDeclaration();
-        return superTypeDeclaration == null ? null : superTypeDeclaration.resolvePropertyDeclaration(ide.getName());
-      }
     } else {
       final String name = ide.getName();
       final List<ImportDirective> importsOfThisIde = importsByName.get(name);

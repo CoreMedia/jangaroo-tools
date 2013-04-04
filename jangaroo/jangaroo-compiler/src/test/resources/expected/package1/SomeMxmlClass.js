@@ -23,7 +23,7 @@ public class SomeMxmlClass extends package1.ConfigClass {
     $$3.bla = 3;
     this.other = new (SomeOtherClass._||SomeOtherClass._$get())($$3);
     Super.call(this);
-    addEventListener(this, 'click', (SomeEvent._||SomeEvent._$get()), AS3.bind(this,"___on_click1"));
+    addEventListener(this, 'click', (SomeEvent._||SomeEvent._$get()),AS3.bind( this,"___on_click1"));
     this.foo = "bar";
     this.number = 42;
     var $$4/*:Object*/ = {};
