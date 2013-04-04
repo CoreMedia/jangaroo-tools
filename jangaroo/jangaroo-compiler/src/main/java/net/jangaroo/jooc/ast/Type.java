@@ -66,8 +66,7 @@ public class Type extends NodeImplBase {
   }
 
   public IdeDeclaration resolveDeclaration() {
-    final IdeDeclaration ideDeclaration = getIde().getDeclaration(false);
-    return ideDeclaration == null ? null : ideDeclaration.resolveDeclaration();
+    return getIde().getDeclaration(false);
   }
 
 }

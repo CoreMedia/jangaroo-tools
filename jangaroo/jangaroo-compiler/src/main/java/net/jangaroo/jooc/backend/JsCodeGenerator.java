@@ -264,8 +264,26 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitDotExpr(DotExpr dotExpr) throws IOException {
-    dotExpr.getArg().visit(this);
-    writeMemberAccess(Ide.resolveMember(dotExpr.getArg().getType(), dotExpr.getIde()), dotExpr.getOp(), dotExpr.getIde(), true);
+    // comment out explicit reference to class for private static access:
+    IdeDeclaration memberDeclaration = null;
+    Expr arg = dotExpr.getArg();
+    if (arg instanceof IdeExpr) {
+      IdeDeclaration ideDeclaration = ((IdeExpr) arg).getIde().getDeclaration(false);
+      if (ideDeclaration != null) {
+        memberDeclaration = Ide.resolveMember(ideDeclaration, dotExpr.getIde());
+        if (memberDeclaration != null && !memberDeclaration.isPrivateStatic()) {
+          memberDeclaration = null;
+        }
+      }
+    }
+    if (memberDeclaration != null) {
+      out.beginComment();
+      arg.visit(this);
+      out.endComment();
+    } else {
+      arg.visit(this);
+    }
+    writeMemberAccess(memberDeclaration, dotExpr.getOp(), dotExpr.getIde(), true);
   }
 
   private void writeMemberAccess(IdeDeclaration memberDeclaration, JooSymbol optSymDot, Ide memberIde, boolean writeMemberWhitespace) throws IOException {
@@ -485,7 +503,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       List<String> superInterfaces = new ArrayList<String>();
       CommaSeparatedList<Ide> superTypes = optImplements.getSuperTypes();
       while (superTypes != null) {
-        IdeDeclaration superInterface = superTypes.getHead().resolveDeclaration();
+        IdeDeclaration superInterface = superTypes.getHead().getDeclaration(false);
         if (superInterface == null) {
           System.err.println("ignoring unresolvable interface " + superTypes.getHead().getQualifiedNameStr());
         } else {
@@ -877,7 +895,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     if (member == null) {
       Type superType = classDeclaration.getSuperType();
       if (superType != null) {
-        IdeDeclaration superDeclaration = superType.resolveDeclaration();
+        IdeDeclaration superDeclaration = superType.getIde().getDeclaration();
         member = lookupMember((ClassDeclaration) superDeclaration, memberName);
       }
     }

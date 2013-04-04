@@ -263,7 +263,7 @@ public class ClassDeclaration extends IdeDeclaration {
 
   @Override
   public IdeDeclaration resolveDeclaration() {
-    return this;
+    return null;
   }
 
   /**

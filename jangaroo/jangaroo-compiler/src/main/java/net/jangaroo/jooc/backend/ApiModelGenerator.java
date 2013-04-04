@@ -151,7 +151,7 @@ public class ApiModelGenerator {
 
   @Override
   public void visitExtends(Extends anExtends) throws IOException {
-    getCurrent(ClassModel.class).setSuperclass(anExtends.getSuperClass().resolveDeclaration().getQualifiedNameStr());
+    getCurrent(ClassModel.class).setSuperclass(anExtends.getSuperClass().getDeclaration().getQualifiedNameStr());
   }
 
   @Override

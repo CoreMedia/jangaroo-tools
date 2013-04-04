@@ -27,6 +27,7 @@ import java.util.List;
 public class IdeExpr extends Expr {
 
   private Ide ide;
+  private DotExpr dotExpr;
 
   public IdeExpr(JooSymbol symIde) {
     this(new Ide(symIde));
@@ -47,7 +48,16 @@ public class IdeExpr extends Expr {
 
   @Override
   public void visit(AstVisitor visitor) throws IOException {
-    visitor.visitIdeExpression(this);
+    if (!(ide instanceof QualifiedIde && ide.getDeclaration(false) == null)) {
+      visitor.visitIdeExpression(this);
+    } else {
+      if (dotExpr == null) {
+        dotExpr = new DotExpr(new IdeExpr(ide.getQualifier()), ((QualifiedIde)ide).getSymDot(), new Ide(ide.getIde()));
+        dotExpr.scope(ide.getScope());
+        dotExpr.analyze(ide.getParentNode());
+      }
+      visitor.visitDotExpr(dotExpr);
+    }
   }
 
   @Override

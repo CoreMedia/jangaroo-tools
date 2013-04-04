@@ -260,6 +260,11 @@ public class JoocTest {
     assertCompilationResult("locale/de_DE/Test", ".properties");
   }
 
+  @Test
+  public void testStaticAccess() throws Exception {
+    assertCompilationResult("package2/TestStaticAccess");
+  }
+
   private void assertApiCompilationResult(String path, String expectPath) throws URISyntaxException, IOException {
     File sourcefile = getFile("/" + path + ".as");
     config.addSourceFile(sourcefile);

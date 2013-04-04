@@ -74,6 +74,10 @@ public class Initializer extends NodeImplBase {
           public void visitQualifiedIde(QualifiedIde qualifiedIde) throws IOException {
             qualifiedIde.addPublicApiDependency();
           }
+          @Override
+          public void visitIde(Ide ide) throws IOException {
+            ide.addPublicApiDependency();
+          }
         }));
       } catch (IOException e) {
         throw new IllegalStateException("should not happen");
