@@ -270,6 +270,11 @@ public class JoocTest {
     assertCompilationResult("package1/TestMethodCall");
   }
 
+  @Test
+  public void testHelperClasses() throws Exception {
+    assertCompilationResult("package1/TestHelperClasses");
+  }
+
   private void assertApiCompilationResult(String path, String expectPath) throws URISyntaxException, IOException {
     File sourcefile = getFile("/" + path + ".as");
     config.addSourceFile(sourcefile);

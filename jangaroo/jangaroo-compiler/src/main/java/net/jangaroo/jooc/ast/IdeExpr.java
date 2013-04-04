@@ -52,9 +52,7 @@ public class IdeExpr extends Expr {
       visitor.visitIdeExpression(this);
     } else {
       if (dotExpr == null) {
-        dotExpr = new DotExpr(new IdeExpr(ide.getQualifier()), ((QualifiedIde)ide).getSymDot(), new Ide(ide.getIde()));
-        dotExpr.scope(ide.getScope());
-        dotExpr.analyze(ide.getParentNode());
+        dotExpr = new DotExpr(this);
       }
       visitor.visitDotExpr(dotExpr);
     }

@@ -29,10 +29,22 @@ import java.util.List;
 public class DotExpr extends PostfixOpExpr {
 
   private Ide ide;
+  private IdeExpr original;
 
   public DotExpr(Expr expr, JooSymbol symDot, Ide ide) {
     super(symDot, expr);
     this.ide = ide;
+  }
+
+  DotExpr(IdeExpr ideExpr) {
+    this(new IdeExpr(ideExpr.getIde().getQualifier()), ((QualifiedIde)ideExpr.getIde()).getSymDot(), new Ide(ideExpr.getIde().getIde()));
+    original = ideExpr;
+    scope(ideExpr.getIde().getScope());
+    analyze(ideExpr.getParentNode());
+  }
+
+  public Expr getOriginal() {
+    return original == null ? this : original;
   }
 
   @Override

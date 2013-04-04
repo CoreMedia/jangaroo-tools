@@ -241,10 +241,10 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   }
 
 
-  private void writeBoundMethodAccess(Ide ide, Ide optIde, JooSymbol optSymDot, IdeDeclaration decl) throws IOException {
+  private void writeBoundMethodAccess(Ide ide, AstNode optArg, JooSymbol optSymDot, IdeDeclaration decl) throws IOException {
     out.writeToken("AS3.bind(");
-    if (optIde != null) {
-      optIde.visit(this);
+    if (optArg != null) {
+      optArg.visit(this);
     } else {
       writeThis(ide);
     }
@@ -281,10 +281,21 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       arg.visit(this);
       out.endComment();
     } else {
-      arg.visit(this);
       memberDeclaration = Ide.resolveMember(dotExpr.getArg().getType(), dotExpr.getIde());
+      if (memberDeclaration != null && memberDeclaration.isMethod() && !memberDeclaration.isStatic() &&
+              !((FunctionDeclaration) memberDeclaration).isGetterOrSetter() &&
+              !isApplied(dotExpr)) {
+        writeBoundMethodAccess(dotExpr.getIde(), dotExpr.getArg(), dotExpr.getOp(), memberDeclaration);
+        return;
+      }
+      arg.visit(this);
     }
     writeMemberAccess(memberDeclaration, dotExpr.getOp(), dotExpr.getIde(), true);
+  }
+
+  private static boolean isApplied(DotExpr expr) {
+    AstNode parentNode = expr.getParentNode();
+    return parentNode instanceof ApplyExpr && ((ApplyExpr) parentNode).getFun().equals(expr.getOriginal());
   }
 
   private void writeMemberAccess(IdeDeclaration memberDeclaration, JooSymbol optSymDot, Ide memberIde, boolean writeMemberWhitespace) throws IOException {
