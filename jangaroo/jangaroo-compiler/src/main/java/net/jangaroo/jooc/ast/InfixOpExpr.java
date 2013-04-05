@@ -20,10 +20,4 @@ public class InfixOpExpr extends BinaryOpExpr {
   public void visit(AstVisitor visitor) throws IOException {
     visitor.visitInfixOpExpr(this);
   }
-
-  @Override
-  public void scope(Scope scope) {
-    super.scope(scope);
-    scope.getCompilationUnit().addBuiltInUsage(getOp().getText());
-  }
 }

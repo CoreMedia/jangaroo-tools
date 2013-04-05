@@ -34,7 +34,6 @@ public class Ide extends NodeImplBase {
   private Ide qualified;
   private boolean bound;
   private boolean rewriteThis;
-  private String packagePrefix = "";
 
   private static final IdeDeclaration NULL_DECL = new VariableDeclaration(null, null, null, null);
 
@@ -57,10 +56,6 @@ public class Ide extends NodeImplBase {
 
   public JooSymbol getIde() {
     return ide;
-  }
-
-  public String getPackagePrefix() {
-    return packagePrefix;
   }
 
   public boolean isThis() {
@@ -234,7 +229,6 @@ public class Ide extends NodeImplBase {
       // check candidates for instance methods, accessed as function:
       if (memberDeclaration != null && memberDeclaration.isMethod() && !((FunctionDeclaration) memberDeclaration).isGetterOrSetter() && !memberDeclaration.isStatic()) {
         // check and handle instance methods declared in same file, accessed as function:
-        getScope().getCompilationUnit().addBuiltInUsage("$$bound");
         setBound(true);
       }
     }
@@ -244,13 +238,7 @@ public class Ide extends NodeImplBase {
         IdeDeclaration decl = getDeclaration(false);
         // add package prefix if it is not a local
         if (decl != null) {
-          if (!decl.isClassMember() && decl.getParentDeclaration() instanceof PackageDeclaration) {
-            String qName = decl.getPackageDeclaration().getQualifiedNameStr();
-            if (qName.length() > 0) {
-              String auxVarForPackage = scope.getCompilationUnit().getAuxVarForPackage(scope, qName);
-              packagePrefix = auxVarForPackage + ".";
-            }
-          } else if ((!isQualifier() || exprParent instanceof ApplyExpr)
+          if ((!isQualifier() || exprParent instanceof ApplyExpr)
             && !(exprParent instanceof ArrayIndexExpr) && (decl instanceof Parameter)) {
             FunctionExpr currentFunction = scope.getFunctionExpr();
             if (currentFunction != null) {
@@ -273,23 +261,6 @@ public class Ide extends NodeImplBase {
       }
     }
     addExternalUsage();
-    //todo handle references to static super members
-    // check access to another class or a constant of another class; other class then must be initialized:
-    if (!(exprParent instanceof ApplyExpr) && !(exprParent instanceof NewExpr) && !(exprParent instanceof IsExpr) && !(exprParent instanceof AsExpr)) {
-      ClassDeclaration classDeclaration = getScope().getClassDeclaration();
-      if (classDeclaration != null) {
-        if (isQualified()) {
-          // access to constant of other class?
-          // TODO: If the static member is a method, we should not add a class init.
-          //       Unfortunately, declaration information seems not to be available at this point in time.
-          classDeclaration.addInitIfClassOrGlobalVar(getQualifier());
-        }
-        // access to other class?
-        if (!isQualifier()) {
-          classDeclaration.addInitIfClassOrGlobalVar(this);
-        }
-      }
-    }
   }
 
   private boolean isArgumentOfTypeCast(AstNode parentNode) {

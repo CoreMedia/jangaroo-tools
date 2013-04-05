@@ -42,7 +42,6 @@ public class ClassDeclaration extends IdeDeclaration {
   private Extends optExtends;
   private Map<String, TypedIdeDeclaration> members = new LinkedHashMap<String, TypedIdeDeclaration>();
   private Map<String, TypedIdeDeclaration> staticMembers = new LinkedHashMap<String, TypedIdeDeclaration>();
-  private Set<String> classInit = new HashSet<String>();
   private ClassBody body;
   private FunctionDeclaration constructor = null;
   private Type thisType;
@@ -52,7 +51,6 @@ public class ClassDeclaration extends IdeDeclaration {
   private int inheritanceLevel = -1;
 
   private Implements optImplements;
-  private Scope scope;
 
   public ClassDeclaration(JooSymbol[] modifiers, JooSymbol cls, Ide ide, Extends ext, Implements impl, ClassBody body) {
     super(modifiers, ide);
@@ -145,13 +143,8 @@ public class ClassDeclaration extends IdeDeclaration {
     return staticMembers;
   }
 
-  public Set<String> getClassInit() {
-    return classInit;
-  }
-
   @Override
   public void scope(final Scope scope) {
-    this.scope = scope;
     // this declares this class's ide:
     super.scope(scope);
 
@@ -202,10 +195,6 @@ public class ClassDeclaration extends IdeDeclaration {
     super.analyze(parentNode);
     if (getOptExtends() != null) {
       getOptExtends().analyze(this);
-      String packageName = getOptExtends().getSuperClass().getDeclaration().getPackageDeclaration().getQualifiedNameStr();
-      if (packageName.length() > 0 && parentNode instanceof CompilationUnit) {
-        ((CompilationUnit)parentNode).getAuxVarForPackage(scope, packageName);
-      }
     }
     if (getOptImplements() != null) {
       getOptImplements().analyze(this);
@@ -229,18 +218,6 @@ public class ClassDeclaration extends IdeDeclaration {
 
   public TypedIdeDeclaration getStaticMemberDeclaration(String memberName) {
     return staticMembers.get(memberName);
-  }
-
-  public void addInitIfClassOrGlobalVar(Ide ide) {
-    final IdeDeclaration decl = ide.getDeclaration(false);
-    if (decl != this      // Classes should not try to init themselves. It does not help and it produces strange warnings.
-      && (decl instanceof ClassDeclaration || decl instanceof VariableDeclaration) // no init necessary for package-scope functions!
-      && decl.isPrimaryDeclaration()) {
-      CompilationUnit compilationUnit = decl.getIde().getScope().getCompilationUnit();
-      if (compilationUnit.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME) == null) {
-        classInit.add(decl.getQualifiedNameStr());
-      }
-    }
   }
 
   public boolean isSubclassOf(final ClassDeclaration classDeclaration) {
