@@ -29,7 +29,6 @@ import java.util.List;
 public class DotExpr extends PostfixOpExpr {
 
   private Ide ide;
-  private IdeExpr original;
 
   public DotExpr(Expr expr, JooSymbol symDot, Ide ide) {
     super(symDot, expr);
@@ -38,13 +37,8 @@ public class DotExpr extends PostfixOpExpr {
 
   void setOriginal(IdeExpr ideExpr) {
     getIde().setBound(ideExpr.getIde().isBound());
-    original = ideExpr;
     scope(ideExpr.getIde().getScope());
     analyze(ideExpr.getParentNode());
-  }
-
-  public Expr getOriginal() {
-    return original == null ? this : original;
   }
 
   @Override
