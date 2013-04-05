@@ -203,12 +203,9 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       arg = ((IdeExpr)arg).getNormalizedExpr();
     }
     IdeDeclaration type = arg.getType();
-    if (type == null && dotExpr.getArg() instanceof IdeExpr) {
-      Ide argIde = ((IdeExpr) dotExpr.getArg()).getIde();
+    if (type == null && arg instanceof IdeExpr) {
+      Ide argIde = ((IdeExpr) arg).getIde();
       type = argIde.getDeclaration(false);
-      if (type == null) {
-        Jooc.warning(symDot, "found no type while generating code for DotExpr " + argIde.getQualifiedNameStr() + "." + ide.getName());
-      }
     }
     if (type != null) {
       memberDeclaration = Ide.resolveMember(type, ide);
