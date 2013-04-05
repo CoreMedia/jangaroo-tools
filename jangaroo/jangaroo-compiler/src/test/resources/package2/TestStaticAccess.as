@@ -21,6 +21,7 @@ public class TestStaticAccess extends StaticAccessSuperClass {
   static private var s2:String = "s2";
 
   public function TestStaticAccess() {
+    f0();
   }
 
   static public function get_s0():String {

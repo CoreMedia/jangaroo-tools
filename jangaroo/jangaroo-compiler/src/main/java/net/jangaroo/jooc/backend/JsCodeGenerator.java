@@ -192,106 +192,82 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     }
   }
 
-
-  private void writeBoundMethodAccess(Ide ide, AstNode arg, JooSymbol symDot, IdeDeclaration decl) throws IOException {
-    out.writeToken("AS3.bind(");
-    arg.visit(this);
-    writeSymbolReplacement(symDot, ",");
-    out.beginString();
-    if (ide.usePrivateMemberName(decl)) {
-      out.writeToken(ide.getName() + "$" + ide.getScope().getClassDeclaration().getInheritanceLevel());
-    } else {
-      out.writeToken(ide.getName());
-    }
-    out.endString();
-    out.writeToken(")");
-  }
-
   @Override
   public void visitDotExpr(DotExpr dotExpr) throws IOException {
     IdeDeclaration memberDeclaration = null;
     Expr arg = dotExpr.getArg();
+    JooSymbol symDot = dotExpr.getOp();
+    Ide ide = dotExpr.getIde();
+
     if (arg instanceof IdeExpr) {
       arg = ((IdeExpr)arg).getNormalizedExpr();
     }
     IdeDeclaration type = arg.getType();
-    if (type == null && arg instanceof IdeExpr) {
-      type = ((IdeExpr) arg).getIde().getDeclaration(false);
+    if (type == null && dotExpr.getArg() instanceof IdeExpr) {
+      Ide argIde = ((IdeExpr) dotExpr.getArg()).getIde();
+      type = argIde.getDeclaration(false);
+      if (type == null) {
+        Jooc.warning(symDot, "found no type while generating code for DotExpr " + argIde.getQualifiedNameStr() + "." + ide.getName());
+      }
     }
     if (type != null) {
-      memberDeclaration = Ide.resolveMember(type, dotExpr.getIde());
+      memberDeclaration = Ide.resolveMember(type, ide);
     }
+
+    String memberName = ide.getName();
+
     if (memberDeclaration != null && memberDeclaration.isPrivateStatic()) {
       // comment out explicit reference to class for private static access:
       out.beginComment();
       arg.visit(this);
-      out.endComment();
-    } else {
-      if (dotExpr.getIde().isBound()) {
-        // found access to a method without applying it immediately: bind!
-        writeBoundMethodAccess(dotExpr.getIde(), dotExpr.getArg(), dotExpr.getOp(), memberDeclaration);
-        return;
-      }
-      arg.visit(this);
-    }
-    writeMemberAccess(memberDeclaration, dotExpr.getOp(), dotExpr.getIde());
-  }
-
-  private void writeMemberAccess(IdeDeclaration memberDeclaration, JooSymbol symDot, Ide memberIde) throws IOException {
-    String getter = null;
-    if (memberDeclaration != null) {
-      if (memberIde.usePrivateMemberName(memberDeclaration)) {
-        writePrivateMemberAccess(symDot, memberIde, memberDeclaration.isStatic());
-        return;
-      }
-      if (!isAssignmentLHS(memberIde)){
-        getter = resolveAccessor(memberIde, MethodType.GET, memberDeclaration.getClassDeclaration());
-      }
-    }
-    boolean quote = false;
-    String memberName = memberIde.getIde().getText();
-    if (memberName.startsWith("@")) {
-      quote = true;
-      out.writeSymbolWhitespace(symDot);
-      out.writeToken("['");
-    } else {
       out.writeSymbol(symDot);
+      out.endComment();
+      // add "$static" suffix to private static members:
+      writeSymbolReplacement(ide.getIde(), memberName + "$static");
+      return;
     }
-    out.writeSymbolWhitespace(memberIde.getIde());
-    if (getter != null) {
-      out.writeToken(getter);
-    } else {
-      out.writeSymbolToken(memberIde.getIde());
+
+    if (memberDeclaration != null && usePrivateMemberName(ide, memberDeclaration)) {
+      memberName = memberName + "$" + ide.getScope().getClassDeclaration().getInheritanceLevel();
     }
-    if (quote) {
-      out.writeToken("']");
+
+    String separatorToken = ".";
+    String closingToken = "";
+
+    if (ide.isBound()) {
+      // found access to a method without applying it immediately: bind!
+      out.writeToken("AS3.bind(");
+      separatorToken = ",";
+      memberName = CompilerUtils.quote(memberName);
+      closingToken = ")";
+    } else if (memberDeclaration != null && !isAssignmentLHS(ide)) {
+      String getter = resolveAccessor(ide, MethodType.GET, memberDeclaration.getClassDeclaration());
+      if (getter != null) {
+        // found usage of an [Accessor]-annotated get function: call it!
+        memberName = getter;
+        closingToken = "()";
+      }
+    } else if (memberName.startsWith("@")) {
+      // escape @... property names:
+      separatorToken = "[";
+      memberName = CompilerUtils.quote(memberName);
+      closingToken = "]";
     }
-    if (getter != null) {
-      out.writeToken("()");
+
+    arg.visit(this);
+    writeSymbolReplacement(symDot, separatorToken);
+    writeSymbolReplacement(ide.getIde(), memberName);
+    if (!closingToken.isEmpty()) {
+      out.writeToken(closingToken);
     }
   }
 
-  private void writePrivateMemberAccess(final JooSymbol optSymDot, Ide memberIde, boolean isStatic) throws IOException {
-    if (isStatic) {
-      if (optSymDot != null) {
-        out.beginComment();
-        out.writeSymbol(optSymDot);
-        out.endComment();
-      }
-      out.writeSymbolWhitespace(memberIde.getIde());
-      out.writeToken(memberIde.getIde().getText() + "$static");
-    } else {
-      if (optSymDot != null) {
-        out.writeSymbol(optSymDot);
-      } else {
-        out.writeToken(".");
-      }
-      out.writeSymbolWhitespace(memberIde.getIde());
-      // awkward, but we have to be careful if we add characters to tokens:
-      out.writeToken(memberIde.getName() + "$" + memberIde.getScope().getClassDeclaration().getInheritanceLevel());
-    }
+  private static boolean usePrivateMemberName(Ide ide, IdeDeclaration memberDeclaration) {
+    return ide.isQualifiedBySuper()
+            && ide.getScope().getClassDeclaration().getMemberDeclaration(ide.getName()) != null
+            || memberDeclaration.isPrivate();
   }
-
+  
   @Override
   public void visitTypeRelation(TypeRelation typeRelation) throws IOException {
     out.beginCommentWriteSymbol(typeRelation.getSymRelation());

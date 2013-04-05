@@ -113,10 +113,6 @@ public class Ide extends NodeImplBase {
     return getQualifier() != null;
   }
 
-  public Ide getQualified() {
-    return qualified;
-  }
-
   public Ide getQualifier() {
     return null;
   }
@@ -152,6 +148,10 @@ public class Ide extends NodeImplBase {
     } else if (isQualified()) {
       getQualifier().addPublicApiDependency();
     }
+  }
+
+  void setDeclaration(IdeDeclaration declaration) {
+    this.declaration = declaration;
   }
 
   /**
@@ -236,7 +236,6 @@ public class Ide extends NodeImplBase {
       usageInExpr(exprParent);
       if (!isThis() && !isQualified()) {
         IdeDeclaration decl = getDeclaration(false);
-        // add package prefix if it is not a local
         if (decl != null) {
           if ((!isQualifier() || exprParent instanceof ApplyExpr)
             && !(exprParent instanceof ArrayIndexExpr) && (decl instanceof Parameter)) {
@@ -297,12 +296,6 @@ public class Ide extends NodeImplBase {
             exprParent instanceof ObjectField ||
             exprParent instanceof ReturnStatement ||
             (exprParent instanceof AssignmentOpExpr && ((AssignmentOpExpr) exprParent).getArg2() == parentExpr);
-  }
-
-  public boolean usePrivateMemberName(IdeDeclaration memberDeclaration) {
-    return isQualifiedBySuper()
-            && scope.getClassDeclaration().getMemberDeclaration(getName()) != null
-            || memberDeclaration.isPrivate();
   }
 
   public static IdeDeclaration resolveMember(final IdeDeclaration type, final Ide memberIde) {

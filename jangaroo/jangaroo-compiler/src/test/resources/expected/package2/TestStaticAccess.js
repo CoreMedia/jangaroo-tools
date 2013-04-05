@@ -1,4 +1,4 @@
-define(["exports","as3-rt/AS3","as3/package2/StaticAccessSuperClass"], function($exports,AS3,StaticAccessSuperClass) { AS3.compilationUnit($exports, function($primaryDeclaration){/* /*
+define(["exports","as3-rt/AS3","as3/package2/StaticAccessSuperClass","as3/package1/StaticAccessSuperSuperClass"], function($exports,AS3,StaticAccessSuperClass,StaticAccessSuperSuperClass) { AS3.compilationUnit($exports, function($primaryDeclaration){/* /*
  * Copyright 2008 CoreMedia AG
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); 
@@ -21,6 +21,7 @@ public class TestStaticAccess extends StaticAccessSuperClass {
   static private*/ var s2$static/*:String*/ = "s2";/*
 
   public*/ function TestStaticAccess() {Super.call(this);
+    (StaticAccessSuperSuperClass._||StaticAccessSuperSuperClass._$get()).f0();
   }/*
 
   static public*/ function get_s0$static()/*:String*/ {

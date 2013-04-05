@@ -13,15 +13,16 @@
  * governing permissions and limitations under the License.
  */
 
-package package2 {
-import package1.StaticAccessSuperSuperClass;
+package package1 {
 
 /**
- * static members are not inherited
+ * static members are not inherited, but automagically in scope, even if super-super class is not imported!
  */
-public class StaticAccessSuperClass extends StaticAccessSuperSuperClass {
+public class StaticAccessSuperSuperClass {
 
-  static public var s0 :String= "s0";
+  public static function f0():String{
+    return "f0";
+  }
 
 }
 }
