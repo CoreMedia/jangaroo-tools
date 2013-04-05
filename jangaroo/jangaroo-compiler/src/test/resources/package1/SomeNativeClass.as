@@ -4,7 +4,7 @@ package package1 {
  * This is an example of an API-only class ("native API stub").
  */
 [Native(amd = "acme/native", global)]
-public class SomeNativeClass {
+public class SomeNativeClass extends SomeNativeSuperClass {
 
   /**
    * Some constructor doc.
@@ -23,9 +23,5 @@ public class SomeNativeClass {
    */
   public native function bar();
 
-  [Accessor]
-  public native function get baz():String;
-  [Accessor]
-  public native function set baz(value:String):void;
 }
 }

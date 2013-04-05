@@ -7,10 +7,12 @@ import package1.someOtherPackage.SomeNativeClass;
 public class UsingSomeNativeClass {
 
   public var someNative:package1.SomeNativeClass =*/function someNative_(){this.someNative=( new package1$SomeNativeClass());}/*;
+  public native function get someNative2():package1.SomeNativeClass;
 
   public*/ function UsingSomeNativeClass() {someNative_.call(this);
     new (package1$someOtherPackage$SomeNativeClass._||package1$someOtherPackage$SomeNativeClass._$get())();
     this.someNative.setBaz ( "foo");
+    this.someNative2.setBaz ( "foo");
     var foo = this.getFoobar();
     var bar = this.getAnotherNativeAccessor();
   }/*
