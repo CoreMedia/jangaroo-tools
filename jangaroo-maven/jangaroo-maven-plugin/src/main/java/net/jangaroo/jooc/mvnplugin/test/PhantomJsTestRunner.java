@@ -8,9 +8,12 @@ import org.codehaus.plexus.util.cli.StreamConsumer;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class PhantomJsTestRunner {
 
+  public static final Pattern LOG_LEVEL_PATTERN = Pattern.compile("^\\[([A-Z]+)\\]\\s*(.*)$");
   private final String testPageUrl;
   private String testResultFilename;
   private final String phantomjs;
@@ -48,7 +51,25 @@ public class PhantomJsTestRunner {
     final StreamConsumer outConsumer = new StreamConsumer() {
       @Override
       public void consumeLine(String line) {
-        log.debug(line);
+        Matcher matcher = LOG_LEVEL_PATTERN.matcher(line);
+        String logLevel;
+        String msg;
+        if (matcher.matches()) {
+          logLevel = matcher.group(1);
+          msg = matcher.group(2);
+        } else {
+          logLevel = "DEBUG";
+          msg = line;
+        }
+        if ("ERROR".equals(logLevel)) {
+          log.error(msg);
+        } else if ("WARN".equals(logLevel)) {
+          log.warn(msg);
+        } else if ("INFO".equals(logLevel)) {
+          log.info(msg);
+        } else {
+          log.debug(msg);
+        }
       }
     };
     final StreamConsumer errConsumer = new StreamConsumer() {

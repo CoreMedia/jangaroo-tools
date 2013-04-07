@@ -54,9 +54,35 @@ joo.getRelativeClassUrl = function getRelativeClassUrl(fullClassName) {
 joo.loadModule = function loadModule(groupId/*:String*/, artifactId/*:String*/) {
   joo.loadScript("joo/" + groupId + "." + artifactId + ".classes.js", null);
 };
-joo.loadStyleSheet = function(href) {
-  document.write('<link rel="stylesheet" type="text/css" href="' + joo.resolveUrl(href) + '" />');
-};
+/*@cc_on
+(function() {
+  var styleSheetUrls = [];
+  joo.loadStyleSheet = function(href) {
+    styleSheetUrls.push(joo.resolveUrl(href));
+    if (styleSheetUrls.length >= 31) {
+      joo.flushStyleSheets();
+    }
+  };
+  joo.flushStyleSheets = function() {
+    if (styleSheetUrls.length > 0) {
+      document.writeln('<style type="text/css">');
+      document.writeln('<!--');
+      for (var i = 0; i < styleSheetUrls.length; i++) {
+        document.writeln('@import url("' + styleSheetUrls[i] + '");');
+      }
+      document.writeln('-->');
+      document.writeln('</style>');
+      styleSheetUrls.length = 0;
+    }
+  }
+})();
+@*/
+if (typeof joo.loadStyleSheet !== "function") {
+  joo.loadStyleSheet = function(href) {
+    document.writeln('<link rel="stylesheet" type="text/css" href="' + joo.resolveUrl(href) + '" />');
+  };
+  joo.flushStyleSheets = function() {};
+}
 if (!joo.debug) {
   joo.loadModule("net.jangaroo", "jangaroo-runtime");
 } else {
