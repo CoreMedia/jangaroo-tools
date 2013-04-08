@@ -70,7 +70,10 @@ public class IdeExpr extends Expr {
           // non-static class member: synthesize "this."
           JooSymbol ideSymbol = ide.getSymbol();
           Ide thisIde = new Ide(ideSymbol.replacingSymAndTextAndJooValue(sym.THIS, "this", null));
-          thisIde.setRewriteThis(ide.isRewriteThis());
+          if (ide.isRewriteThis()) {
+            thisIde.setRewriteThis(true);
+            setThisDeclaration(thisIde);
+          }
           dotExpr = new DotExpr(new IdeExpr(thisIde), synthesizeDotSymbol(ideSymbol), new Ide(ideSymbol.withoutWhitespace()));
         } else if (!ideDeclaration.isPrivate()) {
           // non-private static class member: synthesize "<Class>."
@@ -87,6 +90,19 @@ public class IdeExpr extends Expr {
       }
     }
     return normalizedExpr;
+  }
+
+  private void setThisDeclaration(Ide thisIde) {
+    Scope scope = ide.getScope();
+    while (scope != null && scope.getFunctionExpr() != null) {
+      FunctionDeclaration functionDeclaration = scope.getFunctionExpr().getFunctionDeclaration();
+      if (functionDeclaration != null && functionDeclaration.isClassMember()) {
+        // found method that defines whose scope contains the "outer this" declaration:
+        thisIde.setDeclaration(scope.lookupDeclaration(thisIde));
+        break;
+      }
+      scope = scope.getParentScope();
+    }
   }
 
   private static JooSymbol synthesizeDotSymbol(JooSymbol ideSymbol) {

@@ -13,6 +13,9 @@ public class UsingSomeNativeClass {
     new package1.someOtherPackage.SomeNativeClass();
     someNative.baz = "foo";
     someNative2.baz = "foo";
+    var local = function():void {
+      var test:String = someNative2.baz;
+    };
     var foo = this.someNativeAccessor;
     var bar = this.anotherNativeAccessor;
   }
