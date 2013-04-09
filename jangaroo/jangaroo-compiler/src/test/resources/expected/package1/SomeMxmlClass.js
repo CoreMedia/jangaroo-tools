@@ -1,14 +1,15 @@
-define(["exports","as3-rt/AS3","as3/package1/ConfigClass","as3/package1/someOtherPackage/SomeOtherClass","as3/joo/addEventListener","as3/package1/someOtherPackage/SomeEvent","as3/mx/resources/ResourceManager","bundle!Foo"], function($exports,AS3,ConfigClass,SomeOtherClass,addEventListener,SomeEvent,ResourceManager) { AS3.compilationUnit($exports, function($primaryDeclaration){/*package package1 {
+define(["exports","as3-rt/AS3","as3/package1/ConfigClass","as3/package1/someOtherPackage/SomeOtherClass","as3/joo/addEventListener","as3/package1/someOtherPackage/SomeEvent","as3/joo/binding/Binding","as3/mx/resources/ResourceManager","bundle!Foo"], function($exports,AS3,ConfigClass,SomeOtherClass,addEventListener,SomeEvent,Binding,ResourceManager) { AS3.compilationUnit($exports, function($primaryDeclaration){/*package package1 {
 import package1.someOtherPackage.SomeOtherClass;
 import package1.someOtherPackage.SomeEvent;
 import joo.addEventListener;
+import joo.binding.Binding;
 import mx.resources.ResourceManager;
 
 [ResourceBundle("Foo")]
 public class SomeMxmlClass extends package1.ConfigClass {
     import foo.Bar;
   
-  public*/ function SomeMxmlClass() {
+  public*/ function SomeMxmlClass() {var this$=this;Super.call(this);
     
     this.bar = "BAR!";
     this.num = 123;
@@ -22,22 +23,28 @@ public class SomeMxmlClass extends package1.ConfigClass {
     var $$3/*:Object*/ = {};
     $$3.bla = 3;
     this.other = new (SomeOtherClass._||SomeOtherClass._$get())($$3);
-    Super.call(this);
-    addEventListener(this, 'click', (SomeEvent._||SomeEvent._$get()),AS3.bind( this,"___on_click1"));
+    addEventListener(this, "click",AS3.bind( this,"$on_this_click$2"), (SomeEvent._||SomeEvent._$get()));
     this.foo = "bar";
+    new Binding(AS3.bind(this,"$bind_this_number$2"), function package1$SomeMxmlClass$28_48($value){
+      this$.number = $value;
+    }).execute();
     this.number = 42;
-    var $$4/*:Object*/ = {};
-    $$4.bla = (ResourceManager._||ResourceManager._$get()).getInstance().getString("Foo","bar");
     var $$5/*:Object*/ = {};
-    $$5.bla = 1;
-    var $$6/*:Object*/ = {};
-    $$6.bla = (ResourceManager._||ResourceManager._$get()).getInstance().getString("Foo","baz");
-    var $$7/*:package1.ConfigClass*/ = new (ConfigClass._||ConfigClass._$get())();
-    $$7.number = 12;
-    var $$8/*:Object*/ = {};
-    $$8.bla = 2;
-    $$7.items = [new (SomeOtherClass._||SomeOtherClass._$get())($$8)];
-    this.items = [new (SomeOtherClass._||SomeOtherClass._$get())($$4), new (SomeOtherClass._||SomeOtherClass._$get())($$5), new (SomeOtherClass._||SomeOtherClass._$get())($$6), $$7];
+    $$5.bla = (ResourceManager._||ResourceManager._$get()).getInstance().getString("Foo","bar");
+    var $$7/*:Object*/ = {};
+    $$7.bla = 1;
+    var $$9/*:Object*/ = {};
+    $$9.bla = (ResourceManager._||ResourceManager._$get()).getInstance().getString("Foo","baz");
+    var $$11/*:package1.ConfigClass*/ = new (ConfigClass._||ConfigClass._$get())();
+    $$11.number = 12;
+    var $$12/*:Object*/ = {};
+    $$12.bla = new Binding(AS3.bind(this,"$bind_$$12_bla$2"), function package1$SomeMxmlClass$41_56($value){
+      $$13.set_bla ( $value);
+    }).execute(true);
+    $$12.doodle = "non-bound";
+    var $$13/*:package1.someOtherPackage.SomeOtherClass*/ = new (SomeOtherClass._||SomeOtherClass._$get())($$12);
+    $$11.items = [$$13];
+    this.items = [new (SomeOtherClass._||SomeOtherClass._$get())($$5), new (SomeOtherClass._||SomeOtherClass._$get())($$7), new (SomeOtherClass._||SomeOtherClass._$get())($$9), $$11];
   }/*
 
   public native function get bar():String;
@@ -75,8 +82,16 @@ public class SomeMxmlClass extends package1.ConfigClass {
    * /
   public native function set other(value:package1.someOtherPackage.SomeOtherClass):void;
 
-  public*/ function ___on_click1(event/*:package1.someOtherPackage.SomeEvent*/)/*:void*/ {
+  private*/ function $on_this_click(event/*:package1.someOtherPackage.SomeEvent*/)/*:void*/ {
     var result/*:String*/ = 'gotcha!';
+  }/*
+
+  private*/ function $bind_this_number()/*:int*/ {
+    return 1 + 1;
+  }/*
+
+  private*/ function $bind_$$12_bla()/*:int*/ {
+    return Binding.get( this.other,"get_bla","bla_has_changed");
   }/*
 }
 }
@@ -90,7 +105,9 @@ public class SomeMxmlClass extends package1.ConfigClass {
       extends_: Super,
       members: {
         constructor: SomeMxmlClass,
-        ___on_click1: ___on_click1
+        $on_this_click$2: $on_this_click,
+        $bind_this_number$2: $bind_this_number,
+        $bind_$$12_bla$2: $bind_$$12_bla
       }
     }));
   });

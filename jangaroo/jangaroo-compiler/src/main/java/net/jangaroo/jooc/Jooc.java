@@ -50,6 +50,7 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
   public static final String PUBLIC_API_INCLUSION_ANNOTATION_NAME = "PublicApi";
   public static final String NATIVE_ANNOTATION_NAME = "Native";
   public static final String ACCESSOR_ANNOTATION_NAME = "Accessor";
+  public static final String BINDABLE_ANNOTATION_NAME = "Bindable";
 
   private List<CompilationUnit> compileQueue = new ArrayList<CompilationUnit>();
 

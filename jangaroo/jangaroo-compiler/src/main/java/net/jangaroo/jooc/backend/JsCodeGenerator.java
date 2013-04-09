@@ -174,9 +174,14 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     AstNode parentNode = ide.getParentNode();
     if (parentNode instanceof IdeExpr || (parentNode instanceof DotExpr && ((DotExpr) parentNode).getIde() == ide)) {
       AstNode containingExpr = parentNode.getParentNode();
-      if (containingExpr instanceof AssignmentOpExpr &&
-              ((AssignmentOpExpr) containingExpr).getArg1() == parentNode) {
-        return true;
+      if (containingExpr instanceof AssignmentOpExpr) {
+        Expr arg1 = ((AssignmentOpExpr) containingExpr).getArg1();
+        if (arg1 instanceof IdeExpr) {
+          arg1 = ((IdeExpr) arg1).getNormalizedExpr();
+        }
+        if (arg1 == parentNode) {
+          return true;
+        }
       }
     }
     return false;
@@ -243,6 +248,13 @@ public class JsCodeGenerator extends CodeGeneratorBase {
         // found usage of an [Accessor]-annotated get function: call it!
         memberName = getter;
         closingToken = "()";
+      }
+      String bindableEvent = resolveBindable(ide, MethodType.GET, memberDeclaration.getClassDeclaration());
+      if (bindableEvent != null) {
+        out.writeToken(imports.get("joo.binding.Binding") + ".get(");
+        memberName = CompilerUtils.quote(memberName);
+        separatorToken = ",";
+        closingToken = "," + CompilerUtils.quote(bindableEvent) + ")";
       }
     } else if (memberName.startsWith("@")) {
       // escape @... property names:
@@ -778,6 +790,27 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     return null;
   }
 
+  private String resolveBindable(Ide qIde, MethodType methodType, ClassDeclaration typeDeclaration) throws IOException {
+    String memberName = qIde.getIde().getText();
+    MemberModel member = lookupMember(typeDeclaration, memberName);
+//      System.err.println("*#*#*#* found member " + member + " for " + typeDeclaration.getQualifiedNameStr()
+//              + "#" + memberName + " for qIde " + qIde.getQualifiedNameStr());
+    if (member instanceof PropertyModel) {
+      MethodModel accessor = ((PropertyModel) member).getMethod(methodType);
+      if (accessor != null) {
+        List<AnnotationModel> bindableAnnotations = accessor.getAnnotations(Jooc.BINDABLE_ANNOTATION_NAME);
+        if (bindableAnnotations.size() > 0) {
+          AnnotationPropertyModel eventAnnotation = bindableAnnotations.get(0).getPropertiesByName().get("event");
+          return eventAnnotation == null
+                  ? memberName + "change"
+                  : eventAnnotation.getStringValue();
+        }
+      }
+    }
+    return null;
+  }
+
+  
   private static MemberModel lookupMember(ClassDeclaration classDeclaration, String memberName) throws IOException {
     CompilationUnitModel compilationUnitModel = new ApiModelGenerator(false).generateModel(classDeclaration.getCompilationUnit()); // TODO: Evil! Must cache models in registry!
     MemberModel member = compilationUnitModel.getClassModel().getMember(memberName);

@@ -250,7 +250,7 @@ public class Ide extends NodeImplBase {
   }
 
   private void usageInExpr(final AstNode exprParent) {
-    if (isThis()) {
+    if (isThis() && !isRewriteThis()) {
       FunctionExpr funExpr = getScope().getFunctionExpr();
       if (funExpr != null && funExpr.getFunctionDeclaration() == null) {
         FunctionDeclaration methodDeclaration = getScope().getMethodDeclaration();

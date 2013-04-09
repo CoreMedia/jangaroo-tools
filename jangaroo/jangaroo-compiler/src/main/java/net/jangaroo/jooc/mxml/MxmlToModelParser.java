@@ -13,6 +13,7 @@ import net.jangaroo.jooc.model.CompilationUnitModel;
 import net.jangaroo.jooc.model.FieldModel;
 import net.jangaroo.jooc.model.MemberModel;
 import net.jangaroo.jooc.model.MethodModel;
+import net.jangaroo.jooc.model.NamespaceModel;
 import net.jangaroo.jooc.model.ParamModel;
 import net.jangaroo.jooc.model.PropertyModel;
 import net.jangaroo.jooc.util.PreserveLineNumberHandler;
@@ -55,7 +56,6 @@ public final class MxmlToModelParser {
 
   private CompilationUnitModel compilationUnitModel;
   private int auxVarIndex;
-  private int methodIndex;
   private StringBuilder code;
 
   public MxmlToModelParser(JangarooParser jangarooParser) {
@@ -74,7 +74,6 @@ public final class MxmlToModelParser {
     compilationUnitModel = new CompilationUnitModel(CompilerUtils.packageName(qName),
             new ClassModel(CompilerUtils.className(qName)));
     auxVarIndex = 0;
-    methodIndex = 0;
     code = new StringBuilder();
 
     BufferedInputStream inputStream = null;
@@ -115,22 +114,25 @@ public final class MxmlToModelParser {
 
     MethodModel constructorModel = classModel.createConstructor();
 
-    if (constructorSupportsConfigOptionsParamer(superClassName)) {
+    String superConfigVar = null;
+    boolean hasBindings = false;
+    if (constructorSupportsConfigOptionsParameter(superClassName)) {
       // also let the generated class support a config constructor parameter:
       String configVar = createAuxVar();
       constructorModel.addParam(new ParamModel(configVar, "Object", "null"));
-      String superConfigVar = createAuxVar();
+      superConfigVar = createAuxVar();
       renderConfigAuxVar(superConfigVar);
       createFields(objectNode);
-      processAttributesAndChildNodes(objectNode, superConfigVar);
+      hasBindings = processAttributesAndChildNodes(objectNode, superConfigVar, "this");
       String keyVar = createAuxVar();
       code.append(MessageFormat.format("\n    if ({1}) for (var {0}:String in {1}) {2}[{0}] = {1}[{0}];"
                                      + "\n    super({2});",
               keyVar, configVar, superConfigVar));
     } else {
       createFields(objectNode);
-      code.append("\n    super();");
-      processAttributesAndChildNodes(objectNode, "this");
+    }
+    if (superConfigVar == null || hasBindings) {
+      processAttributesAndChildNodes(objectNode, "this", "this");
     }
 
     constructorModel.setBody(code.toString());
@@ -140,7 +142,7 @@ public final class MxmlToModelParser {
     code.append("\n    var ").append(configAuxVar).append(":Object = {};");
   }
 
-  private boolean constructorSupportsConfigOptionsParamer(String classQName) throws IOException {
+  private boolean constructorSupportsConfigOptionsParameter(String classQName) throws IOException {
     CompilationUnitModel compilationUnitModel = getCompilationUnitModel(classQName);
     if (compilationUnitModel != null) {
       ClassModel classModel = compilationUnitModel.getClassModel();
@@ -177,9 +179,10 @@ public final class MxmlToModelParser {
     }
   }
 
-  private void processAttributes(Element objectNode, CompilationUnitModel type, String variable) throws IOException {
+  private boolean processAttributes(Element objectNode, CompilationUnitModel type, String variable, String bindingVariable) throws IOException {
     ClassModel classModel = type == null ? null : type.getClassModel();
     NamedNodeMap attributes = objectNode.getAttributes();
+    boolean hasBindings = false;
     for (int i = 0; i < attributes.getLength(); i++) {
       Attr attribute = (Attr) attributes.item(i);
       String propertyName = attribute.getLocalName();
@@ -200,15 +203,32 @@ public final class MxmlToModelParser {
         if (propertyModel == null) {
           propertyModel = createDynamicPropertyModel(type, propertyName, MXML_UNTYPED_NAMESPACE.equals(attribute.getNamespaceURI()));
         }
-        createPropertyAssignmentCode(variable, propertyModel, value);
+        if (MxmlUtils.isBindingExpression(value) && !isConfigClass(classModel)) {
+          hasBindings = true;
+          createBindingMethodCode(variable, bindingVariable, propertyModel, value);
+        } else {
+          createPropertyAssignmentCode(variable, propertyModel, value);
+        }
       }
     }
+    return hasBindings;
   }
 
-  private void processAttributesAndChildNodes(Element objectNode, String variable) throws IOException {
+  private boolean isConfigClass(ClassModel classModel) throws IOException {
+    while (classModel != null) {
+      if ("JavaScriptObject".equals(classModel.getName())) { // TODO: check package "joo"!
+        return true;
+      }
+      classModel = getSuperClassModel(classModel);
+    }
+    return false;
+  }
+
+  private boolean processAttributesAndChildNodes(Element objectNode, String variable, String bindingVariable) throws IOException {
     CompilationUnitModel type = getCompilationUnitModel(objectNode);
-    processAttributes(objectNode, type, variable);
+    boolean hasBindings = processAttributes(objectNode, type, variable, bindingVariable);
     processChildNodes(objectNode, type, variable);
+    return hasBindings;
   }
 
   private void processChildNodes(Element objectNode, CompilationUnitModel type, String variable) throws IOException {
@@ -297,12 +317,16 @@ public final class MxmlToModelParser {
       throw Jooc.error("Could not resolve class from node " + objectElement.getNamespaceURI() + ":" + objectElement.getLocalName());
     }
     compilationUnitModel.addImport(className);
-    String varName;
-    String configVar = null;
-    if (constructorSupportsConfigOptionsParamer(className)) {
+    String varName = null;   // name of the variable holding the object to build
+    String configVar = null; // name of the variable holding the config object to use in the constructor
+    boolean hasBindings = false;
+    if (constructorSupportsConfigOptionsParameter(className)) {
+      // if class supports a config options parameter, create a config options object and assign properties to it:
       configVar = createAuxVar();
       renderConfigAuxVar(configVar);
-      processAttributesAndChildNodes(objectElement, configVar);
+      varName = createAuxVar();
+      // process attributes and children, using a forward reference to the object to build inside bindings:
+      hasBindings = processAttributesAndChildNodes(objectElement, configVar, varName);
     }
 
     String value;
@@ -332,10 +356,13 @@ public final class MxmlToModelParser {
       fieldModel.addSetter();
       compilationUnitModel.getClassModel().addMember(fieldModel);
 
-      varName = "this." + id;
+      varName = id;
       code.append("\n    ").append(varName);
-    } else if (configVar == null) {
-      varName = createAuxVar();
+    } else if (configVar == null || hasBindings) {
+      if (varName == null) {
+        // no config object was built: create variable for object to build now:
+        varName = createAuxVar();
+      }
       code.append("\n    ").append("var ").append(varName).append(":").append(className);
     } else {
       return value; // no aux var neccessary
@@ -343,7 +370,8 @@ public final class MxmlToModelParser {
     code.append(" = ").append(value).append(";");
 
     if (configVar == null) {
-      processAttributesAndChildNodes(objectElement, varName);
+      // no config object was built: process attribute and children and assign properties directly on the target object
+      processAttributesAndChildNodes(objectElement, varName, varName);
     }
     return varName;
   }
@@ -360,21 +388,50 @@ public final class MxmlToModelParser {
     if (eventName.startsWith("on")) {
       eventName = eventName.substring(2);
     }
-    String eventHandlerName = "___on_" + eventName + (++methodIndex);
+    String eventHandlerName = "$on_" + variable + "_" + eventName;
     MethodModel eventHandler = new MethodModel(eventHandlerName, "void",
             new ParamModel("event", eventTypeStr));
+    eventHandler.setNamespace(NamespaceModel.PRIVATE);
     eventHandler.setBody(value);
     compilationUnitModel.getClassModel().addMember(eventHandler);
     compilationUnitModel.addImport("joo.addEventListener");
-    code.append("\n    ").append("joo.addEventListener(").append(variable)
-            .append(", '").append(eventName).append("', ").append(eventTypeStr).append(", ")
-            .append(eventHandlerName).append(");");
+    code.append("\n    ").append("joo.addEventListener(").append(variable).append(", ")
+            .append(CompilerUtils.quote(eventName)).append(", ")
+            .append(eventHandlerName).append(", ")
+            .append(eventTypeStr).append(");");
+  }
+
+  private void createBindingMethodCode(String variable, String bindingVariable, MemberModel propertyModel, String value) {
+    String bindingMethodName = "$bind_" + variable + "_" + propertyModel.getName();
+    MethodModel bindingMethod = new MethodModel(bindingMethodName, propertyModel.getType());
+    bindingMethod.setNamespace(NamespaceModel.PRIVATE);
+    bindingMethod.setBody("return " + MxmlUtils.getBindingExpression(value) + ";");
+    compilationUnitModel.getClassModel().addMember(bindingMethod);
+    compilationUnitModel.addImport("joo.binding.Binding");
+    boolean useConfigObject = !variable.equals(bindingVariable);
+    code.append("\n    ");
+    if (useConfigObject) {
+      code.append(variable).append(".").append(propertyModel.getName()).append(" = ");
+    }
+    code    .append(      "new joo.binding.Binding(").append(bindingMethodName).append(", function($value){")
+            .append("\n      ").append(getPropertyAssignmentCode(bindingVariable, propertyModel, "$value"))
+            .append("\n    }).execute(");
+    if (useConfigObject) {
+      code.append("true");
+    }
+    code.append(");");
   }
 
   private void createPropertyAssignmentCode(String variable, MemberModel propertyModel, String value) {
     String attributeValueAsString = MxmlUtils.valueToString(getPropertyValue(propertyModel, value));
-    code.append("\n    ").append(variable).append(".").append(propertyModel.getName()).append(" = ")
-            .append(attributeValueAsString).append(";");
+    code.append("\n    ").append(getPropertyAssignmentCode(variable, propertyModel, attributeValueAsString));
+  }
+
+  private static String getPropertyAssignmentCode(String variable, MemberModel propertyModel, String attributeValueAsString) {
+    String assignment = MessageFormat.format("{0} = {1};", propertyModel.getName(), attributeValueAsString);
+    return "this".equals(variable)
+            ? assignment
+            : MessageFormat.format("{0}.{1}", variable, assignment);
   }
 
   // ======================================== auxiliary methods ========================================

@@ -4,6 +4,7 @@
              xmlns:top="*"
              xmlns:other="package1.someOtherPackage.*"
              foo="bar"
+             number="{1 + 1}"
              click="var result:String = 'gotcha!';">
   <fx:Declarations>
     <fx:String id="bar">BAR!</fx:String>
@@ -26,7 +27,7 @@
     <other:SomeOtherClass bla="1"/>
     <other:SomeOtherClass bla="@Resource(bundle='Foo', key='baz')"/>
     <ConfigClass>
-      <other:SomeOtherClass bla="2"/>
+      <other:SomeOtherClass doodle="non-bound" bla="{other.bla}"/>
       <number>12</number>
     </ConfigClass>
   <number><![CDATA[

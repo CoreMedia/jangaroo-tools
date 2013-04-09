@@ -1,16 +1,16 @@
 define(function() {
-  return function addEventListener(config, eventName, eventType, callback) {
-    function listener() {
+  return function addEventListener(observableOrConfig, eventName, callback, eventType) {
+    var listener = eventType ? function () {
       return callback(new eventType(arguments));
-    }
+    } : callback;
 
-    if (config.isInstance) {
-      config.addListener(eventName, listener);
+    if (observableOrConfig.isInstance) {
+      observableOrConfig.addListener(eventName, listener);
     } else {
-      if (!config.listeners) {
-        config.listeners = {};
+      if (!observableOrConfig.listeners) {
+        observableOrConfig.listeners = {};
       }
-      config.listeners[eventName] = listener;
+      observableOrConfig.listeners[eventName] = listener;
     }
   }
 });
