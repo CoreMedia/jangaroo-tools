@@ -24,15 +24,12 @@
     <other:SomeOtherClass id="other" bla="3"/>
   </fx:Declarations>
     <other:SomeOtherClass bla="@Resource(bundle='Foo', key='bar')"/>
-    <other:SomeOtherClass bla="1"/>
+    <other:SomeOtherClass clack="var test=0;" bla="1"/>
     <other:SomeOtherClass bla="@Resource(bundle='Foo', key='baz')"/>
     <ConfigClass>
       <other:SomeOtherClass doodle="non-bound" bla="{other.bla}"/>
       <number>12</number>
     </ConfigClass>
-  <number><![CDATA[
-    42
-  ]]></number>
   <fx:Script>
     import foo.Bar;
   </fx:Script>

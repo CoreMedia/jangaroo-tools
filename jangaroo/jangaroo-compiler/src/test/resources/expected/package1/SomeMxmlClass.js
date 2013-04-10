@@ -1,16 +1,17 @@
-define(["exports","as3-rt/AS3","as3/package1/ConfigClass","as3/package1/someOtherPackage/SomeOtherClass","as3/joo/addEventListener","as3/package1/someOtherPackage/SomeEvent","as3/joo/binding/Binding","as3/mx/resources/ResourceManager","bundle!Foo"], function($exports,AS3,ConfigClass,SomeOtherClass,addEventListener,SomeEvent,Binding,ResourceManager) { AS3.compilationUnit($exports, function($primaryDeclaration){/*package package1 {
+define(["exports","as3-rt/AS3","as3/package1/ConfigClass","as3/package1/someOtherPackage/SomeOtherClass","as3/joo/addEventListener","as3/package1/someOtherPackage/SomeEvent","as3/mx/resources/ResourceManager","as3/joo/binding/Binding","bundle!Foo"], function($exports,AS3,ConfigClass,SomeOtherClass,addEventListener,SomeEvent,ResourceManager,Binding) { AS3.compilationUnit($exports, function($primaryDeclaration){/*package package1 {
 import package1.someOtherPackage.SomeOtherClass;
 import package1.someOtherPackage.SomeEvent;
 import joo.addEventListener;
-import joo.binding.Binding;
 import mx.resources.ResourceManager;
+import joo.binding.Binding;
 
 [ResourceBundle("Foo")]
 public class SomeMxmlClass extends package1.ConfigClass {
     import foo.Bar;
   
-  public*/ function SomeMxmlClass() {var this$=this;Super.call(this);
+  public*/ function SomeMxmlClass() {Super.call(this);
     
+    this.$bindings$2 = [];
     this.bar = "BAR!";
     this.num = 123;
     this.blub = {};
@@ -25,27 +26,29 @@ public class SomeMxmlClass extends package1.ConfigClass {
     this.other = new (SomeOtherClass._||SomeOtherClass._$get())($$3);
     addEventListener(this, "click",AS3.bind( this,"$on_this_click$2"), (SomeEvent._||SomeEvent._$get()));
     this.foo = "bar";
-    new Binding(AS3.bind(this,"$bind_this_number$2"), function package1$SomeMxmlClass$28_48($value){
-      this$.number = $value;
-    }).execute();
-    this.number = 42;
+    this.number = 1 + 1;
     var $$4/*:Object*/ = {};
     $$4.bla = (ResourceManager._||ResourceManager._$get()).getInstance().getString("Foo","bar");
     var $$6/*:Object*/ = {};
     $$6.bla = 1;
+    addEventListener($$6, "clack",AS3.bind( this,"$on_$$6_clack$2"), (SomeEvent._||SomeEvent._$get()));
     var $$8/*:Object*/ = {};
     $$8.bla = (ResourceManager._||ResourceManager._$get()).getInstance().getString("Foo","baz");
     var $$10/*:package1.ConfigClass*/ = new (ConfigClass._||ConfigClass._$get())();
     $$10.number = 12;
     var $$11/*:Object*/ = {};
-    $$11.bla = new Binding(AS3.bind(this,"$bind_$$11_bla$2"), function package1$SomeMxmlClass$41_56($value){
-      $$12.set_bla ( $value);
-    }).execute(true);
+    $$11.bla = this.$bind_$$12_bla$2();
     $$11.doodle = "non-bound";
     var $$12/*:package1.someOtherPackage.SomeOtherClass*/ = new (SomeOtherClass._||SomeOtherClass._$get())($$11);
+    this.$bindings$2.push(new Binding(AS3.bind(this,"$bind_$$12_bla$2"), function package1$SomeMxmlClass$43_60($value){
+      $$12.set_bla ( $value);
+    }));
     $$10.items = [$$12];
     this.items = [new (SomeOtherClass._||SomeOtherClass._$get())($$4), new (SomeOtherClass._||SomeOtherClass._$get())($$6), new (SomeOtherClass._||SomeOtherClass._$get())($$8), $$10];
+    for/* each*/ (var $1 in this.$bindings$2){var $binding= this.$bindings$2[$1]; $binding.execute();}
   }/*
+
+  private var $bindings:Array;
 
   public native function get bar():String;
 
@@ -86,11 +89,11 @@ public class SomeMxmlClass extends package1.ConfigClass {
     var result/*:String*/ = 'gotcha!';
   }/*
 
-  private*/ function $bind_this_number()/*:int*/ {
-    return 1 + 1;
+  private*/ function $on_$$6_clack(event/*:package1.someOtherPackage.SomeEvent*/)/*:void*/ {
+    var test=0;
   }/*
 
-  private*/ function $bind_$$11_bla()/*:int*/ {
+  private*/ function $bind_$$12_bla()/*:int*/ {
     return Binding.get( this.other,"get_bla","bla_has_changed");
   }/*
 }
@@ -105,9 +108,13 @@ public class SomeMxmlClass extends package1.ConfigClass {
       extends_: Super,
       members: {
         constructor: SomeMxmlClass,
+        $bindings$2: {
+          value: null,
+          writable: true
+        },
         $on_this_click$2: $on_this_click,
-        $bind_this_number$2: $bind_this_number,
-        $bind_$$11_bla$2: $bind_$$11_bla
+        $on_$$6_clack$2: $on_$$6_clack,
+        $bind_$$12_bla$2: $bind_$$12_bla
       }
     }));
   });

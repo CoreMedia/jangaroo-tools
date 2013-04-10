@@ -15,7 +15,7 @@ define(["as3-rt/AS3", "as3/trace", "as3/joo/addEventListener"], function (AS3, t
       return;
     }
     //trace("[DEBUG]", "Recording dependency on " + observable + "#" + event);
-    addEventListener(observable, event, this.execute$1);
+    addEventListener(observable, event, this.execute);
     dependenciesForEvent.push(observable);
   }
 
@@ -26,13 +26,10 @@ define(["as3-rt/AS3", "as3/trace", "as3/joo/addEventListener"], function (AS3, t
       constructor: function Binding(source, destination) {
         this.source$1 = source;
         this.destination$1 = destination;
-        var this$ = this;
-        // bound version of "execute" that invokes execute without parameters
-        this.execute$1 = function() {
-          this$.execute();
-        };
+        // bind once:
+        AS3.bind(this, "execute");
       },
-      execute: function execute(returnValue) {
+      execute: function execute() {
         var dependencies = this.dependencies$1;
         if (dependencies) {
           //trace("Invalidating dependency " + this);
@@ -40,7 +37,7 @@ define(["as3-rt/AS3", "as3/trace", "as3/joo/addEventListener"], function (AS3, t
           for (var event in dependencies) {
             var eventDependencies = dependencies[event];
             for (var i = 0; i < eventDependencies.length; ++i) {
-              eventDependencies[i].removeListener(event, this.execute$1);
+              eventDependencies[i].removeListener(event, this.execute);
             }
           }
         }
@@ -49,9 +46,6 @@ define(["as3-rt/AS3", "as3/trace", "as3/joo/addEventListener"], function (AS3, t
         bindingStack.push(this);
         try {
           var result = this.source$1.call(null);
-          if (returnValue) {
-            return result;
-          }
           this.destination$1.call(null, result);
         } catch (e) {
           // ignore

@@ -1,4 +1,6 @@
 package package1.someOtherPackage {
+
+[Event(name="clack", type="package1.someOtherPackage.SomeEvent")]
 public class SomeOtherClass {
   public static const BLA:int = 0;
   private var _bla:int = BLA;
