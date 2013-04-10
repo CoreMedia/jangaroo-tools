@@ -318,13 +318,24 @@ public final class MxmlToModelParser {
     }
     compilationUnitModel.addImport(className);
     String varName = null;   // name of the variable holding the object to build
+    String id = objectElement.getAttribute(MXML_ID_ATTRIBUTE);
+    if (id.length() > 0) {
+      PropertyModel fieldModel = new PropertyModel(id, className);
+      fieldModel.addGetter();
+      fieldModel.addSetter();
+      compilationUnitModel.getClassModel().addMember(fieldModel);
+      varName = id;
+    }
+
     String configVar = null; // name of the variable holding the config object to use in the constructor
     boolean hasBindings = false;
     if (constructorSupportsConfigOptionsParameter(className)) {
       // if class supports a config options parameter, create a config options object and assign properties to it:
       configVar = createAuxVar();
       renderConfigAuxVar(configVar);
-      varName = createAuxVar();
+      if (varName == null) {
+        varName = createAuxVar();
+      }
       // process attributes and children, using a forward reference to the object to build inside bindings:
       hasBindings = processAttributesAndChildNodes(objectElement, configVar, varName);
     }
@@ -349,14 +360,7 @@ public final class MxmlToModelParser {
       value = valueBuilder.toString();
     }
     
-    String id = objectElement.getAttribute(MXML_ID_ATTRIBUTE);
     if (id.length() > 0) {
-      PropertyModel fieldModel = new PropertyModel(id, className);
-      fieldModel.addGetter();
-      fieldModel.addSetter();
-      compilationUnitModel.getClassModel().addMember(fieldModel);
-
-      varName = id;
       code.append("\n    ").append(varName);
     } else if (configVar == null || hasBindings) {
       if (varName == null) {

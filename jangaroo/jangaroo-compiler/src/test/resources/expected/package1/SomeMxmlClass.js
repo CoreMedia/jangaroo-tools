@@ -29,22 +29,22 @@ public class SomeMxmlClass extends package1.ConfigClass {
       this$.number = $value;
     }).execute();
     this.number = 42;
-    var $$5/*:Object*/ = {};
-    $$5.bla = (ResourceManager._||ResourceManager._$get()).getInstance().getString("Foo","bar");
-    var $$7/*:Object*/ = {};
-    $$7.bla = 1;
-    var $$9/*:Object*/ = {};
-    $$9.bla = (ResourceManager._||ResourceManager._$get()).getInstance().getString("Foo","baz");
-    var $$11/*:package1.ConfigClass*/ = new (ConfigClass._||ConfigClass._$get())();
-    $$11.number = 12;
-    var $$12/*:Object*/ = {};
-    $$12.bla = new Binding(AS3.bind(this,"$bind_$$12_bla$2"), function package1$SomeMxmlClass$41_56($value){
-      $$13.set_bla ( $value);
+    var $$4/*:Object*/ = {};
+    $$4.bla = (ResourceManager._||ResourceManager._$get()).getInstance().getString("Foo","bar");
+    var $$6/*:Object*/ = {};
+    $$6.bla = 1;
+    var $$8/*:Object*/ = {};
+    $$8.bla = (ResourceManager._||ResourceManager._$get()).getInstance().getString("Foo","baz");
+    var $$10/*:package1.ConfigClass*/ = new (ConfigClass._||ConfigClass._$get())();
+    $$10.number = 12;
+    var $$11/*:Object*/ = {};
+    $$11.bla = new Binding(AS3.bind(this,"$bind_$$11_bla$2"), function package1$SomeMxmlClass$41_56($value){
+      $$12.set_bla ( $value);
     }).execute(true);
-    $$12.doodle = "non-bound";
-    var $$13/*:package1.someOtherPackage.SomeOtherClass*/ = new (SomeOtherClass._||SomeOtherClass._$get())($$12);
-    $$11.items = [$$13];
-    this.items = [new (SomeOtherClass._||SomeOtherClass._$get())($$5), new (SomeOtherClass._||SomeOtherClass._$get())($$7), new (SomeOtherClass._||SomeOtherClass._$get())($$9), $$11];
+    $$11.doodle = "non-bound";
+    var $$12/*:package1.someOtherPackage.SomeOtherClass*/ = new (SomeOtherClass._||SomeOtherClass._$get())($$11);
+    $$10.items = [$$12];
+    this.items = [new (SomeOtherClass._||SomeOtherClass._$get())($$4), new (SomeOtherClass._||SomeOtherClass._$get())($$6), new (SomeOtherClass._||SomeOtherClass._$get())($$8), $$10];
   }/*
 
   public native function get bar():String;
@@ -90,7 +90,7 @@ public class SomeMxmlClass extends package1.ConfigClass {
     return 1 + 1;
   }/*
 
-  private*/ function $bind_$$12_bla()/*:int*/ {
+  private*/ function $bind_$$11_bla()/*:int*/ {
     return Binding.get( this.other,"get_bla","bla_has_changed");
   }/*
 }
@@ -107,7 +107,7 @@ public class SomeMxmlClass extends package1.ConfigClass {
         constructor: SomeMxmlClass,
         $on_this_click$2: $on_this_click,
         $bind_this_number$2: $bind_this_number,
-        $bind_$$12_bla$2: $bind_$$12_bla
+        $bind_$$11_bla$2: $bind_$$11_bla
       }
     }));
   });
