@@ -802,7 +802,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
         if (bindableAnnotations.size() > 0) {
           AnnotationPropertyModel eventAnnotation = bindableAnnotations.get(0).getPropertiesByName().get("event");
           return eventAnnotation == null
-                  ? memberName + "change"
+                  ? memberName.toLowerCase() + "change"
                   : eventAnnotation.getStringValue();
         }
       }
