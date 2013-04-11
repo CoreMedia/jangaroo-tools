@@ -473,7 +473,9 @@ public class ExtAsApiGenerator {
         if (isConstructor && method.params.size() == 1) {
           Param theOnlyParam = method.params.get(0);
           if (!theOnlyParam.optional && "config".equals(theOnlyParam.name)) {
-            methodModel.getParams().get(0).setOptional(true);
+            ParamModel theOnlyParamModel = methodModel.getParams().get(0);
+            theOnlyParamModel.setOptional(true);
+            theOnlyParamModel.setType("Object");
           }
         }
         try {
