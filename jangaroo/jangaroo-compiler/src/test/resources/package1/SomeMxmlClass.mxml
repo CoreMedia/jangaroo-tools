@@ -21,7 +21,9 @@
       <fx:Object name="Joe"/>
       <fx:Object name="Felix"/>
     </fx:Array>
-    <other:SomeOtherClass id="other" bla="3"/>
+    <other:SomeOtherClass id="other" bla="3"
+                          blubbConfig="{'blub config expression'}"
+                          blubbAccessor="{'blub accessor expression'}"/>
   </fx:Declarations>
     <other:SomeOtherClass bla="@Resource(bundle='Foo', key='bar')"/>
     <other:SomeOtherClass clack="var test=0;" bla="1"/>

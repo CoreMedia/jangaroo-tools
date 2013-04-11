@@ -209,21 +209,19 @@ public final class MxmlToModelParser {
         if (propertyModel == null) {
           propertyModel = createDynamicPropertyModel(type, propertyName, MXML_UNTYPED_NAMESPACE.equals(attribute.getNamespaceURI()));
         }
-        if (MxmlUtils.isBindingExpression(value)) {
+        if (MxmlUtils.isBindingExpression(value) && hasSetter(propertyModel)) {
           hasBindings = true;
           if (generatingConfig) {
             createPropertyAssignmentCode(configVariable, propertyModel,
-                    CompilerUtils.createCodeExpression(getOrCreateExpressionMethod(targetVariable, propertyModel, value) + "()"));
+                    CompilerUtils.createCodeExpression(getOrCreateExpressionMethod(targetVariable, propertyModel, value) + "()"), generatingConfig);
           } else {
-            if (hasSetter(propertyModel)) {
-              createBindingMethodCode(targetVariable, propertyModel, value);
-            } else {
-              createPropertyAssignmentCode(targetVariable, propertyModel, value);
-            }
+            createBindingMethodCode(targetVariable, propertyModel, value);
           }
         } else {
+          // skip property assignment to target object if it was already contained in config object: 
           if (generatingConfig || configVariable == null) {
-            createPropertyAssignmentCode(variable, propertyModel, value);
+            // default: create a normal property assignment:
+            createPropertyAssignmentCode(variable, propertyModel, value, generatingConfig);
           }
         }
       }
@@ -242,11 +240,11 @@ public final class MxmlToModelParser {
   private boolean processAttributesAndChildNodes(Element objectNode, String configVariable, String targetVariable, boolean generatingConfig) throws IOException {
     CompilationUnitModel type = getCompilationUnitModel(objectNode);
     boolean hasBindings = processAttributes(objectNode, type, configVariable, targetVariable, generatingConfig);
-    processChildNodes(objectNode, type, generatingConfig ? configVariable : targetVariable);
+    processChildNodes(objectNode, type, generatingConfig ? configVariable : targetVariable, generatingConfig);
     return hasBindings;
   }
 
-  private void processChildNodes(Element objectNode, CompilationUnitModel type, String variable) throws IOException {
+  private void processChildNodes(Element objectNode, CompilationUnitModel type, String variable, boolean generatingConfig) throws IOException {
     ClassModel classModel = type == null ? null : type.getClassModel();
     List<Element> childNodes = MxmlUtils.getChildElements(objectNode);
     MemberModel defaultPropertyModel = findDefaultPropertyModel(classModel);
@@ -277,23 +275,23 @@ public final class MxmlToModelParser {
           }
           List<Element> childElements = MxmlUtils.getChildElements(element);
           if (childElements.isEmpty()) {
-            createPropertyAssignmentCode(variable, propertyModel, getTextContent(element));
+            createPropertyAssignmentCode(variable, propertyModel, getTextContent(element), generatingConfig);
           } else {
-            createChildElementsPropertyAssignmentCode(childElements, variable, propertyModel);
+            createChildElementsPropertyAssignmentCode(childElements, variable, propertyModel, generatingConfig);
           }
         }
       }
     }
     if (!defaultPropertyValues.isEmpty()) {
-      createChildElementsPropertyAssignmentCode(defaultPropertyValues, variable, defaultPropertyModel);
+      createChildElementsPropertyAssignmentCode(defaultPropertyValues, variable, defaultPropertyModel, generatingConfig);
     }
   }
 
   private void createChildElementsPropertyAssignmentCode(List<Element> childElements, String variable,
-                                                         MemberModel propertyModel) throws IOException {
+                                                         MemberModel propertyModel, boolean generatingConfig) throws IOException {
     boolean forceArray = "Array".equals(propertyModel.getType());
     String value = createArrayCodeFromChildElements(childElements, forceArray);
-    createPropertyAssignmentCode(variable, propertyModel, CompilerUtils.createCodeExpression(value));
+    createPropertyAssignmentCode(variable, propertyModel, CompilerUtils.createCodeExpression(value), generatingConfig);
   }
 
   private String createArrayCodeFromChildElements(List<Element> childElements, boolean forceArray) throws IOException {
@@ -425,7 +423,7 @@ public final class MxmlToModelParser {
     String expressionMethodName = getOrCreateExpressionMethod(variable, propertyModel, value);
     compilationUnitModel.addImport("joo.binding.Binding");
     code    .append("\n    $bindings.push(new joo.binding.Binding(").append(expressionMethodName).append(", function($value){")
-            .append("\n      ").append(getPropertyAssignmentCode(variable, propertyModel, "$value"))
+            .append("\n      ").append(getPropertyAssignmentCode(variable, propertyModel.getName(), "$value"))
             .append("\n    }));");
   }
 
@@ -441,16 +439,33 @@ public final class MxmlToModelParser {
     return expressionMethodName;
   }
 
-  private void createPropertyAssignmentCode(String variable, MemberModel propertyModel, String value) {
+  private void createPropertyAssignmentCode(String variable, MemberModel propertyModel, String value, boolean generatingConfig) {
     String attributeValueAsString = MxmlUtils.valueToString(getPropertyValue(propertyModel, value));
-    code.append("\n    ").append(getPropertyAssignmentCode(variable, propertyModel, attributeValueAsString));
+    String propertyName = generatingConfig ? getConfigOptionName(propertyModel) : propertyModel.getName();
+    code.append("\n    ").append(getPropertyAssignmentCode(variable, propertyName, attributeValueAsString));
   }
 
-  private static String getPropertyAssignmentCode(String variable, MemberModel propertyModel, String attributeValueAsString) {
-    String assignment = MessageFormat.format("{0} = {1};", propertyModel.getName(), attributeValueAsString);
+  private static String getPropertyAssignmentCode(String variable, String propertyName, String attributeValueAsString) {
+    String assignment = MessageFormat.format("{0} = {1};", propertyName, attributeValueAsString);
     return "this".equals(variable)
             ? assignment
             : MessageFormat.format("{0}.{1}", variable, assignment);
+  }
+
+  private static String getConfigOptionName(MemberModel propertyModel) {
+    if (propertyModel instanceof PropertyModel) {
+      MethodModel setter = ((PropertyModel) propertyModel).getSetter();
+      if (setter != null) { // should actually be there, or the assignment would not work!
+        Iterator<AnnotationModel> configOptionAnnotations = setter.getAnnotations("ConfigOption").iterator();
+        if (configOptionAnnotations.hasNext()) {
+          AnnotationPropertyModel configOption = configOptionAnnotations.next().getPropertiesByName().get(null);
+          if (configOption != null) {
+            return configOption.getStringValue();
+          }
+        }
+      }
+    }
+    return propertyModel.getName();
   }
 
   // ======================================== auxiliary methods ========================================

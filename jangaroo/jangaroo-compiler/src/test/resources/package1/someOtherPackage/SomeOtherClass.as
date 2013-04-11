@@ -18,6 +18,18 @@ public class SomeOtherClass {
 
   public var doodle:String;
 
+  public native function get blubbAccessor():String;
+
+  [ConfigOption("blubb_accessor")]
+  [Accessor]
+  public native function set blubbAccessor(value:String):void;
+
+
+  public native function get blubbConfig():String;
+
+  [ConfigOption("blubb_config")]
+  public native function set blubbConfig(value:String):void;
+
   public function SomeOtherClass(config:Object = null) {
   }
 }
