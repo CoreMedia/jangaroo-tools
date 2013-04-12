@@ -23,7 +23,7 @@ public class AnnotationModel extends DocumentedModel {
 
   public AnnotationModel(String name, AnnotationPropertyModel... properties) {
     super(name);
-    this.properties = Arrays.asList(properties);
+    this.properties = new ArrayList<AnnotationPropertyModel>(Arrays.asList(properties));
   }
 
   public List<AnnotationPropertyModel> getProperties() {
