@@ -658,18 +658,22 @@ public class ExtAsApiGenerator {
       ExtClass extClass = readExtApiJson(jsonFile);
       if (extClass != null) {
         extClasses.add(extClass);
+        extClassByName.put(extClass.name, extClass);
+        if (extClass.alternateClassNames != null) {
+          for (String alternateClassName : extClass.alternateClassNames) {
+            extClassByName.put(alternateClassName, extClass);
+          }
+        }
       }
     }
     Map<String,String> normalizedPackageName = new HashMap<String, String>();
     if (!referenceApiClassNames.isEmpty()) {
       // find the alternate class name that is used in reference API:
       for (ExtClass extClass : extClasses) {
-        String extClassName = extClass.name;
-        extClassByName.put(extClassName, extClass);
         if (extClass.alternateClassNames != null) {
+          String extClassName = extClass.name;
           String packageName = CompilerUtils.packageName(extClassName);
           for (String alternateClassName : extClass.alternateClassNames) {
-            extClassByName.put(alternateClassName, extClass);
             if (!referenceApiClassNames.contains(extClassName)
                     && referenceApiClassNames.contains(alternateClassName)) {
               normalizeExtClassName.put(extClassName, alternateClassName);
