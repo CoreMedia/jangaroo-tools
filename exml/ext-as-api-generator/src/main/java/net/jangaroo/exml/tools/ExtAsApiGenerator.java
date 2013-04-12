@@ -29,21 +29,30 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Generate ActionScript 3 APIs from a jsduck JSON export of the Ext JS 4.x API.
  */
 public class ExtAsApiGenerator {
 
-  private static Map<String,ExtClass> extClasses;
+  private static Set<ExtClass> extClasses;
+  private static Map<String,ExtClass> extClassByName;
   private static CompilationUnitModelRegistry compilationUnitModelRegistry;
+  private static Set<String> mixins;
   private static Set<String> interfaces;
   private static final List<String> NON_COMPILE_TIME_CONSTANT_INITIALIZERS = Arrays.asList("window", "document", "document.body", "new Date()", "this");
   private static String extPackageName;
   private static String extAmdModuleName;
+  private static List<String> referenceApiClassNames;
+  private static Map<String,String> normalizeExtClassName = new HashMap<String, String>();
+  private static boolean generateEventClasses;
   private static final Map<String,String> ALIAS_TYPE_TO_PROPERTY = new HashMap<String, String>();
 
   static {
@@ -58,26 +67,44 @@ public class ExtAsApiGenerator {
     File outputDir = new File(args[1]);
     extPackageName = args[2];
     extAmdModuleName = args[3];
-    File[] files = srcDir.listFiles();
-    if (files != null) {
-      extClasses = new HashMap<String, ExtClass>();
-      compilationUnitModelRegistry = new CompilationUnitModelRegistry();
-      interfaces = new HashSet<String>();
-      for (File jsonFile : files) {
-        ExtClass extClass = readExtApiJson(jsonFile);
-        if (extClass != null) {
-          extClasses.put(extClass.name, extClass);
-          for (String alternateClassName : extClass.alternateClassNames) {
-            extClasses.put(alternateClassName, extClass);
-          }
-          for (String mixin : extClass.mixins) {
-            interfaces.add(mixin);
+    referenceApiClassNames = new ArrayList<String>();
+    File referenceApiDir;
+    if (args.length >= 5) {
+      referenceApiDir = new File(args[4]);
+      File[] referenceApiFiles = referenceApiDir.listFiles();
+      if (referenceApiFiles != null) {
+        for (File referenceApiFile : referenceApiFiles) {
+          ExtClass referenceApiClass = readExtApiJson(referenceApiFile);
+          if (referenceApiClass != null) {
+            System.out.println("Remembering " + referenceApiClass.name + " for reference.");
+            referenceApiClassNames.add(referenceApiClass.name);
           }
         }
       }
+    }
+
+    generateEventClasses = args.length < 6 || Boolean.valueOf(args[5]);
+    File[] files = srcDir.listFiles();
+    if (files != null) {
+      compilationUnitModelRegistry = new CompilationUnitModelRegistry();
+      interfaces = new HashSet<String>();
+      mixins = new HashSet<String>();
+      Set<String> singletons = new HashSet<String>();
+      readExtClasses(files);
+      for (ExtClass extClass : extClasses) {
+        for (String mixin : extClass.mixins) {
+          String mixinName = getPreferredName(mixin);
+          interfaces.add(mixinName);
+          mixins.add(mixinName);
+        }
+        if (isSingleton(extClass)) {
+          singletons.add(getPreferredName(extClass));
+        }
+      }
+
       markTransitiveSupersAsInterfaces(interfaces);
       //markTransitiveSupersAsInterfaces(singletons);
-      for (ExtClass extClass : new HashSet<ExtClass>(extClasses.values())) {
+      for (ExtClass extClass : extClasses) {
         generateClassModel(extClass);
       }
       complementMixinConfigClasses();
@@ -90,13 +117,13 @@ public class ExtAsApiGenerator {
   }
 
   private static void complementMixinConfigClasses() {
-    for (ExtClass extClass : extClasses.values()) {
+    for (ExtClass extClass : extClasses) {
       String configClassQName = getConfigClassQName(extClass);
       if (configClassQName != null) {
         ClassModel configClassModel = compilationUnitModelRegistry.resolveCompilationUnit(configClassQName).getClassModel();
         if (configClassModel != null) {
           for (String mixin : extClass.mixins) {
-            ExtClass extMixinClass = extClasses.get(mixin);
+            ExtClass extMixinClass = getExtClass(mixin);
             if (extMixinClass != null) {
               String mixinConfigClassQName = getConfigClassQName(extMixinClass);
               if (mixinConfigClassQName != null) {
@@ -129,9 +156,9 @@ public class ExtAsApiGenerator {
   private static Set<String> supers(Set<String> extClasses) {
     Set<String> result = new HashSet<String>();
     for (String extClass : extClasses) {
-      String superclass = ExtAsApiGenerator.extClasses.get(extClass).extends_;
+      String superclass = ExtAsApiGenerator.getExtClass(extClass).extends_;
       if (superclass != null) {
-        result.add(superclass);
+        result.add(getPreferredName(superclass));
       }
     }
     return result;
@@ -206,9 +233,9 @@ public class ExtAsApiGenerator {
       ClassModel configClass = (ClassModel)configClassUnit.getPrimaryDeclaration();
       configClassUnit.getClassModel().setAsdoc(extAsClass.getAsdoc());
       String superConfigClassQName = "joo.JavaScriptObject";
-      for (ExtClass extSuperClass = extClasses.get(extClass.extends_);
+      for (ExtClass extSuperClass = getExtClass(extClass.extends_);
            extSuperClass != null;
-           extSuperClass = extClasses.get(extSuperClass.extends_)) {
+           extSuperClass = getExtClass(extSuperClass.extends_)) {
         String checkSuperConfigClassQName = getConfigClassQName(extSuperClass);
         if (checkSuperConfigClassQName != null) {
           superConfigClassQName = checkSuperConfigClassQName;
@@ -222,7 +249,9 @@ public class ExtAsApiGenerator {
         configClass.addBodyCode("\n  " + configClassQName + "['prototype']." + typeProperty + " = "
                 + CompilerUtils.quote(getPreferredAlias(alias)) + ";\n");
       }
-      addEvents(configClass, extAsClassUnit, filterByOwner(false, extClass, extClass.members.event));
+      if (generateEventClasses) {
+        addEvents(configClass, extAsClassUnit, filterByOwner(false, extClass, extClass.members.event));
+      }
       List<Member> configProperties = filterByOwner(false, extClass, extClass.members.cfg);
       addProperties(configClass, configProperties);
 
@@ -235,6 +264,7 @@ public class ExtAsApiGenerator {
   }
 
   private static String getConfigClassQName(ExtClass extClass) {
+    String extClassName = getPreferredName(extClass);
     Map.Entry<String, List<String>> aliases = getAlias(extClass);
     String alias = null;
     // An Ext class needs a config class if
@@ -246,11 +276,7 @@ public class ExtAsApiGenerator {
       // c) it defines any event
       if (hasOwnMember(extClass, extClass.members.cfg) || hasOwnMember(extClass, extClass.members.event)) {
         // try to make invented alias unique:
-        String rawPackage = CompilerUtils.packageName(extClass.name.startsWith("Ext.") ? extClass.name.substring(4) : extClass.name);
-        alias = CompilerUtils.className(extClass.name).toLowerCase();
-        if (!"dd".equals(rawPackage) && !"util".equals(rawPackage) && !alias.contains(rawPackage)) {
-          alias = rawPackage + alias;
-        }
+        alias = AliasFactory.INSTANCE.getAlias(extClassName);
       }
     }
     if (alias == null) {
@@ -259,16 +285,15 @@ public class ExtAsApiGenerator {
     String configClassName = replaceSeparatorByCamelCase(alias, '-');
     configClassName = replaceSeparatorByCamelCase(configClassName, '.'); // some aliases contain dots!
     configClassName = configClassName.toLowerCase();
-    // special case "class":
-    if ("class".equals(configClassName)) {
-      configClassName = "extclass";
-    }
     String packageName = extPackageName + ".config";
-    if (aliases != null && !"widget".equals(aliases.getKey())) {
-      configClassName += aliases.getKey();
+    if (aliases != null) {
+      String aliasCategory = aliases.getKey();
+      if (!"widget".equals(aliasCategory) && !configClassName.contains(aliasCategory)) {
+        configClassName += aliasCategory;
+      }
     }
     String configClassQName = packageName + "." + configClassName;
-    System.err.println("********* derived config class name "  + configClassQName + " from alias " + alias);
+    System.err.println("********* derived config class name "  + configClassQName + " from Ext class " + extClassName + " with alias " + alias);
     return configClassQName;
   }
 
@@ -363,11 +388,15 @@ public class ExtAsApiGenerator {
 
   private static void addEvents(ClassModel classModel, CompilationUnitModel compilationUnitModel, List<Event> events) {
     for (Event event : events) {
-      String eventTypeQName = generateEventClass(compilationUnitModel, event);
       AnnotationModel annotationModel = new AnnotationModel("Event",
-              new AnnotationPropertyModel("name", "'on" + event.name + "'"),
-              new AnnotationPropertyModel("type", "'" + eventTypeQName + "'"));
-      annotationModel.setAsdoc(toAsDoc(event.doc) + String.format("\n@eventType %s.NAME", eventTypeQName));
+              new AnnotationPropertyModel("name", "'on" + event.name + "'"));
+      String asdoc = toAsDoc(event.doc);
+      if (generateEventClasses) {
+        String eventTypeQName = generateEventClass(compilationUnitModel, event);
+        annotationModel.addProperty(new AnnotationPropertyModel("type", "'" + eventTypeQName + "'"));
+        asdoc +=  String.format("\n@eventType %s.NAME", eventTypeQName);
+      }
+      annotationModel.setAsdoc(asdoc);
       classModel.addAnnotation(annotationModel);
       System.err.println("*** adding event " + event.name + " to class " + classModel.getName());
     }
@@ -488,15 +517,19 @@ public class ExtAsApiGenerator {
   }
 
   private static void setStatic(MemberModel memberModel, Member member) {
-    memberModel.setStatic(member.meta.static_ || isStaticSingleton(extClasses.get(member.owner)));
+    ExtClass extClass = getExtClass(member.owner);
+    memberModel.setStatic(extClass.singleton ? isStaticSingleton(extClass) : member.meta.static_);
   }
 
   private static String toAsDoc(String doc) {
     String asDoc = doc.trim();
     if (asDoc.startsWith("<p>")) {
       // remove <p>...</p> around first paragraph:
+      asDoc = asDoc.substring(3);
       int endTagPos = asDoc.indexOf("</p>");
-      asDoc = asDoc.substring(3, endTagPos) + asDoc.substring(endTagPos + 4);
+      if (endTagPos != -1) {
+        asDoc = asDoc.substring(0, endTagPos) + asDoc.substring(endTagPos + 4);
+      }
     }
     if (asDoc.startsWith("{")) {
       int closingBracePos = asDoc.indexOf("} ");
@@ -548,6 +581,7 @@ public class ExtAsApiGenerator {
   }
 
   private static String convertToInterface(String mixin) {
+    mixin = getPreferredName(mixin);
     String packageName = CompilerUtils.packageName(mixin).toLowerCase();
     String className = "I" + CompilerUtils.className(mixin);
     if (packageName.startsWith("ext")) {
@@ -578,15 +612,9 @@ public class ExtAsApiGenerator {
     if (!extType.matches("[a-zA-Z0-9._$<>]+") || "Mixed".equals(extType)) {
       return "*"; // TODO: join types? rather use Object? simulate overloading by splitting into several methods?
     }
-    ExtClass extClass = extClasses.get(extType);
+    ExtClass extClass = getExtClass(extType);
     if (extClass != null) {
-      // normalize / use alternate class name except for special cases:
-      if (!"Ext.MessageBox".equals(extClass.name) &&
-              extClass.alternateClassNames != null && !extClass.alternateClassNames.isEmpty()) {
-        extType = extClass.alternateClassNames.get(0);
-      } else {
-        extType = extClass.name;
-      }
+      extType = getPreferredName(extClass);
     }
     if ("Ext".equals(extType)) {
       // special case: move singleton "Ext" into package "ext":
@@ -621,14 +649,84 @@ public class ExtAsApiGenerator {
     return CompilerUtils.qName(packageName, className);
   }
 
+  // normalize / use alternate class name if it can be found in reference API:
+  private static void readExtClasses(File[] files) throws IOException {
+    extClassByName = new HashMap<String, ExtClass>();
+    extClasses = new LinkedHashSet<ExtClass>();
+
+    for (File jsonFile : files) {
+      ExtClass extClass = readExtApiJson(jsonFile);
+      if (extClass != null) {
+        extClasses.add(extClass);
+      }
+    }
+    Map<String,String> normalizedPackageName = new HashMap<String, String>();
+    if (!referenceApiClassNames.isEmpty()) {
+      // find the alternate class name that is used in reference API:
+      for (ExtClass extClass : extClasses) {
+        String extClassName = extClass.name;
+        extClassByName.put(extClassName, extClass);
+        if (extClass.alternateClassNames != null) {
+          String packageName = CompilerUtils.packageName(extClassName);
+          for (String alternateClassName : extClass.alternateClassNames) {
+            extClassByName.put(alternateClassName, extClass);
+            if (!referenceApiClassNames.contains(extClassName)
+                    && referenceApiClassNames.contains(alternateClassName)) {
+              normalizeExtClassName.put(extClassName, alternateClassName);
+              // also record package mapping for new classes:
+              String alternatePackageName = CompilerUtils.packageName(alternateClassName);
+              if (!packageName.equals(alternatePackageName)) { // only record actual differences!
+                normalizedPackageName.put(packageName, alternatePackageName);
+              }
+              break;
+            }
+          }
+        }
+      }
+    }
+    for (ExtClass extClass : extClasses) {
+      String extClassName = extClass.name;
+      if (!normalizeExtClassName.containsKey(extClassName)) {
+        // new class, not contained in reference API: try to find an alternate class name with the same package mapping!
+        String packageName = normalizedPackageName.get(CompilerUtils.packageName(extClassName));
+        if (packageName != null) {
+          for (String alternateClassName : extClass.alternateClassNames) {
+            if (packageName.equals(CompilerUtils.packageName(alternateClassName))) {
+              extClassName = alternateClassName;
+              break;
+            }
+          }
+        }
+        normalizeExtClassName.put(extClass.name, extClassName);
+      }
+    }
+  }
+
+
+  private static ExtClass getExtClass(String name) {
+    return extClassByName.get(name);
+  }
+
+  // normalize / use alternate class name if it can be found in reference API:
+  private static String getPreferredName(ExtClass extClass) {
+    return getPreferredName(extClass.name);
+  }
+
+  private static String getPreferredName(String extClassName) {
+    String normalizedClassName = normalizeExtClassName.get(extClassName);
+    if (normalizedClassName == null) {
+      throw new IllegalStateException("unmapped class " + extClassName);
+    }
+    return normalizedClassName;
+  }
+
   private static boolean isSingleton(ExtClass extClass) {
     return extClass != null && extClass.singleton && !isStaticSingleton(extClass);
   }
 
   private static boolean isStaticSingleton(ExtClass extClass) {
     return extClass != null && extClass.singleton && (extClass.extends_ == null || extClass.extends_.length() == 0)
-      && extClass.statics.cfg.isEmpty() && extClass.statics.event.isEmpty() && extClass.statics.method.isEmpty()
-      && extClass.statics.property.isEmpty() && extClass.statics.css_mixin.isEmpty() && extClass.statics.css_var.isEmpty();
+      && extClass.mixins.isEmpty();
   }
 
   @SuppressWarnings("UnusedDeclaration")
@@ -773,5 +871,51 @@ public class ExtAsApiGenerator {
     public boolean required;
     public Map<String,String> removed;
     public String since;
+  }
+
+  private static class AliasFactory {
+    private static final AliasFactory INSTANCE = new AliasFactory();
+
+    private final Map<String, String> UNIQUE_ALIAS_MAPPING = new LinkedHashMap<String, String>();
+
+    private void add(String constant, String replacement) {
+      addPattern(constant.replaceAll("\\.", "\\."), replacement);
+    }
+
+    private void addPattern(String pattern, String replacement) {
+      UNIQUE_ALIAS_MAPPING.put(pattern, replacement);
+    }
+
+    private AliasFactory() {
+      add("Ext.data.Field", "datafield");
+      add("Ext.slider.Tip", "slidertip");
+      add("Ext.form.Action", "formaction");
+      add("Ext.Class", "extclass");
+      add("Ext.state.Provider", "stateprovider");
+      addPattern("Ext\\.list\\.(.*)Column", "lv$1column");
+      add("Ext.grid.Column", "gridcolumn");
+      addPattern("Ext\\.grid\\.(.+)Column", "$1column");
+      add("Ext.store.Store", "store");
+      addPattern("Ext\\.(.+)\\.Store", "$1store");
+      addPattern("Ext\\.chart\\.(.+)", "chart$1");
+      add("Ext.data.proxy.Proxy", "dataproxy");
+      add("Ext.panel.Proxy", "panelproxy");
+      add("Ext.view.DragZone", "viewdragzone");
+      addPattern("Ext\\.(.+)\\.Controller", "$1controller");
+      add("Ext.form.field.Field", "fieldmixin");
+      add("Ext.app.domain.Direct", "appdomaindirect");
+      add("Ext.layout.boxOverflow.Menu", "boxoverflowmenu");
+    }
+
+    public String getAlias(String extClassName) {
+      for (Map.Entry<String, String> patternStringEntry : UNIQUE_ALIAS_MAPPING.entrySet()) {
+        String pattern = patternStringEntry.getKey();
+        Matcher matcher = Pattern.compile(pattern).matcher(extClassName);
+        if (matcher.matches()) {
+          return extClassName.replaceAll(pattern, patternStringEntry.getValue()).toLowerCase();
+        }
+      }
+      return CompilerUtils.className(extClassName).toLowerCase();
+    }
   }
 }
