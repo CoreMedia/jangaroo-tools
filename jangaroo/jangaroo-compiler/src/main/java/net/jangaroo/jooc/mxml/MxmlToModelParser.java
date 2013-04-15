@@ -36,7 +36,9 @@ import java.io.InputStream;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -52,6 +54,9 @@ public final class MxmlToModelParser {
   public static final String RESOURCE_MANAGER_QNAME = "mx.resources.ResourceManager";
   public static final Pattern AT_RESOURCE_PATTERN = Pattern.compile("^\\s*@Resource\\s*\\(\\s*bundle\\s*=\\s*['\"]([a-zA-Z0-9_$]+)['\"]\\s*,\\s*key\\s*=\\s*['\"]([a-zA-Z0-9_$]+)['\"]\\s*\\)\\s*$");
   public static final String RESOURCE_ACCESS_CODE = "{%s.getInstance().getString(\"%s\",\"%s\")}";
+  public static final String CONSTRUCTOR_PARAMETER_ANNOTATION = "ConstructorParameter";
+  public static final String CONSTRUCTOR_PARAMETER_ANNOTATION_VALUE = "value";
+  public static final String ALLOW_CONSTRUCTOR_PARAMETERS_ANNOTATION = "AllowConstructorParameters";
   private final JangarooParser jangarooParser;
 
   private CompilationUnitModel compilationUnitModel;
@@ -171,7 +176,7 @@ public final class MxmlToModelParser {
         String elementName = element.getLocalName();
         if (MXML_DECLARATIONS.equals(elementName)) {
           for (Element declaration : MxmlUtils.getChildElements(element)) {
-            createValueCodeFromElement(declaration);
+            createValueCodeFromElement(declaration, false);
           }
         } else if (MXML_SCRIPT.equals(elementName)) {
           classModel.addBodyCode(getTextContent(element));
@@ -230,11 +235,17 @@ public final class MxmlToModelParser {
   }
 
   private static boolean hasSetter(MemberModel memberModel) {
+    return hasAnnotationAtSetter(memberModel, Jooc.ACCESSOR_ANNOTATION_NAME);
+  }
+
+  private static boolean hasAnnotationAtSetter(MemberModel memberModel, String annotationName) {
+    MemberModel setter = null;
     if (memberModel instanceof PropertyModel) {
-      MethodModel setter = ((PropertyModel) memberModel).getSetter();
-      return setter != null && !setter.getAnnotations(Jooc.ACCESSOR_ANNOTATION_NAME).isEmpty();
+      setter = ((PropertyModel) memberModel).getSetter();
+    } else if (memberModel instanceof FieldModel && !((FieldModel) memberModel).isConst()) {
+      setter = memberModel;
     }
-    return false;
+    return setter != null && !setter.getAnnotations(annotationName).isEmpty();
   }
 
   private boolean processAttributesAndChildNodes(Element objectNode, String configVariable, String targetVariable, boolean generatingConfig) throws IOException {
@@ -290,14 +301,15 @@ public final class MxmlToModelParser {
   private void createChildElementsPropertyAssignmentCode(List<Element> childElements, String variable,
                                                          MemberModel propertyModel, boolean generatingConfig) throws IOException {
     boolean forceArray = "Array".equals(propertyModel.getType());
-    String value = createArrayCodeFromChildElements(childElements, forceArray);
+    boolean allowConstructorParameters = hasAnnotationAtSetter(propertyModel, ALLOW_CONSTRUCTOR_PARAMETERS_ANNOTATION);
+    String value = createArrayCodeFromChildElements(childElements, forceArray, allowConstructorParameters);
     createPropertyAssignmentCode(variable, propertyModel, CompilerUtils.createCodeExpression(value), generatingConfig);
   }
 
-  private String createArrayCodeFromChildElements(List<Element> childElements, boolean forceArray) throws IOException {
+  private String createArrayCodeFromChildElements(List<Element> childElements, boolean forceArray, boolean allowConstructorParameters) throws IOException {
     List<String> arrayItems = new ArrayList<String>();
     for (Element arrayItemNode : childElements) {
-      String itemValue = createValueCodeFromElement(arrayItemNode);
+      String itemValue = createValueCodeFromElement(arrayItemNode, allowConstructorParameters);
       arrayItems.add(itemValue);
     }
     String value;
@@ -324,7 +336,7 @@ public final class MxmlToModelParser {
     return sb.toString();
   }
 
-  private String createValueCodeFromElement(Element objectElement) throws IOException {
+  private String createValueCodeFromElement(Element objectElement, boolean allowConstructorParameters) throws IOException {
     String className = createClassNameFromNode(objectElement);
     if (className == null) {
       throw Jooc.error("Could not resolve class from node " + objectElement.getNamespaceURI() + ":" + objectElement.getLocalName());
@@ -332,7 +344,7 @@ public final class MxmlToModelParser {
     compilationUnitModel.addImport(className);
     String targetVariable = null;   // name of the variable holding the object to build
     String id = objectElement.getAttribute(MXML_ID_ATTRIBUTE);
-    if (id.length() > 0) {
+    if (!id.isEmpty()) {
       PropertyModel fieldModel = new PropertyModel(id, className);
       fieldModel.addGetter();
       fieldModel.addSetter();
@@ -362,7 +374,7 @@ public final class MxmlToModelParser {
     } else if ("Object".equals(className)) {
       value = "{}";
     } else if ("Array".equals(className)) {
-      value = createArrayCodeFromChildElements(MxmlUtils.getChildElements(objectElement), true);
+      value = createArrayCodeFromChildElements(MxmlUtils.getChildElements(objectElement), true, allowConstructorParameters);
     } else {
       StringBuilder valueBuilder = new StringBuilder();
       valueBuilder.append("new ").append(className).append("(");
@@ -381,6 +393,13 @@ public final class MxmlToModelParser {
         targetVariable = createAuxVar();
       }
       code.append("\n    ").append("var ").append(targetVariable).append(":").append(className);
+    } else if (allowConstructorParameters) {
+      Set<MemberModel> configOptionsWithValue =
+              findConfigOptionsWithValue(getCompilationUnitModel(className).getClassModel());
+      for (MemberModel configOption : configOptionsWithValue) {
+        createPropertyAssignmentCode(configVariable, configOption, getConfigOptionValue(configOption), true);
+      } 
+      return configVariable;
     } else {
       return value; // no aux var neccessary
     }
@@ -456,7 +475,7 @@ public final class MxmlToModelParser {
     if (propertyModel instanceof PropertyModel) {
       MethodModel setter = ((PropertyModel) propertyModel).getSetter();
       if (setter != null) { // should actually be there, or the assignment would not work!
-        Iterator<AnnotationModel> configOptionAnnotations = setter.getAnnotations("ConfigOption").iterator();
+        Iterator<AnnotationModel> configOptionAnnotations = setter.getAnnotations(CONSTRUCTOR_PARAMETER_ANNOTATION).iterator();
         if (configOptionAnnotations.hasNext()) {
           AnnotationPropertyModel configOption = configOptionAnnotations.next().getPropertiesByName().get(null);
           if (configOption != null) {
@@ -510,6 +529,33 @@ public final class MxmlToModelParser {
       MemberModel defaultPropertyModel = current.findPropertyWithAnnotation(false, MXML_DEFAULT_PROPERTY_ANNOTATION);
       if (defaultPropertyModel != null) {
         return defaultPropertyModel;
+      }
+    }
+    return null;
+  }
+
+  private Set<MemberModel> findConfigOptionsWithValue(ClassModel classModel) throws IOException {
+    Set<MemberModel> result = new LinkedHashSet<MemberModel>();
+    for (ClassModel current = classModel; current != null; current = getSuperClassModel(current)) {
+      Set<MemberModel> configOptionPropertyModels = current.findPropertiesWithAnnotation(false, CONSTRUCTOR_PARAMETER_ANNOTATION);
+      for (MemberModel configOptionPropertyModel : configOptionPropertyModels) {
+        if (getConfigOptionValue(configOptionPropertyModel) != null) {
+          result.add(configOptionPropertyModel);
+        }
+      }
+    }
+    return result;
+  }
+
+  private String getConfigOptionValue(MemberModel propertyModel) {
+    if (propertyModel instanceof PropertyModel) {
+      propertyModel = ((PropertyModel) propertyModel).getGetter();
+    }
+    List<AnnotationModel> configOptionAnnotations = propertyModel.getAnnotations(CONSTRUCTOR_PARAMETER_ANNOTATION);
+    if (!configOptionAnnotations.isEmpty()) {
+      AnnotationPropertyModel configOptionValue = configOptionAnnotations.get(0).getPropertiesByName().get("value");
+      if (configOptionValue != null) {
+        return configOptionValue.getStringValue();
       }
     }
     return null;

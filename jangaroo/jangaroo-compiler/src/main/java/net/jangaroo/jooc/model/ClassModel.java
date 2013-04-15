@@ -2,7 +2,9 @@ package net.jangaroo.jooc.model;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * A model of an ActionScript class or interface.
@@ -254,14 +256,29 @@ public class ClassModel extends AbstractAnnotatedModel implements NamespacedMode
   public MemberModel findPropertyWithAnnotation(boolean isStatic, String annotationName) {
     for (MemberModel memberModel : members) {
       if (memberModel.isStatic() == isStatic && !memberModel.getAnnotations(annotationName).isEmpty()) {
-        if (memberModel.isField()) {
-          return memberModel;
-        }
-        if (memberModel.isAccessor()) {
-          return getProperty(isStatic, (MethodModel) memberModel);
-        }
+        return asFieldOrProperty(memberModel);
       }
     }
     return null;
+  }
+
+  private MemberModel asFieldOrProperty(MemberModel memberModel) {
+    if (memberModel.isField()) {
+      return memberModel;
+    }
+    if (memberModel.isAccessor()) {
+      return getProperty(memberModel.isStatic(), (MethodModel) memberModel);
+    }
+    return null;
+  }
+
+  public Set<MemberModel> findPropertiesWithAnnotation(boolean isStatic, String annotationName) {
+    Set<MemberModel> result = new LinkedHashSet<MemberModel>();
+    for (MemberModel memberModel : members) {
+      if (memberModel.isStatic() == isStatic && !memberModel.getAnnotations(annotationName).isEmpty()) {
+        result.add(asFieldOrProperty(memberModel));
+      }
+    }
+    return Collections.unmodifiableSet(result);
   }
 }

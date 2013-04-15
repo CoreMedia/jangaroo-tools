@@ -34,22 +34,33 @@ public class SomeMxmlClass extends package1.ConfigClass {
     this.number = 1 + 1;
     var $$4/*:Object*/ = {};
     $$4.bla = (ResourceManager._||ResourceManager._$get()).getInstance().getString("Foo","bar");
+    $$4.type = "someOtherType";
     var $$6/*:Object*/ = {};
     $$6.bla = 1;
     addEventListener($$6, "clack",AS3.bind( this,"$on_$$6_clack$2"), (SomeEvent._||SomeEvent._$get()));
+    $$6.type = "someOtherType";
     var $$8/*:Object*/ = {};
     $$8.bla = (ResourceManager._||ResourceManager._$get()).getInstance().getString("Foo","baz");
+    $$8.type = "someOtherType";
     var $$10/*:package1.ConfigClass*/ = new (ConfigClass._||ConfigClass._$get())();
     $$10.number = 12;
     var $$11/*:Object*/ = {};
     $$11.bla = this.$bind_$$12_bla$2();
     $$11.doodle = "non-bound";
     var $$12/*:package1.someOtherPackage.SomeOtherClass*/ = new (SomeOtherClass._||SomeOtherClass._$get())($$11);
-    this.$bindings$2.push(new Binding(AS3.bind(this,"$bind_$$12_bla$2"), function package1$SomeMxmlClass$48_60($value){
+    this.$bindings$2.push(new Binding(AS3.bind(this,"$bind_$$12_bla$2"), function package1$SomeMxmlClass$51_60($value){
       $$12.set_bla ( $value);
     }));
     $$10.items = [$$12];
-    this.items = [new (SomeOtherClass._||SomeOtherClass._$get())($$4), new (SomeOtherClass._||SomeOtherClass._$get())($$6), new (SomeOtherClass._||SomeOtherClass._$get())($$8), $$10];
+    var $$13/*:package1.ConfigClass*/ = new (ConfigClass._||ConfigClass._$get())();
+    var $$14/*:Object*/ = {};
+    $$14.bla = 12;
+    $$14.type = "someOtherType";
+    var $$16/*:Object*/ = {};
+    $$16.bla = 13;
+    this.no_config = new (SomeOtherClass._||SomeOtherClass._$get())($$16);
+    $$13.items = [$$14, this.no_config];
+    this.items = [$$4, $$6, $$8, $$10, $$13];
     for/* each*/ (var $1 in this.$bindings$2){var $binding= this.$bindings$2[$1]; $binding.execute();}
   }/*
 
@@ -105,6 +116,13 @@ public class SomeMxmlClass extends package1.ConfigClass {
   private*/ function $bind_$$12_bla()/*:int*/ {
     return Binding.get( this.other,"get_bla","bla_has_changed");
   }/*
+
+  public native function get no_config():package1.someOtherPackage.SomeOtherClass;
+
+  /**
+   * @private
+   * /
+  public native function set no_config(value:package1.someOtherPackage.SomeOtherClass):void;
 }
 }
 

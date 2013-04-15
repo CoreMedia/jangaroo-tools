@@ -32,6 +32,12 @@
       <other:SomeOtherClass doodle="non-bound" bla="{other.bla}"/>
       <number>12</number>
     </ConfigClass>
+    <ConfigClass>
+      <items>
+        <other:SomeOtherClass bla="12"/>
+        <other:SomeOtherClass id="no_config" bla="13"/>
+      </items>
+    </ConfigClass>
   <fx:Script>
     import foo.Bar;
   </fx:Script>

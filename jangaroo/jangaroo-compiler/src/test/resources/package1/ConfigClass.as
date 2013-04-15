@@ -11,8 +11,11 @@ public class ConfigClass {
 
   public var number:int;
 
+  public native function get items():Array;
+
   [DefaultProperty]
-  public var items:Array;
+  [AllowConstructorParameters]
+  public native function set items(value:Array):void;
 
 }
 }

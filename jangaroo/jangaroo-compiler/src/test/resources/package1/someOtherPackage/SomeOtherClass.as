@@ -20,15 +20,20 @@ public class SomeOtherClass {
 
   public native function get blubbAccessor():String;
 
-  [ConfigOption("blubb_accessor")]
+  [ConstructorParameter("blubb_accessor")]
   [Accessor]
   public native function set blubbAccessor(value:String):void;
 
 
   public native function get blubbConfig():String;
 
-  [ConfigOption("blubb_config")]
+  [ConstructorParameter("blubb_config")]
   public native function set blubbConfig(value:String):void;
+
+  [ConstructorParameter(value="someOtherType")]
+  public native function get type():String;
+
+  public native function set type(value:String):void;
 
   public function SomeOtherClass(config:Object = null) {
   }

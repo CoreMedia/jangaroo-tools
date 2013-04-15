@@ -38,7 +38,7 @@ public abstract class AbstractAnnotatedModel extends DocumentedModel implements 
 
   @Override
   public void setAnnotations(List<AnnotationModel> annotations) {
-    this.annotations = annotations;
+    this.annotations = new ArrayList<AnnotationModel>(annotations);
   }
 
   @Override
