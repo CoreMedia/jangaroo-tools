@@ -18,6 +18,7 @@ import net.jangaroo.jooc.model.MethodModel;
 import net.jangaroo.jooc.model.MethodType;
 import net.jangaroo.jooc.model.ParamModel;
 import net.jangaroo.jooc.model.PropertyModel;
+import net.jangaroo.jooc.mxml.MxmlToModelParser;
 import net.jangaroo.utils.AS3Type;
 import net.jangaroo.utils.CompilerUtils;
 
@@ -29,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -53,14 +55,6 @@ public class ExtAsApiGenerator {
   private static List<String> referenceApiClassNames;
   private static Map<String,String> normalizeExtClassName = new HashMap<String, String>();
   private static boolean generateEventClasses;
-  private static final Map<String,String> ALIAS_TYPE_TO_PROPERTY = new HashMap<String, String>();
-
-  static {
-    ALIAS_TYPE_TO_PROPERTY.put("widget", "xtype");
-    ALIAS_TYPE_TO_PROPERTY.put("plugin", "type");
-    ALIAS_TYPE_TO_PROPERTY.put("layout", "type");
-    ALIAS_TYPE_TO_PROPERTY.put("proxy", "type");
-  }
 
   public static void main(String[] args) throws IOException {
     File srcDir = new File(args[0]);
@@ -244,10 +238,22 @@ public class ExtAsApiGenerator {
       }
       configClass.setSuperclass(superConfigClassQName);
       Map.Entry<String, List<String>> alias = getAlias(extClass);
-      String typeProperty = alias == null ? null : ALIAS_TYPE_TO_PROPERTY.get(alias.getKey());
+      String typeProperty = alias == null ? null : "widget".equals(alias.getKey()) ? "xtype" : "type";
       if (typeProperty != null) {
+        String typeValue = CompilerUtils.quote(getPreferredAlias(alias));
         configClass.addBodyCode("\n  " + configClassQName + "['prototype']." + typeProperty + " = "
-                + CompilerUtils.quote(getPreferredAlias(alias)) + ";\n");
+                + typeValue + ";\n");
+
+        PropertyModel typePropertyModel = (PropertyModel) extAsClass.getMember(typeProperty);
+        if (typePropertyModel == null) {
+          typePropertyModel = new PropertyModel(typeProperty, "String");
+          typePropertyModel.setAsdoc("@inheritDoc");
+          typePropertyModel.addGetter();
+          typePropertyModel.addSetter();
+          extAsClass.addMember(typePropertyModel);
+        }
+        typePropertyModel.addAnnotation(new AnnotationModel(MxmlToModelParser.CONSTRUCTOR_PARAMETER_ANNOTATION,
+                new AnnotationPropertyModel(MxmlToModelParser.CONSTRUCTOR_PARAMETER_ANNOTATION_VALUE, typeValue)));
       }
       if (generateEventClasses) {
         addEvents(configClass, extAsClassUnit, filterByOwner(false, extClass, extClass.members.event));
@@ -322,8 +328,9 @@ public class ExtAsApiGenerator {
   }
 
   private static Map.Entry<String, List<String>> getAlias(ExtClass extClass) {
-    if (extClass.aliases.size() > 0) {
-      Map.Entry<String, List<String>> firstEntry = extClass.aliases.entrySet().iterator().next();
+    Iterator<Map.Entry<String,List<String>>> iterator = extClass.aliases.entrySet().iterator();
+    if (iterator.hasNext()) {
+      Map.Entry<String, List<String>> firstEntry = iterator.next();
       if (firstEntry.getValue().size() > 0) {
         return firstEntry;
       }
@@ -468,7 +475,7 @@ public class ExtAsApiGenerator {
         }
         PropertyModel propertyModel = new PropertyModel(convertName(member.name), type);
         if ("items".equals(member.name)) {
-          propertyModel.addAnnotation(new AnnotationModel("DefaultProperty"));
+          propertyModel.addAnnotation(new AnnotationModel(MxmlToModelParser.MXML_DEFAULT_PROPERTY_ANNOTATION));
         }
         propertyModel.setAsdoc(toAsDoc(member.doc));
         setStatic(propertyModel, member);
