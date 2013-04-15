@@ -142,7 +142,8 @@ public class ExtAsApiGenerator {
 
   private static void markTransitiveSupersAsInterfaces(Set<String> extClasses) {
     Set<String> supers = supers(extClasses);
-    while (interfaces.addAll(supers)) {
+    while (!supers.isEmpty()) {
+      interfaces.addAll(supers);
       supers = supers(supers);
     }
   }
@@ -152,7 +153,8 @@ public class ExtAsApiGenerator {
     for (String extClass : extClasses) {
       String superclass = ExtAsApiGenerator.getExtClass(extClass).extends_;
       if (superclass != null) {
-        result.add(getPreferredName(superclass));
+        String preferredName = getPreferredName(superclass);
+        result.add(preferredName);
       }
     }
     return result;
@@ -169,12 +171,11 @@ public class ExtAsApiGenerator {
   }
 
   private static void generateClassModel(ExtClass extClass) {
-    String extClassName = extClass.name;
+    String extClassName = getPreferredName(extClass);
     CompilationUnitModel extAsClassUnit = createClassModel(convertType(extClassName));
     ClassModel extAsClass = (ClassModel)extAsClassUnit.getPrimaryDeclaration();
     System.out.printf("Generating AS3 API model %s for %s...%n", extAsClassUnit.getQName(), extClassName);
     extAsClass.setAsdoc(toAsDoc(extClass.doc));
-    extAsClass.addAnnotation(createNativeAnnotation(extClassName));
     CompilationUnitModel extAsInterfaceUnit = null;
     if (interfaces.contains(extClassName)) {
       extAsInterfaceUnit = createClassModel(convertToInterface(extClassName));
@@ -184,11 +185,13 @@ public class ExtAsApiGenerator {
       extAsInterface.setAsdoc(toAsDoc(extClass.doc));
       addInterfaceForSuperclass(extClass, extAsInterface);
     }
+    AnnotationModel nativeAnnotation = createNativeAnnotation(extClass.name);
     if (isSingleton(extClass)) {
+      extAsClass.addAnnotation(createNativeAnnotation(null));
       FieldModel singleton = new FieldModel(CompilerUtils.className(extAsClassUnit.getClassModel().getName().substring(1)), extAsClassUnit.getQName());
       singleton.setConst(true);
       singleton.setValue("new " + extAsClassUnit.getQName());
-      singleton.addAnnotation(createNativeAnnotation(extClassName));
+      singleton.addAnnotation(nativeAnnotation);
       singleton.setAsdoc(extAsClass.getAsdoc());
       CompilationUnitModel singletonUnit = new CompilationUnitModel(extAsClassUnit.getPackage(), singleton);
       compilationUnitModelRegistry.register(singletonUnit);
@@ -198,6 +201,8 @@ public class ExtAsApiGenerator {
         singleton.getName(),
         CompilerUtils.qName(extAsClassUnit.getPackage(), "#" + singleton.getName()),
         singletonUnit.getQName()));
+    } else {
+      extAsClass.addAnnotation(nativeAnnotation);
     }
     extAsClass.setSuperclass(convertType(extClass.extends_));
     if (extAsInterfaceUnit != null) {
@@ -215,10 +220,9 @@ public class ExtAsApiGenerator {
       addNonStaticMembers(extClass, extAsInterfaceUnit);
     }
 
-    if (!extAsClass.isInterface()) {
-      addFields(extAsClass, filterByOwner(false, extClass, extClass.statics.property));
-      addMethods(extAsClass, filterByOwner(false, extClass, extClass.statics.method));
-    }
+    addFields(extAsClass, filterByOwner(false, extClass, extClass.statics.property));
+    addMethods(extAsClass, filterByOwner(false, extClass, extClass.statics.method));
+
     addNonStaticMembers(extClass, extAsClassUnit);
 
     String configClassQName = getConfigClassQName(extClass);
@@ -339,9 +343,12 @@ public class ExtAsApiGenerator {
   }
 
   private static AnnotationModel createNativeAnnotation(String nativeName) {
-    return new AnnotationModel(Jooc.NATIVE_ANNOTATION_NAME,
-            new AnnotationPropertyModel("amd", CompilerUtils.quote(extAmdModuleName)),
-            new AnnotationPropertyModel("global", CompilerUtils.quote(nativeName)));
+    AnnotationModel nativeAnnotation = new AnnotationModel(Jooc.NATIVE_ANNOTATION_NAME);
+    if (nativeName != null) {
+      nativeAnnotation.addProperty(new AnnotationPropertyModel("amd", CompilerUtils.quote(extAmdModuleName)));
+      nativeAnnotation.addProperty(new AnnotationPropertyModel("global", CompilerUtils.quote(nativeName)));
+    }
+    return nativeAnnotation;
   }
 
   private static void addInterfaceForSuperclass(ExtClass extClass, ClassModel extAsInterface) {
@@ -358,8 +365,10 @@ public class ExtAsApiGenerator {
   }
 
   private static void addNonStaticMembers(ExtClass extClass, CompilationUnitModel extAsClassUnit) {
-    addEvents(extAsClassUnit.getClassModel(), extAsClassUnit, filterByOwner(false, extClass, extClass.members.event));
     ClassModel extAsClass = extAsClassUnit.getClassModel();
+    if (!extAsClass.isInterface()) {
+      addEvents(extAsClassUnit.getClassModel(), extAsClassUnit, filterByOwner(false, extClass, extClass.members.event));
+    }
     addProperties(extAsClass, filterByOwner(extAsClass.isInterface(), extClass, extClass.members.property));
     addMethods(extAsClass, filterByOwner(extAsClass.isInterface(), extClass, extClass.members.method));
   }
@@ -377,16 +386,17 @@ public class ExtAsApiGenerator {
     for (T member : members) {
       if (member.meta.removed == null &&
               !"listeners".equals(member.name) &&
-              member.owner.equals(owner.name) && (!isInterface || isPublicNonStaticMethod(member))) {
+              member.owner.equals(owner.name) && (!isInterface || isPublicNonStaticMethodOrProperty(member))) {
         result.add(member);
       }
     }
     return result;
   }
 
-  private static boolean isPublicNonStaticMethod(Member member) {
-    return member instanceof Method && !member.meta.static_ && !member.meta.private_ && !member.meta.protected_
-      && !"constructor".equals(member.name);
+  private static boolean isPublicNonStaticMethodOrProperty(Member member) {
+    return (member instanceof Method || member instanceof Property)
+            && !member.meta.static_ && !member.meta.private_ && !member.meta.protected_
+            && !"constructor".equals(member.name);
   }
 
   private static boolean isConst(Member member) {
@@ -630,7 +640,7 @@ public class ExtAsApiGenerator {
     String packageName = CompilerUtils.packageName(extType).toLowerCase();
     String className = CompilerUtils.className(extType);
     if (isSingleton(extClass)) {
-      className = "S" + className;
+      className = "I" + className;
     }
     if (JsCodeGenerator.PRIMITIVES.contains(className)) {
       if ("ext".equals(packageName)) {
@@ -719,14 +729,14 @@ public class ExtAsApiGenerator {
   }
 
   // normalize / use alternate class name if it can be found in reference API:
-  private static String getPreferredName(ExtClass extClass) {
-    return getPreferredName(extClass.name);
+  private static String getPreferredName(String extClassName) {
+    return getPreferredName(getExtClass(extClassName));
   }
 
-  private static String getPreferredName(String extClassName) {
-    String normalizedClassName = normalizeExtClassName.get(extClassName);
+  private static String getPreferredName(ExtClass extClass) {
+    String normalizedClassName = normalizeExtClassName.get(extClass.name);
     if (normalizedClassName == null) {
-      throw new IllegalStateException("unmapped class " + extClassName);
+      throw new IllegalStateException("unmapped class " + extClass.name);
     }
     return normalizedClassName;
   }

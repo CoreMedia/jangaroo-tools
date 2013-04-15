@@ -136,7 +136,12 @@ public class ClassModel extends AbstractAnnotatedModel implements NamespacedMode
     this.members = members;
   }
 
-  public void addMember(MemberModel member) {
+  /**
+   * Adds a member to this class model and returns the member that is replaced by the new member if applicable.
+   * @param member the new member to add
+   * @return the old member that has been replaced by the new member or null
+   */
+  public MemberModel addMember(MemberModel member) {
     MemberModel oldMember = getMember(member.isStatic(), member.getName());
     if (oldMember != null) {
       if (oldMember.isProperty()) {
@@ -149,9 +154,9 @@ public class ClassModel extends AbstractAnnotatedModel implements NamespacedMode
       }
       if (oldMember != null) {
         if (oldMember.equals(member)) {
-          return;
+          return null;
         }
-        throw new IllegalArgumentException("Someone tried to add a different " + (member.isStatic() ? "static " : "") + "member called " + member.getName() + " to class " + getName());
+        removeMember(oldMember);
       }
     }
     if (member.isProperty()) {
@@ -161,6 +166,7 @@ public class ClassModel extends AbstractAnnotatedModel implements NamespacedMode
     } else {
       members.add(member);
     }
+    return oldMember;
   }
 
   private void addIfNotNull(MethodModel method) {
