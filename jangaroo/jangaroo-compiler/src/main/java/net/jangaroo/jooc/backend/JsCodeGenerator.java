@@ -79,8 +79,8 @@ import net.jangaroo.jooc.json.JsonObject;
 import net.jangaroo.jooc.model.AnnotationModel;
 import net.jangaroo.jooc.model.AnnotationPropertyModel;
 import net.jangaroo.jooc.model.CompilationUnitModel;
+import net.jangaroo.jooc.model.FieldModel;
 import net.jangaroo.jooc.model.MemberModel;
-import net.jangaroo.jooc.model.MethodModel;
 import net.jangaroo.jooc.model.MethodType;
 import net.jangaroo.jooc.model.PropertyModel;
 import net.jangaroo.jooc.mxml.MxmlUtils;
@@ -251,7 +251,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       }
       String bindableEvent = resolveBindable(ide, MethodType.GET, memberDeclaration.getClassDeclaration());
       if (bindableEvent != null) {
-        out.writeToken(imports.get("joo.binding.Binding") + ".get(");
+        out.writeToken("AS3.getBindable(");
         memberName = CompilerUtils.quote(memberName);
         separatorToken = ",";
         closingToken = "," + CompilerUtils.quote(bindableEvent) + ")";
@@ -772,19 +772,16 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
   private static String resolveAccessor(Ide qIde, MethodType methodType, ClassDeclaration typeDeclaration) throws IOException {
     String memberName = qIde.getIde().getText();
-    MemberModel member = lookupMember(typeDeclaration, memberName);
+    MemberModel member = lookupPropertyDeclaration(typeDeclaration, memberName, methodType);
 //      System.err.println("*#*#*#* found member " + member + " for " + typeDeclaration.getQualifiedNameStr()
 //              + "#" + memberName + " for qIde " + qIde.getQualifiedNameStr());
-    if (member instanceof PropertyModel) {
-      MethodModel accessor = ((PropertyModel) member).getMethod(methodType);
-      if (accessor != null) {
-        List<AnnotationModel> accessorAnnotations = accessor.getAnnotations(Jooc.ACCESSOR_ANNOTATION_NAME);
-        if (accessorAnnotations.size() > 0) {
-          AnnotationPropertyModel accessorAnnotation = accessorAnnotations.get(0).getPropertiesByName().get(null);
-          return accessorAnnotation == null
-                  ? methodType + MxmlUtils.capitalize(memberName)
-                  : accessorAnnotation.getStringValue();
-        }
+    if (member != null) {
+      List<AnnotationModel> accessorAnnotations = member.getAnnotations(Jooc.ACCESSOR_ANNOTATION_NAME);
+      if (accessorAnnotations.size() > 0) {
+        AnnotationPropertyModel accessorAnnotation = accessorAnnotations.get(0).getPropertiesByName().get(null);
+        return accessorAnnotation == null
+                ? methodType + MxmlUtils.capitalize(memberName)
+                : accessorAnnotation.getStringValue();
       }
     }
     return null;
@@ -792,34 +789,41 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
   private String resolveBindable(Ide qIde, MethodType methodType, ClassDeclaration typeDeclaration) throws IOException {
     String memberName = qIde.getIde().getText();
-    MemberModel member = lookupMember(typeDeclaration, memberName);
+    MemberModel member = lookupPropertyDeclaration(typeDeclaration, memberName, methodType);
 //      System.err.println("*#*#*#* found member " + member + " for " + typeDeclaration.getQualifiedNameStr()
 //              + "#" + memberName + " for qIde " + qIde.getQualifiedNameStr());
-    if (member instanceof PropertyModel) {
-      MethodModel accessor = ((PropertyModel) member).getMethod(methodType);
-      if (accessor != null) {
-        List<AnnotationModel> bindableAnnotations = accessor.getAnnotations(Jooc.BINDABLE_ANNOTATION_NAME);
-        if (bindableAnnotations.size() > 0) {
-          AnnotationPropertyModel eventAnnotation = bindableAnnotations.get(0).getPropertiesByName().get("event");
-          return eventAnnotation == null
-                  ? memberName.toLowerCase() + "change"
-                  : eventAnnotation.getStringValue();
-        }
+    if (member != null) {
+      List<AnnotationModel> bindableAnnotations = member.getAnnotations(Jooc.BINDABLE_ANNOTATION_NAME);
+      if (bindableAnnotations.size() > 0) {
+        AnnotationPropertyModel eventAnnotation = bindableAnnotations.get(0).getPropertiesByName().get("event");
+        return eventAnnotation == null
+                ? memberName.toLowerCase() + "change"
+                : eventAnnotation.getStringValue();
       }
     }
     return null;
   }
 
   
-  private static MemberModel lookupMember(ClassDeclaration classDeclaration, String memberName) throws IOException {
-    CompilationUnitModel compilationUnitModel = new ApiModelGenerator(false).generateModel(classDeclaration.getCompilationUnit()); // TODO: Evil! Must cache models in registry!
-    MemberModel member = compilationUnitModel.getClassModel().getMember(memberName);
-    if (member == null) {
-      Type superType = classDeclaration.getSuperType();
-      if (superType != null) {
-        IdeDeclaration superDeclaration = superType.getIde().getDeclaration();
-        member = lookupMember((ClassDeclaration) superDeclaration, memberName);
+  private static MemberModel lookupPropertyDeclaration(ClassDeclaration classDeclaration, String memberName,
+                                                       MethodType methodType) throws IOException {
+    MemberModel member;
+    ClassDeclaration superDeclaration = classDeclaration.getSuperTypeDeclaration();
+    if (superDeclaration != null) {
+      member = lookupPropertyDeclaration(superDeclaration, memberName, methodType);
+      if (member != null) {
+        return member;
       }
+    }
+    // TODO: also look in implemented interfaces first!
+
+    CompilationUnitModel compilationUnitModel = new ApiModelGenerator(false).generateModel(classDeclaration.getCompilationUnit()); // TODO: Evil! Must cache models in registry!
+    member = compilationUnitModel.getClassModel().getMember(memberName);
+    if (member instanceof PropertyModel) {
+      member = ((PropertyModel) member).getMethod(methodType);
+    } else if (!(member instanceof FieldModel) ||
+            methodType == MethodType.SET && ((FieldModel) member).isConst()) {
+      member = null;
     }
     return member;
   }

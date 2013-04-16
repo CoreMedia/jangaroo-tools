@@ -184,6 +184,28 @@ define(["native!Object.defineProperties@./es5-polyfills", "native!Object.create@
     throw new TypeError("'" + object + "' cannot be cast to " + type + ".");
   }
 
+  var bindingStack = [];
+
+  function getBindable(object, getter, event) {
+    var result;
+    if (object) { // allow undefined / null objects; simply return undefined
+      result = object[getter]();
+      if (bindingStack.length) {
+        bindingStack[bindingStack.length - 1].dependOn(object, event);
+      }
+    }
+    return result;
+  }
+
+  function executeBinding(binding) {
+    bindingStack.push(binding);
+    try {
+      binding._execute();
+    } finally {
+      bindingStack.pop();
+    }
+  }
+
   return {
     compilationUnit: compilationUnit,
     class_: defineClass,
@@ -192,6 +214,9 @@ define(["native!Object.defineProperties@./es5-polyfills", "native!Object.create@
     cast: cast,
     is: is,
     bind: bind,
-    registerMetadataHandler: registerMetadataHandler
+    registerMetadataHandler: registerMetadataHandler,
+    bindingStack: bindingStack,
+    getBindable: getBindable,
+    executeBinding: executeBinding
   }
 });

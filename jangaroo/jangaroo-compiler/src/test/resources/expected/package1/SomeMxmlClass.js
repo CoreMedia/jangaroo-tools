@@ -114,7 +114,7 @@ public class SomeMxmlClass extends package1.ConfigClass {
   }/*
 
   private*/ function $bind_$$12_bla()/*:int*/ {
-    return Binding.get( this.other,"get_bla","bla_has_changed");
+    return AS3.getBindable( this.other,"get_bla","bla_has_changed");
   }/*
 
   public native function get no_config():package1.someOtherPackage.SomeOtherClass;
