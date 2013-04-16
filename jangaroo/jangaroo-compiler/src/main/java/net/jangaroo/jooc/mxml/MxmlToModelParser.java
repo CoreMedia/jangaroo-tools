@@ -505,13 +505,18 @@ public final class MxmlToModelParser {
   }
 
   private MemberModel findPropertyModel(ClassModel classModel, String propertyName) throws IOException {
-    for (ClassModel current = classModel; current != null; current = getSuperClassModel(current)) {
-      MemberModel propertyModel = current.getMember(propertyName);
-      if (propertyModel != null && (propertyModel.isField() || propertyModel.isProperty())) {
-        return propertyModel;
+    MemberModel propertyModel = null;
+    ClassModel superClassModel = getSuperClassModel(classModel);
+    if (superClassModel != null) {
+      propertyModel = findPropertyModel(superClassModel, propertyName);
+    }
+    if (propertyModel == null) {
+      MemberModel memberModel = classModel.getMember(propertyName);
+      if (memberModel != null && memberModel.isWritable()) {
+        propertyModel = memberModel;
       }
     }
-    return null;
+    return propertyModel;
   }
 
   private AnnotationModel findEvent(ClassModel classModel, String propertyName) throws IOException {
