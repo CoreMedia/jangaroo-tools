@@ -73,10 +73,12 @@ public class PropertyModel extends MemberModel {
     return methodType == MethodType.GET ? getter : setter;
   }
 
+  @Override
   public boolean isReadable() {
     return getter != null;
   }
 
+  @Override
   public boolean isWritable() {
     return setter != null;
   }

@@ -49,6 +49,10 @@ public abstract class MemberModel extends AbstractAnnotatedModel implements Name
     this.type = type;
   }
 
+  public abstract boolean isReadable();
+
+  public abstract boolean isWritable();
+
   public boolean isMethod() {
     return false;
   }

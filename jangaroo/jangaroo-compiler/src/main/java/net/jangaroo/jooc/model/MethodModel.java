@@ -30,6 +30,16 @@ public class MethodModel extends MemberModel {
     this(name, returnType, NO_PARAMS);
   }
 
+  @Override
+  public boolean isReadable() {
+    return true;
+  }
+
+  @Override
+  public boolean isWritable() {
+    return false;
+  }
+
   public MethodModel(MethodType methodType, String name, String type) {
     this(methodType, name, methodType == MethodType.SET ? "void" : type,
             methodType == MethodType.SET

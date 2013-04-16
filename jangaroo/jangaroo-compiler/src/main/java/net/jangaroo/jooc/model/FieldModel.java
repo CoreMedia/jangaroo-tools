@@ -19,6 +19,16 @@ public class FieldModel extends MemberModel implements ValuedModel {
     super(name, type);
   }
 
+  @Override
+  public boolean isReadable() {
+    return true;
+  }
+
+  @Override
+  public boolean isWritable() {
+    return !isConst();
+  }
+
   public FieldModel(String name, String type, String value) {
     super(name, type);
     this.value = value;
