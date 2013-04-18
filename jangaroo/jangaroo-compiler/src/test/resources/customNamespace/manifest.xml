@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<componentPackage>
+  <component id="panel" class="ext.Panel"/>
+  <component id="favoritesToolbar" class="com.coremedia.ui.sdk.desktop.FavoritesToolbar"/>
+</componentPackage>
