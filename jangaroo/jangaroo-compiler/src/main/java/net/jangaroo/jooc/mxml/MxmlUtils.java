@@ -12,6 +12,8 @@ import org.w3c.dom.NodeList;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Some useful utility functions for EXML handling.
@@ -21,16 +23,65 @@ public class MxmlUtils {
   private static final String MXML_NAMESPACE_URI = "http://ns.adobe.com/mxml/2009";
   public static final String RESOURCE_BUNDLE_ANNOTATION = "ResourceBundle";
 
+  private static final Pattern IS_BINDING_EXPRESSION_PATTERN = Pattern.compile("(^|[^\\\\])\\{([^}]*[^\\\\])\\}");
+  private static final Pattern BINDING_EXPRESSION_START_OR_END_PATTERN = Pattern.compile("[{}]");
+
   public static boolean isMxmlNamespace(String uri) {
     return MXML_NAMESPACE_URI.equals(uri);
   }
 
   public static boolean isBindingExpression(String attributeValue) {
-    return attributeValue.startsWith("{") && attributeValue.endsWith("}");
+    return IS_BINDING_EXPRESSION_PATTERN.matcher(attributeValue).find();
   }
 
   public static String getBindingExpression(String attributeValue) {
-    return attributeValue.substring(1, attributeValue.length() - 1);
+    Matcher matcher = BINDING_EXPRESSION_START_OR_END_PATTERN.matcher(attributeValue);
+    StringBuilder bindingExpression = new StringBuilder();
+    // since we have to quote literals, we cannot use matcher.appendReplacement() / appendTail() :-(
+    int startPos = 0;
+    int curlyNesting = 0;
+    while (matcher.find()) {
+      int curlyPos = matcher.start();
+      if (curlyPos == 0 || attributeValue.charAt(curlyPos - 1) != '\\') { // skip escaped curly braces
+        String curly = matcher.group();
+        if ("{".equals(curly)) {
+          if (curlyNesting == 0) {
+            // add the previous term as a literal: 
+            startPos = addTerm(bindingExpression, attributeValue, startPos, curlyPos, true);
+          }
+          ++curlyNesting;
+        } else { assert "}".equals(curly);
+          if (curlyNesting > 0) { // interpret additional closing curly braces as literal
+            --curlyNesting;
+            if (curlyNesting == 0) {
+              // add the previous term as an expression:
+              startPos = addTerm(bindingExpression, attributeValue, startPos, curlyPos, false);
+            }
+          }
+        }
+      }
+    }
+
+    if (startPos < attributeValue.length()) {
+      // interprete unclosed curly bracket as literal:
+      if (curlyNesting > 0) {
+        --startPos;
+      }
+      // add the remains as a literal:
+      addTerm(bindingExpression, attributeValue, startPos, attributeValue.length(), true);
+    }
+    return bindingExpression.toString();
+  }
+
+  private static int addTerm(StringBuilder bindingExpression, String attributeValue, int startPos, int endPos, boolean quote) {
+    if (startPos < endPos) {
+      if (bindingExpression.length() > 0) {
+        bindingExpression.append(" + ");
+      }
+      String term = attributeValue.substring(startPos, endPos);
+      bindingExpression.append(quote ? CompilerUtils.quote(term) : term);
+    }
+    return endPos + 1;
   }
 
   public static void addImport(Set<String> imports, String importedClassName) {
