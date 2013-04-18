@@ -4,6 +4,10 @@ import net.jangaroo.jooc.api.CompileLog;
 import net.jangaroo.jooc.config.DebugMode;
 import net.jangaroo.jooc.api.FilePosition;
 import net.jangaroo.jooc.config.JoocConfiguration;
+import net.jangaroo.jooc.input.FileInputSource;
+import net.jangaroo.jooc.input.InputSource;
+import net.jangaroo.jooc.mxml.CatalogComponentModel;
+import net.jangaroo.jooc.mxml.ManifestToCatalogConverter;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Rule;
@@ -11,7 +15,9 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
@@ -273,6 +279,36 @@ public class JoocTest {
   @Test
   public void testHelperClasses() throws Exception {
     assertCompilationResult("package1/TestHelperClasses");
+  }
+
+  @Test
+  public void testManifestToCatalogConversion() throws Exception {
+    File manifestFile = getFile("/customNamespace/manifest.xml");
+    File catalogFile = new File(outputFolder, "/catalog.xml");
+    generateCatalogFromManifest(manifestFile, catalogFile);
+    assertTrue("the output file " + catalogFile + " should exist, but doesn't", catalogFile.exists());
+    String result = readFileToString(catalogFile);
+    String expected = readFileToString(getFile("/expected/customNamespace/catalog.xml"));
+    assertEquals("Result file not equal", expected, result);
+  }
+
+  @Test
+  public void testCatalogueComponentModelParsing() throws Exception {
+    File manifestFile = getFile("/customNamespace/manifest.xml");
+    File catalogFile = new File(outputFolder, "/catalog.xml");
+    generateCatalogFromManifest(manifestFile, catalogFile);
+
+    InputSource inputSource = new FileInputSource(catalogFile, true);
+    CatalogComponentModel catalogComponentModel = new CatalogComponentModel(inputSource.getInputStream());
+    assertEquals("Result not equal", "ext.Panel", catalogComponentModel.getClassForName("panel"));
+    assertEquals("Result not equal", "com.coremedia.ui.sdk.desktop.FavoritesToolbar", catalogComponentModel.getClassForName("favoritesToolbar"));
+  }
+
+  private void generateCatalogFromManifest(File manifestFile, File catalogFile) throws IOException {
+    InputSource inputSource = new FileInputSource(manifestFile, true);
+    OutputStream outputStream = new FileOutputStream(catalogFile);
+    ManifestToCatalogConverter converter = new ManifestToCatalogConverter(inputSource.getInputStream(), outputStream, "library://test.namespace");
+    converter.generateCatalog();
   }
 
   private void assertApiCompilationResult(String path, String expectPath) throws URISyntaxException, IOException {
