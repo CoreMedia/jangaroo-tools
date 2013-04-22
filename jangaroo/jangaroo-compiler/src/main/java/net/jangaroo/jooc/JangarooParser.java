@@ -3,6 +3,7 @@ package net.jangaroo.jooc;
 import java_cup.runtime.Symbol;
 import net.jangaroo.jooc.backend.ActionScriptCodeGeneratingModelVisitor;
 import net.jangaroo.jooc.model.CompilationUnitModel;
+import net.jangaroo.jooc.mxml.MxmlComponentRegistry;
 import net.jangaroo.jooc.mxml.MxmlToModelParser;
 import net.jangaroo.utils.AS3Type;
 import net.jangaroo.jooc.api.CompileLog;
@@ -45,6 +46,7 @@ public class JangarooParser {
   private InputSource classPathInputSource;
   private ParserOptions config;
   private Map<String, CompilationUnit> compilationUnitsByQName = new LinkedHashMap<String, CompilationUnit>();
+  private MxmlComponentRegistry mxmlComponentRegistry = new MxmlComponentRegistry();
 
   protected final Scope globalScope = new DeclarationScope(null, null);
 
@@ -216,6 +218,10 @@ public class JangarooParser {
       compilationUnit = importSource(source);
     }
     return compilationUnit;
+  }
+
+  public MxmlComponentRegistry getMxmlComponentRegistry() {
+    return mxmlComponentRegistry;
   }
 
   private void checkValidFileName(final String qname, final CompilationUnit unit, final InputSource source) {

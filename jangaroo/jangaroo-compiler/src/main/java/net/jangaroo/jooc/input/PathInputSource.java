@@ -83,7 +83,22 @@ public class PathInputSource extends DirectoryInputSource {
   }
 
   @Override
+  public List<InputSource> getChildren(String path) {
+    List<InputSource> result = new ArrayList<InputSource>();
+    for (InputSource entry : entries) {
+      List<InputSource> children = entry.getChildren(path);
+      result.addAll(children);
+    }
+    return result;
+  }
+
+  @Override
   public char getFileSeparatorChar() {
     return '/';
+  }
+
+  @Override
+  public String toString() {
+    return name;
   }
 }

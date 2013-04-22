@@ -183,6 +183,51 @@ public abstract class AbstractCompilerMojo extends JangarooMojo {
     // Create the compiler configuration
     // ----------------------------------------------------------------------
 
+    JoocConfiguration configuration = createJoocConfiguration();
+
+//    if (configuration.getSourceFiles().isEmpty()) {
+//      getLog().info("Nothing to compile - all classes are up to date");
+//      return;
+//    }
+
+    int result = compile(configuration);
+    boolean compilationError = (result != CompilationResult.RESULT_CODE_OK);
+
+//    if (!compilationError) {
+//      // for now, always set debug mode to "false" for concatenated file:
+//      configuration.setDebugMode(null);
+//      configuration.setOutputDirectory(getTempClassesOutputDirectory());
+//      configuration.setApiOutputDirectory(null);
+//      result = compile(configuration);
+//      if (result == CompilationResult.RESULT_CODE_OK) {
+//        buildOutputFile(getTempClassesOutputDirectory(), getModuleClassesJsFile());
+//      }
+//
+//      compilationError = (result != CompilationResult.RESULT_CODE_OK);
+//    }
+
+    List<CompilerError> messages = Collections.emptyList();
+
+    if (compilationError && failOnError) {
+      getLog().info("-------------------------------------------------------------");
+      getLog().error("COMPILATION ERROR : ");
+      getLog().info("-------------------------------------------------------------");
+      if (messages != null) {
+        for (CompilerError message : messages) {
+          getLog().error(message.toString());
+        }
+        getLog().info(messages.size() + ((messages.size() == 1) ? " error" : " errors"));
+        getLog().info("-------------------------------------------------------------");
+      }
+      throw new MojoFailureException("Compilation failed");
+    } else {
+      for (CompilerError message : messages) {
+        getLog().warn(message.toString());
+      }
+    }
+  }
+
+  protected JoocConfiguration createJoocConfiguration() throws MojoExecutionException, MojoFailureException {
     JoocConfiguration configuration = new JoocConfiguration();
 
     configuration.setEnableAssertions(enableAssertions);
@@ -223,7 +268,6 @@ public abstract class AbstractCompilerMojo extends JangarooMojo {
     sources.addAll(computeStaleSources(staleMillis));
     if (sources.isEmpty()) {
       getLog().info("Nothing to compile - all classes are up to date");
-      return;
     }
     configuration.setSourceFiles(new ArrayList<File>(sources));
     try {
@@ -243,42 +287,7 @@ public abstract class AbstractCompilerMojo extends JangarooMojo {
         log.debug("API output directory: " + configuration.getApiOutputDirectory());
       }
     }
-
-    int result = compile(configuration);
-    boolean compilationError = (result != CompilationResult.RESULT_CODE_OK);
-
-//    if (!compilationError) {
-//      // for now, always set debug mode to "false" for concatenated file:
-//      configuration.setDebugMode(null);
-//      configuration.setOutputDirectory(getTempClassesOutputDirectory());
-//      configuration.setApiOutputDirectory(null);
-//      result = compile(configuration);
-//      if (result == CompilationResult.RESULT_CODE_OK) {
-//        buildOutputFile(getTempClassesOutputDirectory(), getModuleClassesJsFile());
-//      }
-//
-//      compilationError = (result != CompilationResult.RESULT_CODE_OK);
-//    }
-
-    List<CompilerError> messages = Collections.emptyList();
-
-    if (compilationError && failOnError) {
-      getLog().info("-------------------------------------------------------------");
-      getLog().error("COMPILATION ERROR : ");
-      getLog().info("-------------------------------------------------------------");
-      if (messages != null) {
-        for (CompilerError message : messages) {
-          getLog().error(message.toString());
-        }
-        getLog().info(messages.size() + ((messages.size() == 1) ? " error" : " errors"));
-        getLog().info("-------------------------------------------------------------");
-      }
-      throw new MojoFailureException("Compilation failed");
-    } else {
-      for (CompilerError message : messages) {
-        getLog().warn(message.toString());
-      }
-    }
+    return configuration;
   }
 
   protected abstract List<File> getActionScriptClassPath();

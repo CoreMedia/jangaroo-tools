@@ -4,6 +4,9 @@ import net.jangaroo.utils.FileLocations;
 import org.kohsuke.args4j.Option;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Jangaroo compiler configuration
@@ -25,6 +28,8 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
   private boolean mergeOutput = false;
   private String outputFileName;
   private boolean generateSourceMaps = false;
+
+  private List<NamespaceConfiguration> namespaces = new ArrayList<NamespaceConfiguration>();
 
   public SemicolonInsertionMode getSemicolonInsertionMode() {
     return semicolonInsertionMode;
@@ -150,6 +155,15 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
   @Option(name="-api", aliases = "--apiDir", usage = "destination directory where to generate ActionScript API stubs")
   public void setApiOutputDirectory(final File apiOutputDirectory) {
     this.apiOutputDirectory = apiOutputDirectory;
+  }
+
+  public List<NamespaceConfiguration> getNamespaces() {
+    return Collections.unmodifiableList(namespaces);
+  }
+
+  @Option(name="-namespace", handler = NamespacesHandler.class, usage = "namespace of the component library defined in the given manifest file")
+  public void setNamespaces(List<NamespaceConfiguration> namespaces) {
+    this.namespaces = new ArrayList<NamespaceConfiguration>(namespaces);
   }
 
 }

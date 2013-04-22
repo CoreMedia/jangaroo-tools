@@ -25,15 +25,22 @@ import net.jangaroo.jooc.backend.SingleFileCompilationUnitSinkFactory;
 import net.jangaroo.jooc.cli.CommandLineParseException;
 import net.jangaroo.jooc.cli.JoocCommandLineParser;
 import net.jangaroo.jooc.config.JoocConfiguration;
+import net.jangaroo.jooc.config.NamespaceConfiguration;
 import net.jangaroo.jooc.config.PublicApiViolationsMode;
 import net.jangaroo.jooc.input.FileInputSource;
 import net.jangaroo.jooc.input.InputSource;
 import net.jangaroo.jooc.input.PathInputSource;
 import net.jangaroo.jooc.input.ZipEntryInputSource;
+import net.jangaroo.jooc.mxml.CatalogComponentsParser;
+import net.jangaroo.jooc.mxml.CatalogGenerator;
+import net.jangaroo.jooc.mxml.ComponentPackageManifestParser;
+import net.jangaroo.jooc.mxml.ComponentPackageModel;
+import net.jangaroo.jooc.mxml.MxmlComponentRegistry;
 import net.jangaroo.jooc.properties.PropertiesCompiler;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -107,6 +114,7 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
     PropertiesCompiler propertiesCompiler = new PropertiesCompiler(getConfig());
     HashMap<File, File> outputFileMap = new HashMap<File, File>();
     try {
+      setUpMxmlComponentRegistry(sourcePathInputSource, classPathInputSource);
       for (File sourceFile : getConfig().getSourceFiles()) {
         if (sourceFile.getName().endsWith(Jooc.PROPERTIES_SUFFIX)) {
           if (sourceFile.getParentFile() != null &&
@@ -147,6 +155,39 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
       throw new CompilerError("IO Exception occurred", e);
     } finally {
       tearDown();
+    }
+  }
+
+  private void setUpMxmlComponentRegistry(InputSource sourcePathInputSource, InputSource classPathInputSource)
+          throws IOException {
+    // scan classpath for catalog.xml-s:
+    List<InputSource> children = classPathInputSource.getChildren("catalog.xml");
+    CatalogComponentsParser catalogParser =
+            new CatalogComponentsParser(getMxmlComponentRegistry());
+    for (InputSource child : children) {
+      catalogParser.parse(child.getInputStream());
+    }
+
+    // find manifest.xml for this module's component definitions:
+    MxmlComponentRegistry localMxmlComponentRegistry = new MxmlComponentRegistry();
+    List<NamespaceConfiguration> namespaces = getConfig().getNamespaces();
+    for (NamespaceConfiguration namespace : namespaces) {
+      File componentPackageManifest = namespace.getManifest();
+      InputSource componentPackageManifestInputSource;
+      if (componentPackageManifest == null) {
+        // look for default manifest file:
+        componentPackageManifestInputSource = sourcePathInputSource.getChild("manifest.xml");
+      } else {
+        componentPackageManifestInputSource = new FileInputSource(componentPackageManifest, false);
+      }
+      InputStream manifestInputStream = componentPackageManifestInputSource.getInputStream();
+      ComponentPackageModel componentPackageModel =
+              new ComponentPackageManifestParser(namespace.getUri()).parse(manifestInputStream);
+      getMxmlComponentRegistry().add(componentPackageModel);
+      localMxmlComponentRegistry.add(componentPackageModel);
+    }
+    if (!localMxmlComponentRegistry.getComponentPackageModels().isEmpty()) {
+      new CatalogGenerator(localMxmlComponentRegistry).generateCatalog(new File(getConfig().getApiOutputDirectory(), "catalog.xml"));
     }
   }
 

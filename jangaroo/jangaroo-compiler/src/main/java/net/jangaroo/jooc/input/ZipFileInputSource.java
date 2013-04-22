@@ -3,6 +3,7 @@ package net.jangaroo.jooc.input;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -99,6 +100,12 @@ public class ZipFileInputSource extends DirectoryInputSource {
     return entries.get(path);
   }
 
+  @Override
+  public List<InputSource> getChildren(String path) {
+    InputSource child = getChild(path);
+    return child == null ? Collections.<InputSource>emptyList() : Collections.singletonList(child);
+  }
+
   List<InputSource> list(final ZipEntryInputSource dir) {
     if (!dir.isDirectory()) {
       throw new UnsupportedOperationException("list() is not supported for non-directory input sources");
@@ -123,4 +130,8 @@ public class ZipFileInputSource extends DirectoryInputSource {
     return result;
   }
 
+  @Override
+  public String toString() {
+    return zipFile.getName();
+  }
 }

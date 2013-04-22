@@ -608,6 +608,8 @@ public final class MxmlToModelParser {
         if (compilationsUnit != null && compilationsUnit.getPrimaryDeclaration() instanceof ClassDeclaration) {
           return qName;
         }
+      } else {
+        return jangarooParser.getMxmlComponentRegistry().getClassName(uri, name);
       }
     }
     return null;

@@ -32,6 +32,13 @@ try
     }
 
 
+    File catalogFile = new File ( target, "classes/META-INF/joo-api/catalog.xml" );
+    if ( !catalogFile.exists() || !catalogFile.isFile() )
+    {
+        System.err.println( "classes/META-INF/joo-api/catalog.xml file is missing or not a file." );
+        return false;
+    }
+
     File jsDir = new File ( target, "classes/META-INF/resources/amd/as3" );
     if ( !jsDir.exists() || !jsDir.isDirectory() )
     {

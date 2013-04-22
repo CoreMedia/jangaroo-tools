@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<componentPackage>
+  <component id="helloWorld" class="net.jangaroo.example.HelloWorld"/>
+  <component id="testClass" class="net.jangaroo.example.TestClass"/>
+</componentPackage>

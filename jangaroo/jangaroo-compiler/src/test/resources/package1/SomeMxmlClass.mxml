@@ -3,6 +3,7 @@
              xmlns="package1.*"
              xmlns:top="*"
              xmlns:other="package1.someOtherPackage.*"
+             xmlns:lib="library://test.namespace"
              foo="bar"
              number="{1 + 1}"
              click="var result:String = 'gotcha!';">
@@ -21,7 +22,7 @@
       <fx:Object name="Joe"/>
       <fx:Object name="Felix"/>
     </fx:Array>
-    <other:SomeOtherClass id="other" bla="3"
+    <lib:someOtherClass id="other" bla="3"
                           blubbConfig="{'blub config expression'}"
                           blubbAccessor="{'blub accessor expression'}"/>
   </fx:Declarations>
