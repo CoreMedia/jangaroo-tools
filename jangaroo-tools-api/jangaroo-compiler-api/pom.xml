@@ -18,6 +18,10 @@
       <groupId>args4j</groupId>
       <artifactId>args4j</artifactId>
     </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+    </dependency>
   </dependencies>
 </project>
 

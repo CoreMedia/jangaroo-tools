@@ -46,7 +46,7 @@ under the License.
           <namespaces>
             <namespace>
               <uri>library://testNamespace</uri>
-              <manifest>${project.build.sourceDirectory}/manifest.xml</manifest>
+              <manifest>manifest.xml</manifest>
             </namespace>
           </namespaces>
         </configuration>

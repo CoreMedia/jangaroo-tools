@@ -166,4 +166,7 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
     this.namespaces = new ArrayList<NamespaceConfiguration>(namespaces);
   }
 
+  public void addNamespaces(List<NamespaceConfiguration> namespaces) {
+    this.namespaces.addAll(namespaces);
+  }
 }

@@ -7,7 +7,6 @@ import org.kohsuke.args4j.spi.OptionHandler;
 import org.kohsuke.args4j.spi.Parameters;
 import org.kohsuke.args4j.spi.Setter;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,12 +30,8 @@ public class NamespacesHandler extends OptionHandler<List<NamespaceConfiguration
       }
       for (int i = 0; i < namespaceManifestPairs.length; i+=2) {
         String namespace = namespaceManifestPairs[i];
-        String manifestName = namespaceManifestPairs[i + 1];
-        File manifestFile = new File(manifestName);
-        if (!manifestFile.exists()) {
-          throw new CmdLineException(owner, "Manifest file does not exist: " + manifestFile.getAbsolutePath());
-        }
-        namespaces.add(new NamespaceConfiguration(namespace, manifestFile));
+        String manifest = namespaceManifestPairs[i + 1];
+        namespaces.add(new NamespaceConfiguration(namespace, manifest));
       }
     }
     setter.addValue(namespaces);

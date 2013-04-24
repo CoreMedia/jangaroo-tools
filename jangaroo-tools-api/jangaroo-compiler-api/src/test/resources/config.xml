@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<flex-config>
+  <compiler>
+    <namespaces>
+      <namespace>
+        <uri>exml:ext.config</uri>
+        <manifest>manifest.xml</manifest>
+      </namespace>
+      <namespace>
+        <uri>exml:com.acme.config</uri>
+        <manifest>com/acme/config/manifest.xml</manifest>
+      </namespace>
+    </namespaces>
+  </compiler>
+
+  <include-namespaces>
+    <uri>exml:ext.config</uri>
+    <uri>exml:com.acme.config</uri>
+  </include-namespaces>
+</flex-config>

@@ -172,13 +172,13 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
     MxmlComponentRegistry localMxmlComponentRegistry = new MxmlComponentRegistry();
     List<NamespaceConfiguration> namespaces = getConfig().getNamespaces();
     for (NamespaceConfiguration namespace : namespaces) {
-      File componentPackageManifest = namespace.getManifest();
+      String componentPackageManifest = namespace.getManifest();
       InputSource componentPackageManifestInputSource;
       if (componentPackageManifest == null) {
         // look for default manifest file:
         componentPackageManifestInputSource = sourcePathInputSource.getChild("manifest.xml");
       } else {
-        componentPackageManifestInputSource = new FileInputSource(componentPackageManifest, false);
+        componentPackageManifestInputSource = sourcePathInputSource.getChild(componentPackageManifest);
       }
       InputStream manifestInputStream = componentPackageManifestInputSource.getInputStream();
       ComponentPackageModel componentPackageModel =
