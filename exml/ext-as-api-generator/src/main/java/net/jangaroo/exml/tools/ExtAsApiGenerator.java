@@ -196,7 +196,7 @@ public class ExtAsApiGenerator {
       CompilationUnitModel singletonUnit = new CompilationUnitModel(extAsClassUnit.getPackage(), singleton);
       compilationUnitModelRegistry.register(singletonUnit);
 
-      extAsClass.setAsdoc(String.format("%s\n<p>Type of singleton %s.</p>\n@see %s %s",
+      extAsClass.setAsdoc(String.format("%s%n<p>Type of singleton %s.</p>%n@see %s %s",
         extAsClass.getAsdoc(),
         singleton.getName(),
         CompilerUtils.qName(extAsClassUnit.getPackage(), "#" + singleton.getName()),
@@ -245,8 +245,7 @@ public class ExtAsApiGenerator {
       String typeProperty = alias == null ? null : "widget".equals(alias.getKey()) ? "xtype" : "type";
       if (typeProperty != null) {
         String typeValue = CompilerUtils.quote(getPreferredAlias(alias));
-        configClass.addBodyCode("\n  " + configClassQName + "['prototype']." + typeProperty + " = "
-                + typeValue + ";\n");
+        configClass.addBodyCode(String.format("%n  %s['prototype'].%s = %s;%n", configClassQName, typeProperty, typeValue));
 
         PropertyModel typePropertyModel = (PropertyModel) extAsClass.getMember(typeProperty);
         if (typePropertyModel == null) {
@@ -411,7 +410,7 @@ public class ExtAsApiGenerator {
       if (generateEventClasses) {
         String eventTypeQName = generateEventClass(compilationUnitModel, event);
         annotationModel.addProperty(new AnnotationPropertyModel("type", "'" + eventTypeQName + "'"));
-        asdoc +=  String.format("\n@eventType %s.NAME", eventTypeQName);
+        asdoc +=  String.format("%n@eventType %s.NAME", eventTypeQName);
       }
       annotationModel.setAsdoc(asdoc);
       classModel.addAnnotation(annotationModel);
@@ -431,11 +430,11 @@ public class ExtAsApiGenerator {
     if (extAsClassUnit == null) {
       extAsClassUnit = createClassModel(eventTypeQName);
       ClassModel extAsClass = (ClassModel)extAsClassUnit.getPrimaryDeclaration();
-      extAsClass.setAsdoc(toAsDoc(event.doc) + "\n@see " + compilationUnitModel.getQName());
+      extAsClass.setAsdoc(String.format("%s%n@see %s", toAsDoc(event.doc), compilationUnitModel.getQName()));
 
       FieldModel eventNameConstant = new FieldModel("NAME", "String", CompilerUtils.quote("on" + event.name));
       eventNameConstant.setStatic(true);
-      eventNameConstant.setAsdoc(MessageFormat.format("This constant defines the value of the <code>type</code> property of the event object\nfor a <code>{0}</code> event.\n@eventType {0}", "on" + event.name));
+      eventNameConstant.setAsdoc(String.format("This constant defines the value of the <code>type</code> property of the event object%nfor a <code>%s</code> event.%n@eventType %s", "on" + event.name, "on" + event.name));
       extAsClass.addMember(eventNameConstant);
 
       MethodModel constructorModel = extAsClass.createConstructor();
@@ -446,7 +445,7 @@ public class ExtAsApiGenerator {
 
         // add assignment to constructor body:
         if (i > 0) {
-          propertyAssignments.append("\n    ");
+          propertyAssignments.append(String.format("%n    "));
         }
         propertyAssignments.append(String.format("this['%s'] = arguments[%d];", convertName(param.name), i));
 
