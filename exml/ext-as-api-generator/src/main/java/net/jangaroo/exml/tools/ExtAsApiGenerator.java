@@ -230,6 +230,7 @@ public class ExtAsApiGenerator {
       CompilationUnitModel configClassUnit = createClassModel(configClassQName);
       ClassModel configClass = (ClassModel)configClassUnit.getPrimaryDeclaration();
       configClassUnit.getClassModel().setAsdoc(extAsClass.getAsdoc());
+      configClassUnit.getClassModel().addAnnotation(new AnnotationModel("ExtConfig", new AnnotationPropertyModel("target", CompilerUtils.quote(extAsClassUnit.getQName())))); // TODO: add (x|p|gc)type!
       String superConfigClassQName = "joo.JavaScriptObject";
       for (ExtClass extSuperClass = getExtClass(extClass.extends_);
            extSuperClass != null;
