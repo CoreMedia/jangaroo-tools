@@ -435,6 +435,7 @@ public class ExtAsApiGenerator {
     if (extAsClassUnit == null) {
       extAsClassUnit = createClassModel(eventTypeQName);
       ClassModel extAsClass = (ClassModel)extAsClassUnit.getPrimaryDeclaration();
+      extAsClass.setSuperclass("flash.events.Event");
       extAsClass.setAsdoc(String.format("%s%n@see %s", toAsDoc(event.doc), compilationUnitModel.getQName()));
 
       FieldModel eventNameConstant = new FieldModel("NAME", "String", CompilerUtils.quote("on" + event.name));
@@ -449,10 +450,7 @@ public class ExtAsApiGenerator {
         Param param = event.params.get(i);
 
         // add assignment to constructor body:
-        if (i > 0) {
-          propertyAssignments.append(String.format("%n    "));
-        }
-        propertyAssignments.append(String.format("this['%s'] = arguments[%d];", convertName(param.name), i));
+        propertyAssignments.append(String.format("%n    this['%s'] = arguments[%d];", convertName(param.name), i));
 
         // add getter method:
         MethodModel property = new MethodModel(MethodType.GET, convertName(param.name), convertType(param.type));
@@ -460,7 +458,7 @@ public class ExtAsApiGenerator {
         extAsClass.addMember(property);
       }
 
-      constructorModel.setBody(propertyAssignments.toString());
+      constructorModel.setBody("super(NAME);" + propertyAssignments.toString());
 
     }
     return eventTypeQName;
