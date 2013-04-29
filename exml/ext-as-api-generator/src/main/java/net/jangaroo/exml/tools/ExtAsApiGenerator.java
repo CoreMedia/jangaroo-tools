@@ -539,7 +539,9 @@ public class ExtAsApiGenerator {
   }
 
   private static String toAsDoc(String doc) {
-    String asDoc = doc.trim();
+    // remove <locale> and </locale>:
+    String asDoc = doc.replaceAll("</?locale>", "");
+    asDoc = asDoc.trim();
     if (asDoc.startsWith("<p>")) {
       // remove <p>...</p> around first paragraph:
       asDoc = asDoc.substring(3);
@@ -554,6 +556,8 @@ public class ExtAsApiGenerator {
         asDoc = asDoc.substring(closingBracePos + 2);
       }
     }
+    // add closing "/" on <img> elements:
+    asDoc = asDoc.replaceAll("(<img[^>]*[^/])>", "$1/>");
     return asDoc;
   }
 
