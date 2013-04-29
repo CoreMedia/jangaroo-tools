@@ -123,8 +123,9 @@ public class ExtAsApiGenerator {
               if (mixinConfigClassQName != null) {
                 // System.err.println("*#*#*# found config mixin in " + extClass.name + ": " + mixinConfigClassQName + " (derived from mixin " + mixin + ")");
                 ClassModel mixinConfigClassModel = compilationUnitModelRegistry.resolveCompilationUnit(convertType(mixinConfigClassQName)).getClassModel();
+                MethodModel mixinConstructor = mixinConfigClassModel.getConstructor();
                 for (MemberModel memberModel : mixinConfigClassModel.getMembers()) {
-                  if (memberModel instanceof MethodModel) {
+                  if (memberModel instanceof MethodModel && memberModel != mixinConstructor) {
                     if (configClassModel.getMember(memberModel.getName()) != null) {
                       System.err.println("*** [WARN] ignoring config option " + memberModel.getName() + " of config mixin " + mixinConfigClassQName + " in  config class " + configClassQName);
                     } else {
@@ -242,6 +243,9 @@ public class ExtAsApiGenerator {
         }
       }
       configClass.setSuperclass(superConfigClassQName);
+      MethodModel constructor = configClass.createConstructor();
+      constructor.addParam(new ParamModel("config", "Object", "null"));
+      constructor.setBody("super(config);");
       Map.Entry<String, List<String>> alias = getAlias(extClass);
       String typeProperty = alias == null ? null : "widget".equals(alias.getKey()) ? "xtype" : "type";
       if (typeProperty != null) {
