@@ -218,6 +218,9 @@ public class CompilationUnitModelRegistry {
     }
     ClassModel superclass = getSuperclass(classModel);
     MethodModel constructor = classModel.getConstructor();
+    if (constructor != null && constructor.getBody() != null) {
+      return constructor;
+    }
     MethodModel superclassConstructor = resolveConstructor(superclass);
     if (superclassConstructor != null) {
       List<ParamModel> params = superclassConstructor.getParams();
