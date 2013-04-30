@@ -176,18 +176,22 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
       InputSource componentPackageManifestInputSource;
       if (componentPackageManifest == null) {
         // look for default manifest file:
-        componentPackageManifestInputSource = sourcePathInputSource.getChild("manifest.xml");
-      } else {
-        componentPackageManifestInputSource = sourcePathInputSource.getChild(componentPackageManifest);
+        componentPackageManifest = "manifest.xml";
       }
-      InputStream manifestInputStream = componentPackageManifestInputSource.getInputStream();
-      ComponentPackageModel componentPackageModel =
-              new ComponentPackageManifestParser(namespace.getUri()).parse(manifestInputStream);
-      getMxmlComponentRegistry().add(componentPackageModel);
-      localMxmlComponentRegistry.add(componentPackageModel);
+      componentPackageManifestInputSource = sourcePathInputSource.getChild(componentPackageManifest);
+      if (componentPackageManifestInputSource == null) {
+        Jooc.warning("manifest file not found in source path: " + componentPackageManifest);
+      } else {
+        InputStream manifestInputStream = componentPackageManifestInputSource.getInputStream();
+        ComponentPackageModel componentPackageModel =
+                new ComponentPackageManifestParser(namespace.getUri()).parse(manifestInputStream);
+        getMxmlComponentRegistry().add(componentPackageModel);
+        localMxmlComponentRegistry.add(componentPackageModel);
+      }
     }
     if (!localMxmlComponentRegistry.getComponentPackageModels().isEmpty()) {
-      new CatalogGenerator(localMxmlComponentRegistry).generateCatalog(new File(getConfig().getApiOutputDirectory(), "catalog.xml"));
+      new CatalogGenerator(localMxmlComponentRegistry).generateCatalog(new File(getConfig().getApiOutputDirectory(),
+              "catalog.xml"));
     }
   }
 
