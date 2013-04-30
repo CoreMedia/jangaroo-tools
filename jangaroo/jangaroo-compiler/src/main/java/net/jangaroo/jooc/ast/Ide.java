@@ -15,7 +15,6 @@
 
 package net.jangaroo.jooc.ast;
 
-import net.jangaroo.jooc.CompilerError;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
@@ -181,15 +180,19 @@ public class Ide extends NodeImplBase {
   public IdeDeclaration getDeclaration(boolean errorIfUndeclared) {
     if (declaration == null) {
       declaration = getScope().lookupDeclaration(this);
+      if (declaration != null) {
+        if (declaration.getClassDeclaration() != getScope().getClassDeclaration()) {
+          if (declaration.isPrivate()) {
+            // private member access
+            declaration = null;
+          } else if (declaration.isProtected() && !getScope().getClassDeclaration().isSubclassOf(declaration.getClassDeclaration())) {
+            // protected member access of non-superclass
+            declaration = null;
+          }
+        }
+      }
       if (declaration == null) {
         declaration = NULL_DECL; // prevent multiple lookups when called with !errorIfUndeclared multiple times
-      } else if (declaration.getClassDeclaration() != getScope().getClassDeclaration()) {
-        if (declaration.isPrivate()) {
-          throw new CompilerError(this.getSymbol(), "private member access");
-        }
-        if (declaration.isProtected() && !getScope().getClassDeclaration().isSubclassOf(declaration.getClassDeclaration())) {
-          throw new CompilerError(this.getSymbol(), "protected member access of non-superclass");
-        }
       }
     }
     final IdeDeclaration result = declaration == NULL_DECL ? null : declaration; // NOSONAR no equals here
