@@ -25,7 +25,6 @@ import net.jangaroo.utils.CompilerUtils;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -440,6 +439,7 @@ public class ExtAsApiGenerator {
 
       FieldModel eventNameConstant = new FieldModel("NAME", "String", CompilerUtils.quote("on" + event.name));
       eventNameConstant.setStatic(true);
+      eventNameConstant.setConst(true);
       eventNameConstant.setAsdoc(String.format("This constant defines the value of the <code>type</code> property of the event object%nfor a <code>%s</code> event.%n@eventType %s", "on" + event.name, "on" + event.name));
       extAsClass.addMember(eventNameConstant);
 
