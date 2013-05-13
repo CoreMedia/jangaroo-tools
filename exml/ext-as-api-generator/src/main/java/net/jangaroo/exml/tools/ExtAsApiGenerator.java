@@ -230,7 +230,6 @@ public class ExtAsApiGenerator {
       CompilationUnitModel configClassUnit = createClassModel(configClassQName);
       ClassModel configClass = (ClassModel)configClassUnit.getPrimaryDeclaration();
       configClassUnit.getClassModel().setAsdoc(extAsClass.getAsdoc());
-      configClassUnit.getClassModel().addAnnotation(new AnnotationModel("ExtConfig", new AnnotationPropertyModel("target", CompilerUtils.quote(extAsClassUnit.getQName())))); // TODO: add (x|p|gc)type!
       String superConfigClassQName = "joo.JavaScriptObject";
       for (ExtClass extSuperClass = getExtClass(extClass.extends_);
            extSuperClass != null;
@@ -245,10 +244,14 @@ public class ExtAsApiGenerator {
       MethodModel constructor = configClass.createConstructor();
       constructor.addParam(new ParamModel("config", "Object", "null"));
       constructor.setBody("super(config);");
+
+      AnnotationModel extConfigAnnotation = new AnnotationModel("ExtConfig", new AnnotationPropertyModel("target", CompilerUtils.quote(extAsClassUnit.getQName())));
       Map.Entry<String, List<String>> alias = getAlias(extClass);
       String typeProperty = alias == null ? null : "widget".equals(alias.getKey()) ? "xtype" : "type";
       if (typeProperty != null) {
         String typeValue = CompilerUtils.quote(getPreferredAlias(alias));
+        // if explicit alias, add (x)type:
+        extConfigAnnotation.addProperty(new AnnotationPropertyModel(typeProperty, typeValue));
         configClass.addBodyCode(String.format("%n  %s['prototype'].%s = %s;%n", configClassQName, typeProperty, typeValue));
 
         PropertyModel typePropertyModel = (PropertyModel) extAsClass.getMember(typeProperty);
@@ -262,6 +265,7 @@ public class ExtAsApiGenerator {
         typePropertyModel.addAnnotation(new AnnotationModel(MxmlToModelParser.CONSTRUCTOR_PARAMETER_ANNOTATION,
                 new AnnotationPropertyModel(MxmlToModelParser.CONSTRUCTOR_PARAMETER_ANNOTATION_VALUE, typeValue)));
       }
+      configClassUnit.getClassModel().addAnnotation(extConfigAnnotation);
       if (generateEventClasses) {
         addEvents(configClass, extAsClassUnit, filterByOwner(false, extClass, extClass.members.event));
       }
