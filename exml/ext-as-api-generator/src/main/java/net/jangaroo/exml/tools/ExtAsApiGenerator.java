@@ -623,6 +623,11 @@ public class ExtAsApiGenerator {
     if ("number".equals(extType) || "boolean".equals(extType)) {
       return Character.toUpperCase(extType.charAt(0)) + extType.substring(1);
     }
+    // rename classes in package ext.selection:
+    Matcher selectionClassMatcher = Pattern.compile("Ext[.]selection[.](.*)Model").matcher(extType);
+    if (selectionClassMatcher.matches()) {
+      return "ext.selection." + selectionClassMatcher.group(1) + "SelectionModel";
+    }
     if ("HTMLElement".equals(extType) || "Event".equals(extType) || "XMLHttpRequest".equals(extType)) {
       return "js." + extType;
     }
