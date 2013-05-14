@@ -632,6 +632,10 @@ public class ExtAsApiGenerator {
     if (selectionClassMatcher.matches()) {
       return "ext.selection." + selectionClassMatcher.group(1) + "SelectionModel";
     }
+    // TODO: missing in "alternateClassNames" because jsduck failed to detect "alternateClassName":
+    if ("Ext.tip.QuickTipManager".equals(extType)) {
+      return "ext.IQuickTips";
+    }
     if ("HTMLElement".equals(extType) || "Event".equals(extType) || "XMLHttpRequest".equals(extType)) {
       return "js." + extType;
     }
