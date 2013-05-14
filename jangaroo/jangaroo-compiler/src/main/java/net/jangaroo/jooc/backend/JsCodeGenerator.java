@@ -1582,7 +1582,14 @@ public class JsCodeGenerator extends CodeGeneratorBase {
           if (accessorAnnotation instanceof JsonObject) {
             String accessorPrefix = functionDeclaration.getSymGetOrSet().getText();
             String accessorName = (String) ((JsonObject) accessorAnnotation).get(DEFAULT_ANNOTATION_PARAMETER_NAME);
-            methodName = accessorName != null ? accessorName : accessorPrefix + MxmlUtils.capitalize(functionName);
+            if (accessorName != null) {
+              methodName = accessorName;
+            } else {
+              TypeRelation typeRelation = functionDeclaration.getOptTypeRelation();
+              String methodPrefix = functionDeclaration.isGetter() && typeRelation != null &&
+                      "Boolean".equals(typeRelation.getType().getIde().getName()) ? "is" : accessorPrefix;
+              methodName = methodPrefix + MxmlUtils.capitalize(functionName);
+            }
             functionName = accessorPrefix + "$" + functionName;
             isAccessor = false;
           }

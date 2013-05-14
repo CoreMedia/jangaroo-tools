@@ -29,5 +29,14 @@ public class UsingSomeNativeClass {
   public function get anotherNativeAccessor():package1.SomeNativeClass {
     return someNative;
   }
+
+  [Accessor]
+  public function get monkey():Boolean {
+    return false;
+  }
+
+  [Accessor]
+  public function set monkey(value:Boolean):void {
+  }
 }
 }
