@@ -143,23 +143,7 @@ public class JooTestMojo extends JooTestMojoBase {
         FileUtils.copyInputStreamToFile(getClass().getResourceAsStream("/net/jangaroo/jooc/mvnplugin/phantomjs-joounit-page-runner.js"), phantomTestRunner);
         final PhantomJsTestRunner phantomJsTestRunner = new PhantomJsTestRunner(phantomBin, url, testResultOutputFile.getPath(), phantomTestRunner.getPath(), jooUnitTestExecutionTimeout, getLog());
         if (phantomJsTestRunner.canRun()) {
-          getLog().info("running phantomjs: " + phantomJsTestRunner.toString());
-          try {
-            final boolean exitCode = phantomJsTestRunner.execute();
-            if (exitCode) {
-              evalTestOutput(new FileReader(testResultOutputFile));
-            } else {
-              signalFailure();
-            }
-          } catch (CommandLineException e) {
-            throw wrap(e);
-          } catch (IOException e) {
-            throw wrap(e);
-          } catch (ParserConfigurationException e) {
-            throw wrap(e);
-          } catch (SAXException e) {
-            throw wrap(e);
-          }
+          executePhantomJs(testResultOutputFile, phantomJsTestRunner);
         } else {
           executeSelenium(url);
         }
@@ -173,6 +157,26 @@ public class JooTestMojo extends JooTestMojoBase {
           getLog().error("Could not stop test Jetty.", e);
         }
       }
+    }
+  }
+
+  private void executePhantomJs(File testResultOutputFile, PhantomJsTestRunner phantomJsTestRunner) throws MojoFailureException, MojoExecutionException {
+    getLog().info("running phantomjs: " + phantomJsTestRunner.toString());
+    try {
+      final boolean exitCode = phantomJsTestRunner.execute();
+      if (exitCode) {
+        evalTestOutput(new FileReader(testResultOutputFile));
+      } else {
+        signalError();
+      }
+    } catch (CommandLineException e) {
+      throw wrap(e);
+    } catch (IOException e) {
+      throw wrap(e);
+    } catch (ParserConfigurationException e) {
+      throw wrap(e);
+    } catch (SAXException e) {
+      throw wrap(e);
     }
   }
 
@@ -210,11 +214,7 @@ public class JooTestMojo extends JooTestMojoBase {
     } catch (SAXException e) {
       throw new MojoExecutionException("Cannot parse test result", e);
     } catch (SeleniumException e) {
-      if (!testFailureIgnore) {
-        throw new MojoExecutionException("Selenium setup failure", e);
-      } else {
-        getLog().warn("Selenium setup failure", e);
-      }
+      throw new MojoExecutionException("Selenium setup exception", e);
     } finally {
       selenium.stop();
     }
@@ -249,6 +249,10 @@ public class JooTestMojo extends JooTestMojoBase {
     if (Integer.parseInt(errors) > 0 || Integer.parseInt(failures) > 0) {
       signalFailure();
     }
+  }
+
+  private void signalError() throws MojoExecutionException {
+    throw new MojoExecutionException("There are errors");
   }
 
   private void signalFailure() throws MojoFailureException {
