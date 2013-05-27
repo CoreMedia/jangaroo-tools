@@ -81,6 +81,7 @@ import net.jangaroo.jooc.model.AnnotationPropertyModel;
 import net.jangaroo.jooc.model.CompilationUnitModel;
 import net.jangaroo.jooc.model.FieldModel;
 import net.jangaroo.jooc.model.MemberModel;
+import net.jangaroo.jooc.model.MethodModel;
 import net.jangaroo.jooc.model.MethodType;
 import net.jangaroo.jooc.model.PropertyModel;
 import net.jangaroo.jooc.mxml.MxmlUtils;
@@ -779,9 +780,13 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       List<AnnotationModel> accessorAnnotations = member.getAnnotations(Jooc.ACCESSOR_ANNOTATION_NAME);
       if (accessorAnnotations.size() > 0) {
         AnnotationPropertyModel accessorAnnotation = accessorAnnotations.get(0).getPropertiesByName().get(null);
-        return accessorAnnotation == null
-                ? methodType + MxmlUtils.capitalize(memberName)
-                : accessorAnnotation.getStringValue();
+        if (accessorAnnotation == null) {
+          return (methodType == MethodType.GET &&
+                  "Boolean".equals(((MethodModel) member).getReturnModel().getType())
+                  ? "is" : methodType) + MxmlUtils.capitalize(memberName);
+        } else {
+          return accessorAnnotation.getStringValue();
+        }
       }
     }
     return null;
