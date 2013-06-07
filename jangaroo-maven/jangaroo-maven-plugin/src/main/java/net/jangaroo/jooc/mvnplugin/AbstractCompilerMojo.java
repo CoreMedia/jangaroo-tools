@@ -33,8 +33,6 @@ import java.util.Set;
  */
 @SuppressWarnings({"UnusedDeclaration", "UnusedPrivateField"})
 public abstract class AbstractCompilerMojo extends JangarooMojo {
-  private Log log = getLog();
-
   /**
    * The Maven project object
    *
@@ -47,6 +45,7 @@ public abstract class AbstractCompilerMojo extends JangarooMojo {
    *
    * @parameter expression="${maven.compiler.failOnError}" default-value="true"
    */
+  @SuppressWarnings("FieldCanBeLocal")
   private boolean failOnError = true;
 
   /**
@@ -172,8 +171,9 @@ public abstract class AbstractCompilerMojo extends JangarooMojo {
   public void execute() throws MojoExecutionException, MojoFailureException {
 
 
+    final Log log = getLog();
     if (getCompileSourceRoots().isEmpty()) {
-      getLog().info("No sources to compile");
+      log.info("No sources to compile");
 
       return;
     }
@@ -228,6 +228,7 @@ public abstract class AbstractCompilerMojo extends JangarooMojo {
   }
 
   protected JoocConfiguration createJoocConfiguration() throws MojoExecutionException, MojoFailureException {
+    final Log log = getLog();
     JoocConfiguration configuration = new JoocConfiguration();
 
     configuration.setEnableAssertions(enableAssertions);
@@ -264,10 +265,10 @@ public abstract class AbstractCompilerMojo extends JangarooMojo {
     }
 
     HashSet<File> sources = new HashSet<File>();
-    getLog().debug("starting source inclusion scanner");
+    log.debug("starting source inclusion scanner");
     sources.addAll(computeStaleSources(staleMillis));
     if (sources.isEmpty()) {
-      getLog().info("Nothing to compile - all classes are up to date");
+      log.info("Nothing to compile - all classes are up to date");
     }
     configuration.setSourceFiles(new ArrayList<File>(sources));
     try {
@@ -279,7 +280,7 @@ public abstract class AbstractCompilerMojo extends JangarooMojo {
     configuration.setOutputDirectory(getClassesOutputDirectory());
     configuration.setApiOutputDirectory(getApiOutputDirectory());
 
-    if (getLog().isDebugEnabled()) {
+    if (log.isDebugEnabled()) {
       log.debug("Source path: " + configuration.getSourcePath().toString().replace(',', '\n'));
       log.debug("Class path: " + configuration.getClassPath().toString().replace(',', '\n'));
       log.debug("Output directory: " + configuration.getOutputDirectory());
@@ -293,7 +294,8 @@ public abstract class AbstractCompilerMojo extends JangarooMojo {
   protected abstract List<File> getActionScriptClassPath();
 
   private void buildOutputFile(File tempOutputDir, File outputFile) throws MojoExecutionException {
-    if (getLog().isDebugEnabled()) {
+    final Log log = getLog();
+    if (log.isDebugEnabled()) {
       log.debug("Output file: " + outputFile);
     }
 
@@ -349,6 +351,7 @@ public abstract class AbstractCompilerMojo extends JangarooMojo {
 
     final List<File> sources = config.getSourceFiles();
 
+    final Log log = getLog();
     log.info("Compiling " + sources.size() +
             " joo source file"
             + (sources.size() == 1 ? "" : "s")
