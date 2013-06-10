@@ -284,4 +284,40 @@ define(function () {
       return bound;
     };
   }
+
+  /*\
+  |*|
+  |*|  IE-specific polyfill which enables the passage of arbitrary arguments to the
+  |*|  callback functions of javascript timers (HTML5 standard syntax).
+  |*|
+  |*|  https://developer.mozilla.org/en-US/docs/DOM/window.setInterval
+  |*|
+  |*|  Syntax:
+  |*|  var timeoutID = window.setTimeout(func, delay, [param1, param2, ...]);
+  |*|  var timeoutID = window.setTimeout(code, delay);
+  |*|  var intervalID = window.setInterval(func, delay[, param1, param2, ...]);
+  |*|  var intervalID = window.setInterval(code, delay);
+  |*|
+  \*/
+
+  // Simplified: AMD modules are executed exactly once, so no need to set an "isPolyfill" flag!
+
+  if (document && document.all && setTimeout && setInterval) {
+    var __nativeST__ = setTimeout;
+    setTimeout = function (vCallback, nDelay /*, argumentToPass1, argumentToPass2, etc. */) {
+      var aArgs = Array.prototype.slice.call(arguments, 2);
+      return __nativeST__(vCallback instanceof Function ? function () {
+        vCallback.apply(null, aArgs);
+      } : vCallback, nDelay);
+    };
+  
+    var __nativeSI__ = setInterval;
+    setInterval = function (vCallback, nDelay /*, argumentToPass1, argumentToPass2, etc. */) {
+      var aArgs = Array.prototype.slice.call(arguments, 2);
+      return __nativeSI__(vCallback instanceof Function ? function () {
+        vCallback.apply(null, aArgs);
+      } : vCallback, nDelay);
+    };
+  }
+
 });
