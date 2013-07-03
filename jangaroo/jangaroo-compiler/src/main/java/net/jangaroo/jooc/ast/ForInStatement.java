@@ -110,9 +110,10 @@ public class ForInStatement extends LoopStatement {
   @Override
   public void scope(final Scope scope) {
     super.scope(scope);
+    // always create aux var, as looping over an Array needs it even without "each":
+    auxIde = scope.createAuxVar(scope);
+    auxIde.scope(scope);
     if (symEach != null) {
-      auxIde = scope.createAuxVar(scope);
-      auxIde.scope(scope);
       if (!(getExpr() instanceof IdeExpr)) {
         exprAuxIde = scope.createAuxVar(scope);
         exprAuxIde.scope(scope);
