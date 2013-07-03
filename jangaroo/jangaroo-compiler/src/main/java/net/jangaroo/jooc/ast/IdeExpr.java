@@ -60,7 +60,12 @@ public class IdeExpr extends Expr {
     super.analyze(parentNode);
     getIde().analyze(this);
     getIde().analyzeAsExpr(parentNode, this);
-    setType(getIde().resolveDeclaration());
+    IdeDeclaration type = getIde().resolveDeclaration();
+    if (type instanceof VariableDeclaration) {
+      TypeRelation optTypeRelation = ((VariableDeclaration) type).getOptTypeRelation();
+      type = optTypeRelation == null ? null : optTypeRelation.getType().getIde().getDeclaration(false);
+    }
+    setType(type);
   }
 
   public JooSymbol getSymbol() {

@@ -16,6 +16,7 @@
 package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.JooSymbol;
+import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
 
@@ -26,6 +27,12 @@ public class ArrayLiteral extends ParenthesizedExpr<CommaSeparatedList<Expr>> {
 
   public ArrayLiteral(JooSymbol lBracket, CommaSeparatedList<Expr> fields, JooSymbol rBracket) {
     super(lBracket, fields, rBracket);
+  }
+
+  @Override
+  public void scope(Scope scope) {
+    super.scope(scope);
+    setType(scope.lookupDeclaration(new Ide("Array")));
   }
 
   @Override

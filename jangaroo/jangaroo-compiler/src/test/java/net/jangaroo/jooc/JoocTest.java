@@ -204,6 +204,11 @@ public class JoocTest {
   }
   
   @Test
+  public void testArrayForIn() throws Exception {
+    assertCompilationResult("package1/TestArrayForIn");
+  }
+  
+  @Test
   public void testPackageGlobalVarApi() throws Exception {
     config.setExcludeClassByDefault(true);
     assertApiCompilationResult("package1/somePackageGlobal");
