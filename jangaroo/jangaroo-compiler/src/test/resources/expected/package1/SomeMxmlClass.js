@@ -61,7 +61,7 @@ public class SomeMxmlClass extends package1.ConfigClass {
     this.no_config = new (SomeOtherClass._||SomeOtherClass._$get())($$16);
     $$13.items = [$$14, this.no_config];
     this.items = [$$4, $$6, $$8, $$10, $$13];
-    for/* each*/ (var $1 in this.$bindings$2){var $binding= this.$bindings$2[$1]; $binding.execute();}
+    for/* each*/ (var $1=0;$1</* in*/ this.$bindings$2.length;++$1){var $binding= this.$bindings$2[$1]; $binding.execute();}
   }/*
 
   private var $bindings:Array;
