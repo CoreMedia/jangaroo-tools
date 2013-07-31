@@ -114,6 +114,8 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   private static final JooSymbol SYM_RBRACE = new JooSymbol(sym.RBRACE, "}");
   private static final JooSymbol SYM_LBRACK = new JooSymbol(sym.LBRACK, "[");
   private static final JooSymbol SYM_RBRACK = new JooSymbol(sym.RBRACK, "]");
+  private static final JooSymbol SYM_LPAREN = new JooSymbol(sym.LPAREN, "(");
+  private static final JooSymbol SYM_RPAREN = new JooSymbol(sym.RPAREN, ")");
   public static final Set<String> PRIMITIVES = new HashSet<String>(4);
   public static final List<String> ANNOTATIONS_TO_KEEP_AT_RUNTIME = Arrays.asList("SWF", "ExtConfig"); // TODO: inject / make configurable
   public static final String DEFAULT_ANNOTATION_PARAMETER_NAME = "$value";
@@ -1224,17 +1226,20 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   @Override
   public void visitForInStatement(ForInStatement forInStatement) throws IOException {
     Ide exprAuxIde = forInStatement.getExprAuxIde();
-    if (exprAuxIde != null) {
+    IdeDeclaration exprType = forInStatement.getExpr().getType();
+    boolean iterateArrayMode = exprType != null && "Array".equals(exprType.getQualifiedNameStr());
+    if (exprAuxIde != null && !iterateArrayMode) {
       new SemicolonTerminatedStatement(new VariableDeclaration(SYM_VAR, exprAuxIde, null, null), SYM_SEMICOLON).visit(this);
     }
     out.writeSymbol(forInStatement.getSymKeyword());
-    if (forInStatement.getSymEach() != null) {
+    boolean isForEach = forInStatement.getSymEach() != null;
+    if (isForEach) {
       out.beginComment();
       out.writeSymbol(forInStatement.getSymEach());
       out.endComment();
     }
     out.writeSymbol(forInStatement.getLParen());
-    if (forInStatement.getSymEach() != null) {
+    if (isForEach || iterateArrayMode) {
       new VariableDeclaration(SYM_VAR, forInStatement.getAuxIde(), null, null).visit(this);
     } else {
       if (forInStatement.getDecl() != null) {
@@ -1243,24 +1248,60 @@ public class JsCodeGenerator extends CodeGeneratorBase {
         forInStatement.getLValue().visit(this);
       }
     }
-    out.writeSymbol(forInStatement.getSymIn());
-    if (exprAuxIde != null) {
-      // assign the expression value to the auxiliary expression value variable once:
-      out.writeToken(exprAuxIde.getName());
-      out.writeToken("=");
+    if (iterateArrayMode) {
+      String indexVarName = forInStatement.getAuxIde().getName();
+      out.write("=0");
+      if (exprAuxIde != null) {
+        out.write(",");
+        out.writeToken(exprAuxIde.getName());
+        out.writeToken("=");
+        out.beginComment();
+        out.writeSymbol(forInStatement.getSymIn());
+        out.endComment();
+        forInStatement.getExpr().visit(this);
+      }
+      out.write(";");
+      out.write(indexVarName);
+      out.write("<");
+      if (exprAuxIde != null) {
+        out.writeToken(exprAuxIde.getName());
+      } else {
+        out.beginComment();
+        out.writeSymbol(forInStatement.getSymIn());
+        out.endComment();
+        forInStatement.getExpr().visit(this);
+      }
+      out.write(".length;");
+      out.write("++" + indexVarName);
+    } else {
+      out.writeSymbol(forInStatement.getSymIn());
+      if (exprAuxIde != null) {
+        // assign the expression value to the auxiliary expression value variable once:
+        out.writeToken(exprAuxIde.getName());
+        out.writeToken("=");
+      }
+      forInStatement.getExpr().visit(this);
     }
-    forInStatement.getExpr().visit(this);
     out.writeSymbol(forInStatement.getRParen());
-    if (forInStatement.getSymEach() != null) {
+    if (isForEach || iterateArrayMode) {
       // synthesize assigning the correct index to the variable given in the original for each statement:
-      Expr expr = exprAuxIde == null ? forInStatement.getExpr() : new IdeExpr(exprAuxIde);
-      ArrayIndexExpr indexExpr = new ArrayIndexExpr(expr, SYM_LBRACK,
-              new CommaSeparatedList<IdeExpr>(new IdeExpr(forInStatement.getAuxIde())),
+      IdeExpr auxIdeExpr = new IdeExpr(forInStatement.getAuxIde());
+      CommaSeparatedList<Expr> auxIdeExprList = new CommaSeparatedList<Expr>(auxIdeExpr);
+      Expr rhs;
+      if (!isForEach) {
+        Ide covertToStringIde = new Ide("String");
+        covertToStringIde.scope(forInStatement.getAuxIde().getScope());
+        rhs = new ApplyExpr(new IdeExpr(covertToStringIde), SYM_LPAREN, auxIdeExprList, SYM_RPAREN);
+      } else {
+        Expr expr = exprAuxIde == null ? forInStatement.getExpr() : new IdeExpr(exprAuxIde);
+        rhs = new ArrayIndexExpr(expr, SYM_LBRACK,
+                auxIdeExprList,
               SYM_RBRACK);
+      }
       Statement assignment = // NOSONAR no, this is not a JDBC statement that must be closed ...
               new SemicolonTerminatedStatement(forInStatement.getDecl() != null
-                      ? new VariableDeclaration(SYM_VAR, forInStatement.getDecl().getIde(), forInStatement.getDecl().getOptTypeRelation(), new Initializer(SYM_EQ, indexExpr))
-                      : new AssignmentOpExpr(forInStatement.getLValue(), SYM_EQ, indexExpr),
+                      ? new VariableDeclaration(SYM_VAR, forInStatement.getDecl().getIde(), forInStatement.getDecl().getOptTypeRelation(), new Initializer(SYM_EQ, rhs))
+                      : new AssignmentOpExpr(forInStatement.getLValue(), SYM_EQ, rhs),
                       SYM_SEMICOLON);
       // inject synthesized statement into loop body:
       // todo: maybe we should correct the AST earlier, not during code generation?
