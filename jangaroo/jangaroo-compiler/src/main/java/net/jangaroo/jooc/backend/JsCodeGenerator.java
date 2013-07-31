@@ -108,14 +108,9 @@ import java.util.Set;
  */
 public class JsCodeGenerator extends CodeGeneratorBase {
   private static final JooSymbol SYM_VAR = new JooSymbol(sym.VAR, "var"); // NOSONAR introducing a constant for "var" would obscure the generated output
-  private static final JooSymbol SYM_EQ = new JooSymbol(sym.EQ, "=");
   private static final JooSymbol SYM_SEMICOLON = new JooSymbol(sym.SEMICOLON, ";");
   private static final JooSymbol SYM_LBRACE = new JooSymbol(sym.LBRACE, "{");
   private static final JooSymbol SYM_RBRACE = new JooSymbol(sym.RBRACE, "}");
-  private static final JooSymbol SYM_LBRACK = new JooSymbol(sym.LBRACK, "[");
-  private static final JooSymbol SYM_RBRACK = new JooSymbol(sym.RBRACK, "]");
-  private static final JooSymbol SYM_LPAREN = new JooSymbol(sym.LPAREN, "(");
-  private static final JooSymbol SYM_RPAREN = new JooSymbol(sym.RPAREN, ")");
   public static final Set<String> PRIMITIVES = new HashSet<String>(4);
   public static final List<String> ANNOTATIONS_TO_KEEP_AT_RUNTIME = Arrays.asList("SWF", "ExtConfig"); // TODO: inject / make configurable
   public static final String DEFAULT_ANNOTATION_PARAMETER_NAME = "$value";
@@ -1224,15 +1219,15 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   }
 
   @Override
-  public void visitForInStatement(ForInStatement forInStatement) throws IOException {
-    Ide exprAuxIde = forInStatement.getExprAuxIde();
+  public void visitForInStatement(final ForInStatement forInStatement) throws IOException {
+    final Ide exprAuxIde = forInStatement.getExprAuxIde();
     IdeDeclaration exprType = forInStatement.getExpr().getType();
     boolean iterateArrayMode = exprType != null && "Array".equals(exprType.getQualifiedNameStr());
     if (exprAuxIde != null && !iterateArrayMode) {
       new SemicolonTerminatedStatement(new VariableDeclaration(SYM_VAR, exprAuxIde, null, null), SYM_SEMICOLON).visit(this);
     }
     out.writeSymbol(forInStatement.getSymKeyword());
-    boolean isForEach = forInStatement.getSymEach() != null;
+    final boolean isForEach = forInStatement.getSymEach() != null;
     if (isForEach) {
       out.beginComment();
       out.writeSymbol(forInStatement.getSymEach());
@@ -1284,32 +1279,33 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     }
     out.writeSymbol(forInStatement.getRParen());
     if (isForEach || iterateArrayMode) {
-      // synthesize assigning the correct index to the variable given in the original for each statement:
-      IdeExpr auxIdeExpr = new IdeExpr(forInStatement.getAuxIde());
-      CommaSeparatedList<Expr> auxIdeExprList = new CommaSeparatedList<Expr>(auxIdeExpr);
-      Expr rhs;
-      if (!isForEach) {
-        Ide covertToStringIde = new Ide("String");
-        covertToStringIde.scope(forInStatement.getAuxIde().getScope());
-        rhs = new ApplyExpr(new IdeExpr(covertToStringIde), SYM_LPAREN, auxIdeExprList, SYM_RPAREN);
-      } else {
-        Expr expr = exprAuxIde == null ? forInStatement.getExpr() : new IdeExpr(exprAuxIde);
-        rhs = new ArrayIndexExpr(expr, SYM_LBRACK,
-                auxIdeExprList,
-              SYM_RBRACK);
-      }
-      Statement assignment = // NOSONAR no, this is not a JDBC statement that must be closed ...
-              new SemicolonTerminatedStatement(forInStatement.getDecl() != null
-                      ? new VariableDeclaration(SYM_VAR, forInStatement.getDecl().getIde(), forInStatement.getDecl().getOptTypeRelation(), new Initializer(SYM_EQ, rhs))
-                      : new AssignmentOpExpr(forInStatement.getLValue(), SYM_EQ, rhs),
-                      SYM_SEMICOLON);
       // inject synthesized statement into loop body:
-      // todo: maybe we should correct the AST earlier, not during code generation?
-      if (forInStatement.getBody() instanceof BlockStatement) {
-        ((BlockStatement) forInStatement.getBody()).getDirectives().add(0, assignment);
-      } else {
-        forInStatement.setBody(new BlockStatement(SYM_LBRACE, Arrays.<Directive>asList(assignment, forInStatement.getBody()), SYM_RBRACE));
+      if (!(forInStatement.getBody() instanceof BlockStatement)) {
+        forInStatement.setBody(new BlockStatement(SYM_LBRACE, Arrays.<Directive>asList(forInStatement.getBody()), SYM_RBRACE));
       }
+      ((BlockStatement) forInStatement.getBody()).addBlockStartCodeGenerator(new CodeGenerator() {
+        @Override
+        public void generate(JsWriter out, boolean first) throws IOException {
+          // synthesize assigning the correct index to the variable given in the original for each statement:
+          if (forInStatement.getDecl() != null) {
+            forInStatement.getDecl().visit(JsCodeGenerator.this);
+          } else {
+            forInStatement.getLValue().visit(JsCodeGenerator.this);
+          }
+          out.writeToken("=");
+          if (!isForEach) {
+            out.write("String(" + forInStatement.getAuxIde().getName() + ")");
+          } else {
+            if (exprAuxIde == null) {
+              forInStatement.getExpr().visit(JsCodeGenerator.this);
+            } else {
+              out.write(exprAuxIde.getName());
+            }
+            out.write("[" + forInStatement.getAuxIde().getName() + "]");
+          }
+          out.write(";");
+        }
+      });
     }
     forInStatement.getBody().visit(this);
   }
