@@ -3,10 +3,6 @@ package net.jangaroo.exml.as;
 import net.jangaroo.exml.model.ConfigAttribute;
 import net.jangaroo.exml.model.ConfigClass;
 import net.jangaroo.exml.model.ConfigClassType;
-import net.jangaroo.jooc.ast.IdeDeclaration;
-import net.jangaroo.jooc.ast.Parameter;
-import net.jangaroo.jooc.ast.Parameters;
-import net.jangaroo.jooc.ast.Type;
 import net.jangaroo.utils.AS3Type;
 import net.jangaroo.jooc.CompilerError;
 import net.jangaroo.jooc.JooSymbol;
@@ -37,7 +33,6 @@ public class ConfigClassBuilder extends AstVisitorBase {
   private static final String ASDOC_COMMENT_START = "/**";
 
 
-  private String configClassName;
   private ConfigClass configClass;
   private CompilationUnit compilationUnit;
 
@@ -51,7 +46,7 @@ public class ConfigClassBuilder extends AstVisitorBase {
     } catch (IOException e) {
       throw new IllegalStateException("should not happen, because the ConfigClassBuilder does not do I/O", e);
     }
-    return configClass.getComponentClassName() == null ? configClassName == null ? null : new ConfigClass(configClassName) : configClass;
+    return configClass.getComponentClassName() == null ? null : configClass;
   }
 
   @Override
@@ -153,27 +148,6 @@ public class ConfigClassBuilder extends AstVisitorBase {
   private class ClassBodyVisitor extends AstVisitorBase {
     @Override
     public void visitFunctionDeclaration(FunctionDeclaration functionDeclaration) throws IOException {
-      if (functionDeclaration.isConstructor()) {
-        // is the scanned class a target class?
-        Parameters params = functionDeclaration.getParams();
-        if (params != null) {
-          Parameter firstParam = params.getHead();
-          if ("config".equals(firstParam.getName())) {
-            TypeRelation optTypeRelation = firstParam.getOptTypeRelation();
-            if (optTypeRelation != null) {
-              Type configType = optTypeRelation.getType();
-              IdeDeclaration paramType = configType.getIde().resolveDeclaration();
-              if (paramType != null) {
-                String qualifiedParamTypeName = paramType.getQualifiedNameStr();
-                if (!"Object".equals(qualifiedParamTypeName)) {
-                  configClassName = qualifiedParamTypeName;
-                }
-              }
-            }
-          }
-        }
-        return;
-      }
       if (functionDeclaration.isGetter() && !functionDeclaration.isStatic()) {
         String name = functionDeclaration.getName();
         String type = parseTypeDeclaration(functionDeclaration);
