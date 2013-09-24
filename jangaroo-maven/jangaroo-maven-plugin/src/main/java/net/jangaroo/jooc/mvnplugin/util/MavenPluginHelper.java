@@ -83,7 +83,11 @@ public class MavenPluginHelper {
         classPath.add(dependency.getFile());
       }
     }
-    classPath.add(0, new File(project.getBasedir(), "src/main/joo-api"));
+    // only for backwards-compatibility, use "src/main/joo-api" directory if it exists:
+    File jooApiDir = new File(project.getBasedir(), "src/main/joo-api");
+    if (jooApiDir.exists()) {
+      classPath.add(0, jooApiDir);
+    }
     return classPath;
   }
 
