@@ -36,14 +36,11 @@ public abstract class TypedField extends DescriptionHolder {
     }
 
     TypedField that = (TypedField) o;
-    return name.equals(that.name) &&
-            type.equals(that.type);
+    return name.equals(that.name);
   }
 
   @Override
   public int hashCode() {
-    int result = name.hashCode();
-    result = 31 * result + type.hashCode();
-    return result;
+    return name.hashCode();
   }
 }

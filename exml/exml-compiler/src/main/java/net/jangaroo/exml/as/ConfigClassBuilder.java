@@ -160,7 +160,7 @@ public class ConfigClassBuilder extends AstVisitorBase {
       TypeRelation optTypeRelation = functionDeclaration.getFun().getOptTypeRelation();
       String type;
       if (optTypeRelation != null) {
-        type = optTypeRelation.getType().getSymbol().getText();
+        type = optTypeRelation.getType().getIde().getQualifiedNameStr();
       } else {
         type = AS3Type.ANY.toString();
       }
