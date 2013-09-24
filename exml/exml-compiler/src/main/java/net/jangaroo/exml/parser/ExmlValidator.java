@@ -45,6 +45,7 @@ import java.util.zip.ZipFile;
  */
 public class ExmlValidator {
 
+  public static final String EXML_VALIDATION_MESSAGE_PREFIX = "EXML validation: ";
   private final ExmlConfiguration config;
   private final Map<String, ExmlSchemaSource> exmlSchemaSourceByNamespace;
 
@@ -57,13 +58,17 @@ public class ExmlValidator {
 
   public void validateExmlFile(File exmlFile) throws IOException, SAXException {
     SAXParser parser = setupSAXParser();
-    validateOneExmlfile(parser, exmlFile);
+    if (parser != null) {
+      validateOneExmlfile(parser, exmlFile);
+    }
   }
 
   public void validateAllExmlFiles() throws IOException, SAXException {
     SAXParser parser = setupSAXParser();
-    for (final File exmlFile : config.getSourceFiles()) {
-      validateOneExmlfile(parser, exmlFile);
+    if (parser != null) {
+      for (final File exmlFile : config.getSourceFiles()) {
+        validateOneExmlfile(parser, exmlFile);
+      }
     }
   }
 
@@ -95,9 +100,9 @@ public class ExmlValidator {
   private void logSAXParseException(File exmlFile, SAXParseException e, boolean isError) {
     SAXParseException2FilePositionAdapter filePosition = new SAXParseException2FilePositionAdapter(exmlFile, e);
     if (isError) {
-      config.getLog().error(filePosition, e.getMessage());
+      config.getLog().error(filePosition, EXML_VALIDATION_MESSAGE_PREFIX + e.getMessage());
     } else {
-      config.getLog().warning(filePosition, e.getMessage());
+      config.getLog().warning(filePosition, EXML_VALIDATION_MESSAGE_PREFIX + e.getMessage());
     }
     //System.out.println("validation issue in " + exmlFile + " in line " + e.getLineNumber() + ": " + e.getMessage());
   }
@@ -130,8 +135,9 @@ public class ExmlValidator {
     } catch (ParserConfigurationException e) {
       throw new IllegalStateException("A default dom builder should be provided.", e);
     } catch (SAXParseException e) {
+      // SAX parser error while parsing EXML schemas: log only, will cause error or warning, depending on configuration:
       logSAXParseException(null, e, true);
-      throw new IllegalStateException("SAX parser error while parsing EXML schemas.", e);
+      return null;
     } catch (SAXException e) {
       throw new IllegalStateException("SAX parser does not support validation.", e);
     }

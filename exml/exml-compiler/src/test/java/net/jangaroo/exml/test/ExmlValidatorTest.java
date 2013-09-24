@@ -79,7 +79,7 @@ public class ExmlValidatorTest extends AbstractExmlTest {
 
   private void assertValidationErrorEquals(String expectedFilename, int expectedLine, String expectedMessage, Map.Entry<FilePosition, String> validationError) {
     Assert.assertEquals(expectedFilename, validationError.getKey().getFileName());
-    Assert.assertEquals(expectedMessage, validationError.getValue());
+    Assert.assertEquals(ExmlValidator.EXML_VALIDATION_MESSAGE_PREFIX + expectedMessage, validationError.getValue());
     Assert.assertEquals(expectedLine, validationError.getKey().getLine());
   }
 

@@ -53,7 +53,7 @@ public dynamic class ${name} extends ${superClassName} {
     super(config || {});
   }
 
-  <#list cfgs as cfg>
+  <#list directCfgs as cfg>
   /**
    * ${cfg.escapedDescription!}
    */
