@@ -661,9 +661,9 @@ public class JooTest extends JooRuntimeTestCase {
     expectBoolean(true, "package1.TestAnnotations.$class.metadata.ClassAnnotation.bool");
     expectString("foo", "package1.TestAnnotations.$class.metadata.ClassAnnotation.str");
 
-    //expectBoolean(true, "!!package1.TestAnnotations.$class.getMemberDeclaration('public','getState').metadata.Bindable");
+    expectBoolean(true, "!!package1.TestAnnotations.$class.getMemberDeclaration('public','getState').metadata.Bindable");
 
-    //expectBoolean(false, "package1.TestAnnotations.$class.getMemberDeclaration('private','state').metadata.Serializable.transitive");
+    expectBoolean(false, "package1.TestAnnotations.$class.getMemberDeclaration('private','state').metadata.Serializable.transitive");
 
     // TODO: I did not yet find out how constructors are represented in AS3 reflection.
     //expectString("bar", "package1.TestAnnotations.$class.getMemberDeclaration('public','TestAnnotations').metadata.foo");

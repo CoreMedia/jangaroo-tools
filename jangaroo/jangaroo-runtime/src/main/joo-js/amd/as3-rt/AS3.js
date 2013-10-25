@@ -71,8 +71,8 @@ define(["as3/joo/JooClassDeclaration"], function(JooClassDeclaration) {
         var staticMembers = convertShortcuts(config.staticMembers);
         // add some meta information under reserved static field "$class":
         staticMembers.$class = { value: new JooClassDeclaration(
-                config.class_,
                 config.package_,
+                config.class_,
                 extends_,
                 $implements,
                 config.metadata

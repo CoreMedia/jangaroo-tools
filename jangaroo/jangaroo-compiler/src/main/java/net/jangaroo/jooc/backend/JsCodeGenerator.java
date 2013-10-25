@@ -98,6 +98,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -112,8 +113,9 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   private static final JooSymbol SYM_LBRACE = new JooSymbol(sym.LBRACE, "{");
   private static final JooSymbol SYM_RBRACE = new JooSymbol(sym.RBRACE, "}");
   public static final Set<String> PRIMITIVES = new HashSet<String>(4);
-  public static final List<String> ANNOTATIONS_TO_KEEP_AT_RUNTIME = Arrays.asList("SWF", "ExtConfig"); // TODO: inject / make configurable
-  public static final String DEFAULT_ANNOTATION_PARAMETER_NAME = "$value";
+  public static final List<String> ANNOTATIONS_TO_TRIGGER_AT_RUNTIME = Arrays.asList("SWF", "ExtConfig"); // TODO: inject / make configurable
+  public static final List<String> ANNOTATIONS_FOR_COMPILER_ONLY = Arrays.asList("Embed", "Native", "Accessor");
+  public static final String DEFAULT_ANNOTATION_PARAMETER_NAME = "";
 
   static {
     PRIMITIVES.add("Boolean");
@@ -138,7 +140,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   private int staticCodeCounter = 0;
   private ClassDefinitionBuilder secondaryClassDefinitionBuilder = new ClassDefinitionBuilder();
   private CompilationUnit compilationUnit;
-  private JsonObject currentMetadata = new JsonObject();
+  private LinkedList<Metadata> currentMetadata = new LinkedList<Metadata>();
   private final MessageFormat VAR_$NAME_EQUALS_ARGUMENTS_SLICE_$INDEX =
     new MessageFormat("var {0}=Array.prototype.slice.call(arguments{1,choice,0#|0<,{1}});");
   private final MessageFormat COMPILATION_UNIT_ACCESS_MESSAGE_FORMAT = new MessageFormat("{0}._");
@@ -299,8 +301,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       value = null;
     }
 
-    String annotationName = annotationParameter.getParentAnnotation().getIde().getName();
-    ((JsonObject)currentMetadata.get(annotationName)).set(name, value);
+    currentMetadata.getLast().args.add(new MetadataArgument(name, value));
   }
 
   @Override
@@ -353,7 +354,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       }
     }
     for (String annotation : compilationUnit.getUsedAnnotations()) {
-      if (ANNOTATIONS_TO_KEEP_AT_RUNTIME.contains(annotation)) {
+      if (ANNOTATIONS_TO_TRIGGER_AT_RUNTIME.contains(annotation)) {
         out.write(",\"metadata/" + annotation + "\"");
       }
     }
@@ -1421,6 +1422,12 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       Debug.assertTrue(variableDeclaration.getOptSymConstOrVar() != null && variableDeclaration.getOptSymConstOrVar().sym == sym.COMMA, "Additional variable declarations must start with a COMMA.");
     }
     if (variableDeclaration.isClassMember() && !variableDeclaration.isPrivateStatic()) {
+      if (!variableDeclaration.isPrimaryDeclaration() && !currentMetadata.isEmpty()) {
+        getClassDefinitionBuilder(variableDeclaration).storeCurrentMetadata(
+                variableDeclaration.getIde().getName(),
+                currentMetadata
+        );
+      }
       out.beginComment();
       writeModifiers(out, variableDeclaration);
       writeOptSymbol(variableDeclaration.getOptSymConstOrVar());
@@ -1477,13 +1484,14 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
   private void resetCurrentMetadata(IdeDeclaration declaration) {
     if (declaration.isClassMember() || declaration.isPrimaryDeclaration()) {
-      currentMetadata = new JsonObject();
+      currentMetadata = new LinkedList<Metadata>();
     }
   }
 
   private String getValueFromEmbedMetadata() {
-    if (currentMetadata.get("Embed") != null) {
-      String source = (String) ((JsonObject) currentMetadata.get("Embed")).get("source");
+    Metadata embedMetadata = Metadata.find(currentMetadata, "Embed");
+    if (embedMetadata != null) {
+      String source = (String) embedMetadata.getArgumentValue("source");
       String assetType = CompilationUnit.guessAssetType(source);
       int index = compilationUnit.getResourceDependencies().indexOf(assetType + "!" + source);
       String assetFactory = "new String";
@@ -1601,6 +1609,12 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     if (!functionDeclaration.isClassMember() && !isPrimaryDeclaration) {
       functionDeclaration.getFun().visit(this);
     } else {
+      if (!isPrimaryDeclaration && !currentMetadata.isEmpty()) {
+        getClassDefinitionBuilder(functionDeclaration).storeCurrentMetadata(
+                functionDeclaration.getIde().getName(),
+                currentMetadata
+        );
+      }
       out.beginComment();
       writeModifiers(out, functionDeclaration);
       if (functionDeclaration.isAbstract() || functionDeclaration.isNative()) {
@@ -1619,10 +1633,10 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
         boolean isAccessor = functionDeclaration.isGetterOrSetter();
         if (isAccessor) {
-          Object accessorAnnotation = currentMetadata.get(Jooc.ACCESSOR_ANNOTATION_NAME);
-          if (accessorAnnotation instanceof JsonObject) {
+          Metadata accessorAnnotation = Metadata.find(currentMetadata, Jooc.ACCESSOR_ANNOTATION_NAME);
+          if (accessorAnnotation != null) {
             String accessorPrefix = functionDeclaration.getSymGetOrSet().getText();
-            String accessorName = (String) ((JsonObject) accessorAnnotation).get(DEFAULT_ANNOTATION_PARAMETER_NAME);
+            String accessorName = (String) accessorAnnotation.getArgumentValue(DEFAULT_ANNOTATION_PARAMETER_NAME);
             if (accessorName != null) {
               methodName = accessorName;
             } else {
@@ -1709,8 +1723,8 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   public void visitClassDeclaration(ClassDeclaration classDeclaration) throws IOException {
     ClassDefinitionBuilder classDefinitionBuilder = classDeclaration.isPrimaryDeclaration()
             ? primaryClassDefinitionBuilder : secondaryClassDefinitionBuilder;
-    classDefinitionBuilder.metadata = currentMetadata;
-    currentMetadata = new JsonObject();
+    classDefinitionBuilder.storeCurrentMetadata("", currentMetadata);
+    currentMetadata = new LinkedList<Metadata>();
     out.beginComment();
     writeModifiers(out, classDeclaration);
     out.writeSymbol(classDeclaration.getSymClass());
@@ -1841,7 +1855,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitAnnotation(Annotation annotation) throws IOException {
-    currentMetadata.set(annotation.getIde().getName(), new JsonObject());
+    currentMetadata.add(new Metadata(annotation.getIde().getName()));
     out.beginComment();
     out.writeSymbol(annotation.getLeftBracket());
     annotation.getIde().visit(this);
@@ -1924,6 +1938,43 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     }
   }
 
+  private static class Metadata {
+    String name;
+    List<MetadataArgument> args = new ArrayList<MetadataArgument>();
+
+    static Metadata find(List<Metadata> metadataList, String name) {
+      for (Metadata metadata : metadataList) {
+        if (metadata.name.equals(name)) {
+          return metadata;
+        }
+      }
+      return null;
+    }
+
+    private Metadata(String name) {
+      this.name = name;
+    }
+
+    public Object getArgumentValue(String argumentName) {
+      for (MetadataArgument arg : args) {
+        if (arg.name.equals(argumentName)) {
+          return arg.value;
+        }
+      }
+      return null;
+    }
+  }
+
+  private static class MetadataArgument {
+    String name;
+    Object value;
+
+    private MetadataArgument(String name, Object value) {
+      this.name = name;
+      this.value = value;
+    }
+  }
+
   private static class ClassDefinitionBuilder {
     JsonObject metadata = new JsonObject();
     Map<String,PropertyDefinition> members = new LinkedHashMap<String, PropertyDefinition>();
@@ -1931,5 +1982,34 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     StringBuilder staticInitializerCode = new StringBuilder();
     StringBuilder staticCode = new StringBuilder();
     boolean super$Used = false;
+
+    void storeCurrentMetadata(String memberName, LinkedList<Metadata> currentMetadata) {
+      Object memberMetadata = metadata.get(memberName);
+      List<Object> allMetadata = memberMetadata instanceof JsonArray
+              ? ((JsonArray) memberMetadata).getItems()
+              : new LinkedList<Object>();
+      allMetadata.addAll(compress(currentMetadata));
+      if (!allMetadata.isEmpty()) {
+        metadata.set(memberName, new JsonArray(allMetadata.toArray()));
+      }
+    }
+
+    public List<Object> compress(List<Metadata> metadataList) {
+      List<Object> comressedMetadataList = new ArrayList<Object>();
+      for (Metadata metadata : metadataList) {
+        if (!ANNOTATIONS_FOR_COMPILER_ONLY.contains(metadata.name)) {
+          comressedMetadataList.add(metadata.name);
+          if (!metadata.args.isEmpty()) {
+            ArrayList<Object> argNameValues = new ArrayList<Object>();
+            for (MetadataArgument metadataArgument : metadata.args) {
+              argNameValues.add(metadataArgument.name);
+              argNameValues.add(metadataArgument.value);
+            }
+            comressedMetadataList.add(new JsonArray(argNameValues.toArray()));
+          }
+        }
+      }
+      return comressedMetadataList;
+    }
   }
 }

@@ -159,7 +159,11 @@ public class JsonObject implements Json {
   }
 
   private void writeKeyValue(String key, int indentFactor, int indent, StringBuilder sb) {
-    sb.append(key);
+    if (key.isEmpty()) { // TODO: if (!key.matches(<JS_IDENTIFIER_PATTERN>)) 
+      sb.append("\"\"");
+    } else {
+      sb.append(key);
+    }
     sb.append(": ");
     sb.append(valueToString(this.properties.get(key), indentFactor, indent));
   }

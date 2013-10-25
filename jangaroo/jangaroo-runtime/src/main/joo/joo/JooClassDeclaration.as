@@ -15,8 +15,14 @@ public class JooClassDeclaration extends NativeClassDeclaration {
    * The list of interfaces this class implements.
    */
   public native function get implements_():Array;
+  /**
+   * The declaration of the class this class extends (its superclass declaration).
+   */
+  public native function get superClassDeclaration():NativeClassDeclaration;
 
-  public function JooClassDeclaration(name:String, packageName:String, extends_:Class, implements_:Array,
+  public native function getMemberDeclaration(namespace:String, memberName:String):MemberDeclaration;
+
+  public function JooClassDeclaration(packageName:String, name:String, extends_:Class, implements_:Array,
                                       metadata:Object) {
     super(packageName, name);
   }

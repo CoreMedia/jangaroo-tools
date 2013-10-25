@@ -130,7 +130,13 @@ public class SomeMxmlClass extends package1.ConfigClass {
     var Super=ConfigClass._;
     $primaryDeclaration(AS3.class_({
       package_: "package1",
-      metadata: {ResourceBundle: {$value: "Foo"}},
+      metadata: {"": [
+        "ResourceBundle",
+        [
+          "",
+          "Foo"
+        ]
+      ]},
       class_: "SomeMxmlClass",
       extends_: Super,
       members: {

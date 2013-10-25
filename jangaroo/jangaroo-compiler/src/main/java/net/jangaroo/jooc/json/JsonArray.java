@@ -63,6 +63,9 @@ public class JsonArray implements Json {
     return sb.toString();
   }
 
+  public List<Object> getItems() {
+    return new ArrayList<Object>(items);
+  }
 
   public Object get(String property) {
     return items.get(Integer.parseInt(property));
