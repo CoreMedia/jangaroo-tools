@@ -186,9 +186,7 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
       ClassDeclaration currentClass = scope.getClassDeclaration();
       if (classDeclaration != null) { // otherwise we are in a global function - todo parse them as function declaration
         // declare this and super
-        final Type thisType = currentClass.getThisType();
-        final Parameter thisParam = new Parameter(null, new Ide("this"), new TypeRelation(null, thisType), null);
-        fun.addImplicitParam(thisParam);
+        fun.setThisDefined();
         final Type superType = currentClass.getSuperType();
         if (superType != null) {
           fun.addImplicitParam(new Parameter(null, new Ide("super"), new TypeRelation(null, superType), null));

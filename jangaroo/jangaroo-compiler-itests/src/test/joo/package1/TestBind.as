@@ -17,6 +17,8 @@ package package1 {
 
 public class TestBind {
 
+  public var boundField:Function = getStatePrivate;
+
   public function TestBind(state : String) {
     this.state = state;
   }

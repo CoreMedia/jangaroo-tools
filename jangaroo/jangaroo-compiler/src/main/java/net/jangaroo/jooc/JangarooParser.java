@@ -11,11 +11,9 @@ import net.jangaroo.jooc.api.FilePosition;
 import net.jangaroo.jooc.api.Jooc;
 import net.jangaroo.jooc.ast.AstNode;
 import net.jangaroo.jooc.ast.CompilationUnit;
-import net.jangaroo.jooc.ast.Ide;
 import net.jangaroo.jooc.ast.IdeDeclaration;
 import net.jangaroo.jooc.ast.ImportDirective;
 import net.jangaroo.jooc.ast.PredefinedTypeDeclaration;
-import net.jangaroo.jooc.ast.VariableDeclaration;
 import net.jangaroo.jooc.config.ParserOptions;
 import net.jangaroo.jooc.config.SemicolonInsertionMode;
 import net.jangaroo.jooc.input.InputSource;
@@ -162,14 +160,6 @@ public class JangarooParser {
     decl.scope(scope);
   }
 
-  protected static void declareValues(Scope scope, String[] identifiers) {
-    for (String identifier : identifiers) {
-      Ide ide = new Ide(new JooSymbol(identifier));
-      IdeDeclaration decl = new VariableDeclaration(new JooSymbol("var"), ide, null, null);
-      decl.scope(scope);
-    }
-  }
-
   protected InputSource findSource(final String qname) {
     // scan sourcepath
     InputSource result = sourcePathInputSource.getChild(getInputSourceFileName(qname, sourcePathInputSource, Jooc.AS_SUFFIX));
@@ -277,18 +267,10 @@ public class JangarooParser {
     }
   }
 
-  private void buildGlobalScope() {
-    //todo declare this depending on context
-    declareValues(globalScope, new String[]{
-            "this"});
-  }
-
   public void setUp(InputSource sourcePathInputSource, InputSource classPathInputSource) {
     defaultLog.set(log);
     this.sourcePathInputSource = sourcePathInputSource;
     this.classPathInputSource = classPathInputSource;
-
-    buildGlobalScope();
   }
 
   public void tearDown() {

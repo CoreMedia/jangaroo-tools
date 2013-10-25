@@ -580,6 +580,7 @@ public class JooTest extends JooRuntimeTestCase {
     import_("package1.TestBind");
     complete();
     eval("obj = new package1.TestBind('foo');");
+    expectString("foo", "obj.boundField()");
     expectString("foo", "obj.getState()");
     expectString("foo", "obj.testInvokeLocalVar()");
     expectString("foo", "obj.testInvokeLocalVarUnqualified()");

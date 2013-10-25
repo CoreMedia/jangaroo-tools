@@ -169,6 +169,9 @@ public class ClassDeclaration extends IdeDeclaration {
         withNewDeclarationScope(ClassDeclaration.this, staticScope, new Scoped() {
           @Override
           public void run(final Scope instanceScope) {
+            VariableDeclaration thisDeclaration
+                    = new VariableDeclaration(new JooSymbol("var"), new Ide("this"), new TypeRelation(null, getThisType()));
+            thisDeclaration.scope(instanceScope);
             //todo ugly, maybe we should define ClassScope implements Scope to lookup inherited members
             if(instanceScope instanceof  DeclarationScope) {
               ((DeclarationScope) instanceScope).setIsInstanceScope(true);

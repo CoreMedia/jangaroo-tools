@@ -285,6 +285,11 @@ public class JoocTest {
   }
 
   @Test
+  public void testMethodBinding() throws Exception {
+    assertCompilationResult("package1/TestBind");
+  }
+
+  @Test
   public void testHelperClasses() throws Exception {
     assertCompilationResult("package1/TestHelperClasses");
   }

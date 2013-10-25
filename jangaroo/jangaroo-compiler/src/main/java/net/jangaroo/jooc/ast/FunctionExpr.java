@@ -158,7 +158,10 @@ public class FunctionExpr extends Expr {
 
   public void addImplicitParam(Parameter parameter) {
     implicitParams.add(parameter);
-    thisDefined = thisDefined || parameter.getIde().getName().equals("this");
+  }
+
+  public void setThisDefined() {
+    thisDefined = true;
   }
 
   public boolean hasBody() {
