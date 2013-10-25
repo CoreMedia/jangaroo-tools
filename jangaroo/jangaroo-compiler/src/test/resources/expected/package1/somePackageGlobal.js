@@ -7,7 +7,7 @@ import package1.someOtherPackage.SomeOtherClass;
  * Some package-global documentation;
  * /
 public*/ var somePackageGlobal/*:SomeOtherClass*/
-  = new (SomeOtherClass._||SomeOtherClass._$get())(); $primaryDeclaration({value: somePackageGlobal,writable: true});/*
+  = new SomeOtherClass._(); $primaryDeclaration({value: somePackageGlobal,writable: true});/*
 
 }
 */

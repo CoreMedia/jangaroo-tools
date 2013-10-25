@@ -11,7 +11,7 @@ public class ChainedConstants {
 
   public static const ANOTHER_METHOD_TYPE : String =*/function ANOTHER_METHOD_TYPE$static_(){Object.defineProperty(ChainedConstants,"ANOTHER_METHOD_TYPE",{value: ChainedConstants.METHOD_TYPE_GET.substr(0)});}/*;
 
-  public static const THE_BLA : String =*/function THE_BLA$static_(){Object.defineProperty(ChainedConstants,"THE_BLA",{value: (SomeOtherClass._||SomeOtherClass._$get()).BLA});}/*;
+  public static const THE_BLA : String =*/function THE_BLA$static_(){Object.defineProperty(ChainedConstants,"THE_BLA",{value: SomeOtherClass._.BLA});}/*;
 }*/function ChainedConstants() {}/*
 }
 

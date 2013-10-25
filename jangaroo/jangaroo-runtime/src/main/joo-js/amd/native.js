@@ -1,15 +1,19 @@
 define(function() {
+  var theGlobalObject = this;
   function global(names) {
+    'use strict';
     for (var j = 0; j < names.length; ++j) {
       var name = names[j];
-      var ref = this; // global object
-      var props = name.split('.');
+      var ref = theGlobalObject;
+      var props = name ? name.split('.') : [];
       var pl = props.length;
       try {
         for (var i = 0; ref && i < pl; i++) {
           ref = ref[props[i]];
         }
-        return ref;
+        if (ref !== undefined) {
+          return ref;
+        }
       } catch(e) {
         // ignore
       }
@@ -42,6 +46,7 @@ define(function() {
       }
     },
     normalize: function (name, normalize) {
+      'use strict';
       var parts = name.split('@');
       var variable = parts[0];
       var module = parts[1];

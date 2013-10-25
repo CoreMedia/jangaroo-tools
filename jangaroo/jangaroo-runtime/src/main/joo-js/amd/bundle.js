@@ -69,11 +69,11 @@ define(["module"], function (module) {
         req(toLoad, onLoad);
       } else {
         //First, fetch the master bundle, it knows what locales are available.
-        req([masterName, "as3/mx/resources/ResourceManager", "as3-rt/retrievePrimaryDeclaration"], function (master, ResourceManager, retrievePrimaryDeclaration) {
+        req([masterName, "as3/mx/resources/ResourceManager"], function (master, ResourceManager) {
           var localesToLoad = findLocalesToLoad(master);
           var toLoad = localesToLoad.map(localeToModuleName);
 
-          var resourceManager = retrievePrimaryDeclaration(ResourceManager).getInstance();
+          var resourceManager = ResourceManager._.getInstance();
           resourceManager.setLocaleChain(masterConfig.localeChain);
           //Load all the parts missing.
           req(toLoad, function () {

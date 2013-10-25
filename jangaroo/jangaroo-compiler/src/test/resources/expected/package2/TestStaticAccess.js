@@ -21,33 +21,33 @@ public class TestStaticAccess extends StaticAccessSuperClass {
   static private*/ var s2$static/*:String*/ = "s2";/*
 
   public*/ function TestStaticAccess() {Super.call(this);
-    (StaticAccessSuperSuperClass._||StaticAccessSuperSuperClass._$get()).f0();
+    StaticAccessSuperSuperClass._.f0();
   }/*
 
   static public*/ function get_s0$static()/*:String*/ {
-    return (StaticAccessSuperClass._||StaticAccessSuperClass._$get()).s0;
+    return StaticAccessSuperClass._.s0;
   }/*
  
   static public*/ function set_s0$static(_s0/*:String*/)/*:void*/ {
-    (StaticAccessSuperClass._||StaticAccessSuperClass._$get()).s0 = _s0;
+    StaticAccessSuperClass._.s0 = _s0;
   }/*
 
   static public*/ function get_s0_qualified$static()/*:String*/ {
     var s0/*:String*/ = "qualified error";
-    return (StaticAccessSuperClass._||StaticAccessSuperClass._$get()).s0;
+    return StaticAccessSuperClass._.s0;
   }/*
 
   static public*/ function set_s0_qualified$static(s0/*:String*/)/*:void*/ {
-    (StaticAccessSuperClass._||StaticAccessSuperClass._$get()).s0 = s0;
+    StaticAccessSuperClass._.s0 = s0;
   }/*
 
   static public*/ function get_s0_fully_qualified$static()/*:String*/ {
     var s0/*:String*/ = "fully qualified error";
-    return (StaticAccessSuperClass._||StaticAccessSuperClass._$get()).s0;
+    return StaticAccessSuperClass._.s0;
   }/*
 
   static public*/ function set_s0_fully_qualified$static(s0/*:String*/)/*:void*/ {
-    (StaticAccessSuperClass._||StaticAccessSuperClass._$get()).s0 = s0;
+    StaticAccessSuperClass._.s0 = s0;
   }/*
 
   static public*/ function get_s1$static()/*:String*/ {
@@ -122,7 +122,7 @@ public class TestStaticAccess extends StaticAccessSuperClass {
 }
 
 ============================================== Jangaroo part ==============================================*/
-    var Super=(StaticAccessSuperClass._||StaticAccessSuperClass._$get());
+    var Super=StaticAccessSuperClass._;
     $primaryDeclaration(AS3.class_({
       package_: "package2",
       class_: "TestStaticAccess",

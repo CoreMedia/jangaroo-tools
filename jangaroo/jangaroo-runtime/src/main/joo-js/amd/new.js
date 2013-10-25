@@ -15,9 +15,7 @@ define(function() {
     load: function (name, req, load, config) {
       function loadAndNew() {
         req([name], function (value) {
-          // don't use retrievePrimaryDeclaration here, as "new!" is used for bootstrap and we don't want to
-          // load retrievePrimaryDeclaration.js as a separate request.
-          load(new (value._ || value._$get())(config.config));
+          load(new value._(config.config));
         });
       }
       if (config.isBuild) {

@@ -15,9 +15,7 @@ define(function() {
     load: function (name, req, load, config) {
       function loadAndInit() {
         req([name], function (value) {
-          // don't use retrievePrimaryDeclaration here, as "as3!" is used for bootstrap and we don't want to
-          // load retrievePrimaryDeclaration.js as a separate request.
-          load(value._ || value._$get());
+          load(value._);
         });
       }
       if (config.isBuild) {

@@ -1,12 +1,12 @@
-define(["require", "as3-rt/getModuleName", "as3-rt/retrievePrimaryDeclaration"], function(require, getModuleName, retrievePrimaryDeclaration) {
+define(["require", "as3-rt/getModuleName"], function(require, getModuleName) {
   "use strict";
   return function loadClass(qName, callback) {
     if (!callback) {
       var compilationUnit = require(getModuleName(qName));
-      return retrievePrimaryDeclaration(compilationUnit);
+      return compilationUnit._;
     }
     require([getModuleName(qName)], function(compilationUnit) {
-      callback(retrievePrimaryDeclaration(compilationUnit));
+      callback(compilationUnit._);
     });
     return null;
   };

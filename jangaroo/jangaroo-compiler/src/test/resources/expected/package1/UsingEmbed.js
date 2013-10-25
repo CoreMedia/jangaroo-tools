@@ -12,7 +12,7 @@ public class UsingEmbed {
   private static*/ var anotherText$static/*:Class*/=function(){return new String($resource_1)};/*
 
   [Embed(source="package1/jooley.png")]
-  private static*/ var jooley$static/*:Class*/=function(){return (Bitmap._||Bitmap._$get()).fromImg($resource_2)};/*
+  private static*/ var jooley$static/*:Class*/=function(){return Bitmap._.fromImg($resource_2)};/*
 
 }*/function UsingEmbed() {}/*
 }

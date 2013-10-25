@@ -7,7 +7,7 @@ import package1.someOtherPackage.SomeOtherClass;
  * Some package-global documentation;
  * /
 public*/ function somePackageGlobalFun(flag/*:Boolean*/)/*:SomeOtherClass*/ {
-  return new (SomeOtherClass._||SomeOtherClass._$get())();
+  return new SomeOtherClass._();
 } $primaryDeclaration(somePackageGlobalFun);/*
 
 }

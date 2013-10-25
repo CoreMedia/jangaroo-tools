@@ -7,8 +7,8 @@ import package1.someOtherPackage.SomeOtherClass;
 public class UsingSomePackageGlobal {
 
   public static*/ function main$static()/*:void*/ {
-    somePackageGlobal._ = new (SomeOtherClass._||SomeOtherClass._$get())();
-    var local/*:Object*/ = (somePackageGlobal._||somePackageGlobal._$get()) || {};
+    somePackageGlobal._ = new SomeOtherClass._();
+    var local/*:Object*/ = somePackageGlobal._ || {};
   }/*
 
 }*/function UsingSomePackageGlobal() {}/*

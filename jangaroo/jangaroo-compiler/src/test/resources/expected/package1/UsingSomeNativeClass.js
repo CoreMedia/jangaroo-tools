@@ -10,7 +10,7 @@ public class UsingSomeNativeClass {
   public native function get someNative2():package1.SomeNativeClass;
 
   public*/ function UsingSomeNativeClass() {var this$=this;someNative_.call(this);
-    new (package1$someOtherPackage$SomeNativeClass._||package1$someOtherPackage$SomeNativeClass._$get())();
+    new package1$someOtherPackage$SomeNativeClass._();
     this.someNative.setBaz ( "foo");
     this.someNative2.setBaz ( "foo");
     var local = function package1$UsingSomeNativeClass$16_17()/*:void*/ {

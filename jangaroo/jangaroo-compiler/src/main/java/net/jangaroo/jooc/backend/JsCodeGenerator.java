@@ -141,8 +141,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   private JsonObject currentMetadata = new JsonObject();
   private final MessageFormat VAR_$NAME_EQUALS_ARGUMENTS_SLICE_$INDEX =
     new MessageFormat("var {0}=Array.prototype.slice.call(arguments{1,choice,0#|0<,{1}});");
-  // private final MessageFormat COMPILATION_UNIT_ACCESS_MESSAGE_FORMAT = new MessageFormat("{0}._");
-  private final MessageFormat COMPILATION_UNIT_ACCESS_MESSAGE_FORMAT = new MessageFormat("({0}._||{0}._$get())");
+  private final MessageFormat COMPILATION_UNIT_ACCESS_MESSAGE_FORMAT = new MessageFormat("{0}._");
 
   private void generateToArrayCode(String paramName, int paramIndex) throws IOException {
     out.write(VAR_$NAME_EQUALS_ARGUMENTS_SLICE_$INDEX.format(paramName, paramIndex));

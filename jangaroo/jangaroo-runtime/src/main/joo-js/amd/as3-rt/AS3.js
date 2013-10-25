@@ -1,4 +1,4 @@
-define(["native!Object.defineProperties@./es5-polyfills", "native!Object.create@./es5-polyfills", "as3/joo/NativeClassDeclaration", "as3/joo/JooClassDeclaration"], function(defineProperties, create, NativeClassDeclaration, JooClassDeclaration) {
+define(["as3/joo/JooClassDeclaration"], function(JooClassDeclaration) {
   "use strict";
   function toString() {
     return "[Class " + this.$class.name + "]";
@@ -14,12 +14,6 @@ define(["native!Object.defineProperties@./es5-polyfills", "native!Object.create@
       for (var name in propertyDescriptors) {
         var propertyDescriptor = propertyDescriptors[name];
         result[name] = convertShortcut(propertyDescriptor);
-        if (propertyDescriptor.get) {
-          result[name + "$get"] = { value: propertyDescriptor.get };
-        }
-        if (propertyDescriptor.set) {
-          result[name + "$set"] = { value: propertyDescriptor.set };
-        }
         if (name !== "constructor") {
           result[name].enumerable = true; // TODO: only for debugging, save describeType data elsewhere!
         }
@@ -72,7 +66,7 @@ define(["native!Object.defineProperties@./es5-polyfills", "native!Object.create@
         var extends_ = config.extends_ || Object; // super class
         var implements_ = config.implements_ || [];
         // create set of all interfaces implemented by this class
-        var $implements = extends_.$class && extends_.$class.implements_ ? create(extends_.$class.implements_ ) : {};
+        var $implements = extends_.$class && extends_.$class.implements_ ? Object.create(extends_.$class.implements_ ) : {};
         implements_.forEach(function(i) { i.addInterfaces($implements); });
         var staticMembers = convertShortcuts(config.staticMembers);
         // add some meta information under reserved static field "$class":
@@ -84,7 +78,7 @@ define(["native!Object.defineProperties@./es5-polyfills", "native!Object.create@
                 config.metadata
         )};
         staticMembers.toString = { value: toString }; // add Class#toString()
-        defineProperties(clazz, staticMembers);   // add static members
+        Object.defineProperties(clazz, staticMembers);   // add static members
         // for classes extending joo.JavaScriptObject, remove the constructor, as it would be enumerable in IE8:
         var current = clazz;
         while (current.$class) {
@@ -94,7 +88,7 @@ define(["native!Object.defineProperties@./es5-polyfills", "native!Object.create@
           }
           current = current.$class.extends_;
         }
-        clazz.prototype = create(extends_.prototype, members); // establish inheritance prototype chain and add instance members
+        clazz.prototype = Object.create(extends_.prototype, members); // establish inheritance prototype chain and add instance members
         return clazz;
   }
 
@@ -112,10 +106,13 @@ define(["native!Object.defineProperties@./es5-polyfills", "native!Object.create@
     config.extends_ && config.extends_.forEach(function (i) {
       i.addInterfaces(interfaces);
     });
-    defineProperties(exports, convertShortcuts({
-      $class: { value: new NativeClassDeclaration(
+    Object.defineProperties(exports, convertShortcuts({
+      $class: { value: new JooClassDeclaration(
               config.package_,
-              config.interface_
+              config.interface_,
+              undefined,
+              undefined,
+              config.metadata
       )},
       interfaces: { value: interfaces },
       addInterfaces: addInterfaces,

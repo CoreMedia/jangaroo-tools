@@ -1,5 +1,6 @@
 // simulate AS3 trace()
-define(["native!Array.prototype.map@as3-rt/es5-polyfills"], function(map) {
+define(["native!"], function(global) {
+  "use strict";
   var log = (function() {
     if (this.console && this.console.log) { // most browsers
       if (this.console.log.bind) {
@@ -14,10 +15,10 @@ define(["native!Array.prototype.map@as3-rt/es5-polyfills"], function(map) {
       return this.print;
     }
     return null;
-  })();
+  }).call(global);
 
   function trace() {
-    var msg = map.call(arguments, String).join(" ");
+    var msg = Array.prototype.map.call(arguments, String).join(" ");
     log(msg);
   }
   return log ? trace : function() { };

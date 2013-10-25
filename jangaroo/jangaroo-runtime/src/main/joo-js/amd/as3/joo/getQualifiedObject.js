@@ -1,4 +1,4 @@
-define(["as3-rt/getModuleName", "as3-rt/retrievePrimaryDeclaration"], function(getModuleName, retrievePrimaryDeclaration) {
+define(["require", "as3-rt/getModuleName"], function(require, getModuleName) {
   function getNative(qName) {
     var parts = qName.split(".");
     var current = window;
@@ -9,7 +9,7 @@ define(["as3-rt/getModuleName", "as3-rt/retrievePrimaryDeclaration"], function(g
   }
   function getQualifiedObject(qName) {
     // try native first, then require corresponding module synchronously:
-    return getNative(qName) || retrievePrimaryDeclaration(require(getModuleName(qName)));
+    return getNative(qName) || require(getModuleName(qName))._;
   }
   return getQualifiedObject;
 });
