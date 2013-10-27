@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -86,24 +85,6 @@ public final class ConfigClassRegistry {
   }
 
   /**
-   * Returns the list of registered Config classes
-   * @return list of registered Config classes
-   */
-  public Map<String, Collection<ConfigClass>> getRegisteredConfigClassesByTargetClassPackage() {
-    Map<String, Collection<ConfigClass>> result = new HashMap<String, Collection<ConfigClass>>();
-    for (ConfigClass configClass : configClassesByName.values()) {
-      String packageName = CompilerUtils.packageName(configClass.getComponentClassName());
-      Collection<ConfigClass> configClasses = result.get(packageName);
-      if (configClasses == null) {
-        configClasses = new HashSet<ConfigClass>();
-        result.put(packageName, configClasses);
-      }
-      configClasses.add(configClass);
-    }
-    return Collections.unmodifiableMap(result);
-  }
-
-  /**
    * Scans all AS files the in the config class package
    */
   public void scanAllAsFiles() {
@@ -127,7 +108,6 @@ public final class ConfigClassRegistry {
           final ConfigClass configClass = findActionScriptConfigClass(qName);
           addConfigClass(configClass);
         }
-
       } else {
         // Recurse into the tree.
         scanAsFiles(source);
@@ -177,10 +157,6 @@ public final class ConfigClassRegistry {
    * @return the configClass or null if none was found
    */
   public ConfigClass getConfigClassByName(String name) {
-    return getConfigClassByName(name, new HashSet<String>());
-  }
-
-  private ConfigClass getConfigClassByName(String name, Set<String> visited) {
     ConfigClass configClass = configClassesByName.get(name);
     if (configClass != null) {
       return configClass;
@@ -293,10 +269,6 @@ public final class ConfigClassRegistry {
     if (compilationsUnit != null) {
       try {
         configClass = buildConfigClass(compilationsUnit);
-        if (configClass != null && configClass.getComponentClassName() == null) {
-          // it was actually a target class! try again with the resolved config class:
-          return findActionScriptConfigClass(configClass.getFullName(), visited);
-        }
         evaluateSuperClass(configClass, visited);
       } catch (RuntimeException e) {
         throw new ExmlcException("while building config class '" + name + "': " + e.getMessage(), e);

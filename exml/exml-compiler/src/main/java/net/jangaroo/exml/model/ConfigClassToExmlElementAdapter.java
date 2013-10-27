@@ -5,14 +5,15 @@ import net.jangaroo.exml.api.Exmlc;
 import java.util.List;
 
 /**
- * An abstract adapter from config class to EXML element.
+ * An adapter from config class to EXML element of the old format.
  */
-public abstract class AbstractConfigClassToExmlElementAdapter implements ExmlElement {
+public class ConfigClassToExmlElementAdapter implements ExmlElement {
+
   protected ConfigClass configClass;
   private String ns;
   private ExmlElement superElement;
 
-  public AbstractConfigClassToExmlElementAdapter(ConfigClass configClass) {
+  public ConfigClassToExmlElementAdapter(ConfigClass configClass) {
     this.configClass = configClass;
   }
 
@@ -30,9 +31,6 @@ public abstract class AbstractConfigClassToExmlElementAdapter implements ExmlEle
   public String getNs() {
     return ns;
   }
-
-  @Override
-  public abstract String getTypeName();
 
   @Override
   public String getFullTypeName() {
@@ -60,10 +58,28 @@ public abstract class AbstractConfigClassToExmlElementAdapter implements ExmlEle
     return superElement;
   }
 
-  protected abstract ExmlElement createAdapter(ConfigClass configClass);
-
   @Override
   public String toString() {
     return "<" + getNamespace() + ":" + getName() + ">";
   }
+
+  @Override
+  public String getPackage() {
+    return configClass.getPackageName();
+  }
+
+  @Override
+  public String getTypeName() {
+    return configClass.getFullName();
+  }
+
+  @Override
+  public String getName() {
+    return configClass.getName();
+  }
+
+  protected ExmlElement createAdapter(ConfigClass configClass) {
+    return new ConfigClassToExmlElementAdapter(configClass);
+  }
+
 }

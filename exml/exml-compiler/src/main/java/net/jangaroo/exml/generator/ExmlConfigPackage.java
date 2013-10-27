@@ -1,8 +1,7 @@
 package net.jangaroo.exml.generator;
 
 import net.jangaroo.exml.model.ConfigClass;
-import net.jangaroo.exml.model.ConfigClassToNewExmlElementAdapter;
-import net.jangaroo.exml.model.ConfigClassToOldExmlElementAdapter;
+import net.jangaroo.exml.model.ConfigClassToExmlElementAdapter;
 import net.jangaroo.exml.model.ExmlElement;
 
 import java.util.ArrayList;
@@ -30,14 +29,12 @@ public class ExmlConfigPackage {
   private String packageName;
   private String ns;
 
-  public ExmlConfigPackage(Collection<ConfigClass> cl, String packageName, boolean useTargetClassNames) {
+  public ExmlConfigPackage(Collection<ConfigClass> cl, String packageName) {
     this.packageName = packageName;
     ns = calcNsFromPackageName(packageName, 1);
     exmlElements = new ArrayList<ExmlElement>(cl.size());
     for (ConfigClass configClass : cl) {
-      exmlElements.add(useTargetClassNames
-        ? new ConfigClassToNewExmlElementAdapter(configClass)
-        : new ConfigClassToOldExmlElementAdapter(configClass));
+      exmlElements.add(new ConfigClassToExmlElementAdapter(configClass));
     }
     computeShortNamespaces();
     Collections.sort(exmlElements, EXML_ELEMENT_BY_NAME_COMPARATOR);
