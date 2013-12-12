@@ -17,7 +17,8 @@ package joo {
 [Native(amd)]
 /**
  * @param qualifiedName an array of qualified names for which to load the corresponding classes
- * @param callback the function to call with the corresponding array of classes when all are loaded
+ * @param callback the function to call with one parameter for each class, in the same order as in
+ *   <code>qualifiedNames</code>, as soon as all are loaded
  */
 public native function loadClasses(qualifiedNames: Array, callback: Function):void;
 
