@@ -72,7 +72,11 @@ public class PropertiesCompiler {
       String value = p.getString(key);
       json.set(key, value);
     }
-    if (!file.getParentFile().mkdirs() || !file.createNewFile()) {
+    //noinspection ResultOfMethodCallIgnored
+    file.getParentFile().mkdirs();
+    //noinspection ResultOfMethodCallIgnored
+    file.createNewFile();
+    if (!file.exists()) {
       throw Jooc.error("cannot create properties output file", file);
     }
     writeJson(json, file);
