@@ -544,6 +544,11 @@ public final class MxmlToModelParser {
     for (ClassModel current = classModel; current != null; current = getSuperClassModel(current)) {
       Set<MemberModel> configOptionPropertyModels = current.findPropertiesWithAnnotation(false, CONSTRUCTOR_PARAMETER_ANNOTATION);
       for (MemberModel configOptionPropertyModel : configOptionPropertyModels) {
+        // even though getConfigOptionValue() also unwraps a PropertyModel, we have to do it in advance
+        // in order to add the right model to the result:
+        if (configOptionPropertyModel instanceof PropertyModel) {
+          configOptionPropertyModel = ((PropertyModel) configOptionPropertyModel).getGetter();
+        }
         if (getConfigOptionValue(configOptionPropertyModel) != null) {
           result.add(configOptionPropertyModel);
         }
