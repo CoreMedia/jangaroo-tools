@@ -59,7 +59,7 @@ public final class ExmlcException extends RuntimeException implements FilePositi
 
   @Override
   public String getFileName() {
-    return file.getAbsolutePath();
+    return file == null ? null : file.getAbsolutePath();
   }
 
   public int getLine() {
@@ -75,7 +75,7 @@ public final class ExmlcException extends RuntimeException implements FilePositi
     StringBuilder builder = new StringBuilder();
     if (file != null) {
       builder.append('[');
-      builder.append(file.toString());
+      builder.append(file);
       if (line > 0) {
         // Only show line number if the source is given. (They would be pretty useless otherwise.)
         builder.append(":");
