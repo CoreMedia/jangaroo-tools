@@ -16,7 +16,7 @@ public class ExmlComponentClassGeneratorTest extends AbstractExmlTest {
   @Test
   public void testGenerateClass() throws Exception {
     setUp("exmlparser.config");
-    String expected = FileUtils.readFileToString(new File(getClass().getResource("/exmlparser/AllElements.as").toURI()));
+    String expected = FileUtils.readFileToString(new File(getClass().getResource("/expected/AllElements.as").toURI()));
 
     ExmlToModelParser exmlToModelParser = new ExmlToModelParser(getConfigClassRegistry());
     ExmlModel model = exmlToModelParser.parse(getFile("/exmlparser/AllElements.exml"));
@@ -53,6 +53,6 @@ public class ExmlComponentClassGeneratorTest extends AbstractExmlTest {
   }
 
   private File getFile(String path) throws URISyntaxException {
-    return new File(ExmlComponentClassGeneratorTest.class.getResource(path).toURI());
+    return new File(ExmlComponentClassGeneratorTest.class.getResource("/test-module" + path).toURI());
   }
 }
