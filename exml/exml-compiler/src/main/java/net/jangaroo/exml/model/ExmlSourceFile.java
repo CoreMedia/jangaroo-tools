@@ -6,6 +6,7 @@ import net.jangaroo.exml.generator.ExmlComponentClassGenerator;
 import net.jangaroo.exml.generator.ExmlConfigClassGenerator;
 import net.jangaroo.exml.parser.ExmlToConfigClassParser;
 import net.jangaroo.exml.parser.ExmlToModelParser;
+import net.jangaroo.exml.utils.ExmlUtils;
 import net.jangaroo.jooc.api.Jooc;
 import net.jangaroo.utils.CompilerUtils;
 
@@ -30,7 +31,9 @@ public class ExmlSourceFile {
     configClassName = CompilerUtils.qName(configClassRegistry.getConfig().getConfigClassPackage(),
             CompilerUtils.uncapitalize(CompilerUtils.removeExtension(sourceFile.getName())));
     File sourceDir = configClassRegistry.getConfig().findSourceDir(sourceFile);
-    targetClassName = CompilerUtils.qNameFromFile(sourceDir, sourceFile);
+    String exmlClassName = CompilerUtils.qNameFromFile(sourceDir, sourceFile);
+    targetClassName = CompilerUtils.qName(CompilerUtils.packageName(exmlClassName),
+            ExmlUtils.createComponentClassName(CompilerUtils.className(exmlClassName)));
   }
 
   public File getSourceFile() {
@@ -81,7 +84,7 @@ public class ExmlSourceFile {
   public File generateTargetClass() {
     if (generatedTargetClassFile == null) {
       // only generate component class if it is not already present as source:
-      File classFile = new File(CompilerUtils.removeExtension(sourceFile.getName()) + Jooc.AS_SUFFIX);
+      File classFile = new File(ExmlUtils.createComponentClassName(CompilerUtils.removeExtension(sourceFile.getName())) + Jooc.AS_SUFFIX);
       if (!classFile.exists()) {
         try {
           ExmlConfiguration config = configClassRegistry.getConfig();
