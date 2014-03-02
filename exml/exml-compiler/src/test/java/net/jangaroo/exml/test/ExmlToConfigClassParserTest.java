@@ -114,6 +114,6 @@ public class ExmlToConfigClassParserTest extends AbstractExmlTest {
   }
 
   private File getFile(String path) throws URISyntaxException {
-    return new File(ExmlToConfigClassParserTest.class.getResource(path).toURI());
+    return new File(ExmlToConfigClassParserTest.class.getResource("/test-module" + path).toURI());
   }
 }

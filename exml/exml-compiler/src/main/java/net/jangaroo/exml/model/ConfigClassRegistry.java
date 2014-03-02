@@ -1,10 +1,13 @@
 package net.jangaroo.exml.model;
 
+import freemarker.template.TemplateException;
 import net.jangaroo.exml.api.Exmlc;
 import net.jangaroo.exml.api.ExmlcException;
 import net.jangaroo.exml.as.ConfigClassBuilder;
 import net.jangaroo.exml.config.ExmlConfiguration;
-import net.jangaroo.exml.parser.ExmlToConfigClassParser;
+import net.jangaroo.exml.config.ValidationMode;
+import net.jangaroo.exml.generator.ExmlConfigPackageXsdGenerator;
+import net.jangaroo.exml.parser.ExmlValidator;
 import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.StdOutCompileLog;
@@ -18,11 +21,11 @@ import net.jangaroo.utils.CompilerUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Writer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -33,13 +36,14 @@ import java.util.Set;
  */
 public final class ConfigClassRegistry {
   private Map<String, ConfigClass> configClassesByName = new HashMap<String, ConfigClass>();
-  private Set<File> scannedExmlFiles = new HashSet<File>();
 
   private ExmlConfiguration config;
   private InputSource sourcePathInputSource;
 
   private JangarooParser jangarooParser;
-  private ExmlToConfigClassParser exmlToConfigClassParser;
+  private ExmlConfigPackageXsdGenerator exmlConfigPackageXsdGenerator;
+  private Map<String, ExmlSourceFile> exmlFilesByConfigClassName;
+  private Set<ConfigClass> sourceConfigClasses;
 
   public ConfigClassRegistry(final ExmlConfiguration config) throws IOException {
     this.config = config;
@@ -57,11 +61,10 @@ public final class ConfigClassRegistry {
           // A regular source file (not a generated file) has been found. Use it.
           return inputSource;
         }
-        // Just in case the requested class is a config class
-        // that is generated from an EXML file, regenerate the config file before
-        // it is too late. This will only affect files in the config package
-        // and only generated files, so it is pretty safe.
-        tryBuildConfigClassFromExml(qname);
+        // Just in case the requested class is a class
+        // that is generated from an EXML file, regenerate the file before
+        // it is too late. This will only affect generated files, so it is pretty safe.
+        tryGenerateClass(qname);
         // Just in case the source was not found on the first attempt, fetch it again.
         return super.findSource(qname);
       }
@@ -69,7 +72,24 @@ public final class ConfigClassRegistry {
     List<File> fullSourcePath = new ArrayList<File>(config.getSourcePath());
     fullSourcePath.add(config.getOutputDirectory());
     jangarooParser.setUp(PathInputSource.fromFiles(fullSourcePath, new String[0], true), classPathInputSource);
-    exmlToConfigClassParser = new ExmlToConfigClassParser(config);
+    exmlConfigPackageXsdGenerator = new ExmlConfigPackageXsdGenerator();
+  }
+
+  private void tryGenerateClass(String qname) {
+    ExmlSourceFile exmlSourceFile = getExmlSourceFilesByConfigClassName().get(qname);
+    if (exmlSourceFile != null) {
+      exmlSourceFile.generateConfigClass();
+    } else {
+      // is there an EXML file for the qname interpreted as a target class name?
+      InputSource exmlInputSource = sourcePathInputSource.getChild(JangarooParser.getInputSourceFileName(qname, sourcePathInputSource, Exmlc.EXML_SUFFIX));
+      if (exmlInputSource != null) {
+        String configClassName = computeConfigClassNameFromTargetClassName(qname);
+        exmlSourceFile = getExmlSourceFilesByConfigClassName().get(configClassName);
+        if (exmlSourceFile != null) {
+          exmlSourceFile.generateTargetClass();
+        }
+      }
+    }
   }
 
   public ExmlConfiguration getConfig() {
@@ -77,78 +97,107 @@ public final class ConfigClassRegistry {
   }
 
   /**
-   * Returns the list of registered Config classes
+   * Returns the list of all config classes in the source path, defined in EXML or ActionScript.
    * @return list of registered Config classes
    */
-  public Collection<ConfigClass> getRegisteredConfigClasses() {
-    return configClassesByName.values();
+  public Collection<ConfigClass> getSourceConfigClasses() {
+    if (sourceConfigClasses == null) {
+      //  Determine the set of all source config classes by scanning for all .exml and .as files in the sourcepath,
+      //  parsing them and adding their models to this registry.
+      sourceConfigClasses = new LinkedHashSet<ConfigClass>();
+      Map<String, File> sourceFilesByName = new LinkedHashMap<String, File>();
+      scanExmlFiles(sourceFilesByName);
+      scanAsFiles(sourceFilesByName);
+    }
+    return sourceConfigClasses;
   }
 
-  /**
-   * Scans all AS files the in the config class package
-   */
-  public void scanAllAsFiles() {
-    InputSource configPackage = sourcePathInputSource.getChild(config.getConfigClassPackage().replace('.', File.separatorChar));
-    if(configPackage != null) {
-      scanAsFiles(configPackage);
+  private void scanExmlFiles(Map<String, File> sourceFilesByName) {
+    for (ExmlSourceFile exmlFile : getExmlSourceFilesByConfigClassName().values()) {
+      addSourceConfigClass(sourceFilesByName, exmlFile.getSourceFile(), exmlFile.getConfigClass());
     }
   }
 
-  private void scanAsFiles(InputSource inputSource) {
-    for (InputSource source : inputSource.list()) {
-      File file = ((FileInputSource) source).getFile();
-      if(file.isFile()) {
-        if(file.getName().endsWith(Jooc.AS_SUFFIX)) {
-          String qName;
+  private void scanAsFiles(Map<String, File> sourceFilesByName) {
+    InputSource configPackageInputSource = sourcePathInputSource.getChild(config.getConfigClassPackage().replace('.', File.separatorChar));
+    if (configPackageInputSource != null) {
+      for (InputSource source : configPackageInputSource.list()) {
+        File file = ((FileInputSource) source).getFile();
+        if (file.isFile() && file.getName().endsWith(Jooc.AS_SUFFIX)) {
           try {
-            qName = CompilerUtils.qNameFromFile(getConfig().findSourceDir(file), file);
+            File sourceDir = getConfig().findSourceDir(file);
+            if (!sourceDir.equals(getConfig().getOutputDirectory())) { // not an AS class generated from EXML?
+              String qName = CompilerUtils.qNameFromFile(sourceDir, file);
+              ConfigClass actionScriptConfigClass = findActionScriptConfigClass(qName);
+              if (actionScriptConfigClass != null) {
+                addSourceConfigClass(sourceFilesByName, file, actionScriptConfigClass);
+              }
+            }
           } catch (IOException e) {
             throw new ExmlcException("could not read AS file", e);
           }
-          final ConfigClass configClass = findActionScriptConfigClass(qName);
-          addConfigClass(configClass);
         }
-      } else {
-        // Recurse into the tree.
-        scanAsFiles(source);
       }
     }
   }
 
-  /**
-   * Setup the config class registry by scanning for .exml files, parsing them and adding their models to this registry.
-   * This has to be called before you use the registry once.
-   */
-  public void scanAllExmlFiles() {
-    Set<ConfigClass> addedConfigClasses = new HashSet<ConfigClass>();
-    scanExmlFiles(sourcePathInputSource, addedConfigClasses);
-    for (ConfigClass configClass : addedConfigClasses) {
-      evaluateSuperClass(configClass);
+  private void addSourceConfigClass(Map<String, File> sourceFilesByName, File sourceFile, ConfigClass configClass) {
+    if (configClass != null) {
+      String qname = configClass.getFullName();
+      File existingConfigClassSourceFile = sourceFilesByName.get(qname);
+      if (existingConfigClassSourceFile != null) {
+        throw new ExmlcException(String.format("Config class '%s' already declared in file %s.", qname, existingConfigClassSourceFile.getPath()), sourceFile, null);
+      } else {
+        sourceFilesByName.put(qname, sourceFile);
+        sourceConfigClasses.add(configClass);
+      }
     }
   }
+  
+  public File generateConfigClass(File exmlFile) {
+    return getExmlSourceFile(exmlFile).generateConfigClass();
+  }
 
-  private void scanExmlFiles(InputSource inputSource, Set<ConfigClass> addedConfigClasses) {
+  private ExmlSourceFile getExmlSourceFile(File exmlFile) {
+    return getExmlSourceFilesByConfigClassName().get(computeConfigClassName(exmlFile));
+  }
+
+  // unfortunately, we cannot determine the name of the source EXML file, so we have to scane the whole source path:
+  private Map<String, ExmlSourceFile> getExmlSourceFilesByConfigClassName() {
+    if (exmlFilesByConfigClassName == null) {
+      exmlFilesByConfigClassName = new LinkedHashMap<String, ExmlSourceFile>();
+      try {
+        buildConfigClassNameToExmlSourceFileMap(sourcePathInputSource);
+      } catch (IOException e) {
+        throw new ExmlcException("Unable to scan source directory for EXML files.", e);
+      }
+    }
+    return exmlFilesByConfigClassName;
+  }
+
+  private void buildConfigClassNameToExmlSourceFileMap(InputSource inputSource) throws IOException {
     for (InputSource source : inputSource.list()) {
       File exmlFile = ((FileInputSource) source).getFile();
       if (exmlFile.isFile()) {
         if (exmlFile.getName().endsWith(Exmlc.EXML_SUFFIX)) {
-          if (!scannedExmlFiles.contains(exmlFile)) {
-            scannedExmlFiles.add(exmlFile);
-            try {
-              ConfigClass configClass = exmlToConfigClassParser.parseExmlToConfigClass(exmlFile);
-              addConfigClass(configClass);
-              addedConfigClasses.add(configClass);
-            } catch (IOException e) {
-              // TODO Log and continue?
-              throw new ExmlcException("could not read EXML file", e);
-            }
-          }
+          exmlFilesByConfigClassName.put(computeConfigClassName(exmlFile), new ExmlSourceFile(this, exmlFile));
         }
       } else {
         // Recurse into the tree.
-        scanExmlFiles(source, addedConfigClasses);
+        buildConfigClassNameToExmlSourceFileMap(source);
       }
     }
+  }
+
+  private String computeConfigClassName(File exmlFile) {
+    return CompilerUtils.qName(
+            getConfig().getConfigClassPackage(),
+            CompilerUtils.uncapitalize(CompilerUtils.removeExtension(exmlFile.getName())));
+  }
+
+  private String computeConfigClassNameFromTargetClassName(String targetClassName) {
+    return CompilerUtils.qName(getConfig().getConfigClassPackage(),
+            CompilerUtils.uncapitalize(CompilerUtils.className(targetClassName)));
   }
 
   /**
@@ -162,156 +211,32 @@ public final class ConfigClassRegistry {
       return configClass;
     }
     // The config class has not been registered so far.
-    tryBuildConfigClassFromExml(name);
-    configClass = configClassesByName.get(name);
-    if (configClass != null) {
-      return configClass;
+
+    // The config class might originate from one of of this module's EXML files.
+    ExmlSourceFile exmlFile = getExmlSourceFilesByConfigClassName().get(name);
+    if (exmlFile != null) {
+      return addConfigClass(exmlFile.parseExmlToConfigClass());
     }
     // The given name does not denote a config class of an EXML component in the source tree.
     configClass = findActionScriptConfigClass(name);
-    addConfigClass(configClass);
     return configClass;
   }
 
-  public ConfigClass getConfigClassOfTargetClass(String targetClassName) {
-    for (ConfigClass configClass : configClassesByName.values()) {
-      if (targetClassName.equals(configClass.getComponentClassName())) {
-        return configClass;
-      }
+  private ConfigClass addConfigClass(ConfigClass configClass) {
+    if (configClass != null) {
+      configClass.setConfigClassRegistry(this);
+      configClassesByName.put(configClass.getFullName(), configClass);
     }
-    return null;
-  }
-
-  private void addConfigClass(ConfigClass configClass) {
-    if(configClass != null) {
-      String name = configClass.getFullName();
-      ConfigClass existingConfigClass = configClassesByName.get(name);
-      if (existingConfigClass != null) {
-        if (!existingConfigClass.equals(configClass)) {
-          // todo: Keep track of source.
-          throw new ExmlcException(String.format("config class '%s' declared in '%s' and '%s'.", name, configClass.getComponentClassName(), existingConfigClass.getComponentClassName()));
-        }
-      } else {
-        configClassesByName.put(name, configClass);
-      }
-    }
-  }
-
-  private ConfigClass tryBuildConfigClassFromExml(String name) {
-    FileInputSource exmlInputSource = (FileInputSource)sourcePathInputSource.getChild(JangarooParser.getInputSourceFileName(name, sourcePathInputSource, Exmlc.EXML_SUFFIX));
-    if (exmlInputSource != null) {
-      return buildFromExml(exmlInputSource);
-    }
-    if (name.startsWith(config.getConfigClassPackage() + ".")) {
-      // The config class might originate from one of of this module's EXML files.
-      FileInputSource outputDirInputSource = new FileInputSource(config.getOutputDirectory(), true);
-      InputSource generatedConfigAsFile = outputDirInputSource.getChild(JangarooParser.getInputSourceFileName(name, outputDirInputSource, Jooc.AS_SUFFIX));
-      if (generatedConfigAsFile != null) {
-        // A candidate AS config class has already been generated.
-        CompilationUnit compilationUnit = Jooc.doParse(generatedConfigAsFile, new StdOutCompileLog(), SemicolonInsertionMode.QUIRKS);
-        if (compilationUnit == null) {
-          return null;
-        }
-        ConfigClass generatedAsConfigClass = buildConfigClass(compilationUnit);
-        if (generatedAsConfigClass != null) {
-          // It is really a generated config class.
-          // We can determine the name of the EXML component class
-          // that was last used to create this config file.
-          String componentName = generatedAsConfigClass.getComponentClassName();
-          // We must parse the EXMl file again, because the parent class (and hence the
-          // parent config class) might have changed.
-          exmlInputSource = (FileInputSource)sourcePathInputSource.getChild(JangarooParser.getInputSourceFileName(componentName, sourcePathInputSource, Exmlc.EXML_SUFFIX));
-          if (exmlInputSource == null) {
-            // try again with lower-case component name:
-            String lowerCaseComponentClassName = CompilerUtils.qName(CompilerUtils.packageName(componentName),
-              CompilerUtils.uncapitalize(CompilerUtils.className(componentName)));
-            exmlInputSource = (FileInputSource)sourcePathInputSource.getChild(JangarooParser.getInputSourceFileName(lowerCaseComponentClassName, sourcePathInputSource, Exmlc.EXML_SUFFIX));
-          }
-          if (exmlInputSource != null) {
-            return buildFromExml(exmlInputSource);
-          }
-        }
-        // The AS file should not exist. However, we do not consider this class
-        // to be responsible to deleting outdated config files.
-      }
-      // The EXML was not found. Scan all EXML files to be sure the right one will be found.
-      scanAllExmlFiles();
-      return configClassesByName.get(name);
-    }
-    return null;
-  }
-
-  private ConfigClass buildFromExml(FileInputSource exmlInputSource) {
-    scannedExmlFiles.add(exmlInputSource.getFile());
-    ConfigClass configClass;
-    try {
-      configClass = new ExmlToConfigClassParser(config).parseExmlToConfigClass(exmlInputSource.getFile());
-      evaluateSuperClass(configClass);
-    } catch (IOException e) {
-      // TODO log
-      throw new IllegalStateException(e);
-    }
-    addConfigClass(configClass);
     return configClass;
   }
 
   private ConfigClass findActionScriptConfigClass(String name) {
-    return findActionScriptConfigClass(name, new LinkedHashSet<String>());
-  }
-
-  private ConfigClass findActionScriptConfigClass(String name, Set<String> visited) {
-    if (visited.contains(name)) {
-      throw new ExmlcException("cyclic inheritance: " + Arrays.toString(visited.toArray()));
-    }
-    visited.add(name);
-    CompilationUnit compilationsUnit = jangarooParser.getCompilationsUnit(name);
-    ConfigClass configClass = null;
+    CompilationUnit compilationsUnit = jangarooParser.getCompilationUnit(name);
     if (compilationsUnit != null) {
       try {
-        configClass = buildConfigClass(compilationsUnit);
-        evaluateSuperClass(configClass, visited);
+        return buildConfigClass(compilationsUnit);
       } catch (RuntimeException e) {
         throw new ExmlcException("while building config class '" + name + "': " + e.getMessage(), e);
-      }
-    }
-    return configClass;
-  }
-
-  public void evaluateSuperClass(ConfigClass configClass) {
-    evaluateSuperClass(configClass, new LinkedHashSet<String>());
-  }
-
-  private void evaluateSuperClass(ConfigClass configClass, Set<String> visited) {
-    if(configClass != null) {
-      String superClassName = configClass.getSuperClassName();
-      if(superClassName != null && !"joo.JavaScriptObject".equals(superClassName)) {
-        ConfigClass configClassOfTargetClass = findConfigClassOfTargetClass(superClassName);
-        if (configClassOfTargetClass != null) {
-          superClassName = configClassOfTargetClass.getFullName();
-        }
-        if(configClass.getFullName().equals(superClassName)) {
-          throw new ExmlcException(String.format("Cyclic inheritance error: superclass '%s' of config class '%s' are the same!", superClassName, configClass.getFullName()));
-        }
-        ConfigClass superClass = findActionScriptConfigClass(superClassName, visited);
-        if(superClass == null) {
-          // might be a not-yet-compiled EXML:
-          superClass = tryBuildConfigClassFromExml(superClassName);
-          if (superClass == null) {
-            throw new ExmlcException(String.format("Superclass '%s' of class '%s' not found!", superClassName, configClass.getFullName()));
-          }
-        }
-        if (!configClass.getSuperClassName().equals(superClass.getFullName())) {
-          configClass.setSuperClassName(superClass.getFullName()); // needed for target classes that have been mapped to their config class!
-        }
-        configClass.setSuperClass(superClass);
-      }
-    }
-  }
-
-  private ConfigClass findConfigClassOfTargetClass(String targetClassName) {
-    for (ConfigClass configClass : configClassesByName.values()) {
-      if (targetClassName.equals(configClass.getComponentClassName())) {
-        return configClass;
       }
     }
     return null;
@@ -319,8 +244,24 @@ public final class ConfigClassRegistry {
 
   private ConfigClass buildConfigClass(CompilationUnit compilationUnit) {
     ConfigClassBuilder configClassBuilder = new ConfigClassBuilder(compilationUnit);
-    return configClassBuilder.buildConfigClass();
+    return addConfigClass(configClassBuilder.buildConfigClass());
   }
+
+  public File generateTargetClass(File exmlSourceFile) {
+    return getExmlSourceFile(exmlSourceFile).generateTargetClass();
+  }
+
+  public void generateXsd(Writer output) throws IOException, TemplateException {
+    exmlConfigPackageXsdGenerator.generateXsdFile(getSourceConfigClasses(), config.getConfigClassPackage(), output);
+    if (getConfig().getValidationMode() != ValidationMode.OFF) {
+      try {
+        new ExmlValidator(getConfig()).validateAllExmlFiles();
+      } catch (Exception e) {
+        throw new ExmlcException("unable to start validation", e);
+      }
+    }
+  }
+
 
   private static class CCRParserOptions implements ParserOptions {
     @Override

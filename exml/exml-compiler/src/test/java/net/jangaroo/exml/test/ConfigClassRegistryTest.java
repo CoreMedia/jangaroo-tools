@@ -16,7 +16,6 @@ public class ConfigClassRegistryTest extends AbstractExmlTest {
   @Test
   public void testScanInitially() throws Exception {
     setUp("testNamespace.config");
-    getConfigClassRegistry().scanAllExmlFiles();
 
     ConfigClass configClass = getConfigClassRegistry().getConfigClassByName("testNamespace.config.testLabel");
     Assert.assertNotNull(configClass);
@@ -41,10 +40,6 @@ public class ConfigClassRegistryTest extends AbstractExmlTest {
 
     // 2nd try should return the same object
     Assert.assertEquals(configClass, getConfigClassRegistry().getConfigClassByName("testNamespace.config.testLabel"));
-
-    // 3rd try after full scan
-    getConfigClassRegistry().scanAllExmlFiles();
-    Assert.assertEquals(configClass, getConfigClassRegistry().getConfigClassByName("testNamespace.config.testLabel"));
   }
 
   @Test
@@ -68,7 +63,7 @@ public class ConfigClassRegistryTest extends AbstractExmlTest {
 
   @Test
   public void testGenerateFromLocalActionScript() throws Exception {
-    setUp("somewhere.else.config", "/", "/almostEmptyPackage");
+    setUp("somewhere.else.config", "/test-module", "/ext-as");
 
     ConfigClass configClass = getConfigClassRegistry().getConfigClassByName("testNamespace.config.testComponent");
     Assert.assertNotNull(configClass);
@@ -79,7 +74,7 @@ public class ConfigClassRegistryTest extends AbstractExmlTest {
 
   @Test
   public void testGenerateFromClassPathActionScript() throws Exception {
-    setUp("somewhere.else.config", "/almostEmptyPackage", "/");
+    setUp("somewhere.else.config", "/test-module", "/ext-as");
 
     ConfigClass configClass = getConfigClassRegistry().getConfigClassByName("testNamespace.config.testComponent");
     Assert.assertNotNull(configClass);

@@ -28,10 +28,6 @@ public final class ExmlComponentClassGenerator {
     this.config = config;
   }
 
-  public File computeComponentClassTarget(ExmlModel model) {
-    return CompilerUtils.fileFromQName(model.getPackageName(), model.getClassName(), config.getOutputDirectory(), Jooc.AS_SUFFIX);
-  }
-
   public void generateClass(final ExmlModel model, final Writer output) throws IOException, TemplateException {
     Configuration cfg = new Configuration();
     cfg.setClassForTemplateLoading(ExmlComponentClassModel.class, "/");
@@ -43,10 +39,10 @@ public final class ExmlComponentClassGenerator {
     env.process();
   }
 
-  public File generateClass(final ExmlModel model) throws IOException, TemplateException {
-    File result = computeComponentClassTarget(model);
+  public File generateClass(final ExmlModel model, File result) throws IOException, TemplateException {
     Writer writer = null;
     try {
+      //noinspection ResultOfMethodCallIgnored
       result.getParentFile().mkdirs();  // NOSONAR
       writer = new OutputStreamWriter(new FileOutputStream(result), Exmlc.OUTPUT_CHARSET);
       generateClass(model, writer);
