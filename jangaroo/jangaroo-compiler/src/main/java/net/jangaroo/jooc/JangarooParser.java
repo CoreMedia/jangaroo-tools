@@ -173,14 +173,14 @@ public class JangarooParser {
 
   public IdeDeclaration resolveImport(final ImportDirective importDirective) {
     String qname = importDirective.getQualifiedName();
-    CompilationUnit compilationUnit = getCompilationsUnit(qname);
+    CompilationUnit compilationUnit = getCompilationUnit(qname);
     if (compilationUnit == null) {
       throw error(importDirective.getSymbol(), "unable to resolve import of " + qname);
     }
     return compilationUnit.getPrimaryDeclaration();
   }
 
-  public CompilationUnit getCompilationsUnit(String qname) {
+  public CompilationUnit getCompilationUnit(String qname) {
     CompilationUnit compilationUnit = compilationUnitsByQName.get(qname);
     if (compilationUnit == null) {
       InputSource source = findSource(qname);

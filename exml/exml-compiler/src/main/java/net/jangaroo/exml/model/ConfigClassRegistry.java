@@ -264,7 +264,7 @@ public final class ConfigClassRegistry {
       throw new ExmlcException("cyclic inheritance: " + Arrays.toString(visited.toArray()));
     }
     visited.add(name);
-    CompilationUnit compilationsUnit = jangarooParser.getCompilationsUnit(name);
+    CompilationUnit compilationsUnit = jangarooParser.getCompilationUnit(name);
     ConfigClass configClass = null;
     if (compilationsUnit != null) {
       try {
