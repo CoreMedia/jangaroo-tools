@@ -19,7 +19,7 @@ public class ExmlConfigPackageXsdGeneratorTest extends AbstractExmlTest{
     String expected = FileUtils.readFileToString(new File(getClass().getResource("/ext-as/ext.config.xsd").toURI()));
 
     StringWriter output = new StringWriter();
-    getExmlc().getExmlConfigPackageXsdGenerator().generateXsdFile(getConfigClassRegistry(), output);
+    getConfigClassRegistry().generateXsd(output);
     //System.out.println(output.toString());
     expected = expected.replaceAll("\r\n", "\n");
     String actual = output.toString().replaceAll("\r\n", "\n");

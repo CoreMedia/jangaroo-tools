@@ -17,6 +17,7 @@ import java.util.Set;
  */
 public final class ConfigClass extends DescriptionHolder {
 
+  private ConfigClassRegistry configClassRegistry;
   private List<ConfigAttribute> cfgs = new ArrayList<ConfigAttribute>();
   private Map<String, ConfigAttribute> cfgsByName = new HashMap<String, ConfigAttribute>();
   private List<Declaration> constants = new ArrayList<Declaration>();
@@ -25,16 +26,10 @@ public final class ConfigClass extends DescriptionHolder {
   private String name;
   private String packageName;
   private String superClassName;
-  private ConfigClass superClass;
   private String componentClassName;
   private ConfigClassType type;
   private String typeValue;
   private Set<String> imports = new LinkedHashSet<String>();
-
-  public ConfigClass(String fullName) {
-    name = CompilerUtils.className(fullName);
-    packageName = CompilerUtils.packageName(fullName);
-  }
 
   public ConfigClass() {
   }
@@ -49,11 +44,11 @@ public final class ConfigClass extends DescriptionHolder {
   }
 
   public ConfigClass getSuperClass() {
-    return superClass;
+    return superClassName == null ? null : configClassRegistry.getConfigClassByName(superClassName);
   }
 
-  public void setSuperClass(ConfigClass superClass) {
-    this.superClass = superClass;
+  void setConfigClassRegistry(ConfigClassRegistry configClassRegistry) {
+    this.configClassRegistry = configClassRegistry;
   }
 
   public List<ConfigAttribute> getCfgs() {
@@ -145,16 +140,8 @@ public final class ConfigClass extends DescriptionHolder {
     return packageName;
   }
 
-  public String getTargetClassPackage() {
-    return CompilerUtils.packageName(getComponentClassName());
-  }
-
   public String getNs() {
     return computeShortNamespace(packageName);
-  }
-
-  public String getTargetNs() {
-    return computeShortNamespace(getTargetClassPackage());
   }
 
   private static String computeShortNamespace(String packageName) {
@@ -164,6 +151,11 @@ public final class ConfigClass extends DescriptionHolder {
       ns.append(part.charAt(0));
     }
     return ns.toString();
+  }
+
+  public void setFullName(String fullName) {
+    packageName = CompilerUtils.packageName(fullName);
+    name = CompilerUtils.className(fullName);
   }
 
   /**
@@ -180,10 +172,6 @@ public final class ConfigClass extends DescriptionHolder {
 
   public String getComponentClassName() {
     return componentClassName;
-  }
-
-  public String getTargetClassShortName() {
-    return CompilerUtils.className(getComponentClassName());
   }
 
   public void setSuperClassName(String superClassName) {

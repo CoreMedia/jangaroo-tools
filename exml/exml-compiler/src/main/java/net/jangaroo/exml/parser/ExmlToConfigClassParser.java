@@ -1,10 +1,7 @@
 package net.jangaroo.exml.parser;
 
 import net.jangaroo.exml.api.ExmlcException;
-import net.jangaroo.exml.config.ExmlConfiguration;
 import net.jangaroo.exml.model.ConfigClass;
-import net.jangaroo.exml.utils.ExmlUtils;
-import net.jangaroo.utils.CompilerUtils;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.XMLReaderFactory;
@@ -15,24 +12,9 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public class ExmlToConfigClassParser {
-  private ExmlConfiguration config;
-
-  public ExmlToConfigClassParser(ExmlConfiguration config) {
-    this.config = config;
-  }
 
   public ConfigClass parseExmlToConfigClass(File source) throws IOException {
-    String fullQualifiedName = CompilerUtils.qNameFromFile(config.findSourceDir(source), source);
     ConfigClass configClass = new ConfigClass();
-
-    String componentPackageName = CompilerUtils.packageName(fullQualifiedName);
-    String componentClassName = ExmlUtils.createComponentClassName(CompilerUtils.className(fullQualifiedName));
-
-    configClass.setComponentClassName(CompilerUtils.qName(componentPackageName, componentClassName));
-    
-    configClass.setPackageName(config.getConfigClassPackage());
-    configClass.setName(ConfigClass.createConfigClassName(CompilerUtils.removeExtension(source.getName())));
-
     //read exml data and write it into the config class
     ExmlMetadataHandler metadataHandler = new ExmlMetadataHandler(configClass);
     parseFileWithHandler(source, metadataHandler);
