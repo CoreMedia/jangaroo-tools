@@ -89,6 +89,14 @@ public class JooTestMojo extends JooTestMojoBase {
   @SuppressWarnings("FieldCanBeLocal")
   private int jooUnitTestExecutionTimeout = 30000;
 
+  /**
+   * Specifies the number of retries when receiving unexpected result from phantomjs (crash?).
+   * Default is 5.
+   *
+   * @parameter
+   */
+  @SuppressWarnings("FieldCanBeLocal")
+  private int jooUnitMaxRetriesOnCrashes = 5;
 
   /**
    * Defines the Selenium RC host. Default is localhost.
@@ -141,7 +149,7 @@ public class JooTestMojo extends JooTestMojoBase {
         File testResultOutputFile = new File(testResultOutputDirectory, getTestResultFileName());
         File phantomTestRunner = new File(testResultOutputDirectory, "phantomjs-joounit-page-runner.js");
         FileUtils.copyInputStreamToFile(getClass().getResourceAsStream("/net/jangaroo/jooc/mvnplugin/phantomjs-joounit-page-runner.js"), phantomTestRunner);
-        final PhantomJsTestRunner phantomJsTestRunner = new PhantomJsTestRunner(phantomBin, url, testResultOutputFile.getPath(), phantomTestRunner.getPath(), jooUnitTestExecutionTimeout, getLog());
+        final PhantomJsTestRunner phantomJsTestRunner = new PhantomJsTestRunner(phantomBin, url, testResultOutputFile.getPath(), phantomTestRunner.getPath(), jooUnitTestExecutionTimeout, jooUnitMaxRetriesOnCrashes, getLog());
         if (phantomJsTestRunner.canRun()) {
           executePhantomJs(testResultOutputFile, phantomJsTestRunner);
         } else {
