@@ -23,7 +23,7 @@
       <div class="sk_headerlinks">
         <ul>
           <li>
-            <a href="https://github.com/CoreMedia/jangaroo-tools.wiki.git">Imprint</a>
+            <a href="https://github.com/CoreMedia/jangaroo-tools/wiki/Imprint">Imprint</a>
           </li>
         </ul>
       </div>
@@ -35,7 +35,7 @@
       <div id="nav_main">
         <ul id="sfnav">
           <li id="current">
-            <a href="https://github.com/CoreMedia/jangaroo-tools.wiki.git" class="sk_link">
+            <a href="https://github.com/CoreMedia/jangaroo-tools/wiki/Overview" class="sk_link">
               Overview
             </a>
           </li>
@@ -149,7 +149,87 @@
               <h3 class="sk_subject"></h3>
               <h2>Overview</h2>
 
-              <div class="sk_text"><div><p></p><p>Jangaroo is an Open Source project building developer tools that adopt the power of <a href="http://livedocs.adobe.com/specs/actionscript/3/as3_specification.html" target="_blank">ActionScript 3</a> to create high-quality JavaScript frameworks and applications. Jangaroo is <a href="https://github.com/CoreMedia/jangaroo-tools/wiki/License">released under the Apache License, Version 2.0</a>.</p><p class="p--heading-1">Why use Jangaroo?</p><p>There are two main use cases when you might want to use Jangaroo tools:</p><ul><li><strong>JavaScript programming in the large -</strong> Adopt ActionScript 3 language features like packages, classes and inheritance, interfaces, private members, and many more to create even large-scale client-side Web code, where you otherwise would have used JavaScript directly. This approach is extremely helpful when creating frameworks with explicit public APIs, but also for larger applications that use such frameworks.</li><li><strong>Running ActionScript 3 code directly in the browser</strong> - You are implementing a Web project that must not rely on plugins and/or requires close integration into an HTML Web site, possibly already using some JavaScript framework. You want to reuse or build upon existing ActionScript 3 code (utility classes, frameworks like FlexUnit, custom code) as well as JavaScript APIs and code.</li></ul><p class="p--heading-1">Use Cases</p><p>For example, you want to</p><ul><li>implement Web UIs based on Ext JS, Dojo, qooxdoo, or any other JavaScript UI framework, taking advantage of the language features of ActionScript 3</li><li>create OpenSocial widgets, Facebook applications, or just another Google Maps mashup in AS3</li><li>develop for the iPhone in AS3 instead of JavaScript or Objective C</li><li>let your existing ActionScript 3 application run in the browser <em>without</em> a Flash plugin</li><li>share utility classes or business logic implementations between a Flex version and a pure browser variant of your application</li></ul><p>Granted, some of these examples are still rather visions where some more work needs to be put into Jangaroo libraries and API emulations. But many <a href="https://github.com/CoreMedia/jangaroo-tools/wiki/Applications">applications</a> are already possible, and since Jangaroo is open source, you can contribute to increase the possibilities!</p><p>To conclude, Jangaroo can leverage the talents of advanced JavaScript programmers who have to do "programming in the large" as well as ActionScript developers who have to produce code running directly in the browser.</p><p><a href="https://github.com/CoreMedia/jangaroo-tools/wiki/Compiler"><img height="128" width="128" alt="" class="float--right" src="files/images/compiler.png" title="Compiler"/></a></p><p class="p--heading-1">Compiler<br/></p><p>The main tool is an <a href="https://github.com/CoreMedia/jangaroo-tools/wiki/Compiler">ActionScript-3-to-JavaScript compiler</a> called <span class="font-name--courier">jooc</span>. It takes source code written in a subset of ActionScript 3<strong> </strong>and translates it into JavaScript 1.x that is understood by current browsers (with the aid of a light-weight runtime).</p><p class="p--heading-1"><a href="https://github.com/CoreMedia/jangaroo-tools/wiki/Language"><img height="128" width="128" alt="" class="float--right" src="files/images/language.png" title="Language"/></a>Language<br/></p><p>So far, JavaScript projects had to rely on proprietary runtime extensions to conveniently build classes, inherit from a superclass, do a super call and so on. There was no tool support for these extensions. <a href="http://livedocs.adobe.com/specs/actionscript/3/as3_specification.html" target="_blank">ActionScript 3</a> can do better, but it is not available in every environment, or only through plug-ins.</p><p>We carefully selected ActionScript 3 <a href="https://github.com/CoreMedia/jangaroo-tools/wiki/Language">language features</a> that JavaScript 1.x developers need most desperately for <strong>Object-Oriented Programming "in the large"</strong> to form the Jangaroo language. Because the Jangaroo language is a subset of AS3, it profits from <strong>third party tool support</strong>, like Flex's documentation tool <strong>asdoc</strong> or JetBrains' fantastic IDE <a href="http://www.jetbrains.com/idea/">IntelliJ IDEA</a>.</p></div></div>
+              <div class="sk_text">
+                <div>
+                  <p>Jangaroo is an Open Source project building developer tools that adopt the power of
+                    <a href="http://livedocs.adobe.com/specs/actionscript/3/as3_specification.html" target="_blank">ActionScript 3</a>
+                    to create high-quality JavaScript frameworks and applications. Jangaroo is
+                    <a href="https://github.com/CoreMedia/jangaroo-tools/wiki/License">released under the Apache License, Version 2.0</a>.</p>
+
+                  <p class="p--heading-1">Why use Jangaroo?</p>
+
+                  <p>There are two main use cases when you might want to use Jangaroo tools:</p>
+                  <ul>
+                    <li><strong>JavaScript programming in the large -</strong> Adopt ActionScript 3 language features
+                      like packages, classes and inheritance, interfaces, private members, and many more to create even
+                      large-scale client-side Web code, where you otherwise would have used JavaScript directly. This
+                      approach is extremely helpful when creating frameworks with explicit public APIs, but also for
+                      larger applications that use such frameworks.
+                    </li>
+                    <li><strong>Running ActionScript 3 code directly in the browser</strong> - You are implementing a
+                      Web project that must not rely on plugins and/or requires close integration into an HTML Web site,
+                      possibly already using some JavaScript framework. You want to reuse or build upon existing
+                      ActionScript 3 code (utility classes, frameworks like FlexUnit, custom code) as well as JavaScript
+                      APIs and code.
+                    </li>
+                  </ul>
+                  <p class="p--heading-1">Use Cases</p>
+
+                  <p>For example, you want to</p>
+                  <ul>
+                    <li>implement Web UIs based on Ext JS, Dojo, qooxdoo, or any other JavaScript UI framework, taking
+                      advantage of the language features of ActionScript 3
+                    </li>
+                    <li>create OpenSocial widgets, Facebook applications, or just another Google Maps mashup in AS3</li>
+                    <li>develop for the iPhone in AS3 instead of JavaScript or Objective C</li>
+                    <li>let your existing ActionScript 3 application run in the browser <em>without</em> a Flash plugin
+                    </li>
+                    <li>share utility classes or business logic implementations between a Flex version and a pure
+                      browser variant of your application
+                    </li>
+                  </ul>
+                  <p>Granted, some of these examples are still rather visions where some more work needs to be put into
+                    Jangaroo libraries and API emulations. But many
+                    <a href="https://github.com/CoreMedia/jangaroo-tools/wiki/Applications">applications</a> are
+                    already possible, and since Jangaroo is open source, you can contribute to increase the
+                    possibilities!</p>
+
+                  <p>To conclude, Jangaroo can leverage the talents of advanced JavaScript programmers who have to do
+                    "programming in the large" as well as ActionScript developers who have to produce code running
+                    directly in the browser.</p>
+
+                  <p><a href="https://github.com/CoreMedia/jangaroo-tools/wiki/Compiler">
+                    <img height="128" width="128" alt="" class="float--right"
+                         src="files/images/compiler.png" title="Compiler"/></a></p>
+
+                  <p class="p--heading-1">Compiler</p>
+
+                  <p>The main tool is an
+                    <a href="https://github.com/CoreMedia/jangaroo-tools/wiki/Compiler">ActionScript-3-to-JavaScript compiler</a>
+                    called <span class="font-name--courier">jooc</span>. It takes source code written in a
+                    subset of ActionScript 3<strong> </strong>and translates it into JavaScript 1.x that is understood
+                    by current browsers (with the aid of a light-weight runtime).</p>
+
+                  <p class="p--heading-1"><a href="https://github.com/CoreMedia/jangaroo-tools/wiki/Language">
+                    <img height="128" width="128" alt="" class="float--right" src="files/images/language.png"
+                         title="Language"/></a>Language<br/></p>
+
+                  <p>So far, JavaScript projects had to rely on proprietary runtime extensions to conveniently build
+                    classes, inherit from a superclass, do a super call and so on. There was no tool support for these
+                    extensions.
+                    <a href="http://livedocs.adobe.com/specs/actionscript/3/as3_specification.html"
+                       target="_blank">ActionScript 3</a> can do better, but it is not available in every
+                    environment, or only through plug-ins.</p>
+
+                  <p>We carefully selected ActionScript 3
+                    <a href="https://github.com/CoreMedia/jangaroo-tools/wiki/Language">language features</a> that
+                    JavaScript 1.x developers need most desperately for
+                    <strong>Object-Oriented Programming "in the large"</strong> to form the Jangaroo language.
+                    Because the Jangaroo language is a subset of AS3,
+                    it profits from <strong>third party tool support</strong>, like Flex's documentation tool
+                    <strong>asdoc</strong> or JetBrains' fantastic IDE
+                    <a href="http://www.jetbrains.com/idea/">IntelliJ IDEA</a>.</p></div>
+              </div>
 
             </div>
           </div>
