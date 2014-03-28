@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html><head>
+<title>Open Flash Chart Demo (HTML5/Jangaroo)</title>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+<script type="text/javascript" src="../js/json/json2.js"></script>
+<script type="text/javascript" src="../js/swfobject.joo.js"></script>
+
+<script type="text/javascript">
+
+function ofc_ready()
+{
+	//alert('ofc_ready');
+	//load();
+}
+
+function open_flash_chart_data()
+{
+    //alert( 'reading data' );
+    return JSON.stringify(chart);
+}
+
+function load_1()
+{
+	tmp = findSWF("my_chart");
+	x = tmp.load( JSON.stringify(chart) );
+}
+
+function load_2()
+{
+	tmp = findSWF("my_chart");
+	x = tmp.load( JSON.stringify(chart2) );
+}
+
+function findSWF(movieName) {
+  if (navigator.appName.indexOf("Microsoft")!= -1) {
+    return window[movieName];
+  } else {
+    return document[movieName];
+  }
+}
+
+var chart = {
+  "title":{
+    "text":  "Many data lines",
+    "style": "{font-size: 20px; color:#0000ff; font-family: Verdana; text-align: center;}"
+  },
+ 
+  "y_legend":{
+    "text": "Open Flash Chart",
+    "style": "{color: #736AFF; font-size: 12px;}"
+  },
+ 
+  "elements":[
+    {
+      "type":      "bar",
+      "alpha":     0.5,
+      "colour":    "#9933CC",
+      "text":      "Page views",
+      "font-size": 10,
+      "values" :   [9,6,7,9,5,7,6,9,7]
+    },
+    {
+      "type":      "bar",
+      "alpha":     0.5,
+      "colour":    "#CC9933",
+      "text":      "Page views 2",
+      "font-size": 10,
+      "values" :   [6,7,9,5,7,6,9,7,3]
+    }
+  ],
+ 
+  "x_axis":{
+    "stroke":1,
+    "tick_height":10,
+    "colour":"#d000d0",
+    "grid_colour":"#00ff00",
+    "labels": ["January","February","March","April","May","June","July","August","September"]
+   },
+ 
+  "y_axis":{
+    "stroke":      4,
+    "tick_length": 3,
+    "colour":      "#d000d0",
+    "grid_colour": "#00ff00",
+    "offset":      0,
+    "max":         20
+  }
+};
+ 
+ 
+var chart2 = {
+  "title":{
+    "text":  "Sketch",
+    "style": "{font-size:35px; color: #567300}"
+  },
+
+  "elements":[
+    {
+      "type":            "bar_sketch",
+      "colour":          "#81AC00",
+      "outline-colour":  "#567300",
+      "text":            "Sketch",
+      "font-size":       10,
+      "offset":          6,
+      "values" :   [
+        3,
+        8,
+       -5,
+        {"top":5,"outline-colour": "#7030A0", "tip": "outline"},
+       4,
+       {"top":5, "colour": "#99FF00", "tip": "colour"},
+       {"top":-3,"colour": "#99FF00", "outline-colour": "#7030A0", "tip": "colour + outline"},
+       2,
+       7.5]
+    }
+  ],
+
+  "x_axis":{
+    "labels": ["January","February","March","April","May","June","July","August","September"]
+   },
+
+  "y_axis":{
+    "min": -10,
+    "max":  10
+  },
+
+  "tooltip":{
+    "text": "My Tip<br>#top#,#bottom# = #val#"
+  }
+
+};
+
+//alert( chart );
+</script>
+
+</head>
+<body>
+
+<p>This is an <a href="http://teethgrinder.co.uk/open-flash-chart-2/">Open Flash Chart</a> demo, running in HTML5/<a href="http://www.jangaroo.net">Jangaroo</a>. To see the original Flash version of the same charts, click <a href="flash.html">here</a>.</p>
+
+<div id="my_chart"></div>
+ 	
+<script type="text/javascript">
+swfobject.embedSWF("../open-flash-chart/open-flash-chart.swf", "my_chart", "450", "300", "9.0.0", "expressInstall.swf", {"data-file": encodeURIComponent("../data-files/radar-line-loop.txt")});
+</script>
+
+<form>
+<INPUT TYPE=BUTTON OnClick="load_1();" VALUE="Bars">
+<INPUT TYPE=BUTTON OnClick="load_2();" VALUE="Sketch">
+
+<label for="fileSelector">Load chart:</label>
+<select id="fileSelector" onchange="if(this.value) findSWF('my_chart').reload('../data-files/' + this.options[this.selectedIndex].value + '.txt');">
+  <option value="" selected="selected">Please choose...</option>
+  <option value="area-1">area-1</option>
+  <option value="area-line-dash">area-line-dash</option>
+  <option value="area-line">area-line</option>
+  <option value="area-point-objects">area-point-objects</option>
+  <option value="bar-2">bar-2</option>
+  <option value="bar-3d-2-BUG">bar-3d-2-BUG</option>
+  <option value="bar-3d">bar-3d</option>
+  <option value="bar-4">bar-4</option>
+  <option value="bar-all-onclick">bar-all-onclick</option>
+  <option value="bar-alpha">bar-alpha</option>
+  <option value="bar-cylinder">bar-cylinder</option>
+  <option value="bar-filled">bar-filled</option>
+  <option value="bar-floating-2">bar-floating-2</option>
+  <option value="bar-floating">bar-floating</option>
+  <option value="bar-glass-2">bar-glass-2</option>
+  <option value="bar-glass-height-0">bar-glass-height-0</option>
+  <option value="bar-glass">bar-glass</option>
+  <option value="bar-groups-with-nulls">bar-groups-with-nulls</option>
+  <option value="bar-on-show-cascade">bar-on-show-cascade</option>
+  <option value="bar-on-show-pop">bar-on-show-pop</option>
+  <option value="bar-on-show">bar-on-show</option>
+  <option value="bar-sketch">bar-sketch</option>
+  <option value="bar-test-all">bar-test-all</option>
+  <option value="bug-1">bug-1</option>
+  <option value="candle">candle</option>
+  <option value="combined-chart-bar-line-scatter">combined-chart-bar-line-scatter</option>
+  <option value="comparisons">comparisons</option>
+  <option value="exp">exp</option>
+  <option value="horizontal-bar-chart-2">horizontal-bar-chart-2</option>
+  <option value="horizontal-bar-chart-3">horizontal-bar-chart-3</option>
+  <option value="horizontal-bar-chart">horizontal-bar-chart</option>
+  <option value="keys-1">keys-1</option>
+  <option value="languages-chinese">languages-chinese</option>
+  <option value="line-2">line-2</option>
+  <option value="line-anchor">line-anchor</option>
+  <option value="line-bow">line-bow</option>
+  <option value="line-bug-report">line-bug-report</option>
+  <option value="line-dash">line-dash</option>
+  <option value="line-dot">line-dot</option>
+  <option value="line-hollow">line-hollow</option>
+  <option value="line-null-bug">line-null-bug</option>
+  <option value="line-on-click">line-on-click</option>
+  <option value="line-on-show">line-on-show</option>
+  <option value="line-star">line-star</option>
+  <option value="line">line</option>
+  <option value="menu">menu</option>
+  <option value="on-show-area-drop">on-show-area-drop</option>
+  <option value="on-show-area-explode">on-show-area-explode</option>
+  <option value="on-show-area-fade-in">on-show-area-fade-in</option>
+  <option value="on-show-area-mid-slide">on-show-area-mid-slide</option>
+  <option value="on-show-area-pop-up">on-show-area-pop-up</option>
+  <option value="on-show-area-shrink-in">on-show-area-shrink-in</option>
+  <option value="on-show-line">on-show-line</option>
+  <option value="on-show-scatter-explode">on-show-scatter-explode</option>
+  <option value="pie-1">pie-1</option>
+  <option value="pie-2">pie-2</option>
+  <option value="pie-3">pie-3</option>
+  <option value="pie-4">pie-4</option>
+  <option value="pie-bug-green">pie-bug-green</option>
+  <option value="pie-colours">pie-colours</option>
+  <option value="pie-fixed-radius">pie-fixed-radius</option>
+  <option value="pie-label-colours">pie-label-colours</option>
+  <option value="pie-many-slices-fixed">pie-many-slices-fixed</option>
+  <option value="pie-many-slices">pie-many-slices</option>
+  <option value="radar-2">radar-2</option>
+  <option value="radar-area">radar-area</option>
+  <option value="radar-axis-and-grid-style">radar-axis-and-grid-style</option>
+  <option value="radar-axis-labels-2">radar-axis-labels-2</option>
+  <option value="radar-axis-labels">radar-axis-labels</option>
+  <option value="radar-axis-tooltip-closest">radar-axis-tooltip-closest</option>
+  <option value="radar-axis-tooltip-hover">radar-axis-tooltip-hover</option>
+  <option value="radar-chart-minus-numbers">radar-chart-minus-numbers</option>
+  <option value="radar-line-loop">radar-line-loop</option>
+  <option value="radar-steps">radar-steps</option>
+  <option value="radar-test-keys">radar-test-keys</option>
+  <option value="scatter-2">scatter-2</option>
+  <option value="scatter-anchors">scatter-anchors</option>
+  <option value="scatter-line-2">scatter-line-2</option>
+  <option value="scatter-line-area">scatter-line-area</option>
+  <option value="scatter-line-step-horizontal">scatter-line-step-horizontal</option>
+  <option value="scatter-line-step-vertical">scatter-line-step-vertical</option>
+  <option value="scatter-line">scatter-line</option>
+  <option value="scatter-on-click">scatter-on-click</option>
+  <option value="scatter-step-all">scatter-step-all</option>
+  <option value="scatter">scatter</option>
+  <option value="shape">shape</option>
+  <option value="stack-bar-1">stack-bar-1</option>
+  <option value="stack-bar-2">stack-bar-2</option>
+  <option value="stack-bar-on-click">stack-bar-on-click</option>
+  <option value="stack-bar-on-show">stack-bar-on-show</option>
+  <option value="stack-bar-tooltip-hover">stack-bar-tooltip-hover</option>
+  <option value="tags">tags</option>
+  <option value="title-1">title-1</option>
+  <option value="tooltip-1">tooltip-1</option>
+  <option value="tooltip-2">tooltip-2</option>
+  <option value="tooltip-bar-floating">tooltip-bar-floating</option>
+  <option value="tooltip-clash-scatter-2">tooltip-clash-scatter-2</option>
+  <option value="tooltip-clash-scatter-hover">tooltip-clash-scatter-hover</option>
+  <option value="tooltip-clash-scatter">tooltip-clash-scatter</option>
+  <option value="tooltip-clash">tooltip-clash</option>
+  <option value="tooltip-hover">tooltip-hover</option>
+  <option value="tooltip-mixed-1">tooltip-mixed-1</option>
+  <option value="tooltip-mixed-2">tooltip-mixed-2</option>
+  <option value="tooltip-rounded">tooltip-rounded</option>
+  <option value="tooltip-x-radar-clash-proximity">tooltip-x-radar-clash-proximity</option>
+  <option value="tooltip-x-radar-clash">tooltip-x-radar-clash</option>
+  <option value="utf8-1">utf8-1</option>
+  <option value="x-axis-1">x-axis-1</option>
+  <option value="x-axis-auto-range">x-axis-auto-range</option>
+  <option value="x-axis-big">x-axis-big</option>
+  <option value="x-axis-labels-2">x-axis-labels-2</option>
+  <option value="x-axis-labels-3">x-axis-labels-3</option>
+  <option value="x-axis-labels-4">x-axis-labels-4</option>
+  <option value="x-axis-labels-5">x-axis-labels-5</option>
+  <option value="x-axis-labels-6">x-axis-labels-6</option>
+  <option value="x-axis-labels-7">x-axis-labels-7</option>
+  <option value="x-axis-labels-angle-no-offset">x-axis-labels-angle-no-offset</option>
+  <option value="x-axis-labels-angle-offset">x-axis-labels-angle-offset</option>
+  <option value="x-axis-labels">x-axis-labels</option>
+  <option value="x-axis-no-offset">x-axis-no-offset</option>
+  <option value="x-axis-range-scatter-minus">x-axis-range-scatter-minus</option>
+  <option value="x-axis-range-scatter-plus">x-axis-range-scatter-plus</option>
+  <option value="x-axis-steps-zero-check">x-axis-steps-zero-check</option>
+  <option value="x-labels-auto-dates">x-labels-auto-dates</option>
+  <option value="x-labels-auto-min5-3rd-visible">x-labels-auto-min5-3rd-visible</option>
+  <option value="x-labels-auto-min5">x-labels-auto-min5</option>
+  <option value="x-labels-auto-rev">x-labels-auto-rev</option>
+  <option value="x-labels-auto">x-labels-auto</option>
+  <option value="x-labels-invisible-user-labels">x-labels-invisible-user-labels</option>
+  <option value="x-labels-invisible">x-labels-invisible</option>
+  <option value="x-labels-user-labels-br">x-labels-user-labels-br</option>
+  <option value="x-labels-user-labels">x-labels-user-labels</option>
+  <option value="x-labels-user-x">x-labels-user-x</option>
+  <option value="y-axis-auto-steps">y-axis-auto-steps</option>
+  <option value="y-axis-big">y-axis-big</option>
+  <option value="y-axis-fix-this-bug">y-axis-fix-this-bug</option>
+  <option value="y-axis-format-labels">y-axis-format-labels</option>
+  <option value="y-axis-labels-step">y-axis-labels-step</option>
+  <option value="y-axis-labels-user-y">y-axis-labels-user-y</option>
+  <option value="y-axis-no-grid">y-axis-no-grid</option>
+  <option value="y-axis-no-title-no-offset-right">y-axis-no-title-no-offset-right</option>
+  <option value="y-axis-no-title-no-offset">y-axis-no-title-no-offset</option>
+  <option value="y-axis-no-title-offset">y-axis-no-title-offset</option>
+  <option value="y-axis-offset-tiny-numbers">y-axis-offset-tiny-numbers</option>
+  <option value="y-axis-right-all-bars">y-axis-right-all-bars</option>
+  <option value="y-axis-right-all-lines-10-20">y-axis-right-all-lines-10-20</option>
+  <option value="y-axis-right-all-lines">y-axis-right-all-lines</option>
+  <option value="y-axis-right">y-axis-right</option>
+  <option value="y-axis-rotate-labels">y-axis-rotate-labels</option>
+  <option value="y-axis-upside-down-offset">y-axis-upside-down-offset</option>
+  <option value="y-axis-upside-down">y-axis-upside-down</option>
+  <option value="y-axis">y-axis</option>
+  <option value="y-labels-auto-formatted">y-labels-auto-formatted</option>
+  <option value="y-labels-auto-labelstyle">y-labels-auto-labelstyle</option>
+  <option value="y-labels-auto">y-labels-auto</option>
+</select>
+</form>
+
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-5024797-1']);
+  _gaq.push(['_gat._anonymizeIp']);
+  _gaq.push(['_trackPageview']);
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+</body>
+</html>

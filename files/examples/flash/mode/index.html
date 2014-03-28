@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+  <link rel="shortcut icon" href="favicon.ico">
+
+  <title>MODE</title>
+
+  <style type="text/css">
+    body {
+      margin: 0;
+      background: #333333
+    }
+    #stage {
+      border: 0 none;
+      width: 640px;
+      height: 480px;
+    }
+    #flashcontent {
+      float: right;
+    }
+    #info {
+      margin: 5px;
+      padding: 5px;
+      width: 620px;
+      background-color:white;
+      font-family: Arial, sans-serif;
+      font-size: small;
+    }
+    p {
+      margin: .2em 0;
+    }
+  </style>
+
+</head>
+
+<body>
+<iframe id="stage" src="mode.html" frameborder="0">
+  no frames
+</iframe>
+
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js"></script>
+<script type="text/javascript">
+  function showSWF() {
+    swfobject.embedSWF(
+      "http://adamatomic.com/mode/Mode.swf",
+      "flashcontent",
+      "640",
+      "480",
+      "10",
+      undefined,
+    {},
+    {
+      "quality": "high",
+      "bgcolor": "#000000" ,
+      "allowscriptaccess": "sameDomain" ,
+      "allowfullscreen": "true"
+    }
+      );
+  }
+</script>
+
+<div id="flashcontent">
+  <button onclick="showSWF()">
+    Click here to show original Flash version.
+  </button>
+</div>
+
+<div id="info">
+  <p>
+    This is <a href="http://adamatomic.com/mode/">MODE</a>, a <a href="http://flixel.org/">flixel</a> game,
+    using <a href="http://www.jangaroo.net">Jangaroo</a> to run without Flash Player.
+  </p>
+  <p>
+    Above, you see the original MODE and flixel framework code recompiled with
+    <a href="http://www.jangaroo.net">Jangaroo AS3 to JS compiler</a>, using a
+    <a href="http://repo.jangaroo.net/maven2/net/jangaroo/jooflash">Jangaroo Flash API re-implementation</a>,
+    which implements Flash drawing using <a href="http://en.wikipedia.org/wiki/Canvas_element">HTML5 canvas</a>.
+    This means it runs in every modern browser (for Microsoft Internet Explorer, you need version 9).
+    For best performance, use Google Chrome or IE 9. Safari is also fast, but stops every other second
+    (garbage collection?). Safari mobile (iPhone, iPad, iPod) works, but slowly, and the game does not support touch events.
+    Firefox 3.6 is slower than Chrome, but steady, Firefox 4 beta 11 is faster. Opera 10 seems to work, too.
+  </p>
+  <p>
+    The button on the right-hand side loads the original Flash version of MODE (and of course only works if you
+    have a Flash-enabled browser).
+  </p>
+</div>
+
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-5024797-1']);
+  _gaq.push(['_gat._anonymizeIp']);
+  _gaq.push(['_trackPageview']);
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,68 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+  <head>
+    <title>Jangaroo Flash Example</title>
+    <style type="text/css">
+      body {
+        width: 100%;
+        height: 100%;
+      }
+      body, #stage {
+        margin: 0;
+        padding: 0;
+        background-color: #869CA7;
+      }
+      #flashcontent {
+        position: absolute;
+        top: 0;
+        left: 400px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="stage">
+      Jangaroo flash demo not (yet) loaded
+    </div>
+
+    <p>Visit <a href="https://github.com/fwienber/flash-lines/">project on github</a></p>
+
+    <script type="text/javascript" src="joo/jangaroo-application.js"></script>
+    <script type="text/javascript">
+      joo.classLoader.run(
+              "joo.flash.Run",
+              "stage",
+              "Main");
+    </script>
+
+    <div id="flashcontent">
+      no flash
+    </div>
+    <script type="text/javascript" src="http://lab.andre-michelle.com/wp-content/themes/layoff/swfobject.js"></script>
+    <script type="text/javascript"> 
+      var so = new SWFObject(
+              "http://lab.andre-michelle.com/swf/f9/lines/Main.swf",
+              "flashmovie",
+              "384",
+              "384",
+              "10"
+              );
+      so.addParam( "base", "" );
+      so.addParam( "wmode", "" );
+      so.addParam( "AllowScriptAccess", "always" );
+      so.write("flashcontent");
+    </script> 
+
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-5024797-1']);
+      _gaq.push(['_gat._anonymizeIp']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
+
+  </body>
+</html>

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>CreativeApplications.NET Flixel Primer (Jangaroo Version)</title>
+  <style type="text/css">
+    *:focus {
+      outline: none;
+    }
+    body {
+      width: 100%;
+      height: 100%;
+    }
+    body, #stage {
+      margin: 0;
+      padding: 0;
+    }
+  </style>
+</head>
+<body>
+<div id="stage">
+  Jangaroo Flash Application not (yet) loaded
+</div>
+
+<script type="text/javascript" src="joo/jangaroo-application.js"></script>
+<script type="text/javascript">
+  joo.classLoader.run(
+    "joo.flash.Run",
+    "stage",
+    "Main");
+</script>
+
+</body>
+</html>

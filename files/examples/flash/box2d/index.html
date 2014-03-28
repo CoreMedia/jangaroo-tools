@@ -1,0 +1,134 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+  <title>Jangaroo Box2D Example</title>
+  <style type="text/css">
+    *:focus {
+      outline: none;
+    }
+    body {
+      width: 100%;
+      height: 100%;
+    }
+    body, #stage {
+      margin: 0;
+      padding: 0;
+      background-color: #292C2C;
+    }
+    #flashcontent {
+      position: absolute;
+      top: 0;
+      left: 660px;
+    }
+    #info {
+      margin: 5px;
+      padding: 5px;
+      width: 620px;
+      background-color:white;
+      font-family: Arial, sans-serif;
+      font-size: small;
+    }
+    p {
+      margin: .2em 0;
+    }
+    blockquote {
+      background-color: #d3d3d3;
+      margin: .2em 0;
+      padding: .2em 1em;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+
+<div id="stage">
+  Jangaroo Box2D demo not (yet) loaded
+</div>
+
+<script type="text/javascript" src="joo/jangaroo-application.js"></script>
+<script type="text/javascript">
+  joo.classLoader.run(
+    "joo.flash.Run",
+    "stage",
+    "Main");
+</script>
+
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js"></script>
+<script type="text/javascript">
+  function showSWF() {
+    swfobject.embedSWF(
+      "http://www.box2dflash.org/swf/main_demo_21a.swf",
+      "flashcontent",
+      "640",
+      "360",
+      "10",
+      undefined,
+    {},
+    {
+      "quality": "high",
+      "bgcolor": "#292C2C" ,
+      "allowscriptaccess": "sameDomain" ,
+      "allowfullscreen": "true"
+    }
+      );
+  }
+</script>
+
+<div id="flashcontent">
+  <button onclick="showSWF()">
+    Click here to show original Flash version.
+  </button>
+</div>
+
+<div id="info">
+  <p>
+    This is the <a href="http://www.box2dflash.org/">Box2DFlash</a> demo,
+    using <a href="http://www.jangaroo.net">Jangaroo</a> to run without Flash.
+  </p>
+  <p>
+    If you have turned off Flash or no Flash available (e.g. on iPhone), the original Web-site
+    says:
+  </p>
+  <blockquote cite="http://www.box2dflash.org/">
+    <p>You need Flash to view this content.</p>
+    <p>Box2DFlash is an actionscript library, do you really think you could avoid Flash on the website?</p>
+  </blockquote>
+  <p>
+    <strong>Actually, yes. It is possible!</strong>
+  </p>
+  <p>
+    Above, you see the original Box2DFlash framework and example code recompiled with
+    <a href="http://www.jangaroo.net">Jangaroo AS3 to JS compiler</a>, using a
+    <a href="http://repo.jangaroo.net/maven2/net/jangaroo/jooflash">Jangaroo Flash API re-implementation</a>,
+    which implements Flash drawing using <a href="http://en.wikipedia.org/wiki/Canvas_element">HTML5 canvas</a>.
+    This means it runs in every modern browser (for Microsoft Internet Explorer, you need version 9).
+    For best performance, use Google Chrome 5 or IE 9. Safari 5 is also fast, but stops every other second
+    (garbage collection?). Safari mobile (iPhone, iPad, iPod) works, but the demos do not yet support touch events, so
+    only the falling 'Ragdolls' can be viewed. Firefox 3.6 is slower than Chrome, but steady. Opera 10 flickers and
+    pops up the JavaScript console with strange exceptions.
+  </p>
+  <p>
+    The button on the right-hand side loads the original Flash version of the demo (and of course only works if you
+    have a Flash-enabled browser).
+  </p>
+  <p>
+    Demo Instructions:
+    Click and drag to manipulate items in the 2D world.
+    To use the keys to step to another demo, you have to focus (click) into the corresponding demo
+    version (Jangaroo left, Flash right) first.
+  </p>
+</div>
+
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-5024797-1']);
+  _gaq.push(['_gat._anonymizeIp']);
+  _gaq.push(['_trackPageview']);
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+</body>
+</html>
