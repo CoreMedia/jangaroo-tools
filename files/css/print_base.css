@@ -50,7 +50,7 @@
   /* (en) Change font to serif */
   /* (de) Zeichensatz auf Serifen umstellen */
   body * { font-family: "Times New Roman", Times, serif; }
-  code, pre { font-family:"Courier New", Courier, mono; }
+  code, pre { font-family:"Courier New", Courier, mono, monospace; }
   body { font-size: 12pt; }
   /* (en) Avoid page breaks right after headings */
   /* (de) Vermeidung von Seitenumbrüchen direkt nach einer Überschrift */

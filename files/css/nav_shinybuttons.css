@@ -39,10 +39,9 @@ border-top: 1px #c00000 solid;
     /* (en|de) Bugfix: IE - Doubled Float Margin Bug */
     display: inline;
     float: left;
-    margin: 0;
     /* (en) Left margin of the first button  */
     /* (de) Abstand des ersten Buttons vom linken Rand  */
-    margin-left: 50px;
+    margin: 0 0 0 50px;
     padding: 0;
   }
   #nav_main ul li {

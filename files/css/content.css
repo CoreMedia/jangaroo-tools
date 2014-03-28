@@ -35,12 +35,12 @@ font-family:"Courier New", Courier, monospace;
 /* (en) base layout gets standard font size 12px */
 /* (de) Basis-Layout erhält Standardschriftgröße von 12 Pixeln */
 body {
-font-family: 'verdana';
+font-family: 'verdana', serif;
 font-size: 75.00%;
 color: #444;
 }
 h1,h2,h3,h4,h5,h6 {
-font-family:"verdana";
+font-family:"verdana", serif;
 font-weight:bold;
 color:#666;
 margin: 0 0 0.25em 0;

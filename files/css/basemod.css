@@ -44,7 +44,6 @@ color: #000;
 background: #fff repeat-x top left;
 padding: 45px 2em 1em 20px;
 }
-#topnav { color: #aaa; background: transparent; }
 /* (en) adjustment of main navigation */
 /* (de) Anpassung der Hauptnavigation */
 #nav ul { margin-left: 20px; }
@@ -79,7 +78,7 @@ padding: 45px 2em 1em 20px;
 #main .twtr-widget h3, #main .twtr-widget h4, #main .twtr-widget p {
   font-size: 0.8333em;
   line-height: 1.5em !important;
-  font-family:'verdana';
+  font-family:'verdana', serif;
 }
 
 .joo-loading {

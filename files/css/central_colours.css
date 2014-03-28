@@ -26,26 +26,6 @@ border-top:2px dotted #57738C;
 /*****************/
 
 
-#sk_breadcrumbs .sk_breadcrumb_text{
-color: #57738C;
-}
-
-#sk_breadcrumbs ul li a, 
-#sk_breadcrumbs ul li strong {
-color: #57738C;
-border-bottom: 1px  #57738C dotted;
-font-weight: normal;
-}
-
-
-.sk_breadcrumb_separator{
-font-size: 0.8333em;
-color: #57738C;
-}
-
-
-
-
 #col3_content p a {
 border-bottom:1px dotted #57738C;
 color: #57738C;
@@ -95,17 +75,5 @@ color: #57738C;
 
 #sk_footer_content ul li a {
 border-bottom:1px dotted #57738C;
-color: #57738C;
-}
-
-
-
-
-
-.sk_sitemap,
-.sk_sitemap a,
-.sk_sitemap li a,
-.sk_sitemap li li a,
-.sk_sitemap li li li a{
 color: #57738C;
 }

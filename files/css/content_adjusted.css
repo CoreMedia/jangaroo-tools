@@ -1,7 +1,3 @@
-#sk_localized{
-display: none;
-}
-
 #sk_nav_pagename{
 background: url(../images/jangaroo-logo.png) no-repeat left top;
 
@@ -20,7 +16,7 @@ margin-top: 19px;
   font-weight: bold;
 display: block;
 width: 330px;
-height: 0px;
+height: 0;
 padding-top: 58px;
 overflow: hidden;
 }

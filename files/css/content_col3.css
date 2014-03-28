@@ -65,9 +65,8 @@ color: #4D87C7;
 padding: 2px;
 background-color: #F8F8F8;
 /*border: 1px #4D87C7 dotted;*/
-margin: 0;
 font-style: normal;
-margin-bottom: 20px;
+margin: 0 0 20px;
 
 }
 
@@ -107,22 +106,10 @@ color: #000;
 
 
 
-.sk_module_image {
-  float: right;
-  padding-left: 2px;
-display: block;
-
-}
-
 .sk_text{
 min-height: 128px;
 }
 
-
-.sk_top_link {
-  display: block;
-  text-align: right;
-}
 
 .sk_text td{
 border: 1px #4D87C7 dotted;
