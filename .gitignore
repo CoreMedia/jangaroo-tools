@@ -1,0 +1,24 @@
+*.iml
+*.ipr
+*.iws
+.idea/
+# maven:
+target/
+overlays/
+# eclipse:
+.classpath
+.project
+.settings/
+# Logs:
+*.log
+*.out
+# git:
+*.orig
+# OS X
+.DS_Store
+# Emacs
+*~
+# Vagrant
+.vagrant/
+.vagrantuser
+.repository

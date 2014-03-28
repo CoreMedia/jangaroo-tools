@@ -1,0 +1,28 @@
+#footer{
+padding:5px;
+/*background-color: #eee;*/
+
+}
+#sk_footer_content ul li{
+    display: inline;    
+    font-size: 0.9em;
+    line-height: 1em;
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    margin-left: 5px;
+  }
+
+#sk_footer_content ul li a{
+color: #4D87C7;
+border-bottom: 1px #4D87C7 dotted;
+font-weight: normal;
+  }
+
+#sk_footer_content ul li a:hover{
+text-decoration: none;
+  }
+
+#footer2{
+display: none;
+}

@@ -1,0 +1,142 @@
+.sk_subject{
+display: none;
+}
+
+#col3_content h2{
+color: #4D87C7;
+font-size: 1.666em;
+margin-bottom: 10px;
+}
+
+
+#col3_content p a{
+color: #4D87C7;
+border-bottom: 1px #4D87C7 dotted;
+}
+
+#col3_content p a:hover{
+font-weight: normal;
+text-decoration: none;
+}
+
+
+
+#col3_content h2 a{
+color: #4D87C7;
+border-bottom: none;
+}
+
+
+
+#col3_content .p--heading-1,
+#col3_content .p--heading-2,
+#col3_content .p--heading-3{
+font-weight: bold;
+}
+
+#col3_content .font-name--courier{
+font-family: "Courier New", Courier, monospace;
+
+color: #4D87C7;
+}
+
+#col3_content .align--left {
+  text-align: left;
+}
+
+#col3_content .align--center {
+  text-align: center;
+}
+
+#col3_content .align--right {
+  text-align: right;
+}
+
+#col3_content .align--justify {
+  text-align: justify;
+}
+
+
+/***************************************************************/
+/* section: blockquote */
+/*******************/
+
+#col3_content blockquote{
+padding: 2px;
+background-color: #F8F8F8;
+/*border: 1px #4D87C7 dotted;*/
+margin: 0;
+font-style: normal;
+margin-bottom: 20px;
+
+}
+
+#col3_content blockquote .font-name--courier{
+color: #000;
+/*font-size: 0.8333em;*/
+}
+
+#col3_content blockquote p{
+color: #000;
+
+}
+
+#col3_content blockquote .font-name--courier p {
+  line-height: 1.2em;
+  padding: 0;
+  margin: 0;
+color: #000;
+
+}
+/***************************************************************/
+
+
+
+#col3_content .float--left {
+  float: left;
+  padding: 0 6px 4px 0
+}
+
+#col3_content .float--right {
+  float: right;
+}
+
+#col3_content .sk_text img{
+
+}
+
+
+
+.sk_module_image {
+  float: right;
+  padding-left: 2px;
+display: block;
+
+}
+
+.sk_text{
+min-height: 128px;
+}
+
+
+.sk_top_link {
+  display: block;
+  text-align: right;
+}
+
+.sk_text td{
+border: 1px #4D87C7 dotted;
+font-family: "Courier New", Courier, monospace;
+}
+
+.sk_text td a,
+.sk_text td a:hover{
+border-bottom: 1px #4D87C7 dotted;
+font-family: "Courier New", Courier, monospace;
+text-decoration: none;
+color: #4D87C7;
+}
+
+
+
+

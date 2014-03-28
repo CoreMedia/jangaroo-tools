@@ -1,0 +1,24 @@
+#channelteaser h2 { font-size: 100.1%; }
+#channelteaser h3 { font-size: 80%; }
+#channelteaser h4 { font-size: 66%; }
+
+#channelteaser h2 a,
+#channelteaser h2 a:hover,
+#channelteaser h3 a,
+#channelteaser h3 a:hover{
+text-decoration: none;
+color: #4D87C7;
+}
+
+#col2_content p{
+font-size: 0.8333em;
+margin-bottom: 10px;
+}
+
+#col2_content p a,
+#col2_content p a:hover {
+text-decoration: none;
+border-bottom: 1px #4D87C7 dotted;
+color: #4D87C7;
+}
+

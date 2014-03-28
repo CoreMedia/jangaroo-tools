@@ -1,0 +1,30 @@
+
+
+  #nav_main ul {
+    border-left: 1px #fff solid;
+    border-right: 1px #fff solid;
+  }
+
+  #nav_main ul li {
+    border-left: 1px #fff solid;
+    border-right: 1px #fff solid;
+  }
+
+
+
+  #nav_main ul li a:focus,
+  #nav_main ul li a:hover,
+  #nav_main ul li a:active  { background: #c00000; color: #fff; text-decoration: none; }
+
+  #nav_main ul li#current {
+    background: #c00000;
+    border-left: 1px #fff solid;
+    border-right: 1px #fff solid;
+  }
+
+  #nav_main ul li#current strong,
+  #nav_main ul li#current a,
+  #nav_main ul li#current a:focus,
+  #nav_main ul li#current a:hover,
+  #nav_main ul li#current a:active { background: transparent; color: #fff; text-decoration: none; }
+

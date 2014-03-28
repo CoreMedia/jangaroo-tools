@@ -1,0 +1,95 @@
+@charset "UTF-8";
+/**
+* "Yet Another Multicolumn Layout" - (X)HTML/CSS Framework
+*
+* (en) Screen layout for YAML examples
+* (de) Bildschirmlayout für YAML-Beispiele
+*
+* @copyright Copyright 2005-2008, Dirk Jesse
+* @license CC-A 2.0 (http://creativecommons.org/licenses/by/2.0/),
+* YAML-C (http://www.yaml.de/en/license/license-conditions.html)
+* @link http://www.yaml.de
+* @package yaml
+* @version 3.0.6
+* @revision $Revision: 202 $
+* @lastmodified $Date: 2008-06-07 14:29:18 +0200 (Sa, 07 Jun 2008) $
+*/
+@media screen, projection
+{
+/*------------------------------------------------------------------------------------------------------*/
+/**
+* (en) Formatting YAML's basic layout elements
+* (de) Gestaltung des YAML Basis-Layouts
+*/
+/* (en) Marginal areas & page background */
+/* (de) Randbereiche & Seitenhintergrund */
+body { background: #e8e8e8 url(../images/bg_grey.gif) repeat-x top left fixed; padding: 10px 0; }
+/* (en) Centering layout in old IE-versions */
+/* (de) Zentrierung des Layouts in alten IE-versionen */
+body { text-align: center; }
+#page_margins { text-align:left; margin: 0 auto; }
+/* (en) Layout: width, background, borders */
+/* (de) Layout: Breite, Hintergrund, Rahmen */
+#page_margins { min-width: 740px; max-width: 80em; background: #fff; }
+
+#page{
+padding: 10px;
+position: relative;
+}
+
+/* (en) Designing main layout elements */
+/* (de) Gestaltung der Hauptelemente des Layouts */
+#header {
+color: #000;
+background: #fff repeat-x top left;
+padding: 45px 2em 1em 20px;
+}
+#topnav { color: #aaa; background: transparent; }
+/* (en) adjustment of main navigation */
+/* (de) Anpassung der Hauptnavigation */
+#nav ul { margin-left: 20px; }
+#nav_main { background-color: #E36600; }
+#main { background: #fff;padding:10px 0; }
+#footer {
+
+
+}
+/*------------------------------------------------------------------------------------------------------*/
+/**
+* (en) Formatting content container
+* (de) Formatierung der Inhalts-Container
+*
+* |-------------------------------|
+* | #header |
+* |-------------------------------|
+* | #col1 | #col3 | #col2 |
+* | 25% | flexible | 25% |
+* |-------------------------------|
+* | #footer |
+* |-------------------------------|
+*/
+#col1 { width: 25%; }
+#col1_content { padding: 10px 10px 10px 20px; }
+#col2 { width: 25%; }
+#col2_content { padding: 10px 20px 10px 10px; }
+#col3 { margin: 0 25%; }
+#col3_content { padding: 10px; }
+}
+
+#main .twtr-widget h3, #main .twtr-widget h4, #main .twtr-widget p {
+  font-size: 0.8333em;
+  line-height: 1.5em !important;
+  font-family:'verdana';
+}
+
+.joo-loading {
+  width: 16px;
+  height: 16px;
+  background: url(../images/loading.gif);
+  vertical-align:middle;
+  text-align: center;
+  margin-left: 10px;
+  margin-bottom: 50px;
+  margin-top: 10px;
+}
+

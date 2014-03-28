@@ -1,0 +1,28 @@
+#sk_localized{
+display: none;
+}
+
+#sk_nav_pagename{
+background: url(../images/jangaroo-logo.png) no-repeat left top;
+
+width:330px;
+height:58px;
+
+display:block;
+  float: left;
+margin-bottom: 11px;
+margin-top: 19px;
+}
+
+
+
+#sk_nav_pagename a{
+  font-weight: bold;
+display: block;
+width: 330px;
+height: 0px;
+padding-top: 58px;
+overflow: hidden;
+}
+
+

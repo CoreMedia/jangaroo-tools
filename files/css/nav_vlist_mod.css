@@ -1,0 +1,143 @@
+
+
+
+  #submenu {
+    width: 100%;
+    overflow: hidden;
+    margin: 2.4em 0 1.5em 0;
+    list-style-type: none;
+    border-top: 2px #4D87C7 dotted;
+    border-bottom: 2px #4D87C7 dotted;
+ background-color:#f8f8f8; 
+  }
+
+
+
+#submenu a{
+  color: #4D87C7;
+}
+
+
+
+#submenu ul { 
+  list-style-type: none; 
+  margin:0; 
+  padding: 0; 
+}
+
+
+#submenu li {
+  float:left; 
+  width: 100%; 
+  margin:0; 
+  padding: 0;
+}
+
+
+#submenu a,
+#submenu strong {
+    display:block;
+    width: 90%;
+    padding: 3px 0px 3px 10%;
+    text-decoration: none;
+}
+
+
+
+  /* Level 1 */
+#submenu li#active,
+#submenu li strong {
+   width: 100%;
+  margin:0; 
+  padding: 0;
+  font-weight: bold;
+  }
+
+
+#submenu li a { 
+  width: 90%; 
+  padding-left: 10%; 
+}
+
+
+#submenu li a:focus,
+#submenu li a:hover,
+#submenu li a:active{ 
+ background-color:#eee; 
+}
+
+
+
+
+  /* Level 2 */
+#submenu li ul li{
+width: 89%; 
+ padding-left: 11%;
+font-size: 0.8333em;
+}
+
+#submenu li ul li a,
+#submenu li ul li#active,
+#submenu li ul li strong,
+#submenu li ul li span{
+
+  /*background-color:#f8f8f8; 
+  color: #4D87C7; */
+
+
+}
+
+
+
+#submenu li ul li a:focus,
+#submenu li ul li a:hover,
+#submenu li ul li a:active{
+   /*background-color:#f8f8f8; 
+ color: #4D87C7; */
+
+}
+
+
+
+
+
+
+
+  /* Level 3 */
+#submenu li ul li ul li{
+  width: 70%; 
+  padding-left: 30%;
+
+}
+
+#submenu li ul li ul li a,
+#submenu li ul li ul li#active,
+#submenu li ul li ul li strong,
+#submenu li ul li ul li span{
+
+}
+
+
+#submenu li ul li ul li a { 
+  /*background-color:#fcfcfc; 
+  color: #888; */
+}
+
+
+#submenu li ul li ul li a:focus,
+#submenu li ul li ul li a:hover,
+#submenu li ul li ul li a:active { 
+
+}
+
+/* noch zu modifizieren! */
+  /* Level 4 */
+  #submenu li ul li ul li ul li a,
+  #submenu li ul li ul li ul li#active,
+  #submenu li ul li ul li ul li strong,
+  #submenu li ul li ul li ul li span { width: 60%; padding-left: 40%; }
+  #submenu li ul li ul li ul li a { background-color:#ffffff; color: #aaa; }
+  #submenu li ul li ul li ul li a:focus,
+  #submenu li ul li ul li ul li a:hover,
+  #submenu li ul li ul li ul li a:active { background-color:#f63; color: #fff; }
+
