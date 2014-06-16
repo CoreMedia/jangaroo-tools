@@ -121,7 +121,14 @@ public class ClassModel extends AbstractAnnotatedModel implements NamespacedMode
 
   public AnnotationModel getEvent(String name) {
     for (AnnotationModel event : getEvents()) {
-      if (name.equals(event.getPropertiesByName().get("name").getStringValue())) {
+      AnnotationPropertyModel eventName = event.getPropertiesByName().get("name");
+      if (eventName == null) {
+        eventName = event.getPropertiesByName().get(null);
+        if (eventName == null) {
+          System.out.println("*** no event value found: " + event.getProperties());
+        }
+      }
+      if (eventName != null && name.equals(eventName.getStringValue())) {
         return event;
       }
     }
