@@ -160,8 +160,11 @@ public final class MxmlToModelParser {
         MethodModel constructorModel = classModel.getConstructor();
         if (constructorModel != null) {
           Iterator<ParamModel> constructorParams = constructorModel.getParams().iterator();
-          if (constructorParams.hasNext() && "Object".equals(constructorParams.next().getType())) {
-            return true;
+          if (constructorParams.hasNext()) {
+            ParamModel firstParam = constructorParams.next();
+            if ("Object".equals(firstParam.getType()) && "config".equals(firstParam.getName())) {
+              return true;
+            }
           }
         }
       }
@@ -194,6 +197,7 @@ public final class MxmlToModelParser {
     ClassModel classModel = type == null ? null : type.getClassModel();
     NamedNodeMap attributes = objectNode.getAttributes();
     boolean hasBindings = false;
+    boolean hasIdAttribute = attributes.getNamedItem(MXML_ID_ATTRIBUTE) != null;
     for (int i = 0; i < attributes.getLength(); i++) {
       Attr attribute = (Attr) attributes.item(i);
       String propertyName = attribute.getLocalName();
@@ -204,6 +208,12 @@ public final class MxmlToModelParser {
         if (classModel != null) {
           propertyModel = findPropertyModel(classModel, propertyName);
           if (propertyModel == null) {
+            if (generatingConfig && hasIdAttribute) {
+              // Only generate config-event-listeners when config has no ID, because otherwise it will be instantiated
+              // immediately, anyway, and it is safer to attach event listeners to the actual object.
+              hasBindings = true;
+              continue;
+            }
             AnnotationModel eventModel = findEvent(classModel, propertyName);
             if (eventModel != null) {
               createEventHandlerCode(variable, value, eventModel);
@@ -214,24 +224,32 @@ public final class MxmlToModelParser {
         if (propertyModel == null) {
           propertyModel = createDynamicPropertyModel(type, propertyName, MXML_UNTYPED_NAMESPACE.equals(attribute.getNamespaceURI()));
         }
-        if (MxmlUtils.isBindingExpression(value) && hasSetter(propertyModel)) {
+        if (createPropertyAssignmentCodeWithBindings(configVariable, targetVariable, generatingConfig, value, propertyModel)) {
           hasBindings = true;
-          if (generatingConfig) {
-            createPropertyAssignmentCode(configVariable, propertyModel,
-                    CompilerUtils.createCodeExpression(getOrCreateExpressionMethod(targetVariable, propertyModel, value) + "()"), generatingConfig);
-          } else {
-            createBindingMethodCode(targetVariable, propertyModel, value);
-          }
-        } else {
-          // skip property assignment to target object if it was already contained in config object: 
-          if (generatingConfig || configVariable == null) {
-            // default: create a normal property assignment:
-            createPropertyAssignmentCode(variable, propertyModel, value, generatingConfig);
-          }
         }
       }
     }
     return hasBindings;
+  }
+
+  private boolean createPropertyAssignmentCodeWithBindings(String configVariable, String targetVariable, boolean generatingConfig, String value, MemberModel propertyModel) {
+    String variable = generatingConfig ? configVariable : targetVariable;
+    if (MxmlUtils.isBindingExpression(value) && hasSetter(propertyModel)) {
+      if (generatingConfig) {
+        createPropertyAssignmentCode(configVariable, propertyModel,
+                CompilerUtils.createCodeExpression(getOrCreateExpressionMethod(targetVariable, propertyModel, value) + "()"), true);
+      } else {
+        createBindingMethodCode(targetVariable, propertyModel, value);
+      }
+      return true;
+    } else {
+      // skip property assignment to target object if it was already contained in config object: 
+      if (generatingConfig || configVariable == null) {
+        // default: create a normal property assignment:
+        createPropertyAssignmentCode(variable, propertyModel, value, generatingConfig);
+      }
+      return false;
+    }
   }
 
   private static boolean hasSetter(MemberModel memberModel) {
@@ -251,11 +269,15 @@ public final class MxmlToModelParser {
   private boolean processAttributesAndChildNodes(Element objectNode, String configVariable, String targetVariable, boolean generatingConfig) throws IOException {
     CompilationUnitModel type = getCompilationUnitModel(objectNode);
     boolean hasBindings = processAttributes(objectNode, type, configVariable, targetVariable, generatingConfig);
-    processChildNodes(objectNode, type, generatingConfig ? configVariable : targetVariable, generatingConfig);
+    if (processChildNodes(objectNode, type, configVariable, targetVariable, generatingConfig)) {
+      hasBindings = true;
+    }
     return hasBindings;
   }
 
-  private void processChildNodes(Element objectNode, CompilationUnitModel type, String variable, boolean generatingConfig) throws IOException {
+  private boolean processChildNodes(Element objectNode, CompilationUnitModel type, String configVariable, String targetVariable, boolean generatingConfig) throws IOException {
+    String variable = generatingConfig ? configVariable : targetVariable;
+    boolean hasBindings = false;
     ClassModel classModel = type == null ? null : type.getClassModel();
     List<Element> childNodes = MxmlUtils.getChildElements(objectNode);
     MemberModel defaultPropertyModel = findDefaultPropertyModel(classModel);
@@ -286,7 +308,9 @@ public final class MxmlToModelParser {
           }
           List<Element> childElements = MxmlUtils.getChildElements(element);
           if (childElements.isEmpty()) {
-            createPropertyAssignmentCode(variable, propertyModel, getTextContent(element), generatingConfig);
+            if (createPropertyAssignmentCodeWithBindings(configVariable, targetVariable, generatingConfig, getTextContent(element), propertyModel)) {
+              hasBindings = true;
+            }
           } else {
             createChildElementsPropertyAssignmentCode(childElements, variable, propertyModel, generatingConfig);
           }
@@ -296,6 +320,7 @@ public final class MxmlToModelParser {
     if (!defaultPropertyValues.isEmpty()) {
       createChildElementsPropertyAssignmentCode(defaultPropertyValues, variable, defaultPropertyModel, generatingConfig);
     }
+    return hasBindings;
   }
 
   private void createChildElementsPropertyAssignmentCode(List<Element> childElements, String variable,
@@ -371,6 +396,9 @@ public final class MxmlToModelParser {
       value = CompilerUtils.quote(stringValue);
     } else if ("int".equals(className) || "uint".equals(className) || "Number".equals(className)) {
       value = getTextContent(objectElement);
+      if (MxmlUtils.isBindingExpression(value)) {
+        value = MxmlUtils.getBindingExpression(value);
+      }
     } else if ("Object".equals(className)) {
       value = "{}";
     } else if ("Array".equals(className)) {
@@ -406,7 +434,7 @@ public final class MxmlToModelParser {
     code.append(" = ").append(value).append(";");
 
     if (configVariable == null || hasBindings) {
-      // no config object was built or bindings have to be added:
+      // no config object was built or event listeners or bindings have to be added:
       // process attribute and children and assign properties directly on the target object
       processAttributesAndChildNodes(objectElement, configVariable, targetVariable, false);
     }
@@ -421,11 +449,12 @@ public final class MxmlToModelParser {
     AnnotationPropertyModel eventType = event.getPropertiesByName().get("type");
     String eventTypeStr = eventType == null ? "Object" : eventType.getStringValue();
     compilationUnitModel.addImport(eventTypeStr);
-    String eventName = event.getPropertiesByName().get("name").getStringValue();
+    AnnotationPropertyModel eventNameModel = event.getPropertiesByName().get("name");
+    String eventName = (eventNameModel != null ? eventNameModel : event.getPropertiesByName().get(null)).getStringValue();
     if (eventName.startsWith("on")) {
       eventName = eventName.substring(2);
     }
-    String eventHandlerName = "$on_" + variable + "_" + eventName;
+    String eventHandlerName = "$on_" + variable + "_" + eventName.replace('-', '_');
     MethodModel eventHandler = new MethodModel(eventHandlerName, "void",
             new ParamModel("event", eventTypeStr));
     eventHandler.setNamespace(NamespaceModel.PRIVATE);

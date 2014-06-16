@@ -1,10 +1,10 @@
 define(function() {
   return function addEventListener(observableOrConfig, eventName, callback, eventType) {
-    var listener = eventType ? function () {
+    var listener = eventType && eventType !== Object ? function () {
       return callback(new eventType(arguments));
     } : callback;
 
-    if (observableOrConfig.isInstance) {
+    if (typeof observableOrConfig.addListener === "function") {
       observableOrConfig.addListener(eventName, listener);
     } else {
       if (!observableOrConfig.listeners) {
