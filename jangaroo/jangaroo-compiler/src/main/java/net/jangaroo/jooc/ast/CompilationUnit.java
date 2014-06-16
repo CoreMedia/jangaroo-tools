@@ -203,7 +203,7 @@ public class CompilationUnit extends NodeImplBase {
   }
 
   public void addDependency(String otherUnitQName) {
-    addDependency(getCompiler().getCompilationsUnit(otherUnitQName));
+    addDependency(getCompiler().getCompilationUnit(otherUnitQName));
   }
 
   public void addDependency(CompilationUnit otherUnit) {

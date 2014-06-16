@@ -89,7 +89,7 @@ public class ExmlValidatorTest extends AbstractExmlTest {
   }
 
   private File getFile(String path) throws URISyntaxException {
-    return new File(ExmlValidatorTest.class.getResource(path).toURI());
+    return new File(ExmlValidatorTest.class.getResource("/test-module" + path).toURI());
   }
 
   private Set<String> words(String... words) {

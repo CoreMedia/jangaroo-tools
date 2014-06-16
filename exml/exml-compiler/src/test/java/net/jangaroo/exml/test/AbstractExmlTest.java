@@ -16,7 +16,7 @@ public abstract class AbstractExmlTest {
   public TemporaryFolder outputFolder = new TemporaryFolder();
 
   protected void setUp(String configClassPackage) throws Exception {
-    setUp(configClassPackage, "/", "/");
+    setUp(configClassPackage, "/test-module", "/ext-as");
   }
 
   protected void setUp(String configClassPackage, String sourcePathFileName, String classPathFileName) throws Exception {

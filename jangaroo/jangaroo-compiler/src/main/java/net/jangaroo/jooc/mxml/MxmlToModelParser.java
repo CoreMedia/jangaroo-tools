@@ -493,7 +493,7 @@ public final class MxmlToModelParser {
     if (fullClassName == null) {
       return null;
     }
-    CompilationUnit compilationUnit = jangarooParser.getCompilationsUnit(fullClassName);
+    CompilationUnit compilationUnit = jangarooParser.getCompilationUnit(fullClassName);
     if (compilationUnit == null) {
       throw Jooc.error("Undefined type: " + fullClassName);
     }
@@ -609,7 +609,7 @@ public final class MxmlToModelParser {
       String packageName = MxmlUtils.parsePackageFromNamespace(uri);
       if (packageName != null) {
         String qName = CompilerUtils.qName(packageName, name);
-        CompilationUnit compilationsUnit = jangarooParser.getCompilationsUnit(qName);
+        CompilationUnit compilationsUnit = jangarooParser.getCompilationUnit(qName);
         if (compilationsUnit != null && compilationsUnit.getPrimaryDeclaration() instanceof ClassDeclaration) {
           return qName;
         }

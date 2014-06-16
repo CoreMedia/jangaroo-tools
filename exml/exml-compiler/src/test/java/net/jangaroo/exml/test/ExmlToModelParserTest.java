@@ -420,6 +420,6 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
   }
 
   private File getFile(String path) throws URISyntaxException {
-    return new File(ExmlToModelParserTest.class.getResource(path).toURI());
+    return new File(ExmlToModelParserTest.class.getResource("/test-module" + path).toURI());
   }
 }

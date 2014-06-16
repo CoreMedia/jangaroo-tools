@@ -28,6 +28,7 @@ public class PhantomJsTestRunner {
   private final Log log;
   private final String testRunner;
   private final int timeout;
+  private final int maxRetriesOnCrashes;
 
   /**
    * @param phantomjs           the binary to execute
@@ -35,14 +36,16 @@ public class PhantomJsTestRunner {
    * @param testResultFilename  the file to write the test result into
    * @param testRunner          the test bootstrap script to be loaded in phantomjs
    * @param timeout             timeout in seconds
+   * @param maxRetriesOnCrashes number of retries when receiving unexpected result from phantomjs (crash?)
    * @param log                 the maven log
    */
-  public PhantomJsTestRunner(String phantomjs, String testPageUrl, String testResultFilename, String testRunner, int timeout, Log log) {
+  public PhantomJsTestRunner(String phantomjs, String testPageUrl, String testResultFilename, String testRunner, int timeout, int maxRetriesOnCrashes, Log log) {
     this.phantomjs = makeOsSpecific(phantomjs);
     this.testPageUrl = testPageUrl;
     this.testResultFilename = testResultFilename;
     this.testRunner = testRunner;
     this.timeout = timeout;
+    this.maxRetriesOnCrashes = maxRetriesOnCrashes;
     this.log = log;
   }
 
@@ -96,8 +99,15 @@ public class PhantomJsTestRunner {
       }
     };
     log.info("executing phantomjs cmd: " + cmd.toString());
-    int returnCode = CommandLineUtils.executeCommandLine(cmd, outConsumer, errConsumer, timeout);
-    return returnCode == 0;
+    for (int tryCount = 0; tryCount <= maxRetriesOnCrashes; ++tryCount) {
+      int returnCode = CommandLineUtils.executeCommandLine(cmd, outConsumer, errConsumer, timeout);
+      if (returnCode >= 0 && returnCode <= 4) { // valid phantomjs-joounit-page-runner return codes!
+        return returnCode == 0;
+      }
+      log.warn(String.format("unexpected result %d from phantomjs run #%d", returnCode, tryCount + 1));
+    }
+    log.error(String.format("Got %d unexpected results from phantomjs, giving up.", maxRetriesOnCrashes + 1));
+    return false;
   }
 
   public boolean canRun() {

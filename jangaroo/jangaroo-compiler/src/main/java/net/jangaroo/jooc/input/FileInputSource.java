@@ -8,6 +8,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -96,6 +97,7 @@ public class FileInputSource extends DirectoryInputSource {
       children = new ArrayList<InputSource>();
       File[] childFiles = file.listFiles();
       assert childFiles != null; // since we made sure it is a directory!
+      Arrays.sort(childFiles);   // create a predictable order!
       for (File childFile : childFiles) {
         children.add(new FileInputSource(sourceDir, childFile, inSourcePath));
       }

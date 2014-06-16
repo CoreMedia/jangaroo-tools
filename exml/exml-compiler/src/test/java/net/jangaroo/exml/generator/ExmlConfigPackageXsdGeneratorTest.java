@@ -14,14 +14,15 @@ import java.io.StringWriter;
 public class ExmlConfigPackageXsdGeneratorTest extends AbstractExmlTest{
   @Test
   public void testGenerateXsdFile() throws Exception {
-    setUp("ext.config");
+    setUp("ext.config", "/ext-as/", "/");
 
-    String expected = FileUtils.readFileToString(new File(getClass().getResource("/ext.config.xsd").toURI()));
+    String expected = FileUtils.readFileToString(new File(getClass().getResource("/ext-as/ext.config.xsd").toURI()));
 
     StringWriter output = new StringWriter();
-    getExmlc().getExmlConfigPackageXsdGenerator().generateXsdFile(getConfigClassRegistry(), output);
-    System.out.println(output.toString());
-    
-    Assert.assertEquals(expected, output.toString());
+    getConfigClassRegistry().generateXsd(output);
+    //System.out.println(output.toString());
+    expected = expected.replaceAll("\r\n", "\n");
+    String actual = output.toString().replaceAll("\r\n", "\n");
+    Assert.assertEquals(expected, actual);
   }
 }

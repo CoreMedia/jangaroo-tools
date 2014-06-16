@@ -59,8 +59,4 @@ public final class ExmlConfigClassGenerator {
     env.process();
   }
 
-  public boolean mustGenerateConfigClass(File source, File targetFile) {
-    return !targetFile.exists() || targetFile.lastModified() < source.lastModified();
-  }
-
 }

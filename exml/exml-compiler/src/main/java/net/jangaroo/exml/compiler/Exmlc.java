@@ -1,26 +1,18 @@
 package net.jangaroo.exml.compiler;
 
 import net.jangaroo.exml.api.ExmlcException;
-import net.jangaroo.exml.config.ExmlConfiguration;
 import net.jangaroo.exml.cli.ExmlcCommandLineParser;
-import net.jangaroo.exml.config.ValidationMode;
-import net.jangaroo.exml.generator.ExmlComponentClassGenerator;
-import net.jangaroo.exml.generator.ExmlConfigClassGenerator;
-import net.jangaroo.exml.generator.ExmlConfigPackageXsdGenerator;
+import net.jangaroo.exml.config.ExmlConfiguration;
 import net.jangaroo.exml.model.AnnotationAt;
-import net.jangaroo.exml.model.ConfigClass;
 import net.jangaroo.exml.model.ConfigClassRegistry;
-import net.jangaroo.exml.model.ExmlModel;
 import net.jangaroo.exml.model.PublicApiMode;
-import net.jangaroo.exml.parser.ExmlToConfigClassParser;
-import net.jangaroo.exml.parser.ExmlToModelParser;
-import net.jangaroo.exml.parser.ExmlValidator;
-import net.jangaroo.jooc.api.Jooc;
 import net.jangaroo.jooc.cli.CommandLineParseException;
-import net.jangaroo.utils.CompilerUtils;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 
 /**
  *
@@ -28,13 +20,6 @@ import java.io.IOException;
 public final class Exmlc implements net.jangaroo.exml.api.Exmlc {
 
   private ConfigClassRegistry configClassRegistry;
-  private ExmlToConfigClassParser exmlToConfigClassParser;
-  private ExmlConfigClassGenerator exmlConfigClassGenerator;
-  private ExmlToModelParser exmlToModelParser;
-  private ExmlComponentClassGenerator exmlComponentClassGenerator;
-  private ExmlConfigPackageXsdGenerator exmlConfigPackageXsdGenerator;
-
-
 
   public Exmlc() {
   }
@@ -74,27 +59,11 @@ public final class Exmlc implements net.jangaroo.exml.api.Exmlc {
     } catch (IOException e) {
       throw new ExmlcException("unable to build config class registry: " + e.getMessage(), e);
     }
-
-    exmlToConfigClassParser = new ExmlToConfigClassParser(config);
-    exmlConfigClassGenerator = new ExmlConfigClassGenerator();
-
-    exmlToModelParser = new ExmlToModelParser(configClassRegistry);
-    exmlComponentClassGenerator = new ExmlComponentClassGenerator(config);
-
-    exmlConfigPackageXsdGenerator = new ExmlConfigPackageXsdGenerator(config);
   }
 
   @Override
   public ExmlConfiguration getConfig() {
     return configClassRegistry.getConfig();
-  }
-
-  public ExmlConfigPackageXsdGenerator getExmlConfigPackageXsdGenerator() {
-    return exmlConfigPackageXsdGenerator;
-  }
-
-  public ExmlComponentClassGenerator getExmlComponentClassGenerator() {
-    return exmlComponentClassGenerator;
   }
 
   public ConfigClassRegistry getConfigClassRegistry() {
@@ -110,39 +79,12 @@ public final class Exmlc implements net.jangaroo.exml.api.Exmlc {
 
   @Override
   public File generateConfigClass(File source) {
-    ConfigClass configClass;
-    try {
-      configClass = exmlToConfigClassParser.parseExmlToConfigClass(source);
-      configClassRegistry.evaluateSuperClass(configClass);
-    } catch (IOException e) {
-      throw new ExmlcException("unable to parse EXML classes: " + e.getMessage(), source, e);
-    }
-    File targetFile = getConfig().computeConfigClassTarget(configClass.getName());
-
-    // only recreate file if result file is older than the source file
-    if (exmlConfigClassGenerator.mustGenerateConfigClass(source, targetFile)) {
-      // generate the new config class ActionScript file
-      try {
-        exmlConfigClassGenerator.generateClass(configClass, targetFile);
-      } catch (Exception e) {
-        throw new ExmlcException("unable to generate config class: " + e.getMessage(), targetFile, e);
-      }
-    }
-
-    return targetFile;
+    return configClassRegistry.generateConfigClass(source);
   }
 
   @Override
   public File generateComponentClass(File exmlSourceFile) {
-    try {
-      ExmlModel exmlModel = exmlToModelParser.parse(exmlSourceFile);
-      // compute potential file location of component class in source directory:
-      File classFile = CompilerUtils.fileFromQName(exmlModel.getPackageName(), exmlModel.getClassName(), getConfig().findSourceDir(exmlSourceFile), Jooc.AS_SUFFIX);
-      // only generate component class if it is not already present as source:
-      return classFile.exists() ? null : exmlComponentClassGenerator.generateClass(exmlModel);
-    } catch (Exception e) {
-      throw new ExmlcException("unable to generate component class: " + e.getMessage(), exmlSourceFile, e);
-    }
+    return configClassRegistry.generateTargetClass(exmlSourceFile);
   }
 
   @Override
@@ -156,22 +98,33 @@ public final class Exmlc implements net.jangaroo.exml.api.Exmlc {
 
   @Override
   public File generateXsd() {
-    File xsdFile;
+    // Maybe even the directory does not exist.
+    File targetPackageFolder = getConfig().getResourceOutputDirectory();
+    if(!targetPackageFolder.exists()) {
+      //noinspection ResultOfMethodCallIgnored
+      targetPackageFolder.mkdirs(); // NOSONAR
+    }
+
+    File result = new File(targetPackageFolder, getConfig().getConfigClassPackage() + ".xsd");
+
+    Writer writer = null;
     try {
-      xsdFile = exmlConfigPackageXsdGenerator.generateXsdFile(configClassRegistry);
+      writer = new OutputStreamWriter(new FileOutputStream(result), net.jangaroo.exml.api.Exmlc.OUTPUT_CHARSET);
+      configClassRegistry.generateXsd(writer);
     } catch (Exception e) {
       throw new ExmlcException("unable to generate xsd file: " + e.getMessage(), e);
-    }
-    if (getConfig().getValidationMode() != ValidationMode.OFF) {
+    } finally {
       try {
-        new ExmlValidator(getConfig()).validateAllExmlFiles();
-      } catch (Exception e) {
-        throw new ExmlcException("unable to start validation", e);
+        if (writer != null) {
+          writer.close();
+        }
+      } catch (IOException e) {
+        //never happen
       }
     }
-    return xsdFile;
+    return result;
   }
-
+  
   public static int run(String[] argv) {
     ExmlcCommandLineParser parser = new ExmlcCommandLineParser();
     ExmlConfiguration exmlConfiguration;
