@@ -862,7 +862,8 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   public void visitForInStatement(final ForInStatement forInStatement) throws IOException {
     final Ide exprAuxIde = forInStatement.getExprAuxIde();
     IdeDeclaration exprType = forInStatement.getExpr().getType();
-    boolean iterateArrayMode = exprType != null && "Array".equals(exprType.getQualifiedNameStr());
+    String exprTypeName = exprType != null  ? exprType.getQualifiedNameStr() : "";
+    boolean iterateArrayMode = "Array".equals(exprTypeName) || "Vector$object".equals(exprTypeName);
     if (exprAuxIde != null && !iterateArrayMode) {
       new SemicolonTerminatedStatement(new VariableDeclaration(SYM_VAR, exprAuxIde, null, null), SYM_SEMICOLON).visit(this);
     }

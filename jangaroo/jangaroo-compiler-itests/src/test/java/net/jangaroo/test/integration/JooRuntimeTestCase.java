@@ -179,6 +179,8 @@ public abstract class JooRuntimeTestCase extends JooTestCase {
     global.defineFunctionProperties(new String[]{"setTimeout"},  Global.class, ScriptableObject.EMPTY);
     global.defineProperty("window", global, ScriptableObject.EMPTY);
     global.defineProperty("joo", Global.class, ScriptableObject.EMPTY);
+    // add a property to Array's prototype to assure safe rewriting of Array for [each] loops:
+    ((ScriptableObject)((ScriptableObject)global.get("Array")).get("prototype")).defineProperty("unsafeArrayEnumeration", "UNSAFE ARRAY ENUMERATION!", ScriptableObject.EMPTY);
     global.joo.defineProperty("debug", true, ScriptableObject.EMPTY);
     global.joo.defineProperty("baseUrl", "", ScriptableObject.EMPTY);
     global.joo.defineFunctionProperties(new String[]{"trace", "_loadScript", "loadScriptAsync"},  Joo.class, ScriptableObject.EMPTY);

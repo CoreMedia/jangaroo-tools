@@ -31,6 +31,12 @@ public class VectorLiteral extends Expr {
   }
 
   @Override
+  public void analyze(AstNode parentNode) {
+    super.analyze(parentNode);
+    arrayLiteral.analyze(this);
+  }
+  
+  @Override
   public void visit(AstVisitor visitor) throws IOException {
     visitor.visitVectorLiteral(this);
   }
