@@ -138,7 +138,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   private Map<String,String> imports = new HashMap<String,String>();
   private ClassDefinitionBuilder primaryClassDefinitionBuilder = new ClassDefinitionBuilder();
   private int staticCodeCounter = 0;
-  private ClassDefinitionBuilder secondaryClassDefinitionBuilder = new ClassDefinitionBuilder();
+  private ClassDefinitionBuilder secondaryClassDefinitionBuilder;
   private CompilationUnit compilationUnit;
   private LinkedList<Metadata> currentMetadata = new LinkedList<Metadata>();
   private final MessageFormat VAR_$NAME_EQUALS_ARGUMENTS_SLICE_$INDEX =
@@ -1722,7 +1722,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   @Override
   public void visitClassDeclaration(ClassDeclaration classDeclaration) throws IOException {
     ClassDefinitionBuilder classDefinitionBuilder = classDeclaration.isPrimaryDeclaration()
-            ? primaryClassDefinitionBuilder : secondaryClassDefinitionBuilder;
+            ? primaryClassDefinitionBuilder : (secondaryClassDefinitionBuilder = new ClassDefinitionBuilder());
     classDefinitionBuilder.storeCurrentMetadata("", currentMetadata);
     currentMetadata = new LinkedList<Metadata>();
     out.beginComment();
