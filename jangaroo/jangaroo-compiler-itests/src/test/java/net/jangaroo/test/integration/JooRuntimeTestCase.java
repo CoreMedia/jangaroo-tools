@@ -148,6 +148,8 @@ public abstract class JooRuntimeTestCase extends JooTestCase {
     cx.initStandardObjects(global);
     global.defineFunctionProperties(new String[]{"setTimeout", "load", "print"}, Global.class, ScriptableObject.EMPTY);
     global.defineProperty("window", global, ScriptableObject.EMPTY);
+    // add a property to Array's prototype to assure safe rewriting of Array for [each] loops:
+    ((ScriptableObject)((ScriptableObject)global.get("Array")).get("prototype")).defineProperty("unsafeArrayEnumeration", "UNSAFE ARRAY ENUMERATION!", ScriptableObject.EMPTY);
     global.eval(cx, "navigator = undefined;");
     Scriptable argsObj = cx.newArray(global, new Object[] {});
     global.defineProperty("arguments", argsObj, ScriptableObject.DONTENUM);
