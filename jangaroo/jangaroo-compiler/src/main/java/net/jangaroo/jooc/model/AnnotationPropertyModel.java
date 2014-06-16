@@ -1,7 +1,7 @@
 package net.jangaroo.jooc.model;
 
 /**
- * A model of a field of an ActionScript class.
+ * A model of an ActionScript annotation property.
  */
 public class AnnotationPropertyModel extends NamedModel implements ValuedModel {
 
@@ -25,5 +25,10 @@ public class AnnotationPropertyModel extends NamedModel implements ValuedModel {
 
   public void visit(ModelVisitor visitor) {
     visitor.visitAnnotationProperty(this);
+  }
+
+  @Override
+  public String toString() {
+    return getName() + ": " + getValue() + " (" + super.toString() + ")";
   }
 }
