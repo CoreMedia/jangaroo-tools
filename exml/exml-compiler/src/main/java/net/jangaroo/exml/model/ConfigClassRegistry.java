@@ -49,15 +49,13 @@ public final class ConfigClassRegistry {
     this.config = config;
 
     sourcePathInputSource = PathInputSource.fromFiles(config.getSourcePath(), new String[0], true);
-    InputSource classPathInputSource = PathInputSource.fromFiles(config.getClassPath(),
-      new String[]{"", JangarooParser.JOO_API_IN_JAR_DIRECTORY_PREFIX}, false);
 
     ParserOptions parserOptions = new CCRParserOptions();
     jangarooParser = new JangarooParser(parserOptions, new StdOutCompileLog()) {
       @Override
       protected InputSource findSource(String qname) {
         InputSource inputSource = super.findSource(qname);
-        if (inputSource instanceof FileInputSource && !((FileInputSource)inputSource).getSourceDir().equals(config.getOutputDirectory())) {
+        if (inputSource != null) {
           // A regular source file (not a generated file) has been found. Use it.
           return inputSource;
         }
@@ -69,9 +67,11 @@ public final class ConfigClassRegistry {
         return super.findSource(qname);
       }
     };
-    List<File> fullSourcePath = new ArrayList<File>(config.getSourcePath());
-    fullSourcePath.add(config.getOutputDirectory());
-    jangarooParser.setUp(PathInputSource.fromFiles(fullSourcePath, new String[0], true), classPathInputSource);
+    List<File> fullClassPath = new ArrayList<File>(config.getClassPath());
+    fullClassPath.add(config.getOutputDirectory());
+    InputSource classPathInputSource = PathInputSource.fromFiles(fullClassPath,
+      new String[]{"", JangarooParser.JOO_API_IN_JAR_DIRECTORY_PREFIX}, false);
+    jangarooParser.setUp(sourcePathInputSource, classPathInputSource);
     exmlConfigPackageXsdGenerator = new ExmlConfigPackageXsdGenerator();
   }
 
@@ -126,12 +126,10 @@ public final class ConfigClassRegistry {
         if (file.isFile() && file.getName().endsWith(Jooc.AS_SUFFIX)) {
           try {
             File sourceDir = getConfig().findSourceDir(file);
-            if (!sourceDir.equals(getConfig().getOutputDirectory())) { // not an AS class generated from EXML?
-              String qName = CompilerUtils.qNameFromFile(sourceDir, file);
-              ConfigClass actionScriptConfigClass = findActionScriptConfigClass(qName);
-              if (actionScriptConfigClass != null) {
-                addSourceConfigClass(sourceFilesByName, file, actionScriptConfigClass);
-              }
+            String qName = CompilerUtils.qNameFromFile(sourceDir, file);
+            ConfigClass actionScriptConfigClass = findActionScriptConfigClass(qName);
+            if (actionScriptConfigClass != null) {
+              addSourceConfigClass(sourceFilesByName, file, actionScriptConfigClass);
             }
           } catch (IOException e) {
             throw new ExmlcException("could not read AS file", e);
