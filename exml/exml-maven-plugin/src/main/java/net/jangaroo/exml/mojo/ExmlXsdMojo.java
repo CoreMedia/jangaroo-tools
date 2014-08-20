@@ -8,9 +8,6 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProjectHelper;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * A Mojo that generates the Xsd files for the module. Needs the same information as the exml mojo
@@ -29,13 +26,6 @@ public class ExmlXsdMojo extends ExmlMojo {
 
   public ExmlXsdMojo() {
     super();
-  }
-
-  @Override
-  protected List<File> getSourcePath() {
-    List<File> sourcePath = new ArrayList<File>(super.getSourcePath());
-    sourcePath.add(getGeneratedSourcesDirectory());
-    return Collections.unmodifiableList(sourcePath);
   }
 
   @Override
