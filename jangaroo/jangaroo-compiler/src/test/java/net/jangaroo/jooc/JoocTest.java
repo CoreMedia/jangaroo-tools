@@ -194,6 +194,11 @@ public class JoocTest {
   }
   
   @Test
+  public void testInitPackageGlobalVar() throws Exception {
+    assertCompilationResult("package1/UsingSomePackageGlobal");
+  }
+  
+  @Test
   public void testUninitializedPackageGlobalVar() throws Exception {
     assertCompilationResult("package1/uninitializedPackageGlobal");
   }

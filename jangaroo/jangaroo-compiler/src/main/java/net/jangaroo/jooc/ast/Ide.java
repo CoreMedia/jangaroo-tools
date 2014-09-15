@@ -273,14 +273,21 @@ public class Ide extends NodeImplBase {
     addExternalUsage();
     //todo handle references to static super members
     // check access to another class or a constant of another class; other class then must be initialized:
-    if (!(exprParent instanceof ApplyExpr) && !(exprParent instanceof NewExpr) && !(exprParent instanceof IsExpr) && !(exprParent instanceof AsExpr)) {
+    if (!(exprParent instanceof NewExpr) && !(exprParent instanceof IsExpr) && !(exprParent instanceof AsExpr)) {
       ClassDeclaration classDeclaration = getScope().getClassDeclaration();
       if (classDeclaration != null) {
         if (isQualified()) {
           // access to constant of other class?
           // TODO: If the static member is a method, we should not add a class init.
           //       Unfortunately, declaration information seems not to be available at this point in time.
-          classDeclaration.addInitIfClassOrGlobalVar(getQualifier());
+          if (exprParent instanceof ApplyExpr) {
+            // It seems to be a method. Static methods take care of initializing their class,
+            // but methods of plackage-scope variables do not initialize the compilation unit.
+            // Thus, we only add initialization if the compilation unit is a package-scope variable.
+            classDeclaration.addInitIfGlobalVar(getQualifier());
+          } else {
+            classDeclaration.addInitIfClassOrGlobalVar(getQualifier());
+          }
         }
         // access to other class?
         if (!isQualifier()) {
