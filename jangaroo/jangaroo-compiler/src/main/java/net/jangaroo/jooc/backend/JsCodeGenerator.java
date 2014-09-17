@@ -1274,31 +1274,24 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     generateStaticMethodList(classDeclaration);
   }
 
-  private void generateFieldInitCode(ClassDeclaration classDeclaration, boolean startWithSemicolon, boolean preventFirefox9Bug) throws IOException {
+  private void generateFieldInitCode(ClassDeclaration classDeclaration, boolean startWithSemicolon) throws IOException {
     Iterator<VariableDeclaration> iterator = classDeclaration.getFieldsWithInitializer().iterator();
     if (iterator.hasNext()) {
       if (startWithSemicolon) {
         out.write(";");
       }
-      if (preventFirefox9Bug) {
-        out.writeToken("if(0===0){"); // THANK YOU, Firefox 9: https://bugzilla.mozilla.org/show_bug.cgi?id=706808#c27
-      }
       do {
-        VariableDeclaration field = iterator.next();
-        generateInitCode(field, true);
+        generateInitCode(iterator.next());
       } while (iterator.hasNext());
-      if (preventFirefox9Bug) {
-        out.write("}");
-      }
     }
   }
 
-  public void generateInitCode(VariableDeclaration field, boolean endWithSemicolon) throws IOException {
-    String accessCode = "this." + field.getName() + (field.isPrivate() ? "$" + field.getClassDeclaration().getInheritanceLevel() : "");
-    out.write(accessCode + "=" + accessCode + "()");
-    if (endWithSemicolon) {
-      out.write(";");
+  public void generateInitCode(VariableDeclaration field) throws IOException {
+    String fieldName = field.getName();
+    if (field.isPrivate()) {
+      fieldName += "$" + field.getClassDeclaration().getInheritanceLevel();
     }
+    out.write("joo.initField(this, \"" + fieldName + "\");");
   }
 
   private class SuperCallCodeGenerator implements CodeGenerator {
@@ -1314,9 +1307,8 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       if (inheritanceLevel > 1) { // suppress for classes extending Object
         generateSuperConstructorCallCode(classDeclaration, null);
         out.writeToken(";");
-        first = false;
       }
-      generateFieldInitCode(classDeclaration, false, first);
+      generateFieldInitCode(classDeclaration, false);
     }
   }
 
@@ -1401,14 +1393,14 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   public void visitSuperConstructorCallStatement(SuperConstructorCallStatement superConstructorCallStatement) throws IOException {
     if (superConstructorCallStatement.getClassDeclaration().getInheritanceLevel() > 1) {
       generateSuperConstructorCallCode(superConstructorCallStatement);
-      generateFieldInitCode(superConstructorCallStatement.getClassDeclaration(), true, false);
+      generateFieldInitCode(superConstructorCallStatement.getClassDeclaration(), true);
     } else { // suppress for classes extending Object
       // Object super call does nothing anyway:
       out.beginComment();
       out.writeSymbol(superConstructorCallStatement.getSymbol());
       visitIfNotNull(superConstructorCallStatement.getArgs());
       out.endComment();
-      generateFieldInitCode(superConstructorCallStatement.getClassDeclaration(), false, true);
+      generateFieldInitCode(superConstructorCallStatement.getClassDeclaration(), false);
     }
     out.writeSymbol(superConstructorCallStatement.getSymSemicolon());
   }

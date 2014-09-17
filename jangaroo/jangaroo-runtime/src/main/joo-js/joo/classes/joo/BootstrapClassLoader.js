@@ -108,6 +108,10 @@
       }) : object[methodName]);
   };
 
+  joo.initField = function(self, fieldName) {
+    self[fieldName] = self[fieldName]();
+  };
+
     /*
     unsupported ActionScript features during bootstrap:
       - private non-static members (use internal instead)
