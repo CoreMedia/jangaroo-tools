@@ -1,4 +1,4 @@
-define(["exports","as3-rt/AS3"], function($exports,AS3) { AS3.compilationUnit($exports, function($primaryDeclaration){/*package package1{
+define("as3/package1/WithStaticReference",["exports","as3-rt/AS3"], function($exports,AS3) { AS3.compilationUnit($exports, function($primaryDeclaration){/*package package1{
 public class WithStaticReference {
   public static const BLA = "bla";
   public*/ function WithStaticReference() {

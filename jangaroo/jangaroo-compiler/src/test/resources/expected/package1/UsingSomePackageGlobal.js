@@ -1,4 +1,4 @@
-define(["exports","as3-rt/AS3","as3/package1/somePackageGlobal","as3/package1/someOtherPackage/SomeOtherClass"], function($exports,AS3,somePackageGlobal,SomeOtherClass) { AS3.compilationUnit($exports, function($primaryDeclaration){/*package package1 {
+define("as3/package1/UsingSomePackageGlobal",["exports","as3-rt/AS3","as3/package1/somePackageGlobal","as3/package1/someOtherPackage/SomeOtherClass"], function($exports,AS3,somePackageGlobal,SomeOtherClass) { AS3.compilationUnit($exports, function($primaryDeclaration){/*package package1 {
 import package1.someOtherPackage.SomeOtherClass;
 
 /**

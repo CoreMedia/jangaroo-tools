@@ -1,4 +1,4 @@
-define(["exports","as3-rt/AS3","as3/package1/SuperInterface"], function($exports,AS3,SuperInterface) { AS3.interface_($exports, /*package package1 {
+define("as3/package1/Interface",["exports","as3-rt/AS3","as3/package1/SuperInterface"], function($exports,AS3,SuperInterface) { AS3.interface_($exports, /*package package1 {
 
 /**
  * Some ASDoc.

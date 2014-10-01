@@ -337,7 +337,9 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     IdeDeclaration primaryDeclaration = compilationUnit.getPrimaryDeclaration();
     boolean isInterface = primaryDeclaration instanceof ClassDeclaration
             && ((ClassDeclaration) primaryDeclaration).isInterface();
-    out.write("define([\"exports\",\"as3-rt/AS3\"");
+    out.write("define(\"");
+    out.write(getModuleName(primaryDeclaration.getQualifiedNameStr()));
+    out.write("\",[\"exports\",\"as3-rt/AS3\"");
     Set<String> useQName = collectAndWriteDependencies(compilationUnit);
     for (String resourceDependency : compilationUnit.getResourceDependencies()) {
       out.write(",\"" + resourceDependency + "\"");

@@ -1,4 +1,4 @@
-define(["exports","as3-rt/AS3","native!package1.SomeNativeClass@acme/native","as3/package1/someOtherPackage/SomeNativeClass"], function($exports,AS3,package1$SomeNativeClass,package1$someOtherPackage$SomeNativeClass) { AS3.compilationUnit($exports, function($primaryDeclaration){/*package package1 {
+define("as3/package1/UsingSomeNativeClass",["exports","as3-rt/AS3","native!package1.SomeNativeClass@acme/native","as3/package1/someOtherPackage/SomeNativeClass"], function($exports,AS3,package1$SomeNativeClass,package1$someOtherPackage$SomeNativeClass) { AS3.compilationUnit($exports, function($primaryDeclaration){/*package package1 {
 import package1.someOtherPackage.SomeNativeClass;
 
 /**
