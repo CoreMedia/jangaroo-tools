@@ -121,10 +121,13 @@ define(["as3/joo/JooClassDeclaration"], function(JooClassDeclaration) {
   }
 
   function bind(object, boundMethodName) {
+    var method = object[boundMethodName];
     if (object.hasOwnProperty(boundMethodName)) {
-      return object[boundMethodName];
+      return method;
     }
-    var boundMethod = object[boundMethodName].bind(object);
+    var boundMethod = function() {
+      return method.apply(object, arguments);
+    };
     Object.defineProperty(object, boundMethodName, {
       // enumerable: true, // TODO: for debugging only
       value: boundMethod
