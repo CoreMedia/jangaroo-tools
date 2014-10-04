@@ -1,4 +1,4 @@
-define(["require", "as3-rt/getModuleName"], function(require, getModuleName) {
+define("as3/joo/getQualifiedObject", ["require", "as3-rt/getModuleName"], function(require, getModuleName) {
   function getNative(qName) {
     var parts = qName.split(".");
     var current = window;

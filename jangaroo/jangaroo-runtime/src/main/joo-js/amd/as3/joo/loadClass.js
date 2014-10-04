@@ -1,4 +1,4 @@
-define(["require", "as3-rt/getModuleName"], function(require, getModuleName) {
+define("as3/joo/loadClass", ["require", "as3-rt/getModuleName"], function(require, getModuleName) {
   "use strict";
   return function loadClass(qName, callback) {
     if (!callback) {

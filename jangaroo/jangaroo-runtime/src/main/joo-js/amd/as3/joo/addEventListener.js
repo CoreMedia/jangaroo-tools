@@ -1,4 +1,4 @@
-define(function() {
+define("as3/joo/addEventListener", [], function() {
   return function addEventListener(observableOrConfig, eventName, callback, eventType) {
     var listener = eventType && eventType !== Object ? function () {
       return callback(new eventType(arguments));

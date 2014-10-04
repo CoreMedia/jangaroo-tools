@@ -1,4 +1,4 @@
-define(["native!Error"], function(NativeError) {
+define("as3/Error", ["native!Error"], function(NativeError) {
   "use strict";
   // built-in Error constructor called as function unfortunately always creates a new Error object,
   // so we have to emulate it:

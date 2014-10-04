@@ -1,4 +1,4 @@
-define([], function() {
+define("as3/joo/MemberDeclaration", [], function() {
   "use strict";
   function MemberDeclaration(name, metadata) {
     this.memberName = name;

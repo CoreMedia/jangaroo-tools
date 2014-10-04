@@ -1,4 +1,4 @@
-define([], function() {
+define("as3/joo/NativeClassDeclaration", [], function() {
   "use strict";
   function NativeClassDeclaration(packageName, name) {
     this.qName = this.fullClassName = packageName ? packageName + "." + name : name;

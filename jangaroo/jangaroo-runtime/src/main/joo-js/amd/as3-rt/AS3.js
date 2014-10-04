@@ -1,4 +1,4 @@
-define(["as3/joo/JooClassDeclaration"], function(JooClassDeclaration) {
+define("as3-rt/AS3", ["as3/joo/JooClassDeclaration"], function(JooClassDeclaration) {
   "use strict";
   function toString() {
     return "[Class " + this.$class.name + "]";

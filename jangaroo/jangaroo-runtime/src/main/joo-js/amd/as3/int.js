@@ -1,4 +1,4 @@
-define(function() {
+define("as3/int", [], function() {
   "use strict";
   function int_(num) {
     return num >> 0;

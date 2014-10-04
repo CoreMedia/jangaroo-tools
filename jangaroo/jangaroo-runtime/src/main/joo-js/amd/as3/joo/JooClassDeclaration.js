@@ -1,4 +1,4 @@
-define(["./NativeClassDeclaration", "./MemberDeclaration"], function(NativeClassDeclaration, MemberDeclaration) {
+define("as3/joo/JooClassDeclaration", ["as3/joo/NativeClassDeclaration", "as3/joo/MemberDeclaration"], function(NativeClassDeclaration, MemberDeclaration) {
   "use strict";
   function JooClassDeclaration(packageName, name, extends_, implements_, rawMetadataByMember) {
     NativeClassDeclaration.call(this, packageName, name);

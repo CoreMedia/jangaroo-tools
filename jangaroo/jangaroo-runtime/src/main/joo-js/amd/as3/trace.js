@@ -1,5 +1,5 @@
 // simulate AS3 trace()
-define(["native!"], function(global) {
+define("as3/trace", ["native!"], function(global) {
   "use strict";
   var log = (function() {
     if (this.console && this.console.log) { // most browsers
