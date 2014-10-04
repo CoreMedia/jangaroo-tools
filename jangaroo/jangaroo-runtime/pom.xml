@@ -52,6 +52,39 @@
           </execution>
         </executions>
       </plugin>
+      <plugin>
+        <groupId>net.alchim31.maven</groupId>
+        <artifactId>yuicompressor-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>compress</goal>
+            </goals>
+            <configuration>
+              <nosuffix>true</nosuffix>
+              <jswarn>false</jswarn>
+              <sourceDirectory>${project.build.outputDirectory}</sourceDirectory>
+              <includes>
+                <include>META-INF/resources/amd/*/**/*.js</include>
+              </includes>
+              <excludes>
+                <exclude>META-INF/resources/amd/lib/**</exclude>
+              </excludes>
+              <outputDirectory>${project.build.directory}/js-compress</outputDirectory>
+              <aggregations>
+                <aggregation>
+                  <insertNewLine>true</insertNewLine>
+                  <output>${project.build.outputDirectory}/META-INF/resources/amd/lib/net/jangaroo/jangaroo-runtime.lib.js</output>
+                  <inputDir>${project.build.directory}/js-compress</inputDir>
+                  <includes>
+                    <include>**/*.js</include>
+                  </includes>
+                </aggregation>
+              </aggregations>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
 </project>

@@ -81,15 +81,11 @@ public class GenerateModuleAMDMojo extends AbstractMojo {
       amdWriter = createAMDFile(outputDirectory, amdName);
       amdWriter.write(String.format("define(%s, [\n", CompilerUtils.quote(amdName)));
       List<String> dependencies = getDependencies(artifact);
-      boolean first = true;
       for (String dependency : dependencies) {
-        if (first) {
-          first = false;
-        } else {
-          amdWriter.write(",\n");
-        }
         amdWriter.write("  " + CompilerUtils.quote(dependency));
+        amdWriter.write(",\n");
       }
+      amdWriter.write("  " + CompilerUtils.quote("lib!" + amdName + ".lib"));
       amdWriter.write("], {});");
       amdWriter.close();
     } catch (IOException e) {
@@ -108,7 +104,7 @@ public class GenerateModuleAMDMojo extends AbstractMojo {
   }
 
   private static String computeAMDName(String groupId, String artifactId) {
-    return groupId.replace('.', '/') + "/" + artifactId;
+    return "lib/" + groupId.replace('.', '/') + "/" + artifactId;
   }
 
   private Writer createAMDFile(File scriptDirectory, String amdName) throws IOException {

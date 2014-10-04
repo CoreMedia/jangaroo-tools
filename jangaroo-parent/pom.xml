@@ -24,6 +24,11 @@
         <version>2.0.5</version>
       </dependency>
       <dependency>
+        <groupId>com.yahoo.platform.yui</groupId>
+        <artifactId>yuicompressor</artifactId>
+        <version>2.4.7</version>
+      </dependency>
+      <dependency>
         <groupId>org.apache.maven</groupId>
         <artifactId>maven-project</artifactId>
         <version>${maven.version}</version>
@@ -455,6 +460,11 @@
           <artifactId>maven-localizer-plugin</artifactId>
           <version>1.8</version>
         </plugin>
+        <plugin>
+          <groupId>net.alchim31.maven</groupId>
+          <artifactId>yuicompressor-maven-plugin</artifactId>
+          <version>1.4.0</version>
+        </plugin>
       </plugins>
     </pluginManagement>
   </build>
@@ -489,6 +499,11 @@
       </snapshots>
       <id>java-net</id>
       <url>http://download.java.net/maven/2</url>
+    </pluginRepository>
+    <pluginRepository>
+      <name>oss.sonatype.org</name>
+      <id>oss.sonatype.org</id>
+      <url>http://oss.sonatype.org/content/groups/public</url>
     </pluginRepository>
   </pluginRepositories>
   <developers>
