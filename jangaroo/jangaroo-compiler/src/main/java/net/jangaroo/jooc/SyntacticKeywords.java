@@ -53,6 +53,6 @@ public interface SyntacticKeywords {
   String STATIC = "static";
   String VIRTUAL = "virtual";
 
-  Set<String> RESERVED_WORDS = new HashSet<String>(Arrays.asList("int", "uint"));
+  Set<String> RESERVED_WORDS = new HashSet<String>(Arrays.asList("int", "uint", "export"));
 
 }

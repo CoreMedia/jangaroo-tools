@@ -1631,7 +1631,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
         out.endComment();
         out.writeSymbol(functionDeclaration.getFun().getFunSymbol());
         JooSymbol functionSymbol = functionDeclaration.getIde().getSymbol();
-        String functionName = functionSymbol.getText();
+        String functionName = convertIdentifier(functionSymbol.getText());
         String methodName = functionName;
 
         boolean isAccessor = functionDeclaration.isGetterOrSetter();
