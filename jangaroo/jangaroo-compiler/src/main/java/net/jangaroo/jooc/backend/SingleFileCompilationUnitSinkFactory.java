@@ -138,7 +138,7 @@ public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUni
     } finally {
       sourceMapWriter.close();
     }
-    return "//@ sourceMappingURL=" + outFile.getName() + ".map.json";
+    return "//# sourceMappingURL=" + outFile.getName() + ".map.json";
   }
 
   private static boolean isExcludeClassByDefault(JoocOptions options) {

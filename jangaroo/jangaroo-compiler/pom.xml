@@ -17,7 +17,7 @@
     <dependency>
       <groupId>com.google.javascript</groupId>
       <artifactId>closure-compiler</artifactId>
-      <version>r2388</version>
+      <version>v20140814</version>
     </dependency>
     <dependency>
       <groupId>edu.princeton.cup</groupId>
@@ -39,7 +39,6 @@
     <dependency>
       <groupId>org.apache.ant</groupId>
       <artifactId>ant</artifactId>
-      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
