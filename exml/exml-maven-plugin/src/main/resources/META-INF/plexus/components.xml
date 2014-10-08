@@ -36,6 +36,7 @@
           </generate-resources>
           <process-resources>org.apache.maven.plugins:maven-resources-plugin:resources</process-resources>
           <compile>net.jangaroo:jangaroo-maven-plugin:${pom.version}:compile</compile>
+          <process-classes>net.jangaroo:jangaroo-maven-plugin:${pom.version}:generate-lib</process-classes>
           <generate-test-sources>net.jangaroo:exml-maven-plugin:${pom.version}:test-exml</generate-test-sources>
           <process-test-resources>org.apache.maven.plugins:maven-resources-plugin:testResources</process-test-resources>
           <test-compile>net.jangaroo:jangaroo-maven-plugin:${pom.version}:testCompile</test-compile>
