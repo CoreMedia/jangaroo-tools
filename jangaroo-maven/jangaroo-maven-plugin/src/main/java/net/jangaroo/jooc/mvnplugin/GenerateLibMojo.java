@@ -5,19 +5,25 @@ import com.google.javascript.jscomp.Compiler;
 import com.google.javascript.jscomp.CompilerOptions;
 import com.google.javascript.jscomp.Result;
 import com.google.javascript.jscomp.SourceFile;
+import com.google.javascript.jscomp.SourceMap;
 import com.google.javascript.jscomp.VariableRenamingPolicy;
+import net.jangaroo.utils.CompilerUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.DirectoryScanner;
 import org.codehaus.plexus.util.IOUtil;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
+import java.io.StringWriter;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * Apply compression on generated JS (using Google Closure Compiler),
@@ -39,9 +45,9 @@ public class GenerateLibMojo extends JangarooMojo {
   private File sourceDirectory;
 
   /**
-   * @parameter expression="${project.build.outputDirectory}/META-INF/resources/amd/lib/net/jangaroo/${project.artifactId}.lib.js"
+   * @parameter expression="${project.build.outputDirectory}/META-INF/resources/amd"
    */
-  private File aggregationOutputFile;
+  private File aggregationOutputBaseDir;
 
   /**
    * Whether to skip execution.
@@ -99,9 +105,10 @@ public class GenerateLibMojo extends JangarooMojo {
     if (sourceDirectory == null || !sourceDirectory.exists()) {
       return;
     }
-    if (aggregationOutputFile == null) {
-      throw new MojoFailureException("destination lib file is null");
+    if (aggregationOutputBaseDir == null) {
+      throw new MojoFailureException("destination lib base dir is null");
     }
+    File aggregationOutputFile = new File(aggregationOutputBaseDir, GenerateModuleAMDMojo.computeAMDName(project.getGroupId(), project.getArtifactId()) + ".lib.js");
     aggregationOutputFile.getParentFile().mkdirs();
     DirectoryScanner scanner = new DirectoryScanner();
     scanner.setBasedir(sourceDirectory);
@@ -116,6 +123,13 @@ public class GenerateLibMojo extends JangarooMojo {
     CompilationLevel.SIMPLE_OPTIMIZATIONS.setOptionsForCompilationLevel(options);
     // since we use AMD, no global variables exist:
     options.variableRenaming = VariableRenamingPolicy.ALL;
+    options.sourceMapFormat = SourceMap.Format.V3;
+    options.sourceMapOutputPath = aggregationOutputFile.getParent();
+    options.sourceMapDetailLevel = SourceMap.DetailLevel.ALL;
+    options.sourceMapLocationMappings = new ArrayList<SourceMap.LocationMapping>();
+    String sourcePath = sourceDirectory.getCanonicalPath().replace(File.separatorChar, '/');
+    String relativePath = CompilerUtils.getRelativePath(aggregationOutputFile.getParentFile(), sourceDirectory, false).replace(File.separatorChar, '/');
+    options.sourceMapLocationMappings.add(new SourceMap.LocationMapping(sourcePath, relativePath));
 
     Charset charset = Charset.forName(encoding);
     ArrayList<SourceFile> inputs = new ArrayList<SourceFile>();
@@ -137,7 +151,27 @@ public class GenerateLibMojo extends JangarooMojo {
     getLog().info("writing library file " + aggregationOutputFile.getCanonicalPath());
     OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(aggregationOutputFile), encoding);
     writer.write(compiler.toSource());
+    writer.write("\n//# sourceMappingURL=" + aggregationOutputFile.getName() + ".map.json");
     IOUtil.close(writer);
+    getLog().info("projecting library source map...");
+    StringWriter sourceMapWriter = new StringWriter();
+    result.sourceMap.appendTo(sourceMapWriter, aggregationOutputFile.getName());
+    JSONObject sourceMapJson = new JSONObject(sourceMapWriter.toString());
+    JSONArray jsSources = (JSONArray) sourceMapJson.get("sources");
+    getLog().info("projecting " + jsSources.length() + " *.js source names to *.as.");
+    List<String> asSources = new ArrayList<String>(jsSources.length());
+    for (int i = 0; i < jsSources.length(); i++) {
+      String source = (String) jsSources.get(i);
+      source = source.replaceFirst(".js$", ".as");
+      asSources.add(source);
+    }
+    sourceMapJson.put("sources", new JSONArray(asSources));
+
+    String libSourceMapFileName = aggregationOutputFile.getCanonicalPath() + ".map.json";
+    getLog().info("writing library source map " + libSourceMapFileName);
+    OutputStreamWriter sourceMapFileWriter = new OutputStreamWriter(new FileOutputStream(libSourceMapFileName), encoding);
+    sourceMapFileWriter.write(sourceMapJson.toString());
+    IOUtil.close(sourceMapFileWriter);
     getLog().debug("end generating compressed library");
   }
 

@@ -103,7 +103,7 @@ public class GenerateModuleAMDMojo extends AbstractMojo {
     }
   }
 
-  private static String computeAMDName(String groupId, String artifactId) {
+  static String computeAMDName(String groupId, String artifactId) {
     return "lib/" + groupId.replace('.', '/') + "/" + artifactId;
   }
 
