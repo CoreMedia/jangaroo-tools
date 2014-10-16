@@ -21,6 +21,11 @@ public class NativeClassDeclaration {
    */
   public native function get fullClassName():String;
 
+  /**
+   * @deprecated does nothing; classes are now always auto-inited.
+   */
+  public native function init():Class;
+
   public function toString():String {
     return this.qName;
   }

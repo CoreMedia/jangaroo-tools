@@ -73,6 +73,7 @@ define("as3-rt/AS3", ["as3/joo/JooClassDeclaration"], function(JooClassDeclarati
         staticMembers.$class = { value: new JooClassDeclaration(
                 config.package_,
                 config.class_,
+                clazz,
                 extends_,
                 $implements,
                 config.metadata
