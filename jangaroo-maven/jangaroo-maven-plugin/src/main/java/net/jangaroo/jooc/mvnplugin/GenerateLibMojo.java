@@ -1,8 +1,10 @@
 package net.jangaroo.jooc.mvnplugin;
 
+import com.google.javascript.jscomp.CheckLevel;
 import com.google.javascript.jscomp.CompilationLevel;
 import com.google.javascript.jscomp.Compiler;
 import com.google.javascript.jscomp.CompilerOptions;
+import com.google.javascript.jscomp.DiagnosticGroups;
 import com.google.javascript.jscomp.Result;
 import com.google.javascript.jscomp.SourceFile;
 import com.google.javascript.jscomp.SourceMap;
@@ -121,6 +123,7 @@ public class GenerateLibMojo extends JangarooMojo {
     CompilerOptions options = new CompilerOptions();
     // Advanced mode not used here, because we write standard JavaScript, not Google's DSL.
     CompilationLevel.SIMPLE_OPTIMIZATIONS.setOptionsForCompilationLevel(options);
+    options.setWarningLevel(DiagnosticGroups.NON_STANDARD_JSDOC, CheckLevel.OFF);
     // since we use AMD, no global variables exist:
     options.variableRenaming = VariableRenamingPolicy.ALL;
     options.sourceMapFormat = SourceMap.Format.V3;
