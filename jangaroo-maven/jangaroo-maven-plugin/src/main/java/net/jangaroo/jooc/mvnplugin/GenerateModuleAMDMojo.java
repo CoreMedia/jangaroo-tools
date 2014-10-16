@@ -18,6 +18,7 @@ import org.codehaus.plexus.util.IOUtil;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
@@ -41,6 +42,13 @@ public class GenerateModuleAMDMojo extends AbstractMojo {
    * @parameter expression="${project.build.outputDirectory}"
    */
   private File outputDirectory;
+
+  /**
+   * Name of an optional module file that contains the "body" of this Maven module's AMD descriptor.
+   *
+   * @parameter expression="${project.build.resources[0].directory}/META-INF/resources/joo/${project.artifactId}.module.js"
+   */
+  private File moduleScriptFile;
 
   /**
    * The maven project.
@@ -86,7 +94,14 @@ public class GenerateModuleAMDMojo extends AbstractMojo {
         amdWriter.write(",\n");
       }
       amdWriter.write("  " + CompilerUtils.quote("lib!" + amdName + ".lib"));
-      amdWriter.write("], {});");
+      amdWriter.write("], function() {\n");
+      if (moduleScriptFile.exists()) {
+        getLog().info("  including " + moduleScriptFile.getPath() + " into AMD file...");
+        IOUtil.copy(new FileReader(moduleScriptFile), amdWriter);
+      } else {
+        getLog().info("  not file " + moduleScriptFile.getPath() + " found to include into AMD file...");
+      }
+      amdWriter.write("});");
       amdWriter.close();
     } catch (IOException e) {
       throw new MojoExecutionException("Failed to create generated AMD output file.", e);
