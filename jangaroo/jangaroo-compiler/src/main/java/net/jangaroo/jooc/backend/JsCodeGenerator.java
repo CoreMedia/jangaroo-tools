@@ -339,7 +339,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
             && ((ClassDeclaration) primaryDeclaration).isInterface();
     out.write("define(\"");
     out.write(getModuleName(primaryDeclaration.getQualifiedNameStr()));
-    out.write("\",[\"exports\",\"as3-rt/AS3\"");
+    out.write("\",[\"module\",\"as3-rt/AS3\"");
     Set<String> useQName = collectAndWriteDependencies(compilationUnit);
     for (String resourceDependency : compilationUnit.getResourceDependencies()) {
       out.write(",\"" + resourceDependency + "\"");
@@ -360,7 +360,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
         out.write(",\"metadata/" + annotation + "\"");
       }
     }
-    out.write("], function($exports,AS3");
+    out.write("], function($module,AS3");
     writeDependencyParameters(compilationUnit, useQName);
     int resourceDependencyCount = compilationUnit.getResourceDependencies().size();
     for (int i = 0; i < resourceDependencyCount; i++) {
@@ -371,9 +371,9 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     out.write("AS3.");
     // interface: the only compilation unit without lazy initialization!
     if (isInterface) {
-      out.write("interface_($exports, ");
+      out.write("interface_($module,");
     } else {
-      out.write("compilationUnit($exports, function($primaryDeclaration){");
+      out.write("compilationUnit($module,function($primaryDeclaration){");
     }
     this.compilationUnit = compilationUnit;
     out.beginComment();
@@ -399,7 +399,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       } else {
         ClassDefinitionBuilder classDefinitionBuilder = primaryClassDefinitionBuilder;
         JsonObject classDefinition = createClassDefinition(classDeclaration, classDefinitionBuilder);
-        out.write("\n    $primaryDeclaration(AS3.class_(" + classDefinition.toString(2, 4) + "));\n");
+        out.write("\n    $primaryDeclaration(AS3.class_($module, " + classDefinition.toString(2, 4) + "));\n");
         // special hack for Ext 4 and Sencha Touch: do not use the constructor for super calls, but its prototype's constructor:
         ClassDeclaration superTypeDeclaration = classDeclaration.getSuperTypeDeclaration();
         if (superTypeDeclaration != null &&
@@ -420,8 +420,6 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
   private JsonObject createInterfaceDefinition(ClassDeclaration interfaceDeclaration) {
     JsonObject interfaceDefinition = new JsonObject();
-    setPackageName(interfaceDeclaration, interfaceDefinition);
-    interfaceDefinition.set("interface_", interfaceDeclaration.getName());
     addOptImplements(interfaceDeclaration, interfaceDefinition);
     return interfaceDefinition;
   }
@@ -544,11 +542,9 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
   private JsonObject createClassDefinition(ClassDeclaration classDeclaration, ClassDefinitionBuilder classDefinitionBuilder) throws IOException {
     JsonObject classDefinition = new JsonObject();
-    setPackageName(classDeclaration, classDefinition);
     if (!classDefinitionBuilder.metadata.isEmpty()) {
       classDefinition.set("metadata", classDefinitionBuilder.metadata);
     }
-    classDefinition.set("class_", classDeclaration.getName());
     if (classDeclaration.getInheritanceLevel() > 1) {
       ClassDeclaration superTypeDeclaration = classDeclaration.getSuperTypeDeclaration();
       out.write("\n    var Super=" + compilationUnitAccessCode(superTypeDeclaration) + ";");
@@ -566,13 +562,6 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     }
     classDefinitionBuilder.staticCode.insert(0, classDefinitionBuilder.staticInitializerCode.toString());
     return classDefinition;
-  }
-
-  private void setPackageName(ClassDeclaration classDeclaration, JsonObject classDefinition) {
-    String packageName = classDeclaration.getPackageDeclaration().getQualifiedNameStr();
-    if (packageName.length() > 0) {
-      classDefinition.set("package_", packageName);
-    }
   }
 
   private JsonObject convertMembers(Map<String, PropertyDefinition> members) {
@@ -1744,7 +1733,8 @@ public class JsCodeGenerator extends CodeGeneratorBase {
         out.write(new MessageFormat("function {0}_()'{").format(secondaryDeclarationName));
         secondaryClassDeclaration.visit(this);
         JsonObject secondaryClassDefinition = createClassDefinition(secondaryClassDeclaration, secondaryClassDefinitionBuilder);
-        out.write("return AS3.class_(" + secondaryClassDefinition.toString(-1, -1) + ");");
+        // TODO: secondary interfaces! (Did they work in Jangaroo 2?)
+        out.write("return AS3.class_({id:\"as3/" + secondaryClassDeclaration.getQualifiedNameStr() + "\"}," + secondaryClassDefinition.toString(-1, -1) + ");");
         out.write("}");
         primaryClassDefinitionBuilder.staticCode.append(new MessageFormat("    var {0}$static={0}_();\n").format(secondaryDeclarationName));
       } else {

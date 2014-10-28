@@ -18,18 +18,6 @@ define("lib/net/jangaroo/jangaroo-runtime", ["require", "as3-rt/getModuleName", 
   joo.loadStyleSheet = function(styleSheet) {
     styleSheets.push(styleSheet);
   };
-  joo.getOrCreatePackage = function(name) {
-    var ref = theGlobalObject;
-    var props = name ? name.split('.') : [];
-    for (var i = 0; i < props.length; i++) {
-      var nextRef = ref[props[i]];
-      if (!nextRef) {
-        nextRef = ref[props[i]] = {};
-      }
-      ref = nextRef;
-    }
-    return ref;
-  };
   joo.classLoader = {
     getClassDeclaration: function(qName) {
       return require(getModuleName(qName))._.$class;

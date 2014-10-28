@@ -1,8 +1,8 @@
 define("as3/joo/NativeClassDeclaration", [], function() {
   "use strict";
-  function NativeClassDeclaration(packageName, name, constructor_) {
-    this.qName = this.fullClassName = packageName ? packageName + "." + name : name;
-    this.name = name;
+  function NativeClassDeclaration(qName, constructor_) {
+    this.qName = this.fullClassName = qName;
+    this.name = qName.substr(qName.lastIndexOf(".") + 1);
     this.constructor_ = constructor_;
   }
   Object.defineProperties(NativeClassDeclaration.prototype, {

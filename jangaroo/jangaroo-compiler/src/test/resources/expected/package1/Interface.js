@@ -1,4 +1,4 @@
-define("as3/package1/Interface",["exports","as3-rt/AS3","as3/package1/SuperInterface"], function($exports,AS3,SuperInterface) { AS3.interface_($exports, /*package package1 {
+define("as3/package1/Interface",["module","as3-rt/AS3","as3/package1/SuperInterface"], function($module,AS3,SuperInterface) { AS3.interface_($module,/*package package1 {
 
 /**
  * Some ASDoc.
@@ -12,9 +12,5 @@ public interface Interface extends SuperInterface {
 }
 
 ============================================== Jangaroo part ==============================================*/
-{
-  package_: "package1",
-  interface_: "Interface",
-  extends_: [SuperInterface]
-}
+{extends_: [SuperInterface]}
 );});

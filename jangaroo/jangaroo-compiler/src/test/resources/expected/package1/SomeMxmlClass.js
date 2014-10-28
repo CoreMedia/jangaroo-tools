@@ -1,4 +1,4 @@
-define("as3/package1/SomeMxmlClass",["exports","as3-rt/AS3","as3/package1/ConfigClass","as3/package1/someOtherPackage/SomeOtherClass","as3/joo/binding/Binding","as3/joo/addEventListener","as3/package1/someOtherPackage/SomeEvent","as3/mx/resources/ResourceManager","bundle!Foo"], function($exports,AS3,ConfigClass,SomeOtherClass,Binding,addEventListener,SomeEvent,ResourceManager) { AS3.compilationUnit($exports, function($primaryDeclaration){/*package package1 {
+define("as3/package1/SomeMxmlClass",["module","as3-rt/AS3","as3/package1/ConfigClass","as3/package1/someOtherPackage/SomeOtherClass","as3/joo/binding/Binding","as3/joo/addEventListener","as3/package1/someOtherPackage/SomeEvent","as3/mx/resources/ResourceManager","bundle!Foo"], function($module,AS3,ConfigClass,SomeOtherClass,Binding,addEventListener,SomeEvent,ResourceManager) { AS3.compilationUnit($module,function($primaryDeclaration){/*package package1 {
 import package1.someOtherPackage.SomeOtherClass;
 import joo.binding.Binding;
 import package1.someOtherPackage.SomeEvent;
@@ -128,8 +128,7 @@ public class SomeMxmlClass extends package1.ConfigClass {
 
 ============================================== Jangaroo part ==============================================*/
     var Super=ConfigClass._;
-    $primaryDeclaration(AS3.class_({
-      package_: "package1",
+    $primaryDeclaration(AS3.class_($module, {
       metadata: {"": [
         "ResourceBundle",
         [
@@ -137,7 +136,6 @@ public class SomeMxmlClass extends package1.ConfigClass {
           "Foo"
         ]
       ]},
-      class_: "SomeMxmlClass",
       extends_: Super,
       members: {
         constructor: SomeMxmlClass,

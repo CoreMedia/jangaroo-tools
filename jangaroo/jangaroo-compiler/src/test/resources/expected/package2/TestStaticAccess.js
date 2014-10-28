@@ -1,4 +1,4 @@
-define("as3/package2/TestStaticAccess",["exports","as3-rt/AS3","as3/package2/StaticAccessSuperClass","as3/package1/StaticAccessSuperSuperClass"], function($exports,AS3,StaticAccessSuperClass,StaticAccessSuperSuperClass) { AS3.compilationUnit($exports, function($primaryDeclaration){/* /*
+define("as3/package2/TestStaticAccess",["module","as3-rt/AS3","as3/package2/StaticAccessSuperClass","as3/package1/StaticAccessSuperSuperClass"], function($module,AS3,StaticAccessSuperClass,StaticAccessSuperSuperClass) { AS3.compilationUnit($module,function($primaryDeclaration){/* /*
  * Copyright 2008 CoreMedia AG
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); 
@@ -123,9 +123,7 @@ public class TestStaticAccess extends StaticAccessSuperClass {
 
 ============================================== Jangaroo part ==============================================*/
     var Super=StaticAccessSuperClass._;
-    $primaryDeclaration(AS3.class_({
-      package_: "package2",
-      class_: "TestStaticAccess",
+    $primaryDeclaration(AS3.class_($module, {
       extends_: Super,
       members: {constructor: TestStaticAccess},
       staticMembers: {

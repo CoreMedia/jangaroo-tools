@@ -1,4 +1,4 @@
-define("as3/package1/TestHelperClasses",["exports","as3-rt/AS3"], function($exports,AS3) { AS3.compilationUnit($exports, function($primaryDeclaration){/*package package1 {
+define("as3/package1/TestHelperClasses",["module","as3-rt/AS3"], function($module,AS3) { AS3.compilationUnit($module,function($primaryDeclaration){/*package package1 {
 
 public class TestHelperClasses {
 
@@ -32,13 +32,11 @@ class Helper {
   private*/ function text_getter()/*:String*/ {
     return this.text$1;
   }/*
-}*/return AS3.class_({package_: "package1",class_: "Helper",members: {constructor: Helper,getText: getText,text_getter$1: text_getter},staticMembers: {CONST: "FOO"}});}function TestHelperClasses() {}/*
+}*/return AS3.class_({id:"as3/package1.TestHelperClasses.Helper"},{members: {constructor: Helper,getText: getText,text_getter$1: text_getter},staticMembers: {CONST: "FOO"}});}function TestHelperClasses() {}/*
 }
 
 ============================================== Jangaroo part ==============================================*/
-    $primaryDeclaration(AS3.class_({
-      package_: "package1",
-      class_: "TestHelperClasses",
+    $primaryDeclaration(AS3.class_($module, {
       members: {constructor: TestHelperClasses},
       staticMembers: {
         TEXT: "foo",

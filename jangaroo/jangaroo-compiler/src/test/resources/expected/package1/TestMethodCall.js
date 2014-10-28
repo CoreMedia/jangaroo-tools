@@ -1,4 +1,4 @@
-define("as3/package1/TestMethodCall",["exports","as3-rt/AS3"], function($exports,AS3) { AS3.compilationUnit($exports, function($primaryDeclaration){/* /*
+define("as3/package1/TestMethodCall",["module","as3-rt/AS3"], function($module,AS3) { AS3.compilationUnit($module,function($primaryDeclaration){/* /*
  * Copyright 2008 CoreMedia AG
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); 
@@ -130,9 +130,7 @@ public class TestMethodCall /* blub ber * //*extends Object* / {
 }
 
 ============================================== Jangaroo part ==============================================*/
-    $primaryDeclaration(AS3.class_({
-      package_: "package1",
-      class_: "TestMethodCall",
+    $primaryDeclaration(AS3.class_($module, {
       members: {
         constructor: TestMethodCall,
         s: {

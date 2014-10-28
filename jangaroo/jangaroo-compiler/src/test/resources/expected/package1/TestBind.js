@@ -1,4 +1,4 @@
-define("as3/package1/TestBind",["exports","as3-rt/AS3"], function($exports,AS3) { AS3.compilationUnit($exports, function($primaryDeclaration){/* /*
+define("as3/package1/TestBind",["module","as3-rt/AS3"], function($module,AS3) { AS3.compilationUnit($module,function($primaryDeclaration){/* /*
  * Copyright 2008 CoreMedia AG
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); 
@@ -38,18 +38,14 @@ public class TestBind {
 }
 
 ============================================== Jangaroo part ==============================================*/
-    $primaryDeclaration(AS3.class_({
-      package_: "package1",
-      class_: "TestBind",
-      members: {
-        constructor: TestBind,
-        getState: getState,
-        getStatePrivate$1: getStatePrivate,
-        state$1: {
-          value: null,
-          writable: true
-        }
+    $primaryDeclaration(AS3.class_($module, {members: {
+      constructor: TestBind,
+      getState: getState,
+      getStatePrivate$1: getStatePrivate,
+      state$1: {
+        value: null,
+        writable: true
       }
-    }));
+    }}));
   });
 });

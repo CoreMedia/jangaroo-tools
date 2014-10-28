@@ -1,4 +1,4 @@
-define("as3/package1/ChainedConstants",["exports","as3-rt/AS3","as3/package1/someOtherPackage/SomeOtherClass"], function($exports,AS3,SomeOtherClass) { AS3.compilationUnit($exports, function($primaryDeclaration){/*package package1 {
+define("as3/package1/ChainedConstants",["module","as3-rt/AS3","as3/package1/someOtherPackage/SomeOtherClass"], function($module,AS3,SomeOtherClass) { AS3.compilationUnit($module,function($primaryDeclaration){/*package package1 {
 
 import package1.someOtherPackage.SomeOtherClass;
 
@@ -16,9 +16,7 @@ public class ChainedConstants {
 }
 
 ============================================== Jangaroo part ==============================================*/
-    $primaryDeclaration(AS3.class_({
-      package_: "package1",
-      class_: "ChainedConstants",
+    $primaryDeclaration(AS3.class_($module, {
       members: {constructor: ChainedConstants},
       staticMembers: {METHOD_TYPE_GET: "get"}
     }));

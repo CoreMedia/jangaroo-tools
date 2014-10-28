@@ -22,9 +22,9 @@ public class JooClassDeclaration extends NativeClassDeclaration {
 
   public native function getMemberDeclaration(namespace:String, memberName:String):MemberDeclaration;
 
-  public function JooClassDeclaration(packageName:String, name:String, extends_:Class, implements_:Array,
+  public function JooClassDeclaration(qName:String, extends_:Class, implements_:Array,
                                       metadata:Object) {
-    super(packageName, name);
+    super(qName);
   }
 
 }

@@ -1,4 +1,4 @@
-define("as3/package1/TestArrayForIn",["exports","as3-rt/AS3"], function($exports,AS3) { AS3.compilationUnit($exports, function($primaryDeclaration){/*package package1 {
+define("as3/package1/TestArrayForIn",["module","as3-rt/AS3"], function($module,AS3) { AS3.compilationUnit($module,function($primaryDeclaration){/*package package1 {
 
 public class TestArrayForIn {
 
@@ -54,9 +54,7 @@ public class TestArrayForIn {
 }
 
 ============================================== Jangaroo part ==============================================*/
-    $primaryDeclaration(AS3.class_({
-      package_: "package1",
-      class_: "TestArrayForIn",
+    $primaryDeclaration(AS3.class_($module, {
       members: {constructor: TestArrayForIn},
       staticMembers: {test: test$static}
     }));

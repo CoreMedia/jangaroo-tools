@@ -1,4 +1,4 @@
-define("as3/package1/UsingEmbed",["exports","as3-rt/AS3","as3/flash/display/Bitmap","text!package1/UsingEmbed.as","text!package1/Interface.as","image!package1/jooley.png"], function($exports,AS3,Bitmap,$resource_0,$resource_1,$resource_2) { AS3.compilationUnit($exports, function($primaryDeclaration){/*package package1 {
+define("as3/package1/UsingEmbed",["module","as3-rt/AS3","as3/flash/display/Bitmap","text!package1/UsingEmbed.as","text!package1/Interface.as","image!package1/jooley.png"], function($module,AS3,Bitmap,$resource_0,$resource_1,$resource_2) { AS3.compilationUnit($module,function($primaryDeclaration){/*package package1 {
 
 [SomeRuntimeAnnotation]
 /**
@@ -52,8 +52,7 @@ public class UsingEmbed {
 }
 
 ============================================== Jangaroo part ==============================================*/
-    $primaryDeclaration(AS3.class_({
-      package_: "package1",
+    $primaryDeclaration(AS3.class_($module, {
       metadata: {
         "": [
           "SomeRuntimeAnnotation",
@@ -110,7 +109,6 @@ public class UsingEmbed {
           ]
         ]
       },
-      class_: "UsingEmbed",
       members: {
         someText: {
           value: function(){return new String($resource_0)},

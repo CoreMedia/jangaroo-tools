@@ -1,7 +1,7 @@
 define("as3/joo/JooClassDeclaration", ["as3/joo/NativeClassDeclaration", "as3/joo/MemberDeclaration"], function(NativeClassDeclaration, MemberDeclaration) {
   "use strict";
-  function JooClassDeclaration(packageName, name, constructor_, extends_, implements_, rawMetadataByMember) {
-    NativeClassDeclaration.call(this, packageName, name, constructor_);
+  function JooClassDeclaration(qName, constructor_, extends_, implements_, rawMetadataByMember) {
+    NativeClassDeclaration.call(this, qName, name, constructor_);
     this.rawMetadataByMember = rawMetadataByMember || {};
     this.extends_ = extends_;
     this.implements_ = implements_;

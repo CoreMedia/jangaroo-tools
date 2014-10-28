@@ -1,4 +1,4 @@
-define("as3/package1/UsingSomeNativeClass",["exports","as3-rt/AS3","native!package1.SomeNativeClass@acme/native","as3/package1/someOtherPackage/SomeNativeClass"], function($exports,AS3,package1$SomeNativeClass,package1$someOtherPackage$SomeNativeClass) { AS3.compilationUnit($exports, function($primaryDeclaration){/*package package1 {
+define("as3/package1/UsingSomeNativeClass",["module","as3-rt/AS3","native!package1.SomeNativeClass@acme/native","as3/package1/someOtherPackage/SomeNativeClass"], function($module,AS3,package1$SomeNativeClass,package1$someOtherPackage$SomeNativeClass) { AS3.compilationUnit($module,function($primaryDeclaration){/*package package1 {
 import package1.someOtherPackage.SomeNativeClass;
 
 /**
@@ -42,16 +42,12 @@ public class UsingSomeNativeClass {
 }
 
 ============================================== Jangaroo part ==============================================*/
-    $primaryDeclaration(AS3.class_({
-      package_: "package1",
-      class_: "UsingSomeNativeClass",
-      members: {
-        constructor: UsingSomeNativeClass,
-        getFoobar: get$someNativeAccessor,
-        getAnotherNativeAccessor: get$anotherNativeAccessor,
-        isMonkey: get$monkey,
-        setMonkey: set$monkey
-      }
-    }));
+    $primaryDeclaration(AS3.class_($module, {members: {
+      constructor: UsingSomeNativeClass,
+      getFoobar: get$someNativeAccessor,
+      getAnotherNativeAccessor: get$anotherNativeAccessor,
+      isMonkey: get$monkey,
+      setMonkey: set$monkey
+    }}));
   });
 });

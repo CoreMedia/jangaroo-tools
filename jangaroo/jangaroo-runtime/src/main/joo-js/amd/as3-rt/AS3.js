@@ -1,4 +1,4 @@
-define("as3-rt/AS3", ["as3/joo/JooClassDeclaration"], function(JooClassDeclaration) {
+define("as3-rt/AS3", ["as3/joo/getOrCreatePackage", "as3/joo/JooClassDeclaration"], function(getOrCreatePackage, JooClassDeclaration) {
   "use strict";
   function toString() {
     return "[Class " + this.$class.name + "]";
@@ -21,6 +21,11 @@ define("as3-rt/AS3", ["as3/joo/JooClassDeclaration"], function(JooClassDeclarati
     }
     return result;
   }
+  function amdIdToQName(amdName) {
+    return amdName.split("/")
+            .slice(1)  // ignore "as3" segments
+            .join(".");
+  }
   var metadataHandlers = {};
   function registerMetadataHandler(handler) {
     metadataHandlers[handler.metadata] = handler;
@@ -39,28 +44,36 @@ define("as3-rt/AS3", ["as3/joo/JooClassDeclaration"], function(JooClassDeclarati
     }
     return value;
   }
-  function compilationUnit(exports, definingCode) {
+  function compilationUnit(module, definingCode) {
+    var qName = amdIdToQName(module.id);
+    var lastDotPos = qName.lastIndexOf(".");
+    var cuName = qName.substr(lastDotPos + 1);
+    var package_ = getOrCreatePackage(qName.substr(0, lastDotPos));
+    var exports = module.exports = module.exports || {};
     function getter() {
       var result;
       definingCode(function(value) {
         result = convertShortcut(value);
-        Object.defineProperty(exports, "_", result);
+        defineCompilationUnitProperties(exports, package_, cuName, result);
       });
       return handleMetadata(result.value);
     }
-    Object.defineProperties(exports, convertShortcuts({
-      "_": {
+    defineCompilationUnitProperties(exports, package_, cuName, {
         configurable: true,
         get: getter,
         set: function(value) {
           getter(); // initialize, but ignore resulting value as it is overwritten immediately!
           exports._ = value;
+          package_[cuName] = value;
         }
-      }
-    }));
+    });
+  }
+  function defineCompilationUnitProperties(exports, package_, cuName, value) {
+    Object.defineProperty(exports, "_", value);
+    Object.defineProperty(package_, cuName, value);
   }
 
-  function defineClass(config) {
+  function defineClass(module, config) {
         var members = convertShortcuts(config.members);
         var clazz = members.constructor.value;
         var extends_ = config.extends_ || Object; // super class
@@ -71,8 +84,7 @@ define("as3-rt/AS3", ["as3/joo/JooClassDeclaration"], function(JooClassDeclarati
         var staticMembers = convertShortcuts(config.staticMembers);
         // add some meta information under reserved static field "$class":
         staticMembers.$class = { value: new JooClassDeclaration(
-                config.package_,
-                config.class_,
+                amdIdToQName(module.id),
                 clazz,
                 extends_,
                 $implements,
@@ -100,17 +112,16 @@ define("as3-rt/AS3", ["as3/joo/JooClassDeclaration"], function(JooClassDeclarati
     return $implements;
   }
 
-  function defineInterface(exports, config) {
-    var qName = config.package_ ? config.package_ + "." + config.interface_ : config.interface_;
+  function defineInterface(module, config) {
+    var qName = amdIdToQName(module.id);
     var interfaces = {};
     interfaces[qName] = true;
     config.extends_ && config.extends_.forEach(function (i) {
       i.addInterfaces(interfaces);
     });
-    Object.defineProperties(exports, convertShortcuts({
+    module.exports = Object.defineProperties(module.exports || {}, convertShortcuts({
       $class: { value: new JooClassDeclaration(
-              config.package_,
-              config.interface_,
+              qName,
               undefined,
               undefined,
               config.metadata

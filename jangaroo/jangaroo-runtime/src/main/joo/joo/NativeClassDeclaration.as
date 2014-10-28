@@ -3,7 +3,7 @@ package joo {
 [Native(amd)]
 public class NativeClassDeclaration {
 
-  public function NativeClassDeclaration(packageName:String, name:String) {
+  public function NativeClassDeclaration(qName:String) {
   }
 
   /**
