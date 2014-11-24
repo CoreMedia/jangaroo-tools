@@ -154,7 +154,7 @@ public class GenerateLibMojo extends JangarooMojo {
     getLog().info("writing library file " + aggregationOutputFile.getCanonicalPath());
     OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(aggregationOutputFile), encoding);
     writer.write(compiler.toSource());
-    writer.write("\n//# sourceMappingURL=" + aggregationOutputFile.getName() + ".map.json");
+    writer.write("\n//# sourceMappingURL=" + aggregationOutputFile.getName() + ".map");
     IOUtil.close(writer);
     getLog().info("projecting library source map...");
     StringWriter sourceMapWriter = new StringWriter();
@@ -170,7 +170,7 @@ public class GenerateLibMojo extends JangarooMojo {
     }
     sourceMapJson.put("sources", new JSONArray(asSources));
 
-    String libSourceMapFileName = aggregationOutputFile.getCanonicalPath() + ".map.json";
+    String libSourceMapFileName = aggregationOutputFile.getCanonicalPath() + ".map";
     getLog().info("writing library source map " + libSourceMapFileName);
     OutputStreamWriter sourceMapFileWriter = new OutputStreamWriter(new FileOutputStream(libSourceMapFileName), encoding);
     sourceMapFileWriter.write(sourceMapJson.toString());

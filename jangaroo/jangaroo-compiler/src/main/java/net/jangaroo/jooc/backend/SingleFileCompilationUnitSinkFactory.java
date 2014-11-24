@@ -130,7 +130,7 @@ public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUni
         entry.getSourceFilePosition(),
         entry.getOutputFileStartPosition(), entry.getOutputFileEndPosition());
     }
-    String sourceMapFilename = outFile.getAbsolutePath() + ".map.json";
+    String sourceMapFilename = outFile.getAbsolutePath() + ".map";
 //                System.out.println("*** Creating source map file " + sourceMapFilename);
     FileWriter sourceMapWriter = new FileWriter(sourceMapFilename);
     try {
@@ -138,7 +138,7 @@ public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUni
     } finally {
       sourceMapWriter.close();
     }
-    return "//# sourceMappingURL=" + outFile.getName() + ".map.json";
+    return "//# sourceMappingURL=" + outFile.getName() + ".map";
   }
 
   private static boolean isExcludeClassByDefault(JoocOptions options) {
