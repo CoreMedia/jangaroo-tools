@@ -143,8 +143,8 @@ public class ExmlMetadataHandler extends CharacterRecordingHandler {
         }
       }
       if (elementPath.isEmpty() && configClass.getSuperClassName() == null) {
-        // if nothing else is specified, extend JavaScriptObject:
-        configClass.setSuperClassName("joo.JavaScriptObject");
+        // if nothing else is specified, extend default config class depending on the config class type:
+        configClass.setSuperClassName(configClass.getType().getDefaultSuperConfigClassName());
       }
     }
   }

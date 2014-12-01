@@ -6,11 +6,11 @@ import net.jangaroo.exml.api.Exmlc;
  * An enumeration of the types of ExtJS objects: components, plugins, and actions.
  */
 public enum ConfigClassType {
-  CLASS(Exmlc.EXML_CLASS_NODE_NAME, null, null, false),
-  COMPONENT(Exmlc.EXML_COMPONENT_NODE_NAME, "xtype", "xtype", true),
-  PLUGIN(Exmlc.EXML_PLUGIN_NODE_NAME, "ptype", "ptype", true),
-  LAYOUT(Exmlc.EXML_LAYOUT_NODE_NAME, "type", "type", true),
-  GRID_COLUMN(Exmlc.EXML_GRID_COLUMN_NODE_NAME, "gctype", "xtype", false);
+  CLASS(Exmlc.EXML_CLASS_NODE_NAME, null, null, "joo.JavaScriptObject", false),
+  COMPONENT(Exmlc.EXML_COMPONENT_NODE_NAME, "xtype", "xtype", "ext.config.component", true),
+  PLUGIN(Exmlc.EXML_PLUGIN_NODE_NAME, "ptype", "ptype", "ext.config.plugin", true),
+  LAYOUT(Exmlc.EXML_LAYOUT_NODE_NAME, "type", "type", "ext.config.containerlayout", true),
+  GRID_COLUMN(Exmlc.EXML_GRID_COLUMN_NODE_NAME, "gctype", "xtype", "ext.config.gridcolumn", false);
 
   public static ConfigClassType fromExtConfigAttribute(String parameterName) {
     for (ConfigClassType configClassType : ConfigClassType.values()) {
@@ -30,16 +30,18 @@ public enum ConfigClassType {
     throw new IllegalArgumentException(String.format("ConfigClassType for EXML root node name '%s' not found.", exmlRootNodeName));
   }
 
+  private String exmlRootNodeName;
   private String type;
   private String extTypeAttribute;
+  private String defaultSuperConfigClassName;
   private boolean createdViaConfigObject;
-  private String exmlRootNodeName;
 
-  ConfigClassType(String exmlRootNodeName, String type, String extTypeAttribute, boolean createdViaConfigObject) {
+  ConfigClassType(String exmlRootNodeName, String type, String extTypeAttribute, String defaultSuperConfigClassName, boolean createdViaConfigObject) {
+    this.exmlRootNodeName = exmlRootNodeName;
     this.type = type;
     this.extTypeAttribute = extTypeAttribute;
+    this.defaultSuperConfigClassName = defaultSuperConfigClassName;
     this.createdViaConfigObject = createdViaConfigObject;
-    this.exmlRootNodeName = exmlRootNodeName;
   }
 
   /**
@@ -65,6 +67,10 @@ public enum ConfigClassType {
    */
   public String getExtTypeAttribute() {
     return extTypeAttribute;
+  }
+
+  public String getDefaultSuperConfigClassName() {
+    return defaultSuperConfigClassName;
   }
 
   public boolean isCreatedViaConfigObject() {
