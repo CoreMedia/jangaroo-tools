@@ -17,26 +17,13 @@ import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
 
 import javax.xml.namespace.QName;
-import java.util.Collections;
 import java.util.Deque;
-import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.Map;
 
 /**
  * Generates an internal representation of all metadata of the component described by the given EXML.
  */
 public class ExmlMetadataHandler extends CharacterRecordingHandler {
-  private static final Map<String,ConfigClassType> EXML_ROOT_NODE_TO_CONFIG_CLASS_TYPE
-    = Collections.unmodifiableMap(new HashMap<String, ConfigClassType>() {
-    {
-      put(Exmlc.EXML_COMPONENT_NODE_NAME, ConfigClassType.XTYPE);
-      put(Exmlc.EXML_PLUGIN_NODE_NAME, ConfigClassType.PTYPE);
-      put(Exmlc.EXML_LAYOUT_NODE_NAME, ConfigClassType.TYPE);
-      put(Exmlc.EXML_GRID_COLUMN_NODE_NAME, ConfigClassType.GCTYPE);
-    }
-  });
-
   private ConfigClass configClass;
   private Locator locator;
 
@@ -54,7 +41,7 @@ public class ExmlMetadataHandler extends CharacterRecordingHandler {
   public void startElement(String uri, String localName, String qName, Attributes atts) throws SAXException {
     if (ExmlUtils.isExmlNamespace(uri)) {
       if (Exmlc.EXML_ROOT_NODE_NAMES.contains(localName)) {
-        configClass.setType(EXML_ROOT_NODE_TO_CONFIG_CLASS_TYPE.get(localName));
+        configClass.setType(ConfigClassType.fromExmlRootNodeName(localName));
 
         for (int i = 0; i < atts.getLength(); i++) {
           //baseClass attribute has been specified, so the super class of the component is actually that
@@ -156,8 +143,8 @@ public class ExmlMetadataHandler extends CharacterRecordingHandler {
         }
       }
       if (elementPath.isEmpty() && configClass.getSuperClassName() == null) {
-        // if nothing else is specified, extend JavaScriptObject:
-        configClass.setSuperClassName("joo.JavaScriptObject");
+        // if nothing else is specified, extend default config class depending on the config class type:
+        configClass.setSuperClassName(configClass.getType().getDefaultSuperConfigClassName());
       }
     }
   }
