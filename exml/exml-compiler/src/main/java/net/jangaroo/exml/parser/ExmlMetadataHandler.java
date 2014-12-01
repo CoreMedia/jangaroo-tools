@@ -33,6 +33,7 @@ public class ExmlMetadataHandler extends CharacterRecordingHandler {
       put(Exmlc.EXML_COMPONENT_NODE_NAME, ConfigClassType.XTYPE);
       put(Exmlc.EXML_PLUGIN_NODE_NAME, ConfigClassType.PTYPE);
       put(Exmlc.EXML_LAYOUT_NODE_NAME, ConfigClassType.TYPE);
+      put(Exmlc.EXML_GRID_COLUMN_NODE_NAME, ConfigClassType.GCTYPE);
     }
   });
 
