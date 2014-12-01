@@ -44,7 +44,7 @@ import java.util.Map;
 import static net.jangaroo.exml.xml.PreserveLineNumberHandler.getLineNumber;
 
 public final class ExmlToModelParser {
-  private static final String EXT_CONFIG_PREFIX = "ext.config.";
+  private static final String EXT_CONFIG_PACKAGE = "ext.config";
   private static final String CONFIG_MODE_AT_SUFFIX = "$at";
   private static final String CONFIG_MODE_ATTRIBUTE_NAME = "mode";
   private static final String EXT_CONTAINER_CONFIG_QNAME = "ext.config.container";
@@ -300,7 +300,7 @@ public final class ExmlToModelParser {
           jsonObjectValue.settingWrapperClass(null);
         } else {
           // b) as an "xtype" attribute:
-          xtype = (String) jsonObjectValue.remove(ConfigClassType.XTYPE.getType());
+          xtype = (String) jsonObjectValue.remove(ConfigClassType.COMPONENT.getType());
         }
         if (xtype != null) {
           jsonObject.set(EXT_CONTAINER_DEFAULT_TYPE_PROPERTY, xtype);
@@ -403,22 +403,20 @@ public final class ExmlToModelParser {
         ConfigClass configClass = getConfigClassByName(arrayItemClassName, arrayItemNode);
 
         JsonObject arrayItemJsonObject = new JsonObject();
-        if (configClass.getType() == null) {
+        if (configClass.getType().getExtTypeAttribute() != null && EXT_CONFIG_PACKAGE.equals(configClass.getPackageName())) {
+          // Ext classes are always loaded. We can use the type string directly.
+          arrayItemJsonObject.set(configClass.getType().getExtTypeAttribute(), configClass.getTypeValue());
+        } else if (configClass.getType().isCreatedViaConfigObject()) {
+          arrayItemJsonObject.settingWrapperClass(configClass.getFullName());
+          model.addImport(configClass.getFullName());
+          model.addImport(configClass.getComponentClassName());
+        } else {
           // Everything not a component, plugin or layout must be created immediately
           // by using net.jangaroo.ext.create() with its configClass and the config:
           arrayItemJsonObject.settingConfigClass(configClass.getFullName());
           model.addImport(configClass.getFullName());
           model.addImport(configClass.getComponentClassName());
           model.addImport(JsonObject.NET_JANGAROO_EXT_CREATE);
-        } else {
-          if (arrayItemClassName.startsWith(EXT_CONFIG_PREFIX)) {
-            // Ext classes are always loaded. We can use the type string directly.
-            arrayItemJsonObject.set(configClass.getType().getExtTypeAttribute(), configClass.getTypeValue());
-          } else {
-            arrayItemJsonObject.settingWrapperClass(configClass.getFullName());
-            model.addImport(configClass.getFullName());
-            model.addImport(configClass.getComponentClassName());
-          }
         }
 
         fillModelAttributes(model, arrayItemJsonObject, arrayItemNode, configClass);
