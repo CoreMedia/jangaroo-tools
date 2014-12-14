@@ -447,12 +447,22 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       IdeDeclaration dependentDeclaration = dependentCU.getPrimaryDeclaration();
       String dependentDeclarationQName = dependentDeclaration.getQualifiedNameStr();
       Annotation nativeAnnotation = dependentCU.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME);
-      String importedName = useQName.contains(dependentDeclarationQName)
-              ? dependentDeclarationQName.replace(".", "$")
-              : dependentDeclaration.getName();
-      importedName = convertIdentifier(importedName);
-      if (nativeAnnotation == null || computeAmdName(nativeAnnotation, dependentDeclarationQName) != null) {
-        out.write("," + importedName);
+      String importedName;
+      String amdName = computeAmdName(nativeAnnotation, dependentDeclarationQName);
+      if (amdName != null && amdName.startsWith("native!")) {
+        String packageAuxVar = compilationUnit.getPackageDeclaration().getIde().getScope().createAuxVar(null).getName();
+        out.write("," + packageAuxVar);
+        String global = (String) getAnnotationParameterValue(nativeAnnotation, "global", null);
+        String propertyName = global == null ? dependentDeclaration.getName() : CompilerUtils.className(global);
+        importedName = packageAuxVar + "." + propertyName;
+      } else {
+        importedName = useQName.contains(dependentDeclarationQName)
+                ? dependentDeclarationQName.replace(".", "$")
+                : dependentDeclaration.getName();
+        importedName = convertIdentifier(importedName);
+        if (nativeAnnotation == null || amdName != null) {
+          out.write("," + importedName);
+        }
       }
       if (nativeAnnotation == null &&
               !(dependentDeclaration instanceof ClassDeclaration &&
@@ -472,13 +482,9 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       Annotation nativeAnnotation = dependentCU.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME);
       IdeDeclaration dependentDeclaration = dependentCU.getPrimaryDeclaration();
       String qName = dependentDeclaration.getQualifiedNameStr();
-      if (nativeAnnotation == null) {
-        out.write(",\"" + getModuleName(qName) + "\"");
-      } else {
-        String amdName = computeAmdName(nativeAnnotation, qName);
-        if (amdName != null) {
-          out.write(",\"" + amdName + "\"");
-        }
+      String amdName = computeAmdName(nativeAnnotation, qName);
+      if (amdName != null) {
+        out.write("," + CompilerUtils.quote(amdName));
       }
       String importedName = dependentDeclaration.getName();
       if (usedNames.containsKey(importedName)) {
@@ -495,26 +501,27 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     return useQName;
   }
 
-  private static String computeAmdName(Annotation nativeAnnotation, String qName) {
-    String amd = null;
-    String global = null;
+  private static Object getAnnotationParameterValue(Annotation nativeAnnotation, String name,
+                                                    Object defaultValue) {
     CommaSeparatedList<AnnotationParameter> annotationParameters = nativeAnnotation.getOptAnnotationParameters();
     while (annotationParameters != null) {
-      if (annotationParameters.getHead().getOptName() != null) {
-        String parameterName = annotationParameters.getHead().getOptName().getName();
-        AstNode valueNode = annotationParameters.getHead().getValue();
-          if ("amd".equals(parameterName)) {
-            amd = valueNode != null
-                    ? (String) valueNode.getSymbol().getJooValue()
-                    : getModuleName(qName);
-          } else if ("global".equals(parameterName)) {
-            global = valueNode != null
-                    ? (String) valueNode.getSymbol().getJooValue()
-                    : qName;
-          }
+      AnnotationParameter annotationParameter = annotationParameters.getHead();
+      Ide optName = annotationParameter.getOptName();
+      if (optName != null && name.equals(optName.getName())) {
+        AstNode value = annotationParameter.getValue();
+        return value == null ? defaultValue : value.getSymbol().getJooValue();
       }
       annotationParameters = annotationParameters.getTail();
     }
+    return null;
+  }
+
+  private static String computeAmdName(Annotation nativeAnnotation, String qName) {
+    if (nativeAnnotation == null) {
+      return getModuleName(qName);
+    }
+    String amd = (String) getAnnotationParameterValue(nativeAnnotation, "amd", getModuleName(qName));
+    String global = (String) getAnnotationParameterValue(nativeAnnotation, "global", qName);
     if (amd == null && global == null) {
       global = qName;
     }
@@ -525,7 +532,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     }
     StringBuilder amdNameBuilder = new StringBuilder();
     if (global != null) {
-      amdNameBuilder.append("native!").append(global);
+      amdNameBuilder.append("native!").append(CompilerUtils.packageName(global));
     }
     if (amd != null) {
       if (global != null) {
@@ -588,11 +595,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
         IdeDeclaration ideDeclaration = ide.getDeclaration(false);
         if (ideDeclaration != null) {
           if (ideDeclaration.isPrimaryDeclaration()) {
-            if (isAssignmentLHS(ide)) {
-              ideText = convertIdentifier(ide.getIde().getText()) + "._";
-            } else {
-              ideText = compilationUnitAccessCode(ideDeclaration);
-            }
+            ideText = compilationUnitAccessCode(ideDeclaration);
           } else if (ideDeclaration.isPrivateStatic()) {
             ideText += "$static";
           }

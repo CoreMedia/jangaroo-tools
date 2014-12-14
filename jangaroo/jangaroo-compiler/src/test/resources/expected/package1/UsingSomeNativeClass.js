@@ -1,4 +1,4 @@
-define("as3/package1/UsingSomeNativeClass",["module","as3-rt/AS3","native!package1.SomeNativeClass@acme/native","as3/package1/someOtherPackage/SomeNativeClass"], function($module,AS3,package1$SomeNativeClass,package1$someOtherPackage$SomeNativeClass) { AS3.compilationUnit($module,function($primaryDeclaration){/*package package1 {
+define("as3/package1/UsingSomeNativeClass",["module","as3-rt/AS3","native!package1@acme/native","as3/package1/someOtherPackage/SomeNativeClass"], function($module,AS3,$1,package1$someOtherPackage$SomeNativeClass) { AS3.compilationUnit($module,function($primaryDeclaration){/*package package1 {
 import package1.someOtherPackage.SomeNativeClass;
 
 /**
@@ -6,7 +6,7 @@ import package1.someOtherPackage.SomeNativeClass;
  * /
 public class UsingSomeNativeClass {
 
-  public var someNative:package1.SomeNativeClass =*/function someNative_(){this.someNative=( new package1$SomeNativeClass());}/*;
+  public var someNative:package1.SomeNativeClass =*/function someNative_(){this.someNative=( new $1.SomeNativeClass());}/*;
   public native function get someNative2():package1.SomeNativeClass;
 
   public*/ function UsingSomeNativeClass() {var this$=this;someNative_.call(this);

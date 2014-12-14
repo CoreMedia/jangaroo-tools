@@ -9,6 +9,8 @@ public class UsingSomePackageGlobal {
   public static function main():void {
     somePackageGlobal = new SomeOtherClass();
     var local:Object = somePackageGlobal || {};
+    someNativePackageGlobal = null;
+    var local2:* = someNativePackageGlobal || {};
   }
 
 }
