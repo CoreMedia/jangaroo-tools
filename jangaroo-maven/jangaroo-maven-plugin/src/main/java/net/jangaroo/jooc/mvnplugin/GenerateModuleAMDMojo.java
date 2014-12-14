@@ -99,7 +99,7 @@ public class GenerateModuleAMDMojo extends AbstractMojo {
         getLog().info("  including " + moduleScriptFile.getPath() + " into AMD file...");
         IOUtil.copy(new FileReader(moduleScriptFile), amdWriter);
       } else {
-        getLog().info("  not file " + moduleScriptFile.getPath() + " found to include into AMD file...");
+        getLog().info("  no file " + moduleScriptFile.getPath() + " found to include into AMD file...");
       }
       amdWriter.write("});");
       amdWriter.close();
