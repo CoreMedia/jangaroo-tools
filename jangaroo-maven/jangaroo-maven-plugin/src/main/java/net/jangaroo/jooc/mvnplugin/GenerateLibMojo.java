@@ -1,10 +1,13 @@
 package net.jangaroo.jooc.mvnplugin;
 
+import com.google.javascript.jscomp.BasicErrorManager;
 import com.google.javascript.jscomp.CheckLevel;
 import com.google.javascript.jscomp.CompilationLevel;
 import com.google.javascript.jscomp.Compiler;
 import com.google.javascript.jscomp.CompilerOptions;
 import com.google.javascript.jscomp.DiagnosticGroups;
+import com.google.javascript.jscomp.JSError;
+import com.google.javascript.jscomp.MessageFormatter;
 import com.google.javascript.jscomp.Result;
 import com.google.javascript.jscomp.SourceFile;
 import com.google.javascript.jscomp.SourceMap;
@@ -119,10 +122,34 @@ public class GenerateLibMojo extends JangarooMojo {
     String[] sources = scanner.getIncludedFiles();
     getLog().debug("start generating compressed library");
     Compiler compiler = new Compiler();
-     
     CompilerOptions options = new CompilerOptions();
+    final MessageFormatter messageFormatter = options.errorFormat.toFormatter(compiler, false);
+    compiler.setErrorManager(new BasicErrorManager() {
+      private int suppressedWarningsCount = 0;
+
+      @Override
+      public void println(CheckLevel level, JSError error) {
+        if (level == CheckLevel.ERROR) {
+          getLog().error(error.format(level, messageFormatter));
+        } else if (level == CheckLevel.WARNING) {
+          // ignore certain JSDoc warnings (see below):
+          if ("JSC_PARSE_ERROR".equals(error.getType().key) && error.description.contains("Non-JSDoc comment has annotations")) {
+            ++suppressedWarningsCount;
+          } else {
+            getLog().warn(error.format(level, messageFormatter));
+          }
+        }
+      }
+
+      @Override
+      protected void printSummary() {
+        getLog().info(String.format("GCC: %d error(s), %d warning(s)%n",
+                getErrorCount(), getWarningCount() - suppressedWarningsCount));
+      }
+    });
     // Advanced mode not used here, because we write standard JavaScript, not Google's DSL.
     CompilationLevel.SIMPLE_OPTIMIZATIONS.setOptionsForCompilationLevel(options);
+    // does not seem to have the desired effect, so we disable all warnings (see above):
     options.setWarningLevel(DiagnosticGroups.NON_STANDARD_JSDOC, CheckLevel.OFF);
     // since we use AMD, no global variables exist:
     options.variableRenaming = VariableRenamingPolicy.ALL;
