@@ -37,6 +37,14 @@ import java.util.Set;
 public class GenerateModuleAMDMojo extends AbstractMojo {
 
   /**
+   * Resource directory whose META-INF/resources/amd/lib/groupId-path/ sub-directory may contain the Maven module's
+   * AMD descriptor named artifactId.js.
+   *
+   * @parameter expression="${project.build.resources[0].directory}"
+   */
+  private File resourceDirectory;
+
+  /**
    * Output directory into whose META-INF/resources/amd/ sub-directory the Maven module's AMD descriptor is generated.
    *
    * @parameter expression="${project.build.outputDirectory}"
@@ -84,6 +92,12 @@ public class GenerateModuleAMDMojo extends AbstractMojo {
   public void execute() throws MojoExecutionException, MojoFailureException {
     Artifact artifact = project.getArtifact();
     String amdName = computeAMDName(artifact.getGroupId(), artifact.getArtifactId());
+    File sourceAMDFile = new File(resourceDirectory, "META-INF/resources/amd/" + amdName + ".js");
+    if (sourceAMDFile.exists()) {
+      getLog().info("  existing AMD file " + sourceAMDFile.getPath() + " found, skipping generation.");
+      return;
+    }
+    getLog().info("  no source AMD file " + sourceAMDFile.getPath() + " found, generating one based on Maven dependencies.");
     Writer amdWriter = null;
     try {
       amdWriter = createAMDFile(outputDirectory, amdName);
