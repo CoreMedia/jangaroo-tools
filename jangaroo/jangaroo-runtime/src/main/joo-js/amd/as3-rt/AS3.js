@@ -142,7 +142,7 @@ define("as3-rt/AS3", ["as3/joo/getOrCreatePackage", "as3/joo/JooClassDeclaration
       return method.apply(object, arguments);
     };
     Object.defineProperty(object, boundMethodName, {
-      // enumerable: true, // TODO: for debugging only
+      writable: true,    // TODO: for backwards-compatibility only
       value: boundMethod
     });
     return boundMethod;
