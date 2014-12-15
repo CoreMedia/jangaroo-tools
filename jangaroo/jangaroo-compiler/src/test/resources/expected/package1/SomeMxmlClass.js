@@ -1,4 +1,4 @@
-define("as3/package1/SomeMxmlClass",["module","as3-rt/AS3","as3/package1/ConfigClass","as3/package1/someOtherPackage/SomeOtherClass","as3/joo/binding/Binding","as3/joo/addEventListener","as3/package1/someOtherPackage/SomeEvent","as3/mx/resources/ResourceManager","bundle!Foo"], function($module,AS3,ConfigClass,SomeOtherClass,Binding,addEventListener,SomeEvent,ResourceManager) { AS3.compilationUnit($module,function($primaryDeclaration){/*package package1 {
+define("as3/package1/SomeMxmlClass",["module","exports","as3-rt/AS3","as3/package1/ConfigClass","as3/package1/someOtherPackage/SomeOtherClass","as3/joo/binding/Binding","as3/joo/addEventListener","as3/package1/someOtherPackage/SomeEvent","as3/mx/resources/ResourceManager","bundle!Foo"], function($module,$exports,AS3,ConfigClass,SomeOtherClass,Binding,addEventListener,SomeEvent,ResourceManager) { AS3.compilationUnit($module,$exports,function($primaryDeclaration){/*package package1 {
 import package1.someOtherPackage.SomeOtherClass;
 import joo.binding.Binding;
 import package1.someOtherPackage.SomeEvent;

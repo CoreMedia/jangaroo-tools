@@ -1,4 +1,4 @@
-define("as3/package1/StaticAndNonStatic",["module","as3-rt/AS3"], function($module,AS3) { AS3.compilationUnit($module,function($primaryDeclaration){/*package package1 {
+define("as3/package1/StaticAndNonStatic",["module","exports","as3-rt/AS3"], function($module,$exports,AS3) { AS3.compilationUnit($module,$exports,function($primaryDeclaration){/*package package1 {
 
 /**
  * Retest for JOO-64.

@@ -44,12 +44,11 @@ define("as3-rt/AS3", ["as3/joo/getOrCreatePackage", "as3/joo/JooClassDeclaration
     }
     return value;
   }
-  function compilationUnit(module, definingCode) {
+  function compilationUnit(module, exports, definingCode) {
     var qName = amdIdToQName(module.id);
     var lastDotPos = qName.lastIndexOf(".");
     var cuName = qName.substr(lastDotPos + 1);
     var package_ = getOrCreatePackage(qName.substr(0, lastDotPos));
-    var exports = module.exports = module.exports || {};
     function getter() {
       var result;
       definingCode(function(value) {
@@ -112,14 +111,14 @@ define("as3-rt/AS3", ["as3/joo/getOrCreatePackage", "as3/joo/JooClassDeclaration
     return $implements;
   }
 
-  function defineInterface(module, config) {
+  function defineInterface(module, exports, config) {
     var qName = amdIdToQName(module.id);
     var interfaces = {};
     interfaces[qName] = true;
     config.extends_ && config.extends_.forEach(function (i) {
       i.addInterfaces(interfaces);
     });
-    module.exports = Object.defineProperties(module.exports || {}, convertShortcuts({
+    Object.defineProperties(exports, convertShortcuts({
       $class: { value: new JooClassDeclaration(
               qName,
               undefined,

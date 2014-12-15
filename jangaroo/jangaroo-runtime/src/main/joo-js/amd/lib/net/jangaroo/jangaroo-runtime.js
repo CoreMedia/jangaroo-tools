@@ -19,6 +19,9 @@ define("lib/net/jangaroo/jangaroo-runtime", ["require", "as3-rt/getModuleName", 
     styleSheets.push(styleSheet);
   };
   joo.classLoader = {
+    import_: function() {
+      require(Array.prototype.map.call(arguments, getModuleName));
+    },
     getClassDeclaration: function(qName) {
       return require(getModuleName(qName))._.$class;
     }

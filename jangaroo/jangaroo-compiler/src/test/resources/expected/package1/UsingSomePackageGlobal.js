@@ -1,4 +1,4 @@
-define("as3/package1/UsingSomePackageGlobal",["module","as3-rt/AS3","as3/package1/somePackageGlobal","as3/package1/someOtherPackage/SomeOtherClass","native!foo"], function($module,AS3,somePackageGlobal,SomeOtherClass,$1) { AS3.compilationUnit($module,function($primaryDeclaration){/*package package1 {
+define("as3/package1/UsingSomePackageGlobal",["module","exports","as3-rt/AS3","as3/package1/somePackageGlobal","as3/package1/someOtherPackage/SomeOtherClass","native!foo"], function($module,$exports,AS3,somePackageGlobal,SomeOtherClass,$1) { AS3.compilationUnit($module,$exports,function($primaryDeclaration){/*package package1 {
 import package1.someOtherPackage.SomeOtherClass;
 
 /**

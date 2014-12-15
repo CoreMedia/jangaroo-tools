@@ -1,4 +1,4 @@
-define("as3/package1/TestHelperClasses",["module","as3-rt/AS3"], function($module,AS3) { AS3.compilationUnit($module,function($primaryDeclaration){/*package package1 {
+define("as3/package1/TestHelperClasses",["module","exports","as3-rt/AS3"], function($module,$exports,AS3) { AS3.compilationUnit($module,$exports,function($primaryDeclaration){/*package package1 {
 
 public class TestHelperClasses {
 

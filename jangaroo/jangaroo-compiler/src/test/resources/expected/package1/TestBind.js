@@ -1,4 +1,4 @@
-define("as3/package1/TestBind",["module","as3-rt/AS3"], function($module,AS3) { AS3.compilationUnit($module,function($primaryDeclaration){/* /*
+define("as3/package1/TestBind",["module","exports","as3-rt/AS3"], function($module,$exports,AS3) { AS3.compilationUnit($module,$exports,function($primaryDeclaration){/* /*
  * Copyright 2008 CoreMedia AG
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); 

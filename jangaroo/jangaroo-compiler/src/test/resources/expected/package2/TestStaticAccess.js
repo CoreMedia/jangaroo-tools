@@ -1,4 +1,4 @@
-define("as3/package2/TestStaticAccess",["module","as3-rt/AS3","as3/package2/StaticAccessSuperClass","as3/package1/StaticAccessSuperSuperClass"], function($module,AS3,StaticAccessSuperClass,StaticAccessSuperSuperClass) { AS3.compilationUnit($module,function($primaryDeclaration){/* /*
+define("as3/package2/TestStaticAccess",["module","exports","as3-rt/AS3","as3/package2/StaticAccessSuperClass","as3/package1/StaticAccessSuperSuperClass"], function($module,$exports,AS3,StaticAccessSuperClass,StaticAccessSuperSuperClass) { AS3.compilationUnit($module,$exports,function($primaryDeclaration){/* /*
  * Copyright 2008 CoreMedia AG
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); 

@@ -339,7 +339,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
             && ((ClassDeclaration) primaryDeclaration).isInterface();
     out.write("define(\"");
     out.write(getModuleName(primaryDeclaration.getQualifiedNameStr()));
-    out.write("\",[\"module\",\"as3-rt/AS3\"");
+    out.write("\",[\"module\",\"exports\",\"as3-rt/AS3\"");
     Set<String> useQName = collectAndWriteDependencies(compilationUnit);
     for (String resourceDependency : compilationUnit.getResourceDependencies()) {
       out.write(",\"" + resourceDependency + "\"");
@@ -360,7 +360,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
         out.write(",\"metadata/" + annotation + "\"");
       }
     }
-    out.write("], function($module,AS3");
+    out.write("], function($module,$exports,AS3");
     writeDependencyParameters(compilationUnit, useQName);
     int resourceDependencyCount = compilationUnit.getResourceDependencies().size();
     for (int i = 0; i < resourceDependencyCount; i++) {
@@ -371,9 +371,9 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     out.write("AS3.");
     // interface: the only compilation unit without lazy initialization!
     if (isInterface) {
-      out.write("interface_($module,");
+      out.write("interface_($module,$exports,");
     } else {
-      out.write("compilationUnit($module,function($primaryDeclaration){");
+      out.write("compilationUnit($module,$exports,function($primaryDeclaration){");
     }
     this.compilationUnit = compilationUnit;
     out.beginComment();
