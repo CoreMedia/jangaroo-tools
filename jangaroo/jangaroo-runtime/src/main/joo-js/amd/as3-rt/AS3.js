@@ -113,14 +113,14 @@ define("as3-rt/AS3", ["as3/joo/getOrCreatePackage", "as3/joo/JooClassDeclaration
     return $implements;
   }
 
-  function defineInterface(module, exports, config) {
+  function defineInterface(module, config) {
     var qName = amdIdToQName(module.id);
     var interfaces = {};
     interfaces[qName] = true;
     config.extends_ && config.extends_.forEach(function (i) {
       i.addInterfaces(interfaces);
     });
-    Object.defineProperties(exports, convertShortcuts({
+    return Object.defineProperties(function(){}, convertShortcuts({
       $class: { value: new JooClassDeclaration(
               qName,
               undefined,
