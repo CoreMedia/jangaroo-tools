@@ -450,7 +450,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       String importedName;
       String amdName = computeAmdName(nativeAnnotation, dependentDeclarationQName);
       if (amdName != null && amdName.startsWith("native!")) {
-        String packageAuxVar = compilationUnit.getPackageDeclaration().getIde().getScope().createAuxVar(null).getName();
+        String packageAuxVar = compilationUnit.createAmdVar();
         out.write("," + packageAuxVar);
         String global = (String) getAnnotationParameterValue(nativeAnnotation, "global", null);
         String propertyName = global == null ? dependentDeclaration.getName() : CompilerUtils.className(global);

@@ -52,6 +52,7 @@ public class CompilationUnit extends NodeImplBase {
   private InputSource source;
   private JangarooParser compiler;
   private static final Collection<String> IMAGE_EXTENSIONS = Arrays.asList("png", "gif", "bmp", "jpg", "jpeg");
+  private int amdVarCounter = 0;
 
   public CompilationUnit(PackageDeclaration packageDeclaration, JooSymbol lBrace, List<AstNode> directives, IdeDeclaration primaryDeclaration, JooSymbol rBrace, List<IdeDeclaration> secondaryDeclarations) {
     this.packageDeclaration = packageDeclaration;
@@ -264,5 +265,9 @@ public class CompilationUnit extends NodeImplBase {
   @Override
   public String toString() {
     return getClass().getSimpleName() + "(" + getPrimaryDeclaration().getQualifiedNameStr() + ")";
+  }
+
+  public String createAmdVar() {
+    return "$$" + (++amdVarCounter);
   }
 }

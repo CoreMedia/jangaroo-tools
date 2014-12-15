@@ -1,4 +1,4 @@
-define("as3/package1/UsingSomePackageGlobal",["module","exports","as3-rt/AS3","as3/package1/somePackageGlobal","as3/package1/someOtherPackage/SomeOtherClass","native!foo"], function($module,$exports,AS3,somePackageGlobal,SomeOtherClass,$1) { AS3.compilationUnit($module,$exports,function($primaryDeclaration){/*package package1 {
+define("as3/package1/UsingSomePackageGlobal",["module","exports","as3-rt/AS3","as3/package1/somePackageGlobal","as3/package1/someOtherPackage/SomeOtherClass","native!foo"], function($module,$exports,AS3,somePackageGlobal,SomeOtherClass,$$1) { AS3.compilationUnit($module,$exports,function($primaryDeclaration){/*package package1 {
 import package1.someOtherPackage.SomeOtherClass;
 
 /**
@@ -9,8 +9,8 @@ public class UsingSomePackageGlobal {
   public static*/ function main$static()/*:void*/ {
     somePackageGlobal._ = new SomeOtherClass._();
     var local/*:Object*/ = somePackageGlobal._ || {};
-    $1.somethingElse = null;
-    var local2/*:**/ = $1.somethingElse || {};
+    $$1.somethingElse = null;
+    var local2/*:**/ = $$1.somethingElse || {};
   }/*
 
 }*/function UsingSomePackageGlobal() {}/*
