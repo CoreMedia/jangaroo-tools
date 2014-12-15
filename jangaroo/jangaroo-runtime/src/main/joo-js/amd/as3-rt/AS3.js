@@ -89,6 +89,8 @@ define("as3-rt/AS3", ["as3/joo/getOrCreatePackage", "as3/joo/JooClassDeclaration
                 $implements,
                 config.metadata
         )};
+        // establish super class relation to satisfy Ext JS:
+        staticMembers.superclass = { value: extends_.prototype };
         staticMembers.toString = { value: toString }; // add Class#toString()
         Object.defineProperties(clazz, staticMembers);   // add static members
         // for classes extending joo.JavaScriptObject, remove the constructor, as it would be enumerable in IE8:
