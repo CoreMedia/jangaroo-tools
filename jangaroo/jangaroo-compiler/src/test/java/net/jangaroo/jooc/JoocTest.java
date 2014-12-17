@@ -285,6 +285,11 @@ public class JoocTest {
   }
 
   @Test
+  public void testStaticNonStaticConfusion() throws Exception {
+    assertCompilationResult("package1/TestStaticNonStaticConfusion");
+  }
+
+  @Test
   public void testMethodBinding() throws Exception {
     assertCompilationResult("package1/TestBind");
   }

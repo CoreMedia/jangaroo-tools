@@ -209,7 +209,12 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     IdeDeclaration type = arg.getType();
     if (type == null && arg instanceof IdeExpr) {
       Ide argIde = ((IdeExpr) arg).getIde();
-      type = argIde.getDeclaration(false);
+      IdeDeclaration ideDeclaration = argIde.getDeclaration(false);
+      if (ideDeclaration instanceof ClassDeclaration) {
+        memberDeclaration = ((ClassDeclaration)ideDeclaration).getStaticMemberDeclaration(ide.getName());
+      } else {
+        type = ideDeclaration;
+      }
     }
     if (type != null) {
       memberDeclaration = Ide.resolveMember(type, ide);
