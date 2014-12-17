@@ -13,9 +13,8 @@ define(["as3/joo/getOrCreatePackage"], function(getOrCreatePackage) {
           req([module], load);
         }
       } else {
-        var value = getOrCreatePackage(variable);
-        if (value !== undefined || !module) {
-          load(value);
+        if (!module) {
+          load(getOrCreatePackage(variable));
         } else {
           // load module and try again to resolve global variable:
           req([module], function () {
