@@ -290,6 +290,11 @@ public class JoocTest {
   }
 
   @Test
+  public void testLocalVariableDoesNotShadeClass() throws Exception {
+    assertCompilationResult("package1/TestLocalVariableDoesNotShadeClass");
+  }
+
+  @Test
   public void testMethodBinding() throws Exception {
     assertCompilationResult("package1/TestBind");
   }

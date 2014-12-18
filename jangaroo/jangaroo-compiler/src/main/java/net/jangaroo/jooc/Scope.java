@@ -42,6 +42,8 @@ public interface Scope {
 
   IdeDeclaration lookupDeclaration(Ide ide);
 
+  IdeDeclaration lookupDeclaration(Ide ide, boolean failOnAmbigousImport);
+
   boolean isDeclared(Ide ide);
 
   Ide createAuxVar(Scope lookupScope);

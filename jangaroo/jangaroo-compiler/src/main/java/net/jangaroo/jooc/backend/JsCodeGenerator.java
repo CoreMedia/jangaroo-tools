@@ -634,7 +634,15 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 //      out.endComment();
       out.writeSymbolWhitespace(qualifiedIde.getQualifier().getSymbol());
       IdeDeclaration ideDeclaration = qualifiedIde.getDeclaration();
-      out.write(compilationUnitAccessCode(ideDeclaration));
+      String compilationUnitAccessCode = compilationUnitAccessCode(ideDeclaration);
+      String ideName = qualifiedIde.getName();
+      if (compilationUnitAccessCode.equals(COMPILATION_UNIT_ACCESS_MESSAGE_FORMAT.format(ideName)) &&
+              !qualifiedIde.getScope().lookupDeclaration(new Ide(ideName), false).isPrimaryDeclaration()) {
+        // something non-imported (primary declaration) hides the short name used for import, so rather use the fully qualified name:
+        out.write(qualifiedIde.getQualifiedNameStr());
+      } else {
+        out.write(compilationUnitAccessCode);
+      }
     }
   }
 
