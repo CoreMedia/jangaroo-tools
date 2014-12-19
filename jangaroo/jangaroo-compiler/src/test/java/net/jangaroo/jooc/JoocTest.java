@@ -295,6 +295,11 @@ public class JoocTest {
   }
 
   @Test
+  public void testIdeWithReservedName() throws Exception {
+    assertCompilationResult("package1/TestIdeWithReservedName");
+  }
+
+  @Test
   public void testMethodBinding() throws Exception {
     assertCompilationResult("package1/TestBind");
   }

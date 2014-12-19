@@ -596,22 +596,26 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     out.writeSymbolWhitespace(ide.getIde());
     // take care of reserved words called as functions (Rhino does not like):
     String ideText = ide.getIde().getText();
-    if (!out.isWritingComment() && expressionMode) {
-      if (ide.isSuper()) {
-        ideText = "this";
-      }
-      if ("this".equals(ideText) && ide.isRewriteThis()) {
-        ideText = "this$";
-      } else {
-        ideText = convertIdentifier(ideText);
-        IdeDeclaration ideDeclaration = ide.getDeclaration(false);
-        if (ideDeclaration != null) {
-          if (ideDeclaration.isPrimaryDeclaration()) {
-            ideText = compilationUnitAccessCode(ideDeclaration);
-          } else if (ideDeclaration.isPrivateStatic()) {
-            ideText += "$static";
+    if (!out.isWritingComment()) {
+      if (expressionMode) {
+        if (ide.isSuper()) {
+          ideText = "this";
+        }
+        if ("this".equals(ideText) && ide.isRewriteThis()) {
+          ideText = "this$";
+        } else {
+          ideText = convertIdentifier(ideText);
+          IdeDeclaration ideDeclaration = ide.getDeclaration(false);
+          if (ideDeclaration != null) {
+            if (ideDeclaration.isPrimaryDeclaration()) {
+              ideText = compilationUnitAccessCode(ideDeclaration);
+            } else if (ideDeclaration.isPrivateStatic()) {
+              ideText += "$static";
+            }
           }
         }
+      } else {
+        ideText = convertIdentifier(ideText);
       }
     }
     out.writeToken(ideText);
