@@ -46,6 +46,7 @@ public class PropertyClassGeneratorTest {
 
     generator.generatePropertiesClass(pc, writer);
     assertEquals(("package testPackage {\n" +
+      "import joo.ResourceBundleAwareClassLoader;\n" +
       "import joo.JavaScriptObject;\n" +
       "\n" +
       "/**\n" +
@@ -58,7 +59,7 @@ public class PropertyClassGeneratorTest {
       " * Singleton for the current user Locale's instance of ResourceBundle \"PropertiesTest\".\n" +
       " * @see PropertiesTest_properties\n" +
       " */\n" +
-      "public static const INSTANCE:PropertiesTest_properties = new PropertiesTest_properties();\n" +
+      "public static const INSTANCE:PropertiesTest_properties = ResourceBundleAwareClassLoader.INSTANCE.createSingleton(PropertiesTest_properties) as PropertiesTest_properties;\n" +
       "\n" +
       "[Resource(key='key',bundle='PropertiesTest')]\n" +
       "public native function get key():String;\n" +

@@ -116,6 +116,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   public static final List<String> ANNOTATIONS_TO_TRIGGER_AT_RUNTIME = Arrays.asList("SWF", "ExtConfig"); // TODO: inject / make configurable
   public static final List<String> ANNOTATIONS_FOR_COMPILER_ONLY = Arrays.asList("Embed", "Native", "Accessor");
   public static final String DEFAULT_ANNOTATION_PARAMETER_NAME = "";
+  public static final String PROPERTIES_CLASS_SUFFIX = "_properties";
 
   static {
     PRIMITIVES.add("Boolean");
@@ -488,7 +489,9 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   private Set<String> collectAndWriteDependencies(CompilationUnit compilationUnit) throws IOException {
     Map<String,IdeDeclaration> usedNames = new HashMap<String,IdeDeclaration>();
     // avoid name-clash of import with class being defined:
-    usedNames.put(compilationUnit.getPrimaryDeclaration().getName(), null);
+    IdeDeclaration primaryDeclaration = compilationUnit.getPrimaryDeclaration();
+    usedNames.put(primaryDeclaration.getName(), null);
+    String qCUName = primaryDeclaration.getQualifiedNameStr();
     Set<String> useQName = new HashSet<String>();
     for (CompilationUnit dependentCU : compilationUnit.getDependenciesAsCompilationUnits()) {
       Annotation nativeAnnotation = dependentCU.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME);
@@ -496,6 +499,9 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       String qName = dependentDeclaration.getQualifiedNameStr();
       String amdName = computeAmdName(nativeAnnotation, qName);
       if (amdName != null) {
+        if (qName.endsWith(PROPERTIES_CLASS_SUFFIX) && !qCUName.startsWith(qName)) {
+          amdName = "localize!" + amdName;
+        }
         out.write("," + CompilerUtils.quote(amdName));
       }
       String importedName = dependentDeclaration.getName();

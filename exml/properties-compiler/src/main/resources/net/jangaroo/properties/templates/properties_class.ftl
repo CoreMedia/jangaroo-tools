@@ -1,6 +1,7 @@
 <#-- @ftlvariable name="" type="net.jangaroo.properties.model.PropertiesClass" -->
 package ${resourceBundle.packageName} {
 <#if !locale??>
+import joo.ResourceBundleAwareClassLoader;
 import joo.JavaScriptObject;
 </#if>
 
@@ -19,7 +20,7 @@ public class ${resourceBundle.className}_properties<#if locale??>_${locale} exte
  * Singleton for the current user Locale's instance of ResourceBundle "${resourceBundle.className}".
  * @see ${resourceBundle.className}_properties
  */
-public static const INSTANCE:${resourceBundle.className}_properties = new ${resourceBundle.className}_properties();
+public static const INSTANCE:${resourceBundle.className}_properties = ResourceBundleAwareClassLoader.INSTANCE.createSingleton(${resourceBundle.className}_properties) as ${resourceBundle.className}_properties;
 
 <#list props as property>
 <#if property.comment??>
