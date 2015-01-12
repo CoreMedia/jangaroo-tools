@@ -1,5 +1,5 @@
 // simulate AS3 trace()
-define("as3/trace", ["native!"], function(global) {
+define("as3/trace", ["as3/joo/getQualifiedObject"], function(getQualifiedObject) {
   "use strict";
   var log = (function() {
     if (this.console && this.console.log) { // most browsers
@@ -15,7 +15,7 @@ define("as3/trace", ["native!"], function(global) {
       return this.print;
     }
     return null;
-  }).call(global);
+  }).call(getQualifiedObject());
 
   function trace() {
     var msg = Array.prototype.map.call(arguments, String).join(" ");

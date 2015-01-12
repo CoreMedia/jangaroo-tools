@@ -1,5 +1,6 @@
-define(["native!joo.localization"], function(localization) {
+define(["as3/joo/getOrCreatePackage"], function(getOrCreatePackage) {
   'use strict';
+  var localization = getOrCreatePackage("joo.localization");
   var localeCookieName = localization.localeCookieName || "joo.locale";
   var preferredLocales = localization.preferredLocales || [];
   var supportedLocales = localization.supportedLocales || ["en"];

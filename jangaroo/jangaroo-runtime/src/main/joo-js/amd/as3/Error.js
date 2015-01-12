@@ -1,4 +1,4 @@
-define("as3/Error", ["native!Error"], function(NativeError) {
+define("as3/Error", ["as3/joo/getQualifiedObject"], function(getQualifiedObject) {
   "use strict";
   // built-in Error constructor called as function unfortunately always creates a new Error object,
   // so we have to emulate it:
@@ -6,6 +6,6 @@ define("as3/Error", ["native!Error"], function(NativeError) {
     this.message = message || "";
     this.id = id >> 0;
   }
-  Error.prototype = NativeError.prototype;
+  Error.prototype = getQualifiedObject("Error").prototype;
   return Error;
 });

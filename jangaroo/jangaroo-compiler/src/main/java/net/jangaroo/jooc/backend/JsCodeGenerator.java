@@ -344,13 +344,16 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     boolean isInterface = primaryDeclaration instanceof ClassDeclaration
             && ((ClassDeclaration) primaryDeclaration).isInterface();
     out.write("define(\"");
-    out.write(getModuleName(primaryDeclaration.getQualifiedNameStr()));
+    out.write(getModuleName(compilationUnit));
     out.write("\",[\"module\",");
     if (!isInterface) {
       out.write("\"exports\",");
     }
     out.write("\"as3-rt/AS3\"");
-    Set<String> useQName = collectAndWriteDependencies(compilationUnit);
+    Map<String, String> amdNameToVar = collectDependencies(compilationUnit);
+    for (String amdName : amdNameToVar.keySet()) {
+      out.write("," + CompilerUtils.quote(amdName));
+    }
     for (String resourceDependency : compilationUnit.getResourceDependencies()) {
       out.write(",\"" + resourceDependency + "\"");
     }
@@ -375,7 +378,9 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       out.write("$exports,");
     }
     out.write("AS3");
-    writeDependencyParameters(compilationUnit, useQName);
+    for (String amdVarName : amdNameToVar.values()) {
+      out.write("," + amdVarName);
+    }
     int resourceDependencyCount = compilationUnit.getResourceDependencies().size();
     for (int i = 0; i < resourceDependencyCount; i++) {
       out.write(",$resource_" + i);
@@ -455,65 +460,77 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     }
   }
 
-  private void writeDependencyParameters(CompilationUnit compilationUnit, Set<String> useQName) throws IOException {
-    for (CompilationUnit dependentCU : compilationUnit.getDependenciesAsCompilationUnits()) {
-      IdeDeclaration dependentDeclaration = dependentCU.getPrimaryDeclaration();
-      String dependentDeclarationQName = dependentDeclaration.getQualifiedNameStr();
-      Annotation nativeAnnotation = dependentCU.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME);
-      String importedName;
-      String amdName = computeAmdName(nativeAnnotation, dependentDeclarationQName);
-      if (amdName != null && amdName.startsWith("native!")) {
-        String packageAuxVar = compilationUnit.createAmdVar();
-        out.write("," + packageAuxVar);
-        String global = (String) getAnnotationParameterValue(nativeAnnotation, "global", null);
-        String propertyName = global == null ? dependentDeclaration.getName() : CompilerUtils.className(global);
-        importedName = packageAuxVar + "." + propertyName;
-      } else {
-        importedName = useQName.contains(dependentDeclarationQName)
-                ? dependentDeclarationQName.replace(".", "$")
-                : dependentDeclaration.getName();
-        importedName = convertIdentifier(importedName);
-        if (nativeAnnotation == null || amdName != null) {
-          out.write("," + importedName);
-        }
-      }
-      if (nativeAnnotation == null &&
-              !(dependentDeclaration instanceof ClassDeclaration &&
-                      ((ClassDeclaration)dependentDeclaration).isInterface())) {
-        importedName = COMPILATION_UNIT_ACCESS_MESSAGE_FORMAT.format(importedName);
-      }
-      imports.put(dependentDeclarationQName, importedName);
-    }
-  }
+  private Map<String, String> collectDependencies(CompilationUnit compilationUnit) throws IOException {
 
-  private Set<String> collectAndWriteDependencies(CompilationUnit compilationUnit) throws IOException {
-    Map<String,IdeDeclaration> usedNames = new HashMap<String,IdeDeclaration>();
-    // avoid name-clash of import with class being defined:
+    // first round: find import name clashes:
+    Set<String> useQName = computeUseQName(compilationUnit);
+
+    // second round: create mapping from AMD names to AMD variable names:
     IdeDeclaration primaryDeclaration = compilationUnit.getPrimaryDeclaration();
-    usedNames.put(primaryDeclaration.getName(), null);
+    List<CompilationUnit> dependentCompilationUnits = new ArrayList<CompilationUnit>(compilationUnit.getDependenciesAsCompilationUnits());
     String qCUName = primaryDeclaration.getQualifiedNameStr();
-    Set<String> useQName = new HashSet<String>();
-    for (CompilationUnit dependentCU : compilationUnit.getDependenciesAsCompilationUnits()) {
-      Annotation nativeAnnotation = dependentCU.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME);
+    Map<String, String> amdMapping = new LinkedHashMap<String, String>();
+    for (CompilationUnit dependentCU : dependentCompilationUnits) {
       IdeDeclaration dependentDeclaration = dependentCU.getPrimaryDeclaration();
       String qName = dependentDeclaration.getQualifiedNameStr();
-      String amdName = computeAmdName(nativeAnnotation, qName);
-      if (amdName != null) {
-        if (qName.endsWith(PROPERTIES_CLASS_SUFFIX) && !qCUName.startsWith(qName)) {
-          amdName = "localize!" + amdName;
-        }
-        out.write("," + CompilerUtils.quote(amdName));
+      String amdName = computeAmdName(dependentCU);
+      if (amdName != null && qName.endsWith(PROPERTIES_CLASS_SUFFIX) && !qCUName.startsWith(qName)) {
+        amdName = "localize!" + amdName;
       }
-      String importedName = dependentDeclaration.getName();
-      if (usedNames.containsKey(importedName)) {
-        IdeDeclaration previousDeclaration = usedNames.get(importedName);
-        if (previousDeclaration != null) {
-          useQName.add(previousDeclaration.getQualifiedNameStr());
-          usedNames.put(importedName, null);
+      String amdVar = null;
+      String importedName = null;
+      String dependentDeclarationQName = dependentDeclaration.getQualifiedNameStr();
+      Annotation nativeAnnotation = dependentCU.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME);
+      if (nativeAnnotation != null) {
+        importedName = (String) getAnnotationParameterValue(nativeAnnotation, "global", dependentDeclarationQName);
+        if (importedName == null) { // no "global" annotation attribute given
+          if (amdName == null) {
+            importedName = dependentDeclarationQName;
+          }
+        } else if (amdName != null) {
+          if (amdMapping.containsKey(amdName)) {  // has this AMD been used before?
+            amdName = null; // yes: do not re-map!
+          } else {  // no:
+            // store the AMD result in a new auxilliary variable:
+            amdVar = compilationUnit.createAmdVar();
+            // TODO: allow combination of amd="..." and property="..." for AMD-result-relative resolving.
+          }
         }
-        useQName.add(qName);
-      } else {
-        usedNames.put(importedName, dependentDeclaration);
+      }
+      if (amdName != null) {
+        if (amdVar == null) {
+          amdVar = useQName.contains(dependentDeclaration.getName())
+                  ? dependentDeclarationQName.replace(".", "$")
+                  : dependentDeclaration.getName();
+          amdVar = convertIdentifier(amdVar);
+        }
+        amdMapping.put(amdName, amdVar);
+        if (importedName == null) {
+          importedName = amdVar;
+        }
+        if (nativeAnnotation == null &&
+                !(dependentDeclaration instanceof ClassDeclaration &&
+                ((ClassDeclaration) dependentDeclaration).isInterface())) {
+          importedName = COMPILATION_UNIT_ACCESS_MESSAGE_FORMAT.format(importedName);
+        }
+      }
+      Debug.assertTrue(importedName != null, "Imported name of compilation unit " + dependentDeclarationQName
+              + " could not be determined.");
+      imports.put(dependentDeclarationQName, importedName);
+    }
+
+    return amdMapping;
+  }
+
+  private Set<String> computeUseQName(CompilationUnit compilationUnit) {
+    Set<String> useQName = new HashSet<String>();
+    Set<String> shortNames = new HashSet<String>();
+    // avoid name-clash of import with class being defined:
+    shortNames.add(compilationUnit.getPrimaryDeclaration().getName());
+    for (CompilationUnit dependentCU : compilationUnit.getDependenciesAsCompilationUnits()) {
+      String dependentPrimaryDeclarationName = dependentCU.getPrimaryDeclaration().getName();
+      if (!shortNames.add(dependentPrimaryDeclarationName)) {
+        useQName.add(dependentPrimaryDeclarationName);
       }
     }
     return useQName;
@@ -534,34 +551,16 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     return null;
   }
 
-  private static String computeAmdName(Annotation nativeAnnotation, String qName) {
-    if (nativeAnnotation == null) {
-      return getModuleName(qName);
-    }
-    String amd = (String) getAnnotationParameterValue(nativeAnnotation, "amd", getModuleName(qName));
-    String global = (String) getAnnotationParameterValue(nativeAnnotation, "global", qName);
-    if (amd == null && global == null) {
-      global = qName;
-    }
-    // suppress "native!global" for top-level, non-aliased globals:
-    assert qName != null;
-    if (amd == null && qName.equals(global) && !qName.contains(".")) {
-      return null;
-    }
-    StringBuilder amdNameBuilder = new StringBuilder();
-    if (global != null) {
-      amdNameBuilder.append("native!").append(CompilerUtils.packageName(global));
-    }
-    if (amd != null) {
-      if (global != null) {
-        amdNameBuilder.append("@");
-      }
-      amdNameBuilder.append(amd);
-    }
-    return amdNameBuilder.toString();
+  private static String computeAmdName(CompilationUnit compilationUnit) {
+    Annotation nativeAnnotation = compilationUnit.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME);
+    String moduleName = getModuleName(compilationUnit);
+    return nativeAnnotation == null
+            ? moduleName
+            : (String) getAnnotationParameterValue(nativeAnnotation, "amd", moduleName);
   }
 
-  private static String getModuleName(String qName) {
+  private static String getModuleName(CompilationUnit compilationUnit) {
+    String qName = compilationUnit.getPrimaryDeclaration().getQualifiedNameStr();
     return "as3/" + CompilerUtils.fileNameFromQName(qName, '/', "");
   }
 
