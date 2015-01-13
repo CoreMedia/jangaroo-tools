@@ -1,6 +1,6 @@
 package flash.utils {
 
-[Native(global="setTimeout")]
+[Native("setTimeout")]
 /**
  * Runs a specified function after a specified delay (in milliseconds).
  * <p>Instead of using this method, consider creating a Timer object, with the specified interval, using 1 as the <code>repeatCount</code> parameter (which sets the timer to run only once).</p>

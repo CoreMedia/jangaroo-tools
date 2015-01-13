@@ -1,6 +1,6 @@
 package flash.utils {
 
-[Native(global="clearInterval")]
+[Native("clearInterval")]
 /**
  * Cancels a specified <code>setInterval()</code> call.
  * @param id The ID of the <code>setInterval()</code> call, which you set to a variable, as in the following:

@@ -1,6 +1,6 @@
 package flash.utils {
 
-[Native(global="setInterval")]
+[Native("setInterval")]
 /**
  * Runs a function at a specified interval (in milliseconds).
  * <p>Instead of using the <code>setInterval()</code> method, consider creating a Timer object, with the specified interval, using 0 as the <code>repeatCount</code> parameter (which sets the timer to repeat indefinitely).</p>

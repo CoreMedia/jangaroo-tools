@@ -7,6 +7,7 @@ import package1.someOtherPackage.SomeNativeClass;
 public class UsingSomeNativeClass {
 
   public var someNative:package1.SomeNativeClass = new package1.SomeNativeClass();
+  public var someOtherNative:SomeOtherNativeClass = new SomeOtherNativeClass();
   public native function get someNative2():package1.SomeNativeClass;
 
   public function UsingSomeNativeClass() {

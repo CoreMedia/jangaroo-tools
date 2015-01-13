@@ -353,7 +353,7 @@ public class ExtAsApiGenerator {
     AnnotationModel nativeAnnotation = new AnnotationModel(Jooc.NATIVE_ANNOTATION_NAME);
     if (nativeName != null) {
       nativeAnnotation.addProperty(new AnnotationPropertyModel("amd", CompilerUtils.quote(extAmdModuleName)));
-      nativeAnnotation.addProperty(new AnnotationPropertyModel("global", CompilerUtils.quote(nativeName)));
+      nativeAnnotation.addProperty(new AnnotationPropertyModel(null, CompilerUtils.quote(nativeName)));
     }
     return nativeAnnotation;
   }

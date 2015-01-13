@@ -6,7 +6,7 @@ import package1.someOtherPackage.SomeOtherClass;
 /**
  * Some native package-global documentation;
  */
-[Native(global="foo.somethingElse")]
+[Native("foo.somethingElse")]
 public var someNativePackageGlobal:SomeOtherClass;
 
 }

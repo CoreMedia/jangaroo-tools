@@ -3,7 +3,7 @@ package package1 {
 /**
  * This is an example of an API-only class ("native API stub").
  */
-[Native(amd = "acme/native", global)]
+[Native(amd = "acme/native", "SomeNativeClass")]
 public class SomeNativeClass extends SomeNativeSuperClass {
 
   /**

@@ -6,14 +6,15 @@ import package1.someOtherPackage.SomeNativeClass;
  * /
 public class UsingSomeNativeClass {
 
-  public var someNative:package1.SomeNativeClass =*/function someNative_(){this.someNative=( new package1.SomeNativeClass());}/*;
+  public var someNative:package1.SomeNativeClass =*/function someNative_(){this.someNative=( new $$1.SomeNativeClass());}/*;
+  public var someOtherNative:SomeOtherNativeClass =*/function someOtherNative_(){this.someOtherNative=( new $$1.SomeOtherNativeClass());}/*;
   public native function get someNative2():package1.SomeNativeClass;
 
-  public*/ function UsingSomeNativeClass() {var this$=this;someNative_.call(this);
+  public*/ function UsingSomeNativeClass() {var this$=this;someNative_.call(this);someOtherNative_.call(this);
     new package1$someOtherPackage$SomeNativeClass._();
     this.someNative.setBaz ( "foo");
     this.someNative2.setBaz ( "foo");
-    var local = function package1$UsingSomeNativeClass$16_17()/*:void*/ {
+    var local = function package1$UsingSomeNativeClass$17_17()/*:void*/ {
       var test/*:String*/ = this$.someNative2.getBaz();
     };
     var foo = this.getFoobar();

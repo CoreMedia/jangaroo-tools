@@ -1,6 +1,6 @@
 package flash.utils {
 
-[Native(global="clearTimeout")]
+[Native("clearTimeout")]
 /**
  * Cancels a specified <code>setTimeout()</code> call.
  * @param id The ID of the <code>setTimeout()</code> call, which you set to a variable, as in the following:

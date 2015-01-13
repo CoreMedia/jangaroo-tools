@@ -474,27 +474,29 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       IdeDeclaration dependentDeclaration = dependentCU.getPrimaryDeclaration();
       String qName = dependentDeclaration.getQualifiedNameStr();
       String amdName = computeAmdName(dependentCU);
-      if (amdName != null && qName.endsWith(PROPERTIES_CLASS_SUFFIX) && !qCUName.startsWith(qName)) {
-        amdName = "localize!" + amdName;
-      }
       String amdVar = null;
+      if (amdName != null) {
+        if (qName.endsWith(PROPERTIES_CLASS_SUFFIX) && !qCUName.startsWith(qName)) {
+          amdName = "localize!" + amdName;
+        }
+        amdVar = amdMapping.get(amdName);
+      }
       String importedName = null;
       String dependentDeclarationQName = dependentDeclaration.getQualifiedNameStr();
       Annotation nativeAnnotation = dependentCU.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME);
       if (nativeAnnotation != null) {
-        importedName = (String) getAnnotationParameterValue(nativeAnnotation, "global", dependentDeclarationQName);
-        if (importedName == null) { // no "global" annotation attribute given
+        importedName = (String) getAnnotationParameterValue(nativeAnnotation, null, null);
+        if (importedName == null) { // no default annotation attribute given
           if (amdName == null) {
             importedName = dependentDeclarationQName;
           }
         } else if (amdName != null) {
-          if (amdMapping.containsKey(amdName)) {  // has this AMD been used before?
-            amdName = null; // yes: do not re-map!
-          } else {  // no:
+          if (amdVar == null) {
             // store the AMD result in a new auxilliary variable:
             amdVar = compilationUnit.createAmdVar();
-            // TODO: allow combination of amd="..." and property="..." for AMD-result-relative resolving.
           }
+          // the imported name is now relative to the AMD value:
+          importedName = amdVar + "." + importedName;
         }
       }
       if (amdName != null) {
@@ -542,7 +544,8 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     while (annotationParameters != null) {
       AnnotationParameter annotationParameter = annotationParameters.getHead();
       Ide optName = annotationParameter.getOptName();
-      if (optName != null && name.equals(optName.getName())) {
+      if (optName != null && name != null && name.equals(optName.getName())
+              || optName == null && name == null) {
         AstNode value = annotationParameter.getValue();
         return value == null ? defaultValue : value.getSymbol().getJooValue();
       }
