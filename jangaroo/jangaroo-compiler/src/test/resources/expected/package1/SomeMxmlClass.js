@@ -16,51 +16,51 @@ public class SomeMxmlClass extends package1.ConfigClass {
     this.num = 123;
     this.blub = {};
     this.blub.name = "Kuno";
-    var $$1/*:Object*/ = {};
-    $$1.name = "Joe";
-    var $$2/*:Object*/ = {};
-    $$2.name = "Felix";
-    this.list = [$$1, $$2];
-    var $$3/*:Object*/ = {};
-    $$3.bla = 3;
-    $$3.blubb_accessor = this.$bind_other_blubbAccessor$2();
-    $$3.blubb_config = 'blub config expression';
-    this.other = new SomeOtherClass._($$3);
+    var $_1/*:Object*/ = {};
+    $_1.name = "Joe";
+    var $_2/*:Object*/ = {};
+    $_2.name = "Felix";
+    this.list = [$_1, $_2];
+    var $_3/*:Object*/ = {};
+    $_3.bla = 3;
+    $_3.blubb_accessor = this.$bind_other_blubbAccessor$2();
+    $_3.blubb_config = 'blub config expression';
+    this.other = new SomeOtherClass._($_3);
     this.$bindings$2.push(new Binding(AS3.bind(this,"$bind_other_blubbAccessor$2"), function package1$SomeMxmlClass$29_71($value){
       this$.other.setBlubbAccessor ( $value);
     }));
     addEventListener(this, "click",AS3.bind( this,"$on_this_click$2"), SomeEvent._);
     this.foo = "bar";
     this.number = 1 + 1;
-    var $$4/*:Object*/ = {};
-    $$4.bla = ResourceManager._.getInstance().getString("Foo","bar");
-    $$4.type = "someOtherType";
-    var $$6/*:Object*/ = {};
-    $$6.bla = 1;
-    addEventListener($$6, "clack",AS3.bind( this,"$on_$$6_clack$2"), SomeEvent._);
-    $$6.type = "someOtherType";
-    var $$8/*:Object*/ = {};
-    $$8.bla = ResourceManager._.getInstance().getString("Foo","baz");
-    $$8.type = "someOtherType";
-    var $$10/*:package1.ConfigClass*/ = new ConfigClass._();
-    $$10.number = 12;
-    var $$11/*:Object*/ = {};
-    $$11.bla = this.$bind_$$12_bla$2();
-    $$11.doodle = "non-bound";
-    var $$12/*:package1.someOtherPackage.SomeOtherClass*/ = new SomeOtherClass._($$11);
-    this.$bindings$2.push(new Binding(AS3.bind(this,"$bind_$$12_bla$2"), function package1$SomeMxmlClass$51_60($value){
-      $$12.set_bla ( $value);
+    var $_4/*:Object*/ = {};
+    $_4.bla = ResourceManager._.getInstance().getString("Foo","bar");
+    $_4.type = "someOtherType";
+    var $_6/*:Object*/ = {};
+    $_6.bla = 1;
+    addEventListener($_6, "clack",AS3.bind( this,"$on_$_6_clack$2"), SomeEvent._);
+    $_6.type = "someOtherType";
+    var $_8/*:Object*/ = {};
+    $_8.bla = ResourceManager._.getInstance().getString("Foo","baz");
+    $_8.type = "someOtherType";
+    var $_10/*:package1.ConfigClass*/ = new ConfigClass._();
+    $_10.number = 12;
+    var $_11/*:Object*/ = {};
+    $_11.bla = this.$bind_$_12_bla$2();
+    $_11.doodle = "non-bound";
+    var $_12/*:package1.someOtherPackage.SomeOtherClass*/ = new SomeOtherClass._($_11);
+    this.$bindings$2.push(new Binding(AS3.bind(this,"$bind_$_12_bla$2"), function package1$SomeMxmlClass$51_60($value){
+      $_12.set_bla ( $value);
     }));
-    $$10.items = [$$12];
-    var $$13/*:package1.ConfigClass*/ = new ConfigClass._();
-    var $$14/*:Object*/ = {};
-    $$14.bla = 12;
-    $$14.type = "someOtherType";
-    var $$16/*:Object*/ = {};
-    $$16.bla = 13;
-    this.no_config = new SomeOtherClass._($$16);
-    $$13.items = [$$14, this.no_config];
-    this.items = [$$4, $$6, $$8, $$10, $$13];
+    $_10.items = [$_12];
+    var $_13/*:package1.ConfigClass*/ = new ConfigClass._();
+    var $_14/*:Object*/ = {};
+    $_14.bla = 12;
+    $_14.type = "someOtherType";
+    var $_16/*:Object*/ = {};
+    $_16.bla = 13;
+    this.no_config = new SomeOtherClass._($_16);
+    $_13.items = [$_14, this.no_config];
+    this.items = [$_4, $_6, $_8, $_10, $_13];
     for/* each*/ (var $1=0;$1</* in*/ this.$bindings$2.length;++$1){var $binding= this.$bindings$2[$1]; $binding.execute();}
   }/*
 
@@ -109,11 +109,11 @@ public class SomeMxmlClass extends package1.ConfigClass {
     var result/*:String*/ = 'gotcha!';
   }/*
 
-  private*/ function $on_$$6_clack(event/*:package1.someOtherPackage.SomeEvent*/)/*:void*/ {
+  private*/ function $on_$_6_clack(event/*:package1.someOtherPackage.SomeEvent*/)/*:void*/ {
     var test=0;
   }/*
 
-  private*/ function $bind_$$12_bla()/*:int*/ {
+  private*/ function $bind_$_12_bla()/*:int*/ {
     return AS3.getBindable( this.other,"get_bla","bla_has_changed");
   }/*
 
@@ -145,8 +145,8 @@ public class SomeMxmlClass extends package1.ConfigClass {
         },
         $bind_other_blubbAccessor$2: $bind_other_blubbAccessor,
         $on_this_click$2: $on_this_click,
-        $on_$$6_clack$2: $on_$$6_clack,
-        $bind_$$12_bla$2: $bind_$$12_bla
+        $on_$_6_clack$2: $on_$_6_clack,
+        $bind_$_12_bla$2: $bind_$_12_bla
       }
     }));
   });
