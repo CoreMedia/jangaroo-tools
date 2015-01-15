@@ -1,7 +1,5 @@
-define("as3/joo/binding/Binding", ["as3-rt/AS3", "as3/trace", "as3/joo/addEventListener"], function (AS3, trace, addEventListener) {
-  return AS3.class_({
-    package_: "joo.binding",
-    class_: "Binding",
+define("as3/joo/binding/Binding", ["module", "as3-rt/AS3", "as3/trace", "as3/joo/addEventListener"], function (module, AS3, trace, addEventListener) {
+  return AS3.class_(module, {
     members: {
       constructor: function Binding(source, destination) {
         this.source$1 = source;
