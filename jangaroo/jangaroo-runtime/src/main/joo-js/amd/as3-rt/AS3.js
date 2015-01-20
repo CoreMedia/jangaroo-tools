@@ -93,15 +93,6 @@ define("as3-rt/AS3", ["as3/joo/getOrCreatePackage", "as3/joo/JooClassDeclaration
         staticMembers.superclass = { value: extends_.prototype };
         staticMembers.toString = { value: toString }; // add Class#toString()
         Object.defineProperties(clazz, staticMembers);   // add static members
-        // for classes extending joo.JavaScriptObject, remove the constructor, as it would be enumerable in IE8:
-        var current = clazz;
-        while (current.$class) {
-          if (current.$class.qName === "joo.JavaScriptObject") {
-            delete members.constructor;
-            break;
-          }
-          current = current.$class.extends_;
-        }
         clazz.prototype = Object.create(extends_.prototype, members); // establish inheritance prototype chain and add instance members
         return clazz;
   }
