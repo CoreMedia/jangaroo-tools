@@ -442,7 +442,7 @@ public final class MxmlToModelParser {
   }
 
   private String createAuxVar() {
-    return "$$" + (++auxVarIndex);
+    return "$_" + (++auxVarIndex);
   }
 
   private void createEventHandlerCode(String variable, String value, AnnotationModel event) {
