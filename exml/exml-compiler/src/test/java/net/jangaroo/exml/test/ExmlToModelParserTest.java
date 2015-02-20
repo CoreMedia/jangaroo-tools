@@ -70,7 +70,7 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
     Assert.assertEquals("int", myConst3.getType());
 
     JsonObject expectedJsonObject = new JsonObject(
-            "layout", "{config.myLayout}",
+            "layout", JsonObject.code("config.myLayout"),
             "title", "I am a panel",
             "someList", new JsonArray(
               new JsonObject(
@@ -88,11 +88,11 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
                     new JsonObject(
                             "xtype", "button",
                             "text", "Save",
-                            "handler", "{function():void {\n" +
+                            "handler", JsonObject.code("function():void {\n" +
                             "          window.alert('gotcha!');\n" +
-                            "        }}"
+                            "        }")
                     ),
-                    "{{xtype: \"editortreepanel\"}}"
+                    JsonObject.code("{xtype: \"editortreepanel\"}")
             ),
             "menu", new JsonArray(
                     new JsonObject(
@@ -110,7 +110,7 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
             ),
             "tools", new JsonArray(
                     new JsonObject(
-                            "handler", "{function(x){return ''+x;}}",
+                            "handler", JsonObject.code("function(x){return ''+x;}"),
                             "id", "gear"
                     )
             ),
@@ -216,7 +216,7 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
     Assert.assertEquals("ext.Panel", model.getSuperClassName());
 
     JsonObject expectedJsonObject = new JsonObject(
-            "items", "{config.myItems}",
+            "items", JsonObject.code("config.myItems"),
             "tools", new JsonArray("tools")
     );
     System.out.println(model.getJsonObject().toString(2));
@@ -232,7 +232,7 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
     Assert.assertEquals("ext.Panel", model.getSuperClassName());
 
     JsonObject expectedJsonObject = new JsonObject(
-            "baseAction", "{net.jangaroo.ext.create(ext.config.action,{disabled: false})}"
+            "baseAction", JsonObject.code("net.jangaroo.ext.create(ext.config.action,{disabled: false})")
     );
     System.out.println(model.getJsonObject().toString(2));
     Assert.assertEquals(expectedJsonObject.toString(2), model.getJsonObject().toString(2));
@@ -343,7 +343,7 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
 
     JsonObject expectedJsonObject = new JsonObject(
             "propertyWithLiteralDefault", "foobar",
-            "propertyWithExpressionDefault", "{'foo' + 'bar'}",
+            "propertyWithExpressionDefault", JsonObject.code("'foo' + 'bar'"),
             "propertyWithDefaultElement",
               new JsonObject(
                       "xtype", "button",
@@ -352,7 +352,7 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
             "propertyWithDefaultElementUsingConfig",
               new JsonObject(
                       "xtype", "button",
-                      "text", "{config.title + '!'}"
+                      "text", JsonObject.code("config.title + '!'")
               ),
             "arrayPropertyWithDefaultElement",
               new JsonArray(
@@ -407,9 +407,9 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
                             "propertyThree", "3"
                     ).settingWrapperClass("testNamespace.config.testComponent2")
             ),
-            "items$at", "{net.jangaroo.ext.Exml.APPEND}",
+            "items$at", JsonObject.code("net.jangaroo.ext.Exml.APPEND"),
             "propertyFive", new JsonArray(new JsonObject("xtype", "agridcolumn")),
-            "propertyFive$at", "{net.jangaroo.ext.Exml.PREPEND}",
+            "propertyFive$at", JsonObject.code("net.jangaroo.ext.Exml.PREPEND"),
             "layoutConfig", new JsonObject(
                     "mode", "foo"
             )

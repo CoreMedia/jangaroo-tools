@@ -1,6 +1,5 @@
 package net.jangaroo.jooc.json;
 
-import net.jangaroo.jooc.mxml.MxmlUtils;
 import net.jangaroo.utils.CompilerUtils;
 
 import java.util.Arrays;
@@ -28,6 +27,10 @@ public class JsonObject implements Json {
       Object value = namesAndValues[i + 1];
       properties.put((String)name, value);
     }
+  }
+
+  public static Code code(final String code) {
+    return new CodeImpl(code);
   }
 
   public String getWrapperClass() {
@@ -91,8 +94,8 @@ public class JsonObject implements Json {
       return ((JsonObject)value).toString(indentFactor, indent);
     } else if (value instanceof JsonArray) {
       return ((JsonArray) value).toString(indentFactor, indent);
-    } else if (MxmlUtils.isBindingExpression(value.toString())) {
-      return MxmlUtils.getBindingExpression(value.toString()).replaceAll("\n", LINE_SEPARATOR);
+    } else if (value instanceof Code) {
+      return ((Code)value).getCode().replaceAll("\n", LINE_SEPARATOR);
     }
     return CompilerUtils.quote(value.toString()).replaceAll("\n", LINE_SEPARATOR);
 
@@ -150,6 +153,9 @@ public class JsonObject implements Json {
   }
 
   private void newlineAndIndent(StringBuilder sb, int indent) {
+    if (indent < 0) {
+      return;
+    }
     sb.append(LINE_SEPARATOR);
     for (int i = 0; i < indent; i++) {
       sb.append(' ');
@@ -157,7 +163,11 @@ public class JsonObject implements Json {
   }
 
   private void writeKeyValue(String key, int indentFactor, int indent, StringBuilder sb) {
+    if (key.isEmpty()) { // TODO: if (!key.matches(<JS_IDENTIFIER_PATTERN>)) 
+      sb.append("\"\"");
+    } else {
     sb.append(key);
+    }
     sb.append(": ");
     sb.append(valueToString(this.properties.get(key), indentFactor, indent));
   }
@@ -176,5 +186,38 @@ public class JsonObject implements Json {
 
   public void settingConfigClass(String fullName) {
     this.configClass = fullName;
+  }
+
+  private static class CodeImpl implements Code {
+    private final String code;
+
+    public CodeImpl(String code) {
+      this.code = code;
+    }
+
+    @Override
+    public String getCode() {
+      return code;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+
+      CodeImpl that = (CodeImpl) o;
+
+      return code.equals(that.code);
+
+    }
+
+    @Override
+    public int hashCode() {
+      return code.hashCode();
+    }
   }
 }
