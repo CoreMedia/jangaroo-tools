@@ -30,6 +30,10 @@ public class MxmlUtils {
     return MXML_NAMESPACE_URI.equals(uri);
   }
 
+  public static String createBindingExpression(String code) {
+    return String.format("{%s}", code);
+  }
+
   public static boolean isBindingExpression(String attributeValue) {
     return IS_BINDING_EXPRESSION_PATTERN.matcher(attributeValue).find();
   }

@@ -74,6 +74,7 @@ import net.jangaroo.jooc.ast.VectorLiteral;
 import net.jangaroo.jooc.ast.WhileStatement;
 import net.jangaroo.jooc.config.DebugMode;
 import net.jangaroo.jooc.config.JoocConfiguration;
+import net.jangaroo.jooc.json.Code;
 import net.jangaroo.jooc.json.JsonArray;
 import net.jangaroo.jooc.json.JsonObject;
 import net.jangaroo.jooc.model.AnnotationModel;
@@ -302,7 +303,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       value = ((LiteralExpr) optValue).getValue().getJooValue();
     } else if (optValue instanceof Ide) {
       IdeDeclaration ideDeclaration = ((Ide) optValue).getDeclaration();
-      value = CompilerUtils.createCodeExpression(compilationUnitAccessCode(ideDeclaration));
+      value = JsonObject.code(compilationUnitAccessCode(ideDeclaration));
     } else {
       value = null;
     }
@@ -445,14 +446,14 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   private void addOptImplements(ClassDeclaration classDeclaration, JsonObject classDefinition) {
     Implements optImplements = classDeclaration.getOptImplements();
     if (optImplements != null) {
-      List<String> superInterfaces = new ArrayList<String>();
+      List<Code> superInterfaces = new ArrayList<Code>();
       CommaSeparatedList<Ide> superTypes = optImplements.getSuperTypes();
       while (superTypes != null) {
         IdeDeclaration superInterface = superTypes.getHead().getDeclaration(false);
         if (superInterface == null) {
           System.err.println("ignoring unresolvable interface " + superTypes.getHead().getQualifiedNameStr());
         } else {
-          superInterfaces.add(CompilerUtils.createCodeExpression(compilationUnitAccessCode(superInterface)));
+          superInterfaces.add(JsonObject.code(compilationUnitAccessCode(superInterface)));
         }
         superTypes = superTypes.getTail();
       }
@@ -578,7 +579,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       if (classDefinitionBuilder.super$Used) {
         out.write("\n    var super$=Super.prototype;");
       }
-      classDefinition.set("extends_", CompilerUtils.createCodeExpression("Super"));
+      classDefinition.set("extends_", JsonObject.code("Super"));
     }
     addOptImplements(classDeclaration, classDefinition);
     if (!classDefinitionBuilder.members.isEmpty()) {
@@ -1937,13 +1938,13 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     JsonObject asJson() {
       JsonObject result = new JsonObject();
       if (value != null) {
-        result.set("value", CompilerUtils.createCodeExpression(value));
+        result.set("value", JsonObject.code(value));
       }
       if (get != null) {
-        result.set("get", CompilerUtils.createCodeExpression(get));
+        result.set("get", JsonObject.code(get));
       }
       if (set != null) {
-        result.set("set", CompilerUtils.createCodeExpression(set));
+        result.set("set", JsonObject.code(set));
       }
       if (writable) {
         result.set("writable", true);
@@ -1956,7 +1957,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
     Object asAbbreviatedJson() {
       if (isValueOnly()) {
-        return CompilerUtils.createCodeExpression(value);
+        return JsonObject.code(value);
       }
       return asJson();
     }

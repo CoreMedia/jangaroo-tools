@@ -287,6 +287,10 @@ public final class CompilerUtils {
     return attributeValue.startsWith("{") && attributeValue.endsWith("}");
   }
 
+  @Deprecated
+  /**
+   * @deprecated Use <code>MxmlUtils.createBindingExpression()</code> or <code>JsonObject.code()</code> instead.
+   */
   public static String createCodeExpression(String code) {
     return String.format("{%s}", code);
   }

@@ -237,7 +237,7 @@ public final class MxmlToModelParser {
     if (MxmlUtils.isBindingExpression(value) && hasSetter(propertyModel)) {
       if (generatingConfig) {
         createPropertyAssignmentCode(configVariable, propertyModel,
-                CompilerUtils.createCodeExpression(getOrCreateExpressionMethod(targetVariable, propertyModel, value) + "()"), true);
+                MxmlUtils.createBindingExpression(getOrCreateExpressionMethod(targetVariable, propertyModel, value) + "()"), true);
       } else {
         createBindingMethodCode(targetVariable, propertyModel, value);
       }
@@ -328,7 +328,7 @@ public final class MxmlToModelParser {
     boolean forceArray = "Array".equals(propertyModel.getType());
     boolean allowConstructorParameters = hasAnnotationAtSetter(propertyModel, ALLOW_CONSTRUCTOR_PARAMETERS_ANNOTATION);
     String value = createArrayCodeFromChildElements(childElements, forceArray, allowConstructorParameters);
-    createPropertyAssignmentCode(variable, propertyModel, CompilerUtils.createCodeExpression(value), generatingConfig);
+    createPropertyAssignmentCode(variable, propertyModel, MxmlUtils.createBindingExpression(value), generatingConfig);
   }
 
   private String createArrayCodeFromChildElements(List<Element> childElements, boolean forceArray, boolean allowConstructorParameters) throws IOException {

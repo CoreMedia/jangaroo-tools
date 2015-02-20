@@ -29,6 +29,10 @@ public class JsonObject implements Json {
     }
   }
 
+  public static Code code(final String code) {
+    return new CodeImpl(code);
+  }
+
   public String getWrapperClass() {
     return wrapperClass;
   }
@@ -90,8 +94,8 @@ public class JsonObject implements Json {
       return ((JsonObject)value).toString(indentFactor, indent);
     } else if (value instanceof JsonArray) {
       return ((JsonArray) value).toString(indentFactor, indent);
-    } else if (CompilerUtils.isCodeExpression(value.toString())) {
-      return CompilerUtils.getCodeExpression(value.toString());
+    } else if (value instanceof Code) {
+      return ((Code)value).getCode();
     }
     return CompilerUtils.quote(value.toString());
 
@@ -182,5 +186,38 @@ public class JsonObject implements Json {
 
   public void settingConfigClass(String fullName) {
     this.configClass = fullName;
+  }
+
+  private static class CodeImpl implements Code {
+    private final String code;
+
+    public CodeImpl(String code) {
+      this.code = code;
+    }
+
+    @Override
+    public String getCode() {
+      return code;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+
+      CodeImpl that = (CodeImpl) o;
+
+      return code.equals(that.code);
+
+    }
+
+    @Override
+    public int hashCode() {
+      return code.hashCode();
+    }
   }
 }
