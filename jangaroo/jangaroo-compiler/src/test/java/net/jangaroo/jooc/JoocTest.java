@@ -310,6 +310,11 @@ public class JoocTest {
   }
 
   @Test
+  public void testNoCodeExpression() throws Exception {
+    assertCompilationResult("package1/NoCodeExpression");
+  }
+
+  @Test
   public void testManifestToCatalogConversion() throws Exception {
     File manifestFile = getFile("/customNamespace/manifest.xml");
     File catalogFile = new File(outputFolder, "/catalog.xml");
