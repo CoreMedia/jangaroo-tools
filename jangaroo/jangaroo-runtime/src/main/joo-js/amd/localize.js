@@ -31,7 +31,7 @@ define(["as3/joo/getOrCreatePackage"], function(getOrCreatePackage) {
       var locale/*:String*/ = navigator['language'] || navigator['browserLanguage']
               || navigator['systemLanguage'] || navigator['userLanguage'];
       if (locale) {
-        return this.findSupportedLocale(locale.replace(/-/g, "_"));
+        return findSupportedLocale(locale.replace(/-/g, "_"));
       }
     }
     return null;
