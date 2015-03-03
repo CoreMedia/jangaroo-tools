@@ -23,7 +23,10 @@ define(["as3-rt/getModuleName", "lib/net/jangaroo/jangaroo-runtime"], function(g
         // TODO: what?
       } else {
         var parts = name.split("!");
-        var bootstrapAmd = "lib/" + parts[0].replace(/[.:]/g, "/");
+        var bootstrapAmd = parts[0];
+        if (bootstrapAmd.substr(0, 4) !== "lib/") {
+          bootstrapAmd = "lib/" + bootstrapAmd.replace(/[.:]/g, "/");
+        }
         var mainClassAmd = getModuleName(parts[1]);
         var mainArgs = config.args;
         req([bootstrapAmd, "domReady!"], function() {
