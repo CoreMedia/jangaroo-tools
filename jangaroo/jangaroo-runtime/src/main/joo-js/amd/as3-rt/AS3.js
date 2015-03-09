@@ -5,8 +5,8 @@ define("as3-rt/AS3", ["as3/joo/getOrCreatePackage", "as3/joo/JooClassDeclaration
   }
   function convertShortcut(propertyDescriptor) {
     return propertyDescriptor !== null && typeof propertyDescriptor === "object" ? propertyDescriptor
-      // anything *not* an object is a shortcut for a property descriptor with that value (non-writable, non-enumerable, non-configurable):
-            : { value: propertyDescriptor }
+      // anything *not* an object is a shortcut for a property descriptor with that value (non-enumerable, non-configurable, but (for the time being) writable):
+            : { value: propertyDescriptor, writable: true }
   }
   function convertShortcuts(propertyDescriptors) {
     var result = {};
@@ -116,6 +116,7 @@ define("as3-rt/AS3", ["as3/joo/getOrCreatePackage", "as3/joo/JooClassDeclaration
               qName,
               undefined,
               undefined,
+              interfaces,
               config.metadata
       )},
       interfaces: { value: interfaces },
