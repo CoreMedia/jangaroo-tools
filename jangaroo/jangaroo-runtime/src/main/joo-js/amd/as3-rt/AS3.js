@@ -47,29 +47,33 @@ define("as3-rt/AS3", ["as3/joo/getOrCreatePackage", "as3/joo/JooClassDeclaration
   function compilationUnit(module, exports, definingCode) {
     var qName = amdIdToQName(module.id);
     var lastDotPos = qName.lastIndexOf(".");
+    Object.defineProperty(exports, "_", {
+      configurable: true,
+      get: function () {
+        var result;
+        definingCode(function(value) {
+          result = convertShortcut(value);
+          Object.defineProperty(exports, "_", result);
+        });
+        return handleMetadata(result.value);
+      },
+      set: function(value) {
+        //noinspection BadExpressionStatementJS
+        this._; // initialize, but ignore resulting value as it is overwritten immediately!
+        this._ = value;
+      }
+    });
+    // For Jangaroo 2 backwards-compatibility, make compilation unit accessible via package:
     var cuName = qName.substr(lastDotPos + 1);
     var package_ = getOrCreatePackage(qName.substr(0, lastDotPos));
-    function getter() {
-      var result;
-      definingCode(function(value) {
-        result = convertShortcut(value);
-        defineCompilationUnitProperties(exports, package_, cuName, result);
-      });
-      return handleMetadata(result.value);
-    }
-    defineCompilationUnitProperties(exports, package_, cuName, {
-        configurable: true,
-        get: getter,
-        set: function(value) {
-          getter(); // initialize, but ignore resulting value as it is overwritten immediately!
-          exports._ = value;
-          package_[cuName] = value;
-        }
+    Object.defineProperty(package_, cuName, {
+      get: function() {
+        return exports._;
+      },
+      set: function(value) {
+        exports._ = value;
+      }
     });
-  }
-  function defineCompilationUnitProperties(exports, package_, cuName, value) {
-    Object.defineProperty(exports, "_", value);
-    Object.defineProperty(package_, cuName, value);
   }
 
   function defineClass(module, config) {
