@@ -315,6 +315,11 @@ public class JoocTest {
   }
 
   @Test
+  public void testFieldInitializer() throws Exception {
+    assertCompilationResult("package1/FieldInitializer");
+  }
+
+  @Test
   public void testManifestToCatalogConversion() throws Exception {
     File manifestFile = getFile("/customNamespace/manifest.xml");
     File catalogFile = new File(outputFolder, "/catalog.xml");

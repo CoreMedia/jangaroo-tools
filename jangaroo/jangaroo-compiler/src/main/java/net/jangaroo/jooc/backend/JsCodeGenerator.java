@@ -93,6 +93,7 @@ import java.io.File;
 import java.io.IOException;
 import net.jangaroo.jooc.util.MessageFormat;
 
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -1545,7 +1546,19 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     } else {
       String value;
       if (variableDeclaration.getOptInitializer() != null) {
-        value = ((LiteralExpr) variableDeclaration.getOptInitializer().getValue()).getValue().getText(); // TODO: may be a more complex expression, see above!
+        Expr initialValue = variableDeclaration.getOptInitializer().getValue();
+        JsWriter originalOut = out;
+        StringWriter initialValueWriter = new StringWriter();
+        out = new JsWriter(initialValueWriter);
+        out.setOptions(originalOut.getOptions());
+        try {
+          initialValue.visit(this);
+        } catch (IOException e) {
+          // cannot happen
+        } finally {
+          out = originalOut;
+        }
+        value = initialValueWriter.toString().trim();
       } else {
         value = getValueFromEmbedMetadata();
         if (value == null) {
@@ -1604,8 +1617,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   }
 
   private boolean mustInitializeInStaticCode(VariableDeclaration variableDeclaration) {
-    // TODO: allow all runtime constants: !variableDeclaration.getOptInitializer().getValue().isRuntimeConstant();
-    return variableDeclaration.getOptInitializer() != null && !(variableDeclaration.getOptInitializer().getValue() instanceof LiteralExpr);
+    return variableDeclaration.getOptInitializer() != null && !variableDeclaration.getOptInitializer().getValue().isRuntimeConstant();
   }
 
   protected void generateFieldEndCode(VariableDeclaration variableDeclaration) throws IOException {
