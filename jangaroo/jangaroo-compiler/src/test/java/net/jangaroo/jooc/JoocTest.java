@@ -320,6 +320,11 @@ public class JoocTest {
   }
 
   @Test
+  public void testPrivateMemberAccess() throws Exception {
+    assertCompilationResult("package1/PrivateMemberAccess");
+  }
+
+  @Test
   public void testManifestToCatalogConversion() throws Exception {
     File manifestFile = getFile("/customNamespace/manifest.xml");
     File catalogFile = new File(outputFolder, "/catalog.xml");

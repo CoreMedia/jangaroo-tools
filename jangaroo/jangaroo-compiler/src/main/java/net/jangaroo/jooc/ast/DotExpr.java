@@ -39,6 +39,9 @@ public class DotExpr extends PostfixOpExpr {
     getIde().setBound(ideExpr.getIde().isBound());
     scope(ideExpr.getIde().getScope());
     analyze(ideExpr.getParentNode());
+    if (getType() == null) {
+      setType(ideExpr.getType());
+    }
   }
 
   @Override
