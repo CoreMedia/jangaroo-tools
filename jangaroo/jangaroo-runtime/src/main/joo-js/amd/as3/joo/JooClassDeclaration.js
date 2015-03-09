@@ -46,8 +46,14 @@ define("as3/joo/JooClassDeclaration", ["as3/joo/NativeClassDeclaration", "as3/jo
       get: function() {
         var rawMetadataByMember = this.rawMetadataByMember;
         var mds = Object.getOwnPropertyNames(this.constructor_.prototype).map(function(member) {
-          // TODO: determine public / private by matching $<level> suffix.
-          return new MemberDeclaration(member, convertMetadata(rawMetadataByMember[member]));
+          var namespace = MemberDeclaration.NAMESPACE_PUBLIC;
+          var metadata = convertMetadata(rawMetadataByMember[member]);
+          var privateMatch = member.match(/^(.+)\$[0-9]+$/);
+          if (privateMatch) {
+            member = privateMatch[1];
+            namespace = MemberDeclaration.NAMESPACE_PRIVATE;
+          }
+          return new MemberDeclaration(namespace, member, metadata);
         });
         // Workaround for PhantomJS bug: when run in non-debug mode, PhantomJS complains that a non-writable
         // property is written if we leave out writable: true.
@@ -61,13 +67,14 @@ define("as3/joo/JooClassDeclaration", ["as3/joo/NativeClassDeclaration", "as3/jo
       value: function(namespace, memberName) {
         var mds = this.memberDeclarations;
         for (var i=0; i < mds.length; ++i) {
-          if (mds[i].memberName === memberName) {
+          var memberDeclaration = mds[i];
+          if (memberDeclaration._namespace === namespace && memberDeclaration.memberName === memberName) {
             return mds[i];
           }
         }
-        return this.superClassDeclaration && this.superClassDeclaration.getMemberDeclaration
-          ? this.superClassDeclaration.getMemberDeclaration(namespace, memberName)
-          : null;
+        return namespace === MemberDeclaration.NAMESPACE_PRIVATE || !this.superClassDeclaration || !this.superClassDeclaration.getMemberDeclaration
+                ? null
+                : this.superClassDeclaration.getMemberDeclaration(namespace, memberName);
       }
     }
   });

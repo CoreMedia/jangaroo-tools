@@ -1453,7 +1453,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     if (variableDeclaration.isClassMember() && !variableDeclaration.isPrivateStatic()) {
       if (!variableDeclaration.isPrimaryDeclaration() && !currentMetadata.isEmpty()) {
         getClassDefinitionBuilder(variableDeclaration).storeCurrentMetadata(
-                variableDeclaration.getIde().getName(),
+                variableDeclaration.getIde().getName() + (variableDeclaration.isPrivate() ? "$" + variableDeclaration.getClassDeclaration().getInheritanceLevel() : ""),
                 currentMetadata
         );
       }
