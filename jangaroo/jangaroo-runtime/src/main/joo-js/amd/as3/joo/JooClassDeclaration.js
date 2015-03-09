@@ -44,14 +44,14 @@ define("as3/joo/JooClassDeclaration", ["as3/joo/NativeClassDeclaration", "as3/jo
     },
     memberDeclarations: {
       get: function() {
-        var mds = [];
-        for (var member in this.rawMetadataByMember) {
-          if (member) {
-            var memberDeclaration = new MemberDeclaration(member, convertMetadata(this.rawMetadataByMember[member]));
-            mds.push(memberDeclaration);
-          }
-        }
-        Object.defineProperty(this, "memberDeclarations", { value: mds, enumerable: true });
+        var rawMetadataByMember = this.rawMetadataByMember;
+        var mds = Object.getOwnPropertyNames(this.constructor_.prototype).map(function(member) {
+          // TODO: determine public / private by matching $<level> suffix.
+          return new MemberDeclaration(member, convertMetadata(rawMetadataByMember[member]));
+        });
+        // Workaround for PhantomJS bug: when run in non-debug mode, PhantomJS complains that a non-writable
+        // property is written if we leave out writable: true.
+        Object.defineProperty(this, "memberDeclarations", { value: mds, writable: true, enumerable: true });
         return mds;
       },
       enumerable: true,
@@ -65,7 +65,9 @@ define("as3/joo/JooClassDeclaration", ["as3/joo/NativeClassDeclaration", "as3/jo
             return mds[i];
           }
         }
-        return null;
+        return this.superClassDeclaration && this.superClassDeclaration.getMemberDeclaration
+          ? this.superClassDeclaration.getMemberDeclaration(namespace, memberName)
+          : null;
       }
     }
   });
