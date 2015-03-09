@@ -1,9 +1,20 @@
 package net.jangaroo.jooc.mvnplugin;
 
+import net.jangaroo.utils.CompilerUtils;
+import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.repository.ArtifactRepository;
+import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.project.MavenProject;
+import org.apache.maven.project.MavenProjectBuilder;
+import org.apache.maven.project.ProjectBuildingException;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.util.*;
 
 /**
@@ -86,6 +97,13 @@ public class TestCompilerMojo extends AbstractCompilerMojo {
   private String moduleTestClassesJsFile;
 
   /**
+   * The fully-qualified name of the TestSuite to run.
+   *
+   * @parameter
+   */
+  private String testSuite;
+
+  /**
    * Set this to 'true' to bypass unit tests entirely. Its use is NOT RECOMMENDED, especially if you
    * enable it using the "maven.test.skip" property, because maven.test.skip disables both running the
    * tests and compiling the tests. Consider using the skipTests parameter instead.
@@ -93,6 +111,26 @@ public class TestCompilerMojo extends AbstractCompilerMojo {
    * @parameter expression="${maven.test.skip}"
    */
   protected boolean skip;
+
+  /**
+   * @component
+   */
+  @SuppressWarnings("UnusedDeclaration")
+  private MavenProjectBuilder mavenProjectBuilder;
+
+  /**
+   * @parameter expression="${localRepository}"
+   * @required
+   */
+  @SuppressWarnings("UnusedDeclaration")
+  private ArtifactRepository localRepository;
+
+  /**
+   * @parameter expression="${project.remoteArtifactRepositories}"
+   * @required
+   */
+  @SuppressWarnings("UnusedDeclaration")
+  private List remoteRepositories;
 
   /**
    * 
@@ -142,6 +180,63 @@ public class TestCompilerMojo extends AbstractCompilerMojo {
   public void execute() throws MojoExecutionException, MojoFailureException {
     if(!skip) {
       super.execute();
+      if (testSuite != null) {
+        generateTestsAMD();
+      }
     }
   }
+
+  private void generateTestsAMD() throws MojoExecutionException {
+    File testsAmdFile = new File(testOutputDirectory, "amd/tests.js");
+    getLog().info("  generating tests.js AMD file based on Maven dependencies...");
+    Writer amdWriter = null;
+    try {
+      amdWriter = new OutputStreamWriter(new FileOutputStream(testsAmdFile), "UTF-8");
+      amdWriter.write(String.format("define(\"as3/__TestSuite\", [\n" +
+              "  \"as3/net/jangaroo/joounit/runner/BrowserRunner\",\n" +
+              "  \"as3/%s\"\n" +
+              "], function(BrowserRunner, TestSuite) {\n" +
+              "  return {_: {main: function() {\n" +
+              "        return BrowserRunner._.main(TestSuite._);\n" +
+              "      }}};\n" +
+              "});\n", testSuite.replace('.', '/')));
+      Artifact artifact = getProject().getArtifact();
+      String amdLibName = GenerateModuleAMDMojo.computeAMDName(artifact.getGroupId(), artifact.getArtifactId());
+      String amdTestLibName = amdLibName + "-test";
+      amdWriter.write(String.format("define(%s, [\n", CompilerUtils.quote(amdTestLibName)));
+      amdWriter.write("  " + CompilerUtils.quote(amdLibName));
+      List<String> testDependencies = getTestDependencies(artifact);
+      for (String testDependency : testDependencies) {
+        amdWriter.write(",\n");
+        amdWriter.write("  " + CompilerUtils.quote(testDependency));
+      }
+      amdWriter.write("\n], function() {});\n");
+      amdWriter.write("require([\"run!" + amdTestLibName + "!__TestSuite\"]);\n");
+      amdWriter.close();
+    } catch (IOException e) {
+      throw new MojoExecutionException("Failed to create generated AMD output file.", e);
+    } catch (ProjectBuildingException e) {
+      throw new MojoExecutionException("Failed to collect dependencies.", e);
+    } finally {
+      if (amdWriter != null) {
+        try {
+          amdWriter.close();
+        } catch (IOException e) {
+          // so what? ignore
+        }
+      }
+    }
+  }
+
+  private List<String> getTestDependencies(Artifact artifact) throws ProjectBuildingException {
+    MavenProject mp = mavenProjectBuilder.buildFromRepository(artifact, remoteRepositories, localRepository, true);
+    List<String> deps = new LinkedList<String>();
+    for (Dependency dep : GenerateModuleAMDMojo.getDependencies(mp)) {
+      if ("jar".equals(dep.getType()) && dep.getScope().equals("test")) {
+        deps.add(GenerateModuleAMDMojo.computeAMDName(dep.getGroupId(), dep.getArtifactId()));
+      }
+    }
+    return deps;
+  }
+
 }

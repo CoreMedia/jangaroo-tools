@@ -132,7 +132,7 @@ public class GenerateModuleAMDMojo extends AbstractMojo {
     }
   }
 
-  static String computeAMDName(String groupId, String artifactId) {
+  public static String computeAMDName(String groupId, String artifactId) {
     return "lib/" + groupId.replace('.', '/') + "/" + artifactId;
   }
 
@@ -216,7 +216,7 @@ public class GenerateModuleAMDMojo extends AbstractMojo {
   }
 
   @SuppressWarnings({ "unchecked" })
-  private static List<Dependency> getDependencies(MavenProject mp) {
+  public static List<Dependency> getDependencies(MavenProject mp) {
     return (List<Dependency>) mp.getDependencies();
   }
 
