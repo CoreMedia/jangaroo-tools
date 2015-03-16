@@ -175,6 +175,7 @@ public class GenerateLibMojo extends JangarooMojo {
     String sourcePath = sourceDirectory.getCanonicalPath().replace(File.separatorChar, '/');
     String relativePath = CompilerUtils.getRelativePath(aggregationOutputFile.getParentFile(), sourceDirectory, false).replace(File.separatorChar, '/');
     options.sourceMapLocationMappings.add(new SourceMap.LocationMapping(sourcePath, relativePath));
+    options.setOutputCharset(encoding);
 
     Charset charset = Charset.forName(encoding);
     ArrayList<SourceFile> inputs = new ArrayList<SourceFile>();
