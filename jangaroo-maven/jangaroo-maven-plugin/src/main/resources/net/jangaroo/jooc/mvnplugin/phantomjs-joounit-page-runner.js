@@ -5,11 +5,14 @@ if (system.args.length !== 4) {
   console.info("USAGE: phantomjs-joounit-page-runner.js <page-url> <test-result-filename> <timeout>, instead found " + (system.args.length - 1) + " arguments.");
   phantom.exit(1);
 }
+var requestStartTimes = {};
 page.onResourceRequested = function(request) {
   console.log("Request #" + request.id + ": " + request.method + " " + request.url);
+  requestStartTimes[request.id] = new Date().getTime();
 };
 page.onResourceReceived = function(response) {
-  console.log("Response #" + response.id + " (" + response.stage + "): " + response.url + ": " + response.statusText);
+  var duration = new Date().getTime() - requestStartTimes[response.id];
+  console.log("Response #" + response.id + " (" + response.stage + "): " + response.url + ": " + response.statusText + " (" + duration + " ms since request)");
 };
 page.onInitialized = function() {
   page.evaluate(function() {
