@@ -41,7 +41,7 @@ public class WarPackageMojo extends GenerateModuleAMDMojo {
     super.execute();
     Writer amdWriter = null;
     try {
-      amdWriter = createAMDFile(outputDirectory, "jangaroo-application");
+      amdWriter = createAMDFile("jangaroo-application");
       String projectAMD = computeAMDName(project.getGroupId(), project.getArtifactId());
       amdWriter.write("define(\"jangaroo-application\", [\"" + projectAMD + "\"], function() {});");
     } catch (IOException e) {

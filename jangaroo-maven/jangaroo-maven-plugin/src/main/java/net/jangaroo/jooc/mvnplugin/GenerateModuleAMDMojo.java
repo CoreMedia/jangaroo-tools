@@ -3,7 +3,6 @@ package net.jangaroo.jooc.mvnplugin;
 import net.jangaroo.utils.CompilerUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.maven.artifact.Artifact;
-import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
@@ -29,7 +28,7 @@ import java.util.Set;
  * @threadSafe
  * @requiresDependencyResolution runtime
  */
-public class GenerateModuleAMDMojo extends AbstractMojo {
+public class GenerateModuleAMDMojo extends JangarooMojo {
 
   /**
    * Resource directory whose META-INF/resources/amd/lib/groupId-path/ sub-directory may contain the Maven module's
@@ -47,6 +46,17 @@ public class GenerateModuleAMDMojo extends AbstractMojo {
    */
   @SuppressWarnings("UnusedDeclaration")
   File outputDirectory;
+
+  /**
+   * Location of Jangaroo resources of this module.
+   * This property is used for <code>war</code> packaging type (actually, all packaging types
+   * but <code>jangaroo</code>) as {@link #getOutputDirectory}.
+   * Defaults to ${project.build.directory}/jangaroo-output/
+   *
+   * @parameter expression="${project.build.directory}/jangaroo-output/"
+   */
+  @SuppressWarnings("UnusedDeclaration")
+  private File packageSourceDirectory;
 
   /**
    * Name of an optional module file that contains the "body" of this Maven module's AMD descriptor.
@@ -78,7 +88,7 @@ public class GenerateModuleAMDMojo extends AbstractMojo {
     getLog().info("  no source AMD file " + sourceAMDFile.getPath() + " found, generating one based on Maven dependencies.");
     Writer amdWriter = null;
     try {
-      amdWriter = createAMDFile(outputDirectory, amdName);
+      amdWriter = createAMDFile(amdName);
       amdWriter.write(String.format("define(%s, [\n", CompilerUtils.quote(amdName)));
       List<String> dependencies = getDependencies();
       for (String dependency : dependencies) {
@@ -110,12 +120,21 @@ public class GenerateModuleAMDMojo extends AbstractMojo {
     }
   }
 
+  @Override
+  protected MavenProject getProject() {
+    return project;
+  }
+
+  protected File getOutputDirectory() {
+    return isJangarooPackaging() ? new File(outputDirectory, "META-INF/resources") : packageSourceDirectory;
+  }
+
   public static String computeAMDName(String groupId, String artifactId) {
     return "lib/" + groupId.replace('.', '/') + "/" + artifactId;
   }
 
-  Writer createAMDFile(File scriptDirectory, String amdName) throws IOException {
-    File f = new File(scriptDirectory, "META-INF/resources/amd/" + amdName + ".js");
+  Writer createAMDFile(String amdName) throws IOException {
+    File f = new File(getOutputDirectory(), "amd/" + amdName + ".js");
     //noinspection ResultOfMethodCallIgnored
     if (f.getParentFile().mkdirs()) {
       getLog().debug("created AMD output directory '" + f.getParent() + "'.");

@@ -20,4 +20,9 @@ public abstract class JangarooMojo extends AbstractMojo {
     return mavenPluginHelper;
   }
 
+  protected boolean isJangarooPackaging() {
+    return Types.JANGAROO_TYPE.equals(getProject().getPackaging());
+  }
+
+  
 }

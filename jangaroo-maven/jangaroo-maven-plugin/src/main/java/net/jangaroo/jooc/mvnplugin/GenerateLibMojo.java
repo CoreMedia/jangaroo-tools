@@ -39,20 +39,30 @@ import java.util.List;
  * @phase process-classes
  * @threadSafe
  */
-// @SuppressWarnings("unchecked")
+@SuppressWarnings("UnusedDeclaration")
 public class GenerateLibMojo extends JangarooMojo {
 
   /**
-   * Generated JavaScript AMD sources directory: the base directory for compression.
+   * Generated JavaScript AMD sources base directory, whose META-INF/resources/amd/as3 sub-directory
+   * is to be included in the library, and under which the output library will be created at
+   * <code>amd/lib/&lt;group-id&gt;/&lt;artifactId&gt;.js</code>.
+   * This base directory is used in modules with "jangaroo" packaging, otherwise see
+   * <code>packageSourceDirectory</code>.
    *
-   * @parameter expression="${project.build.outputDirectory}/META-INF/resources/amd/as3"
+   * @parameter expression="${project.build.outputDirectory}"
    */
-  private File sourceDirectory;
+  private File outputDirectory;
 
   /**
-   * @parameter expression="${project.build.outputDirectory}/META-INF/resources/amd"
+   * Location of Jangaroo resources of this module.
+   * This property is used for <code>war</code> packaging type (actually, all packaging types
+   * but <code>jangaroo</code>) as {@link #getOutputDirectory}.
+   * Defaults to ${project.build.directory}/jangaroo-output/
+   *
+   * @parameter expression="${project.build.directory}/jangaroo-output/"
    */
-  private File aggregationOutputBaseDir;
+  private File packageSourceDirectory;
+
 
   /**
    * Whether to skip execution.
@@ -106,14 +116,19 @@ public class GenerateLibMojo extends JangarooMojo {
     }
   }
 
+  protected File getOutputDirectory() {
+    return isJangarooPackaging() ? new File(outputDirectory, "META-INF/resources") : packageSourceDirectory;
+  }
+
   private void processAllJsFiles() throws Exception {
-    if (sourceDirectory == null || !sourceDirectory.exists()) {
+    File aggregationOutputBaseDir = new File(getOutputDirectory(), "amd");
+    File sourceDirectory = new File(aggregationOutputBaseDir, "as3");
+    if (!sourceDirectory.exists()) {
+      getLog().debug("generate-lib: source directory " + sourceDirectory + " does not exist; skipping *.lib.js generation.");
       return;
     }
-    if (aggregationOutputBaseDir == null) {
-      throw new MojoFailureException("destination lib base dir is null");
-    }
     File aggregationOutputFile = new File(aggregationOutputBaseDir, GenerateModuleAMDMojo.computeAMDName(project.getGroupId(), project.getArtifactId()) + ".lib.js");
+    //noinspection ResultOfMethodCallIgnored
     aggregationOutputFile.getParentFile().mkdirs();
     DirectoryScanner scanner = new DirectoryScanner();
     scanner.setBasedir(sourceDirectory);
