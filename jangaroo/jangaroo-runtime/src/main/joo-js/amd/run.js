@@ -23,11 +23,14 @@ define(["as3-rt/getModuleName", "lib/net/jangaroo/jangaroo-runtime"], function(g
         // TODO: what?
       } else {
         var parts = name.split("!");
-        var bootstrapAmd = parts[0];
-        if (bootstrapAmd.substr(0, 4) !== "lib/") {
-          bootstrapAmd = "lib/" + bootstrapAmd.replace(/[.:]/g, "/");
+        var bootstrapAmd = "jangaroo-application";
+        if (parts.length > 1) {
+          bootstrapAmd = parts.shift();
+          if (bootstrapAmd.substr(0, 4) !== "lib/") {
+            bootstrapAmd = "lib/" + bootstrapAmd.replace(/[.:]/g, "/");
+          }
         }
-        var mainClassAmd = getModuleName(parts[1]);
+        var mainClassAmd = getModuleName(parts.shift());
         var mainArgs = config.args;
         req([bootstrapAmd, "domReady!"], function() {
           joo.addStyleSheets(); // link CSS added through joo.loadStyleSheet()
