@@ -3,10 +3,8 @@ package net.jangaroo.jooc.mvnplugin;
 import net.jangaroo.utils.CompilerUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.repository.ArtifactRepository;
-import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectBuilder;
 import org.apache.maven.project.ProjectBuildingException;
 
@@ -205,7 +203,7 @@ public class TestCompilerMojo extends AbstractCompilerMojo {
       String amdTestLibName = amdLibName + "-test";
       amdWriter.write(String.format("define(%s, [\n", CompilerUtils.quote(amdTestLibName)));
       amdWriter.write("  " + CompilerUtils.quote(amdLibName));
-      List<String> testDependencies = getTestDependencies(artifact);
+      List<String> testDependencies = getTestDependencies();
       for (String testDependency : testDependencies) {
         amdWriter.write(",\n");
         amdWriter.write("  " + CompilerUtils.quote(testDependency));
@@ -228,15 +226,8 @@ public class TestCompilerMojo extends AbstractCompilerMojo {
     }
   }
 
-  private List<String> getTestDependencies(Artifact artifact) throws ProjectBuildingException {
-    MavenProject mp = mavenProjectBuilder.buildFromRepository(artifact, remoteRepositories, localRepository, true);
-    List<String> deps = new LinkedList<String>();
-    for (Dependency dep : GenerateModuleAMDMojo.getDependencies(mp)) {
-      if ("jar".equals(dep.getType()) && dep.getScope().equals("test")) {
-        deps.add(GenerateModuleAMDMojo.computeAMDName(dep.getGroupId(), dep.getArtifactId()));
-      }
-    }
-    return deps;
+  private List<String> getTestDependencies() throws ProjectBuildingException {
+    return GenerateModuleAMDMojo.getDependencies(getProject(), getLog(), new String[]{"test"});
   }
 
 }
