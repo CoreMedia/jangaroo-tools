@@ -67,6 +67,14 @@ public class JooTestMojo extends JooTestMojoBase {
   private boolean skipTests;
 
   /**
+   * Set this to 'true' to skip running tests, but still compile them. Its use is NOT RECOMMENDED, but quite
+   * convenient on occasion.
+   *
+   * @parameter expression="${skipJooUnitTests}"
+   */
+  private boolean skipJooUnitTests;
+
+  /**
    * Output directory for test results.
    *
    * @parameter expression="${project.build.directory}/surefire-reports/"  default-value="${project.build.directory}/surefire-reports/"
@@ -141,7 +149,7 @@ public class JooTestMojo extends JooTestMojoBase {
   private String phantomBin;
 
   public void execute() throws MojoExecutionException, MojoFailureException {
-    if (!skip && !skipTests && isTestAvailable()) {
+    if (!skip && !skipTests && !skipJooUnitTests && isTestAvailable()) {
       Server server = jettyRunTest(true);
       String url = getTestUrl(server);
 
