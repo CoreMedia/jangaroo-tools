@@ -1,6 +1,6 @@
 package js {
 
-[Native]
+[Native("require")]
 public native function require(...args):*;
 
 }
