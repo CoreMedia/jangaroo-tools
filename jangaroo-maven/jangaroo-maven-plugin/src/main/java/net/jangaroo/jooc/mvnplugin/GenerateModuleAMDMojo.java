@@ -1,5 +1,6 @@
 package net.jangaroo.jooc.mvnplugin;
 
+import net.jangaroo.jooc.json.JsonArray;
 import net.jangaroo.utils.CompilerUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.maven.artifact.Artifact;
@@ -89,19 +90,19 @@ public class GenerateModuleAMDMojo extends JangarooMojo {
     Writer amdWriter = null;
     try {
       amdWriter = createAMDFile(amdName);
-      amdWriter.write(String.format("define(%s, [\n", CompilerUtils.quote(amdName)));
+      amdWriter.write(String.format("define(%s, ", CompilerUtils.quote(amdName)));
       List<String> dependencies = getDependencies();
-      for (String dependency : dependencies) {
-        amdWriter.write("  " + CompilerUtils.quote(dependency));
-        amdWriter.write(",\n");
+      String amdLibName = amdName + ".lib";
+      if (getAMDFile(amdLibName).exists()) {
+        dependencies.add("lib!" + amdLibName);
       }
-      amdWriter.write("  " + CompilerUtils.quote("lib!" + amdName + ".lib"));
-      amdWriter.write("], function() {\n");
+      amdWriter.write(new JsonArray(dependencies.toArray()).toString(2, 0));
+      amdWriter.write(", function() {\n");
       if (moduleScriptFile.exists()) {
         getLog().info("  including " + moduleScriptFile.getPath() + " into AMD file...");
         IOUtil.copy(new FileReader(moduleScriptFile), amdWriter);
       } else {
-        getLog().info("  no file " + moduleScriptFile.getPath() + " found to include into AMD file...");
+        getLog().info("  no file " + moduleScriptFile.getPath() + " found to include into AMD file.");
       }
       amdWriter.write("});");
       amdWriter.close();
@@ -133,8 +134,12 @@ public class GenerateModuleAMDMojo extends JangarooMojo {
     return "lib/" + groupId.replace('.', '/') + "/" + artifactId;
   }
 
+  private File getAMDFile(String amdName) {
+    return new File(getOutputDirectory(), String.format("amd/%s.js", amdName));
+  }
+
   Writer createAMDFile(String amdName) throws IOException {
-    File f = new File(getOutputDirectory(), "amd/" + amdName + ".js");
+    File f = getAMDFile(amdName);
     //noinspection ResultOfMethodCallIgnored
     if (f.getParentFile().mkdirs()) {
       getLog().debug("created AMD output directory '" + f.getParent() + "'.");
