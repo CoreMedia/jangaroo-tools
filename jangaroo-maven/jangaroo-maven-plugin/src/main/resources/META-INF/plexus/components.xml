@@ -29,10 +29,7 @@
         <phases>
           <process-resources>org.apache.maven.plugins:maven-resources-plugin:resources</process-resources>
           <compile>net.jangaroo:jangaroo-maven-plugin:${pom.version}:compile</compile>
-          <process-classes>
-            net.jangaroo:jangaroo-maven-plugin:${pom.version}:generate-lib,
-            net.jangaroo:jangaroo-maven-plugin:${pom.version}:generate-amd
-          </process-classes>
+          <process-classes>net.jangaroo:jangaroo-maven-plugin:${pom.version}:generate-amd</process-classes>
           <process-test-resources>org.apache.maven.plugins:maven-resources-plugin:testResources</process-test-resources>
           <test-compile>net.jangaroo:jangaroo-maven-plugin:${pom.version}:testCompile</test-compile>
           <test>net.jangaroo:jangaroo-maven-plugin:${pom.version}:test</test>
