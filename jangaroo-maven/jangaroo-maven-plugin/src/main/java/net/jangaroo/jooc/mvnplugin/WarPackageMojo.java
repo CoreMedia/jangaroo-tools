@@ -31,6 +31,7 @@ import java.io.Writer;
  *
  * @goal war-package
  * @phase prepare-package
+ * @requiresDependencyResolution runtime
  * @threadSafe
  */
 @SuppressWarnings({"ResultOfMethodCallIgnored", "UnusedDeclaration", "UnusedPrivateField"})

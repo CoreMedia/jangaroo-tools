@@ -4,10 +4,13 @@ import net.jangaroo.jooc.json.JsonArray;
 import net.jangaroo.utils.CompilerUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.repository.ArtifactRepository;
+import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.project.MavenProjectBuilder;
 import org.apache.maven.project.ProjectBuildingException;
 import org.codehaus.plexus.archiver.zip.ZipFile;
 import org.codehaus.plexus.util.IOUtil;
@@ -18,8 +21,11 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -76,6 +82,25 @@ public class GenerateModuleAMDMojo extends JangarooMojo {
    */
   protected MavenProject project;
 
+  /**
+   * @component
+   */
+  @SuppressWarnings("UnusedDeclaration")
+  private MavenProjectBuilder mavenProjectBuilder;
+
+  /**
+   * @parameter expression="${localRepository}"
+   * @required
+   */
+  @SuppressWarnings("UnusedDeclaration")
+  private ArtifactRepository localRepository;
+
+  /**
+   * @parameter expression="${project.remoteArtifactRepositories}"
+   * @required
+   */
+  @SuppressWarnings("UnusedDeclaration")
+  private List remoteRepositories;
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
@@ -149,35 +174,84 @@ public class GenerateModuleAMDMojo extends JangarooMojo {
   }
 
   private List<String> getDependencies() throws ProjectBuildingException {
-    return getDependencies(project, getLog(), new String[]{"compile", "runtime"});
+    return getDependencies(project, getLog(), new String[]{"compile", "runtime"},
+            mavenProjectBuilder, remoteRepositories, localRepository);
   }
 
-  public static List<String> getDependencies(MavenProject mp, Log log,
-                                             String[] scopes) throws ProjectBuildingException {
+  public static List<String> getDependencies(MavenProject project, Log log,
+                                             String[] scopes,
+                                             MavenProjectBuilder mavenProjectBuilder,
+                                             List remoteRepositories,
+                                             ArtifactRepository localRepository) throws ProjectBuildingException {
+    Map<String, Artifact> artifactByInternalId = new HashMap<String, Artifact>();
+    for (Artifact artifact : getArtifacts(project)) {
+      artifactByInternalId.put(getInternalId(artifact), artifact);
+    }
+    return getDependencies(artifactByInternalId, project, log, scopes, mavenProjectBuilder, remoteRepositories, localRepository);
+  }
+
+  private static List<String> getDependencies(Map<String, Artifact> artifactByInternalId, MavenProject project, Log log,
+                                             String[] scopes,
+                                             MavenProjectBuilder mavenProjectBuilder,
+                                             List remoteRepositories,
+                                             ArtifactRepository localRepository) throws ProjectBuildingException {
     List<String> deps = new LinkedList<String>();
-    for (Artifact dep : getDependencies(mp)) {
-      if ("jar".equals(dep.getType()) && ArrayUtils.contains(scopes, dep.getScope())) {
-        String amdName = computeAMDName(dep.getGroupId(), dep.getArtifactId());
-        File jarFile = dep.getFile();
-        try {
-          ZipFile jarZipFile = new ZipFile(jarFile);
-          if (jarZipFile.getEntry("META-INF/resources/amd/" + amdName + ".js") != null) {
-            log.info("  Adding dependency to AMD module " + amdName + " found in artifact " + jarFile + ".");
-            deps.add(amdName);
-          } else {
-            log.info("  No AMD module " + amdName + " found in META-INF/resoures/amd of dependent artifact JAR " + jarFile + ", dependency skipped.");
+    for (Artifact dep : getDependentArtifacts(artifactByInternalId, project)) {
+      if (ArrayUtils.contains(scopes, dep.getScope())) {
+        if ("jar".equals(dep.getType())) {
+          String amdName = computeAMDName(dep.getGroupId(), dep.getArtifactId());
+          File jarFile = dep.getFile();
+          try {
+            ZipFile jarZipFile = new ZipFile(jarFile);
+            if (jarZipFile.getEntry("META-INF/resources/amd/" + amdName + ".js") != null) {
+              log.info("  Adding dependency to AMD module " + amdName + " found in artifact " + jarFile + ".");
+              deps.add(amdName);
+            } else {
+              log.info("  No AMD module " + amdName + " found in META-INF/resoures/amd of dependent artifact JAR " + jarFile + ", dependency skipped.");
+            }
+          } catch (IOException e) {
+            log.warn("Cannot open dependent artifact JAR " + jarFile + ", no dependency generated.");
           }
-        } catch (IOException e) {
-          log.warn("Cannot open dependent artifact JAR " + jarFile + ", no dependency generated.");
+        } else if ("pom".equals(dep.getType())) {
+          // recurse into pom-packaged modules.
+          MavenProject subProject = mavenProjectBuilder.buildFromRepository(dep, remoteRepositories, localRepository, true);
+          deps.addAll(getDependencies(artifactByInternalId, subProject, log, scopes, mavenProjectBuilder,
+                  remoteRepositories, localRepository));
         }
       }
     }
     return deps;
   }
 
-  @SuppressWarnings({ "unchecked" })
-  public static Set<Artifact> getDependencies(MavenProject mp) {
-    return (Set<Artifact>) mp.getDependencyArtifacts();
+  public static List<Artifact> getDependentArtifacts(Map<String, Artifact> artifactByInternalId, MavenProject project)
+          throws ProjectBuildingException {
+    List<Dependency> dependencies = getDependencies(project);
+    List<Artifact> result = new ArrayList<Artifact>();
+    for (Dependency dependency : dependencies) {
+      Artifact artifact = artifactByInternalId.get(getInternalId(dependency));
+      if (artifact != null) {
+        result.add(artifact);
+      }
+    }
+    return result;
+  }
+
+  private static String getInternalId(Dependency dep) {
+    return dep.getGroupId() + ":" + dep.getArtifactId();
+  }
+
+  private static String getInternalId(Artifact art) {
+    return art.getGroupId() + ":" + art.getArtifactId();
+  }
+
+  @SuppressWarnings("unchecked")
+  public static List<Dependency> getDependencies(MavenProject project) {
+    return project.getDependencies();
+  }
+
+  @SuppressWarnings("unchecked")
+  private static Set<Artifact> getArtifacts(MavenProject project) {
+    return project.getArtifacts();
   }
 
 }

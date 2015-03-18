@@ -227,7 +227,8 @@ public class TestCompilerMojo extends AbstractCompilerMojo {
   }
 
   private List<String> getTestDependencies() throws ProjectBuildingException {
-    return GenerateModuleAMDMojo.getDependencies(getProject(), getLog(), new String[]{"test"});
+    return GenerateModuleAMDMojo.getDependencies(getProject(), getLog(), new String[]{"test"},
+            mavenProjectBuilder, remoteRepositories, localRepository);
   }
 
 }
