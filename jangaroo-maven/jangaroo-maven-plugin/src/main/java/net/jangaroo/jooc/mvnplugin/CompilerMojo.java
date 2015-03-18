@@ -180,6 +180,7 @@ public class CompilerMojo extends AbstractCompilerMojo {
     DirectoryScanner scanner = new DirectoryScanner();
     scanner.setBasedir(sourceDirectory);
     scanner.setIncludes(new String[]{"**/*.js"});
+    scanner.setExcludes(new String[]{"**/*_properties_*.js"});
     scanner.scan();
     String[] sources = scanner.getIncludedFiles();
     getLog().debug("start generating compressed library");
