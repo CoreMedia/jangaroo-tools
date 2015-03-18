@@ -31,12 +31,14 @@
             net.jangaroo:exml-maven-plugin:${pom.version}:exml
           </generate-sources>
           <generate-resources>
-            net.jangaroo:jangaroo-maven-plugin:${pom.version}:generate-amd
-           ,net.jangaroo:exml-maven-plugin:${pom.version}:exml-xsd
+            net.jangaroo:exml-maven-plugin:${pom.version}:exml-xsd
           </generate-resources>
           <process-resources>org.apache.maven.plugins:maven-resources-plugin:resources</process-resources>
           <compile>net.jangaroo:jangaroo-maven-plugin:${pom.version}:compile</compile>
-          <process-classes>net.jangaroo:jangaroo-maven-plugin:${pom.version}:generate-lib</process-classes>
+          <process-classes>
+            net.jangaroo:jangaroo-maven-plugin:${pom.version}:generate-lib,
+            net.jangaroo:jangaroo-maven-plugin:${pom.version}:generate-amd
+          </process-classes>
           <generate-test-sources>net.jangaroo:exml-maven-plugin:${pom.version}:test-exml</generate-test-sources>
           <process-test-resources>org.apache.maven.plugins:maven-resources-plugin:testResources</process-test-resources>
           <test-compile>net.jangaroo:jangaroo-maven-plugin:${pom.version}:testCompile</test-compile>

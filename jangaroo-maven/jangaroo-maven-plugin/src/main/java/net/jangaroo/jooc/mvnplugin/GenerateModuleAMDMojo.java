@@ -31,7 +31,7 @@ import java.util.Set;
 /**
  *
  * @goal generate-amd
- * @phase generate-resources
+ * @phase process-classes
  * @threadSafe
  * @requiresDependencyResolution runtime
  */
@@ -68,7 +68,7 @@ public class GenerateModuleAMDMojo extends JangarooMojo {
   /**
    * Name of an optional module file that contains the "body" of this Maven module's AMD descriptor.
    *
-   * @parameter expression="${project.build.resources[0].directory}/META-INF/resources/joo/${project.artifactId}.module.js"
+   * @parameter expression="${project.build.outputDirectory}/META-INF/resources/joo/${project.artifactId}.module.js"
    */
   @SuppressWarnings("UnusedDeclaration")
   private File moduleScriptFile;
