@@ -12,8 +12,8 @@ import ${import};
  *
  * <p>This class serves as a typed config object for the constructor of the class <code>${componentClassName}</code>.
  * It defines the EXML element <code>&lt;${ns}:${name}></code> with <code>xmlns:${ns}="exml:${packageName}"</code>.</p>
-<#if type??>
- * <p>Using this config class also takes care of registering the target class under the ${type.type}
+<#if type.extTypeAttribute??>
+ * <p>Using this config class also takes care of registering the target class under the ${type.extTypeAttribute}
  * <code>"${packageName}.${name}"</code> with Ext JS.</p>
 </#if>
  *
@@ -22,7 +22,7 @@ import ${import};
  * ${escapedDescriptionAts}
 </#if>
  */
-[ExtConfig(target="${componentClassName}"<#if type??>, ${type.type}</#if>)]
+[ExtConfig(target="${componentClassName}"<#if type.type??>, ${type.type}</#if>)]
 <#list annotations as annotation>
 [${annotation}]
 </#list>
@@ -34,15 +34,15 @@ public dynamic class ${name} extends ${superClassName} {
   public static const ${constant.name}:${constant.type} = ${constant.value};
 </#list>
 
-<#if type??>
+<#if type.type??>
   public static native function get ${type.type}():String;
 
 </#if>
   /**
    * <p>Use this constructor to create a typed config object for the constructor of the class
    * <code>${componentClassName}</code>.
-<#if type??>
-   * Using this config class also takes care of registering the target class under the ${type.type}
+<#if type.extTypeAttribute??>
+   * Using this config class also takes care of registering the target class under the ${type.extTypeAttribute}
    * "${packageName}.${name}" with Ext JS.
 </#if>
    * </p>

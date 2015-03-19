@@ -140,6 +140,9 @@ public class ConfigClassBuilder extends AstVisitorBase {
         if (configClass.getComponentClassName() == null) {
           throw new CompilerError(annotation.getSymbol(), "A " + TARGET_ANNOTATION_PARAMETER_NAME + " parameter must be provided for an [" + EXT_CONFIG_META_NAME + "] annotation.");
         }
+        if (configClass.getType() == null) {
+          configClass.setType(ConfigClassType.CLASS);
+        }
       }
     }
   }

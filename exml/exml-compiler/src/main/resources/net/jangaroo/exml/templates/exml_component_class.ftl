@@ -10,7 +10,7 @@ import ${import};
 /**
  * ${model.escapedDescriptionWithoutAts!}
  *
- * <p>This component is created by <#if model.configClass.type??>the ${model.configClass.type.type} <code>'${model.configClass.fullName}'</code> /</#if> the EXML element <code>&lt;${model.configClass.ns}:${model.configClass.name}></code>
+ * <p>This component is created by <#if model.configClass.type.extTypeAttribute??>the ${model.configClass.type.extTypeAttribute} <code>'${model.configClass.fullName}'</code> /</#if> the EXML element <code>&lt;${model.configClass.ns}:${model.configClass.name}></code>
  * with <code>xmlns:${model.configClass.ns}="exml:${model.configClass.packageName}"</code>.</p>
  * <p>See the config class for details.</p>
  *
