@@ -2,7 +2,7 @@ define(function() {
   "use strict";
   var debug = "false";
   if (typeof location === "object" && typeof location.hash === "string") {
-    var match = location.hash.match(/(?:^#|&)joo.debug(?:=(true|false|linked)|&|$)/);
+    var match = location.hash.match(/(?:^#|&)joo.debug(?:=(true|false)|&|$)/);
     if (match) {
       debug = match[1] || "true";
     }
