@@ -28,7 +28,6 @@ public static const INSTANCE:${resourceBundle.className}_properties = ResourceBu
  */
 </#if>
 <#if property.keyIsIdentifier>
-[Resource(key='${property.key}',bundle='${resourceBundle.className}<#if locale??>_${locale}</#if>')]
 public native function get ${property.key}():String;
 </#if>
 </#list>
