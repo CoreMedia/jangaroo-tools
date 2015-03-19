@@ -163,6 +163,10 @@ public abstract class AbstractCompilerMojo extends JangarooMojo {
 
   protected abstract File getApiOutputDirectory();
 
+  protected boolean isGenerateSourceMaps() {
+    return generateSourceMaps;
+  }
+
   /**
    * Runs the compile mojo
    *

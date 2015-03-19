@@ -216,13 +216,15 @@ public class CompilerMojo extends AbstractCompilerMojo {
     options.setWarningLevel(DiagnosticGroups.NON_STANDARD_JSDOC, CheckLevel.OFF);
     // since we use AMD, no global variables exist:
     options.variableRenaming = VariableRenamingPolicy.ALL;
-    options.sourceMapFormat = SourceMap.Format.V3;
-    options.sourceMapOutputPath = aggregationOutputFile.getParent();
-    options.sourceMapDetailLevel = SourceMap.DetailLevel.ALL;
-    options.sourceMapLocationMappings = new ArrayList<SourceMap.LocationMapping>();
-    String sourcePath = sourceDirectory.getCanonicalPath().replace(File.separatorChar, '/');
-    String relativePath = CompilerUtils.getRelativePath(aggregationOutputFile.getParentFile(), sourceDirectory, false).replace(File.separatorChar, '/');
-    options.sourceMapLocationMappings.add(new SourceMap.LocationMapping(sourcePath, relativePath));
+    if (isGenerateSourceMaps()) {
+      options.sourceMapFormat = SourceMap.Format.V3;
+      options.sourceMapOutputPath = aggregationOutputFile.getParent();
+      options.sourceMapDetailLevel = SourceMap.DetailLevel.ALL;
+      options.sourceMapLocationMappings = new ArrayList<SourceMap.LocationMapping>();
+      String sourcePath = sourceDirectory.getCanonicalPath().replace(File.separatorChar, '/');
+      String relativePath = CompilerUtils.getRelativePath(aggregationOutputFile.getParentFile(), sourceDirectory, false).replace(File.separatorChar, '/');
+      options.sourceMapLocationMappings.add(new SourceMap.LocationMapping(sourcePath, relativePath));
+    }
     options.setOutputCharset(encoding);
 
     Charset charset = Charset.forName(encoding);
@@ -245,27 +247,31 @@ public class CompilerMojo extends AbstractCompilerMojo {
     getLog().info("writing library file " + aggregationOutputFile.getCanonicalPath());
     OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(aggregationOutputFile), encoding);
     writer.write(compiler.toSource());
-    writer.write("\n//# sourceMappingURL=" + aggregationOutputFile.getName() + ".map");
-    IOUtil.close(writer);
-    getLog().info("projecting library source map...");
-    StringWriter sourceMapWriter = new StringWriter();
-    result.sourceMap.appendTo(sourceMapWriter, aggregationOutputFile.getName());
-    JSONObject sourceMapJson = new JSONObject(sourceMapWriter.toString());
-    JSONArray jsSources = (JSONArray) sourceMapJson.get("sources");
-    getLog().info("projecting " + jsSources.length() + " *.js source names to *.as.");
-    List<String> asSources = new ArrayList<String>(jsSources.length());
-    for (int i = 0; i < jsSources.length(); i++) {
-      String source = (String) jsSources.get(i);
-      source = source.replaceFirst(".js$", ".as");
-      asSources.add(source);
+    if (isGenerateSourceMaps()) {
+      writer.write("\n//# sourceMappingURL=" + aggregationOutputFile.getName() + ".map");
     }
-    sourceMapJson.put("sources", new JSONArray(asSources));
+    IOUtil.close(writer);
+    if (isGenerateSourceMaps()) {
+      getLog().info("projecting library source map...");
+      StringWriter sourceMapWriter = new StringWriter();
+      result.sourceMap.appendTo(sourceMapWriter, aggregationOutputFile.getName());
+      JSONObject sourceMapJson = new JSONObject(sourceMapWriter.toString());
+      JSONArray jsSources = (JSONArray) sourceMapJson.get("sources");
+      getLog().info("projecting " + jsSources.length() + " *.js source names to *.as.");
+      List<String> asSources = new ArrayList<String>(jsSources.length());
+      for (int i = 0; i < jsSources.length(); i++) {
+        String source = (String) jsSources.get(i);
+        source = source.replaceFirst(".js$", ".as");
+        asSources.add(source);
+      }
+      sourceMapJson.put("sources", new JSONArray(asSources));
 
-    String libSourceMapFileName = aggregationOutputFile.getCanonicalPath() + ".map";
-    getLog().info("writing library source map " + libSourceMapFileName);
-    OutputStreamWriter sourceMapFileWriter = new OutputStreamWriter(new FileOutputStream(libSourceMapFileName), encoding);
-    sourceMapFileWriter.write(sourceMapJson.toString());
-    IOUtil.close(sourceMapFileWriter);
+      String libSourceMapFileName = aggregationOutputFile.getCanonicalPath() + ".map";
+      getLog().info("writing library source map " + libSourceMapFileName);
+      OutputStreamWriter sourceMapFileWriter = new OutputStreamWriter(new FileOutputStream(libSourceMapFileName), encoding);
+      sourceMapFileWriter.write(sourceMapJson.toString());
+      IOUtil.close(sourceMapFileWriter);
+    }
     getLog().debug("end generating compressed library");
   }
 }
