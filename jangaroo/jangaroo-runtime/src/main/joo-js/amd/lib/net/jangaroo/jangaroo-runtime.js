@@ -4,16 +4,27 @@ define("lib/net/jangaroo/jangaroo-runtime", ["require", "as3-rt/getModuleName", 
   var scripts = [];
   var styleSheets = [];
   var joo = theGlobalObject.joo = theGlobalObject.joo || {};
+  joo.debug = false;
+  if (typeof theGlobalObject.location === "object" && typeof theGlobalObject.location.hash === "string") {
+    var match = theGlobalObject.location.hash.match(/(?:^#|&)joo.debug(?:=(true|false)|&|$)/);
+    if (match) {
+      joo.debug = !match[1] || match[1] === "true";
+    }
+  }
   joo.loadModule = function() {
     console.log("deprecated: loadModule() no longer needed.");
   };
-  joo.loadScript = function(script) {
-    if (script) {
+  joo.loadScript = function(script, debugScript) {
+    if (this.debug && debugScript) {
+      scripts.push(debugScript);
+    } else if (script) {
       scripts.push(script);
     }
   };
-  joo.loadDebugScript = function() {
-    // TODO: implement debug scripts!
+  joo.loadDebugScript = function(script) {
+    if (this.debug && script) {
+      scripts.push(script);
+    }
   };
   joo.loadStyleSheet = function(styleSheet) {
     styleSheets.push(styleSheet);
