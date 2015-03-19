@@ -42,7 +42,7 @@
   <parent>
     <groupId>net.jangaroo</groupId>
     <artifactId>jangaroo-parent</artifactId>
-    <version>3-preview-1-SNAPSHOT</version>
+    <version>3-preview-1</version>
     <relativePath>../../jangaroo-parent/pom.xml</relativePath>
   </parent>
   <name>properties files to ActionScript3 transformer</name>
