@@ -58,9 +58,13 @@ define(["as3/joo/getOrCreatePackage"], function(getOrCreatePackage) {
   return {
     load: function (name, req, load, config) {
       'use strict';
-      req([name + suffix], function() {
-        load(req(name));
-      });
+      if (name.substr(-1) === "-") { // load Ext JS ext-lang-<locale>: 
+        req([name + locale], load);
+      } else {
+        req([name + suffix], function() {
+          load(req(name));
+        });
+      }
     }
   };
 
