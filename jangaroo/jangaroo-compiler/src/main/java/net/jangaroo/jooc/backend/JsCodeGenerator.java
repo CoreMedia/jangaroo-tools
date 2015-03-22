@@ -589,7 +589,6 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     if (!classDefinitionBuilder.staticMembers.isEmpty()) {
       classDefinition.set("staticMembers", convertMembers(classDefinitionBuilder.staticMembers));
     }
-    classDefinitionBuilder.staticCode.insert(0, classDefinitionBuilder.staticInitializerCode.toString());
     return classDefinition;
   }
 
@@ -1537,11 +1536,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
     if (mustInitializeInStaticCode(variableDeclaration)) {
       if (variableDeclaration.isStatic()) {
-        primaryClassDefinitionBuilder.staticInitializerCode.append("    ").append(variableName);
-        if (variableDeclaration.isStatic()) {
-          primaryClassDefinitionBuilder.staticInitializerCode.append("$static");
-        }
-        primaryClassDefinitionBuilder.staticInitializerCode.append("_();\n");
+        primaryClassDefinitionBuilder.staticCode.append("    ").append(variableName).append("$static_();\n");
       }
     } else {
       String value;
@@ -2020,7 +2015,6 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     JsonObject metadata = new JsonObject();
     Map<String,PropertyDefinition> members = new LinkedHashMap<String, PropertyDefinition>();
     Map<String,PropertyDefinition> staticMembers = new LinkedHashMap<String, PropertyDefinition>();
-    StringBuilder staticInitializerCode = new StringBuilder();
     StringBuilder staticCode = new StringBuilder();
     boolean super$Used = false;
 
