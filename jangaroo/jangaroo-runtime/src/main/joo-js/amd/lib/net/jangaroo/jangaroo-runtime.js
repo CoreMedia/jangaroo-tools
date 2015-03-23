@@ -3,7 +3,13 @@
   // old *.module.js API compatibility:
   var scripts = [];
   var styleSheets = [];
-  var joo = this.joo = this.joo || {};
+  if (!this.joo) {
+    this.joo = {};
+  }
+  var joo = this.joo;
+  if (!joo.localization) {
+    joo.localization = {};
+  }
   joo.debug = false;
   if (typeof this.location === "object" && typeof this.location.hash === "string") {
     var match = this.location.hash.match(/(?:^#|&)joo.debug(?:=(true|false)|&|$)/);
@@ -46,7 +52,7 @@
 }).call(this);
 define("lib/net/jangaroo/jangaroo-runtime", ["lib!lib/net/jangaroo/jangaroo-runtime.lib"], function(rtMin) {
   require(["as3/joo/ResourceBundleAwareClassLoader"], function(ClassLoader) {
-    joo.classLoader = new ClassLoader._();
+    joo.classLoader = ClassLoader._.INSTANCE;
   });
   return rtMin;
 });
