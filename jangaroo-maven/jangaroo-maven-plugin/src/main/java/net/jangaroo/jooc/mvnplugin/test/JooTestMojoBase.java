@@ -14,8 +14,6 @@ import org.mortbay.jetty.plugin.JettyWebAppContext;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -73,10 +71,10 @@ public abstract class JooTestMojoBase extends AbstractMojo {
    * Every port is tried until a free one is found or all ports in the range
    * are occupied (which results in the build to fail).
    *
-   * @parameter
+   * @parameter expression="${jooUnitJettyPortUpperBound}" default-value=10200
    */
   @SuppressWarnings({"UnusedDeclaration", "FieldCanBeLocal"})
-  private int jooUnitJettyPortUpperBound = 10200;
+  private int jooUnitJettyPortUpperBound;
   /**
    * To avoid port clashes when multiple tests are running at the same
    * time on the same machine, the jetty port is selected randomly within
@@ -86,19 +84,20 @@ public abstract class JooTestMojoBase extends AbstractMojo {
    * When using goal <code>jetty-run-tests</code>, this lower bound is
    * always used.
    *
-   * @parameter
+   * @parameter expression="${jooUnitJettyPortLowerBound}" default-value=10100
    */
   @SuppressWarnings({"UnusedDeclaration", "FieldCanBeLocal"})
-  private int jooUnitJettyPortLowerBound = 10100;
+  private int jooUnitJettyPortLowerBound;
+  /**
+   * The host name to use to reach the locally started Jetty listenes, usually the default, "localhost".
+   *
+   * @parameter expression="${jooUnitJettyHost}" default-value="localhost"
+   */
+  @SuppressWarnings({"UnusedDeclaration"})
+  private String jooUnitJettyHost;
 
-  protected static String getJettyUrl(Server server) throws MojoExecutionException {
-    String url;
-    try {
-      url = "http://" + InetAddress.getLocalHost().getCanonicalHostName() + ":" + server.getConnectors()[0].getPort();
-    } catch (UnknownHostException e) {
-      throw new MojoExecutionException("I just don't know my own hostname ... ", e);
-    }
-    return url;
+  protected String getJettyUrl(Server server) {
+    return "http://" + jooUnitJettyHost + ":" + server.getConnectors()[0].getPort();
   }
 
   protected boolean isTestAvailable() {
