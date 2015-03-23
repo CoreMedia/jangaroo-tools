@@ -10,13 +10,10 @@ import org.junit.Test;
 
 import java.io.File;
 import java.net.URISyntaxException;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Set;
 
 /**
  *
@@ -66,33 +63,33 @@ public class ExmlValidatorTest extends AbstractExmlTest {
 
     Assert.assertEquals(4, validationErrors.size());
     Iterator<Map.Entry<FilePosition,String>> validationErrorIterator = validationErrors.entrySet().iterator();
-    assertValidationErrorContains(testExmlFilename, 4,
-      words("cvc-datatype-valid.1.2.3", "wrongType", "Number"),
-      validationErrorIterator.next());
-    assertValidationErrorContains(testExmlFilename, 4,
-      words("cvc-attribute.3", "wrongType", "x", "panel", "Number"),
-      validationErrorIterator.next());
-    assertValidationErrorContains(testExmlFilename, 4,
-      words("cvc-complex-type.3.2.2", "wrongAttribute", "panel"),
-      validationErrorIterator.next());
-    assertValidationErrorContains(testExmlFilename, 5,
-      words("cvc-complex-type.3.2.2", "anotherWrongAttribute", "baseAction"),
-      validationErrorIterator.next());
+    // "cvc-datatype-valid.1.2.3: 'wrongType' is not a valid value of union type 'Number'."
+    assertValidationErrorEquals(testExmlFilename, 4,
+            new String[]{"cvc-datatype-valid.1.2.3:", "wrongType", "Number"},
+            validationErrorIterator.next());
+    // "cvc-attribute.3: The value 'wrongType' of attribute 'x' on element 'panel' is not valid with respect to its type, 'Number'."
+    assertValidationErrorEquals(testExmlFilename, 4,
+            new String[]{"cvc-attribute.3:", "wrongType", "x", "panel", "Number"},
+            validationErrorIterator.next());
+    // "cvc-complex-type.3.2.2: Attribute 'wrongAttribute' is not allowed to appear in element 'panel'."
+    assertValidationErrorEquals(testExmlFilename, 4,
+            new String[]{"cvc-complex-type.3.2.2:", "wrongAttribute", "panel"},
+            validationErrorIterator.next());
+    // "cvc-complex-type.3.2.2: Attribute 'anotherWrongAttribute' is not allowed to appear in element 'baseAction'."
+    assertValidationErrorEquals(testExmlFilename, 5,
+            new String[]{"cvc-complex-type.3.2.2:", "anotherWrongAttribute", "baseAction"},
+            validationErrorIterator.next());
   }
 
-  private void assertValidationErrorContains(String expectedFilename, int expectedLine, Set<String> expectedWords, Map.Entry<FilePosition, String> validationError) {
-    Assert.assertEquals("Expected file name", expectedFilename, validationError.getKey().getFileName());
-    Assert.assertEquals("Expected line number", expectedLine, validationError.getKey().getLine());
-    for (String expectedWord : expectedWords) {
-      Assert.assertTrue("Message should contain '" + expectedWord + "'", validationError.getValue().contains(expectedWord));
+  private void assertValidationErrorEquals(String expectedFilename, int expectedLine, String[] expectedMessageTokens, Map.Entry<FilePosition, String> validationError) {
+    Assert.assertEquals(expectedFilename, validationError.getKey().getFileName());
+    for (String expectedMessageToken : expectedMessageTokens) {
+      Assert.assertTrue("Validation error '" + validationError.getValue() + "' contains phrase '" + expectedMessageToken + "'.", validationError.getValue().contains(expectedMessageToken));
     }
+    Assert.assertEquals(expectedLine, validationError.getKey().getLine());
   }
 
   private File getFile(String path) throws URISyntaxException {
     return new File(ExmlValidatorTest.class.getResource("/test-module" + path).toURI());
-  }
-
-  private Set<String> words(String... words) {
-    return new HashSet<String>(Arrays.asList(words));
   }
 }
