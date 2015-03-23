@@ -66,7 +66,18 @@ public class ApplyExpr extends Expr {
   }
 
   public boolean isTypeCast() {
-    return getFun() instanceof IdeExpr && !isInsideNewExpr() && isNonCoercingType((IdeExpr) getFun());
+    return getFun() instanceof IdeExpr && !isInsideNewExpr() && isNonCoercingType((IdeExpr) getFun())
+            && hasExactlyOneArgument();
+  }
+
+  private boolean hasExactlyOneArgument() {
+    if (getArgs() != null) {
+      CommaSeparatedList<Expr> expr = getArgs().getExpr();
+      if (expr != null && expr.getHead() != null && expr.getTail() == null) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private boolean isNonCoercingType(IdeExpr fun) {
@@ -81,9 +92,7 @@ public class ApplyExpr extends Expr {
 
   public void analyze(AstNode parentNode) {
     super.analyze(parentNode);
-    if (!isTypeCast()) {
-      getFun().analyze(this);
-    }
+    getFun().analyze(this);
     if (getArgs() != null) {
       getArgs().analyze(this);
     }

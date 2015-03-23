@@ -1049,7 +1049,6 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       out.writeSymbol(applyExpr.getArgs().getRParen());
     } else {
       generateFunJsCode(applyExpr);
-      visitIfNotNull(applyExpr.getArgs());
     }
   }
 
@@ -1057,11 +1056,16 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     // leave out constructor function if called as type cast function!
     // these old-style type casts are soo ugly....
     if (applyExpr.isTypeCast()) {
-      out.beginComment();
+      out.writeToken("AS3.cast");
+      out.writeSymbol(applyExpr.getArgs().getLParen());
       applyExpr.getFun().visit(this);
-      out.endComment();
+      out.writeToken(",");
+      // isTypeCast() ensures that there is exactly one parameter:
+      applyExpr.getArgs().getExpr().getHead().visit(this);
+      out.writeSymbol(applyExpr.getArgs().getRParen());
     } else {
       applyExpr.getFun().visit(this);
+      visitIfNotNull(applyExpr.getArgs());
     }
   }
 

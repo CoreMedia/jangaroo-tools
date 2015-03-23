@@ -1,4 +1,4 @@
-define("as3-rt/AS3", ["as3/joo/getOrCreatePackage", "as3/joo/JooClassDeclaration"], function(getOrCreatePackage, JooClassDeclaration) {
+define("as3-rt/AS3", ["as3/joo/getOrCreatePackage", "as3/joo/JooClassDeclaration", "as3/trace"], function(getOrCreatePackage, JooClassDeclaration, trace) {
   "use strict";
   function toString() {
     return "[Class " + this.$class.name + "]";
@@ -144,6 +144,10 @@ define("as3-rt/AS3", ["as3/joo/getOrCreatePackage", "as3/joo/JooClassDeclaration
     return boundMethod;
   }
 
+  var OBJECT_TO_STRING = Object.prototype.toString;
+  var TYPE_OBJECT = "[object Object]";
+  var JOO_JAVASCRIPT_OBJECT = "joo.JavaScriptObject";
+
   /**
    * Internal utility to check whether the non-null/-undefined "object" is an instance of the given type.
    * Note that ActionScript, in contrast to JavaScript, coerces primitives to objects before doing the check!
@@ -170,7 +174,20 @@ define("as3-rt/AS3", ["as3/joo/getOrCreatePackage", "as3/joo/JooClassDeclaration
           }
         }
         // type is a Class: instanceof returns false negatives in some browsers, so check constructor property, too:
-        return object instanceof type || object.constructor === type;
+        if (object instanceof type || object.constructor === type) {
+          return true;
+        }
+        // Is it a simple Object?
+        if (OBJECT_TO_STRING.call(object) === TYPE_OBJECT) {
+         // check whether type extends joo.JavaScriptObject:
+         var currentType = type.$class;
+         while (currentType) {
+           if (currentType.fullClassName === JOO_JAVASCRIPT_OBJECT) {
+             return true;
+           }
+           currentType = currentType.superClassDeclaration;
+         }
+       }
     }
     return false;
   }
@@ -184,13 +201,15 @@ define("as3-rt/AS3", ["as3/joo/getOrCreatePackage", "as3/joo/JooClassDeclaration
   }
 
   function cast(type, object) {
-    if (object === undefined || object === null) {
-      return null;
+    if (object && !type.interfaces && !isInstance(type, object)) {
+      // Currently, we do not even warn when the type is an interface.
+      // Like joo.JavaScriptObject, there should be a marker interface or annotation
+      // that any Object can be cast to the given interface.
+      // Later, the following warning will be replaced by throwing a TypeError,
+      // but we do not dare change Jangaroo-2-semantics yet.
+      trace("[WARN]", "'" + object + "' cannot be cast to " + type + ".");
     }
-    if (isInstance(type, object)) {
-      return object;
-    }
-    throw new TypeError("'" + object + "' cannot be cast to " + type + ".");
+    return object;
   }
 
   var bindingStack = [];
