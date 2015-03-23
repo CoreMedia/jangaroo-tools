@@ -63,23 +63,29 @@ public class ExmlValidatorTest extends AbstractExmlTest {
 
     Assert.assertEquals(4, validationErrors.size());
     Iterator<Map.Entry<FilePosition,String>> validationErrorIterator = validationErrors.entrySet().iterator();
+    // "cvc-datatype-valid.1.2.3: 'wrongType' is not a valid value of union type 'Number'."
     assertValidationErrorEquals(testExmlFilename, 4,
-            "cvc-datatype-valid.1.2.3: 'wrongType' is not a valid value of union type 'Number'.",
+            new String[]{"cvc-datatype-valid.1.2.3:", "wrongType", "Number"},
             validationErrorIterator.next());
+    // "cvc-attribute.3: The value 'wrongType' of attribute 'x' on element 'panel' is not valid with respect to its type, 'Number'."
     assertValidationErrorEquals(testExmlFilename, 4,
-            "cvc-attribute.3: The value 'wrongType' of attribute 'x' on element 'panel' is not valid with respect to its type, 'Number'.",
+            new String[]{"cvc-attribute.3:", "wrongType", "x", "panel", "Number"},
             validationErrorIterator.next());
+    // "cvc-complex-type.3.2.2: Attribute 'wrongAttribute' is not allowed to appear in element 'panel'."
     assertValidationErrorEquals(testExmlFilename, 4,
-            "cvc-complex-type.3.2.2: Attribute 'wrongAttribute' is not allowed to appear in element 'panel'.",
+            new String[]{"cvc-complex-type.3.2.2:", "wrongAttribute", "panel"},
             validationErrorIterator.next());
+    // "cvc-complex-type.3.2.2: Attribute 'anotherWrongAttribute' is not allowed to appear in element 'baseAction'."
     assertValidationErrorEquals(testExmlFilename, 5,
-            "cvc-complex-type.3.2.2: Attribute 'anotherWrongAttribute' is not allowed to appear in element 'baseAction'.",
+            new String[]{"cvc-complex-type.3.2.2:", "anotherWrongAttribute", "baseAction"},
             validationErrorIterator.next());
   }
 
-  private void assertValidationErrorEquals(String expectedFilename, int expectedLine, String expectedMessage, Map.Entry<FilePosition, String> validationError) {
+  private void assertValidationErrorEquals(String expectedFilename, int expectedLine, String[] expectedMessageTokens, Map.Entry<FilePosition, String> validationError) {
     Assert.assertEquals(expectedFilename, validationError.getKey().getFileName());
-    Assert.assertEquals(ExmlValidator.EXML_VALIDATION_MESSAGE_PREFIX + expectedMessage, validationError.getValue());
+    for (String expectedMessageToken : expectedMessageTokens) {
+      Assert.assertTrue("Validation error '" + validationError.getValue() + "' contains phrase '" + expectedMessageToken + "'.", validationError.getValue().contains(expectedMessageToken));
+    }
     Assert.assertEquals(expectedLine, validationError.getKey().getLine());
   }
 
