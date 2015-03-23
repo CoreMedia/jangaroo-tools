@@ -1,16 +1,18 @@
-theGlobalObject = this;
-define("lib/net/jangaroo/jangaroo-runtime", ["require", "as3-rt/getModuleName", "lib!lib/net/jangaroo/jangaroo-runtime.lib"], function(require, getModuleName, rtMin) {
+//noinspection ThisExpressionReferencesGlobalObjectJS
+(function() {
   // old *.module.js API compatibility:
   var scripts = [];
   var styleSheets = [];
-  var joo = theGlobalObject.joo = theGlobalObject.joo || {};
+  var joo = this.joo = this.joo || {};
   joo.debug = false;
-  if (typeof theGlobalObject.location === "object" && typeof theGlobalObject.location.hash === "string") {
-    var match = theGlobalObject.location.hash.match(/(?:^#|&)joo.debug(?:=(true|false)|&|$)/);
+  if (typeof this.location === "object" && typeof this.location.hash === "string") {
+    var match = this.location.hash.match(/(?:^#|&)joo.debug(?:=(true|false)|&|$)/);
     if (match) {
       joo.debug = !match[1] || match[1] === "true";
     }
   }
+  joo.runtimeApiVersion = "3.0.0";
+  joo.compilerVersion = "3.0.0";
   joo.loadModule = function() {
     console.log("deprecated: loadModule() no longer needed.");
   };
@@ -29,14 +31,6 @@ define("lib/net/jangaroo/jangaroo-runtime", ["require", "as3-rt/getModuleName", 
   joo.loadStyleSheet = function(styleSheet) {
     styleSheets.push(styleSheet);
   };
-  joo.classLoader = {
-    import_: function() {
-      require(Array.prototype.map.call(arguments, getModuleName));
-    },
-    getClassDeclaration: function(qName) {
-      return require(getModuleName(qName))._.$class;
-    }
-  };
   joo.addStyleSheets = function() {
     for (var i = 0; i < styleSheets.length; i++) {
       var link = document.createElement("link");
@@ -49,5 +43,10 @@ define("lib/net/jangaroo/jangaroo-runtime", ["require", "as3-rt/getModuleName", 
   joo.getScripts = function() {
     return scripts;
   };
+}).call(this);
+define("lib/net/jangaroo/jangaroo-runtime", ["lib!lib/net/jangaroo/jangaroo-runtime.lib"], function(rtMin) {
+  require(["as3/joo/ResourceBundleAwareClassLoader"], function(ClassLoader) {
+    joo.classLoader = new ClassLoader._();
+  });
   return rtMin;
 });

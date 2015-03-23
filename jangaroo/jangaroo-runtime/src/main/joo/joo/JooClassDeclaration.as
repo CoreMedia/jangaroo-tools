@@ -20,11 +20,11 @@ public class JooClassDeclaration extends NativeClassDeclaration {
    */
   public native function get superClassDeclaration():NativeClassDeclaration;
 
-  public native function getMemberDeclaration(namespace:String, memberName:String):MemberDeclaration;
+  public native function getMemberDeclaration(namespace_:String, memberName:String):MemberDeclaration;
 
-  public function JooClassDeclaration(qName:String, extends_:Class, implements_:Array,
+  public function JooClassDeclaration(qName:String, constructor_:Function, extends_:Class, implements_:Array,
                                       metadata:Object) {
-    super(qName);
+    super(qName, constructor_);
   }
 
 }

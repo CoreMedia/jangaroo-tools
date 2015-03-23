@@ -4,7 +4,7 @@ package joo {
  * @deprecated use <code>joo.loadClasses()</code>.
  * @see joo.#loadClasses()
  */
-public class StandardClassLoader {
+public class StandardClassLoader extends SystemClassLoader {
 
   private var imports:Array;
 
@@ -50,7 +50,7 @@ public class StandardClassLoader {
    * @return the last initialized class (constructor function). It only makes sense to use the return value
    *   if you use this method with exactly one parameter.
    */
-  public function init(... classes) : Function {
+  override public function init(... classes) : Function {
     return classes[classes.length - 1];
   }
 

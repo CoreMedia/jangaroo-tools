@@ -16,14 +16,31 @@
 // JangarooScript runtime support. Author: Frank Wienberg
 
 package joo {
-import js.require;
 
 public class SystemClassLoader {
 
   public var debug:Boolean;
 
+  //noinspection JSMethodCanBeStatic
   public function getClassDeclaration(fullClassName:String):NativeClassDeclaration {
-    return require("as3!" + fullClassName)["$class"];
+    try {
+      var constructor_:Function = getQualifiedObject(fullClassName) as Function;
+      if (constructor_) {
+        var classDeclaration:NativeClassDeclaration = constructor_["$class"];
+        if (!classDeclaration) {
+          classDeclaration = new NativeClassDeclaration(fullClassName, constructor_);
+          try {
+            constructor_["$class"] = classDeclaration;
+          } catch (e:*) {
+            // Some built-in constructors cannot cope with expando properties.
+            // Ignore; NativeClassDeclaration will be recreated every time.
+          }
+        }
+        return classDeclaration;
+      }
+    } catch (e:*) {
+      return null;
+    }
   }
 
   public function getRequiredClassDeclaration(className:String):NativeClassDeclaration {
