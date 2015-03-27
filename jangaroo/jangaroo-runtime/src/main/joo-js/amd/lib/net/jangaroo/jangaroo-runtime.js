@@ -1,53 +1,81 @@
 //noinspection ThisExpressionReferencesGlobalObjectJS
 (function() {
   // old *.module.js API compatibility:
-  var scripts = [];
-  var styleSheets = [];
-  if (!this.joo) {
+  if (typeof this.joo !== "object") {
     this.joo = {};
   }
   var joo = this.joo;
-  if (!joo.localization) {
-    joo.localization = {};
-  }
-  joo.debug = false;
-  if (typeof this.location === "object" && typeof this.location.hash === "string") {
-    var match = this.location.hash.match(/(?:^#|&)joo.debug(?:=(true|false)|&|$)/);
-    if (match) {
-      joo.debug = !match[1] || match[1] === "true";
-    }
-  }
+
   joo.runtimeApiVersion = "3.0.0";
-  joo.compilerVersion = "3.0.0";
-  joo.loadModule = function() {
-    console.log("deprecated: loadModule() no longer needed.");
+  joo.compilerVersion = "3.0.1";
+  joo.startTime = new Date().getTime();
+
+  if (typeof joo.debug !== "boolean") {
+    joo.debug = typeof this.location === "object" &&
+                typeof this.location.hash === "string" &&
+                !!this.location.hash.match(/(^#|&)joo.debug(=true|&|$)/);
+  }
+
+  var document = this.document;
+  if (typeof joo.baseUrl !== "string") {
+    joo.baseUrl = (function() {
+      if (document) {
+        var REQUIREJS_SCRIPT_PATTERN = /^(.*\/)requirejs\/require.*\.js$/;
+        var scripts = document.getElementsByTagName("SCRIPT");
+        for (var i = 0; i < scripts.length; ++i) {
+          var match = REQUIREJS_SCRIPT_PATTERN.exec(scripts[i].src);
+          if (match) {
+            return match[1];
+          }
+        }
+      }
+      return "";
+    })();
+  }
+  joo.resolveUrl = function resolveUrl(url/*:String*/) {
+    return !joo.baseUrl || url.match(/^(https?:\/\/|\/)/) ? url : joo.baseUrl + url
   };
-  joo.loadScript = function(script, debugScript) {
-    if (this.debug && debugScript) {
-      scripts.push(debugScript);
-    } else if (script) {
-      scripts.push(script);
+
+  var scripts = [];
+  joo.loadScript = function loadScript(standardSrc/*:String*/, debugSrc/*:String = undefined*/) {
+    var url = arguments.length > 1 && joo.debug ? debugSrc : standardSrc;
+    if (url) {
+      scripts.push(joo.resolveUrl(url));
     }
   };
-  joo.loadDebugScript = function(script) {
-    if (this.debug && script) {
-      scripts.push(script);
-    }
-  };
-  joo.loadStyleSheet = function(styleSheet) {
-    styleSheets.push(styleSheet);
-  };
-  joo.addStyleSheets = function() {
-    for (var i = 0; i < styleSheets.length; i++) {
-      var link = document.createElement("link");
-      link.setAttribute("rel", "stylesheet");
-      link.setAttribute("type", "text/css");
-      link.setAttribute("href", styleSheets[i]);
-      document.head.appendChild(link);
-    }
+  joo.loadDebugScript = function loadDebugScript(debugSrc/*:String*/) {
+    joo.loadScript(null, debugSrc);
   };
   joo.getScripts = function() {
     return scripts;
+  };
+
+  joo.loadModule = function() {
+    // deprecated: do nothing, automatically loaded by requiring, loadModule() no longer needed.
+  };
+
+  var styleSheets = [];
+  joo.loadStyleSheet = function(styleSheet) {
+    styleSheets.push(joo.resolveUrl(styleSheet));
+  };
+  joo.flushStyleSheets = function() {
+    if (document) {
+      // to workaround IE9's style sheet limit, create style sheets as @imports in chunks of 31:
+      var cssLines = styleSheets.map(function(styleSheetUrl) {
+        return '@import url("' + styleSheetUrl + '");';
+      });
+      while (cssLines.length) {
+        var css = cssLines.splice(0, 31).join("");
+        var style = document.createElement('style');
+        style.type = 'text/css';
+        if (style.styleSheet) {
+          style.styleSheet.cssText = css;
+        } else {
+          style.appendChild(document.createTextNode(css));
+        }
+        document.head.appendChild(style);
+      }
+    }
   };
 }).call(this);
 define("lib/net/jangaroo/jangaroo-runtime", ["lib!lib/net/jangaroo/jangaroo-runtime.lib"], function(rtMin) {

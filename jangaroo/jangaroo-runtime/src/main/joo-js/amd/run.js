@@ -33,7 +33,7 @@ define(["as3-rt/getModuleName", "lib/net/jangaroo/jangaroo-runtime"], function(g
         var mainClassName = parts.shift();
         var mainArgs = config.args;
         req([bootstrapAmd, "domReady!"], function() {
-          joo.addStyleSheets(); // link CSS added through joo.loadStyleSheet()
+          joo.flushStyleSheets(); // link CSS added through joo.loadStyleSheet()
           loadScripts(req, function() {
             if (mainClassName) {
               req([getModuleName(mainClassName)], function(mainClass) {
