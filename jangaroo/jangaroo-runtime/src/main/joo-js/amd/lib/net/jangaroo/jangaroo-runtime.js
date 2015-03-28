@@ -1,10 +1,15 @@
 //noinspection ThisExpressionReferencesGlobalObjectJS
 (function() {
+  "use strict";
   // old *.module.js API compatibility:
   if (typeof this.joo !== "object") {
     this.joo = {};
   }
   var joo = this.joo;
+
+  if (!joo.localization) {
+    joo.localization = {};
+  }
 
   joo.runtimeApiVersion = "3.0.0";
   joo.compilerVersion = "3.0.1";
@@ -79,7 +84,8 @@
   };
 }).call(this);
 define("lib/net/jangaroo/jangaroo-runtime", ["lib!lib/net/jangaroo/jangaroo-runtime.lib"], function(rtMin) {
-  require(["as3/joo/ResourceBundleAwareClassLoader"], function(ClassLoader) {
+  require(["as3/trace", "as3/joo/ResourceBundleAwareClassLoader"], function(trace, ClassLoader) {
+    joo.trace = trace;
     joo.classLoader = ClassLoader._.INSTANCE;
   });
   return rtMin;

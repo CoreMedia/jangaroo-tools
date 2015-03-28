@@ -207,7 +207,7 @@ define("as3-rt/AS3", ["as3/joo/getOrCreatePackage", "as3/joo/JooClassDeclaration
       // that any Object can be cast to the given interface.
       // Later, the following warning will be replaced by throwing a TypeError,
       // but we do not dare change Jangaroo-2-semantics yet.
-      trace("[WARN]", "'" + object + "' cannot be cast to " + type + ".");
+      trace("[WARN]", object, " cannot be cast to ", type);
     }
     return object;
   }

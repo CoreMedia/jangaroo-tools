@@ -1,25 +1,41 @@
 // simulate AS3 trace()
 define("as3/trace", ["as3/joo/getQualifiedObject"], function(getQualifiedObject) {
   "use strict";
-  var log = (function() {
-    if (this.console && this.console.log) { // most browsers
-      if (this.console.log.bind) {
-        // take care to bind if possible, esp. in Chrome!
-        return this.console.log.bind(this.console);
+  var joo = getQualifiedObject("joo");
+  if (joo && joo.trace) {
+    return joo.trace;
+  }
+
+  var console = getQualifiedObject("console");
+
+  if (!console || !console.log) {
+    return function() {};
+  }
+
+  var LOG_LEVELS = ["DEBUG", "TRACE", "INFO", "WARN", "ERROR"];
+  var LOG_LEVEL_PATTERN = new RegExp("^\\[(LOG|" + LOG_LEVELS.join("|") + ")\\]\\s*(.*)$");
+
+  // polyfill any console.x() methods that are not present:
+  LOG_LEVELS.forEach(function(logLevel) {
+    var methodName = logLevel.toLowerCase();
+    if (!console[methodName]) {
+      console[methodName] = console.log;
+    }
+  });
+
+  return function() {
+    var logLevel = "log";
+    var args = Array.prototype.slice.call(arguments);
+    var logLevelMatches = typeof args[0] === "string" && args[0].match(LOG_LEVEL_PATTERN);
+    if (logLevelMatches) {
+      logLevel = logLevelMatches[1].toLowerCase();
+      if (logLevelMatches[2]) {
+        args[0] = logLevelMatches[2];
       } else {
-        // in IE, console.log() is not a "real" function and thus cannot be bound:
-        return this.console.log;
+        args.shift();
       }
     }
-    if (typeof this.print === "function") { // Rhino
-      return this.print;
-    }
-    return null;
-  }).call(getQualifiedObject());
-
-  function trace() {
-    var msg = Array.prototype.map.call(arguments, String).join(" ");
-    log(msg);
-  }
-  return log ? trace : function() { };
+    // as console's methods are not "real" functions in all browsers, they have to be applied strangely:
+    Function.prototype.apply.call(console[logLevel], console, args);
+  };
 });

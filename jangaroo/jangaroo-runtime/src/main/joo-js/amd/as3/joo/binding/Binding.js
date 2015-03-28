@@ -46,7 +46,7 @@ define("as3/joo/binding/Binding", ["module", "as3-rt/AS3", "as3/trace", "as3/joo
           this.destination$1.call(null, result);
         } catch (e) {
           // ignore
-          trace("[WARN]", "While evaluating " + this + ":", e);
+          trace("[WARN]", "While evaluating", this, e);
         }
       },
       toString: function toString() {
