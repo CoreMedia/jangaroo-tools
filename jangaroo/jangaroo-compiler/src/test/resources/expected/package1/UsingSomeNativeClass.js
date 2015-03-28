@@ -14,7 +14,7 @@ public class UsingSomeNativeClass {
     new package1$someOtherPackage$SomeNativeClass._();
     this.someNative.setBaz ( "foo");
     this.someNative2.setBaz ( "foo");
-    var local = function package1$UsingSomeNativeClass$17_17()/*:void*/ {
+    var local = function()/*:void*/ {
       var test/*:String*/ = this$.someNative2.getBaz();
     };
     var foo = this.getFoobar();

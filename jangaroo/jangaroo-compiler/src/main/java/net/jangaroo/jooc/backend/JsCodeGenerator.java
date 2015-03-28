@@ -900,20 +900,8 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     out.writeSymbol(functionExpr.getSymFunction());
     if (functionExpr.getIde() != null) {
       out.writeToken(functionExpr.getIde().getName());
-    } else if (out.getKeepSource()) {
-      out.writeToken(getFunctionNameAsIde(functionExpr));
     }
     generateFunTailCode(functionExpr);
-  }
-
-  public String getFunctionNameAsIde(FunctionExpr functionExpr) {
-    IdeDeclaration classDeclaration = functionExpr.getClassDeclaration();
-    String classNameAsIde = "";
-    if (classDeclaration != null) {
-      classNameAsIde = out.getQualifiedNameAsIde(classDeclaration);
-    }
-    JooSymbol sym = functionExpr.getSymbol();
-    return classNameAsIde + "$" + sym.getLine() + "_" + sym.getColumn();
   }
 
   public void generateFunTailCode(FunctionExpr functionExpr) throws IOException {

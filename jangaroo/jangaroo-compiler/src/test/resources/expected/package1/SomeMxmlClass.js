@@ -26,7 +26,7 @@ public class SomeMxmlClass extends package1.ConfigClass {
     $_3.blubb_accessor = this.$bind_other_blubbAccessor$2();
     $_3.blubb_config = 'blub config expression';
     this.other = new SomeOtherClass._($_3);
-    this.$bindings$2.push(new Binding(AS3.bind(this,"$bind_other_blubbAccessor$2"), function package1$SomeMxmlClass$29_71($value){
+    this.$bindings$2.push(new Binding(AS3.bind(this,"$bind_other_blubbAccessor$2"), function($value){
       this$.other.setBlubbAccessor ( $value);
     }));
     addEventListener(this, "click",AS3.bind( this,"$on_this_click$2"), SomeEvent._);
@@ -48,7 +48,7 @@ public class SomeMxmlClass extends package1.ConfigClass {
     $_11.bla = this.$bind_$_12_bla$2();
     $_11.doodle = "non-bound";
     var $_12/*:package1.someOtherPackage.SomeOtherClass*/ = new SomeOtherClass._($_11);
-    this.$bindings$2.push(new Binding(AS3.bind(this,"$bind_$_12_bla$2"), function package1$SomeMxmlClass$51_60($value){
+    this.$bindings$2.push(new Binding(AS3.bind(this,"$bind_$_12_bla$2"), function($value){
       $_12.set_bla ( $value);
     }));
     $_10.items = [$_12];
