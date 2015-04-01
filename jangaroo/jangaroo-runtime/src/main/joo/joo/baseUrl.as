@@ -27,6 +27,7 @@ package joo {
  * <p>If this fails, the base URL defaults to the empty string, so the current page's base URL is used
  * as joo.baseUrl.</p>
  *
+ * @see http://requirejs.org/docs/api.html#config-baseUrl
  * @see joo.resolveUrl()
  * @see joo.loadScript()
  * @see joo.loadModule()
