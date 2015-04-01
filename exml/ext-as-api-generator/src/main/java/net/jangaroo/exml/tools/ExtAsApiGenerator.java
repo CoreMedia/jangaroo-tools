@@ -2,6 +2,8 @@ package net.jangaroo.exml.tools;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.jangaroo.exml.utils.ExmlUtils;
 import net.jangaroo.jooc.Jooc;
@@ -27,6 +29,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -162,7 +165,9 @@ public class ExtAsApiGenerator {
 
   private static ExtClass readExtApiJson(File jsonFile) throws IOException {
     System.out.printf("Reading API from %s...\n", jsonFile.getPath());
-    ExtClass extClass = new ObjectMapper().readValue(jsonFile, ExtClass.class);
+    ObjectMapper objectMapper = new ObjectMapper();
+    objectMapper.registerSubtypes(Property.class, Cfg.class, Method.class, Event.class);
+    ExtClass extClass = objectMapper.readValue(jsonFile, ExtClass.class);
     if (JsCodeGenerator.PRIMITIVES.contains(extClass.name)) {
       System.err.println("ignoring built-in class " + extClass.name);
       return null;
@@ -220,8 +225,8 @@ public class ExtAsApiGenerator {
       addNonStaticMembers(extClass, extAsInterfaceUnit);
     }
 
-    addFields(extAsClass, filterByOwner(false, extClass, extClass.statics.property));
-    addMethods(extAsClass, filterByOwner(false, extClass, extClass.statics.method));
+    addFields(extAsClass, filterByOwner(false, true, extClass, extClass.members, Property.class));
+    addMethods(extAsClass, filterByOwner(false, true, extClass, extClass.members, Method.class));
 
     addNonStaticMembers(extClass, extAsClassUnit);
 
@@ -254,22 +259,27 @@ public class ExtAsApiGenerator {
         extConfigAnnotation.addProperty(new AnnotationPropertyModel(typeProperty, typeValue));
         configClass.addBodyCode(String.format("%n  %s['prototype'].%s = %s;%n", configClassQName, typeProperty, typeValue));
 
-        PropertyModel typePropertyModel = (PropertyModel) extAsClass.getMember(typeProperty);
-        if (typePropertyModel == null) {
-          typePropertyModel = new PropertyModel(typeProperty, "String");
-          typePropertyModel.setAsdoc("@inheritDoc");
-          typePropertyModel.addGetter();
-          typePropertyModel.addSetter();
-          extAsClass.addMember(typePropertyModel);
+        MemberModel member = extAsClass.getMember(typeProperty);
+        if (member != null && !(member instanceof PropertyModel)) {
+          System.err.println("[WARN]: Member " + typeProperty + " in class " + extAsClass.getName() + " should be a PropertyModel, but is a " + member.getClass().getSimpleName());
+        } else {
+          PropertyModel typePropertyModel = (PropertyModel) member;
+          if (typePropertyModel == null) {
+            typePropertyModel = new PropertyModel(typeProperty, "String");
+            typePropertyModel.setAsdoc("@inheritDoc");
+            typePropertyModel.addGetter();
+            typePropertyModel.addSetter();
+            extAsClass.addMember(typePropertyModel);
+          }
+          typePropertyModel.addAnnotation(new AnnotationModel(MxmlToModelParser.CONSTRUCTOR_PARAMETER_ANNOTATION,
+                  new AnnotationPropertyModel(MxmlToModelParser.CONSTRUCTOR_PARAMETER_ANNOTATION_VALUE, typeValue)));
         }
-        typePropertyModel.addAnnotation(new AnnotationModel(MxmlToModelParser.CONSTRUCTOR_PARAMETER_ANNOTATION,
-                new AnnotationPropertyModel(MxmlToModelParser.CONSTRUCTOR_PARAMETER_ANNOTATION_VALUE, typeValue)));
       }
       configClassUnit.getClassModel().addAnnotation(extConfigAnnotation);
       if (generateEventClasses) {
-        addEvents(configClass, extAsClassUnit, filterByOwner(false, extClass, extClass.members.event));
+        addEvents(configClass, extAsClassUnit, filterByOwner(false, false, extClass, extClass.members, Event.class));
       }
-      List<Member> configProperties = filterByOwner(false, extClass, extClass.members.cfg);
+      List<Cfg> configProperties = filterByOwner(false, false, extClass, extClass.members, Cfg.class);
       addProperties(configClass, configProperties);
 
       // also add config option properties to target class:
@@ -291,7 +301,7 @@ public class ExtAsApiGenerator {
     } else {
       // b) it defines some config options (members.cfg)
       // c) it defines any event
-      if (hasOwnMember(extClass, extClass.members.cfg) || hasOwnMember(extClass, extClass.members.event)) {
+      if (hasOwnMember(extClass, extClass.members, Cfg.class) || hasOwnMember(extClass, extClass.members, Event.class)) {
         // try to make invented alias unique:
         alias = AliasFactory.INSTANCE.getAlias(extClassName);
       }
@@ -314,11 +324,11 @@ public class ExtAsApiGenerator {
     return configClassQName;
   }
 
-  private static boolean hasOwnMember(ExtClass extClass, List<? extends Member> members) {
+  private static <T extends Member> boolean hasOwnMember(ExtClass extClass, List<Member> members, Class<T> memberType) {
     for (Member member : members) {
       // suppress inherited config options
       // and config option "listeners", as we handle event listeners through [Event] annotations:
-      if (extClass.name.equals(member.owner) && !"listeners".equals(member.name)) {
+      if (extClass.name.equals(member.owner) && memberType.isInstance(member) && !"listeners".equals(member.name)) {
         return true;
       }
     }
@@ -365,6 +375,11 @@ public class ExtAsApiGenerator {
   }
 
   private static CompilationUnitModel createClassModel(String qName) {
+    CompilationUnitModel oldCompilationUnitModel = compilationUnitModelRegistry.resolveCompilationUnit(qName);
+    if (oldCompilationUnitModel != null) {
+      System.err.println("[WARN] Redefining class " + qName);
+      return oldCompilationUnitModel;
+    }
     CompilationUnitModel compilationUnitModel = new CompilationUnitModel(null, new ClassModel());
     compilationUnitModel.setQName(qName);
     compilationUnitModelRegistry.register(compilationUnitModel);
@@ -374,10 +389,10 @@ public class ExtAsApiGenerator {
   private static void addNonStaticMembers(ExtClass extClass, CompilationUnitModel extAsClassUnit) {
     ClassModel extAsClass = extAsClassUnit.getClassModel();
     if (!extAsClass.isInterface()) {
-      addEvents(extAsClassUnit.getClassModel(), extAsClassUnit, filterByOwner(false, extClass, extClass.members.event));
+      addEvents(extAsClassUnit.getClassModel(), extAsClassUnit, filterByOwner(false, false, extClass, extClass.members, Event.class));
     }
-    addProperties(extAsClass, filterByOwner(extAsClass.isInterface(), extClass, extClass.members.property));
-    addMethods(extAsClass, filterByOwner(extAsClass.isInterface(), extClass, extClass.members.method));
+    addProperties(extAsClass, filterByOwner(extAsClass.isInterface(), false, extClass, extClass.members, Property.class));
+    addMethods(extAsClass, filterByOwner(extAsClass.isInterface(), false, extClass, extClass.members, Method.class));
   }
 
   private static void generateActionScriptCode(CompilationUnitModel extAsClass, File outputDir) throws IOException {
@@ -388,13 +403,14 @@ public class ExtAsApiGenerator {
     extAsClass.visit(new ActionScriptCodeGeneratingModelVisitor(new FileWriter(outputFile)));
   }
 
-  private static <T extends Member> List<T> filterByOwner(boolean isInterface, ExtClass owner, List<T> members) {
+  private static <T extends Member> List<T> filterByOwner(boolean isInterface, boolean isStatic, ExtClass owner, List<Member> members, Class<T> memberType) {
     List<T> result = new ArrayList<T>();
-    for (T member : members) {
-      if (member.meta.removed == null &&
+    for (Member member : members) {
+      if (memberType.isInstance(member) &&
+              member.meta.removed == null &&
               !"listeners".equals(member.name) &&
               member.owner.equals(owner.name) && (!isInterface || isPublicNonStaticMethodOrProperty(member))) {
-        result.add(member);
+        result.add(memberType.cast(member));
       }
     }
     return result;
@@ -511,9 +527,11 @@ public class ExtAsApiGenerator {
         boolean isConstructor = methodName.equals("constructor");
         MethodModel methodModel = isConstructor
                 ? new MethodModel(classModel.getName(), null)
-                : new MethodModel(convertName(methodName), convertType(method.return_.type));
+                : new MethodModel(convertName(methodName), method.return_ == null ? null : convertType(method.return_.type));
         methodModel.setAsdoc(toAsDoc(method.doc));
-        methodModel.getReturnModel().setAsdoc(toAsDoc(method.return_.doc));
+        if (method.return_ != null) {
+          methodModel.getReturnModel().setAsdoc(toAsDoc(method.return_.doc));
+        }
         setStatic(methodModel, method);
         for (Param param : method.params) {
           ParamModel paramModel = new ParamModel(convertName(param.name), convertType(param.type));
@@ -770,14 +788,17 @@ public class ExtAsApiGenerator {
   }
 
   @SuppressWarnings("UnusedDeclaration")
-  @JsonIgnoreProperties({"html_meta", "html_type", "linenr"})
+  @JsonIgnoreProperties({"html_meta", "html_type", "short_doc", "linenr"})
   public static class Tag {
     public String tagname;
     public String name;
-    public String doc;
+    public String doc = "";
     @JsonProperty("private")
     public String private_;
     public MemberReference inheritdoc;
+    public Object author;
+    public Object docauthor;
+    public Object removed;
 
     @Override
     public boolean equals(Object o) {
@@ -796,12 +817,13 @@ public class ExtAsApiGenerator {
     }
   }
 
-  @SuppressWarnings("UnusedDeclaration")
-  @JsonIgnoreProperties({"html_meta", "html_type", "linenr", "enum", "override"})
+  @JsonIgnoreProperties({"html_meta", "html_type", "short_doc", "linenr", "enum", "override", "autodetected", "params"})
   public static class ExtClass extends Tag {
+    public Object deprecated;
+    public String since;
     @JsonProperty("extends")
     public String extends_;
-    public List<String> mixins;
+    public List<String> mixins = Collections.emptyList();
     public List<String> alternateClassNames;
     public Map<String,List<String>> aliases;
     public boolean singleton;
@@ -811,8 +833,7 @@ public class ExtAsApiGenerator {
     public boolean inheritable;
     public Meta meta;
     public String id;
-    public Members members;
-    public Members statics;
+    public List<Member> members;
     public List<Object> files;
     public boolean component;
     public List<String> superclasses;
@@ -821,16 +842,8 @@ public class ExtAsApiGenerator {
     public List<String> parentMixins;
     @JsonProperty("abstract")
     public boolean abstract_;
-  }
-
-  @SuppressWarnings("UnusedDeclaration")
-  public static class Members {
-    public List<Member> cfg;
-    public List<Property> property;
-    public List<Method> method;
-    public List<Event> event;
-    public List<Member> css_var;
-    public List<Member> css_mixin;
+    @JsonProperty("protected")
+    public boolean protected_;
   }
 
   @JsonIgnoreProperties({"html_type", "html_meta", "linenr", "properties"})
@@ -840,21 +853,32 @@ public class ExtAsApiGenerator {
     public String default_;
   }
 
-  @SuppressWarnings("UnusedDeclaration")
-  @JsonIgnoreProperties({"html_type", "html_meta", "linenr", "properties", "autodetected"})
+  @JsonTypeInfo(use=JsonTypeInfo.Id.NAME, include=JsonTypeInfo.As.PROPERTY, property="tagname")
+  @JsonIgnoreProperties({"html_type", "html_meta", "short_doc", "linenr", "properties", "autodetected"})
   public static class Member extends Var {
     public String owner;
-    public String shortDoc;
-    public Meta meta;
+    public Object deprecated;
+    public String since;
+    @JsonProperty("static")
+    public boolean static_;
+    public Meta meta = new Meta();
     public boolean inheritable;
     public String id;
     public List<String> files;
     public boolean accessor;
     public boolean evented;
     public List<Overrides> overrides;
+    @JsonProperty("protected")
+    public boolean protected_;
   }
 
-  @SuppressWarnings("UnusedDeclaration")
+  @JsonTypeName("cfg")
+  @JsonIgnoreProperties({"html_type", "html_meta", "short_doc", "linenr", "properties", "autodetected", "params", "fires", "throws", "return"})
+  public static class Cfg extends Member {
+    public boolean readonly;
+    public boolean required;
+  }
+  
   public static class MemberReference extends Tag {
     public String cls;
     public String member;
@@ -866,29 +890,41 @@ public class ExtAsApiGenerator {
     public String name;
     public String owner;
     public String id;
+    public String link;
   }
 
+  @JsonTypeName("property")
+  @JsonIgnoreProperties({"html_type", "html_meta", "short_doc", "linenr", "properties", "autodetected", "params", "return", "throws", "chainable"})
   public static class Property extends Member {
+    public boolean readonly;
     @Override
     public String toString() {
       return meta + "var " + super.toString();
     }
   }
 
+  @JsonTypeName("params")
   public static class Param extends Var {
     public boolean optional;
+    public Object ext4_auto_param;
   }
 
-  @JsonIgnoreProperties({"html_type", "html_meta", "linenr", "properties", "autodetected", "throws"})
+  @JsonTypeName("method")
+  @JsonIgnoreProperties({"html_type", "html_meta", "short_doc", "linenr", "properties", "autodetected", "throws", "fires", "method_calls", "template", "readonly", "required"})
   public static class Method extends Member {
     public List<Param> params;
     @JsonProperty("return")
     public Param return_;
+    public boolean chainable;
+    @JsonProperty("abstract")
+    public boolean abstract_;
   }
 
-  @SuppressWarnings("UnusedDeclaration")
+  @JsonTypeName("event")
+  @JsonIgnoreProperties({"html_type", "html_meta", "short_doc", "linenr", "properties", "autodetected", "return", "throws"})
   public static class Event extends Member {
     public List<Param> params;
+    public boolean preventable;
   }
 
   @SuppressWarnings("UnusedDeclaration")
