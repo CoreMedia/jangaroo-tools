@@ -35,6 +35,11 @@ define("as3/trace", ["as3/joo/getQualifiedObject"], function(getQualifiedObject)
         args.shift();
       }
     }
+    if (typeof args[0] === "string") {
+      args[0] = "AS3: " + args[0];
+    } else {
+      args.unshift("AS3:");
+    }
     // as console's methods are not "real" functions in all browsers, they have to be applied strangely:
     Function.prototype.apply.call(console[logLevel], console, args);
   };
