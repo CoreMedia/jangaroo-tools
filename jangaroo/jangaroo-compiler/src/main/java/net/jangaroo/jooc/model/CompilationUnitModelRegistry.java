@@ -308,7 +308,7 @@ public class CompilationUnitModelRegistry {
     // skip logging if the following conditions hold (obviously, return type/params have just been forgotten in overriding method):
     // * return type matches OR is void while defined to be something else AND
     // * parameters are empty
-    if ((methodModel.getType().equals(methodSignature.getType()) || "void".equals(methodModel.getType()))
+    if ((methodModel.getType() == null || methodModel.getType().equals("void") || methodModel.getType().equals(methodSignature.getType()))
       && methodModel.getParams().isEmpty()) {
       return;
     }
