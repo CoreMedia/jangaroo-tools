@@ -113,7 +113,7 @@ public abstract class CodeGeneratorBase implements AstVisitor {
     if (symbol != null) {
       out.writeSymbolWhitespace(symbol);
     }
-    out.writeToken(replacementToken);
+    out.writeTokenForSymbol(replacementToken, symbol);
   }
 
   protected void visitIfNotNull(AstNode args) throws IOException {

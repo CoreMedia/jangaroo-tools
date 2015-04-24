@@ -627,7 +627,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
         ideText = convertIdentifier(ideText);
       }
     }
-    out.writeToken(ideText);
+    out.writeTokenForSymbol(ideText, ide.getSymbol());
   }
 
   // take care of reserved words called as functions (Rhino does not like):
@@ -652,9 +652,9 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       if (compilationUnitAccessCode.equals(COMPILATION_UNIT_ACCESS_MESSAGE_FORMAT.format(ideName)) &&
               !qualifiedIde.getScope().lookupDeclaration(new Ide(ideName), false).isPrimaryDeclaration()) {
         // something non-imported (primary declaration) hides the short name used for import, so rather use the fully qualified name:
-        out.write(qualifiedIde.getQualifiedNameStr());
+        out.writeTokenForSymbol(qualifiedIde.getQualifiedNameStr(), qualifiedIde.getSymbol());
       } else {
-        out.write(compilationUnitAccessCode);
+        out.writeTokenForSymbol(compilationUnitAccessCode, qualifiedIde.getSymbol());
       }
     }
   }
@@ -738,8 +738,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     Expr leftHandSide = assignmentOpExpr.getArg1();
     if (assignmentOpExpr.getOp().sym == sym.ANDANDEQ || assignmentOpExpr.getOp().sym == sym.OROREQ) {
       leftHandSide.visit(this);
-      out.writeSymbolWhitespace(assignmentOpExpr.getOp());
-      out.writeToken("=");
+      writeSymbolReplacement(assignmentOpExpr.getOp(), "=");
       // TODO: refactor for a simpler way to switch off white-space temporarily:
       JoocConfiguration options = (JoocConfiguration) out.getOptions();
       DebugMode mode = options.getDebugMode();
@@ -899,7 +898,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   public void visitFunctionExpr(FunctionExpr functionExpr) throws IOException {
     out.writeSymbol(functionExpr.getSymFunction());
     if (functionExpr.getIde() != null) {
-      out.writeToken(functionExpr.getIde().getName());
+      out.writeSymbol(functionExpr.getIde().getIde());
     }
     generateFunTailCode(functionExpr);
   }
@@ -1724,8 +1723,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
             }
           }
         } else {
-          out.writeSymbolWhitespace(functionSymbol);
-          out.writeToken(functionName);
+          writeSymbolReplacement(functionSymbol, functionName);
           if (!functionDeclaration.isPrimaryDeclaration() && !functionDeclaration.isPrivateStatic()) {
             members.put(functionDeclaration.isConstructor() ? "constructor" : methodName,
                     new PropertyDefinition(functionName));

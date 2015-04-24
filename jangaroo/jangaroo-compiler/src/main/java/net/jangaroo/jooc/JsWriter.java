@@ -283,7 +283,8 @@ public final class JsWriter extends FilterWriter {
     write('\n');
   }
 
-  public void writeToken(String token) throws IOException {
+  public FilePosition writeToken(String token) throws IOException {
+    FilePosition tokenStartPosition = null;
     if (shouldWrite()) {
       char firstSymbolChar = token.charAt(0);
       if ((isIdeChar(lastChar) && isIdeChar(firstSymbolChar)) ||
@@ -292,8 +293,10 @@ public final class JsWriter extends FilterWriter {
         write(' ');
       }
       checkOpenString();
+      tokenStartPosition = getCurrentOutputFilePosition();
       write(token);
     }
+    return tokenStartPosition;
   }
 
   private boolean isIdeChar(final char ch) {
@@ -319,24 +322,18 @@ public final class JsWriter extends FilterWriter {
 
 
   public void writeSymbolToken(JooSymbol symbol) throws IOException {
-    FilePosition outputStartPosition = getCurrentOutputFilePosition();
-    writeToken(symbol.getText());
-    if (!isWritingComment() && !inString) {
+    writeTokenForSymbol(symbol.getText(), symbol);
+  }
+
+  public void writeTokenForSymbol(String token, JooSymbol symbol) throws IOException {
+    FilePosition outputFileStartPosition = writeToken(token);
+    if (outputFileStartPosition != null && !isWritingComment() && !inString
+            && symbol.getLine() > 0 && symbol.getColumn() > 0) {
       FilePosition outputFileEndPosition = getCurrentOutputFilePosition();
-      if (symbol.getLine() > 0 && symbol.getColumn() > 0) {
-        if (!sourceMappings.isEmpty()) {
-          SymbolToOutputFilePosition previousMapping = sourceMappings.get(sourceMappings.size() - 1);
-          if (previousMapping.symbol.getLine() == symbol.getLine()) {
-            previousMapping.setOutputFileEndPosition(outputFileEndPosition);
-            //System.out.println("*#*#*# found another symbol, updated mapping " + previousMapping);
-            return;
-          }
-        }
-        SymbolToOutputFilePosition symbolToOutputFilePosition =
-                new SymbolToOutputFilePosition(symbol, outputStartPosition, outputFileEndPosition);
-        sourceMappings.add(symbolToOutputFilePosition);
-        //System.out.println("*#*#*# map source: " + symbolToOutputFilePosition);
-      }
+      SymbolToOutputFilePosition symbolToOutputFilePosition =
+              new SymbolToOutputFilePosition(symbol, outputFileStartPosition, outputFileEndPosition);
+      sourceMappings.add(symbolToOutputFilePosition);
+      //System.out.println("*#*#*# map source: " + symbolToOutputFilePosition);
     }
   }
 
@@ -434,7 +431,7 @@ public final class JsWriter extends FilterWriter {
 
     SymbolToOutputFilePosition(JooSymbol symbol, FilePosition outputFileStartPosition, FilePosition outputFileEndPosition) {
       this.symbol = symbol;
-      this.outputFileStartPosition = new PrettyPrintFilePosition(outputFileStartPosition.getLine(), 0);
+      this.outputFileStartPosition = outputFileStartPosition;
       this.outputFileEndPosition = outputFileEndPosition;
     }
 
@@ -443,7 +440,7 @@ public final class JsWriter extends FilterWriter {
     }
 
     public FilePosition getSourceFilePosition() {
-      return new PrettyPrintFilePosition(symbol.getLine() - 1, 0 /*symbol.getColumn() - 1*/);
+      return new PrettyPrintFilePosition(symbol.getLine() - 1, symbol.getColumn() - 1);
     }
 
     public FilePosition getOutputFileStartPosition() {
@@ -452,10 +449,6 @@ public final class JsWriter extends FilterWriter {
 
     public FilePosition getOutputFileEndPosition() {
       return outputFileEndPosition;
-    }
-
-    public void setOutputFileEndPosition(FilePosition outputFileEndPosition) {
-      this.outputFileEndPosition = outputFileEndPosition;
     }
 
     @Override
