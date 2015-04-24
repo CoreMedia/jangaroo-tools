@@ -408,6 +408,7 @@ public class ExtAsApiGenerator {
     for (Member member : members) {
       if (memberType.isInstance(member) &&
               member.meta.removed == null &&
+              (member.autodetected == null || !member.autodetected.containsKey("tagname")) &&
               !"listeners".equals(member.name) &&
               member.owner.equals(owner.name) && (!isInterface || isPublicNonStaticMethodOrProperty(member))) {
         result.add(memberType.cast(member));
@@ -486,10 +487,12 @@ public class ExtAsApiGenerator {
 
   private static void addFields(ClassModel classModel, List<? extends Member> fields) {
     for (Member member : fields) {
-      FieldModel fieldModel = new FieldModel(convertName(member.name), convertType(member.type), member.default_);
-      fieldModel.setAsdoc(toAsDoc(member.doc));
+      PropertyModel fieldModel = new PropertyModel(convertName(member.name), convertType(member.type));
       setStatic(fieldModel, member);
-      fieldModel.setConst(isConst(member));
+      fieldModel.addGetter().setAsdoc(toAsDoc(member.doc));
+      if (!isConst(member)) {
+        fieldModel.addSetter().setAsdoc("@private");
+      }
       classModel.addMember(fieldModel);
     }
   }
@@ -788,7 +791,7 @@ public class ExtAsApiGenerator {
   }
 
   @SuppressWarnings("UnusedDeclaration")
-  @JsonIgnoreProperties({"html_meta", "html_type", "short_doc", "linenr"})
+  @JsonIgnoreProperties({"html_meta", "html_type", "short_doc", "localdoc", "linenr"})
   public static class Tag {
     public String tagname;
     public String name;
@@ -817,7 +820,7 @@ public class ExtAsApiGenerator {
     }
   }
 
-  @JsonIgnoreProperties({"html_meta", "html_type", "short_doc", "linenr", "enum", "override", "autodetected", "params"})
+  @JsonIgnoreProperties({"html_meta", "html_type", "short_doc", "localdoc", "linenr", "enum", "override", "autodetected", "params"})
   public static class ExtClass extends Tag {
     public Object deprecated;
     public String since;
@@ -854,7 +857,7 @@ public class ExtAsApiGenerator {
   }
 
   @JsonTypeInfo(use=JsonTypeInfo.Id.NAME, include=JsonTypeInfo.As.PROPERTY, property="tagname")
-  @JsonIgnoreProperties({"html_type", "html_meta", "short_doc", "linenr", "properties", "autodetected"})
+  @JsonIgnoreProperties({"html_type", "html_meta", "short_doc", "localdoc", "linenr", "properties"})
   public static class Member extends Var {
     public String owner;
     public Object deprecated;
@@ -870,10 +873,11 @@ public class ExtAsApiGenerator {
     public List<Overrides> overrides;
     @JsonProperty("protected")
     public boolean protected_;
+    public Map<String,Object> autodetected;
   }
 
   @JsonTypeName("cfg")
-  @JsonIgnoreProperties({"html_type", "html_meta", "short_doc", "linenr", "properties", "autodetected", "params", "fires", "throws", "return"})
+  @JsonIgnoreProperties({"html_type", "html_meta", "short_doc", "localdoc", "linenr", "properties", "params", "fires", "throws", "return"})
   public static class Cfg extends Member {
     public boolean readonly;
     public boolean required;
@@ -894,7 +898,7 @@ public class ExtAsApiGenerator {
   }
 
   @JsonTypeName("property")
-  @JsonIgnoreProperties({"html_type", "html_meta", "short_doc", "linenr", "properties", "autodetected", "params", "return", "throws", "chainable"})
+  @JsonIgnoreProperties({"html_type", "html_meta", "short_doc", "localdoc", "linenr", "properties", "params", "return", "throws", "chainable"})
   public static class Property extends Member {
     public boolean readonly;
     @Override
@@ -910,7 +914,7 @@ public class ExtAsApiGenerator {
   }
 
   @JsonTypeName("method")
-  @JsonIgnoreProperties({"html_type", "html_meta", "short_doc", "linenr", "properties", "autodetected", "throws", "fires", "method_calls", "template", "readonly", "required"})
+  @JsonIgnoreProperties({"html_type", "html_meta", "short_doc", "localdoc", "linenr", "properties", "throws", "fires", "method_calls", "template", "readonly", "required"})
   public static class Method extends Member {
     public List<Param> params;
     @JsonProperty("return")
@@ -921,7 +925,7 @@ public class ExtAsApiGenerator {
   }
 
   @JsonTypeName("event")
-  @JsonIgnoreProperties({"html_type", "html_meta", "short_doc", "linenr", "properties", "autodetected", "return", "throws"})
+  @JsonIgnoreProperties({"html_type", "html_meta", "short_doc", "localdoc", "linenr", "properties", "return", "throws"})
   public static class Event extends Member {
     public List<Param> params;
     public boolean preventable;
