@@ -24,7 +24,7 @@
                 </xs:documentation>
               </xs:annotation>
               </#if>
-              <xs:complexType>
+              <xs:complexType mixed="true">
                 <xs:sequence>
                   <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
                 </xs:sequence>

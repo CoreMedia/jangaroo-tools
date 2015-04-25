@@ -58,14 +58,14 @@
                   The action @see Action
                 </xs:documentation>
               </xs:annotation>
-              <xs:complexType>
+              <xs:complexType mixed="true">
                 <xs:sequence>
                   <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
                 </xs:sequence>
               </xs:complexType>
             </xs:element>
             <xs:element name='margins' minOccurs="0" maxOccurs="1">
-              <xs:complexType>
+              <xs:complexType mixed="true">
                 <xs:sequence>
                   <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
                 </xs:sequence>
@@ -107,7 +107,7 @@
                   defaults for children
                 </xs:documentation>
               </xs:annotation>
-              <xs:complexType>
+              <xs:complexType mixed="true">
                 <xs:sequence>
                   <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
                 </xs:sequence>
@@ -119,7 +119,7 @@
                   this container's children
                 </xs:documentation>
               </xs:annotation>
-              <xs:complexType>
+              <xs:complexType mixed="true">
                 <xs:sequence>
                   <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
                 </xs:sequence>
@@ -183,7 +183,7 @@
                   List of child items
                 </xs:documentation>
               </xs:annotation>
-              <xs:complexType>
+              <xs:complexType mixed="true">
                 <xs:sequence>
                   <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
                 </xs:sequence>
@@ -196,7 +196,7 @@
                   List of tools
                 </xs:documentation>
               </xs:annotation>
-              <xs:complexType>
+              <xs:complexType mixed="true">
                 <xs:sequence>
                   <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
                 </xs:sequence>
@@ -209,7 +209,7 @@
                   List of child items
                 </xs:documentation>
               </xs:annotation>
-              <xs:complexType>
+              <xs:complexType mixed="true">
                 <xs:sequence>
                   <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
                 </xs:sequence>

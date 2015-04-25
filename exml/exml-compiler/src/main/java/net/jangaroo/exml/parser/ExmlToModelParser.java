@@ -23,6 +23,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.w3c.dom.Text;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -274,9 +275,16 @@ public final class ExmlToModelParser {
                     " does not support config modes.", getLineNumber(element));
           }
         }
-        // it seems to be an array or an object
-        fillJsonObjectProperty(model, jsonObject, elementName, isConfigTypeArray, getChildElements(element));
-        ifContainerDefaultsThenExtractXtype(jsonObject, configClass, elementName);
+        String directTextContent = getDirectTextContent(element);
+        if (directTextContent != null) {
+          ConfigAttribute configAttribute = getCfgByName(configClass, elementName);
+          final Object attributeValue = getAttributeValue(directTextContent, configAttribute == null ? null : configAttribute.getType());
+          jsonObject.set(elementName, attributeValue);
+        } else {
+          // it seems to be an array or an object
+          fillJsonObjectProperty(model, jsonObject, elementName, isConfigTypeArray, getChildElements(element));
+          ifContainerDefaultsThenExtractXtype(jsonObject, configClass, elementName);
+        }
 
         // if any "at" value is specified, set the extra mode attribute (...$at):
         if (atValue != null) {
@@ -285,6 +293,20 @@ public final class ExmlToModelParser {
         // empty properties are omitted if the type is not fixed to Array
       }
     }
+  }
+
+  private static String getDirectTextContent(Element element) {
+    final NodeList innerChildNodes = element.getChildNodes();
+    for (int i = 0; i < innerChildNodes.getLength(); i++) {
+      final Node innerChildNode = innerChildNodes.item(i);
+      if (innerChildNode.getNodeType() == Node.TEXT_NODE) {
+        String directTextContent = ((Text) innerChildNode).getWholeText();
+        if (directTextContent.trim().length() > 0) {
+          return directTextContent;
+        }
+      }
+    }
+    return null;
   }
 
   private void ifContainerDefaultsThenExtractXtype(JsonObject jsonObject, ConfigClass configClass, String elementName) {

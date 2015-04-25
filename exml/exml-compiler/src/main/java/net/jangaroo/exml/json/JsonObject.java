@@ -92,9 +92,9 @@ public class JsonObject implements Json {
     } else if (value instanceof JsonArray) {
       return ((JsonArray) value).toString(indentFactor, indent);
     } else if (ExmlUtils.isCodeExpression(value.toString())) {
-      return ExmlUtils.getCodeExpression(value.toString());
+      return ExmlUtils.getCodeExpression(value.toString()).replaceAll("\n", LINE_SEPARATOR);
     }
-    return CompilerUtils.quote(value.toString());
+    return CompilerUtils.quote(value.toString()).replaceAll("\n", LINE_SEPARATOR);
 
   }
 

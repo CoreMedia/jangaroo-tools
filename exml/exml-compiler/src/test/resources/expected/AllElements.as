@@ -44,7 +44,10 @@ public class AllElements extends ext.Panel {
       items: [
         {
           xtype: "button",
-          text: "Save"
+          text: "Save",
+          handler: function():void {
+          window.alert('gotcha!');
+        }
         },
         {xtype: "editortreepanel"}
       ],

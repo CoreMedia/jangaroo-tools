@@ -38,7 +38,10 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
             "items", new JsonArray(
                     new JsonObject(
                             "xtype", "button",
-                            "text", "Save"
+                            "text", "Save",
+                            "handler", "{function():void {\n" +
+                            "          window.alert('gotcha!');\n" +
+                            "        }}"
                     ),
                     "{{xtype: \"editortreepanel\"}}"
             ),

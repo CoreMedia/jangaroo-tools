@@ -45,7 +45,11 @@
     items:{xtype:"testAll", ...}
     -->
     <items>
-      <button text="Save"/>
+      <button text="Save">
+        <handler>{function():void {
+          window.alert('gotcha!');
+        }}</handler>
+      </button>
       <exml:object><![CDATA[{xtype: "editortreepanel"}]]></exml:object>
       <exml:object/>
     </items>
