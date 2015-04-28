@@ -2,6 +2,7 @@ package net.jangaroo.exml.parser;
 
 import net.jangaroo.exml.api.ExmlcException;
 import net.jangaroo.exml.compiler.Exmlc;
+import net.jangaroo.exml.json.JsonObject;
 import net.jangaroo.exml.model.AnnotationAt;
 import net.jangaroo.exml.model.ConfigAttribute;
 import net.jangaroo.exml.model.ConfigClass;
@@ -77,8 +78,16 @@ public class ExmlMetadataHandler extends CharacterRecordingHandler {
           // start recording characters of the description:
           startRecordingCharacters();
         }
+      } else if (Exmlc.EXML_DECLARATION_VALUE_NODE_NAME.equals(localName)) {
+        if (isLastInPathConstant()) {
+          // start recording characters of the constant value:
+          startRecordingCharacters();
+        }
       } else if (Exmlc.EXML_CONSTANT_NODE_NAME.equals(localName)) {
-        Declaration constant = new Declaration(atts.getValue(Exmlc.EXML_DECLARATION_NAME_ATTRIBUTE), atts.getValue(Exmlc.EXML_DECLARATION_VALUE_ATTRIBUTE), atts.getValue(Exmlc.EXML_DECLARATION_TYPE_ATTRIBUTE));
+        final String name = atts.getValue(Exmlc.EXML_DECLARATION_NAME_ATTRIBUTE);
+        final String type = atts.getValue(Exmlc.EXML_DECLARATION_TYPE_ATTRIBUTE);
+        final String value = atts.getValue(Exmlc.EXML_DECLARATION_VALUE_ATTRIBUTE);
+        Declaration constant = new Declaration(name, formatValue(value, type), type);
         if(!configClass.getConstants().contains(constant)) {
           configClass.addConstant(constant);
         } else {
@@ -105,6 +114,11 @@ public class ExmlMetadataHandler extends CharacterRecordingHandler {
     elementPath.push(new QName(uri, localName));
   }
 
+  private static String formatValue(String value, String type) {
+    return value == null ? null
+            : JsonObject.valueToString(ExmlToModelParser.getAttributeValue(value, type), 2, 4);
+  }
+
   private boolean isLastInPathExmlClass() {
     QName parent = elementPath.peek();
     return ExmlUtils.isExmlNamespace(parent.getNamespaceURI()) && Exmlc.EXML_ROOT_NODE_NAMES.contains(parent.getLocalPart());
@@ -128,13 +142,19 @@ public class ExmlMetadataHandler extends CharacterRecordingHandler {
         String characters = popRecordedCharacters();
         if (characters != null) {
           DescriptionHolder descriptionHolder =
-            isLastInPathConfig() ? configClass.getCfgs().get(configClass.getCfgs().size() - 1)
-              : isLastInPathExmlClass() ? configClass
-              : isLastInPathConstant() ? configClass.getConstants().get(configClass.getConstants().size() - 1)
-              : null;
+                  isLastInPathConfig() ? configClass.getCfgs().get(configClass.getCfgs().size() - 1)
+                          : isLastInPathExmlClass() ? configClass
+                          : isLastInPathConstant() ? getLastConstantDeclaration()
+                          : null;
           if (descriptionHolder != null) {
             descriptionHolder.setDescription(characters);
           }
+        }
+      } else if (Exmlc.EXML_DECLARATION_VALUE_NODE_NAME.equals(localName)) {
+        String characters = popRecordedCharacters();
+        if (characters != null) {
+          final Declaration lastConstantDeclaration = getLastConstantDeclaration();
+          lastConstantDeclaration.setValue(formatValue(characters, lastConstantDeclaration.getType()));
         }
       } else if (Exmlc.EXML_ANNOTATION_NODE_NAME.equals(localName)) {
         String characters = popRecordedCharacters();
@@ -147,5 +167,9 @@ public class ExmlMetadataHandler extends CharacterRecordingHandler {
         configClass.setSuperClassName(configClass.getType().getDefaultSuperConfigClassName());
       }
     }
+  }
+
+  private Declaration getLastConstantDeclaration() {
+    return configClass.getConstants().get(configClass.getConstants().size() - 1);
   }
 }

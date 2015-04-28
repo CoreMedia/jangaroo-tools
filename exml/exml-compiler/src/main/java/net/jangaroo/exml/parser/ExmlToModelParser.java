@@ -9,12 +9,13 @@ import net.jangaroo.exml.model.ConfigAttribute;
 import net.jangaroo.exml.model.ConfigClass;
 import net.jangaroo.exml.model.ConfigClassRegistry;
 import net.jangaroo.exml.model.ConfigClassType;
-import net.jangaroo.exml.model.PublicApiMode;
-import net.jangaroo.exml.model.ExmlModel;
 import net.jangaroo.exml.model.Declaration;
+import net.jangaroo.exml.model.ExmlModel;
+import net.jangaroo.exml.model.PublicApiMode;
 import net.jangaroo.exml.utils.ExmlUtils;
 import net.jangaroo.exml.xml.PreserveLineNumberHandler;
 import net.jangaroo.jooc.Jooc;
+import net.jangaroo.jooc.ast.ApplyExpr;
 import net.jangaroo.utils.AS3Type;
 import net.jangaroo.utils.CompilerUtils;
 import org.w3c.dom.Attr;
@@ -143,9 +144,7 @@ public final class ExmlToModelParser {
           } else if (Exmlc.EXML_DESCRIPTION_NODE_NAME.equals(node.getLocalName())) {
             model.setDescription(node.getTextContent());
           } else if (Exmlc.EXML_VAR_NODE_NAME.equals(node.getLocalName())) {
-            Declaration var = new Declaration(element.getAttribute(Exmlc.EXML_DECLARATION_NAME_ATTRIBUTE),
-              element.getAttribute(Exmlc.EXML_DECLARATION_VALUE_ATTRIBUTE),
-              element.getAttribute(Exmlc.EXML_DECLARATION_TYPE_ATTRIBUTE));
+            Declaration var = createDeclaration(element, model);
             if (!model.getVars().contains(var)) {
               model.addVar(var);
             }
@@ -197,6 +196,37 @@ public final class ExmlToModelParser {
               isConfigTypeArray(superConfigClass, propertyName), entry.getValue());
     }
     fillModelAttributes(model, model.getJsonObject(), componentNode, superConfigClass);
+  }
+
+  private Declaration createDeclaration(Element element, ExmlModel model) {
+    final String name = element.getAttribute(Exmlc.EXML_DECLARATION_NAME_ATTRIBUTE);
+    String type = element.getAttribute(Exmlc.EXML_DECLARATION_TYPE_ATTRIBUTE);
+    if (type == null || type.isEmpty()) {
+      type = AS3Type.ANY.toString();
+    }
+    final NodeList valueElements = element.getElementsByTagNameNS(Exmlc.EXML_NAMESPACE_URI, Exmlc.EXML_DECLARATION_VALUE_NODE_NAME);
+    final Object valueObject;
+    boolean addTypeCast = false;
+    if (valueElements.getLength() > 0) {
+      if (element.hasAttribute(Exmlc.EXML_DECLARATION_VALUE_ATTRIBUTE)) {
+        throw new ExmlcException("The value of <exml:var> or <exml:const> '\" + name + \"' must be specified as either an attribute or a sub-element, not both.", getLineNumber(element));
+      }
+      Element valueElement = (Element)valueElements.item(0);
+      final List<Element> valueChildElements = getChildElements(valueElement);
+      if (valueChildElements.isEmpty()) {
+        valueObject = getAttributeValue(valueElement.getTextContent(), type);
+      } else {
+        valueObject = parseValue(model, "Array".equals(type), valueChildElements);
+        addTypeCast = !AS3Type.ANY.toString().equals(type) && !ApplyExpr.isCoerceFunction(type);
+      }
+    } else {
+      valueObject = getAttributeValue(element.getAttribute(Exmlc.EXML_DECLARATION_VALUE_ATTRIBUTE), type);
+    }
+    String value = JsonObject.valueToString(valueObject, 2, 4);
+    if (addTypeCast) {
+      value = type + "(" + value + ")";
+    }
+    return new Declaration(name, value, type);
   }
 
   private String createFullConfigClassNameFromNode(Node componentNode) {
@@ -343,18 +373,26 @@ public final class ExmlToModelParser {
   }
 
   private void fillJsonObjectProperty(ExmlModel model, JsonObject jsonObject, String propertyName, boolean configTypeArray, List<Element> childElements) {
+    Object value = parseValue(model, configTypeArray, childElements);
+    jsonObject.set(propertyName, value);
+  }
+
+  private Object parseValue(ExmlModel model, boolean configTypeArray, List<Element> childElements) {
+    Object value;
     List<Object> childObjects = parseChildObjects(model, childElements);
     if (childObjects.size() > 1 || configTypeArray) {
       // TODO: Check for type violation
       // We must write an array.
-      JsonArray jsonArray = new JsonArray(childObjects.toArray());
-      jsonObject.set(propertyName, jsonArray);
+      value = new JsonArray(childObjects.toArray());
     } else if (childObjects.size() == 1) {
       // The property is either unspecified, untyped, or object-typed
       // and it contains a single child element. Use that element as the
       // property value.
-      jsonObject.set(propertyName, childObjects.get(0));
+      value = childObjects.get(0);
+    } else {
+      value = null;
     }
+    return value;
   }
 
   private ConfigClass getConfigClassByName(String className, Node errorNode) {

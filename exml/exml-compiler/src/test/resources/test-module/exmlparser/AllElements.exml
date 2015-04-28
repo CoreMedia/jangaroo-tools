@@ -14,6 +14,20 @@
     </exml:description>
   </exml:constant>
 
+  <exml:constant name="ANOTHER_CONSTANT" type="String">
+    <exml:description>
+      <![CDATA[This is another <b>constant</b>]]>
+    </exml:description>
+    <exml:value><![CDATA[
+      Lorem ipsum & Co.
+      Another line.
+    ]]></exml:value>
+  </exml:constant>
+
+  <exml:constant name="CODE_CONSTANT" type="int">
+    <exml:value>{1 + 1}</exml:value>
+  </exml:constant>
+
   <!-- describe the config properties of this component -->
   <exml:cfg name="myProperty" type="String"/>
   <exml:cfg name="myPropertyWithDescription" type="Boolean">
@@ -27,6 +41,18 @@
   </exml:description>
 
   <exml:var name="myVar" type="String" value="{config.myProperty + '_suffix'}"/>
+
+  <exml:var name="myVar2" type="Object">
+    <exml:value>{{
+      prop: config.myProperty
+    }}</exml:value>
+  </exml:var>
+
+  <exml:var name="myVar3" type="ext.config.component">
+    <exml:value>
+      <button text="Foo"/>
+    </exml:value>
+  </exml:var>
 
   <!-- superclass of the the component with attributes-->
   <panel title="I am a panel" layout="{config.myLayout}">

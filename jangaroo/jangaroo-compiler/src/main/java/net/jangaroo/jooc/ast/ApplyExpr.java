@@ -34,7 +34,7 @@ public class ApplyExpr extends Expr {
   private ParenthesizedExpr<CommaSeparatedList<Expr>> args;
 
   private boolean insideNewExpr = false;
-  private static final Set<String> COERCE_FUNCTION_NAMES = new HashSet<String>(Arrays.asList("Number", "String", "Boolean", "int", "uint", "Date", "Array", "RegExp", "XML"));
+  private static final Set<String> COERCE_FUNCTION_NAMES = new HashSet<String>(Arrays.asList("Number", "String", "Boolean", "int", "uint", "Date", "Object", "Array", "RegExp", "XML"));
 
   public ApplyExpr(Expr fun, JooSymbol lParen, CommaSeparatedList<Expr> args, JooSymbol rParen) {
     this.fun = fun;
@@ -75,8 +75,12 @@ public class ApplyExpr extends Expr {
     return declaration != null &&
             (declaration instanceof ClassDeclaration || declaration instanceof PredefinedTypeDeclaration ||
                     (declaration instanceof FunctionDeclaration && declaration.isConstructor()))
-            && (declaration.isClassMember() || !COERCE_FUNCTION_NAMES.contains(declaration.getQualifiedNameStr())
+            && (declaration.isClassMember() || !isCoerceFunction(declaration.getQualifiedNameStr())
     );
+  }
+
+  public static boolean isCoerceFunction(String qualifiedName) {
+    return COERCE_FUNCTION_NAMES.contains(qualifiedName);
   }
 
   public void analyze(AstNode parentNode) {

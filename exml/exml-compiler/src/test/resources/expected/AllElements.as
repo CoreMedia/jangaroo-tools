@@ -4,6 +4,7 @@ import ext.Ext;
 import net.jangaroo.ext.Exml;
 import exmlparser.config.allElements;
 import ext.MessageBox;
+import ext.config.component;
 import ext.Panel;
 
 // Do not edit. This is an auto-generated class.
@@ -22,6 +23,14 @@ public class AllElements extends ext.Panel {
    * This is my <b>constant</b>
    */
   public static const SOME_CONSTANT:uint = exmlparser.config.allElements.SOME_CONSTANT;
+  /**
+   * This is another <b>constant</b>
+   */
+  public static const ANOTHER_CONSTANT:String = exmlparser.config.allElements.ANOTHER_CONSTANT;
+  /**
+   * 
+   */
+  public static const CODE_CONSTANT:int = exmlparser.config.allElements.CODE_CONSTANT;
 
   /**
    * Create a AllElements.
@@ -32,6 +41,13 @@ public class AllElements extends ext.Panel {
    */
   public function AllElements(config:exmlparser.config.allElements = null) {
     var myVar:String = config.myProperty + '_suffix';
+    var myVar2:Object = {
+      prop: config.myProperty
+    };
+    var myVar3:ext.config.component = ext.config.component({
+      xtype: "button",
+      text: "Foo"
+    });
     super(exmlparser.config.allElements(net.jangaroo.ext.Exml.apply({
       layout: config.myLayout,
       title: "I am a panel",
