@@ -39,7 +39,7 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
     Assert.assertEquals("Object", myVar2.getType());
     Assert.assertEquals("{\n" +
             "      prop: config.myProperty\n" +
-            "    }", myVar2.getValue().replaceAll(System.lineSeparator(), "\n"));
+            "    }", myVar2.getValue().replaceAll(System.getProperty("line.separator"), "\n"));
 
     final Declaration myVar3 = varDeclarations.get(2);
     Assert.assertEquals("myVar3", myVar3.getName());
@@ -47,7 +47,7 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
     Assert.assertEquals("ext.config.component({\n" +
             "      xtype: \"button\",\n" +
             "      text: \"Foo\"\n" +
-            "    })", myVar3.getValue().replaceAll(System.lineSeparator(), "\n"));
+            "    })", myVar3.getValue().replaceAll(System.getProperty("line.separator"), "\n"));
 
     final List<Declaration> constantDeclarations = model.getConfigClass().getConstants();
     Assert.assertEquals(3, constantDeclarations.size());
