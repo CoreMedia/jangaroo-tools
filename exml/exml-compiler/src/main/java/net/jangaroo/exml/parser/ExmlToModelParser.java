@@ -39,7 +39,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -120,7 +119,6 @@ public final class ExmlToModelParser {
 
     NodeList childNodes = root.getChildNodes();
     Element componentNode = null;
-    Map<String, List<Element>> defaultValues = new LinkedHashMap<String, List<Element>>();
     for (int i = 0; i < childNodes.getLength(); i++) {
       Node node = childNodes.item(i);
       if (node.getNodeType() == Node.ELEMENT_NODE) {
@@ -150,6 +148,7 @@ public final class ExmlToModelParser {
             }
           } else if (Exmlc.EXML_CFG_NODE_NAME.equals(node.getLocalName())) {
             String cfgName = element.getAttribute(Exmlc.EXML_CFG_NAME_ATTRIBUTE);
+            String cfgType = element.getAttribute(Exmlc.EXML_CFG_TYPE_ATTRIBUTE);
             String cfgDefault = element.getAttribute(Exmlc.EXML_CFG_DEFAULT_ATTRIBUTE);
             Element defaultValueElement = findChildElement(element,
                     Exmlc.EXML_NAMESPACE_URI, Exmlc.EXML_CFG_DEFAULT_NODE_NAME);
@@ -157,11 +156,10 @@ public final class ExmlToModelParser {
               throw new ExmlcException("<exml:cfg> default value must be specified as either an attribute or a sub-element, not both for config '" + cfgName + "'.", getLineNumber(element));
             }
             if (cfgDefault.length() > 0) {
-              model.getJsonObject().set(cfgName, cfgDefault);
-              String cfgType = element.getAttribute(Exmlc.EXML_CFG_TYPE_ATTRIBUTE);
+              model.getCfgDefaults().set(cfgName, cfgDefault);
               model.addImport(cfgType);
             } else if (defaultValueElement != null) {
-              defaultValues.put(cfgName, getChildElements(defaultValueElement));
+              model.getCfgDefaults().set(cfgName, parseValue(model, "Array".equals(cfgType), getChildElements(defaultValueElement)));
             }
           }
         } else {
@@ -190,11 +188,6 @@ public final class ExmlToModelParser {
     //but we still need the import
     model.addImport(superComponentClassName);
 
-    for (Map.Entry<String,List<Element>> entry : defaultValues.entrySet()) {
-      String propertyName = entry.getKey();
-      fillJsonObjectProperty(model, model.getJsonObject(), propertyName,
-              isConfigTypeArray(superConfigClass, propertyName), entry.getValue());
-    }
     fillModelAttributes(model, model.getJsonObject(), componentNode, superConfigClass);
   }
 

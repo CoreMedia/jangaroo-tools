@@ -81,14 +81,14 @@
             Specify either this attribute or a nested &lt;exml:default&gt; element, not both.
           </xs:documentation>
         </xs:annotation>
-        <xs:complexType>
+        <xs:complexType mixed="true">
           <xs:sequence>
             <xs:any minOccurs="0" maxOccurs="1" namespace="##other" processContents="strict"/>
           </xs:sequence>
         </xs:complexType>
       </xs:element>
     </xs:sequence>
-    <xs:attribute name="name" type="xs:string" use="required">
+    <xs:attribute name="name" type="exml:identifier" use="required">
       <xs:annotation>
         <xs:documentation>
           The name of the config property.

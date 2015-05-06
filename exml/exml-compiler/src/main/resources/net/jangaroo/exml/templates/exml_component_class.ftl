@@ -38,6 +38,9 @@ public class ${model.className} extends ${model.superClassName} {
    * @see ${model.configClass.fullName}
    */
   public function ${model.className}(config:${model.configClass.fullName} = null) {
+<#if !model.cfgDefaults.empty>
+    config = ${model.configClass.fullName}(net.jangaroo.ext.Exml.apply(${formattedCfgDefaults}, config));
+</#if>
 <#list model.vars as var>
     var ${var.name}:${var.type} = ${var.value};
 </#list>

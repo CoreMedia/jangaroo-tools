@@ -21,6 +21,10 @@ public class ExmlComponentClassModel {
     return model;
   }
 
+  public String getFormattedCfgDefaults() {
+    return model.getCfgDefaults().toString(2, 4).trim();
+  }
+
   public String getFormattedConfig() {
     return formattedConfig;
   }

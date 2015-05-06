@@ -358,11 +358,10 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
                               "xtype", "button",
                               "text", "button2"
                       )
-              ),
-            "title", "{config.defaultTitle}"
+              )
     );
     System.out.println(model.getJsonObject().toString(2));
-    Assert.assertEquals(expectedJsonObject.toString(2), model.getJsonObject().toString(2));
+    Assert.assertEquals(expectedJsonObject.toString(2), model.getCfgDefaults().toString(2));
   }
 
   @Test
