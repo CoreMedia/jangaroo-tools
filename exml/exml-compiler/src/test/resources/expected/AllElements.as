@@ -51,6 +51,10 @@ public class AllElements extends ext.Panel {
     super(exmlparser.config.allElements(net.jangaroo.ext.Exml.apply({
       layout: config.myLayout,
       title: "I am a panel",
+      someList: [{
+        xtype: "button",
+        text: "click me!"
+      }],
       defaults: {layout: "border"},
       layoutConfig: {
         bla: "blub",

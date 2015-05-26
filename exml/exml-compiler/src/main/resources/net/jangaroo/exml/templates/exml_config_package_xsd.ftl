@@ -9,10 +9,8 @@
 </#list>
 <#list exmlElements as exmlElement>
   <xs:complexType name='${exmlElement.typeName}'>
-    <#if exmlElement.superElement??>
     <xs:complexContent>
-      <xs:extension base='${exmlElement.superElement.fullTypeName}'>
-    </#if>
+      <xs:extension base='${(exmlElement.superElement.fullTypeName)!"exml:base"}'>
         <xs:sequence>
           <#list exmlElement.directCfgs as cfg>
           <#if cfg.sequence || cfg.object>
@@ -48,10 +46,8 @@
         </xs:attribute>
         </#list>
         <xs:anyAttribute namespace="http://www.jangaroo.net/exml/0.8 exml:untyped" processContents="skip"/>
-    <#if exmlElement.superElement??>
       </xs:extension>
     </xs:complexContent>
-    </#if>
   </xs:complexType>
   <#if exmlElement.superElement??>
   <xs:element name='${exmlElement.name}' type='${exmlElement.fullTypeName}' substitutionGroup='${exmlElement.superElement.ns}:${exmlElement.superElement.name}'>

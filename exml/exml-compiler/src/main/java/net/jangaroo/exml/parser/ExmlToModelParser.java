@@ -279,6 +279,14 @@ public final class ExmlToModelParser {
     List<Element> childNodes = getChildElements(componentNode);
     for (Element element : childNodes) {
       String elementName = element.getLocalName();
+      if (ExmlUtils.isExmlNamespace(element.getNamespaceURI()) && "mixins".equals(elementName)) {
+        for (Element mixinElement : getChildElements(element)) {
+          String mixinClassName = createFullConfigClassNameFromNode(mixinElement);
+          ConfigClass mixinConfigClass = getConfigClassByName(mixinClassName, mixinElement);
+          fillModelAttributes(model, jsonObject, mixinElement, mixinConfigClass);
+        }
+        continue;
+      }
 
       boolean isConfigTypeArray = isConfigTypeArray(configClass, elementName);
       String configMode = isConfigTypeArray ? element.getAttribute(CONFIG_MODE_ATTRIBUTE_NAME) : "";

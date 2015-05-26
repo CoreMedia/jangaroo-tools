@@ -56,6 +56,15 @@
 
   <!-- superclass of the the component with attributes-->
   <panel title="I am a panel" layout="{config.myLayout}">
+    <!-- define some attributes through a typed mixin: -->
+    <exml:mixins>
+      <someMixin>
+        <someList>
+          <button text="click me!"/>
+        </someList>
+      </someMixin>
+    </exml:mixins>
+
     <!-- attribute with sub-attributes
     default:{layout:"border"},
     -->

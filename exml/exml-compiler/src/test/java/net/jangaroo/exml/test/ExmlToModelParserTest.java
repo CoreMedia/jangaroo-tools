@@ -72,6 +72,12 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
     JsonObject expectedJsonObject = new JsonObject(
             "layout", "{config.myLayout}",
             "title", "I am a panel",
+            "someList", new JsonArray(
+              new JsonObject(
+                "xtype", "button",
+                "text", "click me!"
+              )
+            ),
             "defaults", new JsonObject("layout","border"),
             "layoutConfig", new JsonObject(
                     "bla", "blub",
