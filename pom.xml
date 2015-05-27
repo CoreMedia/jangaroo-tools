@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>net.jangaroo</groupId>
   <artifactId>jangaroo-tools</artifactId>
-  <version>3.0.1-SNAPSHOT</version>
+  <version>3.0.1</version>
   <packaging>pom</packaging>
   <modules>
     <module>jangaroo-parent</module>
@@ -59,7 +59,7 @@
     <connection>scm:git:git://github.com/CoreMedia/jangaroo-tools.git</connection>
     <developerConnection>scm:git:git@github.com:CoreMedia/jangaroo-tools.git</developerConnection>
     <url>http://github.com/CoreMedia/jangaroo-tools</url>
-    <tag>HEAD</tag>
+    <tag>jangaroo-tools-3.0.1</tag>
   </scm>
 </project>
 
