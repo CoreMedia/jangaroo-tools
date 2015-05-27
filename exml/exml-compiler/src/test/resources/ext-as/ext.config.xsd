@@ -2,6 +2,8 @@
 <xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="exml:ext.config" xmlns:ec="exml:ext.config" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:exml="http://www.jangaroo.net/exml/0.8" >
   <xs:import namespace="http://www.jangaroo.net/exml/0.8"/>
   <xs:complexType name='ext.config.action'>
+    <xs:complexContent>
+      <xs:extension base='exml:base'>
         <xs:sequence>
         </xs:sequence>
         <xs:attribute type='exml:Boolean' name='disabled'>
@@ -12,31 +14,47 @@
           </xs:annotation>
         </xs:attribute>
         <xs:anyAttribute namespace="http://www.jangaroo.net/exml/0.8 exml:untyped" processContents="skip"/>
+      </xs:extension>
+    </xs:complexContent>
   </xs:complexType>
   <xs:element name='action' type='ec:ext.config.action'>
   </xs:element>
   <xs:complexType name='ext.config.agridcolumn'>
+    <xs:complexContent>
+      <xs:extension base='exml:base'>
         <xs:sequence>
         </xs:sequence>
         <xs:anyAttribute namespace="http://www.jangaroo.net/exml/0.8 exml:untyped" processContents="skip"/>
+      </xs:extension>
+    </xs:complexContent>
   </xs:complexType>
   <xs:element name='agridcolumn' type='ec:ext.config.agridcolumn'>
   </xs:element>
   <xs:complexType name='ext.config.alayout'>
+    <xs:complexContent>
+      <xs:extension base='exml:base'>
         <xs:sequence>
         </xs:sequence>
         <xs:anyAttribute namespace="http://www.jangaroo.net/exml/0.8 exml:untyped" processContents="skip"/>
+      </xs:extension>
+    </xs:complexContent>
   </xs:complexType>
   <xs:element name='alayout' type='ec:ext.config.alayout'>
   </xs:element>
   <xs:complexType name='ext.config.aplugin'>
+    <xs:complexContent>
+      <xs:extension base='exml:base'>
         <xs:sequence>
         </xs:sequence>
         <xs:anyAttribute namespace="http://www.jangaroo.net/exml/0.8 exml:untyped" processContents="skip"/>
+      </xs:extension>
+    </xs:complexContent>
   </xs:complexType>
   <xs:element name='aplugin' type='ec:ext.config.aplugin'>
   </xs:element>
   <xs:complexType name='ext.config.button'>
+    <xs:complexContent>
+      <xs:extension base='exml:base'>
         <xs:sequence>
         </xs:sequence>
         <xs:attribute type='exml:String' name='text'>
@@ -47,10 +65,14 @@
           </xs:annotation>
         </xs:attribute>
         <xs:anyAttribute namespace="http://www.jangaroo.net/exml/0.8 exml:untyped" processContents="skip"/>
+      </xs:extension>
+    </xs:complexContent>
   </xs:complexType>
   <xs:element name='button' type='ec:ext.config.button'>
   </xs:element>
   <xs:complexType name='ext.config.component'>
+    <xs:complexContent>
+      <xs:extension base='exml:base'>
         <xs:sequence>
             <xs:element name='baseAction' minOccurs="0" maxOccurs="1">
               <xs:annotation>
@@ -58,14 +80,14 @@
                   The action @see Action
                 </xs:documentation>
               </xs:annotation>
-              <xs:complexType>
+              <xs:complexType mixed="true">
                 <xs:sequence>
                   <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
                 </xs:sequence>
               </xs:complexType>
             </xs:element>
             <xs:element name='margins' minOccurs="0" maxOccurs="1">
-              <xs:complexType>
+              <xs:complexType mixed="true">
                 <xs:sequence>
                   <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
                 </xs:sequence>
@@ -96,10 +118,14 @@
         <xs:attribute type='exml:String' name='margins'>
         </xs:attribute>
         <xs:anyAttribute namespace="http://www.jangaroo.net/exml/0.8 exml:untyped" processContents="skip"/>
+      </xs:extension>
+    </xs:complexContent>
   </xs:complexType>
   <xs:element name='component' type='ec:ext.config.component'>
   </xs:element>
   <xs:complexType name='ext.config.container'>
+    <xs:complexContent>
+      <xs:extension base='exml:base'>
         <xs:sequence>
             <xs:element name='defaults' minOccurs="0" maxOccurs="1">
               <xs:annotation>
@@ -107,7 +133,7 @@
                   defaults for children
                 </xs:documentation>
               </xs:annotation>
-              <xs:complexType>
+              <xs:complexType mixed="true">
                 <xs:sequence>
                   <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
                 </xs:sequence>
@@ -119,7 +145,7 @@
                   this container's children
                 </xs:documentation>
               </xs:annotation>
-              <xs:complexType>
+              <xs:complexType mixed="true">
                 <xs:sequence>
                   <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
                 </xs:sequence>
@@ -142,10 +168,14 @@
           </xs:annotation>
         </xs:attribute>
         <xs:anyAttribute namespace="http://www.jangaroo.net/exml/0.8 exml:untyped" processContents="skip"/>
+      </xs:extension>
+    </xs:complexContent>
   </xs:complexType>
   <xs:element name='container' type='ec:ext.config.container'>
   </xs:element>
   <xs:complexType name='ext.config.label'>
+    <xs:complexContent>
+      <xs:extension base='exml:base'>
         <xs:sequence>
         </xs:sequence>
         <xs:attribute type='exml:String' name='text'>
@@ -156,10 +186,14 @@
           </xs:annotation>
         </xs:attribute>
         <xs:anyAttribute namespace="http://www.jangaroo.net/exml/0.8 exml:untyped" processContents="skip"/>
+      </xs:extension>
+    </xs:complexContent>
   </xs:complexType>
   <xs:element name='label' type='ec:ext.config.label'>
   </xs:element>
   <xs:complexType name='ext.config.menuitem'>
+    <xs:complexContent>
+      <xs:extension base='exml:base'>
         <xs:sequence>
         </xs:sequence>
         <xs:attribute type='exml:String' name='text'>
@@ -170,6 +204,8 @@
           </xs:annotation>
         </xs:attribute>
         <xs:anyAttribute namespace="http://www.jangaroo.net/exml/0.8 exml:untyped" processContents="skip"/>
+      </xs:extension>
+    </xs:complexContent>
   </xs:complexType>
   <xs:element name='menuitem' type='ec:ext.config.menuitem'>
   </xs:element>
@@ -183,7 +219,7 @@
                   List of child items
                 </xs:documentation>
               </xs:annotation>
-              <xs:complexType>
+              <xs:complexType mixed="true">
                 <xs:sequence>
                   <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
                 </xs:sequence>
@@ -196,7 +232,7 @@
                   List of tools
                 </xs:documentation>
               </xs:annotation>
-              <xs:complexType>
+              <xs:complexType mixed="true">
                 <xs:sequence>
                   <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
                 </xs:sequence>
@@ -209,7 +245,7 @@
                   List of child items
                 </xs:documentation>
               </xs:annotation>
-              <xs:complexType>
+              <xs:complexType mixed="true">
                 <xs:sequence>
                   <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
                 </xs:sequence>
@@ -252,10 +288,35 @@
   <xs:element name='panel' type='ec:ext.config.panel' substitutionGroup='ec:component'>
   </xs:element>
   <xs:complexType name='ext.config.plugin'>
+    <xs:complexContent>
+      <xs:extension base='exml:base'>
         <xs:sequence>
         </xs:sequence>
         <xs:anyAttribute namespace="http://www.jangaroo.net/exml/0.8 exml:untyped" processContents="skip"/>
+      </xs:extension>
+    </xs:complexContent>
   </xs:complexType>
   <xs:element name='plugin' type='ec:ext.config.plugin'>
+  </xs:element>
+  <xs:complexType name='ext.config.someMixin'>
+    <xs:complexContent>
+      <xs:extension base='exml:base'>
+        <xs:sequence>
+            <xs:element name='someList' minOccurs="0" maxOccurs="1">
+              <xs:complexType mixed="true">
+                <xs:sequence>
+                  <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+                </xs:sequence>
+                <xs:attribute name="mode" type="exml:configMode"/>
+              </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+        <xs:attribute type='exml:String' name='someList'>
+        </xs:attribute>
+        <xs:anyAttribute namespace="http://www.jangaroo.net/exml/0.8 exml:untyped" processContents="skip"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name='someMixin' type='ec:ext.config.someMixin'>
   </xs:element>
 </xs:schema>

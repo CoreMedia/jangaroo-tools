@@ -65,6 +65,7 @@ public interface Exmlc {
    * The value of a constant or var.
    */
   String EXML_DECLARATION_VALUE_ATTRIBUTE = "value";
+  String EXML_DECLARATION_VALUE_NODE_NAME = "value";
   String EXML_BASE_CLASS_ATTRIBUTE = "baseClass";
   String EXML_PUBLIC_API_ATTRIBUTE = "publicApi";
   String EXML_OBJECT_NODE_NAME = "object";

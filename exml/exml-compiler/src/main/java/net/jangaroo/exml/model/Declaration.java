@@ -1,8 +1,6 @@
 package net.jangaroo.exml.model;
 
 
-import net.jangaroo.jooc.json.JsonObject;
-import net.jangaroo.exml.parser.ExmlToModelParser;
 import net.jangaroo.utils.AS3Type;
 import net.jangaroo.utils.CompilerUtils;
 
@@ -15,12 +13,18 @@ public class Declaration extends TypedField {
   }
 
   private static String guessType(String value) {
+    if (value == null) {
+      return "Object";
+    }
     AS3Type as3Type = CompilerUtils.guessType(value);
     return as3Type == null ? AS3Type.STRING.toString() : as3Type.toString();
   }
 
   public String getValue() {
-    return JsonObject.valueToString(ExmlToModelParser.getAttributeValue(value, getType()), 4, 2);
+    return value;
   }
 
+  public void setValue(String value) {
+    this.value = value;
+  }
 }

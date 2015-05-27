@@ -81,14 +81,14 @@
             Specify either this attribute or a nested &lt;exml:default&gt; element, not both.
           </xs:documentation>
         </xs:annotation>
-        <xs:complexType>
+        <xs:complexType mixed="true">
           <xs:sequence>
             <xs:any minOccurs="0" maxOccurs="1" namespace="##other" processContents="strict"/>
           </xs:sequence>
         </xs:complexType>
       </xs:element>
     </xs:sequence>
-    <xs:attribute name="name" type="xs:string" use="required">
+    <xs:attribute name="name" type="exml:identifier" use="required">
       <xs:annotation>
         <xs:documentation>
           The name of the config property.
@@ -146,6 +146,18 @@
           </xs:documentation>
         </xs:annotation>
       </xs:element>
+      <xs:element name="value" minOccurs="0" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>
+            The value of the constant or variable.
+          </xs:documentation>
+        </xs:annotation>
+        <xs:complexType mixed="true">
+          <xs:sequence>
+            <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
     </xs:sequence>
     <xs:attribute name="name" type="exml:identifier" use="required">
       <xs:annotation>
@@ -155,7 +167,7 @@
         </xs:documentation>
       </xs:annotation>
     </xs:attribute>
-    <xs:attribute name="value" type="xs:string" use="required">
+    <xs:attribute name="value" type="xs:string">
       <xs:annotation>
         <xs:documentation>
           The value of the constant or variable.
@@ -360,4 +372,30 @@
        <xs:enumeration value="prepend"/>
     </xs:restriction>
   </xs:simpleType>
+
+  <xs:complexType name="base">
+    <xs:sequence>
+      <xs:element name="mixins" minOccurs="0" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>
+            This element contains additional config objects that are mixed into 
+            (merged with) the base config object.
+            <br/>
+            It is neither recommended to define the same property in the base config object
+            as well as in a mixin nor to define the same property in more than one mixin. 
+            However, when a property is defined multiple times, the base config object has
+            precedence over mixins, and a mixin has precedence over following mixins.
+            <br/>
+            It is recommended to use a typed mixin config object in favor of using
+            attributes with namespace exml:untyped.
+          </xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+          <xs:sequence>
+            <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
 </xs:schema>

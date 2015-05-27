@@ -3,6 +3,8 @@
   <xs:import namespace="http://www.jangaroo.net/exml/0.8"/>
   <xs:import namespace="exml:ext.config"/>
   <xs:complexType name='net.jangaroo.example.config.testClass'>
+    <xs:complexContent>
+      <xs:extension base='exml:base'>
         <xs:sequence>
         </xs:sequence>
         <xs:attribute type='exml:String' name='test'>
@@ -13,6 +15,8 @@
           </xs:annotation>
         </xs:attribute>
         <xs:anyAttribute namespace="http://www.jangaroo.net/exml/0.8 exml:untyped" processContents="skip"/>
+      </xs:extension>
+    </xs:complexContent>
   </xs:complexType>
   <xs:element name='testClass' type='njec:net.jangaroo.example.config.testClass'>
     <xs:annotation>

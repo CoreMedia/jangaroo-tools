@@ -22,13 +22,62 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
     ExmlToModelParser exmlToModelParser = new ExmlToModelParser(getConfigClassRegistry());
 
     ExmlModel model = exmlToModelParser.parse(getFile("/exmlparser/AllElements.exml"));
-    Assert.assertEquals(new HashSet<String>(Arrays.asList("exmlparser.config.allElements", "ext.Panel", "ext.MessageBox")),
+    Assert.assertEquals(new HashSet<String>(Arrays.asList("exmlparser.config.allElements", "ext.config.component", "ext.MessageBox", "ext.Panel")),
             model.getImports());
     Assert.assertEquals("ext.Panel", model.getSuperClassName());
+
+    final List<Declaration> varDeclarations = model.getVars();
+    Assert.assertEquals(3, varDeclarations.size());
+
+    final Declaration myVar = varDeclarations.get(0);
+    Assert.assertEquals("myVar", myVar.getName());
+    Assert.assertEquals("String", myVar.getType());
+    Assert.assertEquals("config.myProperty + '_suffix'", myVar.getValue());
+
+    final Declaration myVar2 = varDeclarations.get(1);
+    Assert.assertEquals("myVar2", myVar2.getName());
+    Assert.assertEquals("Object", myVar2.getType());
+    Assert.assertEquals("{\n" +
+            "      prop: config.myProperty\n" +
+            "    }", myVar2.getValue().replaceAll(System.getProperty("line.separator"), "\n"));
+
+    final Declaration myVar3 = varDeclarations.get(2);
+    Assert.assertEquals("myVar3", myVar3.getName());
+    Assert.assertEquals("ext.config.component", myVar3.getType());
+    Assert.assertEquals("ext.config.component({\n" +
+            "      xtype: \"button\",\n" +
+            "      text: \"Foo\"\n" +
+            "    })", myVar3.getValue().replaceAll(System.getProperty("line.separator"), "\n"));
+
+    final List<Declaration> constantDeclarations = model.getConfigClass().getConstants();
+    Assert.assertEquals(3, constantDeclarations.size());
+
+    final Declaration myConst1 = constantDeclarations.get(0);
+    Assert.assertEquals("SOME_CONSTANT", myConst1.getName());
+    Assert.assertEquals("1234", myConst1.getValue());
+    Assert.assertEquals("uint", myConst1.getType());
+    Assert.assertEquals("This is my <b>constant</b>", myConst1.getDescription());
+
+    final Declaration myConst2 = constantDeclarations.get(1);
+    Assert.assertEquals("ANOTHER_CONSTANT", myConst2.getName());
+    Assert.assertEquals("\"\\n      Lorem ipsum & Co.\\n      Another line.\\n    \"", myConst2.getValue());
+    Assert.assertEquals("String", myConst2.getType());
+    Assert.assertEquals("This is another <b>constant</b>", myConst2.getDescription());
+
+    final Declaration myConst3 = constantDeclarations.get(2);
+    Assert.assertEquals("CODE_CONSTANT", myConst3.getName());
+    Assert.assertEquals("1 + 1", myConst3.getValue());
+    Assert.assertEquals("int", myConst3.getType());
 
     JsonObject expectedJsonObject = new JsonObject(
             "layout", JsonObject.code("config.myLayout"),
             "title", "I am a panel",
+            "someList", new JsonArray(
+              new JsonObject(
+                "xtype", "button",
+                "text", "click me!"
+              )
+            ),
             "defaults", new JsonObject("layout","border"),
             "layoutConfig", new JsonObject(
                     "bla", "blub",
@@ -38,7 +87,10 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
             "items", new JsonArray(
                     new JsonObject(
                             "xtype", "button",
-                            "text", "Save"
+                            "text", "Save",
+                            "handler", JsonObject.code("function():void {\n" +
+                            "          window.alert('gotcha!');\n" +
+                            "        }")
                     ),
                     JsonObject.code("{xtype: \"editortreepanel\"}")
             ),
@@ -312,11 +364,10 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
                               "xtype", "button",
                               "text", "button2"
                       )
-              ),
-            "title", JsonObject.code("config.defaultTitle")
+              )
     );
     System.out.println(model.getJsonObject().toString(2));
-    Assert.assertEquals(expectedJsonObject.toString(2), model.getJsonObject().toString(2));
+    Assert.assertEquals(expectedJsonObject.toString(2), model.getCfgDefaults().toString(2));
   }
 
   @Test
