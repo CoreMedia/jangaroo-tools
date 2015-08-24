@@ -10,15 +10,17 @@ How to generate Ext AS
     jsduck-x.y.z.exe --verbose --export=full --output json src
 
 3.b Generate JSON API of lastest Ext JS version using JSDuck:
-    cd .../ext-5.1-latest
-    jsduck-x.y.z.exe --verbose --export=full --output json src packages/sencha-core/src
+    cd .../ext-6.0.0.latest
+    jsduck-x.y.z.exe --verbose --export=full --output json-core src packages/core/src
+    jsduck-x.y.z.exe --verbose --export=full --output json src classic/classic/src
+    cp json-core/* json
 
 4. Clone Github CoreMedia/ext-as and checkout branch "generated"
 
 5. Delete ext-as src/main/joo/*, run ExtAsApiGenerator, targeting the src/main/joo directory of ext-as:
-   .../ext-5.1-latest/json .../jangaroo-ext-as/src/main/joo ext ext-as.module .../ext-3.4-reference/json
+   .../ext-6.0.0.latest/json .../jangaroo-ext-as/src/main/joo ext ext-as.module .../ext-3.4-reference/json
 
-6. In IDEA, reformat code (including "optimize imports")
+6. In IDEA, reformat code (including "Optimize imports" and "Rearrange code")
 
 7. Commit ext-as:generated with a message specifying the ExtAsApiGenerator sha
 
