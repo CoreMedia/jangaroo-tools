@@ -11,8 +11,7 @@ How to generate Ext AS
 
 3.b Generate JSON API of lastest Ext JS version using JSDuck:
     cd .../ext-6.0.0.latest
-    jsduck-x.y.z.exe --verbose --export=full --output json-core src packages/core/src
-    jsduck-x.y.z.exe --verbose --export=full --output json src classic/classic/src
+    jsduck-x.y.z.exe --verbose --export=full --output json packages/core/src classic/classic/src
     cp json-core/* json
 
 4. Clone Github CoreMedia/ext-as and checkout branch "generated"
