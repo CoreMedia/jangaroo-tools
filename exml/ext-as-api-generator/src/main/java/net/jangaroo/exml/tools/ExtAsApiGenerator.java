@@ -805,17 +805,14 @@ public class ExtAsApiGenerator {
         // correct wrong usage of Ext.util.Observable as a mixin:
         int observableMixinIndex = extClass.mixins.indexOf("Ext.util.Observable");
         if (observableMixinIndex != -1) {
-          //extClass.mixins = new ArrayList<String>(extClass.mixins);
           extClass.mixins.set(observableMixinIndex, "Ext.mixin.Observable");
         }
         if ("Ext.Base".equals(extClass.extends_)) {
           // correct inheritance / mixin API errors:
           if (extClass.mixins.contains("Ext.mixin.Observable")) {
-            //extClass.mixins = new ArrayList<String>(extClass.mixins);
             extClass.mixins.remove("Ext.mixin.Observable");
             extClass.extends_ = "Ext.util.Observable";
           } else if (extClass.mixins.contains("Ext.dom.Element")) {
-            //extClass.mixins = new ArrayList<String>(extClass.mixins);
             extClass.mixins.remove("Ext.dom.Element");
             extClass.extends_ = "Ext.dom.Element";
           }
