@@ -1,11 +1,8 @@
 package net.jangaroo.exml.tools;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import net.jangaroo.exml.tools.ExtJsApiParser.ExtClass;
 import net.jangaroo.exml.utils.ExmlUtils;
+import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.backend.ActionScriptCodeGeneratingModelVisitor;
 import net.jangaroo.jooc.backend.JsCodeGenerator;
@@ -28,19 +25,31 @@ import net.jangaroo.utils.CompilerUtils;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static net.jangaroo.exml.tools.ExtJsApiParser.Cfg;
+import static net.jangaroo.exml.tools.ExtJsApiParser.Deprecation;
+import static net.jangaroo.exml.tools.ExtJsApiParser.Event;
+import static net.jangaroo.exml.tools.ExtJsApiParser.Member;
+import static net.jangaroo.exml.tools.ExtJsApiParser.Method;
+import static net.jangaroo.exml.tools.ExtJsApiParser.Param;
+import static net.jangaroo.exml.tools.ExtJsApiParser.Property;
+import static net.jangaroo.exml.tools.ExtJsApiParser.Tag;
+import static net.jangaroo.exml.tools.ExtJsApiParser.Var;
+import static net.jangaroo.exml.tools.ExtJsApiParser.filterByOwner;
+import static net.jangaroo.exml.tools.ExtJsApiParser.inheritsDoc;
+import static net.jangaroo.exml.tools.ExtJsApiParser.isConst;
+import static net.jangaroo.exml.tools.ExtJsApiParser.isSingleton;
 
 /**
  * Generate ActionScript 3 APIs from a jsduck JSON export of the Ext JS 4.x API.
@@ -50,12 +59,11 @@ public class ExtAsApiGenerator {
   private static Set<ExtClass> extClasses;
   private static Map<String,ExtClass> extClassByName;
   private static CompilationUnitModelRegistry compilationUnitModelRegistry;
-  private static Set<String> mixins;
   private static Set<String> interfaces;
   private static final List<String> NON_COMPILE_TIME_CONSTANT_INITIALIZERS = Arrays.asList("window", "document", "document.body", "new Date()", "this");
   private static String extPackageName;
   private static String extAmdModuleName;
-  private static List<String> referenceApiClassNames;
+  private static JangarooParser referenceApiRepository;
   private static Map<String,String> normalizeExtClassName = new HashMap<String, String>();
   private static Map<String,String> normalizeExtClassNamePattern = new HashMap<String, String>();
   private static boolean generateEventClasses;
@@ -66,21 +74,7 @@ public class ExtAsApiGenerator {
     File outputDir = new File(args[1]);
     extPackageName = args[2];
     extAmdModuleName = args[3];
-    referenceApiClassNames = new ArrayList<String>();
-    File referenceApiDir;
-    if (args.length >= 5) {
-      referenceApiDir = new File(args[4]);
-      File[] referenceApiFiles = referenceApiDir.listFiles();
-      if (referenceApiFiles != null) {
-        for (File referenceApiFile : referenceApiFiles) {
-          ExtClass referenceApiClass = readExtApiJson(referenceApiFile);
-          if (referenceApiClass != null) {
-            System.out.println("Remembering " + referenceApiClass.name + " for reference.");
-            referenceApiClassNames.add(referenceApiClass.name);
-          }
-        }
-      }
-    }
+    referenceApiRepository = ExtAsApiParser.getParser("2.0.14", "2.0.13");
 
     generateEventClasses = args.length < 6 || Boolean.valueOf(args[5]);
     generateForMxml = args.length < 7 ? false : Boolean.valueOf(args[6]);
@@ -88,8 +82,6 @@ public class ExtAsApiGenerator {
     if (files != null) {
       compilationUnitModelRegistry = new CompilationUnitModelRegistry();
       interfaces = new HashSet<String>();
-      mixins = new HashSet<String>();
-      Set<String> singletons = new HashSet<String>();
       readExtClasses(files);
       for (ExtClass extClass : extClasses) {
         for (String mixin : extClass.mixins) {
@@ -97,11 +89,7 @@ public class ExtAsApiGenerator {
           if (mixinClass != null) {
             String mixinName = getPreferredName(mixinClass);
             interfaces.add(mixinName);
-            mixins.add(mixinName);
           }
-        }
-        if (isSingleton(extClass)) {
-          singletons.add(getPreferredName(extClass));
         }
       }
 
@@ -176,18 +164,6 @@ public class ExtAsApiGenerator {
       }
     }
     return result;
-  }
-
-  private static ExtClass readExtApiJson(File jsonFile) throws IOException {
-    System.out.printf("Reading API from %s...\n", jsonFile.getPath());
-    ObjectMapper objectMapper = new ObjectMapper();
-    objectMapper.registerSubtypes(Property.class, Cfg.class, Method.class, Event.class);
-    ExtClass extClass = objectMapper.readValue(jsonFile, ExtClass.class);
-    if (JsCodeGenerator.PRIMITIVES.contains(extClass.name)) {
-      System.err.println("ignoring built-in class " + extClass.name);
-      return null;
-    }
-    return extClass;
   }
 
   private static void generateClassModel(ExtClass extClass) {
@@ -422,57 +398,6 @@ public class ExtAsApiGenerator {
     outputFile.getParentFile().mkdirs(); // NOSONAR
     System.out.printf("Generating AS3 API for %s into %s...\n", extAsClass.getQName(), outputFile.getPath());
     extAsClass.visit(new ActionScriptCodeGeneratingModelVisitor(new FileWriter(outputFile)));
-  }
-
-  private static <T extends Member> List<T> filterByOwner(boolean isInterface, boolean isStatic, ExtClass owner, List<Member> members, Class<T> memberType) {
-    List<T> result = new ArrayList<T>();
-    for (Member member : members) {
-      if (memberType.isInstance(member) &&
-              member.meta.removed == null &&
-              member.static_ == isStatic &&
-              (member.autodetected == null || !member.autodetected.containsKey("tagname")) &&
-              !"listeners".equals(member.name) &&
-              member.owner.equals(owner.name) && (!isInterface || isPublicNonStaticMethodOrProperty(member))) {
-        result.add(memberType.cast(member));
-      }
-    }
-    return result;
-  }
-
-  private static <T extends Member> T resolve(ExtClass owner, String name, Class<T> memberType) {
-    if (owner != null) {
-      for (Member member : owner.members) {
-        if (memberType.isInstance(member) &&
-                member.owner.equals(owner.name) &&
-                name.equals(member.name) &&
-                !member.meta.static_) {
-          return memberType.cast(member);
-        }
-      }
-    }
-    return null;
-  }
-
-  private static boolean inheritsDoc(Member member) {
-    if (member.overrides != null && !member.overrides.isEmpty()) {
-      final Overrides override = member.overrides.get(0); // or the last element? Didn't find any example of more than one element.
-      final Member superMember = resolve(getExtClass(override.owner), override.name, member.getClass());
-      if (superMember != null && superMember.doc != null) {
-        final String normalizedDoc = member.doc.replace(member.owner, superMember.owner);
-        return normalizedDoc.equals(superMember.doc);
-      }
-    }
-    return false;
-  }
-
-  private static boolean isPublicNonStaticMethodOrProperty(Member member) {
-    return (member instanceof Method || member instanceof Property)
-            && !member.meta.static_ && !member.meta.private_ && !member.meta.protected_
-            && !"constructor".equals(member.name);
-  }
-
-  private static boolean isConst(Member member) {
-    return member.meta.readonly || (member.name.equals(member.name.toUpperCase()) && member.default_ != null);
   }
 
   private static void addDeprecation(Deprecation deprecation, AbstractAnnotatedModel model) {
@@ -795,12 +720,16 @@ public class ExtAsApiGenerator {
 
   // normalize / use alternate class name if it can be found in reference API:
   private static void readExtClasses(File[] files) throws IOException {
+
+    Properties properties = new Properties();
+    properties.load(ExtAsApiGenerator.class.getClassLoader().getResourceAsStream("net/jangaroo/exml/tools/js-as-name-mapping.properties"));
+
+
     extClassByName = new HashMap<String, ExtClass>();
-    extClasses = new LinkedHashSet<ExtClass>();
+    extClasses = ExtJsApiParser.readExtClasses(files);
     Set<ExtClass> privateClasses = new HashSet<ExtClass>();
 
-    for (File jsonFile : files) {
-      ExtClass extClass = readExtApiJson(jsonFile);
+    for (ExtClass extClass: extClasses) {
       if (extClass != null && !extClass.name.startsWith("Ext.enums.")) {
         // correct wrong usage of Ext.util.Observable as a mixin:
         int observableMixinIndex = extClass.mixins.indexOf("Ext.util.Observable");
@@ -830,17 +759,18 @@ public class ExtAsApiGenerator {
       }
     }
     Map<String,String> normalizedPackageName = new HashMap<String, String>();
-    if (!referenceApiClassNames.isEmpty()) {
+    if (referenceApiRepository != null) {
       // find the alternate class name that is used in reference API:
       for (ExtClass extClass : extClasses) {
         if (extClass.alternateClassNames != null) {
           String extClassName = extClass.name;
-          if (referenceApiClassNames.contains(extClassName)) {
+          String jooClassName = properties.getProperty(extClassName);
+          if (jooClassName != null && referenceApiRepository.getCompilationUnit(jooClassName) != null) {
             privateClasses.remove(extClass);
           } else {
             String packageName = CompilerUtils.packageName(extClassName);
             for (String alternateClassName : extClass.alternateClassNames) {
-              if (referenceApiClassNames.contains(alternateClassName)) {
+              if (referenceApiRepository.getCompilationUnit(alternateClassName) != null) {
                 normalizeExtClassName.put(extClassName, alternateClassName);
                 privateClasses.remove(extClass);
                 // also record package mapping for new classes:
@@ -862,6 +792,12 @@ public class ExtAsApiGenerator {
       }
     }
     extClasses.removeAll(privateClasses);
+    System.out.println("CLASS TABLE");
+    System.out.println("===========");
+    for (ExtClass extClass : extClasses) {
+      System.out.println(extClass.name + " = " + CompilerUtils.packageName(extClass.name).toLowerCase() + "." + CompilerUtils.className(extClass.name));
+    }
+    System.out.println();
 
     // some special cases to keep compatibility with Ext AS 3.4:
     normalizeExtClassName.put("Ext.Date", "ext.util.DateUtil");
@@ -934,183 +870,6 @@ public class ExtAsApiGenerator {
       return "Object";
     }
     return normalizedClassName;
-  }
-
-  private static boolean isSingleton(ExtClass extClass) {
-    return extClass != null && extClass.singleton;
-  }
-
-  @SuppressWarnings("UnusedDeclaration")
-  @JsonIgnoreProperties({"html_meta", "html_type", "short_doc", "localdoc", "linenr"})
-  public static class Tag {
-    public String tagname;
-    public String name;
-    public String doc = "";
-    @JsonProperty("private")
-    public boolean private_;
-    public MemberReference inheritdoc;
-    public Object author;
-    public Object docauthor;
-    public Object removed;
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) return true;
-      if (o == null || getClass() != o.getClass()) return false;
-      Tag tag = (Tag)o;
-      return name.equals(tag.name) && !(tagname != null ? !tagname.equals(tag.tagname) : tag.tagname != null);
-
-    }
-
-    @Override
-    public int hashCode() {
-      int result = tagname != null ? tagname.hashCode() : 0;
-      result = 31 * result + name.hashCode();
-      return result;
-    }
-  }
-
-  @JsonIgnoreProperties({"html_meta", "html_type", "short_doc", "localdoc", "linenr", "enum", "override", "autodetected", "params"})
-  public static class ExtClass extends Tag {
-    public Deprecation deprecated;
-    public String since;
-    @JsonProperty("extends")
-    public String extends_;
-    public List<String> mixins = Collections.emptyList();
-    public List<String> alternateClassNames;
-    public Map<String,List<String>> aliases;
-    public boolean singleton;
-    public List<String> requires;
-    public List<String> uses;
-    public String code_type;
-    public boolean inheritable;
-    public Meta meta;
-    public String id;
-    public List<Member> members;
-    public List<FilenNameAndLineNumber> files;
-    public boolean component;
-    public List<String> superclasses;
-    public List<String> subclasses;
-    public List<String> mixedInto;
-    public List<String> parentMixins;
-    @JsonProperty("abstract")
-    public boolean abstract_;
-    @JsonProperty("protected")
-    public boolean protected_;
-  }
-
-  public static class FilenNameAndLineNumber {
-    public String filename;
-    public String linenr;
-  }
-
-  public static class Deprecation {
-    public String text;
-    public String version;
-  }
-
-  @JsonIgnoreProperties({"html_type", "html_meta", "linenr", "properties"})
-  public abstract static class Var extends Tag {
-    public String type;
-    @JsonProperty("default")
-    public String default_;
-  }
-
-  @JsonTypeInfo(use=JsonTypeInfo.Id.NAME, include=JsonTypeInfo.As.PROPERTY, property="tagname")
-  @JsonIgnoreProperties({"html_type", "html_meta", "short_doc", "localdoc", "linenr", "properties"})
-  public static class Member extends Var {
-    public String owner;
-    public Deprecation deprecated;
-    public String since;
-    @JsonProperty("static")
-    public boolean static_;
-    public Meta meta = new Meta();
-    public boolean inheritable;
-    public String id;
-    public List<FilenNameAndLineNumber> files;
-    public boolean accessor;
-    public boolean evented;
-    public List<Overrides> overrides;
-    @JsonProperty("protected")
-    public boolean protected_;
-    public Map<String,Object> autodetected;
-  }
-
-  @JsonTypeName("cfg")
-  @JsonIgnoreProperties({"html_type", "html_meta", "short_doc", "localdoc", "linenr", "properties", "params", "fires", "throws", "return"})
-  public static class Cfg extends Member {
-    public boolean readonly;
-    public boolean required;
-  }
-  
-  public static class MemberReference extends Tag {
-    public String cls;
-    public String member;
-    public String type;
-  }
-
-  @SuppressWarnings("UnusedDeclaration")
-  public static class Overrides {
-    public String name;
-    public String owner;
-    public String id;
-    public String link;
-  }
-
-  @JsonTypeName("property")
-  @JsonIgnoreProperties({"html_type", "html_meta", "short_doc", "localdoc", "linenr", "properties", "params", "return", "throws", "chainable"})
-  public static class Property extends Member {
-    public boolean readonly;
-    @Override
-    public String toString() {
-      return meta + "var " + super.toString();
-    }
-  }
-
-  @JsonTypeName("params")
-  public static class Param extends Var {
-    public boolean optional;
-    public Object ext4_auto_param;
-  }
-
-  @JsonTypeName("method")
-  @JsonIgnoreProperties({"html_type", "html_meta", "short_doc", "localdoc", "linenr", "properties", "throws", "fires", "method_calls", "template", "readonly", "required"})
-  public static class Method extends Member {
-    public List<Param> params;
-    @JsonProperty("return")
-    public Param return_;
-    public boolean chainable;
-    @JsonProperty("abstract")
-    public boolean abstract_;
-  }
-
-  @JsonTypeName("event")
-  @JsonIgnoreProperties({"html_type", "html_meta", "short_doc", "localdoc", "linenr", "properties", "return", "throws"})
-  public static class Event extends Member {
-    public List<Param> params;
-    public boolean preventable;
-  }
-
-  @SuppressWarnings("UnusedDeclaration")
-  @JsonIgnoreProperties({"aside", "chainable", "preventable"})
-  public static class Meta {
-    @JsonProperty("protected")
-    public boolean protected_;
-    @JsonProperty("private")
-    public boolean private_;
-    public boolean readonly;
-    @JsonProperty("static")
-    public boolean static_;
-    @JsonProperty("abstract")
-    public boolean abstract_;
-    public boolean markdown;
-    public Deprecation deprecated;
-    public String template;
-    public List<String> author;
-    public List<String> docauthor;
-    public boolean required;
-    public Map<String,String> removed;
-    public String since;
   }
 
   private static class AliasFactory {
