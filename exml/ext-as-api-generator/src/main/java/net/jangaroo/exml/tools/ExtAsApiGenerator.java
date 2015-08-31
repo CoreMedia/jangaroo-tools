@@ -107,6 +107,14 @@ public class ExtAsApiGenerator {
 
       markTransitiveSupersAsInterfaces(interfaces);
       //markTransitiveSupersAsInterfaces(singletons);
+
+      // correct wrong usage of util.Observable as a mixin:
+      interfaces.remove("Ext.util.Observable");
+      // correct wrong usage of dom.Element as a mixin, not superclass, in dom.CompositeElementLite:
+      interfaces.remove("Ext.Element");
+      // since every Ext object extends Base, there is no need to generate an interface for that:
+      interfaces.remove("Ext.Base");
+
       for (ExtClass extClass : extClasses) {
         generateClassModel(extClass);
       }
@@ -161,7 +169,7 @@ public class ExtAsApiGenerator {
   private static Set<String> supers(Set<String> extClasses) {
     Set<String> result = new HashSet<String>();
     for (String extClass : extClasses) {
-      String superclass = ExtAsApiGenerator.getExtClass(extClass).extends_;
+      String superclass = getExtClass(extClass).extends_;
       if (superclass != null) {
         String preferredName = getPreferredName(superclass);
         result.add(preferredName);
@@ -189,15 +197,8 @@ public class ExtAsApiGenerator {
     System.out.printf("Generating AS3 API model %s for %s...%n", extAsClassUnit.getQName(), extClassName);
     extAsClass.setAsdoc(toAsDoc(extClass));
     addDeprecation(extClass.deprecated, extAsClass);
-    CompilationUnitModel extAsInterfaceUnit = null;
     if (interfaces.contains(extClassName)) {
-      extAsInterfaceUnit = createClassModel(convertToInterface(extClassName));
-      System.out.printf("Generating AS3 API model %s for %s...%n", extAsInterfaceUnit.getQName(), extClassName);
-      ClassModel extAsInterface = (ClassModel)extAsInterfaceUnit.getPrimaryDeclaration();
-      extAsInterface.setInterface(true);
-      extAsInterface.setAsdoc(toAsDoc(extClass));
-      addDeprecation(extClass.deprecated, extAsInterface);
-      addInterfaceForSuperclass(extClass, extAsInterface);
+      extAsClass.setInterface(true);
     }
     AnnotationModel nativeAnnotation = createNativeAnnotation(extClass.name);
     if (isSingleton(extClass)) {
@@ -218,33 +219,18 @@ public class ExtAsApiGenerator {
     } else {
       extAsClass.addAnnotation(nativeAnnotation);
     }
-    if ("Ext.Base".equals(extClass.extends_) && !extClass.mixins.isEmpty()) {
-      // Use first mixin as super class:
-      // BOOO: modifying the JSON model!
-      extClass.extends_ = extClass.mixins.contains("Ext.util.Observable") ? "Ext.util.Observable" : extClass.mixins.get(0);
-      extClass.mixins = new ArrayList<String>(extClass.mixins);
-      extClass.mixins.remove(extClass.extends_);
-    }
     extAsClass.setSuperclass(convertType(extClass.extends_));
-    if (extAsInterfaceUnit != null) {
-      extAsClass.addInterface(extAsInterfaceUnit.getQName());
-    }
     for (String mixin : extClass.mixins) {
       String superInterface = convertToInterface(mixin);
       if (superInterface != null) {
         extAsClass.addInterface(superInterface);
-        if (extAsInterfaceUnit != null) {
-          extAsInterfaceUnit.getClassModel().addInterface(superInterface);
-        }
       }
     }
 
-    if (extAsInterfaceUnit != null) {
-      addNonStaticMembers(extClass, extAsInterfaceUnit);
+    if (!interfaces.contains(extClassName)) {
+      addFields(extAsClass, filterByOwner(false, true, extClass, extClass.members, Property.class));
+      addMethods(extAsClass, filterByOwner(false, true, extClass, extClass.members, Method.class));
     }
-
-    addFields(extAsClass, filterByOwner(false, true, extClass, extClass.members, Property.class));
-    addMethods(extAsClass, filterByOwner(false, true, extClass, extClass.members, Method.class));
 
     addNonStaticMembers(extClass, extAsClassUnit);
 
@@ -302,29 +288,28 @@ public class ExtAsApiGenerator {
       List<Cfg> configProperties = filterByOwner(false, false, extClass, extClass.members, Cfg.class);
       addProperties(configClass, configProperties);
 
-      // adjust constructor of target class:
-      MethodModel targetClassConstructor = extAsClass.getConstructor();
-      if (targetClassConstructor == null) {
-        targetClassConstructor = extAsClass.createConstructor();
-        targetClassConstructor.addParam(new ParamModel("config", generateForMxml ? "Object" : configClassQName, "null", "@inheritDoc"));
-      } else {
-        final List<ParamModel> params = targetClassConstructor.getParams();
-        for (ParamModel param : params) {
-          if ("config".equals(param.getName())) {
-            if (!generateForMxml) {
-              param.setType(configClassQName);
+      if (!interfaces.contains(extClassName)) {
+        // adjust constructor of target class:
+        MethodModel targetClassConstructor = extAsClass.getConstructor();
+        if (targetClassConstructor == null) {
+          targetClassConstructor = extAsClass.createConstructor();
+          targetClassConstructor.addParam(new ParamModel("config", generateForMxml ? "Object" : configClassQName, "null", "@inheritDoc"));
+        } else {
+          final List<ParamModel> params = targetClassConstructor.getParams();
+          for (ParamModel param : params) {
+            if ("config".equals(param.getName())) {
+              if (!generateForMxml) {
+                param.setType(configClassQName);
+              }
+              param.setOptional(true);
+              break;
             }
-            param.setOptional(true);
-            break;
           }
         }
       }
 
       // also add config option properties to target class:
       addProperties(extAsClass, configProperties, true);
-      if (extAsInterfaceUnit != null) {
-        addProperties(extAsInterfaceUnit.getClassModel(), configProperties, !generateForMxml);
-      }
     }
   }
 
@@ -408,15 +393,6 @@ public class ExtAsApiGenerator {
       nativeAnnotation.addProperty(new AnnotationPropertyModel(null, CompilerUtils.quote(nativeName)));
     }
     return nativeAnnotation;
-  }
-
-  private static void addInterfaceForSuperclass(ExtClass extClass, ClassModel extAsInterface) {
-    if (extClass.extends_ != null) {
-      final String interfaceName = convertToInterface(extClass.extends_);
-      if (interfaceName != null) {
-        extAsInterface.addInterface(interfaceName);
-      }
-    }
   }
 
   private static CompilationUnitModel createClassModel(String qName) {
@@ -775,6 +751,9 @@ public class ExtAsApiGenerator {
     if ("google.maps.Map".equals(extType) || "CSSStyleSheet".equals(extType) || "CSSStyleRule".equals(extType)) {
       return "Object"; // no AS3 type yet
     }
+    if (extType.startsWith("Ext.enums.")) {
+      return "String";
+    }
     if (extType.endsWith("...") || extType.matches("[a-zA-Z0-9._$<>]+\\[\\]")) {
       return "Array";
     }
@@ -792,6 +771,8 @@ public class ExtAsApiGenerator {
     String packageName = CompilerUtils.packageName(extType).toLowerCase();
     String className = CompilerUtils.className(extType);
     if (isSingleton(extClass)) {
+      className = "S" + className;
+    } else if (interfaces.contains(extType)) {
       className = "I" + className;
     }
     if (JsCodeGenerator.PRIMITIVES.contains(className)) {
@@ -816,10 +797,32 @@ public class ExtAsApiGenerator {
   private static void readExtClasses(File[] files) throws IOException {
     extClassByName = new HashMap<String, ExtClass>();
     extClasses = new LinkedHashSet<ExtClass>();
+    Set<ExtClass> privateClasses = new HashSet<ExtClass>();
 
     for (File jsonFile : files) {
       ExtClass extClass = readExtApiJson(jsonFile);
-      if (extClass != null && !extClass.private_ && !extClass.name.startsWith("Ext.enums.")) {
+      if (extClass != null && !extClass.name.startsWith("Ext.enums.")) {
+        // correct wrong usage of Ext.util.Observable as a mixin:
+        int observableMixinIndex = extClass.mixins.indexOf("Ext.util.Observable");
+        if (observableMixinIndex != -1) {
+          //extClass.mixins = new ArrayList<String>(extClass.mixins);
+          extClass.mixins.set(observableMixinIndex, "Ext.mixin.Observable");
+        }
+        if ("Ext.Base".equals(extClass.extends_)) {
+          // correct inheritance / mixin API errors:
+          if (extClass.mixins.contains("Ext.mixin.Observable")) {
+            //extClass.mixins = new ArrayList<String>(extClass.mixins);
+            extClass.mixins.remove("Ext.mixin.Observable");
+            extClass.extends_ = "Ext.util.Observable";
+          } else if (extClass.mixins.contains("Ext.dom.Element")) {
+            //extClass.mixins = new ArrayList<String>(extClass.mixins);
+            extClass.mixins.remove("Ext.dom.Element");
+            extClass.extends_ = "Ext.dom.Element";
+          }
+        }
+        if (extClass.private_) {
+          privateClasses.add(extClass);
+        }
         extClasses.add(extClass);
         extClassByName.put(extClass.name, extClass);
         if (extClass.alternateClassNames != null) {
@@ -835,22 +838,33 @@ public class ExtAsApiGenerator {
       for (ExtClass extClass : extClasses) {
         if (extClass.alternateClassNames != null) {
           String extClassName = extClass.name;
-          String packageName = CompilerUtils.packageName(extClassName);
-          for (String alternateClassName : extClass.alternateClassNames) {
-            if (!referenceApiClassNames.contains(extClassName)
-                    && referenceApiClassNames.contains(alternateClassName)) {
-              normalizeExtClassName.put(extClassName, alternateClassName);
-              // also record package mapping for new classes:
-              String alternatePackageName = CompilerUtils.packageName(alternateClassName);
-              if (!packageName.equals(alternatePackageName)) { // only record actual differences!
-                normalizedPackageName.put(packageName, alternatePackageName);
+          if (referenceApiClassNames.contains(extClassName)) {
+            privateClasses.remove(extClass);
+          } else {
+            String packageName = CompilerUtils.packageName(extClassName);
+            for (String alternateClassName : extClass.alternateClassNames) {
+              if (referenceApiClassNames.contains(alternateClassName)) {
+                normalizeExtClassName.put(extClassName, alternateClassName);
+                privateClasses.remove(extClass);
+                // also record package mapping for new classes:
+                String alternatePackageName = CompilerUtils.packageName(alternateClassName);
+                if (!packageName.equals(alternatePackageName)) { // only record actual differences!
+                  normalizedPackageName.put(packageName, alternatePackageName);
+                }
+                break;
               }
-              break;
             }
           }
         }
       }
     }
+
+    for (ExtClass extClass : extClasses) {
+      if (!privateClasses.contains(extClass)) {
+        markPublic(privateClasses, extClass.name);
+      }
+    }
+    extClasses.removeAll(privateClasses);
 
     // some special cases to keep compatibility with Ext AS 3.4:
     normalizeExtClassName.put("Ext.Date", "ext.util.DateUtil");
@@ -895,6 +909,16 @@ public class ExtAsApiGenerator {
     }
   }
 
+  private static void markPublic(Set<ExtClass> privateClasses, String extClassName) {
+    ExtClass extClass = getExtClass(extClassName);
+    privateClasses.remove(extClass);
+    if (extClass.extends_ != null) {
+      markPublic(privateClasses, extClass.extends_);
+    }
+    for (String mixin : extClass.mixins) {
+      markPublic(privateClasses, mixin);
+    }
+  }
 
   private static ExtClass getExtClass(String name) {
     return extClassByName.get(name);
@@ -908,7 +932,9 @@ public class ExtAsApiGenerator {
   private static String getPreferredName(ExtClass extClass) {
     String normalizedClassName = normalizeExtClassName.get(extClass.name);
     if (normalizedClassName == null) {
-      throw new IllegalStateException("unmapped class " + extClass.name);
+      System.err.println(String.format("Private API %s leaks into public API.", extClass.name));
+      // throw new IllegalStateException("unmapped class " + extClass.name);
+      return "Object";
     }
     return normalizedClassName;
   }
@@ -964,7 +990,7 @@ public class ExtAsApiGenerator {
     public Meta meta;
     public String id;
     public List<Member> members;
-    public List<Object> files;
+    public List<FilenNameAndLineNumber> files;
     public boolean component;
     public List<String> superclasses;
     public List<String> subclasses;
@@ -974,6 +1000,11 @@ public class ExtAsApiGenerator {
     public boolean abstract_;
     @JsonProperty("protected")
     public boolean protected_;
+  }
+
+  public static class FilenNameAndLineNumber {
+    public String filename;
+    public String linenr;
   }
 
   public static class Deprecation {
@@ -999,7 +1030,7 @@ public class ExtAsApiGenerator {
     public Meta meta = new Meta();
     public boolean inheritable;
     public String id;
-    public List<String> files;
+    public List<FilenNameAndLineNumber> files;
     public boolean accessor;
     public boolean evented;
     public List<Overrides> overrides;
