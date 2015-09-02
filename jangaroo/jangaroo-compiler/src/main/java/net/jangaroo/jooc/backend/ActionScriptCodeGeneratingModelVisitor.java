@@ -221,8 +221,8 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
       output.print("...");
     }
     output.print(paramModel.getName());
-    generateType(paramModel);
     if (!paramModel.isRest()) {
+      generateType(paramModel);
       generateValue(paramModel);
     }
   }
