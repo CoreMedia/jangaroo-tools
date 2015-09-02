@@ -27,7 +27,7 @@ public class ZipEntryInputSource implements InputSource {
 
   @Override
   public boolean isInSourcePath() {
-    return false;  // ZIP entries are never in the source path
+    return zipFileInputSource.isInSourcePath();
   }
 
   @Override

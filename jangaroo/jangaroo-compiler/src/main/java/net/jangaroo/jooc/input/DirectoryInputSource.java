@@ -5,12 +5,20 @@ import java.io.InputStream;
 
 public abstract class DirectoryInputSource implements InputSource {
 
-  protected DirectoryInputSource() {
+  private boolean inSourcePath;
+
+  protected DirectoryInputSource(boolean inSourcePath) {
+    this.inSourcePath = inSourcePath;
   }
 
   @Override
   public InputStream getInputStream() throws IOException {
     throw new UnsupportedOperationException("getInputStream() is not supported for directory input sources");
+  }
+
+  @Override
+  public boolean isInSourcePath() {
+    return inSourcePath;
   }
 
   @Override
