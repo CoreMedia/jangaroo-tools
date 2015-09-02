@@ -162,7 +162,7 @@ public class CompilationUnitModelRegistry {
         }
       }
     }
-    // add constructors and "override" flags where neccessary, and correct overriding methods' signatures:
+    // add constructors and "override" flags where necessary, and correct overriding methods' signatures:
     for (CompilationUnitModel compilationUnitModel : getCompilationUnitModels()) {
       ClassModel classModel = compilationUnitModel.getClassModel();
       if (classModel != null && getSuperclass(classModel) != null) {
