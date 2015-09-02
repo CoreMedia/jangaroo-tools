@@ -9,8 +9,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -19,9 +21,11 @@ import java.util.Set;
 /**
  * Load API model from a jsduck JSON export of the Ext JS API.
  */
-public class ExtJsApiParser {
+public class ExtJsApi {
 
-  private static Map<String,ExtClass> extClassByName;
+  private Set<ExtClass> extClasses;
+  private Map<String,ExtClass> extClassByName;
+  private Set<ExtClass> mixins;
 
   private static ExtClass readExtApiJson(File jsonFile) throws IOException {
     System.out.printf("Reading API from %s...\n", jsonFile.getPath());
@@ -30,7 +34,7 @@ public class ExtJsApiParser {
     return objectMapper.readValue(jsonFile, ExtClass.class);
   }
 
-  public static <T extends Member> List<T> filterByOwner(boolean isInterface, boolean isStatic, ExtClass owner, List<Member> members, Class<T> memberType) {
+  public <T extends Member> List<T> filterByOwner(boolean isInterface, boolean isStatic, ExtClass owner, List<Member> members, Class<T> memberType) {
     List<T> result = new ArrayList<T>();
     for (Member member : members) {
       if (memberType.isInstance(member) &&
@@ -59,7 +63,7 @@ public class ExtJsApiParser {
     return null;
   }
 
-  public static boolean inheritsDoc(Member member) {
+  public boolean inheritsDoc(Member member) {
     if (member.overrides != null && !member.overrides.isEmpty()) {
       final Overrides override = member.overrides.get(0); // or the last element? Didn't find any example of more than one element.
       final Member superMember = resolve(getExtClass(override.owner), override.name, member.getClass());
@@ -82,42 +86,67 @@ public class ExtJsApiParser {
   }
 
   // normalize / use alternate class name if it can be found in reference API:
-  public static Set<ExtClass> readExtClasses(File[] files) throws IOException {
+  public ExtJsApi(File[] files) throws IOException {
     extClassByName = new HashMap<String, ExtClass>();
-    Set<ExtClass> extClasses = new LinkedHashSet<ExtClass>();
+    extClasses = new LinkedHashSet<ExtClass>();
 
     for (File jsonFile : files) {
       ExtClass extClass = readExtApiJson(jsonFile);
-      if (extClass != null && !extClass.name.startsWith("Ext.enums.")) {
-        // correct wrong usage of Ext.util.Observable as a mixin:
-        int observableMixinIndex = extClass.mixins.indexOf("Ext.util.Observable");
-        if (observableMixinIndex != -1) {
-          extClass.mixins.set(observableMixinIndex, "Ext.mixin.Observable");
-        }
-        if ("Ext.Base".equals(extClass.extends_)) {
-          // correct inheritance / mixin API errors:
-          if (extClass.mixins.contains("Ext.mixin.Observable")) {
-            extClass.mixins.remove("Ext.mixin.Observable");
-            extClass.extends_ = "Ext.util.Observable";
-          } else if (extClass.mixins.contains("Ext.dom.Element")) {
-            extClass.mixins.remove("Ext.dom.Element");
-            extClass.extends_ = "Ext.dom.Element";
-          }
-        }
-        extClasses.add(extClass);
-        extClassByName.put(extClass.name, extClass);
-        if (extClass.alternateClassNames != null) {
-          for (String alternateClassName : extClass.alternateClassNames) {
-            extClassByName.put(alternateClassName, extClass);
-          }
+      extClasses.add(extClass);
+      extClassByName.put(extClass.name, extClass);
+      if (extClass.alternateClassNames != null) {
+        for (String alternateClassName : extClass.alternateClassNames) {
+          extClassByName.put(alternateClassName, extClass);
         }
       }
     }
+    Set<ExtClass> collectMixins = new HashSet<ExtClass>();
+    for (ExtClass extClass : extClasses) {
+      for (String mixin : extClass.mixins) {
+        final ExtClass mixinClass = getExtClass(mixin);
+        if (mixinClass != null) {
+          collectMixins.add(mixinClass);
+        }
+      }
+    }
+    markTransitiveSupersAsMixins(collectMixins);
+    mixins = Collections.unmodifiableSet(collectMixins);
+    extClasses = Collections.unmodifiableSet(extClasses);
+  }
+
+  private void markTransitiveSupersAsMixins(Set<ExtClass> extClasses) {
+    Set<ExtClass> supers = supers(extClasses);
+    while (!supers.isEmpty()) {
+      extClasses.addAll(supers);
+      supers = supers(supers);
+    }
+  }
+
+  private Set<ExtClass> supers(Set<ExtClass> extClasses) {
+    Set<ExtClass> result = new HashSet<ExtClass>();
+    for (ExtClass extClass : extClasses) {
+      ExtClass superclass = getSuperClass(extClass);
+      if (superclass != null) {
+        result.add(superclass);
+      }
+    }
+    return result;
+  }
+
+  public Set<ExtClass> getExtClasses() {
     return extClasses;
   }
 
-  private static ExtClass getExtClass(String name) {
+  public ExtClass getExtClass(String name) {
     return extClassByName.get(name);
+  }
+
+  public ExtClass getSuperClass(ExtClass extClass) {
+    return getExtClass(extClass.extends_);
+  }
+
+  public Set<ExtClass> getMixins() {
+    return mixins;
   }
 
   public static boolean isSingleton(ExtClass extClass) {
