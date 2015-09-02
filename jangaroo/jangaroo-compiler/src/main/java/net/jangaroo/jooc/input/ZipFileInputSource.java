@@ -24,10 +24,11 @@ public class ZipFileInputSource extends DirectoryInputSource {
    *
    * @param file     a zip or jar file
    * @param rootDirs a list of directories to accept as roots (e.g. ["", "META-INF/joo-api"], in lookup order
+   * @param inSourcePath whether this is part of the source path
    * @throws IOException if an IO error occurs
    */
-  public ZipFileInputSource(final File file, String[] rootDirs) throws IOException {
-    super();
+  public ZipFileInputSource(final File file, String[] rootDirs, boolean inSourcePath) throws IOException {
+    super(inSourcePath);
     this.file = file;
     this.zipFile = new ZipFile(file);
     this.rootDirs = rootDirs.clone();
@@ -69,11 +70,6 @@ public class ZipFileInputSource extends DirectoryInputSource {
   @Override
   public String getRelativePath() {
     return "";
-  }
-
-  @Override
-  public boolean isInSourcePath() {
-    return false; // ZIP files are never in source path
   }
 
   @Override
