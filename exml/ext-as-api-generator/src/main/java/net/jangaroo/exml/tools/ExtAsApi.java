@@ -5,14 +5,19 @@ import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.StdOutCompileLog;
 import net.jangaroo.jooc.api.CompileLog;
 import net.jangaroo.jooc.ast.CompilationUnit;
+import net.jangaroo.jooc.backend.ApiModelGenerator;
 import net.jangaroo.jooc.config.ParserOptions;
 import net.jangaroo.jooc.config.SemicolonInsertionMode;
 import net.jangaroo.jooc.input.InputSource;
 import net.jangaroo.jooc.input.PathInputSource;
+import net.jangaroo.jooc.model.CompilationUnitModel;
+import net.jangaroo.jooc.model.CompilationUnitModelRegistry;
 import net.jangaroo.jooc.util.MessageFormat;
+import net.jangaroo.utils.CompilerUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -20,15 +25,77 @@ import java.util.List;
 /**
  * A tool to getParser a given Ext AS API and build a model of it.
  */
-public class ExtAsApiParser {
+public class ExtAsApi {
 
-  public static JangarooParser getParser(String jangarooRuntimeVersion, String jangarooLibsVersion) {
+  private final ApiModelGenerator apiModelGenerator;
+  private JangarooParser jangarooParser;
+  private CompilationUnitModelRegistry compilationUnitModelRegistry;
+
+  public ExtAsApi(String jangarooRuntimeVersion, String jangarooLibsVersion) {
+    jangarooParser = getParser(jangarooRuntimeVersion, jangarooLibsVersion);
+    compilationUnitModelRegistry = new CompilationUnitModelRegistry();
+    apiModelGenerator = new ApiModelGenerator(false);
+  }
+
+  private static JangarooParser getParser(String jangarooRuntimeVersion, String jangarooLibsVersion) {
     return getParser(Arrays.asList(
                     getMavenArtifact("net.jangaroo", "jangaroo-runtime", jangarooRuntimeVersion, null),
                     getMavenArtifact("net.jangaroo", "jangaroo-browser", jangarooLibsVersion, null)
             ),
             getMavenArtifact("net.jangaroo", "ext-as", jangarooLibsVersion, "sources"),
             new StdOutCompileLog());
+  }
+
+  public CompilationUnitModel getCompilationUnitModel(String qName) {
+    CompilationUnitModel compilationUnitModel = compilationUnitModelRegistry.resolveCompilationUnit(qName);
+    if (compilationUnitModel == null) {
+      CompilationUnit compilationUnit = jangarooParser.getCompilationUnit(qName);
+      if (compilationUnit != null && compilationUnit.getSource().isInSourcePath()) {
+        compilationUnit.analyze(null);
+        try {
+          compilationUnitModel = apiModelGenerator.generateModel(compilationUnit);
+          compilationUnitModelRegistry.register(compilationUnitModel);
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+      }
+    }
+    return compilationUnitModel;
+  }
+
+  private boolean isQualifiedName(String qName) {
+    return compilationUnitModelRegistry.resolveCompilationUnit(qName) != null ||
+            jangarooParser.getCompilationUnit(qName) != null;
+  }
+
+  public String resolveQualifiedName(CompilationUnitModel context, String name) {
+    if (name == null) {
+      return null;
+    }
+    if (name.contains(".")) {
+      return name;
+    }
+    // try imports:
+    List<String> imports = new ArrayList<String>(context.getImports());
+    // same package is an implicit import:
+    if (context.getPackage().length() > 0) {
+      imports.add(context.getPackage() + ".*");
+    }
+    // all top-level classes are imported implicitly:
+    imports.add("*");
+
+    for (String anImport : imports) {
+      String unqualified = CompilerUtils.className(anImport);
+      if (unqualified.equals("*")) {
+        String qName = CompilerUtils.qName(CompilerUtils.packageName(anImport), name);
+        if (isQualifiedName(qName)) {
+          return qName;
+        }
+      } else if (unqualified.equals(name)) {
+        return anImport;
+      }
+    }
+    return name;
   }
 
   private static File getMavenArtifact(String groupId, String artifactId, String version, String classifier) {
