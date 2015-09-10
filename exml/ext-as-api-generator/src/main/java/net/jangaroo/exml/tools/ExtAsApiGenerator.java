@@ -97,7 +97,9 @@ public class ExtAsApiGenerator {
 
       for (ExtClass extClass : extClasses) {
         CompilationUnitModel compilationUnitModel = generateClassModel(extClass);
-        generateConfigClassModel(extClass, compilationUnitModel);
+        if (compilationUnitModel != null) {
+          generateConfigClassModel(extClass, compilationUnitModel);
+        }
       }
       complementMixinConfigClasses();
       compilationUnitModelRegistry.complementOverrides();
@@ -136,9 +138,10 @@ public class ExtAsApiGenerator {
         qName = CompilerUtils.qName(CompilerUtils.packageName(qName), ((FieldModel) singletonReference.getPrimaryDeclaration()).getType());
       }
       if (primaryDeclaration instanceof ClassModel) {
-        CompilationUnitModel referenceClass = getReferenceDeclaration(qName);
-        if (referenceClass != null && referenceClass.getPrimaryDeclaration() instanceof ClassModel) {
-          adaptToReferenceApi(compilationUnitModel, referenceClass);
+        for (CompilationUnitModel referenceClass : getReferenceDeclarations(qName)) {
+          if (referenceClass.getPrimaryDeclaration() instanceof ClassModel) {
+            adaptToReferenceApi(compilationUnitModel, referenceClass);
+          }
         }
       }
     }
@@ -146,18 +149,18 @@ public class ExtAsApiGenerator {
 
   private static void adaptToReferenceApi(CompilationUnitModel compilationUnitModel, CompilationUnitModel referenceCompilationUnitModel) {
     // System.err.println("### Adapting " + compilationUnitModel.getQName() + " to " + referenceCompilationUnitModel.getQName());
-    ClassModel classModel = compilationUnitModel.getClassModel();
     ClassModel referenceClassModel = referenceCompilationUnitModel.getClassModel();
     int removedCount = 0;
     int changedCount = 0;
     for (MemberModel member : referenceClassModel.getMembers()) {
-      MemberModel newMember = findMemberModel(classModel, member);
+      MemberModel newMember = findMemberModel(compilationUnitModel, member);
       if (newMember == null) {
         if (!member.equals(referenceClassModel.getConstructor())) {
           //System.err.printf("*** member %s.%s not found%n", classModel.getName(), member.getName());
           ++removedCount;
         }
       } else {
+        adaptNamespaceToReferenceApi(newMember, member);
         boolean changed = adaptTypeToReferenceApi(referenceCompilationUnitModel, newMember, member);
         if (member instanceof MethodModel) {
           Iterator<ParamModel> iterator = ((MethodModel) member).getParams().iterator(),
@@ -197,21 +200,32 @@ public class ExtAsApiGenerator {
     return false;
   }
 
+  private static void adaptNamespaceToReferenceApi(MemberModel newMember, MemberModel member) {
+    String oldNamespace = member.getNamespace();
+    String newNamespace = newMember.getNamespace();
+    if (oldNamespace != null && !oldNamespace.equals(newNamespace)) {
+      newMember.setNamespace(oldNamespace);
+    }
+  }
+
   private static boolean shouldCorrect(String oldType, String newType) {
     return newType == null ||
             "void".equals(newType) ||
             "*".equals(newType) ||
             "void".equals(oldType) ||
             "Object".equals(newType) && "*".equals(oldType) ||
+            "ext.util.IEventObject".equals(oldType) && newType.contains("Event") ||
             "Function".equals(newType) && "Class".equals(oldType);
   }
 
-  private static MemberModel findMemberModel(ClassModel classModel, MemberModel referenceMemberModel) {
+  private static MemberModel findMemberModel(CompilationUnitModel compilationUnitModel, MemberModel referenceMemberModel) {
+    ClassModel classModel = compilationUnitModel.getClassModel();
+    String referenceMemberName = referenceApi.getMappedMemberName(compilationUnitModel, referenceMemberModel.getName());
     MemberModel memberModel = referenceMemberModel instanceof MethodModel
-            ? classModel.getMethod(referenceMemberModel.isStatic(), ((MethodModel) referenceMemberModel).getMethodType(), referenceMemberModel.getName())
-            : classModel.getMember(referenceMemberModel.isStatic(), referenceMemberModel.getName());
+            ? classModel.getMethod(referenceMemberModel.isStatic(), ((MethodModel) referenceMemberModel).getMethodType(), referenceMemberName)
+            : classModel.getMember(referenceMemberModel.isStatic(), referenceMemberName);
     if (memberModel == null) {
-      ClassModel superclass = compilationUnitModelRegistry.getSuperclass(classModel);
+      CompilationUnitModel superclass = compilationUnitModelRegistry.getSuperclassCompilationUnit(classModel);
       if (superclass != null) {
         return findMemberModel(superclass, referenceMemberModel);
       }
@@ -252,6 +266,9 @@ public class ExtAsApiGenerator {
 
   private static CompilationUnitModel generateClassModel(ExtClass extClass) {
     String extClassName = getActionScriptName(extClass);
+    if (extClassName == null) {
+      return null;
+    }
     CompilationUnitModel extAsClassUnit = createClassModel(convertType(extClass.name));
     ClassModel extAsClass = extAsClassUnit.getClassModel();
     System.out.printf("Generating AS3 API model %s for %s...%n", extAsClassUnit.getQName(), extClassName);
@@ -607,7 +624,7 @@ public class ExtAsApiGenerator {
         addDeprecation(member.deprecated, propertyModel);
         setStatic(propertyModel, member);
         propertyModel.addGetter();
-        if (!forceReadOnly && !member.meta.readonly) {
+        if (!forceReadOnly && !(member.meta.readonly || member.readonly)) {
           propertyModel.addSetter();
         }
         classModel.addMember(propertyModel);
@@ -651,7 +668,7 @@ public class ExtAsApiGenerator {
 
   private static void setStatic(MemberModel memberModel, Member member) {
     ExtClass extClass = extJsApi.getExtClass(member.owner);
-    memberModel.setStatic(!extClass.singleton && member.meta.static_);
+    memberModel.setStatic(!extClass.singleton && (member.static_ || member.meta.static_));
   }
 
   private static String toAsDoc(Tag tag) {
@@ -744,9 +761,11 @@ public class ExtAsApiGenerator {
     if ("google.maps.Map".equals(extType) || "CSSStyleSheet".equals(extType) || "CSSStyleRule".equals(extType)) {
       return "Object"; // no AS3 type yet
     }
-    if (extType.startsWith("Ext.enums.")) {
+    // enums and ad-hoc enums:
+    if (extType.startsWith("Ext.enums.") || extType.matches("(['\"].*['\"]/)*['\"].*['\"]")) {
       return "String";
     }
+    // array / vararg syntax:
     if (extType.endsWith("...") || extType.matches("[a-zA-Z0-9._$<>]+\\[\\]")) {
       return "Array";
     }
@@ -764,7 +783,8 @@ public class ExtAsApiGenerator {
     }
     String qName = getActionScriptName(extClass);
     if (qName == null) {
-      throw new RuntimeException("Fatal: No ActionScript type found for Ext class " + extClass.name + ".");
+      return "Object";
+      // throw new RuntimeException("Fatal: No ActionScript type found for Ext class " + extClass.name + ".");
     }
     if (isSingleton(extClass)) {
       qName = CompilerUtils.qName(CompilerUtils.packageName(qName), "S" + CompilerUtils.className(qName));
@@ -796,7 +816,7 @@ public class ExtAsApiGenerator {
       // all classes that already exist in the reference API must stay public API:
       for (ExtClass extClass : extClasses) {
         String jooClassName = getActionScriptName(extClass);
-        if (jooClassName != null && getReferenceDeclaration(jooClassName) != null) {
+        if (jooClassName != null && getReferenceDeclarations(jooClassName) != null) {
           privateClasses.remove(extClass);
         }
       }
@@ -813,24 +833,34 @@ public class ExtAsApiGenerator {
   }
 
   private static CompilationUnitModel getReferenceDeclaration(String jooClassName) {
-    return referenceApi.getCompilationUnitModel(jooClassName);
+    List<CompilationUnitModel> referenceDeclarations = getReferenceDeclarations(jooClassName);
+    return referenceDeclarations.isEmpty() ? null : referenceDeclarations.get(0);
+  }
+
+  private static List<CompilationUnitModel> getReferenceDeclarations(String jooClassName) {
+    return referenceApi.getCompilationUnitModels(jooClassName);
   }
 
   private static void replaceMixin(ExtClass extClass, String mixinImpl, String mixin) {
-    int mixinImplIndex = extClass.mixins.indexOf(mixinImpl);
-    if (mixinImplIndex != -1) {
-      extClass.mixins.set(mixinImplIndex, mixin);
+    // instead of extending the mixin interface, a class has to extend its mixinImpl and implement the interface:
+    if (mixin.equals(extClass.extends_)) {
+      extClass.mixins.add(mixin);
+      extClass.extends_ = mixinImpl.equals(extClass.name) ? "Ext.Base" : mixinImpl;
+    } else {
+      // instead of implementing mixinImpl, a class has to implement its interface:
+      int mixinImplIndex = extClass.mixins.indexOf(mixinImpl);
+      if (mixinImplIndex != -1) {
+        extClass.mixins.set(mixinImplIndex, mixin);
+      }
+      replaceMixinByExtends(extClass, mixin, mixinImpl);
     }
-    replaceMixinByExtends(extClass, mixin, mixinImpl);
   }
 
   private static void replaceMixinByExtends(ExtClass extClass, String mixin, String mixinImpl) {
+    // instead of extending Ext.Base and implementing the mixin, it is simpler to extend mixinImpl
     if ("Ext.Base".equals(extClass.extends_) && extClass.mixins.contains(mixin)) {
       extClass.mixins.remove(mixin);
       extClass.extends_ = mixinImpl;
-    } else if (mixin.equals(extClass.extends_)) {
-      extClass.mixins.add(mixin);
-      extClass.extends_ = mixin.equals(extClass.extends_) ? "Ext.Base" : mixinImpl;
     }
   }
 
@@ -851,7 +881,7 @@ public class ExtAsApiGenerator {
     if (normalizedClassName == null) {
       System.err.println(String.format("Ext JS class name %s not mapped to AS.", extClass.name));
       // throw new IllegalStateException("unmapped class " + extClass.name);
-      return "Object";
+      return null;
     }
     return normalizedClassName;
   }
