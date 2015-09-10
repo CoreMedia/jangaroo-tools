@@ -77,12 +77,12 @@ public class ExtJsApi {
 
   public static boolean isPublicNonStaticMethodOrProperty(Member member) {
     return (member instanceof Method || member instanceof Property)
-            && !member.meta.static_ && !member.meta.private_ && !member.meta.protected_
+            && !member.meta.static_ && !(member.meta.private_ || member.private_) && !(member.meta.protected_ || member.protected_)
             && !"constructor".equals(member.name);
   }
 
   public static boolean isConst(Member member) {
-    return member.meta.readonly || (member.name.equals(member.name.toUpperCase()) && member.default_ != null);
+    return member.meta.readonly || member.readonly || (member.name.equals(member.name.toUpperCase()) && member.default_ != null);
   }
 
   // normalize / use alternate class name if it can be found in reference API:
@@ -249,6 +249,7 @@ public class ExtJsApi {
     public List<Overrides> overrides;
     @JsonProperty("protected")
     public boolean protected_;
+    public boolean readonly;
     public Map<String,Object> autodetected;
   }
 
@@ -256,7 +257,6 @@ public class ExtJsApi {
   @JsonTypeName("cfg")
   @JsonIgnoreProperties({"html_type", "html_meta", "short_doc", "localdoc", "linenr", "properties", "params", "fires", "throws", "return"})
   public static class Cfg extends Member {
-    public boolean readonly;
     public boolean required;
   }
   
@@ -279,7 +279,6 @@ public class ExtJsApi {
   @JsonTypeName("property")
   @JsonIgnoreProperties({"html_type", "html_meta", "short_doc", "localdoc", "linenr", "properties", "params", "return", "throws", "chainable"})
   public static class Property extends Member {
-    public boolean readonly;
     @Override
     public String toString() {
       return meta + "var " + super.toString();
@@ -295,7 +294,7 @@ public class ExtJsApi {
 
   @SuppressWarnings("unused")
   @JsonTypeName("method")
-  @JsonIgnoreProperties({"html_type", "html_meta", "short_doc", "localdoc", "linenr", "properties", "throws", "fires", "method_calls", "template", "readonly", "required"})
+  @JsonIgnoreProperties({"html_type", "html_meta", "short_doc", "localdoc", "linenr", "properties", "throws", "fires", "method_calls", "template", "required"})
   public static class Method extends Member {
     public List<Param> params;
     @JsonProperty("return")
