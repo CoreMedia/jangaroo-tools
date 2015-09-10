@@ -21,17 +21,21 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
 /**
  * A tool to getParser a given Ext AS API and build a model of it.
  */
 public class ExtAsApi {
 
+  private Properties extJsNameMappingProperties = new Properties();
   private final ApiModelGenerator apiModelGenerator;
   private JangarooParser jangarooParser;
   private CompilationUnitModelRegistry compilationUnitModelRegistry;
 
-  public ExtAsApi(String jangarooRuntimeVersion, String jangarooLibsVersion) {
+  public ExtAsApi(String jangarooRuntimeVersion, String jangarooLibsVersion) throws IOException {
+    extJsNameMappingProperties.load(getClass().getClassLoader().getResourceAsStream("net/jangaroo/exml/tools/ext-js-3.4-6.0-name-mapping.properties"));
     jangarooParser = getParser(jangarooRuntimeVersion, jangarooLibsVersion);
     compilationUnitModelRegistry = new CompilationUnitModelRegistry();
     apiModelGenerator = new ApiModelGenerator(false);
@@ -46,21 +50,25 @@ public class ExtAsApi {
             new StdOutCompileLog());
   }
 
-  public CompilationUnitModel getCompilationUnitModel(String qName) {
-    CompilationUnitModel compilationUnitModel = compilationUnitModelRegistry.resolveCompilationUnit(qName);
-    if (compilationUnitModel == null) {
-      CompilationUnit compilationUnit = jangarooParser.getCompilationUnit(qName);
-      if (compilationUnit != null && compilationUnit.getSource().isInSourcePath()) {
-        compilationUnit.analyze(null);
-        try {
-          compilationUnitModel = apiModelGenerator.generateModel(compilationUnit);
-          compilationUnitModelRegistry.register(compilationUnitModel);
-        } catch (IOException e) {
-          e.printStackTrace();
+  public List<CompilationUnitModel> getCompilationUnitModels(String newName) {
+    List<CompilationUnitModel> result = new ArrayList<CompilationUnitModel>();
+    for (String qName : getReferenceQNames(newName)) {
+      CompilationUnitModel compilationUnitModel = compilationUnitModelRegistry.resolveCompilationUnit(qName);
+      if (compilationUnitModel == null) {
+        CompilationUnit compilationUnit = jangarooParser.getCompilationUnit(qName);
+        if (compilationUnit != null && compilationUnit.getSource().isInSourcePath()) {
+          compilationUnit.analyze(null);
+          try {
+            compilationUnitModel = apiModelGenerator.generateModel(compilationUnit);
+            compilationUnitModelRegistry.register(compilationUnitModel);
+            result.add(compilationUnitModel);
+          } catch (IOException e) {
+            e.printStackTrace();
+          }
         }
       }
     }
-    return compilationUnitModel;
+    return result;
   }
 
   private boolean isQualifiedName(String qName) {
@@ -68,7 +76,33 @@ public class ExtAsApi {
             jangarooParser.getCompilationUnit(qName) != null;
   }
 
+  public String getMappedQName(String originalQName) {
+    return originalQName == null ? null : extJsNameMappingProperties.getProperty(originalQName, originalQName);
+  }
+
+  public List<String> getReferenceQNames(String newQName) {
+    if (newQName == null) {
+      return null;
+    }
+    List<String> result = new ArrayList<String>();
+    for (Map.Entry<Object, Object> entry : extJsNameMappingProperties.entrySet()) {
+      if (newQName.equals(entry.getValue())) {
+        result.add((String) entry.getKey());
+      }
+    }
+    return result;
+  }
+
+  public String getMappedMemberName(CompilationUnitModel compilationUnitModel, String originalMemberName) {
+    return extJsNameMappingProperties.getProperty(compilationUnitModel.getQName() + "#" + originalMemberName, originalMemberName);
+  }
+
   public String resolveQualifiedName(CompilationUnitModel context, String name) {
+    String originalQualifiedName = resolveOriginalQualifiedName(context, name);
+    return getMappedQName(originalQualifiedName);
+  }
+
+  private String resolveOriginalQualifiedName(CompilationUnitModel context, String name) {
     if (name == null) {
       return null;
     }
