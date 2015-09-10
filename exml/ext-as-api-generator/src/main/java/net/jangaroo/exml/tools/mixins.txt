@@ -1,0 +1,18 @@
+Mixins:
+=======
+  Ext.mixin.Responsive
+  Ext.util.Floating
+  Ext.state.Stateful
+  Ext.util.Sortable
+  Ext.form.field.Field
+! Ext.util.Observable
+  Ext.container.DockingContainer
+! Ext.Element
+  Ext.util.Animate
+  Ext.util.Focusable
+  Ext.form.FieldAncestor
+  Ext.mixin.Factoryable
+  Ext.form.Labelable
+  Ext.grid.feature.AbstractSummary
+  Ext.mixin.Observable
+  Ext.util.FocusableContainer
