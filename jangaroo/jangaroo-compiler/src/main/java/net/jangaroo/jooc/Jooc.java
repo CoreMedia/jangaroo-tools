@@ -80,16 +80,28 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
     try {
       return run1();
     } catch (CompilerError e) {
-      if (e.getSymbol() != null) {
-        log.error(e.getSymbol(), e.getMessage());
-      } else {
-        log.error(e.getMessage());
-      }
+      logCompilerError(e);
       return new CompilationResultImpl(CompilationResult.RESULT_CODE_COMPILATION_FAILED);
     } catch (Exception e) {
       e.printStackTrace(); // NOSONAR something serious happened and we cannot get it into the ordinary log
-      log.error(e.getMessage());
+      logCompilerError(e);
       return new CompilationResultImpl(CompilationResult.RESULT_CODE_INTERNAL_COMPILER_ERROR);
+    }
+  }
+
+  private void logCompilerError(Throwable e) {
+    boolean causedBy = false;
+    for (Throwable current = e; current != null; current = current.getCause()) {
+      String message = current.getMessage();
+      if (causedBy) {
+        message = "Caused by: " + message;
+      }
+      if (current instanceof CompilerError && ((CompilerError) current).getSymbol() != null) {
+        log.error(((CompilerError) current).getSymbol(), message);
+      } else {
+        log.error(message);
+      }
+      causedBy = true;
     }
   }
 

@@ -39,7 +39,18 @@ public class ImportDirective extends Directive {
   private final boolean explicit;
 
   public ImportDirective(Ide packageIde, String typeName) {
-    this(IMPORT_SYMBOL, createIde(packageIde, new JooSymbol(typeName)), false);
+    this(createImportDirective(packageIde),
+            createIde(packageIde, new JooSymbol(typeName)), false);
+  }
+
+  private static JooSymbol createImportDirective(Ide packageId) {
+    if (packageId == null) {
+      return IMPORT_SYMBOL;
+    }
+    JooSymbol packageSymbol = packageId.getSymbol();
+    return new JooSymbol(sym.IMPORT,
+            packageSymbol.getFileName(), packageSymbol.getLine(), packageSymbol.getColumn(),
+            "", "import");
   }
 
   public ImportDirective(JooSymbol importKeyword, Ide ide, JooSymbol symSemicolon) {
