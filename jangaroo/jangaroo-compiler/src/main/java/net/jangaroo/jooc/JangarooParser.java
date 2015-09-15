@@ -65,6 +65,10 @@ public class JangarooParser {
     return new CompilerError(symbol, msg);
   }
 
+  public static CompilerError error(FilePosition symbol, String msg, Throwable t) {
+    return new CompilerError(symbol, msg, t);
+  }
+
   public static CompilerError error(AstNode node, String msg) {
     return error(node.getSymbol(), msg);
   }
@@ -173,7 +177,12 @@ public class JangarooParser {
 
   public IdeDeclaration resolveImport(final ImportDirective importDirective) {
     String qname = importDirective.getQualifiedName();
-    CompilationUnit compilationUnit = getCompilationUnit(qname);
+    CompilationUnit compilationUnit;
+    try {
+      compilationUnit = getCompilationUnit(qname);
+    } catch (CompilerError e) {
+      throw error(importDirective.getSymbol(), "Unable to import " + qname + ": error while parsing its source (see below).", e);
+    }
     if (compilationUnit == null) {
       throw error(importDirective.getSymbol(), "unable to resolve import of " + qname);
     }
