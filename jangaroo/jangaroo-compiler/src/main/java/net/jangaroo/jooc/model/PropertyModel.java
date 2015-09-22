@@ -126,6 +126,19 @@ public class PropertyModel extends MemberModel {
     visitor.visitProperty(this);
   }
 
+  public PropertyModel duplicate() {
+    MethodModel accessor;
+    MethodModel counterpart;
+    if (getter == null) {
+      accessor = setter;
+      counterpart = null;
+    } else {
+      accessor = getter;
+      counterpart = setter;
+    }
+    return new PropertyModel(accessor.duplicate(), counterpart == null ? null : counterpart.duplicate());
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {

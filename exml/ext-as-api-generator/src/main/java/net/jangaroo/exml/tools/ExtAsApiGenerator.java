@@ -246,13 +246,12 @@ public class ExtAsApiGenerator {
               if (mixinConfigClassQName != null) {
                 // System.err.println("*#*#*# found config mixin in " + extClass.name + ": " + mixinConfigClassQName + " (derived from mixin " + mixin + ")");
                 ClassModel mixinConfigClassModel = compilationUnitModelRegistry.resolveCompilationUnit(mixinConfigClassQName).getClassModel();
-                MethodModel mixinConstructor = mixinConfigClassModel.getConstructor();
                 for (MemberModel memberModel : mixinConfigClassModel.getMembers()) {
-                  if (memberModel instanceof MethodModel && memberModel != mixinConstructor) {
+                  if (memberModel.isGetter()) {
                     if (configClassModel.getMember(memberModel.getName()) != null) {
                       System.err.println("*** [WARN] ignoring config option " + memberModel.getName() + " of config mixin " + mixinConfigClassQName + " in  config class " + configClassQName);
                     } else {
-                      configClassModel.addMember(((MethodModel) memberModel).duplicate());
+                      configClassModel.addMember(mixinConfigClassModel.getProperty((MethodModel) memberModel).duplicate());
                     }
                   }
                 }
