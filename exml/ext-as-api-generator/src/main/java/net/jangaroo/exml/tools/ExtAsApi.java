@@ -61,11 +61,13 @@ public class ExtAsApi {
           try {
             compilationUnitModel = apiModelGenerator.generateModel(compilationUnit);
             compilationUnitModelRegistry.register(compilationUnitModel);
-            result.add(compilationUnitModel);
           } catch (IOException e) {
             e.printStackTrace();
           }
         }
+      }
+      if (compilationUnitModel != null) {
+        result.add(compilationUnitModel);
       }
     }
     return result;
@@ -89,6 +91,10 @@ public class ExtAsApi {
       if (newQName.equals(entry.getValue())) {
         result.add((String) entry.getKey());
       }
+    }
+    if (result.isEmpty()) {
+      // try the new name, maybe it just did not change?
+      result.add(newQName);
     }
     return result;
   }
