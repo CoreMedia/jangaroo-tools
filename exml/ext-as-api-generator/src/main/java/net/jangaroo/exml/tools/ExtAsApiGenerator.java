@@ -754,8 +754,8 @@ public class ExtAsApiGenerator {
     }
     String qName = getActionScriptName(extClass);
     if (qName == null) {
-      return "Object";
-      // throw new RuntimeException("Fatal: No ActionScript type found for Ext class " + extClass.name + ".");
+      // try with super class:
+      return convertType(extClass.extends_);
     }
     if (isSingleton(extClass)) {
       qName = CompilerUtils.qName(CompilerUtils.packageName(qName), "S" + CompilerUtils.className(qName));
