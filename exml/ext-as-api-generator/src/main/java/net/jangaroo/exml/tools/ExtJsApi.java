@@ -35,14 +35,19 @@ public class ExtJsApi {
   }
 
   public <T extends Member> List<T> filterByOwner(boolean isInterface, boolean isStatic, ExtClass owner, List<Member> members, Class<T> memberType) {
+    Set<String> superclassNames = new HashSet<String>();
+    for (ExtClass superclass : computeTransitiveSupersAndMixins(getSuperClass(owner))) {
+      superclassNames.add(superclass.name);
+    }
     List<T> result = new ArrayList<T>();
     for (Member member : members) {
       if (memberType.isInstance(member) &&
               member.meta.removed == null &&
               member.static_ == isStatic &&
+              !member.private_ &&
               (member.autodetected == null || !member.autodetected.containsKey("tagname")) &&
               !"listeners".equals(member.name) &&
-              member.owner.equals(owner.name) && (!isInterface || isPublicNonStaticMethodOrProperty(member))) {
+              !superclassNames.contains(member.owner) && (!isInterface || isPublicNonStaticMethodOrProperty(member))) {
         result.add(memberType.cast(member));
       }
     }
@@ -122,6 +127,23 @@ public class ExtJsApi {
     }
   }
 
+  private Set<ExtClass> computeTransitiveSupersAndMixins(ExtClass extClass) {
+    Set<ExtClass> result = new HashSet<ExtClass>();
+    addTransitiveSupersAndMixins(result, extClass);
+    return result;
+  }
+
+  private boolean addTransitiveSupersAndMixins(Set<ExtClass> supersAndMixins, ExtClass extClass) {
+    if (extClass != null && supersAndMixins.add(extClass)) {
+      addTransitiveSupersAndMixins(supersAndMixins, getSuperClass(extClass));
+      for (String mixin : extClass.mixins) {
+        addTransitiveSupersAndMixins(supersAndMixins, getExtClass(mixin));
+      }
+      return true;
+    }
+    return false;
+  }
+  
   private Set<ExtClass> supers(Set<ExtClass> extClasses) {
     Set<ExtClass> result = new HashSet<ExtClass>();
     for (ExtClass extClass : extClasses) {
