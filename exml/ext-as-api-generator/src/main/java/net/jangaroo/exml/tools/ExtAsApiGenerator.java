@@ -15,6 +15,7 @@ import net.jangaroo.jooc.model.MemberModel;
 import net.jangaroo.jooc.model.MethodModel;
 import net.jangaroo.jooc.model.MethodType;
 import net.jangaroo.jooc.model.NamedModel;
+import net.jangaroo.jooc.model.NamespacedModel;
 import net.jangaroo.jooc.model.ParamModel;
 import net.jangaroo.jooc.model.PropertyModel;
 import net.jangaroo.jooc.model.TypedModel;
@@ -28,13 +29,10 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static net.jangaroo.exml.tools.ExtJsApi.Cfg;
 import static net.jangaroo.exml.tools.ExtJsApi.Deprecation;
@@ -62,6 +60,7 @@ public class ExtAsApiGenerator {
   private static boolean generateEventClasses;
   private static boolean generateForMxml;
   private static Properties jsAsNameMappingProperties = new Properties();
+  private static Properties jsConfigClassNameMappingProperties = new Properties();
 
   public static void main(String[] args) throws IOException {
     File srcDir = new File(args[0]);
@@ -72,6 +71,7 @@ public class ExtAsApiGenerator {
     generateForMxml = args.length <= 3 ? false : Boolean.valueOf(args[3]);
 
     jsAsNameMappingProperties.load(ExtAsApiGenerator.class.getClassLoader().getResourceAsStream("net/jangaroo/exml/tools/js-as-name-mapping.properties"));
+    jsConfigClassNameMappingProperties.load(ExtAsApiGenerator.class.getClassLoader().getResourceAsStream("net/jangaroo/exml/tools/js-config-name-mapping.properties"));
 
     File[] files = srcDir.listFiles();
     if (files != null) {
@@ -84,7 +84,9 @@ public class ExtAsApiGenerator {
       Set<ExtClass> mixins = extJsApi.getMixins();
       for (ExtClass mixin : mixins) {
         String mixinName = getActionScriptName(mixin);
-        interfaces.add(mixinName);
+        if (mixinName != null) {
+          interfaces.add(mixinName);
+        }
       }
 
       // correct wrong usage of util.Observable as a mixin:
@@ -101,7 +103,6 @@ public class ExtAsApiGenerator {
           generateConfigClassModel(extClass, compilationUnitModel);
         }
       }
-      complementMixinConfigClasses();
       compilationUnitModelRegistry.complementOverrides();
       compilationUnitModelRegistry.complementImports();
 
@@ -214,7 +215,7 @@ public class ExtAsApiGenerator {
             "*".equals(newType) ||
             "void".equals(oldType) ||
             "Object".equals(newType) && "*".equals(oldType) ||
-            "ext.util.IEventObject".equals(oldType) && newType.contains("Event") ||
+            "ext.IEventObject".equals(oldType) && newType.contains("Event") ||
             "Function".equals(newType) && "Class".equals(oldType);
   }
 
@@ -233,36 +234,6 @@ public class ExtAsApiGenerator {
     return memberModel;
   }
 
-  private static void complementMixinConfigClasses() {
-    for (ExtClass extClass : extClasses) {
-      String configClassQName = getConfigClassQName(extClass);
-      if (configClassQName != null) {
-        ClassModel configClassModel = compilationUnitModelRegistry.resolveCompilationUnit(configClassQName).getClassModel();
-        if (configClassModel != null) {
-          for (String mixin : extClass.mixins) {
-            ExtClass extMixinClass = extJsApi.getExtClass(mixin);
-            if (extMixinClass != null) {
-              String mixinConfigClassQName = getConfigClassQName(extMixinClass);
-              if (mixinConfigClassQName != null) {
-                // System.err.println("*#*#*# found config mixin in " + extClass.name + ": " + mixinConfigClassQName + " (derived from mixin " + mixin + ")");
-                ClassModel mixinConfigClassModel = compilationUnitModelRegistry.resolveCompilationUnit(mixinConfigClassQName).getClassModel();
-                for (MemberModel memberModel : mixinConfigClassModel.getMembers()) {
-                  if (memberModel.isGetter()) {
-                    if (configClassModel.getMember(memberModel.getName()) != null) {
-                      System.err.println("*** [WARN] ignoring config option " + memberModel.getName() + " of config mixin " + mixinConfigClassQName + " in  config class " + configClassQName);
-                    } else {
-                      configClassModel.addMember(mixinConfigClassModel.getProperty((MethodModel) memberModel).duplicate());
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
   private static CompilationUnitModel generateClassModel(ExtClass extClass) {
     String extClassName = getActionScriptName(extClass);
     if (extClassName == null) {
@@ -273,8 +244,19 @@ public class ExtAsApiGenerator {
     System.out.printf("Generating AS3 API model %s for %s...%n", extAsClassUnit.getQName(), extClassName);
     extAsClass.setAsdoc(toAsDoc(extClass));
     addDeprecation(extClass.deprecated, extAsClass);
+    CompilationUnitModel extAsInterfaceUnit = null;
     if (interfaces.contains(extClassName)) {
-      extAsClass.setInterface(true);
+      extAsInterfaceUnit = createClassModel(convertToInterface(extClassName));
+      System.out.printf("Generating AS3 API model %s for %s...%n", extAsInterfaceUnit.getQName(), extClassName);
+      ClassModel extAsInterface = (ClassModel)extAsInterfaceUnit.getPrimaryDeclaration();
+      extAsInterface.setInterface(true);
+      extAsInterface.setAsdoc(toAsDoc(extClass.doc));
+      if (extClass.extends_ != null) {
+        String superInterface = convertToInterface(getActionScriptName(extClass.extends_));
+        if (superInterface != null) {
+          extAsInterface.addInterface(superInterface);
+        }
+      }
     }
     AnnotationModel nativeAnnotation = createNativeAnnotation(extClass.name);
     if (isSingleton(extClass)) {
@@ -296,11 +278,21 @@ public class ExtAsApiGenerator {
       extAsClass.addAnnotation(nativeAnnotation);
     }
     extAsClass.setSuperclass(convertType(extClass.extends_));
+    if (extAsInterfaceUnit != null) {
+      extAsClass.addInterface(extAsInterfaceUnit.getQName());
+    }
     for (String mixin : extClass.mixins) {
-      String superInterface = getActionScriptName(extJsApi.getExtClass(mixin));
+      String superInterface = convertToInterface(getActionScriptName(mixin));
       if (superInterface != null) {
         extAsClass.addInterface(superInterface);
+        if (extAsInterfaceUnit != null) {
+          extAsInterfaceUnit.getClassModel().addInterface(superInterface);
+        }
       }
+    }
+
+    if (extAsInterfaceUnit != null) {
+      addNonStaticMembers(extClass, extAsInterfaceUnit);
     }
 
     if (!interfaces.contains(extClassName)) {
@@ -310,6 +302,10 @@ public class ExtAsApiGenerator {
 
     addNonStaticMembers(extClass, extAsClassUnit);
     return extAsClassUnit;
+  }
+
+  private static String getActionScriptName(String extClassName) {
+    return getActionScriptName(extJsApi.getExtClass(extClassName));
   }
 
   private static void generateConfigClassModel(ExtClass extClass, CompilationUnitModel extAsClassUnit) {
@@ -398,52 +394,14 @@ public class ExtAsApiGenerator {
   }
 
   private static String getConfigClassQName(ExtClass extClass) {
-    // Singletons never have a config class:
-    if (extClass.singleton) {
-      return null;
-    }
-    String extClassName = getActionScriptName(extClass);
-    Map.Entry<String, List<String>> aliases = getAlias(extClass);
-    String alias = null;
-    // An Ext class needs a config class if
-    if (aliases != null) {
-      // a) it has an "alias" (xtype and the like)
-      alias = getPreferredAlias(aliases);
-    } else {
-      // b) it defines some config options (members.cfg)
-      // c) it defines any event
-      if (hasOwnMember(extClass, extClass.members, Cfg.class) || hasOwnMember(extClass, extClass.members, Event.class)) {
-        // try to make invented alias unique:
-        alias = AliasFactory.INSTANCE.getAlias(extClassName);
-      }
-    }
+    String extClassName = extClass.name;
+    String alias = jsConfigClassNameMappingProperties.getProperty(extClassName);
     if (alias == null) {
       return null;
     }
-    String configClassName = replaceSeparatorByCamelCase(alias, '-');
-    configClassName = replaceSeparatorByCamelCase(configClassName, '.'); // some aliases contain dots!
-    configClassName = configClassName.toLowerCase();
-    String packageName = "ext.config";
-    if (aliases != null) {
-      String aliasCategory = aliases.getKey();
-      if (!"widget".equals(aliasCategory) && !configClassName.contains(aliasCategory)) {
-        configClassName += aliasCategory;
-      }
-    }
-    String configClassQName = packageName + "." + configClassName;
+    String configClassQName = CompilerUtils.qName("ext.config", alias);
     System.err.println("********* derived config class name "  + configClassQName + " from Ext class " + extClassName + " with alias " + alias);
     return configClassQName;
-  }
-
-  private static <T extends Member> boolean hasOwnMember(ExtClass extClass, List<Member> members, Class<T> memberType) {
-    for (Member member : members) {
-      // suppress inherited config options
-      // and config option "listeners", as we handle event listeners through [Event] annotations:
-      if (extClass.name.equals(member.owner) && memberType.isInstance(member) && !"listeners".equals(member.name)) {
-        return true;
-      }
-    }
-    return false;
   }
 
   private static String getPreferredAlias(Map.Entry<String, List<String>> aliases) {
@@ -585,6 +543,7 @@ public class ExtAsApiGenerator {
   private static void addFields(ClassModel classModel, List<? extends Member> fields) {
     for (Member member : fields) {
       PropertyModel fieldModel = new PropertyModel(convertName(member.name), convertType(member.type));
+      setVisibility(fieldModel, member);
       setStatic(fieldModel, member);
       fieldModel.addGetter().setAsdoc(toAsDoc(member));
       if (!isConst(member)) {
@@ -621,6 +580,7 @@ public class ExtAsApiGenerator {
         }
         propertyModel.setAsdoc(toAsDoc(member));
         addDeprecation(member.deprecated, propertyModel);
+        setVisibility(propertyModel, member);
         setStatic(propertyModel, member);
         propertyModel.addGetter();
         if (!forceReadOnly && !(member.meta.readonly || member.readonly)) {
@@ -647,6 +607,7 @@ public class ExtAsApiGenerator {
         if (method.return_ != null) {
           methodModel.getReturnModel().setAsdoc(toAsDoc(method.return_));
         }
+        setVisibility(methodModel, method);
         setStatic(methodModel, method);
         addDeprecation(method.deprecated, methodModel);
         for (Param param : method.params) {
@@ -663,6 +624,10 @@ public class ExtAsApiGenerator {
         }
       }
     }
+  }
+
+  private static void setVisibility(MemberModel memberModel, Member member) {
+    memberModel.setNamespace(member.protected_ || member.meta.protected_ ? NamespacedModel.PROTECTED : NamespacedModel.PUBLIC);
   }
 
   private static void setStatic(MemberModel memberModel, Member member) {
@@ -744,6 +709,13 @@ public class ExtAsApiGenerator {
     return string;
   }
 
+  private static String convertToInterface(String className) {
+    if (className == null || !interfaces.contains(className)) {
+      return null;
+    }
+    return CompilerUtils.qName(CompilerUtils.packageName(className), "I" + CompilerUtils.className(className));
+  }
+
   private static String convertType(String extType) {
     if (extType == null) {
       return null;
@@ -799,8 +771,8 @@ public class ExtAsApiGenerator {
     for (ExtClass extClass: extClasses) {
       // correct wrong usage of Ext.util.Observable as a mixin:
       replaceMixin(extClass, "Ext.util.Observable", "Ext.mixin.Observable");
-      // correct inheritance / mixin API errors:
-      replaceMixinByExtends(extClass, "Ext.dom.Element", "Ext.dom.Element");
+      // simplify "extends Base mixins Mixin-that-extends-Base" to "extends Mixin-that-extends-Base":
+      replaceMixinByExtends(extClass, "Ext.dom.Element");
 
       // Classes to remove from public API:
       // explicitly marked private OR
@@ -841,36 +813,29 @@ public class ExtAsApiGenerator {
   }
 
   private static void replaceMixin(ExtClass extClass, String mixinImpl, String mixin) {
-    // instead of extending the mixin interface, a class has to extend its mixinImpl and implement the interface:
-    if (mixin.equals(extClass.extends_)) {
-      extClass.mixins.add(mixin);
-      extClass.extends_ = mixinImpl.equals(extClass.name) ? "Ext.Base" : mixinImpl;
-    } else {
-      // instead of implementing mixinImpl, a class has to implement its interface:
-      int mixinImplIndex = extClass.mixins.indexOf(mixinImpl);
-      if (mixinImplIndex != -1) {
-        extClass.mixins.set(mixinImplIndex, mixin);
-      }
-      replaceMixinByExtends(extClass, mixin, mixinImpl);
+    // instead of implementing mixinImpl, a class has to implement its interface:
+    int mixinImplIndex = extClass.mixins.indexOf(mixinImpl);
+    if (mixinImplIndex != -1) {
+      extClass.mixins.set(mixinImplIndex, mixin);
     }
+    replaceMixinByExtends(extClass, mixin);
   }
 
-  private static void replaceMixinByExtends(ExtClass extClass, String mixin, String mixinImpl) {
-    // instead of extending Ext.Base and implementing the mixin, it is simpler to extend mixinImpl
+  private static void replaceMixinByExtends(ExtClass extClass, String mixin) {
+    // instead of extending Ext.Base and implementing the mixin, it is simpler to extend the mixin
     if ("Ext.Base".equals(extClass.extends_) && extClass.mixins.contains(mixin)) {
       extClass.mixins.remove(mixin);
-      extClass.extends_ = mixinImpl;
+      extClass.extends_ = mixin;
     }
   }
 
   private static void markPublic(Set<ExtClass> privateClasses, String extClassName) {
     ExtClass extClass = extJsApi.getExtClass(extClassName);
-    privateClasses.remove(extClass);
+    if (privateClasses.remove(extClass)) {
+      System.err.println("*** marked public because it is a super class: " + extClass.name);
+    }
     if (extClass.extends_ != null) {
       markPublic(privateClasses, extClass.extends_);
-    }
-    for (String mixin : extClass.mixins) {
-      markPublic(privateClasses, mixin);
     }
   }
 
@@ -885,49 +850,4 @@ public class ExtAsApiGenerator {
     return normalizedClassName;
   }
 
-  private static class AliasFactory {
-    private static final AliasFactory INSTANCE = new AliasFactory();
-
-    private final Map<String, String> UNIQUE_ALIAS_MAPPING = new LinkedHashMap<String, String>();
-
-    private void add(String constant, String replacement) {
-      addPattern(constant.replaceAll("\\.", "\\."), replacement);
-    }
-
-    private void addPattern(String pattern, String replacement) {
-      UNIQUE_ALIAS_MAPPING.put(pattern, replacement);
-    }
-
-    private AliasFactory() {
-      add("Ext.data.Field", "datafield");
-      add("Ext.slider.Tip", "slidertip");
-      add("Ext.form.Action", "formaction");
-      add("Ext.Class", "extclass");
-      add("Ext.state.Provider", "stateprovider");
-      addPattern("Ext\\.list\\.(.*)Column", "lv$1column");
-      add("Ext.grid.Column", "gridcolumn");
-      addPattern("Ext\\.grid\\.(.+)Column", "$1column");
-      add("Ext.store.Store", "store");
-      addPattern("Ext\\.(.+)\\.Store", "$1store");
-      addPattern("Ext\\.chart\\.(.+)", "chart$1");
-      add("Ext.data.proxy.Proxy", "dataproxy");
-      add("Ext.panel.Proxy", "panelproxy");
-      add("Ext.view.DragZone", "viewdragzone");
-      addPattern("Ext\\.(.+)\\.Controller", "$1controller");
-      add("Ext.form.field.Field", "fieldmixin");
-      add("Ext.app.domain.Direct", "appdomaindirect");
-      add("Ext.layout.boxOverflow.Menu", "boxoverflowmenu");
-    }
-
-    public String getAlias(String extClassName) {
-      for (Map.Entry<String, String> patternStringEntry : UNIQUE_ALIAS_MAPPING.entrySet()) {
-        String pattern = patternStringEntry.getKey();
-        Matcher matcher = Pattern.compile(pattern).matcher(extClassName);
-        if (matcher.matches()) {
-          return extClassName.replaceAll(pattern, patternStringEntry.getValue()).toLowerCase();
-        }
-      }
-      return CompilerUtils.className(extClassName).toLowerCase();
-    }
-  }
 }
