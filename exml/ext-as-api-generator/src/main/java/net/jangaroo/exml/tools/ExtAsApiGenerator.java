@@ -96,6 +96,7 @@ public class ExtAsApiGenerator {
       // since every Ext object extends Base, there is no need to generate an interface for that:
       interfaces.remove("ext.Base");
       interfaces.remove("Object");
+      interfaces.add("ext.EventObjectImpl");
 
       for (ExtClass extClass : extClasses) {
         CompilationUnitModel compilationUnitModel = generateClassModel(extClass);
@@ -713,7 +714,11 @@ public class ExtAsApiGenerator {
     if (className == null || !interfaces.contains(className)) {
       return null;
     }
-    return CompilerUtils.qName(CompilerUtils.packageName(className), "I" + CompilerUtils.className(className));
+    String interfaceName = "I" + CompilerUtils.className(className);
+    if (interfaceName.endsWith("Impl")) {
+      interfaceName = interfaceName.substring(0, interfaceName.length() - 4);
+    }
+    return CompilerUtils.qName(CompilerUtils.packageName(className), interfaceName);
   }
 
   private static String convertType(String extType) {
