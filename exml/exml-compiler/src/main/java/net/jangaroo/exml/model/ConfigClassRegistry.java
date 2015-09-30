@@ -156,7 +156,7 @@ public final class ConfigClassRegistry {
     return getExmlSourceFile(exmlFile).generateConfigClass();
   }
 
-  private ExmlSourceFile getExmlSourceFile(File exmlFile) {
+  public ExmlSourceFile getExmlSourceFile(File exmlFile) {
     return getExmlSourceFilesByConfigClassName().get(computeConfigClassName(exmlFile));
   }
 
