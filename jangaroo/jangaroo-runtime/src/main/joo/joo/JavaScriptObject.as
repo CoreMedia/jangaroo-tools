@@ -13,5 +13,19 @@ public dynamic class JavaScriptObject {
    *   is initially empty.
    */
   public native function JavaScriptObject(config:Object = null);
+
+  /**
+   * This element contains additional config objects that are mixed into
+   * (merged with) this config object.
+   * <br/>
+   * It is neither recommended to define the same property in the base config object
+   * as well as in a mixin nor to define the same property in more than one mixin.
+   * However, when a property is defined multiple times, the base config object has
+   * precedence over mixins, and a mixin has precedence over following mixins.
+   * <br/>
+   * It is recommended to use a typed mixin config object in favor of using
+   * dynamic attributes.
+   */
+  public native function set mixins(mixins:Array):void;
 }
 }
