@@ -158,10 +158,6 @@ public class ExmlToMxml {
         isConfigElement = true;
         qName = configClassPrefix + ":" + configClassName;
 
-        if (isPublicApi) {
-          out.printf("%n  <fx:Metadata>[%s]</fx:Metadata>", Jooc.PUBLIC_API_INCLUSION_ANNOTATION_NAME);
-        }
-
         if (!imports.isEmpty() || !constants.isEmpty()) {
           currentOut.printf("%n  <fx:Script><![CDATA[%n");
           for (String anImport : imports) {
@@ -222,8 +218,14 @@ public class ExmlToMxml {
       }
       elementPath.push(qName);
       lastColumn = locator.getColumnNumber();
-      if (isConfigElement) {
-        flush();
+      if ("fx:Metadata".equals(qName)) {
+        flushPendingTagClose();
+        out.print("[");
+      } else if (elementPath.size() == 1 && isPublicApi) {
+        flushPendingTagClose();
+        out.printf("%n  <fx:Metadata>[%s]</fx:Metadata>", Jooc.PUBLIC_API_INCLUSION_ANNOTATION_NAME);
+      } else if (isConfigElement) {
+        flushPendingTagClose();
         for (Map.Entry<String, String> configDefaultSubElement : configDefaultSubElements.entrySet()) {
           String propertyQName = configDefaultSubElement.getKey();
           if (!qName.equals(localName)) {
@@ -236,18 +238,14 @@ public class ExmlToMxml {
     }
 
     private String handleImport(Attributes atts) {
-      String qName;// do not render import elements
-      qName = null;
       String importedClassName = atts.getValue(Exmlc.EXML_IMPORT_CLASS_ATTRIBUTE);
       if (importedClassName != null) {
         imports.add(importedClassName);
       }
-      return qName;
+      return null; // do not render import elements
     }
 
     private String handleConstant(Attributes atts, String configClassQName) {
-      String qName;// do not render constant elements
-      qName = null;
       final String name = atts.getValue(Exmlc.EXML_DECLARATION_NAME_ATTRIBUTE);
       String type = atts.getValue(Exmlc.EXML_DECLARATION_TYPE_ATTRIBUTE);
       if (type == null) {
@@ -255,18 +253,16 @@ public class ExmlToMxml {
       }
       imports.add(configClassQName);
       constants.add(new Declaration(name, configClassQName + "." + name, type));
-      return qName;
+      return null; // do not render constant elements
     }
 
     private String handleCfg(Attributes atts) {
-      String qName;// do not render config elements
-      qName = null;
       currentConfigName = atts.getValue("name");
       String configDefault = atts.getValue("default");
       if (configDefault != null && !configDefault.isEmpty()) {
         configDefaultValues.put(currentConfigName, configDefault);
       }
-      return qName;
+      return null; // do not render config elements
     }
 
     private String handleAnnotation(String qName, Attributes atts) {
@@ -296,15 +292,17 @@ public class ExmlToMxml {
         String superClassName = superConfigClass.getComponentClassName();
         for (int i = 0; i < atts.getLength(); i++) {
           //baseClass attribute has been specified, so the super class of the component is actually that
-          if (Exmlc.EXML_BASE_CLASS_ATTRIBUTE.equals(atts.getLocalName(i))) {
-            superClassName = atts.getValue(i);
+          String attLocalName = atts.getLocalName(i);
+          String attValue = atts.getValue(i);
+          if (Exmlc.EXML_BASE_CLASS_ATTRIBUTE.equals(attLocalName)) {
+            superClassName = attValue;
             if (superClassName.indexOf('.') == -1) {
               // fully-qualify by same package:
               superClassName = CompilerUtils.qName(CompilerUtils.packageName(exmlSourceFile.getTargetClassName()),
                       superClassName);
             }
-          } else if (Exmlc.EXML_PUBLIC_API_ATTRIBUTE.equals(atts.getLocalName(i))) {
-            PublicApiMode publicApiMode = Exmlc.parsePublicApiMode(atts.getValue(i));
+          } else if (Exmlc.EXML_PUBLIC_API_ATTRIBUTE.equals(attLocalName)) {
+            PublicApiMode publicApiMode = Exmlc.parsePublicApiMode(attValue);
             if (publicApiMode != PublicApiMode.FALSE) {
               isPublicApi = true;
             }
@@ -337,17 +335,15 @@ public class ExmlToMxml {
           pendingTagClose = false;
         } else {
           flush();
+          if ("fx:Metadata".equals(qName)) {
+            out.print("]");
+          }
           currentOut.printf("</%s>", qName);
         }
       }
       startRecordingCharacters();
       if (ExmlUtils.isExmlNamespace(uri)) {
-        if (Exmlc.EXML_ANNOTATION_NODE_NAME.equals(localName)) {
-          String characters = popRecordedCharacters();
-          if (characters != null) {
-            //configClass.addAnnotation(characters);
-          }
-        } else if (Exmlc.EXML_CFG_DEFAULT_NODE_NAME.equals(localName)) {
+        if (Exmlc.EXML_CFG_DEFAULT_NODE_NAME.equals(localName)) {
           configDefaultSubElements.put(currentConfigName, cfgDefaultRecorder.toString());
           currentOut = out;
           // TODO: need to close cfgDefaultRecorder?
@@ -355,10 +351,6 @@ public class ExmlToMxml {
         } else if (Exmlc.EXML_CFG_NODE_NAME.equals(localName)) {
           currentConfigName = null;
         }
-//        if (elementPath.isEmpty() && configClass.getSuperClassName() == null) {
-//          // if nothing else is specified, extend default config class depending on the config class type:
-//          configClass.setSuperClassName(configClass.getType().getDefaultSuperConfigClassName());
-//        }
       }
       lastColumn = locator.getColumnNumber();
     }
