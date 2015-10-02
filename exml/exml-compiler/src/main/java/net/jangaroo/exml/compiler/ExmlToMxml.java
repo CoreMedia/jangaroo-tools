@@ -140,13 +140,7 @@ public class ExmlToMxml {
         } else if (Exmlc.EXML_IMPORT_NODE_NAME.equals(localName)) {
           qName = handleImport(atts);
         } else if (Exmlc.EXML_CFG_DEFAULT_NODE_NAME.equals(localName)) {
-          qName = null;
-          cfgDefaultRecorder = new ByteArrayOutputStream();
-          try {
-            currentOut = new PrintStream(cfgDefaultRecorder, true, "UTF-8");
-          } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
-          }
+          qName = handleCfgDefault();
         } else if (Exmlc.EXML_DESCRIPTION_NODE_NAME.equals(localName)) {
           qName = null;
         }
@@ -235,6 +229,16 @@ public class ExmlToMxml {
         }
         configDefaultSubElements.clear();
       }
+    }
+
+    private String handleCfgDefault() {
+      cfgDefaultRecorder = new ByteArrayOutputStream();
+      try {
+        currentOut = new PrintStream(cfgDefaultRecorder, true, "UTF-8");
+      } catch (UnsupportedEncodingException e) {
+        throw new RuntimeException(e);
+      }
+      return null; // do not render default element (but its contents!)
     }
 
     private String handleImport(Attributes atts) {
