@@ -14,6 +14,7 @@ import net.jangaroo.exml.model.PublicApiMode;
 import net.jangaroo.exml.parser.ExmlToConfigClassParser;
 import net.jangaroo.exml.parser.ExmlToModelParser;
 import net.jangaroo.exml.utils.ExmlUtils;
+import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.cli.CommandLineParseException;
 import net.jangaroo.utils.CharacterRecordingHandler;
 import net.jangaroo.utils.CompilerUtils;
@@ -82,6 +83,7 @@ public class ExmlToMxml {
     private final ExmlSourceFile exmlSourceFile;
     private final ExmlModel exmlModel;
     private String currentConfigName;
+    private boolean isPublicApi;
 
     public ExmlToMxmlHandler(ExmlSourceFile exmlSourceFile, ExmlModel exmlModel, PrintStream out) {
       this.exmlSourceFile = exmlSourceFile;
@@ -156,6 +158,10 @@ public class ExmlToMxml {
         isConfigElement = true;
         qName = configClassPrefix + ":" + configClassName;
 
+        if (isPublicApi) {
+          out.printf("%n  <fx:Metadata>[%s]</fx:Metadata>", Jooc.PUBLIC_API_INCLUSION_ANNOTATION_NAME);
+        }
+
         if (!imports.isEmpty() || !constants.isEmpty()) {
           currentOut.printf("%n  <fx:Script><![CDATA[%n");
           for (String anImport : imports) {
@@ -193,7 +199,8 @@ public class ExmlToMxml {
         String attributeName = atts.getQName(i);
         if ("id".equals(attributeName)) {
           attributeName = "extId";
-        } else if (Exmlc.EXML_BASE_CLASS_ATTRIBUTE.equals(attributeName)) {
+        } else if (Exmlc.EXML_BASE_CLASS_ATTRIBUTE.equals(attributeName) ||
+                Exmlc.EXML_PUBLIC_API_ATTRIBUTE.equals(attributeName)) {
           continue;
         }
 
@@ -299,7 +306,7 @@ public class ExmlToMxml {
           } else if (Exmlc.EXML_PUBLIC_API_ATTRIBUTE.equals(atts.getLocalName(i))) {
             PublicApiMode publicApiMode = Exmlc.parsePublicApiMode(atts.getValue(i));
             if (publicApiMode != PublicApiMode.FALSE) {
-              //out.println("ANNOTATION: " + Jooc.PUBLIC_API_INCLUSION_ANNOTATION_NAME);
+              isPublicApi = true;
             }
           }
         }
