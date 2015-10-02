@@ -28,6 +28,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
@@ -62,7 +63,10 @@ public class ExmlToMxml {
 
   private void exmlToMxml(ExmlSourceFile exmlSourceFile, ExmlModel exmlModel) throws IOException, TransformerException, ParserConfigurationException,
           SAXException {
-    ExmlToConfigClassParser.parseFileWithHandler(exmlSourceFile.getSourceFile(), new ExmlToMxmlHandler(exmlSourceFile, exmlModel, System.out));
+    File sourceFile = exmlSourceFile.getSourceFile();
+    File outputFile = CompilerUtils.fileFromQName(exmlSourceFile.getTargetClassName(), configClassRegistry.getConfig().getOutputDirectory(), ".mxml");
+    PrintStream writer = new PrintStream(new FileOutputStream(outputFile), true, net.jangaroo.exml.api.Exmlc.OUTPUT_CHARSET);
+    ExmlToConfigClassParser.parseFileWithHandler(sourceFile, new ExmlToMxmlHandler(exmlSourceFile, exmlModel, writer));
   }
 
   public class ExmlToMxmlHandler extends CharacterRecordingHandler implements LexicalHandler {
@@ -136,15 +140,15 @@ public class ExmlToMxml {
       Map<String,String> attributes = new LinkedHashMap<String, String>();
       if (ExmlUtils.isExmlNamespace(uri)) {
         if (Exmlc.EXML_ROOT_NODE_NAMES.contains(localName)) {
+          qName = handleRootNode(qName, atts);
           for (Map.Entry<String, String> prefixMapping : prefixMappings.entrySet()) {
             String key = prefixMapping.getKey();
             String uriValue = prefixMapping.getValue();
-            if (!uriValue.startsWith("http")) {
+            if (!uriValue.contains(":")) {
               uriValue += ".*";
             }
             attributes.put(key.isEmpty() ? "xmlns" : "xmlns:" + key, uriValue);
           }
-          qName = handleRootNode(qName, atts);
         } else if (Exmlc.EXML_ANNOTATION_NODE_NAME.equals(localName)) {
           qName = handleAnnotation(qName, atts);
         } else if (Exmlc.EXML_CFG_NODE_NAME.equals(localName)) {
@@ -239,9 +243,9 @@ public class ExmlToMxml {
       } else {
         currentOut.print(">");
         for (Map.Entry<String, String> configDefaultSubElement : configDefaultSubElements.entrySet()) {
-          String propertyName = configDefaultSubElement.getKey();
-          currentOut.printf("%n    <%s:%s>%n      %s%n    </%s>", configClassPrefix, propertyName,
-                  configDefaultSubElement.getValue(), propertyName);
+          String propertyQName = String.format("%s:%s", configClassPrefix, configDefaultSubElement.getKey());
+          currentOut.printf("%n    <%s>%n      %s%n    </%s>", propertyQName,
+                  configDefaultSubElement.getValue(), propertyQName);
         }
         currentOut.printf("%n  </%s>", configElementQName);
         configDefaultSubElements.clear();
