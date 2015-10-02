@@ -56,17 +56,22 @@ public class ExmlToMxml {
   private void transpileAll() throws IOException, TransformerException, ParserConfigurationException, SAXException {
     for (File exmlSource : configClassRegistry.getConfig().getSourceFiles()) {
       ExmlSourceFile exmlSourceFile = configClassRegistry.getExmlSourceFile(exmlSource);
+      File configClassFile = exmlSourceFile.generateConfigClass();
+      System.out.printf("Generated config class %s into file %s.%n", exmlSourceFile.getConfigClassName(), configClassFile.getPath());
       ExmlModel exmlModel = new ExmlToModelParser(configClassRegistry).parse(exmlSource);
       exmlToMxml(exmlSourceFile, exmlModel);
+      System.out.printf("Generated MXML class %s into file %s.%n", exmlSourceFile.getTargetClassName(), configClassFile.getPath());
     }
   }
 
-  private void exmlToMxml(ExmlSourceFile exmlSourceFile, ExmlModel exmlModel) throws IOException, TransformerException, ParserConfigurationException,
+  private File exmlToMxml(ExmlSourceFile exmlSourceFile, ExmlModel exmlModel) throws IOException,
+          TransformerException, ParserConfigurationException,
           SAXException {
     File sourceFile = exmlSourceFile.getSourceFile();
     File outputFile = CompilerUtils.fileFromQName(exmlSourceFile.getTargetClassName(), configClassRegistry.getConfig().getOutputDirectory(), ".mxml");
     PrintStream writer = new PrintStream(new FileOutputStream(outputFile), true, net.jangaroo.exml.api.Exmlc.OUTPUT_CHARSET);
     ExmlToConfigClassParser.parseFileWithHandler(sourceFile, new ExmlToMxmlHandler(exmlSourceFile, exmlModel, writer));
+    return outputFile;
   }
 
   public class ExmlToMxmlHandler extends CharacterRecordingHandler implements LexicalHandler {
