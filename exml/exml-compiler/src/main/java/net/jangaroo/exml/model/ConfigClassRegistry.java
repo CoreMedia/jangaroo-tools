@@ -161,7 +161,7 @@ public final class ConfigClassRegistry {
   }
 
   // unfortunately, we cannot determine the name of the source EXML file, so we have to scane the whole source path:
-  private Map<String, ExmlSourceFile> getExmlSourceFilesByConfigClassName() {
+  public Map<String, ExmlSourceFile> getExmlSourceFilesByConfigClassName() {
     if (exmlFilesByConfigClassName == null) {
       exmlFilesByConfigClassName = new LinkedHashMap<String, ExmlSourceFile>();
       try {

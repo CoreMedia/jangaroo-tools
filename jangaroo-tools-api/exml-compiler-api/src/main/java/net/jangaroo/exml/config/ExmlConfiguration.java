@@ -15,6 +15,7 @@ public class ExmlConfiguration extends FileLocations {
   // the directory into which resource (xsds) files are generated
   private File resourceOutputDirectory;
   private ValidationMode validationMode = ValidationMode.OFF;
+  private boolean convertToMxml;
   private CompileLog log;
 
   public String getConfigClassPackage() {
@@ -42,6 +43,15 @@ public class ExmlConfiguration extends FileLocations {
   @Option(name="-vm", aliases = "--validation-mode", usage = "Severity of EXML validation errors: error, warn, off (no validation)")
   public void setValidationMode(ValidationMode validationMode) {
     this.validationMode = validationMode;
+  }
+
+  public boolean isConvertToMxml() {
+    return convertToMxml;
+  }
+
+  @Option(name="--convert-to-mxml", usage = "Run exmlc to convert EXML files into MXML.")
+  public void setConvertToMxml(boolean convertToMxml) {
+    this.convertToMxml = convertToMxml;
   }
 
   /**

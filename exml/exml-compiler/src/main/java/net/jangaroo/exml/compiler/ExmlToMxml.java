@@ -1,8 +1,6 @@
 package net.jangaroo.exml.compiler;
 
 import net.jangaroo.exml.api.ExmlcException;
-import net.jangaroo.exml.cli.ExmlcCommandLineParser;
-import net.jangaroo.exml.config.ExmlConfiguration;
 import net.jangaroo.exml.json.JsonObject;
 import net.jangaroo.exml.model.AnnotationAt;
 import net.jangaroo.exml.model.ConfigClass;
@@ -15,7 +13,6 @@ import net.jangaroo.exml.parser.ExmlToConfigClassParser;
 import net.jangaroo.exml.parser.ExmlToModelParser;
 import net.jangaroo.exml.utils.ExmlUtils;
 import net.jangaroo.jooc.Jooc;
-import net.jangaroo.jooc.cli.CommandLineParseException;
 import net.jangaroo.utils.CharacterRecordingHandler;
 import net.jangaroo.utils.CompilerUtils;
 import org.apache.commons.lang.StringUtils;
@@ -33,6 +30,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Deque;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -42,26 +40,44 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * A transpiler from EXML to MXML.
+ * A tool that converts EXML source code into MXML and ActionScript source code.
  */
 public class ExmlToMxml {
 
   public static final String MXML_URI = "http://ns.adobe.com/mxml/2009";
   private ConfigClassRegistry configClassRegistry;
 
-  public ExmlToMxml(ExmlConfiguration exmlConfiguration) throws IOException {
-    configClassRegistry = new ConfigClassRegistry(exmlConfiguration);
+  public ExmlToMxml(ConfigClassRegistry configClassRegistry) {
+    this.configClassRegistry = configClassRegistry;
   }
 
-  private void transpileAll() throws IOException, TransformerException, ParserConfigurationException, SAXException {
-    for (File exmlSource : configClassRegistry.getConfig().getSourceFiles()) {
-      ExmlSourceFile exmlSourceFile = configClassRegistry.getExmlSourceFile(exmlSource);
+  public File[] convert() {
+    Map<String, ExmlSourceFile> exmlSourceFilesByConfigClassName = configClassRegistry.getExmlSourceFilesByConfigClassName();
+    List<File> mxmlFiles = new ArrayList<File>();
+    Collection<ExmlSourceFile> exmlSourceFiles;
+    List<File> sourceFiles = configClassRegistry.getConfig().getSourceFiles();
+    if (sourceFiles.isEmpty()) {
+      exmlSourceFiles = exmlSourceFilesByConfigClassName.values();
+    } else {
+      exmlSourceFiles = new ArrayList<ExmlSourceFile>();
+      for (File exmlFile : sourceFiles) {
+        exmlSourceFiles.add(configClassRegistry.getExmlSourceFile(exmlFile));
+      }
+    }
+    for (ExmlSourceFile exmlSourceFile : exmlSourceFiles) {
+      System.out.printf("Converting EXML file %s...%n", exmlSourceFile.getSourceFile());
       File configClassFile = exmlSourceFile.generateConfigClass();
       System.out.printf("Generated config class %s into file %s.%n", exmlSourceFile.getConfigClassName(), configClassFile.getPath());
-      ExmlModel exmlModel = new ExmlToModelParser(configClassRegistry).parse(exmlSource);
-      exmlToMxml(exmlSourceFile, exmlModel);
-      System.out.printf("Generated MXML class %s into file %s.%n", exmlSourceFile.getTargetClassName(), configClassFile.getPath());
+      try {
+        ExmlModel exmlModel = new ExmlToModelParser(configClassRegistry).parse(exmlSourceFile.getSourceFile());
+        File mxmlFile = exmlToMxml(exmlSourceFile, exmlModel);
+        mxmlFiles.add(mxmlFile);
+        System.out.printf("Generated MXML class %s into file %s.%n", exmlSourceFile.getTargetClassName(), mxmlFile.getPath());
+      } catch (Exception e) {
+        throw new ExmlcException("unable to convert to MXML: " + e.getMessage(), exmlSourceFile.getSourceFile(), e);
+      }
     }
+    return mxmlFiles.toArray(new File[mxmlFiles.size()]);
   }
 
   private File exmlToMxml(ExmlSourceFile exmlSourceFile, ExmlModel exmlModel) throws IOException,
@@ -74,7 +90,7 @@ public class ExmlToMxml {
     return outputFile;
   }
 
-  public class ExmlToMxmlHandler extends CharacterRecordingHandler implements LexicalHandler {
+  private class ExmlToMxmlHandler extends CharacterRecordingHandler implements LexicalHandler {
     private static final String CLOSE_FX_SCRIPT = "  ]]></fx:Script>";
 
     private final PrintStream out;
@@ -521,33 +537,4 @@ public class ExmlToMxml {
       startRecordingCharacters();
     }
   }
-
-  public static int run(String[] argv) {
-    ExmlcCommandLineParser parser = new ExmlcCommandLineParser();
-    ExmlConfiguration exmlConfiguration;
-    try {
-      exmlConfiguration = parser.parse(argv);
-    } catch (CommandLineParseException e) {
-      System.err.println(e.getMessage()); // NOSONAR this is a commandline tool
-      return e.getExitCode();
-    }
-
-    if (exmlConfiguration != null) {
-      try {
-        new ExmlToMxml(exmlConfiguration).transpileAll();
-      } catch (Exception e) {
-        e.printStackTrace();
-        return -1;
-      }
-    }
-    return 0;
-  }
-
-  public static void main(String[] argv) {
-    int result = run(argv);
-    if (result != 0) {
-      System.exit(result);
-    }
-  }
-
 }
