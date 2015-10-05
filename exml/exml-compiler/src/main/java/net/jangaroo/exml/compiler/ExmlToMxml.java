@@ -21,8 +21,6 @@ import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
 import org.xml.sax.ext.LexicalHandler;
 
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.TransformerException;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -69,20 +67,24 @@ public class ExmlToMxml {
       File configClassFile = exmlSourceFile.generateConfigClass();
       System.out.printf("Generated config class %s into file %s.%n", exmlSourceFile.getConfigClassName(), configClassFile.getPath());
       try {
-        ExmlModel exmlModel = new ExmlToModelParser(configClassRegistry).parse(exmlSourceFile.getSourceFile());
-        File mxmlFile = exmlToMxml(exmlSourceFile, exmlModel);
+        File mxmlFile = exmlToMxml(exmlSourceFile);
         mxmlFiles.add(mxmlFile);
         System.out.printf("Generated MXML class %s into file %s.%n", exmlSourceFile.getTargetClassName(), mxmlFile.getPath());
       } catch (Exception e) {
         throw new ExmlcException("unable to convert to MXML: " + e.getMessage(), exmlSourceFile.getSourceFile(), e);
       }
     }
+    // clean up EXML files:
+    for (ExmlSourceFile exmlSourceFile : exmlSourceFiles) {
+      if (!exmlSourceFile.getSourceFile().delete()) {
+        System.err.println("Failed to delete EXML source file " + exmlSourceFile.getSourceFile().getPath());
+      }
+    }
     return mxmlFiles.toArray(new File[mxmlFiles.size()]);
   }
 
-  private File exmlToMxml(ExmlSourceFile exmlSourceFile, ExmlModel exmlModel) throws IOException,
-          TransformerException, ParserConfigurationException,
-          SAXException {
+  private File exmlToMxml(ExmlSourceFile exmlSourceFile) throws IOException, SAXException {
+    ExmlModel exmlModel = new ExmlToModelParser(configClassRegistry).parse(exmlSourceFile.getSourceFile());
     File sourceFile = exmlSourceFile.getSourceFile();
     File outputFile = CompilerUtils.fileFromQName(exmlSourceFile.getTargetClassName(), configClassRegistry.getConfig().getOutputDirectory(), ".mxml");
     PrintStream writer = new PrintStream(new FileOutputStream(outputFile), true, net.jangaroo.exml.api.Exmlc.OUTPUT_CHARSET);
@@ -127,6 +129,7 @@ public class ExmlToMxml {
       constants = new ArrayList<Declaration>();
       vars = new ArrayList<Declaration>();
       configDefaultValues.put("id", "config");
+      configDefaultValues.put("u:scope", "constructorParam");
       startRecordingCharacters();
       super.startDocument();
     }
@@ -321,7 +324,7 @@ public class ExmlToMxml {
     private String handleInnerElement() {
       elementRecorder = new ByteArrayOutputStream();
       try {
-        currentOut = new PrintStream(elementRecorder, true, "UTF-8");
+        currentOut = new PrintStream(elementRecorder, false, "UTF-8");
       } catch (UnsupportedEncodingException e) {
         throw new RuntimeException(e);
       }
@@ -399,7 +402,7 @@ public class ExmlToMxml {
       String asDoc = exmlModel.getDescription();
       if (asDoc != null && !asDoc.trim().isEmpty()) {
         currentOut.println("<!---");
-        currentOut.println("  " + asDoc);
+        currentOut.println("  " + convertNewLines(asDoc));
         currentOut.println("-->");
       }
       ConfigClass superConfigClass = exmlSourceFile.getConfigClass().getSuperClass();
@@ -468,8 +471,8 @@ public class ExmlToMxml {
             varDeclaration.setValue(value);
             varDeclaration.setDescription("MXML"); // HACK: marker for "render as MXML"
           }
+          currentOut.close();
           currentOut = out;
-          // TODO: need to close cfgDefaultRecorder?
           elementRecorder = null;
         } else if (Exmlc.EXML_CFG_NODE_NAME.equals(localName)) {
           currentConfigName = null;
@@ -532,9 +535,13 @@ public class ExmlToMxml {
       flushPendingTagClose();
       String recordedCharacters = popRecordedCharacters();
       if (recordedCharacters != null) {
-        currentOut.print(recordedCharacters);
+        currentOut.print(convertNewLines(recordedCharacters));
       }
       startRecordingCharacters();
+    }
+
+    private String convertNewLines(String output) {
+      return output.replaceAll("\n", System.getProperty("line.separator"));
     }
   }
 }
