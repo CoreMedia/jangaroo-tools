@@ -232,4 +232,8 @@ public abstract class JooTestMojoBase extends AbstractMojo {
     }
     return builder.toString();
   }
+
+  static {
+    Resource.setDefaultUseCaches(false);
+  }
 }
