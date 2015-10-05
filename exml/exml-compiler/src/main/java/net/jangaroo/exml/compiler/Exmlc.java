@@ -125,7 +125,8 @@ public final class Exmlc implements net.jangaroo.exml.api.Exmlc {
     return result;
   }
 
-  public File[] convertToMxml() {
+  @Override
+  public File[] convertAllExmlToMxml() {
     return new ExmlToMxml(configClassRegistry).convert();
   }
 
@@ -142,7 +143,7 @@ public final class Exmlc implements net.jangaroo.exml.api.Exmlc {
     if (exmlConfiguration != null) {
       Exmlc exmlc = new Exmlc(exmlConfiguration);
       if (exmlConfiguration.isConvertToMxml()) {
-        exmlc.convertToMxml();
+        exmlc.convertAllExmlToMxml();
       } else {
         exmlc.generateAllConfigClasses();
         exmlc.generateAllComponentClasses();
