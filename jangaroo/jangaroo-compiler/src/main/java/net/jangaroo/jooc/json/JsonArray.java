@@ -1,4 +1,4 @@
-package net.jangaroo.exml.json;
+package net.jangaroo.jooc.json;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,7 +16,7 @@ public class JsonArray implements Json {
   }
 
   /**
-   * Make a prettyprinted JSON text of this JSONArray.
+   * Make a pretty-printed JSON text of this JSONArray.
    * Warning: This method assumes that the data structure is acyclical.
    *
    * @param indentFactor The number of spaces to add to each level of

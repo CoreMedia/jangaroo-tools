@@ -1,7 +1,7 @@
 package net.jangaroo.exml.test;
 
-import net.jangaroo.exml.json.JsonArray;
-import net.jangaroo.exml.json.JsonObject;
+import net.jangaroo.jooc.json.JsonArray;
+import net.jangaroo.jooc.json.JsonObject;
 import net.jangaroo.exml.model.ConfigAttribute;
 import net.jangaroo.exml.model.Declaration;
 import net.jangaroo.exml.model.ExmlModel;

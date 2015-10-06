@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2009, CoreMedia AG, Hamburg. All rights reserved.
  */
-package net.jangaroo.exml.json;
+package net.jangaroo.jooc.json;
 
 /**
  *
@@ -12,7 +12,7 @@ public interface Json {
   void set(String property, Object value);
 
   /**
-   * Make a prettyprinted JSON text of this JSONObject.
+   * Make a pretty-printed JSON text of this JSONObject.
    * <p/>
    * Warning: This method assumes that the data structure is acyclical.
    *

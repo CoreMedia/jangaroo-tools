@@ -1,7 +1,7 @@
 package net.jangaroo.exml.compiler;
 
 import net.jangaroo.exml.api.ExmlcException;
-import net.jangaroo.exml.json.JsonObject;
+import net.jangaroo.jooc.json.JsonObject;
 import net.jangaroo.exml.model.AnnotationAt;
 import net.jangaroo.exml.model.ConfigClass;
 import net.jangaroo.exml.model.ConfigClassRegistry;

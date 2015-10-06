@@ -1,6 +1,6 @@
-package net.jangaroo.exml.json;
+package net.jangaroo.jooc.json;
 
-import net.jangaroo.exml.utils.ExmlUtils;
+import net.jangaroo.jooc.mxml.MxmlUtils;
 import net.jangaroo.utils.CompilerUtils;
 
 import java.util.Arrays;
@@ -51,7 +51,7 @@ public class JsonObject implements Json {
   /**
    * Make a pretty-printed JSON text of this JSONObject.
    * <p/>
-   * Warning: This method assumes that the data structure is acyclical.
+   * Warning: This method assumes that the data structure is acyclic.
    *
    * @param indentFactor The number of spaces to add to each level of
    *                     indentation.
@@ -91,8 +91,8 @@ public class JsonObject implements Json {
       return ((JsonObject)value).toString(indentFactor, indent);
     } else if (value instanceof JsonArray) {
       return ((JsonArray) value).toString(indentFactor, indent);
-    } else if (ExmlUtils.isCodeExpression(value.toString())) {
-      return ExmlUtils.getCodeExpression(value.toString()).replaceAll("\n", LINE_SEPARATOR);
+    } else if (MxmlUtils.isBindingExpression(value.toString())) {
+      return MxmlUtils.getBindingExpression(value.toString()).replaceAll("\n", LINE_SEPARATOR);
     }
     return CompilerUtils.quote(value.toString()).replaceAll("\n", LINE_SEPARATOR);
 
