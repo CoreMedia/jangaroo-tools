@@ -4,7 +4,6 @@ import com.thoughtworks.selenium.DefaultSelenium;
 import com.thoughtworks.selenium.Selenium;
 import com.thoughtworks.selenium.SeleniumException;
 import org.apache.commons.io.FileUtils;
-import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.codehaus.plexus.util.cli.CommandLineException;
@@ -43,15 +42,6 @@ import java.util.ArrayList;
  * @threadSafe
  */
 public class JooTestMojo extends JooTestMojoBase {
-  /**
-   * The Maven session.
-   *
-   * @parameter expression="${session}"
-   * @required
-   * @readonly
-   */
-  protected MavenSession session;
-
 
   /**
    * Source directory to scan for files to compile.
@@ -187,25 +177,22 @@ public class JooTestMojo extends JooTestMojoBase {
   }
 
   private void executePhantomJs(File testResultOutputFile, PhantomJsTestRunner phantomJsTestRunner) throws MojoFailureException, MojoExecutionException {
-    getLog().debug("synchronizing on " + session.getContainer() + " (" + Integer.toHexString(System.identityHashCode(session.getContainer())) + ")");
-    synchronized (session.getContainer()) {
-      getLog().info("running phantomjs: " + phantomJsTestRunner.toString());
-      try {
-        final boolean exitCode = phantomJsTestRunner.execute();
-        if (exitCode) {
-          evalTestOutput(new FileReader(testResultOutputFile));
-        } else {
-          signalError();
-        }
-      } catch (CommandLineException e) {
-        throw wrap(e);
-      } catch (IOException e) {
-        throw wrap(e);
-      } catch (ParserConfigurationException e) {
-        throw wrap(e);
-      } catch (SAXException e) {
-        throw wrap(e);
+    getLog().info("running phantomjs: " + phantomJsTestRunner.toString());
+    try {
+      final boolean exitCode = phantomJsTestRunner.execute();
+      if (exitCode) {
+        evalTestOutput(new FileReader(testResultOutputFile));
+      } else {
+        signalError();
       }
+    } catch (CommandLineException e) {
+      throw wrap(e);
+    } catch (IOException e) {
+      throw wrap(e);
+    } catch (ParserConfigurationException e) {
+      throw wrap(e);
+    } catch (SAXException e) {
+      throw wrap(e);
     }
   }
 
