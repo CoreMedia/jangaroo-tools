@@ -5,9 +5,11 @@ import net.jangaroo.utils.AS3Type;
 
 import java.io.PrintWriter;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * A registry of all known classes/interfaces. Lookup by name.
@@ -69,6 +71,10 @@ public class CompilationUnitModelRegistry {
     // look in current class's interfaces:
     for (String interfaceName : classModel.getInterfaces()) {
       CompilationUnitModel anInterface = resolveCompilationUnit(interfaceName);
+      if (anInterface == null) {
+        System.err.println("CompilationUnitModelRegistry#resolveDefiningInterface: compilation unit for " + interfaceName + " not found.");
+        continue;
+      }
       CompilationUnitModel recursionResult = resolveDefiningInterface(anInterface, methodType, methodName);
       if (recursionResult != null && (definingInterface == null || implementsInterface(definingInterface.getClassModel(), recursionResult.getQName()))) {
         // found more general interface that defines the method:
@@ -110,6 +116,27 @@ public class CompilationUnitModelRegistry {
   }
 
   public void complementOverrides() {
+    // remove overrides in interfaces (not supported by AS3!):
+    for (CompilationUnitModel compilationUnitModel : getCompilationUnitModels()) {
+      ClassModel classModel = compilationUnitModel.getClassModel();
+      if (classModel != null && classModel.isInterface()) {
+        Set<MemberModel> toBeRemoved = new HashSet<MemberModel>();
+        for (MemberModel memberModel : classModel.getMembers()) {
+          if (memberModel.isMethod()) { // should all be methods -- it's an interface!
+            CompilationUnitModel definingInterfaceCU =
+                    resolveDefiningInterface(compilationUnitModel, ((MethodModel) memberModel).getMethodType(),
+                            memberModel.getName());
+            if (definingInterfaceCU != compilationUnitModel) {
+              toBeRemoved.add(memberModel);
+            }
+          }
+        }
+        for (MemberModel memberModel : toBeRemoved) {
+          classModel.removeMember(memberModel);
+        }
+      }
+    }
+
     // add all missing implementations of interface methods:
     for (CompilationUnitModel compilationUnitModel : getCompilationUnitModels()) {
       ClassModel classModel = compilationUnitModel.getClassModel();
@@ -135,7 +162,7 @@ public class CompilationUnitModelRegistry {
         }
       }
     }
-    // add constructors and "override" flags where neccessary, and correct overriding methods' signatures:
+    // add constructors and "override" flags where necessary, and correct overriding methods' signatures:
     for (CompilationUnitModel compilationUnitModel : getCompilationUnitModels()) {
       ClassModel classModel = compilationUnitModel.getClassModel();
       if (classModel != null && getSuperclass(classModel) != null) {
@@ -158,7 +185,11 @@ public class CompilationUnitModelRegistry {
     if (resolveMethod(classModel, methodModel.getMethodType(), memberName) == null) {
       MethodModel implementingMethod = methodModel.duplicate();
       implementingMethod.setAsdoc("@inheritDoc");
-      classModel.addMember(implementingMethod);
+      MemberModel oldMember = classModel.addMember(implementingMethod);
+      if (oldMember != null) {
+        System.err.println("[WARN] To implement method " + memberName + " in class " + classModel.getName() +
+                ", we have to remove a property of type " + oldMember.getType() + " with the same name!");
+      }
     }
   }
 
@@ -170,7 +201,11 @@ public class CompilationUnitModelRegistry {
       return true;
     }
     for (String interfaceName : classModel.getInterfaces()) {
-      if (implementsInterface(resolveCompilationUnit(interfaceName).getClassModel(), anInterface)) {
+      CompilationUnitModel compilationUnitModel = resolveCompilationUnit(interfaceName);
+      if (compilationUnitModel == null) {
+        throw new NullPointerException("AS3 compilation unit not found: " + interfaceName);
+      }
+      if (implementsInterface(compilationUnitModel.getClassModel(), anInterface)) {
         return true;
       }
     }
@@ -183,6 +218,9 @@ public class CompilationUnitModelRegistry {
     }
     ClassModel superclass = getSuperclass(classModel);
     MethodModel constructor = classModel.getConstructor();
+    if (constructor != null && constructor.getBody() != null) {
+      return constructor;
+    }
     MethodModel superclassConstructor = resolveConstructor(superclass);
     if (superclassConstructor != null) {
       List<ParamModel> params = superclassConstructor.getParams();
@@ -270,7 +308,7 @@ public class CompilationUnitModelRegistry {
     // skip logging if the following conditions hold (obviously, return type/params have just been forgotten in overriding method):
     // * return type matches OR is void while defined to be something else AND
     // * parameters are empty
-    if ((methodModel.getType().equals(methodSignature.getType()) || "void".equals(methodModel.getType()))
+    if ((methodModel.getType() == null || methodModel.getType().equals("void") || methodModel.getType().equals(methodSignature.getType()))
       && methodModel.getParams().isEmpty()) {
       return;
     }

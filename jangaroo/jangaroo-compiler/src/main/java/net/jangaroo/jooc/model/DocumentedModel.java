@@ -15,7 +15,7 @@ public abstract class DocumentedModel extends NamedModel {
 
   public DocumentedModel(String name, String asdoc) {
     super(name);
-    this.asdoc = asdoc;
+    this.setAsdoc(asdoc);
   }
 
   public String getAsdoc() {
@@ -23,7 +23,7 @@ public abstract class DocumentedModel extends NamedModel {
   }
 
   public void setAsdoc(String asdoc) {
-    this.asdoc = asdoc;
+    this.asdoc = asdoc == null ? null : asdoc.replaceAll("\r\n", "\n");
   }
 
 }

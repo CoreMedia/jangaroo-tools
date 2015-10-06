@@ -30,11 +30,24 @@ public class MethodModel extends MemberModel {
     this(name, returnType, NO_PARAMS);
   }
 
+  @Override
+  public boolean isReadable() {
+    return true;
+  }
+
+  @Override
+  public boolean isWritable() {
+    return false;
+  }
+
   public MethodModel(MethodType methodType, String name, String type) {
     this(methodType, name, methodType == MethodType.SET ? "void" : type,
       methodType == MethodType.SET
-        ? Arrays.asList(new ParamModel("value", type, null, "@private"))
-        : NO_PARAMS, null);
+                    ? Arrays.asList(new ParamModel("value", type))
+                    : NO_PARAMS,
+            methodType == MethodType.SET
+                    ? "@private"
+                    : null);
   }
 
   public MethodModel(String name, String returnType, ParamModel... params) {

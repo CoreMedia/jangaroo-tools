@@ -1,0 +1,104 @@
+<?xml version="1.0"?>
+<!---
+ This is my <b>TestComponent</b>
+-->
+<baseClass:Panel xmlns:fx="http://ns.adobe.com/mxml/2009"
+           xmlns="ext.config.*"
+           xmlns:u="exml:untyped"
+           xmlns:cfg="exmlparser.config.*"
+           xmlns:baseClass="ext.*">
+
+  <fx:Script><![CDATA[
+    /* add an extra import statement to the class */
+    import ext.MessageBox;
+
+    /**
+     * This is my <b>constant</b>
+     */
+    public static const SOME_CONSTANT:int = exmlparser.config.allElements.SOME_CONSTANT;
+    /**
+     * This is another <b>constant</b>
+     */
+    public static const ANOTHER_CONSTANT:String = exmlparser.config.allElements.ANOTHER_CONSTANT;
+    public static const CODE_CONSTANT:int = exmlparser.config.allElements.CODE_CONSTANT;
+    ]]></fx:Script>
+
+  <cfg:allElements id="config" u:scope="constructorParam"/>
+
+  <fx:Script u:scope="constructor"><![CDATA[
+    var mVar:String = config.myProperty + '_suffix';
+    var myVar2:Object = {
+      prop: config.myProperty
+    };
+    ]]></fx:Script>
+
+  <button id="myVar3"
+          u:scope="constructor"
+          text="Foo"/>
+
+  <!-- superclass of the the component with attributes-->
+  <panel title="I am a panel" layout="{config.myLayout}">
+    <!-- define some attributes through a typed mixin: -->
+    <mixins>
+      <someMixin>
+        <someList>
+          <button text="click me!"/>
+        </someList>
+      </someMixin>
+    </mixins>
+
+    <!-- attribute with sub-attributes
+    default:{layout:"border"},
+    -->
+    <defaults layout="border"/>
+
+    <!-- attribute-->
+    <layoutConfig>
+      <fx:Object bla="blub" anchor="test" border="solid"/>
+    </layoutConfig>
+
+    <!-- array with component
+    items:{xtype:"testAll", ...}
+    -->
+    <items>
+      <button text="Save">
+        <handler>{function():void {
+          MessageBox.alert('gotcha!');
+        }}</handler>
+      </button>
+      <fx:Object><![CDATA[{xtype: "editortreepanel"}]]></fx:Object>
+      <fx:Object/>
+    </items>
+
+
+    <!-- array
+    menu:[
+      {...},
+      {...}
+    ]
+    -->
+    <menu>
+      <menuitem text="juhu1"/>
+      <menuitem text="juhu2"/>
+      <menuitem text="juhu3"/>
+    </menu>
+
+    <tools>
+      <!--
+      anonymous object in array:
+
+      tools:[
+        {id:"gear",
+        handler:function(){} }
+      ]
+      -->
+      <fx:Object id="gear" handler="{function(x){return ''+x;}}"/>
+    </tools>
+
+    <plugins>
+      <aplugin/>
+      <aplugin/>
+    </plugins>
+
+  </panel>
+</baseClass:Panel>

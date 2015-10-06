@@ -13,7 +13,7 @@ import net.jangaroo.exml.model.Declaration;
 import net.jangaroo.exml.model.ExmlModel;
 import net.jangaroo.exml.model.PublicApiMode;
 import net.jangaroo.exml.utils.ExmlUtils;
-import net.jangaroo.exml.xml.PreserveLineNumberHandler;
+import net.jangaroo.jooc.util.PreserveLineNumberHandler;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.ast.ApplyExpr;
 import net.jangaroo.utils.AS3Type;
@@ -42,7 +42,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static net.jangaroo.exml.xml.PreserveLineNumberHandler.getLineNumber;
+import static net.jangaroo.jooc.util.PreserveLineNumberHandler.getLineNumber;
 
 public final class ExmlToModelParser {
   private static final String EXT_CONFIG_PACKAGE = "ext.config";

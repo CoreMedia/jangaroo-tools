@@ -81,6 +81,7 @@ public class JoocTest {
     outputFolder = tmpFolder.newFolder("jangaroo-output");
     apiOutputFolder = tmpFolder.newFolder("joo-api");
     config = new JoocConfiguration();
+    config.setVerbose(true);
     File sourceDir = getFile("/");
     List<File> sourcepath = new ArrayList<File>();
     sourcepath.add(sourceDir);
@@ -240,6 +241,11 @@ public class JoocTest {
     assertApiCompilationResult(path, "");
   }
 
+  @Test
+  public void testSimpleMxml() throws Exception {
+    assertCompilationResult("package1/AllElements", ".mxml");
+  }
+
   private void assertApiCompilationResult(String path, String expectPath) throws URISyntaxException, IOException {
     File sourcefile = getFile("/" + path + ".as");
     config.addSourceFile(sourcefile);
@@ -257,7 +263,11 @@ public class JoocTest {
 
 
   private void assertCompilationResult(String relativeClassFileName) throws URISyntaxException, IOException {
-    File destFile = compile(relativeClassFileName);
+    assertCompilationResult(relativeClassFileName, ".as");
+  }
+
+  private void assertCompilationResult(String relativeClassFileName, String extension) throws URISyntaxException, IOException {
+    File destFile = compile(relativeClassFileName, extension);
     assertTrue("the output file " + destFile + " should exist, but doesn't", destFile.exists());
 
     String result = readFileToString(destFile);
@@ -268,7 +278,11 @@ public class JoocTest {
   }
 
   private File compile(String relativeClassFileName) throws URISyntaxException {
-    File sourceFile = getFile("/" + relativeClassFileName + ".as");
+    return compile(relativeClassFileName, ".as");
+  }
+
+  private File compile(String relativeClassFileName, String extension) throws URISyntaxException {
+    File sourceFile = getFile("/" + relativeClassFileName + extension);
     config.addSourceFile(sourceFile);
     jooc.run();
     return new File(outputFolder, relativeClassFileName + ".js");

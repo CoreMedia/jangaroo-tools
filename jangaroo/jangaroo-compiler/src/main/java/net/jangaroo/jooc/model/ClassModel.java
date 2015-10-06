@@ -2,7 +2,9 @@ package net.jangaroo.jooc.model;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * A model of an ActionScript class or interface.
@@ -13,16 +15,25 @@ public class ClassModel extends AbstractAnnotatedModel implements NamespacedMode
   private boolean isDynamic = false;
   private String namespace = PUBLIC;
   private String superclass = null;
+  private String annotationCode = "";
+  private String bodyCode = "";
   private List<String> interfaces = new ArrayList<String>();
   private List<MemberModel> members = new ArrayList<MemberModel>();
 
   public ClassModel() {
   }
 
+  /**
+   * @param name (unqualified) class name
+   */
   public ClassModel(String name) {
     super(name);
   }
 
+  /**
+   * @param name (unqualified) class name
+   * @param superclass fully qualified name of super class
+   */
   public ClassModel(String name, String superclass) {
     super(name);
     this.superclass = superclass;
@@ -80,6 +91,50 @@ public class ClassModel extends AbstractAnnotatedModel implements NamespacedMode
     interfaces.add(interfaceName);
   }
 
+  public String getAnnotationCode() {
+    return annotationCode;
+  }
+
+  public void setAnnotationCode(String annotationCode) {
+    this.annotationCode = annotationCode;
+  }
+
+  public void addAnnotationCode(String code) {
+    this.annotationCode += code;
+  }
+
+  public String getBodyCode() {
+    return bodyCode;
+  }
+
+  public void setBodyCode(String bodyCode) {
+    this.bodyCode = bodyCode;
+  }
+
+  public void addBodyCode(String code) {
+    this.bodyCode += code;
+  }
+
+  public List<AnnotationModel> getEvents() {
+    return getAnnotations("Event");
+  }
+
+  public AnnotationModel getEvent(String name) {
+    for (AnnotationModel event : getEvents()) {
+      AnnotationPropertyModel eventName = event.getPropertiesByName().get("name");
+      if (eventName == null) {
+        eventName = event.getPropertiesByName().get(null);
+        if (eventName == null) {
+          System.out.println("*** no event value found: " + event.getProperties());
+        }
+      }
+      if (eventName != null && name.equals(eventName.getStringValue())) {
+        return event;
+      }
+    }
+    return null;
+  }
+
   public List<MemberModel> getMembers() {
     return Collections.unmodifiableList(members);
   }
@@ -88,7 +143,12 @@ public class ClassModel extends AbstractAnnotatedModel implements NamespacedMode
     this.members = members;
   }
 
-  public void addMember(MemberModel member) {
+  /**
+   * Adds a member to this class model and returns the member that is replaced by the new member if applicable.
+   * @param member the new member to add
+   * @return the old member that has been replaced by the new member or null
+   */
+  public MemberModel addMember(MemberModel member) {
     MemberModel oldMember = getMember(member.isStatic(), member.getName());
     if (oldMember != null) {
       if (oldMember.isProperty()) {
@@ -101,9 +161,9 @@ public class ClassModel extends AbstractAnnotatedModel implements NamespacedMode
       }
       if (oldMember != null) {
         if (oldMember.equals(member)) {
-          return;
+          return null;
         }
-        throw new IllegalArgumentException("Someone tried to add a different " + (member.isStatic() ? "static " : "") + "member called " + member.getName() + " to class " + getName());
+        removeMember(oldMember);
       }
     }
     if (member.isProperty()) {
@@ -113,6 +173,7 @@ public class ClassModel extends AbstractAnnotatedModel implements NamespacedMode
     } else {
       members.add(member);
     }
+    return oldMember;
   }
 
   private void addIfNotNull(MethodModel method) {
@@ -134,13 +195,20 @@ public class ClassModel extends AbstractAnnotatedModel implements NamespacedMode
     return getMember(true, name);
   }
 
-  private MemberModel getMember(boolean isStatic, String name) {
+  public MemberModel getMember(boolean isStatic, String name) {
     MemberModel member = getMethodOrField(isStatic, name);
-    if (member != null && member.isAccessor()) {
-      MethodModel counterpart = getMethod(isStatic, member.isGetter() ? MethodType.SET : MethodType.GET, name);
-      return new PropertyModel((MethodModel)member, counterpart);
+    if (member instanceof MethodModel && member.isAccessor()) {
+      return getProperty((MethodModel)member);
     }
     return member;
+  }
+
+  public PropertyModel getProperty(MethodModel accessor) {
+    if (accessor == null || !accessor.isAccessor()) {
+      return null;
+    }
+    MethodModel counterpart = getMethod(accessor.isStatic(), accessor.isGetter() ? MethodType.SET : MethodType.GET, accessor.getName());
+    return new PropertyModel(accessor, counterpart);
   }
 
   private MemberModel getMethodOrField(boolean isStatic, String name) {
@@ -180,7 +248,7 @@ public class ClassModel extends AbstractAnnotatedModel implements NamespacedMode
     return getMethod(isStatic, null, name);
   }
 
-  private MethodModel getMethod(boolean isStatic, MethodType methodType, String name) {
+  public MethodModel getMethod(boolean isStatic, MethodType methodType, String name) {
     for (MemberModel memberModel : members) {
       if (memberModel.isMethod() && ((MethodModel)memberModel).getMethodType() == methodType
               && memberModel.isStatic() == isStatic && name.equals(memberModel.getName())) {
@@ -201,4 +269,32 @@ public class ClassModel extends AbstractAnnotatedModel implements NamespacedMode
     visitor.visitClass(this);
   }
 
+  public MemberModel findPropertyWithAnnotation(boolean isStatic, String annotationName) {
+    for (MemberModel memberModel : members) {
+      if (memberModel.isStatic() == isStatic && !memberModel.getAnnotations(annotationName).isEmpty()) {
+        return asFieldOrProperty(memberModel);
+      }
+    }
+    return null;
+  }
+
+  private MemberModel asFieldOrProperty(MemberModel memberModel) {
+    if (memberModel.isField()) {
+      return memberModel;
+    }
+    if (memberModel instanceof MethodModel) {
+      return getProperty((MethodModel) memberModel);
+    }
+    return null;
+  }
+
+  public Set<MemberModel> findPropertiesWithAnnotation(boolean isStatic, String annotationName) {
+    Set<MemberModel> result = new LinkedHashSet<MemberModel>();
+    for (MemberModel memberModel : members) {
+      if (memberModel.isStatic() == isStatic && !memberModel.getAnnotations(annotationName).isEmpty()) {
+        result.add(asFieldOrProperty(memberModel));
+      }
+    }
+    return Collections.unmodifiableSet(result);
+  }
 }

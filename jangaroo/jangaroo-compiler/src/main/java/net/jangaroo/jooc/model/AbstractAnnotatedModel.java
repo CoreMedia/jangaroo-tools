@@ -26,9 +26,19 @@ public abstract class AbstractAnnotatedModel extends DocumentedModel implements 
     return Collections.unmodifiableList(annotations);
   }
 
+  public List<AnnotationModel> getAnnotations(String name) {
+    List<AnnotationModel> result = new ArrayList<AnnotationModel>();
+    for (AnnotationModel annotation : annotations) {
+      if (name.equals(annotation.getName())) {
+        result.add(annotation);
+      }
+    }
+    return Collections.unmodifiableList(result);
+  }
+
   @Override
   public void setAnnotations(List<AnnotationModel> annotations) {
-    this.annotations = annotations;
+    this.annotations = new ArrayList<AnnotationModel>(annotations);
   }
 
   @Override

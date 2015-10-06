@@ -1,5 +1,7 @@
 package net.jangaroo.jooc.model;
 
+import java.util.List;
+
 /**
  * A model of a field of an ActionScript class.
  */
@@ -53,6 +55,7 @@ public class PropertyModel extends MemberModel {
     getter = new MethodModel(MethodType.GET, getName(), getType());
     getter.setStatic(isStatic());
     getter.setAsdoc(getAsdoc());
+    getter.setAnnotations(getAnnotations());
     return getter;
   }
 
@@ -70,10 +73,12 @@ public class PropertyModel extends MemberModel {
     return methodType == MethodType.GET ? getter : setter;
   }
 
+  @Override
   public boolean isReadable() {
     return getter != null;
   }
 
+  @Override
   public boolean isWritable() {
     return setter != null;
   }
@@ -101,8 +106,37 @@ public class PropertyModel extends MemberModel {
   }
 
   @Override
+  public void addAnnotation(AnnotationModel annotation) {
+    super.addAnnotation(annotation);
+    if (getter != null) {
+      getter.addAnnotation(annotation);
+    }
+  }
+
+  @Override
+  public void setAnnotations(List<AnnotationModel> annotations) {
+    super.setAnnotations(annotations);
+    if (getter != null) {
+      getter.setAnnotations(annotations);
+    }
+  }
+
+  @Override
   public void visit(ModelVisitor visitor) {
     visitor.visitProperty(this);
+  }
+
+  public PropertyModel duplicate() {
+    MethodModel accessor;
+    MethodModel counterpart;
+    if (getter == null) {
+      accessor = setter;
+      counterpart = null;
+    } else {
+      accessor = getter;
+      counterpart = setter;
+    }
+    return new PropertyModel(accessor.duplicate(), counterpart == null ? null : counterpart.duplicate());
   }
 
   @Override
