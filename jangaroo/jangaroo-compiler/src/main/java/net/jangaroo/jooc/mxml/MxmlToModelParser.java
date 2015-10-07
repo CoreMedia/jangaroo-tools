@@ -83,8 +83,6 @@ public final class MxmlToModelParser {
     String qName = CompilerUtils.qNameFromRelativPath(in.getRelativePath());
     compilationUnitModel = new CompilationUnitModel(CompilerUtils.packageName(qName),
             new ClassModel(CompilerUtils.className(qName)));
-    jsonObject = new JsonObject();
-    cfgDefaults = new JsonObject();
 
     BufferedInputStream inputStream = null;
     try {
@@ -110,6 +108,9 @@ public final class MxmlToModelParser {
   private void parse(InputStream inputStream) throws IOException, SAXException {
     Document document = buildDom(inputStream);
     Element objectNode = document.getDocumentElement();
+
+    jsonObject = new JsonObject();
+    cfgDefaults = null;
     String superClassName = createClassNameFromNode(objectNode);
 
     if (superClassName == null) {
@@ -128,17 +129,27 @@ public final class MxmlToModelParser {
     if (superConfigElement != null) {
       fillModelAttributes(jsonObject, superConfigElement);
     }
-    String superCall;
+
+    ParamModel configParamModel;
     List<ParamModel> constructorParams = classModel.getConstructor().getParams();
     if (constructorParams.isEmpty()) {
-      classModel.getConstructor().addParam(new ParamModel("config", "Object", "null"));
-      superCall = String.format("%n    super(config);");
+      configParamModel = new ParamModel("config", "Object", "null");
+      classModel.getConstructor().addParam(configParamModel);
     } else {
-      ParamModel configParamModel = constructorParams.get(0);
-      compilationUnitModel.addImport("net.jangaroo.ext.Exml");
-      superCall = String.format("%n    super(%s(net.jangaroo.ext.Exml.apply(%s, %s)));", configParamModel.getType(), jsonObject.toString(6, 2), configParamModel.getName());
+      configParamModel = constructorParams.get(0);
     }
+    compilationUnitModel.addImport("net.jangaroo.ext.Exml");
+    if (cfgDefaults != null && !cfgDefaults.isEmpty()) {
+      String applyConfigDefaults = String.format("%n    %s = %s;", configParamModel.getName(),
+              formatTypedExmlApply(configParamModel, cfgDefaults));
+      constructorModel.addBodyCode(applyConfigDefaults);
+    }
+    String superCall = String.format("%n    super(%s);", formatTypedExmlApply(configParamModel, jsonObject));
     constructorModel.addBodyCode(superCall);
+  }
+
+  private static String formatTypedExmlApply(ParamModel configParamModel, JsonObject someJsonObject) {
+    return String.format("%s(net.jangaroo.ext.Exml.apply(%s, %s))", configParamModel.getType(), someJsonObject.toString(2, 4), configParamModel.getName());
   }
 
   private void fillModelAttributes(JsonObject jsonObject, Element componentNode) throws IOException {
@@ -150,6 +161,9 @@ public final class MxmlToModelParser {
       if (MXML_ID_ATTRIBUTE.equals(attributeName)) {
         // TODO: assign value to field!
         continue;
+      }
+      if (MXML_UNTYPED_NAMESPACE.equals(attribute.getNamespaceURI()) && "scope".equals(attributeName)) {
+        continue; // ignore scope attribute here; they are handled by createFields().
       }
       String attributeValue = attribute.getValue();
       MemberModel configAttribute = findPropertyModel(configClassModel.getClassModel(), attributeName);
@@ -271,6 +285,9 @@ public final class MxmlToModelParser {
         } else {
           result.typeKey = propertyName;
           result.typeValue = property.getStringValue();
+          if (result.typeValue == null) {
+            result.typeValue = configClass.getQName();
+          }
         }
       }
       return result;
@@ -366,12 +383,16 @@ public final class MxmlToModelParser {
       if (MxmlUtils.isMxmlNamespace(arrayItemNode.getNamespaceURI()) && "Object".equals(arrayItemNode.getLocalName())) {
         value = parseExmlObjectNode(arrayItemNode);
       } else {
-        CompilationUnitModel configClass = getCompilationUnitModel(arrayItemNode);
+        String configClassName = createClassNameFromNode(arrayItemNode);
+        if (configClassName == null) {
+          throw new CompilerError(String.format("Cannot derive class name from <%s:%s>.", arrayItemNode.getNamespaceURI(), arrayItemNode.getLocalName()));
+        }
+        CompilationUnitModel configClass = getCompilationUnitModel(configClassName);
 
         JsonObject arrayItemJsonObject = new JsonObject();
         ExtConfigAnnotation extConfigAnnotation = getExtConfigAnnotation(configClass);
         if (extConfigAnnotation != null) {
-          if (EXT_CONFIG_PACKAGE.equals(configClass.getPackage())) {
+          if (extConfigAnnotation.typeKey != null && EXT_CONFIG_PACKAGE.equals(configClass.getPackage())) {
             // Ext classes are always loaded. We can use the type string directly.
             arrayItemJsonObject.set(extConfigAnnotation.typeKey, extConfigAnnotation.typeValue);
           } else if (extConfigAnnotation.typeKey != null && !"gctype".equals(extConfigAnnotation.typeKey)) {
@@ -467,6 +488,8 @@ public final class MxmlToModelParser {
                     elementClassName,
                     "null"
             ));
+            cfgDefaults = new JsonObject();
+            fillModelAttributes(cfgDefaults, element);
           }
         }
       }
@@ -524,10 +547,7 @@ public final class MxmlToModelParser {
       String packageName = MxmlUtils.parsePackageFromNamespace(uri);
       if (packageName != null) {
         String qName = CompilerUtils.qName(packageName, name);
-        CompilationUnit compilationsUnit = jangarooParser.getCompilationUnit(qName);
-        if (compilationsUnit != null && compilationsUnit.getPrimaryDeclaration() instanceof ClassDeclaration) {
-          return qName;
-        }
+        return qName;
       }
     }
     return null;

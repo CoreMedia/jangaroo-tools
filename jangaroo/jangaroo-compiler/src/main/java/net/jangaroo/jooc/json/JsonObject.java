@@ -177,6 +177,7 @@ public class JsonObject implements Json {
   }
 
   public void set(String property, Object value) {
+    assert property != null;
     this.properties.put(property, value);
   }
 

@@ -10,6 +10,9 @@
 
   <fx:Script><![CDATA[
     /* add an extra import statement to the class */
+
+    import exmlparser.config.allElements;
+
     import ext.MessageBox;
 
     /**
@@ -23,7 +26,9 @@
     public static const CODE_CONSTANT:int = exmlparser.config.allElements.CODE_CONSTANT;
     ]]></fx:Script>
 
-  <cfg:allElements id="config" u:scope="constructorParam"/>
+  <cfg:allElements id="config" u:scope="constructorParam" myProperty="My Property!">
+    <cfg:myPropertyWithDescription>false</cfg:myPropertyWithDescription>
+  </cfg:allElements>
 
   <fx:Script u:scope="constructor"><![CDATA[
     var myVar:String = config.myProperty + '_suffix';
@@ -42,7 +47,11 @@
     <mixins>
       <someMixin>
         <someList>
-          <button text="click me!" extId="myId"/>
+          <button text="click me!" extId="myId">
+            <baseAction>
+              <action/>
+            </baseAction>
+          </button>
         </someList>
       </someMixin>
     </mixins>
