@@ -25,6 +25,8 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
   private boolean mergeOutput = false;
   private String outputFileName;
 
+  private File keepGeneratedActionScriptDirectory;
+
   public SemicolonInsertionMode getSemicolonInsertionMode() {
     return semicolonInsertionMode;
   }
@@ -139,6 +141,16 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
   @Option(name="-api", aliases = "--apiDir", usage = "destination directory where to generate ActionScript API stubs")
   public void setApiOutputDirectory(final File apiOutputDirectory) {
     this.apiOutputDirectory = apiOutputDirectory;
+  }
+
+  @Override
+  public File getKeepGeneratedActionScriptDirectory() {
+    return keepGeneratedActionScriptDirectory;
+  }
+
+  @Option(name="-kgasd", aliases = "--keepGeneratedActionScriptDir", usage = "directory where to keep ActionScript files generated from MXML sources")
+  public void setKeepGeneratedActionScriptDirectory(File keepGeneratedActionScriptDirectory) {
+    this.keepGeneratedActionScriptDirectory = keepGeneratedActionScriptDirectory;
   }
 
 }

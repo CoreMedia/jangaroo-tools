@@ -124,6 +124,7 @@ public class JangarooParser {
         OutputStreamWriter writer = new OutputStreamWriter(outputStream, "UTF-8");
         compilationUnitModel.visit(new ActionScriptCodeGeneratingModelVisitor(writer));
         String output = outputStream.toString("UTF-8");
+        keepGeneratedActionScript(in, output);
         reader = new StringReader(output);
       } else {
         reader = new InputStreamReader(new BOMStripperInputStream(in.getInputStream()), "UTF-8");
@@ -150,6 +151,10 @@ public class JangarooParser {
     } catch (Exception e) {
       throw new IllegalArgumentException("could not parse Jangaroo source", e);
     }
+  }
+
+  protected void keepGeneratedActionScript(InputSource in, String code) {
+    // do nothing by default
   }
 
   private static String nameWithoutExtension(InputSource input) {

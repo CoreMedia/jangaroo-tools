@@ -126,6 +126,15 @@ public abstract class AbstractCompilerMojo extends JangarooMojo {
    */
   private File generatedSourcesDirectory;
 
+  /**
+   * Directory where to save ActionScript3 files generated from MXML.
+   * These are not needed for compilation (MXML files are compiled directly to JavaScript),
+   * but can be kept for your information.
+   *
+   * @parameter
+   */
+  private File keepGeneratedActionScriptDirectory;
+
   @Override
   protected MavenProject getProject() {
     return project;
@@ -180,6 +189,7 @@ public abstract class AbstractCompilerMojo extends JangarooMojo {
     configuration.setAllowDuplicateLocalVariables(allowDuplicateLocalVariables);
     configuration.setVerbose(verbose);
     configuration.setExcludeClassByDefault(excludeClassByDefault);
+    configuration.setKeepGeneratedActionScriptDirectory(keepGeneratedActionScriptDirectory);
 
     if (StringUtils.isNotEmpty(debuglevel)) {
       try {

@@ -17,7 +17,6 @@ package net.jangaroo.jooc;
 
 import net.jangaroo.jooc.api.CompilationResult;
 import net.jangaroo.jooc.api.CompileLog;
-import net.jangaroo.jooc.ast.ClassDeclaration;
 import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.backend.CompilationUnitSink;
 import net.jangaroo.jooc.backend.CompilationUnitSinkFactory;
@@ -31,8 +30,10 @@ import net.jangaroo.jooc.input.FileInputSource;
 import net.jangaroo.jooc.input.InputSource;
 import net.jangaroo.jooc.input.PathInputSource;
 import net.jangaroo.jooc.input.ZipEntryInputSource;
+import net.jangaroo.utils.CompilerUtils;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -150,6 +151,33 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
       throw new CompilerError("IO Exception occurred", e);
     } finally {
       tearDown();
+    }
+  }
+
+  @Override
+  protected void keepGeneratedActionScript(InputSource in, String code) {
+    File keepGeneratedActionScriptDirectory = getConfig().getKeepGeneratedActionScriptDirectory();
+    if (keepGeneratedActionScriptDirectory != null) {
+      File outputPackageDir = new File(keepGeneratedActionScriptDirectory, in.getParent().getRelativePath());
+      //noinspection ResultOfMethodCallIgnored
+      outputPackageDir.mkdirs();
+      File generatedActionScriptFile =
+              new File(outputPackageDir, CompilerUtils.removeExtension(in.getName()) + AS_SUFFIX);
+      FileWriter fileWriter = null;
+      try {
+        fileWriter = new FileWriter(generatedActionScriptFile);
+        fileWriter.write(code);
+      } catch (IOException e) {
+        e.printStackTrace();
+      } finally {
+        if (fileWriter != null) {
+          try {
+            fileWriter.close();
+          } catch (IOException e) {
+            // ignore
+          }
+        }
+      }
     }
   }
 

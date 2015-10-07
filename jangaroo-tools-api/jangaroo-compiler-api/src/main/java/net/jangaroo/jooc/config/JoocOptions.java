@@ -1,5 +1,7 @@
 package net.jangaroo.jooc.config;
 
+import java.io.File;
+
 public interface JoocOptions {
 
   SemicolonInsertionMode getSemicolonInsertionMode();
@@ -18,4 +20,6 @@ public interface JoocOptions {
    * annotation.
    */
   boolean isExcludeClassByDefault();
+
+  File getKeepGeneratedActionScriptDirectory();
  }
