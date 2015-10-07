@@ -7,7 +7,7 @@ import ext.Action;
 import net.jangaroo.ext.create;
 import net.jangaroo.ext.Exml;*/
 
-"public class AllElements extends ext.Panel",2,function($$private){var $1=ext;return[function(){joo.classLoader.init(exmlparser.config.allElements,ext.config.action);}, /*
+"public class AllElements extends ext.Panel",2,function($$private){var $1=ext;return[function(){joo.classLoader.init(exmlparser.config.allElements,ext.config.action,net.jangaroo.ext.Exml);}, /*
     /* add an extra import statement to the class * /
 
     import exmlparser.config.allElements;
@@ -44,6 +44,7 @@ import net.jangaroo.ext.Exml;*/
         text: "click me!",
         baseAction: net.jangaroo.ext.create(ext.config.action,{})
       }],
+      someList$at: net.jangaroo.ext.Exml.APPEND,
       defaults: {layout: "border"},
       layoutConfig: {
         anchor: "test",
@@ -54,7 +55,7 @@ import net.jangaroo.ext.Exml;*/
         {
           xtype: "button",
           text: "Save",
-          handler: function package1$AllElements$57_20()/*:void*/ {
+          handler: function package1$AllElements$58_20()/*:void*/ {
           $1.MessageBox.alert('gotcha!');
         }
         },
@@ -75,7 +76,7 @@ import net.jangaroo.ext.Exml;*/
         }
       ],
       tools: [{
-        handler: function package1$AllElements$78_18(x){return ''+x;},
+        handler: function package1$AllElements$79_18(x){return ''+x;},
         id: "gear"
       }],
       plugins: [
@@ -84,5 +85,5 @@ import net.jangaroo.ext.Exml;*/
       ]
     }, config)));
   },
-undefined];},[],["ext.Panel","exmlparser.config.allElements","net.jangaroo.ext.Exml","net.jangaroo.ext.create","ext.config.action","ext.MessageBox"], "@runtimeVersion", "@version"
+undefined];},[],["ext.Panel","exmlparser.config.allElements","net.jangaroo.ext.Exml","net.jangaroo.ext.create","ext.config.action","ext.MessageBox"], "0.8.0", "2.0.15-SNAPSHOT"
 );

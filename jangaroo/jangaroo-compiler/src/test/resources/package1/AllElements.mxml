@@ -46,7 +46,7 @@
     <!-- define some attributes through a typed mixin: -->
     <mixins>
       <someMixin>
-        <someList>
+        <someList u:mode="append">
           <button text="click me!" extId="myId">
             <baseAction>
               <action/>

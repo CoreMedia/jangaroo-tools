@@ -229,7 +229,7 @@ public final class MxmlToModelParser {
       }
 
       boolean isConfigTypeArray = isConfigTypeArray(configClass, elementName);
-      String configMode = isConfigTypeArray ? element.getAttribute(CONFIG_MODE_ATTRIBUTE_NAME) : "";
+      String configMode = isConfigTypeArray ? element.getAttributeNS(MXML_UNTYPED_NAMESPACE, CONFIG_MODE_ATTRIBUTE_NAME) : "";
       // Special case: if an EXML element representing a config property has attributes, it is treated as
       // having an untyped object value. Exception: it is an Array-typed property and the sole attribute is "mode".
       int attributeCount = element.getAttributes().getLength();
@@ -242,7 +242,7 @@ public final class MxmlToModelParser {
         if (atValue != null) {
           isConfigTypeArray = true;
           if (!isMxmlConfigClass(configClass)) {
-            throw new CompilerError("Non-EXML class " + configClass.getQName() +
+            throw new CompilerError("Non-MXML class " + configClass.getQName() +
                     " does not support config modes: " + getLineNumber(element));
           }
         }
@@ -270,7 +270,7 @@ public final class MxmlToModelParser {
     // heuristic: config classes that support property "mode" have an [ExtConfig] annotation with an empty [x|p|gc|]type
     ExtConfigAnnotation extConfigAnnotation = getExtConfigAnnotation(configClass);
     return extConfigAnnotation != null &&
-            extConfigAnnotation.typeKey != null && extConfigAnnotation.typeValue == null;
+            (extConfigAnnotation.typeKey == null || configClass.getQName().equals(extConfigAnnotation.typeValue));
   }
 
   private ExtConfigAnnotation getExtConfigAnnotation(CompilationUnitModel configClass) {
