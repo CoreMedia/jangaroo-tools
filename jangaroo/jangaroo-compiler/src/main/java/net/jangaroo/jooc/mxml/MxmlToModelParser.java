@@ -1,28 +1,32 @@
 package net.jangaroo.jooc.mxml;
 
+import net.jangaroo.jooc.CompilerError;
 import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.ast.ClassDeclaration;
 import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.backend.ApiModelGenerator;
 import net.jangaroo.jooc.input.InputSource;
+import net.jangaroo.jooc.json.Code;
+import net.jangaroo.jooc.json.JsonArray;
+import net.jangaroo.jooc.json.JsonObject;
 import net.jangaroo.jooc.model.AnnotationModel;
 import net.jangaroo.jooc.model.AnnotationPropertyModel;
 import net.jangaroo.jooc.model.ClassModel;
 import net.jangaroo.jooc.model.CompilationUnitModel;
-import net.jangaroo.jooc.model.FieldModel;
 import net.jangaroo.jooc.model.MemberModel;
 import net.jangaroo.jooc.model.MethodModel;
-import net.jangaroo.jooc.model.NamespaceModel;
 import net.jangaroo.jooc.model.ParamModel;
 import net.jangaroo.jooc.model.PropertyModel;
 import net.jangaroo.jooc.util.PreserveLineNumberHandler;
+import net.jangaroo.utils.AS3Type;
 import net.jangaroo.utils.CompilerUtils;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 import org.xml.sax.SAXException;
 
@@ -33,14 +37,13 @@ import javax.xml.parsers.SAXParserFactory;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Map;
+
+import static net.jangaroo.jooc.util.PreserveLineNumberHandler.getLineNumber;
 
 
 public final class MxmlToModelParser {
@@ -50,19 +53,20 @@ public final class MxmlToModelParser {
   public static final String MXML_SCRIPT = "Script";
   public static final String MXML_METADATA = "Metadata";
   public static final String MXML_ID_ATTRIBUTE = "id";
-  public static final String MXML_DEFAULT_PROPERTY_ANNOTATION = "DefaultProperty";
-  public static final String RESOURCE_MANAGER_QNAME = "mx.resources.ResourceManager";
-  public static final Pattern AT_RESOURCE_PATTERN = Pattern.compile("^\\s*@Resource\\s*\\(\\s*bundle\\s*=\\s*['\"]([a-zA-Z0-9_$]+)['\"]\\s*,\\s*key\\s*=\\s*['\"]([a-zA-Z0-9_$]+)['\"]\\s*\\)\\s*$");
-  public static final String RESOURCE_ACCESS_CODE = "{%s.getInstance().getString(\"%s\",\"%s\")}";
-  public static final String CONSTRUCTOR_PARAMETER_ANNOTATION = "ConstructorParameter";
-  public static final String CONSTRUCTOR_PARAMETER_ANNOTATION_VALUE = "value";
-  public static final String ALLOW_CONSTRUCTOR_PARAMETERS_ANNOTATION = "AllowConstructorParameters";
-  public static final String ACCESSOR_ANNOTATION_NAME = "Accessor";
-  private final JangarooParser jangarooParser;
 
+  private static final String EXT_CONFIG_META_NAME = "ExtConfig";
+  private static final String TARGET_ANNOTATION_PARAMETER_NAME = "target";
+  private static final String EXT_CONFIG_PACKAGE = "ext.config";
+  private static final String CONFIG_MODE_AT_SUFFIX = "$at";
+  private static final String CONFIG_MODE_ATTRIBUTE_NAME = "mode";
+  private static final String EXT_CONTAINER_CONFIG_QNAME = "ext.config.container";
+  private static final String EXT_CONTAINER_DEFAULTS_PROPERTY = "defaults";
+  private static final String EXT_CONTAINER_DEFAULT_TYPE_PROPERTY = "defaultType";
+
+  private final JangarooParser jangarooParser;
   private CompilationUnitModel compilationUnitModel;
-  private int auxVarIndex;
-  private StringBuilder code;
+  private JsonObject jsonObject;
+  private JsonObject cfgDefaults;
 
   public MxmlToModelParser(JangarooParser jangarooParser) {
     this.jangarooParser = jangarooParser;
@@ -79,8 +83,8 @@ public final class MxmlToModelParser {
     String qName = CompilerUtils.qNameFromRelativPath(in.getRelativePath());
     compilationUnitModel = new CompilationUnitModel(CompilerUtils.packageName(qName),
             new ClassModel(CompilerUtils.className(qName)));
-    auxVarIndex = 0;
-    code = new StringBuilder();
+    jsonObject = new JsonObject();
+    cfgDefaults = new JsonObject();
 
     BufferedInputStream inputStream = null;
     try {
@@ -120,401 +124,354 @@ public final class MxmlToModelParser {
 
     MethodModel constructorModel = classModel.createConstructor();
 
-    String superConfigVar = null;
-    boolean hasBindings = false;
-    FieldModel bindingsField = new FieldModel("$bindings", "Array");
-    bindingsField.setNamespace(NamespaceModel.PRIVATE);
-    classModel.addMember(bindingsField);
-    code.append("\n    $bindings = [];");
-    if (constructorSupportsConfigOptionsParameter(superClassName)) {
-      // also let the generated class support a config constructor parameter:
-      String configVar = createAuxVar();
-      constructorModel.addParam(new ParamModel(configVar, "Object", "null"));
-      superConfigVar = createAuxVar();
-      renderConfigAuxVar(superConfigVar);
-      createFields(objectNode);
-      hasBindings = processAttributesAndChildNodes(objectNode, superConfigVar, "this", true);
-      String keyVar = createAuxVar();
-      code.append(MessageFormat.format("\n    if ({1}) for (var {0}:String in {1}) {2}[{0}] = {1}[{0}];"
-                      + "\n    super({2});",
-              keyVar, configVar, superConfigVar));
+    Element superConfigElement = createFields(objectNode);
+    if (superConfigElement != null) {
+      fillModelAttributes(jsonObject, superConfigElement);
+    }
+    String superCall;
+    List<ParamModel> constructorParams = classModel.getConstructor().getParams();
+    if (constructorParams.isEmpty()) {
+      classModel.getConstructor().addParam(new ParamModel("config", "Object", "null"));
+      superCall = String.format("%n    super(config);");
     } else {
-      createFields(objectNode);
+      ParamModel configParamModel = constructorParams.get(0);
+      compilationUnitModel.addImport("net.jangaroo.ext.Exml");
+      superCall = String.format("%n    super(%s(net.jangaroo.ext.Exml.apply(%s, %s)));", configParamModel.getType(), jsonObject.toString(6, 2), configParamModel.getName());
     }
-    if (superConfigVar == null || hasBindings) {
-      processAttributesAndChildNodes(objectNode, superConfigVar, "this", false);
-    }
-    code.append("\n    for each (var $binding in $bindings) $binding.execute();");
-
-    constructorModel.setBody(code.toString());
+    constructorModel.addBodyCode(superCall);
   }
 
-  private void renderConfigAuxVar(String configAuxVar) {
-    code.append("\n    var ").append(configAuxVar).append(":Object = {};");
-  }
-
-  private boolean constructorSupportsConfigOptionsParameter(String classQName) throws IOException {
-    CompilationUnitModel compilationUnitModel = getCompilationUnitModel(classQName);
-    if (compilationUnitModel != null) {
-      ClassModel classModel = compilationUnitModel.getClassModel();
-      if (classModel != null) {
-        MethodModel constructorModel = classModel.getConstructor();
-        if (constructorModel != null) {
-          Iterator<ParamModel> constructorParams = constructorModel.getParams().iterator();
-          if (constructorParams.hasNext()) {
-            ParamModel firstParam = constructorParams.next();
-            if ("Object".equals(firstParam.getType()) && "config".equals(firstParam.getName())) {
-              return true;
+  private void fillModelAttributes(JsonObject jsonObject, Element componentNode) throws IOException {
+    CompilationUnitModel configClassModel = getCompilationUnitModel(componentNode);
+    NamedNodeMap attributes = componentNode.getAttributes();
+    for (int i = 0; i < attributes.getLength(); i++) {
+      Attr attribute = (Attr) attributes.item(i);
+      String attributeName = attribute.getLocalName();
+      if (MXML_ID_ATTRIBUTE.equals(attributeName)) {
+        // TODO: assign value to field!
+        continue;
+      }
+      String attributeValue = attribute.getValue();
+      MemberModel configAttribute = findPropertyModel(configClassModel.getClassModel(), attributeName);
+      if (configAttribute != null) { 
+        if (!configAttribute.isWritable()) {
+          throw new CompilerError("Attempt to assign read-only property " + attributeName);
+        }
+        if (configAttribute.isProperty()) {
+          Iterator<AnnotationModel> annotations = ((PropertyModel) configAttribute).getSetter().getAnnotations(EXT_CONFIG_META_NAME).iterator();
+          if (annotations.hasNext()) {
+            Iterator<AnnotationPropertyModel> properties = annotations.next().getProperties().iterator();
+            if (properties.hasNext()) {
+              attributeName = properties.next().getStringValue();
             }
           }
         }
       }
+      jsonObject.set(attributeName, getAttributeValue(attributeValue, configAttribute == null ? null : configAttribute.getType()));
     }
-    return false;
+    fillModelAttributesFromSubElements(jsonObject, componentNode, configClassModel);
   }
 
-  private void createFields(Element objectNode) throws IOException {
+  public static Object getAttributeValue(String attributeValue, String type) {
+    if (MxmlUtils.isBindingExpression(attributeValue)) {
+      return JsonObject.code(MxmlUtils.getBindingExpression(attributeValue));
+    } else {
+      AS3Type as3Type = type == null ? AS3Type.ANY : AS3Type.typeByName(type);
+      if (AS3Type.ANY.equals(as3Type)) {
+        as3Type = CompilerUtils.guessType(attributeValue);
+      }
+      if (as3Type != null) {
+        switch (as3Type) {
+          case BOOLEAN:
+            return Boolean.parseBoolean(attributeValue);
+          case NUMBER:
+            return Double.parseDouble(attributeValue);
+          case UINT:
+          case INT:
+            return Long.parseLong(attributeValue);
+          case ARRAY:
+            return new JsonArray(attributeValue);
+        }
+      }
+    }
+    // code expression, Object or specific type. We don't care (for now).
+    return attributeValue;
+  }
+
+  private static final Map<String, Code> CONFIG_MODE_TO_AT_VALUE = new HashMap<String, Code>(); static {
+    CONFIG_MODE_TO_AT_VALUE.put("append",  JsonObject.code("net.jangaroo.ext.Exml.APPEND"));
+    CONFIG_MODE_TO_AT_VALUE.put("prepend", JsonObject.code("net.jangaroo.ext.Exml.PREPEND"));
+  }
+
+  private void fillModelAttributesFromSubElements(JsonObject jsonObject, Element componentNode, CompilationUnitModel configClass) throws IOException {
+    List<Element> childNodes = MxmlUtils.getChildElements(componentNode);
+    for (Element element : childNodes) {
+      String elementName = element.getLocalName();
+      if (componentNode.getNamespaceURI().equals(element.getNamespaceURI()) && "mixins".equals(elementName)) {
+        for (Element mixinElement : MxmlUtils.getChildElements(element)) {
+          fillModelAttributes(jsonObject, mixinElement);
+        }
+        continue;
+      }
+
+      boolean isConfigTypeArray = isConfigTypeArray(configClass, elementName);
+      String configMode = isConfigTypeArray ? element.getAttribute(CONFIG_MODE_ATTRIBUTE_NAME) : "";
+      // Special case: if an EXML element representing a config property has attributes, it is treated as
+      // having an untyped object value. Exception: it is an Array-typed property and the sole attribute is "mode".
+      int attributeCount = element.getAttributes().getLength();
+      if (attributeCount > 1 || attributeCount == 1 && configMode.length() == 0) {
+        // it's an untyped complex object with attributes and sub-properties
+        parseJavaScriptObjectProperty(jsonObject, element);
+      } else {
+        // derive the corresponding "at" value from the specified config mode (if any):
+        Code atValue = CONFIG_MODE_TO_AT_VALUE.get(configMode);
+        if (atValue != null) {
+          isConfigTypeArray = true;
+          if (!isMxmlConfigClass(configClass)) {
+            throw new CompilerError("Non-EXML class " + configClass.getQName() +
+                    " does not support config modes: " + getLineNumber(element));
+          }
+        }
+        String directTextContent = getDirectTextContent(element);
+        if (directTextContent != null) {
+          MemberModel configAttribute = findPropertyModel(configClass.getClassModel(), elementName);
+          final Object attributeValue = getAttributeValue(directTextContent, configAttribute == null ? null : configAttribute.getType());
+          jsonObject.set(elementName, attributeValue);
+        } else {
+          // it seems to be an array or an object
+          fillJsonObjectProperty(jsonObject, elementName, isConfigTypeArray, MxmlUtils.getChildElements(element));
+          ifContainerDefaultsThenExtractXtype(jsonObject, configClass, elementName);
+        }
+
+        // if any "at" value is specified, set the extra mode attribute (...$at):
+        if (atValue != null) {
+          jsonObject.set(elementName + CONFIG_MODE_AT_SUFFIX, atValue);
+        }
+        // empty properties are omitted if the type is not fixed to Array
+      }
+    }
+  }
+
+  private boolean isMxmlConfigClass(CompilationUnitModel configClass) {
+    // heuristic: config classes that support property "mode" have an [ExtConfig] annotation with an empty [x|p|gc|]type
+    ExtConfigAnnotation extConfigAnnotation = getExtConfigAnnotation(configClass);
+    return extConfigAnnotation != null &&
+            extConfigAnnotation.typeKey != null && extConfigAnnotation.typeValue == null;
+  }
+
+  private ExtConfigAnnotation getExtConfigAnnotation(CompilationUnitModel configClass) {
+    Iterator<AnnotationModel> annotationModelIterator = configClass.getClassModel().getAnnotations(EXT_CONFIG_META_NAME).iterator();
+    if (annotationModelIterator.hasNext()) {
+      AnnotationModel annotationModel = annotationModelIterator.next();
+      ExtConfigAnnotation result = new ExtConfigAnnotation();
+      for (AnnotationPropertyModel property : annotationModel.getProperties()) {
+        String propertyName = property.getName();
+        if (TARGET_ANNOTATION_PARAMETER_NAME.equals(propertyName)) {
+          result.target = property.getStringValue();
+        } else {
+          result.typeKey = propertyName;
+          result.typeValue = property.getStringValue();
+        }
+      }
+      return result;
+    }
+    return null;
+  }
+
+  private static String getDirectTextContent(Element element) {
+    final NodeList innerChildNodes = element.getChildNodes();
+    for (int i = 0; i < innerChildNodes.getLength(); i++) {
+      final Node innerChildNode = innerChildNodes.item(i);
+      if (innerChildNode.getNodeType() == Node.TEXT_NODE) {
+        String directTextContent = ((Text) innerChildNode).getWholeText();
+        if (directTextContent.trim().length() > 0) {
+          return directTextContent;
+        }
+      }
+    }
+    return null;
+  }
+
+  private void ifContainerDefaultsThenExtractXtype(JsonObject jsonObject, CompilationUnitModel configClass, String elementName) throws IOException {
+    // special case: extract xtype from <defaults> as <defaultType>!
+    if (EXT_CONTAINER_DEFAULTS_PROPERTY.equals(elementName) && isContainerConfig(configClass)) {
+      Object value = jsonObject.get(elementName);
+      if (value instanceof JsonObject) {
+        JsonObject jsonObjectValue = (JsonObject) value;
+        // there are two ways an xtype can be specified:
+        // a) as an EXML config class wrapping the JSON object:
+        String xtype = jsonObjectValue.getWrapperClass();
+        if (xtype != null) {
+          jsonObjectValue.settingWrapperClass(null);
+        } else {
+          // b) as an "xtype" attribute:
+          xtype = (String) jsonObjectValue.remove("xtype");
+        }
+        if (xtype != null) {
+          jsonObject.set(EXT_CONTAINER_DEFAULT_TYPE_PROPERTY, xtype);
+        }
+      }
+    }
+  }
+
+  private boolean isContainerConfig(CompilationUnitModel configClass) throws IOException {
+    return configClass != null &&
+            (EXT_CONTAINER_CONFIG_QNAME.equals(configClass.getQName()) ||
+                    isContainerConfig(getCompilationUnitModel(configClass.getClassModel().getSuperclass())));
+  }
+
+  private boolean isConfigTypeArray(CompilationUnitModel configClass, String propertyName) throws IOException {
+    MemberModel configAttribute = findPropertyModel(configClass.getClassModel(), propertyName);
+    return configAttribute != null && "Array".equals(configAttribute.getType());
+  }
+
+  private void fillJsonObjectProperty(JsonObject jsonObject, String propertyName, boolean configTypeArray, List<Element> childElements) throws IOException {
+    Object value = parseValue(configTypeArray, childElements);
+    jsonObject.set(propertyName, value);
+  }
+
+  private Object parseValue(boolean configTypeArray, List<Element> childElements) throws IOException {
+    Object value;
+    List<Object> childObjects = parseChildObjects(childElements);
+    if (childObjects.size() > 1 || configTypeArray) {
+      // TODO: Check for type violation
+      // We must write an array.
+      value = new JsonArray(childObjects.toArray());
+    } else if (childObjects.size() == 1) {
+      // The property is either unspecified, untyped, or object-typed
+      // and it contains a single child element. Use that element as the
+      // property value.
+      value = childObjects.get(0);
+    } else {
+      value = null;
+    }
+    return value;
+  }
+
+  private void parseJavaScriptObjectProperty(JsonObject jsonObject, Element propertyElement) {
+    JsonObject propertyObject = new JsonObject();
+
+    setUntypedAttributes(propertyElement, propertyObject);
+    for (Element child : MxmlUtils.getChildElements(propertyElement)) {
+      parseJavaScriptObjectProperty(propertyObject, child);
+    }
+
+    jsonObject.set(propertyElement.getLocalName(), propertyObject);
+  }
+
+  private List<Object> parseChildObjects(List<Element> elements) throws IOException {
+    List<Object> childObjects = new ArrayList<Object>();
+    for (Element arrayItemNode : elements) {
+      Object value;
+      if (MxmlUtils.isMxmlNamespace(arrayItemNode.getNamespaceURI()) && "Object".equals(arrayItemNode.getLocalName())) {
+        value = parseExmlObjectNode(arrayItemNode);
+      } else {
+        CompilationUnitModel configClass = getCompilationUnitModel(arrayItemNode);
+
+        JsonObject arrayItemJsonObject = new JsonObject();
+        ExtConfigAnnotation extConfigAnnotation = getExtConfigAnnotation(configClass);
+        if (extConfigAnnotation != null) {
+          if (EXT_CONFIG_PACKAGE.equals(configClass.getPackage())) {
+            // Ext classes are always loaded. We can use the type string directly.
+            arrayItemJsonObject.set(extConfigAnnotation.typeKey, extConfigAnnotation.typeValue);
+          } else if (extConfigAnnotation.typeKey != null && !"gctype".equals(extConfigAnnotation.typeKey)) {
+            arrayItemJsonObject.settingWrapperClass(configClass.getQName());
+            compilationUnitModel.addImport(configClass.getQName());
+            compilationUnitModel.addImport(extConfigAnnotation.target);
+          } else {
+            // Everything not a component, plugin or layout must be created immediately
+            // by using net.jangaroo.ext.create() with its configClass and the config:
+            arrayItemJsonObject.settingConfigClass(configClass.getQName());
+            compilationUnitModel.addImport(configClass.getQName());
+            compilationUnitModel.addImport(extConfigAnnotation.target);
+            compilationUnitModel.addImport(JsonObject.NET_JANGAROO_EXT_CREATE);
+          }
+        }
+
+        fillModelAttributes(arrayItemJsonObject, arrayItemNode);
+        value = arrayItemJsonObject;
+      }
+      if (value != null) {
+        childObjects.add(value);
+      }
+    }
+    return childObjects;
+  }
+
+  private Object parseExmlObjectNode(Node exmlObjectNode) {
+    String textContent = exmlObjectNode.getTextContent();
+    if (textContent != null && textContent.length() > 0) {
+      return JsonObject.code(textContent.trim());
+    } else {
+      if (!exmlObjectNode.hasAttributes()) {
+        return null;
+      }
+      JsonObject object = new JsonObject();
+      setUntypedAttributes(exmlObjectNode, object);
+      return object;
+    }
+  }
+
+  private void setUntypedAttributes(Node exmlObjectNode, JsonObject object) {
+    NamedNodeMap attributes = exmlObjectNode.getAttributes();
+    for (int i = 0; i < attributes.getLength(); i++) {
+      Attr attribute = (Attr) attributes.item(i);
+      String attributeName = attribute.getLocalName();
+      String attributeValue = attribute.getValue();
+      object.set(attributeName, getAttributeValue(attributeValue, null));
+    }
+  }
+
+  private Element createFields(Element objectNode) throws IOException {
     ClassModel classModel = compilationUnitModel.getClassModel();
+    Element superConfigElement = null;
     for (Element element : MxmlUtils.getChildElements(objectNode)) {
+      String scope = element.getAttributeNS(MXML_UNTYPED_NAMESPACE, "scope");
       if (MxmlUtils.isMxmlNamespace(element.getNamespaceURI())) {
         String elementName = element.getLocalName();
         if (MXML_DECLARATIONS.equals(elementName)) {
           for (Element declaration : MxmlUtils.getChildElements(element)) {
-            createValueCodeFromElement(declaration, false);
+            fillModelAttributes(new JsonObject(), declaration);
           }
         } else if (MXML_SCRIPT.equals(elementName)) {
-          classModel.addBodyCode(getTextContent(element));
+          String scriptCode = getTextContent(element);
+          if ("constructor".equals(scope)) {
+            classModel.getConstructor().addBodyCode(scriptCode);
+          } else {
+            classModel.addBodyCode(scriptCode);
+          }
         } else if (MXML_METADATA.equals(elementName)) {
           classModel.addAnnotationCode(getTextContent(element));
         } else {
           throw Jooc.error("Unknown MXML element: " + elementName);
         }
-      }
-    }
-  }
-
-  private boolean processAttributes(Element objectNode, CompilationUnitModel type, String configVariable, String targetVariable, boolean generatingConfig) throws IOException {
-    String variable = generatingConfig ? configVariable : targetVariable;
-    ClassModel classModel = type == null ? null : type.getClassModel();
-    NamedNodeMap attributes = objectNode.getAttributes();
-    boolean hasBindings = false;
-    boolean hasIdAttribute = attributes.getNamedItem(MXML_ID_ATTRIBUTE) != null;
-    for (int i = 0; i < attributes.getLength(); i++) {
-      Attr attribute = (Attr) attributes.item(i);
-      String propertyName = attribute.getLocalName();
-      if (attribute.getNamespaceURI() == null && !MXML_ID_ATTRIBUTE.equals(propertyName) ||
-              MXML_UNTYPED_NAMESPACE.equals(attribute.getNamespaceURI())) {
-        String value = attribute.getValue();
-        MemberModel propertyModel = null;
-        if (classModel != null) {
-          propertyModel = findPropertyModel(classModel, propertyName);
-          if (propertyModel == null) {
-            if (generatingConfig && hasIdAttribute) {
-              // Only generate config-event-listeners when config has no ID, because otherwise it will be instantiated
-              // immediately, anyway, and it is safer to attach event listeners to the actual object.
-              hasBindings = true;
-              continue;
-            }
-            AnnotationModel eventModel = findEvent(classModel, propertyName);
-            if (eventModel != null) {
-              createEventHandlerCode(variable, value, eventModel);
-              continue;
-            }
-          }
-        }
-        if (propertyModel == null) {
-          propertyModel = createDynamicPropertyModel(type, propertyName, MXML_UNTYPED_NAMESPACE.equals(attribute.getNamespaceURI()));
-        }
-        if (createPropertyAssignmentCodeWithBindings(configVariable, targetVariable, generatingConfig, value, propertyModel)) {
-          hasBindings = true;
-        }
-      }
-    }
-    return hasBindings;
-  }
-
-  private boolean createPropertyAssignmentCodeWithBindings(String configVariable, String targetVariable, boolean generatingConfig, String value, MemberModel propertyModel) {
-    String variable = generatingConfig ? configVariable : targetVariable;
-    if (MxmlUtils.isBindingExpression(value) && hasSetter(propertyModel)) {
-      if (generatingConfig) {
-        createPropertyAssignmentCode(configVariable, propertyModel,
-                MxmlUtils.createBindingExpression(getOrCreateExpressionMethod(targetVariable, propertyModel, value) + "()"), true);
       } else {
-        createBindingMethodCode(targetVariable, propertyModel, value);
-      }
-      return true;
-    } else {
-      // skip property assignment to target object if it was already contained in config object: 
-      if (generatingConfig || configVariable == null) {
-        // default: create a normal property assignment:
-        createPropertyAssignmentCode(variable, propertyModel, value, generatingConfig);
-      }
-      return false;
-    }
-  }
-
-  private static boolean hasSetter(MemberModel memberModel) {
-    return hasAnnotationAtSetter(memberModel, ACCESSOR_ANNOTATION_NAME);
-  }
-
-  private static boolean hasAnnotationAtSetter(MemberModel memberModel, String annotationName) {
-    MemberModel setter = null;
-    if (memberModel instanceof PropertyModel) {
-      setter = ((PropertyModel) memberModel).getSetter();
-    } else if (memberModel instanceof FieldModel && !((FieldModel) memberModel).isConst()) {
-      setter = memberModel;
-    }
-    return setter != null && !setter.getAnnotations(annotationName).isEmpty();
-  }
-
-  private boolean processAttributesAndChildNodes(Element objectNode, String configVariable, String targetVariable, boolean generatingConfig) throws IOException {
-    CompilationUnitModel type = getCompilationUnitModel(objectNode);
-    boolean hasBindings = processAttributes(objectNode, type, configVariable, targetVariable, generatingConfig);
-    if (processChildNodes(objectNode, type, configVariable, targetVariable, generatingConfig)) {
-      hasBindings = true;
-    }
-    return hasBindings;
-  }
-
-  private boolean processChildNodes(Element objectNode, CompilationUnitModel type, String configVariable, String targetVariable, boolean generatingConfig) throws IOException {
-    String variable = generatingConfig ? configVariable : targetVariable;
-    boolean hasBindings = false;
-    ClassModel classModel = type == null ? null : type.getClassModel();
-    List<Element> childNodes = MxmlUtils.getChildElements(objectNode);
-    MemberModel defaultPropertyModel = findDefaultPropertyModel(classModel);
-    List<Element> defaultPropertyValues = new ArrayList<Element>();
-    for (Element element : childNodes) {
-      if (!MxmlUtils.isMxmlNamespace(element.getNamespaceURI())) { // ignore MXML namespace; has been handled before.
-        MemberModel propertyModel = null;
-        String propertyName = element.getLocalName();
-        if (objectNode.getNamespaceURI().equals(element.getNamespaceURI())) {
-          if (classModel != null) {
-            propertyModel = findPropertyModel(classModel, propertyName);
-            if (propertyModel == null) {
-              AnnotationModel eventModel = findEvent(classModel, propertyName);
-              if (eventModel != null) {
-                String value = getTextContent(element);
-                createEventHandlerCode(variable, value, eventModel);
-                continue;
-              }
-            }
-          }
-        }
-        if (propertyModel == null && defaultPropertyModel != null && createClassNameFromNode(element) != null) {
-          // collect item to add it to the default property later:
-          defaultPropertyValues.add(element);
+        if (scope.isEmpty()) {
+          superConfigElement = element;
         } else {
-          if (propertyModel == null) {
-            propertyModel = createDynamicPropertyModel(type, propertyName, false);
-          }
-          List<Element> childElements = MxmlUtils.getChildElements(element);
-          if (childElements.isEmpty()) {
-            if (createPropertyAssignmentCodeWithBindings(configVariable, targetVariable, generatingConfig, getTextContent(element), propertyModel)) {
-              hasBindings = true;
+          String elementClassName = createClassNameFromNode(element);
+          if ("constructor".equals(scope)) {
+            String id = element.getAttribute(MXML_ID_ATTRIBUTE);
+            if (id != null && !id.isEmpty()) {
+              compilationUnitModel.addImport(elementClassName);
+              JsonObject constructorVarJsonObject = new JsonObject();
+              fillModelAttributes(constructorVarJsonObject, element);
+              String code = String.format("var %s:%s = %s;", id, elementClassName,
+                      constructorVarJsonObject.toString(2, 4));
+              classModel.getConstructor().addBodyCode(code);
             }
-          } else {
-            createChildElementsPropertyAssignmentCode(childElements, variable, propertyModel, generatingConfig);
+          } else if ("constructorParam".equals(scope)) {
+            compilationUnitModel.addImport(elementClassName);
+            classModel.getConstructor().addParam(new ParamModel(
+                    element.getAttribute("id"),
+                    elementClassName,
+                    "null"
+            ));
           }
         }
       }
     }
-    if (!defaultPropertyValues.isEmpty()) {
-      createChildElementsPropertyAssignmentCode(defaultPropertyValues, variable, defaultPropertyModel, generatingConfig);
-    }
-    return hasBindings;
-  }
-
-  private void createChildElementsPropertyAssignmentCode(List<Element> childElements, String variable,
-                                                         MemberModel propertyModel, boolean generatingConfig) throws IOException {
-    boolean forceArray = "Array".equals(propertyModel.getType());
-    boolean allowConstructorParameters = hasAnnotationAtSetter(propertyModel, ALLOW_CONSTRUCTOR_PARAMETERS_ANNOTATION);
-    String value = createArrayCodeFromChildElements(childElements, forceArray, allowConstructorParameters);
-    createPropertyAssignmentCode(variable, propertyModel, MxmlUtils.createBindingExpression(value), generatingConfig);
-  }
-
-  private String createArrayCodeFromChildElements(List<Element> childElements, boolean forceArray, boolean allowConstructorParameters) throws IOException {
-    List<String> arrayItems = new ArrayList<String>();
-    for (Element arrayItemNode : childElements) {
-      String itemValue = createValueCodeFromElement(arrayItemNode, allowConstructorParameters);
-      arrayItems.add(itemValue);
-    }
-    String value;
-    if (arrayItems.size() > 1 || forceArray) {
-      // We must create an array.
-      value = "[" + join(arrayItems, ", ") + "]";
-    } else {
-      // The property is either unspecified, untyped, or object-typed
-      // and it contains at least one child element. Use the first element as the
-      // property value.
-      value = arrayItems.isEmpty() ? "null" : arrayItems.get(0);
-    }
-    return value;
-  }
-
-  private static String join(List<String> array, String separator) {
-    StringBuilder sb = new StringBuilder();
-    for (int i = 0; i < array.size(); ++i) {
-      if (i > 0) {
-        sb.append(separator);
-      }
-      sb.append(array.get(i));
-    }
-    return sb.toString();
-  }
-
-  private String createValueCodeFromElement(Element objectElement, boolean allowConstructorParameters) throws IOException {
-    String className = createClassNameFromNode(objectElement);
-    if (className == null) {
-      throw Jooc.error("Could not resolve class from node " + objectElement.getNamespaceURI() + ":" + objectElement.getLocalName());
-    }
-    compilationUnitModel.addImport(className);
-    String targetVariable = null;   // name of the variable holding the object to build
-    String id = objectElement.getAttribute(MXML_ID_ATTRIBUTE);
-    if (!id.isEmpty()) {
-      PropertyModel fieldModel = new PropertyModel(id, className);
-      fieldModel.addGetter();
-      fieldModel.addSetter();
-      compilationUnitModel.getClassModel().addMember(fieldModel);
-      targetVariable = id;
-    }
-
-    String configVariable = null; // name of the variable holding the config object to use in the constructor
-    boolean hasBindings = false;
-    if (constructorSupportsConfigOptionsParameter(className)) {
-      // if class supports a config options parameter, create a config options object and assign properties to it:
-      configVariable = createAuxVar();
-      renderConfigAuxVar(configVariable);
-      if (targetVariable == null) {
-        targetVariable = createAuxVar();
-      }
-      // process attributes and children, using a forward reference to the object to build inside bindings:
-      hasBindings = processAttributesAndChildNodes(objectElement, configVariable, targetVariable, true);
-    }
-
-    String value;
-    if ("String".equals(className)) {
-      String stringValue = getTextContent(objectElement);
-      value = CompilerUtils.quote(stringValue);
-    } else if ("int".equals(className) || "uint".equals(className) || "Number".equals(className)) {
-      value = getTextContent(objectElement);
-      if (MxmlUtils.isBindingExpression(value)) {
-        value = MxmlUtils.getBindingExpression(value);
-      }
-    } else if ("Object".equals(className)) {
-      value = "{}";
-    } else if ("Array".equals(className)) {
-      value = createArrayCodeFromChildElements(MxmlUtils.getChildElements(objectElement), true, allowConstructorParameters);
-    } else {
-      StringBuilder valueBuilder = new StringBuilder();
-      valueBuilder.append("new ").append(className).append("(");
-      if (configVariable != null) {
-        valueBuilder.append(configVariable);
-      }
-      valueBuilder.append(")");
-      value = valueBuilder.toString();
-    }
-
-    if (id.length() > 0) {
-      code.append("\n    ").append(targetVariable);
-    } else if (configVariable == null || hasBindings) {
-      if (targetVariable == null) {
-        // no config object was built: create variable for object to build now:
-        targetVariable = createAuxVar();
-      }
-      code.append("\n    ").append("var ").append(targetVariable).append(":").append(className);
-    } else if (allowConstructorParameters) {
-      Set<MemberModel> configOptionsWithValue =
-              findConfigOptionsWithValue(getCompilationUnitModel(className).getClassModel());
-      for (MemberModel configOption : configOptionsWithValue) {
-        createPropertyAssignmentCode(configVariable, configOption, getConfigOptionValue(configOption), true);
-      }
-      return configVariable;
-    } else {
-      return value; // no aux var neccessary
-    }
-    code.append(" = ").append(value).append(";");
-
-    if (configVariable == null || hasBindings) {
-      // no config object was built or event listeners or bindings have to be added:
-      // process attribute and children and assign properties directly on the target object
-      processAttributesAndChildNodes(objectElement, configVariable, targetVariable, false);
-    }
-    return targetVariable;
-  }
-
-  private String createAuxVar() {
-    return "$_" + (++auxVarIndex);
-  }
-
-  private void createEventHandlerCode(String variable, String value, AnnotationModel event) {
-    AnnotationPropertyModel eventType = event.getPropertiesByName().get("type");
-    String eventTypeStr = eventType == null ? "Object" : eventType.getStringValue();
-    compilationUnitModel.addImport(eventTypeStr);
-    AnnotationPropertyModel eventNameModel = event.getPropertiesByName().get("name");
-    String eventName = (eventNameModel != null ? eventNameModel : event.getPropertiesByName().get(null)).getStringValue();
-    if (eventName.startsWith("on")) {
-      eventName = eventName.substring(2);
-    }
-    String eventHandlerName = "$on_" + variable + "_" + eventName.replace('-', '_');
-    MethodModel eventHandler = new MethodModel(eventHandlerName, "void",
-            new ParamModel("event", eventTypeStr));
-    eventHandler.setNamespace(NamespaceModel.PRIVATE);
-    eventHandler.setBody(value);
-    compilationUnitModel.getClassModel().addMember(eventHandler);
-    compilationUnitModel.addImport("joo.addEventListener");
-    code.append("\n    ").append("joo.addEventListener(").append(variable).append(", ")
-            .append(CompilerUtils.quote(eventName)).append(", ")
-            .append(eventHandlerName).append(", ")
-            .append(eventTypeStr).append(");");
-  }
-
-  private void createBindingMethodCode(String variable, MemberModel propertyModel, String value) {
-    String expressionMethodName = getOrCreateExpressionMethod(variable, propertyModel, value);
-    compilationUnitModel.addImport("joo.binding.Binding");
-    code    .append("\n    $bindings.push(new joo.binding.Binding(").append(expressionMethodName).append(", function($value){")
-            .append("\n      ").append(getPropertyAssignmentCode(variable, propertyModel.getName(), "$value"))
-            .append("\n    }));");
-  }
-
-  private String getOrCreateExpressionMethod(String variable, MemberModel propertyModel, String value) {
-    String expressionMethodName = "$bind_" + variable + "_" + propertyModel.getName();
-    MethodModel bindingMethod = compilationUnitModel.getClassModel().getMethod(null, expressionMethodName);
-    if (bindingMethod == null) {
-      bindingMethod = new MethodModel(expressionMethodName, propertyModel.getType());
-      bindingMethod.setNamespace(NamespaceModel.PRIVATE);
-      bindingMethod.setBody("return " + MxmlUtils.getBindingExpression(value) + ";");
-      compilationUnitModel.getClassModel().addMember(bindingMethod);
-    }
-    return expressionMethodName;
-  }
-
-  private void createPropertyAssignmentCode(String variable, MemberModel propertyModel, String value, boolean generatingConfig) {
-    String attributeValueAsString = MxmlUtils.valueToString(getPropertyValue(propertyModel, value));
-    String propertyName = generatingConfig ? getConfigOptionName(propertyModel) : propertyModel.getName();
-    code.append("\n    ").append(getPropertyAssignmentCode(variable, propertyName, attributeValueAsString));
-  }
-
-  private static String getPropertyAssignmentCode(String variable, String propertyName, String attributeValueAsString) {
-    String assignment = MessageFormat.format("{0} = {1};", propertyName, attributeValueAsString);
-    return "this".equals(variable)
-            ? assignment
-            : MessageFormat.format("{0}.{1}", variable, assignment);
-  }
-
-  private static String getConfigOptionName(MemberModel propertyModel) {
-    if (propertyModel instanceof PropertyModel) {
-      MethodModel setter = ((PropertyModel) propertyModel).getSetter();
-      if (setter != null) { // should actually be there, or the assignment would not work!
-        Iterator<AnnotationModel> configOptionAnnotations = setter.getAnnotations(CONSTRUCTOR_PARAMETER_ANNOTATION).iterator();
-        if (configOptionAnnotations.hasNext()) {
-          AnnotationPropertyModel configOption = configOptionAnnotations.next().getPropertiesByName().get(null);
-          if (configOption != null) {
-            return configOption.getStringValue();
-          }
-        }
-      }
-    }
-    return propertyModel.getName();
+    return superConfigElement;
   }
 
   // ======================================== auxiliary methods ========================================
@@ -549,66 +506,6 @@ public final class MxmlToModelParser {
     return propertyModel;
   }
 
-  private AnnotationModel findEvent(ClassModel classModel, String propertyName) throws IOException {
-    for (ClassModel current = classModel; current != null; current = getSuperClassModel(current)) {
-      AnnotationModel eventModel = current.getEvent(propertyName);
-      if (eventModel != null) {
-        return eventModel;
-      }
-    }
-    return null;
-  }
-
-  private MemberModel findDefaultPropertyModel(ClassModel classModel) throws IOException {
-    for (ClassModel current = classModel; current != null; current = getSuperClassModel(current)) {
-      MemberModel defaultPropertyModel = current.findPropertyWithAnnotation(false, MXML_DEFAULT_PROPERTY_ANNOTATION);
-      if (defaultPropertyModel != null) {
-        return defaultPropertyModel;
-      }
-    }
-    return null;
-  }
-
-  private Set<MemberModel> findConfigOptionsWithValue(ClassModel classModel) throws IOException {
-    Set<MemberModel> result = new LinkedHashSet<MemberModel>();
-    for (ClassModel current = classModel; current != null; current = getSuperClassModel(current)) {
-      Set<MemberModel> configOptionPropertyModels = current.findPropertiesWithAnnotation(false, CONSTRUCTOR_PARAMETER_ANNOTATION);
-      for (MemberModel configOptionPropertyModel : configOptionPropertyModels) {
-        // even though getConfigOptionValue() also unwraps a PropertyModel, we have to do it in advance
-        // in order to add the right model to the result:
-        if (configOptionPropertyModel instanceof PropertyModel) {
-          configOptionPropertyModel = ((PropertyModel) configOptionPropertyModel).getGetter();
-        }
-        if (getConfigOptionValue(configOptionPropertyModel) != null) {
-          result.add(configOptionPropertyModel);
-        }
-      }
-    }
-    return result;
-  }
-
-  private String getConfigOptionValue(MemberModel propertyModel) {
-    if (propertyModel instanceof PropertyModel) {
-      propertyModel = ((PropertyModel) propertyModel).getGetter();
-    }
-    List<AnnotationModel> configOptionAnnotations = propertyModel.getAnnotations(CONSTRUCTOR_PARAMETER_ANNOTATION);
-    if (!configOptionAnnotations.isEmpty()) {
-      AnnotationPropertyModel configOptionValue = configOptionAnnotations.get(0).getPropertiesByName().get("value");
-      if (configOptionValue != null) {
-        return configOptionValue.getStringValue();
-      }
-    }
-    return null;
-  }
-
-  private MemberModel createDynamicPropertyModel(CompilationUnitModel compilationUnitModel, String name, boolean allowAnyProperty) {
-    if (!allowAnyProperty && compilationUnitModel != null && compilationUnitModel.getClassModel() != null && !compilationUnitModel.getClassModel().isDynamic()) {
-      // dynamic property of a non-dynamic class: error!
-      throw Jooc.error("MXML: property " + name + " not found in class " + compilationUnitModel.getQName() + ".");
-    }
-    return new FieldModel(name, "*");
-  }
-
   private ClassModel getSuperClassModel(ClassModel classModel) throws IOException {
     String superclass = classModel.getSuperclass();
     if (superclass != null) {
@@ -618,18 +515,6 @@ public final class MxmlToModelParser {
       }
     }
     return null;
-  }
-
-  private Object getPropertyValue(MemberModel propertyModel, String value) {
-    Matcher resourceBundleMatcher = AT_RESOURCE_PATTERN.matcher(value);
-    if (resourceBundleMatcher.matches()) {
-      String bundle = resourceBundleMatcher.group(1);
-      String key = resourceBundleMatcher.group(2);
-      value = String.format(RESOURCE_ACCESS_CODE, RESOURCE_MANAGER_QNAME, bundle, key);
-      compilationUnitModel.addImport(RESOURCE_MANAGER_QNAME);
-      MxmlUtils.addResourceBundleAnnotation(compilationUnitModel.getClassModel(), bundle);
-    }
-    return MxmlUtils.getAttributeValue(value, propertyModel == null ? null : propertyModel.getType());
   }
 
   private String createClassNameFromNode(Node objectNode) {
@@ -660,6 +545,7 @@ public final class MxmlToModelParser {
       saxFactory.setNamespaceAware(true);
       parser = saxFactory.newSAXParser();
       DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+      factory.setNamespaceAware(false);
       doc = factory.newDocumentBuilder().newDocument();
     } catch (ParserConfigurationException e) {
       throw new IllegalStateException("a default dom builder should be provided", e);
@@ -667,5 +553,11 @@ public final class MxmlToModelParser {
     PreserveLineNumberHandler handler = new PreserveLineNumberHandler(doc);
     parser.parse(inputStream, handler);
     return doc;
+  }
+
+  private static class ExtConfigAnnotation {
+    String target;
+    String typeKey;
+    String typeValue;
   }
 }

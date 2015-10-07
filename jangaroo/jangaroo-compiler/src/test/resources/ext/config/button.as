@@ -1,7 +1,10 @@
 package ext.config {
 
 [ExtConfig(target="ext.Button", xtype="button")]
-public class button {
+public class button extends component {
+
+  public function button(config:Object = null) {
+  }
 
   /**
    * The text of the label

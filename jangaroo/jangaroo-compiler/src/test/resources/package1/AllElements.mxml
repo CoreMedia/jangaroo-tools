@@ -4,7 +4,7 @@
 -->
 <baseClass:Panel xmlns:fx="http://ns.adobe.com/mxml/2009"
            xmlns="ext.config.*"
-           xmlns:u="exml:untyped"
+           xmlns:u="mxml:untyped"
            xmlns:cfg="exmlparser.config.*"
            xmlns:baseClass="ext.*">
 
@@ -15,7 +15,7 @@
     /**
      * This is my <b>constant</b>
      */
-    public static const SOME_CONSTANT:int = exmlparser.config.allElements.SOME_CONSTANT;
+    public static const SOME_CONSTANT:uint = exmlparser.config.allElements.SOME_CONSTANT;
     /**
      * This is another <b>constant</b>
      */
@@ -26,7 +26,7 @@
   <cfg:allElements id="config" u:scope="constructorParam"/>
 
   <fx:Script u:scope="constructor"><![CDATA[
-    var mVar:String = config.myProperty + '_suffix';
+    var myVar:String = config.myProperty + '_suffix';
     var myVar2:Object = {
       prop: config.myProperty
     };
@@ -42,7 +42,7 @@
     <mixins>
       <someMixin>
         <someList>
-          <button text="click me!"/>
+          <button text="click me!" extId="myId"/>
         </someList>
       </someMixin>
     </mixins>

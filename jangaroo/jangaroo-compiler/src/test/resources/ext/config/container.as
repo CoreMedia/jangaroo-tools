@@ -3,6 +3,9 @@ package ext.config {
 [ExtConfig(target="ext.Container", xtype="container")]
 public class container extends component {
 
+  public function container(config:Object = null) {
+  }
+
   /**
    * defaults for children
    */

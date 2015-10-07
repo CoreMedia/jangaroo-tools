@@ -3,14 +3,19 @@ package ext.config {
 [ExtConfig(target="ext.Component", xtype="component")]
 public class component {
 
+  public function component(config:Object = null) {
+  }
+
   /**
    * Id of the component
    */
-  public native function get id():String;
+  public native function get extId():String;
+
+  [ExtConfig("id")]
   /**
    * @private
    */
-  public native function set id(value:String):void;
+  public native function set extId(value:String):void;
 
    /**
    * the x value

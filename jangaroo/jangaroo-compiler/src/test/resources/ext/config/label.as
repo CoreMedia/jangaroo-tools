@@ -3,6 +3,9 @@ package ext.config {
 [ExtConfig(target="ext.Label", xtype="label")]
 public class label {
 
+  public function label(config:Object = null) {
+  }
+
   /**
    * The text of the label
    */

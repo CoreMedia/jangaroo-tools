@@ -3,6 +3,9 @@ package ext.config {
 [ExtConfig(target="ext.Panel", xtype="panel")]
 public class panel extends container {
 
+  public function panel(config:Object = null) {
+  }
+
   /**
    * List of tools
    */
