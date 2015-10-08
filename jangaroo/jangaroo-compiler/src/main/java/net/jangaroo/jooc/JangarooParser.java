@@ -184,6 +184,9 @@ public class JangarooParser {
       if (result == null) {
         // scan classpath
         result = classPathInputSource.getChild(getInputSourceFileName(qname, classPathInputSource, Jooc.AS_SUFFIX));
+        if (result == null) {
+          result = classPathInputSource.getChild(getInputSourceFileName(qname, classPathInputSource, Jooc.MXML_SUFFIX));
+        }
       }
     }
     return result;
