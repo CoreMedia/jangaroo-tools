@@ -18,7 +18,7 @@ import java.util.List;
  * @requiresDependencyResolution
  * @threadSafe
  */
-public class TestExmlMojo extends AbstractExmlMojo {
+public class ExmlTestCompileMojo extends AbstractExmlCompileMojo {
 
   /**
    * Source directory to scan for test files to compile.

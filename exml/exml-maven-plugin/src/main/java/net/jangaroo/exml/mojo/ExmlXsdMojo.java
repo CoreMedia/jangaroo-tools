@@ -17,7 +17,7 @@ import java.io.File;
  * @requiresDependencyResolution
  * @threadSafe
  */
-public class ExmlXsdMojo extends ExmlMojo {
+public class ExmlXsdMojo extends ExmlCompileMojo {
 
   /**
    * @component

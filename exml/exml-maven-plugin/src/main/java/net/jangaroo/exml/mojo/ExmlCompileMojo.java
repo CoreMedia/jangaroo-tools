@@ -17,7 +17,7 @@ import java.util.List;
  * @requiresDependencyResolution
  * @threadSafe
  */
-public class ExmlMojo extends AbstractExmlMojo {
+public class ExmlCompileMojo extends AbstractExmlCompileMojo {
 
   @Override
   protected void executeExmlc(Exmlc exmlc) {

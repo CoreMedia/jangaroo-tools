@@ -4,8 +4,11 @@
 package net.jangaroo.exml.mojo;
 
 import net.jangaroo.exml.compiler.Exmlc;
+import net.jangaroo.exml.config.ExmlConfiguration;
+import org.apache.maven.plugin.MojoExecutionException;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -19,18 +22,30 @@ import java.util.List;
  */
 public class ExmlToMxmlMojo extends AbstractExmlMojo {
 
-  @Override
-  public File getGeneratedSourcesDirectory() {
-    return super.getSourceDirectory();
-  }
+  /**
+   * Source directory to scan for test files to compile.
+   *
+   * @parameter expression="${project.build.testSourceDirectory}"
+   */
+  private File testSourceDirectory;
 
   @Override
-  protected void executeExmlc(Exmlc exmlc) {
-    // Convert all EXML files to MXML:
-    exmlc.convertAllExmlToMxml();
+  public void execute() throws MojoExecutionException {
+    // Convert main EXML sources to MXML:
+    ExmlConfiguration config = createExmlConfiguration(getMavenPluginHelper().getActionScriptClassPath(false),
+            Collections.singletonList(getSourceDirectory()), getSourceDirectory());
+    new Exmlc(config).convertAllExmlToMxml();
+    // Also convert test EXML sources to MXML:
+    if (testSourceDirectory != null && testSourceDirectory.exists()) {
+      ExmlConfiguration testConfig = createExmlConfiguration(getActionScriptTestClassPath(),
+              Collections.singletonList(testSourceDirectory), testSourceDirectory);
+      new Exmlc(testConfig).convertAllExmlToMxml();
+    }
   }
 
-  protected List<File> getSourcePath() {
-    return Collections.singletonList(getSourceDirectory());
+  private List<File> getActionScriptTestClassPath() {
+    final List<File> classPath = new ArrayList<File>(getMavenPluginHelper().getActionScriptClassPath(true));
+    classPath.add(0, getSourceDirectory());
+    return classPath;
   }
 }
