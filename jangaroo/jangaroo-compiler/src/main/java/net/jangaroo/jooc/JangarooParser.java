@@ -178,18 +178,22 @@ public class JangarooParser {
 
   protected InputSource findSource(final String qname) {
     // scan sourcepath
-    InputSource result = sourcePathInputSource.getChild(getInputSourceFileName(qname, sourcePathInputSource, Jooc.AS_SUFFIX));
+    InputSource result = findInputSource(qname, sourcePathInputSource, Jooc.AS_SUFFIX);
       if (result == null) {
-      result = sourcePathInputSource.getChild(getInputSourceFileName(qname, sourcePathInputSource, Jooc.MXML_SUFFIX));
+      result = findInputSource(qname, sourcePathInputSource, Jooc.MXML_SUFFIX);
       if (result == null) {
         // scan classpath
-        result = classPathInputSource.getChild(getInputSourceFileName(qname, classPathInputSource, Jooc.AS_SUFFIX));
+        result = findInputSource(qname, classPathInputSource, Jooc.AS_SUFFIX);
         if (result == null) {
-          result = classPathInputSource.getChild(getInputSourceFileName(qname, classPathInputSource, Jooc.MXML_SUFFIX));
+          result = findInputSource(qname, classPathInputSource, Jooc.MXML_SUFFIX);
         }
       }
     }
     return result;
+  }
+
+  private static InputSource findInputSource(String qname, InputSource pathInputSource, String suffix) {
+    return pathInputSource.getChild(getInputSourceFileName(qname, pathInputSource, suffix));
   }
 
   public static String getInputSourceFileName(final String qname, InputSource is, String extension) {
@@ -272,8 +276,7 @@ public class JangarooParser {
   }
 
   private void addPackageFolderSymbols(final List<String> result, final String packageName, final InputSource path) {
-    addPackageFolderSymbols(path.getChild(getInputSourceFileName(packageName, path, "")),
-            result);
+    addPackageFolderSymbols(findInputSource(packageName, path, ""), result);
   }
 
   private void addPackageFolderSymbols(final InputSource folder, List<String> list) {
