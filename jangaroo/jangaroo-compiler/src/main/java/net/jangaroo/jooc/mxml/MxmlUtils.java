@@ -20,7 +20,8 @@ import java.util.regex.Pattern;
  */
 public class MxmlUtils {
 
-  private static final String MXML_NAMESPACE_URI = "http://ns.adobe.com/mxml/2009";
+  public static final String MXML_NAMESPACE_URI = "http://ns.adobe.com/mxml/2009";
+  public static final String MXML_UNTYPED_NAMESPACE = "mxml:untyped";
   public static final String RESOURCE_BUNDLE_ANNOTATION = "ResourceBundle";
 
   private static final Pattern IS_BINDING_EXPRESSION_PATTERN = Pattern.compile("(^|[^\\\\])\\{([^}]*[^\\\\])\\}");

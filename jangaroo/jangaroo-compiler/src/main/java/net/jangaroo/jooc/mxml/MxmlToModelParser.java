@@ -3,7 +3,6 @@ package net.jangaroo.jooc.mxml;
 import net.jangaroo.jooc.CompilerError;
 import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.Jooc;
-import net.jangaroo.jooc.ast.ClassDeclaration;
 import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.backend.ApiModelGenerator;
 import net.jangaroo.jooc.input.InputSource;
@@ -48,7 +47,6 @@ import static net.jangaroo.jooc.util.PreserveLineNumberHandler.getLineNumber;
 
 public final class MxmlToModelParser {
 
-  public static final String MXML_UNTYPED_NAMESPACE = "mxml:untyped";
   public static final String MXML_DECLARATIONS = "Declarations";
   public static final String MXML_SCRIPT = "Script";
   public static final String MXML_METADATA = "Metadata";
@@ -162,7 +160,7 @@ public final class MxmlToModelParser {
         // TODO: assign value to field!
         continue;
       }
-      if (MXML_UNTYPED_NAMESPACE.equals(attribute.getNamespaceURI()) && "scope".equals(attributeName)) {
+      if (MxmlUtils.MXML_UNTYPED_NAMESPACE.equals(attribute.getNamespaceURI()) && "scope".equals(attributeName)) {
         continue; // ignore scope attribute here; they are handled by createFields().
       }
       String attributeValue = attribute.getValue();
@@ -229,7 +227,7 @@ public final class MxmlToModelParser {
       }
 
       boolean isConfigTypeArray = isConfigTypeArray(configClass, elementName);
-      String configMode = isConfigTypeArray ? element.getAttributeNS(MXML_UNTYPED_NAMESPACE, CONFIG_MODE_ATTRIBUTE_NAME) : "";
+      String configMode = isConfigTypeArray ? element.getAttributeNS(MxmlUtils.MXML_UNTYPED_NAMESPACE, CONFIG_MODE_ATTRIBUTE_NAME) : "";
       // Special case: if an EXML element representing a config property has attributes, it is treated as
       // having an untyped object value. Exception: it is an Array-typed property and the sole attribute is "mode".
       int attributeCount = element.getAttributes().getLength();
@@ -447,7 +445,7 @@ public final class MxmlToModelParser {
     ClassModel classModel = compilationUnitModel.getClassModel();
     Element superConfigElement = null;
     for (Element element : MxmlUtils.getChildElements(objectNode)) {
-      String scope = element.getAttributeNS(MXML_UNTYPED_NAMESPACE, "scope");
+      String scope = element.getAttributeNS(MxmlUtils.MXML_UNTYPED_NAMESPACE, "scope");
       if (MxmlUtils.isMxmlNamespace(element.getNamespaceURI())) {
         String elementName = element.getLocalName();
         if (MXML_DECLARATIONS.equals(elementName)) {

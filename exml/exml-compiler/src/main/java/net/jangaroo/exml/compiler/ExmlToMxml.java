@@ -1,7 +1,6 @@
 package net.jangaroo.exml.compiler;
 
 import net.jangaroo.exml.api.ExmlcException;
-import net.jangaroo.jooc.json.JsonObject;
 import net.jangaroo.exml.model.AnnotationAt;
 import net.jangaroo.exml.model.ConfigClass;
 import net.jangaroo.exml.model.ConfigClassRegistry;
@@ -13,6 +12,8 @@ import net.jangaroo.exml.parser.ExmlToConfigClassParser;
 import net.jangaroo.exml.parser.ExmlToModelParser;
 import net.jangaroo.exml.utils.ExmlUtils;
 import net.jangaroo.jooc.Jooc;
+import net.jangaroo.jooc.json.JsonObject;
+import net.jangaroo.jooc.mxml.MxmlUtils;
 import net.jangaroo.utils.CharacterRecordingHandler;
 import net.jangaroo.utils.CompilerUtils;
 import org.apache.commons.lang.StringUtils;
@@ -42,7 +43,6 @@ import java.util.Set;
  */
 public class ExmlToMxml {
 
-  public static final String MXML_URI = "http://ns.adobe.com/mxml/2009";
   private ConfigClassRegistry configClassRegistry;
 
   public ExmlToMxml(ConfigClassRegistry configClassRegistry) {
@@ -65,13 +65,17 @@ public class ExmlToMxml {
     for (ExmlSourceFile exmlSourceFile : exmlSourceFiles) {
       System.out.printf("Converting EXML file %s...%n", exmlSourceFile.getSourceFile());
       File configClassFile = exmlSourceFile.generateConfigClass();
-      System.out.printf("Generated config class %s into file %s.%n", exmlSourceFile.getConfigClassName(), configClassFile.getPath());
-      try {
-        File mxmlFile = exmlToMxml(exmlSourceFile);
-        mxmlFiles.add(mxmlFile);
-        System.out.printf("Generated MXML class %s into file %s.%n", exmlSourceFile.getTargetClassName(), mxmlFile.getPath());
-      } catch (Exception e) {
-        throw new ExmlcException("unable to convert to MXML: " + e.getMessage(), exmlSourceFile.getSourceFile(), e);
+      System.out.printf("  Generated config class %s into file %s.%n", exmlSourceFile.getConfigClassName(), configClassFile.getPath());
+      if (exmlSourceFile.hasSourceTargetClass()) {
+        System.out.printf("  Target class %s is implemented in ActionScript: no need to generate MXML target class.", exmlSourceFile.getTargetClassName());
+      } else {
+        try {
+          File mxmlFile = exmlToMxml(exmlSourceFile);
+          mxmlFiles.add(mxmlFile);
+          System.out.printf("  Generated MXML target class %s into file %s.%n", exmlSourceFile.getTargetClassName(), mxmlFile.getPath());
+        } catch (Exception e) {
+          throw new ExmlcException("Unable to convert to MXML: " + e.getMessage(), exmlSourceFile.getSourceFile(), e);
+        }
       }
     }
     // clean up EXML files:
@@ -142,9 +146,13 @@ public class ExmlToMxml {
     @Override
     public void startPrefixMapping(String key, String uriValue) throws SAXException {
       if (key.equals("exml")) {
-        key = "fx";
-        uriValue = MXML_URI;
-      } else if (uriValue.startsWith("exml:") && !"exml:untyped".equals(uriValue)) {
+        prefixMappings.put("fx", MxmlUtils.MXML_NAMESPACE_URI);
+        key = "u";
+        uriValue = MxmlUtils.MXML_UNTYPED_NAMESPACE;
+      } else if ("exml:untyped".equals(uriValue)) {
+        // suppress exml:untyped; it is now mxml:untyped and always added.
+        return;
+      } else if (uriValue.startsWith("exml:")) {
         String packageName = uriValue.substring(5);
         if (packageName.equals(CompilerUtils.packageName(exmlSourceFile.getConfigClassName()))) {
           configClassPrefix = key;
