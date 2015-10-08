@@ -197,6 +197,8 @@ public class ExmlToMxml {
           qName = handleInnerElement();
         } else if (Exmlc.EXML_DESCRIPTION_NODE_NAME.equals(localName)) {
           qName = null;
+        } else if (Exmlc.EXML_OBJECT_NODE_NAME.equals(localName)) {
+          qName = "fx:Object";
         }
       } else if (elementPath.size() == 1) {
         String thePackage = ExmlUtils.parsePackageFromNamespace(uri);
@@ -213,8 +215,8 @@ public class ExmlToMxml {
               currentOut.println();
             }
             for (Declaration constant : constants) {
-              currentOut.printf("    public static const %s:%s = %s.%s;%n", constant.getName(), constant.getType(),
-                      configClassName, constant.getName());
+              currentOut.printf("    public static const %s:%s = %s;%n",
+                      constant.getName(), constant.getType(), constant.getValue());
             }
           }
           currentOut.print(CLOSE_FX_SCRIPT);
