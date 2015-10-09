@@ -182,7 +182,7 @@ public class ExmlToMxml {
             attributes.put(key.isEmpty() ? "xmlns" : "xmlns:" + key, uriValue);
           }
         } else if (Exmlc.EXML_ANNOTATION_NODE_NAME.equals(localName)) {
-          qName = handleAnnotation(qName, atts);
+          qName = handleAnnotation(atts);
         } else if (Exmlc.EXML_CFG_NODE_NAME.equals(localName)) {
           qName = handleCfg(atts);
         } else if (Exmlc.EXML_CONSTANT_NODE_NAME.equals(localName)) {
@@ -223,7 +223,8 @@ public class ExmlToMxml {
         }
         printConfigObjectAndVars(configClassName);
       }
-      if (!elementPath.isEmpty() && elementPath.size() % 2 == 0) {
+      boolean isPropertyElement = !elementPath.isEmpty() && elementPath.size() % 2 == 0;
+      if (isPropertyElement) {
         String lastQName = elementPath.peek();
         if (lastQName != null) {
           String[] parts = lastQName.split(":");
@@ -240,6 +241,8 @@ public class ExmlToMxml {
         String attributeName = atts.getQName(i);
         if ("id".equals(attributeName)) {
           attributeName = "extId";
+        } else if (isPropertyElement && "mode".equals(attributeName)) {
+          attributeName = "u:mode";
         } else if (Exmlc.EXML_BASE_CLASS_ATTRIBUTE.equals(attributeName) ||
                 Exmlc.EXML_PUBLIC_API_ATTRIBUTE.equals(attributeName)) {
           continue;
@@ -324,7 +327,7 @@ public class ExmlToMxml {
       String whitespace = " ";
       for (Map.Entry<String, String> attribute : attributes.entrySet()) {
         currentOut.printf("%s%s=%s", whitespace, attribute.getKey(),
-                CompilerUtils.quote(attribute.getValue().replaceAll("<", "&lt;")));
+                String.format("\"%s\"", attribute.getValue().replaceAll("<", "&lt;").replaceAll("&", "&amp;").replaceAll("\"", "&quot;").replaceAll("\\{", "\\{")));
         if (" ".equals(whitespace)) {
           whitespace = String.format("%n%s", StringUtils.repeat(" ", indent));
         }
@@ -352,12 +355,10 @@ public class ExmlToMxml {
     private Declaration createDeclaration(Attributes atts) {
       String name = atts.getValue(Exmlc.EXML_DECLARATION_NAME_ATTRIBUTE);
       String type = atts.getValue(Exmlc.EXML_DECLARATION_TYPE_ATTRIBUTE);
-      if (type == null || type.length() == 0) {
-        type = "String";
-      }
-      addImport(type);
       String value = atts.getValue(Exmlc.EXML_DECLARATION_VALUE_ATTRIBUTE);
-      return new Declaration(name, value, type);
+      Declaration declaration = new Declaration(name, value, type);
+      addImport(declaration.getType()); // may be a guessed type!
+      return declaration;
     }
 
     private void addImport(String type) {
@@ -393,7 +394,7 @@ public class ExmlToMxml {
       return null; // do not render config elements
     }
 
-    private String handleAnnotation(String qName, Attributes atts) {
+    private String handleAnnotation(Attributes atts) {
       AnnotationAt annotationAt = AnnotationAt.BOTH; // default for "at" is "both"
       for (int i = 0; i < atts.getLength(); i++) {
         if (Exmlc.EXML_ANNOTATION_AT_ATTRIBUTE.equals(atts.getLocalName(i))) {
@@ -402,10 +403,7 @@ public class ExmlToMxml {
           break;
         }
       }
-      if (annotationAt != AnnotationAt.CONFIG) {
-        qName = "fx:Metadata";
-      }
-      return qName;
+      return annotationAt == AnnotationAt.CONFIG ? null : "fx:Metadata";
     }
 
     private String handleRootNode(String qName, Attributes atts) {
