@@ -105,7 +105,8 @@ public class ExmlToMxml {
     private int lastColumn = 2;
     private Locator locator;
     private final Map<String,String> prefixMappings = new LinkedHashMap<String, String>();
-    private final Map<String,String> configDefaultValues = new LinkedHashMap<String, String>();
+    private String untypedPrefix;
+    private Map<String,String> configDefaultValues;
     private final Map<String,String> configDefaultSubElements = new LinkedHashMap<String, String>();
     private boolean pendingTagClose = false;
     private String configClassPrefix;
@@ -132,8 +133,6 @@ public class ExmlToMxml {
       imports = new LinkedHashSet<String>();
       constants = new ArrayList<Declaration>();
       vars = new ArrayList<Declaration>();
-      configDefaultValues.put("id", "config");
-      configDefaultValues.put("u:scope", "constructorParam");
       startRecordingCharacters();
       super.startDocument();
     }
@@ -147,11 +146,19 @@ public class ExmlToMxml {
     public void startPrefixMapping(String key, String uriValue) throws SAXException {
       if (key.equals("exml")) {
         prefixMappings.put("fx", MxmlUtils.MXML_NAMESPACE_URI);
-        key = "u";
+        if (untypedPrefix != null) {
+          // already declared through exml:untyped replacement: bail out!
+          return;
+        }
+        untypedPrefix = key = "u";
         uriValue = MxmlUtils.MXML_UNTYPED_NAMESPACE;
       } else if ("exml:untyped".equals(uriValue)) {
-        // suppress exml:untyped; it is now mxml:untyped and always added.
-        return;
+        // replace exml:untyped by mxml:untyped
+        if (untypedPrefix != null) {
+          prefixMappings.remove(untypedPrefix);
+        }
+        untypedPrefix = key;
+        uriValue = MxmlUtils.MXML_UNTYPED_NAMESPACE;
       } else if (uriValue.startsWith("exml:")) {
         String packageName = uriValue.substring(5);
         if (packageName.equals(CompilerUtils.packageName(exmlSourceFile.getConfigClassName()))) {
@@ -234,7 +241,7 @@ public class ExmlToMxml {
       }
       if (qName != null && currentVarName != null) {
         attributes.put("id", currentVarName);
-        attributes.put("u:scope", "constructor");
+        attributes.put(untypedPrefix + ":scope", "constructor");
         currentVarName = null;
       }
       for (int i = 0; i < atts.getLength(); ++i) {
@@ -242,7 +249,7 @@ public class ExmlToMxml {
         if ("id".equals(attributeName)) {
           attributeName = "extId";
         } else if (isPropertyElement && "mode".equals(attributeName)) {
-          attributeName = "u:mode";
+          attributeName = untypedPrefix + ":mode";
         } else if (Exmlc.EXML_BASE_CLASS_ATTRIBUTE.equals(attributeName) ||
                 Exmlc.EXML_PUBLIC_API_ATTRIBUTE.equals(attributeName)) {
           continue;
@@ -273,8 +280,8 @@ public class ExmlToMxml {
     private void printConfigObjectAndVars(String configClassName) {
       String configElementQName = String.format("%s:%s", configClassPrefix, configClassName);
       currentOut.printf("%n  <%s", configElementQName);
-      printAttributes(configDefaultValues, "  < ".length() + configElementQName.length());
-      configDefaultValues.clear();
+      printAttributes(getConfigDefaultValues(), "  < ".length() + configElementQName.length());
+      configDefaultValues = null;
       if (configDefaultSubElements.isEmpty()) {
         currentOut.print("/>");
       } else {
@@ -387,11 +394,26 @@ public class ExmlToMxml {
 
     private String handleCfg(Attributes atts) {
       currentConfigName = atts.getValue("name");
+      String type = atts.getValue("type");
+      if (type != null) {
+        // even if this config does not add anything to the target class,
+        // its type must be imported, because other code may take advantage of this import.
+        addImport(type);
+      }
       String configDefault = atts.getValue("default");
       if (configDefault != null && !configDefault.isEmpty()) {
-        configDefaultValues.put(currentConfigName, configDefault);
+        getConfigDefaultValues().put(currentConfigName, configDefault);
       }
       return null; // do not render config elements
+    }
+
+    private Map<String, String> getConfigDefaultValues() {
+      if (configDefaultValues == null) {
+        configDefaultValues = new LinkedHashMap<String, String>();
+        configDefaultValues.put("id", "config");
+        configDefaultValues.put(untypedPrefix + ":scope", "constructorParam");
+      }
+      return configDefaultValues;
     }
 
     private String handleAnnotation(Attributes atts) {
