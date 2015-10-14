@@ -75,7 +75,7 @@
           MessageBox.alert('gotcha!');
         }}</handler>
       </button>
-      <fx:Object><![CDATA[{xtype: "editortreepanel"}]]></fx:Object>
+      <fx:Object>{{xtype: "editortreepanel"}}</fx:Object>
       <fx:Object/>
     </items>
 

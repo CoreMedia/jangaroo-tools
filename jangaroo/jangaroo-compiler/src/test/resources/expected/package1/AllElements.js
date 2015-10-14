@@ -59,7 +59,8 @@ import net.jangaroo.ext.Exml;*/
           $1.MessageBox.alert('gotcha!');
         }
         },
-        {xtype: "editortreepanel"}
+        {xtype: "editortreepanel"},
+        {}
       ],
       menu: [
         {
@@ -76,7 +77,7 @@ import net.jangaroo.ext.Exml;*/
         }
       ],
       tools: [{
-        handler: function package1$AllElements$79_18(x){return ''+x;},
+        handler: function package1$AllElements$80_18(x){return ''+x;},
         id: "gear"
       }],
       plugins: [
@@ -85,5 +86,5 @@ import net.jangaroo.ext.Exml;*/
       ]
     }, config)));
   },
-undefined];},[],["ext.Panel","exmlparser.config.allElements","net.jangaroo.ext.Exml","net.jangaroo.ext.create","ext.config.action","ext.MessageBox"], "0.8.0", "2.0.15-SNAPSHOT"
+undefined];},[],["ext.Panel","exmlparser.config.allElements","net.jangaroo.ext.Exml","net.jangaroo.ext.create","ext.config.action","ext.MessageBox"], "@runtimeVersion", "@version"
 );

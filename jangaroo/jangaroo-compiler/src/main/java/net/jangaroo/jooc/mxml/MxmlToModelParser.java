@@ -420,10 +420,14 @@ public final class MxmlToModelParser {
   private Object parseExmlObjectNode(Node exmlObjectNode) {
     String textContent = exmlObjectNode.getTextContent();
     if (textContent != null && textContent.length() > 0) {
-      return JsonObject.code(textContent.trim());
+      String trimmedText = textContent.trim();
+      if (MxmlUtils.isBindingExpression(trimmedText)) {
+        return JsonObject.code(MxmlUtils.getBindingExpression(trimmedText));
+      }
+      return textContent; 
     } else {
       if (!exmlObjectNode.hasAttributes()) {
-        return null;
+        return JsonObject.code("{}"); // an empty Object
       }
       JsonObject object = new JsonObject();
       setUntypedAttributes(exmlObjectNode, object);
