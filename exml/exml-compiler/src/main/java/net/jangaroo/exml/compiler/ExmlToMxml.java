@@ -101,6 +101,8 @@ public class ExmlToMxml {
 
     private final PrintStream out;
     private PrintStream currentOut;
+    private boolean insideCdata;
+    private boolean insideExmlObject;
     private ByteArrayOutputStream elementRecorder;
     private int lastColumn = 2;
     private Locator locator;
@@ -206,6 +208,7 @@ public class ExmlToMxml {
           qName = null;
         } else if (Exmlc.EXML_OBJECT_NODE_NAME.equals(localName)) {
           qName = "fx:Object";
+          insideExmlObject = true;
         }
       } else if (elementPath.size() == 1) {
         String thePackage = ExmlUtils.parsePackageFromNamespace(uri);
@@ -333,12 +336,21 @@ public class ExmlToMxml {
     private void printAttributes(Map<String, String> attributes, int indent) {
       String whitespace = " ";
       for (Map.Entry<String, String> attribute : attributes.entrySet()) {
+        String value = attribute.getValue();
+        if (!ExmlUtils.isCodeExpression(value)) {
+          // escape all opening curly braces, as MXML also recognizes them anywhere inside a string:
+          value = value.replaceAll("\\{", "\\\\{");
+        }
         currentOut.printf("%s%s=%s", whitespace, attribute.getKey(),
-                String.format("\"%s\"", attribute.getValue().replaceAll("<", "&lt;").replaceAll("&", "&amp;").replaceAll("\"", "&quot;").replaceAll("\\{", "\\{")));
+                String.format("\"%s\"", escapeXml(value).replaceAll("\"", "&quot;")));
         if (" ".equals(whitespace)) {
           whitespace = String.format("%n%s", StringUtils.repeat(" ", indent));
         }
       }
+    }
+
+    private String escapeXml(String xmlString) {
+      return xmlString.replaceAll("&", "&amp;").replaceAll("<", "&lt;");
     }
 
     private String handleInnerElement() {
@@ -485,6 +497,8 @@ public class ExmlToMxml {
           flush();
           if ("fx:Metadata".equals(qName)) {
             out.print("]");
+          } else if ("fx:Object".equals(qName)) {
+            insideExmlObject = false;
           }
           currentOut.printf("</%s>", qName);
         }
@@ -536,14 +550,14 @@ public class ExmlToMxml {
     @Override
     public void startCDATA() throws SAXException {
       flush();
-      currentOut.print("<![CDATA[");
+      insideCdata = true;
       lastColumn = locator.getColumnNumber();
     }
 
     @Override
     public void endCDATA() throws SAXException {
       flush();
-      currentOut.print("]]>");
+      insideCdata = false;
       lastColumn = locator.getColumnNumber();
     }
 
@@ -565,7 +579,14 @@ public class ExmlToMxml {
       flushPendingTagClose();
       String recordedCharacters = popRecordedCharacters();
       if (recordedCharacters != null) {
-        currentOut.print(convertNewLines(recordedCharacters));
+        String output = convertNewLines(recordedCharacters);
+        if (insideCdata) {
+          output = escapeXml(output);
+        }
+        if (insideExmlObject && !output.trim().isEmpty()) {
+          output = MxmlUtils.createBindingExpression(output);
+        }
+        currentOut.print(output);
       }
       startRecordingCharacters();
     }
