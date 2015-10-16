@@ -185,8 +185,9 @@ public final class MxmlToModelParser {
   }
 
   public static Object getAttributeValue(String attributeValue, String type) {
-    if (MxmlUtils.isBindingExpression(attributeValue)) {
-      return JsonObject.code(MxmlUtils.getBindingExpression(attributeValue));
+    String trimmedAttributeValue = attributeValue.trim();
+    if (MxmlUtils.isBindingExpression(trimmedAttributeValue)) {
+      return JsonObject.code(MxmlUtils.getBindingExpression(trimmedAttributeValue));
     } else {
       AS3Type as3Type = type == null ? AS3Type.ANY : AS3Type.typeByName(type);
       if (AS3Type.ANY.equals(as3Type)) {

@@ -207,7 +207,8 @@ public class ExmlToMxml {
         } else if (Exmlc.EXML_DESCRIPTION_NODE_NAME.equals(localName)) {
           qName = null;
         } else if (Exmlc.EXML_OBJECT_NODE_NAME.equals(localName)) {
-          qName = "fx:Object";
+          // transform <exml:object> to <fx:Object>, but suppress empty <exml:object>s, TODO: unless they are Array elements!
+          qName = atts.getLength() == 0 ? null : "fx:Object";
           insideExmlObject = true;
         }
       } else if (elementPath.size() == 1) {
@@ -497,12 +498,11 @@ public class ExmlToMxml {
           flush();
           if ("fx:Metadata".equals(qName)) {
             out.print("]");
-          } else if ("fx:Object".equals(qName)) {
-            insideExmlObject = false;
           }
           currentOut.printf("</%s>", qName);
         }
       }
+      insideExmlObject = false; // <exml:object>s cannot be nested.
       startRecordingCharacters();
       if (ExmlUtils.isExmlNamespace(uri)) {
         if (Exmlc.EXML_CFG_DEFAULT_NODE_NAME.equals(localName) ||
@@ -583,8 +583,11 @@ public class ExmlToMxml {
         if (insideCdata) {
           output = escapeXml(output);
         }
-        if (insideExmlObject && !output.trim().isEmpty()) {
-          output = MxmlUtils.createBindingExpression(output);
+        if (insideExmlObject) {
+          String code = output.trim();
+          if (!code.isEmpty()) {
+            output = MxmlUtils.createBindingExpression(code);
+          }
         }
         currentOut.print(output);
       }
