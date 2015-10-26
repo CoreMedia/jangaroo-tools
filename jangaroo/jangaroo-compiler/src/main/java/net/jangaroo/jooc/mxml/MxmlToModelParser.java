@@ -195,6 +195,8 @@ public final class MxmlToModelParser {
       }
       if (as3Type != null) {
         switch (as3Type) {
+          case STRING:
+            return attributeValue.replaceAll("\\\\\\{", "{"); // unescape escaped curly brace, \{ -> {
           case BOOLEAN:
             return Boolean.parseBoolean(attributeValue);
           case NUMBER:
