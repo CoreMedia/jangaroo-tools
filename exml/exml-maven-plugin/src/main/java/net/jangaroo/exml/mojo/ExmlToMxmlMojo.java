@@ -10,9 +10,15 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import static java.lang.String.format;
+import static org.apache.commons.io.FileUtils.listFiles;
+import static org.apache.commons.io.FileUtils.moveFile;
+import static org.apache.commons.io.FilenameUtils.getBaseName;
 
 /**
  * A Mojo to compile EXML sources to AS3 sources into target/generated-sources/joo in phase generate-sources.
@@ -37,10 +43,29 @@ public class ExmlToMxmlMojo extends AbstractExmlMojo {
    */
   private PluginDescriptor pluginDescriptor;
 
+  /**
+   * Set this to 'true' to rename EXML files to MXML files only and to skip the actual conversion. This allows to give
+   * a hint to SCM systems like Git about the renaming and then run the actual conversion in a second step.
+   *
+   * @parameter expression="${renameOnly}"
+   */
+  private boolean renameOnly;
+
   @Override
   public void execute() throws MojoExecutionException {
     if (!isExmlProject()) {
       getLog().info("not an EXML project, skipping MXML conversion");
+      return;
+    }
+
+    if (renameOnly) {
+      getLog().info("Renaming EXML files to MXML files");
+      try {
+        renameFiles(getSourceDirectory());
+        renameFiles(testSourceDirectory);
+      } catch (IOException e) {
+        throw new MojoExecutionException("error while renaming EXML files", e);
+      }
       return;
     }
 
@@ -53,6 +78,16 @@ public class ExmlToMxmlMojo extends AbstractExmlMojo {
       ExmlConfiguration testConfig = createExmlConfiguration(getActionScriptTestClassPath(),
               Collections.singletonList(testSourceDirectory), testSourceDirectory);
       new Exmlc(testConfig).convertAllExmlToMxml();
+    }
+  }
+
+  private void renameFiles(File directory) throws IOException {
+    if (directory != null && directory.exists()) {
+      for (File exmlFile : listFiles(directory, new String[]{"exml"}, true)) {
+        File mxmlFile = new File(exmlFile.getParent(), getBaseName(exmlFile.getName()) + ".mxml");
+        getLog().debug(format("Renaming %s to %s", exmlFile.getPath(), mxmlFile.getPath()));
+        moveFile(exmlFile, mxmlFile);
+      }
     }
   }
 
