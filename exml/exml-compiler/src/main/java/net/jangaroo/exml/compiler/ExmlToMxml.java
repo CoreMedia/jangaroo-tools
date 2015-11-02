@@ -445,7 +445,7 @@ public class ExmlToMxml {
       String asDoc = exmlModel.getDescription();
       if (asDoc != null && !asDoc.trim().isEmpty()) {
         currentOut.println("<!---");
-        currentOut.println("  " + convertNewLines(asDoc));
+        currentOut.println("  " + convertNewLines(asDoc).replaceAll("--", "&#45;&#45;"));
         currentOut.println("-->");
       }
       ConfigClass superConfigClass = exmlSourceFile.getConfigClass().getSuperClass();
