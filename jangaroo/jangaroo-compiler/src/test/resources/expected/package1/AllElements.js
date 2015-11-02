@@ -1,4 +1,5 @@
 joo.classLoader.prepare("package package1",/* {
+import ext.Ext;
 import ext.Panel;
 import exmlparser.config.allElements;
 import ext.config.button;
@@ -55,7 +56,7 @@ import net.jangaroo.ext.Exml;*/
         {
           xtype: "button",
           text: "Save",
-          handler: function package1$AllElements$58_20()/*:void*/ {
+          handler: function package1$AllElements$59_20()/*:void*/ {
           $1.MessageBox.alert('gotcha!');
         }
         },
@@ -77,7 +78,7 @@ import net.jangaroo.ext.Exml;*/
         }
       ],
       tools: [{
-        handler: function package1$AllElements$80_18(x){return ''+x;},
+        handler: function package1$AllElements$81_18(x){return ''+x;},
         id: "gear"
       }],
       plugins: [

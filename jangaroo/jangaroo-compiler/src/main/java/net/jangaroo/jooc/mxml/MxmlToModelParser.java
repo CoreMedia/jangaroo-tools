@@ -117,6 +117,7 @@ public final class MxmlToModelParser {
     if (superClassName.equals(compilationUnitModel.getQName())) {
       throw Jooc.error("Cyclic inheritance error: super class and this component are the same!. There is something wrong!");
     }
+    compilationUnitModel.addImport("ext.Ext");
     ClassModel classModel = compilationUnitModel.getClassModel();
     classModel.setSuperclass(superClassName);
     compilationUnitModel.addImport(superClassName);
