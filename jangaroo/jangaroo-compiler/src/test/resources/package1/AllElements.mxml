@@ -41,6 +41,11 @@
           u:scope="constructor"
           text="Foo"/>
 
+  <fx:Array id="myVar4" u:scope="constructor">
+    <fx:Object header="a" sortable="false" menuDisabled="true"/>
+    <fx:Object header="b" sortable="true" menuDisabled="false"/>
+  </fx:Array>
+
   <!-- superclass of the the component with attributes-->
   <panel title="I am a panel" layout="{config.myLayout}">
     <!-- define some attributes through a typed mixin: -->

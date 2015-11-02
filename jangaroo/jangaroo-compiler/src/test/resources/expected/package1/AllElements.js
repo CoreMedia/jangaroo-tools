@@ -31,7 +31,20 @@ import net.jangaroo.ext.Exml;*/
     var myVar2/*:Object*/ = {
       prop: config.myProperty
     };
+    
     var myVar3/*:ext.config.button*/ = {text: "Foo"};
+    var myVar4/*:Array*/ = [
+      {
+        header: "a",
+        menuDisabled: true,
+        sortable: false
+      },
+      {
+        header: "b",
+        menuDisabled: false,
+        sortable: true
+      }
+    ];
     config =/* exmlparser.config.allElements*/(net.jangaroo.ext.Exml.apply({
       myProperty: "My Property!",
       myPropertyWithDescription: false
@@ -56,7 +69,7 @@ import net.jangaroo.ext.Exml;*/
         {
           xtype: "button",
           text: "Save",
-          handler: function package1$AllElements$59_20()/*:void*/ {
+          handler: function package1$AllElements$72_20()/*:void*/ {
           $1.MessageBox.alert('gotcha!');
         }
         },
@@ -78,7 +91,7 @@ import net.jangaroo.ext.Exml;*/
         }
       ],
       tools: [{
-        handler: function package1$AllElements$81_18(x){return ''+x;},
+        handler: function package1$AllElements$94_18(x){return ''+x;},
         id: "gear"
       }],
       plugins: [

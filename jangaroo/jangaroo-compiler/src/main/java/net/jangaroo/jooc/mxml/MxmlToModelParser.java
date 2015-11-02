@@ -7,6 +7,7 @@ import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.backend.ApiModelGenerator;
 import net.jangaroo.jooc.input.InputSource;
 import net.jangaroo.jooc.json.Code;
+import net.jangaroo.jooc.json.Json;
 import net.jangaroo.jooc.json.JsonArray;
 import net.jangaroo.jooc.json.JsonObject;
 import net.jangaroo.jooc.model.AnnotationModel;
@@ -458,7 +459,7 @@ public final class MxmlToModelParser {
         String elementName = element.getLocalName();
         if (MXML_DECLARATIONS.equals(elementName)) {
           for (Element declaration : MxmlUtils.getChildElements(element)) {
-            fillModelAttributes(new JsonObject(), declaration);
+            createValue(declaration);
           }
           continue;
         } else if (MXML_SCRIPT.equals(elementName)) {
@@ -483,9 +484,8 @@ public final class MxmlToModelParser {
           String id = element.getAttribute(MXML_ID_ATTRIBUTE);
           if (id != null && !id.isEmpty()) {
             compilationUnitModel.addImport(elementClassName);
-            JsonObject constructorVarJsonObject = new JsonObject();
-            fillModelAttributes(constructorVarJsonObject, element);
-            String code = String.format("var %s:%s = %s;", id, elementClassName,
+            Json constructorVarJsonObject = createValue(element);
+            String code = String.format("%n    var %s:%s = %s;", id, elementClassName,
                     constructorVarJsonObject.toString(2, 4));
             classModel.getConstructor().addBodyCode(code);
           }
@@ -498,6 +498,8 @@ public final class MxmlToModelParser {
           ));
           cfgDefaults = new JsonObject();
           fillModelAttributes(cfgDefaults, element);
+        } else {
+          throw Jooc.error("Invalid scope " + scope + ", must be 'constructor' or 'constructorParam'.");
         }
       }
     }
@@ -505,6 +507,17 @@ public final class MxmlToModelParser {
   }
 
   // ======================================== auxiliary methods ========================================
+
+  private Json createValue(Element element) throws IOException {
+    String className = createClassNameFromNode(element);
+    if ("Array".equals(className)) {
+      List<Object> childObjects = parseChildObjects(MxmlUtils.getChildElements(element));
+      return new JsonArray(childObjects.toArray());
+    }
+    JsonObject value = new JsonObject();
+    fillModelAttributes(value, element);
+    return value;
+  }
 
   private CompilationUnitModel getCompilationUnitModel(String fullClassName) throws IOException {
     if (fullClassName == null) {
