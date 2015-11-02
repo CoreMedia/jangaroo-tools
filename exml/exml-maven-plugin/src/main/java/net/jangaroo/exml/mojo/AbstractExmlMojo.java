@@ -29,7 +29,6 @@ public abstract class AbstractExmlMojo extends JangarooMojo {
    * The package into which config classes of EXML components are generated.
    *
    * @parameter
-   * @required
    */
   private String configClassPackage;
 
@@ -43,6 +42,10 @@ public abstract class AbstractExmlMojo extends JangarooMojo {
   }
 
   protected ExmlConfiguration createExmlConfiguration(List<File> classPath, List<File> sourcePath, File outputDirectory) throws MojoExecutionException {
+    if (configClassPackage == null) {
+      throw new MojoExecutionException("parameter 'configClassPackage' is missing");
+    }
+
     ExmlConfiguration exmlConfiguration = new ExmlConfiguration();
     exmlConfiguration.setConfigClassPackage(configClassPackage);
     exmlConfiguration.setClassPath(classPath);
