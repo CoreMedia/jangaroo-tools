@@ -459,6 +459,7 @@ public final class MxmlToModelParser {
           for (Element declaration : MxmlUtils.getChildElements(element)) {
             fillModelAttributes(new JsonObject(), declaration);
           }
+          continue;
         } else if (MXML_SCRIPT.equals(elementName)) {
           String scriptCode = getTextContent(element);
           if ("constructor".equals(scope)) {
@@ -466,36 +467,36 @@ public final class MxmlToModelParser {
           } else {
             classModel.addBodyCode(scriptCode);
           }
+          continue;
         } else if (MXML_METADATA.equals(elementName)) {
           classModel.addAnnotationCode(getTextContent(element));
-        } else {
-          throw Jooc.error("Unknown MXML element: " + elementName);
+          continue;
         }
+        // else it must be a top-level type, treat like any other element.
+      }
+      if (scope.isEmpty()) {
+        superConfigElement = element;
       } else {
-        if (scope.isEmpty()) {
-          superConfigElement = element;
-        } else {
-          String elementClassName = createClassNameFromNode(element);
-          if ("constructor".equals(scope)) {
-            String id = element.getAttribute(MXML_ID_ATTRIBUTE);
-            if (id != null && !id.isEmpty()) {
-              compilationUnitModel.addImport(elementClassName);
-              JsonObject constructorVarJsonObject = new JsonObject();
-              fillModelAttributes(constructorVarJsonObject, element);
-              String code = String.format("var %s:%s = %s;", id, elementClassName,
-                      constructorVarJsonObject.toString(2, 4));
-              classModel.getConstructor().addBodyCode(code);
-            }
-          } else if ("constructorParam".equals(scope)) {
+        String elementClassName = createClassNameFromNode(element);
+        if ("constructor".equals(scope)) {
+          String id = element.getAttribute(MXML_ID_ATTRIBUTE);
+          if (id != null && !id.isEmpty()) {
             compilationUnitModel.addImport(elementClassName);
-            classModel.getConstructor().addParam(new ParamModel(
-                    element.getAttribute("id"),
-                    elementClassName,
-                    "null"
-            ));
-            cfgDefaults = new JsonObject();
-            fillModelAttributes(cfgDefaults, element);
+            JsonObject constructorVarJsonObject = new JsonObject();
+            fillModelAttributes(constructorVarJsonObject, element);
+            String code = String.format("var %s:%s = %s;", id, elementClassName,
+                    constructorVarJsonObject.toString(2, 4));
+            classModel.getConstructor().addBodyCode(code);
           }
+        } else if ("constructorParam".equals(scope)) {
+          compilationUnitModel.addImport(elementClassName);
+          classModel.getConstructor().addParam(new ParamModel(
+                  element.getAttribute("id"),
+                  elementClassName,
+                  "null"
+          ));
+          cfgDefaults = new JsonObject();
+          fillModelAttributes(cfgDefaults, element);
         }
       }
     }
