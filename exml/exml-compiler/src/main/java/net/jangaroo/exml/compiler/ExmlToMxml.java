@@ -569,7 +569,7 @@ public class ExmlToMxml {
     @Override
     public void comment(char[] ch, int start, int length) throws SAXException {
       flush();
-      currentOut.print("<!--" + new String(ch, start, length) + "-->");
+      currentOut.print("<!--" + convertNewLines(new String(ch, start, length)) + "-->");
       lastColumn = locator.getColumnNumber();
     }
 
@@ -589,9 +589,8 @@ public class ExmlToMxml {
           output = escapeXml(output);
         }
         if (insideExmlObject) {
-          String code = output.trim();
-          if (!code.isEmpty()) {
-            output = MxmlUtils.createBindingExpression(code);
+          if (!output.trim().isEmpty()) {
+            output = MxmlUtils.createBindingExpression(output);
           }
         }
         currentOut.print(output);
