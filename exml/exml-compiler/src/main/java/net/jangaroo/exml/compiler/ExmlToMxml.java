@@ -104,7 +104,7 @@ public class ExmlToMxml {
     private boolean insideCdata;
     private boolean insideExmlObject;
     private ByteArrayOutputStream elementRecorder;
-    private int lastColumn = 2;
+    private int lastColumn = 1;
     private Locator locator;
     private final Map<String,String> prefixMappings = new LinkedHashMap<String, String>();
     private String untypedPrefix;
@@ -266,7 +266,7 @@ public class ExmlToMxml {
       if (qName != null) {
         flush();
         currentOut.printf("<%s", qName);
-        printAttributes(attributes, lastColumn + qName.length());
+        printAttributes(attributes, lastColumn + qName.length() + 1);
         pendingTagClose = true;
       }
       elementPath.push(qName);
