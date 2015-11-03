@@ -527,6 +527,12 @@ public class ExmlToMxml {
     }
 
     @Override
+    public void endDocument() throws SAXException {
+      // add last new-line to end up with a correct text file format:
+      currentOut.println();
+    }
+
+    @Override
     public void startDTD(String name, String publicId, String systemId) throws SAXException {
       
     }
