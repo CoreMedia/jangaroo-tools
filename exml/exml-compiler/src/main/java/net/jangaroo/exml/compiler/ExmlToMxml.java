@@ -148,6 +148,7 @@ public class ExmlToMxml {
     public void startPrefixMapping(String key, String uriValue) throws SAXException {
       if (key.equals("exml")) {
         prefixMappings.put("fx", MxmlUtils.MXML_NAMESPACE_URI);
+        prefixMappings.put("exml", "net.jangaroo.ext");
         if (untypedPrefix != null) {
           // already declared through exml:untyped replacement: bail out!
           return;
@@ -207,8 +208,6 @@ public class ExmlToMxml {
         } else if (Exmlc.EXML_DESCRIPTION_NODE_NAME.equals(localName)) {
           qName = null;
         } else if (Exmlc.EXML_OBJECT_NODE_NAME.equals(localName)) {
-          // transform <exml:object> to <fx:Object>, but suppress empty <exml:object>s, TODO: unless they are Array elements!
-          qName = atts.getLength() == 0 ? null : "fx:Object";
           insideExmlObject = true;
         }
       } else if (elementPath.size() == 1) {

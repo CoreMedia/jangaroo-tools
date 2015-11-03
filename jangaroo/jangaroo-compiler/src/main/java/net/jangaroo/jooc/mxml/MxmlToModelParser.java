@@ -382,14 +382,14 @@ public final class MxmlToModelParser {
   private List<Object> parseChildObjects(List<Element> elements) throws IOException {
     List<Object> childObjects = new ArrayList<Object>();
     for (Element arrayItemNode : elements) {
+      String configClassName = createClassNameFromNode(arrayItemNode);
+      if (configClassName == null) {
+        throw new CompilerError(String.format("Cannot derive class name from <%s:%s>.", arrayItemNode.getNamespaceURI(), arrayItemNode.getLocalName()));
+      }
       Object value;
-      if (MxmlUtils.isMxmlNamespace(arrayItemNode.getNamespaceURI()) && "Object".equals(arrayItemNode.getLocalName())) {
+      if ("Object".equals(configClassName) || "net.jangaroo.ext.object".equals(configClassName)) {
         value = parseExmlObjectNode(arrayItemNode);
       } else {
-        String configClassName = createClassNameFromNode(arrayItemNode);
-        if (configClassName == null) {
-          throw new CompilerError(String.format("Cannot derive class name from <%s:%s>.", arrayItemNode.getNamespaceURI(), arrayItemNode.getLocalName()));
-        }
         CompilationUnitModel configClass = getCompilationUnitModel(configClassName);
 
         JsonObject arrayItemJsonObject = new JsonObject();
