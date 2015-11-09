@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!---
+  This is a TestComponent which defines a config property with a default value.
+    @see ext.Panel
+-->
+<baseClass:Panel xmlns:fx="http://ns.adobe.com/mxml/2009"
+                 xmlns:exml="net.jangaroo.ext.*"
+                 xmlns:u="mxml:untyped"
+                 xmlns="ext.config.*"
+                 xmlns:cfg="testNamespace.config.*"
+                 xmlns:baseClass="ext.*">
+  <cfg:testComponentWithCfgDefaults id="config"
+                                    u:scope="constructorParam"
+                                    propertyWithLiteralDefault="foobar"
+                                    propertyWithExpressionDefault="{'foo' + 'bar'}">
+    <cfg:propertyWithDefaultElement>
+      <button text="click me!"/>
+    </cfg:propertyWithDefaultElement>
+    <cfg:propertyWithDefaultElementUsingConfig>
+      <button text="{config.title + '!'}"/>
+    </cfg:propertyWithDefaultElementUsingConfig>
+    <cfg:arrayPropertyWithDefaultElement>
+      <button text="button1"/><button text="button2"/>
+    </cfg:arrayPropertyWithDefaultElement>
+  </cfg:testComponentWithCfgDefaults>
+
+  <panel title="{config.defaultTitle}"/>
+
+</baseClass:Panel>

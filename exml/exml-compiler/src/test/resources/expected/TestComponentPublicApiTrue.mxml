@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!---
+  This is a TestComponent with PublicApi.
+-->
+<baseClass:Panel xmlns:fx="http://ns.adobe.com/mxml/2009"
+                 xmlns:exml="net.jangaroo.ext.*"
+                 xmlns:u="mxml:untyped"
+                 xmlns="ext.config.*"
+                 xmlns:cfg="testNamespace.config.*"
+                 xmlns:baseClass="ext.*">
+
+  <fx:Metadata>[PublicApi]</fx:Metadata>
+  <cfg:testComponentPublicApiTrue id="config"
+                                  u:scope="constructorParam"/>
+
+  <panel title="I am inside a package!">
+    <items>
+      <label text="bla"/>
+    </items>
+  </panel>
+</baseClass:Panel>
