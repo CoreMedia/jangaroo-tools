@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<baseClass:Container xmlns:fx="http://ns.adobe.com/mxml/2009"
+                     xmlns:exml="net.jangaroo.ext.*"
+                     xmlns:u="mxml:untyped"
+                     xmlns:test="testNamespace.config.*"
+                     xmlns="ext.config.*"
+                     xmlns:baseClass="ext.*">
+  <test:testContainerDefaults id="config"
+                              u:scope="constructorParam"/>
+  <container>
+    <defaults>
+      <button text="it works!"/>
+    </defaults>
+    <items>
+      <container>
+        <defaults>
+          <test:testComponent propertyOne="true"/>
+        </defaults>
+      </container>
+    </items>
+  </container>
+</baseClass:Container>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!---
+  This is a label.
+-->
+<baseClass:Label xmlns:fx="http://ns.adobe.com/mxml/2009"
+                 xmlns:exml="net.jangaroo.ext.*"
+                 xmlns:u="mxml:untyped"
+                 xmlns="ext.config.*"
+                 xmlns:cfg="testNamespace.config.*"
+                 xmlns:baseClass="ext.*">
+  <cfg:testLabel id="config"
+                 u:scope="constructorParam"/>
+
+  <label text="{config.propertyOne}"/>
+</baseClass:Label>

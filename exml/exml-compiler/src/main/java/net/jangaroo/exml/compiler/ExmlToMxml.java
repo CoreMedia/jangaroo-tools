@@ -16,6 +16,7 @@ import net.jangaroo.jooc.json.JsonObject;
 import net.jangaroo.jooc.mxml.MxmlUtils;
 import net.jangaroo.utils.CharacterRecordingHandler;
 import net.jangaroo.utils.CompilerUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.xml.sax.Attributes;
 import org.xml.sax.Locator;
@@ -78,10 +79,12 @@ public class ExmlToMxml {
         }
       }
     }
-    // clean up EXML files:
-    for (ExmlSourceFile exmlSourceFile : exmlSourceFiles) {
-      if (!exmlSourceFile.getSourceFile().delete()) {
-        System.err.println("Failed to delete EXML source file " + exmlSourceFile.getSourceFile().getPath());
+    if (!configClassRegistry.getConfig().isKeepExmlFiles()) {
+      // clean up EXML files:
+      for (ExmlSourceFile exmlSourceFile : exmlSourceFiles) {
+        if (!exmlSourceFile.getSourceFile().delete()) {
+          System.err.println("Failed to delete EXML source file " + exmlSourceFile.getSourceFile().getPath());
+        }
       }
     }
     return mxmlFiles.toArray(new File[mxmlFiles.size()]);
@@ -91,6 +94,7 @@ public class ExmlToMxml {
     ExmlModel exmlModel = new ExmlToModelParser(configClassRegistry).parse(exmlSourceFile.getSourceFile());
     File sourceFile = exmlSourceFile.getSourceFile();
     File outputFile = CompilerUtils.fileFromQName(exmlSourceFile.getTargetClassName(), configClassRegistry.getConfig().getOutputDirectory(), ".mxml");
+    FileUtils.forceMkdir(outputFile.getParentFile());
     PrintStream writer = new PrintStream(new FileOutputStream(outputFile), true, net.jangaroo.exml.api.Exmlc.OUTPUT_CHARSET);
     ExmlToConfigClassParser.parseFileWithHandler(sourceFile, new ExmlToMxmlHandler(exmlSourceFile, exmlModel, writer));
     return outputFile;

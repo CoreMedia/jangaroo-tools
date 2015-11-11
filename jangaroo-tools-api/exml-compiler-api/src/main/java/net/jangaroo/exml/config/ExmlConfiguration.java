@@ -16,6 +16,7 @@ public class ExmlConfiguration extends FileLocations {
   private File resourceOutputDirectory;
   private ValidationMode validationMode = ValidationMode.OFF;
   private boolean convertToMxml;
+  private boolean keepExmlFiles;
   private CompileLog log;
 
   public String getConfigClassPackage() {
@@ -52,6 +53,15 @@ public class ExmlConfiguration extends FileLocations {
   @Option(name="--convert-to-mxml", usage = "Run exmlc to convert EXML files into MXML.")
   public void setConvertToMxml(boolean convertToMxml) {
     this.convertToMxml = convertToMxml;
+  }
+
+  public boolean isKeepExmlFiles() {
+    return keepExmlFiles;
+  }
+
+  @Option(name="--keep-exml", usage = "Keep EXML files after conversion into MXML.")
+  public void setKeepExmlFiles(boolean keepExmlFiles) {
+    this.keepExmlFiles = keepExmlFiles;
   }
 
   /**
