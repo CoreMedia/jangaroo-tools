@@ -33,7 +33,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -149,6 +149,7 @@ public class ExmlToMxml {
     private Set<String> imports;
     private List<Declaration> constants;
     private List<Declaration> vars;
+    private Set<String> varsWithXmlValue;
 
     private final Deque<String> elementPath = new LinkedList<String>();
     private final ExmlSourceFile exmlSourceFile;
@@ -169,6 +170,7 @@ public class ExmlToMxml {
       imports = new LinkedHashSet<String>();
       constants = new ArrayList<Declaration>();
       vars = new ArrayList<Declaration>();
+      varsWithXmlValue = new HashSet<String>();
       startRecordingCharacters();
       super.startDocument();
     }
@@ -243,7 +245,6 @@ public class ExmlToMxml {
       }
       if (qName != null && currentVarName != null) {
         attributes.put("id", currentVarName);
-        attributes.put(exmlPrefix + ":access", "private");
         currentVarName = null;
       }
       for (int i = 0; i < atts.getLength(); ++i) {
@@ -290,7 +291,28 @@ public class ExmlToMxml {
       String configClassQName = exmlSourceFile.getConfigClassName();
       String configClassName = CompilerUtils.className(configClassQName);
       openScript();
-      currentOut.printf("    public native function %s(config:%s = null);%n", exmlModel.getClassName(), configClassName);
+      if (!vars.isEmpty()) {
+        for (Declaration var : vars) {
+          String type = var.getType();
+          if (type == null || type.isEmpty()) {
+            type = "*";
+          }
+          currentOut.printf ("    private var %s:%s;%n", var.getName(), type);
+        }
+        currentOut.println();
+      }
+      if (varsWithXmlValue.size() == vars.size()) {
+        currentOut.printf("    public native function %s(config:%s = null);%n", exmlModel.getClassName(), configClassName);
+      } else {
+        currentOut.printf("    public function %s(config:%s = null) {%n", exmlModel.getClassName(), configClassName);
+        for (Declaration var : vars) {
+          if (!(varsWithXmlValue.contains(var.getName()))) {
+            currentOut.printf("      %s = %s;%n", var.getName(), formatValue(var.getValue(), var.getType()));
+          }
+        }
+        currentOut.printf("      super(config); // magic!%n");
+        currentOut.printf("    }%n");
+      }
       closeScript();
       String configElementQName = String.format("%s:%s", configClassPrefix, configClassName);
       currentOut.printf("%n  <%s", configElementQName);
@@ -310,16 +332,7 @@ public class ExmlToMxml {
         configDefaultSubElements.clear();
       }
       for (Declaration var : vars) {
-        if (var.getDescription() == null) {
-          openScript();
-          String type = var.getType();
-          if (type == null || type.isEmpty()) {
-            type = "*";
-          }
-          currentOut.printf ("    private function get %s():%s {return %s;}%n", var.getName(), type,
-                  formatValue(var.getValue(), type));
-        } else {
-          closeScript();
+        if (varsWithXmlValue.contains(var.getName())) {
           currentOut.printf("%n  %s", var.getValue());
         }
       }
@@ -572,7 +585,7 @@ public class ExmlToMxml {
           } else {
             Declaration varDeclaration = vars.get(vars.size() - 1);
             varDeclaration.setValue(value);
-            varDeclaration.setDescription("MXML"); // HACK: marker for "render as MXML"
+            varsWithXmlValue.add(varDeclaration.getName());
           }
           currentOut.close();
           currentOut = out;

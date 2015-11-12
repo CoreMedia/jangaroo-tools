@@ -24,81 +24,84 @@ import net.jangaroo.ext.Exml;*/
      */
     "public static const",{ ANOTHER_CONSTANT/*:String*/ :function(){return( exmlparser.config.allElements.ANOTHER_CONSTANT);}},
     "public static const",{ CODE_CONSTANT/*:int*/ :function(){return( exmlparser.config.allElements.CODE_CONSTANT);}},
-    
-    
-  "public function AllElements",function AllElements(config/*:exmlparser.config.allElements = null*/) {if(arguments.length<=0)config=null;
-    var myVar/*:String*/ = config.myProperty + '_suffix';
-    var myVar2/*:Object*/ = {
-      prop: config.myProperty
-    };
-    
-    var myVar3/*:ext.config.button*/ = {text: "Foo"};
-    var myVar4/*:Array*/ = [
-      {
-        header: "a",
-        menuDisabled: true,
-        sortable: false
-      },
-      {
-        header: "b",
-        menuDisabled: false,
-        sortable: true
-      }
-    ];
-    config =/* exmlparser.config.allElements*/(net.jangaroo.ext.Exml.apply({
-      myProperty: "My Property!",
-      myPropertyWithDescription: false
-    }, config));
-     $1.Panel.call(this,/*exmlparser.config.allElements*/(net.jangaroo.ext.Exml.apply({
-      layout: config.myLayout,
-      title: "I am a panel",
-      someList: [{
-        xtype: "button",
-        id: "myId",
-        text: "click me!",
-        baseAction: net.jangaroo.ext.create(ext.config.action,{})
-      }],
-      someList$at: net.jangaroo.ext.Exml.APPEND,
-      defaults: {layout: "border"},
-      layoutConfig: {
-        anchor: "test",
-        bla: "blub",
-        border: "solid"
-      },
-      items: [
+
+    "private var",{ myVar/*:String*/:null},
+    "private var",{ myVar2/*:Object*/:null},
+    "private var",{ myVar3/*:button*/:null},
+    "private var",{ myVar4/*:Array*/:null},
+
+    "public function AllElements",function AllElements(config/*:exmlparser.config.allElements = null*/) {if(arguments.length<=0)config=null;
+      config =/* exmlparser.config.allElements*/(net.jangaroo.ext.Exml.apply({
+        myProperty: "My Property!",
+        myPropertyWithDescription: false
+      }, config));
+      this.myVar$2 = config.myProperty + '_suffix';
+      this.myVar2$2 = {
+        prop: config.myProperty
+      };
+      this.myVar3$2 = {text: "Foo"};
+      this.myVar4$2 = [
         {
+          header: "a",
+          menuDisabled: true,
+          sortable: false
+        },
+        {
+          header: "b",
+          menuDisabled: false,
+          sortable: true
+        }
+      ];
+       $1.Panel.call(this,/*exmlparser.config.allElements*/(net.jangaroo.ext.Exml.apply({
+        layout: config.myLayout,
+        title: "I am a panel",
+        someList: [{
           xtype: "button",
-          text: "Save",
-          handler: function package1$AllElements$72_20()/*:void*/ {
+          id: "myId",
+          text: "click me!",
+          baseAction: net.jangaroo.ext.create(ext.config.action,{})
+        }],
+        someList$at: net.jangaroo.ext.Exml.APPEND,
+        defaults: {layout: "border"},
+        layoutConfig: {
+          anchor: "test",
+          bla: "blub",
+          border: "solid"
+        },
+        items: [
+          {
+            xtype: "button",
+            text: "Save",
+            handler: function package1$AllElements$75_22()/*:void*/ {
           $1.MessageBox.alert('gotcha!');
         }
-        },
-        {xtype: "editortreepanel"},
-        {}
-      ],
-      menu: [
-        {
-          xtype: "menuitem",
-          text: "juhu1"
-        },
-        {
-          xtype: "menuitem",
-          text: "juhu2"
-        },
-        {
-          xtype: "menuitem",
-          text: "juhu3"
-        }
-      ],
-      tools: [{
-        handler: function package1$AllElements$94_18(x){return ''+x;},
-        id: "gear"
-      }],
-      plugins: [
-        {ptype: "aplugin"},
-        {ptype: "aplugin"}
-      ]
-    }, config)));
-  },
-undefined];},[],["ext.Panel","exmlparser.config.allElements","net.jangaroo.ext.Exml","net.jangaroo.ext.create","ext.config.action","ext.MessageBox"], "@runtimeVersion", "@version"
+          },
+          {xtype: "editortreepanel"},
+          {}
+        ],
+        menu: [
+          {
+            xtype: "menuitem",
+            text: "juhu1"
+          },
+          {
+            xtype: "menuitem",
+            text: "juhu2"
+          },
+          {
+            xtype: "menuitem",
+            text: "juhu3"
+          }
+        ],
+        tools: [{
+          handler: function package1$AllElements$97_20(x){return ''+x;},
+          id: "gear"
+        }],
+        plugins: [
+          {ptype: "aplugin"},
+          {ptype: "aplugin"}
+        ]
+      }, config))); // magic!
+    },
+    undefined];},[],["ext.Panel","exmlparser.config.allElements","net.jangaroo.ext.Exml","net.jangaroo.ext.create","ext.config.action","ext.MessageBox"], "0.8.0", "2.1.0-SNAPSHOT"
 );

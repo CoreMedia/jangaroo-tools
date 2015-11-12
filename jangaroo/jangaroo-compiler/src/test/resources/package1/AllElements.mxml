@@ -26,25 +26,28 @@
     public static const ANOTHER_CONSTANT:String = exmlparser.config.allElements.ANOTHER_CONSTANT;
     public static const CODE_CONSTANT:int = exmlparser.config.allElements.CODE_CONSTANT;
 
-    public native function AllElements(config:allElements = null);
+    private var myVar:String;
+    private var myVar2:Object;
+    private var myVar3:button;
+    private var myVar4:Array;
+
+    public function AllElements(config:exmlparser.config.allElements = null) {
+      myVar = config.myProperty + '_suffix';
+      myVar2 = {
+        prop: config.myProperty
+      };
+      super(config); // magic!
+    }
     ]]></fx:Script>
 
   <cfg:allElements id="config" myProperty="My Property!">
     <cfg:myPropertyWithDescription>false</cfg:myPropertyWithDescription>
   </cfg:allElements>
 
-  <fx:Script><![CDATA[
-    private function get myVar():String {return config.myProperty + '_suffix';}
-    private function get myVar2():Object {return {
-      prop: config.myProperty
-    };}
-    ]]></fx:Script>
-
   <button id="myVar3"
-          exml:access="private"
           text="Foo"/>
 
-  <fx:Array id="myVar4" exml:access="private">
+  <fx:Array id="myVar4">
     <fx:Object header="a" sortable="false" menuDisabled="true"/>
     <fx:Object header="b" sortable="true" menuDisabled="false"/>
   </fx:Array>

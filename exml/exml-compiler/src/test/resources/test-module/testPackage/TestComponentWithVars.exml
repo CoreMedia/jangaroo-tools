@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<exml:component xmlns:exml="http://www.jangaroo.net/exml/0.8"
+                xmlns="exml:ext.config">
+
+  <exml:description>
+    This is a TestComponent which defines a config property with a default value.
+    @see ext.Panel
+  </exml:description>
+
+  <exml:var name="varWithExpressionValue" type="Array" value="{[1, 2, 3]}">
+    <exml:description>Some var with an expression value.</exml:description>
+  </exml:var>
+
+  <exml:var name="varWithXmlValue" type="button">
+    <exml:description>Some var with a value specified as an EXML element.</exml:description>
+    <exml:value>
+      <button text="click me!"/>
+    </exml:value>
+  </exml:var>
+
+  <panel title="{config.defaultTitle}"/>
+
+</exml:component>

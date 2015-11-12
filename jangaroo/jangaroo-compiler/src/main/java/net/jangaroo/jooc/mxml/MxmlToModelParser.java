@@ -15,8 +15,8 @@ import net.jangaroo.jooc.model.AnnotationModel;
 import net.jangaroo.jooc.model.AnnotationPropertyModel;
 import net.jangaroo.jooc.model.ClassModel;
 import net.jangaroo.jooc.model.CompilationUnitModel;
+import net.jangaroo.jooc.model.FieldModel;
 import net.jangaroo.jooc.model.MemberModel;
-import net.jangaroo.jooc.model.MethodModel;
 import net.jangaroo.jooc.model.ParamModel;
 import net.jangaroo.jooc.model.PropertyModel;
 import net.jangaroo.jooc.util.PreserveLineNumberHandler;
@@ -41,6 +41,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -69,7 +70,8 @@ public final class MxmlToModelParser {
   private CompilationUnitModel compilationUnitModel;
   private JsonObject jsonObject;
   private JsonObject cfgDefaults;
-  private String configParameterName;
+  private ParamModel configParamModel;
+  private Map<String, Json> privateVars;
 
   public MxmlToModelParser(JangarooParser jangarooParser) {
     this.jangarooParser = jangarooParser;
@@ -86,6 +88,7 @@ public final class MxmlToModelParser {
     String qName = CompilerUtils.qNameFromRelativPath(in.getRelativePath());
     compilationUnitModel = new CompilationUnitModel(CompilerUtils.packageName(qName),
             new ClassModel(CompilerUtils.className(qName)));
+    privateVars = new LinkedHashMap<String, Json>();
 
     BufferedInputStream inputStream = null;
     try {
@@ -127,33 +130,51 @@ public final class MxmlToModelParser {
     classModel.setSuperclass(superClassName);
     compilationUnitModel.addImport(superClassName);
 
-    MethodModel constructorModel = classModel.createConstructor();
-
     Element superConfigElement = createFields(objectNode);
+    if (configParamModel == null) {
+      throw Jooc.error("Jangaroo MXML file must contain public constructor with one optional parameter of config class type.");
+    }
     if (superConfigElement != null) {
       fillModelAttributes(jsonObject, superConfigElement);
     }
 
-    ParamModel configParamModel;
-    List<ParamModel> constructorParams = classModel.getConstructor().getParams();
-    if (constructorParams.isEmpty()) {
-      configParamModel = new ParamModel("config", "Object", "null");
-      classModel.getConstructor().addParam(configParamModel);
-    } else {
-      configParamModel = constructorParams.get(0);
-    }
-    compilationUnitModel.addImport("net.jangaroo.ext.Exml");
+    String bodyCode = classModel.getBodyCode();
     if (cfgDefaults != null && !cfgDefaults.isEmpty()) {
-      String applyConfigDefaults = String.format("%n    %s = %s;", configParamModel.getName(),
+      Pattern constructorPattern = Pattern.compile("\\s*public\\s+function\\s+" + classModel.getName() + "\\s*\\(\\s*([A-Za-z_][A-Za-z_0-9]*)\\s*:\\s*([A-Za-z_][A-Za-z_0-9.]*)\\s*=\\s*null\\s*\\)\\s*\\{");
+      Matcher constructorMatcher = constructorPattern.matcher(bodyCode);
+      if (!constructorMatcher.find()) {
+        throw Jooc.error("Jangaroo MXML must have constructor.");
+      }
+      int constructorBodyStart = constructorMatcher.end();
+      String cfgDefaultsCode = String.format("%n      %s = %s;", configParamModel.getName(),
               formatTypedExmlApply(configParamModel, cfgDefaults));
-      constructorModel.addBodyCode(applyConfigDefaults);
+      bodyCode = bodyCode.substring(0, constructorBodyStart) + cfgDefaultsCode + bodyCode.substring(constructorBodyStart);
     }
-    String superCall = String.format("%n    super(%s);", formatTypedExmlApply(configParamModel, jsonObject));
-    constructorModel.addBodyCode(superCall);
+
+    Pattern superCallPattern = Pattern.compile("super\\(([A-Za-z_][A-Za-z_0-9]*)\\)");
+    Matcher superCallMatcher = superCallPattern.matcher(bodyCode);
+    if (!superCallMatcher.find()) {
+      throw Jooc.error("Jangaroo MXML file must contain constructor with super(config) call.");
+    }
+
+    StringBuilder preSuperCode = new StringBuilder();
+    for (Map.Entry<String, Json> varJsonEntry : privateVars.entrySet()) {
+      if (varJsonEntry.getValue() != null) {
+        preSuperCode.append(String.format("%s = %s;%n      ", varJsonEntry.getKey(),
+                varJsonEntry.getValue().toString(2, 6)));
+      }
+    }
+    int beforeSuperCall = superCallMatcher.start();
+
+    compilationUnitModel.addImport("net.jangaroo.ext.Exml");
+    String superConfigParam = formatTypedExmlApply(configParamModel, jsonObject);
+    bodyCode = superCallMatcher.replaceFirst(String.format("super(%s)", superConfigParam.replaceAll("[$]", "\\\\\\$")));
+    bodyCode = bodyCode.substring(0, beforeSuperCall) + preSuperCode + bodyCode.substring(beforeSuperCall);
+    classModel.setBodyCode(bodyCode);
   }
 
   private static String formatTypedExmlApply(ParamModel configParamModel, JsonObject someJsonObject) {
-    return String.format("%s(net.jangaroo.ext.Exml.apply(%s, %s))", configParamModel.getType(), someJsonObject.toString(2, 4), configParamModel.getName());
+    return String.format("%s(net.jangaroo.ext.Exml.apply(%s, %s))", configParamModel.getType(), someJsonObject.toString(2, 6), configParamModel.getName());
   }
 
   private void fillModelAttributes(JsonObject jsonObject, Element componentNode) throws IOException {
@@ -467,22 +488,24 @@ public final class MxmlToModelParser {
           continue;
         } else if (MXML_SCRIPT.equals(elementName)) {
           String scriptCode = getTextContent(element);
-          Pattern constructorPattern = Pattern.compile("\\s*public\\s+native\\s+function\\s+([A-Za-z_][A-Za-z_0-9]*)\\s*\\(\\s*([A-Za-z_][A-Za-z_0-9]*)\\s*:\\s*([A-Za-z_][A-Za-z_0-9.]*)\\s*=\\s*null\\s*\\)\\s*;");
-          Matcher constructorMatcher = constructorPattern.matcher(scriptCode);
-          if (constructorMatcher.find()) {
-            configParameterName = constructorMatcher.group(2);
-            scriptCode = constructorMatcher.replaceFirst("");
+          // parse private vars and constructor params from script code, so that MXML elements with id
+          // can be assigned to these existing variables instead of defining new fields:
+          if (configParamModel == null) {
+            Pattern constructorPattern = Pattern.compile("\\s*public\\s+function\\s+" + classModel.getName() + "\\s*\\(\\s*([A-Za-z_][A-Za-z_0-9]*)\\s*:\\s*([A-Za-z_][A-Za-z_0-9.]*)\\s*=\\s*null\\s*\\)\\s*\\{");
+            Matcher constructorMatcher = constructorPattern.matcher(scriptCode);
+            if (constructorMatcher.find()) {
+              configParamModel = new ParamModel(
+                      constructorMatcher.group(1),
+                      constructorMatcher.group(2),
+                      "null");
+            }
           }
 
-          Pattern exmlVarPattern = Pattern.compile("\\s*private\\s+function\\s+get\\s+([A-Za-z_][A-Za-z_0-9]*)\\s*\\(\\s*\\)\\s*(:\\s*[A-Za-z_][A-Za-z_0-9]*\\s*)?\\{\\s*return([^;]*;)\\}");
+          Pattern exmlVarPattern = Pattern.compile("private\\s+var\\s+([A-Za-z_][A-Za-z_0-9]*)");
           Matcher matcher = exmlVarPattern.matcher(scriptCode);
-          
-          StringBuilder varCode = new StringBuilder();
           while (matcher.find()) {
-            varCode.append(String.format("var %s%s=%s%n    ", matcher.group(1), matcher.group(2), matcher.group(3)));
+            privateVars.put(matcher.group(1), null);
           }
-          classModel.getConstructor().addBodyCode(varCode.toString());
-          scriptCode = exmlVarPattern.matcher(scriptCode).replaceAll("");
 
           classModel.addBodyCode(scriptCode);
           continue;
@@ -493,31 +516,22 @@ public final class MxmlToModelParser {
         // else it must be a top-level type, treat like any other element.
       }
       String elementClassName = createClassNameFromNode(element);
-      if (configParameterName != null && configParameterName.equals(element.getAttribute("id"))) {
-        compilationUnitModel.addImport(elementClassName);
-        classModel.getConstructor().addParam(new ParamModel(
-                element.getAttribute("id"),
-                elementClassName,
-                "null"
-        ));
-        cfgDefaults = new JsonObject();
-        fillModelAttributes(cfgDefaults, element);
-      }
-      String access = element.getAttributeNS(Exmlc.EXML_NAMESPACE_URI, "access");
-      if (access.isEmpty()) {
+      String id = element.getAttribute(MXML_ID_ATTRIBUTE);
+      if (id.isEmpty()) {
         superConfigElement = element;
       } else {
-        if ("private".equals(access)) {
-          String id = element.getAttribute(MXML_ID_ATTRIBUTE);
-          if (id != null && !id.isEmpty()) {
-            compilationUnitModel.addImport(elementClassName);
-            Json constructorVarJsonObject = createValue(element);
-            String code = String.format("%n    var %s:%s = %s;", id, elementClassName,
-                    constructorVarJsonObject.toString(2, 4));
-            classModel.getConstructor().addBodyCode(code);
-          }
+        compilationUnitModel.addImport(elementClassName);
+        if (configParamModel != null && configParamModel.getName().equals(id)) {
+          // TODO: check consistency of configParamMode.getType() and elementClassName!
+          cfgDefaults = new JsonObject();
+          fillModelAttributes(cfgDefaults, element);
         } else {
-          throw Jooc.error("Unsupported 'access' value '" + access + "', must be 'private'.");
+          Json valueJsonObject = createValue(element);
+          if (privateVars.containsKey(id)) {
+            privateVars.put(id, valueJsonObject);
+          } else {
+            classModel.addMember(new FieldModel(id, elementClassName, valueJsonObject.toString(2, 4)));
+          }
         }
       }
     }
@@ -587,8 +601,7 @@ public final class MxmlToModelParser {
       }
       String packageName = MxmlUtils.parsePackageFromNamespace(uri);
       if (packageName != null) {
-        String qName = CompilerUtils.qName(packageName, name);
-        return qName;
+        return CompilerUtils.qName(packageName, name);
       }
     }
     return null;
