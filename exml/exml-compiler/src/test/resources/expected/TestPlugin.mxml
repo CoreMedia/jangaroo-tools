@@ -1,10 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!---
-  This is a test plugin (not a component!).
--->
-<exml:plugin xmlns:fx="http://ns.adobe.com/mxml/2009"
-             xmlns:exml="net.jangaroo.ext.*"
-             xmlns:u="mxml:untyped"
-             xmlns:cfg="testNamespace.config.*">
+<!---This is a test plugin (not a component!).-->
+<extends:Plugin
+             xmlns:fx="http://ns.adobe.com/mxml/2009"
+             xmlns:extends="ext.*"
+             xmlns:cfg="testNamespace.config.*"
+             xmlns:exml="http://www.jangaroo.net/exml/0.8"
+             xmlns="exml:ext.config">
+  <fx:Script><![CDATA[
+    public native function TestPlugin(config:testPlugin = null);
+  ]]></fx:Script>
+  <cfg:testPlugin id="config"/>
 
-</exml:plugin>
+  <plugin/>
+</extends:Plugin>

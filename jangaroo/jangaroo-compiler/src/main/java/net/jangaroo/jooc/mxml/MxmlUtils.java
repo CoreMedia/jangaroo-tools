@@ -1,5 +1,6 @@
 package net.jangaroo.jooc.mxml;
 
+import net.jangaroo.exml.api.Exmlc;
 import net.jangaroo.jooc.model.AnnotationModel;
 import net.jangaroo.jooc.model.AnnotationPropertyModel;
 import net.jangaroo.jooc.model.ClassModel;
@@ -21,7 +22,6 @@ import java.util.regex.Pattern;
 public class MxmlUtils {
 
   public static final String MXML_NAMESPACE_URI = "http://ns.adobe.com/mxml/2009";
-  public static final String MXML_UNTYPED_NAMESPACE = "mxml:untyped";
   public static final String RESOURCE_BUNDLE_ANNOTATION = "ResourceBundle";
 
   private static final Pattern IS_BINDING_EXPRESSION_PATTERN = Pattern.compile("(^|[^\\\\])\\{([^}]*[^\\\\])\\}");
@@ -96,7 +96,9 @@ public class MxmlUtils {
   }
 
   public static String parsePackageFromNamespace(String uri) {
-    return uri.endsWith(".*") ? uri.substring(0, uri.length() -2) : uri.equals("*") || isMxmlNamespace(uri) ? "" : null;
+    return uri.startsWith(Exmlc.EXML_CONFIG_URI_PREFIX) ? uri.substring(Exmlc.EXML_CONFIG_URI_PREFIX.length())
+            : uri.endsWith(".*") ? uri.substring(0, uri.length() -2)
+            : uri.equals("*") || isMxmlNamespace(uri) ? "" : null;
   }
 
   public static Element findChildElement(Element element, String namespace, String nodeName) {

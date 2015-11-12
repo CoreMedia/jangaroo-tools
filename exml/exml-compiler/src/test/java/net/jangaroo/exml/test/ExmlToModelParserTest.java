@@ -56,13 +56,13 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
     Assert.assertEquals("SOME_CONSTANT", myConst1.getName());
     Assert.assertEquals("1234", myConst1.getValue());
     Assert.assertEquals("uint", myConst1.getType());
-    Assert.assertEquals("This is my <b>constant</b>", myConst1.getDescription());
+    Assert.assertEquals("This is my <b>constant</b>", myConst1.getDescription().trim());
 
     final Declaration myConst2 = constantDeclarations.get(1);
     Assert.assertEquals("ANOTHER_CONSTANT", myConst2.getName());
     Assert.assertEquals("\"\\n      Lorem ipsum & Co.\\n      Another line.\\n    \"", myConst2.getValue());
     Assert.assertEquals("String", myConst2.getType());
-    Assert.assertEquals("This is another <b>constant</b>", myConst2.getDescription());
+    Assert.assertEquals("This is another <b>constant</b>", myConst2.getDescription().trim());
 
     final Declaration myConst3 = constantDeclarations.get(2);
     Assert.assertEquals("CODE_CONSTANT", myConst3.getName());
@@ -440,7 +440,7 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
     Assert.assertEquals("A_CONSTANT", aConstant.getName());
     Assert.assertEquals("\"One two three\"", aConstant.getValue());
     Assert.assertEquals("String", aConstant.getType());
-    Assert.assertEquals("This is some constant", aConstant.getDescription());
+    Assert.assertEquals("This is some constant", aConstant.getDescription().trim());
 
     Declaration bConstant = model.getConfigClass().getConstants().get(1);
     Assert.assertEquals("B_CONSTANT", bConstant.getName());

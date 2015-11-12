@@ -15,11 +15,8 @@ public class DescriptionHolder {
   }
 
   public void setDescription(String description) {
-    if (description != null) {
-      description = description.trim();
-      if (description.length() == 0) {
-        description = null; // suppress empty descriptions
-      }
+    if (description != null && description.trim().isEmpty()) {
+      description = null; // suppress empty descriptions
     }
     this.description = description;
   }
@@ -28,6 +25,7 @@ public class DescriptionHolder {
     if (description == null) {
       return null;
     }
+    String description = this.description.trim();
     StringBuilder builder = new StringBuilder();
     for (int i = 0; i < description.length(); i++) {
       char c = description.charAt(i);

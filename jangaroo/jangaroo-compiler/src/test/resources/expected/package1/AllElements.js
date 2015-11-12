@@ -25,8 +25,8 @@ import net.jangaroo.ext.Exml;*/
     "public static const",{ ANOTHER_CONSTANT/*:String*/ :function(){return( exmlparser.config.allElements.ANOTHER_CONSTANT);}},
     "public static const",{ CODE_CONSTANT/*:int*/ :function(){return( exmlparser.config.allElements.CODE_CONSTANT);}},
     
-  "public function AllElements",function AllElements(config/*:exmlparser.config.allElements = null*/) {if(arguments.length<=0)config=null;
     
+  "public function AllElements",function AllElements(config/*:exmlparser.config.allElements = null*/) {if(arguments.length<=0)config=null;
     var myVar/*:String*/ = config.myProperty + '_suffix';
     var myVar2/*:Object*/ = {
       prop: config.myProperty

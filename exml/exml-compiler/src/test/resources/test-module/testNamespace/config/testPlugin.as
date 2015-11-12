@@ -15,7 +15,7 @@ import ext.config.plugin;
  * @see testPackage.TestPlugin
  */
 [ExtConfig(target="testPackage.TestPlugin", ptype)]
-public dynamic class testPlugin extends ext.config.plugin {
+public class testPlugin extends ext.config.plugin {
 
   public static native function get ptype():String;
 

@@ -11,6 +11,11 @@
     </dependency>
     <dependency>
       <groupId>net.jangaroo</groupId>
+      <artifactId>exml-compiler-api</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-utils</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -171,6 +176,15 @@
             </configuration>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <configuration>
+          <usedDependencies>
+            <usedDependency>net.jangaroo:exml-compiler-api</usedDependency>
+          </usedDependencies>
+        </configuration>
       </plugin>
     </plugins>
   </build>

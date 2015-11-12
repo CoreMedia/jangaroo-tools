@@ -1,5 +1,6 @@
 package net.jangaroo.jooc.mxml;
 
+import net.jangaroo.exml.api.Exmlc;
 import net.jangaroo.jooc.CompilerError;
 import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.Jooc;
@@ -42,6 +43,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static net.jangaroo.jooc.util.PreserveLineNumberHandler.getLineNumber;
 
@@ -66,6 +69,7 @@ public final class MxmlToModelParser {
   private CompilationUnitModel compilationUnitModel;
   private JsonObject jsonObject;
   private JsonObject cfgDefaults;
+  private String configParameterName;
 
   public MxmlToModelParser(JangarooParser jangarooParser) {
     this.jangarooParser = jangarooParser;
@@ -162,8 +166,8 @@ public final class MxmlToModelParser {
         // TODO: assign value to field!
         continue;
       }
-      if (MxmlUtils.MXML_UNTYPED_NAMESPACE.equals(attribute.getNamespaceURI()) && "scope".equals(attributeName)) {
-        continue; // ignore scope attribute here; they are handled by createFields().
+      if (Exmlc.EXML_NAMESPACE_URI.equals(attribute.getNamespaceURI()) && "access".equals(attributeName)) {
+        continue; // ignore "access" attribute here; it is handled by createFields().
       }
       String attributeValue = attribute.getValue();
       MemberModel configAttribute = findPropertyModel(configClassModel.getClassModel(), attributeName);
@@ -232,7 +236,7 @@ public final class MxmlToModelParser {
       }
 
       boolean isConfigTypeArray = isConfigTypeArray(configClass, elementName);
-      String configMode = isConfigTypeArray ? element.getAttributeNS(MxmlUtils.MXML_UNTYPED_NAMESPACE, CONFIG_MODE_ATTRIBUTE_NAME) : "";
+      String configMode = isConfigTypeArray ? element.getAttributeNS(Exmlc.EXML_NAMESPACE_URI, CONFIG_MODE_ATTRIBUTE_NAME) : "";
       // Special case: if an EXML element representing a config property has attributes, it is treated as
       // having an untyped object value. Exception: it is an Array-typed property and the sole attribute is "mode".
       int attributeCount = element.getAttributes().getLength();
@@ -454,7 +458,6 @@ public final class MxmlToModelParser {
     ClassModel classModel = compilationUnitModel.getClassModel();
     Element superConfigElement = null;
     for (Element element : MxmlUtils.getChildElements(objectNode)) {
-      String scope = element.getAttributeNS(MxmlUtils.MXML_UNTYPED_NAMESPACE, "scope");
       if (MxmlUtils.isMxmlNamespace(element.getNamespaceURI())) {
         String elementName = element.getLocalName();
         if (MXML_DECLARATIONS.equals(elementName)) {
@@ -464,11 +467,24 @@ public final class MxmlToModelParser {
           continue;
         } else if (MXML_SCRIPT.equals(elementName)) {
           String scriptCode = getTextContent(element);
-          if ("constructor".equals(scope)) {
-            classModel.getConstructor().addBodyCode(scriptCode);
-          } else {
-            classModel.addBodyCode(scriptCode);
+          Pattern constructorPattern = Pattern.compile("\\s*public\\s+native\\s+function\\s+([A-Za-z_][A-Za-z_0-9]*)\\s*\\(\\s*([A-Za-z_][A-Za-z_0-9]*)\\s*:\\s*([A-Za-z_][A-Za-z_0-9.]*)\\s*=\\s*null\\s*\\)\\s*;");
+          Matcher constructorMatcher = constructorPattern.matcher(scriptCode);
+          if (constructorMatcher.find()) {
+            configParameterName = constructorMatcher.group(2);
+            scriptCode = constructorMatcher.replaceFirst("");
           }
+
+          Pattern exmlVarPattern = Pattern.compile("\\s*private\\s+function\\s+get\\s+([A-Za-z_][A-Za-z_0-9]*)\\s*\\(\\s*\\)\\s*(:\\s*[A-Za-z_][A-Za-z_0-9]*\\s*)?\\{\\s*return([^;]*;)\\}");
+          Matcher matcher = exmlVarPattern.matcher(scriptCode);
+          
+          StringBuilder varCode = new StringBuilder();
+          while (matcher.find()) {
+            varCode.append(String.format("var %s%s=%s%n    ", matcher.group(1), matcher.group(2), matcher.group(3)));
+          }
+          classModel.getConstructor().addBodyCode(varCode.toString());
+          scriptCode = exmlVarPattern.matcher(scriptCode).replaceAll("");
+
+          classModel.addBodyCode(scriptCode);
           continue;
         } else if (MXML_METADATA.equals(elementName)) {
           classModel.addAnnotationCode(getTextContent(element));
@@ -476,11 +492,22 @@ public final class MxmlToModelParser {
         }
         // else it must be a top-level type, treat like any other element.
       }
-      if (scope.isEmpty()) {
+      String elementClassName = createClassNameFromNode(element);
+      if (configParameterName != null && configParameterName.equals(element.getAttribute("id"))) {
+        compilationUnitModel.addImport(elementClassName);
+        classModel.getConstructor().addParam(new ParamModel(
+                element.getAttribute("id"),
+                elementClassName,
+                "null"
+        ));
+        cfgDefaults = new JsonObject();
+        fillModelAttributes(cfgDefaults, element);
+      }
+      String access = element.getAttributeNS(Exmlc.EXML_NAMESPACE_URI, "access");
+      if (access.isEmpty()) {
         superConfigElement = element;
       } else {
-        String elementClassName = createClassNameFromNode(element);
-        if ("constructor".equals(scope)) {
+        if ("private".equals(access)) {
           String id = element.getAttribute(MXML_ID_ATTRIBUTE);
           if (id != null && !id.isEmpty()) {
             compilationUnitModel.addImport(elementClassName);
@@ -489,17 +516,8 @@ public final class MxmlToModelParser {
                     constructorVarJsonObject.toString(2, 4));
             classModel.getConstructor().addBodyCode(code);
           }
-        } else if ("constructorParam".equals(scope)) {
-          compilationUnitModel.addImport(elementClassName);
-          classModel.getConstructor().addParam(new ParamModel(
-                  element.getAttribute("id"),
-                  elementClassName,
-                  "null"
-          ));
-          cfgDefaults = new JsonObject();
-          fillModelAttributes(cfgDefaults, element);
         } else {
-          throw Jooc.error("Invalid scope " + scope + ", must be 'constructor' or 'constructorParam'.");
+          throw Jooc.error("Unsupported 'access' value '" + access + "', must be 'private'.");
         }
       }
     }
@@ -564,6 +582,9 @@ public final class MxmlToModelParser {
     String name = objectNode.getLocalName();
     String uri = objectNode.getNamespaceURI();
     if (uri != null) {
+      if (Exmlc.EXML_NAMESPACE_URI.equals(uri) && Exmlc.EXML_OBJECT_NODE_NAME.equals(name)) {
+        return "Object";
+      }
       String packageName = MxmlUtils.parsePackageFromNamespace(uri);
       if (packageName != null) {
         String qName = CompilerUtils.qName(packageName, name);

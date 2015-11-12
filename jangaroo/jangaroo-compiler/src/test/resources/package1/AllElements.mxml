@@ -2,9 +2,10 @@
 <!---
  This is my <b>TestComponent</b>
 -->
-<baseClass:Panel xmlns:fx="http://ns.adobe.com/mxml/2009"
+<baseClass:Panel
+           xmlns:fx="http://ns.adobe.com/mxml/2009"
+           xmlns:exml="http://www.jangaroo.net/exml/0.8"
            xmlns="ext.config.*"
-           xmlns:u="mxml:untyped"
            xmlns:cfg="exmlparser.config.*"
            xmlns:baseClass="ext.*">
 
@@ -24,24 +25,26 @@
      */
     public static const ANOTHER_CONSTANT:String = exmlparser.config.allElements.ANOTHER_CONSTANT;
     public static const CODE_CONSTANT:int = exmlparser.config.allElements.CODE_CONSTANT;
+
+    public native function AllElements(config:allElements = null);
     ]]></fx:Script>
 
-  <cfg:allElements id="config" u:scope="constructorParam" myProperty="My Property!">
+  <cfg:allElements id="config" myProperty="My Property!">
     <cfg:myPropertyWithDescription>false</cfg:myPropertyWithDescription>
   </cfg:allElements>
 
-  <fx:Script u:scope="constructor"><![CDATA[
-    var myVar:String = config.myProperty + '_suffix';
-    var myVar2:Object = {
+  <fx:Script><![CDATA[
+    private function get myVar():String {return config.myProperty + '_suffix';}
+    private function get myVar2():Object {return {
       prop: config.myProperty
-    };
+    };}
     ]]></fx:Script>
 
   <button id="myVar3"
-          u:scope="constructor"
+          exml:access="private"
           text="Foo"/>
 
-  <fx:Array id="myVar4" u:scope="constructor">
+  <fx:Array id="myVar4" exml:access="private">
     <fx:Object header="a" sortable="false" menuDisabled="true"/>
     <fx:Object header="b" sortable="true" menuDisabled="false"/>
   </fx:Array>
@@ -51,7 +54,7 @@
     <!-- define some attributes through a typed mixin: -->
     <mixins>
       <someMixin>
-        <someList u:mode="append">
+        <someList exml:mode="append">
           <button text="click me!" extId="myId">
             <baseAction>
               <action/>

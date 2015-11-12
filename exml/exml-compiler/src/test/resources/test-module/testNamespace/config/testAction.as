@@ -13,7 +13,7 @@ import ext.config.action;
  * @see testPackage.TestAction
  */
 [ExtConfig(target="testPackage.TestAction")]
-public dynamic class testAction extends ext.config.action {
+public class testAction extends ext.config.action {
 
   /**
    * <p>Use this constructor to create a typed config object for the constructor of the class
