@@ -65,9 +65,9 @@ public class CatalogGenerator {
           String componentClass = componentMapping.getValue();
           int lastDotIndex = componentClass.lastIndexOf(".");
           componentClass = componentClass.substring(0, lastDotIndex) + ":" + componentClass.substring(lastDotIndex + 1);
-          catalogStreamWriter.writeAttribute("className", componentClass);
-          catalogStreamWriter.writeAttribute("name", componentMapping.getKey());
           catalogStreamWriter.writeAttribute("uri", componentPackageModel.getNamespace());
+          catalogStreamWriter.writeAttribute("name", componentMapping.getKey());
+          catalogStreamWriter.writeAttribute("className", componentClass);
         }
       }
 
