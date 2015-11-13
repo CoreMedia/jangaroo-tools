@@ -1,5 +1,7 @@
 package net.jangaroo.jooc.mxml;
 
+import net.jangaroo.utils.CompilerUtils;
+
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
@@ -20,6 +22,7 @@ public class CatalogGenerator {
   }
 
   public void generateCatalog(File catalogFile) throws IOException {
+    System.out.println("Generating SWC catalog file " + catalogFile.getPath() + "...");
     try {
       generateCatalog(new OutputStreamWriter(new FileOutputStream(catalogFile), "UTF-8"));
     } catch (UnsupportedEncodingException e) {
@@ -62,9 +65,10 @@ public class CatalogGenerator {
       for (ComponentPackageModel componentPackageModel : mxmlComponentRegistry.getComponentPackageModels()) {
         for (Map.Entry<String, String> componentMapping : componentPackageModel.entrySet()) {
           catalogStreamWriter.writeEmptyElement("component");
-          String componentClass = componentMapping.getValue();
-          int lastDotIndex = componentClass.lastIndexOf(".");
-          componentClass = componentClass.substring(0, lastDotIndex) + ":" + componentClass.substring(lastDotIndex + 1);
+          String classQName = componentMapping.getValue();
+          String packageName = CompilerUtils.packageName(classQName);
+          String className = CompilerUtils.className(classQName);
+          String componentClass = packageName.isEmpty() ? className : packageName + ":" + className;
           catalogStreamWriter.writeAttribute("uri", componentPackageModel.getNamespace());
           catalogStreamWriter.writeAttribute("name", componentMapping.getKey());
           catalogStreamWriter.writeAttribute("className", componentClass);
