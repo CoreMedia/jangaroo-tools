@@ -402,6 +402,12 @@ public class ExmlToMxml {
       } catch (UnsupportedEncodingException e) {
         throw new RuntimeException(e);
       }
+      if (currentVarName != null) {
+        Declaration currentVar = vars.get(vars.size() - 1);
+        if ("Array".equals(currentVar.getType())) {
+          return "fx:Array";
+        }
+      }
       return null; // do not render default element (but its contents!)
     }
 

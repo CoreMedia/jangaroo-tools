@@ -13,6 +13,7 @@
 
     private var varWithExpressionValue:Array;
     private var varWithXmlValue:button;
+    private var varWithXmlArrayValue:Array;
 
     public function TestComponentWithVars(config:testNamespace.config.testComponentWithVars = null) {
       varWithExpressionValue = [1, 2, 3];
@@ -22,6 +23,10 @@
   <cfg:testComponentWithVars id="config"/>
   <button id="varWithXmlValue"
                text="click me!"/>
+  <fx:Array id="varWithXmlArrayValue">
+      <button text="click me 1!"/>
+      <button text="click me 2!"/>
+    </fx:Array>
 
   <panel title="{config.defaultTitle}"/>
 

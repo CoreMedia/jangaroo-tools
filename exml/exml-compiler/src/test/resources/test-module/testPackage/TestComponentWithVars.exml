@@ -18,6 +18,14 @@
     </exml:value>
   </exml:var>
 
+  <exml:var name="varWithXmlArrayValue" type="Array">
+    <exml:description>Some var with an array value specified as EXML elements.</exml:description>
+    <exml:value>
+      <button text="click me 1!"/>
+      <button text="click me 2!"/>
+    </exml:value>
+  </exml:var>
+
   <panel title="{config.defaultTitle}"/>
 
 </exml:component>
