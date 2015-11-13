@@ -1,6 +1,6 @@
 package net.jangaroo.jooc.mxml;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -11,7 +11,7 @@ import java.util.Set;
 public class ComponentPackageModel {
 
   private String namespace;
-  private Map<String, String> element2class = new HashMap<String, String>();
+  private Map<String, String> element2class = new LinkedHashMap<String, String>();
 
   public ComponentPackageModel(String namespace) {
     this.namespace = namespace;
