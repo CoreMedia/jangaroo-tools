@@ -491,6 +491,10 @@ public final class MxmlToModelParser {
           // parse private vars and constructor params from script code, so that MXML elements with id
           // can be assigned to these existing variables instead of defining new fields:
           if (configParamModel == null) {
+            // remove "native" constructor modifier and add body calling super(config):
+            Pattern nativeConstructorPattern = Pattern.compile("(\\s*public)\\s+native(\\s+function\\s+" + classModel.getName() + "\\s*\\(\\s*([A-Za-z_][A-Za-z_0-9]*)\\s*:\\s*([A-Za-z_][A-Za-z_0-9.]*)\\s*=\\s*null\\s*\\)\\s*);");
+            Matcher nativeConstructorMatcher = nativeConstructorPattern.matcher(scriptCode);
+            scriptCode = nativeConstructorMatcher.replaceFirst(String.format("$1$2 {%n      super($3);    }"));
             Pattern constructorPattern = Pattern.compile("\\s*public\\s+function\\s+" + classModel.getName() + "\\s*\\(\\s*([A-Za-z_][A-Za-z_0-9]*)\\s*:\\s*([A-Za-z_][A-Za-z_0-9.]*)\\s*=\\s*null\\s*\\)\\s*\\{");
             Matcher constructorMatcher = constructorPattern.matcher(scriptCode);
             if (constructorMatcher.find()) {
