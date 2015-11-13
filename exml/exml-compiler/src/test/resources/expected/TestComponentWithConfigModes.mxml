@@ -6,7 +6,9 @@
                 xmlns:test="exml:testNamespace.config"
                 xmlns="exml:ext.config">
   <fx:Script><![CDATA[
-    public native function TestComponentWithConfigModes(config:testComponentWithConfigModes = null);
+    import testNamespace.config.testComponentWithConfigModes;
+
+    public native function TestComponentWithConfigModes(config:testNamespace.config.testComponentWithConfigModes = null);
   ]]></fx:Script>
   <test:testComponentWithConfigModes id="config"/>
   <test:testComponent>

@@ -168,6 +168,7 @@ public class ExmlToMxml {
     public void startDocument() throws SAXException {
       currentOut.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
       imports = new LinkedHashSet<String>();
+      addImport(exmlSourceFile.getConfigClassName());
       constants = new ArrayList<Declaration>();
       vars = new ArrayList<Declaration>();
       varsWithXmlValue = new HashSet<String>();
@@ -302,9 +303,9 @@ public class ExmlToMxml {
         currentOut.println();
       }
       if (varsWithXmlValue.size() == vars.size()) {
-        currentOut.printf("    public native function %s(config:%s = null);%n", exmlModel.getClassName(), configClassName);
+        currentOut.printf("    public native function %s(config:%s = null);%n", exmlModel.getClassName(), configClassQName);
       } else {
-        currentOut.printf("    public function %s(config:%s = null) {%n", exmlModel.getClassName(), configClassName);
+        currentOut.printf("    public function %s(config:%s = null) {%n", exmlModel.getClassName(), configClassQName);
         for (Declaration var : vars) {
           if (!(varsWithXmlValue.contains(var.getName()))) {
             currentOut.printf("      %s = %s;%n", var.getName(), formatValue(var.getValue(), var.getType()));

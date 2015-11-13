@@ -7,7 +7,9 @@
              xmlns:exml="http://www.jangaroo.net/exml/0.8"
              xmlns="exml:ext.config">
   <fx:Script><![CDATA[
-    public native function TestPlugin(config:testPlugin = null);
+    import testNamespace.config.testPlugin;
+
+    public native function TestPlugin(config:testNamespace.config.testPlugin = null);
   ]]></fx:Script>
   <cfg:testPlugin id="config"/>
 

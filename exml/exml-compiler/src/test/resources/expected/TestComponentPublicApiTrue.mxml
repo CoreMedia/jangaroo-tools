@@ -8,7 +8,9 @@
 
   <fx:Metadata>[PublicApi]</fx:Metadata>
   <fx:Script><![CDATA[
-    public native function TestComponentPublicApiTrue(config:testComponentPublicApiTrue = null);
+    import testNamespace.config.testComponentPublicApiTrue;
+
+    public native function TestComponentPublicApiTrue(config:testNamespace.config.testComponentPublicApiTrue = null);
   ]]></fx:Script>
   <cfg:testComponentPublicApiTrue id="config"/>
 
