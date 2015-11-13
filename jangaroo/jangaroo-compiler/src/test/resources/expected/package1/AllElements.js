@@ -103,5 +103,5 @@ import net.jangaroo.ext.Exml;*/
         ]
       }, config))); // magic!
     },
-    undefined];},[],["ext.Panel","exmlparser.config.allElements","net.jangaroo.ext.Exml","net.jangaroo.ext.create","ext.config.action","ext.MessageBox"], "0.8.0", "2.1.0-SNAPSHOT"
+    undefined];},[],["ext.Panel","exmlparser.config.allElements","net.jangaroo.ext.Exml","net.jangaroo.ext.create","ext.config.action","ext.MessageBox"], "@runtimeVersion", "@version"
 );
