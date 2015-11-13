@@ -62,6 +62,15 @@ public class ${name} extends ${superClassName} {
    * @private
    */
   public native function set ${cfg.name}(value:${cfg.type}):void;
+  <#if cfg.name=="id">
+  [ExtConfig("id")]
+  /**
+   * Alias for <code>id</code> property to make it accessible from MXML.
+   * @copy #id
+   * @see #id
+   */
+  public native function set id_(value:${cfg.type}):void;
+  </#if>
   </#list>
 }
 }
