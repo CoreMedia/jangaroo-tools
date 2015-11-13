@@ -2,6 +2,7 @@ package net.jangaroo.jooc.mxml;
 
 import net.jangaroo.jooc.util.PreserveLineNumberHandler;
 import org.w3c.dom.Document;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -12,40 +13,34 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
 
-public class CatalogComponentModel {
+public class ComponentPackageManifestParser {
 
-  private InputStream catalogInputStream;
-  private Map<String, String> componentModel;
+  private String namespace;
 
-  public CatalogComponentModel(InputStream catalogInputStream) {
-    this.catalogInputStream = catalogInputStream;
-    componentModel = new HashMap<String, String>();
-    parseComponentModel();
+  public ComponentPackageManifestParser(String namespace) {
+    this.namespace = namespace;
   }
 
-  private void parseComponentModel() {
+  public ComponentPackageModel parse(InputStream manifestInputStream) throws IOException {
+    ComponentPackageModel componentPackageModel = new ComponentPackageModel(namespace);
     try {
-      Document document = buildDom(catalogInputStream);
+      Document document = buildDom(manifestInputStream);
       NodeList componentNodes = document.getElementsByTagName("component");
       for (int i = 0; i < componentNodes.getLength(); i++) {
         Node componentNode = componentNodes.item(i);
-        String componentClass = componentNode.getAttributes().getNamedItem("className").getNodeValue();
-        componentClass = componentClass.replace(":", ".");
-        componentModel.put(componentNode.getAttributes().getNamedItem("name").getNodeValue(),
-                componentClass);
+        NamedNodeMap attributes = componentNode.getAttributes();
+        String componentId = attributes.getNamedItem("id").getNodeValue();
+        String componentClass = attributes.getNamedItem("class").getNodeValue();
+        componentPackageModel.addElementToClassNameMapping(componentId, componentClass);
       }
     } catch (SAXException e) {
       e.printStackTrace();
     } catch (IOException e) {
       e.printStackTrace();
     }
-  }
 
-  public String getClassForName(String className) {
-    return componentModel.get(className);
+    return componentPackageModel;
   }
 
   private Document buildDom(InputStream inputStream) throws SAXException, IOException {

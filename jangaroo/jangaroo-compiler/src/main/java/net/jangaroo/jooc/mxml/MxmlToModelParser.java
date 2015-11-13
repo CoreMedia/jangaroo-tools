@@ -609,6 +609,8 @@ public final class MxmlToModelParser {
       String packageName = MxmlUtils.parsePackageFromNamespace(uri);
       if (packageName != null) {
         return CompilerUtils.qName(packageName, name);
+      } else {
+        return jangarooParser.getMxmlComponentRegistry().getClassName(uri, name);
       }
     }
     return null;

@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class FileInputSource extends DirectoryInputSource {
@@ -123,4 +124,14 @@ public class FileInputSource extends DirectoryInputSource {
     return null;
   }
 
+  @Override
+  public List<InputSource> getChildren(String path) {
+    InputSource child = isDirectory() ? getChild(path) : null;
+    return child == null ? Collections.<InputSource>emptyList() : Collections.singletonList(child);
+  }
+
+  @Override
+  public String toString() {
+    return file.getPath();
+  }
 }

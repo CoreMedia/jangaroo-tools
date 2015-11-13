@@ -183,6 +183,49 @@ public abstract class AbstractCompilerMojo extends JangarooMojo {
     // Create the compiler configuration
     // ----------------------------------------------------------------------
 
+    JoocConfiguration configuration = createJoocConfiguration(log);
+    if (configuration == null) {
+      return;
+    }
+
+    int result = compile(configuration);
+    boolean compilationError = (result != CompilationResult.RESULT_CODE_OK);
+
+    if (!compilationError) {
+      // for now, always set debug mode to "false" for concatenated file:
+      configuration.setDebugMode(null);
+      configuration.setOutputDirectory(getTempClassesOutputDirectory());
+      configuration.setApiOutputDirectory(null);
+      result = compile(configuration);
+      if (result == CompilationResult.RESULT_CODE_OK) {
+        buildOutputFile(getTempClassesOutputDirectory(), getModuleClassesJsFile());
+      }
+
+      compilationError = (result != CompilationResult.RESULT_CODE_OK);
+    }
+
+    List<CompilerError> messages = Collections.emptyList();
+
+    if (compilationError && failOnError) {
+      log.info("-------------------------------------------------------------");
+      log.error("COMPILATION ERROR : ");
+      log.info("-------------------------------------------------------------");
+      if (messages != null) {
+        for (CompilerError message : messages) {
+          log.error(message.toString());
+        }
+        log.info(messages.size() + ((messages.size() > 1) ? " errors " : "error"));
+        log.info("-------------------------------------------------------------");
+      }
+      throw new MojoFailureException("Compilation failed");
+    } else {
+      for (CompilerError message : messages) {
+        log.warn(message.toString());
+      }
+    }
+  }
+
+  protected JoocConfiguration createJoocConfiguration(Log log) throws MojoExecutionException, MojoFailureException {
     JoocConfiguration configuration = new JoocConfiguration();
 
     configuration.setEnableAssertions(enableAssertions);
@@ -223,7 +266,7 @@ public abstract class AbstractCompilerMojo extends JangarooMojo {
     sources.addAll(computeStaleSources(staleMillis));
     if (sources.isEmpty()) {
       log.info("Nothing to compile - all classes are up to date");
-      return;
+      return null;
     }
     configuration.setSourceFiles(new ArrayList<File>(sources));
     try {
@@ -243,42 +286,7 @@ public abstract class AbstractCompilerMojo extends JangarooMojo {
         log.debug("API output directory: " + configuration.getApiOutputDirectory());
       }
     }
-
-    int result = compile(configuration);
-    boolean compilationError = (result != CompilationResult.RESULT_CODE_OK);
-
-    if (!compilationError) {
-      // for now, always set debug mode to "false" for concatenated file:
-      configuration.setDebugMode(null);
-      configuration.setOutputDirectory(getTempClassesOutputDirectory());
-      configuration.setApiOutputDirectory(null);
-      result = compile(configuration);
-      if (result == CompilationResult.RESULT_CODE_OK) {
-        buildOutputFile(getTempClassesOutputDirectory(), getModuleClassesJsFile());
-      }
-
-      compilationError = (result != CompilationResult.RESULT_CODE_OK);
-    }
-
-    List<CompilerError> messages = Collections.emptyList();
-
-    if (compilationError && failOnError) {
-      log.info("-------------------------------------------------------------");
-      log.error("COMPILATION ERROR : ");
-      log.info("-------------------------------------------------------------");
-      if (messages != null) {
-        for (CompilerError message : messages) {
-          log.error(message.toString());
-        }
-        log.info(messages.size() + ((messages.size() > 1) ? " errors " : "error"));
-        log.info("-------------------------------------------------------------");
-      }
-      throw new MojoFailureException("Compilation failed");
-    } else {
-      for (CompilerError message : messages) {
-        log.warn(message.toString());
-      }
-    }
+    return configuration;
   }
 
   protected abstract List<File> getActionScriptClassPath();

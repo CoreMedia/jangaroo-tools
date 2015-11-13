@@ -4,6 +4,9 @@ import net.jangaroo.utils.FileLocations;
 import org.kohsuke.args4j.Option;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Jangaroo compiler configuration
@@ -26,6 +29,8 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
   private String outputFileName;
 
   private File keepGeneratedActionScriptDirectory;
+
+  private List<NamespaceConfiguration> namespaces = new ArrayList<NamespaceConfiguration>();
 
   public SemicolonInsertionMode getSemicolonInsertionMode() {
     return semicolonInsertionMode;
@@ -151,6 +156,15 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
   @Option(name="-kgasd", aliases = "--keepGeneratedActionScriptDir", usage = "directory where to keep ActionScript files generated from MXML sources")
   public void setKeepGeneratedActionScriptDirectory(File keepGeneratedActionScriptDirectory) {
     this.keepGeneratedActionScriptDirectory = keepGeneratedActionScriptDirectory;
+  }
+
+  public List<NamespaceConfiguration> getNamespaces() {
+    return Collections.unmodifiableList(namespaces);
+  }
+
+  @Option(name="-namespace", handler = NamespacesHandler.class, usage = "namespace of the component library defined in the given manifest file")
+  public void setNamespaces(List<NamespaceConfiguration> namespaces) {
+    this.namespaces = new ArrayList<NamespaceConfiguration>(namespaces);
   }
 
 }

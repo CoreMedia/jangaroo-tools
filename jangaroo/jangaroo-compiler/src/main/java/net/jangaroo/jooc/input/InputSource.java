@@ -23,6 +23,8 @@ public interface InputSource {
 
   InputSource getChild(String path);
 
+  List<InputSource> getChildren(String path);
+
   InputStream getInputStream() throws IOException;
 
   void close() throws IOException;

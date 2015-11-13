@@ -2,6 +2,7 @@ package net.jangaroo.jooc.input;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.List;
 import java.util.zip.ZipEntry;
 
@@ -79,6 +80,11 @@ public class ZipEntryInputSource implements InputSource {
   }
 
   @Override
+  public List<InputSource> getChildren(String path) {
+    return Collections.emptyList();
+  }
+
+  @Override
   public String getRelativePath() {
     return relativePath;
   }
@@ -91,5 +97,10 @@ public class ZipEntryInputSource implements InputSource {
   @Override
   public char getFileSeparatorChar() {
     return '/';
+  }
+
+  @Override
+  public String toString() {
+    return getPath();
   }
 }

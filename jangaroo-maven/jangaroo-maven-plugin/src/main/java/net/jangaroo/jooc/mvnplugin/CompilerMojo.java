@@ -1,5 +1,11 @@
 package net.jangaroo.jooc.mvnplugin;
 
+import net.jangaroo.jooc.config.JoocConfiguration;
+import net.jangaroo.jooc.config.NamespaceConfiguration;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugin.logging.Log;
+
 import java.io.File;
 import java.util.*;
 
@@ -67,6 +73,14 @@ public class CompilerMojo extends AbstractCompilerMojo {
    */
   private String apiOutputDirectory;
 
+  /**
+   * A list of custom MXML component namespaces.
+   *
+   * @parameter
+   */
+  @SuppressWarnings("MismatchedReadAndWriteOfArray")
+  private NamespaceConfiguration[] namespaces;
+
   public File getApiOutputDirectory() {
     return isJangarooPackaging() ? new File(apiOutputDirectory) : null;
   }
@@ -100,6 +114,15 @@ public class CompilerMojo extends AbstractCompilerMojo {
 
   public String getModuleClassesJsFileName() {
     return moduleClassesJsFile;
+  }
+
+  @Override
+  protected JoocConfiguration createJoocConfiguration(Log log) throws MojoExecutionException, MojoFailureException {
+    JoocConfiguration joocConfiguration = super.createJoocConfiguration(log);
+    if (namespaces != null) {
+      joocConfiguration.setNamespaces(Arrays.asList(namespaces));
+    }
+    return joocConfiguration;
   }
 
 }
