@@ -165,11 +165,14 @@ public final class MxmlToModelParser {
       }
     }
     int beforeSuperCall = superCallMatcher.start();
+    int afterSuperCall = superCallMatcher.end();
 
     compilationUnitModel.addImport("net.jangaroo.ext.Exml");
     String superConfigParam = formatTypedExmlApply(configParamModel, jsonObject);
-    bodyCode = superCallMatcher.replaceFirst(String.format("super(%s)", superConfigParam.replaceAll("[$]", "\\\\\\$")));
-    bodyCode = bodyCode.substring(0, beforeSuperCall) + preSuperCode + bodyCode.substring(beforeSuperCall);
+    bodyCode = bodyCode.substring(0, beforeSuperCall)
+            + preSuperCode
+            + String.format("super(%s)", superConfigParam)
+            + bodyCode.substring(afterSuperCall);
     classModel.setBodyCode(bodyCode);
   }
 
