@@ -32,10 +32,10 @@ try
     }
 
 
-    File catalogFile = new File ( target, "classes/META-INF/joo-api/catalog.xml" );
+    File catalogFile = new File ( target, "classes/catalog.xml" );
     if ( !catalogFile.exists() || !catalogFile.isFile() )
     {
-        System.err.println( "classes/META-INF/joo-api/catalog.xml file is missing or not a file." );
+        System.err.println( "classes/catalog.xml file is missing or not a file." );
         return false;
     }
 

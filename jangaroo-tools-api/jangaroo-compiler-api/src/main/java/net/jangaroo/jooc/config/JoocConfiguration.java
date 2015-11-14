@@ -32,6 +32,8 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
 
   private List<NamespaceConfiguration> namespaces = new ArrayList<NamespaceConfiguration>();
 
+  private File catalogOutputDirectory;
+
   public SemicolonInsertionMode getSemicolonInsertionMode() {
     return semicolonInsertionMode;
   }
@@ -167,4 +169,12 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
     this.namespaces = new ArrayList<NamespaceConfiguration>(namespaces);
   }
 
+  public File getCatalogOutputDirectory() {
+    return catalogOutputDirectory;
+  }
+
+  @Option(name="-catalog", aliases = "--catalogDir", usage = "destination directory where to generate catalog.xml")
+  public void setCatalogOutputDirectory(File catalogOutputDirectory) {
+    this.catalogOutputDirectory = catalogOutputDirectory;
+  }
 }

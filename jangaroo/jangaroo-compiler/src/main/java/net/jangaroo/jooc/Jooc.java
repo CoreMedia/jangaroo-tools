@@ -217,8 +217,11 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
       getMxmlComponentRegistry().add(componentPackageModel);
       localMxmlComponentRegistry.add(componentPackageModel);
     }
-    if (!localMxmlComponentRegistry.getComponentPackageModels().isEmpty()) {
-      new CatalogGenerator(localMxmlComponentRegistry).generateCatalog(new File(getConfig().getApiOutputDirectory(), "catalog.xml"));
+    File catalogOutputDirectory = getConfig().getCatalogOutputDirectory();
+    if (catalogOutputDirectory != null && !localMxmlComponentRegistry.getComponentPackageModels().isEmpty()) {
+      //noinspection ResultOfMethodCallIgnored
+      catalogOutputDirectory.mkdirs();
+      new CatalogGenerator(localMxmlComponentRegistry).generateCatalog(new File(catalogOutputDirectory, "catalog.xml"));
     }
   }
 

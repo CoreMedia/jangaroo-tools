@@ -81,6 +81,14 @@ public class CompilerMojo extends AbstractCompilerMojo {
   @SuppressWarnings("MismatchedReadAndWriteOfArray")
   private NamespaceConfiguration[] namespaces;
 
+  /**
+   * Output directory into which to generate an SWC-compatible catalog.xml generated
+   * from all namespaces and manifests.
+   *
+   * @parameter expression="${project.build.outputDirectory}"
+   */
+  private File catalogOutputDirectory;
+
   public File getApiOutputDirectory() {
     return isJangarooPackaging() ? new File(apiOutputDirectory) : null;
   }
@@ -121,6 +129,7 @@ public class CompilerMojo extends AbstractCompilerMojo {
     JoocConfiguration joocConfiguration = super.createJoocConfiguration(log);
     if (namespaces != null) {
       joocConfiguration.setNamespaces(Arrays.asList(namespaces));
+      joocConfiguration.setCatalogOutputDirectory(catalogOutputDirectory);
     }
     return joocConfiguration;
   }
