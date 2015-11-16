@@ -338,7 +338,8 @@ public class Ide extends NodeImplBase {
   }
 
   private boolean isBoundMethodCandidate(final AstNode exprParent, final Expr parentExpr) {
-    return exprParent instanceof ParenthesizedExpr ||
+    return exprParent instanceof ParenthesizedExpr &&
+            !(exprParent.getParentNode() instanceof KeywordStatement) ||
             exprParent instanceof CommaSeparatedList ||
             exprParent instanceof Initializer ||
             exprParent instanceof AsExpr ||
