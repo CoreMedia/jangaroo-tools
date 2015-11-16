@@ -31,13 +31,14 @@
     private var myVar3:button;
     private var myVar4:Array;
 
-    public function AllElements(config:exmlparser.config.allElements = null) {
+    private function __initialize__(config:exmlparser.config.allElements):void {
       myVar = config.myProperty + '_suffix';
       myVar2 = {
         prop: config.myProperty
       };
-      super(config); // magic!
     }
+
+    public native function AllElements(config:exmlparser.config.allElements = null);
     ]]></fx:Script>
 
   <cfg:allElements id="config" myProperty="My Property!">

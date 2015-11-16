@@ -302,18 +302,17 @@ public class ExmlToMxml {
         }
         currentOut.println();
       }
-      if (varsWithXmlValue.size() == vars.size()) {
-        currentOut.printf("    public native function %s(config:%s = null);%n", exmlModel.getClassName(), configClassQName);
-      } else {
-        currentOut.printf("    public function %s(config:%s = null) {%n", exmlModel.getClassName(), configClassQName);
+      if (varsWithXmlValue.size() != vars.size()) {
+        currentOut.printf("    // called by generated constructor code%n");
+        currentOut.printf("    private function __initialize__(config:%s):void {%n", configClassQName);
         for (Declaration var : vars) {
           if (!(varsWithXmlValue.contains(var.getName()))) {
             currentOut.printf("      %s = %s;%n", var.getName(), formatValue(var.getValue(), var.getType()));
           }
         }
-        currentOut.printf("      super(config); // magic!%n");
-        currentOut.printf("    }%n");
+        currentOut.printf("    }%n%n");
       }
+      currentOut.printf("    public native function %s(config:%s = null);%n", exmlModel.getClassName(), configClassQName);
       closeScript();
       String configElementQName = String.format("%s:%s", configClassPrefix, configClassName);
       currentOut.printf("%n  <%s", configElementQName);

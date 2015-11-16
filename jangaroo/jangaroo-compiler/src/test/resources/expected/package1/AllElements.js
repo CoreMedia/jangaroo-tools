@@ -30,15 +30,21 @@ import net.jangaroo.ext.Exml;*/
     "private var",{ myVar3/*:button*/:null},
     "private var",{ myVar4/*:Array*/:null},
 
+    "private function __initialize__",function __initialize__(config/*:exmlparser.config.allElements*/)/*:void*/ {
+      this.myVar$2 = config.myProperty + '_suffix';
+      this.myVar2$2 = {
+        prop: config.myProperty
+      };
+    },
+
     "public function AllElements",function AllElements(config/*:exmlparser.config.allElements = null*/) {if(arguments.length<=0)config=null;
       config =/* exmlparser.config.allElements*/(net.jangaroo.ext.Exml.apply({
         myProperty: "My Property!",
         myPropertyWithDescription: false
       }, config));
-      this.myVar$2 = config.myProperty + '_suffix';
-      this.myVar2$2 = {
-        prop: config.myProperty
-      };
+      if (this.__initialize__$2) {
+        this.__initialize__$2(config);
+      }
       this.myVar3$2 = {text: "Foo"};
       this.myVar4$2 = [
         {
@@ -72,7 +78,7 @@ import net.jangaroo.ext.Exml;*/
           {
             xtype: "button",
             text: "Save",
-            handler: function package1$AllElements$75_22()/*:void*/ {
+            handler: function package1$AllElements$81_22()/*:void*/ {
           $1.MessageBox.alert('gotcha!');
         }
           },
@@ -94,14 +100,14 @@ import net.jangaroo.ext.Exml;*/
           }
         ],
         tools: [{
-          handler: function package1$AllElements$97_20(x){return ''+x;},
+          handler: function package1$AllElements$103_20(x){return ''+x;},
           id: "gear"
         }],
         plugins: [
           {ptype: "aplugin"},
           {ptype: "aplugin"}
         ]
-      }, config))); // magic!
+      }, config)));
     },
     undefined];},[],["ext.Panel","exmlparser.config.allElements","net.jangaroo.ext.Exml","net.jangaroo.ext.create","ext.config.action","ext.MessageBox"], "@runtimeVersion", "@version"
 );

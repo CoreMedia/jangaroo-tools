@@ -148,7 +148,14 @@ public final class MxmlToModelParser {
       int constructorBodyStart = constructorMatcher.end();
       String cfgDefaultsCode = String.format("%n      %s = %s;", configParamModel.getName(),
               formatTypedExmlApply(configParamModel, cfgDefaults));
-      bodyCode = bodyCode.substring(0, constructorBodyStart) + cfgDefaultsCode + bodyCode.substring(constructorBodyStart);
+      String callInitializerCode = String.format(
+              "%n      if (this.__initialize__) {"
+            + "%n        this.__initialize__(%s);"
+            + "%n      }", configParamModel.getName());
+      bodyCode = bodyCode.substring(0, constructorBodyStart)
+              + cfgDefaultsCode
+              + callInitializerCode
+              + bodyCode.substring(constructorBodyStart);
     }
 
     Pattern superCallPattern = Pattern.compile("super\\(([A-Za-z_][A-Za-z_0-9]*)\\)");
@@ -497,7 +504,7 @@ public final class MxmlToModelParser {
             // remove "native" constructor modifier and add body calling super(config):
             Pattern nativeConstructorPattern = Pattern.compile("(\\s*public)\\s+native(\\s+function\\s+" + classModel.getName() + "\\s*\\(\\s*([A-Za-z_][A-Za-z_0-9]*)\\s*:\\s*([A-Za-z_][A-Za-z_0-9.]*)\\s*=\\s*null\\s*\\)\\s*);");
             Matcher nativeConstructorMatcher = nativeConstructorPattern.matcher(scriptCode);
-            scriptCode = nativeConstructorMatcher.replaceFirst(String.format("$1$2 {%n      super($3);    }"));
+            scriptCode = nativeConstructorMatcher.replaceFirst(String.format("$1$2 {%n      super($3);%n    }"));
             Pattern constructorPattern = Pattern.compile("\\s*public\\s+function\\s+" + classModel.getName() + "\\s*\\(\\s*([A-Za-z_][A-Za-z_0-9]*)\\s*:\\s*([A-Za-z_][A-Za-z_0-9.]*)\\s*=\\s*null\\s*\\)\\s*\\{");
             Matcher constructorMatcher = constructorPattern.matcher(scriptCode);
             if (constructorMatcher.find()) {

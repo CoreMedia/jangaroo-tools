@@ -15,10 +15,12 @@
     private var varWithXmlValue:button;
     private var varWithXmlArrayValue:Array;
 
-    public function TestComponentWithVars(config:testNamespace.config.testComponentWithVars = null) {
+    // called by generated constructor code
+    private function __initialize__(config:testNamespace.config.testComponentWithVars):void {
       varWithExpressionValue = [1, 2, 3];
-      super(config); // magic!
     }
+
+    public native function TestComponentWithVars(config:testNamespace.config.testComponentWithVars = null);
   ]]></fx:Script>
   <cfg:testComponentWithVars id="config"/>
   <button id="varWithXmlValue"
