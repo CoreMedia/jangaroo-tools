@@ -66,12 +66,15 @@ public final class MxmlToModelParser {
   private static final String EXT_CONTAINER_DEFAULTS_PROPERTY = "defaults";
   private static final String EXT_CONTAINER_DEFAULT_TYPE_PROPERTY = "defaultType";
 
+  private static Pattern EXML_VAR_PATTERN = Pattern.compile("private\\s+var\\s+([A-Za-z_][A-Za-z_0-9]*)");
+  private static Pattern INITIALIZE_METHOD_PATTERN = Pattern.compile("private\\s+function\\s+__initialize__\\s*\\(");
+
   private final JangarooParser jangarooParser;
   private CompilationUnitModel compilationUnitModel;
-  private JsonObject jsonObject;
   private JsonObject cfgDefaults;
   private ParamModel configParamModel;
   private Map<String, Json> privateVars;
+  private Pattern nativeConstructorPattern;
 
   public MxmlToModelParser(JangarooParser jangarooParser) {
     this.jangarooParser = jangarooParser;
@@ -86,8 +89,10 @@ public final class MxmlToModelParser {
    */
   public CompilationUnitModel parse(InputSource in) throws IOException, SAXException {
     String qName = CompilerUtils.qNameFromRelativPath(in.getRelativePath());
+    String className = CompilerUtils.className(qName);
     compilationUnitModel = new CompilationUnitModel(CompilerUtils.packageName(qName),
-            new ClassModel(CompilerUtils.className(qName)));
+            new ClassModel(className));
+    nativeConstructorPattern = Pattern.compile("(\\s*public)\\s+native(\\s+function\\s+" + className + "\\s*\\(\\s*([A-Za-z_][A-Za-z_0-9]*)\\s*:\\s*([A-Za-z_][A-Za-z_0-9.]*)\\s*=\\s*null\\s*\\)\\s*); *\\n");
     privateVars = new LinkedHashMap<String, Json>();
 
     BufferedInputStream inputStream = null;
@@ -115,7 +120,7 @@ public final class MxmlToModelParser {
     Document document = buildDom(inputStream);
     Element objectNode = document.getDocumentElement();
 
-    jsonObject = new JsonObject();
+    JsonObject jsonObject = new JsonObject();
     cfgDefaults = null;
     String superClassName = createClassNameFromNode(objectNode);
 
@@ -139,48 +144,40 @@ public final class MxmlToModelParser {
     }
 
     String bodyCode = classModel.getBodyCode();
+    Matcher constructorMatcher = nativeConstructorPattern.matcher(bodyCode);
+    if (!constructorMatcher.find()) {
+      throw Jooc.error("Jangaroo MXML must have constructor.");
+    }
+    StringBuilder bodyCodeBuilder = new StringBuilder();
+    bodyCodeBuilder
+            .append(bodyCode.substring(0, constructorMatcher.start()))
+            .append(constructorMatcher.group(1)) // " public"
+            .append(constructorMatcher.group(2)) // " function <MyClass>(config:myConfig = null)"
+            .append(" {");
+
     if (cfgDefaults != null && !cfgDefaults.isEmpty()) {
-      Pattern constructorPattern = Pattern.compile("\\s*public\\s+function\\s+" + classModel.getName() + "\\s*\\(\\s*([A-Za-z_][A-Za-z_0-9]*)\\s*:\\s*([A-Za-z_][A-Za-z_0-9.]*)\\s*=\\s*null\\s*\\)\\s*\\{");
-      Matcher constructorMatcher = constructorPattern.matcher(bodyCode);
-      if (!constructorMatcher.find()) {
-        throw Jooc.error("Jangaroo MXML must have constructor.");
-      }
-      int constructorBodyStart = constructorMatcher.end();
-      String cfgDefaultsCode = String.format("%n      %s = %s;", configParamModel.getName(),
-              formatTypedExmlApply(configParamModel, cfgDefaults));
-      String callInitializerCode = String.format(
-              "%n      if (this.__initialize__) {"
-            + "%n        this.__initialize__(%s);"
-            + "%n      }", configParamModel.getName());
-      bodyCode = bodyCode.substring(0, constructorBodyStart)
-              + cfgDefaultsCode
-              + callInitializerCode
-              + bodyCode.substring(constructorBodyStart);
+      bodyCodeBuilder.append(String.format("%n      %s = %s;", configParamModel.getName(),
+              formatTypedExmlApply(configParamModel, cfgDefaults)));
     }
 
-    Pattern superCallPattern = Pattern.compile("super\\(([A-Za-z_][A-Za-z_0-9]*)\\)");
-    Matcher superCallMatcher = superCallPattern.matcher(bodyCode);
-    if (!superCallMatcher.find()) {
-      throw Jooc.error("Jangaroo MXML file must contain constructor with super(config) call.");
+    if (INITIALIZE_METHOD_PATTERN.matcher(bodyCode).find()) {
+      bodyCodeBuilder.append(String.format("%n      this.__initialize__(%s);", configParamModel.getName()));
     }
 
-    StringBuilder preSuperCode = new StringBuilder();
     for (Map.Entry<String, Json> varJsonEntry : privateVars.entrySet()) {
       if (varJsonEntry.getValue() != null) {
-        preSuperCode.append(String.format("%s = %s;%n      ", varJsonEntry.getKey(),
+        bodyCodeBuilder.append(String.format("%n      %s = %s;", varJsonEntry.getKey(),
                 varJsonEntry.getValue().toString(2, 6)));
       }
     }
-    int beforeSuperCall = superCallMatcher.start();
-    int afterSuperCall = superCallMatcher.end();
 
     compilationUnitModel.addImport("net.jangaroo.ext.Exml");
     String superConfigParam = formatTypedExmlApply(configParamModel, jsonObject);
-    bodyCode = bodyCode.substring(0, beforeSuperCall)
-            + preSuperCode
-            + String.format("super(%s)", superConfigParam)
-            + bodyCode.substring(afterSuperCall);
-    classModel.setBodyCode(bodyCode);
+    bodyCodeBuilder
+            .append(String.format("%n      super(%s);%n    }%n", superConfigParam))
+            .append(bodyCode.substring(constructorMatcher.end()));
+
+    classModel.setBodyCode(bodyCodeBuilder.toString());
   }
 
   private static String formatTypedExmlApply(ParamModel configParamModel, JsonObject someJsonObject) {
@@ -501,22 +498,16 @@ public final class MxmlToModelParser {
           // parse private vars and constructor params from script code, so that MXML elements with id
           // can be assigned to these existing variables instead of defining new fields:
           if (configParamModel == null) {
-            // remove "native" constructor modifier and add body calling super(config):
-            Pattern nativeConstructorPattern = Pattern.compile("(\\s*public)\\s+native(\\s+function\\s+" + classModel.getName() + "\\s*\\(\\s*([A-Za-z_][A-Za-z_0-9]*)\\s*:\\s*([A-Za-z_][A-Za-z_0-9.]*)\\s*=\\s*null\\s*\\)\\s*);");
-            Matcher nativeConstructorMatcher = nativeConstructorPattern.matcher(scriptCode);
-            scriptCode = nativeConstructorMatcher.replaceFirst(String.format("$1$2 {%n      super($3);%n    }"));
-            Pattern constructorPattern = Pattern.compile("\\s*public\\s+function\\s+" + classModel.getName() + "\\s*\\(\\s*([A-Za-z_][A-Za-z_0-9]*)\\s*:\\s*([A-Za-z_][A-Za-z_0-9.]*)\\s*=\\s*null\\s*\\)\\s*\\{");
-            Matcher constructorMatcher = constructorPattern.matcher(scriptCode);
+            Matcher constructorMatcher = nativeConstructorPattern.matcher(scriptCode);
             if (constructorMatcher.find()) {
               configParamModel = new ParamModel(
-                      constructorMatcher.group(1),
-                      constructorMatcher.group(2),
+                      constructorMatcher.group(3),
+                      constructorMatcher.group(4),
                       "null");
             }
           }
 
-          Pattern exmlVarPattern = Pattern.compile("private\\s+var\\s+([A-Za-z_][A-Za-z_0-9]*)");
-          Matcher matcher = exmlVarPattern.matcher(scriptCode);
+          Matcher matcher = EXML_VAR_PATTERN.matcher(scriptCode);
           while (matcher.find()) {
             privateVars.put(matcher.group(1), null);
           }

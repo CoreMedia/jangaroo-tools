@@ -42,9 +42,7 @@ import net.jangaroo.ext.Exml;*/
         myProperty: "My Property!",
         myPropertyWithDescription: false
       }, config));
-      if (this.__initialize__$2) {
-        this.__initialize__$2(config);
-      }
+      this.__initialize__$2(config);
       this.myVar3$2 = {text: "Foo"};
       this.myVar4$2 = [
         {
@@ -78,7 +76,7 @@ import net.jangaroo.ext.Exml;*/
           {
             xtype: "button",
             text: "Save",
-            handler: function package1$AllElements$81_22()/*:void*/ {
+            handler: function package1$AllElements$79_22()/*:void*/ {
           $1.MessageBox.alert('gotcha!');
         }
           },
@@ -100,7 +98,7 @@ import net.jangaroo.ext.Exml;*/
           }
         ],
         tools: [{
-          handler: function package1$AllElements$103_20(x){return ''+x;},
+          handler: function package1$AllElements$101_20(x){return ''+x;},
           id: "gear"
         }],
         plugins: [
