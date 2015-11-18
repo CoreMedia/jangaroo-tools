@@ -419,7 +419,7 @@ public final class MxmlToModelParser {
         throw new CompilerError(String.format("Cannot derive class name from <%s:%s>.", arrayItemNode.getNamespaceURI(), arrayItemNode.getLocalName()));
       }
       Object value;
-      if ("Object".equals(configClassName) || "net.jangaroo.ext.object".equals(configClassName)) {
+      if ("Object".equals(configClassName)) {
         value = parseExmlObjectNode(arrayItemNode);
       } else {
         CompilationUnitModel configClass = getCompilationUnitModel(configClassName);
@@ -442,6 +442,8 @@ public final class MxmlToModelParser {
             compilationUnitModel.addImport(extConfigAnnotation.target);
             compilationUnitModel.addImport(JsonObject.NET_JANGAROO_EXT_CREATE);
           }
+        } else {
+          // TODO: handle non-config-class
         }
 
         fillModelAttributes(arrayItemJsonObject, arrayItemNode);
@@ -560,6 +562,9 @@ public final class MxmlToModelParser {
     if (fullClassName == null) {
       return null;
     }
+    if (fullClassName.equals(compilationUnitModel.getQName())) {
+      return compilationUnitModel;
+    }
     CompilationUnit compilationUnit = jangarooParser.getCompilationUnit(fullClassName);
     if (compilationUnit == null) {
       throw Jooc.error("Undefined type: " + fullClassName);
@@ -601,17 +606,16 @@ public final class MxmlToModelParser {
     String name = objectNode.getLocalName();
     String uri = objectNode.getNamespaceURI();
     if (uri != null) {
-      if (Exmlc.EXML_NAMESPACE_URI.equals(uri) && Exmlc.EXML_OBJECT_NODE_NAME.equals(name)) {
-        return "Object";
-      }
       String packageName = MxmlUtils.parsePackageFromNamespace(uri);
       if (packageName != null) {
         return CompilerUtils.qName(packageName, name);
-      } else {
-        return jangarooParser.getMxmlComponentRegistry().getClassName(uri, name);
+      }
+      String className = jangarooParser.getMxmlComponentRegistry().getClassName(uri, name);
+      if (className != null) {
+        return className;
       }
     }
-    return null;
+    throw Jooc.error(String.format("Cannot resolve ActionScript class for node <%s:%s>.", uri, name));
   }
 
   private static String getTextContent(Element element) {
