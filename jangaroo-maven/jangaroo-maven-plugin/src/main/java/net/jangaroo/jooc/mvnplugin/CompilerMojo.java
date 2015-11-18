@@ -73,22 +73,6 @@ public class CompilerMojo extends AbstractCompilerMojo {
    */
   private String apiOutputDirectory;
 
-  /**
-   * A list of custom MXML component namespaces.
-   *
-   * @parameter
-   */
-  @SuppressWarnings("MismatchedReadAndWriteOfArray")
-  private NamespaceConfiguration[] namespaces;
-
-  /**
-   * Output directory into which to generate an SWC-compatible catalog.xml generated
-   * from all namespaces and manifests.
-   *
-   * @parameter expression="${project.build.outputDirectory}"
-   */
-  private File catalogOutputDirectory;
-
   public File getApiOutputDirectory() {
     return isJangarooPackaging() ? new File(apiOutputDirectory) : null;
   }
@@ -127,9 +111,8 @@ public class CompilerMojo extends AbstractCompilerMojo {
   @Override
   protected JoocConfiguration createJoocConfiguration(Log log) throws MojoExecutionException, MojoFailureException {
     JoocConfiguration joocConfiguration = super.createJoocConfiguration(log);
-    if (namespaces != null) {
-      joocConfiguration.setNamespaces(Arrays.asList(namespaces));
-      joocConfiguration.setCatalogOutputDirectory(catalogOutputDirectory);
+    if (joocConfiguration != null) {
+      joocConfiguration.setCatalogOutputDirectory(getCatalogOutputDirectory());
     }
     return joocConfiguration;
   }

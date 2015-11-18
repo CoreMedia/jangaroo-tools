@@ -135,6 +135,7 @@ public class TestCompilerMojo extends AbstractCompilerMojo {
     final List<File> classPath = new ArrayList<File>(getMavenPluginHelper().getActionScriptClassPath(true));
     classPath.add(0, sourceDirectory);
     classPath.add(0, getGeneratedSourcesDirectory());
+    classPath.add(getCatalogOutputDirectory());
     return classPath;
   }
 

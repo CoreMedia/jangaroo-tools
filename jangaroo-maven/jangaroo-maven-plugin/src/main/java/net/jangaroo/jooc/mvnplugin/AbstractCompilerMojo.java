@@ -1,12 +1,15 @@
 package net.jangaroo.jooc.mvnplugin;
 
+import net.jangaroo.exml.api.Exmlc;
 import net.jangaroo.jooc.AbstractCompileLog;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.api.CompilationResult;
 import net.jangaroo.jooc.config.DebugMode;
 import net.jangaroo.jooc.config.JoocConfiguration;
+import net.jangaroo.jooc.config.NamespaceConfiguration;
 import net.jangaroo.jooc.config.PublicApiViolationsMode;
 import net.jangaroo.jooc.config.SemicolonInsertionMode;
+import org.apache.maven.model.Plugin;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
@@ -15,6 +18,7 @@ import org.codehaus.plexus.compiler.CompilerError;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.StringUtils;
+import org.codehaus.plexus.util.xml.Xpp3Dom;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -23,6 +27,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -33,6 +38,9 @@ import java.util.Set;
  */
 @SuppressWarnings({"UnusedDeclaration", "UnusedPrivateField"})
 public abstract class AbstractCompilerMojo extends JangarooMojo {
+  private static final String JANGAROO_GROUP_ID = "net.jangaroo";
+  private static final String EXML_MAVEN_PLUGIN_ARTIFACT_ID = "exml-maven-plugin";
+
   /**
    * The Maven project object
    *
@@ -135,6 +143,21 @@ public abstract class AbstractCompilerMojo extends JangarooMojo {
    */
   private File keepGeneratedActionScriptDirectory;
 
+  /**
+   * A list of custom MXML component namespaces.
+   *
+   * @parameter
+   */
+  private NamespaceConfiguration[] namespaces;
+
+  /**
+   * Output directory into which to generate an SWC-compatible catalog.xml generated
+   * from all namespaces and manifests.
+   *
+   * @parameter expression="${project.build.outputDirectory}"
+   */
+  private File catalogOutputDirectory;
+
   @Override
   protected MavenProject getProject() {
     return project;
@@ -161,6 +184,10 @@ public abstract class AbstractCompilerMojo extends JangarooMojo {
   }
 
   protected abstract File getApiOutputDirectory();
+
+  protected File getCatalogOutputDirectory() {
+    return catalogOutputDirectory;
+  }
 
   /**
    * Runs the compile mojo
@@ -278,6 +305,19 @@ public abstract class AbstractCompilerMojo extends JangarooMojo {
     configuration.setOutputDirectory(getClassesOutputDirectory());
     configuration.setApiOutputDirectory(getApiOutputDirectory());
 
+    List<NamespaceConfiguration> allNamespaces = new ArrayList<NamespaceConfiguration>();
+    if (namespaces != null) {
+      allNamespaces.addAll(Arrays.asList(namespaces));
+    }
+    String configClassPackage = findConfigClassPackageInExmlPluginConfiguration();
+    if (configClassPackage != null) {
+      String namespace = Exmlc.EXML_CONFIG_URI_PREFIX + configClassPackage;
+      getLog().info(String.format("Adding namespace %s derived from %s configuration.",
+              namespace, EXML_MAVEN_PLUGIN_ARTIFACT_ID));
+      allNamespaces.add(new NamespaceConfiguration(namespace, null));
+    }
+    configuration.setNamespaces(allNamespaces);
+
     if (log.isDebugEnabled()) {
       log.debug("Source path: " + configuration.getSourcePath().toString().replace(',', '\n'));
       log.debug("Class path: " + configuration.getClassPath().toString().replace(',', '\n'));
@@ -287,6 +327,30 @@ public abstract class AbstractCompilerMojo extends JangarooMojo {
       }
     }
     return configuration;
+  }
+
+  private String findConfigClassPackageInExmlPluginConfiguration() {
+    String configClassPackage = null;
+    @SuppressWarnings("unchecked")
+    List<Plugin> plugins = getProject().getBuildPlugins();
+    for (Plugin plugin : plugins) {
+      if (JANGAROO_GROUP_ID.equals(plugin.getGroupId()) && EXML_MAVEN_PLUGIN_ARTIFACT_ID.equals(plugin.getArtifactId())) {
+        Object exmlPluginConfiguration = plugin.getConfiguration();
+        if (exmlPluginConfiguration instanceof Xpp3Dom) {
+          Xpp3Dom configClassPackageElement = ((Xpp3Dom) exmlPluginConfiguration).getChild("configClassPackage");
+          if (configClassPackageElement != null) {
+            configClassPackage = configClassPackageElement.getValue();
+            if (configClassPackage != null) {
+              configClassPackage = configClassPackage.trim();
+              if (!configClassPackage.isEmpty()) {
+                break;
+              }
+            }
+          }
+        }
+      }
+    }
+    return configClassPackage;
   }
 
   protected abstract List<File> getActionScriptClassPath();
