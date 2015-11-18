@@ -108,10 +108,9 @@ public class ExmlToMxml {
     out.println("<?xml version=\"1.0\"?>");
     out.println("<componentPackage>");
     for (ConfigClass configClass : sourceConfigClasses) {
-      out.printf("  <component class=\"%s\"/>%n", configClass.getFullName());
-//      out.printf("  <component %s/>%n", configClass.getType().isCreatedViaConfigObject()
-//              ? String.format("class=\"%s\"", configClass.getFullName())
-//              : String.format("id=\"%s\" class=\"%s\"", configClass.getName(), configClass.getComponentClassName()));
+      out.printf("  <component %s/>%n", configClass.getType().isCreatedViaConfigObject()
+              ? String.format("class=\"%s\"", configClass.getFullName())
+              : String.format("id=\"%s\" class=\"%s\"", configClass.getName(), configClass.getComponentClassName()));
     }
     out.println("</componentPackage>");
     out.close();
