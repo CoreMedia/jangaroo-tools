@@ -25,6 +25,10 @@ public class ComponentPackageModel {
     element2class.put(localName, classQName);
   }
 
+  public void add(ComponentPackageModel componentPackageModel) {
+    element2class.putAll(componentPackageModel.element2class);
+  }
+
   public String getClassName(String localName) {
     return element2class.get(localName);
   }

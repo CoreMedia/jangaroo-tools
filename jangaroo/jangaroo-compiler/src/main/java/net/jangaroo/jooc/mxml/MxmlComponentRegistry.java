@@ -3,7 +3,6 @@ package net.jangaroo.jooc.mxml;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * A global registry for MXML namespaces that map elements to ActionScript class names.
@@ -30,7 +29,13 @@ public class MxmlComponentRegistry {
   }
 
   public void add(ComponentPackageModel componentPackageModel) {
-    registry.put(componentPackageModel.getNamespace(), componentPackageModel);
+    String namespace = componentPackageModel.getNamespace();
+    ComponentPackageModel existingComponentPackageModel = registry.get(namespace);
+    if (existingComponentPackageModel != null) {
+      existingComponentPackageModel.add(componentPackageModel);
+    } else {
+      registry.put(namespace, componentPackageModel);
+    }
   }
 
   public Collection<ComponentPackageModel> getComponentPackageModels() {
