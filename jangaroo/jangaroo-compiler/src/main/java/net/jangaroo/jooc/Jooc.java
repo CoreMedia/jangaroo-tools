@@ -211,11 +211,13 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
       } else {
         componentPackageManifestInputSource = new FileInputSource(componentPackageManifest, false);
       }
-      InputStream manifestInputStream = componentPackageManifestInputSource.getInputStream();
-      ComponentPackageModel componentPackageModel =
-              new ComponentPackageManifestParser(namespace.getUri()).parse(manifestInputStream);
-      getMxmlComponentRegistry().add(componentPackageModel);
-      localMxmlComponentRegistry.add(componentPackageModel);
+      if (componentPackageManifestInputSource != null) {
+        InputStream manifestInputStream = componentPackageManifestInputSource.getInputStream();
+        ComponentPackageModel componentPackageModel =
+                new ComponentPackageManifestParser(namespace.getUri()).parse(manifestInputStream);
+        getMxmlComponentRegistry().add(componentPackageModel);
+        localMxmlComponentRegistry.add(componentPackageModel);
+      }
     }
     File catalogOutputDirectory = getConfig().getCatalogOutputDirectory();
     if (catalogOutputDirectory != null && !localMxmlComponentRegistry.getComponentPackageModels().isEmpty()) {
