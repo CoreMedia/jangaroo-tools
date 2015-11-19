@@ -10,7 +10,10 @@
 
     public native function TestLabel(config:testNamespace.config.testLabel = null);
   ]]></fx:Script>
-  <cfg:testLabel id="config"/>
+  <fx:Metadata>[DefaultProperty("config")]</fx:Metadata>
+  <fx:Declarations>
+    <cfg:testLabel id="config"/>
+  </fx:Declarations>
 
   <label text="{config.propertyOne}"/>
 </extends:Label>

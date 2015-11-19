@@ -10,7 +10,10 @@
 
     public native function TestComponent2(config:testNamespace.config.testComponent2 = null);
   ]]></fx:Script>
-  <test:testComponent2 id="config"/>
+  <fx:Metadata>[DefaultProperty("config")]</fx:Metadata>
+  <fx:Declarations>
+    <test:testComponent2 id="config"/>
+  </fx:Declarations>
   <test:testComponent>
     <test:items>
       <test:testComponent2 propertyThree="3"/>

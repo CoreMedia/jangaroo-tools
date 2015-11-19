@@ -108,9 +108,10 @@ public class ExmlToMxml {
     out.println("<?xml version=\"1.0\"?>");
     out.println("<componentPackage>");
     for (ConfigClass configClass : sourceConfigClasses) {
-      out.printf("  <component %s/>%n", configClass.getType().isCreatedViaConfigObject()
-              ? String.format("class=\"%s\"", configClass.getFullName())
-              : String.format("id=\"%s\" class=\"%s\"", configClass.getName(), configClass.getComponentClassName()));
+      out.printf("  <component class=\"%s\"/>%n", configClass.getFullName());
+      if (configClass.getType().getType() == null) {
+        out.printf("  <component %s/>%n", String.format("id=\"%s\" class=\"%s\"", CompilerUtils.className(configClass.getComponentClassName()), configClass.getComponentClassName()));
+      }
     }
     out.println("</componentPackage>");
     out.close();
@@ -234,13 +235,20 @@ public class ExmlToMxml {
         printConstructorAndConfigAndVars();
         closeScript();
       }
-      boolean isPropertyElement = !elementPath.isEmpty() && elementPath.size() % 2 == 0;
+      boolean isSubElement = elementPath.size() > 1;
+      boolean isPropertyElement = isSubElement && elementPath.size() % 2 == 0;
       if (isPropertyElement) {
         String lastQName = elementPath.peek();
         if (lastQName != null) {
           String[] parts = lastQName.split(":");
           String prefix = parts.length == 1 ? "" : parts[0] + ":";
           qName = prefix + localName;
+        }
+      } else if (isSubElement) {
+        String wrappingElementQName = getWrappingElementQName(uri, qName);
+        if (wrappingElementQName != null) {
+          flush();
+          currentOut.printf("<%s>", wrappingElementQName);
         }
       }
       if (qName != null && currentVarName != null) {
@@ -313,10 +321,12 @@ public class ExmlToMxml {
       }
       currentOut.printf("    public native function %s(config:%s = null);%n", exmlModel.getClassName(), configClassQName);
       closeScript();
+      currentOut.printf("%n  <fx:Metadata>[DefaultProperty(\"config\")]</fx:Metadata>");
       String configElementQName = String.format("%s:%s", configClassPrefix, configClassName);
-      currentOut.printf("%n  <%s", configElementQName);
+      currentOut.printf("%n  <fx:Declarations>");
+      currentOut.printf("%n    <%s", configElementQName);
       Map<String, String> configDefaultValues = getConfigDefaultValues();
-      printAttributes(configDefaultValues, "  < ".length() + configElementQName.length());
+      printAttributes(configDefaultValues, "    < ".length() + configElementQName.length());
       this.configDefaultValues = null;
       if (configDefaultSubElements.isEmpty()) {
         currentOut.print("/>");
@@ -324,17 +334,18 @@ public class ExmlToMxml {
         currentOut.print(">");
         for (Map.Entry<String, String> configDefaultSubElement : configDefaultSubElements.entrySet()) {
           String propertyQName = String.format("%s:%s", configClassPrefix, configDefaultSubElement.getKey());
-          currentOut.printf("%n    <%s>%n      %s%n    </%s>", propertyQName,
+          currentOut.printf("%n     <%s>%n      %s%n     </%s>", propertyQName,
                   configDefaultSubElement.getValue(), propertyQName);
         }
-        currentOut.printf("%n  </%s>", configElementQName);
+        currentOut.printf("%n    </%s>", configElementQName);
         configDefaultSubElements.clear();
       }
       for (Declaration var : vars) {
         if (varsWithXmlValue.contains(var.getName())) {
-          currentOut.printf("%n  %s", var.getValue());
+          currentOut.printf("%n    %s", var.getValue());
         }
       }
+      currentOut.printf("%n  </fx:Declarations>");
     }
 
     private void openScript() {
@@ -525,7 +536,7 @@ public class ExmlToMxml {
       String publicApiValue = atts.getValue(Exmlc.EXML_PUBLIC_API_ATTRIBUTE);
       if (publicApiValue != null && !publicApiValue.isEmpty()) {
         PublicApiMode publicApiMode = Exmlc.parsePublicApiMode(publicApiValue);
-        if (publicApiMode != PublicApiMode.FALSE) {
+        if (publicApiMode == PublicApiMode.TRUE) {
           isPublicApi = true;
         }
       }
@@ -578,6 +589,12 @@ public class ExmlToMxml {
           }
           currentOut.printf("</%s>", qName);
         }
+        if (elementPath.size() > 1 && elementPath.size() % 2 == 1) {
+          String wrappingElementQName = getWrappingElementQName(uri, qName);
+          if (wrappingElementQName != null) {
+            currentOut.printf("</%s>", wrappingElementQName);
+          }
+        }
       }
       insideExmlObject = false; // <exml:object>s cannot be nested.
       startRecordingCharacters();
@@ -602,6 +619,22 @@ public class ExmlToMxml {
         }
       }
       lastColumn = locator.getColumnNumber();
+    }
+
+    private String getWrappingElementQName(String uri, String qName) {
+      String packageName = ExmlUtils.parsePackageFromNamespace(uri);
+      if (packageName != null) {
+        String[] prefixAndLocalName = parsePrefixAndLocalName(qName);
+        String configClassName = CompilerUtils.qName(packageName, prefixAndLocalName[1]);
+        ConfigClass configClass = configClassRegistry.getConfigClassByName(configClassName);
+        if (configClass != null && configClass.getType().getType() == null) {
+          String targetClassName = configClass.getComponentClassName();
+          if (targetClassName != null) {
+            return formatQName(prefixAndLocalName[0], CompilerUtils.className(targetClassName));
+          }
+        }
+      }
+      return null;
     }
 
     @Override
@@ -675,9 +708,20 @@ public class ExmlToMxml {
       }
       startRecordingCharacters();
     }
+  }
 
-    private String convertNewLines(String output) {
-      return output.replaceAll("\n", System.getProperty("line.separator"));
-    }
+  private static String convertNewLines(String output) {
+    return output.replaceAll("\n", System.getProperty("line.separator"));
+  }
+
+  private static String[] parsePrefixAndLocalName(String qName) {
+    int colonPos = qName.indexOf(':');
+    String prefix = colonPos == -1 ? "" : qName.substring(0, colonPos);
+    String localName = qName.substring(colonPos + 1);
+    return new String[]{prefix, localName};
+  }
+
+  private static String formatQName(String prefix, String localName) {
+    return prefix == null || prefix.isEmpty() ? localName : String.format("%s:%s", prefix, localName);
   }
 }

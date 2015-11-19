@@ -10,7 +10,10 @@
 
     public native function TestComponentWithConfigModes(config:testNamespace.config.testComponentWithConfigModes = null);
   ]]></fx:Script>
-  <test:testComponentWithConfigModes id="config"/>
+  <fx:Metadata>[DefaultProperty("config")]</fx:Metadata>
+  <fx:Declarations>
+    <test:testComponentWithConfigModes id="config"/>
+  </fx:Declarations>
   <test:testComponent>
     <test:items exml:mode="append">
       <test:testComponent2 propertyThree="3"/>

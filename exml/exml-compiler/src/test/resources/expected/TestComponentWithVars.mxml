@@ -22,13 +22,17 @@
 
     public native function TestComponentWithVars(config:testNamespace.config.testComponentWithVars = null);
   ]]></fx:Script>
-  <cfg:testComponentWithVars id="config"/>
-  <button id="varWithXmlValue"
-               text="click me!"/>
-  <fx:Array id="varWithXmlArrayValue">
+  <fx:Metadata>[DefaultProperty("config")]</fx:Metadata>
+  <fx:Declarations>
+    <cfg:testComponentWithVars id="config"/>
+    <button id="varWithXmlValue"
+               text="click me!"
+               allowDepress="true"/>
+    <fx:Array id="varWithXmlArrayValue">
       <button text="click me 1!"/>
       <button text="click me 2!"/>
     </fx:Array>
+  </fx:Declarations>
 
   <panel title="{config.defaultTitle}"/>
 

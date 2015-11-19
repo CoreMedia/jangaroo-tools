@@ -11,7 +11,10 @@
 
     public native function TestPlugin(config:testNamespace.config.testPlugin = null);
   ]]></fx:Script>
-  <cfg:testPlugin id="config"/>
+  <fx:Metadata>[DefaultProperty("config")]</fx:Metadata>
+  <fx:Declarations>
+    <cfg:testPlugin id="config"/>
+  </fx:Declarations>
 
   <plugin/>
 </extends:Plugin>

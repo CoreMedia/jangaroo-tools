@@ -13,19 +13,22 @@
 
     public native function TestComponentWithCfgDefaults(config:testNamespace.config.testComponentWithCfgDefaults = null);
   ]]></fx:Script>
-  <cfg:testComponentWithCfgDefaults id="config"
-                                    propertyWithLiteralDefault="foobar"
-                                    propertyWithExpressionDefault="{'foo' + 'bar'}">
-    <cfg:propertyWithDefaultElement>
+  <fx:Metadata>[DefaultProperty("config")]</fx:Metadata>
+  <fx:Declarations>
+    <cfg:testComponentWithCfgDefaults id="config"
+                                      propertyWithLiteralDefault="foobar"
+                                      propertyWithExpressionDefault="{'foo' + 'bar'}">
+     <cfg:propertyWithDefaultElement>
       <button text="click me!"/>
-    </cfg:propertyWithDefaultElement>
-    <cfg:propertyWithDefaultElementUsingConfig>
+     </cfg:propertyWithDefaultElement>
+     <cfg:propertyWithDefaultElementUsingConfig>
       <button text="{config.title + '!'}"/>
-    </cfg:propertyWithDefaultElementUsingConfig>
-    <cfg:arrayPropertyWithDefaultElement>
+     </cfg:propertyWithDefaultElementUsingConfig>
+     <cfg:arrayPropertyWithDefaultElement>
       <button text="button1"/><button text="button2"/>
-    </cfg:arrayPropertyWithDefaultElement>
-  </cfg:testComponentWithCfgDefaults>
+     </cfg:arrayPropertyWithDefaultElement>
+    </cfg:testComponentWithCfgDefaults>
+  </fx:Declarations>
 
   <panel title="{config.defaultTitle}"/>
 

@@ -14,7 +14,8 @@
   <exml:var name="varWithXmlValue" type="button">
     <exml:description>Some var with a value specified as an EXML element.</exml:description>
     <exml:value>
-      <button text="click me!"/>
+      <button text="click me!"
+              allowDepress="true"/>
     </exml:value>
   </exml:var>
 

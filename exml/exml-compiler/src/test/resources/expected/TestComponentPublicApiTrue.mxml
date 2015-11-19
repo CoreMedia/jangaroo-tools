@@ -12,7 +12,10 @@
 
     public native function TestComponentPublicApiTrue(config:testNamespace.config.testComponentPublicApiTrue = null);
   ]]></fx:Script>
-  <cfg:testComponentPublicApiTrue id="config"/>
+  <fx:Metadata>[DefaultProperty("config")]</fx:Metadata>
+  <fx:Declarations>
+    <cfg:testComponentPublicApiTrue id="config"/>
+  </fx:Declarations>
 
   <panel title="I am inside a package!">
     <items>

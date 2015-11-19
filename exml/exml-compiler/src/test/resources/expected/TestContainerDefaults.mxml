@@ -10,7 +10,10 @@
 
     public native function TestContainerDefaults(config:testNamespace.config.testContainerDefaults = null);
   ]]></fx:Script>
-  <test:testContainerDefaults id="config"/>
+  <fx:Metadata>[DefaultProperty("config")]</fx:Metadata>
+  <fx:Declarations>
+    <test:testContainerDefaults id="config"/>
+  </fx:Declarations>
   <container>
     <defaults>
       <button text="it works!"/>

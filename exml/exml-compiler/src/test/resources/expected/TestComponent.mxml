@@ -13,7 +13,10 @@
 
     public native function TestComponent(config:testNamespace.config.testComponent = null);
   ]]></fx:Script>
-  <cfg:testComponent id="config"/>
+  <fx:Metadata>[DefaultProperty("config")]</fx:Metadata>
+  <fx:Declarations>
+    <cfg:testComponent id="config"/>
+  </fx:Declarations>
 
   <panel title="I am inside a package!">
     <items>
