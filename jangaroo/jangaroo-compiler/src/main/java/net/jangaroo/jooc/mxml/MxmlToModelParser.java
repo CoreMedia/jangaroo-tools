@@ -414,46 +414,52 @@ public final class MxmlToModelParser {
   private List<Object> parseChildObjects(List<Element> elements) throws IOException {
     List<Object> childObjects = new ArrayList<Object>();
     for (Element arrayItemNode : elements) {
-      String configClassName = createClassNameFromNode(arrayItemNode);
-      if (configClassName == null) {
-        throw new CompilerError(String.format("Cannot derive class name from <%s:%s>.", arrayItemNode.getNamespaceURI(), arrayItemNode.getLocalName()));
-      }
-      Object value;
-      if ("Object".equals(configClassName)) {
-        value = parseExmlObjectNode(arrayItemNode);
-      } else {
-        CompilationUnitModel configClass = getCompilationUnitModel(configClassName);
-
-        JsonObject arrayItemJsonObject = new JsonObject();
-        ExtConfigAnnotation extConfigAnnotation = getExtConfigAnnotation(configClass);
-        if (extConfigAnnotation != null) {
-          if (extConfigAnnotation.typeKey != null && EXT_CONFIG_PACKAGE.equals(configClass.getPackage())) {
-            // Ext classes are always loaded. We can use the type string directly.
-            arrayItemJsonObject.set(extConfigAnnotation.typeKey, extConfigAnnotation.typeValue);
-          } else if (extConfigAnnotation.typeKey != null && !"gctype".equals(extConfigAnnotation.typeKey)) {
-            arrayItemJsonObject.settingWrapperClass(configClass.getQName());
-            compilationUnitModel.addImport(configClass.getQName());
-            compilationUnitModel.addImport(extConfigAnnotation.target);
-          } else {
-            // Everything not a component, plugin or layout must be created immediately
-            // by using net.jangaroo.ext.create() with its configClass and the config:
-            arrayItemJsonObject.settingConfigClass(configClass.getQName());
-            compilationUnitModel.addImport(configClass.getQName());
-            compilationUnitModel.addImport(extConfigAnnotation.target);
-            compilationUnitModel.addImport(JsonObject.NET_JANGAROO_EXT_CREATE);
-          }
-        } else {
-          // TODO: handle non-config-class
-        }
-
-        fillModelAttributes(arrayItemJsonObject, arrayItemNode);
-        value = arrayItemJsonObject;
-      }
+      Object value = parseChildObject(arrayItemNode);
       if (value != null) {
         childObjects.add(value);
       }
     }
     return childObjects;
+  }
+
+  private Object parseChildObject(Element arrayItemNode) throws IOException {
+    Object value;
+    String className = createClassNameFromNode(arrayItemNode);
+    if (className == null) {
+      throw new CompilerError(String.format("Cannot derive class name from <%s:%s>.", arrayItemNode.getNamespaceURI(), arrayItemNode.getLocalName()));
+    }
+    if ("Object".equals(className)) {
+      value = parseExmlObjectNode(arrayItemNode);
+    } else {
+      CompilationUnitModel configClass = getCompilationUnitModel(className);
+
+      JsonObject arrayItemJsonObject = new JsonObject();
+      ExtConfigAnnotation extConfigAnnotation = getExtConfigAnnotation(configClass);
+      if (extConfigAnnotation != null) {
+        if (extConfigAnnotation.typeKey != null && EXT_CONFIG_PACKAGE.equals(configClass.getPackage())) {
+          // Ext classes are always loaded. We can use the type string directly.
+          arrayItemJsonObject.set(extConfigAnnotation.typeKey, extConfigAnnotation.typeValue);
+        } else if (extConfigAnnotation.typeKey != null && !"gctype".equals(extConfigAnnotation.typeKey)) {
+          arrayItemJsonObject.settingWrapperClass(configClass.getQName());
+          compilationUnitModel.addImport(configClass.getQName());
+          compilationUnitModel.addImport(extConfigAnnotation.target);
+        } else {
+          // Everything not a component, plugin or layout must be created immediately
+          // by using net.jangaroo.ext.create() with its configClass and the config:
+          arrayItemJsonObject.settingConfigClass(configClass.getQName());
+          compilationUnitModel.addImport(configClass.getQName());
+          compilationUnitModel.addImport(extConfigAnnotation.target);
+          compilationUnitModel.addImport(JsonObject.NET_JANGAROO_EXT_CREATE);
+        }
+      } else if (arrayItemNode.getFirstChild() instanceof Element){
+        // handle non-config-class: for now, ignore and delegate to contained config element.
+        return parseChildObject((Element) arrayItemNode.getFirstChild());
+      }
+
+      fillModelAttributes(arrayItemJsonObject, arrayItemNode);
+      value = arrayItemJsonObject;
+    }
+    return value;
   }
 
   private Object parseExmlObjectNode(Node exmlObjectNode) {
@@ -487,16 +493,11 @@ public final class MxmlToModelParser {
   private Element createFields(Element objectNode) throws IOException {
     ClassModel classModel = compilationUnitModel.getClassModel();
     Element superConfigElement = null;
-    for (Element element : MxmlUtils.getChildElements(objectNode)) {
-      if (MxmlUtils.isMxmlNamespace(element.getNamespaceURI())) {
-        String elementName = element.getLocalName();
-        if (MXML_DECLARATIONS.equals(elementName)) {
-          for (Element declaration : MxmlUtils.getChildElements(element)) {
-            createValue(declaration);
-          }
-          continue;
-        } else if (MXML_SCRIPT.equals(elementName)) {
-          String scriptCode = getTextContent(element);
+    for (Element topLevelElement : MxmlUtils.getChildElements(objectNode)) {
+      if (MxmlUtils.isMxmlNamespace(topLevelElement.getNamespaceURI())) {
+        String elementName = topLevelElement.getLocalName();
+        if (MXML_SCRIPT.equals(elementName)) {
+          String scriptCode = getTextContent(topLevelElement);
           // parse private vars and constructor params from script code, so that MXML elements with id
           // can be assigned to these existing variables instead of defining new fields:
           if (configParamModel == null) {
@@ -515,31 +516,33 @@ public final class MxmlToModelParser {
           }
 
           classModel.addBodyCode(scriptCode);
-          continue;
         } else if (MXML_METADATA.equals(elementName)) {
-          classModel.addAnnotationCode(getTextContent(element));
-          continue;
-        }
-        // else it must be a top-level type, treat like any other element.
-      }
-      String elementClassName = createClassNameFromNode(element);
-      String id = element.getAttribute(MXML_ID_ATTRIBUTE);
-      if (id.isEmpty()) {
-        superConfigElement = element;
-      } else {
-        compilationUnitModel.addImport(elementClassName);
-        if (configParamModel != null && configParamModel.getName().equals(id)) {
-          // TODO: check consistency of configParamMode.getType() and elementClassName!
-          cfgDefaults = new JsonObject();
-          fillModelAttributes(cfgDefaults, element);
-        } else {
-          Json valueJsonObject = createValue(element);
-          if (privateVars.containsKey(id)) {
-            privateVars.put(id, valueJsonObject);
-          } else {
-            classModel.addMember(new FieldModel(id, elementClassName, valueJsonObject.toString(2, 4)));
+          classModel.addAnnotationCode(getTextContent(topLevelElement));
+        } else if (MXML_DECLARATIONS.equals(elementName)) {
+          for (Element element : MxmlUtils.getChildElements(topLevelElement)) {
+            String elementClassName = createClassNameFromNode(element);
+            String id = element.getAttribute(MXML_ID_ATTRIBUTE);
+            if (id.isEmpty()) {
+              Jooc.warning("<fx:Declarations> sub-element should have attribute 'id'.");
+            } else {
+              compilationUnitModel.addImport(elementClassName);
+              if (configParamModel != null && configParamModel.getName().equals(id)) {
+                // TODO: check consistency of configParamMode.getType() and elementClassName!
+                cfgDefaults = new JsonObject();
+                fillModelAttributes(cfgDefaults, element);
+              } else {
+                Json valueJsonObject = createValue(element);
+                if (privateVars.containsKey(id)) {
+                  privateVars.put(id, valueJsonObject);
+                } else {
+                  classModel.addMember(new FieldModel(id, elementClassName, valueJsonObject.toString(2, 4)));
+                }
+              }
+            }
           }
         }
+      } else {
+        superConfigElement = topLevelElement;
       }
     }
     return superConfigElement;

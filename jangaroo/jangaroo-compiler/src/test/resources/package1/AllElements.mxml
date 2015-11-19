@@ -2,12 +2,12 @@
 <!---
  This is my <b>TestComponent</b>
 -->
-<baseClass:Panel
+<ext:Panel
            xmlns:fx="http://ns.adobe.com/mxml/2009"
            xmlns:exml="http://www.jangaroo.net/exml/0.8"
            xmlns="ext.config.*"
            xmlns:cfg="exmlparser.config.*"
-           xmlns:baseClass="ext.*">
+           xmlns:ext="ext.*">
 
   <fx:Script><![CDATA[
     /* add an extra import statement to the class */
@@ -41,18 +41,19 @@
     public native function AllElements(config:exmlparser.config.allElements = null);
     ]]></fx:Script>
 
-  <cfg:allElements id="config" myProperty="My Property!">
-    <cfg:myPropertyWithDescription>false</cfg:myPropertyWithDescription>
-  </cfg:allElements>
-
-  <button id="myVar3"
-          text="Foo"/>
-
-  <fx:Array id="myVar4">
-    <fx:Object header="a" sortable="false" menuDisabled="true"/>
-    <fx:Object header="b" sortable="true" menuDisabled="false"/>
-  </fx:Array>
-
+  <fx:Declarations>
+    <cfg:allElements id="config" myProperty="My Property!">
+      <cfg:myPropertyWithDescription>false</cfg:myPropertyWithDescription>
+    </cfg:allElements>
+  
+    <button id="myVar3"
+            text="Foo"/>
+  
+    <fx:Array id="myVar4">
+      <fx:Object header="a" sortable="false" menuDisabled="true"/>
+      <fx:Object header="b" sortable="true" menuDisabled="false"/>
+    </fx:Array>
+  </fx:Declarations>
   <!-- superclass of the the component with attributes-->
   <panel title="I am a panel" layout="{config.myLayout}">
     <!-- define some attributes through a typed mixin: -->
@@ -61,7 +62,7 @@
         <someList exml:mode="append">
           <button text="click me!" extId="myId">
             <baseAction>
-              <action/>
+              <ext:Action><action/></ext:Action>
             </baseAction>
           </button>
         </someList>
@@ -122,4 +123,4 @@
     </plugins>
 
   </panel>
-</baseClass:Panel>
+</ext:Panel>
