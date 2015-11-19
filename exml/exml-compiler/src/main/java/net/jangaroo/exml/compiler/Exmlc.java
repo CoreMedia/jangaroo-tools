@@ -125,7 +125,6 @@ public final class Exmlc implements net.jangaroo.exml.api.Exmlc {
     return result;
   }
 
-  @Override
   public File[] convertAllExmlToMxml() {
     return new ExmlToMxml(configClassRegistry).convert();
   }

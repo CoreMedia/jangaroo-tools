@@ -96,6 +96,4 @@ public interface Exmlc {
   void generateAllComponentClasses();
 
   File generateXsd();
-
-  File[] convertAllExmlToMxml();
 }
