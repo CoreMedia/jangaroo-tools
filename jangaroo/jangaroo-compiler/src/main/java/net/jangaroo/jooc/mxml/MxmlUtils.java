@@ -96,8 +96,7 @@ public class MxmlUtils {
   }
 
   public static String parsePackageFromNamespace(String uri) {
-    return uri.startsWith(Exmlc.EXML_CONFIG_URI_PREFIX) ? uri.substring(Exmlc.EXML_CONFIG_URI_PREFIX.length())
-            : uri.endsWith(".*") ? uri.substring(0, uri.length() -2)
+    return uri.endsWith(".*") ? uri.substring(0, uri.length() -2)
             : uri.equals("*") || isMxmlNamespace(uri) ? "" : null;
   }
 
