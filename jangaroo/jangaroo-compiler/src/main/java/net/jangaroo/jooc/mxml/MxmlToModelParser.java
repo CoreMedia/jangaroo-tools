@@ -451,9 +451,12 @@ public final class MxmlToModelParser {
           compilationUnitModel.addImport(extConfigAnnotation.target);
           compilationUnitModel.addImport(JsonObject.NET_JANGAROO_EXT_CREATE);
         }
-      } else if (arrayItemNode.getFirstChild() instanceof Element){
+      } else {
         // handle non-config-class: for now, ignore and delegate to contained config element.
-        return parseChildObject((Element) arrayItemNode.getFirstChild());
+        List<Element> childElements = MxmlUtils.getChildElements(arrayItemNode);
+        if (childElements.size() == 1){
+          return parseChildObject(childElements.get(0));
+        }
       }
 
       fillModelAttributes(arrayItemJsonObject, arrayItemNode);

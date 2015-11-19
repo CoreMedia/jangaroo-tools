@@ -62,7 +62,9 @@
         <someList exml:mode="append">
           <button text="click me!" extId="myId">
             <baseAction>
-              <ext:Action><action/></ext:Action>
+              <ext:Action>
+                <action/>
+              </ext:Action>
             </baseAction>
           </button>
         </someList>
