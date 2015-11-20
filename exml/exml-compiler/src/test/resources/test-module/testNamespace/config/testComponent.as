@@ -16,7 +16,7 @@ import ext.config.panel;
  * @see ext.Panel
  */
 [ExtConfig(target="testPackage.TestComponent", xtype)]
-public dynamic class testComponent extends ext.config.panel {
+public class testComponent extends ext.config.panel {
 
   public static native function get xtype():String;
 

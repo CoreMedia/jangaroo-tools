@@ -26,7 +26,7 @@ import ${import};
 <#list annotations as annotation>
 [${annotation}]
 </#list>
-public dynamic class ${name} extends ${superClassName} {
+public class ${name} extends ${superClassName} {
 <#list constants as constant>
   /**
    * ${constant.escapedDescription!}
