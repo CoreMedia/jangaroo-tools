@@ -1,7 +1,6 @@
 package net.jangaroo.jooc.mvnplugin;
 
 import net.jangaroo.jooc.config.JoocConfiguration;
-import net.jangaroo.jooc.config.NamespaceConfiguration;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
@@ -83,7 +82,7 @@ public class CompilerMojo extends AbstractCompilerMojo {
   }
 
   protected List<File> getCompileSourceRoots() {
-    return Arrays.asList(sourceDirectory,getGeneratedSourcesDirectory());
+    return Arrays.asList(getSourceDirectory(), getGeneratedSourcesDirectory());
   }
 
   protected File getOutputDirectory() {
