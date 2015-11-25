@@ -26,6 +26,6 @@ public dynamic class JavaScriptObject {
    * It is recommended to use a typed mixin config object in favor of using
    * dynamic attributes.
    */
-  public native function set mixins(mixins:Array):void;
+  public native function set mixins(mixins:Object):void;
 }
 }
