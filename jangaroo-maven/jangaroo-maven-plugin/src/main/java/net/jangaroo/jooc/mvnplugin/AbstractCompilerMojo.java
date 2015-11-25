@@ -37,7 +37,7 @@ import java.util.Set;
  * Super class for mojos compiling Jangaroo sources.
  */
 @SuppressWarnings({"UnusedDeclaration", "UnusedPrivateField"})
-public abstract class AbstractCompilerMojo extends JangarooMojo {
+public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
   private static final String JANGAROO_GROUP_ID = "net.jangaroo";
   private static final String EXML_MAVEN_PLUGIN_ARTIFACT_ID = "exml-maven-plugin";
 
@@ -121,13 +121,6 @@ public abstract class AbstractCompilerMojo extends JangarooMojo {
   private String autoSemicolon;
 
   /**
-   * Source directory to scan for files to compile.
-   *
-   * @parameter expression="${project.build.sourceDirectory}"
-   */
-  protected File sourceDirectory;
-
-  /**
    * Output directory for all generated ActionScript3 files to compile.
    *
    * @parameter expression="${project.build.directory}/generated-sources/joo"
@@ -142,13 +135,6 @@ public abstract class AbstractCompilerMojo extends JangarooMojo {
    * @parameter
    */
   private File keepGeneratedActionScriptDirectory;
-
-  /**
-   * A list of custom MXML component namespaces.
-   *
-   * @parameter
-   */
-  private NamespaceConfiguration[] namespaces;
 
   /**
    * Output directory into which to generate an SWC-compatible catalog.xml generated
@@ -306,8 +292,8 @@ public abstract class AbstractCompilerMojo extends JangarooMojo {
     configuration.setApiOutputDirectory(getApiOutputDirectory());
 
     List<NamespaceConfiguration> allNamespaces = new ArrayList<NamespaceConfiguration>();
-    if (namespaces != null) {
-      allNamespaces.addAll(Arrays.asList(namespaces));
+    if (getNamespaces() != null) {
+      allNamespaces.addAll(Arrays.asList(getNamespaces()));
     }
     String configClassPackage = findConfigClassPackageInExmlPluginConfiguration();
     if (configClassPackage != null) {

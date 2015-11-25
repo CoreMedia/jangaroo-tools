@@ -1,6 +1,7 @@
 package net.jangaroo.exml.compiler;
 
 import net.jangaroo.exml.api.ExmlcException;
+import net.jangaroo.exml.generator.MxmlLibraryManifestGenerator;
 import net.jangaroo.exml.model.AnnotationAt;
 import net.jangaroo.exml.model.ConfigClass;
 import net.jangaroo.exml.model.ConfigClassRegistry;
@@ -25,7 +26,6 @@ import org.xml.sax.ext.LexicalHandler;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -54,7 +54,7 @@ public class ExmlToMxml {
 
   public File[] convert() {
     try {
-      createManifestFile();
+      new MxmlLibraryManifestGenerator(configClassRegistry).createManifestFile();
     } catch (IOException e) {
       throw new ExmlcException("Unable to create manifest.xml file: " + e.getMessage(), e);
     }
@@ -96,26 +96,6 @@ public class ExmlToMxml {
       }
     }
     return mxmlFiles.toArray(new File[mxmlFiles.size()]);
-  }
-
-  private File createManifestFile() throws FileNotFoundException, UnsupportedEncodingException {
-    // create catalog.xml component library:
-    File outputFile = new File(configClassRegistry.getConfig().getOutputDirectory(), "manifest.xml");
-    System.out.printf("Creating manifest file %s...%n", outputFile.getPath());
-    PrintStream out = new PrintStream(new FileOutputStream(outputFile), true, net.jangaroo.exml.api.Exmlc.OUTPUT_CHARSET);
-
-    Collection<ConfigClass> sourceConfigClasses = configClassRegistry.getSourceConfigClasses();
-    out.println("<?xml version=\"1.0\"?>");
-    out.println("<componentPackage>");
-    for (ConfigClass configClass : sourceConfigClasses) {
-      out.printf("  <component class=\"%s\"/>%n", configClass.getFullName());
-      if (configClass.getType().getType() == null) {
-        out.printf("  <component %s/>%n", String.format("id=\"%s\" class=\"%s\"", CompilerUtils.className(configClass.getComponentClassName()), configClass.getComponentClassName()));
-      }
-    }
-    out.println("</componentPackage>");
-    out.close();
-    return outputFile;
   }
 
   private File exmlToMxml(ExmlSourceFile exmlSourceFile) throws IOException, SAXException {
