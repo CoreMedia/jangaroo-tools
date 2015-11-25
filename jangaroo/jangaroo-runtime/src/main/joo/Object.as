@@ -1,5 +1,5 @@
 /**
- * API and documentation by Adobe®.
+ * API and documentation by Adobeï¿½.
  * Licensed under http://creativecommons.org/licenses/by-nc-sa/3.0/
  */
 package {
@@ -51,6 +51,9 @@ package {
  */
 [Native]
 public dynamic class Object {
+
+  public static native function defineProperty(object:Object, property:String, configuration:Object);
+
   /**
    * A reference to the class object or constructor function for a given object instance. If an object is an instance of a class, the <code>constructor</code> property holds a reference to the class object. If an object is created with a constructor function, the <code>constructor</code> property holds a reference to the constructor function. Do not confuse a constructor function with a constructor method of a class. A constructor function is a Function object used to create objects, and is an alternative to using the <code>class</code> keyword for defining classes.
    * <p>If you use the <code>class</code> keyword to define a class, the class's prototype object is assigned a property named <code>constructor</code> that holds a reference to the class object. An instance of the class inherits this property from the prototype object. For example, the following code creates a new class, <code>A</code>, and a class instance named <code>myA</code>:</p>
@@ -90,13 +93,13 @@ public dynamic class Object {
   /**
    * Indicates whether an object has a specified property defined. This method returns <code>true</code> if the target object has a property that matches the string specified by the <code>name</code> parameter, and <code>false</code> otherwise. The following types of properties cause this method to return <code>true</code> for objects that are instances of a class (as opposed to class objects):
    * <ul>
-   * <li>Fixed instance properties—variables, constants, or methods defined by the object's class that are not static;</li>
-   * <li>Inherited fixed instance properties—variables, constants, or methods inherited by the object's class;</li>
-   * <li>Dynamic properties—properties added to an object after it is instantiated (outside of its class definition). To add dynamic properties, the object's defining class must be declared with the <code>dynamic</code> keyword.</li></ul>
+   * <li>Fixed instance propertiesï¿½variables, constants, or methods defined by the object's class that are not static;</li>
+   * <li>Inherited fixed instance propertiesï¿½variables, constants, or methods inherited by the object's class;</li>
+   * <li>Dynamic propertiesï¿½properties added to an object after it is instantiated (outside of its class definition). To add dynamic properties, the object's defining class must be declared with the <code>dynamic</code> keyword.</li></ul>
    * <p>The following types of properties cause this method to return <code>false</code> for objects that are instances of a class:</p>
    * <ul>
-   * <li>Static properties—variables, constants, or methods defined with the static keyword in an object's defining class or any of its superclasses;</li>
-   * <li>Prototype properties—properties defined on a prototype object that is part of the object's prototype chain. In ActionScript 3.0, the prototype chain is not used for class inheritance, but still exists as an alternative form of inheritance. For example, an instance of the Array class can access the <code>valueOf()</code> method because it exists on <code>Object.prototype</code>, which is part of the prototype chain for the Array class. Although you can use <code>valueOf()</code> on an instance of Array, the return value of <code>hasOwnProperty("valueOf")</code> for that instance is <code>false</code>.</li></ul>
+   * <li>Static propertiesï¿½variables, constants, or methods defined with the static keyword in an object's defining class or any of its superclasses;</li>
+   * <li>Prototype propertiesï¿½properties defined on a prototype object that is part of the object's prototype chain. In ActionScript 3.0, the prototype chain is not used for class inheritance, but still exists as an alternative form of inheritance. For example, an instance of the Array class can access the <code>valueOf()</code> method because it exists on <code>Object.prototype</code>, which is part of the prototype chain for the Array class. Although you can use <code>valueOf()</code> on an instance of Array, the return value of <code>hasOwnProperty("valueOf")</code> for that instance is <code>false</code>.</li></ul>
    * <p>ActionScript 3.0 also has class objects, which are direct representations of class definitions. When called on class objects, the <code>hasOwnProperty()</code> method returns <code>true</code> only if a property is a static property defined on that class object. For example, if you create a subclass of Array named CustomArray, and define a static property in CustomArray named <code>foo</code>, a call to <code>CustomArray.hasOwnProperty("foo")</code> returns <code>true</code>. For the static property <code>DESCENDING</code> defined in the Array class, however, a call to <code>CustomArray.hasOwnProperty("DESCENDING")</code> returns <code>false</code>.</p>
    * <p><b>Note:</b> Methods of the Object class are dynamically created on Object's prototype. To redefine this method in a subclass of Object, do not use the <code>override</code> keyword. For example, A subclass of Object implements <code>function hasOwnProperty():Boolean</code> instead of using an override of the base class.</p>
    * @param name The property of the object.

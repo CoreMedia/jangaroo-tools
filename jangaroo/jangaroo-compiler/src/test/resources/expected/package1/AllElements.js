@@ -56,7 +56,7 @@ import net.jangaroo.ext.Exml;*/
           sortable: true
         }
       ];
-       $1.Panel.call(this,/*exmlparser.config.allElements*/(net.jangaroo.ext.Exml.apply({
+      package1.AllElements.superclass.constructor.call(this,/*exmlparser.config.allElements*/(net.jangaroo.ext.Exml.apply({
         layout: config.myLayout,
         title: "I am a panel",
         someList: [{

@@ -307,10 +307,11 @@ public class JooClassDeclaration extends NativeClassDeclaration {
       constructor_['superclass'] = superClassDeclaration.Public.prototype; // Ext Core compatibility!
     }
     constructor_.prototype = Public.prototype;
-    // do not overwrite 'constructor' explicitly if this class is marked as a simple JavaScript object by inheriting from joo.JavaScriptObject!
-    if (!(Public.prototype instanceof JavaScriptObject)) {
-      Public.prototype['constructor'] = constructor_;
-    }
+    Object.defineProperty(Public.prototype, 'constructor', {
+      value: constructor_,
+      writable: true,
+      configurable: true
+    });
     constructor_.toString = jooClasstoString;
     // replace initializing constructor by the real one:
     package_[className] = this.constructor_ = constructor_;
@@ -318,7 +319,7 @@ public class JooClassDeclaration extends NativeClassDeclaration {
 
   private static function createSuperConstructor(classDeclaration:JooClassDeclaration):Function {
     return function generatedConstructor$():void {
-      classDeclaration.superClassDeclaration.constructor_.call(this);
+      classDeclaration.constructor_["superclass"].constructor.call(this);
     };
   }
 

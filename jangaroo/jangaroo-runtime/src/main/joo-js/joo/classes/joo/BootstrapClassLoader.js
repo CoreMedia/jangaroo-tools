@@ -143,6 +143,7 @@
         var $extends = classMatch[5];
         var constructor = {}; // also used for collecting static member
         var superConstructor = $extends ? joo.getQualifiedObject($extends) : Object;
+        constructor.superclass = superConstructor.prototype; // Ext Core compatibility
         var prototype = clone(superConstructor.prototype);
         prototype["super$" + inheritanceLevel] = superConstructor;
         var privateStatics = {};
@@ -172,6 +173,11 @@
               }
           }
         }
+        Object.defineProperty(prototype, "constructor", {
+          value: constructor,
+          writable: true,
+          configurable: true
+        });
         for (var s = 0; s < staticInitializers.length; s++) {
           staticInitializers[s]();
         }

@@ -1416,16 +1416,19 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       // built-in Error constructor called as function unfortunately always creates a new Error object, so we have to use emulation provided by Jangaroo Runtime:
       out.write("joo.Error");
     } else {
-      Ide superClassIde = classDeclaration.getSuperType().getIde();
-      out.writeSymbolWhitespace(superClassIde.getSymbol());
-      IdeDeclaration superClassDeclaration = superClassIde.getDeclaration();
-      String packageName = superClassDeclaration.getPackageDeclaration().getQualifiedNameStr();
-      String qName = superClassDeclaration.getName();
+      String packageName = classDeclaration.getPackageDeclaration().getQualifiedNameStr();
+      String qName = classDeclaration.getName();
       if (packageName.length() > 0) {
         String packageAuxVar = compilationUnit.getAuxVarForPackage(packageName);
-        qName = CompilerUtils.qName(packageAuxVar, qName);
+        if (packageAuxVar == null) {
+          // TODO: for some reason, the package aux var is not available. Investigate!
+          qName = classDeclaration.getQualifiedNameStr();
+        } else {
+          qName = CompilerUtils.qName(packageAuxVar, qName);
+        }
       }
       out.write(qName);
+      out.write(".superclass.constructor");
     }
     out.writeToken(".call");
     if (args == null) {
