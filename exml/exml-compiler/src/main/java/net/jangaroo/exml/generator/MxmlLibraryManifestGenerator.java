@@ -2,7 +2,6 @@ package net.jangaroo.exml.generator;
 
 import net.jangaroo.exml.model.ConfigClass;
 import net.jangaroo.exml.model.ConfigClassRegistry;
-import net.jangaroo.utils.CompilerUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -30,7 +29,7 @@ public class MxmlLibraryManifestGenerator {
     for (ConfigClass configClass : sourceConfigClasses) {
       out.printf("  <component class=\"%s\"/>%n", configClass.getFullName());
       if (configClass.getType().getType() == null) {
-        out.printf("  <component %s/>%n", String.format("id=\"%s\" class=\"%s\"", CompilerUtils.className(configClass.getComponentClassName()), configClass.getComponentClassName()));
+        out.printf("  <component %s/>%n", String.format("class=\"%s\"", configClass.getComponentClassName()));
       }
     }
     out.println("</componentPackage>");
