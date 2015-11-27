@@ -792,8 +792,12 @@ public class ExtAsApiGenerator {
       // all classes that already exist in the reference API must stay public API:
       for (ExtClass extClass : extClasses) {
         String jooClassName = getActionScriptName(extClass);
-        if (jooClassName != null && getReferenceDeclarations(jooClassName) != null) {
-          privateClasses.remove(extClass);
+        if (jooClassName != null) {
+          List<CompilationUnitModel> referenceDeclarations = getReferenceDeclarations(jooClassName);
+          if (referenceDeclarations != null && !referenceDeclarations.isEmpty()) {
+            System.out.printf(" (added 'private' API class %s because it appears in Ext 3.4 reference API as %s.)%n", extClass.name, referenceDeclarations.get(0).getQName());
+            privateClasses.remove(extClass);
+          }
         }
       }
     }
@@ -806,6 +810,14 @@ public class ExtAsApiGenerator {
     }
 
     extClasses.removeAll(privateClasses);
+
+    System.out.println("*****ADD TO JS-AS-NAME-MAPPING:");
+    for (ExtClass extClass : extClasses) {
+      if (getActionScriptName(extClass) == null) {
+        System.out.println(extClass.name + " = " + extClass.name.substring(0, 1).toLowerCase() + extClass.name.substring(1));
+      }
+    }
+    System.out.println("*****END ADD TO JS-AS-NAME-MAPPING:");
   }
 
   private static CompilationUnitModel getReferenceDeclaration(String jooClassName) {
@@ -837,10 +849,13 @@ public class ExtAsApiGenerator {
   private static void markPublic(Set<ExtClass> privateClasses, String extClassName) {
     ExtClass extClass = extJsApi.getExtClass(extClassName);
     if (privateClasses.remove(extClass)) {
-      System.err.println("*** marked public because it is a super class: " + extClass.name);
+      //System.err.println("*** marked public because it is a super class: " + extClass.name);
     }
     if (extClass.extends_ != null) {
       markPublic(privateClasses, extClass.extends_);
+    }
+    for (String mixin : extClass.mixins) {
+      markPublic(privateClasses, mixin);
     }
   }
 
@@ -848,7 +863,7 @@ public class ExtAsApiGenerator {
   private static String getActionScriptName(ExtClass extClass) {
     String normalizedClassName = jsAsNameMappingProperties.getProperty(extClass.name);
     if (normalizedClassName == null) {
-      System.err.println(String.format("Ext JS class name %s not mapped to AS.", extClass.name));
+      // System.err.println(String.format("Ext JS class name %s not mapped to AS.", extClass.name));
       // throw new IllegalStateException("unmapped class " + extClass.name);
       return null;
     }
