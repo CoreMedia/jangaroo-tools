@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<componentPackage>
+  <component class="Bar"/>
+  <component class="Foo"/>
+  <component class="bar"/>
+  <component class="comp"/>
+  <component class="foo"/>
+</componentPackage>

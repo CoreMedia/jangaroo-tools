@@ -15,7 +15,7 @@ import java.util.Set;
 /**
  *
  */
-public final class ConfigClass extends DescriptionHolder {
+public class ConfigClass extends DescriptionHolder {
 
   private ConfigClassRegistry configClassRegistry;
   private List<ConfigAttribute> cfgs = new ArrayList<ConfigAttribute>();

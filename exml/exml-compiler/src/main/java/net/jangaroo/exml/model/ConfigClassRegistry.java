@@ -34,7 +34,7 @@ import java.util.Set;
 /**
  *
  */
-public final class ConfigClassRegistry {
+public class ConfigClassRegistry {
   private Map<String, ConfigClass> configClassesByName = new HashMap<String, ConfigClass>();
 
   private ExmlConfiguration config;
