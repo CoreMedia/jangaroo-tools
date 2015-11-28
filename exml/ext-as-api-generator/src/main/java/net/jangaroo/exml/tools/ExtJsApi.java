@@ -46,7 +46,6 @@ public class ExtJsApi {
               member.static_ == isStatic &&
               !member.private_ &&
               (member.autodetected == null || !member.autodetected.containsKey("tagname")) &&
-              !"listeners".equals(member.name) &&
               !superclassNames.contains(member.owner) && (!isInterface || isPublicNonStaticMethodOrProperty(member))) {
         result.add(memberType.cast(member));
       }
