@@ -45,7 +45,7 @@ public class CompilationUnit extends NodeImplBase {
 
   private Set<String> dependencies = new LinkedHashSet<String>();
   private Set<CompilationUnit> dependenciesAsCompilationUnits = new LinkedHashSet<CompilationUnit>();
-  private Set<String> publicApiDependencies = new HashSet<String>();
+  private Set<String> publicApiDependencies = new LinkedHashSet<String>();
   private Set<String> usedBuiltIns = new LinkedHashSet<String>();
   private Scope scope;
   private Map<String, String> auxVarsByPackage = new LinkedHashMap<String, String>();

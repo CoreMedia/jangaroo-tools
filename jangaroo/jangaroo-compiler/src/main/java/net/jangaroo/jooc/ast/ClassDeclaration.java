@@ -27,6 +27,7 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -42,7 +43,7 @@ public class ClassDeclaration extends IdeDeclaration {
   private Extends optExtends;
   private Map<String, TypedIdeDeclaration> members = new LinkedHashMap<String, TypedIdeDeclaration>();
   private Map<String, TypedIdeDeclaration> staticMembers = new LinkedHashMap<String, TypedIdeDeclaration>();
-  private Set<String> classInit = new HashSet<String>();
+  private Set<String> classInit = new LinkedHashSet<String>();
   private ClassBody body;
   private FunctionDeclaration constructor = null;
   private Type thisType;
