@@ -58,11 +58,9 @@ public class MavenPluginHelper {
     if (staleMillis >= 0 && includes.isEmpty() && excludes.isEmpty()) {
       scanner = new StaleSourceScanner(staleMillis);
     } else {
-      if (includes.isEmpty()) {
-        includes.add("**/*" + inputFileSuffix);
-      }
-      scanner = staleMillis >= 0 ? new StaleSourceScanner(staleMillis, includes, excludes)
-              : new SimpleSourceInclusionScanner(includes, excludes);
+      Set<String> includesOrDefaults = includes.isEmpty() ? Collections.singleton("**/*" + inputFileSuffix) : includes;
+      scanner = staleMillis >= 0 ? new StaleSourceScanner(staleMillis, includesOrDefaults, excludes)
+              : new SimpleSourceInclusionScanner(includesOrDefaults, excludes);
     }
 
     log.debug("Using source inclusion scanner " + scanner);
