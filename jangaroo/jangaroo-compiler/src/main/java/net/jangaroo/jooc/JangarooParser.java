@@ -131,6 +131,11 @@ public class JangarooParser {
       } else {
         reader = new InputStreamReader(new BOMStripperInputStream(in.getInputStream()), "UTF-8");
       }
+    } catch (CompilerError e) {
+      String fileName = in.getPath();
+      int line = e.getSymbol() != null ? e.getSymbol().getLine() : -1;
+      int column = e.getSymbol() != null ? e.getSymbol().getColumn() : -1;
+      throw new CompilerError(new FilePositionImpl(fileName, line, column), e.getMessage(), e.getCause());
     } catch (IOException e) {
       throw new CompilerError("Cannot read input file: " + in.getPath(), e);
     } catch (SAXException e) {
@@ -315,25 +320,33 @@ public class JangarooParser {
   }
 
   private static class FilePositionImpl implements FilePosition {
-    private final File file;
+    private final String fileName;
+    private final int line;
+    private final int column;
 
     public FilePositionImpl(File file) {
-      this.file = file;
+      this(file.getAbsolutePath(), -1, -1);
+    }
+
+    public FilePositionImpl(String fileName, int line, int column) {
+      this.fileName = fileName;
+      this.line = line;
+      this.column = column;
     }
 
     @Override
     public String getFileName() {
-      return file.getAbsolutePath();
+      return fileName;
     }
 
     @Override
     public int getLine() {
-      return -1;
+      return line;
     }
 
     @Override
     public int getColumn() {
-      return -1;
+      return column;
     }
   }
 }

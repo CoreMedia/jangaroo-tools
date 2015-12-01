@@ -50,23 +50,24 @@ public class JoocTest {
     public void error(FilePosition position, String msg) {
       hasErrors = true;
       errors.add(msg);
-      System.out.println(position.getLine() + ";" + position.getColumn() + ": '" + msg);
+      System.out.println(String.format("[ERROR] %s (%d:%d): %s", position.getFileName(), position.getLine(), position.getColumn(), msg));
     }
 
     @Override
     public void error(String msg) {
       hasErrors = true;
+      System.out.println(String.format("[ERROR] %s", msg));
       errors.add(msg);
     }
 
     @Override
     public void warning(FilePosition position, String msg) {
-      System.out.println(msg);
+      System.out.println(String.format("[WARN ] %s (%d:%d): %s", position.getFileName(), position.getLine(), position.getColumn(), msg));
     }
 
     @Override
     public void warning(String msg) {
-      System.out.println(msg);
+      System.out.println(String.format("[WARN ] %s", msg));
     }
 
     @Override
@@ -253,6 +254,24 @@ public class JoocTest {
   @Test
   public void testSimpleMxml() throws Exception {
     assertCompilationResult("package1/AllElements", ".mxml");
+  }
+
+  @Test
+  public void testMxmlCannotResolveClass() throws Exception {
+    File sourceFile = getFile("/package1/ErrorCannotResolveClass.mxml");
+    config.addSourceFile(sourceFile);
+    jooc.run();
+    assertTrue("Expected error (cannot resolve class) did not occur",
+            testLog.hasError("Cannot resolve ActionScript class for node <foo:UnknownClass>."));
+  }
+
+  @Test
+  public void testMxmlUndefinedType() throws Exception {
+    File sourceFile = getFile("/package1/ErrorUndefinedType.mxml");
+    config.addSourceFile(sourceFile);
+    jooc.run();
+    assertTrue("Expected error (undefined type) did not occur",
+            testLog.hasError("Undefined type: ext.config.UnknownClass"));
   }
 
   @Test

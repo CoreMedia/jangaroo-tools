@@ -16,6 +16,7 @@ import java.util.Stack;
  */
 public class PreserveLineNumberHandler extends DefaultHandler {
   private static final String LINE_NUMBER_KEY_NAME = "lineNumber";
+  private static final String COLUMN_NUMBER_KEY_NAME = "columnNumber";
 
   private final Stack<Element> elementStack = new Stack<Element>();
   private final StringBuilder textBuffer = new StringBuilder();
@@ -25,6 +26,11 @@ public class PreserveLineNumberHandler extends DefaultHandler {
 
   public static int getLineNumber(Node node) {
     String lineStr = (String) node.getUserData(PreserveLineNumberHandler.LINE_NUMBER_KEY_NAME);
+    return lineStr == null ? -1 : Integer.parseInt(lineStr);
+  }
+
+  public static int getColumnNumber(Node node) {
+    String lineStr = (String) node.getUserData(PreserveLineNumberHandler.COLUMN_NUMBER_KEY_NAME);
     return lineStr == null ? -1 : Integer.parseInt(lineStr);
   }
 
@@ -46,6 +52,7 @@ public class PreserveLineNumberHandler extends DefaultHandler {
       el.setAttributeNS(attributes.getURI(i), attributes.getQName(i), attributes.getValue(i));
     }
     el.setUserData(LINE_NUMBER_KEY_NAME, String.valueOf(this.locator.getLineNumber()), null);
+    el.setUserData(COLUMN_NUMBER_KEY_NAME, String.valueOf(this.locator.getColumnNumber()), null);
     elementStack.push(el);
   }
 

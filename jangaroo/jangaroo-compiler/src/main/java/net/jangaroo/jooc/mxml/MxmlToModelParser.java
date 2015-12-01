@@ -4,6 +4,7 @@ import net.jangaroo.exml.api.Exmlc;
 import net.jangaroo.jooc.CompilerError;
 import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.Jooc;
+import net.jangaroo.jooc.api.FilePosition;
 import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.backend.ApiModelGenerator;
 import net.jangaroo.jooc.input.InputSource;
@@ -47,6 +48,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static net.jangaroo.jooc.util.PreserveLineNumberHandler.getColumnNumber;
 import static net.jangaroo.jooc.util.PreserveLineNumberHandler.getLineNumber;
 
 
@@ -198,10 +200,10 @@ public final class MxmlToModelParser {
         continue; // ignore "access" attribute here; it is handled by createFields().
       }
       String attributeValue = attribute.getValue();
-      MemberModel configAttribute = findPropertyModel(configClassModel.getClassModel(), attributeName);
+      MemberModel configAttribute = findPropertyModel(configClassModel.getClassModel(), attributeName, position(attribute));
       if (configAttribute != null) { 
         if (!configAttribute.isWritable()) {
-          throw new CompilerError("Attempt to assign read-only property " + attributeName);
+          throw new CompilerError(position(attribute), "Attempt to assign read-only property " + attributeName);
         }
         if (configAttribute.isProperty()) {
           Iterator<AnnotationModel> annotations = ((PropertyModel) configAttribute).getSetter().getAnnotations(EXT_CONFIG_META_NAME).iterator();
@@ -263,7 +265,7 @@ public final class MxmlToModelParser {
         continue;
       }
 
-      boolean isConfigTypeArray = isConfigTypeArray(configClass, elementName);
+      boolean isConfigTypeArray = isConfigTypeArray(configClass, elementName, position(componentNode));
       String configMode = isConfigTypeArray ? element.getAttributeNS(Exmlc.EXML_NAMESPACE_URI, CONFIG_MODE_ATTRIBUTE_NAME) : "";
       // Special case: if an EXML element representing a config property has attributes, it is treated as
       // having an untyped object value. Exception: it is an Array-typed property and the sole attribute is "mode".
@@ -277,19 +279,19 @@ public final class MxmlToModelParser {
         if (atValue != null) {
           isConfigTypeArray = true;
           if (!isMxmlConfigClass(configClass)) {
-            throw new CompilerError("Non-MXML class " + configClass.getQName() +
-                    " does not support config modes: " + getLineNumber(element));
+            throw new CompilerError(position(element), String.format("Non-MXML class %s does not support config modes.",
+                    configClass.getQName()));
           }
         }
         String directTextContent = getDirectTextContent(element);
         if (directTextContent != null) {
-          MemberModel configAttribute = findPropertyModel(configClass.getClassModel(), elementName);
+          MemberModel configAttribute = findPropertyModel(configClass.getClassModel(), elementName, position(element));
           final Object attributeValue = getAttributeValue(directTextContent, configAttribute == null ? null : configAttribute.getType());
           jsonObject.set(elementName, attributeValue);
         } else {
           // it seems to be an array or an object
           fillJsonObjectProperty(jsonObject, elementName, isConfigTypeArray, MxmlUtils.getChildElements(element));
-          ifContainerDefaultsThenExtractXtype(jsonObject, configClass, elementName);
+          ifContainerDefaultsThenExtractXtype(jsonObject, configClass, elementName, position(element));
         }
 
         // if any "at" value is specified, set the extra mode attribute (...$at):
@@ -344,9 +346,10 @@ public final class MxmlToModelParser {
     return null;
   }
 
-  private void ifContainerDefaultsThenExtractXtype(JsonObject jsonObject, CompilationUnitModel configClass, String elementName) throws IOException {
+  private void ifContainerDefaultsThenExtractXtype(JsonObject jsonObject, CompilationUnitModel configClass,
+                                                   String elementName, FilePosition position) throws IOException {
     // special case: extract xtype from <defaults> as <defaultType>!
-    if (EXT_CONTAINER_DEFAULTS_PROPERTY.equals(elementName) && isContainerConfig(configClass)) {
+    if (EXT_CONTAINER_DEFAULTS_PROPERTY.equals(elementName) && isContainerConfig(configClass, position)) {
       Object value = jsonObject.get(elementName);
       if (value instanceof JsonObject) {
         JsonObject jsonObjectValue = (JsonObject) value;
@@ -366,14 +369,14 @@ public final class MxmlToModelParser {
     }
   }
 
-  private boolean isContainerConfig(CompilationUnitModel configClass) throws IOException {
+  private boolean isContainerConfig(CompilationUnitModel configClass, FilePosition position) throws IOException {
     return configClass != null &&
             (EXT_CONTAINER_CONFIG_QNAME.equals(configClass.getQName()) ||
-                    isContainerConfig(getCompilationUnitModel(configClass.getClassModel().getSuperclass())));
+                    isContainerConfig(getCompilationUnitModel(configClass.getClassModel().getSuperclass(), position), position));
   }
 
-  private boolean isConfigTypeArray(CompilationUnitModel configClass, String propertyName) throws IOException {
-    MemberModel configAttribute = findPropertyModel(configClass.getClassModel(), propertyName);
+  private boolean isConfigTypeArray(CompilationUnitModel configClass, String propertyName, FilePosition position) throws IOException {
+    MemberModel configAttribute = findPropertyModel(configClass.getClassModel(), propertyName, position);
     return configAttribute != null && "Array".equals(configAttribute.getType());
   }
 
@@ -426,12 +429,13 @@ public final class MxmlToModelParser {
     Object value;
     String className = createClassNameFromNode(arrayItemNode);
     if (className == null) {
-      throw new CompilerError(String.format("Cannot derive class name from <%s:%s>.", arrayItemNode.getNamespaceURI(), arrayItemNode.getLocalName()));
+      throw new CompilerError(position(arrayItemNode), String.format("Cannot derive class name from <%s:%s>.",
+              arrayItemNode.getNamespaceURI(), arrayItemNode.getLocalName()));
     }
     if ("Object".equals(className)) {
       value = parseExmlObjectNode(arrayItemNode);
     } else {
-      CompilationUnitModel configClass = getCompilationUnitModel(className);
+      CompilationUnitModel configClass = getCompilationUnitModel(className, position(arrayItemNode));
 
       JsonObject arrayItemJsonObject = new JsonObject();
       ExtConfigAnnotation extConfigAnnotation = getExtConfigAnnotation(configClass);
@@ -526,7 +530,7 @@ public final class MxmlToModelParser {
             String elementClassName = createClassNameFromNode(element);
             String id = element.getAttribute(MXML_ID_ATTRIBUTE);
             if (id.isEmpty()) {
-              Jooc.warning("<fx:Declarations> sub-element should have attribute 'id'.");
+              Jooc.warning(position(element), "<fx:Declarations> sub-element should have attribute 'id'.");
             } else {
               compilationUnitModel.addImport(elementClassName);
               if (configParamModel != null && configParamModel.getName().equals(id)) {
@@ -564,7 +568,7 @@ public final class MxmlToModelParser {
     return value;
   }
 
-  private CompilationUnitModel getCompilationUnitModel(String fullClassName) throws IOException {
+  private CompilationUnitModel getCompilationUnitModel(String fullClassName, FilePosition position) throws IOException {
     if (fullClassName == null) {
       return null;
     }
@@ -573,20 +577,20 @@ public final class MxmlToModelParser {
     }
     CompilationUnit compilationUnit = jangarooParser.getCompilationUnit(fullClassName);
     if (compilationUnit == null) {
-      throw Jooc.error("Undefined type: " + fullClassName);
+      throw Jooc.error(position, "Undefined type: " + fullClassName);
     }
     return new ApiModelGenerator(false).generateModel(compilationUnit); // TODO: cache!
   }
 
   private CompilationUnitModel getCompilationUnitModel(Element element) throws IOException {
-    return getCompilationUnitModel(createClassNameFromNode(element));
+    return getCompilationUnitModel(createClassNameFromNode(element), position(element));
   }
 
-  private MemberModel findPropertyModel(ClassModel classModel, String propertyName) throws IOException {
+  private MemberModel findPropertyModel(ClassModel classModel, String propertyName, FilePosition position) throws IOException {
     MemberModel propertyModel = null;
-    ClassModel superClassModel = getSuperClassModel(classModel);
+    ClassModel superClassModel = getSuperClassModel(classModel, position);
     if (superClassModel != null) {
-      propertyModel = findPropertyModel(superClassModel, propertyName);
+      propertyModel = findPropertyModel(superClassModel, propertyName, position);
     }
     if (propertyModel == null) {
       MemberModel memberModel = classModel.getMember(propertyName);
@@ -597,10 +601,10 @@ public final class MxmlToModelParser {
     return propertyModel;
   }
 
-  private ClassModel getSuperClassModel(ClassModel classModel) throws IOException {
+  private ClassModel getSuperClassModel(ClassModel classModel, FilePosition position) throws IOException {
     String superclass = classModel.getSuperclass();
     if (superclass != null) {
-      CompilationUnitModel superCompilationUnitModel = getCompilationUnitModel(superclass);
+      CompilationUnitModel superCompilationUnitModel = getCompilationUnitModel(superclass, position);
       if (superCompilationUnitModel != null && superCompilationUnitModel.getPrimaryDeclaration() instanceof ClassModel) {
         return superCompilationUnitModel.getClassModel();
       }
@@ -621,7 +625,8 @@ public final class MxmlToModelParser {
         return className;
       }
     }
-    throw Jooc.error(String.format("Cannot resolve ActionScript class for node <%s:%s>.", uri, name));
+    throw Jooc.error(position(objectNode),
+            String.format("Cannot resolve ActionScript class for node <%s:%s>.", uri, name));
   }
 
   private static String getTextContent(Element element) {
@@ -644,6 +649,27 @@ public final class MxmlToModelParser {
     PreserveLineNumberHandler handler = new PreserveLineNumberHandler(doc);
     parser.parse(inputStream, handler);
     return doc;
+  }
+
+  private static FilePosition position(Node node) {
+    final int lineNumber = getLineNumber(node);
+    final int columnNumber = getColumnNumber(node);
+    return new FilePosition() {
+      @Override
+      public String getFileName() {
+        return null;
+      }
+
+      @Override
+      public int getLine() {
+        return lineNumber;
+      }
+
+      @Override
+      public int getColumn() {
+        return columnNumber;
+      }
+    };
   }
 
   private static class ExtConfigAnnotation {
