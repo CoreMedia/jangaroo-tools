@@ -190,6 +190,10 @@ public class ExmlToMxml {
         } else if (Exmlc.EXML_DESCRIPTION_NODE_NAME.equals(localName)) {
           qName = null;
         } else if (Exmlc.EXML_OBJECT_NODE_NAME.equals(localName)) {
+          // suppress empty <exml:object>s; they only contain code which is simply wrapped by { ... } in MXML:
+          if (atts.getLength() == 0) {
+            qName = null;
+          }
           insideExmlObject = true;
         }
       } else if (elementPath.size() == 1) {
