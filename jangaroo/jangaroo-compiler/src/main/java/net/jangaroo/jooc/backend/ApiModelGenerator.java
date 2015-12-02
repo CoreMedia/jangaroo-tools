@@ -37,6 +37,7 @@ import net.jangaroo.jooc.ast.ForStatement;
 import net.jangaroo.jooc.ast.FunctionDeclaration;
 import net.jangaroo.jooc.ast.FunctionExpr;
 import net.jangaroo.jooc.ast.Ide;
+import net.jangaroo.jooc.ast.IdeDeclaration;
 import net.jangaroo.jooc.ast.IdeExpr;
 import net.jangaroo.jooc.ast.IdeWithTypeParam;
 import net.jangaroo.jooc.ast.IfStatement;
@@ -151,7 +152,12 @@ public class ApiModelGenerator {
 
   @Override
   public void visitExtends(Extends anExtends) throws IOException {
-    getCurrent(ClassModel.class).setSuperclass(anExtends.getSuperClass().resolveDeclaration().getQualifiedNameStr());
+    Ide superClass = anExtends.getSuperClass();
+    IdeDeclaration declaration = superClass.resolveDeclaration();
+    if (declaration == null) {
+      throw Jooc.error(superClass.getSymbol(), "cannot resolve super class: " + superClass);
+    }
+    getCurrent(ClassModel.class).setSuperclass(declaration.getQualifiedNameStr());
   }
 
   @Override

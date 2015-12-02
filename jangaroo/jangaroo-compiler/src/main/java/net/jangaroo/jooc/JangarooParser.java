@@ -132,10 +132,7 @@ public class JangarooParser {
         reader = new InputStreamReader(new BOMStripperInputStream(in.getInputStream()), "UTF-8");
       }
     } catch (CompilerError e) {
-      String fileName = in.getPath();
-      int line = e.getSymbol() != null ? e.getSymbol().getLine() : -1;
-      int column = e.getSymbol() != null ? e.getSymbol().getColumn() : -1;
-      throw new CompilerError(new FilePositionImpl(fileName, line, column), e.getMessage(), e.getCause());
+      throw new CompilerError(positionOfCompilerError(e, in), e.getMessage(), e.getCause());
     } catch (IOException e) {
       throw new CompilerError("Cannot read input file: " + in.getPath(), e);
     } catch (SAXException e) {
@@ -158,6 +155,25 @@ public class JangarooParser {
     } catch (Exception e) {
       throw new IllegalArgumentException("could not parse Jangaroo source", e);
     }
+  }
+
+  private FilePositionImpl positionOfCompilerError(CompilerError e, InputSource in) {
+    FilePosition symbol = e.getSymbol();
+    String fileName = null;
+    int line;
+    int column;
+    if (symbol != null) {
+      fileName = symbol.getFileName();
+      line = symbol.getLine();
+      column = symbol.getColumn();
+    } else {
+      line = -1;
+      column = -1;
+    }
+    if (fileName == null) {
+      fileName = in.getPath();
+    }
+    return new FilePositionImpl(fileName, line, column);
   }
 
   protected void keepGeneratedActionScript(InputSource in, String code) {
