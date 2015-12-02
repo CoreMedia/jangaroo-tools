@@ -555,8 +555,11 @@ public class ExmlToMxml {
     @Override
     public void characters(char[] ch, int start, int length) throws SAXException {
       flushPendingTagClose();
-      super.characters(ch, start, length);
-      lastColumn = locator.getColumnNumber();
+      String cdata = new String(ch, start, length).trim();
+      if (!(elementPath.size() == 2 && elementPath.peek() == null && isNotEmptyText(cdata))) {
+        super.characters(ch, start, length);
+        lastColumn = locator.getColumnNumber();
+      }
     }
 
     @Override
@@ -707,5 +710,18 @@ public class ExmlToMxml {
 
   private static String formatQName(String prefix, String localName) {
     return prefix == null || prefix.isEmpty() ? localName : String.format("%s:%s", prefix, localName);
+  }
+
+  public static boolean isNotEmptyText(String str) {
+    if (str == null) {
+      return false;
+    }
+    int sz = str.length();
+    for (int i = 0; i < sz; i++) {
+      if (Character.isLetterOrDigit(str.charAt(i))) {
+        return true;
+      }
+    }
+    return false;
   }
 }
