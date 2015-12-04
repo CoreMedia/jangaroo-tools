@@ -58,6 +58,10 @@ public final class MxmlToModelParser {
   public static final String MXML_SCRIPT = "Script";
   public static final String MXML_METADATA = "Metadata";
   public static final String MXML_ID_ATTRIBUTE = "id";
+  public static final String MXML_DEFAULT_PROPERTY_ANNOTATION = "DefaultProperty";
+
+  public static final String CONSTRUCTOR_PARAMETER_ANNOTATION = "ConstructorParameter";
+  public static final String CONSTRUCTOR_PARAMETER_ANNOTATION_VALUE = "value";
 
   private static final String EXT_CONFIG_META_NAME = "ExtConfig";
   private static final String TARGET_ANNOTATION_PARAMETER_NAME = "target";
