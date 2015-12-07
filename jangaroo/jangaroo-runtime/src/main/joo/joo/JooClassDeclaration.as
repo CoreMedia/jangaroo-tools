@@ -347,9 +347,8 @@ public class JooClassDeclaration extends NativeClassDeclaration {
           var msg : String = overrides
                   ? "Method overrides without 'override' modifier"
                   : "Method with 'override' modifier does not override";
-          throw new Error(this+": "+msg+": "+memberDeclaration);
-        }
-        if (overrides) {
+          trace("[WARN]", this+": "+msg+": "+memberDeclaration);
+        } else if (overrides) {
           // found overriding: store super class' method as private member:
           this._storeMember(this._createMemberDeclaration(memberDeclaration, {_namespace: MemberDeclaration.NAMESPACE_PRIVATE}), superMethod);
         }
