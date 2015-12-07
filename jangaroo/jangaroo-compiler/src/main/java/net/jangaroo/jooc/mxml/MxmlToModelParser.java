@@ -157,6 +157,9 @@ public final class MxmlToModelParser {
             .append(constructorMatcher.group(2)) // " function <MyClass>(config:myConfig = null)"
             .append(" {");
 
+    // "initialConfig" has to be set early, or Ext will fail to compute getId() early:
+    bodyCodeBuilder.append(String.format("%n      this['initialConfig'] = %s;", configParamModel.getName()));
+
     if (cfgDefaults != null && !cfgDefaults.isEmpty()) {
       bodyCodeBuilder.append(String.format("%n      %s = %s;", configParamModel.getName(),
               formatTypedExmlApply(configParamModel, cfgDefaults)));

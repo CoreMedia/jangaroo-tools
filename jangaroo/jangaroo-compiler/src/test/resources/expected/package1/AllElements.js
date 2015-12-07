@@ -38,6 +38,7 @@ import net.jangaroo.ext.Exml;*/
     },
 
     "public function AllElements",function AllElements(config/*:exmlparser.config.allElements = null*/) {if(arguments.length<=0)config=null;
+      this['initialConfig'] = config;
       config =/* exmlparser.config.allElements*/(net.jangaroo.ext.Exml.apply({
         myProperty: "My Property!",
         myPropertyWithDescription: false
@@ -76,7 +77,7 @@ import net.jangaroo.ext.Exml;*/
           {
             xtype: "button",
             text: "Save",
-            handler: function package1$AllElements$79_22()/*:void*/ {
+            handler: function package1$AllElements$80_22()/*:void*/ {
           $1.MessageBox.alert('gotcha!');
         }
           },
@@ -98,7 +99,7 @@ import net.jangaroo.ext.Exml;*/
           }
         ],
         tools: [{
-          handler: function package1$AllElements$101_20(x){return ''+x;},
+          handler: function package1$AllElements$102_20(x){return ''+x;},
           id: "gear"
         }],
         plugins: [
