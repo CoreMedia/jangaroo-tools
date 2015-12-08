@@ -1,6 +1,5 @@
 package net.jangaroo.jooc.mxml;
 
-import net.jangaroo.exml.api.Exmlc;
 import net.jangaroo.jooc.model.AnnotationModel;
 import net.jangaroo.jooc.model.AnnotationPropertyModel;
 import net.jangaroo.jooc.model.ClassModel;
