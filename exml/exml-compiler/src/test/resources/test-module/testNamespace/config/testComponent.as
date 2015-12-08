@@ -2,8 +2,6 @@ package testNamespace.config {
 
 import ext.config.panel;
 
-// Do not edit. This is an auto-generated class.
-
 /**
  * This is a TestComponent with panel as baseclass.
  *
