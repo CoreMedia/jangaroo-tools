@@ -24,11 +24,14 @@ import java.io.Writer;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * A ClassModel visitor that generates ActionScript (API) code.
  */
 public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
+  public static final Pattern LEADING_ASDOC_WHITESPACE_PATTERN = Pattern.compile("\\s*\\* ?(.*)");
   private final PrintWriter output;
   private CompilationUnitModel compilationUnitModel;
   private boolean skipAsDoc;
@@ -180,12 +183,12 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
     if (!PARAM_SUPPRESSING_ASDOC_TAGS.contains(asdoc.toString())) {
       for (ParamModel paramModel : methodModel.getParams()) {
         if (!isEmpty(paramModel.getAsdoc())) {
-          asdoc.append("\n  @param ").append(paramModel.getName()).append(" ").append(paramModel.getAsdoc());
+          asdoc.append("\n@param ").append(paramModel.getName()).append(" ").append(paramModel.getAsdoc());
         }
       }
       String returnAsDoc = methodModel.getReturnModel().getAsdoc();
       if (!isEmpty(returnAsDoc)) {
-        asdoc.append("\n  @return ").append(returnAsDoc);
+        asdoc.append("\n@return ").append(returnAsDoc);
       }
     }
     printAsdoc(asdoc.toString());
@@ -218,8 +221,8 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
       output.print("...");
     }
     output.print(paramModel.getName());
-    generateType(paramModel);
     if (!paramModel.isRest()) {
+      generateType(paramModel);
       generateValue(paramModel);
     }
   }
@@ -253,7 +256,13 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
   private void printAsdoc(String asdoc) {
     if (!skipAsDoc && asdoc != null && asdoc.trim().length() > 0) {
       indent(); output.println("/**");
-      indent(); output.println(" * " + asdoc);
+      for (String line : asdoc.split("\n")) {
+        Matcher matcher = LEADING_ASDOC_WHITESPACE_PATTERN.matcher(line);
+        if (matcher.matches()) {
+          line = matcher.group(1);
+        }
+        indent(); output.println(" " + ("* " + line).trim());
+      }
       indent(); output.println(" */");
     }
   }

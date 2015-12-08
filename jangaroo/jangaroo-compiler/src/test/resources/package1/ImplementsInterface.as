@@ -4,6 +4,7 @@ public final class ImplementsInterface implements Interface {
 
   /**
    * Field with ASDoc.
+   * Second line.
    */
   public var foo;
   

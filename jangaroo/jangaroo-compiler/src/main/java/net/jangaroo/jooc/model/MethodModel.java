@@ -175,12 +175,4 @@ public class MethodModel extends MemberModel {
     result = 31 * result + (methodType != null ? methodType.hashCode() : 0);
     return result;
   }
-
-  public void addBodyCode(String code) {
-    if (body == null) {
-      body = code;
-    } else {
-      body += code;
-    }
-  }
 }
