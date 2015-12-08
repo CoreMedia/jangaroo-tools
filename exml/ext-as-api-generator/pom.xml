@@ -6,7 +6,7 @@
   <dependencies>
     <dependency>
       <groupId>net.jangaroo</groupId>
-      <artifactId>exml-compiler-api</artifactId>
+      <artifactId>jangaroo-compiler-api</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
