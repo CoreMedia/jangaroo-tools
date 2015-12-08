@@ -2,8 +2,6 @@ package testNamespace.config {
 
 import ext.config.plugin;
 
-// Do not edit. This is an auto-generated class.
-
 /**
  * This is a test plugin (not a component!).
  *

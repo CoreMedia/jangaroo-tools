@@ -5,8 +5,6 @@ package ${packageName} {
 import ${import};
 </#list>
 
-// Do not edit. This is an auto-generated class.
-
 /**
  * ${escapedDescriptionWithoutAts!}
  *
