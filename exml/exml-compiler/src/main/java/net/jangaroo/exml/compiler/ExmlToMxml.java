@@ -40,11 +40,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * A tool that converts EXML source code into MXML and ActionScript source code.
  */
 public class ExmlToMxml {
+  private static final Pattern ATTRIBUTE_NORMALIZED_WHITESPACE = Pattern.compile("  +");
 
   private ConfigClassRegistry configClassRegistry;
 
@@ -372,6 +375,7 @@ public class ExmlToMxml {
       String whitespace = " ";
       for (Map.Entry<String, String> attribute : attributes.entrySet()) {
         String value = attribute.getValue();
+        value = denormalizeAttributeValue(value);
         if (!ExmlUtils.isCodeExpression(value)) {
           // escape all opening curly braces, as MXML also recognizes them anywhere inside a string:
           value = value.replaceAll("\\{", "\\\\{");
@@ -382,6 +386,20 @@ public class ExmlToMxml {
           whitespace = String.format("%n%s", StringUtils.repeat(" ", indent));
         }
       }
+    }
+
+    private String denormalizeAttributeValue(String value) {
+      Matcher matcher = ATTRIBUTE_NORMALIZED_WHITESPACE.matcher(value);
+      StringBuilder result = new StringBuilder();
+      int pos = 0;
+      while (matcher.find()) {
+        result.append(value, pos, matcher.start());
+        result.append("\n");
+        result.append(value, matcher.start() + 1, matcher.end());
+        pos = matcher.end();
+      }
+      result.append(value, pos, value.length());
+      return result.toString();
     }
 
     private String escapeXml(String xmlString) {
