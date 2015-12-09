@@ -394,7 +394,7 @@ public class ExmlToMxml {
       int pos = 0;
       while (matcher.find()) {
         result.append(value, pos, matcher.start());
-        result.append("\n");
+        result.append(System.getProperty("line.separator"));
         result.append(value, matcher.start() + 1, matcher.end());
         pos = matcher.end();
       }
