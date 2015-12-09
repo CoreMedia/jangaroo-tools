@@ -47,7 +47,7 @@ import java.util.regex.Pattern;
  * A tool that converts EXML source code into MXML and ActionScript source code.
  */
 public class ExmlToMxml {
-  private static final Pattern ATTRIBUTE_NORMALIZED_WHITESPACE = Pattern.compile("\\s\\s+");
+  private static final Pattern ATTRIBUTE_NORMALIZED_WHITESPACE = Pattern.compile("  +");
 
   private ConfigClassRegistry configClassRegistry;
 
