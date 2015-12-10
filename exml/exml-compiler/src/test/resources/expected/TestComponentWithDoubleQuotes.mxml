@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!---
+    This is a TestComponent with panel as baseclass.
+    @see ext.Panel
+  -->
+<extends:Panel  xmlns:fx="http://ns.adobe.com/mxml/2009"
+                xmlns:extends="ext.*"
+                xmlns:cfg="testNamespace.config.*"
+                xmlns:exml="http://www.jangaroo.net/exml/0.8"
+                xmlns="exml:ext.config">
+  <fx:Script><![CDATA[
+    import testNamespace.config.testComponentWithDoubleQuotes;
+
+    public native function TestComponentWithDoubleQuotes(config:testNamespace.config.testComponentWithDoubleQuotes = null);
+  ]]></fx:Script>
+  <fx:Metadata>[DefaultProperty("config")]</fx:Metadata>
+  <fx:Declarations>
+    <cfg:testComponentWithDoubleQuotes id="config"/>
+  </fx:Declarations>
+
+  <panel title='I am inside a "package"!'>
+    <items>
+      <label text="bla"/>
+    </items>
+  </panel>
+</extends:Panel>

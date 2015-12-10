@@ -380,8 +380,15 @@ public class ExmlToMxml {
           // escape all opening curly braces, as MXML also recognizes them anywhere inside a string:
           value = value.replaceAll("\\{", "\\\\{");
         }
-        currentOut.printf("%s%s=%s", whitespace, attribute.getKey(),
-                String.format("\"%s\"", escapeXml(value).replaceAll("\"", "&quot;")));
+        value = escapeXml(value);
+        String quotes;
+        if (value.contains("\"") && !value.contains("'")) {
+          quotes = "'";
+        } else {
+          quotes = "\"";
+          value = value.replaceAll("\"", "&quot;");
+        }
+        currentOut.printf("%s%s=%s%s%s", whitespace, attribute.getKey(), quotes, value, quotes);
         if (" ".equals(whitespace)) {
           whitespace = String.format("%n%s", StringUtils.repeat(" ", indent));
         }
