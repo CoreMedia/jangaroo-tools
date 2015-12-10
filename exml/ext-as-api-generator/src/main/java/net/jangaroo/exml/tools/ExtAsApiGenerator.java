@@ -614,7 +614,8 @@ public class ExtAsApiGenerator {
         setStatic(methodModel, method);
         addDeprecation(method.deprecated, methodModel);
         for (Param param : method.params) {
-          ParamModel paramModel = new ParamModel(convertName(param.name), convertType(param.type));
+          String paramName = param.name == null ? "param" + (method.params.indexOf(param) + 1) : convertName(param.name);
+          ParamModel paramModel = new ParamModel(paramName, convertType(param.type));
           paramModel.setAsdoc(toAsDoc(param));
           setDefaultValue(paramModel, param);
           paramModel.setRest(param == method.params.get(method.params.size() - 1) && param.type.endsWith("..."));
