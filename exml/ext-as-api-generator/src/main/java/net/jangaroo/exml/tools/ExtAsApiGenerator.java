@@ -597,6 +597,10 @@ public class ExtAsApiGenerator {
   private static void addMethods(ClassModel classModel, List<Method> methods) {
     for (Method method : methods) {
       String methodName = method.name;
+      if (methodName == null || methodName.length() == 0) {
+        System.err.printf("methods name missing for method #%d in class %s", methods.indexOf(method) + 1, classModel.getName());
+        continue;
+      }
       if (classModel.getMember(methodName) == null) {
         boolean isConstructor = methodName.equals("constructor");
         if (!isConstructor && extJsApi.inheritsDoc(method)) {
