@@ -238,6 +238,7 @@ public class ExtJsApi {
   public static class FilenNameAndLineNumber {
     public String filename;
     public String linenr;
+    public String href;
   }
 
   public static class Deprecation {
