@@ -1,4 +1,4 @@
-define("as3/package1/TestHelperClasses",["module","exports","as3-rt/AS3"], function($module,$exports,AS3) { AS3.compilationUnit($module,$exports,function($primaryDeclaration){/*package package1 {
+Ext.define("package1.TestHelperClasses", function(TestHelperClasses) {/*package package1 {
 
 public class TestHelperClasses {
 
@@ -12,14 +12,14 @@ public class TestHelperClasses {
   public static*/ function getConstantFromHelperClass$static()/*:String*/ {
     return Helper$static.CONST;
   }/*
-}*/function Helper_(){/*
+}
 
 class Helper {
 
   internal static const CONST:String = "FOO";
   private var text:String =*/function text_(){this.text$1=( TestHelperClasses.TEXT);}/*;
 
-  public*/ function Helper(text/*:String*/) {text_.call(this);
+  public*/ function Helper$(text/*:String*/) {text_.call(this);
     this.text$1 = text;
   }/*
 
@@ -32,18 +32,16 @@ class Helper {
   private*/ function text_getter()/*:String*/ {
     return this.text$1;
   }/*
-}*/return AS3.class_({id:"as3/package1.TestHelperClasses.Helper"},{members: {constructor: Helper,getText: getText,text_getter$1: text_getter},staticMembers: {CONST: "FOO"}});}function TestHelperClasses() {}/*
+}*/var Helper$static = Ext.define(null, {constructor: Helper$,getText: getText,text_getter$1: text_getter,statics: {CONST: "FOO"}});function TestHelperClasses$() {}/*
 }
 
 ============================================== Jangaroo part ==============================================*/
-    $primaryDeclaration(AS3.class_($module, {
-      members: {constructor: TestHelperClasses},
-      staticMembers: {
+    return {
+      constructor: TestHelperClasses$,
+      statics: {
         TEXT: "foo",
         getText: getText$static,
         getConstantFromHelperClass: getConstantFromHelperClass$static
       }
-    }));
-    var Helper$static=Helper_();
-  });
+    };
 });

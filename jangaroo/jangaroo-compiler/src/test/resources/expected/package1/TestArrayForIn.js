@@ -1,4 +1,4 @@
-define("as3/package1/TestArrayForIn",["module","exports","as3-rt/AS3"], function($module,$exports,AS3) { AS3.compilationUnit($module,$exports,function($primaryDeclaration){/*package package1 {
+Ext.define("package1.TestArrayForIn", function(TestArrayForIn) {/*package package1 {
 
 public class TestArrayForIn {
 
@@ -50,15 +50,15 @@ public class TestArrayForIn {
   private static*/ function doSomething$static(param/*:**/)/*:void*/ {
     // do something...
   }/*
-}*/function TestArrayForIn() {}/*
+}*/function TestArrayForIn$() {}/*
 }
 
 ============================================== Jangaroo part ==============================================*/
-    $primaryDeclaration(AS3.class_($module, {
-      members: {constructor: TestArrayForIn},
-      staticMembers: {test: test$static}
-    }));
+    return {
+      constructor: TestArrayForIn$,
+      statics: {test: test$static}
+    };
+}, function() {
     ARRAY$static_();
     array$static_();
-  });
 });

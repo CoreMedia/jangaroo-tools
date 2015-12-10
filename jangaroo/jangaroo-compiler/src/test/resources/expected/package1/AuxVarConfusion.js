@@ -1,4 +1,4 @@
-define("as3/package1/AuxVarConfusion",["module","exports","as3-rt/AS3"], function($module,$exports,AS3) { AS3.compilationUnit($module,$exports,function($primaryDeclaration){/*package package1 {
+Ext.define("package1.AuxVarConfusion", function(AuxVarConfusion) {/*package package1 {
 
 public class AuxVarConfusion {
 
@@ -8,13 +8,12 @@ public class AuxVarConfusion {
     }
   }/*
 
-}*/function AuxVarConfusion() {}/*
+}*/function AuxVarConfusion$() {}/*
 }
 
 ============================================== Jangaroo part ==============================================*/
-    $primaryDeclaration(AS3.class_($module, {members: {
+    return {
       doSomething: doSomething,
-      constructor: AuxVarConfusion
-    }}));
-  });
+      constructor: AuxVarConfusion$
+    };
 });

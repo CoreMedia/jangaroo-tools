@@ -178,6 +178,7 @@ public class JoocTest {
 
   @Test
   public void testSuperCallParameters() throws Exception {
+    assertCompilationResult("package1/SuperCallParameters");
     assertApiCompilationResult("package1/SuperCallParameters");
   }
 

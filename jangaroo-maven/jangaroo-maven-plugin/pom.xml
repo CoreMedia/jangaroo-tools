@@ -28,10 +28,6 @@
       <artifactId>closure-compiler</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.json</groupId>
-      <artifactId>json</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-project</artifactId>
     </dependency>

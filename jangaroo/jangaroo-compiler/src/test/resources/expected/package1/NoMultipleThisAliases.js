@@ -1,6 +1,6 @@
-define("as3/package1/NoMultipleThisAliases",["module","exports","as3-rt/AS3"], function($module,$exports,AS3) { AS3.compilationUnit($module,$exports,function($primaryDeclaration){/*package package1{
+Ext.define("package1.NoMultipleThisAliases", function(NoMultipleThisAliases) {/*package package1{
 public class NoMultipleThisAliases {
-  public*/ function NoMultipleThisAliases() {var this$=this;
+  public*/ function NoMultipleThisAliases$() {var this$=this;
     function foo1()/*:void*/ {
       this$.method$1();
     }
@@ -14,9 +14,8 @@ public class NoMultipleThisAliases {
 }
 
 ============================================== Jangaroo part ==============================================*/
-    $primaryDeclaration(AS3.class_($module, {members: {
-      constructor: NoMultipleThisAliases,
+    return {
+      constructor: NoMultipleThisAliases$,
       method$1: method
-    }}));
-  });
+    };
 });

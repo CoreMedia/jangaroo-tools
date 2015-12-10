@@ -170,7 +170,7 @@ public class CompilerMojo extends AbstractCompilerMojo {
   private void processAllJsFiles() throws Exception {
     File aggregationOutputBaseDir = new File(getOutputDirectory(), "amd");
     File sourceDirectory = new File(aggregationOutputBaseDir, "as3");
-    if (!sourceDirectory.exists()) {
+    if (true || !sourceDirectory.exists()) {
       getLog().debug("generate-lib: source directory " + sourceDirectory + " does not exist; skipping *.lib.js generation.");
       return;
     }

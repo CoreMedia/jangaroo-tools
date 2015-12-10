@@ -1,4 +1,4 @@
-define("as3/package1/ChainedConstants",["module","exports","as3-rt/AS3","as3/package1/someOtherPackage/SomeOtherClass"], function($module,$exports,AS3,SomeOtherClass) { AS3.compilationUnit($module,$exports,function($primaryDeclaration){/*package package1 {
+Ext.define("package1.ChainedConstants", function(ChainedConstants) {/*package package1 {
 
 import package1.someOtherPackage.SomeOtherClass;
 
@@ -11,18 +11,18 @@ public class ChainedConstants {
 
   public static const ANOTHER_METHOD_TYPE : String =*/function ANOTHER_METHOD_TYPE$static_(){Object.defineProperty(ChainedConstants,"ANOTHER_METHOD_TYPE",{value: ChainedConstants.METHOD_TYPE_GET.substr(0)});}/*;
 
-  public static const THE_BLA : String =*/function THE_BLA$static_(){Object.defineProperty(ChainedConstants,"THE_BLA",{value: SomeOtherClass._.BLA});}/*;
-}*/function ChainedConstants() {}/*
+  public static const THE_BLA : String =*/function THE_BLA$static_(){Object.defineProperty(ChainedConstants,"THE_BLA",{value: package1.someOtherPackage.SomeOtherClass.BLA});}/*;
+}*/function ChainedConstants$() {}/*
 }
 
 ============================================== Jangaroo part ==============================================*/
-    $primaryDeclaration(AS3.class_($module, {
-      members: {constructor: ChainedConstants},
-      staticMembers: {METHOD_TYPE_GET: "get"}
-    }));
+    return {
+      constructor: ChainedConstants$,
+      statics: {METHOD_TYPE_GET: "get"}
+    };
+}, function() {
     DEFAULT_METHOD_TYPE$static_();
     THE_METHOD_TYPE$static_();
     ANOTHER_METHOD_TYPE$static_();
     THE_BLA$static_();
-  });
 });

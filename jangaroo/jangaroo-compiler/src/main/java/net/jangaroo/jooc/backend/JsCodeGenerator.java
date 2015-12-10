@@ -68,6 +68,7 @@ import net.jangaroo.jooc.ast.TryStatement;
 import net.jangaroo.jooc.ast.Type;
 import net.jangaroo.jooc.ast.TypeRelation;
 import net.jangaroo.jooc.ast.Typed;
+import net.jangaroo.jooc.ast.TypedIdeDeclaration;
 import net.jangaroo.jooc.ast.UseNamespaceDirective;
 import net.jangaroo.jooc.ast.VariableDeclaration;
 import net.jangaroo.jooc.ast.VectorLiteral;
@@ -87,15 +88,15 @@ import net.jangaroo.jooc.model.MethodType;
 import net.jangaroo.jooc.model.PropertyModel;
 import net.jangaroo.jooc.mxml.MxmlUtils;
 import net.jangaroo.jooc.sym;
+import net.jangaroo.jooc.util.MessageFormat;
 import net.jangaroo.utils.CompilerUtils;
 
 import java.io.File;
 import java.io.IOException;
-import net.jangaroo.jooc.util.MessageFormat;
-
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -146,7 +147,6 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   private LinkedList<Metadata> currentMetadata = new LinkedList<Metadata>();
   private final MessageFormat VAR_$NAME_EQUALS_ARGUMENTS_SLICE_$INDEX =
     new MessageFormat("var {0}=Array.prototype.slice.call(arguments{1,choice,0#|0<,{1}});");
-  private final MessageFormat COMPILATION_UNIT_ACCESS_MESSAGE_FORMAT = new MessageFormat("{0}._");
 
   private void generateToArrayCode(String paramName, int paramIndex) throws IOException {
     out.write(VAR_$NAME_EQUALS_ARGUMENTS_SLICE_$INDEX.format(paramName, paramIndex));
@@ -236,8 +236,12 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       return;
     }
 
-    if (memberDeclaration != null && usePrivateMemberName(ide, memberDeclaration)) {
-      memberName = memberName + "$" + ide.getScope().getClassDeclaration().getInheritanceLevel();
+    if (memberDeclaration != null) {
+      if (memberDeclaration.isPrivate()) {
+        memberName = memberName + "$" + ide.getScope().getClassDeclaration().getInheritanceLevel();
+      } else if (isSuperCall(ide)) {
+        memberName = "callParent";
+      }
     }
 
     String separatorToken = ".";
@@ -278,10 +282,9 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     }
   }
 
-  private static boolean usePrivateMemberName(Ide ide, IdeDeclaration memberDeclaration) {
+  private static boolean isSuperCall(Ide ide) {
     return ide.isQualifiedBySuper()
-            && ide.getScope().getClassDeclaration().getMemberDeclaration(ide.getName()) != null
-            || memberDeclaration.isPrivate();
+            && ide.getScope().getClassDeclaration().getMemberDeclaration(ide.getName()) != null;
   }
   
   @Override
@@ -345,56 +348,10 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     IdeDeclaration primaryDeclaration = compilationUnit.getPrimaryDeclaration();
     boolean isInterface = primaryDeclaration instanceof ClassDeclaration
             && ((ClassDeclaration) primaryDeclaration).isInterface();
-    out.write("define(\"");
-    out.write(getModuleName(compilationUnit));
-    out.write("\",[\"module\",");
-    if (!isInterface) {
-      out.write("\"exports\",");
-    }
-    out.write("\"as3-rt/AS3\"");
-    Map<String, String> amdNameToVar = collectDependencies(compilationUnit);
-    for (String amdName : amdNameToVar.keySet()) {
-      out.write("," + CompilerUtils.quote(amdName));
-    }
-    for (String resourceDependency : compilationUnit.getResourceDependencies()) {
-      out.write(",\"" + resourceDependency + "\"");
-    }
-    for (Annotation annotation : compilationUnit.getAnnotations()) {
-      if (MxmlUtils.RESOURCE_BUNDLE_ANNOTATION.equals(annotation.getMetaName())) {
-        AstNode bundleNameNode = annotation.getValue();
-        if (bundleNameNode instanceof LiteralExpr) {
-          String bundleName = ((LiteralExpr) bundleNameNode).getValue().getJooValue().toString();
-          out.write(String.format(",\"bundle!%s\"", bundleName));
-        } else {
-          Jooc.warning(annotation.getSymbol(), "[" + MxmlUtils.RESOURCE_BUNDLE_ANNOTATION + "] annotation without value; ignored.");
-        }
-      }
-    }
-    for (String annotation : compilationUnit.getUsedAnnotations()) {
-      if (ANNOTATIONS_TO_TRIGGER_AT_RUNTIME.contains(annotation)) {
-        out.write(",\"metadata/" + annotation + "\"");
-      }
-    }
-    out.write("], function($module,");
-    if (!isInterface) {
-      out.write("$exports,");
-    }
-    out.write("AS3");
-    for (String amdVarName : amdNameToVar.values()) {
-      out.write("," + amdVarName);
-    }
-    int resourceDependencyCount = compilationUnit.getResourceDependencies().size();
-    for (int i = 0; i < resourceDependencyCount; i++) {
-      out.write(",$resource_" + i);
-    }
-    out.write(") { ");
-    // out.write("\"use strict\"; "); // disallows e.g. "arguments" as parameter name!
-    // interface: the only compilation unit without lazy initialization!
-    if (isInterface) {
-      out.write("return AS3.interface_($module,");
-    } else {
-      out.write("AS3.compilationUnit($module,$exports,function($primaryDeclaration){");
-    }
+    out.write("Ext.define(");
+    out.write(CompilerUtils.quote(getModuleName(compilationUnit)));
+    String[] requires = collectDependencies(compilationUnit);
+    out.write(", function(" + primaryDeclaration.getName() + ") {");
     this.compilationUnit = compilationUnit;
     out.beginComment();
     compilationUnit.getPackageDeclaration().visit(this);
@@ -414,28 +371,24 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
       if (isInterface) {
         JsonObject interfaceDefinition = createInterfaceDefinition(classDeclaration);
-        out.write("\n" + interfaceDefinition.toString(2, 0) + "\n);});\n");
-        return;
+        out.write("\n    return " + interfaceDefinition.toString(2, 4) + ";\n}");
       } else {
         ClassDefinitionBuilder classDefinitionBuilder = primaryClassDefinitionBuilder;
         JsonObject classDefinition = createClassDefinition(classDeclaration, classDefinitionBuilder);
-        out.write("\n    $primaryDeclaration(AS3.class_($module, " + classDefinition.toString(2, 4) + "));\n");
-        // special hack for Ext 4 and Sencha Touch: do not use the constructor for super calls, but its prototype's constructor:
-        ClassDeclaration superTypeDeclaration = classDeclaration.getSuperTypeDeclaration();
-        if (superTypeDeclaration != null &&
-                superTypeDeclaration.getCompilationUnit().getAnnotation(Jooc.NATIVE_ANNOTATION_NAME) != null &&
-                (superTypeDeclaration.getQualifiedNameStr().startsWith("com.sencha.") ||
-                        superTypeDeclaration.getQualifiedNameStr().startsWith("ext."))) {
-          out.write("    Super=Super.prototype.constructor;\n");
+        if (requires.length > 0) {
+          classDefinition.set("requires", new JsonArray(requires));
         }
-
-        out.write(classDefinitionBuilder.staticCode.toString());
+        out.write("\n    return " + classDefinition.toString(2, 4) + ";\n}");
+        if (classDefinitionBuilder.staticCode.length() > 0) {
+          out.write(", function() {\n");
+          out.write(classDefinitionBuilder.staticCode.toString());
+          out.write("}");
+        }
       }
+      out.write(");\n");
     } else {
       out.write("\n");
     }
-    out.write("  });\n");
-    out.write("});\n");
   }
 
   private JsonObject createInterfaceDefinition(ClassDeclaration interfaceDeclaration) {
@@ -458,72 +411,60 @@ public class JsCodeGenerator extends CodeGeneratorBase {
         }
         superTypes = superTypes.getTail();
       }
-      classDefinition.set(classDeclaration.isInterface() ? "extends_" : "implements_", new JsonArray(superInterfaces.toArray()));
+      classDefinition.set("mixins", new JsonArray(superInterfaces.toArray()));
     }
   }
 
-  private Map<String, String> collectDependencies(CompilationUnit compilationUnit) throws IOException {
-
-    // first round: find import name clashes:
-    Set<String> useQName = computeUseQName(compilationUnit);
-
-    // second round: create mapping from AMD names to AMD variable names:
-    IdeDeclaration primaryDeclaration = compilationUnit.getPrimaryDeclaration();
-    List<CompilationUnit> dependentCompilationUnits = new ArrayList<CompilationUnit>(compilationUnit.getDependenciesAsCompilationUnits());
-    String qCUName = primaryDeclaration.getQualifiedNameStr();
-    Map<String, String> amdMapping = new LinkedHashMap<String, String>();
+  private String[] collectDependencies(CompilationUnit compilationUnit) throws IOException {
+    List<String> requires = new ArrayList<String>();
+    Collection<CompilationUnit> dependentCompilationUnits = compilationUnit.getDependenciesAsCompilationUnits();
     for (CompilationUnit dependentCU : dependentCompilationUnits) {
       IdeDeclaration dependentDeclaration = dependentCU.getPrimaryDeclaration();
-      String qName = dependentDeclaration.getQualifiedNameStr();
-      String amdName = computeAmdName(dependentCU);
-      String amdVar = null;
-      if (amdName != null) {
-        if (qName.endsWith(PROPERTIES_CLASS_SUFFIX) && !qCUName.startsWith(qName)) {
-          amdName = "localize!" + amdName;
-        }
-        amdVar = amdMapping.get(amdName);
-      }
-      String importedName = null;
-      String dependentDeclarationQName = dependentDeclaration.getQualifiedNameStr();
-      Annotation nativeAnnotation = dependentCU.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME);
-      if (nativeAnnotation != null) {
-        importedName = (String) getAnnotationParameterValue(nativeAnnotation, null, null);
-        if (importedName == null) { // no default annotation attribute given
-          if (amdName == null) {
-            importedName = dependentDeclarationQName;
+      String javaScriptName = null;
+      String javaScriptNameToRequire = null;
+      String nativeAnnotationValue = getNativeAnnotationValue(dependentCU);
+      if (nativeAnnotationValue != null) {
+        javaScriptName = nativeAnnotationValue;
+        if (dependentDeclaration instanceof TypedIdeDeclaration) {
+          // for singletons, require their type instead if the type has a [Native(...)] name:
+          TypeRelation optTypeRelation = ((TypedIdeDeclaration) dependentDeclaration).getOptTypeRelation();
+          if (optTypeRelation != null) {
+            IdeDeclaration typeDeclaration = optTypeRelation.getType().resolveDeclaration();
+            if (typeDeclaration != null) {
+              javaScriptNameToRequire = getNativeAnnotationValue(typeDeclaration);
+              if ("".equals(javaScriptNameToRequire)) {
+                // "virtual" singleton-type class, try direct super class:
+                javaScriptNameToRequire = getNativeAnnotationValue(typeDeclaration.getClassDeclaration().getSuperTypeDeclaration());
+              }
+            }
           }
-        } else if (amdName != null) {
-          if (amdVar == null) {
-            // store the AMD result in a new auxilliary variable:
-            amdVar = compilationUnit.createAmdVar();
-          }
-          // the imported name is now relative to the AMD value:
-          importedName = amdVar + "." + importedName;
         }
       }
-      if (amdName != null) {
-        if (amdVar == null) {
-          amdVar = useQName.contains(dependentDeclaration.getName())
-                  ? dependentDeclarationQName.replace(".", "$")
-                  : dependentDeclaration.getName();
-          amdVar = convertIdentifier(amdVar);
-        }
-        amdMapping.put(amdName, amdVar);
-        if (importedName == null) {
-          importedName = amdVar;
-        }
-        if (nativeAnnotation == null &&
-                !(dependentDeclaration instanceof ClassDeclaration &&
-                ((ClassDeclaration) dependentDeclaration).isInterface())) {
-          importedName = COMPILATION_UNIT_ACCESS_MESSAGE_FORMAT.format(importedName);
-        }
+      if (javaScriptName == null || "".equals(javaScriptName)) {
+        javaScriptName = dependentDeclaration.getQualifiedNameStr();
       }
-      Debug.assertTrue(importedName != null, "Imported name of compilation unit " + dependentDeclarationQName
-              + " could not be determined.");
-      imports.put(dependentDeclarationQName, importedName);
+      if (javaScriptNameToRequire == null || "".equals(javaScriptNameToRequire)) {
+        javaScriptNameToRequire = javaScriptName;
+      }
+      requires.add(javaScriptNameToRequire);
+      imports.put(dependentCU.getPrimaryDeclaration().getQualifiedNameStr(), javaScriptName);
     }
 
-    return amdMapping;
+    return requires.toArray(new String[requires.size()]);
+  }
+
+  private String getNativeAnnotationValue(IdeDeclaration typeDeclaration) {
+    return typeDeclaration == null ? null
+            : getNativeAnnotationValue(typeDeclaration.getCompilationUnit());
+  }
+
+  private String getNativeAnnotationValue(CompilationUnit compilationUnit) {
+    if (compilationUnit == null) {
+      return null;
+    }
+    Annotation nativeAnnotation = compilationUnit.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME);
+    return nativeAnnotation == null ? null
+            : (String) getAnnotationParameterValue(nativeAnnotation, null, "");
   }
 
   private Set<String> computeUseQName(CompilationUnit compilationUnit) {
@@ -556,7 +497,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     return null;
   }
 
-  private static String computeAmdName(CompilationUnit compilationUnit) {
+  private static String computeJavaScriptName(CompilationUnit compilationUnit) {
     Annotation nativeAnnotation = compilationUnit.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME);
     String moduleName = getModuleName(compilationUnit);
     return nativeAnnotation == null
@@ -565,8 +506,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   }
 
   private static String getModuleName(CompilationUnit compilationUnit) {
-    String qName = compilationUnit.getPrimaryDeclaration().getQualifiedNameStr();
-    return "as3/" + CompilerUtils.fileNameFromQName(qName, '/', "");
+    return compilationUnit.getPrimaryDeclaration().getQualifiedNameStr();
   }
 
   private JsonObject createClassDefinition(ClassDeclaration classDeclaration, ClassDefinitionBuilder classDefinitionBuilder) throws IOException {
@@ -576,18 +516,14 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     }
     if (classDeclaration.getInheritanceLevel() > 1) {
       ClassDeclaration superTypeDeclaration = classDeclaration.getSuperTypeDeclaration();
-      out.write("\n    var Super=" + compilationUnitAccessCode(superTypeDeclaration) + ";");
-      if (classDefinitionBuilder.super$Used) {
-        out.write("\n    var super$=Super.prototype;");
-      }
-      classDefinition.set("extends_", JsonObject.code("Super"));
+      classDefinition.set("extend", compilationUnitAccessCode(superTypeDeclaration));
     }
     addOptImplements(classDeclaration, classDefinition);
     if (!classDefinitionBuilder.members.isEmpty()) {
-      classDefinition.set("members", convertMembers(classDefinitionBuilder.members));
+      classDefinition.add(convertMembers(classDefinitionBuilder.members));
     }
     if (!classDefinitionBuilder.staticMembers.isEmpty()) {
-      classDefinition.set("staticMembers", convertMembers(classDefinitionBuilder.staticMembers));
+      classDefinition.set("statics", convertMembers(classDefinitionBuilder.staticMembers));
     }
     return classDefinition;
   }
@@ -649,8 +585,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       IdeDeclaration ideDeclaration = qualifiedIde.getDeclaration();
       String compilationUnitAccessCode = compilationUnitAccessCode(ideDeclaration);
       String ideName = qualifiedIde.getName();
-      if (compilationUnitAccessCode.equals(COMPILATION_UNIT_ACCESS_MESSAGE_FORMAT.format(ideName)) &&
-              !qualifiedIde.getScope().lookupDeclaration(new Ide(ideName), false).isPrimaryDeclaration()) {
+      if (!qualifiedIde.getScope().lookupDeclaration(new Ide(ideName), false).isPrimaryDeclaration()) {
         // something non-imported (primary declaration) hides the short name used for import, so rather use the fully qualified name:
         out.writeTokenForSymbol(qualifiedIde.getQualifiedNameStr(), qualifiedIde.getSymbol());
       } else {
@@ -1042,17 +977,27 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   private void generateFunJsCode(ApplyExpr applyExpr) throws IOException {
     // leave out constructor function if called as type cast function!
     // these old-style type casts are soo ugly....
+    ParenthesizedExpr<CommaSeparatedList<Expr>> args = applyExpr.getArgs();
     if (applyExpr.isTypeCast()) {
       out.writeToken("AS3.cast");
-      out.writeSymbol(applyExpr.getArgs().getLParen());
+      out.writeSymbol(args.getLParen());
       applyExpr.getFun().visit(this);
       out.writeToken(",");
       // isTypeCast() ensures that there is exactly one parameter:
-      applyExpr.getArgs().getExpr().getHead().visit(this);
-      out.writeSymbol(applyExpr.getArgs().getRParen());
+      args.getExpr().getHead().visit(this);
+      out.writeSymbol(args.getRParen());
     } else {
       applyExpr.getFun().visit(this);
-      visitIfNotNull(applyExpr.getArgs());
+      // check for super call:
+      if (args != null && applyExpr.getFun() instanceof IdeExpr && isSuperCall(((IdeExpr) applyExpr.getFun()).getIde())) {
+        out.writeSymbol(args.getLParen());
+        out.writeToken("[");
+        visitIfNotNull(args.getExpr());
+        out.writeToken("]");
+        out.writeSymbol(args.getRParen());
+      } else {
+        visitIfNotNull(args);
+      }
     }
   }
 
@@ -1674,11 +1619,13 @@ public class JsCodeGenerator extends CodeGeneratorBase {
             functionName = accessorPrefix + "$" + functionName;
             isAccessor = false;
           }
+        } else if (functionDeclaration.isConstructor()) {
+          functionName += "$";
         }
 
         String overriddenMethodName = null;
         PropertyDefinition overriddenPropertyDefinition = null;
-        if (functionDeclaration.isOverride() || functionDeclaration.isPrivate() && !functionDeclaration.isStatic()) {
+        if (functionDeclaration.isPrivate() && !functionDeclaration.isStatic()) {
           String privateMethodName = methodName + "$" + functionDeclaration.getClassDeclaration().getInheritanceLevel();
           if (functionDeclaration.isOverride()) {
             overriddenMethodName = privateMethodName;
@@ -1763,13 +1710,12 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       String secondaryDeclarationName = secondaryDeclaration.getName();
       if (secondaryDeclaration instanceof ClassDeclaration) {
         ClassDeclaration secondaryClassDeclaration = (ClassDeclaration) secondaryDeclaration;
-        out.write(new MessageFormat("function {0}_()'{").format(secondaryDeclarationName));
         secondaryClassDeclaration.visit(this);
         JsonObject secondaryClassDefinition = createClassDefinition(secondaryClassDeclaration, secondaryClassDefinitionBuilder);
         // TODO: secondary interfaces! (Did they work in Jangaroo 2?)
-        out.write("return AS3.class_({id:\"as3/" + secondaryClassDeclaration.getQualifiedNameStr() + "\"}," + secondaryClassDefinition.toString(-1, -1) + ");");
-        out.write("}");
-        primaryClassDefinitionBuilder.staticCode.append(new MessageFormat("    var {0}$static={0}_();\n").format(secondaryDeclarationName));
+        out.write(new MessageFormat("var {0}$static = Ext.define(null, ").format(secondaryDeclarationName));
+        out.write(secondaryClassDefinition.toString(-1, -1));
+        out.write(");");
       } else {
         // TODO: secondary variable or function declarations?!
         secondaryDeclaration.visit(this);
@@ -1778,10 +1724,11 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
     if (!classDeclaration.isInterface() && classDeclaration.getConstructor() == null) {
       // generate default constructor that calls field initializers:
-      out.write("function " + classDeclaration.getName() + "() {");
+      String constructorName = classDeclaration.getName() + "$";
+      out.write("function " + constructorName + "() {");
       new SuperCallCodeGenerator(classDeclaration).generate(out, true);
       out.write("}");
-      classDefinitionBuilder.members.put("constructor", new PropertyDefinition(classDeclaration.getName()));
+      classDefinitionBuilder.members.put("constructor", new PropertyDefinition(constructorName));
     }
   }
 
@@ -1862,19 +1809,14 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   }
 
   private void generateSuperConstructorCallCode(ParenthesizedExpr<CommaSeparatedList<Expr>> args) throws IOException {
-    out.write("Super.call");
+    out.write("this.callParent");
     if (args == null) {
-      out.writeToken("(this)");
+      out.writeToken("([])");
     } else {
       out.writeSymbol(args.getLParen());
-      out.writeToken("this");
-      CommaSeparatedList<Expr> arguments = args.getExpr();
-      if (arguments != null) {
-        if (arguments.getHead() != null) {
-          out.writeToken(",");
-        }
-        arguments.visit(this);
-      }
+      out.writeToken("[");
+      visitIfNotNull(args.getExpr());
+      out.writeToken("]");
       out.writeSymbol(args.getRParen());
     }
   }

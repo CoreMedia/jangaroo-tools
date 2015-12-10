@@ -1,4 +1,4 @@
-define("as3/package1/TestBind",["module","exports","as3-rt/AS3"], function($module,$exports,AS3) { AS3.compilationUnit($module,$exports,function($primaryDeclaration){/* /*
+Ext.define("package1.TestBind", function(TestBind) {/* /*
  * Copyright 2008 CoreMedia AG
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); 
@@ -19,7 +19,7 @@ public class TestBind {
 
   public var boundField:Function =*/function boundField_(){this.boundField=(AS3.bind( this,"getStatePrivate$1"));}/*;
 
-  public*/ function TestBind(state/* : String*/) {boundField_.call(this);
+  public*/ function TestBind$(state/* : String*/) {boundField_.call(this);
     this.state$1 = state;
     var bound/*:Function*/ =AS3.bind( this,"getStatePrivate$1");
   }/*
@@ -38,14 +38,13 @@ public class TestBind {
 }
 
 ============================================== Jangaroo part ==============================================*/
-    $primaryDeclaration(AS3.class_($module, {members: {
-      constructor: TestBind,
+    return {
+      constructor: TestBind$,
       getState: getState,
       getStatePrivate$1: getStatePrivate,
       state$1: {
         value: null,
         writable: true
       }
-    }}));
-  });
+    };
 });

@@ -1,4 +1,4 @@
-define("as3/package1/TestMethodCall",["module","exports","as3-rt/AS3"], function($module,$exports,AS3) { AS3.compilationUnit($module,$exports,function($primaryDeclaration){/* /*
+Ext.define("package1.TestMethodCall", function(TestMethodCall) {/* /*
  * Copyright 2008 CoreMedia AG
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); 
@@ -20,7 +20,7 @@ package package1 /*blubber* / {
 * /
 public class TestMethodCall /* blub ber * //*extends Object* / {
 
-  public*/ function TestMethodCall() {
+  public*/ function TestMethodCall$() {
   }/*
 
   var s:TestMethodCall;
@@ -130,36 +130,33 @@ public class TestMethodCall /* blub ber * //*extends Object* / {
 }
 
 ============================================== Jangaroo part ==============================================*/
-    $primaryDeclaration(AS3.class_($module, {
-      members: {
-        constructor: TestMethodCall,
-        s: {
-          value: null,
-          writable: true
-        },
-        m: m,
-        prot: prot,
-        priv$1: priv,
-        callm: callm,
-        callmViaThis: callmViaThis,
-        callmViaObject: callmViaObject,
-        callmViaVar: callmViaVar,
-        callmViaField: callmViaField,
-        callmViaThisDotField: callmViaThisDotField,
-        callProt: callProt,
-        callProtViaThis: callProtViaThis,
-        callProtViaObject: callProtViaObject,
-        callProtViaVar: callProtViaVar,
-        callProtViaField: callProtViaField,
-        callProtViaThisDotField: callProtViaThisDotField,
-        callPriv: callPriv,
-        callPrivViaThis: callPrivViaThis,
-        callPrivViaObject: callPrivViaObject,
-        callPrivViaVar: callPrivViaVar,
-        callPrivViaField: callPrivViaField,
-        callPrivViaThisDotField: callPrivViaThisDotField
+    return {
+      constructor: TestMethodCall$,
+      s: {
+        value: null,
+        writable: true
       },
-      staticMembers: {s: s$static}
-    }));
-  });
+      m: m,
+      prot: prot,
+      priv$1: priv,
+      callm: callm,
+      callmViaThis: callmViaThis,
+      callmViaObject: callmViaObject,
+      callmViaVar: callmViaVar,
+      callmViaField: callmViaField,
+      callmViaThisDotField: callmViaThisDotField,
+      callProt: callProt,
+      callProtViaThis: callProtViaThis,
+      callProtViaObject: callProtViaObject,
+      callProtViaVar: callProtViaVar,
+      callProtViaField: callProtViaField,
+      callProtViaThisDotField: callProtViaThisDotField,
+      callPriv: callPriv,
+      callPrivViaThis: callPrivViaThis,
+      callPrivViaObject: callPrivViaObject,
+      callPrivViaVar: callPrivViaVar,
+      callPrivViaField: callPrivViaField,
+      callPrivViaThisDotField: callPrivViaThisDotField,
+      statics: {s: s$static}
+    };
 });

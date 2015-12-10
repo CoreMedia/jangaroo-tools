@@ -1,4 +1,4 @@
-define("as3/package1/Interface",["module","as3-rt/AS3","as3/package1/SuperInterface"], function($module,AS3,SuperInterface) { return AS3.interface_($module,/*package package1 {
+Ext.define("package1.Interface", function(Interface) {/*package package1 {
 
 /**
  * Some ASDoc.
@@ -12,5 +12,5 @@ public interface Interface extends SuperInterface {
 }
 
 ============================================== Jangaroo part ==============================================*/
-{extends_: [SuperInterface]}
-);});
+    return {mixins: [package1.SuperInterface]};
+});

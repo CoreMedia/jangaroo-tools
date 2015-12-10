@@ -1,4 +1,4 @@
-define("as3/package1/TestIdeWithReservedName",["module","exports","as3-rt/AS3"], function($module,$exports,AS3) { AS3.compilationUnit($module,$exports,function($primaryDeclaration){/*package package1 {
+Ext.define("package1.TestIdeWithReservedName", function(TestIdeWithReservedName) {/*package package1 {
 public class TestIdeWithReservedName {
   public*/ function parameterWithReservedName(char_/*:String*/)/*:String*/ {
     char_ = char_ + "!";
@@ -10,14 +10,13 @@ public class TestIdeWithReservedName {
     char_ = char_.substr(0,0) + "u";
     return char_;
   }/*
-}*/function TestIdeWithReservedName() {}/*
+}*/function TestIdeWithReservedName$() {}/*
 }
 
 ============================================== Jangaroo part ==============================================*/
-    $primaryDeclaration(AS3.class_($module, {members: {
+    return {
       parameterWithReservedName: parameterWithReservedName,
       localVarWithReservedName: localVarWithReservedName,
-      constructor: TestIdeWithReservedName
-    }}));
-  });
+      constructor: TestIdeWithReservedName$
+    };
 });
