@@ -57,7 +57,7 @@ public class ExtAsApiGenerator {
   private static Set<ExtClass> extClasses;
   private static CompilationUnitModelRegistry compilationUnitModelRegistry;
   private static Set<String> interfaces;
-  private static final List<String> NON_COMPILE_TIME_CONSTANT_INITIALIZERS = Arrays.asList("window", "document", "document.body", "new Date()", "this");
+  private static final List<String> NON_COMPILE_TIME_CONSTANT_INITIALIZERS = Arrays.asList("window", "document", "document.body", "new Date()", "this", "`this`", "10||document.body", "caller", "array.length");
   private static ExtAsApi referenceApi;
   private static boolean generateEventClasses;
   private static boolean generateForMxml;
