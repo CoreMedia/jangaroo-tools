@@ -180,6 +180,12 @@ public class JsonObject implements Json {
     this.properties.put(property, value);
   }
 
+  public void add(JsonObject jsonObject) {
+    for (Map.Entry<String, Object> property : jsonObject.properties.entrySet()) {
+      set(property.getKey(), property.getValue());
+    }
+  }
+
   public Object remove(String property) {
     return this.properties.remove(property);
   }
