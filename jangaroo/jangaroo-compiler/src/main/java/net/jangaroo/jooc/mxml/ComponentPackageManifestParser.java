@@ -1,6 +1,7 @@
 package net.jangaroo.jooc.mxml;
 
 import net.jangaroo.jooc.util.PreserveLineNumberHandler;
+import net.jangaroo.utils.CompilerUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -30,9 +31,17 @@ public class ComponentPackageManifestParser {
       for (int i = 0; i < componentNodes.getLength(); i++) {
         Node componentNode = componentNodes.item(i);
         NamedNodeMap attributes = componentNode.getAttributes();
-        String componentId = attributes.getNamedItem("id").getNodeValue();
-        String componentClass = attributes.getNamedItem("class").getNodeValue();
-        componentPackageModel.addElementToClassNameMapping(componentId, componentClass);
+        Node classAttribute = attributes.getNamedItem("class");
+        if (classAttribute == null) {
+          System.err.println("[WARN] manifest.xml contains <component> element without 'class' attribute.");
+        } else {
+          String componentClass = classAttribute.getNodeValue();
+          Node idAttribute = attributes.getNamedItem("id");
+          String componentId = idAttribute != null
+                  ? idAttribute.getNodeValue()
+                  : CompilerUtils.className(componentClass);
+          componentPackageModel.addElementToClassNameMapping(componentId, componentClass);
+        }
       }
     } catch (SAXException e) {
       e.printStackTrace();
