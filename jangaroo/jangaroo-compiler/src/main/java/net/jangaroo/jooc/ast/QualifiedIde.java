@@ -18,6 +18,7 @@ package net.jangaroo.jooc.ast;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
+import net.jangaroo.jooc.sym;
 
 import java.io.IOException;
 import java.util.List;
@@ -70,6 +71,11 @@ public class QualifiedIde extends Ide {
   @Override
   public String getQualifiedNameStr() {
     return constructQualifiedNameStr(getQualifiedName(), ".");
+  }
+
+  @Override
+  public boolean isQualifiedBySuper() {
+    return getQualifier() != null && getQualifier().getSymbol().sym == sym.SUPER;
   }
 
   public JooSymbol getSymbol() {
