@@ -24,8 +24,10 @@ import net.jangaroo.utils.AS3Type;
 import net.jangaroo.utils.CompilerUtils;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -463,7 +465,7 @@ public class ExtAsApiGenerator {
     //noinspection ResultOfMethodCallIgnored
     outputFile.getParentFile().mkdirs(); // NOSONAR
     System.out.printf("Generating AS3 API for %s into %s...\n", extAsClass.getQName(), outputFile.getPath());
-    extAsClass.visit(new ActionScriptCodeGeneratingModelVisitor(new FileWriter(outputFile)));
+    extAsClass.visit(new ActionScriptCodeGeneratingModelVisitor(new OutputStreamWriter(new FileOutputStream(outputFile), "UTF-8")));
   }
 
   private static void addDeprecation(Deprecation deprecation, AbstractAnnotatedModel model) {
