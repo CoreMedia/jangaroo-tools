@@ -25,7 +25,6 @@ import net.jangaroo.utils.AS3Type;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -43,7 +42,7 @@ public class CompilationUnit extends NodeImplBase {
   private IdeDeclaration primaryDeclaration;
   private JooSymbol rBrace;
 
-  private Set<String> dependencies = new LinkedHashSet<String>();
+  private Set<String> nonNativeDependencies = new LinkedHashSet<String>();
   private Set<CompilationUnit> dependenciesAsCompilationUnits = new LinkedHashSet<CompilationUnit>();
   private Set<String> publicApiDependencies = new LinkedHashSet<String>();
   private Set<String> usedBuiltIns = new LinkedHashSet<String>();
@@ -164,8 +163,8 @@ public class CompilationUnit extends NodeImplBase {
     return rBrace;
   }
 
-  public Set<String> getDependencies() {
-    return dependencies;
+  public Set<String> getNonNativeDependencies() {
+    return nonNativeDependencies;
   }
 
   public Set<String> getPublicApiDependencies() {
@@ -220,9 +219,11 @@ public class CompilationUnit extends NodeImplBase {
 
   public void addDependency(CompilationUnit otherUnit) {
     // predefined ides have a null unit
-    if (otherUnit != null && otherUnit != this && otherUnit.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME) == null) {
-      String qname = otherUnit.getPrimaryDeclaration().getQualifiedNameStr();
-      dependencies.add(qname);
+    if (otherUnit != null && otherUnit != this) {
+      if (otherUnit.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME) == null) {
+        String qname = otherUnit.getPrimaryDeclaration().getQualifiedNameStr();
+        nonNativeDependencies.add(qname);
+      }
       dependenciesAsCompilationUnits.add(otherUnit);
     }
   }
@@ -257,7 +258,7 @@ public class CompilationUnit extends NodeImplBase {
     if (path.startsWith("/")) {
       path = path.substring(1);
     }
-    dependencies.add("resource:" + path);
+    nonNativeDependencies.add("resource:" + path);
     return path;
   }
 

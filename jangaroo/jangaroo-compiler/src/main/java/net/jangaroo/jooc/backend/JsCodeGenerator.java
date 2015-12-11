@@ -316,7 +316,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     compilationUnit.getPrimaryDeclaration().visit(this);
     out.write(",[");
     boolean first = true;
-    for (String qname : compilationUnit.getDependencies()) {
+    for (String qname : compilationUnit.getNonNativeDependencies()) {
       if (first) {
         first = false;
       } else {
