@@ -229,7 +229,7 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
 
   private void reportPublicApiViolations(CompilationUnit unit) {
     for (CompilationUnit compilationUnit : unit.getDependenciesAsCompilationUnits()) {
-      if (compilationUnit.getSource() instanceof ZipEntryInputSource
+      if (!compilationUnit.getSource().isInSourcePath()
         && compilationUnit.getAnnotation(PUBLIC_API_EXCLUSION_ANNOTATION_NAME) != null) {
         String msg = "PUBLIC API VIOLATION: " + compilationUnit.getPrimaryDeclaration().getQualifiedNameStr();
         File sourceFile = new File(unit.getSymbol().getFileName());
