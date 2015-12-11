@@ -282,6 +282,9 @@ public class ExtAsApiGenerator {
     } else {
       extAsClass.addAnnotation(nativeAnnotation);
     }
+    if (extClass.private_) {
+      extAsClass.addAnnotation(new AnnotationModel(Jooc.PUBLIC_API_EXCLUSION_ANNOTATION_NAME));
+    }
     extAsClass.setSuperclass(convertType(extClass.extends_));
     if (extAsInterfaceUnit != null) {
       extAsClass.addInterface(extAsInterfaceUnit.getQName());
@@ -367,6 +370,9 @@ public class ExtAsApiGenerator {
         }
       }
       configClassUnit.getClassModel().addAnnotation(extConfigAnnotation);
+      if (extClass.private_) {
+        configClassUnit.getClassModel().addAnnotation(new AnnotationModel(Jooc.PUBLIC_API_EXCLUSION_ANNOTATION_NAME));
+      }
       if (generateEventClasses) {
         addEvents(configClass, extAsClassUnit, extJsApi.filterByOwner(false, false, extClass, extClass.members, Event.class));
       }
