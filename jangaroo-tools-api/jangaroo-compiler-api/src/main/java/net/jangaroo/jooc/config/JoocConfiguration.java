@@ -2,11 +2,15 @@ package net.jangaroo.jooc.config;
 
 import net.jangaroo.utils.FileLocations;
 import org.kohsuke.args4j.Option;
+import org.kohsuke.args4j.spi.StringArrayOptionHandler;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Jangaroo compiler configuration
@@ -19,6 +23,7 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
 
   private boolean help, version, verbose, enableAssertions;
   private PublicApiViolationsMode publicApiViolationsMode = PublicApiViolationsMode.WARN;
+  private Set<String> publicApiViolationExcludes = new LinkedHashSet<String>();
   private boolean excludeClassByDefault = false;
 
   private boolean allowDuplicateLocalVariables;
@@ -94,6 +99,19 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
   @Option(name="-pav", aliases = "--publicApiViolations", usage = "Severity of public API violations, i.e. using classes that are annotated with [ExcludeClass]: error, warn, allow")
   public void setPublicApiViolationsMode(PublicApiViolationsMode warnPublicApiViolations) {
     this.publicApiViolationsMode = warnPublicApiViolations;
+  }
+
+  public Set<String> getPublicApiViolationExcludes() {
+    return Collections.unmodifiableSet(publicApiViolationExcludes);
+  }
+
+  @Option(name="-pave", aliases = "--publicApiViolationExcludes", handler = StringArrayOptionHandler.class, usage = "list of packages to exclude from public API violation checks")
+  public void setPublicApiViolationExcludes(String[] publicApiViolationExcludes) {
+    this.publicApiViolationExcludes = new LinkedHashSet<String>(Arrays.asList(publicApiViolationExcludes));
+  }
+
+  public void setPublicApiViolationExcludes(Set<String> publicApiViolationExcludes) {
+    this.publicApiViolationExcludes = publicApiViolationExcludes;
   }
 
   public boolean isExcludeClassByDefault() {
