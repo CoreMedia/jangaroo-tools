@@ -25,7 +25,6 @@ import net.jangaroo.utils.CompilerUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.Arrays;
@@ -65,11 +64,17 @@ public class ExtAsApiGenerator {
   private static boolean generateForMxml;
   private static Properties jsAsNameMappingProperties = new Properties();
   private static Properties jsConfigClassNameMappingProperties = new Properties();
+  private static final String EXT_3_4_EVENT = "ext.IEventObject";
+  private static String EXT_EVENT;
 
   public static void main(String[] args) throws IOException {
     File srcDir = new File(args[0]);
     File outputDir = new File(args[1]);
     referenceApi = new ExtAsApi("2.0.14", "2.0.13");
+    EXT_EVENT = referenceApi.getMappedQName(EXT_3_4_EVENT);
+    if (EXT_EVENT == null) {
+      EXT_EVENT = EXT_3_4_EVENT;
+    }
 
     generateEventClasses = args.length <= 2 || Boolean.valueOf(args[2]);
     generateForMxml = args.length <= 3 ? false : Boolean.valueOf(args[3]);
@@ -199,7 +204,6 @@ public class ExtAsApiGenerator {
       if (shouldCorrect(oldType, newType)) {
         newMember.setType(oldType);
         //System.err.printf("!!! corrected type of %s.%s from %s back to %s%n", classModel.getName(), member.getName(), newType, oldType);
-      } else {
         return true;
       }
     }
@@ -220,7 +224,7 @@ public class ExtAsApiGenerator {
             "*".equals(newType) ||
             "void".equals(oldType) ||
             "Object".equals(newType) && "*".equals(oldType) ||
-            "ext.IEventObject".equals(oldType) && newType.contains("Event") ||
+            EXT_EVENT.equals(oldType) && newType.contains("Event") ||
             "Function".equals(newType) && "Class".equals(oldType);
   }
 
@@ -863,6 +867,7 @@ public class ExtAsApiGenerator {
 
   private static void markPublic(Set<ExtClass> privateClasses, String extClassName) {
     ExtClass extClass = extJsApi.getExtClass(extClassName);
+    //noinspection StatementWithEmptyBody
     if (privateClasses.remove(extClass)) {
       //System.err.println("*** marked public because it is a super class: " + extClass.name);
     }
