@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import static net.jangaroo.exml.tools.ExtJsApi.Cfg;
 import static net.jangaroo.exml.tools.ExtJsApi.Deprecation;
@@ -58,6 +59,7 @@ public class ExtAsApiGenerator {
   private static CompilationUnitModelRegistry compilationUnitModelRegistry;
   private static Set<String> interfaces;
   private static final List<String> NON_COMPILE_TIME_CONSTANT_INITIALIZERS = Arrays.asList("window", "document", "document.body", "new Date()", "this", "`this`", "10||document.body", "caller", "array.length");
+  private static final Pattern CONSTANT_NAME_PATTERN = Pattern.compile("[A-Z][A-Z0-9_]*");
   private static ExtAsApi referenceApi;
   private static boolean generateEventClasses;
   private static boolean generateForMxml;
@@ -586,7 +588,7 @@ public class ExtAsApiGenerator {
         setVisibility(propertyModel, member);
         setStatic(propertyModel, member);
         propertyModel.addGetter();
-        if (!forceReadOnly && !(member.meta.readonly || member.readonly)) {
+        if (!forceReadOnly && !(member.meta.readonly || member.readonly || isConstantName(member.name))) {
           propertyModel.addSetter();
         }
         classModel.addMember(propertyModel);
@@ -640,7 +642,13 @@ public class ExtAsApiGenerator {
 
   private static void setStatic(MemberModel memberModel, Member member) {
     ExtClass extClass = extJsApi.getExtClass(member.owner);
-    memberModel.setStatic(!extClass.singleton && (member.static_ || member.meta.static_));
+    memberModel.setStatic(!extClass.singleton &&
+            (member.static_ || member.meta.static_ || isConstantName(member.name))
+    );
+  }
+
+  private static boolean isConstantName(String name) {
+    return CONSTANT_NAME_PATTERN.matcher(name).matches();
   }
 
   private static String toAsDoc(Tag tag) {
