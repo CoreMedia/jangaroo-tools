@@ -16,6 +16,6 @@ public class SuperCallParameters extends ManyConstructorParameters {
       extend: "package1.ManyConstructorParameters",
       constructor: SuperCallParameters$,
       isEmpty: isEmpty,
-      require: ["package1.ManyConstructorParameters"]
+      requires: ["package1.ManyConstructorParameters"]
     };
 });

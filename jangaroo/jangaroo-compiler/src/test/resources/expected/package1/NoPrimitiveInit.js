@@ -14,6 +14,10 @@ public class NoPrimitiveInit {
 ============================================== Jangaroo part ==============================================*/
     return {
       constructor: NoPrimitiveInit$,
-      method$1: method
+      method$1: method,
+      requires: [
+        "package1.someOtherPackage.SomeOtherClass",
+        "int"
+      ]
     };
 });

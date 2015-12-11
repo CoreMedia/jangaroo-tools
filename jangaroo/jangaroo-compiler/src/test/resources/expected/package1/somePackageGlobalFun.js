@@ -1,16 +1,14 @@
-define("as3/package1/somePackageGlobalFun",["module","exports","as3-rt/AS3","as3/package1/someOtherPackage/SomeOtherClass"], function($module,$exports,AS3,SomeOtherClass) { AS3.compilationUnit($module,$exports,function($primaryDeclaration){/*package package1 {
+Ext.ns("package1");Ext.require(["package1.someOtherPackage.SomeOtherClass"], function() {/*package package1 {
 
-import package1.someOtherPackage.SomeOtherClass;
+import package1.someOtherPackage.SomeOtherClass;*/package1.somePackageGlobalFun=/*
 
 // This comment to vanish in API
 /**
  * Some package-global documentation;
  * /
 public*/ function somePackageGlobalFun(flag/*:Boolean*/)/*:SomeOtherClass*/ {
-  return new SomeOtherClass._();
-} $primaryDeclaration(somePackageGlobalFun);/*
+  return new package1.someOtherPackage.SomeOtherClass();
+}/*
 
 }
-*/
-  });
-});
+*/});

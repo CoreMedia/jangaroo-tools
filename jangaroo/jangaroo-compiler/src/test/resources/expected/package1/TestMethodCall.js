@@ -132,10 +132,7 @@ public class TestMethodCall /* blub ber * //*extends Object* / {
 ============================================== Jangaroo part ==============================================*/
     return {
       constructor: TestMethodCall$,
-      s: {
-        value: null,
-        writable: true
-      },
+      s: null,
       m: m,
       prot: prot,
       priv$1: priv,

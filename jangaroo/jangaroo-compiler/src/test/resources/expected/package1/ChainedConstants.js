@@ -18,7 +18,8 @@ public class ChainedConstants {
 ============================================== Jangaroo part ==============================================*/
     return {
       constructor: ChainedConstants$,
-      statics: {METHOD_TYPE_GET: "get"}
+      statics: {METHOD_TYPE_GET: "get"},
+      requires: ["package1.someOtherPackage.SomeOtherClass"]
     };
 }, function() {
     DEFAULT_METHOD_TYPE$static_();

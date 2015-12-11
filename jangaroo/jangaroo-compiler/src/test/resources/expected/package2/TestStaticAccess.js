@@ -126,10 +126,7 @@ public class TestStaticAccess extends StaticAccessSuperClass {
       extend: "package2.StaticAccessSuperClass",
       constructor: TestStaticAccess$,
       statics: {
-        s1: {
-          value: "s1",
-          writable: true
-        },
+        s1: "s1",
         get_s0: get_s0$static,
         set_s0: set_s0$static,
         get_s0_qualified: get_s0_qualified$static,
@@ -151,6 +148,10 @@ public class TestStaticAccess extends StaticAccessSuperClass {
         get_s2_via_private_static_method: get_s2_via_private_static_method$static,
         get_s2_via_private_static_method_qualified: get_s2_via_private_static_method_qualified$static,
         get_s2_via_private_static_method_full_qualified: get_s2_via_private_static_method_full_qualified$static
-      }
+      },
+      requires: [
+        "package2.StaticAccessSuperClass",
+        "package1.StaticAccessSuperSuperClass"
+      ]
     };
 });

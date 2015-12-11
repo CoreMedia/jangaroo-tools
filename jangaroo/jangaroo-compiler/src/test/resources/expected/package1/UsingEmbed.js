@@ -1,4 +1,4 @@
-define("as3/package1/UsingEmbed",["module","exports","as3-rt/AS3","as3/flash/display/Bitmap","text!package1/UsingEmbed.as","text!package1/Interface.as","image!package1/jooley.png"], function($module,$exports,AS3,Bitmap,$resource_0,$resource_1,$resource_2) { AS3.compilationUnit($module,$exports,function($primaryDeclaration){/*package package1 {
+Ext.define("package1.UsingEmbed", function(UsingEmbed) {/*package package1 {
 
 [SomeRuntimeAnnotation]
 /**
@@ -14,7 +14,7 @@ public class UsingEmbed {
   private static*/ var anotherText$static/*:Class*/=function(){return new String($resource_1)};/*
 
   [Embed(source="package1/jooley.png")]
-  private static*/ var jooley$static/*:Class*/=function(){return Bitmap._.fromImg($resource_2)};/*
+  private static*/ var jooley$static/*:Class*/=function(){return flash.display.Bitmap.fromImg($resource_2)};/*
 
   [SomeRuntimeAnnotation]
   public var annotated1;
@@ -48,11 +48,11 @@ public class UsingEmbed {
   [SomePropertyAnnotation(2)]
   public native function set annotated6(value:String):void;
 
-}*/function UsingEmbed() {}/*
+}*/function UsingEmbed$() {}/*
 }
 
 ============================================== Jangaroo part ==============================================*/
-    $primaryDeclaration(AS3.class_($module, {
+    return {
       metadata: {
         "": [
           "SomeRuntimeAnnotation",
@@ -109,21 +109,13 @@ public class UsingEmbed {
           ]
         ]
       },
-      members: {
-        someText: {
-          value: function(){return new String($resource_0)},
-          writable: true
-        },
-        annotated1: {
-          value: undefined,
-          writable: true
-        },
-        annotated2: annotated2,
-        annotated3: annotated3,
-        annotated4: annotated4,
-        annotated5: annotated5,
-        constructor: UsingEmbed
-      }
-    }));
-  });
+      someText: function(){return new String($resource_0)},
+      annotated1: undefined,
+      annotated2: annotated2,
+      annotated3: annotated3,
+      annotated4: annotated4,
+      annotated5: annotated5,
+      constructor: UsingEmbed$,
+      requires: ["flash.display.Bitmap"]
+    };
 });

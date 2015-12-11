@@ -1,4 +1,4 @@
-define("as3/package1/UsingSomeNativeClass",["module","exports","as3-rt/AS3","acme/native","as3/package1/someOtherPackage/SomeNativeClass"], function($module,$exports,AS3,$$1,package1$someOtherPackage$SomeNativeClass) { AS3.compilationUnit($module,$exports,function($primaryDeclaration){/*package package1 {
+Ext.define("package1.UsingSomeNativeClass", function(UsingSomeNativeClass) {/*package package1 {
 import package1.someOtherPackage.SomeNativeClass;
 
 /**
@@ -6,12 +6,12 @@ import package1.someOtherPackage.SomeNativeClass;
  * /
 public class UsingSomeNativeClass {
 
-  public var someNative:package1.SomeNativeClass =*/function someNative_(){this.someNative=( new $$1.SomeNativeClass());}/*;
-  public var someOtherNative:SomeOtherNativeClass =*/function someOtherNative_(){this.someOtherNative=( new $$1.SomeOtherNativeClass());}/*;
+  public var someNative:package1.SomeNativeClass =*/function someNative_(){this.someNative=( new SomeNativeClass());}/*;
+  public var someOtherNative:SomeOtherNativeClass =*/function someOtherNative_(){this.someOtherNative=( new SomeOtherNativeClass());}/*;
   public native function get someNative2():package1.SomeNativeClass;
 
-  public*/ function UsingSomeNativeClass() {var this$=this;someNative_.call(this);someOtherNative_.call(this);
-    new package1$someOtherPackage$SomeNativeClass._();
+  public*/ function UsingSomeNativeClass$() {var this$=this;someNative_.call(this);someOtherNative_.call(this);
+    new package1.someOtherPackage.SomeNativeClass();
     this.someNative.setBaz ( "foo");
     this.someNative2.setBaz ( "foo");
     var local = function()/*:void*/ {
@@ -43,12 +43,16 @@ public class UsingSomeNativeClass {
 }
 
 ============================================== Jangaroo part ==============================================*/
-    $primaryDeclaration(AS3.class_($module, {members: {
-      constructor: UsingSomeNativeClass,
+    return {
+      constructor: UsingSomeNativeClass$,
       getFoobar: get$someNativeAccessor,
       getAnotherNativeAccessor: get$anotherNativeAccessor,
       isMonkey: get$monkey,
-      setMonkey: set$monkey
-    }}));
-  });
+      setMonkey: set$monkey,
+      requires: [
+        "SomeNativeClass",
+        "SomeOtherNativeClass",
+        "package1.someOtherPackage.SomeNativeClass"
+      ]
+    };
 });

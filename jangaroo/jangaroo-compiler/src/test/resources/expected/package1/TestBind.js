@@ -42,9 +42,6 @@ public class TestBind {
       constructor: TestBind$,
       getState: getState,
       getStatePrivate$1: getStatePrivate,
-      state$1: {
-        value: null,
-        writable: true
-      }
+      state$1: null
     };
 });

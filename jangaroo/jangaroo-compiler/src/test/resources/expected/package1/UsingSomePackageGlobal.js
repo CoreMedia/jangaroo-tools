@@ -19,6 +19,11 @@ public class UsingSomePackageGlobal {
 ============================================== Jangaroo part ==============================================*/
     return {
       constructor: UsingSomePackageGlobal$,
-      statics: {main: main$static}
+      statics: {main: main$static},
+      requires: [
+        "package1.somePackageGlobal",
+        "package1.someOtherPackage.SomeOtherClass",
+        "foo.somethingElse"
+      ]
     };
 });

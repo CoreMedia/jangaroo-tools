@@ -17,6 +17,10 @@ public class TestLocalVariableDoesNotShadeClass {
 ============================================== Jangaroo part ==============================================*/
     return {
       constructor: TestLocalVariableDoesNotShadeClass$,
-      getClass: getClass
+      getClass: getClass,
+      requires: [
+        "package1.someOtherPackage.SomeOtherClass",
+        "package2.TestStaticAccess"
+      ]
     };
 });

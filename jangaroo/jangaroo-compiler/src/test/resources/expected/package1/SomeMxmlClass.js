@@ -137,13 +137,18 @@ public class SomeMxmlClass extends package1.ConfigClass {
       ]},
       extend: "package1.ConfigClass",
       constructor: SomeMxmlClass$,
-      $bindings$2: {
-        value: null,
-        writable: true
-      },
+      $bindings$2: null,
       $bind_other_blubbAccessor$2: $bind_other_blubbAccessor,
       $on_this_click$2: $on_this_click,
       $on_$_6_clack$2: $on_$_6_clack,
-      $bind_$_12_bla$2: $bind_$_12_bla
+      $bind_$_12_bla$2: $bind_$_12_bla,
+      requires: [
+        "package1.ConfigClass",
+        "package1.someOtherPackage.SomeOtherClass",
+        "joo.binding.Binding",
+        "joo.addEventListener",
+        "package1.someOtherPackage.SomeEvent",
+        "mx.resources.ResourceManager"
+      ]
     };
 });

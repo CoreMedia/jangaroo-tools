@@ -346,12 +346,22 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   @Override
   public void visitCompilationUnit(CompilationUnit compilationUnit) throws IOException {
     IdeDeclaration primaryDeclaration = compilationUnit.getPrimaryDeclaration();
-    boolean isInterface = primaryDeclaration instanceof ClassDeclaration
+    boolean isClassDeclaration = primaryDeclaration instanceof ClassDeclaration;
+    boolean isInterface = isClassDeclaration
             && ((ClassDeclaration) primaryDeclaration).isInterface();
-    out.write("Ext.define(");
-    out.write(CompilerUtils.quote(getModuleName(compilationUnit)));
     String[] requires = collectDependencies(compilationUnit);
-    out.write(", function(" + primaryDeclaration.getName() + ") {");
+    if (isClassDeclaration) {
+      out.write("Ext.define(");
+      out.write(CompilerUtils.quote(getModuleName(compilationUnit)));
+      out.write(", function(" + primaryDeclaration.getName() + ") {");
+    } else {
+      out.write("Ext.ns(");
+      out.write(CompilerUtils.quote(compilationUnit.getPackageDeclaration().getQualifiedNameStr()));
+      out.write(");");
+      out.write("Ext.require(");
+      out.write(new JsonArray(requires).toString(0, 0));
+      out.write(", function() {");
+    }
     this.compilationUnit = compilationUnit;
     out.beginComment();
     compilationUnit.getPackageDeclaration().visit(this);
@@ -363,7 +373,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     out.writeSymbol(compilationUnit.getRBrace());
     out.write("\n");
     out.endComment();
-    if (primaryDeclaration instanceof ClassDeclaration) {
+    if (isClassDeclaration) {
       ClassDeclaration classDeclaration = (ClassDeclaration) primaryDeclaration;
       out.beginComment();
       out.write("\n============================================== Jangaroo part ==============================================");
@@ -387,7 +397,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       }
       out.write(");\n");
     } else {
-      out.write("\n");
+      out.write("});\n");
     }
   }
 
@@ -1408,10 +1418,20 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       visitIfNotNull(variableDeclaration.getOptNextVariableDeclaration());
       generateFieldEndCode(variableDeclaration);
     } else {
-      if (variableDeclaration.hasPreviousVariableDeclaration()) {
-        writeOptSymbol(variableDeclaration.getOptSymConstOrVar());
+      if (variableDeclaration.isPrimaryDeclaration()) {
+        out.beginComment();
+        writeModifiers(out, variableDeclaration);
+        if (variableDeclaration.getOptSymConstOrVar() != null) {
+          out.writeSymbol(variableDeclaration.getOptSymConstOrVar());
+        }
+        out.endComment();
+        out.write(compilationUnit.getPackageDeclaration().getQualifiedNameStr()+".");
       } else {
-        generateVarStartCode(variableDeclaration);
+        if (variableDeclaration.hasPreviousVariableDeclaration()) {
+          writeOptSymbol(variableDeclaration.getOptSymConstOrVar());
+        } else {
+          generateVarStartCode(variableDeclaration);
+        }
       }
       visitInExpressionMode(variableDeclaration.getIde());
       visitIfNotNull(variableDeclaration.getOptTypeRelation());
@@ -1438,10 +1458,6 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       }
       visitIfNotNull(variableDeclaration.getOptNextVariableDeclaration());
       writeOptSymbol(variableDeclaration.getOptSymSemicolon());
-      if (variableDeclaration.isPrimaryDeclaration()) {
-        PropertyDefinition propertyDefinition = new PropertyDefinition(variableDeclaration.getName(), !variableDeclaration.isConst());
-        out.write(" $primaryDeclaration(" + propertyDefinition.asJson().toString(-1, -1) + ");");
-      }
     }
     resetCurrentMetadata(variableDeclaration);
   }
@@ -1571,6 +1587,9 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   public void visitFunctionDeclaration(FunctionDeclaration functionDeclaration) throws IOException {
     boolean isPrimaryDeclaration = functionDeclaration.equals(compilationUnit.getPrimaryDeclaration());
     assert functionDeclaration.isClassMember() || (!functionDeclaration.isNative() && !functionDeclaration.isAbstract());
+    if (isPrimaryDeclaration) {
+      out.write(functionDeclaration.getQualifiedNameStr() + "=");
+    }
     if (functionDeclaration.isThisAliased()) {
       functionDeclaration.getBody().addBlockStartCodeGenerator(ALIAS_THIS_CODE_GENERATOR);
     }
@@ -1683,9 +1702,6 @@ public class JsCodeGenerator extends CodeGeneratorBase {
           members.put(overriddenMethodName, overriddenPropertyDefinition);
         }
         generateFunTailCode(functionDeclaration.getFun());
-      }
-      if (functionDeclaration.isPrimaryDeclaration()) {
-        out.write(String.format(" $primaryDeclaration(%s);", functionDeclaration.getName()));
       }
     }
     resetCurrentMetadata(functionDeclaration);
@@ -1895,7 +1911,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     }
 
     Object asAbbreviatedJson() {
-      if (isValueOnly()) {
+      if (value != null || isValueOnly()) { // TODO: maybe we find a way to declare properties the ECMAScript 5 way with Ext.
         return JsonObject.code(value);
       }
       return asJson();
