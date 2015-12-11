@@ -440,11 +440,11 @@ public class JsCodeGenerator extends CodeGeneratorBase {
           TypeRelation optTypeRelation = ((TypedIdeDeclaration) dependentDeclaration).getOptTypeRelation();
           if (optTypeRelation != null) {
             IdeDeclaration typeDeclaration = optTypeRelation.getType().resolveDeclaration();
-            if (typeDeclaration != null) {
+            if (typeDeclaration instanceof ClassDeclaration) {
               javaScriptNameToRequire = getNativeAnnotationValue(typeDeclaration);
               if ("".equals(javaScriptNameToRequire)) {
                 // "virtual" singleton-type class, try direct super class:
-                javaScriptNameToRequire = getNativeAnnotationValue(typeDeclaration.getClassDeclaration().getSuperTypeDeclaration());
+                javaScriptNameToRequire = getNativeAnnotationValue(((ClassDeclaration)typeDeclaration).getSuperTypeDeclaration());
               }
             }
           }
@@ -504,7 +504,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       }
       annotationParameters = annotationParameters.getTail();
     }
-    return null;
+    return defaultValue;
   }
 
   private static String computeJavaScriptName(CompilationUnit compilationUnit) {
