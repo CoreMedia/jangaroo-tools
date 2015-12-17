@@ -76,4 +76,8 @@ public class ParenthesizedExpr<E extends Expr> extends Expr {
     return rParen;
   }
 
+  @Override
+  public IdeDeclaration getType() {
+    return expr == null ? null : expr.getType();
+  }
 }

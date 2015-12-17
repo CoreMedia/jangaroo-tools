@@ -3,8 +3,8 @@ package package1 {
 /**
  * This is an example of an API-only class ("native API stub").
  */
-[Native]
-public class SomeNativeClass {
+[Native("SomeNativeClass")]
+public class SomeNativeClass extends package1.SomeNativeSuperClass {
   /**
    * Some constructor doc.
    */

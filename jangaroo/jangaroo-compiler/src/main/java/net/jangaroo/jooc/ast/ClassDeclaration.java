@@ -100,6 +100,11 @@ public class ClassDeclaration extends IdeDeclaration {
     return super.isClassMember() || !isPrimaryDeclaration(); // secondary classes are (static) class members!
   }
 
+  @Override
+  public boolean isPrivate() {
+    return super.isPrivate() || !isPrimaryDeclaration(); // secondary classes are considered private statics!
+  }
+
   public String getName() {
     return getIde().getName();
   }
@@ -172,6 +177,9 @@ public class ClassDeclaration extends IdeDeclaration {
         withNewDeclarationScope(ClassDeclaration.this, staticScope, new Scoped() {
           @Override
           public void run(final Scope instanceScope) {
+            VariableDeclaration thisDeclaration
+                    = new VariableDeclaration(new JooSymbol("var"), new Ide("this"), new TypeRelation(null, getThisType()));
+            thisDeclaration.scope(instanceScope);
             //todo ugly, maybe we should define ClassScope implements Scope to lookup inherited members
             if(instanceScope instanceof  DeclarationScope) {
               ((DeclarationScope) instanceScope).setIsInstanceScope(true);
@@ -267,7 +275,7 @@ public class ClassDeclaration extends IdeDeclaration {
 
   @Override
   public IdeDeclaration resolveDeclaration() {
-    return this;
+    return null;
   }
 
   /**
@@ -277,10 +285,14 @@ public class ClassDeclaration extends IdeDeclaration {
    * @return a non-static member if found, null otherwise
    */
   public IdeDeclaration resolvePropertyDeclaration(String ide) {
-    return resolvePropertyDeclaration1(ide, this, new HashSet<ClassDeclaration>(), new LinkedList<ClassDeclaration>());
+    IdeDeclaration ideDeclaration = resolvePropertyDeclaration1(ide, this, new HashSet<ClassDeclaration>(), new LinkedList<ClassDeclaration>(), false);
+    if (ideDeclaration == null) {
+      ideDeclaration = resolvePropertyDeclaration1(ide, this, new HashSet<ClassDeclaration>(), new LinkedList<ClassDeclaration>(), true);
+    }
+    return ideDeclaration;
   }
 
-  private IdeDeclaration resolvePropertyDeclaration1(String ide, ClassDeclaration classDecl, Set<ClassDeclaration> visited, Deque<ClassDeclaration> chain) {
+  private IdeDeclaration resolvePropertyDeclaration1(String ide, ClassDeclaration classDecl, Set<ClassDeclaration> visited, Deque<ClassDeclaration> chain, boolean inStatic) {
     if (visited.contains(classDecl)) {
       if (chain.contains(classDecl)) {
         throw new CompilerError(classDecl.getSymbol(), "cyclic superclass chain");
@@ -290,17 +302,14 @@ public class ClassDeclaration extends IdeDeclaration {
     visited.add(classDecl);
     final int chainSize = chain.size();
     chain.add(classDecl);
-    IdeDeclaration declaration = classDecl.getMemberDeclaration(ide);
-    if (declaration == null) {
-      declaration = classDecl.getStaticMemberDeclaration(ide);
-    }
+    IdeDeclaration declaration = inStatic ? classDecl.getStaticMemberDeclaration(ide) : classDecl.getMemberDeclaration(ide);
     if (declaration == null && classDecl.getSuperType() != null) {
-      declaration = resolvePropertyInSuper(ide, classDecl, visited, chain, classDecl.getSuperType().getIde());
+      declaration = resolvePropertyInSuper(ide, classDecl, visited, chain, classDecl.getSuperType().getIde(), inStatic);
     }
     if (declaration == null && classDecl.getOptImplements() != null) {
       CommaSeparatedList<Ide> implemented = classDecl.getOptImplements().getSuperTypes();
       while (implemented != null && declaration == null) {
-        declaration = resolvePropertyInSuper(ide, classDecl, visited, chain, implemented.getHead());
+        declaration = resolvePropertyInSuper(ide, classDecl, visited, chain, implemented.getHead(), inStatic);
         implemented = implemented.getTail();
       }
     }
@@ -313,13 +322,13 @@ public class ClassDeclaration extends IdeDeclaration {
                                                 final ClassDeclaration classDecl,
                                                 final Set<ClassDeclaration> visited,
                                                 final Deque<ClassDeclaration> chain,
-                                                final Ide superIde) {
+                                                final Ide superIde, boolean inStatic) {
     IdeDeclaration superClassDecl = superIde.getDeclaration(false);
     if (superClassDecl != null) {
       if (!(superClassDecl instanceof ClassDeclaration)) {
         throw new CompilerError(classDecl.getOptExtends().getSuperClass().getSymbol(), "expected class identifier");
       }
-      return resolvePropertyDeclaration1(ide, (ClassDeclaration) superClassDecl, visited, chain);
+      return resolvePropertyDeclaration1(ide, (ClassDeclaration) superClassDecl, visited, chain, inStatic);
     }
     return null;
   }

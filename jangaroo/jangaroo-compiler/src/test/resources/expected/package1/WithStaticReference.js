@@ -1,20 +1,31 @@
-joo.classLoader.prepare("package package1",/*{*/
-"public class WithStaticReference",1,function($$private){var is=joo.is,$1=package1;return[ 
-  "public static const",{ BLA : "bla"},
-  "public function WithStaticReference",function WithStaticReference() {
-    var bla = $1.WithStaticReference.BLA;is(
-    bla,  $1.WithStaticReference);
-    new $1.WithStaticReference();
-  },
-  "public static function make",function make()/*:void*/ {
-    var bla = $1.WithStaticReference.BLA;is(
-    bla,  $1.WithStaticReference);
-    new $1.WithStaticReference();
-  },
-  "public function make2",function make2()/*:void*/ {
-    var bla = $1.WithStaticReference.BLA;is(
-    bla,  $1.WithStaticReference);
-    new $1.WithStaticReference();
-  },
-undefined];},["make"],[], "@runtimeVersion", "@version"
-);
+Ext.define("package1.WithStaticReference", function(WithStaticReference) {/*package package1{
+public class WithStaticReference {
+  public static const BLA = "bla";
+  public*/ function WithStaticReference$() {
+    var bla = WithStaticReference.BLA;AS3.is(
+    bla,  WithStaticReference);
+    this.make2$1();
+  }/*
+  public static*/ function make$static()/*:void*/ {
+    var bla = WithStaticReference.BLA;AS3.is(
+    bla,  WithStaticReference);
+    new WithStaticReference();
+  }/*
+  private*/ function make2()/*:void*/ {
+    var bla = WithStaticReference.BLA;AS3.is(
+    bla,  WithStaticReference);
+    new WithStaticReference();
+  }/*
+}
+}
+
+============================================== Jangaroo part ==============================================*/
+    return {
+      constructor: WithStaticReference$,
+      make2$1: make2,
+      statics: {
+        BLA: "bla",
+        make: make$static
+      }
+    };
+});

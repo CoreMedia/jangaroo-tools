@@ -1,9 +1,29 @@
-joo.classLoader.prepare("package package1",/* {*/
+Ext.define("package1.UsingSomePackageGlobal", function(UsingSomePackageGlobal) {/*package package1 {
+import package1.someOtherPackage.SomeOtherClass;
 
-"public class UsingSomePackageGlobal",1,function($$private){var $1=package1;return[function(){joo.classLoader.init(package1.somePackageGlobal);}, 
+/**
+ * This is an example of a class using a "package global" variable.
+ * /
+public class UsingSomePackageGlobal {
 
-  "public function getSomePackageGlobalFoo",function getSomePackageGlobalFoo()/*:String*/ {
-    return $1.somePackageGlobal.getFoo();
-  },
-undefined];},[],["package1.somePackageGlobal"], "@runtimeVersion", "@version"
-);
+  public static*/ function main$static()/*:void*/ {
+    package1.somePackageGlobal = new package1.someOtherPackage.SomeOtherClass();
+    var local/*:Object*/ = package1.somePackageGlobal || {};
+    foo.somethingElse = null;
+    var local2/*:**/ = foo.somethingElse || {};
+  }/*
+
+}*/function UsingSomePackageGlobal$() {}/*
+}
+
+============================================== Jangaroo part ==============================================*/
+    return {
+      constructor: UsingSomePackageGlobal$,
+      statics: {main: main$static},
+      requires: [
+        "package1.somePackageGlobal",
+        "package1.someOtherPackage.SomeOtherClass",
+        "foo.somethingElse"
+      ]
+    };
+});

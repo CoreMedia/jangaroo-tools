@@ -17,6 +17,7 @@ package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
+import net.jangaroo.jooc.sym;
 
 import java.io.IOException;
 import java.util.List;
@@ -27,6 +28,7 @@ import java.util.List;
 public class IdeExpr extends Expr {
 
   private Ide ide;
+  private Expr normalizedExpr;
 
   public IdeExpr(JooSymbol symIde) {
     this(new Ide(symIde));
@@ -47,7 +49,64 @@ public class IdeExpr extends Expr {
 
   @Override
   public void visit(AstVisitor visitor) throws IOException {
-    visitor.visitIdeExpression(this);
+    Expr normalizedExpr = getNormalizedExpr();
+    if (normalizedExpr != this) {
+      normalizedExpr.visit(visitor);
+    } else {
+      visitor.visitIdeExpression(this);
+    }
+  }
+
+  public Expr getNormalizedExpr() {
+    if (normalizedExpr == null) {
+      normalizedExpr = this;
+      IdeDeclaration ideDeclaration = ide.getDeclaration(false);
+      if ((ide instanceof QualifiedIde && ideDeclaration == null) ||  // qualified IDE withouth declaration => DotExpr
+              (ideDeclaration != null && ideDeclaration.isClassMember())) {  // "this." or "<Class>." may have to be synthesized
+        DotExpr dotExpr = null;
+        if (ide instanceof QualifiedIde) {
+          dotExpr = new DotExpr(new IdeExpr(ide.getQualifier()), ((QualifiedIde)ide).getSymDot(), new Ide(ide.getIde()));
+        } else if (!ideDeclaration.isStatic()) {
+          // non-static class member: synthesize "this."
+          JooSymbol ideSymbol = ide.getSymbol();
+          Ide thisIde = new Ide(ideSymbol.replacingSymAndTextAndJooValue(sym.THIS, "this", null));
+          if (ide.isRewriteThis()) {
+            thisIde.setRewriteThis(true);
+            setThisDeclaration(thisIde);
+          }
+          dotExpr = new DotExpr(new IdeExpr(thisIde), synthesizeDotSymbol(ideSymbol), new Ide(ideSymbol.withoutWhitespace()));
+        } else if (!ideDeclaration.isPrivate()) {
+          // non-private static class member: synthesize "<Class>."
+          JooSymbol ideSymbol = ide.getSymbol();
+          ClassDeclaration classDeclaration = ideDeclaration.getClassDeclaration();
+          Ide classIde = new Ide(ideSymbol.replacingSymAndTextAndJooValue(sym.IDE, classDeclaration.getName(), null));
+          classIde.setDeclaration(classDeclaration); // must not be resolved again, as implicit imports through super class chain are not found in scope!
+          dotExpr = new DotExpr(new IdeExpr(classIde), synthesizeDotSymbol(ideSymbol), new Ide(ideSymbol.withoutWhitespace()));
+        }
+        if (dotExpr != null) {
+          dotExpr.setOriginal(this);
+          normalizedExpr = dotExpr;
+        }
+      }
+    }
+    return normalizedExpr;
+  }
+
+  private void setThisDeclaration(Ide thisIde) {
+    Scope scope = ide.getScope();
+    while (scope != null && scope.getFunctionExpr() != null) {
+      FunctionDeclaration functionDeclaration = scope.getFunctionExpr().getFunctionDeclaration();
+      if (functionDeclaration != null && functionDeclaration.isClassMember()) {
+        // found method that defines whose scope contains the "outer this" declaration:
+        thisIde.setDeclaration(scope.lookupDeclaration(thisIde));
+        break;
+      }
+      scope = scope.getParentScope();
+    }
+  }
+
+  private static JooSymbol synthesizeDotSymbol(JooSymbol ideSymbol) {
+    return ideSymbol.replacingSymAndTextAndJooValue(sym.DOT, ".", null).withoutWhitespace();
   }
 
   @Override

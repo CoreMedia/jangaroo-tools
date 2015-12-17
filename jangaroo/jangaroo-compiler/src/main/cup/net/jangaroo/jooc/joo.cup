@@ -315,6 +315,8 @@ nonEmptyAnnotationParameters ::=
 annotationParameter ::=
     ide:name EQ:eq literalExpr:value
     {: RESULT = new AnnotationParameter(name,eq,value); :}
+  | ide:name EQ:eq qualifiedIde:ide
+    {: RESULT = new AnnotationParameter(name,eq,ide); :}
   | literalExpr:value
     {: RESULT = new AnnotationParameter(null,null,value); :}
   | ide:name

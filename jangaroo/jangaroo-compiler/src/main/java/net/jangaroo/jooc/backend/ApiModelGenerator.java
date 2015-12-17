@@ -152,12 +152,7 @@ public class ApiModelGenerator {
 
   @Override
   public void visitExtends(Extends anExtends) throws IOException {
-    Ide superClass = anExtends.getSuperClass();
-    IdeDeclaration declaration = superClass.resolveDeclaration();
-    if (declaration == null) {
-      throw Jooc.error(superClass.getSymbol(), "cannot resolve super class: " + superClass);
-    }
-    getCurrent(ClassModel.class).setSuperclass(declaration.getQualifiedNameStr());
+    getCurrent(ClassModel.class).setSuperclass(anExtends.getSuperClass().getDeclaration().getQualifiedNameStr());
   }
 
   @Override

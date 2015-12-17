@@ -1,12 +1,23 @@
-joo.classLoader.prepare("package package1",/* {
-import package1.someOtherPackage.SomeOtherClass;*/
+Ext.define("package1.NoPrimitiveInit", function(NoPrimitiveInit) {/*package package1 {
+import package1.someOtherPackage.SomeOtherClass;
 
-"public class NoPrimitiveInit",1,function($$private){var $1=package1.someOtherPackage;return[function(){joo.classLoader.init(package1.someOtherPackage.SomeOtherClass);}, 
-  "public function NoPrimitiveInit",function NoPrimitiveInit() {
-  },
+public class NoPrimitiveInit {
+  public*/ function NoPrimitiveInit$() {
+  }/*
 
-  "private function method",function method(i/*:int*/)/*:int*/ {
-    return $1.SomeOtherClass.BLA + $$int.MAX_VALUE;
-  },
-undefined];},[],["package1.someOtherPackage.SomeOtherClass","int"], "@runtimeVersion", "@version"
-);
+  private*/ function method(i/*:int*/)/*:int*/ {
+    return package1.someOtherPackage.SomeOtherClass.BLA + int.MAX_VALUE;
+  }/*
+}
+}
+
+============================================== Jangaroo part ==============================================*/
+    return {
+      constructor: NoPrimitiveInit$,
+      method$1: method,
+      requires: [
+        "package1.someOtherPackage.SomeOtherClass",
+        "int"
+      ]
+    };
+});

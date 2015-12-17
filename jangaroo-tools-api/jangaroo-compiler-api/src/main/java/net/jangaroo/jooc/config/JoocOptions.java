@@ -21,5 +21,7 @@ public interface JoocOptions {
    */
   boolean isExcludeClassByDefault();
 
+  boolean isGenerateSourceMaps();
+
   File getKeepGeneratedActionScriptDirectory();
- }
+}

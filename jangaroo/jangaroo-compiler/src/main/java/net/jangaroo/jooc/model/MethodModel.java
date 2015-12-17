@@ -42,7 +42,7 @@ public class MethodModel extends MemberModel {
 
   public MethodModel(MethodType methodType, String name, String type) {
     this(methodType, name, methodType == MethodType.SET ? "void" : type,
-      methodType == MethodType.SET
+            methodType == MethodType.SET
                     ? Arrays.asList(new ParamModel("value", type))
                     : NO_PARAMS,
             methodType == MethodType.SET

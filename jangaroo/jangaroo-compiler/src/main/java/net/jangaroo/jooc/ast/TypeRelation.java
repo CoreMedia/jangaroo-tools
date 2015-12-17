@@ -33,7 +33,7 @@ public class TypeRelation extends NodeImplBase {
   private Type type;
 
   public TypeRelation(JooSymbol symAnyType) {
-    this(new JooSymbol(sym.COLON, symAnyType.getFileName(), symAnyType.getLine(), symAnyType.getColumn(), symAnyType.getWhitespace(), ":"),
+    this(symAnyType.replacingSymAndTextAndJooValue(sym.COLON, ":", symAnyType.getJooValue()),
             new Type(new JooSymbol(sym.MUL, symAnyType.getFileName(), symAnyType.getLine(), symAnyType.getColumn() + 1, "", AS3Type.ANY.toString())));
   }
 

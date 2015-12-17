@@ -1,16 +1,29 @@
-joo.classLoader.prepare("package package1",/* {
+Ext.define("package1.ChainedConstants", function(ChainedConstants) {/*package package1 {
 
-import package1.someOtherPackage.SomeOtherClass;*/
+import package1.someOtherPackage.SomeOtherClass;
 
-"public class ChainedConstants",1,function($$private){var $1=package1,$2=package1.someOtherPackage;return[function(){joo.classLoader.init(package1.someOtherPackage.SomeOtherClass);}, 
-  "public static const",{ METHOD_TYPE_GET/* : String*/ : "get"},
+public class ChainedConstants {
+  public static const METHOD_TYPE_GET : String = "get";
 
-  "public static const",{ DEFAULT_METHOD_TYPE/* : String*/ :function(){return( $1.ChainedConstants.METHOD_TYPE_GET);}},
+  public static const DEFAULT_METHOD_TYPE : String =*/function DEFAULT_METHOD_TYPE$static_(){Object.defineProperty(ChainedConstants,"DEFAULT_METHOD_TYPE",{value: ChainedConstants.METHOD_TYPE_GET});}/*;
 
-  "public static const",{ THE_METHOD_TYPE/* : String*/ :function(){return( package1.ChainedConstants.METHOD_TYPE_GET);}},
+  public static const THE_METHOD_TYPE : String =*/function THE_METHOD_TYPE$static_(){Object.defineProperty(ChainedConstants,"THE_METHOD_TYPE",{value: ChainedConstants.METHOD_TYPE_GET});}/*;
 
-  "public static const",{ ANOTHER_METHOD_TYPE/* : String*/ :function(){return( package1.ChainedConstants.METHOD_TYPE_GET.substr(0));}},
+  public static const ANOTHER_METHOD_TYPE : String =*/function ANOTHER_METHOD_TYPE$static_(){Object.defineProperty(ChainedConstants,"ANOTHER_METHOD_TYPE",{value: ChainedConstants.METHOD_TYPE_GET.substr(0)});}/*;
 
-  "public static const",{ THE_BLA/* : String*/ :function(){return( $2.SomeOtherClass.BLA);}},
-undefined];},[],["package1.someOtherPackage.SomeOtherClass"], "@runtimeVersion", "@version"
-);
+  public static const THE_BLA : String =*/function THE_BLA$static_(){Object.defineProperty(ChainedConstants,"THE_BLA",{value: package1.someOtherPackage.SomeOtherClass.BLA});}/*;
+}*/function ChainedConstants$() {}/*
+}
+
+============================================== Jangaroo part ==============================================*/
+    return {
+      constructor: ChainedConstants$,
+      statics: {METHOD_TYPE_GET: "get"},
+      requires: ["package1.someOtherPackage.SomeOtherClass"]
+    };
+}, function() {
+    DEFAULT_METHOD_TYPE$static_();
+    THE_METHOD_TYPE$static_();
+    ANOTHER_METHOD_TYPE$static_();
+    THE_BLA$static_();
+});

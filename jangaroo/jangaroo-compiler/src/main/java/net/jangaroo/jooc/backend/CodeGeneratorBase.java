@@ -20,7 +20,7 @@ import net.jangaroo.jooc.ast.PrefixOpExpr;
 import java.io.IOException;
 
 public abstract class CodeGeneratorBase implements AstVisitor {
-  protected final JsWriter out;
+  protected JsWriter out;
 
   public CodeGeneratorBase(JsWriter out) {
     this.out = out;
@@ -113,7 +113,7 @@ public abstract class CodeGeneratorBase implements AstVisitor {
     if (symbol != null) {
       out.writeSymbolWhitespace(symbol);
     }
-    out.writeToken(replacementToken);
+    out.writeTokenForSymbol(replacementToken, symbol);
   }
 
   protected void visitIfNotNull(AstNode args) throws IOException {

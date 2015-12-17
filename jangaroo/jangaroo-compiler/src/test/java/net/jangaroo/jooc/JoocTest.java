@@ -148,6 +148,11 @@ public class JoocTest {
   }
 
   @Test
+  public void testInterface() throws Exception {
+    assertCompilationResult("package1/Interface");
+  }
+
+  @Test
   public void testStaticAndNonStatic() throws Exception {
     assertCompilationResult("package1/StaticAndNonStatic");
   }
@@ -175,6 +180,7 @@ public class JoocTest {
 
   @Test
   public void testSuperCallParameters() throws Exception {
+    assertCompilationResult("package1/SuperCallParameters");
     assertApiCompilationResult("package1/SuperCallParameters");
   }
 
@@ -243,6 +249,21 @@ public class JoocTest {
   }
 
   @Test
+  public void testUsingNativeClass() throws Exception {
+    assertCompilationResult("package1/UsingSomeNativeClass");
+  }
+
+  @Test
+  public void testUsingPackageGlobal() throws Exception {
+    assertCompilationResult("package1/UsingSomePackageGlobal");
+  }
+
+  @Test
+  public void testUsingEmbed() throws Exception {
+    assertCompilationResult("package1/UsingEmbed");
+  }
+
+  @Test
   public void testClassWithNamespacedMembers() throws Exception {
     assertApiCompilationResult("package1/someOtherPackage/NamespacedMembers");
   }
@@ -253,7 +274,57 @@ public class JoocTest {
 
   @Test
   public void testSimpleMxml() throws Exception {
-    assertCompilationResult("package1/AllElements", ".mxml");
+    assertCompilationResult("package1/SomeMxmlClass", ".mxml");
+  }
+
+  @Test
+  public void testStaticAccess() throws Exception {
+    assertCompilationResult("package2/TestStaticAccess");
+  }
+
+  @Test
+  public void testMethodCall() throws Exception {
+    assertCompilationResult("package1/TestMethodCall");
+  }
+
+  @Test
+  public void testStaticNonStaticConfusion() throws Exception {
+    assertCompilationResult("package1/TestStaticNonStaticConfusion");
+  }
+
+  @Test
+  public void testLocalVariableDoesNotShadeClass() throws Exception {
+    assertCompilationResult("package1/TestLocalVariableDoesNotShadeClass");
+  }
+
+  @Test
+  public void testIdeWithReservedName() throws Exception {
+    assertCompilationResult("package1/TestIdeWithReservedName");
+  }
+
+  @Test
+  public void testMethodBinding() throws Exception {
+    assertCompilationResult("package1/TestBind");
+  }
+
+  @Test
+  public void testHelperClasses() throws Exception {
+    assertCompilationResult("package1/TestHelperClasses");
+  }
+
+  @Test
+  public void testNoCodeExpression() throws Exception {
+    assertCompilationResult("package1/NoCodeExpression");
+  }
+
+  @Test
+  public void testFieldInitializer() throws Exception {
+    assertCompilationResult("package1/FieldInitializer");
+  }
+
+  @Test
+  public void testPrivateMemberAccess() throws Exception {
+    assertCompilationResult("package1/PrivateMemberAccess");
   }
 
   @Test
@@ -262,7 +333,7 @@ public class JoocTest {
     config.addSourceFile(sourceFile);
     jooc.run();
     assertTrue("Expected error (cannot resolve class) did not occur",
-            testLog.hasError("Cannot resolve ActionScript class for node <foo:UnknownClass>."));
+            testLog.hasError("Could not resolve class from node foo:UnknownClass"));
   }
 
   @Test
@@ -271,7 +342,7 @@ public class JoocTest {
     config.addSourceFile(sourceFile);
     jooc.run();
     assertTrue("Expected error (undefined type) did not occur",
-            testLog.hasError("Undefined type: ext.config.UnknownClass"));
+            testLog.hasError("Could not resolve class from node ext.config.*:UnknownClass"));
   }
 
   @Test
@@ -333,6 +404,10 @@ public class JoocTest {
     assertTrue("the output file " + destFile + " should exist, but doesn't", destFile.exists());
 
     String result = readFileToString(destFile);
+    int sourceMappingUrlPos = result.lastIndexOf("//@ sourceMappingURL=");
+    if (sourceMappingUrlPos != -1) {
+      result = result.substring(0, sourceMappingUrlPos);
+    }
     String expected = readFileToString(getFile("/expected/" + relativeClassFileName + ".js"));
     expected = expected.replace("@runtimeVersion", JoocProperties.getRuntimeVersion());
     expected = expected.replace("@version", JoocProperties.getVersion());

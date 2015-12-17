@@ -166,7 +166,7 @@ public class JsonObject implements Json {
     if (key.isEmpty()) { // TODO: if (!key.matches(<JS_IDENTIFIER_PATTERN>)) 
       sb.append("\"\"");
     } else {
-    sb.append(key);
+      sb.append(key);
     }
     sb.append(": ");
     sb.append(valueToString(this.properties.get(key), indentFactor, indent));
@@ -177,8 +177,13 @@ public class JsonObject implements Json {
   }
 
   public void set(String property, Object value) {
-    assert property != null;
     this.properties.put(property, value);
+  }
+
+  public void add(JsonObject jsonObject) {
+    for (Map.Entry<String, Object> property : jsonObject.properties.entrySet()) {
+      set(property.getKey(), property.getValue());
+    }
   }
 
   public Object remove(String property) {

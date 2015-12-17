@@ -132,7 +132,7 @@ public class DeclarationScope extends ScopeImplBase {
   }
 
   @Override
-  public IdeDeclaration lookupDeclaration(Ide ide) {
+  public IdeDeclaration lookupDeclaration(Ide ide, boolean failOnAmbigousImport) {
     IdeDeclaration decl = null;
     if (ide instanceof QualifiedIde) {
       String qname = ide.getQualifiedNameStr();
@@ -150,7 +150,7 @@ public class DeclarationScope extends ScopeImplBase {
       final String name = ide.getName();
       final List<ImportDirective> importsOfThisIde = importsByName.get(name);
       if (importsOfThisIde != null) {
-        if (importsOfThisIde.size() > 1) {
+        if (failOnAmbigousImport && importsOfThisIde.size() > 1) {
           ambigousImport(ide, importsOfThisIde);
         }
         return resolveImport(importsOfThisIde.get(0));
@@ -163,7 +163,7 @@ public class DeclarationScope extends ScopeImplBase {
         }
       }
     }
-    return decl != null ? decl : super.lookupDeclaration(ide);
+    return decl != null ? decl : super.lookupDeclaration(ide, failOnAmbigousImport);
   }
 
 

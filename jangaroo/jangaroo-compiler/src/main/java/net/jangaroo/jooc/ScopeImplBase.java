@@ -77,7 +77,12 @@ public abstract class ScopeImplBase implements Scope {
 
   @Override
   public IdeDeclaration lookupDeclaration(final Ide ide) {
-    return parent == null ? null : parent.lookupDeclaration(ide);
+    return lookupDeclaration(ide, true);
+  }
+
+  @Override
+  public IdeDeclaration lookupDeclaration(Ide ide, boolean failOnAmbigousImport) {
+    return parent == null ? null : parent.lookupDeclaration(ide, failOnAmbigousImport);
   }
 
   @Override

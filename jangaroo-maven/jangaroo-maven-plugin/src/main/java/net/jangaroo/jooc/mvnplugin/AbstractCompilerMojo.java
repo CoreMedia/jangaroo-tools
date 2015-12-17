@@ -91,6 +91,16 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
   private boolean excludeClassByDefault;
 
   /**
+   * Let the compiler generate JavaScript source maps that allow debuggers
+   * (currently only Google Chrome) to show the original ActionScript source code during
+   * debugging.
+   * Set to <code>false</code> to disable this feature to decrease build time and artifact size.
+   *
+   * @parameter expression="${maven.compiler.generateSourceMaps}" default-value="true"
+   */
+  private boolean generateSourceMaps;
+
+  /**
    * If set to "true", the compiler will generate more detailed progress information.
    *
    * @parameter expression="${maven.compiler.verbose}" default-value="false"
@@ -245,6 +255,7 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
     configuration.setAllowDuplicateLocalVariables(allowDuplicateLocalVariables);
     configuration.setVerbose(verbose);
     configuration.setExcludeClassByDefault(excludeClassByDefault);
+    configuration.setGenerateSourceMaps(generateSourceMaps);
     configuration.setKeepGeneratedActionScriptDirectory(keepGeneratedActionScriptDirectory);
 
     if (StringUtils.isNotEmpty(debuglevel)) {
@@ -420,13 +431,18 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
   }
 
   private List<File> computeStaleSources(int staleMillis) throws MojoExecutionException {
-    File outputDirectory = getClassesOutputDirectory();
+    File outputDirectory = getApiOutputDirectory();
+    String outputFileSuffix = Jooc.AS_SUFFIX;
+    if (outputDirectory == null) {
+      outputDirectory = getClassesOutputDirectory();
+      outputFileSuffix = Jooc.OUTPUT_FILE_SUFFIX;
+    }
     List<File> compileSourceRoots = getCompileSourceRoots();
 
 
     List<File> staleFiles = new ArrayList<File>();
-    staleFiles.addAll(getMavenPluginHelper().computeStaleSources(compileSourceRoots, getIncludes(), getExcludes(), outputDirectory, Jooc.AS_SUFFIX, Jooc.OUTPUT_FILE_SUFFIX, staleMillis));
-    staleFiles.addAll(getMavenPluginHelper().computeStaleSources(compileSourceRoots, getIncludes(), getExcludes(), outputDirectory, Jooc.MXML_SUFFIX, Jooc.OUTPUT_FILE_SUFFIX, staleMillis));
+    staleFiles.addAll(getMavenPluginHelper().computeStaleSources(compileSourceRoots, getIncludes(), getExcludes(), outputDirectory, Jooc.AS_SUFFIX, outputFileSuffix, staleMillis));
+    staleFiles.addAll(getMavenPluginHelper().computeStaleSources(compileSourceRoots, getIncludes(), getExcludes(), outputDirectory, Jooc.MXML_SUFFIX, outputFileSuffix, staleMillis));
     return staleFiles;
   }
 

@@ -21,6 +21,7 @@ package {
  * @see flash.utils
  *
  */
+[Native]
 public final dynamic class Date {
   /**
    * The day of the month (an integer from 1 to 31) specified by a <code>Date</code> object according to local time. Local time is determined by the operating system on which the Flash runtimes are running.

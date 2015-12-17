@@ -3,8 +3,8 @@ package package1 {
 /**
  * This is an example of an API-only class ("native API stub").
  */
-[Native]
-public class SomeNativeClass {
+[Native("SomeNativeClass")]
+public class SomeNativeClass extends SomeNativeSuperClass {
 
   /**
    * Some constructor doc.
@@ -22,5 +22,6 @@ public class SomeNativeClass {
    * Some method doc.
    */
   public native function bar();
+
 }
 }

@@ -108,4 +108,13 @@ public class Annotation extends Directive {
     return rightBracket;
   }
 
+  public AstNode getValue() {
+    if (getOptAnnotationParameters() != null) {
+      AnnotationParameter firstParam = getOptAnnotationParameters().getHead();
+      if (firstParam != null) {
+        return firstParam.getValue();
+      }
+    }
+    return null;
+  }
 }

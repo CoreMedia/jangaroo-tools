@@ -1,14 +1,19 @@
 package net.jangaroo.jooc.backend;
 
+import com.google.debugging.sourcemap.SourceMapFormat;
+import com.google.debugging.sourcemap.SourceMapGenerator;
+import com.google.debugging.sourcemap.SourceMapGeneratorFactory;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.ast.IdeDeclaration;
 import net.jangaroo.jooc.ast.PackageDeclaration;
 import net.jangaroo.jooc.config.JoocOptions;
+import org.apache.tools.ant.util.FileUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 
@@ -54,7 +59,7 @@ public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUni
   }
 
   public CompilationUnitSink createSink(PackageDeclaration packageDeclaration,
-                                        IdeDeclaration primaryDeclaration, File sourceFile,
+                                        IdeDeclaration primaryDeclaration, final File sourceFile,
                                         final boolean verbose) {
     final File outFile = getOutputFile(sourceFile, packageDeclaration.getQualifiedName());
     String fileName = outFile.getName();
@@ -81,11 +86,18 @@ public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUni
               apiModelGenerator.generateModel(compilationUnit).visit(new ActionScriptCodeGeneratingModelVisitor(writer));
             } else {
               JsWriter out = new JsWriter(writer);
+              String codeSuffix = "";
               try {
                 out.setOptions(getOptions());
                 compilationUnit.visit(new JsCodeGenerator(out));
+                if (options.isGenerateSourceMaps()) {
+                  codeSuffix = generateSourceMap(out, outFile);
+                }
               } finally {
-                out.close();
+                out.close(codeSuffix);
+              }
+              if (options.isGenerateSourceMaps()) {
+                FileUtils.getFileUtils().copyFile(sourceFile, new File(outFile.getParentFile(), sourceFile.getName()));
               }
             }
           } catch (IOException e) {
@@ -100,6 +112,33 @@ public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUni
         return outFile;
       }
     };
+  }
+
+  private String generateSourceMap(JsWriter out, File outFile) throws IOException {
+    SourceMapGenerator sourceMapGenerator = SourceMapGeneratorFactory.getInstance(SourceMapFormat.V3);
+    sourceMapGenerator.validate(true);
+    for (JsWriter.SymbolToOutputFilePosition entry : out.getSourceMappings()) {
+      String sourceFilename = entry.getSymbol().getFileName();
+      sourceFilename = sourceFilename.substring(sourceFilename.lastIndexOf(File.separatorChar) + 1);
+      // for debugging:
+//                  System.err.println("*** Created mapping " +
+//                    entry.getSymbol().getFileName() + ":" + entry.getSourceFilePosition() +
+//                    " ->\n   " + outFile.getAbsolutePath() + ":" + entry.getOutputFileStartPosition());
+      sourceMapGenerator.addMapping(
+        sourceFilename,
+        entry.getSymbol().getText(),
+        entry.getSourceFilePosition(),
+        entry.getOutputFileStartPosition(), entry.getOutputFileEndPosition());
+    }
+    String sourceMapFilename = outFile.getAbsolutePath() + ".map";
+//                System.out.println("*** Creating source map file " + sourceMapFilename);
+    FileWriter sourceMapWriter = new FileWriter(sourceMapFilename);
+    try {
+      sourceMapGenerator.appendTo(sourceMapWriter, outFile.getName());
+    } finally {
+      sourceMapWriter.close();
+    }
+    return "//# sourceMappingURL=" + outFile.getName() + ".map";
   }
 
   private static boolean isExcludeClassByDefault(JoocOptions options) {

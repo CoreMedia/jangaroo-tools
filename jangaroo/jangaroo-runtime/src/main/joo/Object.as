@@ -51,9 +51,6 @@ package {
  */
 [Native]
 public dynamic class Object {
-
-  public static native function defineProperty(object:Object, property:String, configuration:Object);
-
   /**
    * A reference to the class object or constructor function for a given object instance. If an object is an instance of a class, the <code>constructor</code> property holds a reference to the class object. If an object is created with a constructor function, the <code>constructor</code> property holds a reference to the constructor function. Do not confuse a constructor function with a constructor method of a class. A constructor function is a Function object used to create objects, and is an alternative to using the <code>class</code> keyword for defining classes.
    * <p>If you use the <code>class</code> keyword to define a class, the class's prototype object is assigned a property named <code>constructor</code> that holds a reference to the class object. An instance of the class inherits this property from the prototype object. For example, the following code creates a new class, <code>A</code>, and a class instance named <code>myA</code>:</p>
@@ -165,6 +162,31 @@ public dynamic class Object {
 
   //public native function watch(prop:String, handler:Object):void;
 
+  public static native function create(proto:Object, propertyDescriptors:Object = null):Object;
+
+  public static native function defineProperties(object:Object, propertyDescriptors:Object):Object;
+
+  public static native function defineProperty(object:Object, propertyName:String, propertyDescriptor:Object):Object;
+
+  public static native function freeze(object:Object):Object;
+
+  public static native function getOwnPropertyDescriptor(object:Object, propertyName:String):Object;
+
+  public static native function getOwnPropertyNames(object:Object):Array;
+
   public static native function getPrototypeOf(value:Object):Object;
+
+  public static native function isExtensible(object:Object):Boolean;
+
+  public static native function isFrozen(object:Object):Boolean;
+
+  public static native function isSealed(object:Object):Boolean;
+
+  public static native function keys(object:Object):Array;
+
+  public static native function preventExtensions(object:Object):Object;
+
+  public static native function seal(object:Object):Object;
+
 }
 }

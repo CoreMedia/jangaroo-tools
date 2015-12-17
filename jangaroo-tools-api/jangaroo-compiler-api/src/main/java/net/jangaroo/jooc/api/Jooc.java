@@ -13,6 +13,9 @@ public interface Jooc {
   String MXML_SUFFIX_NO_DOT = "mxml";
   String MXML_SUFFIX = "." + MXML_SUFFIX_NO_DOT;
 
+  String PROPERTIES_SUFFIX_NO_DOT = "properties";
+  String PROPERTIES_SUFFIX = "." + PROPERTIES_SUFFIX_NO_DOT;
+
   String INPUT_FILE_SUFFIX = AS_SUFFIX;
   String OUTPUT_FILE_SUFFIX = ".js";
 

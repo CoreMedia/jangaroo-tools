@@ -12,6 +12,8 @@ public abstract class ScannerBase implements sym {
 
   private StringBuilder whitespace = new StringBuilder();
   private StringBuilder multiStateText = new StringBuilder();
+  private int multiStateSymbolStartLine;
+  private int multiStateSymbolStartColumn;
   private StringBuilder string = new StringBuilder();
   private String fileName = "";
   private int vectorNestingLevel = 0;
@@ -102,6 +104,8 @@ public abstract class ScannerBase implements sym {
 
   protected void setMultiStateText(String multiStateText) {
     this.multiStateText.setLength(0);
+    multiStateSymbolStartColumn = getColumn();
+    multiStateSymbolStartLine = getLine();
     pushMultiStateText(multiStateText);
   }
 
@@ -138,7 +142,8 @@ public abstract class ScannerBase implements sym {
   }
 
   protected JooSymbol multiStateSymbol(int sym, Object value) {
-    return new JooSymbol(sym, fileName, getLine(), getColumn(), popWhitespace(), multiStateText.toString(), value);
+    String text = multiStateText.toString();
+    return new JooSymbol(sym, fileName, multiStateSymbolStartLine, multiStateSymbolStartColumn, popWhitespace(), text, value);
   }
 
   protected void error(String msg) throws ScanError {

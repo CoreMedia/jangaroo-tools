@@ -13,7 +13,6 @@ import joo.JavaScriptObject;
 </#if>
  * @see ${resourceBundle.className}_properties#INSTANCE
  */
-[ResourceBundle('${resourceBundle.className}<#if locale??>_${locale}</#if>')]
 public class ${resourceBundle.className}_properties<#if locale??>_${locale} extends ${resourceBundle.className}_properties<#else> extends joo.JavaScriptObject</#if> {
 
 <#if !locale??>
@@ -29,7 +28,6 @@ public static const INSTANCE:${resourceBundle.className}_properties = ResourceBu
  */
 </#if>
 <#if property.keyIsIdentifier>
-[Resource(key='${property.key}',bundle='${resourceBundle.className}<#if locale??>_${locale}</#if>')]
 public native function get ${property.key}():String;
 </#if>
 </#list>

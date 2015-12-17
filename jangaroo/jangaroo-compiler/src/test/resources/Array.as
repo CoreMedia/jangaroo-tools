@@ -1,4 +1,5 @@
 package {
-public class Array {
+[Native]
+public dynamic class Array {
 }
 }

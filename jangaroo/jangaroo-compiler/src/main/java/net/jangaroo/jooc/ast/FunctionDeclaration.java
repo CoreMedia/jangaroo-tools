@@ -45,13 +45,19 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
                              Parameters params, JooSymbol rParen, TypeRelation optTypeRelation,
                              BlockStatement optBody,
                              JooSymbol optSymSemicolon) {
-    super(modifiers.toArray(new JooSymbol[modifiers.size()]), ide, null); //todo pass Function type as typeRelation
+    super(modifiers.toArray(new JooSymbol[modifiers.size()]), ide, computeTypeRelation(symGetOrSet, params, optTypeRelation));
     this.fun = new FunctionExpr(this, symFunction, ide, lParen, params, rParen, optTypeRelation, optBody);
     this.symGetOrSet = symGetOrSet;
     this.optSymSemicolon = optSymSemicolon;
     if (isGetterOrSetter() && !(isGetter() || isSetter())) {
       throw Jooc.error(symGetOrSet, "Expected 'get' or 'set'.");
     }
+  }
+
+  private static TypeRelation computeTypeRelation(JooSymbol symGetOrSet, Parameters params, TypeRelation optTypeRelation) {
+    return isGetter(symGetOrSet) ? optTypeRelation
+            : isSetter(symGetOrSet) && params != null ? params.getHead().getOptTypeRelation()
+            : null;
   }
 
   @Override
@@ -86,11 +92,19 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
   }
 
   public boolean isGetter() {
-    return isGetterOrSetter() && SyntacticKeywords.GET.equals(symGetOrSet.getText());
+    return isGetter(symGetOrSet);
+  }
+
+  private static boolean isGetter(JooSymbol symGetOrSet) {
+    return symGetOrSet != null && SyntacticKeywords.GET.equals(symGetOrSet.getText());
   }
 
   public boolean isSetter() {
-    return isGetterOrSetter() && SyntacticKeywords.SET.equals(symGetOrSet.getText());
+    return isSetter(symGetOrSet);
+  }
+
+  private static boolean isSetter(JooSymbol symGetOrSet) {
+    return symGetOrSet != null && SyntacticKeywords.SET.equals(symGetOrSet.getText());
   }
 
   public final boolean isConstructor() {
@@ -172,9 +186,7 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
       ClassDeclaration currentClass = scope.getClassDeclaration();
       if (classDeclaration != null) { // otherwise we are in a global function - todo parse them as function declaration
         // declare this and super
-        final Type thisType = currentClass.getThisType();
-        final Parameter thisParam = new Parameter(null, new Ide("this"), new TypeRelation(null, thisType), null);
-        fun.addImplicitParam(thisParam);
+        fun.setThisDefined();
         final Type superType = currentClass.getSuperType();
         if (superType != null) {
           fun.addImplicitParam(new Parameter(null, new Ide("super"), new TypeRelation(null, superType), null));

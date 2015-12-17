@@ -125,6 +125,7 @@ public class JooTest extends JooRuntimeTestCase {
 
   public void testStaticAccess() throws Exception {
     import_("package2.TestStaticAccess");
+    import_("package2.StaticAccessSuperClass");
     complete();
     expectGetAndGetQualified("s0", false, "s0");
     expectGetAndGetQualified("s1", true, "s1");
@@ -161,6 +162,7 @@ public class JooTest extends JooRuntimeTestCase {
   }
 
   public void testStaticAccess2() throws Exception {
+    import_("package2.TestStaticAccess");
     import_("package2.TestStaticAccess2");
     complete();
     initClass("package2.TestStaticAccess2");
@@ -500,6 +502,9 @@ public class JooTest extends JooRuntimeTestCase {
   public void testIs() throws Exception {
     import_("package1.TestIs");
     import_("package1.TestImplementsSubInterface");
+    import_("package1.TestInterface");
+    import_("package1.TestSubInterface");
+    import_("Class");
     complete();
     expectBoolean(true, "package1.TestIs.testIs(new package1.TestIs(), package1.TestIs)");
     expectBoolean(true, "package1.TestIs.testIs(new package1.TestImplementsSubInterface(), package1.TestSubInterface)");
@@ -549,10 +554,13 @@ public class JooTest extends JooRuntimeTestCase {
   public void testInterface() throws Exception {
     import_("package1.TestImplements");
     import_("package1.TestInheritImplements");
+    import_("package1.TestInterface");
+    import_("package1.TestInterface2");
     complete();
     eval("obj = new package1.TestImplements();");
     expectNumber(5, "obj.implementMe('house')");
     expectBoolean(true, "joo.is(obj, package1.TestImplements)");
+    eval("print('constructor: ' + obj.constructor);");
     expectBoolean(true, "joo.is(obj, package1.TestInterface)");
     expectBoolean(true, "joo.is(obj, Object)");
     expectBoolean(false, "joo.is(obj, Number)");
@@ -571,6 +579,7 @@ public class JooTest extends JooRuntimeTestCase {
     import_("package1.TestBind");
     complete();
     eval("obj = new package1.TestBind('foo');");
+    expectString("foo", "obj.boundField()");
     expectString("foo", "obj.getState()");
     expectString("foo", "obj.testInvokeLocalVar()");
     expectString("foo", "obj.testInvokeLocalVarUnqualified()");
@@ -691,6 +700,8 @@ public class JooTest extends JooRuntimeTestCase {
   public void testJavaScriptObject() throws Exception {
     import_("package1.TestIs");
     import_("package2.TestInheritingJavaScriptObject");
+    import_("package2.TestJavaScriptObject");
+    import_("joo.JavaScriptObject");
     complete();
     eval("var o = new package2.TestInheritingJavaScriptObject()");
     expectString("allProperties,bar,foo", "o.allProperties()");

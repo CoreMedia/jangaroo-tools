@@ -35,6 +35,15 @@ public class DotExpr extends PostfixOpExpr {
     this.ide = ide;
   }
 
+  void setOriginal(IdeExpr ideExpr) {
+    getIde().setBound(ideExpr.getIde().isBound());
+    scope(ideExpr.getIde().getScope());
+    analyze(ideExpr.getParentNode());
+    if (getType() == null) {
+      setType(ideExpr.getType());
+    }
+  }
+
   @Override
   public List<? extends AstNode> getChildren() {
     return makeChildren(super.getChildren(), ide);
@@ -58,11 +67,18 @@ public class DotExpr extends PostfixOpExpr {
   @Override
   public void analyze(final AstNode parentNode) {
     super.analyze(parentNode);
+    ide.analyze(this);
     IdeDeclaration qualiferType = getArg().getType();
     if (qualiferType != null) {
       IdeDeclaration memberDeclaration = getArg().getType().resolvePropertyDeclaration(getIde().getName());
       if (memberDeclaration != null && memberDeclaration.isStatic()) {
         throw Jooc.error(getIde().getIde(), "static member used in dynamic context");
+      }
+      if (memberDeclaration instanceof Typed) {
+        TypeRelation typeRelation = ((Typed) memberDeclaration).getOptTypeRelation();
+        if (typeRelation != null) {
+          memberDeclaration = typeRelation.getType().getIde().getDeclaration();
+        }
       }
       setType(memberDeclaration);
     }

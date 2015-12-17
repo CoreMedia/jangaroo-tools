@@ -131,18 +131,25 @@ public class Ide extends NodeImplBase {
   }
 
   public boolean isQualifiedBySuper() {
-    return getQualifier() != null && getQualifier().isSuper();
+    AstNode parentNode = getParentNode();
+    if (parentNode instanceof DotExpr) {
+      DotExpr dotExpr = (DotExpr) parentNode;
+      if (dotExpr.getIde() == this) {
+        return dotExpr.getArg() instanceof IdeExpr && ((IdeExpr) dotExpr.getArg()).getIde().isSuper();
+      }
+    }
+    return false;
   }
 
   public boolean addExternalUsage() {
     IdeDeclaration decl = getDeclaration(false);
-    if (decl == null || !decl.isPrimaryDeclaration()) {
-      return false;
+    if (decl != null && (decl.isPrimaryDeclaration() || decl.isClassMember() && decl.isStatic())) {
+      CompilationUnit currentUnit = getScope().getCompilationUnit();
+      CompilationUnit compilationUnit = decl.getIde().getScope().getCompilationUnit();
+      currentUnit.addDependency(compilationUnit);
+      return true;
     }
-    CompilationUnit currentUnit = getScope().getCompilationUnit();
-    CompilationUnit compilationUnit = decl.getIde().getScope().getCompilationUnit();
-    currentUnit.addDependency(compilationUnit);
-    return true;
+    return false;
   }
 
   public void addPublicApiDependency() {
@@ -154,6 +161,10 @@ public class Ide extends NodeImplBase {
     } else if (isQualified()) {
       getQualifier().addPublicApiDependency();
     }
+  }
+
+  void setDeclaration(IdeDeclaration declaration) {
+    this.declaration = declaration;
   }
 
   /**
@@ -183,6 +194,17 @@ public class Ide extends NodeImplBase {
   public IdeDeclaration getDeclaration(boolean errorIfUndeclared) {
     if (declaration == null) {
       declaration = getScope().lookupDeclaration(this);
+      if (declaration != null) {
+        if (declaration.getClassDeclaration() != getScope().getClassDeclaration()) {
+          if (declaration.isPrivate()) {
+            // private member access
+            declaration = null;
+          } else if (declaration.isProtected() && !getScope().getClassDeclaration().isSubclassOf(declaration.getClassDeclaration())) {
+            // protected member access of non-superclass
+            declaration = null;
+          }
+        }
+      }
       if (declaration == null) {
         declaration = NULL_DECL; // prevent multiple lookups when called with !errorIfUndeclared multiple times
       } else if (declaration.getClassDeclaration() != getScope().getClassDeclaration()) {
@@ -240,15 +262,8 @@ public class Ide extends NodeImplBase {
       usageInExpr(exprParent);
       if (!isThis() && !isQualified()) {
         IdeDeclaration decl = getDeclaration(false);
-        // add package prefix if it is not a local
         if (decl != null) {
-          if (!decl.isClassMember() && decl.getParentDeclaration() instanceof PackageDeclaration) {
-            String qName = decl.getPackageDeclaration().getQualifiedNameStr();
-            if (qName.length() > 0) {
-              String auxVarForPackage = scope.getCompilationUnit().getAuxVarForPackage(scope, qName);
-              packagePrefix = auxVarForPackage + ".";
-            }
-          } else if ((!isQualifier() || exprParent instanceof ApplyExpr)
+          if ((!isQualifier() || exprParent instanceof ApplyExpr)
             && !(exprParent instanceof ArrayIndexExpr) && (decl instanceof Parameter)) {
             FunctionExpr currentFunction = scope.getFunctionExpr();
             if (currentFunction != null) {
@@ -261,7 +276,7 @@ public class Ide extends NodeImplBase {
   }
 
   private void usageInExpr(final AstNode exprParent) {
-    if (isThis()) {
+    if (isThis() && !isRewriteThis()) {
       FunctionExpr funExpr = getScope().getFunctionExpr();
       if (funExpr != null && funExpr.getFunctionDeclaration() == null) {
         FunctionDeclaration methodDeclaration = getScope().getMethodDeclaration();

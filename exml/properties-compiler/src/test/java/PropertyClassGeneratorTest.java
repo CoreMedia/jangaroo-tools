@@ -53,7 +53,6 @@ public class PropertyClassGeneratorTest {
       " * Properties class for ResourceBundle \"PropertiesTest\".\n" +
       " * @see PropertiesTest_properties#INSTANCE\n" +
       " */\n" +
-      "[ResourceBundle('PropertiesTest')]\n" +
       "public class PropertiesTest_properties extends joo.JavaScriptObject {\n" +
       "\n" +
       "/**\n" +
@@ -62,9 +61,7 @@ public class PropertyClassGeneratorTest {
       " */\n" +
       "public static const INSTANCE:PropertiesTest_properties = ResourceBundleAwareClassLoader.INSTANCE.createSingleton(PropertiesTest_properties) as PropertiesTest_properties;\n" +
       "\n" +
-      "[Resource(key='key',bundle='PropertiesTest')]\n" +
       "public native function get key():String;\n" +
-      "[Resource(key='key2',bundle='PropertiesTest')]\n" +
       "public native function get key2():String;\n" +
       "\n" +
       "public function PropertiesTest_properties() {\n" +
@@ -84,7 +81,6 @@ public class PropertyClassGeneratorTest {
         " * Properties class for ResourceBundle \"PropertiesTest\" and Locale \"en\".\n" +
         " * @see PropertiesTest_properties#INSTANCE\n" +
         " */\n" +
-        "[ResourceBundle('PropertiesTest_en')]\n" +
         "public class PropertiesTest_properties_en extends PropertiesTest_properties {\n" +
         "\n" +
         "\n" +

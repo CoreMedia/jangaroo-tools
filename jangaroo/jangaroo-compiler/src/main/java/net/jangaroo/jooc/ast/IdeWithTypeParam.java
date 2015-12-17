@@ -48,7 +48,7 @@ public class IdeWithTypeParam extends Ide {
 
   @SuppressWarnings({"UnusedParameters"})
   private static JooSymbol withTypeParam(JooSymbol ide, Type type) { // NOSONAR
-    return new JooSymbol(ide.sym, ide.getFileName(), ide.getLine(), ide.getColumn(), ide.getWhitespace(),
+    return ide.replacingSymAndTextAndJooValue(ide.sym,
             ide.getText() + "$object", // TODO: depending on type, use the right suffix
             ide.getJooValue());
   }
