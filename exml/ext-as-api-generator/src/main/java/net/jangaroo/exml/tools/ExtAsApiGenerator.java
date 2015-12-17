@@ -470,7 +470,7 @@ public class ExtAsApiGenerator {
     File outputFile = CompilerUtils.fileFromQName(extAsClass.getQName(), outputDir, Jooc.AS_SUFFIX);
     //noinspection ResultOfMethodCallIgnored
     outputFile.getParentFile().mkdirs(); // NOSONAR
-    System.out.printf("Generating AS3 API for %s into %s...\n", extAsClass.getQName(), outputFile.getPath());
+    System.out.printf("Generating AS3 API for %s into %s ...\n", extAsClass.getQName(), outputFile.getCanonicalPath());
     extAsClass.visit(new ActionScriptCodeGeneratingModelVisitor(new OutputStreamWriter(new FileOutputStream(outputFile), "UTF-8")));
   }
 
