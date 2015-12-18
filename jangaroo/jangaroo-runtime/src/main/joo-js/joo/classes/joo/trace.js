@@ -1,6 +1,9 @@
 // function trace(...msg) : void
-if (typeof joo.trace !== "function") {
-  (function(theGlobalObject) {
+(function(theGlobalObject) {
+  if (!theGlobalObject.joo) {
+    theGlobalObject.joo = {};
+  }
+  if (typeof theGlobalObject.joo.trace !== "function") {
     var console, defaultLogLevel;
     function lookup(consoleObject, traceFunctionName) {
       if (consoleObject && consoleObject[traceFunctionName]) {
@@ -42,5 +45,6 @@ if (typeof joo.trace !== "function") {
       }
       console[logLevel]("AS3: " + msg);
     };
-  })(this);
-}
+  }
+})(this);
+Ext.ClassManager.triggerCreated("joo.trace");
