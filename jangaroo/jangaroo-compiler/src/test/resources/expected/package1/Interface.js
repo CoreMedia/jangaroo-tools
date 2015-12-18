@@ -12,5 +12,5 @@ public interface Interface extends SuperInterface {
 }
 
 ============================================== Jangaroo part ==============================================*/
-    return {mixins: [package1.SuperInterface]};
+    return {mixins: ["package1.SuperInterface"]};
 });

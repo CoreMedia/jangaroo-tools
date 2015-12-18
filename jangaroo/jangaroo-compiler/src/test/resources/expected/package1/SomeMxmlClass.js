@@ -124,7 +124,6 @@ public class SomeMxmlClass extends package1.ConfigClass {
       requires: [
         "package1.ConfigClass",
         "package1.someOtherPackage.SomeOtherClass",
-        "joo.addEventListener",
         "package1.someOtherPackage.SomeEvent"
       ]
     };

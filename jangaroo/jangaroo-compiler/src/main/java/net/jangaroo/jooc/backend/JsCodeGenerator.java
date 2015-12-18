@@ -75,7 +75,6 @@ import net.jangaroo.jooc.ast.VectorLiteral;
 import net.jangaroo.jooc.ast.WhileStatement;
 import net.jangaroo.jooc.config.DebugMode;
 import net.jangaroo.jooc.config.JoocConfiguration;
-import net.jangaroo.jooc.json.Code;
 import net.jangaroo.jooc.json.JsonArray;
 import net.jangaroo.jooc.json.JsonObject;
 import net.jangaroo.jooc.model.AnnotationModel;
@@ -120,6 +119,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   public static final List<String> ANNOTATIONS_FOR_COMPILER_ONLY = Arrays.asList("Embed", "Native", "Accessor");
   public static final String DEFAULT_ANNOTATION_PARAMETER_NAME = "";
   public static final String PROPERTIES_CLASS_SUFFIX = "_properties";
+  public static final String INIT_STATICS = "__initStatics__";
 
   static {
     PRIMITIVES.add("Boolean");
@@ -350,9 +350,10 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     boolean isInterface = isClassDeclaration
             && ((ClassDeclaration) primaryDeclaration).isInterface();
     String[] requires = collectDependencies(compilationUnit);
+    String moduleName = CompilerUtils.quote(getModuleName(compilationUnit));
     if (isClassDeclaration) {
       out.write("Ext.define(");
-      out.write(CompilerUtils.quote(getModuleName(compilationUnit)));
+      out.write(moduleName);
       out.write(", function(" + primaryDeclaration.getName() + ") {");
     } else {
       out.write("Ext.ns(");
@@ -390,14 +391,17 @@ public class JsCodeGenerator extends CodeGeneratorBase {
         }
         out.write("\n    return " + classDefinition.toString(2, 4) + ";\n}");
         if (classDefinitionBuilder.staticCode.length() > 0) {
-          out.write(", function() {\n");
-          out.write(classDefinitionBuilder.staticCode.toString());
+          out.write(", function(clazz) {\n");
+          out.write(String.format("  clazz.%s();\n", INIT_STATICS));
           out.write("}");
         }
       }
       out.write(");\n");
     } else {
       out.write("});\n");
+    }
+    if (!isClassDeclaration) {
+      out.write(String.format("Ext.ClassManager.triggerCreated(%s);\n", moduleName));
     }
   }
 
@@ -410,14 +414,14 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   private void addOptImplements(ClassDeclaration classDeclaration, JsonObject classDefinition) {
     Implements optImplements = classDeclaration.getOptImplements();
     if (optImplements != null) {
-      List<Code> superInterfaces = new ArrayList<Code>();
+      List<String> superInterfaces = new ArrayList<String>();
       CommaSeparatedList<Ide> superTypes = optImplements.getSuperTypes();
       while (superTypes != null) {
         IdeDeclaration superInterface = superTypes.getHead().getDeclaration(false);
         if (superInterface == null) {
           System.err.println("ignoring unresolvable interface " + superTypes.getHead().getQualifiedNameStr());
         } else {
-          superInterfaces.add(JsonObject.code(compilationUnitAccessCode(superInterface)));
+          superInterfaces.add(compilationUnitAccessCode(superInterface));
         }
         superTypes = superTypes.getTail();
       }
@@ -434,7 +438,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       String javaScriptNameToRequire = null;
       String nativeAnnotationValue = getNativeAnnotationValue(dependentCU);
       if (nativeAnnotationValue != null) {
-        javaScriptName = nativeAnnotationValue;
+        javaScriptName = javaScriptNameToRequire = nativeAnnotationValue;
         if (dependentDeclaration instanceof TypedIdeDeclaration) {
           // for singletons, require their type instead if the type has a [Native(...)] name:
           TypeRelation optTypeRelation = ((TypedIdeDeclaration) dependentDeclaration).getOptTypeRelation();
@@ -453,10 +457,12 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       if (javaScriptName == null || "".equals(javaScriptName)) {
         javaScriptName = dependentDeclaration.getQualifiedNameStr();
       }
-      if (javaScriptNameToRequire == null || "".equals(javaScriptNameToRequire)) {
+      if (javaScriptNameToRequire == null) {
         javaScriptNameToRequire = javaScriptName;
       }
-      requires.add(javaScriptNameToRequire);
+      if (!"".equals(javaScriptNameToRequire)) {
+        requires.add(javaScriptNameToRequire);
+      }
       imports.put(dependentCU.getPrimaryDeclaration().getQualifiedNameStr(), javaScriptName);
     }
 
@@ -524,8 +530,14 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     if (!classDefinitionBuilder.members.isEmpty()) {
       classDefinition.add(convertMembers(classDefinitionBuilder.members));
     }
-    if (!classDefinitionBuilder.staticMembers.isEmpty()) {
-      classDefinition.set("statics", convertMembers(classDefinitionBuilder.staticMembers));
+    if (!classDefinitionBuilder.staticMembers.isEmpty() || classDefinitionBuilder.staticCode.length() > 0) {
+      JsonObject staticMembers = convertMembers(classDefinitionBuilder.staticMembers);
+      if (classDefinitionBuilder.staticCode.length() > 0) {
+        String staticInitializer = String.format("function() {\n%s        }",
+                classDefinitionBuilder.staticCode.toString());
+        staticMembers.set(INIT_STATICS, JsonObject.code(staticInitializer));
+      }
+      classDefinition.set("statics", staticMembers);
     }
     return classDefinition;
   }
@@ -1034,7 +1046,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     if (!inStaticInitializerBlock) {
       String staticFunctionName = "static$" + staticCodeCounter++;
       out.writeToken(String.format("function %s(){", staticFunctionName));
-      primaryClassDefinitionBuilder.staticCode.append("    ").append(staticFunctionName).append("();\n");
+      primaryClassDefinitionBuilder.staticCode.append("          ").append(staticFunctionName).append("();\n");
     }
     return true;
   }
@@ -1480,7 +1492,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
     if (mustInitializeInStaticCode(variableDeclaration)) {
       if (variableDeclaration.isStatic()) {
-        primaryClassDefinitionBuilder.staticCode.append("    ").append(variableName).append("$static_();\n");
+        primaryClassDefinitionBuilder.staticCode.append("          ").append(variableName).append("$static_();\n");
       }
     } else {
       String value;

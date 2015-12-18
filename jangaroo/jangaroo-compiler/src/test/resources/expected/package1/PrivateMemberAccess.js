@@ -14,8 +14,13 @@ public class PrivateMemberAccess {
     return {
       secret$1: null,
       constructor: PrivateMemberAccess$,
-      statics: {doSomething: doSomething$static}
+      statics: {
+        doSomething: doSomething$static,
+        __initStatics__: function() {
+          INSTANCE$static_();
+        }
+      }
     };
-}, function() {
-    INSTANCE$static_();
+}, function(clazz) {
+  clazz.__initStatics__();
 });

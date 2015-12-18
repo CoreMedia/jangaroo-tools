@@ -11,3 +11,4 @@ public var*/package1. somePackageGlobal/*:SomeOtherClass*/
 
 }
 */});
+Ext.ClassManager.triggerCreated("package1.somePackageGlobal");

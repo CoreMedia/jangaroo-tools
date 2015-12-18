@@ -18,12 +18,17 @@ public class ChainedConstants {
 ============================================== Jangaroo part ==============================================*/
     return {
       constructor: ChainedConstants$,
-      statics: {METHOD_TYPE_GET: "get"},
+      statics: {
+        METHOD_TYPE_GET: "get",
+        __initStatics__: function() {
+          DEFAULT_METHOD_TYPE$static_();
+          THE_METHOD_TYPE$static_();
+          ANOTHER_METHOD_TYPE$static_();
+          THE_BLA$static_();
+        }
+      },
       requires: ["package1.someOtherPackage.SomeOtherClass"]
     };
-}, function() {
-    DEFAULT_METHOD_TYPE$static_();
-    THE_METHOD_TYPE$static_();
-    ANOTHER_METHOD_TYPE$static_();
-    THE_BLA$static_();
+}, function(clazz) {
+  clazz.__initStatics__();
 });

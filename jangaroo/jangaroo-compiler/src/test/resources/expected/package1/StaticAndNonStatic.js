@@ -14,8 +14,11 @@ public class StaticAndNonStatic {
 ============================================== Jangaroo part ==============================================*/
     return {
       StaticAndNonStatic: null,
-      constructor: StaticAndNonStatic$
+      constructor: StaticAndNonStatic$,
+      statics: {__initStatics__: function() {
+          static$0();
+        }}
     };
-}, function() {
-    static$0();
+}, function(clazz) {
+  clazz.__initStatics__();
 });

@@ -12,3 +12,4 @@ public*/ function somePackageGlobalFun(flag/*:Boolean*/)/*:SomeOtherClass*/ {
 
 }
 */});
+Ext.ClassManager.triggerCreated("package1.somePackageGlobalFun");

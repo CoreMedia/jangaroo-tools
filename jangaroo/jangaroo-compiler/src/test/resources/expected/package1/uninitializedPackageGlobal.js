@@ -10,3 +10,4 @@ public var*/package1. uninitializedPackageGlobal/*:SomeOtherClass*/=null;/*
 
 }
 */});
+Ext.ClassManager.triggerCreated("package1.uninitializedPackageGlobal");

@@ -56,9 +56,14 @@ public class TestArrayForIn {
 ============================================== Jangaroo part ==============================================*/
     return {
       constructor: TestArrayForIn$,
-      statics: {test: test$static}
+      statics: {
+        test: test$static,
+        __initStatics__: function() {
+          ARRAY$static_();
+          array$static_();
+        }
+      }
     };
-}, function() {
-    ARRAY$static_();
-    array$static_();
+}, function(clazz) {
+  clazz.__initStatics__();
 });
