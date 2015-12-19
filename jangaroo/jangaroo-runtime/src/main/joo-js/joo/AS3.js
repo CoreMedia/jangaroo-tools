@@ -1,3 +1,8 @@
+Class = {
+  $isClass: true,
+  $className: "Class"
+};
+
 Ext.define("AS3", {
   singleton: true,
   bind: function bind(object, boundMethodName) {
@@ -19,9 +24,9 @@ Ext.define("AS3", {
       return false;
     }
     // special case meta-class Class:
-//      if (type === Class) {
-//        return !!object.$isClass;
-//      }
+    if (type === Class) {
+      return !!object.$isClass;
+    }
     // constructor or instanceof may return false negatives:
     if (object instanceof type || object.constructor === type) {
       return true;
@@ -43,7 +48,7 @@ Ext.define("AS3", {
     }
     return false;
   },
-  as: function(object, type) {
+  as: function (object, type) {
     return AS3.is(object, type) ? object : null;
   },
   cast: function (type, value) {
@@ -60,6 +65,10 @@ Ext.define("AS3", {
 
 Ext.Class.registerPreprocessor('accessors', function (Class, data) {
   if (data.accessors) {
+    if (data.accessors.statics) {
+      Object.defineProperties(Class, data.accessors.statics);
+      delete data.accessors.statics;
+    }
     Object.defineProperties(Class.prototype, data.accessors);
     delete data.accessors;
   }

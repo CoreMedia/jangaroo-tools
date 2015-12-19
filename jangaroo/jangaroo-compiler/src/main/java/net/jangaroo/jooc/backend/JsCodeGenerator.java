@@ -527,11 +527,12 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       classDefinition.set("extend", compilationUnitAccessCode(superTypeDeclaration));
     }
     addOptImplements(classDeclaration, classDefinition);
-    if (!classDefinitionBuilder.members.isEmpty()) {
-      classDefinition.add(convertMembers(classDefinitionBuilder.members));
+    JsonObject members = convertMembers(classDefinitionBuilder.members);
+    if (!members.isEmpty()) {
+      classDefinition.add(members);
     }
-    if (!classDefinitionBuilder.staticMembers.isEmpty() || classDefinitionBuilder.staticCode.length() > 0) {
-      JsonObject staticMembers = convertMembers(classDefinitionBuilder.staticMembers);
+    JsonObject staticMembers = convertMembers(classDefinitionBuilder.staticMembers);
+    if (!staticMembers.isEmpty() || classDefinitionBuilder.staticCode.length() > 0) {
       if (classDefinitionBuilder.staticCode.length() > 0) {
         String staticInitializer = String.format("function() {\n%s        }",
                 classDefinitionBuilder.staticCode.toString());
@@ -539,15 +540,35 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       }
       classDefinition.set("statics", staticMembers);
     }
+    JsonObject accessors = convertAccessors(classDefinitionBuilder.members);
+    JsonObject staticAccessors = convertAccessors(classDefinitionBuilder.staticMembers);
+    if (!staticAccessors.isEmpty()) {
+      accessors.set("statics", staticAccessors);
+    }
+    if (!accessors.isEmpty()) {
+      classDefinition.set("accessors", accessors);
+    }
     return classDefinition;
   }
 
   private JsonObject convertMembers(Map<String, PropertyDefinition> members) {
     JsonObject membersDefinition = new JsonObject();
     for (Map.Entry<String, PropertyDefinition> entry : members.entrySet()) {
-      membersDefinition.set(entry.getKey(), entry.getValue().asAbbreviatedJson());
+      if (entry.getValue().isValueOnly()) {
+        membersDefinition.set(entry.getKey(), JsonObject.code(entry.getValue().value));
+      }
     }
     return membersDefinition;
+  }
+
+  private JsonObject convertAccessors(Map<String, PropertyDefinition> members) {
+    JsonObject accessors = new JsonObject();
+    for (Map.Entry<String, PropertyDefinition> entry : members.entrySet()) {
+      if (!entry.getValue().isValueOnly()) {
+        accessors.set(entry.getKey(), entry.getValue().asJson());
+      }
+    }
+    return accessors;
   }
 
   @Override
@@ -1915,14 +1936,14 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     }
 
     Object asAbbreviatedJson() {
-      if (value != null || isValueOnly()) { // TODO: maybe we find a way to declare properties the ECMAScript 5 way with Ext.
+      if (isValueOnly()) {
         return JsonObject.code(value);
       }
       return asJson();
     }
 
     boolean isValueOnly() {
-      return !writable && !configurable && get == null && set == null;
+      return /*!writable && !configurable && */ get == null && set == null;
     }
   }
 
