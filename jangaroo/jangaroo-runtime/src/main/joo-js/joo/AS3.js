@@ -10,9 +10,7 @@ Ext.define("AS3", {
     if (object.hasOwnProperty(boundMethodName)) {
       return method;
     }
-    var boundMethod = function () {
-      return method.apply(object, arguments);
-    };
+    var boundMethod = method.bind(object);
     Object.defineProperty(object, boundMethodName, {
       writable: true,    // TODO: for backwards-compatibility only
       value: boundMethod
