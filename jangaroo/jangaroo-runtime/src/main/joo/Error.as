@@ -13,8 +13,8 @@ package {
  * @see http://help.adobe.com/en_US/as3/dev/WS5b3ccc516d4fbf351e63e3d118a9b90204-7ecf.html Responding to error events and status
  *
  */
-[Native]
-public dynamic class Error {
+[Native("joo.Error")]
+public class Error {
   /**
    * Contains the reference number associated with the specific error message. For a custom Error object, this number is the value from the <code>id</code> parameter supplied in the constructor.
    */
