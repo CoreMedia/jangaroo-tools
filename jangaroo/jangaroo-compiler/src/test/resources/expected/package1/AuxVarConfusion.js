@@ -1,4 +1,4 @@
-Ext.define("package1.AuxVarConfusion", function(AuxVarConfusion) {/*package package1 {
+Ext.define("AS3.package1.AuxVarConfusion", function(AuxVarConfusion) {/*package package1 {
 
 public class AuxVarConfusion {
 

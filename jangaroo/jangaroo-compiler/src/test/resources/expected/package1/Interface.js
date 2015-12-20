@@ -1,4 +1,4 @@
-Ext.define("package1.Interface", function(Interface) {/*package package1 {
+Ext.define("AS3.package1.Interface", function(Interface) {/*package package1 {
 
 /**
  * Some ASDoc.
@@ -12,5 +12,5 @@ public interface Interface extends SuperInterface {
 }
 
 ============================================== Jangaroo part ==============================================*/
-    return {mixins: ["package1.SuperInterface"]};
+    return {mixins: ["AS3.package1.SuperInterface"]};
 });

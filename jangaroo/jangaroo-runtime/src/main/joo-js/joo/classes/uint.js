@@ -4,4 +4,4 @@
   };
   theGlobalObject['uint'].MAX_VALUE = 4294967295;
   theGlobalObject['uint'].MIN_VALUE = 0;
-})(this);
+})(AS3);

@@ -1,4 +1,4 @@
-Ext.define("package1.SomeMxmlClass", function(SomeMxmlClass) {/*package package1 {
+Ext.define("AS3.package1.SomeMxmlClass", function(SomeMxmlClass) {/*package package1 {
 import package1.someOtherPackage.SomeOtherClass;
 import package1.someOtherPackage.SomeEvent;
 import joo.addEventListener;
@@ -21,8 +21,8 @@ public class SomeMxmlClass extends package1.ConfigClass {
     $_3.bla = 3;
     $_3.blubb_accessor = this.$bind_other_blubbAccessor$2();
     $_3.blubb_config = 'blub config expression';
-    this.other = new package1.someOtherPackage.SomeOtherClass($_3);
-    joo.addEventListener(this, "click",AS3.bind( this,"$on_this_click$2"), package1.someOtherPackage.SomeEvent);
+    this.other = new AS3.package1.someOtherPackage.SomeOtherClass($_3);
+    joo.addEventListener(this, "click",AS3.bind( this,"$on_this_click$2"), AS3.package1.someOtherPackage.SomeEvent);
     this.foo = "bar";
     this.number = 1 + 1;
     var $_4/*:Object*/ = {};
@@ -30,25 +30,25 @@ public class SomeMxmlClass extends package1.ConfigClass {
     $_4.type = "someOtherType";
     var $_6/*:Object*/ = {};
     $_6.bla = 1;
-    joo.addEventListener($_6, "clack",AS3.bind( this,"$on_$_6_clack$2"), package1.someOtherPackage.SomeEvent);
+    joo.addEventListener($_6, "clack",AS3.bind( this,"$on_$_6_clack$2"), AS3.package1.someOtherPackage.SomeEvent);
     $_6.type = "someOtherType";
     var $_8/*:Object*/ = {};
     $_8.bla = 42;
     $_8.type = "someOtherType";
-    var $_10/*:package1.ConfigClass*/ = new package1.ConfigClass();
+    var $_10/*:package1.ConfigClass*/ = new AS3.package1.ConfigClass();
     $_10.number = 12;
     var $_11/*:Object*/ = {};
     $_11.bla = this.$bind_$_12_bla$2();
     $_11.doodle = "non-bound";
-    var $_12/*:package1.someOtherPackage.SomeOtherClass*/ = new package1.someOtherPackage.SomeOtherClass($_11);
+    var $_12/*:package1.someOtherPackage.SomeOtherClass*/ = new AS3.package1.someOtherPackage.SomeOtherClass($_11);
     $_10.items = [$_12];
-    var $_13/*:package1.ConfigClass*/ = new package1.ConfigClass();
+    var $_13/*:package1.ConfigClass*/ = new AS3.package1.ConfigClass();
     var $_14/*:Object*/ = {};
     $_14.bla = 12;
     $_14.type = "someOtherType";
     var $_16/*:Object*/ = {};
     $_16.bla = 13;
-    this.no_config = new package1.someOtherPackage.SomeOtherClass($_16);
+    this.no_config = new AS3.package1.someOtherPackage.SomeOtherClass($_16);
     $_13.items = [$_14, this.no_config];
     this.items = [$_4, $_6, $_8, $_10, $_13];
   }/*
@@ -115,16 +115,16 @@ public class SomeMxmlClass extends package1.ConfigClass {
 
 ============================================== Jangaroo part ==============================================*/
     return {
-      extend: "package1.ConfigClass",
+      extend: "AS3.package1.ConfigClass",
       constructor: SomeMxmlClass$,
       $bind_other_blubbAccessor$2: $bind_other_blubbAccessor,
       $on_this_click$2: $on_this_click,
       $on_$_6_clack$2: $on_$_6_clack,
       $bind_$_12_bla$2: $bind_$_12_bla,
       requires: [
-        "package1.ConfigClass",
-        "package1.someOtherPackage.SomeOtherClass",
-        "package1.someOtherPackage.SomeEvent"
+        "AS3.package1.ConfigClass",
+        "AS3.package1.someOtherPackage.SomeOtherClass",
+        "AS3.package1.someOtherPackage.SomeEvent"
       ]
     };
 });

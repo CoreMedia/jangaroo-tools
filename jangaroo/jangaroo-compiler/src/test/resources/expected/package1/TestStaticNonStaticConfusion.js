@@ -1,4 +1,4 @@
-Ext.define("package1.TestStaticNonStaticConfusion", function(TestStaticNonStaticConfusion) {/*package package1 {
+Ext.define("AS3.package1.TestStaticNonStaticConfusion", function(TestStaticNonStaticConfusion) {/*package package1 {
 public class TestStaticNonStaticConfusion {
 
   public*/ function TestStaticNonStaticConfusion$() {

@@ -1,4 +1,4 @@
-Ext.define("package1.NoPrimitiveInit", function(NoPrimitiveInit) {/*package package1 {
+Ext.define("AS3.package1.NoPrimitiveInit", function(NoPrimitiveInit) {/*package package1 {
 import package1.someOtherPackage.SomeOtherClass;
 
 public class NoPrimitiveInit {
@@ -6,7 +6,7 @@ public class NoPrimitiveInit {
   }/*
 
   private*/ function method(i/*:int*/)/*:int*/ {
-    return package1.someOtherPackage.SomeOtherClass.BLA + int.MAX_VALUE;
+    return AS3.package1.someOtherPackage.SomeOtherClass.BLA + AS3.int.MAX_VALUE;
   }/*
 }
 }
@@ -16,8 +16,8 @@ public class NoPrimitiveInit {
       constructor: NoPrimitiveInit$,
       method$1: method,
       requires: [
-        "package1.someOtherPackage.SomeOtherClass",
-        "int"
+        "AS3.package1.someOtherPackage.SomeOtherClass",
+        "AS3.int"
       ]
     };
 });

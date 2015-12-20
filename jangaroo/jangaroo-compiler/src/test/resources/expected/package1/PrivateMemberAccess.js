@@ -1,4 +1,4 @@
-Ext.define("package1.PrivateMemberAccess", function(PrivateMemberAccess) {/*package package1 {
+Ext.define("AS3.package1.PrivateMemberAccess", function(PrivateMemberAccess) {/*package package1 {
 public class PrivateMemberAccess {
 
   public static const INSTANCE:PrivateMemberAccess =*/function INSTANCE$static_(){Object.defineProperty(PrivateMemberAccess,"INSTANCE",{value: new PrivateMemberAccess()});}/*;

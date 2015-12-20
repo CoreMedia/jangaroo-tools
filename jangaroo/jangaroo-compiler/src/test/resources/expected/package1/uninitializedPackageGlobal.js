@@ -1,4 +1,4 @@
-Ext.ns("package1");Ext.require([], function() {/*package package1 {
+Ext.ns("AS3.package1");Ext.require([], function() {/*package package1 {
 
 import package1.someOtherPackage.SomeOtherClass;
 
@@ -6,8 +6,8 @@ import package1.someOtherPackage.SomeOtherClass;
 /**
  * Some package-global documentation;
  * /
-public var*/package1. uninitializedPackageGlobal/*:SomeOtherClass*/=null;/*
+public var*/AS3.package1. uninitializedPackageGlobal/*:SomeOtherClass*/=null;/*
 
 }
 */});
-Ext.ClassManager.triggerCreated("package1.uninitializedPackageGlobal");
+Ext.ClassManager.triggerCreated("AS3.package1.uninitializedPackageGlobal");

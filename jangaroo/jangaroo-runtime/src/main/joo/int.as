@@ -22,13 +22,13 @@ package {
  * @see http://help.adobe.com/en_US/as3/learn/WS5b3ccc516d4fbf351e63e3d118a9b90204-7f87.html Type conversions
  *
  */
-[Native]
+[Native("AS3.int")]
 public final class int {
   /**
    * Constructor; creates a new int object. You must use the int constructor when using <code>int.toString()</code> and <code>int.valueOf()</code>. You do not use a constructor when using the properties of an int object. The <code>new int</code> constructor is primarily used as a placeholder. An int object is not the same as the <code>int()</code> function that converts a parameter to a primitive value.
    * When called as a function (not as constructor), converts a given numeric value to an integer value. Decimal values are truncated at the decimal point.
    *
-   * @param num The numeric value of the int object being created or a value to be converted to a number. The default value is 0 if <code>value</code> is not provided.
+   * @param num The numeric value of the int object being created or a value to be converted to aï¿½number. The default value is 0 if <code>value</code> is not provided.
    *
    * @return The new integer object or the converted integer value.
    *

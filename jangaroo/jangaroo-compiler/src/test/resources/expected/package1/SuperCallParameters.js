@@ -1,4 +1,4 @@
-Ext.define("package1.SuperCallParameters", function(SuperCallParameters) {/*package package1 {
+Ext.define("AS3.package1.SuperCallParameters", function(SuperCallParameters) {/*package package1 {
 
 public class SuperCallParameters extends ManyConstructorParameters {
   public*/ function SuperCallParameters$() {
@@ -13,9 +13,9 @@ public class SuperCallParameters extends ManyConstructorParameters {
 
 ============================================== Jangaroo part ==============================================*/
     return {
-      extend: "package1.ManyConstructorParameters",
+      extend: "AS3.package1.ManyConstructorParameters",
       constructor: SuperCallParameters$,
       isEmpty: isEmpty,
-      requires: ["package1.ManyConstructorParameters"]
+      requires: ["AS3.package1.ManyConstructorParameters"]
     };
 });

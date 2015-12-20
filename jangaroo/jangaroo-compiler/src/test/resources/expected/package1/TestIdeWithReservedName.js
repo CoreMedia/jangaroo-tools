@@ -1,4 +1,4 @@
-Ext.define("package1.TestIdeWithReservedName", function(TestIdeWithReservedName) {/*package package1 {
+Ext.define("AS3.package1.TestIdeWithReservedName", function(TestIdeWithReservedName) {/*package package1 {
 public class TestIdeWithReservedName {
   public*/ function parameterWithReservedName(char_/*:String*/)/*:String*/ {
     char_ = char_ + "!";

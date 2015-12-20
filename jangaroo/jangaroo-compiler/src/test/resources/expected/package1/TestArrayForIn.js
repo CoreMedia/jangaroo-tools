@@ -1,4 +1,4 @@
-Ext.define("package1.TestArrayForIn", function(TestArrayForIn) {/*package package1 {
+Ext.define("AS3.package1.TestArrayForIn", function(TestArrayForIn) {/*package package1 {
 
 public class TestArrayForIn {
 

@@ -1,4 +1,4 @@
-Ext.define("package1.StaticAndNonStatic", function(StaticAndNonStatic) {/*package package1 {
+Ext.define("AS3.package1.StaticAndNonStatic", function(StaticAndNonStatic) {/*package package1 {
 
 /**
  * Retest for JOO-64.

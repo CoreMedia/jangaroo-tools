@@ -1,4 +1,4 @@
-Ext.define("package2.TestStaticAccess", function(TestStaticAccess) {/* /*
+Ext.define("AS3.package2.TestStaticAccess", function(TestStaticAccess) {/* /*
  * Copyright 2008 CoreMedia AG
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); 
@@ -21,33 +21,33 @@ public class TestStaticAccess extends StaticAccessSuperClass {
   static private*/ var s2$static/*:String*/ = "s2";/*
 
   public*/ function TestStaticAccess$() {this.callParent([]);
-    package1.StaticAccessSuperSuperClass.f0();
+    AS3.package1.StaticAccessSuperSuperClass.f0();
   }/*
 
   static public*/ function get_s0$static()/*:String*/ {
-    return package2.StaticAccessSuperClass.s0;
+    return AS3.package2.StaticAccessSuperClass.s0;
   }/*
  
   static public*/ function set_s0$static(_s0/*:String*/)/*:void*/ {
-    package2.StaticAccessSuperClass.s0 = _s0;
+    AS3.package2.StaticAccessSuperClass.s0 = _s0;
   }/*
 
   static public*/ function get_s0_qualified$static()/*:String*/ {
     var s0/*:String*/ = "qualified error";
-    return package2.StaticAccessSuperClass.s0;
+    return AS3.package2.StaticAccessSuperClass.s0;
   }/*
 
   static public*/ function set_s0_qualified$static(s0/*:String*/)/*:void*/ {
-    package2.StaticAccessSuperClass.s0 = s0;
+    AS3.package2.StaticAccessSuperClass.s0 = s0;
   }/*
 
   static public*/ function get_s0_fully_qualified$static()/*:String*/ {
     var s0/*:String*/ = "fully qualified error";
-    return package2.StaticAccessSuperClass.s0;
+    return AS3.package2.StaticAccessSuperClass.s0;
   }/*
 
   static public*/ function set_s0_fully_qualified$static(s0/*:String*/)/*:void*/ {
-    package2.StaticAccessSuperClass.s0 = s0;
+    AS3.package2.StaticAccessSuperClass.s0 = s0;
   }/*
 
   static public*/ function get_s1$static()/*:String*/ {
@@ -123,7 +123,7 @@ public class TestStaticAccess extends StaticAccessSuperClass {
 
 ============================================== Jangaroo part ==============================================*/
     return {
-      extend: "package2.StaticAccessSuperClass",
+      extend: "AS3.package2.StaticAccessSuperClass",
       constructor: TestStaticAccess$,
       statics: {
         s1: "s1",
@@ -150,8 +150,8 @@ public class TestStaticAccess extends StaticAccessSuperClass {
         get_s2_via_private_static_method_full_qualified: get_s2_via_private_static_method_full_qualified$static
       },
       requires: [
-        "package2.StaticAccessSuperClass",
-        "package1.StaticAccessSuperSuperClass"
+        "AS3.package2.StaticAccessSuperClass",
+        "AS3.package1.StaticAccessSuperSuperClass"
       ]
     };
 });

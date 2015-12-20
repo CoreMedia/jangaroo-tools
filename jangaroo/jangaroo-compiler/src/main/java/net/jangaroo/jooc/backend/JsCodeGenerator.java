@@ -120,6 +120,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   public static final String DEFAULT_ANNOTATION_PARAMETER_NAME = "";
   public static final String PROPERTIES_CLASS_SUFFIX = "_properties";
   public static final String INIT_STATICS = "__initStatics__";
+  public static final String AS3_NAMESPACE_DOT = "AS3.";
 
   static {
     PRIMITIVES.add("Boolean");
@@ -351,13 +352,14 @@ public class JsCodeGenerator extends CodeGeneratorBase {
             && ((ClassDeclaration) primaryDeclaration).isInterface();
     String[] requires = collectDependencies(compilationUnit);
     String moduleName = CompilerUtils.quote(getModuleName(compilationUnit));
+    PackageDeclaration packageDeclaration = compilationUnit.getPackageDeclaration();
     if (isClassDeclaration) {
       out.write("Ext.define(");
       out.write(moduleName);
       out.write(", function(" + primaryDeclaration.getName() + ") {");
     } else {
       out.write("Ext.ns(");
-      out.write(CompilerUtils.quote(compilationUnit.getPackageDeclaration().getQualifiedNameStr()));
+      out.write(CompilerUtils.quote(getModuleName(packageDeclaration)));
       out.write(");");
       out.write("Ext.require(");
       out.write(new JsonArray(requires).toString(0, 0));
@@ -365,7 +367,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     }
     this.compilationUnit = compilationUnit;
     out.beginComment();
-    compilationUnit.getPackageDeclaration().visit(this);
+    packageDeclaration.visit(this);
     out.writeSymbol(compilationUnit.getLBrace());
     visitAll(compilationUnit.getDirectives());
     out.endComment();
@@ -434,10 +436,12 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     Collection<CompilationUnit> dependentCompilationUnits = compilationUnit.getDependenciesAsCompilationUnits();
     for (CompilationUnit dependentCU : dependentCompilationUnits) {
       IdeDeclaration dependentDeclaration = dependentCU.getPrimaryDeclaration();
-      String javaScriptName = null;
-      String javaScriptNameToRequire = null;
+      String javaScriptName;
+      String javaScriptNameToRequire;
       String nativeAnnotationValue = getNativeAnnotationValue(dependentCU);
-      if (nativeAnnotationValue != null) {
+      if (nativeAnnotationValue == null) {
+        javaScriptName = javaScriptNameToRequire = getModuleName(dependentDeclaration);
+      } else {
         javaScriptName = javaScriptNameToRequire = nativeAnnotationValue;
         if (dependentDeclaration instanceof TypedIdeDeclaration) {
           // for singletons, require their type instead if the type has a [Native(...)] name:
@@ -453,12 +457,12 @@ public class JsCodeGenerator extends CodeGeneratorBase {
             }
           }
         }
-      }
-      if (javaScriptName == null || "".equals(javaScriptName)) {
-        javaScriptName = dependentDeclaration.getQualifiedNameStr();
-      }
-      if (javaScriptNameToRequire == null) {
-        javaScriptNameToRequire = javaScriptName;
+        if ("".equals(javaScriptName)) {
+          javaScriptName = dependentDeclaration.getQualifiedNameStr();
+        }
+        if (javaScriptNameToRequire == null) {
+          javaScriptNameToRequire = javaScriptName;
+        }
       }
       if (!"".equals(javaScriptNameToRequire)) {
         requires.add(javaScriptNameToRequire);
@@ -514,7 +518,12 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   }
 
   private static String getModuleName(CompilationUnit compilationUnit) {
-    return compilationUnit.getPrimaryDeclaration().getQualifiedNameStr();
+    IdeDeclaration primaryDeclaration = compilationUnit.getPrimaryDeclaration();
+    return getModuleName(primaryDeclaration);
+  }
+
+  private static String getModuleName(IdeDeclaration primaryDeclaration) {
+    return AS3_NAMESPACE_DOT + primaryDeclaration.getQualifiedNameStr();
   }
 
   private JsonObject createClassDefinition(ClassDeclaration classDeclaration, ClassDefinitionBuilder classDefinitionBuilder) throws IOException {
@@ -1450,7 +1459,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
           out.writeSymbol(variableDeclaration.getOptSymConstOrVar());
         }
         out.endComment();
-        out.write(compilationUnit.getPackageDeclaration().getQualifiedNameStr()+".");
+        out.write(AS3_NAMESPACE_DOT + compilationUnit.getPackageDeclaration().getQualifiedNameStr()+".");
       } else {
         if (variableDeclaration.hasPreviousVariableDeclaration()) {
           writeOptSymbol(variableDeclaration.getOptSymConstOrVar());
@@ -1613,7 +1622,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     boolean isPrimaryDeclaration = functionDeclaration.equals(compilationUnit.getPrimaryDeclaration());
     assert functionDeclaration.isClassMember() || (!functionDeclaration.isNative() && !functionDeclaration.isAbstract());
     if (isPrimaryDeclaration) {
-      out.write(functionDeclaration.getQualifiedNameStr() + "=");
+      out.write(AS3_NAMESPACE_DOT + functionDeclaration.getQualifiedNameStr() + "=");
     }
     if (functionDeclaration.isThisAliased()) {
       functionDeclaration.getBody().addBlockStartCodeGenerator(ALIAS_THIS_CODE_GENERATOR);

@@ -1,9 +1,6 @@
 // function trace(...msg) : void
 (function(theGlobalObject) {
-  if (!theGlobalObject.joo) {
-    theGlobalObject.joo = {};
-  }
-  if (typeof theGlobalObject.joo.trace !== "function") {
+  if (typeof theGlobalObject.AS3.trace !== "function") {
     var console, defaultLogLevel;
     function lookup(consoleObject, traceFunctionName) {
       if (consoleObject && consoleObject[traceFunctionName]) {
@@ -22,7 +19,7 @@
       // ignore
     }
     var LOG_LEVEL_PATTERN = /^\[(LOG|DEBUG|TRACE|INFO|WARN|ERROR)\]\s*(.*)$/;
-    joo.trace = !console ? function() {} : function joo$trace() {
+    AS3.trace = !console ? function() {} : function joo$trace() {
       // don't use Array.prototype.map, as it is not available in all browsers and has not yet been polyfilled:
       var params = [];
       for (var i = 0; i < arguments.length; i++) {
@@ -47,4 +44,4 @@
     };
   }
 })(this);
-Ext.ClassManager.triggerCreated("joo.trace");
+Ext.ClassManager.triggerCreated("AS3.trace");

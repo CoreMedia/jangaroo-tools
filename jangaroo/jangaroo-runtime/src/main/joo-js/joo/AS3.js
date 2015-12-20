@@ -2,9 +2,9 @@ Class = {
   $isClass: true,
   $className: "Class"
 };
+Vector$object = Array;
 
-Ext.define("AS3", {
-  singleton: true,
+AS3 = {
   bind: function bind(object, boundMethodName) {
     var method = object[boundMethodName];
     if (object.hasOwnProperty(boundMethodName)) {
@@ -59,7 +59,7 @@ Ext.define("AS3", {
     }
     return value;
   }
-});
+};
 
 Ext.Class.registerPreprocessor('accessors', function (Class, data) {
   if (data.accessors) {

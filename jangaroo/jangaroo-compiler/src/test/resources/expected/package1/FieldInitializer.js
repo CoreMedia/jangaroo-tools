@@ -1,4 +1,4 @@
-Ext.define("package1.FieldInitializer", function(FieldInitializer) {/*package package1 {
+Ext.define("AS3.package1.FieldInitializer", function(FieldInitializer) {/*package package1 {
 public class FieldInitializer {
   private const const1:String = "foo";
   private const const2:Object = "foo" + "bar";

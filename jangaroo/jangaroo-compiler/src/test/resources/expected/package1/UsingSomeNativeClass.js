@@ -1,4 +1,4 @@
-Ext.define("package1.UsingSomeNativeClass", function(UsingSomeNativeClass) {/*package package1 {
+Ext.define("AS3.package1.UsingSomeNativeClass", function(UsingSomeNativeClass) {/*package package1 {
 import package1.someOtherPackage.SomeNativeClass;
 
 /**
@@ -11,7 +11,7 @@ public class UsingSomeNativeClass {
   public native function get someNative2():package1.SomeNativeClass;
 
   public*/ function UsingSomeNativeClass$() {var this$=this;someNative_.call(this);someOtherNative_.call(this);
-    new package1.someOtherPackage.SomeNativeClass();
+    new AS3.package1.someOtherPackage.SomeNativeClass();
     this.someNative.setBaz ( "foo");
     this.someNative2.setBaz ( "foo");
     var local = function()/*:void*/ {
@@ -52,7 +52,7 @@ public class UsingSomeNativeClass {
       requires: [
         "SomeNativeClass",
         "SomeOtherNativeClass",
-        "package1.someOtherPackage.SomeNativeClass"
+        "AS3.package1.someOtherPackage.SomeNativeClass"
       ]
     };
 });

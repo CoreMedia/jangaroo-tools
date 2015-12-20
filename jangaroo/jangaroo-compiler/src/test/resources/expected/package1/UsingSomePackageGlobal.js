@@ -1,4 +1,4 @@
-Ext.define("package1.UsingSomePackageGlobal", function(UsingSomePackageGlobal) {/*package package1 {
+Ext.define("AS3.package1.UsingSomePackageGlobal", function(UsingSomePackageGlobal) {/*package package1 {
 import package1.someOtherPackage.SomeOtherClass;
 
 /**
@@ -7,8 +7,8 @@ import package1.someOtherPackage.SomeOtherClass;
 public class UsingSomePackageGlobal {
 
   public static*/ function main$static()/*:void*/ {
-    package1.somePackageGlobal = new package1.someOtherPackage.SomeOtherClass();
-    var local/*:Object*/ = package1.somePackageGlobal || {};
+    AS3.package1.somePackageGlobal = new AS3.package1.someOtherPackage.SomeOtherClass();
+    var local/*:Object*/ = AS3.package1.somePackageGlobal || {};
     foo.somethingElse = null;
     var local2/*:**/ = foo.somethingElse || {};
   }/*
@@ -21,8 +21,8 @@ public class UsingSomePackageGlobal {
       constructor: UsingSomePackageGlobal$,
       statics: {main: main$static},
       requires: [
-        "package1.somePackageGlobal",
-        "package1.someOtherPackage.SomeOtherClass",
+        "AS3.package1.somePackageGlobal",
+        "AS3.package1.someOtherPackage.SomeOtherClass",
         "foo.somethingElse"
       ]
     };
