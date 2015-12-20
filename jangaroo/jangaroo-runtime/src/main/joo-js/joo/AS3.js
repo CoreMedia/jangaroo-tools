@@ -58,8 +58,13 @@ AS3 = {
       value.xclass = type.$className;
     }
     return value;
+  },
+  getBindable: function(object, property, event) {
+    return object[property];
   }
 };
+
+Ext.Loader.setPath('AS3', 'joo/classes');
 
 Ext.Class.registerPreprocessor('accessors', function (Class, data) {
   if (data.accessors) {
