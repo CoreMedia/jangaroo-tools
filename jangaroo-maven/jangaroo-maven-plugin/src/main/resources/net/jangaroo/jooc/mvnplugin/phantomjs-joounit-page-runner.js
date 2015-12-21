@@ -57,7 +57,7 @@ page.onConsoleMessage = function(msg, line, source) {
 page.onError = function(e, stack) {
   console.error("[ERROR]", e, "(" + stack.length + " stack frames)");
   stack.forEach(function(item, i) {
-    console.error("[ERROR]", (stack.length - i) + ".", item.file, ':', item.line);
+    console.error("[ERROR]", (stack.length - i) + ".", item.file, ':', item.line, item.function ? ' (in function "' + item.function + '")' : '');
   });
   phantom.exit(2);
 };
