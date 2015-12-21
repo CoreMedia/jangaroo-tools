@@ -145,7 +145,8 @@ public class Ide extends NodeImplBase {
     Scope scope = getScope();
     AstNode definingNode = scope.getDefiningNode();
     return addExternalUsage(definingNode instanceof ClassDeclaration ||
-            definingNode instanceof PackageDeclaration);
+            definingNode instanceof PackageDeclaration ||
+            definingNode.getParentNode() instanceof FunctionDeclaration && ((FunctionDeclaration)definingNode.getParentNode()).isStatic());
   }
 
   public boolean addExternalUsage(boolean required) {
