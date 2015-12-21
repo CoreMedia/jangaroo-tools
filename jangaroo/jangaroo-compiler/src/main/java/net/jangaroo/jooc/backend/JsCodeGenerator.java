@@ -1596,7 +1596,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     } else {
       String target = variableDeclaration.isStatic() ? variableDeclaration.getClassDeclaration().getName() : "this";
       String slotName = variableName + (variableDeclaration.isPrivate() ? "$" + variableDeclaration.getClassDeclaration().getInheritanceLevel() : "");
-      if (variableDeclaration.isConst()) {
+      if (false /* variableDeclaration.isConst() */) { // keep it compatible, even for constants! 
         out.write("Object.defineProperty(" + target + ",\"" + slotName + "\",{value:");
         initializer.getValue().visit(this);
         out.writeToken("}");
