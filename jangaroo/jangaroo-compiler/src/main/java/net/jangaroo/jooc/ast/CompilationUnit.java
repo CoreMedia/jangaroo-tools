@@ -44,8 +44,7 @@ public class CompilationUnit extends NodeImplBase {
   private IdeDeclaration primaryDeclaration;
   private JooSymbol rBrace;
 
-  private Set<String> dependencies = new LinkedHashSet<String>();
-  private Set<CompilationUnit> dependenciesAsCompilationUnits = new LinkedHashSet<CompilationUnit>();
+  private Map<CompilationUnit, Boolean> dependenciesAsCompilationUnits = new LinkedHashMap<CompilationUnit, Boolean>();
   private List<String> resourceDependencies = new ArrayList<String>();
   private Set<String> publicApiDependencies = new LinkedHashSet<String>();
   private Set<String> usedBuiltIns = new LinkedHashSet<String>();
@@ -167,10 +166,6 @@ public class CompilationUnit extends NodeImplBase {
     return rBrace;
   }
 
-  public Set<String> getDependencies() {
-    return dependencies;
-  }
-
   public List<String> getResourceDependencies() {
     return resourceDependencies;
   }
@@ -180,7 +175,11 @@ public class CompilationUnit extends NodeImplBase {
   }
 
   public Set<CompilationUnit> getDependenciesAsCompilationUnits() {
-    return dependenciesAsCompilationUnits;
+    return dependenciesAsCompilationUnits.keySet();
+  }
+
+  public boolean isRequiredDependency(CompilationUnit dependency) {
+    return dependenciesAsCompilationUnits.get(dependency);
   }
 
   public JangarooParser getCompiler() {
@@ -245,11 +244,16 @@ public class CompilationUnit extends NodeImplBase {
   }
 
   public void addDependency(CompilationUnit otherUnit) {
+    addDependency(otherUnit, false);
+  }
+ 
+  public void addDependency(CompilationUnit otherUnit, boolean required) {
     // predefined ides have a null unit
     if (otherUnit != null && otherUnit != this) {
-      String qname = otherUnit.getPrimaryDeclaration().getQualifiedNameStr();
-      dependencies.add(qname);
-      dependenciesAsCompilationUnits.add(otherUnit);
+      Boolean oldRequired = dependenciesAsCompilationUnits.get(otherUnit);
+      if (oldRequired == null || !oldRequired && required) {
+        dependenciesAsCompilationUnits.put(otherUnit, required);
+      }
     }
   }
 

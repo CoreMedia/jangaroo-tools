@@ -350,7 +350,9 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     boolean isClassDeclaration = primaryDeclaration instanceof ClassDeclaration;
     boolean isInterface = isClassDeclaration
             && ((ClassDeclaration) primaryDeclaration).isInterface();
-    String[] requires = collectDependencies(compilationUnit);
+    String[] dependencies = collectDependencies(compilationUnit, null);
+    String[] requires = collectDependencies(compilationUnit, true);
+    String[] uses = collectDependencies(compilationUnit, false);
     String moduleName = CompilerUtils.quote(getModuleName(compilationUnit));
     PackageDeclaration packageDeclaration = compilationUnit.getPackageDeclaration();
     if (isClassDeclaration) {
@@ -362,7 +364,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       out.write(CompilerUtils.quote(getModuleName(packageDeclaration)));
       out.write(");");
       out.write("Ext.require(");
-      out.write(new JsonArray(requires).toString(0, 0));
+      out.write(new JsonArray(dependencies).toString(0, 0));
       out.write(", function() {");
     }
     this.compilationUnit = compilationUnit;
@@ -390,6 +392,9 @@ public class JsCodeGenerator extends CodeGeneratorBase {
         JsonObject classDefinition = createClassDefinition(classDeclaration, classDefinitionBuilder);
         if (requires.length > 0) {
           classDefinition.set("requires", new JsonArray(requires));
+        }
+        if (uses.length > 0) {
+          classDefinition.set("uses", new JsonArray(uses));
         }
         out.write("\n    return " + classDefinition.toString(2, 4) + ";\n}");
         if (classDefinitionBuilder.staticCode.length() > 0) {
@@ -431,10 +436,13 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     }
   }
 
-  private String[] collectDependencies(CompilationUnit compilationUnit) throws IOException {
+  private String[] collectDependencies(CompilationUnit compilationUnit, Boolean required) throws IOException {
     List<String> requires = new ArrayList<String>();
     Collection<CompilationUnit> dependentCompilationUnits = compilationUnit.getDependenciesAsCompilationUnits();
     for (CompilationUnit dependentCU : dependentCompilationUnits) {
+      if (required != null && compilationUnit.isRequiredDependency(dependentCU) != required) {
+        continue;
+      }
       IdeDeclaration dependentDeclaration = dependentCU.getPrimaryDeclaration();
       String javaScriptName;
       String javaScriptNameToRequire;
@@ -449,10 +457,13 @@ public class JsCodeGenerator extends CodeGeneratorBase {
           if (optTypeRelation != null) {
             IdeDeclaration typeDeclaration = optTypeRelation.getType().resolveDeclaration();
             if (typeDeclaration instanceof ClassDeclaration) {
-              javaScriptNameToRequire = getNativeAnnotationValue(typeDeclaration);
-              if ("".equals(javaScriptNameToRequire)) {
+              String typeNativeAnnotationValue = getNativeAnnotationValue(typeDeclaration);
+              if ("".equals(typeNativeAnnotationValue)) {
                 // "virtual" singleton-type class, try direct super class:
-                javaScriptNameToRequire = getNativeAnnotationValue(((ClassDeclaration)typeDeclaration).getSuperTypeDeclaration());
+                typeNativeAnnotationValue = getNativeAnnotationValue(((ClassDeclaration)typeDeclaration).getSuperTypeDeclaration());
+              }
+              if (typeNativeAnnotationValue != null && !"".equals(typeNativeAnnotationValue)) {
+                javaScriptNameToRequire = typeNativeAnnotationValue;
               }
             }
           }

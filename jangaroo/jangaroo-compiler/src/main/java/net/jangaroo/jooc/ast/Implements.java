@@ -55,7 +55,7 @@ public class Implements extends NodeImplBase {
     CommaSeparatedList<Ide> localSuperTypes = this.getSuperTypes();
     while (localSuperTypes != null) {
       Ide superType = localSuperTypes.getHead();
-      superType.addExternalUsage();
+      superType.addExternalUsage(true);
       superType.addPublicApiDependency();
       localSuperTypes = localSuperTypes.getTail();
     }
