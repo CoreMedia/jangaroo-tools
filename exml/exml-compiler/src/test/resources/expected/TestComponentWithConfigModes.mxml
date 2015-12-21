@@ -1,26 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<extends:TestComponent
+<test:TestComponent
                 xmlns:fx="http://ns.adobe.com/mxml/2009"
-                xmlns:extends="*"
                 xmlns:exml="http://www.jangaroo.net/exml/0.8"
                 xmlns:test="exml:testNamespace.config"
                 xmlns="exml:ext.config">
   <fx:Script><![CDATA[
-    import testNamespace.config.testComponentWithConfigModes;
-
-    public native function TestComponentWithConfigModes(config:testNamespace.config.testComponentWithConfigModes = null);
+    public native function TestComponentWithConfigModes(config:TestComponentWithConfigModes = null);
   ]]></fx:Script>
   <fx:Metadata>[DefaultProperty("config")]</fx:Metadata>
   <fx:Declarations>
-    <test:testComponentWithConfigModes id="config"/>
+    <test:TestComponentWithConfigModes id="config"/>
   </fx:Declarations>
-  <test:testComponent>
+
     <test:items exml:mode="append">
-      <test:testComponent2 propertyThree="3"/>
+      <test:TestComponent2 propertyThree="3"/>
     </test:items>
     <test:propertyFive exml:mode="prepend">
-      <agridcolumn/>
+      <AGridColumn/>
     </test:propertyFive>
     <test:layoutConfig exml:mode="foo"/>
-  </test:testComponent>
-</extends:TestComponent>
+  
+</test:TestComponent>

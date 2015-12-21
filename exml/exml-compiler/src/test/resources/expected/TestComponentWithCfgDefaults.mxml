@@ -3,33 +3,29 @@
     This is a TestComponent which defines a config property with a default value.
     @see ext.Panel
   -->
-<extends:Panel  xmlns:fx="http://ns.adobe.com/mxml/2009"
-                xmlns:extends="ext.*"
+<Panel          xmlns:fx="http://ns.adobe.com/mxml/2009"
                 xmlns:cfg="testNamespace.config.*"
                 xmlns:exml="http://www.jangaroo.net/exml/0.8"
-                xmlns="exml:ext.config">
+                xmlns="exml:ext.config"
+                title="{config.defaultTitle}">
   <fx:Script><![CDATA[
-    import testNamespace.config.testComponentWithCfgDefaults;
-
-    public native function TestComponentWithCfgDefaults(config:testNamespace.config.testComponentWithCfgDefaults = null);
+    public native function TestComponentWithCfgDefaults(config:TestComponentWithCfgDefaults = null);
   ]]></fx:Script>
   <fx:Metadata>[DefaultProperty("config")]</fx:Metadata>
   <fx:Declarations>
-    <cfg:testComponentWithCfgDefaults id="config"
+    <cfg:TestComponentWithCfgDefaults id="config"
                                       propertyWithLiteralDefault="foobar"
                                       propertyWithExpressionDefault="{'foo' + 'bar'}">
      <cfg:propertyWithDefaultElement>
-      <button text="click me!"/>
+      <Button text="click me!"/>
      </cfg:propertyWithDefaultElement>
      <cfg:propertyWithDefaultElementUsingConfig>
-      <button text="{config.title + '!'}"/>
+      <Button text="{config.title + '!'}"/>
      </cfg:propertyWithDefaultElementUsingConfig>
      <cfg:arrayPropertyWithDefaultElement>
-      <button text="button1"/><button text="button2"/>
+      <Button text="button1"/><Button text="button2"/>
      </cfg:arrayPropertyWithDefaultElement>
-    </cfg:testComponentWithCfgDefaults>
+    </cfg:TestComponentWithCfgDefaults>
   </fx:Declarations>
 
-  <panel title="{config.defaultTitle}"/>
-
-</extends:Panel>
+</Panel>

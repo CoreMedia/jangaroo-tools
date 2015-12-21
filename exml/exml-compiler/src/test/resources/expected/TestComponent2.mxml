@@ -1,25 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<extends:TestComponent
+<test:TestComponent
                 xmlns:fx="http://ns.adobe.com/mxml/2009"
-                xmlns:extends="*"
                 xmlns:exml="http://www.jangaroo.net/exml/0.8"
                 xmlns:test="exml:testNamespace.config"
                 xmlns="exml:ext.config">
   <fx:Script><![CDATA[
-    import testNamespace.config.testComponent2;
-
-    public native function TestComponent2(config:testNamespace.config.testComponent2 = null);
+    public native function TestComponent2(config:TestComponent2 = null);
   ]]></fx:Script>
   <fx:Metadata>[DefaultProperty("config")]</fx:Metadata>
   <fx:Declarations>
-    <test:testComponent2 id="config"/>
+    <test:TestComponent2 id="config"/>
   </fx:Declarations>
-  <test:testComponent>
+
     <test:items>
-      <test:testComponent2 propertyThree="3"/>
+      <test:TestComponent2 propertyThree="3"/>
     </test:items>
     <test:columns>
-      <agridcolumn/>
+      <AGridColumn/>
     </test:columns>
-  </test:testComponent>
-</extends:TestComponent>
+  
+</test:TestComponent>

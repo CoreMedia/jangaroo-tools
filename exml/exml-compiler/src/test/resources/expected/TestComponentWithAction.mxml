@@ -2,29 +2,25 @@
 <!---
     This is a TestComponent which defines a button with an action.
   -->
-<extends:Panel  xmlns:fx="http://ns.adobe.com/mxml/2009"
-                xmlns:extends="ext.*"
+<Panel          xmlns:fx="http://ns.adobe.com/mxml/2009"
                 xmlns:exml="http://www.jangaroo.net/exml/0.8"
                 xmlns="exml:ext.config"
-                xmlns:test="exml:testNamespace.config">
+                xmlns:test="exml:testNamespace.config"
+                title="{config.defaultTitle}">
   <fx:Script><![CDATA[
-    import testNamespace.config.testComponentWithAction;
-
-    public native function TestComponentWithAction(config:testNamespace.config.testComponentWithAction = null);
+    public native function TestComponentWithAction(config:TestComponentWithAction = null);
   ]]></fx:Script>
   <fx:Metadata>[DefaultProperty("config")]</fx:Metadata>
   <fx:Declarations>
-    <test:testComponentWithAction id="config"/>
+    <test:TestComponentWithAction id="config"/>
   </fx:Declarations>
 
-  <panel title="{config.defaultTitle}">
     <items>
-      <button>
+      <Button>
         <baseAction>
-          <test:TestAction><test:testAction/></test:TestAction>
+          <test:TestAction/>
         </baseAction>
-      </button>
+      </Button>
     </items>
-  </panel>
-
-</extends:Panel>
+  
+</Panel>
