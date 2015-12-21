@@ -65,6 +65,9 @@ AS3 = {
     return AS3.is(object, type) ? object : null;
   },
   cast: function (type, value) {
+    if (value === undefined || value === null) {
+      return value;
+    }
     if (value.isInstance || value.xclass) {
       if (!AS3.is(value, type)) {
         throw new TypeError();
