@@ -20,7 +20,7 @@ public class UsingSomePackageGlobal {
     return {
       constructor: UsingSomePackageGlobal$,
       statics: {main: main$static},
-      requires: [
+      uses: [
         "AS3.package1.somePackageGlobal",
         "AS3.package1.someOtherPackage.SomeOtherClass",
         "foo.somethingElse"

@@ -116,6 +116,6 @@ public class UsingEmbed {
       annotated4: annotated4,
       annotated5: annotated5,
       constructor: UsingEmbed$,
-      requires: ["AS3.flash.display.Bitmap"]
+      uses: ["AS3.flash.display.Bitmap"]
     };
 });

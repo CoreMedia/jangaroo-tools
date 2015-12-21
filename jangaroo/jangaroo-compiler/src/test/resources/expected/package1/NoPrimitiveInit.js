@@ -15,7 +15,7 @@ public class NoPrimitiveInit {
     return {
       constructor: NoPrimitiveInit$,
       method$1: method,
-      requires: [
+      uses: [
         "AS3.package1.someOtherPackage.SomeOtherClass",
         "AS3.int"
       ]

@@ -121,8 +121,8 @@ public class SomeMxmlClass extends package1.ConfigClass {
       $on_this_click$2: $on_this_click,
       $on_$_6_clack$2: $on_$_6_clack,
       $bind_$_12_bla$2: $bind_$_12_bla,
-      requires: [
-        "AS3.package1.ConfigClass",
+      requires: ["AS3.package1.ConfigClass"],
+      uses: [
         "AS3.package1.someOtherPackage.SomeOtherClass",
         "AS3.package1.someOtherPackage.SomeEvent"
       ]
