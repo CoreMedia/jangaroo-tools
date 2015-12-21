@@ -76,8 +76,6 @@ public class ExmlToMxml {
     }
     for (ExmlSourceFile exmlSourceFile : exmlSourceFiles) {
       System.out.printf("Converting EXML file %s...%n", exmlSourceFile.getSourceFile());
-      File configClassFile = exmlSourceFile.generateConfigClass();
-      System.out.printf("  Generated config class %s into file %s.%n", exmlSourceFile.getConfigClassName(), configClassFile.getPath());
       if (exmlSourceFile.hasSourceTargetClass()) {
         System.out.printf("  Target class %s is implemented in ActionScript: no need to generate MXML target class.", exmlSourceFile.getTargetClassName());
       } else {
