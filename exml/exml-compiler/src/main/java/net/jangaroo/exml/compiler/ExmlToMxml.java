@@ -39,6 +39,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -50,12 +51,19 @@ public class ExmlToMxml {
   private static final Pattern ATTRIBUTE_NORMALIZED_WHITESPACE = Pattern.compile("  +");
 
   private ConfigClassRegistry configClassRegistry;
+  private Properties migrationMap = new Properties();
 
   public ExmlToMxml(ConfigClassRegistry configClassRegistry) {
     this.configClassRegistry = configClassRegistry;
   }
 
   public File[] convert() {
+    try {
+      this.migrationMap.load(ExmlToMxml.class.getResourceAsStream("/ext-as-3.4-migration-map.properties"));
+    } catch (IOException e) {
+      throw new ExmlcException("Unable to load migration map", e);
+    }
+
     try {
       new MxmlLibraryManifestGenerator(configClassRegistry).createManifestFile();
     } catch (IOException e) {
@@ -655,7 +663,7 @@ public class ExmlToMxml {
 
     @Override
     public void startDTD(String name, String publicId, String systemId) throws SAXException {
-      
+
     }
 
     @Override
