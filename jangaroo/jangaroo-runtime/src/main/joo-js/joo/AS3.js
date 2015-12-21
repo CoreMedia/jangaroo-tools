@@ -25,6 +25,9 @@ AS3 = {
     if (type === Class) {
       return !!object.$isClass;
     }
+    if (!Ext.isFunction(type)) {
+      return false;
+    }
     // constructor or instanceof may return false negatives:
     if (object instanceof type || object.constructor === type) {
       return true;
@@ -38,11 +41,23 @@ AS3 = {
 //      } else
     if (typeof object === 'object' && type.$className) {
       if (object.isInstance) {
-        return Ext.isObject(object.mixins) && object.mixins[type.$className];
+        var mixins = object.mixins;
+        if (Ext.isObject(mixins)) {
+          if (mixins[type.$className]) {
+            return true;
+          }
+          if (type.prototype.mixinId && mixins[type.prototype.mixinId]) {
+            return true;
+          }
+        }
+        return false;
       } else if (object.xclass) {
-        // TODO: inheritance!
-        return object.xclass === type.$className;
+        return Ext.ClassManager.get(object.xclass).prototype instanceof type;
       }
+    }
+    // special case for special observables, e.g. classes:
+    if (object.isObservable && (type.$className === "Ext.mixin.Observable" || type.$className === "Ext.util.Observable")) {
+      return true;
     }
     return false;
   },
@@ -58,9 +73,6 @@ AS3 = {
       value.xclass = type.$className;
     }
     return value;
-  },
-  getBindable: function(object, property, event) {
-    return object[property];
   }
 };
 
