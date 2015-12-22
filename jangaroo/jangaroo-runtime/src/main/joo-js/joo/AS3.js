@@ -33,12 +33,11 @@ AS3 = {
       return true;
     }
     // special case int and uint:
-//      if (type === $$int || type === $$uint) {
-//        if (object instanceof Number || typeof object === 'number') {
-//          // thanks http://stackoverflow.com/questions/3885817/how-to-check-if-a-number-is-float-or-integer
-//          return (type === $$uint ? object >>> 0 : object >> 0) === object + 0; // "+ 0" converts Number to number!
-//        }
-//      } else
+    if (type === AS3.int || type === AS3.uint) {
+      // thanks http://stackoverflow.com/questions/3885817/how-to-check-if-a-number-is-float-or-integer
+      return (object instanceof Number || typeof object === 'number') &&
+              (type === AS3.uint ? object >>> 0 : object >> 0) === object + 0; // "+ 0" converts Number to number!
+    }
     if (typeof object === 'object' && type.$className) {
       if (object.isInstance) {
         var mixins = object.mixins;
