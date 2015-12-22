@@ -24,9 +24,12 @@ import net.jangaroo.utils.AS3Type;
 import net.jangaroo.utils.CompilerUtils;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -34,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.regex.Pattern;
 
 import static net.jangaroo.exml.tools.ExtJsApi.Cfg;
@@ -66,6 +70,7 @@ public class ExtAsApiGenerator {
   private static Properties jsConfigClassNameMappingProperties = new Properties();
   private static final String EXT_3_4_EVENT = "ext.IEventObject";
   private static String EXT_EVENT;
+  private static Map<String, Map<String, String>> manifestToAliasToClass = new TreeMap<String, Map<String, String>>();
 
   public static void main(String[] args) throws IOException {
     File srcDir = new File(args[0]);
@@ -127,6 +132,56 @@ public class ExtAsApiGenerator {
         generateActionScriptCode(compilationUnitModel, outputDir);
       }
     }
+
+    generateManifests(outputDir);
+  }
+
+  private static void generateManifests(File outputDir) throws FileNotFoundException, UnsupportedEncodingException {
+    for (String manifestSuffix : manifestToAliasToClass.keySet()) {
+      // create manifest-<aliasGroup>.xml component library:
+      File outputFile = new File(outputDir, "manifest-" + manifestSuffix + ".xml");
+      System.out.printf("Creating manifest file %s...%n", outputFile.getPath());
+      PrintStream out = new PrintStream(new FileOutputStream(outputFile), true, net.jangaroo.exml.api.Exmlc.OUTPUT_CHARSET);
+
+      out.println("<?xml version=\"1.0\"?>");
+      out.println("<componentPackage>");
+      String previousId = "";
+      for (Map.Entry<String, String> aliasToClass : manifestToAliasToClass.get(manifestSuffix).entrySet()) {
+        String alias = aliasToClass.getKey();
+        String classQName = aliasToClass.getValue();
+        String id = computeId(alias, classQName + previousId);
+        out.printf("  <component id=\"%s\" class=\"%s\"/>%n", id, classQName);
+        previousId = id;
+      }
+      out.println("</componentPackage>");
+      out.close();
+    }
+  }
+
+  private static String computeId(String alias, String classQName) {
+    int dotPos = alias.indexOf('.');
+    if (dotPos != -1) {
+      // special format used e.g. in "data" aliases: capitalize the dot-prefix and use it as suffix.
+      return computeId(alias.substring(dotPos + 1), classQName) + capitalize(alias.substring(0, dotPos));
+    }
+    // remove all dashes from alias:
+    alias = alias.replaceAll("-", "");
+
+    // match unqualified class name word by word:
+    String className = CompilerUtils.className(classQName);
+    String[] words = className.split("(?<!^)(?=[A-Z])");
+    int index = 0;
+    StringBuilder result = new StringBuilder();
+    for (String word : words) {
+      int wordIndex = alias.indexOf(word.toLowerCase(), index);
+      if (wordIndex != -1) {
+        result.append(capitalize(alias.substring(index, wordIndex)));
+        result.append(word);
+        index = wordIndex + word.length();
+      }
+    }
+    result.append(capitalize(alias.substring(index)));
+    return result.toString();
   }
 
   private static void adaptToReferenceApi() {
@@ -310,6 +365,18 @@ public class ExtAsApiGenerator {
     // todo[ahu]: remove #getConfigClassQName and its mapping properties, a constructor needs to be generated if and only if the class or a superclass has config parameters
     if (getConfigClassQName(extClass) != null) {
       addConfigConstructor(extAsClass);
+    }
+
+    for (Map.Entry<String, List<String>> aliasEntry : extClass.aliases.entrySet()) {
+      String aliasGroup = aliasEntry.getKey();
+      Map<String, String> aliasMapping = manifestToAliasToClass.get(aliasGroup);
+      if (aliasMapping == null) {
+        aliasMapping = new TreeMap<String, String>();
+        manifestToAliasToClass.put(aliasGroup, aliasMapping);
+      }
+      for (String alias : aliasEntry.getValue()) {
+        aliasMapping.put(alias, extAsClassUnit.getQName());
+      }
     }
   }
 
