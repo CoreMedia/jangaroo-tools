@@ -12,7 +12,7 @@
   <modules>
     <module>jangaroo-runtime</module>
     <module>jangaroo-compiler</module>
-    <module>jangaroo-compiler-itests</module>
+    <!--<module>jangaroo-compiler-itests</module>-->
   </modules>
   <build>
     <plugins>
