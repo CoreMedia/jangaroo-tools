@@ -304,8 +304,8 @@ public class ExtAsApiGenerator {
       addMethods(extAsClass, extJsApi.filterByOwner(false, true, extClass, extClass.members, Method.class));
     }
 
-    addProperties(extAsClass, extJsApi.filterByOwner(false, false, extClass, extClass.members, Cfg.class));
     addNonStaticMembers(extClass, extAsClassUnit);
+    addProperties(extAsClass, extJsApi.filterByOwner(false, false, extClass, extClass.members, Cfg.class));
 
     // todo[ahu]: remove #getConfigClassQName and its mapping properties, a constructor needs to be generated if and only if the class or a superclass has config parameters
     if (getConfigClassQName(extClass) != null) {
