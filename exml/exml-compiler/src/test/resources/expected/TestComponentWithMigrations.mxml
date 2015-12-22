@@ -19,7 +19,11 @@
     <items>
       <Label text="foo"/>
       <Component/>
-      <Label text="bar"/>
+      <APanel bar="test"/>
+      <BPanel bar="test"/>
+      <BPanel>
+        <bar>here</bar>
+      </BPanel>
     </items>
   
 </Panel>

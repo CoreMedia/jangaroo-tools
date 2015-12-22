@@ -11,7 +11,11 @@
     <items>
       <label text="foo"/>
       <spacer/>
-      <label text="bar"/>
+      <apanel foo="test"/>
+      <bpanel foo="test"/>
+      <bpanel>
+        <foo>here</foo>
+      </bpanel>
     </items>
   </panel>
 </exml:component>

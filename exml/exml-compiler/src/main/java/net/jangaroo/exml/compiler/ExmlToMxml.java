@@ -145,7 +145,7 @@ public class ExmlToMxml {
     private List<Declaration> vars;
     private Set<String> varsWithXmlValue;
 
-    private final Deque<String> elementPath = new LinkedList<String>();
+    private final Deque<PathElement> elementPath = new LinkedList<PathElement>();
     private final ExmlSourceFile exmlSourceFile;
     private final ExmlModel exmlModel;
     private String currentConfigName;
@@ -218,11 +218,11 @@ public class ExmlToMxml {
       boolean isSubElement = elementPath.size() > 1;
       boolean isPropertyElement = isSubElement && elementPath.size() % 2 == 0;
       if (isPropertyElement) {
-        String lastQName = elementPath.peek();
+        String lastQName = elementPath.peek().newName;
         if (lastQName != null) {
           String[] parts = lastQName.split(":");
           String prefix = parts.length == 1 ? "" : parts[0] + ":";
-          qName = prefix + localName;
+          qName = prefix + getTargetClassAttributeName(uri, elementPath.peek().originalName, localName);
         }
       } else if (elementPath.size() > 0 && !ExmlUtils.isExmlNamespace(uri)) {
         qName = getTargetClassElementQName(uri, qName);
@@ -243,11 +243,13 @@ public class ExmlToMxml {
         } else if (Exmlc.EXML_BASE_CLASS_ATTRIBUTE.equals(attributeName) ||
                 Exmlc.EXML_PUBLIC_API_ATTRIBUTE.equals(attributeName)) {
           continue;
+        } else if (!isPropertyElement) {
+          attributeName = getTargetClassAttributeName(uri, originalQName, attributeName);
         }
 
         attributes.put(attributeName, atts.getValue(i));
       }
-      if (!elementPath.isEmpty() && elementPath.peek() == null) {
+      if (!elementPath.isEmpty() && elementPath.peek().newName == null) {
         popRecordedCharacters();
       }
       if (qName != null) {
@@ -289,7 +291,7 @@ public class ExmlToMxml {
         printConstructorAndConfigAndVars();
         closeScript();
       }
-      elementPath.push(qName);
+      elementPath.push(new PathElement(originalQName, qName));
       lastColumn = locator.getColumnNumber();
       if ("fx:Metadata".equals(qName)) {
         flushPendingTagClose();
@@ -602,7 +604,7 @@ public class ExmlToMxml {
       }
       flushPendingTagClose();
       String cdata = new String(ch, start, length).trim();
-      if (!(elementPath.size() == 2 && elementPath.peek() == null && isNotEmptyText(cdata))) {
+      if (!(elementPath.size() == 2 && elementPath.peek().newName == null && isNotEmptyText(cdata))) {
         super.characters(ch, start, length);
         lastColumn = locator.getColumnNumber();
       }
@@ -614,7 +616,7 @@ public class ExmlToMxml {
         // ignoring the root element
         return;
       }
-      qName = elementPath.pop();
+      qName = elementPath.pop().newName;
       if (inMetaData) {
         inMetaData = false;
         metaData.add(currentMetaData.toString());
@@ -676,6 +678,31 @@ public class ExmlToMxml {
         }
       }
       return null;
+    }
+
+    private String getTargetClassAttributeName(String uri, String qName, String attributeName) {
+      ConfigClass configClass = getConfigClass(uri, qName);
+      while (configClass != null) {
+        String classAndAttribute = configClass.getFullName() + "#" + attributeName;
+        if (migrationMap.containsKey(classAndAttribute)) {
+          String targetName = (String) migrationMap.get(classAndAttribute);
+          return targetName.substring(targetName.indexOf('#') + 1);
+        } else {
+          configClass = configClass.getSuperClass();
+        }
+      }
+      return attributeName;
+    }
+
+    private ConfigClass getConfigClass(String uri, String qName) {
+      String packageName = ExmlUtils.parsePackageFromNamespace(uri);
+      if (packageName == null) {
+        return null;
+      }
+
+      String[] prefixAndLocalName = parsePrefixAndLocalName(qName);
+      String configClassName = CompilerUtils.qName(packageName, prefixAndLocalName[1]);
+      return configClassRegistry.getConfigClassByName(configClassName);
     }
 
     @Override
@@ -777,5 +804,15 @@ public class ExmlToMxml {
       }
     }
     return false;
+  }
+
+  private static class PathElement {
+    String originalName;
+    String newName;
+
+    public PathElement(String originalName, String newName) {
+      this.originalName = originalName;
+      this.newName = newName;
+    }
   }
 }
