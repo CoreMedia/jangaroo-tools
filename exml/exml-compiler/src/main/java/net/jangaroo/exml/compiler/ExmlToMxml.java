@@ -13,8 +13,13 @@ import net.jangaroo.exml.parser.ExmlToConfigClassParser;
 import net.jangaroo.exml.parser.ExmlToModelParser;
 import net.jangaroo.exml.utils.ExmlUtils;
 import net.jangaroo.jooc.Jooc;
+import net.jangaroo.jooc.ast.CompilationUnit;
+import net.jangaroo.jooc.backend.ApiModelGenerator;
 import net.jangaroo.jooc.json.JsonObject;
+import net.jangaroo.jooc.model.CompilationUnitModel;
+import net.jangaroo.jooc.model.MethodModel;
 import net.jangaroo.jooc.mxml.MxmlUtils;
+import net.jangaroo.utils.AS3Type;
 import net.jangaroo.utils.CharacterRecordingHandler;
 import net.jangaroo.utils.CompilerUtils;
 import org.apache.commons.io.FileUtils;
@@ -39,6 +44,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -50,12 +56,19 @@ public class ExmlToMxml {
   private static final Pattern ATTRIBUTE_NORMALIZED_WHITESPACE = Pattern.compile("  +");
 
   private ConfigClassRegistry configClassRegistry;
+  private Properties migrationMap = new Properties();
 
   public ExmlToMxml(ConfigClassRegistry configClassRegistry) {
     this.configClassRegistry = configClassRegistry;
   }
 
   public File[] convert() {
+    try {
+      this.migrationMap.load(ExmlToMxml.class.getResourceAsStream("/ext-as-3.4-migration-map.properties"));
+    } catch (IOException e) {
+      throw new ExmlcException("Unable to load migration map", e);
+    }
+
     try {
       new MxmlLibraryManifestGenerator(configClassRegistry).createManifestFile();
     } catch (IOException e) {
@@ -76,8 +89,6 @@ public class ExmlToMxml {
     }
     for (ExmlSourceFile exmlSourceFile : exmlSourceFiles) {
       System.out.printf("Converting EXML file %s...%n", exmlSourceFile.getSourceFile());
-      File configClassFile = exmlSourceFile.generateConfigClass();
-      System.out.printf("  Generated config class %s into file %s.%n", exmlSourceFile.getConfigClassName(), configClassFile.getPath());
       if (exmlSourceFile.hasSourceTargetClass()) {
         System.out.printf("  Target class %s is implemented in ActionScript: no need to generate MXML target class.", exmlSourceFile.getTargetClassName());
       } else {
@@ -124,17 +135,24 @@ public class ExmlToMxml {
     private int lastColumn = 1;
     private Locator locator;
     private Map<String,String> prefixMappings = new LinkedHashMap<String, String>();
+    private Map<String,String> rootAttributes = new LinkedHashMap<String, String>();
+    private List<String> metaData = new ArrayList<String>();
+    private boolean inMetaData;
+    private boolean inConfigDescription;
+    private boolean inConfigDefault;
+    private String originalRootName;
     private String exmlPrefix;
     private String configClassPrefix;
-    private Map<String,String> configDefaultValues;
     private final Map<String,String> configDefaultSubElements = new LinkedHashMap<String, String>();
+    private final Map<String,String> configDefaultTypes = new LinkedHashMap<String, String>();
     private boolean pendingTagClose = false;
     private Set<String> imports;
     private List<Declaration> constants;
     private List<Declaration> vars;
+    private LinkedList<Declaration> configs;
     private Set<String> varsWithXmlValue;
 
-    private final Deque<String> elementPath = new LinkedList<String>();
+    private final Deque<PathElement> elementPath = new LinkedList<PathElement>();
     private final ExmlSourceFile exmlSourceFile;
     private final ExmlModel exmlModel;
     private String currentConfigName;
@@ -151,10 +169,10 @@ public class ExmlToMxml {
     public void startDocument() throws SAXException {
       currentOut.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
       imports = new LinkedHashSet<String>();
-      addImport(exmlSourceFile.getConfigClassName());
       constants = new ArrayList<Declaration>();
       vars = new ArrayList<Declaration>();
       varsWithXmlValue = new HashSet<String>();
+      configs = new LinkedList<Declaration>();
       startRecordingCharacters();
       super.startDocument();
     }
@@ -175,9 +193,13 @@ public class ExmlToMxml {
       Map<String,String> attributes = new LinkedHashMap<String, String>();
       if (ExmlUtils.isExmlNamespace(uri)) {
         if (Exmlc.EXML_ROOT_NODE_NAMES.contains(localName)) {
-          qName = handleRootNode(qName, atts, attributes);
+          handleRootNode(qName, atts, rootAttributes);
+          originalRootName = originalQName;
+          qName = null;
         } else if (Exmlc.EXML_ANNOTATION_NODE_NAME.equals(localName)) {
-          qName = handleAnnotation(atts);
+          handleAnnotation(atts);
+          inMetaData = true;
+          qName = null;
         } else if (Exmlc.EXML_CFG_NODE_NAME.equals(localName)) {
           qName = handleCfg(atts);
         } else if (Exmlc.EXML_CONSTANT_NODE_NAME.equals(localName)) {
@@ -189,8 +211,10 @@ public class ExmlToMxml {
         } else if (Exmlc.EXML_IMPORT_NODE_NAME.equals(localName)) {
           qName = handleImport(atts);
         } else if (Exmlc.EXML_CFG_DEFAULT_NODE_NAME.equals(localName)) {
+          inConfigDefault = true;
           qName = handleInnerElement();
         } else if (Exmlc.EXML_DESCRIPTION_NODE_NAME.equals(localName)) {
+          inConfigDescription = currentConfigName != null;
           qName = null;
         } else if (Exmlc.EXML_OBJECT_NODE_NAME.equals(localName)) {
           // suppress empty <exml:object>s; they only contain code which is simply wrapped by { ... } in MXML:
@@ -199,11 +223,79 @@ public class ExmlToMxml {
           }
           insideExmlObject = true;
         }
-      } else if (elementPath.size() == 1) {
+      }
+      boolean isSubElement = elementPath.size() > 1;
+      boolean isPropertyElement = isSubElement && elementPath.size() % 2 == 0;
+      if (isPropertyElement) {
+        String lastQName = elementPath.peek().newName;
+        if (lastQName != null) {
+          String[] parts = lastQName.split(":");
+          String prefix = parts.length == 1 ? "" : parts[0] + ":";
+          qName = prefix + getTargetClassAttributeName(uri, elementPath.peek().originalName, localName);
+        }
+      } else if (elementPath.size() > 0 && !ExmlUtils.isExmlNamespace(uri)) {
+        qName = getTargetClassElementQName(uri, qName);
+      }
+      if (isNewRoot(uri)) {
+        attributes.putAll(rootAttributes);
+      }
+      if (qName != null && currentVarName != null) {
+        attributes.put("id", currentVarName);
+        currentVarName = null;
+      }
+      boolean indentAttributes = true;
+      if (qName != null && currentConfigName != null && !"Array".equals(configs.getLast().getType())) {
+        attributes.put("id", currentConfigName);
+        indentAttributes = false;
+      }
+      if (inConfigDefault && qName != null && !configDefaultTypes.containsKey(currentConfigName)) {
+        configDefaultTypes.put(currentConfigName, originalQName);
+      }
+      for (int i = 0; i < atts.getLength(); ++i) {
+        String attributeName = atts.getQName(i);
+        if ("id".equals(attributeName)) {
+          attributeName = "id_";
+        } else if (isPropertyElement && "mode".equals(attributeName)) {
+          attributeName = exmlPrefix + ":mode";
+        } else if (Exmlc.EXML_BASE_CLASS_ATTRIBUTE.equals(attributeName) ||
+                Exmlc.EXML_PUBLIC_API_ATTRIBUTE.equals(attributeName)) {
+          continue;
+        } else if (!isPropertyElement) {
+          attributeName = getTargetClassAttributeName(uri, originalQName, attributeName);
+        }
+
+        attributes.put(attributeName, atts.getValue(i));
+      }
+      if (!elementPath.isEmpty() && elementPath.peek().newName == null) {
+        if (!inConfigDefault || (ExmlUtils.isExmlNamespace(uri) && Exmlc.EXML_CFG_DEFAULT_NODE_NAME.equals(localName))) {
+          popRecordedCharacters();
+        }
+      }
+      if (inConfigDescription || inMetaData) {
+        startRecordingCharacters();
+      }
+      if (qName != null) {
+        flush();
+        String originalName = isNewRoot(uri) ? originalRootName : originalQName;
+        int column = isNewRoot(uri) ? 1 : lastColumn;
+        int indent = column + originalName.length();
+        int qNameLengthDelta = originalName.length() - qName.length();
+        String firstIndent = qNameLengthDelta == 0 || attributes.size() <= 1
+                ? ""
+                : qNameLengthDelta > 0
+                ? StringUtils.repeat(" ", qNameLengthDelta)
+                : String.format("%n%s", StringUtils.repeat(" ", indent));
+        currentOut.printf("<%s%s", qName, firstIndent);
+        printAttributes(attributes, indentAttributes ? indent + 1 : 0);
+        pendingTagClose = true;
+      }
+      if (isNewRoot(uri)) {
+        flushPendingTagClose();
         String thePackage = ExmlUtils.parsePackageFromNamespace(uri);
         if (thePackage == null) {
           throw new ExmlcException("namespace '" + uri + "' of superclass element in EXML file does not denote a config package", locator.getLineNumber(), locator.getColumnNumber());
         }
+        addImportsForConfigs();
         if (!imports.isEmpty() || !constants.isEmpty()) {
           openScript();
           for (String anImport : imports) {
@@ -222,69 +314,60 @@ public class ExmlToMxml {
         printConstructorAndConfigAndVars();
         closeScript();
       }
-      boolean isSubElement = elementPath.size() > 1;
-      boolean isPropertyElement = isSubElement && elementPath.size() % 2 == 0;
-      if (isPropertyElement) {
-        String lastQName = elementPath.peek();
-        if (lastQName != null) {
-          String[] parts = lastQName.split(":");
-          String prefix = parts.length == 1 ? "" : parts[0] + ":";
-          qName = prefix + localName;
-        }
-      } else if (isSubElement) {
-        String wrappingElementQName = getWrappingElementQName(uri, qName);
-        if (wrappingElementQName != null) {
-          flush();
-          currentOut.printf("<%s>", wrappingElementQName);
-        }
-      }
-      if (qName != null && currentVarName != null) {
-        attributes.put("id", currentVarName);
-        currentVarName = null;
-      }
-      for (int i = 0; i < atts.getLength(); ++i) {
-        String attributeName = atts.getQName(i);
-        if ("id".equals(attributeName)) {
-          attributeName = "id_";
-        } else if (isPropertyElement && "mode".equals(attributeName)) {
-          attributeName = exmlPrefix + ":mode";
-        } else if (Exmlc.EXML_BASE_CLASS_ATTRIBUTE.equals(attributeName) ||
-                Exmlc.EXML_PUBLIC_API_ATTRIBUTE.equals(attributeName)) {
-          continue;
-        }
-
-        attributes.put(attributeName, atts.getValue(i));
-      }
-      if (!elementPath.isEmpty() && elementPath.peek() == null) {
-        popRecordedCharacters();
-      }
-      if (qName != null) {
-        flush();
-        int indent = lastColumn + originalQName.length();
-        int qNameLengthDelta = originalQName.length() - qName.length();
-        String firstIndent = qNameLengthDelta == 0 || attributes.size() <= 1
-                ? ""
-                : qNameLengthDelta > 0
-                ? StringUtils.repeat(" ", qNameLengthDelta)
-                : String.format("%n%s", StringUtils.repeat(" ", indent));
-        currentOut.printf("<%s%s", qName, firstIndent);
-        printAttributes(attributes, indent + 1);
-        pendingTagClose = true;
-      }
-      elementPath.push(qName);
+      elementPath.push(new PathElement(originalQName, qName));
       lastColumn = locator.getColumnNumber();
       if ("fx:Metadata".equals(qName)) {
         flushPendingTagClose();
         out.print("[");
-      } else if (elementPath.size() == 1 && isPublicApi) {
-        flushPendingTagClose();
-        out.printf("%n  <fx:Metadata>[%s]</fx:Metadata>", Jooc.PUBLIC_API_INCLUSION_ANNOTATION_NAME);
       }
     }
 
-    private void printConstructorAndConfigAndVars() {
-      String configClassQName = exmlSourceFile.getConfigClassName();
-      String configClassName = CompilerUtils.className(configClassQName);
+    private void addImportsForConfigs() throws SAXException {
+      for (Declaration config : configs) {
+        String defaultType = configDefaultTypes.get(config.getName());
+        if (defaultType != null && !config.getType().equals(defaultType)) {
+          String mappedClassName = getMappedClassName(config.getType());
+          if (mappedClassName != null) {
+            imports.add(mappedClassName);
+          }
+        }
+        if (hasNoDefaultConstructor(config.getType())) {
+          if (!"".equals(CompilerUtils.packageName(config.getType()))) {
+            imports.add(config.getType());
+          }
+        }
+      }
+    }
+
+    private boolean hasNoDefaultConstructor(String qName) throws SAXException {
+      CompilationUnit compilationUnit = configClassRegistry.getJangarooParser().getCompilationUnit(qName);
+      if (compilationUnit != null) {
+        try {
+          CompilationUnitModel compilationUnitModel = new ApiModelGenerator(false).generateModel(compilationUnit);
+          MethodModel constructor = compilationUnitModel.getClassModel().getConstructor();
+          if (compilationUnitModel.getClassModel().isInterface() || (constructor != null && constructor.getParams().size() > 0)) {
+            return true;
+          }
+        } catch (IOException e) {
+          throw new SAXException(e);
+        }
+      }
+      return false;
+    }
+
+    private boolean isNewRoot(String uri) {
+      return !ExmlUtils.isExmlNamespace(uri) && elementPath.size() == 1;
+    }
+
+    private void printConstructorAndConfigAndVars() throws SAXException {
+      String targetClassQName = exmlSourceFile.getTargetClassName();
+      String targetClassName = CompilerUtils.className(targetClassQName);
+      if (isPublicApi) {
+        currentOut.printf("%n  <fx:Metadata>[%s]</fx:Metadata>", Jooc.PUBLIC_API_INCLUSION_ANNOTATION_NAME);
+      }
+      for (String md : metaData) {
+        currentOut.printf("%n  <fx:Metadata>[%s]</fx:Metadata>", md);
+      }
       openScript();
       if (!vars.isEmpty()) {
         for (Declaration var : vars) {
@@ -298,7 +381,7 @@ public class ExmlToMxml {
       }
       if (varsWithXmlValue.size() != vars.size()) {
         currentOut.printf("    // called by generated constructor code%n");
-        currentOut.printf("    private function __initialize__(config:%s):void {%n", configClassQName);
+        currentOut.printf("    private function __initialize__(config:%s):void {%n", targetClassQName);
         for (Declaration var : vars) {
           if (!(varsWithXmlValue.contains(var.getName()))) {
             currentOut.printf("      %s = %s;%n", var.getName(), formatValue(var.getValue(), var.getType()));
@@ -306,33 +389,69 @@ public class ExmlToMxml {
         }
         currentOut.printf("    }%n%n");
       }
-      currentOut.printf("    public native function %s(config:%s = null);%n", exmlModel.getClassName(), configClassQName);
-      closeScript();
-      currentOut.printf("%n  <fx:Metadata>[DefaultProperty(\"config\")]</fx:Metadata>");
-      String configElementQName = String.format("%s:%s", configClassPrefix, configClassName);
-      currentOut.printf("%n  <fx:Declarations>");
-      currentOut.printf("%n    <%s", configElementQName);
-      Map<String, String> configDefaultValues = getConfigDefaultValues();
-      printAttributes(configDefaultValues, "    < ".length() + configElementQName.length());
-      this.configDefaultValues = null;
-      if (configDefaultSubElements.isEmpty()) {
-        currentOut.print("/>");
-      } else {
-        currentOut.print(">");
-        for (Map.Entry<String, String> configDefaultSubElement : configDefaultSubElements.entrySet()) {
-          String propertyQName = String.format("%s:%s", configClassPrefix, configDefaultSubElement.getKey());
-          currentOut.printf("%n     <%s>%n      %s%n     </%s>", propertyQName,
-                  configDefaultSubElement.getValue(), propertyQName);
+      currentOut.printf("    public native function %s(config:%s = null);%n", exmlModel.getClassName(), targetClassQName);
+      for (Declaration config : configs) {
+        String defaultType = configDefaultTypes.get(config.getName());
+        if (!"Array".equals(config.getType()) && (hasNoDefaultConstructor(config.getType()) || (defaultType != null && !config.getType().equals(defaultType)))) {
+          String mappedClassName = getMappedClassName(config.getType());
+          if (mappedClassName == null) {
+            mappedClassName = config.getType();
+          }
+          currentOut.printf("%n");
+          currentOut.printf("    [Bindable]%n");
+          currentOut.printf("    public var %s:%s", config.getName(), CompilerUtils.className(mappedClassName));
+          if (config.getValue() != null) {
+            currentOut.printf(" = %s", MxmlUtils.getBindingExpression(config.getValue()).trim());
+          }
+          currentOut.printf(";%n");
         }
-        currentOut.printf("%n    </%s>", configElementQName);
-        configDefaultSubElements.clear();
       }
+      closeScript();
+      String configElementQName = String.format("%s:%s", configClassPrefix, targetClassName);
+      currentOut.printf("%n  <fx:Declarations>");
+      currentOut.printf("%n    <%s id=\"config\"/>", configElementQName);
       for (Declaration var : vars) {
         if (varsWithXmlValue.contains(var.getName())) {
           currentOut.printf("%n    %s", var.getValue());
         }
       }
-      currentOut.printf("%n  </fx:Declarations>");
+      for (Declaration config : configs) {
+        if (hasNoDefaultConstructor(config.getType())) {
+          continue;
+        }
+
+        String type = "*".equals(config.getType()) ? "Object" : config.getType();
+        String mappedClassName = getMappedClassName(type);
+        if (mappedClassName != null) {
+          type = CompilerUtils.className(mappedClassName);
+        }
+        String prefix = AS3Type.typeByName(config.getType()) != null ? "fx:" : "";
+
+        currentOut.printf("%n");
+        if (config.getDescription() != null) {
+          currentOut.printf("%n    <!--- %s -->", convertNewLines(config.getDescription()));
+        }
+        currentOut.printf("%n    ");
+
+        if (configDefaultSubElements.containsKey(config.getName()) && !"Array".equals(config.getType())) {
+          currentOut.printf(configDefaultSubElements.get(config.getName()));
+        } else {
+          currentOut.printf("<%s id=\"%s\"", prefix + type, config.getName());
+
+          String value = config.getValue();
+          if (value != null) {
+            currentOut.printf(">%s</%s>", value, prefix + type);
+          } else if (configDefaultSubElements.containsKey(config.getName())) {
+            // Array
+            currentOut.printf(">%n      ");
+            currentOut.printf(configDefaultSubElements.get(config.getName()));
+            currentOut.printf("%n    </%s>", prefix + type);
+          } else {
+            currentOut.printf("/>");
+          }
+        }
+      }
+      currentOut.printf("%n  </fx:Declarations>%n");
     }
 
     private void openScript() {
@@ -389,7 +508,7 @@ public class ExmlToMxml {
           value = value.replaceAll("\"", "&quot;");
         }
         currentOut.printf("%s%s=%s%s%s", whitespace, attribute.getKey(), quotes, value, quotes);
-        if (" ".equals(whitespace)) {
+        if (indent > 0) {
           whitespace = String.format("%n%s", StringUtils.repeat(" ", indent));
         }
       }
@@ -471,8 +590,10 @@ public class ExmlToMxml {
     }
 
     private String handleCfg(Attributes atts) {
-      currentConfigName = atts.getValue("name");
-      String type = atts.getValue("type");
+      Declaration declaration = createDeclaration(atts);
+      configs.add(declaration);
+      currentConfigName = declaration.getName();
+      String type = declaration.getType();
       if (type != null) {
         // even if this config does not add anything to the target class,
         // its type must be imported, because other code may take advantage of this import.
@@ -480,17 +601,9 @@ public class ExmlToMxml {
       }
       String configDefault = atts.getValue("default");
       if (configDefault != null && !configDefault.isEmpty()) {
-        getConfigDefaultValues().put(currentConfigName, configDefault);
+        declaration.setValue(configDefault);
       }
       return null; // do not render config elements
-    }
-
-    private Map<String, String> getConfigDefaultValues() {
-      if (configDefaultValues == null) {
-        configDefaultValues = new LinkedHashMap<String, String>();
-        configDefaultValues.put("id", "config");
-      }
-      return configDefaultValues;
     }
 
     private String handleAnnotation(Attributes atts) {
@@ -521,15 +634,7 @@ public class ExmlToMxml {
 
       String baseClassNamespace = null;
       String baseClass = atts.getValue(Exmlc.EXML_BASE_CLASS_ATTRIBUTE);
-      if (baseClass == null || baseClass.isEmpty()) {
-        // baseClass attribute has not been specified, so the super class is derived from the config class:
-        ConfigClass superConfigClass = exmlSourceFile.getConfigClass().getSuperClass();
-        if (superConfigClass != null) {
-          String superClassName = superConfigClass.getComponentClassName();
-          qName = "extends:" + CompilerUtils.className(superClassName);
-          mxmlPrefixMappings.put("extends", createPackageNamespace(CompilerUtils.packageName(superClassName)));
-        }
-      } else {
+      if (baseClass != null && !baseClass.isEmpty()) {
         // baseClass attribute has been specified, so the super class of the component is actually that:
         String baseClassPackage;
         if (baseClass.indexOf('.') == -1) {
@@ -581,7 +686,7 @@ public class ExmlToMxml {
     public void characters(char[] ch, int start, int length) throws SAXException {
       flushPendingTagClose();
       String cdata = new String(ch, start, length).trim();
-      if (!(elementPath.size() == 2 && elementPath.peek() == null && isNotEmptyText(cdata))) {
+      if (!(elementPath.size() == 2 && elementPath.peek().newName == null && isNotEmptyText(cdata)) || inMetaData) {
         super.characters(ch, start, length);
         lastColumn = locator.getColumnNumber();
       }
@@ -589,7 +694,18 @@ public class ExmlToMxml {
 
     @Override
     public void endElement(String uri, String localName, String qName) throws SAXException {
-      qName = elementPath.pop();
+      if (elementPath.size() == 1) {
+        // ignoring the root element
+        return;
+      }
+      qName = elementPath.pop().newName;
+      if (inMetaData) {
+        inMetaData = false;
+        metaData.add(popRecordedCharacters());
+      } else if (inConfigDescription) {
+        inConfigDescription = false;
+        configs.getLast().setDescription(popRecordedCharacters());
+      }
       if (qName != null) {
         if (pendingTagClose) {
           currentOut.print("/>");
@@ -599,13 +715,10 @@ public class ExmlToMxml {
           if ("fx:Metadata".equals(qName)) {
             out.print("]");
           }
-          currentOut.printf("</%s>", qName);
-        }
-        if (elementPath.size() > 1 && elementPath.size() % 2 == 1) {
-          String wrappingElementQName = getWrappingElementQName(uri, qName);
-          if (wrappingElementQName != null) {
-            currentOut.printf("</%s>", wrappingElementQName);
+          if (elementPath.size() == 1) {
+            currentOut.printf("%n");
           }
+          currentOut.printf("</%s>", qName);
         }
       }
       insideExmlObject = false; // <exml:object>s cannot be nested.
@@ -624,6 +737,7 @@ public class ExmlToMxml {
           currentOut.close();
           currentOut = out;
           elementRecorder = null;
+          inConfigDefault = false;
         } else if (Exmlc.EXML_CFG_NODE_NAME.equals(localName)) {
           currentConfigName = null;
         } else if (Exmlc.EXML_VAR_NODE_NAME.equals(localName)) {
@@ -633,20 +747,60 @@ public class ExmlToMxml {
       lastColumn = locator.getColumnNumber();
     }
 
-    private String getWrappingElementQName(String uri, String qName) {
+    private String getTargetClassElementQName(String uri, String qName) {
       String packageName = ExmlUtils.parsePackageFromNamespace(uri);
       if (packageName != null) {
         String[] prefixAndLocalName = parsePrefixAndLocalName(qName);
         String configClassName = CompilerUtils.qName(packageName, prefixAndLocalName[1]);
         ConfigClass configClass = configClassRegistry.getConfigClassByName(configClassName);
-        if (configClass != null && configClass.getType().getType() == null) {
+        if (configClass != null) {
           String targetClassName = configClass.getComponentClassName();
           if (targetClassName != null) {
+            if (migrationMap.containsKey(targetClassName)) {
+              targetClassName = (String) migrationMap.get(targetClassName);
+            }
             return formatQName(prefixAndLocalName[0], CompilerUtils.className(targetClassName));
           }
         }
       }
       return null;
+    }
+
+    private String getTargetClassAttributeName(String uri, String qName, String attributeName) {
+      ConfigClass configClass = getConfigClass(uri, qName);
+      while (configClass != null) {
+        String classAndAttribute = configClass.getFullName() + "#" + attributeName;
+        if (migrationMap.containsKey(classAndAttribute)) {
+          String targetName = (String) migrationMap.get(classAndAttribute);
+          return targetName.substring(targetName.indexOf('#') + 1);
+        } else {
+          configClass = configClass.getSuperClass();
+        }
+      }
+      return attributeName;
+    }
+
+    private String getMappedClassName(String type) {
+      String mappedClassName = null;
+      ConfigClass configClass = configClassRegistry.getConfigClassByName(type);
+      if (configClass != null) {
+        mappedClassName = configClass.getComponentClassName();
+        if (migrationMap.containsKey(mappedClassName)) {
+          mappedClassName = (String) migrationMap.get(mappedClassName);
+        }
+      }
+      return mappedClassName;
+    }
+
+    private ConfigClass getConfigClass(String uri, String qName) {
+      String packageName = ExmlUtils.parsePackageFromNamespace(uri);
+      if (packageName == null) {
+        return null;
+      }
+
+      String[] prefixAndLocalName = parsePrefixAndLocalName(qName);
+      String configClassName = CompilerUtils.qName(packageName, prefixAndLocalName[1]);
+      return configClassRegistry.getConfigClassByName(configClassName);
     }
 
     @Override
@@ -657,7 +811,7 @@ public class ExmlToMxml {
 
     @Override
     public void startDTD(String name, String publicId, String systemId) throws SAXException {
-      
+
     }
 
     @Override
@@ -748,5 +902,15 @@ public class ExmlToMxml {
       }
     }
     return false;
+  }
+
+  private static class PathElement {
+    String originalName;
+    String newName;
+
+    public PathElement(String originalName, String newName) {
+      this.originalName = originalName;
+      this.newName = newName;
+    }
   }
 }

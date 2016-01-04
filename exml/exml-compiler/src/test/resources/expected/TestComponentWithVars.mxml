@@ -3,37 +3,32 @@
     This is a TestComponent which defines a config property with a default value.
     @see ext.Panel
   -->
-<extends:Panel  xmlns:fx="http://ns.adobe.com/mxml/2009"
-                xmlns:extends="ext.*"
+<Panel          xmlns:fx="http://ns.adobe.com/mxml/2009"
                 xmlns:cfg="testNamespace.config.*"
                 xmlns:exml="http://www.jangaroo.net/exml/0.8"
-                xmlns="exml:ext.config">
+                xmlns="exml:ext.config"
+                title="{config.defaultTitle}">
   <fx:Script><![CDATA[
-    import testNamespace.config.testComponentWithVars;
-
     private var varWithExpressionValue:Array;
     private var varWithXmlValue:button;
     private var varWithXmlArrayValue:Array;
 
     // called by generated constructor code
-    private function __initialize__(config:testNamespace.config.testComponentWithVars):void {
+    private function __initialize__(config:TestComponentWithVars):void {
       varWithExpressionValue = [1, 2, 3];
     }
 
-    public native function TestComponentWithVars(config:testNamespace.config.testComponentWithVars = null);
+    public native function TestComponentWithVars(config:TestComponentWithVars = null);
   ]]></fx:Script>
-  <fx:Metadata>[DefaultProperty("config")]</fx:Metadata>
   <fx:Declarations>
-    <cfg:testComponentWithVars id="config"/>
-    <button id="varWithXmlValue"
+    <cfg:TestComponentWithVars id="config"/>
+    <Button id="varWithXmlValue"
                text="click me!"
                allowDepress="true"/>
     <fx:Array id="varWithXmlArrayValue">
-      <button text="click me 1!"/>
-      <button text="click me 2!"/>
+      <Button text="click me 1!"/>
+      <Button text="click me 2!"/>
     </fx:Array>
   </fx:Declarations>
 
-  <panel title="{config.defaultTitle}"/>
-
-</extends:Panel>
+</Panel>

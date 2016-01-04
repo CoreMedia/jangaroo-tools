@@ -96,6 +96,10 @@ public class ConfigClassRegistry {
     return config;
   }
 
+  public JangarooParser getJangarooParser() {
+    return jangarooParser;
+  }
+
   /**
    * Returns the list of all config classes in the source path, defined in EXML or ActionScript.
    * @return list of registered Config classes

@@ -20,7 +20,9 @@
   </exml:cfg>
 
   <exml:cfg name="propertyFour" type="*">
-    <exml:description>Some * property</exml:description>
+    <exml:description>
+      Some * property
+    </exml:description>
   </exml:cfg>
 
   <exml:cfg name="propertyFive" type="Array">
