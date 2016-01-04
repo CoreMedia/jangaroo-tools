@@ -1,7 +1,6 @@
 <?xml version="1.0"?>
 <ConfigClass xmlns:fx="http://ns.adobe.com/mxml/2009"
              xmlns="package1.*"
-             xmlns:top="*"
              xmlns:other="package1.someOtherPackage.*"
              xmlns:lib="library://test.namespace"
              foo="bar"
@@ -26,11 +25,14 @@
                           blubbConfig="{'blub config expression'}"
                           blubbAccessor="{'blub accessor expression'}"/>
   </fx:Declarations>
+  <items>
     <other:SomeOtherClass bla="23"/>
     <other:SomeOtherClass clack="var test=0;" bla="1"/>
     <other:SomeOtherClass bla="42"/>
     <ConfigClass>
-      <other:SomeOtherClass doodle="non-bound" bla="{other.bla}"/>
+      <items>
+        <other:SomeOtherClass doodle="non-bound" bla="{other.bla}"/>
+      </items>
       <number>12</number>
     </ConfigClass>
     <ConfigClass>
@@ -39,6 +41,7 @@
         <other:SomeOtherClass id="no_config" bla="13"/>
       </items>
     </ConfigClass>
+  </items>
   <fx:Script>
     import foo.Bar;
   </fx:Script>

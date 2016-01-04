@@ -6,6 +6,7 @@ import net.jangaroo.jooc.ast.ClassDeclaration;
 import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.backend.ApiModelGenerator;
 import net.jangaroo.jooc.input.InputSource;
+import net.jangaroo.jooc.json.Json;
 import net.jangaroo.jooc.model.AnnotationModel;
 import net.jangaroo.jooc.model.AnnotationPropertyModel;
 import net.jangaroo.jooc.model.ClassModel;
@@ -36,9 +37,13 @@ import java.io.InputStream;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 public final class MxmlToModelParser {
@@ -49,12 +54,20 @@ public final class MxmlToModelParser {
   public static final String MXML_METADATA = "Metadata";
   public static final String MXML_ID_ATTRIBUTE = "id";
   public static final String MXML_DEFAULT_PROPERTY_ANNOTATION = "DefaultProperty";
-  public static final String CONSTRUCTOR_PARAMETER_ANNOTATION = "ConstructorParameter";
-  public static final String CONSTRUCTOR_PARAMETER_ANNOTATION_VALUE = "value";
-  public static final String ALLOW_CONSTRUCTOR_PARAMETERS_ANNOTATION = "AllowConstructorParameters";
-  private final JangarooParser jangarooParser;
 
+  public static final String CONSTRUCTOR_PARAMETER_ANNOTATION = "ConstructorParameter";
+  public static final String ALLOW_CONSTRUCTOR_PARAMETERS_ANNOTATION = "AllowConstructorParameters";
+  private static final String EXT_CONFIG_META_NAME = "ExtConfig";
+
+  private static Pattern EXML_VAR_PATTERN = Pattern.compile("private\\s+var\\s+([A-Za-z_][A-Za-z_0-9]*)");
+  private static Pattern INITIALIZE_METHOD_PATTERN = Pattern.compile("private\\s+function\\s+__initialize__\\s*\\(");
+
+  private final JangarooParser jangarooParser;
   private CompilationUnitModel compilationUnitModel;
+  private ParamModel configParamModel;
+  private Map<String, Json> privateVars;
+  private Pattern nativeConstructorPattern;
+
   private int auxVarIndex;
   private StringBuilder code;
 
@@ -71,8 +84,11 @@ public final class MxmlToModelParser {
    */
   public CompilationUnitModel parse(InputSource in) throws IOException, SAXException {
     String qName = CompilerUtils.qNameFromRelativPath(in.getRelativePath());
+    String className = CompilerUtils.className(qName);
     compilationUnitModel = new CompilationUnitModel(CompilerUtils.packageName(qName),
-            new ClassModel(CompilerUtils.className(qName)));
+            new ClassModel(className));
+    nativeConstructorPattern = Pattern.compile("(\\s*public)\\s+native(\\s+function\\s+" + className + "\\s*\\(\\s*([A-Za-z_][A-Za-z_0-9]*)\\s*:\\s*([A-Za-z_][A-Za-z_0-9.]*)\\s*=\\s*null\\s*\\)\\s*); *\\n");
+    privateVars = new LinkedHashMap<String, Json>();
     auxVarIndex = 0;
     code = new StringBuilder();
 
@@ -105,40 +121,39 @@ public final class MxmlToModelParser {
     if (superClassName == null) {
       throw Jooc.error("Could not resolve super class from node " + objectNode.getNamespaceURI() + ":" + objectNode.getLocalName());
     }
-    if (superClassName.equals(compilationUnitModel.getQName())) {
+    String classQName = compilationUnitModel.getQName();
+    if (superClassName.equals(classQName)) {
       throw Jooc.error("Cyclic inheritance error: super class and this component are the same!. There is something wrong!");
     }
     ClassModel classModel = compilationUnitModel.getClassModel();
     classModel.setSuperclass(superClassName);
     compilationUnitModel.addImport(superClassName);
 
-    MethodModel constructorModel = classModel.createConstructor();
-
     String superConfigVar = null;
     if (constructorSupportsConfigOptionsParameter(superClassName)) {
-      // also let the generated class support a config constructor parameter:
-      String configVar = createAuxVar();
-      constructorModel.addParam(new ParamModel(configVar, "Object", "null"));
       superConfigVar = createAuxVar();
-      renderConfigAuxVar(superConfigVar);
-      createFields(objectNode);
-      processAttributesAndChildNodes(objectNode, superConfigVar, "this", true);
-      String keyVar = createAuxVar();
-      code.append(MessageFormat.format("\n    if ({1}) for (var {0}:String in {1}) {2}[{0}] = {1}[{0}];"
-                                     + "\n    super({2});",
-              keyVar, configVar, superConfigVar));
-    } else {
-      createFields(objectNode);
+      renderConfigAuxVar(superConfigVar, superClassName);
     }
-    if (superConfigVar == null) {
-      processAttributesAndChildNodes(objectNode, superConfigVar, "this", false);
+    createFields(objectNode);
+    processAttributesAndChildNodes(objectNode, superConfigVar, "this", superConfigVar != null);
+    MethodModel constructorModel = classModel.createConstructor();
+    if (superConfigVar != null) {
+      // also let the generated class support a config constructor parameter:
+      if (configParamModel == null) {
+        configParamModel = new ParamModel("config", classQName, "null");
+      }
+      constructorModel.addParam(configParamModel);
+      compilationUnitModel.addImport("net.jangaroo.ext.Exml");
+      code.append(MessageFormat.format("\n    net.jangaroo.ext.Exml.apply({0}, {1});"
+                      + "\n    super({0});",
+              superConfigVar, configParamModel.getName()));
     }
 
     constructorModel.setBody(code.toString());
   }
 
-  private void renderConfigAuxVar(String configAuxVar) {
-    code.append("\n    var ").append(configAuxVar).append(":Object = {};");
+  private void renderConfigAuxVar(String configAuxVar, String type) {
+    code.append(String.format("\n    var %s:%s = %s({});", configAuxVar, type, type));
   }
 
   private boolean constructorSupportsConfigOptionsParameter(String classQName) throws IOException {
@@ -151,7 +166,9 @@ public final class MxmlToModelParser {
           Iterator<ParamModel> constructorParams = constructorModel.getParams().iterator();
           if (constructorParams.hasNext()) {
             ParamModel firstParam = constructorParams.next();
-            if ("Object".equals(firstParam.getType()) && "config".equals(firstParam.getName())) {
+            String firstParamType = firstParam.getType();
+            if ((classQName.equals(firstParamType) || CompilerUtils.className(classQName).equals(firstParamType))
+                    && "config".equals(firstParam.getName())) {
               return true;
             }
           }
@@ -171,7 +188,19 @@ public final class MxmlToModelParser {
             createValueCodeFromElement(declaration, false);
           }
         } else if (MXML_SCRIPT.equals(elementName)) {
-          classModel.addBodyCode(getTextContent(element));
+          String scriptCode = getTextContent(element);
+          if (configParamModel == null) {
+            Matcher constructorMatcher = nativeConstructorPattern.matcher(scriptCode);
+            if (constructorMatcher.find()) {
+              configParamModel = new ParamModel(
+                      constructorMatcher.group(3),
+                      constructorMatcher.group(4),
+                      "null");
+              scriptCode = scriptCode.substring(0, constructorMatcher.start())
+                      + scriptCode.substring(constructorMatcher.end());
+            }
+          }
+          classModel.addBodyCode(scriptCode);
         } else if (MXML_METADATA.equals(elementName)) {
           classModel.addAnnotationCode(getTextContent(element));
         } else {
@@ -357,6 +386,9 @@ public final class MxmlToModelParser {
     String targetVariable = null;   // name of the variable holding the object to build
     String id = objectElement.getAttribute(MXML_ID_ATTRIBUTE);
     if (!id.isEmpty()) {
+      if (configParamModel != null && id.equals(configParamModel.getName())) {
+        return "";
+      }
       PropertyModel fieldModel = new PropertyModel(id, className);
       fieldModel.addGetter();
       fieldModel.addSetter();
@@ -369,7 +401,7 @@ public final class MxmlToModelParser {
     if (constructorSupportsConfigOptionsParameter(className)) {
       // if class supports a config options parameter, create a config options object and assign properties to it:
       configVariable = createAuxVar();
-      renderConfigAuxVar(configVariable);
+      renderConfigAuxVar(configVariable, className);
       if (targetVariable == null) {
         targetVariable = createAuxVar();
       }
@@ -501,6 +533,9 @@ public final class MxmlToModelParser {
     if (fullClassName == null) {
       return null;
     }
+    if (fullClassName.equals(compilationUnitModel.getQName())) {
+      return compilationUnitModel;
+    }
     CompilationUnit compilationUnit = jangarooParser.getCompilationUnit(fullClassName);
     if (compilationUnit == null) {
       throw Jooc.error("Undefined type: " + fullClassName);
@@ -609,6 +644,9 @@ public final class MxmlToModelParser {
       String packageName = MxmlUtils.parsePackageFromNamespace(uri);
       if (packageName != null) {
         String qName = CompilerUtils.qName(packageName, name);
+        if (qName.equals(compilationUnitModel.getQName())) {
+          return qName;
+        }
         CompilationUnit compilationsUnit = jangarooParser.getCompilationUnit(qName);
         if (compilationsUnit != null && compilationsUnit.getPrimaryDeclaration() instanceof ClassDeclaration) {
           return qName;

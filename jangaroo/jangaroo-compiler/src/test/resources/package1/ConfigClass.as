@@ -4,7 +4,7 @@ package package1{
 
 public class ConfigClass {
 
-  public function ConfigClass() {
+  public function ConfigClass(config:ConfigClass = null) {
   }
 
   public var foo:String = "foo";

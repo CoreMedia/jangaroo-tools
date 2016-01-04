@@ -2,57 +2,11 @@ Ext.define("AS3.package1.SomeMxmlClass", function(SomeMxmlClass) {/*package pack
 import package1.someOtherPackage.SomeOtherClass;
 import package1.someOtherPackage.SomeEvent;
 import joo.addEventListener;
+import net.jangaroo.ext.Exml;
 
 public class SomeMxmlClass extends package1.ConfigClass {
     import foo.Bar;
   
-  public*/ function SomeMxmlClass$() {this.callParent([]);
-    
-    this.bar = "BAR!";
-    this.num = 123;
-    this.blub = {};
-    this.blub.name = "Kuno";
-    var $_1/*:Object*/ = {};
-    $_1.name = "Joe";
-    var $_2/*:Object*/ = {};
-    $_2.name = "Felix";
-    this.list = [$_1, $_2];
-    var $_3/*:Object*/ = {};
-    $_3.bla = 3;
-    $_3.blubb_accessor = this.$bind_other_blubbAccessor$2();
-    $_3.blubb_config = 'blub config expression';
-    this.other = new AS3.package1.someOtherPackage.SomeOtherClass($_3);
-    joo.addEventListener(this, "click",AS3.bind( this,"$on_this_click$2"), AS3.package1.someOtherPackage.SomeEvent);
-    this.foo = "bar";
-    this.number = 1 + 1;
-    var $_4/*:Object*/ = {};
-    $_4.bla = 23;
-    $_4.type = "someOtherType";
-    var $_6/*:Object*/ = {};
-    $_6.bla = 1;
-    joo.addEventListener($_6, "clack",AS3.bind( this,"$on_$_6_clack$2"), AS3.package1.someOtherPackage.SomeEvent);
-    $_6.type = "someOtherType";
-    var $_8/*:Object*/ = {};
-    $_8.bla = 42;
-    $_8.type = "someOtherType";
-    var $_10/*:package1.ConfigClass*/ = new AS3.package1.ConfigClass();
-    $_10.number = 12;
-    var $_11/*:Object*/ = {};
-    $_11.bla = this.$bind_$_12_bla$2();
-    $_11.doodle = "non-bound";
-    var $_12/*:package1.someOtherPackage.SomeOtherClass*/ = new AS3.package1.someOtherPackage.SomeOtherClass($_11);
-    $_10.items = [$_12];
-    var $_13/*:package1.ConfigClass*/ = new AS3.package1.ConfigClass();
-    var $_14/*:Object*/ = {};
-    $_14.bla = 12;
-    $_14.type = "someOtherType";
-    var $_16/*:Object*/ = {};
-    $_16.bla = 13;
-    this.no_config = new AS3.package1.someOtherPackage.SomeOtherClass($_16);
-    $_13.items = [$_14, this.no_config];
-    this.items = [$_4, $_6, $_8, $_10, $_13];
-  }/*
-
   public native function get bar():String;
 
   /**
@@ -88,20 +42,12 @@ public class SomeMxmlClass extends package1.ConfigClass {
    * /
   public native function set other(value:package1.someOtherPackage.SomeOtherClass):void;
 
-  private*/ function $bind_other_blubbAccessor()/*:String*/ {
-    return 'blub accessor expression';
-  }/*
-
-  private*/ function $on_this_click(event/*:package1.someOtherPackage.SomeEvent*/)/*:void*/ {
+  private*/ function $on_$_1_click(event/*:package1.someOtherPackage.SomeEvent*/)/*:void*/ {
     var result/*:String*/ = 'gotcha!';
   }/*
 
-  private*/ function $on_$_6_clack(event/*:package1.someOtherPackage.SomeEvent*/)/*:void*/ {
+  private*/ function $on_$_5_clack(event/*:package1.someOtherPackage.SomeEvent*/)/*:void*/ {
     var test=0;
-  }/*
-
-  private*/ function $bind_$_12_bla()/*:int*/ {
-    return AS3.getBindable( this.other,"get_bla","bla_has_changed");
   }/*
 
   public native function get no_config():package1.someOtherPackage.SomeOtherClass;
@@ -110,21 +56,61 @@ public class SomeMxmlClass extends package1.ConfigClass {
    * @private
    * /
   public native function set no_config(value:package1.someOtherPackage.SomeOtherClass):void;
+
+  public*/ function SomeMxmlClass$(config/*:package1.SomeMxmlClass = null*/) {if(arguments.length<=0)config=null;
+    
+    var $_1/*:package1.ConfigClass*/ =AS3.cast( AS3.package1.ConfigClass,{});
+    this.bar = "BAR!";
+    this.num = 123;
+    this.blub = {};
+    this.blub.name = "Kuno";
+    var $_2/*:Object*/ = {};
+    $_2.name = "Joe";
+    var $_3/*:Object*/ = {};
+    $_3.name = "Felix";
+    this.list = [$_2, $_3];
+    this.other = new AS3.package1.someOtherPackage.SomeOtherClass();
+    this.other.set_bla ( 3);
+    this.other.blubbConfig = 'blub config expression';
+    joo.addEventListener($_1, "click",AS3.bind( this,"$on_$_1_click$2"), AS3.package1.someOtherPackage.SomeEvent);
+    $_1.foo = "bar";
+    $_1.number = 1 + 1;
+    var $_4/*:package1.someOtherPackage.SomeOtherClass*/ = new AS3.package1.someOtherPackage.SomeOtherClass();
+    $_4.set_bla ( 23);
+    var $_5/*:package1.someOtherPackage.SomeOtherClass*/ = new AS3.package1.someOtherPackage.SomeOtherClass();
+    $_5.set_bla ( 1);
+    joo.addEventListener($_5, "clack",AS3.bind( this,"$on_$_5_clack$2"), AS3.package1.someOtherPackage.SomeEvent);
+    var $_6/*:package1.someOtherPackage.SomeOtherClass*/ = new AS3.package1.someOtherPackage.SomeOtherClass();
+    $_6.set_bla ( 42);
+    var $_7/*:package1.ConfigClass*/ =AS3.cast( AS3.package1.ConfigClass,{});
+    var $_9/*:package1.someOtherPackage.SomeOtherClass*/ = new AS3.package1.someOtherPackage.SomeOtherClass();
+    $_9.doodle = "non-bound";
+    $_7.items = [$_9];
+    $_7.number = 12;
+    var $_10/*:package1.ConfigClass*/ =AS3.cast( AS3.package1.ConfigClass,{});
+    var $_12/*:package1.someOtherPackage.SomeOtherClass*/ = new AS3.package1.someOtherPackage.SomeOtherClass();
+    $_12.set_bla ( 12);
+    this.no_config = new AS3.package1.someOtherPackage.SomeOtherClass();
+    this.no_config.set_bla ( 13);
+    $_10.items = [$_12, this.no_config];
+    $_1.items = [$_4, $_5, $_6, $_7, $_10];
+    AS3.net.jangaroo.ext.Exml.apply($_1, config);
+    this.callParent([$_1]);
+  }/*
 }
 }
 
 ============================================== Jangaroo part ==============================================*/
     return {
       extend: "AS3.package1.ConfigClass",
+      $on_$_1_click$2: $on_$_1_click,
+      $on_$_5_clack$2: $on_$_5_clack,
       constructor: SomeMxmlClass$,
-      $bind_other_blubbAccessor$2: $bind_other_blubbAccessor,
-      $on_this_click$2: $on_this_click,
-      $on_$_6_clack$2: $on_$_6_clack,
-      $bind_$_12_bla$2: $bind_$_12_bla,
       requires: ["AS3.package1.ConfigClass"],
       uses: [
         "AS3.package1.someOtherPackage.SomeOtherClass",
-        "AS3.package1.someOtherPackage.SomeEvent"
+        "AS3.package1.someOtherPackage.SomeEvent",
+        "AS3.net.jangaroo.ext.Exml"
       ]
     };
 });
