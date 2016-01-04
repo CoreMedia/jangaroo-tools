@@ -108,10 +108,7 @@ public class ExtAsApiGenerator {
       interfaces.add("ext.EventObjectImpl");
 
       for (ExtClass extClass : extClasses) {
-        CompilationUnitModel compilationUnitModel = generateClassModel(extClass);
-        if (compilationUnitModel != null) {
-          generateConfigClassModel(extClass, compilationUnitModel);
-        }
+        generateClassModel(extClass);
       }
       compilationUnitModelRegistry.complementOverrides();
       compilationUnitModelRegistry.complementImports();
@@ -243,10 +240,10 @@ public class ExtAsApiGenerator {
     return memberModel;
   }
 
-  private static CompilationUnitModel generateClassModel(ExtClass extClass) {
+  private static void generateClassModel(ExtClass extClass) {
     String extClassName = getActionScriptName(extClass);
     if (extClassName == null) {
-      return null;
+      return;
     }
     CompilationUnitModel extAsClassUnit = createClassModel(convertType(extClass.name));
     ClassModel extAsClass = extAsClassUnit.getClassModel();
@@ -302,104 +299,38 @@ public class ExtAsApiGenerator {
 
     if (extAsInterfaceUnit != null) {
       addNonStaticMembers(extClass, extAsInterfaceUnit);
-    }
-
-    if (!interfaces.contains(extClassName)) {
+    } else {
       addFields(extAsClass, extJsApi.filterByOwner(false, true, extClass, extClass.members, Property.class));
       addMethods(extAsClass, extJsApi.filterByOwner(false, true, extClass, extClass.members, Method.class));
     }
 
     addNonStaticMembers(extClass, extAsClassUnit);
-    return extAsClassUnit;
+    addProperties(extAsClass, extJsApi.filterByOwner(false, false, extClass, extClass.members, Cfg.class));
+
+    // todo[ahu]: remove #getConfigClassQName and its mapping properties, a constructor needs to be generated if and only if the class or a superclass has config parameters
+    if (getConfigClassQName(extClass) != null) {
+      addConfigConstructor(extAsClass);
+    }
+  }
+
+  private static void addConfigConstructor(ClassModel extAsClass) {
+    MethodModel targetClassConstructor = extAsClass.getConstructor();
+    if (targetClassConstructor == null) {
+      targetClassConstructor = extAsClass.createConstructor();
+      targetClassConstructor.addParam(new ParamModel("config", extAsClass.getName(), "null", "@inheritDoc"));
+    } else {
+      for (ParamModel param : targetClassConstructor.getParams()) {
+        if ("config".equals(param.getName())) {
+          param.setType(extAsClass.getName());
+          param.setOptional(true);
+          break;
+        }
+      }
+    }
   }
 
   private static String getActionScriptName(String extClassName) {
     return getActionScriptName(extJsApi.getExtClass(extClassName));
-  }
-
-  private static void generateConfigClassModel(ExtClass extClass, CompilationUnitModel extAsClassUnit) {
-    ClassModel extAsClass = extAsClassUnit.getClassModel();
-    String extClassName = extAsClassUnit.getQName();
-    System.out.printf("Generating AS3 config API model %s for %s...%n", extAsClassUnit.getQName(), extClassName);
-    String configClassQName = getConfigClassQName(extClass);
-    if (configClassQName != null) {
-      CompilationUnitModel configClassUnit = createClassModel(configClassQName);
-      ClassModel configClass = (ClassModel)configClassUnit.getPrimaryDeclaration();
-      configClassUnit.getClassModel().setAsdoc(extAsClass.getAsdoc());
-      String superConfigClassQName = "joo.JavaScriptObject";
-      for (ExtClass extSuperClass = extJsApi.getExtClass(extClass.extends_);
-           extSuperClass != null;
-           extSuperClass = extJsApi.getExtClass(extSuperClass.extends_)) {
-        String checkSuperConfigClassQName = getConfigClassQName(extSuperClass);
-        if (checkSuperConfigClassQName != null) {
-          superConfigClassQName = checkSuperConfigClassQName;
-          break;
-        }
-      }
-      configClass.setSuperclass(superConfigClassQName);
-      MethodModel constructor = configClass.createConstructor();
-      constructor.addParam(new ParamModel("config", "Object", "null"));
-      constructor.setBody("super(config);");
-
-      AnnotationModel extConfigAnnotation = new AnnotationModel("ExtConfig", new AnnotationPropertyModel("target", CompilerUtils.quote(extAsClassUnit.getQName())));
-      Map.Entry<String, List<String>> alias = getAlias(extClass);
-      String typeProperty = alias == null ? null : "widget".equals(alias.getKey()) ? "xtype" : "type";
-      if (typeProperty != null) {
-        String typeValue = CompilerUtils.quote(getPreferredAlias(alias));
-        // if explicit alias, add (x)type:
-        extConfigAnnotation.addProperty(new AnnotationPropertyModel(typeProperty, typeValue));
-        if (generateForMxml) {
-          configClass.addBodyCode(String.format("%n  %s['prototype'].%s = %s;%n", configClassQName, typeProperty, typeValue));
-
-          MemberModel member = extAsClass.getMember(typeProperty);
-          if (member != null && !(member instanceof PropertyModel)) {
-            System.err.println("[WARN]: Member " + typeProperty + " in class " + extAsClass.getName() + " should be a PropertyModel, but is a " + member.getClass().getSimpleName());
-          } else {
-            PropertyModel typePropertyModel = (PropertyModel) member;
-            if (typePropertyModel == null) {
-              typePropertyModel = new PropertyModel(typeProperty, "String");
-              typePropertyModel.setAsdoc("@inheritDoc");
-              typePropertyModel.addGetter();
-              typePropertyModel.addSetter();
-              extAsClass.addMember(typePropertyModel);
-            }
-            if (generateForMxml) {
-              typePropertyModel.addAnnotation(new AnnotationModel(MxmlToModelParser.CONSTRUCTOR_PARAMETER_ANNOTATION,
-                      new AnnotationPropertyModel(MxmlToModelParser.CONSTRUCTOR_PARAMETER_ANNOTATION_VALUE, typeValue)));
-            }
-          }
-        }
-      }
-      configClassUnit.getClassModel().addAnnotation(extConfigAnnotation);
-      if (generateEventClasses) {
-        addEvents(configClass, extAsClassUnit, extJsApi.filterByOwner(false, false, extClass, extClass.members, Event.class));
-      }
-      List<Cfg> configProperties = extJsApi.filterByOwner(false, false, extClass, extClass.members, Cfg.class);
-      addProperties(configClass, configProperties);
-
-      if (!interfaces.contains(extClassName)) {
-        // adjust constructor of target class:
-        MethodModel targetClassConstructor = extAsClass.getConstructor();
-        if (targetClassConstructor == null) {
-          targetClassConstructor = extAsClass.createConstructor();
-          targetClassConstructor.addParam(new ParamModel("config", generateForMxml ? "Object" : configClassQName, "null", "@inheritDoc"));
-        } else {
-          final List<ParamModel> params = targetClassConstructor.getParams();
-          for (ParamModel param : params) {
-            if ("config".equals(param.getName())) {
-              if (!generateForMxml) {
-                param.setType(configClassQName);
-              }
-              param.setOptional(true);
-              break;
-            }
-          }
-        }
-      }
-
-      // also add config option properties to target class:
-      addProperties(extAsClass, configProperties, true);
-    }
   }
 
   private static String getConfigClassQName(ExtClass extClass) {
@@ -460,7 +391,7 @@ public class ExtAsApiGenerator {
   private static void addNonStaticMembers(ExtClass extClass, CompilationUnitModel extAsClassUnit) {
     ClassModel extAsClass = extAsClassUnit.getClassModel();
     if (!extAsClass.isInterface()) {
-      addEvents(extAsClassUnit.getClassModel(), extAsClassUnit, extJsApi.filterByOwner(false, false, extClass, extClass.members, Event.class));
+      addEvents(extAsClass, extAsClassUnit, extJsApi.filterByOwner(false, false, extClass, extClass.members, Event.class));
     }
     addProperties(extAsClass, extJsApi.filterByOwner(extAsClass.isInterface(), false, extClass, extClass.members, Property.class));
     addMethods(extAsClass, extJsApi.filterByOwner(extAsClass.isInterface(), false, extClass, extClass.members, Method.class));
@@ -470,7 +401,7 @@ public class ExtAsApiGenerator {
     File outputFile = CompilerUtils.fileFromQName(extAsClass.getQName(), outputDir, Jooc.AS_SUFFIX);
     //noinspection ResultOfMethodCallIgnored
     outputFile.getParentFile().mkdirs(); // NOSONAR
-    System.out.printf("Generating AS3 API for %s into %s...\n", extAsClass.getQName(), outputFile.getPath());
+    System.out.printf("Generating AS3 API for %s into %s ...\n", extAsClass.getQName(), outputFile.getCanonicalPath());
     extAsClass.visit(new ActionScriptCodeGeneratingModelVisitor(new OutputStreamWriter(new FileOutputStream(outputFile), "UTF-8")));
   }
 
@@ -564,17 +495,12 @@ public class ExtAsApiGenerator {
   }
 
   private static void addProperties(ClassModel classModel, List<? extends Member> properties) {
-    addProperties(classModel, properties, false);
-  }
-
-  private static void addProperties(ClassModel classModel, List<? extends Member> properties,
-                                    boolean forceReadOnly) {
     for (Member member : properties) {
       if (classModel.getMember(member.name) == null) {
         if (extJsApi.inheritsDoc(member)) {
            // suppress overridden properties with the same JSDoc!
            continue;
-         }
+        }
         String type = convertType(member.type);
         if (type == null || "*".equals(type) || "Object".equals(type)) {
           // try to deduce a more specific type from the property name:
@@ -592,7 +518,7 @@ public class ExtAsApiGenerator {
         setVisibility(propertyModel, member);
         setStatic(propertyModel, member);
         propertyModel.addGetter();
-        if (!forceReadOnly && !(member.meta.readonly || member.readonly || isConstantName(member.name))) {
+        if (!(member.meta.readonly || member.readonly || isConstantName(member.name))) {
           propertyModel.addSetter();
         }
         classModel.addMember(propertyModel);

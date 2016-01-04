@@ -139,7 +139,7 @@ public class ExtAsApi {
   }
 
   private static File getMavenArtifact(String groupId, String artifactId, String version, String classifier) {
-    String mavenRepository = System.getenv("HOME") + "/.m2/repository/";
+    String mavenRepository = System.getProperty("user.home") + "/.m2/repository/";
     return new File(mavenRepository + groupId.replace('.', '/') + new MessageFormat("/{0}/{1}/{0}-{2}.jar")
             .format(artifactId, version, classifier == null ? version : version + "-" + classifier));
   }
