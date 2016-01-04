@@ -11,9 +11,25 @@
   <fx:Script><![CDATA[
     public native function TestComponent(config:TestComponent = null);
   ]]></fx:Script>
-  <fx:Metadata>[DefaultProperty("config")]</fx:Metadata>
   <fx:Declarations>
     <cfg:TestComponent id="config"/>
+
+    <!--- Some Boolean property @see Boolean -->
+    <fx:Boolean id="propertyOne"/>
+
+    <!--- Some Number property -->
+    <fx:Number id="propertyTwo"/>
+
+    <!--- Some String property -->
+    <fx:String id="propertyThree"/>
+
+    <!--- 
+      Some * property
+     -->
+    <fx:Object id="propertyFour"/>
+
+    <!--- Some Array property -->
+    <fx:Array id="propertyFive"/>
   </fx:Declarations>
 
     <items>

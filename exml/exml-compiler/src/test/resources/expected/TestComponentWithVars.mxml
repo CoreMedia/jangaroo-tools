@@ -20,7 +20,6 @@
 
     public native function TestComponentWithVars(config:TestComponentWithVars = null);
   ]]></fx:Script>
-  <fx:Metadata>[DefaultProperty("config")]</fx:Metadata>
   <fx:Declarations>
     <cfg:TestComponentWithVars id="config"/>
     <Button id="varWithXmlValue"

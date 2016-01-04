@@ -10,7 +10,6 @@
   <fx:Script><![CDATA[
     public native function TestComponentWithAction(config:TestComponentWithAction = null);
   ]]></fx:Script>
-  <fx:Metadata>[DefaultProperty("config")]</fx:Metadata>
   <fx:Declarations>
     <test:TestComponentWithAction id="config"/>
   </fx:Declarations>

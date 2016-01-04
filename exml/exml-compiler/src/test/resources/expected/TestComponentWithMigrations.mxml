@@ -9,11 +9,21 @@
                 xmlns="exml:ext.config"
                 title="I am inside a package!">
   <fx:Script><![CDATA[
+    import ext.Component;
+
     public native function TestComponentWithMigrations(config:TestComponentWithMigrations = null);
+
+    [Bindable]
+    public var propertyWithDefaultElementUsingConfig:Component;
   ]]></fx:Script>
-  <fx:Metadata>[DefaultProperty("config")]</fx:Metadata>
   <fx:Declarations>
     <cfg:TestComponentWithMigrations id="config"/>
+
+    <!--- Test migration of default value. -->
+    <Component id="propertyWithDefaultElementUsingConfig"/>
+
+    <!--- Test migration of type. -->
+    <Component id="propertyWithTypeMigration"/>
   </fx:Declarations>
 
     <items>

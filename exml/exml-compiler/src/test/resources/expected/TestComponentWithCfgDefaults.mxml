@@ -9,23 +9,47 @@
                 xmlns="exml:ext.config"
                 title="{config.defaultTitle}">
   <fx:Script><![CDATA[
+    import testPackage.TestInterface;
+    import ext.Component;
+
     public native function TestComponentWithCfgDefaults(config:TestComponentWithCfgDefaults = null);
+
+    [Bindable]
+    public var propertyWithDefaultElementUsingConfig:Component;
+
+    [Bindable]
+    public var propertyWithFullyQualifiedInterface:TestInterface;
+
+    [Bindable]
+    public var propertyWithInterface:TestInterface;
+
+    [Bindable]
+    public var propertyWithInterfaceAndDefault:TestInterface = new TestImpl();
   ]]></fx:Script>
-  <fx:Metadata>[DefaultProperty("config")]</fx:Metadata>
   <fx:Declarations>
-    <cfg:TestComponentWithCfgDefaults id="config"
-                                      propertyWithLiteralDefault="foobar"
-                                      propertyWithExpressionDefault="{'foo' + 'bar'}">
-     <cfg:propertyWithDefaultElement>
-      <Button text="click me!"/>
-     </cfg:propertyWithDefaultElement>
-     <cfg:propertyWithDefaultElementUsingConfig>
-      <Button text="{config.title + '!'}"/>
-     </cfg:propertyWithDefaultElementUsingConfig>
-     <cfg:arrayPropertyWithDefaultElement>
-      <Button text="button1"/><Button text="button2"/>
-     </cfg:arrayPropertyWithDefaultElement>
-    </cfg:TestComponentWithCfgDefaults>
+    <cfg:TestComponentWithCfgDefaults id="config"/>
+
+    <!--- Some String property with a literal default. -->
+    <fx:String id="propertyWithLiteralDefault">foobar</fx:String>
+
+    <!--- Some String property with a default computed from an expression. -->
+    <fx:String id="propertyWithExpressionDefault">{'foo' + 'bar'}</fx:String>
+
+    <!--- Some button config property with a default specified as an EXML element. -->
+    <Button id="propertyWithDefaultElement" text="click me!"/>
+
+    <!--- Some button config property with a default specified as an EXML element,
+      using the config parameter.
+     -->
+    <Button id="propertyWithDefaultElementUsingConfig" text="{config.title + '!'}"/>
+
+    <!--- Some array config property with a default specified as an EXML element
+      containing multiple nested elements.
+     -->
+    <fx:Array id="arrayPropertyWithDefaultElement">
+      <Button text="button1"/>
+      <Button text="button2"/>
+    </fx:Array>
   </fx:Declarations>
 
 </Panel>

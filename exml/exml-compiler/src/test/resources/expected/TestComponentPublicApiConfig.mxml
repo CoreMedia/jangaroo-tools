@@ -8,9 +8,20 @@
   <fx:Script><![CDATA[
     public native function TestComponentPublicApiConfig(config:TestComponentPublicApiConfig = null);
   ]]></fx:Script>
-  <fx:Metadata>[DefaultProperty("config")]</fx:Metadata>
   <fx:Declarations>
     <cfg:TestComponentPublicApiConfig id="config"/>
+
+    <!--- Some Boolean property -->
+    <fx:Boolean id="propertyOne"/>
+
+    <!--- Some Number property -->
+    <fx:Number id="propertyTwo"/>
+
+    <!--- Some String property -->
+    <fx:String id="propertyThree"/>
+
+    <!--- Some * property -->
+    <fx:Object id="propertyFour"/>
   </fx:Declarations>
 
     <items>

@@ -6,7 +6,6 @@
   <fx:Script><![CDATA[
     public native function TestContainerDefaults(config:TestContainerDefaults = null);
   ]]></fx:Script>
-  <fx:Metadata>[DefaultProperty("config")]</fx:Metadata>
   <fx:Declarations>
     <test:TestContainerDefaults id="config"/>
   </fx:Declarations>

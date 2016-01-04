@@ -7,7 +7,6 @@
   <fx:Script><![CDATA[
     public native function TestComponentWithConfigModes(config:TestComponentWithConfigModes = null);
   ]]></fx:Script>
-  <fx:Metadata>[DefaultProperty("config")]</fx:Metadata>
   <fx:Declarations>
     <test:TestComponentWithConfigModes id="config"/>
   </fx:Declarations>

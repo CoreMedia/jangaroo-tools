@@ -8,9 +8,11 @@
   <fx:Script><![CDATA[
     public native function TestLabel(config:TestLabel = null);
   ]]></fx:Script>
-  <fx:Metadata>[DefaultProperty("config")]</fx:Metadata>
   <fx:Declarations>
     <cfg:TestLabel id="config"/>
+
+    <!--- The label text -->
+    <fx:String id="propertyOne"/>
   </fx:Declarations>
 
 </Label>

@@ -7,7 +7,6 @@
   <fx:Script><![CDATA[
     public native function TestPlugin(config:TestPlugin = null);
   ]]></fx:Script>
-  <fx:Metadata>[DefaultProperty("config")]</fx:Metadata>
   <fx:Declarations>
     <cfg:TestPlugin id="config"/>
   </fx:Declarations>
