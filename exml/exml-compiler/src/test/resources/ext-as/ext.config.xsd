@@ -41,6 +41,19 @@
   </xs:complexType>
   <xs:element name='alayout' type='ec:ext.config.alayout'>
   </xs:element>
+  <xs:complexType name='ext.config.apanel'>
+    <xs:complexContent>
+      <xs:extension base='ec:ext.config.panel'>
+        <xs:sequence>
+        </xs:sequence>
+        <xs:attribute type='exml:String' name='foo'>
+        </xs:attribute>
+        <xs:anyAttribute namespace="http://www.jangaroo.net/exml/0.8 exml:untyped" processContents="skip"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name='apanel' type='ec:ext.config.apanel' substitutionGroup='ec:panel'>
+  </xs:element>
   <xs:complexType name='ext.config.aplugin'>
     <xs:complexContent>
       <xs:extension base='exml:base'>
@@ -51,6 +64,17 @@
     </xs:complexContent>
   </xs:complexType>
   <xs:element name='aplugin' type='ec:ext.config.aplugin'>
+  </xs:element>
+  <xs:complexType name='ext.config.bpanel'>
+    <xs:complexContent>
+      <xs:extension base='ec:ext.config.apanel'>
+        <xs:sequence>
+        </xs:sequence>
+        <xs:anyAttribute namespace="http://www.jangaroo.net/exml/0.8 exml:untyped" processContents="skip"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name='bpanel' type='ec:ext.config.bpanel' substitutionGroup='ec:apanel'>
   </xs:element>
   <xs:complexType name='ext.config.button'>
     <xs:complexContent>
@@ -318,5 +342,16 @@
     </xs:complexContent>
   </xs:complexType>
   <xs:element name='someMixin' type='ec:ext.config.someMixin'>
+  </xs:element>
+  <xs:complexType name='ext.config.spacer'>
+    <xs:complexContent>
+      <xs:extension base='exml:base'>
+        <xs:sequence>
+        </xs:sequence>
+        <xs:anyAttribute namespace="http://www.jangaroo.net/exml/0.8 exml:untyped" processContents="skip"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name='spacer' type='ec:ext.config.spacer'>
   </xs:element>
 </xs:schema>
