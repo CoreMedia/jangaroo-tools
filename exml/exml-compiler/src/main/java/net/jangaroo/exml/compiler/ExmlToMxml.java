@@ -31,6 +31,7 @@ import org.xml.sax.ext.LexicalHandler;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -64,7 +65,11 @@ public class ExmlToMxml {
 
   public File[] convert() {
     try {
-      this.migrationMap.load(ExmlToMxml.class.getResourceAsStream("/ext-as-3.4-migration-map.properties"));
+      if (configClassRegistry.getConfig().getMigrationMap() != null) {
+        this.migrationMap.load(new FileInputStream(configClassRegistry.getConfig().getMigrationMap()));
+      } else {
+        this.migrationMap.load(ExmlToMxml.class.getResourceAsStream("/ext-as-3.4-migration-map.properties"));
+      }
     } catch (IOException e) {
       throw new ExmlcException("Unable to load migration map", e);
     }

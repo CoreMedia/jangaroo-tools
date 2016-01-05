@@ -54,6 +54,13 @@ public class ExmlToMxmlMojo extends AbstractExmlMojo {
    */
   private boolean renameOnly;
 
+  /**
+   * Set the map for migrating ExtAS API versions when converting EXML into MXML.
+   *
+   * @parameter expression="${migrationMap}"
+   */
+  private File migrationMap;
+
   @Override
   public void execute() throws MojoExecutionException {
     if (!renameOnly && hasExmlConfiguration()) {
@@ -80,11 +87,13 @@ public class ExmlToMxmlMojo extends AbstractExmlMojo {
     // Convert main EXML sources to MXML:
     ExmlConfiguration config = createExmlConfiguration(getMavenPluginHelper().getActionScriptClassPath(false),
             Collections.singletonList(getSourceDirectory()), getSourceDirectory());
+    config.setMigrationMap(migrationMap);
     new Exmlc(config).convertAllExmlToMxml();
     // Also convert test EXML sources to MXML:
     if (testSourceDirectory != null && testSourceDirectory.exists()) {
       ExmlConfiguration testConfig = createExmlConfiguration(getActionScriptTestClassPath(),
               Collections.singletonList(testSourceDirectory), testSourceDirectory);
+      testConfig.setMigrationMap(migrationMap);
       new Exmlc(testConfig).convertAllExmlToMxml();
     }
   }
