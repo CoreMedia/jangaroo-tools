@@ -23,22 +23,26 @@ public class CyclicRequiredDependencies {
   public static final String PATH_SUFFIX = ".js";
 
   public static void main(String[] args) throws IOException {
-    String baseDir = args[0];
-    List<File> files = new ArrayList<>();
-    fillInCompiledClassFiles(new File(baseDir), files);
+    if (args.length != 2) {
+      System.out.println("Usage: java -jar ... <BASEDIR> <OUTFILE>");
+    } else {
+      String baseDir = args[0];
+      List<File> files = new ArrayList<>();
+      fillInCompiledClassFiles(new File(baseDir), files);
 
-    Multimap<String,String> requires = HashMultimap.create();
-    for (File file : files) {
-      fillInRequires(file, requires);
-    }
+      Multimap<String, String> requires = HashMultimap.create();
+      for (File file : files) {
+        fillInRequires(file, requires);
+      }
 
-    Set<String> classesInCycles = getNodesInCycles(requires);
-    requires.keySet().retainAll(classesInCycles);
-    requires.values().retainAll(classesInCycles);
+      Set<String> classesInCycles = getNodesInCycles(requires);
+      requires.keySet().retainAll(classesInCycles);
+      requires.values().retainAll(classesInCycles);
 
-    File outFile = new File(args[1]);
-    try (PrintWriter writer = new PrintWriter(new FileWriter(outFile))) {
-      writeGraph(writer, requires);
+      File outFile = new File(args[1]);
+      try (PrintWriter writer = new PrintWriter(new FileWriter(outFile))) {
+        writeGraph(writer, requires);
+      }
     }
   }
 
