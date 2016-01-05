@@ -85,7 +85,7 @@ public class ExmlToMxmlMojo extends AbstractExmlMojo {
     }
 
     // Convert main EXML sources to MXML:
-    ExmlConfiguration config = createExmlConfiguration(getMavenPluginHelper().getActionScriptClassPath(false),
+    ExmlConfiguration config = createExmlConfiguration(getActionScriptClassPath(),
             Collections.singletonList(getSourceDirectory()), getSourceDirectory());
     config.setMigrationMap(migrationMap);
     new Exmlc(config).convertAllExmlToMxml();
@@ -96,6 +96,12 @@ public class ExmlToMxmlMojo extends AbstractExmlMojo {
       testConfig.setMigrationMap(migrationMap);
       new Exmlc(testConfig).convertAllExmlToMxml();
     }
+  }
+
+  private List<File> getActionScriptClassPath() {
+    List<File> classPath = getMavenPluginHelper().getActionScriptClassPath(false);
+    classPath.add(0, getGeneratedSourcesDirectory());
+    return classPath;
   }
 
   private void renameFiles(File directory) throws IOException {
@@ -145,6 +151,7 @@ public class ExmlToMxmlMojo extends AbstractExmlMojo {
   private List<File> getActionScriptTestClassPath() {
     final List<File> classPath = new ArrayList<File>(getMavenPluginHelper().getActionScriptClassPath(true));
     classPath.add(0, getSourceDirectory());
+    classPath.add(0, getGeneratedSourcesDirectory());
     return classPath;
   }
 }

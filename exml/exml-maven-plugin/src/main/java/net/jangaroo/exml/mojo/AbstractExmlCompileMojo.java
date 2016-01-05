@@ -22,13 +22,6 @@ import java.util.Set;
 public abstract class AbstractExmlCompileMojo extends AbstractExmlMojo {
 
   /**
-   * Output directory for all ActionScript3 files generated out of exml components
-   *
-   * @parameter default-value="${project.build.directory}/generated-sources/joo"
-   */
-  private File generatedSourcesDirectory;
-
-  /**
    * The folder where the XSD Schema for this component suite will be generated
    *
    * @parameter default-value="${project.build.directory}/generated-resources"
@@ -66,10 +59,6 @@ public abstract class AbstractExmlCompileMojo extends AbstractExmlMojo {
 
   protected void useAllSources() {
     staleMillis = -1;
-  }
-
-  public File getGeneratedSourcesDirectory() {
-    return generatedSourcesDirectory;
   }
 
   public File getGeneratedResourcesDirectory() {

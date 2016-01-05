@@ -14,6 +14,13 @@ import java.util.List;
  */
 public abstract class AbstractExmlMojo extends JangarooMojo {
   /**
+   * Output directory for all ActionScript3 files generated out of exml components
+   *
+   * @parameter default-value="${project.build.directory}/generated-sources/joo"
+   */
+  private File generatedSourcesDirectory;
+
+  /**
    * The Maven project object
    *
    * @parameter expression="${project}"
@@ -39,6 +46,10 @@ public abstract class AbstractExmlMojo extends JangarooMojo {
 
   public File getSourceDirectory() {
     return sourceDirectory;
+  }
+
+  public File getGeneratedSourcesDirectory() {
+    return generatedSourcesDirectory;
   }
 
   protected ExmlConfiguration createExmlConfiguration(List<File> classPath, List<File> sourcePath, File outputDirectory) throws MojoExecutionException {
