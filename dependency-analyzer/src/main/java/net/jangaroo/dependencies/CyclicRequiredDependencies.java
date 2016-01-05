@@ -21,9 +21,6 @@ public class CyclicRequiredDependencies {
 
   public static final String PATH_PREFIX = "/target/classes/META-INF/resources/joo/classes/";
   public static final String PATH_SUFFIX = ".js";
-  public static final String JANGAROO_PART_MARKER = "============================================== Jangaroo part ==============================================*/";
-  public static final String REQUIRES_MARKER = "      requires: [";
-  public static final String REQUIRES_PREFIX = "        \"AS3.";
 
   public static void main(String[] args) throws IOException {
     String baseDir = args[0];
@@ -38,9 +35,6 @@ public class CyclicRequiredDependencies {
     Set<String> classesInCycles = getNodesInCycles(requires);
     requires.keySet().retainAll(classesInCycles);
     requires.values().retainAll(classesInCycles);
-
-    System.out.println("All classes: " + requires);
-    System.out.println("Classes in cycles: " + classesInCycles);
 
     File outFile = new File(args[1]);
     try (PrintWriter writer = new PrintWriter(new FileWriter(outFile))) {
@@ -67,24 +61,26 @@ public class CyclicRequiredDependencies {
             .substring(path.indexOf(PATH_PREFIX) + PATH_PREFIX.length(), path.length() - PATH_SUFFIX.length())
             .replace('/', '.');
     List<String> lines = Files.readLines(file, Charsets.UTF_8);
-    int jangarooPartStart = lines.indexOf(JANGAROO_PART_MARKER);
-    if (jangarooPartStart == -1) {
-      return;
-    }
-    int requiresStart = lines.subList(jangarooPartStart, lines.size()).indexOf(REQUIRES_MARKER);
-    if (requiresStart == -1) {
-      return;
-    }
-    int pos = jangarooPartStart + requiresStart + 1;
-    while (pos < lines.size()) {
-      String line = lines.get(pos);
-      if (!line.startsWith(REQUIRES_PREFIX)) {
-        break;
+
+    int lastBrace = -1;
+    for (int i = 0; i < lines.size(); i++) {
+      if (lines.get(i).indexOf('}') != -1) {
+        lastBrace = i;
       }
-      int quotePos = line.indexOf('"', REQUIRES_PREFIX.length());
-      String requiredClassName = line.substring(REQUIRES_PREFIX.length(), quotePos);
-      requires.put(className, requiredClassName);
-      pos++;
+    }
+    if (lastBrace == -1) {
+      return;
+    }
+    String descriptorLine = lines.get(lastBrace);
+
+    int startPos = descriptorLine.lastIndexOf('[');
+    int endPos = descriptorLine.lastIndexOf(']');
+    String dependenciesString = descriptorLine.substring(startPos + 1, endPos);
+    String[] dependencies = dependenciesString.split("[\",]+");
+    for (String dependency : dependencies) {
+      if (!dependency.isEmpty()) {
+        requires.put(className, dependency);
+      }
     }
   }
 
