@@ -31,6 +31,7 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,6 +48,7 @@ public class JangarooParser {
   private ParserOptions config;
   private Map<String, CompilationUnit> compilationUnitsByQName = new LinkedHashMap<String, CompilationUnit>();
   private MxmlComponentRegistry mxmlComponentRegistry = new MxmlComponentRegistry();
+  private List<String> compilableSuffixes = Arrays.asList(Jooc.AS_SUFFIX, Jooc.MXML_SUFFIX);
 
   protected final Scope globalScope = new DeclarationScope(null, null);
 
@@ -113,6 +115,14 @@ public class JangarooParser {
 
   public void setLog(CompileLog log) {
     this.log = log;
+  }
+
+  public List<String> getCompilableSuffixes() {
+    return compilableSuffixes;
+  }
+
+  public void setCompilableSuffixes(List<String> compilableSuffixes) {
+    this.compilableSuffixes = compilableSuffixes;
   }
 
   public CompilationUnit doParse(InputSource in, CompileLog log, SemicolonInsertionMode semicolonInsertionMode) {
@@ -200,19 +210,22 @@ public class JangarooParser {
   }
 
   protected InputSource findSource(final String qname) {
+    InputSource result;
     // scan sourcepath
-    InputSource result = findInputSource(qname, sourcePathInputSource, Jooc.AS_SUFFIX);
-      if (result == null) {
-      result = findInputSource(qname, sourcePathInputSource, Jooc.MXML_SUFFIX);
-      if (result == null) {
-        // scan classpath
-        result = findInputSource(qname, classPathInputSource, Jooc.AS_SUFFIX);
-        if (result == null) {
-          result = findInputSource(qname, classPathInputSource, Jooc.MXML_SUFFIX);
-        }
+    for (String suffix : compilableSuffixes) {
+      result = findInputSource(qname, sourcePathInputSource, suffix);
+      if (result != null) {
+        return result;
       }
     }
-    return result;
+    // scan classpath
+    for (String suffix : compilableSuffixes) {
+      result = findInputSource(qname, classPathInputSource, suffix);
+      if (result != null) {
+        return result;
+      }
+    }
+    return null;
   }
 
   private static InputSource findInputSource(String qname, InputSource pathInputSource, String suffix) {

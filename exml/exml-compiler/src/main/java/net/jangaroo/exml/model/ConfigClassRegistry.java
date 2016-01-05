@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -72,6 +73,7 @@ public class ConfigClassRegistry {
     InputSource classPathInputSource = PathInputSource.fromFiles(fullClassPath,
       new String[]{"", JangarooParser.JOO_API_IN_JAR_DIRECTORY_PREFIX}, false);
     jangarooParser.setUp(sourcePathInputSource, classPathInputSource);
+    jangarooParser.setCompilableSuffixes(Collections.singletonList(Jooc.AS_SUFFIX));
     exmlConfigPackageXsdGenerator = new ExmlConfigPackageXsdGenerator();
   }
 
