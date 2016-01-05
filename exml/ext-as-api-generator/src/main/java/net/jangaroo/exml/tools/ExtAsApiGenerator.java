@@ -57,6 +57,9 @@ import static net.jangaroo.exml.tools.ExtJsApi.isSingleton;
  */
 public class ExtAsApiGenerator {
 
+  private static final String EXT_CONFIG_ANNOTATION = "ExtConfig";
+  private static final String BINDABLE_ANNOTATION = "Bindable";
+
   private static ExtJsApi extJsApi;
   private static Set<ExtClass> extClasses;
   private static CompilationUnitModelRegistry compilationUnitModelRegistry;
@@ -123,6 +126,8 @@ public class ExtAsApiGenerator {
       // again, to make corrections consistent (actually needed?)
 //      compilationUnitModelRegistry.complementOverrides();
 //      compilationUnitModelRegistry.complementImports();
+
+      annotateBindableConfigProperties();
 
       if (!outputDir.exists()) {
         System.err.println("No output directory specified, skipping code generation.");
@@ -363,9 +368,9 @@ public class ExtAsApiGenerator {
     }
 
     addNonStaticMembers(extClass, extAsClassUnit);
-    addProperties(extAsClass, extJsApi.filterByOwner(false, false, extClass, extClass.members, Cfg.class));
+    addProperties(extAsClass, extJsApi.filterByOwner(false, false, extClass, extClass.members, Cfg.class), true);
 
-    // todo[ahu]: remove #getConfigClassQName and its mapping properties, a constructor needs to be generated if and only if the class or a superclass has config parameters
+    // todo: remove #getConfigClassQName and its mapping properties, a constructor needs to be generated if and only if the class or a superclass has config parameters
     if (getConfigClassQName(extClass) != null) {
       addConfigConstructor(extAsClass);
     }
@@ -463,7 +468,7 @@ public class ExtAsApiGenerator {
     if (!extAsClass.isInterface()) {
       addEvents(extAsClass, extAsClassUnit, extJsApi.filterByOwner(false, false, extClass, extClass.members, Event.class));
     }
-    addProperties(extAsClass, extJsApi.filterByOwner(extAsClass.isInterface(), false, extClass, extClass.members, Property.class));
+    addProperties(extAsClass, extJsApi.filterByOwner(extAsClass.isInterface(), false, extClass, extClass.members, Property.class), false);
     addMethods(extAsClass, extJsApi.filterByOwner(extAsClass.isInterface(), false, extClass, extClass.members, Method.class));
   }
 
@@ -564,7 +569,7 @@ public class ExtAsApiGenerator {
     }
   }
 
-  private static void addProperties(ClassModel classModel, List<? extends Member> properties) {
+  private static void addProperties(ClassModel classModel, List<? extends Member> properties, boolean isConfig) {
     for (Member member : properties) {
       if (classModel.getMember(member.name) == null) {
         if (extJsApi.inheritsDoc(member)) {
@@ -589,7 +594,10 @@ public class ExtAsApiGenerator {
         setStatic(propertyModel, member);
         propertyModel.addGetter();
         if (!(member.meta.readonly || member.readonly || isConstantName(member.name))) {
-          propertyModel.addSetter();
+          MethodModel setter = propertyModel.addSetter();
+          if (isConfig) {
+            setter.addAnnotation(new AnnotationModel(EXT_CONFIG_ANNOTATION));
+          }
         }
         classModel.addMember(propertyModel);
       }
@@ -885,5 +893,79 @@ public class ExtAsApiGenerator {
     }
     return normalizedClassName;
   }
+
+
+  private static void annotateBindableConfigProperties() {
+    for (CompilationUnitModel compilationUnitModel : compilationUnitModelRegistry.getCompilationUnitModels()) {
+      ClassModel classModel = compilationUnitModel.getClassModel();
+      if (classModel != null) {
+        annotateBindableConfigProperties(classModel);
+      }
+    }
+  }
+
+  private static void annotateBindableConfigProperties(ClassModel classModel) {
+    for (MemberModel member : classModel.getMembers()) {
+      if (member.isSetter() && !member.getAnnotations(EXT_CONFIG_ANNOTATION).isEmpty()) {
+        annotateBindableConfigProperty(classModel, (MethodModel) member);
+      }
+    }
+  }
+
+  private static void annotateBindableConfigProperty(ClassModel classModel, MethodModel propertySetter) {
+    List<ParamModel> propertySetterParams = propertySetter.getParams();
+    if (propertySetterParams.isEmpty()) {
+      warnConfigProperty("setter without parameter", classModel, propertySetter);
+      return;
+    }
+
+    String propertyType = propertySetterParams.get(0).getType();
+    String setMethodName = "set" + capitalize(propertySetter.getName());
+    MethodModel setMethod = compilationUnitModelRegistry.resolveMethod(classModel, null, setMethodName);
+    if (setMethod == null) {
+      warnConfigProperty("no matching setter method", classModel, propertySetter);
+      return;
+    }
+
+    List<ParamModel> setMethodParams = setMethod.getParams();
+    if (setMethodParams.isEmpty()) {
+      warnConfigProperty(String.format("matching setter method '%s' without parameters. "
+              + "Still marking property as [Bindable] - assuming it's compatible at runtime.", setMethod.getName()),
+              classModel, propertySetter);
+    } else {
+
+      for (ParamModel setMethodParam : setMethodParams.subList(1, setMethodParams.size())) {
+        if (!setMethodParam.isOptional()) {
+          warnConfigProperty(String.format("matching setter method '%s' has additional non-optional parameter '%s'",
+                  setMethod.getName(), setMethodParam.getName()), classModel, propertySetter);
+          return;
+        }
+      }
+
+      String setMethodParamType = setMethodParams.get(0).getType();
+      if (!propertyType.equals(setMethodParamType)) {
+        boolean probablyCompatible = "*".equals(propertyType) || "*".equals(setMethodParamType)
+                || "Object".equals(propertyType) || "Object".equals(setMethodParamType);
+        if (!probablyCompatible) {
+          warnConfigProperty(String.format("type '%s' does not match setter method '%s' with parameter type '%s'",
+                  propertyType, setMethod.getName(), setMethodParamType), classModel, propertySetter);
+          return;
+        }
+
+        warnConfigProperty(String.format("type '%s' does not quite match setter method '%s' with parameter type '%s'. "
+                        + "Still marking property as [Bindable] - assuming it's compatible at runtime.",
+                propertyType, setMethod.getName(), setMethodParamType), classModel, propertySetter);
+
+      }
+    }
+
+    propertySetter.addAnnotation(new AnnotationModel(BINDABLE_ANNOTATION));
+    propertySetter.setAsdoc(propertySetter.getAsdoc() + "\n@see #" + setMethodName + "()");
+  }
+
+  private static void warnConfigProperty(String message, ClassModel classModel, MethodModel propertySetter) {
+    System.err.format("!!! Config property %s#%s: %s\n", classModel.getName(), propertySetter.getName(), message);
+  }
+
 
 }
