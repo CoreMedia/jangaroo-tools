@@ -23,7 +23,7 @@ public class ExmlToConfigClassParserTest extends AbstractExmlTest {
 
     assertNotNull(outputFile);
     assertTrue("Exml config file does not exist", result.exists());
-    assertEquals("The files differ!", FileUtils.readFileToString(getFile("/testNamespace/config/testComponent.as")), FileUtils.readFileToString(result));
+    assertEquals("The files differ!", FileUtils.readFileToString(getExpected("/testNamespace/config/testComponent.as")), FileUtils.readFileToString(result));
   }
 
   @Test
@@ -36,7 +36,7 @@ public class ExmlToConfigClassParserTest extends AbstractExmlTest {
 
     assertNotNull(outputFile);
     assertTrue("Exml config file does not exist", result.exists());
-    assertEquals("The files differ!", FileUtils.readFileToString(getFile("/testNamespace/config/testComponentPublicApiFalse.as")), FileUtils.readFileToString(result));
+    assertEquals("The files differ!", FileUtils.readFileToString(getExpected("/testNamespace/config/testComponentPublicApiFalse.as")), FileUtils.readFileToString(result));
   }
 
   @Test
@@ -49,7 +49,7 @@ public class ExmlToConfigClassParserTest extends AbstractExmlTest {
 
     assertNotNull(outputFile);
     assertTrue("Exml config file does not exist", result.exists());
-    assertEquals("The files differ!", FileUtils.readFileToString(getFile("/testNamespace/config/testComponentPublicApiTrue.as")), FileUtils.readFileToString(result));
+    assertEquals("The files differ!", FileUtils.readFileToString(getExpected("/testNamespace/config/testComponentPublicApiTrue.as")), FileUtils.readFileToString(result));
   }
 
   @Test
@@ -65,7 +65,7 @@ public class ExmlToConfigClassParserTest extends AbstractExmlTest {
 
     getExmlc().generateConfigClass(source);
 
-    assertFalse("The files should differ because it was not written!", FileUtils.readFileToString(getFile("/testNamespace/config/testComponent.as")).equals(FileUtils.readFileToString(result)));
+    assertFalse("The files should differ because it was not written!", FileUtils.readFileToString(getExpected("/testNamespace/config/testComponent.as")).equals(FileUtils.readFileToString(result)));
   }
 
   @Test
@@ -84,7 +84,7 @@ public class ExmlToConfigClassParserTest extends AbstractExmlTest {
 
     getExmlc().generateConfigClass(source);
 
-    assertEquals("The files differ!", FileUtils.readFileToString(getFile("/testNamespace/config/testComponent.as")), FileUtils.readFileToString(result));
+    assertEquals("The files differ!", FileUtils.readFileToString(getExpected("/testNamespace/config/testComponent.as")), FileUtils.readFileToString(result));
   }
 
   @Test
@@ -97,7 +97,7 @@ public class ExmlToConfigClassParserTest extends AbstractExmlTest {
 
     assertNotNull(outputFile);
     assertTrue("Exml config file does not exist", result.exists());
-    assertEquals("The files differ!", FileUtils.readFileToString(getFile("/testNamespace/config/testAction.as")), FileUtils.readFileToString(result));
+    assertEquals("The files differ!", FileUtils.readFileToString(getExpected("/testNamespace/config/testAction.as")), FileUtils.readFileToString(result));
   }
 
   @Test
@@ -110,10 +110,14 @@ public class ExmlToConfigClassParserTest extends AbstractExmlTest {
 
     assertNotNull(outputFile);
     assertTrue("Exml config file does not exist", result.exists());
-    assertEquals("The files differ!", FileUtils.readFileToString(getFile("/testNamespace/config/testPlugin.as")), FileUtils.readFileToString(result));
+    assertEquals("The files differ!", FileUtils.readFileToString(getExpected("/testNamespace/config/testPlugin.as")), FileUtils.readFileToString(result));
   }
 
   private File getFile(String path) throws URISyntaxException {
     return new File(ExmlToConfigClassParserTest.class.getResource("/test-module" + path).toURI());
+  }
+
+  private File getExpected(String path) throws URISyntaxException {
+    return new File(ExmlToConfigClassParserTest.class.getResource("/expected" + path).toURI());
   }
 }

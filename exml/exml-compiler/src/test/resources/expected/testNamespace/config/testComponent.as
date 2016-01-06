@@ -1,6 +1,8 @@
 package testNamespace.config {
 
+import ext.Panel;
 import ext.config.panel;
+import testPackage.TestImpl2;
 
 /**
  * This is a TestComponent with panel as baseclass.
@@ -71,5 +73,29 @@ public class testComponent extends ext.config.panel {
    * @private
    */
   public native function set propertyFive(value:Array):void;
+  /**
+   * Some Panel
+   */
+  public native function get propertySix():Panel;
+  /**
+   * @private
+   */
+  public native function set propertySix(value:Panel):void;
+  /**
+   * Some other Panel
+   */
+  public native function get propertySeven():ext.Panel;
+  /**
+   * @private
+   */
+  public native function set propertySeven(value:ext.Panel):void;
+  /**
+   * Some type without default constructor
+   */
+  public native function get propertyEight():testPackage.TestImpl2;
+  /**
+   * @private
+   */
+  public native function set propertyEight(value:testPackage.TestImpl2):void;
 }
 }

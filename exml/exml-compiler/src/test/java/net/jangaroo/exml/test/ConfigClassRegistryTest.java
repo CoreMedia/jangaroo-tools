@@ -44,7 +44,7 @@ public class ConfigClassRegistryTest extends AbstractExmlTest {
 
   @Test
   public void testGenerateFromExmlWithPregeneratedActionScript() throws Exception {
-    setUp("testNamespace.config");
+    setUp("testNamespace.config", "/expected", "/ext-as");
 
     File destDir = new File(outputFolder.getRoot(), "testNamespace/config");
     destDir.mkdirs();
@@ -63,7 +63,7 @@ public class ConfigClassRegistryTest extends AbstractExmlTest {
 
   @Test
   public void testGenerateFromLocalActionScript() throws Exception {
-    setUp("somewhere.else.config", "/test-module", "/ext-as");
+    setUp("somewhere.else.config", "/expected", "/ext-as");
 
     ConfigClass configClass = getConfigClassRegistry().getConfigClassByName("testNamespace.config.testComponent");
     Assert.assertNotNull(configClass);
@@ -74,7 +74,7 @@ public class ConfigClassRegistryTest extends AbstractExmlTest {
 
   @Test
   public void testGenerateFromClassPathActionScript() throws Exception {
-    setUp("somewhere.else.config", "/test-module", "/ext-as");
+    setUp("somewhere.else.config", "/expected", "/ext-as");
 
     ConfigClass configClass = getConfigClassRegistry().getConfigClassByName("testNamespace.config.testComponent");
     Assert.assertNotNull(configClass);
