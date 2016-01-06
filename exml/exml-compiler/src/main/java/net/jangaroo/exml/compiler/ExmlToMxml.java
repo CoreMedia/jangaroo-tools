@@ -18,6 +18,7 @@ import net.jangaroo.jooc.backend.ApiModelGenerator;
 import net.jangaroo.jooc.json.JsonObject;
 import net.jangaroo.jooc.model.CompilationUnitModel;
 import net.jangaroo.jooc.model.MethodModel;
+import net.jangaroo.jooc.model.ParamModel;
 import net.jangaroo.jooc.mxml.MxmlUtils;
 import net.jangaroo.utils.AS3Type;
 import net.jangaroo.utils.CharacterRecordingHandler;
@@ -378,9 +379,13 @@ public class ExmlToMxml {
       if (compilationUnit != null) {
         try {
           CompilationUnitModel compilationUnitModel = new ApiModelGenerator(false).generateModel(compilationUnit);
-          MethodModel constructor = compilationUnitModel.getClassModel().getConstructor();
-          if (compilationUnitModel.getClassModel().isInterface() || (constructor != null && constructor.getParams().size() > 0)) {
+          if (compilationUnitModel.getClassModel().isInterface()) {
             return false;
+          }
+          MethodModel constructor = compilationUnitModel.getClassModel().getConstructor();
+          if (constructor != null) {
+            List<ParamModel> params = constructor.getParams();
+            return params.size() == 0 || params.get(0).isOptional() || params.get(0).isRest();
           }
         } catch (IOException e) {
           throw new SAXException(e);
