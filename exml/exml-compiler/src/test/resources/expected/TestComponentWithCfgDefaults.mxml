@@ -17,12 +17,22 @@
     [Bindable]
     public var propertyWithDefaultElementUsingConfig:Component;
 
+    /**
+     * Some config property with fully qualified interface type
+     */
     [Bindable]
     public var propertyWithFullyQualifiedInterface:TestInterface;
 
+    /**
+     * Some config property with interface type
+     */
     [Bindable]
     public var propertyWithInterface:TestInterface;
 
+    /**
+     * Some config property with interface type
+     * and default value
+     */
     [Bindable]
     public var propertyWithInterfaceAndDefault:TestInterface = new TestImpl();
   ]]></fx:Script>

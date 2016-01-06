@@ -406,6 +406,9 @@ public class ExmlToMxml {
             mappedClassName = config.getType();
           }
           currentOut.printf("%n");
+          if (config.getDescription() != null && hasNoDefaultConstructor(config.getType())) {
+            printDescriptionAsASDoc(config.getDescription());
+          }
           currentOut.printf("    [Bindable]%n");
           currentOut.printf("    public var %s:%s", config.getName(), CompilerUtils.className(mappedClassName));
           if (config.getValue() != null) {
@@ -460,6 +463,14 @@ public class ExmlToMxml {
         }
       }
       currentOut.printf("%n  </fx:Declarations>%n");
+    }
+
+    private void printDescriptionAsASDoc(String text) {
+      currentOut.printf("    /**%n");
+      for (String line : text.trim().split("[\n\r]")) {
+        currentOut.printf("     * %s%n", line.trim());
+      }
+      currentOut.printf("     */%n");
     }
 
     private void printMetadata() {

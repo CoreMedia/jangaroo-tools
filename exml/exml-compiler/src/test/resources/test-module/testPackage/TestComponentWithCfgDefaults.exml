@@ -50,7 +50,10 @@
   </exml:cfg>
 
   <exml:cfg name="propertyWithInterfaceAndDefault" type="testPackage.TestInterface" default="{ new TestImpl() }">
-    <exml:description>Some config property with interface type and default value</exml:description>
+    <exml:description>
+      Some config property with interface type
+      and default value
+    </exml:description>
   </exml:cfg>
 
   <panel title="{config.defaultTitle}"/>
