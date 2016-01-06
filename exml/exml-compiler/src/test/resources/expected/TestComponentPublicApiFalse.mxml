@@ -6,7 +6,7 @@
                 xmlns="exml:ext.config"
                 title="I am inside a package!">
   <fx:Script><![CDATA[
-    public native function TestComponentPublicApiFalse(config:TestComponentPublicApiFalse = null);
+    public native function TestComponentPublicApiFalse(config:testPackage.TestComponentPublicApiFalse = null);
   ]]></fx:Script>
   <fx:Declarations>
     <cfg:TestComponentPublicApiFalse id="config"/>

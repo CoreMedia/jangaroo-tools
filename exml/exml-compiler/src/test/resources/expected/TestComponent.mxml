@@ -9,7 +9,7 @@
                 xmlns="exml:ext.config"
                 title="I am inside a package!">
   <fx:Script><![CDATA[
-    public native function TestComponent(config:TestComponent = null);
+    public native function TestComponent(config:testPackage.TestComponent = null);
   ]]></fx:Script>
   <fx:Declarations>
     <cfg:TestComponent id="config"/>

@@ -12,7 +12,7 @@
     import testPackage.TestInterface;
     import ext.Component;
 
-    public native function TestComponentWithCfgDefaults(config:TestComponentWithCfgDefaults = null);
+    public native function TestComponentWithCfgDefaults(config:testPackage.TestComponentWithCfgDefaults = null);
 
     [Bindable]
     public var propertyWithDefaultElementUsingConfig:ext.Component;

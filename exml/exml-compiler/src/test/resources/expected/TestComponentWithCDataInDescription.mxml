@@ -11,7 +11,7 @@
                 xmlns="exml:ext.config"
                 title="I am inside a package!">
   <fx:Script><![CDATA[
-    public native function TestComponentWithCDataInDescription(config:TestComponentWithCDataInDescription = null);
+    public native function TestComponentWithCDataInDescription(config:testPackage.TestComponentWithCDataInDescription = null);
   ]]></fx:Script>
   <fx:Declarations>
     <cfg:TestComponentWithCDataInDescription id="config"/>

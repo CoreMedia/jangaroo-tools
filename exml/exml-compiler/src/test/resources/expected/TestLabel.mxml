@@ -6,7 +6,7 @@
                 xmlns="exml:ext.config"
                 text="{config.propertyOne}">
   <fx:Script><![CDATA[
-    public native function TestLabel(config:TestLabel = null);
+    public native function TestLabel(config:testPackage.TestLabel = null);
   ]]></fx:Script>
   <fx:Declarations>
     <cfg:TestLabel id="config"/>

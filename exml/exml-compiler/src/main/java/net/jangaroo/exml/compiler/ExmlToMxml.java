@@ -326,7 +326,7 @@ public class ExmlToMxml {
               currentOut.println();
             }
             boolean first = true;
-            for (Declaration constant : constants) {
+            for (Declaration constant : exmlModel.getConfigClass().getConstants()) {
               if (first) {
                 first = false;
               } else {
@@ -627,7 +627,7 @@ public class ExmlToMxml {
     private String handleConstant(Attributes atts) {
       Declaration declaration = createDeclaration(atts);
 
-      if (MxmlUtils.isBindingExpression(declaration.getValue())) {
+      if (declaration.getValue() != null && MxmlUtils.isBindingExpression(declaration.getValue())) {
         declaration.setValue(MxmlUtils.getBindingExpression(declaration.getValue()).trim());
       } else if (declaration.getType().equals(AS3Type.STRING.toString())) {
         declaration.setValue("\"" + declaration.getValue() + "\"");
@@ -779,7 +779,7 @@ public class ExmlToMxml {
           String value = elementRecorder.toString();
           if (currentConfigName != null) {
             configDefaultSubElements.put(currentConfigName, value);
-          } else {
+          } else if (!vars.isEmpty()) {
             Declaration varDeclaration = vars.get(vars.size() - 1);
             varDeclaration.setValue(value);
             varsWithXmlValue.add(varDeclaration.getName());

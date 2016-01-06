@@ -23,11 +23,12 @@
     /**
      * A function to be used as "applyTo" of an addItemsPlugin that wants to tweak the toolbar of this VersionHistory.
      */
-    public static const FIND_TOOLBAR:Function = function(versionHistory:Container): Toolbar {
+    public static const FIND_TOOLBAR:Function = 
+  function(versionHistory:Container): Toolbar {
     return Toolbar(versionHistory.getComponent('versionHistoryToolbar'));
   };
 
-    public native function TestComponentWithConstants(config:TestComponentWithConstants = null);
+    public native function TestComponentWithConstants(config:testPackage.TestComponentWithConstants = null);
   ]]></fx:Script>
   <fx:Declarations>
     <cfg:TestComponentWithConstants id="config"/>

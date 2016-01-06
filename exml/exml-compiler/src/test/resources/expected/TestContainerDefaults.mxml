@@ -4,7 +4,7 @@
                 xmlns:test="exml:testNamespace.config"
                 xmlns="exml:ext.config">
   <fx:Script><![CDATA[
-    public native function TestContainerDefaults(config:TestContainerDefaults = null);
+    public native function TestContainerDefaults(config:testPackage.TestContainerDefaults = null);
   ]]></fx:Script>
   <fx:Declarations>
     <test:TestContainerDefaults id="config"/>

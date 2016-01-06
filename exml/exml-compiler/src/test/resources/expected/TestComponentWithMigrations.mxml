@@ -11,7 +11,7 @@
   <fx:Script><![CDATA[
     import ext.Component;
 
-    public native function TestComponentWithMigrations(config:TestComponentWithMigrations = null);
+    public native function TestComponentWithMigrations(config:testPackage.TestComponentWithMigrations = null);
 
     [Bindable]
     public var propertyWithDefaultElementUsingConfig:ext.Component;

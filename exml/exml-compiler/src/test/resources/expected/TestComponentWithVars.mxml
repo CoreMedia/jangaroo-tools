@@ -14,11 +14,11 @@
     private var varWithXmlArrayValue:Array;
 
     // called by generated constructor code
-    private function __initialize__(config:TestComponentWithVars):void {
+    private function __initialize__(config:testPackage.TestComponentWithVars):void {
       varWithExpressionValue = [1, 2, 3];
     }
 
-    public native function TestComponentWithVars(config:TestComponentWithVars = null);
+    public native function TestComponentWithVars(config:testPackage.TestComponentWithVars = null);
   ]]></fx:Script>
   <fx:Declarations>
     <cfg:TestComponentWithVars id="config"/>

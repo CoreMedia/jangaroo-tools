@@ -6,6 +6,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
+import java.net.URL;
 
 import static org.apache.commons.io.FileUtils.readFileToString;
 import static org.junit.Assert.assertEquals;
@@ -23,14 +24,17 @@ public class ExmlToMxmlTest extends AbstractExmlTest {
 
     @Test
     public void testConvertAllExmlToMxml() throws Exception {
-        setUp("testNamespace.config", "/test-module/testPackage", "/ext-as");
+        setUp("testNamespace.config", "/test-module", "/ext-as");
         getConfigClassRegistry().getConfig().setOutputDirectory(temporaryFolder.getRoot());
 
         File[] mxmlFiles = getExmlc().convertAllExmlToMxml();
 
         for (File mxmlFile : mxmlFiles) {
-            File expected = new File(getClass().getResource("/expected/" + mxmlFile.getName()).toURI());
-            assertEquals(mxmlFile.getName() + " as expected", readFileToString(expected), readFileToString(mxmlFile));
+            URL resource = getClass().getResource("/expected/" + mxmlFile.getName());
+            if (resource != null) {
+                File expected = new File(resource.toURI());
+                assertEquals(mxmlFile.getName() + " as expected", readFileToString(expected), readFileToString(mxmlFile));
+            }
         }
     }
 }

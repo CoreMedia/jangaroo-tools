@@ -8,7 +8,7 @@
                 xmlns:test="exml:testNamespace.config"
                 title="{config.defaultTitle}">
   <fx:Script><![CDATA[
-    public native function TestComponentWithAction(config:TestComponentWithAction = null);
+    public native function TestComponentWithAction(config:testPackage.TestComponentWithAction = null);
   ]]></fx:Script>
   <fx:Declarations>
     <test:TestComponentWithAction id="config"/>

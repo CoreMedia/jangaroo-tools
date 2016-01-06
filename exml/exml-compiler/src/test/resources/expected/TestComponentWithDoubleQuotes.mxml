@@ -9,7 +9,7 @@
                 xmlns="exml:ext.config"
                 title='I am inside a "package"!'>
   <fx:Script><![CDATA[
-    public native function TestComponentWithDoubleQuotes(config:TestComponentWithDoubleQuotes = null);
+    public native function TestComponentWithDoubleQuotes(config:testPackage.TestComponentWithDoubleQuotes = null);
   ]]></fx:Script>
   <fx:Declarations>
     <cfg:TestComponentWithDoubleQuotes id="config"/>

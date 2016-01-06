@@ -9,7 +9,7 @@
                 xmlns:local="ext.*"
                 title="Hello World">
   <fx:Script><![CDATA[
-    public native function TestComponentWithBaseClass(config:TestComponentWithBaseClass = null);
+    public native function TestComponentWithBaseClass(config:testPackage.TestComponentWithBaseClass = null);
   ]]></fx:Script>
   <fx:Declarations>
     <cfg:TestComponentWithBaseClass id="config"/>
