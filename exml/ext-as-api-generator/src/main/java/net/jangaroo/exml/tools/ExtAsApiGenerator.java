@@ -73,7 +73,7 @@ public class ExtAsApiGenerator {
   private static Properties jsConfigClassNameMappingProperties = new Properties();
   private static final String EXT_3_4_EVENT = "ext.IEventObject";
   private static String EXT_EVENT;
-  private static Map<String, Map<String, String>> manifestToAliasToClass = new TreeMap<String, Map<String, String>>();
+  private static Map<String, Map<String, String>> aliasGroupToAliasToClass = new TreeMap<String, Map<String, String>>();
 
   public static void main(String[] args) throws IOException {
     File srcDir = new File(args[0]);
@@ -138,29 +138,31 @@ public class ExtAsApiGenerator {
       }
     }
 
-    generateManifests(outputDir);
+    generateManifest(outputDir);
   }
 
-  private static void generateManifests(File outputDir) throws FileNotFoundException, UnsupportedEncodingException {
-    for (String manifestSuffix : manifestToAliasToClass.keySet()) {
-      // create manifest-<aliasGroup>.xml component library:
-      File outputFile = new File(outputDir, "manifest-" + manifestSuffix + ".xml");
-      System.out.printf("Creating manifest file %s...%n", outputFile.getPath());
-      PrintStream out = new PrintStream(new FileOutputStream(outputFile), true, net.jangaroo.exml.api.Exmlc.OUTPUT_CHARSET);
-
-      out.println("<?xml version=\"1.0\"?>");
-      out.println("<componentPackage>");
+  private static void generateManifest(File outputDir) throws FileNotFoundException, UnsupportedEncodingException {
+    // create manifest.xml component library:
+    File outputFile = new File(outputDir, "manifest.xml");
+    System.out.printf("Creating manifest file %s...%n", outputFile.getPath());
+    PrintStream out = new PrintStream(new FileOutputStream(outputFile), true, net.jangaroo.exml.api.Exmlc.OUTPUT_CHARSET);
+    out.println("<?xml version=\"1.0\"?>");
+    out.println("<componentPackage>");
+    for (String aliasGroup : aliasGroupToAliasToClass.keySet()) {
       String previousId = "";
-      for (Map.Entry<String, String> aliasToClass : manifestToAliasToClass.get(manifestSuffix).entrySet()) {
+      for (Map.Entry<String, String> aliasToClass : aliasGroupToAliasToClass.get(aliasGroup).entrySet()) {
         String alias = aliasToClass.getKey();
         String classQName = aliasToClass.getValue();
         String id = computeId(alias, classQName + previousId);
-        out.printf("  <component id=\"%s\" class=\"%s\"/>%n", id, classQName);
         previousId = id;
+        if (!"widget".equals(aliasGroup)) {
+          id = aliasGroup + "_" + id;
+        }
+        out.printf("  <component id=\"%s\" class=\"%s\"/>%n", id, classQName);
       }
-      out.println("</componentPackage>");
-      out.close();
     }
+    out.println("</componentPackage>");
+    out.close();
   }
 
   private static String computeId(String alias, String classQName) {
@@ -377,10 +379,10 @@ public class ExtAsApiGenerator {
 
     for (Map.Entry<String, List<String>> aliasEntry : extClass.aliases.entrySet()) {
       String aliasGroup = aliasEntry.getKey();
-      Map<String, String> aliasMapping = manifestToAliasToClass.get(aliasGroup);
+      Map<String, String> aliasMapping = aliasGroupToAliasToClass.get(aliasGroup);
       if (aliasMapping == null) {
         aliasMapping = new TreeMap<String, String>();
-        manifestToAliasToClass.put(aliasGroup, aliasMapping);
+        aliasGroupToAliasToClass.put(aliasGroup, aliasMapping);
       }
       for (String alias : aliasEntry.getValue()) {
         aliasMapping.put(alias, extAsClassUnit.getQName());
