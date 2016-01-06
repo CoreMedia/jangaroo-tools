@@ -336,7 +336,7 @@ public class ExmlToMxml {
       lastColumn = locator.getColumnNumber();
       if ("fx:Metadata".equals(qName)) {
         flushPendingTagClose();
-        out.print("[");
+        currentOut.print("[");
       }
     }
 
@@ -754,7 +754,7 @@ public class ExmlToMxml {
         } else {
           flush();
           if ("fx:Metadata".equals(qName)) {
-            out.print("]");
+            currentOut.print("]");
           }
           if (elementPath.size() == 1) {
             currentOut.printf("%n");
