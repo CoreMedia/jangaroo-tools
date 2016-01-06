@@ -11,7 +11,7 @@
   <!-- describe the config properties of this component -->
 
   <!-- superclass of the the component with attributes--><Panel          xmlns:fx="http://ns.adobe.com/mxml/2009"
-                xmlns:cfg="testNamespace.config.*"
+                xmlns:local="exmlparser.*"
                 xmlns:exml="http://www.jangaroo.net/exml/0.8"
                 xmlns="exml:ext.config"
                 title="I am a panel"
@@ -44,7 +44,7 @@
     public native function AllElements(config:exmlparser.AllElements = null);
   ]]></fx:Script>
   <fx:Declarations>
-    <cfg:AllElements id="config"/>
+    <local:AllElements id="config"/>
     
     <Button id="myVar3"
                text="Foo"/>

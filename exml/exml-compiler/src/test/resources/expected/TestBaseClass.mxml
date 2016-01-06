@@ -1,15 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <local:BaseClass
                 xmlns:fx="http://ns.adobe.com/mxml/2009"
-                xmlns:cfg="testNamespace.config.*"
+                xmlns:local="exmlparser.*"
                 xmlns:exml="http://www.jangaroo.net/exml/0.8"
-                xmlns="exml:ext.config"
-                xmlns:local="someOtherPackage.base.*">
+                xmlns="exml:ext.config">
   <fx:Script><![CDATA[
     public native function TestBaseClass(config:exmlparser.TestBaseClass = null);
   ]]></fx:Script>
   <fx:Declarations>
-    <cfg:TestBaseClass id="config"/>
+    <local:TestBaseClass id="config"/>
   </fx:Declarations>
 
 </local:BaseClass>

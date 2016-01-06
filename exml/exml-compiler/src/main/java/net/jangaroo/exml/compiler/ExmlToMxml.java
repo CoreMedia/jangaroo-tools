@@ -152,7 +152,6 @@ public class ExmlToMxml {
     private boolean inConfigDefault;
     private String originalRootName;
     private String exmlPrefix;
-    private String configClassPrefix;
     private final Map<String,String> configDefaultSubElements = new LinkedHashMap<String, String>();
     private final Map<String,String> configDefaultTypes = new LinkedHashMap<String, String>();
     private boolean pendingTagClose = false;
@@ -450,7 +449,7 @@ public class ExmlToMxml {
         }
       }
       closeScript();
-      String configElementQName = String.format("%s:%s", configClassPrefix, targetClassName);
+      String configElementQName = String.format("local:%s", targetClassName);
       currentOut.printf("%n  <fx:Declarations>");
       currentOut.printf("%n    <%s id=\"config\"/>", configElementQName);
       for (Declaration var : vars) {
@@ -684,21 +683,17 @@ public class ExmlToMxml {
         mxmlPrefixMappings.put("exml", Exmlc.EXML_NAMESPACE_URI);
       }
 
-      String baseClassNamespace = null;
       baseClass = atts.getValue(Exmlc.EXML_BASE_CLASS_ATTRIBUTE);
       if (baseClass != null && !baseClass.isEmpty()) {
         // baseClass attribute has been specified, so the super class of the component is actually that:
-        String baseClassPackage;
-        if (baseClass.indexOf('.') == -1) {
-          // fully-qualify by same package:
-          baseClassPackage = CompilerUtils.packageName(exmlSourceFile.getTargetClassName());
-        } else {
-          baseClassPackage = CompilerUtils.packageName(baseClass);
+        if (baseClass.contains(".")) {
           baseClass = CompilerUtils.className(baseClass);
         }
         baseClass = "local:" + baseClass;
-        baseClassNamespace = createPackageNamespace(baseClassPackage);
       }
+      // add local namespace last to match the local package
+      mxmlPrefixMappings.put("local", createPackageNamespace(exmlModel.getPackageName()));
+
       String publicApiValue = atts.getValue(Exmlc.EXML_PUBLIC_API_ATTRIBUTE);
       if (publicApiValue != null && !publicApiValue.isEmpty()) {
         PublicApiMode publicApiMode = Exmlc.parsePublicApiMode(publicApiValue);
@@ -706,19 +701,8 @@ public class ExmlToMxml {
           isPublicApi = true;
         }
       }
-      String configClassPackage = CompilerUtils.packageName(exmlSourceFile.getConfigClassName());
-      configClassPrefix = findPrefixForPackage(configClassPackage);
-      if (configClassPrefix == null) {
-        configClassPrefix = "cfg";
-        mxmlPrefixMappings.put(configClassPrefix, createPackageNamespace(configClassPackage));
-      }
 
       mxmlPrefixMappings.putAll(prefixMappings);
-
-      // add baseClass namespace last to match code style that baseClass attribute comes last:
-      if (baseClass != null) {
-        mxmlPrefixMappings.put("local", baseClassNamespace);
-      }
 
       for (Map.Entry<String, String> prefixMapping : mxmlPrefixMappings.entrySet()) {
         String key = prefixMapping.getKey();

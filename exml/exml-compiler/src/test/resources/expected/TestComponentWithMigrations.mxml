@@ -4,7 +4,7 @@
     @see ext.Panel
   -->
 <Panel          xmlns:fx="http://ns.adobe.com/mxml/2009"
-                xmlns:cfg="testNamespace.config.*"
+                xmlns:local="testPackage.*"
                 xmlns:exml="http://www.jangaroo.net/exml/0.8"
                 xmlns="exml:ext.config"
                 title="I am inside a package!">
@@ -17,7 +17,7 @@
     public var propertyWithDefaultElementUsingConfig:ext.Component;
   ]]></fx:Script>
   <fx:Declarations>
-    <cfg:TestComponentWithMigrations id="config"/>
+    <local:TestComponentWithMigrations id="config"/>
 
     <!--- Test migration of default value. -->
     <Component id="propertyWithDefaultElementUsingConfig"/>

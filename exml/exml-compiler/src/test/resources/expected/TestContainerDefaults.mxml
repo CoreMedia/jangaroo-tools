@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Container      xmlns:fx="http://ns.adobe.com/mxml/2009"
+                xmlns:local="testPackage.*"
                 xmlns:exml="http://www.jangaroo.net/exml/0.8"
                 xmlns:test="exml:testNamespace.config"
                 xmlns="exml:ext.config">
@@ -7,7 +8,7 @@
     public native function TestContainerDefaults(config:testPackage.TestContainerDefaults = null);
   ]]></fx:Script>
   <fx:Declarations>
-    <test:TestContainerDefaults id="config"/>
+    <local:TestContainerDefaults id="config"/>
   </fx:Declarations>
 
     <defaults>
