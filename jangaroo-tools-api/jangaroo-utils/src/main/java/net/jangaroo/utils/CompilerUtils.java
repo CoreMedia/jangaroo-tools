@@ -3,6 +3,7 @@ package net.jangaroo.utils;
 import java.io.File;
 import java.io.IOException;
 import java.util.Locale;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -10,6 +11,8 @@ import java.util.regex.Pattern;
  * File Templates.
  */
 public final class CompilerUtils {
+  private static final Pattern ATTRIBUTE_NORMALIZED_WHITESPACE = Pattern.compile("  +");
+
   // utility class, do not instantiate
   private CompilerUtils() {
   }
@@ -281,5 +284,22 @@ public final class CompilerUtils {
     }
     // TODO: guess /.../ to be a RegExp? Guess date formats? Allow [a, b, ...] for Arrays?
     return null;
+  }
+
+  public static String denormalizeAttributeValue(String value) {
+    if (value.contains("\n")) {
+      return value;
+    }
+    Matcher matcher = ATTRIBUTE_NORMALIZED_WHITESPACE.matcher(value);
+    StringBuilder result = new StringBuilder();
+    int pos = 0;
+    while (matcher.find()) {
+      result.append(value, pos, matcher.start());
+      result.append("\n");
+      result.append(value, matcher.start() + 1, matcher.end());
+      pos = matcher.end();
+    }
+    result.append(value, pos, value.length());
+    return result.toString();
   }
 }

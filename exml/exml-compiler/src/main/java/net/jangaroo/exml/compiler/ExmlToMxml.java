@@ -47,15 +47,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * A tool that converts EXML source code into MXML and ActionScript source code.
  */
 public class ExmlToMxml {
-  private static final Pattern ATTRIBUTE_NORMALIZED_WHITESPACE = Pattern.compile("  +");
-
   private ConfigClassRegistry configClassRegistry;
   private Properties migrationMap = new Properties();
 
@@ -321,24 +317,10 @@ public class ExmlToMxml {
           for (String anImport : imports) {
             currentOut.printf("    import %s;%n", anImport);
           }
-          if (!constants.isEmpty()) {
-            if (!imports.isEmpty()) {
+          if (!constants.isEmpty() && !imports.isEmpty()) {
               currentOut.println();
-            }
-            boolean first = true;
-            for (Declaration constant : exmlModel.getConfigClass().getConstants()) {
-              if (first) {
-                first = false;
-              } else {
-                currentOut.println();
-              }
-              if (constant.getDescription() != null) {
-                printDescriptionAsASDoc(constant.getDescription());
-              }
-              currentOut.printf("    public static const %s:%s = %s;%n",
-                      constant.getName(), constant.getType(), denormalizeAttributeValue(constant.getValue()));
-            }
           }
+          printConstants();
         }
         printConstructorAndConfigAndVars();
         closeScript();
@@ -348,6 +330,22 @@ public class ExmlToMxml {
       if ("fx:Metadata".equals(qName)) {
         flushPendingTagClose();
         out.print("[");
+      }
+    }
+
+    private void printConstants() {
+      boolean first = true;
+      for (Declaration constant : exmlModel.getConfigClass().getConstants()) {
+        if (first) {
+          first = false;
+        } else {
+          currentOut.println();
+        }
+        if (constant.getDescription() != null) {
+          printDescriptionAsASDoc(constant.getDescription());
+        }
+        currentOut.printf("    public static const %s:%s = %s;%n",
+                constant.getName(), constant.getType(), constant.getValue());
       }
     }
 
@@ -548,7 +546,7 @@ public class ExmlToMxml {
       String whitespace = " ";
       for (Map.Entry<String, String> attribute : attributes.entrySet()) {
         String value = attribute.getValue();
-        value = denormalizeAttributeValue(value);
+        value = convertNewLines(CompilerUtils.denormalizeAttributeValue(value));
         if (!ExmlUtils.isCodeExpression(value)) {
           // escape all opening curly braces, as MXML also recognizes them anywhere inside a string:
           value = value.replaceAll("\\{", "\\\\{");
@@ -568,19 +566,6 @@ public class ExmlToMxml {
       }
     }
 
-    private String denormalizeAttributeValue(String value) {
-      Matcher matcher = ATTRIBUTE_NORMALIZED_WHITESPACE.matcher(value);
-      StringBuilder result = new StringBuilder();
-      int pos = 0;
-      while (matcher.find()) {
-        result.append(value, pos, matcher.start());
-        result.append(System.getProperty("line.separator"));
-        result.append(value, matcher.start() + 1, matcher.end());
-        pos = matcher.end();
-      }
-      result.append(value, pos, value.length());
-      return result.toString();
-    }
 
     private String escapeXml(String xmlString) {
       return xmlString.replaceAll("&", "&amp;").replaceAll("<", "&lt;");

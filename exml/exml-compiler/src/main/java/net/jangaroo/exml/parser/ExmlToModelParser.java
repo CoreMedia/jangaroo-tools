@@ -249,7 +249,7 @@ public final class ExmlToModelParser {
 
   public static Object getAttributeValue(String attributeValue, String type) {
     if (ExmlUtils.isCodeExpression(attributeValue)) {
-      return JsonObject.code(ExmlUtils.getCodeExpression(attributeValue));
+      return JsonObject.code(ExmlUtils.getCodeExpression(CompilerUtils.denormalizeAttributeValue(attributeValue)));
     } else {
       AS3Type as3Type = type == null ? AS3Type.ANY : AS3Type.typeByName(type);
       if (AS3Type.ANY.equals(as3Type)) {

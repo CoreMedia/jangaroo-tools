@@ -28,10 +28,7 @@
     /**
      * This is another <b>constant</b>
      */
-    public static const ANOTHER_CONSTANT:String = "\n
-     Lorem ipsum & Co.\n
-     Another line.\n
-   ";
+    public static const ANOTHER_CONSTANT:String = "\n      Lorem ipsum & Co.\n      Another line.\n    ";
 
     public static const CODE_CONSTANT:int = 1 + 1;
 
