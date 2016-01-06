@@ -29,10 +29,7 @@ public class MxmlLibraryManifestGenerator {
     Collection<ConfigClass> sourceConfigClasses = configClassRegistry.getSourceConfigClasses();
     List<String> classes = new ArrayList<String>(sourceConfigClasses.size() * 2);
     for (ConfigClass configClass : sourceConfigClasses) {
-      classes.add(configClass.getFullName());
-      if (configClass.getType().getType() == null) {
-        classes.add(configClass.getComponentClassName());
-      }
+      classes.add(configClass.getComponentClassName());
     }
     Collections.sort(classes);
 

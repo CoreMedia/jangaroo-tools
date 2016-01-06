@@ -36,6 +36,7 @@ public class MxmlLibraryManifestGeneratorTest {
     ConfigClass configClass3 = mock(ConfigClass.class);
     when(configClass3.getFullName()).thenReturn("comp");
     when(configClass3.getType()).thenReturn(ConfigClassType.COMPONENT);
+    when(configClass3.getComponentClassName()).thenReturn("Comp");
     ConfigClassRegistry configClassRegistry = mock(ConfigClassRegistry.class);
     when(configClassRegistry.getConfig()).thenReturn(exmlConfiguration);
     when(configClassRegistry.getSourceConfigClasses()).thenReturn(asList(configClass1, configClass2, configClass3));
