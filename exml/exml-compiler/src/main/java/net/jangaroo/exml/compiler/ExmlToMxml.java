@@ -308,6 +308,7 @@ public class ExmlToMxml {
         if (thePackage == null) {
           throw new ExmlcException("namespace '" + uri + "' of superclass element in EXML file does not denote a config package", locator.getLineNumber(), locator.getColumnNumber());
         }
+        printMetadata();
         addImportsForConfigs();
         if (!imports.isEmpty() || !constants.isEmpty()) {
           openScript();
@@ -375,12 +376,6 @@ public class ExmlToMxml {
     private void printConstructorAndConfigAndVars() throws SAXException {
       String targetClassQName = exmlSourceFile.getTargetClassName();
       String targetClassName = CompilerUtils.className(targetClassQName);
-      if (isPublicApi) {
-        currentOut.printf("%n  <fx:Metadata>[%s]</fx:Metadata>", Jooc.PUBLIC_API_INCLUSION_ANNOTATION_NAME);
-      }
-      for (String md : metaData) {
-        currentOut.printf("%n  <fx:Metadata>[%s]</fx:Metadata>", md);
-      }
       openScript();
       if (!vars.isEmpty()) {
         for (Declaration var : vars) {
@@ -465,6 +460,15 @@ public class ExmlToMxml {
         }
       }
       currentOut.printf("%n  </fx:Declarations>%n");
+    }
+
+    private void printMetadata() {
+      if (isPublicApi) {
+        currentOut.printf("%n  <fx:Metadata>[%s]</fx:Metadata>", Jooc.PUBLIC_API_INCLUSION_ANNOTATION_NAME);
+      }
+      for (String md : metaData) {
+        currentOut.printf("%n  <fx:Metadata>[%s]</fx:Metadata>", md);
+      }
     }
 
     private void openScript() {
