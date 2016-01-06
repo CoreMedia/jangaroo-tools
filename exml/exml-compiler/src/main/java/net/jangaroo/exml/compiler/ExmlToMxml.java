@@ -143,6 +143,7 @@ public class ExmlToMxml {
     private Map<String,String> rootAttributes = new LinkedHashMap<String, String>();
     private List<String> metaData = new ArrayList<String>();
     private boolean inMetaData;
+    private boolean inConstantDescription;
     private boolean inConfigDescription;
     private boolean inConfigDefault;
     private String originalRootName;
@@ -161,6 +162,7 @@ public class ExmlToMxml {
     private final ExmlSourceFile exmlSourceFile;
     private final ExmlModel exmlModel;
     private String currentConfigName;
+    private Declaration currentConst;
     private String currentVarName;
     private boolean isPublicApi;
 
@@ -193,7 +195,6 @@ public class ExmlToMxml {
     }
 
     public void startElement(String uri, String localName, final String originalQName, Attributes atts) throws SAXException {
-      String configClassQName = exmlSourceFile.getConfigClassName();
       String qName = originalQName;
       Map<String,String> attributes = new LinkedHashMap<String, String>();
       if (ExmlUtils.isExmlNamespace(uri)) {
@@ -208,7 +209,7 @@ public class ExmlToMxml {
         } else if (Exmlc.EXML_CFG_NODE_NAME.equals(localName)) {
           qName = handleCfg(atts);
         } else if (Exmlc.EXML_CONSTANT_NODE_NAME.equals(localName)) {
-          qName = handleConstant(atts, configClassQName);
+          qName = handleConstant(atts);
         } else if (Exmlc.EXML_VAR_NODE_NAME.equals(localName)) {
           qName = handleVar(atts);
         } else if (Exmlc.EXML_DECLARATION_VALUE_NODE_NAME.equals(localName)) {
@@ -220,6 +221,7 @@ public class ExmlToMxml {
           qName = handleInnerElement();
         } else if (Exmlc.EXML_DESCRIPTION_NODE_NAME.equals(localName)) {
           inConfigDescription = currentConfigName != null;
+          inConstantDescription = currentConst != null;
           qName = null;
         } else if (Exmlc.EXML_OBJECT_NODE_NAME.equals(localName)) {
           // suppress empty <exml:object>s; they only contain code which is simply wrapped by { ... } in MXML:
@@ -284,7 +286,7 @@ public class ExmlToMxml {
           popRecordedCharacters();
         }
       }
-      if (inConfigDescription || inMetaData) {
+      if (inConfigDescription || inConstantDescription || inMetaData) {
         startRecordingCharacters();
       }
       if (qName != null) {
@@ -319,9 +321,18 @@ public class ExmlToMxml {
             if (!imports.isEmpty()) {
               currentOut.println();
             }
+            boolean first = true;
             for (Declaration constant : constants) {
-              currentOut.printf("%n    public static const %s:%s = %s;%n",
-                      constant.getName(), constant.getType(), constant.getValue());
+              if (first) {
+                first = false;
+              } else {
+                currentOut.println();
+              }
+              if (constant.getDescription() != null) {
+                printDescriptionAsASDoc(constant.getDescription());
+              }
+              currentOut.printf("    public static const %s:%s = %s;%n",
+                      constant.getName(), constant.getType(), denormalizeAttributeValue(constant.getValue()));
             }
           }
         }
@@ -609,11 +620,16 @@ public class ExmlToMxml {
       return null; // do not render var elements
     }
 
-    private String handleConstant(Attributes atts, String configClassQName) {
-      addImport(configClassQName);
+    private String handleConstant(Attributes atts) {
       Declaration declaration = createDeclaration(atts);
-      declaration.setValue(configClassQName + "." + declaration.getName());
+
+      if (MxmlUtils.isBindingExpression(declaration.getValue())) {
+        declaration.setValue(MxmlUtils.getBindingExpression(declaration.getValue()).trim());
+      } else if (declaration.getType().equals(AS3Type.STRING.toString())) {
+        declaration.setValue("\"" + declaration.getValue() + "\"");
+      }
       constants.add(declaration);
+      currentConst = declaration;
       return null; // do not render constant elements
     }
 
@@ -733,6 +749,10 @@ public class ExmlToMxml {
       } else if (inConfigDescription) {
         inConfigDescription = false;
         configs.getLast().setDescription(popRecordedCharacters());
+      } else if (inConstantDescription) {
+        inConstantDescription = false;
+        currentConst.setDescription(popRecordedCharacters());
+        currentConst = null;
       }
       if (qName != null) {
         if (pendingTagClose) {

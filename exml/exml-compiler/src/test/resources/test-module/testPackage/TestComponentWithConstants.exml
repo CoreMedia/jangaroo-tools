@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<exml:component xmlns:exml="http://www.jangaroo.net/exml/0.8"
+                xmlns="exml:ext.config">
+
+  <exml:constant name="CLS_BASE" value="cm-elastic-social-email-window"/>
+
+  <exml:constant name="CLS_META_SPACER" value="metadatapanel-first-spacer-class"/>
+
+  <exml:constant name="SOME_BOOL" type="Boolean" value="true">
+    <exml:description>
+      This is
+      a boolean constant
+    </exml:description>
+  </exml:constant>
+
+  <exml:constant name="SOME_COMPUTED_STRING" type="String" value="{Something.VALUE}">
+    <exml:description>This is a computed constant</exml:description>
+  </exml:constant>
+
+  <exml:constant name="FIND_TOOLBAR" type="Function" value="{
+  function(versionHistory:Container): Toolbar {
+    return Toolbar(versionHistory.getComponent('versionHistoryToolbar'));
+  }}">
+    <exml:description>
+      A function to be used as "applyTo" of an addItemsPlugin that wants to tweak the toolbar of this VersionHistory.
+    </exml:description>
+  </exml:constant>
+
+  <panel title="Hello World"/>
+
+</exml:component>
