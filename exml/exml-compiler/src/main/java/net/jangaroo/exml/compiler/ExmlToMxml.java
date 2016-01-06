@@ -63,7 +63,7 @@ public class ExmlToMxml {
     if (configClassRegistry.getConfig().getExtAsJar() != null) {
       try {
         resourceClassLoader = new URLClassLoader(new URL[]{
-                new URL("jar:" + configClassRegistry.getConfig().getExtAsJar().toURI().toString())
+                new URL("jar:" + configClassRegistry.getConfig().getExtAsJar().toURI().toString() + "!/")
         });
       } catch (IOException e) {
         throw new ExmlcException("Unable to configure resource class loader", e);
