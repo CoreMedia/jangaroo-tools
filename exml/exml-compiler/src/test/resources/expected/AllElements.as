@@ -61,16 +61,13 @@ public class AllElements extends ext.Panel {
         anchor: {style: "test"},
         border: {type: "solid"}
       },
-      items: [
-        {
-          xtype: "button",
-          text: "Save",
-          handler: function():void {
+      items: [{
+        xtype: "button",
+        text: "Save",
+        handler: function():void {
           window.alert('gotcha!');
         }
-        },
-        {xtype: "editortreepanel"}
-      ],
+      }],
       menu: [
         {
           xtype: "menuitem",

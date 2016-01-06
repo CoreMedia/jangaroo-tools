@@ -46,7 +46,6 @@
   <panel title="I am inside a package!">
     <items>
       <label text="bla"/>
-      <exml:object><![CDATA[new String('foo')]]></exml:object>
     </items>
   </panel>
 </exml:component>

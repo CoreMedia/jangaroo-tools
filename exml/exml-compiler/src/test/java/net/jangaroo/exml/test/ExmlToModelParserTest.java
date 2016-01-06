@@ -91,8 +91,7 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
                             "handler", JsonObject.code("function():void {\n" +
                             "          window.alert('gotcha!');\n" +
                             "        }")
-                    ),
-                    JsonObject.code("{xtype: \"editortreepanel\"}")
+                    )
             ),
             "menu", new JsonArray(
                     new JsonObject(
