@@ -31,11 +31,12 @@ import org.xml.sax.ext.LexicalHandler;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
@@ -54,18 +55,25 @@ import java.util.Set;
 public class ExmlToMxml {
   private ConfigClassRegistry configClassRegistry;
   private Properties migrationMap = new Properties();
+  private ClassLoader resourceClassLoader = ExmlToMxml.class.getClassLoader();
 
   public ExmlToMxml(ConfigClassRegistry configClassRegistry) {
     this.configClassRegistry = configClassRegistry;
+
+    if (configClassRegistry.getConfig().getExtAsJar() != null) {
+      try {
+        resourceClassLoader = new URLClassLoader(new URL[]{
+                new URL("jar:" + configClassRegistry.getConfig().getExtAsJar().toURI().toString())
+        });
+      } catch (IOException e) {
+        throw new ExmlcException("Unable to configure resource class loader", e);
+      }
+    }
   }
 
   public File[] convert() {
     try {
-      if (configClassRegistry.getConfig().getMigrationMap() != null) {
-        this.migrationMap.load(new FileInputStream(configClassRegistry.getConfig().getMigrationMap()));
-      } else {
-        this.migrationMap.load(ExmlToMxml.class.getResourceAsStream("/ext-as-3.4-migration-map.properties"));
-      }
+      this.migrationMap.load(resourceClassLoader.getResourceAsStream("ext-as-3.4-migration-map.properties"));
     } catch (IOException e) {
       throw new ExmlcException("Unable to load migration map", e);
     }

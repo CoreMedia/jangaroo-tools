@@ -18,7 +18,7 @@ public class ExmlConfiguration extends FileLocations {
   private boolean convertToMxml;
   private boolean keepExmlFiles;
   private CompileLog log;
-  private File migrationMap;
+  private File extAsJar;
 
   public String getConfigClassPackage() {
     return configClassPackage;
@@ -65,13 +65,13 @@ public class ExmlConfiguration extends FileLocations {
     this.keepExmlFiles = keepExmlFiles;
   }
 
-  public File getMigrationMap() {
-    return migrationMap;
+  public File getExtAsJar() {
+    return extAsJar;
   }
 
-  @Option(name="--migration-map", usage = "A map for migrating ExtAS API versions when converting EXML into MXML.")
-  public void setMigrationMap(File migrationMap) {
-    this.migrationMap = migrationMap;
+  @Option(name="--ext-as-jar", usage = "The JAR containing the target ExtAS API for converting EXML into MXML.")
+  public void setExtAsJar(File extAsJar) {
+    this.extAsJar = extAsJar;
   }
 
   /**
