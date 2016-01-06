@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Panel          xmlns:fx="http://ns.adobe.com/mxml/2009"
+                xmlns:cfg="testNamespace.config.*"
+                xmlns:exml="http://www.jangaroo.net/exml/0.8"
+                xmlns="exml:ext.config">
+  <fx:Script><![CDATA[
+    public native function TestTyped(config:exmlparser.TestTyped = null);
+  ]]></fx:Script>
+  <fx:Declarations>
+    <cfg:TestTyped id="config"/>
+  </fx:Declarations>
+
+    <items>
+      <Component margins="5"/>
+      <Component id_="false"/>
+    </items>
+  
+</Panel>

@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!---
+    This is my <b>TestComponent</b>
+  -->
+
+
+  <!-- declare only config class as public API -->
+
+    <!-- add an extra import statement to the class -->
+      This is my &lt;b>constant&lt;/b>
+      This is another &lt;b>constant&lt;/b>
+
+  <!-- describe the config properties of this component -->
+      This is my &lt;b>description&lt;/b>
+
+  <!-- superclass of the the component with attributes--><Panel          xmlns:fx="http://ns.adobe.com/mxml/2009"
+                xmlns:cfg="testNamespace.config.*"
+                xmlns:exml="http://www.jangaroo.net/exml/0.8"
+                xmlns="exml:ext.config"
+                title="I am a panel"
+                layout="{config.myLayout}">
+  <fx:Metadata>[PublicApi]</fx:Metadata>
+  <fx:Script><![CDATA[
+    import ext.MessageBox;
+
+    /**
+     * This is my <b>constant</b>
+     */
+    public static const SOME_CONSTANT:uint = 1234;
+
+    /**
+     * This is another <b>constant</b>
+     */
+    public static const ANOTHER_CONSTANT:String = "\n
+     Lorem ipsum & Co.\n
+     Another line.\n
+   ";
+
+    public static const CODE_CONSTANT:int = 1 + 1;
+
+    private var myVar:String;
+    private var myVar2:Object;
+    private var myVar3:ext.config.component;
+
+    // called by generated constructor code
+    private function __initialize__(config:exmlparser.AllElements):void {
+      myVar = config.myProperty + '_suffix';
+    }
+
+    public native function AllElements(config:exmlparser.AllElements = null);
+  ]]></fx:Script>
+  <fx:Declarations>
+    <cfg:AllElements id="config"/>
+    
+    <Button id="myVar3"
+               text="Foo"/>
+
+    <fx:String id="myProperty"/>
+
+    <fx:Boolean id="myPropertyWithDescription"/>
+  </fx:Declarations>
+
+    <!-- define some attributes through a typed mixin: -->
+    <mixins>
+      <Region>
+        <someList>
+          <Button text="click me!"/>
+        </someList>
+      </Region>
+    </mixins>
+
+    <!-- attribute with sub-attributes
+    default:{layout:"border"},
+    -->
+    <defaults layout="border"/>
+
+    <!-- attribute-->
+    <layoutConfig bla="blub">
+    </layoutConfig>
+
+    <!-- array with component
+    items:{xtype:"testAll", ...}
+    -->
+    <items>
+      <Button text="Save">
+        <handler>{function():void {
+          window.alert('gotcha!');
+        }}</handler>
+      </Button>
+      {{xtype: "editortreepanel"}}
+    </items>
+
+
+    <!-- array
+    menu:[
+      {...},
+      {...}
+    ]
+    -->
+    <menu>
+      <MenuItem text="juhu1"/>
+      <MenuItem text="juhu2"/>
+      <MenuItem text="juhu3"/>
+    </menu>
+
+    <tools>
+      <!--
+      anonymous object in array:
+
+      tools:[
+        {id:"gear",
+        handler:function(){} }
+      ]
+      -->
+      <exml:object id_="gear"
+                    handler="{function(x){return ''+x;}}"/>
+    </tools>
+
+    <plugins>
+      <APlugin/>
+      <APlugin/>
+    </plugins>
+
+    <layout2>
+      <ALayout/>
+    </layout2>
+  
+</Panel>
