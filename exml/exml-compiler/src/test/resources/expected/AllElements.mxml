@@ -7,11 +7,8 @@
   <!-- declare only config class as public API -->
 
     <!-- add an extra import statement to the class -->
-      This is my &lt;b>constant&lt;/b>
-      This is another &lt;b>constant&lt;/b>
 
   <!-- describe the config properties of this component -->
-      This is my &lt;b>description&lt;/b>
 
   <!-- superclass of the the component with attributes--><Panel          xmlns:fx="http://ns.adobe.com/mxml/2009"
                 xmlns:cfg="testNamespace.config.*"
@@ -57,6 +54,9 @@
 
     <fx:String id="myProperty"/>
 
+    <!--- 
+      This is my &lt;b>description&lt;/b>
+     -->
     <fx:Boolean id="myPropertyWithDescription"/>
   </fx:Declarations>
 
@@ -87,7 +87,6 @@
           window.alert('gotcha!');
         }}</handler>
       </Button>
-      {{xtype: "editortreepanel"}}
     </items>
 
 

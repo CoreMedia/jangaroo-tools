@@ -34,7 +34,6 @@
 
     <items>
       <Label text="bla"/>
-      {new String('foo')}
     </items>
   
 </Panel>

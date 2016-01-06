@@ -742,11 +742,14 @@ public class ExmlToMxml {
     @Override
     public void characters(char[] ch, int start, int length) throws SAXException {
       flushPendingTagClose();
-      String cdata = new String(ch, start, length).trim();
-      if (!(elementPath.size() == 2 && elementPath.peek().newName == null && isNotEmptyText(cdata)) || inMetaData) {
-        super.characters(ch, start, length);
-        lastColumn = locator.getColumnNumber();
+      String cdata = new String(ch, start, length);
+      if (!(elementPath.size() == 2 && elementPath.peek().newName == null && isNotEmptyText(cdata.trim())) || inMetaData) {
+        if (insideCdata) {
+          cdata = escapeXml(cdata);
+        }
+        super.characters(cdata.toCharArray(), 0, cdata.length());
       }
+      lastColumn = locator.getColumnNumber();
     }
 
     @Override
@@ -892,14 +895,12 @@ public class ExmlToMxml {
 
     @Override
     public void startCDATA() throws SAXException {
-      flush();
       insideCdata = true;
       lastColumn = locator.getColumnNumber();
     }
 
     @Override
     public void endCDATA() throws SAXException {
-      flush();
       insideCdata = false;
       lastColumn = locator.getColumnNumber();
     }
@@ -923,9 +924,6 @@ public class ExmlToMxml {
       String recordedCharacters = popRecordedCharacters();
       if (recordedCharacters != null) {
         String output = convertNewLines(recordedCharacters);
-        if (insideCdata) {
-          output = escapeXml(output);
-        }
         if (insideExmlObject) {
           if (!output.trim().isEmpty()) {
             output = MxmlUtils.createBindingExpression(output);
