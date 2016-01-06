@@ -360,7 +360,7 @@ public class ExmlToMxml {
             imports.add(mappedClassName);
           }
         }
-        if (hasNoDefaultConstructor(config.getType())) {
+        if (!hasDefaultConstructor(config.getType())) {
           if (!"".equals(CompilerUtils.packageName(config.getType()))) {
             imports.add(config.getType());
           }
@@ -368,20 +368,20 @@ public class ExmlToMxml {
       }
     }
 
-    private boolean hasNoDefaultConstructor(String qName) throws SAXException {
+    private boolean hasDefaultConstructor(String qName) throws SAXException {
       CompilationUnit compilationUnit = configClassRegistry.getJangarooParser().getCompilationUnit(qName);
       if (compilationUnit != null) {
         try {
           CompilationUnitModel compilationUnitModel = new ApiModelGenerator(false).generateModel(compilationUnit);
           MethodModel constructor = compilationUnitModel.getClassModel().getConstructor();
           if (compilationUnitModel.getClassModel().isInterface() || (constructor != null && constructor.getParams().size() > 0)) {
-            return true;
+            return false;
           }
         } catch (IOException e) {
           throw new SAXException(e);
         }
       }
-      return false;
+      return true;
     }
 
     private boolean isNewRoot(String uri) {
@@ -415,13 +415,13 @@ public class ExmlToMxml {
       currentOut.printf("    public native function %s(config:%s = null);%n", exmlModel.getClassName(), targetClassQName);
       for (Declaration config : configs) {
         String defaultType = configDefaultTypes.get(config.getName());
-        if (!"Array".equals(config.getType()) && (hasNoDefaultConstructor(config.getType()) || (defaultType != null && !config.getType().equals(defaultType)))) {
+        if (!"Array".equals(config.getType()) && (!hasDefaultConstructor(config.getType()) || (defaultType != null && !config.getType().equals(defaultType)))) {
           String mappedClassName = getMappedClassName(config.getType());
           if (mappedClassName == null) {
             mappedClassName = config.getType();
           }
           currentOut.printf("%n");
-          if (config.getDescription() != null && hasNoDefaultConstructor(config.getType())) {
+          if (config.getDescription() != null && !hasDefaultConstructor(config.getType())) {
             printDescriptionAsASDoc(config.getDescription());
           }
           currentOut.printf("    [Bindable]%n");
@@ -442,7 +442,7 @@ public class ExmlToMxml {
         }
       }
       for (Declaration config : configs) {
-        if (hasNoDefaultConstructor(config.getType())) {
+        if (!hasDefaultConstructor(config.getType())) {
           continue;
         }
 
