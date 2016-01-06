@@ -14,7 +14,7 @@
     public native function TestComponentWithMigrations(config:TestComponentWithMigrations = null);
 
     [Bindable]
-    public var propertyWithDefaultElementUsingConfig:Component;
+    public var propertyWithDefaultElementUsingConfig:ext.Component;
   ]]></fx:Script>
   <fx:Declarations>
     <cfg:TestComponentWithMigrations id="config"/>

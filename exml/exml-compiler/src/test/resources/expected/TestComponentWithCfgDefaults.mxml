@@ -15,13 +15,13 @@
     public native function TestComponentWithCfgDefaults(config:TestComponentWithCfgDefaults = null);
 
     [Bindable]
-    public var propertyWithDefaultElementUsingConfig:Component;
+    public var propertyWithDefaultElementUsingConfig:ext.Component;
 
     /**
      * Some config property with fully qualified interface type
      */
     [Bindable]
-    public var propertyWithFullyQualifiedInterface:TestInterface;
+    public var propertyWithFullyQualifiedInterface:testPackage.TestInterface;
 
     /**
      * Some config property with interface type
@@ -34,7 +34,7 @@
      * and default value
      */
     [Bindable]
-    public var propertyWithInterfaceAndDefault:TestInterface = new TestImpl();
+    public var propertyWithInterfaceAndDefault:testPackage.TestInterface = new TestImpl();
   ]]></fx:Script>
   <fx:Declarations>
     <cfg:TestComponentWithCfgDefaults id="config"/>

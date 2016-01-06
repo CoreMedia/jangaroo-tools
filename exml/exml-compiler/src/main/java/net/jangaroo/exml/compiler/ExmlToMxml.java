@@ -425,7 +425,7 @@ public class ExmlToMxml {
             printDescriptionAsASDoc(config.getDescription());
           }
           currentOut.printf("    [Bindable]%n");
-          currentOut.printf("    public var %s:%s", config.getName(), CompilerUtils.className(mappedClassName));
+          currentOut.printf("    public var %s:%s", config.getName(), mappedClassName);
           if (config.getValue() != null) {
             currentOut.printf(" = %s", MxmlUtils.getBindingExpression(config.getValue()).trim());
           }
