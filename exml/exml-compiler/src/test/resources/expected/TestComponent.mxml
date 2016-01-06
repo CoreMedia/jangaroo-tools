@@ -9,7 +9,16 @@
                 xmlns="exml:ext.config"
                 title="I am inside a package!">
   <fx:Script><![CDATA[
+    import ext.Panel;
+    import testPackage.TestImpl2;
+
     public native function TestComponent(config:testPackage.TestComponent = null);
+
+    /**
+     * Some type without default constructor
+     */
+    [Bindable]
+    public var propertyEight:testPackage.TestImpl2 = new TestImpl2('foo');
   ]]></fx:Script>
   <fx:Declarations>
     <cfg:TestComponent id="config"/>
@@ -30,6 +39,12 @@
 
     <!--- Some Array property -->
     <fx:Array id="propertyFive"/>
+
+    <!--- Some Panel -->
+    <Panel id="propertySix"/>
+
+    <!--- Some other Panel -->
+    <ext.Panel id="propertySeven"/>
   </fx:Declarations>
 
     <items>

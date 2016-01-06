@@ -368,8 +368,8 @@ public class ExmlToMxml {
       }
     }
 
-    private boolean hasDefaultConstructor(String qName) throws SAXException {
-      CompilationUnit compilationUnit = configClassRegistry.getJangarooParser().getCompilationUnit(qName);
+    private boolean hasDefaultConstructor(String name) throws SAXException {
+      CompilationUnit compilationUnit = configClassRegistry.getJangarooParser().getCompilationUnit(resolveQName(name));
       if (compilationUnit != null) {
         try {
           CompilationUnitModel compilationUnitModel = new ApiModelGenerator(false).generateModel(compilationUnit);
@@ -382,6 +382,17 @@ public class ExmlToMxml {
         }
       }
       return true;
+    }
+
+    private String resolveQName(String name) {
+      if (!name.contains(".")) {
+        for (String anImport : imports) {
+          if (CompilerUtils.className(anImport).equals(name)) {
+            return anImport;
+          }
+        }
+      }
+      return name;
     }
 
     private boolean isNewRoot(String uri) {

@@ -7,6 +7,8 @@
     @see ext.Panel
   </exml:description>
 
+  <exml:import class="ext.Panel"/>
+
   <exml:cfg name="propertyOne" type="Boolean">
     <exml:description>Some Boolean property @see Boolean</exml:description>
   </exml:cfg>
@@ -27,6 +29,18 @@
 
   <exml:cfg name="propertyFive" type="Array">
     <exml:description>Some Array property</exml:description>
+  </exml:cfg>
+
+  <exml:cfg name="propertySix" type="Panel">
+    <exml:description>Some Panel</exml:description>
+  </exml:cfg>
+
+  <exml:cfg name="propertySeven" type="ext.Panel">
+    <exml:description>Some other Panel</exml:description>
+  </exml:cfg>
+
+  <exml:cfg name="propertyEight" type="testPackage.TestImpl2" default="{ new TestImpl2('foo') }">
+    <exml:description>Some type without default constructor</exml:description>
   </exml:cfg>
 
   <panel title="I am inside a package!">
