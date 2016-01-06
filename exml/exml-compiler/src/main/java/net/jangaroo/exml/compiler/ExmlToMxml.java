@@ -165,6 +165,7 @@ public class ExmlToMxml {
     private Declaration currentConst;
     private String currentVarName;
     private boolean isPublicApi;
+    private String baseClass;
 
     public ExmlToMxmlHandler(ExmlSourceFile exmlSourceFile, ExmlModel exmlModel, PrintStream out) {
       this.exmlSourceFile = exmlSourceFile;
@@ -199,7 +200,7 @@ public class ExmlToMxml {
       Map<String,String> attributes = new LinkedHashMap<String, String>();
       if (ExmlUtils.isExmlNamespace(uri)) {
         if (Exmlc.EXML_ROOT_NODE_NAMES.contains(localName)) {
-          handleRootNode(qName, atts, rootAttributes);
+          handleRootNode(atts, rootAttributes);
           originalRootName = originalQName;
           qName = null;
         } else if (Exmlc.EXML_ANNOTATION_NODE_NAME.equals(localName)) {
@@ -291,6 +292,9 @@ public class ExmlToMxml {
       }
       if (qName != null) {
         flush();
+        if (isNewRoot(uri) && baseClass != null) {
+          qName = baseClass;
+        }
         String originalName = isNewRoot(uri) ? originalRootName : originalQName;
         int column = isNewRoot(uri) ? 1 : lastColumn;
         int indent = column + originalName.length();
@@ -662,7 +666,7 @@ public class ExmlToMxml {
       return annotationAt == AnnotationAt.CONFIG ? null : "fx:Metadata";
     }
 
-    private String handleRootNode(String qName, Attributes atts, Map<String, String> attributes) {
+    private void handleRootNode(Attributes atts, Map<String, String> attributes) {
       String asDoc = exmlModel.getDescription();
       if (asDoc != null && !asDoc.trim().isEmpty()) {
         currentOut.println("<!---" + convertNewLines(asDoc).replaceAll("--", "&#45;&#45;") + "-->");
@@ -677,7 +681,7 @@ public class ExmlToMxml {
       }
 
       String baseClassNamespace = null;
-      String baseClass = atts.getValue(Exmlc.EXML_BASE_CLASS_ATTRIBUTE);
+      baseClass = atts.getValue(Exmlc.EXML_BASE_CLASS_ATTRIBUTE);
       if (baseClass != null && !baseClass.isEmpty()) {
         // baseClass attribute has been specified, so the super class of the component is actually that:
         String baseClassPackage;
@@ -688,7 +692,7 @@ public class ExmlToMxml {
           baseClassPackage = CompilerUtils.packageName(baseClass);
           baseClass = CompilerUtils.className(baseClass);
         }
-        qName = "baseClass:" + baseClass;
+        baseClass = "local:" + baseClass;
         baseClassNamespace = createPackageNamespace(baseClassPackage);
       }
       String publicApiValue = atts.getValue(Exmlc.EXML_PUBLIC_API_ATTRIBUTE);
@@ -708,8 +712,8 @@ public class ExmlToMxml {
       mxmlPrefixMappings.putAll(prefixMappings);
 
       // add baseClass namespace last to match code style that baseClass attribute comes last:
-      if (baseClassNamespace != null) {
-        mxmlPrefixMappings.put("baseClass", baseClassNamespace);
+      if (baseClass != null) {
+        mxmlPrefixMappings.put("local", baseClassNamespace);
       }
 
       for (Map.Entry<String, String> prefixMapping : mxmlPrefixMappings.entrySet()) {
@@ -717,8 +721,6 @@ public class ExmlToMxml {
         String uriValue = prefixMapping.getValue();
         attributes.put(key.isEmpty() ? "xmlns" : "xmlns:" + key, uriValue);
       }
-
-      return qName;
     }
 
     private String formatValue(String value, String type) {
