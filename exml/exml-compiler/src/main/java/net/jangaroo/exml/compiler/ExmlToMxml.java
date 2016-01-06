@@ -454,14 +454,19 @@ public class ExmlToMxml {
         }
       }
       closeScript();
-      String configElementQName = String.format("local:%s", targetClassName);
+      printDeclarations(targetClassName);
+    }
+
+    private void printDeclarations(String targetClassName) throws SAXException {
       currentOut.printf("%n  <fx:Declarations>");
-      currentOut.printf("%n    <%s id=\"config\"/>", configElementQName);
+      currentOut.printf("%n    <local:%s id=\"config\"/>", targetClassName);
+
       for (Declaration var : vars) {
         if (varsWithXmlValue.contains(var.getName())) {
           currentOut.printf("%n    %s", var.getValue());
         }
       }
+
       for (Declaration config : configs) {
         if (!hasDefaultConstructor(config.getType())) {
           continue;
@@ -472,7 +477,7 @@ public class ExmlToMxml {
         if (mappedClassName != null) {
           type = CompilerUtils.className(mappedClassName);
         }
-        String prefix = AS3Type.typeByName(config.getType()) != null ? "fx:" : "";
+        String prefix = AS3Type.typeByName(type) != null || "Object".equals(type) ? "fx:" : "";
 
         currentOut.printf("%n");
         if (config.getDescription() != null) {
@@ -498,6 +503,7 @@ public class ExmlToMxml {
           }
         }
       }
+
       currentOut.printf("%n  </fx:Declarations>%n");
     }
 

@@ -97,5 +97,13 @@ public class testComponent extends ext.config.panel {
    * @private
    */
   public native function set propertyEight(value:testPackage.TestImpl2):void;
+  /**
+   * Some object
+   */
+  public native function get propertyNine():Object;
+  /**
+   * @private
+   */
+  public native function set propertyNine(value:Object):void;
 }
 }

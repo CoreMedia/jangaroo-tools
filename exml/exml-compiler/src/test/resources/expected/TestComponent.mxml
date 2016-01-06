@@ -45,6 +45,11 @@
 
     <!--- Some other Panel -->
     <ext.Panel id="propertySeven"/>
+
+    <!--- 
+      Some object
+     -->
+    <fx:Object id="propertyNine"/>
   </fx:Declarations>
 
     <items>
