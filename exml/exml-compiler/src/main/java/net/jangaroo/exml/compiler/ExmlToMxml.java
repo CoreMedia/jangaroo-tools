@@ -236,7 +236,13 @@ public class ExmlToMxml {
         if (lastQName != null) {
           String[] parts = lastQName.split(":");
           String prefix = parts.length == 1 ? "" : parts[0] + ":";
-          qName = prefix + getTargetClassAttributeName(uri, elementPath.peek().originalName, localName);
+          String targetName = getTargetClassAttributeName(uri, elementPath.peek().originalName, localName);
+          if (targetName.length() > 0) {
+            qName = prefix + targetName;
+          } else {
+            // attribute should be removed
+            qName = null;
+          }
         }
       } else if (elementPath.size() > 0 && !ExmlUtils.isExmlNamespace(uri)) {
         qName = getTargetClassElementQName(uri, qName);
@@ -269,7 +275,9 @@ public class ExmlToMxml {
           attributeName = getTargetClassAttributeName(uri, originalQName, attributeName);
         }
 
-        attributes.put(attributeName, atts.getValue(i));
+        if (attributeName.length() > 0) {
+          attributes.put(attributeName, atts.getValue(i));
+        }
       }
       if (!elementPath.isEmpty() && elementPath.peek().newName == null) {
         if (!inConfigDefault || (ExmlUtils.isExmlNamespace(uri) && Exmlc.EXML_CFG_DEFAULT_NODE_NAME.equals(localName))) {

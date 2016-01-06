@@ -34,6 +34,12 @@
       <BPanel>
         <bar>here</bar>
       </BPanel>
+      <APanel/>
+      <BPanel/>
+      <APanel>
+      </APanel>
+      <BPanel>
+      </BPanel>
     </items>
   
 </Panel>

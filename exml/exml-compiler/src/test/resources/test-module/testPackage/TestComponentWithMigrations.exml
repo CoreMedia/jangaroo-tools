@@ -27,6 +27,14 @@
       <bpanel>
         <foo>here</foo>
       </bpanel>
+      <apanel notme="test"/>
+      <bpanel notme="test"/>
+      <apanel>
+        <notme>nooo</notme>
+      </apanel>
+      <bpanel>
+        <notme>nooo</notme>
+      </bpanel>
     </items>
   </panel>
 </exml:component>
