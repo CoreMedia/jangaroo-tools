@@ -136,7 +136,7 @@ public class VariableDeclaration extends TypedIdeDeclaration {
       getOptInitializer().analyze(this);
 
       if (isStatic()) {
-        if (!getOptInitializer().getValue().isRuntimeConstant()) {
+        if (!getOptInitializer().getValue().isStandAloneConstant()) {
           getIde().getScope().getCompilationUnit().setHasStaticCode();
         }
       }

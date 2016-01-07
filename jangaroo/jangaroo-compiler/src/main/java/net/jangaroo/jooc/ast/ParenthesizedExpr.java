@@ -76,4 +76,8 @@ public class ParenthesizedExpr<E extends Expr> extends Expr {
     return rParen;
   }
 
+  public boolean isStandAloneConstant() {
+    return expr == null || expr.isStandAloneConstant();
+  }
+
 }

@@ -38,4 +38,8 @@ public abstract class Expr extends NodeImplBase {
     return false;
   }
 
+  public boolean isStandAloneConstant() {
+    return isRuntimeConstant();
+  }
+
 }
