@@ -43,6 +43,7 @@ public class CompilationUnit extends NodeImplBase {
   private IdeDeclaration primaryDeclaration;
   private JooSymbol rBrace;
 
+  private boolean hasStaticCode = false;
   private Set<String> dependencies = new LinkedHashSet<String>();
   private Set<CompilationUnit> dependenciesAsCompilationUnits = new LinkedHashSet<CompilationUnit>();
   private Set<String> publicApiDependencies = new HashSet<String>();
@@ -216,6 +217,14 @@ public class CompilationUnit extends NodeImplBase {
   
   public JooSymbol getSymbol() {
     return packageDeclaration.getSymbol();
+  }
+
+  public void setHasStaticCode() {
+    hasStaticCode = true;
+  }
+
+  public boolean isHasStaticCode() {
+    return hasStaticCode;
   }
 
   public void addDependency(CompilationUnit otherUnit) {

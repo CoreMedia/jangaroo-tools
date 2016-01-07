@@ -328,6 +328,9 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     out.write(", \"" + JoocProperties.getVersion() + "\"");
     out.writeSymbolWhitespace(compilationUnit.getRBrace());
     out.write(");");
+    if (compilationUnit.isHasStaticCode()) {
+      out.write("/* HAS_STATIC_CODE */");
+    }
   }
 
   @Override
