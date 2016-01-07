@@ -105,5 +105,13 @@ public class testComponent extends ext.config.panel {
    * @private
    */
   public native function set propertyNine(value:Object):void;
+  /**
+   * 
+   */
+  public native function get propertyTen():Function;
+  /**
+   * @private
+   */
+  public native function set propertyTen(value:Function):void;
 }
 }

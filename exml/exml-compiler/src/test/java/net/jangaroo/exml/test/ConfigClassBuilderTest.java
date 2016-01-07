@@ -39,7 +39,10 @@ public class ConfigClassBuilderTest {
         Assert.assertEquals("Some Number property", configAttribute.getDescription());
       }
     }
-    Assert.assertEquals(new HashSet<String>(Arrays.asList("propertyOne", "propertyTwo", "propertyThree", "propertyFour", "propertyFive", "propertySix", "propertySeven", "propertyEight", "propertyNine")), attributeNames);
+    Assert.assertEquals(new HashSet<String>(Arrays.asList(
+            "propertyOne", "propertyTwo", "propertyThree", "propertyFour", "propertyFive", "propertySix",
+            "propertySeven", "propertyEight", "propertyNine", "propertyTen"
+    )), attributeNames);
   }
 
   @Test

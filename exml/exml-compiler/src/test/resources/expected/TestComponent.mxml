@@ -50,6 +50,8 @@
       Some object
      -->
     <fx:Object id="propertyNine"/>
+
+    <fx:Function id="propertyTen"/>
   </fx:Declarations>
 
     <items>

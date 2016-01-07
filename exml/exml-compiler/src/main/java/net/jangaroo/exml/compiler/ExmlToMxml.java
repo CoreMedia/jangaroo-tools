@@ -54,9 +54,19 @@ import java.util.Set;
  * A tool that converts EXML source code into MXML and ActionScript source code.
  */
 public class ExmlToMxml {
+  private static final Set<String> AS3_TYPES = new HashSet<String>();
+
   private ConfigClassRegistry configClassRegistry;
   private Properties migrationMap = new Properties();
   private ClassLoader resourceClassLoader = ExmlToMxml.class.getClassLoader();
+
+  static {
+    for (AS3Type as3Type : AS3Type.values()) {
+      AS3_TYPES.add(as3Type.name);
+    }
+    AS3_TYPES.add("Object");
+    AS3_TYPES.add("Function");
+  }
 
   public ExmlToMxml(ConfigClassRegistry configClassRegistry) {
     this.configClassRegistry = configClassRegistry;
@@ -477,7 +487,7 @@ public class ExmlToMxml {
         if (mappedClassName != null) {
           type = CompilerUtils.className(mappedClassName);
         }
-        String prefix = AS3Type.typeByName(type) != null || "Object".equals(type) ? "fx:" : "";
+        String prefix = AS3_TYPES.contains(type) ? "fx:" : "";
 
         currentOut.printf("%n");
         if (config.getDescription() != null) {
