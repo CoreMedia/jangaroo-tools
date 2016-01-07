@@ -70,9 +70,21 @@ public class ExmlTargetToBaseClassMojo extends AbstractExmlMojo {
   //add the baseClass declaration in the exml
   private void addBaseClassDeclaration(File exmlFile, File baseFile) throws IOException {
     String exmlContent = new String(Files.readAllBytes(exmlFile.toPath()), StandardCharsets.UTF_8);
-    String exmlRootPattern = ".*(<exml[^>]*)(.*)";
-    exmlContent = exmlContent.replaceFirst(exmlRootPattern, "$1\r\nbaseClass=\"" + getName(baseFile) + "\"$2");
+    int i = exmlContent.indexOf("<exml:");
+    int j = exmlContent.indexOf(">", i);
+    String exmlBefore = exmlContent.substring(0, i);
+    String exmlDeclaration = exmlContent.substring(i, j + 1);
+    String exmlAfter = exmlContent.substring(j + 1);
 
+    if (exmlDeclaration.endsWith("/>")) {
+      exmlDeclaration = exmlDeclaration.substring(0, exmlDeclaration.length() - 2);
+      exmlDeclaration += "\r\nbaseClass=\"" + getName(baseFile) + "\"/>";
+    } else {
+      exmlDeclaration = exmlDeclaration.substring(0, exmlDeclaration.length() - 1);
+      exmlDeclaration += "\r\nbaseClass=\"" + getName(baseFile) + "\">";
+    }
+
+    exmlContent = exmlBefore + exmlDeclaration + exmlAfter;
     Files.write(exmlFile.toPath(), exmlContent.getBytes(StandardCharsets.UTF_8));
     getLog().info("baseClass declaration added to: " + exmlFile.getAbsolutePath());
   }
