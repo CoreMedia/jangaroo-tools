@@ -24,6 +24,7 @@ public class ExmlTargetToBaseClassMojo extends AbstractExmlMojo {
 
   public static final String PUBLIC_STATIC_PREFIX = "public static";
   public static final String STATIC_PUBLIC_PREFIX = "static public";
+  public static final String STATIC_PREFIX = "static";
   public static final String FUNCTION_LOWER_CASE = "function";
   public static final String CONST = "const";
   public static final String FUNCTION_UPPER_CASE = "Function";
@@ -125,7 +126,8 @@ public class ExmlTargetToBaseClassMojo extends AbstractExmlMojo {
       String constType = null;
       String constValue;
       String cleanLine = line.trim().replaceAll("\\s+", " ");
-      if (cleanLine.startsWith(PUBLIC_STATIC_PREFIX) || cleanLine.startsWith(STATIC_PUBLIC_PREFIX)) {
+      if (cleanLine.startsWith(PUBLIC_STATIC_PREFIX) || cleanLine.startsWith(STATIC_PUBLIC_PREFIX) ||
+              cleanLine.startsWith(STATIC_PREFIX + " " + CONST)) {
         String[] lineTokens = cleanLine.split(" ");
 
         if (lineTokens[2].equals(FUNCTION_LOWER_CASE)) {
