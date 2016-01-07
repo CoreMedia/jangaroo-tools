@@ -17,7 +17,7 @@
 
     <items>
       <Label text="bla"/>
-      <exml:object afterRender="{
+      <fx:Object afterRender="{
                     function():void{
                       getStore().addListener('datachanged', function():void{var store:Store = getStore();store.suspendEvents(false);store.filterBy(filterFunction); store.resumeEvents()})
                       }

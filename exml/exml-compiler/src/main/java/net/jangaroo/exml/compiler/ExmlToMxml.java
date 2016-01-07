@@ -299,6 +299,9 @@ public class ExmlToMxml {
       if (inConfigDescription || inMetaData) {
         startRecordingCharacters();
       }
+      if ("exml:object".equals(qName)) {
+        qName = "fx:Object";
+      }
       if (qName != null) {
         if (isNewRoot(uri) && baseClass != null) {
           qName = baseClass;

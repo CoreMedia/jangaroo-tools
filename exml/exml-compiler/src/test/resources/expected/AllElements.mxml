@@ -108,7 +108,7 @@
         handler:function(){} }
       ]
       -->
-      <exml:object id_="gear"
+      <fx:Object   id_="gear"
                     handler="{function(x){return ''+x;}}"/>
     </tools>
 
