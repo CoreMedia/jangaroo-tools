@@ -1,6 +1,4 @@
 <?xml version="1.0"?>
 <componentPackage>
-  <component class="Bar"/>
-  <component class="Comp"/>
-  <component class="Foo"/>
+  <component id="foo_Bar" class="ext.foo.Bar"/>
 </componentPackage>

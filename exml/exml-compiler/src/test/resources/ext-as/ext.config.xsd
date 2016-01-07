@@ -65,6 +65,17 @@
   </xs:complexType>
   <xs:element name='aplugin' type='ec:ext.config.aplugin'>
   </xs:element>
+  <xs:complexType name='ext.config.bar'>
+    <xs:complexContent>
+      <xs:extension base='exml:base'>
+        <xs:sequence>
+        </xs:sequence>
+        <xs:anyAttribute namespace="http://www.jangaroo.net/exml/0.8 exml:untyped" processContents="skip"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name='bar' type='ec:ext.config.bar'>
+  </xs:element>
   <xs:complexType name='ext.config.bpanel'>
     <xs:complexContent>
       <xs:extension base='ec:ext.config.apanel'>

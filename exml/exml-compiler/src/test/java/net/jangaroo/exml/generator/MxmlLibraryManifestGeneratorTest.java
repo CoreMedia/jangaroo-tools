@@ -43,6 +43,6 @@ public class MxmlLibraryManifestGeneratorTest {
 
     File manifest = new MxmlLibraryManifestGenerator(configClassRegistry).createManifestFile();
 
-    assertEquals(IOUtils.toString(getClass().getResourceAsStream("/manifest.xml")), readFileToString(manifest));
+    assertEquals(IOUtils.toString(getClass().getResourceAsStream("/expected/manifest.xml")), readFileToString(manifest));
   }
 }

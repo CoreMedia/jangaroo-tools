@@ -35,6 +35,7 @@
       <bpanel>
         <notme>nooo</notme>
       </bpanel>
+      <bar/>
     </items>
   </panel>
 </exml:component>
