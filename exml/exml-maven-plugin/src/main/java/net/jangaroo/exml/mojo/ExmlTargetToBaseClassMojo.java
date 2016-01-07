@@ -8,6 +8,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.List;
 
 import static org.apache.commons.io.FileUtils.listFiles;
 
@@ -20,6 +21,12 @@ import static org.apache.commons.io.FileUtils.listFiles;
  * @threadSafe
  */
 public class ExmlTargetToBaseClassMojo extends AbstractExmlMojo {
+
+  public static final String PUBLIC_STATIC_PREFIX = "public static";
+  public static final String STATIC_PUBLIC_PREFIX = "static public";
+  public static final String FUNCTION_LOWER_CASE = "function";
+  public static final String CONST = "const";
+  public static final String FUNCTION_UPPER_CASE = "Function";
 
   public static void main(String[] args) {
     if (args.length > 0) {
@@ -57,6 +64,7 @@ public class ExmlTargetToBaseClassMojo extends AbstractExmlMojo {
         try {
           fixBaseClassName(exmlFile, baseFile);
           addBaseClassDeclaration(exmlFile, baseFile);
+          addStaticConstsToExml(exmlFile, baseFile);
           fixedExmls++;
         } catch (IOException e) {
           getLog().error("Fixing of class name failed", e);
@@ -66,6 +74,22 @@ public class ExmlTargetToBaseClassMojo extends AbstractExmlMojo {
     }
 
   }
+
+  //fix the class name in the base class file itself
+  private void fixBaseClassName(File exmlFile, File baseFile) throws IOException {
+    String baseClassContent = new String(Files.readAllBytes(baseFile.toPath()), StandardCharsets.UTF_8);
+    //fix the class declaration
+    String oldClassDeclarationPattern = "public\\s+class\\s+" + getName(exmlFile);
+    baseClassContent = baseClassContent.replaceAll(oldClassDeclarationPattern, "public class " + getName(baseFile));
+
+    //fix the constructor
+    String oldConstructorPattern = "public\\s+function\\s+" + getName(exmlFile);
+    baseClassContent = baseClassContent.replaceAll(oldConstructorPattern, "public function " + getName(baseFile));
+
+    Files.write(baseFile.toPath(), baseClassContent.getBytes(StandardCharsets.UTF_8));
+    getLog().info("baseClass name fixed in : " + baseFile.getAbsolutePath());
+  }
+
 
   //add the baseClass declaration in the exml
   private void addBaseClassDeclaration(File exmlFile, File baseFile) throws IOException {
@@ -89,20 +113,51 @@ public class ExmlTargetToBaseClassMojo extends AbstractExmlMojo {
     getLog().info("baseClass declaration added to: " + exmlFile.getAbsolutePath());
   }
 
-  //fix the class name in the base class file itself
-  private void fixBaseClassName(File exmlFile, File baseFile) throws IOException {
-    String baseClassContent = new String(Files.readAllBytes(baseFile.toPath()), StandardCharsets.UTF_8);
-    //fix the class declaration
-    String oldClassDeclarationPattern = "public\\s+class\\s+" + getName(exmlFile);
-    baseClassContent = baseClassContent.replaceAll(oldClassDeclarationPattern, "public class " + getName(baseFile));
 
-    //fix the constructor
-    String oldConstructorPattern = "public\\s+function\\s+" + getName(exmlFile);
-    baseClassContent = baseClassContent.replaceAll(oldConstructorPattern, "public function " + getName(baseFile));
+  private void addStaticConstsToExml(File exmlFile, File baseFile) throws IOException {
+    List<String> baseClassLines = Files.readAllLines(baseFile.toPath(), StandardCharsets.UTF_8);
 
-    Files.write(baseFile.toPath(), baseClassContent.getBytes(StandardCharsets.UTF_8));
-    getLog().info("baseClass name fixed in : " + baseFile.getAbsolutePath());
+    String exmlConstDeclaration = "";
+    for (String line : baseClassLines) {
+      String constNameAndType;
+      String constName = null;
+      String constType = null;
+      String constValue;
+      String cleanLine = line.trim().replaceAll("\\s+", " ");
+      if (cleanLine.startsWith(PUBLIC_STATIC_PREFIX) || cleanLine.startsWith(STATIC_PUBLIC_PREFIX)) {
+        String[] lineTokens = cleanLine.split(" ");
+
+        if (lineTokens[2].equals(FUNCTION_LOWER_CASE)) {
+          constName = lineTokens[3].split("\\(")[0];
+          constType = FUNCTION_UPPER_CASE;
+        } else if (lineTokens[2].equals(CONST)) {
+          constNameAndType = lineTokens[3];
+          String[] constNameAndTypeTokens = constNameAndType.split(":");
+          constName = constNameAndTypeTokens[0];
+          constType = constNameAndTypeTokens.length > 1 ? constNameAndTypeTokens[1] : "Object";
+          constType = constType.split("=")[0];
+        }
+        constValue = constName == null ? null : getName(baseFile) + "." + constName;
+        if (constValue != null) {
+          exmlConstDeclaration += "\r\n<exml:constant name=\"" + constName + "\" type=\"" + constType + "\" value=\"{" +
+                  constValue + "}\"/>";
+        }
+      }
+    }
+
+    if (exmlConstDeclaration.length() > 0) {
+      String exmlContent = new String(Files.readAllBytes(exmlFile.toPath()), StandardCharsets.UTF_8);
+      int i = exmlContent.indexOf("<exml:");
+      int j = exmlContent.indexOf(">", i);
+      String exmlBefore = exmlContent.substring(0, j + 1);
+      String exmlAfter = exmlContent.substring(j + 1);
+
+      exmlContent = exmlBefore + exmlConstDeclaration + "\r\n" + exmlAfter;
+      Files.write(exmlFile.toPath(), exmlContent.getBytes(StandardCharsets.UTF_8));
+      getLog().info("exml const definitions added to: " + exmlFile.getAbsolutePath());
+    }
   }
+
 
   private File findTargetFileWithSameName(final File exmlFile) {
     File[] files = exmlFile.getParentFile().listFiles(new FilenameFilter() {
