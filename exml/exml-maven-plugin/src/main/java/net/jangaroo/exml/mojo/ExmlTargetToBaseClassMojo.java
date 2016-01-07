@@ -1,6 +1,5 @@
 package net.jangaroo.exml.mojo;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 
@@ -9,19 +8,28 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import static org.apache.commons.io.FileUtils.listFiles;
 
-public class ExmlTargetClassToBaseClassMojo extends AbstractExmlMojo {
+/**
+ * A Mojo to make all exml target class explicitly as baseClass.
+ *
+ */
+public class ExmlTargetToBaseClassMojo extends AbstractExmlMojo {
+
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
+    if (!isExmlProject()) {
+      getLog().info("not an EXML project, skipping base class conversion");
+      return;
+    }
+
     execute(getSourceDirectory());
   }
 
   private void execute(File sourceDir) {
     if (sourceDir != null && sourceDir.exists()) {
+      int fixedExmls = 0;
       for (final File exmlFile : listFiles(sourceDir, new String[]{"exml"}, true)) {
         final String exmlName = exmlFile.getName().split("\\.")[0];
         //check if there is a as file in the same directory as the exml file
@@ -55,14 +63,14 @@ public class ExmlTargetClassToBaseClassMojo extends AbstractExmlMojo {
               Files.write(baseClassFile.toPath(), baseClassContent.getBytes(StandardCharsets.UTF_8));
               getLog().info("Class name fixed: " + baseClassFile.getAbsolutePath());
 
-              //the exml needs now the baseClass declaration
+              //the exml needs now the baseClass declaration in the exml
               String exmlContent = new String(Files.readAllBytes(exmlFile.toPath()), StandardCharsets.UTF_8);
-              String baseClassPattern = ".*(<exml:[\\r\\n]*)(>).*";
-              exmlContent = exmlContent.replaceAll(baseClassPattern, "$1\r\nbaseClass=\"" + newBaseClassName + "\">");
+              String exmlRootPattern = ".*(<exml[^>]*)(.*)";
+              exmlContent = exmlContent.replaceFirst(exmlRootPattern, "$1\r\nbaseClass=\"" + newBaseClassName + "\"$2");
 
               Files.write(exmlFile.toPath(), exmlContent.getBytes(StandardCharsets.UTF_8));
               getLog().info("baseClass fixed: " + exmlFile.getAbsolutePath());
-
+              fixedExmls++;
             } catch (IOException e) {
               getLog().error("Fixing of class name failed", e);
             }
@@ -73,6 +81,7 @@ public class ExmlTargetClassToBaseClassMojo extends AbstractExmlMojo {
           getLog().warn("There is more than one AS file with same name in the directory like " + exmlFile.getAbsolutePath());
         }
       }
+      getLog().info("Number of fixed exml/AS pair: " + fixedExmls);
     }
 
   }
@@ -81,7 +90,7 @@ public class ExmlTargetClassToBaseClassMojo extends AbstractExmlMojo {
     if (args.length > 0) {
       String sourceDirPath = args[0];
       File sourceDir = new File(sourceDirPath);
-      new ExmlTargetClassToBaseClassMojo().execute(sourceDir);
+      new ExmlTargetToBaseClassMojo().execute(sourceDir);
     }
   }
 }

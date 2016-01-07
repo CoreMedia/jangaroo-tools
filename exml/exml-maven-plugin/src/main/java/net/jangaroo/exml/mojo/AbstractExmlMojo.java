@@ -2,7 +2,11 @@ package net.jangaroo.exml.mojo;
 
 import net.jangaroo.exml.config.ExmlConfiguration;
 import net.jangaroo.jooc.mvnplugin.JangarooMojo;
+import org.apache.maven.model.Build;
+import org.apache.maven.model.Plugin;
+import org.apache.maven.model.PluginManagement;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.project.MavenProject;
 
 import java.io.File;
@@ -39,6 +43,12 @@ public abstract class AbstractExmlMojo extends JangarooMojo {
    */
   private String configClassPackage;
 
+  /**
+   * @parameter default-value="${plugin}"
+   * @readonly
+   */
+  private PluginDescriptor pluginDescriptor;
+
   @Override
   protected MavenProject getProject() {
     return project;
@@ -69,4 +79,37 @@ public abstract class AbstractExmlMojo extends JangarooMojo {
     return exmlConfiguration;
   }
 
+  protected boolean hasExmlConfiguration() {
+    for (Object o : getProject().getBuildPlugins()) {
+      Plugin plugin = (Plugin) o;
+      if (plugin.getGroupId().equals(pluginDescriptor.getGroupId()) &&
+              plugin.getArtifactId().equals(pluginDescriptor.getArtifactId())) {
+        return true;
+      }
+    }
+    Build build = getProject().getOriginalModel().getBuild();
+    if (build != null) {
+      PluginManagement pluginManagement = build.getPluginManagement();
+      if (pluginManagement != null) {
+        for (Plugin plugin : pluginManagement.getPlugins()) {
+          if (plugin.getGroupId().equals(pluginDescriptor.getGroupId()) &&
+                  plugin.getArtifactId().equals(pluginDescriptor.getArtifactId())) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  protected boolean isExmlProject() {
+    for(Object o : getProject().getBuildPlugins()) {
+      Plugin plugin = (Plugin) o;
+      if (plugin.getGroupId().equals(pluginDescriptor.getGroupId()) &&
+              plugin.getArtifactId().equals(pluginDescriptor.getArtifactId())) {
+        return plugin.isExtensions();
+      }
+    }
+    return false;
+  }
 }
