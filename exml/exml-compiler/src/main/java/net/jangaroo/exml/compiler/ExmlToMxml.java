@@ -680,6 +680,7 @@ public class ExmlToMxml {
     private String handleVar(Attributes atts) {
       Declaration declaration = createDeclaration(atts);
       vars.add(declaration);
+      addImport(declaration.getType());
       currentVarName = declaration.getName();
       return null; // do not render var elements
     }

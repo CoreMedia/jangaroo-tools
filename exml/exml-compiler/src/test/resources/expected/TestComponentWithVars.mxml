@@ -9,13 +9,18 @@
                 xmlns="exml:ext.config"
                 title="{config.defaultTitle}">
   <fx:Script><![CDATA[
+    import com.coremedia.cms.editor.sdk.editorContext;
+    import com.coremedia.cms.editor.sdk.sites.SitesService;
+
     private var varWithExpressionValue:Array;
     private var varWithXmlValue:button;
     private var varWithXmlArrayValue:Array;
+    private var sitesService:com.coremedia.cms.editor.sdk.sites.SitesService;
 
     // called by generated constructor code
     private function __initialize__(config:testPackage.TestComponentWithVars):void {
       varWithExpressionValue = [1, 2, 3];
+      sitesService = editorContext.getSitesService();
     }
 
     public native function TestComponentWithVars(config:testPackage.TestComponentWithVars = null);

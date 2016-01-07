@@ -7,6 +7,8 @@
     @see ext.Panel
   </exml:description>
 
+  <exml:import class="com.coremedia.cms.editor.sdk.editorContext"/>
+
   <exml:var name="varWithExpressionValue" type="Array" value="{[1, 2, 3]}">
     <exml:description>Some var with an expression value.</exml:description>
   </exml:var>
@@ -26,6 +28,9 @@
       <button text="click me 2!"/>
     </exml:value>
   </exml:var>
+
+  <exml:var name="sitesService" value="{editorContext.getSitesService()}"
+            type="com.coremedia.cms.editor.sdk.sites.SitesService"/>
 
   <panel title="{config.defaultTitle}"/>
 
