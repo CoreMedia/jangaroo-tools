@@ -40,5 +40,9 @@ public class MxmlComponentRegistry {
 
   public Collection<ComponentPackageModel> getComponentPackageModels() {
     return registry.values();
-  } 
+  }
+
+  public ComponentPackageModel getComponentPackageModel(String namespace) {
+    return registry.get(namespace);
+  }
 }

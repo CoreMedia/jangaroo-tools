@@ -1,4 +1,0 @@
-<?xml version="1.0"?>
-<componentPackage>
-  <component id="foo_Bar" class="ext.foo.Bar"/>
-</componentPackage>

@@ -19,8 +19,9 @@ import net.jangaroo.jooc.json.JsonObject;
 import net.jangaroo.jooc.model.CompilationUnitModel;
 import net.jangaroo.jooc.model.MethodModel;
 import net.jangaroo.jooc.model.ParamModel;
-import net.jangaroo.jooc.mxml.ComponentPackageManifestParser;
+import net.jangaroo.jooc.mxml.CatalogComponentsParser;
 import net.jangaroo.jooc.mxml.ComponentPackageModel;
+import net.jangaroo.jooc.mxml.MxmlComponentRegistry;
 import net.jangaroo.jooc.mxml.MxmlUtils;
 import net.jangaroo.utils.AS3Type;
 import net.jangaroo.utils.CharacterRecordingHandler;
@@ -61,7 +62,7 @@ public class ExmlToMxml {
   private ConfigClassRegistry configClassRegistry;
   private Properties migrationMap = new Properties();
   private ClassLoader resourceClassLoader = ExmlToMxml.class.getClassLoader();
-  private ComponentPackageModel componentPackageModel;
+  private MxmlComponentRegistry mxmlComponentRegistry = new MxmlComponentRegistry();
 
   static {
     for (AS3Type as3Type : AS3Type.values()) {
@@ -92,11 +93,7 @@ public class ExmlToMxml {
       throw new ExmlcException("Unable to load migration map", e);
     }
 
-    try {
-      this.componentPackageModel = new ComponentPackageManifestParser("any").parse(resourceClassLoader.getResourceAsStream("manifest.xml"));
-    } catch (IOException e) {
-      throw new ExmlcException("Unable to load component package manifest", e);
-    }
+    new CatalogComponentsParser(mxmlComponentRegistry).parse(resourceClassLoader.getResourceAsStream("catalog.xml"));
 
     try {
       new MxmlLibraryManifestGenerator(configClassRegistry).createManifestFile();
@@ -579,9 +576,12 @@ public class ExmlToMxml {
     private String getMappedComponentName(String uri, String qName, String originalQName) {
       ConfigClass configClass = getConfigClass(uri, originalQName);
       if (configClass != null) {
-        for (Map.Entry<String, String> entry : componentPackageModel.entrySet()) {
-          if (configClass.getComponentClassName().equals(entry.getValue())) {
-            return CompilerUtils.className(entry.getKey());
+        ComponentPackageModel componentPackageModel = mxmlComponentRegistry.getComponentPackageModel(uri);
+        if (componentPackageModel != null) {
+          for (Map.Entry<String, String> entry : componentPackageModel.entrySet()) {
+            if (configClass.getComponentClassName().equals(entry.getValue())) {
+              return CompilerUtils.className(entry.getKey());
+            }
           }
         }
       }
