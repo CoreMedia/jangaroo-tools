@@ -30,13 +30,6 @@ import static org.apache.commons.io.FilenameUtils.getBaseName;
 public class ExmlToMxmlMojo extends AbstractExmlMojo {
 
   /**
-   * Source directory to scan for test files to compile.
-   *
-   * @parameter expression="${project.build.testSourceDirectory}"
-   */
-  private File testSourceDirectory;
-
-  /**
    * Set this to 'true' to rename EXML files to MXML files only and to skip the actual conversion. This allows to give
    * a hint to SCM systems like Git about the renaming and then run the actual conversion in a second step.
    *
@@ -67,7 +60,7 @@ public class ExmlToMxmlMojo extends AbstractExmlMojo {
       getLog().info("Renaming EXML files to MXML files");
       try {
         renameFiles(getSourceDirectory());
-        renameFiles(testSourceDirectory);
+        renameFiles(getTestSourceDirectory());
       } catch (IOException e) {
         throw new MojoExecutionException("error while renaming EXML files", e);
       }
@@ -80,9 +73,9 @@ public class ExmlToMxmlMojo extends AbstractExmlMojo {
     config.setMigrationMap(migrationMap);
     new Exmlc(config).convertAllExmlToMxml();
     // Also convert test EXML sources to MXML:
-    if (testSourceDirectory != null && testSourceDirectory.exists()) {
+    if (getTestSourceDirectory() != null && getTestSourceDirectory().exists()) {
       ExmlConfiguration testConfig = createExmlConfiguration(getActionScriptTestClassPath(),
-              Collections.singletonList(testSourceDirectory), testSourceDirectory);
+              Collections.singletonList(getTestSourceDirectory()), getTestSourceDirectory());
       testConfig.setMigrationMap(migrationMap);
       new Exmlc(testConfig).convertAllExmlToMxml();
     }

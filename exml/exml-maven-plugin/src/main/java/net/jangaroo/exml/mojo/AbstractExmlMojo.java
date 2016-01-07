@@ -37,6 +37,12 @@ public abstract class AbstractExmlMojo extends JangarooMojo {
    */
   private File sourceDirectory;
   /**
+   * Source directory to scan for test files to compile.
+   *
+   * @parameter expression="${project.build.testSourceDirectory}"
+   */
+  private File testSourceDirectory;
+  /**
    * The package into which config classes of EXML components are generated.
    *
    * @parameter
@@ -56,6 +62,10 @@ public abstract class AbstractExmlMojo extends JangarooMojo {
 
   public File getSourceDirectory() {
     return sourceDirectory;
+  }
+
+  public File getTestSourceDirectory() {
+    return testSourceDirectory;
   }
 
   public File getGeneratedSourcesDirectory() {
