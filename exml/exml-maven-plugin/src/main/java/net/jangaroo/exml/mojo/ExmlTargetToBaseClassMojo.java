@@ -27,6 +27,7 @@ public class ExmlTargetToBaseClassMojo extends AbstractExmlMojo {
   public static final String FUNCTION_LOWER_CASE = "function";
   public static final String CONST = "const";
   public static final String FUNCTION_UPPER_CASE = "Function";
+  public static final String PACKAGE = "package";
 
   public static void main(String[] args) {
     if (args.length > 0) {
@@ -116,8 +117,8 @@ public class ExmlTargetToBaseClassMojo extends AbstractExmlMojo {
 
   private void addStaticConstsToExml(File exmlFile, File baseFile) throws IOException {
     List<String> baseClassLines = Files.readAllLines(baseFile.toPath(), StandardCharsets.UTF_8);
-
     String exmlConstDeclaration = "";
+    String importLineBaseClass = "";
     for (String line : baseClassLines) {
       String constNameAndType;
       String constName = null;
@@ -143,6 +144,10 @@ public class ExmlTargetToBaseClassMojo extends AbstractExmlMojo {
                   constValue + "}\"/>";
         }
       }
+
+      if (cleanLine.startsWith(PACKAGE)) {
+        importLineBaseClass = "<exml:import class=\"" + cleanLine.split(" ")[1] + "." + getName(baseFile) + "\"/>";
+      }
     }
 
     if (exmlConstDeclaration.length() > 0) {
@@ -152,7 +157,8 @@ public class ExmlTargetToBaseClassMojo extends AbstractExmlMojo {
       String exmlBefore = exmlContent.substring(0, j + 1);
       String exmlAfter = exmlContent.substring(j + 1);
 
-      exmlContent = exmlBefore + exmlConstDeclaration + "\r\n" + exmlAfter;
+      exmlContent = exmlBefore + "\r\n" + importLineBaseClass;
+      exmlContent += exmlConstDeclaration + "\r\n" + exmlAfter;
       Files.write(exmlFile.toPath(), exmlContent.getBytes(StandardCharsets.UTF_8));
       getLog().info("exml const definitions added to: " + exmlFile.getAbsolutePath());
     }
