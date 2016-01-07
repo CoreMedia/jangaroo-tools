@@ -13,6 +13,11 @@ import static org.apache.commons.io.FileUtils.listFiles;
 
 /**
  * A Mojo to make all exml target class file with the same name as the exml file explicitly as baseClass of the exml class
+ *
+ * @goal exml-target-to-base
+ * @phase generate-sources
+ * @requiresDependencyResolution
+ * @threadSafe
  */
 public class ExmlTargetToBaseClassMojo extends AbstractExmlMojo {
 
@@ -32,6 +37,7 @@ public class ExmlTargetToBaseClassMojo extends AbstractExmlMojo {
     }
 
     execute(getSourceDirectory());
+    execute(getTestSourceDirectory());
   }
 
   private void execute(File sourceDir) {
