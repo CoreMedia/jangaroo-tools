@@ -166,9 +166,7 @@ public final class MxmlToModelParser {
           Iterator<ParamModel> constructorParams = constructorModel.getParams().iterator();
           if (constructorParams.hasNext()) {
             ParamModel firstParam = constructorParams.next();
-            String firstParamType = firstParam.getType();
-            if ((classQName.equals(firstParamType) || CompilerUtils.className(classQName).equals(firstParamType))
-                    && "config".equals(firstParam.getName())) {
+            if ("config".equals(firstParam.getName())) {
               return true;
             }
           }
@@ -417,6 +415,8 @@ public final class MxmlToModelParser {
       value = getTextContent(objectElement);
       if (MxmlUtils.isBindingExpression(value)) {
         value = MxmlUtils.getBindingExpression(value);
+      } else if (value.isEmpty()) {
+        value = null;
       }
     } else if ("Object".equals(className)) {
       value = "{}";
