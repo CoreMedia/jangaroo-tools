@@ -386,9 +386,8 @@ public final class MxmlToModelParser {
       if (configParamModel != null && id.equals(configParamModel.getName())) {
         return "";
       }
-      PropertyModel fieldModel = new PropertyModel(id, className);
-      fieldModel.addGetter();
-      fieldModel.addSetter();
+      FieldModel fieldModel = new FieldModel(id, className);
+      fieldModel.addAnnotation(new AnnotationModel(Jooc.BINDABLE_ANNOTATION_NAME));
       compilationUnitModel.getClassModel().addMember(fieldModel);
       targetVariable = id;
     }
