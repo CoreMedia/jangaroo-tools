@@ -208,6 +208,17 @@
   </xs:complexType>
   <xs:element name='container' type='ec:ext.config.container'>
   </xs:element>
+  <xs:complexType name='ext.config.datafield'>
+    <xs:complexContent>
+      <xs:extension base='exml:base'>
+        <xs:sequence>
+        </xs:sequence>
+        <xs:anyAttribute namespace="http://www.jangaroo.net/exml/0.8 exml:untyped" processContents="skip"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name='datafield' type='ec:ext.config.datafield'>
+  </xs:element>
   <xs:complexType name='ext.config.label'>
     <xs:complexContent>
       <xs:extension base='exml:base'>
