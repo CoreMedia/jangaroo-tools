@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!---
+<!--- 
     This is my <b>TestComponent</b>
-  -->
+   -->
 
 
   <!-- declare only config class as public API -->

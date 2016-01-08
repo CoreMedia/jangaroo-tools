@@ -45,7 +45,7 @@
 
   <exml:cfg name="propertyNine" type="Object">
     <exml:description>
-      Some object
+      Some object with double dash in comment --
     </exml:description>
   </exml:cfg>
 

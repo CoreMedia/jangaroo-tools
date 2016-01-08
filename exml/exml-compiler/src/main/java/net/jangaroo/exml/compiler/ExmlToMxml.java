@@ -520,7 +520,8 @@ public class ExmlToMxml {
 
         currentOut.printf("%n");
         if (config.getDescription() != null) {
-          currentOut.printf("%n    <!--- %s -->", convertNewLines(config.getDescription()));
+          currentOut.printf("%n    ");
+          printComment(config.getDescription());
         }
         currentOut.printf("%n    ");
 
@@ -717,7 +718,8 @@ public class ExmlToMxml {
     private void handleRootNode(Attributes atts, Map<String, String> attributes) {
       String asDoc = exmlModel.getDescription();
       if (asDoc != null && !asDoc.trim().isEmpty()) {
-        currentOut.println("<!---" + convertNewLines(asDoc).replaceAll("--", "&#45;&#45;") + "-->");
+        printComment(asDoc);
+        currentOut.println();
       }
       Map<String, String> mxmlPrefixMappings = new LinkedHashMap<String, String>();
       mxmlPrefixMappings.put("fx", MxmlUtils.MXML_NAMESPACE_URI);
@@ -754,6 +756,10 @@ public class ExmlToMxml {
         String uriValue = prefixMapping.getValue();
         attributes.put(key.isEmpty() ? "xmlns" : "xmlns:" + key, uriValue);
       }
+    }
+
+    private void printComment(String text) {
+      currentOut.print("<!--- " + convertNewLines(text).replaceAll("--", "&#45;&#45;") + " -->");
     }
 
     private String formatValue(String value, String type) {

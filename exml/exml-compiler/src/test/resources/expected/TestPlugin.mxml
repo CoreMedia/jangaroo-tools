@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!---This is a test plugin (not a component!).-->
+<!--- This is a test plugin (not a component!). -->
 <Plugin      xmlns:fx="http://ns.adobe.com/mxml/2009"
              xmlns:local="testPackage.*"
              xmlns:exml="http://www.jangaroo.net/exml/0.8"
