@@ -623,7 +623,9 @@ public class ExmlToMxml {
     private String getMappedComponentName(String uri, String qName, String originalQName) {
       ConfigClass configClass = getConfigClass(uri, originalQName);
       if (configClass != null) {
-        List<QName> qNames = mxmlComponentRegistry.getQNamesByClassName(configClass.getComponentClassName());
+        String componentClassName = configClass.getComponentClassName();
+        String mappedClassName = (String) migrationMap.get(componentClassName);
+        List<QName> qNames = mxmlComponentRegistry.getQNamesByClassName(mappedClassName != null ? mappedClassName : componentClassName);
         if (qNames != null) {
           return findQName(originalQName, qNames).getLocalPart();
         }
@@ -637,7 +639,7 @@ public class ExmlToMxml {
           return name;
         }
       }
-      return qNames.get(0);
+      return qNames.get(qNames.size() - 1);
     }
 
     private String findPrefixForPackage(String packageName, boolean configUriOnly) {

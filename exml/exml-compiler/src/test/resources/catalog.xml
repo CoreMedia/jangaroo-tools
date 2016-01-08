@@ -13,5 +13,6 @@
     <component uri="exml:ext.config" name="Box" className="ext:Component"/>
     <component uri="exml:ext.config" name="Component" className="ext:Component"/>
     <component uri="exml:ext.config" name="foo_Bar" className="ext.foo:Bar"/>
+    <component uri="exml:ext.config" name="data_AutoField" className="ext.data:DataField"/>
   </components>
 </swc>
