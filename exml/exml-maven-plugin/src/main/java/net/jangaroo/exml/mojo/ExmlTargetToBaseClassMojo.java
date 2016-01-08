@@ -8,6 +8,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -34,7 +35,6 @@ public class ExmlTargetToBaseClassMojo extends AbstractExmlMojo {
   public static final String CONST = "const";
   public static final String VAR = "var";
   public static final String FUNCTION_UPPER_CASE = "Function";
-  public static final String PACKAGE = "package";
 
   public static void main(String[] args) {
     if (args.length > 0) {
@@ -72,7 +72,7 @@ public class ExmlTargetToBaseClassMojo extends AbstractExmlMojo {
         try {
           fixBaseClassName(exmlFile, baseFile);
           addBaseClassDeclaration(exmlFile, baseFile);
-          addStaticConstsToExml(exmlFile, baseFile);
+          logTargetClassesWithStatics(exmlFile, baseFile);
           fixedExmls++;
         } catch (IOException e) {
           getLog().error("Fixing of class name failed", e);
@@ -104,8 +104,15 @@ public class ExmlTargetToBaseClassMojo extends AbstractExmlMojo {
     String exmlContent = new String(Files.readAllBytes(exmlFile.toPath()), StandardCharsets.UTF_8);
     int i = exmlContent.indexOf("<exml:");
     int j = exmlContent.indexOf(">", i);
+
     String exmlBefore = exmlContent.substring(0, i);
+
     String exmlDeclaration = exmlContent.substring(i, j + 1);
+    //remove the baseClass declaration (unnecessary but there are such codes, e.g. PremularBase.exml)
+    if (exmlDeclaration.indexOf("baseClass") > 0) {
+      exmlDeclaration = exmlDeclaration.replaceAll("baseClass[\\s\\S]*?\"[\\s\\S]*?\"[\r\n\\s]*", "");
+    }
+
     String exmlAfter = exmlContent.substring(j + 1);
 
     if (exmlDeclaration.endsWith("/>")) {
@@ -116,60 +123,42 @@ public class ExmlTargetToBaseClassMojo extends AbstractExmlMojo {
       exmlDeclaration += "\r\nbaseClass=\"" + getName(baseFile) + "\">";
     }
 
-    //TODO: if there is already a baseClass declaration (which was unnecessary but who knows? see PremularBase.exml e.g.)
-
     exmlContent = exmlBefore + exmlDeclaration + exmlAfter;
     Files.write(exmlFile.toPath(), exmlContent.getBytes(StandardCharsets.UTF_8));
     getLog().info("baseClass declaration added to: " + exmlFile.getAbsolutePath());
   }
 
 
-  private void addStaticConstsToExml(File exmlFile, File baseFile) throws IOException {
+  private void logTargetClassesWithStatics(File exmlFile, File baseFile) throws IOException {
     List<String> baseClassLines = Files.readAllLines(baseFile.toPath(), StandardCharsets.UTF_8);
-    String exmlConstDeclaration = "";
-    String importLineBaseClass = "";
+    List<String> staticList = new ArrayList<String>();
     for (String line : baseClassLines) {
-      if (line.startsWith(PACKAGE)) {
-        importLineBaseClass = "<exml:import class=\"" + line.split(" ")[1].split("\\{")[0] + "." + getName(baseFile) + "\"/>";
-      }
-      String constName = null;
-      String constType = null;
-      String constValue;
+      String staticName = null;
+      String staticType = null;
       List<String> tokens = getRelevantTokens(line);
       if (tokens.isEmpty()) {
         continue;
       }
       if (tokens.get(0).equals(FUNCTION_LOWER_CASE)) {
-        constName = tokens.get(1).split("\\(")[0];
-        constType = FUNCTION_UPPER_CASE;
+        staticName = tokens.get(1).split("\\(")[0];
+        staticType = FUNCTION_UPPER_CASE;
       } else if (tokens.get(0).equals(CONST) || tokens.get(0).equals(VAR)) {
         String[] constNameAndTypeTokens = tokens.get(1).split(":");
-        constName = constNameAndTypeTokens[0];
-        constType = constNameAndTypeTokens.length > 1 ? constNameAndTypeTokens[1] : "Object";
+        staticName = constNameAndTypeTokens[0];
+        staticType = constNameAndTypeTokens.length > 1 ? constNameAndTypeTokens[1] : "Object";
         //handle "public static const bla:blub=" (without space between type and "=")
-        constType = constType.split("=")[0];
+        staticType = staticType.split("=")[0];
         //handle "public static var bla:blub; (without value)
-        constType = constType.split(";")[0];
+        staticType = staticType.split(";")[0];
       }
-      constValue = constName == null ? null : getName(baseFile) + "." + constName;
-      if (constValue != null) {
-        exmlConstDeclaration += "\r\n<exml:constant name=\"" + constName + "\" type=\"" + constType + "\" value=\"{" +
-                constValue + "}\"/>";
+      if (staticName != null) {
+        staticList.add(staticType + " " + staticName);
       }
 
     }
 
-    if (exmlConstDeclaration.length() > 0) {
-      String exmlContent = new String(Files.readAllBytes(exmlFile.toPath()), StandardCharsets.UTF_8);
-      int i = exmlContent.indexOf("<exml:");
-      int j = exmlContent.indexOf(">", i);
-      String exmlBefore = exmlContent.substring(0, j + 1);
-      String exmlAfter = exmlContent.substring(j + 1);
-
-      exmlContent = exmlBefore + "\r\n" + importLineBaseClass;
-      exmlContent += exmlConstDeclaration + "\r\n" + exmlAfter;
-      Files.write(exmlFile.toPath(), exmlContent.getBytes(StandardCharsets.UTF_8));
-      getLog().info("exml const definitions added to: " + exmlFile.getAbsolutePath());
+    if (!staticList.isEmpty()) {
+      getLog().info("The renamed target file " + baseFile.getAbsolutePath() + " has static members: " + staticList);
     }
   }
 
@@ -177,8 +166,8 @@ public class ExmlTargetToBaseClassMojo extends AbstractExmlMojo {
    * get all strings after "function" or "const" including "function" or "const"
    * empty list if the visibility is "private"
    *
-   * @param line
-   * @return
+   * @param line the given line
+   * @return empty list if the visibility is "private"
    */
   private List<String> getRelevantTokens(String line) {
     String cleanLine = line.trim().replaceAll("\\s+", " ");
