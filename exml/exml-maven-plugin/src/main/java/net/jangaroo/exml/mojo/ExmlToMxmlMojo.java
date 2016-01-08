@@ -6,11 +6,7 @@ package net.jangaroo.exml.mojo;
 import net.jangaroo.exml.compiler.Exmlc;
 import net.jangaroo.exml.config.ExmlConfiguration;
 import net.jangaroo.exml.mojo.pom.PomConverter;
-import org.apache.maven.model.Build;
-import org.apache.maven.model.Plugin;
-import org.apache.maven.model.PluginManagement;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.descriptor.PluginDescriptor;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,19 +28,6 @@ import static org.apache.commons.io.FilenameUtils.getBaseName;
  * @threadSafe
  */
 public class ExmlToMxmlMojo extends AbstractExmlMojo {
-
-  /**
-   * Source directory to scan for test files to compile.
-   *
-   * @parameter expression="${project.build.testSourceDirectory}"
-   */
-  private File testSourceDirectory;
-
-  /**
-   * @parameter default-value="${plugin}"
-   * @readonly
-   */
-  private PluginDescriptor pluginDescriptor;
 
   /**
    * Set this to 'true' to rename EXML files to MXML files only and to skip the actual conversion. This allows to give
@@ -77,7 +60,7 @@ public class ExmlToMxmlMojo extends AbstractExmlMojo {
       getLog().info("Renaming EXML files to MXML files");
       try {
         renameFiles(getSourceDirectory());
-        renameFiles(testSourceDirectory);
+        renameFiles(getTestSourceDirectory());
       } catch (IOException e) {
         throw new MojoExecutionException("error while renaming EXML files", e);
       }
@@ -90,9 +73,9 @@ public class ExmlToMxmlMojo extends AbstractExmlMojo {
     config.setExtAsJar(extAsJar);
     new Exmlc(config).convertAllExmlToMxml();
     // Also convert test EXML sources to MXML:
-    if (testSourceDirectory != null && testSourceDirectory.exists()) {
+    if (getTestSourceDirectory() != null && getTestSourceDirectory().exists()) {
       ExmlConfiguration testConfig = createExmlConfiguration(getActionScriptTestClassPath(),
-              Collections.singletonList(testSourceDirectory), testSourceDirectory);
+              Collections.singletonList(getTestSourceDirectory()), getTestSourceDirectory());
       testConfig.setExtAsJar(extAsJar);
       new Exmlc(testConfig).convertAllExmlToMxml();
     }
@@ -112,40 +95,6 @@ public class ExmlToMxmlMojo extends AbstractExmlMojo {
         moveFile(exmlFile, mxmlFile);
       }
     }
-  }
-
-  private boolean isExmlProject() {
-    for(Object o : getProject().getBuildPlugins()) {
-      Plugin plugin = (Plugin) o;
-      if (plugin.getGroupId().equals(pluginDescriptor.getGroupId()) &&
-              plugin.getArtifactId().equals(pluginDescriptor.getArtifactId())) {
-        return plugin.isExtensions();
-      }
-    }
-    return false;
-  }
-
-  private boolean hasExmlConfiguration() {
-    for (Object o : getProject().getBuildPlugins()) {
-      Plugin plugin = (Plugin) o;
-      if (plugin.getGroupId().equals(pluginDescriptor.getGroupId()) &&
-              plugin.getArtifactId().equals(pluginDescriptor.getArtifactId())) {
-        return true;
-      }
-    }
-    Build build = getProject().getOriginalModel().getBuild();
-    if (build != null) {
-      PluginManagement pluginManagement = build.getPluginManagement();
-      if (pluginManagement != null) {
-        for (Plugin plugin : pluginManagement.getPlugins()) {
-          if (plugin.getGroupId().equals(pluginDescriptor.getGroupId()) &&
-                  plugin.getArtifactId().equals(pluginDescriptor.getArtifactId())) {
-            return true;
-          }
-        }
-      }
-    }
-    return false;
   }
 
   private List<File> getActionScriptTestClassPath() {
