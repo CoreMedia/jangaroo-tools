@@ -547,6 +547,10 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     }
     addOptImplements(classDeclaration, classDefinition);
     JsonObject members = convertMembers(classDefinitionBuilder.members);
+    JsonObject bindables = convertBindables(classDefinitionBuilder.members);
+    if (!bindables.isEmpty()) {
+      members.set("config", bindables);
+    }
     if (!members.isEmpty()) {
       classDefinition.add(members);
     }
@@ -573,11 +577,22 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   private JsonObject convertMembers(Map<String, PropertyDefinition> members) {
     JsonObject membersDefinition = new JsonObject();
     for (Map.Entry<String, PropertyDefinition> entry : members.entrySet()) {
-      if (entry.getValue().isValueOnly()) {
+      if (entry.getValue().isValueOnly() && !entry.getValue().bindable) {
         membersDefinition.set(entry.getKey(), JsonObject.code(entry.getValue().value));
       }
     }
     return membersDefinition;
+  }
+
+  private JsonObject convertBindables(Map<String, PropertyDefinition> members) {
+    JsonObject bindables = new JsonObject();
+    for (Map.Entry<String, PropertyDefinition> entry : members.entrySet()) {
+      PropertyDefinition member = entry.getValue();
+      if (member.bindable) {
+        bindables.set(entry.getKey(), JsonObject.code(member.isValueOnly() ? member.value : "null"));
+      }
+    }
+    return bindables;
   }
 
   private JsonObject convertAccessors(Map<String, PropertyDefinition> members) {
@@ -1535,12 +1550,17 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   private void registerField(VariableDeclaration variableDeclaration) {
     String variableName = variableDeclaration.getName();
 
+    boolean isBindable = Metadata.find(currentMetadata, "Bindable") != null;
+    String value = null;
     if (mustInitializeInStaticCode(variableDeclaration)) {
       if (variableDeclaration.isStatic()) {
         primaryClassDefinitionBuilder.staticCode.append("          ").append(variableName).append("$static_();\n");
       }
+      if (isBindable) {
+        // make sure that configs are always declared, even with dynamic initializer, so that Ext magic is applied:
+        value = "undefined";
+      }
     } else {
-      String value;
       if (variableDeclaration.getOptInitializer() != null) {
         Expr initialValue = variableDeclaration.getOptInitializer().getValue();
         JsWriter originalOut = out;
@@ -1565,8 +1585,10 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       if (variableDeclaration.isPrivate() && !variableDeclaration.isStatic()) {
         variableName += "$" + ((ClassDeclaration)compilationUnit.getPrimaryDeclaration()).getInheritanceLevel();
       }
+    }
+    if (value != null) {
       membersOrStaticMembers(variableDeclaration).put(variableName,
-              new PropertyDefinition(value, !variableDeclaration.isConst()));
+              new PropertyDefinition(value, !variableDeclaration.isConst(), isBindable));
     }
   }
 
@@ -1926,6 +1948,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     boolean configurable;
     String get;
     String set;
+    boolean bindable;
 
     private PropertyDefinition() {
     }
@@ -1934,9 +1957,10 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       this.value = value;
     }
 
-    private PropertyDefinition(String value, boolean writable) {
+    private PropertyDefinition(String value, boolean writable, boolean bindable) {
       this.value = value;
       this.writable = writable;
+      this.bindable = bindable;
     }
 
     JsonObject asJson() {
