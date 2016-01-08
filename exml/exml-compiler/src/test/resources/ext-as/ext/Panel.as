@@ -1,4 +1,8 @@
 package ext {
-public class Panel {
+import ext.config.panel;
+
+public class Panel extends Component {
+  public function Panel(config:ext.config.panel = null) {
+  }
 }
 }

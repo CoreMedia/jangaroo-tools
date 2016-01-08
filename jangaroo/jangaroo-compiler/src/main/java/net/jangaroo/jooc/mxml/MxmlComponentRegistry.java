@@ -1,7 +1,10 @@
 package net.jangaroo.jooc.mxml;
 
+import javax.xml.namespace.QName;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -13,6 +16,7 @@ public class MxmlComponentRegistry {
    * namespace -> local element name -> fully qualified AS3 class name
    */
   private Map<String, ComponentPackageModel> registry = new HashMap<String, ComponentPackageModel>();
+  private Map<String, List<QName>> qNamesByClassName = new HashMap<String, List<QName>>();
 
   public void registerElement(String namespace, String localName, String classQName) {
     ComponentPackageModel componentPackageModel = registry.get(namespace);
@@ -21,6 +25,12 @@ public class MxmlComponentRegistry {
       registry.put(namespace, componentPackageModel);
     }
     componentPackageModel.addElementToClassNameMapping(localName, classQName);
+    List<QName> qNames = qNamesByClassName.get(classQName);
+    if (qNames == null) {
+      qNames = new ArrayList<QName>();
+      qNamesByClassName.put(classQName, qNames);
+    }
+    qNames.add(new QName(namespace, localName));
   }
 
   public String getClassName(String namespace, String localName) {
@@ -30,11 +40,8 @@ public class MxmlComponentRegistry {
 
   public void add(ComponentPackageModel componentPackageModel) {
     String namespace = componentPackageModel.getNamespace();
-    ComponentPackageModel existingComponentPackageModel = registry.get(namespace);
-    if (existingComponentPackageModel != null) {
-      existingComponentPackageModel.add(componentPackageModel);
-    } else {
-      registry.put(namespace, componentPackageModel);
+    for (Map.Entry<String, String> entry : componentPackageModel.entrySet()) {
+      registerElement(namespace, entry.getKey(), entry.getValue());
     }
   }
 
@@ -44,5 +51,9 @@ public class MxmlComponentRegistry {
 
   public ComponentPackageModel getComponentPackageModel(String namespace) {
     return registry.get(namespace);
+  }
+
+  public List<QName> getQNamesByClassName(String className) {
+    return qNamesByClassName.get(className);
   }
 }

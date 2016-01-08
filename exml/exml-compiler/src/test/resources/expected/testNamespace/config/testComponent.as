@@ -1,7 +1,11 @@
 package testNamespace.config {
 
+import ext.Container;
 import ext.Panel;
+import ext.XTemplate;
 import ext.config.panel;
+import otherPackage.SomeClass;
+import testNamespace.config.testComponent2;
 import testPackage.TestImpl2;
 
 /**
@@ -98,7 +102,7 @@ public class testComponent extends ext.config.panel {
    */
   public native function set propertyEight(value:testPackage.TestImpl2):void;
   /**
-   * Some object
+   * Some object with double dash in comment --
    */
   public native function get propertyNine():Object;
   /**
@@ -113,5 +117,37 @@ public class testComponent extends ext.config.panel {
    * @private
    */
   public native function set propertyTen(value:Function):void;
+  /**
+   * 
+   */
+  public native function get propertyEleven():testNamespace.config.testComponent2;
+  /**
+   * @private
+   */
+  public native function set propertyEleven(value:testNamespace.config.testComponent2):void;
+  /**
+   * 
+   */
+  public native function get propertyTwelve():otherPackage.SomeClass;
+  /**
+   * @private
+   */
+  public native function set propertyTwelve(value:otherPackage.SomeClass):void;
+  /**
+   * 
+   */
+  public native function get property13():Container;
+  /**
+   * @private
+   */
+  public native function set property13(value:Container):void;
+  /**
+   * 
+   */
+  public native function get property14():XTemplate;
+  /**
+   * @private
+   */
+  public native function set property14(value:XTemplate):void;
 }
 }

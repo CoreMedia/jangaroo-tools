@@ -338,7 +338,7 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
 
     ExmlModel model = exmlToModelParser.parse(getFile("/testPackage/TestComponentWithCfgDefaults.exml"));
     List<ConfigAttribute> cfgs = model.getConfigClass().getDirectCfgs();
-    Assert.assertEquals(8, cfgs.size());
+    Assert.assertEquals(9, cfgs.size());
 
     JsonObject expectedJsonObject = new JsonObject(
             "propertyWithLiteralDefault", "foobar",
@@ -366,6 +366,9 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
               ),
             "propertyWithInterfaceAndDefault",
               JsonObject.code(" new TestImpl() ")
+            ,
+            "propertyFromOtherPackage",
+            JsonObject.code(" new SomeOtherClass('lala') ")
     );
     System.out.println(model.getJsonObject().toString(2));
     Assert.assertEquals(expectedJsonObject.toString(2), model.getCfgDefaults().toString(2));

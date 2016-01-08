@@ -7,7 +7,9 @@
     @see ext.Panel
   </exml:description>
 
+  <exml:import class="ext.Container"/>
   <exml:import class="ext.Panel"/>
+  <exml:import class="ext.XTemplate"/>
 
   <exml:cfg name="propertyOne" type="Boolean">
     <exml:description>Some Boolean property @see Boolean</exml:description>
@@ -50,6 +52,14 @@
   </exml:cfg>
 
   <exml:cfg name="propertyTen" type="Function"/>
+
+  <exml:cfg name="propertyEleven" type="testNamespace.config.testComponent2"/>
+
+  <exml:cfg name="propertyTwelve" type="otherPackage.SomeClass"/>
+
+  <exml:cfg name="property13" type="Container"/>
+
+  <exml:cfg name="property14" type="XTemplate"/>
 
   <panel title="I am inside a package!">
     <items>

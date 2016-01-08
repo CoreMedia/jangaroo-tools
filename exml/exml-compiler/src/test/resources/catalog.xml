@@ -8,6 +8,8 @@
     <feature-components/>
   </features>
   <components>
+    <component uri="exml:ext.config" name="Panel" className="ext:Panel"/>
+    <component uri="exml:ext.config" name="Container" className="ext:Container"/>
     <component uri="exml:ext.config" name="foo_Bar" className="ext.foo:Bar"/>
   </components>
 </swc>

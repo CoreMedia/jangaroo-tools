@@ -41,7 +41,8 @@ public class ConfigClassBuilderTest {
     }
     Assert.assertEquals(new HashSet<String>(Arrays.asList(
             "propertyOne", "propertyTwo", "propertyThree", "propertyFour", "propertyFive", "propertySix",
-            "propertySeven", "propertyEight", "propertyNine", "propertyTen"
+            "propertySeven", "propertyEight", "propertyNine", "propertyTen", "propertyEleven", "propertyTwelve",
+            "property13", "property14"
     )), attributeNames);
   }
 

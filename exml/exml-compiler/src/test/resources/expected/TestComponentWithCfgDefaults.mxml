@@ -10,6 +10,7 @@
                 title="{config.defaultTitle}">
   <fx:Script><![CDATA[
     import testPackage.TestInterface;
+    import otherPackage.SomeOtherClass;
     import ext.Component;
 
     public native function TestComponentWithCfgDefaults(config:testPackage.TestComponentWithCfgDefaults = null);
@@ -35,6 +36,9 @@
      */
     [Bindable]
     public var propertyWithInterfaceAndDefault:testPackage.TestInterface = new TestImpl();
+
+    [Bindable]
+    public var propertyFromOtherPackage:otherPackage.SomeOtherClass = new SomeOtherClass('lala');
   ]]></fx:Script>
   <fx:Declarations>
     <local:TestComponentWithCfgDefaults id="config"/>
