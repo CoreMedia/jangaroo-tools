@@ -22,7 +22,6 @@ import net.jangaroo.jooc.model.CompilationUnitModel;
 import net.jangaroo.jooc.model.MethodModel;
 import net.jangaroo.jooc.model.ParamModel;
 import net.jangaroo.jooc.mxml.CatalogComponentsParser;
-import net.jangaroo.jooc.mxml.ComponentPackageModel;
 import net.jangaroo.jooc.mxml.MxmlComponentRegistry;
 import net.jangaroo.jooc.mxml.MxmlUtils;
 import net.jangaroo.utils.CharacterRecordingHandler;
@@ -545,18 +544,10 @@ public class ExmlToMxml {
           continue;
         }
 
-        String type = "*".equals(config.getType()) ? "Object" : config.getType();
-        String prefix;
-        List<QName> qNames = mxmlComponentRegistry.getQNamesByClassName(resolveQName(type));
-        if (qNames != null) {
-          QName qName = qNames.get(0);
-          prefix = findPrefix(qName.getNamespaceURI());
-          type = qName.getLocalPart();
-        } else {
-          prefix = findPrefixForType(type);
-          type = CompilerUtils.className(type);
-        }
-        prefix = prefix == null || prefix.isEmpty() ? "" : prefix + ":";
+        QName qName = findTypeAndPrefix(config.getType());
+        String type = qName.getLocalPart();
+        String prefix = qName.getPrefix();
+        prefix = prefix.isEmpty() ? "" : prefix + ":";
 
         currentOut.printf("%n");
         if (config.getDescription() != null) {
@@ -585,6 +576,21 @@ public class ExmlToMxml {
       }
 
       currentOut.printf("%n  </fx:Declarations>%n");
+    }
+
+    private QName findTypeAndPrefix(String type) throws SAXException {
+      type = "*".equals(type) ? "Object" : type;
+      String prefix;
+      List<QName> qNames = mxmlComponentRegistry.getQNamesByClassName(resolveQName(type));
+      if (qNames != null) {
+        QName qName = findQName(CompilerUtils.className(type), qNames);
+        prefix = findPrefix(qName.getNamespaceURI());
+        type = qName.getLocalPart();
+      } else {
+        prefix = findPrefixForType(type);
+        type = CompilerUtils.className(type);
+      }
+      return new QName(null, type, prefix == null ? "" : prefix);
     }
 
     private void printASDoc(String text) {
@@ -617,16 +623,21 @@ public class ExmlToMxml {
     private String getMappedComponentName(String uri, String qName, String originalQName) {
       ConfigClass configClass = getConfigClass(uri, originalQName);
       if (configClass != null) {
-        ComponentPackageModel componentPackageModel = mxmlComponentRegistry.getComponentPackageModel(uri);
-        if (componentPackageModel != null) {
-          for (Map.Entry<String, String> entry : componentPackageModel.entrySet()) {
-            if (configClass.getComponentClassName().equals(entry.getValue())) {
-              return CompilerUtils.className(entry.getKey());
-            }
-          }
+        List<QName> qNames = mxmlComponentRegistry.getQNamesByClassName(configClass.getComponentClassName());
+        if (qNames != null) {
+          return findQName(originalQName, qNames).getLocalPart();
         }
       }
       return qName;
+    }
+
+    private QName findQName(String originalQName, List<QName> qNames) {
+      for (QName name : qNames) {
+        if (name.getLocalPart().toLowerCase().equals(originalQName.toLowerCase())) {
+          return name;
+        }
+      }
+      return qNames.get(0);
     }
 
     private String findPrefixForPackage(String packageName, boolean configUriOnly) {
