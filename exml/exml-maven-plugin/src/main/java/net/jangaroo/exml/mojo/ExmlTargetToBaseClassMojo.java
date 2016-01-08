@@ -8,6 +8,9 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
 import static org.apache.commons.io.FileUtils.listFiles;
@@ -22,11 +25,14 @@ import static org.apache.commons.io.FileUtils.listFiles;
  */
 public class ExmlTargetToBaseClassMojo extends AbstractExmlMojo {
 
-  public static final String PUBLIC_STATIC_PREFIX = "public static";
-  public static final String STATIC_PUBLIC_PREFIX = "static public";
+  public static final String PRIVATE_PREFIX = "private";
+  public static final String PROTECTED_PREFIX = "protected";
+  public static final String INTERNAL_PREFIX = "internal";
+  public static final String PUBLIC_PREFIX = "public";
   public static final String STATIC_PREFIX = "static";
   public static final String FUNCTION_LOWER_CASE = "function";
   public static final String CONST = "const";
+  public static final String VAR = "var";
   public static final String FUNCTION_UPPER_CASE = "Function";
   public static final String PACKAGE = "package";
 
@@ -110,6 +116,8 @@ public class ExmlTargetToBaseClassMojo extends AbstractExmlMojo {
       exmlDeclaration += "\r\nbaseClass=\"" + getName(baseFile) + "\">";
     }
 
+    //TODO: if there is already a baseClass declaration (which was unnecessary but who knows? see PremularBase.exml e.g.)
+
     exmlContent = exmlBefore + exmlDeclaration + exmlAfter;
     Files.write(exmlFile.toPath(), exmlContent.getBytes(StandardCharsets.UTF_8));
     getLog().info("baseClass declaration added to: " + exmlFile.getAbsolutePath());
@@ -121,35 +129,34 @@ public class ExmlTargetToBaseClassMojo extends AbstractExmlMojo {
     String exmlConstDeclaration = "";
     String importLineBaseClass = "";
     for (String line : baseClassLines) {
-      String constNameAndType;
+      if (line.startsWith(PACKAGE)) {
+        importLineBaseClass = "<exml:import class=\"" + line.split(" ")[1].split("\\{")[0] + "." + getName(baseFile) + "\"/>";
+      }
       String constName = null;
       String constType = null;
       String constValue;
-      String cleanLine = line.trim().replaceAll("\\s+", " ");
-      if (cleanLine.startsWith(PUBLIC_STATIC_PREFIX) || cleanLine.startsWith(STATIC_PUBLIC_PREFIX) ||
-              cleanLine.startsWith(STATIC_PREFIX + " " + CONST)) {
-        String[] lineTokens = cleanLine.split(" ");
-
-        if (lineTokens[2].equals(FUNCTION_LOWER_CASE)) {
-          constName = lineTokens[3].split("\\(")[0];
-          constType = FUNCTION_UPPER_CASE;
-        } else if (lineTokens[2].equals(CONST)) {
-          constNameAndType = lineTokens[3];
-          String[] constNameAndTypeTokens = constNameAndType.split(":");
-          constName = constNameAndTypeTokens[0];
-          constType = constNameAndTypeTokens.length > 1 ? constNameAndTypeTokens[1] : "Object";
-          constType = constType.split("=")[0];
-        }
-        constValue = constName == null ? null : getName(baseFile) + "." + constName;
-        if (constValue != null) {
-          exmlConstDeclaration += "\r\n<exml:constant name=\"" + constName + "\" type=\"" + constType + "\" value=\"{" +
-                  constValue + "}\"/>";
-        }
+      List<String> tokens = getRelevantTokens(line);
+      if (tokens.isEmpty()) {
+        continue;
+      }
+      if (tokens.get(0).equals(FUNCTION_LOWER_CASE)) {
+        constName = tokens.get(1).split("\\(")[0];
+        constType = FUNCTION_UPPER_CASE;
+      } else if (tokens.get(0).equals(CONST) || tokens.get(0).equals(VAR)) {
+        String[] constNameAndTypeTokens = tokens.get(1).split(":");
+        constName = constNameAndTypeTokens[0];
+        constType = constNameAndTypeTokens.length > 1 ? constNameAndTypeTokens[1] : "Object";
+        //handle "public static const bla:blub=" (without space between type and "=")
+        constType = constType.split("=")[0];
+        //handle "public static var bla:blub; (without value)
+        constType = constType.split(";")[0];
+      }
+      constValue = constName == null ? null : getName(baseFile) + "." + constName;
+      if (constValue != null) {
+        exmlConstDeclaration += "\r\n<exml:constant name=\"" + constName + "\" type=\"" + constType + "\" value=\"{" +
+                constValue + "}\"/>";
       }
 
-      if (cleanLine.startsWith(PACKAGE)) {
-        importLineBaseClass = "<exml:import class=\"" + cleanLine.split(" ")[1] + "." + getName(baseFile) + "\"/>";
-      }
     }
 
     if (exmlConstDeclaration.length() > 0) {
@@ -164,6 +171,30 @@ public class ExmlTargetToBaseClassMojo extends AbstractExmlMojo {
       Files.write(exmlFile.toPath(), exmlContent.getBytes(StandardCharsets.UTF_8));
       getLog().info("exml const definitions added to: " + exmlFile.getAbsolutePath());
     }
+  }
+
+  /**
+   * get all strings after "function" or "const" including "function" or "const"
+   * empty list if the visibility is "private"
+   *
+   * @param line
+   * @return
+   */
+  private List<String> getRelevantTokens(String line) {
+    String cleanLine = line.trim().replaceAll("\\s+", " ");
+    //what if "public static const bla : blub" (space before ":" and after)?
+    cleanLine = cleanLine.replaceAll(" :", ":");
+    cleanLine = cleanLine.replaceAll(" :", ":");
+
+    List<String> lineTokens = new LinkedList<String>(Arrays.asList(cleanLine.split(" ")));
+    if (lineTokens.contains(PRIVATE_PREFIX) || !lineTokens.contains(STATIC_PREFIX)) {
+      return Collections.emptyList();
+    }
+    lineTokens.remove(PUBLIC_PREFIX);
+    lineTokens.remove(PROTECTED_PREFIX);
+    lineTokens.remove(INTERNAL_PREFIX);
+    lineTokens.remove(STATIC_PREFIX);
+    return lineTokens;
   }
 
 
@@ -193,7 +224,7 @@ public class ExmlTargetToBaseClassMojo extends AbstractExmlMojo {
     File baseClassFile = new File(targetFile.getAbsolutePath().replace(".as", "Base.as"));
     if (targetFile.renameTo(baseClassFile)) {
       getLog().info("Target file " + targetFile.getName() + " is renamed to " + baseClassFile.getName() + " in " +
-      baseClassFile.getParent());
+              baseClassFile.getParent());
       return baseClassFile;
     } else {
       getLog().error("Renaming to " + baseClassFile.getAbsolutePath() + " failed");
