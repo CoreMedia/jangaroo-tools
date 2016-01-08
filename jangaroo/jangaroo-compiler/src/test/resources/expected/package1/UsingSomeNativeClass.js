@@ -11,32 +11,32 @@ public class UsingSomeNativeClass {
   public native function get someNative2():package1.SomeNativeClass;
 
   public*/ function UsingSomeNativeClass$() {var this$=this;someNative_.call(this);someOtherNative_.call(this);
-    new AS3.package1.someOtherPackage.SomeNativeClass();
-    this.someNative.setBaz ( "foo");
-    this.someNative2.setBaz ( "foo");
+    new AS3.package1.someOtherPackage.SomeNativeClass();AS3.setBindable(
+    this.someNative,"baz" , "foo");AS3.setBindable(
+    this.someNative2,"baz" , "foo");
     var local = function()/*:void*/ {
-      var test/*:String*/ = this$.someNative2.getBaz();
+      var test/*:String*/ =AS3.getBindable( this$.someNative2,"baz","bazchange");
     };
-    var foo = this.getFoobar();
-    var bar = this.getAnotherNativeAccessor();
+    var foo =AS3.getBindable( this,"someNativeAccessor","somenativeaccessorchange");
+    var bar =AS3.getBindable( this,"anotherNativeAccessor","anothernativeaccessorchange");
   }/*
 
-  [Accessor("getFoobar")]
+  [Bindable]
   public*/ function get$someNativeAccessor()/*:package1.SomeNativeClass*/ {
     return this.someNative;
   }/*
 
-  [Accessor]
+  [Bindable]
   public*/ function get$anotherNativeAccessor()/*:package1.SomeNativeClass*/ {
     return this.someNative;
   }/*
 
-  [Accessor]
+  [Bindable]
   public*/ function get$monkey()/*:Boolean*/ {
     return false;
   }/*
 
-  [Accessor]
+  [Bindable]
   public*/ function set$monkey(value/*:Boolean*/)/*:void*/ {
   }/*
 }
@@ -45,7 +45,7 @@ public class UsingSomeNativeClass {
 ============================================== Jangaroo part ==============================================*/
     return {
       constructor: UsingSomeNativeClass$,
-      getFoobar: get$someNativeAccessor,
+      getSomeNativeAccessor: get$someNativeAccessor,
       getAnotherNativeAccessor: get$anotherNativeAccessor,
       isMonkey: get$monkey,
       setMonkey: set$monkey,

@@ -6,9 +6,9 @@ package package1 {
 [Native]
 public class SomeNativeSuperClass {
 
-  [Accessor]
+  [Bindable]
   public native function get baz():String;
-  [Accessor]
+  [Bindable]
   public native function set baz(value:String):void;
 }
 }

@@ -55,7 +55,6 @@ public final class MxmlToModelParser {
   public static final String MXML_ID_ATTRIBUTE = "id";
   public static final String MXML_DEFAULT_PROPERTY_ANNOTATION = "DefaultProperty";
 
-  public static final String CONSTRUCTOR_PARAMETER_ANNOTATION = "ConstructorParameter";
   public static final String ALLOW_CONSTRUCTOR_PARAMETERS_ANNOTATION = "AllowConstructorParameters";
   private static final String EXT_CONFIG_META_NAME = "ExtConfig";
 
@@ -267,7 +266,7 @@ public final class MxmlToModelParser {
   }
 
   private static boolean hasSetter(MemberModel memberModel) {
-    return hasAnnotationAtSetter(memberModel, Jooc.ACCESSOR_ANNOTATION_NAME);
+    return hasAnnotationAtSetter(memberModel, Jooc.BINDABLE_ANNOTATION_NAME);
   }
 
   private static boolean hasAnnotationAtSetter(MemberModel memberModel, String annotationName) {
@@ -515,7 +514,7 @@ public final class MxmlToModelParser {
     if (propertyModel instanceof PropertyModel) {
       MethodModel setter = ((PropertyModel) propertyModel).getSetter();
       if (setter != null) { // should actually be there, or the assignment would not work!
-        Iterator<AnnotationModel> configOptionAnnotations = setter.getAnnotations(CONSTRUCTOR_PARAMETER_ANNOTATION).iterator();
+        Iterator<AnnotationModel> configOptionAnnotations = setter.getAnnotations(EXT_CONFIG_META_NAME).iterator();
         if (configOptionAnnotations.hasNext()) {
           AnnotationPropertyModel configOption = configOptionAnnotations.next().getPropertiesByName().get(null);
           if (configOption != null) {
@@ -585,7 +584,7 @@ public final class MxmlToModelParser {
   private Set<MemberModel> findConfigOptionsWithValue(ClassModel classModel) throws IOException {
     Set<MemberModel> result = new LinkedHashSet<MemberModel>();
     for (ClassModel current = classModel; current != null; current = getSuperClassModel(current)) {
-      Set<MemberModel> configOptionPropertyModels = current.findPropertiesWithAnnotation(false, CONSTRUCTOR_PARAMETER_ANNOTATION);
+      Set<MemberModel> configOptionPropertyModels = current.findPropertiesWithAnnotation(false, EXT_CONFIG_META_NAME);
       for (MemberModel configOptionPropertyModel : configOptionPropertyModels) {
         // even though getConfigOptionValue() also unwraps a PropertyModel, we have to do it in advance
         // in order to add the right model to the result:
@@ -604,7 +603,7 @@ public final class MxmlToModelParser {
     if (propertyModel instanceof PropertyModel) {
       propertyModel = ((PropertyModel) propertyModel).getGetter();
     }
-    List<AnnotationModel> configOptionAnnotations = propertyModel.getAnnotations(CONSTRUCTOR_PARAMETER_ANNOTATION);
+    List<AnnotationModel> configOptionAnnotations = propertyModel.getAnnotations(EXT_CONFIG_META_NAME);
     if (!configOptionAnnotations.isEmpty()) {
       AnnotationPropertyModel configOptionValue = configOptionAnnotations.get(0).getPropertiesByName().get("value");
       if (configOptionValue != null) {

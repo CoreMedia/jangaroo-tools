@@ -116,7 +116,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   private static final JooSymbol SYM_RBRACE = new JooSymbol(sym.RBRACE, "}");
   public static final Set<String> PRIMITIVES = new HashSet<String>(4);
   public static final List<String> ANNOTATIONS_TO_TRIGGER_AT_RUNTIME = Arrays.asList("SWF", "ExtConfig"); // TODO: inject / make configurable
-  public static final List<String> ANNOTATIONS_FOR_COMPILER_ONLY = Arrays.asList("Embed", "Native", "Accessor");
+  public static final List<String> ANNOTATIONS_FOR_COMPILER_ONLY = Arrays.asList("Embed", "Native", "Bindable");
   public static final String DEFAULT_ANNOTATION_PARAMETER_NAME = "";
   public static final String PROPERTIES_CLASS_SUFFIX = "_properties";
   public static final String INIT_STATICS = "__initStatics__";
@@ -255,18 +255,17 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       memberName = CompilerUtils.quote(memberName);
       closingToken = ")";
     } else if (memberDeclaration != null && !isAssignmentLHS(ide)) {
-      String getter = resolveAccessor(ide, MethodType.GET, memberDeclaration.getClassDeclaration());
+      MemberModel getter = findMemberWithBindableAnnotation(ide, MethodType.GET, memberDeclaration.getClassDeclaration());
       if (getter != null) {
-        // found usage of an [Accessor]-annotated get function: call it!
-        memberName = getter;
-        closingToken = "()";
-      }
-      String bindableEvent = resolveBindable(ide, MethodType.GET, memberDeclaration.getClassDeclaration());
-      if (bindableEvent != null) {
+        // found usage of an [Bindable]-annotated get function: call it via AS3.getBindable()!
         out.writeToken("AS3.getBindable(");
-        memberName = CompilerUtils.quote(memberName);
+        memberName = CompilerUtils.quote(getter.getName());
         separatorToken = ",";
-        closingToken = "," + CompilerUtils.quote(bindableEvent) + ")";
+        closingToken = ")";
+        String bindableEvent = getBindableEventName(getter);
+        if (bindableEvent != null) {
+          closingToken = "," + CompilerUtils.quote(bindableEvent) + closingToken;
+        }
       }
     } else if (memberName.startsWith("@")) {
       // escape @... property names:
@@ -748,15 +747,16 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       }
       if (leftHandSide instanceof DotExpr) {
         DotExpr dotExpr = (DotExpr) leftHandSide;
-        setter = resolveAccessor(dotExpr, MethodType.SET);
+        setter = resolveBindable(dotExpr, MethodType.SET);
         dotExprArg = dotExpr.getArg();
         symDot = dotExpr.getOp();
       }
       if (setter != null && dotExprArg != null) {
+        out.write("AS3.setBindable(");
         visitInExpressionMode(dotExprArg);
-        out.writeSymbol(symDot);
-        out.write(setter);
-        writeSymbolReplacement(assignmentOpExpr.getOp(), "(");
+        writeSymbolReplacement(symDot, ",");
+        out.write(CompilerUtils.quote(setter));
+        writeSymbolReplacement(assignmentOpExpr.getOp(), ",");
         assignmentOpExpr.getArg2().visit(this);
         out.writeToken(")");
         return;
@@ -766,46 +766,26 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     }
   }
 
-  private static String resolveAccessor(DotExpr dotExpr, MethodType methodType) throws IOException {
+  private static String resolveBindable(DotExpr dotExpr, MethodType methodType) throws IOException {
     //System.err.println("*#*#*#* trying to find " + methodType + "ter for qIde " + qIde.getQualifiedNameStr());
     IdeDeclaration lhsType = dotExpr.getArg().getType();
     if (lhsType instanceof ClassDeclaration) {
-      return resolveAccessor(dotExpr.getIde(), methodType, (ClassDeclaration) lhsType);
+      MemberModel member = findMemberWithBindableAnnotation(dotExpr.getIde(), methodType, (ClassDeclaration) lhsType);
+      return member == null ? null : member.getName();
     }
     if (lhsType instanceof Typed) {
       TypeRelation typeRelation = ((Typed) lhsType).getOptTypeRelation();
       if (typeRelation != null) {
         IdeDeclaration typeDeclaration = typeRelation.getType().resolveDeclaration();
         if (typeDeclaration instanceof ClassDeclaration) {
-          return resolveAccessor(dotExpr.getIde(), methodType, (ClassDeclaration) typeDeclaration);
+          return resolveBindable(dotExpr.getIde(), methodType, (ClassDeclaration) typeDeclaration);
         }
       }
     }
     return null;
   }
 
-  private static String resolveAccessor(Ide qIde, MethodType methodType, ClassDeclaration typeDeclaration) throws IOException {
-    String memberName = qIde.getIde().getText();
-    MemberModel member = lookupPropertyDeclaration(typeDeclaration, memberName, methodType);
-//      System.err.println("*#*#*#* found member " + member + " for " + typeDeclaration.getQualifiedNameStr()
-//              + "#" + memberName + " for qIde " + qIde.getQualifiedNameStr());
-    if (member != null) {
-      List<AnnotationModel> accessorAnnotations = member.getAnnotations(Jooc.ACCESSOR_ANNOTATION_NAME);
-      if (accessorAnnotations.size() > 0) {
-        AnnotationPropertyModel accessorAnnotation = accessorAnnotations.get(0).getPropertiesByName().get(null);
-        if (accessorAnnotation == null) {
-          return (methodType == MethodType.GET &&
-                  "Boolean".equals(((MethodModel) member).getReturnModel().getType())
-                  ? "is" : methodType) + MxmlUtils.capitalize(memberName);
-        } else {
-          return accessorAnnotation.getStringValue();
-        }
-      }
-    }
-    return null;
-  }
-
-  private String resolveBindable(Ide qIde, MethodType methodType, ClassDeclaration typeDeclaration) throws IOException {
+  private static MemberModel findMemberWithBindableAnnotation(Ide qIde, MethodType methodType, ClassDeclaration typeDeclaration) throws IOException {
     String memberName = qIde.getIde().getText();
     MemberModel member = lookupPropertyDeclaration(typeDeclaration, memberName, methodType);
 //      System.err.println("*#*#*#* found member " + member + " for " + typeDeclaration.getQualifiedNameStr()
@@ -813,16 +793,40 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     if (member != null) {
       List<AnnotationModel> bindableAnnotations = member.getAnnotations(Jooc.BINDABLE_ANNOTATION_NAME);
       if (bindableAnnotations.size() > 0) {
-        AnnotationPropertyModel eventAnnotation = bindableAnnotations.get(0).getPropertiesByName().get("event");
-        return eventAnnotation == null
-                ? memberName.toLowerCase() + "change"
-                : eventAnnotation.getStringValue();
+        return member;
       }
     }
     return null;
   }
 
-  
+  private static Map<String, AnnotationPropertyModel> getBindablePropertiesByName(MemberModel member) {
+    return member.getAnnotations(Jooc.BINDABLE_ANNOTATION_NAME).get(0).getPropertiesByName();
+  }
+
+  private static String resolveBindable(Ide qIde, MethodType methodType, ClassDeclaration typeDeclaration) throws IOException {
+    MemberModel member = findMemberWithBindableAnnotation(qIde, methodType, typeDeclaration);
+    return member == null ? null : getBindablePropertyName(methodType, member);
+  }
+
+  private static String getBindablePropertyName(MethodType methodType, MemberModel member) {
+    AnnotationPropertyModel bindableAnnotationValue = getBindablePropertiesByName(member).get(null);
+    if (bindableAnnotationValue == null) {
+      return (methodType == MethodType.GET &&
+              "Boolean".equals(((MethodModel) member).getReturnModel().getType())
+              ? "is" : methodType) + MxmlUtils.capitalize(member.getName());
+    } else {
+      return bindableAnnotationValue.getStringValue();
+    }
+  }
+
+  private static String getBindableEventName(MemberModel member) {
+    AnnotationPropertyModel eventAnnotation = getBindablePropertiesByName(member).get("event");
+    return eventAnnotation == null
+            ? member.getName().toLowerCase() + "change"
+            : eventAnnotation.getStringValue();
+  }
+
+
   private static MemberModel lookupPropertyDeclaration(ClassDeclaration classDeclaration, String memberName,
                                                        MethodType methodType) throws IOException {
     MemberModel member;
@@ -1668,10 +1672,10 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
         boolean isAccessor = functionDeclaration.isGetterOrSetter();
         if (isAccessor) {
-          Metadata accessorAnnotation = Metadata.find(currentMetadata, Jooc.ACCESSOR_ANNOTATION_NAME);
-          if (accessorAnnotation != null) {
+          Metadata bindableAnnotation = Metadata.find(currentMetadata, Jooc.BINDABLE_ANNOTATION_NAME);
+          if (bindableAnnotation != null) {
             String accessorPrefix = functionDeclaration.getSymGetOrSet().getText();
-            String accessorName = (String) accessorAnnotation.getArgumentValue(DEFAULT_ANNOTATION_PARAMETER_NAME);
+            String accessorName = (String) bindableAnnotation.getArgumentValue(DEFAULT_ANNOTATION_PARAMETER_NAME);
             if (accessorName != null) {
               methodName = accessorName;
             } else {

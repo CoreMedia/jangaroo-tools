@@ -21,22 +21,22 @@ public class UsingSomeNativeClass {
     var bar = this.anotherNativeAccessor;
   }
 
-  [Accessor("getFoobar")]
+  [Bindable]
   public function get someNativeAccessor():package1.SomeNativeClass {
     return someNative;
   }
 
-  [Accessor]
+  [Bindable]
   public function get anotherNativeAccessor():package1.SomeNativeClass {
     return someNative;
   }
 
-  [Accessor]
+  [Bindable]
   public function get monkey():Boolean {
     return false;
   }
 
-  [Accessor]
+  [Bindable]
   public function set monkey(value:Boolean):void {
   }
 }

@@ -55,7 +55,7 @@ public class SomeMxmlClass extends package1.ConfigClass {
   }/*
 
   private*/ function $bind_$_14_bla()/*:int*/ {
-    return AS3.getBindable( this.other,"get_bla","bla_has_changed");
+    return AS3.getBindable( this.other,"bla","bla_has_changed");
   }/*
 
   public native function get no_config():package1.someOtherPackage.SomeOtherClass;
@@ -77,37 +77,33 @@ public class SomeMxmlClass extends package1.ConfigClass {
     var $_3/*:Object*/ = {};
     $_3.name = "Felix";
     this.list = [$_2, $_3];
-    var $_4/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});
-    $_4.set_bla ( 3);
+    var $_4/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
+    $_4,"bla" , 3);
     $_4.blubb_accessor = this.$bind_other_blubbAccessor$2();
     $_4.blubb_config = 'blub config expression';
     this.other = new AS3.package1.someOtherPackage.SomeOtherClass($_4);
     joo.addEventListener($_1, "click",AS3.bind( this,"$on_$_1_click$2"), AS3.package1.someOtherPackage.SomeEvent);
     $_1.foo = "bar";
     $_1.number = 1 + 1;
-    var $_5/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});
-    $_5.set_bla ( 23);
-    $_5.type = "someOtherType";
-    var $_7/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});
-    $_7.set_bla ( 1);
+    var $_5/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
+    $_5,"bla" , 23);
+    var $_7/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
+    $_7,"bla" , 1);
     joo.addEventListener($_7, "clack",AS3.bind( this,"$on_$_7_clack$2"), AS3.package1.someOtherPackage.SomeEvent);
-    $_7.type = "someOtherType";
-    var $_9/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});
-    $_9.set_bla ( 42);
-    $_9.type = "someOtherType";
+    var $_9/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
+    $_9,"bla" , 42);
     var $_11/*:package1.ConfigClass*/ =AS3.cast( AS3.package1.ConfigClass,{});
-    var $_13/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});
-    $_13.set_bla ( this.$bind_$_14_bla$2());
+    var $_13/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
+    $_13,"bla" , this.$bind_$_14_bla$2());
     $_13.doodle = "non-bound";
     var $_14/*:package1.someOtherPackage.SomeOtherClass*/ = new AS3.package1.someOtherPackage.SomeOtherClass($_13);
     $_11.items = [$_14];
     $_11.number = 12;
     var $_15/*:package1.ConfigClass*/ =AS3.cast( AS3.package1.ConfigClass,{});
-    var $_17/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});
-    $_17.set_bla ( 12);
-    $_17.type = "someOtherType";
-    var $_19/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});
-    $_19.set_bla ( 13);
+    var $_17/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
+    $_17,"bla" , 12);
+    var $_19/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
+    $_19,"bla" , 13);
     this.no_config = new AS3.package1.someOtherPackage.SomeOtherClass($_19);
     $_15.items = [$_17, this.no_config];
     $_1.items = [$_5, $_7, $_9, $_11, $_15];

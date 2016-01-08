@@ -75,6 +75,20 @@ AS3 = {
       value.xclass = type.$className;
     }
     return value;
+  },
+  getBindable: function (object, property) {
+    if (object.isInstance) {
+      return object.getConfig(property);
+    } else {
+      return object[property];
+    }
+  },
+  setBindable: function (object, property, value) {
+    if (object.isInstance) {
+      object.setConfig(property, value);
+    } else {
+      object[property] = value;
+    }
   }
 };
 
