@@ -58,10 +58,13 @@ public class ObjectField extends NodeImplBase {
     getValue().analyze(this);
   }
 
+  public boolean isStandAloneConstant() {
+    return value.isStandAloneConstant();
+  }
+
   public JooSymbol getSymbol() {
     return getLabel().getSymbol();
   }
-
 
   public AstNode getLabel() {
     return label;
@@ -74,5 +77,4 @@ public class ObjectField extends NodeImplBase {
   public Expr getValue() {
     return value;
   }
-
 }

@@ -38,6 +38,12 @@ public abstract class Expr extends NodeImplBase {
     return false;
   }
 
+  /**
+   * Whether this expression denotes a stand-alone constant, that is, a constant
+   * that can be derived without looking at other classes.
+   *
+   * @return whether this expression denotes a stand-alone constant
+   */
   public boolean isStandAloneConstant() {
     return isRuntimeConstant();
   }
