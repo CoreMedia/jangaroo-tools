@@ -58,6 +58,8 @@ import java.util.Set;
  * A tool that converts EXML source code into MXML and ActionScript source code.
  */
 public class ExmlToMxml {
+  private static final String LOCAL_NAMESPACE = "local";
+
   private ConfigClassRegistry configClassRegistry;
   private Properties migrationMap = new Properties();
   private ClassLoader resourceClassLoader = ExmlToMxml.class.getClassLoader();
@@ -190,7 +192,7 @@ public class ExmlToMxml {
       startRecordingCharacters();
 
       // add local namespace last to match the local package
-      prefixMappings.put("local", createPackageNamespace(exmlModel.getPackageName()));
+      prefixMappings.put(LOCAL_NAMESPACE, createPackageNamespace(exmlModel.getPackageName()));
 
       super.startDocument();
     }
@@ -472,6 +474,21 @@ public class ExmlToMxml {
       return name;
     }
 
+    private String resolveQNameFromModel(String name) {
+      if (!name.contains(".")) {
+        for (String anImport : exmlModel.getImports()) {
+          if (CompilerUtils.className(anImport).equals(name)) {
+            return anImport;
+          }
+        }
+        String localQName = CompilerUtils.qName(exmlModel.getPackageName(), name);
+        if (configClassRegistry.getJangarooParser().getCompilationUnit(localQName) != null) {
+          return localQName;
+        }
+      }
+      return name;
+    }
+
     private boolean isNewRoot(String uri) {
       return !ExmlUtils.isExmlNamespace(uri) && elementPath.size() == 1;
     }
@@ -531,7 +548,7 @@ public class ExmlToMxml {
       String targetClassName = CompilerUtils.className(targetClassQName);
 
       currentOut.printf("%n  <fx:Declarations>");
-      currentOut.printf("%n    <local:%s id=\"config\"/>", targetClassName);
+      currentOut.printf("%n    <%s:%s id=\"config\"/>", LOCAL_NAMESPACE, targetClassName);
 
       for (Declaration var : vars) {
         if (varsWithXmlValue.contains(var.getName())) {
@@ -763,12 +780,13 @@ public class ExmlToMxml {
       return null; // do not render config elements
     }
 
-    private void addPrefixMapping(String type) throws SAXException {
+    private String addPrefixMapping(String type) throws SAXException {
       String prefix = findPrefixForType(type);
       if (prefix == null) {
         prefix = "ns" + (++nsCount);
         prefixMappings.put(prefix, createPackageNamespace(CompilerUtils.packageName(resolveQName(type))));
       }
+      return prefix;
     }
 
     private String findPrefixForType(String type) throws SAXException {
@@ -807,7 +825,7 @@ public class ExmlToMxml {
       return annotationAt == AnnotationAt.CONFIG ? null : "fx:Metadata";
     }
 
-    private void handleRootNode(Attributes atts) {
+    private void handleRootNode(Attributes atts) throws SAXException {
       String asDoc = exmlModel.getDescription();
       if (asDoc != null && !asDoc.trim().isEmpty()) {
         printComment(asDoc);
@@ -817,10 +835,14 @@ public class ExmlToMxml {
       baseClass = atts.getValue(Exmlc.EXML_BASE_CLASS_ATTRIBUTE);
       if (baseClass != null && !baseClass.isEmpty()) {
         // baseClass attribute has been specified, so the super class of the component is actually that:
+        String prefix = addPrefixMapping(resolveQNameFromModel(baseClass));
+        if (!prefix.isEmpty()) {
+          prefix += ":";
+        }
         if (baseClass.contains(".")) {
           baseClass = CompilerUtils.className(baseClass);
         }
-        baseClass = "local:" + baseClass;
+        baseClass = prefix + baseClass;
       }
 
       String publicApiValue = atts.getValue(Exmlc.EXML_PUBLIC_API_ATTRIBUTE);

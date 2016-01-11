@@ -2,20 +2,20 @@
 <!--- 
     This is a TestComponent with a base class.
    -->
-<APanel         xmlns:fx="http://ns.adobe.com/mxml/2009"
+<local:TestImpl xmlns:fx="http://ns.adobe.com/mxml/2009"
                 xmlns:local="testPackage.*"
                 xmlns:exml="http://www.jangaroo.net/exml/0.8"
                 xmlns="exml:ext.config"
                 title="Hello World">
   <fx:Script><![CDATA[
-    public native function TestComponentWithBaseClass(config:testPackage.TestComponentWithBaseClass = null);
+    public native function TestComponentWithBaseClassFromSamePackage(config:testPackage.TestComponentWithBaseClassFromSamePackage = null);
   ]]></fx:Script>
   <fx:Declarations>
-    <local:TestComponentWithBaseClass id="config"/>
+    <local:TestComponentWithBaseClassFromSamePackage id="config"/>
   </fx:Declarations>
 
-    <items>
+    <local:items>
       <Button text="foo"/>
-    </items>
+    </local:items>
   
-</APanel>
+</local:TestImpl>
