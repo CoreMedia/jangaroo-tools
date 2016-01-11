@@ -51,7 +51,8 @@ AS3 = {
         }
         return false;
       } else if (object.xclass) {
-        return Ext.ClassManager.get(object.xclass).prototype instanceof type;
+        var prototype = Ext.ClassManager.get(object.xclass).prototype;
+        return prototype === type.prototype || prototype instanceof type;
       }
     }
     // special case for special observables, e.g. classes:
