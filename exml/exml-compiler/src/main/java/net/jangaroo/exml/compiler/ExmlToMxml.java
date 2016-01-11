@@ -444,7 +444,7 @@ public class ExmlToMxml {
           MethodModel constructor = compilationUnitModel.getClassModel().getConstructor();
           if (constructor != null && constructor.getParams().size() > 0) {
             String type = constructor.getParams().get(0).getType();
-            if (CompilerUtils.packageName(type).isEmpty()) {
+            if (type != null && CompilerUtils.packageName(type).isEmpty()) {
               for (AstNode astNode : compilationUnit.getDirectives()) {
                 if (astNode instanceof ImportDirective) {
                   ImportDirective importDirective = (ImportDirective) astNode;
