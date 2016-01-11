@@ -43,6 +43,12 @@ public abstract class AbstractExmlMojo extends JangarooMojo {
    */
   private File testSourceDirectory;
   /**
+   * Output directory for all test ActionScript3 files generated out of exml components
+   *
+   * @parameter default-value="${project.build.directory}/generated-test-sources/joo"
+   */
+  private File generatedTestSourcesDirectory;
+  /**
    * The package into which config classes of EXML components are generated.
    *
    * @parameter
@@ -70,6 +76,10 @@ public abstract class AbstractExmlMojo extends JangarooMojo {
 
   public File getGeneratedSourcesDirectory() {
     return generatedSourcesDirectory;
+  }
+
+  public File getGeneratedTestSourcesDirectory() {
+    return generatedTestSourcesDirectory;
   }
 
   protected ExmlConfiguration createExmlConfiguration(List<File> classPath, List<File> sourcePath, File outputDirectory) throws MojoExecutionException {

@@ -134,7 +134,7 @@ public class ExmlToMxml {
   private File exmlToMxml(ExmlSourceFile exmlSourceFile) throws IOException, SAXException {
     ExmlModel exmlModel = new ExmlToModelParser(configClassRegistry).parse(exmlSourceFile.getSourceFile());
     File sourceFile = exmlSourceFile.getSourceFile();
-    File outputFile = CompilerUtils.fileFromQName(exmlSourceFile.getTargetClassName(), configClassRegistry.getConfig().getOutputDirectory(), ".mxml");
+    File outputFile = CompilerUtils.fileFromQName(exmlSourceFile.getTargetClassName(), configClassRegistry.getConfig().getSourcePath().get(0), ".mxml");
     FileUtils.forceMkdir(outputFile.getParentFile());
     PrintStream writer = new PrintStream(new FileOutputStream(outputFile), true, net.jangaroo.exml.api.Exmlc.OUTPUT_CHARSET);
     ExmlToConfigClassParser.parseFileWithHandler(sourceFile, new ExmlToMxmlHandler(exmlSourceFile, exmlModel, writer));

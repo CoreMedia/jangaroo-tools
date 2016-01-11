@@ -21,20 +21,6 @@ import java.util.List;
 public class ExmlTestCompileMojo extends AbstractExmlCompileMojo {
 
   /**
-   * Source directory to scan for test files to compile.
-   *
-   * @parameter expression="${project.build.testSourceDirectory}"
-   */
-  private File testSourceDirectory;
-
-  /**
-   * Output directory for all test ActionScript3 files generated out of exml components
-   *
-   * @parameter default-value="${project.build.directory}/generated-test-sources/joo"
-   */
-  private File generatedTestSourcesDirectory;
-
-  /**
    * Set this to 'true' to bypass unit tests entirely. Its use is NOT RECOMMENDED, especially if you
    * enable it using the "maven.test.skip" property, because maven.test.skip disables both running the
    * tests and compiling the tests. Consider using the skipTests parameter instead.
@@ -55,7 +41,7 @@ public class ExmlTestCompileMojo extends AbstractExmlCompileMojo {
 
   @Override
   public File getGeneratedSourcesDirectory() {
-    return generatedTestSourcesDirectory;
+    return getGeneratedTestSourcesDirectory();
   }
 
   @Override
@@ -68,6 +54,6 @@ public class ExmlTestCompileMojo extends AbstractExmlCompileMojo {
   }
 
   protected List<File> getSourcePath() {
-    return Collections.singletonList(testSourceDirectory);
+    return Collections.singletonList(getTestSourceDirectory());
   }
 }

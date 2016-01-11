@@ -22,7 +22,7 @@ public class MxmlLibraryManifestGenerator {
 
   public File createManifestFile() throws FileNotFoundException, UnsupportedEncodingException {
     // create catalog.xml component library:
-    File outputFile = new File(configClassRegistry.getConfig().getOutputDirectory(), "manifest.xml");
+    File outputFile = new File(configClassRegistry.getConfig().getSourcePath().get(0), "manifest.xml");
     System.out.printf("Creating manifest file %s...%n", outputFile.getPath());
     PrintStream out = new PrintStream(new FileOutputStream(outputFile), true, net.jangaroo.exml.api.Exmlc.OUTPUT_CHARSET);
 

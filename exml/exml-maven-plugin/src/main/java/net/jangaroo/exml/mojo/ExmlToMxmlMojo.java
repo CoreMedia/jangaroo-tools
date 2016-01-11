@@ -69,13 +69,13 @@ public class ExmlToMxmlMojo extends AbstractExmlMojo {
 
     // Convert main EXML sources to MXML:
     ExmlConfiguration config = createExmlConfiguration(getActionScriptClassPath(),
-            Collections.singletonList(getSourceDirectory()), getSourceDirectory());
+            Collections.singletonList(getSourceDirectory()), getGeneratedSourcesDirectory());
     config.setExtAsJar(extAsJar);
     new Exmlc(config).convertAllExmlToMxml();
     // Also convert test EXML sources to MXML:
     if (getTestSourceDirectory() != null && getTestSourceDirectory().exists()) {
       ExmlConfiguration testConfig = createExmlConfiguration(getActionScriptTestClassPath(),
-              Collections.singletonList(getTestSourceDirectory()), getTestSourceDirectory());
+              Collections.singletonList(getTestSourceDirectory()), getGeneratedTestSourcesDirectory());
       testConfig.setExtAsJar(extAsJar);
       new Exmlc(testConfig).convertAllExmlToMxml();
     }

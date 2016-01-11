@@ -10,6 +10,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
+import java.util.Collections;
 
 import static java.util.Arrays.asList;
 import static org.apache.commons.io.FileUtils.readFileToString;
@@ -24,7 +25,7 @@ public class MxmlLibraryManifestGeneratorTest {
   @Test
   public void testCreateManifestFile() throws Exception {
     ExmlConfiguration exmlConfiguration = mock(ExmlConfiguration.class);
-    when(exmlConfiguration.getOutputDirectory()).thenReturn(temporaryFolder.newFolder("out"));
+    when(exmlConfiguration.getSourcePath()).thenReturn(Collections.singletonList(temporaryFolder.newFolder("out")));
     ConfigClass configClass1 = mock(ConfigClass.class);
     when(configClass1.getFullName()).thenReturn("foo");
     when(configClass1.getType()).thenReturn(ConfigClassType.CLASS);
