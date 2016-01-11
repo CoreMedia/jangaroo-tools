@@ -35,7 +35,7 @@ public class SomeMxmlClass extends package1.ConfigClass {
   }/*
 
   private*/ function $bind_$_14_bla()/*:int*/ {
-    return AS3.getBindable(AS3.getBindable( this,"other","otherchange"),"bla","bla_has_changed");
+    return AS3.getBindable(AS3.getBindable( this,"other"),"bla","bla_has_changed");
   }/*
 
   [Bindable]
@@ -47,7 +47,7 @@ public class SomeMxmlClass extends package1.ConfigClass {
     this,"bar" , "BAR!");AS3.setBindable(
     this,"num" , 123);AS3.setBindable(
     this,"blub" , {});AS3.getBindable(
-    this,"blub","blubchange").name = "Kuno";
+    this,"blub").name = "Kuno";
     var $_2/*:Object*/ = {};
     $_2.name = "Joe";
     var $_3/*:Object*/ = {};
@@ -81,7 +81,7 @@ public class SomeMxmlClass extends package1.ConfigClass {
     var $_19/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
     $_19,"bla" , 13);AS3.setBindable(
     this,"no_config" , new AS3.package1.someOtherPackage.SomeOtherClass($_19));
-    $_15.items = [$_17,AS3.getBindable( this,"no_config","no_configchange")];
+    $_15.items = [$_17,AS3.getBindable( this,"no_config")];
     $_1.items = [$_5, $_7, $_9, $_11, $_15];
     AS3.net.jangaroo.ext.Exml.apply($_1, config);
     this.callParent([$_1]);

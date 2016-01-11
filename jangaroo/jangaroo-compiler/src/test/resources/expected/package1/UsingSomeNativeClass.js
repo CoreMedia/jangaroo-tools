@@ -15,10 +15,10 @@ public class UsingSomeNativeClass {
     this.someNative,"baz" , "foo");AS3.setBindable(
     this.someNative2,"baz" , "foo");
     var local = function()/*:void*/ {
-      var test/*:String*/ =AS3.getBindable( this$.someNative2,"baz","bazchange");
+      var test/*:String*/ =AS3.getBindable( this$.someNative2,"baz");
     };
-    var foo =AS3.getBindable( this,"someNativeAccessor","somenativeaccessorchange");
-    var bar =AS3.getBindable( this,"anotherNativeAccessor","anothernativeaccessorchange");
+    var foo =AS3.getBindable( this,"someNativeAccessor");
+    var bar =AS3.getBindable( this,"anotherNativeAccessor");
   }/*
 
   [Bindable]

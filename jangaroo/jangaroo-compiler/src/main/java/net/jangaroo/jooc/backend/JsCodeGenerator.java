@@ -836,9 +836,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
   private static String getBindableEventName(MemberModel member) {
     AnnotationPropertyModel eventAnnotation = getBindablePropertiesByName(member).get("event");
-    return eventAnnotation == null
-            ? member.getName().toLowerCase() + "change"
-            : eventAnnotation.getStringValue();
+    return eventAnnotation == null ? null : eventAnnotation.getStringValue();
   }
 
 
