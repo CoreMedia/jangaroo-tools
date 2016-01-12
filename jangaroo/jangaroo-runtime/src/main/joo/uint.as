@@ -39,7 +39,7 @@ public final class uint {
    * var n2:uint = new uint(10);
    * </pre>
    */
-  public native function uint(num:Object);
+  public native function uint(num:Object = 0);
 
   /**
    * Returns a string representation of the number in exponential notation. The string contains one digit before the decimal point and up to 20 digits after the decimal point, as specified by the <code>fractionDigits</code> parameter.

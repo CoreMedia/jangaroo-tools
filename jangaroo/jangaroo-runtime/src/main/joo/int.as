@@ -44,7 +44,7 @@ public final class int {
    * var n2:int = new int(-10);
    * </pre>
    */
-  public native function int(num:Object);
+  public native function int(num:Object = 0);
 
   /**
    * Returns a string representation of the number in exponential notation. The string contains one digit before the decimal point and up to 20 digits after the decimal point, as specified by the <code>fractionDigits</code> parameter.
