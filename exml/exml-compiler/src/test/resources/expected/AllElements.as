@@ -22,11 +22,11 @@ public class AllElements extends ext.Panel {
   /**
    * This is my <b>constant</b>
    */
-  public static const SOME_CONSTANT:uint = exmlparser.config.allElements.SOME_CONSTANT;
+  public static const SOME_CONSTANT:uint = 1234;
   /**
    * This is another <b>constant</b>
    */
-  public static const ANOTHER_CONSTANT:String = exmlparser.config.allElements.ANOTHER_CONSTANT;
+  public static const ANOTHER_CONSTANT:String = "\n      Lorem ipsum & Co.\n      Another line.\n    ";
   /**
    * 
    */

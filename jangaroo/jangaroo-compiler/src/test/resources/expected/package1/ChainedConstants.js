@@ -13,4 +13,4 @@ import package1.someOtherPackage.SomeOtherClass;*/
 
   "public static const",{ THE_BLA/* : String*/ :function(){return( $2.SomeOtherClass.BLA);}},
 undefined];},[],["package1.someOtherPackage.SomeOtherClass"], "@runtimeVersion", "@version"
-);
+);/* HAS_STATIC_CODE */

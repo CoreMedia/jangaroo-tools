@@ -69,6 +69,10 @@ public class BinaryOpExpr extends OpExpr {
     return getArg1().isCompileTimeConstant() && getArg2().isCompileTimeConstant();
   }
 
+  public boolean isStandAloneConstant() {
+    return getArg1().isStandAloneConstant() && getArg2().isStandAloneConstant();
+  }
+
   public Expr getArg1() {
     return arg1;
   }
