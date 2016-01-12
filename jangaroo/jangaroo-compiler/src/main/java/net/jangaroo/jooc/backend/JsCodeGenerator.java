@@ -406,6 +406,9 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     } else {
       out.write("});\n");
     }
+    if (compilationUnit.isHasStaticCode()) {
+      out.write("/* HAS_STATIC_CODE */\n");
+    }
     if (!isClassDeclaration) {
       out.write(String.format("Ext.ClassManager.triggerCreated(%s);\n", moduleName));
     }

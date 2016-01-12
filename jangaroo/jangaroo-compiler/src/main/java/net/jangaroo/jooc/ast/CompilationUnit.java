@@ -44,6 +44,7 @@ public class CompilationUnit extends NodeImplBase {
   private IdeDeclaration primaryDeclaration;
   private JooSymbol rBrace;
 
+  private boolean hasStaticCode = false;
   private Map<CompilationUnit, Boolean> dependenciesAsCompilationUnits = new LinkedHashMap<CompilationUnit, Boolean>();
   private List<String> resourceDependencies = new ArrayList<String>();
   private Set<String> publicApiDependencies = new LinkedHashSet<String>();
@@ -241,6 +242,14 @@ public class CompilationUnit extends NodeImplBase {
 
   public void addDependency(String otherUnitQName) {
     addDependency(getCompiler().getCompilationUnit(otherUnitQName));
+  }
+
+  public void setHasStaticCode() {
+    hasStaticCode = true;
+  }
+
+  public boolean isHasStaticCode() {
+    return hasStaticCode;
   }
 
   public void addDependency(CompilationUnit otherUnit) {

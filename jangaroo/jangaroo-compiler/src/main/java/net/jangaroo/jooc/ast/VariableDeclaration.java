@@ -36,7 +36,9 @@ public class VariableDeclaration extends TypedIdeDeclaration {
 
   // null: not yet computed; false: no constant or currently computing; true: constant
   private Boolean declaringCompileTimeConstant = null;
-  
+  // null: not yet computed; false: no constant or currently computing; true: constant
+  private Boolean declaringStandAloneConstant = null;
+
   private VariableDeclaration previousVariableDeclaration;
 
   public VariableDeclaration(JooSymbol[] modifiers,
@@ -130,10 +132,26 @@ public class VariableDeclaration extends TypedIdeDeclaration {
     return declaringCompileTimeConstant;
   }
 
+  public boolean isDeclaringStandAloneConstant() {
+    if (declaringStandAloneConstant == null) {
+      declaringStandAloneConstant = false; // avoid infinite recursion if a const is defined using itself
+      if (isConst()) {
+        declaringStandAloneConstant = getOptInitializer() == null || getOptInitializer().getValue().isStandAloneConstant();
+      }
+    }
+    return declaringStandAloneConstant;
+  }
+
   public void analyze(AstNode parentNode) {
     super.analyze(parentNode);
     if (getOptInitializer() != null) {
       getOptInitializer().analyze(this);
+
+      if (isStatic()) {
+        if (!getOptInitializer().getValue().isStandAloneConstant()) {
+          getIde().getScope().getCompilationUnit().setHasStaticCode();
+        }
+      }
     } else if (isConst()
       && getIde().getScope().getCompilationUnit().getAnnotation(Jooc.NATIVE_ANNOTATION_NAME) == null) {
       Jooc.warning(getOptSymConstOrVar(), "constant should be initialized");

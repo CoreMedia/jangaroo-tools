@@ -29,6 +29,7 @@ public class IdeExpr extends Expr {
 
   private Ide ide;
   private Expr normalizedExpr;
+  private ClassDeclaration classDeclaration;
 
   public IdeExpr(JooSymbol symIde) {
     this(new Ide(symIde));
@@ -112,6 +113,7 @@ public class IdeExpr extends Expr {
   @Override
   public void scope(final Scope scope) {
     getIde().scope(scope);
+    classDeclaration = scope.getClassDeclaration();
   }
 
   @Override
@@ -135,6 +137,24 @@ public class IdeExpr extends Expr {
   public boolean isRuntimeConstant() {
     String qualifiedNameStr = ide.getQualifiedNameStr();
     return qualifiedNameStr.equals("undefined") || qualifiedNameStr.equals("NaN");
+  }
+
+  @Override
+  public boolean isStandAloneConstant() {
+    if (isRuntimeConstant()) {
+      return true;
+    }
+
+    IdeDeclaration declaration = ide.getDeclaration(false);
+    if (declaration instanceof VariableDeclaration) {
+      VariableDeclaration variableDeclaration = (VariableDeclaration) declaration;
+      // Stand-alone constants may be used in other stand-alone constants
+      // of the same class.
+      if (variableDeclaration.getClassDeclaration() == classDeclaration && variableDeclaration.isDeclaringStandAloneConstant()) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @Override

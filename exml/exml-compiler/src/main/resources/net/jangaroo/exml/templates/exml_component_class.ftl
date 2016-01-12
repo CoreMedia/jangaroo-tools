@@ -27,7 +27,7 @@ public class ${model.className} extends ${model.superClassName} {
   /**
    * ${constant.escapedDescription!}
    */
-  public static const ${constant.name}:${constant.type} = ${model.configClass.fullName}.${constant.name};
+  public static const ${constant.name}:${constant.type} = <#if constant.standAloneConstant>${constant.value}</#if><#if !constant.standAloneConstant>${model.configClass.fullName}.${constant.name}</#if>;
 </#list>
 
   /**
