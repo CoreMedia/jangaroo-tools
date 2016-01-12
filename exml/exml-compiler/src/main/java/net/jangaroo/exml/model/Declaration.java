@@ -31,6 +31,6 @@ public class Declaration extends TypedField {
   }
 
   public boolean isStandAloneConstant() {
-    return value == null || Pattern.matches("true|false|null|undefined|\"([^\"\\\\]|\\\\.)*\"|'([^'\\\\]|\\\\.)*'|[-+]?[0-9][.0-9eE]*", value);
+    return value == null || Pattern.matches("true|false|null|undefined|\"([^\"\\\\]|\\\\.)*\"|'([^'\\\\]|\\\\.)*'|NaN|[-+]?[0-9][.0-9eE]*", value);
   }
 }
