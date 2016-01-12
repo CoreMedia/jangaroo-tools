@@ -24,3 +24,4 @@ public class PrivateMemberAccess {
 }, function(clazz) {
   clazz.__initStatics__();
 });
+/* HAS_STATIC_CODE */

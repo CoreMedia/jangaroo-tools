@@ -31,4 +31,5 @@ public class ChainedConstants {
     };
 }, function(clazz) {
   clazz.__initStatics__();
-});/* HAS_STATIC_CODE */
+});
+/* HAS_STATIC_CODE */
