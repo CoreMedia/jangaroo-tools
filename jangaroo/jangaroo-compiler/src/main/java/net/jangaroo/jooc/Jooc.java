@@ -30,7 +30,6 @@ import net.jangaroo.jooc.config.PublicApiViolationsMode;
 import net.jangaroo.jooc.input.FileInputSource;
 import net.jangaroo.jooc.input.InputSource;
 import net.jangaroo.jooc.input.PathInputSource;
-import net.jangaroo.jooc.input.ZipEntryInputSource;
 import net.jangaroo.jooc.mxml.CatalogComponentsParser;
 import net.jangaroo.jooc.mxml.CatalogGenerator;
 import net.jangaroo.jooc.mxml.ComponentPackageManifestParser;
@@ -229,8 +228,9 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
 
   private void reportPublicApiViolations(CompilationUnit unit) {
     for (CompilationUnit compilationUnit : unit.getDependenciesAsCompilationUnits()) {
-      if (compilationUnit.getSource() instanceof ZipEntryInputSource
-        && compilationUnit.getAnnotation(PUBLIC_API_EXCLUSION_ANNOTATION_NAME) != null) {
+      if (!compilationUnit.getSource().isInSourcePath()
+              && compilationUnit.getAnnotation(PUBLIC_API_EXCLUSION_ANNOTATION_NAME) != null
+              && !isExcludedFromPublicApiViolations(compilationUnit)) {
         String msg = "PUBLIC API VIOLATION: " + compilationUnit.getPrimaryDeclaration().getQualifiedNameStr();
         File sourceFile = new File(unit.getSymbol().getFileName());
         if (getConfig().getPublicApiViolationsMode() == PublicApiViolationsMode.WARN) {
@@ -240,6 +240,16 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
         }
       }
     }
+  }
+
+  private boolean isExcludedFromPublicApiViolations(CompilationUnit compilationUnit) {
+    String qName = compilationUnit.getPrimaryDeclaration().getQualifiedNameStr();
+    for (String exclude : getConfig().getPublicApiViolationExcludes()) {
+      if (qName.startsWith(exclude + ".")) {
+        return true;
+      }
+    }
+    return false;
   }
 
   public File writeOutput(File sourceFile,

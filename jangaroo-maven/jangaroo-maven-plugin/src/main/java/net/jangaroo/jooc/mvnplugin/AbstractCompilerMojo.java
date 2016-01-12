@@ -82,6 +82,13 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
   private String publicApiViolations;
 
   /**
+   * A list of packages to exclude from public API violation checks.
+   *
+   * @parameter
+   */
+  private Set<String> publicApiViolationExcludes = new HashSet<String>();
+
+  /**
    * If set to "true", the compiler will add an [ExcludeClass] annotation to any
    * API stub whose source class contains neither an [PublicApi] nor an [ExcludeClass]
    * annotation.
@@ -273,6 +280,7 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
                 + "' is unsupported. " + "Legal values are 'error', 'warn', and 'allow'.");
       }
     }
+    configuration.setPublicApiViolationExcludes(publicApiViolationExcludes);
 
     HashSet<File> sources = new HashSet<File>();
     log.debug("starting source inclusion scanner");
