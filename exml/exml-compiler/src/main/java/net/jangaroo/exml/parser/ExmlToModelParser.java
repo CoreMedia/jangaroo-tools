@@ -48,7 +48,6 @@ import static net.jangaroo.jooc.util.PreserveLineNumberHandler.getLineNumber;
 public final class ExmlToModelParser {
   private static final String EXT_CONFIG_PACKAGE = "ext.config";
   private static final String CONFIG_MODE_AT_SUFFIX = "$at";
-  private static final String CONFIG_MODE_ATTRIBUTE_NAME = "mode";
   private static final String EXT_CONTAINER_CONFIG_QNAME = "ext.config.container";
   private static final String EXT_CONTAINER_DEFAULTS_PROPERTY = "defaults";
   private static final String EXT_CONTAINER_DEFAULT_TYPE_PROPERTY = "defaultType";
@@ -292,7 +291,7 @@ public final class ExmlToModelParser {
       }
 
       boolean isConfigTypeArray = isConfigTypeArray(configClass, elementName);
-      String configMode = isConfigTypeArray ? element.getAttribute(CONFIG_MODE_ATTRIBUTE_NAME) : "";
+      String configMode = isConfigTypeArray ? element.getAttribute(Exmlc.EXML_MODE_ATTRIBUTE) : "";
       // Special case: if an EXML element representing a config property has attributes, it is treated as
       // having an untyped object value. Exception: it is an Array-typed property and the sole attribute is "mode".
       int attributeCount = element.getAttributes().getLength();
