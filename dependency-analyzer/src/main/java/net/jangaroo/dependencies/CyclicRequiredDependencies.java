@@ -11,6 +11,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -22,13 +23,16 @@ public class CyclicRequiredDependencies {
 
   public static final String PATH_PREFIX = "/target/classes/META-INF/resources/joo/classes/";
   public static final String PATH_SUFFIX = ".js";
+  public static final String JANGAROO_PART_MARKER = "============================================== Jangaroo part ==============================================*/";
+  public static final String REQUIRES_MARKER = "      requires: [";
+  public static final String REQUIRES_PREFIX = "        \"AS3.";
 
   public static void main(String[] args) throws IOException {
     if (args.length != 2) {
       System.out.println("Usage: java -jar ... <BASEDIR> <OUTFILE>");
     } else {
       String baseDir = args[0];
-      List<File> files = new ArrayList<>();
+      Collection<File> files = new ArrayList<>();
       fillInCompiledClassFiles(new File(baseDir), files);
 
       Multimap<String, String> requires = HashMultimap.create();
@@ -46,7 +50,7 @@ public class CyclicRequiredDependencies {
     }
   }
 
-  private static void fillInCompiledClassFiles(File baseDir, List<File> files) {
+  private static void fillInCompiledClassFiles(File baseDir, Collection<File> files) {
     for (File file : baseDir.listFiles()) {
       if (file.isDirectory()) {
         fillInCompiledClassFiles(file, files);
@@ -59,40 +63,44 @@ public class CyclicRequiredDependencies {
     }
   }
 
-  private static void analyzeFile(File file, Multimap<String, String> requires, Set<String> staticallyInitialized) throws IOException {
+  private static void analyzeFile(File file, Multimap<String, String> requires, Collection<String> staticallyInitialized) throws IOException {
     String path = file.getPath();
     String className = path
             .substring(path.indexOf(PATH_PREFIX) + PATH_PREFIX.length(), path.length() - PATH_SUFFIX.length())
             .replace('/', '.');
     List<String> lines = Files.readLines(file, Charsets.UTF_8);
 
-    int lastBrace = -1;
     for (int i = 0; i < lines.size(); i++) {
       String line = lines.get(i);
-      if (line.indexOf('}') != -1) {
-        lastBrace = i;
-      }
       if (line.contains("HAS_STATIC_CODE")) {
         staticallyInitialized.add(className);
       }
     }
-    if (lastBrace == -1) {
+
+    int jangarooPartStart = lines.indexOf(JANGAROO_PART_MARKER);
+    if (jangarooPartStart == -1) {
       return;
     }
-    String descriptorLine = lines.get(lastBrace);
-
-    int startPos = descriptorLine.lastIndexOf('[');
-    int endPos = descriptorLine.lastIndexOf(']');
-    String dependenciesString = descriptorLine.substring(startPos + 1, endPos);
-    String[] dependencies = dependenciesString.split("[\",]+");
-    for (String dependency : dependencies) {
-      if (!dependency.isEmpty() && !dependency.equals(className)) {
-        requires.put(className, dependency);
+    int requiresStart = lines.subList(jangarooPartStart, lines.size()).indexOf(REQUIRES_MARKER);
+    if (requiresStart == -1) {
+      return;
+    }
+    int pos = jangarooPartStart + requiresStart + 1;
+    while (pos < lines.size()) {
+      String line = lines.get(pos);
+      if (!line.startsWith(REQUIRES_PREFIX)) {
+        break;
       }
+      int quotePos = line.indexOf('"', REQUIRES_PREFIX.length());
+      String requiredClassName = line.substring(REQUIRES_PREFIX.length(), quotePos);
+      if (!className.equals(requiredClassName)) {
+        requires.put(className, requiredClassName);
+      }
+      pos++;
     }
   }
 
-  private static Set<String> getNodesInMarkedCycles(Multimap<String, String> edges, Set<String> markedNodes) {
+  private static Set<String> getNodesInMarkedCycles(Multimap<String, String> edges, Collection<String> markedNodes) {
     Multiset<String> classNames = edges.keys();
     Set<String> result = new HashSet<>();
     for (String className : classNames) {
@@ -103,9 +111,9 @@ public class CyclicRequiredDependencies {
     return result;
   }
 
-  private static boolean isContainedInMarkedCycle(String node, Multimap<String, String> edges, Set<String> markedNodes) {
+  private static boolean isContainedInMarkedCycle(String node, Multimap<String, String> edges, Collection<String> markedNodes) {
     // Compute all reachable marked nodes.
-    Set<String> reachable = new HashSet<>();
+    Collection<String> reachable = new HashSet<>();
     Deque<String> todo = new LinkedList<>();
     todo.addAll(edges.get(node));
     while (!todo.isEmpty()) {
@@ -130,7 +138,7 @@ public class CyclicRequiredDependencies {
     return reachable.contains(node);
   }
 
-  private static void writeGraph(PrintWriter writer, Multimap<String, String> requires, Set<String> classesInCycles, Set<String> staticallyInitialized) {
+  private static void writeGraph(PrintWriter writer, Multimap<String, String> requires, Collection<String> classesInCycles, Collection<String> staticallyInitialized) {
     writer.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
     writer.println("<graphml xmlns=\"http://graphml.graphdrawing.org/xmlns\" xmlns:java=\"http://www.yworks.com/xml/yfiles-common/1.0/java\" xmlns:sys=\"http://www.yworks.com/xml/yfiles-common/markup/primitives/2.0\" xmlns:x=\"http://www.yworks.com/xml/yfiles-common/markup/2.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:y=\"http://www.yworks.com/xml/graphml\" xmlns:yed=\"http://www.yworks.com/xml/yed/3\" xsi:schemaLocation=\"http://graphml.graphdrawing.org/xmlns http://www.yworks.com/xml/schema/graphml/1.1/ygraphml.xsd\">");
     writer.println("<key for=\"node\" id=\"d6\" yfiles.type=\"nodegraphics\"/>");
