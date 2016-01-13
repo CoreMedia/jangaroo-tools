@@ -93,7 +93,10 @@ AS3 = {
   }
 };
 
-Ext.Loader.setPath('AS3', 'joo/classes');
+Ext.Loader.setPath({
+  'AS3': 'joo/classes',
+  'JooOverrides': 'joo/overrides'
+});
 
 Ext.Class.registerPreprocessor('accessors', function (Class, data) {
   if (data.accessors) {
