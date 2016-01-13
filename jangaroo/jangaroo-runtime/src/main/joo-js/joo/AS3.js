@@ -28,6 +28,11 @@ AS3 = {
     if (!Ext.isFunction(type)) {
       return false;
     }
+    var $className = type.$className;
+    if ($className === "AS3.Error") {
+      // use built-in Error class for instanceof check:
+      type = Error;
+    }
     // constructor or instanceof may return false negatives:
     if (object instanceof type || object.constructor === type) {
       return true;
@@ -38,11 +43,11 @@ AS3 = {
       return (object instanceof Number || typeof object === 'number') &&
               (type === AS3.uint ? object >>> 0 : object >> 0) === object + 0; // "+ 0" converts Number to number!
     }
-    if (typeof object === 'object' && type.$className) {
+    if (typeof object === 'object' && $className) {
       if (object.isInstance) {
         var mixins = object.mixins;
         if (Ext.isObject(mixins)) {
-          if (mixins[type.$className]) {
+          if (mixins[$className]) {
             return true;
           }
           if (type.prototype.mixinId && mixins[type.prototype.mixinId]) {
@@ -56,7 +61,7 @@ AS3 = {
       }
     }
     // special case for special observables, e.g. classes:
-    if (object.isObservable && (type.$className === "Ext.mixin.Observable" || type.$className === "Ext.util.Observable")) {
+    if (object.isObservable && ($className === "Ext.mixin.Observable" || $className === "Ext.util.Observable")) {
       return true;
     }
     return false;
