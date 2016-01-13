@@ -452,6 +452,13 @@ public final class MxmlToModelParser {
     }
     
     if (id.length() > 0) {
+      if (!configVar.isEmpty() // it is a declaration...
+              && objectElement.getAttributes().getLength() == 1 // ...with only an id attribute...
+              && objectElement.getChildNodes().getLength() == 0 // ...and no sub-elements or text content!
+              ) {
+        // prevent assigning a default value for such an empty declaration:
+        return null;
+      }
       code.append("\n    ").append(targetVariable);
     } else if (configVariable == null /*|| hasBindings*/) {
       if (targetVariable == null) {
@@ -462,7 +469,7 @@ public final class MxmlToModelParser {
     } else if (allowConstructorParameters) {
       return configVariable;
     } else {
-      return value; // no aux var neccessary
+      return value; // no aux var necessary
     }
     code.append(" = ").append(value).append(";");
 
