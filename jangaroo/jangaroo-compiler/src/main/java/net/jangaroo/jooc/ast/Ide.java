@@ -142,19 +142,11 @@ public class Ide extends NodeImplBase {
   }
 
   public boolean addExternalUsage() {
-    Scope scope = getScope();
-    AstNode definingNode = scope.getDefiningNode();
-    return addExternalUsage(definingNode instanceof ClassDeclaration ||
-            definingNode instanceof PackageDeclaration ||
-            definingNode.getParentNode() instanceof FunctionDeclaration && ((FunctionDeclaration)definingNode.getParentNode()).isStatic());
-  }
-
-  public boolean addExternalUsage(boolean required) {
     IdeDeclaration decl = getDeclaration(false);
     if (decl != null && (decl.isPrimaryDeclaration() || decl.isClassMember() && decl.isStatic())) {
       CompilationUnit currentUnit = getScope().getCompilationUnit();
       CompilationUnit compilationUnit = decl.getIde().getScope().getCompilationUnit();
-      currentUnit.addDependency(compilationUnit, required);
+      currentUnit.addDependency(compilationUnit);
       return true;
     }
     return false;

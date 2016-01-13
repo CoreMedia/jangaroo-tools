@@ -94,8 +94,8 @@ public class SomeMxmlClass extends package1.ConfigClass {
         other: null,
         no_config: null
       },
-      requires: ["AS3.package1.ConfigClass"],
-      uses: [
+      requires: [
+        "AS3.package1.ConfigClass",
         "AS3.package1.someOtherPackage.SomeOtherClass",
         "AS3.package1.someOtherPackage.SomeEvent",
         "AS3.net.jangaroo.ext.Exml"

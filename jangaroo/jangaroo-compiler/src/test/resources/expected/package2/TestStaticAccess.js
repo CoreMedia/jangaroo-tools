@@ -149,7 +149,9 @@ public class TestStaticAccess extends StaticAccessSuperClass {
         get_s2_via_private_static_method_qualified: get_s2_via_private_static_method_qualified$static,
         get_s2_via_private_static_method_full_qualified: get_s2_via_private_static_method_full_qualified$static
       },
-      requires: ["AS3.package2.StaticAccessSuperClass"],
-      uses: ["AS3.package1.StaticAccessSuperSuperClass"]
+      requires: [
+        "AS3.package2.StaticAccessSuperClass",
+        "AS3.package1.StaticAccessSuperSuperClass"
+      ]
     };
 });

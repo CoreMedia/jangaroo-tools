@@ -36,6 +36,7 @@ import net.jangaroo.jooc.mxml.CatalogGenerator;
 import net.jangaroo.jooc.mxml.ComponentPackageManifestParser;
 import net.jangaroo.jooc.mxml.ComponentPackageModel;
 import net.jangaroo.jooc.mxml.MxmlComponentRegistry;
+import net.jangaroo.jooc.util.GraphUtil;
 import net.jangaroo.utils.CompilerUtils;
 
 import java.io.File;
@@ -43,8 +44,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * The Jangaroo AS3-to-JS Compiler's main class.
@@ -143,6 +148,11 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
         if (getConfig().getPublicApiViolationsMode() != PublicApiViolationsMode.ALLOW) {
           reportPublicApiViolations(unit);
         }
+      }
+
+      analyzeDependencyGraph();
+
+      for (CompilationUnit unit : compileQueue) {
         File sourceFile = ((FileInputSource)unit.getSource()).getFile();
         File outputFile = null;
         // only generate JavaScript if [Native] annotation and 'native' modifier on primary declaration are not present:
@@ -160,6 +170,71 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
       throw new CompilerError("IO Exception occurred", e);
     } finally {
       tearDown();
+    }
+  }
+
+  private void analyzeDependencyGraph() {
+    // Build a graph as a map from nodes (compilation unit) to successor nodes (dependencies).
+    Map<CompilationUnit, Set<CompilationUnit>> dependencyGraph = new HashMap<CompilationUnit, Set<CompilationUnit>>();
+    Collection<CompilationUnit> compilationUnits = getCompilationUnits();
+    for (CompilationUnit compilationUnit : compilationUnits) {
+      Set<CompilationUnit> dependencies = new HashSet<CompilationUnit>(compilationUnit.getDependenciesAsCompilationUnits());
+      // No accidental self dependencies.
+      dependencies.remove(compilationUnit);
+      dependencyGraph.put(compilationUnit, dependencies);
+    }
+
+    // Process each strongly connected component of the dependency graph.
+    Collection<Set<CompilationUnit>> sccs = GraphUtil.stronglyConnectedComponent(dependencyGraph);
+    for (Set<CompilationUnit> scc : sccs) {
+      if (scc.size() > 1) {
+        // Ensure that strongly connected components of the dependency graph do
+        // not contain static initializers.
+        for (CompilationUnit compilationUnit : scc) {
+          if (compilationUnit.isHasStaticCode()) {
+            // Static code in a cyclic dependency is not supported. Complain.
+            List<CompilationUnit> cycle = new ArrayList<CompilationUnit>(GraphUtil.findCycle(dependencyGraph, compilationUnit));
+            cycle.add(compilationUnit);
+
+            StringBuilder message = new StringBuilder();
+            message.append("The compilation unit ");
+            message.append(compilationUnit.getPrimaryDeclaration().getIde().getIde().getText());
+            message.append(" contains a static initializer");
+            message.append(" (for example a code block or a static variable with a complex initializer)");
+            message.append(" and is also contained in a cycle of dependencies: ");
+            for (int i = 0; i < cycle.size(); i++) {
+              if (i > 0) {
+                message.append(" -> ");
+              }
+              message.append(cycle.get(i).getPrimaryDeclaration().getIde().getIde().getText());
+            }
+            message.append(". You can either remove the static initializer or break the dependency cycle");
+            message.append(" to make this module compile. (Other dependency cycles might exist, though.)");
+            throw error(compilationUnit, message.toString());
+          }
+        }
+
+        // Compute the set of all dependencies that leave the
+        // strongly connected component.
+        Set<CompilationUnit> allDependencies = new HashSet<CompilationUnit>();
+        for (CompilationUnit compilationUnit : scc) {
+          allDependencies.addAll(compilationUnit.getDependenciesAsCompilationUnits());
+        }
+        allDependencies.removeAll(scc);
+
+        for (CompilationUnit compilationUnit1 : scc) {
+          // Dependencies in a strongly connected component are uses dependencies, only.
+          for (CompilationUnit compilationUnit2 : scc) {
+            compilationUnit1.weakenDependency(compilationUnit2);
+          }
+          // To ensure correct initialization, all members of the strongly
+          // connected component inherit all dependencies that leave the
+          // component.
+          for (CompilationUnit dependency : allDependencies) {
+            compilationUnit1.addDependency(dependency);
+          }
+        }
+      }
     }
   }
 

@@ -1,10 +1,14 @@
 package net.jangaroo.jooc.util;
 
+import net.jangaroo.jooc.ast.CompilationUnit;
+
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -67,12 +71,14 @@ public class GraphUtil {
       if (reached.add(current)) {
         // New node to be processed.
         Collection<T> successors = graph.get(current);
-        for (T successor : successors) {
-          // Make sure to add only successors not already reached,
-          // so that membership in the set reached is an indicator of a
-          // backtracking step after all successors have been processed.
-          if (!reached.contains(successor)) {
-            todo.add(successor);
+        if (successors != null) {
+          for (T successor : successors) {
+            // Make sure to add only successors not already reached,
+            // so that membership in the set reached is an indicator of a
+            // backtracking step after all successors have been processed.
+            if (!reached.contains(successor)) {
+              todo.add(successor);
+            }
           }
         }
       } else {
@@ -85,5 +91,43 @@ public class GraphUtil {
       }
     }
     return sorted;
+  }
+
+  public static <T> List<T> findCycle(Map<T, ? extends Collection<T>> graph, T start) {
+    Set<T> reached = new HashSet<T>();
+    Deque<T> result = new LinkedList<T>();
+
+    Deque<T> todo = new LinkedList<T>();
+    todo.add(start);
+    while (!todo.isEmpty()) {
+      T current = todo.getLast();
+      if (reached.add(current)) {
+        // Process new node.
+        result.add(current);
+
+        Collection<T> successors = graph.get(current);
+        if (graph != null) {
+          for (T successor : successors) {
+            if (successor.equals(start)) {
+              // Cycle found.
+              return new ArrayList<T>(result);
+            }
+
+            // Make sure to add only successors not already reached,
+            // so that membership in the set reached is an indicator of a
+            // backtracking step after all successors have been processed.
+            if (!reached.contains(successor)) {
+              todo.add(successor);
+            }
+          }
+        }
+      } else {
+        // Old node. All successors have been processed without success.
+        result.removeLast();
+        todo.removeLast();
+      }
+    }
+
+    return null;
   }
 }

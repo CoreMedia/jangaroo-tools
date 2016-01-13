@@ -121,7 +121,7 @@ public class GraphUtilTest {
   }
 
   @Test
-  public void testStronglyConnectedComponentInOut() throws Exception {
+  public void testStronglyConnectedComponentComplex() throws Exception {
     Map<String, Set<String>> graph = graph(
             successors("a", "b", "c", "d"),
             successors("b", "c", "e"),
@@ -134,6 +134,27 @@ public class GraphUtilTest {
 
   private Set<Set<String>> stronglyConnectedComponent(Map<String, Set<String>> graph) {
     return new HashSet<Set<String>>(GraphUtil.stronglyConnectedComponent(graph));
+  }
+
+  @Test
+  public void testCycleSimple() throws Exception {
+    Map<String, Set<String>> graph = graph(
+            successors("a", "b"),
+            successors("b", "a"));
+    List<String> cycle = GraphUtil.findCycle(graph, "a");
+    Assert.assertEquals(Arrays.asList("a", "b"), cycle);
+  }
+
+  @Test
+  public void testCycleComplex() throws Exception {
+    Map<String, Set<String>> graph = graph(
+            successors("a", "b", "c", "d"),
+            successors("b", "c", "e"),
+            successors("c", "d", "e"),
+            successors("d", "b", "e"),
+            successors("e"));
+    List<String> cycle = GraphUtil.findCycle(graph, "c");
+    Assert.assertEquals(Arrays.asList("c", "d", "b"), cycle);
   }
 
   private <T> Set<T> set(T ... nodes) {

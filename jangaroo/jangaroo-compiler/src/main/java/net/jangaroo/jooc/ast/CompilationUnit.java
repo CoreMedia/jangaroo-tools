@@ -253,16 +253,22 @@ public class CompilationUnit extends NodeImplBase {
   }
 
   public void addDependency(CompilationUnit otherUnit) {
-    addDependency(otherUnit, false);
-  }
- 
-  public void addDependency(CompilationUnit otherUnit, boolean required) {
     // predefined ides have a null unit
     if (otherUnit != null && otherUnit != this) {
-      Boolean oldRequired = dependenciesAsCompilationUnits.get(otherUnit);
-      if (oldRequired == null || !oldRequired && required) {
-        dependenciesAsCompilationUnits.put(otherUnit, required);
-      }
+      dependenciesAsCompilationUnits.put(otherUnit, true);
+    }
+  }
+
+  /**
+   * Reduce the dependency on the other dependency unit to a non-required dependency,
+   * if it is currently a required dependency.
+   *
+   * @param otherUnit the other dependency unit
+   *
+   */
+  public void weakenDependency(CompilationUnit otherUnit) {
+    if (dependenciesAsCompilationUnits.containsKey(otherUnit)) {
+      dependenciesAsCompilationUnits.put(otherUnit, false);
     }
   }
 
