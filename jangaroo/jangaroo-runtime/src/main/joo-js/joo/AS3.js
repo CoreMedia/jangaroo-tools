@@ -121,3 +121,9 @@ Ext.Class.registerPreprocessor('accessors', function (Class, data) {
     delete data.accessors;
   }
 });
+
+// TODO: find a better way to auto-require *all* our overrides!
+Ext.require([
+  "JooOverrides.Ext.container.Container",
+  "JooOverrides.Ext.panel.Panel"
+]);
