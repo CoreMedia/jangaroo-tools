@@ -105,6 +105,7 @@ joo.getQualifiedObject = function(name) {
 joo.getOrCreatePackage = function(name) {
   return Ext.ns("AS3." + name);
 };
+Ext.ns("joo.localization");
 
 Ext.Loader.setPath({
   'AS3': 'joo/classes',
