@@ -98,6 +98,14 @@ AS3 = {
   }
 };
 
+var joo = Ext.ns("joo");
+joo.getQualifiedObject = function(name) {
+  return eval(name);
+};
+joo.getOrCreatePackage = function(name) {
+  return Ext.ns("AS3." + name);
+};
+
 Ext.Loader.setPath({
   'AS3': 'joo/classes',
   'JooOverrides': 'joo/overrides'
