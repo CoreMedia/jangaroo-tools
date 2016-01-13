@@ -140,6 +140,7 @@ public final class MxmlToModelParser {
       String defaultsConfigVar = createAuxVar();
       renderConfigAuxVar(defaultsConfigVar, classQName);
       createFields(defaultsConfigVar, objectNode);
+      compilationUnitModel.addImport("net.jangaroo.ext.Exml");
       code.append(MessageFormat.format("\n    {1} = net.jangaroo.ext.Exml.apply({0}, {1});",
               defaultsConfigVar, configParamModel.getName()));
     }
