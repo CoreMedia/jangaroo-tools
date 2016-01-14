@@ -55,9 +55,11 @@ AS3 = {
           }
         }
         return false;
-      } else if (object.xclass) {
-        var prototype = Ext.ClassManager.get(object.xclass).prototype;
-        return prototype === type.prototype || prototype instanceof type;
+      } else {
+        var objectType = Ext.ClassManager.getByConfig(object);
+        if (objectType) {
+          return objectType.prototype === type.prototype || objectType.prototype instanceof type;
+        }
       }
     }
     // special case for special observables, e.g. classes:
@@ -73,12 +75,10 @@ AS3 = {
     if (value === undefined || value === null) {
       return value;
     }
-    if (value.isInstance || value.xclass) {
-      if (!AS3.is(value, type)) {
-        throw new TypeError();
-      }
-    } else if (type.$className) {
+    if (typeof value === "object" && !value.isInstance && type.$className && !Ext.ClassManager.getByConfig(value)) {
       value.xclass = type.$className;
+    } else if (!AS3.is(value, type)) {
+      throw new TypeError("Value cannot be cast to " + Ext.getClassName(type) + ": " + value);
     }
     return value;
   },
