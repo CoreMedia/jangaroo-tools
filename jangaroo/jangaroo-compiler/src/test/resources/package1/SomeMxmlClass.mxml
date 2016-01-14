@@ -44,5 +44,10 @@
   </items>
   <fx:Script>
     import foo.Bar;
+
+    private var blub:*;
+
+    [Bindable]
+    public var list:Object;
   </fx:Script>
 </ConfigClass>

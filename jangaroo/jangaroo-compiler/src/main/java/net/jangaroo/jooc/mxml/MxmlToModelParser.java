@@ -8,7 +8,6 @@ import net.jangaroo.jooc.ast.ClassDeclaration;
 import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.backend.ApiModelGenerator;
 import net.jangaroo.jooc.input.InputSource;
-import net.jangaroo.jooc.json.Json;
 import net.jangaroo.jooc.model.AnnotationModel;
 import net.jangaroo.jooc.model.AnnotationPropertyModel;
 import net.jangaroo.jooc.model.ClassModel;
@@ -38,8 +37,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -61,14 +61,14 @@ public final class MxmlToModelParser {
   public static final String ALLOW_CONSTRUCTOR_PARAMETERS_ANNOTATION = "AllowConstructorParameters";
   private static final String EXT_CONFIG_META_NAME = "ExtConfig";
 
-  private static Pattern EXML_VAR_PATTERN = Pattern.compile("private\\s+var\\s+([A-Za-z_][A-Za-z_0-9]*)");
+  private static Pattern EXML_VAR_PATTERN = Pattern.compile("(private|protected|internal|public)\\s+var\\s+([A-Za-z_][A-Za-z_0-9]*)");
   private static Pattern INITIALIZE_METHOD_PATTERN = Pattern.compile("private\\s+function\\s+__initialize__\\s*\\(");
 
   private final JangarooParser jangarooParser;
   private InputSource inputSource;
   private CompilationUnitModel compilationUnitModel;
   private ParamModel configParamModel;
-  private Map<String, Json> privateVars;
+  private Map<String, String> varsDeclaredInScripts;
   private Pattern nativeConstructorPattern;
 
   private int auxVarIndex;
@@ -93,7 +93,7 @@ public final class MxmlToModelParser {
     compilationUnitModel = new CompilationUnitModel(CompilerUtils.packageName(qName),
             new ClassModel(className));
     nativeConstructorPattern = Pattern.compile("(\\s*public)\\s+native(\\s+function\\s+" + className + "\\s*\\(\\s*([A-Za-z_][A-Za-z_0-9]*)\\s*:\\s*([A-Za-z_][A-Za-z_0-9.]*)\\s*=\\s*null\\s*\\)\\s*); *\\n");
-    privateVars = new LinkedHashMap<String, Json>();
+    varsDeclaredInScripts = new HashMap<String, String>();
     auxVarIndex = 0;
     code = new StringBuilder();
 
@@ -219,6 +219,10 @@ public final class MxmlToModelParser {
           }
           if (!hasInitializeMethod) {
             hasInitializeMethod = INITIALIZE_METHOD_PATTERN.matcher(scriptCode).find();
+          }
+          Matcher varDeclarationMatcher = EXML_VAR_PATTERN.matcher(scriptCode);
+          while (varDeclarationMatcher.find()) {
+            varsDeclaredInScripts.put(varDeclarationMatcher.group(2), varDeclarationMatcher.group(1));
           }
           classModel.addBodyCode(scriptCode);
         } else if (MXML_METADATA.equals(elementName)) {
@@ -422,10 +426,19 @@ public final class MxmlToModelParser {
       if (configParamModel != null && id.equals(configParamModel.getName())) {
         return "";
       }
-      FieldModel fieldModel = new FieldModel(id, className);
-      fieldModel.addAnnotation(new AnnotationModel(Jooc.BINDABLE_ANNOTATION_NAME));
-      compilationUnitModel.getClassModel().addMember(fieldModel);
-      targetVariable = CompilerUtils.qName(configVar, id);
+
+      String scriptDeclarationNamespace = varsDeclaredInScripts.get(id);
+      String qualifier = configVar;
+      if (scriptDeclarationNamespace != null) {
+        if (!NamespaceModel.PUBLIC.equals(scriptDeclarationNamespace)) {
+          qualifier = ""; // corresponds to "this."
+        }
+      } else {
+        FieldModel fieldModel = new FieldModel(id, className);
+        fieldModel.addAnnotation(new AnnotationModel(Jooc.BINDABLE_ANNOTATION_NAME));
+        compilationUnitModel.getClassModel().addMember(fieldModel);
+      }
+      targetVariable = CompilerUtils.qName(qualifier, id);
     }
 
     String configVariable = null; // name of the variable holding the config object to use in the constructor
