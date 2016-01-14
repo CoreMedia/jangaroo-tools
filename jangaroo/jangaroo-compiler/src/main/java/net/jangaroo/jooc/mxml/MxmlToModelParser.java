@@ -1,7 +1,9 @@
 package net.jangaroo.jooc.mxml;
 
+import net.jangaroo.jooc.CompilerError;
 import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.Jooc;
+import net.jangaroo.jooc.api.FilePosition;
 import net.jangaroo.jooc.ast.ClassDeclaration;
 import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.backend.ApiModelGenerator;
@@ -43,6 +45,9 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static net.jangaroo.jooc.util.PreserveLineNumberHandler.getColumnNumber;
+import static net.jangaroo.jooc.util.PreserveLineNumberHandler.getLineNumber;
+
 
 public final class MxmlToModelParser {
 
@@ -60,6 +65,7 @@ public final class MxmlToModelParser {
   private static Pattern INITIALIZE_METHOD_PATTERN = Pattern.compile("private\\s+function\\s+__initialize__\\s*\\(");
 
   private final JangarooParser jangarooParser;
+  private InputSource inputSource;
   private CompilationUnitModel compilationUnitModel;
   private ParamModel configParamModel;
   private Map<String, Json> privateVars;
@@ -80,6 +86,7 @@ public final class MxmlToModelParser {
    * @throws org.xml.sax.SAXException if the XML was not well-formed
    */
   public CompilationUnitModel parse(InputSource in) throws IOException, SAXException {
+    inputSource = in;
     String qName = CompilerUtils.qNameFromRelativPath(in.getRelativePath());
     String className = CompilerUtils.className(qName);
     compilationUnitModel = new CompilationUnitModel(CompilerUtils.packageName(qName),
@@ -116,11 +123,11 @@ public final class MxmlToModelParser {
     String superClassName = createClassNameFromNode(objectNode);
 
     if (superClassName == null) {
-      throw Jooc.error("Could not resolve super class from node " + objectNode.getNamespaceURI() + ":" + objectNode.getLocalName());
+      throw Jooc.error(position(objectNode), "Could not resolve super class from node " + objectNode.getNamespaceURI() + ":" + objectNode.getLocalName());
     }
     String classQName = compilationUnitModel.getQName();
     if (superClassName.equals(classQName)) {
-      throw Jooc.error("Cyclic inheritance error: super class and this component are the same!. There is something wrong!");
+      throw Jooc.error(position(objectNode), "Cyclic inheritance error: super class and this component are the same!. There is something wrong!");
     }
     ClassModel classModel = compilationUnitModel.getClassModel();
     classModel.setSuperclass(superClassName);
@@ -209,7 +216,7 @@ public final class MxmlToModelParser {
         } else if (MXML_METADATA.equals(elementName)) {
           classModel.addAnnotationCode(getTextContent(element));
         } else if (!MXML_DECLARATIONS.equals(elementName)) {
-          throw Jooc.error("Unknown MXML element: " + elementName);
+          throw Jooc.error(position(element), "Unknown MXML element: " + elementName);
         }
       }
     }
@@ -258,7 +265,7 @@ public final class MxmlToModelParser {
           }
         }
         if (propertyModel == null) {
-          propertyModel = createDynamicPropertyModel(type, propertyName, MXML_UNTYPED_NAMESPACE.equals(attribute.getNamespaceURI()));
+          propertyModel = createDynamicPropertyModel(objectNode, type, propertyName, MXML_UNTYPED_NAMESPACE.equals(attribute.getNamespaceURI()));
         }
         if (createPropertyAssignmentCodeWithBindings(configVariable, targetVariable, generatingConfig, value, propertyModel)) {
           hasBindings = true;
@@ -338,7 +345,7 @@ public final class MxmlToModelParser {
           defaultPropertyValues.add(element);
         } else {
           if (propertyModel == null) {
-            propertyModel = createDynamicPropertyModel(type, propertyName, false);
+            propertyModel = createDynamicPropertyModel(element, type, propertyName, false);
           }
           List<Element> childElements = MxmlUtils.getChildElements(element);
           if (childElements.isEmpty()) {
@@ -398,7 +405,7 @@ public final class MxmlToModelParser {
   private String createValueCodeFromElement(String configVar, Element objectElement, boolean allowConstructorParameters) throws IOException {
     String className = createClassNameFromNode(objectElement);
     if (className == null) {
-      throw Jooc.error("Could not resolve class from node " + objectElement.getNamespaceURI() + ":" + objectElement.getLocalName());
+      throw Jooc.error(position(objectElement), "Could not resolve class from MXML node " + objectElement.getNamespaceURI() + ":" + objectElement.getLocalName());
     }
     compilationUnitModel.addImport(className);
     String targetVariable = null;   // name of the variable holding the object to build
@@ -565,7 +572,16 @@ public final class MxmlToModelParser {
   }
 
   private CompilationUnitModel getCompilationUnitModel(Element element) throws IOException {
-    return getCompilationUnitModel(createClassNameFromNode(element));
+    String fullClassName = createClassNameFromNode(element);
+    if (fullClassName == null) {
+      return null;
+    }
+    try {
+      return getCompilationUnitModel(fullClassName);
+    } catch (CompilerError e) {
+      // ugly to catch-and-rethrow, I know, but we need to add position information here...
+      throw Jooc.error(position(element), e.getMessage());
+    }
   }
 
   private MemberModel findPropertyModel(ClassModel classModel, String propertyName) throws IOException {
@@ -603,10 +619,10 @@ public final class MxmlToModelParser {
     return null;
   }
 
-  private MemberModel createDynamicPropertyModel(CompilationUnitModel compilationUnitModel, String name, boolean allowAnyProperty) {
+  private MemberModel createDynamicPropertyModel(Node element, CompilationUnitModel compilationUnitModel, String name, boolean allowAnyProperty) {
     if (!allowAnyProperty && compilationUnitModel != null && compilationUnitModel.getClassModel() != null && !compilationUnitModel.getClassModel().isDynamic()) {
       // dynamic property of a non-dynamic class: error!
-      throw Jooc.error("MXML: property " + name + " not found in class " + compilationUnitModel.getQName() + ".");
+      throw Jooc.error(position(element), "MXML: property " + name + " not found in class " + compilationUnitModel.getQName() + ".");
     }
     return new FieldModel(name, "*");
   }
@@ -667,4 +683,26 @@ public final class MxmlToModelParser {
     parser.parse(inputStream, handler);
     return doc;
   }
+
+  private FilePosition position(Node node) {
+    final int lineNumber = getLineNumber(node);
+    final int columnNumber = getColumnNumber(node);
+    return new FilePosition() {
+      @Override
+      public String getFileName() {
+        return inputSource.getPath();
+      }
+
+      @Override
+      public int getLine() {
+        return lineNumber;
+      }
+
+      @Override
+      public int getColumn() {
+        return columnNumber;
+      }
+    };
+  }
+
 }
