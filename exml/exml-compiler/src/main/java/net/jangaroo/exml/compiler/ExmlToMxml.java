@@ -903,6 +903,8 @@ public class ExmlToMxml {
           }
           currentOut.printf("</%s>", qName);
         }
+      } else if (insideExmlObject) {
+        flush();
       }
       insideExmlObject = false; // <exml:object>s cannot be nested.
       startRecordingCharacters();
