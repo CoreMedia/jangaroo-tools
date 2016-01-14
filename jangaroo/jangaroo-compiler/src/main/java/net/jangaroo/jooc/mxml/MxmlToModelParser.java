@@ -73,6 +73,7 @@ public final class MxmlToModelParser {
 
   private int auxVarIndex;
   private StringBuilder code;
+  private boolean hasInitializeMethod;
 
   public MxmlToModelParser(JangarooParser jangarooParser) {
     this.jangarooParser = jangarooParser;
@@ -152,6 +153,10 @@ public final class MxmlToModelParser {
               defaultsConfigVar, configParamModel.getName()));
     }
 
+    if (hasInitializeMethod) {
+      code.append(String.format("%n    this.__initialize__(%s);",
+              configParamModel == null ? "" : configParamModel.getName()));
+    }
 
     processAttributesAndChildNodes(objectNode, superConfigVar, "this", superConfigVar != null);
     MethodModel constructorModel = classModel.createConstructor();
@@ -211,6 +216,9 @@ public final class MxmlToModelParser {
               scriptCode = scriptCode.substring(0, constructorMatcher.start())
                       + scriptCode.substring(constructorMatcher.end());
             }
+          }
+          if (!hasInitializeMethod) {
+            hasInitializeMethod = INITIALIZE_METHOD_PATTERN.matcher(scriptCode).find();
           }
           classModel.addBodyCode(scriptCode);
         } else if (MXML_METADATA.equals(elementName)) {
