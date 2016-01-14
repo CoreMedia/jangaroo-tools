@@ -621,8 +621,8 @@ public final class MxmlToModelParser {
 
   private MemberModel createDynamicPropertyModel(Node element, CompilationUnitModel compilationUnitModel, String name, boolean allowAnyProperty) {
     if (!allowAnyProperty && compilationUnitModel != null && compilationUnitModel.getClassModel() != null && !compilationUnitModel.getClassModel().isDynamic()) {
-      // dynamic property of a non-dynamic class: error!
-      throw Jooc.error(position(element), "MXML: property " + name + " not found in class " + compilationUnitModel.getQName() + ".");
+      // dynamic property of a non-dynamic class: warn!
+      Jooc.warning(position(element), "MXML: property " + name + " not found in class " + compilationUnitModel.getQName() + ".");
     }
     return new FieldModel(name, "*");
   }
@@ -675,6 +675,7 @@ public final class MxmlToModelParser {
       saxFactory.setNamespaceAware(true);
       parser = saxFactory.newSAXParser();
       DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+      factory.setNamespaceAware(false);
       doc = factory.newDocumentBuilder().newDocument();
     } catch (ParserConfigurationException e) {
       throw new IllegalStateException("a default dom builder should be provided", e);
