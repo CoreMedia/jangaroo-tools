@@ -109,7 +109,7 @@ Ext.ns("joo.localization");
 
 Ext.Loader.setPath({
   'AS3': 'joo/classes',
-  'JangarooOverrides': 'joo/overrides'
+  'JooOverrides': 'joo/overrides'
 });
 
 Ext.Class.registerPreprocessor('accessors', function (Class, data) {
