@@ -1,6 +1,9 @@
 Class = {
   $isClass: true,
-  $className: "Class"
+  $className: "Class",
+  __isInstance__: function(object) {
+    return typeof object === "function" && !!object.$isClass;
+  }
 };
 Vector$object = Array;
 
@@ -21,50 +24,57 @@ AS3 = {
     if (!type || object === undefined || object === null) {
       return false;
     }
-    // special case meta-class Class:
-    if (type === Class) {
-      return !!object.$isClass;
+    if (Ext.isFunction(type.__isInstance__)) {
+      return type.__isInstance__(object);
     }
     if (!Ext.isFunction(type)) {
       return false;
     }
-    var $className = type.$className;
-    if ($className === "AS3.Error") {
-      // use built-in Error class for instanceof check:
-      type = Error;
-    }
     // constructor or instanceof may return false negatives:
-    if (object instanceof type || object.constructor === type) {
+    if (object.constructor === type || object instanceof type) {
       return true;
-    }
-    // special case int and uint:
-    if (type === AS3.int || type === AS3.uint) {
-      // thanks http://stackoverflow.com/questions/3885817/how-to-check-if-a-number-is-float-or-integer
-      return (object instanceof Number || typeof object === 'number') &&
-              (type === AS3.uint ? object >>> 0 : object >> 0) === object + 0; // "+ 0" converts Number to number!
-    }
-    if (typeof object === 'object' && $className) {
-      if (object.isInstance) {
-        var mixins = object.mixins;
-        if (Ext.isObject(mixins)) {
-          if (mixins[$className]) {
-            return true;
-          }
-          if (type.prototype.mixinId && mixins[type.prototype.mixinId]) {
-            return true;
-          }
-        }
-        return false;
-      } else {
-        var objectType = Ext.ClassManager.getByConfig(object);
-        if (objectType) {
-          return objectType.prototype === type.prototype || objectType.prototype instanceof type;
-        }
-      }
     }
     // special case for special observables, e.g. classes:
-    if (object.isObservable && ($className === "Ext.mixin.Observable" || $className === "Ext.util.Observable")) {
+    if (object.isObservable && (type.$className === "Ext.mixin.Observable" || type.$className === "Ext.util.Observable")) {
       return true;
+    }
+
+    if (typeof object === 'object') {
+      var objectType;
+      if (object.isInstance) {
+        objectType = object.self;
+      } else {
+        var typeName = object.xclass || object.xtype && Ext.ClassManager.getNameByAlias("widget." + object.xtype);
+        if (typeName) {
+          objectType = Ext.ClassManager.get(typeName);
+        }
+      }
+      if (AS3.isAssignableFrom(type, objectType)) {
+        return true;
+      }
+    }
+    return false;
+  },
+  isAssignableFrom: function(type, clazz) {
+    if (!type || !clazz) {
+      return false;
+    }
+    if (type === clazz) {
+      return true;
+    }
+    if (clazz.prototype instanceof type) {
+      return true;
+    }
+    if (type.$className) {
+      var mixins = clazz.prototype.mixins;
+      if (Ext.isObject(mixins)) {
+        if (mixins[type.$className]) {
+          return true;
+        }
+        if (type.prototype.mixinId && mixins[type.prototype.mixinId]) {
+          return true;
+        }
+      }
     }
     return false;
   },
@@ -75,8 +85,13 @@ AS3 = {
     if (value === undefined || value === null) {
       return value;
     }
-    if (typeof value === "object" && !value.isInstance && type.$className && !Ext.ClassManager.getByConfig(value)) {
-      value.xclass = type.$className;
+    if (type.$className && type.prototype &&
+            typeof value === "object" && !value.isInstance && !value.xclass && !value.xtype) {
+      if (type.prototype.hasOwnProperty("xtype")) {
+        value.xtype = type.prototype.xtype;
+      } else {
+        value.xclass = type.$className;
+      }
     } else if (!AS3.is(value, type)) {
       throw new TypeError("Value cannot be cast to " + Ext.getClassName(type) + ": " + value);
     }

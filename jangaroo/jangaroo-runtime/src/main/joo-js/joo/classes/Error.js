@@ -6,6 +6,10 @@ AS3.Error = function(message/*String*/, id/*:int*/) {
 };
 AS3.Error.$isClass = true;
 AS3.Error.$className = "AS3.Error";
+AS3.Error.__isInstance__ = function(object) {
+  // use built-in Error class for instanceof check:
+  return object instanceof Error;
+};
 AS3.Error.superclass = Error.prototype;
 AS3.Error.prototype = Object.create(Error.prototype);
 AS3.Error.prototype.self = AS3.Error;
