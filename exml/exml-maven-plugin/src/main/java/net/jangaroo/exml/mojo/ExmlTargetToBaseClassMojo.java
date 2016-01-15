@@ -93,6 +93,9 @@ public class ExmlTargetToBaseClassMojo extends AbstractExmlMojo {
     oldClassDeclarationPattern = "internal\\s+class\\s+" + getName(exmlFile);
     baseClassContent = baseClassContent.replaceAll(oldClassDeclarationPattern, "internal class " + getName(baseFile));
 
+    oldClassDeclarationPattern = "class\\s+" + getName(exmlFile);
+    baseClassContent = baseClassContent.replaceAll(oldClassDeclarationPattern, "class " + getName(baseFile));
+
     //fix the constructor
     String oldConstructorPattern = "public\\s+function\\s+" + getName(exmlFile);
     baseClassContent = baseClassContent.replaceAll(oldConstructorPattern, "public function " + getName(baseFile));
