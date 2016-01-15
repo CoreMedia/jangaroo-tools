@@ -87,13 +87,7 @@ public class ExmlTargetToBaseClassMojo extends AbstractExmlMojo {
   private void fixBaseClassName(File exmlFile, File baseFile) throws IOException {
     String baseClassContent = new String(Files.readAllBytes(baseFile.toPath()), StandardCharsets.UTF_8);
     //fix the class declaration
-    String oldClassDeclarationPattern = "public\\s+class\\s+" + getName(exmlFile);
-    baseClassContent = baseClassContent.replaceAll(oldClassDeclarationPattern, "public class " + getName(baseFile));
-
-    oldClassDeclarationPattern = "internal\\s+class\\s+" + getName(exmlFile);
-    baseClassContent = baseClassContent.replaceAll(oldClassDeclarationPattern, "internal class " + getName(baseFile));
-
-    oldClassDeclarationPattern = "class\\s+" + getName(exmlFile);
+    String oldClassDeclarationPattern = "class\\s+" + getName(exmlFile);
     baseClassContent = baseClassContent.replaceAll(oldClassDeclarationPattern, "class " + getName(baseFile));
 
     //fix the constructor
