@@ -6,7 +6,6 @@ import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.api.FilePosition;
 import net.jangaroo.jooc.ast.ClassDeclaration;
 import net.jangaroo.jooc.ast.CompilationUnit;
-import net.jangaroo.jooc.backend.ApiModelGenerator;
 import net.jangaroo.jooc.input.InputSource;
 import net.jangaroo.jooc.model.AnnotationModel;
 import net.jangaroo.jooc.model.AnnotationPropertyModel;
@@ -38,7 +37,6 @@ import java.io.InputStream;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -75,23 +73,25 @@ public final class MxmlToModelParser {
   private StringBuilder code;
   private boolean hasInitializeMethod;
 
-  public MxmlToModelParser(JangarooParser jangarooParser) {
+  /**
+   * 
+   * @param jangarooParser the Jangaroo parser to use to look up compilation units
+   * @param compilationUnitModel the "naked" compilation unit model to fill
+   */
+  public MxmlToModelParser(JangarooParser jangarooParser, CompilationUnitModel compilationUnitModel) {
     this.jangarooParser = jangarooParser;
+    this.compilationUnitModel = compilationUnitModel;
   }
 
   /**
    * Parses the MXML file into a CompilationUnitModel
    * @param in the input source to parse
-   * @return the parsed model
    * @throws java.io.IOException if the input stream could not be read
    * @throws org.xml.sax.SAXException if the XML was not well-formed
    */
-  public CompilationUnitModel parse(InputSource in) throws IOException, SAXException {
+  public void parse(InputSource in) throws IOException, SAXException {
     inputSource = in;
-    String qName = CompilerUtils.qNameFromRelativPath(in.getRelativePath());
-    String className = CompilerUtils.className(qName);
-    compilationUnitModel = new CompilationUnitModel(CompilerUtils.packageName(qName),
-            new ClassModel(className));
+    String className = compilationUnitModel.getClassModel().getName();
     nativeConstructorPattern = Pattern.compile("(\\s*public)\\s+native(\\s+function\\s+" + className + "\\s*\\(\\s*([A-Za-z_][A-Za-z_0-9]*)\\s*:\\s*([A-Za-z_][A-Za-z_0-9.]*)\\s*=\\s*null\\s*\\)\\s*); *\\n");
     varsDeclaredInScripts = new HashMap<String, String>();
     auxVarIndex = 0;
@@ -106,8 +106,6 @@ public final class MxmlToModelParser {
         inputStream.close();
       }
     }
-
-    return compilationUnitModel;
   }
 
   /**
@@ -582,14 +580,7 @@ public final class MxmlToModelParser {
     if (fullClassName == null) {
       return null;
     }
-    if (fullClassName.equals(compilationUnitModel.getQName())) {
-      return compilationUnitModel;
-    }
-    CompilationUnit compilationUnit = jangarooParser.getCompilationUnit(fullClassName);
-    if (compilationUnit == null) {
-      throw Jooc.error("Undefined type: " + fullClassName);
-    }
-    return new ApiModelGenerator(false).generateModel(compilationUnit); // TODO: cache!
+    return jangarooParser.getCompilationUnitModel(fullClassName);
   }
 
   private CompilationUnitModel getCompilationUnitModel(Element element) throws IOException {
