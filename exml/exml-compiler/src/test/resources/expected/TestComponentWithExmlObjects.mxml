@@ -11,6 +11,8 @@
   <fx:Script><![CDATA[
     import ext.XTemplate;
 
+    public static const xtype:String = "testNamespace.config.testComponentWithExmlObjects";
+
     public native function TestComponentWithExmlObjects(config:testPackage.TestComponentWithExmlObjects = null);
   ]]></fx:Script>
   <fx:Declarations>

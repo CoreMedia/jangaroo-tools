@@ -20,6 +20,8 @@
   <fx:Script><![CDATA[
     import ext.MessageBox;
 
+    public static const xtype:String = "testNamespace.config.allElements";
+
     /**
      * This is my <b>constant</b>
      */

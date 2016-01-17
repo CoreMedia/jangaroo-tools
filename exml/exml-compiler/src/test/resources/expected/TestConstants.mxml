@@ -7,6 +7,8 @@
     import ext.Container;
     import ext.Component;
 
+    public static const xtype:String = "testNamespace.config.testConstants";
+
     /**
      * This is some constant
      */

@@ -6,6 +6,8 @@
                 xmlns="exml:ext.config"
                 text="{config.propertyOne}">
   <fx:Script><![CDATA[
+    public static const xtype:String = "testNamespace.config.testLabel";
+
     public native function TestLabel(config:testPackage.TestLabel = null);
   ]]></fx:Script>
   <fx:Declarations>

@@ -8,6 +8,8 @@
                 xmlns="exml:ext.config"
                 title="Hello World">
   <fx:Script><![CDATA[
+    public static const xtype:String = "testNamespace.config.testComponentWithBaseClass";
+
     public native function TestComponentWithBaseClass(config:testPackage.TestComponentWithBaseClass = null);
   ]]></fx:Script>
   <fx:Declarations>

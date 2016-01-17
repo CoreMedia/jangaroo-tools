@@ -5,6 +5,8 @@
                 xmlns="exml:ext.config"
                 title="Hello World">
   <fx:Script><![CDATA[
+    public static const xtype:String = "testNamespace.config.testComponentWithConstants";
+
     public static const CLS_BASE:String = "cm-elastic-social-email-window";
 
     public static const CLS_META_SPACER:String = "metadatapanel-first-spacer-class";

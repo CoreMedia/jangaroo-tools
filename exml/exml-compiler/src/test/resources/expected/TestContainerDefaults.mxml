@@ -5,6 +5,8 @@
                 xmlns:test="exml:testNamespace.config"
                 xmlns="exml:ext.config">
   <fx:Script><![CDATA[
+    public static const xtype:String = "testNamespace.config.testContainerDefaults";
+
     public native function TestContainerDefaults(config:testPackage.TestContainerDefaults = null);
   ]]></fx:Script>
   <fx:Declarations>

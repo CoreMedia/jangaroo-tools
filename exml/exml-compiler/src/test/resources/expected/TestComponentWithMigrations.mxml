@@ -11,6 +11,8 @@
   <fx:Script><![CDATA[
     import ext.Component;
 
+    public static const xtype:String = "testNamespace.config.testComponentWithMigrations";
+
     public native function TestComponentWithMigrations(config:testPackage.TestComponentWithMigrations = null);
 
     [Bindable]

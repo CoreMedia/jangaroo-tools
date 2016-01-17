@@ -146,6 +146,7 @@ public class ExmlToMxml {
   private class ExmlToMxmlHandler extends CharacterRecordingHandler implements LexicalHandler {
     private static final String OPEN_FX_SCRIPT = "%n  <fx:Script><![CDATA[%n";
     private static final String CLOSE_FX_SCRIPT = "  ]]></fx:Script>";
+    private static final String PUBLIC_STATIC_CONST_DECLARATION_FORMAT = "    public static const %s:%s = %s;%n%n";
 
     private final PrintStream out;
     private PrintStream currentOut;
@@ -390,10 +391,15 @@ public class ExmlToMxml {
     }
 
     private void printConstants() {
+      if (Exmlc.EXML_COMPONENT_NODE_NAME.equals(parsePrefixAndLocalName(originalRootName)[1])) {
+        currentOut.printf(
+                PUBLIC_STATIC_CONST_DECLARATION_FORMAT,
+                "xtype", "String", CompilerUtils.quote(exmlModel.getConfigClass().getFullName()));
+      }
       for (Declaration constant : exmlModel.getConfigClass().getConstants()) {
         printASDoc(constant.getDescription());
         currentOut.printf(
-                "    public static const %s:%s = %s;%n%n",
+                PUBLIC_STATIC_CONST_DECLARATION_FORMAT,
                 constant.getName(), constant.getType(), constant.getValue()
         );
       }

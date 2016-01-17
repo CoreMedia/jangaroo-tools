@@ -9,6 +9,8 @@
                 xmlns:test="exml:testNamespace.config"
                 title="{config.defaultTitle}">
   <fx:Script><![CDATA[
+    public static const xtype:String = "testNamespace.config.testComponentWithAction";
+
     public native function TestComponentWithAction(config:testPackage.TestComponentWithAction = null);
   ]]></fx:Script>
   <fx:Declarations>
