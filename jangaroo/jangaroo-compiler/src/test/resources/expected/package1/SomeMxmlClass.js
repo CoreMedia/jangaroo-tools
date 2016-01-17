@@ -5,6 +5,8 @@ import joo.addEventListener;
 import net.jangaroo.ext.Exml;
 
 public class SomeMxmlClass extends package1.ConfigClass {
+    public static const xtype:String = "testNamespace.config.soneMxmlClass";
+    
     import foo.Bar;
 
     private var blub:*;
@@ -82,6 +84,7 @@ public class SomeMxmlClass extends package1.ConfigClass {
 ============================================== Jangaroo part ==============================================*/
     return {
       extend: "AS3.package1.ConfigClass",
+      alias: "widget.testNamespace.config.soneMxmlClass",
       blub$2: undefined,
       $on_$_1_click$2: $on_$_1_click,
       $on_$_7_clack$2: $on_$_7_clack,
@@ -93,6 +96,7 @@ public class SomeMxmlClass extends package1.ConfigClass {
         other: null,
         no_config: null
       },
+      statics: {xtype: "testNamespace.config.soneMxmlClass"},
       requires: ["AS3.package1.ConfigClass"],
       uses: [
         "AS3.package1.someOtherPackage.SomeOtherClass",
