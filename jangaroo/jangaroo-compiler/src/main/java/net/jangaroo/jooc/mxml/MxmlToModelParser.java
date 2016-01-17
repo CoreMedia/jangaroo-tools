@@ -140,7 +140,7 @@ public final class MxmlToModelParser {
       renderConfigAuxVar(superConfigVar, superClassName);
     }
 
-    if (configParamModel == null) {
+    if (configParamModel == null || superConfigVar == null) {
       createFields(superConfigVar == null ? "" : superConfigVar, objectNode);
     } else {
       String defaultsConfigVar = createAuxVar();
