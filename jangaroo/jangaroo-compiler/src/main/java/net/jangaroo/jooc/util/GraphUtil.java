@@ -1,7 +1,5 @@
 package net.jangaroo.jooc.util;
 
-import net.jangaroo.jooc.ast.CompilationUnit;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
