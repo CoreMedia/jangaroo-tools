@@ -113,17 +113,13 @@ public class GraphUtil {
               return new ArrayList<T>(result);
             }
 
-            // Make sure to add only successors not already reached,
-            // so that membership in the set reached is an indicator of a
-            // backtracking step after all successors have been processed.
-            if (!reached.contains(successor)) {
-              todo.add(successor);
-            }
+            todo.add(successor);
           }
         }
       } else {
-        // Old node. All successors have been processed without success.
-        result.removeLast();
+        if (current.equals(result.getLast())) {
+          result.removeLast();
+        }
         todo.removeLast();
       }
     }

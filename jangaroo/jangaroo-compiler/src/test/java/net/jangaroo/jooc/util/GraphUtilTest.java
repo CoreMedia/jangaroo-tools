@@ -137,6 +137,14 @@ public class GraphUtilTest {
   }
 
   @Test
+  public void testNoCycle() throws Exception {
+    Map<String, Set<String>> graph = graph(
+            successors("a", "b"));
+    List<String> cycle = GraphUtil.findCycle(graph, "a");
+    Assert.assertNull(cycle);
+  }
+
+  @Test
   public void testCycleSimple() throws Exception {
     Map<String, Set<String>> graph = graph(
             successors("a", "b"),
