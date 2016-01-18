@@ -1,6 +1,9 @@
 Class = {
   $isClass: true,
-  $className: "Class"
+  $className: "Class",
+  __isInstance__: function(object) {
+    return typeof object === "function" && !!object.$isClass;
+  }
 };
 Vector$object = Array;
 
@@ -21,43 +24,57 @@ AS3 = {
     if (!type || object === undefined || object === null) {
       return false;
     }
-    // special case meta-class Class:
-    if (type === Class) {
-      return !!object.$isClass;
+    if (Ext.isFunction(type.__isInstance__)) {
+      return type.__isInstance__(object);
     }
     if (!Ext.isFunction(type)) {
       return false;
     }
     // constructor or instanceof may return false negatives:
-    if (object instanceof type || object.constructor === type) {
+    if (object.constructor === type || object instanceof type) {
       return true;
-    }
-    // special case int and uint:
-    if (type === AS3.int || type === AS3.uint) {
-      // thanks http://stackoverflow.com/questions/3885817/how-to-check-if-a-number-is-float-or-integer
-      return (object instanceof Number || typeof object === 'number') &&
-              (type === AS3.uint ? object >>> 0 : object >> 0) === object + 0; // "+ 0" converts Number to number!
-    }
-    if (typeof object === 'object' && type.$className) {
-      if (object.isInstance) {
-        var mixins = object.mixins;
-        if (Ext.isObject(mixins)) {
-          if (mixins[type.$className]) {
-            return true;
-          }
-          if (type.prototype.mixinId && mixins[type.prototype.mixinId]) {
-            return true;
-          }
-        }
-        return false;
-      } else if (object.xclass) {
-        var prototype = Ext.ClassManager.get(object.xclass).prototype;
-        return prototype === type.prototype || prototype instanceof type;
-      }
     }
     // special case for special observables, e.g. classes:
     if (object.isObservable && (type.$className === "Ext.mixin.Observable" || type.$className === "Ext.util.Observable")) {
       return true;
+    }
+
+    if (typeof object === 'object') {
+      var objectType;
+      if (object.isInstance) {
+        objectType = object.self;
+      } else {
+        var typeName = object.xclass || object.xtype && Ext.ClassManager.getNameByAlias("widget." + object.xtype);
+        if (typeName) {
+          objectType = Ext.ClassManager.get(typeName);
+        }
+      }
+      if (AS3.isAssignableFrom(type, objectType)) {
+        return true;
+      }
+    }
+    return false;
+  },
+  isAssignableFrom: function(type, clazz) {
+    if (!type || !clazz) {
+      return false;
+    }
+    if (type === clazz) {
+      return true;
+    }
+    if (clazz.prototype instanceof type) {
+      return true;
+    }
+    if (type.$className) {
+      var mixins = clazz.prototype.mixins;
+      if (Ext.isObject(mixins)) {
+        if (mixins[type.$className]) {
+          return true;
+        }
+        if (type.prototype.mixinId && mixins[type.prototype.mixinId]) {
+          return true;
+        }
+      }
     }
     return false;
   },
@@ -68,12 +85,15 @@ AS3 = {
     if (value === undefined || value === null) {
       return value;
     }
-    if (value.isInstance || value.xclass) {
-      if (!AS3.is(value, type)) {
-        throw new TypeError();
+    if (type.$className && type.prototype &&
+            typeof value === "object" && !value.isInstance && !value.xclass && !value.xtype) {
+      if (type.prototype.hasOwnProperty("xtype")) {
+        value.xtype = type.prototype.xtype;
+      } else {
+        value.xclass = type.$className;
       }
-    } else if (type.$className) {
-      value.xclass = type.$className;
+    } else if (!AS3.is(value, type)) {
+      throw new TypeError("Value cannot be cast to " + Ext.getClassName(type) + ": " + value);
     }
     return value;
   },
@@ -93,7 +113,19 @@ AS3 = {
   }
 };
 
-Ext.Loader.setPath('AS3', 'joo/classes');
+var joo = Ext.ns("joo");
+joo.getQualifiedObject = function(name) {
+  return eval(name);
+};
+joo.getOrCreatePackage = function(name) {
+  return Ext.ns("AS3." + name);
+};
+Ext.ns("joo.localization");
+
+Ext.Loader.setPath({
+  'AS3': 'joo/classes',
+  'JooOverrides': 'joo/overrides'
+});
 
 Ext.Class.registerPreprocessor('accessors', function (Class, data) {
   if (data.accessors) {

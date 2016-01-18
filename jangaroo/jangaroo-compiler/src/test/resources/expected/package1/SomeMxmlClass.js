@@ -5,19 +5,20 @@ import joo.addEventListener;
 import net.jangaroo.ext.Exml;
 
 public class SomeMxmlClass extends package1.ConfigClass {
+    public static const xtype:String = "testNamespace.config.soneMxmlClass";
+    
     import foo.Bar;
+
+    private var blub:*;
+
+    [Bindable]
+    public var list:Object;
   
   [Bindable]
   public var bar:String;
 
   [Bindable]
   public var num:int;
-
-  [Bindable]
-  public var blub:Object;
-
-  [Bindable]
-  public var list:Array;
 
   [Bindable]
   public var other:package1.someOtherPackage.SomeOtherClass;
@@ -38,8 +39,8 @@ public class SomeMxmlClass extends package1.ConfigClass {
     var $_1/*:package1.ConfigClass*/ =AS3.cast( AS3.package1.ConfigClass,{});
     $_1.bar = "BAR!";
     $_1.num = 123;
-    $_1.blub = {};
-    $_1.blub.name = "Kuno";
+    this.blub$2 = {};
+    this.blub$2.name = "Kuno";
     var $_2/*:Object*/ = {};
     $_2.name = "Joe";
     var $_3/*:Object*/ = {};
@@ -83,17 +84,19 @@ public class SomeMxmlClass extends package1.ConfigClass {
 ============================================== Jangaroo part ==============================================*/
     return {
       extend: "AS3.package1.ConfigClass",
+      alias: "widget.testNamespace.config.soneMxmlClass",
+      blub$2: undefined,
       $on_$_1_click$2: $on_$_1_click,
       $on_$_7_clack$2: $on_$_7_clack,
       constructor: SomeMxmlClass$,
       config: {
+        list: null,
         bar: null,
         num: 0,
-        blub: null,
-        list: null,
         other: null,
         no_config: null
       },
+      statics: {xtype: "testNamespace.config.soneMxmlClass"},
       requires: [
         "AS3.package1.ConfigClass",
         "AS3.package1.someOtherPackage.SomeOtherClass",

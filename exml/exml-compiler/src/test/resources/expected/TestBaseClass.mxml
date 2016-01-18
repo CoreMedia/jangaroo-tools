@@ -5,6 +5,8 @@
                 xmlns="exml:ext.config"
                 xmlns:ns1="someOtherPackage.base.*">
   <fx:Script><![CDATA[
+    public static const xtype:String = "testNamespace.config.testBaseClass";
+
     public native function TestBaseClass(config:exmlparser.TestBaseClass = null);
   ]]></fx:Script>
   <fx:Declarations>

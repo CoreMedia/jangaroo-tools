@@ -9,6 +9,8 @@
                 xmlns="exml:ext.config"
                 title="I am inside a package!">
   <fx:Script><![CDATA[
+    public static const xtype:String = "testNamespace.config.testComponentWithMultiLineAttribute";
+
     public native function TestComponentWithMultiLineAttribute(config:testPackage.TestComponentWithMultiLineAttribute = null);
   ]]></fx:Script>
   <fx:Declarations>

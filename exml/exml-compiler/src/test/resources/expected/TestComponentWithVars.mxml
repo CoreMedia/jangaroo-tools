@@ -12,6 +12,8 @@
     import com.coremedia.cms.editor.sdk.editorContext;
     import com.coremedia.cms.editor.sdk.sites.SitesService;
 
+    public static const xtype:String = "testNamespace.config.testComponentWithVars";
+
     private var varWithExpressionValue:Array;
     private var varWithXmlValue:button;
     private var varWithXmlArrayValue:Array;

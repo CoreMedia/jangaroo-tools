@@ -6,6 +6,8 @@
                 xmlns:test="exml:testNamespace.config"
                 xmlns="exml:ext.config">
   <fx:Script><![CDATA[
+    public static const xtype:String = "testNamespace.config.testComponentWithConfigModes";
+
     public native function TestComponentWithConfigModes(config:testPackage.TestComponentWithConfigModes = null);
   ]]></fx:Script>
   <fx:Declarations>

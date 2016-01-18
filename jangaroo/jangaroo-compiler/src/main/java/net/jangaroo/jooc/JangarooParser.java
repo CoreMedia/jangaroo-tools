@@ -2,6 +2,8 @@ package net.jangaroo.jooc;
 
 import java_cup.runtime.Symbol;
 import net.jangaroo.jooc.backend.ActionScriptCodeGeneratingModelVisitor;
+import net.jangaroo.jooc.backend.ApiModelGenerator;
+import net.jangaroo.jooc.model.ClassModel;
 import net.jangaroo.jooc.model.CompilationUnitModel;
 import net.jangaroo.jooc.mxml.MxmlComponentRegistry;
 import net.jangaroo.jooc.mxml.MxmlToModelParser;
@@ -48,6 +50,7 @@ public class JangarooParser {
   private InputSource classPathInputSource;
   private ParserOptions config;
   private Map<String, CompilationUnit> compilationUnitsByQName = new LinkedHashMap<String, CompilationUnit>();
+  private Map<String, CompilationUnitModel> compilationUnitModelsByQName = new LinkedHashMap<String, CompilationUnitModel>();
   private MxmlComponentRegistry mxmlComponentRegistry = new MxmlComponentRegistry();
   private List<String> compilableSuffixes = Arrays.asList(Jooc.AS_SUFFIX, Jooc.MXML_SUFFIX);
 
@@ -130,7 +133,13 @@ public class JangarooParser {
     Reader reader;
     try {
       if (in.getName().endsWith(Jooc.MXML_SUFFIX)) {
-        CompilationUnitModel compilationUnitModel = new MxmlToModelParser(this).parse(in);
+        String qName = CompilerUtils.qNameFromRelativPath(in.getRelativePath());
+        String className = CompilerUtils.className(qName);
+        CompilationUnitModel compilationUnitModel = new CompilationUnitModel(CompilerUtils.packageName(qName),
+                new ClassModel(className));
+        // inject into CompilationUnitModel cache early to avoid endless recursion during lookup:
+        compilationUnitModelsByQName.put(qName, compilationUnitModel);
+        new MxmlToModelParser(this, compilationUnitModel).parse(in);
         // From the CompilationUnitModel, we generate AS code, then parse a CompilationUnit again.
         // TODO: This should be simplified to always using CompilationUnitModels for reference
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -278,6 +287,23 @@ public class JangarooParser {
     }
     return compilationUnit;
   }
+
+  public CompilationUnitModel getCompilationUnitModel(String fullClassName) throws IOException {
+    if (fullClassName == null) {
+      return null;
+    }
+    CompilationUnitModel compilationUnitModel = compilationUnitModelsByQName.get(fullClassName);
+    if (compilationUnitModel == null) {
+      CompilationUnit compilationUnit = getCompilationUnit(fullClassName);
+      if (compilationUnit == null) {
+        throw net.jangaroo.jooc.Jooc.error("Undefined type: " + fullClassName);
+      }
+      compilationUnitModel = new ApiModelGenerator(false).generateModel(compilationUnit);
+      compilationUnitModelsByQName.put(fullClassName, compilationUnitModel);
+    }
+    return compilationUnitModel;
+  }
+
 
   public MxmlComponentRegistry getMxmlComponentRegistry() {
     return mxmlComponentRegistry;

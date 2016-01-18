@@ -6,6 +6,9 @@
              foo="bar"
              number="{1 + 1}"
              click="var result:String = 'gotcha!';">
+  <fx:Script><![CDATA[
+    public static const xtype:String = "testNamespace.config.soneMxmlClass";
+    ]]></fx:Script>
   <fx:Declarations>
     <fx:String id="bar">BAR!</fx:String>
     <!---
@@ -44,5 +47,10 @@
   </items>
   <fx:Script>
     import foo.Bar;
+
+    private var blub:*;
+
+    [Bindable]
+    public var list:Object;
   </fx:Script>
 </ConfigClass>

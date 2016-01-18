@@ -6,6 +6,8 @@
                 items="{config.myItems}"
                 tools="tools">
   <fx:Script><![CDATA[
+    public static const xtype:String = "testNamespace.config.testArrayAttribute";
+
     public native function TestArrayAttribute(config:exmlparser.TestArrayAttribute = null);
   ]]></fx:Script>
   <fx:Declarations>

@@ -81,6 +81,11 @@ public class ApplyExpr extends Expr {
   }
 
   private boolean isNonCoercingType(IdeExpr fun) {
+    IdeDeclaration funType = fun.getType();
+    if (funType != null && "Class".equals(funType.getQualifiedNameStr())) {
+      // treat any expression of type "Class" as a type cast:
+      return true;
+    }
     final Ide ide = fun.getIde();
     IdeDeclaration declaration = ide.getDeclaration(false);
     return declaration != null &&
