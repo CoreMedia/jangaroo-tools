@@ -4,6 +4,7 @@ import net.jangaroo.jooc.ast.CompilationUnit;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -94,36 +95,38 @@ public class GraphUtil {
   }
 
   public static <T> List<T> findCycle(Map<T, ? extends Collection<T>> graph, T start) {
-    Set<T> reached = new HashSet<T>();
-    Deque<T> result = new LinkedList<T>();
+    // Breadth-first search for the shortest cycle.
 
-    Deque<T> todo = new LinkedList<T>();
+    Map<T, T> predecessors = new HashMap<T, T>();
+    List<T> todo = new ArrayList<T>();
     todo.add(start);
     while (!todo.isEmpty()) {
-      T current = todo.getLast();
-      if (reached.add(current)) {
-        // Process new node.
-        result.add(current);
-
+      List<T> nextTodo = new ArrayList<T>();
+      for (T current : todo) {
         Collection<T> successors = graph.get(current);
         if (successors != null) {
           for (T successor : successors) {
-            if (successor.equals(start)) {
-              // Cycle found.
-              return new ArrayList<T>(result);
+            if (!predecessors.containsKey(successor)) {
+              predecessors.put(successor, current);
+              nextTodo.add(successor);
             }
-
-            todo.add(successor);
           }
         }
-      } else {
-        if (current.equals(result.getLast())) {
-          result.removeLast();
-        }
-        todo.removeLast();
       }
+
+      todo = nextTodo;
     }
 
-    return null;
+    List<T> result = new ArrayList<T>();
+    T current = start;
+    do {
+      current = predecessors.get(current);
+      if (current == null) {
+        return null;
+      }
+      result.add(current);
+    } while (!current.equals(start));
+    Collections.reverse(result);
+    return result;
   }
 }
