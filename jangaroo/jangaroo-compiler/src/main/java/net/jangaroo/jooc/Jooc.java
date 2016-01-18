@@ -15,6 +15,9 @@
 
 package net.jangaroo.jooc;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
+import net.jangaroo.dependencies.DependencyGraphFile;
 import net.jangaroo.jooc.api.CompilationResult;
 import net.jangaroo.jooc.api.CompileLog;
 import net.jangaroo.jooc.ast.CompilationUnit;
@@ -196,9 +199,30 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
             List<CompilationUnit> cycle = new ArrayList<CompilationUnit>(GraphUtil.findCycle(dependencyGraph, compilationUnit));
             cycle.add(compilationUnit);
 
+            File dependencyGraphFile = new File(getConfig().getReportOutputDirectory(), "cycles.graphml");
+            Multimap<String, String> requires = HashMultimap.create();
+            Set<String> staticallyInitialized = new HashSet<String>();
+            for (Map.Entry<CompilationUnit, Set<CompilationUnit>> entry : dependencyGraph.entrySet()) {
+              String dependentName = getCompilationUnitName(entry.getKey());
+              if (entry.getKey().isHasStaticCode()) {
+                staticallyInitialized.add(dependentName);
+              }
+              Set<CompilationUnit> dependencies = entry.getValue();
+              for (CompilationUnit dependency : dependencies) {
+                requires.put(dependentName, getCompilationUnitName(dependency));
+              }
+            }
+
+            try {
+              DependencyGraphFile.writeDependencyFile(requires, staticallyInitialized, dependencyGraphFile);
+            } catch (IOException e) {
+              logCompilerError(e);
+              // Do not throw again. A worse error is logged presently.
+            }
+
             StringBuilder message = new StringBuilder();
             message.append("The compilation unit ");
-            message.append(compilationUnit.getPrimaryDeclaration().getIde().getIde().getText());
+            message.append(getCompilationUnitName(compilationUnit));
             message.append(" contains a static initializer");
             message.append(" (for example a code block or a static variable with a complex initializer)");
             message.append(" and is also contained in a cycle of dependencies: ");
@@ -206,10 +230,14 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
               if (i > 0) {
                 message.append(" -> ");
               }
-              message.append(cycle.get(i).getPrimaryDeclaration().getIde().getIde().getText());
+              message.append(getCompilationUnitName(cycle.get(i)));
             }
             message.append(". You can either remove the static initializer or break the dependency cycle");
             message.append(" to make this module compile. (Other dependency cycles might exist, though.)");
+            message.append(" A dependency graph of the module has been written to ");
+            message.append(dependencyGraphFile);
+            message.append('.');
+
             throw error(compilationUnit, message.toString());
           }
         }
@@ -236,6 +264,10 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
         }
       }
     }
+  }
+
+  private String getCompilationUnitName(CompilationUnit compilationUnit) {
+    return compilationUnit.getPrimaryDeclaration().getIde().getIde().getText();
   }
 
   @Override

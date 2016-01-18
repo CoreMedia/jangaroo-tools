@@ -45,6 +45,13 @@ public class CompilerMojo extends AbstractCompilerMojo {
   private File tempClassesOutputDirectory;
 
   /**
+   * Output directory for compilation reports like the cyclic classes report.
+   *
+   * @parameter expression="${project.build.directory}/temp"
+   */
+  private File reportOutputDirectory;
+
+  /**
    * A list of inclusion filters for the compiler.
    *
    * @parameter
@@ -93,6 +100,10 @@ public class CompilerMojo extends AbstractCompilerMojo {
     return tempClassesOutputDirectory;
   }
 
+  public File getReportOutputDirectory() {
+    return reportOutputDirectory;
+  }
+
   @Override
   protected Set<String> getIncludes() {
     return includes;
@@ -112,6 +123,7 @@ public class CompilerMojo extends AbstractCompilerMojo {
     JoocConfiguration joocConfiguration = super.createJoocConfiguration(log);
     if (joocConfiguration != null) {
       joocConfiguration.setCatalogOutputDirectory(getCatalogOutputDirectory());
+      joocConfiguration.setReportOutputDirectory(getReportOutputDirectory());
     }
     return joocConfiguration;
   }
