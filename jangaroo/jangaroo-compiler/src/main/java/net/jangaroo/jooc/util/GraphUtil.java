@@ -106,7 +106,7 @@ public class GraphUtil {
         result.add(current);
 
         Collection<T> successors = graph.get(current);
-        if (graph != null) {
+        if (successors != null) {
           for (T successor : successors) {
             if (successor.equals(start)) {
               // Cycle found.
