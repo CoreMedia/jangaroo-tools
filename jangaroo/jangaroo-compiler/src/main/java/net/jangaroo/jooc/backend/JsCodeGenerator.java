@@ -392,7 +392,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
         classDefinition = createClassDefinition((ClassDeclaration) declaration);
       } else {
         classDefinition = new JsonObject();
-        classDefinition.set("factory", JsonObject.code(factory));
+        classDefinition.set("__factory__", JsonObject.code(factory));
       }
       fillClassDefinition(classDefinition, classDefinitionBuilder);
     }
@@ -561,7 +561,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       accessors.set("statics", staticAccessors);
     }
     if (!accessors.isEmpty()) {
-      classDefinition.set("accessors", accessors);
+      classDefinition.set("__accessors__", accessors);
     }
   }
 

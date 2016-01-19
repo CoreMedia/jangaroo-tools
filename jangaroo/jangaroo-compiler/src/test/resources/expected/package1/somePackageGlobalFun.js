@@ -14,7 +14,7 @@ public*/ function somePackageGlobalFun(flag/*:Boolean*/)/*:SomeOtherClass*/ {
 
 ============================================== Jangaroo part ==============================================*/
     return {
-      factory: function() {
+      __factory__: function() {
         return somePackageGlobalFun;
       },
       uses: ["AS3.package1.someOtherPackage.SomeOtherClass"]

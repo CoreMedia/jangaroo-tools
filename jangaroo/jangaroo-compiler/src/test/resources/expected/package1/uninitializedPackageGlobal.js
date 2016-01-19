@@ -11,7 +11,7 @@ public var uninitializedPackageGlobal:SomeOtherClass;
 }
 
 ============================================== Jangaroo part ==============================================*/
-    return {factory: function() {
+    return {__factory__: function() {
         return(null);
       }};
 });

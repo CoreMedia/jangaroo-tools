@@ -13,7 +13,7 @@ public var somePackageGlobal:SomeOtherClass
 
 ============================================== Jangaroo part ==============================================*/
     return {
-      factory: somePackageGlobal_,
+      __factory__: somePackageGlobal_,
       requires: ["AS3.package1.someOtherPackage.SomeOtherClass"]
     };
 });

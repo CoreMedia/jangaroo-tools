@@ -1,5 +1,5 @@
 Ext.define("AS3.int", {
-  factory: function() {
+  __factory__: function() {
     var $int = function(num) {
       return num >> 0;
     };
