@@ -22,7 +22,7 @@ package {
  * }
  * </listing>
  */
-[Native("AS3.trace")]
+[Native("AS3.trace", require)]
 public native function trace(...msgs) : void;
 
 }
