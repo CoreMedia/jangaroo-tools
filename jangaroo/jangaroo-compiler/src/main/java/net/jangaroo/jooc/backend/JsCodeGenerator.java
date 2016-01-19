@@ -433,36 +433,23 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       IdeDeclaration dependentDeclaration = dependentCU.getPrimaryDeclaration();
       String javaScriptName;
       String javaScriptNameToRequire;
-      String nativeAnnotationValue = getNativeAnnotationValue(dependentCU);
-      if (nativeAnnotationValue == null) {
-        javaScriptName = javaScriptNameToRequire = getModuleName(dependentDeclaration);
+      Annotation nativeAnnotation = dependentCU.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME);
+      if (nativeAnnotation == null) {
+        javaScriptName = getModuleName(dependentDeclaration);
+        javaScriptNameToRequire = javaScriptName;
       } else {
-        javaScriptName = javaScriptNameToRequire = nativeAnnotationValue;
-        if (dependentDeclaration instanceof TypedIdeDeclaration) {
-          // for singletons, require their type instead if the type has a [Native(...)] name:
-          TypeRelation optTypeRelation = ((TypedIdeDeclaration) dependentDeclaration).getOptTypeRelation();
-          if (optTypeRelation != null) {
-            IdeDeclaration typeDeclaration = optTypeRelation.getType().resolveDeclaration();
-            if (typeDeclaration instanceof ClassDeclaration) {
-              String typeNativeAnnotationValue = getNativeAnnotationValue(typeDeclaration);
-              if ("".equals(typeNativeAnnotationValue)) {
-                // "virtual" singleton-type class, try direct super class:
-                typeNativeAnnotationValue = getNativeAnnotationValue(((ClassDeclaration)typeDeclaration).getSuperTypeDeclaration());
-              }
-              if (typeNativeAnnotationValue != null && !"".equals(typeNativeAnnotationValue)) {
-                javaScriptNameToRequire = typeNativeAnnotationValue;
-              }
-            }
-          }
-        }
-        if ("".equals(javaScriptName)) {
+        String javaScriptAlias = getNativeAnnotationValue(nativeAnnotation);
+        if (javaScriptAlias != null) {
+          javaScriptName = javaScriptAlias;
+        } else {
           javaScriptName = dependentDeclaration.getQualifiedNameStr();
         }
-        if (javaScriptNameToRequire == null) {
+        javaScriptNameToRequire = getNativeAnnotationRequireValue(nativeAnnotation);
+        if ("".equals(javaScriptNameToRequire)) {
           javaScriptNameToRequire = javaScriptName;
         }
       }
-      if (!"".equals(javaScriptNameToRequire)) {
+      if (javaScriptNameToRequire != null) {
         requires.add(javaScriptNameToRequire);
       }
       imports.put(dependentCU.getPrimaryDeclaration().getQualifiedNameStr(), javaScriptName);
@@ -471,18 +458,12 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     return requires.toArray(new String[requires.size()]);
   }
 
-  private String getNativeAnnotationValue(IdeDeclaration typeDeclaration) {
-    return typeDeclaration == null ? null
-            : getNativeAnnotationValue(typeDeclaration.getCompilationUnit());
+  private String getNativeAnnotationValue(Annotation nativeAnnotation) {
+    return (String) getAnnotationParameterValue(nativeAnnotation, null, null);
   }
 
-  private String getNativeAnnotationValue(CompilationUnit compilationUnit) {
-    if (compilationUnit == null) {
-      return null;
-    }
-    Annotation nativeAnnotation = compilationUnit.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME);
-    return nativeAnnotation == null ? null
-            : (String) getAnnotationParameterValue(nativeAnnotation, null, "");
+  private String getNativeAnnotationRequireValue(Annotation nativeAnnotation) {
+    return (String) getAnnotationParameterValue(nativeAnnotation, Jooc.NATIVE_ANNOTATION_REQUIRE_PROPERTY, "");
   }
 
   private Set<String> computeUseQName(CompilationUnit compilationUnit) {
@@ -512,7 +493,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       }
       annotationParameters = annotationParameters.getTail();
     }
-    return defaultValue;
+    return null;
   }
 
   private static String getModuleName(CompilationUnit compilationUnit) {
