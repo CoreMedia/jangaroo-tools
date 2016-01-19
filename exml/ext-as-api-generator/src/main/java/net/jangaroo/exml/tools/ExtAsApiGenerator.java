@@ -57,9 +57,6 @@ import static net.jangaroo.exml.tools.ExtJsApi.isSingleton;
  */
 public class ExtAsApiGenerator {
 
-  private static final String EXT_CONFIG_ANNOTATION = "ExtConfig";
-  private static final String BINDABLE_ANNOTATION = "Bindable";
-
   private static ExtJsApi extJsApi;
   private static Set<ExtClass> extClasses;
   private static CompilationUnitModelRegistry compilationUnitModelRegistry;
@@ -450,6 +447,7 @@ public class ExtAsApiGenerator {
     if (nativeName != null) {
       nativeAnnotation.addProperty(new AnnotationPropertyModel(null, CompilerUtils.quote(nativeName)));
     }
+    nativeAnnotation.addProperty(new AnnotationPropertyModel(Jooc.NATIVE_ANNOTATION_REQUIRE_PROPERTY, null));
     return nativeAnnotation;
   }
 
@@ -598,7 +596,7 @@ public class ExtAsApiGenerator {
         if (!(member.meta.readonly || member.readonly || isConstantName(member.name))) {
           MethodModel setter = propertyModel.addSetter();
           if (isConfig) {
-            setter.addAnnotation(new AnnotationModel(EXT_CONFIG_ANNOTATION));
+            setter.addAnnotation(new AnnotationModel(Jooc.EXT_CONFIG_ANNOTATION_NAME));
           }
         }
         classModel.addMember(propertyModel);
@@ -908,7 +906,7 @@ public class ExtAsApiGenerator {
 
   private static void annotateBindableConfigProperties(ClassModel classModel) {
     for (MemberModel member : classModel.getMembers()) {
-      if (member.isSetter() && !member.getAnnotations(EXT_CONFIG_ANNOTATION).isEmpty()) {
+      if (member.isSetter() && !member.getAnnotations(Jooc.EXT_CONFIG_ANNOTATION_NAME).isEmpty()) {
         annotateBindableConfigProperty(classModel, (MethodModel) member);
       }
     }
@@ -961,7 +959,7 @@ public class ExtAsApiGenerator {
       }
     }
 
-    propertySetter.addAnnotation(new AnnotationModel(BINDABLE_ANNOTATION));
+    propertySetter.addAnnotation(new AnnotationModel(Jooc.BINDABLE_ANNOTATION_NAME));
     propertySetter.setAsdoc(propertySetter.getAsdoc() + "\n@see #" + setMethodName + "()");
   }
 
