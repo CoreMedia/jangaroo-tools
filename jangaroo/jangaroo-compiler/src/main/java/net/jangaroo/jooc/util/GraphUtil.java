@@ -92,9 +92,16 @@ public class GraphUtil {
     return sorted;
   }
 
-  public static <T> List<T> findCycle(Map<T, ? extends Collection<T>> graph, T start) {
-    // Breadth-first search for the shortest cycle.
-
+  /**
+   * Find the shortest path from start to end.
+   * @param graph
+   * @param start
+   * @param end
+   * @param <T>
+   * @return
+   */
+  public static <T> List<T> findPath(Map<T, ? extends Collection<T>> graph, T start, T end) {
+    // Breadth-first search for the shortest path.
     Map<T, T> predecessors = new HashMap<T, T>();
     List<T> todo = new ArrayList<T>();
     todo.add(start);
@@ -116,7 +123,8 @@ public class GraphUtil {
     }
 
     List<T> result = new ArrayList<T>();
-    T current = start;
+    result.add(end);
+    T current = end;
     do {
       current = predecessors.get(current);
       if (current == null) {

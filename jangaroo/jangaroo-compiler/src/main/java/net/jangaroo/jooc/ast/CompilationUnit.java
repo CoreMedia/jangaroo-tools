@@ -253,22 +253,19 @@ public class CompilationUnit extends NodeImplBase {
   }
 
   public void addDependency(CompilationUnit otherUnit) {
-    // predefined ides have a null unit
+    // Predefined ides have a null unit.
+    // Self dependencies are ignored.
     if (otherUnit != null && otherUnit != this) {
-      dependenciesAsCompilationUnits.put(otherUnit, true);
+      // Dependencies on other modules may always be considered required,
+      // because they cannot lead to cycles.
+      dependenciesAsCompilationUnits.put(otherUnit, !otherUnit.getSource().isInSourcePath());
     }
   }
 
-  /**
-   * Reduce the dependency on the other dependency unit to a non-required dependency,
-   * if it is currently a required dependency.
-   *
-   * @param otherUnit the other dependency unit
-   *
-   */
-  public void weakenDependency(CompilationUnit otherUnit) {
-    if (dependenciesAsCompilationUnits.containsKey(otherUnit)) {
-      dependenciesAsCompilationUnits.put(otherUnit, false);
+  public void addRequiredDependency(CompilationUnit otherUnit) {
+    // predefined ides have a null unit
+    if (otherUnit != null && otherUnit != this) {
+      dependenciesAsCompilationUnits.put(otherUnit, true);
     }
   }
 

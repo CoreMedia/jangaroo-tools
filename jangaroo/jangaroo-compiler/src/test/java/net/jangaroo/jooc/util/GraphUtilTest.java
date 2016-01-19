@@ -136,11 +136,22 @@ public class GraphUtilTest {
     return new HashSet<Set<String>>(GraphUtil.stronglyConnectedComponent(graph));
   }
 
+
+  @Test
+  public void testShortestPath() throws Exception {
+    Map<String, Set<String>> graph = graph(
+            successors("a", "b"),
+            successors("a", "c"),
+            successors("b", "c"));
+    List<String> path = GraphUtil.findPath(graph, "a", "c");
+    Assert.assertEquals(Arrays.asList("a", "c"), path);
+  }
+
   @Test
   public void testNoCycle() throws Exception {
     Map<String, Set<String>> graph = graph(
             successors("a", "b"));
-    List<String> cycle = GraphUtil.findCycle(graph, "a");
+    List<String> cycle = GraphUtil.findPath(graph, "a", "a");
     Assert.assertNull(cycle);
   }
 
@@ -149,8 +160,8 @@ public class GraphUtilTest {
     Map<String, Set<String>> graph = graph(
             successors("a", "b"),
             successors("b", "a"));
-    List<String> cycle = GraphUtil.findCycle(graph, "a");
-    Assert.assertEquals(Arrays.asList("a", "b"), cycle);
+    List<String> cycle = GraphUtil.findPath(graph, "a", "a");
+    Assert.assertEquals(Arrays.asList("a", "b", "a"), cycle);
   }
 
   @Test
@@ -161,8 +172,8 @@ public class GraphUtilTest {
             successors("c", "d", "e"),
             successors("d", "b", "e"),
             successors("e"));
-    List<String> cycle = GraphUtil.findCycle(graph, "c");
-    Assert.assertEquals(Arrays.asList("c", "d", "b"), cycle);
+    List<String> cycle = GraphUtil.findPath(graph, "c", "c");
+    Assert.assertEquals(Arrays.asList("c", "d", "b", "c"), cycle);
   }
 
   private <T> Set<T> set(T ... nodes) {

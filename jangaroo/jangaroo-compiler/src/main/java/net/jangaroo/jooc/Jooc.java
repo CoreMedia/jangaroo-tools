@@ -20,7 +20,15 @@ import com.google.common.collect.Multimap;
 import net.jangaroo.dependencies.DependencyGraphFile;
 import net.jangaroo.jooc.api.CompilationResult;
 import net.jangaroo.jooc.api.CompileLog;
+import net.jangaroo.jooc.ast.AstVisitorBase;
+import net.jangaroo.jooc.ast.ClassDeclaration;
 import net.jangaroo.jooc.ast.CompilationUnit;
+import net.jangaroo.jooc.ast.FunctionDeclaration;
+import net.jangaroo.jooc.ast.Ide;
+import net.jangaroo.jooc.ast.IdeDeclaration;
+import net.jangaroo.jooc.ast.QualifiedIde;
+import net.jangaroo.jooc.ast.TransitiveAstVisitor;
+import net.jangaroo.jooc.ast.VariableDeclaration;
 import net.jangaroo.jooc.backend.CompilationUnitSink;
 import net.jangaroo.jooc.backend.CompilationUnitSinkFactory;
 import net.jangaroo.jooc.backend.MergedOutputCompilationUnitSinkFactory;
@@ -48,8 +56,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -158,7 +168,7 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
       for (CompilationUnit unit : compileQueue) {
         File sourceFile = ((FileInputSource)unit.getSource()).getFile();
         File outputFile = null;
-        // only generate JavaScript if [Native] annotation and 'native' modifier on primary declaration are not present:
+        // only generate JavaScript if [Native] annotation and 'native' modifier on primary compilationUnit are not present:
         if (unit.getAnnotation(NATIVE_ANNOTATION_NAME) == null && !unit.getPrimaryDeclaration().isNative()) {
           outputFile = writeOutput(sourceFile, unit, codeSinkFactory, getConfig().isVerbose());
         }
@@ -176,94 +186,229 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
     }
   }
 
-  private void analyzeDependencyGraph() {
-    // Build a graph as a map from nodes (compilation unit) to successor nodes (dependencies).
-    Map<CompilationUnit, Set<CompilationUnit>> dependencyGraph = new HashMap<CompilationUnit, Set<CompilationUnit>>();
-    Collection<CompilationUnit> compilationUnits = getCompilationUnits();
-    for (CompilationUnit compilationUnit : compilationUnits) {
-      Set<CompilationUnit> dependencies = new HashSet<CompilationUnit>(compilationUnit.getDependenciesAsCompilationUnits());
-      // No accidental self dependencies.
-      dependencies.remove(compilationUnit);
-      dependencyGraph.put(compilationUnit, dependencies);
+  private static class Dependent {
+    private CompilationUnit compilationUnit;
+    private boolean initialization;
+
+    public Dependent(CompilationUnit compilationUnit, boolean initialization) {
+      this.compilationUnit = compilationUnit;
+      this.initialization = initialization;
+    }
+
+    public CompilationUnit getCompilationUnit() {
+      return compilationUnit;
+    }
+
+    public boolean isInitialization() {
+      return initialization;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+
+      Dependent dependent = (Dependent) o;
+
+      if (initialization != dependent.initialization) {
+        return false;
+      }
+      return compilationUnit.equals(dependent.compilationUnit);
+    }
+
+    @Override
+    public int hashCode() {
+      int result = compilationUnit.hashCode();
+      result = 31 * result + (initialization ? 1 : 0);
+      return result;
+    }
+  }
+
+  private void analyzeDependencyGraph() throws IOException {
+    final Multimap<Dependent, Dependent> dependencyGraph = HashMultimap.create();
+    for (final CompilationUnit compilationUnit : getCompilationUnits()) {
+      dependencyGraph.put(new Dependent(compilationUnit, false), new Dependent(compilationUnit, true));
+
+      final IdeDeclaration primaryDeclaration = compilationUnit.getPrimaryDeclaration();
+      final Object classBody = primaryDeclaration instanceof ClassDeclaration ?
+              ((ClassDeclaration)primaryDeclaration).getBody() :
+              "noBody";
+
+      // key null: references from static code
+      // other keys: references from static methods
+      final Multimap<FunctionDeclaration,IdeDeclaration> uses = HashMultimap.create();
+      final FunctionDeclaration[] currentDeclaration = {null};
+      compilationUnit.visit(new TransitiveAstVisitor(new AstVisitorBase()) {
+        @Override
+        public void visitFunctionDeclaration(FunctionDeclaration functionDeclaration) throws IOException {
+          // Ignore instance methods.
+          if (functionDeclaration.isStatic()) {
+            // For static methods, register all nested ides as dependencies of the method.
+            boolean isTopLevel = currentDeclaration[0] == null &&
+                    classBody.equals(functionDeclaration.getParentNode());
+            if (isTopLevel) {
+              currentDeclaration[0] = functionDeclaration;
+            }
+            super.visitFunctionDeclaration(functionDeclaration);
+            if (isTopLevel) {
+              currentDeclaration[0] = null;
+            }
+          }
+        }
+
+        @Override
+        public void visitVariableDeclaration(VariableDeclaration variableDeclaration) throws IOException {
+          // Ignore instance fields.
+          if (variableDeclaration.isStatic()) {
+            // For static fields, register all nested ides as static dependencies.
+            super.visitVariableDeclaration(variableDeclaration);
+          }
+        }
+
+        @Override
+        public void visitIde(Ide ide) throws IOException {
+          uses.put(currentDeclaration[0], ide.getDeclaration());
+        }
+
+        @Override
+        public void visitQualifiedIde(QualifiedIde qualifiedIde) throws IOException {
+          visitIde(qualifiedIde);
+        }
+      });
+
+      Set<Dependent> staticDependencies = new HashSet<Dependent>();
+      Set<IdeDeclaration> done = new HashSet<IdeDeclaration>();
+      Deque<IdeDeclaration> todo = new LinkedList<IdeDeclaration>();
+      todo.addAll(uses.get(null));
+      while (!todo.isEmpty()) {
+        IdeDeclaration ideDeclaration = todo.removeLast();
+        if (done.add(ideDeclaration)) {
+          if (ideDeclaration instanceof FunctionDeclaration && uses.containsKey(ideDeclaration)) {
+            todo.addAll(uses.get((FunctionDeclaration)ideDeclaration));
+          } else {
+            CompilationUnit ideCompilationUnit = ideDeclaration.getCompilationUnit();
+            if (ideCompilationUnit != null && !ideCompilationUnit.equals(compilationUnit) && ideCompilationUnit.getSource().isInSourcePath()) {
+              // The identifier is defined in a different compilation unit in the same module.
+              // The dependency must be analysed, because it might have to be
+              // strengthened into a required dependency.
+              if (ideDeclaration.isConstructor()) {
+                staticDependencies.add(new Dependent(ideCompilationUnit, false));
+              } else if (ideDeclaration.isStatic()) {
+                staticDependencies.add(new Dependent(ideCompilationUnit, true));
+              }
+              // Ignore non-static calls: The called class must have been initialized,
+              // because an instance has already been created.
+            }
+          }
+        }
+      }
+
+      for (Dependent dependent : staticDependencies) {
+        dependencyGraph.put(new Dependent(compilationUnit, true), dependent);
+      }
+
+      Set<CompilationUnit> dependenciesAsCompilationUnits = compilationUnit.getDependenciesAsCompilationUnits();
+      for (CompilationUnit dependency : dependenciesAsCompilationUnits) {
+        dependencyGraph.put(new Dependent(compilationUnit, false), new Dependent(dependency, false));
+      }
     }
 
     // Process each strongly connected component of the dependency graph.
-    Collection<Set<CompilationUnit>> sccs = GraphUtil.stronglyConnectedComponent(dependencyGraph);
-    for (Set<CompilationUnit> scc : sccs) {
-      if (scc.size() > 1) {
-        // Ensure that strongly connected components of the dependency graph do
-        // not contain static initializers.
-        for (CompilationUnit compilationUnit : scc) {
-          if (compilationUnit.isHasStaticCode()) {
-            // Static code in a cyclic dependency is not supported. Complain.
-            List<CompilationUnit> cycle = new ArrayList<CompilationUnit>(GraphUtil.findCycle(dependencyGraph, compilationUnit));
-            cycle.add(compilationUnit);
+    Collection<Set<Dependent>> sccs = GraphUtil.stronglyConnectedComponent(dependencyGraph.asMap());
+    for (Set<Dependent> scc : sccs) {
+      // Each scc must contain at most one initializer.
+      List<Dependent> initializers = new ArrayList<Dependent>();
+      for (Dependent dependent : scc) {
+        if (dependent.isInitialization()) {
+          initializers.add(dependent);
+        }
+      }
 
-            File dependencyGraphFile = new File(getConfig().getReportOutputDirectory(), "cycles.graphml");
-            Multimap<String, String> requires = HashMultimap.create();
-            Set<String> staticallyInitialized = new HashSet<String>();
-            for (Map.Entry<CompilationUnit, Set<CompilationUnit>> entry : dependencyGraph.entrySet()) {
-              String dependentName = getCompilationUnitName(entry.getKey());
-              if (entry.getKey().isHasStaticCode()) {
-                staticallyInitialized.add(dependentName);
-              }
-              Set<CompilationUnit> dependencies = entry.getValue();
-              for (CompilationUnit dependency : dependencies) {
-                requires.put(dependentName, getCompilationUnitName(dependency));
-              }
-            }
+      // At most one initializer is supported per cycle. (And even that is stretching our luck,)
+      if (initializers.size() > 1) {
+        // Complain.
+        Dependent dependent1 = initializers.get(0);
+        Dependent dependent2 = initializers.get(1);
 
-            try {
-              DependencyGraphFile.writeDependencyFile(requires, staticallyInitialized, dependencyGraphFile);
-            } catch (IOException e) {
-              logCompilerError(e);
-              // Do not throw again. A worse error is logged presently.
-            }
+        List<Dependent> path12 = new ArrayList<Dependent>(GraphUtil.findPath(dependencyGraph.asMap(), dependent1, dependent2));
+        List<Dependent> path21 = new ArrayList<Dependent>(GraphUtil.findPath(dependencyGraph.asMap(), dependent2, dependent1));
+        List<Dependent> cycle = new ArrayList<Dependent>();
+        cycle.addAll(path12);
+        cycle.addAll(path21.subList(1, path21.size()));
 
-            StringBuilder message = new StringBuilder();
-            message.append("The compilation unit ");
-            message.append(getCompilationUnitName(compilationUnit));
-            message.append(" contains a static initializer");
-            message.append(" (for example a code block or a static variable with a complex initializer)");
-            message.append(" and is also contained in a cycle of dependencies: ");
-            for (int i = 0; i < cycle.size(); i++) {
-              if (i > 0) {
-                message.append(" -> ");
-              }
-              message.append(getCompilationUnitName(cycle.get(i)));
-            }
-            message.append(". You can either remove the static initializer or break the dependency cycle");
-            message.append(" to make this module compile. (Other dependency cycles might exist, though.)");
-            message.append(" A dependency graph of the module has been written to ");
-            message.append(dependencyGraphFile);
-            message.append('.');
-
-            throw error(compilationUnit, message.toString());
+        File dependencyGraphFile = new File(getConfig().getReportOutputDirectory(), "cycles.graphml");
+        Multimap<String, String> requires = HashMultimap.create();
+        Set<String> staticallyInitialized = new HashSet<String>();
+        for (Map.Entry<Dependent, Collection<Dependent>> entry : dependencyGraph.asMap().entrySet()) {
+          String dependentName = getDependentName(entry.getKey());
+          if (entry.getKey().isInitialization()) {
+            staticallyInitialized.add(dependentName);
+          }
+          Collection<Dependent> dependencies = entry.getValue();
+          for (Dependent dependency : dependencies) {
+            requires.put(dependentName, getDependentName(dependency));
           }
         }
 
-        // Compute the set of all dependencies that leave the
-        // strongly connected component.
-        Set<CompilationUnit> allDependencies = new HashSet<CompilationUnit>();
-        for (CompilationUnit compilationUnit : scc) {
-          allDependencies.addAll(compilationUnit.getDependenciesAsCompilationUnits());
+        try {
+          DependencyGraphFile.writeDependencyFile(requires, staticallyInitialized, dependencyGraphFile);
+        } catch (IOException e) {
+          logCompilerError(e);
+          // Do not throw again. A worse error is logged presently.
         }
-        allDependencies.removeAll(scc);
 
-        for (CompilationUnit compilationUnit1 : scc) {
-          // Dependencies in a strongly connected component are uses dependencies, only.
-          for (CompilationUnit compilationUnit2 : scc) {
-            compilationUnit1.weakenDependency(compilationUnit2);
+        StringBuilder message = new StringBuilder();
+        message.append("The compilation units ");
+        message.append(getCompilationUnitName(dependent1.getCompilationUnit()));
+        message.append(" and");
+        message.append(getCompilationUnitName(dependent2.getCompilationUnit()));
+        message.append(" contain static initializers");
+        message.append(" (for example code blocks or static variables with a complex initializer)");
+        message.append(" and the static initializers are mutually dependent: ");
+        for (int i = 0; i < cycle.size(); i++) {
+          if (i > 0) {
+            message.append(" -> ");
           }
-          // To ensure correct initialization, all members of the strongly
-          // connected component inherit all dependencies that leave the
-          // component.
-          for (CompilationUnit dependency : allDependencies) {
-            compilationUnit1.addDependency(dependency);
+          message.append(getDependentName(cycle.get(i)));
+        }
+        message.append(". You can either remove a static initializer or break the dependency cycle");
+        message.append(" to make this module compile. (Other dependency cycles might exist, though.)");
+        message.append(" A dependency graph of the module has been written to ");
+        message.append(dependencyGraphFile);
+        message.append('.');
+
+        throw error(message.toString());
+      }
+
+      if (initializers.size() == 1) {
+        Dependent initializer = initializers.get(0);
+        CompilationUnit compilationUnit = initializer.getCompilationUnit();
+        Deque<Dependent> todo = new LinkedList<Dependent>();
+        todo.add(initializer);
+        Set<Dependent> visited = new HashSet<Dependent>();
+        while (!todo.isEmpty()) {
+          Dependent dependent = todo.removeLast();
+          if (visited.add(dependent)) {
+            todo.addAll(dependencyGraph.get(dependent));
+
+            CompilationUnit dependency = dependent.getCompilationUnit();
+            if (!compilationUnit.equals(dependency)) {
+              compilationUnit.addRequiredDependency(dependency);
+            }
           }
         }
       }
     }
+  }
+
+  private String getDependentName(Dependent dependent) {
+    CompilationUnit compilationUnit = dependent.getCompilationUnit();
+    return getCompilationUnitName(compilationUnit) +
+            (dependent.isInitialization() ? ".<init>" : "");
   }
 
   private String getCompilationUnitName(CompilationUnit compilationUnit) {
