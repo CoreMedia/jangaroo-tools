@@ -251,6 +251,19 @@ public class CompilationUnit extends NodeImplBase {
     // predefined ides have a null unit
     if (otherUnit != null && otherUnit != this) {
       Boolean oldRequired = dependenciesAsCompilationUnits.get(otherUnit);
+      IdeDeclaration primaryDeclaration = getPrimaryDeclaration();
+      if (required && primaryDeclaration instanceof ClassDeclaration && otherUnit.getPrimaryDeclaration() instanceof ClassDeclaration && getSource().isInSourcePath() && otherUnit.getSource().isInSourcePath()) {
+        // never require any of your own subclasses:
+        ClassDeclaration currentClass = (ClassDeclaration) otherUnit.getPrimaryDeclaration();
+        String qualifiedName = primaryDeclaration.getQualifiedNameStr();
+        while (currentClass != null) {
+          if (currentClass.getQualifiedNameStr().equals(qualifiedName)) {
+            required = false;
+            break;
+          }
+          currentClass = currentClass.getSuperTypeDeclaration();
+        }
+      }
       if (oldRequired == null || !oldRequired && required) {
         dependenciesAsCompilationUnits.put(otherUnit, required);
       }
