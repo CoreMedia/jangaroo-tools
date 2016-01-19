@@ -1,6 +1,5 @@
 Ext.define("AS3.int", {
-  singleton: true,
-  constructor: function () {
+  factory: function () {
     var $uint = function (num) {
       return num >>> 0;
     };

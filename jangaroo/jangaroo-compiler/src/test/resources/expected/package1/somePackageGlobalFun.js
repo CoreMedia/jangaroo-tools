@@ -1,6 +1,6 @@
-Ext.ns("AS3.package1");Ext.require(["AS3.package1.someOtherPackage.SomeOtherClass"], function() {/*package package1 {
+Ext.define("AS3.package1.somePackageGlobalFun", function(somePackageGlobalFun) {/*package package1 {
 
-import package1.someOtherPackage.SomeOtherClass;*/AS3.package1.somePackageGlobalFun=/*
+import package1.someOtherPackage.SomeOtherClass;
 
 // This comment to vanish in API
 /**
@@ -11,5 +11,12 @@ public*/ function somePackageGlobalFun(flag/*:Boolean*/)/*:SomeOtherClass*/ {
 }/*
 
 }
-*/});
-Ext.ClassManager.triggerCreated("AS3.package1.somePackageGlobalFun");
+
+============================================== Jangaroo part ==============================================*/
+    return {
+      factory: function() {
+        return somePackageGlobalFun;
+      },
+      uses: ["AS3.package1.someOtherPackage.SomeOtherClass"]
+    };
+});

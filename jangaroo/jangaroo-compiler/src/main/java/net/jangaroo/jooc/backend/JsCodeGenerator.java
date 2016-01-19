@@ -145,6 +145,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   private int staticCodeCounter = 0;
   private ClassDefinitionBuilder secondaryClassDefinitionBuilder;
   private CompilationUnit compilationUnit;
+  private String factory;
   private LinkedList<Metadata> currentMetadata = new LinkedList<Metadata>();
   private final MessageFormat VAR_$NAME_EQUALS_ARGUMENTS_SLICE_$INDEX =
     new MessageFormat("var {0}=Array.prototype.slice.call(arguments{1,choice,0#|0<,{1}});");
@@ -346,26 +347,14 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   @Override
   public void visitCompilationUnit(CompilationUnit compilationUnit) throws IOException {
     IdeDeclaration primaryDeclaration = compilationUnit.getPrimaryDeclaration();
-    boolean isClassDeclaration = primaryDeclaration instanceof ClassDeclaration;
-    boolean isInterface = isClassDeclaration
-            && ((ClassDeclaration) primaryDeclaration).isInterface();
     String[] dependencies = collectDependencies(compilationUnit, null);
     String[] requires = collectDependencies(compilationUnit, true);
     String[] uses = collectDependencies(compilationUnit, false);
     String moduleName = CompilerUtils.quote(getModuleName(compilationUnit));
     PackageDeclaration packageDeclaration = compilationUnit.getPackageDeclaration();
-    if (isClassDeclaration) {
-      out.write("Ext.define(");
-      out.write(moduleName);
-      out.write(", function(" + primaryDeclaration.getName() + ") {");
-    } else {
-      out.write("Ext.ns(");
-      out.write(CompilerUtils.quote(getModuleName(packageDeclaration)));
-      out.write(");");
-      out.write("Ext.require(");
-      out.write(new JsonArray(dependencies).toString(0, 0));
-      out.write(", function() {");
-    }
+    out.write("Ext.define(");
+    out.write(moduleName);
+    out.write(", function(" + primaryDeclaration.getName() + ") {");
     this.compilationUnit = compilationUnit;
     out.beginComment();
     packageDeclaration.visit(this);
@@ -376,39 +365,38 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     out.beginComment();
     out.writeSymbol(compilationUnit.getRBrace());
     out.write("\n");
+    out.write("\n============================================== Jangaroo part ==============================================");
     out.endComment();
-    if (isClassDeclaration) {
-      ClassDeclaration classDeclaration = (ClassDeclaration) primaryDeclaration;
-      out.beginComment();
-      out.write("\n============================================== Jangaroo part ==============================================");
-      out.endComment();
+    JsonObject classDefinition = createClassDefinition(primaryDeclaration, primaryClassDefinitionBuilder);
+    if (requires.length > 0) {
+      classDefinition.set("requires", new JsonArray(requires));
+    }
+    if (uses.length > 0) {
+      classDefinition.set("uses", new JsonArray(uses));
+    }
+    out.write("\n    return " + classDefinition.toString(2, 4) + ";\n}");
+    if (primaryClassDefinitionBuilder.staticCode.length() > 0) {
+      out.write(", function(clazz) {\n");
+      out.write(String.format("  clazz.%s();\n", INIT_STATICS));
+      out.write("}");
+    }
+    out.write(");\n");
+  }
 
-      if (isInterface) {
-        JsonObject interfaceDefinition = createInterfaceDefinition(classDeclaration);
-        out.write("\n    return " + interfaceDefinition.toString(2, 4) + ";\n}");
-      } else {
-        ClassDefinitionBuilder classDefinitionBuilder = primaryClassDefinitionBuilder;
-        JsonObject classDefinition = createClassDefinition(classDeclaration, classDefinitionBuilder);
-        if (requires.length > 0) {
-          classDefinition.set("requires", new JsonArray(requires));
-        }
-        if (uses.length > 0) {
-          classDefinition.set("uses", new JsonArray(uses));
-        }
-        out.write("\n    return " + classDefinition.toString(2, 4) + ";\n}");
-        if (classDefinitionBuilder.staticCode.length() > 0) {
-          out.write(", function(clazz) {\n");
-          out.write(String.format("  clazz.%s();\n", INIT_STATICS));
-          out.write("}");
-        }
-      }
-      out.write(");\n");
+  private JsonObject createClassDefinition(IdeDeclaration declaration, ClassDefinitionBuilder classDefinitionBuilder) throws IOException {
+    JsonObject classDefinition;
+    if (declaration instanceof ClassDeclaration && ((ClassDeclaration) declaration).isInterface()) {
+      classDefinition = createInterfaceDefinition((ClassDeclaration) declaration);
     } else {
-      out.write("});\n");
+      if (declaration instanceof ClassDeclaration) {
+        classDefinition = createClassDefinition((ClassDeclaration) declaration);
+      } else {
+        classDefinition = new JsonObject();
+        classDefinition.set("factory", JsonObject.code(factory));
+      }
+      fillClassDefinition(classDefinition, classDefinitionBuilder);
     }
-    if (!isClassDeclaration) {
-      out.write(String.format("Ext.ClassManager.triggerCreated(%s);\n", moduleName));
-    }
+    return classDefinition;
   }
 
   private JsonObject createInterfaceDefinition(ClassDeclaration interfaceDeclaration) {
@@ -536,16 +524,20 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     return AS3_NAMESPACE_DOT + primaryDeclaration.getQualifiedNameStr();
   }
 
-  private JsonObject createClassDefinition(ClassDeclaration classDeclaration, ClassDefinitionBuilder classDefinitionBuilder) throws IOException {
+  private JsonObject createClassDefinition(ClassDeclaration classDeclaration) throws IOException {
     JsonObject classDefinition = new JsonObject();
-    if (!classDefinitionBuilder.metadata.isEmpty()) {
-      classDefinition.set("metadata", classDefinitionBuilder.metadata);
-    }
     if (classDeclaration.getInheritanceLevel() > 1) {
       ClassDeclaration superTypeDeclaration = classDeclaration.getSuperTypeDeclaration();
       classDefinition.set("extend", compilationUnitAccessCode(superTypeDeclaration));
     }
     addOptImplements(classDeclaration, classDefinition);
+    return classDefinition;
+  }
+
+  private void fillClassDefinition(JsonObject classDefinition, ClassDefinitionBuilder classDefinitionBuilder) throws IOException {
+    if (!classDefinitionBuilder.metadata.isEmpty()) {
+      classDefinition.set("metadata", classDefinitionBuilder.metadata);
+    }
     JsonObject members = convertMembers(classDefinitionBuilder.members);
     JsonObject bindables = convertBindables(classDefinitionBuilder.members);
     if (!bindables.isEmpty()) {
@@ -571,7 +563,6 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     if (!accessors.isEmpty()) {
       classDefinition.set("accessors", accessors);
     }
-    return classDefinition;
   }
 
   private JsonObject convertMembers(Map<String, PropertyDefinition> members) {
@@ -1457,7 +1448,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     if (variableDeclaration.hasPreviousVariableDeclaration()) {
       Debug.assertTrue(variableDeclaration.getOptSymConstOrVar() != null && variableDeclaration.getOptSymConstOrVar().sym == sym.COMMA, "Additional variable declarations must start with a COMMA.");
     }
-    if (variableDeclaration.isClassMember() && !variableDeclaration.isPrivateStatic()) {
+    if ((variableDeclaration.isClassMember() || variableDeclaration.isPrimaryDeclaration()) && !variableDeclaration.isPrivateStatic()) {
       if (!variableDeclaration.isPrimaryDeclaration() && !currentMetadata.isEmpty()) {
         getClassDefinitionBuilder(variableDeclaration).storeCurrentMetadata(
                 variableDeclaration.getIde().getName() + (variableDeclaration.isPrivate() ? "$" + variableDeclaration.getClassDeclaration().getInheritanceLevel() : ""),
@@ -1480,20 +1471,10 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       visitIfNotNull(variableDeclaration.getOptNextVariableDeclaration());
       generateFieldEndCode(variableDeclaration);
     } else {
-      if (variableDeclaration.isPrimaryDeclaration()) {
-        out.beginComment();
-        writeModifiers(out, variableDeclaration);
-        if (variableDeclaration.getOptSymConstOrVar() != null) {
-          out.writeSymbol(variableDeclaration.getOptSymConstOrVar());
-        }
-        out.endComment();
-        out.write(AS3_NAMESPACE_DOT + compilationUnit.getPackageDeclaration().getQualifiedNameStr()+".");
+      if (variableDeclaration.hasPreviousVariableDeclaration()) {
+        writeOptSymbol(variableDeclaration.getOptSymConstOrVar());
       } else {
-        if (variableDeclaration.hasPreviousVariableDeclaration()) {
-          writeOptSymbol(variableDeclaration.getOptSymConstOrVar());
-        } else {
-          generateVarStartCode(variableDeclaration);
-        }
+        generateVarStartCode(variableDeclaration);
       }
       visitInExpressionMode(variableDeclaration.getIde());
       visitIfNotNull(variableDeclaration.getOptTypeRelation());
@@ -1584,6 +1565,12 @@ public class JsCodeGenerator extends CodeGeneratorBase {
         variableName += "$" + ((ClassDeclaration)compilationUnit.getPrimaryDeclaration()).getInheritanceLevel();
       }
     }
+    if (variableDeclaration.isPrimaryDeclaration()) {
+      factory = value == null
+              ? variableName + "_"
+              : String.format("function() {\n        return(%s);\n      }", value);
+      return;
+    }
     if (value != null) {
       membersOrStaticMembers(variableDeclaration).put(variableName,
               new PropertyDefinition(value, !variableDeclaration.isConst(), isBindable));
@@ -1634,7 +1621,12 @@ public class JsCodeGenerator extends CodeGeneratorBase {
         initializer.getValue().visit(this);
         out.writeToken("}");
       } else {
-        out.write(target + "." + slotName + "=(");
+        if (variableDeclaration.isPrimaryDeclaration()) {
+          out.writeToken("return");
+        } else {
+          out.write(target + "." + slotName + "=");
+        }
+        out.writeToken("(");
         initializer.getValue().visit(this);
       }
     }
@@ -1666,7 +1658,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     boolean isPrimaryDeclaration = functionDeclaration.equals(compilationUnit.getPrimaryDeclaration());
     assert functionDeclaration.isClassMember() || (!functionDeclaration.isNative() && !functionDeclaration.isAbstract());
     if (isPrimaryDeclaration) {
-      out.write(AS3_NAMESPACE_DOT + functionDeclaration.getQualifiedNameStr() + "=");
+      factory = "function() {\n        return " + functionDeclaration.getName() + ";\n      }";
     }
     if (functionDeclaration.isThisAliased()) {
       functionDeclaration.getBody().addBlockStartCodeGenerator(ALIAS_THIS_CODE_GENERATOR);
@@ -1802,18 +1794,11 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
     for (IdeDeclaration secondaryDeclaration : classDeclaration.getSecondaryDeclarations()) {
       String secondaryDeclarationName = secondaryDeclaration.getName();
-      if (secondaryDeclaration instanceof ClassDeclaration) {
-        ClassDeclaration secondaryClassDeclaration = (ClassDeclaration) secondaryDeclaration;
-        secondaryClassDeclaration.visit(this);
-        JsonObject secondaryClassDefinition = createClassDefinition(secondaryClassDeclaration, secondaryClassDefinitionBuilder);
-        // TODO: secondary interfaces! (Did they work in Jangaroo 2?)
-        out.write(new MessageFormat("var {0}$static = Ext.define(null, ").format(secondaryDeclarationName));
-        out.write(secondaryClassDefinition.toString(-1, -1));
-        out.write(");");
-      } else {
-        // TODO: secondary variable or function declarations?!
-        secondaryDeclaration.visit(this);
-      }
+      secondaryDeclaration.visit(this);
+      JsonObject secondaryClassDefinition = createClassDefinition(secondaryDeclaration, secondaryClassDefinitionBuilder);
+      out.write(new MessageFormat("var {0}$static = Ext.define(null, ").format(secondaryDeclarationName));
+      out.write(secondaryClassDefinition.toString(-1, -1));
+      out.write(");");
     }
 
     if (!classDeclaration.isInterface() && classDeclaration.getConstructor() == null) {
@@ -1875,6 +1860,9 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     out.writeToken(",");
     namespaceDeclaration.getOptInitializer().getValue().visit(this);
     writeSymbolReplacement(namespaceDeclaration.getOptSymSemicolon(), ",[]");
+    if (namespaceDeclaration.isPrimaryDeclaration()) {
+      factory = namespaceDeclaration.getName();
+    }
   }
 
   @Override

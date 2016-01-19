@@ -1,7 +1,6 @@
 // function trace(...msg) : void
 Ext.define("AS3.trace", {
-  singleton: true,
-  constructor: function() {
+  factory: function() {
     var console, defaultLogLevel;
     var lookup = function (consoleObject, traceFunctionName) {
       if (consoleObject && consoleObject[traceFunctionName]) {

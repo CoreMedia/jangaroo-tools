@@ -1,8 +1,7 @@
 // built-in as well as Ext Error constructor called as function unfortunately always create a new Error object,
 // so we have to create a class that uses the original Error prototype, but also works as an Ext class:
 Ext.define("AS3.Error", {
-  singleton: true,
-  constructor: function () {
+  factory: function () {
     var AS3Error = function (message/*String*/, id/*:int*/) {
       this.message = message || "";
       this.id = id || 0;

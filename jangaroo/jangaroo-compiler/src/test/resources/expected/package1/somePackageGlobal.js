@@ -1,4 +1,4 @@
-Ext.ns("AS3.package1");Ext.require(["AS3.package1.someOtherPackage.SomeOtherClass"], function() {/*package package1 {
+Ext.define("AS3.package1.somePackageGlobal", function(somePackageGlobal) {/*package package1 {
 
 import package1.someOtherPackage.SomeOtherClass;
 
@@ -6,9 +6,14 @@ import package1.someOtherPackage.SomeOtherClass;
 /**
  * Some package-global documentation;
  * /
-public var*/AS3.package1. somePackageGlobal/*:SomeOtherClass*/
-  = new AS3.package1.someOtherPackage.SomeOtherClass();/*
+public var somePackageGlobal:SomeOtherClass
+  =*/function somePackageGlobal_(){return( new AS3.package1.someOtherPackage.SomeOtherClass());}/*;
 
 }
-*/});
-Ext.ClassManager.triggerCreated("AS3.package1.somePackageGlobal");
+
+============================================== Jangaroo part ==============================================*/
+    return {
+      factory: somePackageGlobal_,
+      requires: ["AS3.package1.someOtherPackage.SomeOtherClass"]
+    };
+});

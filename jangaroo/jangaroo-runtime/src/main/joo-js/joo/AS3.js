@@ -142,3 +142,13 @@ Ext.Class.registerPreprocessor('accessors', function (Class, data) {
     delete data.accessors;
   }
 });
+
+Ext.ClassManager.registerPostprocessor('factory', function(className, cls, data) {
+  if (data.factory) {
+    var value = data.factory();
+    this.set(className, value);
+    this.triggerCreated(className);
+    return false;
+  }
+  return true;
+});
