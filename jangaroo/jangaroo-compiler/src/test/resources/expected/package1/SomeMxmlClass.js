@@ -36,21 +36,21 @@ public class SomeMxmlClass extends package1.ConfigClass {
 
   public*/ function SomeMxmlClass$(config/*:package1.SomeMxmlClass = null*/) {if(arguments.length<=0)config=null;
     
-    var $_1/*:package1.ConfigClass*/ =AS3.cast( AS3.package1.ConfigClass,{});
-    $_1.bar = "BAR!";
-    $_1.num = 123;
+    var $_1/*:package1.SomeMxmlClass*/ =AS3.cast( SomeMxmlClass,{});AS3.setBindable(
+    $_1,"bar" , "BAR!");AS3.setBindable(
+    $_1,"num" , 123);
     this.blub$2 = {};
     this.blub$2.name = "Kuno";
     var $_2/*:Object*/ = {};
     $_2.name = "Joe";
     var $_3/*:Object*/ = {};
-    $_3.name = "Felix";
-    $_1.list = [$_2, $_3];
+    $_3.name = "Felix";AS3.setBindable(
+    $_1,"list" , [$_2, $_3]);
     var $_4/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
     $_4,"bla" , 3);
     $_4.blubb_accessor = 'blub accessor expression';
-    $_4.blubb_config = 'blub config expression';
-    $_1.other = new AS3.package1.someOtherPackage.SomeOtherClass($_4);
+    $_4.blubb_config = 'blub config expression';AS3.setBindable(
+    $_1,"other" , new AS3.package1.someOtherPackage.SomeOtherClass($_4));
     joo.addEventListener($_1, "click",AS3.bind( this,"$on_$_1_click$2"), AS3.package1.someOtherPackage.SomeEvent);
     $_1.foo = "bar";
     $_1.number = 1 + 1;

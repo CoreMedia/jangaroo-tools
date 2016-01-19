@@ -137,7 +137,7 @@ public final class MxmlToModelParser {
     String superConfigVar = null;
     if (constructorSupportsConfigOptionsParameter(superClassName)) {
       superConfigVar = createAuxVar();
-      renderConfigAuxVar(superConfigVar, superClassName);
+      renderConfigAuxVar(superConfigVar, classQName);
     }
 
     if (configParamModel == null || superConfigVar == null) {
