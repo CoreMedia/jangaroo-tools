@@ -28,6 +28,9 @@
                           blubbConfig="{'blub config expression'}"
                           blubbAccessor="{'blub accessor expression'}"/>
   </fx:Declarations>
+  <defaults>
+    <other:SomeOtherClass bla="99"/>
+  </defaults>
   <items>
     <other:SomeOtherClass bla="23"/>
     <other:SomeOtherClass clack="var test=0;" bla="1"/>

@@ -137,14 +137,14 @@ public final class MxmlToModelParser {
     String superConfigVar = null;
     if (constructorSupportsConfigOptionsParameter(superClassName)) {
       superConfigVar = createAuxVar();
-      renderConfigAuxVar(superConfigVar, classQName);
+      renderConfigAuxVar(superConfigVar, classQName, true);
     }
 
     if (configParamModel == null || superConfigVar == null) {
       createFields(superConfigVar == null ? "" : superConfigVar, objectNode);
     } else {
       String defaultsConfigVar = createAuxVar();
-      renderConfigAuxVar(defaultsConfigVar, classQName);
+      renderConfigAuxVar(defaultsConfigVar, classQName, false);
       createFields(defaultsConfigVar, objectNode);
       compilationUnitModel.addImport("net.jangaroo.ext.Exml");
       code.append(MessageFormat.format("\n    {1} = net.jangaroo.ext.Exml.apply({0}, {1});",
@@ -173,8 +173,8 @@ public final class MxmlToModelParser {
     constructorModel.setBody(code.toString());
   }
 
-  private void renderConfigAuxVar(String configAuxVar, String type) {
-    code.append(String.format("\n    var %s:%s = %s({});", configAuxVar, type, type));
+  private void renderConfigAuxVar(String configAuxVar, String type, boolean useCast) {
+    code.append(String.format("\n    var %s:%s = %s;", configAuxVar, type, useCast ? type + "({})" : "{}"));
   }
 
   private boolean constructorSupportsConfigOptionsParameter(String classQName) throws IOException {
@@ -238,7 +238,7 @@ public final class MxmlToModelParser {
         String elementName = element.getLocalName();
         if (MXML_DECLARATIONS.equals(elementName)) {
           for (Element declaration : MxmlUtils.getChildElements(element)) {
-            createValueCodeFromElement(configVar, declaration, false);
+            createValueCodeFromElement(configVar, declaration, false, false);
           }
         }
       }
@@ -317,6 +317,22 @@ public final class MxmlToModelParser {
     return setter != null && !setter.getAnnotations(annotationName).isEmpty();
   }
 
+  private static AnnotationModel getAnnotationAtSetter(MemberModel memberModel, String annotationName) {
+    MemberModel setter = null;
+    if (memberModel instanceof PropertyModel) {
+      setter = ((PropertyModel) memberModel).getSetter();
+    } else if (memberModel instanceof FieldModel && !((FieldModel) memberModel).isConst()) {
+      setter = memberModel;
+    }
+    if (setter != null) {
+      Iterator<AnnotationModel> annotations = setter.getAnnotations(annotationName).iterator();
+      if (annotations.hasNext()) {
+        return annotations.next();
+      }
+    }
+    return null;
+  }
+
   private boolean processAttributesAndChildNodes(Element objectNode, String configVariable, String targetVariable, boolean generatingConfig) throws IOException {
     CompilationUnitModel type = getCompilationUnitModel(objectNode);
     boolean hasBindings = processAttributes(objectNode, type, configVariable, targetVariable, generatingConfig);
@@ -377,15 +393,17 @@ public final class MxmlToModelParser {
   private void createChildElementsPropertyAssignmentCode(List<Element> childElements, String variable,
                                                          MemberModel propertyModel, boolean generatingConfig) throws IOException {
     boolean forceArray = "Array".equals(propertyModel.getType());
-    boolean allowConstructorParameters = hasAnnotationAtSetter(propertyModel, ALLOW_CONSTRUCTOR_PARAMETERS_ANNOTATION);
-    String value = createArrayCodeFromChildElements(childElements, forceArray, allowConstructorParameters);
+    AnnotationModel allowConstructorAnnotation = getAnnotationAtSetter(propertyModel, ALLOW_CONSTRUCTOR_PARAMETERS_ANNOTATION);
+    boolean allowConstructorParameters = allowConstructorAnnotation != null;
+    boolean suppressType = allowConstructorParameters && allowConstructorAnnotation.getPropertiesByName().get("suppressType") != null;
+    String value = createArrayCodeFromChildElements(childElements, forceArray, allowConstructorParameters, suppressType);
     createPropertyAssignmentCode(variable, propertyModel, MxmlUtils.createBindingExpression(value), generatingConfig);
   }
 
-  private String createArrayCodeFromChildElements(List<Element> childElements, boolean forceArray, boolean allowConstructorParameters) throws IOException {
+  private String createArrayCodeFromChildElements(List<Element> childElements, boolean forceArray, boolean allowConstructorParameters, boolean suppressType) throws IOException {
     List<String> arrayItems = new ArrayList<String>();
     for (Element arrayItemNode : childElements) {
-      String itemValue = createValueCodeFromElement("", arrayItemNode, allowConstructorParameters);
+      String itemValue = createValueCodeFromElement("", arrayItemNode, allowConstructorParameters, suppressType);
       arrayItems.add(itemValue);
     }
     String value;
@@ -412,7 +430,7 @@ public final class MxmlToModelParser {
     return sb.toString();
   }
 
-  private String createValueCodeFromElement(String configVar, Element objectElement, boolean allowConstructorParameters) throws IOException {
+  private String createValueCodeFromElement(String configVar, Element objectElement, boolean allowConstructorParameters, boolean suppressType) throws IOException {
     String className = createClassNameFromNode(objectElement);
     if (className == null) {
       throw Jooc.error(position(objectElement), "Could not resolve class from MXML node " + objectElement.getNamespaceURI() + ":" + objectElement.getLocalName());
@@ -444,7 +462,7 @@ public final class MxmlToModelParser {
     if (constructorSupportsConfigOptionsParameter(className)) {
       // if class supports a config options parameter, create a config options object and assign properties to it:
       configVariable = createAuxVar();
-      renderConfigAuxVar(configVariable, className);
+      renderConfigAuxVar(configVariable, className, !suppressType);
       if (targetVariable == null) {
         targetVariable = createAuxVar();
       }
@@ -466,7 +484,7 @@ public final class MxmlToModelParser {
     } else if ("Object".equals(className)) {
       value = "{}";
     } else if ("Array".equals(className)) {
-      value = createArrayCodeFromChildElements(MxmlUtils.getChildElements(objectElement), true, allowConstructorParameters);
+      value = createArrayCodeFromChildElements(MxmlUtils.getChildElements(objectElement), true, allowConstructorParameters, suppressType);
     } else {
       StringBuilder valueBuilder = new StringBuilder();
       valueBuilder.append("new ").append(className).append("(");

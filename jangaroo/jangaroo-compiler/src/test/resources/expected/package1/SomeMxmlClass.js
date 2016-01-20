@@ -27,7 +27,7 @@ public class SomeMxmlClass extends package1.ConfigClass {
     var result/*:String*/ = 'gotcha!';
   }/*
 
-  private*/ function $on_$_7_clack(event/*:package1.someOtherPackage.SomeEvent*/)/*:void*/ {
+  private*/ function $on_$_9_clack(event/*:package1.someOtherPackage.SomeEvent*/)/*:void*/ {
     var test=0;
   }/*
 
@@ -54,27 +54,30 @@ public class SomeMxmlClass extends package1.ConfigClass {
     joo.addEventListener($_1, "click",AS3.bind( this,"$on_$_1_click$2"), AS3.package1.someOtherPackage.SomeEvent);
     $_1.foo = "bar";
     $_1.number = 1 + 1;
-    var $_5/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
-    $_5,"bla" , 23);
+    var $_5/*:package1.someOtherPackage.SomeOtherClass*/ = {};AS3.setBindable(
+    $_5,"bla" , 99);
+    $_1.defaults = $_5;
     var $_7/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
-    $_7,"bla" , 1);
-    joo.addEventListener($_7, "clack",AS3.bind( this,"$on_$_7_clack$2"), AS3.package1.someOtherPackage.SomeEvent);
+    $_7,"bla" , 23);
     var $_9/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
-    $_9,"bla" , 42);
-    var $_11/*:package1.ConfigClass*/ =AS3.cast( AS3.package1.ConfigClass,{});
-    var $_13/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
-    $_13,"bla" ,AS3.getBindable(AS3.getBindable( this,"other"),"bla","bla_has_changed"));
-    $_13.doodle = "non-bound";
-    $_11.items = [$_13];
-    $_11.number = 12;
-    var $_15/*:package1.ConfigClass*/ =AS3.cast( AS3.package1.ConfigClass,{});
-    var $_17/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
-    $_17,"bla" , 12);
+    $_9,"bla" , 1);
+    joo.addEventListener($_9, "clack",AS3.bind( this,"$on_$_9_clack$2"), AS3.package1.someOtherPackage.SomeEvent);
+    var $_11/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
+    $_11,"bla" , 42);
+    var $_13/*:package1.ConfigClass*/ =AS3.cast( AS3.package1.ConfigClass,{});
+    var $_15/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
+    $_15,"bla" ,AS3.getBindable(AS3.getBindable( this,"other"),"bla","bla_has_changed"));
+    $_15.doodle = "non-bound";
+    $_13.items = [$_15];
+    $_13.number = 12;
+    var $_17/*:package1.ConfigClass*/ =AS3.cast( AS3.package1.ConfigClass,{});
     var $_19/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
-    $_19,"bla" , 13);AS3.setBindable(
-    this,"no_config" , new AS3.package1.someOtherPackage.SomeOtherClass($_19));
-    $_15.items = [$_17,AS3.getBindable( this,"no_config")];
-    $_1.items = [$_5, $_7, $_9, $_11, $_15];
+    $_19,"bla" , 12);
+    var $_21/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
+    $_21,"bla" , 13);AS3.setBindable(
+    this,"no_config" , new AS3.package1.someOtherPackage.SomeOtherClass($_21));
+    $_17.items = [$_19,AS3.getBindable( this,"no_config")];
+    $_1.items = [$_7, $_9, $_11, $_13, $_17];
     AS3.net.jangaroo.ext.Exml.apply($_1, config);
     this.callParent([$_1]);
   }/*
@@ -87,7 +90,7 @@ public class SomeMxmlClass extends package1.ConfigClass {
       alias: "widget.testNamespace.config.soneMxmlClass",
       blub$2: undefined,
       $on_$_1_click$2: $on_$_1_click,
-      $on_$_7_clack$2: $on_$_7_clack,
+      $on_$_9_clack$2: $on_$_9_clack,
       constructor: SomeMxmlClass$,
       config: {
         list: null,
