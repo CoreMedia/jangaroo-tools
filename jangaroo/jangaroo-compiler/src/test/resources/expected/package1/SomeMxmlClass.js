@@ -21,6 +21,7 @@ public class SomeMxmlClass extends package1.ConfigClass {
   public var num:int;
 
   [Bindable]
+  [AllowConstructorParameters]
   public var other:package1.someOtherPackage.SomeOtherClass;
 
   private*/ function $on_$_1_click(event/*:package1.someOtherPackage.SomeEvent*/)/*:void*/ {
@@ -32,6 +33,7 @@ public class SomeMxmlClass extends package1.ConfigClass {
   }/*
 
   [Bindable]
+  [AllowConstructorParameters]
   public var no_config:package1.someOtherPackage.SomeOtherClass;
 
   public*/ function SomeMxmlClass$(config/*:package1.SomeMxmlClass = null*/) {if(arguments.length<=0)config=null;

@@ -452,6 +452,9 @@ public final class MxmlToModelParser {
       } else {
         FieldModel fieldModel = new FieldModel(id, className);
         fieldModel.addAnnotation(new AnnotationModel(Jooc.BINDABLE_ANNOTATION_NAME));
+        if (constructorSupportsConfigOptionsParameter(className)) {
+          fieldModel.addAnnotation(new AnnotationModel(ALLOW_CONSTRUCTOR_PARAMETERS_ANNOTATION));
+        }
         compilationUnitModel.getClassModel().addMember(fieldModel);
       }
       targetVariable = CompilerUtils.qName(qualifier, id);
