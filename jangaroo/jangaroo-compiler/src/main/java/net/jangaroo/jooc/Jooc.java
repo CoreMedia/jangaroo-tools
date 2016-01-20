@@ -233,110 +233,117 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
 
   private void analyzeDependencyGraph() throws IOException {
     final Multimap<Dependent, Dependent> dependencyGraph = HashMultimap.create();
-    for (final CompilationUnit compilationUnit : getCompilationUnits()) {
-      if (compilationUnit.getSource().isInSourcePath()) {
-        dependencyGraph.put(new Dependent(compilationUnit, false), new Dependent(compilationUnit, true));
+    Set<CompilationUnit> processedCompilationUnits = new HashSet<CompilationUnit>();
+    Set<CompilationUnit> unprocessedCompilationUnits = new HashSet<CompilationUnit>(getCompilationUnits());
+    while (!unprocessedCompilationUnits.isEmpty()) {
+      for (final CompilationUnit compilationUnit : unprocessedCompilationUnits) {
+        if (processedCompilationUnits.add(compilationUnit) && compilationUnit.getSource().isInSourcePath()) {
+          dependencyGraph.put(new Dependent(compilationUnit, false), new Dependent(compilationUnit, true));
 
-        final IdeDeclaration primaryDeclaration = compilationUnit.getPrimaryDeclaration();
-        final Object classBody = primaryDeclaration instanceof ClassDeclaration ?
-                ((ClassDeclaration) primaryDeclaration).getBody() :
-                "noBody";
+          final IdeDeclaration primaryDeclaration = compilationUnit.getPrimaryDeclaration();
+          final Object classBody = primaryDeclaration instanceof ClassDeclaration ?
+                  ((ClassDeclaration) primaryDeclaration).getBody() :
+                  "noBody";
 
-        // key null: references from static code
-        // other keys: references from static methods
-        final Multimap<FunctionDeclaration, IdeDeclaration> uses = HashMultimap.create();
-        final FunctionDeclaration[] currentDeclaration = {null};
-        compilationUnit.visit(new TransitiveAstVisitor(new AstVisitorBase()) {
-          @Override
-          public void visitFunctionDeclaration(FunctionDeclaration functionDeclaration) throws IOException {
-            // Ignore instance methods.
-            if (functionDeclaration.isStatic()) {
-              // For static methods, register all nested ides as dependencies of the method.
-              boolean isTopLevel = currentDeclaration[0] == null &&
-                      classBody.equals(functionDeclaration.getParentNode());
-              if (isTopLevel) {
-                currentDeclaration[0] = functionDeclaration;
-              }
-              super.visitFunctionDeclaration(functionDeclaration);
-              if (isTopLevel) {
-                currentDeclaration[0] = null;
+          // key null: references from static code
+          // other keys: references from static methods
+          final Multimap<FunctionDeclaration, IdeDeclaration> uses = HashMultimap.create();
+          final FunctionDeclaration[] currentDeclaration = {null};
+          compilationUnit.visit(new TransitiveAstVisitor(new AstVisitorBase()) {
+            @Override
+            public void visitFunctionDeclaration(FunctionDeclaration functionDeclaration) throws IOException {
+              // Ignore instance methods.
+              if (functionDeclaration.isStatic()) {
+                // For static methods, register all nested ides as dependencies of the method.
+                boolean isTopLevel = currentDeclaration[0] == null &&
+                        classBody.equals(functionDeclaration.getParentNode());
+                if (isTopLevel) {
+                  currentDeclaration[0] = functionDeclaration;
+                }
+                super.visitFunctionDeclaration(functionDeclaration);
+                if (isTopLevel) {
+                  currentDeclaration[0] = null;
+                }
               }
             }
-          }
 
-          @Override
-          public void visitVariableDeclaration(VariableDeclaration variableDeclaration) throws IOException {
-            // Ignore instance fields.
-            if (variableDeclaration.isStatic()) {
-              // For static fields, register all nested ides as static dependencies.
-              super.visitVariableDeclaration(variableDeclaration);
+            @Override
+            public void visitVariableDeclaration(VariableDeclaration variableDeclaration) throws IOException {
+              // Ignore instance fields.
+              if (variableDeclaration.isStatic()) {
+                // For static fields, register all nested ides as static dependencies.
+                super.visitVariableDeclaration(variableDeclaration);
+              }
             }
-          }
 
-          @Override
-          public void visitIdeExpression(IdeExpr ideExpr) throws IOException {
-            Expr normalizedExpr = ideExpr.getNormalizedExpr();
-            if (normalizedExpr != ideExpr) {
-              normalizedExpr.visit(this);
-            } else {
-              IdeDeclaration declaration = ideExpr.getIde().getDeclaration(false);
+            @Override
+            public void visitIdeExpression(IdeExpr ideExpr) throws IOException {
+              Expr normalizedExpr = ideExpr.getNormalizedExpr();
+              if (normalizedExpr != ideExpr) {
+                normalizedExpr.visit(this);
+              } else {
+                IdeDeclaration declaration = ideExpr.getIde().getDeclaration(false);
+                if (declaration != null) {
+                  uses.put(currentDeclaration[0], declaration);
+                }
+              }
+            }
+
+            @Override
+            public void visitDotExpr(DotExpr dotExpr) throws IOException {
+              IdeDeclaration declaration = dotExpr.getIde().getDeclaration(false);
               if (declaration != null) {
                 uses.put(currentDeclaration[0], declaration);
               }
+              dotExpr.getArg().visit(this);
             }
-          }
 
-          @Override
-          public void visitDotExpr(DotExpr dotExpr) throws IOException {
-            IdeDeclaration declaration = dotExpr.getIde().getDeclaration(false);
-            if (declaration != null) {
-              uses.put(currentDeclaration[0], declaration);
+            @Override
+            public void visitQualifiedIde(QualifiedIde qualifiedIde) throws IOException {
+              visitIde(qualifiedIde);
             }
-            dotExpr.getArg().visit(this);
-          }
+          });
 
-          @Override
-          public void visitQualifiedIde(QualifiedIde qualifiedIde) throws IOException {
-            visitIde(qualifiedIde);
-          }
-        });
-
-        Set<Dependent> staticDependencies = new HashSet<Dependent>();
-        Set<IdeDeclaration> done = new HashSet<IdeDeclaration>();
-        Deque<IdeDeclaration> todo = new LinkedList<IdeDeclaration>();
-        todo.addAll(uses.get(null));
-        while (!todo.isEmpty()) {
-          IdeDeclaration ideDeclaration = todo.removeLast();
-          if (done.add(ideDeclaration)) {
-            if (ideDeclaration instanceof FunctionDeclaration && uses.containsKey(ideDeclaration)) {
-              todo.addAll(uses.get((FunctionDeclaration) ideDeclaration));
-            } else {
-              CompilationUnit ideCompilationUnit = ideDeclaration.getCompilationUnit();
-              if (ideCompilationUnit != null && !ideCompilationUnit.equals(compilationUnit) && ideCompilationUnit.getSource().isInSourcePath()) {
-                // The identifier is defined in a different compilation unit in the same module.
-                // The dependency must be analysed, because it might have to be
-                // strengthened into a required dependency.
-                if (ideDeclaration.isConstructor()) {
-                  staticDependencies.add(new Dependent(ideCompilationUnit, false));
-                } else if (ideDeclaration.isStatic()) {
-                  staticDependencies.add(new Dependent(ideCompilationUnit, true));
+          Set<Dependent> staticDependencies = new HashSet<Dependent>();
+          Set<IdeDeclaration> done = new HashSet<IdeDeclaration>();
+          Deque<IdeDeclaration> todo = new LinkedList<IdeDeclaration>();
+          todo.addAll(uses.get(null));
+          while (!todo.isEmpty()) {
+            IdeDeclaration ideDeclaration = todo.removeLast();
+            if (done.add(ideDeclaration)) {
+              if (ideDeclaration instanceof FunctionDeclaration && uses.containsKey(ideDeclaration)) {
+                todo.addAll(uses.get((FunctionDeclaration) ideDeclaration));
+              } else {
+                CompilationUnit ideCompilationUnit = ideDeclaration.getCompilationUnit();
+                if (ideCompilationUnit != null && !ideCompilationUnit.equals(compilationUnit) && ideCompilationUnit.getSource().isInSourcePath()) {
+                  // The identifier is defined in a different compilation unit in the same module.
+                  // The dependency must be analysed, because it might have to be
+                  // strengthened into a required dependency.
+                  if (ideDeclaration.isConstructor()) {
+                    staticDependencies.add(new Dependent(ideCompilationUnit, false));
+                  } else if (ideDeclaration.isStatic()) {
+                    staticDependencies.add(new Dependent(ideCompilationUnit, true));
+                  }
+                  // Ignore non-static calls: The called class must have been initialized,
+                  // because an instance has already been created.
                 }
-                // Ignore non-static calls: The called class must have been initialized,
-                // because an instance has already been created.
               }
             }
           }
-        }
 
-        for (Dependent dependent : staticDependencies) {
-          dependencyGraph.put(new Dependent(compilationUnit, true), dependent);
-        }
+          for (Dependent dependent : staticDependencies) {
+            dependencyGraph.put(new Dependent(compilationUnit, true), dependent);
+          }
 
-        Set<CompilationUnit> dependenciesAsCompilationUnits = compilationUnit.getDependenciesAsCompilationUnits();
-        for (CompilationUnit dependency : dependenciesAsCompilationUnits) {
-          dependencyGraph.put(new Dependent(compilationUnit, false), new Dependent(dependency, false));
+          Set<CompilationUnit> dependenciesAsCompilationUnits = compilationUnit.getDependenciesAsCompilationUnits();
+          for (CompilationUnit dependency : dependenciesAsCompilationUnits) {
+            dependencyGraph.put(new Dependent(compilationUnit, false), new Dependent(dependency, false));
+          }
         }
       }
+
+      unprocessedCompilationUnits = new HashSet<CompilationUnit>(getCompilationUnits());
+      unprocessedCompilationUnits.removeAll(processedCompilationUnits);
     }
 
     // Process each strongly connected component of the dependency graph.
