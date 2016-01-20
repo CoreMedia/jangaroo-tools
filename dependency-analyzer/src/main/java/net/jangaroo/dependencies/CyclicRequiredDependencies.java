@@ -36,7 +36,7 @@ public class CyclicRequiredDependencies {
       }
 
       File outFile = new File(args[1]);
-      DependencyGraphFile.writeDependencyFile(requires, staticallyInitialized, outFile);
+      DependencyGraphFile.writeDependencyFile(requires, requires.keySet(), staticallyInitialized, outFile);
     }
   }
 

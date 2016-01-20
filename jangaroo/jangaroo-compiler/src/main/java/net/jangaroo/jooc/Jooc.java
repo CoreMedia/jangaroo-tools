@@ -26,8 +26,10 @@ import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.ast.DotExpr;
 import net.jangaroo.jooc.ast.Expr;
 import net.jangaroo.jooc.ast.FunctionDeclaration;
+import net.jangaroo.jooc.ast.Ide;
 import net.jangaroo.jooc.ast.IdeDeclaration;
 import net.jangaroo.jooc.ast.IdeExpr;
+import net.jangaroo.jooc.ast.NewExpr;
 import net.jangaroo.jooc.ast.QualifiedIde;
 import net.jangaroo.jooc.ast.TransitiveAstVisitor;
 import net.jangaroo.jooc.ast.VariableDeclaration;
@@ -231,7 +233,7 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
 
     @Override
     public String toString() {
-      return getCompilationUnitName(compilationUnit) + (initialization ? ".<init>" : "");
+      return getCompilationUnitName(compilationUnit) + (initialization ? ".static" : "");
     }
   }
 
@@ -251,7 +253,8 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
 
           // key null: references from static code
           // other keys: references from static methods
-          final Multimap<FunctionDeclaration, IdeDeclaration> uses = HashMultimap.create();
+          final Multimap<FunctionDeclaration, FunctionDeclaration> functionUses = HashMultimap.create();
+          final Multimap<FunctionDeclaration, Dependent> nonFunctionUses = HashMultimap.create();
           final FunctionDeclaration[] currentDeclaration = {null};
           compilationUnit.visit(new TransitiveAstVisitor(new AstVisitorBase()) {
             @Override
@@ -280,25 +283,39 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
               }
             }
 
+            private void processIdeInExpression(Ide ide, boolean isNew) {
+              IdeDeclaration ideDeclaration = ide.getDeclaration(false);
+              if (ideDeclaration != null) {
+                CompilationUnit ideCompilationUnit = ideDeclaration.getCompilationUnit();
+                if (ideCompilationUnit != null && !ideCompilationUnit.equals(compilationUnit) && ideCompilationUnit.getSource().isInSourcePath()) {
+                  // The identifier is defined in a different compilation unit in the same module.
+                  // The dependency must be analysed, because it might have to be
+                  // strengthened into a required dependency.
+                  boolean isStatic = ideDeclaration.isStatic();
+                  // Ignore ordinary method calls: The called class must have been initialized,
+                  // because an instance has already been created.
+                  if (isNew || isStatic) {
+                    nonFunctionUses.put(currentDeclaration[0],
+                            new Dependent(ideDeclaration.getCompilationUnit(), !isNew));
+                  }
+                }
+              }
+            }
+
             @Override
             public void visitIdeExpression(IdeExpr ideExpr) throws IOException {
               Expr normalizedExpr = ideExpr.getNormalizedExpr();
               if (normalizedExpr != ideExpr) {
                 normalizedExpr.visit(this);
               } else {
-                IdeDeclaration declaration = ideExpr.getIde().getDeclaration(false);
-                if (declaration != null) {
-                  uses.put(currentDeclaration[0], declaration);
-                }
+                Ide ide = ideExpr.getIde();
+                processIdeInExpression(ide, ideExpr.getParentNode() instanceof NewExpr);
               }
             }
 
             @Override
             public void visitDotExpr(DotExpr dotExpr) throws IOException {
-              IdeDeclaration declaration = dotExpr.getIde().getDeclaration(false);
-              if (declaration != null) {
-                uses.put(currentDeclaration[0], declaration);
-              }
+              processIdeInExpression(dotExpr.getIde(), dotExpr.getParentNode() instanceof NewExpr);
               dotExpr.getArg().visit(this);
             }
 
@@ -309,28 +326,25 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
           });
 
           Set<Dependent> staticDependencies = new HashSet<Dependent>();
-          Set<IdeDeclaration> done = new HashSet<IdeDeclaration>();
-          Deque<IdeDeclaration> todo = new LinkedList<IdeDeclaration>();
-          todo.addAll(uses.get(null));
+          Collection<Dependent> nonFunctionDependencies = nonFunctionUses.get(null);
+          if (nonFunctionDependencies != null) {
+            // Dependencies directly in initializers.
+            staticDependencies.addAll(nonFunctionDependencies);
+          }
+
+          Set<FunctionDeclaration> done = new HashSet<FunctionDeclaration>();
+          Deque<FunctionDeclaration> todo = new LinkedList<FunctionDeclaration>();
+          todo.addAll(functionUses.get(null));
           while (!todo.isEmpty()) {
-            IdeDeclaration ideDeclaration = todo.removeLast();
+            FunctionDeclaration ideDeclaration = todo.removeLast();
             if (done.add(ideDeclaration)) {
-              if (ideDeclaration instanceof FunctionDeclaration && uses.containsKey(ideDeclaration)) {
-                todo.addAll(uses.get((FunctionDeclaration) ideDeclaration));
-              } else {
-                CompilationUnit ideCompilationUnit = ideDeclaration.getCompilationUnit();
-                if (ideCompilationUnit != null && !ideCompilationUnit.equals(compilationUnit) && ideCompilationUnit.getSource().isInSourcePath()) {
-                  // The identifier is defined in a different compilation unit in the same module.
-                  // The dependency must be analysed, because it might have to be
-                  // strengthened into a required dependency.
-                  if (ideDeclaration.isConstructor()) {
-                    staticDependencies.add(new Dependent(ideCompilationUnit, false));
-                  } else if (ideDeclaration.isStatic()) {
-                    staticDependencies.add(new Dependent(ideCompilationUnit, true));
-                  }
-                  // Ignore non-static calls: The called class must have been initialized,
-                  // because an instance has already been created.
-                }
+              Collection<Dependent> localDependencies = nonFunctionUses.get(ideDeclaration);
+              if (localDependencies != null) {
+                // Dependencies in methods called from initializers.
+                staticDependencies.addAll(localDependencies);
+              }
+              if (functionUses.containsKey(ideDeclaration)) {
+                todo.addAll(functionUses.get(ideDeclaration));
               }
             }
           }
@@ -350,33 +364,9 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
       unprocessedCompilationUnits.removeAll(processedCompilationUnits);
     }
 
-
-    File reportOutputDirectory = getConfig().getReportOutputDirectory();
-    File dependencyGraphFile = new File(reportOutputDirectory, "cycles.graphml");
-    if (reportOutputDirectory != null) {
-      Multimap<String, String> requires = HashMultimap.create();
-      Set<String> staticallyInitialized = new HashSet<String>();
-      for (Map.Entry<Dependent, Collection<Dependent>> entry : dependencyGraph.asMap().entrySet()) {
-        String dependentName = entry.getKey().toString();
-        if (entry.getKey().isInitialization()) {
-          staticallyInitialized.add(dependentName);
-        }
-        Collection<Dependent> dependencies = entry.getValue();
-        for (Dependent dependency : dependencies) {
-          requires.put(dependentName, dependency.toString());
-        }
-      }
-
-      try {
-        DependencyGraphFile.writeDependencyFile(requires, staticallyInitialized, dependencyGraphFile);
-      } catch (IOException e) {
-        logCompilerError(e);
-        // Do not throw again. A worse error is logged presently.
-      }
-    }
-
     // Process each strongly connected component of the dependency graph.
     Collection<Set<Dependent>> sccs = GraphUtil.stronglyConnectedComponent(dependencyGraph.asMap());
+    Collection<Set<Dependent>> errorSCCs = new ArrayList<Set<Dependent>>();
     for (Set<Dependent> scc : sccs) {
       // Each scc must contain at most one initializer.
       List<Dependent> initializers = new ArrayList<Dependent>();
@@ -388,39 +378,7 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
 
       // At most one initializer is supported per cycle. (And even that is stretching our luck,)
       if (initializers.size() > 1) {
-        // Complain.
-        Dependent dependent1 = initializers.get(0);
-        Dependent dependent2 = initializers.get(1);
-
-        List<Dependent> path12 = new ArrayList<Dependent>(GraphUtil.findPath(dependencyGraph.asMap(), dependent1, dependent2));
-        List<Dependent> path21 = new ArrayList<Dependent>(GraphUtil.findPath(dependencyGraph.asMap(), dependent2, dependent1));
-        List<Dependent> cycle = new ArrayList<Dependent>();
-        cycle.addAll(path12);
-        cycle.addAll(path21.subList(1, path21.size()));
-
-        StringBuilder message = new StringBuilder();
-        message.append("The compilation units ");
-        message.append(getCompilationUnitName(dependent1.getCompilationUnit()));
-        message.append(" and");
-        message.append(getCompilationUnitName(dependent2.getCompilationUnit()));
-        message.append(" contain static initializers");
-        message.append(" (for example code blocks or static variables with a complex initializer)");
-        message.append(" and the static initializers are mutually dependent: ");
-        for (int i = 0; i < cycle.size(); i++) {
-          if (i > 0) {
-            message.append(" -> ");
-          }
-          message.append(cycle.get(i));
-        }
-        message.append(". You can either remove a static initializer or break the dependency cycle");
-        message.append(" to make this module compile. (Other dependency cycles might exist, though.)");
-        if (reportOutputDirectory != null) {
-          message.append(" A dependency graph of the module has been written to ");
-          message.append(dependencyGraphFile);
-          message.append('.');
-        }
-
-        throw error(message.toString());
+        errorSCCs.add(scc);
       }
 
       if (initializers.size() == 1) {
@@ -441,6 +399,80 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
           }
         }
       }
+    }
+
+    if (!errorSCCs.isEmpty()) {
+      Set<Dependent> scc = errorSCCs.iterator().next();
+
+      File reportOutputDirectory = getConfig().getReportOutputDirectory();
+      File dependencyGraphFile = new File(reportOutputDirectory, "cycles.graphml");
+      if (reportOutputDirectory != null) {
+        Multimap<String, String> requires = HashMultimap.create();
+        Set<String> staticallyInitialized = new HashSet<String>();
+        for (Map.Entry<Dependent, Collection<Dependent>> entry : dependencyGraph.asMap().entrySet()) {
+          String dependentName = entry.getKey().toString();
+          if (entry.getKey().isInitialization()) {
+            staticallyInitialized.add(dependentName);
+          }
+          Collection<Dependent> dependencies = entry.getValue();
+          for (Dependent dependency : dependencies) {
+            requires.put(dependentName, dependency.toString());
+          }
+        }
+
+        try {
+          Set<String> allDependents = new HashSet<String>();
+          for (Set<Dependent> errorSCC : errorSCCs) {
+            for (Dependent dependent : errorSCC) {
+              allDependents.add(dependent.toString());
+            }
+          }
+          DependencyGraphFile.writeDependencyFile(requires, allDependents, staticallyInitialized, dependencyGraphFile);
+        } catch (IOException e) {
+          logCompilerError(e);
+          // Do not throw again. A worse error is logged presently.
+        }
+      }
+
+      // Complain.
+      List<Dependent> initializers = new ArrayList<Dependent>();
+      for (Dependent dependent : scc) {
+        if (dependent.isInitialization()) {
+          initializers.add(dependent);
+        }
+      }
+      Dependent dependent1 = initializers.get(0);
+      Dependent dependent2 = initializers.get(1);
+
+      List<Dependent> path12 = new ArrayList<Dependent>(GraphUtil.findPath(dependencyGraph.asMap(), dependent1, dependent2));
+      List<Dependent> path21 = new ArrayList<Dependent>(GraphUtil.findPath(dependencyGraph.asMap(), dependent2, dependent1));
+      List<Dependent> cycle = new ArrayList<Dependent>();
+      cycle.addAll(path12);
+      cycle.addAll(path21.subList(1, path21.size()));
+
+      StringBuilder message = new StringBuilder();
+      message.append("The compilation units ");
+      message.append(getCompilationUnitName(dependent1.getCompilationUnit()));
+      message.append(" and ");
+      message.append(getCompilationUnitName(dependent2.getCompilationUnit()));
+      message.append(" contain static initializers");
+      message.append(" (for example code blocks or static variables with a complex initializer)");
+      message.append(" and the static initializers are mutually dependent: ");
+      for (int i = 0; i < cycle.size(); i++) {
+        if (i > 0) {
+          message.append(" -> ");
+        }
+        message.append(cycle.get(i));
+      }
+      message.append(". You can either remove a static initializer or break the dependency cycle");
+      message.append(" to make this module compile. (Other dependency cycles might exist, though.)");
+      if (reportOutputDirectory != null) {
+        message.append(" A dependency graph of the module has been written to ");
+        message.append(dependencyGraphFile);
+        message.append('.');
+      }
+
+      throw error(message.toString());
     }
   }
 
