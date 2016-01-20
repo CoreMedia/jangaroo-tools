@@ -119,11 +119,28 @@ AS3 = {
 };
 
 var joo = Ext.ns("joo");
-joo.getQualifiedObject = function(name) {
-  return eval(name);
-};
+joo.getQualifiedObject = (function(theGlobalObject) {
+  var getQualified = function (parts) {
+    var object = theGlobalObject;
+    for (var i = 0; i < parts.length; ++i) {
+      var subObject = object[parts[i]];
+      if (!subObject) {
+        return null;
+      }
+      object = subObject;
+    }
+    return object;
+  };
+  return function(name) {
+    if (!name) {
+      return theGlobalObject;
+    }
+    var parts = name.split(".");
+    return getQualified(parts) || getQualified(["AS3"].concat(parts));
+  };
+})(this);
 joo.getOrCreatePackage = function(name) {
-  return Ext.ns(name);
+  return Ext.ns("AS3." + name);
 };
 Ext.ns("joo.localization");
 
