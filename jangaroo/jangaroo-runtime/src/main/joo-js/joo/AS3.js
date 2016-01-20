@@ -123,7 +123,7 @@ joo.getQualifiedObject = function(name) {
   return eval(name);
 };
 joo.getOrCreatePackage = function(name) {
-  return Ext.ns("AS3." + name);
+  return Ext.ns(name);
 };
 Ext.ns("joo.localization");
 
