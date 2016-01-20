@@ -520,7 +520,7 @@ public final class MxmlToModelParser {
     }
     code.append(" = ").append(value).append(";");
 
-    if (configVariable == null /*|| hasBindings*/) {
+    if (configVariable == null && !"Array".equals(className) /*|| hasBindings*/) {
       // no config object was built or event listeners or bindings have to be added:
       // process attribute and children and assign properties directly on the target object
       processAttributesAndChildNodes(objectElement, configVariable, targetVariable, false);
