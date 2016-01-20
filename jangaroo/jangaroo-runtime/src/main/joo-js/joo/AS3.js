@@ -92,7 +92,7 @@ AS3 = {
     }
     if (type.$className && type.prototype &&
             typeof value === "object" && !value.isInstance && !value.xclass && !value.xtype) {
-      if (type.prototype.hasOwnProperty("xtype")) {
+      if (type.prototype.hasOwnProperty("xtype") && type.prototype.xtype) {
         value.xtype = type.prototype.xtype;
       } else {
         value.xclass = type.$className;
