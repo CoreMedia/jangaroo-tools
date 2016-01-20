@@ -2061,21 +2061,21 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     }
 
     public List<Object> compress(List<Metadata> metadataList) {
-      List<Object> comressedMetadataList = new ArrayList<Object>();
+      List<Object> compressedMetadataList = new ArrayList<Object>();
       for (Metadata metadata : metadataList) {
         if (!ANNOTATIONS_FOR_COMPILER_ONLY.contains(metadata.name)) {
-          comressedMetadataList.add(metadata.name);
+          compressedMetadataList.add(metadata.name);
           if (!metadata.args.isEmpty()) {
             ArrayList<Object> argNameValues = new ArrayList<Object>();
             for (MetadataArgument metadataArgument : metadata.args) {
               argNameValues.add(metadataArgument.name);
               argNameValues.add(metadataArgument.value);
             }
-            comressedMetadataList.add(new JsonArray(argNameValues.toArray()));
+            compressedMetadataList.add(new JsonArray(argNameValues.toArray()));
           }
         }
       }
-      return comressedMetadataList;
+      return compressedMetadataList;
     }
   }
 }
