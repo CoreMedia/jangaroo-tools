@@ -1310,7 +1310,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     } else {
       out.writeSymbol(forInStatement.getSymIn());
       if (exprAuxIde != null) {
-        // assign the expression value to the auxiliary expression value variable once:
+        // assign the ^ value to the auxiliary expression value variable once:
         out.writeToken(exprAuxIde.getName());
         out.writeToken("=");
       }
