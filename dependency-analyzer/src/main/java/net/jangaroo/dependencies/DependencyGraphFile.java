@@ -15,25 +15,25 @@ import java.util.Map;
 import java.util.Set;
 
 public class DependencyGraphFile {
-  public static void writeDependencyFile(Multimap<String, String> requires, Set<String> staticallyInitialized, File outFile) throws IOException {
-    Set<String> classesInCycles = getNodesInMarkedCycles(requires, staticallyInitialized);
-
-    outFile.getParentFile().mkdirs();
+  public static void writeDependencyFile(Multimap<String, String> edges, Set<String> marked, File outFile) throws IOException {
+    File parentFile = outFile.getParentFile();
+    if (parentFile != null) {
+      parentFile.mkdirs();
+    }
     try (PrintWriter writer = new PrintWriter(new FileWriter(outFile))) {
-      writeGraph(writer, requires, classesInCycles, staticallyInitialized);
+      writeGraph(writer, edges, edges.keySet(), marked);
     }
   }
 
-
-  private static void writeGraph(PrintWriter writer, Multimap<String, String> requires, Collection<String> classesInCycles, Collection<String> staticallyInitialized) {
+  private static void writeGraph(PrintWriter writer, Multimap<String, String> edges, Collection<String> nodes, Collection<String> marked) {
     writer.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
     writer.println("<graphml xmlns=\"http://graphml.graphdrawing.org/xmlns\" xmlns:java=\"http://www.yworks.com/xml/yfiles-common/1.0/java\" xmlns:sys=\"http://www.yworks.com/xml/yfiles-common/markup/primitives/2.0\" xmlns:x=\"http://www.yworks.com/xml/yfiles-common/markup/2.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:y=\"http://www.yworks.com/xml/graphml\" xmlns:yed=\"http://www.yworks.com/xml/yed/3\" xsi:schemaLocation=\"http://graphml.graphdrawing.org/xmlns http://www.yworks.com/xml/schema/graphml/1.1/ygraphml.xsd\">");
     writer.println("<key for=\"node\" id=\"d6\" yfiles.type=\"nodegraphics\"/>");
-    for (String nodeId : classesInCycles) {
-      writer.println("    <node id=\"" + nodeId + "\">");
+    for (String nodeId : nodes) {
+      writer.println("    <node id=\"" + toId(nodeId) + "\">");
       writer.println("      <data key=\"d6\">");
       writer.println("        <y:ShapeNode>");
-      if (staticallyInitialized.contains(nodeId)) {
+      if (marked.contains(nodeId)) {
         writer.println("        <y:Fill color=\"#FFA0A0\" transparent=\"false\"/>");
       } else {
         writer.println("        <y:Fill color=\"#A0FFA0\" transparent=\"false\"/>");
@@ -44,49 +44,15 @@ public class DependencyGraphFile {
       writer.println("      </data>");
       writer.println("    </node>");
     }
-    for (Map.Entry<String, String> entry : requires.entries()) {
-      if (classesInCycles.contains(entry.getKey()) && classesInCycles.contains(entry.getValue())) {
-        writer.println("    <edge source=\"" + entry.getKey() + "\" target=\"" + entry.getValue() + "\"/>");
+    for (Map.Entry<String, String> entry : edges.entries()) {
+      if (nodes.contains(entry.getKey()) && nodes.contains(entry.getValue())) {
+        writer.println("    <edge source=\"" + toId(entry.getKey()) + "\" target=\"" + toId(entry.getValue()) + "\"/>");
       }
     }
     writer.println("</graphml>");
   }
 
-  private static Set<String> getNodesInMarkedCycles(Multimap<String, String> edges, Collection<String> markedNodes) {
-    Multiset<String> classNames = edges.keys();
-    Set<String> result = new HashSet<>();
-    for (String className : classNames) {
-      if (isContainedInMarkedCycle(className, edges, markedNodes)) {
-        result.add(className);
-      }
-    }
-    return result;
-  }
-
-  private static boolean isContainedInMarkedCycle(String node, Multimap<String, String> edges, Collection<String> markedNodes) {
-    // Compute all reachable marked nodes.
-    Collection<String> reachable = new HashSet<>();
-    Deque<String> todo = new LinkedList<>();
-    todo.addAll(edges.get(node));
-    while (!todo.isEmpty()) {
-      String current = todo.removeLast();
-      if (reachable.add(current)) {
-        todo.addAll(edges.get(current));
-      }
-    }
-    reachable.retainAll(markedNodes);
-
-    // Compute all reachable marked nodes and nodes reachable from those nodes.
-    todo.clear();
-    todo.addAll(reachable);
-    reachable.clear();
-    while (!todo.isEmpty()) {
-      String current = todo.removeLast();
-      if (reachable.add(current)) {
-        todo.addAll(edges.get(current));
-      }
-    }
-
-    return reachable.contains(node);
+  private static String toId(String nodeId) {
+    return nodeId.replace('<', '.').replace('>', '.');
   }
 }

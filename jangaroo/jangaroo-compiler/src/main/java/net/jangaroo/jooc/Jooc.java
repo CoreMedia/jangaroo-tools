@@ -26,7 +26,6 @@ import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.ast.DotExpr;
 import net.jangaroo.jooc.ast.Expr;
 import net.jangaroo.jooc.ast.FunctionDeclaration;
-import net.jangaroo.jooc.ast.Ide;
 import net.jangaroo.jooc.ast.IdeDeclaration;
 import net.jangaroo.jooc.ast.IdeExpr;
 import net.jangaroo.jooc.ast.QualifiedIde;
@@ -229,6 +228,11 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
       result = 31 * result + (initialization ? 1 : 0);
       return result;
     }
+
+    @Override
+    public String toString() {
+      return getCompilationUnitName(compilationUnit) + (initialization ? ".<init>" : "");
+    }
   }
 
   private void analyzeDependencyGraph() throws IOException {
@@ -346,6 +350,31 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
       unprocessedCompilationUnits.removeAll(processedCompilationUnits);
     }
 
+
+    File reportOutputDirectory = getConfig().getReportOutputDirectory();
+    File dependencyGraphFile = new File(reportOutputDirectory, "cycles.graphml");
+    if (reportOutputDirectory != null) {
+      Multimap<String, String> requires = HashMultimap.create();
+      Set<String> staticallyInitialized = new HashSet<String>();
+      for (Map.Entry<Dependent, Collection<Dependent>> entry : dependencyGraph.asMap().entrySet()) {
+        String dependentName = entry.getKey().toString();
+        if (entry.getKey().isInitialization()) {
+          staticallyInitialized.add(dependentName);
+        }
+        Collection<Dependent> dependencies = entry.getValue();
+        for (Dependent dependency : dependencies) {
+          requires.put(dependentName, dependency.toString());
+        }
+      }
+
+      try {
+        DependencyGraphFile.writeDependencyFile(requires, staticallyInitialized, dependencyGraphFile);
+      } catch (IOException e) {
+        logCompilerError(e);
+        // Do not throw again. A worse error is logged presently.
+      }
+    }
+
     // Process each strongly connected component of the dependency graph.
     Collection<Set<Dependent>> sccs = GraphUtil.stronglyConnectedComponent(dependencyGraph.asMap());
     for (Set<Dependent> scc : sccs) {
@@ -369,27 +398,6 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
         cycle.addAll(path12);
         cycle.addAll(path21.subList(1, path21.size()));
 
-        File dependencyGraphFile = new File(getConfig().getReportOutputDirectory(), "cycles.graphml");
-        Multimap<String, String> requires = HashMultimap.create();
-        Set<String> staticallyInitialized = new HashSet<String>();
-        for (Map.Entry<Dependent, Collection<Dependent>> entry : dependencyGraph.asMap().entrySet()) {
-          String dependentName = getDependentName(entry.getKey());
-          if (entry.getKey().isInitialization()) {
-            staticallyInitialized.add(dependentName);
-          }
-          Collection<Dependent> dependencies = entry.getValue();
-          for (Dependent dependency : dependencies) {
-            requires.put(dependentName, getDependentName(dependency));
-          }
-        }
-
-        try {
-          DependencyGraphFile.writeDependencyFile(requires, staticallyInitialized, dependencyGraphFile);
-        } catch (IOException e) {
-          logCompilerError(e);
-          // Do not throw again. A worse error is logged presently.
-        }
-
         StringBuilder message = new StringBuilder();
         message.append("The compilation units ");
         message.append(getCompilationUnitName(dependent1.getCompilationUnit()));
@@ -402,13 +410,15 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
           if (i > 0) {
             message.append(" -> ");
           }
-          message.append(getDependentName(cycle.get(i)));
+          message.append(cycle.get(i));
         }
         message.append(". You can either remove a static initializer or break the dependency cycle");
         message.append(" to make this module compile. (Other dependency cycles might exist, though.)");
-        message.append(" A dependency graph of the module has been written to ");
-        message.append(dependencyGraphFile);
-        message.append('.');
+        if (reportOutputDirectory != null) {
+          message.append(" A dependency graph of the module has been written to ");
+          message.append(dependencyGraphFile);
+          message.append('.');
+        }
 
         throw error(message.toString());
       }
@@ -434,13 +444,7 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
     }
   }
 
-  private String getDependentName(Dependent dependent) {
-    CompilationUnit compilationUnit = dependent.getCompilationUnit();
-    return getCompilationUnitName(compilationUnit) +
-            (dependent.isInitialization() ? ".<init>" : "");
-  }
-
-  private String getCompilationUnitName(CompilationUnit compilationUnit) {
+  private static String getCompilationUnitName(CompilationUnit compilationUnit) {
     return compilationUnit.getPrimaryDeclaration().getIde().getIde().getText();
   }
 
