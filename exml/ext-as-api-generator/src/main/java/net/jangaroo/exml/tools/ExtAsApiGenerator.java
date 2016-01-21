@@ -106,7 +106,7 @@ public class ExtAsApiGenerator {
       // correct wrong usage of util.Observable as a mixin:
       interfaces.remove("ext.util.Observable");
       // correct wrong usage of dom.Element as a mixin, not superclass, in dom.CompositeElementLite:
-      interfaces.remove("ext.Element");
+      interfaces.remove("ext.dom.Element");
       // since every Ext object extends Base, there is no need to generate an interface for that:
       interfaces.remove("ext.Base");
       interfaces.remove("Object");
