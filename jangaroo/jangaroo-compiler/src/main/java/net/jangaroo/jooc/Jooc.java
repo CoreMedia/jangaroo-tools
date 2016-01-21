@@ -459,10 +459,7 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
           if (visited.add(dependent)) {
             todo.addAll(dependencyGraph.get(dependent));
 
-            CompilationUnit dependency = dependent.getCompilationUnit();
-            if (!compilationUnit.equals(dependency)) {
-              compilationUnit.addRequiredDependency(dependency);
-            }
+            compilationUnit.addRequiredDependency(dependent.getCompilationUnit());
           }
         }
       }
