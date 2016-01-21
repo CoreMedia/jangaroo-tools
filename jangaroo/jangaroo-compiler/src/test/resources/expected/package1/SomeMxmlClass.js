@@ -21,60 +21,67 @@ public class SomeMxmlClass extends package1.ConfigClass {
   public var num:int;
 
   [Bindable]
+  [AllowConstructorParameters]
   public var other:package1.someOtherPackage.SomeOtherClass;
 
   private*/ function $on_$_1_click(event/*:package1.someOtherPackage.SomeEvent*/)/*:void*/ {
     var result/*:String*/ = 'gotcha!';
   }/*
 
-  private*/ function $on_$_7_clack(event/*:package1.someOtherPackage.SomeEvent*/)/*:void*/ {
+  private*/ function $on_$_12_clack(event/*:package1.someOtherPackage.SomeEvent*/)/*:void*/ {
     var test=0;
   }/*
 
   [Bindable]
+  [AllowConstructorParameters]
   public var no_config:package1.someOtherPackage.SomeOtherClass;
 
   public*/ function SomeMxmlClass$(config/*:package1.SomeMxmlClass = null*/) {if(arguments.length<=0)config=null;
     
-    var $_1/*:package1.ConfigClass*/ =AS3.cast( AS3.package1.ConfigClass,{});
-    $_1.bar = "BAR!";
-    $_1.num = 123;
+    var $_1/*:package1.SomeMxmlClass*/ =AS3.cast( SomeMxmlClass,{});AS3.setBindable(
+    $_1,"bar" , "BAR!");AS3.setBindable(
+    $_1,"num" , 123);
     this.blub$2 = {};
     this.blub$2.name = "Kuno";
     var $_2/*:Object*/ = {};
     $_2.name = "Joe";
-    var $_3/*:Object*/ = {};
-    $_3.name = "Felix";
-    $_1.list = [$_2, $_3];
-    var $_4/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
-    $_4,"bla" , 3);
-    $_4.blubb_accessor = 'blub accessor expression';
-    $_4.blubb_config = 'blub config expression';
-    $_1.other = new AS3.package1.someOtherPackage.SomeOtherClass($_4);
+    var $_3/*:package1.ConfigClass*/ =AS3.cast( AS3.package1.ConfigClass,{});
+    var $_5/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
+    $_5,"bla" , 123);
+    $_3.items = [$_5];AS3.setBindable(
+    $_1,"list" , [$_2, new AS3.package1.ConfigClass($_3)]);
+    var $_7/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
+    $_7,"bla" , 3);
+    $_7.blubb_accessor = 'blub accessor expression';
+    $_7.blubb_config = 'blub config expression';AS3.setBindable(
+    $_1,"other" , new AS3.package1.someOtherPackage.SomeOtherClass($_7));
     joo.addEventListener($_1, "click",AS3.bind( this,"$on_$_1_click$2"), AS3.package1.someOtherPackage.SomeEvent);
     $_1.foo = "bar";
     $_1.number = 1 + 1;
-    var $_5/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
-    $_5,"bla" , 23);
-    var $_7/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
-    $_7,"bla" , 1);
-    joo.addEventListener($_7, "clack",AS3.bind( this,"$on_$_7_clack$2"), AS3.package1.someOtherPackage.SomeEvent);
-    var $_9/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
-    $_9,"bla" , 42);
-    var $_11/*:package1.ConfigClass*/ =AS3.cast( AS3.package1.ConfigClass,{});
-    var $_13/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
-    $_13,"bla" ,AS3.getBindable(AS3.getBindable( this,"other"),"bla","bla_has_changed"));
-    $_13.doodle = "non-bound";
-    $_11.items = [$_13];
-    $_11.number = 12;
-    var $_15/*:package1.ConfigClass*/ =AS3.cast( AS3.package1.ConfigClass,{});
-    var $_17/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
-    $_17,"bla" , 12);
-    var $_19/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
-    $_19,"bla" , 13);AS3.setBindable(
-    this,"no_config" , new AS3.package1.someOtherPackage.SomeOtherClass($_19));
-    $_15.items = [$_17,AS3.getBindable( this,"no_config")];
-    $_1.items = [$_5, $_7, $_9, $_11, $_15];
+    var $_8/*:package1.someOtherPackage.SomeOtherClass*/ = {};AS3.setBindable(
+    $_8,"bla" , 99);
+    $_1.defaults = $_8;
+    var $_10/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
+    $_10,"bla" , 23);
+    var $_12/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
+    $_12,"bla" , 1);
+    joo.addEventListener($_12, "clack",AS3.bind( this,"$on_$_12_clack$2"), AS3.package1.someOtherPackage.SomeEvent);
+    var $_14/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
+    $_14,"bla" , 42);
+    var $_16/*:package1.ConfigClass*/ =AS3.cast( AS3.package1.ConfigClass,{});
+    var $_18/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
+    $_18,"bla" ,AS3.getBindable(AS3.getBindable( this,"other"),"bla","bla_has_changed"));
+    $_18.doodle = "non-bound";
+    $_16.items = [$_18];
+    $_16.number = 12;
+    var $_20/*:package1.ConfigClass*/ =AS3.cast( AS3.package1.ConfigClass,{});
+    var $_22/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
+    $_22,"bla" , 12);
+    var $_24/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
+    $_24,"bla" , 13);AS3.setBindable(
+    this,"no_config" , new AS3.package1.someOtherPackage.SomeOtherClass($_24));
+    $_20.items = [$_22,AS3.getBindable( this,"no_config")];
+    $_1.items = [$_10, $_12, $_14, $_16, $_20];
     AS3.net.jangaroo.ext.Exml.apply($_1, config);
     this.callParent([$_1]);
   }/*
@@ -87,7 +94,7 @@ public class SomeMxmlClass extends package1.ConfigClass {
       alias: "widget.testNamespace.config.soneMxmlClass",
       blub$2: undefined,
       $on_$_1_click$2: $on_$_1_click,
-      $on_$_7_clack$2: $on_$_7_clack,
+      $on_$_12_clack$2: $on_$_12_clack,
       constructor: SomeMxmlClass$,
       config: {
         list: null,

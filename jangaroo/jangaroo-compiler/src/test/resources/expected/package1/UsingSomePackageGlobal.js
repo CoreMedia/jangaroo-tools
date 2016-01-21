@@ -22,8 +22,7 @@ public class UsingSomePackageGlobal {
       statics: {main: main$static},
       requires: [
         "AS3.package1.somePackageGlobal",
-        "AS3.package1.someOtherPackage.SomeOtherClass",
-        "foo.somethingElse"
+        "AS3.package1.someOtherPackage.SomeOtherClass"
       ]
     };
 });

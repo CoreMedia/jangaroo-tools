@@ -8,6 +8,11 @@ Class = {
 Vector$object = Array;
 
 AS3 = {
+  // function assert(cond : Object, file : String, line : uint, column : uint) : void
+  assert: function (cond, file, line, column) {
+    if (!cond)
+      throw new Error(file+"("+line+":"+column+"): assertion failed");
+  },
   bind: function bind(object, boundMethodName) {
     var method = object[boundMethodName];
     if (object.hasOwnProperty(boundMethodName)) {
@@ -87,7 +92,7 @@ AS3 = {
     }
     if (type.$className && type.prototype &&
             typeof value === "object" && !value.isInstance && !value.xclass && !value.xtype) {
-      if (type.prototype.hasOwnProperty("xtype")) {
+      if (type.prototype.hasOwnProperty("xtype") && type.prototype.xtype) {
         value.xtype = type.prototype.xtype;
       } else {
         value.xclass = type.$className;
@@ -114,9 +119,26 @@ AS3 = {
 };
 
 var joo = Ext.ns("joo");
-joo.getQualifiedObject = function(name) {
-  return eval(name);
-};
+joo.getQualifiedObject = (function(theGlobalObject) {
+  var getQualified = function (parts) {
+    var object = theGlobalObject;
+    for (var i = 0; i < parts.length; ++i) {
+      var subObject = object[parts[i]];
+      if (!subObject) {
+        return null;
+      }
+      object = subObject;
+    }
+    return object;
+  };
+  return function(name) {
+    if (!name) {
+      return theGlobalObject;
+    }
+    var parts = name.split(".");
+    return getQualified(parts) || getQualified(["AS3"].concat(parts));
+  };
+})(this);
 joo.getOrCreatePackage = function(name) {
   return Ext.ns("AS3." + name);
 };
@@ -127,13 +149,23 @@ Ext.Loader.setPath({
   'JooOverrides': 'joo/overrides'
 });
 
-Ext.Class.registerPreprocessor('accessors', function (Class, data) {
-  if (data.accessors) {
-    if (data.accessors.statics) {
-      Object.defineProperties(Class, data.accessors.statics);
-      delete data.accessors.statics;
+Ext.Class.registerPreprocessor('__accessors__', function (Class, data) {
+  if (data.__accessors__) {
+    if (data.__accessors__.statics) {
+      Object.defineProperties(Class, data.__accessors__.statics);
+      delete data.__accessors__.statics;
     }
-    Object.defineProperties(Class.prototype, data.accessors);
-    delete data.accessors;
+    Object.defineProperties(Class.prototype, data.__accessors__);
+    delete data.__accessors__;
   }
+});
+
+Ext.ClassManager.registerPostprocessor('__factory__', function(className, cls, data) {
+  if (data.__factory__) {
+    var value = data.__factory__();
+    this.set(className, value);
+    this.triggerCreated(className);
+    return false;
+  }
+  return true;
 });

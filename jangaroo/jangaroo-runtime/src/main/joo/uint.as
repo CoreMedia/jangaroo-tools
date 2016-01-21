@@ -23,7 +23,7 @@ package {
  * @see http://help.adobe.com/en_US/as3/learn/WS5b3ccc516d4fbf351e63e3d118a9b90204-7f87.html Type conversions
  *
  */
-[Native("AS3.uint")]
+[Native("AS3.uint", require)]
 public final class uint {
   /**
    * Creates a new uint object. You can create a variable of uint type and assign it a literal value. The <code>new uint()</code> constructor is primarily used as a placeholder. A uint object is not the same as the <code>uint()</code> function, which converts a parameter to a primitive value.

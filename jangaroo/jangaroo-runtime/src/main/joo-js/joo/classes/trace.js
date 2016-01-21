@@ -1,25 +1,25 @@
 // function trace(...msg) : void
-(function(theGlobalObject) {
-  if (typeof theGlobalObject.AS3.trace !== "function") {
+Ext.define("AS3.trace", {
+  __factory__: function() {
     var console, defaultLogLevel;
-    function lookup(consoleObject, traceFunctionName) {
+    var lookup = function (consoleObject, traceFunctionName) {
       if (consoleObject && consoleObject[traceFunctionName]) {
         console = consoleObject;
         defaultLogLevel = traceFunctionName;
         return true;
       }
       return false;
-    }
+    };
     try {
-      lookup(theGlobalObject.console, "log") ||
-              lookup(theGlobalObject.runtime, "trace") ||
-              lookup(theGlobalObject, "trace") ||
-      lookup(theGlobalObject.opera, "postError");
+      lookup(window.console, "log") ||
+      lookup(window.runtime, "trace") ||
+      lookup(window, "trace") ||
+      lookup(window.opera, "postError");
     } catch (e) {
       // ignore
     }
-    var LOG_LEVEL_PATTERN = /^\[(LOG|DEBUG|TRACE|INFO|WARN|ERROR)\]\s*(.*)$/;
-    AS3.trace = !console ? function() {} : function joo$trace() {
+    var LOG_LEVEL_PATTERN = /^\[(LOG|DEBUG|TRACE|INFO|WARN|ERROR)]\s*(.*)$/;
+    var trace = !console ? Ext.emptyFn : function () {
       // don't use Array.prototype.map, as it is not available in all browsers and has not yet been polyfilled:
       var params = [];
       for (var i = 0; i < arguments.length; i++) {
@@ -42,6 +42,6 @@
       }
       console[logLevel]("AS3: " + msg);
     };
+    return trace;
   }
-})(this);
-Ext.ClassManager.triggerCreated("AS3.trace");
+});

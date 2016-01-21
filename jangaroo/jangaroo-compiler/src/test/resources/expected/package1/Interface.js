@@ -12,5 +12,8 @@ public interface Interface extends SuperInterface {
 }
 
 ============================================== Jangaroo part ==============================================*/
-    return {mixins: ["AS3.package1.SuperInterface"]};
+    return {
+      mixins: ["AS3.package1.SuperInterface"],
+      requires: ["AS3.package1.SuperInterface"]
+    };
 });
