@@ -293,8 +293,8 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
 
             @Override
             public void visitVariableDeclaration(VariableDeclaration variableDeclaration) throws IOException {
-              // Ignore instance fields.
-              if (variableDeclaration.isStatic()) {
+              // Ignore instance fields, but include package locals.
+              if (variableDeclaration.isStatic() || compilationUnit.getPrimaryDeclaration() instanceof VariableDeclaration) {
                 // For static fields, register all nested ides as init dependencies.
                 super.visitVariableDeclaration(variableDeclaration);
               }
