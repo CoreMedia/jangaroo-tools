@@ -241,7 +241,7 @@ public class CompilationUnit extends NodeImplBase {
   }
 
   public void addDependency(String otherUnitQName) {
-    addDependency(getCompiler().getCompilationUnit(otherUnitQName));
+    addDependency(getCompiler().getCompilationUnit(otherUnitQName), false);
   }
 
   public void setHasStaticCode() {
@@ -252,7 +252,7 @@ public class CompilationUnit extends NodeImplBase {
     return hasStaticCode;
   }
 
-  public void addDependency(CompilationUnit otherUnit) {
+  public void addDependency(CompilationUnit otherUnit, boolean required) {
     // Predefined ides have a null unit.
     // Self dependencies are ignored.
     if (otherUnit != null && otherUnit != this) {
@@ -263,10 +263,7 @@ public class CompilationUnit extends NodeImplBase {
   }
 
   public void addRequiredDependency(CompilationUnit otherUnit) {
-    // predefined ides have a null unit
-    if (otherUnit != null && otherUnit != this) {
-      dependenciesAsCompilationUnits.put(otherUnit, true);
-    }
+    addDependency(otherUnit, true);
   }
 
   public void addPublicApiDependency(CompilationUnit otherUnit) {

@@ -99,8 +99,8 @@ public class QualifiedIde extends Ide {
   }
 
   @Override
-  public boolean addExternalUsage() {
-    return qualifier.addExternalUsage() || super.addExternalUsage();
+  public boolean addExternalUsage(boolean required) {
+    return qualifier.addExternalUsage(required) || super.addExternalUsage(required);
   }
 
   @Override

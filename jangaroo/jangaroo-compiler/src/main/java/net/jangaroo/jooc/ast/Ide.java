@@ -141,12 +141,12 @@ public class Ide extends NodeImplBase {
     return false;
   }
 
-  public boolean addExternalUsage() {
+  public boolean addExternalUsage(boolean required) {
     IdeDeclaration decl = getDeclaration(false);
     if (decl != null && (decl.isPrimaryDeclaration() || decl.isClassMember() && decl.isStatic())) {
       CompilationUnit currentUnit = getScope().getCompilationUnit();
       CompilationUnit compilationUnit = decl.getIde().getScope().getCompilationUnit();
-      currentUnit.addDependency(compilationUnit);
+      currentUnit.addDependency(compilationUnit, required);
       return true;
     }
     return false;
@@ -285,7 +285,7 @@ public class Ide extends NodeImplBase {
         }
       }
     }
-    addExternalUsage();
+    addExternalUsage(false);
     //todo handle references to static super members
     // check access to another class or a constant of another class; other class then must be initialized:
     if (!(exprParent instanceof NewExpr) && !(exprParent instanceof IsExpr) && !(exprParent instanceof AsExpr)) {
