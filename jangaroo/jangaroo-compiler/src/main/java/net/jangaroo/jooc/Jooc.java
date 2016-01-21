@@ -353,7 +353,7 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
               // is known to refer to a class declaration, which can be used
               // to resolve static members.
               if (arg instanceof IdeExpr) {
-                IdeDeclaration argDeclaration = ((IdeExpr) arg).getIde().getDeclaration();
+                IdeDeclaration argDeclaration = ((IdeExpr) arg).getIde().getDeclaration(false);
                 if (argDeclaration instanceof ClassDeclaration) {
                   TypedIdeDeclaration staticMemberDeclaration = ((ClassDeclaration) argDeclaration).getStaticMemberDeclaration(ide.getName());
                   if (staticMemberDeclaration != null) {
