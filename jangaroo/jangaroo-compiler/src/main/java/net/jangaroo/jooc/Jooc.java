@@ -444,6 +444,8 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
         errorSCCs.add(scc);
       }
 
+      // Initialized compilation units require all transitive dependents.
+      // Uses dependencies are not enough.
       if (initializingDependents.size() == 1) {
         Dependent initializer = initializingDependents.get(0);
         CompilationUnit compilationUnit = initializer.getCompilationUnit();
