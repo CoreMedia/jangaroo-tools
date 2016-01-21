@@ -408,10 +408,14 @@ public class JoocTest {
     if (sourceMappingUrlPos != -1) {
       result = result.substring(0, sourceMappingUrlPos);
     }
-    String expected = readFileToString(getFile("/expected/" + relativeClassFileName + ".js"));
+    File expectedFile = getFile("/expected/" + relativeClassFileName + ".js");
+    String expected = readFileToString(expectedFile);
     expected = expected.replace("@runtimeVersion", JoocProperties.getRuntimeVersion());
     expected = expected.replace("@version", JoocProperties.getVersion());
-    assertEquals("Result file not equal", expected, result);
+    assertEquals("Result file " + destFile.getAbsolutePath() +
+            " not equal to expected file " + expectedFile.getAbsolutePath(),
+            expected,
+            result);
   }
 
   private File compile(String relativeClassFileName) throws URISyntaxException {

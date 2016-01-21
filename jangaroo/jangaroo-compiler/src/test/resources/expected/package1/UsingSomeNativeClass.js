@@ -49,7 +49,7 @@ public class UsingSomeNativeClass {
       getAnotherNativeAccessor: get$anotherNativeAccessor,
       isMonkey: get$monkey,
       setMonkey: set$monkey,
-      requires: [
+      uses: [
         "SomeNativeClass",
         "SomeOtherNativeClass",
         "AS3.package1.someOtherPackage.SomeNativeClass"
