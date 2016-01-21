@@ -467,16 +467,13 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
     }
 
     if (!errorSCCs.isEmpty()) {
-      Set<Dependent> scc = errorSCCs.iterator().next();
       Multimap<String, String> requires = HashMultimap.create();
-      List<Dependent> initialized = new ArrayList<Dependent>();
-      Set<String> initializedNames = new HashSet<String>();
+      Set<String> allInitializedNames = new HashSet<String>();
       for (Map.Entry<Dependent, Collection<Dependent>> entry : dependencyGraph.asMap().entrySet()) {
         Dependent dependent = entry.getKey();
         String dependentName = dependent.toString();
         if (dependent.getLevel() == Level.INIT) {
-          initialized.add(dependent);
-          initializedNames.add(dependentName);
+          allInitializedNames.add(dependentName);
         }
         Collection<Dependent> dependencies = entry.getValue();
         for (Dependent dependency : dependencies) {
@@ -487,7 +484,6 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
       File reportOutputDirectory = getConfig().getReportOutputDirectory();
       File dependencyGraphFile = new File(reportOutputDirectory, "cycles.graphml");
       if (reportOutputDirectory != null) {
-
         try {
           Set<String> allDependents = new HashSet<String>();
           for (Set<Dependent> errorSCC : errorSCCs) {
@@ -495,7 +491,7 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
               allDependents.add(dependent.toString());
             }
           }
-          DependencyGraphFile.writeDependencyFile(requires, allDependents, initializedNames, dependencyGraphFile);
+          DependencyGraphFile.writeDependencyFile(requires, allDependents, allInitializedNames, dependencyGraphFile);
         } catch (IOException e) {
           logCompilerError(e);
           // Do not throw again. A worse error is logged presently.
@@ -503,8 +499,15 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
       }
 
       // Complain.
-      Dependent dependent1 = initialized.get(0);
-      Dependent dependent2 = initialized.get(1);
+      Set<Dependent> errorSCC = errorSCCs.iterator().next();
+      List<Dependent> initializedDependents = new ArrayList<Dependent>();
+      for (Dependent dependent : errorSCC) {
+        if (dependent.getLevel() == Level.INIT) {
+          initializedDependents.add(dependent);
+        }
+      }
+      Dependent dependent1 = initializedDependents.get(0);
+      Dependent dependent2 = initializedDependents.get(1);
 
       List<Dependent> path12 = new ArrayList<Dependent>(GraphUtil.findPath(dependencyGraph.asMap(), dependent1, dependent2));
       List<Dependent> path21 = new ArrayList<Dependent>(GraphUtil.findPath(dependencyGraph.asMap(), dependent2, dependent1));
