@@ -326,7 +326,7 @@ public class ExtAsApiGenerator {
     AnnotationModel nativeAnnotation = createNativeAnnotation(extClass.name);
     if (isSingleton(extClass)) {
       extAsClass.addAnnotation(createNativeAnnotation(null));
-      FieldModel singleton = new FieldModel(CompilerUtils.className(extAsClassUnit.getClassModel().getName().substring(1)), extAsClassUnit.getQName());
+      FieldModel singleton = new FieldModel(CompilerUtils.className(extAsClass.getName().substring(1)), extAsClassUnit.getQName());
       singleton.setConst(true);
       singleton.setValue("new " + extAsClassUnit.getQName());
       singleton.addAnnotation(nativeAnnotation);
@@ -371,7 +371,7 @@ public class ExtAsApiGenerator {
 
     // todo: remove #getConfigClassQName and its mapping properties, a constructor needs to be generated if and only if the class or a superclass has config parameters
     if (getConfigClassQName(extClass) != null) {
-      addConfigConstructor(extAsClass);
+      addConfigConstructor(extAsClassUnit);
     }
 
     for (Map.Entry<String, List<String>> aliasEntry : extClass.aliases.entrySet()) {
@@ -387,11 +387,12 @@ public class ExtAsApiGenerator {
     }
   }
 
-  private static void addConfigConstructor(ClassModel extAsClass) {
+  private static void addConfigConstructor(CompilationUnitModel extAsClassUnit) {
+    ClassModel extAsClass = extAsClassUnit.getClassModel();
     MethodModel targetClassConstructor = extAsClass.getConstructor();
     if (targetClassConstructor == null) {
       targetClassConstructor = extAsClass.createConstructor();
-      targetClassConstructor.addParam(new ParamModel("config", extAsClass.getName(), "null", "@inheritDoc"));
+      targetClassConstructor.addParam(new ParamModel("config", extAsClassUnit.getQName(), "null", "@inheritDoc"));
     } else {
       for (ParamModel param : targetClassConstructor.getParams()) {
         if ("config".equals(param.getName())) {
