@@ -303,20 +303,22 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
               if (ideDeclaration != null) {
                 CompilationUnit ideCompilationUnit = ideDeclaration.getCompilationUnit();
                 if (ideCompilationUnit != null && ideCompilationUnit.getSource().isInSourcePath()) {
-                  if (!ideCompilationUnit.equals(compilationUnit)) {
+                  if (isNew) {
+                    nonFunctionUses.put(currentDeclaration[0], new Dependent(ideDeclaration.getCompilationUnit(), Level.DYNAMIC));
+                  } else if (!ideCompilationUnit.equals(compilationUnit)) {
                     // The identifier is defined in a different compilation unit in the same module.
                     // The dependency must be analysed, because it might have to be
                     // strengthened into a required dependency.
                     boolean isStatic = ideDeclaration.isStatic();
                     // Ignore ordinary method calls: The called class must have been initialized,
                     // because an instance has already been created.
-                    if (isNew || isStatic) {
+                    if (isStatic) {
                       nonFunctionUses.put(currentDeclaration[0],
-                              new Dependent(ideDeclaration.getCompilationUnit(), isNew ? Level.DYNAMIC : Level.STATIC));
+                              new Dependent(ideDeclaration.getCompilationUnit(), Level.STATIC));
                     }
                   } else if (ideDeclaration instanceof FunctionDeclaration) {
                     FunctionDeclaration functionDeclaration = (FunctionDeclaration) ideDeclaration;
-                    if (functionDeclaration.isConstructor() || functionDeclaration.isMethod() && functionDeclaration.isStatic()) {
+                    if (functionDeclaration.isMethod() && functionDeclaration.isStatic()) {
                       // A local constructor call or a local static call.
                       internalUses.put(currentDeclaration[0], functionDeclaration);
                     }
@@ -432,7 +434,11 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
         }
       }
 
-      // At most one initializer is supported per cycle. (And even that is stretching our luck,)
+      // We assume that callbacks into a partially initialized class
+      // are acceptable if they are triggered by the class initialization itself.
+      // Therefore one initializer per cycle is ok. For more than one
+      // initialized class, there might be nondeterministic effects
+      // as one of the classes has to be initialized first.
       if (initializingDependents.size() > 1) {
         errorSCCs.add(scc);
       }
