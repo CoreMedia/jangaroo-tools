@@ -411,10 +411,12 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
             dependencyGraph.put(new Dependent(compilationUnit, Level.STATIC), dependent);
           }
 
-          // Level DYNAMIC applies all dependencies.
-          Set<CompilationUnit> dependenciesAsCompilationUnits = compilationUnit.getDependenciesAsCompilationUnits();
-          for (CompilationUnit dependency : dependenciesAsCompilationUnits) {
-            dependencyGraph.put(new Dependent(compilationUnit, Level.DYNAMIC), new Dependent(dependency, Level.DYNAMIC));
+          // Required dependencies are registered at the INIT level,
+          // other dependencies are registered at the STATIC level.
+          for (CompilationUnit dependency : compilationUnit.getDependenciesAsCompilationUnits()) {
+            boolean isRequired = compilationUnit.isRequiredDependency(dependency);
+            dependencyGraph.put(new Dependent(compilationUnit, isRequired ? Level.INIT : Level.DYNAMIC),
+                    new Dependent(dependency, Level.DYNAMIC));
           }
         }
       }
