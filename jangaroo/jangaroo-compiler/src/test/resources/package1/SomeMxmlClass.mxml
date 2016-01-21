@@ -38,7 +38,11 @@
   <items>
     <other:SomeOtherClass bla="23"/>
     <other:SomeOtherClass clack="var test=0;" bla="1"/>
-    <other:SomeOtherClass bla="42"/>
+    <other:SomeOtherClass bla="42">
+      <other:mixins>
+        <ConfigClass number="24"/>
+      </other:mixins>
+    </other:SomeOtherClass>
     <ConfigClass>
       <items>
         <other:SomeOtherClass doodle="non-bound" bla="{other.bla}"/>
