@@ -12,7 +12,6 @@
     <module>exml</module>
     <module>jangaroo-maven</module>
     <module>jangaroo-distribution</module>
-    <module>dependency-analyzer</module>
   </modules>
   <build>
     <plugins>

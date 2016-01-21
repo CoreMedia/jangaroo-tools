@@ -17,7 +17,6 @@ package net.jangaroo.jooc;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import net.jangaroo.dependencies.DependencyGraphFile;
 import net.jangaroo.jooc.api.CompilationResult;
 import net.jangaroo.jooc.api.CompileLog;
 import net.jangaroo.jooc.ast.AstVisitorBase;

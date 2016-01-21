@@ -1,4 +1,4 @@
-package net.jangaroo.dependencies;
+package net.jangaroo.jooc;
 
 import com.google.common.collect.Multimap;
 
@@ -16,8 +16,11 @@ public class DependencyGraphFile {
     if (parentFile != null) {
       parentFile.mkdirs();
     }
-    try (PrintWriter writer = new PrintWriter(new FileWriter(outFile))) {
+    PrintWriter writer = new PrintWriter(new FileWriter(outFile));
+    try {
       writeGraph(writer, edges, nodes, marked);
+    } finally {
+      writer.close();
     }
   }
 
