@@ -402,7 +402,7 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
             }
           }
 
-          for (Dependent dependent : initDependencies) { // TODO: ignore null key!
+          for (Dependent dependent : initDependencies) {
             dependencyGraph.put(new Dependent(compilationUnit, Level.INIT), dependent);
           }
 
