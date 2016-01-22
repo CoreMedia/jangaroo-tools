@@ -258,7 +258,8 @@ public class CompilationUnit extends NodeImplBase {
     if (otherUnit != null && otherUnit != this) {
       // Dependencies on other modules may always be considered required,
       // because they cannot lead to cycles.
-      dependenciesAsCompilationUnits.put(otherUnit, required || !otherUnit.getSource().isInSourcePath());
+      boolean alreadyRequired = Boolean.TRUE.equals(dependenciesAsCompilationUnits.get(otherUnit));
+      dependenciesAsCompilationUnits.put(otherUnit, required || alreadyRequired || !otherUnit.getSource().isInSourcePath());
     }
   }
 
