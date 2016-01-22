@@ -146,12 +146,6 @@ public class VariableDeclaration extends TypedIdeDeclaration {
     super.analyze(parentNode);
     if (getOptInitializer() != null) {
       getOptInitializer().analyze(this);
-
-      if (isStatic()) {
-        if (!getOptInitializer().getValue().isStandAloneConstant()) {
-          getIde().getScope().getCompilationUnit().setHasStaticCode();
-        }
-      }
     } else if (isConst()
       && getIde().getScope().getCompilationUnit().getAnnotation(Jooc.NATIVE_ANNOTATION_NAME) == null) {
       Jooc.warning(getOptSymConstOrVar(), "constant should be initialized");

@@ -15,31 +15,10 @@
 
 package net.jangaroo.jooc.ast;
 
-import net.jangaroo.jooc.Scope;
-
-import java.util.List;
-
 /**
  * Statements are language elements that perform or specify an action at runtime.
  *
  * @author Andreas Gawecki
  */
 public abstract class Statement extends Directive {
-  private Scope scope;
-
-  @Override
-  public void analyze(AstNode parentNode) {
-    super.analyze(parentNode);
-
-    if (!(this instanceof Declaration) && parentNode instanceof ClassBody && scope != null) {
-      CompilationUnit compilationUnit = scope.getCompilationUnit();
-      compilationUnit.setHasStaticCode();
-    }
-  }
-
-  @Override
-  public <N extends AstNode> void scope(List<N> nodes, Scope scope) {
-    super.scope(nodes, scope);
-    this.scope = scope;
-  }
 }
