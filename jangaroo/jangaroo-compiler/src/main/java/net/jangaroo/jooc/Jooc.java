@@ -15,24 +15,9 @@
 
 package net.jangaroo.jooc;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
 import net.jangaroo.jooc.api.CompilationResult;
 import net.jangaroo.jooc.api.CompileLog;
-import net.jangaroo.jooc.ast.AstVisitorBase;
-import net.jangaroo.jooc.ast.ClassDeclaration;
 import net.jangaroo.jooc.ast.CompilationUnit;
-import net.jangaroo.jooc.ast.DotExpr;
-import net.jangaroo.jooc.ast.Expr;
-import net.jangaroo.jooc.ast.FunctionDeclaration;
-import net.jangaroo.jooc.ast.Ide;
-import net.jangaroo.jooc.ast.IdeDeclaration;
-import net.jangaroo.jooc.ast.IdeExpr;
-import net.jangaroo.jooc.ast.NewExpr;
-import net.jangaroo.jooc.ast.QualifiedIde;
-import net.jangaroo.jooc.ast.TransitiveAstVisitor;
-import net.jangaroo.jooc.ast.TypedIdeDeclaration;
-import net.jangaroo.jooc.ast.VariableDeclaration;
 import net.jangaroo.jooc.backend.CompilationUnitSink;
 import net.jangaroo.jooc.backend.CompilationUnitSinkFactory;
 import net.jangaroo.jooc.backend.MergedOutputCompilationUnitSinkFactory;
@@ -51,7 +36,6 @@ import net.jangaroo.jooc.mxml.CatalogGenerator;
 import net.jangaroo.jooc.mxml.ComponentPackageManifestParser;
 import net.jangaroo.jooc.mxml.ComponentPackageModel;
 import net.jangaroo.jooc.mxml.MxmlComponentRegistry;
-import net.jangaroo.jooc.util.GraphUtil;
 import net.jangaroo.utils.CompilerUtils;
 
 import java.io.File;
@@ -59,13 +43,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -169,7 +149,7 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
         }
       }
 
-      analyzeDependencyGraph();
+      analyzeDependencies();
 
       for (CompilationUnit unit : compileQueue) {
         File sourceFile = ((FileInputSource)unit.getSource()).getFile();
@@ -192,121 +172,39 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
     }
   }
 
-  private enum Level {
-    DYNAMIC(""),
-    STATIC(".static"),
-    INIT(".init");
+  private void analyzeDependencies() throws IOException {
+    DependencyGraph dependencyGraph = makeDependencyGraph();
+    dependencyGraph.analyze();
 
-    String suffix;
+    if (dependencyGraph.hasErrors()) {
+      File reportOutputDirectory = getConfig().getReportOutputDirectory();
+      File dependencyGraphFile = new File(reportOutputDirectory, "cycles.graphml");
+      if (reportOutputDirectory != null) {
+        try {
+          dependencyGraph.writeDependencyGraphToFile(dependencyGraphFile);
+          log.error("A dependency graph of the module has been written to " + dependencyGraphFile.getAbsolutePath() + ".");
+        } catch (IOException e) {
+          logCompilerError(e);
+          // Do not throw again. A worse error is logged presently.
+        }
 
-    Level(String suffix) {
-      this.suffix = suffix;
+        throw error(dependencyGraph.createDependencyError());
+      }
     }
   }
 
-  private static class Dependent {
-    private CompilationUnit compilationUnit;
-    private Level level;
-
-    public Dependent(CompilationUnit compilationUnit, Level level) {
-      this.compilationUnit = compilationUnit;
-      this.level = level;
-    }
-
-    public CompilationUnit getCompilationUnit() {
-      return compilationUnit;
-    }
-
-    public Level getLevel() {
-      return level;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) {
-        return true;
-      }
-      if (o == null || getClass() != o.getClass()) {
-        return false;
-      }
-
-      Dependent dependent = (Dependent) o;
-
-      if (level != dependent.level) {
-        return false;
-      }
-      return compilationUnit.equals(dependent.compilationUnit);
-    }
-
-    @Override
-    public int hashCode() {
-      int result = compilationUnit.hashCode();
-      result = 31 * result + level.hashCode();
-      return result;
-    }
-
-    @Override
-    public String toString() {
-      return getCompilationUnitName(compilationUnit) + level.suffix;
-    }
-  }
-
-  private void analyzeDependencyGraph() throws IOException {
-    Multimap<Dependent, Dependent> dependencyGraph = computeDependencyGraph();
-
-    // Process each strongly connected component (SCC) of the dependency graph.
-    Collection<Set<Dependent>> sccs = GraphUtil.stronglyConnectedComponent(dependencyGraph.asMap());
-    Collection<Set<Dependent>> errorSCCs = new ArrayList<Set<Dependent>>();
-    for (Set<Dependent> scc : sccs) {
-      // Each SCC must contain at most one initializer.
-      List<Dependent> initializingDependents = getInitializingDependents(scc);
-
-      // We assume that callbacks into a partially initialized class
-      // are acceptable if they are triggered by the class initialization itself.
-      // Therefore one initializer per cycle is ok. For more than one
-      // initialized class, there might be nondeterministic effects
-      // as one of the classes has to be initialized first.
-      if (initializingDependents.size() > 1) {
-        errorSCCs.add(scc);
-      }
-
-      // Initialized compilation units require all transitive dependents.
-      // Uses dependencies are not enough.
-      // Note that the search for transitive dependents may and often will
-      // leave the SCC. However, no cyclic requires chains can be introduced,
-      // because the partial order on the SCCs induces a partial order
-      // on the initializers.
-      if (initializingDependents.size() == 1) {
-        Dependent initializer = initializingDependents.get(0);
-        addTransitiveDependenciesAsRequires(dependencyGraph, initializer);
-      }
-    }
-
-    if (!errorSCCs.isEmpty()) {
-      writeDependencyGraphToFile(dependencyGraph, errorSCCs);
-
-      throw createDependencyError(dependencyGraph, errorSCCs);
-    }
-  }
-
-  private List<Dependent> getInitializingDependents(Set<Dependent> scc) {
-    List<Dependent> initializingDependents = new ArrayList<Dependent>();
-    for (Dependent dependent : scc) {
-      if (dependent.getLevel() == Level.INIT) {
-        initializingDependents.add(dependent);
-      }
-    }
-    return initializingDependents;
-  }
-
-  private Multimap<Dependent, Dependent> computeDependencyGraph() throws IOException {
-    final Multimap<Dependent, Dependent> dependencyGraph = HashMultimap.create();
+  private DependencyGraph makeDependencyGraph() throws IOException {
+    // Build a dependency graph from all compilation units.
+    // New compilation unit might be parsed while the graph is build,
+    // so that a double loop must be used to avoid concurrent
+    // modification exceptions.
+    DependencyGraph dependencyGraph = new DependencyGraph();
     Set<CompilationUnit> processedCompilationUnits = new HashSet<CompilationUnit>();
     Set<CompilationUnit> unprocessedCompilationUnits = new HashSet<CompilationUnit>(getCompilationUnits());
     while (!unprocessedCompilationUnits.isEmpty()) {
       for (final CompilationUnit compilationUnit : unprocessedCompilationUnits) {
         if (processedCompilationUnits.add(compilationUnit) && compilationUnit.getSource().isInSourcePath()) {
-          fillInDependencies(compilationUnit, dependencyGraph);
+          dependencyGraph.fillInDependencies(compilationUnit);
         }
       }
 
@@ -314,263 +212,6 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
       unprocessedCompilationUnits.removeAll(processedCompilationUnits);
     }
     return dependencyGraph;
-  }
-
-  private void fillInDependencies(final CompilationUnit compilationUnit, Multimap<Dependent, Dependent> dependencyGraph) throws IOException {
-    // Add conceptual dependencies: DYNAMIC -> STATIC -> INIT.
-    dependencyGraph.put(new Dependent(compilationUnit, Level.DYNAMIC), new Dependent(compilationUnit, Level.STATIC));
-    dependencyGraph.put(new Dependent(compilationUnit, Level.STATIC), new Dependent(compilationUnit, Level.INIT));
-
-    // Analyze dependencies in detail.
-    final IdeDeclaration primaryDeclaration = compilationUnit.getPrimaryDeclaration();
-    final Object classBody = primaryDeclaration instanceof ClassDeclaration ?
-            ((ClassDeclaration) primaryDeclaration).getBody() :
-            "noBody";
-
-    // key null: references from static code
-    // other keys: references from static methods
-    final Multimap<FunctionDeclaration, FunctionDeclaration> internalUses = HashMultimap.create();
-    final Multimap<FunctionDeclaration, Dependent> nonFunctionUses = HashMultimap.create();
-    final FunctionDeclaration[] currentDeclaration = {null};
-    compilationUnit.visit(new TransitiveAstVisitor(new AstVisitorBase()) {
-      @Override
-      public void visitFunctionDeclaration(FunctionDeclaration functionDeclaration) throws IOException {
-        // Ignore instance methods.
-        if (functionDeclaration.isStatic()) {
-          // For static methods, register all nested ides as dependencies of the method.
-          boolean isTopLevel = currentDeclaration[0] == null &&
-                  classBody.equals(functionDeclaration.getParentNode());
-          if (isTopLevel) {
-            currentDeclaration[0] = functionDeclaration;
-          }
-          super.visitFunctionDeclaration(functionDeclaration);
-          if (isTopLevel) {
-            currentDeclaration[0] = null;
-          }
-        }
-      }
-
-      @Override
-      public void visitVariableDeclaration(VariableDeclaration variableDeclaration) throws IOException {
-        // Ignore instance fields, but include package locals.
-        if (variableDeclaration.isStatic() || compilationUnit.getPrimaryDeclaration() instanceof VariableDeclaration) {
-          // For static fields, register all nested ides as init dependencies.
-          super.visitVariableDeclaration(variableDeclaration);
-        }
-      }
-
-      private void declarationReferenced(IdeDeclaration ideDeclaration, boolean isNew) {
-        if (ideDeclaration != null) {
-          CompilationUnit ideCompilationUnit = ideDeclaration.getCompilationUnit();
-          if (ideCompilationUnit != null && ideCompilationUnit.getSource().isInSourcePath()) {
-            if (isNew) {
-              nonFunctionUses.put(currentDeclaration[0], new Dependent(ideDeclaration.getCompilationUnit(), Level.DYNAMIC));
-            } else if (!ideCompilationUnit.equals(compilationUnit)) {
-              // The identifier is defined in a different compilation unit in the same module.
-              // The dependency must be analysed, because it might have to be
-              // strengthened into a required dependency.
-              boolean isStatic = ideDeclaration.isStatic();
-              // Ignore ordinary method calls: The called class must have been initialized,
-              // because an instance has already been created.
-              if (isStatic) {
-                nonFunctionUses.put(currentDeclaration[0],
-                        new Dependent(ideDeclaration.getCompilationUnit(), Level.STATIC));
-              }
-            } else if (ideDeclaration instanceof FunctionDeclaration) {
-              FunctionDeclaration functionDeclaration = (FunctionDeclaration) ideDeclaration;
-              if (functionDeclaration.isMethod() && functionDeclaration.isStatic()) {
-                // A local constructor call or a local static call.
-                internalUses.put(currentDeclaration[0], functionDeclaration);
-              }
-            }
-          }
-        }
-      }
-
-      @Override
-      public void visitIdeExpression(IdeExpr ideExpr) throws IOException {
-        Expr normalizedExpr = ideExpr.getNormalizedExpr();
-        if (normalizedExpr != ideExpr) {
-          normalizedExpr.visit(this);
-        } else {
-          declarationReferenced(ideExpr.getIde().getDeclaration(false),
-                  ideExpr.getParentNode() instanceof NewExpr);
-        }
-      }
-
-      @Override
-      public void visitDotExpr(DotExpr dotExpr) throws IOException {
-        boolean isNew = dotExpr.getParentNode() instanceof NewExpr;
-
-        Ide ide = dotExpr.getIde();
-        declarationReferenced(ide.getDeclaration(false), isNew);
-
-        Expr arg = dotExpr.getArg();
-        arg.visit(this);
-
-        // In some cases, the ide is not properly scoped, but the arg
-        // is known to refer to a class declaration, which can be used
-        // to resolve static members.
-        if (arg instanceof IdeExpr) {
-          IdeDeclaration argDeclaration = ((IdeExpr) arg).getIde().getDeclaration(false);
-          if (argDeclaration instanceof ClassDeclaration) {
-            TypedIdeDeclaration staticMemberDeclaration = ((ClassDeclaration) argDeclaration).getStaticMemberDeclaration(ide.getName());
-            if (staticMemberDeclaration != null) {
-              declarationReferenced(staticMemberDeclaration, isNew);
-            }
-          }
-        }
-      }
-
-      @Override
-      public void visitQualifiedIde(QualifiedIde qualifiedIde) throws IOException {
-        visitIde(qualifiedIde);
-      }
-    });
-
-    // Compute dependencies of the INIT level.
-    Set<Dependent> initDependencies = new HashSet<Dependent>();
-
-    // Dependencies directly in initializers.
-    Collection<Dependent> nonFunctionDependencies = nonFunctionUses.get(null);
-    if (nonFunctionDependencies != null) {
-      initDependencies.addAll(nonFunctionDependencies);
-    }
-
-    // Dependencies in methods called directly or indirectly from initializers.
-    Set<FunctionDeclaration> done = new HashSet<FunctionDeclaration>();
-    Deque<FunctionDeclaration> todo = new LinkedList<FunctionDeclaration>();
-    todo.addAll(internalUses.get(null));
-    while (!todo.isEmpty()) {
-      FunctionDeclaration ideDeclaration = todo.removeLast();
-      if (done.add(ideDeclaration)) {
-        if (ideDeclaration.isConstructor()) {
-          // Constructor call: typical for singleton pattern.
-          // Depend on level DYNAMIC, which ensures that all dependencies apply.
-          initDependencies.add(new Dependent(compilationUnit, Level.DYNAMIC));
-        } else {
-          // Add dependencies.
-          Collection<Dependent> localDependencies = nonFunctionUses.get(ideDeclaration);
-          if (localDependencies != null) {
-            initDependencies.addAll(localDependencies);
-          }
-          if (internalUses.containsKey(ideDeclaration)) {
-            todo.addAll(internalUses.get(ideDeclaration));
-          }
-        }
-      }
-    }
-
-    for (Dependent dependent : initDependencies) {
-      dependencyGraph.put(new Dependent(compilationUnit, Level.INIT), dependent);
-    }
-
-    // Dependencies for level STATIC.
-    for (Dependent dependent : nonFunctionUses.values()) {
-      dependencyGraph.put(new Dependent(compilationUnit, Level.STATIC), dependent);
-    }
-
-    // Static and init level dependencies have been analysed locally
-    // in great detail. Dynamic level dependencies have to be inferred from
-    // the dependencies stored in the compilation unit. Required
-    // dependencies stored in the compilation unit are used as additional
-    // dependencies on the init level to ensure the initialization order.
-    for (CompilationUnit dependency : compilationUnit.getDependenciesAsCompilationUnits()) {
-      dependencyGraph.put(new Dependent(compilationUnit, Level.DYNAMIC),
-              new Dependent(dependency, Level.DYNAMIC));
-      boolean isRequired = compilationUnit.isRequiredDependency(dependency);
-      if (isRequired) {
-        dependencyGraph.put(new Dependent(compilationUnit, Level.INIT),
-                new Dependent(dependency, Level.INIT));
-      }
-    }
-  }
-
-  private void addTransitiveDependenciesAsRequires(Multimap<Dependent, Dependent> dependencyGraph, Dependent initializer) {
-    CompilationUnit compilationUnit = initializer.getCompilationUnit();
-    Deque<Dependent> todo = new LinkedList<Dependent>();
-    todo.add(initializer);
-    Set<Dependent> visited = new HashSet<Dependent>();
-    while (!todo.isEmpty()) {
-      Dependent dependent = todo.removeLast();
-      if (visited.add(dependent)) {
-        todo.addAll(dependencyGraph.get(dependent));
-
-        compilationUnit.addRequiredDependency(dependent.getCompilationUnit());
-      }
-    }
-  }
-
-  private void writeDependencyGraphToFile(Multimap<Dependent, Dependent> dependencyGraph, Collection<Set<Dependent>> errorSCCs) {
-    File reportOutputDirectory = getConfig().getReportOutputDirectory();
-    File dependencyGraphFile = new File(reportOutputDirectory, "cycles.graphml");
-    if (reportOutputDirectory != null) {
-      Multimap<String, String> requires = HashMultimap.create();
-      Set<String> allInitializedNames = new HashSet<String>();
-      for (Map.Entry<Dependent, Collection<Dependent>> entry : dependencyGraph.asMap().entrySet()) {
-        Dependent dependent = entry.getKey();
-        String dependentName = dependent.toString();
-        if (dependent.getLevel() == Level.INIT) {
-          allInitializedNames.add(dependentName);
-        }
-        Collection<Dependent> dependencies = entry.getValue();
-        for (Dependent dependency : dependencies) {
-          requires.put(dependentName, dependency.toString());
-        }
-      }
-
-      try {
-        Set<String> allDependents = new HashSet<String>();
-        for (Set<Dependent> errorSCC : errorSCCs) {
-          for (Dependent dependent : errorSCC) {
-            allDependents.add(dependent.toString());
-          }
-        }
-        DependencyGraphFile.writeDependencyFile(requires, allDependents, allInitializedNames, dependencyGraphFile);
-
-        log.error("A dependency graph of the module has been written to " + dependencyGraphFile.getAbsolutePath() + ".");
-      } catch (IOException e) {
-        logCompilerError(e);
-        // Do not throw again. A worse error is logged presently.
-      }
-    }
-  }
-
-  private CompilerError createDependencyError(Multimap<Dependent, Dependent> dependencyGraph, Collection<Set<Dependent>> errorSCCs) {
-    Set<Dependent> errorSCC = errorSCCs.iterator().next();
-    List<Dependent> initializedDependents = getInitializingDependents(errorSCC);
-
-    Dependent dependent1 = initializedDependents.get(0);
-    Dependent dependent2 = initializedDependents.get(1);
-
-    List<Dependent> path12 = new ArrayList<Dependent>(GraphUtil.findPath(dependencyGraph.asMap(), dependent1, dependent2));
-    List<Dependent> path21 = new ArrayList<Dependent>(GraphUtil.findPath(dependencyGraph.asMap(), dependent2, dependent1));
-    List<Dependent> cycle = new ArrayList<Dependent>();
-    cycle.addAll(path12);
-    cycle.addAll(path21.subList(1, path21.size()));
-
-    StringBuilder message = new StringBuilder();
-    message.append("The compilation units ");
-    message.append(getCompilationUnitName(dependent1.getCompilationUnit()));
-    message.append(" and ");
-    message.append(getCompilationUnitName(dependent2.getCompilationUnit()));
-    message.append(" contain static initializers");
-    message.append(" (for example code blocks or static variables with a complex initializer)");
-    message.append(" and the static initializers are mutually dependent: ");
-    for (int i = 0; i < cycle.size(); i++) {
-      if (i > 0) {
-        message.append(" -> ");
-      }
-      message.append(cycle.get(i));
-    }
-    message.append(". You can either remove a static initializer or break the dependency cycle");
-    message.append(" to make this module compile. (Other dependency cycles might exist, though.)");
-
-    return error(message.toString());
-  }
-
-  private static String getCompilationUnitName(CompilationUnit compilationUnit) {
-    return compilationUnit.getPrimaryDeclaration().getIde().getIde().getText();
   }
 
   @Override
@@ -708,8 +349,6 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
     }
   }
 
-
-
   public static int run(String[] argv, CompileLog log) {
     try {
       JoocCommandLineParser commandLineParser = new JoocCommandLineParser();
@@ -730,4 +369,5 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
       System.exit(result);
     }
   }
+
 }
