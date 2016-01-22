@@ -34,6 +34,9 @@ public class SomeOtherClass {
 
   public native function set type(value:String):void;
 
+  [ExtConfig("__mixins__")]
+  public native function set mixins(value:Array):void;
+
   public function SomeOtherClass(config:Object = null) {
   }
 }

@@ -68,6 +68,7 @@ public class SomeMxmlClass extends package1.ConfigClass {
     joo.addEventListener($_12, "clack",AS3.bind( this,"$on_$_12_clack$2"), AS3.package1.someOtherPackage.SomeEvent);
     var $_14/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
     $_14,"bla" , 42);
+    $_14.number = 24;
     var $_16/*:package1.ConfigClass*/ =AS3.cast( AS3.package1.ConfigClass,{});
     var $_18/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
     $_18,"bla" ,AS3.getBindable(AS3.getBindable( this,"other"),"bla","bla_has_changed"));

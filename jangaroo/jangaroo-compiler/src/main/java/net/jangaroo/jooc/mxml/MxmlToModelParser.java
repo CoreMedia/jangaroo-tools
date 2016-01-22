@@ -55,6 +55,7 @@ public final class MxmlToModelParser {
   public static final String MXML_METADATA = "Metadata";
   public static final String MXML_ID_ATTRIBUTE = "id";
   public static final String MXML_DEFAULT_PROPERTY_ANNOTATION = "DefaultProperty";
+  public static final String EXML_MIXINS_PROPERTY_NAME = "__mixins__";
 
   public static final String ALLOW_CONSTRUCTOR_PARAMETERS_ANNOTATION = "AllowConstructorParameters";
   private static final String EXT_CONFIG_META_NAME = "ExtConfig";
@@ -363,6 +364,12 @@ public final class MxmlToModelParser {
                 createEventHandlerCode(variable, value, eventModel);
                 continue;
               }
+            } else if (EXML_MIXINS_PROPERTY_NAME.equals(getConfigOptionName(propertyModel))) {
+              List<Element> exmlMixins = MxmlUtils.getChildElements(element);
+              for (Element exmlMixin : exmlMixins) {
+                processAttributesAndChildNodes(exmlMixin, configVariable, targetVariable, generatingConfig);
+              }
+              continue;
             }
           }
         }
