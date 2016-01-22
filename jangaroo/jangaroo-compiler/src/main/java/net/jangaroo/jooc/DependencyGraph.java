@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -20,6 +21,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class DependencyGraph {
+  private Set<CompilationUnit> primaryCompilationUnits = new HashSet<CompilationUnit>();
   private Multimap<Dependency, Dependency> dependencyGraph = HashMultimap.create();
   private Collection<Set<Dependency>> sccs;
   private Collection<Set<Dependency>> errorSCCs;
@@ -28,6 +30,8 @@ public class DependencyGraph {
   }
 
   void analyze() {
+    reduceDependencyGraph();
+
     // Process each strongly connected component (SCC) of the dependency graph.
     sccs = GraphUtil.stronglyConnectedComponent(dependencyGraph.asMap());
     errorSCCs = new ArrayList<Set<Dependency>>();
@@ -57,6 +61,18 @@ public class DependencyGraph {
     }
   }
 
+  private void reduceDependencyGraph() {
+    for (Collection<Dependency> dependencies : new ArrayList<Collection<Dependency>>(dependencyGraph.asMap().values())) {
+      Collection<Dependency> toRemove = new ArrayList<Dependency>();
+      for (Dependency dependency : dependencies) {
+        if (!primaryCompilationUnits.contains(dependency.getCompilationUnit())) {
+          toRemove.add(dependency);
+        }
+      }
+      dependencies.removeAll(toRemove);
+    }
+  }
+
   boolean hasErrors() {
     return !errorSCCs.isEmpty();
   }
@@ -72,6 +88,8 @@ public class DependencyGraph {
   }
 
   void fillInDependencies(final CompilationUnit compilationUnit) throws IOException {
+    primaryCompilationUnits.add(compilationUnit);
+
     // Add conceptual dependencies: DYNAMIC -> STATIC -> INIT.
     dependencyGraph.put(new Dependency(compilationUnit, DependencyLevel.DYNAMIC), new Dependency(compilationUnit, DependencyLevel.STATIC));
     dependencyGraph.put(new Dependency(compilationUnit, DependencyLevel.STATIC), new Dependency(compilationUnit, DependencyLevel.INIT));
@@ -161,7 +179,10 @@ public class DependencyGraph {
   }
 
   void writeDependencyGraphToFile(File dependencyGraphFile) throws IOException {
-    Multimap<String, String> requires = HashMultimap.create();
+    writeGraphFile(dependencyGraphFile, sccs, Collections.<String>emptySet());
+  }
+
+  void writeErrorGraphToFile(File dependencyGraphFile) throws IOException {
     Set<String> allInitializedNames = new HashSet<String>();
     for (Map.Entry<Dependency, Collection<Dependency>> entry : dependencyGraph.asMap().entrySet()) {
       Dependency source = entry.getKey();
@@ -169,19 +190,28 @@ public class DependencyGraph {
       if (source.getLevel() == DependencyLevel.INIT) {
         allInitializedNames.add(sourceName);
       }
+    }
+
+    writeGraphFile(dependencyGraphFile, errorSCCs, allInitializedNames);
+  }
+
+  private void writeGraphFile(File dependencyGraphFile, Collection<Set<Dependency>> sccsToExport, Set<String> marked) throws IOException {
+    Multimap<String, String> edges = HashMultimap.create();
+    for (Map.Entry<Dependency, Collection<Dependency>> entry : dependencyGraph.asMap().entrySet()) {
+      String sourceName = entry.getKey().toString();
       Collection<Dependency> dependencies = entry.getValue();
       for (Dependency target : dependencies) {
-        requires.put(sourceName, target.toString());
+        edges.put(sourceName, target.toString());
       }
     }
 
-    Set<String> allDependents = new HashSet<String>();
-    for (Set<Dependency> errorSCC : errorSCCs) {
+    Set<String> nodes = new HashSet<String>();
+    for (Set<Dependency> errorSCC : sccsToExport) {
       for (Dependency dependency : errorSCC) {
-        allDependents.add(dependency.toString());
+        nodes.add(dependency.toString());
       }
     }
-    DependencyGraphFile.writeDependencyFile(requires, allDependents, allInitializedNames, dependencyGraphFile);
+    DependencyGraphFile.writeDependencyFile(edges, nodes, marked, dependencyGraphFile);
   }
 
   String createDependencyError() {

@@ -176,20 +176,28 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
     DependencyGraph dependencyGraph = makeDependencyGraph();
     dependencyGraph.analyze();
 
+    File reportOutputDirectory = getConfig().getReportOutputDirectory();
+    if (reportOutputDirectory != null) {
+      File dependencyGraphFile = new File(reportOutputDirectory, "dependencies.graphml");
+      try {
+        dependencyGraph.writeDependencyGraphToFile(dependencyGraphFile);
+      } catch (IOException e) {
+        logCompilerError(e);
+      }
+    }
+
     if (dependencyGraph.hasErrors()) {
-      File reportOutputDirectory = getConfig().getReportOutputDirectory();
-      File dependencyGraphFile = new File(reportOutputDirectory, "cycles.graphml");
       if (reportOutputDirectory != null) {
+        File errorGraphFile = new File(reportOutputDirectory, "cycles.graphml");
         try {
-          dependencyGraph.writeDependencyGraphToFile(dependencyGraphFile);
-          log.error("A dependency graph of the module has been written to " + dependencyGraphFile.getAbsolutePath() + ".");
+          dependencyGraph.writeErrorGraphToFile(errorGraphFile);
+          log.error("A dependency graph of classes with dependency errors has been written to " + errorGraphFile.getAbsolutePath() + ".");
         } catch (IOException e) {
           logCompilerError(e);
-          // Do not throw again. A worse error is logged presently.
         }
-
-        throw error(dependencyGraph.createDependencyError());
       }
+
+      throw error(dependencyGraph.createDependencyError());
     }
   }
 
