@@ -83,6 +83,7 @@ public class SomeMxmlClass extends package1.ConfigClass {
     this,"no_config" , new AS3.package1.someOtherPackage.SomeOtherClass($_24));
     $_20.items = [$_22,AS3.getBindable( this,"no_config")];
     $_1.items = [$_10, $_12, $_14, $_16, $_20];
+    $_1.items$at = AS3.net.jangaroo.ext.Exml.APPEND;
     AS3.net.jangaroo.ext.Exml.apply($_1, config);
     this.callParent([$_1]);
   }/*

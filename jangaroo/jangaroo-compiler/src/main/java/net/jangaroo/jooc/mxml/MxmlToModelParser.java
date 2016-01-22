@@ -1,5 +1,6 @@
 package net.jangaroo.jooc.mxml;
 
+import net.jangaroo.exml.api.Exmlc;
 import net.jangaroo.jooc.CompilerError;
 import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.Jooc;
@@ -59,6 +60,14 @@ public final class MxmlToModelParser {
 
   public static final String ALLOW_CONSTRUCTOR_PARAMETERS_ANNOTATION = "AllowConstructorParameters";
   private static final String EXT_CONFIG_META_NAME = "ExtConfig";
+
+  private static final String CONFIG_MODE_AT_SUFFIX = "$at";
+  private static final String CONFIG_MODE_ATTRIBUTE_NAME = "mode";
+  private static final Map<String, String> CONFIG_MODE_TO_AT_VALUE = new HashMap<String, String>(); static {
+    CONFIG_MODE_TO_AT_VALUE.put("append", "net.jangaroo.ext.Exml.APPEND");
+    CONFIG_MODE_TO_AT_VALUE.put("prepend", "net.jangaroo.ext.Exml.PREPEND");
+  }
+
 
   private static Pattern EXML_VAR_PATTERN = Pattern.compile("(private|protected|internal|public)\\s+var\\s+([A-Za-z_][A-Za-z_0-9]*)");
   private static Pattern INITIALIZE_METHOD_PATTERN = Pattern.compile("private\\s+function\\s+__initialize__\\s*\\(");
@@ -387,6 +396,12 @@ public final class MxmlToModelParser {
             }
           } else {
             createChildElementsPropertyAssignmentCode(childElements, variable, propertyModel, generatingConfig);
+          }
+          String configMode = "Array".equals(propertyModel.getType()) ? element.getAttributeNS(Exmlc.EXML_NAMESPACE_URI, CONFIG_MODE_ATTRIBUTE_NAME) : "";
+          String atValue = CONFIG_MODE_TO_AT_VALUE.get(configMode);
+          if (atValue != null) {
+            String atPropertyName = generatingConfig ? getConfigOptionName(propertyModel) : propertyModel.getName();
+            code.append(String.format("\n    %s.%s = %s;", variable, atPropertyName + CONFIG_MODE_AT_SUFFIX, atValue));
           }
         }
       }

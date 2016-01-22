@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
 <ConfigClass xmlns:fx="http://ns.adobe.com/mxml/2009"
+             xmlns:exml="http://www.jangaroo.net/exml/0.8"
              xmlns="package1.*"
              xmlns:other="package1.someOtherPackage.*"
              xmlns:lib="library://test.namespace"
@@ -35,7 +36,7 @@
   <defaults>
     <other:SomeOtherClass bla="99"/>
   </defaults>
-  <items>
+  <items exml:mode="append">
     <other:SomeOtherClass bla="23"/>
     <other:SomeOtherClass clack="var test=0;" bla="1"/>
     <other:SomeOtherClass bla="42">
