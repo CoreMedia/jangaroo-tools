@@ -3,20 +3,32 @@ package net.jangaroo.jooc;
 import net.jangaroo.jooc.ast.CompilationUnit;
 
 class Dependency {
-  private CompilationUnit compilationUnit;
+  private final CompilationUnit compilationUnit;
+  private String compilationUnitId;
+  private final String name;
   private DependencyLevel level;
 
   public Dependency(CompilationUnit compilationUnit, DependencyLevel level) {
     this.compilationUnit = compilationUnit;
+    this.compilationUnitId = getCompilationUnitId(compilationUnit);
+    this.name = compilationUnit.getPrimaryDeclaration().getIde().getIde().getText();
     this.level = level;
+  }
+
+  static String getCompilationUnitId(CompilationUnit compilationUnit) {
+    return compilationUnit.getPrimaryDeclaration().getQualifiedNameStr();
   }
 
   public CompilationUnit getCompilationUnit() {
     return compilationUnit;
   }
 
+  public String getCompilationUnitId() {
+    return compilationUnitId;
+  }
+
   public String getCompilationUnitName() {
-    return compilationUnit.getPrimaryDeclaration().getIde().getIde().getText();
+    return name;
   }
 
   public DependencyLevel getLevel() {
@@ -37,18 +49,18 @@ class Dependency {
     if (level != dependency.level) {
       return false;
     }
-    return compilationUnit.equals(dependency.compilationUnit);
+    return compilationUnitId.equals(dependency.compilationUnitId);
   }
 
   @Override
   public int hashCode() {
-    int result = compilationUnit.hashCode();
+    int result = compilationUnitId.hashCode();
     result = 31 * result + level.hashCode();
     return result;
   }
 
   @Override
   public String toString() {
-    return getCompilationUnitName() + level.suffix;
+    return name + level.suffix;
   }
 }

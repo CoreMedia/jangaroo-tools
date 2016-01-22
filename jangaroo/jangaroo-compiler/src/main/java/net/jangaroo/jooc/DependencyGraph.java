@@ -21,13 +21,12 @@ import java.util.Map;
 import java.util.Set;
 
 public class DependencyGraph {
-  private Set<CompilationUnit> primaryCompilationUnits = new HashSet<CompilationUnit>();
+  private Set<String> primaryCompilationUnitIds = new HashSet<String>();
   private Multimap<Dependency, Dependency> dependencyGraph = HashMultimap.create();
   private Collection<Set<Dependency>> sccs;
   private Collection<Set<Dependency>> errorSCCs;
 
-  DependencyGraph() throws IOException {
-  }
+  DependencyGraph() throws IOException {}
 
   void analyze() {
     reduceDependencyGraph();
@@ -65,7 +64,7 @@ public class DependencyGraph {
     for (Collection<Dependency> dependencies : new ArrayList<Collection<Dependency>>(dependencyGraph.asMap().values())) {
       Collection<Dependency> toRemove = new ArrayList<Dependency>();
       for (Dependency dependency : dependencies) {
-        if (!primaryCompilationUnits.contains(dependency.getCompilationUnit())) {
+        if (!primaryCompilationUnitIds.contains(dependency.getCompilationUnitId())) {
           toRemove.add(dependency);
         }
       }
@@ -88,7 +87,7 @@ public class DependencyGraph {
   }
 
   void fillInDependencies(final CompilationUnit compilationUnit) throws IOException {
-    primaryCompilationUnits.add(compilationUnit);
+    primaryCompilationUnitIds.add(Dependency.getCompilationUnitId(compilationUnit));
 
     // Add conceptual dependencies: DYNAMIC -> STATIC -> INIT.
     dependencyGraph.put(new Dependency(compilationUnit, DependencyLevel.DYNAMIC), new Dependency(compilationUnit, DependencyLevel.STATIC));
