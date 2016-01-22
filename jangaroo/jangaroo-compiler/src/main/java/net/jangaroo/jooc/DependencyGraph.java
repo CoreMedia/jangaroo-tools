@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class DependencyGraph {
-  private Multimap<Dependency, Dependency> dependencyGraph;
+  private Multimap<Dependency, Dependency> dependencyGraph = HashMultimap.create();
   private Collection<Set<Dependency>> sccs;
   private Collection<Set<Dependency>> errorSCCs;
 
