@@ -50,7 +50,6 @@ public class UsingSomeNativeClass {
       isMonkey: get$monkey,
       setMonkey: set$monkey,
       uses: [
-        "SomeNativeClass",
         "SomeOtherNativeClass",
         "AS3.package1.someOtherPackage.SomeNativeClass"
       ]
