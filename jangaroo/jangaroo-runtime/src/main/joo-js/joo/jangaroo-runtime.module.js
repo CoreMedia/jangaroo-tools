@@ -1,17 +1,35 @@
-if (typeof joo !== "object") {
-  joo = {};
-}
+Ext.ns("joo");
+
 joo.startTime = new Date().getTime();
 if (typeof joo.debug !== "boolean") {
   joo.debug = typeof location === "object" &&
     typeof location.hash === "string" &&
     !!location.hash.match(/(^#|&)joo.debug(=true|&|$)/);
 }
-if (typeof joo._loadScript !== "function") {
-  joo._loadScript = function _loadScript(src/*:String*/) {
-    document.write('<script type="text/javascript" src="' + src + '"></script>');
+
+(function() {
+  var scriptsToLoad = [];
+  var scriptLoading = null;
+  var loadNextScript = function() {
+    if (!scriptLoading && scriptsToLoad.length > 0) {
+      scriptLoading = scriptsToLoad.shift();
+      Ext.Loader.loadScript({
+        url: scriptLoading,
+        onSuccess: function() {
+          scriptLoading = null;
+          loadNextScript();
+        }
+      });
+    }
   };
-}
+  if (typeof joo._loadScript !== "function") {
+    joo._loadScript = function _loadScript(src/*:String*/) {
+      scriptsToLoad.push(src);
+      loadNextScript();
+    };
+  }
+})();
+
 if (typeof joo.baseUrl !== "string") {
   joo.baseUrl = (function() {
     var baseUrl = "";
@@ -41,18 +59,15 @@ joo.loadDebugScript = function loadDebugScript(debugSrc/*:String*/) {
 };
 if (typeof joo.loadScriptAsync !== "function") {
   joo.loadScriptAsync = function loadScriptAsync(url) {
-    var script = document.createElement("script");
-    script.type = "text/javascript";
-    document.getElementsByTagName("HEAD")[0].appendChild(script);
-    script.src = joo.resolveUrl(url);
-    return script;
+    Ext.Loader.loadScript(joo.resolveUrl(url));
   };
 }
 joo.getRelativeClassUrl = function getRelativeClassUrl(fullClassName) {
   return "joo/classes/" + fullClassName.replace(/\./g,"/") + ".js";
 };
 joo.loadModule = function loadModule(groupId/*:String*/, artifactId/*:String*/) {
-  joo.loadScript("joo/" + groupId + "." + artifactId + ".classes.js", null);
+  // TODO: reactivate?
+  // joo.loadScript("joo/" + groupId + "." + artifactId + ".classes.js", null);
 };
 /*@cc_on
 (function() {
@@ -83,35 +98,59 @@ if (typeof joo.loadStyleSheet !== "function") {
   };
   joo.flushStyleSheets = function() {};
 }
-if (!joo.debug) {
-  joo.loadModule("net.jangaroo", "jangaroo-runtime");
-} else {
-  (function() {
-    var SYSTEM_CLASSES = [
-      "int",
-      "uint",
-      "E4X",
-      "joo.BootstrapClassLoader",
-      "joo.assert",
-      "joo.Class",
-      "joo.trace",
-      "joo.MemberDeclaration",
-      "joo.NativeClassDeclaration",
-      "joo.JooClassDeclaration",
-      "joo.SystemClassLoader",
-      "ArgumentError",
-      "DefinitionError",
-      "SecurityError",
-      "Array",
-      "Vector",
-      "Date",
-      "joo.StandardClassLoader",
-      "joo.DynamicClassLoader",
-      "joo.ResourceBundleAwareClassLoader",
-      "joo._createClassLoader"
-    ];
-    for (var c=0; c<SYSTEM_CLASSES.length; ++c) {
-      joo.loadScript(joo.getRelativeClassUrl(SYSTEM_CLASSES[c]));
+
+joo.getQualifiedObject = (function(theGlobalObject) {
+  var getQualified = function (parts) {
+    var object = theGlobalObject;
+    for (var i = 0; i < parts.length; ++i) {
+      var subObject = object[parts[i]];
+      if (!subObject) {
+        return null;
+      }
+      object = subObject;
     }
-  })();
-}
+    return object;
+  };
+  return function(name) {
+    if (!name) {
+      return theGlobalObject;
+    }
+    var parts = name.split(".");
+    return getQualified(parts) || getQualified(["AS3"].concat(parts));
+  };
+})(this);
+joo.getOrCreatePackage = function(name) {
+  return Ext.ns("AS3." + name);
+};
+Ext.ns("joo.localization");
+
+Ext.Loader.setPath({
+  'AS3': 'joo/classes',
+  'JooOverrides': 'joo/overrides'
+});
+
+Ext.Class.registerPreprocessor('__accessors__', function (Class, data) {
+  if (data.__accessors__) {
+    if (data.__accessors__.statics) {
+      Object.defineProperties(Class, data.__accessors__.statics);
+      delete data.__accessors__.statics;
+    }
+    Object.defineProperties(Class.prototype, data.__accessors__);
+    delete data.__accessors__;
+  }
+});
+
+Ext.ClassManager.registerPostprocessor('__factory__', function(className, cls, data) {
+  if (data.__factory__) {
+    var value = data.__factory__();
+    this.set(className, value);
+    this.triggerCreated(className);
+    return false;
+  }
+  return true;
+});
+
+joo.loadScript("joo/AS3.js");
+Ext.require("AS3.joo.DynamicClassLoader", function() {
+  new AS3.joo.DynamicClassLoader();
+});
