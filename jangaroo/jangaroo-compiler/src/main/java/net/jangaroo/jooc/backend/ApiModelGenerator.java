@@ -37,7 +37,6 @@ import net.jangaroo.jooc.ast.ForStatement;
 import net.jangaroo.jooc.ast.FunctionDeclaration;
 import net.jangaroo.jooc.ast.FunctionExpr;
 import net.jangaroo.jooc.ast.Ide;
-import net.jangaroo.jooc.ast.IdeDeclaration;
 import net.jangaroo.jooc.ast.IdeExpr;
 import net.jangaroo.jooc.ast.IdeWithTypeParam;
 import net.jangaroo.jooc.ast.IfStatement;
@@ -85,9 +84,9 @@ import net.jangaroo.jooc.model.FieldModel;
 import net.jangaroo.jooc.model.MemberModel;
 import net.jangaroo.jooc.model.MethodModel;
 import net.jangaroo.jooc.model.MethodType;
-import net.jangaroo.jooc.model.NamespacedModel;
 import net.jangaroo.jooc.model.NamedModel;
 import net.jangaroo.jooc.model.NamespaceModel;
+import net.jangaroo.jooc.model.NamespacedModel;
 import net.jangaroo.jooc.model.ParamModel;
 import net.jangaroo.jooc.model.TypedModel;
 import net.jangaroo.jooc.model.ValuedModel;
@@ -183,6 +182,9 @@ public class ApiModelGenerator {
     compilationUnit.getPackageDeclaration().visit(this);
     for (String publicApiDependency : new TreeSet<String>(compilationUnit.getPublicApiDependencies())) {
       compilationUnitModel.addImport(publicApiDependency);
+    }
+    for (CompilationUnit dependencyInModule : compilationUnit.getDependenciesInModule()) {
+      compilationUnitModel.addDependencyInModule(dependencyInModule.getPrimaryDeclaration().getQualifiedNameStr());
     }
     visitAll(compilationUnit.getDirectives());
     compilationUnit.getPrimaryDeclaration().visit(this);

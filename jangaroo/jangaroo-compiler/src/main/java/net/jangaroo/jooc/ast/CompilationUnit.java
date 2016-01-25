@@ -45,6 +45,7 @@ public class CompilationUnit extends NodeImplBase {
   private JooSymbol rBrace;
 
   private Map<CompilationUnit, Boolean> dependenciesAsCompilationUnits = new LinkedHashMap<CompilationUnit, Boolean>();
+  private Set<CompilationUnit> dependenciesInModule = new LinkedHashSet<CompilationUnit>();
   private List<String> resourceDependencies = new ArrayList<String>();
   private Set<String> publicApiDependencies = new LinkedHashSet<String>();
   private Set<String> usedBuiltIns = new LinkedHashSet<String>();
@@ -182,6 +183,10 @@ public class CompilationUnit extends NodeImplBase {
     return dependenciesAsCompilationUnits.get(dependency);
   }
 
+  public Set<CompilationUnit> getDependenciesInModule() {
+    return dependenciesInModule;
+  }
+
   public JangarooParser getCompiler() {
     return compiler;
   }
@@ -250,7 +255,11 @@ public class CompilationUnit extends NodeImplBase {
       // Dependencies on other modules may always be considered required,
       // because they cannot lead to cycles.
       boolean alreadyRequired = Boolean.TRUE.equals(dependenciesAsCompilationUnits.get(otherUnit));
-      dependenciesAsCompilationUnits.put(otherUnit, required || alreadyRequired || !otherUnit.getSource().isInSourcePath());
+      boolean inModule = otherUnit.getSource().isInSourcePath();
+      dependenciesAsCompilationUnits.put(otherUnit, required || alreadyRequired || !inModule);
+      if (inModule) {
+        dependenciesInModule.add(otherUnit);
+      }
     }
   }
 

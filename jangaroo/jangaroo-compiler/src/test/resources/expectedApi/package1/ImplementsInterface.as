@@ -1,5 +1,6 @@
 package package1 {
 
+[Uses ("package1.Interface")]
 public final class ImplementsInterface implements Interface {
   /**
    * Field with ASDoc.
