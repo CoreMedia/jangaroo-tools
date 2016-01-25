@@ -416,10 +416,18 @@ public final class MxmlToModelParser {
                                                          MemberModel propertyModel, boolean generatingConfig) throws IOException {
     boolean forceArray = "Array".equals(propertyModel.getType());
     AnnotationModel allowConstructorAnnotation = getAnnotationAtSetter(propertyModel, ALLOW_CONSTRUCTOR_PARAMETERS_ANNOTATION);
-    boolean allowConstructorParameters = allowConstructorAnnotation != null;
-    boolean suppressType = allowConstructorParameters && allowConstructorAnnotation.getPropertiesByName().get("suppressType") != null;
+    boolean allowConstructorParameters = doAllowConstructorParameters(allowConstructorAnnotation);
+    boolean suppressType = allowConstructorAnnotation != null && allowConstructorAnnotation.getPropertiesByName().get("suppressType") != null;
     String value = createArrayCodeFromChildElements(childElements, forceArray, allowConstructorParameters, suppressType);
     createPropertyAssignmentCode(variable, propertyModel, MxmlUtils.createBindingExpression(value), generatingConfig);
+  }
+
+  private static boolean doAllowConstructorParameters(AnnotationModel allowConstructorAnnotation) {
+    if (allowConstructorAnnotation == null) {
+      return true;
+    }
+    AnnotationPropertyModel allow = allowConstructorAnnotation.getPropertiesByName().get(null);
+    return allow == null || "true".equals(allow.getValue());
   }
 
   private String createArrayCodeFromChildElements(List<Element> childElements, boolean forceArray, boolean allowConstructorParameters, boolean suppressType) throws IOException {
@@ -458,6 +466,9 @@ public final class MxmlToModelParser {
       throw Jooc.error(position(objectElement), "Could not resolve class from MXML node " + objectElement.getNamespaceURI() + ":" + objectElement.getLocalName());
     }
     compilationUnitModel.addImport(className);
+    if (!suppressType && !useConfigObject(jangarooParser.getCompilationUnitModel(className).getClassModel())) {
+      allowConstructorParameters = false;
+    }
     String targetVariable = null;   // name of the variable holding the object to build
     String id = objectElement.getAttribute(MXML_ID_ATTRIBUTE);
     if (!id.isEmpty()) {
@@ -474,9 +485,6 @@ public final class MxmlToModelParser {
       } else {
         FieldModel fieldModel = new FieldModel(id, className);
         fieldModel.addAnnotation(new AnnotationModel(Jooc.BINDABLE_ANNOTATION_NAME));
-        if (constructorSupportsConfigOptionsParameter(className)) {
-          fieldModel.addAnnotation(new AnnotationModel(ALLOW_CONSTRUCTOR_PARAMETERS_ANNOTATION));
-        }
         compilationUnitModel.getClassModel().addMember(fieldModel);
       }
       targetVariable = CompilerUtils.qName(qualifier, id);
@@ -548,6 +556,19 @@ public final class MxmlToModelParser {
       processAttributesAndChildNodes(objectElement, configVariable, targetVariable, false);
     }
     return targetVariable;
+  }
+
+  private boolean useConfigObject(ClassModel classModel) throws IOException {
+    for (ClassModel current = classModel; current != null; current = getSuperClassModel(current)) {
+      if (!current.getAnnotations("ExtConfig").isEmpty()) {
+        return true;
+      }
+      // special case Plugin (avoid having to check all interfaces):
+      if (current.getInterfaces().contains("ext.Plugin") || current.getInterfaces().contains("Plugin")) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private String createAuxVar() {
@@ -685,8 +706,8 @@ public final class MxmlToModelParser {
   private ClassModel getSuperClassModel(ClassModel classModel) throws IOException {
     String superclass = classModel.getSuperclass();
     if (superclass != null) {
-      CompilationUnitModel superCompilationUnitModel = getCompilationUnitModel(superclass);
-      if (superCompilationUnitModel != null && superCompilationUnitModel.getPrimaryDeclaration() instanceof ClassModel) {
+      CompilationUnitModel superCompilationUnitModel = jangarooParser.getCompilationUnitModel(superclass);
+      if (superCompilationUnitModel != null) {
         return superCompilationUnitModel.getClassModel();
       }
     }

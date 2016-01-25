@@ -14,7 +14,7 @@ public class ConfigClass {
   public native function get items():Array;
 
   [DefaultProperty]
-  [AllowConstructorParameters]
+  [AllowConstructorParameters(false)]
   public native function set items(value:Array):void;
 
   public native function get defaults():*;
