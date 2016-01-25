@@ -3,13 +3,11 @@ package net.jangaroo.jooc;
 import net.jangaroo.jooc.ast.CompilationUnit;
 
 class Dependency {
-  private final CompilationUnit compilationUnit;
   private String compilationUnitId;
   private final String name;
   private DependencyLevel level;
 
   public Dependency(CompilationUnit compilationUnit, DependencyLevel level) {
-    this.compilationUnit = compilationUnit;
     this.compilationUnitId = getCompilationUnitId(compilationUnit);
     this.name = compilationUnit.getPrimaryDeclaration().getIde().getIde().getText();
     this.level = level;
@@ -17,10 +15,6 @@ class Dependency {
 
   static String getCompilationUnitId(CompilationUnit compilationUnit) {
     return compilationUnit.getPrimaryDeclaration().getQualifiedNameStr();
-  }
-
-  public CompilationUnit getCompilationUnit() {
-    return compilationUnit;
   }
 
   public String getCompilationUnitId() {

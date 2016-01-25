@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -21,7 +22,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class DependencyGraph {
-  private Set<String> primaryCompilationUnitIds = new HashSet<String>();
+  private Map<String, CompilationUnit> primaryCompilationUnits = new HashMap<String, CompilationUnit>();
   private Multimap<Dependency, Dependency> dependencyGraph = HashMultimap.create();
   private Collection<Set<Dependency>> sccs;
   private Collection<Set<Dependency>> errorSCCs;
@@ -64,7 +65,7 @@ public class DependencyGraph {
     for (Collection<Dependency> dependencies : new ArrayList<Collection<Dependency>>(dependencyGraph.asMap().values())) {
       Collection<Dependency> toRemove = new ArrayList<Dependency>();
       for (Dependency dependency : dependencies) {
-        if (!primaryCompilationUnitIds.contains(dependency.getCompilationUnitId())) {
+        if (!primaryCompilationUnits.containsKey(dependency.getCompilationUnitId())) {
           toRemove.add(dependency);
         }
       }
@@ -87,7 +88,7 @@ public class DependencyGraph {
   }
 
   void fillInDependencies(final CompilationUnit compilationUnit) throws IOException {
-    primaryCompilationUnitIds.add(Dependency.getCompilationUnitId(compilationUnit));
+    primaryCompilationUnits.put(Dependency.getCompilationUnitId(compilationUnit), compilationUnit);
 
     // Add conceptual dependencies: DYNAMIC -> STATIC -> INIT.
     dependencyGraph.put(new Dependency(compilationUnit, DependencyLevel.DYNAMIC), new Dependency(compilationUnit, DependencyLevel.STATIC));
@@ -163,16 +164,21 @@ public class DependencyGraph {
   }
 
   private void addTransitiveDependenciesAsRequires(Multimap<Dependency, Dependency> dependencyGraph, Dependency initializer) {
-    CompilationUnit compilationUnit = initializer.getCompilationUnit();
-    Deque<Dependency> todo = new LinkedList<Dependency>();
-    todo.add(initializer);
-    Set<Dependency> visited = new HashSet<Dependency>();
-    while (!todo.isEmpty()) {
-      Dependency dependency = todo.removeLast();
-      if (visited.add(dependency)) {
-        todo.addAll(dependencyGraph.get(dependency));
+    CompilationUnit compilationUnit = primaryCompilationUnits.get(initializer.getCompilationUnitId());
+    if (compilationUnit != null) {
+      Deque<Dependency> todo = new LinkedList<Dependency>();
+      todo.add(initializer);
+      Set<Dependency> visited = new HashSet<Dependency>();
+      while (!todo.isEmpty()) {
+        Dependency dependency = todo.removeLast();
+        if (visited.add(dependency)) {
+          todo.addAll(dependencyGraph.get(dependency));
 
-        compilationUnit.addRequiredDependency(dependency.getCompilationUnit());
+          CompilationUnit requiredCompilationUnit = primaryCompilationUnits.get(dependency.getCompilationUnitId());
+          if (requiredCompilationUnit != null) {
+            compilationUnit.addRequiredDependency(requiredCompilationUnit);
+          }
+        }
       }
     }
   }
