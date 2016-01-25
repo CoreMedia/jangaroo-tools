@@ -593,7 +593,10 @@ public class ExtAsApiGenerator {
         addDeprecation(member.deprecated, propertyModel);
         setVisibility(propertyModel, member);
         setStatic(propertyModel, member);
-        propertyModel.addGetter();
+        MethodModel getter = propertyModel.addGetter();
+        if (isConfig) {
+          getter.addAnnotation(new AnnotationModel(Jooc.EXT_CONFIG_ANNOTATION_NAME));
+        }
         if (!(member.meta.readonly || member.readonly || isConstantName(member.name))) {
           MethodModel setter = propertyModel.addSetter();
           if (isConfig) {
@@ -907,61 +910,73 @@ public class ExtAsApiGenerator {
 
   private static void annotateBindableConfigProperties(ClassModel classModel) {
     for (MemberModel member : classModel.getMembers()) {
-      if (member.isSetter() && !member.getAnnotations(Jooc.EXT_CONFIG_ANNOTATION_NAME).isEmpty()) {
+      if (member.isAccessor() && !member.getAnnotations(Jooc.EXT_CONFIG_ANNOTATION_NAME).isEmpty()) {
         annotateBindableConfigProperty(classModel, (MethodModel) member);
       }
     }
   }
 
-  private static void annotateBindableConfigProperty(ClassModel classModel, MethodModel propertySetter) {
-    List<ParamModel> propertySetterParams = propertySetter.getParams();
-    if (propertySetterParams.isEmpty()) {
-      warnConfigProperty("setter without parameter", classModel, propertySetter);
+  private static void annotateBindableConfigProperty(ClassModel classModel, MethodModel accessor) {
+    boolean isSetter = accessor.isSetter();
+    String prefix = isSetter ? "set" : "get";
+
+    String propertyType = getMethodType(accessor, accessor.getMethodType());
+    if (propertyType == null) {
+      warnConfigProperty(prefix + " property accessor without type", classModel, accessor);
       return;
     }
 
-    String propertyType = propertySetterParams.get(0).getType();
-    String setMethodName = "set" + capitalize(propertySetter.getName());
-    MethodModel setMethod = compilationUnitModelRegistry.resolveMethod(classModel, null, setMethodName);
-    if (setMethod == null) {
-      warnConfigProperty("no matching setter method", classModel, propertySetter);
+    String methodName = prefix + capitalize(accessor.getName());
+    MethodModel method = compilationUnitModelRegistry.resolveMethod(classModel, null, methodName);
+    if (method == null) {
+      warnConfigProperty("no matching " + prefix + "ter method", classModel, accessor);
       return;
     }
 
-    List<ParamModel> setMethodParams = setMethod.getParams();
-    if (setMethodParams.isEmpty()) {
+    List<ParamModel> methodParams = method.getParams();
+    if (isSetter && methodParams.isEmpty()) {
       warnConfigProperty(String.format("matching setter method '%s' without parameters. "
-              + "Still marking property as [Bindable] - assuming it's compatible at runtime.", setMethod.getName()),
-              classModel, propertySetter);
+              + "Still marking property as [Bindable] - assuming it's compatible at runtime.",
+              method.getName()), classModel, accessor);
     } else {
-
-      for (ParamModel setMethodParam : setMethodParams.subList(1, setMethodParams.size())) {
-        if (!setMethodParam.isOptional()) {
-          warnConfigProperty(String.format("matching setter method '%s' has additional non-optional parameter '%s'",
-                  setMethod.getName(), setMethodParam.getName()), classModel, propertySetter);
+      List<ParamModel> moreParams = isSetter ? methodParams.subList(1, methodParams.size()) : methodParams;
+      for (ParamModel param : moreParams) {
+        if (!param.isOptional()) {
+          warnConfigProperty(String.format("matching %ster method '%s' has additional non-optional parameter '%s'",
+                  prefix, method.getName(), param.getName()), classModel, accessor);
           return;
         }
       }
 
-      String setMethodParamType = setMethodParams.get(0).getType();
-      if (!propertyType.equals(setMethodParamType)) {
-        boolean probablyCompatible = "*".equals(propertyType) || "*".equals(setMethodParamType)
-                || "Object".equals(propertyType) || "Object".equals(setMethodParamType);
+      String methodType = getMethodType(method, accessor.getMethodType());
+      if (!propertyType.equals(methodType)) {
+        boolean probablyCompatible = "*".equals(propertyType) || "*".equals(methodType)
+                || "Object".equals(propertyType) || "Object".equals(methodType);
         if (!probablyCompatible) {
-          warnConfigProperty(String.format("type '%s' does not match setter method '%s' with parameter type '%s'",
-                  propertyType, setMethod.getName(), setMethodParamType), classModel, propertySetter);
+          warnConfigProperty(String.format("type '%s' does not match method '%s' with type '%s'",
+                  propertyType, method.getName(), methodType), classModel, accessor);
           return;
         }
 
-        warnConfigProperty(String.format("type '%s' does not quite match setter method '%s' with parameter type '%s'. "
-                        + "Still marking property as [Bindable] - assuming it's compatible at runtime.",
-                propertyType, setMethod.getName(), setMethodParamType), classModel, propertySetter);
-
+        warnConfigProperty(String.format("type '%s' does not quite match method '%s' with type '%s'. "
+                + "Still marking property as [Bindable] - assuming it's compatible at runtime.",
+                propertyType, method.getName(), methodType), classModel, accessor);
       }
     }
 
-    propertySetter.addAnnotation(new AnnotationModel(Jooc.BINDABLE_ANNOTATION_NAME));
-    propertySetter.setAsdoc(propertySetter.getAsdoc() + "\n@see #" + setMethodName + "()");
+    accessor.addAnnotation(new AnnotationModel(Jooc.BINDABLE_ANNOTATION_NAME));
+    accessor.setAsdoc(accessor.getAsdoc() + "\n@see #" + methodName + "()");
+  }
+
+  private static String getMethodType(MethodModel method, MethodType methodType) {
+    if (methodType == MethodType.GET) {
+      return method.getType();
+    }
+    List<ParamModel> propertySetterParams = method.getParams();
+    if (propertySetterParams.isEmpty()) {
+      return null;
+    }
+    return propertySetterParams.get(0).getType();
   }
 
   private static void warnConfigProperty(String message, ClassModel classModel, MethodModel propertySetter) {
