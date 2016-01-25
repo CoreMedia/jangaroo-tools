@@ -466,20 +466,6 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     return (String) getAnnotationParameterValue(nativeAnnotation, Jooc.NATIVE_ANNOTATION_REQUIRE_PROPERTY, "");
   }
 
-  private Set<String> computeUseQName(CompilationUnit compilationUnit) {
-    Set<String> useQName = new HashSet<String>();
-    Set<String> shortNames = new HashSet<String>();
-    // avoid name-clash of import with class being defined:
-    shortNames.add(compilationUnit.getPrimaryDeclaration().getName());
-    for (CompilationUnit dependentCU : compilationUnit.getDependenciesAsCompilationUnits()) {
-      String dependentPrimaryDeclarationName = dependentCU.getPrimaryDeclaration().getName();
-      if (!shortNames.add(dependentPrimaryDeclarationName)) {
-        useQName.add(dependentPrimaryDeclarationName);
-      }
-    }
-    return useQName;
-  }
-
   private static Object getAnnotationParameterValue(Annotation nativeAnnotation, String name,
                                                     Object defaultValue) {
     CommaSeparatedList<AnnotationParameter> annotationParameters = nativeAnnotation.getOptAnnotationParameters();
