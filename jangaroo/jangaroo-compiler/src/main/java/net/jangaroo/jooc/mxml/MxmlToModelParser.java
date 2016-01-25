@@ -1,5 +1,6 @@
 package net.jangaroo.jooc.mxml;
 
+import net.jangaroo.exml.api.Exmlc;
 import net.jangaroo.jooc.CompilerError;
 import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.Jooc;
@@ -59,6 +60,14 @@ public final class MxmlToModelParser {
 
   public static final String ALLOW_CONSTRUCTOR_PARAMETERS_ANNOTATION = "AllowConstructorParameters";
   private static final String EXT_CONFIG_META_NAME = "ExtConfig";
+
+  private static final String CONFIG_MODE_AT_SUFFIX = "$at";
+  private static final String CONFIG_MODE_ATTRIBUTE_NAME = "mode";
+  private static final Map<String, String> CONFIG_MODE_TO_AT_VALUE = new HashMap<String, String>(); static {
+    CONFIG_MODE_TO_AT_VALUE.put("append", "net.jangaroo.ext.Exml.APPEND");
+    CONFIG_MODE_TO_AT_VALUE.put("prepend", "net.jangaroo.ext.Exml.PREPEND");
+  }
+
 
   private static Pattern EXML_VAR_PATTERN = Pattern.compile("(private|protected|internal|public)\\s+var\\s+([A-Za-z_][A-Za-z_0-9]*)");
   private static Pattern INITIALIZE_METHOD_PATTERN = Pattern.compile("private\\s+function\\s+__initialize__\\s*\\(");
@@ -388,6 +397,12 @@ public final class MxmlToModelParser {
           } else {
             createChildElementsPropertyAssignmentCode(childElements, variable, propertyModel, generatingConfig);
           }
+          String configMode = "Array".equals(propertyModel.getType()) ? element.getAttributeNS(Exmlc.EXML_NAMESPACE_URI, CONFIG_MODE_ATTRIBUTE_NAME) : "";
+          String atValue = CONFIG_MODE_TO_AT_VALUE.get(configMode);
+          if (atValue != null) {
+            String atPropertyName = generatingConfig ? getConfigOptionName(propertyModel) : propertyModel.getName();
+            code.append(String.format("\n    %s.%s = %s;", variable, atPropertyName + CONFIG_MODE_AT_SUFFIX, atValue));
+          }
         }
       }
     }
@@ -401,10 +416,18 @@ public final class MxmlToModelParser {
                                                          MemberModel propertyModel, boolean generatingConfig) throws IOException {
     boolean forceArray = "Array".equals(propertyModel.getType());
     AnnotationModel allowConstructorAnnotation = getAnnotationAtSetter(propertyModel, ALLOW_CONSTRUCTOR_PARAMETERS_ANNOTATION);
-    boolean allowConstructorParameters = allowConstructorAnnotation != null;
-    boolean suppressType = allowConstructorParameters && allowConstructorAnnotation.getPropertiesByName().get("suppressType") != null;
+    boolean allowConstructorParameters = doAllowConstructorParameters(allowConstructorAnnotation);
+    boolean suppressType = allowConstructorAnnotation != null && allowConstructorAnnotation.getPropertiesByName().get("suppressType") != null;
     String value = createArrayCodeFromChildElements(childElements, forceArray, allowConstructorParameters, suppressType);
     createPropertyAssignmentCode(variable, propertyModel, MxmlUtils.createBindingExpression(value), generatingConfig);
+  }
+
+  private static boolean doAllowConstructorParameters(AnnotationModel allowConstructorAnnotation) {
+    if (allowConstructorAnnotation == null) {
+      return true;
+    }
+    AnnotationPropertyModel allow = allowConstructorAnnotation.getPropertiesByName().get(null);
+    return allow == null || "true".equals(allow.getValue());
   }
 
   private String createArrayCodeFromChildElements(List<Element> childElements, boolean forceArray, boolean allowConstructorParameters, boolean suppressType) throws IOException {
@@ -443,6 +466,9 @@ public final class MxmlToModelParser {
       throw Jooc.error(position(objectElement), "Could not resolve class from MXML node " + objectElement.getNamespaceURI() + ":" + objectElement.getLocalName());
     }
     compilationUnitModel.addImport(className);
+    if (!suppressType && !useConfigObject(jangarooParser.getCompilationUnitModel(className).getClassModel())) {
+      allowConstructorParameters = false;
+    }
     String targetVariable = null;   // name of the variable holding the object to build
     String id = objectElement.getAttribute(MXML_ID_ATTRIBUTE);
     if (!id.isEmpty()) {
@@ -459,9 +485,6 @@ public final class MxmlToModelParser {
       } else {
         FieldModel fieldModel = new FieldModel(id, className);
         fieldModel.addAnnotation(new AnnotationModel(Jooc.BINDABLE_ANNOTATION_NAME));
-        if (constructorSupportsConfigOptionsParameter(className)) {
-          fieldModel.addAnnotation(new AnnotationModel(ALLOW_CONSTRUCTOR_PARAMETERS_ANNOTATION));
-        }
         compilationUnitModel.getClassModel().addMember(fieldModel);
       }
       targetVariable = CompilerUtils.qName(qualifier, id);
@@ -533,6 +556,19 @@ public final class MxmlToModelParser {
       processAttributesAndChildNodes(objectElement, configVariable, targetVariable, false);
     }
     return targetVariable;
+  }
+
+  private boolean useConfigObject(ClassModel classModel) throws IOException {
+    for (ClassModel current = classModel; current != null; current = getSuperClassModel(current)) {
+      if (!current.getAnnotations("ExtConfig").isEmpty()) {
+        return true;
+      }
+      // special case Plugin (avoid having to check all interfaces):
+      if (current.getInterfaces().contains("ext.Plugin") || current.getInterfaces().contains("Plugin")) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private String createAuxVar() {
@@ -670,8 +706,8 @@ public final class MxmlToModelParser {
   private ClassModel getSuperClassModel(ClassModel classModel) throws IOException {
     String superclass = classModel.getSuperclass();
     if (superclass != null) {
-      CompilationUnitModel superCompilationUnitModel = getCompilationUnitModel(superclass);
-      if (superCompilationUnitModel != null && superCompilationUnitModel.getPrimaryDeclaration() instanceof ClassModel) {
+      CompilationUnitModel superCompilationUnitModel = jangarooParser.getCompilationUnitModel(superclass);
+      if (superCompilationUnitModel != null) {
         return superCompilationUnitModel.getClassModel();
       }
     }

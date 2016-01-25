@@ -294,12 +294,14 @@ public class JangarooParser {
     }
     CompilationUnitModel compilationUnitModel = compilationUnitModelsByQName.get(fullClassName);
     if (compilationUnitModel == null) {
+      // set early to avoid circular compilation unit model building:
+      compilationUnitModel = new CompilationUnitModel(CompilerUtils.packageName(fullClassName), new ClassModel(CompilerUtils.className(fullClassName)));
+      compilationUnitModelsByQName.put(fullClassName, compilationUnitModel);
       CompilationUnit compilationUnit = getCompilationUnit(fullClassName);
       if (compilationUnit == null) {
         throw net.jangaroo.jooc.Jooc.error("Undefined type: " + fullClassName);
       }
-      compilationUnitModel = new ApiModelGenerator(false).generateModel(compilationUnit);
-      compilationUnitModelsByQName.put(fullClassName, compilationUnitModel);
+      new ApiModelGenerator(false).generateModel(compilationUnit, compilationUnitModel);
     }
     return compilationUnitModel;
   }

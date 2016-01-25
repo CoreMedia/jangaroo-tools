@@ -101,8 +101,8 @@ public class DynamicClassLoader extends StandardClassLoader {
    * @param fullClassName : String the fully qualified class name (package plus name) of the class to load and import.
    */
   public override function import_(fullClassName : String) : void {
-    super.import_(fullClassName);
-    this.load(fullClassName);
+    var Ext:* = getQualifiedObject("Ext");
+    Ext.require("AS3." + fullClassName);
   }
 
   override public function run(mainClassName : String, ...args):void {
@@ -248,18 +248,8 @@ public class DynamicClassLoader extends StandardClassLoader {
    * @return void
    */
   public override function complete(onCompleteCallback : Function = undefined) : void {
-    if (onCompleteCallback || this.onCompleteCallbacks.length==0) {
-      this.onCompleteCallbacks.push(onCompleteCallback || defaultOnCompleteCallback);
-    }
-    this.loadPendingDependencies();
-    if (isEmpty(this.pendingClassState)) {
-      // no deferred classes, thus no dependency will trigger execution, so do it explicitly:
-      doCompleteCallbacks(onCompleteCallbacks);
-    } else {
-      for (var c:String in this.pendingClassState) {
-        this.load(c);
-      }
-    }
+    var Ext:* = getQualifiedObject("Ext");
+    Ext.onReady(onCompleteCallback);
   }
 
   private static function defaultOnCompleteCallback() : void {

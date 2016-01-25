@@ -25,6 +25,7 @@ import net.jangaroo.jooc.model.ParamModel;
 import net.jangaroo.jooc.mxml.CatalogComponentsParser;
 import net.jangaroo.jooc.mxml.MxmlComponentRegistry;
 import net.jangaroo.jooc.mxml.MxmlUtils;
+import net.jangaroo.utils.AS3Type;
 import net.jangaroo.utils.CharacterRecordingHandler;
 import net.jangaroo.utils.CompilerUtils;
 import org.apache.commons.io.FileUtils;
@@ -424,7 +425,12 @@ public class ExmlToMxml {
     }
 
     private boolean hasDefaultConstructor(String name) throws SAXException {
-      CompilationUnit compilationUnit = configClassRegistry.getJangarooParser().getCompilationUnit(resolveQName(name));
+      String qname = resolveQName(name);
+      if (AS3Type.typeByName(qname) != null) {
+        return true;
+      }
+
+      CompilationUnit compilationUnit = configClassRegistry.getJangarooParser().getCompilationUnit(qname);
       if (compilationUnit != null) {
         try {
           CompilationUnitModel compilationUnitModel = new ApiModelGenerator(false).generateModel(compilationUnit);

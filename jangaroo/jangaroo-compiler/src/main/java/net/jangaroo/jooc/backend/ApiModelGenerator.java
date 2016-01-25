@@ -117,20 +117,30 @@ public class ApiModelGenerator {
   }
 
   public CompilationUnitModel generateModel(CompilationUnit compilationUnit) throws IOException {
-    ApiModelGeneratingAstVisitor visitor = new ApiModelGeneratingAstVisitor();
+    CompilationUnitModel compilationUnitModel = new CompilationUnitModel("");
+    generateModel(compilationUnit, compilationUnitModel);
+    return compilationUnitModel;
+  }
+
+  public void generateModel(CompilationUnit compilationUnit, CompilationUnitModel compilationUnitModel) throws IOException {
+    ApiModelGeneratingAstVisitor visitor = new ApiModelGeneratingAstVisitor(compilationUnitModel);
     compilationUnit.visit(visitor);
-    return visitor.getCurrent(CompilationUnitModel.class);
   }
 
   
   private class ApiModelGeneratingAstVisitor implements AstVisitor {
 
+  private CompilationUnitModel compilationUnitModel;
   private Deque<ActionScriptModel> modelStack;
   private StringBuilder code;
   private StringBuilder asdoc = new StringBuilder();
   private List<AnnotationModel> annotationModels = new ArrayList<AnnotationModel>();
 
-  @Override
+    public ApiModelGeneratingAstVisitor(CompilationUnitModel compilationUnitModel) {
+      this.compilationUnitModel = compilationUnitModel;
+    }
+
+    @Override
   public void visitTypeRelation(TypeRelation typeRelation) throws IOException {
     startRecordingCode();
     typeRelation.getType().visit(this);
@@ -177,7 +187,6 @@ public class ApiModelGenerator {
   public void visitCompilationUnit(CompilationUnit compilationUnit) throws IOException {
     modelStack = new ArrayDeque<ActionScriptModel>();
     code = null;
-    CompilationUnitModel compilationUnitModel = new CompilationUnitModel("");
     modelStack.push(compilationUnitModel);
     compilationUnit.getPackageDeclaration().visit(this);
     for (String publicApiDependency : new TreeSet<String>(compilationUnit.getPublicApiDependencies())) {

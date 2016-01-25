@@ -21,7 +21,6 @@ public class SomeMxmlClass extends package1.ConfigClass {
   public var num:int;
 
   [Bindable]
-  [AllowConstructorParameters]
   public var other:package1.someOtherPackage.SomeOtherClass;
 
   private*/ function $on_$_1_click(event/*:package1.someOtherPackage.SomeEvent*/)/*:void*/ {
@@ -33,7 +32,6 @@ public class SomeMxmlClass extends package1.ConfigClass {
   }/*
 
   [Bindable]
-  [AllowConstructorParameters]
   public var no_config:package1.someOtherPackage.SomeOtherClass;
 
   public*/ function SomeMxmlClass$(config/*:package1.SomeMxmlClass = null*/) {if(arguments.length<=0)config=null;
@@ -48,7 +46,7 @@ public class SomeMxmlClass extends package1.ConfigClass {
     var $_3/*:package1.ConfigClass*/ =AS3.cast( AS3.package1.ConfigClass,{});
     var $_5/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
     $_5,"bla" , 123);
-    $_3.items = [$_5];AS3.setBindable(
+    $_3.items = [new AS3.package1.someOtherPackage.SomeOtherClass($_5)];AS3.setBindable(
     $_1,"list" , [$_2, new AS3.package1.ConfigClass($_3)]);
     var $_7/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
     $_7,"bla" , 3);
@@ -73,7 +71,7 @@ public class SomeMxmlClass extends package1.ConfigClass {
     var $_18/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
     $_18,"bla" ,AS3.getBindable(AS3.getBindable( this,"other"),"bla","bla_has_changed"));
     $_18.doodle = "non-bound";
-    $_16.items = [$_18];
+    $_16.items = [new AS3.package1.someOtherPackage.SomeOtherClass($_18)];
     $_16.number = 12;
     var $_20/*:package1.ConfigClass*/ =AS3.cast( AS3.package1.ConfigClass,{});
     var $_22/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
@@ -81,8 +79,9 @@ public class SomeMxmlClass extends package1.ConfigClass {
     var $_24/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
     $_24,"bla" , 13);AS3.setBindable(
     this,"no_config" , new AS3.package1.someOtherPackage.SomeOtherClass($_24));
-    $_20.items = [$_22,AS3.getBindable( this,"no_config")];
-    $_1.items = [$_10, $_12, $_14, $_16, $_20];
+    $_20.items = [new AS3.package1.someOtherPackage.SomeOtherClass($_22),AS3.getBindable( this,"no_config")];
+    $_1.items = [new AS3.package1.someOtherPackage.SomeOtherClass($_10), new AS3.package1.someOtherPackage.SomeOtherClass($_12), new AS3.package1.someOtherPackage.SomeOtherClass($_14), new AS3.package1.ConfigClass($_16), new AS3.package1.ConfigClass($_20)];
+    $_1.items$at = AS3.net.jangaroo.ext.Exml.APPEND;
     AS3.net.jangaroo.ext.Exml.apply($_1, config);
     this.callParent([$_1]);
   }/*
