@@ -213,14 +213,6 @@ public class CompilationUnit extends NodeImplBase {
     primaryDeclaration.analyze(this);
   }
 
-  public Set<String> getUsedAnnotations() {
-    Set<String> usedAnnotations = new LinkedHashSet<String>();
-    for (Annotation annotation : getAnnotations()) {
-      usedAnnotations.add(annotation.getMetaName());
-    }
-    return usedAnnotations;
-  }
-
   public List<Annotation> getAnnotations() {
     List<Annotation> annotations = new ArrayList<Annotation>();
     for (AstNode directive : getDirectives()) {
@@ -259,8 +251,37 @@ public class CompilationUnit extends NodeImplBase {
       dependenciesAsCompilationUnits.put(otherUnit, required || alreadyRequired || !inModule);
       if (inModule) {
         dependenciesInModule.add(otherUnit);
+      } else {
+        List<Annotation> annotations = otherUnit.getAnnotations();
+        for (Annotation annotation : annotations) {
+          if ("Uses".equals(annotation.getMetaName())) {
+            CommaSeparatedList<AnnotationParameter> current = annotation.getOptAnnotationParameters();
+            for (String value : getAnnotationStringListValue(current)) {
+              dependenciesAsCompilationUnits.put(getCompiler().getCompilationUnit(value), true);
+            }
+          }
+        }
       }
     }
+  }
+
+  private List<String> getAnnotationStringListValue(CommaSeparatedList<AnnotationParameter> current) {
+    List<String> values = new ArrayList<String>();
+    while (current != null) {
+      AnnotationParameter head = current.getHead();
+      if (head.getOptName() == null) {
+        AstNode value = head.getValue();
+        if (value instanceof LiteralExpr) {
+          LiteralExpr literal = (LiteralExpr) value;
+          Object jooValue = literal.getSymbol().getJooValue();
+          if (jooValue instanceof String) {
+            values.add((String)jooValue);
+          }
+        }
+      }
+      current = current.getTail();
+    }
+    return values;
   }
 
   public void addRequiredDependency(CompilationUnit otherUnit) {
