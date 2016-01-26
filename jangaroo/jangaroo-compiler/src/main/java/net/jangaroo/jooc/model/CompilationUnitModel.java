@@ -4,7 +4,9 @@ import net.jangaroo.utils.CompilerUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * A model of an ActionScript compilation unit.
@@ -13,6 +15,7 @@ public class CompilationUnitModel implements ActionScriptModel {
 
   private String packageName = "";
   private List<String> imports = new ArrayList<String>();
+  private Set<String> dependenciesInModule = new LinkedHashSet<String>();
   private NamedModel primaryDeclaration;
 
   public CompilationUnitModel() {
@@ -60,6 +63,14 @@ public class CompilationUnitModel implements ActionScriptModel {
 
   public List<String> getImports() {
     return Collections.unmodifiableList(imports);
+  }
+
+  public void addDependencyInModule(String dependency) {
+    dependenciesInModule.add(dependency);
+  }
+
+  public Set<String> getDependenciesInModule() {
+    return dependenciesInModule;
   }
 
   public void addImplicitImports() {

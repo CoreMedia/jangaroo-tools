@@ -4,6 +4,8 @@ package net.jangaroo.exml.model;
 import net.jangaroo.utils.AS3Type;
 import net.jangaroo.utils.CompilerUtils;
 
+import java.util.regex.Pattern;
+
 public class Declaration extends TypedField {
   private String value;
 
@@ -26,5 +28,9 @@ public class Declaration extends TypedField {
 
   public void setValue(String value) {
     this.value = value;
+  }
+
+  public boolean isStandAloneConstant() {
+    return value == null || Pattern.matches("true|false|null|undefined|\"([^\"\\\\]|\\\\.)*\"|'([^'\\\\]|\\\\.)*'|NaN|[-+]?[0-9][.0-9eE]*", value);
   }
 }

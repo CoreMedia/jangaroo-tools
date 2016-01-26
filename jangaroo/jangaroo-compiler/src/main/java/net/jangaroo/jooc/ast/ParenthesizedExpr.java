@@ -80,4 +80,10 @@ public class ParenthesizedExpr<E extends Expr> extends Expr {
   public IdeDeclaration getType() {
     return expr == null ? null : expr.getType();
   }
+
+  @Override
+  public boolean isStandAloneConstant() {
+    return expr == null || expr.isStandAloneConstant();
+  }
+
 }

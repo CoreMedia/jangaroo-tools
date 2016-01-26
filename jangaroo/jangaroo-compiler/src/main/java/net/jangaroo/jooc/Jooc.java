@@ -44,7 +44,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * The Jangaroo AS3-to-JS Compiler's main class.
@@ -145,9 +147,14 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
         if (getConfig().getPublicApiViolationsMode() != PublicApiViolationsMode.ALLOW) {
           reportPublicApiViolations(unit);
         }
+      }
+
+      analyzeDependencies();
+
+      for (CompilationUnit unit : compileQueue) {
         File sourceFile = ((FileInputSource)unit.getSource()).getFile();
         File outputFile = null;
-        // only generate JavaScript if [Native] annotation and 'native' modifier on primary declaration are not present:
+        // only generate JavaScript if [Native] annotation and 'native' modifier on primary compilationUnit are not present:
         if (unit.getAnnotation(NATIVE_ANNOTATION_NAME) == null && !unit.getPrimaryDeclaration().isNative()) {
           outputFile = writeOutput(sourceFile, unit, codeSinkFactory, getConfig().isVerbose());
         }
@@ -163,6 +170,56 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
     } finally {
       tearDown();
     }
+  }
+
+  private void analyzeDependencies() throws IOException {
+    DependencyGraph dependencyGraph = makeDependencyGraph();
+    dependencyGraph.analyze();
+
+    File reportOutputDirectory = getConfig().getReportOutputDirectory();
+    if (reportOutputDirectory != null) {
+      File dependencyGraphFile = new File(reportOutputDirectory, "dependencies.graphml");
+      try {
+        dependencyGraph.writeDependencyGraphToFile(dependencyGraphFile);
+      } catch (IOException e) {
+        logCompilerError(e);
+      }
+    }
+
+    if (dependencyGraph.hasErrors()) {
+      if (reportOutputDirectory != null) {
+        File errorGraphFile = new File(reportOutputDirectory, "cycles.graphml");
+        try {
+          dependencyGraph.writeErrorGraphToFile(errorGraphFile);
+          log.error("A dependency graph of classes with dependency errors has been written to " + errorGraphFile.getAbsolutePath() + ".");
+        } catch (IOException e) {
+          logCompilerError(e);
+        }
+      }
+
+      throw error(dependencyGraph.createDependencyError());
+    }
+  }
+
+  private DependencyGraph makeDependencyGraph() throws IOException {
+    // Build a dependency graph from all compilation units.
+    // New compilation unit might be parsed while the graph is build,
+    // so that a double loop must be used to avoid concurrent
+    // modification exceptions.
+    DependencyGraph dependencyGraph = new DependencyGraph();
+    Set<CompilationUnit> processedCompilationUnits = new HashSet<CompilationUnit>();
+    Set<CompilationUnit> unprocessedCompilationUnits = new HashSet<CompilationUnit>(getCompilationUnits());
+    while (!unprocessedCompilationUnits.isEmpty()) {
+      for (final CompilationUnit compilationUnit : unprocessedCompilationUnits) {
+        if (processedCompilationUnits.add(compilationUnit) && compilationUnit.getSource().isInSourcePath()) {
+          dependencyGraph.fillInDependencies(compilationUnit);
+        }
+      }
+
+      unprocessedCompilationUnits = new HashSet<CompilationUnit>(getCompilationUnits());
+      unprocessedCompilationUnits.removeAll(processedCompilationUnits);
+    }
+    return dependencyGraph;
   }
 
   @Override
@@ -300,8 +357,6 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
     }
   }
 
-
-
   public static int run(String[] argv, CompileLog log) {
     try {
       JoocCommandLineParser commandLineParser = new JoocCommandLineParser();
@@ -322,4 +377,5 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
       System.exit(result);
     }
   }
+
 }

@@ -45,6 +45,7 @@ public class CompilationUnit extends NodeImplBase {
   private JooSymbol rBrace;
 
   private Map<CompilationUnit, Boolean> dependenciesAsCompilationUnits = new LinkedHashMap<CompilationUnit, Boolean>();
+  private Set<CompilationUnit> dependenciesInModule = new LinkedHashSet<CompilationUnit>();
   private List<String> resourceDependencies = new ArrayList<String>();
   private Set<String> publicApiDependencies = new LinkedHashSet<String>();
   private Set<String> usedBuiltIns = new LinkedHashSet<String>();
@@ -182,6 +183,10 @@ public class CompilationUnit extends NodeImplBase {
     return dependenciesAsCompilationUnits.get(dependency);
   }
 
+  public Set<CompilationUnit> getDependenciesInModule() {
+    return dependenciesInModule;
+  }
+
   public JangarooParser getCompiler() {
     return compiler;
   }
@@ -208,14 +213,6 @@ public class CompilationUnit extends NodeImplBase {
     primaryDeclaration.analyze(this);
   }
 
-  public Set<String> getUsedAnnotations() {
-    Set<String> usedAnnotations = new LinkedHashSet<String>();
-    for (Annotation annotation : getAnnotations()) {
-      usedAnnotations.add(annotation.getMetaName());
-    }
-    return usedAnnotations;
-  }
-
   public List<Annotation> getAnnotations() {
     List<Annotation> annotations = new ArrayList<Annotation>();
     for (AstNode directive : getDirectives()) {
@@ -240,34 +237,55 @@ public class CompilationUnit extends NodeImplBase {
   }
 
   public void addDependency(String otherUnitQName) {
-    addDependency(getCompiler().getCompilationUnit(otherUnitQName));
+    addDependency(getCompiler().getCompilationUnit(otherUnitQName), false);
   }
 
-  public void addDependency(CompilationUnit otherUnit) {
-    addDependency(otherUnit, false);
-  }
- 
   public void addDependency(CompilationUnit otherUnit, boolean required) {
-    // predefined ides have a null unit
+    // Predefined ides have a null unit.
+    // Self dependencies are ignored.
     if (otherUnit != null && otherUnit != this) {
-      Boolean oldRequired = dependenciesAsCompilationUnits.get(otherUnit);
-      IdeDeclaration primaryDeclaration = getPrimaryDeclaration();
-      if (required && primaryDeclaration instanceof ClassDeclaration && otherUnit.getPrimaryDeclaration() instanceof ClassDeclaration && getSource().isInSourcePath() && otherUnit.getSource().isInSourcePath()) {
-        // never require any of your own subclasses:
-        ClassDeclaration currentClass = (ClassDeclaration) otherUnit.getPrimaryDeclaration();
-        String qualifiedName = primaryDeclaration.getQualifiedNameStr();
-        while (currentClass != null) {
-          if (currentClass.getQualifiedNameStr().equals(qualifiedName)) {
-            required = false;
-            break;
+      // Dependencies on other modules may always be considered required,
+      // because they cannot lead to cycles.
+      boolean alreadyRequired = Boolean.TRUE.equals(dependenciesAsCompilationUnits.get(otherUnit));
+      boolean inModule = otherUnit.getSource().isInSourcePath();
+      dependenciesAsCompilationUnits.put(otherUnit, required || alreadyRequired || !inModule);
+      if (inModule) {
+        dependenciesInModule.add(otherUnit);
+      } else {
+        List<Annotation> annotations = otherUnit.getAnnotations();
+        for (Annotation annotation : annotations) {
+          if ("Uses".equals(annotation.getMetaName())) {
+            CommaSeparatedList<AnnotationParameter> current = annotation.getOptAnnotationParameters();
+            for (String value : getAnnotationStringListValue(current)) {
+              dependenciesAsCompilationUnits.put(getCompiler().getCompilationUnit(value), true);
+            }
           }
-          currentClass = currentClass.getSuperTypeDeclaration();
         }
       }
-      if (oldRequired == null || !oldRequired && required) {
-        dependenciesAsCompilationUnits.put(otherUnit, required);
-      }
     }
+  }
+
+  private List<String> getAnnotationStringListValue(CommaSeparatedList<AnnotationParameter> current) {
+    List<String> values = new ArrayList<String>();
+    while (current != null) {
+      AnnotationParameter head = current.getHead();
+      if (head.getOptName() == null) {
+        AstNode value = head.getValue();
+        if (value instanceof LiteralExpr) {
+          LiteralExpr literal = (LiteralExpr) value;
+          Object jooValue = literal.getSymbol().getJooValue();
+          if (jooValue instanceof String) {
+            values.add((String)jooValue);
+          }
+        }
+      }
+      current = current.getTail();
+    }
+    return values;
+  }
+
+  public void addRequiredDependency(CompilationUnit otherUnit) {
+    addDependency(otherUnit, true);
   }
 
   public void addPublicApiDependency(CompilationUnit otherUnit) {

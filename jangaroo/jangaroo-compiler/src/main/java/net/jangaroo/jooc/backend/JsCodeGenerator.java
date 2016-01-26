@@ -466,20 +466,6 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     return (String) getAnnotationParameterValue(nativeAnnotation, Jooc.NATIVE_ANNOTATION_REQUIRE_PROPERTY, "");
   }
 
-  private Set<String> computeUseQName(CompilationUnit compilationUnit) {
-    Set<String> useQName = new HashSet<String>();
-    Set<String> shortNames = new HashSet<String>();
-    // avoid name-clash of import with class being defined:
-    shortNames.add(compilationUnit.getPrimaryDeclaration().getName());
-    for (CompilationUnit dependentCU : compilationUnit.getDependenciesAsCompilationUnits()) {
-      String dependentPrimaryDeclarationName = dependentCU.getPrimaryDeclaration().getName();
-      if (!shortNames.add(dependentPrimaryDeclarationName)) {
-        useQName.add(dependentPrimaryDeclarationName);
-      }
-    }
-    return useQName;
-  }
-
   private static Object getAnnotationParameterValue(Annotation nativeAnnotation, String name,
                                                     Object defaultValue) {
     CommaSeparatedList<AnnotationParameter> annotationParameters = nativeAnnotation.getOptAnnotationParameters();
@@ -1294,7 +1280,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     } else {
       out.writeSymbol(forInStatement.getSymIn());
       if (exprAuxIde != null) {
-        // assign the expression value to the auxiliary expression value variable once:
+        // assign the ^ value to the auxiliary expression value variable once:
         out.writeToken(exprAuxIde.getName());
         out.writeToken("=");
       }
@@ -2042,21 +2028,21 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     }
 
     public List<Object> compress(List<Metadata> metadataList) {
-      List<Object> comressedMetadataList = new ArrayList<Object>();
+      List<Object> compressedMetadataList = new ArrayList<Object>();
       for (Metadata metadata : metadataList) {
         if (!ANNOTATIONS_FOR_COMPILER_ONLY.contains(metadata.name)) {
-          comressedMetadataList.add(metadata.name);
+          compressedMetadataList.add(metadata.name);
           if (!metadata.args.isEmpty()) {
             ArrayList<Object> argNameValues = new ArrayList<Object>();
             for (MetadataArgument metadataArgument : metadata.args) {
               argNameValues.add(metadataArgument.name);
               argNameValues.add(metadataArgument.value);
             }
-            comressedMetadataList.add(new JsonArray(argNameValues.toArray()));
+            compressedMetadataList.add(new JsonArray(argNameValues.toArray()));
           }
         }
       }
-      return comressedMetadataList;
+      return compressedMetadataList;
     }
   }
 }

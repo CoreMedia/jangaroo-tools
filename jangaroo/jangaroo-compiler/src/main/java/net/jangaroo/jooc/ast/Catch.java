@@ -101,7 +101,7 @@ public class Catch extends KeywordStatement {
     TypeRelation typeRelation = param.getOptTypeRelation();
     if (typeRelation != null) {
       Type type = typeRelation.getType();
-      type.getIde().addExternalUsage(); // init will be done by is()!
+      type.getIde().addExternalUsage(false);
     }
     block.analyze(this);
   }

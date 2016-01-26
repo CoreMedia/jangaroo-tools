@@ -76,6 +76,10 @@ public class ConditionalExpr extends Expr {
     return getCond().isCompileTimeConstant() && getIfTrue().isCompileTimeConstant() && getIfFalse().isCompileTimeConstant();
   }
 
+  public boolean isStandAloneConstant() {
+    return getCond().isStandAloneConstant() && getIfTrue().isStandAloneConstant() && getIfFalse().isStandAloneConstant();
+  }
+
   public Expr getCond() {
     return cond;
   }

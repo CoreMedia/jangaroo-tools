@@ -28,6 +28,7 @@ import java.util.List;
 public class TestSyntaxErrors extends JooTestCase {
 
   private static final String ERROR_PACKAGE_PATH = "error";
+  public static final String CYCLIC_FOLDER = "cyclic";
 
   /**
    * The number of erroneous .as files. Increase whenever you add a new error file.
@@ -52,7 +53,9 @@ public class TestSyntaxErrors extends JooTestCase {
     List<File> passed = new LinkedList<File>();
     for (File file : files) {
       if (file.isDirectory()) {
-        checkAllErrorClasses(file, baseDirName + "/" + file.getName());
+        if (!CYCLIC_FOLDER.equals(file.getName())) {
+          checkAllErrorClasses(file, baseDirName + "/" + file.getName());
+        }
       } else if (file.getName().startsWith("Test") && file.getName().endsWith(".as")) {
         int resultCode = runJooc(baseDirName + "/" + file.getName());
         if (resultCode == CompilationResult.RESULT_CODE_COMPILATION_FAILED) {
@@ -71,6 +74,14 @@ public class TestSyntaxErrors extends JooTestCase {
       fail(msg.toString());
     }
     return total;
+  }
+
+  public void testCyclicDependencies() {
+    int resultCode = runJooc(new String[]{
+            ERROR_PACKAGE_PATH + "/" + CYCLIC_FOLDER + "/CyclicDependencyA.as",
+            ERROR_PACKAGE_PATH + "/" + CYCLIC_FOLDER + "/CyclicDependencyB.as"
+    });
+    assertEquals(CompilationResult.RESULT_CODE_COMPILATION_FAILED, resultCode);
   }
 }
 

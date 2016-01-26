@@ -36,7 +36,9 @@ public class VariableDeclaration extends TypedIdeDeclaration {
 
   // null: not yet computed; false: no constant or currently computing; true: constant
   private Boolean declaringCompileTimeConstant = null;
-  
+  // null: not yet computed; false: no constant or currently computing; true: constant
+  private Boolean declaringStandAloneConstant = null;
+
   private VariableDeclaration previousVariableDeclaration;
 
   public VariableDeclaration(JooSymbol[] modifiers,
@@ -128,6 +130,16 @@ public class VariableDeclaration extends TypedIdeDeclaration {
       }
     }
     return declaringCompileTimeConstant;
+  }
+
+  public boolean isDeclaringStandAloneConstant() {
+    if (declaringStandAloneConstant == null) {
+      declaringStandAloneConstant = false; // avoid infinite recursion if a const is defined using itself
+      if (isConst()) {
+        declaringStandAloneConstant = getOptInitializer() == null || getOptInitializer().getValue().isStandAloneConstant();
+      }
+    }
+    return declaringStandAloneConstant;
   }
 
   public void analyze(AstNode parentNode) {

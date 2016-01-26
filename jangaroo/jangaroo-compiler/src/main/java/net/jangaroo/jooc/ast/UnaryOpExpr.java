@@ -56,6 +56,10 @@ public abstract class UnaryOpExpr extends OpExpr {
     return getArg().isCompileTimeConstant();
   }
 
+  public boolean isStandAloneConstant() {
+    return getArg().isStandAloneConstant();
+  }
+
   public Expr getArg() {
     return arg;
   }

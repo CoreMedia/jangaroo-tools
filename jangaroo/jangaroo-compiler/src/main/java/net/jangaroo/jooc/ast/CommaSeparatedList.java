@@ -85,4 +85,9 @@ public class CommaSeparatedList<T extends AstNode> extends Expr {
     return tail;
   }
 
+  public boolean isStandAloneConstant() {
+    return (head instanceof Expr && ((Expr)head).isStandAloneConstant() || head instanceof  ObjectField && ((ObjectField)head).isStandAloneConstant()) &&
+            (tail == null || tail.isStandAloneConstant());
+  }
+
 }

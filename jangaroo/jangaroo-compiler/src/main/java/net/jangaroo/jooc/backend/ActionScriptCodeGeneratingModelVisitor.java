@@ -59,6 +59,9 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
       output.printf("import %s;%n", anImport);
     }
     output.println();
+    for (String aDependency : compilationUnitModel.getDependenciesInModule()) {
+      output.printf("[Uses (\"%s\")]%n", aDependency);
+    }
     compilationUnitModel.getPrimaryDeclaration().visit(this);
     indent = "";
     output.print("}");

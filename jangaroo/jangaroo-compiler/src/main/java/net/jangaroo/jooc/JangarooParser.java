@@ -34,6 +34,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -269,6 +270,10 @@ public class JangarooParser {
       throw error(importDirective.getSymbol(), "unable to resolve import of " + qname);
     }
     return compilationUnit.getPrimaryDeclaration();
+  }
+
+  public Collection<CompilationUnit> getCompilationUnits() {
+    return compilationUnitsByQName.values();
   }
 
   public CompilationUnit getCompilationUnit(String qname) {

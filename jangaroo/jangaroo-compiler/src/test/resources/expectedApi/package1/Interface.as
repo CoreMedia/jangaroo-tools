@@ -1,5 +1,6 @@
 package package1 {
 
+[Uses ("package1.SuperInterface")]
 /**
  * Some ASDoc.
  */

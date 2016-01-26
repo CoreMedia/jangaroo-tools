@@ -141,14 +141,6 @@ public class Ide extends NodeImplBase {
     return false;
   }
 
-  public boolean addExternalUsage() {
-    Scope scope = getScope();
-    AstNode definingNode = scope.getDefiningNode();
-    return addExternalUsage(definingNode instanceof ClassDeclaration ||
-            definingNode instanceof PackageDeclaration ||
-            definingNode.getParentNode() instanceof FunctionDeclaration && ((FunctionDeclaration)definingNode.getParentNode()).isStatic());
-  }
-
   public boolean addExternalUsage(boolean required) {
     IdeDeclaration decl = getDeclaration(false);
     if (decl != null && (decl.isPrimaryDeclaration() || decl.isClassMember() && decl.isStatic())) {
@@ -293,7 +285,7 @@ public class Ide extends NodeImplBase {
         }
       }
     }
-    addExternalUsage();
+    addExternalUsage(false);
     //todo handle references to static super members
     // check access to another class or a constant of another class; other class then must be initialized:
     if (!(exprParent instanceof NewExpr) && !(exprParent instanceof IsExpr) && !(exprParent instanceof AsExpr)) {

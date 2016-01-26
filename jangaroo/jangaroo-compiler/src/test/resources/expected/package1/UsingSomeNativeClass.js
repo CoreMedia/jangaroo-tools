@@ -49,7 +49,9 @@ public class UsingSomeNativeClass {
       getAnotherNativeAccessor: get$anotherNativeAccessor,
       isMonkey: get$monkey,
       setMonkey: set$monkey,
-      requires: ["SomeOtherNativeClass"],
-      uses: ["AS3.package1.someOtherPackage.SomeNativeClass"]
+      uses: [
+        "SomeOtherNativeClass",
+        "AS3.package1.someOtherPackage.SomeNativeClass"
+      ]
     };
 });

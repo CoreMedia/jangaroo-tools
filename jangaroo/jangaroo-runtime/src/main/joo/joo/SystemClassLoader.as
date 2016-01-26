@@ -19,10 +19,6 @@ package joo {
 
 public class SystemClassLoader {
 
-{
-  classLoader = new SystemClassLoader();
-}
-
   public static const classDeclarationsByName : Object/*<String,JooClassDeclaration>*/ = {};
 
   public var debug : Boolean;

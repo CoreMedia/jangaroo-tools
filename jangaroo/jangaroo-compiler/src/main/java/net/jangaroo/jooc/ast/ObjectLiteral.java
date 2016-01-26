@@ -68,6 +68,11 @@ public class ObjectLiteral extends Expr {
     }
   }
 
+  @Override
+  public boolean isStandAloneConstant() {
+    return fields == null || fields.isStandAloneConstant();
+  }
+
   public JooSymbol getSymbol() {
     return getLBrace();
   }
