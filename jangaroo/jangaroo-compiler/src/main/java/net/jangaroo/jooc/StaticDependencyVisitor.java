@@ -93,10 +93,9 @@ class StaticDependencyVisitor extends TransitiveAstVisitor {
     // The identifier is defined in a different compilation unit in the same module.
     // The dependency must be analysed, because it might have to be
     // strengthened into a required dependency.
-    boolean isStatic = ideDeclaration.isStatic();
     // Ignore ordinary method calls: The called class must have been initialized,
     // because an instance has already been created.
-    if (isStatic) {
+    if (ideDeclaration.isStatic() || ideDeclaration instanceof ClassDeclaration) {
       nonFunctionUses.put(currentDeclaration[0],
               new Dependency(ideDeclaration.getCompilationUnit(), DependencyLevel.STATIC));
     }
