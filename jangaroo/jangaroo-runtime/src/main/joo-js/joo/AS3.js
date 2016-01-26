@@ -90,13 +90,15 @@ AS3 = {
     if (value === undefined || value === null) {
       return value;
     }
-    if (type.$className && type.prototype &&
+    var typePrototype = type.prototype;
+    if (type.$className && typePrototype &&
             typeof value === "object" && !value.isInstance && !value.xclass && !value.xtype) {
-      if (type.prototype.hasOwnProperty("xtype") && type.prototype.xtype) {
-        value.xtype = type.prototype.xtype;
-      } else {
-        value.xclass = type.$className;
+      if (typePrototype.hasOwnProperty("xtype") && typePrototype.xtype) {
+        value.xtype = typePrototype.xtype;
+      } else if (typePrototype.hasOwnProperty("type") && typePrototype.type) {
+        value.type = typePrototype.type;
       }
+      value.xclass = type.$className;
     } else if (!AS3.is(value, type)) {
       throw new TypeError("Value cannot be cast to " + Ext.getClassName(type) + ": " + value);
     }
