@@ -582,7 +582,11 @@ public class JsCodeGenerator extends CodeGeneratorBase {
             if (ideDeclaration.isPrimaryDeclaration()) {
               ideText = compilationUnitAccessCode(ideDeclaration);
             } else if (ideDeclaration.isPrivateStatic()) {
-              ideText += "$static";
+              if (ideDeclaration instanceof FunctionDeclaration && ((FunctionDeclaration)ideDeclaration).isGetterOrSetter()) {
+                ideText = "get$" + ideText + "$static()";
+              } else {
+                ideText += "$static";
+              }
             }
           }
         }
@@ -718,7 +722,18 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       if (leftHandSide instanceof IdeExpr) {
         leftHandSide = ((IdeExpr)leftHandSide).getNormalizedExpr();
       }
-      if (leftHandSide instanceof DotExpr) {
+      if (leftHandSide instanceof IdeExpr) {
+        Ide ide = ((IdeExpr) leftHandSide).getIde();
+        IdeDeclaration ideDeclaration = ide.getDeclaration(false);
+        if (ideDeclaration != null && ideDeclaration.isPrivateStatic() && ideDeclaration instanceof FunctionDeclaration
+                && ((FunctionDeclaration)ideDeclaration).isGetterOrSetter()) {
+          writeSymbolReplacement(ide.getSymbol(), "set$" + ide.getName() + "$static");
+          writeSymbolReplacement(assignmentOpExpr.getOp(), "(");
+          assignmentOpExpr.getArg2().visit(this);
+          out.writeToken(")");
+          return;
+        }
+      } else if (leftHandSide instanceof DotExpr) {
         DotExpr dotExpr = (DotExpr) leftHandSide;
         setter = resolveBindable(dotExpr, MethodType.SET);
         dotExprArg = dotExpr.getArg();

@@ -115,8 +115,15 @@ public class TestStaticAccess extends StaticAccessSuperClass {
   }
 
   static public function get_s2_via_private_static_method_full_qualified():String {
+    some_private_static = some_private_static + "foo";
     return package2.TestStaticAccess.get_s2_private();
   }
 
+  private static function get some_private_static():String {
+    return "some_private_static";
+  }
+
+  private static function set some_private_static(value:String):void {
+  }
 }
 }

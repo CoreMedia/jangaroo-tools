@@ -59,7 +59,7 @@ page.onError = function(e, stack) {
   stack.forEach(function(item, i) {
     console.error("[ERROR]", (stack.length - i) + ".", item.file, ':', item.line, item.function ? ' (in function "' + item.function + '")' : '');
   });
-  phantom.exit(2);
+//  phantom.exit(2);
 };
 page.onCallback = function(result) {
   console.log("RESULT:\n" + result);
