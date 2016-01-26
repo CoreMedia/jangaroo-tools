@@ -72,7 +72,7 @@ class StaticDependencyVisitor extends TransitiveAstVisitor {
       if (ideCompilationUnit != null && ideCompilationUnit.getSource().isInSourcePath()) {
         if (isNew) {
           constructorReferenced(ideDeclaration);
-        } else if (!ideCompilationUnit.equals(compilationUnit)) {
+        } else if (!ideCompilationUnit.getPrimaryDeclaration().getQualifiedNameStr().equals(compilationUnit.getPrimaryDeclaration().getQualifiedNameStr())) {
           otherCompilationUnitReferenced(ideDeclaration);
         } else if (ideDeclaration instanceof FunctionDeclaration) {
           ownFunctionReferenced((FunctionDeclaration) ideDeclaration);
