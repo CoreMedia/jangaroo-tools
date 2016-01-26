@@ -560,8 +560,11 @@ public final class MxmlToModelParser {
 
   private boolean useConfigObject(ClassModel classModel) throws IOException {
     for (ClassModel current = classModel; current != null; current = getSuperClassModel(current)) {
-      if (!current.getAnnotations("ExtConfig").isEmpty()) {
-        return true;
+      Iterator<AnnotationModel> extConfigAnnotations = current.getAnnotations("ExtConfig").iterator();
+      if (extConfigAnnotations.hasNext()) {
+        AnnotationModel extConfigAnnotation = extConfigAnnotations.next();
+        AnnotationPropertyModel create = extConfigAnnotation.getPropertiesByName().get("create");
+        return create == null || "false".equals(create.getValue());
       }
       // special case Plugin (avoid having to check all interfaces):
       if (current.getInterfaces().contains("ext.Plugin") || current.getInterfaces().contains("Plugin")) {
