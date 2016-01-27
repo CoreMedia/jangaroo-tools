@@ -285,15 +285,17 @@ public class ExmlToMxml {
       }
       for (int i = 0; i < atts.getLength(); ++i) {
         String attributeName = atts.getQName(i);
-        if ("id".equals(attributeName)) {
-          attributeName = "id_";
-        } else if (isPropertyElement && Exmlc.EXML_MODE_ATTRIBUTE.equals(attributeName)) {
-          attributeName = qName(exmlPrefix, Exmlc.EXML_MODE_ATTRIBUTE);
-        } else if (Exmlc.EXML_BASE_CLASS_ATTRIBUTE.equals(attributeName) ||
+        if (Exmlc.EXML_BASE_CLASS_ATTRIBUTE.equals(attributeName) ||
                 Exmlc.EXML_PUBLIC_API_ATTRIBUTE.equals(attributeName)) {
           continue;
+        }
+        if (isPropertyElement && Exmlc.EXML_MODE_ATTRIBUTE.equals(attributeName)) {
+          attributeName = qName(exmlPrefix, Exmlc.EXML_MODE_ATTRIBUTE);
         } else if (!isPropertyElement) {
           attributeName = getTargetClassAttributeName(uri, originalQName, attributeName);
+        }
+        if ("id".equals(attributeName)) {
+          attributeName = "id_";
         }
 
         if (attributeName.length() > 0) {
