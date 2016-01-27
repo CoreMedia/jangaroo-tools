@@ -9,13 +9,14 @@
                 xmlns:test="exml:testNamespace.config"
                 title="{config.defaultTitle}">
   <fx:Script><![CDATA[
+    import testNamespace.config.testComponentWithAction;
+
     public static const xtype:String = "testNamespace.config.testComponentWithAction";
 
-    public native function TestComponentWithAction(config:testPackage.TestComponentWithAction = null);
+    private var config:testComponentWithAction;
+
+    public native function TestComponentWithAction(config:testComponentWithAction = null);
   ]]></fx:Script>
-  <fx:Declarations>
-    <local:TestComponentWithAction id="config"/>
-  </fx:Declarations>
 
     <items>
       <Button>

@@ -8,13 +8,14 @@
                 xmlns="exml:ext.config"
                 title="Hello World">
   <fx:Script><![CDATA[
+    import testNamespace.config.testComponentWithBaseClassFromSamePackage;
+
     public static const xtype:String = "testNamespace.config.testComponentWithBaseClassFromSamePackage";
 
-    public native function TestComponentWithBaseClassFromSamePackage(config:testPackage.TestComponentWithBaseClassFromSamePackage = null);
+    private var config:testComponentWithBaseClassFromSamePackage;
+
+    public native function TestComponentWithBaseClassFromSamePackage(config:testComponentWithBaseClassFromSamePackage = null);
   ]]></fx:Script>
-  <fx:Declarations>
-    <local:TestComponentWithBaseClassFromSamePackage id="config"/>
-  </fx:Declarations>
 
     <local:items>
       <Button text="foo"/>

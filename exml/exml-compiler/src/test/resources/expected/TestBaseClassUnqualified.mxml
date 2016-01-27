@@ -6,13 +6,13 @@
                 xmlns:ns1="someOtherPackage.base.*">
   <fx:Script><![CDATA[
     import someOtherPackage.base.BaseClass;
+    import testNamespace.config.testBaseClassUnqualified;
 
     public static const xtype:String = "testNamespace.config.testBaseClassUnqualified";
 
-    public native function TestBaseClassUnqualified(config:exmlparser.TestBaseClassUnqualified = null);
+    private var config:testBaseClassUnqualified;
+
+    public native function TestBaseClassUnqualified(config:testBaseClassUnqualified = null);
   ]]></fx:Script>
-  <fx:Declarations>
-    <local:TestBaseClassUnqualified id="config"/>
-  </fx:Declarations>
 
 </ns1:BaseClass>

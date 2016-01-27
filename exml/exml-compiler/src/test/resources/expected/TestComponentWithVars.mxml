@@ -11,24 +11,25 @@
   <fx:Script><![CDATA[
     import com.coremedia.cms.editor.sdk.editorContext;
     import com.coremedia.cms.editor.sdk.sites.SitesService;
+    import testNamespace.config.testComponentWithVars;
 
     public static const xtype:String = "testNamespace.config.testComponentWithVars";
 
+    private var config:testComponentWithVars;
     private var varWithExpressionValue:Array;
     private var varWithXmlValue:button;
     private var varWithXmlArrayValue:Array;
     private var sitesService:com.coremedia.cms.editor.sdk.sites.SitesService;
 
     // called by generated constructor code
-    private function __initialize__(config:testPackage.TestComponentWithVars):void {
+    private function __initialize__(config:testComponentWithVars):void {
       varWithExpressionValue = [1, 2, 3];
       sitesService = editorContext.getSitesService();
     }
 
-    public native function TestComponentWithVars(config:testPackage.TestComponentWithVars = null);
+    public native function TestComponentWithVars(config:testComponentWithVars = null);
   ]]></fx:Script>
   <fx:Declarations>
-    <local:TestComponentWithVars id="config"/>
     <Button id="varWithXmlValue"
                text="click me!"
                allowDepress="true"/>

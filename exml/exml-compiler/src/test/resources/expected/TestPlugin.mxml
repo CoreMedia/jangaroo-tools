@@ -5,10 +5,11 @@
              xmlns:exml="http://www.jangaroo.net/exml/0.8"
              xmlns="exml:ext.config">
   <fx:Script><![CDATA[
-    public native function TestPlugin(config:testPackage.TestPlugin = null);
+    import testNamespace.config.testPlugin;
+
+    private var config:testPlugin;
+
+    public native function TestPlugin(config:testPlugin = null);
   ]]></fx:Script>
-  <fx:Declarations>
-    <local:TestPlugin id="config"/>
-  </fx:Declarations>
 
 </Plugin>

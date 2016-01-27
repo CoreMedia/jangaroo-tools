@@ -10,19 +10,19 @@
   <fx:Script><![CDATA[
     import com.coremedia.cms.editor.sdk.editorContext;
     import com.coremedia.cms.editor.sdk.sites.SitesService;
+    import testNamespace.config.testPluginWithoutInnerRoot;
 
+    private var config:testPluginWithoutInnerRoot;
     private var sitesService:com.coremedia.cms.editor.sdk.sites.SitesService;
 
     // called by generated constructor code
-    private function __initialize__(config:testPackage.TestPluginWithoutInnerRoot):void {
+    private function __initialize__(config:testPluginWithoutInnerRoot):void {
       sitesService = editorContext.getSitesService();
     }
 
-    public native function TestPluginWithoutInnerRoot(config:testPackage.TestPluginWithoutInnerRoot = null);
+    public native function TestPluginWithoutInnerRoot(config:testPluginWithoutInnerRoot = null);
   ]]></fx:Script>
   <fx:Declarations>
-    <local:TestPluginWithoutInnerRoot id="config"/>
-
     <!--- Some Boolean property @see Boolean -->
     <fx:Boolean id="propertyOne"/>
   </fx:Declarations>

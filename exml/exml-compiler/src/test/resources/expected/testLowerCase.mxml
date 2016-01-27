@@ -4,12 +4,13 @@
                 xmlns:exml="http://www.jangaroo.net/exml/0.8"
                 xmlns="exml:ext.config">
   <fx:Script><![CDATA[
+    import testNamespace.config.testLowerCase;
+
     public static const xtype:String = "testNamespace.config.testLowerCase";
 
-    public native function TestLowerCase(config:exmlparser.TestLowerCase = null);
+    private var config:testLowerCase;
+
+    public native function TestLowerCase(config:testLowerCase = null);
   ]]></fx:Script>
-  <fx:Declarations>
-    <local:TestLowerCase id="config"/>
-  </fx:Declarations>
 
 </Panel>

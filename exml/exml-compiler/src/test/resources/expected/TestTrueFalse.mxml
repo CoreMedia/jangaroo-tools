@@ -4,13 +4,14 @@
                 xmlns:exml="http://www.jangaroo.net/exml/0.8"
                 xmlns="exml:ext.config">
   <fx:Script><![CDATA[
+    import testNamespace.config.testTrueFalse;
+
     public static const xtype:String = "testNamespace.config.testTrueFalse";
 
-    public native function TestTrueFalse(config:exmlparser.TestTrueFalse = null);
+    private var config:testTrueFalse;
+
+    public native function TestTrueFalse(config:testTrueFalse = null);
   ]]></fx:Script>
-  <fx:Declarations>
-    <local:TestTrueFalse id="config"/>
-  </fx:Declarations>
 
         <items>
             <Panel id_="foo"

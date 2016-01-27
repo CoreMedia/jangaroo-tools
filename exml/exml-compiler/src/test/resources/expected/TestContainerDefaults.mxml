@@ -5,13 +5,14 @@
                 xmlns:test="exml:testNamespace.config"
                 xmlns="exml:ext.config">
   <fx:Script><![CDATA[
+    import testNamespace.config.testContainerDefaults;
+
     public static const xtype:String = "testNamespace.config.testContainerDefaults";
 
-    public native function TestContainerDefaults(config:testPackage.TestContainerDefaults = null);
+    private var config:testContainerDefaults;
+
+    public native function TestContainerDefaults(config:testContainerDefaults = null);
   ]]></fx:Script>
-  <fx:Declarations>
-    <local:TestContainerDefaults id="config"/>
-  </fx:Declarations>
 
     <defaults>
       <Button text="it works!"/>

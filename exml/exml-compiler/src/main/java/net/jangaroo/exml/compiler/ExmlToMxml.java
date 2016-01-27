@@ -322,6 +322,7 @@ public class ExmlToMxml {
       }
       if (isNewRoot(uri, originalQName)) {
         flushPendingTagClose();
+        imports.add(exmlSourceFile.getConfigClassName());
         addImportsForConfigs();
         addImportsForConstants();
         printHeader();
@@ -529,15 +530,15 @@ public class ExmlToMxml {
     }
 
     private void printConstructor() {
-      String targetClassQName = exmlSourceFile.getTargetClassName();
-      currentOut.printf("    public native function %s(config:%s = null);%n", exmlModel.getClassName(), targetClassQName);
+      String configClassName = CompilerUtils.className(exmlSourceFile.getConfigClassName());
+      currentOut.printf("    public native function %s(config:%s = null);%n", exmlModel.getClassName(), configClassName);
     }
 
     private void printInitializer() {
-      String targetClassQName = exmlSourceFile.getTargetClassName();
+      String configClassName = CompilerUtils.className(exmlSourceFile.getConfigClassName());
       if (varsWithXmlValue.size() != vars.size()) {
         currentOut.printf("    // called by generated constructor code%n");
-        currentOut.printf("    private function __initialize__(config:%s):void {%n", targetClassQName);
+        currentOut.printf("    private function __initialize__(config:%s):void {%n", configClassName);
         for (Declaration var : vars) {
           if (!(varsWithXmlValue.contains(var.getName()))) {
             currentOut.printf("      %s = %s;%n", var.getName(), formatValue(var.getValue(), var.getType()));
@@ -548,6 +549,9 @@ public class ExmlToMxml {
     }
 
     private void printVars() {
+      String configClassName = CompilerUtils.className(exmlSourceFile.getConfigClassName());
+      currentOut.printf("    private var config:%s;%n", configClassName);
+
       for (Declaration var : vars) {
         String type = var.getType();
         if (type == null || type.isEmpty()) {
@@ -555,20 +559,20 @@ public class ExmlToMxml {
         }
         currentOut.printf("    private var %s:%s;%n", var.getName(), type);
       }
-      if (!vars.isEmpty()) {
-        currentOut.println();
-      }
+      currentOut.println();
     }
 
     private void printDeclarations() throws SAXException {
+      boolean hasDeclarations = false;
       String targetClassQName = exmlSourceFile.getTargetClassName();
       String targetClassName = CompilerUtils.className(targetClassQName);
 
-      currentOut.printf("%n  <fx:Declarations>");
-      currentOut.printf("%n    <%s:%s id=\"config\"/>", LOCAL_NAMESPACE, targetClassName);
-
       for (Declaration var : vars) {
-        if (varsWithXmlValue.contains(var.getName())) {
+        if (varsWithXmlValue.contains(var.getName()) && !"".equals(var.getValue())) {
+          if (!hasDeclarations) {
+            printOpenDeclarations();
+            hasDeclarations = true;
+          }
           currentOut.printf("%n    %s", var.getValue());
         }
       }
@@ -582,7 +586,12 @@ public class ExmlToMxml {
         String type = qName.getLocalPart();
         String prefix = qName.getPrefix();
 
-        currentOut.printf("%n");
+        if (!hasDeclarations) {
+          printOpenDeclarations();
+          hasDeclarations = true;
+        } else {
+          currentOut.printf("%n");
+        }
         if (config.getDescription() != null) {
           currentOut.printf("%n    ");
           printComment(config.getDescription());
@@ -608,6 +617,18 @@ public class ExmlToMxml {
         }
       }
 
+      if (hasDeclarations) {
+        printCloseDeclarations();
+      } else {
+        currentOut.println();
+      }
+    }
+
+    private void printOpenDeclarations() {
+      currentOut.printf("%n  <fx:Declarations>");
+    }
+
+    private void printCloseDeclarations() {
       currentOut.printf("%n  </fx:Declarations>%n");
     }
 

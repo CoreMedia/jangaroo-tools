@@ -4,13 +4,14 @@
                 xmlns:exml="http://www.jangaroo.net/exml/0.8"
                 xmlns="exml:ext.config">
   <fx:Script><![CDATA[
+    import testNamespace.config.testTyped;
+
     public static const xtype:String = "testNamespace.config.testTyped";
 
-    public native function TestTyped(config:exmlparser.TestTyped = null);
+    private var config:testTyped;
+
+    public native function TestTyped(config:testTyped = null);
   ]]></fx:Script>
-  <fx:Declarations>
-    <local:TestTyped id="config"/>
-  </fx:Declarations>
 
     <items>
       <Component margins="5"/>
