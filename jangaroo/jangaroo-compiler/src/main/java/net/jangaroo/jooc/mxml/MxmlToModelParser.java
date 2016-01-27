@@ -58,12 +58,17 @@ public final class MxmlToModelParser {
   public static final String MXML_DEFAULT_PROPERTY_ANNOTATION = "DefaultProperty";
   public static final String EXML_MIXINS_PROPERTY_NAME = "__mixins__";
 
-  public static final String ALLOW_CONSTRUCTOR_PARAMETERS_ANNOTATION = "AllowConstructorParameters";
   private static final String EXT_CONFIG_META_NAME = "ExtConfig";
+  private static final String EXT_CONFIG_CREATE_FLAG = "create";
+  private static final String EXT_CONFIG_EXTRACT_XTYPE_PARAMETER = "extractXType";
 
   private static final String CONFIG_MODE_AT_SUFFIX = "$at";
   private static final String CONFIG_MODE_ATTRIBUTE_NAME = "mode";
-  private static final Map<String, String> CONFIG_MODE_TO_AT_VALUE = new HashMap<String, String>(); static {
+  private static final Map<String, String> CONFIG_MODE_TO_AT_VALUE = new HashMap<String, String>();
+
+  private static final String DELETE_OBJECT_PROPERTY_CODE = "\n    delete %s['%s'];";
+
+  static {
     CONFIG_MODE_TO_AT_VALUE.put("append", "net.jangaroo.ext.Exml.APPEND");
     CONFIG_MODE_TO_AT_VALUE.put("prepend", "net.jangaroo.ext.Exml.PREPEND");
   }
@@ -248,7 +253,7 @@ public final class MxmlToModelParser {
         String elementName = element.getLocalName();
         if (MXML_DECLARATIONS.equals(elementName)) {
           for (Element declaration : MxmlUtils.getChildElements(element)) {
-            createValueCodeFromElement(configVar, declaration, false, false);
+            createValueCodeFromElement(configVar, declaration, null);
           }
         }
       }
@@ -415,25 +420,27 @@ public final class MxmlToModelParser {
   private void createChildElementsPropertyAssignmentCode(List<Element> childElements, String variable,
                                                          MemberModel propertyModel, boolean generatingConfig) throws IOException {
     boolean forceArray = "Array".equals(propertyModel.getType());
-    AnnotationModel allowConstructorAnnotation = getAnnotationAtSetter(propertyModel, ALLOW_CONSTRUCTOR_PARAMETERS_ANNOTATION);
-    boolean allowConstructorParameters = doAllowConstructorParameters(allowConstructorAnnotation);
-    boolean suppressType = allowConstructorAnnotation != null && allowConstructorAnnotation.getPropertiesByName().get("suppressType") != null;
-    String value = createArrayCodeFromChildElements(childElements, forceArray, allowConstructorParameters, suppressType);
+    AnnotationModel extConfigAnnotation = getAnnotationAtSetter(propertyModel, EXT_CONFIG_META_NAME);
+    Boolean useConfigObjects = extConfigAnnotation == null ? null : useConfigObjects(extConfigAnnotation, null);
+    String value = createArrayCodeFromChildElements(childElements, forceArray, useConfigObjects);
+    if (extConfigAnnotation != null) {
+      AnnotationPropertyModel extractXType = extConfigAnnotation.getPropertiesByName().get(EXT_CONFIG_EXTRACT_XTYPE_PARAMETER);
+      if (extractXType != null) {
+        String extractXTypeToProperty = extractXType.getStringValue();
+        if (extractXTypeToProperty != null) {
+          code.append("\n    ").append(getPropertyAssignmentCode(variable, extractXTypeToProperty, value + "['xtype']"));
+        }
+        code.append(String.format(DELETE_OBJECT_PROPERTY_CODE, value, "xtype"));
+        code.append(String.format(DELETE_OBJECT_PROPERTY_CODE, value, "xclass"));
+      }
+    }
     createPropertyAssignmentCode(variable, propertyModel, MxmlUtils.createBindingExpression(value), generatingConfig);
   }
 
-  private static boolean doAllowConstructorParameters(AnnotationModel allowConstructorAnnotation) {
-    if (allowConstructorAnnotation == null) {
-      return true;
-    }
-    AnnotationPropertyModel allow = allowConstructorAnnotation.getPropertiesByName().get(null);
-    return allow == null || "true".equals(allow.getValue());
-  }
-
-  private String createArrayCodeFromChildElements(List<Element> childElements, boolean forceArray, boolean allowConstructorParameters, boolean suppressType) throws IOException {
+  private String createArrayCodeFromChildElements(List<Element> childElements, boolean forceArray, Boolean useConfigObjects) throws IOException {
     List<String> arrayItems = new ArrayList<String>();
     for (Element arrayItemNode : childElements) {
-      String itemValue = createValueCodeFromElement("", arrayItemNode, allowConstructorParameters, suppressType);
+      String itemValue = createValueCodeFromElement("", arrayItemNode, useConfigObjects);
       arrayItems.add(itemValue);
     }
     String value;
@@ -460,14 +467,15 @@ public final class MxmlToModelParser {
     return sb.toString();
   }
 
-  private String createValueCodeFromElement(String configVar, Element objectElement, boolean allowConstructorParameters, boolean suppressType) throws IOException {
+  private String createValueCodeFromElement(String configVar, Element objectElement, Boolean useConfigObjects) throws IOException {
     String className = createClassNameFromNode(objectElement);
     if (className == null) {
       throw Jooc.error(position(objectElement), "Could not resolve class from MXML node " + objectElement.getNamespaceURI() + ":" + objectElement.getLocalName());
     }
     compilationUnitModel.addImport(className);
-    if (!suppressType && !useConfigObject(jangarooParser.getCompilationUnitModel(className).getClassModel())) {
-      allowConstructorParameters = false;
+    if (useConfigObjects == null) {
+      // let the class decide:
+      useConfigObjects = useConfigObjects(jangarooParser.getCompilationUnitModel(className).getClassModel());
     }
     String targetVariable = null;   // name of the variable holding the object to build
     String id = objectElement.getAttribute(MXML_ID_ATTRIBUTE);
@@ -495,7 +503,7 @@ public final class MxmlToModelParser {
     if (constructorSupportsConfigOptionsParameter(className)) {
       // if class supports a config options parameter, create a config options object and assign properties to it:
       configVariable = createAuxVar();
-      renderConfigAuxVar(configVariable, className, !suppressType);
+      renderConfigAuxVar(configVariable, className, true);
       if (targetVariable == null) {
         targetVariable = createAuxVar();
       }
@@ -517,7 +525,7 @@ public final class MxmlToModelParser {
     } else if ("Object".equals(className)) {
       value = "{}";
     } else if ("Array".equals(className)) {
-      value = createArrayCodeFromChildElements(MxmlUtils.getChildElements(objectElement), true, allowConstructorParameters, suppressType);
+      value = createArrayCodeFromChildElements(MxmlUtils.getChildElements(objectElement), true, useConfigObjects);
     } else {
       StringBuilder valueBuilder = new StringBuilder();
       valueBuilder.append("new ").append(className).append("(");
@@ -543,7 +551,7 @@ public final class MxmlToModelParser {
         targetVariable = createAuxVar();
       }
       code.append("\n    ").append("var ").append(targetVariable).append(":").append(className);
-    } else if (allowConstructorParameters) {
+    } else if (useConfigObjects) {
       return configVariable;
     } else {
       return value; // no aux var necessary
@@ -558,13 +566,12 @@ public final class MxmlToModelParser {
     return targetVariable;
   }
 
-  private boolean useConfigObject(ClassModel classModel) throws IOException {
+  private boolean useConfigObjects(ClassModel classModel) throws IOException {
     for (ClassModel current = classModel; current != null; current = getSuperClassModel(current)) {
       Iterator<AnnotationModel> extConfigAnnotations = current.getAnnotations("ExtConfig").iterator();
       if (extConfigAnnotations.hasNext()) {
         AnnotationModel extConfigAnnotation = extConfigAnnotations.next();
-        AnnotationPropertyModel create = extConfigAnnotation.getPropertiesByName().get("create");
-        return create == null || "false".equals(create.getValue());
+        return useConfigObjects(extConfigAnnotation, true);
       }
       // special case Plugin (avoid having to check all interfaces):
       if (current.getInterfaces().contains("ext.Plugin") || current.getInterfaces().contains("Plugin")) {
@@ -572,6 +579,14 @@ public final class MxmlToModelParser {
       }
     }
     return false;
+  }
+
+  private static Boolean useConfigObjects(AnnotationModel extConfigAnnotation, Boolean defaultValue) {
+    AnnotationPropertyModel flag = extConfigAnnotation.getPropertiesByName().get(EXT_CONFIG_CREATE_FLAG);
+    if (flag == null) {
+      return defaultValue;
+    }
+    return "false".equals(flag.getValue());
   }
 
   private String createAuxVar() {

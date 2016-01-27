@@ -56,8 +56,11 @@ public class SomeMxmlClass extends package1.ConfigClass {
     joo.addEventListener($_1, "click",AS3.bind( this,"$on_$_1_click$2"), AS3.package1.someOtherPackage.SomeEvent);
     $_1.foo = "bar";
     $_1.number = 1 + 1;
-    var $_8/*:package1.someOtherPackage.SomeOtherClass*/ = {};AS3.setBindable(
+    var $_8/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
     $_8,"bla" , 99);
+    $_1.defaultType = $_8['xtype'];
+    delete $_8['xtype'];
+    delete $_8['xclass'];
     $_1.defaults = $_8;
     var $_10/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
     $_10,"bla" , 23);

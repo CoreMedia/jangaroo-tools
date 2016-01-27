@@ -14,12 +14,12 @@ public class ConfigClass {
   public native function get items():Array;
 
   [DefaultProperty]
-  [AllowConstructorParameters(false)]
+  [ExtConfig(create)]
   public native function set items(value:Array):void;
 
   public native function get defaults():*;
 
-  [AllowConstructorParameters(suppressType)]
+  [ExtConfig(extractXType="defaultType")]
   public native function set defaults(value:*):void;
 }
 }

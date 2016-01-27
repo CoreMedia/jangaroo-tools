@@ -116,7 +116,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   private static final JooSymbol SYM_RBRACE = new JooSymbol(sym.RBRACE, "}");
   public static final Set<String> PRIMITIVES = new HashSet<String>(4);
   public static final List<String> ANNOTATIONS_TO_TRIGGER_AT_RUNTIME = Arrays.asList("SWF", "ExtConfig"); // TODO: inject / make configurable
-  public static final List<String> ANNOTATIONS_FOR_COMPILER_ONLY = Arrays.asList("Embed", "Native", "Bindable", "AllowConstructorParameters");
+  public static final List<String> ANNOTATIONS_FOR_COMPILER_ONLY = Arrays.asList("Embed", "Native", "Bindable", "ExtConfig");
   public static final String DEFAULT_ANNOTATION_PARAMETER_NAME = "";
   public static final String PROPERTIES_CLASS_SUFFIX = "_properties";
   public static final String INIT_STATICS = "__initStatics__";
