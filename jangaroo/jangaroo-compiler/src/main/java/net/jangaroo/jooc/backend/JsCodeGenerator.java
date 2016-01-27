@@ -242,8 +242,6 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     if (memberDeclaration != null) {
       if (memberDeclaration.isPrivate()) {
         memberName = memberName + "$" + ide.getScope().getClassDeclaration().getInheritanceLevel();
-      } else if (isSuperCall(ide)) {
-        memberName = "callParent";
       }
     }
 
@@ -572,7 +570,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     if (!out.isWritingComment()) {
       if (expressionMode) {
         if (ide.isSuper()) {
-          ideText = "this";
+          ideText = getSuperClassPrototypeAccessCode();
         }
         if ("this".equals(ideText) && ide.isRewriteThis()) {
           ideText = "this$";
@@ -1036,11 +1034,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       applyExpr.getFun().visit(this);
       // check for super call:
       if (args != null && applyExpr.getFun() instanceof IdeExpr && isSuperCall(((IdeExpr) applyExpr.getFun()).getIde())) {
-        out.writeSymbol(args.getLParen());
-        out.writeToken("[");
-        visitIfNotNull(args.getExpr());
-        out.writeToken("]");
-        out.writeSymbol(args.getRParen());
+        generateSuperCallParameters(args);
       } else {
         visitIfNotNull(args);
       }
@@ -1874,14 +1868,27 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   }
 
   private void generateSuperConstructorCallCode(ParenthesizedExpr<CommaSeparatedList<Expr>> args) throws IOException {
-    out.write("this.callParent");
+    out.write(getSuperClassPrototypeAccessCode() + ".constructor");
+    generateSuperCallParameters(args);
+  }
+
+  private String getSuperClassPrototypeAccessCode() {
+    return compilationUnitAccessCode(((ClassDeclaration)compilationUnit.getPrimaryDeclaration()).getSuperTypeDeclaration()) + ".prototype";
+  }
+
+  private void generateSuperCallParameters(ParenthesizedExpr<CommaSeparatedList<Expr>> args) throws IOException {
+    out.writeToken(".call");
     if (args == null) {
-      out.writeToken("([])");
+      out.writeToken("(this)");
     } else {
-      out.writeSymbol(args.getLParen());
-      out.writeToken("[");
-      visitIfNotNull(args.getExpr());
-      out.writeToken("]");
+      out.writeSymbolToken(args.getLParen());
+      out.writeToken("this");
+      out.writeSymbolWhitespace(args.getLParen());
+      CommaSeparatedList<Expr> parameters = args.getExpr();
+      if (parameters != null && parameters.getHead() != null) {
+        out.writeToken(",");
+        parameters.visit(this);
+      }
       out.writeSymbol(args.getRParen());
     }
   }

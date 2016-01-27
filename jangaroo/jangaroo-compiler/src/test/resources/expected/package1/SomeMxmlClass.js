@@ -86,7 +86,7 @@ public class SomeMxmlClass extends package1.ConfigClass {
     $_1.items = [new AS3.package1.someOtherPackage.SomeOtherClass($_10), new AS3.package1.someOtherPackage.SomeOtherClass($_12), new AS3.package1.someOtherPackage.SomeOtherClass($_14), new AS3.package1.ConfigClass($_16), new AS3.package1.ConfigClass($_20)];
     $_1.items$at = AS3.net.jangaroo.ext.Exml.APPEND;
     AS3.net.jangaroo.ext.Exml.apply($_1, config);
-    this.callParent([$_1]);
+    AS3.package1.ConfigClass.prototype.constructor.call(this,$_1);
   }/*
 }
 }

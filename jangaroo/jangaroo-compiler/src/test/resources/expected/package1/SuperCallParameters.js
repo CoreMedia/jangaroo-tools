@@ -2,11 +2,11 @@ Ext.define("AS3.package1.SuperCallParameters", function(SuperCallParameters) {/*
 
 public class SuperCallParameters extends ManyConstructorParameters {
   public*/ function SuperCallParameters$() {
-    this.callParent(["bar", -1, -4.2, true, {}, []]);
+    AS3.package1.ManyConstructorParameters.prototype.constructor.call(this,"bar", -1, -4.2, true, {}, []);
   }/*
 
   override public*/ function isEmpty(str/*:String*/)/*:Boolean*/ {
-    return this.callParent([str]);
+    return AS3.package1.ManyConstructorParameters.prototype.isEmpty.call(this,str);
   }/*
 }
 }
