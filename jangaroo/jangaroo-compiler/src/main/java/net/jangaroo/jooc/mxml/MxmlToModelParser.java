@@ -256,7 +256,7 @@ public final class MxmlToModelParser {
         String elementName = element.getLocalName();
         if (MXML_DECLARATIONS.equals(elementName)) {
           for (Element declaration : MxmlUtils.getChildElements(element)) {
-            createValueCodeFromElement(configVar, declaration, null);
+            createValueCodeFromElement(configVar, declaration, true);
           }
         }
       }
