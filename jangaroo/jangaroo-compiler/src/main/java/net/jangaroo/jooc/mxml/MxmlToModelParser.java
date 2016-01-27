@@ -582,8 +582,13 @@ public final class MxmlToModelParser {
   }
 
   private static Boolean useConfigObjects(AnnotationModel extConfigAnnotation, Boolean defaultValue) {
-    AnnotationPropertyModel flag = extConfigAnnotation.getPropertiesByName().get(EXT_CONFIG_CREATE_FLAG);
+    Map<String, AnnotationPropertyModel> propertiesByName = extConfigAnnotation.getPropertiesByName();
+    AnnotationPropertyModel flag = propertiesByName.get(EXT_CONFIG_CREATE_FLAG);
     if (flag == null) {
+      // a given "extractXType" parameter implies to use config objects (create=false):
+      if (propertiesByName.containsKey(EXT_CONFIG_EXTRACT_XTYPE_PARAMETER)) {
+        return true;
+      }
       return defaultValue;
     }
     return "false".equals(flag.getValue());
