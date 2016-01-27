@@ -94,4 +94,24 @@ public class PathInputSource extends DirectoryInputSource {
   public String toString() {
     return name;
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    PathInputSource that = (PathInputSource) o;
+
+    return entries.equals(that.entries);
+
+  }
+
+  @Override
+  public int hashCode() {
+    return entries.hashCode();
+  }
 }

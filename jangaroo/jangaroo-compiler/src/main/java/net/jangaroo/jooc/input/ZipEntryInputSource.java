@@ -103,4 +103,29 @@ public class ZipEntryInputSource implements InputSource {
   public String toString() {
     return getPath();
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    ZipEntryInputSource that = (ZipEntryInputSource) o;
+
+    if (!zipFileInputSource.equals(that.zipFileInputSource)) {
+      return false;
+    }
+    return relativePath.equals(that.relativePath);
+
+  }
+
+  @Override
+  public int hashCode() {
+    int result = zipFileInputSource.hashCode();
+    result = 31 * result + relativePath.hashCode();
+    return result;
+  }
 }
