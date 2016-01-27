@@ -9,19 +9,19 @@
   <fx:Script><![CDATA[
     import com.coremedia.cms.editor.sdk.editorContext;
     import com.coremedia.cms.editor.sdk.sites.SitesService;
+    import testNamespace.config.testClassWithoutInnerRoot;
 
+    private var config:testClassWithoutInnerRoot;
     private var sitesService:com.coremedia.cms.editor.sdk.sites.SitesService;
 
     // called by generated constructor code
-    private function __initialize__(config:testPackage.TestClassWithoutInnerRoot):void {
+    private function __initialize__(config:testClassWithoutInnerRoot):void {
       sitesService = editorContext.getSitesService();
     }
 
-    public native function TestClassWithoutInnerRoot(config:testPackage.TestClassWithoutInnerRoot = null);
+    public native function TestClassWithoutInnerRoot(config:testClassWithoutInnerRoot = null);
   ]]></fx:Script>
   <fx:Declarations>
-    <local:TestClassWithoutInnerRoot id="config"/>
-
     <!--- Some Boolean property @see Boolean -->
     <fx:Boolean id="propertyOne"/>
   </fx:Declarations>

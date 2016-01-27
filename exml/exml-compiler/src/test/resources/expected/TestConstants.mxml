@@ -5,6 +5,7 @@
                 xmlns="exml:ext.config">
   <fx:Script><![CDATA[
     import ext.Container;
+    import testNamespace.config.testConstants;
     import ext.Component;
 
     public static const xtype:String = "testNamespace.config.testConstants";
@@ -22,10 +23,9 @@
 
     public static const E_CONSTANT:ext.Component = new Container();
 
-    public native function TestConstants(config:exmlparser.TestConstants = null);
+    private var config:testConstants;
+
+    public native function TestConstants(config:testConstants = null);
   ]]></fx:Script>
-  <fx:Declarations>
-    <local:TestConstants id="config"/>
-  </fx:Declarations>
 
 </Panel>

@@ -17,10 +17,13 @@
     import testPackage.TestImpl2;
     import testNamespace.config.testComponent2;
     import otherPackage.SomeClass;
+    import testNamespace.config.testComponent;
 
     public static const xtype:String = "testNamespace.config.testComponent";
 
-    public native function TestComponent(config:testPackage.TestComponent = null);
+    private var config:testComponent;
+
+    public native function TestComponent(config:testComponent = null);
 
     /**
      * Some type without default constructor
@@ -29,8 +32,6 @@
     public var propertyEight:testPackage.TestImpl2 = new TestImpl2('foo');
   ]]></fx:Script>
   <fx:Declarations>
-    <local:TestComponent id="config"/>
-
     <!--- Some Boolean property @see Boolean -->
     <fx:Boolean id="propertyOne"/>
 

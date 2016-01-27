@@ -6,13 +6,15 @@
                 xmlns="exml:ext.config"
                 title="I am inside a package!">
   <fx:Script><![CDATA[
+    import testNamespace.config.testComponentPublicApiConfig;
+
     public static const xtype:String = "testNamespace.config.testComponentPublicApiConfig";
 
-    public native function TestComponentPublicApiConfig(config:testPackage.TestComponentPublicApiConfig = null);
+    private var config:testComponentPublicApiConfig;
+
+    public native function TestComponentPublicApiConfig(config:testComponentPublicApiConfig = null);
   ]]></fx:Script>
   <fx:Declarations>
-    <local:TestComponentPublicApiConfig id="config"/>
-
     <!--- Some Boolean property -->
     <fx:Boolean id="propertyOne"/>
 

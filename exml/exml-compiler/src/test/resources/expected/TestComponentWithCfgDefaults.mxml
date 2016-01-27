@@ -11,11 +11,14 @@
   <fx:Script><![CDATA[
     import testPackage.TestInterface;
     import otherPackage.SomeOtherClass;
+    import testNamespace.config.testComponentWithCfgDefaults;
     import ext.Component;
 
     public static const xtype:String = "testNamespace.config.testComponentWithCfgDefaults";
 
-    public native function TestComponentWithCfgDefaults(config:testPackage.TestComponentWithCfgDefaults = null);
+    private var config:testComponentWithCfgDefaults;
+
+    public native function TestComponentWithCfgDefaults(config:testComponentWithCfgDefaults = null);
 
     [Bindable]
     public var propertyWithDefaultElementUsingConfig:ext.Component;
@@ -43,8 +46,6 @@
     public var propertyFromOtherPackage:otherPackage.SomeOtherClass = new SomeOtherClass('lala');
   ]]></fx:Script>
   <fx:Declarations>
-    <local:TestComponentWithCfgDefaults id="config"/>
-
     <!--- Some String property with a literal default. -->
     <fx:String id="propertyWithLiteralDefault">foobar</fx:String>
 

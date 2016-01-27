@@ -4,12 +4,13 @@
                 xmlns:exml="http://www.jangaroo.net/exml/0.8"
                 xmlns="exml:ext.config">
   <fx:Script><![CDATA[
+    import testNamespace.config.testDataField;
+
     public static const xtype:String = "testNamespace.config.testDataField";
 
-    public native function TestDataField(config:testPackage.TestDataField = null);
+    private var config:testDataField;
+
+    public native function TestDataField(config:testDataField = null);
   ]]></fx:Script>
-  <fx:Declarations>
-    <local:TestDataField id="config"/>
-  </fx:Declarations>
 
 </data_AutoField>

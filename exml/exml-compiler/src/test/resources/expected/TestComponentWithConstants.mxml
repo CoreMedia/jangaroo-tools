@@ -5,6 +5,8 @@
                 xmlns="exml:ext.config"
                 title="Hello World">
   <fx:Script><![CDATA[
+    import testNamespace.config.testComponentWithConstants;
+
     public static const xtype:String = "testNamespace.config.testComponentWithConstants";
 
     public static const CLS_BASE:String = "cm-elastic-social-email-window";
@@ -30,10 +32,9 @@
     return Toolbar(versionHistory.getComponent('versionHistoryToolbar'));
   };
 
-    public native function TestComponentWithConstants(config:testPackage.TestComponentWithConstants = null);
+    private var config:testComponentWithConstants;
+
+    public native function TestComponentWithConstants(config:testComponentWithConstants = null);
   ]]></fx:Script>
-  <fx:Declarations>
-    <local:TestComponentWithConstants id="config"/>
-  </fx:Declarations>
 
 </Panel>

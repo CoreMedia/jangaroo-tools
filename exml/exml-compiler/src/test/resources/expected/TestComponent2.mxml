@@ -6,13 +6,14 @@
                 xmlns:test="exml:testNamespace.config"
                 xmlns="exml:ext.config">
   <fx:Script><![CDATA[
+    import testNamespace.config.testComponent2;
+
     public static const xtype:String = "testNamespace.config.testComponent2";
 
-    public native function TestComponent2(config:testPackage.TestComponent2 = null);
+    private var config:testComponent2;
+
+    public native function TestComponent2(config:testComponent2 = null);
   ]]></fx:Script>
-  <fx:Declarations>
-    <local:TestComponent2 id="config"/>
-  </fx:Declarations>
 
     <test:items>
       <test:TestComponent2 propertyThree="3"/>

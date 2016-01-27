@@ -10,14 +10,14 @@
                 title="I am inside a package!">
   <fx:Script><![CDATA[
     import ext.XTemplate;
+    import testNamespace.config.testComponentWithExmlObjects;
 
     public static const xtype:String = "testNamespace.config.testComponentWithExmlObjects";
 
-    public native function TestComponentWithExmlObjects(config:testPackage.TestComponentWithExmlObjects = null);
+    private var config:testComponentWithExmlObjects;
+
+    public native function TestComponentWithExmlObjects(config:testComponentWithExmlObjects = null);
   ]]></fx:Script>
-  <fx:Declarations>
-    <local:TestComponentWithExmlObjects id="config"/>
-  </fx:Declarations>
 
     <tpl>{
       
