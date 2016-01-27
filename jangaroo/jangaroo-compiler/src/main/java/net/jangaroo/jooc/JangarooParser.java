@@ -49,6 +49,7 @@ public class JangarooParser {
   private InputSource sourcePathInputSource;
   private InputSource classPathInputSource;
   private ParserOptions config;
+  private Map<InputSource, CompilationUnit> compilationUnitsByInputSource = new LinkedHashMap<InputSource, CompilationUnit>();
   private Map<String, CompilationUnit> compilationUnitsByQName = new LinkedHashMap<String, CompilationUnit>();
   private Map<String, CompilationUnitModel> compilationUnitModelsByQName = new LinkedHashMap<String, CompilationUnitModel>();
   private MxmlComponentRegistry mxmlComponentRegistry = new MxmlComponentRegistry();
@@ -247,14 +248,23 @@ public class JangarooParser {
   }
 
   public CompilationUnit importSource(InputSource source) {
-    CompilationUnit unit = parse(source);
+    CompilationUnit unit = compilationUnitsByInputSource.get(source);
     if (unit != null) {
-      unit.scope(globalScope);
-      String prefix = unit.getPackageDeclaration().getQualifiedNameStr();
-      String qname = CompilerUtils.qName(prefix, unit.getPrimaryDeclaration().getIde().getName());
-      checkValidFileName(qname, unit, source);
-      compilationUnitsByQName.put(qname, unit);
+      return unit;
     }
+
+    unit = parse(source);
+    if (unit == null) {
+      return unit;
+    }
+
+    unit.scope(globalScope);
+    String prefix = unit.getPackageDeclaration().getQualifiedNameStr();
+    String qname = CompilerUtils.qName(prefix, unit.getPrimaryDeclaration().getIde().getName());
+    checkValidFileName(qname, unit, source);
+
+    compilationUnitsByQName.put(qname, unit);
+    compilationUnitsByInputSource.put(source, unit);
     return unit;
   }
 
