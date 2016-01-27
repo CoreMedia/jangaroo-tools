@@ -16,8 +16,8 @@ public class NoPrimitiveInit {
       constructor: NoPrimitiveInit$,
       method$1: method,
       uses: [
-        "AS3.package1.someOtherPackage.SomeOtherClass",
-        "AS3.int"
+        "AS3.int",
+        "AS3.package1.someOtherPackage.SomeOtherClass"
       ]
     };
 });

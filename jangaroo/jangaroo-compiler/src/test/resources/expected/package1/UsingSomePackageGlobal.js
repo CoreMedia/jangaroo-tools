@@ -21,8 +21,8 @@ public class UsingSomePackageGlobal {
       constructor: UsingSomePackageGlobal$,
       statics: {main: main$static},
       uses: [
-        "AS3.package1.somePackageGlobal",
-        "AS3.package1.someOtherPackage.SomeOtherClass"
+        "AS3.package1.someOtherPackage.SomeOtherClass",
+        "AS3.package1.somePackageGlobal"
       ]
     };
 });

@@ -104,6 +104,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * A visitor of the AST that generates executable JavaScript code on
@@ -424,7 +425,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   }
 
   private String[] collectDependencies(CompilationUnit compilationUnit, Boolean required) throws IOException {
-    List<String> requires = new ArrayList<String>();
+    Set<String> requires = new TreeSet<String>();
     Collection<CompilationUnit> dependentCompilationUnits = compilationUnit.getDependenciesAsCompilationUnits();
     for (CompilationUnit dependentCU : dependentCompilationUnits) {
       if (required != null && compilationUnit.isRequiredDependency(dependentCU) != required) {
