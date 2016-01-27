@@ -25,14 +25,22 @@ import java.io.IOException;
  */
 public class ArrayLiteral extends ParenthesizedExpr<CommaSeparatedList<Expr>> {
 
+  private Scope scope;
+
   public ArrayLiteral(JooSymbol lBracket, CommaSeparatedList<Expr> fields, JooSymbol rBracket) {
     super(lBracket, fields, rBracket);
   }
 
   @Override
   public void scope(Scope scope) {
+    this.scope = scope;
     super.scope(scope);
+  }
+
+  @Override
+  public void analyze(AstNode parentNode) {
     setType(scope.lookupDeclaration(new Ide("Array")));
+    super.analyze(parentNode);
   }
 
   @Override
