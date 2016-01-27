@@ -3,6 +3,7 @@ package net.jangaroo.jooc.input;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.LinkedHashMap;
@@ -129,5 +130,31 @@ public class ZipFileInputSource extends DirectoryInputSource {
   @Override
   public String toString() {
     return zipFile.getName();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    ZipFileInputSource that = (ZipFileInputSource) o;
+
+    if (!file.equals(that.file)) {
+      return false;
+    }
+    // Probably incorrect - comparing Object[] arrays with Arrays.equals
+    return Arrays.equals(rootDirs, that.rootDirs);
+
+  }
+
+  @Override
+  public int hashCode() {
+    int result = file.hashCode();
+    result = 31 * result + Arrays.hashCode(rootDirs);
+    return result;
   }
 }
