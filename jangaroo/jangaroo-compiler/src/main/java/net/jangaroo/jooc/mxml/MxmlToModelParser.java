@@ -5,8 +5,6 @@ import net.jangaroo.jooc.CompilerError;
 import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.api.FilePosition;
-import net.jangaroo.jooc.ast.ClassDeclaration;
-import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.input.InputSource;
 import net.jangaroo.jooc.model.AnnotationModel;
 import net.jangaroo.jooc.model.AnnotationPropertyModel;
@@ -78,8 +76,10 @@ public final class MxmlToModelParser {
   private static Pattern INITIALIZE_METHOD_PATTERN = Pattern.compile("private\\s+function\\s+__initialize__\\s*\\(");
 
   private final JangarooParser jangarooParser;
-  private InputSource inputSource;
   private CompilationUnitModel compilationUnitModel;
+  private final boolean forModel;
+
+  private InputSource inputSource;
   private ParamModel configParamModel;
   private Map<String, String> varsDeclaredInScripts;
   private Pattern nativeConstructorPattern;
@@ -89,13 +89,14 @@ public final class MxmlToModelParser {
   private boolean hasInitializeMethod;
 
   /**
-   * 
-   * @param jangarooParser the Jangaroo parser to use to look up compilation units
+   *  @param jangarooParser the Jangaroo parser to use to look up compilation units
    * @param compilationUnitModel the "naked" compilation unit model to fill
+   * @param forModel
    */
-  public MxmlToModelParser(JangarooParser jangarooParser, CompilationUnitModel compilationUnitModel) {
+  public MxmlToModelParser(JangarooParser jangarooParser, CompilationUnitModel compilationUnitModel, boolean forModel) {
     this.jangarooParser = jangarooParser;
     this.compilationUnitModel = compilationUnitModel;
+    this.forModel = forModel;
   }
 
   /**
@@ -253,7 +254,7 @@ public final class MxmlToModelParser {
         String elementName = element.getLocalName();
         if (MXML_DECLARATIONS.equals(elementName)) {
           for (Element declaration : MxmlUtils.getChildElements(element)) {
-            createValueCodeFromElement(configVar, declaration, true);
+            createValueCodeFromElement(configVar, declaration, null);
           }
         }
       }
@@ -467,15 +468,17 @@ public final class MxmlToModelParser {
     return sb.toString();
   }
 
-  private String createValueCodeFromElement(String configVar, Element objectElement, Boolean useConfigObjects) throws IOException {
+  private String createValueCodeFromElement(String configVar, Element objectElement, Boolean defaultUseConfigObjects) throws IOException {
     String className = createClassNameFromNode(objectElement);
     if (className == null) {
       throw Jooc.error(position(objectElement), "Could not resolve class from MXML node " + objectElement.getNamespaceURI() + ":" + objectElement.getLocalName());
     }
     compilationUnitModel.addImport(className);
+    Boolean useConfigObjects = defaultUseConfigObjects;
     if (useConfigObjects == null) {
-      // let the class decide:
-      useConfigObjects = useConfigObjects(jangarooParser.getCompilationUnitModel(className).getClassModel());
+      // when compiling for models, avoid this complex decision,
+      // otherwise let the class decide.
+      useConfigObjects = forModel || useConfigObjects(jangarooParser.getCompilationUnitModel(className).getClassModel());
     }
     String targetVariable = null;   // name of the variable holding the object to build
     String id = objectElement.getAttribute(MXML_ID_ATTRIBUTE);
@@ -499,41 +502,46 @@ public final class MxmlToModelParser {
     }
 
     String configVariable = null; // name of the variable holding the config object to use in the constructor
-    boolean hasBindings = false;
-    if (constructorSupportsConfigOptionsParameter(className)) {
-      // if class supports a config options parameter, create a config options object and assign properties to it:
-      configVariable = createAuxVar();
-      renderConfigAuxVar(configVariable, className, true);
-      if (targetVariable == null) {
-        targetVariable = createAuxVar();
-      }
-      // process attributes and children, using a forward reference to the object to build inside bindings:
-      hasBindings = processAttributesAndChildNodes(objectElement, configVariable, targetVariable, true);
-    }
 
     String value;
-    if ("String".equals(className)) {
-      String stringValue = getTextContent(objectElement);
-      value = CompilerUtils.quote(stringValue);
-    } else if ("int".equals(className) || "uint".equals(className) || "Number".equals(className)) {
-      value = getTextContent(objectElement);
-      if (MxmlUtils.isBindingExpression(value)) {
-        value = MxmlUtils.getBindingExpression(value);
-      } else if (value.isEmpty()) {
-        value = null;
-      }
-    } else if ("Object".equals(className)) {
-      value = "{}";
-    } else if ("Array".equals(className)) {
-      value = createArrayCodeFromChildElements(MxmlUtils.getChildElements(objectElement), true, useConfigObjects);
+    if (forModel) {
+      value = "undefined";
     } else {
-      StringBuilder valueBuilder = new StringBuilder();
-      valueBuilder.append("new ").append(className).append("(");
-      if (configVariable != null) {
-        valueBuilder.append(configVariable);
+      boolean hasBindings = false;
+      if (!forModel && constructorSupportsConfigOptionsParameter(className)) {
+        // if class supports a config options parameter, create a config options object and assign properties to it:
+        configVariable = createAuxVar();
+        renderConfigAuxVar(configVariable, className, true);
+        if (targetVariable == null) {
+          targetVariable = createAuxVar();
+        }
+        // process attributes and children, using a forward reference to the object to build inside bindings:
+        hasBindings = processAttributesAndChildNodes(objectElement, configVariable, targetVariable, true);
       }
-      valueBuilder.append(")");
-      value = valueBuilder.toString();
+
+      if ("String".equals(className)) {
+        String stringValue = getTextContent(objectElement);
+        value = CompilerUtils.quote(stringValue);
+      } else if ("int".equals(className) || "uint".equals(className) || "Number".equals(className)) {
+        value = getTextContent(objectElement);
+        if (MxmlUtils.isBindingExpression(value)) {
+          value = MxmlUtils.getBindingExpression(value);
+        } else if (value.isEmpty()) {
+          value = null;
+        }
+      } else if ("Object".equals(className)) {
+        value = "{}";
+      } else if ("Array".equals(className)) {
+        value = createArrayCodeFromChildElements(MxmlUtils.getChildElements(objectElement), true, defaultUseConfigObjects);
+      } else {
+        StringBuilder valueBuilder = new StringBuilder();
+        valueBuilder.append("new ").append(className).append("(");
+        if (configVariable != null) {
+          valueBuilder.append(configVariable);
+        }
+        valueBuilder.append(")");
+        value = valueBuilder.toString();
+      }
     }
     
     if (id.length() > 0) {
@@ -558,7 +566,7 @@ public final class MxmlToModelParser {
     }
     code.append(" = ").append(value).append(";");
 
-    if (configVariable == null && !"Array".equals(className) /*|| hasBindings*/) {
+    if (!forModel && configVariable == null && !"Array".equals(className) /*|| hasBindings*/) {
       // no config object was built or event listeners or bindings have to be added:
       // process attribute and children and assign properties directly on the target object
       processAttributesAndChildNodes(objectElement, configVariable, targetVariable, false);
@@ -741,7 +749,7 @@ public final class MxmlToModelParser {
     return MxmlUtils.getAttributeValue(value, propertyModel == null ? null : propertyModel.getType());
   }
 
-  private String createClassNameFromNode(Node objectNode) {
+  private String createClassNameFromNode(Node objectNode) throws IOException {
     String name = objectNode.getLocalName();
     String uri = objectNode.getNamespaceURI();
     if (uri != null) {
@@ -751,8 +759,8 @@ public final class MxmlToModelParser {
         if (qName.equals(compilationUnitModel.getQName())) {
           return qName;
         }
-        CompilationUnit compilationsUnit = jangarooParser.getCompilationUnit(qName);
-        if (compilationsUnit != null && compilationsUnit.getPrimaryDeclaration() instanceof ClassDeclaration) {
+
+        if (jangarooParser.isClass(qName)) {
           return qName;
         }
       } else {

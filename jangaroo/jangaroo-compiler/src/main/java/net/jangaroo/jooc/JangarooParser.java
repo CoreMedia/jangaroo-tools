@@ -51,6 +51,7 @@ public class JangarooParser {
   private ParserOptions config;
   private Map<InputSource, CompilationUnit> compilationUnitsByInputSource = new LinkedHashMap<InputSource, CompilationUnit>();
   private Map<String, CompilationUnit> compilationUnitsByQName = new LinkedHashMap<String, CompilationUnit>();
+  private Map<String, Boolean> isClassByQName = new LinkedHashMap<String, Boolean>();
   private Map<String, CompilationUnitModel> compilationUnitModelsByQName = new LinkedHashMap<String, CompilationUnitModel>();
   private MxmlComponentRegistry mxmlComponentRegistry = new MxmlComponentRegistry();
   private List<String> compilableSuffixes = Arrays.asList(Jooc.AS_SUFFIX, Jooc.MXML_SUFFIX);
@@ -130,7 +131,7 @@ public class JangarooParser {
     this.compilableSuffixes = compilableSuffixes;
   }
 
-  public CompilationUnit doParse(InputSource in, CompileLog log, SemicolonInsertionMode semicolonInsertionMode) {
+  public CompilationUnit doParse(InputSource in, CompileLog log, SemicolonInsertionMode semicolonInsertionMode, boolean forModel) {
     Reader reader;
     try {
       if (in.getName().endsWith(Jooc.MXML_SUFFIX)) {
@@ -138,9 +139,7 @@ public class JangarooParser {
         String className = CompilerUtils.className(qName);
         CompilationUnitModel compilationUnitModel = new CompilationUnitModel(CompilerUtils.packageName(qName),
                 new ClassModel(className));
-        // inject into CompilationUnitModel cache early to avoid endless recursion during lookup:
-        compilationUnitModelsByQName.put(qName, compilationUnitModel);
-        new MxmlToModelParser(this, compilationUnitModel).parse(in);
+        new MxmlToModelParser(this, compilationUnitModel, forModel).parse(in);
         // From the CompilationUnitModel, we generate AS code, then parse a CompilationUnit again.
         // TODO: This should be simplified to always using CompilationUnitModels for reference
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -253,12 +252,11 @@ public class JangarooParser {
       return unit;
     }
 
-    unit = parse(source);
+    unit = parse(source, false);
     if (unit == null) {
       return unit;
     }
 
-    unit.scope(globalScope);
     String prefix = unit.getPackageDeclaration().getQualifiedNameStr();
     String qname = CompilerUtils.qName(prefix, unit.getPrimaryDeclaration().getIde().getName());
     checkValidFileName(qname, unit, source);
@@ -298,20 +296,59 @@ public class JangarooParser {
     return compilationUnit;
   }
 
+  /**
+   * Return true if the argument name identifies a class.
+   *
+   * @param name the name to check
+   * @return whether the argument name identifies a class
+   */
+  public boolean isClass(String name) throws IOException {
+    if (name == null) {
+      return false;
+    }
+    Boolean result = isClassByQName.get(name);
+    if (result != null) {
+      return result;
+    }
+    getCompilationUnitModel(name);
+    return isClassByQName.get(name);
+  }
+
   public CompilationUnitModel getCompilationUnitModel(String fullClassName) throws IOException {
     if (fullClassName == null) {
       return null;
     }
     CompilationUnitModel compilationUnitModel = compilationUnitModelsByQName.get(fullClassName);
     if (compilationUnitModel == null) {
-      // set early to avoid circular compilation unit model building:
-      compilationUnitModel = new CompilationUnitModel(CompilerUtils.packageName(fullClassName), new ClassModel(CompilerUtils.className(fullClassName)));
-      compilationUnitModelsByQName.put(fullClassName, compilationUnitModel);
-      CompilationUnit compilationUnit = getCompilationUnit(fullClassName);
+      // Use a marker in the lookup table to identify infinite loops.
+      if (compilationUnitModelsByQName.containsKey(fullClassName)) {
+        throw net.jangaroo.jooc.Jooc.error("Cyclic dependency involving " + fullClassName + ", " +
+                "possibly a cyclic inheritance relation");
+      }
+      compilationUnitModelsByQName.put(fullClassName, null);
+
+      CompilationUnit compilationUnit;
+      InputSource source = findSource(fullClassName);
+      if (source != null) {
+        if (source.getName().endsWith(Jooc.MXML_SUFFIX)) {
+          // MXML files denote classes.
+          isClassByQName.put(fullClassName, true);
+          compilationUnit = parse(source, true);
+        } else {
+          compilationUnit = getCompilationUnit(fullClassName);
+        }
+      } else {
+        compilationUnit = null;
+      }
       if (compilationUnit == null) {
         throw net.jangaroo.jooc.Jooc.error("Undefined type: " + fullClassName);
       }
+
+      compilationUnitModel = new CompilationUnitModel(CompilerUtils.packageName(fullClassName), new ClassModel(CompilerUtils.className(fullClassName)));
       new ApiModelGenerator(false).generateModel(compilationUnit, compilationUnitModel);
+
+      compilationUnitModelsByQName.put(fullClassName, compilationUnitModel);
+      isClassByQName.put(fullClassName, compilationUnitModel.getPrimaryDeclaration() instanceof ClassModel);
     }
     return compilationUnitModel;
   }
@@ -336,17 +373,19 @@ public class JangarooParser {
     }
   }
 
-  protected CompilationUnit parse(InputSource in) {
+  protected CompilationUnit parse(InputSource in, boolean forModel) {
     if (!in.getName().endsWith(Jooc.AS_SUFFIX) && !in.getName().endsWith(Jooc.MXML_SUFFIX)) {
       throw error("Input file must end with '" + Jooc.AS_SUFFIX + "' or '" + Jooc.MXML_SUFFIX + "': " + in.getName());
     }
     if (config.isVerbose()) {
       System.out.println("Parsing " + in.getPath() + " (" + (in.isInSourcePath() ? "source" : "class") + "path)"); // NOSONAR this is a cmd line tool
     }
-    CompilationUnit unit = doParse(in, log, config.getSemicolonInsertionMode());
+    CompilationUnit unit = doParse(in, log, config.getSemicolonInsertionMode(), forModel);
     if (unit != null) {
       unit.setCompiler(this);
       unit.setSource(in);
+
+      unit.scope(globalScope);
     }
     return unit;
   }

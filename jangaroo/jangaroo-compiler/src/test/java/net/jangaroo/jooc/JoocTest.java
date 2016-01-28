@@ -342,7 +342,7 @@ public class JoocTest {
     config.addSourceFile(sourceFile);
     jooc.run();
     assertTrue("Expected error (undefined type) did not occur",
-            testLog.hasError("Could not resolve class from MXML node ext.config.*:UnknownClass"));
+            testLog.hasError("Undefined type: ext.config.UnknownClass"));
   }
 
   @Test
