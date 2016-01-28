@@ -65,7 +65,7 @@ public class ConfigClassBuilderTest {
   private ConfigClass buildConfigClass(String resourceName, String module) throws URISyntaxException {
     File sourceFile = new File(getClass().getResource("/" + module + "/" + resourceName).toURI());
     InputSource inputSource = new FileInputSource(sourceFile, true);
-    CompilationUnit compilationUnit = new JangarooParser().doParse(inputSource, new StdOutCompileLog(), SemicolonInsertionMode.QUIRKS);
+    CompilationUnit compilationUnit = new JangarooParser().doParse(inputSource, new StdOutCompileLog(), SemicolonInsertionMode.QUIRKS, true);
     ConfigClassBuilder configClassBuilder = new ConfigClassBuilder(compilationUnit);
     return configClassBuilder.buildConfigClass();
   }
