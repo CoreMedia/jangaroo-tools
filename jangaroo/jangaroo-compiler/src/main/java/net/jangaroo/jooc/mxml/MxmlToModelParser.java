@@ -12,6 +12,7 @@ import net.jangaroo.jooc.model.AnnotationModel;
 import net.jangaroo.jooc.model.AnnotationPropertyModel;
 import net.jangaroo.jooc.model.ClassModel;
 import net.jangaroo.jooc.model.CompilationUnitModel;
+import net.jangaroo.jooc.model.DocumentedModel;
 import net.jangaroo.jooc.model.FieldModel;
 import net.jangaroo.jooc.model.MemberModel;
 import net.jangaroo.jooc.model.MethodModel;
@@ -27,6 +28,7 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.Text;
 import org.xml.sax.SAXException;
+import org.xml.sax.XMLReader;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -145,6 +147,7 @@ public final class MxmlToModelParser {
     }
     ClassModel classModel = compilationUnitModel.getClassModel();
     classModel.setSuperclass(superClassName);
+    retrieveASDocFromComment(objectNode, classModel);
     compilationUnitModel.addImport(superClassName);
 
     processScriptsAndMetadata(objectNode);
@@ -493,6 +496,7 @@ public final class MxmlToModelParser {
       } else {
         FieldModel fieldModel = new FieldModel(id, className);
         fieldModel.addAnnotation(new AnnotationModel(Jooc.BINDABLE_ANNOTATION_NAME));
+        retrieveASDocFromComment(objectElement, fieldModel);
         compilationUnitModel.getClassModel().addMember(fieldModel);
       }
       targetVariable = CompilerUtils.qName(qualifier, id);
@@ -564,6 +568,19 @@ public final class MxmlToModelParser {
       processAttributesAndChildNodes(objectElement, configVariable, targetVariable, false);
     }
     return targetVariable;
+  }
+
+  private void retrieveASDocFromComment(Element objectElement, DocumentedModel documentedModel) {
+    Node commentNode = objectElement.getPreviousSibling();
+    while (commentNode != null && commentNode.getNodeType() == Node.TEXT_NODE) {
+      commentNode = commentNode.getPreviousSibling();
+    }
+    if (commentNode != null && commentNode.getNodeType() == Node.COMMENT_NODE) {
+      String comment = commentNode.getTextContent();
+      if (comment.startsWith("-")) {
+        documentedModel.setAsdoc(comment.substring(1).trim());
+      }
+    }
   }
 
   private boolean useConfigObjects(ClassModel classModel) throws IOException {
@@ -775,11 +792,14 @@ public final class MxmlToModelParser {
       parser = saxFactory.newSAXParser();
       DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
       factory.setNamespaceAware(false);
+      factory.setIgnoringComments(false);
       doc = factory.newDocumentBuilder().newDocument();
     } catch (ParserConfigurationException e) {
       throw new IllegalStateException("a default dom builder should be provided", e);
     }
     PreserveLineNumberHandler handler = new PreserveLineNumberHandler(doc);
+    XMLReader xmlReader = parser.getXMLReader();
+    xmlReader.setProperty("http://xml.org/sax/properties/lexical-handler", handler);
     parser.parse(inputStream, handler);
     return doc;
   }

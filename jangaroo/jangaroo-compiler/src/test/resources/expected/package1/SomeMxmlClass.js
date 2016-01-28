@@ -4,6 +4,9 @@ import package1.someOtherPackage.SomeEvent;
 import joo.addEventListener;
 import net.jangaroo.ext.Exml;
 
+/**
+ * My config class subclass, authored in MXML.
+ * /
 public class SomeMxmlClass extends package1.ConfigClass {
     public static const xtype:String = "testNamespace.config.soneMxmlClass";
     
@@ -18,6 +21,9 @@ public class SomeMxmlClass extends package1.ConfigClass {
   public var bar:String;
 
   [Bindable]
+  /**
+   * Some number.
+   * /
   public var num:int;
 
   [Bindable]
