@@ -106,7 +106,6 @@ public class SomeMxmlClass extends package1.ConfigClass {
         other: null,
         no_config: null
       },
-      statics: {xtype: "testNamespace.config.soneMxmlClass"},
       requires: ["AS3.package1.ConfigClass"],
       uses: [
         "AS3.net.jangaroo.ext.Exml",

@@ -1549,16 +1549,17 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       return;
     }
     if (value != null) {
-      membersOrStaticMembers(variableDeclaration).put(variableName,
-              new PropertyDefinition(value, !variableDeclaration.isConst(), isBindable));
-    }
-    // special Ext magic: when declaring a public static const xtype:String, add an alias: "widget." + Clazz.xtype:
-    if (variableDeclaration.isPublic() && variableDeclaration.isStatic() && variableDeclaration.isConst()
-            && "xtype".equals(variableDeclaration.getName())
-            && variableDeclaration.getOptInitializer() != null
-            && variableDeclaration.getOptInitializer().getValue() instanceof LiteralExpr) {
-      getClassDefinitionBuilder(variableDeclaration).members.put("alias",
-              new PropertyDefinition("\"widget." + ((LiteralExpr) variableDeclaration.getOptInitializer().getValue()).getValue().getJooValue() + "\""));
+      // special Ext magic: when declaring a public static const xtype:String, replace it by an alias: "widget." + Clazz.xtype:
+      if (variableDeclaration.isPublic() && variableDeclaration.isStatic() && variableDeclaration.isConst()
+              && "xtype".equals(variableDeclaration.getName())
+              && variableDeclaration.getOptInitializer() != null
+              && variableDeclaration.getOptInitializer().getValue() instanceof LiteralExpr) {
+        getClassDefinitionBuilder(variableDeclaration).members.put("alias",
+                new PropertyDefinition(CompilerUtils.quote("widget." + CompilerUtils.unquote(value))));
+      } else {
+        membersOrStaticMembers(variableDeclaration).put(variableName,
+                new PropertyDefinition(value, !variableDeclaration.isConst(), isBindable));
+      }
     }
 
   }
