@@ -374,11 +374,6 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       classDefinition.set("uses", new JsonArray(uses));
     }
     out.write("\n    return " + classDefinition.toString(2, 4) + ";\n}");
-    if (primaryClassDefinitionBuilder.staticCode.length() > 0) {
-      out.write(", function(clazz) {\n");
-      out.write(String.format("  clazz.%s();\n", INIT_STATICS));
-      out.write("}");
-    }
     out.write(");\n");
   }
 
@@ -1054,11 +1049,13 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     out.endComment();
     boolean inStaticInitializerBlock = false;
     for (Directive directive : classBody.getDirectives()) {
-      final boolean isStaticInitializer = directive instanceof Statement && !(directive instanceof Declaration);
-      if (isStaticInitializer) {
-        inStaticInitializerBlock = beginStaticInitializer(out, inStaticInitializerBlock);
-      } else {
-        inStaticInitializerBlock = endStaticInitializer(out, inStaticInitializerBlock);
+      if (!(directive instanceof EmptyStatement)) {
+        final boolean isStaticInitializer = directive instanceof Statement && !(directive instanceof Declaration);
+        if (isStaticInitializer) {
+          inStaticInitializerBlock = beginStaticInitializer(out, inStaticInitializerBlock);
+        } else {
+          inStaticInitializerBlock = endStaticInitializer(out, inStaticInitializerBlock);
+        }
       }
       directive.visit(this);
     }
@@ -1512,7 +1509,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       if (variableDeclaration.isStatic()) {
         primaryClassDefinitionBuilder.staticCode.append("          ").append(variableName).append("$static_();\n");
       }
-      if (isBindable) {
+      if (isBindable || variableDeclaration.isStatic()) {
         // make sure that configs are always declared, even with dynamic initializer, so that Ext magic is applied:
         value = "undefined";
       }

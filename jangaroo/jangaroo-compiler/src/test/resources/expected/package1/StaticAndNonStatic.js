@@ -19,6 +19,4 @@ public class StaticAndNonStatic {
           static$0();
         }}
     };
-}, function(clazz) {
-  clazz.__initStatics__();
 });

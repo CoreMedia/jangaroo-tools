@@ -15,12 +15,11 @@ public class PrivateMemberAccess {
       secret$1: null,
       constructor: PrivateMemberAccess$,
       statics: {
+        INSTANCE: undefined,
         doSomething: doSomething$static,
         __initStatics__: function() {
           INSTANCE$static_();
         }
       }
     };
-}, function(clazz) {
-  clazz.__initStatics__();
 });

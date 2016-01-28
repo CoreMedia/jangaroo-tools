@@ -20,6 +20,10 @@ public class ChainedConstants {
       constructor: ChainedConstants$,
       statics: {
         METHOD_TYPE_GET: "get",
+        DEFAULT_METHOD_TYPE: undefined,
+        THE_METHOD_TYPE: undefined,
+        ANOTHER_METHOD_TYPE: undefined,
+        THE_BLA: undefined,
         __initStatics__: function() {
           DEFAULT_METHOD_TYPE$static_();
           THE_METHOD_TYPE$static_();
@@ -29,6 +33,4 @@ public class ChainedConstants {
       },
       requires: ["AS3.package1.someOtherPackage.SomeOtherClass"]
     };
-}, function(clazz) {
-  clazz.__initStatics__();
 });
