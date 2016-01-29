@@ -14,7 +14,7 @@ import java.util.Set;
 /**
  * A registry of all known classes/interfaces. Lookup by name.
  */
-public class CompilationUnitModelRegistry {
+public class CompilationUnitModelRegistry implements CompilationUnitModelResolver {
   private Map<String,CompilationUnitModel> registry = new LinkedHashMap<String, CompilationUnitModel>(500);
   private final ActionScriptCodeGeneratingModelVisitor DEBUG_CODE_GENERATOR = new ActionScriptCodeGeneratingModelVisitor(new PrintWriter(System.err), true);
 
@@ -39,6 +39,7 @@ public class CompilationUnitModelRegistry {
   }
   private static final CompilationUnitModel ERROR_COMPILATION_UNIT = new CompilationUnitModel("", createErrorClass());
 
+  @Override
   public CompilationUnitModel resolveCompilationUnit(String qName) {
     if ("Error".equals(qName)) {
       return ERROR_COMPILATION_UNIT;
