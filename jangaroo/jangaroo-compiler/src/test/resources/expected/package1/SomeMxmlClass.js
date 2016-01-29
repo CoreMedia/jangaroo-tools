@@ -47,7 +47,7 @@ public class SomeMxmlClass extends package1.ConfigClass {
     var $_5/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
     $_5,"bla" , 123);
     $_3.items = [new AS3.package1.someOtherPackage.SomeOtherClass($_5)];AS3.setBindable(
-    $_1,"list" , [$_2, $_3]);
+    $_1,"list" , [$_2, new AS3.package1.ConfigClass($_3)]);
     var $_7/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
     $_7,"bla" , 3);
     $_7.blubb_accessor = 'blub accessor expression';
