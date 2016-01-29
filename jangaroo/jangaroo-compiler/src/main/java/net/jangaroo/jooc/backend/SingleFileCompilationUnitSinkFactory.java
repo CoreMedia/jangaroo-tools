@@ -9,6 +9,7 @@ import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.ast.IdeDeclaration;
 import net.jangaroo.jooc.ast.PackageDeclaration;
 import net.jangaroo.jooc.config.JoocOptions;
+import net.jangaroo.jooc.model.CompilationUnitModelResolver;
 import org.apache.tools.ant.util.FileUtils;
 
 import java.io.File;
@@ -24,11 +25,13 @@ public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUni
 
   private String suffix;
   private boolean generateApi;
+  private final CompilationUnitModelResolver compilationUnitModelResolver;
 
-  public SingleFileCompilationUnitSinkFactory(JoocOptions options, File destinationDir, boolean generateApi, String suffix) {
+  public SingleFileCompilationUnitSinkFactory(JoocOptions options, File destinationDir, boolean generateApi, String suffix, CompilationUnitModelResolver compilationUnitModelResolver) {
     super(options, destinationDir);
     this.suffix = suffix;
     this.generateApi = generateApi;
+    this.compilationUnitModelResolver = compilationUnitModelResolver;
   }
 
   protected File getOutputFile(File sourceFile, String[] packageName) {
@@ -89,7 +92,7 @@ public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUni
               String codeSuffix = "";
               try {
                 out.setOptions(getOptions());
-                compilationUnit.visit(new JsCodeGenerator(out));
+                compilationUnit.visit(new JsCodeGenerator(out, compilationUnitModelResolver));
                 if (options.isGenerateSourceMaps()) {
                   codeSuffix = generateSourceMap(out, outFile);
                 }

@@ -80,6 +80,7 @@ import net.jangaroo.jooc.json.JsonObject;
 import net.jangaroo.jooc.model.AnnotationModel;
 import net.jangaroo.jooc.model.AnnotationPropertyModel;
 import net.jangaroo.jooc.model.CompilationUnitModel;
+import net.jangaroo.jooc.model.CompilationUnitModelResolver;
 import net.jangaroo.jooc.model.FieldModel;
 import net.jangaroo.jooc.model.MemberModel;
 import net.jangaroo.jooc.model.MethodModel;
@@ -140,6 +141,8 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     PRIMITIVES.add("XML");
   }
 
+  private final CompilationUnitModelResolver compilationUnitModelResolver;
+
   private boolean expressionMode = false;
   private Map<String,String> imports = new HashMap<String,String>();
   private ClassDefinitionBuilder primaryClassDefinitionBuilder = new ClassDefinitionBuilder();
@@ -162,8 +165,9 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     }
   };
 
-  public JsCodeGenerator(JsWriter out) {
+  public JsCodeGenerator(JsWriter out, CompilationUnitModelResolver compilationUnitModelResolver) {
     super(out);
+    this.compilationUnitModelResolver = compilationUnitModelResolver;
   }
 
   private Map<String,PropertyDefinition> membersOrStaticMembers(Declaration memberDeclaration) {
@@ -748,7 +752,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     }
   }
 
-  private static String resolveBindable(DotExpr dotExpr, MethodType methodType) throws IOException {
+  private String resolveBindable(DotExpr dotExpr, MethodType methodType) throws IOException {
     //System.err.println("*#*#*#* trying to find " + methodType + "ter for qIde " + qIde.getQualifiedNameStr());
     IdeDeclaration lhsType = dotExpr.getArg().getType();
     if (lhsType instanceof ClassDeclaration) {
@@ -767,7 +771,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     return null;
   }
 
-  private static MemberModel findMemberWithBindableAnnotation(Ide qIde, MethodType methodType, ClassDeclaration typeDeclaration) throws IOException {
+  private MemberModel findMemberWithBindableAnnotation(Ide qIde, MethodType methodType, ClassDeclaration typeDeclaration) throws IOException {
     String memberName = qIde.getIde().getText();
     MemberModel member = lookupPropertyDeclaration(typeDeclaration, memberName, methodType);
 //      System.err.println("*#*#*#* found member " + member + " for " + typeDeclaration.getQualifiedNameStr()
@@ -785,7 +789,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     return member.getAnnotations(Jooc.BINDABLE_ANNOTATION_NAME).get(0).getPropertiesByName();
   }
 
-  private static String resolveBindable(Ide qIde, MethodType methodType, ClassDeclaration typeDeclaration) throws IOException {
+  private String resolveBindable(Ide qIde, MethodType methodType, ClassDeclaration typeDeclaration) throws IOException {
     MemberModel member = findMemberWithBindableAnnotation(qIde, methodType, typeDeclaration);
     return member == null ? null : getBindablePropertyName(methodType, member);
   }
@@ -807,7 +811,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   }
 
 
-  private static MemberModel lookupPropertyDeclaration(ClassDeclaration classDeclaration, String memberName,
+  private MemberModel lookupPropertyDeclaration(ClassDeclaration classDeclaration, String memberName,
                                                        MethodType methodType) throws IOException {
     MemberModel member;
     ClassDeclaration superDeclaration = classDeclaration.getSuperTypeDeclaration();
@@ -819,7 +823,8 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     }
     // TODO: also look in implemented interfaces first!
 
-    CompilationUnitModel compilationUnitModel = new ApiModelGenerator(false).generateModel(classDeclaration.getCompilationUnit()); // TODO: Evil! Must cache models in registry!
+    IdeDeclaration primaryDeclaration = classDeclaration.getCompilationUnit().getPrimaryDeclaration();
+    CompilationUnitModel compilationUnitModel = compilationUnitModelResolver.resolveCompilationUnit(primaryDeclaration.getQualifiedNameStr());
     member = compilationUnitModel.getClassModel().getMember(memberName);
     if (member instanceof PropertyModel) {
       member = ((PropertyModel) member).getMethod(methodType);

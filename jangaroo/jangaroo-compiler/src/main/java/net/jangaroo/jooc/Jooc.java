@@ -317,13 +317,11 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
     CompilationUnitSinkFactory codeSinkFactory;
 
     if (!generateActionScriptApi && config.isMergeOutput()) {
-      codeSinkFactory = new MergedOutputCompilationUnitSinkFactory(
-              config, config.getOutputFile()
-      );
+      codeSinkFactory = new MergedOutputCompilationUnitSinkFactory(config, config.getOutputFile(), this);
     } else {
       File outputDirectory = generateActionScriptApi ? config.getApiOutputDirectory() : config.getOutputDirectory();
       final String suffix = generateActionScriptApi ? AS_SUFFIX : OUTPUT_FILE_SUFFIX;
-      codeSinkFactory = new SingleFileCompilationUnitSinkFactory(config, outputDirectory, generateActionScriptApi, suffix);
+      codeSinkFactory = new SingleFileCompilationUnitSinkFactory(config, outputDirectory, generateActionScriptApi, suffix, this);
     }
     return codeSinkFactory;
   }

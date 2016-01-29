@@ -6,6 +6,7 @@ import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.ast.IdeDeclaration;
 import net.jangaroo.jooc.ast.PackageDeclaration;
 import net.jangaroo.jooc.config.JoocOptions;
+import net.jangaroo.jooc.model.CompilationUnitModelResolver;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -18,11 +19,13 @@ import java.io.OutputStreamWriter;
 public class MergedOutputCompilationUnitSinkFactory extends AbstractCompilationUnitSinkFactory {
 
   private File outputFile;
+  private final CompilationUnitModelResolver compilationUnitModelResolver;
   private CompilationUnitSink sink;
 
-  public MergedOutputCompilationUnitSinkFactory(JoocOptions options, final File outputFile) {
+  public MergedOutputCompilationUnitSinkFactory(JoocOptions options, final File outputFile, final CompilationUnitModelResolver compilationUnitModelResolver) {
     super(options, outputFile.getAbsoluteFile().getParentFile());
     this.outputFile = outputFile;
+    this.compilationUnitModelResolver = compilationUnitModelResolver;
 
     createOutputDirs(outputFile);
 
@@ -41,7 +44,7 @@ public class MergedOutputCompilationUnitSinkFactory extends AbstractCompilationU
           try {
             try {
               out.setOptions(getOptions());
-              compilationUnit.visit(new JsCodeGenerator(out));
+              compilationUnit.visit(new JsCodeGenerator(out, compilationUnitModelResolver));
             } finally {
               out.close();
             }
