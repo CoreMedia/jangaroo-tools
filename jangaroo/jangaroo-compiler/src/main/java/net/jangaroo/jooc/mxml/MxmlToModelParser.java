@@ -142,7 +142,7 @@ public final class MxmlToModelParser {
     }
     String classQName = compilationUnitModel.getQName();
     if (superClassName.equals(classQName)) {
-      throw Jooc.error(position(objectNode), "Cyclic inheritance error: super class and this component are the same!. There is something wrong!");
+      throw Jooc.error(position(objectNode), "Cyclic inheritance error: Super class and this component are the same. There is something wrong!");
     }
     ClassModel classModel = compilationUnitModel.getClassModel();
     classModel.setSuperclass(superClassName);
