@@ -15,8 +15,8 @@
 
 package net.jangaroo.jooc.ast;
 
+import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
-import net.jangaroo.jooc.Jooc;
 
 import java.io.IOException;
 
@@ -37,7 +37,7 @@ public class ContinueStatement extends LabelRefStatement {
   @Override
   protected void checkValidLabeledStatement(final LabeledStatement labelDeclaration) {
     if (!(labelDeclaration.getStatement() instanceof LoopStatement)) {
-      throw Jooc.error(this, "label '" + getOptLabel().getName() + "' does not reference a loop statement");
+      throw JangarooParser.error(this, "label '" + getOptLabel().getName() + "' does not reference a loop statement");
     }
   }
 }

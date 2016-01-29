@@ -15,8 +15,8 @@
 
 package net.jangaroo.jooc.ast;
 
+import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
-import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.SyntacticKeywords;
 
@@ -58,7 +58,7 @@ public class UseNamespaceDirective extends Directive {
 
   @Override
   public void analyze(AstNode parentNode) {
-    Jooc.warning(getNamespace().getSymbol(), "namespaces are not yet implemented, ignoring use namespace " + getNamespace().getName());
+    JangarooParser.warning(getNamespace().getSymbol(), "namespaces are not yet implemented, ignoring use namespace " + getNamespace().getName());
     getNamespace().analyze(this);
     super.analyze(parentNode);
   }

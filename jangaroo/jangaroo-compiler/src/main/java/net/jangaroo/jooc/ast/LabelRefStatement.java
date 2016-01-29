@@ -15,8 +15,8 @@
 
 package net.jangaroo.jooc.ast;
 
+import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
-import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
 
 import java.util.List;
@@ -48,7 +48,7 @@ public abstract class LabelRefStatement extends KeywordExprStatement {
     if (getOptLabel() == null) {
       Statement loopOrSwitchStatement = scope.getCurrentLoopOrSwitch(); // NOSONAR no, this is not a JDBC statement that must be closed ...
       if (loopOrSwitchStatement == null) {
-        throw Jooc.error(this, "not inside loop or switch");
+        throw JangarooParser.error(this, "not inside loop or switch");
       }
     } else {
       setLabelDeclaration(scope.lookupLabel(getOptLabel()));

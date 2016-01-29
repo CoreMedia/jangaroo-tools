@@ -1,13 +1,6 @@
 package net.jangaroo.jooc;
 
 import java_cup.runtime.Symbol;
-import net.jangaroo.jooc.backend.ActionScriptCodeGeneratingModelVisitor;
-import net.jangaroo.jooc.backend.ApiModelGenerator;
-import net.jangaroo.jooc.model.ClassModel;
-import net.jangaroo.jooc.model.CompilationUnitModel;
-import net.jangaroo.jooc.mxml.MxmlComponentRegistry;
-import net.jangaroo.jooc.mxml.MxmlToModelParser;
-import net.jangaroo.utils.AS3Type;
 import net.jangaroo.jooc.api.CompileLog;
 import net.jangaroo.jooc.api.FilePosition;
 import net.jangaroo.jooc.api.Jooc;
@@ -18,9 +11,17 @@ import net.jangaroo.jooc.ast.IdeDeclaration;
 import net.jangaroo.jooc.ast.ImportDirective;
 import net.jangaroo.jooc.ast.PredefinedTypeDeclaration;
 import net.jangaroo.jooc.ast.VariableDeclaration;
+import net.jangaroo.jooc.backend.ActionScriptCodeGeneratingModelVisitor;
+import net.jangaroo.jooc.backend.ApiModelGenerator;
 import net.jangaroo.jooc.config.ParserOptions;
 import net.jangaroo.jooc.config.SemicolonInsertionMode;
 import net.jangaroo.jooc.input.InputSource;
+import net.jangaroo.jooc.model.ClassModel;
+import net.jangaroo.jooc.model.CompilationUnitModel;
+import net.jangaroo.jooc.model.CompilationUnitModelResolver;
+import net.jangaroo.jooc.mxml.MxmlComponentRegistry;
+import net.jangaroo.jooc.mxml.MxmlToModelParser;
+import net.jangaroo.utils.AS3Type;
 import net.jangaroo.utils.BOMStripperInputStream;
 import net.jangaroo.utils.CompilerUtils;
 import org.xml.sax.SAXException;
@@ -39,7 +40,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public class JangarooParser {
+public class JangarooParser implements CompilationUnitModelResolver {
   public static final String JOO_API_IN_JAR_DIRECTORY_PREFIX = "META-INF/joo-api/";
 
   protected CompileLog log;
@@ -93,6 +94,10 @@ public class JangarooParser {
 
   public static CompilerError error(String msg, File file, Throwable t) {
     return new CompilerError(new FilePositionImpl(file), msg, t);
+  }
+
+  public static CompilerError error(String msg, Throwable t) {
+    return new CompilerError(msg, t);
   }
 
   public static void warning(FilePosition symbol, String msg) {
@@ -310,11 +315,13 @@ public class JangarooParser {
     if (result != null) {
       return result;
     }
-    getCompilationUnitModel(name);
+    resolveCompilationUnit(name);
     return isClassByQName.get(name);
   }
 
-  public CompilationUnitModel getCompilationUnitModel(String fullClassName) throws IOException {
+
+  @Override
+  public CompilationUnitModel resolveCompilationUnit(String fullClassName) {
     if (fullClassName == null) {
       return null;
     }
@@ -322,7 +329,7 @@ public class JangarooParser {
     if (compilationUnitModel == null) {
       // Use a marker in the lookup table to identify infinite loops.
       if (compilationUnitModelsByQName.containsKey(fullClassName)) {
-        throw net.jangaroo.jooc.Jooc.error("Cyclic dependency involving " + fullClassName + ", " +
+        throw error("Cyclic dependency involving " + fullClassName + ", " +
                 "possibly a cyclic inheritance relation");
       }
       compilationUnitModelsByQName.put(fullClassName, null);
@@ -341,11 +348,15 @@ public class JangarooParser {
         compilationUnit = null;
       }
       if (compilationUnit == null) {
-        throw net.jangaroo.jooc.Jooc.error("Undefined type: " + fullClassName);
+        throw error("Undefined type: " + fullClassName);
       }
 
       compilationUnitModel = new CompilationUnitModel(CompilerUtils.packageName(fullClassName), new ClassModel(CompilerUtils.className(fullClassName)));
-      new ApiModelGenerator(false).generateModel(compilationUnit, compilationUnitModel);
+      try {
+        new ApiModelGenerator(false).generateModel(compilationUnit, compilationUnitModel);
+      } catch (IOException e) {
+        throw error("Unexpected I/O error while building compilation unit model", e);
+      }
 
       compilationUnitModelsByQName.put(fullClassName, compilationUnitModel);
       isClassByQName.put(fullClassName, compilationUnitModel.getPrimaryDeclaration() instanceof ClassModel);

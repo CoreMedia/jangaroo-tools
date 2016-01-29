@@ -1,6 +1,6 @@
 package net.jangaroo.jooc.backend;
 
-import net.jangaroo.jooc.Jooc;
+import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.ast.IdeDeclaration;
 import net.jangaroo.jooc.ast.PackageDeclaration;
 import net.jangaroo.jooc.config.JoocOptions;
@@ -30,7 +30,7 @@ public abstract class AbstractCompilationUnitSinkFactory implements CompilationU
   protected void createOutputDirs(File outputFile) {
     File parentDir = outputFile.getAbsoluteFile().getParentFile();
     if (!parentDir.exists() && !parentDir.mkdirs()) {
-      throw Jooc.error("cannot create directories '" + parentDir.getAbsolutePath() + "'", parentDir);
+      throw JangarooParser.error("cannot create directories '" + parentDir.getAbsolutePath() + "'", parentDir);
     }
   }
 

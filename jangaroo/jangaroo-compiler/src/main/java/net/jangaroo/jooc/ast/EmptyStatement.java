@@ -16,8 +16,8 @@
 package net.jangaroo.jooc.ast;
 
 
+import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
-import net.jangaroo.jooc.Jooc;
 
 import java.io.IOException;
 
@@ -40,7 +40,7 @@ public class EmptyStatement extends SemicolonTerminatedStatement {
     // this is an empty statement.  Check conformance to ECMA-262 7.9.1:
     //   'a semicolon is never inserted automatically if the semicolon would then be parsed as an empty statement'
     if (getOptSymSemicolon().isVirtual()) {
-      throw Jooc.error(getOptSymSemicolon(), "missing ';' (automatic semicolon insertion would create an empty statement)");
+      throw JangarooParser.error(getOptSymSemicolon(), "missing ';' (automatic semicolon insertion would create an empty statement)");
     }
     super.analyze(parentNode);
   }

@@ -15,11 +15,12 @@
 
 package net.jangaroo.jooc.ast;
 
-import net.jangaroo.utils.AS3Type;
+import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.sym;
+import net.jangaroo.utils.AS3Type;
 
 import java.io.IOException;
 import java.util.List;
@@ -148,7 +149,7 @@ public class VariableDeclaration extends TypedIdeDeclaration {
       getOptInitializer().analyze(this);
     } else if (isConst()
       && getIde().getScope().getCompilationUnit().getAnnotation(Jooc.NATIVE_ANNOTATION_NAME) == null) {
-      Jooc.warning(getOptSymConstOrVar(), "constant should be initialized");
+      JangarooParser.warning(getOptSymConstOrVar(), "constant should be initialized");
     }
     if (getOptNextVariableDeclaration() != null) {
       getOptNextVariableDeclaration().analyze(this);

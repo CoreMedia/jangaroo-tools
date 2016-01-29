@@ -15,8 +15,8 @@
 
 package net.jangaroo.jooc.ast;
 
+import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
-import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.sym;
 
@@ -125,7 +125,7 @@ public class QualifiedIde extends Ide {
         // full qualified access to static class member
         IdeDeclaration memberDeclaration = ((ClassDeclaration) qualifierDeclaration).getStaticMemberDeclaration(this.getName());
         if (memberDeclaration == null) {
-          throw Jooc.error(getIde(), "unresolved static member " + getIde().getText());
+          throw JangarooParser.error(getIde(), "unresolved static member " + getIde().getText());
         }
       } /* else  {
         // todo perform this check also for DotExpr and unqualified Ide
@@ -134,7 +134,7 @@ public class QualifiedIde extends Ide {
           IdeDeclaration memberDeclaration = type.resolvePropertyDeclaration(this.getName());
           if (memberDeclaration == null ) {
             //todo introduce strict mode where this is an error
-            Jooc.warning(ide,
+            JangarooParser.warning(ide,
               type == getScope().getCompilationUnit().getCompiler().getVoidDeclaration()
                 ? "member access to void type"
                 : ("unresolved member " + ide.getText()));

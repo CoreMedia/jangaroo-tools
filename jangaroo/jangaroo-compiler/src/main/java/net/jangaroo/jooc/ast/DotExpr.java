@@ -15,8 +15,8 @@
 
 package net.jangaroo.jooc.ast;
 
+import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
-import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
@@ -72,7 +72,7 @@ public class DotExpr extends PostfixOpExpr {
     if (qualiferType != null) {
       IdeDeclaration memberDeclaration = getArg().getType().resolvePropertyDeclaration(getIde().getName());
       if (memberDeclaration != null && memberDeclaration.isStatic()) {
-        throw Jooc.error(getIde().getIde(), "static member used in dynamic context");
+        throw JangarooParser.error(getIde().getIde(), "static member used in dynamic context");
       }
       if (memberDeclaration instanceof Typed) {
         TypeRelation typeRelation = ((Typed) memberDeclaration).getOptTypeRelation();

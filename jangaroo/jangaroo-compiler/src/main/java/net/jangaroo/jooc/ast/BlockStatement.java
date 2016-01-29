@@ -15,8 +15,8 @@
 
 package net.jangaroo.jooc.ast;
 
+import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
-import net.jangaroo.jooc.Jooc;
 
 import java.io.IOException;
 import java.util.List;
@@ -42,7 +42,7 @@ public class BlockStatement extends AbstractBlock {
         return;
       }
     }
-    throw Jooc.error(getLBrace(), "super constructor must be called directly in method block");
+    throw JangarooParser.error(getLBrace(), "super constructor must be called directly in method block");
   }
 
 }

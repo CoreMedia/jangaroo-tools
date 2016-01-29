@@ -140,11 +140,11 @@ public final class MxmlToModelParser {
     String superClassName = createClassNameFromNode(objectNode);
 
     if (superClassName == null) {
-      throw Jooc.error(position(objectNode), "Could not resolve super class from node " + objectNode.getNamespaceURI() + ":" + objectNode.getLocalName());
+      throw JangarooParser.error(position(objectNode), "Could not resolve super class from node " + objectNode.getNamespaceURI() + ":" + objectNode.getLocalName());
     }
     String classQName = compilationUnitModel.getQName();
     if (superClassName.equals(classQName)) {
-      throw Jooc.error(position(objectNode), "Cyclic inheritance error: Super class and this component are the same. There is something wrong!");
+      throw JangarooParser.error(position(objectNode), "Cyclic inheritance error: Super class and this component are the same. There is something wrong!");
     }
     ClassModel classModel = compilationUnitModel.getClassModel();
     classModel.setSuperclass(superClassName);
@@ -245,7 +245,7 @@ public final class MxmlToModelParser {
         } else if (MXML_METADATA.equals(elementName)) {
           classModel.addAnnotationCode(getTextContent(element));
         } else if (!MXML_DECLARATIONS.equals(elementName)) {
-          throw Jooc.error(position(element), "Unknown MXML element: " + elementName);
+          throw JangarooParser.error(position(element), "Unknown MXML element: " + elementName);
         }
       }
     }
@@ -474,14 +474,14 @@ public final class MxmlToModelParser {
   private String createValueCodeFromElement(String configVar, Element objectElement, Boolean defaultUseConfigObjects) throws IOException {
     String className = createClassNameFromNode(objectElement);
     if (className == null) {
-      throw Jooc.error(position(objectElement), "Could not resolve class from MXML node " + objectElement.getNamespaceURI() + ":" + objectElement.getLocalName());
+      throw JangarooParser.error(position(objectElement), "Could not resolve class from MXML node " + objectElement.getNamespaceURI() + ":" + objectElement.getLocalName());
     }
     compilationUnitModel.addImport(className);
     Boolean useConfigObjects = defaultUseConfigObjects;
     if (useConfigObjects == null) {
       // when compiling for models, avoid this complex decision,
       // otherwise let the class decide.
-      useConfigObjects = forModel || useConfigObjects(jangarooParser.getCompilationUnitModel(className).getClassModel());
+      useConfigObjects = forModel || useConfigObjects(jangarooParser.resolveCompilationUnit(className).getClassModel());
     }
     String targetVariable = null;   // name of the variable holding the object to build
     String id = objectElement.getAttribute(MXML_ID_ATTRIBUTE);
@@ -692,7 +692,7 @@ public final class MxmlToModelParser {
     if (fullClassName == null) {
       return null;
     }
-    return jangarooParser.getCompilationUnitModel(fullClassName);
+    return jangarooParser.resolveCompilationUnit(fullClassName);
   }
 
   private CompilationUnitModel getCompilationUnitModel(Element element) throws IOException {
@@ -704,7 +704,7 @@ public final class MxmlToModelParser {
       return getCompilationUnitModel(fullClassName);
     } catch (CompilerError e) {
       // ugly to catch-and-rethrow, I know, but we need to add position information here...
-      throw Jooc.error(position(element), e.getMessage());
+      throw JangarooParser.error(position(element), e.getMessage());
     }
   }
 
@@ -746,7 +746,7 @@ public final class MxmlToModelParser {
   private MemberModel createDynamicPropertyModel(Node element, CompilationUnitModel compilationUnitModel, String name, boolean allowAnyProperty) {
     if (!allowAnyProperty && compilationUnitModel != null && compilationUnitModel.getClassModel() != null && !compilationUnitModel.getClassModel().isDynamic()) {
       // dynamic property of a non-dynamic class: warn!
-      Jooc.warning(position(element), "MXML: property " + name + " not found in class " + compilationUnitModel.getQName() + ".");
+      JangarooParser.warning(position(element), "MXML: property " + name + " not found in class " + compilationUnitModel.getQName() + ".");
     }
     return new FieldModel(name, "*");
   }
@@ -754,7 +754,7 @@ public final class MxmlToModelParser {
   private ClassModel getSuperClassModel(ClassModel classModel) throws IOException {
     String superclass = classModel.getSuperclass();
     if (superclass != null) {
-      CompilationUnitModel superCompilationUnitModel = jangarooParser.getCompilationUnitModel(superclass);
+      CompilationUnitModel superCompilationUnitModel = jangarooParser.resolveCompilationUnit(superclass);
       if (superCompilationUnitModel != null) {
         return superCompilationUnitModel.getClassModel();
       }

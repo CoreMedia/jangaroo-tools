@@ -2,6 +2,7 @@ package net.jangaroo.jooc.backend;
 
 import net.jangaroo.jooc.CodeGenerator;
 import net.jangaroo.jooc.Debug;
+import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.JsWriter;
@@ -68,7 +69,6 @@ import net.jangaroo.jooc.ast.TryStatement;
 import net.jangaroo.jooc.ast.Type;
 import net.jangaroo.jooc.ast.TypeRelation;
 import net.jangaroo.jooc.ast.Typed;
-import net.jangaroo.jooc.ast.TypedIdeDeclaration;
 import net.jangaroo.jooc.ast.UseNamespaceDirective;
 import net.jangaroo.jooc.ast.VariableDeclaration;
 import net.jangaroo.jooc.ast.VectorLiteral;
@@ -1145,7 +1145,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     TypeRelation typeRelation = aCatch.getParam().getOptTypeRelation();
     boolean hasCondition = aCatch.hasCondition();
     if (!hasCondition && !isLast) {
-      throw Jooc.error(aCatch.getRParen(), "Only last catch clause may be untyped.");
+      throw JangarooParser.error(aCatch.getRParen(), "Only last catch clause may be untyped.");
     }
     final JooSymbol errorVar = firstCatch.getParam().getIde().getIde();
     final JooSymbol localErrorVar = aCatch.getParam().getIde().getIde();

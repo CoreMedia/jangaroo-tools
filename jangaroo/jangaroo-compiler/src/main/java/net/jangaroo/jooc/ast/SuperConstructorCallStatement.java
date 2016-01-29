@@ -15,8 +15,8 @@
 
 package net.jangaroo.jooc.ast;
 
+import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
-import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
@@ -53,10 +53,10 @@ public class SuperConstructorCallStatement extends Statement {
   public void scope(final Scope scope) {
     FunctionDeclaration method = scope.getMethodDeclaration();
     if (method == null || !method.isConstructor()) {
-      throw Jooc.error(getSymbol(), "must only call super constructor from constructor method");
+      throw JangarooParser.error(getSymbol(), "must only call super constructor from constructor method");
     }
     if (method.containsSuperConstructorCall()) {
-      throw Jooc.error(getSymbol(), "must not call super constructor twice");
+      throw JangarooParser.error(getSymbol(), "must not call super constructor twice");
     }
     method.setContainsSuperConstructorCall(true);
     getFun().scope(scope);

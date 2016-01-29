@@ -15,8 +15,8 @@
 
 package net.jangaroo.jooc.ast;
 
+import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
-import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
 
 import java.util.List;
@@ -36,7 +36,7 @@ public abstract class IdeDeclaration extends Declaration {
     super(modifiers);
     this.setIde(ide);
     if (ide != null && PRIVATE_MEMBER_NAME.matcher(ide.getName()).matches()) {
-      Jooc.warning(ide.getSymbol(), "Jangaroo identifier must not be an ActionScript identifier postfixed with a dollar sign ('$') followed by a number.");
+      JangarooParser.warning(ide.getSymbol(), "Jangaroo identifier must not be an ActionScript identifier postfixed with a dollar sign ('$') followed by a number.");
     }
   }
 
@@ -93,9 +93,9 @@ public abstract class IdeDeclaration extends Declaration {
   public void handleDuplicateDeclaration(Scope scope, AstNode oldNode) {
     String msg = "Duplicate declaration of identifier '" + getName() + "'";
     if (allowDuplicates(scope)) {
-      Jooc.warning(getSymbol(), msg);
+      JangarooParser.warning(getSymbol(), msg);
     } else {
-      throw Jooc.error(getSymbol(), msg);
+      throw JangarooParser.error(getSymbol(), msg);
     }
   }
 

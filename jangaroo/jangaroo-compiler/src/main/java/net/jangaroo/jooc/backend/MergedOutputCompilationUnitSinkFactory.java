@@ -1,6 +1,6 @@
 package net.jangaroo.jooc.backend;
 
-import net.jangaroo.jooc.Jooc;
+import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.ast.IdeDeclaration;
@@ -28,7 +28,7 @@ public class MergedOutputCompilationUnitSinkFactory extends AbstractCompilationU
 
     if (outputFile.exists()) {
       if(!outputFile.delete()) {
-        throw Jooc.error("error deleting file: '" + outputFile.getAbsolutePath() + "'", outputFile);
+        throw JangarooParser.error("error deleting file: '" + outputFile.getAbsolutePath() + "'", outputFile);
       }
     }
 
@@ -48,10 +48,10 @@ public class MergedOutputCompilationUnitSinkFactory extends AbstractCompilationU
           } catch (IOException e) {
             //noinspection ResultOfMethodCallIgnored
             outputFile.delete(); // NOSONAR
-            throw Jooc.error("error writing file: '" + outputFile.getAbsolutePath() + "'", outputFile, e);
+            throw JangarooParser.error("error writing file: '" + outputFile.getAbsolutePath() + "'", outputFile, e);
           }
         } catch (IOException e) {
-          throw Jooc.error("cannot open output file for writing: '" + outputFile.getAbsolutePath() + "'", outputFile, e);
+          throw JangarooParser.error("cannot open output file for writing: '" + outputFile.getAbsolutePath() + "'", outputFile, e);
         }
 
         return outputFile;

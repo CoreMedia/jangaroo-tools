@@ -15,8 +15,8 @@
 
 package net.jangaroo.jooc.ast;
 
+import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
-import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.sym;
 
 import java.io.IOException;
@@ -43,7 +43,7 @@ public class NamespacedIde extends Ide {
   @Override
   public void analyze(AstNode parentNode) {
     if (namespace.getIde().sym == sym.IDE) { // all other symbols should be predefined namespaces like "public" etc.
-      Jooc.warning(namespace.getSymbol(), "namespaces are not yet implemented, ignoring namespace " + namespace.getQualifiedNameStr());
+      JangarooParser.warning(namespace.getSymbol(), "namespaces are not yet implemented, ignoring namespace " + namespace.getQualifiedNameStr());
     }
     super.analyze(parentNode);
   }

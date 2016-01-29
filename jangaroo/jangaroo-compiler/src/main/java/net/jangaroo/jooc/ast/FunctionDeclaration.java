@@ -15,8 +15,8 @@
 
 package net.jangaroo.jooc.ast;
 
+import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
-import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.SyntacticKeywords;
 
@@ -50,7 +50,7 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
     this.symGetOrSet = symGetOrSet;
     this.optSymSemicolon = optSymSemicolon;
     if (isGetterOrSetter() && !(isGetter() || isSetter())) {
-      throw Jooc.error(symGetOrSet, "Expected 'get' or 'set'.");
+      throw JangarooParser.error(symGetOrSet, "Expected 'get' or 'set'.");
     }
   }
 
@@ -162,24 +162,24 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
     setIde(oldIde);
     //todo check correct override usage
     if (overrides() && isAbstract()) {
-      throw Jooc.error(this, "overriding methods are not allowed to be declared abstract");
+      throw JangarooParser.error(this, "overriding methods are not allowed to be declared abstract");
     }
     if (isAbstract()) {
       if (classDeclaration == null) {
-        throw Jooc.error(this, "package-scoped function " + getName() + " must not be abstract.");
+        throw JangarooParser.error(this, "package-scoped function " + getName() + " must not be abstract.");
       }
       if (!classDeclaration.isAbstract()) {
-        throw Jooc.error(this, classDeclaration.getName() + "is not declared abstract");
+        throw JangarooParser.error(this, classDeclaration.getName() + "is not declared abstract");
       }
       if (hasBody()) {
-        throw Jooc.error(this, "abstract method must not be implemented");
+        throw JangarooParser.error(this, "abstract method must not be implemented");
       }
     }
     if (isNative() && hasBody()) {
-      throw Jooc.error(this, "native method must not be implemented");
+      throw JangarooParser.error(this, "native method must not be implemented");
     }
     if (!isAbstract() && !isNative() && !hasBody()) {
-      throw Jooc.error(this, "method must either be implemented or declared abstract or native");
+      throw JangarooParser.error(this, "method must either be implemented or declared abstract or native");
     }
     //TODO:check whether abstract method does not actually override
     if (!isStatic()) {

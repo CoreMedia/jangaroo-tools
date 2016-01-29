@@ -3,7 +3,7 @@ package net.jangaroo.jooc.backend;
 import com.google.debugging.sourcemap.SourceMapFormat;
 import com.google.debugging.sourcemap.SourceMapGenerator;
 import com.google.debugging.sourcemap.SourceMapGeneratorFactory;
-import net.jangaroo.jooc.Jooc;
+import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.ast.IdeDeclaration;
@@ -67,7 +67,7 @@ public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUni
 
     String className = primaryDeclaration.getName();
     if (!classPart.equals(className)) {
-      Jooc.warning(primaryDeclaration.getSymbol(),
+      JangarooParser.warning(primaryDeclaration.getSymbol(),
               "class name should be equal to file name: expected " + classPart + ", found " + className);
     }
     createOutputDirs(outFile);
@@ -103,10 +103,10 @@ public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUni
           } catch (IOException e) {
             //noinspection ResultOfMethodCallIgnored
             outFile.delete(); // NOSONAR
-            throw Jooc.error("error writing file: '" + outFile.getAbsolutePath() + "'", outFile, e);
+            throw JangarooParser.error("error writing file: '" + outFile.getAbsolutePath() + "'", outFile, e);
           }
         } catch (IOException e) {
-          throw Jooc.error("cannot open output file for writing: '" + outFile.getAbsolutePath() + "'", outFile, e);
+          throw JangarooParser.error("cannot open output file for writing: '" + outFile.getAbsolutePath() + "'", outFile, e);
         }
 
         return outFile;

@@ -70,7 +70,7 @@ public abstract class ScopeImplBase implements Scope {
   @Override
   public LabeledStatement lookupLabel(final Ide ide) {
     if (parent == null) {
-      throw Jooc.error(ide, "undeclared label '" + ide.getName() + "'");
+      throw JangarooParser.error(ide, "undeclared label '" + ide.getName() + "'");
     }
     return parent.lookupLabel(ide);
   }
