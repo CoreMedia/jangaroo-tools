@@ -211,7 +211,19 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
       return;
     }
 
-    int result = compile(configuration);
+    Jooc jooc = new Jooc(configuration, new AbstractCompileLog() {
+      @Override
+      protected void doLogError(String msg) {
+        log.error(msg);
+      }
+
+      @Override
+      public void warning(String msg) {
+        log.warn(msg);
+      }
+    });
+
+    int result = compile(jooc);
     boolean compilationError = (result != CompilationResult.RESULT_CODE_OK);
 
     if (!compilationError) {
@@ -219,7 +231,10 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
       configuration.setDebugMode(null);
       configuration.setOutputDirectory(getTempClassesOutputDirectory());
       configuration.setApiOutputDirectory(null);
-      result = compile(configuration);
+
+
+
+      result = compile(jooc);
       if (result == CompilationResult.RESULT_CODE_OK) {
         buildOutputFile(getTempClassesOutputDirectory(), getModuleClassesJsFile());
       }
@@ -390,8 +405,8 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
     }
   }
 
-  private int compile(JoocConfiguration config) throws MojoExecutionException {
-    File outputDirectory = config.getOutputDirectory();
+  private int compile(Jooc jooc) throws MojoExecutionException {
+    File outputDirectory = jooc.getConfig().getOutputDirectory();
 
     // create output directory if it does not exist
     if (!outputDirectory.exists()) {
@@ -408,7 +423,7 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
       }
     }
 
-    final List<File> sources = config.getSourceFiles();
+    final List<File> sources = jooc.getConfig().getSourceFiles();
 
     final Log log = getLog();
     log.info("Compiling " + sources.size() +
@@ -416,17 +431,6 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
             + (sources.size() == 1 ? "" : "s")
             + " to " + outputDirectory);
 
-    Jooc jooc = new Jooc(config, new AbstractCompileLog() {
-      @Override
-      protected void doLogError(String msg) {
-        log.error(msg);
-      }
-
-      @Override
-      public void warning(String msg) {
-        log.warn(msg);
-      }
-    });
     return jooc.run().getResultCode();
   }
 

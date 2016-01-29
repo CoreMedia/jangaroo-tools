@@ -137,7 +137,6 @@ public class JangarooParser implements CompilationUnitModelResolver {
   }
 
   public CompilationUnit doParse(InputSource in, CompileLog log, SemicolonInsertionMode semicolonInsertionMode, boolean forModel) {
-    log.warning("#####" + in.getPath());
     Reader reader;
     try {
       if (in.getName().endsWith(Jooc.MXML_SUFFIX)) {

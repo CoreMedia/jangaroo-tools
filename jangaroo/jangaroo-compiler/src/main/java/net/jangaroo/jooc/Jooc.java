@@ -163,6 +163,9 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
           writeOutput(sourceFile, unit, apiSinkFactory, getConfig().isVerbose());
         }
       }
+
+      compileQueue.clear();
+
       int result = log.hasErrors() ? CompilationResult.RESULT_CODE_COMPILATION_FAILED : CompilationResult.RESULT_CODE_OK;
       return new CompilationResultImpl(result, outputFileMap);
     } catch (IOException e) {

@@ -12,7 +12,6 @@ public abstract class AbstractBlock extends Statement {
   private JooSymbol lBrace;
   private List<Directive> directives;
   private JooSymbol rBrace;
-  private List<CodeGenerator> blockStartCodeGenerators = new ArrayList<CodeGenerator>(3);
 
   public AbstractBlock(JooSymbol rBrace, List<Directive> directives, JooSymbol lBrace) {
     this.rBrace = rBrace;
@@ -28,10 +27,6 @@ public abstract class AbstractBlock extends Statement {
   @Override
   public void scope(final Scope scope) {
     scope(getDirectives(), scope);
-  }
-
-  public void addBlockStartCodeGenerator(CodeGenerator blockStartCodeGenerator) {
-    getBlockStartCodeGenerators().add(blockStartCodeGenerator);
   }
 
   public void analyze(AstNode parentNode) {
@@ -55,7 +50,4 @@ public abstract class AbstractBlock extends Statement {
     return rBrace;
   }
 
-  public List<CodeGenerator> getBlockStartCodeGenerators() {
-    return blockStartCodeGenerators;
-  }
 }
