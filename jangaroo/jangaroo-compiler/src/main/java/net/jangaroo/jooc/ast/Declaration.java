@@ -15,8 +15,8 @@
 
 package net.jangaroo.jooc.ast;
 
+import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
-import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.SyntacticKeywords;
 import net.jangaroo.jooc.sym;
@@ -86,10 +86,10 @@ public abstract class Declaration extends Statement {
   private void computeModifier(final JooSymbol modifier) {
     int flag = getModifierFlag(modifier);
     if ((flag & modifiers) != 0) {
-      throw Jooc.error(modifier, "duplicate modifier '" + modifier.getText() + "'");
+      throw JangarooParser.error(modifier, "duplicate modifier '" + modifier.getText() + "'");
     }
     if ((flag & MODIFIERS_SCOPE) != 0 && (modifiers & MODIFIERS_SCOPE) != 0) {
-      throw Jooc.error(modifier, "duplicate scope modifier '" + modifier.getText() + "'");
+      throw JangarooParser.error(modifier, "duplicate scope modifier '" + modifier.getText() + "'");
     }
     modifiers |= flag;
   }
@@ -99,7 +99,7 @@ public abstract class Declaration extends Statement {
     for (JooSymbol modifier : getSymModifiers()) {
       int flag = getModifierFlag(modifier);
       if ((allowedModifiers & flag) == 0) {
-        throw Jooc.error(modifier, "modifier '" + modifier.getText() + "' not allowed here");
+        throw JangarooParser.error(modifier, "modifier '" + modifier.getText() + "' not allowed here");
       }
     }
   }
@@ -135,7 +135,7 @@ public abstract class Declaration extends Statement {
                         : MODIFIER_NAMESPACE;
 
     }
-    throw Jooc.error(modifier, "internal compiler error: invalid modifier '" + modifier.getText() + "'");
+    throw JangarooParser.error(modifier, "internal compiler error: invalid modifier '" + modifier.getText() + "'");
   }
 
   public int getModifiers() {

@@ -16,8 +16,8 @@
 package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.CompilerError;
+import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
-import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
@@ -218,7 +218,7 @@ public class Ide extends NodeImplBase {
     }
     final IdeDeclaration result = declaration == NULL_DECL ? null : declaration; // NOSONAR no equals here
     if (result == null && errorIfUndeclared) {
-      throw Jooc.error(getIde(), "undeclared identifier '" + getName() + "'");
+      throw JangarooParser.error(getIde(), "undeclared identifier '" + getName() + "'");
     }
     return result;
   }
@@ -237,14 +237,14 @@ public class Ide extends NodeImplBase {
     if (isSuper()) {
       FunctionDeclaration currentMethod = getScope().getMethodDeclaration();
       if (currentMethod == null) {
-        throw Jooc.error(getIde(), "use of super is only allowed within non-static methods");
+        throw JangarooParser.error(getIde(), "use of super is only allowed within non-static methods");
       }
       if (currentMethod.isStatic()) {
-        throw Jooc.error(getIde(), "use of super inside static method");
+        throw JangarooParser.error(getIde(), "use of super inside static method");
       }
       FunctionExpr currentFunction = getScope().getFunctionExpr();
       if (currentFunction.getFunctionDeclaration() != currentMethod) {
-        throw Jooc.error(getIde(), "super calls might only be used within instance methods, not in local functions");
+        throw JangarooParser.error(getIde(), "super calls might only be used within instance methods, not in local functions");
       }
       //todo check whether super method exists and is non-static
     }
@@ -281,7 +281,7 @@ public class Ide extends NodeImplBase {
       if (funExpr != null && funExpr.getFunctionDeclaration() == null) {
         FunctionDeclaration methodDeclaration = getScope().getMethodDeclaration();
         if (methodDeclaration != null && !methodDeclaration.isStatic() && !isArgumentOfTypeCast(exprParent)) {
-          Jooc.warning(getSymbol(), "'this' may be unbound and is untyped in functions, even inside methods. Consider removing 'this.' (members are in scope!) or refactoring inner function to method.");
+          JangarooParser.warning(getSymbol(), "'this' may be unbound and is untyped in functions, even inside methods. Consider removing 'this.' (members are in scope!) or refactoring inner function to method.");
         }
       }
     }
@@ -336,7 +336,7 @@ public class Ide extends NodeImplBase {
   private void checkDefinedAccessChain() {
     if (!isQualified() && //this method is called for every node of a qualified ide tree, so we rely on the call on the root ide
             !isDeclared() && !isValidPackageAccessChain()) {
-      throw Jooc.error(getIde(), "undeclared identifier '" + getName() + "'");
+      throw JangarooParser.error(getIde(), "undeclared identifier '" + getName() + "'");
     }
   }
 

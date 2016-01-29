@@ -17,6 +17,7 @@ package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.CompilerError;
 import net.jangaroo.jooc.DeclarationScope;
+import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
@@ -111,10 +112,10 @@ public class ClassDeclaration extends IdeDeclaration {
 
   public void setConstructor(FunctionDeclaration methodDeclaration) {
     if (constructor != null) {
-      throw Jooc.error(methodDeclaration, "Only one constructor allowed per class");
+      throw JangarooParser.error(methodDeclaration, "Only one constructor allowed per class");
     }
 //     if (methodDeclaration != body.declararations.get(0))
-//       Jooc.error(methodDeclaration, "Constructor declaration must be the first declaration in a class");
+//       JangarooParser.error(methodDeclaration, "Constructor declaration must be the first declaration in a class");
     constructor = methodDeclaration;
   }
 

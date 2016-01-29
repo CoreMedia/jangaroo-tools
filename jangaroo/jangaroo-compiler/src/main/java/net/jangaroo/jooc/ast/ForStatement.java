@@ -15,8 +15,8 @@
 
 package net.jangaroo.jooc.ast;
 
+import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
-import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
@@ -81,7 +81,7 @@ public class ForStatement extends ConditionalLoopStatement {
 
   private void checkNonVirtualSemicolon(JooSymbol semi) {
     if (semi.isVirtual()) {
-      throw Jooc.error(semi, "missing ';'" +
+      throw JangarooParser.error(semi, "missing ';'" +
               "(automatic semicolon insertion would become one of the two semicolons in the header of a for statement)");
     }
   }

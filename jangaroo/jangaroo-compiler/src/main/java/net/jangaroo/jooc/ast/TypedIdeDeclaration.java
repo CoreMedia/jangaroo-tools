@@ -15,8 +15,8 @@
 
 package net.jangaroo.jooc.ast;
 
+import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
-import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
 
 import java.util.List;
@@ -111,7 +111,7 @@ public abstract class TypedIdeDeclaration extends IdeDeclaration implements Type
       return null;
     } else {
       if (getOptTypeRelation().getType().getIde().equals(getIde())) {
-        throw Jooc.error(getSymbol(), "Type was not found or was not a compile-time constant: " + getIde().getSymbol().getText());
+        throw JangarooParser.error(getSymbol(), "Type was not found or was not a compile-time constant: " + getIde().getSymbol().getText());
       } else {
         return getOptTypeRelation().getType().resolveDeclaration();
       }

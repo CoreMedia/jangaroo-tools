@@ -15,8 +15,8 @@
 
 package net.jangaroo.jooc.ast;
 
+import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
-import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.sym;
 
@@ -68,13 +68,13 @@ public class Parameter extends IdeDeclaration implements Typed {
       getOptTypeRelation().analyze(this);
       if (isRest() && !"Array".equals(getOptTypeRelation().getType().getSymbol().getText())) {
         //todo replace that condition with real Array definition lookup
-        throw Jooc.error(getOptTypeRelation().getSymbol(), "Rest parameter must have Array type.");
+        throw JangarooParser.error(getOptTypeRelation().getSymbol(), "Rest parameter must have Array type.");
       }
     }
     if (getOptInitializer() != null) {
       getOptInitializer().analyze(this);
       if (!getOptInitializer().getValue().isCompileTimeConstant()) {
-        throw Jooc.error(getOptInitializer().getSymbol(), "Parameter initializer must be compile-time constant.");
+        throw JangarooParser.error(getOptInitializer().getSymbol(), "Parameter initializer must be compile-time constant.");
       }
     }
   }

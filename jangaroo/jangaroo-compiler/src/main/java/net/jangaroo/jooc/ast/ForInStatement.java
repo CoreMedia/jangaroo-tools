@@ -15,8 +15,8 @@
 
 package net.jangaroo.jooc.ast;
 
+import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
-import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.SyntacticKeywords;
 
@@ -50,7 +50,7 @@ public class ForInStatement extends LoopStatement {
   private ForInStatement(JooSymbol symFor, JooSymbol symEach, JooSymbol lParen, VariableDeclaration decl, Expr lValue, JooSymbol symIn, Expr expr, JooSymbol rParen, Statement body) {
     super(symFor, body);
     if (!(symEach == null || SyntacticKeywords.EACH.equals(symEach.getText()))) {
-      throw Jooc.error(symEach, "'for' must be followed by '(' or 'each'.");
+      throw JangarooParser.error(symEach, "'for' must be followed by '(' or 'each'.");
     }
     this.symEach = symEach;
     this.lParen = lParen;
