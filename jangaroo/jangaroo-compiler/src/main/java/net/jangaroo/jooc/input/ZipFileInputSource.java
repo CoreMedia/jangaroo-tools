@@ -1,9 +1,13 @@
 package net.jangaroo.jooc.input;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.LinkedHashMap;
@@ -18,6 +22,7 @@ public class ZipFileInputSource extends DirectoryInputSource {
   private ZipFile zipFile;
   private String[] rootDirs;
   private Map<String, ZipEntryInputSource> entries = new LinkedHashMap<String, ZipEntryInputSource>();
+  private Multimap<String, ZipEntryInputSource> entriesByParent = HashMultimap.create();
 
   /**
    * Create an InputSource directory from the given zip or jar file, providing a "union view" over the zip file
@@ -38,7 +43,12 @@ public class ZipFileInputSource extends DirectoryInputSource {
       ZipEntry entry = zipEntryEnum.nextElement();
       final String relativePath = getRelativePath(entry.getName());
       if (relativePath != null && !entries.containsKey(relativePath)) {
-        this.entries.put(relativePath, new ZipEntryInputSource(this, entry, relativePath));
+        ZipEntryInputSource zipEntryInputSource = new ZipEntryInputSource(this, entry, relativePath);
+        this.entries.put(relativePath, zipEntryInputSource);
+
+        int slashPos = relativePath.lastIndexOf('/');
+        String parent = relativePath.substring(0, slashPos + 1);
+        entriesByParent.put(removeTrailingSlash(parent), zipEntryInputSource);
       }
     }
   }
@@ -55,6 +65,10 @@ public class ZipFileInputSource extends DirectoryInputSource {
       return null;
     }
     String strippedName = name.substring(foundRoot.length());
+    return removeTrailingSlash(strippedName);
+  }
+
+  private String removeTrailingSlash(String strippedName) {
     return strippedName.endsWith("/") ? strippedName.substring(0, strippedName.length() - 1) : strippedName;
   }
 
@@ -111,20 +125,8 @@ public class ZipFileInputSource extends DirectoryInputSource {
   }
 
   private List<InputSource> list(final String relativePath) {
-    List<InputSource> result = new ArrayList<InputSource>();
-    for (Map.Entry<String, ZipEntryInputSource> entry : entries.entrySet()) {
-      String p2 = entry.getValue().getRelativePath();
-      for (String root : rootDirs) {
-        String p = root + relativePath;
-        if (p2.startsWith(p) &&
-                p2.length() > p.length() &&
-                p2.lastIndexOf('/') == (p.isEmpty() ? -1 : p.length())) {
-          result.add(entry.getValue());
-          break;
-        }
-      }
-    }
-    return result;
+    Collection<ZipEntryInputSource> zipEntryInputSources = entriesByParent.get(removeTrailingSlash(relativePath));
+    return zipEntryInputSources == null ? Collections.<InputSource>emptyList() : new ArrayList<InputSource>(zipEntryInputSources);
   }
 
   @Override
