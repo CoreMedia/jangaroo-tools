@@ -137,6 +137,7 @@ public class JangarooParser implements CompilationUnitModelResolver {
   }
 
   public CompilationUnit doParse(InputSource in, CompileLog log, SemicolonInsertionMode semicolonInsertionMode, boolean forModel) {
+    log.warning("#####" + in.getPath());
     Reader reader;
     try {
       if (in.getName().endsWith(Jooc.MXML_SUFFIX)) {
@@ -334,18 +335,19 @@ public class JangarooParser implements CompilationUnitModelResolver {
       }
       compilationUnitModelsByQName.put(fullClassName, null);
 
-      CompilationUnit compilationUnit;
-      InputSource source = findSource(fullClassName);
-      if (source != null) {
-        if (source.getName().endsWith(Jooc.MXML_SUFFIX)) {
-          // MXML files denote classes.
-          isClassByQName.put(fullClassName, true);
-          compilationUnit = parse(source, true);
-        } else {
-          compilationUnit = getCompilationUnit(fullClassName);
+      CompilationUnit compilationUnit = compilationUnitsByQName.get(fullClassName);
+      if (compilationUnit == null) {
+        // The compilation unit has not yet been parsed.
+        InputSource source = findSource(fullClassName);
+        if (source != null) {
+          if (source.getName().endsWith(Jooc.MXML_SUFFIX)) {
+            // MXML files denote classes.
+            isClassByQName.put(fullClassName, true);
+            compilationUnit = parse(source, true);
+          } else {
+            compilationUnit = getCompilationUnit(fullClassName);
+          }
         }
-      } else {
-        compilationUnit = null;
       }
       if (compilationUnit == null) {
         throw error("Undefined type: " + fullClassName);
