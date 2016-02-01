@@ -93,7 +93,7 @@ public final class MxmlToModelParser {
   /**
    *  @param jangarooParser the Jangaroo parser to use to look up compilation units
    * @param compilationUnitModel the "naked" compilation unit model to fill
-   * @param forModel
+   * @param forModel whether the parser is supposed to generate a compilation unit model defining the API, only
    */
   public MxmlToModelParser(JangarooParser jangarooParser, CompilationUnitModel compilationUnitModel, boolean forModel) {
     this.jangarooParser = jangarooParser;
@@ -512,7 +512,7 @@ public final class MxmlToModelParser {
       value = "undefined";
     } else {
       boolean hasBindings = false;
-      if (!forModel && constructorSupportsConfigOptionsParameter(className)) {
+      if (forModel || constructorSupportsConfigOptionsParameter(className)) {
         // if class supports a config options parameter, create a config options object and assign properties to it:
         configVariable = createAuxVar();
         renderConfigAuxVar(configVariable, className, true);
