@@ -141,7 +141,7 @@ public class JangarooParser implements CompilationUnitModelResolver, Compilation
   public CompilationUnit doParse(InputSource in, CompileLog log, SemicolonInsertionMode semicolonInsertionMode, boolean forModel) {
     Reader reader;
     try {
-      if (in.getName().endsWith(Jooc.MXML_SUFFIX)) {
+      if (false && in.getName().endsWith(Jooc.MXML_SUFFIX)) {
         String qName = CompilerUtils.qNameFromRelativPath(in.getRelativePath());
         String className = CompilerUtils.className(qName);
         CompilationUnitModel compilationUnitModel = new CompilationUnitModel(CompilerUtils.packageName(qName),
@@ -166,6 +166,7 @@ public class JangarooParser implements CompilationUnitModelResolver, Compilation
       throw new CompilerError("Cannot parse MXML input file: " + in.getPath(), e);
     }
     Scanner s = new Scanner(reader);
+    s.yybegin(in.getName().endsWith(Jooc.MXML_SUFFIX) ? Scanner.MXML : Scanner.YYINITIAL);
     s.setInputSource(in);
     JooParser p = new JooParser(s);
     p.setCompileLog(log);

@@ -106,7 +106,7 @@ package net.jangaroo.jooc;
 
 LineTerminator = [\n\r\u2028\u2029]
 InputCharacter = [^\r\n]
-WhiteSpace = {LineTerminator} | [  \t\f]
+WhiteSpace = {LineTerminator} | [ ï¿½\t\f]
 
 Comment = {TraditionalComment} | {EndOfLineComment} 
 
@@ -151,7 +151,9 @@ HexDigit          = [0-9abcdefABCDEF]
 
 Include           = "include \"" ~"\""
 
-%state STRING_SQ, STRING_DQ, REGEXP_START, REGEXP_FIRST, REGEXP_REST, VECTOR_TYPE
+XmlComment = "<!--" ~"-->"
+
+%state STRING_SQ, STRING_DQ, REGEXP_START, REGEXP_FIRST, REGEXP_REST, VECTOR_TYPE, MXML, XML_ATTRIBUTE_VALUE_DQ, XML_ATTRIBUTE_VALUE_SQ, XML_TEXT_CONTENT, CDATA_SECTION
 
 %%
 
@@ -334,6 +336,74 @@ Include           = "include \"" ~"\""
                                     return multiStateSymbol(REGEXP_LITERAL, getString());
                                   }
   {LineTerminator}                { error("unterminated regular expression at end of line"); }
+}
+
+<MXML> {
+  "<?"                            { return symbol(LT_QUESTION); }
+  "?>"                            { return symbol(QUESTION_GT); }
+  {Identifier}                    { return symbol(IDE, yytext()); }
+  {WhiteSpace}                    { pushWhitespace(yytext()); }
+  {XmlComment}                    { pushWhitespace(yytext()); }
+  \"                              { setMultiStateText(yytext()); yybegin(XML_ATTRIBUTE_VALUE_DQ); clearString(); }
+  \'                              { setMultiStateText(yytext()); yybegin(XML_ATTRIBUTE_VALUE_SQ); clearString(); }
+  "<"                             { return symbol(LT); }
+  "</"                            { return symbol(LT_SLASH); }
+  "/>"                            { return symbol(SLASH_GT); }
+  ">"                             { setMultiStateText(""); yybegin(XML_TEXT_CONTENT); clearString(); return symbol(GT); }
+  ":"                             { return symbol(COLON); }
+  "="                             { return symbol(EQ); }
+}
+
+<XML_ATTRIBUTE_VALUE_DQ> {
+  \"                              { pushMultiStateText(yytext()); yybegin(MXML);
+                                    return multiStateSymbol(STRING_LITERAL, getString()); }
+  [^\r\n\"\\]+                    { pushMultiStateText(yytext()); pushString( yytext() ); }
+  "\\b"                           { pushMultiStateText(yytext()); pushString( '\b' ); }
+  "\\t"                           { pushMultiStateText(yytext()); pushString( '\t' ); }
+  "\\n"                           { pushMultiStateText(yytext()); pushString( '\n' ); }
+  "\\f"                           { pushMultiStateText(yytext()); pushString( '\f' ); }
+  "\\r"                           { pushMultiStateText(yytext()); pushString( '\r' ); }
+  "\\\""                          { pushMultiStateText(yytext()); pushString( '\"' ); }
+  "\\\'"                          { pushMultiStateText(yytext()); pushString( '\'' ); }
+  "\\\\"                          { pushMultiStateText(yytext()); pushString( '\\' ); }
+\\(u{HexDigit}{4}|x{HexDigit}{2}) { pushMultiStateText(yytext());
+                                   char val = (char) Integer.parseInt(yytext().substring(2),16);
+                        	   pushString(val); }
+  \\.                             { pushMultiStateText(yytext()); pushString(yytext().substring(1)); }
+  {LineTerminator}                { error("Unterminated string at end of line"); }
+}
+
+<XML_ATTRIBUTE_VALUE_SQ> {
+  \'                              { pushMultiStateText(yytext()); yybegin(MXML);
+                                    return multiStateSymbol(STRING_LITERAL, getString()); }
+  [^\r\n'\\]+                     { pushMultiStateText(yytext()); pushString( yytext() ); }
+  "\\b"                           { pushMultiStateText(yytext()); pushString( '\b' ); }
+  "\\t"                           { pushMultiStateText(yytext()); pushString( '\t' ); }
+  "\\n"                           { pushMultiStateText(yytext()); pushString( '\n' ); }
+  "\\f"                           { pushMultiStateText(yytext()); pushString( '\f' ); }
+  "\\r"                           { pushMultiStateText(yytext()); pushString( '\r' ); }
+  "\\\""                          { pushMultiStateText(yytext()); pushString( '\"' ); }
+  "\\\'"                          { pushMultiStateText(yytext()); pushString( '\'' ); }
+  "\\\\"                          { pushMultiStateText(yytext()); pushString( '\\' ); }
+\\(u{HexDigit}{4}|x{HexDigit}{2}) { pushMultiStateText(yytext());
+                                   char val = (char) Integer.parseInt(yytext().substring(2),16);
+                        	   pushString(val); }
+  \\.                             { pushMultiStateText(yytext()); pushString(yytext().substring(1)); }
+  {LineTerminator}                { error("Unterminated string at end of line"); }
+}
+
+<XML_TEXT_CONTENT> {
+  "<![CDATA["                     { setMultiStateText(yytext()); yybegin(CDATA_SECTION); clearString(); }
+  .|{LineTerminator} / "<"        { setMultiStateText(yytext()); yybegin(MXML);
+                                    return multiStateSymbol(STRING_LITERAL, getString()); }
+  .|{LineTerminator}              { pushMultiStateText(yytext()); pushString(yytext().substring(1)); }
+}
+
+<CDATA_SECTION> {
+  "]]>" / "<"                     { pushMultiStateText(yytext()); yybegin(MXML);
+                                    return multiStateSymbol(STRING_LITERAL, getString()); }
+  "]]>"                           { pushMultiStateText(yytext()); yybegin(XML_TEXT_CONTENT); }
+  .|{LineTerminator}              { pushMultiStateText(yytext()); pushString(yytext().substring(1)); }
 }
 
 /* error catchall */

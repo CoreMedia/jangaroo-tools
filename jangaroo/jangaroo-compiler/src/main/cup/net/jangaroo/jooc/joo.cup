@@ -24,6 +24,7 @@ package net.jangaroo.jooc;
 import java.util.List;
 import java.util.ArrayList;
 import net.jangaroo.jooc.ast.*;
+import net.jangaroo.mxmlc.ast.*;
 
 parser code {:
 
@@ -69,6 +70,11 @@ terminal JooSymbol STRING_LITERAL;
 terminal JooSymbol IDE;
 terminal JooSymbol NULL_LITERAL;
 terminal JooSymbol REGEXP_LITERAL;
+
+terminal JooSymbol LT_QUESTION;
+terminal JooSymbol QUESTION_GT;
+terminal JooSymbol LT_SLASH;
+terminal JooSymbol SLASH_GT;
 
 // virtual tokens to mark the begin of a function, array or object literal expression
 // inserted by parser if no other action is available
@@ -152,6 +158,16 @@ nonterminal CommaSeparatedList ideList;
 nonterminal VariableDeclaration variableDeclaration;
 nonterminal VariableDeclaration forVariableDeclaration;
 nonterminal VariableDeclaration optNextVariableDeclaration;
+nonterminal CompilationUnit mxmlCompilationUnit;
+nonterminal XmlHeader optXmlHeader;
+nonterminal XmlElement mxmlElement;
+nonterminal Ide namespacedXmlIde;
+nonterminal XmlTag openingMxmlTag;
+nonterminal XmlTag closedMxmlTag;
+nonterminal XmlTag closingMxmlTag;
+nonterminal List mxmlElements;
+nonterminal List xmlAttributes;
+nonterminal XmlAttribute xmlAttribute;
 
 // see http://livedocs.adobe.com/flex/3/html/help.html?content=03_Language_and_Syntax_14.html#119081
 /* 1 - Comma */
@@ -264,6 +280,8 @@ commaExpr ::=
 compilationUnit ::=
     packageDeclaration:p LBRACE:lb optDirectives:ds compilationUnitDeclaration:c RBRACE:rb optClassDeclarations:cds
     {: RESULT = new CompilationUnit(p,lb,ds,c,rb, cds); :}
+  | mxmlCompilationUnit:mxmlCompilationUnit
+    {: RESULT = mxmlCompilationUnit; :}
   ;
 
 compilationUnitDeclaration ::=
@@ -796,4 +814,64 @@ optNextVariableDeclaration ::=
     {: RESULT = null; :}
   | COMMA:c ide:ide optTypeRelation:t optInitializer:init optNextVariableDeclaration:nv
     {: RESULT = new VariableDeclaration(c, ide, t, init, nv); :}
+  ;
+
+mxmlCompilationUnit ::=
+    optXmlHeader:optXmlHeader mxmlElement:rootElement
+    {: RESULT = new MxmlCompilationUnit(optXmlHeader, rootElement); :}
+  ;
+
+/* <?xml version="..."?> */
+optXmlHeader ::=
+    {: RESULT = null; :}
+  | LT_QUESTION:ltQuestion ide:xmlIde ide:versionIde EQ:eq STRING_LITERAL:version QUESTION_GT:questionGt
+    {: RESULT = new XmlHeader(ltQuestion, xmlIde, versionIde, eq, version, questionGt); :}
+  ;
+
+mxmlElement ::=
+    closedMxmlTag:closedMxmlTag
+    {: RESULT = new XmlElement(closedMxmlTag, null, null); :}
+  | openingMxmlTag:openingMxmlTag mxmlElements:children closingMxmlTag:closingMxmlTag
+    {: RESULT = new XmlElement(openingMxmlTag, children, closingMxmlTag); :}
+  ;
+
+mxmlElements ::=
+    {: RESULT = new ArrayList(); :}
+  | mxmlElements:l mxmlElement:e
+    {: RESULT = l; l.add(e); :}
+  | mxmlElements:l STRING_LITERAL:cdata
+    {: RESULT = l; l.add(cdata); :}
+  ;
+
+xmlAttribute ::=
+    namespacedXmlIde:ide EQ:eq STRING_LITERAL:value
+    {: RESULT = new XmlAttribute(ide, eq, value); :}
+  ;
+
+xmlAttributes ::=
+    {: RESULT = new ArrayList(); :}
+  | xmlAttributes:l xmlAttribute:a
+    {: RESULT = l; l.add(a); :}
+  ;
+
+namespacedXmlIde ::=
+    IDE:ide
+    {: RESULT = new Ide(ide); :}
+  | IDE:namespacePrefix COLON:colon IDE:ide
+    {: RESULT = new NamespacedIde(namespacePrefix, colon, ide); :}
+  ;
+
+openingMxmlTag ::=
+    LT:lt namespacedXmlIde:tagName xmlAttributes:attributes GT:gt
+    {: RESULT = new XmlTag(lt, tagName, attributes, gt); :}
+  ;
+
+closedMxmlTag ::=
+    LT:lt namespacedXmlIde:tagName xmlAttributes:attributes SLASH_GT:slashGt
+    {: RESULT = new XmlTag(lt, tagName, attributes, slashGt); :}
+  ;
+
+closingMxmlTag ::=
+    LT_SLASH:lt namespacedXmlIde:tagName GT:gt
+    {: RESULT = new XmlTag(lt, tagName, null, gt); :}
   ;
