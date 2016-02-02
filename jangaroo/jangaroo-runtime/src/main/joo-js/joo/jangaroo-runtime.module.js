@@ -15,7 +15,7 @@ if (typeof joo.debug !== "boolean") {
       scriptLoading = scriptsToLoad.shift();
       Ext.Loader.loadScript({
         url: scriptLoading,
-        onSuccess: function() {
+        onLoad: function() {
           scriptLoading = null;
           loadNextScript();
         }
