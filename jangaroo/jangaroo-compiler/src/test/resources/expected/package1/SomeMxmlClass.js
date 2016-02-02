@@ -56,14 +56,15 @@ public class SomeMxmlClass extends package1.ConfigClass {
     $_1,"list" , [$_2, new AS3.package1.ConfigClass($_3)]);
     var $_7/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
     $_7,"bla" , 3);
-    $_7.blubb_accessor = 'blub accessor expression';
-    $_7.blubb_config = 'blub config expression';AS3.setBindable(
+    $_7["blubb_accessor"] = 'blub accessor expression';
+    $_7["blubb_config"] = 'blub config expression';AS3.setBindable(
     $_1,"other" , new AS3.package1.someOtherPackage.SomeOtherClass($_7));
     joo.addEventListener($_1, "click",AS3.bind( this,"$on_$_1_click$2"), AS3.package1.someOtherPackage.SomeEvent);
     $_1.foo = "bar";
     $_1.number = 1 + 1;
     var $_8/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
     $_8,"bla" , 99);
+    $_8["knownUnknown"] = "true";
     $_1.defaultType = $_8['xtype'];
     delete $_8['xtype'];
     delete $_8['xclass'];

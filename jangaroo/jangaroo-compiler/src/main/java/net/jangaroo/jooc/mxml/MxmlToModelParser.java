@@ -50,7 +50,7 @@ import static net.jangaroo.jooc.util.PreserveLineNumberHandler.getLineNumber;
 
 public final class MxmlToModelParser {
 
-  public static final String MXML_UNTYPED_NAMESPACE = "mxml:untyped";
+  public static final String EXML_UNTYPED_NAMESPACE = "exml:untyped";
   public static final String MXML_DECLARATIONS = "Declarations";
   public static final String MXML_SCRIPT = "Script";
   public static final String MXML_METADATA = "Metadata";
@@ -67,6 +67,7 @@ public final class MxmlToModelParser {
   private static final Map<String, String> CONFIG_MODE_TO_AT_VALUE = new HashMap<String, String>();
 
   private static final String DELETE_OBJECT_PROPERTY_CODE = "\n    delete %s['%s'];";
+  public static final String UNTYPED_MARKER = "__UNTYPED__";
 
   static {
     CONFIG_MODE_TO_AT_VALUE.put("append", "net.jangaroo.ext.Exml.APPEND");
@@ -273,11 +274,12 @@ public final class MxmlToModelParser {
     for (int i = 0; i < attributes.getLength(); i++) {
       Attr attribute = (Attr) attributes.item(i);
       String propertyName = attribute.getLocalName();
+      boolean isUntypedAccess = EXML_UNTYPED_NAMESPACE.equals(attribute.getNamespaceURI());
       if (attribute.getNamespaceURI() == null && !MXML_ID_ATTRIBUTE.equals(propertyName) ||
-              MXML_UNTYPED_NAMESPACE.equals(attribute.getNamespaceURI())) {
+              isUntypedAccess) {
         String value = attribute.getValue();
         MemberModel propertyModel = null;
-        if (classModel != null) {
+        if (!isUntypedAccess && classModel != null) {
           propertyModel = findPropertyModel(classModel, propertyName);
           if (propertyModel == null) {
             if (generatingConfig && hasIdAttribute) {
@@ -294,7 +296,7 @@ public final class MxmlToModelParser {
           }
         }
         if (propertyModel == null) {
-          propertyModel = createDynamicPropertyModel(objectNode, type, propertyName, MXML_UNTYPED_NAMESPACE.equals(attribute.getNamespaceURI()));
+          propertyModel = createDynamicPropertyModel(objectNode, type, propertyName, isUntypedAccess);
         }
         if (createPropertyAssignmentCodeWithBindings(configVariable, targetVariable, generatingConfig, value, propertyModel)) {
           hasBindings = true;
@@ -660,14 +662,26 @@ public final class MxmlToModelParser {
   private void createPropertyAssignmentCode(String variable, MemberModel propertyModel, String value, boolean generatingConfig) {
     String attributeValueAsString = MxmlUtils.valueToString(getPropertyValue(propertyModel, value));
     String propertyName = generatingConfig ? getConfigOptionName(propertyModel) : propertyModel.getName();
-    code.append("\n    ").append(getPropertyAssignmentCode(variable, propertyName, attributeValueAsString));
+    code.append("\n    ");
+    String propertyAssignmentCode =
+            UNTYPED_MARKER.equals(propertyModel.getType()) || !propertyName.equals(propertyModel.getName())
+                    ? getUntypedPropertyAssignmentCode(variable, propertyName, attributeValueAsString)
+                    : getPropertyAssignmentCode(variable, propertyName, attributeValueAsString);
+    code.append(propertyAssignmentCode);
   }
 
   private static String getPropertyAssignmentCode(String variable, String propertyName, String attributeValueAsString) {
-    String assignment = MessageFormat.format("{0} = {1};", propertyName, attributeValueAsString);
-    return "this".equals(variable)
-            ? assignment
-            : MessageFormat.format("{0}.{1}", variable, assignment);
+    String leftHandSide = "this".equals(variable) ? propertyName : MessageFormat.format("{0}.{1}", variable, propertyName);
+    return getAssignmentCode(leftHandSide, attributeValueAsString);
+  }
+
+  private static String getUntypedPropertyAssignmentCode(String variable, String propertyName, String attributeValueAsString) {
+    String leftHandSide = MessageFormat.format("{0}[\"{1}\"]", variable, propertyName);
+    return getAssignmentCode(leftHandSide, attributeValueAsString);
+  }
+
+  private static String getAssignmentCode(String leftHandSide, String rightHandSide) {
+    return MessageFormat.format("{0} = {1};", leftHandSide, rightHandSide);
   }
 
   private static String getConfigOptionName(MemberModel propertyModel) {
@@ -748,7 +762,7 @@ public final class MxmlToModelParser {
       // dynamic property of a non-dynamic class: warn!
       JangarooParser.warning(position(element), "MXML: property " + name + " not found in class " + compilationUnitModel.getQName() + ".");
     }
-    return new FieldModel(name, "*");
+    return new FieldModel(name, allowAnyProperty ? UNTYPED_MARKER : "*");
   }
 
   private ClassModel getSuperClassModel(ClassModel classModel) throws IOException {
