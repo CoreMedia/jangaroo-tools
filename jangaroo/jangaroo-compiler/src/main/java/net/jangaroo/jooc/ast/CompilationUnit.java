@@ -15,7 +15,6 @@
 
 package net.jangaroo.jooc.ast;
 
-import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.input.InputSource;
@@ -54,7 +53,6 @@ public class CompilationUnit extends NodeImplBase {
   private boolean auxVarsRendered;
 
   private InputSource source;
-  private JangarooParser compiler;
   private static final Collection<String> IMAGE_EXTENSIONS = Arrays.asList("png", "gif", "bmp", "jpg", "jpeg");
 
   public CompilationUnit(PackageDeclaration packageDeclaration, JooSymbol lBrace, List<AstNode> directives, IdeDeclaration primaryDeclaration, JooSymbol rBrace, List<IdeDeclaration> secondaryDeclarations) {
@@ -187,14 +185,6 @@ public class CompilationUnit extends NodeImplBase {
     return dependenciesInModule;
   }
 
-  public JangarooParser getCompiler() {
-    return compiler;
-  }
-
-  public void setCompiler(final JangarooParser compiler) {
-    this.compiler = compiler;
-  }
-
   /**
    * @param source the source of this compilation unit.
    */
@@ -237,7 +227,7 @@ public class CompilationUnit extends NodeImplBase {
   }
 
   public void addDependency(String otherUnitQName) {
-    addDependency(getCompiler().getCompilationUnit(otherUnitQName), false);
+    addDependency(scope.getCompiler().getCompilationUnit(otherUnitQName), false);
   }
 
   public void addDependency(CompilationUnit otherUnit, boolean required) {
@@ -257,7 +247,7 @@ public class CompilationUnit extends NodeImplBase {
           if ("Uses".equals(annotation.getMetaName())) {
             CommaSeparatedList<AnnotationParameter> current = annotation.getOptAnnotationParameters();
             for (String value : getAnnotationStringListValue(current)) {
-              dependenciesAsCompilationUnits.put(getCompiler().getCompilationUnit(value), true);
+              dependenciesAsCompilationUnits.put(scope.getCompiler().getCompilationUnit(value), true);
             }
           }
         }

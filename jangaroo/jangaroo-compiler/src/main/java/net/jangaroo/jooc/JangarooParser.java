@@ -394,9 +394,7 @@ public class JangarooParser implements CompilationUnitModelResolver {
     }
     CompilationUnit unit = doParse(in, log, config.getSemicolonInsertionMode(), forModel);
     if (unit != null) {
-      unit.setCompiler(this);
       unit.setSource(in);
-
       unit.scope(globalScope);
     }
     return unit;
