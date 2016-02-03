@@ -106,6 +106,10 @@ AS3 = {
   },
   getBindable: function (object, property) {
     if (object.isInstance) {
+      var getterName = this._checkConfig(object, property, "get");
+      if (getterName) {
+        return object[getterName]();
+      }
       return object.getConfig(property);
     } else {
       return object[property];
@@ -113,9 +117,24 @@ AS3 = {
   },
   setBindable: function (object, property, value) {
     if (object.isInstance) {
-      object.setConfig(property, value);
+      var setterName = this._checkConfig(object, property, "set");
+      if (setterName) {
+        object[setterName](property, value);
+      } else {
+        object.setConfig(property, value);
+      }
     } else {
       object[property] = value;
     }
+    return value;
+  },
+  _checkConfig: function(object, property, accessPrefix) {
+    if (!Ext.Config.map[property]) {
+      var accessorName = accessPrefix + Ext.String.capitalize(property);
+      this.trace("[WARN]", "AS3." + accessPrefix + "Bindable() called on " + Ext.getClassName(object) + "#" + property +
+              ", which is not registered as a config. Still using method " + accessorName + "().");
+      return accessorName;
+    }
+    return null;
   }
 };
