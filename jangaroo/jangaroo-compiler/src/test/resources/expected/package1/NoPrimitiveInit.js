@@ -6,7 +6,7 @@ public class NoPrimitiveInit {
   }/*
 
   private*/ function method(i/*:int*/)/*:int*/ {
-    return AS3.package1.someOtherPackage.SomeOtherClass.BLA + AS3.int.MAX_VALUE;
+    return AS3.package1.someOtherPackage.SomeOtherClass.BLA + AS3.$int.MAX_VALUE;
   }/*
 }
 }
@@ -16,7 +16,7 @@ public class NoPrimitiveInit {
       constructor: NoPrimitiveInit$,
       method$1: method,
       uses: [
-        "AS3.int",
+        "AS3.$int",
         "AS3.package1.someOtherPackage.SomeOtherClass"
       ]
     };
