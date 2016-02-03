@@ -157,7 +157,8 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
       analyzeDependencies();
 
       for (CompilationUnit unit : compileQueue) {
-        File sourceFile = ((FileInputSource)unit.getSource()).getFile();
+        InputSource source = getInputSource(unit);
+        File sourceFile = ((FileInputSource)source).getFile();
         File outputFile = null;
         // only generate JavaScript if [Native] annotation and 'native' modifier on primary compilationUnit are not present:
         if (unit.getAnnotation(NATIVE_ANNOTATION_NAME) == null && !unit.getPrimaryDeclaration().isNative()) {
@@ -219,7 +220,7 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
     Set<CompilationUnit> unprocessedCompilationUnits = new HashSet<CompilationUnit>(getCompilationUnits());
     while (!unprocessedCompilationUnits.isEmpty()) {
       for (final CompilationUnit compilationUnit : unprocessedCompilationUnits) {
-        if (processedCompilationUnits.add(compilationUnit) && compilationUnit.getSource().isInSourcePath()) {
+        if (processedCompilationUnits.add(compilationUnit) && compilationUnit.isInSourcePath()) {
           dependencyGraph.fillInDependencies(compilationUnit);
         }
       }
@@ -297,7 +298,7 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
 
   private void reportPublicApiViolations(CompilationUnit unit) {
     for (CompilationUnit compilationUnit : unit.getDependenciesAsCompilationUnits()) {
-      if (compilationUnit.getSource() instanceof ZipEntryInputSource
+      if (getInputSource(compilationUnit) instanceof ZipEntryInputSource
         && compilationUnit.getAnnotation(PUBLIC_API_EXCLUSION_ANNOTATION_NAME) != null) {
         String msg = "PUBLIC API VIOLATION: " + compilationUnit.getPrimaryDeclaration().getQualifiedNameStr();
         File sourceFile = new File(unit.getSymbol().getFileName());

@@ -52,7 +52,6 @@ public class CompilationUnit extends NodeImplBase {
   private Map<String, String> auxVarsByPackage = new LinkedHashMap<String, String>();
   private boolean auxVarsRendered;
 
-  private InputSource source;
   private static final Collection<String> IMAGE_EXTENSIONS = Arrays.asList("png", "gif", "bmp", "jpg", "jpeg");
 
   public CompilationUnit(PackageDeclaration packageDeclaration, JooSymbol lBrace, List<AstNode> directives, IdeDeclaration primaryDeclaration, JooSymbol rBrace, List<IdeDeclaration> secondaryDeclarations) {
@@ -185,15 +184,8 @@ public class CompilationUnit extends NodeImplBase {
     return dependenciesInModule;
   }
 
-  /**
-   * @param source the source of this compilation unit.
-   */
-  public void setSource(InputSource source) {
-    this.source = source;
-  }
-
-  public InputSource getSource() {
-    return source;
+  private InputSource getInputSource() {
+    return scope.getCompiler().getInputSource(this);
   }
 
   public void analyze(AstNode parentNode) {
@@ -237,7 +229,7 @@ public class CompilationUnit extends NodeImplBase {
       // Dependencies on other modules may always be considered required,
       // because they cannot lead to cycles.
       boolean alreadyRequired = Boolean.TRUE.equals(dependenciesAsCompilationUnits.get(otherUnit));
-      boolean inModule = otherUnit.getSource().isInSourcePath();
+      boolean inModule = otherUnit.isInSourcePath();
       dependenciesAsCompilationUnits.put(otherUnit, required || alreadyRequired || !inModule);
       if (inModule) {
         dependenciesInModule.add(otherUnit);
@@ -304,7 +296,7 @@ public class CompilationUnit extends NodeImplBase {
   public String addResourceDependency(String relativePath) {
     String path = relativePath.startsWith("/") || relativePath.startsWith("\\")
             ? relativePath
-            : new File(source.getParent().getRelativePath(), relativePath).getPath().replace('\\', '/');
+            : new File(getInputSource().getParent().getRelativePath(), relativePath).getPath().replace('\\', '/');
     if (path.startsWith("/")) {
       path = path.substring(1);
     }
@@ -328,5 +320,9 @@ public class CompilationUnit extends NodeImplBase {
   @Override
   public String toString() {
     return getClass().getSimpleName() + "(" + getPrimaryDeclaration().getQualifiedNameStr() + ")";
+  }
+
+  public boolean isInSourcePath() {
+    return getInputSource().isInSourcePath();
   }
 }

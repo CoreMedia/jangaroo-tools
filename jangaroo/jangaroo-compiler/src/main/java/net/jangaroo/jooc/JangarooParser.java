@@ -1,5 +1,7 @@
 package net.jangaroo.jooc;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import java_cup.runtime.Symbol;
 import net.jangaroo.jooc.api.CompileLog;
 import net.jangaroo.jooc.api.FilePosition;
@@ -50,14 +52,14 @@ public class JangarooParser implements CompilationUnitModelResolver {
   private InputSource sourcePathInputSource;
   private InputSource classPathInputSource;
   private ParserOptions config;
-  private Map<InputSource, CompilationUnit> compilationUnitsByInputSource = new LinkedHashMap<InputSource, CompilationUnit>();
+  private BiMap<InputSource, CompilationUnit> compilationUnitsByInputSource = HashBiMap.create();
   private Map<String, CompilationUnit> compilationUnitsByQName = new LinkedHashMap<String, CompilationUnit>();
   private Map<String, Boolean> isClassByQName = new LinkedHashMap<String, Boolean>();
   private Map<String, CompilationUnitModel> compilationUnitModelsByQName = new LinkedHashMap<String, CompilationUnitModel>();
   private MxmlComponentRegistry mxmlComponentRegistry = new MxmlComponentRegistry();
   private List<String> compilableSuffixes = Arrays.asList(Jooc.AS_SUFFIX, Jooc.MXML_SUFFIX);
 
-  protected final Scope globalScope = new DeclarationScope(null, null, this);
+  private final Scope globalScope = new DeclarationScope(null, null, this);
 
   {
     declareType(globalScope, AS3Type.VOID.toString());
@@ -258,8 +260,8 @@ public class JangarooParser implements CompilationUnitModelResolver {
     }
 
     unit = parse(source, false);
-    if (unit == null) {
-      return unit;
+    if (null == unit) {
+      return null;
     }
 
     String prefix = unit.getPackageDeclaration().getQualifiedNameStr();
@@ -394,7 +396,6 @@ public class JangarooParser implements CompilationUnitModelResolver {
     }
     CompilationUnit unit = doParse(in, log, config.getSemicolonInsertionMode(), forModel);
     if (unit != null) {
-      unit.setSource(in);
       unit.scope(globalScope);
     }
     return unit;
@@ -438,6 +439,10 @@ public class JangarooParser implements CompilationUnitModelResolver {
 
   public void tearDown() {
     defaultLog.remove();
+  }
+
+  public InputSource getInputSource(final CompilationUnit compilationUnit) {
+    return compilationUnitsByInputSource.inverse().get(compilationUnit);
   }
 
   private static class FilePositionImpl implements FilePosition {
