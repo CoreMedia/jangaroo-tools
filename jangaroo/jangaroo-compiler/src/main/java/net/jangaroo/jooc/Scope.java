@@ -67,4 +67,6 @@ public interface Scope {
   Ide findFreeAuxVar();
 
   DeclarationScope getPackageDeclarationScope();
+
+  JangarooParser getCompiler();
 }

@@ -76,7 +76,7 @@ public abstract class NodeImplBase implements AstNode {
   }
 
   public void withNewDeclarationScope(final AstNode definingNode, final Scope scope, final Scoped scoped) {
-    scoped.run(new DeclarationScope(definingNode, scope));
+    scoped.run(new DeclarationScope(definingNode, scope, scope.getCompiler()));
   }
 
   public void withNewLabelScope(final Statement statement, final Scope scope, final Scoped scoped) {

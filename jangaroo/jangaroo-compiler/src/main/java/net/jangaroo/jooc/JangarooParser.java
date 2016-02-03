@@ -57,7 +57,7 @@ public class JangarooParser implements CompilationUnitModelResolver {
   private MxmlComponentRegistry mxmlComponentRegistry = new MxmlComponentRegistry();
   private List<String> compilableSuffixes = Arrays.asList(Jooc.AS_SUFFIX, Jooc.MXML_SUFFIX);
 
-  protected final Scope globalScope = new DeclarationScope(null, null);
+  protected final Scope globalScope = new DeclarationScope(null, null, this);
 
   {
     declareType(globalScope, AS3Type.VOID.toString());
