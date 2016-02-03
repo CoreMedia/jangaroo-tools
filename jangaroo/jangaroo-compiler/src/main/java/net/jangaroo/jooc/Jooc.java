@@ -18,6 +18,7 @@ package net.jangaroo.jooc;
 import net.jangaroo.jooc.api.CompilationResult;
 import net.jangaroo.jooc.api.CompileLog;
 import net.jangaroo.jooc.ast.CompilationUnit;
+import net.jangaroo.jooc.ast.TransitiveAstVisitor;
 import net.jangaroo.jooc.backend.CompilationUnitSink;
 import net.jangaroo.jooc.backend.CompilationUnitSinkFactory;
 import net.jangaroo.jooc.backend.MergedOutputCompilationUnitSinkFactory;
@@ -147,6 +148,10 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
         if (getConfig().getPublicApiViolationsMode() != PublicApiViolationsMode.ALLOW) {
           reportPublicApiViolations(unit);
         }
+      }
+
+      for (final CompilationUnit unit : compileQueue) {
+        new TransitiveAstVisitor(new EmbeddedAssetResolver(unit)).visitCompilationUnit(unit);
       }
 
       analyzeDependencies();
