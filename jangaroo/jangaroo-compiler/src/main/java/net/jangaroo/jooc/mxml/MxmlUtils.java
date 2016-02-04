@@ -16,7 +16,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Some useful utility functions for EXML handling.
+ * Some useful utility functions for MXML handling.
  */
 public class MxmlUtils {
 

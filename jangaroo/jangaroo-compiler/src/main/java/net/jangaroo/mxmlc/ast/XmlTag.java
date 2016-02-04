@@ -11,9 +11,6 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * AST node for MXML's <code>&lt;?xml version="..."?></code>.
- */
 public class XmlTag extends NodeImplBase {
 
   private JooSymbol lt;

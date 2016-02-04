@@ -10,9 +10,6 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * AST node for MXML's <code>&lt;?xml version="..."?></code>.
- */
 public class XmlElement extends NodeImplBase {
 
   private final XmlTag openingMxmlTag;
