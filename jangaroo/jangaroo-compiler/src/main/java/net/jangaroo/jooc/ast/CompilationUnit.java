@@ -46,7 +46,6 @@ public class CompilationUnit extends NodeImplBase {
   private Set<String> usedBuiltIns = new LinkedHashSet<String>();
   private Scope scope;
   private Map<String, String> auxVarsByPackage = new LinkedHashMap<String, String>();
-  private boolean auxVarsRendered;
 
   public CompilationUnit(PackageDeclaration packageDeclaration, JooSymbol lBrace, List<AstNode> directives, IdeDeclaration primaryDeclaration, JooSymbol rBrace, List<IdeDeclaration> secondaryDeclarations) {
     this.packageDeclaration = packageDeclaration;
@@ -76,33 +75,13 @@ public class CompilationUnit extends NodeImplBase {
     usedBuiltIns.add(builtIn);
   }
 
-  public String getAuxVarForPackage(String packageQName) {
-    return auxVarsByPackage.get(packageQName);
-  }
-
   public String getAuxVarForPackage(Scope lookupScope, String packageQName) {
-    if (auxVarsRendered) {
-      throw new IllegalStateException("aux vars already rendered!");
-    }
-    String auxVar = getAuxVarForPackage(packageQName);
+    String auxVar = auxVarsByPackage.get(packageQName);
     if (auxVar == null) {
       auxVar = scope.createAuxVar(lookupScope).getName();
       auxVarsByPackage.put(packageQName, auxVar);
     }
     return auxVar;
-  }
-
-  public Map<String, String> getAuxVarDeclarations() {
-    auxVarsRendered = true;
-    LinkedHashMap<String, String> result = new LinkedHashMap<String, String>();
-    for (String builtIn : usedBuiltIns) {
-      String value = "joo." + ("$$bound".equals(builtIn) ? "boundMethod" : builtIn);
-      result.put(builtIn, value);
-    }
-    for (Map.Entry<String,String> entry : auxVarsByPackage.entrySet()) {
-      result.put(entry.getValue(), entry.getKey());
-    }
-    return result;
   }
 
   @Override
