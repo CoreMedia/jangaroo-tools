@@ -64,7 +64,7 @@ public class SomeMxmlClass extends package1.ConfigClass {
     $_1.number = 1 + 1;
     var $_8/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
     $_8,"bla" , 99);
-    $_8["knownUnknown"] = "true";
+    $_8["knownUnknown"] = true;
     $_1.defaultType = $_8['xtype'];
     delete $_8['xtype'];
     delete $_8['xclass'];

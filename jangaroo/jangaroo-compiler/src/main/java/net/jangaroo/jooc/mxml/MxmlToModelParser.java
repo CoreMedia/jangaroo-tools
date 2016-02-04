@@ -777,7 +777,7 @@ public final class MxmlToModelParser {
   }
 
   private Object getPropertyValue(MemberModel propertyModel, String value) {
-    return MxmlUtils.getAttributeValue(value, propertyModel == null ? null : propertyModel.getType());
+    return MxmlUtils.getAttributeValue(value, propertyModel == null || UNTYPED_MARKER.equals(propertyModel.getType()) ? null : propertyModel.getType());
   }
 
   private String createClassNameFromNode(Node objectNode) throws IOException {
