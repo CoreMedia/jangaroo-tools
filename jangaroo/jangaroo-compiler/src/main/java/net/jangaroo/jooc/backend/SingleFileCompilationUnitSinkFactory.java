@@ -3,11 +3,13 @@ package net.jangaroo.jooc.backend;
 import com.google.debugging.sourcemap.SourceMapFormat;
 import com.google.debugging.sourcemap.SourceMapGenerator;
 import com.google.debugging.sourcemap.SourceMapGeneratorFactory;
+import net.jangaroo.jooc.CompilationUnitRegistry;
 import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.ast.IdeDeclaration;
 import net.jangaroo.jooc.ast.PackageDeclaration;
+import net.jangaroo.jooc.ast.TransitiveAstVisitor;
 import net.jangaroo.jooc.config.JoocOptions;
 import net.jangaroo.jooc.model.CompilationUnitModelResolver;
 import org.apache.tools.ant.util.FileUtils;
@@ -23,15 +25,17 @@ import java.io.OutputStreamWriter;
  */
 public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUnitSinkFactory {
 
+  private final CompilationUnitRegistry compilationUnitRegistry;
   private String suffix;
   private boolean generateApi;
   private final CompilationUnitModelResolver compilationUnitModelResolver;
 
-  public SingleFileCompilationUnitSinkFactory(JoocOptions options, File destinationDir, boolean generateApi, String suffix, CompilationUnitModelResolver compilationUnitModelResolver) {
+  public SingleFileCompilationUnitSinkFactory(JoocOptions options, File destinationDir, boolean generateApi, String suffix, CompilationUnitModelResolver compilationUnitModelResolver, CompilationUnitRegistry compilationUnitRegistry) {
     super(options, destinationDir);
     this.suffix = suffix;
     this.generateApi = generateApi;
     this.compilationUnitModelResolver = compilationUnitModelResolver;
+    this.compilationUnitRegistry = compilationUnitRegistry;
   }
 
   protected File getOutputFile(File sourceFile, String[] packageName) {
@@ -92,6 +96,7 @@ public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUni
               String codeSuffix = "";
               try {
                 out.setOptions(getOptions());
+                compilationUnit.visit(new TransitiveAstVisitor(new EmbeddedAssetResolver(compilationUnit, compilationUnitRegistry)));
                 compilationUnit.visit(new JsCodeGenerator(out, compilationUnitModelResolver));
                 if (options.isGenerateSourceMaps()) {
                   codeSuffix = generateSourceMap(out, outFile);

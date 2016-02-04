@@ -42,7 +42,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public class JangarooParser implements CompilationUnitModelResolver {
+public class JangarooParser implements CompilationUnitModelResolver, CompilationUnitRegistry {
   public static final String JOO_API_IN_JAR_DIRECTORY_PREFIX = "META-INF/joo-api/";
 
   protected CompileLog log;

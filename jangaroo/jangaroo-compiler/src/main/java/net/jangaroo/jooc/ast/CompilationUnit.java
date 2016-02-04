@@ -19,13 +19,9 @@ import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.input.InputSource;
 import net.jangaroo.utils.AS3Type;
-import net.jangaroo.utils.CompilerUtils;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -51,8 +47,6 @@ public class CompilationUnit extends NodeImplBase {
   private Scope scope;
   private Map<String, String> auxVarsByPackage = new LinkedHashMap<String, String>();
   private boolean auxVarsRendered;
-
-  private static final Collection<String> IMAGE_EXTENSIONS = Arrays.asList("png", "gif", "bmp", "jpg", "jpeg");
 
   public CompilationUnit(PackageDeclaration packageDeclaration, JooSymbol lBrace, List<AstNode> directives, IdeDeclaration primaryDeclaration, JooSymbol rBrace, List<IdeDeclaration> secondaryDeclarations) {
     this.packageDeclaration = packageDeclaration;
@@ -184,7 +178,7 @@ public class CompilationUnit extends NodeImplBase {
     return dependenciesInModule;
   }
 
-  private InputSource getInputSource() {
+  public InputSource getInputSource() {
     return scope.getCompiler().getInputSource(this);
   }
 
@@ -216,10 +210,6 @@ public class CompilationUnit extends NodeImplBase {
   
   public JooSymbol getSymbol() {
     return packageDeclaration.getSymbol();
-  }
-
-  public void addDependency(String otherUnitQName) {
-    addDependency(scope.getCompiler().getCompilationUnit(otherUnitQName), false);
   }
 
   public void addDependency(CompilationUnit otherUnit, boolean required) {
@@ -285,36 +275,6 @@ public class CompilationUnit extends NodeImplBase {
         }
       }
     }
-  }
-
-  /**
-   * Add a dependency to a resource at the given path, which is relative to this compilation unit's file.
-   *
-   * @param relativePath relative path of the dependency
-   * @return the path relative to the source directory
-   */
-  public String addResourceDependency(String relativePath) {
-    String path = relativePath.startsWith("/") || relativePath.startsWith("\\")
-            ? relativePath
-            : new File(getInputSource().getParent().getRelativePath(), relativePath).getPath().replace('\\', '/');
-    if (path.startsWith("/")) {
-      path = path.substring(1);
-    }
-    String assetType = guessAssetType(path);
-    resourceDependencies.add(assetType + "!" + path);
-    if ("image".equals(assetType)) {
-      addDependency("flash.display.Bitmap");
-    }
-    return path;
-  }
-
-  public static String guessAssetType(String path) {
-    String extension = CompilerUtils.extension(path);
-    String assetType = "text"; // default asset type: text
-    if (IMAGE_EXTENSIONS.contains(extension)) {
-      assetType = "image";
-    }
-    return assetType;
   }
 
   @Override

@@ -150,10 +150,6 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
         }
       }
 
-      for (final CompilationUnit unit : compileQueue) {
-        new TransitiveAstVisitor(new EmbeddedAssetResolver(unit)).visitCompilationUnit(unit);
-      }
-
       analyzeDependencies();
 
       for (CompilationUnit unit : compileQueue) {
@@ -326,11 +322,11 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
     CompilationUnitSinkFactory codeSinkFactory;
 
     if (!generateActionScriptApi && config.isMergeOutput()) {
-      codeSinkFactory = new MergedOutputCompilationUnitSinkFactory(config, config.getOutputFile(), this);
+      codeSinkFactory = new MergedOutputCompilationUnitSinkFactory(config, config.getOutputFile(), this, this);
     } else {
       File outputDirectory = generateActionScriptApi ? config.getApiOutputDirectory() : config.getOutputDirectory();
       final String suffix = generateActionScriptApi ? AS_SUFFIX : OUTPUT_FILE_SUFFIX;
-      codeSinkFactory = new SingleFileCompilationUnitSinkFactory(config, outputDirectory, generateActionScriptApi, suffix, this);
+      codeSinkFactory = new SingleFileCompilationUnitSinkFactory(config, outputDirectory, generateActionScriptApi, suffix, this, this);
     }
     return codeSinkFactory;
   }

@@ -1501,7 +1501,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     Metadata embedMetadata = Metadata.find(currentMetadata, "Embed");
     if (embedMetadata != null) {
       String source = (String) embedMetadata.getArgumentValue("source");
-      String assetType = CompilationUnit.guessAssetType(source);
+      String assetType = EmbeddedAssetResolver.guessAssetType(source);
       int index = compilationUnit.getResourceDependencies().indexOf(assetType + "!" + source);
       String assetFactory = "new String";
       if ("image".equals(assetType)) {
