@@ -70,15 +70,6 @@ public class SemicolonTerminatedStatement extends Statement {
   }
 
   public void analyze(AstNode parentNode) {
-    // check for special case "assert statement":
-    if (getOptStatement() instanceof ApplyExpr && getOptSymSemicolon() != null) {
-      ApplyExpr applyExpr = (ApplyExpr) getOptStatement();
-      JooSymbol funSymbol = applyExpr.getFun().getSymbol();
-      String functionName = funSymbol.getText();
-      if ("trace".equals(functionName) || SyntacticKeywords.ASSERT.equals(functionName)) {
-        compilationUnit.addBuiltInUsage(functionName);
-      }
-    }
     super.analyze(parentNode);
     if (getOptStatement() != null) {
       getOptStatement().analyze(this);

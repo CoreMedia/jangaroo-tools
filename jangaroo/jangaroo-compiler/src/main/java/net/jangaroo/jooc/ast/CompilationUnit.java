@@ -43,7 +43,6 @@ public class CompilationUnit extends NodeImplBase {
   private Set<CompilationUnit> dependenciesInModule = new LinkedHashSet<CompilationUnit>();
   private List<String> resourceDependencies = new ArrayList<String>();
   private Set<String> publicApiDependencies = new LinkedHashSet<String>();
-  private Set<String> usedBuiltIns = new LinkedHashSet<String>();
   private Scope scope;
   private Map<String, String> auxVarsByPackage = new LinkedHashMap<String, String>();
 
@@ -69,10 +68,6 @@ public class CompilationUnit extends NodeImplBase {
 
   public List<AstNode> getDirectives() {
     return directives;
-  }
-
-  public void addBuiltInUsage(String builtIn) {
-    usedBuiltIns.add(builtIn);
   }
 
   public String getAuxVarForPackage(Scope lookupScope, String packageQName) {
