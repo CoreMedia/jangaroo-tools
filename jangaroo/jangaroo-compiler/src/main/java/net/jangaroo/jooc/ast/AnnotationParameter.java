@@ -31,7 +31,6 @@ public class AnnotationParameter extends NodeImplBase {
   private Ide optName;
   private JooSymbol optSymEq;
   private AstNode value;
-  private CompilationUnit compilationUnit;
   private Annotation parentAnnotation;
 
   public AnnotationParameter(Ide optName, JooSymbol optSymEq, AstNode value) {
@@ -61,9 +60,7 @@ public class AnnotationParameter extends NodeImplBase {
   @Override
   public void scope(final Scope scope) {
     if (getValue() != null) {
-      // TODO: is value really optional?
       getValue().scope(scope);
-      compilationUnit = scope.getCompilationUnit();
     }
   }
 
@@ -81,14 +78,6 @@ public class AnnotationParameter extends NodeImplBase {
         if (valueSymbol.sym != sym.STRING_LITERAL) {
           throw new CompilerError(valueSymbol, "The source parameter of an [Embed] annotation must be a string literal");
         }
-        String text = valueSymbol.getText();
-        String quote = text.substring(0, 1);
-        String source = (String) valueSymbol.getJooValue();
-        String absoluteSource = compilationUnit.addResourceDependency(source);
-        this.value = new LiteralExpr(new JooSymbol(valueSymbol.sym, valueSymbol.getFileName(),
-                valueSymbol.getLine(), valueSymbol.getColumn(), valueSymbol.getWhitespace(),
-                quote + absoluteSource + quote,
-                absoluteSource));
       }
     }
   }
@@ -109,4 +98,7 @@ public class AnnotationParameter extends NodeImplBase {
     return value;
   }
 
+  public void setValue(LiteralExpr value) {
+    this.value = value;
+  }
 }

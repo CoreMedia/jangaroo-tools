@@ -15,18 +15,13 @@
 
 package net.jangaroo.jooc.ast;
 
-import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.input.InputSource;
 import net.jangaroo.utils.AS3Type;
-import net.jangaroo.utils.CompilerUtils;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -48,14 +43,8 @@ public class CompilationUnit extends NodeImplBase {
   private Set<CompilationUnit> dependenciesInModule = new LinkedHashSet<CompilationUnit>();
   private List<String> resourceDependencies = new ArrayList<String>();
   private Set<String> publicApiDependencies = new LinkedHashSet<String>();
-  private Set<String> usedBuiltIns = new LinkedHashSet<String>();
   private Scope scope;
   private Map<String, String> auxVarsByPackage = new LinkedHashMap<String, String>();
-  private boolean auxVarsRendered;
-
-  private InputSource source;
-  private JangarooParser compiler;
-  private static final Collection<String> IMAGE_EXTENSIONS = Arrays.asList("png", "gif", "bmp", "jpg", "jpeg");
 
   public CompilationUnit(PackageDeclaration packageDeclaration, JooSymbol lBrace, List<AstNode> directives, IdeDeclaration primaryDeclaration, JooSymbol rBrace, List<IdeDeclaration> secondaryDeclarations) {
     this.packageDeclaration = packageDeclaration;
@@ -81,37 +70,13 @@ public class CompilationUnit extends NodeImplBase {
     return directives;
   }
 
-  public void addBuiltInUsage(String builtIn) {
-    usedBuiltIns.add(builtIn);
-  }
-
-  public String getAuxVarForPackage(String packageQName) {
-    return auxVarsByPackage.get(packageQName);
-  }
-
   public String getAuxVarForPackage(Scope lookupScope, String packageQName) {
-    if (auxVarsRendered) {
-      throw new IllegalStateException("aux vars already rendered!");
-    }
-    String auxVar = getAuxVarForPackage(packageQName);
+    String auxVar = auxVarsByPackage.get(packageQName);
     if (auxVar == null) {
       auxVar = scope.createAuxVar(lookupScope).getName();
       auxVarsByPackage.put(packageQName, auxVar);
     }
     return auxVar;
-  }
-
-  public Map<String, String> getAuxVarDeclarations() {
-    auxVarsRendered = true;
-    LinkedHashMap<String, String> result = new LinkedHashMap<String, String>();
-    for (String builtIn : usedBuiltIns) {
-      String value = "joo." + ("$$bound".equals(builtIn) ? "boundMethod" : builtIn);
-      result.put(builtIn, value);
-    }
-    for (Map.Entry<String,String> entry : auxVarsByPackage.entrySet()) {
-      result.put(entry.getValue(), entry.getKey());
-    }
-    return result;
   }
 
   @Override
@@ -187,23 +152,8 @@ public class CompilationUnit extends NodeImplBase {
     return dependenciesInModule;
   }
 
-  public JangarooParser getCompiler() {
-    return compiler;
-  }
-
-  public void setCompiler(final JangarooParser compiler) {
-    this.compiler = compiler;
-  }
-
-  /**
-   * @param source the source of this compilation unit.
-   */
-  public void setSource(InputSource source) {
-    this.source = source;
-  }
-
-  public InputSource getSource() {
-    return source;
+  public InputSource getInputSource() {
+    return scope.getCompiler().getInputSource(this);
   }
 
   public void analyze(AstNode parentNode) {
@@ -236,10 +186,6 @@ public class CompilationUnit extends NodeImplBase {
     return packageDeclaration.getSymbol();
   }
 
-  public void addDependency(String otherUnitQName) {
-    addDependency(getCompiler().getCompilationUnit(otherUnitQName), false);
-  }
-
   public void addDependency(CompilationUnit otherUnit, boolean required) {
     // Predefined ides have a null unit.
     // Self dependencies are ignored.
@@ -247,7 +193,7 @@ public class CompilationUnit extends NodeImplBase {
       // Dependencies on other modules may always be considered required,
       // because they cannot lead to cycles.
       boolean alreadyRequired = Boolean.TRUE.equals(dependenciesAsCompilationUnits.get(otherUnit));
-      boolean inModule = otherUnit.getSource().isInSourcePath();
+      boolean inModule = otherUnit.isInSourcePath();
       dependenciesAsCompilationUnits.put(otherUnit, required || alreadyRequired || !inModule);
       if (inModule) {
         dependenciesInModule.add(otherUnit);
@@ -257,7 +203,7 @@ public class CompilationUnit extends NodeImplBase {
           if ("Uses".equals(annotation.getMetaName())) {
             CommaSeparatedList<AnnotationParameter> current = annotation.getOptAnnotationParameters();
             for (String value : getAnnotationStringListValue(current)) {
-              dependenciesAsCompilationUnits.put(getCompiler().getCompilationUnit(value), true);
+              dependenciesAsCompilationUnits.put(scope.getCompiler().getCompilationUnit(value), true);
             }
           }
         }
@@ -305,38 +251,12 @@ public class CompilationUnit extends NodeImplBase {
     }
   }
 
-  /**
-   * Add a dependency to a resource at the given path, which is relative to this compilation unit's file.
-   *
-   * @param relativePath relative path of the dependency
-   * @return the path relative to the source directory
-   */
-  public String addResourceDependency(String relativePath) {
-    String path = relativePath.startsWith("/") || relativePath.startsWith("\\")
-            ? relativePath
-            : new File(source.getParent().getRelativePath(), relativePath).getPath().replace('\\', '/');
-    if (path.startsWith("/")) {
-      path = path.substring(1);
-    }
-    String assetType = guessAssetType(path);
-    resourceDependencies.add(assetType + "!" + path);
-    if ("image".equals(assetType)) {
-      addDependency("flash.display.Bitmap");
-    }
-    return path;
-  }
-
-  public static String guessAssetType(String path) {
-    String extension = CompilerUtils.extension(path);
-    String assetType = "text"; // default asset type: text
-    if (IMAGE_EXTENSIONS.contains(extension)) {
-      assetType = "image";
-    }
-    return assetType;
-  }
-
   @Override
   public String toString() {
     return getClass().getSimpleName() + "(" + getPrimaryDeclaration().getQualifiedNameStr() + ")";
+  }
+
+  public boolean isInSourcePath() {
+    return getInputSource().isInSourcePath();
   }
 }

@@ -43,6 +43,7 @@ import java.util.regex.Pattern;
 public class DeclarationScope extends ScopeImplBase {
 
   private static final Pattern AUX_VAR_NAME_PATTERN = Pattern.compile("\\$([0-9]+)");
+  private final JangarooParser compiler;
 
   private AstNode definingNode;
   private Set<String> packages = new HashSet<String>();
@@ -55,9 +56,15 @@ public class DeclarationScope extends ScopeImplBase {
     return packages.contains(fullyQualifiedName) || super.isPackage(fullyQualifiedName);
   }
 
-  public DeclarationScope(AstNode definingNode, Scope parent) {
+  public DeclarationScope(AstNode definingNode, Scope parent, JangarooParser compiler) {
     super(parent);
     this.definingNode = definingNode;
+    this.compiler = compiler;
+  }
+
+  @Override
+  public JangarooParser getCompiler() {
+    return compiler;
   }
 
   @Override
@@ -71,13 +78,12 @@ public class DeclarationScope extends ScopeImplBase {
     String name = ide.getName();
     Ide packageIde = ide.getQualifier();
     String packageName = "";
-    final CompilationUnit compilationUnit = getCompilationUnit();
     if (packageIde != null) {
       packageName = packageIde.getQualifiedNameStr();
       packages.add(packageName);
     }
     if (AS3Type.ANY.toString().equals(name)) {
-      final List<String> packageIdes = compilationUnit.getCompiler().getPackageIdes(packageName);
+      final List<String> packageIdes = getCompiler().getPackageIdes(packageName);
       for (String typeToImport : packageIdes) {
         ImportDirective implicitImport = new ImportDirective(packageIde, typeToImport);
         implicitImport.scope(this);
@@ -168,7 +174,7 @@ public class DeclarationScope extends ScopeImplBase {
 
 
   private IdeDeclaration resolveImport(final ImportDirective importDirective) {
-    return getCompilationUnit().getCompiler().resolveImport(importDirective);
+    return getCompiler().resolveImport(importDirective);
   }
 
   private void ambigousImport(Ide ide, Collection<ImportDirective> importsOfThisIde) {

@@ -144,7 +144,8 @@ public class Ide extends NodeImplBase {
   public boolean addExternalUsage(boolean required) {
     IdeDeclaration decl = getDeclaration(false);
     if (decl != null && (decl.isPrimaryDeclaration() || decl.isClassMember() && decl.isStatic())) {
-      CompilationUnit currentUnit = getScope().getCompilationUnit();
+      Scope scope = getScope();
+      CompilationUnit currentUnit = scope.getCompilationUnit();
       CompilationUnit compilationUnit = decl.getIde().getScope().getCompilationUnit();
       currentUnit.addDependency(compilationUnit, required);
       return true;
@@ -254,7 +255,6 @@ public class Ide extends NodeImplBase {
       // check candidates for instance methods, accessed as function:
       if (memberDeclaration != null && memberDeclaration.isMethod() && !((FunctionDeclaration) memberDeclaration).isGetterOrSetter() && !memberDeclaration.isStatic()) {
         // check and handle instance methods declared in same file, accessed as function:
-        getScope().getCompilationUnit().addBuiltInUsage("$$bound");
         setBound(true);
       }
     }

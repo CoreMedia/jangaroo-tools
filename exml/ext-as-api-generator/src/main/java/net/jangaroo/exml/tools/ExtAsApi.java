@@ -56,7 +56,7 @@ public class ExtAsApi {
       CompilationUnitModel compilationUnitModel = compilationUnitModelRegistry.resolveCompilationUnit(qName);
       if (compilationUnitModel == null) {
         CompilationUnit compilationUnit = jangarooParser.getCompilationUnit(qName);
-        if (compilationUnit != null && compilationUnit.getSource().isInSourcePath()) {
+        if (compilationUnit != null && compilationUnit.isInSourcePath()) {
           compilationUnit.analyze(null);
           try {
             compilationUnitModel = apiModelGenerator.generateModel(compilationUnit);

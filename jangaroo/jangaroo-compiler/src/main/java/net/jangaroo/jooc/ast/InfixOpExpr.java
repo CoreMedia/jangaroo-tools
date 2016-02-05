@@ -21,9 +21,4 @@ public class InfixOpExpr extends BinaryOpExpr {
     visitor.visitInfixOpExpr(this);
   }
 
-  @Override
-  public void scope(Scope scope) {
-    super.scope(scope);
-    scope.getCompilationUnit().addBuiltInUsage(getOp().getText());
-  }
 }

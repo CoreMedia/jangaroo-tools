@@ -127,20 +127,7 @@ public class QualifiedIde extends Ide {
         if (memberDeclaration == null) {
           throw JangarooParser.error(getIde(), "unresolved static member " + getIde().getText());
         }
-      } /* else  {
-        // todo perform this check also for DotExpr and unqualified Ide
-        IdeDeclaration type = qualifierDeclaration.resolveDeclaration();
-        if (type != null && type != getScope().getCompilationUnit().getCompiler().getAnyDeclaration()) {
-          IdeDeclaration memberDeclaration = type.resolvePropertyDeclaration(this.getName());
-          if (memberDeclaration == null ) {
-            //todo introduce strict mode where this is an error
-            JangarooParser.warning(ide,
-              type == getScope().getCompilationUnit().getCompiler().getVoidDeclaration()
-                ? "member access to void type"
-                : ("unresolved member " + ide.getText()));
-          }
-        }
-      }*/
+      }
     }
   }
 
