@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<other:SomeNativeClass xmlns:fx="http://ns.adobe.com/mxml/2009"
+             xmlns:lib="library://test.namespace"
+             xmlns:other="package1.someOtherPackage.*">
+  <fx:Declarations>
+    <fx:String id="bar">BAR!</fx:String>
+    <!---
+     Some number.
+    -->
+    <fx:int id="num">123</fx:int>
+    <!---
+     Empty declaration.
+     <top:int id="empty"/>
+    -->
+    <fx:Object id="blub" name="Kuno"/>
+    <fx:Array id="list">
+      <fx:Object name="Joe"/>
+      <ConfigClass>
+        <items>
+          <other:SomeOtherClass bla="123"/>
+        </items>
+      </ConfigClass>
+    </fx:Array>
+    <lib:someOtherClass id="other" bla="3"
+                        blubbConfig="{'blub config expression'}"
+                        blubbAccessor="{'blub accessor expression'}"/>
+  </fx:Declarations>
+</other:SomeNativeClass>

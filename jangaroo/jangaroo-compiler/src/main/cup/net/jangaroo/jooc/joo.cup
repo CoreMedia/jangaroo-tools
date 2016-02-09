@@ -24,7 +24,16 @@ package net.jangaroo.jooc;
 import java.util.List;
 import java.util.ArrayList;
 import net.jangaroo.jooc.ast.*;
+import net.jangaroo.jooc.input.*;
 import net.jangaroo.mxmlc.ast.*;
+
+
+action code {:
+    InputSource getInputSource() {
+      return ((ScannerBase)parser.getScanner()).getInputSource();
+    }
+
+:};
 
 parser code {:
 
@@ -818,7 +827,7 @@ optNextVariableDeclaration ::=
 
 mxmlCompilationUnit ::=
     optXmlHeader:optXmlHeader mxmlElement:rootElement
-    {: RESULT = new MxmlCompilationUnit(optXmlHeader, rootElement); :}
+    {: RESULT = new MxmlCompilationUnit(getInputSource(), optXmlHeader, rootElement).convert(); :}
   ;
 
 /* <?xml version="..."?> */

@@ -281,8 +281,23 @@ public class JoocTest {
   }
 
   @Test
+  public void testInterfaceImplementingMxml() throws Exception {
+    assertCompilationResult("package1/mxml/InterfaceImplementingMxmlClass", ".mxml");
+  }
+
+  @Test
   public void testSimpleMxml() throws Exception {
-    assertCompilationResult("package1/SomeMxmlClass", ".mxml");
+    assertCompilationResult("package1/mxml/SimpleMxmlClass", ".mxml");
+  }
+
+  @Test
+  public void testMetadataMxml() throws Exception {
+    assertCompilationResult("package1/mxml/MetadataMxmlClass", ".mxml");
+  }
+
+  @Test
+  public void testDeclarationsMxml() throws Exception {
+    assertCompilationResult("package1/mxml/DeclarationsMxmlClass", ".mxml");
   }
 
   @Test

@@ -22,6 +22,10 @@ public class XmlElement extends NodeImplBase {
     this.closingMxmlTag = closingMxmlTag;
   }
 
+  public String getName() {
+    return openingMxmlTag.getName();
+  }
+
   @Override
   public JooSymbol getSymbol() {
     return openingMxmlTag.getSymbol();
@@ -66,5 +70,13 @@ public class XmlElement extends NodeImplBase {
       builder.append(closingMxmlTag);
     }
     return builder.toString();
+  }
+
+  public List<XmlAttribute> getAttributes() {
+    return openingMxmlTag.getAttributes();
+  }
+
+  public XmlAttribute getAttribute(String name) {
+    return openingMxmlTag.getAttribute(name);
   }
 }

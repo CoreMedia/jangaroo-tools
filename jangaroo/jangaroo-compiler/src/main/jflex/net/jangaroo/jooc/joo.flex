@@ -393,17 +393,17 @@ XmlComment = "<!--" ~"-->"
 }
 
 <XML_TEXT_CONTENT> {
-  "<![CDATA["                     { setMultiStateText(yytext()); yybegin(CDATA_SECTION); clearString(); }
-  .|{LineTerminator} / "<"        { setMultiStateText(yytext()); yybegin(MXML);
+  "<![CDATA["                     { setMultiStateText(""); yybegin(CDATA_SECTION); clearString(); }
+  .|{LineTerminator} / "<"        { pushMultiStateText(yytext()); pushString(yytext()); yybegin(MXML);
                                     return multiStateSymbol(STRING_LITERAL, getString()); }
-  .|{LineTerminator}              { pushMultiStateText(yytext()); pushString(yytext().substring(1)); }
+  .|{LineTerminator}              { pushMultiStateText(yytext()); pushString(yytext()); }
 }
 
 <CDATA_SECTION> {
-  "]]>" / "<"                     { pushMultiStateText(yytext()); yybegin(MXML);
+  "]]>" / "<"                     { yybegin(MXML);
                                     return multiStateSymbol(STRING_LITERAL, getString()); }
-  "]]>"                           { pushMultiStateText(yytext()); yybegin(XML_TEXT_CONTENT); }
-  .|{LineTerminator}              { pushMultiStateText(yytext()); pushString(yytext().substring(1)); }
+  "]]>"                           { yybegin(XML_TEXT_CONTENT); }
+  .|{LineTerminator}              { pushMultiStateText(yytext()); pushString(yytext()); }
 }
 
 /* error catchall */

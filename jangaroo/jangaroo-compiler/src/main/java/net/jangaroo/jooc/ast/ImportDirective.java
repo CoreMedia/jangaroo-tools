@@ -138,4 +138,11 @@ public class ImportDirective extends Directive {
   public boolean isExplicit() {
     return explicit;
   }
+
+  @Override
+  public String toString() {
+    return "ImportDirective{" +
+            "ide=" + ide +
+            '}';
+  }
 }

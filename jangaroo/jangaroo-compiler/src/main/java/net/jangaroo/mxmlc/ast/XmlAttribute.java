@@ -28,6 +28,10 @@ public class XmlAttribute extends NodeImplBase {
     return ide.getSymbol();
   }
 
+  public JooSymbol getValue() {
+    return value;
+  }
+
   @Override
   public List<? extends AstNode> getChildren() {
     return Collections.emptyList();

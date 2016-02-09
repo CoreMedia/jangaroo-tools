@@ -1,4 +1,4 @@
-Ext.define("AS3.package1.SomeMxmlClass", function(SomeMxmlClass) {/*package package1 {
+Ext.define("AS3.package1.mxml.SimpleMxmlClass", function(SimpleMxmlClass) {/*package package1.mxml{
 import package1.someOtherPackage.SomeOtherClass;
 import package1.someOtherPackage.SomeEvent;
 import joo.addEventListener;
@@ -9,7 +9,7 @@ import net.jangaroo.ext.Exml;
  * /
 public class SomeMxmlClass extends package1.ConfigClass implements package1.Interface {
     public static const xtype:String = "testNamespace.config.soneMxmlClass";
-    
+
     import foo.Bar;
 
     private var blub:*;
@@ -46,9 +46,9 @@ public class SomeMxmlClass extends package1.ConfigClass implements package1.Inte
   [Bindable]
   public var no_config:package1.someOtherPackage.SomeOtherClass;
 
-  public*/ function SomeMxmlClass$(config/*:package1.SomeMxmlClass = null*/) {if(arguments.length<=0)config=null;
+  public*/ function SimpleMxmlClass$(config/*:package1.SimpleMxmlClass = null*/) {if(arguments.length<=0)config=null;
     
-    var $_1/*:package1.SomeMxmlClass*/ =AS3.cast( SomeMxmlClass,{});AS3.setBindable(
+    var $_1/*:package1.SimpleMxmlClass*/ =AS3.cast( SimpleMxmlClass,{});AS3.setBindable(
     $_1,"bar" , "BAR!");AS3.setBindable(
     $_1,"computed" , 'B' + 'AR!');AS3.setBindable(
     $_1,"num" , 123);
@@ -114,7 +114,7 @@ public class SomeMxmlClass extends package1.ConfigClass implements package1.Inte
       blub$2: undefined,
       $on_$_1_click$2: $on_$_1_click,
       $on_$_12_clack$2: $on_$_12_clack,
-      constructor: SomeMxmlClass$,
+      constructor: SimpleMxmlClass$,
       config: {
         list: null,
         bar: null,

@@ -13,7 +13,6 @@ import net.jangaroo.jooc.ast.IdeDeclaration;
 import net.jangaroo.jooc.ast.ImportDirective;
 import net.jangaroo.jooc.ast.PredefinedTypeDeclaration;
 import net.jangaroo.jooc.ast.VariableDeclaration;
-import net.jangaroo.jooc.backend.ActionScriptCodeGeneratingModelVisitor;
 import net.jangaroo.jooc.backend.ApiModelGenerator;
 import net.jangaroo.jooc.config.ParserOptions;
 import net.jangaroo.jooc.config.SemicolonInsertionMode;
@@ -22,19 +21,14 @@ import net.jangaroo.jooc.model.ClassModel;
 import net.jangaroo.jooc.model.CompilationUnitModel;
 import net.jangaroo.jooc.model.CompilationUnitModelResolver;
 import net.jangaroo.jooc.mxml.MxmlComponentRegistry;
-import net.jangaroo.jooc.mxml.MxmlToModelParser;
 import net.jangaroo.utils.AS3Type;
 import net.jangaroo.utils.BOMStripperInputStream;
 import net.jangaroo.utils.CompilerUtils;
-import org.xml.sax.SAXException;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.io.Reader;
-import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -141,29 +135,9 @@ public class JangarooParser implements CompilationUnitModelResolver, Compilation
   public CompilationUnit doParse(InputSource in, CompileLog log, SemicolonInsertionMode semicolonInsertionMode, boolean forModel) {
     Reader reader;
     try {
-      if (false && in.getName().endsWith(Jooc.MXML_SUFFIX)) {
-        String qName = CompilerUtils.qNameFromRelativPath(in.getRelativePath());
-        String className = CompilerUtils.className(qName);
-        CompilationUnitModel compilationUnitModel = new CompilationUnitModel(CompilerUtils.packageName(qName),
-                new ClassModel(className));
-        new MxmlToModelParser(this, compilationUnitModel, forModel).parse(in);
-        // From the CompilationUnitModel, we generate AS code, then parse a CompilationUnit again.
-        // TODO: This should be simplified to always using CompilationUnitModels for reference
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        OutputStreamWriter writer = new OutputStreamWriter(outputStream, "UTF-8");
-        compilationUnitModel.visit(new ActionScriptCodeGeneratingModelVisitor(writer));
-        String output = outputStream.toString("UTF-8");
-        keepGeneratedActionScript(in, output);
-        reader = new StringReader(output);
-      } else {
-        reader = new InputStreamReader(new BOMStripperInputStream(in.getInputStream()), "UTF-8");
-      }
-    } catch (CompilerError e) {
-      throw new CompilerError(positionOfCompilerError(e, in), e.getMessage(), e.getCause());
+      reader = new InputStreamReader(new BOMStripperInputStream(in.getInputStream()), "UTF-8");
     } catch (IOException e) {
       throw new CompilerError("Cannot read input file: " + in.getPath(), e);
-    } catch (SAXException e) {
-      throw new CompilerError("Cannot parse MXML input file: " + in.getPath(), e);
     }
     Scanner s = new Scanner(reader);
     s.yybegin(in.getName().endsWith(Jooc.MXML_SUFFIX) ? Scanner.MXML : Scanner.YYINITIAL);

@@ -13,7 +13,11 @@
              click="var result:String = 'gotcha!';"
              implements="package1.Interface">
   <fx:Script><![CDATA[
-    public static const xtype:String = "testNamespace.config.soneMxmlClass";
+    import package1.SomeClass;
+    public static const xtype:String = "testNamespace.config.simpleMxmlClass";
+    protected var field1:SomeClass = null;
+    protected var field2:Vector.<String> = new Vector.<String>();
+    protected var field3:Vector.<int> = new Vector.<int>[1,2,3];
     ]]></fx:Script>
   <fx:Declarations>
     <fx:String id="bar">BAR!</fx:String>
@@ -65,7 +69,7 @@
       </items>
     </ConfigClass>
   </items>
-  <fx:Script>
+  <fx:Script><!-- TODO remove -->
     import foo.Bar;
 
     private var blub:*;
