@@ -1,5 +1,6 @@
 package net.jangaroo.jooc.mvnplugin;
 
+import net.jangaroo.jooc.mvnplugin.util.SenchaHelper;
 import org.apache.maven.archiver.MavenArchiver;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
@@ -135,6 +136,13 @@ public class PackageMojo extends AbstractMojo {
    */
   private String moduleClassesJsFile;
 
+  /**
+   * The sencha configuration to use.
+   *
+   * @parameter default-value="${senchaConfiguration}"
+   */
+  private SenchaConfiguration senchaConfiguration;
+
   public void execute()
       throws MojoExecutionException {
     File jarFile = new File(targetDir, finalName + "." + Types.JAVASCRIPT_EXTENSION);
@@ -163,6 +171,9 @@ public class PackageMojo extends AbstractMojo {
       String artifactId = project.getArtifactId();
       mavenArchiver.getArchiver().addFile(project.getFile(), "META-INF/maven/" + groupId + "/" + artifactId
               + "/pom.xml");
+
+      SenchaHelper senchaHelper = new SenchaHelper(project, senchaConfiguration, getLog());
+      senchaHelper.executePackage(mavenArchiver.getArchiver());
 
       mavenArchiver.createArchive(project, archive);
     } catch (Exception e) { // NOSONAR
