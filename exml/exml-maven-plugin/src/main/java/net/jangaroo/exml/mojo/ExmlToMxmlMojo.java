@@ -38,6 +38,14 @@ public class ExmlToMxmlMojo extends AbstractExmlMojo {
   private boolean renameOnly;
 
   /**
+   * Set this to 'true' when EXML files have been renamed to MXML files already but the files still need to be
+   * converted.
+   *
+   * @parameter expression="${alreadyRenamed}"
+   */
+  private boolean alreadyRenamed;
+
+  /**
    * The JAR containing the target ExtAS API for converting EXML into MXML.
    *
    * @parameter expression="${extAsJar}"
@@ -59,12 +67,22 @@ public class ExmlToMxmlMojo extends AbstractExmlMojo {
     if (renameOnly) {
       getLog().info("Renaming EXML files to MXML files");
       try {
-        renameFiles(getSourceDirectory());
-        renameFiles(getTestSourceDirectory());
+        renameFiles(getSourceDirectory(), "exml", "mxml");
+        renameFiles(getTestSourceDirectory(), "exml", "mxml");
       } catch (IOException e) {
         throw new MojoExecutionException("error while renaming EXML files", e);
       }
       return;
+    }
+
+    if (alreadyRenamed) {
+      getLog().info("Renaming MXML files back to EXML files before running the conversion");
+      try {
+        renameFiles(getSourceDirectory(), "mxml", "exml");
+        renameFiles(getTestSourceDirectory(), "mxml", "exml");
+      } catch (IOException e) {
+        throw new MojoExecutionException("error while renaming files", e);
+      }
     }
 
     // Convert main EXML sources to MXML:
@@ -87,10 +105,10 @@ public class ExmlToMxmlMojo extends AbstractExmlMojo {
     return classPath;
   }
 
-  private void renameFiles(File directory) throws IOException {
+  private void renameFiles(File directory, String sourceExtension, String targetExtension) throws IOException {
     if (directory != null && directory.exists()) {
-      for (File exmlFile : listFiles(directory, new String[]{"exml"}, true)) {
-        File mxmlFile = new File(exmlFile.getParent(), getBaseName(exmlFile.getName()) + ".mxml");
+      for (File exmlFile : listFiles(directory, new String[]{sourceExtension}, true)) {
+        File mxmlFile = new File(exmlFile.getParent(), getBaseName(exmlFile.getName()) + "." + targetExtension);
         getLog().debug(format("Renaming %s to %s", exmlFile.getPath(), mxmlFile.getPath()));
         moveFile(exmlFile, mxmlFile);
       }
