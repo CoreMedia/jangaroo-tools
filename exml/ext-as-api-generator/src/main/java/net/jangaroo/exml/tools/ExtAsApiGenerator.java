@@ -342,6 +342,9 @@ public class ExtAsApiGenerator {
     } else {
       extAsClass.addAnnotation(nativeAnnotation);
     }
+    if (extAsInterfaceUnit != null) {
+      extAsInterfaceUnit.getClassModel().addAnnotation(nativeAnnotation);
+    }
     if (extClass.private_) {
       extAsClass.addAnnotation(new AnnotationModel(Jooc.PUBLIC_API_EXCLUSION_ANNOTATION_NAME));
     }
@@ -599,6 +602,10 @@ public class ExtAsApiGenerator {
         }
         if (!(member.meta.readonly || member.readonly || isConstantName(member.name))) {
           MethodModel setter = propertyModel.addSetter();
+          if (classModel.isInterface()) {
+            // do not add @private to ASDoc in interfaces, or IDEA will completely ignore the declaration!
+            setter.setAsdoc(null);
+          }
           if (isConfig) {
             setter.addAnnotation(new AnnotationModel(Jooc.EXT_CONFIG_ANNOTATION_NAME));
           }
