@@ -370,7 +370,6 @@ public class ExtAsApiGenerator {
     }
 
     addNonStaticMembers(extClass, extAsClassUnit);
-    addProperties(extAsClass, extJsApi.filterByOwner(false, false, extClass, extClass.members, Cfg.class), true);
 
     // todo: remove #getConfigClassQName and its mapping properties, a constructor needs to be generated if and only if the class or a superclass has config parameters
     if (getConfigClassQName(extClass) != null) {
@@ -474,6 +473,7 @@ public class ExtAsApiGenerator {
     }
     addProperties(extAsClass, extJsApi.filterByOwner(extAsClass.isInterface(), false, extClass, extClass.members, Property.class), false);
     addMethods(extAsClass, extJsApi.filterByOwner(extAsClass.isInterface(), false, extClass, extClass.members, Method.class));
+    addProperties(extAsClass, extJsApi.filterByOwner(extAsClass.isInterface(), false, extClass, extClass.members, Cfg.class), true);
   }
 
   private static void generateActionScriptCode(CompilationUnitModel extAsClass, File outputDir) throws IOException {

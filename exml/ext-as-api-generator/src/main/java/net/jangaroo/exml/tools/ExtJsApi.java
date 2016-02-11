@@ -9,7 +9,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -46,7 +45,7 @@ public class ExtJsApi {
               member.static_ == isStatic &&
               !member.private_ &&
               (member.autodetected == null || !member.autodetected.containsKey("tagname")) &&
-              !superclassNames.contains(member.owner) && (!isInterface || isPublicNonStaticMethodOrProperty(member))) {
+              !superclassNames.contains(member.owner) && (!isInterface || isPublicNonStaticMethodOrPropertyOrCfg(member))) {
         result.add(memberType.cast(member));
       }
     }
@@ -79,8 +78,8 @@ public class ExtJsApi {
     return false;
   }
 
-  public static boolean isPublicNonStaticMethodOrProperty(Member member) {
-    return (member instanceof Method || member instanceof Property)
+  public static boolean isPublicNonStaticMethodOrPropertyOrCfg(Member member) {
+    return (member instanceof Method || member instanceof Property || member instanceof Cfg)
             && !member.meta.static_ && !(member.meta.private_ || member.private_) && !(member.meta.protected_ || member.protected_)
             && !"constructor".equals(member.name);
   }
