@@ -654,7 +654,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   }
 
   private void generateImplements(CommaSeparatedList<Ide> superTypes) throws IOException {
-    out.writeSymbol(superTypes.getHead().getSymbol());
+    superTypes.getHead().visit(this);
     if (superTypes.getSymComma() != null) {
       out.writeSymbol(superTypes.getSymComma());
       generateImplements(superTypes.getTail());
