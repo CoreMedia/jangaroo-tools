@@ -18,13 +18,13 @@ import org.codehaus.plexus.archiver.jar.JarArchiver;
 import org.codehaus.plexus.archiver.zip.ZipEntry;
 import org.codehaus.plexus.archiver.zip.ZipFile;
 import org.codehaus.plexus.util.StringUtils;
-import org.eclipse.jetty.util.IO;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -54,6 +54,8 @@ public class SenchaHelper {
   public static final String SENCHA_WORKSPACE_FILENAME = "workspace.json";
   public static final String SENCHA_PACKAGE_FILENAME = "package.json";
   public static final String SENCHA_APP_FILENAME = "app.json";
+
+  private static final String MAVEN_DEPENDENCY_SCOPE_TEST = "test";
 
   private static Pattern SENCHA_VERSION_PATTERN = Pattern.compile("^[0-9]+[\\.[0-9]+]{0,3}$");
 
@@ -86,14 +88,9 @@ public class SenchaHelper {
 
       if (SenchaConfiguration.Type.WORKSPACE.equals(senchaConfiguration.getType())) {
         createSenchaWorkspace(project.getBasedir(), getAllWorkspacePaths(project));
-      } else {
-        //createSenchaWorkspace(project.getBasedir());
       }
       if (SenchaConfiguration.Type.CODE.equals(senchaConfiguration.getType())) {
         createSenchaCodePackage(senchaPackageDirectory);
-      }
-      if (SenchaConfiguration.Type.CODE.equals(senchaConfiguration.getType()) || SenchaConfiguration.Type.THEME.equals(senchaConfiguration.getType())) {
-        //removeSenchaWorkspace(project.getBasedir());
       }
     }
   }
@@ -260,22 +257,6 @@ public class SenchaHelper {
     }
   }
 
-  private void createSenchaWorkspace(File workingDirectory) throws MojoExecutionException {
-    createSenchaWorkspace(workingDirectory, Collections.<String>emptyList());
-  }
-
-  private void removeSenchaWorkspace(File workingDirectory) throws MojoExecutionException {
-    File fWorkspaceJson = new File(workingDirectory.getAbsolutePath() + "/" + SENCHA_WORKSPACE_FILENAME);
-    fWorkspaceJson.delete();
-    File fPackages = new File(workingDirectory.getAbsolutePath() + "/" + SENCHA_PACKAGES_DIRECTORYNAME);
-    File fSenchaDir = new File(workingDirectory.getAbsolutePath() + "/" + SENCHA_DIRECTORYNAME);
-    try {
-      FileUtils.deleteDirectory(fSenchaDir);
-    } catch (IOException e) {
-      throw new MojoExecutionException("could not remove sencha directory", e);
-    }
-  }
-
   private void createSenchaCodePackage(File workingDirectory) throws MojoExecutionException {
 
     File closestSenchaWorkspaceDir = findClosestSenchaWorkspaceDir(workingDirectory);
@@ -300,6 +281,12 @@ public class SenchaHelper {
       throw new MojoExecutionException("could not write package.json", e);
     }
 
+    File senchaCfg = new File(workingDirectory.getAbsolutePath() + "/.sencha/package/sencha.cfg");
+    // make sure senchaCfg does not exist
+    if (senchaCfg.exists()) {
+      senchaCfg.delete();
+    }
+
     String line = "sencha generate package"
             + " --name=\"" + senchaPackageName + "\""
             + " --namespace=\"\""
@@ -313,6 +300,22 @@ public class SenchaHelper {
       executor.execute(cmdLine);
     } catch (IOException e) {
       throw new MojoExecutionException("could not execute sencha cmd to generate package", e);
+    }
+
+    // sencha.cfg should be recreated
+    // for normal packages skip generating css and slices
+    if (senchaCfg.exists()) {
+      try {
+        FileWriter fw = new FileWriter(senchaCfg.getAbsoluteFile(), true);
+        PrintWriter bw = new PrintWriter(fw);
+        bw.println("skip.sass=1");
+        bw.println("skip.slice=1");
+        bw.close();
+      } catch (IOException e) {
+        throw new MojoExecutionException("could not append skip.sass and skip.slice to sencha config of package");
+      }
+    } else {
+      throw new MojoExecutionException("could not find sencha.cfg of package");
     }
   }
 
@@ -336,7 +339,8 @@ public class SenchaHelper {
     for (Artifact artifact : dependencyArtifacts) {
       String packageName = getSenchaPackageNameForArtifact(artifact);
       if (null != packageName
-              && Types.JAVASCRIPT_EXTENSION.equals(artifact.getType())) {
+              && Types.JAVASCRIPT_EXTENSION.equals(artifact.getType())
+              && !MAVEN_DEPENDENCY_SCOPE_TEST.equalsIgnoreCase(artifact.getScope())) {
         try {
           ZipFile zipFile = new ZipFile(artifact.getFile());
           ZipEntry zipEntry = zipFile.getEntry(packageName + ".pkg");
@@ -387,7 +391,6 @@ public class SenchaHelper {
             "framework", "ext",
             "format", "1",
             "toolkit", senchaConfiguration.getToolkit(),
-            "theme", senchaConfiguration.getTheme(),
             "creator", StringUtils.defaultString(project.getOrganization() != null ? project.getOrganization().getName() : ""),
             "summary", StringUtils.defaultString(project.getDescription()),
             "detailedDescription", "",
