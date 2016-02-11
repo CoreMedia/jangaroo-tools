@@ -7,7 +7,7 @@ import net.jangaroo.ext.Exml;
 /**
  * My config class subclass, authored in MXML.
  * /
-public class SomeMxmlClass extends package1.ConfigClass {
+public class SomeMxmlClass extends package1.ConfigClass implements package1.Interface {
     public static const xtype:String = "testNamespace.config.soneMxmlClass";
     
     import foo.Bar;
@@ -101,6 +101,7 @@ public class SomeMxmlClass extends package1.ConfigClass {
 ============================================== Jangaroo part ==============================================*/
     return {
       extend: "AS3.package1.ConfigClass",
+      mixins: ["AS3.package1.Interface"],
       alias: "widget.testNamespace.config.soneMxmlClass",
       blub$2: undefined,
       $on_$_1_click$2: $on_$_1_click,
@@ -113,7 +114,10 @@ public class SomeMxmlClass extends package1.ConfigClass {
         other: null,
         no_config: null
       },
-      requires: ["AS3.package1.ConfigClass"],
+      requires: [
+        "AS3.package1.ConfigClass",
+        "AS3.package1.Interface"
+      ],
       uses: [
         "AS3.net.jangaroo.ext.Exml",
         "AS3.package1.someOtherPackage.SomeEvent",

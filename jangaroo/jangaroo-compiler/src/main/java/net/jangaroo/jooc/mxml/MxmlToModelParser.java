@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -55,6 +56,7 @@ public final class MxmlToModelParser {
   public static final String MXML_SCRIPT = "Script";
   public static final String MXML_METADATA = "Metadata";
   public static final String MXML_ID_ATTRIBUTE = "id";
+  public static final String MXML_IMPLEMENTS_ATTRIBUTE = "implements";
   public static final String MXML_DEFAULT_PROPERTY_ANNOTATION = "DefaultProperty";
   public static final String EXML_MIXINS_PROPERTY_NAME = "__mixins__";
 
@@ -151,6 +153,12 @@ public final class MxmlToModelParser {
     classModel.setSuperclass(superClassName);
     retrieveASDocFromComment(objectNode, classModel);
     compilationUnitModel.addImport(superClassName);
+
+    String implementsAttribute = objectNode.getAttribute(MXML_IMPLEMENTS_ATTRIBUTE).trim();
+    if (!implementsAttribute.isEmpty()) {
+      String[] interfaces = implementsAttribute.split(",");
+      classModel.setInterfaces(Arrays.asList(interfaces));
+    }
 
     processScriptsAndMetadata(objectNode);
 
@@ -275,7 +283,7 @@ public final class MxmlToModelParser {
       Attr attribute = (Attr) attributes.item(i);
       String propertyName = attribute.getLocalName();
       boolean isUntypedAccess = EXML_UNTYPED_NAMESPACE.equals(attribute.getNamespaceURI());
-      if (attribute.getNamespaceURI() == null && !MXML_ID_ATTRIBUTE.equals(propertyName) ||
+      if (attribute.getNamespaceURI() == null && !MXML_ID_ATTRIBUTE.equals(propertyName) && !MXML_IMPLEMENTS_ATTRIBUTE.equals(propertyName) ||
               isUntypedAccess) {
         String value = attribute.getValue();
         MemberModel propertyModel = null;

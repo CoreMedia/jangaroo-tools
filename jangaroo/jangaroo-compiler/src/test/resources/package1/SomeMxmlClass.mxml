@@ -10,7 +10,8 @@
              xmlns:lib="library://test.namespace"
              foo="bar"
              number="{1 + 1}"
-             click="var result:String = 'gotcha!';">
+             click="var result:String = 'gotcha!';"
+             implements="package1.Interface">
   <fx:Script><![CDATA[
     public static const xtype:String = "testNamespace.config.soneMxmlClass";
     ]]></fx:Script>
