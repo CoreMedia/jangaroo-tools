@@ -9,6 +9,8 @@ import net.jangaroo.jooc.mvnplugin.Types;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.io.FileUtils;
+import org.apache.maven.archiver.MavenArchiveConfiguration;
+import org.apache.maven.archiver.MavenArchiver;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
@@ -30,6 +32,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -44,13 +47,12 @@ public class SenchaHelper {
 
   public static final String SENCHA_PACKAGE_RELATIVE_OUTPUT_PATH = "${package.dir}/build";
   public static final String SENCHA_PACKAGE_RELATIVE_CLASS_PATH = "${package.dir}/src";
-  public static final String SENCHA_PACKAGE_RELATIVE_OVERRIDES_PATH = "${package.dir}/overrides,${package.dir}/${toolkit.name}/overrides";
+  public static final String SENCHA_PACKAGE_RELATIVE_OVERRIDES_PATH = "${package.dir}/overrides";
   public static final String SENCHA_PACKAGE_RELATIVE_RESOURCES_PATH = "${package.dir}/resources";
   public static final String SENCHA_PACKAGE_RELATIVE_RESOURCES_TOOLKIT_PATH = "${toolkit.name}/resources";
   public static final String SENCHA_PACKAGE_RELATIVE_RESOURCES_BUILD_PROFILE_PATH = "${build.id}/resources";
 
   public static final String SENCHA_DIRECTORYNAME = ".sencha";
-  public static final String SENCHA_PACKAGES_DIRECTORYNAME = "packages";
   public static final String SENCHA_WORKSPACE_FILENAME = "workspace.json";
   public static final String SENCHA_PACKAGE_FILENAME = "package.json";
   public static final String SENCHA_APP_FILENAME = "app.json";
@@ -65,7 +67,7 @@ public class SenchaHelper {
 
   private final String senchaPackageName;
 
-  private final String senchaWorkspacePath;
+  private final String senchaPath;
   private final String senchaPackagePath;
 
   public SenchaHelper(MavenProject project, SenchaConfiguration senchaConfiguration, Log log) {
@@ -73,91 +75,123 @@ public class SenchaHelper {
     this.senchaConfiguration = senchaConfiguration;
     this.log = log;
     this.senchaPackageName = getSenchaPackageNameForMavenProject(project);
-    this.senchaWorkspacePath = project.getBuild().getDirectory() + "/" + SENCHA_BASE_PATH;
-    this.senchaPackagePath = senchaWorkspacePath + "/packages/" + senchaPackageName;
+    this.senchaPath = project.getBuild().getDirectory() + File.separator + SENCHA_BASE_PATH;
+    this.senchaPackagePath = senchaPath + File.separator + "packages" + File.separator + senchaPackageName;
   }
 
-  public void executeInitialize() throws MojoExecutionException {
-    if (senchaConfiguration.isEnabled()) {
-      File senchaPackageDirectory = new File(senchaPackagePath);
-
-      if (!senchaPackageDirectory.exists()) {
-        getLog().info("generating sencha package into: " + senchaPackageDirectory.getPath());
-        getLog().debug("created " + senchaPackageDirectory.mkdirs());
-      }
-
-      if (SenchaConfiguration.Type.WORKSPACE.equals(senchaConfiguration.getType())) {
-        createSenchaWorkspace(project.getBasedir(), getAllWorkspacePaths(project));
-      }
-      if (SenchaConfiguration.Type.CODE.equals(senchaConfiguration.getType())) {
-        createSenchaCodePackage(senchaPackageDirectory);
-      }
-    }
-  }
-
-  public void executeInstall() throws MojoExecutionException {
+  public void prepareSenchaFolder() throws MojoExecutionException {
     if (senchaConfiguration.isEnabled()) {
       if (senchaConfiguration.getType() == SenchaConfiguration.Type.CODE) {
+        File senchaPackageDirectory = new File(senchaPackagePath);
 
-        File jangarooResourcesDir = new File(project.getBuild().getDirectory() + "/classes/META-INF/resources");
-        File senchaResourcesDir = new File(SENCHA_PACKAGE_RELATIVE_RESOURCES_PATH.replace("${package.dir}", senchaPackagePath));
-        if (jangarooResourcesDir.exists()) {
-          if (senchaResourcesDir.exists()) {
-            try {
-              FileUtils.deleteDirectory(senchaResourcesDir);
-            } catch (IOException e) {
-              throw new MojoExecutionException("could not clean resources folder in sencha package", e);
-            }
-          }
-          try {
-            FileUtils.copyDirectory(jangarooResourcesDir, senchaResourcesDir);
-          } catch (IOException e) {
-            throw new MojoExecutionException("could not copy classes", e);
-          }
+        if (!senchaPackageDirectory.exists()) {
+          getLog().info("generating sencha package into: " + senchaPackageDirectory.getPath());
+          getLog().debug("created " + senchaPackageDirectory.mkdirs());
         }
 
-        File jangarooClassDir = new File(senchaResourcesDir.getAbsolutePath() + File.separator + "joo/classes");
-        if (jangarooClassDir.exists()) {
-          File senchaClassDir = new File(SENCHA_PACKAGE_RELATIVE_CLASS_PATH.replace("${package.dir}", senchaPackagePath));
-          if (senchaClassDir.exists()) {
-            try {
-              FileUtils.deleteDirectory(senchaClassDir);
-            } catch (IOException e) {
-              throw new MojoExecutionException("could not clean class folder in sencha package", e);
-            }
-          }
-          try {
-            FileUtils.moveDirectory(jangarooClassDir, senchaClassDir);
-          } catch (IOException e) {
-            throw new MojoExecutionException("could not copy classes", e);
-          }
+        copyFilesFromJoo(senchaPackagePath);
+      }
+
+      if (senchaConfiguration.getType() == SenchaConfiguration.Type.APP) {
+        File senchaDirectory = new File(senchaPath);
+
+        if (!senchaDirectory.exists()) {
+          getLog().info("generating sencha into: " + senchaDirectory.getPath());
+          getLog().debug("created " + senchaDirectory.mkdirs());
         }
 
-        File jangarooOverridesDir = new File(senchaResourcesDir.getAbsolutePath() + File.separator + "joo/overrides");
-        if (jangarooOverridesDir.exists()) {
-          File senchaOverridesDir = new File(SENCHA_PACKAGE_RELATIVE_OVERRIDES_PATH.replace("${package.dir}", senchaPackagePath));
-          if (senchaOverridesDir.exists()) {
-            try {
-              FileUtils.deleteDirectory(senchaOverridesDir);
-            } catch (IOException e) {
-              throw new MojoExecutionException("could not clean overrides folder in sencha package", e);
-            }
-          }
-          try {
-            FileUtils.moveDirectory(jangarooOverridesDir, senchaOverridesDir);
-          } catch (IOException e) {
-            throw new MojoExecutionException("could not copy overrides", e);
-          }
-        }
-
+        copyFilesFromJoo(senchaPath);
       }
     }
   }
 
-  public void executePackage(JarArchiver archiver) throws ArchiverException, MojoExecutionException {
+  public void generateSenchaFolder() throws MojoExecutionException {
+    if (senchaConfiguration.isEnabled()) {
+      if (SenchaConfiguration.Type.WORKSPACE.equals(senchaConfiguration.getType())) {
+        createSenchaWorkspace();
+      }
+      if (SenchaConfiguration.Type.CODE.equals(senchaConfiguration.getType())) {
+        createSenchaCodePackage();
+      }
+      if (SenchaConfiguration.Type.APP.equals(senchaConfiguration.getType())) {
+        createSenchaApp();
+      }
+    }
+  }
+
+  private void copyFilesFromJoo(String path) throws MojoExecutionException {
+    File jangarooResourcesDir = new File(project.getBuild().getDirectory() + "/classes/META-INF/resources");
+    File senchaResourcesDir = new File(SENCHA_PACKAGE_RELATIVE_RESOURCES_PATH.replace("${package.dir}", path));
+    if (jangarooResourcesDir.exists()) {
+      if (senchaResourcesDir.exists()) {
+        try {
+          FileUtils.deleteDirectory(senchaResourcesDir);
+        } catch (IOException e) {
+          throw new MojoExecutionException("could not clean resources folder in sencha package", e);
+        }
+      }
+      try {
+        FileUtils.copyDirectory(jangarooResourcesDir, senchaResourcesDir);
+      } catch (IOException e) {
+        throw new MojoExecutionException("could not copy classes", e);
+      }
+    }
+
+    File jangarooClassDir = new File(senchaResourcesDir.getAbsolutePath() + File.separator + "joo/classes");
+    if (jangarooClassDir.exists()) {
+      File senchaClassDir = new File(SENCHA_PACKAGE_RELATIVE_CLASS_PATH.replace("${package.dir}", path));
+      if (senchaClassDir.exists()) {
+        try {
+          FileUtils.deleteDirectory(senchaClassDir);
+        } catch (IOException e) {
+          throw new MojoExecutionException("could not clean class folder in sencha package", e);
+        }
+      }
+      try {
+        FileUtils.moveDirectory(jangarooClassDir, senchaClassDir);
+      } catch (IOException e) {
+        throw new MojoExecutionException("could not copy classes", e);
+      }
+    }
+
+    File jangarooOverridesDir = new File(senchaResourcesDir.getAbsolutePath() + File.separator + "joo/overrides");
+    if (jangarooOverridesDir.exists()) {
+      File senchaOverridesDir = new File(SENCHA_PACKAGE_RELATIVE_OVERRIDES_PATH.replace("${package.dir}", path));
+      if (senchaOverridesDir.exists()) {
+        try {
+          FileUtils.deleteDirectory(senchaOverridesDir);
+        } catch (IOException e) {
+          throw new MojoExecutionException("could not clean overrides folder in sencha package", e);
+        }
+      }
+      try {
+        FileUtils.moveDirectory(jangarooOverridesDir, senchaOverridesDir);
+      } catch (IOException e) {
+        throw new MojoExecutionException("could not copy overrides", e);
+      }
+    }
+  }
+
+  public void packageSenchaFolder(File targetDir, String finalName, JarArchiver archiver, MavenArchiveConfiguration archive) throws MojoExecutionException {
+    File jarFile = new File(targetDir, finalName + "." + Types.JAVASCRIPT_EXTENSION);
+    MavenArchiver mavenArchiver = new MavenArchiver();
+    mavenArchiver.setArchiver(archiver);
+    mavenArchiver.setOutputFile(jarFile);
+    try {
+
+      packageSenchaFolder(mavenArchiver.getArchiver());
+
+      mavenArchiver.createArchive(project, archive);
+    } catch (Exception e) { // NOSONAR
+      throw new MojoExecutionException("Failed to create the javascript archive", e);
+    }
+    project.getArtifact().setFile(jarFile);
+  }
+
+  public void packageSenchaFolder(JarArchiver archiver) throws MojoExecutionException, ArchiverException {
     // for now:
-    executeInitialize();
-    executeInstall();
+    prepareSenchaFolder();
+    generateSenchaFolder();
 
     if (senchaConfiguration.isEnabled()) {
       if (senchaConfiguration.getType() == SenchaConfiguration.Type.CODE) {
@@ -168,7 +202,7 @@ public class SenchaHelper {
           throw new MojoExecutionException("sencha package directory does not exist: " + senchaPackageDirectory.getPath());
         }
 
-        buildSenchaPackage(senchaPackageDirectory); // move to executePackage
+        buildSenchaPackage(senchaPackageDirectory); // move to packageSenchaFolder
 
         File workspaceDir = findClosestSenchaWorkspaceDir(project.getFile().getParentFile());
 
@@ -177,7 +211,7 @@ public class SenchaHelper {
         }
 
         String workspaceOutputPath = SENCHA_WORKSPACE_RELATIVE_OUTPUT_PATH.replace("${workspace.dir}", workspaceDir.getAbsolutePath());
-        File pkg = new File(workspaceOutputPath + "/" + senchaPackageName + "/" + senchaPackageName + ".pkg");
+        File pkg = new File(workspaceOutputPath + File.separator + senchaPackageName + File.separator + senchaPackageName + ".pkg");
         if (!pkg.exists()) {
           throw new MojoExecutionException("could not find pkg for sencha package " + senchaPackageName);
         }
@@ -227,12 +261,14 @@ public class SenchaHelper {
     return log;
   }
 
-  private List<String> getAllWorkspacePaths(MavenProject project) {
+  private List<String> getAllWorkspacePaths() {
     // TODO
     return Collections.emptyList();
   }
 
-  private void createSenchaWorkspace(File workingDirectory, List<String> additionalWorkspacePaths) throws MojoExecutionException {
+  private void createSenchaWorkspace() throws MojoExecutionException {
+    File workingDirectory = project.getBasedir();
+
     String line = "sencha generate workspace .";
     CommandLine cmdLine = CommandLine.parse(line);
     DefaultExecutor executor = new DefaultExecutor();
@@ -244,62 +280,90 @@ public class SenchaHelper {
       throw new MojoExecutionException("could not execute sencha cmd to generate workspace", e);
     }
 
+    writeWorkspaceJson(workingDirectory);
+  }
+
+  private void writeWorkspaceJson(File workingDirectory) throws MojoExecutionException {
     String workspaceJsonAsString = getWorkspaceJson().toString(4, 4);
-    File fWorkspaceJson = new File(workingDirectory.getAbsolutePath() + "/" + SENCHA_WORKSPACE_FILENAME);
+    File fWorkspaceJson = new File(workingDirectory.getAbsolutePath() + File.separator + SENCHA_WORKSPACE_FILENAME);
 
-    try {
-      FileWriter fw = new FileWriter(fWorkspaceJson.getAbsoluteFile());
-      BufferedWriter bw = new BufferedWriter(fw);
-      bw.write(workspaceJsonAsString);
-      bw.close();
-    } catch (IOException e) {
-      throw new MojoExecutionException("could not write" + SENCHA_WORKSPACE_FILENAME, e);
-    }
-  }
-
-  private void createSenchaCodePackage(File workingDirectory) throws MojoExecutionException {
-    File closestSenchaWorkspaceDir = findClosestSenchaWorkspaceDir(workingDirectory);
-    if (null == closestSenchaWorkspaceDir) {
-      throw new MojoExecutionException("could not find sencha workspace above workingDirectory");
-    }
-    if (!workingDirectory.getAbsolutePath().startsWith(closestSenchaWorkspaceDir.getAbsolutePath())) {
-      throw new MojoExecutionException("found sencha workspace directory is not in order above workingDirectory");
-    }
-    String pathToWorkingDirectory = workingDirectory.getAbsolutePath().replaceFirst("^" + Matcher.quoteReplacement(closestSenchaWorkspaceDir.getAbsolutePath() + File.separator), "");
-    pathToWorkingDirectory = pathToWorkingDirectory.replace(File.separator, "/"); // make sure / is used so no additional escaping is needed for cmd line
-
-    writePackageJson(workingDirectory);
-
-    writePackageSenchaCfg(workingDirectory, pathToWorkingDirectory);
-  }
-
-  private void writePackageJson(File workingDirectory) throws MojoExecutionException {
-    String packageJsonAsString = getPackageJson().toString(4, 4);
-
-    File fPackageJson = new File(workingDirectory.getAbsolutePath() + "/" + SENCHA_PACKAGE_FILENAME);
     BufferedWriter bw = null;
     try {
-      FileWriter fw = new FileWriter(fPackageJson.getAbsoluteFile());
+      FileWriter fw = new FileWriter(fWorkspaceJson.getAbsoluteFile());
       bw = new BufferedWriter(fw);
-      bw.write(packageJsonAsString);
+      bw.write(workspaceJsonAsString);
     } catch (IOException e) {
-      throw new MojoExecutionException("could not write package.json", e);
+      throw new MojoExecutionException("could not write" + SENCHA_WORKSPACE_FILENAME, e);
     } finally {
-      if (bw != null) {
+      if (null != bw) {
         try {
           bw.close();
-        } catch (IOException ioe2) {
+        } catch (IOException e) {
           // just ignore it
         }
       }
     }
   }
 
-  private void writePackageSenchaCfg(File workingDirectory, String pathToWorkingDirectory) throws MojoExecutionException {
-    File senchaCfg = new File(workingDirectory.getAbsolutePath() + "/.sencha/package/sencha.cfg");
+  private void createSenchaApp() throws MojoExecutionException {
+
+    File workingDirectory = new File(senchaPath);
+
+    writeAppJson(workingDirectory);
+
+    String line = "sencha generate app"
+            + " -ext"
+            + " -" + senchaConfiguration.getToolkit()
+            + " --theme-name=\"" + senchaConfiguration.getTheme() +"\""
+            + " --path=\"\""
+            + " " + senchaPackageName;
+    CommandLine cmdLine = CommandLine.parse(line);
+    DefaultExecutor executor = new DefaultExecutor();
+    executor.setWorkingDirectory(workingDirectory);
+    executor.setExitValue(0);
+    try {
+      executor.execute(cmdLine);
+    } catch (IOException e) {
+      throw new MojoExecutionException("could not execute sencha cmd to generate app", e);
+    }
+  }
+
+  private void writeAppJson(File workingDirectory) throws MojoExecutionException {
+    String appJsonAsString = getAppJson().toString(4, 4);
+
+    File fAppJson = new File(workingDirectory.getAbsolutePath() + File.separator + SENCHA_APP_FILENAME);
+    BufferedWriter bw = null;
+    try {
+      FileWriter fw = new FileWriter(fAppJson.getAbsoluteFile());
+      bw = new BufferedWriter(fw);
+      bw.write(appJsonAsString);
+    } catch (IOException e) {
+      throw new MojoExecutionException("could not write app.json", e);
+    } finally {
+      if (null != bw) {
+        try {
+          bw.close();
+        } catch (IOException e) {
+          // just ignore it
+        }
+      }
+    }
+  }
+
+  private void createSenchaCodePackage() throws MojoExecutionException {
+
+    File workingDirectory = new File(senchaPackagePath);
+
+    String pathToWorkingDirectory = getPathToWorkingDir(workingDirectory);
+
+    writePackageJson(workingDirectory);
+
+    File senchaCfg = new File(workingDirectory.getAbsolutePath() + File.separator + SENCHA_DIRECTORYNAME + "/package/sencha.cfg");
     // make sure senchaCfg does not exist
     if (senchaCfg.exists()) {
-      senchaCfg.delete();
+      if (!senchaCfg.delete()) {
+        throw new MojoExecutionException("could not delete sencha.cfg for package");
+      }
     }
 
     String line = "sencha generate package"
@@ -328,14 +392,50 @@ public class SenchaHelper {
         pw.println("skip.slice=1");
       } catch (IOException e) {
         throw new MojoExecutionException("could not append skip.sass and skip.slice to sencha config of package");
-      } finally {
-        if (pw != null) {
+      }
+      finally {
+        if (null != pw) {
           pw.close();
         }
       }
     } else {
       throw new MojoExecutionException("could not find sencha.cfg of package");
     }
+  }
+
+  private void writePackageJson(File workingDirectory) throws MojoExecutionException {
+    String packageJsonAsString = getPackageJson().toString(4, 4);
+
+    File fPackageJson = new File(workingDirectory.getAbsolutePath() + File.separator + SENCHA_PACKAGE_FILENAME);
+    BufferedWriter bw = null;
+    try {
+      FileWriter fw = new FileWriter(fPackageJson.getAbsoluteFile());
+      bw = new BufferedWriter(fw);
+      bw.write(packageJsonAsString);
+    } catch (IOException e) {
+      throw new MojoExecutionException("could not write package.json", e);
+    } finally {
+      if (null != bw) {
+        try {
+          bw.close();
+        } catch (IOException e) {
+          // just ignore it
+        }
+      }
+    }
+  }
+
+  private String getPathToWorkingDir(File workingDirectory) throws MojoExecutionException {
+    File closestSenchaWorkspaceDir = findClosestSenchaWorkspaceDir(workingDirectory);
+    if (null == closestSenchaWorkspaceDir) {
+      throw new MojoExecutionException("could not find sencha workspace above workingDirectory");
+    }
+    if (!workingDirectory.getAbsolutePath().startsWith(closestSenchaWorkspaceDir.getAbsolutePath())) {
+      throw new MojoExecutionException("found sencha workspace directory is not in order above workingDirectory");
+    }
+    String pathToWorkingDirectory = workingDirectory.getAbsolutePath().replaceFirst("^" + Matcher.quoteReplacement(closestSenchaWorkspaceDir.getAbsolutePath() + File.separator), "");
+    pathToWorkingDirectory = pathToWorkingDirectory.replace(File.separator, "/"); // make sure / is used so no additional escaping is needed for cmd line
+    return pathToWorkingDirectory;
   }
 
   private void buildSenchaPackage(File senchaPackageDirectory) throws MojoExecutionException {
@@ -436,6 +536,127 @@ public class SenchaHelper {
                     )
             }
     )
+    );
+  }
+
+  private Json getAppJson() throws MojoExecutionException {
+    String version = getSenchaVersionForProject(project);
+
+    return new JsonObject(
+            "name", senchaPackageName,
+            "version", version,
+            "indexHtmlPath", "index.html",
+
+            "classpath", new JsonArray(),
+            "overrides", new JsonArray(),
+
+            "framework", "ext",
+
+            "toolkit", "classic",
+
+            "theme", "studio-theme",
+
+            "requires", getDependencyJson(),
+
+            "fashion", new JsonObject(
+                    "inliner", new JsonObject(
+                            "enable", false
+                    )
+            ),
+            "css", getAdditionalResources(senchaConfiguration.getAdditionalCssNonBundle(), senchaConfiguration.getAdditionalCssBundle()),
+            "js", getAdditionalResources(senchaConfiguration.getAdditionalJsNonBundle(), senchaConfiguration.getAdditionalJsBundle()),
+
+            "classic", new JsonObject(),
+            "modern", new JsonObject(),
+
+            "css", new JsonArray(
+                    new JsonObject(
+                            "path", "${build.out.css.path}",
+                            "bundle", true,
+                            "exclude", new JsonArray("fashion")
+                    )
+            ),
+
+            "loader", new JsonObject(
+                    "cache", false,
+                    "cacheParam", "_dc"
+            ),
+
+            "production", new JsonObject(
+                    "output", new JsonObject(
+                            "appCache", new JsonObject(
+                                    "enable", true,
+                                    "path", "cache.appcache"
+                            )
+                    ),
+                    "loader", new JsonObject(
+                            "cache", "${build.timestamp}"
+                    ),
+                    "cache", new JsonObject(
+                            "enable", true
+                    ),
+                    "compressor", new JsonObject(
+                            "type", "yui"
+                    )
+            ),
+
+            "testing", new JsonObject(),
+
+            "development", new JsonObject(
+                    "tags", new JsonArray(
+                            "fashion"
+                    )
+            ),
+
+            "bootstrap", new JsonObject(
+                    "base", "${app.dir}",
+                    "manifest", "bootstrap.json",
+                    "microloader", "bootstrap.js",
+                    "css", "bootstrap.css"
+            ),
+
+            "output", new JsonObject(
+                    "base", "${workspace.build.dir}/${build.environment}/${app.name}",
+                    "appCache", new JsonObject(
+                            "enable", false
+                    )
+            ),
+
+            "cache", new JsonObject(
+                    "enable", false,
+                    "deltas", true
+            ),
+
+            "appCache", new JsonObject(
+                    "cache", new JsonArray(
+                            "index.html"
+                    ),
+                    "network", new JsonArray(
+                            "*"
+                    ),
+                    "fallback", new JsonArray()
+            ),
+
+            "resources", new JsonArray(
+                    new JsonObject(
+                            "path", "resources",
+                            "output", "shared"
+                    ),
+                    new JsonObject(
+                            "path", "${toolkit.name}/resources"
+                    ),
+                    new JsonObject(
+                            "path", "${build.id}/resources"
+                    )
+            ),
+
+            "ignore", new JsonArray(
+                    "(^|/)CVS(/?$|/.*?$)"
+            ),
+
+            "archivePath", "archive",
+
+            "id", UUID.randomUUID().toString()
     );
   }
 

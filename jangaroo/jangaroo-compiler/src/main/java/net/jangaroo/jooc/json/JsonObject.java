@@ -33,6 +33,20 @@ public class JsonObject implements Json {
     return new CodeImpl(code);
   }
 
+  public static void apply(JsonObject o1, JsonObject o2) {
+    o1.properties.putAll(o2.properties);
+  }
+
+  public static JsonObject merge(JsonObject ... toMerge) {
+    JsonObject result = new JsonObject();
+
+    for (JsonObject o : toMerge) {
+      apply(result, o);
+    }
+
+    return result;
+  }
+
   public String getWrapperClass() {
     return wrapperClass;
   }

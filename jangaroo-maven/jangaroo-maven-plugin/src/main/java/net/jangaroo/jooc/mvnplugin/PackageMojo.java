@@ -160,8 +160,9 @@ public class PackageMojo extends AbstractMojo {
           archive.setManifestFile(createDefaultManifest(project));
         }
       }
+      JarArchiver archiver = mavenArchiver.getArchiver();
       if (outputDirectory.exists()) {
-        mavenArchiver.getArchiver().addDirectory(outputDirectory);
+        archiver.addDirectory(outputDirectory);
         if (!getModuleJsFile().exists() && new File(outputDirectory, moduleClassesJsFile).exists()) {
           createDefaultModuleJsFile();
         }
@@ -169,18 +170,17 @@ public class PackageMojo extends AbstractMojo {
 
       String groupId = project.getGroupId();
       String artifactId = project.getArtifactId();
-      mavenArchiver.getArchiver().addFile(project.getFile(), "META-INF/maven/" + groupId + "/" + artifactId
+      archiver.addFile(project.getFile(), "META-INF/maven/" + groupId + "/" + artifactId
               + "/pom.xml");
 
       SenchaHelper senchaHelper = new SenchaHelper(project, senchaConfiguration, getLog());
-      senchaHelper.executePackage(mavenArchiver.getArchiver());
+      senchaHelper.packageSenchaFolder(archiver);
 
       mavenArchiver.createArchive(project, archive);
     } catch (Exception e) { // NOSONAR
       throw new MojoExecutionException("Failed to create the javascript archive", e);
     }
     project.getArtifact().setFile(jarFile);
-
   }
 
   private File getModuleJsFile() {
