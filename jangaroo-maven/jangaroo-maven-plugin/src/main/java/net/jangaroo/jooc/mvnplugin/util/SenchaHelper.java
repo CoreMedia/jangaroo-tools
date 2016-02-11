@@ -258,7 +258,6 @@ public class SenchaHelper {
   }
 
   private void createSenchaCodePackage(File workingDirectory) throws MojoExecutionException {
-
     File closestSenchaWorkspaceDir = findClosestSenchaWorkspaceDir(workingDirectory);
     if (null == closestSenchaWorkspaceDir) {
       throw new MojoExecutionException("could not find sencha workspace above workingDirectory");
@@ -269,18 +268,34 @@ public class SenchaHelper {
     String pathToWorkingDirectory = workingDirectory.getAbsolutePath().replaceFirst("^" + Matcher.quoteReplacement(closestSenchaWorkspaceDir.getAbsolutePath() + File.separator), "");
     pathToWorkingDirectory = pathToWorkingDirectory.replace(File.separator, "/"); // make sure / is used so no additional escaping is needed for cmd line
 
+    writePackageJson(workingDirectory);
+
+    writePackageSenchaCfg(workingDirectory, pathToWorkingDirectory);
+  }
+
+  private void writePackageJson(File workingDirectory) throws MojoExecutionException {
     String packageJsonAsString = getPackageJson().toString(4, 4);
 
     File fPackageJson = new File(workingDirectory.getAbsolutePath() + "/" + SENCHA_PACKAGE_FILENAME);
+    BufferedWriter bw = null;
     try {
       FileWriter fw = new FileWriter(fPackageJson.getAbsoluteFile());
-      BufferedWriter bw = new BufferedWriter(fw);
+      bw = new BufferedWriter(fw);
       bw.write(packageJsonAsString);
-      bw.close();
     } catch (IOException e) {
       throw new MojoExecutionException("could not write package.json", e);
+    } finally {
+      if (bw != null) {
+        try {
+          bw.close();
+        } catch (IOException ioe2) {
+          // just ignore it
+        }
+      }
     }
+  }
 
+  private void writePackageSenchaCfg(File workingDirectory, String pathToWorkingDirectory) throws MojoExecutionException {
     File senchaCfg = new File(workingDirectory.getAbsolutePath() + "/.sencha/package/sencha.cfg");
     // make sure senchaCfg does not exist
     if (senchaCfg.exists()) {
@@ -305,14 +320,18 @@ public class SenchaHelper {
     // sencha.cfg should be recreated
     // for normal packages skip generating css and slices
     if (senchaCfg.exists()) {
+      PrintWriter pw = null;
       try {
         FileWriter fw = new FileWriter(senchaCfg.getAbsoluteFile(), true);
-        PrintWriter bw = new PrintWriter(fw);
-        bw.println("skip.sass=1");
-        bw.println("skip.slice=1");
-        bw.close();
+        pw = new PrintWriter(fw);
+        pw.println("skip.sass=1");
+        pw.println("skip.slice=1");
       } catch (IOException e) {
         throw new MojoExecutionException("could not append skip.sass and skip.slice to sencha config of package");
+      } finally {
+        if (pw != null) {
+          pw.close();
+        }
       }
     } else {
       throw new MojoExecutionException("could not find sencha.cfg of package");
