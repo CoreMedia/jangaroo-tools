@@ -909,16 +909,27 @@ public class ExtAsApiGenerator {
   }
 
   private static void annotateBindableConfigProperties(ClassModel classModel) {
-    for (MemberModel member : classModel.getMembers()) {
-      if (member.isAccessor() && !member.getAnnotations(Jooc.EXT_CONFIG_ANNOTATION_NAME).isEmpty()) {
+    List<MemberModel> members = classModel.getMembers();
+    // two-pass to get the order of @see #get() and @see #set() right:
+    // first, the getters:
+    for (MemberModel member : members) {
+      if (member.isGetter()) {
+        annotateBindableConfigProperty(classModel, (MethodModel) member);
+      }
+    }
+    // then, the setters:
+    for (MemberModel member : members) {
+      if (member.isSetter()) {
         annotateBindableConfigProperty(classModel, (MethodModel) member);
       }
     }
   }
 
   private static void annotateBindableConfigProperty(ClassModel classModel, MethodModel accessor) {
-    boolean isSetter = accessor.isSetter();
-    String prefix = isSetter ? "set" : "get";
+    if (accessor.getAnnotations(Jooc.EXT_CONFIG_ANNOTATION_NAME).isEmpty()) {
+      return;
+    }
+    String prefix = accessor.getMethodType().toString();
 
     String propertyType = getMethodType(accessor, accessor.getMethodType());
     if (propertyType == null) {
@@ -934,12 +945,12 @@ public class ExtAsApiGenerator {
     }
 
     List<ParamModel> methodParams = method.getParams();
-    if (isSetter && methodParams.isEmpty()) {
+    if (accessor.isSetter() && methodParams.isEmpty()) {
       warnConfigProperty(String.format("matching setter method '%s' without parameters. "
               + "Still marking property as [Bindable] - assuming it's compatible at runtime.",
               method.getName()), classModel, accessor);
     } else {
-      List<ParamModel> moreParams = isSetter ? methodParams.subList(1, methodParams.size()) : methodParams;
+      List<ParamModel> moreParams = accessor.isSetter() ? methodParams.subList(1, methodParams.size()) : methodParams;
       for (ParamModel param : moreParams) {
         if (!param.isOptional()) {
           warnConfigProperty(String.format("matching %ster method '%s' has additional non-optional parameter '%s'",
@@ -965,7 +976,15 @@ public class ExtAsApiGenerator {
     }
 
     accessor.addAnnotation(new AnnotationModel(Jooc.BINDABLE_ANNOTATION_NAME));
-    accessor.setAsdoc(accessor.getAsdoc() + "\n@see #" + methodName + "()");
+    MethodModel documentedMethod = null;
+    if (accessor.isSetter()) {
+      documentedMethod = classModel.getMethod(accessor.isStatic(), MethodType.GET, accessor.getName());
+    }
+    if (documentedMethod == null) {
+      documentedMethod = accessor;
+    }
+    String asDoc = documentedMethod.getAsdoc();
+    documentedMethod.setAsdoc((asDoc == null ? "" : asDoc) + "\n@see #" + methodName + "()");
   }
 
   private static String getMethodType(MethodModel method, MethodType methodType) {
