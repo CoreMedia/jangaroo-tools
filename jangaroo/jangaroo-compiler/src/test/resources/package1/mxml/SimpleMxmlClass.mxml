@@ -2,6 +2,7 @@
 <!---
   My config class subclass, authored in MXML.
 -->
+
 <ConfigClass xmlns:fx="http://ns.adobe.com/mxml/2009"
              xmlns:exml="http://www.jangaroo.net/exml/0.8"
              xmlns="package1.*"
@@ -13,11 +14,9 @@
              click="var result:String = 'gotcha!';"
              implements="package1.Interface">
   <fx:Script><![CDATA[
-    import package1.SomeClass;
     public static const xtype:String = "testNamespace.config.simpleMxmlClass";
-    protected var field1:SomeClass = null;
-    protected var field2:Vector.<String> = new Vector.<String>();
-    protected var field3:Vector.<int> = new Vector.<int>[1,2,3];
+
+    public native function SimpleMxmlClass(config:ScriptCdataMxmlClass = null);
     ]]></fx:Script>
   <fx:Declarations>
     <fx:String id="bar">BAR!</fx:String>
@@ -26,10 +25,7 @@
      Some number.
     -->
     <fx:int id="num">123</fx:int>
-    <!---
-    Empty declaration.
-    <top:int id="empty"/>
-    -->
+    <fx:int id="empty"/>
     <fx:Object id="blub" name="Kuno"/>
     <fx:Array id="list">
       <fx:Object name="Joe"/>
@@ -69,10 +65,14 @@
       </items>
     </ConfigClass>
   </items>
-  <fx:Script><!-- TODO remove -->
-    import foo.Bar;
-
+  <fx:Script>
     private var blub:*;
+
+    {
+      if(1 &lt; 0 &amp;&amp; 0 &gt; 1) {
+        throw "plain wrong!";
+      }
+    }
 
     [Bindable]
     public var list:Object;

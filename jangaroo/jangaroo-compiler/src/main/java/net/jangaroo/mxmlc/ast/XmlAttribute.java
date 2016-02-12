@@ -7,15 +7,17 @@ import net.jangaroo.jooc.ast.AstVisitor;
 import net.jangaroo.jooc.ast.Ide;
 import net.jangaroo.jooc.ast.NamespacedIde;
 import net.jangaroo.jooc.ast.NodeImplBase;
+import org.w3c.dom.Node;
 
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
 public class XmlAttribute extends NodeImplBase {
-  private Ide ide;
-  private JooSymbol eq;
-  private JooSymbol value;
+
+  private final Ide ide;
+  private final JooSymbol eq;
+  private final JooSymbol value;
 
   public XmlAttribute(Ide ide, JooSymbol eq, JooSymbol value) {
     this.ide = ide;
@@ -57,6 +59,20 @@ public class XmlAttribute extends NodeImplBase {
     
   }
 
+  public String getLocalName() {
+    return ide.getIde().getText();
+  }
+
+  /**
+   * @see Node#getPrefix()
+   */
+  public String getPrefix() {
+    if(ide instanceof NamespacedIde) {
+      return ((NamespacedIde) ide).getNamespace().getName();
+    }
+    return null;
+  }
+
   @Override
   public String toString() {
     String name = ide.getName();
@@ -64,5 +80,10 @@ public class XmlAttribute extends NodeImplBase {
       name = ((NamespacedIde)ide).getNamespace().getName() + ((NamespacedIde)ide).getSymNamespaceSep().getText() + name;
     }
     return name + eq.getText() + value.getText();
+  }
+
+  boolean isNamespaceDefinition() {
+    String namespacePrefix = getPrefix();
+    return XmlTag.XMLNS.equals(namespacePrefix) || null == namespacePrefix && XmlTag.XMLNS.equals(getLocalName());
   }
 }

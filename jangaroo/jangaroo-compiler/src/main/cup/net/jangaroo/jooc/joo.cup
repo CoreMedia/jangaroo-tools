@@ -25,21 +25,42 @@ import java.util.List;
 import java.util.ArrayList;
 import net.jangaroo.jooc.ast.*;
 import net.jangaroo.jooc.input.*;
+import net.jangaroo.mxmlc.*;
 import net.jangaroo.mxmlc.ast.*;
 
 
 action code {:
-    InputSource getInputSource() {
-      return ((ScannerBase)parser.getScanner()).getInputSource();
-    }
+
+  MxmlParserHelper mxmlParserHelper() {
+    return parser.mxmlParserHelper;
+  }
+
+  XmlTag createXmlTag(JooSymbol lt, Ide tagName, List<XmlAttribute> attributes, JooSymbol gt) {
+    return mxmlParserHelper().createXmlTag(lt, tagName, attributes, gt);
+  }
+
+  XmlAttribute createXmlAttribute(Ide ide, JooSymbol eq, JooSymbol value) {
+    return mxmlParserHelper().createXmlAttribute(ide, eq, value);
+  }
+
+  XmlElement createXmlElement(XmlTag openingMxmlTag, List children, XmlTag closingMxmlTag) {
+    return mxmlParserHelper().createXmlElement(openingMxmlTag, children, closingMxmlTag);
+  }
+
+  CompilationUnit createCompilationUnit(XmlElement element) throws Exception {
+    return mxmlParserHelper().createCompilationUnit(element);
+  }
+
+  JooSymbol[] toSymbolArray(List symbols) {
+    return (JooSymbol[])symbols.toArray(new JooSymbol[symbols.size()]);
+  }
 
 :};
 
 parser code {:
 
-  static JooSymbol[] toSymbolArray(List symbols) {
-    return (JooSymbol[])symbols.toArray(new JooSymbol[symbols.size()]);
-  }
+  final MxmlParserHelper mxmlParserHelper = new MxmlParserHelper((JooParser)this);
+
 :}
 
 terminal JooSymbol AS;
@@ -274,9 +295,9 @@ classBodyDirective ::=
 
 classDeclaration ::=
     modifiers:m CLASS:c ide:ide extends:e implements:i classBody:b
-    {: RESULT = new ClassDeclaration(parser.toSymbolArray(m),c,ide,e,i,b); :}
+    {: RESULT = new ClassDeclaration(toSymbolArray(m),c,ide,e,i,b); :}
   | modifiers:m INTERFACE:i ide:ide interfaceExtends:ie classBody:b
-    {: RESULT = new ClassDeclaration(parser.toSymbolArray(m),i,ide,null,ie,b); :}
+    {: RESULT = new ClassDeclaration(toSymbolArray(m),i,ide,null,ie,b); :}
   ;
 
 commaExpr ::=
@@ -515,7 +536,7 @@ interfaceExtends ::=
 
 namespaceDeclaration ::=
     modifiers:m EQ:eq STRING_LITERAL:l SEMICOLON:s
-    {: RESULT = new NamespaceDeclaration(parser.toSymbolArray(m.subList(0, m.size()-2)),
+    {: RESULT = new NamespaceDeclaration(toSymbolArray(m.subList(0, m.size()-2)),
                                          (JooSymbol)m.get(m.size()-2), new Ide((JooSymbol)m.get(m.size()-1)),
                                          new Initializer(eq, new LiteralExpr(l)), s);
     :}
@@ -816,7 +837,7 @@ forVariableDeclaration ::=
 
 variableDeclaration ::=
   modifiers:m constOrVar:cov ide:ide optTypeRelation:t optInitializer:init optNextVariableDeclaration:nf SEMICOLON:s
-    {: RESULT = new VariableDeclaration(parser.toSymbolArray(m), cov, ide, t, init, nf, s); :}
+    {: RESULT = new VariableDeclaration(toSymbolArray(m), cov, ide, t, init, nf, s); :}
   ;
 
 optNextVariableDeclaration ::=
@@ -827,7 +848,7 @@ optNextVariableDeclaration ::=
 
 mxmlCompilationUnit ::=
     optXmlHeader:optXmlHeader mxmlElement:rootElement
-    {: RESULT = new MxmlCompilationUnit(getInputSource(), optXmlHeader, rootElement).convert(); :}
+    {: RESULT = createCompilationUnit(rootElement); :}
   ;
 
 /* <?xml version="..."?> */
@@ -839,9 +860,9 @@ optXmlHeader ::=
 
 mxmlElement ::=
     closedMxmlTag:closedMxmlTag
-    {: RESULT = new XmlElement(closedMxmlTag, null, null); :}
+    {: RESULT = createXmlElement(closedMxmlTag, null, null); :}
   | openingMxmlTag:openingMxmlTag mxmlElements:children closingMxmlTag:closingMxmlTag
-    {: RESULT = new XmlElement(openingMxmlTag, children, closingMxmlTag); :}
+    {: RESULT = createXmlElement(openingMxmlTag, children, closingMxmlTag); :}
   ;
 
 mxmlElements ::=
@@ -854,7 +875,7 @@ mxmlElements ::=
 
 xmlAttribute ::=
     namespacedXmlIde:ide EQ:eq STRING_LITERAL:value
-    {: RESULT = new XmlAttribute(ide, eq, value); :}
+    {: RESULT = createXmlAttribute(ide, eq, value); :}
   ;
 
 xmlAttributes ::=
@@ -872,15 +893,15 @@ namespacedXmlIde ::=
 
 openingMxmlTag ::=
     LT:lt namespacedXmlIde:tagName xmlAttributes:attributes GT:gt
-    {: RESULT = new XmlTag(lt, tagName, attributes, gt); :}
+    {: RESULT = createXmlTag(lt, tagName, attributes, gt); :}
   ;
 
 closedMxmlTag ::=
     LT:lt namespacedXmlIde:tagName xmlAttributes:attributes SLASH_GT:slashGt
-    {: RESULT = new XmlTag(lt, tagName, attributes, slashGt); :}
+    {: RESULT = createXmlTag(lt, tagName, attributes, slashGt); :}
   ;
 
 closingMxmlTag ::=
     LT_SLASH:lt namespacedXmlIde:tagName GT:gt
-    {: RESULT = new XmlTag(lt, tagName, null, gt); :}
+    {: RESULT = createXmlTag(lt, tagName, null, gt); :}
   ;

@@ -284,7 +284,7 @@ public class JangarooParser implements CompilationUnitModelResolver, Compilation
    * @param name the name to check
    * @return whether the argument name identifies a class
    */
-  public boolean isClass(String name) throws IOException {
+  public boolean isClass(String name) {
     if (name == null) {
       return false;
     }

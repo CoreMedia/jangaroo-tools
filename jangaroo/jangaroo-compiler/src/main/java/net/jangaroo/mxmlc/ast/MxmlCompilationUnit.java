@@ -1,13 +1,11 @@
 package net.jangaroo.mxmlc.ast;
 
-import com.google.common.base.Function;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
+import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.ast.AstNode;
-import net.jangaroo.jooc.ast.AstVisitor;
 import net.jangaroo.jooc.ast.ClassBody;
 import net.jangaroo.jooc.ast.ClassDeclaration;
 import net.jangaroo.jooc.ast.CommaSeparatedList;
@@ -18,143 +16,155 @@ import net.jangaroo.jooc.ast.Ide;
 import net.jangaroo.jooc.ast.IdeDeclaration;
 import net.jangaroo.jooc.ast.Implements;
 import net.jangaroo.jooc.ast.ImportDirective;
-import net.jangaroo.jooc.ast.PackageDeclaration;
-import net.jangaroo.jooc.ast.QualifiedIde;
 import net.jangaroo.jooc.input.InputSource;
+import net.jangaroo.jooc.mxml.MxmlToModelParser;
 import net.jangaroo.jooc.sym;
+import net.jangaroo.mxmlc.MxmlParserHelper;
 import net.jangaroo.utils.CompilerUtils;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.io.IOException;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.regex.Pattern;
-
-import static java.util.Arrays.asList;
 
 /**
  * AST node for an MXML compilation unit, represented by its root node.
  */
-public class MxmlCompilationUnit {
+public class MxmlCompilationUnit extends CompilationUnit {
 
   private static final String IMPLEMENTS = "implements";
+  private static final String CLASS = "class";
 
   private static final JooSymbol[] SYM_MODIFIERS = new JooSymbol[]{};
 
-  private static final JooSymbol SYM_CLASS = new JooSymbol(sym.CLASS, "class");
-  private static final JooSymbol SYM_COMMA = new JooSymbol(sym.COMMA, ",");
-  private static final JooSymbol SYM_DOT = new JooSymbol(sym.DOT, ".");
-  private static final JooSymbol SYM_EXTENDS = new JooSymbol(sym.EXTENDS, "extends");
-  private static final JooSymbol SYM_IMPLEMENTS = new JooSymbol(sym.IMPLEMENTS, IMPLEMENTS);
   private static final JooSymbol SYM_IMPORT = new JooSymbol(sym.IMPORT, null, -1, -1, "\n", "import");
   private static final JooSymbol SYM_LBRACE = new JooSymbol(sym.LBRACE, "{");
-  private static final JooSymbol SYM_PACKAGE = new JooSymbol(sym.PACKAGE, "package");
   private static final JooSymbol SYM_RBRACE = new JooSymbol(sym.RBRACE, "}");
   private static final JooSymbol SYM_SEMICOLON = new JooSymbol(sym.SEMICOLON, ";");
-  private static final Pattern PACKAGE_PATTERN = Pattern.compile("[a-zA-Z_][\\.\\w]*[\\*]");
 
   private final InputSource source;
-  private final XmlHeader optXmlHeader;
   private final XmlElement rootNode;
+  private final MxmlParserHelper mxmlParserHelper;
 
-  public MxmlCompilationUnit(@Nonnull InputSource source, XmlHeader optXmlHeader, XmlElement rootNode) {
-    this.source = source;
-    this.optXmlHeader = optXmlHeader;
-    this.rootNode = rootNode;
-  }
+  private final List<Directive> classBodyDirectives = new LinkedList<Directive>();
 
-  public JooSymbol getSymbol() {
-    return rootNode.getSymbol();
-  }
-
-  public List<? extends AstNode> getChildren() {
-    return Collections.emptyList();
-  }
-
-  public void scope(Scope scope) {
-
-  }
-
-  public void analyze(AstNode parentNode) {
-
-  }
-
-  public AstNode getParentNode() {
-    return null;
-  }
-
-  public void visit(AstVisitor visitor) throws IOException {
-  }
-
-  public CompilationUnit convert() {
-    String qName = CompilerUtils.qNameFromRelativPath(source.getRelativePath());
-
-    // TODO extract imports
-    LinkedList<AstNode> imports = new LinkedList<AstNode>();
-    List<XmlAttribute> rootNodeAttributes = rootNode.getAttributes();
-    for (XmlAttribute rootNodeAttribute : rootNodeAttributes) {
-      String jooValue = ((String) rootNodeAttribute.getValue().getJooValue()).trim();
-      if(PACKAGE_PATTERN.matcher(jooValue).matches()) {
-        imports.add(new ImportDirective(SYM_IMPORT, createQualifiedIde(jooValue), SYM_SEMICOLON));
-      }
-    }
-
-    Extends ext = new Extends(SYM_EXTENDS, new Ide(rootNode.getName()));
-    Implements impl = null;
-    XmlAttribute implementsAttribute = rootNode.getAttribute(IMPLEMENTS);
-    if(null != implementsAttribute) {
-      String interfaces = (String) implementsAttribute.getValue().getJooValue();
-      List<Ide> packageIdes = Lists.transform(asList(interfaces.split(",")), new Function<String, Ide>() {
-
-        @Nullable
-        @Override
-        public Ide apply(@Nullable String input) {
-          return null != input ? createQualifiedIde(input.trim()) : null;
-        }
-      });
-      for (Ide packageIde : Iterables.filter(packageIdes, Predicates.notNull())) {
-        imports.add(new ImportDirective(SYM_IMPORT, packageIde, SYM_SEMICOLON));
-      }
-
-      CommaSeparatedList<Ide> superTypes = null;
-      for (Ide packageIde : Lists.reverse(packageIdes)) {
-        if(null == superTypes) {
-          superTypes = new CommaSeparatedList<Ide>(packageIde);
-        } else {
-          superTypes = new CommaSeparatedList<Ide>(packageIde, SYM_COMMA, superTypes);
-        }
-      }
-
-      impl = new Implements(SYM_IMPLEMENTS, superTypes);
-    }
-      // TODO class body directives?
-    List<Directive> directives = Collections.emptyList();
-    ClassBody classBody = new ClassBody(SYM_LBRACE, directives, SYM_RBRACE);
-    ClassDeclaration classDeclaration = new ClassDeclaration(SYM_MODIFIERS, SYM_CLASS, new Ide(CompilerUtils.className(qName)), ext, impl, classBody);
-
+  public MxmlCompilationUnit(@Nonnull InputSource source, @Nonnull XmlElement rootNode, @Nonnull MxmlParserHelper mxmlParserHelper) {
     // no secondary declarations: https://issues.apache.org/jira/browse/FLEX-21373
-    List<IdeDeclaration> secondaryDeclarations = Collections.emptyList();
-    return new CompilationUnit(createPackageDeclaration(qName), SYM_LBRACE, imports, classDeclaration, SYM_RBRACE, secondaryDeclarations);
+    super(null, SYM_LBRACE, new LinkedList<AstNode>(), null, SYM_RBRACE, Collections.<IdeDeclaration>emptyList());
+    this.source = source;
+    this.rootNode = rootNode;
+    this.mxmlParserHelper = mxmlParserHelper;
   }
 
-  static PackageDeclaration createPackageDeclaration(String qName) {
-    String packageName = CompilerUtils.packageName(qName);
-    Ide packageIde = createQualifiedIde(packageName);
-    return new PackageDeclaration(SYM_PACKAGE, packageIde);
-  }
+  @Override
+  public void scope(Scope scope) {
+    JangarooParser parser = scope.getCompiler();
 
-  private static Ide createQualifiedIde(String fullyQualifiedName) {
-    String[] parts = fullyQualifiedName.split("\\.");
-    Ide ide = null;
-    for (String part : parts) {
-      if (null == ide) {
-        ide = new Ide(part);
-      } else {
-        ide = new QualifiedIde(ide, SYM_DOT, new JooSymbol(part));
+    List<AstNode> importsAndAnnotations = getDirectives();
+
+    List<XmlAttribute> rootNodeAttributes = rootNode.getAttributes();
+    Iterator<XmlAttribute> iterator = rootNodeAttributes.iterator();
+    while (iterator.hasNext()) {
+      XmlAttribute rootNodeAttribute = iterator.next();
+      if(rootNodeAttribute.isNamespaceDefinition()) {
+        iterator.remove();
+        JooSymbol value = rootNodeAttribute.getValue();
+        ImportDirective importDirective = mxmlParserHelper.parseImport(value);
+        if(null != importDirective) {
+          importsAndAnnotations.add(importDirective);
+        }
+      }
+
+    }
+    packageDeclaration = mxmlParserHelper.parsePackageDeclaration();
+    initializeClassDeclaration(parser);
+
+
+    // TODO traverse XML nodes and insert
+    // 1. imports
+    List<Directive> imports = new LinkedList<Directive>();
+    // 2. class level annotations
+    List<Directive> annotations = new LinkedList<Directive>();
+    // 3. script code (without imports)
+    List<Directive> noImports = new LinkedList<Directive>();
+    // 4. declarations
+    // 5. ordinary members from nested elements
+
+    for (AstNode child: Iterables.filter(rootNode.getChildren(), Predicates.instanceOf(XmlElement.class))) {
+      XmlElement element = (XmlElement) child;
+      if(element.isBuiltInTag()) {
+        String name = element.getName();
+        if(MxmlToModelParser.MXML_DECLARATIONS.equals(name)) {
+
+
+        } else {
+          List<JooSymbol> textNodes = element.getTextNodes();
+          JooSymbol first = Iterables.getFirst(textNodes, null);
+          if (null != first) {
+            ClassBody embedded = mxmlParserHelper.parseClassBody(first);
+            if (MxmlToModelParser.MXML_METADATA.equals(name)) {
+              annotations.addAll(embedded.getDirectives());
+            } else if (MxmlToModelParser.MXML_SCRIPT.equals(name)) {
+              List<Directive> embeddedDirectives = embedded.getDirectives();
+              for (Directive embeddedDirective : embeddedDirectives) {
+                if (embeddedDirective instanceof ImportDirective) {
+                  imports.add(embeddedDirective);
+                } else {
+                  noImports.add(embeddedDirective);
+                }
+              }
+            }
+          }
+        }
       }
     }
-    return ide;
+
+    importsAndAnnotations.addAll(imports);
+    importsAndAnnotations.addAll(annotations);
+    classBodyDirectives.addAll(noImports);
+
+    super.scope(scope);
   }
+
+  void initializeClassDeclaration(JangarooParser parser) {
+    List<AstNode> importsAndAnnotations = getDirectives();
+
+    // get class name
+    String classQName = CompilerUtils.qNameFromRelativPath(source.getRelativePath());
+
+    // get super class name
+    JooSymbol rootNodeSymbol = rootNode.getSymbol();
+
+    // extends
+    Extends ext = mxmlParserHelper.parseExtends(parser, rootNode, classQName);
+    importsAndAnnotations.add(new ImportDirective(SYM_IMPORT, ext.getSuperClass(), SYM_SEMICOLON));
+
+    // implements
+    XmlAttribute implementsAttribute = rootNode.getAttribute(IMPLEMENTS);
+    Implements impl = null;
+    if (null != implementsAttribute) {
+      impl = mxmlParserHelper.parseImplements(implementsAttribute.getValue());
+      CommaSeparatedList<Ide> superTypes = impl.getSuperTypes();
+      for (AstNode superType : superTypes.getChildren()) {
+        if(superType instanceof Ide) {
+          importsAndAnnotations.add(new ImportDirective(SYM_IMPORT, (Ide)superType, SYM_SEMICOLON));
+        }
+      }
+    }
+
+    // assemble class declaration
+    ClassBody classBody = new ClassBody(SYM_LBRACE, classBodyDirectives, SYM_RBRACE);
+    // TODO care for class comment
+    JooSymbol symClass = new JooSymbol(sym.CLASS, source.getPath(), rootNodeSymbol.getLine(), rootNodeSymbol.getColumn(), rootNodeSymbol.getWhitespace(), CLASS);
+
+    primaryDeclaration = new ClassDeclaration(SYM_MODIFIERS, symClass, new Ide(CompilerUtils.className(classQName)), ext, impl, classBody);
+  }
+
+  @Override
+  public void analyze(AstNode parentNode) {
+    // perform the ordinary compilation unit analysis
+    super.analyze(parentNode);
+  }
+
 }

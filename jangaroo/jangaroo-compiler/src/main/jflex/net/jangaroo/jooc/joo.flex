@@ -89,6 +89,11 @@ package net.jangaroo.jooc;
 
 
 %{
+  void prepareEmbedded(java.io.Reader reader, int line, int column) {
+    yyreset(reader);
+    yyline = line;
+    yycolumn = column;
+  }
 
   protected int getColumn() {
     return yycolumn + 1;
@@ -205,8 +210,8 @@ XmlComment = "<!--" ~"-->"
   "while"                         { return symbol(WHILE); }
   "with"                          { return symbol(WITH); }
 
-  "true"                          { return symbol(BOOL_LITERAL, new Boolean(true)); }
-  "false"                         { return symbol(BOOL_LITERAL, new Boolean(false)); }
+  "true"                          { return symbol(BOOL_LITERAL, Boolean.TRUE); }
+  "false"                         { return symbol(BOOL_LITERAL, Boolean.FALSE); }
 
   {Identifier}                    { return symbol(IDE, yytext()); }
 

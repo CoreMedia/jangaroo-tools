@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<ConfigClass xmlns:fx="http://ns.adobe.com/mxml/2009"
+             foo="bar"
+             xmlns="package1.*"
+             implements="package1.mxml.SimpleInterface">
+  <fx:Script><![CDATA[
+    import package1.someOtherPackage.SomeOtherClass;
+
+    private var field1:SomeOtherClass = null;
+    protected var field2:Vector.<String> = new <String>["a", "b"];
+    public var field3:Vector.<int> = new <int>[1, 2, 3];
+
+    internal function doIt(...values):void {
+      for (var v:Object in values) {
+        throw "cannot do it with " + v;
+      }
+    }
+
+    ]]></fx:Script>
+</ConfigClass>

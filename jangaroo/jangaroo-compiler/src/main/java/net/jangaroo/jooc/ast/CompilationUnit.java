@@ -35,10 +35,10 @@ import java.util.Set;
  * @author Frank Wienberg
  */
 public class CompilationUnit extends NodeImplBase {
-  private PackageDeclaration packageDeclaration;
+  protected PackageDeclaration packageDeclaration;
   private JooSymbol lBrace;
   private List<AstNode> directives;
-  private IdeDeclaration primaryDeclaration;
+  protected IdeDeclaration primaryDeclaration;
   private JooSymbol rBrace;
 
   private Map<CompilationUnit, Boolean> dependenciesAsCompilationUnits = new LinkedHashMap<CompilationUnit, Boolean>();
@@ -277,7 +277,10 @@ public class CompilationUnit extends NodeImplBase {
 
   @Override
   public String toString() {
-    return getClass().getSimpleName() + "(" + getPrimaryDeclaration().getQualifiedNameStr() + ")";
+    return "CompilationUnit{" +
+            "packageDeclaration=" + packageDeclaration +
+            ", primaryDeclaration=" + primaryDeclaration +
+            '}';
   }
 
   public boolean isInSourcePath() {
