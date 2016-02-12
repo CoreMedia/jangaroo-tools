@@ -212,18 +212,25 @@ public class ClassModel extends AbstractAnnotatedModel implements NamespacedMode
   }
 
   private MemberModel getMethodOrField(boolean isStatic, String name) {
-    for (MemberModel memberModel : members) {
-      if (memberModel.isStatic() == isStatic && name.equals(memberModel.getName())) {
-        return memberModel;
-      }
-    }
-    return null;
+    int index = getMethodOrFieldIndex(isStatic, name);
+    return index != -1 ? members.get(index) : null;
   }
 
   public boolean removeMember(MemberModel memberModel) {
-    return members.remove(memberModel);
+    int index = getMethodOrFieldIndex(memberModel.isStatic(), memberModel.getName());
+    return index != -1 && members.remove(index) != null;
   }
-  
+
+  private int getMethodOrFieldIndex(boolean isStatic, String name) {
+    for (int i = 0; i < members.size(); i++) {
+      MemberModel memberModel = members.get(i);
+      if (memberModel.isStatic() == isStatic && name.equals(memberModel.getName())) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
   public MethodModel getConstructor() {
     return getMethod(getName());
   }
