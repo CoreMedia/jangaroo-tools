@@ -44,8 +44,13 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
+      <groupId>net.jangaroo</groupId>
+      <artifactId>jangaroo-maven-plugin-api</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.apache.maven</groupId>
-      <artifactId>maven-project</artifactId>
+      <artifactId>maven-core</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.maven.shared</groupId>
@@ -86,17 +91,7 @@
       <groupId>commons-lang</groupId>
       <artifactId>commons-lang</artifactId>
     </dependency>
-    <dependency>
-      <groupId>org.apache.maven.plugins</groupId>
-      <artifactId>maven-resources-plugin</artifactId>
-      <scope>provided</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>org.apache.maven</groupId>
-          <artifactId>maven-core</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
+
     <dependency>
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-archiver</artifactId>
@@ -114,6 +109,7 @@
       <groupId>org.codehaus.plexus</groupId>
       <artifactId>plexus-utils</artifactId>
     </dependency>
+    <!-- Plexus -->
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-server</artifactId>
@@ -129,6 +125,11 @@
     <dependency>
       <groupId>org.seleniumhq.selenium</groupId>
       <artifactId>selenium-java</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.seleniumhq.selenium</groupId>
+      <artifactId>selenium-leg-rc</artifactId>
     </dependency>
     <dependency>
       <groupId>org.seleniumhq.selenium</groupId>
@@ -143,6 +144,16 @@
       <groupId>org.mortbay.jetty</groupId>
       <artifactId>jetty-maven-plugin</artifactId>
       <version>${jetty.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.maven</groupId>
+          <artifactId>maven-plugin-descriptor</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.maven</groupId>
+          <artifactId>maven-project</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
   </dependencies>
   <parent>
@@ -184,7 +195,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-project-info-reports-plugin</artifactId>
-        <version>2.4</version>
         <reportSets>
           <reportSet>
             <reports>
@@ -196,7 +206,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-plugin-plugin</artifactId>
-        <version>2.9</version>
         <configuration>
           <goalPrefix>jangaroo</goalPrefix>
         </configuration>

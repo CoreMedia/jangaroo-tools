@@ -6,11 +6,13 @@ import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.project.DefaultProjectBuildingRequest;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectBuilder;
+import org.apache.maven.project.ProjectBuilder;
 import org.apache.maven.project.ProjectBuildingException;
-import org.codehaus.plexus.archiver.zip.ZipEntry;
-import org.codehaus.plexus.archiver.zip.ZipFile;
+import org.apache.maven.project.ProjectBuildingRequest;
+import org.apache.maven.project.ProjectBuildingResult;
 import org.codehaus.plexus.util.IOUtil;
 
 import java.io.BufferedReader;
@@ -31,6 +33,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 /**
  * An abstract goal to build a Jangaroo application, either for testing or for an actual application.
@@ -54,12 +58,11 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
    */
   protected MavenProject project;
 
-
   /**
    * @component
    */
   @SuppressWarnings("UnusedDeclaration")
-  private MavenProjectBuilder mavenProjectBuilder;
+  private ProjectBuilder mavenProjectBuilder;
 
   /**
    * @parameter expression="${localRepository}"
@@ -73,7 +76,7 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
    * @required
    */
   @SuppressWarnings("UnusedDeclaration")
-  private List remoteRepositories;
+  private List<ArtifactRepository> remoteRepositories;
 
   public abstract File getPackageSourceDirectory();
 
@@ -310,9 +313,14 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
   }
 
   private List<String> getDependencies(Artifact artifact) throws ProjectBuildingException {
-    MavenProject mp = mavenProjectBuilder.buildFromRepository(artifact, remoteRepositories, localRepository, true);
+    ProjectBuildingRequest projectBuildingRequest = new DefaultProjectBuildingRequest();
+    projectBuildingRequest.setLocalRepository(localRepository);
+    projectBuildingRequest.setRemoteRepositories(remoteRepositories);
+
+    ProjectBuildingResult projectBuildingResult = mavenProjectBuilder.build(artifact, true, projectBuildingRequest);
+
     List<String> deps = new LinkedList<String>();
-    for (Dependency dep : getDependencies(mp)) {
+    for (Dependency dep : getDependencies( projectBuildingResult.getProject() )) {
       if ("jar".equals(dep.getType()) &&
         (dep.getScope().equals("compile") || dep.getScope().equals("runtime"))) {
         deps.add(getInternalId(dep));
@@ -323,15 +331,15 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
 
   @SuppressWarnings({ "unchecked" })
   private static List<Dependency> getDependencies(MavenProject mp) {
-    return (List<Dependency>) mp.getDependencies();
+    return mp.getDependencies();
   }
 
   @SuppressWarnings({ "unchecked" })
   protected Set<Artifact> getArtifacts() {
-    return (Set<Artifact>)project.getArtifacts();
+    return project.getArtifacts();
   }
 
-  private static interface ModuleSource {
+  private interface ModuleSource {
     InputStream getInputStream() throws IOException;
   }
 

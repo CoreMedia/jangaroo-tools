@@ -64,7 +64,6 @@
     <plugins>
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
-        <version>2.2-beta-5</version>  <!-- do NOT use 2.2 because of http://jira.codehaus.org/browse/MRESOURCES-104 -->
         <executions>
           <execution>
             <phase>package</phase>
