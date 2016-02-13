@@ -34,9 +34,9 @@ public class SenchaConfiguration extends SenchaProfileConfiguration {
   /**
    * The theme to use
    *
-   * @parameter default-value="theme-neptune"
+   * @parameter default-value=""
    */
-  private String theme = "theme-neptune";
+  private String theme = "";
 
   /**
    * @parameter default-value="${production}"
@@ -52,6 +52,27 @@ public class SenchaConfiguration extends SenchaProfileConfiguration {
    * @parameter default-value="${testing}"
    */
   private SenchaProfileConfiguration testing;
+
+  /**
+   * Output directory for the module.
+   *
+   * @parameter default-value="${project.build.directory}/sencha"
+   */
+  private String baseDir;
+
+  /**
+   * Build directory relative to baseDir
+   *
+   * @parameter default-value="build"
+   */
+  private String buildDir="build";
+
+  /**
+   * Packages directory relative to baseDir
+   *
+   * @parameter default-value="packages"
+   */
+  private String packagesDir="packages";
 
   public boolean isEnabled() {
     return enabled;
@@ -79,5 +100,17 @@ public class SenchaConfiguration extends SenchaProfileConfiguration {
 
   public SenchaProfileConfiguration getTesting() {
     return testing;
+  }
+
+  public String getBaseDir() {
+    return baseDir;
+  }
+
+  public String getBuildDir() {
+    return buildDir;
+  }
+
+  public String getPackagesDir() {
+    return packagesDir;
   }
 }

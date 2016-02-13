@@ -1,0 +1,121 @@
+{
+  "name": "App",
+  "version": "1.0.0.0",
+  "indexHtmlPath": "index.html",
+  "classpath": [
+    "app",
+    "${toolkit.name}/src"
+  ],
+  "overrides": [
+    "overrides",
+    "${toolkit.name}/overrides"
+  ],
+  "framework": "ext",
+  "toolkit": "classic",
+  "theme": "studio-theme",
+  "requires": [],
+
+  "fashion": {
+    "inliner": {
+      "enable": false
+    }
+  },
+
+
+  "js": [],
+
+  "classic": {},
+
+  "modern": {},
+
+  "css": [
+    {
+      "path": "${build.out.css.path}",
+      "bundle": true,
+      "exclude": ["fashion"]
+    }
+  ],
+
+  "loader": {
+    "cache": false,
+    "cacheParam": "_dc"
+  },
+
+  "production": {
+    "output": {
+      "appCache": {
+        "enable": true,
+        "path": "cache.appcache"
+      }
+    },
+    "loader": {
+      "cache": "${build.timestamp}"
+    },
+    "cache": {
+      "enable": true
+    },
+    "compressor": {
+      "type": "yui"
+    }
+  },
+
+  "testing": {
+  },
+
+  "development": {
+    "tags": [
+      "fashion"
+    ]
+  },
+
+  "bootstrap": {
+    "base": "${app.dir}",
+    "manifest": "bootstrap.json",
+    "microloader": "bootstrap.js",
+    "css": "bootstrap.css"
+  },
+
+  "output": {
+    "base": "${workspace.build.dir}/${build.environment}/${app.name}",
+    "appCache": {
+      "enable": false
+    }
+  },
+
+  "cache": {
+    "enable": false,
+    "deltas": true
+  },
+
+
+  "appCache": {
+    "cache": [
+      "index.html"
+    ],
+    "network": [
+      "*"
+    ],
+    "fallback": []
+  },
+
+  "resources": [
+    {
+      "path": "resources",
+      "output": "shared"
+    },
+    {
+      "path": "${toolkit.name}/resources"
+    },
+    {
+      "path": "${build.id}/resources"
+    }
+  ],
+
+  "ignore": [
+    "(^|/)CVS(/?$|/.*?$)"
+  ],
+
+  "archivePath": "archive",
+
+  "id": null
+}

@@ -1,10 +1,9 @@
 package net.jangaroo.jooc.mvnplugin;
 
-import net.jangaroo.jooc.mvnplugin.util.SenchaHelper;
+import net.jangaroo.jooc.mvnplugin.sencha.SenchaHelper;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.project.MavenProject;
 
 import java.io.File;
 import java.util.List;

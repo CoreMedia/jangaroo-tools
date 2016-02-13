@@ -1,0 +1,10 @@
+{
+  "apps": [],
+  "build": "${workspace.dir}/build",
+  "packages": {
+    "dir": [
+      "${workspace.dir}/packages/local"
+    ],
+    "extract": "${workspace.dir}/packages/remote"
+  }
+}

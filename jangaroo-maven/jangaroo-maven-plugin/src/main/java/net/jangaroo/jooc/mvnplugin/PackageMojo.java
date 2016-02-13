@@ -1,6 +1,6 @@
 package net.jangaroo.jooc.mvnplugin;
 
-import net.jangaroo.jooc.mvnplugin.util.SenchaHelper;
+import net.jangaroo.jooc.mvnplugin.sencha.SenchaHelper;
 import org.apache.maven.archiver.MavenArchiver;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
