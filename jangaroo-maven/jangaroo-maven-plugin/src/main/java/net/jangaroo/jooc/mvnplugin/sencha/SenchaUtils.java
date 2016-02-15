@@ -8,6 +8,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.project.MavenProject;
 
+import java.io.File;
+import java.io.FilenameFilter;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -68,6 +70,23 @@ public class SenchaUtils {
 
   public static String getSenchaVersionForArtifact(Artifact artifact) {
     return getSenchaVersionForMavenVersion(artifact.getVersion());
+  }
+
+  public static File findClosestSenchaWorkspaceDir(File dir) {
+    File result = dir;
+    while (null != result) {
+      String[] list = result.list(new FilenameFilter() {
+        @Override
+        public boolean accept(File dir, String name) {
+          return SenchaUtils.SENCHA_WORKSPACE_FILENAME.equals(name);
+        }
+      });
+      if (list.length > 0) {
+        break;
+      }
+      result = result.getParentFile();
+    }
+    return result;
   }
 
   /**

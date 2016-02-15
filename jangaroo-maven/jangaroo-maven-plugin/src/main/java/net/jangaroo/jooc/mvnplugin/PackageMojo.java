@@ -174,7 +174,10 @@ public class PackageMojo extends AbstractMojo {
               + "/pom.xml");
 
       SenchaHelper senchaHelper = new SenchaHelper(project, senchaConfiguration, getLog());
-      senchaHelper.packageSenchaFolder(archiver);
+      // for now:
+      senchaHelper.prepareSenchaModule();
+      senchaHelper.generateSenchaModule();
+      senchaHelper.packageSenchaModule(archiver);
 
       mavenArchiver.createArchive(project, archive);
     } catch (Exception e) { // NOSONAR

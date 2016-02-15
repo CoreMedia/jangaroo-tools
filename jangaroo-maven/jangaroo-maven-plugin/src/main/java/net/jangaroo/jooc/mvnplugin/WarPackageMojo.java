@@ -76,9 +76,10 @@ public class WarPackageMojo extends PackageApplicationMojo {
       throws MojoExecutionException, MojoFailureException {
     createWebapp(packageSourceDirectory);
 
+    // for now:
     SenchaHelper senchaHelper = new SenchaHelper(project, senchaConfiguration, getLog());
-    senchaHelper.prepareSenchaFolder();
-    senchaHelper.generateSenchaFolder();
+    senchaHelper.prepareSenchaModule();
+    senchaHelper.generateSenchaModule();
   }
 
 }
