@@ -1,6 +1,5 @@
 package net.jangaroo.jooc.mvnplugin.sencha;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import net.jangaroo.jooc.mvnplugin.SenchaConfiguration;
 import net.jangaroo.jooc.mvnplugin.Types;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.Configurer;
@@ -40,8 +39,6 @@ public class SenchaHelper {
   private final Configurer[] workspaceConfigurers;
   private final Configurer[] packageConfigurers;
   private final Configurer[] appConfigurers;
-
-  private final ObjectMapper objectMapper = new ObjectMapper();
 
   private final MavenProject project;
   private final SenchaConfiguration senchaConfiguration;
@@ -229,7 +226,7 @@ public class SenchaHelper {
         // Read workspace.json
         String workspaceOutputPath = workspaceDir.getAbsolutePath() + File.separator + senchaConfiguration.getBuildDir();
         try {
-          @SuppressWarnings("unchecked") Map<String, Object> workspaceConfig = (Map<String, Object>) objectMapper.readValue(new File(workspaceDir.getAbsolutePath() + File.separator + SenchaUtils.SENCHA_WORKSPACE_FILENAME), Map.class);
+          @SuppressWarnings("unchecked") Map<String, Object> workspaceConfig = (Map<String, Object>) SenchaUtils.getObjectMapper().readValue(new File(workspaceDir.getAbsolutePath() + File.separator + SenchaUtils.SENCHA_WORKSPACE_FILENAME), Map.class);
 
           // check if custom workspace dir has been set
           Object build = workspaceConfig.get(PathConfigurer.BUILD);
@@ -253,8 +250,9 @@ public class SenchaHelper {
   }
 
   private File findClosestSenchaWorkspaceDir(File dir) {
-    while (null != dir) {
-      String[] list = dir.list(new FilenameFilter() {
+    File result = dir;
+    while (null != result) {
+      String[] list = result.list(new FilenameFilter() {
         @Override
         public boolean accept(File dir, String name) {
           return SenchaUtils.SENCHA_WORKSPACE_FILENAME.equals(name);
@@ -263,9 +261,9 @@ public class SenchaHelper {
       if (list.length > 0) {
         break;
       }
-      dir = dir.getParentFile();
+      result = result.getParentFile();
     }
-    return dir;
+    return result;
   }
 
   private Log getLog() {
@@ -275,18 +273,22 @@ public class SenchaHelper {
   private void createSenchaWorkspace() throws MojoExecutionException {
     File workingDirectory = project.getBasedir();
 
-    String line = "sencha generate workspace .";
-    CommandLine cmdLine = CommandLine.parse(line);
-    DefaultExecutor executor = new DefaultExecutor();
-    executor.setWorkingDirectory(workingDirectory);
-    executor.setExitValue(0);
-    try {
-      executor.execute(cmdLine);
-    } catch (IOException e) {
-      throw new MojoExecutionException("could not execute sencha cmd to generate workspace", e);
-    }
+    if (null == findClosestSenchaWorkspaceDir(workingDirectory)) {
+      String line = "sencha generate workspace .";
+      CommandLine cmdLine = CommandLine.parse(line);
+      DefaultExecutor executor = new DefaultExecutor();
+      executor.setWorkingDirectory(workingDirectory);
+      executor.setExitValue(0);
+      try {
+        executor.execute(cmdLine);
+      } catch (IOException e) {
+        throw new MojoExecutionException("could not execute sencha cmd to generate workspace", e);
+      }
 
-    writeWorkspaceJson(workingDirectory);
+      writeWorkspaceJson(workingDirectory);
+    } else {
+      getLog().info("Skipping creation of workspace because there already is a workspace in the directory hierarchy");
+    }
   }
 
   private void writeWorkspaceJson(File workingDirectory) throws MojoExecutionException {
@@ -294,7 +296,7 @@ public class SenchaHelper {
 
     File fWorkspaceJson = new File(workingDirectory.getAbsolutePath() + File.separator + SenchaUtils.SENCHA_WORKSPACE_FILENAME);
     try {
-      objectMapper.writerWithDefaultPrettyPrinter().writeValue(fWorkspaceJson, workspaceConfig);
+      SenchaUtils.getObjectMapper().writerWithDefaultPrettyPrinter().writeValue(fWorkspaceJson, workspaceConfig);
     } catch (IOException e) {
       throw new MojoExecutionException("could not write " + SenchaUtils.SENCHA_WORKSPACE_FILENAME, e);
     }
@@ -328,7 +330,7 @@ public class SenchaHelper {
 
     File fAppJson = new File(workingDirectory.getAbsolutePath() + File.separator + SenchaUtils.SENCHA_APP_FILENAME);
     try {
-      objectMapper.writerWithDefaultPrettyPrinter().writeValue(fAppJson, appConfig);
+      SenchaUtils.getObjectMapper().writerWithDefaultPrettyPrinter().writeValue(fAppJson, appConfig);
     } catch (IOException e) {
       throw new MojoExecutionException("could not write " + SenchaUtils.SENCHA_APP_FILENAME, e);
     }
@@ -393,7 +395,7 @@ public class SenchaHelper {
 
     File fAppJson = new File(workingDirectory.getAbsolutePath() + File.separator + SenchaUtils.SENCHA_PACKAGE_FILENAME);
     try {
-      objectMapper.writerWithDefaultPrettyPrinter().writeValue(fAppJson, packageConfig);
+      SenchaUtils.getObjectMapper().writerWithDefaultPrettyPrinter().writeValue(fAppJson, packageConfig);
     } catch (IOException e) {
       throw new MojoExecutionException("could not write " + SenchaUtils.SENCHA_PACKAGE_FILENAME, e);
     }

@@ -1,13 +1,13 @@
 package net.jangaroo.jooc.mvnplugin.sencha;
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import net.jangaroo.jooc.mvnplugin.SenchaConfiguration;
 import org.apache.commons.lang.StringUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.project.MavenProject;
 
-import java.io.File;
-import java.nio.file.Path;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -34,6 +34,8 @@ public class SenchaUtils {
           SenchaConfiguration.Type.THEME, "${package.dir}",
           SenchaConfiguration.Type.WORKSPACE, "${workspace.dir}"
   );
+
+  private static ObjectMapper objectMapper;
 
   private static Pattern SENCHA_VERSION_PATTERN = Pattern.compile("^[0-9]+[\\.[0-9]+]{0,3}$");
 
@@ -74,7 +76,12 @@ public class SenchaUtils {
     return result;
   }
 
-  public static String generateAbsolutePathUsingPlaceholder(SenchaConfiguration.Type type, Path path, Path modulePath) {
-    return generateAbsolutePathUsingPlaceholder(type, modulePath.relativize(path).toString().replace(File.separator, SEPARATOR));
+  public static ObjectMapper getObjectMapper() {
+    if (null == objectMapper) {
+      objectMapper = new ObjectMapper();
+      objectMapper.configure(JsonParser.Feature.ALLOW_COMMENTS, true);
+    }
+    return objectMapper;
   }
+
 }
