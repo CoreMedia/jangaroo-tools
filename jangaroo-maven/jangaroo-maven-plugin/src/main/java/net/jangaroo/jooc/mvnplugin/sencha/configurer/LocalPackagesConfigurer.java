@@ -9,6 +9,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -94,7 +95,14 @@ public class LocalPackagesConfigurer implements Configurer {
       }
     }
 
-    Path rootPath = Paths.get(project.getFile().getParent());
+    Path rootPath;
+    try {
+      // toRealPath solves the problem that sometimes the root in the path is uppercase and sometimes lowercase,
+      // causing relativize to fail
+      rootPath = project.getFile().getParentFile().toPath().toRealPath();
+    } catch (IOException e) {
+      throw new MojoExecutionException("Could not determine root directory of the project", e);
+    }
     for (MavenProject p : mavenProjectsWithSenchaPackages) {
 
       // TODO: check type by configuration not by name
