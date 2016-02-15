@@ -22,8 +22,13 @@ public class MetadataConfigurer implements Configurer {
 
   @Override
   public void configure(Map<String, Object> config) throws MojoExecutionException {
+    String version = SenchaUtils.getSenchaVersionForProject(project);
+    if (null == version) {
+      throw new MojoExecutionException("Could not determine sencha version from maven version");
+    }
+
     config.put(NAME, SenchaUtils.getSenchaPackageNameForMavenProject(project));
-    config.put(VERSION, SenchaUtils.getSenchaVersionForProject(project));
+    config.put(VERSION, version);
     config.put(CREATOR, StringUtils.defaultString(project.getOrganization() != null ? project.getOrganization().getName() : ""));
     config.put(SUMMARY, StringUtils.defaultString(project.getDescription()));
   }

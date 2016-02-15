@@ -9,6 +9,7 @@ import org.codehaus.plexus.archiver.zip.ZipEntry;
 import org.codehaus.plexus.archiver.zip.ZipFile;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -29,13 +30,21 @@ public class RequiresConfigurer implements Configurer {
     config.put(REQUIRES, getDependencies());
   }
 
-  private Set<String> getDependencies() throws MojoExecutionException {
-    Set<String> dependencies = new HashSet<String>();
+  private Set<Map<String, Object>> getDependencies() throws MojoExecutionException {
+    Set<Map<String, Object>> dependencies = new HashSet<Map<String, Object>>();
 
     @SuppressWarnings("unchecked") Set<Artifact> dependencyArtifacts = project.getDependencyArtifacts();
     for (Artifact artifact : dependencyArtifacts) {
       if (isSenchaPackageArtifact(artifact)) {
-        dependencies.add(SenchaUtils.getSenchaPackageNameForArtifact(artifact));
+        String senchaPackageNameForArtifact = SenchaUtils.getSenchaPackageNameForArtifact(artifact);
+        String version = SenchaUtils.getSenchaVersionForArtifact(artifact);
+        if (null == version) {
+          throw new MojoExecutionException("Could not determine sencha version from maven version");
+        }
+        Map<String, Object> require = new HashMap<String, Object>();
+        require.put("name", senchaPackageNameForArtifact);
+        require.put("version", version);
+        dependencies.add(require);
       }
     }
 

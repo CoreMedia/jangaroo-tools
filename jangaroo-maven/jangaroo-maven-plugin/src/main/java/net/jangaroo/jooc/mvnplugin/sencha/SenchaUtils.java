@@ -37,7 +37,7 @@ public class SenchaUtils {
 
   private static ObjectMapper objectMapper;
 
-  private static Pattern SENCHA_VERSION_PATTERN = Pattern.compile("^[0-9]+[\\.[0-9]+]{0,3}$");
+  private static final Pattern SENCHA_VERSION_PATTERN = Pattern.compile("^[0-9]+(\\.[0-9]+){0,3}$");
 
   private static String getSenchaPackageName(String groupId, String artifactId) {
     return groupId + "__" + artifactId;
@@ -51,13 +51,23 @@ public class SenchaUtils {
     return getSenchaPackageName(artifact.getGroupId(), artifact.getArtifactId());
   }
 
-  public static String getSenchaVersionForProject(MavenProject project) {
-    String version = project.getVersion().replace("-SNAPSHOT", "");
+  private static String getSenchaVersionForMavenVersion(String version) {
+    // Very simple matching for now, maybe needs some adjustment
+    version = version.replace("-SNAPSHOT", "").replace("-", ".");
     if (SENCHA_VERSION_PATTERN.matcher(version).matches()) {
       return version;
     } else {
-      return "1.0.0";
+      return null;
     }
+  }
+
+  public static String getSenchaVersionForProject(MavenProject project) {
+    return getSenchaVersionForMavenVersion(project.getVersion());
+
+  }
+
+  public static String getSenchaVersionForArtifact(Artifact artifact) {
+    return getSenchaVersionForMavenVersion(artifact.getVersion());
   }
 
   /**
@@ -83,5 +93,4 @@ public class SenchaUtils {
     }
     return objectMapper;
   }
-
 }
