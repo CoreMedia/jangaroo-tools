@@ -3,10 +3,11 @@ package net.jangaroo.jooc.mvnplugin.sencha;
 import net.jangaroo.jooc.mvnplugin.SenchaConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.Configurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.DefaultSenchaWorkspaceConfigurer;
-import net.jangaroo.jooc.mvnplugin.sencha.configurer.LocalPackagesConfigurer;
+import net.jangaroo.jooc.mvnplugin.sencha.configurer.PackagesConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.PathConfigurer;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
+import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
@@ -25,19 +26,50 @@ class SenchaWorkspaceHelper extends AbstractSenchaHelper {
     super(project, senchaConfiguration, log);
 
     PathConfigurer pathConfigurer = new PathConfigurer(senchaConfiguration);
-    LocalPackagesConfigurer localPackagesConfigurer = new LocalPackagesConfigurer(project, senchaConfiguration);
+    PackagesConfigurer packagesConfigurer = new PackagesConfigurer(project, senchaConfiguration);
 
     this.workspaceConfigurers = new Configurer[] {
             DefaultSenchaWorkspaceConfigurer.getInstance(),
             pathConfigurer,
-            localPackagesConfigurer
+            packagesConfigurer
     };
+  }
+
+  @Override
+  public void deleteModule() throws MojoExecutionException {
+    File fWorkingDirectory;
+    try {
+      fWorkingDirectory = getProject().getBasedir().getCanonicalFile();
+    } catch (IOException e) {
+      throw new MojoExecutionException("could not determine project base directory", e);
+    }
+
+    File fSenchaFolder = new File(fWorkingDirectory.getAbsolutePath() + File.separator + SenchaUtils.SENCHA_DIRECTORYNAME);
+    if (fSenchaFolder.exists()) {
+      try {
+        FileUtils.deleteDirectory(fSenchaFolder);
+      } catch (IOException e) {
+        throw new MojoExecutionException("could not clean workspace folder", e);
+      }
+    }
+
+    File fWorkspaceJson = new File(fWorkingDirectory.getAbsolutePath() + File.separator + SenchaUtils.SENCHA_WORKSPACE_FILENAME);
+    if (fWorkspaceJson.exists()) {
+      if (!fWorkspaceJson.delete()) {
+        throw new MojoExecutionException("could not delete " + SenchaUtils.SENCHA_WORKSPACE_FILENAME);
+      }
+    }
   }
 
   @Override
   public void prepareModule() throws MojoExecutionException {
     if (getSenchaConfiguration().isEnabled()) {
-      File workingDirectory = getProject().getBasedir();
+      File workingDirectory;
+      try {
+        workingDirectory = getProject().getBasedir().getCanonicalFile();
+      } catch (IOException e) {
+        throw new MojoExecutionException("could not determine project base directory", e);
+      }
 
       if (null == SenchaUtils.findClosestSenchaWorkspaceDir(workingDirectory.getParentFile())) {
         writeWorkspaceJson(workingDirectory);
@@ -50,7 +82,12 @@ class SenchaWorkspaceHelper extends AbstractSenchaHelper {
   @Override
   public void generateModule() throws MojoExecutionException {
     if (getSenchaConfiguration().isEnabled()) {
-      File workingDirectory = getProject().getBasedir();
+      File workingDirectory;
+      try {
+        workingDirectory = getProject().getBasedir().getCanonicalFile();
+      } catch (IOException e) {
+        throw new MojoExecutionException("could not determine project base directory", e);
+      }
 
       if (null == SenchaUtils.findClosestSenchaWorkspaceDir(workingDirectory.getParentFile())) {
 
@@ -80,7 +117,7 @@ class SenchaWorkspaceHelper extends AbstractSenchaHelper {
           try {
             FileWriter fw = new FileWriter(senchaCfg.getAbsoluteFile(), true);
             pw = new PrintWriter(fw);
-            pw.println("ext.dir=" + SenchaUtils.generateAbsolutePathUsingPlaceholder(SenchaConfiguration.Type.WORKSPACE, getSenchaConfiguration().getExtFrameworkDir()));
+            pw.println("ext.dir=" + SenchaUtils.generateAbsolutePathUsingPlaceholder(SenchaConfiguration.Type.WORKSPACE,  getSenchaConfiguration().getExtFrameworkDir()));
           } catch (IOException e) {
             throw new MojoExecutionException("could not append ext framework dir to sencha config of workspace");
           } finally {

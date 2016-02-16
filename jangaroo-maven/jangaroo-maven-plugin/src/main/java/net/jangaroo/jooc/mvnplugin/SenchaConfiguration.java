@@ -25,6 +25,15 @@ public class SenchaConfiguration extends SenchaProfileConfiguration {
   private Type type = Type.CODE;
 
   /**
+   * Only relevant if type is not {@link Type#WORKSPACE}.
+   *
+   * Defines if the module will be generated using an temporary workspace. The workspace will be deleted after build.
+   *
+   * @parameter default-value="false"
+   */
+  private boolean temporaryWorkspace = false;
+
+  /**
    * The toolkit to use
    *
    * @parameter default-value="classic"
@@ -89,6 +98,10 @@ public class SenchaConfiguration extends SenchaProfileConfiguration {
     return type;
   }
 
+  public boolean isTemporaryWorkspace() {
+    return temporaryWorkspace;
+  }
+
   public String getToolkit() {
     return toolkit;
   }
@@ -123,5 +136,53 @@ public class SenchaConfiguration extends SenchaProfileConfiguration {
 
   public String getExtFrameworkDir() {
     return extFrameworkDir;
+  }
+
+  public void setEnabled(boolean enabled) {
+    this.enabled = enabled;
+  }
+
+  public void setType(Type type) {
+    this.type = type;
+  }
+
+  public void setTemporaryWorkspace(boolean temporaryWorkspace) {
+    this.temporaryWorkspace = temporaryWorkspace;
+  }
+
+  public void setToolkit(String toolkit) {
+    this.toolkit = toolkit;
+  }
+
+  public void setTheme(String theme) {
+    this.theme = theme;
+  }
+
+  public void setProduction(SenchaProfileConfiguration production) {
+    this.production = production;
+  }
+
+  public void setDevelopment(SenchaProfileConfiguration development) {
+    this.development = development;
+  }
+
+  public void setTesting(SenchaProfileConfiguration testing) {
+    this.testing = testing;
+  }
+
+  public void setBaseDir(String baseDir) {
+    this.baseDir = baseDir;
+  }
+
+  public void setExtFrameworkDir(String extFrameworkDir) {
+    this.extFrameworkDir = extFrameworkDir;
+  }
+
+  public void setBuildDir(String buildDir) {
+    this.buildDir = buildDir;
+  }
+
+  public void setPackagesDir(String packagesDir) {
+    this.packagesDir = packagesDir;
   }
 }

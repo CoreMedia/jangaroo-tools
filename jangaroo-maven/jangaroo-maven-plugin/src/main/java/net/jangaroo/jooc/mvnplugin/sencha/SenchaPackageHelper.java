@@ -15,14 +15,25 @@ import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.nio.file.Path;
+import java.util.Enumeration;
 import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+import java.util.zip.ZipInputStream;
 
 class SenchaPackageHelper extends AbstractSenchaHelper {
+
+  private SenchaWorkspaceHelper workspaceHelper;
 
   private final Configurer[] packageConfigurers;
   private final String senchaPath;
@@ -48,6 +59,18 @@ class SenchaPackageHelper extends AbstractSenchaHelper {
             senchaConfigurationConfigurer,
             pathConfigurer
     };
+
+    SenchaConfiguration workspaceConfiguration = new SenchaConfiguration();
+    workspaceConfiguration.setEnabled(true);
+    workspaceConfiguration.setType(SenchaConfiguration.Type.WORKSPACE);
+    workspaceConfiguration.setPackagesDir(senchaConfiguration.getPackagesDir());
+    workspaceConfiguration.setExtFrameworkDir(senchaConfiguration.getExtFrameworkDir());
+    workspaceHelper = new SenchaWorkspaceHelper(project, workspaceConfiguration, log);
+  }
+
+  @Override
+  public void deleteModule() throws MojoExecutionException {
+    // TODO
   }
 
   @Override
@@ -71,7 +94,21 @@ class SenchaPackageHelper extends AbstractSenchaHelper {
   @Override
   public void generateModule() throws MojoExecutionException {
     if (getSenchaConfiguration().isEnabled()) {
-      File workingDirectory = new File(senchaPackagePath);
+      if (getSenchaConfiguration().isTemporaryWorkspace()) {
+        // create temporary workspace
+        workspaceHelper.deleteModule();
+        workspaceHelper.prepareModule();
+        workspaceHelper.generateModule();
+        // TODO: determine real target directory
+        SenchaUtils.extractRemotePackagesForProject(getProject(), getProject().getBuild().getDirectory() + "/sencha/packages/remote");
+      }
+
+      File workingDirectory;
+      try {
+        workingDirectory = new File(senchaPackagePath).getCanonicalFile();
+      } catch (IOException e) {
+        throw new MojoExecutionException("could not determine working directory", e);
+      }
 
       File senchaCfg = new File(workingDirectory.getAbsolutePath() + File.separator + SenchaUtils.SENCHA_PACKAGE_CONFIG);
       // make sure senchaCfg does not exist
@@ -131,7 +168,7 @@ class SenchaPackageHelper extends AbstractSenchaHelper {
 
       buildSenchaPackage(senchaPackageDirectory); // move to packageSenchaModule
 
-      File workspaceDir = SenchaUtils.findClosestSenchaWorkspaceDir(getProject().getFile().getParentFile());
+      File workspaceDir = SenchaUtils.findClosestSenchaWorkspaceDir(getProject().getBasedir());
 
       if (null == workspaceDir) {
         throw new MojoExecutionException("could not find sencha workspace directory");
@@ -154,14 +191,27 @@ class SenchaPackageHelper extends AbstractSenchaHelper {
         throw new MojoExecutionException("could not read " + SenchaUtils.SENCHA_WORKSPACE_FILENAME, e);
       }
 
-      File pkg = new File(workspaceOutputPath + File.separator + getSenchaModuleName() + File.separator + getSenchaModuleName() + ".pkg");
+      File pkg = new File(workspaceOutputPath + File.separator + getSenchaModuleName() + File.separator + getSenchaModuleName() + SenchaUtils.SENCHA_PKG_EXTENSION);
       if (!pkg.exists()) {
-        throw new MojoExecutionException("could not find pkg for sencha package " + getSenchaModuleName());
+        throw new MojoExecutionException("could not find " + SenchaUtils.SENCHA_PKG_EXTENSION + " for sencha package " + getSenchaModuleName());
       }
+      File tempDirectory;
       try {
-        archiver.addFile(pkg, pkg.getName());
+        tempDirectory = createTempDirectory();
+      } catch (IOException e) {
+        throw new MojoExecutionException("could not create temporary directory", e);
+      }
+      tempDirectory.deleteOnExit();
+      SenchaUtils.extractZipToDirectory(pkg, tempDirectory);
+      try {
+        archiver.addDirectory(tempDirectory, "sencha/");
       } catch (ArchiverException e) {
-        throw new MojoExecutionException("could not add pkg file to maven artifact", e);
+        throw new MojoExecutionException("could not add package directory to jar", e);
+      }
+
+      if (getSenchaConfiguration().isTemporaryWorkspace()) {
+        // remove temporary workspace
+        workspaceHelper.deleteModule();
       }
     }
   }
@@ -193,5 +243,23 @@ class SenchaPackageHelper extends AbstractSenchaHelper {
 
   private Map<String, Object> getPackageConfig() throws MojoExecutionException {
     return getConfig(packageConfigurers);
+  }
+
+  private static File createTempDirectory() throws IOException {
+    final File temp;
+
+    temp = File.createTempFile("temp", Long.toString(System.nanoTime()));
+
+    if(!(temp.delete()))
+    {
+      throw new IOException("Could not delete temp file: " + temp.getAbsolutePath());
+    }
+
+    if(!(temp.mkdir()))
+    {
+      throw new IOException("Could not create temp directory: " + temp.getAbsolutePath());
+    }
+
+    return (temp);
   }
 }

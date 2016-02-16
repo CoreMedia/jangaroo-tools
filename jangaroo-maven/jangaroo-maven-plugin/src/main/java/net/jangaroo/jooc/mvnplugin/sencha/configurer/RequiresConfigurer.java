@@ -17,7 +17,6 @@ import java.util.Set;
 public class RequiresConfigurer implements Configurer {
 
   static final String REQUIRES = "requires";
-  static final String MAVEN_DEPENDENCY_SCOPE_TEST = "test";
 
   private MavenProject project;
 
@@ -35,7 +34,7 @@ public class RequiresConfigurer implements Configurer {
 
     @SuppressWarnings("unchecked") Set<Artifact> dependencyArtifacts = project.getDependencyArtifacts();
     for (Artifact artifact : dependencyArtifacts) {
-      if (isSenchaPackageArtifact(artifact)) {
+      if (SenchaUtils.isSenchaPackageArtifact(artifact)) {
         String senchaPackageNameForArtifact = SenchaUtils.getSenchaPackageNameForArtifact(artifact);
         String version = SenchaUtils.getSenchaVersionForArtifact(artifact);
         if (null == version) {
@@ -49,35 +48,6 @@ public class RequiresConfigurer implements Configurer {
     }
 
     return dependencies;
-  }
-
-  private boolean isSenchaPackageArtifact(Artifact artifact) throws MojoExecutionException {
-    boolean result = false;
-    String packageName = SenchaUtils.getSenchaPackageNameForArtifact(artifact);
-    if (null != packageName
-            && Types.JAVASCRIPT_EXTENSION.equals(artifact.getType())
-            && !MAVEN_DEPENDENCY_SCOPE_TEST.equalsIgnoreCase(artifact.getScope())) {
-      // TODO: remove once everything is ok:
-      if ("net.jangaroo__jangaroo-runtime".equals(packageName)
-              || "net.jangaroo__ckeditor".equals(packageName)
-              || "net.jangaroo__jangaroo-net".equals(packageName)
-              || "net.jangaroo__ext-as".equals(packageName)) {
-        result = true;
-      } else {
-        if (null != artifact.getFile()) {
-          try {
-            ZipFile zipFile = new ZipFile(artifact.getFile());
-            ZipEntry zipEntry = zipFile.getEntry(packageName + ".pkg");
-            if (zipEntry != null) {
-              result = true;
-            }
-          } catch (IOException e) {
-            throw new MojoExecutionException("could not open artifact jar", e);
-          }
-        }
-      }
-    }
-    return result;
   }
 
 }

@@ -23,6 +23,11 @@ public class SenchaModuleHelper implements SenchaHelper {
   }
 
   @Override
+  public void deleteModule() throws MojoExecutionException {
+    delegate.deleteModule();
+  }
+
+  @Override
   public void prepareModule() throws MojoExecutionException {
     delegate.prepareModule();
   }

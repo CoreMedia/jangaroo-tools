@@ -5,6 +5,8 @@ import org.codehaus.plexus.archiver.jar.JarArchiver;
 
 public interface SenchaHelper {
 
+  void deleteModule() throws MojoExecutionException;
+
   void prepareModule() throws MojoExecutionException;
 
   void generateModule() throws MojoExecutionException;

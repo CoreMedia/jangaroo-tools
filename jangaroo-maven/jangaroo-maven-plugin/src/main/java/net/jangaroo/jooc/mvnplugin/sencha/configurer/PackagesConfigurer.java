@@ -19,16 +19,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class LocalPackagesConfigurer implements Configurer {
+public class PackagesConfigurer implements Configurer {
 
-  static final String PACKAGES = "packages";
-  static final String DIR = "dir";
-  static final String EXTRACT = "extract";
+  public static final String PACKAGES = "packages";
+  public static final String DIR = "dir";
+  public static final String EXTRACT = "extract";
 
   private MavenProject project;
   private SenchaConfiguration senchaConfiguration;
 
-  public LocalPackagesConfigurer(MavenProject project, SenchaConfiguration senchaConfiguration) {
+  public PackagesConfigurer(MavenProject project, SenchaConfiguration senchaConfiguration) {
     this.project = project;
     this.senchaConfiguration = senchaConfiguration;
   }
@@ -48,9 +48,6 @@ public class LocalPackagesConfigurer implements Configurer {
 
     // first package path indicates the path other packages are generated from, this needs to be the workspace dir
     result.add(absolutePath(""));
-
-    Set<Artifact> checkedArtifacts = new HashSet<Artifact>();
-    Set<Artifact> localArtifacts = new HashSet<Artifact>();
 
     Set<MavenProject> mavenProjectsWithSenchaPackages = new HashSet<MavenProject>();
 
@@ -77,20 +74,6 @@ public class LocalPackagesConfigurer implements Configurer {
         if (Types.JANGAROO_TYPE.equals(p.getPackaging())
                 && p.getBuildPlugins().contains(jangarooMavenPlugin)) {
           mavenProjectsWithSenchaPackages.add(p);
-
-          /*
-          checkedArtifacts.add(artifact);
-          @SuppressWarnings("unchecked") List<Artifact> dependencies = (List<Artifact>) p.getDependencies();
-          for (Artifact dependency : dependencies) {
-            if (!localArtifacts.contains(dependency)
-                    && !checkedArtifacts.contains(dependency)) {
-              if (isSenchaPackageArtifact(dependency)) {
-                // must be remote
-                // TODO: extract pkg
-              }
-            }
-          }
-          */
         }
       }
     }
@@ -99,7 +82,7 @@ public class LocalPackagesConfigurer implements Configurer {
     try {
       // toRealPath solves the problem that sometimes the root in the path is uppercase and sometimes lowercase,
       // causing relativize to fail
-      rootPath = project.getFile().getParentFile().toPath().toRealPath();
+      rootPath = project.getBasedir().toPath().toRealPath();
     } catch (IOException e) {
       throw new MojoExecutionException("Could not determine root directory of the project", e);
     }
@@ -114,7 +97,7 @@ public class LocalPackagesConfigurer implements Configurer {
         if (p.getArtifactId().endsWith("-theme")) {
           path = Paths.get(p.getBuild().getDirectory() + File.separator + "..");
         } else {
-          path = Paths.get(p.getBuild().getDirectory() + File.separator + SenchaUtils.SENCHA_BASE_PATH + File.separator + "packages");
+          path = Paths.get(p.getBuild().getDirectory() + File.separator + SenchaUtils.SENCHA_BASE_PATH + File.separator + "packages" + File.separator + SenchaUtils.SENCHA_PACKAGES_LOCAL);
         }
         Path relativePath = rootPath.relativize(path);
         String relativePathString = relativePath.toString();

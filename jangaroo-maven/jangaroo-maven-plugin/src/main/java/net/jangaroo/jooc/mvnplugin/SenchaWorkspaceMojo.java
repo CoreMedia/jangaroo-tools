@@ -14,7 +14,7 @@ import org.apache.maven.project.MavenProject;
  * Mojo to compile properties files to ActionScript3 files
  *
  * @goal generate-sencha-workspace
- * @phase package
+ * @phase generate-sources
  * @requiresDependencyResolution
  * @threadSafe
  */

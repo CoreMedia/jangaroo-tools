@@ -44,6 +44,11 @@ class SenchaAppHelper extends AbstractSenchaHelper {
   }
 
   @Override
+  public void deleteModule() throws MojoExecutionException {
+    // nothing to do
+  }
+
+  @Override
   public void prepareModule() throws MojoExecutionException {
     if (getSenchaConfiguration().isEnabled()) {
       File senchaDirectory = new File(senchaPath);
