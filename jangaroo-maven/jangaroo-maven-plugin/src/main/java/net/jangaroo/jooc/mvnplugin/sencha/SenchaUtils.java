@@ -6,10 +6,13 @@ import com.google.common.collect.ImmutableMap;
 import net.jangaroo.jooc.mvnplugin.SenchaConfiguration;
 import org.apache.commons.lang.StringUtils;
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -111,5 +114,29 @@ public class SenchaUtils {
       objectMapper.configure(JsonParser.Feature.ALLOW_COMMENTS, true);
     }
     return objectMapper;
+  }
+
+  public static Path getRelativePathFromWorkspaceToWorkingDir(File workingDirectory) throws MojoExecutionException {
+    File closestSenchaWorkspaceDir = findClosestSenchaWorkspaceDir(workingDirectory);
+    if (null == closestSenchaWorkspaceDir) {
+      throw new MojoExecutionException("could not find sencha workspace above workingDirectory");
+    }
+    Path workspacePath;
+    try {
+      workspacePath = closestSenchaWorkspaceDir.toPath().toRealPath();
+    } catch (IOException e) {
+      throw new MojoExecutionException("could not find path for sencha workspace", e);
+    }
+    Path workingDirectoryPath;
+    try {
+      workingDirectoryPath = workingDirectory.toPath().toRealPath();
+    } catch (IOException e) {
+      throw new MojoExecutionException("could not find path for working directory", e);
+    }
+
+    if (workspacePath.getRoot() == null || !workspacePath.getRoot().equals(workingDirectoryPath.getRoot())) {
+      throw new MojoExecutionException("cannot find a relative path from workspace directory to working directory");
+    }
+    return workspacePath.relativize(workingDirectoryPath);
   }
 }

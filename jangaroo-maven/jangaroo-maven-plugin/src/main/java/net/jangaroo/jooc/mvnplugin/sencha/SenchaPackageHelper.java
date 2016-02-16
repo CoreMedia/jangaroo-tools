@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.file.Path;
 import java.util.Map;
 
 class SenchaPackageHelper extends AbstractSenchaHelper {
@@ -72,7 +73,7 @@ class SenchaPackageHelper extends AbstractSenchaHelper {
     if (getSenchaConfiguration().isEnabled()) {
       File workingDirectory = new File(senchaPackagePath);
 
-      String pathToWorkingDirectory = getPathToWorkingDir(workingDirectory);
+      Path pathToWorkingDirectory = SenchaUtils.getRelativePathFromWorkspaceToWorkingDir(workingDirectory);
 
       File senchaCfg = new File(workingDirectory.getAbsolutePath() + File.separator + SenchaUtils.SENCHA_DIRECTORYNAME + "/package/sencha.cfg");
       // make sure senchaCfg does not exist

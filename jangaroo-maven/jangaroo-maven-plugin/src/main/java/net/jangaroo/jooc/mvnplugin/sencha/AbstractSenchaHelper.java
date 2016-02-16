@@ -101,19 +101,6 @@ abstract class AbstractSenchaHelper implements SenchaHelper {
     return senchaModuleName;
   }
 
-  protected String getPathToWorkingDir(File workingDirectory) throws MojoExecutionException {
-    File closestSenchaWorkspaceDir = SenchaUtils.findClosestSenchaWorkspaceDir(workingDirectory);
-    if (null == closestSenchaWorkspaceDir) {
-      throw new MojoExecutionException("could not find sencha workspace above workingDirectory");
-    }
-    if (!workingDirectory.getAbsolutePath().startsWith(closestSenchaWorkspaceDir.getAbsolutePath())) {
-      throw new MojoExecutionException("found sencha workspace directory is not in order above workingDirectory");
-    }
-    String pathToWorkingDirectory = workingDirectory.getAbsolutePath().replaceFirst("^" + Matcher.quoteReplacement(closestSenchaWorkspaceDir.getAbsolutePath() + File.separator), "");
-    pathToWorkingDirectory = pathToWorkingDirectory.replace(File.separator, "/"); // make sure / is used so no additional escaping is needed for cmd line
-    return pathToWorkingDirectory;
-  }
-
   protected Map<String, Object> getConfig(Configurer[] configurers) throws MojoExecutionException {
     Map<String, Object> config = new LinkedHashMap<String, Object>();
 
