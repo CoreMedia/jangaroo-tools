@@ -3,12 +3,14 @@ package net.jangaroo.jooc.mvnplugin;
 import net.jangaroo.utils.BOMStripperInputStream;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.repository.ArtifactRepository;
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.annotations.Component;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.DefaultProjectBuildingRequest;
 import org.apache.maven.project.MavenProject;
-import org.apache.maven.project.MavenProjectBuilder;
 import org.apache.maven.project.ProjectBuilder;
 import org.apache.maven.project.ProjectBuildingException;
 import org.apache.maven.project.ProjectBuildingRequest;
@@ -45,37 +47,28 @@ import java.util.zip.ZipFile;
  * <li>concatenate <artifactId>.js from all dependent jangaroo artifacts into jangaroo-application.js in the correct order</li>
  * </ul>
  *
- * @requiresDependencyResolution runtime
  */
 public abstract class PackageApplicationMojo extends AbstractMojo {
 
   /**
    * The maven project.
-   *
-   * @parameter expression="${project}"
-   * @required
-   * @readonly
    */
+  @Parameter(defaultValue = "${project}", required = true, readonly = true)
   protected MavenProject project;
 
-  /**
-   * @component
-   */
   @SuppressWarnings("UnusedDeclaration")
+  @Component
   private ProjectBuilder mavenProjectBuilder;
 
-  /**
-   * @parameter expression="${localRepository}"
-   * @required
-   */
+  @Parameter(defaultValue = "${session}", required = true, readonly = true)
+  private MavenSession session;
+
   @SuppressWarnings("UnusedDeclaration")
+  @Parameter(defaultValue = "${localRepository}", required = true)
   private ArtifactRepository localRepository;
 
-  /**
-   * @parameter expression="${project.remoteArtifactRepositories}"
-   * @required
-   */
   @SuppressWarnings("UnusedDeclaration")
+  @Parameter(defaultValue = "${project.remoteArtifactRepositories}")
   private List<ArtifactRepository> remoteRepositories;
 
   public abstract File getPackageSourceDirectory();
@@ -316,13 +309,14 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
     ProjectBuildingRequest projectBuildingRequest = new DefaultProjectBuildingRequest();
     projectBuildingRequest.setLocalRepository(localRepository);
     projectBuildingRequest.setRemoteRepositories(remoteRepositories);
+    projectBuildingRequest.setRepositorySession(session.getRepositorySession());
 
     ProjectBuildingResult projectBuildingResult = mavenProjectBuilder.build(artifact, true, projectBuildingRequest);
 
     List<String> deps = new LinkedList<String>();
     for (Dependency dep : getDependencies( projectBuildingResult.getProject() )) {
       if ("jar".equals(dep.getType()) &&
-        (dep.getScope().equals("compile") || dep.getScope().equals("runtime"))) {
+        ("compile".equals(dep.getScope()) || "runtime".equals(dep.getScope()))) {
         deps.add(getInternalId(dep));
       }
     }
