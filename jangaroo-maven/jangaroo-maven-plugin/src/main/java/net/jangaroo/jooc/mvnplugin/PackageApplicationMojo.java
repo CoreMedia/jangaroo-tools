@@ -60,6 +60,7 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
   @Component
   private ProjectBuilder mavenProjectBuilder;
 
+  @SuppressWarnings("UnusedDeclaration")
   @Parameter(defaultValue = "${session}", required = true, readonly = true)
   private MavenSession session;
 
