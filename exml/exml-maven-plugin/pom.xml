@@ -25,6 +25,12 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
+      <groupId>net.jangaroo</groupId>
+      <artifactId>jangaroo-maven-plugin</artifactId>
+      <version>${project.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-core</artifactId>
     </dependency>
