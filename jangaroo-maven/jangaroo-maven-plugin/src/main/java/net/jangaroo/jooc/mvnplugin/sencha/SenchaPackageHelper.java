@@ -34,7 +34,7 @@ class SenchaPackageHelper extends AbstractSenchaHelper {
     String buildDirectory = project.getBuild().getDirectory();
     this.senchaPath = buildDirectory + File.separator + SenchaUtils.SENCHA_BASE_PATH;
 
-    this.senchaPackagePath = senchaPath + File.separator + "packages" + File.separator + getSenchaModuleName();
+    this.senchaPackagePath = senchaPath + File.separator + SenchaUtils.SENCHA_PACKAGES + File.separator + SenchaUtils.SENCHA_PACKAGES_LOCAL + File.separator + getSenchaModuleName();
 
     MetadataConfigurer metadataConfigurer = new MetadataConfigurer(project);
     RequiresConfigurer requiresConfigurer = new RequiresConfigurer(project);
@@ -73,15 +73,15 @@ class SenchaPackageHelper extends AbstractSenchaHelper {
     if (getSenchaConfiguration().isEnabled()) {
       File workingDirectory = new File(senchaPackagePath);
 
-      Path pathToWorkingDirectory = SenchaUtils.getRelativePathFromWorkspaceToWorkingDir(workingDirectory);
-
-      File senchaCfg = new File(workingDirectory.getAbsolutePath() + File.separator + SenchaUtils.SENCHA_DIRECTORYNAME + "/package/sencha.cfg");
+      File senchaCfg = new File(workingDirectory.getAbsolutePath() + File.separator + SenchaUtils.SENCHA_PACKAGE_CONFIG);
       // make sure senchaCfg does not exist
       if (senchaCfg.exists()) {
         if (!senchaCfg.delete()) {
-          throw new MojoExecutionException("could not delete sencha.cfg for package");
+          throw new MojoExecutionException("could not delete " + SenchaUtils.SENCHA_PACKAGE_CONFIG + " for package");
         }
       }
+
+      Path pathToWorkingDirectory = SenchaUtils.getRelativePathFromWorkspaceToWorkingDir(workingDirectory);
 
       String line = "sencha generate package"
               + " --name=\"" + getSenchaModuleName() + "\""

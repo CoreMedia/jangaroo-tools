@@ -21,6 +21,7 @@ public class SenchaUtils {
   public static final String SEPARATOR = "/";
 
   public static final String SENCHA_BASE_PATH = "sencha";
+  public static final String SENCHA_PACKAGES = "packages";
   public static final String SENCHA_PACKAGES_LOCAL = "local";
   public static final String SENCHA_PACKAGES_REMOTE = "remote";
 
@@ -29,6 +30,12 @@ public class SenchaUtils {
   public static final String SENCHA_RELATIVE_RESOURCES_PATH = "resources";
 
   public static final String SENCHA_DIRECTORYNAME = ".sencha";
+  public static final String SENCHA_CFG = "sencha.cfg";
+
+  public static final String SENCHA_WORKSPACE_CONFIG = SENCHA_DIRECTORYNAME + File.separator + "workspace" + File.separator + SENCHA_CFG;
+  public static final String SENCHA_PACKAGE_CONFIG = SENCHA_DIRECTORYNAME + File.separator + "package" + File.separator + SENCHA_CFG;
+  public static final String SENCHA_APP_CONFIG = SENCHA_DIRECTORYNAME + File.separator + "app" + File.separator + SENCHA_CFG;
+
   public static final String SENCHA_WORKSPACE_FILENAME = "workspace.json";
   public static final String SENCHA_PACKAGE_FILENAME = "package.json";
   public static final String SENCHA_APP_FILENAME = "app.json";

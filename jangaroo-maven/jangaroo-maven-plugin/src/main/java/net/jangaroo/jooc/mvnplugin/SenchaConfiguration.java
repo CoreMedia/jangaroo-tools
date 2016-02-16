@@ -61,6 +61,13 @@ public class SenchaConfiguration extends SenchaProfileConfiguration {
   private String baseDir;
 
   /**
+   * Ext Framework directory for the module.
+   *
+   * @parameter default-value="ext"
+   */
+  private String extFrameworkDir="ext";
+
+  /**
    * Build directory relative to baseDir
    *
    * @parameter default-value="build"
@@ -112,5 +119,9 @@ public class SenchaConfiguration extends SenchaProfileConfiguration {
 
   public String getPackagesDir() {
     return packagesDir;
+  }
+
+  public String getExtFrameworkDir() {
+    return extFrameworkDir;
   }
 }

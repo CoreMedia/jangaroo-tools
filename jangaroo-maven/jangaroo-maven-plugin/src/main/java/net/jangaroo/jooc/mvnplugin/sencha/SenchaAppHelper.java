@@ -66,6 +66,14 @@ class SenchaAppHelper extends AbstractSenchaHelper {
     if (getSenchaConfiguration().isEnabled()) {
       File workingDirectory = new File(senchaPath);
 
+      File senchaCfg = new File(workingDirectory.getAbsolutePath() + File.separator + SenchaUtils.SENCHA_APP_CONFIG);
+      // make sure senchaCfg does not exist
+      if (senchaCfg.exists()) {
+        if (!senchaCfg.delete()) {
+          throw new MojoExecutionException("could not delete " + SenchaUtils.SENCHA_APP_CONFIG + " for app");
+        }
+      }
+
       String line = "sencha generate app"
               + " -ext"
               + " -" + getSenchaConfiguration().getToolkit()
