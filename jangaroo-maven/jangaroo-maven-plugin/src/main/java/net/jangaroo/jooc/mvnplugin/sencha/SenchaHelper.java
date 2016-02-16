@@ -1,7 +1,6 @@
 package net.jangaroo.jooc.mvnplugin.sencha;
 
 import net.jangaroo.jooc.mvnplugin.SenchaConfiguration;
-import net.jangaroo.jooc.mvnplugin.Types;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.Configurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.DefaultSenchaApplicationConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.DefaultSenchaPackageConfigurer;
@@ -14,8 +13,6 @@ import net.jangaroo.jooc.mvnplugin.sencha.configurer.SenchaConfigurationConfigur
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.io.FileUtils;
-import org.apache.maven.archiver.MavenArchiveConfiguration;
-import org.apache.maven.archiver.MavenArchiver;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
@@ -24,7 +21,6 @@ import org.codehaus.plexus.archiver.jar.JarArchiver;
 
 import java.io.File;
 import java.io.FileWriter;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.LinkedHashMap;
@@ -124,7 +120,7 @@ public class SenchaHelper {
 
     copyFilesFromJoo(senchaPackagePath);
 
-    File workingDirectory = new File(senchaPath);
+    File workingDirectory = new File(senchaPackagePath);
 
     writePackageJson(workingDirectory);
   }
@@ -139,7 +135,7 @@ public class SenchaHelper {
 
     copyFilesFromJoo(senchaPath);
 
-    File workingDirectory = new File(senchaPackagePath);
+    File workingDirectory = new File(senchaPath);
 
     writeAppJson(workingDirectory);
   }
