@@ -2,7 +2,8 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <artifactId>jangaroo-runtime</artifactId>
-  <packaging>jar</packaging>
+  <packaging>jangaroo</packaging>
+
   <dependencies>
     <dependency>
       <groupId>net.jangaroo</groupId>
@@ -18,69 +19,50 @@
     <version>2.1-SNAPSHOT</version>
     <relativePath>../../jangaroo-parent/pom.xml</relativePath>
   </parent>
+
   <build>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-antrun-plugin</artifactId>
+        <artifactId>maven-dependency-plugin</artifactId>
         <executions>
           <execution>
-            <id>compile-joo-runtime</id>
+            <id>unpack</id>
             <goals>
-              <goal>run</goal>
+              <goal>unpack</goal>
             </goals>
-            <phase>compile</phase>
+            <phase>initialize</phase>
             <configuration>
-              <target>
-                <property name="runtime.classpath" refid="maven.compile.classpath" />
-                <taskdef classname="net.jangaroo.jooc.ant.JoocTask" classpath="target/classes;${runtime.classpath}" name="jooc" />
-                <mkdir dir="target/classes/META-INF/resources/joo/classes" />
-                <mkdir dir="target/classes/META-INF/joo-api" />
-                <jooc apidestdir="target/classes/META-INF/joo-api" debuglevel="source" destdir="target/classes/META-INF/resources/joo/classes" enableassertions="true" failonerror="true" verbose="true">
-                  <include name="**/*.as" />
-                  <src path="src/main/joo" />
-                </jooc>
-                <mkdir dir="target/temp" />
-                <jooc destdir="target/temp" enableassertions="false" failonerror="true" verbose="true">
-                  <include name="**/*.as" />
-                  <src path="src/main/joo" />
-                </jooc>
-                <concat destfile="target/classes/META-INF/resources/joo/net.jangaroo.jangaroo-runtime.classes.js">
-                  <filelist dir="src/main/joo-js/joo/classes">
-                    <file name="int.js" />
-                    <file name="uint.js" />
-                    <file name="E4X.js" />
-                    <file name="Vector.js" />
-                    <file name="joo/BootstrapClassLoader.js" />
-                    <file name="joo/assert.js" />
-                    <file name="joo/Class.js" />
-                    <file name="joo/trace.js" />
-                  </filelist>
-                  <filelist dir="target/temp/">
-                    <file name="joo/MemberDeclaration.js" />
-                    <file name="joo/NativeClassDeclaration.js" />
-                    <file name="joo/JooClassDeclaration.js" />
-                    <file name="joo/SystemClassLoader.js" />
-                    <file name="ArgumentError.js" />
-                    <file name="DefinitionError.js" />
-                    <file name="SecurityError.js" />
-                    <file name="Array.js" />
-                    <file name="Date.js" />
-                    <file name="joo/StandardClassLoader.js" />
-                    <file name="joo/DynamicClassLoader.js" />
-                    <file name="joo/ResourceBundleAwareClassLoader.js" />
-                  </filelist>
-                  <filelist dir="src/main/joo-js/joo/classes">
-                    <file name="joo/_createClassLoader.js" />
-                  </filelist>
-                </concat>
-                <copy todir="target/classes/META-INF/resources">
-                  <fileset dir="src/main/joo-js" />
-                </copy>
-              </target>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>com.coremedia.sencha</groupId>
+                  <artifactId>ext</artifactId>
+                  <version>6.0.1.250</version>
+                  <type>zip</type>
+                  <outputDirectory>${project.build.directory}/ext</outputDirectory>
+                </artifactItem>
+              </artifactItems>
             </configuration>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>net.jangaroo</groupId>
+        <artifactId>jangaroo-maven-plugin</artifactId>
+        <version>${project.version}</version>
+        <extensions>true</extensions>
+        <configuration>
+          <senchaConfiguration>
+            <enabled>true</enabled>
+            <temporaryWorkspace>true</temporaryWorkspace>
+            <extFrameworkDir>target/ext</extFrameworkDir>
+            <packagesDir>target/sencha/packages</packagesDir>
+            <additionalJsBundle>
+              <value>resources/joo/jangaroo-runtime.module.js</value>
+              <value>resources/joo/AS3.js</value>
+            </additionalJsBundle>
+          </senchaConfiguration>
+        </configuration>
       </plugin>
     </plugins>
     <sourceDirectory>src/main/joo</sourceDirectory>
