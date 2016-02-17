@@ -3,6 +3,7 @@ package net.jangaroo.jooc.backend;
 import net.jangaroo.jooc.CompilationUnitRegistry;
 import net.jangaroo.jooc.CompilerError;
 import net.jangaroo.jooc.JooSymbol;
+import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.ast.Annotation;
 import net.jangaroo.jooc.ast.AnnotationParameter;
 import net.jangaroo.jooc.ast.AstNode;
@@ -43,7 +44,8 @@ class EmbeddedAssetResolver extends AstVisitorBase {
     if (value != null) {
       Annotation parentAnnotation = annotationParameter.getParentAnnotation();
       String metaName = parentAnnotation.getMetaName();
-      if ("Embed".equals(metaName) && annotationParameter.getOptName() != null && "source".equals(annotationParameter.getOptName().getName())) {
+      if (Jooc.EMBED_ANNOTATION_NAME.equals(metaName) && annotationParameter.getOptName() != null &&
+              Jooc.EMBED_ANNOTATION_SOURCE_PROPERTY.equals(annotationParameter.getOptName().getName())) {
         JooSymbol valueSymbol = value.getSymbol();
         if (valueSymbol.sym != sym.STRING_LITERAL) {
           throw new CompilerError(valueSymbol, "The source parameter of an [Embed] annotation must be a string literal");

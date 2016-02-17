@@ -120,7 +120,12 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   private static final JooSymbol SYM_RBRACE = new JooSymbol(sym.RBRACE, "}");
   public static final Set<String> PRIMITIVES = new HashSet<String>(4);
   public static final List<String> ANNOTATIONS_TO_TRIGGER_AT_RUNTIME = Arrays.asList("SWF", "ExtConfig"); // TODO: inject / make configurable
-  public static final List<String> ANNOTATIONS_FOR_COMPILER_ONLY = Arrays.asList("Embed", "Native", "Bindable", "ExtConfig");
+  public static final List<String> ANNOTATIONS_FOR_COMPILER_ONLY = Arrays.asList(
+          Jooc.EMBED_ANNOTATION_NAME,
+          Jooc.BINDABLE_ANNOTATION_NAME,
+          Jooc.EXT_CONFIG_ANNOTATION_NAME,
+          Jooc.MIXIN_ANNOTATION_NAME
+  );
   public static final String DEFAULT_ANNOTATION_PARAMETER_NAME = "";
   public static final String PROPERTIES_CLASS_SUFFIX = "_properties";
   public static final String INIT_STATICS = "__initStatics__";
@@ -1498,9 +1503,9 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   }
 
   private String getValueFromEmbedMetadata() {
-    Metadata embedMetadata = Metadata.find(currentMetadata, "Embed");
+    Metadata embedMetadata = Metadata.find(currentMetadata, Jooc.EMBED_ANNOTATION_NAME);
     if (embedMetadata != null) {
-      String source = (String) embedMetadata.getArgumentValue("source");
+      String source = (String) embedMetadata.getArgumentValue(Jooc.EMBED_ANNOTATION_SOURCE_PROPERTY);
       String assetType = EmbeddedAssetResolver.guessAssetType(source);
       int index = compilationUnit.getResourceDependencies().indexOf(assetType + "!" + source);
       String assetFactory = "new String";
