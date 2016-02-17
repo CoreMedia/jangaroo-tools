@@ -14,7 +14,8 @@ public class SenchaModuleHelper implements SenchaHelper {
     if (SenchaConfiguration.Type.WORKSPACE.equals(senchaConfiguration.getType())) {
       delegate = new SenchaWorkspaceHelper(project, senchaConfiguration, log);
     }
-    if (SenchaConfiguration.Type.CODE.equals(senchaConfiguration.getType())) {
+    if (SenchaConfiguration.Type.CODE.equals(senchaConfiguration.getType())
+            || SenchaConfiguration.Type.THEME.equals(senchaConfiguration.getType())) {
       delegate = new SenchaPackageHelper(project, senchaConfiguration, log);
     }
     if (SenchaConfiguration.Type.APP.equals(senchaConfiguration.getType())) {

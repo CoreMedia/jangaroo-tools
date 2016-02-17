@@ -13,7 +13,7 @@ public class SenchaConfigurationConfigurer implements Configurer {
   static final String TESTING = "testing";
   static final String DEVELOPMENT = "development";
   static final String TOOLKIT = "toolkit";
-  static final String EXTENDS = "extends";
+  static final String EXTEND = "extend";
   static final String THEME = "theme";
 
   private SenchaConfiguration senchaConfiguration;
@@ -36,7 +36,7 @@ public class SenchaConfigurationConfigurer implements Configurer {
     }
     if (SenchaConfiguration.Type.THEME.equals(senchaConfiguration.getType())) {
       config.put(TOOLKIT, senchaConfiguration.getToolkit());
-      config.put(EXTENDS, senchaConfiguration.getTheme());
+      config.put(EXTEND, senchaConfiguration.getTheme());
     }
     if (SenchaConfiguration.Type.APP.equals(senchaConfiguration.getType())) {
       config.put(THEME, senchaConfiguration.getTheme());

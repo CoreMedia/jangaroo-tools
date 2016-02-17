@@ -2,7 +2,8 @@ package net.jangaroo.jooc.mvnplugin.sencha;
 
 import net.jangaroo.jooc.mvnplugin.SenchaConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.Configurer;
-import net.jangaroo.jooc.mvnplugin.sencha.configurer.DefaultSenchaPackageConfigurer;
+import net.jangaroo.jooc.mvnplugin.sencha.configurer.DefaultSenchaCodePackageConfigurer;
+import net.jangaroo.jooc.mvnplugin.sencha.configurer.DefaultSenchaThemePackageConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.MetadataConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.PathConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.RequiresConfigurer;
@@ -15,21 +16,12 @@ import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintWriter;
 import java.nio.file.Path;
-import java.util.Enumeration;
 import java.util.Map;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
-import java.util.zip.ZipInputStream;
 
 class SenchaPackageHelper extends AbstractSenchaHelper {
 
@@ -52,8 +44,15 @@ class SenchaPackageHelper extends AbstractSenchaHelper {
     SenchaConfigurationConfigurer senchaConfigurationConfigurer = new SenchaConfigurationConfigurer(senchaConfiguration);
     PathConfigurer pathConfigurer = new PathConfigurer(senchaConfiguration);
 
+    Configurer defaultSenchaPackageConfigurer;
+    if (!SenchaConfiguration.Type.THEME.equals(senchaConfiguration.getType())) {
+      defaultSenchaPackageConfigurer =  DefaultSenchaCodePackageConfigurer.getInstance();
+    } else {
+      defaultSenchaPackageConfigurer =  DefaultSenchaThemePackageConfigurer.getInstance();
+    }
+
     this.packageConfigurers = new Configurer[] {
-            DefaultSenchaPackageConfigurer.getInstance(),
+            defaultSenchaPackageConfigurer,
             metadataConfigurer,
             requiresConfigurer,
             senchaConfigurationConfigurer,

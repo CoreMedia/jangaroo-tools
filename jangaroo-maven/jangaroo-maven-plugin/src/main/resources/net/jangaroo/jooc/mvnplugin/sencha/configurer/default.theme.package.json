@@ -1,0 +1,41 @@
+{
+  "name": "Package",
+  "version": "1.0.0.0",
+  "compatVersion": "1.0.0.0",
+  "type": "theme",
+  "local": true,
+  "namespace": "",
+  "framework": "ext",
+  "format": "1",
+  "toolkit": "classic",
+  "creator": "",
+  "summary": "",
+  "detailedDescription": "",
+  "requires": [],
+  "css": [],
+  "js": [],
+  "sass" : {
+    "namespace": "Ext",
+    "etc": "${package.dir}/sass/etc/all.scss,${package.dir}/${toolkit.name}/sass/etc/all.scss",
+    "var": "${package.dir}/sass/var,${package.dir}/${toolkit.name}/sass/var",
+    "src": "${package.dir}/sass/src,${package.dir}/${toolkit.name}/sass/src"
+  },
+  "production": {},
+  "testing": {},
+  "development": {},
+  "output": "${package.dir}/build",
+  "classpath": "${package.dir}/src",
+  "overrides": "${package.dir}/overrides",
+  "resources": [
+    {
+      "path": "${package.dir}/resources",
+      "output": "shared"
+    },
+    {
+      "path": "${package.dir}/${toolkit.name}/resources"
+    },
+    {
+      "path": "${package.dir}/${build.id}/resources"
+    }
+  ]
+}
