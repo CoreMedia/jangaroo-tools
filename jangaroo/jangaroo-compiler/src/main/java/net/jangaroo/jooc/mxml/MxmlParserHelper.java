@@ -103,7 +103,7 @@ public class MxmlParserHelper {
     String text = (String) symbol.getJooValue();
     String template = TPL_IMPORT;
     int[] position = position(symbol, template);
-    Symbol parsed = parser.parseEmbedded(String.format(template, text), position[0], position[1]);
+    Symbol parsed = parser.parseEmbedded(String.format(template, text), position[0], position[1], true);
     if(null != parsed) {
       CompilationUnit unit = (CompilationUnit) parsed.value;
       return (ImportDirective) Iterables.getFirst(unit.getDirectives(), null);

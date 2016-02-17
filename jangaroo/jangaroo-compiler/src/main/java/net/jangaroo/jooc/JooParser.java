@@ -186,10 +186,16 @@ public class JooParser extends parser {
   }
 
   public Symbol parseEmbedded(String string, int line, int column) {
+    return parseEmbedded(string, line, column, false);
+  }
+
+  public Symbol parseEmbedded(String string, int line, int column, boolean silent) {
     Reader reader = new StringReader(string);
     scanner.prepareEmbedded(reader, line, column);
     CompileLog oldLog = this.log;
-    this.log = SILENT_LOG;
+    if(silent) {
+      this.log = SILENT_LOG;
+    }
     try {
       return parse();
     } catch (Scanner.ScanError se) {

@@ -399,9 +399,9 @@ XmlComment = "<!--" ~"-->"
 
 <XML_TEXT_CONTENT> {
   "<![CDATA["                     { setMultiStateText(""); yybegin(CDATA_SECTION); clearString(); }
-  .|{LineTerminator} / "<"        { pushMultiStateText(yytext()); pushString(yytext()); yybegin(MXML);
-                                    return multiStateSymbol(STRING_LITERAL, getString()); }
-  .|{LineTerminator}              { pushMultiStateText(yytext()); pushString(yytext()); }
+  .|{LineTerminator} / "<"        { pushString(yytext()); yybegin(MXML);
+                                    return xmlUnescaped(STRING_LITERAL, getString()); }
+  .|{LineTerminator}              { pushString(yytext()); }
 }
 
 <CDATA_SECTION> {
