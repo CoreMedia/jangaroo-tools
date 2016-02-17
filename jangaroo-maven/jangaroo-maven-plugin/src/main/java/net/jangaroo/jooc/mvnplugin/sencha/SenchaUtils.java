@@ -192,7 +192,7 @@ public class SenchaUtils {
 
       try {
         ZipFile zipFile = new ZipFile(artifact.getFile());
-        ZipEntry packageJson = zipFile.getEntry("sencha/" + SENCHA_PACKAGE_FILENAME);
+        ZipEntry packageJson = zipFile.getEntry(SENCHA_BASE_PATH + "/" + SENCHA_PACKAGE_FILENAME);
         // skip if no package json is found
         if (null == packageJson) {
           continue;
@@ -211,7 +211,7 @@ public class SenchaUtils {
           throw new MojoExecutionException("could not create folder for remote package " + remotePackageFolder);
         }
 
-        extractZipToDirectory(artifact.getFile(), remotePackageFolder, "sencha/");
+        extractZipToDirectory(artifact.getFile(), remotePackageFolder, SENCHA_BASE_PATH + "/");
       } catch (IOException e) {
         throw new MojoExecutionException("could not read from artifact file", e);
       }

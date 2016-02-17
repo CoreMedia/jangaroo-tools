@@ -90,6 +90,16 @@ public class SenchaConfiguration extends SenchaProfileConfiguration {
    */
   private String packagesDir="packages";
 
+  /**
+   * Skip the build process of the sencha module.
+   *
+   * Only use this for local development to speed up the build process of the maven app.
+   * For deployment the build process is required otherwise remote packages will have no contents.
+   *
+   * @parameter default-value="false"
+   */
+  private boolean skipBuild =false;
+
   public boolean isEnabled() {
     return enabled;
   }
@@ -126,6 +136,10 @@ public class SenchaConfiguration extends SenchaProfileConfiguration {
     return baseDir;
   }
 
+  public String getExtFrameworkDir() {
+    return extFrameworkDir;
+  }
+
   public String getBuildDir() {
     return buildDir;
   }
@@ -134,8 +148,8 @@ public class SenchaConfiguration extends SenchaProfileConfiguration {
     return packagesDir;
   }
 
-  public String getExtFrameworkDir() {
-    return extFrameworkDir;
+  public boolean isSkipBuild() {
+    return skipBuild;
   }
 
   public void setEnabled(boolean enabled) {
@@ -184,5 +198,9 @@ public class SenchaConfiguration extends SenchaProfileConfiguration {
 
   public void setPackagesDir(String packagesDir) {
     this.packagesDir = packagesDir;
+  }
+
+  public void setSkipBuild(boolean skipBuild) {
+    this.skipBuild = skipBuild;
   }
 }
