@@ -1,4 +1,4 @@
-package net.jangaroo.mxmlc.ast;
+package net.jangaroo.jooc.mxml.ast;
 
 import com.google.common.base.Predicates;
 import com.google.common.collect.Iterables;
@@ -17,9 +17,9 @@ import net.jangaroo.jooc.ast.IdeDeclaration;
 import net.jangaroo.jooc.ast.Implements;
 import net.jangaroo.jooc.ast.ImportDirective;
 import net.jangaroo.jooc.input.InputSource;
+import net.jangaroo.jooc.mxml.MxmlParserHelper;
 import net.jangaroo.jooc.mxml.MxmlToModelParser;
 import net.jangaroo.jooc.sym;
-import net.jangaroo.mxmlc.MxmlParserHelper;
 import net.jangaroo.utils.CompilerUtils;
 
 import javax.annotation.Nonnull;

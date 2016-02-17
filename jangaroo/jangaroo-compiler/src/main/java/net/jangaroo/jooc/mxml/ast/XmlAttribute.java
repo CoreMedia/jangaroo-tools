@@ -1,4 +1,4 @@
-package net.jangaroo.mxmlc.ast;
+package net.jangaroo.jooc.mxml.ast;
 
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;

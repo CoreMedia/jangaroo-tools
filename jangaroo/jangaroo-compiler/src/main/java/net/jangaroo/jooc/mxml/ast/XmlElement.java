@@ -1,4 +1,4 @@
-package net.jangaroo.mxmlc.ast;
+package net.jangaroo.jooc.mxml.ast;
 
 import com.google.common.base.Predicates;
 import com.google.common.collect.Iterables;

@@ -1,4 +1,4 @@
-package net.jangaroo.mxmlc;
+package net.jangaroo.jooc.mxml;
 
 import com.google.common.collect.Iterables;
 import java_cup.runtime.Symbol;
@@ -14,11 +14,10 @@ import net.jangaroo.jooc.ast.Implements;
 import net.jangaroo.jooc.ast.ImportDirective;
 import net.jangaroo.jooc.ast.PackageDeclaration;
 import net.jangaroo.jooc.input.InputSource;
-import net.jangaroo.jooc.mxml.MxmlUtils;
-import net.jangaroo.mxmlc.ast.MxmlCompilationUnit;
-import net.jangaroo.mxmlc.ast.XmlAttribute;
-import net.jangaroo.mxmlc.ast.XmlElement;
-import net.jangaroo.mxmlc.ast.XmlTag;
+import net.jangaroo.jooc.mxml.ast.MxmlCompilationUnit;
+import net.jangaroo.jooc.mxml.ast.XmlAttribute;
+import net.jangaroo.jooc.mxml.ast.XmlElement;
+import net.jangaroo.jooc.mxml.ast.XmlTag;
 import net.jangaroo.utils.CompilerUtils;
 
 import javax.annotation.Nonnull;
