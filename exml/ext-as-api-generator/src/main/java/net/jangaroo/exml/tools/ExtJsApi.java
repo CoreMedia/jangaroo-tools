@@ -9,7 +9,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -17,12 +16,14 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 /**
  * Load API model from a jsduck JSON export of the Ext JS API.
  */
 public class ExtJsApi {
 
+  private static final Pattern CONSTANT_NAME_PATTERN = Pattern.compile("[A-Z][A-Z0-9_]*");
   private Set<ExtClass> extClasses;
   private Map<String,ExtClass> extClassByName;
   private Set<ExtClass> mixins;
@@ -46,7 +47,7 @@ public class ExtJsApi {
               member.static_ == isStatic &&
               !member.private_ &&
               (member.autodetected == null || !member.autodetected.containsKey("tagname")) &&
-              !superclassNames.contains(member.owner) && (!isInterface || isPublicNonStaticMethodOrProperty(member))) {
+              !superclassNames.contains(member.owner) && (!isInterface || isPublicNonStaticMethodOrPropertyOrCfg(member))) {
         result.add(memberType.cast(member));
       }
     }
@@ -79,8 +80,25 @@ public class ExtJsApi {
     return false;
   }
 
-  public static boolean isPublicNonStaticMethodOrProperty(Member member) {
-    return (member instanceof Method || member instanceof Property)
+  public boolean isStatic(Member member) {
+    ExtClass extClass = getExtClass(member.owner);
+    return !extClass.singleton && (member.static_ || member.meta.static_ || isConstantName(member.name));
+  }
+
+  private static boolean isConstantName(String name) {
+    return CONSTANT_NAME_PATTERN.matcher(name).matches();
+  }
+
+  public boolean isReadOnly(Member member) {
+    return member.meta.readonly || member.readonly || isConstantName(member.name);
+  }
+
+  public boolean isProtected(Member member) {
+    return member.protected_ || member.meta.protected_;
+  }
+
+  public static boolean isPublicNonStaticMethodOrPropertyOrCfg(Member member) {
+    return (member instanceof Method || member instanceof Property || member instanceof Cfg)
             && !member.meta.static_ && !(member.meta.private_ || member.private_) && !(member.meta.protected_ || member.protected_)
             && !"constructor".equals(member.name);
   }

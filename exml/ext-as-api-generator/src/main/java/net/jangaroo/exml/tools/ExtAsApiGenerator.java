@@ -38,7 +38,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.regex.Pattern;
 
 import static net.jangaroo.exml.tools.ExtJsApi.Cfg;
 import static net.jangaroo.exml.tools.ExtJsApi.Deprecation;
@@ -62,7 +61,6 @@ public class ExtAsApiGenerator {
   private static CompilationUnitModelRegistry compilationUnitModelRegistry;
   private static Set<String> interfaces;
   private static final List<String> NON_COMPILE_TIME_CONSTANT_INITIALIZERS = Arrays.asList("window", "document", "document.body", "new Date()", "this", "`this`", "10||document.body", "caller", "array.length");
-  private static final Pattern CONSTANT_NAME_PATTERN = Pattern.compile("[A-Z][A-Z0-9_]*");
   private static ExtAsApi referenceApi;
   private static boolean generateEventClasses;
   private static boolean generateForMxml;
@@ -315,7 +313,7 @@ public class ExtAsApiGenerator {
       System.out.printf("Generating AS3 API model %s for %s...%n", extAsInterfaceUnit.getQName(), extClassName);
       ClassModel extAsInterface = (ClassModel)extAsInterfaceUnit.getPrimaryDeclaration();
       extAsInterface.setInterface(true);
-      extAsInterface.setAsdoc(toAsDoc(extClass.doc));
+      extAsInterface.setAsdoc(toAsDoc(extClass.doc) + "\n * @see " + extClassName);
       if (extClass.extends_ != null) {
         String superInterface = convertToInterface(getActionScriptName(extClass.extends_));
         if (superInterface != null) {
@@ -342,6 +340,10 @@ public class ExtAsApiGenerator {
     } else {
       extAsClass.addAnnotation(nativeAnnotation);
     }
+    if (extAsInterfaceUnit != null) {
+      extAsInterfaceUnit.getClassModel().addAnnotation(new AnnotationModel(Jooc.MIXIN_ANNOTATION_NAME,
+              new AnnotationPropertyModel(null, CompilerUtils.quote(extClassName))));
+    }
     if (extClass.private_) {
       extAsClass.addAnnotation(new AnnotationModel(Jooc.PUBLIC_API_EXCLUSION_ANNOTATION_NAME));
     }
@@ -367,7 +369,6 @@ public class ExtAsApiGenerator {
     }
 
     addNonStaticMembers(extClass, extAsClassUnit);
-    addProperties(extAsClass, extJsApi.filterByOwner(false, false, extClass, extClass.members, Cfg.class), true);
 
     // todo: remove #getConfigClassQName and its mapping properties, a constructor needs to be generated if and only if the class or a superclass has config parameters
     if (getConfigClassQName(extClass) != null) {
@@ -471,6 +472,7 @@ public class ExtAsApiGenerator {
     }
     addProperties(extAsClass, extJsApi.filterByOwner(extAsClass.isInterface(), false, extClass, extClass.members, Property.class), false);
     addMethods(extAsClass, extJsApi.filterByOwner(extAsClass.isInterface(), false, extClass, extClass.members, Method.class));
+    addProperties(extAsClass, extJsApi.filterByOwner(extAsClass.isInterface(), false, extClass, extClass.members, Cfg.class), true);
   }
 
   private static void generateActionScriptCode(CompilationUnitModel extAsClass, File outputDir) throws IOException {
@@ -572,39 +574,81 @@ public class ExtAsApiGenerator {
 
   private static void addProperties(ClassModel classModel, List<? extends Member> properties, boolean isConfig) {
     for (Member member : properties) {
-      if (classModel.getMember(member.name) == null) {
-        if (extJsApi.inheritsDoc(member)) {
-           // suppress overridden properties with the same JSDoc!
-           continue;
-        }
-        String type = convertType(member.type);
-        if (type == null || "*".equals(type) || "Object".equals(type)) {
-          // try to deduce a more specific type from the property name:
-          type = "cls".equals(member.name) ? "String"
-                  : "useBodyElement".equals(member.name) ? "Boolean"
-                  : "items".equals(member.name) || "plugins".equals(member.name) ? "Array"
-                  : type;
-        }
-        PropertyModel propertyModel = new PropertyModel(convertName(member.name), type);
-        if (generateForMxml && "items".equals(member.name)) {
-          propertyModel.addAnnotation(new AnnotationModel(MxmlToModelParser.MXML_DEFAULT_PROPERTY_ANNOTATION));
-        }
-        propertyModel.setAsdoc(toAsDoc(member));
-        addDeprecation(member.deprecated, propertyModel);
-        setVisibility(propertyModel, member);
-        setStatic(propertyModel, member);
-        MethodModel getter = propertyModel.addGetter();
-        if (isConfig) {
-          getter.addAnnotation(new AnnotationModel(Jooc.EXT_CONFIG_ANNOTATION_NAME));
-        }
-        if (!(member.meta.readonly || member.readonly || isConstantName(member.name))) {
-          MethodModel setter = propertyModel.addSetter();
-          if (isConfig) {
-            setter.addAnnotation(new AnnotationModel(Jooc.EXT_CONFIG_ANNOTATION_NAME));
-          }
-        }
-        classModel.addMember(propertyModel);
+      if (extJsApi.inheritsDoc(member)) {
+        // suppress overridden properties with the same JSDoc!
+        continue;
       }
+
+      boolean isStatic = extJsApi.isStatic(member);
+      String name = convertName(member.name);
+      String type = convertType(member.type);
+      String asDoc = toAsDoc(member);
+      if (type == null || "*".equals(type) || "Object".equals(type)) {
+        // try to deduce a more specific type from the property name:
+        type = "cls".equals(member.name) ? "String"
+                : "useBodyElement".equals(member.name) ? "Boolean"
+                : "items".equals(member.name) || "plugins".equals(member.name) ? "Array"
+                : type;
+      }
+      MemberModel priorMember = classModel.getMember(isStatic, name);
+      if (priorMember != null) {
+        String priorMemberType;
+        if (priorMember.isMethod() && !priorMember.isAccessor()) {
+          priorMemberType = "Function";
+        } else {
+          priorMemberType = priorMember.getType();
+        }
+        if (!priorMemberType.equals(type)){
+          System.err.println("Duplicate member " + member.name + (isConfig ? " (config)" : "")
+                  + " in class " + classModel.getName()
+                  + " with deviating type " + type + " instead of " + priorMemberType + ".");
+        }
+        if ("Array".equals(type) && priorMemberType.contains("Collection")) {
+          String newName = (name.endsWith("s") ? name.substring(0, name.length() - 1) : name) + "Collection";
+          System.out.println("Renaming member " + priorMember.getName() + " to " + newName + " in class " + classModel.getName()
+                  + " to avoid name clash with config.");
+          priorMember.setName(newName);
+        } else if ("Function".equals(priorMemberType)) {
+          name += "_";
+          System.out.println("Renaming config " + member.name + " to " + name + " in class " + classModel.getName()
+                  + " to avoid name clash with method.");
+        } else {
+          type = priorMemberType;
+          asDoc = priorMember.isProperty() ? ((PropertyModel)priorMember).getGetter().getAsdoc() : priorMember.getAsdoc();
+          System.out.println("Merging member " + priorMember.getName() + " and config " + member.name + " in class " + classModel.getName()
+                  + " to avoid name clash.");
+          classModel.removeMember(priorMember);
+        }
+      }
+
+      PropertyModel propertyModel = new PropertyModel(name, type);
+      if (generateForMxml && "items".equals(member.name)) {
+        propertyModel.addAnnotation(new AnnotationModel(MxmlToModelParser.MXML_DEFAULT_PROPERTY_ANNOTATION));
+      }
+      propertyModel.setAsdoc(asDoc);
+      addDeprecation(member.deprecated, propertyModel);
+      setVisibility(propertyModel, member);
+      propertyModel.setStatic(isStatic);
+      MethodModel getter = propertyModel.addGetter();
+      AnnotationModel extConfigAnnotation = null;
+      if (isConfig) {
+        extConfigAnnotation = new AnnotationModel(Jooc.EXT_CONFIG_ANNOTATION_NAME);
+        if (!name.equals(member.name)) {
+          extConfigAnnotation.addProperty(new AnnotationPropertyModel(null, CompilerUtils.quote(member.name)));
+        }
+        getter.addAnnotation(extConfigAnnotation);
+      }
+      if (!extJsApi.isReadOnly(member)) {
+        MethodModel setter = propertyModel.addSetter();
+        if (classModel.isInterface()) {
+          // do not add @private to ASDoc in interfaces, or IDEA will completely ignore the declaration!
+          setter.setAsdoc(null);
+        }
+        if (extConfigAnnotation != null) {
+          setter.addAnnotation(extConfigAnnotation);
+        }
+      }
+      classModel.addMember(propertyModel);
     }
   }
 
@@ -649,18 +693,11 @@ public class ExtAsApiGenerator {
   }
 
   private static void setVisibility(MemberModel memberModel, Member member) {
-    memberModel.setNamespace(member.protected_ || member.meta.protected_ ? NamespacedModel.PROTECTED : NamespacedModel.PUBLIC);
+    memberModel.setNamespace(extJsApi.isProtected(member) ? NamespacedModel.PROTECTED : NamespacedModel.PUBLIC);
   }
 
   private static void setStatic(MemberModel memberModel, Member member) {
-    ExtClass extClass = extJsApi.getExtClass(member.owner);
-    memberModel.setStatic(!extClass.singleton &&
-            (member.static_ || member.meta.static_ || isConstantName(member.name))
-    );
-  }
-
-  private static boolean isConstantName(String name) {
-    return CONSTANT_NAME_PATTERN.matcher(name).matches();
+    memberModel.setStatic(extJsApi.isStatic(member));
   }
 
   private static String toAsDoc(Tag tag) {
@@ -909,16 +946,27 @@ public class ExtAsApiGenerator {
   }
 
   private static void annotateBindableConfigProperties(ClassModel classModel) {
-    for (MemberModel member : classModel.getMembers()) {
-      if (member.isAccessor() && !member.getAnnotations(Jooc.EXT_CONFIG_ANNOTATION_NAME).isEmpty()) {
+    List<MemberModel> members = classModel.getMembers();
+    // two-pass to get the order of @see #get() and @see #set() right:
+    // first, the getters:
+    for (MemberModel member : members) {
+      if (member.isGetter()) {
+        annotateBindableConfigProperty(classModel, (MethodModel) member);
+      }
+    }
+    // then, the setters:
+    for (MemberModel member : members) {
+      if (member.isSetter()) {
         annotateBindableConfigProperty(classModel, (MethodModel) member);
       }
     }
   }
 
   private static void annotateBindableConfigProperty(ClassModel classModel, MethodModel accessor) {
-    boolean isSetter = accessor.isSetter();
-    String prefix = isSetter ? "set" : "get";
+    if (accessor.getAnnotations(Jooc.EXT_CONFIG_ANNOTATION_NAME).isEmpty()) {
+      return;
+    }
+    String prefix = accessor.getMethodType().toString();
 
     String propertyType = getMethodType(accessor, accessor.getMethodType());
     if (propertyType == null) {
@@ -934,12 +982,12 @@ public class ExtAsApiGenerator {
     }
 
     List<ParamModel> methodParams = method.getParams();
-    if (isSetter && methodParams.isEmpty()) {
+    if (accessor.isSetter() && methodParams.isEmpty()) {
       warnConfigProperty(String.format("matching setter method '%s' without parameters. "
               + "Still marking property as [Bindable] - assuming it's compatible at runtime.",
               method.getName()), classModel, accessor);
     } else {
-      List<ParamModel> moreParams = isSetter ? methodParams.subList(1, methodParams.size()) : methodParams;
+      List<ParamModel> moreParams = accessor.isSetter() ? methodParams.subList(1, methodParams.size()) : methodParams;
       for (ParamModel param : moreParams) {
         if (!param.isOptional()) {
           warnConfigProperty(String.format("matching %ster method '%s' has additional non-optional parameter '%s'",
@@ -965,7 +1013,15 @@ public class ExtAsApiGenerator {
     }
 
     accessor.addAnnotation(new AnnotationModel(Jooc.BINDABLE_ANNOTATION_NAME));
-    accessor.setAsdoc(accessor.getAsdoc() + "\n@see #" + methodName + "()");
+    MethodModel documentedMethod = null;
+    if (accessor.isSetter()) {
+      documentedMethod = classModel.getMethod(accessor.isStatic(), MethodType.GET, accessor.getName());
+    }
+    if (documentedMethod == null) {
+      documentedMethod = accessor;
+    }
+    String asDoc = documentedMethod.getAsdoc();
+    documentedMethod.setAsdoc((asDoc == null ? "" : asDoc) + "\n@see #" + methodName + "()");
   }
 
   private static String getMethodType(MethodModel method, MethodType methodType) {
