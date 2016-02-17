@@ -7,7 +7,7 @@ Class = {
 };
 Vector$object = Array;
 
-AS3 = {
+Ext.apply(Ext.ns("AS3"), {
   // function assert(cond : Object, file : String, line : uint, column : uint) : void
   assert: function (cond, file, line, column) {
     if (!cond)
@@ -137,4 +137,4 @@ AS3 = {
     }
     return null;
   }
-};
+});
