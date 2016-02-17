@@ -64,6 +64,7 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
   public static final String PUBLIC_API_INCLUSION_ANNOTATION_NAME = "PublicApi";
   public static final String NATIVE_ANNOTATION_NAME = "Native";
   public static final String NATIVE_ANNOTATION_REQUIRE_PROPERTY = "require";
+  public static final String MIXIN_ANNOTATION_NAME = "Mixin";
   public static final String BINDABLE_ANNOTATION_NAME = "Bindable";
   public static final String EXT_CONFIG_ANNOTATION_NAME = "ExtConfig";
 

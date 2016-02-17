@@ -313,7 +313,7 @@ public class ExtAsApiGenerator {
       System.out.printf("Generating AS3 API model %s for %s...%n", extAsInterfaceUnit.getQName(), extClassName);
       ClassModel extAsInterface = (ClassModel)extAsInterfaceUnit.getPrimaryDeclaration();
       extAsInterface.setInterface(true);
-      extAsInterface.setAsdoc(toAsDoc(extClass.doc));
+      extAsInterface.setAsdoc(toAsDoc(extClass.doc) + "\n * @see " + extClassName);
       if (extClass.extends_ != null) {
         String superInterface = convertToInterface(getActionScriptName(extClass.extends_));
         if (superInterface != null) {
@@ -341,7 +341,8 @@ public class ExtAsApiGenerator {
       extAsClass.addAnnotation(nativeAnnotation);
     }
     if (extAsInterfaceUnit != null) {
-      extAsInterfaceUnit.getClassModel().addAnnotation(nativeAnnotation);
+      extAsInterfaceUnit.getClassModel().addAnnotation(new AnnotationModel(Jooc.MIXIN_ANNOTATION_NAME,
+              new AnnotationPropertyModel(null, CompilerUtils.quote(extClassName))));
     }
     if (extClass.private_) {
       extAsClass.addAnnotation(new AnnotationModel(Jooc.PUBLIC_API_EXCLUSION_ANNOTATION_NAME));
