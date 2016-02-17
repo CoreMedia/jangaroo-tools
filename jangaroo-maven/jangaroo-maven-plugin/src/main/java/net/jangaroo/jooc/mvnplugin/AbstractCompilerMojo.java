@@ -13,8 +13,9 @@ import org.apache.maven.model.Plugin;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
-import org.codehaus.plexus.compiler.CompilerError;
+import org.codehaus.plexus.compiler.CompilerMessage;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.StringUtils;
@@ -43,32 +44,28 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
 
   /**
    * The Maven project object
-   *
-   * @parameter expression="${project}"
    */
+  @Parameter(defaultValue = "${project}", required = true, readonly = true)
   private MavenProject project;
 
   /**
    * Indicates whether the build will fail if there are compilation errors.
-   *
-   * @parameter expression="${maven.compiler.failOnError}" default-value="true"
    */
   @SuppressWarnings("FieldCanBeLocal")
-  private boolean failOnError = true;
+  @Parameter(property = "maven.compiler.failOnError", defaultValue = "true")
+  private boolean failOnError;
 
   /**
    * Set "enableAssertions" to "true" in order to generate runtime checks for assert statements.
-   *
-   * @parameter expression="${maven.compile.ea}" default-value="false"
    */
+  @Parameter(property = "maven.compile.ea", defaultValue = "false")
   private boolean enableAssertions;
 
   /**
    * Set "allowDuplicateLocalVariables" to "true" in order to allow multiple declarations of local variables
    * within the same scope.
-   *
-   * @parameter default-value="false"
    */
+  @Parameter(defaultValue = "false")
   private boolean allowDuplicateLocalVariables;
 
   /**
@@ -76,18 +73,16 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
    * i.e. classes annotated with <code>[ExcludeClass]</code>.
    * It can take the values "warn" to log a warning whenever such a class is used, "allow" to suppress such warnings,
    * and "error" to stop the build with an error.
-   *
-   * @parameter default-value="warn"
    */
+  @Parameter(defaultValue = "warn")
   private String publicApiViolations;
 
   /**
    * If set to "true", the compiler will add an [ExcludeClass] annotation to any
    * API stub whose source class contains neither an [PublicApi] nor an [ExcludeClass]
    * annotation.
-   *
-   * @parameter expression="${maven.compiler.excludeClassByDefault}" default-value="false"
    */
+  @Parameter(property = "maven.compiler.excludeClassByDefault", defaultValue = "false")
   private boolean excludeClassByDefault;
 
   /**
@@ -95,63 +90,55 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
    * (currently only Google Chrome) to show the original ActionScript source code during
    * debugging.
    * Set to <code>false</code> to disable this feature to decrease build time and artifact size.
-   *
-   * @parameter expression="${maven.compiler.generateSourceMaps}" default-value="true"
    */
+  @Parameter(property = "maven.compiler.generateSourceMaps", defaultValue = "true")
   private boolean generateSourceMaps;
 
   /**
    * If set to "true", the compiler will generate more detailed progress information.
-   *
-   * @parameter expression="${maven.compiler.verbose}" default-value="false"
    */
+  @Parameter(property = "maven.compiler.verbose", defaultValue = "false")
   private boolean verbose;
 
   /**
    * Sets the granularity in milliseconds of the last modification
    * date for testing whether a source needs recompilation.
-   *
-   * @parameter expression="${lastModGranularityMs}" default-value="0"
    */
+  @Parameter(property = "lastModGranularityMs", defaultValue = "0")
   private int staleMillis;
 
   /**
    * Keyword list to be appended to the -g  command-line switch. Legal values are one of the following keywords: none, lines, or source.
    * If debuglevel is not specified, by default, nothing will be appended to -g. If debug is not turned on, this attribute will be ignored.
-   *
-   * @parameter default-value="source"
    */
+  @Parameter(defaultValue = "source")
   private String debuglevel;
 
   /**
    * Keyword list to be appended to the -autosemicolon  command-line switch. Legal values are one of the following keywords: error, warn (default), or quirks.
-   *
-   * @parameter default-value="warn"
    */
+  @Parameter(defaultValue = "warn")
   private String autoSemicolon;
 
   /**
    * Output directory for all generated ActionScript3 files to compile.
-   *
-   * @parameter expression="${project.build.directory}/generated-sources/joo"
    */
+  @Parameter(defaultValue = "${project.build.directory}/generated-sources/joo")
   private File generatedSourcesDirectory;
 
   /**
    * Directory where to save ActionScript3 files generated from MXML.
    * These are not needed for compilation (MXML files are compiled directly to JavaScript),
    * but can be kept for your information.
-   *
-   * @parameter
    */
+  @Parameter
   private File keepGeneratedActionScriptDirectory;
 
   /**
    * Output directory into which to generate an SWC-compatible catalog.xml generated
    * from all namespaces and manifests.
-   *
-   * @parameter expression="${project.build.outputDirectory}"
    */
+  @Parameter(defaultValue = "${project.build.outputDirectory}")
   private File catalogOutputDirectory;
 
   @Override
@@ -242,22 +229,20 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
       compilationError = (result != CompilationResult.RESULT_CODE_OK);
     }
 
-    List<CompilerError> messages = Collections.emptyList();
+    List<CompilerMessage> messages = Collections.emptyList();
 
     if (compilationError && failOnError) {
       log.info("-------------------------------------------------------------");
       log.error("COMPILATION ERROR : ");
       log.info("-------------------------------------------------------------");
-      if (messages != null) {
-        for (CompilerError message : messages) {
-          log.error(message.toString());
-        }
-        log.info(messages.size() + ((messages.size() > 1) ? " errors " : "error"));
-        log.info("-------------------------------------------------------------");
+      for (CompilerMessage message : messages) {
+        log.error(message.toString());
       }
+      log.info(messages.size() + ((messages.size() > 1) ? " errors " : "error"));
+      log.info("-------------------------------------------------------------");
       throw new MojoFailureException("Compilation failed");
     } else {
-      for (CompilerError message : messages) {
+      for (CompilerMessage message : messages) {
         log.warn(message.toString());
       }
     }

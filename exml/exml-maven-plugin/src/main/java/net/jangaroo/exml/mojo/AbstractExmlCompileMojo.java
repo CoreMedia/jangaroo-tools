@@ -9,6 +9,7 @@ import net.jangaroo.jooc.api.FilePosition;
 import net.jangaroo.jooc.api.Jooc;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.util.StringUtils;
 
 import java.io.File;
@@ -23,38 +24,35 @@ public abstract class AbstractExmlCompileMojo extends AbstractExmlMojo {
 
   /**
    * The folder where the XSD Schema for this component suite will be generated
-   *
-   * @parameter default-value="${project.build.directory}/generated-resources"
    */
+  @Parameter(defaultValue = "${project.build.directory}/generated-resources")
   private File generatedResourcesDirectory;
 
   /**
    * A switch to control EXML validation against EXML schema and generated component suite schemas.
    * It can take the values "off" to skip validation (default), "warn" to log a warning whenever a validation
    * error occurs, and "error" to stop the build with an error whenever validation errors occur.
-   *
-   * @parameter default-value="off"
    */
+  @Parameter(defaultValue = "off")
   private String validationMode;
 
   /**
    * A list of inclusion filters for the compiler.
-   *
-   * @parameter
    */
+  @Parameter
   private Set<String> includes = new HashSet<String>();
+
   /**
    * A list of exclusion filters for the compiler.
-   *
-   * @parameter
    */
+  @Parameter
   private Set<String> excludes = new HashSet<String>();
+
   /**
    * Sets the granularity in milliseconds of the last modification
    * date for testing whether a source needs recompilation.
-   *
-   * @parameter expression="${lastModGranularityMs}" default-value="0"
    */
+  @Parameter(property = "lastModGranularityMs", defaultValue = "0")
   private int staleMillis;
 
   protected void useAllSources() {
