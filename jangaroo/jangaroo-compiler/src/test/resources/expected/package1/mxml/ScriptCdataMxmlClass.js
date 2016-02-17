@@ -2,9 +2,9 @@ Ext.define("AS3.package1.mxml.ScriptCdataMxmlClass", function(ScriptCdataMxmlCla
 import package1.*;
 import package1.ConfigClass;
 import package1.mxml.SimpleInterface;
+class ScriptCdataMxmlClass extends ConfigClass implements SimpleInterface{
 
     import package1.someOtherPackage.SomeOtherClass;
-class ScriptCdataMxmlClass extends ConfigClass implements SimpleInterface{
 
     private var field1:SomeOtherClass = null;
     protected var field2:Vector$object.<String> =*/function field2_(){this.field2=(/* new <String>*/["a", "b"]);}/*;

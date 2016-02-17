@@ -83,11 +83,8 @@ public class MxmlCompilationUnit extends CompilationUnit {
 
     // TODO traverse XML nodes and insert
     // 1. imports
-    List<Directive> imports = new LinkedList<Directive>();
     // 2. class level annotations
-    List<Directive> annotations = new LinkedList<Directive>();
-    // 3. script code (without imports)
-    List<Directive> noImports = new LinkedList<Directive>();
+    // 3. script code
     // 4. declarations
     // 5. ordinary members from nested elements
 
@@ -104,25 +101,14 @@ public class MxmlCompilationUnit extends CompilationUnit {
           if (null != first) {
             ClassBody embedded = mxmlParserHelper.parseClassBody(first);
             if (MxmlUtils.MXML_METADATA.equals(name)) {
-              annotations.addAll(embedded.getDirectives());
+              importsAndAnnotations.addAll(embedded.getDirectives());
             } else if (MxmlUtils.MXML_SCRIPT.equals(name)) {
-              List<Directive> embeddedDirectives = embedded.getDirectives();
-              for (Directive embeddedDirective : embeddedDirectives) {
-                if (embeddedDirective instanceof ImportDirective) {
-                  imports.add(embeddedDirective);
-                } else {
-                  noImports.add(embeddedDirective);
-                }
-              }
+              classBodyDirectives.addAll(embedded.getDirectives());
             }
           }
         }
       }
     }
-
-    importsAndAnnotations.addAll(imports);
-    importsAndAnnotations.addAll(annotations);
-    classBodyDirectives.addAll(noImports);
 
     super.scope(scope);
   }
@@ -155,8 +141,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
 
     // assemble class declaration
     ClassBody classBody = new ClassBody(SYM_LBRACE, classBodyDirectives, SYM_RBRACE);
-    // TODO care for class comment
-    JooSymbol symClass = new JooSymbol(sym.CLASS, source.getPath(), rootNodeSymbol.getLine(), rootNodeSymbol.getColumn(), rootNodeSymbol.getWhitespace(), CLASS);
+    JooSymbol symClass = new JooSymbol(sym.CLASS, source.getPath(), rootNodeSymbol.getLine(), rootNodeSymbol.getColumn(), MxmlUtils.toASDoc(rootNodeSymbol.getWhitespace()), CLASS);
 
     primaryDeclaration = new ClassDeclaration(SYM_MODIFIERS, symClass, new Ide(CompilerUtils.className(classQName)), ext, impl, classBody);
   }

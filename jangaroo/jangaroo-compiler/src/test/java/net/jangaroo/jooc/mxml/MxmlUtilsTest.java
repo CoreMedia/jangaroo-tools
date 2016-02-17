@@ -35,4 +35,15 @@ public class MxmlUtilsTest {
     Assert.assertEquals("foo + \"bar\" + \"{baz\"", MxmlUtils.getBindingExpression("{foo}bar{baz"));
     Assert.assertEquals("\"foo}bar\" + baz", MxmlUtils.getBindingExpression("foo}bar{baz}"));
   }
+
+  @Test
+  public void testToASDoc() {
+    Assert.assertEquals("\n\n\n/** ok_1 */ /**\n\n ok_2\n\n */ ",
+            MxmlUtils.toASDoc("<!-- three empty lines \n\n -->\n" +
+                    "<!--- ok_1 --><!-- nok --><!---\n" +
+                    "\n" +
+                    " ok_2\n" +
+                    "\n" +
+                    " -->"));
+  }
 }

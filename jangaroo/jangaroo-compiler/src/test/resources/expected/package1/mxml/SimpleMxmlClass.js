@@ -3,12 +3,11 @@ import package1.someOtherPackage.SomeOtherClass;
 import package1.someOtherPackage.SomeEvent;
 import joo.addEventListener;
 import net.jangaroo.ext.Exml;
-
 /**
- * My config class subclass, authored in MXML.
+  My config class subclass, authored in MXML.
  * /
-public class SomeMxmlClass extends package1.ConfigClass implements package1.Interface {
-    public static const xtype:String = "testNamespace.config.soneMxmlClass";
+public class SimpleMxmlClass extends package1.ConfigClass implements package1.Interface {
+    public static const xtype:String = "testNamespace.config.simpleMxmlClass";
 
     import foo.Bar;
 
