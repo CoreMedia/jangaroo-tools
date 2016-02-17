@@ -32,17 +32,34 @@ abstract class AbstractSenchaHelper implements SenchaHelper {
     this.senchaModuleName = SenchaUtils.getSenchaPackageNameForMavenProject(project);
   }
 
-  protected void copyFilesFromJoo(String path) throws MojoExecutionException {
+  private void copyFilesFromSrc(String path, String suffix) throws MojoExecutionException {
+    File srcDir = new File(project.getBasedir() + File.separator + SenchaUtils.SENCHA_BASE_PATH + File.separator + suffix);
+    File senchaDir = new File(path + File.separator + suffix);
+    if (srcDir.exists()) {
+      try {
+        FileUtils.copyDirectory(srcDir, senchaDir);
+      } catch (IOException e) {
+        throw new MojoExecutionException("could not copy " + suffix, e);
+      }
+    }
+  }
+
+  protected void copyFilesFromSrc(String path) throws MojoExecutionException {
+    copyFilesFromSrc(path, SenchaUtils.SENCHA_RELATIVE_RESOURCES_PATH);
+    copyFilesFromSrc(path, SenchaUtils.SENCHA_RELATIVE_OVERRIDES_PATH);
+    copyFilesFromSrc(path, SenchaUtils.SENCHA_RELATIVE_RESOURCES_PATH);
+    copyFilesFromSrc(path, SenchaUtils.SENCHA_RELATIVE_SASS_PATH);
+    copyFilesFromSrc(path, SenchaUtils.SENCHA_RELATIVE_CLASSIC_PATH);
+    copyFilesFromSrc(path, SenchaUtils.SENCHA_RELATIVE_MODERN_PATH);
+    copyFilesFromSrc(path, SenchaUtils.SENCHA_RELATIVE_PRODUCTION_PATH);
+    copyFilesFromSrc(path, SenchaUtils.SENCHA_RELATIVE_TESTING_PATH);
+    copyFilesFromSrc(path, SenchaUtils.SENCHA_RELATIVE_DEVELOPMENT_PATH);
+  }
+
+  private void copyFilesFromJoo(String path) throws MojoExecutionException {
     File jangarooResourcesDir = new File(project.getBuild().getDirectory() + "/classes/META-INF/resources");
     File senchaResourcesDir = new File(path + File.separator + SenchaUtils.SENCHA_RELATIVE_RESOURCES_PATH);
     if (jangarooResourcesDir.exists()) {
-      if (senchaResourcesDir.exists()) {
-        try {
-          FileUtils.deleteDirectory(senchaResourcesDir);
-        } catch (IOException e) {
-          throw new MojoExecutionException("could not clean resources folder in sencha package", e);
-        }
-      }
       try {
         FileUtils.copyDirectory(jangarooResourcesDir, senchaResourcesDir);
       } catch (IOException e) {
@@ -53,13 +70,6 @@ abstract class AbstractSenchaHelper implements SenchaHelper {
     File jangarooClassDir = new File(senchaResourcesDir.getAbsolutePath() + File.separator + "joo/classes");
     if (jangarooClassDir.exists()) {
       File senchaClassDir = new File(path + File.separator + SenchaUtils.SENCHA_RELATIVE_CLASS_PATH);
-      if (senchaClassDir.exists()) {
-        try {
-          FileUtils.deleteDirectory(senchaClassDir);
-        } catch (IOException e) {
-          throw new MojoExecutionException("could not clean class folder in sencha package", e);
-        }
-      }
       try {
         FileUtils.moveDirectory(jangarooClassDir, senchaClassDir);
       } catch (IOException e) {
@@ -70,19 +80,17 @@ abstract class AbstractSenchaHelper implements SenchaHelper {
     File jangarooOverridesDir = new File(senchaResourcesDir.getAbsolutePath() + File.separator + "joo/overrides");
     if (jangarooOverridesDir.exists()) {
       File senchaOverridesDir = new File(path + File.separator + SenchaUtils.SENCHA_RELATIVE_OVERRIDES_PATH);
-      if (senchaOverridesDir.exists()) {
-        try {
-          FileUtils.deleteDirectory(senchaOverridesDir);
-        } catch (IOException e) {
-          throw new MojoExecutionException("could not clean overrides folder in sencha package", e);
-        }
-      }
       try {
         FileUtils.moveDirectory(jangarooOverridesDir, senchaOverridesDir);
       } catch (IOException e) {
         throw new MojoExecutionException("could not copy overrides", e);
       }
     }
+  }
+
+  protected void copyFiles(String path) throws MojoExecutionException {
+    copyFilesFromSrc(path);
+    copyFilesFromJoo(path);
   }
 
   protected MavenProject getProject() {

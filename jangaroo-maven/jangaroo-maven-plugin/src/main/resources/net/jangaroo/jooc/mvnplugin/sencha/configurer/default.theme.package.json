@@ -16,7 +16,7 @@
   "js": [],
   "sass" : {
     "namespace": "Ext",
-    "etc": "${package.dir}/sass/etc/all.scss,${package.dir}/${toolkit.name}/sass/etc/all.scss",
+    "etc": "${package.dir}/sass/etc/imports.scss,${package.dir}/${toolkit.name}/sass/etc/imports.scss",
     "var": "${package.dir}/sass/var,${package.dir}/${toolkit.name}/sass/var",
     "src": "${package.dir}/sass/src,${package.dir}/${toolkit.name}/sass/src"
   },

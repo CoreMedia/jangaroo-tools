@@ -58,7 +58,7 @@ class SenchaAppHelper extends AbstractSenchaHelper {
         getLog().debug("created " + senchaDirectory.mkdirs());
       }
 
-      copyFilesFromJoo(senchaPath);
+      copyFiles(senchaPath);
 
       File workingDirectory = new File(senchaPath);
 

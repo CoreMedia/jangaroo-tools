@@ -82,7 +82,7 @@ class SenchaPackageHelper extends AbstractSenchaHelper {
         getLog().debug("created " + senchaPackageDirectory.mkdirs());
       }
 
-      copyFilesFromJoo(senchaPackagePath);
+      copyFiles(senchaPackagePath);
 
       File workingDirectory = new File(senchaPackagePath);
 

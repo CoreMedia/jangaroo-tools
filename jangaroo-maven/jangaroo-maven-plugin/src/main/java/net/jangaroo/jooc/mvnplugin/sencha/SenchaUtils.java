@@ -36,6 +36,12 @@ public class SenchaUtils {
   public static final String SENCHA_RELATIVE_CLASS_PATH = "src";
   public static final String SENCHA_RELATIVE_OVERRIDES_PATH = "overrides";
   public static final String SENCHA_RELATIVE_RESOURCES_PATH = "resources";
+  public static final String SENCHA_RELATIVE_SASS_PATH = "sass";
+  public static final String SENCHA_RELATIVE_CLASSIC_PATH = "classic";
+  public static final String SENCHA_RELATIVE_MODERN_PATH = "modern";
+  public static final String SENCHA_RELATIVE_PRODUCTION_PATH = "production";
+  public static final String SENCHA_RELATIVE_TESTING_PATH = "testing";
+  public static final String SENCHA_RELATIVE_DEVELOPMENT_PATH = "development";
 
   public static final String SENCHA_DIRECTORYNAME = ".sencha";
   public static final String SENCHA_CFG = "sencha.cfg";

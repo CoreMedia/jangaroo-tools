@@ -93,12 +93,7 @@ public class PackagesConfigurer implements Configurer {
         // needs to be put into: apps: [], ignore for now path = Paths.get(p.getBuild().getDirectory() + File.separator + SENCHA_BASE_PATH);
       } else {
         Path path;
-        // TODO: check type by configuration not by name
-        if (p.getArtifactId().endsWith("-theme")) {
-          path = Paths.get(p.getBuild().getDirectory() + File.separator + "..");
-        } else {
-          path = Paths.get(p.getBuild().getDirectory() + File.separator + SenchaUtils.SENCHA_BASE_PATH + File.separator + "packages" + File.separator + SenchaUtils.SENCHA_PACKAGES_LOCAL);
-        }
+        path = Paths.get(p.getBuild().getDirectory() + File.separator + SenchaUtils.SENCHA_BASE_PATH + File.separator + "packages" + File.separator + SenchaUtils.SENCHA_PACKAGES_LOCAL);
         Path relativePath = rootPath.relativize(path);
         String relativePathString = relativePath.toString();
 
