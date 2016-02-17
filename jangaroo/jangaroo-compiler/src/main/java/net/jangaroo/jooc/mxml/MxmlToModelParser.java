@@ -57,7 +57,6 @@ public final class MxmlToModelParser {
   public static final String MXML_METADATA = "Metadata";
   public static final String MXML_ID_ATTRIBUTE = "id";
   public static final String MXML_IMPLEMENTS_ATTRIBUTE = "implements";
-  public static final String MXML_DEFAULT_PROPERTY_ANNOTATION = "DefaultProperty";
   public static final String EXML_MIXINS_PROPERTY_NAME = "__mixins__";
 
   private static final String EXT_CONFIG_META_NAME = "ExtConfig";
@@ -757,7 +756,7 @@ public final class MxmlToModelParser {
 
   private MemberModel findDefaultPropertyModel(ClassModel classModel) throws IOException {
     for (ClassModel current = classModel; current != null; current = getSuperClassModel(current)) {
-      MemberModel defaultPropertyModel = current.findPropertyWithAnnotation(false, MXML_DEFAULT_PROPERTY_ANNOTATION);
+      MemberModel defaultPropertyModel = current.findPropertyWithAnnotation(false, MxmlUtils.MXML_DEFAULT_PROPERTY_ANNOTATION);
       if (defaultPropertyModel != null) {
         return defaultPropertyModel;
       }

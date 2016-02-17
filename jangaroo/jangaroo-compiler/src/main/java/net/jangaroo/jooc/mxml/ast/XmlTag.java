@@ -9,7 +9,6 @@ import net.jangaroo.jooc.ast.AstVisitor;
 import net.jangaroo.jooc.ast.Ide;
 import net.jangaroo.jooc.ast.NamespacedIde;
 import net.jangaroo.jooc.ast.NodeImplBase;
-import net.jangaroo.jooc.mxml.MxmlToModelParser;
 import net.jangaroo.jooc.mxml.MxmlUtils;
 import org.w3c.dom.Node;
 
@@ -26,7 +25,7 @@ public class XmlTag extends NodeImplBase {
 
   public static final String XMLNS = "xmlns";
 
-  private static final List<String> TAGS = Arrays.asList(MxmlToModelParser.MXML_DECLARATIONS, MxmlToModelParser.MXML_METADATA, MxmlToModelParser.MXML_SCRIPT);
+  private static final List<String> TAGS = Arrays.asList(MxmlUtils.MXML_DECLARATIONS, MxmlUtils.MXML_METADATA, MxmlUtils.MXML_SCRIPT);
 
   private final Map<String, String> xmlNamespaces = new HashMap<String, String>();
 

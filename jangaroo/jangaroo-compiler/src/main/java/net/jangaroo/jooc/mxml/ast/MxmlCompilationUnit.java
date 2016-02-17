@@ -18,7 +18,7 @@ import net.jangaroo.jooc.ast.Implements;
 import net.jangaroo.jooc.ast.ImportDirective;
 import net.jangaroo.jooc.input.InputSource;
 import net.jangaroo.jooc.mxml.MxmlParserHelper;
-import net.jangaroo.jooc.mxml.MxmlToModelParser;
+import net.jangaroo.jooc.mxml.MxmlUtils;
 import net.jangaroo.jooc.sym;
 import net.jangaroo.utils.CompilerUtils;
 
@@ -95,7 +95,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
       XmlElement element = (XmlElement) child;
       if(element.isBuiltInTag()) {
         String name = element.getName();
-        if(MxmlToModelParser.MXML_DECLARATIONS.equals(name)) {
+        if(MxmlUtils.MXML_DECLARATIONS.equals(name)) {
 
 
         } else {
@@ -103,9 +103,9 @@ public class MxmlCompilationUnit extends CompilationUnit {
           JooSymbol first = Iterables.getFirst(textNodes, null);
           if (null != first) {
             ClassBody embedded = mxmlParserHelper.parseClassBody(first);
-            if (MxmlToModelParser.MXML_METADATA.equals(name)) {
+            if (MxmlUtils.MXML_METADATA.equals(name)) {
               annotations.addAll(embedded.getDirectives());
-            } else if (MxmlToModelParser.MXML_SCRIPT.equals(name)) {
+            } else if (MxmlUtils.MXML_SCRIPT.equals(name)) {
               List<Directive> embeddedDirectives = embedded.getDirectives();
               for (Directive embeddedDirective : embeddedDirectives) {
                 if (embeddedDirective instanceof ImportDirective) {

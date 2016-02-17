@@ -1,8 +1,5 @@
 package net.jangaroo.jooc.mxml;
 
-import net.jangaroo.jooc.model.AnnotationModel;
-import net.jangaroo.jooc.model.AnnotationPropertyModel;
-import net.jangaroo.jooc.model.ClassModel;
 import net.jangaroo.utils.AS3Type;
 import net.jangaroo.utils.CompilerUtils;
 import org.w3c.dom.Element;
@@ -21,7 +18,13 @@ import java.util.regex.Pattern;
 public class MxmlUtils {
 
   public static final String MXML_NAMESPACE_URI = "http://ns.adobe.com/mxml/2009";
-  public static final String RESOURCE_BUNDLE_ANNOTATION = "ResourceBundle";
+  public static final String EXML_UNTYPED_NAMESPACE = "exml:untyped";
+  public static final String MXML_DECLARATIONS = "Declarations";
+  public static final String MXML_SCRIPT = "Script";
+  public static final String MXML_METADATA = "Metadata";
+  public static final String MXML_ID_ATTRIBUTE = "id";
+  public static final String MXML_DEFAULT_PROPERTY_ANNOTATION = "DefaultProperty";
+  public static final String EXML_MIXINS_PROPERTY_NAME = "__mixins__";
 
   private static final Pattern IS_BINDING_EXPRESSION_PATTERN = Pattern.compile("(^|[^\\\\])\\{([^}]*[^\\\\])\\}");
   private static final Pattern BINDING_EXPRESSION_START_OR_END_PATTERN = Pattern.compile("[{}]");
@@ -99,15 +102,6 @@ public class MxmlUtils {
             : uri.equals("*") || isMxmlNamespace(uri) ? "" : null;
   }
 
-  public static Element findChildElement(Element element, String namespace, String nodeName) {
-    for (Element child : getChildElements(element)) {
-      if (namespace.equals(child.getNamespaceURI()) && nodeName.equals(child.getLocalName())) {
-        return child;
-      }
-    }
-    return null;
-  }
-
   public static List<Element> getChildElements(Element element) {
     List<Element> result = new ArrayList<Element>();
     NodeList propertyChildNotes = element.getChildNodes();
@@ -172,23 +166,4 @@ public class MxmlUtils {
     return name.substring(0,1).toUpperCase() + name.substring(1);
   }
 
-  public static String uncapitalize(String name) {
-    if (name == null || name.length() == 0) {
-      return name;
-    }
-    return name.substring(0,1).toLowerCase() + name.substring(1);
-  }
-
-  public static void addResourceBundleAnnotation(ClassModel classModel, String bundle) {
-    // check if already present:
-    List<AnnotationModel> annotations = classModel.getAnnotations(RESOURCE_BUNDLE_ANNOTATION);
-    for (AnnotationModel annotation : annotations) {
-      AnnotationPropertyModel propertyModel = annotation.getPropertiesByName().get("");
-      if (propertyModel != null && bundle.equals(propertyModel.getStringValue())) {
-        return; // found: bail out
-      }
-    }
-    // not found: add a new annotation
-    classModel.addAnnotation(new AnnotationModel(RESOURCE_BUNDLE_ANNOTATION, new AnnotationPropertyModel("", CompilerUtils.quote(bundle))));
-  }
 }
