@@ -37,7 +37,7 @@ class SenchaPackageHelper extends AbstractSenchaHelper {
     String buildDirectory = project.getBuild().getDirectory();
     this.senchaPath = buildDirectory + File.separator + SenchaUtils.SENCHA_BASE_PATH;
 
-    this.senchaPackagePath = senchaPath + File.separator + SenchaUtils.SENCHA_PACKAGES + File.separator + SenchaUtils.SENCHA_PACKAGES_LOCAL + File.separator + getSenchaModuleName();
+    this.senchaPackagePath = senchaPath + File.separator + SenchaUtils.SENCHA_PACKAGES + File.separator + SenchaUtils.SENCHA_PACKAGES_LOCAL + File.separator + SenchaUtils.LOCAL_PACKAGE_PATH;
 
     MetadataConfigurer metadataConfigurer = new MetadataConfigurer(project);
     RequiresConfigurer requiresConfigurer = new RequiresConfigurer(project);

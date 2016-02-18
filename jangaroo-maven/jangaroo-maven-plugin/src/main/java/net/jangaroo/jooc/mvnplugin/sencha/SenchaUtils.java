@@ -33,6 +33,19 @@ public class SenchaUtils {
   public static final String SENCHA_PACKAGES_LOCAL = "local";
   public static final String SENCHA_PACKAGES_REMOTE = "remote";
 
+  /**
+   * The name of the folder of the generated module inside the {@link SenchaUtils#SENCHA_PACKAGES_LOCAL} folder.
+   * Make sure that the name is not too long to avoid exceeding the max path length in windows.
+   * The old path length relative to the target folder was 43 chars:
+   * classes\META-INF\resources\joo\classes\com
+   *
+   * So to avoid compatiblity issues the max length for the path is:
+   *
+   * 43 - SENCHA_BASE_BATH.length - SENCHA_PACKAGES.length - SENCHA_PACKAGE_LOCAL.length
+   *    - SENCHA_RELATIVE_CLASS_PATH.length - 4 (Separator)
+   */
+  public static final String LOCAL_PACKAGE_PATH = "package";
+
   public static final String SENCHA_RELATIVE_CLASS_PATH = "src";
   public static final String SENCHA_RELATIVE_OVERRIDES_PATH = "overrides";
   public static final String SENCHA_RELATIVE_RESOURCES_PATH = "resources";
