@@ -63,7 +63,7 @@ abstract class AbstractSenchaHelper implements SenchaHelper {
       try {
         FileUtils.copyDirectory(jangarooResourcesDir, senchaResourcesDir);
       } catch (IOException e) {
-        throw new MojoExecutionException("could not copy classes", e);
+        throw new MojoExecutionException("could not copy resources", e);
       }
     }
 
@@ -71,7 +71,9 @@ abstract class AbstractSenchaHelper implements SenchaHelper {
     if (jangarooClassDir.exists()) {
       File senchaClassDir = new File(path + File.separator + SenchaUtils.SENCHA_RELATIVE_CLASS_PATH);
       try {
-        FileUtils.moveDirectory(jangarooClassDir, senchaClassDir);
+        // FileUtils.move fails if directory already exists
+        FileUtils.copyDirectory(jangarooClassDir, senchaClassDir);
+        FileUtils.deleteDirectory(jangarooClassDir);
       } catch (IOException e) {
         throw new MojoExecutionException("could not copy classes", e);
       }
@@ -81,7 +83,9 @@ abstract class AbstractSenchaHelper implements SenchaHelper {
     if (jangarooOverridesDir.exists()) {
       File senchaOverridesDir = new File(path + File.separator + SenchaUtils.SENCHA_RELATIVE_OVERRIDES_PATH);
       try {
-        FileUtils.moveDirectory(jangarooOverridesDir, senchaOverridesDir);
+        // FileUtils.move fails if directory already exists
+        FileUtils.copyDirectory(jangarooOverridesDir, senchaOverridesDir);
+        FileUtils.deleteDirectory(jangarooOverridesDir);
       } catch (IOException e) {
         throw new MojoExecutionException("could not copy overrides", e);
       }
