@@ -158,6 +158,14 @@ public class JoocTest {
   }
 
   @Test
+  public void testMixin() throws Exception {
+    File compileResult = compile("package2/ITestMixin");
+    assertFalse("[Mixin] interfaces must not have compile output.", compileResult.exists());
+    assertCompilationResult("package2/TestMixinClient");
+    assertCompilationResult("package2/TestMixin");
+  }
+
+  @Test
   public void testPublicApiApi() throws Exception {
     config.setExcludeClassByDefault(true);
     assertApiCompilationResult("package1/IncludedClass");

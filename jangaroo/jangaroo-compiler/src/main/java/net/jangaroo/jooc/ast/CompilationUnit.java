@@ -23,6 +23,7 @@ import net.jangaroo.utils.AS3Type;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -197,7 +198,22 @@ public class CompilationUnit extends NodeImplBase {
     return packageDeclaration.getSymbol();
   }
 
+  public CompilationUnit mapMixinInterface(CompilationUnit compilationUnit) {
+    if (compilationUnit != null && compilationUnit.getPrimaryDeclaration() instanceof ClassDeclaration
+            && ((ClassDeclaration)compilationUnit.getPrimaryDeclaration()).isInterface()) {
+      Annotation mixinAnnotation = compilationUnit.getAnnotation(Jooc.MIXIN_ANNOTATION_NAME);
+      if (mixinAnnotation != null) {
+        Iterator<String> mixinClassNames = getAnnotationDefaultParameterStringValues(mixinAnnotation).iterator();
+        if (mixinClassNames.hasNext()) {
+          return scope.getCompiler().getCompilationUnit(mixinClassNames.next());
+        }
+      }
+    }
+    return compilationUnit;
+  }
+
   public void addDependency(CompilationUnit otherUnit, boolean required) {
+    otherUnit = mapMixinInterface(otherUnit);
     // Predefined ides have a null unit.
     // Self dependencies are ignored.
     if (otherUnit != null && otherUnit != this) {

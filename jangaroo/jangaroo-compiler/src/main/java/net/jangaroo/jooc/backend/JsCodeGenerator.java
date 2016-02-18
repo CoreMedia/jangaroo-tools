@@ -422,11 +422,18 @@ public class JsCodeGenerator extends CodeGeneratorBase {
         if (superInterface == null) {
           System.err.println("ignoring unresolvable interface " + superTypes.getHead().getQualifiedNameStr());
         } else {
-          superInterfaces.add(compilationUnitAccessCode(superInterface));
+          CompilationUnit mixinCompilationUnit = compilationUnit.mapMixinInterface(superInterface.getCompilationUnit());
+          if (!compilationUnit.equals(mixinCompilationUnit)) {
+            superInterfaces.add(compilationUnitAccessCode(mixinCompilationUnit != null
+                    ? mixinCompilationUnit.getPrimaryDeclaration()
+                    : superInterface));
+          }
         }
         superTypes = superTypes.getTail();
       }
-      classDefinition.set("mixins", new JsonArray(superInterfaces.toArray()));
+      if (!superInterfaces.isEmpty()) {
+        classDefinition.set("mixins", new JsonArray(superInterfaces.toArray()));
+      }
     }
   }
 
