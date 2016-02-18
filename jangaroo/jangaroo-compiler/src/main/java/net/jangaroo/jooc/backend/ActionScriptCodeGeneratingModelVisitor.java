@@ -1,5 +1,6 @@
 package net.jangaroo.jooc.backend;
 
+import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.model.ActionScriptModel;
 import net.jangaroo.jooc.model.AnnotatedModel;
 import net.jangaroo.jooc.model.AnnotationModel;
@@ -60,7 +61,7 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
     }
     output.println();
     for (String aDependency : compilationUnitModel.getDependenciesInModule()) {
-      output.printf("[Uses (\"%s\")]%n", aDependency);
+      output.printf("[%s(\"%s\")]%n", Jooc.USES_ANNOTATION_NAME, aDependency);
     }
     compilationUnitModel.getPrimaryDeclaration().visit(this);
     indent = "";
