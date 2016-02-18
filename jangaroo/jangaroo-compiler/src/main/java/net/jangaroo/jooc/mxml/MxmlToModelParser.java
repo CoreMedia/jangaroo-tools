@@ -157,6 +157,9 @@ public final class MxmlToModelParser {
     String implementsAttribute = objectNode.getAttribute(MXML_IMPLEMENTS_ATTRIBUTE).trim();
     if (!implementsAttribute.isEmpty()) {
       String[] interfaces = implementsAttribute.split(",");
+      for (String anInterface : interfaces) {
+        compilationUnitModel.addImport(anInterface);
+      }
       classModel.setInterfaces(Arrays.asList(interfaces));
     }
 
