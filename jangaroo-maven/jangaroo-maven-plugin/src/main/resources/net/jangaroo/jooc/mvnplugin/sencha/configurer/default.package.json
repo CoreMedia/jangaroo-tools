@@ -2,7 +2,7 @@
   "name": "Package",
   "version": "1.0.0.0",
   "compatVersion": "1.0.0.0",
-  "type": "theme",
+  "type": null,
   "local": true,
   "namespace": "",
   "framework": "ext",
@@ -14,7 +14,7 @@
   "requires": [],
   "css": [],
   "js": [],
-  "sass" : {
+  "sass": {
     "namespace": "Ext",
     "etc": "${package.dir}/sass/etc/imports.scss,${package.dir}/${toolkit.name}/sass/etc/imports.scss",
     "var": "${package.dir}/sass/var,${package.dir}/${toolkit.name}/sass/var",
