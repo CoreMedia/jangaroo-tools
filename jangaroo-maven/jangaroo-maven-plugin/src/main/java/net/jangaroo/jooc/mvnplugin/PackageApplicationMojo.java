@@ -311,6 +311,8 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
     projectBuildingRequest.setLocalRepository(localRepository);
     projectBuildingRequest.setRemoteRepositories(remoteRepositories);
     projectBuildingRequest.setRepositorySession(session.getRepositorySession());
+    projectBuildingRequest.setSystemProperties(session.getSystemProperties());
+    projectBuildingRequest.setUserProperties(session.getUserProperties());
 
     ProjectBuildingResult projectBuildingResult = mavenProjectBuilder.build(artifact, true, projectBuildingRequest);
 
