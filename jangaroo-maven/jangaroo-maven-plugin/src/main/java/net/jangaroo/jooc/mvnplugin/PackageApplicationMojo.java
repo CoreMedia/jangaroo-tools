@@ -5,6 +5,7 @@ import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Dependency;
+import org.apache.maven.model.building.ModelBuildingRequest;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Component;
@@ -310,9 +311,14 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
     ProjectBuildingRequest projectBuildingRequest = new DefaultProjectBuildingRequest();
     projectBuildingRequest.setLocalRepository(localRepository);
     projectBuildingRequest.setRemoteRepositories(remoteRepositories);
+    projectBuildingRequest.setResolveDependencies(false);
+    // validation of dependency artifacts is not really a requirement here
+    projectBuildingRequest.setValidationLevel(ModelBuildingRequest.VALIDATION_LEVEL_MINIMAL);
+    projectBuildingRequest.setProcessPlugins(false);
     projectBuildingRequest.setRepositorySession(session.getRepositorySession());
     projectBuildingRequest.setSystemProperties(session.getSystemProperties());
     projectBuildingRequest.setUserProperties(session.getUserProperties());
+    projectBuildingRequest.setBuildStartTime(session.getStartTime());
 
     ProjectBuildingResult projectBuildingResult = mavenProjectBuilder.build(artifact, true, projectBuildingRequest);
 
