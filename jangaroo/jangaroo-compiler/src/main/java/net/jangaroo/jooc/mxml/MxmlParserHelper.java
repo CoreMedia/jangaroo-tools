@@ -21,6 +21,7 @@ import net.jangaroo.jooc.mxml.ast.XmlTag;
 import net.jangaroo.utils.CompilerUtils;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.List;
 
 public class MxmlParserHelper {
@@ -61,12 +62,14 @@ public class MxmlParserHelper {
     return inputSource;
   }
 
-  public PackageDeclaration parsePackageDeclaration() {
-    String text = CompilerUtils.packageName(CompilerUtils.qNameFromRelativPath(getInputSource().getRelativePath()));
+  @Nonnull
+  public PackageDeclaration parsePackageDeclaration(String classQName) {
+    String text = CompilerUtils.packageName(classQName);
     CompilationUnit unit = (CompilationUnit) parser.parseEmbedded(String.format(TPL_PACKAGE, text), -1, -1).value;
     return unit.getPackageDeclaration();
   }
 
+  @Nonnull
   public ClassBody parseClassBody(@Nonnull JooSymbol symbol) {
     String text = symbol.getText();
     String template = TPL_CLASS_BODY;
@@ -75,6 +78,7 @@ public class MxmlParserHelper {
     return ((ClassDeclaration)unit.getPrimaryDeclaration()).getBody();
   }
 
+  @Nullable
   public Implements parseImplements(@Nonnull JooSymbol symbol) {
     String text = (String) symbol.getJooValue();
     String template = TPL_IMPLEMENTS;
@@ -83,7 +87,8 @@ public class MxmlParserHelper {
     return ((ClassDeclaration)unit.getPrimaryDeclaration()).getOptImplements();
   }
 
-  public Extends parseExtends(JangarooParser parser, @Nonnull XmlElement rootNode, String classQName) {
+  @Nonnull
+  public Extends parseExtends(@Nonnull JangarooParser parser, @Nonnull XmlElement rootNode, @Nonnull String classQName) {
     JooSymbol rootNodeSymbol = rootNode.getSymbol();
     String superClassName = getClassNameForElement(parser, rootNode);
     if (null == superClassName) {
@@ -99,6 +104,7 @@ public class MxmlParserHelper {
     return ((ClassDeclaration)unit.getPrimaryDeclaration()).getOptExtends();
   }
 
+  @Nullable
   public ImportDirective parseImport(@Nonnull JooSymbol symbol) {
     String text = (String) symbol.getJooValue();
     String template = TPL_IMPORT;
@@ -111,7 +117,15 @@ public class MxmlParserHelper {
     return null;
   }
 
-  static int[] position(@Nonnull JooSymbol symbol, String template) {
+  public ImportDirective parseImport(@Nonnull String text) {
+    String template = TPL_IMPORT;
+    Symbol parsed = parser.parseEmbedded(String.format(template, text), -1, -1, true);
+    CompilationUnit unit = (CompilationUnit) parsed.value;
+    return (ImportDirective) Iterables.getFirst(unit.getDirectives(), null);
+  }
+
+  @Nonnull
+  static int[] position(@Nonnull JooSymbol symbol, @Nonnull String template) {
     String[] lines = template.split("\\n");
     int lineCount = 0;
     for(String line : lines) {

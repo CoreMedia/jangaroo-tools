@@ -16,7 +16,7 @@
   <fx:Script><![CDATA[
     public static const xtype:String = "testNamespace.config.simpleMxmlClass";
 
-    public native function SimpleMxmlClass(config:ScriptCdataMxmlClass = null);
+    public native function SimpleMxmlClass(config:SimpleMxmlClass = null);
     ]]></fx:Script>
   <fx:Declarations>
     <fx:String id="bar">BAR!</fx:String>

@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<SimpleClass xmlns:fx="http://ns.adobe.com/mxml/2009"
+             xmlns="package1.mxml.*">
+  <fx:Script><![CDATA[
+    public native function ErrorWrongSuperclass(config:SimpleInterface = null);
+    ]]></fx:Script>
+</SimpleClass>

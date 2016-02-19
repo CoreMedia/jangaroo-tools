@@ -8,7 +8,10 @@ import package1.ConfigClass;
      * /
     [ThisIsJustATest]
     [Deprecated (replacement='use.this.please')]
-class MetadataCdataMxmlClass extends ConfigClass{}*/function MetadataCdataMxmlClass$() {AS3.package1.ConfigClass.prototype.constructor.call(this);}/*}
+class MetadataCdataMxmlClass extends ConfigClass{*/
+function MetadataCdataMxmlClass$(config/*:MetadataCdataMxmlClass=null*/){AS3.package1.ConfigClass.prototype.constructor.call(this);if(arguments.length<=0)config=null;
+var config_$1/*:MetadataCdataMxmlClass*/ =AS3.cast(MetadataCdataMxmlClass,{});
+}/*}}
 
 ============================================== Jangaroo part ==============================================*/
     return {

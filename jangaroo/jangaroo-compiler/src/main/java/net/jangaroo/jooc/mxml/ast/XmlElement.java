@@ -1,6 +1,5 @@
 package net.jangaroo.jooc.mxml.ast;
 
-import com.google.common.base.Predicates;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import net.jangaroo.jooc.JooSymbol;
@@ -12,9 +11,12 @@ import net.jangaroo.jooc.ast.NodeImplBase;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.util.LinkedList;
 import java.util.List;
 
 public class XmlElement extends NodeImplBase {
+
+  private final List<XmlElement> elements = new LinkedList<XmlElement>();
 
   private final XmlTag openingMxmlTag;
   private final List children;
@@ -34,7 +36,9 @@ public class XmlElement extends NodeImplBase {
     if(null != children) {
       for (Object child : children) {
         if (child instanceof XmlElement) {
-          ((XmlElement) child).parent = this;
+          XmlElement xmlElement = (XmlElement) child;
+          elements.add(xmlElement);
+          xmlElement.parent = this;
         }
       }
     }
@@ -56,13 +60,17 @@ public class XmlElement extends NodeImplBase {
   @Override
   public List<? extends AstNode> getChildren() {
     //noinspection unchecked
-    Iterable<? extends AstNode> filter = Iterables.filter(children, Predicates.instanceOf(AstNode.class));
+    Iterable<? extends AstNode> filter = Iterables.filter(children, AstNode.class);
     return Lists.newLinkedList(filter);
   }
 
   public List<JooSymbol> getTextNodes() {
     //noinspection unchecked
-    return Lists.newLinkedList(Iterables.filter(children, Predicates.instanceOf(JooSymbol.class)));
+    return Lists.newLinkedList(Iterables.filter(children, JooSymbol.class));
+  }
+
+  public List<XmlElement> getElements() {
+    return elements;
   }
 
   @Override
@@ -117,7 +125,7 @@ public class XmlElement extends NodeImplBase {
     return openingMxmlTag.getNamespaceUri();
   }
 
-  public boolean isBuiltInTag() {
+  public boolean isBuiltInElement() {
     return openingMxmlTag.isBuiltInTag();
   }
 

@@ -33,6 +33,7 @@ public class MxmlUtils {
   private static final String LINE_BREAKS = "\r\n|\r|\n";
   private static final Pattern XML_COMMENT = Pattern.compile("<!--([^-]+(?:-[^-]+)*)-->", Pattern.DOTALL);
   private static final Pattern MXML_COMMENT = Pattern.compile("<!---([^-]*(?:-[^-]+)*)-->", Pattern.DOTALL);
+  public static final String CONFIG = "config";
 
   public static boolean isMxmlNamespace(String uri) {
     return MXML_NAMESPACE_URI.equals(uri);

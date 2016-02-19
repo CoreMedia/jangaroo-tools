@@ -2,7 +2,10 @@ Ext.define("AS3.package1.mxml.SimpleMetadataMxmlClass", function(SimpleMetadataM
 import package1.*;
 import package1.ConfigClass;
 [ShortVersion]
-class SimpleMetadataMxmlClass extends ConfigClass{}*/function SimpleMetadataMxmlClass$() {AS3.package1.ConfigClass.prototype.constructor.call(this);}/*}
+class SimpleMetadataMxmlClass extends ConfigClass{*/
+function SimpleMetadataMxmlClass$(config/*:SimpleMetadataMxmlClass=null*/){AS3.package1.ConfigClass.prototype.constructor.call(this);if(arguments.length<=0)config=null;
+var config_$1/*:SimpleMetadataMxmlClass*/ =AS3.cast(SimpleMetadataMxmlClass,{});
+}/*}}
 
 ============================================== Jangaroo part ==============================================*/
     return {
