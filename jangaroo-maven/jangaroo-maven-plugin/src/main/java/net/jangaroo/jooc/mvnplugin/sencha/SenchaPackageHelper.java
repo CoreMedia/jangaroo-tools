@@ -41,8 +41,8 @@ class SenchaPackageHelper extends AbstractSenchaHelper {
     this.senchaPackagePath = senchaPath + File.separator + SenchaUtils.SENCHA_PACKAGES + File.separator + SenchaUtils.SENCHA_PACKAGES_LOCAL + File.separator + SenchaUtils.LOCAL_PACKAGE_PATH;
 
     MetadataConfigurer metadataConfigurer = new MetadataConfigurer(project);
-    RequiresConfigurer requiresConfigurer = new RequiresConfigurer(project);
-    SenchaConfigurationConfigurer senchaConfigurationConfigurer = new SenchaConfigurationConfigurer(senchaConfiguration);
+    RequiresConfigurer requiresConfigurer = new RequiresConfigurer(project, senchaConfiguration);
+    SenchaConfigurationConfigurer senchaConfigurationConfigurer = new SenchaConfigurationConfigurer(project, senchaConfiguration);
     PathConfigurer pathConfigurer = new PathConfigurer(senchaConfiguration);
 
     Configurer defaultSenchaPackageConfigurer;

@@ -118,6 +118,27 @@ public class SenchaUtils {
     return getSenchaVersionForMavenVersion(artifact.getVersion());
   }
 
+  public static String getSenchaPackageNameForTheme(String theme, MavenProject project) throws MojoExecutionException {
+    String[] groupIdAndArtifactId = theme.split(":", 2);
+    if (groupIdAndArtifactId.length < 2) {
+      return theme;
+    }
+    // verify that provided artifact is under project dependencies
+    String groupId = groupIdAndArtifactId[0];
+    String artifactId = groupIdAndArtifactId[1];
+    @SuppressWarnings("unchecked") Set<Artifact> dependencyArtifacts = (Set<Artifact>) project.getDependencyArtifacts();
+    for (Artifact artifact : dependencyArtifacts) {
+      if (groupId.equals(artifact.getGroupId())
+              && artifactId.equals(artifact.getArtifactId())) {
+        if (isSenchaPackageArtifact(artifact)) {
+          return getSenchaPackageName(groupId, artifactId);
+        }
+        throw new MojoExecutionException("Theme name references to an artifact that contains no sencha package");
+      }
+    }
+    throw new MojoExecutionException("Theme name references to an artifact which is not added to dependencies");
+  }
+
   public static File findClosestSenchaWorkspaceDir(File dir) {
     File result;
     try {

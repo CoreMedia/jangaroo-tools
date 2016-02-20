@@ -2,7 +2,9 @@ package net.jangaroo.jooc.mvnplugin.sencha.configurer;
 
 import net.jangaroo.jooc.mvnplugin.SenchaConfiguration;
 import net.jangaroo.jooc.mvnplugin.SenchaProfileConfiguration;
+import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.project.MavenProject;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -16,9 +18,11 @@ public class SenchaConfigurationConfigurer implements Configurer {
   static final String EXTEND = "extend";
   static final String THEME = "theme";
 
+  private MavenProject project;
   private SenchaConfiguration senchaConfiguration;
 
-  public SenchaConfigurationConfigurer(SenchaConfiguration senchaConfiguration) {
+  public SenchaConfigurationConfigurer(MavenProject project, SenchaConfiguration senchaConfiguration) {
+    this.project = project;
     this.senchaConfiguration = senchaConfiguration;
   }
 
@@ -30,16 +34,17 @@ public class SenchaConfigurationConfigurer implements Configurer {
     configureAdditionalResourcesForProfile(config, TESTING, senchaConfiguration.getTesting());
     configureAdditionalResourcesForProfile(config, DEVELOPMENT, senchaConfiguration.getDevelopment());
 
+    String themePackageName = SenchaUtils.getSenchaPackageNameForTheme(senchaConfiguration.getTheme(), project);
     if (SenchaConfiguration.Type.CODE.equals(senchaConfiguration.getType())) {
       config.put(TOOLKIT, senchaConfiguration.getToolkit());
-      config.put(THEME, senchaConfiguration.getTheme());
+      config.put(THEME, themePackageName);
     }
     if (SenchaConfiguration.Type.THEME.equals(senchaConfiguration.getType())) {
       config.put(TOOLKIT, senchaConfiguration.getToolkit());
-      config.put(EXTEND, senchaConfiguration.getTheme());
+      config.put(EXTEND, themePackageName);
     }
     if (SenchaConfiguration.Type.APP.equals(senchaConfiguration.getType())) {
-      config.put(THEME, senchaConfiguration.getTheme());
+      config.put(THEME, themePackageName);
     }
   }
 
