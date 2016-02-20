@@ -77,6 +77,7 @@ public class SenchaUtils {
   );
 
   private static final String MAVEN_DEPENDENCY_SCOPE_TEST = "test";
+  private static final String MAVEN_DEPENDENCY_SCOPE_PROVIDED = "provided";
 
   private static ObjectMapper objectMapper;
 
@@ -290,7 +291,8 @@ public class SenchaUtils {
       return false;
     }
     if (Types.JAVASCRIPT_EXTENSION.equals(artifact.getType())
-            && !MAVEN_DEPENDENCY_SCOPE_TEST.equalsIgnoreCase(artifact.getScope())) {
+            && !MAVEN_DEPENDENCY_SCOPE_TEST.equalsIgnoreCase(artifact.getScope())
+            && !MAVEN_DEPENDENCY_SCOPE_PROVIDED.equalsIgnoreCase(artifact.getScope())) {
       if (null != artifact.getFile()) {
         try {
           ZipFile zipFile = new ZipFile(artifact.getFile());
