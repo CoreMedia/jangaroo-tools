@@ -6,6 +6,7 @@
   <version>2.1-SNAPSHOT</version>
   <packaging>pom</packaging>
   <modules>
+    <module>ext-js-sources</module>
     <module>jangaroo-parent</module>
     <module>jangaroo-tools-api</module>
     <module>jangaroo</module>

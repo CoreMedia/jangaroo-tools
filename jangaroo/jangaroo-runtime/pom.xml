@@ -37,7 +37,6 @@
                 <artifactItem>
                   <groupId>com.coremedia.sencha</groupId>
                   <artifactId>ext</artifactId>
-                  <version>6.0.1.250</version>
                   <type>zip</type>
                   <outputDirectory>${project.build.directory}/ext</outputDirectory>
                 </artifactItem>
