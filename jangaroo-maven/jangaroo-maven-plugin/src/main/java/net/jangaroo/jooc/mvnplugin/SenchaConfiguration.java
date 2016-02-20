@@ -25,9 +25,9 @@ public class SenchaConfiguration extends SenchaProfileConfiguration {
   private Type type = Type.CODE;
 
   /**
-   * Only relevant if type is not {@link Type#WORKSPACE}.
-   *
    * Defines if the module will be generated using an temporary workspace. The workspace will be deleted after build.
+   *
+   * Ignored for {@link Type#WORKSPACE}
    *
    * @parameter default-value="false"
    */
@@ -36,12 +36,20 @@ public class SenchaConfiguration extends SenchaProfileConfiguration {
   /**
    * The toolkit to use
    *
+   * Ignored for {@link Type#WORKSPACE}
+   *
    * @parameter default-value="classic"
    */
   private String toolkit = "classic";
 
   /**
-   * The theme to use
+   * Used for {@link Type#APP} and {@link Type#CODE} to define the theme packages to use.
+   * For {@link Type#THEME} it defines the theme package to the theme extends.
+   *
+   * Ignored for {@link Type#WORKSPACE}
+   *
+   * When a ":" is found in the provided {@link String} it is assumed that a  maven dependency is used as theme and
+   * converted properly.
    *
    * @parameter default-value=""
    */
@@ -50,27 +58,43 @@ public class SenchaConfiguration extends SenchaProfileConfiguration {
   /**
    * The sass namespace to use
    *
+   * Ignored for {@link Type#WORKSPACE}
+   *
    * @parameter default-value="Ext"
    */
   private String sassNamespace = "Ext";
 
   /**
+   * Production only configuration
+   *
+   * Ignored for {@link Type#WORKSPACE}
+   *
    * @parameter default-value="${production}"
    */
   private SenchaProfileConfiguration production;
 
   /**
-   * @parameter default-value="${development}"
-   */
-  private SenchaProfileConfiguration development;
-
-  /**
+   * Testing only configuration.
+   *
+   * Ignored for {@link Type#WORKSPACE}
+   *
    * @parameter default-value="${testing}"
    */
   private SenchaProfileConfiguration testing;
 
   /**
-   * Ext Framework directory for the module.
+   * Development only configuration
+   *
+   * Ignored for {@link Type#WORKSPACE}
+   *
+   * @parameter default-value="${development}"
+   */
+  private SenchaProfileConfiguration development;
+
+  /**
+   * For {@link Type#WORKSPACE} defined the Ext Framework directory for the module.
+   *
+   * Ignored for {@link Type#APP}, {@link Type#CODE} and {@link Type#THEME}
    *
    * @parameter default-value="ext"
    */
@@ -79,12 +103,18 @@ public class SenchaConfiguration extends SenchaProfileConfiguration {
   /**
    * Build directory relative to baseDir
    *
+   * TODO
+   * @deprecated to be removed
+   *
    * @parameter default-value="build"
    */
   private String buildDir = "build";
 
   /**
    * Packages directory relative to baseDir
+   *
+   * TODO
+   * @deprecated to be removed
    *
    * @parameter default-value="packages"
    */
@@ -96,14 +126,15 @@ public class SenchaConfiguration extends SenchaProfileConfiguration {
    * Only use this for local development to speed up the build process of the maven app.
    * For deployment the build process is required otherwise remote packages will have no contents.
    *
+   * Ignored for {@link Type#WORKSPACE}
+   *
    * @parameter default-value="false"
    */
   private boolean skipBuild = false;
 
   /**
-   * Only applies if type is {@link Type#APP}, {@link Type#CODE} or {@link Type#THEME}.
-   *
-   * Specifies if scss paths should map to the maven projects base sencha folder instead of to the generated module.
+   * For {@link Type#APP}, {@link Type#CODE} and {@link Type#THEME} specifies if scss paths should map to the maven
+   * projects base sencha folder instead of to the generated module.
    *
    * Included paths:
    * - sass.etc
@@ -112,6 +143,8 @@ public class SenchaConfiguration extends SenchaProfileConfiguration {
    *
    * When performaing packaging these paths will be removed temporarily as packages modules may not contain relative
    * paths outside the generated module folder.
+   *
+   * Ignored for {@link Type#WORKSPACE}
    *
    * @parameter default-value="false"
    */
