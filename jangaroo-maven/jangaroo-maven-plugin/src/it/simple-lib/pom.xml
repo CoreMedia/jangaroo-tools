@@ -43,6 +43,9 @@ under the License.
         <extensions>true</extensions>
         <version>@project.version@</version>
         <configuration>
+          <senchaConfiguration>
+            <enabled>false</enabled>
+          </senchaConfiguration>
           <namespaces>
             <namespace>
               <uri>library://testNamespace</uri>

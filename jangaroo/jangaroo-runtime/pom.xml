@@ -53,7 +53,6 @@
         <extensions>true</extensions>
         <configuration>
           <senchaConfiguration>
-            <enabled>true</enabled>
             <temporaryWorkspace>true</temporaryWorkspace>
             <extFrameworkDir>target/ext</extFrameworkDir>
             <packagesDir>target/sencha/packages</packagesDir>

@@ -42,6 +42,11 @@ under the License.
             </goals>
           </execution>
         </executions>
+        <configuration>
+          <senchaConfiguration>
+            <enabled>false</enabled>
+          </senchaConfiguration>
+        </configuration>
       </plugin>
       <plugin>
         <groupId>net.jangaroo</groupId>

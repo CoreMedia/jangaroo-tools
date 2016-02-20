@@ -53,6 +53,11 @@ under the License.
         <artifactId>jangaroo-maven-plugin</artifactId>
         <extensions>true</extensions>
         <version>@project.version@</version>
+        <configuration>
+          <senchaConfiguration>
+            <enabled>false</enabled>
+          </senchaConfiguration>
+        </configuration>
       </plugin>
     </plugins>
 

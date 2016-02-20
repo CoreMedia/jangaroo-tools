@@ -41,6 +41,11 @@ under the License.
           <groupId>net.jangaroo</groupId>
           <artifactId>jangaroo-maven-plugin</artifactId>
           <version>@project.version@</version>
+          <configuration>
+            <senchaConfiguration>
+              <enabled>false</enabled>
+            </senchaConfiguration>
+          </configuration>
         </plugin>
       </plugins>
     </pluginManagement>

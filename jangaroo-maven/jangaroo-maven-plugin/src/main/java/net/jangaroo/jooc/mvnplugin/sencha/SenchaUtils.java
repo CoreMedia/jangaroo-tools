@@ -46,6 +46,7 @@ public class SenchaUtils {
    */
   public static final String LOCAL_PACKAGE_PATH = "package";
 
+  public static final String SENCHA_RELATIVE_BUILD_PATH = "build";
   public static final String SENCHA_RELATIVE_CLASS_PATH = "src";
   public static final String SENCHA_RELATIVE_OVERRIDES_PATH = "overrides";
   public static final String SENCHA_RELATIVE_RESOURCES_PATH = "resources";

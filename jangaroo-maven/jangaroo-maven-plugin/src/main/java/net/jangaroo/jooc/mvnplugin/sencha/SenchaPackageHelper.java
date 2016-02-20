@@ -21,6 +21,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Map;
 
 class SenchaPackageHelper extends AbstractSenchaHelper {
@@ -61,6 +62,8 @@ class SenchaPackageHelper extends AbstractSenchaHelper {
 
     SenchaConfiguration workspaceConfiguration = new SenchaConfiguration();
     workspaceConfiguration.setEnabled(true);
+    String projectBuildDirRelativeToProjectBaseDir = project.getBasedir().toPath().relativize(Paths.get(project.getBuild().getDirectory())).toString();
+    workspaceConfiguration.setBuildDir(projectBuildDirRelativeToProjectBaseDir + File.separator + SenchaUtils.SENCHA_BASE_PATH + File.separator + SenchaUtils.SENCHA_RELATIVE_BUILD_PATH);
     workspaceConfiguration.setType(SenchaConfiguration.Type.WORKSPACE);
     workspaceConfiguration.setPackagesDir(senchaConfiguration.getPackagesDir());
     workspaceConfiguration.setExtFrameworkDir(senchaConfiguration.getExtFrameworkDir());
