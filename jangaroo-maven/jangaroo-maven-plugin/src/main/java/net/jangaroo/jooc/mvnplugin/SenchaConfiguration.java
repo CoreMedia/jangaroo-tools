@@ -63,13 +63,6 @@ public class SenchaConfiguration extends SenchaProfileConfiguration {
   private SenchaProfileConfiguration testing;
 
   /**
-   * Output directory for the module.
-   *
-   * @parameter default-value="${project.build.directory}/sencha"
-   */
-  private String baseDir;
-
-  /**
    * Ext Framework directory for the module.
    *
    * @parameter default-value="ext"
@@ -132,10 +125,6 @@ public class SenchaConfiguration extends SenchaProfileConfiguration {
     return testing;
   }
 
-  public String getBaseDir() {
-    return baseDir;
-  }
-
   public String getExtFrameworkDir() {
     return extFrameworkDir;
   }
@@ -182,10 +171,6 @@ public class SenchaConfiguration extends SenchaProfileConfiguration {
 
   public void setTesting(SenchaProfileConfiguration testing) {
     this.testing = testing;
-  }
-
-  public void setBaseDir(String baseDir) {
-    this.baseDir = baseDir;
   }
 
   public void setExtFrameworkDir(String extFrameworkDir) {
