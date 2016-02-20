@@ -48,6 +48,13 @@ public class SenchaConfiguration extends SenchaProfileConfiguration {
   private String theme = "";
 
   /**
+   * The sass namespace to use
+   *
+   * @parameter default-value="Ext"
+   */
+  private String sassNamespace = "Ext";
+
+  /**
    * @parameter default-value="${production}"
    */
   private SenchaProfileConfiguration production;
@@ -67,21 +74,21 @@ public class SenchaConfiguration extends SenchaProfileConfiguration {
    *
    * @parameter default-value="ext"
    */
-  private String extFrameworkDir="ext";
+  private String extFrameworkDir = "ext";
 
   /**
    * Build directory relative to baseDir
    *
    * @parameter default-value="build"
    */
-  private String buildDir="build";
+  private String buildDir = "build";
 
   /**
    * Packages directory relative to baseDir
    *
    * @parameter default-value="packages"
    */
-  private String packagesDir="packages";
+  private String packagesDir = "packages";
 
   /**
    * Skip the build process of the sencha module.
@@ -91,7 +98,24 @@ public class SenchaConfiguration extends SenchaProfileConfiguration {
    *
    * @parameter default-value="false"
    */
-  private boolean skipBuild =false;
+  private boolean skipBuild = false;
+
+  /**
+   * Only applies if type is {@link Type#APP}, {@link Type#CODE} or {@link Type#THEME}.
+   *
+   * Specifies if scss paths should map to the maven projects base sencha folder instead of to the generated module.
+   *
+   * Included paths:
+   * - sass.etc
+   * - sass.var
+   * - sass.src
+   *
+   * When performaing packaging these paths will be removed temporarily as packages modules may not contain relative
+   * paths outside the generated module folder.
+   *
+   * @parameter default-value="false"
+   */
+  private boolean scssFromSrc = false;
 
   public boolean isEnabled() {
     return enabled;
@@ -111,6 +135,10 @@ public class SenchaConfiguration extends SenchaProfileConfiguration {
 
   public String getTheme() {
     return theme;
+  }
+
+  public String getSassNamespace() {
+    return sassNamespace;
   }
 
   public SenchaProfileConfiguration getProduction() {
@@ -141,6 +169,10 @@ public class SenchaConfiguration extends SenchaProfileConfiguration {
     return skipBuild;
   }
 
+  public boolean isScssFromSrc() {
+    return scssFromSrc;
+  }
+
   public void setEnabled(boolean enabled) {
     this.enabled = enabled;
   }
@@ -159,6 +191,10 @@ public class SenchaConfiguration extends SenchaProfileConfiguration {
 
   public void setTheme(String theme) {
     this.theme = theme;
+  }
+
+  public void setSassNamespace(String sassNamespace) {
+    this.sassNamespace = sassNamespace;
   }
 
   public void setProduction(SenchaProfileConfiguration production) {
@@ -187,5 +223,9 @@ public class SenchaConfiguration extends SenchaProfileConfiguration {
 
   public void setSkipBuild(boolean skipBuild) {
     this.skipBuild = skipBuild;
+  }
+
+  public void setScssFromSrc(boolean scssFromSrc) {
+    this.scssFromSrc = scssFromSrc;
   }
 }

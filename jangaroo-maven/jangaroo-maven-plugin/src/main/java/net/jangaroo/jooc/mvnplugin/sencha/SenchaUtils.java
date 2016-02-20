@@ -51,6 +51,9 @@ public class SenchaUtils {
   public static final String SENCHA_RELATIVE_OVERRIDES_PATH = "overrides";
   public static final String SENCHA_RELATIVE_RESOURCES_PATH = "resources";
   public static final String SENCHA_RELATIVE_SASS_PATH = "sass";
+  public static final String SENCHA_RELATIVE_SASS_ETC_PATH = SENCHA_RELATIVE_SASS_PATH + File.separator + "etc";
+  public static final String SENCHA_RELATIVE_SASS_SRC_PATH = SENCHA_RELATIVE_SASS_PATH + File.separator + "src";
+  public static final String SENCHA_RELATIVE_SASS_VAR_PATH = SENCHA_RELATIVE_SASS_PATH + File.separator + "var";
   public static final String SENCHA_RELATIVE_CLASSIC_PATH = "classic";
   public static final String SENCHA_RELATIVE_MODERN_PATH = "modern";
   public static final String SENCHA_RELATIVE_PRODUCTION_PATH = "production";
@@ -68,6 +71,7 @@ public class SenchaUtils {
   public static final String SENCHA_PACKAGE_FILENAME = "package.json";
   public static final String SENCHA_APP_FILENAME = "app.json";
   public static final String SENCHA_PKG_EXTENSION = ".pkg";
+  public static final String SENCHA_SASS_ETC_IMPORTS = "imports.scss";
 
   public static final Map<SenchaConfiguration.Type, String> PLACEHOLDERS = ImmutableMap.of(
           SenchaConfiguration.Type.APP, "${app.dir}",
