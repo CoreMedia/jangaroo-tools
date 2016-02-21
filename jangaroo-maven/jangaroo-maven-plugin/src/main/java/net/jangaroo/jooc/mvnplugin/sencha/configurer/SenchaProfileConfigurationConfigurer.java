@@ -13,7 +13,7 @@ class SenchaProfileConfigurationConfigurer implements Configurer {
   static final String CSS = "css";
   static final String JS = "js";
   static final String PATH = "path";
-  static final String BUNDLE = "bundle";
+  static final String INCLUDE_IN_BUNDLE = "includeInBundle";
 
   private SenchaProfileConfiguration senchaProfileConfiguration;
 
@@ -48,7 +48,7 @@ class SenchaProfileConfigurationConfigurer implements Configurer {
     Map<String, Object> result = new LinkedHashMap<String, Object>();
 
     result.put(PATH, path);
-    result.put(BUNDLE, bundle);
+    result.put(INCLUDE_IN_BUNDLE, bundle);
 
     return result;
   }
