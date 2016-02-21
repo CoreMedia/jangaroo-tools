@@ -177,7 +177,7 @@ public class PackageMojo extends AbstractMojo {
       SenchaHelper senchaHelper = new SenchaModuleHelper(project, senchaConfiguration, getLog());
       // for now:
       senchaHelper.prepareModule();
-      senchaHelper.generateModule();
+      senchaHelper.createModule();
       senchaHelper.packageModule(archiver);
 
       mavenArchiver.createArchive(project, archive);

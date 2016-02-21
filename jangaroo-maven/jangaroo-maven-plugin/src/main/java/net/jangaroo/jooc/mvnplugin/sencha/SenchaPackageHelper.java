@@ -71,30 +71,7 @@ class SenchaPackageHelper extends AbstractSenchaHelper {
   }
 
   @Override
-  public void deleteModule() throws MojoExecutionException {
-    // TODO
-  }
-
-  @Override
-  public void prepareModule() throws MojoExecutionException {
-    if (getSenchaConfiguration().isEnabled()) {
-      File senchaPackageDirectory = new File(senchaPackagePath);
-
-      if (!senchaPackageDirectory.exists()) {
-        getLog().info("generating sencha package into: " + senchaPackageDirectory.getPath());
-        getLog().debug("created " + senchaPackageDirectory.mkdirs());
-      }
-
-      copyFiles(senchaPackagePath);
-
-      File workingDirectory = new File(senchaPackagePath);
-
-      writePackageJson(workingDirectory);
-    }
-  }
-
-  @Override
-  public void generateModule() throws MojoExecutionException {
+  public void createModule() throws MojoExecutionException {
     if (getSenchaConfiguration().isEnabled()) {
       createTemporaryWorkspaceIfConfigured(false);
 
@@ -151,6 +128,24 @@ class SenchaPackageHelper extends AbstractSenchaHelper {
       }
 
       removeTemporaryWorkspaceIfConfigured();
+    }
+  }
+
+  @Override
+  public void prepareModule() throws MojoExecutionException {
+    if (getSenchaConfiguration().isEnabled()) {
+      File senchaPackageDirectory = new File(senchaPackagePath);
+
+      if (!senchaPackageDirectory.exists()) {
+        getLog().info("generating sencha package into: " + senchaPackageDirectory.getPath());
+        getLog().debug("created " + senchaPackageDirectory.mkdirs());
+      }
+
+      copyFiles(senchaPackagePath);
+
+      File workingDirectory = new File(senchaPackagePath);
+
+      writePackageJson(workingDirectory);
     }
   }
 
@@ -237,6 +232,11 @@ class SenchaPackageHelper extends AbstractSenchaHelper {
     }
   }
 
+  @Override
+  public void deleteModule() throws MojoExecutionException {
+    // TODO
+  }
+
   private void writePackageJson(File workingDirectory) throws MojoExecutionException {
     Map<String, Object> packageConfig = getPackageConfig();
 
@@ -289,7 +289,7 @@ class SenchaPackageHelper extends AbstractSenchaHelper {
       // create temporary workspace
       workspaceHelper.deleteModule();
       workspaceHelper.prepareModule();
-      workspaceHelper.generateModule();
+      workspaceHelper.createModule();
       if (extractRemotePackages) {
         // TODO: determine real target directory
         SenchaUtils.extractRemotePackagesForProject(getProject(), getProject().getBuild().getDirectory() + "/sencha/packages/remote");

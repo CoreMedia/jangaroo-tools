@@ -80,7 +80,7 @@ public class WarPackageMojo extends PackageApplicationMojo {
     // for now:
     SenchaHelper senchaHelper = new SenchaModuleHelper(project, senchaConfiguration, getLog());
     senchaHelper.prepareModule();
-    senchaHelper.generateModule();
+    senchaHelper.createModule();
   }
 
 }

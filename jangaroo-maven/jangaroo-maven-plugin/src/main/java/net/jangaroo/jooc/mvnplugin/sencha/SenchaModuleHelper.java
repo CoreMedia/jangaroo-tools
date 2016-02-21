@@ -24,8 +24,8 @@ public class SenchaModuleHelper implements SenchaHelper {
   }
 
   @Override
-  public void deleteModule() throws MojoExecutionException {
-    delegate.deleteModule();
+  public void createModule() throws MojoExecutionException {
+    delegate.createModule();
   }
 
   @Override
@@ -34,12 +34,12 @@ public class SenchaModuleHelper implements SenchaHelper {
   }
 
   @Override
-  public void generateModule() throws MojoExecutionException {
-    delegate.generateModule();
+  public void packageModule(JarArchiver archiver) throws MojoExecutionException {
+    delegate.packageModule(archiver);
   }
 
   @Override
-  public void packageModule(JarArchiver archiver) throws MojoExecutionException {
-    delegate.packageModule(archiver);
+  public void deleteModule() throws MojoExecutionException {
+    delegate.deleteModule();
   }
 }

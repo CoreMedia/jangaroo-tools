@@ -44,30 +44,7 @@ class SenchaAppHelper extends AbstractSenchaHelper {
   }
 
   @Override
-  public void deleteModule() throws MojoExecutionException {
-    // nothing to do
-  }
-
-  @Override
-  public void prepareModule() throws MojoExecutionException {
-    if (getSenchaConfiguration().isEnabled()) {
-      File senchaDirectory = new File(senchaPath);
-
-      if (!senchaDirectory.exists()) {
-        getLog().info("generating sencha into: " + senchaDirectory.getPath());
-        getLog().debug("created " + senchaDirectory.mkdirs());
-      }
-
-      copyFiles(senchaPath);
-
-      File workingDirectory = new File(senchaPath);
-
-      writeAppJson(workingDirectory);
-    }
-  }
-
-  @Override
-  public void generateModule() throws MojoExecutionException {
+  public void createModule() throws MojoExecutionException {
     if (getSenchaConfiguration().isEnabled()) {
       File workingDirectory = new File(senchaPath);
 
@@ -99,10 +76,31 @@ class SenchaAppHelper extends AbstractSenchaHelper {
   }
 
   @Override
-  public void packageModule(JarArchiver archiver) throws MojoExecutionException {
+  public void prepareModule() throws MojoExecutionException {
     if (getSenchaConfiguration().isEnabled()) {
-      // TODO
+      File senchaDirectory = new File(senchaPath);
+
+      if (!senchaDirectory.exists()) {
+        getLog().info("generating sencha into: " + senchaDirectory.getPath());
+        getLog().debug("created " + senchaDirectory.mkdirs());
+      }
+
+      copyFiles(senchaPath);
+
+      File workingDirectory = new File(senchaPath);
+
+      writeAppJson(workingDirectory);
     }
+  }
+
+  @Override
+  public void packageModule(JarArchiver archiver) throws MojoExecutionException {
+    // TODO
+  }
+
+  @Override
+  public void deleteModule() throws MojoExecutionException {
+    // TODO
   }
 
   private void writeAppJson(File workingDirectory) throws MojoExecutionException {

@@ -5,11 +5,11 @@ import org.codehaus.plexus.archiver.jar.JarArchiver;
 
 public interface SenchaHelper {
 
-  void deleteModule() throws MojoExecutionException;
+  void createModule() throws MojoExecutionException;
 
   void prepareModule() throws MojoExecutionException;
 
-  void generateModule() throws MojoExecutionException;
-
   void packageModule(JarArchiver archiver) throws MojoExecutionException;
+
+  void deleteModule() throws MojoExecutionException;
 }
