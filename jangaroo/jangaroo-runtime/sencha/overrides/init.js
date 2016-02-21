@@ -1,17 +1,27 @@
-Ext.define('JooOverrides.Ext.Class', {
-  override: 'Ext.Class'
-}, function() {
-  Ext.Class.registerPreprocessor('__accessors__', function (Class, data) {
-    if (data.__accessors__) {
-      if (data.__accessors__.statics) {
-        Object.defineProperties(Class, data.__accessors__.statics);
-        delete data.__accessors__.statics;
-      }
-      Object.defineProperties(Class.prototype, data.__accessors__);
-      delete data.__accessors__;
-    }
-  });
+// @override Ext
 
+Ext.Class.registerPreprocessor('__accessors__', function (Class, data) {
+  if (data.__accessors__) {
+    if (data.__accessors__.statics) {
+      Object.defineProperties(Class, data.__accessors__.statics);
+      delete data.__accessors__.statics;
+    }
+    Object.defineProperties(Class.prototype, data.__accessors__);
+    delete data.__accessors__;
+  }
+});
+
+Ext.ClassManager.registerPostprocessor('__factory__', function(className, cls, data) {
+  if (data.__factory__) {
+    var value = data.__factory__();
+    this.set(className, value);
+    this.triggerCreated(className);
+    return false;
+  }
+  return true;
+});
+
+(function() {
   var wrapConstructor = function(Class) {
     return function() {
       // console.log("*** called constructor of " + Ext.getClassName(Class) + " for the first time.");
@@ -63,4 +73,5 @@ Ext.define('JooOverrides.Ext.Class', {
       delete data.statics;
     }
   });
-});
+})();
+
