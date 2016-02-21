@@ -15,7 +15,9 @@ import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Map;
 
 class SenchaAppHelper extends AbstractSenchaHelper {
@@ -48,6 +50,10 @@ class SenchaAppHelper extends AbstractSenchaHelper {
     if (getSenchaConfiguration().isEnabled()) {
       File workingDirectory = new File(senchaPath);
 
+      if (!workingDirectory.exists() && !workingDirectory.mkdirs()) {
+        throw new MojoExecutionException("could not create working directory");
+      }
+
       File senchaCfg = new File(workingDirectory.getAbsolutePath() + File.separator + SenchaUtils.SENCHA_APP_CONFIG);
       // make sure senchaCfg does not exist
       if (senchaCfg.exists()) {
@@ -71,6 +77,27 @@ class SenchaAppHelper extends AbstractSenchaHelper {
         executor.execute(cmdLine);
       } catch (IOException e) {
         throw new MojoExecutionException("could not execute sencha cmd to generate app", e);
+      }
+
+      // sencha.cfg should be recreated
+      // for normal packages skip generating css and slices
+      if (senchaCfg.exists()) {
+        PrintWriter pw = null;
+        try {
+          FileWriter fw = new FileWriter(senchaCfg.getAbsoluteFile(), true);
+
+          pw = new PrintWriter(fw);
+          // If true will cause problems with class pre- and postprocessors we use
+          pw.println("app.output.js.optimize.defines=false");
+        } catch (IOException e) {
+          throw new MojoExecutionException("could disable derive and minifying in sencha config of app");
+        } finally {
+          if (null != pw) {
+            pw.close();
+          }
+        }
+      } else {
+        throw new MojoExecutionException("could not find sencha.cfg of package");
       }
     }
   }

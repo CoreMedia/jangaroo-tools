@@ -45,6 +45,10 @@ class SenchaWorkspaceHelper extends AbstractSenchaHelper {
         throw new MojoExecutionException("could not determine project base directory", e);
       }
 
+      if (!workingDirectory.exists() && !workingDirectory.mkdirs()) {
+        throw new MojoExecutionException("could not create working directory");
+      }
+
       if (null == SenchaUtils.findClosestSenchaWorkspaceDir(workingDirectory.getParentFile())) {
 
         File senchaCfg = new File(workingDirectory.getAbsolutePath() + File.separator + SenchaUtils.SENCHA_WORKSPACE_CONFIG);
@@ -93,11 +97,17 @@ class SenchaWorkspaceHelper extends AbstractSenchaHelper {
   @Override
   public void prepareModule() throws MojoExecutionException {
     if (getSenchaConfiguration().isEnabled()) {
+
       File workingDirectory;
       try {
         workingDirectory = getProject().getBasedir().getCanonicalFile();
       } catch (IOException e) {
         throw new MojoExecutionException("could not determine project base directory", e);
+      }
+
+      if (!workingDirectory.exists()) {
+        getLog().info("generating sencha package into: " + workingDirectory.getPath());
+        getLog().debug("created " + workingDirectory.mkdirs());
       }
 
       if (null == SenchaUtils.findClosestSenchaWorkspaceDir(workingDirectory.getParentFile())) {

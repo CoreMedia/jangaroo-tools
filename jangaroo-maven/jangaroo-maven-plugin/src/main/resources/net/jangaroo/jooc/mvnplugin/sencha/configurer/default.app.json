@@ -43,6 +43,7 @@
 
   "production": {
     "output": {
+      "base": "${workspace.build.dir}/${build.environment}/${app.name}",
       "appCache": {
         "enable": true,
         "path": "cache.appcache"
@@ -55,7 +56,7 @@
       "enable": true
     },
     "compressor": {
-      "type": "yui"
+      "type": "closure"
     }
   },
 

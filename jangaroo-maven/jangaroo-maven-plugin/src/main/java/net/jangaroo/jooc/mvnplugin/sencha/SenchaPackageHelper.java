@@ -82,7 +82,7 @@ class SenchaPackageHelper extends AbstractSenchaHelper {
         throw new MojoExecutionException("could not determine working directory", e);
       }
 
-      if (!workingDirectory.mkdirs()) {
+      if (!workingDirectory.exists() && !workingDirectory.mkdirs()) {
         throw new MojoExecutionException("could not create working directory");
       }
 
@@ -120,6 +120,8 @@ class SenchaPackageHelper extends AbstractSenchaHelper {
           pw = new PrintWriter(fw);
           pw.println("skip.sass=1");
           pw.println("skip.slice=1");
+          // use closure compressor, cannot be specified in package.json
+          pw.println("build.compile.js.compress=+closure");
         } catch (IOException e) {
           throw new MojoExecutionException("could not append skip.sass and skip.slice to sencha config of package");
         } finally {

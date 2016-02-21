@@ -248,7 +248,7 @@ public class SenchaUtils {
             throw new MojoExecutionException("could not remove old extracted package folder");
           }
         }
-        if (!remotePackageFolder.mkdirs()) {
+        if (!remotePackageFolder.exists() && !remotePackageFolder.mkdirs()) {
           throw new MojoExecutionException("could not create folder for remote package " + remotePackageFolder);
         }
 
