@@ -115,26 +115,28 @@ class SenchaWorkspaceHelper extends AbstractSenchaHelper {
 
   @Override
   public void deleteModule() throws MojoExecutionException {
-    File fWorkingDirectory;
-    try {
-      fWorkingDirectory = getProject().getBasedir().getCanonicalFile();
-    } catch (IOException e) {
-      throw new MojoExecutionException("could not determine project base directory", e);
-    }
-
-    File fSenchaFolder = new File(fWorkingDirectory.getAbsolutePath() + File.separator + SenchaUtils.SENCHA_DIRECTORYNAME);
-    if (fSenchaFolder.exists()) {
+    if (getSenchaConfiguration().isEnabled()) {
+      File fWorkingDirectory;
       try {
-        FileUtils.deleteDirectory(fSenchaFolder);
+        fWorkingDirectory = getProject().getBasedir().getCanonicalFile();
       } catch (IOException e) {
-        throw new MojoExecutionException("could not clean workspace folder", e);
+        throw new MojoExecutionException("could not determine project base directory", e);
       }
-    }
 
-    File fWorkspaceJson = new File(fWorkingDirectory.getAbsolutePath() + File.separator + SenchaUtils.SENCHA_WORKSPACE_FILENAME);
-    if (fWorkspaceJson.exists()) {
-      if (!fWorkspaceJson.delete()) {
-        throw new MojoExecutionException("could not delete " + SenchaUtils.SENCHA_WORKSPACE_FILENAME);
+      File fSenchaFolder = new File(fWorkingDirectory.getAbsolutePath() + File.separator + SenchaUtils.SENCHA_DIRECTORYNAME);
+      if (fSenchaFolder.exists()) {
+        try {
+          FileUtils.deleteDirectory(fSenchaFolder);
+        } catch (IOException e) {
+          throw new MojoExecutionException("could not clean workspace folder", e);
+        }
+      }
+
+      File fWorkspaceJson = new File(fWorkingDirectory.getAbsolutePath() + File.separator + SenchaUtils.SENCHA_WORKSPACE_FILENAME);
+      if (fWorkspaceJson.exists()) {
+        if (!fWorkspaceJson.delete()) {
+          throw new MojoExecutionException("could not delete " + SenchaUtils.SENCHA_WORKSPACE_FILENAME);
+        }
       }
     }
   }

@@ -82,6 +82,10 @@ class SenchaPackageHelper extends AbstractSenchaHelper {
         throw new MojoExecutionException("could not determine working directory", e);
       }
 
+      if (!workingDirectory.mkdirs()) {
+        throw new MojoExecutionException("could not create working directory");
+      }
+
       File senchaCfg = new File(workingDirectory.getAbsolutePath() + File.separator + SenchaUtils.SENCHA_PACKAGE_CONFIG);
       // make sure senchaCfg does not exist
       if (senchaCfg.exists()) {
@@ -288,8 +292,8 @@ class SenchaPackageHelper extends AbstractSenchaHelper {
     if (getSenchaConfiguration().isTemporaryWorkspace()) {
       // create temporary workspace
       workspaceHelper.deleteModule();
-      workspaceHelper.prepareModule();
       workspaceHelper.createModule();
+      workspaceHelper.prepareModule();
       if (extractRemotePackages) {
         // TODO: determine real target directory
         SenchaUtils.extractRemotePackagesForProject(getProject(), getProject().getBuild().getDirectory() + "/sencha/packages/remote");

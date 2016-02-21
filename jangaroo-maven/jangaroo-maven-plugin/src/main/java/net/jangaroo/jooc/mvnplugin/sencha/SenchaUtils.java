@@ -153,7 +153,8 @@ public class SenchaUtils {
           return SenchaUtils.SENCHA_WORKSPACE_FILENAME.equals(name);
         }
       });
-      if (list.length > 0) {
+      if (null != list
+              && list.length > 0) {
         break;
       }
       result = result.getParentFile();
