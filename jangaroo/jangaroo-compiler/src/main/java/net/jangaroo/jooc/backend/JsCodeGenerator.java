@@ -206,9 +206,11 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   }
 
   private String compilationUnitAccessCode(IdeDeclaration primaryDeclaration) {
-    if (primaryDeclaration.getCompilationUnit() == compilationUnit) {
+    CompilationUnit otherUnit = primaryDeclaration.getCompilationUnit();
+    if (otherUnit == compilationUnit) {
       return primaryDeclaration.getName();
     } else {
+      primaryDeclaration = compilationUnit.mapMixinInterface(otherUnit).getPrimaryDeclaration();
       String primaryDeclarationName = imports.get(primaryDeclaration.getQualifiedNameStr());
       Debug.assertTrue(primaryDeclarationName != null, "QName not found in imports: " + primaryDeclaration.getQualifiedNameStr());
       return primaryDeclarationName;
