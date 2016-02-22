@@ -57,11 +57,7 @@ public class WarPackageMojo extends PackageApplicationMojo {
   @Parameter(defaultValue = "${project.resources}")
   private List<Resource> resources;
 
-  /**
-   * The sencha configuration to use.
-   *
-   * @parameter default-value="${senchaConfiguration}"
-   */
+  @Parameter(defaultValue = "${senchaConfiguration}")
   private SenchaConfiguration senchaConfiguration;
 
   public File getPackageSourceDirectory() {
