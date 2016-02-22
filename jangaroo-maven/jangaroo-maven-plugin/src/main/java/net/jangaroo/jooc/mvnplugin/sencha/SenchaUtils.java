@@ -51,9 +51,9 @@ public class SenchaUtils {
   public static final String SENCHA_RELATIVE_OVERRIDES_PATH = "overrides";
   public static final String SENCHA_RELATIVE_RESOURCES_PATH = "resources";
   public static final String SENCHA_RELATIVE_SASS_PATH = "sass";
-  public static final String SENCHA_RELATIVE_SASS_ETC_PATH = SENCHA_RELATIVE_SASS_PATH + File.separator + "etc";
-  public static final String SENCHA_RELATIVE_SASS_SRC_PATH = SENCHA_RELATIVE_SASS_PATH + File.separator + "src";
-  public static final String SENCHA_RELATIVE_SASS_VAR_PATH = SENCHA_RELATIVE_SASS_PATH + File.separator + "var";
+  public static final String SENCHA_RELATIVE_SASS_ETC_PATH = SENCHA_RELATIVE_SASS_PATH + SEPARATOR + "etc";
+  public static final String SENCHA_RELATIVE_SASS_SRC_PATH = SENCHA_RELATIVE_SASS_PATH + SEPARATOR + "src";
+  public static final String SENCHA_RELATIVE_SASS_VAR_PATH = SENCHA_RELATIVE_SASS_PATH + SEPARATOR + "var";
   public static final String SENCHA_RELATIVE_CLASSIC_PATH = "classic";
   public static final String SENCHA_RELATIVE_MODERN_PATH = "modern";
   public static final String SENCHA_RELATIVE_PRODUCTION_PATH = "production";
@@ -63,9 +63,9 @@ public class SenchaUtils {
   public static final String SENCHA_DIRECTORYNAME = ".sencha";
   public static final String SENCHA_CFG = "sencha.cfg";
 
-  public static final String SENCHA_WORKSPACE_CONFIG = SENCHA_DIRECTORYNAME + File.separator + "workspace" + File.separator + SENCHA_CFG;
-  public static final String SENCHA_PACKAGE_CONFIG = SENCHA_DIRECTORYNAME + File.separator + "package" + File.separator + SENCHA_CFG;
-  public static final String SENCHA_APP_CONFIG = SENCHA_DIRECTORYNAME + File.separator + "app" + File.separator + SENCHA_CFG;
+  public static final String SENCHA_WORKSPACE_CONFIG = SENCHA_DIRECTORYNAME + SEPARATOR + "workspace" + SEPARATOR + SENCHA_CFG;
+  public static final String SENCHA_PACKAGE_CONFIG = SENCHA_DIRECTORYNAME + SEPARATOR + "package" + SEPARATOR + SENCHA_CFG;
+  public static final String SENCHA_APP_CONFIG = SENCHA_DIRECTORYNAME + SEPARATOR + "app" + SEPARATOR + SENCHA_CFG;
 
   public static final String SENCHA_WORKSPACE_FILENAME = "workspace.json";
   public static final String SENCHA_PACKAGE_FILENAME = "package.json";
@@ -229,11 +229,11 @@ public class SenchaUtils {
 
       String senchaPackageName = SenchaUtils.getSenchaPackageNameForArtifact(artifact);
       String remotePackageFolderName = senchaPackageName + "__" + SenchaUtils.getSenchaVersionForArtifact(artifact);
-      File remotePackageFolder = new File(targetDirectory + File.separator + remotePackageFolderName);
+      File remotePackageFolder = new File(targetDirectory + SEPARATOR + remotePackageFolderName);
 
       try {
         ZipFile zipFile = new ZipFile(artifact.getFile());
-        ZipEntry packageJson = zipFile.getEntry(SENCHA_BASE_PATH + "/" + SENCHA_PACKAGE_FILENAME);
+        ZipEntry packageJson = zipFile.getEntry(SENCHA_BASE_PATH + SEPARATOR + SENCHA_PACKAGE_FILENAME);
         // skip if no package json is found
         if (null == packageJson) {
           continue;
@@ -252,7 +252,7 @@ public class SenchaUtils {
           throw new MojoExecutionException("could not create folder for remote package " + remotePackageFolder);
         }
 
-        extractZipToDirectory(artifact.getFile(), remotePackageFolder, SENCHA_BASE_PATH + "/");
+        extractZipToDirectory(artifact.getFile(), remotePackageFolder, SENCHA_BASE_PATH + SEPARATOR);
       } catch (IOException e) {
         throw new MojoExecutionException("could not read from artifact file", e);
       }
@@ -275,8 +275,8 @@ public class SenchaUtils {
         name = name.substring(startFrom.length());
 
         // Do we need to create a directory ?
-        File file = new File(directory.getAbsolutePath() + File.separator + name);
-        if (name.endsWith("/")) {
+        File file = new File(directory.getAbsolutePath() + SEPARATOR + name);
+        if (name.endsWith(SEPARATOR)) {
           file.mkdirs();
           continue;
         }

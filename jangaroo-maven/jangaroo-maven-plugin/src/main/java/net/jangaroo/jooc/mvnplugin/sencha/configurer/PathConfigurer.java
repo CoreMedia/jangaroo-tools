@@ -51,7 +51,7 @@ public class PathConfigurer implements Configurer {
 
       Map<String, Object> sass = new HashMap<String, Object>();
       sass.put(SASS_NAMESPACE, senchaConfiguration.getSassNamespace());
-      sass.put(SASS_ETC, absolutePath(SenchaUtils.SENCHA_RELATIVE_SASS_ETC_PATH + File.separator + SenchaUtils.SENCHA_SASS_ETC_IMPORTS, sassFromSrc));
+      sass.put(SASS_ETC, absolutePath(SenchaUtils.SENCHA_RELATIVE_SASS_ETC_PATH + SenchaUtils.SEPARATOR + SenchaUtils.SENCHA_SASS_ETC_IMPORTS, sassFromSrc));
       sass.put(SASS_VAR, absolutePath(SenchaUtils.SENCHA_RELATIVE_SASS_VAR_PATH, sassFromSrc));
       sass.put(SASS_SRC, absolutePath(SenchaUtils.SENCHA_RELATIVE_SASS_SRC_PATH, sassFromSrc));
       config.put(SASS, sass);
@@ -75,14 +75,14 @@ public class PathConfigurer implements Configurer {
   private String absolutePath(String path, boolean fromSrc) {
     String prefix = "";
     if (fromSrc) {
-      prefix = getRelativePathFromModuleToSrc() + SenchaUtils.SENCHA_BASE_PATH + File.separator;
+      prefix = getRelativePathFromModuleToSrc() + SenchaUtils.SENCHA_BASE_PATH + SenchaUtils.SEPARATOR;
     }
     return SenchaUtils.generateAbsolutePathUsingPlaceholder(senchaConfiguration.getType(), prefix + path);
   }
 
   private String getRelativePathFromModuleToSrc() {
     // TODO: determine real path!
-    String pathDown = ".." + File.separator;
+    String pathDown = ".." + SenchaUtils.SEPARATOR;
     if (SenchaConfiguration.Type.APP.equals(senchaConfiguration.getType())) {
       return StringUtils.repeat(pathDown, 2);
     }
