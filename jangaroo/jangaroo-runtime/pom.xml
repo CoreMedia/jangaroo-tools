@@ -77,11 +77,46 @@
                 <copy todir="target/classes/META-INF/resources">
                   <fileset dir="src/main/joo-js" />
                 </copy>
+                <!-- sencha package -->
+                <mkdir dir="target/sencha" />
+                <copy todir="target/sencha">
+                  <fileset dir="sencha" />
+                </copy>
+                <mkdir dir="target/sencha/packages/local/package/resources/joo" />
+                <copy todir="target/sencha/packages/local/package/resources/joo">
+                  <filelist dir="target/classes/META-INF/resources/joo">
+                    <file name="jangaroo-runtime.module.js" />
+                    <file name="AS3.js" />
+                  </filelist>
+                </copy>
+                <mkdir dir="target/sencha/packages/local/package/src" />
+                <copy todir="target/sencha/packages/local/package/src">
+                  <fileset dir="target/classes/META-INF/resources/joo/classes"/>
+                </copy>
+                <!-- execute sencha package build -->
+                <exec executable="sencha"
+                      dir="target/sencha/packages/local/package">
+                  <arg value="package" />
+                  <arg value="build" />
+                </exec>
+                <!-- put to classes folder so sencha folder is included in artifact -->
+                <mkdir dir="target/classes/sencha" />
+                <unzip src="target/sencha/build/${project.groupId}__${project.artifactId}/${project.groupId}__${project.artifactId}.pkg"
+                       dest="target/classes/sencha" />
               </target>
             </configuration>
           </execution>
         </executions>
       </plugin>
+      <!--<plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <includes>
+            <include>target/sencha/packages/local/**</include>
+          </includes>
+        </configuration>
+      </plugin>-->
     </plugins>
     <sourceDirectory>src/main/joo</sourceDirectory>
     <testSourceDirectory>src/test/joo</testSourceDirectory>
