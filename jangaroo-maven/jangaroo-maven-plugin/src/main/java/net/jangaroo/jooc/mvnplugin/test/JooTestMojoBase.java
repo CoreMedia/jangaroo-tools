@@ -40,8 +40,6 @@ public abstract class JooTestMojoBase extends AbstractMojo {
 
   /**
    * Directory whose joo/classes sub-directory contains compiled test classes.
-   *
-   * @parameter expression="${}"  default-value="${project.build.testOutputDirectory}"
    */
   @Parameter(defaultValue = "${project.build.testOutputDirectory}")
   protected File testOutputDirectory;

@@ -1,6 +1,7 @@
 package net.jangaroo.jooc.mvnplugin;
 
 import com.google.common.collect.ImmutableList;
+import org.apache.maven.plugins.annotations.Parameter;
 
 import java.util.List;
 
@@ -9,33 +10,29 @@ public class SenchaProfileConfiguration {
   /**
    * A list of paths to CSS files to include that are not loaded via the class loader (usually in resources folder).
    * Bundle option will be set to false.
-   *
-   * @parameter
    */
+  @Parameter
   private List<String> additionalCssNonBundle;
 
   /**
    * A list of paths to JS files to include that are not loaded via the class loader (usually in resources folder).
    * Bundle option will be set to false.
-   *
-   * @parameter
    */
+  @Parameter
   private List<String> additionalJsNonBundle;
 
   /**
    * A list of paths to CSS files to include that are not loaded via the class loader (usually in resources folder).
    * Bundle option will be set to true.
-   *
-   * @parameter
    */
+  @Parameter
   private List<String> additionalCssBundle;
 
   /**
    * A list of paths to JS files to include that are not loaded via the class loader (usually in resources folder).
    * Bundle option will be set to true.
-   *
-   * @parameter
    */
+  @Parameter
   private List<String> additionalJsBundle;
 
 
