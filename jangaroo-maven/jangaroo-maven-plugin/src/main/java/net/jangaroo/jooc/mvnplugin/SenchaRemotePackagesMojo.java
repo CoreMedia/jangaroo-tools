@@ -7,40 +7,33 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.PackagesConfigurer;
 import org.apache.commons.lang.StringUtils;
-import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
-import org.codehaus.plexus.archiver.zip.ZipEntry;
-import org.codehaus.plexus.archiver.zip.ZipFile;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Mojo to compile properties files to ActionScript3 files
- *
- * @goal extract-remote-packages
- * @phase process-resources
- * @requiresDependencyResolution
- * @threadSafe
  */
 @SuppressWarnings({"ResultOfMethodCallIgnored", "UnusedDeclaration", "UnusedPrivateField"})
+@Mojo(name = "extract-remote-packages",
+        defaultPhase = LifecyclePhase.PROCESS_RESOURCES,
+        requiresDependencyResolution = ResolutionScope.RUNTIME,
+        threadSafe = true)
 public class SenchaRemotePackagesMojo extends AbstractMojo {
 
   /**
    * The maven project.
-   *
-   * @parameter expression="${project}"
-   * @required
-   * @readonly
    */
+  @Parameter(defaultValue = "${project}", required = true, readonly = true)
   private MavenProject project;
 
   public void execute() throws MojoExecutionException, MojoFailureException {

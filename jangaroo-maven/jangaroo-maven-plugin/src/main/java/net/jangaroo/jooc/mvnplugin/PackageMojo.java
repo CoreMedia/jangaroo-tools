@@ -129,9 +129,8 @@ public class PackageMojo extends AbstractMojo {
 
   /**
    * The sencha configuration to use.
-   *
-   * @parameter default-value="${senchaConfiguration}"
    */
+  @Parameter(property = "senchaConfiguration")
   private SenchaConfiguration senchaConfiguration;
 
   public void execute()

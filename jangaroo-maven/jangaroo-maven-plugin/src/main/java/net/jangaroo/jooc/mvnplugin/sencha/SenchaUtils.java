@@ -211,7 +211,7 @@ public class SenchaUtils {
   }
 
   public static void extractRemotePackagesForProject(MavenProject project, String targetDirectory) throws MojoExecutionException {
-    @SuppressWarnings("unchecked") Set<Artifact> dependencyArtifacts = (Set<Artifact>) project.getDependencyArtifacts();
+    @SuppressWarnings("unchecked") Set<Artifact> dependencyArtifacts = project.getDependencyArtifacts();
     for (Artifact artifact : dependencyArtifacts) {
 
       if (!isSenchaPackageArtifact(artifact)) {
