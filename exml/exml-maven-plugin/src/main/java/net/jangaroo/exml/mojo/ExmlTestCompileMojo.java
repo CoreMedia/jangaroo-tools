@@ -4,6 +4,10 @@
 package net.jangaroo.exml.mojo;
 
 import net.jangaroo.exml.compiler.Exmlc;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.annotations.ResolutionScope;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -12,21 +16,19 @@ import java.util.List;
 
 /**
  * A Mojo to compile test EXML sources to test AS3 sources into target/generated-test-sources/joo in phase generate-test-sources.
- *
- * @goal test-exml
- * @phase generate-test-sources
- * @requiresDependencyResolution
- * @threadSafe
  */
+@Mojo(name = "test-exml",
+        defaultPhase = LifecyclePhase.GENERATE_TEST_SOURCES,
+        requiresDependencyResolution = ResolutionScope.RUNTIME,
+        threadSafe = true)
 public class ExmlTestCompileMojo extends AbstractExmlCompileMojo {
 
   /**
    * Set this to 'true' to bypass unit tests entirely. Its use is NOT RECOMMENDED, especially if you
    * enable it using the "maven.test.skip" property, because maven.test.skip disables both running the
    * tests and compiling the tests. Consider using the skipTests parameter instead.
-   *
-   * @parameter expression="${maven.test.skip}"
    */
+  @Parameter(defaultValue = "${maven.test.skip}")
   private boolean skip;
 
 

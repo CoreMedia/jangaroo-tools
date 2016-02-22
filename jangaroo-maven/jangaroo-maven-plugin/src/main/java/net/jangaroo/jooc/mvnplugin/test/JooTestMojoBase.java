@@ -3,6 +3,7 @@ package net.jangaroo.jooc.mvnplugin.test;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
@@ -22,59 +23,60 @@ import java.util.List;
  * Base class for running tests either automatically (JooTestMojo) or start test Jetty and keep it running (JettyRunTestsMojo).
  */
 public abstract class JooTestMojoBase extends AbstractMojo {
+
   /**
    * The maven project.
-   *
-   * @parameter expression="${project}"
-   * @required
-   * @readonly
    */
   @SuppressWarnings({"UnusedDeclaration"})
+  @Parameter(defaultValue = "${project}", required = true, readonly = true)
   protected MavenProject project;
+
   /**
    * Directory whose META-INF/RESOURCES/joo/classes sub-directory contains compiled classes.
-   *
-   * @parameter expression="${project.build.outputDirectory}"
    */
   @SuppressWarnings({"UnusedDeclaration", "FieldCanBeLocal"})
+  @Parameter(defaultValue = "${project.build.outputDirectory}")
   private File outputDirectory;
+
   /**
    * Directory whose joo/classes sub-directory contains compiled test classes.
    *
-   * @parameter expression="${project.build.testOutputDirectory}"  default-value="${project.build.testOutputDirectory}"
+   * @parameter expression="${}"  default-value="${project.build.testOutputDirectory}"
    */
+  @Parameter(defaultValue = "${project.build.testOutputDirectory}")
   protected File testOutputDirectory;
+
   /**
    * the tests.html file relative to the test resources folder
-   *
-   * @parameter default-value="tests.html"
    */
   @SuppressWarnings({"UnusedDeclaration"})
+  @Parameter(defaultValue = "tests.html")
   protected String testsHtml;
+
   /**
    * Whether to load the test application in debug mode (#joo.debug).
-   *
-   * @parameter default-value=false
    */
   @SuppressWarnings({"UnusedDeclaration"})
+  @Parameter(defaultValue = "false")
   protected boolean debugTests;
+
   /**
    * the project's test resources
-   *
-   * @parameter expression="${project.testResources}"
    */
+  @Parameter(defaultValue = "${project.testResources}")
   protected List<org.apache.maven.model.Resource> testResources;
+
   /**
    * To avoid port clashes when multiple tests are running at the same
    * time on the same machine, the jetty port is selected randomly within
    * an range of <code>[jooUnitJettyPortLowerBound:jooUnitJettyPortUpperBound]</code>.
    * Every port is tried until a free one is found or all ports in the range
    * are occupied (which results in the build to fail).
-   *
-   * @parameter expression="${jooUnitJettyPortUpperBound}" default-value=10200
    */
   @SuppressWarnings({"UnusedDeclaration", "FieldCanBeLocal"})
+  @Parameter(property = "jooUnitJettyPortUpperBound", defaultValue = "10200")
   private int jooUnitJettyPortUpperBound;
+
   /**
    * To avoid port clashes when multiple tests are running at the same
    * time on the same machine, the jetty port is selected randomly within
@@ -83,17 +85,16 @@ public abstract class JooTestMojoBase extends AbstractMojo {
    * are occupied (which results in the build to fail).
    * When using goal <code>jetty-run-tests</code>, this lower bound is
    * always used.
-   *
-   * @parameter expression="${jooUnitJettyPortLowerBound}" default-value=10100
    */
   @SuppressWarnings({"UnusedDeclaration", "FieldCanBeLocal"})
+  @Parameter(property = "jooUnitJettyPortLowerBound", defaultValue = "10100")
   private int jooUnitJettyPortLowerBound;
+
   /**
    * The host name to use to reach the locally started Jetty listenes, usually the default, "localhost".
-   *
-   * @parameter expression="${jooUnitJettyHost}" default-value="localhost"
    */
   @SuppressWarnings({"UnusedDeclaration"})
+  @Parameter(property = "jooUnitJettyHost", defaultValue = "localhost")
   private String jooUnitJettyHost;
 
   protected String getJettyUrl(Server server) {

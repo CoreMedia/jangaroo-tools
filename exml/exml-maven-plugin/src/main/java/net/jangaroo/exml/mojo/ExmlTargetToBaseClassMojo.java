@@ -2,6 +2,9 @@ package net.jangaroo.exml.mojo;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.ResolutionScope;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -18,12 +21,11 @@ import static org.apache.commons.io.FileUtils.listFiles;
 
 /**
  * A Mojo to make all exml target class file with the same name as the exml file explicitly as baseClass of the exml class
- *
- * @goal exml-target-to-base
- * @phase generate-sources
- * @requiresDependencyResolution
- * @threadSafe
  */
+@Mojo(name = "exml-target-to-base",
+        defaultPhase = LifecyclePhase.GENERATE_SOURCES,
+        requiresDependencyResolution = ResolutionScope.RUNTIME,
+        threadSafe = true)
 public class ExmlTargetToBaseClassMojo extends AbstractExmlMojo {
 
   public static final String PRIVATE_PREFIX = "private";

@@ -7,6 +7,10 @@ import net.jangaroo.exml.compiler.Exmlc;
 import net.jangaroo.exml.config.ExmlConfiguration;
 import net.jangaroo.exml.mojo.pom.PomConverter;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.annotations.ResolutionScope;
 
 import java.io.File;
 import java.io.IOException;
@@ -21,35 +25,31 @@ import static org.apache.commons.io.FilenameUtils.getBaseName;
 
 /**
  * A Mojo to compile EXML sources to AS3 sources into target/generated-sources/joo in phase generate-sources.
- *
- * @goal convert-to-mxml
- * @phase generate-sources
- * @requiresDependencyResolution
- * @threadSafe
  */
+@Mojo(name = "convert-to-mxml",
+        defaultPhase = LifecyclePhase.GENERATE_SOURCES,
+        requiresDependencyResolution = ResolutionScope.RUNTIME,
+        threadSafe = true)
 public class ExmlToMxmlMojo extends AbstractExmlMojo {
 
   /**
    * Set this to 'true' to rename EXML files to MXML files only and to skip the actual conversion. This allows to give
    * a hint to SCM systems like Git about the renaming and then run the actual conversion in a second step.
-   *
-   * @parameter expression="${renameOnly}"
    */
+  @Parameter(defaultValue = "${renameOnly}")
   private boolean renameOnly;
 
   /**
    * Set this to 'true' when EXML files have been renamed to MXML files already but the files still need to be
    * converted.
-   *
-   * @parameter expression="${alreadyRenamed}"
    */
+  @Parameter(defaultValue = "${alreadyRenamed}")
   private boolean alreadyRenamed;
 
   /**
    * The JAR containing the target ExtAS API for converting EXML into MXML.
-   *
-   * @parameter expression="${extAsJar}"
    */
+  @Parameter(defaultValue = "${extAsJar}")
   private File extAsJar;
 
   @Override

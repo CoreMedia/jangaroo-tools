@@ -5,23 +5,24 @@ import net.jangaroo.exml.config.ValidationMode;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.Component;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProjectHelper;
 
 import java.io.File;
 
 /**
  * A Mojo that generates the Xsd files for the module. Needs the same information as the exml mojo
- *
- * @goal exml-xsd
- * @phase generate-resources
- * @requiresDependencyResolution
- * @threadSafe
  */
+@Mojo(name = "exml-xsd",
+        defaultPhase = LifecyclePhase.GENERATE_RESOURCES,
+        requiresDependencyResolution = ResolutionScope.RUNTIME,
+        threadSafe = true)
 public class ExmlXsdMojo extends ExmlCompileMojo {
 
-  /**
-   * @component
-   */
+  @Component
   private MavenProjectHelper projectHelper;
 
   public ExmlXsdMojo() {

@@ -15,8 +15,10 @@ import java.util.Date;
 */
 public class ResourcesUnArchiver extends AbstractZipUnArchiver {
   @Override
-  protected void extractFile(File srcF, File dir, InputStream compressedInputStream, String entryName, Date entryDate, boolean isDirectory, Integer mode) throws IOException, ArchiverException {
+  protected void extractFile(File srcF, File dir, InputStream compressedInputStream, String entryName, Date entryDate,
+                             boolean isDirectory, Integer mode, String symLinkDestination)
+          throws IOException, ArchiverException {
     String subEntryName = entryName.substring(UnpackJarResourcesMojo.META_INF_RESOURCES.length());
-    super.extractFile(srcF, dir, compressedInputStream, subEntryName, entryDate, isDirectory, mode);
+    super.extractFile(srcF, dir, compressedInputStream, subEntryName, entryDate, isDirectory, mode, null);
   }
 }

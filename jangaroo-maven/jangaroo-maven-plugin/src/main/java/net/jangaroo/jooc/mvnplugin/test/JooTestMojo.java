@@ -6,6 +6,10 @@ import com.thoughtworks.selenium.SeleniumException;
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.codehaus.plexus.util.cli.CommandLineException;
 import org.eclipse.jetty.server.Server;
 import org.w3c.dom.Document;
@@ -35,117 +39,103 @@ import java.util.ArrayList;
  * <code>jooUnitSeleniumRCHost</code>. The Selenium Remote Control then starts a browser, navigates
  * the browser to the Jetty we just started and waits for <code>jooUnitTestExecutionTimeout</code>ms
  * for the results to appear on the browser screen.
- *
- * @goal test
- * @phase test
- * @requiresDependencyResolution test
- * @threadSafe
  */
+@Mojo(name = "test",
+        defaultPhase = LifecyclePhase.TEST,
+        requiresDependencyResolution = ResolutionScope.TEST,
+        threadSafe = true)
 public class JooTestMojo extends JooTestMojoBase {
 
   /**
    * Source directory to scan for files to compile.
-   *
-   * @parameter expression="${project.build.testSourceDirectory}"
    */
   @SuppressWarnings({"UnusedDeclaration", "FieldCanBeLocal"})
+  @Parameter(defaultValue = "${project.build.testSourceDirectory}")
   private File testSourceDirectory;
+
   /**
    * Set this to 'true' to bypass unit tests entirely. Its use is NOT RECOMMENDED, especially if you
    * enable it using the "maven.test.skip" property, because maven.test.skip disables both running the
    * tests and compiling the tests. Consider using the skipTests parameter instead.
-   *
-   * @parameter expression="${maven.test.skip}"
    */
+  @Parameter(defaultValue = "${maven.test.skip}")
   private boolean skip;
+
   /**
    * Set this to 'true' to skip running tests, but still compile them. Its use is NOT RECOMMENDED, but quite
    * convenient on occasion.
-   *
-   * @parameter expression="${skipTests}"
    */
+  @Parameter(defaultValue = "${skipTests}")
   private boolean skipTests;
 
   /**
    * Set this to 'true' to skip running tests, but still compile them. Its use is NOT RECOMMENDED, but quite
    * convenient on occasion.
-   *
-   * @parameter expression="${skipJooUnitTests}"
    */
+  @Parameter(defaultValue = "${skipJooUnitTests}")
   private boolean skipJooUnitTests;
 
   /**
    * Output directory for test results.
-   *
-   * @parameter expression="${project.build.directory}/surefire-reports/"  default-value="${project.build.directory}/surefire-reports/"
-   * @required
    */
   @SuppressWarnings({"UnusedDeclaration"})
+  @Parameter(defaultValue = "${project.build.directory}/surefire-reports/")
   private File testResultOutputDirectory;
 
-  /**
-   * @parameter
-   */
   @SuppressWarnings({"UnusedDeclaration"})
+  @Parameter
   private String testResultFileName;
 
   /**
    * Specifies the time in milliseconds to wait for the test results in the browser. Default is 30000ms.
-   *
-   * @parameter
    */
   @SuppressWarnings("FieldCanBeLocal")
+  @Parameter(defaultValue = "30000")
   private int jooUnitTestExecutionTimeout = 30000;
 
   /**
    * Specifies the number of retries when receiving unexpected result from phantomjs (crash?).
    * Default is 5.
-   *
-   * @parameter
    */
   @SuppressWarnings("FieldCanBeLocal")
+  @Parameter(defaultValue = "5")
   private int jooUnitMaxRetriesOnCrashes = 5;
 
   /**
    * Defines the Selenium RC host. Default is localhost.
    * If the system property SELENIUM_RC_HOST is set, it is used prior to the
    * maven parameter.
-   *
-   * @parameter
    */
+  @Parameter(defaultValue = "localhost")
   private String jooUnitSeleniumRCHost = "localhost";
 
   /**
    * Defines the Selenium RC port. Default is 4444.
-   *
-   * @parameter
    */
   @SuppressWarnings({"UnusedDeclaration", "FieldCanBeLocal"})
+  @Parameter(defaultValue = "4444")
   private int jooUnitSeleniumRCPort = 4444;
 
   /**
    * Selenium browser start command. Default is *firefox
-   *
-   * @parameter
    */
   @SuppressWarnings({"UnusedDeclaration", "FieldCanBeLocal"})
+  @Parameter(defaultValue = "*firefox")
   private String jooUnitSeleniumBrowserStartCommand = "*firefox";
 
   /**
    * Set this to true to ignore a failure during testing. Its use is NOT RECOMMENDED, but quite convenient on
    * occasion.
-   *
-   * @parameter expression="${maven.test.failure.ignore}"
    */
+  @Parameter(defaultValue = "${maven.test.failure.ignore}")
   private boolean testFailureIgnore;
 
   /**
    * The phantomjs executable. If not specified, it expects the phantomjs binary in the PATH.
    * If not phantomjs executable (or an outdated one) is found, falls back to Selenium.
-   *
-   * @parameter expression="${phantomjs.bin}" default-value="phantomjs"
    */
   @SuppressWarnings({"UnusedDeclaration", "FieldCanBeLocal"})
+  @Parameter(property = "phantomjs.bin", defaultValue = "phantomjs")
   private String phantomBin;
 
   public void execute() throws MojoExecutionException, MojoFailureException {
