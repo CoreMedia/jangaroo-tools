@@ -128,5 +128,8 @@
   </reporting>
   <name>exml-maven-plugin</name>
   <description>This plugin generates ActionScript</description>
+  <prerequisites>
+    <maven>${maven.version}</maven>
+  </prerequisites>
 </project>
 

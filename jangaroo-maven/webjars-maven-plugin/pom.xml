@@ -104,5 +104,8 @@
   </reporting>
   <name>Jangaroo WebJars Maven Plugin</name>
   <description>This plugin unpacks Web resources from JARs.</description>
+  <prerequisites>
+    <maven>${maven.version}</maven>
+  </prerequisites>
 </project>
 

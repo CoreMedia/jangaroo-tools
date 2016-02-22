@@ -220,5 +220,8 @@
   </reporting>
   <name>Jangaroo Maven Plugin</name>
   <description>This plugin compiles Jangaroo sources to JavaScript.</description>
+  <prerequisites>
+    <maven>${maven.version}</maven>
+  </prerequisites>
 </project>
 
