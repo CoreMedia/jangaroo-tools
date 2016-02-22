@@ -207,6 +207,8 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-plugin-plugin</artifactId>
         <configuration>
+          <!-- see http://jira.codehaus.org/browse/MNG-5346 -->
+          <skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
           <goalPrefix>jangaroo</goalPrefix>
         </configuration>
         <executions>
@@ -215,9 +217,14 @@
             <phase>process-classes</phase>
             <goals>
               <goal>descriptor</goal>
+              <goal>helpmojo</goal>
             </goals>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-site-plugin</artifactId>
       </plugin>
     </plugins>
   </build>
@@ -226,7 +233,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-project-info-reports-plugin</artifactId>
-        <version>2.8.1</version>
         <reportSets>
           <reportSet>
             <reports>
@@ -238,9 +244,11 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-plugin-plugin</artifactId>
-        <version>3.4</version>
         <configuration>
           <goalPrefix>jangaroo</goalPrefix>
+          <requirements>
+            <maven>${maven.version}</maven>
+          </requirements>
         </configuration>
       </plugin>
     </plugins>

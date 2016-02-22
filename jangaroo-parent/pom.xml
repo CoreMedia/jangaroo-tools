@@ -33,6 +33,7 @@
         <groupId>org.apache.maven</groupId>
         <artifactId>maven-model</artifactId>
         <version>${maven.version}</version>
+        <scope>provided</scope>
       </dependency>
       <dependency>
         <groupId>org.apache.maven</groupId>
@@ -305,7 +306,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <maven.version>3.3.1</maven.version>
+    <maven.version>3.1.1</maven.version>
     <jetty.version>8.1.16.v20140903</jetty.version>
   </properties>
   <build>
@@ -375,6 +376,9 @@
           <artifactId>maven-site-plugin</artifactId>
           <version>3.5</version>
           <configuration>
+            <locales>en</locales>
+            <inputEncoding>UTF-8</inputEncoding>
+            <outputEncoding>UTF-8</outputEncoding>
             <reportPlugins>
             <plugin>
               <groupId>org.apache.maven.plugins</groupId>
@@ -418,6 +422,11 @@
               <groupId>commons-io</groupId>
               <artifactId>commons-io</artifactId>
               <version>2.4</version>
+            </dependency>
+            <dependency>
+              <groupId>commons-configuration</groupId>
+              <artifactId>commons-configuration</artifactId>
+              <version>1.10</version>
             </dependency>
           </dependencies>
           <executions>
