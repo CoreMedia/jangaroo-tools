@@ -5,8 +5,13 @@ import net.jangaroo.jooc.mvnplugin.sencha.SenchaModuleHelper;
 import org.apache.maven.archiver.MavenArchiveConfiguration;
 import org.apache.maven.archiver.MavenArchiver;
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.annotations.Component;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
 import org.codehaus.plexus.archiver.ArchiverException;
@@ -28,95 +33,82 @@ import java.util.Set;
  * (defaults to target/classes).
  * <p/>
  * The <code>package</code> goal is executed in the <code>package</code> phase of the jangaroo lifecycle.
- *
- * @goal package
- * @phase package
- * @threadSafe
  */
 @SuppressWarnings({"ResultOfMethodCallIgnored", "UnusedDeclaration", "UnusedPrivateField"})
+@Mojo(name = "package", defaultPhase = LifecyclePhase.PACKAGE, threadSafe = true)
 public class PackageMojo extends AbstractMojo {
+
   /**
    * The maven project.
-   *
-   * @parameter expression="${project}"
-   * @required
-   * @readonly
    */
+  @Parameter(defaultValue = "${project}", readonly = true, required = true)
   private MavenProject project;
+
+  /**
+   * The Maven session
+   */
+  @Parameter(defaultValue = "${session}", readonly = true)
+  private MavenSession mavenSession;
 
   /**
    * Destination directory for the Maven artifacts (*.jar). Default is <code>
    * ${project.build.directory}</code>
-   *
-   * @parameter expression="${project.build.directory}"
    */
+  @Parameter(defaultValue = "${project.build.directory}")
   private File targetDir;
 
-  /**
-   * @component
-   */
+  @Component
   private MavenProjectHelper projectHelper;
 
   /**
    * List of files to exclude. Specified as fileset patterns.
-   *
-   * @parameter
    */
+  @Parameter
   private String[] excludes;
 
   /**
-   * The name of the JAR file (without extension) generated as this module's artifact. Defaults to ${project.artifactId}
-   *
-   * @parameter default-value="${project.build.finalName}"
-   * "
+   * The name of the JAR file (without extension) generated as this module's artifact. Defaults to ${project.build.finalName}
    */
+  @Parameter(defaultValue = "${project.build.finalName}")
   private String finalName;
 
   /**
    * Plexus archiver.
-   *
-   * @component role="org.codehaus.plexus.archiver.Archiver" role-hint="jar"
-   * @required
    */
+  @Component(role = org.codehaus.plexus.archiver.Archiver.class, hint = "jar")
   private JarArchiver archiver;
 
   /**
    * @deprecated use <code>defaultManifestFile</code>
-   * @parameter
    */
+  @Parameter
   private File manifest;
 
   /**
    * The archive configuration to use.
    * See <a href="http://maven.apache.org/shared/maven-archiver/index.html">Maven Archiver Reference</a>.
-   *
-   * @parameter
    */
+  @Parameter
   private MavenArchiveConfiguration archive = new MavenArchiveConfiguration();
 
   /**
    * Path to the default MANIFEST file to use. It will be used if
    * <code>useDefaultManifestFile</code> is set to <code>true</code>.
-   *
-   * @parameter default-value="${project.build.outputDirectory}/META-INF/MANIFEST.MF"
-   * @required
-   * @readonly
    */
+  @Parameter(defaultValue = "${project.build.outputDirectory}/META-INF/MANIFEST.MF", required = true, readonly = true)
   private File defaultManifestFile;
 
   /**
    * Set this to <code>true</code> to enable the use of the <code>defaultManifestFile</code>.
-   *
-   * @parameter expression="${jar.useDefaultManifestFile}" default-value="false"
    */
+  @Parameter(defaultValue = "${jar.useDefaultManifestFile}")
   private boolean useDefaultManifestFile;
   
   /**
    * Location of files to be packaged, which are all files placed in the other goal's outputDirectory.
    * Defaults to ${project.build.outputDirectory}
-   *
-   * @parameter expression="${project.build.outputDirectory}"
    */
+  @Parameter(defaultValue = "${project.build.outputDirectory}")
   private File outputDirectory;
 
   /**
@@ -124,17 +116,15 @@ public class PackageMojo extends AbstractMojo {
    * module is used, relative to the outputDirectory.
    * If this file is not created through copying the corresponding resource, and the jsClassesFile exists,
    * a file containing the code to load the concatenated Jangaroo classes file is created.
-   *
-   * @parameter expression="META-INF/resources/joo/${project.artifactId}.module.js"
    */
+  @Parameter(defaultValue = "META-INF/resources/joo/${project.artifactId}.module.js")
   private String moduleJsFile;
 
   /**
    * This parameter specifies the path and name of the output file containing all
    * compiled classes, relative to the outputDirectory.
-   *
-   * @parameter expression="META-INF/resources/joo/${project.groupId}.${project.artifactId}.classes.js"
    */
+  @Parameter(defaultValue = "META-INF/resources/joo/${project.groupId}.${project.artifactId}.classes.js")
   private String moduleClassesJsFile;
 
   /**
@@ -180,7 +170,7 @@ public class PackageMojo extends AbstractMojo {
       senchaHelper.prepareModule();
       senchaHelper.packageModule(archiver);
 
-      mavenArchiver.createArchive(project, archive);
+      mavenArchiver.createArchive(mavenSession, project, archive);
     } catch (Exception e) { // NOSONAR
       throw new MojoExecutionException("Failed to create the javascript archive", e);
     }

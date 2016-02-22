@@ -64,8 +64,12 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
   public static final String PUBLIC_API_INCLUSION_ANNOTATION_NAME = "PublicApi";
   public static final String NATIVE_ANNOTATION_NAME = "Native";
   public static final String NATIVE_ANNOTATION_REQUIRE_PROPERTY = "require";
+  public static final String USES_ANNOTATION_NAME = "Uses";
+  public static final String MIXIN_ANNOTATION_NAME = "Mixin";
   public static final String BINDABLE_ANNOTATION_NAME = "Bindable";
   public static final String EXT_CONFIG_ANNOTATION_NAME = "ExtConfig";
+  public static final String EMBED_ANNOTATION_NAME = "Embed";
+  public static final String EMBED_ANNOTATION_SOURCE_PROPERTY = "source";
 
   private List<CompilationUnit> compileQueue = new ArrayList<CompilationUnit>();
 
@@ -156,8 +160,9 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
         InputSource source = getInputSource(unit);
         File sourceFile = ((FileInputSource)source).getFile();
         File outputFile = null;
-        // only generate JavaScript if [Native] annotation and 'native' modifier on primary compilationUnit are not present:
-        if (unit.getAnnotation(NATIVE_ANNOTATION_NAME) == null && !unit.getPrimaryDeclaration().isNative()) {
+        // only generate JavaScript if [Native] / [Mixin] annotation and 'native' modifier on primary compilationUnit are not present:
+        if (unit.getAnnotation(NATIVE_ANNOTATION_NAME) == null && !unit.getPrimaryDeclaration().isNative()
+                && unit.getAnnotation(MIXIN_ANNOTATION_NAME) == null) {
           outputFile = writeOutput(sourceFile, unit, codeSinkFactory, getConfig().isVerbose());
         }
         outputFileMap.put(sourceFile, outputFile); // always map source file, even if output file is null!

@@ -1,6 +1,5 @@
 package net.jangaroo.jooc.mvnplugin.util;
 
-import net.jangaroo.jooc.mvnplugin.Types;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
@@ -91,6 +90,6 @@ public class MavenPluginHelper {
 
   @SuppressWarnings({"unchecked"})
   public Set<Artifact> getArtifacts() {
-    return (Set<Artifact>) project.getArtifacts();
+    return project.getArtifacts();
   }
 }

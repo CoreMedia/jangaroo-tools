@@ -26,6 +26,17 @@ public class PropertyModel extends MemberModel {
     this.setter = accessor.isSetter() ? accessor : counterpart;
   }
 
+  @Override
+  public void setName(String name) {
+    super.setName(name);
+    if (getter != null) {
+      getter.setName(name);
+    }
+    if (setter != null) {
+      setter.setName(name);
+    }
+  }
+
   @SuppressWarnings("UnusedDeclaration")
   public boolean isFinal() {
     return isFinal;

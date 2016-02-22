@@ -16,12 +16,14 @@
 package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.JooSymbol;
+import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.input.InputSource;
 import net.jangaroo.utils.AS3Type;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -181,12 +183,37 @@ public class CompilationUnit extends NodeImplBase {
     }
     return null;
   }
-  
+
+  public List<Annotation> getAnnotations(String name) {
+    List<Annotation> annotations = new ArrayList<Annotation>();
+    for (Annotation annotation : getAnnotations()) {
+      if (name.equals(annotation.getMetaName())) {
+        annotations.add(annotation);
+      }
+    }
+    return annotations;
+  }
+
   public JooSymbol getSymbol() {
     return packageDeclaration.getSymbol();
   }
 
+  public CompilationUnit mapMixinInterface(CompilationUnit compilationUnit) {
+    if (compilationUnit != null && compilationUnit.getPrimaryDeclaration() instanceof ClassDeclaration
+            && ((ClassDeclaration)compilationUnit.getPrimaryDeclaration()).isInterface()) {
+      Annotation mixinAnnotation = compilationUnit.getAnnotation(Jooc.MIXIN_ANNOTATION_NAME);
+      if (mixinAnnotation != null) {
+        Iterator<String> mixinClassNames = getAnnotationDefaultParameterStringValues(mixinAnnotation).iterator();
+        if (mixinClassNames.hasNext()) {
+          return scope.getCompiler().getCompilationUnit(mixinClassNames.next());
+        }
+      }
+    }
+    return compilationUnit;
+  }
+
   public void addDependency(CompilationUnit otherUnit, boolean required) {
+    otherUnit = mapMixinInterface(otherUnit);
     // Predefined ides have a null unit.
     // Self dependencies are ignored.
     if (otherUnit != null && otherUnit != this) {
@@ -198,21 +225,18 @@ public class CompilationUnit extends NodeImplBase {
       if (inModule) {
         dependenciesInModule.add(otherUnit);
       } else {
-        List<Annotation> annotations = otherUnit.getAnnotations();
-        for (Annotation annotation : annotations) {
-          if ("Uses".equals(annotation.getMetaName())) {
-            CommaSeparatedList<AnnotationParameter> current = annotation.getOptAnnotationParameters();
-            for (String value : getAnnotationStringListValue(current)) {
-              dependenciesAsCompilationUnits.put(scope.getCompiler().getCompilationUnit(value), true);
-            }
+        for (Annotation annotation : otherUnit.getAnnotations(Jooc.USES_ANNOTATION_NAME)) {
+          for (String value : getAnnotationDefaultParameterStringValues(annotation)) {
+            dependenciesAsCompilationUnits.put(scope.getCompiler().getCompilationUnit(value), true);
           }
         }
       }
     }
   }
 
-  private List<String> getAnnotationStringListValue(CommaSeparatedList<AnnotationParameter> current) {
+  private List<String> getAnnotationDefaultParameterStringValues(Annotation annotation) {
     List<String> values = new ArrayList<String>();
+    CommaSeparatedList<AnnotationParameter> current = annotation.getOptAnnotationParameters();
     while (current != null) {
       AnnotationParameter head = current.getHead();
       if (head.getOptName() == null) {

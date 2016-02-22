@@ -16,12 +16,14 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 /**
  * Load API model from a jsduck JSON export of the Ext JS API.
  */
 public class ExtJsApi {
 
+  private static final Pattern CONSTANT_NAME_PATTERN = Pattern.compile("[A-Z][A-Z0-9_]*");
   private Set<ExtClass> extClasses;
   private Map<String,ExtClass> extClassByName;
   private Set<ExtClass> mixins;
@@ -76,6 +78,23 @@ public class ExtJsApi {
       }
     }
     return false;
+  }
+
+  public boolean isStatic(Member member) {
+    ExtClass extClass = getExtClass(member.owner);
+    return !extClass.singleton && (member.static_ || member.meta.static_ || isConstantName(member.name));
+  }
+
+  private static boolean isConstantName(String name) {
+    return CONSTANT_NAME_PATTERN.matcher(name).matches();
+  }
+
+  public boolean isReadOnly(Member member) {
+    return member.meta.readonly || member.readonly || isConstantName(member.name);
+  }
+
+  public boolean isProtected(Member member) {
+    return member.protected_ || member.meta.protected_;
   }
 
   public static boolean isPublicNonStaticMethodOrPropertyOrCfg(Member member) {

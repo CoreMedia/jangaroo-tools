@@ -7,6 +7,9 @@ import net.jangaroo.exml.config.ExmlConfiguration;
 import net.jangaroo.exml.generator.MxmlLibraryManifestGenerator;
 import net.jangaroo.exml.model.ConfigClassRegistry;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 
 import java.io.IOException;
@@ -16,16 +19,15 @@ import static net.jangaroo.exml.api.Exmlc.EXML_CONFIG_URI_PREFIX;
 
 /**
  * A Mojo to generate the MXML library manifest.
- *
- * @goal generate-manifest
- * @requiresDependencyResolution
  */
+@SuppressWarnings({"UnusedDeclaration", "UnusedPrivateField"})
+@Mojo(name = "generate-manifest", requiresDependencyResolution = ResolutionScope.RUNTIME)
 public class ManifestMojo extends AbstractJangarooMojo {
+
   /**
    * The Maven project object
-   *
-   * @parameter expression="${project}"
    */
+  @Parameter(defaultValue = "${project}")
   private MavenProject project;
 
   @Override

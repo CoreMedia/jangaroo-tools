@@ -21,12 +21,22 @@
     </dependency>
     <dependency>
       <groupId>net.jangaroo</groupId>
-      <artifactId>jangaroo-maven-plugin</artifactId>
+      <artifactId>jangaroo-maven-plugin-api</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.apache.maven.plugin-tools</groupId>
+      <artifactId>maven-plugin-annotations</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>net.jangaroo</groupId>
+      <artifactId>jangaroo-maven-plugin</artifactId>
+      <version>${project.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
       <groupId>org.apache.maven</groupId>
-      <artifactId>maven-project</artifactId>
+      <artifactId>maven-core</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.maven</groupId>
@@ -35,10 +45,6 @@
     <dependency>
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-plugin-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.maven</groupId>
-      <artifactId>maven-plugin-descriptor</artifactId>
     </dependency>
     <dependency>
       <groupId>org.codehaus.plexus</groupId>
@@ -98,7 +104,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-plugin-plugin</artifactId>
-        <version>2.9</version>
+        <version>3.4</version>
         <configuration>
           <goalPrefix>exml</goalPrefix>
         </configuration>
@@ -106,7 +112,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-project-info-reports-plugin</artifactId>
-        <version>2.4</version>
+        <version>2.8.1</version>
         <reportSets>
           <reportSet>
             <reports>
@@ -122,5 +128,8 @@
   </reporting>
   <name>exml-maven-plugin</name>
   <description>This plugin generates ActionScript</description>
+  <prerequisites>
+    <maven>${maven.version}</maven>
+  </prerequisites>
 </project>
 

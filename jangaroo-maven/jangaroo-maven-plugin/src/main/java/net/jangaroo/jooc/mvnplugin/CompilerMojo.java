@@ -4,27 +4,29 @@ import net.jangaroo.jooc.config.JoocConfiguration;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.annotations.ResolutionScope;
 
 import java.io.File;
 import java.util.*;
 
 /**
  * Mojo to compile Jangaroo sources during the compile phase.
- *
- * @goal compile
- * @phase compile
- * @requiresDependencyResolution compile
- * @threadSafe
  */
 @SuppressWarnings({"UnusedDeclaration", "UnusedPrivateField"})
+@Mojo(name = "compile",
+        defaultPhase = LifecyclePhase.COMPILE,
+        requiresDependencyResolution = ResolutionScope.COMPILE,
+        threadSafe = true)
 public class CompilerMojo extends AbstractCompilerMojo {
 
   /**
    * Output directory into whose META-INF/resources/joo/classes sub-directory compiled classes are generated.
    * This property is used for <code>jangaroo</code> packaging type as {@link #getOutputDirectory}.
-   *
-   * @parameter expression="${project.build.outputDirectory}"
    */
+  @Parameter(defaultValue = "${project.build.outputDirectory}")
   private File outputDirectory;
 
   /**
@@ -32,51 +34,45 @@ public class CompilerMojo extends AbstractCompilerMojo {
    * to the webapp. This property is used for <code>war</code> packaging type (actually, all packaging types
    * but <code>jangaroo</code>) as {@link #getOutputDirectory}.
    * Defaults to ${project.build.directory}/jangaroo-output/
-   *
-   * @parameter expression="${project.build.directory}/jangaroo-output/"
    */
+  @Parameter(defaultValue = "${project.build.directory}/jangaroo-output/")
   private File packageSourceDirectory;
 
   /**
    * Temporary output directory for compiled classes to be packaged into a single *.js file.
-   *
-   * @parameter expression="${project.build.directory}/temp/jangaroo-output/classes"
    */
+  @Parameter(defaultValue = "${project.build.directory}/temp/jangaroo-output/classes")
   private File tempClassesOutputDirectory;
 
   /**
    * Output directory for compilation reports like the cyclic classes report.
-   *
-   * @parameter expression="${project.build.directory}/temp"
    */
+  @Parameter(defaultValue = "${project.build.directory}/temp")
   private File reportOutputDirectory;
 
   /**
    * A list of inclusion filters for the compiler.
-   *
-   * @parameter
    */
+  @Parameter
   private Set<String> includes = new HashSet<String>();
+
   /**
    * A list of exclusion filters for the compiler.
-   *
-   * @parameter
    */
+  @Parameter
   private Set<String> excludes = new HashSet<String>();
 
   /**
    * This parameter specifies the path and name of the output file containing all
    * compiled classes, relative to the outputDirectory.
-   *
-   * @parameter expression="joo/${project.groupId}.${project.artifactId}.classes.js"
    */
+  @Parameter(defaultValue = "joo/${project.groupId}.${project.artifactId}.classes.js")
   private String moduleClassesJsFile;
 
   /**
    * Output directory for generated API stubs, relative to the outputDirectory.
-   *
-   * @parameter expression="${project.build.outputDirectory}/META-INF/joo-api"
    */
+  @Parameter(defaultValue = "${project.build.outputDirectory}/META-INF/joo-api")
   private String apiOutputDirectory;
 
   public File getApiOutputDirectory() {

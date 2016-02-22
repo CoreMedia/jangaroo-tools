@@ -5,6 +5,10 @@ import net.jangaroo.jooc.mvnplugin.sencha.SenchaModuleHelper;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.annotations.ResolutionScope;
 
 import java.io.File;
 import java.util.List;
@@ -34,27 +38,23 @@ import java.util.List;
  * &lt;/plugin>
  * ...
  * </pre>
- *
- * @goal war-package
- * @requiresDependencyResolution runtime
- * @phase prepare-package
- * @threadSafe
  */
 @SuppressWarnings({"ResultOfMethodCallIgnored", "UnusedDeclaration", "UnusedPrivateField"})
+@Mojo(  name = "war-package",
+        defaultPhase = LifecyclePhase.PREPARE_PACKAGE,
+        requiresDependencyResolution = ResolutionScope.RUNTIME,
+        threadSafe = true)
 public class WarPackageMojo extends PackageApplicationMojo {
 
   /**
    * Location of Jangaroo resources of this module (including compiler output, usually under "joo/") to be added
    * to the webapp. Defaults to ${project.build.directory}/jangaroo-output/
-   *
-   * @parameter expression="${project.build.directory}/jangaroo-output/"
    */
+  @Parameter(defaultValue = "${project.build.directory}/jangaroo-output/")
   private File packageSourceDirectory;
 
-  /**
-   * @parameter expression="${project.resources}"
-   */
   @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
+  @Parameter(defaultValue = "${project.resources}")
   private List<Resource> resources;
 
   /**
@@ -63,7 +63,7 @@ public class WarPackageMojo extends PackageApplicationMojo {
    * @parameter default-value="${senchaConfiguration}"
    */
   private SenchaConfiguration senchaConfiguration;
-  
+
   public File getPackageSourceDirectory() {
     return resources.isEmpty() ? null : new File(resources.get(0).getDirectory());
   }

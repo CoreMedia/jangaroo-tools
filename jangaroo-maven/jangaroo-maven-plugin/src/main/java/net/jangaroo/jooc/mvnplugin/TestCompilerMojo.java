@@ -2,33 +2,34 @@ package net.jangaroo.jooc.mvnplugin;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.annotations.ResolutionScope;
 
 import java.io.File;
 import java.util.*;
 
 /**
  * Mojo to compile Jangaroo sources from during the test-compile phase.
- *
- * @goal testCompile
- * @phase test-compile
- * @requiresDependencyResolution test
- * @threadSafe
  */
 @SuppressWarnings({"UnusedDeclaration", "UnusedPrivateField"})
+@Mojo(name = "testCompile",
+        defaultPhase = LifecyclePhase.TEST_COMPILE,
+        requiresDependencyResolution = ResolutionScope.TEST,
+        threadSafe = true)
 public class TestCompilerMojo extends AbstractCompilerMojo {
 
   /**
    * Output directory for all generated ActionScript3 test files to compile.
-   *
-   * @parameter expression="${project.build.directory}/generated-test-sources/joo"
    */
+  @Parameter(defaultValue = "${project.build.directory}/generated-test-sources/joo")
   private File generatedTestSourcesDirectory;
 
   /**
    * Test output directory into whose joo/classes sub-directory compiled classes are generated.
-   *
-   * @parameter expression="${project.build.testOutputDirectory}"
    */
+  @Parameter(defaultValue = "${project.build.testOutputDirectory}")
   private File testOutputDirectory;
 
   /**
@@ -36,62 +37,53 @@ public class TestCompilerMojo extends AbstractCompilerMojo {
    * to the webapp. This property is used for <code>war</code> packaging type (actually, all packaging types
    * but <code>jangaroo</code>) as {@link #getOutputDirectory}.
    * Defaults to ${project.build.directory}/jangaroo-test-output/
-   *
-   * @parameter expression="${project.build.directory}/jangaroo-test-output/"
    */
+  @Parameter(defaultValue = "${project.build.directory}/jangaroo-test-output/")
   private File testPackageSourceDirectory;
 
   /**
    * Source directory to scan for files to compile.
-   *
-   * @parameter expression="${project.build.sourceDirectory}"
    */
+  @Parameter(defaultValue = "${project.build.sourceDirectory}")
   private File sourceDirectory;
 
   /**
    * Source directory to scan for test files to compile.
-   *
-   * @parameter expression="${project.build.testSourceDirectory}"
    */
+  @Parameter(defaultValue = "${project.build.testSourceDirectory}")
   private File testSourceDirectory;
 
   /**
    * A list of test inclusion filters for the compiler.
-   *
-   * @parameter
    */
-
+  @Parameter
   private Set<String> testIncludes = new HashSet<String>();
+
   /**
    * A list of test exclusion filters for the compiler.
-   *
-   * @parameter
    */
-
+  @Parameter
   private Set<String> testExcludes = new HashSet<String>();
 
   /**
    * Temporary output directory for compiled classes to be packaged into a single *.js file.
-   *
-   * @parameter expression="${project.build.directory}/temp/jangaroo-test-output/classes"
    */
+  @Parameter(defaultValue = "${project.build.directory}/temp/jangaroo-test-output/classes")
   private File tempTestClassesOutputDirectory;
 
   /**
    * This parameter specifies the path and name of the output file containing all
    * compiled classes, relative to the testOutputDirectory.
-   *
-   * @parameter expression="joo/${project.groupId}.${project.artifactId}-test.classes.js"
    */
+  @Parameter(defaultValue = "joo/${project.groupId}.${project.artifactId}-test.classes.js")
   private String moduleTestClassesJsFile;
 
   /**
    * Set this to 'true' to bypass unit tests entirely. Its use is NOT RECOMMENDED, especially if you
    * enable it using the "maven.test.skip" property, because maven.test.skip disables both running the
    * tests and compiling the tests. Consider using the skipTests parameter instead.
-   *
-   * @parameter expression="${maven.test.skip}"
    */
+  @Parameter(defaultValue = "${maven.test.skip}")
   protected boolean skip;
 
   /**

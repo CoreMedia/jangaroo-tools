@@ -7,6 +7,7 @@ import org.apache.maven.model.Plugin;
 import org.apache.maven.model.PluginManagement;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 
 import java.io.File;
@@ -19,46 +20,41 @@ import java.util.List;
 public abstract class AbstractExmlMojo extends JangarooMojo {
   /**
    * Output directory for all ActionScript3 files generated out of exml components
-   *
-   * @parameter default-value="${project.build.directory}/generated-sources/joo"
    */
+  @Parameter(defaultValue = "${project.build.directory}/generated-sources/joo")
   private File generatedSourcesDirectory;
 
   /**
    * The Maven project object
-   *
-   * @parameter expression="${project}"
    */
+  @Parameter(defaultValue = "${project}", readonly = true)
   private MavenProject project;
-  /**
-   * Source directory to scan for files to compile.
-   *
-   * @parameter default-value="${basedir}/src/main/joo"
-   */
-  private File sourceDirectory;
-  /**
-   * Source directory to scan for test files to compile.
-   *
-   * @parameter expression="${project.build.testSourceDirectory}"
-   */
-  private File testSourceDirectory;
-  /**
-   * Output directory for all test ActionScript3 files generated out of exml components
-   *
-   * @parameter default-value="${project.build.directory}/generated-test-sources/joo"
-   */
-  private File generatedTestSourcesDirectory;
-  /**
-   * The package into which config classes of EXML components are generated.
-   *
-   * @parameter
-   */
-  private String configClassPackage;
 
   /**
-   * @parameter default-value="${plugin}"
-   * @readonly
+   * Source directory to scan for files to compile.
    */
+  @Parameter(defaultValue = "${basedir}/src/main/joo")
+  private File sourceDirectory;
+
+  /**
+   * Source directory to scan for test files to compile.
+   */
+  @Parameter(defaultValue = "${project.build.testSourceDirectory}")
+  private File testSourceDirectory;
+
+  /**
+   * Output directory for all test ActionScript3 files generated out of exml components
+   */
+  @Parameter(defaultValue = "${project.build.directory}/generated-test-sources/joo")
+  private File generatedTestSourcesDirectory;
+
+  /**
+   * The package into which config classes of EXML components are generated.
+   */
+  @Parameter
+  private String configClassPackage;
+
+  @Parameter(defaultValue = "${plugin}", readonly = true)
   private PluginDescriptor pluginDescriptor;
 
   @Override

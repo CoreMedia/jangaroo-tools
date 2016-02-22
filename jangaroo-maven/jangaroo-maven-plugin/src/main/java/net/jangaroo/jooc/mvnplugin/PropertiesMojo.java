@@ -3,12 +3,17 @@
  */
 package net.jangaroo.jooc.mvnplugin;
 
-import net.jangaroo.utils.FileLocations;
-import net.jangaroo.properties.api.PropcException;
 import net.jangaroo.properties.PropertyClassGenerator;
+import net.jangaroo.properties.api.PropcException;
+import net.jangaroo.utils.FileLocations;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.Component;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
 import org.apache.maven.shared.model.fileset.FileSet;
@@ -16,33 +21,28 @@ import org.apache.maven.shared.model.fileset.util.FileSetManager;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.Collections;
 
 /**
  * Mojo to compile properties files to ActionScript3 files
- *
- * @goal properties
- * @phase generate-sources
- * @requiresDependencyResolution
- * @threadSafe
  */
 @SuppressWarnings({"ResultOfMethodCallIgnored", "UnusedDeclaration", "UnusedPrivateField"})
+@Mojo(name = "properties",
+        defaultPhase = LifecyclePhase.GENERATE_SOURCES,
+        requiresDependencyResolution = ResolutionScope.RUNTIME,
+        threadSafe = true)
 public class PropertiesMojo extends AbstractMojo {
 
   /**
    * The maven project.
-   *
-   * @parameter expression="${project}"
-   * @required
-   * @readonly
    */
+  @Parameter(defaultValue = "${project}", required = true, readonly = true)
   private MavenProject project;
 
   /**
    * Source directory to scan for files to compile.
-   *
-   * @parameter expression="${basedir}/src/main/joo"
    */
+  @Parameter(defaultValue = "${basedir}/src/main/joo")
   private File resourceDirectory;
 
   /**
@@ -55,21 +55,17 @@ public class PropertiesMojo extends AbstractMojo {
    * </includes>
    * </properties>
    * }
-   *
-   * @parameter
    */
+  @Parameter
   private FileSet properties;
 
   /**
    * Output directory for all ActionScript3 files generated out of exml components
-   *
-   * @parameter expression="${project.build.directory}/generated-sources/joo"
    */
+  @Parameter(defaultValue = "${project.build.directory}/generated-sources/joo")
   private File generatedSourcesDirectory;
 
-  /**
-   * @component
-   */
+  @Component
   private MavenProjectHelper projectHelper;
 
   public void execute() throws MojoExecutionException, MojoFailureException {
@@ -92,7 +88,7 @@ public class PropertiesMojo extends AbstractMojo {
     }
 
     try {
-      config.setSourcePath(Arrays.asList(resourceDirectory));
+      config.setSourcePath(Collections.singletonList(resourceDirectory));
     } catch (IOException e) {
       throw new MojoExecutionException("configuration failure", e);
     }

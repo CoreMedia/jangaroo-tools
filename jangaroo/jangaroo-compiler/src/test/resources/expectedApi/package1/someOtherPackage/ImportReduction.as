@@ -2,7 +2,7 @@ package package1.someOtherPackage {
 import package1.NoPrimitiveInit;
 import package1.ParameterInitializers;
 
-[Uses ("package1.IncludedClass")]
+[Uses("package1.IncludedClass")]
 public class ImportReduction {
   public var initializers:ParameterInitializers;
 
