@@ -297,11 +297,6 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     }
   }
 
-  private static boolean isSuperCall(Ide ide) {
-    return ide.isQualifiedBySuper()
-            && ide.getScope().getClassDeclaration().getMemberDeclaration(ide.getName()) != null;
-  }
-  
   @Override
   public void visitTypeRelation(TypeRelation typeRelation) throws IOException {
     out.beginCommentWriteSymbol(typeRelation.getSymRelation());
@@ -1051,7 +1046,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     } else {
       applyExpr.getFun().visit(this);
       // check for super call:
-      if (args != null && applyExpr.getFun() instanceof IdeExpr && isSuperCall(((IdeExpr) applyExpr.getFun()).getIde())) {
+      if (args != null && applyExpr.getFun() instanceof IdeExpr && ((IdeExpr) applyExpr.getFun()).getIde().isQualifiedBySuper()) {
         generateSuperCallParameters(args);
       } else {
         visitIfNotNull(args);
