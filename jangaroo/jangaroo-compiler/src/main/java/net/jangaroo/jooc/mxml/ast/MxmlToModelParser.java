@@ -1,4 +1,4 @@
-package net.jangaroo.jooc.mxml;
+package net.jangaroo.jooc.mxml.ast;
 
 import net.jangaroo.exml.api.Exmlc;
 import net.jangaroo.jooc.CompilerError;
@@ -17,6 +17,7 @@ import net.jangaroo.jooc.model.MethodModel;
 import net.jangaroo.jooc.model.NamespaceModel;
 import net.jangaroo.jooc.model.ParamModel;
 import net.jangaroo.jooc.model.PropertyModel;
+import net.jangaroo.jooc.mxml.MxmlUtils;
 import net.jangaroo.jooc.util.PreserveLineNumberHandler;
 import net.jangaroo.utils.CompilerUtils;
 import org.w3c.dom.Attr;
