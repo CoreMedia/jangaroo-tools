@@ -3,12 +3,10 @@ package net.jangaroo.jooc.mvnplugin.sencha.configurer;
 import net.jangaroo.jooc.mvnplugin.SenchaConfiguration;
 import net.jangaroo.jooc.mvnplugin.Types;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
-import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -51,10 +49,10 @@ public class PackagesConfigurer implements Configurer {
 
     Set<MavenProject> mavenProjectsWithSenchaPackages = new HashSet<MavenProject>();
 
-    @SuppressWarnings("unchecked") List<MavenProject> collectedProjects = (List<MavenProject>) project.getCollectedProjects();
+    List<MavenProject> collectedProjects = project.getCollectedProjects();
 
     Plugin jangarooMavenPlugin = null;
-    @SuppressWarnings("unchecked") List<Plugin> buildPlugins = (List<Plugin>) project.getBuildPlugins();
+    List<Plugin> buildPlugins = project.getBuildPlugins();
     for (Plugin plugin : buildPlugins) {
       // TODO: replace with injected ids
       if ("net.jangaroo".equals(plugin.getGroupId())

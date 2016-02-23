@@ -89,26 +89,20 @@ public class SenchaConfiguration extends SenchaProfileConfiguration {
    *
    * Ignored for {@link Type#APP}, {@link Type#CODE} and {@link Type#THEME}
    */
-  @Parameter(defaultValue = "ext")
-  private String extFrameworkDir = "ext";
+  @Parameter(defaultValue = "${project.build.directory}/ext")
+  private String extFrameworkDir = "target/ext";
 
   /**
    * Build directory relative to baseDir
-   *
-   * TODO
-   * @deprecated to be removed
    */
-  @Parameter(defaultValue = "build")
-  private String buildDir = "build";
+  @Parameter(defaultValue = "${project.build.directory}/sencha/build", readonly = true)
+  private String buildDir = "target/sencha/build";
 
   /**
    * Packages directory relative to baseDir
-   *
-   * TODO
-   * @deprecated to be removed
    */
-  @Parameter(defaultValue = "packages")
-  private String packagesDir = "packages";
+  @Parameter(defaultValue = "${project.build.directory}/sencha/packages", readonly = true)
+  private String packagesDir = "target/sencha/packages";
 
   /**
    * Skip the build process of the sencha module.
@@ -119,7 +113,7 @@ public class SenchaConfiguration extends SenchaProfileConfiguration {
    * Ignored for {@link Type#WORKSPACE}
    */
   @Parameter(defaultValue = "false")
-  private boolean skipBuild = false;
+  private boolean skipBuild;
 
   /**
    * For {@link Type#APP}, {@link Type#CODE} and {@link Type#THEME} specifies if scss paths should map to the maven
@@ -136,7 +130,7 @@ public class SenchaConfiguration extends SenchaProfileConfiguration {
    * Ignored for {@link Type#WORKSPACE}
    */
   @Parameter(defaultValue = "false")
-  private boolean scssFromSrc = false;
+  private boolean scssFromSrc;
 
   public boolean isEnabled() {
     return enabled;

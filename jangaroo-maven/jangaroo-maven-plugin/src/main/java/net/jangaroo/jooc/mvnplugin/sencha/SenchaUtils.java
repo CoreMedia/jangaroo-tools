@@ -126,7 +126,7 @@ public class SenchaUtils {
     // verify that provided artifact is under project dependencies
     String groupId = groupIdAndArtifactId[0];
     String artifactId = groupIdAndArtifactId[1];
-    @SuppressWarnings("unchecked") Set<Artifact> dependencyArtifacts = (Set<Artifact>) project.getDependencyArtifacts();
+    Set<Artifact> dependencyArtifacts = project.getDependencyArtifacts();
     for (Artifact artifact : dependencyArtifacts) {
       if (groupId.equals(artifact.getGroupId())
               && artifactId.equals(artifact.getArtifactId())) {

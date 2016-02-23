@@ -12,6 +12,7 @@
   <modules>
     <module>jangaroo-maven-plugin-api</module>
     <module>jangaroo-maven-plugin</module>
+    <module>workspace-maven-plugin</module>
     <module>webjars-maven-plugin</module>
   </modules>
   <build>
