@@ -12,7 +12,7 @@ public class JavaScriptObject {
    *   is initially empty.
    */
   public function JavaScriptObject(config:Object = null) {
-    for (var key:String in arguments) {
+    for (var key:String in config) {
       this[key] = config[key];
     }
   }
