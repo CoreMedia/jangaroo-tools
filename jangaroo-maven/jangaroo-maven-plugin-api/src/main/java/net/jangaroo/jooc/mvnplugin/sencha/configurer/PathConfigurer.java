@@ -5,7 +5,6 @@ import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;

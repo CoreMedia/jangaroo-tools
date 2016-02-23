@@ -3,7 +3,6 @@ package net.jangaroo.jooc.mvnplugin.sencha.configurer;
 import net.jangaroo.jooc.mvnplugin.SenchaConfiguration;
 import net.jangaroo.jooc.mvnplugin.Types;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
-import org.apache.maven.model.Plugin;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 
@@ -51,26 +50,10 @@ public class PackagesConfigurer implements Configurer {
 
     List<MavenProject> collectedProjects = project.getCollectedProjects();
 
-    Plugin jangarooMavenPlugin = null;
-    List<Plugin> buildPlugins = project.getBuildPlugins();
-    for (Plugin plugin : buildPlugins) {
-      // TODO: replace with injected ids
-      if ("net.jangaroo".equals(plugin.getGroupId())
-              && "jangaroo-maven-plugin".equals(plugin.getArtifactId())) {
-        jangarooMavenPlugin = plugin;
-        break;
-      }
-    }
-
-    if (null == jangarooMavenPlugin) {
-      throw new MojoExecutionException("could not find myself");
-    }
-
     if (null != collectedProjects) {
 
       for (MavenProject p : collectedProjects) {
-        if (Types.JANGAROO_TYPE.equals(p.getPackaging())
-                && p.getBuildPlugins().contains(jangarooMavenPlugin)) {
+        if (Types.JANGAROO_TYPE.equals(p.getPackaging())) {
           mavenProjectsWithSenchaPackages.add(p);
         }
       }

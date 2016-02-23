@@ -33,7 +33,7 @@ public class RequiresConfigurer implements Configurer {
 
     String themePackageName = SenchaUtils.getSenchaPackageNameForTheme(senchaConfiguration.getTheme(), project);
 
-    @SuppressWarnings("unchecked") Set<Artifact> dependencyArtifacts = project.getDependencyArtifacts();
+    Set<Artifact> dependencyArtifacts = project.getDependencyArtifacts();
     for (Artifact artifact : dependencyArtifacts) {
       if (SenchaUtils.isSenchaPackageArtifact(artifact)) {
         String senchaPackageNameForArtifact = SenchaUtils.getSenchaPackageNameForArtifact(artifact);

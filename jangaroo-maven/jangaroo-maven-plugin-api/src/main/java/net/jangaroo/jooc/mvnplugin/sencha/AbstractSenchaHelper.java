@@ -11,7 +11,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.regex.Matcher;
 
 /**
  * A set of helper functions for handling sencha package structure.

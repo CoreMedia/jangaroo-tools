@@ -1,11 +1,10 @@
 package net.jangaroo.jooc.mvnplugin.sencha.configurer;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.HashMap;
 import java.util.Map;
-
-import static org.junit.Assert.*;
 
 public class DefaultSenchaApplicationConfigurerTest {
 
@@ -14,6 +13,6 @@ public class DefaultSenchaApplicationConfigurerTest {
     Map<String, Object> config = new HashMap<String, Object>();
     DefaultSenchaApplicationConfigurer configurer = new DefaultSenchaApplicationConfigurer();
     configurer.configure(config);
-    assertNotNull(config.get(DefaultSenchaApplicationConfigurer.ID));
+    Assert.assertNotNull(config.get(DefaultSenchaApplicationConfigurer.ID));
   }
 }
