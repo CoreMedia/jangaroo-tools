@@ -47,14 +47,14 @@ public class PropertiesMojo extends AbstractMojo {
 
   /**
    * Fileset for properties. default is:
-   * {@code
-   * <properties>
-   * <directory>${basedir}/src/main/joo</directory>
-   * <includes>
-   * <include>**\/*.properties</include>
-   * </includes>
-   * </properties>
-   * }
+   * <pre>
+   * &lt;properties>
+   *   &lt;directory>${basedir}/src/main/joo&lt;/directory>
+   *   &lt;includes>
+   *     &lt;include>**\/*.properties&lt;/include>
+   *   &lt;/includes>
+   * &lt;/properties>
+   * </pre>
    */
   @Parameter
   private FileSet properties;
