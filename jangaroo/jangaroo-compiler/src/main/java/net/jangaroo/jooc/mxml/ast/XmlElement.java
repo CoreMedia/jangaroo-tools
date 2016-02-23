@@ -7,10 +7,12 @@ import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.ast.AstNode;
 import net.jangaroo.jooc.ast.AstVisitor;
 import net.jangaroo.jooc.ast.NodeImplBase;
+import org.w3c.dom.Element;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -26,20 +28,18 @@ public class XmlElement extends NodeImplBase {
 
   public XmlElement(@Nonnull XmlTag openingMxmlTag, @Nullable List children, @Nonnull XmlTag closingMxmlTag) {
     this.openingMxmlTag = openingMxmlTag;
-    this.children = children;
+    this.children = children != null ? children : Collections.emptyList();
     this.closingMxmlTag = closingMxmlTag;
     initChildren();
     openingMxmlTag.setElement(this);
   }
 
   private void initChildren() {
-    if(null != children) {
-      for (Object child : children) {
-        if (child instanceof XmlElement) {
-          XmlElement xmlElement = (XmlElement) child;
-          elements.add(xmlElement);
-          xmlElement.parent = this;
-        }
+    for (Object child : children) {
+      if (child instanceof XmlElement) {
+        XmlElement xmlElement = (XmlElement) child;
+        elements.add(xmlElement);
+        xmlElement.parent = this;
       }
     }
   }
@@ -100,7 +100,7 @@ public class XmlElement extends NodeImplBase {
     if (null != children) {
       for (Object child : children) {
         if (child instanceof JooSymbol) {
-          child = ((JooSymbol)child).getText();
+          child = ((JooSymbol)child).getJooValue();
         }
         builder.append(child);
       }
@@ -113,8 +113,12 @@ public class XmlElement extends NodeImplBase {
     return openingMxmlTag.getAttributes();
   }
 
-  public XmlAttribute getAttribute(String name) {
-    return openingMxmlTag.getAttribute(name);
+  /**
+   * @see Element#getAttribute
+   */
+  public String getAttribute(String name) {
+    XmlAttribute attribute = openingMxmlTag.getAttribute(name);
+    return null != attribute ? (String) attribute.getValue().getJooValue() : "";
   }
 
   public String getLocalName() {
@@ -122,11 +126,7 @@ public class XmlElement extends NodeImplBase {
   }
 
   public String getNamespaceURI() {
-    return openingMxmlTag.getNamespaceUri();
-  }
-
-  public boolean isBuiltInElement() {
-    return openingMxmlTag.isBuiltInTag();
+    return getNamespaceUri(getPrefix());
   }
 
   public String getNamespaceUri(@Nullable String prefix) {
@@ -134,6 +134,17 @@ public class XmlElement extends NodeImplBase {
     if(null != localResult) {
       return localResult;
     }
-    return parent.getNamespaceUri(prefix);
+    if(null != parent) {
+      return parent.getNamespaceUri(prefix);
+    }
+    return null;
+  }
+
+  /**
+   * @see Element#getAttributeNS(String, String)
+   */
+  public String getAttributeNS(String namespaceUri, String localName) {
+    XmlAttribute attribute = openingMxmlTag.getAttribute(namespaceUri, localName);
+    return null != attribute ? (String) attribute.getValue().getJooValue() : "";
   }
 }

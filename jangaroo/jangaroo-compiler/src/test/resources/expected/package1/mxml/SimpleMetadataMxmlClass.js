@@ -1,6 +1,5 @@
 Ext.define("AS3.package1.mxml.SimpleMetadataMxmlClass", function(SimpleMetadataMxmlClass) {/*package package1.mxml{
 import package1.*;
-import package1.ConfigClass;
 [ShortVersion]
 class SimpleMetadataMxmlClass extends ConfigClass{*/
 function SimpleMetadataMxmlClass$(config/*:SimpleMetadataMxmlClass=null*/){AS3.package1.ConfigClass.prototype.constructor.call(this);if(arguments.length<=0)config=null;

@@ -18,10 +18,14 @@ public class JoocMxmlTest extends AbstractJoocTest {
             testLog.hasError("Does not implement function: doIt"));
   }
 
-  @org.junit.Ignore
   @Test
   public void testSimpleMxml() throws Exception {
     assertCompilationResult("package1/mxml/SimpleMxmlClass", ".mxml");
+  }
+
+  @Test
+  public void testTestComponent() throws Exception {
+    assertCompilationResult("package1/mxml/pkg/TestComponent", ".mxml");
   }
 
   @Test
@@ -44,7 +48,6 @@ public class JoocMxmlTest extends AbstractJoocTest {
     assertCompilationResult("package1/mxml/DeclarationsMxmlClass", ".mxml");
   }
 
-  @org.junit.Ignore
   @Test
   public void testMxmlCannotResolveClass() throws Exception {
     File sourceFile = getFile("/package1/mxml/ErrorCannotResolveClass.mxml");
@@ -54,7 +57,6 @@ public class JoocMxmlTest extends AbstractJoocTest {
             testLog.hasError("Could not resolve class from MXML node foo:UnknownClass"));
   }
 
-  @org.junit.Ignore
   @Test
   public void testMxmlUndefinedType() throws Exception {
     File sourceFile = getFile("/package1/mxml/ErrorUndefinedType.mxml");
@@ -65,20 +67,10 @@ public class JoocMxmlTest extends AbstractJoocTest {
   }
 
   @Test
-  public void testErrorWrongSuperclass() throws Exception {
-    File sourceFile = getFile("/package1/mxml/ErrorWrongSuperclass.mxml");
-    config.addSourceFile(sourceFile);
-    jooc.run();
-    assertTrue("Expected error (wrong superclass) did not occur",
-            testLog.hasError("First constructor param has wrong type 'SimpleInterface' - allowed types are [ErrorWrongSuperclass, SimpleInterface]"));
-  }
-
-  @Test
   public void testScriptCdataMxml() throws Exception {
     assertCompilationResult("package1/mxml/ScriptCdataMxmlClass", ".mxml");
   }
 
-  @org.junit.Ignore
   @Test
   public void testAllElements() throws Exception {
     assertCompilationResult("package1/AllElements", ".mxml");

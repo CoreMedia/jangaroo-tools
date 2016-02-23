@@ -2,7 +2,6 @@ package net.jangaroo.jooc.mxml;
 
 import net.jangaroo.utils.AS3Type;
 import net.jangaroo.utils.CompilerUtils;
-import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -31,8 +30,7 @@ public class MxmlUtils {
   private static final Pattern BINDING_EXPRESSION_START_OR_END_PATTERN = Pattern.compile("[{}]");
 
   private static final String LINE_BREAKS = "\r\n|\r|\n";
-  private static final Pattern XML_COMMENT = Pattern.compile("<!--([^-]+(?:-[^-]+)*)-->", Pattern.DOTALL);
-  private static final Pattern MXML_COMMENT = Pattern.compile("<!---([^-]*(?:-[^-]+)*)-->", Pattern.DOTALL);
+  private static final Pattern MXML_COMMENT = Pattern.compile("<!--(-?)([^-]*(?:-[^-]+)*)-->", Pattern.DOTALL);
   public static final String CONFIG = "config";
 
   public static boolean isMxmlNamespace(String uri) {
@@ -172,27 +170,13 @@ public class MxmlUtils {
     return name.substring(0,1).toUpperCase() + name.substring(1);
   }
 
-  /**
-   * Strip XML comments (<!--BLA-->) from whitespace and replace MXML comments (<!--- BLA -->) with ASDoc comments.
-   */
   public static String toASDoc(String xmlWhitespace) {
-    // replace XML comments lines with newlines
-    Matcher matcher = XML_COMMENT.matcher(xmlWhitespace);
+    // convert MXML comments to ASdoc comments
+    Matcher matcher = MXML_COMMENT.matcher(xmlWhitespace);
     StringBuffer sb = new StringBuffer();
     while(matcher.find()) {
-      String[] lines = matcher.group().split(LINE_BREAKS);
-      for(int i = 0; i < lines.length ; i++) {
-        lines[i] = "";
-      }
-      matcher.appendReplacement(sb, StringUtils.join(lines, '\n'));
-    }
-    matcher.appendTail(sb);
-
-    // convert MXML comments to ASdoc comments
-    matcher = MXML_COMMENT.matcher(sb);
-    sb = new StringBuffer();
-    while(matcher.find()) {
-      matcher.appendReplacement(sb, "/**" + matcher.group(1) + "*/ ");
+      String prefix = "-".equals(matcher.group(1)) ? "/**" : "/*";
+      matcher.appendReplacement(sb, prefix + matcher.group(2) + "*/");
     }
     return matcher.appendTail(sb).toString();
   }

@@ -8,7 +8,9 @@ import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.ast.ClassBody;
 import net.jangaroo.jooc.ast.ClassDeclaration;
 import net.jangaroo.jooc.ast.CompilationUnit;
+import net.jangaroo.jooc.ast.Directive;
 import net.jangaroo.jooc.ast.Extends;
+import net.jangaroo.jooc.ast.FunctionDeclaration;
 import net.jangaroo.jooc.ast.Ide;
 import net.jangaroo.jooc.ast.Implements;
 import net.jangaroo.jooc.ast.ImportDirective;
@@ -22,13 +24,15 @@ import net.jangaroo.utils.CompilerUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.List;
 
 public class MxmlParserHelper {
 
   private static final String TPL_CLASS_BODY = "package{class ___${\n%s\n}}";
+  private static final String TPL_CONSTRUCTOR_BODY = "package{class ___${function ___$(){\n%s\n}}}";
   private static final String TPL_IMPLEMENTS = "package{class ___$ implements %s\n{}}";
-  private static final String TPL_IMPORT = "package{\nimport %s\nclass ___$ {}}";
+  private static final String TPL_IMPORT = "package{\nimport %s;\nclass ___$ {}}";
   private static final String TPL_EXTENDS = "package{class ___$ extends %s {}}";
   private static final String TPL_PACKAGE = "package %s {class ___$ {}}";
 
@@ -65,7 +69,7 @@ public class MxmlParserHelper {
   @Nonnull
   public PackageDeclaration parsePackageDeclaration(String classQName) {
     String text = CompilerUtils.packageName(classQName);
-    CompilationUnit unit = (CompilationUnit) parser.parseEmbedded(String.format(TPL_PACKAGE, text), -1, -1).value;
+    CompilationUnit unit = (CompilationUnit) parser.parseEmbedded(String.format(TPL_PACKAGE, text), 0, 0).value;
     return unit.getPackageDeclaration();
   }
 
@@ -76,6 +80,27 @@ public class MxmlParserHelper {
     int[] position = position(symbol, template);
     CompilationUnit unit = (CompilationUnit) parser.parseEmbedded(String.format(template, text), position[0], position[1]).value;
     return ((ClassDeclaration)unit.getPrimaryDeclaration()).getBody();
+  }
+
+  @Nonnull
+  public ClassBody parseClassBody(@Nonnull String text) {
+    Symbol parsed = parser.parseEmbedded(String.format(TPL_CLASS_BODY, text), 0, 0, false);
+    CompilationUnit unit = (CompilationUnit) parsed.value;
+    return ((ClassDeclaration)unit.getPrimaryDeclaration()).getBody();
+  }
+
+  @Nonnull
+  public List<Directive> parseConstructorBody(@Nonnull String text) {
+    Symbol parsed = parser.parseEmbedded(String.format(TPL_CONSTRUCTOR_BODY, text), 0, 0, false);
+    CompilationUnit unit = (CompilationUnit) parsed.value;
+    List<Directive> directives = ((ClassDeclaration) unit.getPrimaryDeclaration()).getBody().getDirectives();
+    if(null != directives) {
+      Directive first = Iterables.getFirst(directives, null);
+      if(first instanceof FunctionDeclaration) {
+        return ((FunctionDeclaration)first).getBody().getDirectives();
+      }
+    }
+    return Collections.emptyList();
   }
 
   @Nullable
@@ -117,9 +142,10 @@ public class MxmlParserHelper {
     return null;
   }
 
+  @Nullable
   public ImportDirective parseImport(@Nonnull String text) {
     String template = TPL_IMPORT;
-    Symbol parsed = parser.parseEmbedded(String.format(template, text), -1, -1, true);
+    Symbol parsed = parser.parseEmbedded(String.format(template, text), 0, 0, true);
     CompilationUnit unit = (CompilationUnit) parsed.value;
     return (ImportDirective) Iterables.getFirst(unit.getDirectives(), null);
   }

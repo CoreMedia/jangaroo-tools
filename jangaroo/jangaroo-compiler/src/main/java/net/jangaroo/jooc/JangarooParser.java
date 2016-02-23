@@ -38,6 +38,7 @@ import java.util.Map;
 
 public class JangarooParser implements CompilationUnitModelResolver, CompilationUnitRegistry {
   public static final String JOO_API_IN_JAR_DIRECTORY_PREFIX = "META-INF/joo-api/";
+  static final String UTF_8 = "UTF-8";
 
   protected CompileLog log;
   // a hack to always be able to access the current log:
@@ -132,15 +133,16 @@ public class JangarooParser implements CompilationUnitModelResolver, Compilation
     this.compilableSuffixes = compilableSuffixes;
   }
 
-  public CompilationUnit doParse(InputSource in, CompileLog log, SemicolonInsertionMode semicolonInsertionMode, boolean forModel) {
+  public CompilationUnit doParse(InputSource in, CompileLog log, SemicolonInsertionMode semicolonInsertionMode) {
+    boolean parseMxml = in.getName().endsWith(Jooc.MXML_SUFFIX);
     Reader reader;
     try {
-      reader = new InputStreamReader(new BOMStripperInputStream(in.getInputStream()), "UTF-8");
+      reader = new InputStreamReader(new BOMStripperInputStream(in.getInputStream()), UTF_8);
     } catch (IOException e) {
       throw new CompilerError("Cannot read input file: " + in.getPath(), e);
     }
     Scanner s = new Scanner(reader);
-    s.yybegin(in.getName().endsWith(Jooc.MXML_SUFFIX) ? Scanner.MXML : Scanner.YYINITIAL);
+    s.yybegin(parseMxml ? Scanner.MXML : Scanner.YYINITIAL);
     s.setInputSource(in);
     JooParser p = new JooParser(s);
     p.setCompileLog(log);
@@ -234,7 +236,7 @@ public class JangarooParser implements CompilationUnitModelResolver, Compilation
       return unit;
     }
 
-    unit = parse(source, false);
+    unit = parse(source);
     if (null == unit) {
       return null;
     }
@@ -319,7 +321,7 @@ public class JangarooParser implements CompilationUnitModelResolver, Compilation
           if (source.getName().endsWith(Jooc.MXML_SUFFIX)) {
             // MXML files denote classes.
             isClassByQName.put(fullClassName, true);
-            compilationUnit = parse(source, true);
+            compilationUnit = parse(source);
           } else {
             compilationUnit = getCompilationUnit(fullClassName);
           }
@@ -362,14 +364,14 @@ public class JangarooParser implements CompilationUnitModelResolver, Compilation
     }
   }
 
-  protected CompilationUnit parse(InputSource in, boolean forModel) {
+  protected CompilationUnit parse(InputSource in) {
     if (!in.getName().endsWith(Jooc.AS_SUFFIX) && !in.getName().endsWith(Jooc.MXML_SUFFIX)) {
       throw error("Input file must end with '" + Jooc.AS_SUFFIX + "' or '" + Jooc.MXML_SUFFIX + "': " + in.getName());
     }
     if (config.isVerbose()) {
       System.out.println("Parsing " + in.getPath() + " (" + (in.isInSourcePath() ? "source" : "class") + "path)"); // NOSONAR this is a cmd line tool
     }
-    CompilationUnit unit = doParse(in, log, config.getSemicolonInsertionMode(), forModel);
+    CompilationUnit unit = doParse(in, log, config.getSemicolonInsertionMode());
     if (unit != null) {
       unit.scope(globalScope);
     }
@@ -400,8 +402,7 @@ public class JangarooParser implements CompilationUnitModelResolver, Compilation
 
   private void buildGlobalScope() {
     //todo declare this depending on context
-    declareValues(globalScope, new String[]{
-            "this"});
+    declareValues(globalScope, new String[]{Ide.THIS});
   }
 
   public void setUp(InputSource sourcePathInputSource, InputSource classPathInputSource) {

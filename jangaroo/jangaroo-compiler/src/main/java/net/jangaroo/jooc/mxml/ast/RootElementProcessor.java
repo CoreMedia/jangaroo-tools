@@ -46,7 +46,7 @@ class RootElementProcessor {
         String name = element.getName();
 
         if (MxmlUtils.MXML_DECLARATIONS.equals(name)) {
-          declarations.add(element);
+          declarations.addAll(element.getElements());
         } else if (MxmlUtils.MXML_METADATA.equals(name)) {
           addAll(element.getTextNodes(), metadata);
         } else if (MxmlUtils.MXML_SCRIPT.equals(name)) {

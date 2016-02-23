@@ -1,6 +1,5 @@
 Ext.define("AS3.package1.mxml.MetadataMxmlClass", function(MetadataMxmlClass) {/*package package1.mxml{
 import package1.*;
-import package1.ConfigClass;
 
     [ThisIsJustATest]
     [Deprecated (replacement='use.this.please')]

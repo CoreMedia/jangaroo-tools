@@ -375,7 +375,7 @@ XmlComment = "<!--" ~"-->"
                                    char val = (char) Integer.parseInt(yytext().substring(2),16);
                         	   pushString(val); }
   \\.                             { pushMultiStateText(yytext()); pushString(yytext().substring(1)); }
-  {LineTerminator}                { error("Unterminated string at end of line"); }
+  {WhiteSpace}                    { pushWhitespace(yytext()); }
 }
 
 <XML_ATTRIBUTE_VALUE_SQ> {
@@ -394,7 +394,7 @@ XmlComment = "<!--" ~"-->"
                                    char val = (char) Integer.parseInt(yytext().substring(2),16);
                         	   pushString(val); }
   \\.                             { pushMultiStateText(yytext()); pushString(yytext().substring(1)); }
-  {LineTerminator}                { error("Unterminated string at end of line"); }
+  {WhiteSpace}                    { pushWhitespace(yytext()); }
 }
 
 <XML_TEXT_CONTENT> {

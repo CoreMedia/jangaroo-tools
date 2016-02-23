@@ -854,8 +854,8 @@ mxmlCompilationUnit ::=
 /* <?xml version="..."?> */
 optXmlHeader ::=
     {: RESULT = null; :}
-  | LT_QUESTION:ltQuestion ide:xmlIde ide:versionIde EQ:eq STRING_LITERAL:version QUESTION_GT:questionGt
-    {: RESULT = new XmlHeader(ltQuestion, xmlIde, versionIde, eq, version, questionGt); :}
+  | LT_QUESTION:ltQuestion ide:xmlIde xmlAttributes:attributes QUESTION_GT:questionGt
+    {: RESULT = new XmlHeader(ltQuestion, xmlIde, attributes, questionGt); :}
   ;
 
 mxmlElement ::=

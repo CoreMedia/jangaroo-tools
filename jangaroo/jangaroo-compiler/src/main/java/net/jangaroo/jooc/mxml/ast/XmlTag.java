@@ -132,13 +132,18 @@ public class XmlTag extends NodeImplBase {
             }), null);
   }
 
-  public List<XmlAttribute> getAttributes() {
-    return attributes;
+  public XmlAttribute getAttribute(final String namespaceUri, final String localName) {
+    return Iterables.getFirst(
+            Iterables.filter(attributes, new Predicate<XmlAttribute>() {
+              @Override
+              public boolean apply(@Nullable XmlAttribute input) {
+                return null != input && Objects.equals(namespaceUri, getNamespaceUri(input.getPrefix())) && Objects.equals(localName, input.getLocalName());
+              }
+            }), null);
   }
 
-  public String getNamespaceUri() {
-    String prefix = getPrefix();
-    return null != prefix ? xmlElement.getNamespaceUri(prefix) : defaultXmlNamespace;
+  public List<XmlAttribute> getAttributes() {
+    return attributes;
   }
 
   String getNamespaceUri(@Nullable String prefix) {
@@ -146,10 +151,6 @@ public class XmlTag extends NodeImplBase {
       return xmlNamespaces.get(prefix);
     }
     return defaultXmlNamespace;
-  }
-
-  public boolean isBuiltInTag() {
-    return MxmlUtils.MXML_NAMESPACE_URI.equals(getNamespaceUri()) && TAGS.contains(getName());
   }
 
   void setElement(XmlElement xmlElement) {

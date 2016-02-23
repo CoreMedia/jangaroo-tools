@@ -1,128 +1,126 @@
 Ext.define("AS3.package1.mxml.SimpleMxmlClass", function(SimpleMxmlClass) {/*package package1.mxml{
-import package1.someOtherPackage.SomeOtherClass;
-import package1.someOtherPackage.SomeEvent;
-import joo.addEventListener;
+import package1.*;
+import package1.someOtherPackage.*;
 import net.jangaroo.ext.Exml;
 /**
   My config class subclass, authored in MXML.
- * /
-public class SimpleMxmlClass extends package1.ConfigClass implements package1.Interface {
-    public static const xtype:String = "testNamespace.config.simpleMxmlClass";
+* /
 
-    import foo.Bar;
+class SimpleMxmlClass extends ConfigClass implements package1.Interface{
 
-    private var blub:*;
+    public static const xtype:String = "testNamespace.config.simpleMxmlClass";*/
+
+    function SimpleMxmlClass$(config/*:SimpleMxmlClass = null*/){if(arguments.length<=0)config=null;
+var config_$1/*:SimpleMxmlClass*/ =AS3.cast(SimpleMxmlClass,{});
+var defaults_$1/*:SimpleMxmlClass*/ ={};
+config= AS3.net.jangaroo.ext.Exml.apply(defaults_$1,config);
+
+    this.blub$2 = {};
+    this.blub$2.name = "Kuno";
+    var object_31_7_$1/*:Object*/ = {};
+    object_31_7_$1.name = "Joe";
+    var config_$2/*:package1.ConfigClass*/ =AS3.cast( AS3.package1.ConfigClass,{});
+    var config_$3/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
+    config_$3,"bla" , 123);
+    config_$2.items = [new AS3.package1.someOtherPackage.SomeOtherClass(config_$3)];AS3.setBindable(
+    defaults_$1,"list" , [object_31_7_$1, new AS3.package1.ConfigClass(config_$2)]);
+    var config_$4/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
+    config_$4,"bla" , 3);
+    config_$4["blubb_config"] = 'blub config expression';
+    config_$4["blubb_accessor"] = 'blub accessor expression';AS3.setBindable(
+    defaults_$1,"other" , new AS3.package1.someOtherPackage.SomeOtherClass(config_$4));
+    config_$1.foo = "bar";
+    config_$1.number = 1 + 1;
+    joo.addEventListener(config_$1, "click",AS3.bind( this,"$on_config_$1_click$2"), AS3.package1.someOtherPackage.SomeEvent);
+    var config_$5/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
+    config_$5,"bla" , 99);
+    config_$5["knownUnknown"] = true;
+    config_$1.defaultType = config_$5['xtype'];
+    delete config_$5['xtype'];
+    delete config_$5['xclass'];
+    config_$1.defaults = config_$5;
+    var config_$6/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
+    config_$6,"bla" , 23);
+    var config_$7/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});
+    joo.addEventListener(config_$7, "clack",AS3.bind( this,"$on_config_$7_clack$2"), AS3.package1.someOtherPackage.SomeEvent);AS3.setBindable(
+    config_$7,"bla" , 1);
+    var config_$8/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
+    config_$8,"bla" , 42);
+    config_$8.number = 24;
+    var config_$9/*:package1.ConfigClass*/ =AS3.cast( AS3.package1.ConfigClass,{});
+    var config_$10/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});
+    config_$10.doodle = "non-bound";AS3.setBindable(
+    config_$10,"bla" ,AS3.getBindable(AS3.getBindable( this,"other"),"bla","bla_has_changed"));
+    config_$9.items = [new AS3.package1.someOtherPackage.SomeOtherClass(config_$10)];
+    config_$9.number = 12;
+    var config_$11/*:package1.ConfigClass*/ =AS3.cast( AS3.package1.ConfigClass,{});
+    var config_$12/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
+    config_$12,"bla" , 12);
+    var config_$13/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
+    config_$13,"bla" , 13);AS3.setBindable(
+    this,"no_config" , new AS3.package1.someOtherPackage.SomeOtherClass(config_$13));
+    config_$11.items = [new AS3.package1.someOtherPackage.SomeOtherClass(config_$12),AS3.getBindable( this,"no_config")];
+    config_$1.items = [new AS3.package1.someOtherPackage.SomeOtherClass(config_$6), new AS3.package1.someOtherPackage.SomeOtherClass(config_$7), new AS3.package1.someOtherPackage.SomeOtherClass(config_$8), new AS3.package1.ConfigClass(config_$9), new AS3.package1.ConfigClass(config_$11)]; AS3.net.jangaroo.ext.Exml.apply(config_$1,config);AS3.package1.ConfigClass.prototype.constructor.call(this,config_$1,config);}/*
+
+    private var blub:*;*/function static$0(){
+
+    {
+      if(1 < 0 && 0 > 1) {
+        throw "plain wrong!";
+      }
+    }}/*
 
     [Bindable]
     public var list:Object;
-  
-  [Bindable]
-  public var bar:String;
+import joo.addEventListener;
 
-  [Bindable]
-  public var computed:String;
+[Bindable]
+public var bar:String;
+[Bindable]
+public var computed:String;
+/**
+     Some number.
+    * /
+    [Bindable]
+    public var num:int;
+[Bindable]
+public var empty:int;
+[Bindable]
+public var otherByExpression:Object;
+[Bindable]
+public var other:package1.someOtherPackage.SomeOtherClass;
+private*/ function $on_config_$1_click (event/*:package1.someOtherPackage.SomeEvent*/)/* :void*/ {
 
-  [Bindable]
-  /**
-   * Some number.
-   * /
-  public var num:int;
+    var result/*:String*/ = 'gotcha!';}/*
+private*/ function $on_config_$7_clack (event/*:package1.someOtherPackage.SomeEvent*/)/* :void*/ {
 
-  [Bindable]
-  public var otherByExpression:Object;
+    var test=0;}/*
 
-  [Bindable]
-  public var other:package1.someOtherPackage.SomeOtherClass;
-
-  private*/ function $on_$_1_click(event/*:package1.someOtherPackage.SomeEvent*/)/*:void*/ {
-    var result/*:String*/ = 'gotcha!';
-  }/*
-
-  private*/ function $on_$_12_clack(event/*:package1.someOtherPackage.SomeEvent*/)/*:void*/ {
-    var test=0;
-  }/*
-
-  [Bindable]
-  public var no_config:package1.someOtherPackage.SomeOtherClass;
-
-  public*/ function SimpleMxmlClass$(config/*:package1.SimpleMxmlClass = null*/) {if(arguments.length<=0)config=null;
-    
-    var $_1/*:package1.SimpleMxmlClass*/ =AS3.cast( SimpleMxmlClass,{});AS3.setBindable(
-    $_1,"bar" , "BAR!");AS3.setBindable(
-    $_1,"computed" , 'B' + 'AR!');AS3.setBindable(
-    $_1,"num" , 123);
-    this.blub$2 = {};
-    this.blub$2.name = "Kuno";
-    var $_2/*:Object*/ = {};
-    $_2.name = "Joe";
-    var $_3/*:package1.ConfigClass*/ =AS3.cast( AS3.package1.ConfigClass,{});
-    var $_5/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
-    $_5,"bla" , 123);
-    $_3.items = [new AS3.package1.someOtherPackage.SomeOtherClass($_5)];AS3.setBindable(
-    $_1,"list" , [$_2, new AS3.package1.ConfigClass($_3)]);AS3.setBindable(
-    $_1,"otherByExpression" , { foo: 'bar'});
-    var $_7/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
-    $_7,"bla" , 3);
-    $_7["blubb_accessor"] = 'blub accessor expression';
-    $_7["blubb_config"] = 'blub config expression';AS3.setBindable(
-    $_1,"other" , new AS3.package1.someOtherPackage.SomeOtherClass($_7));
-    joo.addEventListener($_1, "click",AS3.bind( this,"$on_$_1_click$2"), AS3.package1.someOtherPackage.SomeEvent);
-    $_1.foo = "bar";
-    $_1.number = 1 + 1;
-    var $_8/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
-    $_8,"bla" , 99);
-    $_8["knownUnknown"] = true;
-    $_1.defaultType = $_8['xtype'];
-    delete $_8['xtype'];
-    delete $_8['xclass'];
-    $_1.defaults = $_8;
-    var $_10/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
-    $_10,"bla" , 23);
-    var $_12/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
-    $_12,"bla" , 1);
-    joo.addEventListener($_12, "clack",AS3.bind( this,"$on_$_12_clack$2"), AS3.package1.someOtherPackage.SomeEvent);
-    var $_14/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
-    $_14,"bla" , 42);
-    $_14.number = 24;
-    var $_16/*:package1.ConfigClass*/ =AS3.cast( AS3.package1.ConfigClass,{});
-    var $_18/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
-    $_18,"bla" ,AS3.getBindable(AS3.getBindable( this,"other"),"bla","bla_has_changed"));
-    $_18.doodle = "non-bound";
-    $_16.items = [new AS3.package1.someOtherPackage.SomeOtherClass($_18)];
-    $_16.number = 12;
-    var $_20/*:package1.ConfigClass*/ =AS3.cast( AS3.package1.ConfigClass,{});
-    var $_22/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
-    $_22,"bla" , 12);
-    var $_24/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
-    $_24,"bla" , 13);AS3.setBindable(
-    this,"no_config" , new AS3.package1.someOtherPackage.SomeOtherClass($_24));
-    $_20.items = [new AS3.package1.someOtherPackage.SomeOtherClass($_22),AS3.getBindable( this,"no_config")];
-    $_1.items = [new AS3.package1.someOtherPackage.SomeOtherClass($_10), new AS3.package1.someOtherPackage.SomeOtherClass($_12), new AS3.package1.someOtherPackage.SomeOtherClass($_14), new AS3.package1.ConfigClass($_16), new AS3.package1.ConfigClass($_20)];
-    $_1.items$at = AS3.net.jangaroo.ext.Exml.APPEND;
-    AS3.net.jangaroo.ext.Exml.apply($_1, config);
-    AS3.package1.ConfigClass.prototype.constructor.call(this,$_1);
-  }/*
-}
-}
+        [Bindable]
+        public var no_config:package1.someOtherPackage.SomeOtherClass;}}
 
 ============================================== Jangaroo part ==============================================*/
     return {
       extend: "AS3.package1.ConfigClass",
       mixins: ["AS3.package1.Interface"],
-      alias: "widget.testNamespace.config.soneMxmlClass",
-      blub$2: undefined,
-      $on_$_1_click$2: $on_$_1_click,
-      $on_$_12_clack$2: $on_$_12_clack,
+      alias: "widget.testNamespace.config.simpleMxmlClass",
       constructor: SimpleMxmlClass$,
+      blub$2: undefined,
+      $on_config_$1_click$2: $on_config_$1_click,
+      $on_config_$7_clack$2: $on_config_$7_clack,
       config: {
         list: null,
         bar: null,
         computed: null,
         num: 0,
+        empty: 0,
         otherByExpression: null,
         other: null,
         no_config: null
       },
+      statics: {__initStatics__: function() {
+          static$0();
+        }},
       requires: [
         "AS3.package1.ConfigClass",
         "AS3.package1.Interface"

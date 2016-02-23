@@ -54,7 +54,7 @@ class MxmlAstUtils {
   static final JooSymbol SYM_RPAREN = new JooSymbol(sym.RPAREN, ")");
   static final JooSymbol SYM_SEMICOLON = new JooSymbol(sym.SEMICOLON, ";");
   static final JooSymbol SYM_SUPER = new JooSymbol(sym.SUPER, "super");
-  static final JooSymbol SYM_THIS = new JooSymbol(sym.THIS, "this");
+  static final JooSymbol SYM_THIS = new JooSymbol(sym.THIS, Ide.THIS);
   static final JooSymbol SYM_VAR = new JooSymbol(sym.VAR, "var");
 
   private static final String CLASS = "class";

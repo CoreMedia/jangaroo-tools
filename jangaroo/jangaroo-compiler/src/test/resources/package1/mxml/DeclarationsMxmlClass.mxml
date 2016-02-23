@@ -1,7 +1,8 @@
 <?xml version="1.0"?>
 <other:SomeNativeClass xmlns:fx="http://ns.adobe.com/mxml/2009"
-             xmlns:lib="library://test.namespace"
-             xmlns:other="package1.someOtherPackage.*">
+                       xmlns="package1.*"
+                       xmlns:lib="library://test.namespace"
+                       xmlns:other="package1.someOtherPackage.*">
   <fx:Declarations>
     <fx:String id="bar">BAR!</fx:String>
     <!---

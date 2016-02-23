@@ -13,21 +13,19 @@ import java.util.List;
 
 /**
  * AST node for MXML's <code>&lt;?xml version="..."?></code>.
+ *
+ * https://www.w3.org/TR/REC-xml/#sec-prolog-dtd
  */
 public class XmlHeader extends NodeImplBase {
+  private final Ide xmlIde;
+  private final List<XmlAttribute> attributes;
+  private final JooSymbol questionGt;
   private JooSymbol ltQuestion;
-  private Ide xmlIde;
-  private Ide versionIde;
-  private JooSymbol eq;
-  private JooSymbol version;
-  private JooSymbol questionGt;
 
-  public XmlHeader(JooSymbol ltQuestion, Ide xmlIde, Ide versionIde, JooSymbol eq, JooSymbol version, JooSymbol questionGt) {
+  public XmlHeader(JooSymbol ltQuestion, Ide xmlIde, List<XmlAttribute> attributes, JooSymbol questionGt) {
     this.ltQuestion = ltQuestion;
     this.xmlIde = xmlIde;
-    this.versionIde = versionIde;
-    this.eq = eq;
-    this.version = version;
+    this.attributes = attributes;
     this.questionGt = questionGt;
   }
 

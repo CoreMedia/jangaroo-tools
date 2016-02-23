@@ -38,11 +38,16 @@ public class MxmlUtilsTest {
 
   @Test
   public void testToASDoc() {
-    Assert.assertEquals("\n\n\n/** ok_1 */ /**\n\n ok_2\n\n */ ",
-            MxmlUtils.toASDoc("<!-- three empty lines \n\n -->\n" +
-                    "<!--- ok_1 --><!-- nok --><!---\n" +
+    Assert.assertEquals("/* this text and two empty lines \n\n */\n" +
+                    "/** double star #1 *//* single star *//**\n" +
                     "\n" +
-                    " ok_2\n" +
+                    " double star #2\n" +
+                    "\n" +
+                    " */",
+            MxmlUtils.toASDoc("<!-- this text and two empty lines \n\n -->\n" +
+                    "<!--- double star #1 --><!-- single star --><!---\n" +
+                    "\n" +
+                    " double star #2\n" +
                     "\n" +
                     " -->"));
   }

@@ -1,6 +1,5 @@
 Ext.define("AS3.package1.mxml.ScriptCdataMxmlClass", function(ScriptCdataMxmlClass) {/*package package1.mxml{
 import package1.*;
-import package1.ConfigClass;
 import package1.mxml.SimpleInterface;
 class ScriptCdataMxmlClass extends ConfigClass implements package1.mxml.SimpleInterface{
 
@@ -17,6 +16,8 @@ class ScriptCdataMxmlClass extends ConfigClass implements package1.mxml.SimpleIn
     }
 function ScriptCdataMxmlClass$(config/*:ScriptCdataMxmlClass=null*/){AS3.package1.ConfigClass.prototype.constructor.call(this);field2_.call(this);field3_.call(this);if(arguments.length<=0)config=null;
 var config_$1/*:ScriptCdataMxmlClass*/ =AS3.cast(ScriptCdataMxmlClass,{});
+
+    config_$1.foo = "bar";
 }/*}}
 
 ============================================== Jangaroo part ==============================================*/
