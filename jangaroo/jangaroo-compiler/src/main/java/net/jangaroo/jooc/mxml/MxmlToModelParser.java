@@ -525,7 +525,7 @@ public final class MxmlToModelParser {
       value = "undefined";
     } else {
       boolean hasBindings = false;
-      if (forModel || constructorSupportsConfigOptionsParameter(className)) {
+      if (constructorSupportsConfigOptionsParameter(className)) {
         // if class supports a config options parameter, create a config options object and assign properties to it:
         configVariable = createAuxVar();
         renderConfigAuxVar(configVariable, className, true);
@@ -536,16 +536,13 @@ public final class MxmlToModelParser {
         hasBindings = processAttributesAndChildNodes(objectElement, configVariable, targetVariable, true);
       }
 
-      if ("String".equals(className)) {
-        String stringValue = getTextContent(objectElement);
-        value = CompilerUtils.quote(stringValue);
+      String textContent = getTextContent(objectElement);
+      if (MxmlUtils.isBindingExpression(textContent)) {
+        value = MxmlUtils.getBindingExpression(textContent);
+      } else if ("String".equals(className)) {
+        value = CompilerUtils.quote(textContent);
       } else if ("int".equals(className) || "uint".equals(className) || "Number".equals(className)) {
-        value = getTextContent(objectElement);
-        if (MxmlUtils.isBindingExpression(value)) {
-          value = MxmlUtils.getBindingExpression(value);
-        } else if (value.isEmpty()) {
-          value = null;
-        }
+        value = textContent.isEmpty() ? null : textContent;
       } else if ("Object".equals(className)) {
         value = "{}";
       } else if ("Array".equals(className)) {

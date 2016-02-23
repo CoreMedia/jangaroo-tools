@@ -21,10 +21,16 @@ public class SomeMxmlClass extends package1.ConfigClass implements package1.Inte
   public var bar:String;
 
   [Bindable]
+  public var computed:String;
+
+  [Bindable]
   /**
    * Some number.
    * /
   public var num:int;
+
+  [Bindable]
+  public var otherByExpression:Object;
 
   [Bindable]
   public var other:package1.someOtherPackage.SomeOtherClass;
@@ -44,6 +50,7 @@ public class SomeMxmlClass extends package1.ConfigClass implements package1.Inte
     
     var $_1/*:package1.SomeMxmlClass*/ =AS3.cast( SomeMxmlClass,{});AS3.setBindable(
     $_1,"bar" , "BAR!");AS3.setBindable(
+    $_1,"computed" , 'B' + 'AR!');AS3.setBindable(
     $_1,"num" , 123);
     this.blub$2 = {};
     this.blub$2.name = "Kuno";
@@ -53,7 +60,8 @@ public class SomeMxmlClass extends package1.ConfigClass implements package1.Inte
     var $_5/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
     $_5,"bla" , 123);
     $_3.items = [new AS3.package1.someOtherPackage.SomeOtherClass($_5)];AS3.setBindable(
-    $_1,"list" , [$_2, new AS3.package1.ConfigClass($_3)]);
+    $_1,"list" , [$_2, new AS3.package1.ConfigClass($_3)]);AS3.setBindable(
+    $_1,"otherByExpression" , { foo: 'bar'});
     var $_7/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
     $_7,"bla" , 3);
     $_7["blubb_accessor"] = 'blub accessor expression';
@@ -110,7 +118,9 @@ public class SomeMxmlClass extends package1.ConfigClass implements package1.Inte
       config: {
         list: null,
         bar: null,
+        computed: null,
         num: 0,
+        otherByExpression: null,
         other: null,
         no_config: null
       },

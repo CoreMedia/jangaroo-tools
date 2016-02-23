@@ -17,6 +17,7 @@
     ]]></fx:Script>
   <fx:Declarations>
     <fx:String id="bar">BAR!</fx:String>
+    <fx:String id="computed">{'B' + 'AR!'}</fx:String>
     <!---
      Some number.
     -->
@@ -34,6 +35,7 @@
         </items>
       </ConfigClass>
     </fx:Array>
+    <fx:Object id="otherByExpression">{{ foo: 'bar'}}</fx:Object>
     <lib:someOtherClass id="other" bla="3"
                           blubbConfig="{'blub config expression'}"
                           blubbAccessor="{'blub accessor expression'}"/>
