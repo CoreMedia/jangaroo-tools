@@ -29,6 +29,11 @@ public class JoocMxmlTest extends AbstractJoocTest {
   }
 
   @Test
+  public void testCyclicDependencies() throws Exception {
+    assertCompilationResult("package1/mxml/pkg/CyclicDependencies", ".mxml");
+  }
+
+  @Test
   public void testMetadataCdataMxml() throws Exception {
     assertCompilationResult("package1/mxml/MetadataCdataMxmlClass", ".mxml");
   }

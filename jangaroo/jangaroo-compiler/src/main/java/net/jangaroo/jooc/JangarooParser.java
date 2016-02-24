@@ -134,6 +134,9 @@ public class JangarooParser implements CompilationUnitModelResolver, Compilation
   }
 
   public CompilationUnit doParse(InputSource in, CompileLog log, SemicolonInsertionMode semicolonInsertionMode) {
+    if (config.isVerbose()) {
+      System.out.println("Parsing " + in.getPath() + " (" + (in.isInSourcePath() ? "source" : "class") + "path)"); // NOSONAR this is a cmd line tool
+    }
     boolean parseMxml = in.getName().endsWith(Jooc.MXML_SUFFIX);
     Reader reader;
     try {
@@ -236,7 +239,17 @@ public class JangarooParser implements CompilationUnitModelResolver, Compilation
       return unit;
     }
 
-    unit = parse(source);
+    String fileName = source.getName();
+    int dotIndex = fileName.lastIndexOf('.');
+    String fileExtension = (dotIndex == -1) ? "" : fileName.substring(dotIndex);
+    List<String> suffixes = getCompilableSuffixes();
+    if(!suffixes.contains(fileExtension)) {
+      throw error("Input file must end with one of '" + suffixes + "': " + fileName);
+    }
+    unit = doParse(source, log, config.getSemicolonInsertionMode());
+    if (null != unit) {
+      unit.scope(globalScope);
+    }
     if (null == unit) {
       return null;
     }
@@ -314,14 +327,16 @@ public class JangarooParser implements CompilationUnitModelResolver, Compilation
       compilationUnitModelsByQName.put(fullClassName, null);
 
       CompilationUnit compilationUnit = compilationUnitsByQName.get(fullClassName);
+      boolean isMxmlClass = false;
       if (compilationUnit == null) {
         // The compilation unit has not yet been parsed.
         InputSource source = findSource(fullClassName);
         if (source != null) {
           if (source.getName().endsWith(Jooc.MXML_SUFFIX)) {
+            isMxmlClass = true;
             // MXML files denote classes.
             isClassByQName.put(fullClassName, true);
-            compilationUnit = parse(source);
+            compilationUnit = doParse(source, log, config.getSemicolonInsertionMode());
           } else {
             compilationUnit = getCompilationUnit(fullClassName);
           }
@@ -332,18 +347,20 @@ public class JangarooParser implements CompilationUnitModelResolver, Compilation
       }
 
       compilationUnitModel = new CompilationUnitModel(CompilerUtils.packageName(fullClassName), new ClassModel(CompilerUtils.className(fullClassName)));
+      compilationUnitModelsByQName.put(fullClassName, compilationUnitModel);
+      isClassByQName.put(fullClassName, isMxmlClass || compilationUnitModel.getPrimaryDeclaration() instanceof ClassModel);
+
+      if(isMxmlClass) {
+        compilationUnit.scope(globalScope);
+      }
       try {
         new ApiModelGenerator(false).generateModel(compilationUnit, compilationUnitModel);
       } catch (IOException e) {
         throw error("Unexpected I/O error while building compilation unit model", e);
       }
-
-      compilationUnitModelsByQName.put(fullClassName, compilationUnitModel);
-      isClassByQName.put(fullClassName, compilationUnitModel.getPrimaryDeclaration() instanceof ClassModel);
     }
     return compilationUnitModel;
   }
-
 
   public MxmlComponentRegistry getMxmlComponentRegistry() {
     return mxmlComponentRegistry;
@@ -362,20 +379,6 @@ public class JangarooParser implements CompilationUnitModelResolver, Compilation
                         path));
       }
     }
-  }
-
-  protected CompilationUnit parse(InputSource in) {
-    if (!in.getName().endsWith(Jooc.AS_SUFFIX) && !in.getName().endsWith(Jooc.MXML_SUFFIX)) {
-      throw error("Input file must end with '" + Jooc.AS_SUFFIX + "' or '" + Jooc.MXML_SUFFIX + "': " + in.getName());
-    }
-    if (config.isVerbose()) {
-      System.out.println("Parsing " + in.getPath() + " (" + (in.isInSourcePath() ? "source" : "class") + "path)"); // NOSONAR this is a cmd line tool
-    }
-    CompilationUnit unit = doParse(in, log, config.getSemicolonInsertionMode());
-    if (unit != null) {
-      unit.scope(globalScope);
-    }
-    return unit;
   }
 
   public List<String> getPackageIdes(String packageName) {
