@@ -1,12 +1,13 @@
 Ext.define("AS3.package1.mxml.pkg.CyclicDependencies", function(CyclicDependencies) {/*package package1.mxml.pkg{
 import package1.mxml.pkg.*;
-class CyclicDependencies extends Object{
+public class CyclicDependencies extends Object{
 
-    private var config:CyclicDependencies;*/
+    private var config:CyclicDependencies;
 
-    function CyclicDependencies$(config/*:CyclicDependencies = null*/){if(arguments.length<=0)config=null;AS3.setBindable(
+    public*/function CyclicDependencies$(config/*:CyclicDependencies = null*/){if(arguments.length<=0)config=null;
 
-    this,"cause_trouble" , new AS3.package1.mxml.pkg.CyclicDependencies_1());}/*
+    var config_$3/*:package1.mxml.pkg.CyclicDependencies_1*/ =AS3.cast( AS3.package1.mxml.pkg.CyclicDependencies_1,{});AS3.setBindable(
+    this,"cause_trouble" , new AS3.package1.mxml.pkg.CyclicDependencies_1(config_$3));}/*
 
 [Bindable]
 public var cause_trouble:package1.mxml.pkg.CyclicDependencies_1;}}

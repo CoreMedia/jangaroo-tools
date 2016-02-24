@@ -1,7 +1,7 @@
 Ext.define("AS3.package1.mxml.ScriptCdataMxmlClass", function(ScriptCdataMxmlClass) {/*package package1.mxml{
 import package1.*;
 import package1.mxml.SimpleInterface;
-class ScriptCdataMxmlClass extends ConfigClass implements package1.mxml.SimpleInterface{
+public class ScriptCdataMxmlClass extends ConfigClass implements package1.mxml.SimpleInterface{
 
     import package1.someOtherPackage.SomeOtherClass;
 
@@ -13,8 +13,7 @@ class ScriptCdataMxmlClass extends ConfigClass implements package1.mxml.SimpleIn
       for (var v/*:Object*/ in values) {
         throw "cannot do it with " + v;
       }
-    }
-function ScriptCdataMxmlClass$(config/*:ScriptCdataMxmlClass=null*/){AS3.package1.ConfigClass.prototype.constructor.call(this);field2_.call(this);field3_.call(this);if(arguments.length<=0)config=null;
+    }/*public*/function ScriptCdataMxmlClass$(config/*:ScriptCdataMxmlClass=null*/){AS3.package1.ConfigClass.prototype.constructor.call(this);field2_.call(this);field3_.call(this);if(arguments.length<=0)config=null;
 var config_$1/*:ScriptCdataMxmlClass*/ =AS3.cast(ScriptCdataMxmlClass,{});
 
     config_$1.foo = "bar";

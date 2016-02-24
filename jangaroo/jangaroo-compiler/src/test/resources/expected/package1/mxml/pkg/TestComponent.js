@@ -1,11 +1,11 @@
 Ext.define("AS3.package1.mxml.pkg.TestComponent", function(TestComponent) {/*package package1.mxml.pkg{
 import package1.mxml.pkg.*;
 import net.jangaroo.ext.Exml;
-class TestComponent extends TestComponentBase{
+public class TestComponent extends TestComponentBase{
 
-    private var config:TestComponent;*/
+    private var config:TestComponent;
 
-    function TestComponent$(config/*:TestComponent = null*/){if(arguments.length<=0)config=null;
+    public*/function TestComponent$(config/*:TestComponent = null*/){if(arguments.length<=0)config=null;
 var config_$1/*:TestComponent*/ =AS3.cast(TestComponent,{});
 var defaults_$1/*:TestComponent*/ ={};
 config= AS3.net.jangaroo.ext.Exml.apply(defaults_$1,config);

@@ -41,15 +41,17 @@ class MxmlAstUtils {
 
   static final JooSymbol[] SYM_EMPTY_MODIFIERS = new JooSymbol[]{};
 
+  static final JooSymbol SYM_CLASS = new JooSymbol(sym.CLASS, "class");
   static final JooSymbol SYM_COLON = new JooSymbol(sym.COLON, ":");
   static final JooSymbol SYM_COMMA = new JooSymbol(sym.COMMA, ",");
   static final JooSymbol SYM_DOT = new JooSymbol(sym.DOT, ".");
   static final JooSymbol SYM_EQ = new JooSymbol(sym.EQ, "=");
-  static final JooSymbol SYM_FUNCTION = new JooSymbol(sym.FUNCTION, "function").withWhitespace("\n");
+  static final JooSymbol SYM_FUNCTION = new JooSymbol(sym.FUNCTION, "function");
   static final JooSymbol SYM_IMPORT = new JooSymbol(sym.IMPORT, "import").withWhitespace("\n");
   static final JooSymbol SYM_LBRACE = new JooSymbol(sym.LBRACE, "{");
   static final JooSymbol SYM_LPAREN = new JooSymbol(sym.LPAREN, "(");
   static final JooSymbol SYM_NULL = new JooSymbol(sym.NULL_LITERAL, "null");
+  static final JooSymbol SYM_PUBLIC = new JooSymbol(sym.PUBLIC, "public");
   static final JooSymbol SYM_RBRACE = new JooSymbol(sym.RBRACE, "}");
   static final JooSymbol SYM_RPAREN = new JooSymbol(sym.RPAREN, ")");
   static final JooSymbol SYM_SEMICOLON = new JooSymbol(sym.SEMICOLON, ";");
@@ -57,24 +59,16 @@ class MxmlAstUtils {
   static final JooSymbol SYM_THIS = new JooSymbol(sym.THIS, Ide.THIS);
   static final JooSymbol SYM_VAR = new JooSymbol(sym.VAR, "var");
 
-  private static final String CLASS = "class";
-
-  @Nonnull
-  static JooSymbol createFunctionSymbol(@Nonnull JooSymbol[] symModifiers, @Nonnull JooSymbol symbol) {
-    String whitespace = "";
-    JooSymbol firstSymbol = Iterables.getFirst(Arrays.asList(symModifiers), null);
-    if(null != firstSymbol) {
-      whitespace = firstSymbol.getWhitespace();
-    }
-    return new JooSymbol(sym.FUNCTION, symbol.getFileName(), symbol.getLine(), symbol.getColumn(), whitespace, symbol.getText(), symbol.getJooValue());
-  }
-
   @Nonnull
   static FunctionDeclaration createConstructor(@Nonnull FunctionDeclaration directive, @Nonnull List<Directive> constructorBodyDirectives) {
     BlockStatement constructorBody = new BlockStatement(SYM_LBRACE, constructorBodyDirectives, SYM_RBRACE);
-    JooSymbol functionSymbol = createFunctionSymbol(directive.getSymModifiers(), directive.getSymbol());
-    return new FunctionDeclaration(Collections.<JooSymbol>emptyList(),
-            functionSymbol,
+    String whitespace = "";
+    JooSymbol firstSymbol = Iterables.getFirst(Arrays.asList(directive.getSymModifiers()), null);
+    if(null != firstSymbol) {
+      whitespace = firstSymbol.getWhitespace();
+    }
+    return new FunctionDeclaration(Collections.singletonList(SYM_PUBLIC.withWhitespace(whitespace)),
+            SYM_FUNCTION,
             directive.getSymGetOrSet(),
             directive.getIde(),
             directive.getFun().getLParen(),
@@ -91,7 +85,7 @@ class MxmlAstUtils {
     BlockStatement constructorBody = new BlockStatement(SYM_LBRACE, constructorBodyDirectives, SYM_RBRACE.withWhitespace("\n"));
     TypeRelation typeRelation = createTypeRelation(ide.getIde());
     Parameters params = new Parameters(new Parameter(null, new Ide(MxmlUtils.CONFIG), typeRelation, new Initializer(SYM_EQ, new LiteralExpr(SYM_NULL))));
-    return new FunctionDeclaration(Collections.<JooSymbol>emptyList(), SYM_FUNCTION, null, ide, SYM_LPAREN, params, SYM_RPAREN, null, constructorBody, null);
+    return new FunctionDeclaration(Collections.singletonList(SYM_PUBLIC), SYM_FUNCTION, null, ide, SYM_LPAREN, params, SYM_RPAREN, null, constructorBody, null);
   }
 
   @Nonnull
@@ -102,9 +96,9 @@ class MxmlAstUtils {
   @Nonnull
   static ClassDeclaration createClassDeclaration(@Nonnull String classQName, @Nonnull JooSymbol rootNodeSymbol, @Nonnull Extends ext, @Nullable Implements impl, @Nonnull List<Directive> classBodyDirectives, @Nonnull InputSource source) {
     ClassBody classBody = new ClassBody(SYM_LBRACE, classBodyDirectives, SYM_RBRACE);
-    JooSymbol symClass = new JooSymbol(sym.CLASS, source.getPath(), rootNodeSymbol.getLine(), rootNodeSymbol.getColumn(), MxmlUtils.toASDoc(rootNodeSymbol.getWhitespace()), CLASS);
+    String whitespace = MxmlUtils.toASDoc(rootNodeSymbol.getWhitespace());
 
-    return new ClassDeclaration(SYM_EMPTY_MODIFIERS, symClass, new Ide(CompilerUtils.className(classQName)), ext, impl, classBody);
+    return new ClassDeclaration(new JooSymbol[]{SYM_PUBLIC.withWhitespace(whitespace)}, SYM_CLASS, new Ide(CompilerUtils.className(classQName)), ext, impl, classBody);
   }
 
   @Nonnull

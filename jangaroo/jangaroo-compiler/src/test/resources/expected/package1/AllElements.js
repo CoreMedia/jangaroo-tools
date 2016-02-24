@@ -6,7 +6,7 @@ import net.jangaroo.ext.Exml;
 /**
  This is my <b>TestComponent</b>
 * /
-class AllElements extends Panel{
+public class AllElements extends Panel{
 
     /* add an extra import statement to the class * /
 
@@ -35,9 +35,9 @@ class AllElements extends Panel{
       this.myVar2$2 = {
         prop: config.myProperty$2
       };
-    }
+    }/*
 
-    function AllElements$(config/*:AllElements = null*/){if(arguments.length<=0)config=null;this. __initialize__$2(config);
+    public*/function AllElements$(config/*:AllElements = null*/){if(arguments.length<=0)config=null;this. __initialize__$2(config);
 var config_$1/*:AllElements*/ =AS3.cast(AllElements,{});
 var defaults_$1/*:AllElements*/ ={};
 config= AS3.net.jangaroo.ext.Exml.apply(defaults_$1,config);

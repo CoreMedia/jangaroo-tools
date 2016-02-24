@@ -7,11 +7,11 @@ import joo.addEventListener;
   My config class subclass, authored in MXML.
 * /
 
-class SimpleMxmlClass extends ConfigClass implements package1.Interface{
+public class SimpleMxmlClass extends ConfigClass implements package1.Interface{
 
-    public static const xtype:String = "testNamespace.config.simpleMxmlClass";*/
+    public static const xtype:String = "testNamespace.config.simpleMxmlClass";
 
-    function SimpleMxmlClass$(config/*:SimpleMxmlClass = null*/){if(arguments.length<=0)config=null;
+    public*/function SimpleMxmlClass$(config/*:SimpleMxmlClass = null*/){if(arguments.length<=0)config=null;
 var config_$1/*:SimpleMxmlClass*/ =AS3.cast(SimpleMxmlClass,{});
 var defaults_$1/*:SimpleMxmlClass*/ ={};
 config= AS3.net.jangaroo.ext.Exml.apply(defaults_$1,config);
