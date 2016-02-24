@@ -254,7 +254,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
   }
 
   void addImport(@Nonnull JooSymbol symbol) {
-    String jooValue = (String) symbol.getJooValue();
+    String jooValue = symbol.getText();
     if(!importedSymbols.contains(jooValue)) {
       ImportDirective directive = mxmlParserHelper.parseImport(symbol);
       if (null != directive && isNotYetImported(directive.getIde())) {
@@ -268,7 +268,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
     if(classQName.contains(".")) {
       ImportDirective importDirective = mxmlParserHelper.parseImport(classQName);
       if (null != importDirective && isNotYetImported(importDirective.getIde())) {
-        classBodyDirectives.add(importDirective);
+        getDirectives().add(importDirective);
       }
     }
   }

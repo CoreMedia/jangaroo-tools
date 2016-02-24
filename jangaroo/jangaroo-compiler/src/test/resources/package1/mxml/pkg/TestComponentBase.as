@@ -3,6 +3,8 @@ package package1.mxml.pkg {
 
 public class TestComponentBase implements TestInterface {
 
+  public static const DEFAULT:String = "_DEFAULT_";
+
   [ExtConfig]
   [Bindable]
   /**

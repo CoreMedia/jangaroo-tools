@@ -50,11 +50,11 @@ public class XmlTag extends NodeImplBase {
       for (XmlAttribute attribute : attributes) {
         String localName = attribute.getLocalName();
         String namespace = attribute.getPrefix();
-        String jooValue = (String) attribute.getValue().getJooValue();
+        String text = attribute.getValue().getText();
         if (XMLNS.equals(namespace)) {
-          xmlNamespaces.put(localName, jooValue);
+          xmlNamespaces.put(localName, text);
         } else if (null == namespace && XMLNS.equals(localName)) {
-          defaultNamespace = jooValue;
+          defaultNamespace = text;
         }
       }
     }

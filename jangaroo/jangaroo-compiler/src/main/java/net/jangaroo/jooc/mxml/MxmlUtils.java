@@ -2,13 +2,7 @@ package net.jangaroo.jooc.mxml;
 
 import net.jangaroo.utils.AS3Type;
 import net.jangaroo.utils.CompilerUtils;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -95,27 +89,9 @@ public class MxmlUtils {
     return endPos + 1;
   }
 
-  public static void addImport(Set<String> imports, String importedClassName) {
-    if (importedClassName != null && importedClassName.contains(".")) { // do not import top-level classes!
-      imports.add(importedClassName);
-    }
-  }
-
   public static String parsePackageFromNamespace(String uri) {
     return uri.endsWith(".*") ? uri.substring(0, uri.length() -2)
             : uri.equals("*") || isMxmlNamespace(uri) ? "" : null;
-  }
-
-  public static List<Element> getChildElements(Element element) {
-    List<Element> result = new ArrayList<Element>();
-    NodeList propertyChildNotes = element.getChildNodes();
-    for (int j = 0; j < propertyChildNotes.getLength(); j++) {
-      Node childNode = propertyChildNotes.item(j);
-      if (childNode.getNodeType() == Node.ELEMENT_NODE) {
-        result.add((Element) childNode);
-      }
-    }
-    return result;
   }
 
   public static Object getAttributeValue(String attributeValue, String type) {

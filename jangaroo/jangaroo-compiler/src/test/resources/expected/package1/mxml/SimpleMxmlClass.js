@@ -2,6 +2,7 @@ Ext.define("AS3.package1.mxml.SimpleMxmlClass", function(SimpleMxmlClass) {/*pac
 import package1.*;
 import package1.someOtherPackage.*;
 import net.jangaroo.ext.Exml;
+import joo.addEventListener;
 /**
   My config class subclass, authored in MXML.
 * /
@@ -72,7 +73,6 @@ config= AS3.net.jangaroo.ext.Exml.apply(defaults_$1,config);
 
     [Bindable]
     public var list:Object;
-import joo.addEventListener;
 
 [Bindable]
 public var bar:String;

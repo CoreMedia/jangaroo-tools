@@ -349,8 +349,8 @@ XmlComment = "<!--" ~"-->"
   {Identifier}                    { return symbol(IDE, yytext()); }
   {WhiteSpace}                    { pushWhitespace(yytext()); }
   {XmlComment}                    { pushWhitespace(yytext()); }
-  \"                              { setMultiStateText(yytext()); yybegin(XML_ATTRIBUTE_VALUE_DQ); clearString(); }
-  \'                              { setMultiStateText(yytext()); yybegin(XML_ATTRIBUTE_VALUE_SQ); clearString(); }
+  \"                              { setMultiStateText(""); yybegin(XML_ATTRIBUTE_VALUE_DQ); clearString(); }
+  \'                              { setMultiStateText(""); yybegin(XML_ATTRIBUTE_VALUE_SQ); clearString(); }
   "<"                             { return symbol(LT); }
   "</"                            { return symbol(LT_SLASH); }
   "/>"                            { return symbol(SLASH_GT); }
@@ -360,40 +360,36 @@ XmlComment = "<!--" ~"-->"
 }
 
 <XML_ATTRIBUTE_VALUE_DQ> {
-  \"                              { pushMultiStateText(yytext()); yybegin(MXML);
-                                    return multiStateSymbol(STRING_LITERAL, getString()); }
-  [^\r\n\"\\]+                    { pushMultiStateText(yytext()); pushString( yytext() ); }
-  "\\b"                           { pushMultiStateText(yytext()); pushString( '\b' ); }
-  "\\t"                           { pushMultiStateText(yytext()); pushString( '\t' ); }
-  "\\n"                           { pushMultiStateText(yytext()); pushString( '\n' ); }
-  "\\f"                           { pushMultiStateText(yytext()); pushString( '\f' ); }
-  "\\r"                           { pushMultiStateText(yytext()); pushString( '\r' ); }
-  "\\\""                          { pushMultiStateText(yytext()); pushString( '\"' ); }
-  "\\\'"                          { pushMultiStateText(yytext()); pushString( '\'' ); }
-  "\\\\"                          { pushMultiStateText(yytext()); pushString( '\\' ); }
-\\(u{HexDigit}{4}|x{HexDigit}{2}) { pushMultiStateText(yytext());
-                                   char val = (char) Integer.parseInt(yytext().substring(2),16);
-                        	   pushString(val); }
-  \\.                             { pushMultiStateText(yytext()); pushString(yytext().substring(1)); }
+  \"                              { yybegin(MXML);
+                                    return multiStateSymbol(STRING_LITERAL, null); }
+  [^\r\n\"\\]+                    { pushMultiStateText(yytext()); }
+  "\\b"                           { pushMultiStateText(yytext()); }
+  "\\t"                           { pushMultiStateText(yytext()); }
+  "\\n"                           { pushMultiStateText(yytext()); }
+  "\\f"                           { pushMultiStateText(yytext()); }
+  "\\r"                           { pushMultiStateText(yytext()); }
+  "\\\""                          { pushMultiStateText(yytext()); }
+  "\\\'"                          { pushMultiStateText(yytext()); }
+  "\\\\"                          { pushMultiStateText(yytext()); }
+\\(u{HexDigit}{4}|x{HexDigit}{2}) { pushMultiStateText(yytext()); }
+  \\.                             { pushMultiStateText(yytext()); }
   {WhiteSpace}                    { pushWhitespace(yytext()); }
 }
 
 <XML_ATTRIBUTE_VALUE_SQ> {
-  \'                              { pushMultiStateText(yytext()); yybegin(MXML);
-                                    return multiStateSymbol(STRING_LITERAL, getString()); }
-  [^\r\n'\\]+                     { pushMultiStateText(yytext()); pushString( yytext() ); }
-  "\\b"                           { pushMultiStateText(yytext()); pushString( '\b' ); }
-  "\\t"                           { pushMultiStateText(yytext()); pushString( '\t' ); }
-  "\\n"                           { pushMultiStateText(yytext()); pushString( '\n' ); }
-  "\\f"                           { pushMultiStateText(yytext()); pushString( '\f' ); }
-  "\\r"                           { pushMultiStateText(yytext()); pushString( '\r' ); }
-  "\\\""                          { pushMultiStateText(yytext()); pushString( '\"' ); }
-  "\\\'"                          { pushMultiStateText(yytext()); pushString( '\'' ); }
-  "\\\\"                          { pushMultiStateText(yytext()); pushString( '\\' ); }
-\\(u{HexDigit}{4}|x{HexDigit}{2}) { pushMultiStateText(yytext());
-                                   char val = (char) Integer.parseInt(yytext().substring(2),16);
-                        	   pushString(val); }
-  \\.                             { pushMultiStateText(yytext()); pushString(yytext().substring(1)); }
+  \'                              { yybegin(MXML);
+                                    return multiStateSymbol(STRING_LITERAL, null); }
+  [^\r\n'\\]+                     { pushMultiStateText(yytext()); }
+  "\\b"                           { pushMultiStateText(yytext()); }
+  "\\t"                           { pushMultiStateText(yytext()); }
+  "\\n"                           { pushMultiStateText(yytext()); }
+  "\\f"                           { pushMultiStateText(yytext()); }
+  "\\r"                           { pushMultiStateText(yytext()); }
+  "\\\""                          { pushMultiStateText(yytext()); }
+  "\\\'"                          { pushMultiStateText(yytext()); }
+  "\\\\"                          { pushMultiStateText(yytext()); }
+\\(u{HexDigit}{4}|x{HexDigit}{2}) { pushMultiStateText(yytext()); }
+  \\.                             { pushMultiStateText(yytext()); }
   {WhiteSpace}                    { pushWhitespace(yytext()); }
 }
 

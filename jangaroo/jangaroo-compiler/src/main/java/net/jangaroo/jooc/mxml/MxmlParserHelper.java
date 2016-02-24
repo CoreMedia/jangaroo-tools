@@ -105,7 +105,7 @@ public class MxmlParserHelper {
 
   @Nullable
   public Implements parseImplements(@Nonnull JooSymbol symbol) {
-    String text = (String) symbol.getJooValue();
+    String text = symbol.getText();
     String template = TPL_IMPLEMENTS;
     int[] position = position(symbol, template);
     CompilationUnit unit = (CompilationUnit) parser.parseEmbedded(String.format(template, text), position[0], position[1]).value;
@@ -131,7 +131,7 @@ public class MxmlParserHelper {
 
   @Nullable
   public ImportDirective parseImport(@Nonnull JooSymbol symbol) {
-    String text = (String) symbol.getJooValue();
+    String text = symbol.getText();
     String template = TPL_IMPORT;
     int[] position = position(symbol, template);
     Symbol parsed = parser.parseEmbedded(String.format(template, text), position[0], position[1], true);

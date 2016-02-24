@@ -20,6 +20,7 @@ import net.jangaroo.jooc.model.PropertyModel;
 import net.jangaroo.jooc.mxml.MxmlParserHelper;
 import net.jangaroo.jooc.mxml.MxmlUtils;
 import net.jangaroo.utils.CompilerUtils;
+import org.apache.commons.lang.StringEscapeUtils;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -30,7 +31,6 @@ import java.util.Map;
 
 public final class MxmlToModelParser {
 
-  private static final String EXT_CONFIG_META_NAME = "ExtConfig";
   private static final String EXT_CONFIG_CREATE_FLAG = "create";
   private static final String EXT_CONFIG_EXTRACT_XTYPE_PARAMETER = "extractXType";
 
@@ -78,7 +78,7 @@ public final class MxmlToModelParser {
       boolean isUntypedAccess = MxmlUtils.EXML_UNTYPED_NAMESPACE.equals(attributeNamespaceUri);
       if (noPrefix && !MxmlUtils.MXML_ID_ATTRIBUTE.equals(propertyName) ||
               isUntypedAccess) {
-        String value = (String) attribute.getValue().getJooValue();
+        String value = StringEscapeUtils.unescapeXml(attribute.getValue().getText());
         MemberModel propertyModel = null;
         if (!isUntypedAccess && classModel != null) {
           propertyModel = findPropertyModel(classModel, propertyName);
@@ -203,7 +203,7 @@ public final class MxmlToModelParser {
   private void createChildElementsPropertyAssignmentCode(List<XmlElement> childElements, String variable,
                                                          MemberModel propertyModel, boolean generatingConfig) {
     boolean forceArray = "Array".equals(propertyModel.getType());
-    AnnotationModel extConfigAnnotation = getAnnotationAtSetter(propertyModel, EXT_CONFIG_META_NAME);
+    AnnotationModel extConfigAnnotation = getAnnotationAtSetter(propertyModel, Jooc.EXT_CONFIG_ANNOTATION_NAME);
     Boolean useConfigObjects = extConfigAnnotation == null ? null : useConfigObjects(extConfigAnnotation, null);
     String value = createArrayCodeFromChildElements(childElements, forceArray, useConfigObjects);
     if (extConfigAnnotation != null) {
@@ -363,7 +363,7 @@ public final class MxmlToModelParser {
 
   private boolean useConfigObjects(ClassModel classModel) {
     for (ClassModel current = classModel; current != null; current = getSuperClassModel(current)) {
-      Iterator<AnnotationModel> extConfigAnnotations = current.getAnnotations("ExtConfig").iterator();
+      Iterator<AnnotationModel> extConfigAnnotations = current.getAnnotations(Jooc.EXT_CONFIG_ANNOTATION_NAME).iterator();
       if (extConfigAnnotations.hasNext()) {
         AnnotationModel extConfigAnnotation = extConfigAnnotations.next();
         return useConfigObjects(extConfigAnnotation, true);
@@ -462,7 +462,7 @@ public final class MxmlToModelParser {
     if (propertyModel instanceof PropertyModel) {
       MethodModel setter = ((PropertyModel) propertyModel).getSetter();
       if (setter != null) { // should actually be there, or the assignment would not work!
-        Iterator<AnnotationModel> configOptionAnnotations = setter.getAnnotations(EXT_CONFIG_META_NAME).iterator();
+        Iterator<AnnotationModel> configOptionAnnotations = setter.getAnnotations(Jooc.EXT_CONFIG_ANNOTATION_NAME).iterator();
         if (configOptionAnnotations.hasNext()) {
           AnnotationPropertyModel configOption = configOptionAnnotations.next().getPropertiesByName().get(null);
           if (configOption != null) {
