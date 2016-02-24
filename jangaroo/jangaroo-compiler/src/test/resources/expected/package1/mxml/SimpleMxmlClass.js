@@ -61,7 +61,7 @@ config= AS3.net.jangaroo.ext.Exml.apply(defaults_$1,config);
     config_$13,"bla" , 13);AS3.setBindable(
     this,"no_config" , new AS3.package1.someOtherPackage.SomeOtherClass(config_$13));
     config_$11.items = [new AS3.package1.someOtherPackage.SomeOtherClass(config_$12),AS3.getBindable( this,"no_config")];
-    config_$1.items = [new AS3.package1.someOtherPackage.SomeOtherClass(config_$6), new AS3.package1.someOtherPackage.SomeOtherClass(config_$7), new AS3.package1.someOtherPackage.SomeOtherClass(config_$8), new AS3.package1.ConfigClass(config_$9), new AS3.package1.ConfigClass(config_$11)]; AS3.net.jangaroo.ext.Exml.apply(config_$1,config);AS3.package1.ConfigClass.prototype.constructor.call(this,config_$1,config);}/*
+    config_$1.items = [new AS3.package1.someOtherPackage.SomeOtherClass(config_$6), new AS3.package1.someOtherPackage.SomeOtherClass(config_$7), new AS3.package1.someOtherPackage.SomeOtherClass(config_$8), new AS3.package1.ConfigClass(config_$9), new AS3.package1.ConfigClass(config_$11)]; AS3.net.jangaroo.ext.Exml.apply(config_$1,config);AS3.package1.ConfigClass.prototype.constructor.call(this,config_$1);}/*
 
     private var blub:*;*/function static$0(){
 

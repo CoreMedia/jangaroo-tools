@@ -93,7 +93,7 @@ config= AS3.net.jangaroo.ext.Exml.apply(defaults_$1,config);
     var config_$11/*:ext.config.aplugin*/ =AS3.cast( AS3.ext.config.aplugin,{});
     var config_$12/*:ext.config.aplugin*/ =AS3.cast( AS3.ext.config.aplugin,{});
     config_$3.plugins = [config_$11, config_$12];
-    config_$1.items = [config_$3]; AS3.net.jangaroo.ext.Exml.apply(config_$1,config);AS3.ext.Panel.prototype.constructor.call(this,config_$1,config);}/*
+    config_$1.items = [config_$3]; AS3.net.jangaroo.ext.Exml.apply(config_$1,config);AS3.ext.Panel.prototype.constructor.call(this,config_$1);}/*
 
 /*
       anonymous object in array:

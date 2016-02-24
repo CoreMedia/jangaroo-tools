@@ -124,7 +124,8 @@ class MxmlAstUtils {
   }
 
   @Nonnull
-  static SuperConstructorCallStatement createSuperConstructorCall(CommaSeparatedList<Expr> exprCommaSeparatedList) {
-    return new SuperConstructorCallStatement(SYM_SUPER, SYM_LPAREN, exprCommaSeparatedList, SYM_RPAREN, SYM_SEMICOLON);
+  static SuperConstructorCallStatement createSuperConstructorCall(Ide superConfigVar) {
+    CommaSeparatedList<Expr> args = new CommaSeparatedList<Expr>(new IdeExpr(superConfigVar));
+    return new SuperConstructorCallStatement(SYM_SUPER, SYM_LPAREN, args, SYM_RPAREN, SYM_SEMICOLON);
   }
 }

@@ -166,7 +166,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
       ApplyExpr applyExpr = new ApplyExpr(new DotExpr(new IdeExpr(exml), MxmlAstUtils.SYM_DOT, new Ide(new JooSymbol(APPLY))), MxmlAstUtils.SYM_LPAREN, exprCommaSeparatedList, MxmlAstUtils.SYM_RPAREN);
       constructorBodyDirectives.add(MxmlAstUtils.createSemicolonTerminatedStatement(applyExpr));
 
-      constructorBodyDirectives.add(MxmlAstUtils.createSuperConstructorCall(exprCommaSeparatedList));
+      constructorBodyDirectives.add(MxmlAstUtils.createSuperConstructorCall(superConfigVar));
     }
 
     postProcessClassBodyDirectives();
