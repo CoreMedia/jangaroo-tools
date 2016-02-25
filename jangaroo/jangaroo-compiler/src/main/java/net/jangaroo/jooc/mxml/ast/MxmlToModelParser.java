@@ -279,7 +279,7 @@ public final class MxmlToModelParser {
 
     if (CompilationUnitModelUtils.constructorSupportsConfigOptionsParameter(className, jangarooParser)) {
       // if class supports a config options parameter, create a config options object and assign properties to it:
-      configVariable = compilationUnit.createAuxVar(MxmlUtils.CONFIG);
+      configVariable = createAuxVar(objectElement, id);
       renderConfigAuxVar(configVariable, className, true);
       if (targetVariableName == null) {
         targetVariableName = createAuxVar(objectElement).getName();
@@ -376,7 +376,27 @@ public final class MxmlToModelParser {
 
   private Ide createAuxVar(XmlElement element) {
     JooSymbol symbol = element.getSymbol();
-    return compilationUnit.createAuxVar(element.getName().toLowerCase() + '_' + symbol.getLine() + '_' + symbol.getColumn());
+    String prefix = element.getName();
+    return createAuxVar(symbol, prefix);
+  }
+
+  private Ide createAuxVar(XmlElement element, String idAttributeValue) {
+    JooSymbol symbol = element.getSymbol();
+    StringBuilder name = new StringBuilder();
+    if (idAttributeValue.isEmpty()) {
+      String prefix = element.getPrefix();
+      if(null != prefix) {
+        name.append(prefix).append('_');
+      }
+      name.append(element.getLocalName());
+    } else {
+      name.append(idAttributeValue);
+    }
+    return createAuxVar(symbol, name.toString());
+  }
+
+  private Ide createAuxVar(JooSymbol symbol, String prefix) {
+    return compilationUnit.createAuxVar(CompilerUtils.uncapitalize(prefix) + '_' + symbol.getLine() + '_' + symbol.getColumn());
   }
 
   private void createEventHandlerCode(@Nonnull Ide ide, String value, AnnotationModel event) {
