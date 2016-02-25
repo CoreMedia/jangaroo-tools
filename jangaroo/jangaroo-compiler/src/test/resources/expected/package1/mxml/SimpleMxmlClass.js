@@ -39,7 +39,7 @@ config= AS3.net.jangaroo.ext.Exml.apply(defaults_$1,config);AS3.setBindable(
     joo.addEventListener(config_$1, "click",AS3.bind( this,"$on_config_$1_click$2"), AS3.package1.someOtherPackage.SomeEvent);
     var config_$5/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
     config_$5,"bla" , 99);
-    config_$5["knownUnknown"] = true;
+    config_$5["known-unknown"] = true;
     config_$1.defaultType = config_$5['xtype'];
     delete config_$5['xtype'];
     delete config_$5['xclass'];

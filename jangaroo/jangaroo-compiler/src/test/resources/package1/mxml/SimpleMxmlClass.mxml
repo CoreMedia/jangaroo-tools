@@ -42,7 +42,7 @@
   </fx:Declarations>
   <defaults>
     <other:SomeOtherClass bla="99"
-                          u:knownUnknown="true"/>
+                          u:known-unknown="true"/>
   </defaults>
   <items exml:mode="append">
     <other:SomeOtherClass bla="23"/>

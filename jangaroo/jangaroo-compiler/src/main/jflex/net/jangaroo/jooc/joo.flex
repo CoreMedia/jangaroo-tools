@@ -120,6 +120,7 @@ EndOfLineComment = "//" {InputCharacter}* {LineTerminator}?
 
 IdentifierStart = [:letter:]|[$_@]
 Identifier = {IdentifierStart}({IdentifierStart}|[:digit:])*
+XMLIdentifier = {IdentifierStart}({IdentifierStart}|[:digit:]|-)*
 
 DecIntegerLiteral = 0 | [1-9][0-9]*
 HexIntegerLiteral = 0[xX]{HexDigit}+
@@ -346,7 +347,7 @@ XmlComment = "<!--" ~"-->"
 <MXML> {
   "<?"                            { return symbol(LT_QUESTION); }
   "?>"                            { return symbol(QUESTION_GT); }
-  {Identifier}                    { return symbol(IDE, yytext()); }
+  {XMLIdentifier}                    { return symbol(IDE, yytext()); }
   {WhiteSpace}                    { pushWhitespace(yytext()); }
   {XmlComment}                    { pushWhitespace(yytext()); }
   \"                              { setMultiStateText(""); yybegin(XML_ATTRIBUTE_VALUE_DQ); clearString(); }
