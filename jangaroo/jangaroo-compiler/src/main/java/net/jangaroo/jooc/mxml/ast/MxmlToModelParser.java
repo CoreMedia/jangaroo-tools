@@ -63,10 +63,9 @@ public final class MxmlToModelParser {
     constructorCode.append(String.format("\n    var %s:%s = %s;", ide.getName(), type, useCast ? type + "({})" : "{}"));
   }
 
-  private boolean processAttributes(XmlElement objectNode, CompilationUnitModel type, @Nonnull Ide configVariable, @Nonnull Ide targetVariable, boolean generatingConfig) {
+  private void processAttributes(XmlElement objectNode, CompilationUnitModel type, @Nonnull Ide configVariable, @Nonnull Ide targetVariable, boolean generatingConfig) {
     Ide variable = generatingConfig ? configVariable : targetVariable;
     ClassModel classModel = type == null ? null : type.getClassModel();
-    boolean hasBindings = false;
     boolean hasIdAttribute = false;
     for (XmlAttribute attribute : objectNode.getAttributes()) {
       String propertyName = attribute.getLocalName();
@@ -84,7 +83,6 @@ public final class MxmlToModelParser {
             if (generatingConfig && hasIdAttribute) {
               // Only generate config-event-listeners when config has no ID, because otherwise it will be instantiated
               // immediately, anyway, and it is safer to attach event listeners to the actual object.
-              hasBindings = true;
               continue;
             }
             AnnotationModel eventModel = findEvent(classModel, propertyName);
@@ -97,22 +95,18 @@ public final class MxmlToModelParser {
         if (propertyModel == null) {
           propertyModel = createDynamicPropertyModel(objectNode, type, propertyName, isUntypedAccess);
         }
-        if (createPropertyAssignmentCodeWithBindings(configVariable, targetVariable, generatingConfig, value, propertyModel)) {
-          hasBindings = true;
-        }
+        createPropertyAssignmentCodeWithBindings(configVariable, targetVariable, generatingConfig, value, propertyModel);
       }
     }
-    return hasBindings;
   }
 
-  private boolean createPropertyAssignmentCodeWithBindings(Ide configVariable, Ide targetVariable, boolean generatingConfig, String value, MemberModel propertyModel) {
+  private void createPropertyAssignmentCodeWithBindings(Ide configVariable, Ide targetVariable, boolean generatingConfig, String value, MemberModel propertyModel) {
     Ide variable = generatingConfig ? configVariable : targetVariable;
     // skip property assignment to target object if it was already contained in config object:
     if (generatingConfig || configVariable == null) {
       // default: create a normal property assignment:
       createPropertyAssignmentCode(variable, propertyModel, value, generatingConfig);
     }
-    return false;
   }
 
 
@@ -138,9 +132,8 @@ public final class MxmlToModelParser {
     processChildNodes(objectNode, type, configVariable, targetVariable, generatingConfig);
   }
 
-  private boolean processChildNodes(XmlElement objectNode, CompilationUnitModel type, Ide configVariable, Ide targetVariable, boolean generatingConfig) {
+  private void processChildNodes(XmlElement objectNode, CompilationUnitModel type, Ide configVariable, Ide targetVariable, boolean generatingConfig) {
     Ide variable = generatingConfig ? configVariable : targetVariable;
-    boolean hasBindings = false;
     ClassModel classModel = type == null ? null : type.getClassModel();
     List<XmlElement> childNodes = objectNode.getElements();
     MemberModel defaultPropertyModel = findDefaultPropertyModel(classModel);
@@ -177,9 +170,7 @@ public final class MxmlToModelParser {
           }
           List<XmlElement> childElements = element.getElements();
           if (childElements.isEmpty()) {
-            if (createPropertyAssignmentCodeWithBindings(configVariable, targetVariable, generatingConfig, getTextContent(element), propertyModel)) {
-              hasBindings = true;
-            }
+            createPropertyAssignmentCodeWithBindings(configVariable, targetVariable, generatingConfig, getTextContent(element), propertyModel);
           } else {
             createChildElementsPropertyAssignmentCode(childElements, variable, propertyModel, generatingConfig);
           }
@@ -195,7 +186,6 @@ public final class MxmlToModelParser {
     if (!defaultPropertyValues.isEmpty()) {
       createChildElementsPropertyAssignmentCode(defaultPropertyValues, variable, defaultPropertyModel, generatingConfig);
     }
-    return hasBindings;
   }
 
   private void createChildElementsPropertyAssignmentCode(List<XmlElement> childElements, Ide variable,
@@ -257,8 +247,7 @@ public final class MxmlToModelParser {
     compilationUnit.addImport(className);
     Boolean useConfigObjects = defaultUseConfigObjects;
     if (useConfigObjects == null) {
-      // when compiling for models, avoid this complex decision,
-      // otherwise let the class decide.
+      // let the class decide:
       useConfigObjects = useConfigObjects(jangarooParser.resolveCompilationUnit(className).getClassModel());
     }
     String targetVariableName = null;   // name of the variable holding the object to build
@@ -288,40 +277,18 @@ public final class MxmlToModelParser {
 
     Ide configVariable = null; // name of the variable holding the config object to use in the constructor
 
-    String value;
-    {
-      if (CompilationUnitModelUtils.constructorSupportsConfigOptionsParameter(className, jangarooParser)) {
-        // if class supports a config options parameter, create a config options object and assign properties to it:
-        configVariable = compilationUnit.createAuxVar(MxmlUtils.CONFIG);
-        renderConfigAuxVar(configVariable, className, true);
-        if (targetVariableName == null) {
-          targetVariableName = createAuxVar(objectElement).getName();
-        }
-        // process attributes and children, using a forward reference to the object to build inside bindings:
-        processAttributesAndChildNodes(objectElement, configVariable, new Ide(targetVariableName), true);
+    if (CompilationUnitModelUtils.constructorSupportsConfigOptionsParameter(className, jangarooParser)) {
+      // if class supports a config options parameter, create a config options object and assign properties to it:
+      configVariable = compilationUnit.createAuxVar(MxmlUtils.CONFIG);
+      renderConfigAuxVar(configVariable, className, true);
+      if (targetVariableName == null) {
+        targetVariableName = createAuxVar(objectElement).getName();
       }
-
-      String textContent = getTextContent(objectElement);
-      if (MxmlUtils.isBindingExpression(textContent)) {
-        value = MxmlUtils.getBindingExpression(textContent);
-      } else if ("String".equals(className)) {
-        value = CompilerUtils.quote(textContent);
-      } else if ("int".equals(className) || "uint".equals(className) || "Number".equals(className)) {
-        value = textContent.isEmpty() ? null : textContent;
-      } else if ("Object".equals(className)) {
-        value = "{}";
-      } else if ("Array".equals(className)) {
-        value = createArrayCodeFromChildElements(objectElement.getElements(), true, defaultUseConfigObjects);
-      } else {
-        StringBuilder valueBuilder = new StringBuilder();
-        valueBuilder.append("new ").append(className).append("(");
-        if (configVariable != null) {
-          valueBuilder.append(configVariable);
-        }
-        valueBuilder.append(")");
-        value = valueBuilder.toString();
-      }
+      // process attributes and children, using a forward reference to the object to build inside bindings:
+      processAttributesAndChildNodes(objectElement, configVariable, new Ide(targetVariableName), true);
     }
+
+    String value = createValueCodeFromElement(objectElement, defaultUseConfigObjects, className, configVariable);
 
     if (id.length() > 0) {
       if (null != configVar // it is a declaration...
@@ -352,6 +319,31 @@ public final class MxmlToModelParser {
       processAttributesAndChildNodes(objectElement, null, ide, false);
     }
     return targetVariableName;
+  }
+
+  private String createValueCodeFromElement(XmlElement objectElement, Boolean defaultUseConfigObjects, String className, Ide configVariable) {
+    String value;
+    String textContent = getTextContent(objectElement);
+    if (MxmlUtils.isBindingExpression(textContent)) {
+      value = MxmlUtils.getBindingExpression(textContent);
+    } else if ("String".equals(className)) {
+      value = CompilerUtils.quote(textContent);
+    } else if ("int".equals(className) || "uint".equals(className) || "Number".equals(className)) {
+      value = textContent.isEmpty() ? null : textContent;
+    } else if ("Object".equals(className)) {
+      value = "{}";
+    } else if ("Array".equals(className)) {
+      value = createArrayCodeFromChildElements(objectElement.getElements(), true, defaultUseConfigObjects);
+    } else {
+      StringBuilder valueBuilder = new StringBuilder();
+      valueBuilder.append("new ").append(className).append("(");
+      if (configVariable != null) {
+        valueBuilder.append(configVariable);
+      }
+      valueBuilder.append(")");
+      value = valueBuilder.toString();
+    }
+    return value;
   }
 
   private boolean useConfigObjects(ClassModel classModel) {
