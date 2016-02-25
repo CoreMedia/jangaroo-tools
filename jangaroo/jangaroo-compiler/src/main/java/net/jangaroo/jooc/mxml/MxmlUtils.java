@@ -23,7 +23,6 @@ public class MxmlUtils {
   private static final Pattern IS_BINDING_EXPRESSION_PATTERN = Pattern.compile("(^|[^\\\\])\\{([^}]*[^\\\\])\\}");
   private static final Pattern BINDING_EXPRESSION_START_OR_END_PATTERN = Pattern.compile("[{}]");
 
-  private static final String LINE_BREAKS = "\r\n|\r|\n";
   private static final Pattern MXML_COMMENT = Pattern.compile("<!--(-?)([^-]*(?:-[^-]+)*)-->", Pattern.DOTALL);
   public static final String CONFIG = "config";
 
@@ -152,7 +151,8 @@ public class MxmlUtils {
     StringBuffer sb = new StringBuffer();
     while(matcher.find()) {
       String prefix = "-".equals(matcher.group(1)) ? "/**" : "/*";
-      matcher.appendReplacement(sb, prefix + matcher.group(2) + "*/");
+      String content = Matcher.quoteReplacement(matcher.group(2));
+      matcher.appendReplacement(sb, prefix + content + "*/");
     }
     return matcher.appendTail(sb).toString();
   }

@@ -39,15 +39,15 @@ public class MxmlUtilsTest {
   @Test
   public void testToASDoc() {
     Assert.assertEquals("/* this text and two empty lines \n\n */\n" +
-                    "/** double star #1 *//* single star *//**\n" +
+                    "/** unescaped: $1 *//* single star *//**\n" +
                     "\n" +
-                    " double star #2\n" +
+                    " escaped: \\$2\n" +
                     "\n" +
                     " */",
             MxmlUtils.toASDoc("<!-- this text and two empty lines \n\n -->\n" +
-                    "<!--- double star #1 --><!-- single star --><!---\n" +
+                    "<!--- unescaped: $1 --><!-- single star --><!---\n" +
                     "\n" +
-                    " double star #2\n" +
+                    " escaped: \\$2\n" +
                     "\n" +
                     " -->"));
   }
