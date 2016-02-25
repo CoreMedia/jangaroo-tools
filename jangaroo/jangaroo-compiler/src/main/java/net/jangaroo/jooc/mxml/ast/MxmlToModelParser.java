@@ -20,7 +20,6 @@ import net.jangaroo.jooc.model.PropertyModel;
 import net.jangaroo.jooc.mxml.MxmlParserHelper;
 import net.jangaroo.jooc.mxml.MxmlUtils;
 import net.jangaroo.utils.CompilerUtils;
-import org.apache.commons.lang.StringEscapeUtils;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -78,7 +77,7 @@ public final class MxmlToModelParser {
       boolean isUntypedAccess = MxmlUtils.EXML_UNTYPED_NAMESPACE.equals(attributeNamespaceUri);
       if (noPrefix && !MxmlUtils.MXML_ID_ATTRIBUTE.equals(propertyName) ||
               isUntypedAccess) {
-        String value = StringEscapeUtils.unescapeXml(attribute.getValue().getText());
+        String value = attribute.getValue().getText();
         MemberModel propertyModel = null;
         if (!isUntypedAccess && classModel != null) {
           propertyModel = findPropertyModel(classModel, propertyName);
@@ -330,11 +329,11 @@ public final class MxmlToModelParser {
         value = valueBuilder.toString();
       }
     }
-    
+
     if (id.length() > 0) {
       if (!configVar.isEmpty() // it is a declaration...
               && objectElement.getAttributes().size() == 1 // ...with only an id attribute...
-              && objectElement.getChildren().size() == 0 // ...and no sub-elements or text content!
+              && objectElement.getChildren().isEmpty() && objectElement.getTextNodes().isEmpty() // ...and no sub-elements or text content!
               ) {
         // prevent assigning a default value for such an empty declaration:
         return null;

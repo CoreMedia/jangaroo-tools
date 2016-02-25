@@ -65,6 +65,7 @@ config= AS3.net.jangaroo.ext.Exml.apply(defaults_$1,config);
     config_$6.action = "";
     config_$5.baseAction = new ext.Action(config_$6);
     config_$4.someList = [config_$5];
+    config_$4.someList$at = AS3.net.jangaroo.ext.Exml.APPEND;
     config_$3.mixins = [config_$4];
     config_$3.defaults = "";
     var object_82_7_$1/*:Object*/ = {};

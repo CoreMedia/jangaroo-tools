@@ -137,7 +137,7 @@ public class XmlTag extends NodeImplBase {
             Iterables.filter(attributes, new Predicate<XmlAttribute>() {
               @Override
               public boolean apply(@Nullable XmlAttribute input) {
-                return null != input && Objects.equals(namespaceUri, getNamespaceUri(input.getPrefix())) && Objects.equals(localName, input.getLocalName());
+                return null != input && Objects.equals(namespaceUri, xmlElement.getNamespaceUri(input.getPrefix())) && Objects.equals(localName, input.getLocalName());
               }
             }), null);
   }

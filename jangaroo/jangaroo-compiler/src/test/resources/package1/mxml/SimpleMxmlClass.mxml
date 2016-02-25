@@ -10,7 +10,7 @@
              xmlns:other="package1.someOtherPackage.*"
              xmlns:lib="library://test.namespace"
              foo="bar"
-             number="{1 + 1}"
+             number="{1 &lt; 2  ? 1 + 1 : 3}"
              click="var result:String = 'gotcha!';"
              implements="package1.Interface">
   <fx:Script><![CDATA[
@@ -19,7 +19,7 @@
     public native function SimpleMxmlClass(config:SimpleMxmlClass = null);
     ]]></fx:Script>
   <fx:Declarations>
-    <fx:String id="bar">BAR!</fx:String>
+    <fx:String id="bar">FOO &amp; BAR!</fx:String>
     <fx:String id="computed">{'B' + 'AR!'}</fx:String>
     <!---
      Some number.
@@ -59,7 +59,7 @@
       <number>12</number>
     </ConfigClass>
     <ConfigClass>
-      <items>
+      <items exml:mode="append">
         <other:SomeOtherClass bla="12"/>
         <other:SomeOtherClass id="no_config" bla="13"/>
       </items>

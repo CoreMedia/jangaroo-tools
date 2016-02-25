@@ -14,8 +14,11 @@ public class SimpleMxmlClass extends ConfigClass implements package1.Interface{
     public*/function SimpleMxmlClass$(config/*:SimpleMxmlClass = null*/){if(arguments.length<=0)config=null;
 var config_$1/*:SimpleMxmlClass*/ =AS3.cast(SimpleMxmlClass,{});
 var defaults_$1/*:SimpleMxmlClass*/ ={};
-config= AS3.net.jangaroo.ext.Exml.apply(defaults_$1,config);
+config= AS3.net.jangaroo.ext.Exml.apply(defaults_$1,config);AS3.setBindable(
 
+    defaults_$1,"bar" , "FOO & BAR!");AS3.setBindable(
+    defaults_$1,"computed" , 'B' + 'AR!');AS3.setBindable(
+    defaults_$1,"num" , 123);
     this.blub$2 = {};
     this.blub$2.name = "Kuno";
     var object_31_7_$1/*:Object*/ = {};
@@ -24,14 +27,15 @@ config= AS3.net.jangaroo.ext.Exml.apply(defaults_$1,config);
     var config_$3/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
     config_$3,"bla" , 123);
     config_$2.items = [new AS3.package1.someOtherPackage.SomeOtherClass(config_$3)];AS3.setBindable(
-    defaults_$1,"list" , [object_31_7_$1, new AS3.package1.ConfigClass(config_$2)]);
+    defaults_$1,"list" , [object_31_7_$1, new AS3.package1.ConfigClass(config_$2)]);AS3.setBindable(
+    defaults_$1,"otherByExpression" , { foo: 'bar'});
     var config_$4/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
     config_$4,"bla" , 3);
     config_$4["blubb_config"] = 'blub config expression';
     config_$4["blubb_accessor"] = 'blub accessor expression';AS3.setBindable(
     defaults_$1,"other" , new AS3.package1.someOtherPackage.SomeOtherClass(config_$4));
     config_$1.foo = "bar";
-    config_$1.number = 1 + 1;
+    config_$1.number = 1 < 2  ? 1 + 1 : 3;
     joo.addEventListener(config_$1, "click",AS3.bind( this,"$on_config_$1_click$2"), AS3.package1.someOtherPackage.SomeEvent);
     var config_$5/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
     config_$5,"bla" , 99);
@@ -61,7 +65,9 @@ config= AS3.net.jangaroo.ext.Exml.apply(defaults_$1,config);
     config_$13,"bla" , 13);AS3.setBindable(
     this,"no_config" , new AS3.package1.someOtherPackage.SomeOtherClass(config_$13));
     config_$11.items = [new AS3.package1.someOtherPackage.SomeOtherClass(config_$12),AS3.getBindable( this,"no_config")];
-    config_$1.items = [new AS3.package1.someOtherPackage.SomeOtherClass(config_$6), new AS3.package1.someOtherPackage.SomeOtherClass(config_$7), new AS3.package1.someOtherPackage.SomeOtherClass(config_$8), new AS3.package1.ConfigClass(config_$9), new AS3.package1.ConfigClass(config_$11)]; AS3.net.jangaroo.ext.Exml.apply(config_$1,config);AS3.package1.ConfigClass.prototype.constructor.call(this,config_$1);}/*
+    config_$11.items$at = AS3.net.jangaroo.ext.Exml.APPEND;
+    config_$1.items = [new AS3.package1.someOtherPackage.SomeOtherClass(config_$6), new AS3.package1.someOtherPackage.SomeOtherClass(config_$7), new AS3.package1.someOtherPackage.SomeOtherClass(config_$8), new AS3.package1.ConfigClass(config_$9), new AS3.package1.ConfigClass(config_$11)];
+    config_$1.items$at = AS3.net.jangaroo.ext.Exml.APPEND; AS3.net.jangaroo.ext.Exml.apply(config_$1,config);AS3.package1.ConfigClass.prototype.constructor.call(this,config_$1);}/*
 
     private var blub:*;*/function static$0(){
 

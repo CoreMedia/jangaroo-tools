@@ -362,7 +362,7 @@ XmlComment = "<!--" ~"-->"
 <XML_ATTRIBUTE_VALUE_DQ> {
   \"                              { yybegin(MXML);
                                     return multiStateSymbol(STRING_LITERAL, null); }
-  [^\r\n\"\\]+                    { pushMultiStateText(yytext()); }
+  [^\r\n\"\\]+                    { pushMultiStateText(org.apache.commons.lang.StringEscapeUtils.unescapeXml(yytext())); }
   "\\b"                           { pushMultiStateText(yytext()); }
   "\\t"                           { pushMultiStateText(yytext()); }
   "\\n"                           { pushMultiStateText(yytext()); }
@@ -379,7 +379,7 @@ XmlComment = "<!--" ~"-->"
 <XML_ATTRIBUTE_VALUE_SQ> {
   \'                              { yybegin(MXML);
                                     return multiStateSymbol(STRING_LITERAL, null); }
-  [^\r\n'\\]+                     { pushMultiStateText(yytext()); }
+  [^\r\n'\\]+                     { pushMultiStateText(org.apache.commons.lang.StringEscapeUtils.unescapeXml(yytext())); }
   "\\b"                           { pushMultiStateText(yytext()); }
   "\\t"                           { pushMultiStateText(yytext()); }
   "\\n"                           { pushMultiStateText(yytext()); }
