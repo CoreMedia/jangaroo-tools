@@ -25,6 +25,7 @@ import net.jangaroo.utils.AS3Type;
 import net.jangaroo.utils.BOMStripperInputStream;
 import net.jangaroo.utils.CompilerUtils;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -61,10 +62,7 @@ public class JangarooParser implements CompilationUnitModelResolver, Compilation
     declareType(globalScope, AS3Type.ANY.toString());
   }
 
-  public JangarooParser() {
-  }
-
-  public JangarooParser(ParserOptions config, CompileLog log) {
+  public JangarooParser(@Nonnull ParserOptions config, @Nonnull CompileLog log) {
     this.config = config;
     this.log = log;
   }
