@@ -40,7 +40,7 @@ import java.util.regex.Pattern;
 /**
  * @author Andreas Gawecki
  */
-public class DeclarationScope extends ScopeImplBase {
+public class DeclarationScope extends AbstractScope {
 
   private static final Pattern AUX_VAR_NAME_PATTERN = Pattern.compile("\\$([0-9]+)");
   private final JangarooParser compiler;

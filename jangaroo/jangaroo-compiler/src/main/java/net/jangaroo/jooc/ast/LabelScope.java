@@ -1,21 +1,15 @@
 package net.jangaroo.jooc.ast;
 
-import net.jangaroo.jooc.JangarooParser;
+import net.jangaroo.jooc.AbstractScope;
 import net.jangaroo.jooc.Scope;
-import net.jangaroo.jooc.ScopeImplBase;
 
-public class LabelScope extends ScopeImplBase {
+public class LabelScope extends AbstractScope {
 
   private Statement statement;
 
   public LabelScope(final Statement statement, final Scope parent) {
     super(parent);
     this.statement = statement;
-  }
-
-  @Override
-  public JangarooParser getCompiler() {
-    return getParentScope().getCompiler();
   }
 
   @Override

@@ -48,7 +48,6 @@ public final class MxmlToModelParser {
   private final JangarooParser jangarooParser;
   private final MxmlParserHelper mxmlParserHelper;
   private final MxmlCompilationUnit compilationUnit;
-  private final Scope scope;
 
   private final StringBuilder constructorCode = new StringBuilder();
   private final StringBuilder classBodyCode = new StringBuilder();
@@ -57,7 +56,6 @@ public final class MxmlToModelParser {
     this.jangarooParser = jangarooParser;
     this.mxmlParserHelper = mxmlParserHelper;
     this.compilationUnit = mxmlCompilationUnit;
-    this.scope = scope;
   }
 
   private void renderConfigAuxVar(String configAuxVar, String type, boolean useCast) {
@@ -299,7 +297,7 @@ public final class MxmlToModelParser {
     {
       if (CompilationUnitModelUtils.constructorSupportsConfigOptionsParameter(className, jangarooParser)) {
         // if class supports a config options parameter, create a config options object and assign properties to it:
-        configVariable = createAuxVar(MxmlUtils.CONFIG);
+        configVariable = compilationUnit.createAuxVar(MxmlUtils.CONFIG).getName();
         renderConfigAuxVar(configVariable, className, true);
         if (targetVariable == null) {
           targetVariable = createAuxVar(objectElement);
@@ -388,13 +386,9 @@ public final class MxmlToModelParser {
     return "false".equals(flag.getValue());
   }
 
-  private String createAuxVar(String name) {
-    return scope.createAuxVar(null, name).getName();
-  }
-
   private String createAuxVar(XmlElement element) {
     JooSymbol symbol = element.getSymbol();
-    return createAuxVar(element.getName().toLowerCase() + '_' + symbol.getLine() + '_' + symbol.getColumn());
+    return compilationUnit.createAuxVar(element.getName().toLowerCase() + '_' + symbol.getLine() + '_' + symbol.getColumn()).getName();
   }
 
   private void createEventHandlerCode(String variable, String value, AnnotationModel event) {

@@ -1,5 +1,6 @@
 package net.jangaroo.jooc.mxml.ast;
 
+import net.jangaroo.jooc.DeclarationScope;
 import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
@@ -62,6 +63,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
 
   private FunctionDeclaration initMethod;
   private Parameter constructorParam;
+  private Scope constructorScope;
 
   private MxmlToModelParser mxmlToModelParser;
   private final Map<String, VariableDeclaration> classVariablesByName = new LinkedHashMap<String, VariableDeclaration>();
@@ -80,6 +82,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
     packageDeclaration = mxmlParserHelper.parsePackageDeclaration(classQName);
 
     JangarooParser parser = scope.getCompiler();
+    constructorScope = new DeclarationScope(this, null, parser);
     mxmlToModelParser = new MxmlToModelParser(parser, mxmlParserHelper, this, scope);
 
     rootElementProcessor.process(rootNode);
@@ -126,7 +129,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
     Ide superConfigVar = null;
     // If the super constructor has a 'config' param, create a fresh var for that.
     if(CompilationUnitModelUtils.constructorSupportsConfigOptionsParameter(superClassIde.getQualifiedNameStr(), parser)) {
-      superConfigVar = scope.createAuxVar(null, MxmlUtils.CONFIG);
+      superConfigVar = createAuxVar(MxmlUtils.CONFIG);
       Ide primaryDeclaration = getPrimaryDeclaration().getIde();
       VariableDeclaration variableDeclaration = MxmlAstUtils.createVariableDeclaration(superConfigVar, primaryDeclaration, true);
       constructorBodyDirectives.add(variableDeclaration);
@@ -136,7 +139,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
     if (null == constructorParam || null == superConfigVar) {
       createFields(superConfigVar);
     } else {
-      Ide defaultsConfigVar = scope.createAuxVar(null, DEFAULTS);
+      Ide defaultsConfigVar = createAuxVar(DEFAULTS);
       Ide primaryDeclaration = getPrimaryDeclaration().getIde();
       VariableDeclaration variableDeclaration = MxmlAstUtils.createVariableDeclaration(defaultsConfigVar, primaryDeclaration, false);
       constructorBodyDirectives.add(variableDeclaration);
@@ -172,6 +175,10 @@ public class MxmlCompilationUnit extends CompilationUnit {
     postProcessClassBodyDirectives();
 
     super.scope(scope);
+  }
+
+  Ide createAuxVar(String name) {
+    return constructorScope.createAuxVar(null, name);
   }
 
   void preProcessClassBodyDirectives() {
