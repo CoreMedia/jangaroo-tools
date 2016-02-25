@@ -13,7 +13,6 @@ import net.jangaroo.jooc.ast.IdeDeclaration;
 import net.jangaroo.jooc.ast.ImportDirective;
 import net.jangaroo.jooc.ast.PredefinedTypeDeclaration;
 import net.jangaroo.jooc.ast.VariableDeclaration;
-import net.jangaroo.jooc.backend.ActionScriptCodeGeneratingModelVisitor;
 import net.jangaroo.jooc.backend.ApiModelGenerator;
 import net.jangaroo.jooc.config.ParserOptions;
 import net.jangaroo.jooc.config.SemicolonInsertionMode;
@@ -22,19 +21,14 @@ import net.jangaroo.jooc.model.ClassModel;
 import net.jangaroo.jooc.model.CompilationUnitModel;
 import net.jangaroo.jooc.model.CompilationUnitModelResolver;
 import net.jangaroo.jooc.mxml.MxmlComponentRegistry;
-import net.jangaroo.jooc.mxml.MxmlToModelParser;
 import net.jangaroo.utils.AS3Type;
 import net.jangaroo.utils.BOMStripperInputStream;
 import net.jangaroo.utils.CompilerUtils;
-import org.xml.sax.SAXException;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.io.Reader;
-import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -44,6 +38,7 @@ import java.util.Map;
 
 public class JangarooParser implements CompilationUnitModelResolver, CompilationUnitRegistry {
   public static final String JOO_API_IN_JAR_DIRECTORY_PREFIX = "META-INF/joo-api/";
+  static final String UTF_8 = "UTF-8";
 
   protected CompileLog log;
   // a hack to always be able to access the current log:
@@ -138,34 +133,19 @@ public class JangarooParser implements CompilationUnitModelResolver, Compilation
     this.compilableSuffixes = compilableSuffixes;
   }
 
-  public CompilationUnit doParse(InputSource in, CompileLog log, SemicolonInsertionMode semicolonInsertionMode, boolean forModel) {
+  public CompilationUnit doParse(InputSource in, CompileLog log, SemicolonInsertionMode semicolonInsertionMode) {
+    if (config.isVerbose()) {
+      System.out.println("Parsing " + in.getPath() + " (" + (in.isInSourcePath() ? "source" : "class") + "path)"); // NOSONAR this is a cmd line tool
+    }
+    boolean parseMxml = in.getName().endsWith(Jooc.MXML_SUFFIX);
     Reader reader;
     try {
-      if (in.getName().endsWith(Jooc.MXML_SUFFIX)) {
-        String qName = CompilerUtils.qNameFromRelativPath(in.getRelativePath());
-        String className = CompilerUtils.className(qName);
-        CompilationUnitModel compilationUnitModel = new CompilationUnitModel(CompilerUtils.packageName(qName),
-                new ClassModel(className));
-        new MxmlToModelParser(this, compilationUnitModel, forModel).parse(in);
-        // From the CompilationUnitModel, we generate AS code, then parse a CompilationUnit again.
-        // TODO: This should be simplified to always using CompilationUnitModels for reference
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        OutputStreamWriter writer = new OutputStreamWriter(outputStream, "UTF-8");
-        compilationUnitModel.visit(new ActionScriptCodeGeneratingModelVisitor(writer));
-        String output = outputStream.toString("UTF-8");
-        keepGeneratedActionScript(in, output);
-        reader = new StringReader(output);
-      } else {
-        reader = new InputStreamReader(new BOMStripperInputStream(in.getInputStream()), "UTF-8");
-      }
-    } catch (CompilerError e) {
-      throw new CompilerError(positionOfCompilerError(e, in), e.getMessage(), e.getCause());
+      reader = new InputStreamReader(new BOMStripperInputStream(in.getInputStream()), UTF_8);
     } catch (IOException e) {
       throw new CompilerError("Cannot read input file: " + in.getPath(), e);
-    } catch (SAXException e) {
-      throw new CompilerError("Cannot parse MXML input file: " + in.getPath(), e);
     }
     Scanner s = new Scanner(reader);
+    s.yybegin(parseMxml ? Scanner.MXML : Scanner.YYINITIAL);
     s.setInputSource(in);
     JooParser p = new JooParser(s);
     p.setCompileLog(log);
@@ -259,7 +239,17 @@ public class JangarooParser implements CompilationUnitModelResolver, Compilation
       return unit;
     }
 
-    unit = parse(source, false);
+    String fileName = source.getName();
+    int dotIndex = fileName.lastIndexOf('.');
+    String fileExtension = (dotIndex == -1) ? "" : fileName.substring(dotIndex);
+    List<String> suffixes = getCompilableSuffixes();
+    if(!suffixes.contains(fileExtension)) {
+      throw error("Input file must end with one of '" + suffixes + "': " + fileName);
+    }
+    unit = doParse(source, log, config.getSemicolonInsertionMode());
+    if (null != unit) {
+      unit.scope(globalScope);
+    }
     if (null == unit) {
       return null;
     }
@@ -309,7 +299,7 @@ public class JangarooParser implements CompilationUnitModelResolver, Compilation
    * @param name the name to check
    * @return whether the argument name identifies a class
    */
-  public boolean isClass(String name) throws IOException {
+  public boolean isClass(String name) {
     if (name == null) {
       return false;
     }
@@ -337,14 +327,16 @@ public class JangarooParser implements CompilationUnitModelResolver, Compilation
       compilationUnitModelsByQName.put(fullClassName, null);
 
       CompilationUnit compilationUnit = compilationUnitsByQName.get(fullClassName);
+      boolean isMxmlClass = false;
       if (compilationUnit == null) {
         // The compilation unit has not yet been parsed.
         InputSource source = findSource(fullClassName);
         if (source != null) {
           if (source.getName().endsWith(Jooc.MXML_SUFFIX)) {
+            isMxmlClass = true;
             // MXML files denote classes.
             isClassByQName.put(fullClassName, true);
-            compilationUnit = parse(source, true);
+            compilationUnit = doParse(source, log, config.getSemicolonInsertionMode());
           } else {
             compilationUnit = getCompilationUnit(fullClassName);
           }
@@ -355,18 +347,20 @@ public class JangarooParser implements CompilationUnitModelResolver, Compilation
       }
 
       compilationUnitModel = new CompilationUnitModel(CompilerUtils.packageName(fullClassName), new ClassModel(CompilerUtils.className(fullClassName)));
+      compilationUnitModelsByQName.put(fullClassName, compilationUnitModel);
+      isClassByQName.put(fullClassName, isMxmlClass || compilationUnitModel.getPrimaryDeclaration() instanceof ClassModel);
+
+      if(isMxmlClass) {
+        compilationUnit.scope(globalScope);
+      }
       try {
         new ApiModelGenerator(false).generateModel(compilationUnit, compilationUnitModel);
       } catch (IOException e) {
         throw error("Unexpected I/O error while building compilation unit model", e);
       }
-
-      compilationUnitModelsByQName.put(fullClassName, compilationUnitModel);
-      isClassByQName.put(fullClassName, compilationUnitModel.getPrimaryDeclaration() instanceof ClassModel);
     }
     return compilationUnitModel;
   }
-
 
   public MxmlComponentRegistry getMxmlComponentRegistry() {
     return mxmlComponentRegistry;
@@ -385,20 +379,6 @@ public class JangarooParser implements CompilationUnitModelResolver, Compilation
                         path));
       }
     }
-  }
-
-  protected CompilationUnit parse(InputSource in, boolean forModel) {
-    if (!in.getName().endsWith(Jooc.AS_SUFFIX) && !in.getName().endsWith(Jooc.MXML_SUFFIX)) {
-      throw error("Input file must end with '" + Jooc.AS_SUFFIX + "' or '" + Jooc.MXML_SUFFIX + "': " + in.getName());
-    }
-    if (config.isVerbose()) {
-      System.out.println("Parsing " + in.getPath() + " (" + (in.isInSourcePath() ? "source" : "class") + "path)"); // NOSONAR this is a cmd line tool
-    }
-    CompilationUnit unit = doParse(in, log, config.getSemicolonInsertionMode(), forModel);
-    if (unit != null) {
-      unit.scope(globalScope);
-    }
-    return unit;
   }
 
   public List<String> getPackageIdes(String packageName) {
@@ -425,8 +405,7 @@ public class JangarooParser implements CompilationUnitModelResolver, Compilation
 
   private void buildGlobalScope() {
     //todo declare this depending on context
-    declareValues(globalScope, new String[]{
-            "this"});
+    declareValues(globalScope, new String[]{Ide.THIS});
   }
 
   public void setUp(InputSource sourcePathInputSource, InputSource classPathInputSource) {

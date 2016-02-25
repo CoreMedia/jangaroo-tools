@@ -70,7 +70,7 @@ public class IdeExpr extends Expr {
         } else if (!ideDeclaration.isStatic()) {
           // non-static class member: synthesize "this."
           JooSymbol ideSymbol = ide.getSymbol();
-          Ide thisIde = new Ide(ideSymbol.replacingSymAndTextAndJooValue(sym.THIS, "this", null));
+          Ide thisIde = new Ide(ideSymbol.replacingSymAndTextAndJooValue(sym.THIS, Ide.THIS, null));
           if (ide.isRewriteThis()) {
             thisIde.setRewriteThis(true);
             setThisDeclaration(thisIde);

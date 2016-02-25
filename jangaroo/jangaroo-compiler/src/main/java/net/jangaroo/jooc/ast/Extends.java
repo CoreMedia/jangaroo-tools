@@ -74,4 +74,10 @@ public class Extends extends NodeImplBase {
     return superClass;
   }
 
+  @Override
+  public String toString() {
+    return "Extends{" +
+            "superClass=" + superClass +
+            '}';
+  }
 }

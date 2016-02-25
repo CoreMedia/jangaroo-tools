@@ -15,10 +15,10 @@
 
 package net.jangaroo.jooc.ast;
 
-import net.jangaroo.utils.AS3Type;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.sym;
+import net.jangaroo.utils.AS3Type;
 
 import java.io.IOException;
 import java.util.LinkedList;
@@ -115,7 +115,7 @@ public class FunctionExpr extends Expr {
     }
     */
     if (!thisDefined) {
-      addImplicitParam(new Parameter(null, new Ide("this"), new TypeRelation(null, ANY_TYPE), null));
+      addImplicitParam(new Parameter(null, new Ide(Ide.THIS), new TypeRelation(null, ANY_TYPE), null));
     }
     withNewDeclarationScope(functionDeclaration == null ? this : functionDeclaration, scope, new Scoped() {
       public void run(final Scope scope) {

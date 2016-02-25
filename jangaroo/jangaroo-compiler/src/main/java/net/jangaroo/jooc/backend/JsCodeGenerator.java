@@ -328,7 +328,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   @Override
   public void visitExtends(Extends anExtends) throws IOException {
     out.writeSymbol(anExtends.getSymExtends());
-    anExtends.getSuperClass().visit(this);
+    out.writeSymbol(anExtends.getSuperClass().getIde());
   }
 
   @Override

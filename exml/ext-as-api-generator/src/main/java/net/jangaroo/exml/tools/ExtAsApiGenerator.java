@@ -19,7 +19,7 @@ import net.jangaroo.jooc.model.NamespacedModel;
 import net.jangaroo.jooc.model.ParamModel;
 import net.jangaroo.jooc.model.PropertyModel;
 import net.jangaroo.jooc.model.TypedModel;
-import net.jangaroo.jooc.mxml.MxmlToModelParser;
+import net.jangaroo.jooc.mxml.MxmlUtils;
 import net.jangaroo.utils.AS3Type;
 import net.jangaroo.utils.CompilerUtils;
 
@@ -623,7 +623,7 @@ public class ExtAsApiGenerator {
 
       PropertyModel propertyModel = new PropertyModel(name, type);
       if (generateForMxml && "items".equals(member.name)) {
-        propertyModel.addAnnotation(new AnnotationModel(MxmlToModelParser.MXML_DEFAULT_PROPERTY_ANNOTATION));
+        propertyModel.addAnnotation(new AnnotationModel(MxmlUtils.MXML_DEFAULT_PROPERTY_ANNOTATION));
       }
       propertyModel.setAsdoc(asDoc);
       addDeprecation(member.deprecated, propertyModel);

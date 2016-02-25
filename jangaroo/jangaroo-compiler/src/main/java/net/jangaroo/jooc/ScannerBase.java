@@ -1,7 +1,9 @@
 package net.jangaroo.jooc;
 
+import java_cup.runtime.Symbol;
 import net.jangaroo.jooc.input.InputSource;
 import net.jangaroo.jooc.util.IncludeEvaluator;
+import org.apache.commons.lang.StringEscapeUtils;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -111,6 +113,11 @@ public abstract class ScannerBase implements sym {
 
   protected void pushMultiStateText(String multiStateText) {
     this.multiStateText.append(multiStateText);
+  }
+
+  protected Symbol xmlUnescaped(int sym, String string) {
+    String text = StringEscapeUtils.unescapeXml(string);
+    return new JooSymbol(sym, fileName, multiStateSymbolStartLine, multiStateSymbolStartColumn, popWhitespace(), text, text);
   }
 
   protected void increaseVectorNestingLevel() {

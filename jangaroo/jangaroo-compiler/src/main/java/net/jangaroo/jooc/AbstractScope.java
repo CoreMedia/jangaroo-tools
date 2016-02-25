@@ -28,11 +28,11 @@ import net.jangaroo.jooc.ast.LoopStatement;
 import net.jangaroo.jooc.ast.PackageDeclaration;
 import net.jangaroo.jooc.ast.Statement;
 
-public abstract class ScopeImplBase implements Scope {
+public abstract class AbstractScope implements Scope {
 
   private Scope parent;
 
-  public ScopeImplBase(Scope parent) {
+  public AbstractScope(Scope parent) {
     this.parent = parent;
   }
 
@@ -91,13 +91,13 @@ public abstract class ScopeImplBase implements Scope {
   }
 
   @Override
-  public Ide findFreeAuxVar() {
-    return parent == null ? null : parent.findFreeAuxVar();
+  public Ide findFreeAuxVar(String preferredName) {
+    return parent == null ? null : parent.findFreeAuxVar(preferredName);
   }
 
   @Override
-  public Ide createAuxVar(Scope lookupScope) {
-    return parent.createAuxVar(lookupScope);
+  public Ide createAuxVar(Scope lookupScope, String preferredName) {
+    return parent.createAuxVar(lookupScope, null);
   }
 
   @Override
@@ -134,6 +134,11 @@ public abstract class ScopeImplBase implements Scope {
   @Override
   public DeclarationScope getPackageDeclarationScope() {
     return parent == null ? null : parent.getPackageDeclarationScope();
+  }
+
+  @Override
+  public JangarooParser getCompiler() {
+    return parent.getCompiler();
   }
 
   @Override

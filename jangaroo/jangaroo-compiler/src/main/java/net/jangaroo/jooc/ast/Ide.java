@@ -27,6 +27,7 @@ import java.io.IOException;
  */
 public class Ide extends NodeImplBase {
 
+  public static final String THIS = "this";
   private JooSymbol ide;
 
   private IdeDeclaration declaration;
@@ -64,7 +65,7 @@ public class Ide extends NodeImplBase {
   }
 
   public boolean isThis() {
-    return "this".equals(getIde().getText());
+    return THIS.equals(getIde().getText());
   }
 
   private boolean needsThisAtRuntime() {

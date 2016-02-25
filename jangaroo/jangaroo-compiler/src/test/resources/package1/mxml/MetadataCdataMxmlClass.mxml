@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<p1:ConfigClass xmlns:fx="http://ns.adobe.com/mxml/2009"
+             xmlns:p1="package1.*">
+  <!---
+   The class level comment for the component.
+   This tag supports all ASDoc tags,
+   and does not require a CDATA block.
+  -->
+  <fx:Metadata><![CDATA[
+    /**
+     * Let's have a class with two annotations.
+     * @see {@link http://help.adobe.com/en_US/flex/using/WSd0ded3821e0d52fe1e63e3d11c2f44bc36-7ff2.html}
+     */
+    [ThisIsJustATest]
+    [Deprecated (replacement='use.this.please')]
+  ]]></fx:Metadata>
+</p1:ConfigClass>
