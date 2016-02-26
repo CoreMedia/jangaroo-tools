@@ -23,7 +23,7 @@ import java.io.PrintWriter;
 import static javax.xml.transform.OutputKeys.OMIT_XML_DECLARATION;
 import static javax.xml.xpath.XPathConstants.NODE;
 import static org.apache.commons.io.FileUtils.readFileToString;
-import static org.apache.commons.lang.StringUtils.repeat;
+import static org.apache.commons.lang3.StringUtils.repeat;
 
 public class PomConverter {
   /**
