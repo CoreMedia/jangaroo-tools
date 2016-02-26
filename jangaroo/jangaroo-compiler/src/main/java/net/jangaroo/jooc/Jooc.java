@@ -36,10 +36,8 @@ import net.jangaroo.jooc.mxml.CatalogGenerator;
 import net.jangaroo.jooc.mxml.ComponentPackageManifestParser;
 import net.jangaroo.jooc.mxml.ComponentPackageModel;
 import net.jangaroo.jooc.mxml.MxmlComponentRegistry;
-import net.jangaroo.utils.CompilerUtils;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -230,33 +228,6 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
       unprocessedCompilationUnits.removeAll(processedCompilationUnits);
     }
     return dependencyGraph;
-  }
-
-  @Override
-  protected void keepGeneratedActionScript(InputSource in, String code) {
-    File keepGeneratedActionScriptDirectory = getConfig().getKeepGeneratedActionScriptDirectory();
-    if (keepGeneratedActionScriptDirectory != null) {
-      File outputPackageDir = new File(keepGeneratedActionScriptDirectory, in.getParent().getRelativePath());
-      //noinspection ResultOfMethodCallIgnored
-      outputPackageDir.mkdirs();
-      File generatedActionScriptFile =
-              new File(outputPackageDir, CompilerUtils.removeExtension(in.getName()) + AS_SUFFIX);
-      FileWriter fileWriter = null;
-      try {
-        fileWriter = new FileWriter(generatedActionScriptFile);
-        fileWriter.write(code);
-      } catch (IOException e) {
-        e.printStackTrace();
-      } finally {
-        if (fileWriter != null) {
-          try {
-            fileWriter.close();
-          } catch (IOException e) {
-            // ignore
-          }
-        }
-      }
-    }
   }
 
   private void setUpMxmlComponentRegistry(InputSource sourcePathInputSource, InputSource classPathInputSource)
