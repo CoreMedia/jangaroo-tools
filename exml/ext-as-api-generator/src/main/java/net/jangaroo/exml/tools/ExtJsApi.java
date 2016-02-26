@@ -204,6 +204,7 @@ public class ExtJsApi {
     public Object author;
     public Object docauthor;
     public Object removed;
+    public List<Param> properties;
 
     @Override
     public boolean equals(Object o) {
@@ -264,7 +265,7 @@ public class ExtJsApi {
     public String version;
   }
 
-  @JsonIgnoreProperties({"html_type", "html_meta", "linenr", "properties"})
+  @JsonIgnoreProperties({"html_type", "html_meta", "linenr"})
   public abstract static class Var extends Tag {
     public String type;
     @JsonProperty("default")
@@ -273,7 +274,7 @@ public class ExtJsApi {
 
   @SuppressWarnings("unused")
   @JsonTypeInfo(use=JsonTypeInfo.Id.NAME, include=JsonTypeInfo.As.PROPERTY, property="tagname")
-  @JsonIgnoreProperties({"html_type", "html_meta", "short_doc", "localdoc", "linenr", "properties"})
+  @JsonIgnoreProperties({"html_type", "html_meta", "short_doc", "localdoc", "linenr"})
   public static class Member extends Var {
     public String owner;
     public Deprecation deprecated;
@@ -295,7 +296,7 @@ public class ExtJsApi {
 
   @SuppressWarnings("unused")
   @JsonTypeName("cfg")
-  @JsonIgnoreProperties({"html_type", "html_meta", "short_doc", "localdoc", "linenr", "properties", "params", "fires", "throws", "return"})
+  @JsonIgnoreProperties({"html_type", "html_meta", "short_doc", "localdoc", "linenr", "params", "fires", "throws", "return"})
   public static class Cfg extends Member {
     public boolean required;
   }
@@ -317,7 +318,7 @@ public class ExtJsApi {
 
   @SuppressWarnings("unused")
   @JsonTypeName("property")
-  @JsonIgnoreProperties({"html_type", "html_meta", "short_doc", "localdoc", "linenr", "properties", "params", "return", "throws", "chainable"})
+  @JsonIgnoreProperties({"html_type", "html_meta", "short_doc", "localdoc", "linenr", "params", "return", "throws", "chainable"})
   public static class Property extends Member {
     @Override
     public String toString() {
@@ -334,7 +335,7 @@ public class ExtJsApi {
 
   @SuppressWarnings("unused")
   @JsonTypeName("method")
-  @JsonIgnoreProperties({"html_type", "html_meta", "short_doc", "localdoc", "linenr", "properties", "throws", "fires", "method_calls", "template", "required"})
+  @JsonIgnoreProperties({"html_type", "html_meta", "short_doc", "localdoc", "linenr", "throws", "fires", "method_calls", "template", "required"})
   public static class Method extends Member {
     public List<Param> params;
     @JsonProperty("return")
@@ -346,7 +347,7 @@ public class ExtJsApi {
 
   @SuppressWarnings("unused")
   @JsonTypeName("event")
-  @JsonIgnoreProperties({"html_type", "html_meta", "short_doc", "localdoc", "linenr", "properties", "return", "throws"})
+  @JsonIgnoreProperties({"html_type", "html_meta", "short_doc", "localdoc", "linenr", "return", "throws"})
   public static class Event extends Member {
     public List<Param> params;
     public boolean preventable;

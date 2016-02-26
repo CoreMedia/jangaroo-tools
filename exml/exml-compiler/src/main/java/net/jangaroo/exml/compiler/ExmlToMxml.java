@@ -29,7 +29,7 @@ import net.jangaroo.utils.AS3Type;
 import net.jangaroo.utils.CharacterRecordingHandler;
 import net.jangaroo.utils.CompilerUtils;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.xml.sax.Attributes;
 import org.xml.sax.Locator;
 import org.xml.sax.SAXException;

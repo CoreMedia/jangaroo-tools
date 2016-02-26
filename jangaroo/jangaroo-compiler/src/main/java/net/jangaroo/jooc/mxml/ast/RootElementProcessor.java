@@ -5,7 +5,7 @@ import com.google.common.collect.Collections2;
 import net.jangaroo.jooc.CompilerError;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.mxml.MxmlUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nullable;
 import java.util.Iterator;
@@ -52,6 +52,7 @@ class RootElementProcessor {
         } else if (MxmlUtils.MXML_SCRIPT.equals(name)) {
           addAll(element.getTextNodes(), scripts);
         } else {
+          // http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/mxml-tag-detail.html
           throw new CompilerError(element.getSymbol(), "unsupported element");
         }
       }

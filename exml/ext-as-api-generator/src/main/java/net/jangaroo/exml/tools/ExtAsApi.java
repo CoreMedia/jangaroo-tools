@@ -139,9 +139,13 @@ public class ExtAsApi {
   }
 
   private static File getMavenArtifact(String groupId, String artifactId, String version, String classifier) {
-    String mavenRepository = System.getProperty("user.home") + "/.m2/repository/";
+    String mavenRepository = getMavenRepository();
     return new File(mavenRepository + groupId.replace('.', '/') + new MessageFormat("/{0}/{1}/{0}-{2}.jar")
             .format(artifactId, version, classifier == null ? version : version + "-" + classifier));
+  }
+
+  private static String getMavenRepository() {
+    return System.getProperty("maven.repo.local", System.getProperty("user.home") + "/.m2/repository/");
   }
 
   private static JangarooParser getParser(List<File> classPath, File sourceRoot, CompileLog log) {

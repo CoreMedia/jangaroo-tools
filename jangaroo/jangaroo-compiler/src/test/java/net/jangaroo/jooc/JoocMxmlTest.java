@@ -72,6 +72,15 @@ public class JoocMxmlTest extends AbstractJoocTest {
   }
 
   @Test
+  public void testInvalidXmlHeader() throws Exception {
+    File sourceFile = getFile("/package1/mxml/InvalidXmlHeader.mxml");
+    config.addSourceFile(sourceFile);
+    jooc.run();
+    assertTrue("Expected error (unsupported XML header attribute) did not occur",
+            testLog.hasError("Caused by: unsupported XML header attribute"));
+  }
+
+  @Test
   public void testScriptCdataMxml() throws Exception {
     assertCompilationResult("package1/mxml/ScriptCdataMxmlClass", ".mxml");
   }
