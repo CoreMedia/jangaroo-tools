@@ -52,6 +52,7 @@ class RootElementProcessor {
         } else if (MxmlUtils.MXML_SCRIPT.equals(name)) {
           addAll(element.getTextNodes(), scripts);
         } else {
+          // http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/mxml-tag-detail.html
           throw new CompilerError(element.getSymbol(), "unsupported element");
         }
       }
