@@ -391,12 +391,17 @@ public final class MxmlToModelParser {
       name.append(element.getLocalName());
     } else {
       name.append(idAttributeValue);
+      if(!Ide.IDE_PATTERN.matcher(idAttributeValue).matches()) {
+        throw JangarooParser.error(symbol, "invalid action script identifier");
+      }
     }
     return createAuxVar(symbol, name.toString());
   }
 
-  private Ide createAuxVar(JooSymbol symbol, String prefix) {
-    return compilationUnit.createAuxVar(CompilerUtils.uncapitalize(prefix) + '_' + symbol.getLine() + '_' + symbol.getColumn());
+  @Nonnull
+  private Ide createAuxVar(@Nonnull JooSymbol symbol, @Nonnull String prefix) {
+    String preferredName = CompilerUtils.uncapitalize(prefix.replaceAll("-", "\\$")) + '_' + symbol.getLine() + '_' + symbol.getColumn();
+    return compilationUnit.createAuxVar(preferredName);
   }
 
   private void createEventHandlerCode(@Nonnull Ide ide, String value, AnnotationModel event) {

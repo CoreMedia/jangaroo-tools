@@ -81,6 +81,15 @@ public class JoocMxmlTest extends AbstractJoocTest {
   }
 
   @Test
+  public void testInvalidIdentifier() throws Exception {
+    File sourceFile = getFile("/package1/mxml/InvalidIdentifier.mxml");
+    config.addSourceFile(sourceFile);
+    jooc.run();
+    assertTrue("Expected error (invalid action script identifier) did not occur",
+            testLog.hasError("invalid action script identifier"));
+  }
+
+  @Test
   public void testScriptCdataMxml() throws Exception {
     assertCompilationResult("package1/mxml/ScriptCdataMxmlClass", ".mxml");
   }
