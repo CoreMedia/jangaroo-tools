@@ -678,7 +678,7 @@ public class ExtAsApiGenerator {
         for (Param param : method.params) {
           String paramName = param.name == null ? "param" + (method.params.indexOf(param) + 1) : convertName(param.name);
           ParamModel paramModel = new ParamModel(paramName, convertType(param.type));
-          paramModel.setAsdoc(toAsDoc(param));
+          paramModel.setAsdoc(toAsDoc(param, param.name));
           setDefaultValue(paramModel, param);
           paramModel.setRest(param == method.params.get(method.params.size() - 1) && param.type.endsWith("..."));
           methodModel.addParam(paramModel);
@@ -701,6 +701,10 @@ public class ExtAsApiGenerator {
   }
 
   private static String toAsDoc(Tag tag) {
+    return toAsDoc(tag, null);
+  }
+
+  private static String toAsDoc(Tag tag, String paramPrefix) {
     StringBuilder asDoc = new StringBuilder(toAsDoc(tag.doc));
     if (tag instanceof Var && ((Var)tag).default_ != null) {
       asDoc.append("\n@default ").append(((Var)tag).default_);
@@ -708,6 +712,45 @@ public class ExtAsApiGenerator {
     if (tag instanceof Member && ((Member)tag).since != null) {
       asDoc.append("\n@since ").append(((Member)tag).since);
     }
+    if (tag.properties != null && !tag.properties.isEmpty()) {
+      if (paramPrefix != null) {
+        for (Param property : tag.properties) {
+          asDoc.append("\n   * @param ");
+          String propertyType = convertType(property.type);
+          if (propertyType != null && !"*".equals(propertyType)) {
+            asDoc.append("{").append(propertyType).append("} ");
+          }
+          String qualifiedPropertyName = paramPrefix + "." + property.name;
+          if (property.optional) {
+            asDoc.append("[").append(qualifiedPropertyName).append("]");
+          } else {
+            asDoc.append(qualifiedPropertyName);
+          }
+          asDoc.append(" ");
+          asDoc.append(toAsDoc(property, qualifiedPropertyName));
+        }
+      } else {
+        asDoc.append("\n   * <ul>");
+        for (Param property : tag.properties) {
+          asDoc.append("\n   *   <li>");
+          asDoc.append("<code>").append(property.name).append("</code>");
+          String propertyType = convertType(property.type);
+          if (propertyType != null && !"*".equals(propertyType)) {
+            asDoc.append(" : ").append(propertyType);
+          }
+          if (property.optional) {
+            asDoc.append(" (optional)");
+          }
+          String propertyAsDoc = toAsDoc(property);
+          if (!propertyAsDoc.trim().isEmpty()) {
+            asDoc.append("\n   * ").append(propertyAsDoc).append("\n   *   ");
+          }
+          asDoc.append("</li>");
+        }
+        asDoc.append("\n   * </ul>");
+      }
+    }
+
     return asDoc.toString();
   }
 
