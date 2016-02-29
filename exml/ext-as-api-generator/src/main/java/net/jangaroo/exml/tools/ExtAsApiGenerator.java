@@ -751,7 +751,12 @@ public class ExtAsApiGenerator {
       }
     }
 
-    return asDoc.toString();
+    String result = asDoc.toString();
+    if (tag instanceof Param) {
+      // suppress multiple new lines in nested ASDoc, or IDEA will treat everything following as top-level ASDoc:
+      result = result.replaceAll("\n+", "\n");
+    }
+    return result;
   }
 
   private static String toAsDoc(String doc) {
