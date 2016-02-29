@@ -15,7 +15,6 @@
 
 package net.jangaroo.jooc;
 
-import net.jangaroo.utils.AS3Type;
 import net.jangaroo.jooc.ast.AstNode;
 import net.jangaroo.jooc.ast.ClassDeclaration;
 import net.jangaroo.jooc.ast.CompilationUnit;
@@ -27,6 +26,7 @@ import net.jangaroo.jooc.ast.ImportDirective;
 import net.jangaroo.jooc.ast.PackageDeclaration;
 import net.jangaroo.jooc.ast.QualifiedIde;
 import net.jangaroo.jooc.ast.VariableDeclaration;
+import net.jangaroo.utils.AS3Type;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -40,7 +40,7 @@ import java.util.regex.Pattern;
 /**
  * @author Andreas Gawecki
  */
-public class DeclarationScope extends ScopeImplBase {
+public class DeclarationScope extends AbstractScope {
 
   private static final Pattern AUX_VAR_NAME_PATTERN = Pattern.compile("\\$([0-9]+)");
   private final JangarooParser compiler;
@@ -199,21 +199,19 @@ public class DeclarationScope extends ScopeImplBase {
   }
 
   @Override
-  public Ide findFreeAuxVar() {
+  public Ide findFreeAuxVar(String preferredName) {
     int i = 1;
-    while (true) {
-      String auxVarName = "$" + i;
-      Ide auxVar = new Ide(new JooSymbol(auxVarName));
-      if (lookupDeclaration(auxVar) == null) {
-        return auxVar;
-      }
-      ++i;
+    String auxVarName = null != preferredName ? preferredName + "_$" : "$";
+    Ide auxVar = new Ide(new JooSymbol(auxVarName + i));
+    while(null != lookupDeclaration(auxVar)) {
+      auxVar = new Ide(new JooSymbol(auxVarName + (++i)));
     }
+    return auxVar;
   }
 
   @Override
-  public Ide createAuxVar(Scope lookupScope) {
-    Ide auxVar = findFreeAuxVar();
+  public Ide createAuxVar(Scope lookupScope, String preferredName) {
+    Ide auxVar = findFreeAuxVar(preferredName);
     new VariableDeclaration(null, auxVar, null).scope(this);
     return auxVar;
   }

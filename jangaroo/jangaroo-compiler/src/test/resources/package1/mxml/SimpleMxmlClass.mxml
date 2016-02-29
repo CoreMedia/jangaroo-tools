@@ -2,6 +2,7 @@
 <!---
   My config class subclass, authored in MXML.
 -->
+
 <ConfigClass xmlns:fx="http://ns.adobe.com/mxml/2009"
              xmlns:exml="http://www.jangaroo.net/exml/0.8"
              xmlns="package1.*"
@@ -9,22 +10,22 @@
              xmlns:other="package1.someOtherPackage.*"
              xmlns:lib="library://test.namespace"
              foo="bar"
-             number="{1 + 1}"
+             number="{1 &lt; 2  ? 1 + 1 : 3}"
              click="var result:String = 'gotcha!';"
              implements="package1.Interface">
   <fx:Script><![CDATA[
-    public static const xtype:String = "testNamespace.config.soneMxmlClass";
+    public static const xtype:String = "testNamespace.config.simpleMxmlClass";
+
+    public native function SimpleMxmlClass(config:SimpleMxmlClass = null);
     ]]></fx:Script>
   <fx:Declarations>
-    <fx:String id="bar">BAR!</fx:String>
+    <fx:String id="bar">FOO &amp; BAR!</fx:String>
+    <fx:String id="computed">{'B' + 'AR!'}</fx:String>
     <!---
      Some number.
     -->
     <fx:int id="num">123</fx:int>
-    <!---
-    Empty declaration.
-    <top:int id="empty"/>
-    -->
+    <fx:int id="empty"/>
     <fx:Object id="blub" name="Kuno"/>
     <fx:Array id="list">
       <fx:Object name="Joe"/>
@@ -34,13 +35,14 @@
         </items>
       </ConfigClass>
     </fx:Array>
+    <fx:Object id="otherByExpression">{{ foo: 'bar'}}</fx:Object>
     <lib:someOtherClass id="other" bla="3"
                           blubbConfig="{'blub config expression'}"
                           blubbAccessor="{'blub accessor expression'}"/>
   </fx:Declarations>
   <defaults>
     <other:SomeOtherClass bla="99"
-                          u:knownUnknown="true"/>
+                          u:known-unknown="true"/>
   </defaults>
   <items exml:mode="append">
     <other:SomeOtherClass bla="23"/>
@@ -57,16 +59,20 @@
       <number>12</number>
     </ConfigClass>
     <ConfigClass>
-      <items>
+      <items exml:mode="append">
         <other:SomeOtherClass bla="12"/>
         <other:SomeOtherClass id="no_config" bla="13"/>
       </items>
     </ConfigClass>
   </items>
   <fx:Script>
-    import foo.Bar;
-
     private var blub:*;
+
+    {
+      if(1 &lt; 0 &amp;&amp; 0 &gt; 1) {
+        throw "plain wrong!";
+      }
+    }
 
     [Bindable]
     public var list:Object;

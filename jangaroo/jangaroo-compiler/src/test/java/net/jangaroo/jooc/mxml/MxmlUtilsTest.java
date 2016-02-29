@@ -35,4 +35,20 @@ public class MxmlUtilsTest {
     Assert.assertEquals("foo + \"bar\" + \"{baz\"", MxmlUtils.getBindingExpression("{foo}bar{baz"));
     Assert.assertEquals("\"foo}bar\" + baz", MxmlUtils.getBindingExpression("foo}bar{baz}"));
   }
+
+  @Test
+  public void testToASDoc() {
+    Assert.assertEquals("/* this text and two empty lines \n\n */\n" +
+                    "/** unescaped: $1 *//* single star *//**\n" +
+                    "\n" +
+                    " escaped: \\$2\n" +
+                    "\n" +
+                    " */",
+            MxmlUtils.toASDoc("<!-- this text and two empty lines \n\n -->\n" +
+                    "<!--- unescaped: $1 --><!-- single star --><!---\n" +
+                    "\n" +
+                    " escaped: \\$2\n" +
+                    "\n" +
+                    " -->"));
+  }
 }

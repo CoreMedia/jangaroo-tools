@@ -62,6 +62,10 @@ public class JooSymbol extends java_cup.runtime.Symbol implements FilePosition {
     return new JooSymbol(sym, fileName, line, column, "", text, jooValue);
   }
 
+  public JooSymbol withWhitespace(String whitespace) {
+    return new JooSymbol(sym, fileName, line, column, whitespace, text, jooValue);
+  }
+
   public String toString() {
     return "line " + line + ", column " + column + ": '" + whitespace + "', '" + text + "'" + " file " + fileName;
   }

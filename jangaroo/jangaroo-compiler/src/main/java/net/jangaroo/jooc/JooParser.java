@@ -4,9 +4,13 @@ import java_cup.runtime.Symbol;
 import net.jangaroo.jooc.api.CompileLog;
 import net.jangaroo.jooc.config.SemicolonInsertionMode;
 
+import java.io.Reader;
+import java.io.StringReader;
 import java.util.regex.Pattern;
 
 public class JooParser extends parser {
+
+  private static final SilentLog SILENT_LOG = new SilentLog();
 
   class FatalSyntaxError extends RuntimeException {
     FatalSyntaxError(String msg) {
@@ -181,4 +185,31 @@ public class JooParser extends parser {
     //if that fails, unrecovered_syntax_error() will be called and report the error
   }
 
+  public Symbol parseEmbedded(String string, int line, int column) {
+    return parseEmbedded(string, line, column, false);
+  }
+
+  public Symbol parseEmbedded(String string, int line, int column, boolean silent) {
+    Reader reader = new StringReader(string);
+    scanner.prepareEmbedded(reader, line, column);
+    CompileLog oldLog = this.log;
+    if(silent) {
+      this.log = SILENT_LOG;
+    }
+    try {
+      return parse();
+    } catch (Scanner.ScanError se) {
+      return null;
+    } catch (FatalSyntaxError e) {
+      return null;
+    } catch (Exception e) {
+      throw new IllegalArgumentException("could not parse Jangaroo source", e);
+    } finally {
+      this.log = oldLog;
+    }
+  }
+
+  public ScannerBase getScannerBase() {
+    return scanner;
+  }
 }

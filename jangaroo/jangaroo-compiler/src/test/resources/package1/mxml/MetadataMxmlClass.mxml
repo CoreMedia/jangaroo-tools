@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<p1:ConfigClass xmlns:fx="http://ns.adobe.com/mxml/2009"
+             xmlns:p1="package1.*">
+  <fx:Metadata>
+    [ThisIsJustATest]
+    [Deprecated (replacement='use.this.please')]
+  </fx:Metadata>
+</p1:ConfigClass>

@@ -19,26 +19,27 @@
     /**
      * This is my <b>constant</b>
      */
-    public static const SOME_CONSTANT:uint = exmlparser.config.allElements.SOME_CONSTANT;
+    public static const SOME_CONSTANT:uint = allElements.SOME_CONSTANT;
     /**
      * This is another <b>constant</b>
      */
-    public static const ANOTHER_CONSTANT:String = exmlparser.config.allElements.ANOTHER_CONSTANT;
-    public static const CODE_CONSTANT:int = exmlparser.config.allElements.CODE_CONSTANT;
+    public static const ANOTHER_CONSTANT:String = allElements.ANOTHER_CONSTANT;
+    public static const CODE_CONSTANT:int = allElements.CODE_CONSTANT;
 
+    private var myProperty:String;
     private var myVar:String;
     private var myVar2:Object;
     private var myVar3:button;
     private var myVar4:Array;
 
-    private function __initialize__(config:exmlparser.config.allElements):void {
+    private function __initialize__(config:AllElements):void {
       myVar = config.myProperty + '_suffix';
       myVar2 = {
         prop: config.myProperty
       };
     }
 
-    public native function AllElements(config:exmlparser.config.allElements = null);
+    public native function AllElements(config:AllElements = null);
     ]]></fx:Script>
 
   <fx:Declarations>

@@ -89,6 +89,11 @@ package net.jangaroo.jooc;
 
 
 %{
+  void prepareEmbedded(java.io.Reader reader, int line, int column) {
+    yyreset(reader);
+    yyline = line;
+    yycolumn = column;
+  }
 
   protected int getColumn() {
     return yycolumn + 1;
@@ -106,7 +111,7 @@ package net.jangaroo.jooc;
 
 LineTerminator = [\n\r\u2028\u2029]
 InputCharacter = [^\r\n]
-WhiteSpace = {LineTerminator} | [  \t\f]
+WhiteSpace = {LineTerminator} | [ ï¿½\t\f]
 
 Comment = {TraditionalComment} | {EndOfLineComment} 
 
@@ -115,6 +120,7 @@ EndOfLineComment = "//" {InputCharacter}* {LineTerminator}?
 
 IdentifierStart = [:letter:]|[$_@]
 Identifier = {IdentifierStart}({IdentifierStart}|[:digit:])*
+XMLIdentifier = {IdentifierStart}({IdentifierStart}|[:digit:]|-)*
 
 DecIntegerLiteral = 0 | [1-9][0-9]*
 HexIntegerLiteral = 0[xX]{HexDigit}+
@@ -151,7 +157,9 @@ HexDigit          = [0-9abcdefABCDEF]
 
 Include           = "include \"" ~"\""
 
-%state STRING_SQ, STRING_DQ, REGEXP_START, REGEXP_FIRST, REGEXP_REST, VECTOR_TYPE
+XmlComment = "<!--" ~"-->"
+
+%state STRING_SQ, STRING_DQ, REGEXP_START, REGEXP_FIRST, REGEXP_REST, VECTOR_TYPE, MXML, XML_ATTRIBUTE_VALUE_DQ, XML_ATTRIBUTE_VALUE_SQ, XML_TEXT_CONTENT, CDATA_SECTION
 
 %%
 
@@ -203,8 +211,8 @@ Include           = "include \"" ~"\""
   "while"                         { return symbol(WHILE); }
   "with"                          { return symbol(WITH); }
 
-  "true"                          { return symbol(BOOL_LITERAL, new Boolean(true)); }
-  "false"                         { return symbol(BOOL_LITERAL, new Boolean(false)); }
+  "true"                          { return symbol(BOOL_LITERAL, Boolean.TRUE); }
+  "false"                         { return symbol(BOOL_LITERAL, Boolean.FALSE); }
 
   {Identifier}                    { return symbol(IDE, yytext()); }
 
@@ -334,6 +342,70 @@ Include           = "include \"" ~"\""
                                     return multiStateSymbol(REGEXP_LITERAL, getString());
                                   }
   {LineTerminator}                { error("unterminated regular expression at end of line"); }
+}
+
+<MXML> {
+  "<?"                            { return symbol(LT_QUESTION); }
+  "?>"                            { return symbol(QUESTION_GT); }
+  {XMLIdentifier}                    { return symbol(IDE, yytext()); }
+  {WhiteSpace}                    { pushWhitespace(yytext()); }
+  {XmlComment}                    { pushWhitespace(yytext()); }
+  \"                              { setMultiStateText(""); yybegin(XML_ATTRIBUTE_VALUE_DQ); clearString(); }
+  \'                              { setMultiStateText(""); yybegin(XML_ATTRIBUTE_VALUE_SQ); clearString(); }
+  "<"                             { return symbol(LT); }
+  "</"                            { return symbol(LT_SLASH); }
+  "/>"                            { return symbol(SLASH_GT); }
+  ">"                             { setMultiStateText(""); yybegin(XML_TEXT_CONTENT); clearString(); return symbol(GT); }
+  ":"                             { return symbol(COLON); }
+  "="                             { return symbol(EQ); }
+}
+
+<XML_ATTRIBUTE_VALUE_DQ> {
+  \"                              { yybegin(MXML);
+                                    return multiStateSymbol(STRING_LITERAL, null); }
+  [^\r\n\"\\]+                    { pushMultiStateText(org.apache.commons.lang.StringEscapeUtils.unescapeXml(yytext())); }
+  "\\b"                           { pushMultiStateText(yytext()); }
+  "\\t"                           { pushMultiStateText(yytext()); }
+  "\\n"                           { pushMultiStateText(yytext()); }
+  "\\f"                           { pushMultiStateText(yytext()); }
+  "\\r"                           { pushMultiStateText(yytext()); }
+  "\\\""                          { pushMultiStateText(yytext()); }
+  "\\\'"                          { pushMultiStateText(yytext()); }
+  "\\\\"                          { pushMultiStateText(yytext()); }
+\\(u{HexDigit}{4}|x{HexDigit}{2}) { pushMultiStateText(yytext()); }
+  \\.                             { pushMultiStateText(yytext()); }
+  {WhiteSpace}                    { pushWhitespace(yytext()); }
+}
+
+<XML_ATTRIBUTE_VALUE_SQ> {
+  \'                              { yybegin(MXML);
+                                    return multiStateSymbol(STRING_LITERAL, null); }
+  [^\r\n'\\]+                     { pushMultiStateText(org.apache.commons.lang.StringEscapeUtils.unescapeXml(yytext())); }
+  "\\b"                           { pushMultiStateText(yytext()); }
+  "\\t"                           { pushMultiStateText(yytext()); }
+  "\\n"                           { pushMultiStateText(yytext()); }
+  "\\f"                           { pushMultiStateText(yytext()); }
+  "\\r"                           { pushMultiStateText(yytext()); }
+  "\\\""                          { pushMultiStateText(yytext()); }
+  "\\\'"                          { pushMultiStateText(yytext()); }
+  "\\\\"                          { pushMultiStateText(yytext()); }
+\\(u{HexDigit}{4}|x{HexDigit}{2}) { pushMultiStateText(yytext()); }
+  \\.                             { pushMultiStateText(yytext()); }
+  {WhiteSpace}                    { pushWhitespace(yytext()); }
+}
+
+<XML_TEXT_CONTENT> {
+  "<![CDATA["                     { setMultiStateText(""); yybegin(CDATA_SECTION); clearString(); }
+  .|{LineTerminator} / "<"        { pushString(yytext()); yybegin(MXML);
+                                    return xmlUnescaped(STRING_LITERAL, getString()); }
+  .|{LineTerminator}              { pushString(yytext()); }
+}
+
+<CDATA_SECTION> {
+  "]]>" / "<"                     { yybegin(MXML);
+                                    return multiStateSymbol(STRING_LITERAL, getString()); }
+  "]]>"                           { yybegin(XML_TEXT_CONTENT); }
+  .|{LineTerminator}              { pushMultiStateText(yytext()); pushString(yytext()); }
 }
 
 /* error catchall */

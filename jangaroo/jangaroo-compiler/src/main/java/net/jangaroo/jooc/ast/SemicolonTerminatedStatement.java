@@ -18,7 +18,6 @@ package net.jangaroo.jooc.ast;
 import net.jangaroo.jooc.Debug;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
-import net.jangaroo.jooc.SyntacticKeywords;
 
 import java.io.IOException;
 import java.util.List;
@@ -28,7 +27,6 @@ import java.util.List;
  */
 public class SemicolonTerminatedStatement extends Statement {
 
-  private CompilationUnit compilationUnit;
   private AstNode optStatement;
   private JooSymbol optSymSemicolon;
 
@@ -63,7 +61,6 @@ public class SemicolonTerminatedStatement extends Statement {
 
   @Override
   public void scope(final Scope scope) {
-    compilationUnit = scope.getCompilationUnit();
     if (getOptStatement() != null) {
       getOptStatement().scope(scope);
     }

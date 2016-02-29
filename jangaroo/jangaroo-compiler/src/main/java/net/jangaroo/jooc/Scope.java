@@ -46,7 +46,7 @@ public interface Scope {
 
   boolean isDeclared(Ide ide);
 
-  Ide createAuxVar(Scope lookupScope);
+  Ide createAuxVar(Scope lookupScope, String preferredName);
 
   LoopStatement getCurrentLoop();
 
@@ -64,7 +64,7 @@ public interface Scope {
 
   boolean isPackage(String fullyQualifiedName);
 
-  Ide findFreeAuxVar();
+  Ide findFreeAuxVar(String preferredName);
 
   DeclarationScope getPackageDeclarationScope();
 
