@@ -9,31 +9,45 @@ public class SenchaProfileConfiguration {
 
   /**
    * A list of paths to CSS files to include that are not loaded via the class loader (usually in resources folder).
-   * Bundle option will be set to false.
+   * "bundle" option will be set to false, "includeInBundle" will be set to false.
    */
   @Parameter
   private List<String> additionalCssNonBundle;
 
   /**
    * A list of paths to JS files to include that are not loaded via the class loader (usually in resources folder).
-   * Bundle option will be set to false.
+   * "bundle" option will be set to false, "includeInBundle" will be set to false.
    */
   @Parameter
   private List<String> additionalJsNonBundle;
 
   /**
    * A list of paths to CSS files to include that are not loaded via the class loader (usually in resources folder).
-   * Bundle option will be set to true.
+   * "bundle" option will be set to true, "includeInBundle" will be set to false.
    */
   @Parameter
   private List<String> additionalCssBundle;
 
   /**
    * A list of paths to JS files to include that are not loaded via the class loader (usually in resources folder).
-   * Bundle option will be set to true.
+   * "bundle" option will be set to true, "includeInBundle" will be set to false.
    */
   @Parameter
   private List<String> additionalJsBundle;
+
+  /**
+   * A list of paths to CSS files to include that are not loaded via the class loader (usually in resources folder).
+   * "bundle" option will be set to false, "includeInBundle" will be set to true.
+   */
+  @Parameter
+  private List<String> additionalCssIncludeInBundle;
+
+  /**
+   * A list of paths to JS files to include that are not loaded via the class loader (usually in resources folder).
+   * "bundle" option will be set to false, "includeInBundle" will be set to true.
+   */
+  @Parameter
+  private List<String> additionalJsIncludeInBundle;
 
 
   public List<String> getAdditionalCssNonBundle() {
@@ -50,5 +64,13 @@ public class SenchaProfileConfiguration {
 
   public List<String> getAdditionalJsBundle() {
     return additionalJsBundle != null ? ImmutableList.copyOf(additionalJsBundle) : null;
+  }
+
+  public List<String> getAdditionalCssIncludeInBundle() {
+    return additionalCssIncludeInBundle != null ? ImmutableList.copyOf(additionalCssIncludeInBundle) : null;
+  }
+
+  public List<String> getAdditionalJsIncludeInBundle() {
+    return additionalJsIncludeInBundle != null ? ImmutableList.copyOf(additionalJsIncludeInBundle) : null;
   }
 }

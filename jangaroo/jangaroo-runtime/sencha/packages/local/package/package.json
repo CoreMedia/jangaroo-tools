@@ -15,9 +15,11 @@
   "css" : [ ],
   "js" : [ {
     "path" : "resources/joo/jangaroo-runtime.module.js",
+    "bundle": false,
     "includeInBundle" : true
   }, {
     "path" : "resources/joo/AS3.js",
+    "bundle": false,
     "includeInBundle" : true
   } ],
   "sass" : {
