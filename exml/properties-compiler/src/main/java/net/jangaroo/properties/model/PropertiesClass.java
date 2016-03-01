@@ -20,7 +20,7 @@ public class PropertiesClass {
 
   private static final Pattern AS3_IDENTIFIER_PATTERN = Pattern.compile("(\\p{Alpha}|[$_])(\\p{Alnum}|[$_])*");
   private static final Pattern RESOURCE_REFERENCE_PATTERN = Pattern.compile(
-          "^\\s*Resource\\s*\\(\\s*bundle\\s*=\\s*'([^']*)'\\s*,\\s*key\\s*=\\s*'([^']*)'\\s*\\)\\s*$"
+          "^\\s*Resource\\s*\\(\\s*key\\s*=\\s*'([^']*)'\\s*,\\s*bundle\\s*=\\s*'([^']*)'\\s*\\)\\s*$"
   );
 
   private ResourceBundleClass resourceBundle;
@@ -60,8 +60,8 @@ public class PropertiesClass {
       if (!matcher.find()) {
         props.add(new Property(adjustComment(layout.getCanonicalComment(key, true)), key, isIdentifier(key), value, true));
       } else {
-        String referenceBundleFullClassName = matcher.group(1);
-        String referenceBundleKey = matcher.group(2);
+        String referenceBundleKey = matcher.group(1);
+        String referenceBundleFullClassName = matcher.group(2);
 
         // extract class name without namespace
         String[] parts = referenceBundleFullClassName.split("\\.");
@@ -94,7 +94,7 @@ public class PropertiesClass {
       String value = properties.getString(key);
       Matcher matcher = RESOURCE_REFERENCE_PATTERN.matcher(value);
       if (matcher.find()) {
-        String referenceBundleFullClassName = matcher.group(1);
+        String referenceBundleFullClassName = matcher.group(2);
         result.add(referenceBundleFullClassName);
       }
     }
