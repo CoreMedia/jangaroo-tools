@@ -8,14 +8,21 @@ import org.apache.commons.configuration.PropertiesConfigurationLayout;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class PropertiesClass {
 
   private static final Pattern AS3_IDENTIFIER_PATTERN = Pattern.compile("(\\p{Alpha}|[$_])(\\p{Alnum}|[$_])*");
+  private static final Pattern RESOURCE_REFERENCE_PATTERN = Pattern.compile(
+          "^\\s*Resource\\s*\\(\\s*bundle\\s*=\\s*'([^']*)'\\s*,\\s*key\\s*=\\s*'([^']*)'\\s*\\)\\s*$"
+  );
+
   private ResourceBundleClass resourceBundle;
   private Locale locale;
   private PropertiesConfiguration properties;
@@ -48,7 +55,21 @@ public class PropertiesClass {
     Iterator keys = properties.getKeys();
     while (keys.hasNext()) {
       String key = (String)keys.next();
-      props.add(new Property(adjustComment(layout.getCanonicalComment(key, true)), key, isIdentifier(key), properties.getString(key)));
+      String value = properties.getString(key);
+      Matcher matcher = RESOURCE_REFERENCE_PATTERN.matcher(value);
+      if (!matcher.find()) {
+        props.add(new Property(adjustComment(layout.getCanonicalComment(key, true)), key, isIdentifier(key), value, true));
+      } else {
+        String referenceBundleFullClassName = matcher.group(1);
+        String referenceBundleKey = matcher.group(2);
+
+        // extract class name without namespace
+        String[] parts = referenceBundleFullClassName.split("\\.");
+        String referenceBundleClassName = parts.length > 0 ? parts[parts.length - 1] : "";
+
+        value = referenceBundleClassName + ".INSTANCE[\"" + referenceBundleKey + "\"]";
+        props.add(new Property(adjustComment(layout.getCanonicalComment(key, true)), key, isIdentifier(key), value, false));
+      }
     }
     return props;
   }
@@ -63,5 +84,20 @@ public class PropertiesClass {
 
   public File getSrcFile() {
     return srcFile;
+  }
+
+  public Set<String> getImports() {
+    Set<String> result = new HashSet<String>();
+    Iterator keys = properties.getKeys();
+    while (keys.hasNext()) {
+      String key = (String)keys.next();
+      String value = properties.getString(key);
+      Matcher matcher = RESOURCE_REFERENCE_PATTERN.matcher(value);
+      if (matcher.find()) {
+        String referenceBundleFullClassName = matcher.group(1);
+        result.add(referenceBundleFullClassName);
+      }
+    }
+    return result;
   }
 }

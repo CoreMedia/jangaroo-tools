@@ -4,6 +4,9 @@ package ${resourceBundle.packageName} {
 import joo.ResourceBundleAwareClassLoader;
 import joo.JavaScriptObject;
 </#if>
+<#list imports as import>
+import ${import};
+</#list>
 
 <#if comment??>
 /**${comment}
@@ -35,7 +38,11 @@ public native function get ${property.key}():String;
 
 public function ${resourceBundle.className}_properties<#if locale??>_${locale}</#if>() {
 <#list props as property>
+<#if property.valueIsString>
   this["${property.key}"] = "${property.value?js_string}";
+<#else>
+  this["${property.key}"] = ${property.value};
+</#if>
 </#list>
 }
 }
