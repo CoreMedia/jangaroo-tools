@@ -205,7 +205,12 @@ public class CompilationUnit extends NodeImplBase {
       if (mixinAnnotation != null) {
         Iterator<String> mixinClassNames = getAnnotationDefaultParameterStringValues(mixinAnnotation).iterator();
         if (mixinClassNames.hasNext()) {
-          return scope.getCompiler().getCompilationUnit(mixinClassNames.next());
+          String mixinClassName = mixinClassNames.next();
+          CompilationUnit mixinCompilationUnit = scope.getCompiler().getCompilationUnit(mixinClassName);
+          if (mixinCompilationUnit == null) {
+            throw Jooc.error(compilationUnit, "Mixin annotation refers to unresolvable class '" + mixinClassName + "'.");
+          }
+          return mixinCompilationUnit;
         }
       }
     }
