@@ -158,13 +158,16 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   private CompilationUnit compilationUnit;
   private String factory;
   private LinkedList<Metadata> currentMetadata = new LinkedList<Metadata>();
-  private final MessageFormat VAR_$NAME_EQUALS_ARGUMENTS_SLICE_$INDEX =
-    new MessageFormat("var {0}=Array.prototype.slice.call(arguments{1,choice,0#|0<,{1}});");
+  private final MessageFormat $NAME_EQUALS_ARGUMENTS_SLICE_$INDEX =
+    new MessageFormat("{0}=Array.prototype.slice.call(arguments{1,choice,0#|0<,{1}});");
   private ListMultimap<BlockStatement, CodeGenerator> blockStartCodeGenerators =
           ArrayListMultimap.create();
 
   private void generateToArrayCode(String paramName, int paramIndex) throws IOException {
-    out.write(VAR_$NAME_EQUALS_ARGUMENTS_SLICE_$INDEX.format(paramName, paramIndex));
+    if (!FunctionExpr.ARGUMENTS.equals(paramName)) {
+      out.writeToken("var");
+    }
+    out.writeToken($NAME_EQUALS_ARGUMENTS_SLICE_$INDEX.format(paramName, paramIndex));
   }
 
   private final CodeGenerator ARGUMENT_TO_ARRAY_CODE_GENERATOR = new CodeGenerator() {
@@ -421,9 +424,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
         } else {
           CompilationUnit mixinCompilationUnit = compilationUnit.mapMixinInterface(superInterface.getCompilationUnit());
           if (!compilationUnit.equals(mixinCompilationUnit)) {
-            superInterfaces.add(compilationUnitAccessCode(mixinCompilationUnit != null
-                    ? mixinCompilationUnit.getPrimaryDeclaration()
-                    : superInterface));
+            superInterfaces.add(compilationUnitAccessCode(superInterface));
           }
         }
         superTypes = superTypes.getTail();
