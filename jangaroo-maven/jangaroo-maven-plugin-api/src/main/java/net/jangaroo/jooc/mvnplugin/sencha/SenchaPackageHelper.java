@@ -94,6 +94,16 @@ class SenchaPackageHelper extends AbstractSenchaHelper {
         }
       }
 
+      // This is a workaround
+
+      // we must use the --name parameter to specify a path to the package directory as workspace.json cannot be modified
+      // because of problems with parallel builds
+
+      // because using "/" in package name is not valid we must prevent sencha generate package to create a package.json
+      // otherwise a temporary state exists where the whole workspace fails to build because of an invalid package name.
+      // this can be achieved by creating a package.json before sencha generate package is triggered.
+      writePackageJson(workingDirectory);
+
       Path pathToWorkingDirectory = SenchaUtils.getRelativePathFromWorkspaceToWorkingDir(workingDirectory);
 
       String line = "sencha generate package"
