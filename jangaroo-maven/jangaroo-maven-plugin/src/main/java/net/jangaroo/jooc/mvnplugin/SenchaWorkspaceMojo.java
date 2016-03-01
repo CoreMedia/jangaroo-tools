@@ -5,7 +5,10 @@ package net.jangaroo.jooc.mvnplugin;
 
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaHelper;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaModuleHelper;
+import org.apache.commons.lang.StringUtils;
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -14,6 +17,10 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
+
 /**
  * Mojo to compile properties files to ActionScript3 files
  */
@@ -21,13 +28,13 @@ import org.apache.maven.project.MavenProject;
 @Mojo(name = "generate-sencha-workspace",
         defaultPhase = LifecyclePhase.GENERATE_SOURCES,
         requiresDependencyResolution = ResolutionScope.RUNTIME,
-        threadSafe = true)
+        threadSafe = true, aggregator = true)
 public class SenchaWorkspaceMojo extends AbstractMojo {
 
-  /**
-   * The maven project.
-   */
-  @Parameter(defaultValue = "${project}", required = true, readonly = true)
+  @Parameter(defaultValue = "${session}")
+  private MavenSession session;
+
+  @Parameter(defaultValue = "${project}")
   private MavenProject project;
 
   /**
@@ -36,12 +43,66 @@ public class SenchaWorkspaceMojo extends AbstractMojo {
   @Parameter(property = "senchaConfiguration")
   private SenchaConfiguration senchaConfiguration;
 
+  /**
+   * Defines
+   */
+  @Parameter(property = "remotePackagesArtifact")
+  private ArtifactItem remotePackagesArtifact;
+
   public void execute() throws MojoExecutionException, MojoFailureException {
 
+    MavenProject remotePackagesProject = getRemotePackagesProject();
+
+    String remotePackagesPath = getPathRelativeToCurrentProjectFrom("remote.packages.dir", remotePackagesProject);
+    senchaConfiguration.setPackagesDir(remotePackagesPath);
+
+    String extPath = getPathRelativeToCurrentProjectFrom("ext.dir", remotePackagesProject);
+    senchaConfiguration.setExtFrameworkDir(extPath);
+
+    senchaConfiguration.setType(SenchaConfiguration.Type.WORKSPACE);
+
     // for now:
-    SenchaHelper senchaHelper = new SenchaModuleHelper(project, senchaConfiguration, getLog());
+    SenchaHelper senchaHelper = new SenchaModuleHelper(session.getTopLevelProject(), senchaConfiguration, getLog());
     senchaHelper.createModule();
     senchaHelper.prepareModule();
+
+  }
+
+  private MavenProject getRemotePackagesProject() throws MojoExecutionException {
+    List<MavenProject> allReactorProjects = session.getProjects();
+    for (MavenProject project : allReactorProjects) {
+
+      if (project.getGroupId().equals(remotePackagesArtifact.groupId)
+              && project.getArtifactId().equals(remotePackagesArtifact.artifactId)) {
+        return project;
+      }
+
+    }
+    throw new MojoExecutionException("Could not find local remote-packages module with coordinates " + remotePackagesArtifact.groupId + ":" + remotePackagesArtifact.artifactId);
+  }
+
+  private String getPathRelativeToCurrentProjectFrom(String pathFromProperty, MavenProject remotePackages) {
+    Path absolutePathToCurrentProject = session.getTopLevelProject().getBasedir().toPath();
+    Path absoultePathFromProperty = Paths.get(remotePackages.getProperties().get(pathFromProperty).toString());
+    return absolutePathToCurrentProject.relativize(absoultePathFromProperty).toString();
+  }
+
+  public static final class ArtifactItem {
+
+    @Parameter(defaultValue = "com.coremedia.cms")
+    private String groupId;
+
+    @Parameter(defaultValue = "remote-packages")
+    private String artifactId;
+
+
+    public void setGroupId(String groupId) {
+      this.groupId = groupId;
+    }
+
+    public void setArtifactId(String artifactId) {
+      this.artifactId = artifactId;
+    }
   }
 
 }
