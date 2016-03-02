@@ -43,6 +43,7 @@ public class PropertyClassGeneratorTest {
     p.setProperty("key", "Die Platte \"{1}\" enthält {0}.");
     p.setProperty("key2", "Die Platte \"{1}\" enthält {0}.");
     p.setProperty("key3", "Resource(key='the_other_key'\\, bundle='testPackage.otherpackage.OtherProperties_properties')");
+    p.setProperty("key4", "Resource(key='the.other.key'\\, bundle='testPackage.otherpackage.OtherProperties_properties')");
     PropertiesClass pc = new PropertiesClass(rbc, null,p, null);
 
     generator.generatePropertiesClass(pc, writer);
@@ -66,11 +67,13 @@ public class PropertyClassGeneratorTest {
       "public native function get key():String;\n" +
       "public native function get key2():String;\n" +
       "public native function get key3():String;\n" +
+      "public native function get key4():String;\n" +
       "\n" +
       "public function PropertiesTest_properties() {\n" +
       "  this[\"key\"] = \"Die Platte \\\"{1}\\\" enthält {0}.\";\n" +
       "  this[\"key2\"] = \"Die Platte \\\"{1}\\\" enthält {0}.\";\n" +
-      "  this[\"key3\"] = OtherProperties_properties.INSTANCE[\"the_other_key\"];\n" +
+      "  this[\"key3\"] = testPackage.otherpackage.OtherProperties_properties.INSTANCE.the_other_key;\n" +
+      "  this[\"key4\"] = testPackage.otherpackage.OtherProperties_properties.INSTANCE[\"the.other.key\"];\n" +
       "}\n" +
       "}\n" +
       "}").replaceAll("\n", LINE_SEPARATOR), writer.toString());
@@ -92,7 +95,8 @@ public class PropertyClassGeneratorTest {
         "public function PropertiesTest_properties_en() {\n" +
         "  this[\"key\"] = \"Die Platte \\\"{1}\\\" enthält {0}.\";\n" +
         "  this[\"key2\"] = \"Die Platte \\\"{1}\\\" enthält {0}.\";\n" +
-        "  this[\"key3\"] = OtherProperties_properties.INSTANCE[\"the_other_key\"];\n" +
+        "  this[\"key3\"] = testPackage.otherpackage.OtherProperties_properties.INSTANCE.the_other_key;\n" +
+        "  this[\"key4\"] = testPackage.otherpackage.OtherProperties_properties.INSTANCE[\"the.other.key\"];\n" +
         "}\n" +
         "}\n" +
         "}").replaceAll("\n", LINE_SEPARATOR), writer.toString());

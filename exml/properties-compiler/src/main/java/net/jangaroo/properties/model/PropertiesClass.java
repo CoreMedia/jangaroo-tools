@@ -57,19 +57,18 @@ public class PropertiesClass {
       String key = (String)keys.next();
       String value = properties.getString(key);
       Matcher matcher = RESOURCE_REFERENCE_PATTERN.matcher(value);
-      if (!matcher.find()) {
-        props.add(new Property(adjustComment(layout.getCanonicalComment(key, true)), key, isIdentifier(key), value, true));
-      } else {
+      boolean valueIsResourceReference = matcher.find();
+      if (valueIsResourceReference) {
         String referenceBundleKey = matcher.group(1);
         String referenceBundleFullClassName = matcher.group(2);
-
-        // extract class name without namespace
-        String[] parts = referenceBundleFullClassName.split("\\.");
-        String referenceBundleClassName = parts.length > 0 ? parts[parts.length - 1] : "";
-
-        value = referenceBundleClassName + ".INSTANCE[\"" + referenceBundleKey + "\"]";
-        props.add(new Property(adjustComment(layout.getCanonicalComment(key, true)), key, isIdentifier(key), value, false));
+        value = referenceBundleFullClassName + ".INSTANCE";
+        if (isIdentifier(referenceBundleKey)) {
+          value += "." + referenceBundleKey;
+        } else {
+          value += "[\"" + referenceBundleKey + "\"]";
+        }
       }
+      props.add(new Property(adjustComment(layout.getCanonicalComment(key, true)), key, isIdentifier(key), value, !valueIsResourceReference));
     }
     return props;
   }
