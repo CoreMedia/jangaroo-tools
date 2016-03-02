@@ -31,7 +31,6 @@ public class SenchaUtils {
   public static final String SENCHA_BASE_PATH = "sencha";
   public static final String SENCHA_PACKAGES = "packages";
   public static final String SENCHA_PACKAGES_LOCAL = "local";
-  public static final String SENCHA_PACKAGES_REMOTE = "remote";
 
   /**
    * The name of the folder of the generated module inside the {@link SenchaUtils#SENCHA_PACKAGES_LOCAL} folder.

@@ -62,7 +62,7 @@ public class SenchaWorkspaceMojo extends AbstractMojo {
     senchaConfiguration.setType(SenchaConfiguration.Type.WORKSPACE);
 
     // for now:
-    SenchaHelper senchaHelper = new SenchaModuleHelper(session.getTopLevelProject(), senchaConfiguration, getLog());
+    SenchaHelper senchaHelper = new SenchaModuleHelper(project, senchaConfiguration, getLog());
     senchaHelper.createModule();
     senchaHelper.prepareModule();
 
@@ -82,7 +82,7 @@ public class SenchaWorkspaceMojo extends AbstractMojo {
   }
 
   private String getPathRelativeToCurrentProjectFrom(String pathFromProperty, MavenProject remotePackages) {
-    Path absolutePathToCurrentProject = session.getTopLevelProject().getBasedir().toPath();
+    Path absolutePathToCurrentProject = project.getBasedir().toPath();
     Path absoultePathFromProperty = Paths.get(remotePackages.getProperties().get(pathFromProperty).toString());
     return absolutePathToCurrentProject.relativize(absoultePathFromProperty).toString();
   }

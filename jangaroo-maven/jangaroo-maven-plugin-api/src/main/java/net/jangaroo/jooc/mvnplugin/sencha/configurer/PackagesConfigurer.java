@@ -35,7 +35,7 @@ public class PackagesConfigurer implements Configurer {
     Map<String, Object> packages = new LinkedHashMap<String, Object>();
 
     packages.put(DIR, getLocalPackagePathsJsonAndExtractRemotePackages());
-    packages.put(EXTRACT, absolutePath(senchaConfiguration.getPackagesDir() + SenchaUtils.SEPARATOR + SenchaUtils.SENCHA_PACKAGES_REMOTE));
+    packages.put(EXTRACT, absolutePath(senchaConfiguration.getPackagesDir()));
 
     config.put(PACKAGES, packages);
   }
