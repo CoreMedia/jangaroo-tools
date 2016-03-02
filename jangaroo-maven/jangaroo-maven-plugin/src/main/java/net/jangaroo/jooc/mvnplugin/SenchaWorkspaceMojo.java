@@ -16,6 +16,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -84,14 +85,22 @@ public class SenchaWorkspaceMojo extends AbstractMojo {
     throw new MojoExecutionException("Could not find local remote-packages module with coordinates " + remotePackagesArtifact.groupId + ":" + remotePackagesArtifact.artifactId);
   }
 
-  private String getPathRelativeToCurrentProjectFrom(String pathFromProperty, MavenProject remotePackages) {
-    Path absolutePathToCurrentProject = project.getBasedir().toPath();
+  private String getPathRelativeToCurrentProjectFrom(String pathFromProperty, MavenProject remotePackages) throws MojoExecutionException {
+    Path absolutePathToCurrentProject = normalizePath(project.getBasedir().toPath());
     String remotePackagesDir = (String) remotePackages.getProperties().get(pathFromProperty);
     if (remotePackagesDir == null) {
       remotePackagesDir = project.getBuild().getDirectory() + SenchaUtils.SEPARATOR + SenchaUtils.SENCHA_PACKAGES; // TODO is this a good constant?
     }
-    Path absoultePathFromProperty = Paths.get(remotePackagesDir);
-    return absolutePathToCurrentProject.relativize(absoultePathFromProperty).toString();
+    Path absolutePathFromProperty = normalizePath(Paths.get(remotePackagesDir));
+    return absolutePathToCurrentProject.relativize(absolutePathFromProperty).toString();
+  }
+
+  private Path normalizePath(Path path) throws MojoExecutionException {
+    try {
+      return path.toRealPath();
+    } catch (IOException e) {
+      throw new MojoExecutionException("path could not be normalized: " + path, e);
+    }
   }
 
   public static final class ArtifactItem {
