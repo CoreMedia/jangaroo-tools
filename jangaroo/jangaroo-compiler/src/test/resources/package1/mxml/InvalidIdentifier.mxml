@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<ConfigClass xmlns="package1.*" xmlns:other-ns="package1.someOtherPackage.*">
+  <items>
+    <ConfigClass>
+      <items>
+        <other-ns:SomeOtherClass id="in-val-id" bla="13"/>
+      </items>
+    </ConfigClass>
+  </items>
+</ConfigClass>

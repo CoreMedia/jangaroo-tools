@@ -855,7 +855,7 @@ mxmlCompilationUnit ::=
 optXmlHeader ::=
     {: RESULT = null; :}
   | LT_QUESTION:ltQuestion ide:xmlIde xmlAttributes:attributes QUESTION_GT:questionGt
-    {: RESULT = new XmlHeader(ltQuestion, xmlIde, attributes, questionGt); :}
+    {: XmlHeader.verifyXmlHeader(xmlIde, attributes); :}
   ;
 
 mxmlElement ::=

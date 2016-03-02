@@ -1,61 +1,42 @@
 package net.jangaroo.jooc.mxml.ast;
 
-import net.jangaroo.jooc.JooSymbol;
-import net.jangaroo.jooc.Scope;
-import net.jangaroo.jooc.ast.AstNode;
-import net.jangaroo.jooc.ast.AstVisitor;
+import com.google.common.collect.Iterables;
+import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.ast.Ide;
-import net.jangaroo.jooc.ast.NodeImplBase;
 
-import java.io.IOException;
-import java.util.Collections;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.List;
 
+import static java.util.Arrays.asList;
+
 /**
- * AST node for MXML's <code>&lt;?xml version="..."?></code>.
+ * Helper class to verify the standard XML header <code>&lt;?xml version="..."?></code>.
  *
  * https://www.w3.org/TR/REC-xml/#sec-prolog-dtd
  */
-public class XmlHeader extends NodeImplBase {
-  private final Ide xmlIde;
-  private final List<XmlAttribute> attributes;
-  private final JooSymbol questionGt;
-  private JooSymbol ltQuestion;
+public class XmlHeader {
 
-  public XmlHeader(JooSymbol ltQuestion, Ide xmlIde, List<XmlAttribute> attributes, JooSymbol questionGt) {
-    this.ltQuestion = ltQuestion;
-    this.xmlIde = xmlIde;
-    this.attributes = attributes;
-    this.questionGt = questionGt;
-  }
+  public static void verifyXmlHeader(@Nonnull Ide xmlIde, @Nullable List<XmlAttribute> attributes) {
+    if(!"xml".equals(xmlIde.getName())) {
+      throw JangarooParser.error(xmlIde, "XML header must start with 'xml'");
+    }
 
-  @Override
-  public JooSymbol getSymbol() {
-    return ltQuestion;
-  }
+    XmlAttribute version;
+    if(null == attributes || null == (version = Iterables.getFirst(Iterables.consumingIterable(attributes), null))) {
+      throw JangarooParser.error(xmlIde, "XML header must contain version info");
+    }
 
-  @Override
-  public List<? extends AstNode> getChildren() {
-    return Collections.emptyList();
-  }
+    if(!"version".equals(version.getLocalName())) {
+      throw JangarooParser.error(version, "XML header must start with version info");
+    }
 
-  @Override
-  public void scope(Scope scope) {
-    
-  }
-
-  @Override
-  public void analyze(AstNode parentNode) {
+    for(XmlAttribute attribute : attributes) {
+      if(!asList("encoding", "standalone").contains(attribute.getLocalName())) {
+        throw JangarooParser.error(attribute, "unsupported XML header attribute");
+      }
+    }
 
   }
 
-  @Override
-  public AstNode getParentNode() {
-    return null;
-  }
-
-  @Override
-  public void visit(AstVisitor visitor) throws IOException {
-    
-  }
 }

@@ -83,7 +83,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
 
     JangarooParser parser = scope.getCompiler();
     constructorScope = new DeclarationScope(this, null, parser);
-    mxmlToModelParser = new MxmlToModelParser(parser, mxmlParserHelper, this, scope);
+    mxmlToModelParser = new MxmlToModelParser(parser, mxmlParserHelper, this);
 
     rootElementProcessor.process(rootNode);
 
@@ -156,11 +156,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
       constructorBodyDirectives.add(MxmlAstUtils.createSemicolonTerminatedStatement(assignmentOpExpr));
     }
 
-    String varName = null;
-    if(null != superConfigVar) {
-      varName = superConfigVar.getName();
-    }
-    mxmlToModelParser.processAttributesAndChildNodes(rootNode, varName, Ide.THIS, superConfigVar != null);
+    mxmlToModelParser.processAttributesAndChildNodes(rootNode, superConfigVar, new Ide(Ide.THIS), superConfigVar != null);
     constructorBodyDirectives.addAll(mxmlParserHelper.parseConstructorBody(mxmlToModelParser.getConstructorCode()));
     classBodyDirectives.addAll(mxmlParserHelper.parseClassBody(mxmlToModelParser.getClassBodyCode()).getDirectives());
 
@@ -221,9 +217,8 @@ public class MxmlCompilationUnit extends CompilationUnit {
   }
 
   void createFields(@Nullable Ide targetIde) {
-    String name = null != targetIde ? targetIde.getName() : "";
     for (XmlElement declaration : rootElementProcessor.getDeclarations()) {
-      mxmlToModelParser.createValueCodeFromElement(name, declaration, null);
+      mxmlToModelParser.createValueCodeFromElement(targetIde, declaration, null);
     }
   }
 
@@ -280,7 +275,13 @@ public class MxmlCompilationUnit extends CompilationUnit {
     }
   }
 
+  @Nonnull
   public Map<String, VariableDeclaration> getVariables() {
     return classVariablesByName;
+  }
+
+  @Nullable
+  public String getConstructorParamName() {
+    return null != constructorParam ? constructorParam.getName() : null;
   }
 }

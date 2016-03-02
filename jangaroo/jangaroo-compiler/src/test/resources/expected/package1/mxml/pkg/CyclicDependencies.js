@@ -6,8 +6,8 @@ public class CyclicDependencies extends Object{
 
     public*/function CyclicDependencies$(config/*:CyclicDependencies = null*/){if(arguments.length<=0)config=null;
 
-    var config_$1/*:package1.mxml.pkg.CyclicDependencies_1*/ =AS3.cast( AS3.package1.mxml.pkg.CyclicDependencies_1,{});AS3.setBindable(
-    this,"cause_trouble" , new AS3.package1.mxml.pkg.CyclicDependencies_1(config_$1));}/*
+    var cause_trouble_12_5_$1/*:package1.mxml.pkg.CyclicDependencies_1*/ =AS3.cast( AS3.package1.mxml.pkg.CyclicDependencies_1,{});AS3.setBindable(
+    this,"cause_trouble" , new AS3.package1.mxml.pkg.CyclicDependencies_1(cause_trouble_12_5_$1));}/*
 
 [Bindable]
 public var cause_trouble:package1.mxml.pkg.CyclicDependencies_1;}}
