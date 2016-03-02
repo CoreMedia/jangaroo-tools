@@ -7,7 +7,7 @@
              xmlns:exml="http://www.jangaroo.net/exml/0.8"
              xmlns="package1.*"
              xmlns:u="exml:untyped"
-             xmlns:other="package1.someOtherPackage.*"
+             xmlns:other-ns="package1.someOtherPackage.*"
              xmlns:lib="library://test.namespace"
              foo="bar"
              number="{1 &lt; 2  ? 1 + 1 : 3}"
@@ -31,7 +31,7 @@
       <fx:Object name="Joe"/>
       <ConfigClass>
         <items>
-          <other:SomeOtherClass bla="123"/>
+          <other-ns:SomeOtherClass bla="123"/>
         </items>
       </ConfigClass>
     </fx:Array>
@@ -41,27 +41,27 @@
                           blubbAccessor="{'blub accessor expression'}"/>
   </fx:Declarations>
   <defaults>
-    <other:SomeOtherClass bla="99"
+    <other-ns:SomeOtherClass bla="99"
                           u:known-unknown="true"/>
   </defaults>
   <items exml:mode="append">
-    <other:SomeOtherClass bla="23"/>
-    <other:SomeOtherClass clack="var test=0;" bla="1"/>
-    <other:SomeOtherClass bla="42">
-      <other:mixins>
+    <other-ns:SomeOtherClass bla="23"/>
+    <other-ns:SomeOtherClass clack="var test=0;" bla="1"/>
+    <other-ns:SomeOtherClass bla="42">
+      <other-ns:mixins>
         <ConfigClass number="24"/>
-      </other:mixins>
-    </other:SomeOtherClass>
+      </other-ns:mixins>
+    </other-ns:SomeOtherClass>
     <ConfigClass>
       <items>
-        <other:SomeOtherClass doodle="non-bound" bla="{other.bla}"/>
+        <other-ns:SomeOtherClass doodle="non-bound" bla="{other.bla}"/>
       </items>
       <number>12</number>
     </ConfigClass>
     <ConfigClass>
       <items exml:mode="append">
-        <other:SomeOtherClass bla="12"/>
-        <other:SomeOtherClass id="no_config" bla="13"/>
+        <other-ns:SomeOtherClass bla="12"/>
+        <other-ns:SomeOtherClass id="no_config" bla="13"/>
       </items>
     </ConfigClass>
   </items>

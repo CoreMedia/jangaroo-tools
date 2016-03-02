@@ -21,11 +21,14 @@ import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
+import java.util.regex.Pattern;
 
 /**
  * @author Andreas Gawecki
  */
 public class Ide extends NodeImplBase {
+
+  public static final Pattern IDE_PATTERN = Pattern.compile("[a-zA-Z$_@]([a-zA-Z0-9$_@])*");
 
   public static final String THIS = "this";
   private JooSymbol ide;

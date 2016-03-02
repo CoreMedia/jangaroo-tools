@@ -10,16 +10,16 @@ public class DeclarationsMxmlClass extends SomeNativeClass{public*/function Decl
     this,"blub").name = "Kuno";
     var object_18_7_$1/*:Object*/ = {};
     object_18_7_$1.name = "Joe";
-    var config_$1/*:package1.ConfigClass*/ =AS3.cast( AS3.package1.ConfigClass,{});
-    var config_$2/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
-    config_$2,"bla" , 123);
-    config_$1.items = [new AS3.package1.someOtherPackage.SomeOtherClass(config_$2)];AS3.setBindable(
-    this,"list" , [object_18_7_$1, new AS3.package1.ConfigClass(config_$1)]);
-    var config_$3/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
-    config_$3,"bla" , 3);
-    config_$3["blubb_config"] = 'blub config expression';
-    config_$3["blubb_accessor"] = 'blub accessor expression';AS3.setBindable(
-    this,"other" , new AS3.package1.someOtherPackage.SomeOtherClass(config_$3));
+    var configClass_19_7_$1/*:package1.ConfigClass*/ =AS3.cast( AS3.package1.ConfigClass,{});
+    var other_SomeOtherClass_21_11_$1/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
+    other_SomeOtherClass_21_11_$1,"bla" , 123);
+    configClass_19_7_$1.items = [new AS3.package1.someOtherPackage.SomeOtherClass(other_SomeOtherClass_21_11_$1)];AS3.setBindable(
+    this,"list" , [object_18_7_$1, new AS3.package1.ConfigClass(configClass_19_7_$1)]);
+    var other_25_5_$1/*:package1.someOtherPackage.SomeOtherClass*/ =AS3.cast( AS3.package1.someOtherPackage.SomeOtherClass,{});AS3.setBindable(
+    other_25_5_$1,"bla" , 3);
+    other_25_5_$1["blubb_config"] = 'blub config expression';
+    other_25_5_$1["blubb_accessor"] = 'blub accessor expression';AS3.setBindable(
+    this,"other" , new AS3.package1.someOtherPackage.SomeOtherClass(other_25_5_$1));
 }/*
 
 [Bindable]

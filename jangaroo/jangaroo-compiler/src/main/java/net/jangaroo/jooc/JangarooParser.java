@@ -162,29 +162,6 @@ public class JangarooParser implements CompilationUnitModelResolver, Compilation
     }
   }
 
-  private FilePositionImpl positionOfCompilerError(CompilerError e, InputSource in) {
-    FilePosition symbol = e.getSymbol();
-    String fileName = null;
-    int line;
-    int column;
-    if (symbol != null) {
-      fileName = symbol.getFileName();
-      line = symbol.getLine();
-      column = symbol.getColumn();
-    } else {
-      line = -1;
-      column = -1;
-    }
-    if (fileName == null) {
-      fileName = in.getPath();
-    }
-    return new FilePositionImpl(fileName, line, column);
-  }
-
-  protected void keepGeneratedActionScript(InputSource in, String code) {
-    // do nothing by default
-  }
-
   private static String nameWithoutExtension(InputSource input) {
     String name = input.getName();
     int lastDot = name.lastIndexOf('.');
