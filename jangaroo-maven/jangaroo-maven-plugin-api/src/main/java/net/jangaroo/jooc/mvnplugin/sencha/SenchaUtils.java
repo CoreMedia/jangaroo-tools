@@ -322,7 +322,7 @@ public class SenchaUtils {
       if (null != artifact.getFile()) {
         try {
           ZipFile zipFile = new ZipFile(artifact.getFile());
-          ZipEntry zipEntry = zipFile.getEntry("sencha/" + SenchaUtils.SENCHA_PACKAGE_FILENAME);
+          ZipEntry zipEntry = zipFile.getEntry(SenchaUtils.getSenchaPackageNameForArtifact(artifact) + "/" + SenchaUtils.SENCHA_PACKAGE_FILENAME);
           if (zipEntry != null) {
             result = true;
           }
