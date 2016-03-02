@@ -309,29 +309,7 @@ public class SenchaUtils {
   }
 
   public static boolean isSenchaPackageArtifact(Artifact artifact) throws MojoExecutionException {
-    boolean result = false;
-
-    if ("net.jangaroo".equals(artifact.getGroupId())
-            && "ext-js".equals(artifact.getArtifactId())) {
-      // ext-js is handled differently
-      return false;
-    }
-    if (Types.JAVASCRIPT_EXTENSION.equals(artifact.getType())
-            && !MAVEN_DEPENDENCY_SCOPE_TEST.equalsIgnoreCase(artifact.getScope())
-            && !MAVEN_DEPENDENCY_SCOPE_PROVIDED.equalsIgnoreCase(artifact.getScope())) {
-      if (null != artifact.getFile()) {
-        try {
-          ZipFile zipFile = new ZipFile(artifact.getFile());
-          ZipEntry zipEntry = zipFile.getEntry(SenchaUtils.getSenchaPackageNameForArtifact(artifact) + "/" + SenchaUtils.SENCHA_PACKAGE_FILENAME);
-          if (zipEntry != null) {
-            result = true;
-          }
-        } catch (IOException e) {
-          throw new MojoExecutionException("could not open artifact jar", e);
-        }
-      }
-    }
-
-    return result;
+    return Types.JAVASCRIPT_EXTENSION.equalsIgnoreCase(artifact.getType()) &&
+            !"test".equalsIgnoreCase(artifact.getScope()); // TODO should we really exclude test scope artifacts?
   }
 }
