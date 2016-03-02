@@ -52,10 +52,10 @@ public class PathConfigurer implements Configurer {
       config.put(RESOURCES, resources);
 
       Map<String, Object> sass = new HashMap<String, Object>();
-      sass.put(SASS_NAMESPACE, senchaConfiguration.getSassNamespace());
+      sass.put(SASS_NAMESPACE, "");
       sass.put(SASS_ETC, absolutePath(SenchaUtils.SENCHA_RELATIVE_SASS_ETC_PATH + SenchaUtils.SEPARATOR + SenchaUtils.SENCHA_SASS_ETC_IMPORTS, sassFromSrc));
       sass.put(SASS_VAR, absolutePath(SenchaUtils.SENCHA_RELATIVE_SASS_VAR_PATH, sassFromSrc));
-      sass.put(SASS_SRC, absolutePath(SenchaUtils.SENCHA_RELATIVE_SASS_SRC_PATH, sassFromSrc));
+      sass.put(SASS_SRC, absolutePath(SenchaUtils.SENCHA_RELATIVE_SASS_SRC_MIXINS_PATH, sassFromSrc) + "," + absolutePath(SenchaUtils.SENCHA_RELATIVE_SASS_SRC_INCLUDES_PATH, sassFromSrc));
       config.put(SASS, sass);
     } else {
       config.put(APPS, new ArrayList<Object>());

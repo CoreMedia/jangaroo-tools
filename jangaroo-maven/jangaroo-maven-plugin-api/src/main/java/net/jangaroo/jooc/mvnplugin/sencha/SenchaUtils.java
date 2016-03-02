@@ -51,7 +51,8 @@ public class SenchaUtils {
   public static final String SENCHA_RELATIVE_RESOURCES_PATH = "resources";
   public static final String SENCHA_RELATIVE_SASS_PATH = "sass";
   public static final String SENCHA_RELATIVE_SASS_ETC_PATH = SENCHA_RELATIVE_SASS_PATH + SEPARATOR + "etc";
-  public static final String SENCHA_RELATIVE_SASS_SRC_PATH = SENCHA_RELATIVE_SASS_PATH + SEPARATOR + "src";
+  public static final String SENCHA_RELATIVE_SASS_SRC_MIXINS_PATH = SENCHA_RELATIVE_SASS_PATH + SEPARATOR + "mixins";
+  public static final String SENCHA_RELATIVE_SASS_SRC_INCLUDES_PATH = SENCHA_RELATIVE_SASS_PATH + SEPARATOR + "src";
   public static final String SENCHA_RELATIVE_SASS_VAR_PATH = SENCHA_RELATIVE_SASS_PATH + SEPARATOR + "var";
   public static final String SENCHA_RELATIVE_CLASSIC_PATH = "classic";
   public static final String SENCHA_RELATIVE_MODERN_PATH = "modern";

@@ -53,14 +53,6 @@ public class SenchaConfiguration extends SenchaProfileConfiguration {
   private String theme = "";
 
   /**
-   * The sass namespace to use
-   *
-   * Ignored for {@link Type#WORKSPACE}
-   */
-  @Parameter(defaultValue = "Ext")
-  private String sassNamespace = "Ext";
-
-  /**
    * Production only configuration
    *
    * Ignored for {@link Type#WORKSPACE}
@@ -152,10 +144,6 @@ public class SenchaConfiguration extends SenchaProfileConfiguration {
     return theme;
   }
 
-  public String getSassNamespace() {
-    return sassNamespace;
-  }
-
   public SenchaProfileConfiguration getProduction() {
     return production;
   }
@@ -206,10 +194,6 @@ public class SenchaConfiguration extends SenchaProfileConfiguration {
 
   public void setTheme(String theme) {
     this.theme = theme;
-  }
-
-  public void setSassNamespace(String sassNamespace) {
-    this.sassNamespace = sassNamespace;
   }
 
   public void setProduction(SenchaProfileConfiguration production) {
