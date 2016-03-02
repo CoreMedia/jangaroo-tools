@@ -68,14 +68,14 @@ public class PackagesConfigurer implements Configurer {
     } catch (IOException e) {
       throw new MojoExecutionException("Could not determine root directory of the project", e);
     }
-    for (MavenProject p : mavenProjectsWithSenchaPackages) {
+    for (MavenProject mavenProjectWithSenchaPackage : mavenProjectsWithSenchaPackages) {
 
       // TODO: check type by configuration not by name
-      if (p.getArtifactId().endsWith("-webapp")) {
-        // needs to be put into: apps: [], ignore for now path = Paths.get(p.getBuild().getDirectory() + "/" + SENCHA_BASE_PATH);
+      if (mavenProjectWithSenchaPackage.getArtifactId().endsWith("-webapp")) {
+        // needs to be put into: apps: [], ignore for now path = Paths.get(mavenProjectWithSenchaPackage.getBuild().getDirectory() + "/" + SENCHA_BASE_PATH);
       } else {
         Path path;
-        path = Paths.get(p.getBuild().getDirectory() + SenchaUtils.SEPARATOR + SenchaUtils.getSenchaPackageNameForMavenProject(project) + SenchaUtils.SEPARATOR + "packages" + SenchaUtils.SEPARATOR + SenchaUtils.SENCHA_PACKAGES_LOCAL);
+        path = Paths.get(mavenProjectWithSenchaPackage.getBuild().getDirectory() + SenchaUtils.SEPARATOR + SenchaUtils.getSenchaPackageNameForMavenProject(mavenProjectWithSenchaPackage) + SenchaUtils.SEPARATOR + "packages" + SenchaUtils.SEPARATOR + SenchaUtils.SENCHA_PACKAGES_LOCAL);
         Path relativePath = rootPath.relativize(path);
         String relativePathString = relativePath.toString();
 
