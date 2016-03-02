@@ -4,6 +4,7 @@ import net.jangaroo.jooc.mvnplugin.SenchaConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.project.MavenProject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,9 +30,11 @@ public class PathConfigurer implements Configurer {
   public static final String BUILD = "build";
   public static final String DIR = "dir";
 
-  SenchaConfiguration senchaConfiguration;
+  private SenchaConfiguration senchaConfiguration;
+  private MavenProject project;
 
-  public PathConfigurer(SenchaConfiguration senchaConfiguration) {
+  public PathConfigurer(MavenProject project, SenchaConfiguration senchaConfiguration) {
+    this.project = project;
     this.senchaConfiguration = senchaConfiguration;
   }
 
@@ -74,7 +77,7 @@ public class PathConfigurer implements Configurer {
   private String absolutePath(String path, boolean fromSrc) {
     String prefix = "";
     if (fromSrc) {
-      prefix = getRelativePathFromModuleToSrc() + SenchaUtils.SENCHA_BASE_PATH + SenchaUtils.SEPARATOR;
+      prefix = getRelativePathFromModuleToSrc() + SenchaUtils.getSenchaPackageNameForMavenProject(project) + SenchaUtils.SEPARATOR;
     }
     return SenchaUtils.generateAbsolutePathUsingPlaceholder(senchaConfiguration.getType(), prefix + path);
   }

@@ -26,7 +26,7 @@ public class SenchaConfiguration extends SenchaProfileConfiguration {
 
   /**
    * Defines if the module will be generated using an temporary workspace. The workspace will be deleted after build.
-   *
+   * TODO is this really necessary?
    * Ignored for {@link Type#WORKSPACE}
    */
   @Parameter(defaultValue = "false")

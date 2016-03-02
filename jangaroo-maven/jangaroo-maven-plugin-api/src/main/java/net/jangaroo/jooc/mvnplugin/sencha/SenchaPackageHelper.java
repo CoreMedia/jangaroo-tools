@@ -36,14 +36,14 @@ class SenchaPackageHelper extends AbstractSenchaHelper {
     super(project, senchaConfiguration, log);
 
     String buildDirectory = project.getBuild().getDirectory();
-    this.senchaPath = buildDirectory + File.separator + SenchaUtils.SENCHA_BASE_PATH;
+    this.senchaPath = buildDirectory + File.separator + getSenchaModuleName();
 
     this.senchaPackagePath = senchaPath + File.separator + SenchaUtils.SENCHA_PACKAGES + File.separator + SenchaUtils.SENCHA_PACKAGES_LOCAL + File.separator + SenchaUtils.LOCAL_PACKAGE_PATH;
 
     MetadataConfigurer metadataConfigurer = new MetadataConfigurer(project);
     RequiresConfigurer requiresConfigurer = new RequiresConfigurer(project, senchaConfiguration);
     SenchaConfigurationConfigurer senchaConfigurationConfigurer = new SenchaConfigurationConfigurer(project, senchaConfiguration);
-    PathConfigurer pathConfigurer = new PathConfigurer(senchaConfiguration);
+    PathConfigurer pathConfigurer = new PathConfigurer(project, senchaConfiguration);
 
     Configurer defaultSenchaPackageConfigurer;
     if (!SenchaConfiguration.Type.THEME.equals(senchaConfiguration.getType())) {
@@ -63,7 +63,7 @@ class SenchaPackageHelper extends AbstractSenchaHelper {
     SenchaConfiguration workspaceConfiguration = new SenchaConfiguration();
     workspaceConfiguration.setEnabled(true);
     String projectBuildDirRelativeToProjectBaseDir = project.getBasedir().toPath().relativize(Paths.get(project.getBuild().getDirectory())).toString();
-    workspaceConfiguration.setBuildDir(projectBuildDirRelativeToProjectBaseDir + File.separator + SenchaUtils.SENCHA_BASE_PATH + File.separator + SenchaUtils.SENCHA_RELATIVE_BUILD_PATH);
+    workspaceConfiguration.setBuildDir(projectBuildDirRelativeToProjectBaseDir + File.separator + getSenchaModuleName() + File.separator + SenchaUtils.SENCHA_RELATIVE_BUILD_PATH);
     workspaceConfiguration.setType(SenchaConfiguration.Type.WORKSPACE);
     workspaceConfiguration.setPackagesDir(senchaConfiguration.getPackagesDir());
     workspaceConfiguration.setExtFrameworkDir(senchaConfiguration.getExtFrameworkDir());
@@ -221,7 +221,7 @@ class SenchaPackageHelper extends AbstractSenchaHelper {
         tempDirectory.deleteOnExit();
         SenchaUtils.extractZipToDirectory(pkg, tempDirectory);
         try {
-          archiver.addDirectory(tempDirectory, SenchaUtils.SENCHA_BASE_PATH + "/");
+          archiver.addDirectory(tempDirectory, getSenchaModuleName() + "/");
         } catch (ArchiverException e) {
           throw new MojoExecutionException("could not add package directory to jar", e);
         }
@@ -229,8 +229,7 @@ class SenchaPackageHelper extends AbstractSenchaHelper {
         if (getSenchaConfiguration().isScssFromSrc()) {
           // rewrite package.json so the src path is removed in build
           getSenchaConfiguration().setScssFromSrc(true);
-          File workingDirectory = new File(senchaPackagePath);
-          writePackageJson(workingDirectory);
+          writePackageJson(senchaPackageDirectory);
           getSenchaConfiguration().setScssFromSrc(false);
         }
 
@@ -238,7 +237,7 @@ class SenchaPackageHelper extends AbstractSenchaHelper {
       } else {
         // at least add a package indicator to jar
         try {
-          archiver.addFile(new File(senchaPackagePath + File.separator + SenchaUtils.SENCHA_PACKAGE_FILENAME), SenchaUtils.SENCHA_BASE_PATH + "/" + SenchaUtils.SENCHA_PACKAGE_FILENAME);
+          archiver.addFile(new File(senchaPackagePath + File.separator + SenchaUtils.SENCHA_PACKAGE_FILENAME), getSenchaModuleName() + "/" + SenchaUtils.SENCHA_PACKAGE_FILENAME);
         } catch (ArchiverException e) {
           throw new MojoExecutionException("could not add package indicator to jar", e);
         }

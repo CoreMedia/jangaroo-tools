@@ -25,7 +25,7 @@ class SenchaWorkspaceHelper extends AbstractSenchaHelper {
   public SenchaWorkspaceHelper(MavenProject project, SenchaConfiguration senchaConfiguration, Log log) {
     super(project, senchaConfiguration, log);
 
-    PathConfigurer pathConfigurer = new PathConfigurer(senchaConfiguration);
+    PathConfigurer pathConfigurer = new PathConfigurer(project, senchaConfiguration);
     PackagesConfigurer packagesConfigurer = new PackagesConfigurer(project, senchaConfiguration);
 
     this.workspaceConfigurers = new Configurer[] {

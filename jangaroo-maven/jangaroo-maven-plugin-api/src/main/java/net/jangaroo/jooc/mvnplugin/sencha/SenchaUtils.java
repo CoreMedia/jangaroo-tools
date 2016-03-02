@@ -232,7 +232,7 @@ public class SenchaUtils {
 
       try {
         ZipFile zipFile = new ZipFile(artifact.getFile());
-        ZipEntry packageJson = zipFile.getEntry(SENCHA_BASE_PATH + SEPARATOR + SENCHA_PACKAGE_FILENAME);
+        ZipEntry packageJson = zipFile.getEntry(senchaPackageName + SEPARATOR + SENCHA_PACKAGE_FILENAME);
         // skip if no package json is found
         if (null == packageJson) {
           continue;

@@ -29,12 +29,12 @@ class SenchaAppHelper extends AbstractSenchaHelper {
     super(project, senchaConfiguration, log);
 
     String buildDirectory = project.getBuild().getDirectory();
-    this.senchaPath = buildDirectory + File.separator + SenchaUtils.SENCHA_BASE_PATH;
+    this.senchaPath = buildDirectory + File.separator + getSenchaModuleName();
 
     MetadataConfigurer metadataConfigurer = new MetadataConfigurer(project);
     RequiresConfigurer requiresConfigurer = new RequiresConfigurer(project, senchaConfiguration);
     SenchaConfigurationConfigurer senchaConfigurationConfigurer = new SenchaConfigurationConfigurer(project, senchaConfiguration);
-    PathConfigurer pathConfigurer = new PathConfigurer(senchaConfiguration);
+    PathConfigurer pathConfigurer = new PathConfigurer(project, senchaConfiguration);
 
     this.appConfigurers = new Configurer[] {
             DefaultSenchaApplicationConfigurer.getInstance(),

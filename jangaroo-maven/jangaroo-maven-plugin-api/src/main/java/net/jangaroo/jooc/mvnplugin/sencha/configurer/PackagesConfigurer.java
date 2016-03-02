@@ -57,6 +57,7 @@ public class PackagesConfigurer implements Configurer {
           mavenProjectsWithSenchaPackages.add(p);
         }
       }
+
     }
 
     Path rootPath;
@@ -74,7 +75,7 @@ public class PackagesConfigurer implements Configurer {
         // needs to be put into: apps: [], ignore for now path = Paths.get(p.getBuild().getDirectory() + "/" + SENCHA_BASE_PATH);
       } else {
         Path path;
-        path = Paths.get(p.getBuild().getDirectory() + SenchaUtils.SEPARATOR + SenchaUtils.SENCHA_BASE_PATH + SenchaUtils.SEPARATOR + "packages" + SenchaUtils.SEPARATOR + SenchaUtils.SENCHA_PACKAGES_LOCAL);
+        path = Paths.get(p.getBuild().getDirectory() + SenchaUtils.SEPARATOR + SenchaUtils.getSenchaPackageNameForMavenProject(project) + SenchaUtils.SEPARATOR + "packages" + SenchaUtils.SEPARATOR + SenchaUtils.SENCHA_PACKAGES_LOCAL);
         Path relativePath = rootPath.relativize(path);
         String relativePathString = relativePath.toString();
 
