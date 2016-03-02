@@ -17,14 +17,15 @@ import org.apache.maven.project.MavenProject;
 import javax.annotation.Nullable;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.HashSet;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 
 @Mojo(name = "update-remote-packages",
         defaultPhase = LifecyclePhase.PROCESS_RESOURCES,
         requiresDependencyResolution = ResolutionScope.RUNTIME,
-        threadSafe = true)
+        threadSafe = true, aggregator = true)
 public class UpdateRemotePackagesMojo extends AbstractJangarooMojo {
 
   public static final String REMOTE_AGGREGATOR_ARTIFACT_ID = "remote-packages";
@@ -43,12 +44,11 @@ public class UpdateRemotePackagesMojo extends AbstractJangarooMojo {
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
     long startTime = System.nanoTime();
-    // List<MavenProject> projects = session.getProjects();
+
     List<MavenProject> projects = getProject().getCollectedProjects();
     MavenProject remoteAggregatorProject = null;
 
-    // TODO comparator by groupid / artifact id /version
-    Set<MavenProject> projectDependencies = new HashSet<>();
+    Set<MavenProject> projectDependencies = new TreeSet<>(new MavenProjectComparator());
 
     for (MavenProject currentProject: projects) {
       if (Types.JANGAROO_TYPE.equals(currentProject.getPackaging())) {
@@ -129,6 +129,19 @@ public class UpdateRemotePackagesMojo extends AbstractJangarooMojo {
       new MavenXpp3Writer().write(new FileWriter(project.getFile()), model);
     } catch (IOException e) {
       throw new MojoFailureException("could not create plugin config file for " + project.getFile().getAbsolutePath(), e);
+    }
+  }
+
+  private static class MavenProjectComparator implements Comparator<MavenProject> {
+
+    @Override
+    public int compare(MavenProject p1, MavenProject p2) {
+      if (!p1.getGroupId().equals(p2.getGroupId())) {
+        return p1.getGroupId().compareTo(p2.getGroupId());
+      } else if (!p1.getArtifactId().equals(p2.getArtifactId())) {
+        return p1.getArtifactId().compareTo(p2.getArtifactId());
+      }
+      return p1.getVersion().compareTo(p2.getVersion());
     }
   }
 

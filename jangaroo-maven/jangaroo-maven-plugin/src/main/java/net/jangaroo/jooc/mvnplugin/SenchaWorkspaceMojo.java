@@ -5,10 +5,9 @@ package net.jangaroo.jooc.mvnplugin;
 
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaHelper;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaModuleHelper;
-import org.apache.commons.lang.StringUtils;
+import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
-import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -69,6 +68,10 @@ public class SenchaWorkspaceMojo extends AbstractMojo {
   }
 
   private MavenProject getRemotePackagesProject() throws MojoExecutionException {
+    // TODO for some reason, the remotePackagesArtifact is set, but not the group or artifact id
+    if (remotePackagesArtifact.groupId == null || remotePackagesArtifact.artifactId == null) {
+      return project;
+    }
     List<MavenProject> allReactorProjects = session.getProjects();
     for (MavenProject project : allReactorProjects) {
 
@@ -83,7 +86,11 @@ public class SenchaWorkspaceMojo extends AbstractMojo {
 
   private String getPathRelativeToCurrentProjectFrom(String pathFromProperty, MavenProject remotePackages) {
     Path absolutePathToCurrentProject = project.getBasedir().toPath();
-    Path absoultePathFromProperty = Paths.get(remotePackages.getProperties().get(pathFromProperty).toString());
+    String remotePackagesDir = (String) remotePackages.getProperties().get(pathFromProperty);
+    if (remotePackagesDir == null) {
+      remotePackagesDir = project.getBuild().getDirectory() + SenchaUtils.SEPARATOR + SenchaUtils.SENCHA_PACKAGES; // TODO is this a good constant?
+    }
+    Path absoultePathFromProperty = Paths.get(remotePackagesDir);
     return absolutePathToCurrentProject.relativize(absoultePathFromProperty).toString();
   }
 
