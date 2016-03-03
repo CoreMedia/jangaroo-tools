@@ -22,14 +22,15 @@ import java.util.Map;
 
 class SenchaAppHelper extends AbstractSenchaHelper {
 
+  private final static String APP_TARGET_DIRECTORY = "app";
+
   private final Configurer[] appConfigurers;
-  private final String senchaPath;
+  private final String senchaAppPath;
 
   public SenchaAppHelper(MavenProject project, SenchaConfiguration senchaConfiguration, Log log) {
     super(project, senchaConfiguration, log);
 
-    String buildDirectory = project.getBuild().getDirectory();
-    this.senchaPath = buildDirectory + File.separator + getSenchaModuleName();
+    this.senchaAppPath =  project.getBuild().getDirectory() + File.separator + APP_TARGET_DIRECTORY;
 
     MetadataConfigurer metadataConfigurer = new MetadataConfigurer(project);
     RequiresConfigurer requiresConfigurer = new RequiresConfigurer(project, senchaConfiguration);
@@ -48,7 +49,7 @@ class SenchaAppHelper extends AbstractSenchaHelper {
   @Override
   public void createModule() throws MojoExecutionException {
     if (getSenchaConfiguration().isEnabled()) {
-      File workingDirectory = new File(senchaPath);
+      File workingDirectory = new File(senchaAppPath);
 
       if (!workingDirectory.exists() && !workingDirectory.mkdirs()) {
         throw new MojoExecutionException("could not create working directory");
@@ -105,16 +106,16 @@ class SenchaAppHelper extends AbstractSenchaHelper {
   @Override
   public void prepareModule() throws MojoExecutionException {
     if (getSenchaConfiguration().isEnabled()) {
-      File senchaDirectory = new File(senchaPath);
+      File senchaDirectory = new File(senchaAppPath);
 
       if (!senchaDirectory.exists()) {
         getLog().info("generating sencha into: " + senchaDirectory.getPath());
         getLog().debug("created " + senchaDirectory.mkdirs());
       }
 
-      copyFiles(senchaPath);
+      copyFiles(senchaAppPath);
 
-      File workingDirectory = new File(senchaPath);
+      File workingDirectory = new File(senchaAppPath);
 
       writeAppJson(workingDirectory);
     }

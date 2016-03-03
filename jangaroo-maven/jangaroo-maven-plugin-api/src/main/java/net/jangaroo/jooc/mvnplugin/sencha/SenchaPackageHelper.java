@@ -29,16 +29,12 @@ class SenchaPackageHelper extends AbstractSenchaHelper {
   private SenchaWorkspaceHelper workspaceHelper;
 
   private final Configurer[] packageConfigurers;
-  private final String senchaPath;
   private final String senchaPackagePath;
 
   public SenchaPackageHelper(MavenProject project, SenchaConfiguration senchaConfiguration, Log log) {
     super(project, senchaConfiguration, log);
 
-    String buildDirectory = project.getBuild().getDirectory();
-    this.senchaPath = buildDirectory + File.separator + getSenchaModuleName();
-
-    this.senchaPackagePath = senchaPath + File.separator + SenchaUtils.SENCHA_PACKAGES + File.separator + SenchaUtils.SENCHA_PACKAGES_LOCAL + File.separator + SenchaUtils.LOCAL_PACKAGE_PATH;
+    this.senchaPackagePath = project.getBuild().getDirectory() + File.separator + SenchaUtils.SENCHA_PACKAGES + File.separator + SenchaUtils.SENCHA_PACKAGES_LOCAL + File.separator + SenchaUtils.LOCAL_PACKAGE_PATH;
 
     MetadataConfigurer metadataConfigurer = new MetadataConfigurer(project);
     RequiresConfigurer requiresConfigurer = new RequiresConfigurer(project, senchaConfiguration);

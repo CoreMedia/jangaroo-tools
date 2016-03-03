@@ -20,10 +20,14 @@ import java.io.PrintWriter;
 import java.util.Map;
 
 class SenchaWorkspaceHelper extends AbstractSenchaHelper {
+
   private final Configurer[] workspaceConfigurers;
+  private final String senchaWorkspacePath;
 
   public SenchaWorkspaceHelper(MavenProject project, SenchaConfiguration senchaConfiguration, Log log) {
     super(project, senchaConfiguration, log);
+
+    this.senchaWorkspacePath = getProject().getBasedir().getAbsolutePath();
 
     PathConfigurer pathConfigurer = new PathConfigurer(project, senchaConfiguration);
     PackagesConfigurer packagesConfigurer = new PackagesConfigurer(project, senchaConfiguration);
@@ -99,11 +103,7 @@ class SenchaWorkspaceHelper extends AbstractSenchaHelper {
     if (getSenchaConfiguration().isEnabled()) {
 
       File workingDirectory;
-      try {
-        workingDirectory = getProject().getBasedir().getCanonicalFile();
-      } catch (IOException e) {
-        throw new MojoExecutionException("could not determine project base directory", e);
-      }
+      workingDirectory = new File(senchaWorkspacePath);
 
       if (!workingDirectory.exists()) {
         getLog().info("generating sencha package into: " + workingDirectory.getPath());
