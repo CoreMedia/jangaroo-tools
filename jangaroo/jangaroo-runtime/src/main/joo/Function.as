@@ -1,5 +1,5 @@
 /**
- * API and documentation by Adobe®.
+ * API and documentation by Adobeï¿½.
  * Licensed under http://creativecommons.org/licenses/by-nc-sa/3.0/
  */
 package {
@@ -53,7 +53,7 @@ public final class Function {
    * @see #apply()
    *
    */
-  public native function call(thisArg:* = NaN, ...args):Object;
+  public native function call(thisArg:* = NaN, ...args):*;
 
   /**
    * A reference to the prototype object of a class or function object. The prototype property is automatically created
