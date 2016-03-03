@@ -191,18 +191,8 @@ public class SenchaUtils {
     if (null == closestSenchaWorkspaceDir) {
       throw new MojoExecutionException("could not find sencha workspace above workingDirectory");
     }
-    Path workspacePath;
-    try {
-      workspacePath = closestSenchaWorkspaceDir.toPath().toRealPath();
-    } catch (IOException e) {
-      throw new MojoExecutionException("could not find path for sencha workspace", e);
-    }
-    Path workingDirectoryPath;
-    try {
-      workingDirectoryPath = workingDirectory.toPath().toRealPath();
-    } catch (IOException e) {
-      throw new MojoExecutionException("could not find path for working directory", e);
-    }
+    Path workspacePath = closestSenchaWorkspaceDir.toPath().normalize();
+    Path workingDirectoryPath = workingDirectory.toPath().normalize();
 
     if (workspacePath.getRoot() == null || !workspacePath.getRoot().equals(workingDirectoryPath.getRoot())) {
       throw new MojoExecutionException("cannot find a relative path from workspace directory to working directory");

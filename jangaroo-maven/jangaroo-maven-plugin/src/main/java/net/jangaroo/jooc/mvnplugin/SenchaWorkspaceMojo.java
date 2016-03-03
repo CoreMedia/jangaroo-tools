@@ -16,7 +16,6 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -86,21 +85,13 @@ public class SenchaWorkspaceMojo extends AbstractMojo {
   }
 
   private String getPathRelativeToCurrentProjectFrom(String pathFromProperty, MavenProject remotePackages) throws MojoExecutionException {
-    Path absolutePathToCurrentProject = normalizePath(project.getBasedir().toPath());
+    Path absolutePathToCurrentProject = project.getBasedir().toPath().normalize();
     String remotePackagesDir = (String) remotePackages.getProperties().get(pathFromProperty);
     if (remotePackagesDir == null) {
       remotePackagesDir = project.getBuild().getDirectory() + SenchaUtils.SEPARATOR + SenchaUtils.SENCHA_PACKAGES; // TODO is this a good constant?
     }
-    Path absolutePathFromProperty = normalizePath(Paths.get(remotePackagesDir));
+    Path absolutePathFromProperty = Paths.get(remotePackagesDir).normalize();
     return absolutePathToCurrentProject.relativize(absolutePathFromProperty).toString();
-  }
-
-  private Path normalizePath(Path path) throws MojoExecutionException {
-    try {
-      return path.toRealPath();
-    } catch (IOException e) {
-      throw new MojoExecutionException("path could not be normalized: " + path, e);
-    }
   }
 
   public static final class ArtifactItem {

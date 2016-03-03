@@ -6,7 +6,6 @@ import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -60,14 +59,8 @@ public class PackagesConfigurer implements Configurer {
 
     }
 
-    Path rootPath;
-    try {
-      // toRealPath solves the problem that sometimes the root in the path is uppercase and sometimes lowercase,
-      // causing relativize to fail
-      rootPath = project.getBasedir().toPath().toRealPath();
-    } catch (IOException e) {
-      throw new MojoExecutionException("Could not determine root directory of the project", e);
-    }
+    Path rootPath = project.getBasedir().toPath().normalize();
+
     for (MavenProject mavenProjectWithSenchaPackage : mavenProjectsWithSenchaPackages) {
 
       // TODO: check type by configuration not by name
