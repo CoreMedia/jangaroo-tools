@@ -170,6 +170,8 @@ public class SenchaUtils {
    * @return path prefixed with a placeholder and a separator to have an absolute path
    */
   public static String generateAbsolutePathUsingPlaceholder(SenchaConfiguration.Type type, String relativePath) {
+    // make sure only normal slashes are used and no backslashes (e.g. on windows systems)
+    relativePath = relativePath.replace("\\", "/");
     String result = PLACEHOLDERS.get(type);
     if (!StringUtils.isEmpty(relativePath)
             && !relativePath.startsWith(SEPARATOR)) {
@@ -299,7 +301,8 @@ public class SenchaUtils {
   }
 
   public static boolean isSenchaPackageArtifact(Artifact artifact) throws MojoExecutionException {
-    return Types.JAVASCRIPT_EXTENSION.equalsIgnoreCase(artifact.getType()) &&
-            !"test".equalsIgnoreCase(artifact.getScope()); // TODO should we really exclude test scope artifacts?
+    return Types.JAVASCRIPT_EXTENSION.equalsIgnoreCase(artifact.getType())
+            && !MAVEN_DEPENDENCY_SCOPE_TEST.equalsIgnoreCase(artifact.getScope())  // TODO should we really exclude test scope artifacts?
+            && !MAVEN_DEPENDENCY_SCOPE_PROVIDED.equalsIgnoreCase(artifact.getScope());
   }
 }
