@@ -77,7 +77,7 @@ public class PathConfigurer implements Configurer {
   private String absolutePath(String path, boolean fromSrc) {
     String prefix = "";
     if (fromSrc) {
-      prefix = getRelativePathFromModuleToSrc() + SenchaUtils.getSenchaPackageNameForMavenProject(project) + SenchaUtils.SEPARATOR;
+      prefix = getRelativePathFromModuleToSrc() + SenchaUtils.SENCHA_BASE_PATH + SenchaUtils.SEPARATOR;
     }
     return SenchaUtils.generateAbsolutePathUsingPlaceholder(senchaConfiguration.getType(), prefix + path);
   }
@@ -90,7 +90,7 @@ public class PathConfigurer implements Configurer {
     }
     if (SenchaConfiguration.Type.CODE.equals(senchaConfiguration.getType())
             || SenchaConfiguration.Type.THEME.equals(senchaConfiguration.getType())) {
-      return StringUtils.repeat(pathDown, 5);
+      return StringUtils.repeat(pathDown, 4);
     }
     return "";
   }
