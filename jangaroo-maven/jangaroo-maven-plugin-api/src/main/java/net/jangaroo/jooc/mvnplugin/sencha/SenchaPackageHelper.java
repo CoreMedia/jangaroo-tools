@@ -230,13 +230,6 @@ class SenchaPackageHelper extends AbstractSenchaHelper {
         }
 
         removeTemporaryWorkspaceIfConfigured();
-      } else {
-        // at least add a package indicator to jar
-        try {
-          archiver.addFile(new File(senchaPackagePath + File.separator + SenchaUtils.SENCHA_PACKAGE_FILENAME), getSenchaModuleName() + "/" + SenchaUtils.SENCHA_PACKAGE_FILENAME);
-        } catch (ArchiverException e) {
-          throw new MojoExecutionException("could not add package indicator to jar", e);
-        }
       }
     }
   }
