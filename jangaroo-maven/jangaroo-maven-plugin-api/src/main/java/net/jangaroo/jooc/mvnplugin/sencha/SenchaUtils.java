@@ -269,7 +269,7 @@ public class SenchaUtils {
         // Do we need to create a directory ?
         File file = new File(directory.getAbsolutePath() + SEPARATOR + name);
         if (name.endsWith(SEPARATOR)) {
-          if (!file.mkdirs()) {
+          if (!file.exists() && !file.mkdirs()) {
             throw new MojoExecutionException("could not create directory: " + file);
           }
           continue;
@@ -277,7 +277,7 @@ public class SenchaUtils {
 
         File parent = file.getParentFile();
         if (parent != null) {
-          if (!parent.mkdirs()) {
+          if (!parent.exists() && !parent.mkdirs()) {
             throw new MojoExecutionException("could not create directory: " + parent);
           }
         }
