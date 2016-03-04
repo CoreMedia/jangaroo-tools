@@ -150,7 +150,11 @@ public class MxmlParserHelper {
     return (ImportDirective) Iterables.getFirst(unit.getDirectives(), null);
   }
 
-  @Nonnull
+  public Ide parseIde(@Nonnull String text) {
+    return parseImport(text).getIde();
+  }
+
+    @Nonnull
   static int[] position(@Nonnull JooSymbol symbol, @Nonnull String template) {
     String[] lines = template.split("\\n");
     int lineCount = 0;

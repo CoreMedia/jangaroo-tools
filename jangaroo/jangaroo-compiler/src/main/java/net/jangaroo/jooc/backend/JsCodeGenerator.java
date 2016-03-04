@@ -276,6 +276,8 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       MemberModel getter = findMemberWithBindableAnnotation(ide, MethodType.GET, memberDeclaration.getClassDeclaration());
       if (getter != null) {
         // found usage of an [Bindable]-annotated get function: call it via AS3.getBindable()!
+        Expr normalizedArg = arg instanceof IdeExpr ? ((IdeExpr) arg).getNormalizedExpr() : arg;
+        out.writeSymbolWhitespace(normalizedArg.getSymbol());
         out.writeToken("AS3.getBindable(");
         memberName = CompilerUtils.quote(getter.getName());
         separatorToken = ",";
@@ -752,6 +754,8 @@ public class JsCodeGenerator extends CodeGeneratorBase {
         symDot = dotExpr.getOp();
       }
       if (setter != null && dotExprArg != null) {
+        AstNode normalizedDotExprArg = dotExprArg instanceof IdeExpr ? ((IdeExpr) dotExprArg).getNormalizedExpr() : dotExprArg;
+        out.writeSymbolWhitespace(normalizedDotExprArg.getSymbol());
         out.write("AS3.setBindable(");
         visitInExpressionMode(dotExprArg);
         writeSymbolReplacement(symDot, ",");
@@ -1037,6 +1041,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     // these old-style type casts are soo ugly....
     ParenthesizedExpr<CommaSeparatedList<Expr>> args = applyExpr.getArgs();
     if (applyExpr.isTypeCast()) {
+      out.writeSymbolWhitespace(applyExpr.getFun().getSymbol());
       out.writeToken("AS3.cast");
       out.writeSymbol(args.getLParen());
       applyExpr.getFun().visit(this);

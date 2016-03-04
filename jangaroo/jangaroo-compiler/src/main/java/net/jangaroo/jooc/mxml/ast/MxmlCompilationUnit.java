@@ -135,7 +135,6 @@ public class MxmlCompilationUnit extends CompilationUnit {
       constructorBodyDirectives.add(variableDeclaration);
     }
 
-    Ide exml = null;
     if (null == constructorParam || null == superConfigVar) {
       createFields(superConfigVar);
     } else {
@@ -146,8 +145,8 @@ public class MxmlCompilationUnit extends CompilationUnit {
 
       createFields(defaultsConfigVar);
       ImportDirective importDirective = mxmlParserHelper.parseImport(NET_JANGAROO_EXT_EXML);
-      exml = importDirective.getIde();
       getDirectives().add(importDirective);
+      Ide exml = mxmlParserHelper.parseIde(NET_JANGAROO_EXT_EXML);
 
       CommaSeparatedList<Expr> exprCommaSeparatedList = new CommaSeparatedList<Expr>(new IdeExpr(defaultsConfigVar), MxmlAstUtils.SYM_COMMA, new CommaSeparatedList<Expr>(new IdeExpr(constructorParam.getIde())));
       ApplyExpr applyExpr = new ApplyExpr(new DotExpr(new IdeExpr(exml), MxmlAstUtils.SYM_DOT, new Ide(new JooSymbol(APPLY))), MxmlAstUtils.SYM_LPAREN, exprCommaSeparatedList, MxmlAstUtils.SYM_RPAREN);
@@ -160,8 +159,9 @@ public class MxmlCompilationUnit extends CompilationUnit {
     constructorBodyDirectives.addAll(mxmlParserHelper.parseConstructorBody(mxmlToModelParser.getConstructorCode()));
     classBodyDirectives.addAll(mxmlParserHelper.parseClassBody(mxmlToModelParser.getClassBodyCode()).getDirectives());
 
-    if (null != exml) {
+    if (!(null == constructorParam || null == superConfigVar)) {
       CommaSeparatedList<Expr> exprCommaSeparatedList = new CommaSeparatedList<Expr>(new IdeExpr(superConfigVar), MxmlAstUtils.SYM_COMMA, new CommaSeparatedList<Expr>(new IdeExpr(constructorParam.getIde())));
+      Ide exml = mxmlParserHelper.parseIde(NET_JANGAROO_EXT_EXML);
       ApplyExpr applyExpr = new ApplyExpr(new DotExpr(new IdeExpr(exml), MxmlAstUtils.SYM_DOT, new Ide(new JooSymbol(APPLY))), MxmlAstUtils.SYM_LPAREN, exprCommaSeparatedList, MxmlAstUtils.SYM_RPAREN);
       constructorBodyDirectives.add(MxmlAstUtils.createSemicolonTerminatedStatement(applyExpr));
 
@@ -204,8 +204,8 @@ public class MxmlCompilationUnit extends CompilationUnit {
       if(null != constructorParam) {
         args = new CommaSeparatedList<Expr>(new IdeExpr(constructorParam.getIde()));
       }
-      DotExpr intFunctionInvocation = new DotExpr(new IdeExpr(new Ide(MxmlAstUtils.SYM_THIS)), MxmlAstUtils.SYM_DOT, initMethod.getIde());
-      Directive directive = MxmlAstUtils.createSemicolonTerminatedStatement(new ApplyExpr(intFunctionInvocation, initMethod.getFun().getLParen(), args, initMethod.getFun().getRParen()));
+      DotExpr initFunctionInvocation = new DotExpr(new IdeExpr(new Ide(MxmlAstUtils.SYM_THIS)), MxmlAstUtils.SYM_DOT, new Ide(initMethod.getIde().getSymbol().withoutWhitespace()));
+      Directive directive = MxmlAstUtils.createSemicolonTerminatedStatement(new ApplyExpr(initFunctionInvocation, initMethod.getFun().getLParen(), args, initMethod.getFun().getRParen()));
       constructorBodyDirectives.add(directive);
     }
   }
