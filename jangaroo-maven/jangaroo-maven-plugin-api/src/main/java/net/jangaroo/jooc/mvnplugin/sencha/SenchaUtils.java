@@ -269,13 +269,17 @@ public class SenchaUtils {
         // Do we need to create a directory ?
         File file = new File(directory.getAbsolutePath() + SEPARATOR + name);
         if (name.endsWith(SEPARATOR)) {
-          file.mkdirs();
+          if (!file.mkdirs()) {
+            throw new MojoExecutionException("could not create directory: " + file);
+          }
           continue;
         }
 
         File parent = file.getParentFile();
         if (parent != null) {
-          parent.mkdirs();
+          if (!parent.mkdirs()) {
+            throw new MojoExecutionException("could not create directory: " + parent);
+          }
         }
 
         // Extract the file
@@ -304,5 +308,15 @@ public class SenchaUtils {
     return Types.JAVASCRIPT_EXTENSION.equalsIgnoreCase(artifact.getType())
             && !MAVEN_DEPENDENCY_SCOPE_TEST.equalsIgnoreCase(artifact.getScope())  // TODO should we really exclude test scope artifacts?
             && !MAVEN_DEPENDENCY_SCOPE_PROVIDED.equalsIgnoreCase(artifact.getScope());
+  }
+
+  public static Map<String, Object> getWorkspaceConfig(File workspaceDir) throws MojoExecutionException {
+    try {
+      //noinspection unchecked
+      return (Map<String, Object>) SenchaUtils.getObjectMapper().readValue(new File(workspaceDir.getAbsolutePath() + File.separator + SENCHA_WORKSPACE_FILENAME), Map.class);
+
+    } catch (IOException e) {
+      throw new MojoExecutionException("could not read " + SENCHA_WORKSPACE_FILENAME, e);
+    }
   }
 }

@@ -32,7 +32,7 @@ abstract class AbstractSenchaHelper implements SenchaHelper {
   }
 
   private void copyFilesFromSrc(String path, String suffix) throws MojoExecutionException {
-    File srcDir = new File(project.getBasedir() + File.separator + senchaModuleName + File.separator + suffix);
+    File srcDir = new File(project.getBasedir() + File.separator + SenchaUtils.SENCHA_BASE_PATH + File.separator + suffix);
     File senchaDir = new File(path + File.separator + suffix);
     if (srcDir.exists()) {
       try {

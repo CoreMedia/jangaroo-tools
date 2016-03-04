@@ -28,6 +28,7 @@ class SenchaPackageHelper extends AbstractSenchaHelper {
 
   private SenchaWorkspaceHelper workspaceHelper;
 
+  private final PathConfigurer pathConfigurer;
   private final Configurer[] packageConfigurers;
   private final String senchaPackagePath;
 
@@ -39,7 +40,7 @@ class SenchaPackageHelper extends AbstractSenchaHelper {
     MetadataConfigurer metadataConfigurer = new MetadataConfigurer(project);
     RequiresConfigurer requiresConfigurer = new RequiresConfigurer(project, senchaConfiguration);
     SenchaConfigurationConfigurer senchaConfigurationConfigurer = new SenchaConfigurationConfigurer(project, senchaConfiguration);
-    PathConfigurer pathConfigurer = new PathConfigurer(project, senchaConfiguration);
+    pathConfigurer = new PathConfigurer(senchaConfiguration);
 
     Configurer defaultSenchaPackageConfigurer;
     if (!SenchaConfiguration.Type.THEME.equals(senchaConfiguration.getType())) {
@@ -165,18 +166,17 @@ class SenchaPackageHelper extends AbstractSenchaHelper {
       if (!getSenchaConfiguration().isSkipBuild()) {
         createTemporaryWorkspaceIfConfigured(true);
 
-        if (getSenchaConfiguration().isScssFromSrc()) {
-          // rewrite package.json so the src path is removed in build
-          getSenchaConfiguration().setScssFromSrc(false);
-          File workingDirectory = new File(senchaPackagePath);
-          writePackageJson(workingDirectory);
-          getSenchaConfiguration().setScssFromSrc(true);
-        }
-
         File senchaPackageDirectory = new File(senchaPackagePath);
 
         if (!senchaPackageDirectory.exists()) {
           throw new MojoExecutionException("sencha package directory does not exist: " + senchaPackageDirectory.getPath());
+        }
+
+        if (getSenchaConfiguration().isScssFromSrc()) {
+          // rewrite package.json so the src path is removed in build
+          getSenchaConfiguration().setScssFromSrc(false);
+          writePackageJson(senchaPackageDirectory);
+          getSenchaConfiguration().setScssFromSrc(true);
         }
 
         buildSenchaPackage(senchaPackageDirectory);
@@ -187,22 +187,8 @@ class SenchaPackageHelper extends AbstractSenchaHelper {
           throw new MojoExecutionException("could not find sencha workspace directory");
         }
 
-        // Read workspace.json
-        String workspaceOutputPath = workspaceDir.getAbsolutePath() + File.separator + getSenchaConfiguration().getBuildDir();
-        try {
-          @SuppressWarnings("unchecked") Map<String, Object> workspaceConfig = (Map<String, Object>) SenchaUtils.getObjectMapper().readValue(new File(workspaceDir.getAbsolutePath() + File.separator + SenchaUtils.SENCHA_WORKSPACE_FILENAME), Map.class);
-
-          // check if custom workspace dir has been set
-          Object build = workspaceConfig.get(PathConfigurer.BUILD);
-          if (build instanceof Map) {
-            build = ((Map) build).get(PathConfigurer.DIR);
-          }
-          if (build instanceof String) {
-            workspaceOutputPath = ((String) build).replace(SenchaUtils.PLACEHOLDERS.get(SenchaConfiguration.Type.WORKSPACE), workspaceDir.getAbsolutePath());
-          }
-        } catch (IOException e) {
-          throw new MojoExecutionException("could not read " + SenchaUtils.SENCHA_WORKSPACE_FILENAME, e);
-        }
+        Map<String, Object> workspaceConfig = SenchaUtils.getWorkspaceConfig(workspaceDir);
+        String workspaceOutputPath = pathConfigurer.getWorkspaceOutputPath(workspaceConfig, workspaceDir);
 
         File pkg = new File(workspaceOutputPath + File.separator + getSenchaModuleName() + File.separator + getSenchaModuleName() + SenchaUtils.SENCHA_PKG_EXTENSION);
         if (!pkg.exists()) {

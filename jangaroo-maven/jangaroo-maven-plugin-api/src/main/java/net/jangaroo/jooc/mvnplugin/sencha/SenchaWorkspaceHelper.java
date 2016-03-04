@@ -29,7 +29,7 @@ class SenchaWorkspaceHelper extends AbstractSenchaHelper {
 
     this.senchaWorkspacePath = getProject().getBasedir().getAbsolutePath();
 
-    PathConfigurer pathConfigurer = new PathConfigurer(project, senchaConfiguration);
+    PathConfigurer pathConfigurer = new PathConfigurer(senchaConfiguration);
     PackagesConfigurer packagesConfigurer = new PackagesConfigurer(project, senchaConfiguration);
 
     this.workspaceConfigurers = new Configurer[] {

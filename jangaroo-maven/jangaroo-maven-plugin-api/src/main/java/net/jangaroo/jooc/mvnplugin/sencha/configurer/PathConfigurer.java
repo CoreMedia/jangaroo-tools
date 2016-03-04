@@ -4,8 +4,8 @@ import net.jangaroo.jooc.mvnplugin.SenchaConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.project.MavenProject;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -31,10 +31,8 @@ public class PathConfigurer implements Configurer {
   public static final String DIR = "dir";
 
   private SenchaConfiguration senchaConfiguration;
-  private MavenProject project;
 
-  public PathConfigurer(MavenProject project, SenchaConfiguration senchaConfiguration) {
-    this.project = project;
+  public PathConfigurer(SenchaConfiguration senchaConfiguration) {
     this.senchaConfiguration = senchaConfiguration;
   }
 
@@ -63,6 +61,20 @@ public class PathConfigurer implements Configurer {
       output.put(DIR, absolutePath(senchaConfiguration.getBuildDir(), false));
       config.put(BUILD, output);
     }
+  }
+
+  public String getWorkspaceOutputPath(Map<String, Object> config, File workspaceDir) throws MojoExecutionException {
+    // Read workspace.json
+    String workspaceOutputPath = workspaceDir.getAbsolutePath() + File.separator + senchaConfiguration.getBuildDir();
+      // check if custom workspace dir has been set
+      Object build = config.get(BUILD);
+      if (build instanceof Map) {
+        build = ((Map) build).get(DIR);
+      }
+      if (build instanceof String) {
+        workspaceOutputPath = ((String) build).replace(SenchaUtils.PLACEHOLDERS.get(SenchaConfiguration.Type.WORKSPACE), workspaceDir.getAbsolutePath());
+      }
+    return workspaceOutputPath;
   }
 
   private void configureResourcesForPath(List<Object> resources, String path, boolean shared) {

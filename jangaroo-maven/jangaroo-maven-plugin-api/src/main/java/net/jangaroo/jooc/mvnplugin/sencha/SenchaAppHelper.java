@@ -12,6 +12,7 @@ import org.apache.commons.exec.DefaultExecutor;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
 
 import java.io.File;
@@ -24,6 +25,7 @@ class SenchaAppHelper extends AbstractSenchaHelper {
 
   private final static String APP_TARGET_DIRECTORY = "app";
 
+  private final PathConfigurer pathConfigurer;
   private final Configurer[] appConfigurers;
   private final String senchaAppPath;
 
@@ -35,7 +37,7 @@ class SenchaAppHelper extends AbstractSenchaHelper {
     MetadataConfigurer metadataConfigurer = new MetadataConfigurer(project);
     RequiresConfigurer requiresConfigurer = new RequiresConfigurer(project, senchaConfiguration);
     SenchaConfigurationConfigurer senchaConfigurationConfigurer = new SenchaConfigurationConfigurer(project, senchaConfiguration);
-    PathConfigurer pathConfigurer = new PathConfigurer(project, senchaConfiguration);
+    pathConfigurer = new PathConfigurer(senchaConfiguration);
 
     this.appConfigurers = new Configurer[] {
             DefaultSenchaApplicationConfigurer.getInstance(),
@@ -123,7 +125,50 @@ class SenchaAppHelper extends AbstractSenchaHelper {
 
   @Override
   public void packageModule(JarArchiver archiver) throws MojoExecutionException {
-    // TODO
+    if (getSenchaConfiguration().isEnabled()) {
+
+      File senchaAppDirectory = new File(senchaAppPath);
+
+      if (!senchaAppDirectory.exists()) {
+        throw new MojoExecutionException("sencha package directory does not exist: " + senchaAppDirectory.getPath());
+      }
+
+      if (getSenchaConfiguration().isScssFromSrc()) {
+        // rewrite package.json so the src path is removed in build
+        getSenchaConfiguration().setScssFromSrc(false);
+        File workingDirectory = new File(senchaAppPath);
+        writeAppJson(workingDirectory);
+        getSenchaConfiguration().setScssFromSrc(true);
+      }
+
+      buildSenchaApp(senchaAppDirectory);
+
+      File workspaceDir = SenchaUtils.findClosestSenchaWorkspaceDir(getProject().getBasedir());
+
+      if (null == workspaceDir) {
+        throw new MojoExecutionException("could not find sencha workspace directory");
+      }
+
+      Map<String, Object> workspaceConfig = SenchaUtils.getWorkspaceConfig(workspaceDir);
+      String workspaceOutputPath = pathConfigurer.getWorkspaceOutputPath(workspaceConfig, workspaceDir);
+
+      File productionDirectory = new File(workspaceOutputPath + File.separator + SenchaUtils.SENCHA_RELATIVE_PRODUCTION_PATH + File.separator + getSenchaModuleName());
+      if (!productionDirectory.isDirectory() && !productionDirectory.exists()) {
+        throw new MojoExecutionException("could not find production directory for sencha app " + getSenchaModuleName());
+      }
+      try {
+        archiver.addDirectory(productionDirectory, "META-INF/resources/");
+      } catch (ArchiverException e) {
+        throw new MojoExecutionException("could not add app production directory to jar", e);
+      }
+
+      if (getSenchaConfiguration().isScssFromSrc()) {
+        // rewrite package.json so the src path is removed in build
+        getSenchaConfiguration().setScssFromSrc(true);
+        writeAppJson(senchaAppDirectory);
+        getSenchaConfiguration().setScssFromSrc(false);
+      }
+    }
   }
 
   @Override
@@ -144,7 +189,7 @@ class SenchaAppHelper extends AbstractSenchaHelper {
   }
 
   private void buildSenchaApp(File senchaAppDirectory) throws MojoExecutionException {
-    String line = "sencha build app";
+    String line = "sencha app build --production";
     CommandLine cmdLine = CommandLine.parse(line);
     DefaultExecutor executor = new DefaultExecutor();
     executor.setWorkingDirectory(senchaAppDirectory);
