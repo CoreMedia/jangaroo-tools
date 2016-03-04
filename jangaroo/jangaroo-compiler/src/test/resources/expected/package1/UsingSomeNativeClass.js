@@ -11,14 +11,14 @@ public class UsingSomeNativeClass {
   public native function get someNative2():package1.SomeNativeClass;
 
   public*/ function UsingSomeNativeClass$() {var this$=this;someNative_.call(this);someOtherNative_.call(this);
-    new AS3.package1.someOtherPackage.SomeNativeClass();AS3.setBindable(
-    this.someNative,"baz" , "foo");AS3.setBindable(
-    this.someNative2,"baz" , "foo");
+    new AS3.package1.someOtherPackage.SomeNativeClass();
+    AS3.setBindable(this.someNative,"baz" , "foo");
+    AS3.setBindable(this.someNative2,"baz" , "foo");
     var local = function()/*:void*/ {
-      var test/*:String*/ =AS3.getBindable( this$.someNative2,"baz");
+      var test/*:String*/ = AS3.getBindable(this$.someNative2,"baz");
     };
-    var foo =AS3.getBindable( this,"someNativeAccessor");
-    var bar =AS3.getBindable( this,"anotherNativeAccessor");
+    var foo = AS3.getBindable(this,"someNativeAccessor");
+    var bar = AS3.getBindable(this,"anotherNativeAccessor");
   }/*
 
   [Bindable]

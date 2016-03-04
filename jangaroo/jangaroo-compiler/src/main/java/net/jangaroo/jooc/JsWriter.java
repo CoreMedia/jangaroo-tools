@@ -29,7 +29,9 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Andreas Gawecki
@@ -45,6 +47,7 @@ public final class JsWriter extends FilterWriter {
   private int nOpenStrings = 0;
   private boolean suppressWhitespace = false;
   private List<SymbolToOutputFilePosition> sourceMappings = new ArrayList<SymbolToOutputFilePosition>();
+  private Set<JooSymbol> isWhitespaceWritten = new HashSet<JooSymbol>();
 
   public JsWriter(Writer target) {
     super(new PositionTrackingWriter(target));
@@ -236,9 +239,10 @@ public final class JsWriter extends FilterWriter {
   }
 
   public void writeSymbolWhitespace(JooSymbol symbol) throws IOException {
-    if (suppressWhitespace) {
+    if (suppressWhitespace || isWhitespaceWritten.contains(symbol)) {
       return;
     }
+    isWhitespaceWritten.add(symbol);
     String ws = symbol.getWhitespace();
     if (getKeepSource()) {
       if (inString) {
