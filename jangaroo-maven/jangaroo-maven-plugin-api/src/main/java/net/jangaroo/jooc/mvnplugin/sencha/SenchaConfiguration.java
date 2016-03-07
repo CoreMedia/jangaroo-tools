@@ -1,9 +1,5 @@
 package net.jangaroo.jooc.mvnplugin.sencha;
 
-import net.jangaroo.jooc.mvnplugin.MavenSenchaProfileConfigurationDevelopment;
-import net.jangaroo.jooc.mvnplugin.MavenSenchaProfileConfigurationProduction;
-import net.jangaroo.jooc.mvnplugin.MavenSenchaProfileConfigurationTesting;
-
 public interface SenchaConfiguration extends SenchaProfileConfiguration {
   boolean isEnabled();
 
@@ -36,12 +32,6 @@ public interface SenchaConfiguration extends SenchaProfileConfiguration {
   void setToolkit(String toolkit);
 
   void setTheme(String theme);
-
-  void setProduction(MavenSenchaProfileConfigurationProduction production);
-
-  void setDevelopment(MavenSenchaProfileConfigurationDevelopment development);
-
-  void setTesting(MavenSenchaProfileConfigurationTesting testing);
 
   void setExtFrameworkDir(String extFrameworkDir);
 

@@ -192,21 +192,6 @@ public class MavenSenchaConfiguration extends MavenSenchaProfileConfiguration im
   }
 
   @Override
-  public void setProduction(MavenSenchaProfileConfigurationProduction production) {
-    this.production = production;
-  }
-
-  @Override
-  public void setDevelopment(MavenSenchaProfileConfigurationDevelopment development) {
-    this.development = development;
-  }
-
-  @Override
-  public void setTesting(MavenSenchaProfileConfigurationTesting testing) {
-    this.testing = testing;
-  }
-
-  @Override
   public void setExtFrameworkDir(String extFrameworkDir) {
     this.extFrameworkDir = extFrameworkDir;
   }
