@@ -1,6 +1,7 @@
 package net.jangaroo.jooc.mvnplugin.sencha;
 
 import net.jangaroo.jooc.mvnplugin.SenchaConfiguration;
+import net.jangaroo.jooc.mvnplugin.SenchaProfileConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.Configurer;
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -8,8 +9,11 @@ import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -94,6 +98,65 @@ abstract class AbstractSenchaHelper implements SenchaHelper {
   protected void copyFiles(String path) throws MojoExecutionException {
     copyFilesFromSrc(path);
     copyFilesFromJoo(path);
+  }
+
+  protected void addRegisterEditorPluginsResource(String modulePath) throws MojoExecutionException {
+    addRegisterEditorPluginsResource(modulePath, getSenchaConfiguration());
+    if (null != getSenchaConfiguration().getProduction()) {
+      addRegisterEditorPluginsResource(modulePath, getSenchaConfiguration().getProduction());
+    }
+    if (null != getSenchaConfiguration().getTesting()) {
+      addRegisterEditorPluginsResource(modulePath, getSenchaConfiguration().getTesting());
+    }
+    if (null != getSenchaConfiguration().getDevelopment()) {
+      addRegisterEditorPluginsResource(modulePath, getSenchaConfiguration().getDevelopment());
+    }
+  }
+
+  protected void addRegisterEditorPluginsResource(String modulePath, SenchaProfileConfiguration senchaProfileConfiguration) throws MojoExecutionException {
+    List<String> editorPlugins = senchaProfileConfiguration.getEditorPlugins();
+    if (null != editorPlugins && !editorPlugins.isEmpty()) {
+      String profileFolder = "";
+      if (null != senchaProfileConfiguration.getProfileName()) {
+        profileFolder = senchaProfileConfiguration.getProfileName() + SenchaUtils.SEPARATOR;
+      }
+      File resource = new File(modulePath + File.separator + SenchaUtils.SENCHA_RELATIVE_RESOURCES_PATH + File.separator + profileFolder + SenchaUtils.EDITOR_PLUGIN_RESOURCE_FILENAME);
+      if (resource.exists()) {
+        getLog().warn("resource file for editor plugins already exists, deleting...");
+        if (!resource.delete()) {
+          throw new MojoExecutionException("Could not delete resource file for editor plugins");
+        }
+      }
+      PrintWriter pw = null;
+      try {
+        FileWriter fw = new FileWriter(resource, true);
+        pw = new PrintWriter(fw);
+        for (String editorPlugin : editorPlugins) {
+          String editorPluginName = getPluginName(editorPlugin);
+          String editorPluginCompiledClassName = "AS3." + editorPlugin;
+          pw.println("Ext.require(\"" + editorPluginCompiledClassName + "\");");
+          pw.println("coremediaEditorPlugins.push({\n"
+                  + "name: \"" + editorPluginName + "\",\n"
+                  + "mainClass: \"" + editorPlugin + "\"\n"
+                  + "});");
+        }
+      } catch (IOException e) {
+        throw new MojoExecutionException("could not append skip.sass and skip.slice to sencha config of package");
+      } finally {
+        if (null != pw) {
+          pw.close();
+        }
+      }
+    }
+  }
+
+  private String getPluginName(String editorPlugin) {
+    String editorPluginName = "No name";
+    String[] parts = editorPlugin.split("\\.");
+    if (parts.length > 0) {
+      editorPluginName = parts[parts.length - 1];
+    }
+    return editorPluginName;
   }
 
   protected MavenProject getProject() {

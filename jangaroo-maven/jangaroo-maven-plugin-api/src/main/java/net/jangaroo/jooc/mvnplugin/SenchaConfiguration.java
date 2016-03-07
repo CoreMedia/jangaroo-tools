@@ -58,7 +58,7 @@ public class SenchaConfiguration extends SenchaProfileConfiguration {
    * Ignored for {@link Type#WORKSPACE}
    */
   @Parameter(defaultValue = "${production}")
-  private SenchaProfileConfiguration production;
+  private SenchaProfileConfigurationProduction production;
 
   /**
    * Testing only configuration.
@@ -66,7 +66,7 @@ public class SenchaConfiguration extends SenchaProfileConfiguration {
    * Ignored for {@link Type#WORKSPACE}
    */
   @Parameter(defaultValue = "${testing}")
-  private SenchaProfileConfiguration testing;
+  private SenchaProfileConfigurationTesting testing;
 
   /**
    * Development only configuration
@@ -74,7 +74,7 @@ public class SenchaConfiguration extends SenchaProfileConfiguration {
    * Ignored for {@link Type#WORKSPACE}
    */
   @Parameter(defaultValue = "${development}")
-  private SenchaProfileConfiguration development;
+  private SenchaProfileConfigurationDevelopment development;
 
   /**
    * For {@link Type#WORKSPACE} defined the Ext Framework directory for the module.
@@ -196,15 +196,15 @@ public class SenchaConfiguration extends SenchaProfileConfiguration {
     this.theme = theme;
   }
 
-  public void setProduction(SenchaProfileConfiguration production) {
+  public void setProduction(SenchaProfileConfigurationProduction production) {
     this.production = production;
   }
 
-  public void setDevelopment(SenchaProfileConfiguration development) {
+  public void setDevelopment(SenchaProfileConfigurationDevelopment development) {
     this.development = development;
   }
 
-  public void setTesting(SenchaProfileConfiguration testing) {
+  public void setTesting(SenchaProfileConfigurationTesting testing) {
     this.testing = testing;
   }
 

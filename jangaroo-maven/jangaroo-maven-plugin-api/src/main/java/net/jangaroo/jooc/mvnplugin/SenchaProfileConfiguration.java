@@ -49,6 +49,15 @@ public class SenchaProfileConfiguration {
   @Parameter
   private List<String> additionalJsIncludeInBundle;
 
+  /**
+   * Specifies editorPlugins to be loaded.
+   */
+  @Parameter
+  private List<String> editorPlugins;
+
+  public String getProfileName() {
+    return null;
+  }
 
   public List<String> getAdditionalCssNonBundle() {
     return additionalCssNonBundle != null ? ImmutableList.copyOf(additionalCssNonBundle) : null;
@@ -72,5 +81,9 @@ public class SenchaProfileConfiguration {
 
   public List<String> getAdditionalJsIncludeInBundle() {
     return additionalJsIncludeInBundle != null ? ImmutableList.copyOf(additionalJsIncludeInBundle) : null;
+  }
+
+  public List<String> getEditorPlugins() {
+    return editorPlugins;
   }
 }

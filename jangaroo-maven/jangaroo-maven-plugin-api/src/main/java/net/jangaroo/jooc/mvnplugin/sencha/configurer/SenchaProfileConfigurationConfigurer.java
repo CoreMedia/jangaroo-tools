@@ -1,6 +1,7 @@
 package net.jangaroo.jooc.mvnplugin.sencha.configurer;
 
 import net.jangaroo.jooc.mvnplugin.SenchaProfileConfiguration;
+import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 
 import java.util.ArrayList;
@@ -25,7 +26,17 @@ class SenchaProfileConfigurationConfigurer implements Configurer {
   @Override
   public void configure(Map<String, Object> config) throws MojoExecutionException {
     config.put(CSS, getAdditionalResources(senchaProfileConfiguration.getAdditionalCssNonBundle(), senchaProfileConfiguration.getAdditionalCssBundle(), senchaProfileConfiguration.getAdditionalCssIncludeInBundle()));
-    config.put(JS, getAdditionalResources(senchaProfileConfiguration.getAdditionalJsNonBundle(), senchaProfileConfiguration.getAdditionalJsBundle(), senchaProfileConfiguration.getAdditionalJsIncludeInBundle()));
+    List<Object> js = new ArrayList<Object>();
+    js.addAll(getAdditionalResources(senchaProfileConfiguration.getAdditionalJsNonBundle(), senchaProfileConfiguration.getAdditionalJsBundle(), senchaProfileConfiguration.getAdditionalJsIncludeInBundle()));
+    List<String> editorPlugins = senchaProfileConfiguration.getEditorPlugins();
+    if (null != editorPlugins && !editorPlugins.isEmpty()) {
+      String profileFolder = "";
+      if (null != senchaProfileConfiguration.getProfileName()) {
+        profileFolder = senchaProfileConfiguration.getProfileName() + SenchaUtils.SEPARATOR;
+      }
+      js.add(getResourceEntry(SenchaUtils.SENCHA_RELATIVE_RESOURCES_PATH + SenchaUtils.SEPARATOR + profileFolder + SenchaUtils.EDITOR_PLUGIN_RESOURCE_FILENAME, false, true));
+    }
+    config.put(JS, js);
   }
 
   private List<Object> getAdditionalResources(List<String> resourcesNonBundle, List<String> resourcesBundle, List<String> resourcesIncludeInBundle) {

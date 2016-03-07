@@ -147,6 +147,7 @@ class SenchaPackageHelper extends AbstractSenchaHelper {
       }
 
       copyFiles(senchaPackagePath);
+      addRegisterEditorPluginsResource(senchaPackagePath);
 
       File workingDirectory = new File(senchaPackagePath);
 
