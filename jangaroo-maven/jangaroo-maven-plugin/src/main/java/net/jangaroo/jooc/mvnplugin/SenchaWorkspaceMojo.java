@@ -26,7 +26,6 @@ import java.util.List;
 @SuppressWarnings({"ResultOfMethodCallIgnored", "UnusedDeclaration", "UnusedPrivateField"})
 @Mojo(name = "generate-sencha-workspace",
         defaultPhase = LifecyclePhase.GENERATE_SOURCES,
-        requiresDependencyResolution = ResolutionScope.RUNTIME,
         threadSafe = true, aggregator = true)
 public class SenchaWorkspaceMojo extends AbstractMojo {
 
