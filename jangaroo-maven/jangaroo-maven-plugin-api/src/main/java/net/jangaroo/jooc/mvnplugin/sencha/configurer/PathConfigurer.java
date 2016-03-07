@@ -27,8 +27,8 @@ public class PathConfigurer implements Configurer {
   static final String SASS_SRC = "src";
   static final String APPS = "apps";
 
-  public static final String BUILD = "build";
-  public static final String DIR = "dir";
+  static final String BUILD = "build";
+  static final String DIR = "dir";
 
   private SenchaConfiguration senchaConfiguration;
 
@@ -46,7 +46,8 @@ public class PathConfigurer implements Configurer {
       config.put(OVERRIDES, absolutePath(SenchaUtils.SENCHA_RELATIVE_OVERRIDES_PATH, false));
       List<Object> resources = new ArrayList<Object>();
       // no substitution! as this must be a relative path
-      configureResourcesForPath(resources, SenchaUtils.SENCHA_RELATIVE_RESOURCES_PATH, true);
+      // only apps should use "shared" flag
+      configureResourcesForPath(resources, SenchaUtils.SENCHA_RELATIVE_RESOURCES_PATH, SenchaConfiguration.Type.APP.equals(senchaConfiguration.getType()));
       config.put(RESOURCES, resources);
 
       Map<String, Object> sass = new HashMap<String, Object>();
