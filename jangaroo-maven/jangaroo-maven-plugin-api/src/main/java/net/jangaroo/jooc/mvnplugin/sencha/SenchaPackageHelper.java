@@ -26,8 +26,6 @@ import java.util.Map;
 
 class SenchaPackageHelper extends AbstractSenchaHelper {
 
-  private SenchaWorkspaceHelper workspaceHelper;
-
   private final PathConfigurer pathConfigurer;
   private final Configurer[] packageConfigurers;
   private final String senchaPackagePath;
@@ -64,13 +62,11 @@ class SenchaPackageHelper extends AbstractSenchaHelper {
     workspaceConfiguration.setType(SenchaConfiguration.Type.WORKSPACE);
     workspaceConfiguration.setPackagesDir(senchaConfiguration.getPackagesDir());
     workspaceConfiguration.setExtFrameworkDir(senchaConfiguration.getExtFrameworkDir());
-    workspaceHelper = new SenchaWorkspaceHelper(project, workspaceConfiguration, log);
   }
 
   @Override
   public void createModule() throws MojoExecutionException {
     if (getSenchaConfiguration().isEnabled()) {
-      createTemporaryWorkspaceIfConfigured(false);
 
       File workingDirectory;
       try {
@@ -137,8 +133,6 @@ class SenchaPackageHelper extends AbstractSenchaHelper {
       } else {
         throw new MojoExecutionException("could not find sencha.cfg of package");
       }
-
-      removeTemporaryWorkspaceIfConfigured();
     }
   }
 
@@ -164,7 +158,6 @@ class SenchaPackageHelper extends AbstractSenchaHelper {
   public void packageModule(JarArchiver archiver) throws MojoExecutionException {
     if (getSenchaConfiguration().isEnabled()) {
       if (!getSenchaConfiguration().isSkipBuild()) {
-        createTemporaryWorkspaceIfConfigured(true);
 
         File senchaPackageDirectory = new File(senchaPackagePath);
 
@@ -214,8 +207,6 @@ class SenchaPackageHelper extends AbstractSenchaHelper {
           writePackageJson(senchaPackageDirectory);
           getSenchaConfiguration().setScssFromSrc(false);
         }
-
-        removeTemporaryWorkspaceIfConfigured();
       }
     }
   }
@@ -270,25 +261,5 @@ class SenchaPackageHelper extends AbstractSenchaHelper {
     }
 
     return (temp);
-  }
-
-  private void createTemporaryWorkspaceIfConfigured(boolean extractRemotePackages) throws MojoExecutionException {
-    if (getSenchaConfiguration().isTemporaryWorkspace()) {
-      // create temporary workspace
-      workspaceHelper.deleteModule();
-      workspaceHelper.createModule();
-      workspaceHelper.prepareModule();
-      if (extractRemotePackages) {
-        // TODO: determine real target directory
-        SenchaUtils.extractRemotePackagesForProject(getProject(), getProject().getBuild().getDirectory() + "/sencha/packages/remote");
-      }
-    }
-  }
-
-  private void removeTemporaryWorkspaceIfConfigured() throws MojoExecutionException {
-    if (getSenchaConfiguration().isTemporaryWorkspace()) {
-      // remove temporary workspace
-      workspaceHelper.deleteModule();
-    }
   }
 }
