@@ -20,14 +20,6 @@ public class MavenSenchaConfiguration extends MavenSenchaProfileConfiguration im
   private Type type = Type.CODE;
 
   /**
-   * Defines if the module will be generated using an temporary workspace. The workspace will be deleted after build.
-   * TODO is this really necessary?
-   * Ignored for {@link Type#WORKSPACE}
-   */
-  @Parameter(defaultValue = "false")
-  private boolean temporaryWorkspace = false;
-
-  /**
    * The toolkit to use
    *
    * Ignored for {@link Type#WORKSPACE}
@@ -130,11 +122,6 @@ public class MavenSenchaConfiguration extends MavenSenchaProfileConfiguration im
   }
 
   @Override
-  public boolean isTemporaryWorkspace() {
-    return temporaryWorkspace;
-  }
-
-  @Override
   public String getToolkit() {
     return toolkit;
   }
@@ -192,11 +179,6 @@ public class MavenSenchaConfiguration extends MavenSenchaProfileConfiguration im
   @Override
   public void setType(Type type) {
     this.type = type;
-  }
-
-  @Override
-  public void setTemporaryWorkspace(boolean temporaryWorkspace) {
-    this.temporaryWorkspace = temporaryWorkspace;
   }
 
   @Override

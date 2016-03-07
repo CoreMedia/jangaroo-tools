@@ -9,8 +9,6 @@ public interface SenchaConfiguration extends SenchaProfileConfiguration {
 
   Type getType();
 
-  boolean isTemporaryWorkspace();
-
   String getToolkit();
 
   String getTheme();
@@ -34,8 +32,6 @@ public interface SenchaConfiguration extends SenchaProfileConfiguration {
   void setEnabled(boolean enabled);
 
   void setType(Type type);
-
-  void setTemporaryWorkspace(boolean temporaryWorkspace);
 
   void setToolkit(String toolkit);
 
