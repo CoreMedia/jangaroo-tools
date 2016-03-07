@@ -9,49 +9,43 @@ import java.util.List;
 public class MavenSenchaProfileConfiguration implements SenchaProfileConfiguration {
 
   /**
-   * A list of paths to CSS files to include that are not loaded via the class loader (usually in resources folder).
-   * "bundle" option will be set to false, "includeInBundle" will be set to false.
+   * @see SenchaProfileConfiguration#getAdditionalCssNonBundle()
    */
   @Parameter
   private List<String> additionalCssNonBundle;
 
   /**
-   * A list of paths to JS files to include that are not loaded via the class loader (usually in resources folder).
-   * "bundle" option will be set to false, "includeInBundle" will be set to false.
+   * @see SenchaProfileConfiguration#getAdditionalJsNonBundle()
    */
   @Parameter
   private List<String> additionalJsNonBundle;
 
   /**
-   * A list of paths to CSS files to include that are not loaded via the class loader (usually in resources folder).
-   * "bundle" option will be set to true, "includeInBundle" will be set to false.
+   * @see SenchaProfileConfiguration#getAdditionalCssBundle()
    */
   @Parameter
   private List<String> additionalCssBundle;
 
   /**
-   * A list of paths to JS files to include that are not loaded via the class loader (usually in resources folder).
-   * "bundle" option will be set to true, "includeInBundle" will be set to false.
+   * @see SenchaProfileConfiguration#getAdditionalJsBundle()
    */
   @Parameter
   private List<String> additionalJsBundle;
 
   /**
-   * A list of paths to CSS files to include that are not loaded via the class loader (usually in resources folder).
-   * "bundle" option will be set to false, "includeInBundle" will be set to true.
+   * @see SenchaProfileConfiguration#getAdditionalCssIncludeInBundle()
    */
   @Parameter
   private List<String> additionalCssIncludeInBundle;
 
   /**
-   * A list of paths to JS files to include that are not loaded via the class loader (usually in resources folder).
-   * "bundle" option will be set to false, "includeInBundle" will be set to true.
+   * @see SenchaProfileConfiguration#getAdditionalJsIncludeInBundle()
    */
   @Parameter
   private List<String> additionalJsIncludeInBundle;
 
   /**
-   * Specifies editorPlugins to be loaded.
+   * @see SenchaProfileConfiguration#getEditorPlugins()
    */
   @Parameter
   private List<String> editorPlugins;
